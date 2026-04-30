@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import type { Category } from "@/entities/category";
 import { type Project } from "@/entities/project";
-import { createProjectAdaptive } from "@/features/workspace-project-bridge";
+import { getProject, upsertProject } from "@/entities/project";
 import type { Status } from "@/entities/status";
 import { slugify } from "@/shared/lib/slugify";
 import { Button } from "@/shared/ui";
@@ -75,9 +75,7 @@ export function ProjectQuickCreatePanel({
     setError(null);
 
     try {
-      // P0-B Phase 6: ?pj 자동 상속으로 컨테이너에서 생성하면 컨테이너의
-      // hubs/nodes 로 직접 신규 등록.
-      await createProjectAdaptive({
+      const input = {
         accountId: accountId ?? undefined,
         slug: derivedSlug,
         name: trimmedName,
@@ -96,7 +94,12 @@ export function ProjectQuickCreatePanel({
           x: 220 + projects.length * 36,
           y: 180 + projects.length * 28,
         },
-      });
+      };
+      const existing = await getProject(input.slug, input.accountId);
+      if (existing) {
+        throw new Error("이미 존재하는 slug입니다.");
+      }
+      await upsertProject(input);
 
       setName("");
       setDescription("");
