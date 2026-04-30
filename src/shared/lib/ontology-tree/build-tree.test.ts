@@ -41,7 +41,7 @@ function makeEdge(
 
 describe("buildOntologyTree — happy path", () => {
   const nodes = [
-    makeNode("p1", "project", "Aslan Maps"),
+    makeNode("p1", "project", "Sample"),
     makeNode("d1", "domain", "인증"),
     makeNode("d2", "domain", "지식"),
     makeNode("c1", "capability", "로그인"),

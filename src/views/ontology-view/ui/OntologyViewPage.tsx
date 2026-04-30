@@ -534,7 +534,7 @@ export function OntologyViewPage() {
  *
  * window.location.origin 은 `/ontology/?account=...` 과 결합해 절대 URL 로
  * 합성. accountId 가 null 이면 query 안에 ?account 없이 — 외부 방문자가
- * aslan 공개 ontology 에 그대로 진입.
+ * demo 공개 ontology 에 그대로 진입.
  */
 function CopyNodeLinkButton({
   node,

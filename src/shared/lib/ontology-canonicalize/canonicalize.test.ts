@@ -80,9 +80,9 @@ describe("resolveCanonicalNodeId — legacy slug fallback", () => {
       tempId: "n1",
       title: "로그인 액션",
       kind: "element",
-      primaryProjectId: "aslan-maps",
+      primaryProjectId: "sample",
     });
-    expect(result.canonicalId).toBe("element:aslan-maps:로그인-액션");
+    expect(result.canonicalId).toBe("element:sample:로그인-액션");
     expect(result.source).toBe("legacy-slug");
   });
 

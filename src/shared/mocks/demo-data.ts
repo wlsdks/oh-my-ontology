@@ -4,7 +4,7 @@ import type { KnowledgeDocument } from '@/entities/knowledge-document/model';
 import type { Project } from '@/entities/project/model';
 import type { Status } from '@/entities/status/model';
 import type { WorkspaceProject } from '@/entities/workspace-project/model';
-import { generateAslanBlueprint } from './aslan-demo-blueprint';
+import { generateAslanBlueprint } from './demo-blueprint';
 
 // 엔티티 DEFAULT_STATUSES 의 순수 값 복제. shared 가 entities 의 runtime value 를
 // 참조하면 FSD 레이어가 역행하므로 여기서 동일 데이터를 정의한다. entity 쪽
@@ -21,7 +21,7 @@ const DEMO_DEFAULT_STATUSES: Omit<Status, 'createdAt' | 'updatedAt'>[] = [
   { id: 'deprecated', label: '중단', labelEn: 'Deprecated', order: 7, dotColor: 'paused' },
 ];
 
-export const DEMO_ACCOUNT_ID = 'stress-lab';
+export const DEMO_ACCOUNT_ID = 'demo-workspace';
 const DEMO_VIEWER_UID = 'demo-viewer-local';
 const DEMO_VIEWER_EMAIL = 'demo-viewer@local';
 
@@ -90,7 +90,7 @@ const OWNERS = [
   '디자인팀',
 ];
 
-const LINK_HOSTS = ['github.com/aslan', 'docs.aslan.dev', 'status.aslan.dev'];
+const LINK_HOSTS = ['github.com/demo', 'docs.demo.dev', 'status.demo.dev'];
 
 function pickIntegerInRange(rng: () => number, min: number, max: number) {
   return Math.floor(rng() * (max - min + 1)) + min;
@@ -205,9 +205,9 @@ function buildLinks(rng: () => number, slug: string) {
   return links;
 }
 
-// ─── Aslan 청사진 ────────────────────────────────────────────────────────
+// ─── Demo 청사진 ────────────────────────────────────────────────────────
 //
-// 데모를 "랜덤 합성" 이 아닌 "실제 Aslan 로드맵 / 코드베이스 구조" 로 보이게
+// 데모를 "랜덤 합성" 이 아닌 "실제 Demo 로드맵 / 코드베이스 구조" 로 보이게
 // 만든다. 4 컨테이너 × 약 5 hubs × 5–12 nodes ≈ 200 프로젝트. 이름·설명은
 // 실제 우리가 만든 / 만들 시스템 이름. cross-container 의존도 명시.
 //
@@ -316,16 +316,16 @@ function buildProjects(
   for (const entry of enriched) byLifecycle.get(entry.lifecycleId)!.push(entry);
 
   const containerToTags: Record<string, string[]> = {
-    narnia: ['Product', 'UI', 'Sigma', 'WebGL'],
-    'aslan-iam': ['Auth', 'Security', 'Identity'],
-    'aslan-reactor': ['AI', 'Agent', 'Eval'],
-    'aslan-knowledge': ['KB', 'Docs', 'Ontology'],
+    demo: ['Product', 'UI', 'Sigma', 'WebGL'],
+    'demo-iam': ['Auth', 'Security', 'Identity'],
+    'demo-reactor': ['AI', 'Agent', 'Eval'],
+    'demo-knowledge': ['KB', 'Docs', 'Ontology'],
   };
   const containerToStack: Record<string, string[]> = {
-    narnia: ['TypeScript', 'React', 'Sigma.js', 'Firestore'],
-    'aslan-iam': ['Node.js', 'OAuth', 'JWT', 'Postgres'],
-    'aslan-reactor': ['Python', 'OpenAI SDK', 'Anthropic SDK', 'Pydantic'],
-    'aslan-knowledge': ['Gemini', 'Firestore', 'TypeScript', 'Cloud Functions'],
+    demo: ['TypeScript', 'React', 'Sigma.js', 'Firestore'],
+    'demo-iam': ['Node.js', 'OAuth', 'JWT', 'Postgres'],
+    'demo-reactor': ['Python', 'OpenAI SDK', 'Anthropic SDK', 'Pydantic'],
+    'demo-knowledge': ['Gemini', 'Firestore', 'TypeScript', 'Cloud Functions'],
   };
 
   const projects: Project[] = [];
@@ -415,8 +415,8 @@ function buildWorkspaceProjects(): WorkspaceProject[] {
 function buildAccount(): Account {
   return {
     id: DEMO_ACCOUNT_ID,
-    name: 'ASLAN LAB',
-    description: 'Aslan 팀의 실 로드맵을 본뜬 데모 워크스페이스 — Narnia · Aslan IAM · Aslan Reactor · Aslan Knowledge 4 컨테이너로 구성.',
+    name: 'oh-my-ontology',
+    description: 'Demo 팀의 실 로드맵을 본뜬 데모 워크스페이스 — Demo · Demo IAM · Demo Reactor · Demo Knowledge 4 컨테이너로 구성.',
     isPublic: true,
     createdAt: new Date(SEED_BASE),
     updatedAt: new Date(NOW),

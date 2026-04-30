@@ -86,7 +86,7 @@ export function LoginPage() {
         <Card className="rounded-[28px]">
           <CardHeader>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              Narnia 로그인
+              Demo 로그인
             </p>
             <CardTitle>로그인</CardTitle>
             <CardDescription>로그인하면 바로 이어서 볼 수 있습니다.</CardDescription>

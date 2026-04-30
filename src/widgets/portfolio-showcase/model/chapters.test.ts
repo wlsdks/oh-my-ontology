@@ -24,21 +24,21 @@ describe("resolvePortfolioChapters", () => {
 
     expect(chapters.map((chapter) => chapter.slug)).toEqual([
       "iam",
-      "aslan-maps",
-      "paravel",
+      "sample",
+      "sample-app",
       "pick",
       "reactor",
       "reactor-web",
       "reactor-admin",
       "atlassian-mcp",
-      "aslan-verse",
-      "news-clipping",
+      "demo-verse",
+      "sample-news",
     ]);
   });
 
   it("extracts clean narrative text from markdown detail", () => {
     const projectsWithDetail = projects.map((project) =>
-      project.slug === "aslan-maps"
+      project.slug === "sample"
         ? {
             ...project,
             detail:
@@ -51,7 +51,7 @@ describe("resolvePortfolioChapters", () => {
       projectsWithDetail,
       resolveFeaturedPathPresets(projectsWithDetail),
     );
-    const mapsChapter = chapters.find((chapter) => chapter.slug === "aslan-maps");
+    const mapsChapter = chapters.find((chapter) => chapter.slug === "sample");
 
     expect(mapsChapter?.narrative).toBe(
       "아슬란의 프로젝트를 하나의 포트폴리오 지도로 설명합니다.",

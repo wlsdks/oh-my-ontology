@@ -23,31 +23,31 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Narnia',
-    template: '%s · Narnia',
+    default: 'Demo',
+    template: '%s · Demo',
   },
   description: '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
-  keywords: ['Narnia', 'Aslan', '프로젝트 맵', '토폴로지', 'AI Agent', 'Reactor', 'IAM'],
-  authors: [{ name: 'Aslan' }],
+  keywords: ['Demo', 'Demo', '프로젝트 맵', '토폴로지', 'AI Agent', 'Reactor', 'IAM'],
+  authors: [{ name: 'Demo' }],
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
     url: SITE_URL,
-    siteName: 'Narnia',
-    title: 'Narnia',
+    siteName: 'Demo',
+    title: 'Demo',
     description: '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Narnia',
+        alt: 'Demo',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Narnia',
+    title: 'Demo',
     description: '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
     images: ['/og-image.png'],
   },
@@ -88,7 +88,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('aslan:theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}`,
+            __html: `try{var t=localStorage.getItem('demo:theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}`,
           }}
         />
       </head>
@@ -127,15 +127,15 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebSite',
-              name: 'Narnia',
-              alternateName: 'Aslan Project Map',
+              name: 'Demo',
+              alternateName: 'oh-my-ontology',
               url: SITE_URL,
               description:
                 '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
               inLanguage: 'ko-KR',
               publisher: {
                 '@type': 'Organization',
-                name: 'Aslan',
+                name: 'Demo',
               },
             }),
           }}

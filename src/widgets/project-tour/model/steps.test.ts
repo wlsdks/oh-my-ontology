@@ -38,8 +38,8 @@ describe("resolveProjectTourSteps", () => {
     expect(steps.map((step) => step.slug)).toEqual([
       "iam",
       "reactor",
-      "aslan-maps",
-      "aslan-verse",
+      "sample",
+      "demo-verse",
     ]);
   });
 
@@ -50,8 +50,8 @@ describe("resolveProjectTourSteps", () => {
 
     expect(resolveProjectTourSteps(projects).map((step) => step.slug)).toEqual([
       "iam",
-      "aslan-maps",
-      "aslan-verse",
+      "sample",
+      "demo-verse",
     ]);
   });
 });

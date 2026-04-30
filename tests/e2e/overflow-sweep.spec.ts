@@ -19,8 +19,8 @@ const ROUTES = [
   "/reset-password",
   "/account",
   "/projects/",
-  "/project/aslan-maps/",
-  "/project/view/?slug=aslan-maps",
+  "/project/sample/",
+  "/project/view/?slug=sample",
   // admin namespace 폐기 (PR #195~ 이후) — 신 경로로 교체.
   "/knowledge/",
   "/knowledge/documents/",

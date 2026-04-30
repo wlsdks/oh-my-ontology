@@ -27,7 +27,7 @@ const RELATIONS: OntologyRelation[] = [
 const STRICT_DOC = `---
 id: auth-login
 kind: capability
-project: aslan-maps
+project: sample
 domain: authentication
 title: 로그인
 status: active
@@ -134,7 +134,7 @@ describe('buildExtractionPrompt — user prompt content', () => {
   it('embeds frontmatter facts', () => {
     expect(result.user).toContain('auth-login');
     expect(result.user).toContain('capability');
-    expect(result.user).toContain('aslan-maps');
+    expect(result.user).toContain('sample');
   });
 
   it('embeds the relates declaration as ground-truth edges', () => {

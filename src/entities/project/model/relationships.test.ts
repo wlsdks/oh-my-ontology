@@ -14,7 +14,7 @@ describe("resolveProjectRelationshipKind", () => {
   });
 
   it("falls back to dependency for every other target", () => {
-    expect(resolveProjectRelationshipKind("aslan-maps")).toBe("dependency");
+    expect(resolveProjectRelationshipKind("sample")).toBe("dependency");
     expect(resolveProjectRelationshipKind("unknown")).toBe("dependency");
   });
 });

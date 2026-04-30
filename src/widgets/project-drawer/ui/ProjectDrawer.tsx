@@ -83,8 +83,8 @@ export function ProjectDrawer({
   knowledgeInsight,
 }: Props) {
   const isContainerNode = project?.category === "__container__";
-  // Layer 1 drawer 제목에서도 container 이름 prefix 단축. "Arc Reactor · Router"
-  // → "Router" (breadcrumb chip 에 이미 PROJECT · ARC REACTOR 맥락 있음).
+  // Layer 1 drawer 제목에서도 container 이름 prefix 단축. "Demo Reactor · Router"
+  // → "Router" (breadcrumb chip 에 이미 컨테이너 맥락 있음).
   const displayName = (() => {
     if (!project) return "";
     const prefix = containerLabel?.trim();

@@ -11,12 +11,12 @@ import {
   SEED_SANDBOX_PROJECTS,
   SEED_STATUSES,
 } from './seed-fixtures.mjs';
-import { ASLAN_TREE } from './fixtures/aslan-tree.mjs';
+import { DEMO_TREE } from './fixtures/demo-tree.mjs';
 
 const PROJECT_ID =
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
   process.env.GCLOUD_PROJECT ||
-  'demo-aslan-project-map';
+  'demo-oh-my-ontology';
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) {
   throw new Error('FIRESTORE_EMULATOR_HOST is required to seed the Firestore emulator.');
@@ -221,9 +221,9 @@ await seedCollection('accountMemberships', SEED_ACCOUNT_MEMBERSHIPS, 'id');
 await seedCollection('categories', SEED_CATEGORIES, 'id');
 await seedCollection('statuses', SEED_STATUSES, 'id');
 await seedCollection('projects', SEED_PROJECTS, 'slug', normalizeProject);
-await seedAccountProjects('sandbox-lab', SEED_SANDBOX_PROJECTS);
-await seedAccountProjects('aslan', SEED_ASLAN_PROJECTS);
-const aslanTreeStats = await seedAslanTree('aslan', ASLAN_TREE);
+await seedAccountProjects('demo-workspace', SEED_SANDBOX_PROJECTS);
+await seedAccountProjects('demo', SEED_ASLAN_PROJECTS);
+const aslanTreeStats = await seedAslanTree('demo', DEMO_TREE);
 
 console.log(
   `[seed-emulator] accounts=${SEED_ACCOUNTS.length} memberships=${SEED_ACCOUNT_MEMBERSHIPS.length} categories=${SEED_CATEGORIES.length} statuses=${SEED_STATUSES.length} projects=${SEED_PROJECTS.length} sandboxProjects=${SEED_SANDBOX_PROJECTS.length} aslanProjects=${SEED_ASLAN_PROJECTS.length} aslanContainers=${aslanTreeStats.containerCount} aslanHubs=${aslanTreeStats.hubCount} aslanNodes=${aslanTreeStats.nodeCount}`,

@@ -8,7 +8,7 @@ export interface RelatedDocMatch {
 
 interface MatchInput {
   projectSlug: string;
-  /** 프로젝트의 실제 이름 (예: "Arc Reactor"). 제목/본문 matching 에 사용. */
+  /** 프로젝트의 실제 이름 (예: "Demo Reactor"). 제목/본문 matching 에 사용. */
   projectName?: string;
   /** 허브/컨테이너 식별 (예: "reactor"). 보통 projectSlug 와 같지만 hub 는 별도일 수 있음. */
   aliases?: string[];

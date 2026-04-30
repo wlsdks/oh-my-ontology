@@ -32,11 +32,11 @@ describe("wouldCreateDependencyCycle", () => {
   it("returns true when the dependency already reaches the project", () => {
     const projects = [
       project("iam"),
-      project("aslan-maps", ["iam"]),
-      project("pick", ["aslan-maps"]),
+      project("sample", ["iam"]),
+      project("pick", ["sample"]),
     ];
 
-    expect(wouldCreateDependencyCycle(projects, "iam", "aslan-maps")).toBe(
+    expect(wouldCreateDependencyCycle(projects, "iam", "sample")).toBe(
       true,
     );
     expect(wouldCreateDependencyCycle(projects, "iam", "pick")).toBe(true);
@@ -46,7 +46,7 @@ describe("wouldCreateDependencyCycle", () => {
     const projects = [
       project("iam"),
       project("reactor"),
-      project("aslan-maps", ["iam"]),
+      project("sample", ["iam"]),
     ];
 
     expect(wouldCreateDependencyCycle(projects, "iam", "reactor")).toBe(false);

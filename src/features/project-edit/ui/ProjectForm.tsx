@@ -819,7 +819,7 @@ export function ProjectForm({
                 setSlugManuallyEdited(true);
                 setValue("slug", v);
               }}
-              placeholder="aslan-maps"
+              placeholder="sample"
               disabled={mode === "edit"}
               mono
               spellCheck={false}
@@ -868,7 +868,7 @@ export function ProjectForm({
                 setValue("name", v);
                 syncSlugFromName(v);
               }}
-              placeholder="Narnia"
+              placeholder="Demo"
               autoComplete="off"
               aria-invalid={Boolean(errors.name)}
             />
@@ -881,7 +881,7 @@ export function ProjectForm({
               data-testid="project-input-name-en"
               value={values.nameEn ?? ""}
               onChange={(v) => setValue("nameEn", v)}
-              placeholder="Narnia"
+              placeholder="Demo"
               autoComplete="off"
             />
           </FieldRow>

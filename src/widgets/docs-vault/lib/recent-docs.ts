@@ -2,7 +2,7 @@
 // files" 와 동등. 볼트별로 namespace 분리 — 서버 볼트와 로컬 볼트(폴더별)
 // 각각 독립된 리스트. slug 충돌 시 엉키는 문제 방지.
 
-export const RECENT_DOCS_STORAGE_PREFIX = 'aslan:docs-vault:recent:v2:';
+export const RECENT_DOCS_STORAGE_PREFIX = 'demo:docs-vault:recent:v2:';
 const STORAGE_PREFIX = RECENT_DOCS_STORAGE_PREFIX;
 const MAX_RECENTS = 5;
 
@@ -52,7 +52,7 @@ export function pushRecentDoc(
 /** v1 에서 쓰던 단일 키를 v2 namespace 로 마이그레이트. 처음 1회만 수행. */
 export function migrateLegacyRecentDocs(): void {
   if (typeof window === 'undefined') return;
-  const LEGACY = 'aslan:docs-vault:recent:v1';
+  const LEGACY = 'demo:docs-vault:recent:v1';
   try {
     const raw = window.localStorage.getItem(LEGACY);
     if (!raw) return;

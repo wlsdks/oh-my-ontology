@@ -7,7 +7,7 @@
  * 런타임 의존은 오직 shared 까지만 허용되는 제약을 유지.
  */
 
-export const DEMO_SESSION_STORAGE_KEY = 'aslan:auth:demo-session';
+export const DEMO_SESSION_STORAGE_KEY = 'demo:auth:demo-session';
 
 export interface DemoSessionPayload {
   uid: string;

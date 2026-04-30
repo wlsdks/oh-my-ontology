@@ -15,7 +15,7 @@ test.describe("public topology flows", () => {
     page,
   }) => {
     await loginAsDemo(page);
-    await page.goto("/?account=sandbox-lab");
+    await page.goto("/?account=demo-workspace");
 
     const accountTrigger = page.locator('button[aria-label="내 정보 보기"]').first();
     await accountTrigger.click();
@@ -68,19 +68,19 @@ test.describe("public topology flows", () => {
 
   test("개별 프로젝트에서 내부 지도 전체 화면으로 이동할 수 있다", async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto("/project/view/?slug=stress-core-01&account=stress-lab");
+    await page.goto("/project/view/?slug=stress-core-01&account=demo-workspace");
 
     await expect(page.getByRole("heading", { name: "스트레스 코어 01" })).toBeVisible();
     await page.getByTestId("project-detail-topology-link").click();
 
-    await expect(page).toHaveURL(/\/\?p=stress-core-01&account=stress-lab$/);
+    await expect(page).toHaveURL(/\/\?p=stress-core-01&account=demo-workspace$/);
     await expect(page.getByTestId("project-knowledge-topology-scene-canvas")).toBeVisible();
     await expect(page.getByText("항목 2652개")).toBeVisible();
   });
 
   test("전체 토폴로지에서 Sigma 지도와 그래프 컨트롤이 노출된다", async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto("/?account=sandbox-lab");
+    await page.goto("/?account=demo-workspace");
 
     await expect(page.getByTestId("sigma-topology-viewport")).toBeVisible({
       timeout: 20_000,
@@ -92,16 +92,16 @@ test.describe("public topology flows", () => {
 
   test("오래된 프로젝트 토폴로지 경로는 메인 토폴로지로 이동한다", async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto("/project/topology/?slug=stress-core-01&account=stress-lab");
+    await page.goto("/project/topology/?slug=stress-core-01&account=demo-workspace");
 
-    await expect(page).toHaveURL(/\/\?p=stress-core-01&account=stress-lab$/);
+    await expect(page).toHaveURL(/\/\?p=stress-core-01&account=demo-workspace$/);
     await expect(page.getByTestId("project-knowledge-topology-scene-canvas")).toBeVisible();
     await expect(page.getByText("항목 2652개")).toBeVisible();
   });
 
   test("프로젝트 검색은 바깥 배경을 누르면 닫힌다", async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto("/?account=sandbox-lab");
+    await page.goto("/?account=demo-workspace");
 
     await page.getByRole("button", { name: "프로젝트 검색" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
@@ -125,7 +125,7 @@ test.describe("public topology flows", () => {
     page,
   }) => {
     await loginAsDemo(page);
-    await page.goto("/?account=sandbox-lab&p=sandbox-core");
+    await page.goto("/?account=demo-workspace&p=sandbox-core");
 
     const projectDrawer = page.getByTestId("project-drawer");
     await expect(projectDrawer).toBeVisible();
@@ -135,21 +135,21 @@ test.describe("public topology flows", () => {
 
   test("계정 기반 상세에서는 프로젝트 목록으로 바로 돌아갈 수 있다", async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto("/project/view/?slug=sandbox-core&account=sandbox-lab");
+    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
 
     await expect(page.getByRole("link", { name: "프로젝트 목록" })).toBeVisible();
     await page.getByRole("link", { name: "프로젝트 목록" }).click();
 
-    await expect(page).toHaveURL(/\/projects\/\?account=sandbox-lab$/);
+    await expect(page).toHaveURL(/\/projects\/\?account=demo-workspace$/);
     await expect(page.getByRole("heading", { name: "프로젝트", exact: true })).toBeVisible();
   });
 
   test("관리자는 공개 상세에서 바로 편집과 문서 작업으로 이동할 수 있다", async ({ page }) => {
-    await page.goto("/dev/login/?account=sandbox-lab");
+    await page.goto("/dev/login/?account=demo-workspace");
     await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
-    await expect(page).toHaveURL(/\/admin\/dashboard\/\?account=sandbox-lab$/);
+    await expect(page).toHaveURL(/\/admin\/dashboard\/\?account=demo-workspace$/);
 
-    await page.goto("/?account=sandbox-lab&p=sandbox-core");
+    await page.goto("/?account=demo-workspace&p=sandbox-core");
     await expect(page.getByLabel("전체 지도 빠른 작업")).toHaveCount(0);
     const projectActions = page.getByRole("region", { name: "프로젝트 관리" });
     await expect(projectActions).toBeVisible();
@@ -159,7 +159,7 @@ test.describe("public topology flows", () => {
     await page.getByLabel("프로젝트 관리 도움말").hover();
     await expect(page.getByRole("tooltip")).toContainText("등록한 문서는 연결 후보와 공개 문서의 시작점이 됩니다.");
 
-    await page.goto("/project/view/?slug=sandbox-core&account=sandbox-lab");
+    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
     await expect(page.getByText("개별 프로젝트")).toBeVisible();
     await expect(page.getByTestId("public-quick-edit-toggle")).toBeVisible();
     await page.getByTestId("public-quick-edit-toggle").click();
@@ -175,10 +175,10 @@ test.describe("public topology flows", () => {
   });
 
   test("공개 상세에서 편집으로 들어가 취소하면 원래 보던 공개 화면으로 돌아간다", async ({ page }) => {
-    await page.goto("/dev/login/?account=sandbox-lab");
+    await page.goto("/dev/login/?account=demo-workspace");
     await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
 
-    await page.goto("/project/view/?slug=sandbox-core&account=sandbox-lab");
+    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
     await page.getByTestId("public-quick-edit-toggle").click();
     const quickEditDialog = page.getByRole("dialog", { name: "프로젝트 정보 수정" });
     await expect(quickEditDialog).toBeVisible();
@@ -187,33 +187,33 @@ test.describe("public topology flows", () => {
     await expect(page).toHaveURL(/returnTo=/);
     await page.getByRole("button", { name: "취소" }).first().click();
 
-    await expect(page).toHaveURL(/\/project\/view\/\?slug=sandbox-core&account=sandbox-lab$/);
+    await expect(page).toHaveURL(/\/project\/view\/\?slug=sandbox-core&account=demo-workspace$/);
     await expect(page.getByRole("heading", { name: "샌드박스 코어" })).toBeVisible();
   });
 
   test("관리자는 프로젝트 편집에서 저장하고 계속 보기를 눌러 같은 화면에서 결과를 확인할 수 있다", async ({
     page,
   }) => {
-    await page.goto("/dev/login/?account=sandbox-lab");
+    await page.goto("/dev/login/?account=demo-workspace");
     await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
 
-    await page.goto("/project/sandbox-core/edit/?account=sandbox-lab");
+    await page.goto("/project/sandbox-core/edit/?account=demo-workspace");
     await expect(page.getByRole("heading", { name: "샌드박스 코어" })).toBeVisible();
 
     const description = page.getByTestId("project-input-description");
     await description.fill("샌드박스 코어의 문서 기반 온톨로지를 빠르게 검토하는 허브입니다.");
     await page.getByRole("button", { name: "저장하고 계속 보기" }).first().click();
 
-    await expect(page).toHaveURL(/\/project\/sandbox-core\/edit\/\?account=sandbox-lab$/);
+    await expect(page).toHaveURL(/\/project\/sandbox-core\/edit\/\?account=demo-workspace$/);
     await expect(page.getByRole("status")).toContainText("변경 사항을 저장했습니다.");
     await expect(page.getByText("왼쪽 입력이 여기와 공개 화면에 바로 반영됩니다.")).toBeVisible();
   });
 
   test("관리자는 프로젝트 선택 화면에서 바로 운영 화면으로 이동할 수 있다", async ({ page }) => {
-    await page.goto("/dev/login/?account=sandbox-lab");
+    await page.goto("/dev/login/?account=demo-workspace");
     await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
 
-    await page.goto("/projects/?account=sandbox-lab");
+    await page.goto("/projects/?account=demo-workspace");
     const operationsToggle = page.locator("summary").filter({ hasText: "관리 도구" }).first();
     await expect(operationsToggle).toBeVisible();
     await operationsToggle.click();
@@ -227,8 +227,8 @@ test.describe("public topology flows", () => {
     page,
   }) => {
     const suffix = Date.now();
-    const email = `inline-owner-${suffix}@narnia.local`;
-    const password = "narnia-pass-123";
+    const email = `inline-owner-${suffix}@demo.local`;
+    const password = "demo-pass-123";
     const displayName = `인라인 소유자 ${suffix}`;
     const description = `공개 상세에서 바로 수정한 설명 ${suffix}`;
 
@@ -236,16 +236,16 @@ test.describe("public topology flows", () => {
       email,
       password,
       displayName,
-      accountId: "sandbox-lab",
+      accountId: "demo-workspace",
       role: "owner",
     });
 
-    await page.goto("/login/?account=sandbox-lab");
+    await page.goto("/login/?account=demo-workspace");
     await page.getByLabel("이메일").fill(email);
     await page.getByLabel("비밀번호").fill(password);
     await page.getByRole("button", { name: "이메일로 로그인" }).click();
 
-    await page.goto("/project/view/?slug=sandbox-core&account=sandbox-lab");
+    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
     await page.getByTestId("public-quick-edit-toggle").click();
     const quickEditDialog = page.getByRole("dialog", { name: "프로젝트 정보 수정" });
     await expect(quickEditDialog).toBeVisible();
@@ -268,8 +268,8 @@ test.describe("public topology flows", () => {
     page,
   }) => {
     const suffix = Date.now();
-    const email = `owner-create-${suffix}@narnia.local`;
-    const password = "narnia-pass-123";
+    const email = `owner-create-${suffix}@demo.local`;
+    const password = "demo-pass-123";
     const displayName = `생성 소유자 ${suffix}`;
     const projectName = `빠른 생성 프로젝트 ${suffix}`;
     const projectDescription = `프로젝트 목록에서 바로 만든 설명 ${suffix}`;
@@ -279,17 +279,17 @@ test.describe("public topology flows", () => {
       email,
       password,
       displayName,
-      accountId: "sandbox-lab",
+      accountId: "demo-workspace",
       role: "owner",
     });
 
     try {
-      await page.goto("/login/?account=sandbox-lab");
+      await page.goto("/login/?account=demo-workspace");
       await page.getByLabel("이메일").fill(email);
       await page.getByLabel("비밀번호").fill(password);
       await page.getByRole("button", { name: "이메일로 로그인" }).click();
 
-      await expect(page).toHaveURL(/\/projects\/\?account=sandbox-lab$/);
+      await expect(page).toHaveURL(/\/projects\/\?account=demo-workspace$/);
       await page.locator("summary").filter({ hasText: "새 프로젝트" }).click();
       await page.getByRole("button", { name: "빠른 만들기" }).click();
       await page.getByTestId("quick-create-name").fill(projectName);
@@ -304,7 +304,7 @@ test.describe("public topology flows", () => {
       await expect(page.getByText("프로젝트에 바로 연결됩니다.")).toBeVisible();
       await expect(page.locator('textarea[name="rawMarkdown"]')).toHaveValue(/# 요약/);
     } finally {
-      await deleteAccountProject("sandbox-lab", projectSlug);
+      await deleteAccountProject("demo-workspace", projectSlug);
     }
   });
 
@@ -315,13 +315,13 @@ test.describe("public topology flows", () => {
     const projectSlug = slugify(projectName);
 
     try {
-      await page.goto("/dev/login/?account=sandbox-lab");
+      await page.goto("/dev/login/?account=demo-workspace");
       await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
 
       await page.goto(
-        `/projects/?account=sandbox-lab&returnTo=${encodeURIComponent("/?account=sandbox-lab&p=sandbox-core")}`,
+        `/projects/?account=demo-workspace&returnTo=${encodeURIComponent("/?account=demo-workspace&p=sandbox-core")}`,
       );
-      await expect(page).toHaveURL(/\/projects\/\?account=sandbox-lab&returnTo=/);
+      await expect(page).toHaveURL(/\/projects\/\?account=demo-workspace&returnTo=/);
       await page.locator("summary").filter({ hasText: "새 프로젝트" }).click();
       await page.getByRole("button", { name: "빠른 만들기" }).click();
       await page.getByTestId("quick-create-name").fill(projectName);
@@ -329,10 +329,10 @@ test.describe("public topology flows", () => {
       await page.getByRole("button", { name: "만들고 첫 문서 쓰기" }).click();
 
       await expect(page).toHaveURL(/\/admin\/knowledge\/documents\/new\/\?/);
-      await expect(page).toHaveURL(/returnTo=%2F%3Faccount%3Dsandbox-lab%26p%3Dsandbox-core/);
+      await expect(page).toHaveURL(/returnTo=%2F%3Faccount%3Ddemo-workspace%26p%3Dsandbox-core/);
       await expect(page.locator('input[name="title"]')).toHaveValue(`${projectName} 명세`);
     } finally {
-      await deleteAccountProject("sandbox-lab", projectSlug);
+      await deleteAccountProject("demo-workspace", projectSlug);
     }
   });
 });

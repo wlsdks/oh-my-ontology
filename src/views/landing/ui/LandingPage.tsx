@@ -166,7 +166,7 @@ export function LandingPage({ accountId, next }: Props) {
               <Orbit size={15} />
             </span>
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[color:var(--color-text-tertiary)]">
-              Narnia
+              Demo
             </span>
             {scopeLabel ? (
               <span className="ml-2 rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
@@ -378,7 +378,7 @@ export function LandingPage({ accountId, next }: Props) {
             </h2>
             <p className="max-w-2xl text-sm leading-6 text-[color:var(--color-text-secondary)] md:text-base md:leading-7">
               문서·코드·대화가 따로 도는 팀에서 &ldquo;지금 뭐가 어디에 연결됐지?&rdquo; 는
-              대답 못 하는 질문이 됩니다. Narnia 는 그 질문을 한 장의 지도로 바꿉니다.
+              대답 못 하는 질문이 됩니다. Demo 는 그 질문을 한 장의 지도로 바꿉니다.
             </p>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -427,7 +427,7 @@ export function LandingPage({ accountId, next }: Props) {
               쓰는 순간 지도에 반영되는 워크플로
             </h2>
             <p className="max-w-2xl text-sm leading-6 text-[color:var(--color-text-secondary)] md:text-base md:leading-7">
-              문서, 커맨드, 에디터 어디에서든 프로젝트 변화를 보내면 Narnia 가 받아 토폴로지에 바로 반영합니다. 팀이 한 지도에서 &ldquo;지금 누가 무엇을 어디에서&rdquo; 같이 봅니다.
+              문서, 커맨드, 에디터 어디에서든 프로젝트 변화를 보내면 Demo 가 받아 토폴로지에 바로 반영합니다. 팀이 한 지도에서 &ldquo;지금 누가 무엇을 어디에서&rdquo; 같이 봅니다.
             </p>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -441,7 +441,7 @@ export function LandingPage({ accountId, next }: Props) {
               milestone="M3"
               icon={<Terminal size={18} />}
               title="MCP 서버"
-              body="project-narnia-mcp — Claude Code · Cursor 같은 AI 에디터에서 tool 로 붙여 지도를 자연어로 조회·업데이트."
+              body="project-demo-mcp — Claude Code · Cursor 같은 AI 에디터에서 tool 로 붙여 지도를 자연어로 조회·업데이트."
             />
             <RoadmapCard
               milestone="M4"

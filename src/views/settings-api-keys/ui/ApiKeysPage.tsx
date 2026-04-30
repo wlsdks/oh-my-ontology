@@ -234,7 +234,7 @@ function ApiKeysContent() {
                 </button>
               </div>
               <p className="mt-3 text-[11px] text-[color:var(--color-text-tertiary)]">
-                사용 예: <code>curl -H &quot;Authorization: Bearer {revealedPlaintext.slice(0, 12)}…&quot; https://api.narnia.dev/api/v1/docs</code>
+                사용 예: <code>curl -H &quot;Authorization: Bearer {revealedPlaintext.slice(0, 12)}…&quot; https://api.demo.dev/api/v1/docs</code>
               </p>
             </section>
           ) : null}

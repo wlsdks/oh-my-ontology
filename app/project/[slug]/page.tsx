@@ -41,7 +41,7 @@ export async function generateMetadata({
   }
 
   const title = project.name;
-  const description = project.description || `${project.name} — Narnia`;
+  const description = project.description || `${project.name} — Demo`;
   // Next.js 16 + output:'export' 환경에서 metadataBase 기반 상대경로가 실제
   // 빌드 HTML 에 canonical / og:url 로 emit 되지 않는 회귀가 있음 — 절대
   // URL 로 명시해 회피. 루트 layout 의 metadataBase 와 같은 SITE_URL 사용.
@@ -72,7 +72,7 @@ export async function generateMetadata({
       canonical: canonicalUrl,
     },
     openGraph: {
-      siteName: 'Narnia',
+      siteName: 'Demo',
       title,
       description,
       type: 'article',
@@ -112,12 +112,12 @@ export default async function Page({
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
     name: project.name,
-    description: project.description || `${project.name} — Narnia`,
+    description: project.description || `${project.name} — Demo`,
     url: absoluteUrl(`/project/${slug}/`),
     inLanguage: 'ko-KR',
     author: {
       '@type': 'Organization',
-      name: 'Aslan',
+      name: 'Demo',
     },
     keywords: Array.from(
       new Set(

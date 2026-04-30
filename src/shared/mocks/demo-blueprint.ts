@@ -1,5 +1,5 @@
 /**
- * ASLAN 데모 blueprint 생성기.
+ * DEMO 데모 blueprint 생성기.
  *
  * 20 개 컨테이너 · 컨테이너당 10~20 허브 · 허브당 4~8 노드.
  * 일관된 deterministic random (seed) 로 매 빌드마다 같은 결과.
@@ -37,27 +37,27 @@ const CONTAINER_THEMES: ReadonlyArray<{
   hubCount: number;
   crossDepFrom?: string; // 이 컨테이너 첫 hub 가 다른 컨테이너 hub 에 의존 (system boundary)
 }> = [
-  { id: 'narnia', name: 'Narnia', description: '메인 제품 — 토폴로지 지도, 컨테이너/허브/노드 4-layer, 실시간 협업.', hubCount: 14 },
-  { id: 'aslan-iam', name: 'Aslan IAM', description: '인증·세션·권한 인프라.', hubCount: 12 },
-  { id: 'aslan-reactor', name: 'Arc Reactor', description: 'Spring AI 기반 엔터프라이즈 AI Agent 런타임.', hubCount: 20, crossDepFrom: 'aslan-iam' },
-  { id: 'aslan-knowledge', name: 'Aslan Knowledge', description: '문서 파이프라인 + 온톨로지 빌더 + 공개 그래프.', hubCount: 12, crossDepFrom: 'narnia' },
-  { id: 'aslan-billing', name: 'Aslan Billing', description: '구독·사용량·청구서 발행.', hubCount: 10, crossDepFrom: 'aslan-iam' },
-  { id: 'aslan-analytics', name: 'Aslan Analytics', description: '사용 지표·대시보드·리포트 파이프라인.', hubCount: 12 },
-  { id: 'aslan-notify', name: 'Aslan Notify', description: '이메일·Slack·웹훅 다채널 알림 허브.', hubCount: 10 },
-  { id: 'aslan-storage', name: 'Aslan Storage', description: 'Blob·메타·권한 통합 스토리지.', hubCount: 11, crossDepFrom: 'aslan-iam' },
-  { id: 'aslan-search', name: 'Aslan Search', description: '벡터·키워드·하이브리드 검색 서비스.', hubCount: 10, crossDepFrom: 'aslan-knowledge' },
-  { id: 'aslan-workflow', name: 'Aslan Workflow', description: '휴먼-인-더-루프 승인 + 스케줄 워크플로.', hubCount: 13 },
-  { id: 'aslan-audit', name: 'Aslan Audit', description: '조작 로그·보안 이벤트 감사.', hubCount: 10, crossDepFrom: 'aslan-iam' },
-  { id: 'aslan-ingest', name: 'Aslan Ingest', description: '외부 소스 → 내부 지식으로 ETL.', hubCount: 11, crossDepFrom: 'aslan-knowledge' },
-  { id: 'aslan-sdk', name: 'Aslan SDK', description: '외부 클라이언트용 SDK · CLI · MCP 서버.', hubCount: 10 },
-  { id: 'aslan-presence', name: 'Aslan Presence', description: 'WebSocket 기반 실시간 협업 상태.', hubCount: 10, crossDepFrom: 'narnia' },
-  { id: 'aslan-billing-gateway', name: 'Payment Gateway', description: '다중 PG 결제 추상화 레이어.', hubCount: 10, crossDepFrom: 'aslan-billing' },
-  { id: 'aslan-email', name: 'Aslan Email', description: '트랜잭션 · 캠페인 이메일 라우팅.', hubCount: 10, crossDepFrom: 'aslan-notify' },
-  { id: 'aslan-scheduler', name: 'Aslan Scheduler', description: 'Cron · 분산 큐 · 리트라이 스케줄러.', hubCount: 10, crossDepFrom: 'aslan-workflow' },
-  { id: 'aslan-observability', name: 'Aslan Observability', description: 'Trace · Metric · Log 수집 + 알람.', hubCount: 11, crossDepFrom: 'aslan-analytics' },
-  { id: 'aslan-featureflag', name: 'Aslan FeatureFlag', description: '롤아웃·AB 테스트·동적 토글.', hubCount: 10 },
-  { id: 'aslan-onboarding', name: 'Aslan Onboarding', description: '신규 사용자 가입·투어·샘플 데이터.', hubCount: 10, crossDepFrom: 'aslan-iam' },
-  { id: 'aslan-support', name: 'Aslan Support', description: '고객지원·티켓·지식베이스 연동.', hubCount: 10, crossDepFrom: 'aslan-knowledge' },
+  { id: 'demo', name: 'Demo', description: '메인 제품 — 토폴로지 지도, 컨테이너/허브/노드 4-layer, 실시간 협업.', hubCount: 14 },
+  { id: 'demo-iam', name: 'Demo IAM', description: '인증·세션·권한 인프라.', hubCount: 12 },
+  { id: 'demo-reactor', name: 'Demo Reactor', description: 'Spring AI 기반 엔터프라이즈 AI Agent 런타임.', hubCount: 20, crossDepFrom: 'demo-iam' },
+  { id: 'demo-knowledge', name: 'Demo Knowledge', description: '문서 파이프라인 + 온톨로지 빌더 + 공개 그래프.', hubCount: 12, crossDepFrom: 'demo' },
+  { id: 'demo-billing', name: 'Demo Billing', description: '구독·사용량·청구서 발행.', hubCount: 10, crossDepFrom: 'demo-iam' },
+  { id: 'demo-analytics', name: 'Demo Analytics', description: '사용 지표·대시보드·리포트 파이프라인.', hubCount: 12 },
+  { id: 'demo-notify', name: 'Demo Notify', description: '이메일·Slack·웹훅 다채널 알림 허브.', hubCount: 10 },
+  { id: 'demo-storage', name: 'Demo Storage', description: 'Blob·메타·권한 통합 스토리지.', hubCount: 11, crossDepFrom: 'demo-iam' },
+  { id: 'demo-search', name: 'Demo Search', description: '벡터·키워드·하이브리드 검색 서비스.', hubCount: 10, crossDepFrom: 'demo-knowledge' },
+  { id: 'demo-workflow', name: 'Demo Workflow', description: '휴먼-인-더-루프 승인 + 스케줄 워크플로.', hubCount: 13 },
+  { id: 'demo-audit', name: 'Demo Audit', description: '조작 로그·보안 이벤트 감사.', hubCount: 10, crossDepFrom: 'demo-iam' },
+  { id: 'demo-ingest', name: 'Demo Ingest', description: '외부 소스 → 내부 지식으로 ETL.', hubCount: 11, crossDepFrom: 'demo-knowledge' },
+  { id: 'demo-sdk', name: 'Demo SDK', description: '외부 클라이언트용 SDK · CLI · MCP 서버.', hubCount: 10 },
+  { id: 'demo-presence', name: 'Demo Presence', description: 'WebSocket 기반 실시간 협업 상태.', hubCount: 10, crossDepFrom: 'demo' },
+  { id: 'demo-billing-gateway', name: 'Payment Gateway', description: '다중 PG 결제 추상화 레이어.', hubCount: 10, crossDepFrom: 'demo-billing' },
+  { id: 'demo-email', name: 'Demo Email', description: '트랜잭션 · 캠페인 이메일 라우팅.', hubCount: 10, crossDepFrom: 'demo-notify' },
+  { id: 'demo-scheduler', name: 'Demo Scheduler', description: 'Cron · 분산 큐 · 리트라이 스케줄러.', hubCount: 10, crossDepFrom: 'demo-workflow' },
+  { id: 'demo-observability', name: 'Demo Observability', description: 'Trace · Metric · Log 수집 + 알람.', hubCount: 11, crossDepFrom: 'demo-analytics' },
+  { id: 'demo-featureflag', name: 'Demo FeatureFlag', description: '롤아웃·AB 테스트·동적 토글.', hubCount: 10 },
+  { id: 'demo-onboarding', name: 'Demo Onboarding', description: '신규 사용자 가입·투어·샘플 데이터.', hubCount: 10, crossDepFrom: 'demo-iam' },
+  { id: 'demo-support', name: 'Demo Support', description: '고객지원·티켓·지식베이스 연동.', hubCount: 10, crossDepFrom: 'demo-knowledge' },
 ];
 
 // 허브 이름 풀 — container 와 조합해 "{Container Short} · {Hub Role}" 형식.

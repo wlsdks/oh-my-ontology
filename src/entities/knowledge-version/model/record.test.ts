@@ -10,7 +10,7 @@ describe("createKnowledgeVersionRecord", () => {
     const record = createKnowledgeVersionRecord({
       id: "auth-v1",
       documentId: "auth",
-      createdBy: "admin@aslan.dev",
+      createdBy: "admin@demo.dev",
       storagePath: "knowledge-documents/auth/auth-v1.md",
       markdown: "# Auth",
       frontmatter: { title: "Auth Spec" },
@@ -41,7 +41,7 @@ describe("knowledge version diff builders", () => {
     sizeBytes: 10,
     hash: "kv-a",
     createdAt: new Date("2026-04-17T10:00:00Z"),
-    createdBy: "admin@aslan.dev",
+    createdBy: "admin@demo.dev",
   };
 
   const selectedVersion = {

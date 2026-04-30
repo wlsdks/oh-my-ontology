@@ -17,8 +17,8 @@ describe("getTopologyProjectHref", () => {
   });
 
   it("chains workspace project query when provided", () => {
-    expect(getTopologyProjectHref("gemma4", "stark", "narnia")).toBe(
-      "/?p=gemma4&account=stark&pj=narnia",
+    expect(getTopologyProjectHref("gemma4", "stark", "demo")).toBe(
+      "/?p=gemma4&account=stark&pj=demo",
     );
   });
 });

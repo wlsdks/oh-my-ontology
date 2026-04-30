@@ -15,7 +15,7 @@ function attrs(overrides: Partial<SigmaNodeAttrs> = {}): SigmaNodeAttrs {
     color: '',
     borderColor: '',
     outerBorderColor: '',
-    projectSlug: 'aslan-iam',
+    projectSlug: 'demo-iam',
     categoryId: 'auth',
     isHub: false,
     ownerKey: 'unassigned',
@@ -33,7 +33,7 @@ describe('matchesSearch', () => {
   it('matches by projectSlug (case-insensitive)', () => {
     expect(matchesSearch(attrs(), 'iam')).toBe(true);
     expect(matchesSearch(attrs(), 'IAM')).toBe(true);
-    expect(matchesSearch(attrs(), 'aslan')).toBe(true);
+    expect(matchesSearch(attrs(), 'demo')).toBe(true);
   });
 
   it('matches by label (case-insensitive)', () => {
@@ -44,7 +44,7 @@ describe('matchesSearch', () => {
 
   it('returns false when neither projectSlug nor label contains query', () => {
     expect(matchesSearch(attrs(), 'reactor')).toBe(false);
-    expect(matchesSearch(attrs(), 'paravel')).toBe(false);
+    expect(matchesSearch(attrs(), 'sample-app')).toBe(false);
   });
 
   it('trims whitespace before comparing', () => {

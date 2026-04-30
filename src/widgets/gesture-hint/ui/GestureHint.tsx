@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Hand, Pointer, X } from "lucide-react";
 import { MOTION } from "@/shared/motion";
 
-const STORAGE_KEY = "aslan:gesture-hint:dismissed:v1";
+const STORAGE_KEY = "demo:gesture-hint:dismissed:v1";
 
 export function GestureHint({ disabled = false }: { disabled?: boolean }) {
   const [visible, setVisible] = useState(false);

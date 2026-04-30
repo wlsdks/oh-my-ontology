@@ -3,7 +3,7 @@
 
 import type { VaultRecentKey } from './recent-docs';
 
-export const PINNED_DOCS_STORAGE_PREFIX = 'aslan:docs-vault:pinned:v1:';
+export const PINNED_DOCS_STORAGE_PREFIX = 'demo:docs-vault:pinned:v1:';
 const STORAGE_PREFIX = PINNED_DOCS_STORAGE_PREFIX;
 
 function storageKey(key: VaultRecentKey): string {

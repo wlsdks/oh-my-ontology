@@ -10,8 +10,8 @@ afterEach(() => {
 
 describe("useDocumentTitle", () => {
   it("문자열 전달 시 document.title 갱신", () => {
-    renderHook(() => useDocumentTitle("Narnia · narnia"));
-    expect(document.title).toBe("Narnia · narnia");
+    renderHook(() => useDocumentTitle("Demo · demo"));
+    expect(document.title).toBe("Demo · demo");
   });
 
   it("null/빈 값은 무시", () => {

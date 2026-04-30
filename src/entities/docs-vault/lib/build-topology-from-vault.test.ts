@@ -11,9 +11,9 @@ function loader(map: Record<string, string>) {
 describe('buildTopologyFromVault', () => {
   it('projects/*.md 를 Project[] 로 변환', async () => {
     const raws: Record<string, string> = {
-      'projects/reactor': `---\nname: Arc Reactor\ncategory: iam-platform\nisHub: true\ndependencies: [iam, aslan-maps]\ntags: [infra, auth]\n---\n\n# Arc Reactor\n\nIAM 허브.`,
+      'projects/reactor': `---\nname: Demo Reactor\ncategory: iam-platform\nisHub: true\ndependencies: [iam, sample]\ntags: [infra, auth]\n---\n\n# Demo Reactor\n\nIAM 허브.`,
       'projects/iam': `---\nname: IAM\ncategory: iam-platform\n---\n\n인증·권한 관리.`,
-      'projects/aslan-maps': `---\nname: Aslan Maps\ncategory: aslan-maps\n---`,
+      'projects/sample': `---\nname: Sample\ncategory: sample\n---`,
     };
     const result = await buildTopologyFromVault({
       projectSlugs: Object.keys(raws),
@@ -22,14 +22,14 @@ describe('buildTopologyFromVault', () => {
     expect(result.projects).toHaveLength(3);
     const reactor = result.projects.find((p) => p.slug === 'reactor')!;
     expect(reactor.isHub).toBe(true);
-    expect(reactor.dependencies).toEqual(['iam', 'aslan-maps']);
+    expect(reactor.dependencies).toEqual(['iam', 'sample']);
     expect(reactor.tags).toContain('infra');
-    expect(reactor.name).toBe('Arc Reactor');
+    expect(reactor.name).toBe('Demo Reactor');
     expect(reactor.description).toContain('IAM 허브');
     // 카테고리 auto-synth
     expect(result.categories.map((c) => c.slug).sort()).toEqual([
-      'aslan-maps',
       'iam-platform',
+      'sample',
     ]);
     expect(result.danglingRefs).toEqual([]);
   });

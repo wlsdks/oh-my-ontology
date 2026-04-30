@@ -8,9 +8,9 @@ import {
 
 function validValues(overrides: Record<string, unknown> = {}) {
   return {
-    slug: "aslan-maps",
-    name: "Narnia",
-    nameEn: "Narnia",
+    slug: "sample",
+    name: "Demo",
+    nameEn: "Demo",
     category: "planned",
     status: "idea",
     description: "description",
@@ -135,10 +135,10 @@ describe("parseLinksText", () => {
   it("parses valid link rows into label-url pairs", () => {
     expect(
       parseLinksText(
-        "GitHub|https://github.com/aslan\nDocs|https://example.com",
+        "GitHub|https://github.com/demo\nDocs|https://example.com",
       ),
     ).toEqual([
-      { label: "GitHub", url: "https://github.com/aslan" },
+      { label: "GitHub", url: "https://github.com/demo" },
       { label: "Docs", url: "https://example.com" },
     ]);
   });

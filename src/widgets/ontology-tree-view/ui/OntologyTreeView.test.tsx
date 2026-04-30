@@ -20,7 +20,7 @@ function makeResult(): OntologyTreeBuildResult {
   return {
     roots: [
       {
-        node: makeNode("p1", "project", "Aslan Maps"),
+        node: makeNode("p1", "project", "Sample"),
         depth: 0,
         children: [
           {
@@ -45,7 +45,7 @@ function makeResult(): OntologyTreeBuildResult {
 describe("OntologyTreeView — basic render", () => {
   it("renders all tree rows by default (defaultExpanded=true)", () => {
     render(<OntologyTreeView result={makeResult()} />);
-    expect(screen.getByText("Aslan Maps")).toBeInTheDocument();
+    expect(screen.getByText("Sample")).toBeInTheDocument();
     expect(screen.getByText("인증")).toBeInTheDocument();
     expect(screen.getByText("로그인")).toBeInTheDocument();
   });
@@ -75,7 +75,7 @@ describe("OntologyTreeView — expand / collapse", () => {
     expect(screen.queryByText("인증")).not.toBeInTheDocument();
     expect(screen.queryByText("로그인")).not.toBeInTheDocument();
     // root still visible
-    expect(screen.getByText("Aslan Maps")).toBeInTheDocument();
+    expect(screen.getByText("Sample")).toBeInTheDocument();
   });
 
   it("shows children again on second toggle", () => {
@@ -104,7 +104,7 @@ describe("OntologyTreeView — UX-11 element kind dim", () => {
     return {
       roots: [
         {
-          node: makeNode("p1", "project", "Aslan Maps"),
+          node: makeNode("p1", "project", "Sample"),
           depth: 0,
           children: [
             {
@@ -168,14 +168,14 @@ describe("OntologyTreeView — UX-16 project chip", () => {
             {
               node: {
                 ...makeNode("c1", "capability", "JWT"),
-                projectIds: ["aslan-iam"],
+                projectIds: ["demo-iam"],
               },
               depth: 1,
               children: [
                 {
                   node: {
                     ...makeNode("c2", "capability", "Multi"),
-                    projectIds: ["paravel-app", "paravel-backend", "extra"],
+                    projectIds: ["sample-app", "sample-app-backend", "extra"],
                   },
                   depth: 2,
                   children: [],
@@ -193,19 +193,19 @@ describe("OntologyTreeView — UX-16 project chip", () => {
   it("capability 노드에 첫 projectIds chip 노출", () => {
     render(<OntologyTreeView result={withProjects()} />);
     const chips = screen.getAllByTestId("ontology-tree-project-chip");
-    const aslan = chips.find(
-      (c) => c.getAttribute("data-project-id") === "aslan-iam",
+    const demo = chips.find(
+      (c) => c.getAttribute("data-project-id") === "demo-iam",
     );
-    expect(aslan).toBeDefined();
+    expect(demo).toBeDefined();
   });
 
   it("다중 projectIds → 첫 + +N 표시", () => {
     render(<OntologyTreeView result={withProjects()} />);
     const chip = screen
       .getAllByTestId("ontology-tree-project-chip")
-      .find((c) => c.getAttribute("data-project-id") === "paravel-app");
+      .find((c) => c.getAttribute("data-project-id") === "sample-app");
     expect(chip).toBeDefined();
-    expect(chip!.textContent).toContain("paravel-app");
+    expect(chip!.textContent).toContain("sample-app");
     expect(chip!.textContent).toContain("+2");
   });
 

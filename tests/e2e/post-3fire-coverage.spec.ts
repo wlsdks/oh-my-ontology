@@ -100,10 +100,10 @@ test.describe("Fire 6 — ProjectForm RHF 도입 후 form 마운트 회귀", () 
       'input[data-testid="project-input-name"]',
     );
     await expect(slugInput).toBeVisible({ timeout: 15_000 });
-    await nameInput.fill("Aslan Project Test");
+    await nameInput.fill("Demo Project Test");
     // syncSlugFromName 이 setValue + rhfSetValue 두 호출 — 외부 useState 가
     // source of truth 라 input 값에 반영.
-    await expect(slugInput).toHaveValue("aslan-project-test", {
+    await expect(slugInput).toHaveValue("demo-project-test", {
       timeout: 5_000,
     });
   });

@@ -81,16 +81,16 @@ export const SEED_STATUSES = [
 ];
 
 export const SEED_ASLAN_ACCOUNT = {
-  id: "aslan",
-  name: "Aslan",
+  id: "demo",
+  name: "Demo",
   description:
-    "Aslan 제품군 토폴로지 — 인증 허브(IAM), AI 에이전트 런타임(Reactor), MCP 서버, 사용자 surface, 부속 제품들.",
+    "Demo 제품군 토폴로지 — 인증 허브(IAM), AI 에이전트 런타임(Reactor), MCP 서버, 사용자 surface, 부속 제품들.",
   isPublic: true,
 };
 
 export const SEED_ASLAN_MEMBERSHIP = {
   id: "dev-admin-bypass__aslan",
-  accountId: "aslan",
+  accountId: "demo",
   uid: "dev-admin-bypass",
   email: "dev-admin@local",
   role: "owner",
@@ -98,7 +98,7 @@ export const SEED_ASLAN_MEMBERSHIP = {
 
 export const SEED_ACCOUNTS = [
   {
-    id: "sandbox-lab",
+    id: "demo-workspace",
     name: "샌드박스 랩",
     description: "기존 공개 데이터와 분리된 테스트용 워크스페이스",
     isPublic: true,
@@ -108,8 +108,8 @@ export const SEED_ACCOUNTS = [
 
 export const SEED_ACCOUNT_MEMBERSHIPS = [
   {
-    id: "dev-admin-bypass__sandbox-lab",
-    accountId: "sandbox-lab",
+    id: "dev-admin-bypass__demo-workspace",
+    accountId: "demo-workspace",
     uid: "dev-admin-bypass",
     email: "dev-admin@local",
     role: "owner",
@@ -144,8 +144,8 @@ export const SEED_PROJECTS = [
     position: { x: 240, y: 0 },
   },
   {
-    slug: "aslan-maps",
-    name: "Aslan Maps",
+    slug: "sample",
+    name: "Sample",
     category: "in-progress",
     status: "developing",
     description: "아슬란의 프로젝트 토폴로지 지도 (이 사이트).",
@@ -155,8 +155,8 @@ export const SEED_PROJECTS = [
     position: { x: -480, y: -160 },
   },
   {
-    slug: "aslan-verse",
-    name: "Aslan Verse",
+    slug: "demo-verse",
+    name: "Demo Console",
     category: "in-progress",
     status: "deploy-ready",
     description: "AI끼리 소통하는 플랫폼.",
@@ -165,8 +165,8 @@ export const SEED_PROJECTS = [
     position: { x: 480, y: -160 },
   },
   {
-    slug: "news-clipping",
-    name: "뉴스 클리핑 (Lantern)",
+    slug: "sample-news",
+    name: "뉴스 클리핑 (Sample News)",
     category: "in-progress",
     status: "deploy-ready",
     description: "사내용 뉴스 수집·요약 서비스.",
@@ -175,8 +175,8 @@ export const SEED_PROJECTS = [
     position: { x: -320, y: -280 },
   },
   {
-    slug: "paravel",
-    name: "커뮤니티 (Paravel)",
+    slug: "sample-app",
+    name: "커뮤니티 (Sample App)",
     category: "in-progress",
     status: "completed",
     description: "사내 커뮤니티.",
@@ -186,7 +186,7 @@ export const SEED_PROJECTS = [
   },
   {
     slug: "pick",
-    name: "현장강의 플랫폼 (Pick)",
+    name: "Sample Live Lecture (Sample)",
     category: "in-progress",
     status: "developing",
     description:
@@ -197,7 +197,7 @@ export const SEED_PROJECTS = [
   },
   {
     slug: "atlassian-mcp",
-    name: "Atlassian MCP",
+    name: "Sample MCP A",
     category: "in-progress",
     status: "developing",
     description: "Atlassian 제품군 MCP 서버.",
@@ -208,11 +208,11 @@ export const SEED_PROJECTS = [
   },
   {
     slug: "reactor-web",
-    name: "Reactor Web",
-    nameEn: "Arc Reactor Web",
+    name: "Demo Reactor Web",
+    nameEn: "Demo Demo Reactor Web",
     category: "in-progress",
     status: "developing",
-    description: "Arc Reactor를 위한 웹 채팅 UI이자 운영 워크스페이스.",
+    description: "Demo Reactor를 위한 웹 채팅 UI이자 운영 워크스페이스.",
     tags: ["AI", "Frontend", "Console"],
     stack: ["React", "Vite", "TypeScript", "TanStack Query"],
     links: [
@@ -226,7 +226,7 @@ export const SEED_PROJECTS = [
   },
   {
     slug: "swagger-mcp",
-    name: "Swagger MCP",
+    name: "Sample MCP C",
     category: "in-progress",
     status: "developing",
     description: "OpenAPI/Swagger 문서 MCP 서버.",
@@ -237,7 +237,7 @@ export const SEED_PROJECTS = [
   },
   {
     slug: "domain-knowledge-mcp",
-    name: "도메인 지식 MCP",
+    name: "Sample MCP D",
     category: "planned",
     status: "planning",
     description: "도메인 지식 베이스 MCP 서버.",
@@ -247,8 +247,8 @@ export const SEED_PROJECTS = [
     position: { x: -700, y: 0 },
   },
   {
-    slug: "cronos-mcp",
-    name: "Cronos MCP",
+    slug: "sample-mcp-e",
+    name: "Sample MCP E",
     category: "planned",
     status: "planning",
     description: "일정·시간 기반 MCP 서버.",
@@ -257,7 +257,7 @@ export const SEED_PROJECTS = [
   },
   {
     slug: "groupware-mcp",
-    name: "Groupware MCP",
+    name: "Sample MCP B",
     category: "planned",
     status: "planning",
     description: "그룹웨어 MCP 서버.",
@@ -265,8 +265,8 @@ export const SEED_PROJECTS = [
     position: { x: -700, y: -160 },
   },
   {
-    slug: "aslan-scale",
-    name: "Aslan Scale",
+    slug: "demo-scale",
+    name: "Demo Scale",
     category: "planned",
     status: "idea",
     description: "대규모 처리·배치·큐 인프라.",
@@ -353,16 +353,16 @@ export const SEED_SANDBOX_PROJECTS = [
 
 export const SEED_ASLAN_PROJECTS = [
   {
-    slug: "aslan-iam",
-    name: "Aslan IAM",
+    slug: "demo-iam",
+    name: "Demo IAM",
     nameEn: "Integrated Access Management",
     category: "in-progress",
     status: "deploy-ready",
     description:
-      "Aslan 통합 인증 허브. JWT 발급의 유일한 권한자 — 2FA, RSA 키 관리, 공개키 배포, refresh token, rate limit.",
+      "Demo 통합 인증 허브. JWT 발급의 유일한 권한자 — 2FA, RSA 키 관리, 공개키 배포, refresh token, rate limit.",
     detail: [
       "## 역할",
-      "Aslan 제품군 전체의 인증을 단일 지점으로 모은다. 모든 서비스는 IAM 이 RS256 으로 서명한 JWT 만 신뢰하고, 자체 회원 시스템을 두지 않는다.",
+      "Demo 제품군 전체의 인증을 단일 지점으로 모은다. 모든 서비스는 IAM 이 RS256 으로 서명한 JWT 만 신뢰하고, 자체 회원 시스템을 두지 않는다.",
       "",
       "## 핵심 기능",
       "- JWT 발급·검증 + RSA 공개키 배포",
@@ -385,14 +385,14 @@ export const SEED_ASLAN_PROJECTS = [
   {
     slug: "reactor",
     name: "Reactor",
-    nameEn: "Arc Reactor",
+    nameEn: "Demo Reactor",
     category: "in-progress",
     status: "developing",
     description:
       "프로덕션급 AI 에이전트 런타임. ReAct 루프 실행 엔진, 안전·거버넌스 레이어, MCP 동적 등록, Tool 정책.",
     detail: [
       "## 역할",
-      "Aslan 의 모든 LLM 도구 호출이 통과하는 단일 런타임. ReAct 루프 + 안전 가드 + Tool 정책 + RAG + 관찰성 5 축이 한 프로세스 안에 묶여 있다.",
+      "Demo 의 모든 LLM 도구 호출이 통과하는 단일 런타임. ReAct 루프 + 안전 가드 + Tool 정책 + RAG + 관찰성 5 축이 한 프로세스 안에 묶여 있다.",
       "",
       "## 5 축",
       "1. **ReAct 엔진** — 루프 실행, 메모리, 페르소나, 체크포인트, 멀티봇 오케스트레이션",
@@ -402,21 +402,21 @@ export const SEED_ASLAN_PROJECTS = [
       "5. **Lifecycle Hooks·관찰성** — Before/After Agent/Tool 4 단계 훅, 감사·과금·메트릭",
       "",
       "## 의존",
-      "- aslan-iam (JWT 검증)",
+      "- demo-iam (JWT 검증)",
       "",
       "## 스택",
       "Kotlin · Spring Boot 3.5 · Spring AI 1.1 · PostgreSQL · Redis",
     ].join("\n"),
     tags: ["AI", "Agent", "Hub"],
     stack: ["Kotlin", "Spring Boot", "Spring AI", "MCP"],
-    dependencies: ["aslan-iam"],
+    dependencies: ["demo-iam"],
     isHub: true,
     position: { x: 280, y: 0 },
   },
   {
     slug: "reactor-admin",
-    name: "Reactor Admin",
-    nameEn: "Arc Reactor Admin",
+    name: "Demo Reactor Admin",
+    nameEn: "Demo Demo Reactor Admin",
     category: "in-progress",
     status: "developing",
     description:
@@ -445,8 +445,8 @@ export const SEED_ASLAN_PROJECTS = [
   },
   {
     slug: "reactor-web",
-    name: "Reactor Web",
-    nameEn: "Arc Reactor Web",
+    name: "Demo Reactor Web",
+    nameEn: "Demo Demo Reactor Web",
     category: "in-progress",
     status: "developing",
     description:
@@ -481,8 +481,8 @@ export const SEED_ASLAN_PROJECTS = [
   },
   {
     slug: "atlassian-mcp",
-    name: "Atlassian MCP",
-    nameEn: "Atlassian MCP Server",
+    name: "Sample MCP A",
+    nameEn: "Sample MCP A Server",
     category: "in-progress",
     status: "developing",
     description:
@@ -545,8 +545,8 @@ export const SEED_ASLAN_PROJECTS = [
   },
   {
     slug: "swagger-mcp",
-    name: "Swagger MCP",
-    nameEn: "Swagger MCP Server",
+    name: "Sample MCP C",
+    nameEn: "Sample MCP C Server",
     category: "in-progress",
     status: "developing",
     description:
@@ -573,9 +573,9 @@ export const SEED_ASLAN_PROJECTS = [
     position: { x: 380, y: 340 },
   },
   {
-    slug: "aslan-verse-web",
-    name: "Aslan Verse",
-    nameEn: "Aslan Verse Web",
+    slug: "demo-verse-web",
+    name: "Demo Console",
+    nameEn: "Demo Console Web",
     category: "in-progress",
     status: "developing",
     description:
@@ -593,14 +593,14 @@ export const SEED_ASLAN_PROJECTS = [
       "",
       "## 의존",
       "- reactor (에이전트 호출)",
-      "- aslan-iam (인증)",
+      "- demo-iam (인증)",
       "",
       "## 스택",
       "Next.js · React 19 · Go · Firestore · Gemini",
     ].join("\n"),
     tags: ["AI", "Multi-agent"],
     stack: ["Next.js", "Go"],
-    dependencies: ["reactor", "aslan-iam"],
+    dependencies: ["reactor", "demo-iam"],
     position: { x: -30, y: -300 },
   },
   {
@@ -628,27 +628,27 @@ export const SEED_ASLAN_PROJECTS = [
       "",
       "## 의존",
       "- reactor (선택적 — 실행 위임)",
-      "- aslan-iam (인증)",
+      "- demo-iam (인증)",
       "",
       "## 스택",
       "Node.js 22 · TypeScript · Turbo · PostgreSQL · Valkey",
     ].join("\n"),
     tags: ["AI", "SaaS"],
     stack: ["Node.js", "TypeScript", "Turbo", "PostgreSQL"],
-    dependencies: ["reactor", "aslan-iam"],
+    dependencies: ["reactor", "demo-iam"],
     position: { x: -30, y: 300 },
   },
   {
-    slug: "paravel-backend",
-    name: "Paravel Backend",
-    nameEn: "Paravel Backend",
+    slug: "sample-app-backend",
+    name: "Sample App Backend",
+    nameEn: "Sample App Backend",
     category: "in-progress",
     status: "deploy-ready",
     description:
       "사내 커뮤니티 슈퍼앱 백엔드. DDD 모듈러 모놀리스, 9개 Bounded Context (Community / Anonymous / Club / Identity / Moderation / …).",
     detail: [
       "## 역할",
-      "사내 커뮤니티 모바일 앱(Paravel-App)의 단일 백엔드. DDD 모듈러 모놀리스로 9 개 Bounded Context 가 한 빌드 안에서 결합도 낮게 공존한다.",
+      "사내 커뮤니티 모바일 앱(Sample App-App)의 단일 백엔드. DDD 모듈러 모놀리스로 9 개 Bounded Context 가 한 빌드 안에서 결합도 낮게 공존한다.",
       "",
       "## 9 Bounded Context",
       "- **콘텐츠** — Community(실명) · Anonymous(익명) · Discovery(검색·트렌딩)",
@@ -657,27 +657,27 @@ export const SEED_ASLAN_PROJECTS = [
       "- **이벤트·메시징** — Event Bus · Outbox · Projector · Saga 로 BC 간 결합 분리",
       "",
       "## 의존",
-      "- aslan-iam (RS256 JWT 검증)",
+      "- demo-iam (RS256 JWT 검증)",
       "",
       "## 스택",
       "Kotlin 2.2 · Spring Boot 4.0 · PostgreSQL 17 · Resilience4j",
     ].join("\n"),
     tags: ["Community", "Backend"],
     stack: ["Kotlin", "Spring Boot", "PostgreSQL"],
-    dependencies: ["aslan-iam"],
+    dependencies: ["demo-iam"],
     position: { x: -540, y: 200 },
   },
   {
-    slug: "paravel-app",
-    name: "Paravel App",
-    nameEn: "Paravel App",
+    slug: "sample-app",
+    name: "Sample App App",
+    nameEn: "Sample App App",
     category: "in-progress",
     status: "deploy-ready",
     description:
       "사내 커뮤니티 모바일 슈퍼앱. 실명 + 익명 게시판, 투표, 모임 모집, 북마크, 실시간 채팅.",
     detail: [
       "## 역할",
-      "Paravel-Backend 의 9 BC 를 사용자 손에 닿게 만드는 모바일 앱. RN/Expo 기반에 실명·익명·동아리·번개모집까지 한 앱 안에서 묶는다.",
+      "Sample App-Backend 의 9 BC 를 사용자 손에 닿게 만드는 모바일 앱. RN/Expo 기반에 실명·익명·동아리·번개모집까지 한 앱 안에서 묶는다.",
       "",
       "## 4 영역",
       "- **콘텐츠** — 피드·게시물 상세·작성 편집·익명 게시판",
@@ -686,14 +686,14 @@ export const SEED_ASLAN_PROJECTS = [
       "- **유틸** — 일기·방명록·고놈·인증",
       "",
       "## 의존",
-      "- paravel-backend (REST API)",
+      "- sample-app-backend (REST API)",
       "",
       "## 스택",
       "React Native · Expo 55 · TypeScript · TanStack Query",
     ].join("\n"),
     tags: ["Community", "Mobile"],
     stack: ["React Native", "Expo", "TypeScript"],
-    dependencies: ["paravel-backend"],
+    dependencies: ["sample-app-backend"],
     position: { x: -540, y: 380 },
   },
   {
@@ -735,13 +735,13 @@ export const SEED_ASLAN_PROJECTS = [
     position: { x: -540, y: -300 },
   },
   {
-    slug: "narnia",
-    name: "Narnia",
-    nameEn: "Narnia",
+    slug: "demo",
+    name: "Demo",
+    nameEn: "Demo",
     category: "in-progress",
     status: "developing",
     description:
-      "Aslan 워크스페이스의 AI-Native 프로젝트 지도 (이 사이트). 토폴로지 + 문서 볼트 + 온톨로지 v1 을 한 화면에 묶는다.",
+      "Demo 워크스페이스의 AI-Native 프로젝트 지도 (이 사이트). 토폴로지 + 문서 볼트 + 온톨로지 v1 을 한 화면에 묶는다.",
     detail: [
       "## 역할",
       "이 사이트 자체. 흩어진 컨텍스트(문서·프로젝트·허브·노드)를 한 장의 지도로 묶어서, \"지금 무엇이 어디에 연결됐는지\" 를 팀 전체가 같은 시선으로 읽게 한다.",

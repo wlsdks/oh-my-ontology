@@ -8,8 +8,8 @@ import { expect, test, type Page } from "@playwright/test";
  * Sigma 좌표가 생겼는지 확인한다.
  */
 
-const DRAG_TARGET_SLUG = "aslan-maps";
-const POSITION_STORAGE_KEY = "aslan:sigma-node-positions:v1";
+const DRAG_TARGET_SLUG = "sample";
+const POSITION_STORAGE_KEY = "demo:sigma-node-positions:v1";
 
 async function openHomeWithFocusedNode(page: Page) {
   await page.addInitScript((storageKey) => {

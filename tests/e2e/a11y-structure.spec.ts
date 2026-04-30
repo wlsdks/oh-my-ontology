@@ -12,7 +12,7 @@ const ROUTES = [
   "/login",
   "/signup",
   "/reset-password",
-  "/project/aslan-maps/",
+  "/project/sample/",
   // admin namespace 폐기 — 운영 surface 는 /knowledge/ + /review/ + /settings/
   "/knowledge/",
   "/review/knowledge/",

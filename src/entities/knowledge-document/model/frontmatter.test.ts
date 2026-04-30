@@ -53,7 +53,7 @@ describe("resolveKnowledgeCanonicalMetadata", () => {
       {
         title: "UI Title",
         kind: "note",
-        projectIds: ["aslan-maps"],
+        projectIds: ["sample"],
       },
       {
         title: "Frontmatter Title",
@@ -75,7 +75,7 @@ describe("resolveKnowledgeCanonicalMetadata", () => {
       {
         title: "UI Title",
         kind: "note",
-        projectIds: ["aslan-maps"],
+        projectIds: ["sample"],
       },
       {},
     );
@@ -83,7 +83,7 @@ describe("resolveKnowledgeCanonicalMetadata", () => {
     expect(canonical).toEqual({
       title: "UI Title",
       kind: "note",
-      projectIds: ["aslan-maps"],
+      projectIds: ["sample"],
       source: "ui",
     });
   });

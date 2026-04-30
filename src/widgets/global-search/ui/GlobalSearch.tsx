@@ -112,11 +112,11 @@ export function GlobalSearch({
 
   // workspace project chip row 의 source — projects prop 이 있으면 그대로
   // (slug + name), 없으면 nodes 에서 발견된 distinct projectIds 만으로 fallback
-  // (slug 만 표시). 진안 본인 계정에서는 projects prop 이 흐르고, 데모 / aslan
+  // (slug 만 표시). 진안 본인 계정에서는 projects prop 이 흐르고, 데모 / demo
   // 공개 surface 에서는 nodes 만 흐르는 시나리오 양쪽 다 chip 표시.
   //
   // Fire 5 — @tanstack/react-virtual 도입으로 PROJECT_CHIP_LIMIT 캡 제거.
-  // stress-lab (1,979 project) 같은 큰 워크스페이스 에서도 horizontal
+  // demo-workspace (1,979 project) 같은 큰 워크스페이스 에서도 horizontal
   // virtualizer 로 viewport 안 chip 만 렌더 (보통 ~10-15 개). ontology 빈도
   // 가중 정렬은 유지 — 첫 화면에 가장 관련 있는 chip 이 먼저 보이도록.
   const projectChipSource = useMemo<Array<{ slug: string; label: string }>>(() => {

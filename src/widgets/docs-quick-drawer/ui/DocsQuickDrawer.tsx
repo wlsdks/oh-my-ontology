@@ -37,8 +37,8 @@ import { cn } from "@/shared/lib/cn";
 // docs-vault widget 에 이미 있는 storage key 와 shape 을 그대로 참조 — 타입만
 // 같이 유지하면 두 위젯이 같은 localStorage 네임스페이스를 공유한다.
 // widget→widget import 는 FSD 경계에서 금지라, 최소 read-only 접근만 inline.
-const PINNED_KEY = "aslan:docs-vault:pinned:v1:server";
-const RECENT_KEY = "aslan:docs-vault:recent:v2:server";
+const PINNED_KEY = "demo:docs-vault:pinned:v1:server";
+const RECENT_KEY = "demo:docs-vault:recent:v2:server";
 
 function readStoredSlugs(key: string, limit: number): string[] {
   if (typeof window === "undefined") return [];

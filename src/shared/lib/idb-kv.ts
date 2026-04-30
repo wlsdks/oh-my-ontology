@@ -2,7 +2,7 @@
 // structured-cloneable 객체를 저장·복원하는 데 쓴다. 외부 의존성 없이 native
 // IDB 호출. 브라우저 전용 (typeof window === 'undefined' 에서 safe stub).
 
-const DB_NAME = 'aslan-kv';
+const DB_NAME = 'demo-kv';
 const DB_VERSION = 1;
 const STORE = 'kv';
 

@@ -8,7 +8,7 @@ import type { Project } from '@/entities/project';
 
 // 첫 진입 사용자에게 21개 hub 목록이 즉시 펼쳐져 있으면 중앙 토폴로지로
 // 시선이 가지 못한다. 사용자가 한 번 직접 펼치면 그 선택을 기억한다.
-const RAIL_OPEN_KEY = 'aslan:sigma-hub-rail-open:v1';
+const RAIL_OPEN_KEY = 'demo:sigma-hub-rail-open:v1';
 
 interface SigmaHubRailProps {
   projects: Project[];
@@ -20,7 +20,7 @@ interface SigmaHubRailProps {
    */
   suppressed?: boolean;
   /**
-   * Layer 1 내부에서 각 hub 이름의 container prefix (예: "Arc Reactor · ")
+   * Layer 1 내부에서 각 hub 이름의 container prefix (예: "Demo Reactor · ")
    * 를 제거해 rail 을 간결하게 만든다. 미지정이면 원본 이름 유지 (Layer 0).
    */
   stripNamePrefix?: string;

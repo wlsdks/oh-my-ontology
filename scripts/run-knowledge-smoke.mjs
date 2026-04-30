@@ -9,7 +9,7 @@ import {
   publishKnowledgeProjectionCore,
 } from "../functions/index.js";
 
-const PROJECT_ID = process.env.GCLOUD_PROJECT || "demo-aslan-project-map";
+const PROJECT_ID = process.env.GCLOUD_PROJECT || "demo-oh-my-ontology";
 const STORAGE_BUCKET = `${PROJECT_ID}.firebasestorage.app`;
 const COLLECTIONS = {
   documents: "knowledgeDocuments",

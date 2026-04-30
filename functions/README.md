@@ -1,4 +1,4 @@
-# Aslan Project Map — Cloud Functions
+# oh-my-ontology — Cloud Functions
 
 knowledge subsystem v2 의 trusted worker · publish backend. 2nd gen (asia-northeast3).
 
@@ -69,7 +69,7 @@ curl -X POST https://<region>-<project>.cloudfunctions.net/receiveDoc \
   -H "Content-Type: application/json" \
   -d '{
     "accountId": "stark",
-    "projectId": "narnia",
+    "projectId": "demo",
     "doc": {
       "slug": "iam-spec",
       "name": "IAM Spec",

@@ -6,8 +6,8 @@
  * NEXT_STATIC_GEN_BAILOUT 로그와 HTTP 403 로그가 수천 번 증폭될 수 있기
  * 때문이다.
  *
- * 운영 빌드가 Firestore를 source로 삼아야 할 때만
- * `ASLAN_BUILD_PROJECT_SOURCE=firestore`를 명시한다.
+ * 운영 빌드가 Firestore 를 source 로 삼아야 할 때만
+ * `OMOT_BUILD_PROJECT_SOURCE=firestore` 를 명시한다.
  */
 
 import type { Project } from '@/entities/project/model';
@@ -15,7 +15,7 @@ import { resolveFallbackProjects } from '@/entities/project/model/fallback';
 import { getDemoProjects } from '@/shared/mocks/demo-data';
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-const BUILD_PROJECT_SOURCE = process.env.ASLAN_BUILD_PROJECT_SOURCE;
+const BUILD_PROJECT_SOURCE = process.env.OMOT_BUILD_PROJECT_SOURCE;
 const USE_FIRESTORE_REST = BUILD_PROJECT_SOURCE === 'firestore';
 let cachedProjects: Promise<Project[]> | null = null;
 

@@ -8,7 +8,7 @@ export const dynamic = 'force-static';
 export const runtime = 'nodejs';
 export const contentType = 'image/png';
 export const size = { width: 1200, height: 630 };
-export const alt = 'Project preview card for Narnia';
+export const alt = 'Project preview card for Demo';
 
 interface Params {
   slug: string;
@@ -54,7 +54,7 @@ export default async function ProjectOgImage({
             'Inter, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
         }}
       >
-        {/* 상단 — Narnia brand + 카테고리 배지 */}
+        {/* 상단 — Demo brand + 카테고리 배지 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div
             style={{
@@ -84,7 +84,7 @@ export default async function ProjectOgImage({
                   '"JetBrains Mono", ui-monospace, monospace',
               }}
             >
-              Narnia · Aslan Project Map
+              Demo · oh-my-ontology
             </span>
             {category ? (
               <span
@@ -146,7 +146,7 @@ export default async function ProjectOgImage({
               fontFamily: '"JetBrains Mono", ui-monospace, monospace',
             }}
           >
-            aslan-project-map.web.app/project/{slug}/
+            /project/{slug}/
           </span>
           <span
             style={{

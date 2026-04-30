@@ -67,16 +67,16 @@ describe('findRelatedDocs', () => {
     const docs = [
       doc({
         slug: 'a',
-        title: 'Arc Reactor 운영 가이드',
+        title: 'Demo Reactor 운영 가이드',
       }),
       doc({
         slug: 'b',
-        excerpt: 'Arc Reactor 는 이러이러...',
+        excerpt: 'Demo Reactor 는 이러이러...',
       }),
     ];
     const result = findRelatedDocs(docs, {
       projectSlug: 'reactor',
-      projectName: 'Arc Reactor',
+      projectName: 'Demo Reactor',
     });
     // 제목 매치가 excerpt 보다 높음
     expect(result[0].doc.slug).toBe('a');

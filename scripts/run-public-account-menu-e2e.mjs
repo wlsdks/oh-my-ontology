@@ -14,7 +14,7 @@ const NEXT_DEV_LOCK_PATH = path.join(ROOT_DIR, ".next/dev/lock");
 const PROJECT_ID =
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
   process.env.GCLOUD_PROJECT ||
-  "demo-aslan-project-map";
+  "demo-oh-my-ontology";
 
 function prefixStream(stream, prefix) {
   let buffer = "";

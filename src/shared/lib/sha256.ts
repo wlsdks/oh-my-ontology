@@ -21,7 +21,7 @@ export async function sha256Hex(input: string): Promise<string> {
 
 /**
  * 새 API key plaintext 생성. 32 byte 무작위 → base64url. `nk_` prefix 로
- * narnia 키임을 식별.
+ * demo 키임을 식별.
  *
  * `crypto.getRandomValues` 만 사용 — predictable PRNG 금지.
  */

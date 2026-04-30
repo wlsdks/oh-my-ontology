@@ -10,7 +10,7 @@ import {
 } from "./knowledge-document-api";
 
 /**
- * 데모 세션 fallback 회귀 테스트. 이전엔 `/admin/knowledge/documents/?account=stress-lab`
+ * 데모 세션 fallback 회귀 테스트. 이전엔 `/admin/knowledge/documents/?account=demo-workspace`
  * 가 "문서가 없습니다" 로 떠서 데모 운영 흐름이 막혀 있었다. list/subscribe
  * 두 진입점 모두 DEMO_ACCOUNT_ID 안에서만 seeded 문서를 돌려주고, 다른
  * account 에서는 빈 배열.

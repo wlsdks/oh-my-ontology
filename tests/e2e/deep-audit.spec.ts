@@ -54,19 +54,19 @@ const ROUTES: Route[] = [
   },
   {
     name: "07-project-detail-public",
-    url: "/project/aslan-maps/",
+    url: "/project/sample/",
     wait: 1500,
-    mustContain: ["Aslan Maps"],
+    mustContain: ["Sample"],
     mustNotContain: ["문서가 프로젝트 구조가 됩니다"],
   },
   {
     name: "08-project-view-legacy",
-    url: "/project/view/?slug=aslan-maps",
+    url: "/project/view/?slug=sample",
     wait: 1500,
   },
   {
     name: "09-project-internal-topology",
-    url: "/project/topology/?slug=aslan-maps",
+    url: "/project/topology/?slug=sample",
     wait: 1500,
   },
   {

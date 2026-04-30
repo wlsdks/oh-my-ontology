@@ -88,7 +88,7 @@ export function SignupPage() {
         <Card className="rounded-[28px]">
           <CardHeader>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              Narnia 시작
+              Demo 시작
             </p>
             <CardTitle>계정 만들기</CardTitle>
             <CardDescription>가입하면 바로 프로젝트로 들어갑니다.</CardDescription>

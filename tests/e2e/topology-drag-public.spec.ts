@@ -5,7 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
  */
 
 const TARGET_SLUG = "sandbox-core";
-const POSITION_STORAGE_KEY = "aslan:sigma-node-positions:v1";
+const POSITION_STORAGE_KEY = "demo:sigma-node-positions:v1";
 
 async function selectedNodeApproxCenter(page: Page, slug: string) {
   const label = page.locator(
@@ -47,7 +47,7 @@ test("공개 홈 Sigma 토폴로지에서 드래그가 실제 위치를 저장�
     .catch(() => false);
   test.skip(!demoClicked, "데모 로그인 버튼 없음 — skip");
 
-  await page.goto(`/?account=sandbox-lab&p=${TARGET_SLUG}`);
+  await page.goto(`/?account=demo-workspace&p=${TARGET_SLUG}`);
   await expect(page.getByTestId("sigma-topology-viewport")).toBeVisible({
     timeout: 20_000,
   });

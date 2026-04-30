@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MousePointerClick, Plug, Save, X } from "lucide-react";
 
-const STORAGE_KEY = "aslan:atlas-onboarding:dismissed:v1";
+const STORAGE_KEY = "demo:atlas-onboarding:dismissed:v1";
 
 /**
  * Atlas onboarding coach mark — C-17.

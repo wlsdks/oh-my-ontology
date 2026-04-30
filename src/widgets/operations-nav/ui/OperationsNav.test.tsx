@@ -90,10 +90,10 @@ describe('OperationsNav — A2-6 모바일 + 데스크톱 nav', () => {
 
   it('accountId prop 명시 시 href 에 ?account=… 붙음', () => {
     mockPathname = '/';
-    render(<OperationsNav accountId="aslan" />);
+    render(<OperationsNav accountId="demo" />);
     const tabs = screen.getAllByRole('link', { name: '온톨로지' });
     for (const tab of tabs) {
-      expect(tab.getAttribute('href')).toContain('account=aslan');
+      expect(tab.getAttribute('href')).toContain('account=demo');
     }
   });
 

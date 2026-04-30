@@ -373,7 +373,7 @@ export function ProjectDetailPage({
   useDocumentTitle(
     Array.from(
       new Set(
-        [project?.name, activeContainerName, "Narnia"].filter(
+        [project?.name, activeContainerName, "Demo"].filter(
           (value): value is string => Boolean(value),
         ),
       ),
@@ -764,7 +764,7 @@ export function ProjectDetailPage({
             "이 페이지가 핵심 hub 다" 신호가 묻힌다. 디자인 시스템의
             "단일 인디고" 는 강조용이지 모든 hub 의 제목 색이 아니다.
             제목은 무채색으로 통일하고, hub 식별은 breadcrumb prefix
-            (예: "Narnia · ...") + 토폴로지 노드 크기/색으로 충분.
+            (예: "Demo · ...") + 토폴로지 노드 크기/색으로 충분.
           */}
           <InlineEditable
             as="h1"

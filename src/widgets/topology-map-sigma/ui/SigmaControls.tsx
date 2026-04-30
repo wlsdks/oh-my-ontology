@@ -343,7 +343,7 @@ export function SigmaControls({
                   if (typeof window === 'undefined') return;
                   if (!window.confirm('드래그한 노드 위치를 모두 초기화할까요?')) return;
                   try {
-                    window.localStorage.removeItem('aslan:sigma-node-positions:v1');
+                    window.localStorage.removeItem('demo:sigma-node-positions:v1');
                   } catch {
                     /* skip */
                   }

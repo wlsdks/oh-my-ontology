@@ -21,7 +21,7 @@ describe("knowledge version mapper", () => {
       sizeBytes: 120,
       hash: "kv-123",
       createdAt: ts,
-      createdBy: "admin@aslan.dev",
+      createdBy: "admin@demo.dev",
     });
 
     expect(result.documentId).toBe("auth");
@@ -40,7 +40,7 @@ describe("knowledge version mapper", () => {
         mimeType: "text/markdown",
         sizeBytes: 120,
         hash: "kv-123",
-        createdBy: "admin@aslan.dev",
+        createdBy: "admin@demo.dev",
       }),
     ).toEqual({
       documentId: "auth",
@@ -52,7 +52,7 @@ describe("knowledge version mapper", () => {
       mimeType: "text/markdown",
       sizeBytes: 120,
       hash: "kv-123",
-      createdBy: "admin@aslan.dev",
+      createdBy: "admin@demo.dev",
     });
   });
 });

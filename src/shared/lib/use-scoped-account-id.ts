@@ -7,7 +7,7 @@ import { normalizeAccountId, resolveAccountId } from './account-scope';
  * resolveAccountId 의 SSR-safe 래퍼.
  *
  * 문제 — `resolveAccountId` 는 sessionStorage / window.location 같은
- * client-only fallback 을 갖고 있어 SSR (=null) 과 CSR (=stress-lab) 의
+ * client-only fallback 을 갖고 있어 SSR (=null) 과 CSR (=demo-workspace) 의
  * 결과가 달라진다. SSR 결과를 그대로 first paint 에 넣으면 hydration
  * 직후 client 가 다른 값으로 다시 render 하면서 모든 link href 가
  * mismatch 한다.

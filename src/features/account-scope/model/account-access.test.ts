@@ -23,7 +23,7 @@ describe("resolveScopedAccountAccess", () => {
         loading: false,
         isSignedIn: false,
         isAdmin: false,
-        accountId: "sandbox-lab",
+        accountId: "demo-workspace",
       }),
     ).toMatchObject({
       kind: "guest",
@@ -38,7 +38,7 @@ describe("resolveScopedAccountAccess", () => {
         loading: false,
         isSignedIn: true,
         isAdmin: false,
-        accountId: "sandbox-lab",
+        accountId: "demo-workspace",
         membershipRole: "owner",
       }),
     ).toMatchObject({
@@ -54,7 +54,7 @@ describe("resolveScopedAccountAccess", () => {
         loading: false,
         isSignedIn: true,
         isAdmin: false,
-        accountId: "sandbox-lab",
+        accountId: "demo-workspace",
         membershipRole: "viewer",
       }),
     ).toMatchObject({

@@ -20,7 +20,7 @@ describe("resolveFallbackProjects", () => {
   it("preserves dependency graph for downstream UI features", () => {
     const projects = resolveFallbackProjects();
     const newsClipping = projects.find(
-      (project) => project.slug === "news-clipping",
+      (project) => project.slug === "sample-news",
     );
 
     expect(newsClipping?.dependencies).toEqual(["iam", "reactor"]);

@@ -83,10 +83,10 @@ describe("matchOntologyNodes", () => {
 
   describe("kind / project 필터 (Fire 2)", () => {
     const filterCorpus: KnowledgeGraphNode[] = [
-      node({ id: "cap-1", title: "능력 1", kind: "capability", projectIds: ["aslan-iam"] }),
-      node({ id: "cap-2", title: "능력 2", kind: "capability", projectIds: ["aslan-knowledge"] }),
-      node({ id: "dom-1", title: "도메인 1", kind: "domain", projectIds: ["aslan-iam"] }),
-      node({ id: "elem-1", title: "요소 1", kind: "element", projectIds: ["aslan-iam", "aslan-knowledge"] }),
+      node({ id: "cap-1", title: "능력 1", kind: "capability", projectIds: ["demo-iam"] }),
+      node({ id: "cap-2", title: "능력 2", kind: "capability", projectIds: ["demo-knowledge"] }),
+      node({ id: "dom-1", title: "도메인 1", kind: "domain", projectIds: ["demo-iam"] }),
+      node({ id: "elem-1", title: "요소 1", kind: "element", projectIds: ["demo-iam", "demo-knowledge"] }),
       node({ id: "elem-orphan", title: "요소 미연결", kind: "element", projectIds: [] }),
     ];
 
@@ -107,7 +107,7 @@ describe("matchOntologyNodes", () => {
 
     it("project 필터 — 단일 project", () => {
       const r = matchOntologyNodes("", filterCorpus, 30, {
-        projectIds: new Set(["aslan-knowledge"]),
+        projectIds: new Set(["demo-knowledge"]),
       });
       expect(r.map((m) => m.node.id).sort()).toEqual(["cap-2", "elem-1"]);
     });
@@ -115,7 +115,7 @@ describe("matchOntologyNodes", () => {
     it("project 필터 — 노드의 projectIds 중 적어도 하나 매치 (OR within node)", () => {
       // elem-1 은 [iam, knowledge] 둘 다 — 어느 한쪽 set 이어도 매치.
       const iam = matchOntologyNodes("", filterCorpus, 30, {
-        projectIds: new Set(["aslan-iam"]),
+        projectIds: new Set(["demo-iam"]),
       });
       const includes = iam.find((m) => m.node.id === "elem-1");
       expect(includes).toBeDefined();
@@ -123,7 +123,7 @@ describe("matchOntologyNodes", () => {
 
     it("project 필터 — projectIds 비어 있는 노드는 제외", () => {
       const r = matchOntologyNodes("", filterCorpus, 30, {
-        projectIds: new Set(["aslan-iam"]),
+        projectIds: new Set(["demo-iam"]),
       });
       const orphan = r.find((m) => m.node.id === "elem-orphan");
       expect(orphan).toBeUndefined();
@@ -132,7 +132,7 @@ describe("matchOntologyNodes", () => {
     it("kind + project 필터 AND 조합", () => {
       const r = matchOntologyNodes("", filterCorpus, 30, {
         kinds: new Set(["capability"]),
-        projectIds: new Set(["aslan-iam"]),
+        projectIds: new Set(["demo-iam"]),
       });
       expect(r.map((m) => m.node.id)).toEqual(["cap-1"]);
     });
@@ -152,7 +152,7 @@ describe("matchOntologyNodes", () => {
 function doc(input: Partial<KnowledgeDocument> & { id: string; title: string; updatedAt: Date }): KnowledgeDocument {
   return {
     kind: "spec",
-    projectIds: ["aslan-maps"],
+    projectIds: ["sample"],
     sourceType: "manual" as KnowledgeDocument["sourceType"],
     currentVersionId: "v1",
     status: "draft" as KnowledgeDocument["status"],
@@ -229,7 +229,7 @@ function project(input: Partial<Project> & { slug: string; name: string }): Proj
 describe("matchProjects", () => {
   const corpus: Project[] = [
     project({
-      slug: "aslan-iam",
+      slug: "demo-iam",
       name: "IAM",
       nameEn: "Identity Access Manager",
       description: "사용자 로그인 / 토큰",
@@ -237,7 +237,7 @@ describe("matchProjects", () => {
       updatedAt: new Date("2026-04-25T00:00:00Z"),
     }),
     project({
-      slug: "aslan-knowledge",
+      slug: "demo-knowledge",
       name: "Knowledge",
       description: "문서 → 온톨로지 추출 파이프라인",
       tags: ["docs", "ontology"],
@@ -254,7 +254,7 @@ describe("matchProjects", () => {
 
   it("name prefix > substring 우선", () => {
     const r = matchProjects("ia", corpus);
-    expect(r[0]?.project.slug).toBe("aslan-iam"); // "IAM" prefix 매치
+    expect(r[0]?.project.slug).toBe("demo-iam"); // "IAM" prefix 매치
     expect(r[0]?.score).toBe(4);
   });
 
@@ -265,7 +265,7 @@ describe("matchProjects", () => {
 
   it("slug substring 도 매치 (낮은 점수)", () => {
     const r = matchProjects("knowledge", corpus);
-    const knowledge = r.find((m) => m.project.slug === "aslan-knowledge");
+    const knowledge = r.find((m) => m.project.slug === "demo-knowledge");
     expect(knowledge).toBeDefined();
   });
 
@@ -277,6 +277,6 @@ describe("matchProjects", () => {
     const r = matchProjects("", corpus, 2);
     expect(r).toHaveLength(2);
     expect(r[0]?.project.slug).toBe("reactor-runtime"); // 4-27
-    expect(r[1]?.project.slug).toBe("aslan-knowledge"); // 4-26
+    expect(r[1]?.project.slug).toBe("demo-knowledge"); // 4-26
   });
 });

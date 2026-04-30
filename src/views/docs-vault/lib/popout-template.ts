@@ -5,7 +5,7 @@ import { escapeHtml } from "./persistence";
  *
  * 호출자: `DocsVaultPage` 의 `handleExportDocHtml` — 문서 본문 article 의
  * `outerHTML` 을 받아 dark theme HTML 한 페이지로 wrap. 다운로드 파일 (.html)
- * 은 Aslan 디자인 헌장 §11 의 무채색 + 인디고 alpha 만 사용 (offline self-
+ * 은 Demo 디자인 헌장 §11 의 무채색 + 인디고 alpha 만 사용 (offline self-
  * contained).
  *
  * `escapeHtml` 은 lib/persistence.ts 에서 import — 문서 title 안 사용자 입력을

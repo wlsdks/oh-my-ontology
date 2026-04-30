@@ -29,23 +29,23 @@ describe("inferWorkspaceProjectGroup", () => {
     expect(
       inferWorkspaceProjectGroup(
         project({
-          slug: "aslan-ingest-classifier",
-          name: "Aslan Ingest · Classifier",
+          slug: "demo-ingest-classifier",
+          name: "Demo Ingest · Classifier",
           workspaceProjectId: "ingest",
         }),
       ),
-    ).toEqual({ id: "ingest", name: "Aslan Ingest" });
+    ).toEqual({ id: "ingest", name: "Demo Ingest" });
   });
 
   it("infers a container from the legacy display name prefix", () => {
     expect(
       inferWorkspaceProjectGroup(
         project({
-          slug: "aslan-billing-cache",
-          name: "Aslan Billing · Cache",
+          slug: "demo-billing-cache",
+          name: "Demo Billing · Cache",
         }),
       ),
-    ).toEqual({ id: "aslan-billing", name: "Aslan Billing" });
+    ).toEqual({ id: "demo-billing", name: "Demo Billing" });
   });
 });
 
@@ -54,17 +54,17 @@ describe("deriveWorkspaceProjectContainers", () => {
     const containers = deriveWorkspaceProjectContainers(
       [
         project({
-          slug: "aslan-ingest-classifier",
-          name: "Aslan Ingest · Classifier",
+          slug: "demo-ingest-classifier",
+          name: "Demo Ingest · Classifier",
           isHub: true,
         }),
         project({
-          slug: "aslan-ingest-parser",
-          name: "Aslan Ingest · Parser",
+          slug: "demo-ingest-parser",
+          name: "Demo Ingest · Parser",
         }),
         project({
-          slug: "aslan-billing-cache",
-          name: "Aslan Billing · Cache",
+          slug: "demo-billing-cache",
+          name: "Demo Billing · Cache",
           isHub: true,
         }),
       ],
@@ -72,11 +72,11 @@ describe("deriveWorkspaceProjectContainers", () => {
     );
 
     expect(containers.map((container) => container.id)).toEqual([
-      "aslan-ingest",
-      "aslan-billing",
+      "demo-ingest",
+      "demo-billing",
     ]);
     expect(containers[0]).toMatchObject({
-      name: "Aslan Ingest",
+      name: "Demo Ingest",
       accountId: "account-1",
       description: "기존 프로젝트 목록에서 추론한 프로젝트 컨테이너",
       hubCount: 1,

@@ -92,14 +92,14 @@ describe("source / audience storage", () => {
     );
   });
 
-  it("audience: legacy key (`aslan:docs-vault:mode`) fallback", () => {
-    window.localStorage.setItem("aslan:docs-vault:mode", "engineer");
+  it("audience: legacy key (`demo:docs-vault:mode`) fallback", () => {
+    window.localStorage.setItem("demo:docs-vault:mode", "engineer");
     expect(readStoredAudience()).toBe("engineer");
   });
 
   it("audience: 신규 key 가 우선, legacy 무시", () => {
     window.localStorage.setItem(DOCS_VAULT_AUDIENCE_KEY, "planner");
-    window.localStorage.setItem("aslan:docs-vault:mode", "engineer");
+    window.localStorage.setItem("demo:docs-vault:mode", "engineer");
     expect(readStoredAudience()).toBe("planner");
   });
 

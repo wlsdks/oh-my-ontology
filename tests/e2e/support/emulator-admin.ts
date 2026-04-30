@@ -2,7 +2,7 @@ import { getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-const PROJECT_ID = "demo-aslan-project-map";
+const PROJECT_ID = "demo-oh-my-ontology";
 
 function ensureAdminApp() {
   process.env.FIREBASE_AUTH_EMULATOR_HOST ??= "127.0.0.1:19099";

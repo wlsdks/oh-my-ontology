@@ -28,7 +28,7 @@ import {
 const STRICT_DOC = `---
 id: auth-login
 kind: capability
-project: aslan-maps
+project: sample
 domain: authentication
 title: 로그인
 status: active
@@ -146,7 +146,7 @@ test('extractOntology — full pipeline with mock LLM', async () => {
           tempId: 'auth-login',
           title: '로그인',
           kind: 'capability',
-          projectIds: ['aslan-maps'],
+          projectIds: ['sample'],
           summary: '',
           confidence: 0.95,
         },
@@ -335,7 +335,7 @@ test('full integration — STRICT_DOC + DEFAULT TBox + mock LLM', async () => {
             tempId: 'auth-login',
             title: '로그인',
             kind: 'capability',
-            projectIds: ['aslan-maps'],
+            projectIds: ['sample'],
             summary: '이메일 / OAuth',
             confidence: 0.91,
             evidence: [{ excerpt: '로그인 기능' }],
@@ -411,9 +411,9 @@ test('canonical mirror — normalizeSlug / resolveCanonicalNodeId / createStubPl
     tempId: 'n1',
     title: 'Title',
     kind: 'element',
-    primaryProjectId: 'aslan-maps',
+    primaryProjectId: 'sample',
   });
-  assert.equal(r3.canonicalId, 'element:aslan-maps:title');
+  assert.equal(r3.canonicalId, 'element:sample:title');
   assert.equal(r3.source, 'legacy-slug');
 
   const stub = createStubPlaceholder({
@@ -449,7 +449,7 @@ test('extractOntology — frontmatter relates 가 추출 노드와 매칭되면 
   const doc = `---
 id: auth-login
 kind: capability
-project: aslan-maps
+project: sample
 title: 로그인
 status: active
 version: 1
@@ -473,7 +473,7 @@ relates:
             tempId: 'login-action',
             title: 'LoginAction',
             kind: 'element',
-            projectIds: ['aslan-maps'],
+            projectIds: ['sample'],
             summary: '',
             confidence: 0.9,
           },
@@ -511,7 +511,7 @@ test('extractOntology — 미존재 relates.target → stub + related_to 강등'
   const doc = `---
 id: auth-login
 kind: capability
-project: aslan-maps
+project: sample
 title: 로그인
 status: active
 version: 1
@@ -595,7 +595,7 @@ test('extractOntology — canonicalIds 결과가 output 에 포함 (approval flo
   const doc = `---
 id: auth-login
 kind: capability
-project: aslan-maps
+project: sample
 title: 로그인
 version: 1
 ---
@@ -610,7 +610,7 @@ body
             tempId: 'auth-login',
             title: '로그인',
             kind: 'capability',
-            projectIds: ['aslan-maps'],
+            projectIds: ['sample'],
             summary: '',
             confidence: 0.9,
           },
@@ -618,7 +618,7 @@ body
             tempId: 'side-action',
             title: 'Side',
             kind: 'element',
-            projectIds: ['aslan-maps'],
+            projectIds: ['sample'],
             summary: '',
             confidence: 0.7,
           },
@@ -650,7 +650,7 @@ body
   const sideMapping = result.output.canonicalIds.find(
     (c) => c.sourceTempId === 'side-action',
   );
-  assert.equal(sideMapping.canonicalId, 'element:aslan-maps:side');
+  assert.equal(sideMapping.canonicalId, 'element:sample:side');
   assert.equal(sideMapping.source, 'legacy-slug');
 });
 

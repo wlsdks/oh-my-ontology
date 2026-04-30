@@ -8,7 +8,7 @@
  * Body (JSON):
  *   {
  *     "accountId": "stark",
- *     "projectId": "narnia",   // optional, default "general"
+ *     "projectId": "demo",   // optional, default "general"
  *     "doc": {
  *       "slug": "iam-spec",
  *       "name": "IAM Spec",
@@ -27,7 +27,7 @@
  *   {
  *     "status": "ok",
  *     "action": "created" | "updated",
- *     "path": "accounts/stark/workspaceProjects/narnia/hubs/iam-spec",
+ *     "path": "accounts/stark/workspaceProjects/demo/hubs/iam-spec",
  *     "writtenAt": "2026-04-22T..."
  *   }
  *

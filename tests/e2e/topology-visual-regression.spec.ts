@@ -20,9 +20,9 @@ import { DEMO_ACCOUNT_ID } from "@/shared/config/demo-space";
  *
  * 첫 baseline 생성 (1 회, 진안 운영 환경):
  *   1. dev server 또는 운영 도메인 가리키기:
- *        export PLAYWRIGHT_BASE_URL=https://aslan-project-map.web.app
+ *        export PLAYWRIGHT_BASE_URL=https://
  *        # 또는 로컬 demo:  pnpm dev (포트 3000) + PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000
- *   2. 데모 세션 (sandbox-lab) 가능한지 확인 — 운영 도메인 hit 시
+ *   2. 데모 세션 (demo-workspace) 가능한지 확인 — 운영 도메인 hit 시
  *      `데모 로그인` 버튼 클릭 가능해야 함.
  *   3. baseline 생성:
  *        pnpm exec playwright test \
@@ -56,11 +56,11 @@ async function loginAsDemo(page: import("@playwright/test").Page) {
 }
 
 test.describe("home topology — visual regression (1440)", () => {
-  test("sandbox-lab 데모 토폴로지 첫 프레임이 baseline 과 일치한다", async ({
+  test("demo-workspace 데모 토폴로지 첫 프레임이 baseline 과 일치한다", async ({
     page,
   }) => {
     await loginAsDemo(page);
-    await page.goto("/?account=sandbox-lab");
+    await page.goto("/?account=demo-workspace");
 
     // Sigma viewport 가 그려지고 sandbox 첫 노드 라벨이 떠올라야 함 — force
     // layout 가 1차 수렴한 신호로 사용.
@@ -68,7 +68,7 @@ test.describe("home topology — visual regression (1440)", () => {
     await expect(viewport).toBeVisible({ timeout: 20_000 });
 
     // force layout 안정화 대기 — 노드 위치 흔들림이 멎어야 픽셀 일관.
-    // physics.ts 가 ~1.5s 안에 수렴 (LinkedIn / Aslan 데이터셋 기준).
+    // physics.ts 가 ~1.5s 안에 수렴 (LinkedIn / Demo 데이터셋 기준).
     await page.waitForTimeout(1500);
 
     // 1 차 baseline 비교. 첫 실행은 `--update-snapshots` 로 baseline 생성

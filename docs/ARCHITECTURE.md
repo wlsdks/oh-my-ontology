@@ -249,24 +249,24 @@ src/
 
 ## 11. 운영 ontology 시드 흐름
 
-운영 Aslan 워크스페이스 (`account=aslan`) 의 ontology 데이터는 자율
+운영 Demo 워크스페이스 (`account=demo`) 의 ontology 데이터는 자율
 루프 (`docs/superpowers/notes/2026-04-28-functional-completeness-audit.md`)
 가 단계적으로 관리한다. 3 helper 가 분리되어 있어 각각 독립 실행 가능
 — 부분 갱신이 다른 영역을 깨지 않는다.
 
-### 11.1 비밀번호 재설정 — `scripts/aslan-reset-password.mjs`
+### 11.1 비밀번호 재설정 — `scripts/demo-reset-password.mjs`
 
-`aslan@narnia.dev` Auth user 의 password 만 갱신. Firebase Admin SDK
-사용 (ADC). `push-aslan-prod.mjs` 와 달리 ASLAN_TREE 데이터 시드는
+`demo@demo.dev` Auth user 의 password 만 갱신. Firebase Admin SDK
+사용 (ADC). `push-demo-prod.mjs` 와 달리 DEMO_TREE 데이터 시드는
 건너뛴다 — 자율 루프가 비번 회전 만 하고 데이터는 손대지 않는 흐름.
 
 ```bash
 gcloud auth application-default login --account=devqamain@gmail.com
-node scripts/aslan-reset-password.mjs   # 새 16 자 비번 출력
-# 출력 비번을 .local-credentials/aslan.env 의 ASLAN_PASSWORD 로 갱신
+node scripts/demo-reset-password.mjs   # 새 16 자 비번 출력
+# 출력 비번을 .local-credentials/demo.env 의 ASLAN_PASSWORD 로 갱신
 ```
 
-### 11.2 Fixture 시드 — `scripts/seed-aslan-ontology-fixture.mjs <fixture-id>`
+### 11.2 Fixture 시드 — `scripts/seed-demo-ontology-fixture.mjs <fixture-id>`
 
 `tests/fixtures/golden-ontology/<id>.expected.json` 을 읽어
 `knowledgeApprovedNodes/Edges` 로 변환·시드. Admin SDK 라
@@ -278,11 +278,11 @@ firestore.rules 우회 가능 (운영 시드 전용).
 - isStub: false
 
 ```bash
-set -a; source .local-credentials/aslan.env; set +a
-node scripts/seed-aslan-ontology-fixture.mjs 02-aslan-builder
+set -a; source .local-credentials/demo.env; set +a
+node scripts/seed-demo-ontology-fixture.mjs 02-demo-builder
 ```
 
-### 11.3 Cross-project edge 시드 — `scripts/seed-aslan-cross-project-edges.mjs`
+### 11.3 Cross-project edge 시드 — `scripts/seed-demo-cross-project-edges.mjs`
 
 각 fixture 가 self-contained 라 cross-project 의존 (예: reactor-admin
 → reactor) 이 누락된다. 별도 스크립트가 EDGES 배열에 명시된 페어를
@@ -292,8 +292,8 @@ node scripts/seed-aslan-ontology-fixture.mjs 02-aslan-builder
 - source: `manual`, manualNote: `Track D-cont cross-project: <설명>`
 
 현재 시드된 7 edge: reactor-admin/web → reactor (depends_on),
-mcp-servers → reactor (uses), paravel-app → paravel-backend / aslan-iam,
-paravel-backend → aslan-iam, aslan-verse-web → aslan-iam.
+mcp-servers → reactor (uses), sample-app → sample-app-backend / demo-iam,
+sample-app-backend → demo-iam, demo-verse-web → demo-iam.
 
 ### 11.4 Golden 채점 자동화 — `scripts/score-golden-fixtures.mjs`
 
@@ -315,9 +315,9 @@ pnpm score:golden --from out/ext    # 운영 추출 결과 채점
 
 ```
 자율 루프 cycle
-   ├─ Track D-N → seed-aslan-ontology-fixture.mjs <fixture> → knowledgeApprovedNodes/Edges
-   ├─ D-cont-N → seed-aslan-cross-project-edges.mjs        → knowledgeApprovedEdges
-   ├─ 비번 회전 → aslan-reset-password.mjs                 → Auth user 만
+   ├─ Track D-N → seed-demo-ontology-fixture.mjs <fixture> → knowledgeApprovedNodes/Edges
+   ├─ D-cont-N → seed-demo-cross-project-edges.mjs        → knowledgeApprovedEdges
+   ├─ 비번 회전 → demo-reset-password.mjs                 → Auth user 만
    └─ A4-4 pre-commit → verify:golden                       → fixture 무결성 차단
 ```
 
@@ -334,4 +334,4 @@ pnpm score:golden --from out/ext    # 운영 추출 결과 채점
 - 2026-04-17: knowledge subsystem v2 trusted backend boundary, public/private/backend-owned 모델, planned admin routes 반영
 - 2026-04-18: 작업 공간, 공개 로그인, owner/editor 권한, 문서 기반 온톨로지 흐름을 현재 구현 기준으로 반영
 - 2026-04-25: `/admin/*` 네임스페이스 폐기 결정에 맞춰 페이지 표를 새 URL 공간(`/settings`, `/review`, `/diagnostics`, `/knowledge`)으로 재정렬. 권한 게이트는 라우트가 아니라 Firestore rules + capability 훅으로 명시
-- 2026-04-29: §11 신설 — 운영 ontology 시드 흐름 (aslan-reset-password / seed-aslan-ontology-fixture / seed-aslan-cross-project-edges / score-golden-fixtures + pre-commit hook). 자율 루프 Track D / D-cont / A4-4 결과 docs 화
+- 2026-04-29: §11 신설 — 운영 ontology 시드 흐름 (demo-reset-password / seed-demo-ontology-fixture / seed-demo-cross-project-edges / score-golden-fixtures + pre-commit hook). 자율 루프 Track D / D-cont / A4-4 결과 docs 화

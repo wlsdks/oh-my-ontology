@@ -61,22 +61,22 @@ describe("resolveFeaturedPathPresets", () => {
 
     expect(identity?.steps.map((step) => step.slug)).toEqual([
       "iam",
-      "aslan-maps",
-      "paravel",
+      "sample",
+      "sample-app",
       "pick",
     ]);
     expect(identity?.steps.map((step) => step.label)).toEqual([
       "IAM",
-      "Narnia",
-      "커뮤니티 (Paravel)",
-      "현장강의 플랫폼 (Pick)",
+      "Demo",
+      "커뮤니티 (Sample App)",
+      "Sample Live Lecture (Sample)",
     ]);
-    expect(identity?.highlightSlugs).toContain("news-clipping");
+    expect(identity?.highlightSlugs).toContain("sample-news");
   });
 
   it("drops steps and highlight targets that are missing from the current dataset", () => {
     const presets = resolveFeaturedPathPresets(
-      SEED_PROJECTS.filter((project) => !["pick", "news-clipping"].includes(project.slug)).map(
+      SEED_PROJECTS.filter((project) => !["pick", "sample-news"].includes(project.slug)).map(
         toProject,
       ),
     );
@@ -84,10 +84,10 @@ describe("resolveFeaturedPathPresets", () => {
 
     expect(identity?.steps.map((step) => step.slug)).toEqual([
       "iam",
-      "aslan-maps",
-      "paravel",
+      "sample",
+      "sample-app",
     ]);
     expect(identity?.highlightSlugs).not.toContain("pick");
-    expect(identity?.highlightSlugs).not.toContain("news-clipping");
+    expect(identity?.highlightSlugs).not.toContain("sample-news");
   });
 });

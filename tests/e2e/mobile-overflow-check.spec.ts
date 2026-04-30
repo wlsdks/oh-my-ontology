@@ -2,7 +2,7 @@ import { test } from "@playwright/test";
 
 test("공개 상세 모바일 overflow 원인 분석", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/project/aslan-maps/");
+  await page.goto("/project/sample/");
   await page.waitForTimeout(1500);
 
   const metrics = await page.evaluate(() => {

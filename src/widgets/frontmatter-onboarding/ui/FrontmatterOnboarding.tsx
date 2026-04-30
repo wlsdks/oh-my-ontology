@@ -53,7 +53,7 @@ const REQUIRED_FIELDS: Array<{ key: string; desc: string; example: string }> =
       desc: "TBox 클래스. project / domain / capability / element / document.",
       example: "capability",
     },
-    { key: "project", desc: "문서가 속한 project ID.", example: "aslan-maps" },
+    { key: "project", desc: "문서가 속한 project ID.", example: "sample" },
     { key: "title", desc: "표시 제목. 한글 OK.", example: "로그인" },
     { key: "version", desc: "frontmatter schema 버전. 현재 1.", example: "1" },
   ];
@@ -68,7 +68,7 @@ const RECOMMENDED_FIELDS: Array<{ key: string; desc: string }> = [
 const EXAMPLE_MD = `---
 id: auth-login
 kind: capability
-project: aslan-maps
+project: sample
 domain: authentication
 title: 로그인
 status: active

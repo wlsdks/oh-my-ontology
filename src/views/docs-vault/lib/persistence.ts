@@ -15,10 +15,10 @@ export type DocsVaultSource = "server" | "local";
 export type DocsVaultView = "doc" | "graph" | "stats" | "folder-topology";
 export type DocsVaultAudience = VaultMode | "all";
 
-export const DOCS_VAULT_SOURCE_KEY = "aslan:docs-vault:source";
-export const DOCS_VAULT_AUDIENCE_KEY = "aslan:docs-vault:audience";
+export const DOCS_VAULT_SOURCE_KEY = "demo:docs-vault:source";
+export const DOCS_VAULT_AUDIENCE_KEY = "demo:docs-vault:audience";
 /** legacy key — 2026-04 이전 사용. 새 audience key 가 비어 있을 때만 fallback. */
-const DOCS_VAULT_LEGACY_MODE_KEY = "aslan:docs-vault:mode";
+const DOCS_VAULT_LEGACY_MODE_KEY = "demo:docs-vault:mode";
 
 /** URL `?view=` → 검증된 enum. 알 수 없는 값은 'doc' fallback. */
 export function parseDocsVaultView(value?: string | null): DocsVaultView {

@@ -6,7 +6,7 @@
  *
  * 사용법 (emulator):
  *   FIRESTORE_EMULATOR_HOST=localhost:8080 \
- *   NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-aslan-project-map \
+ *   NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-oh-my-ontology \
  *     node scripts/seed-ontology-tbox.mjs
  *
  * 사용법 (production — T-11 측정용):
@@ -27,7 +27,7 @@ import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 const PROJECT_ID =
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
   process.env.GCLOUD_PROJECT ||
-  'demo-aslan-project-map';
+  'demo-oh-my-ontology';
 
 const app = getApps()[0] ?? initializeApp({ projectId: PROJECT_ID });
 const db = getFirestore(app);

@@ -6,7 +6,7 @@ import {
   restoreDeveloperActivityEvent,
 } from './activity-store';
 
-const STORAGE_KEY = 'aslan:docs-vault:developer-activity:v1';
+const STORAGE_KEY = 'demo:docs-vault:developer-activity:v1';
 
 function event(overrides: Partial<DeveloperActivityEvent> = {}) {
   return {
@@ -16,7 +16,7 @@ function event(overrides: Partial<DeveloperActivityEvent> = {}) {
     title: overrides.title ?? 'agent docs sync',
     createdAt: overrides.createdAt ?? '2026-04-24T10:30:00.000Z',
     unread: overrides.unread ?? true,
-    docSlug: overrides.docSlug ?? 'projects/aslan-ingest',
+    docSlug: overrides.docSlug ?? 'projects/demo-ingest',
     ...overrides,
   } satisfies DeveloperActivityEvent;
 }

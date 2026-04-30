@@ -5,11 +5,11 @@ describe("permission guard navigation", () => {
   it("preserves account and current path for login", () => {
     expect(
       buildGuardLoginHref({
-        accountId: "stress-lab",
-        currentPath: "/projects/?account=stress-lab",
+        accountId: "demo-workspace",
+        currentPath: "/projects/?account=demo-workspace",
       }),
     ).toBe(
-      "/login/?account=stress-lab&next=%2Fprojects%2F%3Faccount%3Dstress-lab",
+      "/login/?account=demo-workspace&next=%2Fprojects%2F%3Faccount%3Ddemo-workspace",
     );
   });
 
@@ -23,7 +23,7 @@ describe("permission guard navigation", () => {
   });
 
   it("builds account scoped home fallback when an account is present", () => {
-    expect(buildGuardHomeHref("stress-lab")).toBe("/?account=stress-lab");
+    expect(buildGuardHomeHref("demo-workspace")).toBe("/?account=demo-workspace");
     expect(buildGuardHomeHref(null)).toBe("/");
   });
 });

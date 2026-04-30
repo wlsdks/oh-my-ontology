@@ -3,7 +3,7 @@
 /**
  * 라이트/다크 테마 토글 헬퍼.
  *
- * - localStorage `aslan:theme` 에 'light' / 'dark' 저장.
+ * - localStorage `demo:theme` 에 'light' / 'dark' 저장.
  * - html element 의 `data-theme` 속성으로 globals.css 의 token override 적용.
  * - SSR 평가 시 항상 'dark' (정적 export 의 prerender 가 다크로 고정).
  *   첫 paint 직전에 app/layout.tsx 의 inline script 가 localStorage 를 읽어
@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "aslan:theme";
+const STORAGE_KEY = "demo:theme";
 
 export function readStoredTheme(): Theme {
   if (typeof window === "undefined") return "dark";

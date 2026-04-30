@@ -3,7 +3,7 @@ import { slugify } from './slugify';
 
 describe('slugify', () => {
   it('converts spaces to hyphens', () => {
-    expect(slugify('Aslan Maps')).toBe('aslan-maps');
+    expect(slugify('Sample')).toBe('sample');
   });
 
   it('lowercases', () => {
@@ -15,11 +15,11 @@ describe('slugify', () => {
   });
 
   it('collapses multiple spaces', () => {
-    expect(slugify('Aslan     Studio')).toBe('aslan-studio');
+    expect(slugify('Demo     Studio')).toBe('demo-studio');
   });
 
   it('strips special characters', () => {
-    expect(slugify('Aslan Maps!@#$')).toBe('aslan-maps');
+    expect(slugify('Sample!@#$')).toBe('sample');
   });
 
   it('preserves hyphens', () => {

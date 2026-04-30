@@ -14,7 +14,7 @@ const ROUTES = [
   "/login",
   "/signup",
   "/reset-password",
-  "/project/aslan-maps/",
+  "/project/sample/",
   "/admin/",
   "/admin/dashboard/",
 ];

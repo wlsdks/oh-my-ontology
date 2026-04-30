@@ -61,7 +61,7 @@ import { SigmaEdgeTooltip, type SigmaEdgeTooltipData } from './SigmaEdgeTooltip'
 import { SigmaMinimap } from './SigmaMinimap';
 import { SigmaNodeTooltip, type SigmaNodeTooltipData } from './SigmaNodeTooltip';
 
-const POSITION_STORAGE_KEY = 'aslan:sigma-node-positions:v1';
+const POSITION_STORAGE_KEY = 'demo:sigma-node-positions:v1';
 
 // audit overlay 임계값 — /diagnostics/insights 의 값과 동일하게 맞춘다. 리스트와 맵이
 // 같은 문제 집합을 지시하도록.
@@ -71,7 +71,7 @@ const AUDIT_PROMOTION_MIN_FAN_IN = 4;
 // overlay 3종 색상 — 디자인 시스템 무채색 + 단일 인디고 원칙을 유지하되
 // audit 경고만 warm tone 셋으로 구분. 셋 중 같은 노드에 겹치면 우선순위:
 // stale > orphan > promotion (stale 이 가장 수리 우선순위 높음).
-// Narnia camera motion curve — cubic-bezier(0.22, 1, 0.36, 1) 근사치.
+// Demo camera motion curve — cubic-bezier(0.22, 1, 0.36, 1) 근사치.
 // 토스·애플 감성의 "빠르게 출발해서 부드럽게 안착" — 기존 cubicInOut 의
 // 양 끝 대칭 감 대신 arrival 쪽을 더 길게 풀어 준다. easeOutQuart.
 const NARNIA_CAMERA_EASING = (k: number) => 1 - Math.pow(1 - k, 4);
@@ -204,8 +204,8 @@ interface SigmaTopologyProps {
    */
   minimal?: boolean;
   /**
-   * Layer 1 에서 라벨 prefix 를 단축하기 위한 컨테이너 이름. e.g. "Arc Reactor"
-   * 를 넘기면 "Arc Reactor · Router" → "Router" 로 표시. 미지정이면 원본 유지.
+   * Layer 1 에서 라벨 prefix 를 단축하기 위한 컨테이너 이름. e.g. "Demo Reactor"
+   * 를 넘기면 "Demo Reactor · Router" → "Router" 로 표시. 미지정이면 원본 유지.
    */
   stripNamePrefix?: string;
   /**

@@ -5,9 +5,9 @@ import { DocsVaultActivityPanel } from './DocsVaultActivityPanel';
 
 function doc(overrides: Partial<VaultDoc> = {}): VaultDoc {
   return {
-    slug: overrides.slug ?? 'projects/aslan-ingest',
-    path: `${overrides.slug ?? 'projects/aslan-ingest'}.md`,
-    title: overrides.title ?? 'Aslan Ingest',
+    slug: overrides.slug ?? 'projects/demo-ingest',
+    path: `${overrides.slug ?? 'projects/demo-ingest'}.md`,
+    title: overrides.title ?? 'Demo Ingest',
     description: overrides.description,
     tags: overrides.tags ?? ['ingest'],
     frontmatter: overrides.frontmatter ?? {},
@@ -32,7 +32,7 @@ function event(
     createdAt: overrides.createdAt ?? '2026-04-24T10:30:00.000Z',
     summary: overrides.summary ?? '문서와 코드 변경이 함께 들어왔습니다.',
     actor: overrides.actor ?? 'codex-agent',
-    docSlug: overrides.docSlug ?? 'projects/aslan-ingest',
+    docSlug: overrides.docSlug ?? 'projects/demo-ingest',
     repository: overrides.repository ?? 'stark/project-map',
     branch: overrides.branch ?? 'main',
     unread: overrides.unread ?? true,
@@ -69,11 +69,11 @@ describe('DocsVaultActivityPanel', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Aslan Ingest 열고 agent docs sync 확인 처리',
+        name: 'Demo Ingest 열고 agent docs sync 확인 처리',
       }),
     );
 
-    expect(onNavigate).toHaveBeenCalledWith('projects/aslan-ingest');
+    expect(onNavigate).toHaveBeenCalledWith('projects/demo-ingest');
     expect(onAcknowledge).toHaveBeenCalledWith('evt-1');
   });
 

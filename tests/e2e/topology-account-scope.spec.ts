@@ -4,7 +4,7 @@ import { createAccountMemberUser } from "./support/emulator-admin";
 const ADMIN_PROXY_ORIGIN = "http://127.0.0.1:3000";
 const ADMIN_PROXY_BASE_URL =
   process.env.NEXT_PUBLIC_DEV_ADMIN_PROXY_ORIGIN?.trim() || "http://127.0.0.1:18081";
-const SANDBOX_ACCOUNT_ID = "sandbox-lab";
+const SANDBOX_ACCOUNT_ID = "demo-workspace";
 const SANDBOX_CONSOLE_SLUG = "sandbox-console";
 
 interface ProjectRecord {
@@ -45,8 +45,8 @@ async function restoreProjectPosition(
 
 async function loginAsSandboxViewer(page: import("@playwright/test").Page) {
   const suffix = Date.now();
-  const email = `account-scope-${suffix}@narnia.local`;
-  const password = "narnia-pass-123";
+  const email = `account-scope-${suffix}@demo.local`;
+  const password = "demo-pass-123";
 
   await createAccountMemberUser({
     email,
@@ -132,11 +132,11 @@ test.describe("account-scoped topology flows", () => {
     await expect(page.getByText("어디와 연결돼 있나")).toBeVisible();
     await expect(page.getByRole("link", { name: /프로젝트 보기/ })).toHaveAttribute(
       "href",
-      /\/project\/view\/\?slug=sandbox-core&account=sandbox-lab$/,
+      /\/project\/view\/\?slug=sandbox-core&account=demo-workspace$/,
     );
     await expect(page.getByRole("link", { name: /토폴로지/ })).toHaveAttribute(
       "href",
-      /\/\?p=sandbox-core&account=sandbox-lab$/,
+      /\/\?p=sandbox-core&account=demo-workspace$/,
     );
   });
 });

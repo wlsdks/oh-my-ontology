@@ -74,7 +74,7 @@ function DetailContent({ documentId, returnTo }: Props) {
   const { user } = useGlobalAdmin();
   const [document, setDocument] = useState<KnowledgeDocument | null>(null);
   useDocumentTitle(
-    document?.title ? `${document.title} · Narnia` : "문서 상세 · Narnia",
+    document?.title ? `${document.title} · Demo` : "문서 상세 · Demo",
   );
   const [versions, setVersions] = useState<KnowledgeVersion[]>([]);
   const [jobs, setJobs] = useState<KnowledgeJob[]>([]);

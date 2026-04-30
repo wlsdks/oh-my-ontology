@@ -24,10 +24,10 @@ import { normalizeAccountId } from '@/shared/lib/account-scope';
 import { isDevAdminBypassActive } from '@/shared/lib/dev-admin-bypass';
 import { hasDemoSession } from '@/shared/lib/demo-session';
 
-const STORAGE_KEY = 'aslan:docs-vault:developer-activity:v1';
+const STORAGE_KEY = 'demo:docs-vault:developer-activity:v1';
 export const DEVELOPER_ACTIVITY_APPEND_EVENT =
-  'aslan:docs-vault:activity:append';
-const DEVELOPER_ACTIVITY_CHANGE_EVENT = 'aslan:docs-vault:activity:change';
+  'demo:docs-vault:activity:append';
+const DEVELOPER_ACTIVITY_CHANGE_EVENT = 'demo:docs-vault:activity:change';
 const MAX_EVENTS = 50;
 const EMPTY_EVENTS: DeveloperActivityEvent[] = [];
 let cachedRaw: string | null = null;

@@ -12,8 +12,8 @@ test("공개 상세 → 홈 뒤로가기", async ({ page }) => {
   await page.waitForLoadState("domcontentloaded");
   const landingPath = new URL(page.url()).pathname;
 
-  await page.goto("/project/aslan-maps/");
-  await page.waitForURL(/\/project\/aslan-maps\/?/);
+  await page.goto("/project/sample/");
+  await page.waitForURL(/\/project\/sample\/?/);
 
   await Promise.all([
     page.waitForURL((url) => new URL(url.toString()).pathname === landingPath, {
@@ -30,8 +30,8 @@ test("legacy /project/view/ → canonical → 뒤로가기 loop 없음", async (
   await page.goto("/");
   const homePath = new URL(page.url()).pathname;
 
-  await page.goto("/project/view/?slug=aslan-maps");
-  await page.waitForURL(/\/project\/aslan-maps\/?/, { timeout: 10_000 });
+  await page.goto("/project/view/?slug=sample");
+  await page.waitForURL(/\/project\/sample\/?/, { timeout: 10_000 });
 
   await Promise.all([
     page.waitForURL((url) => new URL(url.toString()).pathname === homePath, {

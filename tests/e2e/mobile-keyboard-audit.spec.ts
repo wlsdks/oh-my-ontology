@@ -34,7 +34,7 @@ const MOBILE_ROUTES = [
   { name: "m01-root", url: "/" },
   { name: "m02-login", url: "/login" },
   { name: "m03-signup", url: "/signup" },
-  { name: "m04-project-detail", url: "/project/aslan-maps/" },
+  { name: "m04-project-detail", url: "/project/sample/" },
   { name: "m05-admin-gate", url: "/admin/dashboard/" },
   { name: "m06-admin-login", url: "/admin/" },
 ];
@@ -65,7 +65,7 @@ test("데스크탑 홈 키보드 단축키 응답", async ({ page }) => {
 
   // 홈은 비로그인에 landing — 키보드 단축키는 HomePage에만 달려있어
   // 로그인 없이는 반응 못 함. 일단 화면이 깨지지 않는지 + ESC 응답 여부만.
-  await page.goto("/project/aslan-maps/");
+  await page.goto("/project/sample/");
   await page.waitForTimeout(1200);
 
   // Cmd+K 시도 — 공개 상세엔 검색 팔레트 없음. 그래도 입력이 스무스한지.

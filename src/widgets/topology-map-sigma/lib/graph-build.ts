@@ -143,7 +143,7 @@ function jitter(seed: number) {
 
 /**
  * names 배열에서 모두가 공유하는 "첫 단어" brand prefix 를 감지.
- * 예: ["Aslan IAM", "Aslan Knowledge", "Aslan Observability"] → "Aslan".
+ * 예: ["Demo IAM", "Demo Knowledge", "Demo Observability"] → "Demo".
  * 안 맞는 게 하나라도 있으면 '' 반환.
  */
 function detectBrandPrefix(names: string[]): string {
@@ -162,7 +162,7 @@ export function buildGraph(
   options?: {
     /**
      * Layer 1 에서 현재 컨테이너 이름 prefix 를 label 에서 제거하기 위한 값.
-     * 예: "Arc Reactor" 내부에서는 "Arc Reactor · Router" → "Router".
+     * 예: "Demo Reactor" 내부에서는 "Demo Reactor · Router" → "Router".
      * undefined/빈 문자열이면 원본 project.name 그대로 사용 (Layer 0 동작).
      */
     stripNamePrefix?: string;
@@ -199,7 +199,7 @@ export function buildGraph(
   );
 
   // Container 공통 brand prefix 감지 — 모든 container 이름이 같은 접두어 +
-  // 공백 으로 시작하면 해당 접두어를 label 에서 제거해 공간 절약 ("Aslan
+  // 공백 으로 시작하면 해당 접두어를 label 에서 제거해 공간 절약 ("Demo
   // Observability" → "Observability"). tooltip/drawer/검색 은 full name
   // 유지. 3개 미만 이면 축약 의미 없으므로 skip.
   const containerNames = projects
@@ -247,7 +247,7 @@ export function buildGraph(
       // 과함 (사용자 피드백). container 를 절반 (10~13) 으로 축소해
       // 전체 균형 개선 — hub 와 같은 사이즈 범위에서 amber 색으로 위계 구분.
       size: isContainer ? 10 : isLayer0Hub ? 3 : project.isHub ? 10 : 5.5,
-      // Container 는 brand prefix 축약 ("Aslan Observability" → "Observability")
+      // Container 는 brand prefix 축약 ("Demo Observability" → "Observability")
       // 으로 라벨 공간 절약. project.name 은 attrs 의 label 만 단축하므로
       // drawer/tooltip/검색 등은 여전히 full name 으로 조회됨.
       label: isContainer

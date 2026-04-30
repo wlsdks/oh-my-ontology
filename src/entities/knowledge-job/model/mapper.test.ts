@@ -22,7 +22,7 @@ describe("knowledge job mapper", () => {
       errorMessage: "boom",
       createdAt: ts,
       updatedAt: ts,
-      requestedBy: "admin@aslan.dev",
+      requestedBy: "admin@demo.dev",
     });
 
     expect(result.status).toBe("failed");

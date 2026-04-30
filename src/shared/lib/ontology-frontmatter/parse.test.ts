@@ -4,7 +4,7 @@ import { parseOntologyDocument } from './parse';
 const STRICT_DOC = `---
 id: auth-login
 kind: capability
-project: aslan-maps
+project: sample
 domain: authentication
 title: 로그인
 status: active
@@ -31,7 +31,7 @@ relates:
 const LENIENT_DOC = `---
 id: project-card
 kind: element
-project: aslan-maps
+project: sample
 title: 프로젝트 카드
 version: 1
 ---
@@ -56,7 +56,7 @@ describe('parseOntologyDocument — 등급 A (strict)', () => {
   it('extracts all required + recommended fields', () => {
     expect(result.frontmatter.id).toBe('auth-login');
     expect(result.frontmatter.kind).toBe('capability');
-    expect(result.frontmatter.project).toBe('aslan-maps');
+    expect(result.frontmatter.project).toBe('sample');
     expect(result.frontmatter.title).toBe('로그인');
     expect(result.frontmatter.version).toBe(1);
     expect(result.frontmatter.domain).toBe('authentication');
@@ -131,7 +131,7 @@ describe('parseOntologyDocument — 검증 경고', () => {
     const md = `---
 id: foo
 kind: invalid-kind
-project: aslan-maps
+project: sample
 title: 잘못된 kind
 version: 1
 ---
@@ -145,7 +145,7 @@ version: 1
     const md = `---
 id: NotKebab
 kind: project
-project: aslan
+project: demo
 title: bad id
 version: 1
 ---
@@ -174,7 +174,7 @@ relates:
     const md = `---
 id: foo
 kind: capability
-project: aslan
+project: demo
 title: foo
 version: 1
 relates:
@@ -191,7 +191,7 @@ relates:
     const md = `---
 id: foo
 kind: element
-project: aslan
+project: demo
 title: foo
 version: 1
 elementType: weird-type
@@ -207,7 +207,7 @@ describe('parseOntologyDocument — inline arrays still work', () => {
     const md = `---
 id: foo
 kind: capability
-project: aslan
+project: demo
 title: foo
 version: 1
 tags: [a, b, "c d"]
@@ -225,7 +225,7 @@ describe('parseOntologyDocument — element with valid elementType is grade A', 
     const md = `---
 id: login-api
 kind: element
-project: aslan
+project: demo
 domain: auth
 title: Login API
 status: active

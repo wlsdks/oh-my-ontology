@@ -17,20 +17,20 @@ pnpm seed
 
 ## 시드 데이터 구조
 
-설계 문서 [섹션 4.8](superpowers/specs/2026-04-12-aslan-project-map-design.md) 참조. 요약:
+설계 문서 [섹션 4.8](superpowers/specs/2026-04-12-oh-my-ontology-design.md) 참조. 요약:
 
 ### 작업중 (in-progress)
 
-- Aslan maps
-- 뉴스 클리핑 (Lantern), 커뮤니티 (Paravel), Aslan Verse, 현장강의 플랫폼 (Pick)
+- Demo maps
+- 뉴스 클리핑 (Sample News), 커뮤니티 (Sample App), Demo Console, Sample Live Lecture (Sample)
   Pick은 AI 질문 생성, 응답 요약, AI 조교, 7인 과제 심사, 수업 인사이트/리포트까지 포함한다.
 - Reactor (**허브**), IAM (**허브**)
-- Reactor Web, atlassian mcp, swagger mcp
+- Demo Reactor Web, atlassian mcp, swagger mcp
 - 각종 Admin들
 
 ### 예정 (planned)
 
-- cronos mcp, groupware mcp, 도메인 지식 mcp, Aslan Scale
+- cronos mcp, groupware mcp, 도메인 지식 mcp, Demo Scale
 
 ## 허브 관계
 

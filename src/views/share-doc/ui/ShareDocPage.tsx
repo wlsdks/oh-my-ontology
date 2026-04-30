@@ -73,7 +73,7 @@ function ShareDocContent() {
             href="/"
             className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[color:var(--color-divider)] px-3 text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)]"
           >
-            Aslan Project Map
+            oh-my-ontology
             <ExternalLink size={11} aria-hidden />
           </Link>
         </div>

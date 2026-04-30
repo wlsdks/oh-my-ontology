@@ -1,6 +1,6 @@
 import type { VaultRecentKey } from './recent-docs';
 
-export const RADAR_REVIEW_STORAGE_PREFIX = 'aslan:docs-vault:radar-review:v1:';
+export const RADAR_REVIEW_STORAGE_PREFIX = 'demo:docs-vault:radar-review:v1:';
 
 type RadarReviewAction = 'confirmed' | 'dismissed' | 'pending';
 

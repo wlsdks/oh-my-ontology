@@ -70,7 +70,7 @@ path 가 드러났다. 각각 한 줄씩 회복.
 #### 제품 안전망
 
 - `app/global-error.tsx` — 루트 layout 크래시 시 브라우저 기본 에러 대신
-  Narnia 톤 에러 UI + 재시도·홈 링크 (iter 10)
+  Demo 톤 에러 UI + 재시도·홈 링크 (iter 10)
 - `ProjectDetailPage` — 공개 `/project/[slug]/` 가 하이드레이션 직후
   "찾을 수 없음" 으로 붕괴하던 회귀 fix + `resolveSubscribeUpdate` 헬퍼로
   추출 및 5건 유닛 테스트 (iter 16, 25)
@@ -82,8 +82,8 @@ path 가 드러났다. 각각 한 줄씩 회복.
 - `<script type="application/ld+json">` — WebSite + Organization (layout),
   CreativeWork + BreadcrumbList (project detail) (iter 13, 14)
 - 페이지별 metadata.title + robots: auth/admin noindex, 공개 페이지 색인 허용,
-  admin layout title template `%s · Admin · Narnia` cascade (iter 11, 21)
-- `/admin/project/[slug]` 동적 metadata — "IAM 편집 · Admin · Narnia" (iter 23)
+  admin layout title template `%s · Admin · Demo` cascade (iter 11, 21)
+- `/admin/project/[slug]` 동적 metadata — "IAM 편집 · Admin · Demo" (iter 23)
 - `useDocumentTitle` 과 metadata 충돌 정리 — 정적 12 admin 페이지에서 제거,
   동적 5 페이지만 유지 (iter 22)
 
@@ -168,7 +168,7 @@ path 가 드러났다. 각각 한 줄씩 회복.
   - `README.md`
   - `docs/ARCHITECTURE.md`
   - `docs/ADMIN-GUIDE.md`
-  - `docs/superpowers/specs/2026-04-12-aslan-project-map-design.md`
+  - `docs/superpowers/specs/2026-04-12-oh-my-ontology-design.md`
   - 초기 `공개 포트폴리오 + 1인 어드민` 전제를 걷고, `작업 공간 / 전체 지도 / 프로젝트 목록 / 개별 프로젝트 / 문서 기반 온톨로지 / owner-editor-viewer 권한` 모델을 현재 구현 기준으로 반영
 - `AGENTS.md`, `CLAUDE.md`를 현재 Next.js 16/App Router 현실과 knowledge subsystem v2 방향에 맞게 재정비
   - `AGENTS.md`
@@ -206,7 +206,7 @@ path 가 드러났다. 각각 한 줄씩 회복.
   - `accounts/{accountId}/knowledgeDocuments/*`
   - `accounts/{accountId}/knowledgeDocumentVersions/*`
   - `accounts/{accountId}/knowledge-documents/*`
-  - `?account=sandbox-lab` 쿼리로 admin/public에서 기존 전역 데이터와 분리된 테스트 흐름을 검증 가능하게 정리
+  - `?account=demo-workspace` 쿼리로 admin/public에서 기존 전역 데이터와 분리된 테스트 흐름을 검증 가능하게 정리
 - README의 knowledge subsystem 링크를 planned 상태로 명시
   - `README.md`
 - 어드민 대시보드와 편집기의 운영 UX를 정리
@@ -416,7 +416,7 @@ path 가 드러났다. 각각 한 줄씩 회복.
 - 홈 온보딩용 `Guided tour` 추가
   - `widgets/project-tour` — 핵심 프로젝트를 순서대로 안내하는 플로팅 가이드
   - 첫 방문 시 자동 노출, 이후에는 `Guide` 버튼으로 수동 재실행 가능
-  - 기존 선택/드로어 상태를 재사용해 `IAM → Reactor → Aslan Maps → Aslan Verse` 흐름 제공
+  - 기존 선택/드로어 상태를 재사용해 `IAM → Reactor → Sample → Demo Console` 흐름 제공
 - 홈 탐색용 `Featured paths` 추가
   - `widgets/featured-paths` — `Identity / Agent / Products` 관점으로 바로 진입하는 프리셋
   - 클릭 시 허브 포커스, 카테고리 필터, 선택 프로젝트를 한 번에 적용
@@ -441,7 +441,7 @@ path 가 드러났다. 각각 한 줄씩 회복.
   - 드로어에 completeness와 story gap 프롬프트를 노출
   - 프로젝트 편집 폼 우측에 readiness 점수와 다음 입력 권장사항을 표시
 - 홈 히어로를 포트폴리오형 인트로로 재구성
-  - `Aslan Maps`를 공개 포트폴리오로 읽히도록 가치 제안, 핵심 신호, 현재 렌즈를 상단에 노출
+  - `Sample`를 공개 포트폴리오로 읽히도록 가치 제안, 핵심 신호, 현재 렌즈를 상단에 노출
   - `Guided tour`, `Search projects` CTA를 히어로에 통합해 첫 방문자의 진입 동선을 명확히 정리
   - 좌측 `Featured paths` 레일을 히어로 높이에 맞춰 재배치해 캔버스 중심 가독성 유지
 - 전체 화면 `Portfolio mode` 추가
@@ -483,7 +483,7 @@ path 가 드러났다. 각각 한 줄씩 회복.
   - `views/admin-login` + `/admin` 라우트 — 로그인 상태 분기 UI
   - `firestore.rules` — projects/meta 공개 읽기·admin 쓰기, admins 화이트리스트 보호
   - `storage.rules` — screenshots/{slug}/ 공개 읽기·admin 쓰기 + 5MB 제한 + 이미지 타입 검증
-  - `firebase.json`, `.firebaserc` — 프로젝트 설정 (aslan-project-map)
+  - `firebase.json`, `.firebaserc` — 프로젝트 설정 (oh-my-ontology)
   - Firebase Hosting 설정 (out/ 디렉토리, cleanUrls, trailingSlash)
   - firebase-tools 개발 의존성 추가
   - **Rules 배포 완료**: `firebase deploy --only firestore:rules,storage` 성공
@@ -495,19 +495,19 @@ path 가 드러났다. 각각 한 줄씩 회복.
   - `react-markdown` + `remark-gfm` 통합, Linear 스타일 prose
   - 드로어 하단에 "상세 페이지로 이동" 링크 추가
   - 20개 프로젝트 정적 페이지 빌드 시 자동 생성
-  - **라이브 배포**: https://aslan-project-map.web.app/project/reactor/ 등
+  - **라이브 배포**: https:///project/reactor/ 등
 
 - **Phase 8 Polish 완료**: 디테일 마감
   - `widgets/legend` — 좌하단 접힘/펼침 범례 카드 (Categories, Status 섹션)
   - `widgets/topology-canvas` — Firestore 초기 구독 로딩 스피너 (loading 상태)
   - `app/layout.tsx` — SEO 메타 확장 (metadataBase, Open Graph, Twitter card, title template, theme-color `#08090a`, keywords, robots, icons)
   - `app/globals.css` — `prefers-reduced-motion` 미디어쿼리 + `::selection` 인디고 하이라이트
-  - **라이브 재배포 완료**: https://aslan-project-map.web.app
+  - **라이브 재배포 완료**: https://
 
 - **Phase 7 완료**: Firebase Hosting 배포
   - `firebase.json` SPA rewrite 제거 (Next.js 정적 파일 라우팅과 충돌했음)
   - 정적 에셋 캐시 헤더 (JS/CSS/폰트/이미지 immutable)
-  - **Live URL**: https://aslan-project-map.web.app
+  - **Live URL**: https://
 
 - **Phase 3 완료**: 공개 토폴로지 뷰 + 드로어
   - `entities/project/model/seed-data.ts` — 실제 프로젝트 16개 시드 (허브 2, 작업중 10, 예정 4)
@@ -533,7 +533,7 @@ path 가 드러났다. 각각 한 줄씩 회복.
 
 ### Added
 
-- 초기 설계 문서 ([`docs/superpowers/specs/2026-04-12-aslan-project-map-design.md`](superpowers/specs/2026-04-12-aslan-project-map-design.md))
+- 초기 설계 문서 ([`docs/superpowers/specs/2026-04-12-oh-my-ontology-design.md`](superpowers/specs/2026-04-12-oh-my-ontology-design.md))
 - Phase 0+1 구현 계획 ([`docs/superpowers/plans/2026-04-12-phase-0-1-scaffold-and-fsd.md`](superpowers/plans/2026-04-12-phase-0-1-scaffold-and-fsd.md))
 - Linear 디자인 시스템 레퍼런스 ([`docs/design-references/DESIGN-linear.md`](design-references/DESIGN-linear.md), VoltAgent/awesome-design-md MIT)
 # Changelog
@@ -547,7 +547,7 @@ path 가 드러났다. 각각 한 줄씩 회복.
 
 ## 샌드박스 지식 fixture와 운영 화면 정리
 
-- `scripts/fixtures/knowledge/sandbox/*.md`와 `pnpm seed:sandbox:knowledge`를 추가해 `sandbox-lab` 전용 문서/추출 fixture를 반복 시드할 수 있게 했다.
-- `sandbox-lab` 토폴로지를 더 풍부하게 보기 위해 샌드박스 프로젝트 세트를 7개로 확장했다.
+- `scripts/fixtures/knowledge/sandbox/*.md`와 `pnpm seed:sandbox:knowledge`를 추가해 `demo-workspace` 전용 문서/추출 fixture를 반복 시드할 수 있게 했다.
+- `demo-workspace` 토폴로지를 더 풍부하게 보기 위해 샌드박스 프로젝트 세트를 7개로 확장했다.
 - knowledge 문서 목록에 요약 카드와 접이식 필터를 추가해 첫 화면 정보 밀도를 낮췄다.
 - knowledge 문서 상세를 `개요와 버전 / 변경 비교 / 추출 결과` 3개 작업 패널로 분리해 비개발자 운영자가 한 번에 봐야 하는 양을 줄였다.

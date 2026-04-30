@@ -75,7 +75,7 @@ function EditorContent({
   const toast = useToast();
   const targetSlug = mode === "edit" ? slug : duplicateFromSlug;
   useDocumentTitle(
-    (mode === "edit" ? "프로젝트 편집 · Narnia" : "새 프로젝트 · Narnia"),
+    (mode === "edit" ? "프로젝트 편집 · Demo" : "새 프로젝트 · Demo"),
   );
   const safeReturnTo = appendAccountQuery(normalizeReturnTo(returnTo), accountId);
   const safeReturnLabel = resolveReturnLabel(normalizeReturnTo(returnTo));

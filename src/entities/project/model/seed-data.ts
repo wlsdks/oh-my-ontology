@@ -19,7 +19,7 @@ export const SEED_PROJECTS: ProjectInput[] = [
     description:
       "통합 인증 서비스. JWT 발급의 유일한 권한을 갖고 타 서비스는 공개키로 로컬 검증만 한다.",
     detail:
-      "Aslan 플랫폼의 인증·권한 게이트웨이. Kotlin · Spring Boot 3.3 기반 헥사고날 아키텍처, PostgreSQL · Redis, JWT(Access/Refresh) + TOTP 2FA, RSA 키 발급/롤오버, Rate Limit, Admin API(사용자 상태·감사 로그)까지 포함.",
+      "Demo 플랫폼의 인증·권한 게이트웨이. Kotlin · Spring Boot 3.3 기반 헥사고날 아키텍처, PostgreSQL · Redis, JWT(Access/Refresh) + TOTP 2FA, RSA 키 발급/롤오버, Rate Limit, Admin API(사용자 상태·감사 로그)까지 포함.",
     tags: ["Auth", "Hub"],
     stack: ["Kotlin", "Spring Boot", "PostgreSQL", "Redis", "JWT"],
     owner: "오민혁, 김경훈",
@@ -29,7 +29,7 @@ export const SEED_PROJECTS: ProjectInput[] = [
   {
     slug: "reactor",
     name: "Reactor",
-    nameEn: "Arc Reactor",
+    nameEn: "Demo Reactor",
     category: "in-progress",
     status: "deploy-ready",
     description:
@@ -45,8 +45,8 @@ export const SEED_PROJECTS: ProjectInput[] = [
 
   // ── 작업중 — 핵심 서비스 ────────────────────
   {
-    slug: "aslan-maps",
-    name: "Narnia",
+    slug: "sample",
+    name: "Demo",
     category: "in-progress",
     status: "developing",
     description: "아슬란의 프로젝트·도메인·서비스를 인터랙티브 토폴로지 지도로 보여주는 서비스.",
@@ -58,8 +58,8 @@ export const SEED_PROJECTS: ProjectInput[] = [
     position: { x: -480, y: -160 },
   },
   {
-    slug: "aslan-verse",
-    name: "Aslan Verse",
+    slug: "demo-verse",
+    name: "Demo Console",
     category: "in-progress",
     status: "deploy-ready",
     description:
@@ -73,8 +73,8 @@ export const SEED_PROJECTS: ProjectInput[] = [
     position: { x: 480, y: -160 },
   },
   {
-    slug: "news-clipping",
-    name: "뉴스 클리핑 (Lantern)",
+    slug: "sample-news",
+    name: "뉴스 클리핑 (Sample News)",
     category: "in-progress",
     status: "deploy-ready",
     description:
@@ -88,8 +88,8 @@ export const SEED_PROJECTS: ProjectInput[] = [
     position: { x: -320, y: -280 },
   },
   {
-    slug: "paravel",
-    name: "커뮤니티 (Paravel)",
+    slug: "sample-app",
+    name: "커뮤니티 (Sample App)",
     category: "in-progress",
     status: "developing",
     description: "사내 커뮤니티.",
@@ -100,7 +100,7 @@ export const SEED_PROJECTS: ProjectInput[] = [
   },
   {
     slug: "pick",
-    name: "현장강의 플랫폼 (Pick)",
+    name: "Sample Live Lecture (Sample)",
     category: "in-progress",
     status: "completed",
     description:
@@ -117,10 +117,10 @@ export const SEED_PROJECTS: ProjectInput[] = [
   // ── 작업중 — Reactor 위성(운영 콘솔 + MCP) ───
   {
     slug: "reactor-admin",
-    name: "Reactor Admin",
+    name: "Demo Reactor Admin",
     category: "in-progress",
     status: "developing",
-    description: "Arc Reactor 운영 콘솔.",
+    description: "Demo Reactor 운영 콘솔.",
     detail:
       "MCP 서버 등록·툴 정책·프롬프트 버전·승인 큐·감사 로그·출력 가드 룰을 관리하는 어드민 워크스페이스. React + TypeScript + Vite. Reactor operator stack (백엔드 18081, 어드민 4174)과 함께 구동.",
     tags: ["Admin", "Console"],
@@ -131,11 +131,11 @@ export const SEED_PROJECTS: ProjectInput[] = [
   },
   {
     slug: "reactor-web",
-    name: "Reactor Web",
-    nameEn: "Arc Reactor Web",
+    name: "Demo Reactor Web",
+    nameEn: "Demo Demo Reactor Web",
     category: "in-progress",
     status: "developing",
-    description: "Arc Reactor를 위한 웹 채팅 UI이자 운영 워크스페이스.",
+    description: "Demo Reactor를 위한 웹 채팅 UI이자 운영 워크스페이스.",
     detail:
       "React 19 + Vite 7 + TanStack Query 기반 프론트엔드. SSE 스트리밍 채팅, 세션 기반 대화, 페르소나 관리, JWT 인증, MCP 서버·툴 정책·스케줄러·클리핑까지 포함한 어드민 대시보드를 한 화면에서 다룬다.",
     tags: ["AI", "Frontend", "Console"],
@@ -151,7 +151,7 @@ export const SEED_PROJECTS: ProjectInput[] = [
   },
   {
     slug: "atlassian-mcp",
-    name: "Atlassian MCP",
+    name: "Sample MCP A",
     category: "in-progress",
     status: "developing",
     description:
@@ -166,7 +166,7 @@ export const SEED_PROJECTS: ProjectInput[] = [
   },
   {
     slug: "swagger-mcp",
-    name: "Swagger MCP",
+    name: "Sample MCP C",
     category: "in-progress",
     status: "developing",
     description:
@@ -181,7 +181,7 @@ export const SEED_PROJECTS: ProjectInput[] = [
   },
   {
     slug: "domain-knowledge-mcp",
-    name: "도메인 지식 MCP",
+    name: "Sample MCP D",
     category: "planned",
     status: "planning",
     description: "사내 도메인 지식 베이스 MCP 서버 — 용어·정책·사례를 에이전트가 즉시 인용.",
@@ -195,8 +195,8 @@ export const SEED_PROJECTS: ProjectInput[] = [
 
   // ── 예정 ───────────────────────────────
   {
-    slug: "cronos-mcp",
-    name: "Cronos MCP",
+    slug: "sample-mcp-e",
+    name: "Sample MCP E",
     category: "planned",
     status: "planning",
     description: "일정·시간 기반 MCP 서버 — 반복 작업과 리마인더를 에이전트에게.",
@@ -207,7 +207,7 @@ export const SEED_PROJECTS: ProjectInput[] = [
   },
   {
     slug: "groupware-mcp",
-    name: "Groupware MCP",
+    name: "Sample MCP B",
     category: "planned",
     status: "planning",
     description: "그룹웨어(메일·캘린더·출퇴근) MCP 서버.",
@@ -217,8 +217,8 @@ export const SEED_PROJECTS: ProjectInput[] = [
     position: { x: -700, y: -160 },
   },
   {
-    slug: "aslan-scale",
-    name: "Aslan Scale",
+    slug: "demo-scale",
+    name: "Demo Scale",
     category: "planned",
     status: "idea",
     description: "대규모 처리·배치·큐 인프라.",

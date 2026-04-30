@@ -58,7 +58,7 @@ const MATCH_FIELD_LABELS = {
   description: '설명',
 } as const;
 
-const RECENT_SEARCH_KEY = 'aslan:recent-search-slugs:v1';
+const RECENT_SEARCH_KEY = 'demo:recent-search-slugs:v1';
 const RECENT_MAX = 5;
 
 function readRecentSlugs(): string[] {

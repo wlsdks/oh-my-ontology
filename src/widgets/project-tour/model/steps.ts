@@ -27,15 +27,15 @@ const TOUR_STEP_SPECS: ProjectTourStep[] = [
   },
   {
     id: "maps-self",
-    slug: "aslan-maps",
+    slug: "sample",
     eyebrow: "이 제품",
-    title: "Narnia가 시스템 자체를 설명합니다.",
+    title: "Demo가 시스템 자체를 설명합니다.",
     description:
       "지금 보고 있는 이 프로젝트다. 단순 목록이 아니라 서비스 간 위치와 관계를 한 장의 지도처럼 보여주는 역할을 맡는다.",
   },
   {
     id: "future-edge",
-    slug: "aslan-verse",
+    slug: "demo-verse",
     eyebrow: "확장 방향",
     title: "다음 실험은 가장자리에서 보입니다.",
     description:

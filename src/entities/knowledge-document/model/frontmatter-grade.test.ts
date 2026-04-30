@@ -7,7 +7,7 @@ describe("computeFrontmatterGrade", () => {
       frontmatter: {
         id: "auth-login",
         kind: "capability",
-        project: "aslan-maps",
+        project: "sample",
         title: "로그인",
         version: 1,
         domain: "auth",
@@ -26,7 +26,7 @@ describe("computeFrontmatterGrade", () => {
       frontmatter: {
         id: "auth-login",
         kind: "capability",
-        project: "aslan-maps",
+        project: "sample",
         title: "로그인",
         version: 1,
       },
@@ -59,7 +59,7 @@ describe("computeFrontmatterGrade", () => {
       frontmatter: {},
       pageTitle: "로그인",
       pageKind: "capability",
-      pageProjectIds: ["aslan-maps"],
+      pageProjectIds: ["sample"],
     });
     expect(r.missingRequired).toEqual(["id", "version"]);
     expect(r.grade).toBe("C");
@@ -70,7 +70,7 @@ describe("computeFrontmatterGrade", () => {
       frontmatter: {
         id: "auth-login",
         kind: "capability",
-        projectIds: ["aslan-maps"],
+        projectIds: ["sample"],
         title: "로그인",
         version: 1,
       },
@@ -90,7 +90,7 @@ describe("computeFrontmatterGrade", () => {
       frontmatter: {
         id: "auth-login",
         kind: "capability",
-        project: "aslan-maps",
+        project: "sample",
         title: "로그인",
         version: 1,
         domain: "auth",

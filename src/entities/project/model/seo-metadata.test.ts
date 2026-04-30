@@ -6,7 +6,7 @@ import { SEED_PROJECTS } from "./seed-data";
 // T-14. 공개 상세 SEO metadata 정합성 회귀 가드.
 //
 // out/project/{slug}/index.html 마다 아래가 모두 채워져 있어야 한다.
-//   - <title> 이 프로젝트 name 으로 시작 (project.name + " · Narnia" 관습)
+//   - <title> 이 프로젝트 name 으로 시작 (project.name + " · Demo" 관습)
 //   - og:title == project.name
 //   - og:description == project.description (seed 기준)
 //   - canonical, og:url 모두 https://host/project/{slug}/ 로 끝남

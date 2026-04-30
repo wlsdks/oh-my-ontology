@@ -422,7 +422,7 @@ export const receiveGitHubActivity = onRequest(
     }
 
     const accountId =
-      trimString(req.query.accountId) || trimString(req.get("X-Aslan-Account-Id"));
+      trimString(req.query.accountId) || trimString(req.get("X-Demo-Account-Id"));
     if (!accountId) {
       jsonError(res, 400, "accountId required");
       return;

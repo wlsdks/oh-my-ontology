@@ -14,24 +14,24 @@ import { createAccountMemberUser } from "./support/emulator-admin";
 test.describe("멤버 초대 panel", () => {
   test("owner 는 account-settings 에서 '공간 멤버' card 를 본다", async ({ page }) => {
     const suffix = Date.now();
-    const email = `owner-invite-${suffix}@narnia.local`;
-    const password = "narnia-pass-123";
+    const email = `owner-invite-${suffix}@demo.local`;
+    const password = "demo-pass-123";
     const displayName = `owner ${suffix}`;
 
     await createAccountMemberUser({
       email,
       password,
       displayName,
-      accountId: "sandbox-lab",
+      accountId: "demo-workspace",
       role: "owner",
     });
 
-    await page.goto("/login/?account=sandbox-lab");
+    await page.goto("/login/?account=demo-workspace");
     await page.getByLabel("이메일").fill(email);
     await page.getByLabel("비밀번호").fill(password);
     await page.getByRole("button", { name: "이메일로 로그인" }).click();
 
-    await page.goto("/account/?account=sandbox-lab");
+    await page.goto("/account/?account=demo-workspace");
 
     // 멤버 card 는 canManage (owner) 에게만 노출.
     const membersCard = page.getByRole("heading", { name: "공간 멤버" });
@@ -50,24 +50,24 @@ test.describe("멤버 초대 panel", () => {
 
   test("editor 는 '공간 멤버' card 를 보지 못한다 (owner 전용)", async ({ page }) => {
     const suffix = Date.now();
-    const email = `editor-${suffix}@narnia.local`;
-    const password = "narnia-pass-123";
+    const email = `editor-${suffix}@demo.local`;
+    const password = "demo-pass-123";
     const displayName = `editor ${suffix}`;
 
     await createAccountMemberUser({
       email,
       password,
       displayName,
-      accountId: "sandbox-lab",
+      accountId: "demo-workspace",
       role: "editor",
     });
 
-    await page.goto("/login/?account=sandbox-lab");
+    await page.goto("/login/?account=demo-workspace");
     await page.getByLabel("이메일").fill(email);
     await page.getByLabel("비밀번호").fill(password);
     await page.getByRole("button", { name: "이메일로 로그인" }).click();
 
-    await page.goto("/account/?account=sandbox-lab");
+    await page.goto("/account/?account=demo-workspace");
     await expect(page.getByRole("heading", { name: "공간 멤버" })).toHaveCount(0);
   });
 });

@@ -5,8 +5,8 @@ import {
   getDemoWorkspaceProjects,
 } from "@/shared/mocks/demo-data";
 
-export const DEMO_ACCOUNT_ID = "stress-lab";
-const DEMO_PROJECT_SLUG = "narnia-indexer-10";
+export const DEMO_ACCOUNT_ID = "demo-workspace";
+const DEMO_PROJECT_SLUG = "demo-indexer-10";
 
 export function getDemoProjectsHref() {
   return appendAccountQuery("/projects", DEMO_ACCOUNT_ID);

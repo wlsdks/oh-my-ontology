@@ -40,13 +40,13 @@ describe("findProjectsReferencingSlug", () => {
   it("returns projects that depend on the target slug", () => {
     const projects = [
       project("iam"),
-      project("aslan-maps", ["iam"]),
-      project("aslan-studio", ["iam", "reactor"]),
+      project("sample", ["iam"]),
+      project("demo-studio", ["iam", "reactor"]),
       project("pick", ["reactor"]),
     ];
 
     expect(findProjectsReferencingSlug(projects, "iam").map((item) => item.slug))
-      .toEqual(["aslan-maps", "aslan-studio"]);
+      .toEqual(["sample", "demo-studio"]);
   });
 
   it("returns an empty array when no project references the slug", () => {
@@ -80,15 +80,15 @@ describe("collectProjectDependencyClosure", () => {
     const projects = [
       project("iam"),
       project("reactor", ["iam"]),
-      project("aslan-studio", ["iam", "reactor"]),
+      project("demo-studio", ["iam", "reactor"]),
       project("pick", ["reactor"]),
     ];
 
     expect(
-      collectProjectDependencyClosure(projects, ["aslan-studio"]).map(
+      collectProjectDependencyClosure(projects, ["demo-studio"]).map(
         (item) => item.slug,
       ),
-    ).toEqual(["iam", "reactor", "aslan-studio"]);
+    ).toEqual(["iam", "reactor", "demo-studio"]);
   });
 
   it("ignores missing targets without failing", () => {
@@ -107,14 +107,14 @@ describe("collectProjectDependentClosure", () => {
     const projects = [
       project("iam"),
       project("reactor", ["iam"]),
-      project("aslan-maps", ["iam"]),
-      project("aslan-studio", ["iam", "reactor"]),
+      project("sample", ["iam"]),
+      project("demo-studio", ["iam", "reactor"]),
       project("pick", ["reactor"]),
     ];
 
     expect(
       collectProjectDependentClosure(projects, ["iam"]).map((item) => item.slug),
-    ).toEqual(["iam", "reactor", "aslan-maps", "aslan-studio", "pick"]);
+    ).toEqual(["iam", "reactor", "sample", "demo-studio", "pick"]);
   });
 
   it("ignores missing targets without failing", () => {
@@ -133,15 +133,15 @@ describe("collectProjectConnectedClosure", () => {
     const projects = [
       project("iam"),
       project("reactor", ["iam"]),
-      project("aslan-maps", ["iam"]),
-      project("aslan-studio", ["iam", "reactor"]),
+      project("sample", ["iam"]),
+      project("demo-studio", ["iam", "reactor"]),
       project("pick", ["reactor"]),
       project("isolated"),
     ];
 
     expect(
       collectProjectConnectedClosure(projects, ["pick"]).map((item) => item.slug),
-    ).toEqual(["iam", "reactor", "aslan-maps", "aslan-studio", "pick"]);
+    ).toEqual(["iam", "reactor", "sample", "demo-studio", "pick"]);
   });
 
   it("ignores missing targets without failing", () => {

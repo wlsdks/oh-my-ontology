@@ -22,7 +22,7 @@ describe("knowledge document mapper", () => {
       latestJobStatus: "failed",
       createdAt: ts,
       updatedAt: ts,
-      createdBy: "admin@aslan.dev",
+      createdBy: "admin@demo.dev",
     });
 
     expect(result.id).toBe("auth-spec");
@@ -39,7 +39,7 @@ describe("knowledge document mapper", () => {
         sourceType: "manual",
         currentVersionId: "version-1",
         status: "draft",
-        createdBy: "admin@aslan.dev",
+        createdBy: "admin@demo.dev",
       }),
     ).toEqual({
       title: "Auth Spec",
@@ -48,7 +48,7 @@ describe("knowledge document mapper", () => {
       sourceType: "manual",
       currentVersionId: "version-1",
       status: "draft",
-      createdBy: "admin@aslan.dev",
+      createdBy: "admin@demo.dev",
     });
   });
 

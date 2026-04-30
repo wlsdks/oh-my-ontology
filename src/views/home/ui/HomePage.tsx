@@ -137,8 +137,8 @@ import {
 } from "../model/workspace-container-fallback";
 import { useHomeRouteState } from "../model/use-home-route-state";
 
-const TOUR_DISMISSED_KEY = "aslan:project-tour:dismissed:v1";
-const LEFT_PANEL_COLLAPSED_KEY = "aslan:left-panel-collapsed:v2";
+const TOUR_DISMISSED_KEY = "demo:project-tour:dismissed:v1";
+const LEFT_PANEL_COLLAPSED_KEY = "demo:left-panel-collapsed:v2";
 
 export function HomePage() {
   const { showCategoryRegions, categories: taxonomyCategories } = useTaxonomy();
@@ -156,7 +156,7 @@ export function HomePage() {
   const [sigmaHintDismissed, setSigmaHintDismissed] = useState(() => {
     if (typeof window === 'undefined') return true;
     try {
-      return window.localStorage.getItem('aslan:sigma-hint-dismissed:v1') === '1';
+      return window.localStorage.getItem('demo:sigma-hint-dismissed:v1') === '1';
     } catch {
       return true;
     }
@@ -164,7 +164,7 @@ export function HomePage() {
   const dismissSigmaHint = useCallback(() => {
     setSigmaHintDismissed(true);
     try {
-      window.localStorage.setItem('aslan:sigma-hint-dismissed:v1', '1');
+      window.localStorage.setItem('demo:sigma-hint-dismissed:v1', '1');
     } catch {
       /* private mode — skip */
     }
@@ -185,8 +185,8 @@ export function HomePage() {
   const [searchOpen, setSearchOpen] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
-      if (window.sessionStorage.getItem("aslan:open-search") === "1") {
-        window.sessionStorage.removeItem("aslan:open-search");
+      if (window.sessionStorage.getItem("demo:open-search") === "1") {
+        window.sessionStorage.removeItem("demo:open-search");
         return true;
       }
     } catch {
@@ -210,8 +210,8 @@ export function HomePage() {
   const [shortcutsOpen, setShortcutsOpen] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
-      if (window.sessionStorage.getItem("aslan:open-shortcuts") === "1") {
-        window.sessionStorage.removeItem("aslan:open-shortcuts");
+      if (window.sessionStorage.getItem("demo:open-shortcuts") === "1") {
+        window.sessionStorage.removeItem("demo:open-shortcuts");
         return true;
       }
     } catch {
@@ -309,7 +309,7 @@ export function HomePage() {
   );
   const [selectorOpen, setSelectorOpen] = useState(false);
   // P0-B Phase 6 — 활성 컨테이너 이름을 hero subtitle/eyebrow 에 합성해
-  // selector pill 외에도 "지금 narnia 안" 이라는 시각 단서 강화.
+  // selector pill 외에도 "지금 demo 안" 이라는 시각 단서 강화.
   const {
     projects: workspaceProjectContainers,
     loading: workspaceProjectsLoading,
@@ -344,7 +344,7 @@ export function HomePage() {
       : new Map();
     // 컨테이너 사이 cross-edge 계산: flat `accounts/{aid}/projects/*` 의
     // dependencies 를 컨테이너 id 와 매칭. flat slug 와 컨테이너 id 가 1:1 인
-    // 시드 규약 (예: "reactor", "aslan-iam") 을 따른다.
+    // 시드 규약 (예: "reactor", "demo-iam") 을 따른다.
     const containerIdSet = new Set(
       effectiveWorkspaceProjectContainers.map((c) => c.id),
     );
@@ -420,12 +420,12 @@ export function HomePage() {
   const combinedFitToken = fitViewToken + viewModeHash;
   // P1-5 — 클라이언트 사이드 동적 타이틀. 컨테이너/선택 프로젝트 컨텍스트
   // 를 탭·검색바에 노출 (정적 export 환경의 page metadata 한계 보완).
-  // 브랜드·컨테이너·계정 이름이 같으면 (예: 컨테이너명이 "Narnia") 중복 제거.
+  // 브랜드·컨테이너·계정 이름이 같으면 (예: 컨테이너명이 "Demo") 중복 제거.
   useDocumentTitle(
     Array.from(
       new Set(
         [
-          "Narnia",
+          "Demo",
           activeContainerName,
           selectedProject?.name ?? scopedAccountName,
         ].filter((value): value is string => Boolean(value)),
@@ -776,7 +776,7 @@ export function HomePage() {
     if (typeof window === "undefined") return;
     try {
       const raw = window.localStorage.getItem(
-        "aslan:docs-vault:pinned:v1:server",
+        "demo:docs-vault:pinned:v1:server",
       );
       if (!raw) {
         queueMicrotask(() => setDocsPinnedCount(0));
@@ -884,8 +884,8 @@ export function HomePage() {
   const preloadProjectAsset = useCallback(
     (slug: string) => {
       const project = projectBySlug.get(slug);
-      // Layer 0 컨테이너 synthetic project 는 slug 가 container id (narnia,
-      // aslan-reactor 등). `/project/{id}/` 정적 페이지는 존재하지 않아
+      // Layer 0 컨테이너 synthetic project 는 slug 가 container id (demo,
+      // demo-reactor 등). `/project/{id}/` 정적 페이지는 존재하지 않아
       // prefetch 시 404 소음만 만든다. 실제로는 `?pj=` zoom-in 으로 이동.
       if (!project || project.category === "__container__") return;
 
@@ -965,7 +965,7 @@ export function HomePage() {
         visible h1 을 두기 어려워 sr-only 로 문서 구조 only 에 보이게 한다.
       */}
       <h1 className="sr-only">
-        {scopedAccountName ?? "Narnia"} 프로젝트 토폴로지 지도
+        {scopedAccountName ?? "Demo"} 프로젝트 토폴로지 지도
       </h1>
       <GestureHint
         disabled={presentationMode || portfolioOpen || tourOpen || drawerOpen}
@@ -1001,7 +1001,7 @@ export function HomePage() {
                     translate="no"
                     className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]"
                   >
-                    Narnia
+                    Demo
                   </span>
                   <p className="mt-0.5 max-w-[180px] text-[11px] leading-4 text-[color:var(--color-text-tertiary)]">
                     제품·인증·에이전트.
@@ -1037,7 +1037,7 @@ export function HomePage() {
                     onExpand={
                       drawerOpen ? handleClose : toggleLeftPanel
                     }
-                    title={selectedProject?.name ?? scopedAccountName ?? "Narnia"}
+                    title={selectedProject?.name ?? scopedAccountName ?? "Demo"}
                     subtitle={
                       selectedProject
                         ? "선택한 프로젝트"
@@ -1092,7 +1092,7 @@ export function HomePage() {
                     activePathLabel={activeFeaturedPath?.label ?? null}
                     onOpenSearch={() => setSearchOpen(true)}
                     onCollapse={toggleLeftPanel}
-                    title={selectedProject?.name ?? scopedAccountName ?? "Narnia"}
+                    title={selectedProject?.name ?? scopedAccountName ?? "Demo"}
                     eyebrow={
                       selectedProject
                         ? "선택한 프로젝트"

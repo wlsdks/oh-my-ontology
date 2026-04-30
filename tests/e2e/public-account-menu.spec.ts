@@ -7,7 +7,7 @@ test.describe("public account menu", () => {
   }) => {
     await page.goto("/login/");
     await page.getByRole("button", { name: "데모 로그인" }).click();
-    await expect(page).toHaveURL(/\/projects\/\?account=stress-lab$/);
+    await expect(page).toHaveURL(/\/projects\/\?account=demo-workspace$/);
 
     const trigger = page.locator('button[aria-label="내 정보 보기"]').first();
     await trigger.click();
@@ -27,7 +27,7 @@ test.describe("public account menu", () => {
     await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
     await expect(page).toHaveURL(/\/admin\/dashboard\//);
 
-    await page.goto("/project/view/?slug=iam&account=sandbox-lab");
+    await page.goto("/project/view/?slug=iam&account=demo-workspace");
     const trigger = page.locator('button[aria-label="내 정보 보기"]').first();
 
     await expect(trigger).toContainText("관리자");
@@ -45,24 +45,24 @@ test.describe("public account menu", () => {
     page,
   }) => {
     const suffix = Date.now();
-    const email = `owner-${suffix}@narnia.local`;
-    const password = "narnia-pass-123";
+    const email = `owner-${suffix}@demo.local`;
+    const password = "demo-pass-123";
     const displayName = `공간 소유자 ${suffix}`;
 
     await createAccountMemberUser({
       email,
       password,
       displayName,
-      accountId: "sandbox-lab",
+      accountId: "demo-workspace",
       role: "owner",
     });
 
-    await page.goto("/login/?account=sandbox-lab");
+    await page.goto("/login/?account=demo-workspace");
     await page.getByLabel("이메일").fill(email);
     await page.getByLabel("비밀번호").fill(password);
     await page.getByRole("button", { name: "이메일로 로그인" }).click();
 
-    await expect(page).toHaveURL(/\/projects\/\?account=sandbox-lab$/);
+    await expect(page).toHaveURL(/\/projects\/\?account=demo-workspace$/);
     await page.locator("summary").filter({ hasText: "새 프로젝트" }).click();
     await expect(page.getByRole("button", { name: "빠른 만들기" })).toBeVisible();
 
@@ -73,7 +73,7 @@ test.describe("public account menu", () => {
     await expect(menu.getByRole("menuitem", { name: /계정 설정/ })).toBeVisible();
     await expect(menu.getByRole("menuitem", { name: "설정", exact: true })).toBeVisible();
 
-    await page.goto("/project/view/?slug=sandbox-core&account=sandbox-lab");
+    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
     await expect(page.getByTestId("public-quick-edit-toggle")).toBeVisible();
     await page.getByTestId("public-quick-edit-toggle").click();
     await expect(page.getByRole("dialog", { name: "프로젝트 정보 수정" })).toBeVisible();
@@ -88,21 +88,21 @@ test.describe("public account menu", () => {
     page,
   }) => {
     const suffix = Date.now();
-    const email = `viewer-${suffix}@narnia.local`;
-    const password = "narnia-pass-123";
+    const email = `viewer-${suffix}@demo.local`;
+    const password = "demo-pass-123";
     const displayName = `읽기 사용자 ${suffix}`;
 
-    await page.goto("/signup/?account=sandbox-lab");
+    await page.goto("/signup/?account=demo-workspace");
     await page.getByLabel("이름").fill(displayName);
     await page.getByLabel("이메일").fill(email);
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByLabel("비밀번호 확인").fill(password);
     await page.getByRole("button", { name: "이메일로 회원가입" }).click();
 
-    await expect(page).toHaveURL(/\/projects\/\?account=sandbox-lab$/);
+    await expect(page).toHaveURL(/\/projects\/\?account=demo-workspace$/);
     await expect(page.getByRole("button", { name: "새 프로젝트 만들기" })).toHaveCount(0);
 
-    await page.goto("/project/view/?slug=sandbox-core&account=sandbox-lab");
+    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
     await expect(page.getByLabel("프로젝트 관리")).toHaveCount(0);
 
     const trigger = page.locator('button[aria-label="내 정보 보기"]').first();

@@ -21,10 +21,10 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
       insight({
         nodes: [
           {
-            id: "project:narnia",
-            title: "Narnia",
+            id: "project:demo",
+            title: "Demo",
             kind: "project",
-            projectIds: ["narnia"],
+            projectIds: ["demo"],
             evidenceIds: [],
             lastApprovedAt: date,
             lastApprovedBy: "test",
@@ -33,7 +33,7 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
             id: "doc:brief",
             title: "Architecture Brief",
             kind: "document",
-            projectIds: ["narnia"],
+            projectIds: ["demo"],
             evidenceIds: ["ev1"],
             evidenceCount: 1,
             lastApprovedAt: date,
@@ -63,7 +63,7 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
             to: "b",
             type: "mentions",
             label: "mentions",
-            projectIds: ["narnia"],
+            projectIds: ["demo"],
             evidenceIds: ["ev1"],
             evidenceCount: 1,
             lastApprovedAt: date,
@@ -75,7 +75,7 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
             to: "c",
             type: "depends_on",
             label: "depends on",
-            projectIds: ["narnia"],
+            projectIds: ["demo"],
             evidenceIds: ["ev1", "ev2", "ev3"],
             evidenceCount: 3,
             lastApprovedAt: date,
@@ -87,7 +87,7 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
             to: "d",
             type: "depends_on",
             label: "depends on",
-            projectIds: ["narnia"],
+            projectIds: ["demo"],
             evidenceIds: ["ev4", "ev5"],
             evidenceCount: 2,
             lastApprovedAt: date,
@@ -108,7 +108,7 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
           id: `concept:${index}`,
           title: `Concept ${index}`,
           kind: "concept",
-          projectIds: ["narnia"],
+          projectIds: ["demo"],
           evidenceIds: [],
           evidenceCount: index,
           lastApprovedAt: date,
@@ -128,9 +128,9 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
         nodes: [
           {
             id: "doc:brief",
-            title: "Narnia Architecture",
+            title: "Demo Architecture",
             kind: "document",
-            projectIds: ["narnia"],
+            projectIds: ["demo"],
             evidenceIds: ["ev1", "ev2"],
             evidenceCount: 2,
             lastApprovedAt: date,
@@ -140,7 +140,7 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
             id: "concept:graph",
             title: "Project Graph",
             kind: "concept",
-            projectIds: ["narnia"],
+            projectIds: ["demo"],
             evidenceIds: ["ev3"],
             evidenceCount: 3,
             lastApprovedAt: date,
@@ -154,7 +154,7 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
             to: "concept:graph",
             type: "mentions",
             label: "mentions",
-            projectIds: ["narnia"],
+            projectIds: ["demo"],
             evidenceIds: ["ev1"],
             evidenceCount: 1,
             lastApprovedAt: date,
@@ -162,11 +162,11 @@ describe("buildKnowledgeProjectEvidenceSummary", () => {
           },
         ],
       }),
-      { subjectName: "Narnia" },
+      { subjectName: "Demo" },
     );
 
     expect(summary.summaryText).toBe(
-      "Narnia: Narnia Architecture에서 Project Graph와 함께 등장하고, mentions 연결로 설명됩니다.",
+      "Demo: Demo Architecture에서 Project Graph와 함께 등장하고, mentions 연결로 설명됩니다.",
     );
   });
 });

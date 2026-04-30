@@ -7,12 +7,12 @@ import {
 } from "./demo-data";
 
 /**
- * 데모 시드 sanity — ASLAN 청사진이 의도대로 변환되는지 점검.
+ * 데모 시드 sanity — DEMO 청사진이 의도대로 변환되는지 점검.
  * 회귀 시 즉시 잡힘.
  */
 describe("demo dataset sanity", () => {
-  it("워크스페이스 이름은 'ASLAN LAB'", () => {
-    expect(getDemoDataset().account.name).toBe("ASLAN LAB");
+  it("워크스페이스 이름은 'oh-my-ontology'", () => {
+    expect(getDemoDataset().account.name).toBe("oh-my-ontology");
   });
 
   it("컨테이너 20~30 (데모 풀-스케일 기준)", () => {
@@ -21,10 +21,10 @@ describe("demo dataset sanity", () => {
     expect(containers.length).toBeLessThanOrEqual(30);
     // 핵심 4개는 항상 포함
     const ids = containers.map((c) => c.id);
-    expect(ids).toContain("narnia");
-    expect(ids).toContain("aslan-iam");
-    expect(ids).toContain("aslan-reactor");
-    expect(ids).toContain("aslan-knowledge");
+    expect(ids).toContain("demo");
+    expect(ids).toContain("demo-iam");
+    expect(ids).toContain("demo-reactor");
+    expect(ids).toContain("demo-knowledge");
   });
 
   it("flat projects 200+ (데모 풀-스케일 기준)", () => {
@@ -40,20 +40,20 @@ describe("demo dataset sanity", () => {
     }
   });
 
-  it("Aslan Reactor 가 가장 큰 컨테이너 중 하나 (hub 15+)", () => {
-    const reactor = getDemoContainerStats().get("aslan-reactor");
+  it("Demo Reactor 가 가장 큰 컨테이너 중 하나 (hub 15+)", () => {
+    const reactor = getDemoContainerStats().get("demo-reactor");
     expect(reactor).toBeDefined();
     expect(reactor?.hubs).toBeGreaterThanOrEqual(15);
   });
 
   it("getDemoProjectsForContainer 가 분배된 프로젝트만 반환", () => {
-    const narniaProjects = getDemoProjectsForContainer("stress-lab", "narnia");
+    const narniaProjects = getDemoProjectsForContainer("demo-workspace", "demo");
     expect(narniaProjects.length).toBeGreaterThan(0);
-    // narnia 의 첫 hub 는 core 역할 (aslan-demo-blueprint HUB_ROLE_POOL 첫 roll).
+    // demo 의 첫 hub 는 core 역할 (demo-blueprint HUB_ROLE_POOL 첫 roll).
     expect(narniaProjects.some((p) => p.isHub)).toBe(true);
   });
 
-  it("cross-container 의존이 1개 이상 존재 (예: narnia → aslan-knowledge)", () => {
+  it("cross-container 의존이 1개 이상 존재 (예: demo → demo-knowledge)", () => {
     const stats = getDemoContainerStats();
     const totalCross = Array.from(stats.values()).reduce(
       (sum, s) => sum + Array.from(s.depsToContainers.values()).reduce((a, b) => a + b, 0),
@@ -64,7 +64,7 @@ describe("demo dataset sanity", () => {
 
   it("다른 accountId 는 빈 배열", () => {
     expect(getDemoWorkspaceProjects("other-account")).toEqual([]);
-    expect(getDemoProjectsForContainer("other-account", "narnia")).toEqual([]);
+    expect(getDemoProjectsForContainer("other-account", "demo")).toEqual([]);
     expect(getDemoContainerStats("other-account").size).toBe(0);
   });
 });

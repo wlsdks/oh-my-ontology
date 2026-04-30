@@ -2,12 +2,12 @@ import { expect, test } from "@playwright/test";
 
 test.describe("knowledge admin UI", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dev/login/?account=sandbox-lab");
+    await page.goto("/dev/login/?account=demo-workspace");
     await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
   });
 
   test("문서 목록은 문서 상태와 접이식 필터를 제공한다", async ({ page }) => {
-    await page.goto("/knowledge/documents/?account=sandbox-lab");
+    await page.goto("/knowledge/documents/?account=demo-workspace");
 
     await expect(page.getByRole("heading", { name: "문서 목록" })).toBeVisible();
     await expect(page.getByText("문서 상태", { exact: true }).first()).toBeVisible();
@@ -20,7 +20,7 @@ test.describe("knowledge admin UI", () => {
   });
 
   test("새 문서 등록 화면은 템플릿과 온톨로지 안내를 제공한다", async ({ page }) => {
-    await page.goto("/knowledge/documents/new/?account=sandbox-lab");
+    await page.goto("/knowledge/documents/new/?account=demo-workspace");
 
     await expect(page.getByRole("heading", { name: "새 문서 등록" })).toBeVisible();
     await expect(page.getByText("명세서 템플릿", { exact: true })).toBeVisible();
@@ -30,7 +30,7 @@ test.describe("knowledge admin UI", () => {
   });
 
   test("문서 상세는 작업 패널을 전환할 수 있다", async ({ page }) => {
-    await page.goto("/knowledge/documents/view/?id=auth-workflow&account=sandbox-lab");
+    await page.goto("/knowledge/documents/view/?id=auth-workflow&account=demo-workspace");
 
     await expect(page.getByRole("heading", { name: "샌드박스 인증 워크플로 문서" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "개요와 버전" })).toBeVisible();
@@ -49,7 +49,7 @@ test.describe("knowledge admin UI", () => {
   });
 
   test("문서 확인에서 골라내기와 공개 화면에 보이기를 진행할 수 있다", async ({ page }) => {
-    await page.goto("/review/knowledge/?id=auth-workflow&account=sandbox-lab");
+    await page.goto("/review/knowledge/?id=auth-workflow&account=demo-workspace");
 
     await expect(page.getByRole("heading", { name: "문서 확인" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "지금 볼 문서", exact: true })).toBeVisible();
@@ -64,7 +64,7 @@ test.describe("knowledge admin UI", () => {
   test("문서 확인 골라내기와 공개에 보이기 이후 프로젝트 상세에서 문서 연결을 볼 수 있다", async ({
     page,
   }) => {
-    await page.goto("/review/knowledge/?id=auth-workflow&account=sandbox-lab");
+    await page.goto("/review/knowledge/?id=auth-workflow&account=demo-workspace");
 
     await page.getByRole("button", { name: "고른 결과 저장" }).click();
     await expect(
@@ -75,7 +75,7 @@ test.describe("knowledge admin UI", () => {
     await page.getByRole("button", { name: "공개 화면에 보이기" }).click();
     await expect(page.getByRole("status")).toContainText("공개 화면에 보였어요");
 
-    await page.goto("/projects/?account=sandbox-lab");
+    await page.goto("/projects/?account=demo-workspace");
     await page
       .locator("article")
       .filter({ hasText: "샌드박스 코어" })

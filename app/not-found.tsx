@@ -29,7 +29,7 @@ export default function NotFound() {
   const openSearchOnHome = () => {
     if (typeof window !== "undefined") {
       try {
-        window.sessionStorage.setItem("aslan:open-search", "1");
+        window.sessionStorage.setItem("demo:open-search", "1");
       } catch {
         /* private mode */
       }

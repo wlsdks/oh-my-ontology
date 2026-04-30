@@ -14,7 +14,7 @@ const NEXT_DEV_LOCK_PATH = path.join(ROOT_DIR, ".next/dev/lock");
 const PROJECT_ID =
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
   process.env.GCLOUD_PROJECT ||
-  "demo-aslan-project-map";
+  "demo-oh-my-ontology";
 
 if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
   throw new Error("FIREBASE_AUTH_EMULATOR_HOST is required. Run this through firebase emulators:exec.");

@@ -8,16 +8,16 @@ describe('fromFirestore', () => {
     const now = new Date('2026-04-12T12:00:00Z');
     const ts = Timestamp.fromDate(now);
 
-    const result = fromFirestore('aslan-maps', {
-      name: 'Narnia',
-      nameEn: 'Narnia',
+    const result = fromFirestore('sample', {
+      name: 'Demo',
+      nameEn: 'Demo',
       category: 'in-progress',
       status: 'developing',
       description: '지도 프로젝트',
       detail: '# 상세',
       tags: ['AI'],
       stack: ['Next.js'],
-      links: [{ label: 'GitHub', url: 'https://github.com/aslan' }],
+      links: [{ label: 'GitHub', url: 'https://github.com/demo' }],
       dependencies: ['iam'],
       owner: '진안',
       icon: '🗺️',
@@ -30,8 +30,8 @@ describe('fromFirestore', () => {
       updatedAt: ts,
     });
 
-    expect(result.slug).toBe('aslan-maps');
-    expect(result.name).toBe('Narnia');
+    expect(result.slug).toBe('sample');
+    expect(result.name).toBe('Demo');
     expect(result.category).toBe('in-progress');
     expect(result.isHub).toBe(false);
     expect(result.position).toEqual({ x: 100, y: 200 });
@@ -126,16 +126,16 @@ describe('projectToInput', () => {
   it('strips timestamps and preserves editable fields', () => {
     const now = new Date('2026-04-12T12:00:00Z');
     const project: Project = {
-      slug: 'aslan-maps',
-      name: 'Narnia',
-      nameEn: 'Narnia',
+      slug: 'sample',
+      name: 'Demo',
+      nameEn: 'Demo',
       category: 'planned',
       status: 'idea',
       description: '지도 프로젝트',
       detail: '# 상세',
       tags: ['AI'],
       stack: ['Next.js'],
-      links: [{ label: 'GitHub', url: 'https://github.com/aslan' }],
+      links: [{ label: 'GitHub', url: 'https://github.com/demo' }],
       dependencies: ['iam'],
       owner: '진안',
       icon: '🗺️',
@@ -149,16 +149,16 @@ describe('projectToInput', () => {
     };
 
     expect(projectToInput(project)).toEqual({
-      slug: 'aslan-maps',
-      name: 'Narnia',
-      nameEn: 'Narnia',
+      slug: 'sample',
+      name: 'Demo',
+      nameEn: 'Demo',
       category: 'planned',
       status: 'idea',
       description: '지도 프로젝트',
       detail: '# 상세',
       tags: ['AI'],
       stack: ['Next.js'],
-      links: [{ label: 'GitHub', url: 'https://github.com/aslan' }],
+      links: [{ label: 'GitHub', url: 'https://github.com/demo' }],
       dependencies: ['iam'],
       owner: '진안',
       icon: '🗺️',

@@ -25,15 +25,15 @@ afterEach(() => {
 
 describe("appendWorkspaceProjectQuery", () => {
   it("명시 projectId 를 ?pj 로 직렬화한다", () => {
-    expect(appendWorkspaceProjectQuery("/project/iam/", "narnia")).toBe(
-      "/project/iam/?pj=narnia",
+    expect(appendWorkspaceProjectQuery("/project/iam/", "demo")).toBe(
+      "/project/iam/?pj=demo",
     );
   });
 
   it("기존 query 는 보존하고 ?pj 만 추가", () => {
     expect(
-      appendWorkspaceProjectQuery("/project/iam/?account=stark", "narnia"),
-    ).toBe("/project/iam/?account=stark&pj=narnia");
+      appendWorkspaceProjectQuery("/project/iam/?account=stark", "demo"),
+    ).toBe("/project/iam/?account=stark&pj=demo");
   });
 
   it("projectId 가 비어있고 현재 URL 에도 없으면 그대로 반환", () => {
@@ -43,16 +43,16 @@ describe("appendWorkspaceProjectQuery", () => {
   });
 
   it("projectId 미지정 시 현재 URL 의 ?pj 를 자동 상속", () => {
-    window.history.replaceState({}, "", "/?pj=narnia");
+    window.history.replaceState({}, "", "/?pj=demo");
     expect(appendWorkspaceProjectQuery("/project/iam/")).toBe(
-      "/project/iam/?pj=narnia",
+      "/project/iam/?pj=demo",
     );
   });
 
   it("appendAccountQuery 와 체이닝하면 두 query 모두 붙는다", () => {
     const partial = appendAccountQuery("/project/iam/", "stark");
-    expect(appendWorkspaceProjectQuery(partial, "narnia")).toBe(
-      "/project/iam/?account=stark&pj=narnia",
+    expect(appendWorkspaceProjectQuery(partial, "demo")).toBe(
+      "/project/iam/?account=stark&pj=demo",
     );
   });
 });
@@ -64,8 +64,8 @@ describe("readRuntimeWorkspaceProjectId", () => {
   });
 
   it("URL 의 ?pj 값을 trim 후 반환", () => {
-    window.history.replaceState({}, "", "/?pj=narnia");
-    expect(readRuntimeWorkspaceProjectId()).toBe("narnia");
+    window.history.replaceState({}, "", "/?pj=demo");
+    expect(readRuntimeWorkspaceProjectId()).toBe("demo");
   });
 
   it("?pj 가 빈 문자열/공백이면 null", () => {
@@ -82,9 +82,9 @@ describe("WORKSPACE_PROJECT_QUERY_KEY", () => {
 
 describe("appendAccountQuery + ?pj 자동 chain", () => {
   it("runtime URL 에 ?pj 가 있으면 account chain 끝에 자동 부착", () => {
-    window.history.replaceState({}, "", "/?pj=narnia");
+    window.history.replaceState({}, "", "/?pj=demo");
     expect(appendAccountQuery("/projects/", "stark")).toBe(
-      "/projects/?account=stark&pj=narnia",
+      "/projects/?account=stark&pj=demo",
     );
   });
 

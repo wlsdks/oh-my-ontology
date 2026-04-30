@@ -15,7 +15,7 @@ import { DEMO_ACCOUNT_ID } from "@/shared/config/demo-space";
  *    빠져나갈 길이 없었음.
  *
  * PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 (로컬 dev) 또는
- * https://aslan-project-map.web.app (운영) 둘 다 가정.
+ * https:// (운영) 둘 다 가정.
  */
 
 async function loginAsDemo(page: import("@playwright/test").Page) {

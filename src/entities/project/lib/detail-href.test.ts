@@ -29,14 +29,14 @@ describe("getProjectDetailHref", () => {
   });
 
   it("appends the workspace project query when provided", () => {
-    expect(getProjectDetailHref("gemma4", null, "narnia")).toBe(
-      "/project/gemma4/?pj=narnia",
+    expect(getProjectDetailHref("gemma4", null, "demo")).toBe(
+      "/project/gemma4/?pj=demo",
     );
   });
 
   it("chains both account and project queries", () => {
-    expect(getProjectDetailHref("gemma4", "stark", "narnia")).toBe(
-      "/project/gemma4/?account=stark&pj=narnia",
+    expect(getProjectDetailHref("gemma4", "stark", "demo")).toBe(
+      "/project/gemma4/?account=stark&pj=demo",
     );
   });
 });

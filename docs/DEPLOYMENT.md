@@ -1,6 +1,6 @@
 # Deployment Guide
 
-> Firebase Hosting 기반 정적 배포. **Live**: https://aslan-project-map.web.app
+> Firebase Hosting 기반 정적 배포. **Live**: https://
 >
 > 이 문서는 Firebase에 배포할 때 필요한 모든 단계를 한 곳에 모아놓은 체크리스트다. 처음 세팅하는 경우부터 일상 배포, 롤백, 커스텀 도메인까지 커버한다.
 
@@ -28,7 +28,7 @@ pnpm add -g firebase-tools
 firebase login
 
 # 3. 프로젝트 연결 (이 repo에선 이미 .firebaserc에 기록되어 있음)
-firebase use aslan-project-map
+firebase use oh-my-ontology
 
 # 4. 접근 권한 확인
 firebase projects:list
@@ -43,8 +43,8 @@ cp .env.example .env.local
 
 **Google 로그인 도메인 허용** — Firebase Console → Authentication → Settings → Authorized domains:
 - `localhost` (개발)
-- `aslan-project-map.web.app` (기본)
-- `aslan-project-map.firebaseapp.com` (대체 도메인)
+- `` (기본)
+- `oh-my-ontology.firebaseapp.com` (대체 도메인)
 - 커스텀 도메인 (있다면)
 
 **admin 화이트리스트 등록** — Firebase Console → Firestore → `admins` 컬렉션:
@@ -106,7 +106,7 @@ pnpm firebase deploy --only hosting,storage
 |---|---|
 | `NEXT_PUBLIC_FIREBASE_API_KEY` | Web API Key |
 | `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | `xxx.firebaseapp.com` |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | `aslan-project-map` |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | `oh-my-ontology` |
 | `ASLAN_BUILD_PROJECT_SOURCE` | 선택값. 기본값은 비워둔다. `firestore`로 설정하면 정적 빌드 중 Firestore REST에서 프로젝트 목록을 읽는다. |
 | `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | `xxx.appspot.com` |
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | 숫자 |
@@ -120,7 +120,7 @@ pnpm firebase deploy --only hosting,storage
 
 ## 5. Firebase 프로젝트 구성
 
-- **프로젝트 ID**: `aslan-project-map`
+- **프로젝트 ID**: `oh-my-ontology`
 - **Firestore 리전**: `asia-northeast3` (Seoul)
 - **Storage 리전**: `US-EAST1` (무료 티어)
 - **Auth Provider**: Google (`admins/{email}` 화이트리스트)
@@ -149,15 +149,15 @@ Security Rules 정의는 [`firestore.rules`](../firestore.rules), [`storage.rule
 ### 연결 절차
 
 1. **Firebase Console → Hosting → 커스텀 도메인 추가**
-2. 원하는 도메인 입력 (예: `map.aslan.io` 또는 `aslan.io`)
+2. 원하는 도메인 입력 (예: `map.demo.io` 또는 `demo.io`)
 3. Firebase가 소유권 검증용 `TXT` 레코드 제공 → 레지스트라 DNS에 추가
 4. Firebase가 검증 완료되면 최종 DNS 레코드를 제공:
-   - **서브도메인** (`map.aslan.io`): `CNAME` 레코드 하나 추가하면 끝
+   - **서브도메인** (`map.demo.io`): `CNAME` 레코드 하나 추가하면 끝
      ```
      Type   Name   Value
-     CNAME  map    aslan-project-map.web.app
+     CNAME  map    
      ```
-   - **apex 도메인** (`aslan.io`): `A` 레코드 2개 추가 (IPv4)
+   - **apex 도메인** (`demo.io`): `A` 레코드 2개 추가 (IPv4)
      ```
      Type   Name   Value
      A      @      151.101.x.x
@@ -165,7 +165,7 @@ Security Rules 정의는 [`firestore.rules`](../firestore.rules), [`storage.rule
      ```
      (Firebase가 제공하는 실제 IP로 교체)
 5. DNS 전파 대기 (10분–24시간) → Firebase가 자동으로 Let's Encrypt SSL 발급
-6. 완료되면 `https://map.aslan.io`로 접속 가능
+6. 완료되면 `https://map.demo.io`로 접속 가능
 
 ### 연결 후 반드시 할 일
 
@@ -175,7 +175,7 @@ Security Rules 정의는 [`firestore.rules`](../firestore.rules), [`storage.rule
 
 ### apex 도메인 지원 여부
 
-`map.aslan.io` 같은 서브도메인은 CNAME으로 간단히 되고, `aslan.io` 같은 apex는 레지스트라가 **ALIAS/ANAME** 레코드를 지원해야 깔끔하게 된다. Cloudflare는 "CNAME flattening"으로 자동 지원. 가비아는 A 레코드만 되므로 Firebase가 제공하는 정적 IP를 써야 한다.
+`map.demo.io` 같은 서브도메인은 CNAME으로 간단히 되고, `demo.io` 같은 apex는 레지스트라가 **ALIAS/ANAME** 레코드를 지원해야 깔끔하게 된다. Cloudflare는 "CNAME flattening"으로 자동 지원. 가비아는 A 레코드만 되므로 Firebase가 제공하는 정적 IP를 써야 한다.
 
 ---
 
@@ -235,7 +235,7 @@ Firestore/Storage 룰은 롤백 대상 아님 — Git에서 이전 버전 체크
 
 **Q. `firebase deploy` 시 "HTTP Error: 403"**
 - `firebase login --reauth`로 재로그인.
-- `firebase projects:list`에 `aslan-project-map`이 보이는지 확인 — 안 보이면 접근권한 없음.
+- `firebase projects:list`에 `oh-my-ontology`이 보이는지 확인 — 안 보이면 접근권한 없음.
 - 프로젝트 소유자에게 IAM 권한 요청 (Firebase Admin 또는 Hosting Admin 이상).
 
 **Q. `firebase deploy --only hosting` 시 "No HTTP hosts found for site"**

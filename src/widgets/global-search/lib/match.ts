@@ -126,7 +126,7 @@ export function matchOntologyNodes(
  * 점수 (낮을수록 약한 매치):
  *   4 — title prefix 매치
  *   3 — title substring 매치
- *   2 — kind 또는 projectId 토큰 매치 (예: "spec" / "aslan-maps")
+ *   2 — kind 또는 projectId 토큰 매치 (예: "spec" / "sample")
  *   1 — id substring 매치 (Firestore ID 직접 검색)
  *   0 — 매치 없음 (결과 제외)
  *

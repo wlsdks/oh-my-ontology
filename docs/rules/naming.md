@@ -62,8 +62,8 @@
 | 여러 허브에 걸친 노드 | **공유** | 공유 시스템, 크로스오버 | 공유 배지 |
 | 문서 자료 | **문서** | 지식 문서, knowledge document, md 문서 | 일반 사용자 UI |
 | 내부 문서 파이프라인 | **지식 문서** | 문서 | admin/knowledge/* 관리 화면에서만 |
-| 제품명 | **Narnia** | Aslan Maps, Aslan Project Map, 아슬란 지도 | 모든 사용자 대면 영역 |
-| 조직명 | **아슬란 (Aslan)** | Narnia, Aslan Labs | "아슬란의 프로젝트…" 같은 설명문 |
+| 제품명 | **Demo** | Sample, oh-my-ontology, 아슬란 지도 | 모든 사용자 대면 영역 |
+| 조직명 | **아슬란 (Demo)** | Demo, Demo Labs | "아슬란의 프로젝트…" 같은 설명문 |
 
 ## 적용 우선순위
 
@@ -74,7 +74,7 @@
 
 ## 브랜드 관련
 
-- 사이트 브랜드는 **Narnia**. 로고·타이틀·메타데이터는 Narnia로 통일.
-- 내부 프로젝트 슬러그 `aslan-maps`는 기술 식별자로 유지해도 되지만,
-  사용자에게 보이는 display name (`Project.name`)은 Narnia 계열로 맞춘다.
-- "Aslan Maps"가 주석·기술 문서에 남아있을 수 있으나 사용자 UI에서는 제거.
+- 사이트 브랜드는 **Demo**. 로고·타이틀·메타데이터는 Demo로 통일.
+- 내부 프로젝트 슬러그 `sample`는 기술 식별자로 유지해도 되지만,
+  사용자에게 보이는 display name (`Project.name`)은 Demo 계열로 맞춘다.
+- "Sample"가 주석·기술 문서에 남아있을 수 있으나 사용자 UI에서는 제거.

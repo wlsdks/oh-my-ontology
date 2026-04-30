@@ -118,8 +118,8 @@ describe("selectStrongEdges", () => {
 
     it("두 노드의 projectIds disjoint → true", () => {
       const ns = [
-        node("a", "A", ["aslan-iam"]),
-        node("b", "B", ["paravel-app"]),
+        node("a", "A", ["demo-iam"]),
+        node("b", "B", ["sample-app"]),
       ];
       const result = selectStrongEdges(
         [edge("e1", "a", "b", "depends_on", 1)],
@@ -129,7 +129,7 @@ describe("selectStrongEdges", () => {
     });
 
     it("한 쪽 projectIds 비면 false (안전 폴백)", () => {
-      const ns = [node("a", "A", []), node("b", "B", ["paravel-app"])];
+      const ns = [node("a", "A", []), node("b", "B", ["sample-app"])];
       const result = selectStrongEdges(
         [edge("e1", "a", "b", "depends_on", 1)],
         ns,
@@ -161,10 +161,10 @@ describe("countCrossProjectEdges (UX-17)", () => {
 
   it("disjoint projectIds edge 만 카운트", () => {
     const ns = [
-      node("a", "A", ["aslan-iam"]),
-      node("b", "B", ["paravel-app"]),
-      node("c", "C", ["aslan-iam"]),
-      node("d", "D", ["aslan-iam"]),
+      node("a", "A", ["demo-iam"]),
+      node("b", "B", ["sample-app"]),
+      node("c", "C", ["demo-iam"]),
+      node("d", "D", ["demo-iam"]),
     ];
     const es = [
       edge("e1", "a", "b", "depends_on"), // cross

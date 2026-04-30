@@ -85,7 +85,7 @@ export function DocsVaultDeliveryLogPanel({
         </summary>
         <div className="border-t border-[color:var(--color-border-soft)] p-3">
           <p className="mb-3 text-[11px] leading-[1.55] text-[color:var(--color-text-tertiary)]">
-            저장된 payload 재처리는 Aslan 안에서 다시 반영하고, GitHub 재전송은
+            저장된 payload 재처리는 Demo 안에서 다시 반영하고, GitHub 재전송은
             GitHub App delivery 자체를 다시 받도록 요청합니다.
           </p>
           {visibleDeliveries.length > 0 ? (

@@ -14,7 +14,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const PROJECT_ID = "aslan-project-map";
+const PROJECT_ID = "oh-my-ontology";
 const CREDS_PATH = path.join(
   os.homedir(),
   ".config/configstore/firebase-tools.json",
@@ -131,8 +131,8 @@ const SEED_PROJECTS = [
   },
   // 작업중
   {
-    slug: "aslan-maps",
-    name: "Aslan Maps",
+    slug: "sample",
+    name: "Sample",
     category: "in-progress",
     status: "developing",
     description: "아슬란의 프로젝트 토폴로지 지도 (이 사이트).",
@@ -142,8 +142,8 @@ const SEED_PROJECTS = [
     position: { x: -480, y: -160 },
   },
   {
-    slug: "aslan-verse",
-    name: "Aslan Verse",
+    slug: "demo-verse",
+    name: "Demo Console",
     category: "in-progress",
     status: "deploy-ready",
     description: "AI끼리 소통하는 플랫폼.",
@@ -152,8 +152,8 @@ const SEED_PROJECTS = [
     position: { x: 480, y: -160 },
   },
   {
-    slug: "news-clipping",
-    name: "뉴스 클리핑 (Lantern)",
+    slug: "sample-news",
+    name: "뉴스 클리핑 (Sample News)",
     category: "in-progress",
     status: "deploy-ready",
     description: "사내용 뉴스 수집·요약 서비스.",
@@ -162,8 +162,8 @@ const SEED_PROJECTS = [
     position: { x: -320, y: -280 },
   },
   {
-    slug: "paravel",
-    name: "커뮤니티 (Paravel)",
+    slug: "sample-app",
+    name: "커뮤니티 (Sample App)",
     category: "in-progress",
     status: "completed",
     description: "사내 커뮤니티.",
@@ -173,7 +173,7 @@ const SEED_PROJECTS = [
   },
   {
     slug: "pick",
-    name: "현장강의 플랫폼 (Pick)",
+    name: "Sample Live Lecture (Sample)",
     category: "in-progress",
     status: "developing",
     description:
@@ -184,7 +184,7 @@ const SEED_PROJECTS = [
   },
   {
     slug: "atlassian-mcp",
-    name: "Atlassian MCP",
+    name: "Sample MCP A",
     category: "in-progress",
     status: "developing",
     description: "Atlassian 제품군 MCP 서버.",
@@ -195,11 +195,11 @@ const SEED_PROJECTS = [
   },
   {
     slug: "reactor-web",
-    name: "Reactor Web",
-    nameEn: "Arc Reactor Web",
+    name: "Demo Reactor Web",
+    nameEn: "Demo Demo Reactor Web",
     category: "in-progress",
     status: "developing",
-    description: "Arc Reactor를 위한 웹 채팅 UI이자 운영 워크스페이스.",
+    description: "Demo Reactor를 위한 웹 채팅 UI이자 운영 워크스페이스.",
     tags: ["AI", "Frontend", "Console"],
     stack: ["React", "Vite", "TypeScript", "TanStack Query"],
     links: [
@@ -213,7 +213,7 @@ const SEED_PROJECTS = [
   },
   {
     slug: "swagger-mcp",
-    name: "Swagger MCP",
+    name: "Sample MCP C",
     category: "in-progress",
     status: "developing",
     description: "OpenAPI/Swagger 문서 MCP 서버.",
@@ -224,7 +224,7 @@ const SEED_PROJECTS = [
   },
   {
     slug: "domain-knowledge-mcp",
-    name: "도메인 지식 MCP",
+    name: "Sample MCP D",
     category: "planned",
     status: "planning",
     description: "도메인 지식 베이스 MCP 서버.",
@@ -235,8 +235,8 @@ const SEED_PROJECTS = [
   },
   // 예정
   {
-    slug: "cronos-mcp",
-    name: "Cronos MCP",
+    slug: "sample-mcp-e",
+    name: "Sample MCP E",
     category: "planned",
     status: "planning",
     description: "일정·시간 기반 MCP 서버.",
@@ -245,7 +245,7 @@ const SEED_PROJECTS = [
   },
   {
     slug: "groupware-mcp",
-    name: "Groupware MCP",
+    name: "Sample MCP B",
     category: "planned",
     status: "planning",
     description: "그룹웨어 MCP 서버.",
@@ -253,8 +253,8 @@ const SEED_PROJECTS = [
     position: { x: -700, y: -160 },
   },
   {
-    slug: "aslan-scale",
-    name: "Aslan Scale",
+    slug: "demo-scale",
+    name: "Demo Scale",
     category: "planned",
     status: "idea",
     description: "대규모 처리·배치·큐 인프라.",
