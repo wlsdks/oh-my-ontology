@@ -115,7 +115,6 @@ import {
 import { getAccount } from "@/entities/account";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
 import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
-import { useAutoResolveAccountId } from "@/features/account-scope";
 import {
   deriveWorkspaceProjectContainers,
   inferWorkspaceProjectGroup,
@@ -158,7 +157,6 @@ export function HomePage() {
   const scopedAccountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
   // 로그인 사용자가 ?account= 없이 진입하면 owned membership 첫 번째로 URL 보강 —
   // legacy 전역 collection 이 아닌 본인 워크스페이스 데이터로 즉시 스코프.
-  useAutoResolveAccountId("/");
   const [scopedAccountName, setScopedAccountName] = useState<string | null>(null);
   const [routeState, setRouteState] = useHomeRouteState();
   // 상세 화면에서 Cmd+K를 누르면 홈으로 이동하며 sessionStorage 플래그를

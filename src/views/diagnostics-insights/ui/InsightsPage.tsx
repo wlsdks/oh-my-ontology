@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { PermissionGate } from "@/features/permissions";
-import { useAutoResolveAccountId } from "@/features/account-scope";
 import {
   detectOrphanProjects,
   detectPromotionCandidates,
@@ -62,7 +61,6 @@ function InsightsContent() {
   const searchParams = useSearchParams();
   const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
   // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
-  useAutoResolveAccountId("/diagnostics/insights/");
   const [activeProjectId, setActiveProjectId] = useWorkspaceProjectQuery();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loaded, setLoaded] = useState(false);

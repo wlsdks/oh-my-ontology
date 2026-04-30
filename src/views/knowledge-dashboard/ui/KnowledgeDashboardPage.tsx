@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, FilePlus2, Info, Network, RefreshCcw } from "lucide-react";
 import { PermissionGate, useGlobalAdmin } from "@/features/permissions";
-import { useAutoResolveAccountId } from "@/features/account-scope";
 import {
   getKnowledgeDocumentDetailHref,
   getKnowledgeDocumentKindLabel,
@@ -35,7 +34,6 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const accountId = useScopedAccountId(searchParams.get("account"));
   // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
-  useAutoResolveAccountId("/knowledge/");
   const [activeProjectId, setActiveProjectId] = useWorkspaceProjectQuery();
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
   const [publicMeta, setPublicMeta] = useState<KnowledgePublicMeta | null>(null);

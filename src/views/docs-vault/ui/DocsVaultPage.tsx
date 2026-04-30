@@ -49,7 +49,6 @@ import { Tooltip } from '@/shared/ui';
 import { buildDocsVaultPopoutHtml } from '../lib/popout-template';
 import { useDocsVaultScrollSpy } from '../lib/use-scroll-spy';
 import { appendAccountQuery } from '@/shared/lib/account-scope';
-import { useAutoResolveAccountId } from '@/features/account-scope';
 import {
   buildDocsVaultHref,
   buildTopologyFromVault,
@@ -140,7 +139,6 @@ function AdminDocsContent() {
   const queryAudience = parseAudience(searchParams?.get('audience'));
   const accountId = searchParams?.get('account')?.trim() || null;
   // 로그인 사용자가 ?account= 없이 진입하면 본인 워크스페이스로 자동 스코프.
-  useAutoResolveAccountId('/docs/');
   const adminDashboardHref = useMemo(
     () => appendAccountQuery('/projects/', accountId),
     [accountId],

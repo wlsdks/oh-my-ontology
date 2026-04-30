@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, FolderKanban, Shield } from "lucide-react";
-import { useAutoResolveAccountId, useScopedAccountAccess } from "@/features/account-scope";
+import { useScopedAccountAccess } from "@/features/account-scope";
 import { useTaxonomy } from "@/features/taxonomy";
 import { buildServiceEntryHref } from "@/features/user-auth";
 import { getAccount } from "@/entities/account";
@@ -81,7 +81,6 @@ export function ProjectSelectorPage() {
   const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
   // 로그인 사용자가 ?account= 없이 진입하면 본인 워크스페이스로 자동 스코프 —
   // legacy 전역 collection 의 다른 데이터가 노출되는 문제 방지.
-  useAutoResolveAccountId("/projects/");
   // P0-B Phase 6 — HomePage 와 동일한 `?pj=<containerId>` 규약 공유.
   const [activeProjectId, setActiveProjectId] = useWorkspaceProjectQuery();
   const { projects: workspaceProjectContainers } = useWorkspaceProjects(accountId);

@@ -22,7 +22,6 @@ import {
 import { getOntologyKindLabel } from "@/entities/ontology-class";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
 import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
-import { useAutoResolveAccountId } from "@/features/account-scope";
 import {
   buildOntologyEgoSubgraph,
   buildOntologyTree,
@@ -51,7 +50,6 @@ export function OntologyViewPage() {
   const router = useRouter();
   const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
   // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
-  useAutoResolveAccountId("/ontology/");
 
   const { insight, error } = useKnowledgePublicInsight(accountId);
   // documents 는 글로벌 검색 두 번째 source — 권한 게이팅은 Firestore rules 가

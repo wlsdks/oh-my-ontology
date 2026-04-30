@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAutoResolveAccountId } from "@/features/account-scope";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
 import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { addManualKnowledgeNode } from "@/entities/knowledge-graph";
@@ -46,7 +45,6 @@ function CanvasSkeleton() {
 export function OntologyEditPage() {
   const searchParams = useSearchParams();
   const accountId = useScopedAccountId(searchParams.get("account"));
-  useAutoResolveAccountId("/ontology/edit/");
 
   const { nodes: ephemeralNodes, addNode, clearAll, updateNode, findById, removeNode } =
     useEphemeralNodes();

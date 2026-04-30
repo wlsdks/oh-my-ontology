@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { PermissionGate, useGlobalAdmin } from "@/features/permissions";
 import {
   AccountScopeSelector,
-  useAutoResolveAccountId,
 } from "@/features/account-scope";
 import { getProjectDetailHref } from "@/entities/project";
 import {
@@ -67,9 +66,6 @@ import {
 function WorkspaceContent() {
   const searchParams = useSearchParams();
   const accountId = useScopedAccountId(searchParams.get("account"));
-  // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강
-  // (Fire 1 — useAutoResolveAccountId 4 surface → 7 surface 확장).
-  useAutoResolveAccountId("/review/knowledge/");
   const { user } = useGlobalAdmin();
   const requestedDocumentId = searchParams.get("id");
   const scopedProjectId = searchParams.get("project")?.trim() || "";

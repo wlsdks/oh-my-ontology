@@ -22,7 +22,7 @@ import {
   type LinkItem,
   useToast,
 } from "@/shared/ui";
-import { useAutoResolveAccountId, useScopedAccountAccess } from "@/features/account-scope";
+import { useScopedAccountAccess } from "@/features/account-scope";
 import { buildServiceEntryHref } from "@/features/user-auth";
 import {
   WORKSPACE_PROJECT_QUERY_KEY,
@@ -305,7 +305,6 @@ export function ProjectDetailPage({
   // 로그인 사용자가 ?account= 없이 진입하면 본인 워크스페이스로 자동 스코프 —
   // 그렇지 않으면 legacy 전역 collection 의 빈/잘못된 프로젝트 데이터가 노출되고
   // 편집 권한도 게스트로 떨어짐.
-  useAutoResolveAccountId(slug ? `/project/${slug}/` : null);
   const scopedAccess = useScopedAccountAccess(accountId);
   const { show: showToast } = useToast();
   const fallbackProjects = useMemo(() => resolveFallbackProjects(), []);
