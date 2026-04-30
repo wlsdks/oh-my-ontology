@@ -42,14 +42,16 @@ describe("listWorkspaceProjects", () => {
     await expect(listWorkspaceProjects(undefined)).resolves.toEqual([]);
   });
 
-  it("데모 세션에서는 빈 배열", async () => {
+  it("데모 세션에서는 데모 컨테이너 목록 반환", async () => {
     persistDemoSession({
       uid: "demo-uid",
       email: null,
       displayName: null,
       provider: "demo",
     });
-    await expect(listWorkspaceProjects("demo-uid")).resolves.toEqual([]);
+    const containers = await listWorkspaceProjects("demo-uid");
+    expect(containers.length).toBeGreaterThan(0);
+    expect(containers.map((c) => c.id)).toContain("demo");
   });
 });
 
@@ -65,7 +67,7 @@ describe("subscribeWorkspaceProjects", () => {
     expect(() => unsub()).not.toThrow();
   });
 
-  it("데모 세션에서는 빈 배열 콜백", async () => {
+  it("데모 세션에서는 데모 컨테이너 목록 콜백", async () => {
     persistDemoSession({
       uid: "demo-uid",
       email: null,
@@ -77,7 +79,10 @@ describe("subscribeWorkspaceProjects", () => {
       received.push(projects);
     });
     await Promise.resolve();
-    expect(received).toEqual([[]]);
+    expect(received).toHaveLength(1);
+    const containers = received[0] as Array<{ id: string }>;
+    expect(containers.length).toBeGreaterThan(0);
+    expect(containers.map((c) => c.id)).toContain("demo");
     unsub();
   });
 });

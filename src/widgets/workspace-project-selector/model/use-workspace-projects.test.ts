@@ -21,7 +21,7 @@ describe("useWorkspaceProjects", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("데모 세션이면 빈 배열로 수렴", async () => {
+  it("데모 세션이면 데모 컨테이너 목록으로 수렴", async () => {
     persistDemoSession({
       uid: "demo-uid",
       email: null,
@@ -33,6 +33,7 @@ describe("useWorkspaceProjects", () => {
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
-    expect(result.current.projects).toEqual([]);
+    expect(result.current.projects.length).toBeGreaterThan(0);
+    expect(result.current.projects.map((p) => p.id)).toContain("demo");
   });
 });

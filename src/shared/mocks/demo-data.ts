@@ -508,16 +508,15 @@ export function getDemoDataset(): DemoDataset {
   return cache;
 }
 
-export function getDemoProjects(accountId?: string | null): Project[] {
-  const normalized = accountId?.trim() ?? null;
-  const dataset = getDemoDataset();
-  if (!normalized || normalized === DEMO_ACCOUNT_ID) return dataset.projects;
-  return [];
+export function getDemoProjects(_accountId?: string | null): Project[] {
+  return getDemoDataset().projects;
 }
 
-export function getDemoProject(slug: string, accountId?: string | null): Project | null {
-  const list = getDemoProjects(accountId);
-  return list.find((project) => project.slug === slug) ?? null;
+export function getDemoProject(
+  slug: string,
+  _accountId?: string | null,
+): Project | null {
+  return getDemoProjects().find((project) => project.slug === slug) ?? null;
 }
 
 export function getDemoCategories(): Category[] {
@@ -541,10 +540,8 @@ export function getAllDemoKnowledgeDocuments(): KnowledgeDocument[] {
 }
 
 export function getDemoWorkspaceProjects(
-  accountId?: string | null,
+  _accountId?: string | null,
 ): WorkspaceProject[] {
-  const normalized = accountId?.trim() ?? null;
-  if (normalized && normalized !== DEMO_ACCOUNT_ID) return [];
   return getDemoDataset().workspaceProjects;
 }
 
@@ -553,11 +550,9 @@ export function getDemoWorkspaceProjects(
  * 에 속한 것들). 4-layer zoom-in 단계 시각화용.
  */
 export function getDemoProjectsForContainer(
-  accountId: string | null | undefined,
+  _accountId: string | null | undefined,
   projectId: string | null | undefined,
 ): Project[] {
-  const normalized = accountId?.trim() ?? null;
-  if (normalized && normalized !== DEMO_ACCOUNT_ID) return [];
   const targetId = projectId?.trim() || 'general';
   return getDemoDataset().projects.filter(
     (project) => pickContainerId(project.slug) === targetId,
@@ -579,10 +574,8 @@ export interface DemoContainerStats {
 let containerStatsCache: Map<string, DemoContainerStats> | null = null;
 
 export function getDemoContainerStats(
-  accountId?: string | null,
+  _accountId?: string | null,
 ): Map<string, DemoContainerStats> {
-  const normalized = accountId?.trim() ?? null;
-  if (normalized && normalized !== DEMO_ACCOUNT_ID) return new Map();
   if (containerStatsCache) return containerStatsCache;
 
   const stats = new Map<string, DemoContainerStats>();

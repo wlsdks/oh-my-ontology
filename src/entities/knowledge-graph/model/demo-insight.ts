@@ -45,14 +45,9 @@ function demoEdge(
 
 export function getDemoKnowledgeProjectInsight(
   projectId: string,
-  accountId?: string | null,
+  _accountId?: string | null,
 ): KnowledgeProjectInsight {
-  const scopedAccountId = accountId?.trim() || DEMO_ACCOUNT_ID;
-  if (scopedAccountId !== DEMO_ACCOUNT_ID) {
-    return { nodes: [], edges: [], meta: null };
-  }
-
-  const project = getDemoProject(projectId, scopedAccountId);
+  const project = getDemoProject(projectId);
   const documents = getDemoKnowledgeDocumentsByProject(projectId);
   if (!project || documents.length === 0) {
     return { nodes: [], edges: [], meta: null };
@@ -137,7 +132,7 @@ export function getDemoKnowledgeProjectInsight(
     nodes: [projectNode, ...documentNodes, ...conceptNodes],
     edges: [...documentEdges, ...conceptEdges],
     meta: {
-      id: `current__${DEMO_ACCOUNT_ID}`,
+      id: "current",
       currentPublishId: "demo-public-projection",
       projectionVersion: "demo-v1",
       publishedAt: DEMO_PUBLISHED_AT,

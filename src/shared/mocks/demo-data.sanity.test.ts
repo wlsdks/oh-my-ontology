@@ -57,10 +57,4 @@ describe("demo dataset sanity", () => {
     );
     expect(totalCross).toBeGreaterThan(0);
   });
-
-  it("다른 accountId 는 빈 배열", () => {
-    expect(getDemoWorkspaceProjects("other-account")).toEqual([]);
-    expect(getDemoProjectsForContainer("other-account", "demo")).toEqual([]);
-    expect(getDemoContainerStats("other-account").size).toBe(0);
-  });
 });
