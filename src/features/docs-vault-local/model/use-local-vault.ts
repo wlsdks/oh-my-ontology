@@ -6,9 +6,13 @@ import {
   type LocalVaultBuild,
   type VaultManifest,
 } from '@/entities/docs-vault';
-import { idbDel, idbGet, idbSet } from '@/shared/lib/idb-kv';
-
-const IDB_KEY = 'docs-vault:current-handle';
+import {
+  CURRENT_LOCAL_FS_HANDLE_ID,
+  deleteLocalFsHandle,
+  getLocalFsHandle,
+  putLocalFsHandle,
+  touchLocalFsHandle,
+} from '@/entities/local-fs-handle';
 /** 탭 포커스 복귀 시 자동 refresh 의 최소 간격 (ms). 너무 자주 돌면
  *  사용자가 IDE 로 짧게 오갈 때마다 번쩍이므로 2초 간격으로 throttle. */
 const AUTO_REFRESH_DEBOUNCE_MS = 2000;
@@ -202,7 +206,14 @@ export function useLocalVault() {
           }) => Promise<FileSystemDirectoryHandle>;
         }
       ).showDirectoryPicker({ mode: 'read' });
-      await idbSet(IDB_KEY, handle);
+      const now = Date.now();
+      await putLocalFsHandle({
+        id: CURRENT_LOCAL_FS_HANDLE_ID,
+        handle,
+        name: handle.name,
+        createdAt: now,
+        lastAccessedAt: now,
+      });
       await load(handle);
     } catch (err) {
       // AbortError = 사용자가 취소한 것이니 idle 로 복귀.
@@ -220,7 +231,7 @@ export function useLocalVault() {
   }, [load]);
 
   const close = useCallback(async () => {
-    await idbDel(IDB_KEY);
+    await deleteLocalFsHandle();
     setState(emptyState(isSupported() ? 'idle' : 'unsupported'));
   }, []);
 
@@ -519,8 +530,10 @@ export function useLocalVault() {
     if (!isSupported()) return;
     let cancelled = false;
     (async () => {
-      const handle = await idbGet<FileSystemDirectoryHandle>(IDB_KEY);
-      if (!handle || cancelled) return;
+      const record = await getLocalFsHandle();
+      if (!record || cancelled) return;
+      const handle = record.handle;
+      void touchLocalFsHandle();
       const permission = await verifyRead(handle, false);
       if (cancelled) return;
       if (permission === 'granted') {
