@@ -8,10 +8,9 @@ export interface HomeRouteState {
   selectedSlug: string | null;
   activeCategory: ProjectCategory | null;
   focusedHubSlug: string | null;
-  featuredPathId: string | null;
   impactMode: ProjectImpactMode;
   pulseMode: HomePulseMode;
-  /** P0-B · 활성 workspaceProject 컨테이너 id. null 이면 selector 가 첫 컨테이너 (보통 "general"). */
+  /** 활성 workspaceProject 컨테이너 id. null 이면 selector 가 첫 컨테이너. */
   projectId: string | null;
 }
 
@@ -19,10 +18,9 @@ const HOME_QUERY_KEYS = {
   project: "p",
   category: "c",
   hub: "hub",
-  path: "path",
   impact: "impact",
   pulse: "pulse",
-  /** workspaceProject container id. `p` 가 이미 selectedSlug 라서 `pj`. shared 의 WORKSPACE_PROJECT_QUERY_KEY 와 동기. */
+  /** workspaceProject container id. `p` 가 이미 selectedSlug 라서 `pj`. */
   projectId: WORKSPACE_PROJECT_QUERY_KEY,
 } as const;
 
@@ -38,7 +36,6 @@ export const DEFAULT_HOME_ROUTE_STATE: HomeRouteState = {
   selectedSlug: null,
   activeCategory: null,
   focusedHubSlug: null,
-  featuredPathId: null,
   impactMode: "none",
   pulseMode: "all",
   projectId: null,
@@ -54,7 +51,6 @@ export function parseHomeRouteState(
     selectedSlug: searchParams.get(HOME_QUERY_KEYS.project),
     activeCategory: searchParams.get(HOME_QUERY_KEYS.category),
     focusedHubSlug: searchParams.get(HOME_QUERY_KEYS.hub),
-    featuredPathId: searchParams.get(HOME_QUERY_KEYS.path),
     impactMode: VALID_IMPACT.includes(impactParam as ProjectImpactMode)
       ? (impactParam as ProjectImpactMode)
       : DEFAULT_HOME_ROUTE_STATE.impactMode,
@@ -74,7 +70,6 @@ export function applyHomeRouteState(
   setOrDelete(next, HOME_QUERY_KEYS.project, state.selectedSlug);
   setOrDelete(next, HOME_QUERY_KEYS.category, state.activeCategory);
   setOrDelete(next, HOME_QUERY_KEYS.hub, state.focusedHubSlug);
-  setOrDelete(next, HOME_QUERY_KEYS.path, state.featuredPathId);
   setOrDelete(
     next,
     HOME_QUERY_KEYS.impact,

@@ -20,17 +20,11 @@ import {
   DEFAULT_SIGMA_CONTROLS,
   type SigmaControlsState,
 } from "@/widgets/topology-map-sigma/model/controls-state";
-import { resolveFeaturedPathPresets } from "@/widgets/featured-paths";
 import { HeroHeader, HeroCollapsed } from "@/widgets/hero-header";
 import { Legend } from "@/widgets/legend";
 import dynamic from "next/dynamic";
-import {
-  resolvePortfolioChapters,
-  type PortfolioChapter,
-} from "@/widgets/portfolio-showcase";
 import { ProjectDrawer } from "@/widgets/project-drawer";
 import { ProjectKnowledgeTopologyScene } from "@/widgets/project-knowledge-topology";
-import { resolveProjectTourSteps } from "@/widgets/project-tour";
 import { RegionNavigator } from "@/widgets/region-navigator";
 import { SearchHint } from "@/widgets/search-hint";
 import { PublicAccountMenu } from "@/widgets/account-menu";
@@ -88,15 +82,6 @@ const SigmaHubRail = dynamic(
   () => import("@/widgets/topology-map-sigma").then((m) => m.SigmaHubRail),
   { ssr: false },
 );
-const PortfolioShowcase = dynamic(
-  () =>
-    import("@/widgets/portfolio-showcase").then((m) => m.PortfolioShowcase),
-  { ssr: false },
-);
-const ProjectTour = dynamic(
-  () => import("@/widgets/project-tour").then((m) => m.ProjectTour),
-  { ssr: false },
-);
 const SearchPalette = dynamic(
   () => import("@/widgets/search-palette").then((m) => m.SearchPalette),
   { ssr: false },
@@ -137,7 +122,6 @@ import {
 } from "../model/workspace-container-fallback";
 import { useHomeRouteState } from "../model/use-home-route-state";
 
-const TOUR_DISMISSED_KEY = "demo:project-tour:dismissed:v1";
 const LEFT_PANEL_COLLAPSED_KEY = "demo:left-panel-collapsed:v2";
 
 export function HomePage() {
@@ -202,11 +186,6 @@ export function HomePage() {
   const [regionsMobileOpen, setRegionsMobileOpen] = useState(false);
   const [regionsDesktopOpen, setRegionsDesktopOpen] = useState(false);
   const [accountMenuDismissToken, setAccountMenuDismissToken] = useState(0);
-  const [tourOpen, setTourOpen] = useState(false);
-  const [tourIndex, setTourIndex] = useState(0);
-  const [tourDirection, setTourDirection] = useState<1 | -1>(1);
-  const [portfolioOpen, setPortfolioOpen] = useState(false);
-  const [portfolioSlug, setPortfolioSlug] = useState<string | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -273,7 +252,6 @@ export function HomePage() {
     activeCategory,
     selectedSlug,
     focusedHubSlug,
-    featuredPathId: activeFeaturedPathId,
     impactMode,
     projectId: activeProjectId,
   } = routeState;
@@ -467,24 +445,10 @@ export function HomePage() {
       return mountNowMs - updated < SEVEN_DAYS_MS ? n + 1 : n;
     }, 0);
   }, [renderProjects, mountNowMs]);
-  const featuredPaths = useMemo(
-    () => resolveFeaturedPathPresets(renderProjects),
-    [renderProjects],
-  );
-  const activeFeaturedPath = useMemo(
-    () =>
-      featuredPaths.find((path) => path.id === activeFeaturedPathId) ?? null,
-    [activeFeaturedPathId, featuredPaths],
-  );
   const projectsOverviewHref = useMemo(
     () => appendAccountQuery("/projects", scopedAccountId),
     [scopedAccountId],
   );
-  const tourSteps = useMemo(
-    () => resolveProjectTourSteps(projects),
-    [projects],
-  );
-  const activeTourStep = tourSteps[tourIndex] ?? null;
 
   useEffect(() => {
     if (!scopedAccountId) return;
@@ -621,37 +585,23 @@ export function HomePage() {
     return () => window.removeEventListener('keydown', handler);
   }, [localGraphRoot]);
 
-  const portfolioChapters = useMemo(
-    () => resolvePortfolioChapters(projects, featuredPaths),
-    [featuredPaths, projects],
-  );
-  const canvasSelectedSlug = portfolioOpen ? portfolioSlug : selectedSlug;
-  const drawerProject = portfolioOpen ? null : selectedProject;
+  const canvasSelectedSlug = selectedSlug;
+  const drawerProject = selectedProject;
 
   const handleSelect = useCallback(
     (
       slug: string,
-      options?: { preserveFeaturedPath?: boolean; preserveImpact?: boolean },
+      options?: { preserveImpact?: boolean },
     ) => {
       // Layer 0 컨테이너 클릭 = drawer 열기 (설명 · 지표 · "토폴로지 열기"
-      // CTA). 이전엔 바로 `?pj=X` 로 zoom-in 해버려서 ① 드래그 중 오발생 클릭
-      // 으로도 갑자기 내부로 들어가고, ② container 설명을 읽을 기회 없었음.
-      // drawer 안의 ProjectDrawer 가 container slug 를 보고 "토폴로지 열기"
-      // 버튼을 띄워 명시적 2-step 진입.
-      // 허브를 선택하면 포커스 모드 자동 활성. 일반 노드는 포커스 해제.
+      // CTA). 허브를 선택하면 포커스 모드 자동 활성, 일반 노드는 포커스 해제.
       const project = renderProjects.find((p) => p.slug === slug);
       setRouteState((current) => ({
         ...current,
         selectedSlug: slug,
         focusedHubSlug: project?.isHub && !showContainerView ? slug : null,
-        featuredPathId: options?.preserveFeaturedPath
-          ? current.featuredPathId
-          : null,
         impactMode: options?.preserveImpact ? current.impactMode : "none",
       }));
-      // hub rail / search palette 어느 경로든 한 번 선택했으면 온보딩
-      // 역할은 끝. sigma 캔버스 onFirstInteraction 만으로는 rail 전용
-      // 사용자 케이스를 놓쳤음.
       dismissSigmaHint();
     },
     [renderProjects, setRouteState, showContainerView, dismissSigmaHint],
@@ -662,73 +612,9 @@ export function HomePage() {
       ...current,
       selectedSlug: null,
       focusedHubSlug: null,
-      featuredPathId: null,
       impactMode: "none",
     }));
   }, [setRouteState]);
-
-  const handleDismissTour = useCallback(() => {
-    setTourOpen(false);
-    handleClose();
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(TOUR_DISMISSED_KEY, "1");
-    }
-  }, [handleClose]);
-
-  const handleMoveTourStep = useCallback(
-    (nextIndex: number) => {
-      const nextStep = tourSteps[nextIndex];
-      if (!nextStep) return;
-      setTourDirection(nextIndex >= tourIndex ? 1 : -1);
-      setTourIndex(nextIndex);
-      handleSelect(nextStep.slug);
-    },
-    [handleSelect, tourIndex, tourSteps],
-  );
-
-  const handleOpenTour = useCallback(() => {
-    if (tourSteps.length === 0) return;
-    handleMoveTourStep(0);
-    setTourOpen(true);
-  }, [handleMoveTourStep, tourSteps.length]);
-
-  const handleOpenTourFromPortfolio = useCallback(() => {
-    setPortfolioOpen(false);
-    setPortfolioSlug(null);
-    handleOpenTour();
-  }, [handleOpenTour]);
-
-  const handleClosePortfolio = useCallback(() => {
-    setPortfolioOpen(false);
-    setPortfolioSlug(null);
-  }, []);
-
-  const handleChangePortfolioChapter = useCallback(
-    (chapter: PortfolioChapter) => {
-      const project = projects.find((item) => item.slug === chapter.slug) ?? null;
-      setPortfolioSlug(chapter.slug);
-      setRouteState((current) => ({
-        ...current,
-        activeCategory: chapter.category,
-        featuredPathId: chapter.pathId === "default" ? null : chapter.pathId,
-        focusedHubSlug: chapter.focusedHubSlug ?? (project?.isHub ? project.slug : null),
-        impactMode: "none",
-      }));
-    },
-    [projects, setRouteState],
-  );
-
-  const handleNextTourStep = useCallback(() => {
-    if (tourIndex >= tourSteps.length - 1) {
-      handleDismissTour();
-      return;
-    }
-    handleMoveTourStep(tourIndex + 1);
-  }, [handleDismissTour, handleMoveTourStep, tourIndex, tourSteps.length]);
-
-  const handlePreviousTourStep = useCallback(() => {
-    handleMoveTourStep(Math.max(0, tourIndex - 1));
-  }, [handleMoveTourStep, tourIndex]);
 
   const handleToggleHub = useCallback(
     (slug: string) => {
@@ -742,7 +628,6 @@ export function HomePage() {
         ...current,
         selectedSlug: slug,
         focusedHubSlug: slug,
-        featuredPathId: null,
         impactMode: "none",
       }));
     },
@@ -799,27 +684,22 @@ export function HomePage() {
     // 일치 후 return). ontology / 문서 통합 검색 슬롯.
     {
       combo: { key: "k", meta: true, shift: true },
-      disabled: portfolioOpen,
       onFire: () => setOntologySearchOpen((v) => !v),
     },
     {
       combo: { key: "k", meta: true },
-      disabled: portfolioOpen,
       onFire: () => setSearchOpen((v) => !v),
     },
     {
       combo: { key: "f" },
-      disabled: portfolioOpen,
       onFire: () => setPresentationMode((v) => !v),
     },
     {
       combo: { key: "?" },
-      disabled: portfolioOpen,
       onFire: () => setShortcutsOpen((v) => !v),
     },
     {
       combo: { key: "d" },
-      disabled: portfolioOpen,
       onFire: () => setDocsDrawerOpen((v) => !v),
     },
   ]);
@@ -863,7 +743,6 @@ export function HomePage() {
   );
   const selectedHasKnowledgeEvidence = selectedEvidenceSummary?.hasEvidence ?? false;
   const showProjectTopologyScene =
-    !portfolioOpen &&
     knowledgeSceneProjectSlug === selectedProject?.slug &&
     selectedProject !== null &&
     selectedKnowledgeInsight.projectSlug === selectedProject.slug &&
@@ -912,12 +791,6 @@ export function HomePage() {
 
     const candidateSlugs = new Set<string>();
     if (selectedSlug) candidateSlugs.add(selectedSlug);
-    if (activeTourStep) candidateSlugs.add(activeTourStep.slug);
-
-    [tourIndex - 1, tourIndex + 1].forEach((index) => {
-      const step = tourSteps[index];
-      if (step) candidateSlugs.add(step.slug);
-    });
 
     // 허브 top 5 도 백그라운드 preload — 홈에 오자마자 사용자가 허브를
     // 클릭해 드로어 열 때 스크린샷 즉시 뜨도록. idle callback 으로 현재
@@ -936,10 +809,10 @@ export function HomePage() {
     }
     const handle = window.setTimeout(addTopHubs, 200);
     return () => window.clearTimeout(handle);
-  }, [activeTourStep, hubs, preloadProjectAsset, selectedSlug, tourIndex, tourSteps]);
+  }, [hubs, preloadProjectAsset, selectedSlug]);
 
   useEffect(() => {
-    if (!selectedProject || portfolioOpen) return;
+    if (!selectedProject) return;
 
     const unsubscribe = subscribeKnowledgeProjectInsight(
       selectedProject.slug,
@@ -956,7 +829,7 @@ export function HomePage() {
     );
 
     return () => unsubscribe();
-  }, [portfolioOpen, scopedAccountId, selectedProject]);
+  }, [scopedAccountId, selectedProject]);
 
   return (
     <main id="main" className="relative h-screen w-screen overflow-hidden bg-[color:var(--color-canvas)]">
@@ -968,12 +841,11 @@ export function HomePage() {
         {scopedAccountName ?? "Demo"} 프로젝트 토폴로지 지도
       </h1>
       <GestureHint
-        disabled={presentationMode || portfolioOpen || tourOpen || drawerOpen}
+        disabled={presentationMode || drawerOpen}
       />
       <LiveAnnouncer
         message={(() => {
           if (presentationMode) return "프레젠테이션 모드 시작";
-          if (portfolioOpen) return "포트폴리오 모드 시작";
           if (!selectedProject) return "";
           const deps = selectedProject.dependencies.length;
           const referenced = projects.filter((p) =>
@@ -982,7 +854,7 @@ export function HomePage() {
           return `${selectedProject.name} 선택됨. 의존 ${deps}개, 연결 ${referenced}개.`;
         })()}
       />
-      {!presentationMode && !portfolioOpen && (
+      {!presentationMode && (
           <>
             {/* 모바일 전용 미니 브랜드 라벨 */}
             <div className="pointer-events-none absolute left-4 top-[22px] z-10 -translate-y-1/2 md:hidden">
@@ -1089,7 +961,7 @@ export function HomePage() {
                   <HeroHeader
                     className="block w-full"
                     hidden={drawerOpen}
-                    activePathLabel={activeFeaturedPath?.label ?? null}
+                    activePathLabel={null}
                     onOpenSearch={() => setSearchOpen(true)}
                     onCollapse={toggleLeftPanel}
                     title={selectedProject?.name ?? scopedAccountName ?? "Demo"}
@@ -1230,23 +1102,6 @@ export function HomePage() {
             <Legend
               hidden={hideMobileOverlayControls || (!shouldShowRegions && !scopedAccountId)}
               showCategories={shouldShowRegions}
-            />
-            {/* ProjectTour 런처는 온보딩 카드 + SearchHint 로 이미 초기 발견
-                경로가 충분해, 추가 floating launcher 로 인한 시각 노이즈 제거.
-                투어 자체는 tourOpen state 로 외부 트리거 (예: 단축키 help
-                sheet 의 "투어 보기" 링크) 에서 열 수 있도록 유지. */}
-            <ProjectTour
-              open={tourOpen}
-              step={activeTourStep}
-              stepIndex={tourIndex}
-              stepDirection={tourDirection}
-              totalSteps={tourSteps.length}
-              launcherHidden
-              drawerOpen={drawerOpen}
-              onOpen={handleOpenTour}
-              onClose={handleDismissTour}
-              onPrevious={handlePreviousTourStep}
-              onNext={handleNextTourStep}
             />
           </>
       )}
@@ -1412,7 +1267,7 @@ export function HomePage() {
                 </div>
               ) : null}
 
-              {!portfolioOpen && selectedProject && selectedHasKnowledgeEvidence ? (
+              {selectedProject && selectedHasKnowledgeEvidence ? (
                 <button
                   type="button"
                   onClick={() => setKnowledgeSceneProjectSlug(selectedProject.slug)}
@@ -1543,8 +1398,7 @@ export function HomePage() {
             (b) 컨테이너 zoom-in 직후 sigma 재구성 중 빈 캔버스 인지 차단. */}
         {(scopedAccountId &&
           !projectsLoaded &&
-          !projectsError &&
-          !portfolioOpen) ||
+          !projectsError) ||
         containerSwitching ? (
           <div
             className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
@@ -1563,7 +1417,7 @@ export function HomePage() {
             </div>
           </div>
         ) : null}
-        {scopedAccountId && projectsLoaded && projects.length === 0 && !portfolioOpen && !tourOpen ? (
+        {scopedAccountId && projectsLoaded && projects.length === 0 ? (
           <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4">
             <section className="pointer-events-auto w-full max-w-xl rounded-[28px] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] px-6 py-6 text-center shadow-[0_28px_64px_rgba(0,0,0,0.34)]">
               <p className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
@@ -1631,14 +1485,6 @@ export function HomePage() {
             </section>
           </div>
         ) : null}
-        <PortfolioShowcase
-          open={portfolioOpen}
-          chapters={portfolioChapters}
-          activeSlug={portfolioSlug}
-          onClose={handleClosePortfolio}
-          onChangeChapter={handleChangePortfolioChapter}
-          onOpenGuide={handleOpenTourFromPortfolio}
-        />
         <ProjectDrawer
           project={showProjectTopologyScene ? null : drawerProject}
           allProjects={renderProjects}
@@ -1688,7 +1534,7 @@ export function HomePage() {
           }}
         />
         <SearchPalette
-          open={searchOpen && !portfolioOpen}
+          open={searchOpen}
           onClose={() => setSearchOpen(false)}
           projects={renderProjects}
           onSelect={(slug) => {
@@ -1703,7 +1549,7 @@ export function HomePage() {
             는 useTypingShortcuts 가 관리. */}
         <MountedGlobalSearch
           accountId={scopedAccountId}
-          open={ontologySearchOpen && !portfolioOpen}
+          open={ontologySearchOpen}
           onOpenChange={setOntologySearchOpen}
           onSelectProject={(project) => handleSelect(project.slug)}
         />

@@ -8,14 +8,13 @@ import {
 describe("parseHomeRouteState", () => {
   it("reads supported home query params", () => {
     const params = new URLSearchParams(
-      "p=iam&c=in-progress&hub=iam&path=identity&impact=downstream&pulse=30d&pj=demo",
+      "p=iam&c=in-progress&hub=iam&impact=downstream&pulse=30d&pj=demo",
     );
 
     expect(parseHomeRouteState(params)).toEqual({
       selectedSlug: "iam",
       activeCategory: "in-progress",
       focusedHubSlug: "iam",
-      featuredPathId: "identity",
       impactMode: "downstream",
       pulseMode: "30d",
       projectId: "demo",
@@ -35,14 +34,13 @@ describe("applyHomeRouteState", () => {
       selectedSlug: "pick",
       activeCategory: "planned",
       focusedHubSlug: "reactor",
-      featuredPathId: "agent",
       impactMode: "network",
       pulseMode: "7d",
       projectId: "demo",
     });
 
     expect(params.toString()).toBe(
-      "p=pick&c=planned&hub=reactor&path=agent&impact=network&pulse=7d&pj=demo",
+      "p=pick&c=planned&hub=reactor&impact=network&pulse=7d&pj=demo",
     );
   });
 
