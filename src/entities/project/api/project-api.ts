@@ -39,16 +39,12 @@ const COLLECTION = "projects";
 
 function projectsCollection(accountId?: string | null) {
   const normalizedAccountId = normalizeAccountId(accountId);
-  return normalizedAccountId
-    ? collection(getDb(), "accounts", normalizedAccountId, COLLECTION)
-    : collection(getDb(), COLLECTION);
+  return collection(getDb(), COLLECTION);
 }
 
 function projectDoc(slug: string, accountId?: string | null) {
   const normalizedAccountId = normalizeAccountId(accountId);
-  return normalizedAccountId
-    ? doc(getDb(), "accounts", normalizedAccountId, COLLECTION, slug)
-    : doc(getDb(), COLLECTION, slug);
+  return doc(getDb(), COLLECTION, slug);
 }
 
 /**
