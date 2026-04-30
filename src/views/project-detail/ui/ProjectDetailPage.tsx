@@ -1,6 +1,5 @@
 "use client";
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -686,12 +685,9 @@ export function ProjectDetailPage({
     projectId: project.slug,
     returnTo: knowledgeReturnTo,
   });
-  const projectFullEditHref = appendAccountQuery(
-    `/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(
-      projectPublicHref,
-    )}`,
-    accountId,
-  );
+  const projectFullEditHref = `/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(
+    projectPublicHref,
+  )}`;
 
   return (
     <ProjectDetailShell>

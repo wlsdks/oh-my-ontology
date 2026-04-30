@@ -1,6 +1,5 @@
 "use client";
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import {
   useCallback,
   useEffect,
@@ -545,20 +544,16 @@ function CategoriesContent() {
                 {selectedId && (
                   <div className="flex items-center gap-2">
                     <Link
-                      href={appendAccountQuery(
-                        `/project/new/?category=${encodeURIComponent(
+                      href={`/project/new/?category=${encodeURIComponent(
                           selectedId,
-                        )}&returnTo=${encodeURIComponent(categoriesHref)}`,
-                      )}
+                        )}&returnTo=${encodeURIComponent(categoriesHref)}`}
                       data-testid="category-create-project"
                       onClick={(event) =>
                         handleNavigateWithGuard(
                           event,
-                          appendAccountQuery(
-                            `/project/new/?category=${encodeURIComponent(
+                          `/project/new/?category=${encodeURIComponent(
                               selectedId,
                             )}&returnTo=${encodeURIComponent(categoriesHref)}`,
-                          ),
                         )
                       }
                       className="inline-flex"
@@ -815,16 +810,12 @@ function CategoriesContent() {
                       {selectedProjects.map((project) => (
                         <Link
                           key={project.slug}
-                          href={appendAccountQuery(
-                            `/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(categoriesHref)}`,
-                          )}
+                          href={`/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(categoriesHref)}`}
                           data-testid={`category-linked-project-${project.slug}`}
                           onClick={(event) =>
                             handleNavigateWithGuard(
                               event,
-                              appendAccountQuery(
-                                `/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(categoriesHref)}`,
-                              ),
+                              `/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(categoriesHref)}`,
                             )
                           }
                           className="rounded-md border border-[color:var(--color-divider)] px-3 py-1.5 text-sm text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:text-[color:var(--color-text-primary)]"

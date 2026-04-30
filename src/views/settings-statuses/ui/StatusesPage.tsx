@@ -1,6 +1,5 @@
 "use client";
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import {
   useCallback,
   useEffect,
@@ -514,20 +513,16 @@ function StatusesContent() {
               {selectedId && (
                 <div className="flex items-center gap-2">
                   <Link
-                    href={appendAccountQuery(
-                      `/project/new/?status=${encodeURIComponent(
+                    href={`/project/new/?status=${encodeURIComponent(
                         selectedId,
-                      )}&returnTo=${encodeURIComponent(statusesHref)}`,
-                    )}
+                      )}&returnTo=${encodeURIComponent(statusesHref)}`}
                     data-testid="status-create-project"
                     onClick={(event) =>
                       handleNavigateWithGuard(
                         event,
-                        appendAccountQuery(
-                          `/project/new/?status=${encodeURIComponent(
+                        `/project/new/?status=${encodeURIComponent(
                             selectedId,
                           )}&returnTo=${encodeURIComponent(statusesHref)}`,
-                        ),
                       )
                     }
                     className="inline-flex"
@@ -693,16 +688,12 @@ function StatusesContent() {
                     {selectedProjects.map((project) => (
                       <Link
                         key={project.slug}
-                        href={appendAccountQuery(
-                          `/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(statusesHref)}`,
-                        )}
+                        href={`/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(statusesHref)}`}
                         data-testid={`status-linked-project-${project.slug}`}
                         onClick={(event) =>
                           handleNavigateWithGuard(
                             event,
-                            appendAccountQuery(
-                              `/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(statusesHref)}`,
-                            ),
+                            `/project/${encodeURIComponent(project.slug)}/edit/?returnTo=${encodeURIComponent(statusesHref)}`,
                           )
                         }
                         className="rounded-md border border-[color:var(--color-divider)] px-3 py-1.5 text-sm text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:text-[color:var(--color-text-primary)]"

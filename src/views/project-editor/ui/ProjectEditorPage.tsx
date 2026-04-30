@@ -1,6 +1,5 @@
 "use client";
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import { useCallback, useEffect, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -77,7 +76,7 @@ function EditorContent({
   useDocumentTitle(
     (mode === "edit" ? "프로젝트 편집 · Demo" : "새 프로젝트 · Demo"),
   );
-  const safeReturnTo = appendAccountQuery(normalizeReturnTo(returnTo), accountId);
+  const safeReturnTo = normalizeReturnTo(returnTo);
   const safeReturnLabel = resolveReturnLabel(normalizeReturnTo(returnTo));
   const publicProjectHref = slug ? getProjectDetailHref(slug, accountId) : null;
   const projectDocumentsHref = slug
@@ -144,10 +143,7 @@ function EditorContent({
   }, [accountId, duplicateFromSlug, mode, slug, targetSlug]);
 
   const buildEditHref = (nextSlug: string) =>
-    appendAccountQuery(
-      `/project/${encodeURIComponent(nextSlug)}/edit/?returnTo=${encodeURIComponent(safeReturnTo)}&saved=1`,
-      accountId,
-    );
+    `/project/${encodeURIComponent(nextSlug)}/edit/?returnTo=${encodeURIComponent(safeReturnTo)}&saved=1`;
 
   const handleSubmit = async (
     input: ProjectInput,
@@ -367,22 +363,16 @@ function EditorContent({
               )}
               {mode === "edit" && slug && (
                 <Link
-                  href={appendAccountQuery(
-                    `/project/new/?from=${encodeURIComponent(
-                      slug,
-                    )}&returnTo=${encodeURIComponent(safeReturnTo)}`,
-                    accountId,
-                  )}
+                  href={`/project/new/?from=${encodeURIComponent(
+                    slug,
+                  )}&returnTo=${encodeURIComponent(safeReturnTo)}`}
                   data-testid="admin-project-duplicate"
                   onClick={(event) =>
                     handleNavigateWithGuard(
                       event,
-                      appendAccountQuery(
-                        `/project/new/?from=${encodeURIComponent(
-                          slug,
-                        )}&returnTo=${encodeURIComponent(safeReturnTo)}`,
-                        accountId,
-                      ),
+                      `/project/new/?from=${encodeURIComponent(
+                        slug,
+                      )}&returnTo=${encodeURIComponent(safeReturnTo)}`,
                     )
                   }
                   className="inline-flex h-9 items-center gap-2 rounded-md border border-[color:var(--color-divider)] px-3 text-sm text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:var(--color-overlay-1)]"

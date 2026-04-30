@@ -1,6 +1,5 @@
 "use client";
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -305,12 +304,9 @@ function DetailContent({ documentId, returnTo }: Props) {
     ? getProjectDetailHref(primaryProjectId, accountId)
     : null;
   const primaryProjectEditHref = primaryProjectId && currentDocumentDetailHref
-    ? appendAccountQuery(
-        `/project/${encodeURIComponent(primaryProjectId)}/edit/?returnTo=${encodeURIComponent(
-          currentDocumentDetailHref,
-        )}`,
-        accountId,
-      )
+    ? `/project/${encodeURIComponent(primaryProjectId)}/edit/?returnTo=${encodeURIComponent(
+        currentDocumentDetailHref,
+      )}`
     : null;
   const reviewWorkspaceHref = documentId
     ? getKnowledgeReviewWorkspaceHref(documentId, accountId, {

@@ -1,6 +1,5 @@
 "use client";
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -207,14 +206,13 @@ function WorkspaceContent() {
     returnTo,
   });
   const primaryProjectEditHref = primaryProjectId && selectedDocument
-    ? appendAccountQuery(
+    ? (
         `/project/${encodeURIComponent(primaryProjectId)}/edit/?returnTo=${encodeURIComponent(
           getKnowledgeReviewWorkspaceHref(selectedDocument.id, accountId, {
             projectId: primaryProjectId,
             returnTo: safeReturnTo,
           }),
-        )}`,
-        accountId,
+        )}`
       )
     : null;
 

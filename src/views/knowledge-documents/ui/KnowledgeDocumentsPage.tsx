@@ -1,6 +1,5 @@
 "use client";
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,8 +30,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui";
-import {
-} from "@/shared/lib/account-scope";
 import { formatDate } from "@/shared/lib/format-date";
 import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
 import { MountedGlobalSearch } from "@/widgets/global-search";
@@ -149,27 +146,19 @@ function DocumentsContent() {
   );
   const safeReturnTo =
     searchParams.get("returnTo") ??
-    appendAccountQuery(
-      searchParams.toString()
-        ? `/knowledge/documents/?${searchParams.toString()}`
-        : "/knowledge/documents/",
-      accountId,
-    );
+    (searchParams.toString()
+      ? `/knowledge/documents/?${searchParams.toString()}`
+      : "/knowledge/documents/");
 
   const replaceListUrl = useCallback(
     (params: URLSearchParams) => {
       const query = params.toString();
       router.replace(
-        appendAccountQuery(
-          query
-            ? `/knowledge/documents/?${query}`
-            : "/knowledge/documents/",
-          accountId,
-        ),
+        query ? `/knowledge/documents/?${query}` : "/knowledge/documents/",
         { scroll: false },
       );
     },
-    [accountId, router],
+    [router],
   );
 
   const updateFilter = useCallback(
