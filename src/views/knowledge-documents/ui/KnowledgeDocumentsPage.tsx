@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, ArrowLeft, FilePlus2, Search, SlidersHorizontal } from "lucide-react";
 import { PermissionGate } from "@/features/permissions";
 import { useGlobalAdmin } from "@/features/permissions";
-import { AccountScopeSelector } from "@/features/account-scope";
 import {
   KNOWLEDGE_DOCUMENT_KIND_OPTIONS,
   KNOWLEDGE_DOCUMENT_STATUS_OPTIONS,
@@ -226,7 +225,6 @@ function DocumentsContent() {
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2 md:justify-end">
-            <AccountScopeSelector uid={user?.uid} compact />
             {/* "문서 홈" 버튼은 BottomTabBar / OperationsNav 의 "문서" 탭이
                 이미 같은 destination 을 노출해 모바일·데스크톱 모두 중복.
                 드랍해 헤더를 슬림하게. */}

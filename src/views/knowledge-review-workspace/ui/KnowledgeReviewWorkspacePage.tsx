@@ -4,9 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PermissionGate, useGlobalAdmin } from "@/features/permissions";
-import {
-  AccountScopeSelector,
-} from "@/features/account-scope";
 import { getProjectDetailHref } from "@/entities/project";
 import {
   getKnowledgeDocumentDetailHref,
@@ -502,7 +499,6 @@ function WorkspaceContent() {
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2 md:justify-end">
-            <AccountScopeSelector uid={user?.uid} compact />
             <details className="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-3">
               <summary className="cursor-pointer list-none text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
                 다른 화면 열기

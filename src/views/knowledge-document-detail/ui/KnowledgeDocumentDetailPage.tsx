@@ -4,7 +4,6 @@ import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "reac
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PermissionGate, useGlobalAdmin } from "@/features/permissions";
-import { AccountScopeSelector } from "@/features/account-scope";
 import { getProjectDetailHref, subscribeProjects, type Project } from "@/entities/project";
 import {
   subscribeKnowledgeEvidenceByDocument,
@@ -676,7 +675,6 @@ function DetailContent({ documentId, returnTo }: Props) {
             )}
           </div>
           <div className="flex flex-wrap items-end gap-2 md:justify-end">
-            <AccountScopeSelector uid={user?.uid} compact />
           </div>
         </header>
 
