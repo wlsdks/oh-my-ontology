@@ -7,7 +7,6 @@ import {
   KNOWLEDGE_EDGE_TYPES,
   useKnowledgePublicInsight,
 } from "@/entities/knowledge-graph";
-import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
 import {
   computeEdgeTypeDistribution,
   selectStrongEdges,

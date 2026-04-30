@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { signOut } from '@/features/user-auth';
 import { ThemeToggle } from '@/features/theme-toggle';
-import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
 import { Button, Tooltip } from '@/shared/ui';
 
 interface OperationsNavProps {

@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthGoogleButton, signInWithDemo, signUpWithEmail, useUserAuth } from '@/features/user-auth';
 import { getDemoProjectsHref } from '@/shared/config/demo-space';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
-import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
 
 function resolveNextHref(nextParam: string | null, accountId?: string | null) {
   // 회원가입 직후 기본 도착지 = 자기 워크스페이스 지도 (Layer 0).

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, MailCheck } from 'lucide-react';
 import { sendPasswordReset } from '@/features/user-auth';
-import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
 export function PasswordResetPage() {

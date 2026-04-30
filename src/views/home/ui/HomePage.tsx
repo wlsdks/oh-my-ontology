@@ -108,7 +108,7 @@ import {
   subscribeKnowledgeProjectInsight,
   type KnowledgeProjectInsight,
 } from "@/entities/knowledge-graph";
-import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
+import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import {
   deriveWorkspaceProjectContainers,
   inferWorkspaceProjectGroup,
@@ -949,9 +949,9 @@ export function HomePage() {
                     ontologyHref={"/ontology/"}
                     // activeProjectId 가 있으면 컨테이너 zoom-in 상태.
                     // 버튼으로 Layer 0 (워크스페이스 지도) 복귀.
-                    // ⚠️ appendAccountQuery 는 runtime `?pj=` 를 자동 상속해
-                    //    Layer 0 복귀 href 에 pj 가 도로 붙어 no-op 되는 버그
-                    //    있었음. account query 만 명시적으로 붙이고 pj 는 생략.
+                    // ⚠️ 과거 helper 가 `?pj=` 를 자동 상속해 Layer 0 복귀
+                    //    href 에 pj 가 도로 붙어 no-op 되는 버그 있었음.
+                    //    account query 만 명시적으로 붙이고 pj 는 생략.
                     workspaceMapHref={
                       activeProjectId
                         ? scopedAccountId

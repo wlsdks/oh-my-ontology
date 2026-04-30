@@ -20,7 +20,7 @@ import { signInWithDemo } from "@/features/user-auth";
 import { resolveFallbackProjects } from "@/entities/project";
 import { getDemoHomeHref, getDemoStats } from "@/shared/config/demo-space";
 // 데모 진입 라우팅 + Stats 는 getDemoStats() 가 진실원.
-import { appendAccountQuery, resolveAccountId } from "@/shared/lib/account-scope";
+import { normalizeAccountId } from "@/shared/lib/account-scope";
 import { cn } from "@/shared/lib/cn";
 import { Button, buttonVariants } from "@/shared/ui";
 
@@ -67,7 +67,7 @@ export function LandingPage({ accountId, next }: Props) {
     () => buildAuthHref("/signup", accountId, next),
     [accountId, next],
   );
-  const scopeLabel = resolveAccountId(accountId ?? null);
+  const scopeLabel = normalizeAccountId(accountId ?? null);
   const hasReturnTarget = Boolean(next?.trim());
   // hero 배경 토폴로지용 샘플 프로젝트 — SEED 기반 fallback 을 재사용해
   // 실제 제품 느낌의 그래프를 즉시 보여준다. 외부 네트워크 요청 없음.

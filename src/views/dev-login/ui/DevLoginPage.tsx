@@ -2,9 +2,8 @@
 
 import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { canUseDevAdminBypass, enableDevAdminBypass } from '@/features/permissions';
-import { ACCOUNT_QUERY_KEY, appendAccountQuery, rememberAccountId } from '@/shared/lib/account-scope';
 import { Button } from '@/shared/ui';
 
 function subscribeNoop() {
@@ -13,10 +12,8 @@ function subscribeNoop() {
 
 export function DevLoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const isClient = useSyncExternalStore(subscribeNoop, () => true, () => false);
   const allowed = isClient ? canUseDevAdminBypass() : null;
-  const accountId = searchParams.get(ACCOUNT_QUERY_KEY);
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6">
@@ -37,7 +34,6 @@ export function DevLoginPage() {
             <Button
               onClick={() => {
                 enableDevAdminBypass();
-                rememberAccountId(accountId);
                 router.push('/projects/');
               }}
             >

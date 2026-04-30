@@ -1,7 +1,4 @@
-import { appendAccountQuery } from "@/shared/lib/account-scope";
-import {
-  appendWorkspaceProjectQuery,
-} from "../../../shared/lib/account-scope";
+import { appendWorkspaceProjectQuery } from "@/shared/lib/account-scope";
 
 /**
  * 공개 상세 페이지의 canonical 경로(`/project/{slug}/`)를 반환한다.
@@ -16,11 +13,11 @@ import {
  */
 export function getProjectDetailHref(
   slug: string,
-  accountId?: string | null,
+  _accountId?: string | null,
   projectId?: string | null,
 ): string {
   return appendWorkspaceProjectQuery(
-    appendAccountQuery(`/project/${encodeURIComponent(slug)}/`, accountId),
+    `/project/${encodeURIComponent(slug)}/`,
     projectId,
   );
 }

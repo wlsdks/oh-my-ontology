@@ -20,7 +20,7 @@ import {
   type StubNode,
 } from "@/entities/knowledge-graph";
 import { getOntologyKindLabel } from "@/entities/ontology-class";
-import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
+import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import {
   buildOntologyEgoSubgraph,
   buildOntologyTree,

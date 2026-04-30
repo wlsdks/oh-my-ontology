@@ -1,6 +1,5 @@
 'use client';
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import dynamic from 'next/dynamic';
 import {
   Suspense,
@@ -153,9 +152,8 @@ function AdminDocsContent() {
     [accountId],
   );
   const getProjectHref = useCallback(
-    (slug: string) =>
-      appendAccountQuery(`/?p=${encodeURIComponent(slug)}`, accountId),
-    [accountId],
+    (slug: string) => `/?p=${encodeURIComponent(slug)}`,
+    [],
   );
   const [selectedSlug, setSelectedSlug] = useState<string | null>(querySlug);
   const [audience, setAudience] =

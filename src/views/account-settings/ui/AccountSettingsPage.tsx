@@ -14,7 +14,6 @@ import {
 } from '@/features/user-auth';
 import { useScopedAccountAccess } from '@/features/account-scope';
 import { hasDemoSession } from '@/shared/lib/demo-session';
-import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { PublicAccountMenu } from '@/widgets/account-menu';
 

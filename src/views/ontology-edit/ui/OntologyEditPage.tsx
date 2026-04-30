@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
+import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import { addManualKnowledgeNode } from "@/entities/knowledge-graph";
 import { slugify } from "@/shared/lib/slugify";
 import { OperationsNav } from "@/widgets/operations-nav";

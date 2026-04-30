@@ -1,6 +1,5 @@
 "use client";
 
-import { appendAccountQuery } from "@/shared/lib/account-scope";
 import Link from "next/link";
 import { useMemo } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -41,17 +40,17 @@ export function PublicQuickActions({
     );
     url.searchParams.set("returnTo", returnTo);
     return `${url.pathname}?${url.searchParams.toString()}`;
-  }, [accountId, returnTo]);
+  }, [returnTo]);
 
   const editProjectHref = useMemo(() => {
     if (!projectSlug) return null;
     const url = new URL(
-      appendAccountQuery(`/project/${encodeURIComponent(projectSlug)}/edit/`, accountId),
+      `/project/${encodeURIComponent(projectSlug)}/edit/`,
       "http://local.test",
     );
     url.searchParams.set("returnTo", returnTo);
     return `${url.pathname}?${url.searchParams.toString()}`;
-  }, [accountId, projectSlug, returnTo]);
+  }, [projectSlug, returnTo]);
 
   const newDocumentHref = useMemo(
     () =>
