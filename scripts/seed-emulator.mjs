@@ -3,12 +3,8 @@
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import {
-  SEED_ACCOUNT_MEMBERSHIPS,
-  SEED_ACCOUNTS,
-  SEED_DEMO_PROJECTS,
   SEED_CATEGORIES,
   SEED_PROJECTS,
-  SEED_SANDBOX_PROJECTS,
   SEED_STATUSES,
 } from './seed-fixtures.mjs';
 import { DEMO_TREE } from './fixtures/demo-tree.mjs';
@@ -61,24 +57,6 @@ async function seedCollection(collectionName, entries, keyField, mapper = (value
   await batch.commit();
 }
 
-async function seedAccountProjects(accountId, entries) {
-  const batch = db.batch();
-  for (const entry of entries) {
-    const ref = db
-      .collection('accounts')
-      .doc(accountId)
-      .collection('projects')
-      .doc(entry.slug);
-    batch.set(ref, {
-      ...normalizeProject(entry),
-      accountId,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-    });
-  }
-  await batch.commit();
-}
-
 function ringPosition(index, total, radius) {
   if (total <= 1) return { x: 0, y: 0 };
   const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
@@ -88,9 +66,8 @@ function ringPosition(index, total, radius) {
   };
 }
 
-function buildHubDoc({ slug, name, description, tags, position, accountId, projectId }) {
+function buildHubDoc({ slug, name, description, tags, position, projectId }) {
   return {
-    accountId,
     projectId,
     slug,
     name,
@@ -113,9 +90,8 @@ function buildHubDoc({ slug, name, description, tags, position, accountId, proje
   };
 }
 
-function buildNodeDoc({ slug, name, description, tags, position, hubIds, accountId, projectId }) {
+function buildNodeDoc({ slug, name, description, tags, position, hubIds, projectId }) {
   return {
-    accountId,
     projectId,
     slug,
     name,
@@ -140,7 +116,11 @@ function buildNodeDoc({ slug, name, description, tags, position, hubIds, account
   };
 }
 
-async function seedDemoTree(accountId, tree) {
+/**
+ * DEMO_TREE 를 root workspaceProjects/{containerId}/{hubs|nodes} 로 시드.
+ * single-user 모드라 더 이상 accounts/{aid}/ prefix 는 없음.
+ */
+async function seedDemoTree(tree) {
   const HUB_RING_RADIUS = 320;
   const NODE_RING_RADIUS = 140;
   let containerCount = 0;
@@ -148,15 +128,10 @@ async function seedDemoTree(accountId, tree) {
   let nodeCount = 0;
 
   for (const container of tree) {
-    const projectRef = db
-      .collection('accounts')
-      .doc(accountId)
-      .collection('workspaceProjects')
-      .doc(container.id);
+    const projectRef = db.collection('workspaceProjects').doc(container.id);
 
     const containerBatch = db.batch();
     containerBatch.set(projectRef, {
-      accountId,
       name: container.name,
       description: container.description ?? null,
       isPublic: true,
@@ -176,7 +151,6 @@ async function seedDemoTree(accountId, tree) {
           description: hub.description,
           tags: hub.tags,
           position: hubPosition,
-          accountId,
           projectId: container.id,
         }),
         createdAt: FieldValue.serverTimestamp(),
@@ -199,7 +173,6 @@ async function seedDemoTree(accountId, tree) {
             tags: node.tags ?? hub.tags ?? [],
             position: nodePosition,
             hubIds: [hub.slug],
-            accountId,
             projectId: container.id,
           }),
           createdAt: FieldValue.serverTimestamp(),
@@ -216,15 +189,11 @@ async function seedDemoTree(accountId, tree) {
   return { containerCount, hubCount, nodeCount };
 }
 
-await seedCollection('accounts', SEED_ACCOUNTS, 'id');
-await seedCollection('accountMemberships', SEED_ACCOUNT_MEMBERSHIPS, 'id');
 await seedCollection('categories', SEED_CATEGORIES, 'id');
 await seedCollection('statuses', SEED_STATUSES, 'id');
 await seedCollection('projects', SEED_PROJECTS, 'slug', normalizeProject);
-await seedAccountProjects('demo-workspace', SEED_SANDBOX_PROJECTS);
-await seedAccountProjects('demo', SEED_DEMO_PROJECTS);
-const demoTreeStats = await seedDemoTree('demo', DEMO_TREE);
+const demoTreeStats = await seedDemoTree(DEMO_TREE);
 
 console.log(
-  `[seed-emulator] accounts=${SEED_ACCOUNTS.length} memberships=${SEED_ACCOUNT_MEMBERSHIPS.length} categories=${SEED_CATEGORIES.length} statuses=${SEED_STATUSES.length} projects=${SEED_PROJECTS.length} sandboxProjects=${SEED_SANDBOX_PROJECTS.length} demoProjects=${SEED_DEMO_PROJECTS.length} demoContainers=${demoTreeStats.containerCount} demoHubs=${demoTreeStats.hubCount} demoNodes=${demoTreeStats.nodeCount}`,
+  `[seed-emulator] categories=${SEED_CATEGORIES.length} statuses=${SEED_STATUSES.length} projects=${SEED_PROJECTS.length} demoContainers=${demoTreeStats.containerCount} demoHubs=${demoTreeStats.hubCount} demoNodes=${demoTreeStats.nodeCount}`,
 );
