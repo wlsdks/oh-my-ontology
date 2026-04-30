@@ -1,13 +1,12 @@
 /**
- * M2 · POST /api/v1/docs — 외부 클라이언트 (CLI · CI · MCP) 가 워크스페이스
+ * POST /api/v1/docs — 외부 클라이언트 (CLI · CI · MCP) 가 워크스페이스
  * 컨테이너로 노드를 push 하는 HTTP endpoint.
  *
- * 인증: `Authorization: Bearer <api_key>` 헤더. 키는 `accounts/{accountId}/
- * apiKeys/{keyId}` 의 SHA-256(plaintext) 와 비교.
+ * 인증: `Authorization: Bearer <api_key>` 헤더. 키는 root `apiKeys/{keyId}` 의
+ * SHA-256(plaintext) 와 비교 (single-user 모드).
  *
  * Body (JSON):
  *   {
- *     "accountId": "stark",
  *     "projectId": "demo",   // optional, default "general"
  *     "doc": {
  *       "slug": "iam-spec",
@@ -18,7 +17,7 @@
  *       "tags": [], "stack": [],
  *       "dependencies": [],
  *       "hubIds": ["iam-hub"],  // node 의 소속 hub
- *       "owner": "stark", "icon": "🛡",
+ *       "owner": "...", "icon": "🛡",
  *       ...
  *     }
  *   }
@@ -27,7 +26,7 @@
  *   {
  *     "status": "ok",
  *     "action": "created" | "updated",
- *     "path": "accounts/stark/workspaceProjects/demo/hubs/iam-spec",
+ *     "path": "workspaceProjects/demo/hubs/iam-spec",
  *     "writtenAt": "2026-04-22T..."
  *   }
  *
@@ -127,7 +126,7 @@ async function checkRateLimit(keyRef) {
  * Authorization 헤더 검증. 일치하는 키가 있고 revoke 안 됐으면 keyDoc 반환.
  * 일치 후 lastUsedAt / usageCount 갱신은 fire-and-forget.
  */
-async function authenticateBearer(req, expectedAccountId) {
+async function authenticateBearer(req) {
   const authHeader = req.get("Authorization") || req.get("authorization") || "";
   const match = authHeader.match(/^Bearer\s+(.+)$/i);
   if (!match) return { error: { status: 401, message: "Bearer 토큰 누락" } };
@@ -136,8 +135,6 @@ async function authenticateBearer(req, expectedAccountId) {
 
   const expectedHash = sha256Hex(plaintext);
   const snapshot = await db()
-    .collection("accounts")
-    .doc(expectedAccountId)
     .collection("apiKeys")
     .where("keyHash", "==", expectedHash)
     .limit(1)
@@ -215,11 +212,6 @@ export const receiveDoc = onRequest(
     }
 
     const body = req.body || {};
-    const accountId = trimString(body.accountId);
-    if (!accountId) {
-      badRequest(res, 400, "accountId 필요");
-      return;
-    }
     const projectId = trimString(body.projectId) || "general";
     const doc = body.doc;
     if (!doc || typeof doc !== "object") {
@@ -238,7 +230,7 @@ export const receiveDoc = onRequest(
     }
 
     // 인증
-    const auth = await authenticateBearer(req, accountId);
+    const auth = await authenticateBearer(req);
     if (auth.error) {
       badRequest(res, auth.error.status, auth.error.message);
       return;
@@ -250,7 +242,6 @@ export const receiveDoc = onRequest(
       const retryAfterSec = Math.ceil(rateCheck.retryAfterMs / 1000);
       res.set("Retry-After", String(retryAfterSec));
       logger.warn("receiveDoc rate-limited", {
-        accountId,
         keyId: auth.keyDoc.id,
         retryAfterSec,
       });
@@ -266,8 +257,6 @@ export const receiveDoc = onRequest(
     const subcollection = isHub ? "hubs" : "nodes";
 
     const ref = db()
-      .collection("accounts")
-      .doc(accountId)
       .collection("workspaceProjects")
       .doc(projectId)
       .collection(subcollection)
@@ -285,9 +274,8 @@ export const receiveDoc = onRequest(
       }
       await ref.set(payload, { merge: true });
 
-      const path = `accounts/${accountId}/workspaceProjects/${projectId}/${subcollection}/${slug}`;
+      const path = `workspaceProjects/${projectId}/${subcollection}/${slug}`;
       logger.info("receiveDoc", {
-        accountId,
         projectId,
         slug,
         isHub,
@@ -303,7 +291,6 @@ export const receiveDoc = onRequest(
       });
     } catch (err) {
       logger.error("receiveDoc failed", {
-        accountId,
         projectId,
         slug,
         error: err instanceof Error ? err.message : String(err),

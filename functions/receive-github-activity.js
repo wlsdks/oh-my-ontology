@@ -1,11 +1,11 @@
 /**
  * Developer Activity Ingest — GitHub App webhook receiver.
  *
- * GitHub App webhook URL should include the owning workspace account:
- *   https://<region>-<project>.cloudfunctions.net/receiveGitHubActivity?accountId=<accountId>
+ * GitHub App webhook URL (single-user 모드):
+ *   https://<region>-<project>.cloudfunctions.net/receiveGitHubActivity
  *
  * The function verifies X-Hub-Signature-256 with GITHUB_WEBHOOK_SECRET and
- * writes a compact activity record to accounts/{accountId}/developerActivityEvents.
+ * writes a compact activity record to root developerActivityEvents.
  */
 import {
   createHmac,
@@ -49,10 +49,8 @@ function jsonError(res, status, message) {
   res.status(status).json({ status: "error", message });
 }
 
-function deliveryDoc(accountId, deliveryId) {
+function deliveryDoc(deliveryId) {
   return db()
-    .collection("accounts")
-    .doc(accountId)
     .collection(DELIVERIES_COLLECTION)
     .doc(deliveryId || `local__${randomUUID()}`);
 }
@@ -176,25 +174,10 @@ export async function redeliverGitHubWebhookDelivery({
   return { status: "requested", githubDeliveryApiId };
 }
 
-async function assertCanOperateAccount(request, accountId) {
-  const email = trimString(request.auth?.token?.email);
+async function assertAuthed(request) {
   const uid = trimString(request.auth?.uid);
-  if (!email || !uid) {
+  if (!uid) {
     throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
-  }
-
-  const adminSnapshot = await db().collection("admins").doc(email).get();
-  if (adminSnapshot.exists) return;
-
-  const membershipSnapshot = await db()
-    .collection("accountMemberships")
-    .doc(`${uid}__${accountId}`)
-    .get();
-  if (!membershipSnapshot.exists) {
-    throw new HttpsError(
-      "permission-denied",
-      "이 workspace 의 멤버만 실행할 수 있습니다.",
-    );
   }
 }
 
@@ -301,7 +284,6 @@ export function buildDeveloperActivityFromGitHub({
 }
 
 export async function writeDeveloperActivityFromDelivery({
-  accountId,
   eventName,
   deliveryId,
   payload,
@@ -314,9 +296,8 @@ export async function writeDeveloperActivityFromDelivery({
   });
 
   if (!activity || activity.targetSlugs.length === 0) {
-    await deliveryDoc(accountId, deliveryId).set(
+    await deliveryDoc(deliveryId).set(
       {
-        accountId,
         eventName,
         deliveryId: deliveryId || null,
         status: "ignored",
@@ -337,13 +318,10 @@ export async function writeDeveloperActivityFromDelivery({
   }
 
   await db()
-    .collection("accounts")
-    .doc(accountId)
     .collection(EVENTS_COLLECTION)
     .doc(activity.id)
     .set({
       ...activity,
-      accountId,
       eventName,
       deliveryId: deliveryId || null,
       createdAt: FieldValue.serverTimestamp(),
@@ -351,9 +329,8 @@ export async function writeDeveloperActivityFromDelivery({
       ...(replayedBy ? { replayedBy, replayedAt: FieldValue.serverTimestamp() } : {}),
     });
 
-  await deliveryDoc(accountId, deliveryId).set(
+  await deliveryDoc(deliveryId).set(
     {
-      accountId,
       eventName,
       deliveryId: deliveryId || null,
       status: "processed",
@@ -421,13 +398,6 @@ export const receiveGitHubActivity = onRequest(
       return;
     }
 
-    const accountId =
-      trimString(req.query.accountId) || trimString(req.get("X-Demo-Account-Id"));
-    if (!accountId) {
-      jsonError(res, 400, "accountId required");
-      return;
-    }
-
     const rawBody = req.rawBody ?? Buffer.from(JSON.stringify(req.body ?? {}));
     const signature = req.get("X-Hub-Signature-256");
     if (!verifyGitHubSignature(rawBody, signature, GITHUB_WEBHOOK_SECRET.value())) {
@@ -440,9 +410,8 @@ export const receiveGitHubActivity = onRequest(
     const payload = req.body ?? {};
 
     try {
-      await deliveryDoc(accountId, deliveryId).set(
+      await deliveryDoc(deliveryId).set(
         {
-          accountId,
           eventName,
           deliveryId: deliveryId || null,
           status: "received",
@@ -456,7 +425,6 @@ export const receiveGitHubActivity = onRequest(
       );
     } catch (err) {
       logger.warn("receiveGitHubActivity delivery log write failed", {
-        accountId,
         eventName,
         deliveryId,
         error: err instanceof Error ? err.message : String(err),
@@ -465,7 +433,6 @@ export const receiveGitHubActivity = onRequest(
 
     try {
       const result = await writeDeveloperActivityFromDelivery({
-        accountId,
         eventName,
         deliveryId,
         payload,
@@ -473,9 +440,8 @@ export const receiveGitHubActivity = onRequest(
 
       res.status(result.status === "processed" ? 200 : 202).json(result);
     } catch (err) {
-      await deliveryDoc(accountId, deliveryId).set(
+      await deliveryDoc(deliveryId).set(
         {
-          accountId,
           eventName,
           deliveryId: deliveryId || null,
           status: "failed",
@@ -485,7 +451,6 @@ export const receiveGitHubActivity = onRequest(
         { merge: true },
       );
       logger.error("receiveGitHubActivity failed", {
-        accountId,
         eventName,
         deliveryId,
         error: err instanceof Error ? err.message : String(err),
@@ -500,18 +465,17 @@ export const reprocessGitHubActivityDelivery = onCall(
   async (request) => {
     ensureApp();
 
-    const accountId = trimString(request.data?.accountId);
     const deliveryId = trimString(request.data?.deliveryId);
-    if (!accountId || !deliveryId) {
+    if (!deliveryId) {
       throw new HttpsError(
         "invalid-argument",
-        "accountId 와 deliveryId 가 필요합니다.",
+        "deliveryId 가 필요합니다.",
       );
     }
 
-    await assertCanOperateAccount(request, accountId);
+    await assertAuthed(request);
 
-    const deliverySnapshot = await deliveryDoc(accountId, deliveryId).get();
+    const deliverySnapshot = await deliveryDoc(deliveryId).get();
     if (!deliverySnapshot.exists) {
       throw new HttpsError("not-found", "delivery 로그를 찾을 수 없습니다.");
     }
@@ -527,7 +491,6 @@ export const reprocessGitHubActivityDelivery = onCall(
     }
 
     return writeDeveloperActivityFromDelivery({
-      accountId,
       eventName,
       deliveryId,
       payload,
@@ -544,18 +507,17 @@ export const redeliverGitHubActivityDelivery = onCall(
   async (request) => {
     ensureApp();
 
-    const accountId = trimString(request.data?.accountId);
     const deliveryId = trimString(request.data?.deliveryId);
-    if (!accountId || !deliveryId) {
+    if (!deliveryId) {
       throw new HttpsError(
         "invalid-argument",
-        "accountId 와 deliveryId 가 필요합니다.",
+        "deliveryId 가 필요합니다.",
       );
     }
 
-    await assertCanOperateAccount(request, accountId);
+    await assertAuthed(request);
 
-    const ref = deliveryDoc(accountId, deliveryId);
+    const ref = deliveryDoc(deliveryId);
     const deliverySnapshot = await ref.get();
     if (!deliverySnapshot.exists) {
       throw new HttpsError("not-found", "delivery 로그를 찾을 수 없습니다.");
@@ -593,7 +555,6 @@ export const redeliverGitHubActivityDelivery = onCall(
         { merge: true },
       );
       logger.warn("redeliverGitHubActivityDelivery failed", {
-        accountId,
         deliveryId,
         error: message,
       });
@@ -614,7 +575,7 @@ export const pruneDeveloperActivityDeliveries = onSchedule(
       Date.now() - DELIVERY_RETENTION_DAYS * 24 * 60 * 60 * 1000,
     );
     const snapshot = await db()
-      .collectionGroup(DELIVERIES_COLLECTION)
+      .collection(DELIVERIES_COLLECTION)
       .where("updatedAt", "<", cutoff)
       .limit(DELIVERY_CLEANUP_LIMIT)
       .get();

@@ -132,22 +132,16 @@ function buildIdempotencyKey(accountId, documentVersionId, extractorVersion) {
   return `${accountId || "public"}:${documentVersionId}:${extractorVersion}`;
 }
 
-function buildPublicMetaId(accountId) {
-  return accountId ? `current__${accountId}` : "current";
+function buildPublicMetaId() {
+  return "current";
 }
 
-function knowledgeDocumentRef(documentId, accountId) {
-  const normalizedAccountId = normalizeAccountId(accountId);
-  return normalizedAccountId
-    ? db().collection("accounts").doc(normalizedAccountId).collection(COLLECTIONS.documents).doc(documentId)
-    : db().collection(COLLECTIONS.documents).doc(documentId);
+function knowledgeDocumentRef(documentId) {
+  return db().collection(COLLECTIONS.documents).doc(documentId);
 }
 
-function knowledgeVersionRef(versionId, accountId) {
-  const normalizedAccountId = normalizeAccountId(accountId);
-  return normalizedAccountId
-    ? db().collection("accounts").doc(normalizedAccountId).collection(COLLECTIONS.versions).doc(versionId)
-    : db().collection(COLLECTIONS.versions).doc(versionId);
+function knowledgeVersionRef(versionId) {
+  return db().collection(COLLECTIONS.versions).doc(versionId);
 }
 
 function isAllowedExistingStatus(status) {
@@ -776,8 +770,8 @@ export async function processExtractionJobCore(jobId, explicitAccountId) {
 
   const accountId = normalizeAccountId(explicitAccountId ?? claimedJob.accountId);
   const jobRef = db().collection(COLLECTIONS.jobs).doc(jobId);
-  const documentRef = knowledgeDocumentRef(claimedJob.documentId, accountId);
-  const versionRef = knowledgeVersionRef(claimedJob.documentVersionId, accountId);
+  const documentRef = knowledgeDocumentRef(claimedJob.documentId);
+  const versionRef = knowledgeVersionRef(claimedJob.documentVersionId);
 
   try {
     const [documentSnapshot, versionSnapshot] = await Promise.all([
@@ -1405,7 +1399,7 @@ export async function publishKnowledgeProjectionCore({
   const publishRef = db().collection(COLLECTIONS.publishes).doc();
   const publicMetaRef = db()
     .collection(COLLECTIONS.publicMeta)
-    .doc(buildPublicMetaId(scopedAccountId));
+    .doc(buildPublicMetaId());
   const startedAt = FieldValue.serverTimestamp();
   // soft-deleted (deletedAt 박힌) approved 노드/엣지는 publish 에서 제외 —
   // 공개 projection 에 폐기된 stub 이 새는 것을 막음.
@@ -1537,12 +1531,7 @@ export async function publishKnowledgeProjectionCore({
   }
 
   if (publishedDocumentIds.size > 0) {
-    const documentsRoot = scopedAccountId
-      ? db()
-          .collection("accounts")
-          .doc(scopedAccountId)
-          .collection(COLLECTIONS.documents)
-      : db().collection(COLLECTIONS.documents);
+    const documentsRoot = db().collection(COLLECTIONS.documents);
     const docBatch = db().batch();
     for (const docId of publishedDocumentIds) {
       docBatch.set(
@@ -1601,8 +1590,8 @@ export const enqueueExtractionJob = onCall(async (request) => {
     throw new HttpsError("permission-denied", "화이트리스트 관리자만 실행할 수 있습니다.");
   }
 
-  const documentRef = knowledgeDocumentRef(documentId, accountId);
-  const versionRef = knowledgeVersionRef(documentVersionId, accountId);
+  const documentRef = knowledgeDocumentRef(documentId);
+  const versionRef = knowledgeVersionRef(documentVersionId);
   const idempotencyKey = buildIdempotencyKey(accountId, documentVersionId, extractorVersion);
   let existingJobQuery = db()
     .collection(COLLECTIONS.jobs)
@@ -2030,248 +2019,3 @@ export const publishKnowledgeProjection = onCall(async (request) => {
   });
 });
 
-/**
- * 멤버 초대 — owner 가 자기 공간 (accountId) 에 editor/viewer 역할로
- * 다른 사용자를 추가한다. 초대된 사용자는 해당 이메일로 로그인하면
- * `listAccountMembershipsByEmail` 로 자동 attach 된다.
- *
- * Invariants:
- * - caller 는 accountId 공간의 owner 여야 함 (자기 공간은 owner=본인 uid)
- * - role 은 "editor" | "viewer" 만 허용 (추가 owner 초대는 별도 UI)
- * - email 은 정규화 (trim + lowercase) 필수
- * - membership doc id 규약: `invited:{email}__{accountId}` — 아직 uid 가
- *   없는 invited 상태라 이메일 기준 ID. 로그인 시 client 가 uid 동기화.
- */
-export const inviteAccountMember = onCall(async (request) => {
-  ensureApp();
-
-  const callerEmail = normalizeString(request.auth?.token?.email);
-  const callerUid = normalizeString(request.auth?.uid);
-  if (!callerEmail || !callerUid) {
-    throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
-  }
-
-  const accountId = normalizeAccountId(request.data?.accountId);
-  const inviteeEmailRaw = normalizeString(request.data?.email);
-  const role = normalizeString(request.data?.role);
-
-  if (!accountId) {
-    throw new HttpsError("invalid-argument", "accountId 가 필요합니다.");
-  }
-  if (!inviteeEmailRaw) {
-    throw new HttpsError("invalid-argument", "초대할 이메일이 필요합니다.");
-  }
-  if (!["editor", "viewer"].includes(role)) {
-    throw new HttpsError(
-      "invalid-argument",
-      "역할은 editor 또는 viewer 중 하나여야 합니다.",
-    );
-  }
-
-  const inviteeEmail = inviteeEmailRaw.toLowerCase();
-  if (inviteeEmail === callerEmail.toLowerCase()) {
-    throw new HttpsError("invalid-argument", "자기 자신은 초대할 수 없습니다.");
-  }
-
-  // owner membership 확인. 자기 공간이면 {uid}__{uid}, 타 공간은 accountId 가
-  // 다르고 owner 여야 함 (아직 owner 는 자기 자신만 가능하므로 accountId ==
-  // callerUid 체크로 충분).
-  const callerMembershipId = `${callerUid}__${accountId}`;
-  const callerMembershipSnapshot = await db()
-    .collection("accountMemberships")
-    .doc(callerMembershipId)
-    .get();
-
-  if (
-    !callerMembershipSnapshot.exists ||
-    normalizeString(callerMembershipSnapshot.data()?.role) !== "owner"
-  ) {
-    throw new HttpsError(
-      "permission-denied",
-      "이 공간의 owner 만 다른 멤버를 초대할 수 있습니다.",
-    );
-  }
-
-  // 같은 이메일의 기존 membership 있으면 role 만 upsert.
-  const existingSnapshot = await db()
-    .collection("accountMemberships")
-    .where("accountId", "==", accountId)
-    .where("email", "==", inviteeEmail)
-    .limit(1)
-    .get();
-
-  const now = FieldValue.serverTimestamp();
-
-  if (!existingSnapshot.empty) {
-    const existingDoc = existingSnapshot.docs[0];
-    await existingDoc.ref.set(
-      {
-        role,
-        updatedAt: now,
-        invitedBy: callerEmail,
-      },
-      { merge: true },
-    );
-    return {
-      membershipId: existingDoc.id,
-      accountId,
-      email: inviteeEmail,
-      role,
-      status: "updated",
-    };
-  }
-
-  // 새 invitation. uid 는 아직 없음 — invited email 기반 doc id.
-  const membershipId = `invited:${inviteeEmail}__${accountId}`;
-  await db()
-    .collection("accountMemberships")
-    .doc(membershipId)
-    .set({
-      accountId,
-      email: inviteeEmail,
-      role,
-      invitedBy: callerEmail,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-  logger.info("inviteAccountMember", {
-    accountId,
-    invitee: inviteeEmail,
-    role,
-    invitedBy: callerEmail,
-  });
-
-  return {
-    membershipId,
-    accountId,
-    email: inviteeEmail,
-    role,
-    status: "created",
-  };
-});
-
-/**
- * 멤버 제거 — owner 가 기존 멤버를 공간에서 내보낸다. 자기 자신 (owner) 은
- * 삭제 불가 (워크스페이스 소유권 이전은 별도 플로우).
- */
-export const removeAccountMember = onCall(async (request) => {
-  ensureApp();
-
-  const callerEmail = normalizeString(request.auth?.token?.email);
-  const callerUid = normalizeString(request.auth?.uid);
-  if (!callerEmail || !callerUid) {
-    throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
-  }
-
-  const accountId = normalizeAccountId(request.data?.accountId);
-  const membershipId = normalizeString(request.data?.membershipId);
-  if (!accountId || !membershipId) {
-    throw new HttpsError(
-      "invalid-argument",
-      "accountId 와 membershipId 가 필요합니다.",
-    );
-  }
-
-  const callerMembershipSnapshot = await db()
-    .collection("accountMemberships")
-    .doc(`${callerUid}__${accountId}`)
-    .get();
-  if (
-    !callerMembershipSnapshot.exists ||
-    normalizeString(callerMembershipSnapshot.data()?.role) !== "owner"
-  ) {
-    throw new HttpsError(
-      "permission-denied",
-      "이 공간의 owner 만 멤버를 내보낼 수 있습니다.",
-    );
-  }
-
-  const targetRef = db().collection("accountMemberships").doc(membershipId);
-  const targetSnapshot = await targetRef.get();
-  if (!targetSnapshot.exists) {
-    throw new HttpsError("not-found", "해당 멤버를 찾을 수 없습니다.");
-  }
-
-  const targetData = targetSnapshot.data();
-  if (normalizeString(targetData?.role) === "owner") {
-    throw new HttpsError(
-      "failed-precondition",
-      "owner 는 제거할 수 없습니다. 소유권 이전이 먼저 필요합니다.",
-    );
-  }
-  if (normalizeString(targetData?.accountId) !== accountId) {
-    throw new HttpsError(
-      "failed-precondition",
-      "accountId 가 일치하지 않습니다.",
-    );
-  }
-
-  await targetRef.delete();
-
-  logger.info("removeAccountMember", {
-    accountId,
-    membershipId,
-    removedBy: callerEmail,
-  });
-
-  return { membershipId, status: "removed" };
-});
-
-/**
- * 워크스페이스 멤버 목록 — owner 가 자기 공간의 모든 멤버 (owner 포함) 를
- * 조회. client 가 직접 query 하면 rules 에 막히므로 Cloud Function 경유.
- */
-export const listAccountMembers = onCall(async (request) => {
-  ensureApp();
-
-  const callerEmail = normalizeString(request.auth?.token?.email);
-  const callerUid = normalizeString(request.auth?.uid);
-  if (!callerEmail || !callerUid) {
-    throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
-  }
-
-  const accountId = normalizeAccountId(request.data?.accountId);
-  if (!accountId) {
-    throw new HttpsError("invalid-argument", "accountId 가 필요합니다.");
-  }
-
-  // owner 확인
-  const callerMembershipSnapshot = await db()
-    .collection("accountMemberships")
-    .doc(`${callerUid}__${accountId}`)
-    .get();
-  if (
-    !callerMembershipSnapshot.exists ||
-    normalizeString(callerMembershipSnapshot.data()?.role) !== "owner"
-  ) {
-    throw new HttpsError(
-      "permission-denied",
-      "이 공간의 owner 만 멤버 목록을 볼 수 있습니다.",
-    );
-  }
-
-  const snapshot = await db()
-    .collection("accountMemberships")
-    .where("accountId", "==", accountId)
-    .get();
-
-  const members = snapshot.docs.map((doc) => {
-    const data = doc.data();
-    const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : null;
-    const updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toMillis() : null;
-    return {
-      id: doc.id,
-      accountId: normalizeString(data.accountId),
-      email: normalizeString(data.email) || null,
-      uid: normalizeString(data.uid) || null,
-      role: normalizeString(data.role),
-      invitedBy: normalizeString(data.invitedBy) || null,
-      createdAt,
-      updatedAt,
-      pending: !data.uid, // uid 없으면 invited 상태
-    };
-  });
-
-  return { members };
-});

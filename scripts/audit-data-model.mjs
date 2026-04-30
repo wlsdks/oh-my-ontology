@@ -151,23 +151,11 @@ function auditCollections({ documented, ruledTop }) {
  * 이유는 in-line 설명으로.
  */
 function isAllowedUndocumentedRule(name) {
-  // accountMemberships: firestore.rules 에 규칙이 있지만 DATA-MODEL.md 에는
-  // 아직 문서화되지 않음(내부 멤버십 인덱스). 허용하되 별도 finding으로는 안 내림.
-  // 제거하고 싶으면 DATA-MODEL.md에 추가 후 이 allowlist에서 제거.
-  //
-  // workspaceProjects: DATA-MODEL.md 에 문서화돼 있지만 규칙은 account-scoped
-  // (`accounts/{accountId}/workspaceProjects/{...}`) 로만 존재 — auditor 는
-  // 최상위 `match /workspaceProjects/{...}` 만 탐지하므로 예외 처리. hubs/
-  // nodes 는 그 하위 서브컬렉션 규칙이 top-level 로 오인돼 탐지되지만
-  // 반대 방향 (문서엔 있음) 이라 이쪽 allowlist 에도 동일하게 포함.
-  return (
-    name === "accountMemberships" ||
-    name === "workspaceProjects" ||
-    name === "hubs" ||
-    name === "nodes" ||
-    // M2: apiKeys 도 account-scoped 전용 (`accounts/{accountId}/apiKeys/...`).
-    name === "apiKeys"
-  );
+  // hubs / nodes : workspaceProjects sub-collection 의 nested 규칙이
+  // top-level 로 오인됨. 문서에선 `workspaceProjects/{projectId}/hubs/...`
+  // 헤더로 정의돼 있지만 parser 는 첫 segment 만 추출해 인식 실패. allowlist
+  // 로 흡수.
+  return name === "hubs" || name === "nodes";
 }
 
 function auditStoragePaths({ documentedStorage, ruledStorage }) {

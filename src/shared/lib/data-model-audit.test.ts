@@ -29,14 +29,9 @@ describe("data model 정합성 감사", () => {
 
     // allowlist (audit-data-model.mjs 의 isAllowedUndocumentedRule 와 동기)
     const allowed = new Set([
-      "accountMemberships",
-      // workspaceProjects 는 account-scoped 전용 (최상위 규칙 없음).
-      "workspaceProjects",
       // hubs/nodes 는 workspaceProjects 서브컬렉션이 top-level 로 오인됨.
       "hubs",
       "nodes",
-      // M2: apiKeys 도 account-scoped 전용.
-      "apiKeys",
     ]);
 
     const onlyDocumented = [...documented].filter(
