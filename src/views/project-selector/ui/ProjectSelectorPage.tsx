@@ -23,10 +23,6 @@ import { ProjectQuickCreatePanel } from "@/features/project-quick-create";
 import { downloadProjectsCsv } from "@/features/project-export";
 import { subscribeProjectsForContainer } from "@/features/workspace-project-bridge";
 import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
-import {
-  WorkspaceProjectSelector,
-  useWorkspaceProjects,
-} from "@/widgets/workspace-project-selector";
 import { useWorkspaceProjectQuery } from "@/shared/lib/use-workspace-project-query";
 import { PublicAccountMenu } from "@/widgets/account-menu";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
@@ -81,12 +77,8 @@ export function ProjectSelectorPage() {
   // 로그인 사용자가 ?account= 없이 진입하면 본인 워크스페이스로 자동 스코프 —
   // legacy 전역 collection 의 다른 데이터가 노출되는 문제 방지.
   // P0-B Phase 6 — HomePage 와 동일한 `?pj=<containerId>` 규약 공유.
-  const [activeProjectId, setActiveProjectId] = useWorkspaceProjectQuery();
-  const { projects: workspaceProjectContainers } = useWorkspaceProjects(accountId);
-  const activeContainerName =
-    activeProjectId && workspaceProjectContainers.length > 0
-      ? (workspaceProjectContainers.find((c) => c.id === activeProjectId)?.name ?? null)
-      : null;
+  const [activeProjectId] = useWorkspaceProjectQuery();
+  const activeContainerName: string | null = null;
   const returnTo = searchParams.get("returnTo");
   const scopedAccess = useScopedAccountAccess(accountId);
   const { categoryLabel, statusLabel, categories, statuses } = useTaxonomy();
@@ -329,13 +321,6 @@ export function ProjectSelectorPage() {
                 </span>
               ) : null}
             </div>
-          </div>
-          <div className="md:self-end">
-            <WorkspaceProjectSelector
-              accountId={accountId}
-              selectedId={activeProjectId}
-              onSelect={setActiveProjectId}
-            />
           </div>
         </header>
 

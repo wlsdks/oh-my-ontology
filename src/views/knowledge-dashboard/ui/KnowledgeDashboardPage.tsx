@@ -22,7 +22,6 @@ import {
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Tooltip } from "@/shared/ui";
 import { appendAccountQuery } from "@/shared/lib/account-scope";
 import { useWorkspaceProjectQuery } from "@/shared/lib/use-workspace-project-query";
-import { WorkspaceProjectSelector } from "@/widgets/workspace-project-selector";
 import { DashboardOntologySummary } from "@/widgets/dashboard-ontology-summary";
 import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
@@ -137,13 +136,6 @@ function DashboardContent() {
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--color-text-secondary)]">
               문서를 올리고, 분석 결과를 골라내고, 공개 화면에 보입니다.
             </p>
-            <div className="mt-3">
-              <WorkspaceProjectSelector
-                accountId={accountId}
-                selectedId={activeProjectId}
-                onSelect={setActiveProjectId}
-              />
-            </div>
           </div>
         </header>
 

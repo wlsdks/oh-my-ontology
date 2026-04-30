@@ -18,7 +18,6 @@ import {
   appendAccountQuery,
 } from "@/shared/lib/account-scope";
 import { useWorkspaceProjectQuery } from "@/shared/lib/use-workspace-project-query";
-import { WorkspaceProjectSelector } from "@/widgets/workspace-project-selector";
 import { OperationsNav } from "@/widgets/operations-nav";
 
 const CSV_PLACEHOLDER = [
@@ -133,13 +132,6 @@ function ImportContent() {
               Scope · {accountId}
             </p>
           ) : null}
-          <div className="mt-3">
-            <WorkspaceProjectSelector
-              accountId={accountId}
-              selectedId={activeProjectId}
-              onSelect={setActiveProjectId}
-            />
-          </div>
         </header>
 
         <div className="mt-8 flex flex-col gap-6">

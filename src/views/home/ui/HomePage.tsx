@@ -28,10 +28,6 @@ import { ProjectKnowledgeTopologyScene } from "@/widgets/project-knowledge-topol
 import { RegionNavigator } from "@/widgets/region-navigator";
 import { SearchHint } from "@/widgets/search-hint";
 import { PublicAccountMenu } from "@/widgets/account-menu";
-import {
-  WorkspaceProjectSelector,
-  useWorkspaceProjects,
-} from "@/widgets/workspace-project-selector";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import { subscribeProjectsForContainer } from "@/features/workspace-project-bridge";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
@@ -283,12 +279,9 @@ export function HomePage() {
     [setRouteState, dismissSigmaHint, resetSigmaFilters],
   );
   const [selectorOpen, setSelectorOpen] = useState(false);
-  // P0-B Phase 6 — 활성 컨테이너 이름을 hero subtitle/eyebrow 에 합성해
-  // selector pill 외에도 "지금 demo 안" 이라는 시각 단서 강화.
-  const {
-    projects: workspaceProjectContainers,
-    loading: workspaceProjectsLoading,
-  } = useWorkspaceProjects(scopedAccountId);
+  // single-user 모드: workspace 컨테이너 fetch 비활성. derive fallback 만 사용.
+  const workspaceProjectContainers: import("../model/workspace-container-fallback").WorkspaceProjectContainerFallback[] = [];
+  const workspaceProjectsLoading = false;
   const workspaceProjectIds = useMemo(
     () => new Set(workspaceProjectContainers.map((container) => container.id)),
     [workspaceProjectContainers],
@@ -939,19 +932,6 @@ export function HomePage() {
                     docsVaultHref={appendAccountQuery("/docs/", scopedAccountId)}
                     ontologyHref={appendAccountQuery("/ontology/", scopedAccountId)}
                   />
-                  {/* P0-B Phase 4c · collapsed hero 에서도 컨테이너 맥락 유지.
-                      drawer open 상태엔 drawer 가 선택 프로젝트 맥락을 이미
-                      담당하므로 생략. */}
-                  {!drawerOpen && (
-                    <div className="pointer-events-auto">
-                      <WorkspaceProjectSelector
-                        accountId={scopedAccountId}
-                        selectedId={activeProjectId}
-                        onSelect={handleSelectWorkspaceProject}
-                        onOpenChange={setSelectorOpen}
-                      />
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="pointer-events-none absolute left-4 top-4 z-10 hidden max-h-[calc(100vh-2.5rem)] w-[288px] items-start gap-2.5 overflow-y-auto overscroll-contain pr-1 md:left-6 md:top-6 md:flex md:flex-col lg:max-h-[calc(100vh-3rem)] lg:w-[304px] xl:left-8 xl:top-8 xl:max-h-[calc(100vh-4rem)] xl:w-[340px] [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
@@ -995,17 +975,6 @@ export function HomePage() {
                     }
                     onWorkspaceMapClick={resetSigmaFilters}
                   />
-                  {/* P0-B Phase 4b · 자기 워크스페이스에서만 "현재 프로젝트
-                      컨테이너" pill 노출. 지금은 컨테이너 1개만 존재하므로
-                      read-only. 2+ 되면 dropdown 으로 확장 (Phase 5). */}
-                  <div className="pointer-events-auto self-start">
-                    <WorkspaceProjectSelector
-                      accountId={scopedAccountId}
-                      selectedId={activeProjectId}
-                      onSelect={handleSelectWorkspaceProject}
-                      onOpenChange={setSelectorOpen}
-                    />
-                  </div>
                   {/* O-9 — 워크스페이스 전체 보기 (selectedProject 없음 + 컨테이너
                       zoom-in 도 아닐 때) 에 ontology summary strip. 사용자 첫
                       인상에 "내 ontology 가 자라고 있다" 즉각 인지. 매치 0 자동

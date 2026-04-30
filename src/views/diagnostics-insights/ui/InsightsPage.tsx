@@ -24,7 +24,6 @@ import {
   ACCOUNT_QUERY_KEY,
 } from "@/shared/lib/account-scope";
 import { useWorkspaceProjectQuery } from "@/shared/lib/use-workspace-project-query";
-import { WorkspaceProjectSelector } from "@/widgets/workspace-project-selector";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { cn } from "@/shared/lib/cn";
 
@@ -129,13 +128,6 @@ function InsightsContent() {
             오늘 먼저 손을 대야 할 프로젝트 세 가지. 오래 안 건드린 것,
             연결이 하나도 없는 것, 허브로 올리면 좋을 것을 한 화면에 모았어요.
           </p>
-          <div className="mt-3">
-            <WorkspaceProjectSelector
-              accountId={accountId}
-              selectedId={activeProjectId}
-              onSelect={setActiveProjectId}
-            />
-          </div>
           {/* 요약 카운트 — 스크롤 안 해도 한눈에 수리 부담 총량 파악. */}
           {loaded && !error ? (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px]">
