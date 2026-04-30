@@ -8,7 +8,7 @@ import {
   type Project,
   type ProjectInput,
 } from "@/entities/project";
-import { persistProjectAdaptive } from "@/features/workspace-project-bridge";
+import { upsertProject } from "@/entities/project";
 import { Button } from "@/shared/ui";
 
 interface Props {
@@ -113,9 +113,7 @@ export function ProjectQuickEditPanel({
     setNotice(null);
 
     try {
-      // P0-B Phase 6: ?pj 자동 상속으로 컨테이너 컨텍스트면 hubs/nodes 로 직접
-      // write, 그 외 flat upsertProject 동일 동작.
-      await persistProjectAdaptive(nextInput);
+      await upsertProject(nextInput);
       const nextBaseline = toQuickEditValues({
         ...project,
         ...nextInput,
