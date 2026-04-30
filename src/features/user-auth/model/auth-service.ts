@@ -13,7 +13,6 @@ import {
 } from 'firebase/auth';
 import { getFirebaseAuth } from '@/shared/api';
 import { env } from '@/shared/config/env';
-import { ensureOwnWorkspace } from '@/entities/account';
 import {
   fetchSessionProfile,
   hasDemoSession,
@@ -30,11 +29,7 @@ import {
 function bootstrapWorkspace(user: AuthSessionUser): void {
   if (!user.uid) return;
   if (user.provider === 'demo') return;
-  void ensureOwnWorkspace({
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName,
-  });
+  // single-user 모드: account 자동 생성 안 함. 사용자는 본인 디스크 / Firestore 단일 namespace 로 작업.
 }
 
 export interface PasswordSupportState {

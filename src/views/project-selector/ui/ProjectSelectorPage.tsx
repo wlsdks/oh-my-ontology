@@ -7,7 +7,6 @@ import { ArrowLeft, ArrowRight, FolderKanban, Shield } from "lucide-react";
 import { useScopedAccountAccess } from "@/features/account-scope";
 import { useTaxonomy } from "@/features/taxonomy";
 import { buildServiceEntryHref } from "@/features/user-auth";
-import { getAccount } from "@/entities/account";
 import {
   getKnowledgeDocumentListHref,
   getKnowledgeDocumentNewHref,
@@ -127,24 +126,7 @@ export function ProjectSelectorPage() {
     return map;
   }, [ontologyNodes]);
 
-  useEffect(() => {
-    let active = true;
-    if (!accountId) return;
-
-    void getAccount(accountId)
-      .then((account) => {
-        if (!active) return;
-        setAccountName(account?.name ?? accountId);
-      })
-      .catch(() => {
-        if (!active) return;
-        setAccountName(accountId);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [accountId]);
+  // single-user 모드: account 이름 fetch 안 함.
 
   const accountDisplayName = accountId ? accountName ?? accountId : null;
 

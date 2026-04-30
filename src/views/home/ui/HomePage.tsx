@@ -108,7 +108,6 @@ import {
   subscribeKnowledgeProjectInsight,
   type KnowledgeProjectInsight,
 } from "@/entities/knowledge-graph";
-import { getAccount } from "@/entities/account";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
 import {
   deriveWorkspaceProjectContainers,
@@ -440,20 +439,7 @@ export function HomePage() {
     [scopedAccountId],
   );
 
-  useEffect(() => {
-    if (!scopedAccountId) return;
-
-    let cancelled = false;
-    void getAccount(scopedAccountId).then((account) => {
-      if (!cancelled) {
-        setScopedAccountName(account?.name ?? scopedAccountId);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [scopedAccountId]);
+  // single-user 모드: account 이름 fetch 안 함. scopedAccountName 항상 null.
 
   // Sigma 홈 토폴로지는 projects 구독을 HomePage가 직접 관리한다.
   //
