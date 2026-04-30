@@ -56,16 +56,12 @@ export function subscribeProjectsForContainer(
   const db = getDb();
   const hubsColl = collection(
     db,
-    "accounts",
-    normalizedAccount,
     "workspaceProjects",
     normalizedProject,
     "hubs",
   );
   const nodesColl = collection(
     db,
-    "accounts",
-    normalizedAccount,
     "workspaceProjects",
     normalizedProject,
     "nodes",

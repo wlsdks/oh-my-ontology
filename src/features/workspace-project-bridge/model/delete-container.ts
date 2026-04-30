@@ -44,8 +44,6 @@ export async function deleteProjectFromContainer(
   const db = getDb();
   const hubRef = doc(
     db,
-    "accounts",
-    normalizedAccount,
     "workspaceProjects",
     projectId,
     "hubs",
@@ -58,8 +56,6 @@ export async function deleteProjectFromContainer(
   }
   const nodeRef = doc(
     db,
-    "accounts",
-    normalizedAccount,
     "workspaceProjects",
     projectId,
     "nodes",

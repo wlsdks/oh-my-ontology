@@ -28,8 +28,6 @@ export async function getProjectFromContainer(
   const db = getDb();
   const hubRef = doc(
     db,
-    "accounts",
-    normalizedAccount,
     "workspaceProjects",
     normalizedProject,
     "hubs",
@@ -40,8 +38,6 @@ export async function getProjectFromContainer(
 
   const nodeRef = doc(
     db,
-    "accounts",
-    normalizedAccount,
     "workspaceProjects",
     normalizedProject,
     "nodes",
@@ -71,16 +67,12 @@ export async function listProjectsForContainer(
   const db = getDb();
   const hubsColl = collection(
     db,
-    "accounts",
-    normalizedAccount,
     "workspaceProjects",
     normalizedProject,
     "hubs",
   );
   const nodesColl = collection(
     db,
-    "accounts",
-    normalizedAccount,
     "workspaceProjects",
     normalizedProject,
     "nodes",
