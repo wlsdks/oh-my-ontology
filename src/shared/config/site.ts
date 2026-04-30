@@ -5,7 +5,9 @@
  * Hosting 도메인을 기본값으로 두고, 사용자 custom domain 전환 시 이 상수
  * 하나만 바꾸면 전체 SEO 가 따라간다.
  */
-export const SITE_URL = "https://aslan-project-map.web.app";
+// TODO: replace with the deployed canonical domain when hosting is set up.
+// Used by layout metadata, project detail canonical, sitemap, and robots.
+export const SITE_URL = "http://localhost:3000";
 
 /**
  * canonical path helper. `/project/foo/` 같은 상대 경로를 받아 절대 URL 로.

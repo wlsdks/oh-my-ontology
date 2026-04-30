@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Aslan Project Map — Firestore Security Rules
+// oh-my-ontology — Firestore Security Rules
 //
 // 공개 제품:
 // - projects, categories, statuses, meta: 누구나 읽기 가능

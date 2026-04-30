@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Aslan Project Map — Firebase Storage Rules
+// oh-my-ontology — Firebase Storage Rules
 //
 // screenshots/: 공개 읽기, admin 업로드
 // knowledge-documents/: admin 전용 원문 저장
