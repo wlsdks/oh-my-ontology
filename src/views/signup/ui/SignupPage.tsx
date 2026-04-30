@@ -7,7 +7,6 @@ import { AuthGoogleButton, signInWithDemo, signUpWithEmail, useUserAuth } from '
 import { getDemoProjectsHref } from '@/shared/config/demo-space';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 
 function resolveNextHref(nextParam: string | null, accountId?: string | null) {
   // 회원가입 직후 기본 도착지 = 자기 워크스페이스 지도 (Layer 0).
@@ -18,7 +17,7 @@ function resolveNextHref(nextParam: string | null, accountId?: string | null) {
 export function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   const nextHref = useMemo(
     () => resolveNextHref(searchParams.get('next'), accountId),
     [accountId, searchParams],

@@ -23,7 +23,6 @@ import { formatDate } from "@/shared/lib/format-date";
 import {
   ACCOUNT_QUERY_KEY,
 } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { useWorkspaceProjectQuery } from "@/shared/lib/use-workspace-project-query";
 import { WorkspaceProjectSelector } from "@/widgets/workspace-project-selector";
 import { OperationsNav } from "@/widgets/operations-nav";
@@ -59,7 +58,7 @@ function buildTopologyFocusHref(slug: string, accountId: string | null): string 
 
 function InsightsContent() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
   const [activeProjectId, setActiveProjectId] = useWorkspaceProjectQuery();
   const [projects, setProjects] = useState<Project[]>([]);

@@ -21,7 +21,6 @@ import {
 } from "@/entities/knowledge-graph";
 import { getOntologyKindLabel } from "@/entities/ontology-class";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import {
   buildOntologyEgoSubgraph,
   buildOntologyTree,
@@ -48,7 +47,7 @@ import { Tooltip, useToast } from "@/shared/ui";
 export function OntologyViewPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
 
   const { insight, error } = useKnowledgePublicInsight(accountId);

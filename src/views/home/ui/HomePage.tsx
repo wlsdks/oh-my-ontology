@@ -114,7 +114,6 @@ import {
 } from "@/entities/knowledge-graph";
 import { getAccount } from "@/entities/account";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import {
   deriveWorkspaceProjectContainers,
   inferWorkspaceProjectGroup,
@@ -154,7 +153,7 @@ export function HomePage() {
   }, []);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const scopedAccountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const scopedAccountId = null;
   // 로그인 사용자가 ?account= 없이 진입하면 owned membership 첫 번째로 URL 보강 —
   // legacy 전역 collection 이 아닌 본인 워크스페이스 데이터로 즉시 스코프.
   const [scopedAccountName, setScopedAccountName] = useState<string | null>(null);

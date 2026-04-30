@@ -28,7 +28,6 @@ import { findProjectPlacement } from "@/features/project-edit/model";
 import { computeInitialLayout } from "@/features/topology-layout";
 import { Button } from "@/shared/ui";
 import { appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { cn } from "@/shared/lib/cn";
 import { CategoryCanvasEditor } from "./CategoryCanvasEditor";
@@ -113,7 +112,7 @@ function buildReflowUpdates(
 function CategoriesContent() {
   const searchParams = useSearchParams();
   const initialSelectedId = searchParams.get("selected");
-  const accountId = useScopedAccountId(searchParams.get("account"));
+  const accountId = null;
   const safeReturnTo = normalizeReturnTo(
     searchParams.get("returnTo") ?? undefined,
   );

@@ -15,7 +15,6 @@ import {
   ACCOUNT_QUERY_KEY,
   appendAccountQuery,
 } from '@/shared/lib/account-scope';
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { OperationsNav } from '@/widgets/operations-nav';
 import { EmptyState } from '@/shared/ui';
 
@@ -31,7 +30,7 @@ import { EmptyState } from '@/shared/ui';
  */
 function SettingsOntologyHistoryContent() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   const [versions, setVersions] = useState<OntologyTBoxVersion[] | null>(null);
   const [activeState, setActiveState] = useState<OntologyTBoxActiveState | null>(
     null,

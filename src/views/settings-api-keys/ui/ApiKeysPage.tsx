@@ -19,7 +19,6 @@ import {
   ACCOUNT_QUERY_KEY,
   appendAccountQuery,
 } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 
 /**
  * M2 Phase 1 — API key 발급/조회/revoke admin UI.
@@ -32,7 +31,7 @@ import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 function ApiKeysContent() {
   const { user } = useGlobalAdmin();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   const toast = useToast();
 
   const [keys, setKeys] = useState<ApiKey[]>([]);

@@ -34,7 +34,6 @@ import {
   ACCOUNT_QUERY_KEY,
   appendAccountQuery,
 } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 
@@ -78,7 +77,7 @@ export function ProjectSelectorPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   // 로그인 사용자가 ?account= 없이 진입하면 본인 워크스페이스로 자동 스코프 —
   // legacy 전역 collection 의 다른 데이터가 노출되는 문제 방지.
   // P0-B Phase 6 — HomePage 와 동일한 `?pj=<containerId>` 규약 공유.

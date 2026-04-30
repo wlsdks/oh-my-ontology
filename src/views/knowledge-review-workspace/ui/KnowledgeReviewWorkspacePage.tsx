@@ -47,7 +47,6 @@ import { OntologyStubList } from "@/widgets/ontology-stub-list";
 import type { KnowledgeEvidence } from "@/entities/knowledge-evidence";
 import type { KnowledgeVersion } from "@/entities/knowledge-version";
 import { appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { formatDate } from "@/shared/lib/format-date";
 import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
@@ -65,7 +64,7 @@ import {
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get("account"));
+  const accountId = null;
   const { user } = useGlobalAdmin();
   const requestedDocumentId = searchParams.get("id");
   const scopedProjectId = searchParams.get("project")?.trim() || "";

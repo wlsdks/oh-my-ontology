@@ -10,7 +10,6 @@ import {
 } from "@/entities/knowledge-graph";
 import { getOntologyKindLabel } from "@/entities/ontology-class";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import {
   buildActivityTimeline,
   buildOntologyTree,
@@ -44,7 +43,7 @@ const INSIGHTS_EDGE_TYPE_LABEL_KO: Record<string, string> = {
  */
 export function OntologyInsightsPage() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
 
   const { insight, error } = useKnowledgePublicInsight(accountId);
 

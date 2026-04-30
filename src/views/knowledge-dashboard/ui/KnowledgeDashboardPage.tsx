@@ -21,7 +21,6 @@ import {
 } from "@/entities/knowledge-graph";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, Tooltip } from "@/shared/ui";
 import { appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { useWorkspaceProjectQuery } from "@/shared/lib/use-workspace-project-query";
 import { WorkspaceProjectSelector } from "@/widgets/workspace-project-selector";
 import { DashboardOntologySummary } from "@/widgets/dashboard-ontology-summary";
@@ -32,7 +31,7 @@ import { formatDate } from "@/shared/lib/format-date";
 function DashboardContent() {
   const { user } = useGlobalAdmin();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get("account"));
+  const accountId = null;
   // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
   const [activeProjectId, setActiveProjectId] = useWorkspaceProjectQuery();
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);

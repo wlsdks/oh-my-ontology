@@ -6,12 +6,11 @@ import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, MailCheck } from 'lucide-react';
 import { sendPasswordReset } from '@/features/user-auth';
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
 export function PasswordResetPage() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   const [email, setEmail] = useState(searchParams.get('email') ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

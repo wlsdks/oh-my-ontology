@@ -17,7 +17,6 @@ import {
   ACCOUNT_QUERY_KEY,
   appendAccountQuery,
 } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { useWorkspaceProjectQuery } from "@/shared/lib/use-workspace-project-query";
 import { WorkspaceProjectSelector } from "@/widgets/workspace-project-selector";
 import { OperationsNav } from "@/widgets/operations-nav";
@@ -37,7 +36,7 @@ interface ImportOutcome {
 
 function ImportContent() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   const [activeProjectId, setActiveProjectId] = useWorkspaceProjectQuery();
   const [csvText, setCsvText] = useState("");
   const [status, setStatus] = useState<ImportStatus>("idle");

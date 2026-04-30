@@ -41,7 +41,6 @@ import {
 import type { KnowledgeVersion } from "@/entities/knowledge-version";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, buttonVariants } from "@/shared/ui";
 import { appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { cn } from "@/shared/lib/cn";
 import { formatDate } from "@/shared/lib/format-date";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
@@ -67,7 +66,7 @@ type DetailPanel = "overview" | "compare" | "result";
 function DetailContent({ documentId, returnTo }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get("account"));
+  const accountId = null;
   const scopedProjectId = searchParams.get("project")?.trim() || "";
   const returnToParam = searchParams.get("returnTo")?.trim() || returnTo || "";
   const autoStartJob = searchParams.get("jobStatus") === "autostart";

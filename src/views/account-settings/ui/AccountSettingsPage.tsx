@@ -16,7 +16,6 @@ import { useScopedAccountAccess } from '@/features/account-scope';
 import { AccountMembersPanel } from '@/features/account-members';
 import { hasDemoSession } from '@/shared/lib/demo-session';
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { PublicAccountMenu } from '@/widgets/account-menu';
 
@@ -39,7 +38,7 @@ const PASSWORD_SUPPORT_PLACEHOLDER: PasswordSupportState = {
 export function AccountSettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   const { status, user } = useUserAuth();
   const scopedAccess = useScopedAccountAccess(accountId);
   const hasBeenAuthenticatedRef = useRef(false);

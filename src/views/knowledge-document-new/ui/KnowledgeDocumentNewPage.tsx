@@ -21,7 +21,6 @@ import { OperationsNav } from "@/widgets/operations-nav";
 import { FrontmatterOnboarding } from "@/widgets/frontmatter-onboarding";
 import { recommendDocumentSlug } from "@/shared/lib/ontology-tree";
 import { } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { cn } from "@/shared/lib/cn";
 
 function buildTemplateMarkdown({
@@ -54,7 +53,7 @@ function NewDocumentContent() {
   const searchParams = useSearchParams();
   const toast = useToast();
   const { user } = useGlobalAdmin();
-  const accountId = useScopedAccountId(searchParams.get("account"));
+  const accountId = null;
   const seededProjectId = searchParams.get("project")?.trim() || "";
   const seededTitle = searchParams.get("title")?.trim() || "";
   const returnTo = searchParams.get("returnTo")?.trim() || "";

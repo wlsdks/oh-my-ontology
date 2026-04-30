@@ -7,7 +7,6 @@ import { AuthGoogleButton, signInWithDemo, signInWithEmail, useUserAuth } from '
 import { getDemoHomeHref } from '@/shared/config/demo-space';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 
 function resolveNextHref(nextParam: string | null, accountId?: string | null) {
   // 로그인 기본 도착지 = 워크스페이스 지도 (Layer 0). 사용자가 전체
@@ -19,7 +18,7 @@ function resolveNextHref(nextParam: string | null, accountId?: string | null) {
 export function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   const nextHref = useMemo(
     () => resolveNextHref(searchParams.get('next'), accountId),
     [accountId, searchParams],

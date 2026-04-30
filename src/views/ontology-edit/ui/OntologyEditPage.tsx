@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { addManualKnowledgeNode } from "@/entities/knowledge-graph";
 import { slugify } from "@/shared/lib/slugify";
 import { OperationsNav } from "@/widgets/operations-nav";
@@ -44,7 +43,7 @@ function CanvasSkeleton() {
 
 export function OntologyEditPage() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get("account"));
+  const accountId = null;
 
   const { nodes: ephemeralNodes, addNode, clearAll, updateNode, findById, removeNode } =
     useEphemeralNodes();

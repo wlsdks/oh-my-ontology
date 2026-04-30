@@ -34,7 +34,6 @@ import {
 import {
   appendAccountQuery,
 } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { formatDate } from "@/shared/lib/format-date";
 import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
 import { MountedGlobalSearch } from "@/widgets/global-search";
@@ -61,7 +60,7 @@ function parseKnowledgeDocumentLimit(raw: string | null) {
 function DocumentsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get("account"));
+  const accountId = null;
   const { user } = useGlobalAdmin();
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);

@@ -5,7 +5,6 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { signOut } from '@/features/user-auth';
 import { ThemeToggle } from '@/features/theme-toggle';
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from '@/shared/lib/account-scope';
-import { useScopedAccountId } from '@/shared/lib/use-scoped-account-id';
 import { Button, Tooltip } from '@/shared/ui';
 
 interface OperationsNavProps {
@@ -86,7 +85,7 @@ export function OperationsNav({ accountId, rightSlot }: OperationsNavProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   // hook 은 조건부 호출 금지 — prop 우선 분기는 호출 후에 적용.
-  const queryAccountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const queryAccountId = null;
   const resolvedAccountId =
     accountId !== undefined ? accountId : queryAccountId;
 

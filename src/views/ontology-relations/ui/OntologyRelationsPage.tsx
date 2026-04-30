@@ -8,7 +8,6 @@ import {
   useKnowledgePublicInsight,
 } from "@/entities/knowledge-graph";
 import { ACCOUNT_QUERY_KEY, appendAccountQuery } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import {
   computeEdgeTypeDistribution,
   selectStrongEdges,
@@ -35,7 +34,7 @@ const TYPE_LABEL_KO: Record<string, string> = {
  */
 export function OntologyRelationsPage() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
 
   const { insight, error } = useKnowledgePublicInsight(accountId);
 

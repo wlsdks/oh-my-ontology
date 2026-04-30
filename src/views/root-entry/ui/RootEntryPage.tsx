@@ -5,7 +5,6 @@ import { useScopedAccountAccess } from "@/features/account-scope";
 import { useGlobalAdmin } from "@/features/permissions";
 import { useUserAuth } from "@/features/user-auth";
 import { } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { HomePage } from "@/views/home";
 import { LandingPage } from "@/views/landing";
 
@@ -22,7 +21,7 @@ import { LandingPage } from "@/views/landing";
  */
 export function RootEntryPage() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get("account"));
+  const accountId = null;
   const next = searchParams.get("next");
   const userAuth = useUserAuth();
   const globalAdmin = useGlobalAdmin();

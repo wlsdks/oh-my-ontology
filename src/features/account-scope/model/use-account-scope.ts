@@ -14,7 +14,6 @@ import {
   rememberAccountId,
   resolveAccountId,
 } from "@/shared/lib/account-scope";
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { isDevAdminBypassActive } from "@/shared/lib/dev-admin-bypass";
 
 export interface AccountScopeOption {
@@ -29,7 +28,7 @@ export function useAccountScope() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
 
   useEffect(() => {
     rememberAccountId(accountId);

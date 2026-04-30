@@ -14,7 +14,6 @@ import {
   ACCOUNT_QUERY_KEY,
   appendAccountQuery,
 } from '@/shared/lib/account-scope';
-import { useScopedAccountId } from "@/shared/lib/use-scoped-account-id";
 import { OperationsNav } from '@/widgets/operations-nav';
 import { OntologyExportModal } from '@/widgets/ontology-export-modal';
 import { OntologyImportModal } from '@/widgets/ontology-import-modal';
@@ -39,7 +38,7 @@ import type { OntologyClass } from '@/entities/ontology-class';
  */
 function SettingsOntologyContent() {
   const searchParams = useSearchParams();
-  const accountId = useScopedAccountId(searchParams.get(ACCOUNT_QUERY_KEY));
+  const accountId = null;
   const [tbox, setTBox] = useState<ActiveTBox | null>(null);
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [classModalOpen, setClassModalOpen] = useState(false);
