@@ -1,18 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { type AccountMembership } from "@/entities/account";
-import { listAccountMembershipsByEmail, listAccountMembershipsByUid } from "@/entities/account";
-import { useGlobalAdmin } from "@/features/permissions";
+import { useMemo } from "react";
 import { useUserAuth } from "@/features/user-auth";
-import { normalizeAccountId } from "@/shared/lib/account-scope";
 import {
-  resolveScopedAccountAccess,
   type ScopedAccountAccess,
 } from "./account-access";
 
 export interface UseScopedAccountAccessResult extends ScopedAccountAccess {
-  membership: AccountMembership | null;
+  membership: null;
   user: {
     uid: string;
     email: string | null;
@@ -20,83 +15,66 @@ export interface UseScopedAccountAccessResult extends ScopedAccountAccess {
   } | null;
 }
 
+/**
+ * Single-user 모드 — 워크스페이스 권한 모델이 단순화돼 로그인된 사용자는
+ * 항상 "주인" 으로 모든 작업 가능하다. multi-account / membership 모델은
+ * v2 협업 단계에서 다시 도입.
+ *
+ * 로그인 안 한 사용자는 게스트 — local-first 흐름에서 폴더 선택만으로
+ * 사용 가능하지만, 서버와 동기화하는 액션 (publish 등) 은 로그인 후에만.
+ */
 export function useScopedAccountAccess(
-  accountId?: string | null,
+  _accountId?: string | null,
 ): UseScopedAccountAccessResult {
-  const normalizedAccountId = normalizeAccountId(accountId);
-  const { status: userStatus, user: sessionUser } = useUserAuth();
-  const { status: adminStatus, user: adminUser } = useGlobalAdmin();
-  const [membership, setMembership] = useState<AccountMembership | null>(null);
-  const [membershipLoading, setMembershipLoading] = useState(false);
+  const { status, user } = useUserAuth();
 
-  const effectiveUser = sessionUser ?? adminUser;
-  const effectiveUserUid = effectiveUser?.uid ?? null;
-  const effectiveUserEmail = effectiveUser?.email ?? null;
-  const isAdmin = adminStatus === "authenticated";
+  return useMemo<UseScopedAccountAccessResult>(() => {
+    const profile = user
+      ? { uid: user.uid, email: user.email, displayName: user.displayName }
+      : null;
 
-  useEffect(() => {
-    if (!normalizedAccountId || !effectiveUserUid || isAdmin) {
-      queueMicrotask(() => {
-        setMembership(null);
-        setMembershipLoading(false);
-      });
-      return;
+    if (status === "loading") {
+      return {
+        kind: "loading",
+        canManage: false,
+        canEditProject: false,
+        canEditDocuments: false,
+        canReviewAndPublish: false,
+        hasWorkspaceAccess: false,
+        roleLabel: "확인 중",
+        description: "지금 어떤 작업을 할 수 있는지 확인하고 있습니다.",
+        membership: null,
+        user: profile,
+      };
     }
 
-    let cancelled = false;
+    if (!user) {
+      return {
+        kind: "guest",
+        canManage: false,
+        canEditProject: false,
+        canEditDocuments: false,
+        canReviewAndPublish: false,
+        hasWorkspaceAccess: true,
+        roleLabel: "게스트",
+        description:
+          "로컬 폴더는 자유롭게 사용할 수 있고, 서버 발행은 로그인 후 가능합니다.",
+        membership: null,
+        user: null,
+      };
+    }
 
-    const run = async () => {
-      setMembershipLoading(true);
-      try {
-        const membershipsByUid = await listAccountMembershipsByUid(effectiveUserUid);
-        const membershipsByEmail =
-          membershipsByUid.length === 0 && effectiveUserEmail
-            ? await listAccountMembershipsByEmail(effectiveUserEmail)
-            : [];
-        const memberships = membershipsByUid.length > 0 ? membershipsByUid : membershipsByEmail;
-        if (cancelled) return;
-        setMembership(
-          memberships.find(
-            (entry: AccountMembership) => entry.accountId === normalizedAccountId,
-          ) ?? null,
-        );
-      } finally {
-        if (!cancelled) {
-          setMembershipLoading(false);
-        }
-      }
+    return {
+      kind: "owner",
+      canManage: true,
+      canEditProject: true,
+      canEditDocuments: true,
+      canReviewAndPublish: true,
+      hasWorkspaceAccess: true,
+      roleLabel: "주인",
+      description: "이 공간의 주인으로 모든 작업을 직접 수행합니다.",
+      membership: null,
+      user: profile,
     };
-
-    void run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [effectiveUserEmail, effectiveUserUid, isAdmin, normalizedAccountId]);
-
-  return useMemo(
-    () => ({
-      ...resolveScopedAccountAccess({
-        loading:
-          userStatus === "loading" ||
-          adminStatus === "loading" ||
-          membershipLoading,
-        isSignedIn: Boolean(effectiveUser),
-        isAdmin,
-        accountId: normalizedAccountId,
-        membershipRole: membership?.role ?? null,
-      }),
-      membership,
-      user: effectiveUser,
-    }),
-    [
-      adminStatus,
-      effectiveUser,
-      isAdmin,
-      membership,
-      membershipLoading,
-      normalizedAccountId,
-      userStatus,
-    ],
-  );
+  }, [status, user]);
 }
