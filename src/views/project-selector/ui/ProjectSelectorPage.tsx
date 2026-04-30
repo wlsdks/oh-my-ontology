@@ -20,9 +20,7 @@ import {
 } from "@/entities/project";
 import { ProjectQuickCreatePanel } from "@/features/project-quick-create";
 import { downloadProjectsCsv } from "@/features/project-export";
-import { subscribeProjectsForContainer } from "@/features/workspace-project-bridge";
 import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
-import { useWorkspaceProjectQuery } from "@/shared/lib/use-workspace-project-query";
 import { PublicAccountMenu } from "@/widgets/account-menu";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import {
@@ -73,9 +71,6 @@ export function ProjectSelectorPage() {
   const searchParams = useSearchParams();
   const accountId = null;
   // 로그인 사용자가 ?account= 없이 진입하면 본인 워크스페이스로 자동 스코프 —
-  // legacy 전역 collection 의 다른 데이터가 노출되는 문제 방지.
-  // P0-B Phase 6 — HomePage 와 동일한 `?pj=<containerId>` 규약 공유.
-  const [activeProjectId] = useWorkspaceProjectQuery();
   const activeContainerName: string | null = null;
   const returnTo = searchParams.get("returnTo");
   const scopedAccess = useScopedAccountAccess(accountId);
@@ -103,14 +98,11 @@ export function ProjectSelectorPage() {
   );
 
   useEffect(() => {
-    // P0-B Phase 6 점진 전환: ?pj 가 있으면 컨테이너 read, 없으면 flat.
     const onNext = (nextProjects: Project[]) => setProjects(nextProjects);
     const onError = () => setProjects([]);
-    const unsubscribe = activeProjectId
-      ? subscribeProjectsForContainer(accountId, activeProjectId, onNext, onError)
-      : subscribeProjects(accountId, onNext, onError);
+    const unsubscribe = subscribeProjects(accountId, onNext, onError);
     return () => unsubscribe();
-  }, [accountId, activeProjectId]);
+  }, [accountId]);
 
   // ontology nodes — 카드별 count badge 데이터. 부모 한 번 hook + count map
   // (1994 카드 각자 subscribe 회피). 권한 없으면 빈 배열, badge 자동 숨김.
