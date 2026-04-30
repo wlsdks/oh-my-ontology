@@ -9,8 +9,7 @@ import {
   parseProjectsCsv,
   type CsvParseError,
 } from "@/features/project-import";
-import { type ProjectInput } from "@/entities/project";
-import { createProjectAdaptive } from "@/features/workspace-project-bridge";
+import { getProject, upsertProject, type ProjectInput } from "@/entities/project";
 import { STARTER_SAMPLE_PROJECTS } from "@/shared/config/starter-samples";
 import { Button, DetailCard, EmptyState, useToast } from "@/shared/ui";
 import {
@@ -59,8 +58,11 @@ function ImportContent() {
         const input: ProjectInput = accountId
           ? { ...project, accountId }
           : project;
-        // P0-B Phase 6: 컨테이너 컨텍스트면 컨테이너로 import.
-        await createProjectAdaptive(input);
+        const existing = await getProject(input.slug, input.accountId);
+        if (existing) {
+          throw new Error("이미 존재하는 slug입니다.");
+        }
+        await upsertProject(input);
         succeeded.push(project.slug);
       } catch (err) {
         failed.push({
