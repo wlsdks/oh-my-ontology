@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMediaQuery } from 'usehooks-ts';
 import Graph from 'graphology';
 import forceAtlas2 from 'graphology-layout-forceatlas2';
 import Sigma from 'sigma';
@@ -18,8 +17,6 @@ interface Props {
   focusMode?: 'all' | 'local';
   /** 'local' 모드 hop 거리. 기본 2. */
   focusHops?: number;
-  /** 최근 외부 이벤트가 닿은 문서 slug. */
-  activitySlugs?: Set<string>;
 }
 
 // 디자인 시스템 준수 — 무채색 + 인디고 + 앰버.
@@ -53,12 +50,10 @@ export function DocsVaultGraph({
   mode,
   focusMode = 'all',
   focusHops = 2,
-  activitySlugs,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sigmaRef = useRef<Sigma | null>(null);
   const graphRef = useRef<Graph | null>(null);
-  const pulsePhaseRef = useRef(0);
   const onSelectRef = useRef(onSelect);
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -124,22 +119,6 @@ export function DocsVaultGraph({
     y: number;
     slug: string;
   } | null>(null);
-
-  // SSR/정적 export 호환 — initializeWithValue:false 로 hydration mismatch 회피.
-  const prefersReducedMotion = useMediaQuery(
-    '(prefers-reduced-motion: reduce)',
-    { initializeWithValue: false },
-  );
-  useEffect(() => {
-    if (!activitySlugs || activitySlugs.size === 0) return;
-    if (prefersReducedMotion) return;
-    const timer = window.setInterval(() => {
-      pulsePhaseRef.current =
-        (pulsePhaseRef.current + Math.PI / 10) % (Math.PI * 2);
-      sigmaRef.current?.refresh();
-    }, 140);
-    return () => window.clearInterval(timer);
-  }, [activitySlugs, prefersReducedMotion]);
 
   // slug → doc 빠른 조회 — 툴팁에서 title/mode 꺼낼 때 사용.
   const docsBySlug = useMemo(() => {
@@ -309,11 +288,6 @@ export function DocsVaultGraph({
       const isHovered = node === hoveredSlug;
       const isNeighbor = neighbors.has(node);
       const isSelected = node === selectedSlug;
-      const isActivity = activitySlugs?.has(node) ?? false;
-      const pulse =
-        isActivity && !hoveredSlug
-          ? 1.18 + 0.08 * Math.sin(pulsePhaseRef.current)
-          : 1;
       if (hoveredSlug && !isHovered && !isNeighbor) {
         return { ...attrs, color: COLOR_DIM, label: '' };
       }
@@ -338,16 +312,7 @@ export function DocsVaultGraph({
         return {
           ...attrs,
           color: COLOR_ENGINEER,
-          size: (attrs.originalSize ?? attrs.size) * 1.25 * pulse,
-          zIndex: 2,
-          forceLabel: true,
-        };
-      }
-      if (isActivity) {
-        return {
-          ...attrs,
-          color: COLOR_ENGINEER,
-          size: (attrs.originalSize ?? attrs.size) * pulse,
+          size: (attrs.originalSize ?? attrs.size) * 1.25,
           zIndex: 2,
           forceLabel: true,
         };
@@ -374,7 +339,7 @@ export function DocsVaultGraph({
       return { ...attrs };
     });
     renderer.refresh();
-  }, [activitySlugs, filteredSlugs, hoveredSlug, neighbors, selectedSlug]);
+  }, [filteredSlugs, hoveredSlug, neighbors, selectedSlug]);
 
   // 선택 slug 변경 시 카메라 focus — graph 뷰에서 외부 선택(트리/검색) 을
   // 따라가 해당 노드가 화면 중앙으로 부드럽게 이동. 미선택이거나 노드가
@@ -400,11 +365,6 @@ export function DocsVaultGraph({
       <div className="pointer-events-none absolute left-3 top-3 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
         vault graph · {filteredSlugs.size}/{docs.length}
       </div>
-      {activitySlugs && activitySlugs.size > 0 ? (
-        <div className="pointer-events-none absolute right-3 top-3 rounded-md border border-[color:rgba(139,151,255,0.24)] bg-[color:rgba(94,106,210,0.08)] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:rgba(200,210,255,0.9)]">
-          activity · {activitySlugs.size}
-        </div>
-      ) : null}
       {tooltip && tooltipDoc ? (
         <GraphNodeTooltip
           x={tooltip.x}

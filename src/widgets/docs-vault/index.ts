@@ -4,7 +4,6 @@ export { DocsVaultEditor } from './ui/DocsVaultEditor';
 export { DocsVaultUnifiedPalette } from './ui/DocsVaultUnifiedPalette';
 export type { VaultCommand } from './model/command';
 export { DocsVaultBacklinks } from './ui/DocsVaultBacklinks';
-export { DocsVaultActivityPanel } from './ui/DocsVaultActivityPanel';
 export { DocsVaultAudienceMismatchNotice } from './ui/DocsVaultAudienceMismatchNotice';
 export { DocsVaultGraph } from './ui/DocsVaultGraph';
 export { DocsVaultFolderTopology } from './ui/DocsVaultFolderTopology';

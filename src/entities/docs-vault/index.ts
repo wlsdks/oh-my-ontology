@@ -1,14 +1,4 @@
 export type {
-  DeveloperActivityEvent,
-  DeveloperActivityInput,
-  DeveloperActivityKind,
-  DeveloperActivitySource,
-} from './model/activity';
-export {
-  getDeveloperActivityTargetSlugs,
-  normalizeDeveloperActivityEvent,
-} from './model/activity';
-export type {
   VaultBacklinkEntry,
   VaultDoc,
   VaultHeading,

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMediaQuery } from 'usehooks-ts';
 import Graph from 'graphology';
 import forceAtlas2 from 'graphology-layout-forceatlas2';
 import Sigma from 'sigma';
@@ -20,7 +19,6 @@ interface Props {
    *  positionX / positionY 를 저장해 다음 빌드에 복원한다. undefined 면
    *  드래그 자체가 비활성화. */
   onPositionChange?: (slug: string, position: { x: number; y: number }) => void;
-  activitySlugs?: Set<string>;
 }
 
 const TONE_COLOR: Record<string, string> = {
@@ -52,12 +50,10 @@ export function DocsVaultFolderTopology({
   selectedSlug,
   onSelect,
   onPositionChange,
-  activitySlugs,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sigmaRef = useRef<Sigma | null>(null);
   const graphRef = useRef<Graph | null>(null);
-  const pulsePhaseRef = useRef(0);
   const onSelectRef = useRef(onSelect);
   const onPositionChangeRef = useRef(onPositionChange);
   useEffect(() => {
@@ -69,22 +65,6 @@ export function DocsVaultFolderTopology({
 
   const [hovered, setHovered] = useState<string | null>(null);
   const [neighbors, setNeighbors] = useState<Set<string>>(new Set());
-
-  // SSR/정적 export 호환 — initializeWithValue:false 로 hydration mismatch 회피.
-  const prefersReducedMotion = useMediaQuery(
-    '(prefers-reduced-motion: reduce)',
-    { initializeWithValue: false },
-  );
-  useEffect(() => {
-    if (!activitySlugs || activitySlugs.size === 0) return;
-    if (prefersReducedMotion) return;
-    const timer = window.setInterval(() => {
-      pulsePhaseRef.current =
-        (pulsePhaseRef.current + Math.PI / 10) % (Math.PI * 2);
-      sigmaRef.current?.refresh();
-    }, 140);
-    return () => window.clearInterval(timer);
-  }, [activitySlugs, prefersReducedMotion]);
 
   // 노드/엣지 컬렉션 — build 바뀔 때마다 재구성. categories 색 매핑 prebuild.
   const bySlug = useMemo(() => {
@@ -237,11 +217,6 @@ export function DocsVaultFolderTopology({
       const isHovered = node === hovered;
       const isNeighbor = neighbors.has(node);
       const isSelected = node === selectedSlug;
-      const isActivity = activitySlugs?.has(node) ?? false;
-      const pulse =
-        isActivity && !hovered
-          ? 1.18 + 0.08 * Math.sin(pulsePhaseRef.current)
-          : 1;
       if (hovered && !isHovered && !isNeighbor) {
         return { ...attrs, color: DIM_NODE, label: '' };
       }
@@ -265,15 +240,7 @@ export function DocsVaultFolderTopology({
       if (isSelected) {
         return {
           ...attrs,
-          size: (attrs.originalSize ?? attrs.size) * 1.25 * pulse,
-          zIndex: 2,
-          forceLabel: true,
-        };
-      }
-      if (isActivity) {
-        return {
-          ...attrs,
-          size: (attrs.originalSize ?? attrs.size) * pulse,
+          size: (attrs.originalSize ?? attrs.size) * 1.25,
           zIndex: 2,
           forceLabel: true,
         };
@@ -294,7 +261,7 @@ export function DocsVaultFolderTopology({
       return { ...attrs };
     });
     renderer.refresh();
-  }, [activitySlugs, hovered, neighbors, selectedSlug]);
+  }, [hovered, neighbors, selectedSlug]);
 
   const hoveredProject = hovered ? bySlug.get(hovered) : null;
 
@@ -304,11 +271,6 @@ export function DocsVaultFolderTopology({
       <div className="pointer-events-none absolute left-3 top-3 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
         folder topology · {build.projects.length} projects
       </div>
-      {activitySlugs && activitySlugs.size > 0 ? (
-        <div className="pointer-events-none absolute left-3 top-12 rounded-md border border-[color:rgba(139,151,255,0.24)] bg-[color:rgba(94,106,210,0.08)] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:rgba(200,210,255,0.9)]">
-          activity · {activitySlugs.size}
-        </div>
-      ) : null}
       {build.danglingRefs.length > 0 ? (
         <div className="pointer-events-none absolute right-3 top-3 max-w-[280px] rounded-md border border-[color:rgba(239,180,120,0.35)] bg-[color:rgba(239,180,120,0.06)] px-3 py-2 text-[11px] text-[color:rgba(239,200,150,0.95)]">
           <div className="font-mono text-[9.5px] uppercase tracking-[0.14em]">

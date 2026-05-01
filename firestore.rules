@@ -79,22 +79,6 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Developer Activity Ingest — backend boundary 가 append.
-    match /developerActivityEvents/{eventId} {
-      allow read: if isAuthed();
-      allow create: if false;
-      allow update: if isAuthed()
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['unread', 'acknowledgedAt'])
-        && request.resource.data.unread == false;
-      allow delete: if false;
-    }
-
-    match /developerActivityDeliveries/{deliveryId} {
-      allow read: if isAuthed();
-      allow write: if false;
-    }
-
     // 클라이언트 에러 — global-error/error.tsx 가 hydration·render 실패 시 append.
     match /clientErrors/{errorId} {
       allow read: if isAuthed();

@@ -31,16 +31,6 @@ import {
   DocsVaultAccessGuard,
   useDocsVaultCapabilities,
 } from '@/features/docs-vault-access';
-import {
-  acknowledgeDeveloperActivityEvent,
-  acknowledgeRemoteDeveloperActivityEvent,
-  redeliverDeveloperActivityDelivery,
-  reprocessDeveloperActivityDelivery,
-  restoreDeveloperActivityEvent,
-  restoreRemoteDeveloperActivityEvent,
-  useDeveloperActivityDeliveries,
-  useDeveloperActivityEvents,
-} from '@/features/docs-vault-activity';
 import { LocalVaultPicker, useLocalVault } from '@/features/docs-vault-local';
 import { useTypingShortcuts } from '@/shared/lib/use-typing-shortcut';
 import { usePrevious } from '@/shared/lib/use-previous';
@@ -52,17 +42,14 @@ import {
   buildDocsVaultHref,
   buildTopologyFromVault,
   findRelationshipRadarSuggestions,
-  getDeveloperActivityTargetSlugs,
   type FolderTopologyBuild,
   vaultManifest,
   type VaultManifest,
   type VaultMode,
 } from '@/entities/docs-vault';
 import { createSharedDoc } from '@/entities/shared-doc';
-import { DocsVaultActivityPanel } from '@/widgets/docs-vault/ui/DocsVaultActivityPanel';
 import { DocsVaultAudienceMismatchNotice } from '@/widgets/docs-vault/ui/DocsVaultAudienceMismatchNotice';
 import { DocsVaultEditor } from '@/widgets/docs-vault/ui/DocsVaultEditor';
-import { DocsVaultDeliveryLogPanel } from '@/widgets/docs-vault/ui/DocsVaultDeliveryLogPanel';
 import { DocsVaultProjectDepsBar } from '@/widgets/docs-vault/ui/DocsVaultProjectDepsBar';
 import { DocsVaultRelationshipRadar } from '@/widgets/docs-vault/ui/DocsVaultRelationshipRadar';
 import { DocsVaultStats } from '@/widgets/docs-vault/ui/DocsVaultStats';
@@ -189,16 +176,8 @@ function AdminDocsContent() {
   const [radarDismissedKeys, setRadarDismissedKeys] = useState<Set<string>>(
     () => new Set(),
   );
-  const [reprocessingDeliveryId, setReprocessingDeliveryId] = useState<
-    string | null
-  >(null);
-  const [redeliveringDeliveryId, setRedeliveringDeliveryId] = useState<
-    string | null
-  >(null);
   const caps = useDocsVaultCapabilities();
   const localVault = useLocalVault();
-  const developerEvents = useDeveloperActivityEvents(accountId);
-  const developerDeliveries = useDeveloperActivityDeliveries(accountId);
 
   const replaceUrlState = useCallback(
     (next: {
@@ -1126,22 +1105,6 @@ function AdminDocsContent() {
     selectedDoc !== null &&
     selectedDoc.mode !== audience &&
     selectedDoc.mode !== 'both';
-  const developerActivitySlugs = useMemo(() => {
-    const out = new Set<string>();
-    for (const event of developerEvents) {
-      if (event.unread === false) continue;
-      for (const slug of getDeveloperActivityTargetSlugs(event)) out.add(slug);
-    }
-    return out;
-  }, [developerEvents]);
-  const folderActivitySlugs = useMemo(() => {
-    const out = new Set<string>();
-    for (const slug of developerActivitySlugs) {
-      if (slug.startsWith('projects/')) out.add(slug.replace(/^projects\//, ''));
-      else out.add(slug);
-    }
-    return out;
-  }, [developerActivitySlugs]);
   const selectedRadarDismissedSlugs = useMemo(() => {
     if (!selectedSlug) return new Set<string>();
     const prefix = `${selectedSlug}->`;
@@ -1215,63 +1178,6 @@ function AdminDocsContent() {
     setRadarConfirmedKeys(next.confirmed);
     setRadarDismissedKeys(next.dismissed);
   }, [recentKey, selectedSlug]);
-  const handleAcknowledgeDeveloperEvent = useCallback(
-    (id: string) => {
-      acknowledgeDeveloperActivityEvent(id);
-      void acknowledgeRemoteDeveloperActivityEvent(accountId, id).catch((err) => {
-        if (typeof console !== 'undefined') {
-          console.warn('[docs-vault-activity] acknowledge failed:', err);
-        }
-      });
-    },
-    [accountId],
-  );
-  const handleRestoreDeveloperEvent = useCallback(
-    (id: string) => {
-      restoreDeveloperActivityEvent(id);
-      void restoreRemoteDeveloperActivityEvent(accountId, id).catch((err) => {
-        if (typeof console !== 'undefined') {
-          console.warn('[docs-vault-activity] restore failed:', err);
-        }
-      });
-    },
-    [accountId],
-  );
-  const handleReprocessDelivery = useCallback(
-    async (deliveryId: string) => {
-      setReprocessingDeliveryId(deliveryId);
-      try {
-        await reprocessDeveloperActivityDelivery({ accountId, deliveryId });
-      } catch (err) {
-        if (typeof window !== 'undefined') {
-          window.alert(
-            `재처리 실패: ${err instanceof Error ? err.message : String(err)}`,
-          );
-        }
-      } finally {
-        setReprocessingDeliveryId(null);
-      }
-    },
-    [accountId],
-  );
-
-  const handleRedeliverDelivery = useCallback(
-    async (deliveryId: string) => {
-      setRedeliveringDeliveryId(deliveryId);
-      try {
-        await redeliverDeveloperActivityDelivery({ accountId, deliveryId });
-      } catch (err) {
-        window.alert(
-          `GitHub 재전송 요청 실패: ${
-            err instanceof Error ? err.message : String(err)
-          }`,
-        );
-      } finally {
-        setRedeliveringDeliveryId(null);
-      }
-    },
-    [accountId],
-  );
   const backlinksDetail = selectedSlug
     ? (manifest.backlinksDetail?.[selectedSlug] ?? [])
     : [];
@@ -1566,7 +1472,6 @@ function AdminDocsContent() {
       audienceBySlug={audienceBySlug}
       activeTag={activeTag}
       manifest={manifest}
-      developerActivitySlugs={developerActivitySlugs}
       onSelect={handleSelectFromSidebar}
       onTogglePin={handleTogglePin}
       onTagSelect={setActiveTag}
@@ -1866,7 +1771,6 @@ function AdminDocsContent() {
                         }
                       : undefined
                   }
-                  activitySlugs={folderActivitySlugs}
                 />
               ) : (
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
@@ -1961,7 +1865,6 @@ function AdminDocsContent() {
                 mode="all"
                 focusMode={graphFocus}
                 focusHops={2}
-                activitySlugs={developerActivitySlugs}
               />
             </div>
           ) : selectedDoc ? (
@@ -1990,27 +1893,6 @@ function AdminDocsContent() {
                         currentAudience={audience}
                         onSwitchAudience={handleAudienceChange}
                       />
-                    ) : null}
-                    {audience === 'engineer' ? (
-                      <>
-                        <DocsVaultActivityPanel
-                          events={developerEvents}
-                          docsBySlug={docsBySlug}
-                          selectedSlug={selectedSlug}
-                          onNavigate={handleSelect}
-                          onAcknowledge={handleAcknowledgeDeveloperEvent}
-                          onRestore={handleRestoreDeveloperEvent}
-                        />
-                        {developerDeliveries.length > 0 ? (
-                          <DocsVaultDeliveryLogPanel
-                            deliveries={developerDeliveries}
-                            onReprocess={handleReprocessDelivery}
-                            onRedeliver={handleRedeliverDelivery}
-                            reprocessingId={reprocessingDeliveryId}
-                            redeliveringId={redeliveringDeliveryId}
-                          />
-                        ) : null}
-                      </>
                     ) : null}
                     {audience === 'planner' ? (
                       <DocsVaultRelationshipRadar

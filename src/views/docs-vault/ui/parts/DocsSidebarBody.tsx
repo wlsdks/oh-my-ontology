@@ -25,7 +25,6 @@ export interface DocsSidebarBodyProps {
   audienceBySlug: Record<string, VaultMode>;
   activeTag: string | null;
   manifest: VaultManifest;
-  developerActivitySlugs?: Set<string>;
   onSelect: (slug: string) => void;
   onTogglePin: (slug: string) => void;
   onTagSelect: (tag: string | null) => void;
@@ -40,7 +39,6 @@ export function DocsSidebarBody({
   audienceBySlug,
   activeTag,
   manifest,
-  developerActivitySlugs,
   onSelect,
   onTogglePin,
   onTagSelect,
@@ -155,7 +153,6 @@ export function DocsSidebarBody({
         activeTagSlugs={
           activeTag ? new Set(manifest.tags[activeTag] ?? []) : undefined
         }
-        activitySlugs={developerActivitySlugs}
       />
       <DocsVaultTags
         tags={manifest.tags}

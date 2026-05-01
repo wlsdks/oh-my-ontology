@@ -21,13 +21,6 @@ import {
 
 // M2 · 외부 HTTP API endpoint (POST /api/v1/docs)
 export { receiveDoc } from "./receive-doc.js";
-// Developer Activity Ingest — GitHub App webhook endpoint.
-export {
-  pruneDeveloperActivityDeliveries,
-  receiveGitHubActivity,
-  redeliverGitHubActivityDelivery,
-  reprocessGitHubActivityDelivery,
-} from "./receive-github-activity.js";
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
