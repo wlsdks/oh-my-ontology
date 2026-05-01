@@ -141,6 +141,19 @@ function verifyRead(
 }
 
 /**
+ * write 경로 공통 — readwrite 권한이 없으면 ask 후 거부 시 throw.
+ * inline `queryPermission` / `requestPermission` 보일러를 압축한다.
+ */
+async function ensureReadWrite(
+  handle: FileSystemDirectoryHandle | FileSystemFileHandle,
+): Promise<void> {
+  const result = await verifyHandlePermission(handle, 'readwrite', { ask: true });
+  if (result !== 'granted') {
+    throw new Error('쓰기 권한이 거부되었습니다');
+  }
+}
+
+/**
  * 로컬 (PC) 폴더를 볼트로 쓰는 훅. File System Access API 지원 브라우저
  * (Chrome/Edge/Safari 18.2+/Opera) 에서만 동작.
  *
@@ -315,17 +328,7 @@ export function useLocalVault() {
     } | null> => {
       if (!state.handle) return null;
       // readwrite permission — 쓰기 경로에만 호출되므로 여기서 확보.
-      const rq = (await state.handle.queryPermission?.({
-        mode: 'readwrite',
-      })) ?? 'granted';
-      if (rq !== 'granted') {
-        const req = (await state.handle.requestPermission?.({
-          mode: 'readwrite',
-        })) ?? 'granted';
-        if (req !== 'granted') {
-          throw new Error('쓰기 권한이 거부되었습니다');
-        }
-      }
+      await ensureReadWrite(state.handle);
       const parts = slug.split('/').filter(Boolean);
       if (parts.length === 0) throw new Error('빈 slug');
       const fileName = `${parts[parts.length - 1]}.md`;
@@ -348,16 +351,7 @@ export function useLocalVault() {
     async (slug: string, content: string) => {
       const fh = state.fileHandles.get(slug);
       if (!fh) throw new Error(`로컬 볼트에 ${slug} 없음`);
-      const query = (await fh.queryPermission?.({ mode: 'readwrite' })) ??
-        'granted';
-      if (query !== 'granted') {
-        const req = (await fh.requestPermission?.({
-          mode: 'readwrite',
-        })) ?? 'granted';
-        if (req !== 'granted') {
-          throw new Error('쓰기 권한이 거부되었습니다');
-        }
-      }
+      await ensureReadWrite(fh);
       const writable = await fh.createWritable();
       await writable.write(content);
       await writable.close();
@@ -423,13 +417,7 @@ export function useLocalVault() {
     ) => {
       const fh = state.fileHandles.get(slug);
       if (!fh) throw new Error(`로컬 볼트에 ${slug} 없음`);
-      const query =
-        (await fh.queryPermission?.({ mode: 'readwrite' })) ?? 'granted';
-      if (query !== 'granted') {
-        const req =
-          (await fh.requestPermission?.({ mode: 'readwrite' })) ?? 'granted';
-        if (req !== 'granted') throw new Error('쓰기 권한이 거부되었습니다');
-      }
+      await ensureReadWrite(fh);
       const file = await fh.getFile();
       const raw = await file.text();
       const next = applyFrontmatterUpdates(raw, updates);
@@ -503,15 +491,10 @@ export function useLocalVault() {
           const fh = state.fileHandles.get(ref);
           if (!fh) continue;
           try {
-            const perm =
-              (await fh.queryPermission?.({ mode: 'readwrite' })) ??
-              'granted';
-            if (perm !== 'granted') {
-              const req =
-                (await fh.requestPermission?.({ mode: 'readwrite' })) ??
-                'granted';
-              if (req !== 'granted') continue;
-            }
+            const perm = await verifyHandlePermission(fh, 'readwrite', {
+              ask: true,
+            });
+            if (perm !== 'granted') continue;
             const srcFile = await fh.getFile();
             const srcText = await srcFile.text();
             const nextText = srcText
