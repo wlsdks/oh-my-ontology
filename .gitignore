@@ -1,3 +1,6 @@
+# Serena MCP project cache + memories (개인 환경)
+.serena/
+
 # Dependencies
 node_modules/
 .pnp
