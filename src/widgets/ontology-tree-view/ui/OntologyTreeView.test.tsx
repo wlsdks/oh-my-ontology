@@ -255,7 +255,7 @@ describe("OntologyTreeView — empty state", () => {
       <OntologyTreeView result={{ roots: [], orphans: [], warnings: [] }} />,
     );
     expect(screen.getByTestId("ontology-tree-empty")).toBeInTheDocument();
-    expect(screen.getByText(/아직 승인된 ontology 노드가 없어요/)).toBeInTheDocument();
+    expect(screen.getByText(/ontology 가 아직 자라지 않았어요/)).toBeInTheDocument();
   });
 
   it("uses custom emptyHint", () => {

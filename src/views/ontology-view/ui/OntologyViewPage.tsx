@@ -181,10 +181,11 @@ export function OntologyViewPage() {
               content={
                 <div className="max-w-[320px] space-y-2 text-left">
                   <p className="font-medium text-[color:var(--color-text-primary)]">
-                    승인된 ontology 노드의 계층 뷰
+                    ontology 노드의 계층 뷰
                   </p>
                   <p className="text-[color:var(--color-text-tertiary)]">
-                    문서에서 추출한 개념·관계 중 <strong>검수에서 승인된 것</strong>을{" "}
+                    vault 안 .md 파일의 frontmatter 가 그대로 자란 트리.
+                    검수 단계 없이 즉시 반영 —{" "}
                     <span className="font-mono text-xs">project → domain → capability → element</span>{" "}
                     순서로 펼쳐서 보여줍니다.
                   </p>
@@ -329,7 +330,7 @@ export function OntologyViewPage() {
           <OntologyTreeView
             result={treeResult}
             onSelect={(node) => selectNode(node)}
-            emptyHint="아직 승인된 ontology 노드가 없어요. 아래 단계로 첫 그래프를 자라게 할 수 있어요."
+            emptyHint="ontology 가 아직 자라지 않았어요. 아래 단계로 첫 그래프를 시작할 수 있어요."
           />
           {/* 빈 상태 onboarding — tree / orphans 모두 비었을 때만 노출.
               "온톨로지란 무엇이고, 어떻게 자라는지" 가이드. 데이터 있을 때
