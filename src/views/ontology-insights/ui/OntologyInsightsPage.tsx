@@ -277,8 +277,8 @@ export function OntologyInsightsPage() {
               같은 helper 사용. */}
           {edgeTypeRows.length > 0 ? (
             <Panel
-              title="관계 type 분포"
-              subtitle={`총 ${totalEdges} 관계 — 의미 관계 type 별 비율`}
+              title="관계 종류 분포"
+              subtitle={`총 ${totalEdges} 관계 — 의미 관계 종류별 비율`}
             >
               <ul className="space-y-1.5" data-testid="insights-edge-type-rows">
                 {edgeTypeRows.slice(0, 8).map(({ type, count }) => {

@@ -182,7 +182,7 @@ export function GlobalSearch({
           <VisuallyHidden>
             <Dialog.Title>글로벌 검색</Dialog.Title>
             <Dialog.Description>
-              ontology 노드와 knowledge 문서를 한 번에 검색합니다. 위·아래
+              개념 (ontology 노드) · 글 (문서) · 프로젝트를 한 번에 검색합니다. 위·아래
               화살표로 이동, Enter 로 선택, ESC 로 닫기.
             </Dialog.Description>
           </VisuallyHidden>
@@ -199,8 +199,8 @@ export function GlobalSearch({
             onValueChange={setQuery}
             placeholder={
               documents
-                ? "노드 · 문서 검색 — 한·영 혼합 OK"
-                : "ontology 노드 검색 — 한·영 혼합 OK"
+                ? "개념 · 글 검색 — 한·영 혼합 OK"
+                : "개념 검색 — 한·영 혼합 OK"
             }
             className="flex-1 bg-transparent text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:outline-none"
           />
@@ -317,7 +317,7 @@ export function GlobalSearch({
           <Command.Empty className="px-3 py-6 text-center text-sm text-[color:var(--color-text-tertiary)]">
             {isEmptyQuery
               ? totalCorpus === 0
-                ? "아직 색인된 ontology 노드·문서가 없어요. 검수 큐에서 후보를 승인하면 여기로 자라요."
+                ? "아직 색인된 개념·글이 없어요. vault frontmatter 또는 빌더에서 첫 노드를 만들면 여기로 자라요."
                 : `${totalCorpus}개 항목이 색인되어 있어요. 한·영 모두 OK.`
               : `"${query}" 와 일치하는 결과가 없어요.`}
           </Command.Empty>
@@ -326,7 +326,7 @@ export function GlobalSearch({
             <Command.Group
               heading={
                 <span className="px-2 pb-1 pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  {isEmptyQuery ? "Ontology · 최근" : "Ontology · 매치"} · {ontologyResults.length}
+                  {isEmptyQuery ? "개념 · 최근" : "개념 · 매치"} · {ontologyResults.length}
                   {isEmptyQuery && ontologySize > ontologyResults.length ? ` / ${ontologySize}` : ""}
                 </span>
               }
@@ -373,7 +373,7 @@ export function GlobalSearch({
             <Command.Group
               heading={
                 <span className="px-2 pb-1 pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  {isEmptyQuery ? "Documents · 최근" : "Documents · 매치"} · {documentResults.length}
+                  {isEmptyQuery ? "글 · 최근" : "글 · 매치"} · {documentResults.length}
                   {isEmptyQuery && documentSize > documentResults.length ? ` / ${documentSize}` : ""}
                 </span>
               }
@@ -411,7 +411,7 @@ export function GlobalSearch({
             <Command.Group
               heading={
                 <span className="px-2 pb-1 pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  {isEmptyQuery ? "Projects · 최근" : "Projects · 매치"} · {projectResults.length}
+                  {isEmptyQuery ? "프로젝트 · 최근" : "프로젝트 · 매치"} · {projectResults.length}
                   {isEmptyQuery && projectSize > projectResults.length ? ` / ${projectSize}` : ""}
                 </span>
               }

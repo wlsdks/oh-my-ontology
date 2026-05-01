@@ -306,11 +306,11 @@ export function OntologyViewPage() {
                 인사이트
               </Link>
             </Tooltip>
-            <Tooltip content="ontology 관계 — edge type 분포 + 강한 관계" withProvider={false}>
+            <Tooltip content="관계 — 종류 분포 + 근거 풍부한 강한 관계" withProvider={false}>
               <Link
                 href={"/ontology/relations/"}
                 className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-                aria-label="ontology 관계 — edge type 분포 + 강한 관계"
+                aria-label="관계 — 종류 분포 + 근거 풍부한 강한 관계"
               >
                 관계
               </Link>
