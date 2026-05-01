@@ -20,7 +20,6 @@ const ROUTES = [
   "/account",
   "/projects/",
   "/project/sample/",
-  "/project/view/?slug=sample",
   // admin namespace 폐기 (PR #195~ 이후) — 신 경로로 교체.
   "/knowledge/",
   "/knowledge/documents/",

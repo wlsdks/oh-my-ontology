@@ -27,7 +27,7 @@ test.describe("public account menu", () => {
     await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
     await expect(page).toHaveURL(/\/admin\/dashboard\//);
 
-    await page.goto("/project/view/?slug=iam&account=demo-workspace");
+    await page.goto("/project/iam/?account=demo-workspace");
     const trigger = page.locator('button[aria-label="내 정보 보기"]').first();
 
     await expect(trigger).toContainText("관리자");
@@ -73,7 +73,7 @@ test.describe("public account menu", () => {
     await expect(menu.getByRole("menuitem", { name: /계정 설정/ })).toBeVisible();
     await expect(menu.getByRole("menuitem", { name: "설정", exact: true })).toBeVisible();
 
-    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
+    await page.goto("/project/sandbox-core/?account=demo-workspace");
     await expect(page.getByTestId("public-quick-edit-toggle")).toBeVisible();
     await page.getByTestId("public-quick-edit-toggle").click();
     await expect(page.getByRole("dialog", { name: "프로젝트 정보 수정" })).toBeVisible();
@@ -102,7 +102,7 @@ test.describe("public account menu", () => {
     await expect(page).toHaveURL(/\/projects\/\?account=demo-workspace$/);
     await expect(page.getByRole("button", { name: "새 프로젝트 만들기" })).toHaveCount(0);
 
-    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
+    await page.goto("/project/sandbox-core/?account=demo-workspace");
     await expect(page.getByLabel("프로젝트 관리")).toHaveCount(0);
 
     const trigger = page.locator('button[aria-label="내 정보 보기"]').first();

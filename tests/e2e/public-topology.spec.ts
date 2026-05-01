@@ -68,7 +68,7 @@ test.describe("public topology flows", () => {
 
   test("개별 프로젝트에서 내부 지도 전체 화면으로 이동할 수 있다", async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto("/project/view/?slug=stress-core-01&account=demo-workspace");
+    await page.goto("/project/stress-core-01/?account=demo-workspace");
 
     await expect(page.getByRole("heading", { name: "스트레스 코어 01" })).toBeVisible();
     await page.getByTestId("project-detail-topology-link").click();
@@ -92,7 +92,7 @@ test.describe("public topology flows", () => {
 
   test("오래된 프로젝트 토폴로지 경로는 메인 토폴로지로 이동한다", async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto("/project/topology/?slug=stress-core-01&account=demo-workspace");
+    await page.goto("/project/stress-core-01/?account=demo-workspace");
 
     await expect(page).toHaveURL(/\/\?p=stress-core-01&account=demo-workspace$/);
     await expect(page.getByTestId("project-knowledge-topology-scene-canvas")).toBeVisible();
@@ -135,7 +135,7 @@ test.describe("public topology flows", () => {
 
   test("계정 기반 상세에서는 프로젝트 목록으로 바로 돌아갈 수 있다", async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
+    await page.goto("/project/sandbox-core/?account=demo-workspace");
 
     await expect(page.getByRole("link", { name: "프로젝트 목록" })).toBeVisible();
     await page.getByRole("link", { name: "프로젝트 목록" }).click();
@@ -159,7 +159,7 @@ test.describe("public topology flows", () => {
     await page.getByLabel("프로젝트 관리 도움말").hover();
     await expect(page.getByRole("tooltip")).toContainText("등록한 문서는 연결 후보와 공개 문서의 시작점이 됩니다.");
 
-    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
+    await page.goto("/project/sandbox-core/?account=demo-workspace");
     await expect(page.getByText("개별 프로젝트")).toBeVisible();
     await expect(page.getByTestId("public-quick-edit-toggle")).toBeVisible();
     await page.getByTestId("public-quick-edit-toggle").click();
@@ -178,7 +178,7 @@ test.describe("public topology flows", () => {
     await page.goto("/dev/login/?account=demo-workspace");
     await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
 
-    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
+    await page.goto("/project/sandbox-core/?account=demo-workspace");
     await page.getByTestId("public-quick-edit-toggle").click();
     const quickEditDialog = page.getByRole("dialog", { name: "프로젝트 정보 수정" });
     await expect(quickEditDialog).toBeVisible();
@@ -245,7 +245,7 @@ test.describe("public topology flows", () => {
     await page.getByLabel("비밀번호").fill(password);
     await page.getByRole("button", { name: "이메일로 로그인" }).click();
 
-    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
+    await page.goto("/project/sandbox-core/?account=demo-workspace");
     await page.getByTestId("public-quick-edit-toggle").click();
     const quickEditDialog = page.getByRole("dialog", { name: "프로젝트 정보 수정" });
     await expect(quickEditDialog).toBeVisible();

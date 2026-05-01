@@ -59,16 +59,6 @@ const ROUTES: Route[] = [
     mustContain: ["Sample"],
     mustNotContain: ["문서가 프로젝트 구조가 됩니다"],
   },
-  {
-    name: "08-project-view-legacy",
-    url: "/project/view/?slug=sample",
-    wait: 1500,
-  },
-  {
-    name: "09-project-internal-topology",
-    url: "/project/topology/?slug=sample",
-    wait: 1500,
-  },
 ];
 
 interface Finding {

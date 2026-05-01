@@ -12,7 +12,7 @@ test.describe("public auth flows", () => {
   });
 
   test("로그인 전 프로젝트 화면에 직접 들어가면 서비스 첫 화면으로 돌아온다", async ({ page }) => {
-    await page.goto("/project/view/?slug=sandbox-core&account=demo-workspace");
+    await page.goto("/project/sandbox-core/?account=demo-workspace");
 
     await expect(page).toHaveURL(/\/\?account=demo-workspace&next=/);
     await expect(page.getByRole("button", { name: "데모 로그인" })).toBeVisible();
