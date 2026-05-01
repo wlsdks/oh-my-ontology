@@ -15,7 +15,7 @@ interface OperationsNavProps {
 }
 
 interface NavItem {
-  id: 'knowledge' | 'review' | 'ontology' | 'settings' | 'diagnostics';
+  id: 'knowledge' | 'review' | 'ontology' | 'topology' | 'settings' | 'diagnostics';
   label: string;
   /** Tooltip 본문 — 라벨이 짧아 첫 사용자에게 의미 약할 때 보조 안내. */
   description: string;
@@ -47,13 +47,22 @@ function buildItems(mode: 'static' | 'local' | 'cloud'): ReadonlyArray<NavItem> 
       basePath: '/review/knowledge/',
       prefixes: ['/review'],
     },
-    // ontology view — 승인된 노드/관계의 트리. "두 번째 척추" 의 첫 진입점.
+    // ontology view — 승인된 노드/관계의 트리. mission 의 척추.
+    // / 도 OntologyViewPage 를 렌더하므로 prefix 에 양쪽 포함.
     {
       id: 'ontology',
       label: '온톨로지',
       description: '승인된 노드·관계의 계층 그래프 (project → domain → capability → element)',
-      basePath: '/ontology/',
+      basePath: '/',
       prefixes: ['/ontology'],
+    },
+    // topology — 출구 view 중 하나 (Sigma WebGL 의존도 지도).
+    {
+      id: 'topology',
+      label: '토폴로지',
+      description: '프로젝트 의존도 지도 — 온톨로지의 한 출구 view',
+      basePath: '/topology/',
+      prefixes: ['/topology'],
     },
     // BottomTabBar 의 '정리' 와 라벨 일치 — 같은 destination 인데 데스크톱 / 모바일
     // 라벨이 달라 사용자 혼란 (audit A1 회귀 차단).

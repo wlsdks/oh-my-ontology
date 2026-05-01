@@ -90,7 +90,7 @@ export function LandingPage({ next }: Props) {
         <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_22rem] md:items-center md:gap-12">
           <div className="space-y-5">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--color-text-quaternary)]">
-              {hasReturnTarget ? "권한이 필요한 화면" : "open-source ontology workbench"}
+              {hasReturnTarget ? "권한이 필요한 화면" : "ontology workbench · 사람 + AI agent 협업"}
             </p>
             <h1 className="text-[clamp(2.4rem,5vw,4rem)] leading-[1.04] font-[var(--font-weight-signature)] tracking-[var(--tracking-display)] text-[color:var(--color-text-primary)]">
               {hasReturnTarget ? (
@@ -99,15 +99,15 @@ export function LandingPage({ next }: Props) {
                 </>
               ) : (
                 <>
-                  마크다운에서 자라는<br />
-                  <span className="text-[color:var(--color-indigo-accent)]">지식 그래프</span>
+                  AI 와 함께 자라는<br />
+                  <span className="text-[color:var(--color-indigo-accent)]">codebase ontology</span>
                 </>
               )}
             </h1>
             <p className="max-w-xl text-base leading-7 text-[color:var(--color-text-secondary)]">
               {hasReturnTarget
                 ? "요청한 화면은 로그인이 필요합니다. 로그인하면 방금 열려던 화면으로 바로 돌아갑니다."
-                : "마크다운 문서에서 개념·관계·근거를 추출해 *토폴로지·트리·ERD* 세 시각으로 자라는 오픈소스 온톨로지 워크벤치. Obsidian/Notion 처럼 폴더만 가리키면 시작."}
+                : "사람과 AI agent 가 같이 자라게 하는 codebase ontology. 마크다운 문서가 곧 개념·관계·근거 — *트리·토폴로지·ERD* 세 시각으로 본다. Obsidian/Notion 처럼 폴더만 가리키면 시작."}
             </p>
           </div>
 
@@ -287,17 +287,17 @@ function ValueChainRail() {
     {
       index: "01",
       title: "마크다운 작성",
-      sub: "내가 이미 쓴 .md 들이 노드와 관계의 재료",
+      sub: "내가 쓰거나 AI agent 가 같이 — .md frontmatter 가 그대로 노드/관계",
     },
     {
       index: "02",
-      title: "개념·관계·근거 추출",
-      sub: "검수 큐에서 한 번 확인 후 승인",
+      title: "ontology 자동 자라남",
+      sub: "frontmatter 자체가 자기 승인 — 검수 단계 없이 바로 그래프",
     },
     {
       index: "03",
-      title: "토폴로지·트리·ERD",
-      sub: "세 시각으로 자라는 ontology",
+      title: "트리·토폴로지·ERD",
+      sub: "같은 ontology 를 세 시각으로",
     },
   ];
 
