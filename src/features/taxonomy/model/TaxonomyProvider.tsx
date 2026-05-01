@@ -22,6 +22,7 @@ import {
   seedDefaultStatusesIfEmpty,
   type Status,
 } from '@/entities/status';
+import { useDataSourceMode } from '@/features/data-source-mode';
 
 export interface TaxonomyContextValue {
   categories: Category[];
@@ -54,14 +55,20 @@ interface Props {
 }
 
 export function TaxonomyProvider({ children }: Props) {
+  // mode-aware — local/static 모드는 Firebase 미초기화일 수 있으므로
+  // Firestore 구독 skip 하고 defaults 만 사용. cloud 모드만 실시간 sync.
+  // (vault 의 categories.md / statuses.md 기반 사용자 정의는 추후 단계.)
+  const mode = useDataSourceMode();
+  const subscribeCloud = mode === 'cloud';
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
   const [statuses, setStatuses] = useState<Status[]>(defaultStatuses);
-  const [categoriesHydrated, setCategoriesHydrated] = useState(false);
-  const [statusesHydrated, setStatusesHydrated] = useState(false);
+  const [categoriesHydrated, setCategoriesHydrated] = useState(!subscribeCloud);
+  const [statusesHydrated, setStatusesHydrated] = useState(!subscribeCloud);
   const seededCategoriesRef = useRef(false);
   const seededStatusesRef = useRef(false);
 
   useEffect(() => {
+    if (!subscribeCloud) return;
     const unsubCat = subscribeCategories(
       (list) => {
         setCategories(list.length > 0 ? list : defaultCategories);
@@ -92,7 +99,7 @@ export function TaxonomyProvider({ children }: Props) {
       unsubCat();
       unsubStat();
     };
-  }, []);
+  }, [subscribeCloud]);
 
   const value = useMemo<TaxonomyContextValue>(() => {
     const categoryMap = new Map(categories.map((c) => [c.id, c]));
