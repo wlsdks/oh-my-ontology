@@ -9,6 +9,7 @@ import {
   type OntologyCountsForProject,
 } from '@/shared/lib/ontology-tree';
 import { ontologyBorderTone } from './ontology-tone';
+import { resolveTopologyPalette } from './topology-palette';
 
 export interface SigmaNodeAttrs {
   x: number;
@@ -64,19 +65,13 @@ export interface SigmaEdgeAttrs {
 }
 
 const HUB_COLOR = INDIGO_HUB;
-const HUB_BORDER = 'rgba(139, 151, 255, 0.55)';
-const HUB_OUTER_HALO = 'rgba(139, 151, 255, 0.08)';
-const NODE_BORDER = 'rgba(200, 210, 230, 0.3)';
 const NODE_OUTER_HALO = 'rgba(0, 0, 0, 0)'; // 비허브는 halo 없음 (투명)
-const EDGE_COLOR = 'rgba(170, 185, 210, 0.08)';
 
 // 워크스페이스 맵(Layer 0) 의 컨테이너 노드 — 인디고 hub 와 명확히 구분되는
 // 웜 앰버/샌드. 디자인 시스템의 "단일 인디고" 원칙을 Layer 1(프로젝트 내부)
 // 에서 유지하되, Layer 0 에서는 계층 구분을 위해 보조 강조 한 색 허용.
 const CONTAINER_CATEGORY_SENTINEL = '__container__';
 const CONTAINER_COLOR = '#d4b478';                         // 웜 앰버
-const CONTAINER_BORDER = 'rgba(224, 196, 140, 0.62)';
-const CONTAINER_OUTER_HALO = 'rgba(224, 196, 140, 0.10)';
 
 /**
  * 디자인 시스템이 색 추가를 금지(무채색 + 단일 인디고)하므로 도메인 구분은
@@ -198,6 +193,10 @@ export function buildGraph(
     (p) => p.category === CONTAINER_CATEGORY_SENTINEL,
   );
 
+  // build 시점 테마 팔레트. 토글 후엔 SigmaTopology 의 mutation observer 가
+  // 그래프 attr 을 새 팔레트 값으로 다시 바르고 sigma.refresh() 한다.
+  const palette = resolveTopologyPalette();
+
   // Container 공통 brand prefix 감지 — 모든 container 이름이 같은 접두어 +
   // 공백 으로 시작하면 해당 접두어를 label 에서 제거해 공간 절약 ("Demo
   // Observability" → "Observability"). tooltip/drawer/검색 은 full name
@@ -269,17 +268,17 @@ export function buildGraph(
               : toneForSlug(project.slug),
       borderColor:
         project.category === CONTAINER_CATEGORY_SENTINEL
-          ? CONTAINER_BORDER
+          ? palette.containerBorder
           : isLayer0Hub
             ? 'rgba(139, 151, 255, 0.18)'
             : project.isHub
-              ? HUB_BORDER
-              : ontologyTone?.borderColor ?? NODE_BORDER,
+              ? palette.hubBorder
+              : ontologyTone?.borderColor ?? palette.nodeBorder,
       outerBorderColor:
         project.category === CONTAINER_CATEGORY_SENTINEL
-          ? CONTAINER_OUTER_HALO
+          ? palette.containerOuterHalo
           : project.isHub
-            ? HUB_OUTER_HALO
+            ? palette.hubOuterHalo
             : NODE_OUTER_HALO,
       projectSlug: project.slug,
       categoryId: project.category,
@@ -308,7 +307,7 @@ export function buildGraph(
         graph.addEdge(project.slug, dep, {
           // 두께 기본값 — degree 가중은 아래 2nd pass에서 적용
           size: hubToHub ? 0.9 : 0.5,
-          color: EDGE_COLOR,
+          color: palette.edge,
           kind: isContainsRelation ? 'contains' : 'depends-on',
           curvature: hubToHub ? 0.28 : 0.08,
         });

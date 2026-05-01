@@ -27,6 +27,7 @@ import { buildProjectOntologyCounts } from '@/shared/lib/ontology-tree';
 import { useSyncedCallbackRef } from '@/shared/lib/use-synced-callback-ref';
 import { computeDepthMap, shortestPath } from '../lib/depth';
 import { useCameraUrlSync } from '../lib/use-camera-url-sync';
+import { resolveTopologyPalette } from '../lib/topology-palette';
 import { useGraphKeyboardNav } from '../lib/use-graph-keyboard-nav';
 import type { SigmaForces, SigmaOverlays } from '../model/controls-state';
 import { startPhysics, type PhysicsController } from '../lib/physics';
@@ -355,6 +356,9 @@ export function SigmaTopology({
   // hub size 1 → 2.6 easeOutCubic 로 부드럽게. 해제 시 null.
   const containerHoverStartRef = useRef<number | null>(null);
   const containerHoverRafRef = useRef<number | null>(null);
+  // 테마 (light/dark) 별 토폴로지 색 팔레트. 토글 시 mutation observer 가
+  // 새 팔레트로 교체 + graph attr 재페인트 + sigma.refresh().
+  const paletteRefLocal = useRef(resolveTopologyPalette());
   // Sigma 의 animation tick 이 reduceMotionRef.current 를 매 frame 읽어 refresh
   // 생략 분기 — useMediaQuery 의 reactive boolean 을 ref 와 sync 시켜 inline
   // matchMedia + addEventListener boilerplate 제거. initializeWithValue:false
@@ -507,8 +511,11 @@ export function SigmaTopology({
     };
 
     // DIM_COLOR 는 reducer-context-dim 의 CONTEXT_DIM_COLOR 로 이주 (A3-3
-    // 1차). 컴포넌트 안에서는 edge dim 만 잔여.
-    const DIM_EDGE = 'rgba(255, 255, 255, 0.005)';
+    // 1차). 컴포넌트 안에서는 edge dim 만 잔여 — 라이트 / 다크 분기 위해
+    // ref 로 두고 theme 토글 observer 가 갱신.
+    const paletteRef = paletteRefLocal;
+    const DIM_EDGE = () => paletteRef.current.edgeDim;
+    const IDLE_DEPENDS_ON = () => paletteRef.current.edgeDependsOnIdle;
 
     // 경로 찾기 상태: pathAnchor 는 shift+클릭 대기 중인 시작 노드. pathNodes
     // 는 하이라이트할 경로 노드 set. 둘 다 비어 있으면 일반 상호작용.
@@ -716,13 +723,13 @@ export function SigmaTopology({
       }
       // 검색/depth 필터로 한쪽이라도 가려지면 엣지도 숨김.
       if (!matchesSearch(srcAttrs) || !matchesSearch(tgtAttrs)) {
-        return { ...attrs, color: DIM_EDGE };
+        return { ...attrs, color: DIM_EDGE() };
       }
       if (!matchesCategory(srcAttrs) || !matchesCategory(tgtAttrs)) {
-        return { ...attrs, color: DIM_EDGE };
+        return { ...attrs, color: DIM_EDGE() };
       }
       if (!passesDepth(src) || !passesDepth(tgt)) {
-        return { ...attrs, color: DIM_EDGE };
+        return { ...attrs, color: DIM_EDGE() };
       }
 
       // 경로 찾기: 경로 엣지만 강조.
@@ -730,7 +737,7 @@ export function SigmaTopology({
         if (pathEdgeSet.has(edge)) {
           return { ...attrs, color: 'rgba(139, 151, 255, 0.9)', size: 2 };
         }
-        return { ...attrs, color: DIM_EDGE };
+        return { ...attrs, color: DIM_EDGE() };
       }
 
       const focus = activeNode();
@@ -740,7 +747,7 @@ export function SigmaTopology({
         // `depends-on` 엣지는 거의 투명으로 dim — 구조만 (contains) 남긴다.
         // focus 가 생기면 (hover 포함) 복원돼 관계망 보임.
         if (hasContainersRef.current && attrs.kind === 'depends-on') {
-          return { ...attrs, color: 'rgba(139, 151, 255, 0.04)' };
+          return { ...attrs, color: IDLE_DEPENDS_ON() };
         }
         return attrs;
       }
@@ -767,7 +774,7 @@ export function SigmaTopology({
       if (neighbors.has(src) && neighbors.has(tgt)) {
         return { ...attrs, color: 'rgba(139, 151, 255, 0.1)', size: attrs.size };
       }
-      return { ...attrs, color: DIM_EDGE };
+      return { ...attrs, color: DIM_EDGE() };
     });
     // 엣지 타입별 기본 스타일 — focus 미진입 상태의 base 외관. "contains"
     // (소속 = 계층) 는 더 흐린 neutral, "depends-on" (cross-project 관계) 은
@@ -777,13 +784,13 @@ export function SigmaTopology({
         graph.setEdgeAttribute(
           edge,
           'color',
-          'rgba(170, 185, 210, 0.10)',
+          paletteRef.current.edgeContains,
         );
       } else if (attrs.kind === 'depends-on') {
         graph.setEdgeAttribute(
           edge,
           'color',
-          'rgba(139, 151, 255, 0.16)',
+          paletteRef.current.edgeDependsOn,
         );
       }
     });
@@ -1057,20 +1064,54 @@ export function SigmaTopology({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph]);
 
-  // 라이트/다크 모드 토글 시 sigma label 색을 갱신. html data-theme attribute
-  // 만 watch — 다른 변화에 끌려가지 않게 attributeFilter 한정.
+  // 라이트/다크 모드 토글 시 sigma label 색 + 노드 border + 엣지 색을 갱신.
+  // html data-theme attribute 만 watch — 다른 변화에 끌려가지 않게
+  // attributeFilter 한정. 노드/엣지 attr 을 새 팔레트로 다시 바른 뒤
+  // setting 변경 + sigma.refresh 한 번 호출.
+  //
+  // mount 시 한 번 즉시 sync — graph-build 가 SSR fallback (다크) 로 baked
+  // 됐을 수 있고 theme provider 가 attribute 를 설정한 시점이 observer attach
+  // 보다 빨랐을 수 있어, 초기 한 번 강제 동기화로 light 모드 첫 paint 차단.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const target = document.documentElement;
-    const observer = new MutationObserver(() => {
+    const repaint = () => {
       const sigma = sigmaRef.current;
       if (!sigma) return;
+      const palette = resolveTopologyPalette();
+      paletteRefLocal.current = palette;
+      graph.forEachNode((id, attrs) => {
+        if (attrs.categoryId === '__container__') {
+          graph.setNodeAttribute(id, 'borderColor', palette.containerBorder);
+          graph.setNodeAttribute(id, 'outerBorderColor', palette.containerOuterHalo);
+        } else if (attrs.isHub) {
+          graph.setNodeAttribute(id, 'borderColor', palette.hubBorder);
+          graph.setNodeAttribute(id, 'outerBorderColor', palette.hubOuterHalo);
+        } else {
+          graph.setNodeAttribute(id, 'borderColor', palette.nodeBorder);
+        }
+      });
+      graph.forEachEdge((edge, attrs) => {
+        if (attrs.kind === 'contains') {
+          graph.setEdgeAttribute(edge, 'color', palette.edgeContains);
+        } else if (attrs.kind === 'depends-on') {
+          graph.setEdgeAttribute(edge, 'color', palette.edgeDependsOn);
+        } else {
+          graph.setEdgeAttribute(edge, 'color', palette.edge);
+        }
+      });
       sigma.setSetting('labelColor', { color: resolveSigmaLabelColor() });
       sigma.refresh();
-    });
+    };
+    // sigma 가 아직 안 만들어졌을 수 있음 — RAF 한 번 미뤄서 mount 후 paint.
+    const rafId = window.requestAnimationFrame(repaint);
+    const target = document.documentElement;
+    const observer = new MutationObserver(repaint);
     observer.observe(target, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
+  }, [graph]);
 
   // Sigma 검색 input focus 시 Enter/↓/↑ 로 매치 순회. matches 목록은 매번
   // 계산 (500노드 × 문자열 includes 는 밀리초).
