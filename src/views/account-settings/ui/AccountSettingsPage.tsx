@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, MailCheck, ShieldCheck, UserRound } from 'lucide-react';
 import {
   changePassword,
@@ -12,20 +12,9 @@ import {
   useUserAuth,
   type PasswordSupportState,
 } from '@/features/user-auth';
-import { useScopedAccountAccess } from '@/features/account-scope';
-import { hasDemoSession } from '@/shared/lib/demo-session';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { PublicAccountMenu } from '@/widgets/account-menu';
 
-function resolveLoginHref(accountId?: string | null) {
-  const url = new URL('/login', 'http://local.test');
-  url.searchParams.set('next', '/account');
-  return `${url.pathname}?${url.searchParams.toString()}`;
-}
-
-// SSR · 클라이언트 첫 paint 공통 placeholder. hydrated 후 실제
-// getPasswordSupportState() 로 교체. providerLabel 이 mismatch 의
-// 직접 원인이라 SSR 에서 절대 분기되지 않는 안전 값으로 잡는다.
 const PASSWORD_SUPPORT_PLACEHOLDER: PasswordSupportState = {
   canChangePassword: false,
   canResetPassword: false,
@@ -35,23 +24,12 @@ const PASSWORD_SUPPORT_PLACEHOLDER: PasswordSupportState = {
 
 export function AccountSettingsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const accountId = null;
   const { status, user } = useUserAuth();
-  const scopedAccess = useScopedAccountAccess();
-  const hasBeenAuthenticatedRef = useRef(false);
   const [profileEmail, setProfileEmail] = useState(user?.email ?? '');
-  const [profileRoles, setProfileRoles] = useState<string[]>(user?.roles ?? []);
-  // hasDemoSession() 이 window.localStorage 를 읽기 때문에 SSR("게스트")
-  // 과 클라이언트 첫 paint("데모 로그인") 사이 hydration mismatch 발생.
-  // SSR · 클라이언트 첫 paint 모두 placeholder 로 그려 mismatch 차단,
-  // mount 후 useEffect 에서 실제 상태로 교체.
   const [passwordSupport, setPasswordSupport] = useState<PasswordSupportState>(
     PASSWORD_SUPPORT_PLACEHOLDER,
   );
-  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    setHydrated(true);
     setPasswordSupport(getPasswordSupportState());
   }, []);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -65,40 +43,19 @@ export function AccountSettingsPage() {
   const [resetError, setResetError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
-  const loginHref = useMemo(() => resolveLoginHref(accountId), [accountId]);
-  const backHref = '/projects';
-
   useEffect(() => {
-    if (status === 'authenticated') {
-      hasBeenAuthenticatedRef.current = true;
-      return;
-    }
-
-    if (status === 'unauthenticated') {
-      router.replace(hasBeenAuthenticatedRef.current ? backHref : loginHref);
-    }
-  }, [backHref, loginHref, router, status]);
+    if (status === 'unauthenticated') router.replace('/login?next=/account');
+  }, [router, status]);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
-
     let cancelled = false;
-
-    const run = async () => {
-      try {
-        const profile = await getCurrentAuthProfile();
-        if (cancelled || !profile) return;
-        setProfileEmail(profile.email ?? '');
-        setResetEmail(profile.email ?? '');
-        setProfileRoles(profile.roles ?? []);
-        setPasswordSupport(getPasswordSupportState());
-      } catch {
-        if (cancelled) return;
-      }
-    };
-
-    void run();
-
+    void getCurrentAuthProfile().then((profile) => {
+      if (cancelled || !profile) return;
+      setProfileEmail(profile.email ?? '');
+      setResetEmail(profile.email ?? '');
+      setPasswordSupport(getPasswordSupportState());
+    });
     return () => {
       cancelled = true;
     };
@@ -110,11 +67,9 @@ export function AccountSettingsPage() {
       setChangeError('새 비밀번호 확인이 일치하지 않습니다.');
       return;
     }
-
     setChangeSubmitting(true);
     setChangeError(null);
     setChangeSuccess(null);
-
     try {
       await changePassword({ currentPassword, newPassword });
       setCurrentPassword('');
@@ -133,7 +88,6 @@ export function AccountSettingsPage() {
     setResetSubmitting(true);
     setResetError(null);
     setResetSuccess(null);
-
     try {
       await sendPasswordReset({ email: resetEmail });
       setResetSuccess('재설정 안내를 보냈습니다. 이메일을 확인해주세요.');
@@ -147,174 +101,137 @@ export function AccountSettingsPage() {
   return (
     <main className="min-h-screen bg-[color:var(--color-canvas)] px-6 py-8 md:px-10">
       <h1 className="sr-only">계정 설정</h1>
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
         <div className="flex items-start justify-between gap-4">
-          <Link href={backHref} className="inline-flex">
+          <Link href="/projects" className="inline-flex">
             <Button variant="outline" type="button" className="gap-2 rounded-full">
               <ArrowLeft size={15} />
               이전 화면
             </Button>
           </Link>
-          <PublicAccountMenu accountId={accountId} accountLabel={accountId} />
+          <PublicAccountMenu accountId={null} accountLabel={null} />
         </div>
 
         <Card className="rounded-[28px]">
           <CardHeader>
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              계정
-            </p>
             <CardTitle>계정 설정</CardTitle>
             <CardDescription>로그인 상태와 비밀번호를 여기서 관리합니다.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-            <section className="space-y-5">
-              <Card className="rounded-[24px] border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)]">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <UserRound size={18} />
-                    내 정보
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-[color:var(--color-text-secondary)]">
-                  <ProfileRow
-                    label="이름"
-                    value={user?.displayName?.trim() || null}
-                  />
-                  <ProfileRow label="이메일" value={profileEmail || null} />
-                  <ProfileRow
-                    label="로그인 방식"
-                    value={passwordSupport.providerLabel}
-                  />
-                  <ProfileRow
-                    label="권한"
-                    value={
-                      // 데모 세션은 role chip 이 "데모 체험 중" 으로 노출되는
-                      // 헤더 PublicAccountMenu 와 일관되게 여기도
-                      // "데모 체험 중" 우선. 데모 아니고 account 쿼리가 있으면
-                      // 실 역할 (owner/editor/viewer/admin) 표시. 그 외는
-                      // global roles 폴백.
-                      !hydrated
-                        ? '확인 중'
-                        : hasDemoSession()
-                          ? '데모 체험 중'
-                          : accountId && scopedAccess.kind !== 'loading' && scopedAccess.kind !== 'guest'
-                            ? scopedAccess.roleLabel
-                            : profileRoles.length > 0
-                              ? profileRoles.join(', ')
-                              : '기본 사용자'
-                    }
-                  />
-                </CardContent>
-              </Card>
+          <CardContent className="grid gap-5 lg:grid-cols-2">
+            <Card className="rounded-[24px] border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)]">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <UserRound size={18} />
+                  내 정보
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-[color:var(--color-text-secondary)]">
+                <ProfileRow label="이름" value={user?.displayName?.trim() || null} />
+                <ProfileRow label="이메일" value={profileEmail || null} />
+                <ProfileRow label="로그인 방식" value={passwordSupport.providerLabel} />
+              </CardContent>
+            </Card>
 
-              <Card className="rounded-[24px] border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)]">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <ShieldCheck size={18} />
-                    비밀번호 변경
-                  </CardTitle>
-                  <CardDescription>
-                    현재 비밀번호를 확인한 뒤 새 비밀번호로 바꿉니다.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {passwordSupport.canChangePassword ? (
-                    <form className="space-y-4" onSubmit={handleChangePassword}>
-                      <Field label="현재 비밀번호">
-                        <input
-                          name="currentPassword"
-                          type="password"
-                          autoComplete="current-password"
-                          className={inputClassName}
-                          value={currentPassword}
-                          onChange={(event) => setCurrentPassword(event.target.value)}
-                          required
-                        />
-                      </Field>
-                      <Field label="새 비밀번호">
-                        <input
-                          name="newPassword"
-                          type="password"
-                          autoComplete="new-password"
-                          className={inputClassName}
-                          value={newPassword}
-                          onChange={(event) => setNewPassword(event.target.value)}
-                          required
-                        />
-                      </Field>
-                      <Field label="새 비밀번호 확인">
-                        <input
-                          name="confirmPassword"
-                          type="password"
-                          autoComplete="new-password"
-                          className={inputClassName}
-                          value={confirmPassword}
-                          onChange={(event) => setConfirmPassword(event.target.value)}
-                          required
-                        />
-                      </Field>
-                      {changeError ? (
-                        <p className="text-sm text-[color:var(--color-status-danger)]">{changeError}</p>
-                      ) : null}
-                      {changeSuccess ? (
-                        <p className="text-sm text-[color:var(--color-indigo-accent)]">{changeSuccess}</p>
-                      ) : null}
-                      <Button type="submit" disabled={changeSubmitting}>
-                        {changeSubmitting ? '변경 중...' : '비밀번호 변경'}
-                      </Button>
-                    </form>
-                  ) : (
-                    <p className="text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                      {passwordSupport.reason ?? '이 로그인 방식에서는 비밀번호를 직접 바꾸지 않습니다.'}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </section>
+            <Card className="rounded-[24px] border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)]">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <ShieldCheck size={18} />
+                  비밀번호 변경
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {passwordSupport.canChangePassword ? (
+                  <form className="space-y-4" onSubmit={handleChangePassword}>
+                    <Field label="현재 비밀번호">
+                      <input
+                        name="currentPassword"
+                        type="password"
+                        autoComplete="current-password"
+                        className={inputClassName}
+                        value={currentPassword}
+                        onChange={(event) => setCurrentPassword(event.target.value)}
+                        required
+                      />
+                    </Field>
+                    <Field label="새 비밀번호">
+                      <input
+                        name="newPassword"
+                        type="password"
+                        autoComplete="new-password"
+                        className={inputClassName}
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        required
+                      />
+                    </Field>
+                    <Field label="새 비밀번호 확인">
+                      <input
+                        name="confirmPassword"
+                        type="password"
+                        autoComplete="new-password"
+                        className={inputClassName}
+                        value={confirmPassword}
+                        onChange={(event) => setConfirmPassword(event.target.value)}
+                        required
+                      />
+                    </Field>
+                    {changeError ? (
+                      <p className="text-sm text-[color:var(--color-status-danger)]">{changeError}</p>
+                    ) : null}
+                    {changeSuccess ? (
+                      <p className="text-sm text-[color:var(--color-indigo-accent)]">{changeSuccess}</p>
+                    ) : null}
+                    <Button type="submit" disabled={changeSubmitting}>
+                      {changeSubmitting ? '변경 중...' : '비밀번호 변경'}
+                    </Button>
+                  </form>
+                ) : (
+                  <p className="text-sm leading-6 text-[color:var(--color-text-tertiary)]">
+                    {passwordSupport.reason ?? '이 로그인 방식에서는 비밀번호를 직접 바꾸지 않습니다.'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
-            <section className="space-y-5">
-              <Card className="rounded-[24px] border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)]">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <MailCheck size={18} />
-                    비밀번호 재설정
-                  </CardTitle>
-                  <CardDescription>
-                    로그인에 문제가 있으면 재설정 메일을 다시 받을 수 있습니다.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {passwordSupport.canResetPassword ? (
-                    <form className="space-y-4" onSubmit={handleResetPassword}>
-                      <Field label="이메일">
-                        <input
-                          name="resetEmail"
-                          type="email"
-                          autoComplete="email"
-                          className={inputClassName}
-                          value={resetEmail}
-                          onChange={(event) => setResetEmail(event.target.value)}
-                          required
-                        />
-                      </Field>
-                      {resetError ? (
-                        <p className="text-sm text-[color:var(--color-status-danger)]">{resetError}</p>
-                      ) : null}
-                      {resetSuccess ? (
-                        <p className="text-sm text-[color:var(--color-indigo-accent)]">{resetSuccess}</p>
-                      ) : null}
-                      <Button type="submit" variant="outline" disabled={resetSubmitting}>
-                        {resetSubmitting ? '보내는 중...' : '재설정 메일 보내기'}
-                      </Button>
-                    </form>
-                  ) : (
-                    <p className="text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                      {passwordSupport.reason ?? '이 로그인 방식에서는 재설정 메일을 보내지 않습니다.'}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </section>
+            <Card className="rounded-[24px] border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] lg:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MailCheck size={18} />
+                  비밀번호 재설정
+                </CardTitle>
+                <CardDescription>로그인에 문제가 있으면 재설정 메일을 다시 받을 수 있습니다.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {passwordSupport.canResetPassword ? (
+                  <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={handleResetPassword}>
+                    <Field label="이메일" className="flex-1">
+                      <input
+                        name="resetEmail"
+                        type="email"
+                        autoComplete="email"
+                        className={inputClassName}
+                        value={resetEmail}
+                        onChange={(event) => setResetEmail(event.target.value)}
+                        required
+                      />
+                    </Field>
+                    <Button type="submit" variant="outline" disabled={resetSubmitting}>
+                      {resetSubmitting ? '보내는 중...' : '재설정 메일 보내기'}
+                    </Button>
+                    {resetError ? (
+                      <p className="text-sm text-[color:var(--color-status-danger)] sm:basis-full">{resetError}</p>
+                    ) : null}
+                    {resetSuccess ? (
+                      <p className="text-sm text-[color:var(--color-indigo-accent)] sm:basis-full">{resetSuccess}</p>
+                    ) : null}
+                  </form>
+                ) : (
+                  <p className="text-sm leading-6 text-[color:var(--color-text-tertiary)]">
+                    {passwordSupport.reason ?? '이 로그인 방식에서는 재설정 메일을 보내지 않습니다.'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           </CardContent>
         </Card>
       </div>
@@ -322,22 +239,14 @@ export function AccountSettingsPage() {
   );
 }
 
-function ProfileRow({
-  label,
-  value,
-}: {
-  label: string;
-  /** null/공백이면 "미설정"을 mono 톤으로 표시. 실제 값과 시각적으로 구분. */
-  value: string | null;
-}) {
+function ProfileRow({ label, value }: { label: string; value: string | null }) {
   const trimmed = value?.trim() ?? '';
-  const isEmpty = trimmed.length === 0;
   return (
     <div className="grid gap-1 rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-3">
       <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
         {label}
       </p>
-      {isEmpty ? (
+      {trimmed.length === 0 ? (
         <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
           미설정
         </p>
@@ -351,12 +260,14 @@ function ProfileRow({
 function Field({
   label,
   children,
+  className,
 }: {
   label: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <label className="flex flex-col gap-2">
+    <label className={`flex flex-col gap-2 ${className ?? ''}`}>
       <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
         {label}
       </span>
