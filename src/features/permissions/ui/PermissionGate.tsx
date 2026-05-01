@@ -57,7 +57,7 @@ export function PermissionGate({
     () => normalizeAccountId(new URLSearchParams(search).get(ACCOUNT_QUERY_KEY)),
     [search],
   );
-  const scopedAccess = useScopedAccountAccess(accountId);
+  const scopedAccess = useScopedAccountAccess();
 
   if (
     status === 'loading' ||

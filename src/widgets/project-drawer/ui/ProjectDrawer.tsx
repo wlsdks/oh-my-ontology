@@ -99,7 +99,7 @@ export function ProjectDrawer({
   const asideRef = useRef<HTMLElement | null>(null);
   const router = useRouter();
   const reducedMotion = useReducedMotion();
-  const access = useScopedAccountAccess(accountId);
+  const access = useScopedAccountAccess();
   const { categories, statuses, categoryLabel, statusLabel } = useTaxonomy();
   // 모바일 bottom-sheet 스타일: 드래그 핸들 바에서만 아래로 스와이프하면 닫힘.
   // 컨텐츠 영역의 수직 스크롤과 충돌하지 않도록 dragListener=false 로 통제.

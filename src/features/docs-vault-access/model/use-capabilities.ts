@@ -48,7 +48,7 @@ export function useDocsVaultCapabilities(): DocsVaultCapabilities {
       normalizeAccountId(new URLSearchParams(search).get(ACCOUNT_QUERY_KEY)),
     [search],
   );
-  const scopedAccess = useScopedAccountAccess(accountId);
+  const scopedAccess = useScopedAccountAccess();
 
   return useMemo<DocsVaultCapabilities>(() => {
     if (status === 'loading' || scopedAccess.kind === 'loading') {

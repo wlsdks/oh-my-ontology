@@ -24,7 +24,7 @@ export function PublicQuickActions({
   className,
   label = "프로젝트 관리",
 }: Props) {
-  const access = useScopedAccountAccess(accountId);
+  const access = useScopedAccountAccess();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 

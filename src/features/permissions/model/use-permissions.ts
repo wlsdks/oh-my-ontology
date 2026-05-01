@@ -27,7 +27,7 @@ export interface PermissionsState {
 export function usePermissions(accountId?: string | null): PermissionsState {
   const normalizedAccountId = normalizeAccountId(accountId);
   const { status: adminStatus, user } = useGlobalAdmin();
-  const scopedAccess = useScopedAccountAccess(normalizedAccountId);
+  const scopedAccess = useScopedAccountAccess();
 
   return useMemo<PermissionsState>(() => {
     const isGlobalAdmin = adminStatus === 'authenticated';

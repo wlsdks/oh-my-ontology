@@ -25,7 +25,7 @@ export function RootEntryPage() {
   const next = searchParams.get("next");
   const userAuth = useUserAuth();
   const globalAdmin = useGlobalAdmin();
-  const scopedAccess = useScopedAccountAccess(accountId);
+  const scopedAccess = useScopedAccountAccess();
 
   // Account-scoped 방문만 membership-aware scope 로 판정.
   if (accountId) {

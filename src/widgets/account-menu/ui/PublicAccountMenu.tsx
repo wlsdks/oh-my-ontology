@@ -42,7 +42,7 @@ export function PublicAccountMenu({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user } = useGlobalAdmin();
-  const scopedAccess = useScopedAccountAccess(accountId);
+  const scopedAccess = useScopedAccountAccess();
   const [open, setOpen] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoError, setDemoError] = useState<string | null>(null);

@@ -23,9 +23,7 @@ export interface UseScopedAccountAccessResult extends ScopedAccountAccess {
  * 로그인 안 한 사용자는 게스트 — local-first 흐름에서 폴더 선택만으로
  * 사용 가능하지만, 서버와 동기화하는 액션 (publish 등) 은 로그인 후에만.
  */
-export function useScopedAccountAccess(
-  _accountId?: string | null,
-): UseScopedAccountAccessResult {
+export function useScopedAccountAccess(): UseScopedAccountAccessResult {
   const { status, user } = useUserAuth();
 
   return useMemo<UseScopedAccountAccessResult>(() => {

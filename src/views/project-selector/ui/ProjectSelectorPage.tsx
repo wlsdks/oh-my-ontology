@@ -73,7 +73,7 @@ export function ProjectSelectorPage() {
   // 로그인 사용자가 ?account= 없이 진입하면 본인 워크스페이스로 자동 스코프 —
   const activeContainerName: string | null = null;
   const returnTo = searchParams.get("returnTo");
-  const scopedAccess = useScopedAccountAccess(accountId);
+  const scopedAccess = useScopedAccountAccess();
   const { categoryLabel, statusLabel, categories, statuses } = useTaxonomy();
   const isSignedIn = scopedAccess.kind !== "guest" && scopedAccess.kind !== "loading";
   const [projects, setProjects] = useState<Project[]>([]);

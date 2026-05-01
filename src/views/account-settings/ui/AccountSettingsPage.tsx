@@ -38,7 +38,7 @@ export function AccountSettingsPage() {
   const searchParams = useSearchParams();
   const accountId = null;
   const { status, user } = useUserAuth();
-  const scopedAccess = useScopedAccountAccess(accountId);
+  const scopedAccess = useScopedAccountAccess();
   const hasBeenAuthenticatedRef = useRef(false);
   const [profileEmail, setProfileEmail] = useState(user?.email ?? '');
   const [profileRoles, setProfileRoles] = useState<string[]>(user?.roles ?? []);
