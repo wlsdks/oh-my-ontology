@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "pnpm docs-vault:build",
     "dev": "next dev",
     "dev:firestore-emulator": "firebase emulators:start --project demo-oh-my-ontology --only firestore",
     "dev:firebase-emulators": "firebase emulators:start --project demo-oh-my-ontology --only auth,firestore,functions,storage",
