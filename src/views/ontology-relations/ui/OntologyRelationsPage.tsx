@@ -105,7 +105,7 @@ export function OntologyRelationsPage() {
           </div>
         </div>
         <p className="break-keep text-sm leading-7 text-[color:var(--color-text-secondary)]">
-          노드는 트리, 통계는 인사이트. 관계는 의미 edge type 의 분포와 evidence 풍부한 관계를 보여줍니다.
+          노드는 트리, 통계는 인사이트. 관계는 *의미 관계 종류* 의 분포와 근거 풍부한 관계를 보여줍니다.
         </p>
       </section>
 
@@ -219,7 +219,7 @@ export function OntologyRelationsPage() {
                 ) : null}
               </p>
               <p className="mt-0.5 text-[11px] text-[color:var(--color-text-tertiary)]">
-                evidence 풍부한 위 12 — 자주 인용되는 의미 연결
+                근거 문서 많은 위 12 — 자주 인용되는 의미 연결
                 {selectedType ? ` · ${filteredEdges.length} 매치` : ""}
               </p>
             </header>
