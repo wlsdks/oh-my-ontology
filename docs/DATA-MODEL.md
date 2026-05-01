@@ -38,8 +38,6 @@ firestore/
 │       │   └── {hubId}/
 │       └── nodes/                   비-허브 노드 (sub-collection)
 │           └── {nodeId}/
-├── projectActivity/                 프로젝트 활동 로그 (append-only)
-│   └── {eventId}/
 ├── clientErrors/                    클라이언트 런타임 에러 (append-only)
 │   └── {errorId}/
 ├── knowledgeDocuments/              private 문서 헤더
@@ -196,20 +194,6 @@ firestore/
 | `description` | string | 사이트 설명 |
 | `lastUpdated` | Timestamp | 마지막 변경 시점 |
 | `viewCount` | number | 방문 카운트 (선택) |
-
-### `projectActivity/{eventId}`
-
-프로젝트 단위 활동 로그 — append-only.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `action` | string | ✅ | `project.created` · `project.updated` · `project.deleted` 등 |
-| `projectSlug` | string | ✅ | 대상 프로젝트 slug |
-| `projectName` | string | ✅ | 표시용 이름 |
-| `actorEmail` | string |  | 실행자 이메일 |
-| `actorName` | string |  | 실행자 이름 |
-| `summary` | string |  | 변경 요약 |
-| `createdAt` | Timestamp | ✅ | 발생 시각 |
 
 ### `clientErrors/{errorId}`
 

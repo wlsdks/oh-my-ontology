@@ -71,13 +71,6 @@ service cloud.firestore {
       }
     }
 
-    // 활동 로그 — append-only.
-    match /projectActivity/{eventId} {
-      allow read: if isAuthed();
-      allow create: if isAuthed();
-      allow update, delete: if false;
-    }
-
     // 클라이언트 에러 — global-error/error.tsx 가 hydration·render 실패 시 append.
     match /clientErrors/{errorId} {
       allow read: if isAuthed();

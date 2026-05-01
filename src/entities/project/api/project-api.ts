@@ -30,10 +30,6 @@ import {
   type Project,
   type ProjectInput,
 } from "@/entities/project/model";
-import {
-  recordProjectActivity,
-  summarizeProjectUpdate,
-} from "@/entities/project-activity";
 
 const COLLECTION = "projects";
 
@@ -95,38 +91,12 @@ export async function upsertProject(input: ProjectInput): Promise<void> {
 
   const ref = projectDoc(input.slug);
   const existing = await getDoc(ref);
-  const existingProject = existing.exists()
-    ? fromFirestore(existing.id, existing.data())
-    : null;
 
   await setDoc(ref, {
     ...payload,
     updatedAt: serverTimestamp(),
     ...(existing.exists() ? {} : { createdAt: serverTimestamp() }),
   });
-
-  // 활동 로그 — 실패해도 메인 작업은 성공 처리. account-scoped 만 기록.
-  if (accountId) {
-    if (existingProject) {
-      const summary = summarizeProjectUpdate(existingProject, input);
-      if (summary) {
-        void recordProjectActivity({
-          action: "project.updated",
-          projectSlug: input.slug,
-          projectName: full.name,
-          accountId,
-          summary,
-        });
-      }
-    } else {
-      void recordProjectActivity({
-        action: "project.created",
-        projectSlug: input.slug,
-        projectName: full.name,
-        accountId,
-      });
-    }
-  }
 }
 
 export async function upsertProjectPositions(
@@ -157,9 +127,7 @@ export async function deleteProject(
   slug: string,
   accountId?: string | null,
 ): Promise<void> {
-  const normalizedAccountId = normalizeAccountId(accountId);
   const projects = await listProjects(accountId);
-  const targetProject = projects.find((project) => project.slug === slug);
   const referencedBy = findProjectsReferencingSlug(projects, slug);
   if (referencedBy.length > 0) {
     const names = referencedBy.map((project) => project.name).join(", ");
@@ -173,15 +141,6 @@ export async function deleteProject(
     return;
   }
   await deleteDoc(projectDoc(slug));
-
-  if (normalizedAccountId) {
-    void recordProjectActivity({
-      action: "project.deleted",
-      projectSlug: slug,
-      projectName: targetProject?.name ?? slug,
-      accountId: normalizedAccountId,
-    });
-  }
 }
 
 export async function deleteProjects(
