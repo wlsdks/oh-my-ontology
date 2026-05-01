@@ -1,7 +1,15 @@
 // vault helpers — 디렉토리 walking + .md 읽기/쓰기. 동기 fs 만 사용 (MCP
 // tool 호출 빈도가 낮아 async 오버헤드 불필요).
 
-import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
+import {
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+  statSync,
+  unlinkSync,
+} from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 
 import { parseFrontmatter, buildMarkdown } from './parser.mjs';
@@ -94,6 +102,21 @@ export function writeDoc(rootPath, slug, { frontmatter, body = '' }) {
   const md = buildMarkdown({ frontmatter, body });
   writeFileSync(filePath, md, 'utf-8');
   return filePath;
+}
+
+/**
+ * doc 영구 삭제. 호출자가 confirmation / backlinks 검사를 책임진다.
+ * 반환: 삭제 직전 캡처한 { slug, filePath, frontmatter, body, raw }.
+ * 파일 없으면 throw.
+ */
+export function deleteDoc(rootPath, slug) {
+  const filePath = slugToPath(rootPath, slug);
+  if (!existsSync(filePath)) {
+    throw new Error(`Doc not found: ${slug}`);
+  }
+  const captured = readDoc(rootPath, filePath);
+  unlinkSync(filePath);
+  return { ...captured, filePath };
 }
 
 /**

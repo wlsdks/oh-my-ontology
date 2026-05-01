@@ -27,6 +27,7 @@ import {
 import { resolve } from 'node:path';
 
 import {
+  deleteDoc,
   ensureVaultRoot,
   findBacklinks,
   findPath,
@@ -43,7 +44,7 @@ const VAULT_ROOT = resolve(process.env.OMOT_VAULT || process.cwd());
 ensureVaultRoot(VAULT_ROOT);
 
 const server = new Server(
-  { name: 'oh-my-ontology-mcp', version: '0.3.0' },
+  { name: 'oh-my-ontology-mcp', version: '0.4.0' },
   { capabilities: { tools: {} } },
 );
 
@@ -226,6 +227,36 @@ const TOOLS = [
       properties: {},
     },
   },
+  {
+    name: 'delete_concept',
+    description:
+      '⚠ DESTRUCTIVE — vault 의 .md 파일 영구 삭제. 안전 가드 2단:\n' +
+      '  1. confirm: true 미지정 시 dry-run — 삭제 없이 backlinks 미리보기만 반환.\n' +
+      '  2. backlinks 가 있으면 throw — 다른 노드가 이 slug 를 가리키는 한 거부. ' +
+      'force: true 명시하면 backlinks 무시하고 삭제 (참조 노드들은 dangling 됨).\n' +
+      '삭제 응답에 frontmatter + body 를 같이 반환 — 사용자가 실수로 삭제했을 때 ' +
+      'add_concept 으로 재생성 가능. 디렉토리는 건드리지 않음.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: {
+          type: 'string',
+          description: 'vault-relative slug (확장자 제외).',
+        },
+        confirm: {
+          type: 'boolean',
+          description:
+            '실제 삭제 확정. 미지정·false 면 dry-run (삭제 없이 backlinks 미리보기).',
+        },
+        force: {
+          type: 'boolean',
+          description:
+            'backlinks 가 있어도 삭제 강행 (참조 노드들은 dangling 됨). 기본 false.',
+        },
+      },
+      required: ['slug'],
+    },
+  },
 ];
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
@@ -254,6 +285,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return ok(findPathTool(args));
       case 'list_kinds':
         return ok(listKindsTool());
+      case 'delete_concept':
+        return ok(deleteConcept(args));
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -402,6 +435,51 @@ function findPathTool({ from, to, maxHops }) {
 
 function listKindsTool() {
   return listKinds(VAULT_ROOT);
+}
+
+function deleteConcept({ slug, confirm = false, force = false }) {
+  if (!slug) {
+    throw new Error('slug 가 필요합니다.');
+  }
+  // 존재 확인 — readDoc 이 실패하면 명확한 에러로 surface.
+  const filePath = slugToPath(VAULT_ROOT, slug);
+  const target = readDoc(VAULT_ROOT, filePath);
+  const backlinks = findBacklinks(VAULT_ROOT, slug);
+
+  if (!confirm) {
+    return {
+      ok: false,
+      dryRun: true,
+      slug,
+      filePath,
+      backlinks,
+      message:
+        backlinks.length > 0
+          ? `dry-run — ${backlinks.length} 개 backlink 가 있어 confirm:true 만으로는 거부됩니다. force:true 까지 줘야 강행.`
+          : 'dry-run — confirm:true 를 주면 실제 삭제됩니다.',
+    };
+  }
+
+  if (backlinks.length > 0 && !force) {
+    throw new Error(
+      `${backlinks.length} 개 backlink 가 있어 삭제 거부: ` +
+        backlinks.map((b) => b.slug).join(', ') +
+        ' — force:true 로 강행 가능 (참조 노드 dangling).',
+    );
+  }
+
+  const deleted = deleteDoc(VAULT_ROOT, slug);
+  return {
+    ok: true,
+    slug,
+    filePath: deleted.filePath ?? filePath,
+    forced: backlinks.length > 0 ? true : undefined,
+    backlinksAtDelete: backlinks.length > 0 ? backlinks : undefined,
+    captured: {
+      frontmatter: deleted.frontmatter,
+      body: deleted.body,
+    },
+  };
 }
 
 // ── 부팅 ──────────────────────────────────────────────────────────────────
