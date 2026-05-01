@@ -57,7 +57,7 @@ import { OntologyInspector } from "./OntologyInspector";
 import { BuilderOnboarding } from "./BuilderOnboarding";
 
 /**
- * `/ontology/edit` — ERD canvas editor v1 (Track C-1~C-3).
+ * `/ontology/edit` — ERD canvas editor v1.
  *
  * SSR 회피: xyflow 내부 ResizeObserver / window 의존성 → `next/dynamic`
  * + `ssr: false` 로 client-only mount. Next.js 16 정적 export 와 호환.
@@ -168,7 +168,7 @@ export function OntologyEditPage() {
     [accountId, dataSourceMode, findById, removeNode, toast, vault],
   );
   const ephemeralSelected = findById(selectedId);
-  // C-5 — vault 모드에서는 selectedId 가 vault slug. manifest 에서 lookup
+  // vault 모드에서는 selectedId 가 vault slug. manifest 에서 lookup
   // 해 인스펙터에 frontmatter + array 키 (capabilities/elements/...) 까지
   // 함께 전달 (in-canvas rename + array 편집 가능).
   // 빌더 진실원 우선순위 (PR #43): live vault.manifest > 빌드타임 dogfood
@@ -224,7 +224,7 @@ export function OntologyEditPage() {
     [toast, vault],
   );
 
-  // C-5 — vault frontmatter array 키 (capabilities/elements/dependencies/
+  // vault frontmatter array 키 (capabilities/elements/dependencies/
   // relates) 편집. 빈 배열은 키 자체를 제거 (null) — frontmatter 깨끗.
   const editVaultArrayKey = useCallback(
     async (
@@ -263,7 +263,7 @@ export function OntologyEditPage() {
     [toast, vault],
   );
 
-  // C-5 fire — vault 노드 drag 좌표를 frontmatter.canvasPosition 으로 patch.
+  // vault 노드 drag 좌표를 frontmatter.canvasPosition 으로 patch.
   // 같은 사용자가 재방문 시 + AI agent (MCP) 가 같은 vault read 시 동일 좌표.
   // skipRefresh 로 manifest 재빌드 생략 — drag 직후 사용자 시각엔 캔버스 위치
   // 그대로라 깜빡임 없게. 다음 cold load 부터 canvasPosition 반영.
@@ -283,7 +283,7 @@ export function OntologyEditPage() {
     [toast, vault],
   );
 
-  // C-5 vault delete — MCP delete_concept 와 같은 정책: backlinks 가 있으면
+  // vault delete — MCP delete_concept 와 같은 정책: backlinks 가 있으면
   // confirm 단계에서 list 보여주고 사용자가 의식적으로 진행하게. force 플래그
   // 는 별도 UI 없이 confirm 한 번 — UI 자체가 사용자 의도 게이트.
   const deleteVaultDoc = useCallback(
@@ -323,7 +323,7 @@ export function OntologyEditPage() {
     ? `/ontology/?${ACCOUNT_QUERY_KEY}=${encodeURIComponent(accountId)}`
     : "/ontology/";
 
-  // C-14 keyboard shortcuts — Atlas 캔버스 단축키.
+  // Atlas 캔버스 단축키.
   // 스코프: input/textarea 포커스 시 비활성. 항상 ephemeral 만 영향.
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
