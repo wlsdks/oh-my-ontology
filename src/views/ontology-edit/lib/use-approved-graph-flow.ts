@@ -1,7 +1,6 @@
 "use client";
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
-import dagre from "@dagrejs/dagre";
 import type { Edge, Node } from "@xyflow/react";
 import {
   subscribeKnowledgeApprovedGraph,
@@ -12,10 +11,7 @@ import {
 
 /**
  * Track C-2 — knowledgeApprovedNodes/Edges 를 xyflow `Node[]` / `Edge[]` 로
- * 변환. dagre layered layout 으로 자동 위치 (canvasPosition 미정 노드용).
- *
- * canvasPosition (C-5 fire) 는 이 hook 의 다음 iteration 에서 추가 — 현재는
- * dagre 자동 layout 만 사용.
+ * 변환. canvasPosition 미정 노드는 단순 grid 위치.
  */
 export function useApprovedGraphFlow(accountId: string | null) {
   const [insight, setInsight] = useState<KnowledgeProjectInsight | null>(null);
@@ -58,7 +54,7 @@ function buildFlowFromInsight(insight: KnowledgeProjectInsight) {
     (e) => validIds.has(e.from) && validIds.has(e.to),
   );
 
-  const positions = computeDagreLayout(nodes, edges);
+  const positions = computeGridLayout(nodes, edges);
 
   const xyNodes: Node[] = nodes.map((n) => {
     const pos = positions.get(n.id) ?? { x: 0, y: 0 };
@@ -142,32 +138,25 @@ function edgeStrokeStyleByType(type: string): CSSProperties {
   return { stroke: "rgba(94, 106, 210, 0.46)", strokeWidth: 1 };
 }
 
-function computeDagreLayout(
+/**
+ * 단순 grid 레이아웃. dagre 의 hierarchical 자동 배치를 쓰지 않는 이유:
+ * - 빌더 캔버스의 첫 진입은 사용자가 직접 노드 위치를 잡는 단계로 디자인
+ * - hierarchical 추정은 종종 사용자 의도와 어긋나 결국 다 옮기게 됨
+ * - 빈 캔버스 + 한 줄씩 row 로 펼쳐두면 cognitive load 작고 충분
+ */
+function computeGridLayout(
   nodes: KnowledgeGraphNode[],
-  edges: KnowledgeGraphEdge[],
+  _edges: KnowledgeGraphEdge[],
 ): Map<string, { x: number; y: number }> {
-  const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 80 });
-
-  for (const n of nodes) {
-    g.setNode(n.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
-  }
-  for (const e of edges) {
-    g.setEdge(e.from, e.to);
-  }
-
-  dagre.layout(g);
-
+  const COLS = Math.max(1, Math.ceil(Math.sqrt(nodes.length)));
+  const COL_GAP = NODE_WIDTH + 40;
+  const ROW_GAP = NODE_HEIGHT + 40;
   const map = new Map<string, { x: number; y: number }>();
-  for (const id of g.nodes()) {
-    const node = g.node(id);
-    if (node) {
-      map.set(id, {
-        x: node.x - NODE_WIDTH / 2,
-        y: node.y - NODE_HEIGHT / 2,
-      });
-    }
-  }
+  nodes.forEach((n, idx) => {
+    const col = idx % COLS;
+    const row = Math.floor(idx / COLS);
+    map.set(n.id, { x: col * COL_GAP, y: row * ROW_GAP });
+  });
   return map;
 }
 

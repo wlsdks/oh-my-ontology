@@ -3,8 +3,6 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, RefreshCw } from "lucide-react";
-import { reportClientError } from "@/entities/client-error";
-import { getFirebaseAuth } from "@/shared/api";
 
 interface Props {
   error: Error & { digest?: string };
@@ -14,30 +12,6 @@ interface Props {
 export default function RouteError({ error, reset }: Props) {
   useEffect(() => {
     console.error("[route-error]", error);
-
-    // Firestore 에 에러 기록 (계정 멤버일 때만 rule 통과). 비동기 fire-and-forget.
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const accountId = params.get("account")?.trim() ?? "";
-    if (!accountId) return;
-
-    let uid: string | null = null;
-    try {
-      uid = getFirebaseAuth().currentUser?.uid ?? null;
-    } catch {
-      /* auth 미초기화 */
-    }
-
-    void reportClientError({
-      accountId,
-      message: error.message || String(error),
-      stack: error.stack,
-      url: `${window.location.pathname}${window.location.search}`,
-      userAgent: window.navigator.userAgent,
-      uid,
-      digest: error.digest,
-      kind: "route",
-    });
   }, [error]);
 
   return (

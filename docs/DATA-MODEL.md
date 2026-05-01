@@ -30,22 +30,6 @@ firestore/
 │   └── {id}/
 ├── meta/
 │   └── site/
-├── apiKeys/                         외부 HTTP API 인증 토큰
-│   └── {keyId}/
-├── workspaceProjects/               워크스페이스 컨테이너
-│   └── {projectId}/
-│       ├── hubs/                    허브 노드 (sub-collection)
-│       │   └── {hubId}/
-│       └── nodes/                   비-허브 노드 (sub-collection)
-│           └── {nodeId}/
-├── projectActivity/                 프로젝트 활동 로그 (append-only)
-│   └── {eventId}/
-├── clientErrors/                    클라이언트 런타임 에러 (append-only)
-│   └── {errorId}/
-├── developerActivityEvents/         Developer Activity Ingest projection
-│   └── {eventId}/
-├── developerActivityDeliveries/     GitHub webhook delivery log
-│   └── {deliveryId}/
 ├── knowledgeDocuments/              private 문서 헤더
 │   └── {documentId}/
 ├── knowledgeDocumentVersions/       private 원문 버전
@@ -82,10 +66,8 @@ firestore/
 │   └── {relationId}/
 ├── ontologyTBoxVersions/            ontology TBox snapshot (immutable, append-only)
 │   └── {versionId}/
-├── ontologyTBoxState/               활성 TBox version 포인터
-│   └── current/                     versionId + activatedAt + activatedBy
-└── sharedDocs/                      Docs Vault 임시 공개 링크 (S-1)
-    └── {token}/
+└── ontologyTBoxState/               활성 TBox version 포인터
+    └── current/                     versionId + activatedAt + activatedBy
 ```
 
 ## 3. 공개 제품 컬렉션
@@ -116,53 +98,6 @@ firestore/
 | `position.y` | number | ✅ | 토폴로지 레이아웃 좌표 Y |
 | `createdAt` | Timestamp | ✅ | 생성일 |
 | `updatedAt` | Timestamp | ✅ | 수정일 |
-
-### `workspaceProjects/{projectId}`
-
-> 한 워크스페이스 안의 **컨테이너 프로젝트** — 그 아래에 허브/노드가 4-layer 로 쌓인다. 기존 flat `projects` 와 병존하다가 마이그레이션 완료 후 flat 은 제거 예정.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `accountId` | string |  | (legacy) 발급 시점 사용자 uid — 새 데이터에는 선택 |
-| `name` | string | ✅ | 컨테이너 이름 (예: "General") |
-| `description` | string |  | 짧은 설명 |
-| `isPublic` | boolean |  | 공개 여부 (추후 공개 화면 라우팅용) |
-| `order` | number |  | 셀렉터 정렬 순서 |
-| `metadata` | object |  | 확장용 키-값 (`icon`, `color` 등) |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `updatedAt` | Timestamp | ✅ | 수정일 |
-
-### `workspaceProjects/{projectId}/hubs/{hubId}`
-
-> 컨테이너 안 허브 노드 sub-collection. 기존 `projects` 의 `isHub=true` row 가 이관될 자리. 필드는 `projects/{slug}` 와 호환 유지 (slug→hubId 동일).
-
-### `workspaceProjects/{projectId}/nodes/{nodeId}`
-
-> 컨테이너 안 비-허브 노드 sub-collection — **hubs 와 sibling** (parent-child 중첩 아님). 한 node 가 여러 hub 에 속할 수 있게 하기 위한 배열 참조 모델.
->
-> 이관 규칙: 기존 `projects` 의 `isHub=false` row 가 복사되고, 해당 row 의 `dependencies[]` 중 isHub=true 인 slug 만 추려서 `hubIds[]` 로 설정. 아무 hub 도 참조 없으면 `hubIds: []` (orphan 허용 — 허브에 붙지 않은 독립 서비스도 자연).
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `hubIds` | string[] | ✅ | 속한 hub slug 배열. 0~N 개. `array-contains` 쿼리로 허브별 필터. |
-
-> 그 외 필드는 `projects/{slug}` 와 호환 유지 (`name`, `description`, `tags`, `stack`, `links`, `status`, `category`, `position`, `screenshots`, `owner`, `progress`, `timeline`, `createdAt`, `updatedAt`).
-
-### `apiKeys/{keyId}`
-
-> 외부 클라이언트 (CLI · CI · MCP server) 가 `POST /api/v1/docs` 같은 HTTP 엔드포인트로 워크스페이스에 push 할 때 사용하는 인증 토큰. 평문 키는 발급 직후 한 번만 UI 노출, hash 만 저장.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `name` | string | ✅ | 사용자 식별용 라벨 (예: "CI bot") |
-| `keyHash` | string | ✅ | SHA-256(plaintext) 16진수 |
-| `keyPrefix` | string | ✅ | 평문 키 처음 8자 — UI 표시용 |
-| `scope` | `"account-rw"` | ✅ | v1 단일 scope. 미래 per-container/action 분리 예약 |
-| `createdAt` | Timestamp | ✅ | 생성 시각 |
-| `createdBy` | string | ✅ | 발급한 사용자 이메일 |
-| `lastUsedAt` | Timestamp |  | 마지막 호출 시각 (Cloud Function 이 갱신) |
-| `usageCount` | number |  | 누적 호출 수 |
-| `revokedAt` | Timestamp |  | revoke 됐으면 set, soft-delete 용 |
 
 ### `categories/{id}`
 
@@ -202,34 +137,6 @@ firestore/
 | `description` | string | 사이트 설명 |
 | `lastUpdated` | Timestamp | 마지막 변경 시점 |
 | `viewCount` | number | 방문 카운트 (선택) |
-
-### `projectActivity/{eventId}`
-
-프로젝트 단위 활동 로그 — append-only.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `action` | string | ✅ | `project.created` · `project.updated` · `project.deleted` 등 |
-| `projectSlug` | string | ✅ | 대상 프로젝트 slug |
-| `projectName` | string | ✅ | 표시용 이름 |
-| `actorEmail` | string |  | 실행자 이메일 |
-| `actorName` | string |  | 실행자 이름 |
-| `summary` | string |  | 변경 요약 |
-| `createdAt` | Timestamp | ✅ | 발생 시각 |
-
-### `clientErrors/{errorId}`
-
-클라이언트 런타임 에러 — global-error / error.tsx 가 hydration·render 실패 시 append. append-only.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `message` | string | ✅ | 에러 메시지 (≤ 500 chars) |
-| `stack` | string |  | 스택 트레이스 (≤ 2000 chars) |
-| `url` | string | ✅ | 발생 URL |
-| `userAgent` | string | ✅ | UA 문자열 |
-| `uid` | string |  | 로그인 사용자 uid |
-| `kind` | string | ✅ | 분류 (e.g. `render`, `hydration`) |
-| `createdAt` | Timestamp | ✅ | 발생 시각 |
 
 ## 4. Knowledge subsystem 컬렉션
 
@@ -685,95 +592,7 @@ knowledge subsystem에서 아래 데이터는 trusted backend가 소유한다.
   - 기본 영구 보존
 - `knowledgeDocumentChunks`, `knowledgeExtractionOutputs`, `knowledgeExtractionJobs`, `knowledgeReviewEvents`:
   - archive/export 정책을 둔 뒤 정리 가능
-- `developerActivityEvents`:
-  - 최근 작업 맥락 projection 이므로 30~90일 보존 후 archive/delete 가능
-- `developerActivityDeliveries`:
-  - payload 를 포함하므로 `pruneDeveloperActivityDeliveries` scheduler 가 30일 지난 로그를 삭제
 - publish rollback은 logical rollback이고, 재해 복구는 Firestore/Storage 백업 복구로 분리한다.
-
-### `sharedDocs/{token}`
-
-Docs Vault 의 임시 공개 링크 (S-1). 선택한 md 문서 스냅샷을 랜덤 토큰으로 저장, `/share?t={token}` 로 누구나 읽을 수 있게 한다. 원본과 독립된 복사본.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `slug` | string | ✅ | 원본 문서 slug (참조용) |
-| `title` | string | ✅ | 제목 스냅샷 |
-| `content` | string | ✅ | md 본문 스냅샷 |
-| `createdBy` | string (uid) | ✅ | 생성자 uid |
-| `createdAt` | Timestamp | ✅ | 생성 시각 (serverTimestamp) |
-| `expiresAt` | Timestamp \| null | ❌ | 만료 시각. null 이면 영구 |
-| `maxViews` | number \| null | ❌ | 최대 조회 수. null 이면 무제한 |
-| `viewCount` | number | ✅ | 누적 조회 수 — 공개 읽기 시 +1 |
-
-쓰기 규칙 요약:
-- create: 로그인 사용자만, createdBy=자기 uid, viewCount=0 강제
-- update: createdBy 만 전체 수정 가능. 또는 누구나 viewCount 를 정확히 +1 만 수정 가능
-- delete: createdBy 만
-- read: 누구나 (토큰 자체가 credential)
-
-### `developerActivityEvents/{eventId}`
-
-Developer Activity Ingest projection. GitHub App webhook, MCP, 외부 API가
-trusted backend boundary에서 append 하고, Docs Vault 개발자 관점이 읽어
-문서 트리와 토폴로지 activity marker로 표시한다.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `source` | `mcp \| api \| github` | ✅ | 이벤트 출처 |
-| `kind` | string | ✅ | `github.push`, `github.pull_request`, `doc.updated` 등 |
-| `title` | string | ✅ | 패널에 표시할 제목 |
-| `summary` | string | ❌ | 한 줄 설명 |
-| `actor` | string | ❌ | GitHub sender, MCP client 등 |
-| `repository` | string | ❌ | GitHub repository full name |
-| `branch` | string | ❌ | push / PR branch |
-| `href` | string | ❌ | GitHub compare, PR, issue URL |
-| `docSlug` | string | ❌ | 대표 Docs Vault slug |
-| `projectSlug` | string | ❌ | 연결 프로젝트 slug |
-| `targetSlugs` | string[] | ❌ | activity marker 대상 문서 slug 목록 |
-| `unread` | boolean | ✅ | 확인 전이면 true |
-| `createdAt` | Timestamp | ✅ | 표시 정렬 기준 |
-| `receivedAt` | Timestamp | ❌ | backend 수신 시각 |
-| `deliveryId` | string \| null | ❌ | GitHub delivery id |
-
-쓰기 규칙 요약:
-- create: 클라이언트 금지. Cloud Functions(Admin SDK)만 append
-- update: 인증 사용자가 `unread=false`, `acknowledgedAt` 만 설정 가능
-- delete: 금지
-- read: 인증 사용자
-
-### `developerActivityDeliveries/{deliveryId}`
-
-GitHub App webhook delivery log. 서명 검증을 통과해 실제로 도착한 payload만
-backend가 저장한다. 운영 화면은 이 컬렉션을 읽어 processed / ignored /
-failed 상태를 보여주고, 저장된 payload를 다시 projection 하는 내부 재처리를
-실행한다. GitHub App JWT/private key 가 설정된 경우 GitHub 자체 delivery
-redelivery 요청 상태도 같은 문서에 남긴다.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `status` | `received \| processed \| ignored \| failed` | ✅ | 처리 상태 |
-| `eventName` | string | ✅ | GitHub webhook event name |
-| `deliveryId` | string \| null | ❌ | `X-GitHub-Delivery` |
-| `repository` | string \| null | ❌ | repository full name |
-| `actor` | string \| null | ❌ | sender login |
-| `payload` | map | ✅ | 재처리용 GitHub webhook payload |
-| `targetSlugs` | string[] | ❌ | 매핑된 Docs Vault slug 목록 |
-| `activityId` | string | ❌ | 생성된 activity event id |
-| `reason` | string \| null | ❌ | ignored / failed 이유 |
-| `receivedAt` | Timestamp | ❌ | 최초 수신 시각 |
-| `updatedAt` | Timestamp | ✅ | 마지막 처리 시각 |
-| `replayedAt` | Timestamp | ❌ | 내부 재처리 시각 |
-| `replayedBy` | string | ❌ | 재처리 실행자 |
-| `githubDeliveryApiId` | number | ❌ | GitHub REST API 의 numeric delivery id |
-| `githubRedeliveryStatus` | `requested \| failed` | ❌ | GitHub 자체 redelivery 요청 상태 |
-| `githubRedeliveryError` | string \| null | ❌ | GitHub redelivery 실패 메시지 |
-| `githubRedeliveredAt` | Timestamp | ❌ | GitHub redelivery 요청 시각 |
-| `githubRedeliveredBy` | string | ❌ | GitHub redelivery 요청자 |
-
-쓰기 규칙 요약:
-- create/update/delete: 클라이언트 금지. Cloud Functions(Admin SDK)만 가능
-- read: 인증 사용자
 
 ## 9. 변경 이력
 

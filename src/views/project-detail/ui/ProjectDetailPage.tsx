@@ -25,26 +25,21 @@ import {
 import { useScopedAccountAccess } from "@/features/account-scope";
 import { buildServiceEntryHref } from "@/features/user-auth";
 import {
-  WORKSPACE_PROJECT_QUERY_KEY,
-} from "@/shared/lib/account-scope";
-import {
   formatProjectIntegrityIssue,
   getProject,
   getProjectDetailHref,
   getProjectIntegrityIssues,
-  listProjects,
   getTopologyProjectHref,
   projectToInput,
   resolveFallbackProjects,
-  subscribeProjects,
   upsertProject,
   wouldCreateDependencyCycle,
   type Project,
 } from "@/entities/project";
+import { useProjects } from "@/features/project-data-source";
 import { resolveSubscribeUpdate } from "../model/resolve-subscribe-update";
 import { DependencyPicker } from "@/features/project-edit/ui/DependencyPicker";
 import { CopyProjectLinkButton } from "@/features/project-share";
-import { useWorkspaceProjects } from "@/widgets/workspace-project-selector";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 import { useTaxonomy } from "@/features/taxonomy";
 import { PublicAccountMenu } from "@/widgets/account-menu";
@@ -354,93 +349,54 @@ export function ProjectDetailPage({
     [accountId, currentPath],
   );
 
-  // single-user 모드에서는 flat `projects` 만 read. activeProjectId 는
-  // 헤더 / 제목 표시용 (컨테이너 이름 lookup) 으로만 보존.
-  const activeProjectId = searchParams.get(WORKSPACE_PROJECT_QUERY_KEY);
-  const { projects: workspaceProjectContainers } = useWorkspaceProjects(accountId);
-  const activeContainerName =
-    activeProjectId && workspaceProjectContainers.length > 0
-      ? (workspaceProjectContainers.find((c) => c.id === activeProjectId)?.name ?? null)
-      : null;
   // P1-5 — 클라이언트 사이드 동적 타이틀. 정적 export metadata 가 slug
-  // 단위까지 미리 빌드되지만 컨테이너 컨텍스트는 빌드 시 모름.
+  // 단위까지 미리 빌드되지만 동적 컨텍스트는 빌드 시 모름.
   useDocumentTitle(
     Array.from(
       new Set(
-        [project?.name, activeContainerName, "Demo"].filter(
+        [project?.name, "Demo"].filter(
           (value): value is string => Boolean(value),
         ),
       ),
     ).join(" · ") || null,
   );
 
+  // mode-aware projects read — vault 또는 Firestore. 단일 hook 으로 단발 fetch
+  // + 실시간 구독을 통합. (이전엔 listProjects + subscribeProjects 두 effect 가
+  // race 했지만 hook 이 항상 최신 snapshot 을 들고 있어 race 자체가 사라짐.)
+  const projectsQuery = useProjects(accountId);
   useEffect(() => {
-    if (!slug || fallbackProject) return;
+    if (!slug) return;
+    const { next, related: nextRelated } = resolveSubscribeUpdate(
+      projectsQuery.projects,
+      slug,
+      fallbackProjects,
+    );
+    if (next) setProject(next);
+    setRelated(nextRelated);
+    if (projectsQuery.loaded || projectsQuery.error !== null) setResolved(true);
+  }, [projectsQuery.projects, projectsQuery.loaded, projectsQuery.error, slug, fallbackProjects]);
 
+  // initial fetch — fallback 가 없는 경우 직접 getProject 로 한 번 더 시도.
+  // local 모드에선 useProjects 가 vault manifest 를 sync 로 들고 있어 별도
+  // fetch 불필요 + Firebase 미초기화 시 console 잡음 회피.
+  useEffect(() => {
+    if (!slug || fallbackProject || projectsQuery.mode === 'local') return;
     let cancelled = false;
-
-    const fetchPair = Promise.all([
-      getProject(slug, accountId),
-      listProjects(accountId),
-    ]);
-
-    void fetchPair
-      .then(([fetchedProject, fetchedProjects]) => {
+    void getProject(slug, accountId)
+      .then((fetched) => {
         if (cancelled) return;
-        const resolvedProject =
-          fetchedProject ??
-          fetchedProjects.find((entry) => entry.slug === slug) ??
-          null;
-        // fetch 가 실패/빈값을 돌려주더라도 subscribe 가 이미 찾은 project 를
-        // null 로 덮지 않는다. 두 effect 가 race 하므로 fetch 가 "모르면
-        // 아무것도 안 함" 정책이 맞다.
-        if (resolvedProject) setProject(resolvedProject);
-        if (fetchedProjects.length > 0) {
-          setRelated(fetchedProjects);
-        }
+        if (fetched) setProject(fetched);
         setResolved(true);
       })
       .catch(() => {
         if (cancelled) return;
         setResolved(true);
       });
-
     return () => {
       cancelled = true;
     };
-  }, [accountId, fallbackProject, slug]);
-
-  // 클라이언트에서 실시간 구독으로 최신 데이터 유지. subscribe 가 현재 slug
-  // 를 못 찾은 경우 initialProject/fallback 을 null 로 덮지 않는 invariant 는
-  // resolveSubscribeUpdate 에 추출해 유닛 테스트로 회귀 방지.
-  useEffect(() => {
-    if (!slug) return;
-
-    const unsubscribe = subscribeProjects(
-      accountId,
-      (latest) => {
-        const { next, related: nextRelated } = resolveSubscribeUpdate(
-          latest,
-          slug,
-          fallbackProjects,
-        );
-        if (next) setProject(next);
-        setRelated(nextRelated);
-        setResolved(true);
-      },
-      () => {
-        const { next, related: nextRelated } = resolveSubscribeUpdate(
-          [],
-          slug,
-          fallbackProjects,
-        );
-        if (next) setProject(next);
-        setRelated(nextRelated);
-        setResolved(true);
-      },
-    );
-    return () => unsubscribe();
-  }, [accountId, fallbackProjects, slug]);
+  }, [accountId, fallbackProject, slug, projectsQuery.mode]);
 
   useEffect(() => {
     if (!slug) return;
@@ -717,16 +673,8 @@ export function ProjectDetailPage({
             {heroMonogram}
           </div>
           <div className="relative z-10 flex items-center gap-3">
-            {activeContainerName ? (
-              <span
-                className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]"
-                title={`workspaceProjects/${activeProjectId}`}
-              >
-                Project · {activeContainerName}
-              </span>
-            ) : null}
             <span className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-              {activeContainerName ? "·" : ""} 개별 프로젝트
+              개별 프로젝트
             </span>
             {heroMeta ? (
               <span className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
@@ -1298,7 +1246,7 @@ export function ProjectDetailPage({
         onClose={() => setSearchOpen(false)}
         projects={related}
         onSelect={handleSearchSelect}
-        containerLabel={activeContainerName}
+        containerLabel={null}
         accountId={accountId}
       />
       <ShortcutSheet

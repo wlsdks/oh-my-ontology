@@ -14,10 +14,6 @@ import {
   type Project,
   type PromotionCandidate,
 } from "@/entities/project";
-import {
-  subscribeProjectActivity,
-  type ProjectActivity,
-} from "@/entities/project-activity";
 import { DetailCard, EmptyState } from "@/shared/ui";
 import { formatDate } from "@/shared/lib/format-date";
 import {
@@ -61,7 +57,6 @@ function InsightsContent() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activities, setActivities] = useState<ProjectActivity[]>([]);
 
   useEffect(() => {
     const unsubscribe = subscribeProjects(
@@ -75,15 +70,6 @@ function InsightsContent() {
         setError(err.message);
         setLoaded(true);
       },
-    );
-    return unsubscribe;
-  }, [accountId]);
-
-  useEffect(() => {
-    const unsubscribe = subscribeProjectActivity(
-      accountId,
-      (latest) => setActivities(latest),
-      { limitCount: 20 },
     );
     return unsubscribe;
   }, [accountId]);
@@ -175,11 +161,6 @@ function InsightsContent() {
           </div>
         ) : null}
 
-        {loaded && !error && accountId ? (
-          <div className="mt-8">
-            <ActivitySection activities={activities} />
-          </div>
-        ) : null}
       </div>
     </main>
   );
@@ -350,72 +331,6 @@ function PromotionSection({
                 detailHref={getProjectDetailHref(project.slug, accountId)}
                 topologyHref={buildTopologyFocusHref(project.slug, accountId)}
               />
-            </li>
-          ))}
-        </ul>
-      )}
-    </DetailCard>
-  );
-}
-
-function relativeTime(date: Date, now: Date): string {
-  const diffMs = now.getTime() - date.getTime();
-  const minutes = Math.round(diffMs / 60000);
-  if (minutes < 1) return "방금";
-  if (minutes < 60) return `${minutes}분 전`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}시간 전`;
-  const days = Math.round(hours / 24);
-  if (days < 7) return `${days}일 전`;
-  return formatDate(date);
-}
-
-const ACTIVITY_ACTION_LABEL: Record<string, string> = {
-  "project.created": "생성",
-  "project.updated": "수정",
-  "project.deleted": "삭제",
-};
-
-function ActivitySection({ activities }: { activities: ProjectActivity[] }) {
-  const now = new Date();
-  return (
-    <DetailCard
-      eyebrow="Recent activity"
-      title="최근 활동"
-      description="이 공간의 프로젝트 생성·수정·삭제 기록입니다. 감사 로그는 수정·삭제되지 않습니다."
-    >
-      {activities.length === 0 ? (
-        <EmptyState
-          size="compact"
-          title="아직 기록된 활동이 없습니다"
-          description="프로젝트를 한 번 생성·수정하면 여기에 쌓입니다."
-        />
-      ) : (
-        <ul className="flex flex-col divide-y divide-[color:var(--color-border-soft)]">
-          {activities.map((activity) => (
-            <li key={activity.id} className="flex flex-col gap-1 py-3">
-              <div className="flex flex-wrap items-baseline gap-2">
-                <span className="rounded-sm border border-[color:var(--color-divider)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-tertiary)]">
-                  {ACTIVITY_ACTION_LABEL[activity.action] ?? activity.action}
-                </span>
-                <span className="text-sm text-[color:var(--color-text-primary)]">
-                  {activity.projectName}
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                  {activity.projectSlug}
-                </span>
-                <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                  {relativeTime(activity.createdAt, now)}
-                </span>
-              </div>
-              <p className="text-[12px] text-[color:var(--color-text-tertiary)]">
-                {activity.summary ?? "변경 요약 없음"}
-                {activity.actorEmail || activity.actorName ? (
-                  <span className="ml-2 text-[color:var(--color-text-quaternary)]">
-                    · {activity.actorName ?? activity.actorEmail}
-                  </span>
-                ) : null}
-              </p>
             </li>
           ))}
         </ul>

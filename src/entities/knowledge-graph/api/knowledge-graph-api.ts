@@ -13,12 +13,7 @@ import {
 } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import { getDb, getFirebaseAuth, getFirebaseFunctions } from "@/shared/api";
-import {
-  requestDevAdminApproveKnowledgeOutput,
-  requestDevAdminPublishKnowledgeProjection,
-} from "@/shared/api/dev-admin-proxy";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
-import { isDevAdminBypassActive } from "@/shared/lib/dev-admin-bypass";
 import { hasDemoSession } from '@/shared/lib/demo-session';
 import {
   composeManualEdgeId,
@@ -73,10 +68,6 @@ function publicMetaDoc() {
 export async function approveKnowledgeOutput(
   input: ApproveKnowledgeOutputInput,
 ): Promise<ApproveKnowledgeOutputResult> {
-  if (isDevAdminBypassActive()) {
-    return requestDevAdminApproveKnowledgeOutput(input);
-  }
-
   const callable = httpsCallable<
     ApproveKnowledgeOutputInput & { action: "approve_output" },
     ApproveKnowledgeOutputResult
@@ -91,8 +82,7 @@ export async function approveKnowledgeOutput(
 
 /**
  * Output 의 일부 또는 전체 후보를 거절. T-11 정확도 측정의 분모(전체 후보 =
- * approve + reject) 보존이 목적. dev-admin bypass 는 측정 흐름에서 사용하지
- * 않으므로 production callable 만 호출한다.
+ * approve + reject) 보존이 목적.
  */
 export async function rejectKnowledgeOutput(
   input: RejectKnowledgeOutputInput,
@@ -112,10 +102,6 @@ export async function rejectKnowledgeOutput(
 export async function publishKnowledgeProjection(
   input: PublishKnowledgeProjectionInput,
 ): Promise<PublishKnowledgeProjectionResult> {
-  if (isDevAdminBypassActive()) {
-    return requestDevAdminPublishKnowledgeProjection(input);
-  }
-
   const callable = httpsCallable<
     PublishKnowledgeProjectionInput,
     PublishKnowledgeProjectionResult

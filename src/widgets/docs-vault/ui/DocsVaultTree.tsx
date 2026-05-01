@@ -19,8 +19,6 @@ interface Props {
   activeTag?: string | null;
   /** 활성 태그가 매치하는 slug 집합. activeTag 가 있을 때만 사용. */
   activeTagSlugs?: Set<string>;
-  /** 외부 이벤트가 닿은 문서. 숨기지 않고 작은 점으로 표시. */
-  activitySlugs?: Set<string>;
 }
 
 function audienceRank(
@@ -57,7 +55,6 @@ function TreeNode({
   audience,
   audienceBySlug,
   activeTagSlugs,
-  activitySlugs,
 }: {
   node: VaultTreeNode;
   depth: number;
@@ -66,7 +63,6 @@ function TreeNode({
   audience: VaultMode | 'all';
   audienceBySlug: Record<string, VaultMode>;
   activeTagSlugs?: Set<string>;
-  activitySlugs?: Set<string>;
 }) {
   // 태그 필터 활성 시에는 모든 디렉터리 자동 펼침 — 매치된 문서만 보이므로
   // 접혀 있으면 찾기 어렵다.
@@ -77,7 +73,6 @@ function TreeNode({
     const active = selectedSlug === node.slug;
     const rank = audienceRank(node, audience, audienceBySlug);
     const faded = audience !== 'all' && rank === 2 && !active;
-    const isActivity = activitySlugs?.has(node.slug) ?? false;
     return (
       <button
         type="button"
@@ -108,14 +103,6 @@ function TreeNode({
           aria-hidden
         />
         <span className="min-w-0 flex-1 truncate">{node.title ?? node.name}</span>
-        {isActivity ? (
-          <span
-            aria-label="최근 개발 이벤트"
-            className="inline-flex flex-none items-center gap-1 rounded-sm border border-[color:rgba(139,151,255,0.26)] bg-[color:rgba(94,106,210,0.1)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-[color:rgba(200,210,255,0.9)]"
-          >
-            작업 중
-          </span>
-        ) : null}
       </button>
     );
   }
@@ -158,7 +145,6 @@ function TreeNode({
               audience={audience}
               audienceBySlug={audienceBySlug}
               activeTagSlugs={activeTagSlugs}
-              activitySlugs={activitySlugs}
             />
           ))}
         </div>
@@ -179,7 +165,6 @@ export function DocsVaultTree({
   audienceBySlug,
   activeTag,
   activeTagSlugs,
-  activitySlugs,
 }: Props) {
   const children = useMemo(() => tree.children ?? [], [tree]);
   const tagSlugs = activeTag ? activeTagSlugs : undefined;
@@ -206,7 +191,6 @@ export function DocsVaultTree({
           audience={audience}
           audienceBySlug={audienceBySlug}
           activeTagSlugs={tagSlugs}
-          activitySlugs={activitySlugs}
         />
       ))}
     </nav>

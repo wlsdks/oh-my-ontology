@@ -48,15 +48,6 @@ export interface Project {
   progress?: number;
   isHub: boolean;
   /**
-   * 4계층(Workspace > Project > Hub > Node) 중 이 프로젝트의 소속 Project
-   * (=Container) id. Firestore 저장 경로가 이미 컨테이너별 subcollection 이라
-   * path 로 계층이 성립하지만, 계층을 **데이터 계약**으로도 명시해 타입·쿼리·
-   * UI breadcrumb 에서 부모를 확실히 알 수 있게 한다. Layer 0 의 Container 자신
-   * (category `__container__`) 은 이 필드를 안 쓴다. 미지정(legacy) 이면 slug
-   * prefix 로 추론.
-   */
-  workspaceProjectId?: string;
-  /**
    * Node(isHub=false) 가 소속된 Hub slugs. 여러 Hub 를 걸칠 수 있어 배열.
    * Hub 자신은 이 필드가 비어 있어야 한다. 공개 노드 보기 breadcrumb·검색
    * facet·knowledge 추출 앵커 등에서 부모 Hub 체인 표시에 사용. 미지정(legacy)

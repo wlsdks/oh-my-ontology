@@ -1,11 +1,22 @@
 // 가벼운 frontmatter 파서 — `---\n...\n---\n` 블록만 지원.
-// gray-matter 의존 없이 key:value 만. tags: [a, b] 형태 인라인 배열도 지원.
+// gray-matter 의존 없이도 다음 형태 모두 인식:
+//   key: value                          (scalar)
+//   key: [a, b]                         (inline list)
+//   key: { x: 1, y: 2 }                 (inline object — T16)
+//   key:\n  - item1\n  - item2          (block list)
+//   key:\n  child: 1\n  other: 2        (block object — T16)
 // scripts/build-docs-vault.mjs 와 같은 규칙이지만 TS/브라우저 호환.
 
 export interface ParsedFrontmatter {
   frontmatter: Record<string, unknown>;
   body: string;
 }
+
+type ParsedScalar = string | number | boolean;
+type ParsedValue =
+  | ParsedScalar
+  | ParsedScalar[]
+  | Record<string, ParsedScalar>;
 
 export function parseFrontmatter(raw: string): ParsedFrontmatter {
   if (!raw.startsWith('---')) return { frontmatter: {}, body: raw };
@@ -15,8 +26,6 @@ export function parseFrontmatter(raw: string): ParsedFrontmatter {
   const body = raw.slice(end + 4).replace(/^\r?\n/, '');
   const frontmatter: Record<string, unknown> = {};
   const lines = block.split('\n');
-  // multi-line YAML list 지원 — `key:` 다음 줄에 들여쓰기 + dash 가 이어지면
-  // 그 items 를 array 로 모은다. 인라인 `[a, b]` 와 단일 값은 그대로.
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     const idx = line.indexOf(':');
@@ -24,35 +33,103 @@ export function parseFrontmatter(raw: string): ParsedFrontmatter {
     const key = line.slice(0, idx).trim();
     const value = line.slice(idx + 1).trim();
     if (!key) continue;
+
     if (value === '') {
-      const items: string[] = [];
-      let j = i + 1;
-      while (j < lines.length) {
-        const next = lines[j];
-        const dashMatch = next.match(/^\s+-\s+(.+)$/);
-        if (!dashMatch) break;
-        items.push(dashMatch[1].trim().replace(/^["']|["']$/g, ''));
-        j += 1;
-      }
-      if (items.length > 0) {
+      // block 모드 — 다음 줄이 `  -` 면 list, `  childKey:` 면 object.
+      const lookahead = peekIndentedKind(lines, i + 1);
+      if (lookahead === 'list') {
+        const items: string[] = [];
+        let j = i + 1;
+        while (j < lines.length) {
+          const dashMatch = lines[j].match(/^\s+-\s+(.+)$/);
+          if (!dashMatch) break;
+          items.push(unquote(dashMatch[1].trim()));
+          j += 1;
+        }
         frontmatter[key] = items;
+        i = j - 1;
+        continue;
+      }
+      if (lookahead === 'object') {
+        const obj: Record<string, ParsedScalar> = {};
+        let j = i + 1;
+        while (j < lines.length) {
+          const m = lines[j].match(/^(\s+)([^\s:][^:]*):\s*(.*)$/);
+          if (!m) break;
+          const childKey = m[2].trim();
+          const childValue = m[3].trim();
+          if (!childKey) break;
+          obj[childKey] = parseScalar(childValue);
+          j += 1;
+        }
+        frontmatter[key] = obj;
         i = j - 1;
         continue;
       }
       frontmatter[key] = '';
       continue;
     }
+
+    // inline 형태들
     if (value.startsWith('[') && value.endsWith(']')) {
-      frontmatter[key] = value
-        .slice(1, -1)
-        .split(',')
-        .map((s) => s.trim().replace(/^["']|["']$/g, ''))
-        .filter(Boolean);
-    } else {
-      frontmatter[key] = value.replace(/^["']|["']$/g, '');
+      frontmatter[key] = parseInlineList(value);
+      continue;
     }
+    if (value.startsWith('{') && value.endsWith('}')) {
+      frontmatter[key] = parseInlineObject(value);
+      continue;
+    }
+    frontmatter[key] = unquote(value);
   }
   return { frontmatter, body };
+}
+
+function peekIndentedKind(
+  lines: string[],
+  start: number,
+): 'list' | 'object' | null {
+  if (start >= lines.length) return null;
+  const next = lines[start];
+  if (/^\s+-\s+/.test(next)) return 'list';
+  if (/^\s+[^\s:][^:]*:\s*\S?/.test(next)) return 'object';
+  return null;
+}
+
+function parseInlineList(raw: string): string[] {
+  return raw
+    .slice(1, -1)
+    .split(',')
+    .map((s) => unquote(s.trim()))
+    .filter(Boolean);
+}
+
+function parseInlineObject(raw: string): Record<string, ParsedScalar> {
+  const inner = raw.slice(1, -1).trim();
+  if (!inner) return {};
+  const out: Record<string, ParsedScalar> = {};
+  // 단순 split — value 안 콤마/콜론은 지원하지 않는다 (충분히 자주 쓰는
+  // x:1, y:2 같은 케이스만 인식).
+  for (const part of inner.split(',')) {
+    const cIdx = part.indexOf(':');
+    if (cIdx === -1) continue;
+    const k = part.slice(0, cIdx).trim();
+    const v = part.slice(cIdx + 1).trim();
+    if (!k) continue;
+    out[k] = parseScalar(v);
+  }
+  return out;
+}
+
+function parseScalar(value: string): ParsedScalar {
+  const v = unquote(value);
+  if (v === 'true') return true;
+  if (v === 'false') return false;
+  if (v !== '' && !Number.isNaN(Number(v))) return Number(v);
+  return v;
+}
+
+function unquote(value: string): string {
+  return value.replace(/^["']|["']$/g, '');
 }
 
 export function firstHeading(body: string): string | null {

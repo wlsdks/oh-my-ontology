@@ -19,19 +19,7 @@ import {
   getAllDemoKnowledgeDocuments,
   getDemoKnowledgeDocumentsByProject,
 } from "@/shared/mocks/demo-data";
-import {
-  createDevAdminKnowledgeDocument,
-  createDevAdminKnowledgeDocumentVersion,
-  getDevAdminKnowledgeDocument,
-  listDevAdminKnowledgeDocuments,
-  listDevAdminKnowledgeVersions,
-  setDevAdminKnowledgeCurrentVersion,
-  subscribeDevAdminPolling,
-  type DevAdminKnowledgeDocumentRecord,
-  type DevAdminKnowledgeVersionRecord,
-} from "@/shared/api/dev-admin-proxy";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
-import { isDevAdminBypassActive } from "@/shared/lib/dev-admin-bypass";
 import { slugify } from "@/shared/lib/slugify";
 import {
   buildKnowledgeDocumentStoragePath,
@@ -84,11 +72,6 @@ function buildKnowledgeVersionId(documentId: string) {
 export async function listKnowledgeDocuments(
   accountId?: string | null,
 ): Promise<KnowledgeDocument[]> {
-  if (isDevAdminBypassActive()) {
-    const records = await listDevAdminKnowledgeDocuments(accountId);
-    return records.map(fromDevAdminKnowledgeDocumentRecord);
-  }
-
   if (hasDemoSession()) {
     const normalized = normalizeAccountId(accountId);
     // 데모 워크스페이스 한정 — 다른 accountId 는 빈 목록. admin 화면은 내
@@ -112,11 +95,6 @@ export async function getKnowledgeDocument(
   documentId: string,
   accountId?: string | null,
 ): Promise<KnowledgeDocument | null> {
-  if (isDevAdminBypassActive()) {
-    const record = await getDevAdminKnowledgeDocument(documentId, accountId);
-    return record ? fromDevAdminKnowledgeDocumentRecord(record) : null;
-  }
-
   const snapshot = await getDoc(knowledgeDocumentDoc(documentId));
   if (!snapshot.exists()) return null;
   return fromFirestoreKnowledgeDocument(snapshot.id, snapshot.data());
@@ -154,17 +132,6 @@ export function subscribeKnowledgeDocuments(
     typeof accountIdOrCallback === "function"
       ? (callbackOrOnError as ((error: Error) => void) | undefined)
       : maybeOnError;
-
-  if (isDevAdminBypassActive()) {
-    return subscribeDevAdminPolling(
-      async () => {
-        const records = await listDevAdminKnowledgeDocuments(scopedAccountId);
-        return records.map(fromDevAdminKnowledgeDocumentRecord);
-      },
-      callbackFn,
-      errorFn,
-    );
-  }
 
   if (hasDemoSession()) {
     const docs =
@@ -208,21 +175,6 @@ export function subscribeKnowledgeDocumentsByProject(
       callback(getDemoKnowledgeDocumentsByProject(projectSlug)),
     );
     return () => {};
-  }
-
-  const scopedAccountId = normalizeAccountId(accountId);
-
-  if (isDevAdminBypassActive()) {
-    return subscribeDevAdminPolling(
-      async () => {
-        const records = await listDevAdminKnowledgeDocuments(scopedAccountId);
-        return records
-          .map(fromDevAdminKnowledgeDocumentRecord)
-          .filter((document) => document.projectIds.includes(projectSlug));
-      },
-      callback,
-      onError,
-    );
   }
 
   return onSnapshot(
@@ -269,17 +221,6 @@ export async function getPublicDocumentsForProject(
     return getDemoKnowledgeDocumentsByProject(projectSlug).filter(
       (doc) => doc.status === 'published',
     );
-  }
-
-  if (isDevAdminBypassActive()) {
-    const records = await listDevAdminKnowledgeDocuments(scopedAccountId);
-    return records
-      .map(fromDevAdminKnowledgeDocumentRecord)
-      .filter(
-        (document) =>
-          document.status === 'published' &&
-          document.projectIds.includes(projectSlug),
-      );
   }
 
   try {
@@ -336,18 +277,6 @@ export async function createKnowledgeDocumentWithInitialVersion(
     ...versionRecord,
     accountId: accountId ?? undefined,
   });
-
-  if (isDevAdminBypassActive()) {
-    await createDevAdminKnowledgeDocument({
-      accountId,
-      documentId,
-      versionId,
-      document: documentPayload,
-      version: versionPayload,
-      rawMarkdown: input.rawMarkdown,
-    });
-    return { documentId, versionId };
-  }
 
   await uploadKnowledgeMarkdown(storagePath, input.rawMarkdown);
   try {
@@ -407,17 +336,6 @@ export async function createKnowledgeDocumentVersion(input: {
     accountId: documentRecord.accountId,
   });
 
-  if (isDevAdminBypassActive()) {
-    await createDevAdminKnowledgeDocumentVersion({
-      accountId,
-      documentId: input.documentId,
-      versionId,
-      version: versionPayload,
-      rawMarkdown: input.rawMarkdown,
-    });
-    return { versionId };
-  }
-
   await uploadKnowledgeMarkdown(storagePath, input.rawMarkdown);
   try {
     const batch = writeBatch(getDb());
@@ -441,19 +359,6 @@ export async function setKnowledgeDocumentCurrentVersion(input: {
   document: KnowledgeDocument;
   version: KnowledgeVersion;
 }) {
-  const accountId = normalizeAccountId(input.document.accountId ?? input.version.accountId);
-  if (isDevAdminBypassActive()) {
-    await setDevAdminKnowledgeCurrentVersion({
-      accountId,
-      documentId: input.document.id,
-      currentVersionId: input.version.id,
-      title: input.version.title,
-      kind: input.version.kind,
-      projectIds: input.version.projectIds,
-    });
-    return;
-  }
-
   await updateDoc(knowledgeDocumentDoc(input.document.id), {
     title: input.version.title,
     kind: input.version.kind,
@@ -467,11 +372,6 @@ export async function listKnowledgeVersionsByDocument(
   documentId: string,
   accountId?: string | null,
 ): Promise<KnowledgeVersion[]> {
-  if (isDevAdminBypassActive()) {
-    const records = await listDevAdminKnowledgeVersions(documentId, accountId);
-    return records.map(fromDevAdminKnowledgeVersionRecord);
-  }
-
   // 데모 세션은 version history 도 없다 (`buildDocuments` 는 문서만 생성).
   // Firestore rules denial 대신 빈 배열로 정적 resolve.
   if (hasDemoSession()) return [];
@@ -506,10 +406,6 @@ export function subscribeKnowledgeVersionsByDocument(
     | ((error: Error) => void),
   maybeOnError?: (error: Error) => void,
 ): Unsubscribe {
-  const scopedAccountId =
-    typeof documentIdOrCallback === "string"
-      ? normalizeAccountId(accountIdOrDocumentId)
-      : null;
   const targetDocumentId =
     typeof documentIdOrCallback === "string"
       ? documentIdOrCallback
@@ -522,20 +418,6 @@ export function subscribeKnowledgeVersionsByDocument(
     typeof documentIdOrCallback === "string"
       ? maybeOnError
       : (callbackOrOnError as ((error: Error) => void) | undefined);
-
-  if (isDevAdminBypassActive()) {
-    return subscribeDevAdminPolling(
-      async () => {
-        const records = await listDevAdminKnowledgeVersions(
-          targetDocumentId,
-          scopedAccountId,
-        );
-        return records.map(fromDevAdminKnowledgeVersionRecord);
-      },
-      callbackFn,
-      errorFn,
-    );
-  }
 
   if (hasDemoSession()) {
     Promise.resolve().then(() => callbackFn([]));
@@ -558,55 +440,3 @@ export function subscribeKnowledgeVersionsByDocument(
   );
 }
 
-function fromDevAdminKnowledgeDocumentRecord(
-  record: DevAdminKnowledgeDocumentRecord,
-): KnowledgeDocument {
-  return {
-    id: record.id,
-    accountId: record.accountId,
-    title: record.title ?? record.id,
-    kind: record.kind ?? "spec",
-    projectIds: Array.isArray(record.projectIds) ? record.projectIds : [],
-    sourceType: (record.sourceType as KnowledgeDocument["sourceType"]) ?? "manual",
-    currentVersionId: record.currentVersionId ?? "",
-    formatScore:
-      typeof record.formatScore === "number" ? record.formatScore : undefined,
-    status: (record.status as KnowledgeDocument["status"]) ?? "draft",
-    latestJobStatus:
-      typeof record.latestJobStatus === "string"
-        ? record.latestJobStatus
-        : undefined,
-    createdAt: parseDate(record.createdAt),
-    updatedAt: parseDate(record.updatedAt),
-    createdBy: record.createdBy ?? "",
-  };
-}
-
-function fromDevAdminKnowledgeVersionRecord(
-  record: DevAdminKnowledgeVersionRecord,
-): KnowledgeVersion {
-  return {
-    id: record.id,
-    accountId: record.accountId,
-    documentId: record.documentId,
-    title: record.title ?? record.id,
-    kind: record.kind ?? "spec",
-    projectIds: Array.isArray(record.projectIds) ? record.projectIds : [],
-    frontmatter:
-      record.frontmatter && typeof record.frontmatter === "object"
-        ? record.frontmatter
-        : {},
-    storagePath: record.storagePath,
-    mimeType: record.mimeType ?? "text/markdown",
-    sizeBytes: typeof record.sizeBytes === "number" ? record.sizeBytes : 0,
-    hash: record.hash ?? "",
-    createdAt: parseDate(record.createdAt),
-    createdBy: record.createdBy ?? "",
-  };
-}
-
-function parseDate(value?: string): Date {
-  if (!value) return new Date(0);
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date(0) : date;
-}

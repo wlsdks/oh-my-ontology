@@ -28,10 +28,6 @@ export function fromFirestore(slug: string, data: DocumentData): Project {
     },
     progress: typeof data.progress === 'number' ? data.progress : undefined,
     isHub: Boolean(data.isHub),
-    workspaceProjectId:
-      typeof data.workspaceProjectId === 'string' && data.workspaceProjectId
-        ? data.workspaceProjectId
-        : undefined,
     hubSlugs: Array.isArray(data.hubSlugs)
       ? data.hubSlugs.filter((s): s is string => typeof s === 'string' && s.length > 0)
       : undefined,
@@ -74,10 +70,6 @@ export function toFirestore(project: Omit<Project, 'slug' | 'createdAt' | 'updat
   if (project.owner !== undefined) payload.owner = project.owner;
   if (project.icon !== undefined) payload.icon = project.icon;
   if (project.progress !== undefined) payload.progress = project.progress;
-  // 4계층 부모 참조. path 로만 계층이 성립하던 걸 데이터 계약으로도 기록.
-  if (project.workspaceProjectId !== undefined) {
-    payload.workspaceProjectId = project.workspaceProjectId;
-  }
   if (project.hubSlugs !== undefined) payload.hubSlugs = project.hubSlugs;
 
   return payload;
@@ -103,7 +95,6 @@ export function projectToInput(project: Project): ProjectInput {
     timeline: { ...project.timeline },
     progress: project.progress,
     isHub: project.isHub,
-    workspaceProjectId: project.workspaceProjectId,
     hubSlugs: project.hubSlugs ? [...project.hubSlugs] : undefined,
     position: { ...project.position },
   };

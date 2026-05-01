@@ -47,7 +47,6 @@ function normalizeReturnTo(returnTo?: string): string {
 }
 
 function resolveReturnLabel(returnTo: string): string {
-  if (returnTo.startsWith("/project/view")) return "프로젝트 상세로";
   if (returnTo.startsWith("/project/")) return "프로젝트 상세로";
   if (returnTo.startsWith("/projects")) return "프로젝트 목록으로";
   if (returnTo.startsWith("/settings/categories")) return "카테고리 관리로";
@@ -310,11 +309,6 @@ function EditorContent({
             {mode === "edit" && (
               <span className="rounded-full border border-[color:var(--color-divider)] px-3 py-1">
                 현재 프로젝트 수정 중
-              </span>
-            )}
-            {safeReturnTo.startsWith("/project/view") && (
-              <span className="rounded-full border border-[color:rgba(94,106,210,0.24)] bg-[color:rgba(94,106,210,0.08)] px-3 py-1 text-[color:var(--color-text-primary)]">
-                필요하면 저장 후 공개 화면으로 바로 돌아갈 수 있음
               </span>
             )}
           </div>

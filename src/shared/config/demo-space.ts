@@ -1,8 +1,4 @@
-import {
-  getDemoContainerStats,
-  getDemoDataset,
-  getDemoWorkspaceProjects,
-} from "@/shared/mocks/demo-data";
+import { getDemoDataset } from "@/shared/mocks/demo-data";
 
 export const DEMO_ACCOUNT_ID = "demo-workspace";
 const DEMO_PROJECT_SLUG = "demo-indexer-10";
@@ -22,7 +18,6 @@ export function getDemoProjectHref() {
 export interface DemoStats {
   workspaceName: string;
   totalProjects: number;
-  totalContainers: number;
   totalHubs: number;
   totalNodes: number;
 }
@@ -32,18 +27,11 @@ let demoStatsCache: DemoStats | null = null;
 export function getDemoStats(): DemoStats {
   if (demoStatsCache) return demoStatsCache;
   const dataset = getDemoDataset();
-  const containers = getDemoWorkspaceProjects(DEMO_ACCOUNT_ID);
-  const stats = getDemoContainerStats(DEMO_ACCOUNT_ID);
-  let totalHubs = 0;
-  let totalNodes = 0;
-  for (const stat of stats.values()) {
-    totalHubs += stat.hubs;
-    totalNodes += stat.nodes;
-  }
+  const totalHubs = dataset.projects.filter((p) => p.isHub).length;
+  const totalNodes = dataset.projects.length - totalHubs;
   demoStatsCache = {
     workspaceName: 'oh-my-ontology',
     totalProjects: dataset.projects.length,
-    totalContainers: containers.length,
     totalHubs,
     totalNodes,
   };

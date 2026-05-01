@@ -24,24 +24,6 @@ test("공개 상세 → 홈 뒤로가기", async ({ page }) => {
   expect(new URL(page.url()).pathname).toBe(landingPath);
 });
 
-test("legacy /project/view/ → canonical → 뒤로가기 loop 없음", async ({ page }) => {
-  // 레거시 경로가 replace로 canonical로 가므로, 뒤로가기 시 legacy로 다시
-  // 튕기면 무한 반복. `router.replace` 덕에 history에 legacy가 안 남아야 함.
-  await page.goto("/");
-  const homePath = new URL(page.url()).pathname;
-
-  await page.goto("/project/view/?slug=sample");
-  await page.waitForURL(/\/project\/sample\/?/, { timeout: 10_000 });
-
-  await Promise.all([
-    page.waitForURL((url) => new URL(url.toString()).pathname === homePath, {
-      timeout: 10_000,
-    }),
-    page.goBack(),
-  ]);
-  expect(new URL(page.url()).pathname).toBe(homePath);
-});
-
 test("404에서 '홈으로' CTA가 history 보존 없이 홈 이동", async ({ page }) => {
   await page.goto("/");
   await page.goto("/this-route-really-does-not-exist/");

@@ -23,7 +23,6 @@ import {
   findDuplicateDependencySlugs,
   findMissingDependencySlugs,
   isSharedNode,
-  listProjects,
   resolveProjectCompletenessInsight,
   resolveProjectFreshnessInsight,
   wouldCreateDependencyCycle,
@@ -513,9 +512,9 @@ export function ProjectForm({
 
     setSubmitting(true);
     try {
-      // 저장 직전에 최신 프로젝트 목록을 다시 읽어, 직전 생성/이동이 아직
-      // 구독 상태에 반영되지 않았더라도 슬롯 배치가 겹치지 않게 한다.
-      const latestProjects = await listProjects();
+      // 슬롯 배치 겹침 방지용 최신 프로젝트 목록. allProjects 가 mode-aware
+      // hook(useProjects) 의 출력이라 vault / Firestore 양쪽에서 sync.
+      const latestProjects = allProjects;
       const position = initialProject
         ? initialProject.category !== parsed.data.category ||
           !isProjectPositionInsideCategory(nextCategory, initialProject.position)

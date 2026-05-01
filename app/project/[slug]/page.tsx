@@ -67,8 +67,7 @@ export async function generateMetadata({
     description,
     keywords,
     alternates: {
-      // 여러 URL(예: /project/view/?slug=…)이 같은 콘텐츠를 가리켜도 검색엔진이
-      // 이 경로를 대표로 인식하도록 canonical 명시. 지침서 T-01.
+      // canonical URL 명시 — 검색엔진 중복 SERP 방지. 지침서 T-01.
       canonical: canonicalUrl,
     },
     openGraph: {

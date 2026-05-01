@@ -1,6 +1,5 @@
 import {
   collection,
-  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -9,15 +8,8 @@ import {
 } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import { getDb, getFirebaseFunctions } from "@/shared/api";
-import {
-  enqueueDevAdminKnowledgeExtractionJob,
-  listDevAdminKnowledgeJobs,
-  subscribeDevAdminPolling,
-  type DevAdminKnowledgeJobRecord,
-} from "@/shared/api/dev-admin-proxy";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
 import { hasDemoSession } from "@/shared/lib/demo-session";
-import { isDevAdminBypassActive } from "@/shared/lib/dev-admin-bypass";
 import {
   type EnqueueKnowledgeExtractionJobInput,
   type EnqueueKnowledgeExtractionJobResult,
@@ -34,14 +26,6 @@ function knowledgeJobsCollection() {
 export async function enqueueKnowledgeExtractionJob(
   input: EnqueueKnowledgeExtractionJobInput,
 ): Promise<EnqueueKnowledgeExtractionJobResult> {
-  if (isDevAdminBypassActive()) {
-    const result = await enqueueDevAdminKnowledgeExtractionJob(input);
-    return {
-      ...result,
-      status: result.status as EnqueueKnowledgeExtractionJobResult["status"],
-    };
-  }
-
   const callable = httpsCallable<
     EnqueueKnowledgeExtractionJobInput,
     EnqueueKnowledgeExtractionJobResult
@@ -89,20 +73,6 @@ export function subscribeKnowledgeJobsByDocument(
       ? maybeOnError
       : (callbackOrOnError as ((error: Error) => void) | undefined);
 
-  if (isDevAdminBypassActive()) {
-    return subscribeDevAdminPolling(
-      async () => {
-        const records = await listDevAdminKnowledgeJobs(
-          targetDocumentId,
-          scopedAccountId,
-        );
-        return records.map(fromDevAdminKnowledgeJobRecord);
-      },
-      callbackFn,
-      errorFn,
-    );
-  }
-
   if (hasDemoSession()) {
     Promise.resolve().then(() => callbackFn([]));
     return () => {};
@@ -128,35 +98,3 @@ export function subscribeKnowledgeJobsByDocument(
   );
 }
 
-function fromDevAdminKnowledgeJobRecord(
-  record: DevAdminKnowledgeJobRecord,
-): KnowledgeJob {
-  return {
-    id: record.id,
-    accountId: record.accountId,
-    documentId: record.documentId,
-    documentVersionId: record.documentVersionId,
-    extractorVersion: record.extractorVersion ?? "",
-    idempotencyKey: record.idempotencyKey ?? "",
-    status: (record.status as KnowledgeJob["status"]) ?? "queued",
-    attemptCount: typeof record.attemptCount === "number" ? record.attemptCount : 0,
-    maxAttempts: typeof record.maxAttempts === "number" ? record.maxAttempts : 1,
-    retryable: Boolean(record.retryable),
-    nextAttemptAt: parseDate(record.nextAttemptAt),
-    leaseOwner: record.leaseOwner,
-    leaseExpiresAt: parseDate(record.leaseExpiresAt),
-    generation: typeof record.generation === "number" ? record.generation : 0,
-    errorCode: record.errorCode,
-    errorMessage: record.errorMessage,
-    supersededByJobId: record.supersededByJobId,
-    createdAt: parseDate(record.createdAt) ?? new Date(0),
-    updatedAt: parseDate(record.updatedAt) ?? new Date(0),
-    requestedBy: record.requestedBy ?? "",
-  };
-}
-
-function parseDate(value?: string) {
-  if (!value) return undefined;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}

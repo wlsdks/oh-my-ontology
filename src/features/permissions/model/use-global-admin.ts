@@ -5,7 +5,6 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/shared/api';
 import { isAdmin } from '@/entities/admin';
 import { useUserAuth } from '@/features/user-auth';
-import { getDevAdminUser, isDevAdminBypassActive } from './dev-bypass';
 
 export type GlobalAdminStatus = 'loading' | 'unauthenticated' | 'not-allowed' | 'authenticated';
 
@@ -43,12 +42,9 @@ export function useGlobalAdmin(): GlobalAdminState {
     status: 'loading',
     user: null,
   });
-  const bypassActive = isClient && isDevAdminBypassActive();
 
   useEffect(() => {
-    if (!isClient || bypassActive) {
-      return;
-    }
+    if (!isClient) return;
 
     const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -64,14 +60,10 @@ export function useGlobalAdmin(): GlobalAdminState {
     });
 
     return () => unsubscribe();
-  }, [isClient, bypassActive]);
+  }, [isClient]);
 
   if (!isClient) {
     return { status: 'loading', user: null };
-  }
-
-  if (bypassActive) {
-    return { status: 'authenticated', user: getDevAdminUser() };
   }
 
   // demo / IAM 세션 사용자: Firebase 가 인지하지 않으므로 useUserAuth 가 유일한

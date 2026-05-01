@@ -9,13 +9,12 @@ rules_version = '2';
 //
 // 외부 노출 surface:
 // - projects · categories · statuses · meta · ontologyClasses ·
-//   ontologyRelations · knowledgePublic* · workspaceProjects (+hubs/nodes) :
+//   ontologyRelations · knowledgePublic* :
 //   누구나 읽기. 쓰기는 인증 사용자.
 // - knowledgeDocuments / knowledgeApproved* : 인증 사용자만 읽기·쓰기.
 // - knowledgeJobs / knowledgeChunks / knowledgeEvidence / knowledgeOutputs /
 //   knowledgeReviews / knowledgeApprovalEvents / knowledgePublishes :
 //   trusted server (Cloud Function Admin SDK) 만 write. client 는 read.
-// - sharedDocs : token 기반 1회성 공개 링크.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -42,64 +41,6 @@ service cloud.firestore {
     match /meta/{document} {
       allow read: if true;
       allow write: if isAuthed();
-    }
-
-    // M2 · 외부 HTTP API key. 평문 키는 hash 만 저장돼 firestore 노출돼도 사용
-    // 불가. delete 는 차단 — revoke 후 audit 보존. revoke 는 revokedAt 만 set.
-    match /apiKeys/{keyId} {
-      allow read: if isAuthed();
-      allow create: if isAuthed();
-      allow update: if isAuthed()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revokedAt']);
-      allow delete: if false;
-    }
-
-    // P0-B · Workspace > Project > Hub + Node 4-layer.
-    // nodes 는 hubs sibling — `hubIds: string[]` 으로 N:M 참조.
-    match /workspaceProjects/{projectId} {
-      allow read: if true;
-      allow create, update: if isAuthed();
-      allow delete: if false;
-
-      match /hubs/{hubId} {
-        allow read: if true;
-        allow write: if isAuthed();
-      }
-
-      match /nodes/{nodeId} {
-        allow read: if true;
-        allow write: if isAuthed();
-      }
-    }
-
-    // 활동 로그 — append-only.
-    match /projectActivity/{eventId} {
-      allow read: if isAuthed();
-      allow create: if isAuthed();
-      allow update, delete: if false;
-    }
-
-    // Developer Activity Ingest — backend boundary 가 append.
-    match /developerActivityEvents/{eventId} {
-      allow read: if isAuthed();
-      allow create: if false;
-      allow update: if isAuthed()
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['unread', 'acknowledgedAt'])
-        && request.resource.data.unread == false;
-      allow delete: if false;
-    }
-
-    match /developerActivityDeliveries/{deliveryId} {
-      allow read: if isAuthed();
-      allow write: if false;
-    }
-
-    // 클라이언트 에러 — global-error/error.tsx 가 hydration·render 실패 시 append.
-    match /clientErrors/{errorId} {
-      allow read: if isAuthed();
-      allow create: if isAuthed();
-      allow update, delete: if false;
     }
 
     // 지식 문서 — 사용자 본인의 raw 문서. published 는 public read.
@@ -262,29 +203,6 @@ service cloud.firestore {
                            && request.resource.data.versionId is string
                            && request.resource.data.activatedBy == request.auth.uid;
       allow delete: if false;
-    }
-
-    // Share URL (S-1) — Docs Vault 의 임시 공개 링크. token 자체가 credential.
-    match /sharedDocs/{token} {
-      allow read: if true;
-      allow create:
-        if isAuthed()
-        && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.content is string
-        && request.resource.data.slug is string
-        && request.resource.data.title is string
-        && request.resource.data.viewCount == 0;
-      allow update:
-        if isAuthed()
-        && resource.data.createdBy == request.auth.uid;
-      // viewCount 는 누구나 +1 가능 — 조회수 증가용.
-      allow update:
-        if request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['viewCount'])
-        && request.resource.data.viewCount == resource.data.viewCount + 1;
-      allow delete:
-        if isAuthed()
-        && resource.data.createdBy == request.auth.uid;
     }
 
     match /{document=**} {

@@ -84,7 +84,7 @@ describe('buildTopologyFromVault', () => {
     ]);
   });
 
-  it('position inline object 는 파서 제약으로 fallback', async () => {
+  it('position inline object 도 파싱 (T16 — nested object 지원)', async () => {
     const raws = {
       'projects/a': `---\nname: A\ncategory: x\nposition: { x: 12, y: -5 }\n---`,
     };
@@ -92,7 +92,7 @@ describe('buildTopologyFromVault', () => {
       projectSlugs: Object.keys(raws),
       loadRaw: loader(raws),
     });
-    expect(result.projects[0].position).toEqual({ x: 0, y: 0 });
+    expect(result.projects[0].position).toEqual({ x: 12, y: -5 });
   });
 
   it('positionX/Y split 필드 파싱 (드래그 persist 포맷)', async () => {

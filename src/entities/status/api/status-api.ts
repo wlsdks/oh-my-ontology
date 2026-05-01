@@ -10,8 +10,6 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { getDb } from '@/shared/api';
-import { deleteDevAdminDocument, upsertDevAdminDocument } from '@/shared/api/dev-admin-proxy';
-import { isDevAdminBypassActive } from '@/shared/lib/dev-admin-bypass';
 import { hasDemoSession } from '@/shared/lib/demo-session';
 import { getDemoStatuses } from '@/shared/mocks/demo-data';
 import {
@@ -59,11 +57,6 @@ export function subscribeStatuses(
 
 export async function upsertStatus(input: StatusInput): Promise<void> {
   const payload = toFirestore(input);
-  if (isDevAdminBypassActive()) {
-    await upsertDevAdminDocument(COLLECTION, input.id, payload);
-    return;
-  }
-
   const ref = statusDoc(input.id);
   await setDoc(
     ref,
@@ -73,10 +66,6 @@ export async function upsertStatus(input: StatusInput): Promise<void> {
 }
 
 export async function deleteStatus(id: string): Promise<void> {
-  if (isDevAdminBypassActive()) {
-    await deleteDevAdminDocument(COLLECTION, id);
-    return;
-  }
   await deleteDoc(statusDoc(id));
 }
 

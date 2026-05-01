@@ -1,14 +1,4 @@
 export type {
-  DeveloperActivityEvent,
-  DeveloperActivityInput,
-  DeveloperActivityKind,
-  DeveloperActivitySource,
-} from './model/activity';
-export {
-  getDeveloperActivityTargetSlugs,
-  normalizeDeveloperActivityEvent,
-} from './model/activity';
-export type {
   VaultBacklinkEntry,
   VaultDoc,
   VaultHeading,
@@ -29,6 +19,7 @@ export {
   projectToFrontmatter,
 } from './lib/project-frontmatter';
 export { deriveOntologyFromVault } from './lib/derive-ontology-from-vault';
+export { deriveProjectsFromVault } from './lib/derive-projects-from-vault';
 export type {
   OntologyStubEdge,
   OntologyStubNode,

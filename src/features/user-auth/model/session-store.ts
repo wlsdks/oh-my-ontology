@@ -6,8 +6,6 @@ import {
   persistDemoSession as persistDemoSessionStorage,
   readPersistedDemoSession as readPersistedDemoSessionStorage,
 } from '@/shared/lib/demo-session';
-import { disableDevAdminBypass } from '@/features/permissions/model/dev-bypass';
-
 export type AuthProviderKind = 'firebase' | 'demo';
 export type UserAuthStatus = 'loading' | 'unauthenticated' | 'authenticated';
 
@@ -170,7 +168,6 @@ export function hasDemoSession() {
 }
 
 export async function signOutCombined() {
-  disableDevAdminBypass();
   clearDemoSession();
 
   const auth = getFirebaseAuth();
