@@ -11,7 +11,8 @@ import {
   subscribeKnowledgePublicGraph,
   type KnowledgeGraphNode,
 } from "@/entities/knowledge-graph";
-import { subscribeProjects, type Project, getProjectDetailHref } from "@/entities/project";
+import { type Project, getProjectDetailHref } from "@/entities/project";
+import { useProjects } from "@/features/project-data-source";
 import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import { useGlobalSearchHotkey } from "../lib/use-global-search-hotkey";
 import { GlobalSearch } from "./GlobalSearch";
@@ -74,7 +75,7 @@ export function MountedGlobalSearch({
   };
   const [nodes, setNodes] = useState<KnowledgeGraphNode[]>([]);
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { projects } = useProjects(accountId);
 
   // controlled mount 시 hotkey 비활성 — caller 가 다른 hotkey 로 open 관리.
   useGlobalSearchHotkey(open, setOpen, {
@@ -100,17 +101,6 @@ export function MountedGlobalSearch({
       accountId,
       (next) => setDocuments(next),
       () => setDocuments([]),
-    );
-    return () => unsubscribe();
-  }, [accountId]);
-
-  // projects (A0-4 — S4 closure). public collection 이라 권한 무관 read.
-  useEffect(() => {
-    setProjects([]);
-    const unsubscribe = subscribeProjects(
-      accountId,
-      (next) => setProjects(next),
-      () => setProjects([]),
     );
     return () => unsubscribe();
   }, [accountId]);

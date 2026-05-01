@@ -14,7 +14,8 @@ import {
   getKnowledgeDocumentKindLabel,
   parseKnowledgeFrontmatter,
 } from "@/entities/knowledge-document";
-import { subscribeProjects, type Project } from "@/entities/project";
+import { type Project } from "@/entities/project";
+import { useProjects } from "@/features/project-data-source";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, buttonVariants, useToast } from "@/shared/ui";
 import { DocumentNewOntologyHints, FrontmatterGradeBadge } from "@/widgets/document-new-ontology-hints";
 import { OperationsNav } from "@/widgets/operations-nav";
@@ -66,7 +67,7 @@ function NewDocumentContent() {
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { projects } = useProjects(accountId);
   const autoSeededTemplateRef = useRef(false);
   const rawMarkdownRef = useRef<HTMLTextAreaElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -115,14 +116,6 @@ function NewDocumentContent() {
   );
   const pageTitle = seededProjectId ? "문서 등록" : "새 문서 등록";
 
-  useEffect(() => {
-    const unsubscribe = subscribeProjects(
-      accountId,
-      setProjects,
-      () => setProjects([]),
-    );
-    return () => unsubscribe();
-  }, [accountId]);
 
   // B-23 cont — 사용자 입력 (제목 / 원문 / 프로젝트) 이 채워졌을 때
   // 탭 닫기 / 새로고침 silent 손실 방지. cycle 33 ProjectForm 과 동일 패턴.

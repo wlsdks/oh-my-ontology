@@ -208,7 +208,6 @@ export function HomePage() {
   // subscribeProjects 실패 시 UI 가 빈 채로 영구 고착되는 걸 막기 위한 에러
   // 상태. 네트워크·auth·quota 문제 등으로 Firestore 구독이 실패하면 배너
   // 노출 + "다시 시도" 버튼으로 복구.
-  const [projectsRetryToken, setProjectsRetryToken] = useState(0);
   const toast = useToast();
   const hydrated = useSyncExternalStore(
     () => () => undefined,
@@ -310,7 +309,6 @@ export function HomePage() {
   );
 
   // single-user 모드: account 이름 fetch 안 함. scopedAccountName 항상 null.
-  void projectsRetryToken; // local 모드는 retry 무의미. cloud 재시도는 차후 hook 단에 포함.
   // Local graph 모드: 선택 노드 + 2-hop 이웃만 Sigma에 넘김. 전체 지도에서
   // 벗어나 해당 노드 주변만 집중해서 볼 수 있게 한다. Esc 또는 닫기 버튼으로
   // 전체 맵 복귀.
@@ -1068,7 +1066,9 @@ export function HomePage() {
             <span>{projectsError}</span>
             <button
               type="button"
-              onClick={() => setProjectsRetryToken((t) => t + 1)}
+              onClick={() => {
+                if (typeof window !== "undefined") window.location.reload();
+              }}
               className="ml-2 rounded-full border border-[color:var(--color-divider)] px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
             >
               다시 시도

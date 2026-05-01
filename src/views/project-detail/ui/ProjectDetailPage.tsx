@@ -378,8 +378,10 @@ export function ProjectDetailPage({
   }, [projectsQuery.projects, projectsQuery.loaded, projectsQuery.error, slug, fallbackProjects]);
 
   // initial fetch — fallback 가 없는 경우 직접 getProject 로 한 번 더 시도.
+  // local 모드에선 useProjects 가 vault manifest 를 sync 로 들고 있어 별도
+  // fetch 불필요 + Firebase 미초기화 시 console 잡음 회피.
   useEffect(() => {
-    if (!slug || fallbackProject) return;
+    if (!slug || fallbackProject || projectsQuery.mode === 'local') return;
     let cancelled = false;
     void getProject(slug, accountId)
       .then((fetched) => {
@@ -394,7 +396,7 @@ export function ProjectDetailPage({
     return () => {
       cancelled = true;
     };
-  }, [accountId, fallbackProject, slug]);
+  }, [accountId, fallbackProject, slug, projectsQuery.mode]);
 
   useEffect(() => {
     if (!slug) return;
