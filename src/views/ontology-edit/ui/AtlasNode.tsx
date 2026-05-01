@@ -3,7 +3,7 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 
 /**
- * Atlas custom node — C-8 디자인 폴리시.
+ * Atlas custom node — kind 별 디자인 폴리시.
  *
  * 디자인 헌장 §11 호환:
  * - 단일 인디고 alpha (hue 살짝 다름 — kind 별 차별화)

@@ -71,7 +71,7 @@ export function OntologyEditCanvas({
   );
 
   const allNodes: Node[] = useMemo(() => {
-    // C-8 — approved 노드도 atlas custom type 으로 변환 (kind 별 시각 톤)
+    // approved 노드도 atlas custom type 으로 변환 (kind 별 시각 톤)
     const approvedAtlas: Node[] = approvedNodes.map((n) => {
       // n.data.label 형식: "{kindLabel} · {title}". kind 추출 위해 변환.
       const data = n.data as { label?: string };
@@ -100,7 +100,7 @@ export function OntologyEditCanvas({
       width: 220,
       height: 64,
       draggable: true,
-      // C-6 — ephemeral 노드는 핸들 drag 로 edge 생성 가능
+      // ephemeral 노드는 핸들 drag 로 edge 생성 가능
       connectable: true,
       selectable: true,
     }));
