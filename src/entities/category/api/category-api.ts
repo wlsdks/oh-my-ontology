@@ -10,8 +10,6 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { getDb } from '@/shared/api';
-import { deleteDevAdminDocument, upsertDevAdminDocument } from '@/shared/api/dev-admin-proxy';
-import { isDevAdminBypassActive } from '@/shared/lib/dev-admin-bypass';
 import { hasDemoSession } from '@/shared/lib/demo-session';
 import { getDemoCategories } from '@/shared/mocks/demo-data';
 import {
@@ -66,11 +64,6 @@ export function subscribeCategories(
  */
 export async function upsertCategory(input: CategoryInput): Promise<void> {
   const payload = toFirestore(input);
-  if (isDevAdminBypassActive()) {
-    await upsertDevAdminDocument(COLLECTION, input.id, payload);
-    return;
-  }
-
   const ref = categoryDoc(input.id);
   await setDoc(
     ref,
@@ -86,10 +79,6 @@ export async function upsertCategory(input: CategoryInput): Promise<void> {
  * 카테고리 삭제. referential check는 호출자(admin UI)가 수행해야 함.
  */
 export async function deleteCategory(id: string): Promise<void> {
-  if (isDevAdminBypassActive()) {
-    await deleteDevAdminDocument(COLLECTION, id);
-    return;
-  }
   await deleteDoc(categoryDoc(id));
 }
 

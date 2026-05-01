@@ -1,8 +1,6 @@
 import { deleteObject, getDownloadURL, ref, uploadString } from "firebase/storage";
 import { getBucket } from "@/shared/api";
-import { downloadDevAdminKnowledgeMarkdown } from "@/shared/api/dev-admin-proxy";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
-import { isDevAdminBypassActive } from "@/shared/lib/dev-admin-bypass";
 
 export function buildKnowledgeDocumentStoragePath(
   documentId: string,
@@ -19,10 +17,6 @@ export async function uploadKnowledgeMarkdown(
   storagePath: string,
   markdown: string,
 ) {
-  if (isDevAdminBypassActive()) {
-    throw new Error("개발용 우회 모드에서는 프록시를 통해 마크다운을 업로드해야 합니다.");
-  }
-
   const bucket = getBucket();
   const storageRef = ref(bucket, storagePath);
   await uploadString(storageRef, markdown, "raw", {
@@ -32,10 +26,6 @@ export async function uploadKnowledgeMarkdown(
 }
 
 export async function deleteKnowledgeMarkdown(storagePath: string) {
-  if (isDevAdminBypassActive()) {
-    return;
-  }
-
   const bucket = getBucket();
   const storageRef = ref(bucket, storagePath);
   try {
@@ -49,10 +39,6 @@ export async function deleteKnowledgeMarkdown(storagePath: string) {
 }
 
 export async function downloadKnowledgeMarkdown(storagePath: string) {
-  if (isDevAdminBypassActive()) {
-    return downloadDevAdminKnowledgeMarkdown(storagePath);
-  }
-
   const bucket = getBucket();
   const storageRef = ref(bucket, storagePath);
   const url = await getDownloadURL(storageRef);

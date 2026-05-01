@@ -7,14 +7,8 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { getDb } from "@/shared/api";
-import {
-  listDevAdminKnowledgeOutputs,
-  subscribeDevAdminPolling,
-  type DevAdminKnowledgeOutputRecord,
-} from "@/shared/api/dev-admin-proxy";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
 import { hasDemoSession } from "@/shared/lib/demo-session";
-import { isDevAdminBypassActive } from "@/shared/lib/dev-admin-bypass";
 import {
   fromFirestoreKnowledgeOutput,
   type KnowledgeOutput,
@@ -64,20 +58,6 @@ export function subscribeKnowledgeOutputsByDocument(
       ? maybeOnError
       : (callbackOrOnError as ((error: Error) => void) | undefined);
 
-  if (isDevAdminBypassActive()) {
-    return subscribeDevAdminPolling(
-      async () => {
-        const records = await listDevAdminKnowledgeOutputs(
-          targetDocumentId,
-          scopedAccountId,
-        );
-        return records.map(fromDevAdminKnowledgeOutputRecord);
-      },
-      callbackFn,
-      errorFn,
-    );
-  }
-
   if (hasDemoSession()) {
     Promise.resolve().then(() => callbackFn([]));
     return () => {};
@@ -104,59 +84,3 @@ export function subscribeKnowledgeOutputsByDocument(
   );
 }
 
-function fromDevAdminKnowledgeOutputRecord(
-  record: DevAdminKnowledgeOutputRecord,
-): KnowledgeOutput {
-  return {
-    id: record.id,
-    accountId: record.accountId,
-    jobId: record.jobId,
-    documentId: record.documentId,
-    documentVersionId: record.documentVersionId,
-    extractorVersion: record.extractorVersion ?? "",
-    provider: record.provider ?? "",
-    summary: record.summary ?? "",
-    nodeCount: Array.isArray(record.nodes) ? record.nodes.length : 0,
-    edgeCount: Array.isArray(record.edges) ? record.edges.length : 0,
-    warningCount: Array.isArray(record.warnings) ? record.warnings.length : 0,
-    nodes: Array.isArray(record.nodes)
-      ? record.nodes
-          .filter((node): node is Record<string, unknown> => Boolean(node && typeof node === "object"))
-          .map((node) => ({
-            tempId: String(node.tempId ?? ""),
-            title: String(node.title ?? ""),
-            kind: String(node.kind ?? ""),
-            projectIds: Array.isArray(node.projectIds)
-              ? node.projectIds.map((item) => String(item))
-              : [],
-            summary: String(node.summary ?? ""),
-            confidence: Number(node.confidence ?? 0),
-            warnings: Array.isArray(node.warnings)
-              ? node.warnings.map((warning) => String(warning))
-              : [],
-          }))
-      : [],
-    edges: Array.isArray(record.edges)
-      ? record.edges
-          .filter((edge): edge is Record<string, unknown> => Boolean(edge && typeof edge === "object"))
-          .map((edge) => ({
-            tempId: String(edge.tempId ?? ""),
-            fromTempId: String(edge.fromTempId ?? edge.from ?? ""),
-            toTempId: String(edge.toTempId ?? edge.to ?? ""),
-            type: String(edge.type ?? ""),
-            label: String(edge.label ?? ""),
-            confidence: Number(edge.confidence ?? 0),
-          }))
-      : [],
-    warnings: Array.isArray(record.warnings)
-      ? record.warnings.map((warning) => String(warning))
-      : [],
-    createdAt: parseDate(record.createdAt),
-  };
-}
-
-function parseDate(value?: string): Date {
-  if (!value) return new Date(0);
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date(0) : date;
-}

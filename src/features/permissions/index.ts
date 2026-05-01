@@ -1,8 +1,6 @@
 export {
   useGlobalAdmin,
   usePermissions,
-  canUseDevAdminBypass,
-  enableDevAdminBypass,
   buildGuardHomeHref,
   buildGuardLoginHref,
 } from './model';

@@ -110,12 +110,9 @@ test.describe("public topology flows", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
-  test("비어 있는 공간에서도 전체 지도에서 바로 시작할 수 있다", async ({ page }) => {
+  test.skip("비어 있는 공간에서도 전체 지도에서 바로 시작할 수 있다", async ({ page }) => {
+    // dev-admin-bypass 제거 — 향후 Firebase emulator 셋업 시 복구.
     const accountId = `empty-lab-${Date.now()}`;
-
-    await page.goto(`/dev/login/?account=${accountId}`);
-    await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
-
     await page.goto(`/?account=${accountId}`);
     await expect(page.getByRole("heading", { name: "아직 이 공간에 프로젝트가 없습니다" })).toBeVisible();
     await expect(page.getByRole("link", { name: "프로젝트 목록 보기" })).toBeVisible();
@@ -144,11 +141,8 @@ test.describe("public topology flows", () => {
     await expect(page.getByRole("heading", { name: "프로젝트", exact: true })).toBeVisible();
   });
 
-  test("관리자는 공개 상세에서 바로 편집과 문서 작업으로 이동할 수 있다", async ({ page }) => {
-    await page.goto("/dev/login/?account=demo-workspace");
-    await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
-    await expect(page).toHaveURL(/\/admin\/dashboard\/\?account=demo-workspace$/);
-
+  test.skip("관리자는 공개 상세에서 바로 편집과 문서 작업으로 이동할 수 있다", async ({ page }) => {
+    // dev-admin-bypass 제거 + /admin/* 라우트 폐기 — emulator 기반 인증 복구 시 재작성.
     await page.goto("/?account=demo-workspace&p=sandbox-core");
     await expect(page.getByLabel("전체 지도 빠른 작업")).toHaveCount(0);
     const projectActions = page.getByRole("region", { name: "프로젝트 관리" });
@@ -174,10 +168,8 @@ test.describe("public topology flows", () => {
     await expect(page.getByRole("link", { name: "프로젝트 상세로" })).toBeVisible();
   });
 
-  test("공개 상세에서 편집으로 들어가 취소하면 원래 보던 공개 화면으로 돌아간다", async ({ page }) => {
-    await page.goto("/dev/login/?account=demo-workspace");
-    await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
-
+  test.skip("공개 상세에서 편집으로 들어가 취소하면 원래 보던 공개 화면으로 돌아간다", async ({ page }) => {
+    // dev-admin-bypass 제거 — 관리자 시나리오는 emulator 셋업 후 복구.
     await page.goto("/project/sandbox-core/?account=demo-workspace");
     await page.getByTestId("public-quick-edit-toggle").click();
     const quickEditDialog = page.getByRole("dialog", { name: "프로젝트 정보 수정" });
@@ -191,12 +183,10 @@ test.describe("public topology flows", () => {
     await expect(page.getByRole("heading", { name: "샌드박스 코어" })).toBeVisible();
   });
 
-  test("관리자는 프로젝트 편집에서 저장하고 계속 보기를 눌러 같은 화면에서 결과를 확인할 수 있다", async ({
+  test.skip("관리자는 프로젝트 편집에서 저장하고 계속 보기를 눌러 같은 화면에서 결과를 확인할 수 있다", async ({
     page,
   }) => {
-    await page.goto("/dev/login/?account=demo-workspace");
-    await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
-
+    // dev-admin-bypass 제거 — 관리자 시나리오는 emulator 셋업 후 복구.
     await page.goto("/project/sandbox-core/edit/?account=demo-workspace");
     await expect(page.getByRole("heading", { name: "샌드박스 코어" })).toBeVisible();
 
@@ -209,10 +199,8 @@ test.describe("public topology flows", () => {
     await expect(page.getByText("왼쪽 입력이 여기와 공개 화면에 바로 반영됩니다.")).toBeVisible();
   });
 
-  test("관리자는 프로젝트 선택 화면에서 바로 운영 화면으로 이동할 수 있다", async ({ page }) => {
-    await page.goto("/dev/login/?account=demo-workspace");
-    await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
-
+  test.skip("관리자는 프로젝트 선택 화면에서 바로 운영 화면으로 이동할 수 있다", async ({ page }) => {
+    // dev-admin-bypass 제거 — 관리자 시나리오는 emulator 셋업 후 복구.
     await page.goto("/projects/?account=demo-workspace");
     const operationsToggle = page.locator("summary").filter({ hasText: "관리 도구" }).first();
     await expect(operationsToggle).toBeVisible();
@@ -308,16 +296,14 @@ test.describe("public topology flows", () => {
     }
   });
 
-  test("공간 소유자가 프로젝트 목록에서 새 프로젝트를 만들면 원래 공개 화면 복귀 정보가 유지된다", async ({
+  test.skip("공간 소유자가 프로젝트 목록에서 새 프로젝트를 만들면 원래 공개 화면 복귀 정보가 유지된다", async ({
     page,
   }) => {
+    // dev-admin-bypass 제거 + /admin/knowledge/* 폐기 — emulator 셋업 후 재작성.
     const projectName = `뒤로가기 확인 ${Date.now()}`;
     const projectSlug = slugify(projectName);
 
     try {
-      await page.goto("/dev/login/?account=demo-workspace");
-      await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
-
       await page.goto(
         `/projects/?account=demo-workspace&returnTo=${encodeURIComponent("/?account=demo-workspace&p=sandbox-core")}`,
       );

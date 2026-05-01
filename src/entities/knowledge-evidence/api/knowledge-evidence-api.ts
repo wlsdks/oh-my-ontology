@@ -7,14 +7,8 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { getDb } from "@/shared/api";
-import {
-  listDevAdminKnowledgeEvidence,
-  subscribeDevAdminPolling,
-  type DevAdminKnowledgeEvidenceRecord,
-} from "@/shared/api/dev-admin-proxy";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
 import { hasDemoSession } from "@/shared/lib/demo-session";
-import { isDevAdminBypassActive } from "@/shared/lib/dev-admin-bypass";
 import {
   fromFirestoreKnowledgeEvidence,
   type KnowledgeEvidence,
@@ -64,20 +58,6 @@ export function subscribeKnowledgeEvidenceByDocument(
       ? maybeOnError
       : (callbackOrOnError as ((error: Error) => void) | undefined);
 
-  if (isDevAdminBypassActive()) {
-    return subscribeDevAdminPolling(
-      async () => {
-        const records = await listDevAdminKnowledgeEvidence(
-          targetDocumentId,
-          scopedAccountId,
-        );
-        return records.map(fromDevAdminKnowledgeEvidenceRecord);
-      },
-      callbackFn,
-      errorFn,
-    );
-  }
-
   if (hasDemoSession()) {
     Promise.resolve().then(() => callbackFn([]));
     return () => {};
@@ -104,29 +84,3 @@ export function subscribeKnowledgeEvidenceByDocument(
   );
 }
 
-function fromDevAdminKnowledgeEvidenceRecord(
-  record: DevAdminKnowledgeEvidenceRecord,
-): KnowledgeEvidence {
-  return {
-    id: record.id,
-    accountId: record.accountId,
-    documentId: record.documentId,
-    documentVersionId: record.documentVersionId,
-    versionHash: record.versionHash ?? "",
-    chunkId: record.chunkId ?? "",
-    chunkHash: record.chunkHash ?? "",
-    charStart: typeof record.charStart === "number" ? record.charStart : 0,
-    charEnd: typeof record.charEnd === "number" ? record.charEnd : 0,
-    excerpt: record.excerpt ?? "",
-    locatorVersion: record.locatorVersion ?? "",
-    extractorVersion: record.extractorVersion ?? "",
-    sourceOutputId: record.sourceOutputId ?? "",
-    createdAt: parseDate(record.createdAt),
-  };
-}
-
-function parseDate(value?: string): Date {
-  if (!value) return new Date(0);
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date(0) : date;
-}

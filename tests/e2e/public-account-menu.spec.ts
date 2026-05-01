@@ -20,12 +20,12 @@ test.describe("public account menu", () => {
     await expect(menu.getByRole("menuitem", { name: "로그아웃" })).toBeVisible();
   });
 
-  test("관리자 상태에서는 프로젝트 상세에서도 관리자 이동과 로그아웃 메뉴가 보인다", async ({
+  // dev-admin-bypass 제거 + /admin/* 라우트 폐기. 향후 Firebase emulator 기반
+  // 인증 셋업 후 복구.
+  test.skip("관리자 상태에서는 프로젝트 상세에서도 관리자 이동과 로그아웃 메뉴가 보인다", async ({
     page,
   }) => {
-    await page.goto("/dev/login/");
-    await page.getByRole("button", { name: "개발용 로컬 우회로 접속" }).click();
-    await expect(page).toHaveURL(/\/admin\/dashboard\//);
+    await expect(page).toHaveURL(/\/projects\//);
 
     await page.goto("/project/iam/?account=demo-workspace");
     const trigger = page.locator('button[aria-label="내 정보 보기"]').first();
