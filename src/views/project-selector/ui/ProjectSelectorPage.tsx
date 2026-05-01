@@ -18,6 +18,7 @@ import {
   type Project,
 } from "@/entities/project";
 import { ProjectQuickCreatePanel } from "@/features/project-quick-create";
+import { useProjectMutations } from "@/features/project-data-source";
 import { downloadProjectsCsv } from "@/features/project-export";
 import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
 import { PublicAccountMenu } from "@/widgets/account-menu";
@@ -75,6 +76,10 @@ export function ProjectSelectorPage() {
   const scopedAccess = useScopedAccountAccess();
   const { categoryLabel, statusLabel, categories, statuses } = useTaxonomy();
   const isSignedIn = scopedAccess.kind !== "guest" && scopedAccess.kind !== "loading";
+  // 진실원 모드 (local/cloud/static) — local 모드는 vault 가 활성화돼 있어
+  // 비로그인이라도 mutation 가능. static 만 read-only.
+  const projectMutations = useProjectMutations();
+  const canMutateProjects = projectMutations.canCreate;
   const [projects, setProjects] = useState<Project[]>([]);
   const [accountName, setAccountName] = useState<string | null>(null);
   const query = searchParams.get(PROJECT_LIST_QUERY_KEY) ?? "";
@@ -367,17 +372,17 @@ export function ProjectSelectorPage() {
                 <CardDescription>
                   {projects.length === 0
                     ? activeContainerName
-                      ? scopedAccess.canManage
+                      ? canMutateProjects
                         ? "이 컨테이너는 비어 있습니다. 마이그레이션 또는 직접 생성으로 채워보세요."
                         : "이 컨테이너는 아직 비어 있습니다. 다른 컨테이너로 전환해보세요."
-                      : scopedAccess.canManage
+                      : canMutateProjects
                         ? "첫 프로젝트를 만들면 바로 들어갑니다."
                         : "아직 볼 프로젝트가 없습니다."
                     : "다른 이름으로 다시 찾아보세요."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
-                {projects.length === 0 && scopedAccess.canManage ? (
+                {projects.length === 0 && canMutateProjects ? (
                   <>
                     <div className="w-full">
                         <ProjectQuickCreatePanel
@@ -422,7 +427,7 @@ export function ProjectSelectorPage() {
                       </Button>
                     </Link>
                   </>
-                ) : !scopedAccess.canManage ? (
+                ) : !canMutateProjects ? (
                   // 로그인 + 멤버이지만 편집 권한 없음 + 0 프로젝트 = dead-end 회피.
                   // overview (전체 토폴로지) 로 회귀 동선 노출.
                   <Link href={overviewHref} className="inline-flex">
@@ -556,7 +561,7 @@ export function ProjectSelectorPage() {
           )}
         </section>
 
-        {scopedAccess.canManage && projects.length > 0 ? (
+        {canMutateProjects && projects.length > 0 ? (
           <section className="mt-6">
             <details className="rounded-[20px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]">
@@ -593,9 +598,9 @@ export function ProjectSelectorPage() {
           </section>
         ) : null}
 
-        {scopedAccess.canManage && (
+        {canMutateProjects && (
           <section className="mt-8 grid gap-4 md:grid-cols-2">
-            {scopedAccess.canManage && (
+            {canMutateProjects && (
               <details className="rounded-[20px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]">
                   <div>

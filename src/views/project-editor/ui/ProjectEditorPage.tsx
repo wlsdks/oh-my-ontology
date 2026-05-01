@@ -4,14 +4,12 @@ import { useCallback, useEffect, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, CopyPlus, FileText } from "lucide-react";
-import { PermissionGate } from "@/features/permissions";
 import { ProjectForm } from "@/features/project-edit";
+import { useProjectMutations } from "@/features/project-data-source";
 import {
   getProjectDetailHref,
-  deleteProject,
   getProject,
   subscribeProjects,
-  upsertProject,
   type Project,
   type ProjectInput,
 } from "@/entities/project";
@@ -69,6 +67,7 @@ function EditorContent({
 }: Props) {
   const router = useRouter();
   const toast = useToast();
+  const projectMutations = useProjectMutations();
   const targetSlug = mode === "edit" ? slug : duplicateFromSlug;
   useDocumentTitle(
     (mode === "edit" ? "프로젝트 편집 · Demo" : "새 프로젝트 · Demo"),
@@ -148,18 +147,14 @@ function EditorContent({
   ) => {
     const payload: ProjectInput = { ...input, accountId: accountId ?? undefined };
     if (mode === "create") {
-      const existing = await getProject(payload.slug, payload.accountId);
-      if (existing) {
-        throw new Error("이미 존재하는 slug입니다.");
-      }
-      await upsertProject(payload);
+      await projectMutations.createProject(payload);
       if (options.behavior === "stay") {
         toast.show(`"${input.name}" 만들었습니다 · 이제 보강하세요`, "success");
         router.replace(buildEditHref(input.slug));
         return;
       }
     } else {
-      await upsertProject(payload);
+      await projectMutations.updateProject(payload);
       if (options.behavior === "stay") {
         toast.show(`"${input.name}" 저장 완료`, "success");
         return;
@@ -170,7 +165,7 @@ function EditorContent({
 
   const handleDelete = async () => {
     if (!slug) return;
-    await deleteProject(slug, accountId);
+    await projectMutations.deleteProject(slug);
     toast.show("프로젝트를 삭제했습니다", "success");
     router.push(safeReturnTo);
   };
@@ -455,12 +450,13 @@ function EditorContent({
 }
 
 export function ProjectEditorPage(props: Props) {
+  // local-first 헌장: 진입 자체는 차단하지 않음. local 모드 사용자는 vault 에
+  // 직접 쓸 수 있고, cloud 모드 mutation 은 useProjectMutations 안에서 모드
+  // 분기 + 거절 처리. (이전에는 PermissionGate 가 비로그인 통째 차단했다.)
   return (
-    <PermissionGate>
-      <EditorContent
-        key={`${props.slug ?? `new-${props.mode}`}:${props.duplicateFromSlug ?? ""}`}
-        {...props}
-      />
-    </PermissionGate>
+    <EditorContent
+      key={`${props.slug ?? `new-${props.mode}`}:${props.duplicateFromSlug ?? ""}`}
+      {...props}
+    />
   );
 }
