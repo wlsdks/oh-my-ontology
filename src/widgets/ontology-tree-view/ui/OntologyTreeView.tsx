@@ -211,7 +211,7 @@ function ProjectIdChip({
 
 export function OntologyTreeView({
   result,
-  emptyHint = "아직 승인된 ontology 노드가 없어요.",
+  emptyHint = "ontology 가 아직 자라지 않았어요.",
   defaultExpanded = true,
   onSelect,
 }: OntologyTreeViewProps) {
