@@ -17,8 +17,8 @@ export default function manifest(): MetadataRoute.Manifest {
     // scope: PWA 가 담당하는 URL 범위. 루트부터 전체 앱을 포함. scope 밖으로
     // 이동하면 Chrome 이 외부 브라우저로 열기 옵션 제시.
     scope: '/',
-    name: 'Demo — oh-my-ontology',
-    short_name: 'Demo',
+    name: 'oh-my-ontology',
+    short_name: 'oh-my-ontology',
     description: '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
     start_url: '/',
     display: 'standalone',

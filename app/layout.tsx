@@ -23,32 +23,32 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Demo',
-    template: '%s · Demo',
+    default: 'oh-my-ontology',
+    template: '%s · oh-my-ontology',
   },
-  description: '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
-  keywords: ['Demo', 'Demo', '프로젝트 맵', '토폴로지', 'AI Agent', 'Reactor', 'IAM'],
-  authors: [{ name: 'Demo' }],
+  description: '마크다운 문서에서 지식 그래프를 키우는 오픈소스 온톨로지 워크벤치.',
+  keywords: ['oh-my-ontology', 'ontology', '온톨로지', '지식 그래프', 'knowledge graph', 'markdown', '토폴로지', 'AI agent'],
+  authors: [{ name: 'oh-my-ontology contributors' }],
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
     url: SITE_URL,
-    siteName: 'Demo',
-    title: 'Demo',
-    description: '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
+    siteName: 'oh-my-ontology',
+    title: 'oh-my-ontology',
+    description: '마크다운 문서에서 지식 그래프를 키우는 오픈소스 온톨로지 워크벤치.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Demo',
+        alt: 'oh-my-ontology',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Demo',
-    description: '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
+    title: 'oh-my-ontology',
+    description: '마크다운 문서에서 지식 그래프를 키우는 오픈소스 온톨로지 워크벤치.',
     images: ['/og-image.png'],
   },
   robots: {
