@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { createElement, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Search, X } from "lucide-react";
 import { getOntologyKindIcon, getOntologyKindLabel } from "@/entities/ontology-class";
 import { ManualSourceChip } from "@/entities/knowledge-graph";
@@ -69,15 +69,16 @@ const KIND_TONE: Record<
 
 function KindChip({ kind }: { kind: string }) {
   const tone = KIND_TONE[kind] ?? KIND_TONE.element!;
-  // T35 — kind 별 lucide icon. Phase 4 (비개발자 친화) — 시각 직관 보강.
-  // 색은 chip tone 의 text color 이미 currentColor — 추가 색 도입 0.
-  const Icon = getOntologyKindIcon(kind);
+  // kind → 정적 lucide 컴포넌트 매핑. createElement 로 직접 호출해서
+  // local alias (`const Icon = …; <Icon />`) 가 react-hooks/static-components
+  // 룰을 트리거하는 패턴 회피. KIND_ICON 자체가 정적 record 라 element type
+  // identity 는 매 render 안정.
   return (
     <span
       className="inline-flex items-center gap-1 break-keep rounded-full border px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em]"
       style={{ backgroundColor: tone.bg, color: tone.text, borderColor: tone.border }}
     >
-      <Icon size={10} aria-hidden />
+      {createElement(getOntologyKindIcon(kind), { size: 10, "aria-hidden": true })}
       {getOntologyKindLabel(kind)}
     </span>
   );
