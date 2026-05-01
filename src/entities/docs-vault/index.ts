@@ -24,6 +24,10 @@ export {
   computeLocalVaultFingerprint,
 } from './lib/build-local-manifest';
 export type { LocalVaultBuild } from './lib/build-local-manifest';
+export {
+  buildProjectMarkdown,
+  projectToFrontmatter,
+} from './lib/project-frontmatter';
 export { findRelatedDocs } from './lib/related-docs';
 export type { RelatedDocMatch } from './lib/related-docs';
 export { buildDocsVaultHref } from './lib/href';
