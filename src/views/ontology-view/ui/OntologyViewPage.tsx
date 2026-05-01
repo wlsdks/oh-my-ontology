@@ -11,12 +11,8 @@ import {
   type KnowledgeDocument,
 } from "@/entities/knowledge-document";
 import {
-  dismissStubNode,
   ManualSourceChip,
-  promoteStubNode,
-  subscribeStubNodes,
   type KnowledgeGraphNode,
-  type StubNode,
 } from "@/entities/knowledge-graph";
 import { getOntologyKindLabel } from "@/entities/ontology-class";
 import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
@@ -31,7 +27,6 @@ import { GlobalSearch, useGlobalSearchHotkey } from "@/widgets/global-search";
 import { ManualEdgeCreateModal } from "@/widgets/manual-edge-create-modal";
 import { ManualNodeCreateModal } from "@/widgets/manual-node-create-modal";
 import { OntologyEgoGraph } from "@/widgets/ontology-ego-graph";
-import { OntologyStubList } from "@/widgets/ontology-stub-list";
 import { OntologyTreeView } from "@/widgets/ontology-tree-view";
 import { useDataSourceMode } from "@/features/data-source-mode";
 import { VaultOntologyStubsPanel, useOntologyInsight } from "@/features/vault-ontology";
@@ -60,10 +55,6 @@ export function OntologyViewPage() {
   const [selectedNode, setSelectedNode] = useState<KnowledgeGraphNode | null>(null);
   // 글로벌 검색 — ⌘K / Ctrl+K 로 토글, 결과 선택 시 selectedNode 로 점프 / 문서 라우트로 점프.
   const [searchOpen, setSearchOpen] = useState(false);
-  // stub placeholder — 검수 큐 가지 않고 페이지 안에서 직접 promote/dismiss.
-  const [stubs, setStubs] = useState<StubNode[]>([]);
-  const [busyStubNodeId, setBusyStubNodeId] = useState<string | null>(null);
-  const [stubActionError, setStubActionError] = useState<string | null>(null);
   // S5: 1-hop 기본, 사용자가 토글로 2-hop 까지 확장 가능. 노드 변경 시
   // 자동 1-hop 으로 복귀해 2-hop 의 큰 ego 를 누적해 보지 않게.
   const [egoHops, setEgoHops] = useState<1 | 2>(1);
@@ -138,39 +129,6 @@ export function OntologyViewPage() {
     return () => unsubscribe();
   }, [accountId]);
 
-  // stub placeholder list — 권한 게이팅 Firestore rules. 권한 없으면 빈 배열.
-  useEffect(() => {
-    setStubs([]);
-    const unsubscribe = subscribeStubNodes(accountId, setStubs, () => setStubs([]));
-    return () => unsubscribe();
-  }, [accountId]);
-
-  const handlePromoteStub = async (
-    nodeId: string,
-    newKind: "project" | "domain" | "capability" | "element" | "document",
-  ) => {
-    setBusyStubNodeId(nodeId);
-    setStubActionError(null);
-    try {
-      await promoteStubNode({ nodeId, newKind, accountId });
-    } catch (err) {
-      setStubActionError(err instanceof Error ? err.message : "stub 승격 실패");
-    } finally {
-      setBusyStubNodeId(null);
-    }
-  };
-  const handleDismissStub = async (nodeId: string) => {
-    setBusyStubNodeId(nodeId);
-    setStubActionError(null);
-    try {
-      await dismissStubNode({ nodeId, accountId });
-    } catch (err) {
-      setStubActionError(err instanceof Error ? err.message : "stub 삭제 실패");
-    } finally {
-      setBusyStubNodeId(null);
-    }
-  };
-
   const treeResult: OntologyTreeBuildResult | null = useMemo(() => {
     if (!insight) return null;
     return buildOntologyTree(insight.nodes, insight.edges);
@@ -179,10 +137,6 @@ export function OntologyViewPage() {
   const totalNodes = treeResult ? countTreeNodes(treeResult.roots) : 0;
   const docCount = insight
     ? insight.nodes.filter((n) => n.kind === "document").length
-    : 0;
-  // stub (kind=unknown) — 검수 대기 placeholder. 사용자 행동 유도 신호.
-  const stubCount = insight
-    ? insight.nodes.filter((n) => n.kind === "unknown").length
     : 0;
 
   // evidenceId (= 실제 knowledge document ID) → document 노드 매핑.
@@ -319,7 +273,7 @@ export function OntologyViewPage() {
         </div>
       </section>
 
-      <section className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+      <section className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="트리 노드" value={String(totalNodes)} />
         <Stat label="총 관계" value={insight ? String(insight.edges.length) : "—"} />
         <Stat
@@ -333,17 +287,6 @@ export function OntologyViewPage() {
           }
         />
         <Stat
-          label="미해결 참조"
-          hint="트리 하단의 stub 리스트에서 처리"
-          hintFull="frontmatter relates.target 이 가리킨 미존재 노드. 트리 하단 stub 리스트에서 승격 (kind 부여) 또는 폐기."
-          value={String(stubCount)}
-          accent={stubCount > 0 ? "amber" : undefined}
-        />
-        <Stat
-          // UX-4: 모바일 2-col 그리드에서 5 번째 카드만 단독 row 가 되어
-          // 우측에 빈 공간이 생기던 문제. col-span-2 (모바일) 로 마지막
-          // 카드를 풀 너비로. md+ 5-col 에서는 자동 1-col 차지.
-          className="col-span-2 md:col-span-1"
           label="발행 시점"
           value={
             insight?.meta?.publishedAt
@@ -497,31 +440,6 @@ relates:
           ) : null}
         </>
       )}
-
-      {/* stub placeholder 처리 — 검수 큐 가지 않고 페이지 안에서 promote/dismiss.
-          stubs.length === 0 이면 widget 자체가 "미해결 stub 없음" 안내. */}
-      {stubs.length > 0 ? (
-        <section className="mt-8">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:rgba(238,198,128,0.95)]">
-            미해결 참조 {stubs.length}
-          </p>
-          {stubActionError ? (
-            <div className="mb-3 rounded-md border border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] px-3 py-2 text-xs text-[color:var(--color-status-danger)]">
-              {stubActionError}
-            </div>
-          ) : null}
-          <OntologyStubList
-            stubs={stubs}
-            busyNodeId={busyStubNodeId}
-            onPromote={(nodeId, newKind) => {
-              void handlePromoteStub(nodeId, newKind);
-            }}
-            onDismiss={(nodeId) => {
-              void handleDismissStub(nodeId);
-            }}
-          />
-        </section>
-      ) : null}
 
       {selectedNode ? (
         <NodeDetailPanel
@@ -704,7 +622,8 @@ function CopyNodeLinkButton({
  * 데스크톱 (md+) — 화면 우측 고정 카드 (right rail).
  * 모바일 — 화면 하단 고정 시트 (BottomTabBar 위).
  *
- * project kind 면 공개 detail 페이지 진입 CTA. unknown (stub) 이면 검수 큐 안내.
+ * project kind 면 공개 detail 페이지 진입 CTA. unknown (stub) 이면 vault
+ * 에 매칭 slug 가 없다는 안내 — 빌더에서 채우거나 frontmatter 에서 빼면 해결.
  */
 function NodeDetailPanel({
   node,
@@ -1012,7 +931,7 @@ function NodeDetailPanel({
       ) : null}
       {isStub ? (
         <p className="mt-4 break-keep rounded-md border border-[color:rgba(255,179,71,0.20)] bg-[color:rgba(255,179,71,0.06)] px-3 py-2 text-xs text-[color:rgba(238,198,128,0.95)]">
-          stub 노드 — 검수 큐에서 promote 또는 dismiss 하세요.
+          미해결 참조 — frontmatter 가 가리킨 slug 가 vault 안에 없어요. 빌더(/ontology/edit)에서 이 이름으로 노드를 만들거나, frontmatter 에서 참조를 빼세요.
         </p>
       ) : null}
     </aside>

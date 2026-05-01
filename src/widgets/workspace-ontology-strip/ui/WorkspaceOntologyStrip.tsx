@@ -36,7 +36,7 @@ export function WorkspaceOntologyStrip({ accountId }: WorkspaceOntologyStripProp
   const ontologyHref = accountId
     ? `/ontology/?${ACCOUNT_QUERY_KEY}=${encodeURIComponent(accountId)}`
     : "/ontology/";
-  // 미해결 stub 은 /ontology 의 OntologyStubList 위젯에서 처리 (promote/dismiss).
+  // 미해결 stub 은 /ontology 트리 하단의 frontmatter 안내 + 빌더 (/ontology/edit) 에서 채움.
   const stubHref = ontologyHref;
 
   return (

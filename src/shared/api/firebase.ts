@@ -1,6 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { connectFirestoreEmulator, getFirestore, type Firestore } from 'firebase/firestore';
-import { connectFunctionsEmulator, getFunctions, type Functions } from 'firebase/functions';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import { connectAuthEmulator, getAuth, type Auth } from 'firebase/auth';
 import { env } from '@/shared/config';
@@ -22,9 +21,7 @@ let _app: FirebaseApp | null = null;
 let _firestore: Firestore | null = null;
 let _storage: FirebaseStorage | null = null;
 let _auth: Auth | null = null;
-let _functions: Functions | null = null;
 let _firestoreEmulatorConnected = false;
-let _functionsEmulatorConnected = false;
 let _authEmulatorConnected = false;
 
 /**
@@ -46,11 +43,6 @@ function isRunningOnProductionOrigin(): boolean {
 function shouldUseFirestoreEmulator() {
   if (isRunningOnProductionOrigin()) return false;
   return env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === '1' && Boolean(env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST);
-}
-
-function shouldUseFunctionsEmulator() {
-  if (isRunningOnProductionOrigin()) return false;
-  return env.NEXT_PUBLIC_FIREBASE_USE_EMULATORS === '1' && Boolean(env.NEXT_PUBLIC_FUNCTIONS_EMULATOR_HOST);
 }
 
 function shouldUseAuthEmulator() {
@@ -105,19 +97,3 @@ export function getFirebaseAuth(): Auth {
   return _auth;
 }
 
-export function getFirebaseFunctions(): Functions {
-  if (!_functions) {
-    _functions = getFunctions(
-      getFirebaseApp(),
-      env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_REGION || "asia-northeast3",
-    );
-    if (shouldUseFunctionsEmulator() && !_functionsEmulatorConnected) {
-      const { host, port } = getHostAndPort(
-        env.NEXT_PUBLIC_FUNCTIONS_EMULATOR_HOST ?? "127.0.0.1:5001",
-      );
-      connectFunctionsEmulator(_functions, host, port);
-      _functionsEmulatorConnected = true;
-    }
-  }
-  return _functions;
-}
