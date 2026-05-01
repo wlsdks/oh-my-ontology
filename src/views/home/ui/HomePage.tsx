@@ -533,10 +533,7 @@ export function HomePage() {
   const preloadProjectAsset = useCallback(
     (slug: string) => {
       const project = projectBySlug.get(slug);
-      // Layer 0 컨테이너 synthetic project 는 slug 가 container id (demo,
-      // demo-reactor 등). `/project/{id}/` 정적 페이지는 존재하지 않아
-      // prefetch 시 404 소음만 만든다. 실제로는 `?pj=` zoom-in 으로 이동.
-      if (!project || project.category === "__container__") return;
+      if (!project) return;
 
       const href = getProjectDetailHref(slug, scopedAccountId);
       if (!prefetchedProjectHrefsRef.current.has(href)) {
