@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import type { Category } from "@/entities/category";
 import { type Project } from "@/entities/project";
-import { getProject, upsertProject } from "@/entities/project";
 import type { Status } from "@/entities/status";
+import { useProjectMutations } from "@/features/project-data-source";
 import { slugify } from "@/shared/lib/slugify";
 import { Button } from "@/shared/ui";
 
@@ -47,6 +47,7 @@ export function ProjectQuickCreatePanel({
   const [owner, setOwner] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { createProject } = useProjectMutations();
 
   const existingSlugs = useMemo(
     () => new Set(projects.map((project) => project.slug)),
@@ -95,11 +96,7 @@ export function ProjectQuickCreatePanel({
           y: 180 + projects.length * 28,
         },
       };
-      const existing = await getProject(input.slug, input.accountId);
-      if (existing) {
-        throw new Error("이미 존재하는 slug입니다.");
-      }
-      await upsertProject(input);
+      await createProject(input);
 
       setName("");
       setDescription("");

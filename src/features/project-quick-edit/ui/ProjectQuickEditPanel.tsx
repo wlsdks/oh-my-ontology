@@ -8,7 +8,7 @@ import {
   type Project,
   type ProjectInput,
 } from "@/entities/project";
-import { upsertProject } from "@/entities/project";
+import { useProjectMutations } from "@/features/project-data-source";
 import { Button } from "@/shared/ui";
 
 interface Props {
@@ -61,6 +61,7 @@ export function ProjectQuickEditPanel({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const { updateProject } = useProjectMutations();
 
   useEffect(() => {
     const next = toQuickEditValues(project);
@@ -113,7 +114,7 @@ export function ProjectQuickEditPanel({
     setNotice(null);
 
     try {
-      await upsertProject(nextInput);
+      await updateProject(nextInput);
       const nextBaseline = toQuickEditValues({
         ...project,
         ...nextInput,
