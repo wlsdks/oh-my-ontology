@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { DEMO_ACCOUNT_ID } from "@/shared/config/demo-space";
+// PR #41 — demo-space.ts 폐기. legacy DEMO_ACCOUNT_ID 상수 인라인.
+const DEMO_ACCOUNT_ID = "demo-workspace";
 
 /**
  * 홈 토폴로지 시각 회귀 (A2-5).

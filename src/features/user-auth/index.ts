@@ -3,7 +3,6 @@ export {
   getPasswordSupportState,
   getCurrentAuthProfile,
   sendPasswordReset,
-  signInWithDemo,
   signInWithEmail,
   signOut,
   signUpWithEmail,

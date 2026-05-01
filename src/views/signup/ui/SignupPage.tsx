@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AuthGoogleButton, signInWithDemo, signUpWithEmail, useUserAuth } from '@/features/user-auth';
-import { getDemoProjectsHref } from '@/shared/config/demo-space';
+import { AuthGoogleButton, signUpWithEmail, useUserAuth } from '@/features/user-auth';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
 function resolveNextHref(nextParam: string | null, accountId?: string | null) {
@@ -27,7 +26,6 @@ export function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [demoSubmitting, setDemoSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,19 +61,6 @@ export function SignupPage() {
       setError(err instanceof Error ? err.message : '회원가입에 실패했습니다.');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setDemoSubmitting(true);
-    setError(null);
-    try {
-      await signInWithDemo();
-      router.replace(getDemoProjectsHref());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '데모 로그인에 실패했습니다.');
-    } finally {
-      setDemoSubmitting(false);
     }
   };
 
@@ -187,14 +172,6 @@ export function SignupPage() {
                     로그인
                   </Button>
                 </Link>
-                <Button
-                  variant="ghost"
-                  type="button"
-                  disabled={demoSubmitting}
-                  onClick={() => void handleDemoLogin()}
-                >
-                  {demoSubmitting ? '데모 로그인 중...' : '데모 로그인'}
-                </Button>
               </div>
             </div>
           </CardContent>

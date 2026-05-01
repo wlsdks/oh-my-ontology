@@ -13,12 +13,6 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { getDb } from "@/shared/api";
-import { hasDemoSession } from '@/shared/lib/demo-session';
-import {
-  DEMO_ACCOUNT_ID,
-  getAllDemoKnowledgeDocuments,
-  getDemoKnowledgeDocumentsByProject,
-} from "@/shared/mocks/demo-data";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
 import { slugify } from "@/shared/lib/slugify";
 import {
@@ -70,18 +64,8 @@ function buildKnowledgeVersionId(documentId: string) {
 }
 
 export async function listKnowledgeDocuments(
-  accountId?: string | null,
+  _accountId?: string | null,
 ): Promise<KnowledgeDocument[]> {
-  if (hasDemoSession()) {
-    const normalized = normalizeAccountId(accountId);
-    // 데모 워크스페이스 한정 — 다른 accountId 는 빈 목록. admin 화면은 내
-    // 공간 scope 이라 정상 동작.
-    if (!normalized || normalized === DEMO_ACCOUNT_ID) {
-      return getAllDemoKnowledgeDocuments();
-    }
-    return [];
-  }
-
   const snapshot = await getDocs(
     query(knowledgeDocumentsCollection(), orderBy("updatedAt", "desc")),
   );
@@ -120,10 +104,10 @@ export function subscribeKnowledgeDocuments(
     | ((error: Error) => void),
   maybeOnError?: (error: Error) => void,
 ): Unsubscribe {
-  const scopedAccountId =
-    typeof accountIdOrCallback === "function"
-      ? null
-      : normalizeAccountId(accountIdOrCallback);
+  // accountId 는 v0.x 단일 사용자 모델에서 항상 null. legacy 시그니처만 보존.
+  void (typeof accountIdOrCallback === "function"
+    ? null
+    : normalizeAccountId(accountIdOrCallback));
   const callbackFn =
     typeof accountIdOrCallback === "function"
       ? accountIdOrCallback
@@ -132,15 +116,6 @@ export function subscribeKnowledgeDocuments(
     typeof accountIdOrCallback === "function"
       ? (callbackOrOnError as ((error: Error) => void) | undefined)
       : maybeOnError;
-
-  if (hasDemoSession()) {
-    const docs =
-      !scopedAccountId || scopedAccountId === DEMO_ACCOUNT_ID
-        ? getAllDemoKnowledgeDocuments()
-        : [];
-    Promise.resolve().then(() => callbackFn(docs));
-    return () => {};
-  }
 
   return onSnapshot(
     query(knowledgeDocumentsCollection(), orderBy("updatedAt", "desc")),
@@ -166,17 +141,10 @@ export function subscribeKnowledgeDocuments(
  */
 export function subscribeKnowledgeDocumentsByProject(
   projectSlug: string,
-  accountId: string | null | undefined,
+  _accountId: string | null | undefined,
   callback: (documents: KnowledgeDocument[]) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
-  if (hasDemoSession()) {
-    Promise.resolve().then(() =>
-      callback(getDemoKnowledgeDocumentsByProject(projectSlug)),
-    );
-    return () => {};
-  }
-
   return onSnapshot(
     query(
       knowledgeDocumentsCollection(),
@@ -216,12 +184,6 @@ export async function getPublicDocumentsForProject(
 ): Promise<KnowledgeDocument[]> {
   const scopedAccountId = normalizeAccountId(accountId);
   if (!scopedAccountId) return [];
-
-  if (hasDemoSession()) {
-    return getDemoKnowledgeDocumentsByProject(projectSlug).filter(
-      (doc) => doc.status === 'published',
-    );
-  }
 
   try {
     const snapshot = await getDocs(
@@ -370,12 +332,8 @@ export async function setKnowledgeDocumentCurrentVersion(input: {
 
 export async function listKnowledgeVersionsByDocument(
   documentId: string,
-  accountId?: string | null,
+  _accountId?: string | null,
 ): Promise<KnowledgeVersion[]> {
-  // 데모 세션은 version history 도 없다 (`buildDocuments` 는 문서만 생성).
-  // Firestore rules denial 대신 빈 배열로 정적 resolve.
-  if (hasDemoSession()) return [];
-
   const snapshot = await getDocs(
     query(knowledgeDocumentVersionsCollection(), orderBy("createdAt", "desc")),
   );
@@ -418,11 +376,6 @@ export function subscribeKnowledgeVersionsByDocument(
     typeof documentIdOrCallback === "string"
       ? maybeOnError
       : (callbackOrOnError as ((error: Error) => void) | undefined);
-
-  if (hasDemoSession()) {
-    Promise.resolve().then(() => callbackFn([]));
-    return () => {};
-  }
 
   return onSnapshot(
     query(knowledgeDocumentVersionsCollection(), orderBy("createdAt", "desc")),

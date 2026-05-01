@@ -15,21 +15,17 @@ import { getFirebaseAuth } from '@/shared/api';
 import { env } from '@/shared/config/env';
 import {
   fetchSessionProfile,
-  hasDemoSession,
-  signInWithLocalDemo,
   signOutCombined,
   type AuthSessionUser,
 } from './session-store';
 
 /**
  * 인증 성공 직후 "내 공간" 을 보장한다. 실패해도 로그인 플로우는 계속 진행
- * (fire-and-forget). 데모 세션은 mock 기반이라 Firestore 생성이 필요 없어
- * 분기.
+ * (fire-and-forget). single-user 모드라 account 자동 생성 안 함.
  */
 function bootstrapWorkspace(user: AuthSessionUser): void {
   if (!user.uid) return;
-  if (user.provider === 'demo') return;
-  // single-user 모드: account 자동 생성 안 함. 사용자는 본인 디스크 / Firestore 단일 namespace 로 작업.
+  // single-user 모드: 본인 디스크 / Firestore 단일 namespace 로 작업.
 }
 
 export interface PasswordSupportState {
@@ -146,11 +142,6 @@ export async function signUpWithEmail(input: {
   }
 }
 
-export async function signInWithDemo(): Promise<AuthSessionUser> {
-  const email = env.NEXT_PUBLIC_DEMO_LOGIN_EMAIL?.trim() || 'demo-viewer@local';
-  return signInWithLocalDemo({ email, displayName: '데모 뷰어' });
-}
-
 export async function signOut(): Promise<void> {
   await signOutCombined();
 }
@@ -160,17 +151,6 @@ export async function getCurrentAuthProfile(): Promise<AuthSessionUser | null> {
 }
 
 export function getPasswordSupportState(): PasswordSupportState {
-  // 데모 세션은 Firebase 가 아니므로 별도 분기 — "게스트" 라고 부르면
-  // "로그인 안됨" 으로 오해되지만 실제로는 데모 공간 주인.
-  if (hasDemoSession()) {
-    return {
-      canChangePassword: false,
-      canResetPassword: false,
-      providerLabel: '데모 로그인',
-      reason: '데모 계정은 비밀번호 변경 없이 바로 체험용으로 사용됩니다.',
-    };
-  }
-
   const auth = getFirebaseAuth();
   const currentUser = auth.currentUser;
 

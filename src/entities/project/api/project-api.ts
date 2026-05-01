@@ -12,8 +12,6 @@ import {
 } from "firebase/firestore";
 import { getDb } from "@/shared/api";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
-import { hasDemoSession } from '@/shared/lib/demo-session';
-import { getDemoProject, getDemoProjects } from "@/shared/mocks/demo-data";
 import {
   findBulkDeleteBlockingReferences,
   findProjectsReferencingSlug,
@@ -36,11 +34,7 @@ function projectDoc(slug: string) {
 /**
  * 모든 프로젝트 단건 조회 (1회성).
  */
-export async function listProjects(accountId?: string | null): Promise<Project[]> {
-  if (hasDemoSession()) {
-    return getDemoProjects(accountId);
-  }
-
+export async function listProjects(_accountId?: string | null): Promise<Project[]> {
   const snapshot = await getDocs(projectsCollection());
   return snapshot.docs.map((d) => fromFirestore(d.id, d.data()));
 }
@@ -50,12 +44,8 @@ export async function listProjects(accountId?: string | null): Promise<Project[]
  */
 export async function getProject(
   slug: string,
-  accountId?: string | null,
+  _accountId?: string | null,
 ): Promise<Project | null> {
-  if (hasDemoSession()) {
-    return getDemoProject(slug, accountId);
-  }
-
   const snapshot = await getDoc(projectDoc(slug));
   if (!snapshot.exists()) return null;
   return fromFirestore(snapshot.id, snapshot.data());
@@ -167,10 +157,10 @@ export function subscribeProjects(
   callbackOrOnError?: ((projects: Project[]) => void) | ((error: Error) => void),
   maybeOnError?: (error: Error) => void,
 ): Unsubscribe {
-  const normalizedAccountId =
-    typeof accountIdOrCallback === "function"
-      ? null
-      : normalizeAccountId(accountIdOrCallback);
+  // accountId 는 v0.x 단일 사용자 모델에서 항상 null. legacy 시그니처만 보존.
+  void (typeof accountIdOrCallback === "function"
+    ? null
+    : normalizeAccountId(accountIdOrCallback));
   const callback =
     typeof accountIdOrCallback === "function"
       ? accountIdOrCallback
@@ -195,12 +185,6 @@ export function subscribeProjects(
       Promise.resolve().then(() => callback(override));
       return () => {};
     }
-  }
-
-  if (hasDemoSession()) {
-    const projects = getDemoProjects(normalizedAccountId);
-    Promise.resolve().then(() => callback(projects));
-    return () => {};
   }
 
   return onSnapshot(

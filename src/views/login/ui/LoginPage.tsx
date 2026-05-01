@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AuthGoogleButton, signInWithDemo, signInWithEmail, useUserAuth } from '@/features/user-auth';
-import { getDemoHomeHref } from '@/shared/config/demo-space';
+import { AuthGoogleButton, signInWithEmail, useUserAuth } from '@/features/user-auth';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
 function resolveNextHref(nextParam: string | null, accountId?: string | null) {
@@ -26,7 +25,6 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [demoSubmitting, setDemoSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,20 +58,6 @@ export function LoginPage() {
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다.');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setDemoSubmitting(true);
-    setError(null);
-    try {
-      await signInWithDemo();
-      // 데모 로그인 후 워크스페이스 지도 (Layer 0) 로 이동.
-      router.replace(getDemoHomeHref());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '데모 로그인에 실패했습니다.');
-    } finally {
-      setDemoSubmitting(false);
     }
   };
 
@@ -160,14 +144,6 @@ export function LoginPage() {
                     회원가입
                   </Button>
                 </Link>
-                <Button
-                  variant="ghost"
-                  type="button"
-                  disabled={demoSubmitting}
-                  onClick={() => void handleDemoLogin()}
-                >
-                  {demoSubmitting ? '데모 로그인 중...' : '데모 로그인'}
-                </Button>
               </div>
             </div>
           </CardContent>

@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { ArrowRight, FolderOpen, Orbit } from "lucide-react";
-import { signInWithDemo } from "@/features/user-auth";
-import { getDemoHomeHref } from "@/shared/config/demo-space";
 import { cn } from "@/shared/lib/cn";
-import { Button, buttonVariants } from "@/shared/ui";
+import { buttonVariants } from "@/shared/ui";
 
 interface Props {
   accountId?: string | null;
@@ -34,32 +31,8 @@ function buildAuthHref(
  * 안전.
  */
 export function LandingPage({ next }: Props) {
-  const [demoSubmitting, setDemoSubmitting] = useState(false);
-  const [demoError, setDemoError] = useState<string | null>(null);
   const loginHref = buildAuthHref("/login", next);
   const hasReturnTarget = Boolean(next?.trim());
-
-  const handleDemoOpen = async () => {
-    setDemoSubmitting(true);
-    setDemoError(null);
-    try {
-      await signInWithDemo();
-      window.location.href = getDemoHomeHref();
-    } catch (error) {
-      setDemoError(
-        error instanceof Error ? error.message : "데모 로그인에 실패했습니다.",
-      );
-    } finally {
-      setDemoSubmitting(false);
-    }
-  };
-
-  // 에러 메시지 6초 후 자동 해제 — 사용자가 재시도 할 수 있게.
-  useEffect(() => {
-    if (!demoError) return;
-    const id = window.setTimeout(() => setDemoError(null), 6000);
-    return () => window.clearTimeout(id);
-  }, [demoError]);
 
   return (
     <main
@@ -129,16 +102,13 @@ export function LandingPage({ next }: Props) {
             </Link>
           ) : (
             <>
-              <Button
-                type="button"
-                size="lg"
-                className="rounded-full min-w-[14rem]"
-                disabled={demoSubmitting}
-                onClick={() => void handleDemoOpen()}
+              <Link
+                href="/"
+                className={cn(buttonVariants({ size: "lg" }), "rounded-full min-w-[14rem]")}
               >
-                {demoSubmitting ? "데모 진입 중…" : "샘플 그래프 둘러보기"}
-                {!demoSubmitting && <ArrowRight size={16} />}
-              </Button>
+                내 ontology 둘러보기
+                <ArrowRight size={16} />
+              </Link>
               <Link
                 href="/docs/"
                 className={cn(
@@ -158,11 +128,6 @@ export function LandingPage({ next }: Props) {
             로컬 폴더는 디스크에만 저장되고 외부로 전송되지 않아요. 데이터는 사용자 디스크가 진실원.
           </p>
         )}
-        {demoError ? (
-          <p className="text-sm text-[color:var(--color-status-danger)]" role="alert">
-            {demoError}
-          </p>
-        ) : null}
       </section>
 
       <footer className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[color:var(--color-divider)] pt-4 text-[11px] text-[color:var(--color-text-quaternary)]">
