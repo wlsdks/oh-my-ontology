@@ -526,8 +526,68 @@ export function OntologyViewPage() {
         existingEdges={insight?.edges ?? []}
         prefillFromId={edgeFromId}
       />
+
+      <OntologyMetaFooter
+        meta={insight?.meta ?? null}
+        nodeCount={insight?.nodes.length ?? 0}
+        edgeCount={insight?.edges.length ?? 0}
+        mode={dataSourceMode}
+      />
       </div>
     </div>
+  );
+}
+
+/**
+ * V1.0 강점 가시화 footer — projection version + 마지막 publish + 노드/엣지
+ * count + 현재 운영 모드. /ontology 페이지 하단 영구 노출.
+ *
+ * V1.0 모델은 schema versioning + projection 분리 + audit chain 까지 갖췄지만
+ * UI 노출이 거의 없었다 (기획자 audit F6). footer 한 줄로 *지금 보고 있는
+ * ontology 가 어느 시점·어느 buildup 인지* 사용자에게 알려줌.
+ */
+function OntologyMetaFooter({
+  meta,
+  nodeCount,
+  edgeCount,
+  mode,
+}: {
+  meta: { projectionVersion: string; publishedAt: Date } | null;
+  nodeCount: number;
+  edgeCount: number;
+  mode: 'static' | 'local' | 'cloud';
+}) {
+  const formatPublished = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const modeLabel =
+    mode === 'local' ? '로컬 vault' : mode === 'cloud' ? '클라우드' : '정적 데모';
+  return (
+    <footer className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[color:var(--color-divider)] pt-3 text-[11px] text-[color:var(--color-text-quaternary)]">
+      <span className="font-mono uppercase tracking-[0.14em]">
+        {nodeCount} nodes · {edgeCount} relations
+      </span>
+      <span aria-hidden>·</span>
+      <span className="font-mono uppercase tracking-[0.14em]">
+        mode: {modeLabel}
+      </span>
+      {meta ? (
+        <>
+          <span aria-hidden>·</span>
+          <span className="font-mono">
+            projection {meta.projectionVersion}
+          </span>
+          <span aria-hidden>·</span>
+          <span className="font-mono">
+            published {formatPublished(meta.publishedAt)}
+          </span>
+        </>
+      ) : (
+        <>
+          <span aria-hidden>·</span>
+          <span className="font-mono">no public projection yet</span>
+        </>
+      )}
+    </footer>
   );
 }
 
