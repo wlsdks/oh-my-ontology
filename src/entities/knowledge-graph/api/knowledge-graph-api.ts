@@ -13,13 +13,11 @@ import {
 } from "firebase/firestore";
 import { getDb, getFirebaseAuth } from "@/shared/api";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
-import { hasDemoSession } from '@/shared/lib/demo-session';
 import {
   composeManualEdgeId,
   fromFirestoreKnowledgeGraphEdge,
   fromFirestoreKnowledgeGraphNode,
   fromFirestoreKnowledgePublicMeta,
-  getDemoKnowledgeProjectInsight,
   validateManualKnowledgeEdgeInput,
   validateManualKnowledgeNodeInput,
   MANUAL_EDGE_ERROR_MESSAGE,
@@ -62,10 +60,6 @@ export async function listKnowledgeProjectInsight(
   projectId: string,
   accountId?: string | null,
 ): Promise<KnowledgeProjectInsight> {
-  if (hasDemoSession()) {
-    return getDemoKnowledgeProjectInsight(projectId, accountId);
-  }
-
   const scopedAccountId = normalizeAccountId(accountId);
   const nodeSnapshot = await getDocs(
     query(
@@ -104,10 +98,6 @@ export function subscribeKnowledgePublicMeta(
   callback: (meta: import("@/entities/knowledge-graph/model").KnowledgePublicMeta | null) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
-  if (hasDemoSession()) {
-    Promise.resolve().then(() => callback(null));
-    return () => {};
-  }
   const scopedAccountId = normalizeAccountId(accountId);
   return onSnapshot(
     publicMetaDoc(),
@@ -131,14 +121,6 @@ export function subscribeKnowledgeProjectInsight(
   callback: (insight: KnowledgeProjectInsight) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
-  // 데모 모드는 knowledge 파이프라인이 존재하지 않으므로 빈 insight를 비동기
-  // 콜백으로 한 번 넘기고 끝. Firestore에 연결 시도하지 않는다.
-  if (hasDemoSession()) {
-    Promise.resolve().then(() =>
-      callback(getDemoKnowledgeProjectInsight(projectId, accountId)),
-    );
-    return () => {};
-  }
   const scopedAccountId = normalizeAccountId(accountId);
   let latestNodes = [] as KnowledgeProjectInsight["nodes"];
   let latestEdges = [] as KnowledgeProjectInsight["edges"];
@@ -219,12 +201,6 @@ export function subscribeKnowledgePublicGraph(
   callback: (insight: KnowledgeProjectInsight) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
-  if (hasDemoSession()) {
-    Promise.resolve().then(() =>
-      callback(getDemoKnowledgeProjectInsight("__all__", accountId)),
-    );
-    return () => {};
-  }
   const scopedAccountId = normalizeAccountId(accountId);
   let latestNodes = [] as KnowledgeProjectInsight["nodes"];
   let latestEdges = [] as KnowledgeProjectInsight["edges"];
@@ -299,12 +275,6 @@ export function subscribeKnowledgeApprovedGraph(
   callback: (insight: KnowledgeProjectInsight) => void,
   onError?: (error: Error) => void,
 ): Unsubscribe {
-  if (hasDemoSession()) {
-    Promise.resolve().then(() =>
-      callback(getDemoKnowledgeProjectInsight("__all__", accountId)),
-    );
-    return () => {};
-  }
   const scopedAccountId = normalizeAccountId(accountId);
   let latestNodes = [] as KnowledgeProjectInsight["nodes"];
   let latestEdges = [] as KnowledgeProjectInsight["edges"];
