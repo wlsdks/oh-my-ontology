@@ -1,7 +1,3 @@
-import {
-  appendWorkspaceProjectQuery,
-} from "../../../shared/lib/account-scope";
-
 type KnowledgeHrefOptions = {
   /** knowledge 내부 "project" 라벨 — 워크스페이스 컨테이너 와는 다른 도메인. */
   projectId?: string | null;
@@ -45,10 +41,7 @@ function decorate(
   _accountId?: string | null,
   options?: KnowledgeHrefOptions,
 ): string {
-  return appendWorkspaceProjectQuery(
-    appendKnowledgeParams(path, options),
-    options?.workspaceProjectId,
-  );
+  return appendKnowledgeParams(path, options);
 }
 
 export function getKnowledgeDocumentDetailHref(
