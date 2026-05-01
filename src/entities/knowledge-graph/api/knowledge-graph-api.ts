@@ -11,8 +11,7 @@ import {
   type DocumentData,
   type Unsubscribe,
 } from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
-import { getDb, getFirebaseAuth, getFirebaseFunctions } from "@/shared/api";
+import { getDb, getFirebaseAuth } from "@/shared/api";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
 import { hasDemoSession } from '@/shared/lib/demo-session';
 import {
@@ -28,8 +27,6 @@ import {
   type AddManualKnowledgeEdgeInput,
   type AddManualKnowledgeNodeInput,
   type KnowledgeProjectInsight,
-  type PublishKnowledgeProjectionInput,
-  type PublishKnowledgeProjectionResult,
 } from "@/entities/knowledge-graph/model";
 
 const PUBLIC_NODES_COLLECTION = "knowledgePublicNodes";
@@ -59,17 +56,6 @@ function approvedEdgesCollection() {
 
 function publicMetaDoc() {
   return doc(getDb(), PUBLIC_META_COLLECTION, "current");
-}
-
-export async function publishKnowledgeProjection(
-  input: PublishKnowledgeProjectionInput,
-): Promise<PublishKnowledgeProjectionResult> {
-  const callable = httpsCallable<
-    PublishKnowledgeProjectionInput,
-    PublishKnowledgeProjectionResult
-  >(getFirebaseFunctions(), "publishKnowledgeProjection");
-  const response = await callable(input);
-  return response.data;
 }
 
 export async function listKnowledgeProjectInsight(
@@ -484,127 +470,3 @@ export async function addManualKnowledgeEdge(
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// T-13 — stub placeholder 관리 (promote / dismiss + list subscription)
-//
-// stub 노드는 `knowledgeApprovedNodes` 에 `isStub: true` 로 저장된다 (T-12).
-// 검수자가 promote (kind 선택) 또는 dismiss 한다. 둘 다 server-side mutation
-// (admin 권한) 이라 callable Cloud Function 으로 라우팅.
-//
-// 참조: 2026-04-27-ontology-id-resolution.md §2 / functions/index.js promoteStubNodeCore
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface StubNode {
-  id: string;
-  accountId?: string;
-  title: string;
-  kind: "unknown";
-  projectIds: string[];
-  evidenceIds: string[];
-  isStub: true;
-  /** frontmatter 가 명시한 원본 edge type — promote 시 복원될 type. */
-  pendingType?: string;
-  /** promote 시 복원될 source canonical ID. */
-  pendingFromId?: string;
-}
-
-export interface PromoteStubInput {
-  nodeId: string;
-  newKind: "project" | "domain" | "capability" | "element" | "document";
-  accountId?: string | null;
-}
-
-export interface PromoteStubResult {
-  fromNodeId: string;
-  toNodeId: string;
-  edgesAffected: number;
-}
-
-export interface DismissStubInput {
-  nodeId: string;
-  accountId?: string | null;
-  /** soft-delete 사유 — 진안이 잘못 dismiss 했을 때 단서, 빈 값 OK. */
-  reason?: string;
-}
-
-export interface DismissStubResult {
-  nodeId: string;
-  edgesDeleted: number;
-}
-
-/** Firestore raw → StubNode. isStub=true 이고 soft-delete 안 된 doc 만 통과. */
-function fromFirestoreStubNode(id: string, data: DocumentData): StubNode | null {
-  if (data.isStub !== true) return null;
-  if (data.deletedAt) return null;
-  return {
-    id,
-    ...(typeof data.accountId === "string" ? { accountId: data.accountId } : {}),
-    title: typeof data.title === "string" ? data.title : id,
-    kind: "unknown",
-    projectIds: Array.isArray(data.projectIds)
-      ? (data.projectIds as unknown[]).filter((p): p is string => typeof p === "string")
-      : [],
-    evidenceIds: Array.isArray(data.evidenceIds)
-      ? (data.evidenceIds as unknown[]).filter((p): p is string => typeof p === "string")
-      : [],
-    isStub: true,
-    ...(typeof data.pendingType === "string" ? { pendingType: data.pendingType } : {}),
-    ...(typeof data.pendingFromId === "string"
-      ? { pendingFromId: data.pendingFromId }
-      : {}),
-  };
-}
-
-/**
- * stub 노드 실시간 구독 — knowledgeApprovedNodes 에서 isStub=true 인 것만.
- * admin 만 read 가능 (firestore.rules). account-scoped 필터링.
- */
-export function subscribeStubNodes(
-  accountId: string | null | undefined,
-  callback: (stubs: StubNode[]) => void,
-  onError?: (error: Error) => void,
-): Unsubscribe {
-  if (hasDemoSession()) {
-    Promise.resolve().then(() => callback([]));
-    return () => {};
-  }
-  const scopedAccountId = normalizeAccountId(accountId);
-  return onSnapshot(
-    query(collection(getDb(), APPROVED_NODES_COLLECTION), where("isStub", "==", true)),
-    (snapshot) => {
-      const stubs = snapshot.docs
-        .map((d) => fromFirestoreStubNode(d.id, d.data()))
-        .filter((s): s is StubNode => s !== null)
-        .filter((s) => (s.accountId ?? null) === scopedAccountId);
-      callback(stubs);
-    },
-    (error) => {
-      if (onError) onError(error);
-      else console.error("[subscribeStubNodes]", error);
-    },
-  );
-}
-
-/** stub 을 진짜 노드로 승격. server-side mutation (admin 권한 필수). */
-export async function promoteStubNode(
-  input: PromoteStubInput,
-): Promise<PromoteStubResult> {
-  const callable = httpsCallable<PromoteStubInput, PromoteStubResult>(
-    getFirebaseFunctions(),
-    "promoteStubNode",
-  );
-  const response = await callable(input);
-  return response.data;
-}
-
-/** stub 을 잘못된 reference 로 판단해 삭제. server-side. */
-export async function dismissStubNode(
-  input: DismissStubInput,
-): Promise<DismissStubResult> {
-  const callable = httpsCallable<DismissStubInput, DismissStubResult>(
-    getFirebaseFunctions(),
-    "dismissStubNode",
-  );
-  const response = await callable(input);
-  return response.data;
-}

@@ -3,5 +3,4 @@ export {
   getDb,
   getBucket,
   getFirebaseAuth,
-  getFirebaseFunctions,
 } from './firebase';

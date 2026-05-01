@@ -119,8 +119,8 @@ export interface KnowledgeGraphEdge {
   label?: string;
   projectIds: string[];
   evidenceIds: string[];
-  /** publishKnowledgeProjection 이 evidenceIds.length 로 derived 한 값. 클라이언트
-   *  가 edge 두께 가중에 쓴다. approved/public 양쪽에서 사용 가능. */
+  /** evidenceIds.length 로 derived. 클라이언트가 edge 두께 가중에 쓴다.
+   *  approved/public 양쪽에서 사용 가능. */
   evidenceCount?: number;
   currentRevisionId?: string;
   lastApprovedAt: Date;
@@ -155,13 +155,3 @@ export interface KnowledgeProjectInsight {
   meta: KnowledgePublicMeta | null;
 }
 
-export interface PublishKnowledgeProjectionInput {
-  accountId?: string | null;
-}
-
-export interface PublishKnowledgeProjectionResult {
-  publishId: string;
-  nodeCount: number;
-  edgeCount: number;
-  projectionVersion: string;
-}

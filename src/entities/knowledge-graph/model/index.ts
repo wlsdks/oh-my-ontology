@@ -7,8 +7,6 @@ export type {
   KnowledgeGraphEdge,
   KnowledgePublicMeta,
   KnowledgeProjectInsight,
-  PublishKnowledgeProjectionInput,
-  PublishKnowledgeProjectionResult,
   QualifierValue,
 } from "./types";
 export {

@@ -7,8 +7,6 @@ export type {
   KnowledgeGraphEdge,
   KnowledgePublicMeta,
   KnowledgeProjectInsight,
-  PublishKnowledgeProjectionInput,
-  PublishKnowledgeProjectionResult,
   KnowledgeProjectEvidenceSummary,
   AddManualKnowledgeNodeInput,
   ManualNodeKind,
@@ -36,24 +34,15 @@ export {
   composeManualEdgeId,
 } from "./model";
 export {
-  publishKnowledgeProjection,
   listKnowledgeProjectInsight,
   subscribeKnowledgeProjectInsight,
   subscribeKnowledgePublicGraph,
   subscribeKnowledgeApprovedGraph,
   subscribeKnowledgePublicMeta,
-  subscribeStubNodes,
-  promoteStubNode,
-  dismissStubNode,
   addManualKnowledgeNode,
   addManualKnowledgeEdge,
 } from "./api/knowledge-graph-api";
 export type {
-  StubNode,
-  PromoteStubInput,
-  PromoteStubResult,
-  DismissStubInput,
-  DismissStubResult,
   AddManualKnowledgeNodeResult,
   AddManualKnowledgeEdgeResult,
 } from "./api/knowledge-graph-api";
