@@ -245,9 +245,25 @@ export function useLocalVault() {
     setState(emptyState(isSupported() ? 'idle' : 'unsupported'));
   }, []);
 
+  /**
+   * 사용자 주도 refresh. fingerprint 가 같으면 (외부 변경 없음) 전체 재빌드를
+   * skip 하되, `lastLoadedAt` 만 갱신해 picker 의 "방금 스캔" 라벨이 적절히
+   * 갱신되도록 한다. fingerprint 계산 자체가 실패하면 안전하게 전체 재빌드로
+   * 폴백.
+   */
   const refresh = useCallback(async () => {
     if (!state.handle) return;
-    await load(state.handle);
+    const handle = state.handle;
+    try {
+      const fp = await computeLocalVaultFingerprint(handle);
+      if (fp === lastFingerprintRef.current) {
+        setState((s) => ({ ...s, lastLoadedAt: Date.now() }));
+        return;
+      }
+    } catch {
+      /* fingerprint 실패 → 안전하게 전체 재빌드로 폴백 */
+    }
+    await load(handle);
   }, [state.handle, load]);
 
   // 탭 포커스 복귀 시 자동 refresh — IDE 에서 편집 후 브라우저로 돌아오면
@@ -269,7 +285,11 @@ export function useLocalVault() {
     const tryReload = async () => {
       try {
         const fp = await computeLocalVaultFingerprint(handle);
-        if (fp === lastFingerprintRef.current) return; // no-op skip
+        if (fp === lastFingerprintRef.current) {
+          // 변경 없음 — picker 라벨이 stale 로 보이지 않도록 lastLoadedAt 만 갱신.
+          setState((s) => ({ ...s, lastLoadedAt: Date.now() }));
+          return;
+        }
       } catch {
         /* fingerprint 실패는 무시 — 안전하게 전체 재빌드로 폴백 */
       }
