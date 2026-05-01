@@ -1541,7 +1541,7 @@ function AdminDocsContent() {
                     {folderTopoStatus === 'rebuilding' ? (
                       <span
                         aria-hidden
-                        className="h-1.5 w-1.5 animate-pulse rounded-full bg-[color:rgba(139,151,255,0.9)]"
+                        className="h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--color-indigo-accent)]"
                       />
                     ) : null}
                   </button>
