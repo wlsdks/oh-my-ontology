@@ -38,7 +38,6 @@ export {
   getKnowledgeDocumentDetailHref,
   getKnowledgeDocumentListHref,
   getKnowledgeDocumentNewHref,
-  getKnowledgeReviewWorkspaceHref,
 } from "./lib/detail-href";
 export {
   KNOWLEDGE_DOCUMENT_KIND_OPTIONS,

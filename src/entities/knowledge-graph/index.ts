@@ -5,10 +5,6 @@ export type {
   KnowledgeGraphEdge,
   KnowledgePublicMeta,
   KnowledgeProjectInsight,
-  ApproveKnowledgeOutputInput,
-  ApproveKnowledgeOutputResult,
-  RejectKnowledgeOutputInput,
-  RejectKnowledgeOutputResult,
   PublishKnowledgeProjectionInput,
   PublishKnowledgeProjectionResult,
   KnowledgeProjectEvidenceSummary,
@@ -37,8 +33,6 @@ export {
   composeManualEdgeId,
 } from "./model";
 export {
-  approveKnowledgeOutput,
-  rejectKnowledgeOutput,
   publishKnowledgeProjection,
   listKnowledgeProjectInsight,
   subscribeKnowledgeProjectInsight,

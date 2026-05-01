@@ -5,10 +5,6 @@ export type {
   KnowledgeGraphEdge,
   KnowledgePublicMeta,
   KnowledgeProjectInsight,
-  ApproveKnowledgeOutputInput,
-  ApproveKnowledgeOutputResult,
-  RejectKnowledgeOutputInput,
-  RejectKnowledgeOutputResult,
   PublishKnowledgeProjectionInput,
   PublishKnowledgeProjectionResult,
 } from "./types";

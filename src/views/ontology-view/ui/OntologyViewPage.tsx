@@ -15,7 +15,6 @@ import {
   ManualSourceChip,
   promoteStubNode,
   subscribeStubNodes,
-  useKnowledgePublicInsight,
   type KnowledgeGraphNode,
   type StubNode,
 } from "@/entities/knowledge-graph";
@@ -35,7 +34,7 @@ import { OntologyEgoGraph } from "@/widgets/ontology-ego-graph";
 import { OntologyStubList } from "@/widgets/ontology-stub-list";
 import { OntologyTreeView } from "@/widgets/ontology-tree-view";
 import { useDataSourceMode } from "@/features/data-source-mode";
-import { VaultOntologyStubsPanel } from "@/features/vault-ontology";
+import { VaultOntologyStubsPanel, useOntologyInsight } from "@/features/vault-ontology";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { Tooltip, useToast } from "@/shared/ui";
 
@@ -53,7 +52,7 @@ export function OntologyViewPage() {
   const dataSourceMode = useDataSourceMode();
   // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
 
-  const { insight, error } = useKnowledgePublicInsight(accountId);
+  const { insight, error } = useOntologyInsight(accountId);
   // documents 는 글로벌 검색 두 번째 source — 권한 게이팅은 Firestore rules 가
   // 처리. 권한 없으면 빈 배열, 검색 결과에서도 자동 제외.
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);

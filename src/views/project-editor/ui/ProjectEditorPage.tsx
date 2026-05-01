@@ -16,7 +16,6 @@ import {
 import {
   getKnowledgeDocumentListHref,
   getKnowledgeDocumentNewHref,
-  getKnowledgeReviewWorkspaceHref,
 } from "@/entities/knowledge-document";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 import { useToast } from "@/shared/ui";
@@ -82,12 +81,6 @@ function EditorContent({
     : null;
   const projectNewDocumentHref = slug
     ? getKnowledgeDocumentNewHref(accountId, {
-        projectId: slug,
-        returnTo: publicProjectHref ?? safeReturnTo,
-      })
-    : null;
-  const projectReviewHref = slug
-    ? getKnowledgeReviewWorkspaceHref(undefined, accountId, {
         projectId: slug,
         returnTo: publicProjectHref ?? safeReturnTo,
       })
@@ -342,14 +335,6 @@ function EditorContent({
                 >
                   <CopyPlus size={14} />
                   문서 등록
-                </Link>
-              )}
-              {mode === "edit" && slug && projectReviewHref && (
-                <Link
-                  href={projectReviewHref}
-                  className="inline-flex h-9 items-center gap-2 rounded-md border border-[color:var(--color-divider)] px-3 text-sm text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:var(--color-overlay-1)]"
-                >
-                  문서 검토
                 </Link>
               )}
               {mode === "edit" && slug && (

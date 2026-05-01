@@ -12,7 +12,6 @@ import {
   getKnowledgeDocumentDetailHref,
   getKnowledgeDocumentKindLabel,
   getKnowledgeDocumentNewHref,
-  getKnowledgeReviewWorkspaceHref,
   getKnowledgeDocumentStatusLabel,
   subscribeKnowledgeDocuments,
   type KnowledgeDocument,
@@ -227,17 +226,6 @@ function DocumentsContent() {
               <Button size="sm" type="button">
                 <FilePlus2 size={14} />
                 새 문서 올리기
-              </Button>
-            </Link>
-            <Link
-              href={getKnowledgeReviewWorkspaceHref(undefined, accountId, {
-                projectId: filters.project || undefined,
-                returnTo: safeReturnTo,
-              })}
-              className="inline-flex"
-            >
-              <Button size="sm" variant="outline" type="button">
-                문서 확인
               </Button>
             </Link>
           </div>
@@ -514,24 +502,13 @@ function DocumentsContent() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Link
-                          href={getKnowledgeReviewWorkspaceHref(document.id, accountId, {
-                            projectId: filters.project || undefined,
-                            returnTo: safeReturnTo,
-                          })}
-                          className="inline-flex"
-                        >
-                          <Button size="sm" type="button">
-                            문서 확인 열기
-                          </Button>
-                        </Link>
-                        <Link
                           href={getKnowledgeDocumentDetailHref(document.id, accountId, {
                             projectId: filters.project || undefined,
                             returnTo: safeReturnTo,
                           })}
                           className="inline-flex"
                         >
-                          <Button size="sm" variant="outline" type="button">
+                          <Button size="sm" type="button">
                             문서 상세
                           </Button>
                         </Link>
@@ -574,19 +551,6 @@ function DocumentsContent() {
                             {getKnowledgeDocumentKindLabel(document.kind)}
                           </p>
                         </Link>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <Link
-                            href={getKnowledgeReviewWorkspaceHref(document.id, accountId, {
-                              projectId: filters.project || undefined,
-                              returnTo: safeReturnTo,
-                            })}
-                            className="inline-flex"
-                          >
-                            <Button size="sm" variant="outline" type="button">
-                              문서 확인
-                            </Button>
-                          </Link>
-                        </div>
                       </td>
                       <td className="px-4 py-4">{document.projectIds.join(", ") || "-"}</td>
                       <td className="px-4 py-4">
