@@ -36,8 +36,6 @@ firestore/
 │       │   └── {hubId}/
 │       └── nodes/                   비-허브 노드 (sub-collection)
 │           └── {nodeId}/
-├── clientErrors/                    클라이언트 런타임 에러 (append-only)
-│   └── {errorId}/
 ├── knowledgeDocuments/              private 문서 헤더
 │   └── {documentId}/
 ├── knowledgeDocumentVersions/       private 원문 버전
@@ -176,20 +174,6 @@ firestore/
 | `description` | string | 사이트 설명 |
 | `lastUpdated` | Timestamp | 마지막 변경 시점 |
 | `viewCount` | number | 방문 카운트 (선택) |
-
-### `clientErrors/{errorId}`
-
-클라이언트 런타임 에러 — global-error / error.tsx 가 hydration·render 실패 시 append. append-only.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `message` | string | ✅ | 에러 메시지 (≤ 500 chars) |
-| `stack` | string |  | 스택 트레이스 (≤ 2000 chars) |
-| `url` | string | ✅ | 발생 URL |
-| `userAgent` | string | ✅ | UA 문자열 |
-| `uid` | string |  | 로그인 사용자 uid |
-| `kind` | string | ✅ | 분류 (e.g. `render`, `hydration`) |
-| `createdAt` | Timestamp | ✅ | 발생 시각 |
 
 ## 4. Knowledge subsystem 컬렉션
 

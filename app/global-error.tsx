@@ -2,8 +2,6 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { reportClientError } from "@/entities/client-error";
-import { getFirebaseAuth } from "@/shared/api";
 import "./globals.css";
 
 interface Props {
@@ -19,29 +17,6 @@ interface Props {
 export default function GlobalError({ error, reset }: Props) {
   useEffect(() => {
     console.error("[global-error]", error);
-
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const accountId = params.get("account")?.trim() ?? "";
-    if (!accountId) return;
-
-    let uid: string | null = null;
-    try {
-      uid = getFirebaseAuth().currentUser?.uid ?? null;
-    } catch {
-      /* auth 미초기화 */
-    }
-
-    void reportClientError({
-      accountId,
-      message: error.message || String(error),
-      stack: error.stack,
-      url: `${window.location.pathname}${window.location.search}`,
-      userAgent: window.navigator.userAgent,
-      uid,
-      digest: error.digest,
-      kind: "global",
-    });
   }, [error]);
 
   return (

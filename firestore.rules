@@ -61,13 +61,6 @@ service cloud.firestore {
       }
     }
 
-    // 클라이언트 에러 — global-error/error.tsx 가 hydration·render 실패 시 append.
-    match /clientErrors/{errorId} {
-      allow read: if isAuthed();
-      allow create: if isAuthed();
-      allow update, delete: if false;
-    }
-
     // 지식 문서 — 사용자 본인의 raw 문서. published 는 public read.
     match /knowledgeDocuments/{documentId} {
       allow read: if isAuthed()
