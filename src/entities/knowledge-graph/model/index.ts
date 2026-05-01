@@ -22,7 +22,6 @@ export {
 } from "./mapper";
 export type { KnowledgeProjectEvidenceSummary } from "./evidence-summary";
 export { buildKnowledgeProjectEvidenceSummary } from "./evidence-summary";
-export { getDemoKnowledgeProjectInsight } from "./demo-insight";
 export type {
   AddManualKnowledgeNodeInput,
   ManualNodeKind,
