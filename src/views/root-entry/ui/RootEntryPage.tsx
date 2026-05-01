@@ -5,19 +5,22 @@ import { useScopedAccountAccess } from "@/features/account-scope";
 import { useGlobalAdmin } from "@/features/permissions";
 import { useUserAuth } from "@/features/user-auth";
 import { } from "@/shared/lib/account-scope";
-import { HomePage } from "@/views/home";
+import { OntologyViewPage } from "@/views/ontology-view";
 import { LandingPage } from "@/views/landing";
 
 /**
- * 루트 `/` 진입 분기.
+ * 루트 `/` 진입 분기. (Phase 1 — Direction A 적용)
  *
- * `?account=X` 가 있으면 그 공간의 scope 해석 필요 — membership 조회가
- * 끝날 때까지 "권한 확인 중" 스피너. 없으면 공개 홈이므로 Firebase Auth
- * 초기화만 기다리면 됨 (Firestore membership 조회 불필요). 네트워크가
- * Firestore 쪽에서 10초 이상 지연되더라도 홈·랜딩 은 정상 렌더된다.
+ * 이 서비스는 **온톨로지 워크벤치** — 인증 사용자 의 첫 화면은 ontology hub
+ * (트리 + ego graph + stub 처리). 토폴로지는 출구 view 중 하나로 `/topology`
+ * 에 별도 라우트.
  *
- * dev-bypass (로컬 개발 우회 로그인) 는 useUserAuth 의 firebase/demo/iam
- * 세 provider 어디에도 잡히지 않으므로 useGlobalAdmin 으로 별도 확인한다.
+ * - 비인증: LandingPage
+ * - 인증: OntologyViewPage (트리 + 컨텍스트 패널)
+ * - 토폴로지가 보고 싶으면 nav / 헤더 에서 `/topology`
+ *
+ * `?account=X` (legacy multi-account scope) 가 있으면 membership 조회 후
+ * 같은 분기. dev-bypass 사용자는 useGlobalAdmin 으로 인증 처리.
  */
 export function RootEntryPage() {
   const searchParams = useSearchParams();
@@ -35,21 +38,21 @@ export function RootEntryPage() {
     if (scopedAccess.kind === "guest") {
       return <LandingPage accountId={accountId} next={next} />;
     }
-    return <HomePage />;
+    return <OntologyViewPage />;
   }
 
   // 공개 홈 — Firebase Auth 초기화만 기다리면 충분.
   if (userAuth.status === "loading" || globalAdmin.status === "loading") {
     return <AuthLoadingSpinner />;
   }
-  // dev-bypass 사용자도 인증된 사용자로 간주 → HomePage.
+  // dev-bypass 사용자도 인증된 사용자로 간주 → OntologyViewPage.
   if (
     userAuth.status === "unauthenticated" &&
     globalAdmin.status !== "authenticated"
   ) {
     return <LandingPage accountId={null} next={next} />;
   }
-  return <HomePage />;
+  return <OntologyViewPage />;
 }
 
 function AuthLoadingSpinner() {
