@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { signOut } from '@/features/user-auth';
+import { useDataSourceMode } from '@/features/data-source-mode';
 import { ThemeToggle } from '@/features/theme-toggle';
 import { Button, Tooltip } from '@/shared/ui';
 
@@ -23,46 +24,55 @@ interface NavItem {
   prefixes: ReadonlyArray<string>;
 }
 
-const ITEMS: ReadonlyArray<NavItem> = [
-  {
-    id: 'knowledge',
-    label: '문서',
-    description: '문서 등록 / 분석 / 골라내기 / 공개 — 4단계 워크플로 진입점',
-    basePath: '/knowledge/',
-    prefixes: ['/knowledge'],
-  },
-  {
-    id: 'review',
-    label: '문서 확인',
-    description: '추출 후보를 살펴보고 승인할 노드·관계 골라내기',
-    basePath: '/review/knowledge/',
-    prefixes: ['/review'],
-  },
-  // ontology view — 승인된 노드/관계의 트리. "두 번째 척추" 의 첫 진입점.
-  {
-    id: 'ontology',
-    label: '온톨로지',
-    description: '승인된 노드·관계의 계층 그래프 (project → domain → capability → element)',
-    basePath: '/ontology/',
-    prefixes: ['/ontology'],
-  },
-  // BottomTabBar 의 '정리' 와 라벨 일치 — 같은 destination 인데 데스크톱 / 모바일
-  // 라벨이 달라 사용자 혼란 (audit A1 회귀 차단).
-  {
-    id: 'settings',
-    label: '정리',
-    description: '카테고리 / 상태 / API 키 / 프로젝트 import 같은 공간 설정',
-    basePath: '/settings/categories/',
-    prefixes: ['/settings'],
-  },
-  {
-    id: 'diagnostics',
-    label: '챙길 곳',
-    description: '지금 손대야 할 프로젝트 / 데이터 상태 / 마이그레이션 도구',
-    basePath: '/diagnostics/insights/',
-    prefixes: ['/diagnostics'],
-  },
-];
+function buildItems(mode: 'static' | 'local' | 'cloud'): ReadonlyArray<NavItem> {
+  // local 모드는 vault 가 진실원이라 "문서" 진입점이 /docs/ — Firestore 의
+  // /knowledge 가 아니라 사용자 디스크 surface. cloud / static 은 기존 /knowledge.
+  // prefixes 는 양쪽 활성 표시 인식.
+  const docsBase = mode === 'local' ? '/docs/' : '/knowledge/';
+  return [
+    {
+      id: 'knowledge',
+      label: '문서',
+      description:
+        mode === 'local'
+          ? '내 vault 의 .md 들 — 직접 편집하면 즉시 ontology stub 으로 자람'
+          : '문서 등록 / 분석 / 골라내기 / 공개 — 4단계 워크플로 진입점',
+      basePath: docsBase,
+      prefixes: ['/knowledge', '/docs'],
+    },
+    {
+      id: 'review',
+      label: '문서 확인',
+      description: '추출 후보를 살펴보고 승인할 노드·관계 골라내기',
+      basePath: '/review/knowledge/',
+      prefixes: ['/review'],
+    },
+    // ontology view — 승인된 노드/관계의 트리. "두 번째 척추" 의 첫 진입점.
+    {
+      id: 'ontology',
+      label: '온톨로지',
+      description: '승인된 노드·관계의 계층 그래프 (project → domain → capability → element)',
+      basePath: '/ontology/',
+      prefixes: ['/ontology'],
+    },
+    // BottomTabBar 의 '정리' 와 라벨 일치 — 같은 destination 인데 데스크톱 / 모바일
+    // 라벨이 달라 사용자 혼란 (audit A1 회귀 차단).
+    {
+      id: 'settings',
+      label: '정리',
+      description: '카테고리 / 상태 / API 키 / 프로젝트 import 같은 공간 설정',
+      basePath: '/settings/categories/',
+      prefixes: ['/settings'],
+    },
+    {
+      id: 'diagnostics',
+      label: '챙길 곳',
+      description: '지금 손대야 할 프로젝트 / 데이터 상태 / 마이그레이션 도구',
+      basePath: '/diagnostics/insights/',
+      prefixes: ['/diagnostics'],
+    },
+  ];
+}
 
 /**
  * 운영 메뉴 공통 nav. /knowledge ↔ /review ↔ /settings ↔ /diagnostics
@@ -83,6 +93,8 @@ export function OperationsNav({ accountId, rightSlot }: OperationsNavProps) {
   const pathname = usePathname() ?? '';
   const searchParams = useSearchParams();
   const router = useRouter();
+  const dataSourceMode = useDataSourceMode();
+  const items = buildItems(dataSourceMode);
   // hook 은 조건부 호출 금지 — prop 우선 분기는 호출 후에 적용.
   const queryAccountId = null;
   const resolvedAccountId =
@@ -148,7 +160,7 @@ export function OperationsNav({ accountId, rightSlot }: OperationsNavProps) {
             <span>돌아가기</span>
           </Link>
           <ul className="flex items-center gap-1 overflow-x-auto">
-            {ITEMS.map((item) => renderTab(item, 'desktop'))}
+            {items.map((item) => renderTab(item, 'desktop'))}
           </ul>
         </div>
         <div className="flex items-center gap-2">
@@ -183,7 +195,7 @@ export function OperationsNav({ accountId, rightSlot }: OperationsNavProps) {
           className="flex items-center gap-1"
           aria-label="운영 메뉴 (모바일)"
         >
-          {ITEMS.map((item) => renderTab(item, 'mobile'))}
+          {items.map((item) => renderTab(item, 'mobile'))}
         </ul>
       </div>
     </nav>
