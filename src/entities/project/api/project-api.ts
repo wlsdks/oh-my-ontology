@@ -275,7 +275,6 @@ function normalizeInput(
     timeline: input.timeline ?? {},
     progress: input.progress,
     isHub: input.isHub ?? false,
-    workspaceProjectId: input.workspaceProjectId,
     hubSlugs: input.hubSlugs,
     position: input.position,
   };

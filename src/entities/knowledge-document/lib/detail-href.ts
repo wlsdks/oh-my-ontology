@@ -1,15 +1,10 @@
 type KnowledgeHrefOptions = {
-  /** knowledge 내부 "project" 라벨 — 워크스페이스 컨테이너 와는 다른 도메인. */
+  /** knowledge 내부 "project" 라벨. */
   projectId?: string | null;
   returnTo?: string | null;
   versionId?: string | null;
   jobStatus?: string | null;
   title?: string | null;
-  /**
-   * P0-B Phase 6 — workspaceProject 컨테이너 id. 명시 안 하면 현재 URL 의
-   * `?pj=` 자동 상속. 외부에서 명시적으로 컨테이너 잠금 원할 때 사용.
-   */
-  workspaceProjectId?: string | null;
 };
 
 function appendKnowledgeParams(path: string, options?: KnowledgeHrefOptions): string {

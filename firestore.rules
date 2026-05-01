@@ -9,7 +9,7 @@ rules_version = '2';
 //
 // 외부 노출 surface:
 // - projects · categories · statuses · meta · ontologyClasses ·
-//   ontologyRelations · knowledgePublic* · workspaceProjects (+hubs/nodes) :
+//   ontologyRelations · knowledgePublic* :
 //   누구나 읽기. 쓰기는 인증 사용자.
 // - knowledgeDocuments / knowledgeApproved* : 인증 사용자만 읽기·쓰기.
 // - knowledgeJobs / knowledgeChunks / knowledgeEvidence / knowledgeOutputs /
@@ -41,24 +41,6 @@ service cloud.firestore {
     match /meta/{document} {
       allow read: if true;
       allow write: if isAuthed();
-    }
-
-    // P0-B · Workspace > Project > Hub + Node 4-layer.
-    // nodes 는 hubs sibling — `hubIds: string[]` 으로 N:M 참조.
-    match /workspaceProjects/{projectId} {
-      allow read: if true;
-      allow create, update: if isAuthed();
-      allow delete: if false;
-
-      match /hubs/{hubId} {
-        allow read: if true;
-        allow write: if isAuthed();
-      }
-
-      match /nodes/{nodeId} {
-        allow read: if true;
-        allow write: if isAuthed();
-      }
     }
 
     // 지식 문서 — 사용자 본인의 raw 문서. published 는 public read.

@@ -11,8 +11,6 @@
  */
 
 export const ACCOUNT_QUERY_KEY = "account";
-/** 활성 workspaceProject 컨테이너 id 의 URL query key (v0.x 에선 사용 안함). */
-export const WORKSPACE_PROJECT_QUERY_KEY = "pj";
 
 export function normalizeAccountId(value?: string | null): string | null {
   const normalized = value?.trim();

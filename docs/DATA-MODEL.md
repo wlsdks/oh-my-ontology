@@ -30,12 +30,6 @@ firestore/
 │   └── {id}/
 ├── meta/
 │   └── site/
-├── workspaceProjects/               워크스페이스 컨테이너
-│   └── {projectId}/
-│       ├── hubs/                    허브 노드 (sub-collection)
-│       │   └── {hubId}/
-│       └── nodes/                   비-허브 노드 (sub-collection)
-│           └── {nodeId}/
 ├── knowledgeDocuments/              private 문서 헤더
 │   └── {documentId}/
 ├── knowledgeDocumentVersions/       private 원문 버전
@@ -104,37 +98,6 @@ firestore/
 | `position.y` | number | ✅ | 토폴로지 레이아웃 좌표 Y |
 | `createdAt` | Timestamp | ✅ | 생성일 |
 | `updatedAt` | Timestamp | ✅ | 수정일 |
-
-### `workspaceProjects/{projectId}`
-
-> 한 워크스페이스 안의 **컨테이너 프로젝트** — 그 아래에 허브/노드가 4-layer 로 쌓인다. 기존 flat `projects` 와 병존하다가 마이그레이션 완료 후 flat 은 제거 예정.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `accountId` | string |  | (legacy) 발급 시점 사용자 uid — 새 데이터에는 선택 |
-| `name` | string | ✅ | 컨테이너 이름 (예: "General") |
-| `description` | string |  | 짧은 설명 |
-| `isPublic` | boolean |  | 공개 여부 (추후 공개 화면 라우팅용) |
-| `order` | number |  | 셀렉터 정렬 순서 |
-| `metadata` | object |  | 확장용 키-값 (`icon`, `color` 등) |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `updatedAt` | Timestamp | ✅ | 수정일 |
-
-### `workspaceProjects/{projectId}/hubs/{hubId}`
-
-> 컨테이너 안 허브 노드 sub-collection. 기존 `projects` 의 `isHub=true` row 가 이관될 자리. 필드는 `projects/{slug}` 와 호환 유지 (slug→hubId 동일).
-
-### `workspaceProjects/{projectId}/nodes/{nodeId}`
-
-> 컨테이너 안 비-허브 노드 sub-collection — **hubs 와 sibling** (parent-child 중첩 아님). 한 node 가 여러 hub 에 속할 수 있게 하기 위한 배열 참조 모델.
->
-> 이관 규칙: 기존 `projects` 의 `isHub=false` row 가 복사되고, 해당 row 의 `dependencies[]` 중 isHub=true 인 slug 만 추려서 `hubIds[]` 로 설정. 아무 hub 도 참조 없으면 `hubIds: []` (orphan 허용 — 허브에 붙지 않은 독립 서비스도 자연).
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `hubIds` | string[] | ✅ | 속한 hub slug 배열. 0~N 개. `array-contains` 쿼리로 허브별 필터. |
-
-> 그 외 필드는 `projects/{slug}` 와 호환 유지 (`name`, `description`, `tags`, `stack`, `links`, `status`, `category`, `position`, `screenshots`, `owner`, `progress`, `timeline`, `createdAt`, `updatedAt`).
 
 ### `categories/{id}`
 

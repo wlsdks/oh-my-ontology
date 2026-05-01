@@ -2,7 +2,6 @@ import type { Category } from '@/entities/category/model';
 import type { KnowledgeDocument } from '@/entities/knowledge-document/model';
 import type { Project } from '@/entities/project/model';
 import type { Status } from '@/entities/status/model';
-import type { WorkspaceProject } from '@/entities/workspace-project/model';
 import { generateDemoBlueprint } from './demo-blueprint';
 
 // 엔티티 DEFAULT_STATUSES 의 순수 값 복제. shared 가 entities 의 runtime value 를
@@ -238,16 +237,6 @@ interface BlueprintContainer {
 
 const DEMO_BLUEPRINT: ReadonlyArray<BlueprintContainer> = generateDemoBlueprint();
 
-const SLUG_TO_CONTAINER = new Map<string, string>();
-for (const container of DEMO_BLUEPRINT) {
-  for (const hub of container.hubs) {
-    SLUG_TO_CONTAINER.set(hub.slug, container.id);
-    for (const node of hub.nodes) {
-      SLUG_TO_CONTAINER.set(node.slug, container.id);
-    }
-  }
-}
-
 function buildProjects(
   _total: number,
   categories: Category[],
@@ -256,16 +245,17 @@ function buildProjects(
   const rng = mulberry32(0x5eed2);
   const categoryById = new Map(categories.map((c) => [c.id, c]));
 
-  // 청사진 → flat seed list. 4계층 (Workspace > Project > Hub > Node) 중
-  // Project(=container)·Hub 소속을 seed 에 명시해 둬야 이후 Project 타입의
-  // workspaceProjectId / hubSlugs 필드를 채울 수 있다.
+  // 청사진 → flat seed list. Hub/Node 위계만 보존, container 그룹은 단지
+  // 데모 데이터 정의 편의용 (UI 노출 X). Hub 소속을 seed 에 명시해 둬야
+  // Project.hubSlugs 를 채울 수 있다.
   interface FlatSeed {
     slug: string;
     name: string;
     description: string;
     isHub: boolean;
-    domainId: string; // container (=workspace project) id
-    hubSlugs: string[]; // node 의 소속 hub 배열 (hub 자신은 빈 배열)
+    /** 데모 시각 분기 (tag/stack pool) 용 그룹 id. UI 컨테이너 아님. */
+    groupId: string;
+    hubSlugs: string[];
     extraDeps: string[];
   }
   const seeds: FlatSeed[] = [];
@@ -276,7 +266,7 @@ function buildProjects(
         name: hub.name,
         description: hub.description,
         isHub: true,
-        domainId: container.id,
+        groupId: container.id,
         hubSlugs: [],
         extraDeps: hub.extraDeps ?? [],
       });
@@ -286,7 +276,7 @@ function buildProjects(
           name: node.name,
           description: node.description,
           isHub: false,
-          domainId: container.id,
+          groupId: container.id,
           hubSlugs: [hub.slug],
           extraDeps: [hub.slug, ...(node.extraDeps ?? [])],
         });
@@ -331,8 +321,8 @@ function buildProjects(
     const category = categoryById.get(lifecycleId)!;
     group.forEach((entry, indexInGroup) => {
       const position = seedDiskPosition(category, indexInGroup, group.length, rng);
-      const tagPool = containerToTags[entry.seed.domainId] ?? [];
-      const stackPool = containerToStack[entry.seed.domainId] ?? [];
+      const tagPool = containerToTags[entry.seed.groupId] ?? [];
+      const stackPool = containerToStack[entry.seed.groupId] ?? [];
       projects.push({
         accountId: DEMO_ACCOUNT_ID,
         slug: entry.seed.slug,
@@ -364,8 +354,6 @@ function buildProjects(
         },
         progress: entry.seed.isHub ? 80 + Math.floor(rng() * 15) : Math.floor(rng() * 100),
         isHub: entry.seed.isHub,
-        // 4계층 부모 참조 — 데이터 계약으로 명시. legacy 폴백 없이 항상 채움.
-        workspaceProjectId: entry.seed.domainId,
         hubSlugs: entry.seed.isHub ? undefined : [...entry.seed.hubSlugs],
         position,
         createdAt: entry.createdAt,
@@ -386,36 +374,11 @@ function buildProjects(
   return projects;
 }
 
-/**
- * 데모 컨테이너 — DEMO_BLUEPRINT 에서 직접 도출. project.slug 가 어느
- * 컨테이너에 속하는지는 hash 가 아니라 청사진 매핑(SLUG_TO_CONTAINER) 로
- * deterministic.
- */
-function pickContainerId(slug: string): string {
-  return SLUG_TO_CONTAINER.get(slug) ?? DEMO_BLUEPRINT[0].id;
-}
-
-function buildWorkspaceProjects(): WorkspaceProject[] {
-  const createdAt = new Date(SEED_BASE);
-  const updatedAt = new Date(NOW);
-  return DEMO_BLUEPRINT.map((container) => ({
-    id: container.id,
-    accountId: DEMO_ACCOUNT_ID,
-    name: container.name,
-    description: container.description,
-    isPublic: true,
-    order: container.order,
-    createdAt,
-    updatedAt,
-  }));
-}
-
 interface DemoDataset {
   projects: Project[];
   categories: Category[];
   statuses: Status[];
   documents: KnowledgeDocument[];
-  workspaceProjects: WorkspaceProject[];
 }
 
 let cache: DemoDataset | null = null;
@@ -497,13 +460,11 @@ export function getDemoDataset(): DemoDataset {
   const statuses = buildStatuses();
   const projects = buildProjects(DEFAULT_PROJECT_COUNT, categories, statuses);
   const documents = buildDocuments(projects);
-  const workspaceProjects = buildWorkspaceProjects();
   cache = {
     projects,
     categories,
     statuses,
     documents,
-    workspaceProjects,
   };
   return cache;
 }
@@ -537,78 +498,4 @@ export function getDemoKnowledgeDocumentsByProject(
 
 export function getAllDemoKnowledgeDocuments(): KnowledgeDocument[] {
   return getDemoDataset().documents;
-}
-
-export function getDemoWorkspaceProjects(
-  _accountId?: string | null,
-): WorkspaceProject[] {
-  return getDemoDataset().workspaceProjects;
-}
-
-/**
- * 컨테이너 안의 hub/node 후보 (= 데모 flat projects 중 hash 분배로 이 컨테이너
- * 에 속한 것들). 4-layer zoom-in 단계 시각화용.
- */
-export function getDemoProjectsForContainer(
-  _accountId: string | null | undefined,
-  projectId: string | null | undefined,
-): Project[] {
-  const targetId = projectId?.trim() || 'general';
-  return getDemoDataset().projects.filter(
-    (project) => pickContainerId(project.slug) === targetId,
-  );
-}
-
-/**
- * 컨테이너별 hub/node 카운트 + cross-container 의존 weight.
- * zoom-out view 의 컨테이너 노드 크기·간 엣지 시각화에 사용.
- */
-export interface DemoContainerStats {
-  containerId: string;
-  hubs: number;
-  nodes: number;
-  /** 이 컨테이너의 project 들이 다른 컨테이너의 project 를 의존하는 횟수. */
-  depsToContainers: Map<string, number>;
-}
-
-let containerStatsCache: Map<string, DemoContainerStats> | null = null;
-
-export function getDemoContainerStats(
-  _accountId?: string | null,
-): Map<string, DemoContainerStats> {
-  if (containerStatsCache) return containerStatsCache;
-
-  const stats = new Map<string, DemoContainerStats>();
-  for (const container of DEMO_BLUEPRINT) {
-    let hubs = 0;
-    let nodes = 0;
-    for (const hub of container.hubs) {
-      hubs += 1;
-      nodes += hub.nodes.length;
-    }
-    stats.set(container.id, {
-      containerId: container.id,
-      hubs,
-      nodes,
-      depsToContainers: new Map(),
-    });
-  }
-
-  // cross-container 의존 카운트
-  for (const project of getDemoDataset().projects) {
-    const fromContainer = pickContainerId(project.slug);
-    const fromStats = stats.get(fromContainer);
-    if (!fromStats) continue;
-    for (const depSlug of project.dependencies) {
-      const toContainer = pickContainerId(depSlug);
-      if (toContainer === fromContainer) continue;
-      fromStats.depsToContainers.set(
-        toContainer,
-        (fromStats.depsToContainers.get(toContainer) ?? 0) + 1,
-      );
-    }
-  }
-
-  containerStatsCache = stats;
-  return stats;
 }
