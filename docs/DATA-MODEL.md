@@ -30,8 +30,6 @@ firestore/
 │   └── {id}/
 ├── meta/
 │   └── site/
-├── apiKeys/                         외부 HTTP API 인증 토큰
-│   └── {keyId}/
 ├── workspaceProjects/               워크스페이스 컨테이너
 │   └── {projectId}/
 │       ├── hubs/                    허브 노드 (sub-collection)
@@ -139,22 +137,6 @@ firestore/
 | `hubIds` | string[] | ✅ | 속한 hub slug 배열. 0~N 개. `array-contains` 쿼리로 허브별 필터. |
 
 > 그 외 필드는 `projects/{slug}` 와 호환 유지 (`name`, `description`, `tags`, `stack`, `links`, `status`, `category`, `position`, `screenshots`, `owner`, `progress`, `timeline`, `createdAt`, `updatedAt`).
-
-### `apiKeys/{keyId}`
-
-> 외부 클라이언트 (CLI · CI · MCP server) 가 `POST /api/v1/docs` 같은 HTTP 엔드포인트로 워크스페이스에 push 할 때 사용하는 인증 토큰. 평문 키는 발급 직후 한 번만 UI 노출, hash 만 저장.
-
-| 필드 | 타입 | 필수 | 설명 |
-| --- | --- | --- | --- |
-| `name` | string | ✅ | 사용자 식별용 라벨 (예: "CI bot") |
-| `keyHash` | string | ✅ | SHA-256(plaintext) 16진수 |
-| `keyPrefix` | string | ✅ | 평문 키 처음 8자 — UI 표시용 |
-| `scope` | `"account-rw"` | ✅ | v1 단일 scope. 미래 per-container/action 분리 예약 |
-| `createdAt` | Timestamp | ✅ | 생성 시각 |
-| `createdBy` | string | ✅ | 발급한 사용자 이메일 |
-| `lastUsedAt` | Timestamp |  | 마지막 호출 시각 (Cloud Function 이 갱신) |
-| `usageCount` | number |  | 누적 호출 수 |
-| `revokedAt` | Timestamp |  | revoke 됐으면 set, soft-delete 용 |
 
 ### `categories/{id}`
 

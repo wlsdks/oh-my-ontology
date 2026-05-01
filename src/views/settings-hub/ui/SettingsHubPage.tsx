@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Compass,
   Database,
-  KeyRound,
   Layers,
   Network,
   Tag,
@@ -25,7 +24,6 @@ import { OperationsNav } from '@/widgets/operations-nav';
  *
  * 그룹은 사용자 멘탈 모델로 묶었다:
  *  - "지도 정비" : 카테고리 · 상태 · 가져오기 (지도 콘텐츠 자체를 다룸)
- *  - "외부 연결" : API 키 (외부 클라이언트가 push 할 수 있게)
  *  - "오늘 점검" : 오늘 챙길 곳 · 마이그레이션 (운영 진단)
  */
 interface HubItem {
@@ -71,17 +69,6 @@ function SettingsHubContent() {
           helper: '활성 TBox 클래스·관계 보기 (곧 직접 추가 가능)',
           href: '/settings/ontology/',
           icon: Network,
-        },
-      ],
-    },
-    {
-      title: '외부 연결',
-      items: [
-        {
-          label: 'API 키',
-          helper: 'CLI · CI · MCP 가 push 할 때 쓰는 키',
-          href: '/settings/api-keys/',
-          icon: KeyRound,
         },
       ],
     },

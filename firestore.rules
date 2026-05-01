@@ -43,16 +43,6 @@ service cloud.firestore {
       allow write: if isAuthed();
     }
 
-    // M2 · 외부 HTTP API key. 평문 키는 hash 만 저장돼 firestore 노출돼도 사용
-    // 불가. delete 는 차단 — revoke 후 audit 보존. revoke 는 revokedAt 만 set.
-    match /apiKeys/{keyId} {
-      allow read: if isAuthed();
-      allow create: if isAuthed();
-      allow update: if isAuthed()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revokedAt']);
-      allow delete: if false;
-    }
-
     // P0-B · Workspace > Project > Hub + Node 4-layer.
     // nodes 는 hubs sibling — `hubIds: string[]` 으로 N:M 참조.
     match /workspaceProjects/{projectId} {

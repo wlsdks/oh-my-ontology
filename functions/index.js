@@ -19,8 +19,6 @@ import {
   DEFAULT_ONTOLOGY_RELATIONS,
 } from "./ontology-extract.js";
 
-// M2 · 외부 HTTP API endpoint (POST /api/v1/docs)
-export { receiveDoc } from "./receive-doc.js";
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
