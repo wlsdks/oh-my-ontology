@@ -1,4 +1,6 @@
 export type {
+  EdgeQualifier,
+  EdgeRank,
   KnowledgeEdgeType,
   KnowledgeGraphSource,
   KnowledgeGraphNode,
@@ -15,6 +17,7 @@ export type {
   AddManualKnowledgeEdgeInput,
   ManualEdgeInputError,
   ManualEdgeInputValidation,
+  QualifierValue,
 } from "./model";
 export {
   KNOWLEDGE_EDGE_TYPES,

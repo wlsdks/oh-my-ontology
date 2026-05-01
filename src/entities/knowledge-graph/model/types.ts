@@ -85,6 +85,31 @@ export interface KnowledgeGraphNode {
   tboxVersionId?: string;
 }
 
+/**
+ * V1.1 (Wikidata 영감) — statement qualifier value union. legacy edge / 노드 변환
+ * 시에는 항상 undefined. 새 edge 가 명시적으로 채울 때만 존재.
+ *
+ * 자세한 spec: docs/ONTOLOGY-MODEL-V2-DRAFT.md §2.
+ */
+export type QualifierValue =
+  | { kind: 'string'; raw: string }
+  | { kind: 'time'; iso: string; precision: 'year' | 'month' | 'day' }
+  | { kind: 'quantity'; value: number; unit?: string }
+  | { kind: 'nodeRef'; nodeId: string };
+
+export interface EdgeQualifier {
+  /** 한정자 property id — `OntologyRelation.id` 또는 새 ontology
+   *  qualifier property id 재사용. legacy 호환을 위해 string 으로 둔다. */
+  propertyId: string;
+  value: QualifierValue;
+}
+
+/**
+ * V1.1 (Wikidata 영감) — statement rank. 같은 (from, to, type) 의 다중 statement
+ * 중 우선순위. legacy edge 는 undefined → 코드는 `rank ?? 'normal'` 폴백.
+ */
+export type EdgeRank = 'preferred' | 'normal' | 'deprecated';
+
 export interface KnowledgeGraphEdge {
   id: string;
   accountId?: string;
@@ -109,6 +134,12 @@ export interface KnowledgeGraphEdge {
   manualNote?: string;
   /** P1 Phase 1 — node 와 동일 의미. */
   tboxVersionId?: string;
+  /** V1.1 — Wikidata-style statement qualifier 배열 (옵션, additive). legacy
+   *  edge 는 undefined. UI / publish projection 모두 그대로 통과. */
+  qualifiers?: EdgeQualifier[];
+  /** V1.1 — Wikidata-style statement rank (옵션, additive). legacy 는 undefined
+   *  → 'normal' 로 해석. */
+  rank?: EdgeRank;
 }
 
 export interface KnowledgePublicMeta {

@@ -1,4 +1,6 @@
 export type {
+  EdgeQualifier,
+  EdgeRank,
   KnowledgeEdgeType,
   KnowledgeGraphSource,
   KnowledgeGraphNode,
@@ -7,6 +9,7 @@ export type {
   KnowledgeProjectInsight,
   PublishKnowledgeProjectionInput,
   PublishKnowledgeProjectionResult,
+  QualifierValue,
 } from "./types";
 export {
   KNOWLEDGE_EDGE_TYPES,

@@ -183,6 +183,11 @@ export async function publishKnowledgeProjectionCore({
         // 증거 갯수 — 클라이언트에서 edge 두께 가중 (evidence 많을수록 굵게)
         // 에 쓴다. nodes 와 동일한 명명규칙.
         evidenceCount: normalizeStringArray(data.evidenceIds).length,
+        // V1.1 — Wikidata 영감 statement qualifiers + rank. 양쪽 모두
+        // 옵셔널 — approved 가 가지면 그대로 public projection 으로 통과,
+        // 없으면 키 자체 생략.
+        ...(Array.isArray(data.qualifiers) ? { qualifiers: data.qualifiers } : {}),
+        ...(typeof data.rank === "string" ? { rank: data.rank } : {}),
         publishId: publishRef.id,
         projectionVersion: PROJECTION_VERSION,
         publishedAt: startedAt,

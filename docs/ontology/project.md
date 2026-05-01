@@ -10,6 +10,7 @@ capabilities:
   - 3-view-rendering
   - ai-agent-partner
   - tbox-versioning
+  - v1-1-qualifiers-rank
 elements:
   - vault-local-first
   - ontology-core
