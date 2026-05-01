@@ -17,6 +17,19 @@ export type OntologyRelationCategory =
   /** 약 연관 — related_to. 충분한 근거 누적 시 더 구체적 타입으로 승격 후보. */
   | 'weak';
 
+/**
+ * V1.5 — Relation cardinality (Palantir 영감, additive).
+ *
+ * source / target 쪽의 multiplicity 제약. legacy = undefined → 'many' /
+ * 'many' (= 현재 동작 — 제약 0).
+ *
+ * 예: `belongs_to.sourceCardinality = 'one'` — 한 node 는 한 부모만.
+ *     `implements.targetCardinality = 'one'` — 한 spec 만 구현.
+ *
+ * V1.5 spec: docs/ONTOLOGY-MODEL-V2-DRAFT.md §6.
+ */
+export type RelationCardinality = 'one' | 'many';
+
 export interface OntologyRelation {
   /** kebab-case ID. 예: 'depends_on'. */
   id: string;
@@ -38,6 +51,15 @@ export interface OntologyRelation {
   symmetric: boolean;
   /** A→B + B→C ⇒ A→C 가 성립 (예: contains true, uses false). */
   transitive: boolean;
+  /**
+   * V1.5 (Palantir 영감) — source 쪽 cardinality 제약. 옵셔널 (legacy =
+   * many). edge 생성/approve 단계에서 검증 가능.
+   */
+  sourceCardinality?: RelationCardinality;
+  /**
+   * V1.5 — target 쪽 cardinality 제약. 옵셔널.
+   */
+  targetCardinality?: RelationCardinality;
   /** TBox 버전. */
   version: number;
   createdAt: Date;

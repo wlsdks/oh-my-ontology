@@ -13,7 +13,7 @@
 | V1.2 — Literal Properties | ⏳ Q6+Q7 답 후 진행 |
 | V1.3 — Rich References | ⏳ Q5 답 후 진행 |
 | V1.4 — Action Type | ⏸ DEFERRED (Q4 + 보안 sub-spec 필요) |
-| V1.5 — Relation Cardinality | ⏳ 즉시 가능 (Q 답 무관) |
+| V1.5 — Relation Cardinality | ✅ 머지 완료 (PR #23, additive, breakage 0) |
 | V2 — 통합 KnowledgeStatement | ⏳ V1.x 완료 + 90일 dual-read soak 후 |
 
 Open question 진행: Q1=(a) ✅ · Q2 ✅ (share-doc 이미 제거) · Q3-Q8 + multi-vault 시점 대기.
@@ -469,7 +469,9 @@ interface KnowledgeActionInvocation {
 
 ---
 
-## 6. V1.5 — Relation Cardinality (Palantir 영감)
+## 6. V1.5 — Relation Cardinality (Palantir 영감) — ✅ 머지 완료 (PR #23)
+
+> ✅ 2026-05-01 머지. `OntologyRelation` 에 `sourceCardinality` + `targetCardinality` 옵셔널 추가. 5 단위 test. additive, breakage 0. 자세히: `src/entities/ontology-relation/model/types.ts` + `mapper.test.ts`.
 
 **컬렉션 변경**: `OntologyRelation` 에 옵셔널 필드 2개.
 

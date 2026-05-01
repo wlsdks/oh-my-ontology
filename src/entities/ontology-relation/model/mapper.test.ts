@@ -84,4 +84,72 @@ describe('ontology-relation mapper', () => {
     expect(relation.sourceClassIds).toEqual(['project', 'domain']);
     expect(relation.targetClassIds).toEqual([]);
   });
+
+  describe('V1.5 cardinality (additive)', () => {
+    it('fromFirestore reads sourceCardinality + targetCardinality when present', () => {
+      const relation = fromFirestore('belongs_to', {
+        name: '소속',
+        sourceClassIds: ['capability'],
+        targetClassIds: ['domain'],
+        category: 'structure',
+        symmetric: false,
+        transitive: false,
+        version: 1,
+        createdBy: 'system',
+        sourceCardinality: 'one',
+        targetCardinality: 'many',
+      });
+      expect(relation.sourceCardinality).toBe('one');
+      expect(relation.targetCardinality).toBe('many');
+    });
+
+    it('fromFirestore returns undefined for invalid cardinality', () => {
+      const relation = fromFirestore('weird', {
+        name: '???',
+        sourceClassIds: [],
+        targetClassIds: [],
+        category: 'weak',
+        symmetric: false,
+        transitive: false,
+        version: 1,
+        createdBy: 'system',
+        sourceCardinality: 'two', // invalid
+        targetCardinality: null,
+      });
+      expect(relation.sourceCardinality).toBeUndefined();
+      expect(relation.targetCardinality).toBeUndefined();
+    });
+
+    it('legacy data (no cardinality fields) → undefined', () => {
+      const relation = fromFirestore('related_to', {
+        name: '연관',
+        sourceClassIds: [],
+        targetClassIds: [],
+        category: 'weak',
+        symmetric: true,
+        transitive: false,
+        version: 1,
+        createdBy: 'system',
+      });
+      expect(relation.sourceCardinality).toBeUndefined();
+      expect(relation.targetCardinality).toBeUndefined();
+    });
+
+    it('toFirestore round-trip preserves cardinality', () => {
+      const input: OntologyRelationInput = {
+        ...inputContains,
+        sourceCardinality: 'many',
+        targetCardinality: 'one',
+      };
+      const payload = toFirestore(input);
+      expect(payload.sourceCardinality).toBe('many');
+      expect(payload.targetCardinality).toBe('one');
+    });
+
+    it('toFirestore drops undefined cardinality', () => {
+      const payload = toFirestore(inputContains);
+      expect(payload).not.toHaveProperty('sourceCardinality');
+      expect(payload).not.toHaveProperty('targetCardinality');
+    });
+  });
 });
