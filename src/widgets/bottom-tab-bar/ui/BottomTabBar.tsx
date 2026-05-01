@@ -2,26 +2,27 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Map as MapIcon, FolderKanban, FileText, ListTodo } from 'lucide-react';
+import { Network, FolderKanban, FileText, ListTodo } from 'lucide-react';
 
 interface TabItem {
   href: string;
   label: string;
-  icon: typeof MapIcon;
+  icon: typeof Network;
   /** pathname 이 이 prefix 들 중 하나로 시작하면 활성 탭. 빈 배열이면 정확히 href 와 일치할 때만. */
   matchPrefixes: ReadonlyArray<string>;
 }
 
 // 모바일 한정 하단 탭바. 메인 4개 destination만 노출 — 미니멀 모바일 결.
-// "지도 · 프로젝트 · 문서 · 정리(설정·진단)" 4분할로 정보 구조를 한 번에 잡아준다.
+// "온톨로지 · 프로젝트 · 문서 · 정리" 4분할.
+// Direction A 적용 후 / 가 ontology hub — 첫 탭 라벨/아이콘이 그 정체성을
+// 노출. 토폴로지는 온톨로지의 출구 view 라 별도 탭이 아닌 OntologyView /
+// OperationsNav 안의 sub-link 로 진입.
 const TABS: ReadonlyArray<TabItem> = [
-  { href: '/', label: '지도', icon: MapIcon, matchPrefixes: [] },
+  { href: '/', label: '온톨로지', icon: Network, matchPrefixes: ['/ontology', '/topology'] },
   { href: '/projects/', label: '프로젝트', icon: FolderKanban, matchPrefixes: ['/projects', '/project'] },
-  // "문서" tab 은 docs / knowledge / review / ontology 모두 active. ontology
-  // 는 별도 5번째 탭을 만들지 않는다 — 4 분할 폭 보존. /knowledge hub 에 진입
-  // 카드로 발견. /docs 는 진안 일상 vault — 같은 "문서" 탭 활성으로 위치
-  // 손실 없게 (Fire 1 — BottomTabBar 회귀).
-  { href: '/knowledge/', label: '문서', icon: FileText, matchPrefixes: ['/knowledge', '/review', '/ontology', '/docs'] },
+  // "문서" tab 은 docs / knowledge / review 모두 active. /docs 는 진안 일상
+  // vault — 같은 "문서" 탭 활성으로 위치 손실 없게 (Fire 1 회귀).
+  { href: '/knowledge/', label: '문서', icon: FileText, matchPrefixes: ['/knowledge', '/review', '/docs'] },
   { href: '/settings/', label: '정리', icon: ListTodo, matchPrefixes: ['/diagnostics', '/settings'] },
 ];
 
