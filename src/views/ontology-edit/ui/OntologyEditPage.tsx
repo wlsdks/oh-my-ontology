@@ -8,6 +8,10 @@ import { Info, Maximize2, Minimize2 } from "lucide-react";
 import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import { useUserAuth } from "@/features/user-auth";
 import { addManualKnowledgeNode } from "@/entities/knowledge-graph";
+import {
+  vaultManifest as staticVaultManifestRaw,
+  type VaultManifest,
+} from "@/entities/docs-vault";
 import { useDataSourceMode } from "@/features/data-source-mode";
 import { useLocalVault } from "@/features/docs-vault-local";
 import { slugify } from "@/shared/lib/slugify";
@@ -167,9 +171,16 @@ export function OntologyEditPage() {
   // C-5 — vault 모드에서는 selectedId 가 vault slug. manifest 에서 lookup
   // 해 인스펙터에 frontmatter + array 키 (capabilities/elements/...) 까지
   // 함께 전달 (in-canvas rename + array 편집 가능).
+  // 빌더 진실원 우선순위 (PR #43): live vault.manifest > 빌드타임 dogfood
+  // 매니페스트. 인스펙터 lookup 도 같은 우선순위 — vault 안 고른 사용자가
+  // dogfood 노드 클릭 시 정확한 frontmatter 를 본다 (PR #45 fix 의 인스펙터
+  // 측 보완). hasLiveVault 가 false 면 인스펙터는 read-only — patch 시도하면
+  // disk 권한 없어 어차피 fail.
+  const hasLiveVault = vault.manifest !== null;
+  const effectiveManifest = vault.manifest ?? (staticVaultManifestRaw as VaultManifest);
   const vaultSelected = (() => {
     if (!selectedId || ephemeralSelected) return null;
-    const doc = vault.manifest?.docs.find((d) => d.slug === selectedId);
+    const doc = effectiveManifest.docs.find((d) => d.slug === selectedId);
     if (!doc || typeof doc.frontmatter.kind !== "string") return null;
     const fm = doc.frontmatter as Record<string, unknown>;
     const asStrings = (v: unknown): string[] =>
@@ -182,7 +193,6 @@ export function OntologyEditPage() {
       slug: doc.slug,
       kind: String(doc.frontmatter.kind),
       title: doc.title || doc.slug,
-      // V1.2 vault-adaptation — frontmatter scalar literals.
       description: asString(fm.description),
       domain: asString(fm.domain),
       capabilities: asStrings(fm.capabilities),
@@ -191,13 +201,6 @@ export function OntologyEditPage() {
       relates: asStrings(fm.relates),
     };
   })();
-  // cloud approved 모드 fallback — vault 매니페스트 없을 때만. 현재 사용자
-  // 흐름에서는 vault 모드가 default 라 사실상 dead 지만 cloud 모드 잔존
-  // 사용자 보호용으로 placeholder 유지.
-  const approvedSelected =
-    selectedId && !ephemeralSelected && !vaultSelected && !vault.manifest
-      ? { id: selectedId, kind: "(승인)", title: selectedId }
-      : null;
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const renameVaultDoc = useCallback(
@@ -490,8 +493,8 @@ export function OntologyEditPage() {
           </div>
           <OntologyInspector
             ephemeralSelected={ephemeralSelected}
-            approvedSelected={approvedSelected}
             vaultSelected={vaultSelected}
+            vaultReadOnly={!hasLiveVault}
             onRenameEphemeral={(id, title) => updateNode(id, { title })}
             onSaveEphemeral={saveEphemeral}
             onSaveVaultRename={renameVaultDoc}

@@ -45,8 +45,10 @@ export interface VaultSelected {
 
 export interface OntologyInspectorProps {
   ephemeralSelected: EphemeralNode | null;
-  approvedSelected: { id: string; kind: string; title: string } | null;
   vaultSelected: VaultSelected | null;
+  /** true 면 vault 가 read-only (빌드타임 dogfood 매니페스트 기반). 인스펙터의
+   *  rename/array/literal/delete 모두 disabled — disk 권한 없어 patch 불가. */
+  vaultReadOnly?: boolean;
   onRenameEphemeral: (id: string, title: string) => void;
   onSaveEphemeral?: (id: string) => Promise<void> | void;
   onSaveVaultRename?: (slug: string, nextTitle: string) => Promise<void> | void;
@@ -75,8 +77,8 @@ const KIND_LABEL_MAP: Record<string, string> = {
 
 export function OntologyInspector({
   ephemeralSelected,
-  approvedSelected,
   vaultSelected,
+  vaultReadOnly = false,
   onRenameEphemeral,
   onSaveEphemeral,
   onSaveVaultRename,
@@ -86,7 +88,7 @@ export function OntologyInspector({
   onClearSelection,
   saving,
 }: OntologyInspectorProps) {
-  const selected = ephemeralSelected ?? vaultSelected ?? approvedSelected;
+  const selected = ephemeralSelected ?? vaultSelected;
   return (
     <aside
       aria-label="선택한 ontology 노드 상세"
@@ -125,18 +127,12 @@ export function OntologyInspector({
           <motion.div key={`vault-${vaultSelected.slug}`} {...FADE_MOTION}>
             <VaultDetail
               node={vaultSelected}
+              readOnly={vaultReadOnly}
               onSaveRename={onSaveVaultRename}
               onEditArrayKey={onEditVaultArrayKey}
               onEditLiteral={onEditVaultLiteral}
               onDelete={onDeleteVault}
               saving={Boolean(saving)}
-              onDeselect={onClearSelection}
-            />
-          </motion.div>
-        ) : approvedSelected ? (
-          <motion.div key={`appr-${approvedSelected.id}`} {...FADE_MOTION}>
-            <ApprovedDetail
-              node={approvedSelected}
               onDeselect={onClearSelection}
             />
           </motion.div>
@@ -247,6 +243,7 @@ const ARRAY_KEY_LABELS: Record<VaultArrayKey, string> = {
 
 function VaultDetail({
   node,
+  readOnly,
   onSaveRename,
   onEditArrayKey,
   onEditLiteral,
@@ -255,6 +252,7 @@ function VaultDetail({
   onDeselect,
 }: {
   node: VaultSelected;
+  readOnly: boolean;
   onSaveRename?: (slug: string, nextTitle: string) => Promise<void> | void;
   onEditArrayKey?: (
     slug: string,
@@ -277,12 +275,12 @@ function VaultDetail({
   }, [node.slug, node.title]);
   const trimmed = draft.trim();
   const dirty = trimmed !== "" && trimmed !== node.title;
-  const canSave = dirty && Boolean(onSaveRename) && !saving;
+  const canSave = !readOnly && dirty && Boolean(onSaveRename) && !saving;
   return (
     <div className="flex flex-col gap-3 rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] p-3">
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-2)] px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">
-          vault · {KIND_LABEL_MAP[node.kind] ?? node.kind}
+          {readOnly ? "dogfood" : "vault"} · {KIND_LABEL_MAP[node.kind] ?? node.kind}
         </span>
         <button
           type="button"
@@ -301,7 +299,8 @@ function VaultDetail({
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          className="rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] px-2.5 py-1.5 text-[13px] text-[color:var(--color-text-primary)] outline-none transition-colors focus:border-[color:var(--color-indigo-brand)]"
+          disabled={readOnly}
+          className="rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] px-2.5 py-1.5 text-[13px] text-[color:var(--color-text-primary)] outline-none transition-colors focus:border-[color:var(--color-indigo-brand)] disabled:opacity-60"
         />
       </label>
       <div>
@@ -312,7 +311,7 @@ function VaultDetail({
           {node.slug}
         </p>
       </div>
-      {onSaveRename ? (
+      {!readOnly && onSaveRename ? (
         <button
           type="button"
           onClick={() => onSaveRename(node.slug, draft)}
@@ -324,10 +323,11 @@ function VaultDetail({
         </button>
       ) : null}
       <p className="text-[11px] leading-4 text-[color:var(--color-text-quaternary)]">
-        제목만 frontmatter `title:` 에 patch 됩니다. 본문이나 다른 키는 그대로
-        유지돼요. AI agent (MCP) 도 동일 vault 를 보고 있어 즉시 반영됩니다.
+        {readOnly
+          ? "dogfood 매니페스트 — 빌드타임 baked. 직접 수정하려면 /docs 에서 vault 폴더를 여세요."
+          : "제목만 frontmatter `title:` 에 patch 됩니다. 본문이나 다른 키는 그대로 유지돼요. AI agent (MCP) 도 동일 vault 를 보고 있어 즉시 반영됩니다."}
       </p>
-      {onEditLiteral ? (
+      {!readOnly && onEditLiteral ? (
         <div className="flex flex-col gap-2">
           <LiteralEditor
             fieldKey="domain"
@@ -347,7 +347,7 @@ function VaultDetail({
           />
         </div>
       ) : null}
-      {onEditArrayKey ? (
+      {!readOnly && onEditArrayKey ? (
         <div className="flex flex-col gap-3">
           {(["capabilities", "elements", "dependencies", "relates"] as const).map(
             (key) => (
@@ -361,8 +361,10 @@ function VaultDetail({
             ),
           )}
         </div>
+      ) : readOnly ? (
+        <ReadOnlyArraySummary node={node} />
       ) : null}
-      {onDelete ? (
+      {!readOnly && onDelete ? (
         <button
           type="button"
           onClick={() => onDelete(node.slug)}
@@ -533,39 +535,39 @@ function ArrayKeyEditor({
   );
 }
 
-function ApprovedDetail({
-  node,
-  onDeselect,
-}: {
-  node: { id: string; kind: string; title: string };
-  onDeselect: () => void;
-}) {
+/**
+ * read-only 모드 (dogfood 매니페스트 기반) 의 array 키 요약. 편집 input 없이
+ * chip 만 노출 — 사용자에게 "이 노드는 어떤 의존/역량을 갖는지" 정보만 전달.
+ */
+function ReadOnlyArraySummary({ node }: { node: VaultSelected }) {
+  const sections: Array<{ key: VaultArrayKey; values: string[] }> = (
+    ["capabilities", "elements", "dependencies", "relates"] as const
+  )
+    .map((key) => ({ key, values: node[key] }))
+    .filter((s) => s.values.length > 0);
+  if (sections.length === 0) return null;
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] p-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-2)] px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">
-          승인 · {KIND_LABEL_MAP[node.kind] ?? node.kind}
-        </span>
-        <button
-          type="button"
-          onClick={onDeselect}
-          aria-label="선택 해제"
-          className="rounded-md p-1 text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
+    <div className="flex flex-col gap-2">
+      {sections.map(({ key, values }) => (
+        <div
+          key={key}
+          className="rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-2.5"
         >
-          ×
-        </button>
-      </div>
-      <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-          이름
-        </p>
-        <p className="mt-1 text-[13px] text-[color:var(--color-text-primary)]">
-          {node.title}
-        </p>
-      </div>
-      <p className="text-[11px] leading-4 text-[color:var(--color-text-quaternary)]">
-        승인된 노드 — 편집은 별도 fire (C-6) 에서. 트리 화면에서도 볼 수 있어요.
-      </p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
+            {ARRAY_KEY_LABELS[key]}
+          </p>
+          <ul className="mt-2 flex flex-wrap gap-1">
+            {values.map((slug) => (
+              <li
+                key={slug}
+                className="inline-flex items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-2 py-0.5 font-mono text-[11px] text-[color:var(--color-text-tertiary)]"
+              >
+                {slug}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 }
