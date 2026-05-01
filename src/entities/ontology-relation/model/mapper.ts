@@ -3,6 +3,7 @@ import type {
   OntologyRelation,
   OntologyRelationCategory,
   OntologyRelationInput,
+  RelationCardinality,
 } from './types';
 
 const CATEGORIES: OntologyRelationCategory[] = ['structure', 'behavior', 'evidence', 'weak'];
@@ -12,6 +13,10 @@ function toCategory(value: unknown): OntologyRelationCategory {
     return value as OntologyRelationCategory;
   }
   return 'weak';
+}
+
+function toCardinality(value: unknown): RelationCardinality | undefined {
+  return value === 'one' || value === 'many' ? value : undefined;
 }
 
 function toStringArray(value: unknown): string[] {
@@ -43,6 +48,8 @@ export function fromFirestore(id: string, data: DocumentData): OntologyRelation 
     category: toCategory(data.category),
     symmetric: Boolean(data.symmetric),
     transitive: Boolean(data.transitive),
+    sourceCardinality: toCardinality(data.sourceCardinality),
+    targetCardinality: toCardinality(data.targetCardinality),
     version: typeof data.version === 'number' ? data.version : 1,
     createdAt: toDate(data.createdAt),
     createdBy: String(data.createdBy ?? 'system'),
@@ -63,5 +70,7 @@ export function toFirestore(input: OntologyRelationInput): Record<string, unknow
   };
   if (input.inverseName !== undefined) payload.inverseName = input.inverseName;
   if (input.description !== undefined) payload.description = input.description;
+  if (input.sourceCardinality !== undefined) payload.sourceCardinality = input.sourceCardinality;
+  if (input.targetCardinality !== undefined) payload.targetCardinality = input.targetCardinality;
   return payload;
 }
