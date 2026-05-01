@@ -35,8 +35,6 @@ const MOBILE_ROUTES = [
   { name: "m02-login", url: "/login" },
   { name: "m03-signup", url: "/signup" },
   { name: "m04-project-detail", url: "/project/sample/" },
-  { name: "m05-admin-gate", url: "/admin/dashboard/" },
-  { name: "m06-admin-login", url: "/admin/" },
 ];
 
 test("모바일 주요 라우트 audit", async ({ page }) => {

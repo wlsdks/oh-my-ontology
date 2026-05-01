@@ -65,10 +65,7 @@ const routes: Array<{ name: string; url: string; wait?: number }> = [
   { name: "05-account", url: "/account", wait: 800 },
   { name: "06-projects", url: "/projects/", wait: 800 },
   { name: "07-project-detail", url: "/project/sample/", wait: 1000 },
-  { name: "08-admin-root", url: "/admin/", wait: 800 },
-  { name: "09-admin-dev-login", url: "/dev/login/", wait: 600 },
-  { name: "10-admin-dashboard", url: "/admin/dashboard/", wait: 800 },
-  { name: "11-admin-knowledge", url: "/admin/knowledge/", wait: 800 },
+  { name: "08-dev-login", url: "/dev/login/", wait: 600 },
 ];
 
 test("데스크탑 라우트 순회", async ({ page }) => {

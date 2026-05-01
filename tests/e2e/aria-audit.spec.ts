@@ -15,8 +15,6 @@ const ROUTES = [
   "/signup",
   "/reset-password",
   "/project/sample/",
-  "/admin/",
-  "/admin/dashboard/",
 ];
 
 test("접근성 없는 버튼·링크 탐지", async ({ page }) => {

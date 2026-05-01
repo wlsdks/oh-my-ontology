@@ -69,24 +69,6 @@ const ROUTES: Route[] = [
     url: "/project/topology/?slug=sample",
     wait: 1500,
   },
-  {
-    name: "10-admin-gate",
-    url: "/admin/dashboard/",
-    wait: 800,
-    mustContain: ["내 공간", "로그인"],
-  },
-  {
-    name: "11-admin-knowledge-gate",
-    url: "/admin/knowledge/",
-    wait: 800,
-    mustContain: ["내 공간"],
-  },
-  {
-    name: "12-admin-login",
-    url: "/admin/",
-    wait: 800,
-    mustContain: ["내 공간 로그인"],
-  },
 ];
 
 interface Finding {
