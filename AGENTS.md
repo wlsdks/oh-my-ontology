@@ -102,6 +102,15 @@ scripts/                   시드 / 배포 / 검증 보조
 - `@docs/DESIGN-SYSTEM.md`
 - `@docs/DEPLOYMENT.md`
 
+## 이 프로젝트의 ontology
+
+이 프로젝트 자신의 mental model 은 `docs/ontology/` 에 frontmatter md 로 표현되어 있다 (dogfooding — 우리 데이터 형식으로 우리 자신을 기술).
+
+- 진입점: `docs/ontology/README.md` · `docs/ontology/project.md`
+- 도메인 8 + capability 5 + element 4 + project 1 = 약 19 노드
+- AI agent 는 `mcp/` MCP 서버로 query 가능 — 등록 가이드 `mcp/README.md` · 예시 `.mcp.json.example`
+- 새 도메인/capability/element 가 생기면 같은 디렉토리에 추가 (`add_concept` 도구로 또는 직접 작성)
+
 ## CLAUDE.md / AGENTS.md 동기화
 
 - **AGENTS.md** (이 파일) 가 canonical. 모든 AI 코딩 도구가 읽는 cross-tool 표준.
