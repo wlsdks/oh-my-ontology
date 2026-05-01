@@ -35,17 +35,3 @@ export interface KnowledgeJobActionState {
   canOpenReplacement: boolean;
   helperText: string;
 }
-
-export interface EnqueueKnowledgeExtractionJobInput {
-  accountId?: string | null;
-  documentId: string;
-  documentVersionId: string;
-  extractorVersion?: string;
-}
-
-export interface EnqueueKnowledgeExtractionJobResult {
-  jobId: string;
-  created: boolean;
-  status: KnowledgeJobStatus;
-  idempotencyKey: string;
-}

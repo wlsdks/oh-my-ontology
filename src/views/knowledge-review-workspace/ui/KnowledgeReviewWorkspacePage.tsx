@@ -29,9 +29,7 @@ import {
   type StubNode,
 } from "@/entities/knowledge-graph";
 import {
-  enqueueKnowledgeExtractionJob,
   getKnowledgeJobStatusLabel,
-  resolveKnowledgeJobActionState,
   subscribeKnowledgeJobsByDocument,
   type KnowledgeJob,
 } from "@/entities/knowledge-job";
@@ -81,7 +79,6 @@ function WorkspaceContent() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const toast = useToast();
-  const [isEnqueueing, setIsEnqueueing] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   // 승인 후 공개 반영 전 상태 플래그. approve 성공 시 true, publish 성공 시 false.
@@ -274,18 +271,15 @@ function WorkspaceContent() {
       entry.documentVersionId === selectedVersion?.id &&
       (!latestOutput || entry.sourceOutputId === latestOutput.id),
   );
-  const jobActionState = latestJob
-    ? resolveKnowledgeJobActionState(latestJob.status)
-    : null;
-  // 승인 대기 → 공개 반영을 primary로. 그 외엔 기존 흐름 유지.
-  type PrimaryStage = "enqueue" | "approve" | "publish";
+  // 승인 대기 → 공개 반영을 primary로. 추출 결과가 없으면 vault 흐름으로 안내.
+  type PrimaryStage = "approve" | "publish" | "empty";
   const primaryStage: PrimaryStage =
     hasApprovedPending && !isPublishing
       ? "publish"
       : latestOutput
         ? "approve"
-        : "enqueue";
-  const primaryActionLabel =
+        : "empty";
+  const primaryActionLabel: string | null =
     primaryStage === "publish"
       ? isPublishing
         ? "공개에 보이는 중..."
@@ -294,42 +288,27 @@ function WorkspaceContent() {
         ? isApproving
           ? "골라내는 중..."
           : "고른 결과 저장"
-        : isEnqueueing
-          ? "요청 중..."
-          : latestJob?.status === "failed"
-            ? "다시 분석"
-            : "분석 시작";
+        : null;
   const flowStep = selectedDocument?.status === "published"
     ? {
-        label: "4. 공개 화면에 보임",
+        label: "공개 화면에 보임",
         helper: "고른 결과가 공개 지도에 보이고 있습니다.",
       }
     : hasApprovedPending
       ? {
-          label: "4. 공개에 보이기",
+          label: "공개에 보이기",
           helper: "골라내기는 끝났어요. 공개 화면에 보이기만 누르면 됩니다.",
         }
       : latestOutput
         ? {
-            label: "3. 골라내기",
+            label: "골라내기",
             helper: "후보를 살펴보고 고를 것을 정해 주세요. 그다음 공개 단계가 열립니다.",
           }
-      : latestJob?.status === "failed"
-        ? {
-            label: "2. 분석 다시",
-            helper: "분석이 막혔어요. 다시 시도하면 됩니다.",
-          }
-        : latestJob
-          ? {
-              label: "2. 분석 중",
-              helper: "끝나면 바로 골라내기 단계로 이어집니다.",
-            }
-          : {
-              label: "2. 분석 시작",
-              helper:
-                jobActionState?.helperText ??
-                "아직 분석을 안 돌렸으면 먼저 분석 시작을 눌러 주세요.",
-            };
+        : {
+            label: "vault 에서 직접 추가",
+            helper:
+              "이 문서엔 아직 추출 결과가 없어요. /docs 의 vault frontmatter 에 kind / capabilities / elements 를 적거나 /ontology/edit 빌더에서 직접 노드를 만드세요.",
+          };
 
   const candidateNodeGroups = useMemo(() => {
     const initial = {
@@ -367,29 +346,6 @@ function WorkspaceContent() {
     }),
     [scopedQueue],
   );
-
-  const handleEnqueue = async () => {
-    if (!selectedDocument || !selectedVersion) return;
-    setActionError(null);
-    setNotice(null);
-    setIsEnqueueing(true);
-    try {
-      const result = await enqueueKnowledgeExtractionJob({
-        accountId,
-        documentId: selectedDocument.id,
-        documentVersionId: selectedVersion.id,
-      });
-      setNotice(
-        result.created
-          ? `새 추출 작업을 만들었습니다. (${result.jobId})`
-          : `기존 작업을 이어서 사용합니다. (${result.jobId})`,
-      );
-    } catch (error) {
-      setActionError(error instanceof Error ? error.message : "추출 요청 실패");
-    } finally {
-      setIsEnqueueing(false);
-    }
-  };
 
   const allNodeTempIds = useMemo(
     () => (latestOutput?.nodes ?? []).map((n) => n.tempId).filter(Boolean) as string[],
@@ -783,35 +739,24 @@ function WorkspaceContent() {
                         {notice}
                       </div>
                     ) : null}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          if (primaryStage === "publish") return void handlePublish();
-                          if (primaryStage === "approve") return void handleApprove();
-                          return void handleEnqueue();
-                        }}
-                        disabled={
-                          primaryStage === "publish"
-                            ? isPublishing
-                            : primaryStage === "approve"
-                              ? isApproving || isPublishing
-                              : !selectedVersion || isEnqueueing || isPublishing
-                        }
-                      >
-                        {primaryActionLabel}
-                      </Button>
-                      {primaryStage === "publish" && latestOutput && (
+                    {primaryStage !== "empty" && primaryActionLabel ? (
+                      <div className="flex flex-wrap items-center gap-2">
                         <Button
                           type="button"
-                          variant="ghost"
-                          onClick={() => void handleEnqueue()}
-                          disabled={!selectedVersion || isEnqueueing}
+                          onClick={() => {
+                            if (primaryStage === "publish") return void handlePublish();
+                            if (primaryStage === "approve") return void handleApprove();
+                          }}
+                          disabled={
+                            primaryStage === "publish"
+                              ? isPublishing
+                              : isApproving || isPublishing
+                          }
                         >
-                          {isEnqueueing ? "요청 중..." : "다시 분석"}
+                          {primaryActionLabel}
                         </Button>
-                      )}
-                    </div>
+                      </div>
+                    ) : null}
                     <p className="text-xs text-[color:var(--color-text-tertiary)]">
                       {flowStep.helper}
                     </p>

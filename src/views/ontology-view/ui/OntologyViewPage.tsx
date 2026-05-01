@@ -316,15 +316,6 @@ export function OntologyViewPage() {
                 관계
               </Link>
             </Tooltip>
-            <Tooltip content="검수 큐 열기 — 추출 후보 승인 / 반려" withProvider={false}>
-              <Link
-                href={"/review/knowledge/"}
-                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-                aria-label="검수 큐 열기 — 추출 후보 승인 / 반려"
-              >
-                검수 큐
-              </Link>
-            </Tooltip>
           </div>
         </div>
       </section>
@@ -344,15 +335,10 @@ export function OntologyViewPage() {
         />
         <Stat
           label="미해결 참조"
-          hint="검수 대기 placeholder"
-          hintFull="frontmatter relates.target 이 가리킨 미존재 노드. 검수에서 승격 또는 폐기."
+          hint="트리 하단의 stub 리스트에서 처리"
+          hintFull="frontmatter relates.target 이 가리킨 미존재 노드. 트리 하단 stub 리스트에서 승격 (kind 부여) 또는 폐기."
           value={String(stubCount)}
           accent={stubCount > 0 ? "amber" : undefined}
-          href={
-            stubCount > 0
-              ? "/review/knowledge/"
-              : undefined
-          }
         />
         <Stat
           // UX-4: 모바일 2-col 그리드에서 5 번째 카드만 단독 row 가 되어
@@ -415,13 +401,13 @@ export function OntologyViewPage() {
                 문서가 자라면 트리도 자라요
               </h2>
               <p className="mt-2 break-keep text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                온톨로지는 문서에서 자동으로 추출된 개념·관계의 묶음이에요. 다음 3 단계로 첫 트리를 만들어 봐요.
+                온톨로지는 vault frontmatter 의 개념·관계가 모인 그래프예요. 다음 3 단계로 첫 트리를 만들어 봐요.
               </p>
               <ol className="mt-4 space-y-2 text-sm text-[color:var(--color-text-secondary)]">
                 {[
-                  ["1", "문서 등록", "문서 볼트에 한국어 spec 을 넣어요. frontmatter 에 kind / project / id 가 있으면 신뢰도가 올라가요."],
-                  ["2", "추출 돌리기", "문서 보기에서 ‘분석 시작’ 을 눌러요. 추출 워커가 노드와 관계 후보를 만들어 검수 큐로 보내요."],
-                  ["3", "검수 → 승인", "검수 큐에서 후보를 살펴보고 승인하면 여기 트리에 노드가 자라요."],
+                  ["1", "vault 열기", "/docs 에서 마크다운 폴더를 선택해 vault 를 활성화해요."],
+                  ["2", "frontmatter 추가", "문서에 kind / capabilities / elements / relates 를 적으면 자동으로 stub 노드가 만들어져요."],
+                  ["3", "빌더에서 정리", "/ontology/edit 캔버스에서 노드와 관계를 다듬으면 여기 트리에 그대로 자라요."],
                 ].map(([step, title, desc]) => (
                   <li key={step} className="flex gap-3">
                     <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[color:rgba(94,106,210,0.35)] bg-[color:rgba(94,106,210,0.10)] font-mono text-[10px] text-[color:rgba(159,170,235,0.95)]">
@@ -436,16 +422,16 @@ export function OntologyViewPage() {
               </ol>
               <div className="mt-5 flex flex-wrap gap-2">
                 <Link
-                  href={"/knowledge/documents/"}
+                  href={"/docs/"}
                   className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:rgba(94,106,210,0.35)] bg-[color:rgba(94,106,210,0.10)] px-4 py-2 text-sm text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)]"
                 >
-                  문서 볼트 열기 →
+                  vault 열기 →
                 </Link>
                 <Link
-                  href={"/review/knowledge/"}
+                  href={"/ontology/edit/"}
                   className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-4 py-2 text-sm text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
                 >
-                  검수 큐 열기
+                  빌더 열기
                 </Link>
               </div>
             </div>

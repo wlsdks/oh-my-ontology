@@ -1,6 +1,4 @@
 export type {
-  EnqueueKnowledgeExtractionJobInput,
-  EnqueueKnowledgeExtractionJobResult,
   KnowledgeJob,
   KnowledgeJobActionState,
   KnowledgeJobStatus,

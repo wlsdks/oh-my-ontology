@@ -1,0 +1,137 @@
+// vault helpers — 디렉토리 walking + .md 읽기/쓰기. 동기 fs 만 사용 (MCP
+// tool 호출 빈도가 낮아 async 오버헤드 불필요).
+
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
+import { join, relative, dirname } from 'node:path';
+
+import { parseFrontmatter, buildMarkdown } from './parser.mjs';
+
+/**
+ * vault root 안의 모든 `.md` 파일 walk. dotfile / node_modules 등 제외.
+ * 반환: 각 파일의 절대 경로.
+ */
+export function walkMd(rootPath) {
+  const out = [];
+  const stack = [rootPath];
+  const SKIP_DIRS = new Set([
+    'node_modules',
+    '.next',
+    '.git',
+    'out',
+    'build',
+    'dist',
+    '.serena',
+  ]);
+  while (stack.length > 0) {
+    const dir = stack.pop();
+    let entries;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      if (entry.name.startsWith('.')) continue;
+      if (entry.isDirectory()) {
+        if (SKIP_DIRS.has(entry.name)) continue;
+        stack.push(join(dir, entry.name));
+      } else if (entry.name.endsWith('.md')) {
+        out.push(join(dir, entry.name));
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * file path → vault-relative slug (`projects/foo.md` → `projects/foo`).
+ */
+export function pathToSlug(rootPath, filePath) {
+  const rel = relative(rootPath, filePath).replace(/\\/g, '/');
+  return rel.replace(/\.md$/, '');
+}
+
+/**
+ * vault-relative slug → file path (확장자 자동 부착).
+ */
+export function slugToPath(rootPath, slug) {
+  return join(rootPath, `${slug}.md`);
+}
+
+/**
+ * 한 .md 파일을 읽어 { slug, frontmatter, body, raw }.
+ */
+export function readDoc(rootPath, filePath) {
+  const raw = readFileSync(filePath, 'utf-8');
+  const { frontmatter, body } = parseFrontmatter(raw);
+  return {
+    slug: pathToSlug(rootPath, filePath),
+    frontmatter,
+    body,
+    raw,
+  };
+}
+
+/**
+ * vault 의 모든 doc 을 manifest 형태로 로드. 호출자가 필요한 필터를 직접
+ * 적용한다. 큰 vault 에서는 무겁지만 MCP 호출 빈도가 낮아 OK.
+ */
+export function loadVaultDocs(rootPath) {
+  const files = walkMd(rootPath);
+  return files.map((path) => readDoc(rootPath, path));
+}
+
+/**
+ * 새 doc 작성. 디렉토리 자동 생성. 기존 파일 있으면 throw (덮어쓰기 의도라면
+ * 호출자가 명시적으로).
+ */
+export function writeDoc(rootPath, slug, { frontmatter, body = '' }) {
+  const filePath = slugToPath(rootPath, slug);
+  if (existsSync(filePath)) {
+    throw new Error(`Doc already exists: ${slug}`);
+  }
+  mkdirSync(dirname(filePath), { recursive: true });
+  const md = buildMarkdown({ frontmatter, body });
+  writeFileSync(filePath, md, 'utf-8');
+  return filePath;
+}
+
+/**
+ * 기존 doc 의 frontmatter 만 patch. body 보존. patch 객체의 null 은 키
+ * 삭제, undefined 는 skip.
+ */
+export function patchFrontmatter(rootPath, slug, patch) {
+  const filePath = slugToPath(rootPath, slug);
+  if (!existsSync(filePath)) {
+    throw new Error(`Doc not found: ${slug}`);
+  }
+  const raw = readFileSync(filePath, 'utf-8');
+  const { frontmatter, body } = parseFrontmatter(raw);
+  const next = { ...frontmatter };
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === null) {
+      delete next[key];
+    } else if (value !== undefined) {
+      next[key] = value;
+    }
+  }
+  const md = buildMarkdown({ frontmatter: next, body });
+  writeFileSync(filePath, md, 'utf-8');
+  return filePath;
+}
+
+/**
+ * vault root 가 markdown vault 같은지 가벼운 검사. 절대 경로 + 디렉토리만
+ * OK 로 본다 (frontmatter 가 없는 폴더도 빈 vault 로 허용).
+ */
+export function ensureVaultRoot(rootPath) {
+  if (!rootPath) {
+    throw new Error('OMOT_VAULT 환경 변수 또는 --vault 인수로 vault root 를 지정하세요.');
+  }
+  if (!existsSync(rootPath)) {
+    throw new Error(`Vault root not found: ${rootPath}`);
+  }
+  if (!statSync(rootPath).isDirectory()) {
+    throw new Error(`Vault root is not a directory: ${rootPath}`);
+  }
+}
