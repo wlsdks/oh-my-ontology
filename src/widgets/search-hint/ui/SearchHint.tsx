@@ -1,16 +1,11 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { Compass, RefreshCcw, Search, X } from 'lucide-react';
+import { RefreshCcw, Search } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 
 interface Props {
   onOpenSearch: () => void;
-  /** 모바일/데스크톱 공통 — 영역 패널 토글. */
-  onToggleRegions: () => void;
-  /** 영역 패널이 열려 있는지 — 아이콘과 라벨 상태를 바꿔 명시. */
-  regionsOpen: boolean;
-  showRegionsToggle?: boolean;
   /** 자동 정렬 트리거 — 토폴로지 physics reheat. */
   onRelayout: () => void;
 }
@@ -20,14 +15,11 @@ const getIsMac = () => /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
 const getIsMacServer = () => false;
 
 /**
- * 상단 중앙 툴바. Regions 토글 · 자동 정렬 · 검색 3버튼.
+ * 상단 중앙 툴바. 자동 정렬 · 검색 2버튼.
  * glassmorphism(backdrop-blur) 금지 룰 준수 — solid panel bg만 사용.
  */
 export function SearchHint({
   onOpenSearch,
-  onToggleRegions,
-  regionsOpen,
-  showRegionsToggle = true,
   onRelayout,
 }: Props) {
   const isMac = useSyncExternalStore(subscribe, getIsMac, getIsMacServer);
@@ -40,24 +32,6 @@ export function SearchHint({
       className="pointer-events-auto absolute right-4 top-[4.75rem] z-20 md:left-1/2 md:right-auto md:top-6 md:-translate-x-1/2 xl:top-8"
     >
       <div className="flex items-center gap-2">
-        {showRegionsToggle && (
-          <button
-            type="button"
-            onClick={onToggleRegions}
-            className={cn(
-              'flex h-11 w-11 items-center justify-center text-[12px] font-[var(--font-weight-signature)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)]',
-              pillClass,
-              regionsOpen
-                ? 'bg-[color:rgba(94,106,210,0.12)] text-[color:var(--color-indigo-accent)]'
-                : 'text-[color:var(--color-text-tertiary)] active:bg-[color:var(--color-overlay-1)] md:hover:text-[color:var(--color-text-primary)]',
-            )}
-            aria-label={regionsOpen ? '네비게이터 닫기' : '네비게이터 열기'}
-            aria-expanded={regionsOpen}
-            title={regionsOpen ? '영역 패널 닫기' : '영역 패널 열기'}
-          >
-            {regionsOpen ? <X size={16} /> : <Compass size={16} />}
-          </button>
-        )}
         {/* 자동 정렬 — 데스크톱에서만 노출. 모바일에서는 자주 안 쓰는 액션이라
             우상단 floating 버튼이 시각적 무게를 잡아먹는 게 더 큰 손실. 필요하면
             그래프 컨트롤 패널 안에서 트리거. */}

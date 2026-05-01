@@ -54,12 +54,11 @@ function NewDocumentContent() {
   const searchParams = useSearchParams();
   const toast = useToast();
   const { user } = useGlobalAdmin();
-  const accountId = null;
   const seededProjectId = searchParams.get("project")?.trim() || "";
   const seededTitle = searchParams.get("title")?.trim() || "";
   const returnTo = searchParams.get("returnTo")?.trim() || "";
   const safeReturnTo =
-    returnTo || getKnowledgeDocumentListHref(accountId, seededProjectId ? { projectId: seededProjectId } : undefined);
+    returnTo || getKnowledgeDocumentListHref(null, seededProjectId ? { projectId: seededProjectId } : undefined);
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState("spec");
   const [projectIdsInput, setProjectIdsInput] = useState(seededProjectId);
@@ -67,7 +66,7 @@ function NewDocumentContent() {
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { projects } = useProjects(accountId);
+  const { projects } = useProjects();
   const autoSeededTemplateRef = useRef(false);
   const rawMarkdownRef = useRef<HTMLTextAreaElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -255,7 +254,7 @@ function NewDocumentContent() {
     setError(null);
     try {
       const { documentId } = await createKnowledgeDocumentWithInitialVersion({
-        accountId,
+        accountId: null,
         title,
         kind,
         projectIds,
@@ -270,7 +269,7 @@ function NewDocumentContent() {
       // 후 auto-extract 가 시작되기까지 몇 초는 blank 로 보일 수 있어 UX 중요.
       toast.show(`"${title.trim()}" 등록 완료 · 자동 추출 시작합니다`, "success");
       router.push(
-        getKnowledgeDocumentDetailHref(documentId, accountId, {
+        getKnowledgeDocumentDetailHref(documentId, null, {
           projectId: seededProjectId || projectIds[0] || undefined,
           returnTo: safeReturnTo,
           jobStatus: "autostart",
@@ -295,7 +294,7 @@ function NewDocumentContent() {
 
   return (
     <main className="min-h-screen bg-[color:var(--color-canvas)]">
-      <OperationsNav accountId={accountId} />
+      <OperationsNav accountId={null} />
       <div className="mx-auto grid max-w-6xl gap-6 px-5 py-6 md:px-12 md:py-10 lg:grid-cols-[minmax(0,1.16fr)_360px]">
         <div>
           <h1 className="text-2xl font-[var(--font-weight-signature)] tracking-[var(--tracking-section)] text-[color:var(--color-text-primary)] md:text-4xl">
@@ -485,7 +484,7 @@ function NewDocumentContent() {
                   pageKind={kind}
                   pageProjectIds={projectIds}
                 />
-                <DocumentNewOntologyHints accountId={accountId} title={title} kind={kind} />
+                <DocumentNewOntologyHints accountId={null} title={title} kind={kind} />
               </Field>
               <Field
                 id="knowledge-project-ids"

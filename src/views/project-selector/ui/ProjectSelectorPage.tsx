@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, FolderKanban, Shield } from "lucide-react";
 import { useScopedAccountAccess } from "@/features/account-scope";
@@ -67,9 +67,6 @@ export function ProjectSelectorPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const accountId = null;
-  // 로그인 사용자가 ?account= 없이 진입하면 본인 워크스페이스로 자동 스코프 —
-  const activeContainerName: string | null = null;
   const returnTo = searchParams.get("returnTo");
   const scopedAccess = useScopedAccountAccess();
   const { categoryLabel, statusLabel, categories, statuses } = useTaxonomy();
@@ -78,8 +75,7 @@ export function ProjectSelectorPage() {
   // 비로그인이라도 mutation 가능. static 만 read-only.
   const projectMutations = useProjectMutations();
   const canMutateProjects = projectMutations.canCreate;
-  const { projects } = useProjects(accountId);
-  const [accountName, setAccountName] = useState<string | null>(null);
+  const { projects } = useProjects();
   const query = searchParams.get(PROJECT_LIST_QUERY_KEY) ?? "";
   const selectedCategory = searchParams.get(PROJECT_LIST_CATEGORY_QUERY_KEY);
   const selectedStatus = searchParams.get(PROJECT_LIST_STATUS_QUERY_KEY);
@@ -89,19 +85,11 @@ export function ProjectSelectorPage() {
   // P1-5 — 탭·검색 컨텍스트. 컨테이너·계정 이름이 겹치면 Set dedup.
   // 페이지 메타 타이틀("프로젝트 · oh-my-ontology")과 동일한 첫 어휘를 사용해
   // 정적 메타와 동적 갱신 사이에 flicker 가 보이지 않게 한다.
-  useDocumentTitle(
-    Array.from(
-      new Set(
-        ["프로젝트", activeContainerName, accountName, "oh-my-ontology"].filter(
-          (value): value is string => Boolean(value),
-        ),
-      ),
-    ).join(" · ") || null,
-  );
+  useDocumentTitle("프로젝트 · oh-my-ontology");
 
   // ontology nodes — 카드별 count badge 데이터. 부모 한 번 hook + count map
   // (1994 카드 각자 subscribe 회피). 권한 없으면 빈 배열, badge 자동 숨김.
-  const ontologyNodes = useKnowledgePublicNodes(accountId);
+  const ontologyNodes = useKnowledgePublicNodes(null);
   const ontologyCountBySlug = useMemo(() => {
     const map = new Map<string, number>();
     for (const node of ontologyNodes) {
@@ -112,10 +100,6 @@ export function ProjectSelectorPage() {
     }
     return map;
   }, [ontologyNodes]);
-
-  // single-user 모드: account 이름 fetch 안 함.
-
-  const accountDisplayName = accountId ? accountName ?? accountId : null;
 
   const filteredProjects = useMemo(
     () =>
@@ -158,7 +142,7 @@ export function ProjectSelectorPage() {
   const loginHref = "/login";
   const signupHref = "/signup";
   const overviewHref = "/";
-  const knowledgeDocumentsHref = getKnowledgeDocumentListHref(accountId);
+  const knowledgeDocumentsHref = getKnowledgeDocumentListHref(null);
   const replaceVisibleLimit = useCallback(
     (nextLimit: number | null) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -219,9 +203,9 @@ export function ProjectSelectorPage() {
     });
   }, [pathname, router, searchParams]);
   const getPostCreateHref = (project: { slug: string; name: string }) =>
-    getKnowledgeDocumentNewHref(accountId, {
+    getKnowledgeDocumentNewHref(null, {
       projectId: project.slug,
-      returnTo: returnTo || getProjectDetailHref(project.slug, accountId),
+      returnTo: returnTo || getProjectDetailHref(project.slug),
       title: `${project.name} 명세`,
     });
 
@@ -249,8 +233,8 @@ export function ProjectSelectorPage() {
             워크스페이스 지도
           </Link>
           <PublicAccountMenu
-            accountId={accountId}
-            accountLabel={accountDisplayName}
+            accountId={null}
+            accountLabel={null}
           />
         </div>
 
@@ -279,7 +263,7 @@ export function ProjectSelectorPage() {
 
         {/* 워크스페이스 ontology 한 줄 strip — 노드 카운트 + stub 강조.
             매치 0 자동 숨김. 공개 surface 가벼운 가시. */}
-        <WorkspaceOntologyStrip accountId={accountId} />
+        <WorkspaceOntologyStrip accountId={null} />
 
         {/* 검색 + 단계·상태 칩 — 1,979 프로젝트를 단계(작업중/예정) 와
             상태(개발중/운영중/기획/아이디어) 로 즉시 좁힐 수 있게. 칩에
@@ -354,20 +338,14 @@ export function ProjectSelectorPage() {
               <CardHeader>
                 <CardTitle>
                   {projects.length === 0
-                    ? activeContainerName
-                      ? `"${activeContainerName}" 컨테이너에 프로젝트가 없습니다`
-                      : "프로젝트가 없습니다"
+                    ? "프로젝트가 없습니다"
                     : "검색 결과가 없습니다"}
                 </CardTitle>
                 <CardDescription>
                   {projects.length === 0
-                    ? activeContainerName
-                      ? canMutateProjects
-                        ? "이 컨테이너는 비어 있습니다. 마이그레이션 또는 직접 생성으로 채워보세요."
-                        : "이 컨테이너는 아직 비어 있습니다. 다른 컨테이너로 전환해보세요."
-                      : canMutateProjects
-                        ? "첫 프로젝트를 만들면 바로 들어갑니다."
-                        : "아직 볼 프로젝트가 없습니다."
+                    ? canMutateProjects
+                      ? "첫 프로젝트를 만들면 바로 들어갑니다."
+                      : "아직 볼 프로젝트가 없습니다."
                     : "다른 이름으로 다시 찾아보세요."}
                 </CardDescription>
               </CardHeader>
@@ -376,7 +354,7 @@ export function ProjectSelectorPage() {
                   <>
                     <div className="w-full">
                         <ProjectQuickCreatePanel
-                          accountId={accountId}
+                          accountId={null}
                           projects={projects}
                           categories={categories}
                           statuses={statuses}
@@ -458,7 +436,7 @@ export function ProjectSelectorPage() {
                     <CardHeader>
                       <div className="flex items-start justify-between gap-3">
                         <Link
-                          href={getProjectDetailHref(project.slug, accountId)}
+                          href={getProjectDetailHref(project.slug)}
                           prefetch={false}
                           aria-label={`${project.name} 상세로 가기`}
                           className="min-w-0 rounded-md after:absolute after:inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
@@ -513,7 +491,7 @@ export function ProjectSelectorPage() {
                               는 static export 페이지가 없어 자동 prefetch 가
                               404 소음만 만든다. */}
                           <Link
-                            href={getTopologyProjectHref(project.slug, accountId)}
+                            href={getTopologyProjectHref(project.slug)}
                             prefetch={false}
                             className="relative z-10 inline-flex h-8 items-center break-keep rounded-md border border-[color:var(--color-divider)] px-3 text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
                           >
@@ -569,7 +547,7 @@ export function ProjectSelectorPage() {
               </summary>
               <div className="mt-4 border-t border-[color:var(--color-divider)] pt-4">
                 <ProjectQuickCreatePanel
-                  accountId={accountId}
+                  accountId={null}
                   projects={projects}
                   categories={categories}
                   statuses={statuses}
@@ -618,7 +596,7 @@ export function ProjectSelectorPage() {
                       const stamp = new Date().toISOString().slice(0, 10);
                       downloadProjectsCsv(
                         projects,
-                        `demo-projects-${accountId ?? "workspace"}-${stamp}.csv`,
+                        `demo-projects-workspace-${stamp}.csv`,
                       );
                     }}
                   >

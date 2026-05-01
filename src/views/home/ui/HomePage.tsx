@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import {
   useCallback,
@@ -10,7 +9,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { BookOpen, X } from "lucide-react";
 import { useTypingShortcuts } from "@/shared/lib/use-typing-shortcut";
 import { useProjects } from "@/features/project-data-source";
@@ -21,17 +20,14 @@ import {
   type SigmaControlsState,
 } from "@/widgets/topology-map-sigma/model/controls-state";
 import { HeroHeader, HeroCollapsed } from "@/widgets/hero-header";
-import { Legend } from "@/widgets/legend";
 import dynamic from "next/dynamic";
 import { ProjectDrawer } from "@/widgets/project-drawer";
 import { ProjectKnowledgeTopologyScene } from "@/widgets/project-knowledge-topology";
-import { RegionNavigator } from "@/widgets/region-navigator";
 import { SearchHint } from "@/widgets/search-hint";
 import { PublicAccountMenu } from "@/widgets/account-menu";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 import { useTaxonomy } from "@/features/taxonomy";
-import { useGlobalAdmin } from "@/features/permissions";
 
 // 첫 방문에 바로 필요 없는 오버레이들은 지연 로딩.
 // 초기 번들에서 분리되어 FCP/LCP 와 TTI 가 더 빨라진다.
@@ -90,7 +86,7 @@ const MountedGlobalSearch = dynamic(
   { ssr: false },
 );
 import { GestureHint } from "@/widgets/gesture-hint";
-import { Button, LiveAnnouncer, Tooltip, useToast } from "@/shared/ui";
+import { LiveAnnouncer, Tooltip, useToast } from "@/shared/ui";
 import {
   getProjectDetailHref,
   type Project,
@@ -102,15 +98,12 @@ import {
   subscribeKnowledgeProjectInsight,
   type KnowledgeProjectInsight,
 } from "@/entities/knowledge-graph";
-import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import { useHomeRouteState } from "../model/use-home-route-state";
 
 const LEFT_PANEL_COLLAPSED_KEY = "demo:left-panel-collapsed:v2";
 
 export function HomePage() {
-  const { showCategoryRegions, categories: taxonomyCategories } = useTaxonomy();
-  const adminAuth = useGlobalAdmin();
-  const isAdmin = adminAuth.status === "authenticated";
+  const { categories: taxonomyCategories } = useTaxonomy();
   const [sigmaControls, setSigmaControls] = useState<SigmaControlsState>(
     DEFAULT_SIGMA_CONTROLS,
   );
@@ -136,17 +129,11 @@ export function HomePage() {
     }
   }, []);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const scopedAccountId = null;
   // mode-aware projects read — local 모드는 vault 매니페스트 sync, cloud 는
   // Firestore onSnapshot. mission T7 — vault 의 .md 가 즉시 list/topology 에 반영.
-  const projectsQuery = useProjects(scopedAccountId);
+  const projectsQuery = useProjects();
   const projects = projectsQuery.projects;
-  const projectsLoaded = projectsQuery.loaded;
   const projectsError = projectsQuery.error;
-  // 로그인 사용자가 ?account= 없이 진입하면 owned membership 첫 번째로 URL 보강 —
-  // legacy 전역 collection 이 아닌 본인 워크스페이스 데이터로 즉시 스코프.
-  const [scopedAccountName, setScopedAccountName] = useState<string | null>(null);
   const [routeState, setRouteState] = useHomeRouteState();
   // 상세 화면에서 Cmd+K를 누르면 홈으로 이동하며 sessionStorage 플래그를
   // 남긴다. 여기서 그 플래그가 있으면 첫 렌더부터 검색 팔레트를 열어 hydration
@@ -170,8 +157,6 @@ export function HomePage() {
   // open state 를 받아서 작동.
   const [ontologySearchOpen, setOntologySearchOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
-  const [regionsMobileOpen, setRegionsMobileOpen] = useState(false);
-  const [regionsDesktopOpen, setRegionsDesktopOpen] = useState(false);
   const [accountMenuDismissToken, setAccountMenuDismissToken] = useState(0);
   const [shortcutsOpen, setShortcutsOpen] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -262,7 +247,7 @@ export function HomePage() {
     Array.from(
       new Set(
         [
-          selectedProject?.name ?? scopedAccountName,
+          selectedProject?.name,
           "토폴로지",
           "oh-my-ontology",
         ].filter((value): value is string => Boolean(value)),
@@ -304,12 +289,8 @@ export function HomePage() {
       return mountNowMs - updated < SEVEN_DAYS_MS ? n + 1 : n;
     }, 0);
   }, [renderProjects, mountNowMs]);
-  const projectsOverviewHref = useMemo(
-    () => "/projects",
-    [scopedAccountId],
-  );
+  const projectsOverviewHref = "/projects";
 
-  // single-user 모드: account 이름 fetch 안 함. scopedAccountName 항상 null.
   // Local graph 모드: 선택 노드 + 2-hop 이웃만 Sigma에 넘김. 전체 지도에서
   // 벗어나 해당 노드 주변만 집중해서 볼 수 있게 한다. Esc 또는 닫기 버튼으로
   // 전체 맵 복귀.
@@ -403,17 +384,6 @@ export function HomePage() {
       }));
     },
     [focusedHubSlug, handleClose, setRouteState],
-  );
-
-  const handleChangeCategory = useCallback(
-    (category: string | null) => {
-      setRouteState((current) => ({
-        ...current,
-        activeCategory: category,
-        featuredPathId: null,
-      }));
-    },
-    [setRouteState],
   );
 
   const handleSelectImpactMode = useCallback(
@@ -519,24 +489,13 @@ export function HomePage() {
     selectedKnowledgeInsight.projectSlug === selectedProject.slug &&
     selectedHasKnowledgeEvidence;
   const hideMobileOverlayControls = drawerOpen;
-  const shouldShowRegions = Boolean(scopedAccountId) && showCategoryRegions;
-  const regionsOpen =
-    shouldShowRegions && (regionsMobileOpen || regionsDesktopOpen);
-
-  useEffect(() => {
-    if (shouldShowRegions || activeCategory === null) return;
-    setRouteState((current) => ({
-      ...current,
-      activeCategory: null,
-    }));
-  }, [activeCategory, setRouteState, shouldShowRegions]);
 
   const preloadProjectAsset = useCallback(
     (slug: string) => {
       const project = projectBySlug.get(slug);
       if (!project) return;
 
-      const href = getProjectDetailHref(slug, scopedAccountId);
+      const href = getProjectDetailHref(slug);
       if (!prefetchedProjectHrefsRef.current.has(href)) {
         prefetchedProjectHrefsRef.current.add(href);
         router.prefetch(href);
@@ -551,7 +510,7 @@ export function HomePage() {
         image.decode?.().catch(() => {});
       });
     },
-    [projectBySlug, router, scopedAccountId],
+    [projectBySlug, router],
   );
 
   useEffect(() => {
@@ -584,7 +543,7 @@ export function HomePage() {
 
     const unsubscribe = subscribeKnowledgeProjectInsight(
       selectedProject.slug,
-      scopedAccountId,
+      null,
       (nextInsight) => {
         setSelectedKnowledgeInsight({
           projectSlug: selectedProject.slug,
@@ -597,7 +556,7 @@ export function HomePage() {
     );
 
     return () => unsubscribe();
-  }, [scopedAccountId, selectedProject]);
+  }, [selectedProject]);
 
   return (
     <main id="main" className="relative h-screen w-screen overflow-hidden bg-[color:var(--color-canvas)]">
@@ -606,7 +565,7 @@ export function HomePage() {
         visible h1 을 두기 어려워 sr-only 로 문서 구조 only 에 보이게 한다.
       */}
       <h1 className="sr-only">
-        {scopedAccountName ?? "토폴로지"} 프로젝트 토폴로지 지도
+        토폴로지 프로젝트 토폴로지 지도
       </h1>
       <GestureHint
         disabled={presentationMode || drawerOpen}
@@ -663,7 +622,7 @@ export function HomePage() {
                     onExpand={
                       drawerOpen ? handleClose : toggleLeftPanel
                     }
-                    title={selectedProject?.name ?? scopedAccountName ?? "토폴로지"}
+                    title={selectedProject?.name ?? "토폴로지"}
                     subtitle={
                       selectedProject
                         ? "선택한 프로젝트"
@@ -694,7 +653,7 @@ export function HomePage() {
                     activePathLabel={null}
                     onOpenSearch={() => setSearchOpen(true)}
                     onCollapse={toggleLeftPanel}
-                    title={selectedProject?.name ?? scopedAccountName ?? "토폴로지"}
+                    title={selectedProject?.name ?? "토폴로지"}
                     eyebrow={
                       selectedProject
                         ? "선택한 프로젝트"
@@ -718,7 +677,7 @@ export function HomePage() {
                       자라고 있다" 즉각 인지. 매치 0 자동 숨김. */}
                   {!selectedProject ? (
                     <div className="pointer-events-auto self-start">
-                      <WorkspaceOntologyStrip accountId={scopedAccountId} />
+                      <WorkspaceOntologyStrip accountId={null} />
                     </div>
                   ) : null}
                 </div>
@@ -728,25 +687,7 @@ export function HomePage() {
               onOpenSearch={() => {
                 dismissAccountMenu();
                 setSearchOpen(true);
-                setRegionsMobileOpen(false);
-                setRegionsDesktopOpen(false);
               }}
-              onToggleRegions={() => {
-                if (!shouldShowRegions) return;
-                dismissAccountMenu();
-                if (drawerOpen) {
-                  handleClose();
-                }
-                if (typeof window !== "undefined" && window.innerWidth >= 768) {
-                  setRegionsDesktopOpen((current) => !current);
-                  setRegionsMobileOpen(false);
-                  return;
-                }
-                setRegionsMobileOpen((current) => !current);
-                setRegionsDesktopOpen(false);
-              }}
-              regionsOpen={regionsOpen}
-              showRegionsToggle={shouldShowRegions}
               onRelayout={() => {
                 setTopologyRelayoutToken((current) => current + 1);
                 toast.show("토폴로지를 다시 정렬합니다", "info");
@@ -778,34 +719,11 @@ export function HomePage() {
               </button>
               </Tooltip>
               <PublicAccountMenu
-                accountId={scopedAccountId}
-                accountLabel={scopedAccountName ?? scopedAccountId}
+                accountId={null}
+                accountLabel={null}
                 dismissToken={accountMenuDismissToken}
-                onOpenChange={(open) => {
-                  if (!open) return;
-                  setRegionsMobileOpen(false);
-                  setRegionsDesktopOpen(false);
-                }}
               />
             </div>
-            {!drawerOpen && shouldShowRegions && (
-              <RegionNavigator
-                active={activeCategory}
-                onChange={handleChangeCategory}
-                focusedHub={focusedHubSlug}
-                onToggleHub={handleToggleHub}
-                hubs={hubs}
-                open={regionsOpen}
-                onClosed={() => {
-                  setRegionsMobileOpen(false);
-                  setRegionsDesktopOpen(false);
-                }}
-              />
-            )}
-            <Legend
-              hidden={hideMobileOverlayControls || (!shouldShowRegions && !scopedAccountId)}
-              showCategories={shouldShowRegions}
-            />
           </>
       )}
       {presentationMode && (
@@ -837,7 +755,7 @@ export function HomePage() {
                 onOpenDetail={() => {
                   if (!selectedProject) return;
                   router.push(
-                    `${getProjectDetailHref(selectedProject.slug, scopedAccountId)}#project-detail-insight`,
+                    `${getProjectDetailHref(selectedProject.slug)}#project-detail-insight`,
                   );
                 }}
               />
@@ -862,7 +780,7 @@ export function HomePage() {
                 <SigmaTopology
                   projects={localGraphProjects}
                   categories={taxonomyCategories}
-                  accountId={scopedAccountId}
+                  accountId={null}
                   selectedSlug={canvasSelectedSlug}
                   onSelectProject={(slug) => handleSelect(slug)}
                   onProjectOpen={(slug) => setLocalGraphStack((stack) => [...stack, slug])}
@@ -1073,81 +991,10 @@ export function HomePage() {
             </button>
           </div>
         ) : null}
-        {/* 로딩 스켈레톤 — 구독 첫 콜백 전, empty state 오인 방지. */}
-        {scopedAccountId && !projectsLoaded && !projectsError ? (
-          <div
-            className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-[color:rgba(139,151,255,0.28)] bg-[color:var(--color-panel)] px-4 py-2 shadow-[0_12px_28px_rgba(0,0,0,0.45)]">
-              <span className="flex gap-1">
-                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[color:rgba(139,151,255,0.8)] [animation-delay:0ms]" />
-                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[color:rgba(139,151,255,0.8)] [animation-delay:150ms]" />
-                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[color:rgba(139,151,255,0.8)] [animation-delay:300ms]" />
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--color-text-tertiary)]">
-                워크스페이스 지도 불러오는 중
-              </span>
-            </div>
-          </div>
-        ) : null}
-        {scopedAccountId && projectsLoaded && projects.length === 0 ? (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4">
-            <section className="pointer-events-auto w-full max-w-xl rounded-[28px] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] px-6 py-6 text-center shadow-[0_28px_64px_rgba(0,0,0,0.34)]">
-              <p className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                워크스페이스 지도
-              </p>
-              <h2 className="mt-3 text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-                아직 이 공간에 프로젝트가 없습니다
-              </h2>
-              {isAdmin ? (
-                <>
-                  <p className="mt-4 text-sm leading-7 text-[color:var(--color-text-secondary)]">
-                    첫 프로젝트 하나만 있으면 지도가 살아납니다. 어떤 방식으로 시작할지 고르세요.
-                  </p>
-                  <div className="mt-5 flex flex-col items-stretch gap-2 sm:flex-row sm:justify-center">
-                    <Link href={"/project/new/"} className="inline-flex">
-                      <Button type="button" size="sm" className="w-full sm:w-auto">
-                        첫 프로젝트 만들기
-                      </Button>
-                    </Link>
-                    <Link href={"/settings/import/"} className="inline-flex">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="w-full sm:w-auto"
-                      >
-                        샘플 5개로 바로 체험
-                      </Button>
-                    </Link>
-                  </div>
-                  <p className="mt-4 text-xs leading-5 text-[color:var(--color-text-tertiary)]">
-                    샘플은 인증·결제·알림 같은 실제 서비스 5개로 감을 먼저 잡아주고, CSV 는 이미 정리된 프로젝트를 한 번에 올립니다.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="mt-4 text-sm leading-7 text-[color:var(--color-text-secondary)]">
-                    공간 소유자가 프로젝트를 등록하면 여기에 지도로 보입니다.
-                  </p>
-                  <div className="mt-5 flex flex-col items-center gap-2">
-                    <Link href={projectsOverviewHref} className="inline-flex">
-                      <Button type="button" variant="outline">
-                        프로젝트 목록 보기
-                      </Button>
-                    </Link>
-                  </div>
-                </>
-              )}
-            </section>
-          </div>
-        ) : null}
         <ProjectDrawer
           project={showProjectTopologyScene ? null : drawerProject}
           allProjects={renderProjects}
-          accountId={scopedAccountId}
+          accountId={null}
           activeProjectId={null}
           impactMode={impactMode}
           onChangeImpactMode={handleSelectImpactMode}
@@ -1171,14 +1018,14 @@ export function HomePage() {
             handleSelect(slug);
           }}
           containerLabel={null}
-          accountId={scopedAccountId}
+          accountId={null}
         />
         {/* Fire 2 — ⇧⌘K 로 열리는 ontology / 문서 통합 검색. project 전용
             SearchPalette 와 별 슬롯 — layer filter / 최근 검색 등 SearchPalette
             의 고유 기능 보존. controlled mode (open/onOpenChange) 라 hotkey
             는 useTypingShortcuts 가 관리. */}
         <MountedGlobalSearch
-          accountId={scopedAccountId}
+          accountId={null}
           open={ontologySearchOpen}
           onOpenChange={setOntologySearchOpen}
           onSelectProject={(project) => handleSelect(project.slug)}
@@ -1190,7 +1037,7 @@ export function HomePage() {
         <DocsQuickDrawer
           open={docsDrawerOpen}
           onClose={() => setDocsDrawerOpen(false)}
-          getDocHref={(slug) => buildDocsVaultHref({ accountId: scopedAccountId, slug })}
+          getDocHref={(slug) => buildDocsVaultHref({ slug })}
           contextProject={
             selectedProject
               ? {
