@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Info } from "lucide-react";
+import { Info, Maximize2, Minimize2 } from "lucide-react";
 import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import { useUserAuth } from "@/features/user-auth";
 import { addManualKnowledgeNode } from "@/entities/knowledge-graph";
@@ -56,6 +56,7 @@ export function OntologyEditPage() {
     useEphemeralEdges();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [fullscreen, setFullscreen] = useState(false);
   const toast = useToast();
 
   const saveEphemeral = useCallback(
@@ -117,12 +118,23 @@ export function OntologyEditPage() {
       ) {
         return;
       }
-      // Esc — 선택 해제
+      // Esc — 선택 해제 / fullscreen 종료
       if (event.key === "Escape") {
         if (selectedId) {
           event.preventDefault();
           setSelectedId(null);
+          return;
         }
+        if (fullscreen) {
+          event.preventDefault();
+          setFullscreen(false);
+        }
+        return;
+      }
+      // F — fullscreen 토글
+      if (event.key === "f" || event.key === "F") {
+        event.preventDefault();
+        setFullscreen((current) => !current);
         return;
       }
       // N — palette 첫 kind (project) 추가 + 즉시 select
@@ -146,7 +158,7 @@ export function OntologyEditPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [selectedId, addNode, removeNode, findById]);
+  }, [selectedId, addNode, removeNode, findById, fullscreen]);
 
   const helpTooltip = (
     <div className="max-w-xs space-y-2 text-[12px] leading-5">
@@ -159,15 +171,21 @@ export function OntologyEditPage() {
         <li>· 임시 노드는 인디고 <strong>dashed</strong> → 인스펙터에서 이름 입력 + 저장</li>
       </ul>
       <p className="font-mono text-[10px] tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
-        N · 새 노드  /  Del · 선택 삭제  /  Esc · 선택 해제
+        N · 새 노드  /  Del · 선택 삭제  /  Esc · 선택 해제  /  F · 전체 화면
       </p>
     </div>
   );
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)]">
-      <OperationsNav />
-      <main className="mx-auto flex h-[calc(100dvh-3.5rem)] w-full max-w-[1800px] flex-col px-3 py-3 md:px-5 md:py-4">
+      {fullscreen ? null : <OperationsNav />}
+      <main
+        className={
+          fullscreen
+            ? "flex h-dvh w-full flex-col px-2 py-2"
+            : "mx-auto flex h-[calc(100dvh-3.5rem)] w-full max-w-[1800px] flex-col px-3 py-3 md:px-5 md:py-4"
+        }
+      >
         <header className="mb-2 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-indigo-accent)]">
@@ -223,6 +241,15 @@ export function OntologyEditPage() {
             >
               트리로 보기 <span aria-hidden>↗</span>
             </Link>
+            <button
+              type="button"
+              onClick={() => setFullscreen((current) => !current)}
+              aria-label={fullscreen ? "전체 화면 종료 (F)" : "전체 화면 (F)"}
+              title={fullscreen ? "전체 화면 종료 (F)" : "전체 화면 (F)"}
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
+            >
+              {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
           </div>
         </header>
         <section className="relative flex flex-1 overflow-hidden rounded-xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)]">
