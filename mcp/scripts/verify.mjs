@@ -11,7 +11,7 @@
  * 검증 항목:
  *   1. parser smoke test (parser.test.mjs) 통과
  *   2. server boot — initialize JSON-RPC 응답
- *   3. tools/list — 7 도구 모두 노출
+ *   3. tools/list — 10 도구 모두 노출
  *   4. tools/call list_concepts — vault 노드 수 출력
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
@@ -37,6 +37,7 @@ const EXPECTED_TOOLS = [
   'add_concept',
   'add_relation',
   'patch_concept',
+  'delete_concept',
 ];
 
 function log(level, msg) {
@@ -174,7 +175,7 @@ async function main() {
   if (!ok1) process.exit(1);
   const ok2 = await step2BootAndCall();
   if (!ok2) process.exit(1);
-  console.log('\n\x1b[32m전체 통과\x1b[0m — Claude Code 에 .mcp.json 등록 후 재시작하면 7 도구 사용 가능합니다.\n');
+  console.log(`\n\x1b[32m전체 통과\x1b[0m — Claude Code 에 .mcp.json 등록 후 재시작하면 ${EXPECTED_TOOLS.length} 도구 사용 가능합니다.\n`);
   process.exit(0);
 }
 
