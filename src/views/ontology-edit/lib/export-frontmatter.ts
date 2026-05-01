@@ -2,22 +2,16 @@ import type { EphemeralNode } from "./use-ephemeral-nodes";
 import type { EphemeralEdge } from "./use-ephemeral-edges";
 
 /**
- * Atlas frontmatter export — C-13.
- *
- * 캔버스의 ephemeral + approved 노드/엣지를 단일 md 파일로 변환.
- * spec `2026-04-27-ontology-frontmatter-contract.md` 의 등급 A 형식과 호환:
+ * Atlas frontmatter export — 캔버스의 ephemeral 노드/엣지를 단일 md 파일로
+ * 변환. spec `2026-04-27-ontology-frontmatter-contract.md` 의 등급 A 형식과
+ * 호환:
  *
  * - 노드별 yaml frontmatter + 빈 본문 (사용자가 채울 수 있게)
  * - 엣지는 별도 `## 관계` 섹션에 list 로
- *
- * approved 노드 detail 은 page 단에서 미접근이라 ephemeral 만 본격 export.
- * approved 는 id 만 알 수 있어 reference 로만 표시.
  */
 export interface AtlasExportInput {
   ephemeralNodes: EphemeralNode[];
   ephemeralEdges: EphemeralEdge[];
-  /** approved 노드 id 목록 (선택, edge 의 from/to 가 approved 일 때만 reference). */
-  approvedNodeIds?: ReadonlyArray<string>;
   /** account id — 추적용 metadata. */
   accountId: string;
 }
