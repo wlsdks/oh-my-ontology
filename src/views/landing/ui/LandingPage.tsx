@@ -248,21 +248,23 @@ function MiniTopology() {
  * 디자인 헌장 안 (보더 + 단일 인디고 + 무채색 텍스트).
  */
 function ValueChainRail() {
+  // 효과 (사용자가 얻는 것) 중심 copy. 단순 flow 가 아닌 "ontology 가
+  // 마크다운만으로는 못 하는 것" 의 3 가지 답.
   const steps: Array<{ index: string; title: string; sub: string }> = [
     {
       index: "01",
-      title: "마크다운 작성",
-      sub: "내가 쓰거나 AI agent 가 같이 — .md frontmatter 가 그대로 노드/관계",
+      title: "마크다운 한 곳에 적기",
+      sub: "frontmatter 키만 넣으면 노드/관계가 자동으로. AI agent (MCP) 도 같은 vault 에 read/write.",
     },
     {
       index: "02",
-      title: "ontology 자동 자라남",
-      sub: "frontmatter 자체가 자기 승인 — 검수 단계 없이 바로 그래프",
+      title: "역추적 + 의존 분석 즉시",
+      sub: "'이 기능 누가 쓰나?' '이거 바꾸면 뭐 깨지나?' — 마크다운에선 grep 인데, ontology 면 0 클릭에 답.",
     },
     {
       index: "03",
-      title: "트리·토폴로지·ERD",
-      sub: "같은 ontology 를 세 시각으로",
+      title: "한눈 탐색 — 트리·토폴로지·ERD",
+      sub: "같은 ontology 를 세 시각으로. 도메인 census, 영향 범위, 의존 chain 한 화면.",
     },
   ];
 
