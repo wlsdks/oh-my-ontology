@@ -8,8 +8,10 @@ import { PermissionGate } from "@/features/permissions";
 import { ProjectForm } from "@/features/project-edit";
 import {
   getProjectDetailHref,
+  deleteProject,
   getProject,
   subscribeProjects,
+  upsertProject,
   type Project,
   type ProjectInput,
 } from "@/entities/project";
@@ -18,11 +20,6 @@ import {
   getKnowledgeDocumentNewHref,
   getKnowledgeReviewWorkspaceHref,
 } from "@/entities/knowledge-document";
-import {
-  createProjectAdaptive,
-  deleteProjectAdaptive,
-  persistProjectAdaptive,
-} from "@/features/workspace-project-bridge";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 import { useToast } from "@/shared/ui";
 
@@ -149,15 +146,20 @@ function EditorContent({
     input: ProjectInput,
     options: { behavior: "stay" | "return" },
   ) => {
+    const payload: ProjectInput = { ...input, accountId: accountId ?? undefined };
     if (mode === "create") {
-      await createProjectAdaptive({ ...input, accountId: accountId ?? undefined });
+      const existing = await getProject(payload.slug, payload.accountId);
+      if (existing) {
+        throw new Error("이미 존재하는 slug입니다.");
+      }
+      await upsertProject(payload);
       if (options.behavior === "stay") {
         toast.show(`"${input.name}" 만들었습니다 · 이제 보강하세요`, "success");
         router.replace(buildEditHref(input.slug));
         return;
       }
     } else {
-      await persistProjectAdaptive({ ...input, accountId: accountId ?? undefined });
+      await upsertProject(payload);
       if (options.behavior === "stay") {
         toast.show(`"${input.name}" 저장 완료`, "success");
         return;
@@ -168,7 +170,7 @@ function EditorContent({
 
   const handleDelete = async () => {
     if (!slug) return;
-    await deleteProjectAdaptive(slug, { accountId });
+    await deleteProject(slug, accountId);
     toast.show("프로젝트를 삭제했습니다", "success");
     router.push(safeReturnTo);
   };
