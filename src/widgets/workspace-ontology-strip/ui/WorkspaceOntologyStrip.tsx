@@ -2,8 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
-import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
+import { useOntologyInsight } from "@/features/vault-ontology";
 import { buildMeaningfulOntologyStats } from "@/shared/lib/ontology-tree";
 
 export interface WorkspaceOntologyStripProps {
@@ -14,15 +13,20 @@ export interface WorkspaceOntologyStripProps {
  * 워크스페이스 전반 ontology 한 줄 stat strip.
  *
  * 프로젝트 목록·대시보드 헤더 등에서 ontology 의 가벼운 가시.
- * `knowledgePublicNodes` 자체 구독, 매치 0 (또는 권한 없음) 자동 숨김.
+ * `useOntologyInsight` 의 진실원 우선순위 (vault > 빌드타임 dogfood >
+ * Firestore) 그대로 따라간다 — vault 안 골랐어도 dogfood 23 노드가 즉시
+ * surface. 매치 0 일 때만 자동 숨김.
  *
  * 표시: 총 노드 / 도메인 / 역량 / 요소 카운트 + stub 강조 (있을 때만 amber) +
  * "트리 →" 링크. 최소 노이즈.
  */
 export function WorkspaceOntologyStrip({ accountId }: WorkspaceOntologyStripProps) {
-  const nodes = useKnowledgePublicNodes(accountId);
+  const { insight } = useOntologyInsight(accountId);
 
-  const stats = useMemo(() => buildMeaningfulOntologyStats(nodes), [nodes]);
+  const stats = useMemo(
+    () => buildMeaningfulOntologyStats(insight?.nodes ?? []),
+    [insight],
+  );
   const counts = {
     total: stats.total,
     domain: stats.byKind.domain,
@@ -33,9 +37,7 @@ export function WorkspaceOntologyStrip({ accountId }: WorkspaceOntologyStripProp
 
   if (counts.total === 0) return null;
 
-  const ontologyHref = accountId
-    ? `/ontology/?${ACCOUNT_QUERY_KEY}=${encodeURIComponent(accountId)}`
-    : "/ontology/";
+  const ontologyHref = "/ontology/";
   // 미해결 stub 은 /ontology 트리 하단의 frontmatter 안내 + 빌더 (/ontology/edit) 에서 채움.
   const stubHref = ontologyHref;
 
