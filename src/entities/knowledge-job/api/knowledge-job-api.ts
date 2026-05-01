@@ -6,13 +6,10 @@ import {
   where,
   type Unsubscribe,
 } from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
-import { getDb, getFirebaseFunctions } from "@/shared/api";
+import { getDb } from "@/shared/api";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
 import { hasDemoSession } from "@/shared/lib/demo-session";
 import {
-  type EnqueueKnowledgeExtractionJobInput,
-  type EnqueueKnowledgeExtractionJobResult,
   fromFirestoreKnowledgeJob,
   type KnowledgeJob,
 } from "@/entities/knowledge-job/model";
@@ -21,18 +18,6 @@ const COLLECTION = "knowledgeExtractionJobs";
 
 function knowledgeJobsCollection() {
   return collection(getDb(), COLLECTION);
-}
-
-export async function enqueueKnowledgeExtractionJob(
-  input: EnqueueKnowledgeExtractionJobInput,
-): Promise<EnqueueKnowledgeExtractionJobResult> {
-  const callable = httpsCallable<
-    EnqueueKnowledgeExtractionJobInput,
-    EnqueueKnowledgeExtractionJobResult
-  >(getFirebaseFunctions(), "enqueueExtractionJob");
-
-  const response = await callable(input);
-  return response.data;
 }
 
 export function subscribeKnowledgeJobsByDocument(

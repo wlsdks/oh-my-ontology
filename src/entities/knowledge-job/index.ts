@@ -1,6 +1,4 @@
 export type {
-  EnqueueKnowledgeExtractionJobInput,
-  EnqueueKnowledgeExtractionJobResult,
   KnowledgeJob,
   KnowledgeJobActionState,
   KnowledgeJobStatus,
@@ -10,7 +8,6 @@ export {
   resolveKnowledgeJobActionState,
 } from "./model";
 export {
-  enqueueKnowledgeExtractionJob,
   subscribeKnowledgeJobsByDocument,
 } from "./api";
 export {
