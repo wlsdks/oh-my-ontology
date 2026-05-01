@@ -34,6 +34,8 @@ import { ManualNodeCreateModal } from "@/widgets/manual-node-create-modal";
 import { OntologyEgoGraph } from "@/widgets/ontology-ego-graph";
 import { OntologyStubList } from "@/widgets/ontology-stub-list";
 import { OntologyTreeView } from "@/widgets/ontology-tree-view";
+import { useDataSourceMode } from "@/features/data-source-mode";
+import { VaultOntologyStubsPanel } from "@/features/vault-ontology";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { Tooltip, useToast } from "@/shared/ui";
 
@@ -48,6 +50,7 @@ export function OntologyViewPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const accountId = null;
+  const dataSourceMode = useDataSourceMode();
   // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
 
   const { insight, error } = useKnowledgePublicInsight(accountId);
@@ -384,6 +387,11 @@ export function OntologyViewPage() {
         </div>
       ) : (
         <>
+          {dataSourceMode === 'local' ? (
+            <div className="mb-4">
+              <VaultOntologyStubsPanel />
+            </div>
+          ) : null}
           <OntologyTreeView
             result={treeResult}
             onSelect={(node) => selectNode(node)}
