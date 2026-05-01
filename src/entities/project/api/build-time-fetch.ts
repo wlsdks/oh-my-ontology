@@ -12,22 +12,31 @@
 
 import type { Project } from '@/entities/project/model';
 import { resolveFallbackProjects } from '@/entities/project/model/fallback';
-import { getDemoProjects } from '@/shared/mocks/demo-data';
+import {
+  deriveProjectsFromVault,
+  vaultManifest as staticVaultManifestRaw,
+  type VaultManifest,
+} from '@/entities/docs-vault';
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 const BUILD_PROJECT_SOURCE = process.env.OMOT_BUILD_PROJECT_SOURCE;
 const USE_FIRESTORE_REST = BUILD_PROJECT_SOURCE === 'firestore';
+const staticVaultManifest = staticVaultManifestRaw as VaultManifest;
 let cachedProjects: Promise<Project[]> | null = null;
 
 /**
- * 정적 export 빌드가 네트워크 없이도 데모/seed 슬러그로 페이지를 생성할 수
- * 있게 기본 데모 데이터셋을 합친다.
+ * 정적 export 빌드가 네트워크 없이도 페이지를 생성할 수 있게 seed + 빌드타임
+ * dogfood 매니페스트 (`docs/ontology/`) 를 합친다. mission v2 정렬 — 이전엔
+ * demo-blueprint 의 합성 500 개 프로젝트를 보냈지만, 진실원이 dogfood 로
+ * 옮겨가면서 (PR #33/#34) 빌드타임 manifest 가 더 적합.
  */
 function buildFallback(): Project[] {
   const seeded = resolveFallbackProjects();
   const seededSlugs = new Set(seeded.map((p) => p.slug));
-  const demo = getDemoProjects().filter((p) => !seededSlugs.has(p.slug));
-  return [...seeded, ...demo];
+  const dogfood = deriveProjectsFromVault(staticVaultManifest).filter(
+    (p) => !seededSlugs.has(p.slug),
+  );
+  return [...seeded, ...dogfood];
 }
 
 interface FirestoreDocument {

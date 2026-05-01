@@ -8,7 +8,6 @@ import {
 } from "firebase/firestore";
 import { getDb } from "@/shared/api";
 import { normalizeAccountId } from "@/shared/lib/account-scope";
-import { hasDemoSession } from "@/shared/lib/demo-session";
 import {
   fromFirestoreKnowledgeOutput,
   type KnowledgeOutput,
@@ -57,11 +56,6 @@ export function subscribeKnowledgeOutputsByDocument(
     typeof documentIdOrCallback === "string"
       ? maybeOnError
       : (callbackOrOnError as ((error: Error) => void) | undefined);
-
-  if (hasDemoSession()) {
-    Promise.resolve().then(() => callbackFn([]));
-    return () => {};
-  }
 
   return onSnapshot(
     query(

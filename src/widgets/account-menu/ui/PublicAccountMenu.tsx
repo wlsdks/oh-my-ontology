@@ -3,12 +3,10 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, ChevronDown, Compass, FolderKanban, LogOut, Moon, PlayCircle, Shield, Sun, UserRound } from "lucide-react";
+import { BookOpen, ChevronDown, Compass, FolderKanban, LogOut, Moon, Shield, Sun, UserRound } from "lucide-react";
 import { useGlobalAdmin } from "@/features/permissions";
 import { useScopedAccountAccess } from "@/features/account-scope";
-import { buildServiceEntryHref, signInWithDemo, signOut } from "@/features/user-auth";
-import { getDemoProjectsHref } from "@/shared/config/demo-space";
-import { hasDemoSession } from "@/shared/lib/demo-session";
+import { buildServiceEntryHref, signOut } from "@/features/user-auth";
 import { cn } from "@/shared/lib/cn";
 import { useTheme } from "@/shared/lib/theme";
 
@@ -44,8 +42,6 @@ export function PublicAccountMenu({
   const { user } = useGlobalAdmin();
   const scopedAccess = useScopedAccountAccess();
   const [open, setOpen] = useState(false);
-  const [demoLoading, setDemoLoading] = useState(false);
-  const [demoError, setDemoError] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const menuStatus = useMemo(() => {
     if (scopedAccess.kind === "loading") return "loading" as const;
@@ -53,23 +49,11 @@ export function PublicAccountMenu({
     return "active" as const;
   }, [scopedAccess.kind]);
   const visibleUser = scopedAccess.user ?? user;
-  // hasDemoSession() 은 window.localStorage 를 읽으므로 SSR 결과(false)와
-  // 클라이언트 첫 렌더(true) 사이에 hydration mismatch 가 발생한다.
-  // mount 이후에만 true 가 되도록 gate 해서 SSR ↔ 첫 paint 가 동일하게
-  // "확인 중" 또는 roleLabel 만 표시. mount 후에 "데모 체험 중" 으로 전환.
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-  // Demo 세션은 Notion 모델 상 자기 공간 owner 권한을 받지만, UI 에서
-  // "공간 소유자" 라 표기하면 "데모 뷰어" displayName 과 모순 ("viewer"
-  // vs "owner"). 데모 맥락을 보존하면서 탐색 중임을 명시.
-  const isDemoSession = hydrated && hasDemoSession();
   const statusCopy = useMemo(
     () => ({
-      badge: isDemoSession ? "데모 체험 중" : scopedAccess.roleLabel,
+      badge: scopedAccess.roleLabel,
     }),
-    [isDemoSession, scopedAccess.roleLabel],
+    [scopedAccess.roleLabel],
   );
   const identityLabel = useMemo(
     () => resolveIdentityLabel(menuStatus, visibleUser),
@@ -96,29 +80,12 @@ export function PublicAccountMenu({
   }, [accountId, currentPath]);
   const accountSettingsHref = "/account";
   const docsVaultHref = "/docs/";
-  const demoHref = getDemoProjectsHref();
   const settingsHref = scopedAccess.canManage
     ? "/projects/"
     : loginHref;
   const scopeLabel = accountLabel?.trim() || accountId?.trim() || null;
   const overviewHref = "/";
   const serviceEntryHref = buildServiceEntryHref();
-
-  const handleDemoLogin = async () => {
-    setDemoLoading(true);
-    setDemoError(null);
-    try {
-      await signInWithDemo();
-      setOpen(false);
-      window.location.href = demoHref;
-    } catch (error) {
-      setDemoError(
-        error instanceof Error ? error.message : "데모 로그인에 실패했습니다.",
-      );
-    } finally {
-      setDemoLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (!open) return;
@@ -309,29 +276,6 @@ export function PublicAccountMenu({
                       회원가입
                     </span>
                   </Link>
-                  <button
-                    type="button"
-                    className="mt-1 flex w-full items-center justify-between rounded-[12px] px-3 py-3 text-sm text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:rgba(94,106,210,0.08)]"
-                    role="menuitem"
-                    onClick={() => void handleDemoLogin()}
-                    disabled={demoLoading}
-                  >
-                    <span className="flex items-center gap-2">
-                      <PlayCircle size={15} className="text-[color:var(--color-indigo-accent)]" />
-                      {demoLoading ? "데모 로그인 중..." : "데모 로그인"}
-                    </span>
-                  </button>
-                  <Link
-                    href={loginHref}
-                    className="mt-1 flex items-center justify-between rounded-[12px] px-3 py-3 text-sm text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-overlay-2)]"
-                    role="menuitem"
-                    onClick={() => setOpen(false)}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Shield size={15} className="text-[color:var(--color-text-tertiary)]" />
-                      로그인
-                    </span>
-                  </Link>
                 </div>
               ) : null}
 
@@ -357,11 +301,6 @@ export function PublicAccountMenu({
                 </button>
               )}
             </div>
-            {demoError ? (
-              <p className="px-2 pt-3 text-sm text-[color:var(--color-indigo-accent)]">
-                {demoError}
-              </p>
-            ) : null}
           </div>
         </div>
       )}
