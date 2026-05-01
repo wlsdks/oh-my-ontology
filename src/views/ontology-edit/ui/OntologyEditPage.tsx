@@ -218,10 +218,10 @@ export function OntologyEditPage() {
             ) : null}
             <Link
               href={treeHref}
-              className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
+              className="inline-flex h-8 shrink-0 items-center gap-1 px-2 text-[11px] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
               aria-label="ontology 트리로 보기 (read-only)"
             >
-              트리로 보기 ↗
+              트리로 보기 <span aria-hidden>↗</span>
             </Link>
           </div>
         </header>
