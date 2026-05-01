@@ -1,9 +1,60 @@
 import type {
+  EdgeQualifier,
+  EdgeRank,
   KnowledgeGraphEdge,
   KnowledgeGraphNode,
   KnowledgePublicMeta,
+  QualifierValue,
 } from "./types";
 import { isKnowledgeGraphSource } from "./types";
+
+const VALID_RANKS: ReadonlySet<EdgeRank> = new Set([
+  "preferred",
+  "normal",
+  "deprecated",
+]);
+
+function isQualifierValue(input: unknown): input is QualifierValue {
+  if (!input || typeof input !== "object") return false;
+  const v = input as { kind?: unknown };
+  if (typeof v.kind !== "string") return false;
+  switch (v.kind) {
+    case "string":
+      return typeof (input as { raw?: unknown }).raw === "string";
+    case "time": {
+      const t = input as { iso?: unknown; precision?: unknown };
+      return (
+        typeof t.iso === "string" &&
+        (t.precision === "year" || t.precision === "month" || t.precision === "day")
+      );
+    }
+    case "quantity":
+      return typeof (input as { value?: unknown }).value === "number";
+    case "nodeRef":
+      return typeof (input as { nodeId?: unknown }).nodeId === "string";
+    default:
+      return false;
+  }
+}
+
+function toEdgeQualifiers(value: unknown): EdgeQualifier[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const next: EdgeQualifier[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const obj = item as { propertyId?: unknown; value?: unknown };
+    if (typeof obj.propertyId !== "string") continue;
+    if (!isQualifierValue(obj.value)) continue;
+    next.push({ propertyId: obj.propertyId, value: obj.value });
+  }
+  return next.length > 0 ? next : undefined;
+}
+
+function toEdgeRank(value: unknown): EdgeRank | undefined {
+  return typeof value === "string" && VALID_RANKS.has(value as EdgeRank)
+    ? (value as EdgeRank)
+    : undefined;
+}
 
 function parseDate(value: unknown) {
   if (value instanceof Date) return value;
@@ -103,6 +154,8 @@ export function fromFirestoreKnowledgeGraphEdge(
       typeof data.manualNote === "string" ? data.manualNote : undefined,
     tboxVersionId:
       typeof data.tboxVersionId === "string" ? data.tboxVersionId : undefined,
+    qualifiers: toEdgeQualifiers(data.qualifiers),
+    rank: toEdgeRank(data.rank),
   };
 }
 
