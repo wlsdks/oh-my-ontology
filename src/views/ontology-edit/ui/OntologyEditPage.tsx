@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
+import { useUserAuth } from "@/features/user-auth";
 import { addManualKnowledgeNode } from "@/entities/knowledge-graph";
 import { slugify } from "@/shared/lib/slugify";
 import { OperationsNav } from "@/widgets/operations-nav";
@@ -43,7 +44,10 @@ function CanvasSkeleton() {
 
 export function OntologyEditPage() {
   const searchParams = useSearchParams();
-  const accountId = null;
+  // single-user 모드: account scope 가 곧 로그인 사용자 uid. 비로그인 사용자는
+  // 캔버스 자체를 볼 수 있지만 manual node 저장 시 toast 로 막힌다.
+  const { user } = useUserAuth();
+  const accountId = user?.uid ?? null;
 
   const { nodes: ephemeralNodes, addNode, clearAll, updateNode, findById, removeNode } =
     useEphemeralNodes();
