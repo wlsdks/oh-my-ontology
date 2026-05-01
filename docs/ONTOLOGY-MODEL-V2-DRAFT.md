@@ -1,6 +1,10 @@
-# Ontology Model V2 — DRAFT (V1.1 ✅ 머지 완료)
+# Ontology Model V2 — DRAFT (V1.x mission v2 정합 평가 완료)
 
-> **Status**: V1.1 머지 완료 (PR #10, 2026-05-01). V1.2-V1.5 + V2 통합은 여전히 user 승인 대기 + Q3-Q8 답 필요.
+> **Status**: Q3-Q7 답 확정 (2026-05-02, user 추천 기본 채택). V1.x roadmap 의
+> mission v2 정합 평가도 같이 마쳤다. 결론: V1.2-V1.4 + V2 는 *cloud-first
+> 가정* 으로 설계됐는데, mission v2 가 vault-first + functions/ 폐기 (PR #27)
+> 로 전환되며 cloud schema 진화의 기존 의미가 사라졌다. 살아남는 부분만
+> *vault-adaptation* 으로 변형 적용; 그 외는 N/A 로 닫는다.
 > **Author**: 자율 루프 iter#12 (2026-05-01) + 이후 update.
 > **Inputs**: C0 (현재 모델 캡처) · C1 (Wikidata 학습) · C2 (Palantir 학습).
 > **Goal**: 현재 *4-layer class + 7-relation TBox + evidence-grounded ABox* 위에 *qualifiers · rank · literal properties · rich references · cardinality · action type* 을 점진 도입해 RDF-star + Foundry-class 표현력에 도달.
@@ -10,13 +14,37 @@
 | 단계 | 상태 |
 |---|---|
 | V1.1 — Statement Qualifiers + Rank | ✅ 머지 완료 (PR #10, additive, breakage 0) |
-| V1.2 — Literal Properties | ⏳ Q6+Q7 답 후 진행 |
-| V1.3 — Rich References | ⏳ Q5 답 후 진행 |
-| V1.4 — Action Type | ⏸ DEFERRED (Q4 + 보안 sub-spec 필요) |
+| V1.2 — Literal Properties | 🟡 vault-adaptation 으로 진행 (PR 진행 중) — cloud collection 신설 안 함, 빌더 인스펙터 가 frontmatter scalar 직접 편집 |
+| V1.3 — Rich References | ⏸ N/A — cloud LLM 추출 흐름 (PR #5/#6 폐기) 가 사라져 의미 없음. vault frontmatter array 의 rich-ref 표현은 후속에서 별도 spec |
+| V1.4 — Action Type | ⏸ N/A — functions/ 폐기 (PR #27) 로 server-side action 게이트 자체가 없음. WebMCP / chrome-devtools MCP 가 등장한 만큼 향후 별도 trace 위에서 재설계 |
 | V1.5 — Relation Cardinality | ✅ 머지 완료 (PR #23, additive, breakage 0) |
-| V2 — 통합 KnowledgeStatement | ⏳ V1.x 완료 + 90일 dual-read soak 후 |
+| V2 — 통합 KnowledgeStatement | ⏸ N/A — V2 통합은 cloud `knowledgeApprovedNodes/Edges` 의 schema 합병이었음. 그 컬렉션 자체가 mission v2 default path 에서 invisible (PR #33/#34 가 dogfood 우선) 이라 통합 의미 사라짐 |
 
-Open question 진행: Q1=(a) ✅ · Q2 ✅ (share-doc 이미 제거) · Q3-Q8 + multi-vault 시점 대기.
+### Open question 답 (2026-05-02 user 추천 채택)
+
+| Q | 답 | 영향 |
+|---|---|---|
+| Q1 — multi-vault 시점 | (a) ✅ — V2 협업 단계로 보류 | — |
+| Q2 — share-doc | ✅ 이미 제거 (mission v2 cleanup) | — |
+| **Q3** — V2 dual-read 기간 | **(b) 90일** | V2 N/A 로 인해 사실상 dead question 이지만 향후 schema 마이그레이션 일반 정책으로 보존 |
+| **Q4** — Wikidata `unknown`/`none` 매핑 | **(a) `unknown` = `isStub`, `none` 신규** | V1.4/V2 N/A 라 즉시 영향 0. vault 의 unresolved frontmatter ref 가 자연스럽게 `unknown` (kind="unknown") 노드로 derive 되는 현 동작과 align |
+| **Q5** — extractionModelId 검증 정책 | **(b) prefix 매칭 (`opus-*` 등)** | V1.3 N/A 라 즉시 영향 0. 미래 cloud-trace 도입 시 이 정책 채택 |
+| **Q6** — `summary` 마이그레이션 방식 | **(a) 일괄 backfill 스크립트** | V1.2 vault-adaptation 에서는 cloud `summary` 컬럼 backfill 자체가 N/A (cloud 컬렉션 unused). 정책만 보존 |
+| **Q7** — literal property naming scope | **(a) 글로벌 unique** | V1.2 vault-adaptation 의 frontmatter key 명명 정책 — `description`, `domain` 같은 키는 모든 kind 에서 같은 의미 |
+| Q8 — V1.4 ActionInvocation 보존 | (b) 1년 후 archive (참조용 보존) | V1.4 N/A 라 즉시 영향 0 |
+
+### V1.x ↔ mission v2 정합 매트릭스
+
+PR #27 (`functions/` 폐기) + PR #29 (클라이언트 dead httpsCallable) + PR #33-#34 (dogfood 우선 진실원) 이후, V1.x 의 *cloud-only* 부분들은 deploy 대상이 사라졌다. 그래도 spec 자체는 *향후 서버 도입 결정 시* 재활성 가능하도록 보존한다.
+
+| V1.x 항목 | mission v2 에서 살아있나 | 어떻게 |
+|---|---|---|
+| V1.1 qualifiers/rank | ✅ — vault frontmatter 가 OntologyRelation `qualifiers/rank` 직접 가짐 | 이미 PR #10 |
+| V1.2 literal properties | 🟡 vault-adaptation — frontmatter scalar (`description`, `domain`, `color`) 가 곧 literal | 빌더 인스펙터에 scalar 편집 surface 추가 |
+| V1.3 rich evidence | ⏸ — cloud extraction 흐름 폐기로 evidenceMeta 자체 unused | spec 보존, 미구현 |
+| V1.4 action invocations | ⏸ — server-side gate 없음 | spec 보존, 미구현 |
+| V1.5 cardinality | ✅ — OntologyRelation 의 `sourceCardinality/targetCardinality` 가 vault frontmatter 에 그대로 | 이미 PR #23 |
+| V2 통합 statements | ⏸ — cloud canonical 컬렉션 자체 invisible | spec 보존, 미구현 |
 
 ---
 
