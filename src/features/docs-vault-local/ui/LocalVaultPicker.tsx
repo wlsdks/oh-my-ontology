@@ -94,8 +94,13 @@ export function LocalVaultPicker({
   }
   if (status === 'error') {
     return (
-      <div className="flex flex-1 items-center gap-2 rounded-md border border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] px-3 py-1.5 text-[11.5px] text-[color:var(--color-status-danger)]">
-        <span>{errorMessage ?? '로컬 볼트 오류'}</span>
+      <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] px-3 py-1.5 text-[11.5px] text-[color:var(--color-status-danger)]">
+        <span className="truncate">
+          {errorMessage ?? '로컬 볼트 오류 — 폴더 접근 중 문제가 생겼습니다.'}
+        </span>
+        <span className="text-[color:rgba(240,180,180,0.7)]">
+          폴더 권한을 다시 확인하거나 다른 폴더로 시도해보세요.
+        </span>
         <button
           type="button"
           onClick={onOpen}
