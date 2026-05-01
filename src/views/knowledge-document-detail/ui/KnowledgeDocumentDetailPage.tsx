@@ -1,6 +1,6 @@
 "use client";
 
-import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PermissionGate, useGlobalAdmin } from "@/features/permissions";
@@ -10,7 +10,6 @@ import {
   type KnowledgeEvidence,
 } from "@/entities/knowledge-evidence";
 import {
-  enqueueKnowledgeExtractionJob,
   resolveKnowledgeJobActionState,
   subscribeKnowledgeJobsByDocument,
   type KnowledgeJob,
@@ -45,10 +44,6 @@ import { useDocumentTitle } from "@/shared/lib/use-document-title";
 import { DocumentOntologyEvidenceSection } from "@/widgets/document-ontology-evidence";
 import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
-import {
-  ExtractorVersionToggle,
-  type ExtractorVersion,
-} from "./parts/ExtractorVersionToggle";
 import { Info } from "./parts/Info";
 import { JobStatusBadge } from "./parts/JobStatusBadge";
 import { PanelButton } from "./parts/PanelButton";
@@ -81,20 +76,11 @@ function DetailContent({ documentId, returnTo }: Props) {
   const [blockingError, setBlockingError] = useState<string | null>(null);
   const [connectionIssue, setConnectionIssue] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [jobNotice, setJobNotice] = useState<string | null>(null);
   const [uploadMarkdown, setUploadMarkdown] = useState("");
   const [selectedUploadFileName, setSelectedUploadFileName] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isEnqueueing, setIsEnqueueing] = useState(false);
-  // 추출 엔진 선택 — gemini-v1 (legacy, 기본) vs ontology-v1 (T-4 신규).
-  // 운영자가 명시적으로 ontology 경로를 시도해 측정 데이터를 모을 수 있게.
-  // C-1 → C-2 cutover 진입 조건 (정확도 / 단가 / 검수 시간) 측정용.
-  const [extractorVersion, setExtractorVersion] = useState<ExtractorVersion>(
-    'gemini-v1',
-  );
   const [markdownByVersionId, setMarkdownByVersionId] = useState<Record<string, string>>({});
   const [activePanel, setActivePanel] = useState<DetailPanel>("overview");
-  const autoStartHandledRef = useRef(false);
 
   const handleStreamRecovered = useCallback(() => {
     setBlockingError(null);
@@ -318,98 +304,64 @@ function DetailContent({ documentId, returnTo }: Props) {
     Boolean(selectedVersion) && document?.currentVersionId === selectedVersion?.id;
   const shouldPromotePublic =
     Boolean(selectedVersionIsCurrent && document?.status === "published" && primaryProjectPublicHref);
-  const extractionLocked =
-    Boolean(
-      latestJob &&
-        latestJob.status !== "failed" &&
-        latestJob.status !== "succeeded" &&
-        latestJob.status !== "superseded",
-    );
   const shouldPromoteReview =
     Boolean(
       !shouldPromotePublic &&
         selectedVersionIsCurrent &&
-        latestJob?.status === "succeeded" &&
+        latestOutput &&
         reviewWorkspaceHref,
     );
-  const primaryActionLabel = !selectedVersionIsCurrent
+  const primaryActionLabel: string | null = !selectedVersionIsCurrent
     ? "이 버전을 기준으로"
     : shouldPromotePublic
       ? "공개 화면 보기"
-    : shouldPromoteReview
-      ? "문서 확인으로 가기"
-      : latestJob?.status === "failed"
-        ? "다시 분석"
-        : extractionLocked
-          ? "분석 진행 중"
-        : "분석 시작";
-  const detailHref = documentId
-    ? getKnowledgeDocumentDetailHref(documentId, accountId, {
-        versionId: selectedVersion?.id,
-        projectId: primaryProjectId,
-        returnTo: safeReturnTo,
-      })
-    : null;
+      : shouldPromoteReview
+        ? "문서 확인으로 가기"
+        : null;
   const flowStep = !selectedVersionIsCurrent
     ? {
-        label: "1. 기준 버전 확인",
+        label: "기준 버전 확인",
         helper: "먼저 지금 작업할 버전을 맞추세요.",
       }
     : document?.status === "published"
       ? {
-          label: "4. 공개 화면에 보임",
+          label: "공개 화면에 보임",
           helper: "공개 화면에서 바로 결과를 볼 수 있어요.",
         }
       : shouldPromoteReview
         ? {
-            label: "3. 골라내기",
-            helper: "분석이 끝났어요. 바로 문서 확인으로 넘기면 됩니다.",
+            label: "골라내기",
+            helper: "추출 결과가 있어요. 문서 확인으로 넘겨 노드·연결을 정리하세요.",
           }
-        : latestJob?.status === "failed"
-          ? {
-              label: "2. 분석 다시",
-              helper: "분석이 막혔어요. 다시 시도하면 됩니다.",
-            }
-          : extractionLocked
-            ? {
-                label: "2. 분석 중",
-                helper: "끝나면 바로 골라내기로 이어집니다.",
-              }
-            : {
-                label: "2. 분석 시작",
-                helper: "현재 버전에서 분석을 한 번 돌리면 됩니다.",
-              };
+        : {
+            label: "vault 에서 직접 추가",
+            helper:
+              "이 문서엔 추출 결과가 없어요. /docs 의 vault frontmatter 에 kind / capabilities / elements 를 적거나 /ontology/edit 빌더에서 노드를 만드세요.",
+          };
 
-  // 4단계 stepper 상태. 업로드는 항상 완료 (문서가 존재함), 나머지는 document.status +
-  // job 상태로 판정. currentStepIndex = 아직 진행 중이거나 다음 해야 할 단계.
+  // 3단계 stepper — upload / review / publish. 추출 단계는 vault frontmatter
+  // 가 자기-승인이라 별도 stage 없음 (mission v2).
   const stepperStages = [
     { key: "upload", label: "올리기" },
-    { key: "extract", label: "분석" },
     { key: "review", label: "골라내기" },
     { key: "publish", label: "공개" },
   ] as const;
   const currentStepIndex =
     document?.status === "published"
-      ? 3
+      ? 2
       : document?.status === "reviewing" || shouldPromoteReview
-        ? 2
-        : extractionLocked || latestJob?.status === "failed"
-          ? 1
-          : !selectedVersionIsCurrent
-            ? 0
-            : 1;
+        ? 1
+        : !selectedVersionIsCurrent
+          ? 0
+          : 1;
   const stepSummary =
     document?.status === "published"
       ? "모두 끝났어요 — 공개 화면에서 보입니다."
-      : currentStepIndex === 2
-        ? "분석이 끝났어요. 골라내기로 넘어가 노드·연결을 정리하고 공개하세요."
-        : currentStepIndex === 1 && latestJob?.status === "failed"
-          ? "분석이 막혔어요. 다시 시도해 주세요."
-          : currentStepIndex === 1 && extractionLocked
-            ? "분석 중입니다. 끝나면 바로 골라내기로 넘어가요."
-            : currentStepIndex === 1
-              ? "현재 버전에서 분석을 한 번 돌려 보세요."
-              : "먼저 작업할 기준 버전을 정해 주세요.";
+      : currentStepIndex === 1 && shouldPromoteReview
+        ? "추출 결과가 준비됐어요. 문서 확인으로 넘어가 노드·연결을 정리하세요."
+        : currentStepIndex === 1
+          ? "이 문서엔 아직 추출 결과가 없어요. vault frontmatter 또는 빌더에서 직접 추가하세요."
+          : "먼저 작업할 기준 버전을 정해 주세요.";
 
   useEffect(() => {
     if (activePanel === "compare" && !hasComparePanel) {
@@ -508,51 +460,6 @@ function DetailContent({ documentId, returnTo }: Props) {
       );
     }
   };
-
-  const handleEnqueueExtraction = useCallback(async () => {
-    if (!document || !selectedVersion) return;
-    setIsEnqueueing(true);
-    setActionError(null);
-    setJobNotice(null);
-    try {
-      const result = await enqueueKnowledgeExtractionJob({
-        accountId,
-        documentId: document.id,
-        documentVersionId: selectedVersion.id,
-        extractorVersion,
-      });
-      setJobNotice(
-        result.created
-          ? `새 추출 작업을 생성했습니다. (${result.jobId})`
-          : `기존 활성 추출 작업을 재사용합니다. (${result.jobId})`,
-      );
-    } catch (error) {
-      setActionError(error instanceof Error ? error.message : "추출 요청 실패");
-    } finally {
-      setIsEnqueueing(false);
-    }
-  }, [accountId, document, selectedVersion, extractorVersion]);
-
-  useEffect(() => {
-    if (!autoStartJob || autoStartHandledRef.current) return;
-    if (!document || !selectedVersion || !selectedVersionIsCurrent || latestJob) return;
-
-    autoStartHandledRef.current = true;
-    queueMicrotask(() => void handleEnqueueExtraction().finally(() => {
-      if (detailHref) {
-        router.replace(detailHref);
-      }
-    }));
-  }, [
-    autoStartJob,
-    detailHref,
-    document,
-    handleEnqueueExtraction,
-    latestJob,
-    router,
-    selectedVersion,
-    selectedVersionIsCurrent,
-  ]);
 
   if (!documentId) {
     return (
@@ -733,7 +640,7 @@ function DetailContent({ documentId, returnTo }: Props) {
               {/* 현재 단계에 맞는 다음 액션 CTA를 stepper 안에 바로 노출. 이전엔
                   탭 안 "지금 할 일"까지 스크롤해야 발견 가능했던 버튼들을 여기로
                   올려 한 눈에 "다음에 뭐 누르지" 해결. */}
-              {currentStepIndex === 2 && reviewWorkspaceHref ? (
+              {currentStepIndex === 1 && reviewWorkspaceHref ? (
                 <Link
                   href={reviewWorkspaceHref}
                   className={cn(
@@ -744,7 +651,7 @@ function DetailContent({ documentId, returnTo }: Props) {
                   리뷰 단계로 이동 →
                 </Link>
               ) : null}
-              {currentStepIndex === 3 && primaryProjectPublicHref ? (
+              {currentStepIndex === 2 && primaryProjectPublicHref ? (
                 <Link
                   href={primaryProjectPublicHref}
                   target="_blank"
@@ -757,52 +664,8 @@ function DetailContent({ documentId, returnTo }: Props) {
                   공개 화면 확인 ↗
                 </Link>
               ) : null}
-              {currentStepIndex === 1 && !extractionLocked && latestJob?.status !== "failed" ? (
-                <div className="flex items-center gap-2">
-                  <ExtractorVersionToggle value={extractorVersion} onChange={setExtractorVersion} />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="primary"
-                    onClick={handleEnqueueExtraction}
-                    disabled={isEnqueueing || !selectedVersionIsCurrent}
-                    className="shrink-0"
-                  >
-                    분석 시작
-                  </Button>
-                </div>
-              ) : null}
-              {currentStepIndex === 1 && latestJob?.status === "failed" ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="primary"
-                  onClick={handleEnqueueExtraction}
-                  disabled={isEnqueueing}
-                  className="shrink-0"
-                >
-                  다시 시도
-                </Button>
-              ) : null}
             </div>
           </section>
-        ) : null}
-
-        {/* 자동 추출이 큐잉되면 확정 배너 — 이전엔 jobNotice 가 본문 안에 묻혀
-            있어서 "업로드는 됐는데 다음에 뭐하지?" 혼란. 상단에 올려서 명시. */}
-        {jobNotice ? (
-          <div
-            role="status"
-            className="mt-4 flex items-center gap-2 rounded-2xl border border-[color:rgba(94,106,210,0.28)] bg-[color:rgba(94,106,210,0.08)] px-4 py-3 text-sm text-[color:var(--color-text-primary)]"
-          >
-            <span
-              aria-hidden="true"
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--color-indigo-brand)] text-[10px] text-white"
-            >
-              ✓
-            </span>
-            <span>{jobNotice}</span>
-          </div>
         ) : null}
 
         {!accountId ? (
@@ -944,7 +807,7 @@ function DetailContent({ documentId, returnTo }: Props) {
                         </div>
                       ) : null}
                       <div className="flex flex-wrap items-center gap-2">
-                        {shouldPromotePublic && primaryProjectPublicHref ? (
+                        {shouldPromotePublic && primaryProjectPublicHref && primaryActionLabel ? (
                           <Link
                             href={primaryProjectPublicHref}
                             target="_blank"
@@ -954,49 +817,26 @@ function DetailContent({ documentId, returnTo }: Props) {
                           >
                             <Button type="button">{primaryActionLabel}</Button>
                           </Link>
-                        ) : shouldPromoteReview && reviewWorkspaceHref ? (
+                        ) : shouldPromoteReview && reviewWorkspaceHref && primaryActionLabel ? (
                           <Link href={reviewWorkspaceHref} className="inline-flex">
                             <Button type="button">{primaryActionLabel}</Button>
                           </Link>
-                        ) : (
+                        ) : !selectedVersionIsCurrent && primaryActionLabel ? (
                           <Button
                             type="button"
-                            variant={selectedVersionIsCurrent ? "primary" : "outline"}
-                            onClick={() =>
-                              selectedVersionIsCurrent
-                                ? void handleEnqueueExtraction()
-                                : void handleSetCurrentVersion()
-                            }
+                            variant="outline"
+                            onClick={() => void handleSetCurrentVersion()}
                             disabled={
-                              selectedVersionIsCurrent
-                                ? isEnqueueing || extractionLocked
-                                : !document || document.currentVersionId === selectedVersion.id
+                              !document || document.currentVersionId === selectedVersion.id
                             }
                           >
-                            {selectedVersionIsCurrent && isEnqueueing
-                              ? "요청 중…"
-                              : primaryActionLabel}
-                          </Button>
-                        )}
-                        {selectedVersionIsCurrent && shouldPromoteReview ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={() => void handleEnqueueExtraction()}
-                            disabled={isEnqueueing}
-                          >
-                            {isEnqueueing ? "요청 중…" : "다시 분석"}
+                            {primaryActionLabel}
                           </Button>
                         ) : null}
                       </div>
                       <p className="text-xs text-[color:var(--color-text-tertiary)]">
                         {flowStep.helper}
                       </p>
-                      {jobNotice && (
-                        <p className="text-xs text-[color:var(--color-indigo-accent)]">
-                          {jobNotice}
-                        </p>
-                      )}
                       <details className="rounded-lg border border-[color:var(--color-border-soft)] px-4 py-3">
                         <summary className="cursor-pointer list-none text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
                           원문
@@ -1185,16 +1025,20 @@ function DetailContent({ documentId, returnTo }: Props) {
                 {!latestJob ? (
                   <>
                     <p className="text-sm text-[color:var(--color-text-tertiary)]">
-                      아직 분석이 없어요. 선택한 버전을 기준으로 분석을 시작할 수 있어요.
+                      아직 추출 결과가 없어요. vault frontmatter (`/docs`) 또는 빌더 (`/ontology/edit`) 에서 노드를 직접 추가하세요.
                     </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => void handleEnqueueExtraction()}
-                      disabled={!selectedVersion || isEnqueueing}
-                    >
-                      {isEnqueueing ? "요청 중..." : "분석 시작"}
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Link href="/docs/" className="inline-flex">
+                        <Button type="button" size="sm" variant="outline">
+                          vault 열기
+                        </Button>
+                      </Link>
+                      <Link href="/ontology/edit/" className="inline-flex">
+                        <Button type="button" size="sm" variant="ghost">
+                          빌더 열기
+                        </Button>
+                      </Link>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -1207,11 +1051,6 @@ function DetailContent({ documentId, returnTo }: Props) {
                     <p className="text-sm text-[color:var(--color-text-secondary)]">
                       {jobActionState?.helperText}
                     </p>
-                    {jobNotice && (
-                      <p className="text-xs text-[color:var(--color-indigo-accent)]">
-                        {jobNotice}
-                      </p>
-                    )}
                     {latestJob.errorCode && (
                       <div className="rounded-lg border border-[color:var(--color-border-soft)] px-3 py-3 text-sm text-[color:var(--color-text-secondary)]">
                         <p>오류 코드: {latestJob.errorCode}</p>
@@ -1260,14 +1099,6 @@ function DetailContent({ documentId, returnTo }: Props) {
                           문서 확인으로 가기
                         </Button>
                       </Link>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => void handleEnqueueExtraction()}
-                        disabled={!jobActionState?.canRetry || isEnqueueing}
-                      >
-                        {isEnqueueing ? "요청 중..." : "새 작업으로 재시도"}
-                      </Button>
                     </div>
                   </>
                 )}
