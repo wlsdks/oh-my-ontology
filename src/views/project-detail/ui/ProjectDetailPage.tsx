@@ -29,15 +29,14 @@ import {
   getProject,
   getProjectDetailHref,
   getProjectIntegrityIssues,
-  listProjects,
   getTopologyProjectHref,
   projectToInput,
   resolveFallbackProjects,
-  subscribeProjects,
   upsertProject,
   wouldCreateDependencyCycle,
   type Project,
 } from "@/entities/project";
+import { useProjects } from "@/features/project-data-source";
 import { resolveSubscribeUpdate } from "../model/resolve-subscribe-update";
 import { DependencyPicker } from "@/features/project-edit/ui/DependencyPicker";
 import { CopyProjectLinkButton } from "@/features/project-share";
@@ -362,73 +361,40 @@ export function ProjectDetailPage({
     ).join(" · ") || null,
   );
 
+  // mode-aware projects read — vault 또는 Firestore. 단일 hook 으로 단발 fetch
+  // + 실시간 구독을 통합. (이전엔 listProjects + subscribeProjects 두 effect 가
+  // race 했지만 hook 이 항상 최신 snapshot 을 들고 있어 race 자체가 사라짐.)
+  const projectsQuery = useProjects(accountId);
+  useEffect(() => {
+    if (!slug) return;
+    const { next, related: nextRelated } = resolveSubscribeUpdate(
+      projectsQuery.projects,
+      slug,
+      fallbackProjects,
+    );
+    if (next) setProject(next);
+    setRelated(nextRelated);
+    if (projectsQuery.loaded || projectsQuery.error !== null) setResolved(true);
+  }, [projectsQuery.projects, projectsQuery.loaded, projectsQuery.error, slug, fallbackProjects]);
+
+  // initial fetch — fallback 가 없는 경우 직접 getProject 로 한 번 더 시도.
   useEffect(() => {
     if (!slug || fallbackProject) return;
-
     let cancelled = false;
-
-    const fetchPair = Promise.all([
-      getProject(slug, accountId),
-      listProjects(accountId),
-    ]);
-
-    void fetchPair
-      .then(([fetchedProject, fetchedProjects]) => {
+    void getProject(slug, accountId)
+      .then((fetched) => {
         if (cancelled) return;
-        const resolvedProject =
-          fetchedProject ??
-          fetchedProjects.find((entry) => entry.slug === slug) ??
-          null;
-        // fetch 가 실패/빈값을 돌려주더라도 subscribe 가 이미 찾은 project 를
-        // null 로 덮지 않는다. 두 effect 가 race 하므로 fetch 가 "모르면
-        // 아무것도 안 함" 정책이 맞다.
-        if (resolvedProject) setProject(resolvedProject);
-        if (fetchedProjects.length > 0) {
-          setRelated(fetchedProjects);
-        }
+        if (fetched) setProject(fetched);
         setResolved(true);
       })
       .catch(() => {
         if (cancelled) return;
         setResolved(true);
       });
-
     return () => {
       cancelled = true;
     };
   }, [accountId, fallbackProject, slug]);
-
-  // 클라이언트에서 실시간 구독으로 최신 데이터 유지. subscribe 가 현재 slug
-  // 를 못 찾은 경우 initialProject/fallback 을 null 로 덮지 않는 invariant 는
-  // resolveSubscribeUpdate 에 추출해 유닛 테스트로 회귀 방지.
-  useEffect(() => {
-    if (!slug) return;
-
-    const unsubscribe = subscribeProjects(
-      accountId,
-      (latest) => {
-        const { next, related: nextRelated } = resolveSubscribeUpdate(
-          latest,
-          slug,
-          fallbackProjects,
-        );
-        if (next) setProject(next);
-        setRelated(nextRelated);
-        setResolved(true);
-      },
-      () => {
-        const { next, related: nextRelated } = resolveSubscribeUpdate(
-          [],
-          slug,
-          fallbackProjects,
-        );
-        if (next) setProject(next);
-        setRelated(nextRelated);
-        setResolved(true);
-      },
-    );
-    return () => unsubscribe();
-  }, [accountId, fallbackProjects, slug]);
 
   useEffect(() => {
     if (!slug) return;
