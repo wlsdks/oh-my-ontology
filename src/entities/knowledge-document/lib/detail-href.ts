@@ -65,18 +65,3 @@ export function getKnowledgeDocumentNewHref(
   return decorate("/knowledge/documents/new/", accountId, options);
 }
 
-export function getKnowledgeReviewWorkspaceHref(
-  documentId?: string | null,
-  accountId?: string | null,
-  options?: KnowledgeHrefOptions,
-): string {
-  const base = "/review/knowledge/";
-  if (!documentId) {
-    return decorate(base, accountId, options);
-  }
-  return decorate(
-    `${base}?id=${encodeURIComponent(documentId)}`,
-    accountId,
-    options,
-  );
-}

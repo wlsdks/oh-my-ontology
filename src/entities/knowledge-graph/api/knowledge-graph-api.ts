@@ -27,10 +27,6 @@ import {
   MANUAL_NODE_ERROR_MESSAGE,
   type AddManualKnowledgeEdgeInput,
   type AddManualKnowledgeNodeInput,
-  type ApproveKnowledgeOutputInput,
-  type RejectKnowledgeOutputInput,
-  type RejectKnowledgeOutputResult,
-  type ApproveKnowledgeOutputResult,
   type KnowledgeProjectInsight,
   type PublishKnowledgeProjectionInput,
   type PublishKnowledgeProjectionResult,
@@ -63,40 +59,6 @@ function approvedEdgesCollection() {
 
 function publicMetaDoc() {
   return doc(getDb(), PUBLIC_META_COLLECTION, "current");
-}
-
-export async function approveKnowledgeOutput(
-  input: ApproveKnowledgeOutputInput,
-): Promise<ApproveKnowledgeOutputResult> {
-  const callable = httpsCallable<
-    ApproveKnowledgeOutputInput & { action: "approve_output" },
-    ApproveKnowledgeOutputResult
-  >(getFirebaseFunctions(), "applyReviewAction");
-
-  const response = await callable({
-    ...input,
-    action: "approve_output",
-  });
-  return response.data;
-}
-
-/**
- * Output 의 일부 또는 전체 후보를 거절. T-11 정확도 측정의 분모(전체 후보 =
- * approve + reject) 보존이 목적.
- */
-export async function rejectKnowledgeOutput(
-  input: RejectKnowledgeOutputInput,
-): Promise<RejectKnowledgeOutputResult> {
-  const callable = httpsCallable<
-    RejectKnowledgeOutputInput & { action: "reject_output" },
-    RejectKnowledgeOutputResult
-  >(getFirebaseFunctions(), "applyReviewAction");
-
-  const response = await callable({
-    ...input,
-    action: "reject_output",
-  });
-  return response.data;
 }
 
 export async function publishKnowledgeProjection(

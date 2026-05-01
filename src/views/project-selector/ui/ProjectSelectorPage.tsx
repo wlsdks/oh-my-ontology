@@ -9,7 +9,6 @@ import { useTaxonomy } from "@/features/taxonomy";
 import {
   getKnowledgeDocumentListHref,
   getKnowledgeDocumentNewHref,
-  getKnowledgeReviewWorkspaceHref,
 } from "@/entities/knowledge-document";
 import {
   getProjectDetailHref,
@@ -160,7 +159,6 @@ export function ProjectSelectorPage() {
   const signupHref = "/signup";
   const overviewHref = "/";
   const knowledgeDocumentsHref = getKnowledgeDocumentListHref(accountId);
-  const knowledgeReviewHref = getKnowledgeReviewWorkspaceHref(undefined, accountId);
   const replaceVisibleLimit = useCallback(
     (nextLimit: number | null) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -606,13 +604,8 @@ export function ProjectSelectorPage() {
                   </span>
                 </summary>
                 <div className="mt-4 flex flex-wrap gap-2 border-t border-[color:var(--color-divider)] pt-4">
-                  <Link href={knowledgeReviewHref} className="inline-flex">
-                    <Button type="button" variant="primary">
-                      문서 검토
-                    </Button>
-                  </Link>
                   <Link href={knowledgeDocumentsHref} className="inline-flex">
-                    <Button type="button" variant="outline">
+                    <Button type="button" variant="primary">
                       문서 목록
                     </Button>
                   </Link>

@@ -22,7 +22,6 @@ import {
   createKnowledgeDocumentVersion,
   getKnowledgeDocumentDetailHref,
   getKnowledgeDocumentListHref,
-  getKnowledgeReviewWorkspaceHref,
   downloadKnowledgeMarkdown,
   getKnowledgeDocumentKindLabel,
   getKnowledgeDocumentStatusLabel,
@@ -294,30 +293,15 @@ function DetailContent({ documentId, returnTo }: Props) {
         currentDocumentDetailHref,
       )}`
     : null;
-  const reviewWorkspaceHref = documentId
-    ? getKnowledgeReviewWorkspaceHref(documentId, accountId, {
-        projectId: primaryProjectId,
-        returnTo: safeReturnTo,
-      })
-    : null;
   const selectedVersionIsCurrent =
     Boolean(selectedVersion) && document?.currentVersionId === selectedVersion?.id;
   const shouldPromotePublic =
     Boolean(selectedVersionIsCurrent && document?.status === "published" && primaryProjectPublicHref);
-  const shouldPromoteReview =
-    Boolean(
-      !shouldPromotePublic &&
-        selectedVersionIsCurrent &&
-        latestOutput &&
-        reviewWorkspaceHref,
-    );
   const primaryActionLabel: string | null = !selectedVersionIsCurrent
     ? "이 버전을 기준으로"
     : shouldPromotePublic
       ? "공개 화면 보기"
-      : shouldPromoteReview
-        ? "문서 확인으로 가기"
-        : null;
+      : null;
   const flowStep = !selectedVersionIsCurrent
     ? {
         label: "기준 버전 확인",
@@ -328,40 +312,31 @@ function DetailContent({ documentId, returnTo }: Props) {
           label: "공개 화면에 보임",
           helper: "공개 화면에서 바로 결과를 볼 수 있어요.",
         }
-      : shouldPromoteReview
-        ? {
-            label: "골라내기",
-            helper: "추출 결과가 있어요. 문서 확인으로 넘겨 노드·연결을 정리하세요.",
-          }
-        : {
-            label: "vault 에서 직접 추가",
-            helper:
-              "이 문서엔 추출 결과가 없어요. /docs 의 vault frontmatter 에 kind / capabilities / elements 를 적거나 /ontology/edit 빌더에서 노드를 만드세요.",
-          };
+      : {
+          label: "vault 에서 직접 추가",
+          helper:
+            "이 문서엔 ontology 노드가 없어요. /docs 의 vault frontmatter 에 kind / capabilities / elements 를 적거나 /ontology/edit 빌더에서 노드를 만드세요.",
+        };
 
-  // 3단계 stepper — upload / review / publish. 추출 단계는 vault frontmatter
-  // 가 자기-승인이라 별도 stage 없음 (mission v2).
+  // 2단계 stepper — upload / publish. mission v2 가 cloud LLM 추출을 제거 +
+  // 검수 큐 surface 도 빠져 review stage 가 사라짐. vault frontmatter 가
+  // 자기-승인이라 upload 후 바로 publish.
   const stepperStages = [
     { key: "upload", label: "올리기" },
-    { key: "review", label: "골라내기" },
     { key: "publish", label: "공개" },
   ] as const;
   const currentStepIndex =
     document?.status === "published"
-      ? 2
-      : document?.status === "reviewing" || shouldPromoteReview
-        ? 1
-        : !selectedVersionIsCurrent
-          ? 0
-          : 1;
+      ? 1
+      : !selectedVersionIsCurrent
+        ? 0
+        : 0;
   const stepSummary =
     document?.status === "published"
       ? "모두 끝났어요 — 공개 화면에서 보입니다."
-      : currentStepIndex === 1 && shouldPromoteReview
-        ? "추출 결과가 준비됐어요. 문서 확인으로 넘어가 노드·연결을 정리하세요."
-        : currentStepIndex === 1
-          ? "이 문서엔 아직 추출 결과가 없어요. vault frontmatter 또는 빌더에서 직접 추가하세요."
-          : "먼저 작업할 기준 버전을 정해 주세요.";
+      : selectedVersionIsCurrent
+        ? "이 문서엔 ontology 노드가 없어요. vault frontmatter 또는 빌더에서 직접 추가하세요."
+        : "먼저 작업할 기준 버전을 정해 주세요.";
 
   useEffect(() => {
     if (activePanel === "compare" && !hasComparePanel) {
@@ -547,19 +522,6 @@ function DetailContent({ documentId, returnTo }: Props) {
                     </Button>
                   </Link>
                 )}
-                {document?.id && (
-                  <Link
-                    href={getKnowledgeReviewWorkspaceHref(document.id, accountId, {
-                      projectId: primaryProjectId,
-                      returnTo: safeReturnTo,
-                    })}
-                    className="inline-flex"
-                  >
-                    <Button type="button" size="sm" variant="ghost">
-                      문서 확인
-                    </Button>
-                  </Link>
-                )}
               </div>
             )}
             {connectionIssue && (
@@ -640,18 +602,7 @@ function DetailContent({ documentId, returnTo }: Props) {
               {/* 현재 단계에 맞는 다음 액션 CTA를 stepper 안에 바로 노출. 이전엔
                   탭 안 "지금 할 일"까지 스크롤해야 발견 가능했던 버튼들을 여기로
                   올려 한 눈에 "다음에 뭐 누르지" 해결. */}
-              {currentStepIndex === 1 && reviewWorkspaceHref ? (
-                <Link
-                  href={reviewWorkspaceHref}
-                  className={cn(
-                    buttonVariants({ variant: "primary", size: "sm" }),
-                    "shrink-0",
-                  )}
-                >
-                  리뷰 단계로 이동 →
-                </Link>
-              ) : null}
-              {currentStepIndex === 2 && primaryProjectPublicHref ? (
+              {currentStepIndex === 1 && primaryProjectPublicHref ? (
                 <Link
                   href={primaryProjectPublicHref}
                   target="_blank"
@@ -815,10 +766,6 @@ function DetailContent({ documentId, returnTo }: Props) {
                             aria-label="공개 화면을 새 탭에서 보기"
                             className="inline-flex"
                           >
-                            <Button type="button">{primaryActionLabel}</Button>
-                          </Link>
-                        ) : shouldPromoteReview && reviewWorkspaceHref && primaryActionLabel ? (
-                          <Link href={reviewWorkspaceHref} className="inline-flex">
                             <Button type="button">{primaryActionLabel}</Button>
                           </Link>
                         ) : !selectedVersionIsCurrent && primaryActionLabel ? (
@@ -1087,19 +1034,6 @@ function DetailContent({ documentId, returnTo }: Props) {
                         </div>
                       )}
                     </details>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link
-                        href={getKnowledgeReviewWorkspaceHref(document?.id, accountId, {
-                          projectId: primaryProjectId,
-                          returnTo: safeReturnTo,
-                        })}
-                        className="inline-flex"
-                      >
-                        <Button type="button">
-                          문서 확인으로 가기
-                        </Button>
-                      </Link>
-                    </div>
                   </>
                 )}
               </CardContent>
@@ -1125,23 +1059,6 @@ function DetailContent({ documentId, returnTo }: Props) {
                         <Badge>연결 {latestOutput.edgeCount}</Badge>
                         <Badge>경고 {latestOutput.warningCount}</Badge>
                       </div>
-                    </div>
-
-                    <div className="rounded-lg border border-[color:var(--color-border-soft)] px-3 py-3">
-                      <p className="text-sm text-[color:var(--color-text-secondary)]">
-                        골라내기와 공개 화면 반영은 문서 확인에서 이어집니다.
-                      </p>
-                      <Link
-                        href={getKnowledgeReviewWorkspaceHref(document?.id, accountId, {
-                          projectId: primaryProjectId,
-                          returnTo: safeReturnTo,
-                        })}
-                        className="mt-4 inline-flex"
-                      >
-                        <Button type="button" size="sm">
-                          이 문서 검토 이어서 하기
-                        </Button>
-                      </Link>
                     </div>
 
                     <details className="rounded-lg border border-[color:rgba(94,106,210,0.24)] bg-[color:rgba(94,106,210,0.08)] px-4 py-4">

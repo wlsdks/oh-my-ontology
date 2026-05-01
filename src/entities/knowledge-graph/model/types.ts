@@ -124,58 +124,6 @@ export interface KnowledgeProjectInsight {
   meta: KnowledgePublicMeta | null;
 }
 
-export interface ApproveKnowledgeOutputInput {
-  accountId?: string | null;
-  documentId: string;
-  documentVersionId: string;
-  outputId?: string;
-  /**
-   * Partial approve — output 의 nodes 중 이 tempId 만 승인. 미제공이면 전체
-   * nodes 승인 (기존 동작). 빈 배열은 "노드는 아무것도 승인 안 함" — 그럴
-   * 거면 reject_output 으로 명시 거절하는 게 자연스러움.
-   */
-  acceptedNodeTempIds?: string[];
-  /**
-   * Partial approve — output 의 edges 중 이 tempId 만 승인. 미제공이면 전체
-   * edges 승인.
-   */
-  acceptedEdgeTempIds?: string[];
-}
-
-export interface ApproveKnowledgeOutputResult {
-  reviewId: string;
-  approvalEventId: string;
-  outputId: string;
-  approvedNodeCount: number;
-  approvedEdgeCount: number;
-}
-
-/**
- * Output 의 일부 또는 전체 후보를 거절. T-11 정확도 측정의 분모(전체 후보 =
- * approve + reject) 보존이 목적. `knowledgeApprovedNodes/Edges` 는 변경하지
- * 않고 reviews/approvalEvents 에만 거절 사실을 남긴다.
- *
- * `rejectedNodeTempIds` / `rejectedEdgeTempIds` 가 비어있거나 미제공이면
- * "전체 거절" 로 간주한다 (output 의 모든 nodes/edges).
- */
-export interface RejectKnowledgeOutputInput {
-  accountId?: string | null;
-  documentId: string;
-  documentVersionId: string;
-  outputId?: string;
-  rejectedNodeTempIds?: string[];
-  rejectedEdgeTempIds?: string[];
-  reason?: string;
-}
-
-export interface RejectKnowledgeOutputResult {
-  reviewId: string;
-  approvalEventId: string;
-  outputId: string;
-  rejectedNodeCount: number;
-  rejectedEdgeCount: number;
-}
-
 export interface PublishKnowledgeProjectionInput {
   accountId?: string | null;
 }

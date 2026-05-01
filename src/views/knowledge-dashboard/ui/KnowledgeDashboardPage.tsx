@@ -10,7 +10,6 @@ import {
   getKnowledgeDocumentKindLabel,
   getKnowledgeDocumentListHref,
   getKnowledgeDocumentNewHref,
-  getKnowledgeReviewWorkspaceHref,
   getKnowledgeDocumentStatusLabel,
   subscribeKnowledgeDocuments,
   type KnowledgeDocument,
@@ -88,9 +87,9 @@ function DashboardContent() {
         eyebrow: "지금 할 일",
         title: `챙길 문서 ${summary.pending}개`,
         description:
-          "분석이 끝난 문서예요. 골라내서 공개 화면에 보일지 정해 주세요.",
-        href: getKnowledgeReviewWorkspaceHref(undefined, accountId),
-        cta: "문서 확인 열기",
+          "frontmatter 또는 빌더에서 ontology 노드를 직접 추가해 보세요.",
+        href: "/docs/",
+        cta: "vault 열기",
       };
     }
 
@@ -290,19 +289,16 @@ function DashboardContent() {
                       {publicMeta.currentPublishId}
                     </dd>
                   </dl>
-                  <Link
-                    href={getKnowledgeReviewWorkspaceHref(undefined, accountId)}
-                    className="inline-flex"
-                  >
+                  <Link href="/docs/" className="inline-flex">
                     <Button type="button" variant="outline" size="sm">
-                      다음 문서 골라내기
+                      vault 열기
                     </Button>
                   </Link>
                 </div>
               ) : (
                 <div className="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
                   <p className="text-sm text-[color:var(--color-text-tertiary)]">
-                    공개에 보이기까지 세 단계: (1) 문서 올리기 → (2) 골라내기 → (3) 공개에 보이기.
+                    공개에 보이기까지 두 단계: (1) 문서 올리기 → (2) 공개에 보이기. ontology 노드는 vault frontmatter 또는 빌더에서 직접 추가.
                   </p>
                   <Link
                     href={getKnowledgeDocumentNewHref(accountId)}
