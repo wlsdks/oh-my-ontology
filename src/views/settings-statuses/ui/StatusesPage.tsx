@@ -7,7 +7,7 @@ import {
   useState,
   type MouseEvent,
 } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Plus, SquareArrowOutUpRight, Trash2 } from "lucide-react";
@@ -67,11 +67,13 @@ type StatusDraft = {
   dotColor: StatusDotColor;
 };
 
-const DOT_COLOR_OPTIONS: Array<{ value: StatusDotColor; label: string }> = [
-  { value: "neutral", label: "Neutral" },
-  { value: "warning", label: "Warning" },
-  { value: "success", label: "Success" },
-  { value: "paused", label: "Paused" },
+// Round 9b T1-4: dotColor 라벨도 t() 로. value 는 enum 그대로, label 은
+// 호출 시점에 useTranslations 으로 해소 (이전엔 영문 하드코딩 → ko UI 깨짐).
+const DOT_COLOR_VALUES: ReadonlyArray<StatusDotColor> = [
+  "neutral",
+  "warning",
+  "success",
+  "paused",
 ];
 
 const DOT_COLOR_PREVIEW_CLASS: Record<StatusDotColor, string> = {
@@ -451,7 +453,7 @@ function StatusesContent() {
           <section className="rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] p-3">
             <div className="mb-3 flex items-center justify-between px-2">
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                Statuses
+                {t("sectionStatuses")}
               </span>
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
                 {statuses.length}
@@ -637,9 +639,9 @@ function StatusesContent() {
                     }
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   >
-                    {DOT_COLOR_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {DOT_COLOR_VALUES.map((value) => (
+                      <option key={value} value={value}>
+                        {t(`dotColor.${value}` as 'dotColor.neutral' | 'dotColor.warning' | 'dotColor.success' | 'dotColor.paused')}
                       </option>
                     ))}
                   </select>
@@ -677,7 +679,7 @@ function StatusesContent() {
               <section className="mt-6 border-t border-[color:var(--color-overlay-2)] pt-6">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                    Referenced Projects
+                    {t("sectionReferenced")}
                   </h3>
                   <span
                     data-testid="status-linked-project-count"
@@ -717,7 +719,7 @@ function StatusesContent() {
               <section className="mt-6 border-t border-[color:var(--color-overlay-2)] pt-6">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                    Reassign and delete
+                    {t("sectionReassign")}
                   </h3>
                   <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--color-text-quaternary)]">
                     {t("reassignProjectsBadge", { count: selectedProjects.length })}

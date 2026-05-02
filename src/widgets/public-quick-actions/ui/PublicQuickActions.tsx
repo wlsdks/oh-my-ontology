@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { Link, usePathname } from "@/i18n/navigation";
 import { useMemo } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { CopyPlus, PencilLine } from "lucide-react";
 import { useScopedAccountAccess } from "@/features/account-scope";
 import { Button, InfoHint } from "@/shared/ui";

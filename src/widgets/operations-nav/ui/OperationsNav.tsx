@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { Link, useRouter, usePathname } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { signOut } from '@/features/user-auth';
 import { useDataSourceMode } from '@/features/data-source-mode';

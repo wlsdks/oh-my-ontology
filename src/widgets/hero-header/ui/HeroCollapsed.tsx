@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, BookOpen, ChevronsRight, Network } from "lucide-react";

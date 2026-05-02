@@ -9,7 +9,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { BookOpen, X } from "lucide-react";
 import { useTypingShortcuts } from "@/shared/lib/use-typing-shortcut";

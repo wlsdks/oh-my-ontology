@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { usePathname } from '@/i18n/navigation';
 import {
   applyHomeRouteState,
   DEFAULT_HOME_ROUTE_STATE,

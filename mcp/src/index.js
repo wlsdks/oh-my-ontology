@@ -53,7 +53,20 @@ import {
 import { parseFilter } from './query.mjs';
 
 const VAULT_ROOT = resolve(process.env.OMOT_VAULT || process.cwd());
-ensureVaultRoot(VAULT_ROOT);
+// Round 9b T1-8: 이전엔 ensureVaultRoot 가 import-time 동기 throw 라
+// stdio transport 가 붙기 전 stack trace 가 stderr 로 새고 클라이언트 (Claude
+// Code 등) 에선 silent crash 처럼 보였다. 이제 친절한 한 줄 메시지 + non-zero
+// exit — Claude Code 가 server log 에 명확하게 보여주도록.
+try {
+  ensureVaultRoot(VAULT_ROOT);
+} catch (err) {
+  const msg = err instanceof Error ? err.message : String(err);
+  process.stderr.write(`[oh-my-ontology-mcp] vault root 검증 실패: ${msg}\n`);
+  process.stderr.write(
+    `[oh-my-ontology-mcp] OMOT_VAULT 환경 변수가 markdown vault 디렉토리를 가리키게 설정해 주세요. (현재: ${VAULT_ROOT})\n`,
+  );
+  process.exit(1);
+}
 
 const server = new Server(
   { name: 'oh-my-ontology-mcp', version: '0.6.0' },

@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { KNOWLEDGE_EDGE_TYPES } from "@/entities/knowledge-graph";
 import { useOntologyInsight, isVaultSentinelDate } from "@/features/vault-ontology";
@@ -46,7 +45,6 @@ function getTypeLabel(
  */
 export function OntologyRelationsPage() {
   const t = useTranslations("ontologyPages.relations");
-  const searchParams = useSearchParams();
   const accountId = null;
 
   const { insight, error } = useOntologyInsight(accountId);

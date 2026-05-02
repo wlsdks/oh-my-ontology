@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState, type MouseEvent } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { ArrowLeft, ArrowUpRight, CopyPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ProjectForm } from "@/features/project-edit";
@@ -242,7 +242,7 @@ function EditorContent({
       <div className="mx-auto max-w-4xl">
         <Link
           href={safeReturnTo}
-          data-testid="admin-project-back-link"
+          data-testid="project-editor-back-link"
           onClick={(event) => handleNavigateWithGuard(event, safeReturnTo)}
           className="inline-flex items-center gap-1.5 break-keep text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
         >
@@ -315,7 +315,7 @@ function EditorContent({
                   href={`/project/new/?from=${encodeURIComponent(
                     slug,
                   )}&returnTo=${encodeURIComponent(safeReturnTo)}`}
-                  data-testid="admin-project-duplicate"
+                  data-testid="project-editor-duplicate"
                   onClick={(event) =>
                     handleNavigateWithGuard(
                       event,

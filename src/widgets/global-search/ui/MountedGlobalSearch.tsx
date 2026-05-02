@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import type { KnowledgeGraphNode } from "@/entities/knowledge-graph";
 import { type Project, getProjectDetailHref } from "@/entities/project";
 import { useProjects } from "@/features/project-data-source";

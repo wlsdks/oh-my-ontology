@@ -90,6 +90,48 @@ test('OR widens the result', () => {
   }
 });
 
+console.log('parseFilter — Round 9b T1-6: precedence + parens');
+test('AND binds tighter than OR (NOT > AND > OR)', () => {
+  // a OR b AND c  →  a OR (b AND c).  Pre-fix would have grouped as (a OR b) AND c.
+  // With our docs: kind=domain OR kind=capability AND domain=auth
+  // Correct: kind=domain → {auth}, kind=capability AND domain=auth → {login, signup}
+  // Union: {auth, login, signup}.
+  const { match } = parseFilter('kind=domain OR kind=capability AND domain=auth');
+  const matched = docs.filter(match).map((d) => d.slug);
+  if (JSON.stringify(matched) !== JSON.stringify(['auth', 'login', 'signup'])) {
+    throw new Error(`got ${matched.join(',')}`);
+  }
+});
+
+test('parens override precedence — (kind=domain OR kind=capability) AND has(elements)', () => {
+  // Without parens this would mean: kind=domain OR (kind=capability AND has(elements))
+  //   → {auth} ∪ {login} = {auth, login}.
+  // With parens: (kind=domain OR kind=capability) AND has(elements)
+  //   → {auth, login, signup} ∩ {login} = {login}.
+  const { match } = parseFilter('(kind=domain OR kind=capability) AND has(elements)');
+  const matched = docs.filter(match).map((d) => d.slug);
+  if (JSON.stringify(matched) !== JSON.stringify(['login'])) {
+    throw new Error(`got ${matched.join(',')}`);
+  }
+});
+
+test('nested parens', () => {
+  const { match } = parseFilter('NOT (kind=vault-readme OR kind=element)');
+  const matched = docs.filter(match).map((d) => d.slug);
+  if (JSON.stringify(matched) !== JSON.stringify(['auth', 'login', 'signup'])) {
+    throw new Error(`got ${matched.join(',')}`);
+  }
+});
+
+test('unclosed paren throws', () => {
+  try {
+    parseFilter('(kind=domain');
+    throw new Error('should have thrown');
+  } catch (err) {
+    if (!err.message.includes('expected `)`')) throw err;
+  }
+});
+
 console.log('parseFilter — quoted values');
 test('title="Auth" works with quotes', () => {
   const { match } = parseFilter('title="Auth"');

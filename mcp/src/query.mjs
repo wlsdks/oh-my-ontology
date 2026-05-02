@@ -8,8 +8,12 @@
  *
  * Grammar (case-insensitive keywords, whitespace-tolerant):
  *
- *   filter   := atom ( ('AND'|'OR') atom )*
- *   atom     := 'NOT'? predicate
+ *   filter   := orExpr
+ *   orExpr   := andExpr ( 'OR' andExpr )*
+ *   andExpr  := atom ( 'AND' atom )*
+ *   atom     := 'NOT'? primary
+ *   primary  := '(' filter ')'
+ *             | predicate
  *   predicate := key '=' value          // exact match: kind=capability
  *              | key '!=' value         // not equal
  *              | 'has' '(' key ')'      // array key non-empty
@@ -18,12 +22,17 @@
  * and any frontmatter array key for `has(...)` (e.g. `has(elements)`,
  * `has(capabilities)`, `has(depends_on)`).
  *
- * Operator precedence: NOT > AND > OR (parens NOT supported in v1).
+ * Operator precedence (highest → lowest): NOT > AND > OR. Use parens
+ * to override: `(kind=domain OR kind=capability) AND has(elements)`.
+ * Round 9b T1-6 fix: 이전엔 left-associative same-precedence 라
+ * `a AND b OR c` 가 `(a AND b) OR c` 가 아니라 `((a OR b) AND c)` 로
+ * 파싱되는 doc 와 구현 mismatch + 괄호 미지원이었음.
  *
  * Examples:
  *   kind=capability AND domain=auth AND NOT has(elements)
  *   kind=domain AND has(capabilities)
  *   slug!=README AND has(depends_on)
+ *   (kind=domain OR kind=capability) AND has(elements)
  *
  * Returns: { match: (doc) => boolean, repr: string } — repr 은 디버그용.
  */
@@ -122,15 +131,34 @@ function tokenize(input) {
 }
 
 // ── parser ────────────────────────────────────────────────────────────────
+//
+// Round 9b T1-6: precedence 분리. 이전 단일 `parseExpr` 가 AND / OR 를
+// 동급 left-associative 로 처리해 문서 (`NOT > AND > OR`) 와 mismatch.
+// 새 구조: parseExpr → parseOr → parseAnd → parseAtom → parsePrimary.
 
 function parseExpr(tokens, pos) {
-  // expr := atom (('AND'|'OR') atom)*  — left-associative.
+  return parseOr(tokens, pos);
+}
+
+function parseOr(tokens, pos) {
+  let { node: left, next } = parseAnd(tokens, pos);
+  while (next < tokens.length) {
+    const t = tokens[next];
+    if (t.type !== 'logical' || t.value !== 'OR') break;
+    const { node: right, next: after } = parseAnd(tokens, next + 1);
+    left = { type: 'logical', op: 'OR', left, right };
+    next = after;
+  }
+  return { node: left, next };
+}
+
+function parseAnd(tokens, pos) {
   let { node: left, next } = parseAtom(tokens, pos);
   while (next < tokens.length) {
     const t = tokens[next];
-    if (t.type !== 'logical' || (t.value !== 'AND' && t.value !== 'OR')) break;
+    if (t.type !== 'logical' || t.value !== 'AND') break;
     const { node: right, next: after } = parseAtom(tokens, next + 1);
-    left = { type: 'logical', op: t.value, left, right };
+    left = { type: 'logical', op: 'AND', left, right };
     next = after;
   }
   return { node: left, next };
@@ -142,6 +170,21 @@ function parseAtom(tokens, pos) {
   if (t.type === 'logical' && t.value === 'NOT') {
     const { node, next } = parseAtom(tokens, pos + 1);
     return { node: { type: 'not', child: node }, next };
+  }
+  return parsePrimary(tokens, pos);
+}
+
+function parsePrimary(tokens, pos) {
+  const t = tokens[pos];
+  if (!t) throw new Error('unexpected end of filter');
+  // Round 9b T1-6: parenthesized sub-expression.
+  if (t.type === 'paren' && t.value === '(') {
+    const { node, next } = parseExpr(tokens, pos + 1);
+    const closing = tokens[next];
+    if (!closing || closing.type !== 'paren' || closing.value !== ')') {
+      throw new Error('expected `)` to close group');
+    }
+    return { node, next: next + 1 };
   }
   if (t.type === 'fn' && t.value === 'has') {
     // has ( key )

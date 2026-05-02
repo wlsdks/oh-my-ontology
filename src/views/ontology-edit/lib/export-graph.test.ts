@@ -49,7 +49,22 @@ describe('export-graph', () => {
 
     it('includes account in URN', () => {
       const out = buildJsonLd({ ephemeralNodes: nodes, ephemeralEdges: [], accountId: 'demo' });
-      expect(out).toContain('urn:omot:demo:project:auth-platform');
+      // Round 9b T1-9: URN 은 항상 ephemeral id 의 shortId suffix 로 collision 방지.
+      expect(out).toMatch(/urn:omot:demo:project:auth-platform-/);
+    });
+
+    it('disambiguates duplicate-titled nodes (Round 9b T1-9 collision fix)', () => {
+      const dupes: EphemeralNode[] = [
+        { id: 'n_xxx111', title: 'Auth', kind: 'capability', kindLabel: 'Capability', x: 0, y: 0 },
+        { id: 'n_yyy222', title: 'Auth', kind: 'capability', kindLabel: 'Capability', x: 0, y: 0 },
+      ];
+      const out = buildJsonLd({ ephemeralNodes: dupes, ephemeralEdges: [], accountId: 'demo' });
+      const doc = JSON.parse(out);
+      expect(doc['@graph']).toHaveLength(2);
+      const ids = doc['@graph'].map((n: { '@id': string }) => n['@id']);
+      // 두 노드가 서로 다른 URN 을 가진다 — 이전엔 둘 다 `...:capability:auth` 로 silent merge 됐음.
+      expect(ids[0]).not.toBe(ids[1]);
+      expect(new Set(ids).size).toBe(2);
     });
   });
 

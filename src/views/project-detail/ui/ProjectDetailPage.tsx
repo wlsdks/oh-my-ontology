@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import ReactMarkdown from "react-markdown";
