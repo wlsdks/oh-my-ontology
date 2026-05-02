@@ -168,7 +168,11 @@ function AdminDocsContent() {
   const [recentSlugs, setRecentSlugs] = useState<string[]>([]);
   const [pinnedSlugs, setPinnedSlugs] = useState<string[]>([]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
-  const [source, setSource] = useState<Source>('server');
+  // ?intent=local — landing CTA "내 마크다운 폴더 열기" 의 진입 query.
+  // source 초기값을 'local' 로 박아 처음부터 picker UI 가 우측 sidebar 에
+  // 보이게 (eval B4 finding — 이전엔 picker 가 4-단계 깊숙이 묻혀 있었음).
+  const initialIntentLocal = searchParams?.get('intent') === 'local';
+  const [source, setSource] = useState<Source>(initialIntentLocal ? 'local' : 'server');
   const [mobileTreeOpen, setMobileTreeOpen] = useState(false);
   const [radarConfirmedKeys, setRadarConfirmedKeys] = useState<Set<string>>(
     () => new Set(),

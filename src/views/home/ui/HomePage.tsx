@@ -68,6 +68,10 @@ const SigmaHubRail = dynamic(
   () => import("@/widgets/topology-map-sigma").then((m) => m.SigmaHubRail),
   { ssr: false },
 );
+const TopologyEmptyState = dynamic(
+  () => import("@/widgets/topology-map-sigma").then((m) => m.TopologyEmptyState),
+  { ssr: false },
+);
 const SearchPalette = dynamic(
   () => import("@/widgets/search-palette").then((m) => m.SearchPalette),
   { ssr: false },
@@ -794,6 +798,13 @@ export function HomePage() {
                 key={localGraphRoot ?? '__root__'}
                 className="absolute inset-0 animate-[sigmaFade_220ms_ease-out]"
               >
+                {/* Empty-state overlay when the visible Sigma graph has 0–1
+                    nodes (eval B3 finding) — the lone Sigma dot reads as
+                    broken. sigmaVisibleCount 은 Sigma 가 첫 mount 후 reports.
+                    null 일 땐 가짠 카드 깜빡임 회피 위해 mount 만 기다림. */}
+                {sigmaVisibleCount !== null && sigmaVisibleCount <= 1 ? (
+                  <TopologyEmptyState projectCount={sigmaVisibleCount} />
+                ) : null}
                 <SigmaTopology
                   projects={localGraphProjects}
                   categories={taxonomyCategories}

@@ -17,6 +17,7 @@ import { downloadProjectsCsv } from "@/features/project-export";
 import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
 import { useDataSourceMode } from "@/features/data-source-mode";
 import { PublicAccountMenu } from "@/widgets/account-menu";
+import { OperationsNav } from "@/widgets/operations-nav";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import {
   ACCOUNT_QUERY_KEY,
@@ -219,8 +220,13 @@ export function ProjectSelectorPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[color:var(--color-canvas)] px-5 py-6 md:px-10 md:py-14">
-      <div className="mx-auto max-w-6xl">
+    <main id="main" className="min-h-screen bg-[color:var(--color-canvas)]">
+      {/* OperationsNav surface 일관성 (eval H1 finding) — 다른 운영 surface
+          (/docs, /ontology/edit, /ontology/insights, /settings/*) 와 같은
+          탭 + ModeBadge + LocaleSwitch + ThemeToggle. /projects 만 제외돼
+          있어 사용자가 cross-surface 점프 못 했음. */}
+      <OperationsNav />
+      <div className="mx-auto max-w-6xl px-5 py-6 md:px-10 md:py-14">
         <div className="mb-5 flex items-center justify-end gap-3">
           <Link
             href={overviewHref}
