@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight, FileText, Folder } from 'lucide-react';
 import type {
   VaultMode,
@@ -166,11 +167,12 @@ export function DocsVaultTree({
   activeTag,
   activeTagSlugs,
 }: Props) {
+  const t = useTranslations('vaultWidgets.tree');
   const children = useMemo(() => tree.children ?? [], [tree]);
   const tagSlugs = activeTag ? activeTagSlugs : undefined;
   return (
     <nav
-      aria-label="문서 트리"
+      aria-label={t('navAria')}
       className="flex h-full flex-col gap-0.5 overflow-auto py-2"
     >
       {[...children]

@@ -671,6 +671,9 @@
     "tags": {
       "sectionLabel": "Tags",
       "rowTitle": "{tag} · {count} items"
+    },
+    "tree": {
+      "navAria": "Document tree"
     }
   },
   "ontologyPages": {

@@ -671,6 +671,9 @@
     "tags": {
       "sectionLabel": "태그",
       "rowTitle": "{tag} · {count}건"
+    },
+    "tree": {
+      "navAria": "문서 트리"
     }
   },
   "ontologyPages": {
