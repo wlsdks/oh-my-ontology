@@ -88,22 +88,17 @@ function ProjectDetailShell({ children }: { children: ReactNode }) {
 
 function ProjectDetailBreadcrumb({
   slug,
-  accountId,
   projectName,
 }: {
   slug?: string;
-  accountId?: string | null;
   projectName?: string | null;
 }) {
   const t = useTranslations("projectPages.detail");
   // Workspace ▸ Project 3단 컨텍스트 표시. 사용자가 "여기는 1 프로젝트 안"
   // 이라는 걸 한눈에 파악하도록 홈의 워크스페이스 지도와 구분 시그널.
-  const workspaceHref = accountId
-    ? `/?account=${encodeURIComponent(accountId)}`
-    : '/';
-  const projectsListHref = accountId
-    ? `/projects/?account=${encodeURIComponent(accountId)}`
-    : '/projects/';
+  // R10 후 ?account= query 제거 — workspaceHref / projectsListHref 모두 단순.
+  const workspaceHref = '/';
+  const projectsListHref = '/projects/';
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Link
@@ -156,14 +151,12 @@ function ProjectDetailTopBar({
   rightActions?: React.ReactNode;
 }) {
   const t = useTranslations("projectPages.detail");
-  const docsVaultHref = accountId
-    ? `/docs/?account=${encodeURIComponent(accountId)}`
-    : '/docs/';
+  // R10 후 ?account= query 제거 — docs vault 링크 단순.
+  const docsVaultHref = '/docs/';
   return (
     <div className="flex items-start justify-between gap-4">
       <ProjectDetailBreadcrumb
         slug={slug}
-        accountId={accountId}
         projectName={projectName}
       />
       <div className="flex items-center gap-2">
