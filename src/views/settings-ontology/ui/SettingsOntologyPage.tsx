@@ -149,7 +149,7 @@ function SettingsOntologyContent() {
             role="status"
             className="mb-4 rounded-2xl border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.06)] px-5 py-3 text-[12.5px] leading-5 text-[color:rgba(159,170,235,0.95)]"
           >
-            새 version <span className="font-mono">{recentVersionId}</span> 활성화 완료. 추출 워커 + 매뉴얼 작성이 새 schema 를 자동 사용해요.
+            새 version <span className="font-mono">{recentVersionId}</span> 활성화 완료. 빌더 / MCP / cloud manual 노드 모두 새 schema 를 자동 사용해요.
           </div>
         ) : null}
 

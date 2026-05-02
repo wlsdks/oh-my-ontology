@@ -761,16 +761,25 @@ function NodeDetailPanel({
         </div>
       ) : null}
 
-      <dl className="grid grid-cols-2 gap-2 text-[11px]">
-        <DetailRow
-          label="연결 프로젝트"
-          value={node.projectIds.length > 0 ? node.projectIds.join(", ") : "—"}
-        />
-        <DetailRow
-          label="근거 수"
-          value={String(node.evidenceCount ?? node.evidenceIds.length)}
-        />
-      </dl>
+      {/* "근거 수" stat 은 cloud LLM 추출 산출물 — vault 노드는 evidenceCount 0
+          이라 의미 0. 둘 다 0 이면 row 자체 hide → 1-col grid 로 단순화. */}
+      {(() => {
+        const evidenceCount = node.evidenceCount ?? node.evidenceIds.length;
+        const showEvidence = evidenceCount > 0;
+        return (
+          <dl
+            className={`grid gap-2 text-[11px] ${showEvidence ? "grid-cols-2" : "grid-cols-1"}`}
+          >
+            <DetailRow
+              label="연결 프로젝트"
+              value={node.projectIds.length > 0 ? node.projectIds.join(", ") : "—"}
+            />
+            {showEvidence ? (
+              <DetailRow label="근거 수" value={String(evidenceCount)} />
+            ) : null}
+          </dl>
+        );
+      })()}
       <p className="mt-2 break-all font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
         {node.id}
       </p>

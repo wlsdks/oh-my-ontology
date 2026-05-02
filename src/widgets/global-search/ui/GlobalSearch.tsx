@@ -198,7 +198,7 @@ export function GlobalSearch({
             value={query}
             onValueChange={setQuery}
             placeholder={
-              documents
+              documents && documents.length > 0
                 ? "개념 · 글 검색 — 한·영 혼합 OK"
                 : "개념 검색 — 한·영 혼합 OK"
             }

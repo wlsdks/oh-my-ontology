@@ -227,8 +227,8 @@ function EphemeralDetail({
       ) : null}
       <p className="text-[11px] leading-4 text-[color:var(--color-text-quaternary)]">
         {titleEmpty
-          ? "이름을 입력하면 manual 노드로 저장할 수 있어요."
-          : "저장 시 knowledgeApprovedNodes 의 manual 항목으로 추가됩니다."}
+          ? "이름을 입력하면 저장할 수 있어요."
+          : "저장 시 vault 의 .md 파일로 (cloud 모드면 Firestore 에) 작성됩니다."}
       </p>
     </div>
   );
