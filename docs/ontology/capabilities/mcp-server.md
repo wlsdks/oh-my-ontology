@@ -1,7 +1,7 @@
 ---
 slug: capabilities/mcp-server
 kind: capability
-title: MCP Server (10 tools)
+title: MCP Server (12 tools)
 domain: ai-agent-partner
 elements:
   - mcp/src/index.js
@@ -12,9 +12,9 @@ relates:
   - domains/ai-agent-partner
 ---
 
-# MCP Server (10 tools)
+# MCP Server (12 tools)
 
-`@modelcontextprotocol/sdk` 기반 stdio JSON-RPC 서버 (v0.4.0). 10 도구 노출:
+`@modelcontextprotocol/sdk` 기반 stdio JSON-RPC 서버. 12 도구 노출 (read 8 + write 4):
 
 | 도구 | 동작 |
 |---|---|
@@ -24,9 +24,11 @@ relates:
 | `find_backlinks` | 특정 slug 를 가리키는 다른 노드들 (frontmatter array 키 + body wikilink/mdlink) |
 | `find_path` | 두 slug 사이 그래프 최단 경로 (BFS, 무방향, default maxHops 5) |
 | `list_kinds` | kind 분포 census (`{ total, byKind: { capability: N, ... } }`) |
+| `find_orphans` | 어디서도 link 안 받는 고립 노드 (kind 필터, vault-readme 자동 제외) |
+| `query_concepts` | DSL 기반 ad-hoc 쿼리 (frontmatter 키 = / contains / exists 조합) |
 | `add_concept` | 새 노드 (.md) 작성 — 기존 slug 면 throw |
 | `add_relation` | depends_on / relates / contains / describes edge 추가 |
 | `patch_concept` | 기존 노드 frontmatter (key 단위 patch) + body 갱신 |
-| `delete_concept` | **v0.4 ⚠ DESTRUCTIVE** — 노드 영구 삭제. 안전 가드 2단: ① `confirm:true` 미지정 시 dry-run, ② backlinks 있으면 throw — `force:true` 만 강행. 응답에 frontmatter+body 캡처. |
+| `delete_concept` | **⚠ DESTRUCTIVE** — 노드 영구 삭제. 안전 가드 2단: ① `confirm:true` 미지정 시 dry-run, ② backlinks 있으면 throw — `force:true` 만 강행. 응답에 frontmatter+body 캡처. |
 
 환경변수 `OMOT_VAULT` 로 vault 위치 지정. 등록 가이드: `mcp/README.md`. 1줄 verify: `npm run verify` (mcp/).
