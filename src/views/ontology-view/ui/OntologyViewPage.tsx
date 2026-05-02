@@ -322,9 +322,9 @@ export function OntologyViewPage() {
                       ["2", t('getStarted.stepLocalBuilderTitle'), t('getStarted.stepLocalBuilderDesc')],
                     ]
                   : [
-                      ["1", t('getStarted.stepCloudVaultTitle'), t('getStarted.stepCloudVaultDesc')],
-                      ["2", t('getStarted.stepCloudFrontmatterTitle'), t('getStarted.stepCloudFrontmatterDesc')],
-                      ["3", t('getStarted.stepCloudBuilderTitle'), t('getStarted.stepCloudBuilderDesc')],
+                      ["1", t('getStarted.stepStaticVaultTitle'), t('getStarted.stepStaticVaultDesc')],
+                      ["2", t('getStarted.stepStaticFrontmatterTitle'), t('getStarted.stepStaticFrontmatterDesc')],
+                      ["3", t('getStarted.stepStaticBuilderTitle'), t('getStarted.stepStaticBuilderDesc')],
                     ]
                 ).map(([step, title, desc]) => (
                   <li key={step} className="flex gap-3">
