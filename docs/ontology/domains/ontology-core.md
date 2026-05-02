@@ -4,16 +4,11 @@ kind: domain
 title: Ontology Core (TBox · ABox · Evidence)
 capabilities:
   - frontmatter-to-ontology
-  - tbox-class-relation
-  - tbox-versioning
-  - evidence-grounding
-  - stub-resolution
 elements:
   - src/entities/ontology-class
   - src/entities/ontology-relation
-  - src/entities/ontology-tbox
   - src/entities/knowledge-graph
-  - src/shared/lib/derive-ontology-from-vault
+  - src/entities/docs-vault/lib/derive-ontology-from-vault
 relates:
   - domains/vault-local-first
   - domains/views
