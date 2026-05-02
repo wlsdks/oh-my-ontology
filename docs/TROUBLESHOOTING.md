@@ -150,17 +150,11 @@ Use `pnpm test:run` for one-shot mode. `pnpm test` is watch mode.
 
 ---
 
-## Firebase (optional)
+## Hosted demo
 
-Local-first works without Firebase. If you opted into cloud sync:
+### The hosted demo shows different data than my vault
 
-### "Permission denied" reading `knowledgeApprovedNodes`
-
-Firestore rules require auth + project membership. Sign in (`/login`) first.
-
-### Hosted demo at oh-my-ontology.web.app shows your old data
-
-The hosted demo serves *our* dogfood vault (the project's own `docs/ontology/`). Your data only appears when you self-host or run the workbench locally pointed at your own folder.
+The hosted demo serves *our* dogfood vault (the project's own `docs/ontology/`). Your vault data only appears when you self-host the workbench or run it locally and point it at your own markdown folder via `/docs`.
 
 ---
 
