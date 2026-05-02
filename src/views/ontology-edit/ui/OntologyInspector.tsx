@@ -500,9 +500,12 @@ function ArrayKeyEditor({
 }) {
   const [input, setInput] = useState("");
   // 노드 변경 시 입력 buffer 초기화 — 다른 노드의 입력이 새 노드에 새 옴 안 함.
+  // 이전 deps 의 \`values.join("|")\` 가 복합 표현 (lint 경고) 이라 별도
+  // signature 로 추출.
+  const valuesSignature = values.join("|");
   useEffect(() => {
     setInput("");
-  }, [values.join("|"), fieldKey]);
+  }, [valuesSignature, fieldKey]);
   const submit = () => {
     const trimmed = input.trim();
     if (!trimmed || values.includes(trimmed) || disabled) return;
