@@ -98,6 +98,7 @@
     "capability": "Capability",
     "element": "Element",
     "document": "Document",
+    "vault-readme": "Vault README",
     "unknown": "Unresolved"
   },
   "topologyWidgets": {

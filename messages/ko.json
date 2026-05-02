@@ -98,6 +98,7 @@
     "capability": "역량",
     "element": "요소",
     "document": "문서",
+    "vault-readme": "Vault 안내",
     "unknown": "미지"
   },
   "topologyWidgets": {

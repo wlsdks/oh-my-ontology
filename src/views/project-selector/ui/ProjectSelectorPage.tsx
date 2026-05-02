@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useCallback, useMemo } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, FolderKanban, Shield } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useScopedAccountAccess } from "@/features/account-scope";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState, type MouseEvent } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { ArrowLeft, ArrowUpRight, CopyPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ProjectForm } from "@/features/project-edit";
