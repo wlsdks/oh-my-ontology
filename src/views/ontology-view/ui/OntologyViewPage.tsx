@@ -78,9 +78,8 @@ export function OntologyViewPage() {
 
   // ⌘K / Ctrl+K — 페이지-스코프 concept search 토글.
   useGlobalSearchHotkey(searchOpen, setSearchOpen);
-  // ⇧⌘K — global search (ontology + projects + docs). eval H2 finding —
-  // /topology, /ontology/insights, /ontology/relations 는 ⇧⌘K 가 동작하는데
-  // /ontology/ (ontology hub, 가장 많이 들르는 페이지) 만 안 됐음. 일관성 회복.
+  // ⇧⌘K — global search (ontology + projects + docs). 다른 ontology / topology
+  // surface 와 동일한 단축키로 ontology hub 일관성 유지.
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   useGlobalSearchHotkey(globalSearchOpen, setGlobalSearchOpen, { shift: true });
 
@@ -184,8 +183,8 @@ export function OntologyViewPage() {
               flex-wrap + horizontal scroll 보조. md+ 는 한 줄 유지. -mr/-ml
               음수 마진 + px padding 으로 우측 잘림 방지. */}
           <div className="-mx-1 flex w-full items-center gap-2 overflow-x-auto px-1 pb-1 md:w-auto md:flex-wrap md:overflow-visible md:pb-0">
-            {/* R10b — Add Node 는 빌더 (/ontology/edit) 에서. cloud manual node
-                modal 사라지면서 vault 기반 단일 진입점으로 통일. */}
+            {/* Add Node 는 빌더 (/ontology/edit) — vault frontmatter 가
+                단일 진입점이라 별도 modal 안 둔다. */}
             <Tooltip content={t('actions.addNodeTooltip')} withProvider={false}>
               <Link
                 href="/ontology/edit/"
@@ -363,10 +362,10 @@ export function OntologyViewPage() {
                   </>
                 )}
               </div>
-              {/* UX-1 — local 모드 빈 vault 사용자에게 *복사·붙여넣기*
-                  가능한 frontmatter snippet inline 노출. 사용자가 빌더
-                  진입 없이도 vault 에 직접 `.md` 만들 수 있게. AI agent
-                  (MCP) 도 이 형식 그대로 add_concept 호출. */}
+              {/* local 모드 빈 vault 사용자에게 *복사·붙여넣기* 가능한
+                  frontmatter snippet inline 노출 — 빌더 진입 없이도 직접
+                  `.md` 작성 가능. AI agent (MCP) 도 동일 포맷으로
+                  add_concept 호출. */}
               {dataSourceMode === 'local' ? (
                 <details className="mt-4 rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-4 py-3">
                   <summary className="cursor-pointer list-none text-[12px] text-[color:var(--color-text-secondary)]">
@@ -566,9 +565,8 @@ function NodeDetailPanel({
     ? evidenceList
     : evidenceList.slice(0, EVIDENCE_PREVIEW);
   const hiddenEvidenceCount = Math.max(0, evidenceList.length - visibleEvidence.length);
-  // mission v2: cloud markdown 호스팅 (`/knowledge/documents`) 제거 후
-  // evidenceId 는 vault `.md` slug 거나 manual node id. 별도 detail
-  // 라우트 없음 — 클릭 안 되는 chip 으로 표시.
+  // evidenceId 는 vault `.md` slug — 별도 detail 라우트가 없어 클릭
+  // 불가능한 chip 으로만 표시.
 
   return (
     <aside
@@ -592,9 +590,9 @@ function NodeDetailPanel({
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <CopyNodeLinkButton node={node} />
-          {/* R10b: cloud manual edge modal 제거. 새 edge 는 vault frontmatter
-              array (capabilities/elements/dependencies/relates/contains/describes)
-              에 직접 추가 또는 builder canvas (/ontology/edit) 에서. */}
+          {/* 새 edge 는 vault frontmatter array (capabilities / elements /
+              dependencies / relates / contains / describes) 직접 추가 또는
+              builder canvas (/ontology/edit). */}
           <button
             type="button"
             onClick={onClose}
@@ -623,8 +621,9 @@ function NodeDetailPanel({
         </div>
       ) : null}
 
-      {/* "근거 수" stat 은 cloud LLM 추출 산출물 — vault 노드는 evidenceCount 0
-          이라 의미 0. 둘 다 0 이면 row 자체 hide → 1-col grid 로 단순화. */}
+      {/* "근거 수" stat: vault frontmatter 에는 evidenceCount 가 채워지지
+          않아 항상 0 → 표시 의미 0. 둘 다 0 이면 row 자체 hide → 1-col
+          grid 로 단순화. */}
       {(() => {
         const evidenceCount = node.evidenceCount ?? node.evidenceIds.length;
         const showEvidence = evidenceCount > 0;
