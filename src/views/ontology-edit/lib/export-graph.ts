@@ -47,11 +47,17 @@ export function buildJsonLd(input: GraphExportInput): string {
     describes: { '@id': 'omot:describes', '@type': '@id' },
   };
 
-  // node id → URI
+  // node id → URI.
+  // Round 9b T1-9: 이전엔 `simpleSlug(n.title)` 만 써서 같은 title 노드가
+  // 동일 URN 이 됐고 JSON-LD 가 silently merge. 이제 항상 ephemeral id 의
+  // shortId 를 suffix 로 붙여 collision 방지 (GraphML 와 같은 정책).
   const nodeIdToUri = new Map<string, string>();
   for (const n of ephemeralNodes) {
     const slug = simpleSlug(n.title);
-    nodeIdToUri.set(n.id, `${URN_BASE}:${accountId}:${n.kind}:${slug}`);
+    nodeIdToUri.set(
+      n.id,
+      `${URN_BASE}:${accountId}:${n.kind}:${slug}-${shortId(n.id)}`,
+    );
   }
 
   // 노드별로 outgoing edges 를 grouping 해 같은 객체 안에 predicate 으로 적재.

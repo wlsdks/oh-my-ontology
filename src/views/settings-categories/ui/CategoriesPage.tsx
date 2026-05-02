@@ -482,7 +482,7 @@ function CategoriesContent() {
           <section className="rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] p-3">
             <div className="mb-3 flex items-center justify-between px-2">
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                Categories
+                {t("sectionCategories")}
               </span>
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
                 {categories.length}
@@ -796,7 +796,7 @@ function CategoriesContent() {
                 <section className="mt-6 border-t border-[color:var(--color-overlay-2)] pt-6">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                      Referenced Projects
+                      {t("sectionReferenced")}
                     </h3>
                     <span
                       data-testid="category-linked-project-count"
@@ -836,7 +836,7 @@ function CategoriesContent() {
                 <section className="mt-6 border-t border-[color:var(--color-overlay-2)] pt-6">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                      Reassign and delete
+                      {t("sectionReassign")}
                     </h3>
                     <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--color-text-quaternary)]">
                       {t("reassignProjectsBadge", { count: selectedProjects.length })}

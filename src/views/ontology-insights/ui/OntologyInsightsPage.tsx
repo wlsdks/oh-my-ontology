@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import {
   KNOWLEDGE_EDGE_TYPES,
@@ -58,7 +57,6 @@ function getEdgeTypeLabel(
 export function OntologyInsightsPage() {
   const t = useTranslations("ontologyPages.insights");
   const kindLabel = useOntologyKindLabel();
-  const searchParams = useSearchParams();
   const accountId = null;
 
   const { insight, error } = useOntologyInsight(accountId);
@@ -208,7 +206,7 @@ export function OntologyInsightsPage() {
             <>
               {t("emptyTitleBefore")}
               <Link
-                href={"/knowledge/documents/"}
+                href={"/docs/"}
                 className="text-[color:rgba(159,170,235,0.95)] underline"
               >
                 {t("emptyTitleLink")}

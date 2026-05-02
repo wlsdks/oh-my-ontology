@@ -1310,15 +1310,19 @@ export function SigmaTopology({
   }, [relayoutToken]);
 
   // 필터 후 보이는 노드 수를 부모에게 알림 (stats 컨텍스트 표시용).
+  // Round 9b T1-11: 이전엔 `hubsOnly` 가 deps 에 빠져 있어 토글 시 empty
+  // state / filter pill 의 N/total 카운트가 stale 됐다 (Panel C 발견).
   useEffect(() => {
     if (!onVisibleCountChange) return;
     const query = searchQuery?.trim().toLowerCase() ?? '';
     const category = activeCategory ?? null;
     const focus = selectedSlug;
     const depth = depthLimit ?? null;
+    const hubsOnlyActive = hubsOnly ?? false;
     let count = 0;
     graph.forEachNode((id, attrs) => {
       if (category && attrs.categoryId !== category) return;
+      if (hubsOnlyActive && !attrs.isHub) return;
       if (query) {
         const slug = attrs.projectSlug.toLowerCase();
         const name = attrs.label.toLowerCase();
@@ -1331,7 +1335,7 @@ export function SigmaTopology({
       count += 1;
     });
     onVisibleCountChange(count);
-  }, [activeCategory, searchQuery, selectedSlug, depthLimit, graph, onVisibleCountChange]);
+  }, [activeCategory, hubsOnly, searchQuery, selectedSlug, depthLimit, graph, onVisibleCountChange]);
 
   const stats = useMemo(() => {
     let hubs = 0;
