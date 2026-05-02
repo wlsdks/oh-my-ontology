@@ -3,9 +3,9 @@ import type { Project, ProjectInput } from './types';
 /**
  * `Project` → `ProjectInput` 매핑.
  *
- * 인라인 편집 등에서 기존 프로젝트 한 필드만 patch 하고 나머지를 그대로 들고
- * 갈 때 사용. 원래 mapper.ts (Firestore 매핑) 안에 있었지만 R10b 에서 cloud
- * 의존을 떼면서 별도 파일로 분리.
+ * 인라인 편집 등에서 기존 프로젝트 한 필드만 patch 하고 나머지를 그대로
+ * 들고 갈 때 사용. 결정성 유지를 위해 array / nested object 는 모두 새로
+ * 생성 (참조 공유 회피).
  */
 export function projectToInput(project: Project): ProjectInput {
   return {
