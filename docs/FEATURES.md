@@ -386,7 +386,7 @@ the project expresses its own mental model as frontmatter markdown. At build tim
 | **app/error.tsx** | route-level error boundary | "unexpected error" + retry / topology home |
 | **app/global-error.tsx** | layout-level error boundary | last line of defense |
 | **app/project/[slug]/opengraph-image.tsx** | OG image | dynamic share card on the project detail |
-| **app/project/fallback/** | static-export fallback | unknown slug → client-side Firestore lookup |
+| **app/project/fallback/** | static-export fallback | unknown slug → client-side URL parse + active vault manifest lookup |
 
 ---
 
@@ -409,15 +409,16 @@ the project expresses its own mental model as frontmatter markdown. At build tim
 - **"Start analysis" UI CTA** — removed from all 4 views (Stage 1)
 - **`approveKnowledgeOutput` / `rejectKnowledgeOutput` httpsCallable wrappers** — removed (Stage 4)
 - **the dual stepper's "analysis stage"** — KnowledgeDocumentDetailPage went from 4 steps to 2 (Stage 4)
-- **`/knowledge/*` routes + `KnowledgeDocument` / `KnowledgeDocumentVersion` entities** — entire surface retired (commit `a906635`). The vault is the single source of truth; cloud-mode users still read existing `knowledgeApprovedNodes/Edges` from the builder, but document-style upload/preview is gone
+- **`/knowledge/*` routes + `KnowledgeDocument` / `KnowledgeDocumentVersion` entities** — entire surface retired (commit `a906635`). The vault is the single source of truth.
 - **`/diagnostics/*` routes + Firestore seed scripts** — operations insights are now owned by `/ontology/insights` (commit `b323571`)
 - **TBox surface (`/settings/ontology[/history]`)** — `kind:` in frontmatter *is* the schema (commit `3a46c78`)
-- **`functions/` folder itself** — `firebase.json` now omits a Functions deploy (commit `8eac23e`); the project ships as a static export to Firebase Hosting only
+- **`functions/` folder itself** — Cloud Functions deploy retired (commit `8eac23e`); the project ships as a pure static export
 
-### Intentional absences
-- **Multi-account**: none — `accountId = null` is fixed (held back for the v2 collaboration phase)
-- **External IAM**: none — Firebase Auth (email/password + Google OAuth) only
-- **firebase deploy**: not run, by user policy. Further mission v2 cleanup retired the `functions/` folder itself (since vault frontmatter is self-approving, publish/promote/dismiss gates are unnecessary)
+### Intentional absences (R10b)
+- **Auth surface**: none — login / signup / settings / account routes permanently removed
+- **Multi-account**: none — single-user OSS tool. v2 cloud collab phase will reintroduce
+- **Cloud sync / Firestore**: none — vault frontmatter on user disk is the single source of truth
+- **Cloud Functions**: none — pure static export
 
 ---
 
