@@ -13,10 +13,6 @@ export interface ParsedFrontmatter {
 }
 
 type ParsedScalar = string | number | boolean;
-type ParsedValue =
-  | ParsedScalar
-  | ParsedScalar[]
-  | Record<string, ParsedScalar>;
 
 export function parseFrontmatter(raw: string): ParsedFrontmatter {
   if (!raw.startsWith('---')) return { frontmatter: {}, body: raw };
