@@ -470,7 +470,11 @@ export function OntologyEditPage() {
             </button>
           </div>
         </header>
-        <section className="relative flex flex-1 overflow-hidden rounded-xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)]">
+        {/* 빌더는 palette (200) + canvas + inspector (280) = 480px+ 의 ERD
+            레이아웃 — 모바일 (<md, 768px 미만) viewport 에서는 컬럼이 겹쳐
+            unreadable. 데스크톱 권장 안내 + 트리 / 토폴로지 fallback CTA 를
+            모바일에만 노출. md+ 에서는 정상 빌더. */}
+        <section className="relative hidden flex-1 overflow-hidden rounded-xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] md:flex">
           <OntologyKindPalette
             onAddNode={(kind) => {
               const newId = addNode(kind);
@@ -504,6 +508,37 @@ export function OntologyEditPage() {
             saving={savingId !== null || renamingId !== null}
             onClearSelection={() => setSelectedId(null)}
           />
+        </section>
+        {/* 모바일 fallback — md 미만에서 빌더 layout 이 겹치므로 데스크톱
+            안내 + 트리 / 토폴로지 진입점 노출. */}
+        <section className="flex flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] px-6 py-10 text-center md:hidden">
+          <div className="flex flex-col gap-2">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-indigo-accent)]">
+              데스크톱 권장
+            </p>
+            <h2 className="text-base font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
+              빌더는 큰 화면에서 정확해요
+            </h2>
+            <p className="max-w-xs break-keep text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
+              palette · 캔버스 · 인스펙터 3-단 ERD 레이아웃이라 모바일에선 겹쳐 보여요.
+              데스크톱 / 태블릿 가로 모드에서 다시 열어주세요. 그동안 트리 / 토폴로지
+              로 ontology 를 둘러볼 수 있어요.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Link
+              href={treeHref}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.14)] px-3 text-[12px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)]"
+            >
+              트리로 보기 →
+            </Link>
+            <Link
+              href="/topology/"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-[12px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
+            >
+              토폴로지로
+            </Link>
+          </div>
         </section>
       </main>
     </div>
