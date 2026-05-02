@@ -11,6 +11,7 @@ import {
 } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -119,6 +120,7 @@ import {
 } from "../lib/persistence";
 
 function AdminDocsContent() {
+  const t = useTranslations('docsVault');
   const searchParams = useSearchParams();
   const querySlug = searchParams?.get('slug') ?? null;
   const queryView = parseView(searchParams?.get('view'));
@@ -404,9 +406,7 @@ function AdminDocsContent() {
     const title =
       manifest.docs.find((d) => d.slug === slug)?.title ?? slug;
     if (typeof window === 'undefined') return;
-    const ok = window.confirm(
-      `정말 삭제할까요?\n\n${title}\n${slug}.md\n\n이 작업은 되돌릴 수 없습니다.`,
-    );
+    const ok = window.confirm(t('dialog.deleteConfirm', { title, slug }));
     if (!ok) return;
     try {
       await localVault.deleteDoc(slug);
@@ -431,10 +431,10 @@ function AdminDocsContent() {
       });
     } catch (err) {
       window.alert(
-        `삭제 실패: ${err instanceof Error ? err.message : String(err)}`,
+        t('dialog.deleteFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey]);
+  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, t]);
 
   // Folder-Topology 빌드 — projects/*.md + categories.md + statuses.md 로드
   // → parser 호출. source==='local' 이고 vault 에 projects/ 가 있을 때만.
@@ -508,7 +508,7 @@ function AdminDocsContent() {
   const handleCreateProject = useCallback(async () => {
     if (!canEditCurrent) return;
     if (typeof window === 'undefined') return;
-    const input = window.prompt('새 프로젝트 slug (영문·숫자·하이픈):');
+    const input = window.prompt(t('dialog.createProjectPrompt'));
     if (!input) return;
     const slug = input
       .trim()
@@ -516,12 +516,12 @@ function AdminDocsContent() {
       .replace(/[^a-z0-9-]+/g, '-')
       .replace(/^-+|-+$/g, '');
     if (!slug) {
-      window.alert('유효한 slug 가 아닙니다.');
+      window.alert(t('dialog.invalidSlug'));
       return;
     }
     const fullSlug = `projects/${slug}`;
     if (manifest.docs.some((d) => d.slug === fullSlug)) {
-      window.alert(`이미 존재: ${fullSlug}`);
+      window.alert(t('dialog.alreadyExists', { slug: fullSlug }));
       return;
     }
     const defaultCategory = folderTopo?.categories[0]?.slug ?? 'uncategorized';
@@ -554,30 +554,21 @@ function AdminDocsContent() {
       setView('doc');
     } catch (err) {
       window.alert(
-        `생성 실패: ${err instanceof Error ? err.message : String(err)}`,
+        t('dialog.createFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, manifest, folderTopo, localVault, recentKey, replaceUrlState]);
+  }, [canEditCurrent, manifest, folderTopo, localVault, recentKey, replaceUrlState, t]);
 
   // Scaffold 실행 헬퍼 — confirm 거쳐 useLocalVault.scaffoldTopology.
   const handleScaffoldTopology = useCallback(async () => {
     if (!canEditCurrent) return;
     if (typeof window === 'undefined') return;
-    const ok = window.confirm(
-      '이 폴더를 Folder-Topology 규격으로 초기화할까요?\n\n' +
-        '- projects/ 디렉터리 + sample 2개 프로젝트\n' +
-        '- categories.md · statuses.md 기본 세트\n' +
-        '- README.md\n\n' +
-        '이미 존재하는 파일은 덮어쓰지 않습니다.',
-    );
+    const ok = window.confirm(t('dialog.scaffoldConfirm'));
     if (!ok) return;
     try {
       const result = await localVault.scaffoldTopology();
       window.alert(
-        `초기화 완료 — 새 파일 ${result.created}개 · 스킵 ${result.skipped}개\n\n` +
-          '필드 규격은 방금 생성된 README.md 를 먼저 열어보세요. ' +
-          '샘플 프로젝트 2개 (sample-hub / sample-leaf) 의 frontmatter 를 ' +
-          '템플릿으로 참고하면 됩니다.',
+        t('dialog.scaffoldDone', { created: result.created, skipped: result.skipped }),
       );
       // scaffold 후 README 를 자동 선택해 규격 인지 도움
       setSelectedSlug('README');
@@ -586,10 +577,10 @@ function AdminDocsContent() {
       setView('folder-topology');
     } catch (err) {
       window.alert(
-        `초기화 실패: ${err instanceof Error ? err.message : String(err)}`,
+        t('dialog.scaffoldFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, localVault, recentKey, replaceUrlState]);
+  }, [canEditCurrent, localVault, recentKey, replaceUrlState, t]);
 
   const handleDailyNote = useCallback(async () => {
     if (!canEditCurrent) return;
@@ -635,10 +626,10 @@ function AdminDocsContent() {
       setEditing(true);
     } catch (err) {
       window.alert(
-        `daily note 생성 실패: ${err instanceof Error ? err.message : String(err)}`,
+        t('dialog.dailyNoteFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, manifest, localVault, recentKey]);
+  }, [canEditCurrent, manifest, localVault, recentKey, t]);
 
   const handleInsertToc = useCallback(async () => {
     if (!canEditCurrent || !selectedSlug) return;
@@ -649,7 +640,7 @@ function AdminDocsContent() {
       (h) => h.depth >= 2 && h.depth <= 3,
     );
     if (headings.length === 0) {
-      window.alert('h2/h3 heading 이 없는 문서입니다.');
+      window.alert(t('dialog.noHeadings'));
       return;
     }
     // TOC markdown — h2 는 * indent 없음, h3 는 2-space indent.
@@ -666,7 +657,7 @@ function AdminDocsContent() {
     ].join('\n');
     const fh = localVault.fileHandles.get(selectedSlug);
     if (!fh) {
-      window.alert('이 문서는 로컬 볼트 파일이 아닙니다.');
+      window.alert(t('dialog.notLocalFile'));
       return;
     }
     try {
@@ -692,10 +683,10 @@ function AdminDocsContent() {
       await localVault.saveDoc(selectedSlug, next);
     } catch (err) {
       window.alert(
-        `TOC 삽입 실패: ${err instanceof Error ? err.message : String(err)}`,
+        t('dialog.tocFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, selectedSlug, manifest, localVault]);
+  }, [canEditCurrent, selectedSlug, manifest, localVault, t]);
 
   const handleExportDocHtml = useCallback(() => {
     if (!selectedSlug || typeof window === 'undefined') return;
@@ -703,7 +694,7 @@ function AdminDocsContent() {
     if (!doc) return;
     const article = document.querySelector('[data-docs-viewer]');
     if (!article) {
-      window.alert('문서가 아직 렌더링되지 않았습니다. 다시 시도하세요.');
+      window.alert(t('dialog.notRendered'));
       return;
     }
     const html = buildDocsVaultPopoutHtml(doc.title, article.outerHTML);
@@ -717,7 +708,7 @@ function AdminDocsContent() {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }, [selectedSlug, manifest]);
+  }, [selectedSlug, manifest, t]);
 
   const handleImportVault = useCallback(async () => {
     if (!canEditCurrent) return;
@@ -741,14 +732,14 @@ function AdminDocsContent() {
       bundle = JSON.parse(text);
     } catch (err) {
       window.alert(
-        `JSON 파싱 실패: ${err instanceof Error ? err.message : String(err)}`,
+        t('dialog.jsonParseFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
       return;
     }
     const raws = bundle.raws ?? {};
     const slugs = Object.keys(raws);
     if (slugs.length === 0) {
-      window.alert('유효한 raws 필드가 없습니다.');
+      window.alert(t('dialog.noValidRaws'));
       return;
     }
     const existing = slugs.filter((s) =>
@@ -757,7 +748,7 @@ function AdminDocsContent() {
     let overwrite = false;
     if (existing.length > 0) {
       overwrite = window.confirm(
-        `${existing.length}개 문서가 이미 볼트에 존재합니다.\n\n예 = 덮어쓰기 (saveDoc)\n아니오 = 새 이름으로 건너뛰기 (중복은 스킵)\n\n진행할까요?`,
+        t('dialog.importOverwriteConfirm', { count: existing.length }),
       );
     }
     let created = 0;
@@ -784,9 +775,9 @@ function AdminDocsContent() {
       }
     }
     window.alert(
-      `Import 완료 — 신규 ${created} · 덮어씀 ${updated} · 건너뜀 ${skipped}`,
+      t('dialog.importDone', { created, updated, skipped }),
     );
-  }, [canEditCurrent, manifest, localVault]);
+  }, [canEditCurrent, manifest, localVault, t]);
 
   const handleExportVault = useCallback(async () => {
     if (typeof window === 'undefined') return;
@@ -834,7 +825,7 @@ function AdminDocsContent() {
   const handleRenameCurrent = useCallback(async () => {
     if (!canEditCurrent || !selectedSlug) return;
     if (typeof window === 'undefined') return;
-    const input = window.prompt('새 slug (확장자 없이):', selectedSlug);
+    const input = window.prompt(t('dialog.renamePrompt'), selectedSlug);
     if (!input) return;
     const nextSlug = input
       .trim()
@@ -842,7 +833,7 @@ function AdminDocsContent() {
       .replace(/\.md$/, '');
     if (!nextSlug || nextSlug === selectedSlug) return;
     if (manifest.docs.some((d) => d.slug === nextSlug)) {
-      window.alert(`이미 존재하는 문서입니다: ${nextSlug}`);
+      window.alert(t('dialog.renameAlreadyExists', { slug: nextSlug }));
       return;
     }
     try {
@@ -878,10 +869,10 @@ function AdminDocsContent() {
       });
     } catch (err) {
       window.alert(
-        `이름 변경 실패: ${err instanceof Error ? err.message : String(err)}`,
+        t('dialog.renameFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey]);
+  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, t]);
 
   const handleCreateNewDoc = useCallback(async () => {
     if (!canEditCurrent) return;
@@ -893,10 +884,7 @@ function AdminDocsContent() {
     const suggested = currentDir
       ? `${currentDir}/new-document`
       : 'new-document';
-    const input = window.prompt(
-      '새 문서 경로 (slug, 확장자 없이):',
-      suggested,
-    );
+    const input = window.prompt(t('dialog.newDocPrompt'), suggested);
     if (!input) return;
     const slug = input
       .trim()
@@ -904,7 +892,7 @@ function AdminDocsContent() {
       .replace(/\.md$/, '');
     if (!slug) return;
     if (manifest.docs.some((d) => d.slug === slug)) {
-      window.alert(`이미 존재하는 문서입니다: ${slug}`);
+      window.alert(t('dialog.renameAlreadyExists', { slug }));
       return;
     }
     const title = slug.split('/').pop() ?? slug;
@@ -918,10 +906,10 @@ function AdminDocsContent() {
       replaceUrlState({ slug, view: 'doc' });
     } catch (err) {
       window.alert(
-        `생성 실패: ${err instanceof Error ? err.message : String(err)}`,
+        t('dialog.createFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, replaceUrlState]);
+  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, replaceUrlState, t]);
 
   // 마운트 1 회 — 초기 URL 값이 없을 때 localStorage 선호값으로 보강.
   // useRef 로 '실행 여부' 를 가두고 dep 는 컴포넌트 stable 값들만 명시.
@@ -1140,112 +1128,112 @@ function AdminDocsContent() {
     return [
       {
         id: 'palette',
-        label: '팔레트 열기 (검색 · 명령 · 태그)',
+        label: t('commands.openPalette'),
         icon: '🔍',
         shortcut: '⌘K',
         onRun: () => setPaletteQuery(''),
       },
       {
         id: 'palette-tags',
-        label: '태그 찾기',
+        label: t('commands.findTags'),
         icon: '#',
         shortcut: '⌘K #',
         onRun: () => setPaletteQuery('#'),
       },
       {
         id: 'view-doc',
-        label: '뷰 · 문서 보기',
+        label: t('commands.viewDoc'),
         icon: '📄',
         visible: view !== 'doc',
         onRun: () => handleViewChange('doc'),
       },
       {
         id: 'view-graph',
-        label: '뷰 · 링크 그래프',
+        label: t('commands.viewGraph'),
         icon: '🕸️',
         visible: view !== 'graph',
         onRun: () => handleViewChange('graph'),
       },
       {
         id: 'view-stats',
-        label: '뷰 · 볼트 통계',
+        label: t('commands.viewStats'),
         icon: '📊',
         visible: view !== 'stats',
         onRun: () => handleViewChange('stats'),
       },
       {
         id: 'view-folder-topology',
-        label: '뷰 · Folder Topology (projects/*.md)',
+        label: t('commands.viewFolderTopology'),
         icon: '🗺️',
         visible: source === 'local' && view !== 'folder-topology',
         onRun: () => handleViewChange('folder-topology'),
       },
       {
         id: 'scaffold-topology',
-        label: '이 폴더를 Topology 볼트로 초기화',
+        label: t('commands.scaffoldTopology'),
         icon: '🆕',
         visible: canEditCurrent,
         onRun: () => void handleScaffoldTopology(),
       },
       {
         id: 'create-project',
-        label: '새 프로젝트 추가 (projects/…md)',
+        label: t('commands.createProject'),
         icon: '🧩',
         visible: canEditCurrent && source === 'local',
         onRun: () => void handleCreateProject(),
       },
       {
         id: 'audience-all',
-        label: '관점 · 전체',
+        label: t('commands.audienceAll'),
         icon: '◎',
         visible: audience !== 'all',
         onRun: () => handleAudienceChange('all'),
       },
       {
         id: 'audience-planner',
-        label: '관점 · 기획자',
+        label: t('commands.audiencePlanner'),
         icon: '◎',
         visible: audience !== 'planner',
         onRun: () => handleAudienceChange('planner'),
       },
       {
         id: 'audience-engineer',
-        label: '관점 · 개발자',
+        label: t('commands.audienceEngineer'),
         icon: '◎',
         visible: audience !== 'engineer',
         onRun: () => handleAudienceChange('engineer'),
       },
       {
         id: 'source-server',
-        label: '소스 · 서버 볼트',
+        label: t('commands.sourceServer'),
         icon: '☁️',
         visible: source !== 'server',
         onRun: () => handleSourceChange('server'),
       },
       {
         id: 'source-local',
-        label: '소스 · 로컬 PC 폴더',
+        label: t('commands.sourceLocal'),
         icon: '💾',
         visible: source !== 'local' && localVault.isSupported,
         onRun: () => handleSourceChange('local'),
       },
       {
         id: 'pin-toggle',
-        label: pinnedSet.has(selectedSlug ?? '') ? '고정 해제' : '이 문서 고정',
+        label: pinnedSet.has(selectedSlug ?? '') ? t('commands.unpinDoc') : t('commands.pinDoc'),
         icon: '⭐',
         visible: selectedDocExists,
         onRun: () => selectedSlug && handleTogglePin(selectedSlug),
       },
       {
         id: 'copy-url',
-        label: '현재 문서 URL 복사',
+        label: t('commands.copyUrl'),
         icon: '🔗',
         visible: selectedDocExists,
         onRun: () => selectedSlug && void handleCopyUrl(selectedSlug),
       },
       {
         id: 'print',
-        label: '인쇄 · PDF 로 저장',
+        label: t('commands.print'),
         icon: '🖨️',
         visible: selectedDocExists && view === 'doc',
         onRun: () => {
@@ -1254,90 +1242,90 @@ function AdminDocsContent() {
       },
       {
         id: 'edit',
-        label: '이 파일 편집',
+        label: t('commands.edit'),
         icon: '✏️',
         visible: canEditCurrent && selectedDocExists && !editing,
         onRun: () => setEditing(true),
       },
       {
         id: 'new-doc',
-        label: '새 문서 만들기',
+        label: t('commands.newDoc'),
         icon: '➕',
         visible: canEditCurrent,
         onRun: () => void handleCreateNewDoc(),
       },
       {
         id: 'daily-note',
-        label: '오늘의 노트 (daily/YYYY-MM-DD)',
+        label: t('commands.dailyNote'),
         icon: '📅',
         visible: canEditCurrent,
         onRun: () => void handleDailyNote(),
       },
       {
         id: 'rename',
-        label: '이 문서 이름 변경 (slug/경로)',
+        label: t('commands.rename'),
         icon: '✎',
         visible: canEditCurrent && selectedDocExists,
         onRun: () => void handleRenameCurrent(),
       },
       {
         id: 'insert-toc',
-        label: '현재 문서에 목차 삽입',
+        label: t('commands.insertToc'),
         icon: '≡',
         visible: canEditCurrent && selectedDocExists,
         onRun: () => void handleInsertToc(),
       },
       {
         id: 'delete',
-        label: '이 문서 삭제',
+        label: t('commands.deleteDoc'),
         icon: '🗑️',
         visible: canEditCurrent && selectedDocExists,
         onRun: () => void handleDeleteCurrent(),
       },
       {
         id: 'export-doc-html',
-        label: '현재 문서 HTML 로 저장',
+        label: t('commands.exportDocHtml'),
         icon: '📄',
         visible: selectedDocExists && view === 'doc',
         onRun: () => handleExportDocHtml(),
       },
       {
         id: 'export',
-        label: '볼트 백업 내보내기 (JSON)',
+        label: t('commands.exportVault'),
         icon: '⬇',
         onRun: () => void handleExportVault(),
       },
       {
         id: 'import',
-        label: '볼트 복원 불러오기 (JSON)',
+        label: t('commands.importVault'),
         icon: '⬆',
         visible: canEditCurrent,
         onRun: () => void handleImportVault(),
       },
       {
         id: 'local-refresh',
-        label: '로컬 볼트 다시 스캔',
+        label: t('commands.localRefresh'),
         icon: '↻',
         visible: source === 'local' && localVault.status === 'loaded',
         onRun: () => void localVault.refresh(),
       },
       {
         id: 'local-close',
-        label: '로컬 볼트 닫기',
+        label: t('commands.localClose'),
         icon: '✖',
         visible: source === 'local' && localVault.status === 'loaded',
         onRun: () => void localVault.close(),
       },
       {
         id: 'tag-clear',
-        label: '태그 필터 해제',
+        label: t('commands.clearTagFilter'),
         icon: '#',
         visible: activeTag !== null,
         onRun: () => setActiveTag(null),
       },
       {
         id: 'projects-list',
-        label: '프로젝트 목록으로 이동',
+        label: t('commands.projectsList'),
         icon: '←',
         onRun: () => {
           if (typeof window !== 'undefined')
@@ -1371,6 +1359,7 @@ function AdminDocsContent() {
     handleScaffoldTopology,
     handleSourceChange,
     handleTogglePin,
+    t,
   ]);
 
   // 좌측 사이드바 내부 내용 — aside 와 mobile drawer 양쪽에서 재사용.
@@ -1408,28 +1397,28 @@ function AdminDocsContent() {
             type="button"
             onClick={() => setMobileTreeOpen(true)}
             className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-md border border-[color:var(--color-divider)] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)] md:hidden"
-            aria-label="트리 열기"
-            title="문서 트리"
+            aria-label={t('header.openTreeAriaLabel')}
+            title={t('header.openTreeTitle')}
           >
             <Menu size={14} aria-hidden />
           </button>
           <Link
             href={workspaceHref}
-            aria-label="워크스페이스 지도로 돌아가기"
+            aria-label={t('header.backToWorkspaceAriaLabel')}
             className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:var(--color-divider)] px-3 text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)]"
           >
             <ArrowLeft size={12} aria-hidden />
-            돌아가기
+            {t('header.back')}
           </Link>
           <div className="flex items-baseline gap-2">
-            <h1 className="text-[14px] font-semibold">Docs Vault</h1>
+            <h1 className="text-[14px] font-semibold">{t('header.title')}</h1>
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              {manifest.docs.length} 문서
+              {t('header.docCount', { count: manifest.docs.length })}
             </span>
             {caps.kind !== 'loading' && !caps.canEdit ? (
               <span
                 className="inline-flex items-center rounded-sm border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-tertiary)]"
-                title={`현재 역할: ${caps.roleLabel}. 편집 권한이 없어 읽기만 가능합니다.`}
+                title={t('header.roleTooltip', { role: caps.roleLabel })}
               >
                 {caps.roleLabel}
               </span>
@@ -1438,17 +1427,17 @@ function AdminDocsContent() {
           {source === 'local' ? (
             <span className="inline-flex items-center gap-1 rounded-sm border border-[color:rgba(139,151,255,0.24)] bg-[color:rgba(94,106,210,0.08)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:rgba(200,210,255,0.86)]">
               <HardDrive size={10} aria-hidden />
-              로컬
+              {t('header.localBadge')}
             </span>
           ) : null}
         </div>
         <div className="ml-auto flex flex-none flex-wrap items-center justify-end gap-2">
           <div
             className="flex items-center gap-1 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-0.5 text-[11px]"
-            aria-label="문서 관점"
+            aria-label={t('header.audienceAriaLabel')}
           >
             <span className="px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              관점
+              {t('header.audienceLabel')}
             </span>
             {(['all', 'planner', 'engineer'] as const).map((m) => (
               <button
@@ -1462,11 +1451,11 @@ function AdminDocsContent() {
                 }`}
                 aria-pressed={audience === m}
               >
-                {m === 'all' ? '전체' : m === 'planner' ? '기획자' : '개발자'}
+                {m === 'all' ? t('header.audienceAll') : m === 'planner' ? t('header.audiencePlanner') : t('header.audienceEngineer')}
               </button>
             ))}
           </div>
-          <Tooltip content="검색 · 명령 · 태그 — Tab 으로 관점 전환" withProvider={false}>
+          <Tooltip content={t('header.paletteTooltip')} withProvider={false}>
             <button
               type="button"
               onClick={() => {
@@ -1474,7 +1463,7 @@ function AdminDocsContent() {
                 setPaletteQuery('');
               }}
               className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[color:var(--color-border-soft)] px-2 text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.28)] hover:text-[color:var(--color-text-primary)]"
-              aria-label="팔레트 열기 (검색 · 명령 · 태그)"
+              aria-label={t('header.paletteAriaLabel')}
             >
               <Search size={13} aria-hidden />
               <kbd className="hidden rounded border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-1 font-mono text-[9.5px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)] md:inline-flex">
@@ -1483,13 +1472,13 @@ function AdminDocsContent() {
             </button>
           </Tooltip>
           <div className="relative" ref={advancedMenuRef}>
-            <Tooltip content="고급" withProvider={false}>
+            <Tooltip content={t('header.advancedTooltip')} withProvider={false}>
               <button
                 type="button"
                 onClick={() => setAdvancedOpen((open) => !open)}
                 aria-expanded={advancedOpen}
                 aria-haspopup="menu"
-                aria-label="고급 메뉴 열기"
+                aria-label={t('header.advancedAriaLabel')}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--color-border-soft)] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.28)] hover:text-[color:var(--color-text-primary)]"
               >
                 <Settings2 size={13} aria-hidden />
@@ -1501,13 +1490,13 @@ function AdminDocsContent() {
                 className="absolute right-0 top-10 z-30 w-[300px] rounded-md border border-[color:var(--color-divider)] bg-[color:rgba(14,15,18,0.98)] p-2 shadow-[0_18px_48px_rgba(0,0,0,0.38)]"
               >
                 <div className="mb-2 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  보기
+                  {t('advanced.viewSection')}
                 </div>
                 <div className="grid grid-cols-3 gap-1">
                   {[
-                    { value: 'doc' as const, label: '문서', icon: FileText },
-                    { value: 'graph' as const, label: '그래프', icon: Network },
-                    { value: 'stats' as const, label: '통계', icon: BarChart3 },
+                    { value: 'doc' as const, label: t('advanced.viewDoc'), icon: FileText },
+                    { value: 'graph' as const, label: t('advanced.viewGraph'), icon: Network },
+                    { value: 'stats' as const, label: t('advanced.viewStats'), icon: BarChart3 },
                   ].map((item) => {
                     const Icon = item.icon;
                     return (
@@ -1542,7 +1531,7 @@ function AdminDocsContent() {
                     }`}
                   >
                     <Layers size={12} aria-hidden />
-                    토폴로지
+                    {t('advanced.viewTopology')}
                     {folderTopoStatus === 'rebuilding' ? (
                       <span
                         aria-hidden
@@ -1553,7 +1542,7 @@ function AdminDocsContent() {
                 ) : null}
                 <div className="my-2 h-px bg-[color:var(--color-border-soft)]" />
                 <div className="mb-2 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  소스
+                  {t('advanced.sourceSection')}
                 </div>
                 <div className="grid grid-cols-2 gap-1">
                   <button
@@ -1571,7 +1560,7 @@ function AdminDocsContent() {
                     }`}
                   >
                     <Cloud size={12} aria-hidden />
-                    서버
+                    {t('advanced.sourceServer')}
                   </button>
                   <button
                     type="button"
@@ -1589,7 +1578,7 @@ function AdminDocsContent() {
                     }`}
                   >
                     <HardDrive size={12} aria-hidden />
-                    로컬
+                    {t('advanced.sourceLocal')}
                   </button>
                 </div>
                 {source === 'local' ? (
@@ -1611,11 +1600,11 @@ function AdminDocsContent() {
                         터미널 / npm 없이 5 md + .mcp.json.example 시드 작성. */}
                     {localVault.status === 'idle' ? (
                       <p className="text-[11px] leading-5 text-[color:var(--color-text-tertiary)]">
-                        처음이세요? 이 repo 의{' '}
+                        {t('advanced.ontologyHintPrefix')}
                         <code className="rounded bg-[color:var(--color-overlay-1)] px-1 py-0.5 font-mono text-[10.5px] text-[color:var(--color-indigo-accent)]">
                           docs/ontology/
                         </code>
-                        를 선택해 보세요 — 이 도구 자체의 ontology (21 노드) 가 즉시 트리에 등장합니다.
+                        {t('advanced.ontologyHintSuffix')}
                       </p>
                     ) : null}
                     {localVault.status === 'loaded' && canEditCurrent ? (
@@ -1631,7 +1620,7 @@ function AdminDocsContent() {
                         className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-[color:rgba(139,151,255,0.35)] bg-[color:rgba(94,106,210,0.08)] px-2.5 py-1.5 text-[11.5px] text-[color:rgba(200,210,255,0.92)] transition-colors hover:border-[color:rgba(139,151,255,0.55)] hover:bg-[color:rgba(94,106,210,0.14)]"
                       >
                         <FilePlus size={12} aria-hidden />
-                        새 문서
+                        {t('advanced.newDoc')}
                       </button>
                     ) : null}
                   </div>
@@ -1659,13 +1648,13 @@ function AdminDocsContent() {
             <aside className="relative flex w-[280px] max-w-[82vw] flex-col overflow-auto bg-[color:var(--color-panel)] shadow-[0_0_24px_rgba(0,0,0,0.5)]">
               <div className="flex h-12 flex-none items-center justify-between border-b border-[color:var(--color-border-soft)] px-3">
                 <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  문서 트리
+                  {t('mobileDrawer.title')}
                 </span>
                 <button
                   type="button"
                   onClick={() => setMobileTreeOpen(false)}
                   className="flex h-7 w-7 items-center justify-center rounded-sm text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
-                  aria-label="트리 닫기"
+                  aria-label={t('mobileDrawer.closeAriaLabel')}
                 >
                   <X size={14} aria-hidden />
                 </button>
@@ -1686,10 +1675,10 @@ function AdminDocsContent() {
                   type="button"
                   onClick={() => void handleCreateProject()}
                   className="pointer-events-auto absolute left-3 top-[46px] z-10 inline-flex items-center gap-1.5 rounded-md border border-[color:rgba(139,151,255,0.35)] bg-[color:rgba(94,106,210,0.1)] px-2.5 py-1.5 text-[11.5px] text-[color:rgba(200,210,255,0.92)] shadow-[0_4px_14px_rgba(0,0,0,0.25)] transition-colors hover:border-[color:rgba(139,151,255,0.55)] hover:bg-[color:rgba(94,106,210,0.18)]"
-                  title="새 프로젝트 .md 추가 (projects/{slug}.md)"
+                  title={t('topology.addProjectTitle', { slug: '{slug}' })}
                 >
                   <FilePlus size={12} aria-hidden />
-                  프로젝트
+                  {t('topology.addProjectLabel')}
                 </button>
               ) : null}
               {folderTopo && folderTopo.projects.length > 0 ? (
@@ -1720,12 +1709,10 @@ function AdminDocsContent() {
                     aria-hidden
                   />
                   <div className="text-[14px] text-[color:var(--color-text-primary)]">
-                    이 볼트엔 아직 `projects/` 가 없어요
+                    {t('topology.emptyTitle')}
                   </div>
                   <p className="max-w-[440px] text-[12.5px] leading-[1.6] text-[color:var(--color-text-tertiary)]">
-                    Folder-Topology 규격 파일 구조 (projects/_.md, categories.md,
-                    statuses.md) 를 자동 생성하면 바로 토폴로지가 보여요.
-                    이미 있는 파일은 덮어쓰지 않습니다.
+                    {t('topology.emptyBody')}
                   </p>
                   {folderTopoError ? (
                     <p className="font-mono text-[11px] text-[color:rgba(239,180,120,0.9)]">
@@ -1739,11 +1726,11 @@ function AdminDocsContent() {
                       className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[color:rgba(139,151,255,0.4)] bg-[color:rgba(94,106,210,0.08)] px-3 py-1.5 text-[12px] text-[color:rgba(200,210,255,0.95)] transition-colors hover:border-[color:rgba(139,151,255,0.6)] hover:bg-[color:rgba(94,106,210,0.14)]"
                     >
                       <FolderCog size={12} aria-hidden />
-                      이 폴더를 토폴로지 볼트로 초기화
+                      {t('topology.scaffoldCta')}
                     </button>
                   ) : (
                     <p className="font-mono text-[11px] text-[color:var(--color-text-quaternary)]">
-                      편집 권한이 필요합니다 (로컬 볼트)
+                      {t('topology.needEditPermission')}
                     </p>
                   )}
                 </div>
@@ -1774,7 +1761,7 @@ function AdminDocsContent() {
                       : 'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary)]'
                   }`}
                 >
-                  전체
+                  {t('graph.focusAll')}
                 </button>
                 <button
                   type="button"
@@ -1788,11 +1775,11 @@ function AdminDocsContent() {
                   }`}
                   title={
                     selectedSlug
-                      ? '선택 문서 주변 2-hop 만 보기'
-                      : '문서를 선택하면 활성화됩니다'
+                      ? t('graph.focusLocalEnabled')
+                      : t('graph.focusLocalDisabled')
                   }
                 >
-                  이웃 2-hop
+                  {t('graph.focusLocalLabel')}
                 </button>
               </div>
               <DocsVaultGraph

@@ -91,5 +91,273 @@
     "returnTargetTitleEmphasis": "continue",
     "returnTargetSubtitle": "The screen you requested needs sign-in. After you sign in we'll take you straight back.",
     "returnTargetCta": "Sign in and continue"
+  },
+  "ontologyView": {
+    "eyebrow": "Ontology",
+    "title": "Ontology tree",
+    "titleTooltip": {
+      "heading": "Hierarchical view of ontology nodes",
+      "body": "A tree grown directly from the frontmatter of `.md` files in your vault. No review step — changes apply instantly. Expanded in the order <hierarchy>project → domain → capability → element</hierarchy>.",
+      "footer": "Document nodes act as evidence and are excluded from the tree. <strong>To draw the graph yourself, use the ‘Open builder’</strong> button on the right."
+    },
+    "titleTooltipAria": "Explain what the ontology tree is",
+    "actions": {
+      "addNodeTooltip": "Add a new node manually",
+      "addNodeAria": "Add an ontology node manually",
+      "addNode": "Add node",
+      "searchTooltip": "Search (⌘K)",
+      "searchAria": "Open ontology node search",
+      "search": "Search",
+      "builderTooltip": "Builder canvas — pick a kind from the palette on the left, drag handles to add relations",
+      "builderAria": "Ontology builder — draw directly on the canvas",
+      "builder": "Open builder →",
+      "insightsTooltip": "Ontology insights — kind distribution · hub nodes · recent activity · orphans",
+      "insights": "Insights",
+      "relationsTooltip": "Relations — type distribution + strong evidence-rich relations",
+      "relations": "Relations"
+    },
+    "stat": {
+      "treeNodes": "Tree nodes",
+      "totalRelations": "Total relations",
+      "documents": "Evidence docs",
+      "publishedAt": "Published",
+      "publishedAtEmpty": "None yet"
+    },
+    "error": "Something went wrong while loading ontology data. {message}",
+    "loading": "Loading…",
+    "emptyHint": "The ontology hasn't grown yet. Follow the steps below to start your first graph.",
+    "getStarted": {
+      "eyebrow": "Get started",
+      "headingLocal": "Vault is empty — write frontmatter and it grows instantly",
+      "headingDefault": "The tree grows as documents grow",
+      "bodyLocal": "There are 0 `.md` files with ontology frontmatter in the active vault. Take the next 2 steps to create your first node.",
+      "bodyDefault": "An ontology is a graph of concepts and relations from vault frontmatter. Take the next 3 steps to grow your first tree.",
+      "stepLocalFrontmatterTitle": "Write frontmatter",
+      "stepLocalFrontmatterDesc": "Add frontmatter like `kind: capability` to any `.md` file in the vault and a stub node appears immediately.",
+      "stepLocalBuilderTitle": "Tidy in the builder",
+      "stepLocalBuilderDesc": "Use the /ontology/edit canvas to visually polish nodes and relations — saves to the vault and updates the tree.",
+      "stepCloudVaultTitle": "Open a vault",
+      "stepCloudVaultDesc": "From /docs, pick a markdown folder to activate the vault.",
+      "stepCloudFrontmatterTitle": "Add frontmatter",
+      "stepCloudFrontmatterDesc": "Write kind / capabilities / elements / relates in your docs and stub nodes are created automatically.",
+      "stepCloudBuilderTitle": "Tidy in the builder",
+      "stepCloudBuilderDesc": "Polish nodes and relations on the /ontology/edit canvas and they grow right into this tree.",
+      "ctaBuilder": "Open builder →",
+      "ctaBuilderShort": "Open builder",
+      "ctaVault": "Browse vault",
+      "ctaVaultOpen": "Open vault →",
+      "snippetEyebrow": "snippet",
+      "snippetSummary": "Your vault's first node — paste this frontmatter into a `.md` file and it appears in the tree right away",
+      "snippetHelp": "Save the content above into your vault as something like <code>capabilities/auth.md</code>. More frontmatter keys: <code>domain</code> · <code>capabilities</code> · <code>elements</code> · <code>relates</code> · <code>dependencies</code>."
+    },
+    "footer": {
+      "modeLocal": "Local vault",
+      "modeCloud": "Cloud",
+      "modeStatic": "Static demo"
+    },
+    "copyLink": {
+      "tooltip": "Copy a direct link to this node",
+      "ariaCopied": "Node link copied",
+      "ariaCopy": "Copy node link",
+      "toastSuccess": "Node link copied",
+      "toastError": "Copy failed — check browser permissions",
+      "badge": "Copied"
+    },
+    "detail": {
+      "ariaLabel": "Node detail: {title}",
+      "addEdgeTooltip": "Add a new relation from this node",
+      "addEdgeAria": "Add a relation from this node",
+      "addEdgeButton": "Relation",
+      "close": "Close",
+      "manualNote": "Author note",
+      "linkedProjects": "Linked projects",
+      "evidenceCount": "Evidence count",
+      "relations": "Relations {count}",
+      "relationsHopBreakdown": "· 1-hop {one} · 2-hop {two}",
+      "egoDepthAria": "Ego graph depth",
+      "egoTwoHopTooltip": "Includes neighbors one step further — labels may overlap with more nodes",
+      "neighborMissingKind": "Missing",
+      "neighborMissingTitle": "A node with this ID isn't in the graph yet",
+      "collapse": "Collapse",
+      "showMore": "+{count} more",
+      "relatedDocs": "Related documents {count}",
+      "projectDetailCta": "Public detail page →",
+      "stubWarning": "Unresolved reference — the slug pointed to by frontmatter doesn't exist in the vault. Create a node with this name in the builder (/ontology/edit), or remove the reference from frontmatter."
+    }
+  },
+  "docsVault": {
+    "header": {
+      "openTreeAriaLabel": "Open document tree",
+      "openTreeTitle": "Document tree",
+      "backToWorkspaceAriaLabel": "Back to workspace map",
+      "back": "Back",
+      "title": "Docs Vault",
+      "docCount": "{count} docs",
+      "roleTooltip": "Current role: {role}. No edit permission — read-only.",
+      "localBadge": "Local",
+      "audienceAriaLabel": "Document audience",
+      "audienceLabel": "Audience",
+      "audienceAll": "All",
+      "audiencePlanner": "Planner",
+      "audienceEngineer": "Engineer",
+      "paletteTooltip": "Search · commands · tags — Tab to switch audience",
+      "paletteAriaLabel": "Open palette (search · commands · tags)",
+      "advancedTooltip": "Advanced",
+      "advancedAriaLabel": "Open advanced menu"
+    },
+    "advanced": {
+      "viewSection": "View",
+      "viewDoc": "Doc",
+      "viewGraph": "Graph",
+      "viewStats": "Stats",
+      "viewTopology": "Topology",
+      "sourceSection": "Source",
+      "sourceServer": "Server",
+      "sourceLocal": "Local",
+      "ontologyHintPrefix": "First time? Try selecting this repo's ",
+      "ontologyHintSuffix": " — this tool's own ontology (21 nodes) appears in the tree instantly.",
+      "newDoc": "New doc"
+    },
+    "mobileDrawer": {
+      "title": "Document tree",
+      "closeAriaLabel": "Close tree"
+    },
+    "topology": {
+      "addProjectTitle": "Add new project .md (projects/{slug}.md)",
+      "addProjectLabel": "Project",
+      "emptyTitle": "This vault has no `projects/` yet",
+      "emptyBody": "Auto-generate the Folder-Topology file structure (projects/_.md, categories.md, statuses.md) and the topology will show up. Existing files are not overwritten.",
+      "scaffoldCta": "Initialize this folder as a topology vault",
+      "needEditPermission": "Edit permission required (local vault)"
+    },
+    "graph": {
+      "focusAll": "All",
+      "focusLocalEnabled": "Show 2-hop neighborhood of selected doc",
+      "focusLocalDisabled": "Select a doc to enable",
+      "focusLocalLabel": "2-hop neighbors"
+    },
+    "commands": {
+      "openPalette": "Open palette (search · commands · tags)",
+      "findTags": "Find tags",
+      "viewDoc": "View · Document",
+      "viewGraph": "View · Link graph",
+      "viewStats": "View · Vault stats",
+      "viewFolderTopology": "View · Folder topology (projects/*.md)",
+      "scaffoldTopology": "Initialize this folder as a topology vault",
+      "createProject": "Add new project (projects/…md)",
+      "audienceAll": "Audience · All",
+      "audiencePlanner": "Audience · Planner",
+      "audienceEngineer": "Audience · Engineer",
+      "sourceServer": "Source · Server vault",
+      "sourceLocal": "Source · Local PC folder",
+      "pinDoc": "Pin this doc",
+      "unpinDoc": "Unpin",
+      "copyUrl": "Copy current document URL",
+      "print": "Print · Save as PDF",
+      "edit": "Edit this file",
+      "newDoc": "Create new doc",
+      "dailyNote": "Today's note (daily/YYYY-MM-DD)",
+      "rename": "Rename this doc (slug/path)",
+      "insertToc": "Insert table of contents",
+      "deleteDoc": "Delete this doc",
+      "exportDocHtml": "Save current doc as HTML",
+      "exportVault": "Export vault backup (JSON)",
+      "importVault": "Import vault backup (JSON)",
+      "localRefresh": "Rescan local vault",
+      "localClose": "Close local vault",
+      "clearTagFilter": "Clear tag filter",
+      "projectsList": "Go to projects list"
+    },
+    "dialog": {
+      "deleteConfirm": "Really delete?\n\n{title}\n{slug}.md\n\nThis cannot be undone.",
+      "deleteFailed": "Delete failed: {message}",
+      "createProjectPrompt": "New project slug (letters · digits · hyphens):",
+      "invalidSlug": "Not a valid slug.",
+      "alreadyExists": "Already exists: {slug}",
+      "createFailed": "Create failed: {message}",
+      "scaffoldConfirm": "Initialize this folder as a Folder-Topology vault?\n\n- projects/ directory + 2 sample projects\n- categories.md · statuses.md default sets\n- README.md\n\nExisting files are not overwritten.",
+      "scaffoldDone": "Initialization complete — {created} new files · {skipped} skipped\n\nFor field specs, open the freshly generated README.md first. Use the 2 sample projects (sample-hub / sample-leaf) frontmatter as a template.",
+      "scaffoldFailed": "Initialization failed: {message}",
+      "dailyNoteFailed": "Daily note creation failed: {message}",
+      "noHeadings": "This document has no h2/h3 headings.",
+      "notLocalFile": "This document is not a local vault file.",
+      "tocFailed": "TOC insertion failed: {message}",
+      "notRendered": "Document is not rendered yet. Try again.",
+      "jsonParseFailed": "JSON parse failed: {message}",
+      "noValidRaws": "No valid `raws` field.",
+      "importOverwriteConfirm": "{count} documents already exist in the vault.\n\nYes = Overwrite (saveDoc)\nNo = Skip duplicates\n\nProceed?",
+      "importDone": "Import complete — new {created} · overwritten {updated} · skipped {skipped}",
+      "renamePrompt": "New slug (without extension):",
+      "renameAlreadyExists": "Document already exists: {slug}",
+      "renameFailed": "Rename failed: {message}",
+      "newDocPrompt": "New document path (slug, no extension):"
+    }
+  },
+  "topology": {
+    "loadingEngine": "Loading topology engine",
+    "documentTitle": "Topology",
+    "srHeading": "Topology project topology map",
+    "presentationStarted": "Presentation mode started",
+    "selectionAnnouncement": "{name} selected. {deps} dependencies, {referenced} references.",
+    "mobileTagline": "Project dependency map.",
+    "workspace": {
+      "growthThisWeek": " · +{count} this week",
+      "subtitle": "Workspace · {projects} projects · {hubs} hubs{growth}",
+      "eyebrow": "Workspace · {projects} projects",
+      "fallbackTitle": "Topology",
+      "selectedEyebrow": "Selected project",
+      "expandHint": "Expand workspace map",
+      "mapEyebrow": "Workspace map",
+      "description": "{hubs} hubs are at the heart of {projects} projects. Click a node to open its details."
+    },
+    "hero": {
+      "closeSelected": "Close selected project",
+      "expandLeftPanel": "Expand the left panel"
+    },
+    "scene": {
+      "backToWorkspace": "Back to the workspace map",
+      "workspaceMap": "Workspace map"
+    },
+    "controls": {
+      "relayoutToast": "Relaying out the topology",
+      "docsTooltip": "Docs vault quick look (D)",
+      "docsAriaLabel": "Open docs vault quick look (D)",
+      "docsLabel": "Docs",
+      "pinnedDocsCount": "{count} pinned docs",
+      "exitPresentationTooltip": "Exit presentation mode (F)",
+      "exitPresentationAriaLabel": "Exit presentation mode",
+      "close": "Close",
+      "shortcutsTooltip": "Keyboard shortcuts (?)",
+      "shortcutsAriaLabel": "View keyboard shortcuts"
+    },
+    "evidence": {
+      "openLabel": "{name} — open document evidence map",
+      "badge": "Document evidence"
+    },
+    "empty": {
+      "noMatchesBody": "No projects match the current filters.",
+      "clearFilters": "Clear filters",
+      "kicker": "TOPOLOGY · {count, plural, one {# NODE} other {# NODES}}",
+      "titleNoProjects": "No projects yet",
+      "titleNoDeps": "No dependencies to draw yet",
+      "bodyNoProjects": "Connect a markdown folder or create your first project in the builder. Fill in `dependencies:` in the frontmatter and lines appear here automatically.",
+      "bodyNoDeps": "Add a single dependency between two projects (`dependencies:` frontmatter) and a line will appear here automatically. The builder canvas can also draw them via drag.",
+      "ctaBuilder": "Add a dependency in the builder",
+      "ctaOpenVault": "Open my markdown folder"
+    },
+    "hint": {
+      "title": "Project terrain map",
+      "dismissAriaLabel": "Close hint",
+      "body": "Nodes are projects, lines are dependencies. Click to open details, search to narrow.",
+      "click": "Click",
+      "clickDescription": " · open the detail panel",
+      "drag": "Drag",
+      "dragDescription": " · move a node",
+      "searchDescription": " search · ",
+      "shortcutsDescription": " shortcuts"
+    },
+    "errorBanner": {
+      "retry": "Retry"
+    }
   }
 }

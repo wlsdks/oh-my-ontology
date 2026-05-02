@@ -91,5 +91,273 @@
     "returnTargetTitleEmphasis": "이어보기",
     "returnTargetSubtitle": "요청한 화면은 로그인이 필요합니다. 로그인하면 방금 열려던 화면으로 바로 돌아갑니다.",
     "returnTargetCta": "로그인하고 계속"
+  },
+  "ontologyView": {
+    "eyebrow": "Ontology",
+    "title": "온톨로지 트리",
+    "titleTooltip": {
+      "heading": "ontology 노드의 계층 뷰",
+      "body": "vault 안 .md 파일의 frontmatter 가 그대로 자란 트리. 검수 단계 없이 즉시 반영 — <hierarchy>project → domain → capability → element</hierarchy> 순서로 펼쳐서 보여줍니다.",
+      "footer": "문서 노드는 근거 역할이라 트리에서 제외돼요. <strong>그래프를 직접 그리려면 우측 ‘빌더 열기’</strong> 버튼을 눌러보세요."
+    },
+    "titleTooltipAria": "온톨로지 트리가 무엇인지 설명",
+    "actions": {
+      "addNodeTooltip": "새 노드 직접 추가",
+      "addNodeAria": "ontology 노드 직접 추가",
+      "addNode": "노드 추가",
+      "searchTooltip": "검색 (⌘K)",
+      "searchAria": "ontology 노드 검색 열기",
+      "search": "검색",
+      "builderTooltip": "빌더 캔버스 — 왼쪽 palette 에서 종류 골라 클릭, 핸들 drag 로 관계 추가",
+      "builderAria": "온톨로지 빌더 — 캔버스에서 직접 그리기",
+      "builder": "빌더 열기 →",
+      "insightsTooltip": "ontology 인사이트 — kind 분포 · 허브 노드 · 최근 활동 · 미연결",
+      "insights": "인사이트",
+      "relationsTooltip": "관계 — 종류 분포 + 근거 풍부한 강한 관계",
+      "relations": "관계"
+    },
+    "stat": {
+      "treeNodes": "트리 노드",
+      "totalRelations": "총 관계",
+      "documents": "근거 문서",
+      "publishedAt": "발행 시점",
+      "publishedAtEmpty": "아직 없음"
+    },
+    "error": "ontology 데이터를 불러오는 중 오류가 났어요. {message}",
+    "loading": "불러오는 중…",
+    "emptyHint": "ontology 가 아직 자라지 않았어요. 아래 단계로 첫 그래프를 시작할 수 있어요.",
+    "getStarted": {
+      "eyebrow": "Get started",
+      "headingLocal": "vault 가 비어있어요 — frontmatter 를 적으면 즉시 자라요",
+      "headingDefault": "문서가 자라면 트리도 자라요",
+      "bodyLocal": "활성 vault 에 ontology frontmatter 가 있는 .md 파일이 0 개. 다음 2 단계로 첫 노드를 만들어요.",
+      "bodyDefault": "온톨로지는 vault frontmatter 의 개념·관계가 모인 그래프예요. 다음 3 단계로 첫 트리를 만들어 봐요.",
+      "stepLocalFrontmatterTitle": "frontmatter 적기",
+      "stepLocalFrontmatterDesc": "vault 안 아무 .md 파일에 `kind: capability` 같은 frontmatter 추가하면 즉시 stub 노드로 등장.",
+      "stepLocalBuilderTitle": "빌더에서 정리",
+      "stepLocalBuilderDesc": "/ontology/edit 캔버스에서 시각적으로 노드·관계 다듬으면 그대로 vault 에 저장 + 트리 갱신.",
+      "stepCloudVaultTitle": "vault 열기",
+      "stepCloudVaultDesc": "/docs 에서 마크다운 폴더를 선택해 vault 를 활성화해요.",
+      "stepCloudFrontmatterTitle": "frontmatter 추가",
+      "stepCloudFrontmatterDesc": "문서에 kind / capabilities / elements / relates 를 적으면 자동으로 stub 노드가 만들어져요.",
+      "stepCloudBuilderTitle": "빌더에서 정리",
+      "stepCloudBuilderDesc": "/ontology/edit 캔버스에서 노드와 관계를 다듬으면 여기 트리에 그대로 자라요.",
+      "ctaBuilder": "빌더 열기 →",
+      "ctaBuilderShort": "빌더 열기",
+      "ctaVault": "vault 살펴보기",
+      "ctaVaultOpen": "vault 열기 →",
+      "snippetEyebrow": "snippet",
+      "snippetSummary": "vault 의 첫 노드 — 이 frontmatter 를 `.md` 파일에 붙여넣으면 즉시 트리에 등장",
+      "snippetHelp": "위 내용을 vault 안 어떤 디렉토리에든 <code>capabilities/auth.md</code> 같은 이름으로 저장하세요. 더 자세한 frontmatter 키: <code>domain</code> · <code>capabilities</code> · <code>elements</code> · <code>relates</code> · <code>dependencies</code>."
+    },
+    "footer": {
+      "modeLocal": "로컬 vault",
+      "modeCloud": "클라우드",
+      "modeStatic": "정적 데모"
+    },
+    "copyLink": {
+      "tooltip": "이 노드의 직접 링크 복사",
+      "ariaCopied": "노드 링크 복사됨",
+      "ariaCopy": "노드 링크 복사",
+      "toastSuccess": "노드 링크 복사됨",
+      "toastError": "복사 실패 — 브라우저 권한 확인",
+      "badge": "복사"
+    },
+    "detail": {
+      "ariaLabel": "노드 상세: {title}",
+      "addEdgeTooltip": "이 노드를 from 으로 새 관계 추가",
+      "addEdgeAria": "이 노드에서 관계 추가",
+      "addEdgeButton": "관계",
+      "close": "닫기",
+      "manualNote": "작성 메모",
+      "linkedProjects": "연결 프로젝트",
+      "evidenceCount": "근거 수",
+      "relations": "관계 {count}",
+      "relationsHopBreakdown": "· 1-hop {one} · 2-hop {two}",
+      "egoDepthAria": "ego 그래프 깊이",
+      "egoTwoHopTooltip": "한 다리 건넌 이웃까지 — 노드 수 늘어 라벨 겹침 가능",
+      "neighborMissingKind": "미연결",
+      "neighborMissingTitle": "이 ID 의 노드가 아직 그래프에 없어요",
+      "collapse": "접기",
+      "showMore": "+{count}개 더",
+      "relatedDocs": "관련 문서 {count}",
+      "projectDetailCta": "공개 상세 페이지 →",
+      "stubWarning": "미해결 참조 — frontmatter 가 가리킨 slug 가 vault 안에 없어요. 빌더(/ontology/edit)에서 이 이름으로 노드를 만들거나, frontmatter 에서 참조를 빼세요."
+    }
+  },
+  "docsVault": {
+    "header": {
+      "openTreeAriaLabel": "트리 열기",
+      "openTreeTitle": "문서 트리",
+      "backToWorkspaceAriaLabel": "워크스페이스 지도로 돌아가기",
+      "back": "돌아가기",
+      "title": "Docs Vault",
+      "docCount": "{count} 문서",
+      "roleTooltip": "현재 역할: {role}. 편집 권한이 없어 읽기만 가능합니다.",
+      "localBadge": "로컬",
+      "audienceAriaLabel": "문서 관점",
+      "audienceLabel": "관점",
+      "audienceAll": "전체",
+      "audiencePlanner": "기획자",
+      "audienceEngineer": "개발자",
+      "paletteTooltip": "검색 · 명령 · 태그 — Tab 으로 관점 전환",
+      "paletteAriaLabel": "팔레트 열기 (검색 · 명령 · 태그)",
+      "advancedTooltip": "고급",
+      "advancedAriaLabel": "고급 메뉴 열기"
+    },
+    "advanced": {
+      "viewSection": "보기",
+      "viewDoc": "문서",
+      "viewGraph": "그래프",
+      "viewStats": "통계",
+      "viewTopology": "토폴로지",
+      "sourceSection": "소스",
+      "sourceServer": "서버",
+      "sourceLocal": "로컬",
+      "ontologyHintPrefix": "처음이세요? 이 repo 의 ",
+      "ontologyHintSuffix": "를 선택해 보세요 — 이 도구 자체의 ontology (21 노드) 가 즉시 트리에 등장합니다.",
+      "newDoc": "새 문서"
+    },
+    "mobileDrawer": {
+      "title": "문서 트리",
+      "closeAriaLabel": "트리 닫기"
+    },
+    "topology": {
+      "addProjectTitle": "새 프로젝트 .md 추가 (projects/{slug}.md)",
+      "addProjectLabel": "프로젝트",
+      "emptyTitle": "이 볼트엔 아직 `projects/` 가 없어요",
+      "emptyBody": "Folder-Topology 규격 파일 구조 (projects/_.md, categories.md, statuses.md) 를 자동 생성하면 바로 토폴로지가 보여요. 이미 있는 파일은 덮어쓰지 않습니다.",
+      "scaffoldCta": "이 폴더를 토폴로지 볼트로 초기화",
+      "needEditPermission": "편집 권한이 필요합니다 (로컬 볼트)"
+    },
+    "graph": {
+      "focusAll": "전체",
+      "focusLocalEnabled": "선택 문서 주변 2-hop 만 보기",
+      "focusLocalDisabled": "문서를 선택하면 활성화됩니다",
+      "focusLocalLabel": "이웃 2-hop"
+    },
+    "commands": {
+      "openPalette": "팔레트 열기 (검색 · 명령 · 태그)",
+      "findTags": "태그 찾기",
+      "viewDoc": "뷰 · 문서 보기",
+      "viewGraph": "뷰 · 링크 그래프",
+      "viewStats": "뷰 · 볼트 통계",
+      "viewFolderTopology": "뷰 · Folder Topology (projects/*.md)",
+      "scaffoldTopology": "이 폴더를 Topology 볼트로 초기화",
+      "createProject": "새 프로젝트 추가 (projects/…md)",
+      "audienceAll": "관점 · 전체",
+      "audiencePlanner": "관점 · 기획자",
+      "audienceEngineer": "관점 · 개발자",
+      "sourceServer": "소스 · 서버 볼트",
+      "sourceLocal": "소스 · 로컬 PC 폴더",
+      "pinDoc": "이 문서 고정",
+      "unpinDoc": "고정 해제",
+      "copyUrl": "현재 문서 URL 복사",
+      "print": "인쇄 · PDF 로 저장",
+      "edit": "이 파일 편집",
+      "newDoc": "새 문서 만들기",
+      "dailyNote": "오늘의 노트 (daily/YYYY-MM-DD)",
+      "rename": "이 문서 이름 변경 (slug/경로)",
+      "insertToc": "현재 문서에 목차 삽입",
+      "deleteDoc": "이 문서 삭제",
+      "exportDocHtml": "현재 문서 HTML 로 저장",
+      "exportVault": "볼트 백업 내보내기 (JSON)",
+      "importVault": "볼트 복원 불러오기 (JSON)",
+      "localRefresh": "로컬 볼트 다시 스캔",
+      "localClose": "로컬 볼트 닫기",
+      "clearTagFilter": "태그 필터 해제",
+      "projectsList": "프로젝트 목록으로 이동"
+    },
+    "dialog": {
+      "deleteConfirm": "정말 삭제할까요?\n\n{title}\n{slug}.md\n\n이 작업은 되돌릴 수 없습니다.",
+      "deleteFailed": "삭제 실패: {message}",
+      "createProjectPrompt": "새 프로젝트 slug (영문·숫자·하이픈):",
+      "invalidSlug": "유효한 slug 가 아닙니다.",
+      "alreadyExists": "이미 존재: {slug}",
+      "createFailed": "생성 실패: {message}",
+      "scaffoldConfirm": "이 폴더를 Folder-Topology 규격으로 초기화할까요?\n\n- projects/ 디렉터리 + sample 2개 프로젝트\n- categories.md · statuses.md 기본 세트\n- README.md\n\n이미 존재하는 파일은 덮어쓰지 않습니다.",
+      "scaffoldDone": "초기화 완료 — 새 파일 {created}개 · 스킵 {skipped}개\n\n필드 규격은 방금 생성된 README.md 를 먼저 열어보세요. 샘플 프로젝트 2개 (sample-hub / sample-leaf) 의 frontmatter 를 템플릿으로 참고하면 됩니다.",
+      "scaffoldFailed": "초기화 실패: {message}",
+      "dailyNoteFailed": "daily note 생성 실패: {message}",
+      "noHeadings": "h2/h3 heading 이 없는 문서입니다.",
+      "notLocalFile": "이 문서는 로컬 볼트 파일이 아닙니다.",
+      "tocFailed": "TOC 삽입 실패: {message}",
+      "notRendered": "문서가 아직 렌더링되지 않았습니다. 다시 시도하세요.",
+      "jsonParseFailed": "JSON 파싱 실패: {message}",
+      "noValidRaws": "유효한 raws 필드가 없습니다.",
+      "importOverwriteConfirm": "{count}개 문서가 이미 볼트에 존재합니다.\n\n예 = 덮어쓰기 (saveDoc)\n아니오 = 새 이름으로 건너뛰기 (중복은 스킵)\n\n진행할까요?",
+      "importDone": "Import 완료 — 신규 {created} · 덮어씀 {updated} · 건너뜀 {skipped}",
+      "renamePrompt": "새 slug (확장자 없이):",
+      "renameAlreadyExists": "이미 존재하는 문서입니다: {slug}",
+      "renameFailed": "이름 변경 실패: {message}",
+      "newDocPrompt": "새 문서 경로 (slug, 확장자 없이):"
+    }
+  },
+  "topology": {
+    "loadingEngine": "토폴로지 엔진 불러오는 중",
+    "documentTitle": "토폴로지",
+    "srHeading": "토폴로지 프로젝트 토폴로지 지도",
+    "presentationStarted": "프레젠테이션 모드 시작",
+    "selectionAnnouncement": "{name} 선택됨. 의존 {deps}개, 연결 {referenced}개.",
+    "mobileTagline": "프로젝트 의존도 지도.",
+    "workspace": {
+      "growthThisWeek": " · 이번 주 +{count}",
+      "subtitle": "Workspace · {projects} 프로젝트 · {hubs} 허브{growth}",
+      "eyebrow": "Workspace · {projects} 프로젝트",
+      "fallbackTitle": "토폴로지",
+      "selectedEyebrow": "선택한 프로젝트",
+      "expandHint": "워크스페이스 지도 펼치기",
+      "mapEyebrow": "워크스페이스 지도",
+      "description": "{hubs}개 허브를 중심으로 {projects}개 프로젝트가 엮여 있습니다. 노드를 클릭해 상세를 열어 볼 수 있어요."
+    },
+    "hero": {
+      "closeSelected": "선택한 프로젝트 닫기",
+      "expandLeftPanel": "좌측 패널 펼치기"
+    },
+    "scene": {
+      "backToWorkspace": "워크스페이스 지도로 돌아가기",
+      "workspaceMap": "워크스페이스 지도"
+    },
+    "controls": {
+      "relayoutToast": "토폴로지를 다시 정렬합니다",
+      "docsTooltip": "문서 볼트 빠른 보기 (D)",
+      "docsAriaLabel": "문서 볼트 빠른 보기 열기 (D)",
+      "docsLabel": "문서",
+      "pinnedDocsCount": "고정된 문서 {count}개",
+      "exitPresentationTooltip": "프레젠테이션 모드 종료 (F)",
+      "exitPresentationAriaLabel": "프레젠테이션 모드 종료",
+      "close": "닫기",
+      "shortcutsTooltip": "키보드 단축키 (?)",
+      "shortcutsAriaLabel": "키보드 단축키 보기"
+    },
+    "evidence": {
+      "openLabel": "{name} 문서 근거 지도 보기",
+      "badge": "문서 근거"
+    },
+    "empty": {
+      "noMatchesBody": "현재 필터 조건에 맞는 프로젝트가 없습니다.",
+      "clearFilters": "필터 해제",
+      "kicker": "TOPOLOGY · {count} 노드",
+      "titleNoProjects": "프로젝트가 아직 없어요",
+      "titleNoDeps": "아직 그릴 의존이 없어요",
+      "bodyNoProjects": "마크다운 폴더를 연결하거나 빌더에서 첫 프로젝트를 만들어보세요. frontmatter 의 `dependencies:` 만 채우면 여기에 선이 자동으로 그려져요.",
+      "bodyNoDeps": "프로젝트끼리 의존 관계 (`dependencies:` frontmatter) 을 1개라도 적으면 여기에 선이 자동으로 생겨요. 빌더 캔버스에서 드래그로도 추가 가능.",
+      "ctaBuilder": "빌더에서 의존 추가",
+      "ctaOpenVault": "마크다운 폴더 열기"
+    },
+    "hint": {
+      "title": "프로젝트 지형도",
+      "dismissAriaLabel": "안내 닫기",
+      "body": "노드는 프로젝트, 선은 의존 관계입니다. 클릭해서 상세를 열고 검색으로 좁혀보세요.",
+      "click": "클릭",
+      "clickDescription": " · 상세 패널 열기",
+      "drag": "드래그",
+      "dragDescription": " · 노드 위치 이동",
+      "searchDescription": " 검색 · ",
+      "shortcutsDescription": " 단축키"
+    },
+    "errorBanner": {
+      "retry": "다시 시도"
+    }
   }
 }
