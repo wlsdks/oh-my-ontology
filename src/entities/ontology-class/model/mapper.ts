@@ -1,4 +1,5 @@
-import { Timestamp, type DocumentData } from 'firebase/firestore';
+type DocumentData = Record<string, unknown>;
+import { coerceFirestoreDate } from '@/shared/lib/firestore-timestamp-coerce';
 import type {
   OntologyClass,
   OntologyClassInput,
@@ -25,16 +26,12 @@ function toElementType(value: unknown): OntologyElementType | undefined {
 }
 
 function toDate(value: unknown): Date {
-  if (value instanceof Timestamp) return value.toDate();
-  if (value instanceof Date) return value;
-  return new Date(0);
+  return coerceFirestoreDate(value);
 }
 
 function toOptionalDate(value: unknown): Date | undefined {
   if (value === undefined || value === null) return undefined;
-  if (value instanceof Timestamp) return value.toDate();
-  if (value instanceof Date) return value;
-  return undefined;
+  return coerceFirestoreDate(value);
 }
 
 export function fromFirestore(id: string, data: DocumentData): OntologyClass {

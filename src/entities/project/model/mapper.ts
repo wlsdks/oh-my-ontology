@@ -1,42 +1,56 @@
-import { Timestamp, type DocumentData } from 'firebase/firestore';
+// Firestore `DocumentData` 는 indexable any 라 mapper 안 cast 가 자유롭다.
+// firebase 의존을 끊으려고 local alias 로 동등 타입 정의.
+type DocumentData = { [k: string]: unknown };
 import type { Project, ProjectInput } from './types';
+import { coerceFirestoreDate } from '@/shared/lib/firestore-timestamp-coerce';
+
+type FirestoreRecord = Record<string, unknown>;
+
+function toDateOrUndefined(value: unknown): Date | undefined {
+  if (value === undefined || value === null) return undefined;
+  const d = coerceFirestoreDate(value);
+  return d.getTime() === 0 ? undefined : d;
+}
 
 /**
  * Firestore 문서 데이터를 앱 도메인 모델(Project)로 변환.
  * Timestamp → Date, 누락 필드는 안전한 기본값으로 채운다.
  */
 export function fromFirestore(slug: string, data: DocumentData): Project {
+  const d = data as FirestoreRecord;
+  const timeline = (d.timeline as FirestoreRecord | undefined) ?? {};
+  const position = (d.position as FirestoreRecord | undefined) ?? {};
   return {
-    accountId: data.accountId ?? undefined,
+    accountId: (d.accountId as string | undefined) ?? undefined,
     slug,
-    name: data.name ?? '',
-    nameEn: data.nameEn ?? undefined,
-    category: data.category ?? 'in-progress',
-    status: data.status ?? 'idea',
-    description: data.description ?? '',
-    detail: data.detail ?? undefined,
-    tags: Array.isArray(data.tags) ? data.tags : [],
-    stack: Array.isArray(data.stack) ? data.stack : [],
-    links: Array.isArray(data.links) ? data.links : [],
-    dependencies: Array.isArray(data.dependencies) ? data.dependencies : [],
-    owner: data.owner ?? undefined,
-    icon: data.icon ?? undefined,
-    screenshots: Array.isArray(data.screenshots) ? data.screenshots : [],
+    name: (d.name as string | undefined) ?? '',
+    nameEn: (d.nameEn as string | undefined) ?? undefined,
+    category: ((d.category as string | undefined) ?? 'in-progress') as Project['category'],
+    status: ((d.status as string | undefined) ?? 'idea') as Project['status'],
+    description: (d.description as string | undefined) ?? '',
+    detail: (d.detail as string | undefined) ?? undefined,
+    tags: Array.isArray(d.tags) ? (d.tags as string[]) : [],
+    stack: Array.isArray(d.stack) ? (d.stack as string[]) : [],
+    links: Array.isArray(d.links) ? (d.links as Project['links']) : [],
+    dependencies: Array.isArray(d.dependencies) ? (d.dependencies as Project['dependencies']) : [],
+    owner: (d.owner as Project['owner']) ?? undefined,
+    icon: (d.icon as string | undefined) ?? undefined,
+    screenshots: Array.isArray(d.screenshots) ? (d.screenshots as string[]) : [],
     timeline: {
-      startedAt: data.timeline?.startedAt instanceof Timestamp ? data.timeline.startedAt.toDate() : undefined,
-      launchedAt: data.timeline?.launchedAt instanceof Timestamp ? data.timeline.launchedAt.toDate() : undefined,
+      startedAt: toDateOrUndefined(timeline.startedAt),
+      launchedAt: toDateOrUndefined(timeline.launchedAt),
     },
-    progress: typeof data.progress === 'number' ? data.progress : undefined,
-    isHub: Boolean(data.isHub),
-    hubSlugs: Array.isArray(data.hubSlugs)
-      ? data.hubSlugs.filter((s): s is string => typeof s === 'string' && s.length > 0)
+    progress: typeof d.progress === 'number' ? d.progress : undefined,
+    isHub: Boolean(d.isHub),
+    hubSlugs: Array.isArray(d.hubSlugs)
+      ? (d.hubSlugs as unknown[]).filter((s): s is string => typeof s === 'string' && s.length > 0)
       : undefined,
     position: {
-      x: typeof data.position?.x === 'number' ? data.position.x : 0,
-      y: typeof data.position?.y === 'number' ? data.position.y : 0,
+      x: typeof position.x === 'number' ? position.x : 0,
+      y: typeof position.y === 'number' ? position.y : 0,
     },
-    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(0),
-    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(0),
+    createdAt: coerceFirestoreDate(d.createdAt),
+    updatedAt: coerceFirestoreDate(d.updatedAt),
   };
 }
 
