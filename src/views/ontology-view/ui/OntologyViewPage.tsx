@@ -17,7 +17,7 @@ import {
   type OntologyEgoSubgraph,
   type OntologyTreeBuildResult,
 } from "@/shared/lib/ontology-tree";
-import { GlobalSearch, useGlobalSearchHotkey } from "@/widgets/global-search";
+import { GlobalSearch, MountedGlobalSearch, useGlobalSearchHotkey } from "@/widgets/global-search";
 import { ManualEdgeCreateModal } from "@/widgets/manual-edge-create-modal";
 import { ManualNodeCreateModal } from "@/widgets/manual-node-create-modal";
 import { OntologyEgoGraph } from "@/widgets/ontology-ego-graph";
@@ -90,8 +90,13 @@ export function OntologyViewPage() {
     return () => window.removeEventListener("keydown", handler);
   }, [selectedNode]);
 
-  // ⌘K / Ctrl+K — 검색 토글. 같은 hook 을 다른 surface 도 쓰므로 단일 진입점.
+  // ⌘K / Ctrl+K — 페이지-스코프 concept search 토글.
   useGlobalSearchHotkey(searchOpen, setSearchOpen);
+  // ⇧⌘K — global search (ontology + projects + docs). eval H2 finding —
+  // /topology, /ontology/insights, /ontology/relations 는 ⇧⌘K 가 동작하는데
+  // /ontology/ (ontology hub, 가장 많이 들르는 페이지) 만 안 됐음. 일관성 회복.
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  useGlobalSearchHotkey(globalSearchOpen, setGlobalSearchOpen, { shift: true });
 
   // deeplink — `?node=<id>` 를 selectedNode 와 양방향 동기화. URL 이 source
   // of truth: 외부 surface (검색 / 문서 / 직접 입력) 에서 URL 만 바뀌어도
@@ -440,6 +445,14 @@ relates:
         open={searchOpen}
         onOpenChange={setSearchOpen}
         nodes={insight?.nodes ?? []}
+        onSelectNode={(node) => selectNode(node)}
+      />
+
+      {/* ⇧⌘K — global search (ontology + projects). 다른 surface 와 일관성. */}
+      <MountedGlobalSearch
+        accountId={accountId}
+        open={globalSearchOpen}
+        onOpenChange={setGlobalSearchOpen}
         onSelectNode={(node) => selectNode(node)}
       />
 

@@ -37,7 +37,9 @@ export function LandingPage({ next }: Props) {
   return (
     <main
       id="main"
-      className="relative flex min-h-screen flex-col bg-[color:var(--color-canvas)] px-[max(1.5rem,env(safe-area-inset-left))] py-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pb-[max(2rem,env(safe-area-inset-bottom))] md:px-10 md:py-10"
+      // 모바일 BottomTabBar (56px) + safe-area 만큼 더 padding-bottom 확보 —
+      // eval H3 finding: 모바일에서 '01' 카드를 탭바가 가리던 회귀.
+      className="relative flex min-h-screen flex-col bg-[color:var(--color-canvas)] px-[max(1.5rem,env(safe-area-inset-left))] py-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1.5rem,env(safe-area-inset-right))] pb-[calc(56px+env(safe-area-inset-bottom)+1rem)] md:px-10 md:py-10 md:pb-10"
     >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex items-center gap-3">
@@ -110,7 +112,7 @@ export function LandingPage({ next }: Props) {
                 <ArrowRight size={16} />
               </Link>
               <Link
-                href="/docs/"
+                href="/docs/?intent=local"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
                   "rounded-full",
