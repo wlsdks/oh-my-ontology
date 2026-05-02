@@ -93,7 +93,6 @@ import { GestureHint } from "@/widgets/gesture-hint";
 import { LiveAnnouncer, Tooltip, useToast } from "@/shared/ui";
 import {
   getProjectDetailHref,
-  type Project,
   type ProjectImpactMode,
 } from "@/entities/project";
 import { buildDocsVaultHref } from "@/entities/docs-vault";
