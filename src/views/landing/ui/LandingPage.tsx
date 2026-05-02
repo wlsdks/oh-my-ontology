@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowRight, FolderOpen, Orbit } from "lucide-react";
 import { cn } from "@/shared/lib/cn";
-import { buttonVariants } from "@/shared/ui";
+import { buttonVariants, StaggeredFadeIn } from "@/shared/ui";
 import { LocaleSwitch } from "@/features/locale-switch";
 
 interface Props {
@@ -269,7 +269,7 @@ function ValueChainRail({
   steps: ReadonlyArray<{ index: string; title: string; sub: string }>;
 }) {
   return (
-    <ol className="grid gap-3 md:grid-cols-3 md:gap-4">
+    <StaggeredFadeIn as="ol" className="grid gap-3 md:grid-cols-3 md:gap-4">
       {steps.map((s, i) => (
         <li
           key={s.index}
@@ -294,6 +294,6 @@ function ValueChainRail({
           </p>
         </li>
       ))}
-    </ol>
+    </StaggeredFadeIn>
   );
 }

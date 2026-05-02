@@ -20,6 +20,7 @@ import { Tooltip, useToast } from "@/shared/ui";
 import { useEphemeralNodes } from "../lib/use-ephemeral-nodes";
 import { useEphemeralEdges } from "../lib/use-ephemeral-edges";
 import { downloadAtlasFrontmatter } from "../lib/export-frontmatter";
+import { downloadGraphML, downloadJsonLd } from "../lib/export-graph";
 import { findVaultBacklinks } from "../lib/find-vault-backlinks";
 
 /**
@@ -456,6 +457,34 @@ export function OntologyEditPage() {
                   aria-label={t("exportAriaLabel")}
                 >
                   {t("exportButton")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    downloadJsonLd({
+                      ephemeralNodes,
+                      ephemeralEdges,
+                      accountId: accountId ?? "unscoped",
+                    })
+                  }
+                  className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.32)] hover:text-[color:var(--color-text-primary)]"
+                  aria-label={t("exportJsonLdAriaLabel")}
+                >
+                  {t("exportJsonLdButton")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    downloadGraphML({
+                      ephemeralNodes,
+                      ephemeralEdges,
+                      accountId: accountId ?? "unscoped",
+                    })
+                  }
+                  className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.32)] hover:text-[color:var(--color-text-primary)]"
+                  aria-label={t("exportGraphMlAriaLabel")}
+                >
+                  {t("exportGraphMlButton")}
                 </button>
                 <button
                   type="button"

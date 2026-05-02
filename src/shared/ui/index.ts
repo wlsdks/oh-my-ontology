@@ -16,3 +16,4 @@ export { InlineEditable } from './inline-editable';
 export { ChipListEditor } from './chip-list-editor';
 export { LinkListEditor, type LinkItem } from './link-list-editor';
 export { Tooltip, TooltipProvider, TooltipContent } from './tooltip';
+export { StaggeredFadeIn } from './staggered-fade-in';
