@@ -411,7 +411,17 @@ function listConcepts({ kind, limit = 100 }) {
 }
 
 function getConcept({ slug }) {
-  const doc = readDoc(VAULT_ROOT, slugToPath(VAULT_ROOT, slug));
+  let doc;
+  try {
+    doc = readDoc(VAULT_ROOT, slugToPath(VAULT_ROOT, slug));
+  } catch (err) {
+    // ENOENT 등 fs 오류는 사용자 친화 메시지로 surface — 절대 경로 leak 회피
+    // (Panel E audit 2026-05-02 finding).
+    if (err && (err.code === 'ENOENT' || /no such file/i.test(err.message))) {
+      throw new Error(`Doc not found: ${slug}`);
+    }
+    throw err;
+  }
   return {
     slug: doc.slug,
     frontmatter: doc.frontmatter,
