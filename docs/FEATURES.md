@@ -15,8 +15,8 @@
 input (humans + AI agents)     parse           store              output
         │                       │                │                │
         ▼                       ▼                ▼                ▼
-  .md in vault  →          frontmatter   →  vault or       →  tree (/) [hub]
-  (frontmatter)                              Firestore        topology (/topology Sigma)
+  .md in vault  →          frontmatter   →  user disk      →  tree (/) [hub]
+  (frontmatter)                              (vault)           topology (/topology Sigma)
   + AI agent (MCP)                                            builder (/ontology/edit xyflow)
 ```
 
@@ -24,15 +24,14 @@ input (humans + AI agents)     parse           store              output
 
 ## 1. Mode branching (data source)
 
-The `useDataSourceMode()` hook resolves to one of three modes:
+The `useDataSourceMode()` hook resolves to one of two modes (R10b: cloud / auth surface permanently removed):
 
 | Mode | Condition | Behavior |
 |---|---|---|
-| **local** | vault folder active | vault manifest is the source of truth, zero Firebase calls |
-| **cloud** | Firebase login + no active vault | Firestore onSnapshot live sync |
-| **static** | neither | build-time demo manifest |
+| **local** | vault folder active | vault manifest is the source of truth |
+| **static** | no active vault | build-time dogfood manifest (this project's own ontology) |
 
-**Effect**: when a user opens a vault folder, `/` (ontology hub), `/topology`, `/projects`, and `/project/[slug]` all switch to vault data instantly. Mutations (create / edit / delete) are mode-aware in exactly the same way.
+**Effect**: when a user opens a vault folder, `/` (ontology hub), `/topology`, `/projects`, and `/project/[slug]` all switch to vault data instantly. Mutations (create / edit / delete) are mode-aware: local → write to vault `.md`; static → rejected (read-only).
 
 ---
 
@@ -212,7 +211,7 @@ The `useDataSourceMode()` hook resolves to one of three modes:
 
 | Hook | Responsibility |
 |---|---|
-| `useDataSourceMode()` | resolves local / cloud / static |
+| `useDataSourceMode()` | resolves local / static |
 | `useProjects(accountId)` | mode-specific project read (sync local / subscribe cloud) |
 | `useProjectMutations()` | mode-specific CRUD (vault file write / Firestore upsert) |
 | `useOntologyInsight(accountId)` | **new in mission v2** — local: converts vault frontmatter stubs; cloud: knowledgePublic projection. The `/` ontology hub auto-switches to vault mode when a vault is active |
