@@ -109,7 +109,6 @@ function applyTransitionStyle(
     willChange: mounted ? undefined : 'opacity, transform',
   };
   return cloneElement(child, {
-    // eslint-disable-next-line react/no-array-index-key -- stable order, no reorder semantics
     key: child.key ?? index,
     style: { ...existing, ...inlineTransition },
     // motion-reduce: 클래스 보존 (prefers-reduced-motion CSS rules 와 호환).
