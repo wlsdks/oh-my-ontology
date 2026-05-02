@@ -26,9 +26,9 @@ function rank(kind: string): number {
 }
 
 /**
- * 사용자가 OntologyTreeView 헤더에서 선택 가능한 root 정렬 mode (Fire 2).
+ * OntologyTreeView 헤더에서 선택 가능한 root 정렬 mode.
  *
- * - `kind-title` (기본) — 원래 위계 우선 정책 (UX-12).
+ * - `kind-title` (기본) — 위계 우선 정책 (project < domain < capability < element).
  * - `evidence-desc` — 근거 (evidenceIds 수) 가 많은 노드부터. "내 ontology
  *   에서 어떤 노드가 가장 자료가 많은지" 발견용.
  * - `title` — kind 무시, 가나다순. 알파벳 직접 lookup 시.

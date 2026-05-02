@@ -235,9 +235,9 @@ export function OntologyTreeView({
   // inline 검색 — ⌘K 글로벌 검색과 별개로 트리 안 빠른 좁히기.
   // 매치 노드 + 부모 chain 보존, 형제 제외.
   const [searchQuery, setSearchQuery] = useState("");
-  // Fire 2 — 사용자가 트리 정렬을 직접 고름. 기본은 UX-12 의 kind 우선.
-  // 'evidence-desc' 는 "내 ontology 어디에 자료 많이 쌓였나" 발견용,
-  // 'title' 은 알파벳 직접 lookup. 페이지 reload 마다 default 로 회귀.
+  // 트리 정렬 mode — 기본 kind 우선 (위계). 'evidence-desc' 는 "어떤
+  // 노드에 자료 많이 쌓였나" 발견용, 'title' 은 알파벳 lookup. 페이지
+  // reload 마다 default 로 회귀.
   const [sortKey, setSortKey] = useState<OntologyRootSortKey>("kind-title");
   const sortedRoots = useMemo(
     () => sortRoots(result.roots, sortKey),
@@ -354,8 +354,8 @@ export function OntologyTreeView({
             {t('tree.expandedSummary', { expanded: expandedCount, total: collapsibleIds.size })}
           </span>
           <div className="flex flex-wrap items-center gap-1">
-            {/* Fire 2 — 정렬 dropdown. native select 로 모바일 접근성 + 의존성
-                추가 0. 기본 'kind-title' 은 UX-12 정책 그대로. */}
+            {/* 정렬 dropdown — native select 로 모바일 접근성 보장 + 외부
+                의존성 0. 기본 'kind-title' (위계 우선). */}
             <label className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-2 py-[3px] text-[10px] text-[color:var(--color-text-tertiary)] focus-within:border-[color:rgba(94,106,210,0.32)]">
               <span className="font-mono uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
                 {t('tree.sortLabel')}
