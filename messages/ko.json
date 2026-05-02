@@ -28,7 +28,8 @@
     "tooltipDocs": "내 vault 의 .md 들 — frontmatter `kind:` 만 적으면 즉시 ontology 노드",
     "tooltipOntology": "vault frontmatter 의 노드·관계 계층 그래프 (project → domain → capability → element)",
     "tooltipTopology": "프로젝트 의존도 지도 — 온톨로지의 한 출구 view",
-    "primaryAriaLabel": "주요 메뉴"
+    "primaryAriaLabel": "주요 메뉴",
+    "notificationsAriaLabel": "작업 알림"
   },
   "modeBadge": {
     "vaultLabel": "vault",

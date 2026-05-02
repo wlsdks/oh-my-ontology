@@ -28,7 +28,8 @@
     "tooltipDocs": "The .md files in your vault — add `kind:` to frontmatter and they become ontology nodes",
     "tooltipOntology": "Hierarchical view of frontmatter nodes (project → domain → capability → element)",
     "tooltipTopology": "Project dependency map — one of the ontology's exit views",
-    "primaryAriaLabel": "Primary menu"
+    "primaryAriaLabel": "Primary menu",
+    "notificationsAriaLabel": "Notifications"
   },
   "modeBadge": {
     "vaultLabel": "vault",
