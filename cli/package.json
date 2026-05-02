@@ -1,0 +1,37 @@
+{
+  "name": "oh-my-ontology",
+  "version": "0.1.0",
+  "description": "AI-native codebase ontology workbench — vault scaffold + MCP setup CLI.",
+  "type": "module",
+  "bin": {
+    "oh-my-ontology": "src/index.mjs"
+  },
+  "scripts": {
+    "test": "node --test src/**/*.test.mjs"
+  },
+  "files": [
+    "src",
+    "templates",
+    "README.md"
+  ],
+  "keywords": [
+    "ontology",
+    "codebase",
+    "ai-agent",
+    "mcp",
+    "knowledge-graph",
+    "markdown",
+    "frontmatter",
+    "vault",
+    "obsidian-compatible"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wlsdks/oh-my-ontology.git",
+    "directory": "cli"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
