@@ -189,8 +189,8 @@ export function ManualNodeCreateModal({
             id="manual-node-modal-desc"
             className="text-xs leading-5 text-[color:var(--color-text-tertiary)]"
           >
-            추출 워커를 거치지 않고 ontology 에 직접 노드를 만듭니다. 한
-            가지만 빠르게 추가할 때 사용하세요.
+            ontology 에 노드를 직접 만듭니다 (vault frontmatter / 빌더와
+            같은 manual 출처). 한 가지만 빠르게 추가할 때 사용하세요.
           </p>
 
           <div>
