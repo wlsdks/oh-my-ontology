@@ -51,7 +51,7 @@ export function InlineEditable({
   as = "span",
   multiline = false,
   className,
-  placeholder = "클릭해서 입력",
+  placeholder = "Click to edit",
   allowEmpty = false,
   ariaLabel,
   dataTestId,
