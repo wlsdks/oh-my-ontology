@@ -1274,7 +1274,6 @@
     },
     "footer": {
       "modeLocal": "Local vault",
-      "modeCloud": "Cloud",
       "modeStatic": "Static demo"
     },
     "copyLink": {
