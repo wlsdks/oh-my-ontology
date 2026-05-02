@@ -29,11 +29,11 @@ export function ProjectOntologyOverview({
 }: ProjectOntologyOverviewProps) {
   const { insight } = useOntologyInsight();
   const kindLabel = useOntologyKindLabel();
-  const nodes = insight?.nodes ?? [];
 
   const matched = useMemo(
-    () => nodes.filter((n) => n.projectIds.includes(projectSlug)),
-    [nodes, projectSlug],
+    () =>
+      insight?.nodes.filter((n) => n.projectIds.includes(projectSlug)) ?? [],
+    [insight, projectSlug],
   );
 
   const stats = useMemo(() => buildMeaningfulOntologyStats(matched), [matched]);
