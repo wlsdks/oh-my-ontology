@@ -22,7 +22,6 @@ interface Props {
   initialCategoryId?: string;
   initialStatusId?: string;
   returnTo?: string;
-  accountId?: string | null;
   savedNotice?: boolean;
 }
 
@@ -61,7 +60,6 @@ function EditorContent({
   initialCategoryId,
   initialStatusId,
   returnTo,
-  accountId,
   savedNotice,
 }: Props) {
   const t = useTranslations("projectPages.editor");
@@ -112,16 +110,15 @@ function EditorContent({
     input: ProjectInput,
     options: { behavior: "stay" | "return" },
   ) => {
-    const payload: ProjectInput = { ...input, accountId: accountId ?? undefined };
     if (mode === "create") {
-      await projectMutations.createProject(payload);
+      await projectMutations.createProject(input);
       if (options.behavior === "stay") {
         toast.show(t("createdAndOpenToast", { name: input.name }), "success");
         router.replace(buildEditHref(input.slug));
         return;
       }
     } else {
-      await projectMutations.updateProject(payload);
+      await projectMutations.updateProject(input);
       if (options.behavior === "stay") {
         toast.show(t("savedToast", { name: input.name }), "success");
         return;
