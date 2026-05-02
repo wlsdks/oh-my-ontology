@@ -1,6 +1,7 @@
 /**
- * Canonical edge type union — `knowledgeApprovedEdges.type` / `knowledgePublicEdges.type`
- * 의 합법 값. ontology TBox (`ontologyRelations` 컬렉션) 의 7 종 시드와 일치.
+ * Canonical edge type union — vault frontmatter array key (capabilities /
+ * elements / dependencies / relates / contains / describes 등) 와 ontology
+ * relation 의 7 종 표준값.
  *
  * 카테고리 (참고용):
  *   structure: `contains`, `belongs_to` (트리 구조)
@@ -8,7 +9,6 @@
  *   evidence:  `describes` (document → 개념)
  *   weak:      `related_to` (약 연관)
  *
- * 추출 candidates 는 `string` 으로 들어올 수 있고 (LLM 이 잘못된 타입을 낼 가능성),
  * `KnowledgeGraphEdge.type` 자체는 backwards-compat 으로 `string` 을 유지.
  * 타입드 writer / typed reader 가 필요한 경우 이 union 을 사용한다.
  */
