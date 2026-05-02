@@ -9,8 +9,8 @@ describe('ChipListEditor — readonly', () => {
     );
     expect(screen.getByText('react')).toBeInTheDocument();
     expect(screen.getByText('typescript')).toBeInTheDocument();
-    expect(screen.queryByLabelText(/제거/)).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('새 항목 추가')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Remove /)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Add')).not.toBeInTheDocument();
   });
 
   it('renders null when no value + no emptyHint', () => {
@@ -29,12 +29,12 @@ describe('ChipListEditor — readonly', () => {
 });
 
 describe('ChipListEditor — editable', () => {
-  it('renders remove button per chip + 추가 toggle', () => {
+  it('renders remove button per chip + add toggle', () => {
     render(
       <ChipListEditor value={['react']} editable onChange={() => {}} />,
     );
-    expect(screen.getByLabelText('react 제거')).toBeInTheDocument();
-    expect(screen.getByLabelText('새 항목 추가')).toBeInTheDocument();
+    expect(screen.getByLabelText('Remove react')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add')).toBeInTheDocument();
   });
 
   it('removeAt fires onChange with item filtered', () => {
@@ -42,7 +42,7 @@ describe('ChipListEditor — editable', () => {
     render(
       <ChipListEditor value={['a', 'b', 'c']} editable onChange={onChange} />,
     );
-    fireEvent.click(screen.getByLabelText('b 제거'));
+    fireEvent.click(screen.getByLabelText('Remove b'));
     expect(onChange).toHaveBeenCalledWith(['a', 'c']);
   });
 
@@ -51,15 +51,15 @@ describe('ChipListEditor — editable', () => {
     render(
       <ChipListEditor value={['react']} editable onChange={onChange} />,
     );
-    fireEvent.click(screen.getByLabelText('새 항목 추가'));
-    const input = screen.getByPlaceholderText('추가') as HTMLInputElement;
+    fireEvent.click(screen.getByLabelText('Add'));
+    const input = screen.getByPlaceholderText('Add') as HTMLInputElement;
     // 중복 — 무시
     fireEvent.change(input, { target: { value: 'react' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onChange).not.toHaveBeenCalled();
     // 새 값 — 추가
-    fireEvent.click(screen.getByLabelText('새 항목 추가'));
-    const input2 = screen.getByPlaceholderText('추가') as HTMLInputElement;
+    fireEvent.click(screen.getByLabelText('Add'));
+    const input2 = screen.getByPlaceholderText('Add') as HTMLInputElement;
     fireEvent.change(input2, { target: { value: 'typescript' } });
     fireEvent.keyDown(input2, { key: 'Enter' });
     expect(onChange).toHaveBeenCalledWith(['react', 'typescript']);

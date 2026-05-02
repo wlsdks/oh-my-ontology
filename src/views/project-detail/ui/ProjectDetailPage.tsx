@@ -835,6 +835,8 @@ export function ProjectDetailPage({
                           variant="default"
                           emptyHint={t("tagsEmptyHint")}
                           ariaLabel={t("tagsEditorAria")}
+                          removeAriaLabel={(item) => t("chipRemoveAria", { item })}
+                          addAriaLabel={t("chipAddAria")}
                         />
                       </div>
                     )}
@@ -852,6 +854,8 @@ export function ProjectDetailPage({
                           variant="indigo"
                           emptyHint={t("stackEmptyHint")}
                           ariaLabel={t("stackEditorAria")}
+                          removeAriaLabel={(item) => t("chipRemoveAria", { item })}
+                          addAriaLabel={t("chipAddAria")}
                         />
                       </div>
                     )}

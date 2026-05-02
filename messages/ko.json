@@ -1005,7 +1005,9 @@
       "saveErrorDeps": "의존 저장 실패 — {message}",
       "saveErrorLinks": "링크 저장 실패 — {message}",
       "saveErrorTags": "태그 저장 실패 — {message}",
-      "saveErrorStack": "스택 저장 실패 — {message}"
+      "saveErrorStack": "스택 저장 실패 — {message}",
+      "chipRemoveAria": "{item} 제거",
+      "chipAddAria": "추가"
     },
     "editor": {
       "documentTitleEdit": "프로젝트 편집 · oh-my-ontology",

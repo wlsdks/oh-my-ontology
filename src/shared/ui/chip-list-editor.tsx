@@ -23,6 +23,10 @@ interface Props {
   emptyHint?: string;
   className?: string;
   ariaLabel?: string;
+  /** 칩 X 버튼의 aria-label 빌더. Default: \`Remove {item}\` (영문). */
+  removeAriaLabel?: (item: string) => string;
+  /** "+ 추가" 버튼의 aria-label. Default: 'Add' (영문). */
+  addAriaLabel?: string;
 }
 
 /**
@@ -39,11 +43,13 @@ export function ChipListEditor({
   value,
   editable,
   onChange,
-  placeholder = "추가",
+  placeholder = "Add",
   variant = "default",
   emptyHint,
   className,
   ariaLabel,
+  removeAriaLabel = (item) => `Remove ${item}`,
+  addAriaLabel = "Add",
 }: Props) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
@@ -122,7 +128,7 @@ export function ChipListEditor({
               type="button"
               onClick={() => removeAt(item)}
               className="text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-              aria-label={`${item} 제거`}
+              aria-label={removeAriaLabel(item)}
             >
               <X size={11} />
             </button>
@@ -146,7 +152,7 @@ export function ChipListEditor({
             type="button"
             onClick={() => setAdding(true)}
             className="inline-flex items-center gap-1 rounded-full border border-dashed border-[color:var(--color-border-strong)] bg-transparent px-3 py-1.5 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-            aria-label="새 항목 추가"
+            aria-label={addAriaLabel}
           >
             <Plus size={11} />
             {placeholder}

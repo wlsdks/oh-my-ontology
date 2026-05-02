@@ -1005,7 +1005,9 @@
       "saveErrorDeps": "Failed to save dependencies — {message}",
       "saveErrorLinks": "Failed to save links — {message}",
       "saveErrorTags": "Failed to save tags — {message}",
-      "saveErrorStack": "Failed to save stack — {message}"
+      "saveErrorStack": "Failed to save stack — {message}",
+      "chipRemoveAria": "Remove {item}",
+      "chipAddAria": "Add"
     },
     "editor": {
       "documentTitleEdit": "Edit project · oh-my-ontology",
