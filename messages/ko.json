@@ -147,28 +147,6 @@
     },
     "edgeTooltip": {
       "kindContains": "소속"
-    },
-    "projectKnowledge": {
-      "heading": "프로젝트 토폴로지",
-      "description": "등록한 md 문서가 공개 반영되면 문서와 항목이 분해되어 이곳에서 하나의 프로젝트 토폴로지로 이어집니다.",
-      "kindDocument": "문서",
-      "kindDomain": "도메인",
-      "kindCapability": "기능",
-      "kindElement": "요소",
-      "kindConcept": "개념",
-      "kindOther": "기타",
-      "documentCount": "문서 {count}개",
-      "itemCount": "항목 {count}개",
-      "edgeCount": "표시 연결 {count}개",
-      "emptyManageHeadline": "아직 이 프로젝트에 반영된 지식 그래프가 없습니다.",
-      "emptyManageBody": "md 문서를 등록하면 자동으로 추출 작업이 큐에 올라가고, 승인·공개 반영을 마치면 여기에 항목과 연결이 바로 나타납니다.",
-      "emptyManageCta": "md 문서 등록하러 가기 ↗",
-      "emptyManageStages": "등록 → 추출 → 승인 → 공개 반영 4단계.",
-      "emptyViewerHeadline": "아직 이 프로젝트에 반영된 지식 그래프가 없습니다.",
-      "emptyViewerBody": "공간 주인이 이 프로젝트에 md 문서를 등록해 공개 반영하면 이곳에 항목과 연결이 바로 나타납니다.",
-      "tooltipDegree": "{kind} · 연결 {count}개",
-      "sceneTitle": "문서 근거 지도",
-      "sceneOpenDetailHint": "클릭하면 상세 문서 근거로 이동합니다."
     }
   },
   "ontologyWidgets": {

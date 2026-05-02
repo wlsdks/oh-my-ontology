@@ -147,28 +147,6 @@
     },
     "edgeTooltip": {
       "kindContains": "contains"
-    },
-    "projectKnowledge": {
-      "heading": "Project topology",
-      "description": "When the markdown documents you registered are made public, documents and items are decomposed and connected here as a single project topology.",
-      "kindDocument": "document",
-      "kindDomain": "domain",
-      "kindCapability": "capability",
-      "kindElement": "element",
-      "kindConcept": "concept",
-      "kindOther": "other",
-      "documentCount": "{count} documents",
-      "itemCount": "{count} items",
-      "edgeCount": "{count} connections shown",
-      "emptyManageHeadline": "No knowledge graph for this project yet.",
-      "emptyManageBody": "Register a markdown document and an extraction job is queued automatically; once approved and made public, the items and connections appear here.",
-      "emptyManageCta": "Register a markdown document ↗",
-      "emptyManageStages": "Register → extract → approve → publish (4 stages).",
-      "emptyViewerHeadline": "No knowledge graph for this project yet.",
-      "emptyViewerBody": "Once the workspace owner registers a markdown document for this project and makes it public, the items and connections will appear here right away.",
-      "tooltipDegree": "{kind} · {count} connections",
-      "sceneTitle": "Document evidence map",
-      "sceneOpenDetailHint": "Click to open the document evidence detail."
     }
   },
   "ontologyWidgets": {
