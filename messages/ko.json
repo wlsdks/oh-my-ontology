@@ -949,7 +949,6 @@
       "stateNotFoundTitle": "프로젝트를 찾을 수 없음",
       "stateNotFoundDesc": "이 slug에 해당하는 프로젝트를 찾지 못했습니다.",
       "stateBackToWorkspace": "Workspace 지도로 돌아가기",
-      "stateProjectsList": "프로젝트 목록",
       "documentTitleSuffix": "Demo",
       "metaStatus": "상태",
       "metaOwner": "담당",
@@ -1012,7 +1011,6 @@
       "confirmDiscardChanges": "저장하지 않은 변경사항이 있습니다. 정말 나갈까요?",
       "loadErrorEdit": "프로젝트를 찾을 수 없습니다.",
       "loadErrorDuplicate": "복제할 프로젝트를 찾을 수 없습니다.",
-      "loadErrorGeneric": "로드 실패",
       "missingSlug": "프로젝트 slug가 필요합니다.",
       "backToDashboard": "대시보드로 돌아가기",
       "loadingLabel": "불러오는 중…",
@@ -1412,7 +1410,6 @@
         "tagsPlaceholder": "AI, MCP, Portfolio",
         "stackPlaceholder": "Next.js, Firebase",
         "dependenciesHint": "이 프로젝트가 연결될 허브·상위 프로젝트를 선택하세요.",
-        "screenshotsHint": "상세 페이지·드로어에서 노출됩니다.",
         "ownerPlaceholder": "진안",
         "iconPlaceholder": "🗺️",
         "progressPlaceholder": "50",
@@ -1498,7 +1495,6 @@
       "missingHint": "더 이상 존재하지 않는 프로젝트 참조입니다. 칩을 눌러 하나씩 제거하세요.",
       "searchPlaceholder": "프로젝트 검색 — 이름 또는 slug",
       "noMatch": "일치하는 결과 없음",
-      "cycleBadge": "cycle",
       "hubBadge": "HUB"
     },
     "markdown": {

@@ -949,7 +949,6 @@
       "stateNotFoundTitle": "Project not found",
       "stateNotFoundDesc": "No project matches this slug.",
       "stateBackToWorkspace": "Back to workspace map",
-      "stateProjectsList": "Project list",
       "documentTitleSuffix": "Demo",
       "metaStatus": "Status",
       "metaOwner": "Owner",
@@ -1012,7 +1011,6 @@
       "confirmDiscardChanges": "You have unsaved changes. Leave anyway?",
       "loadErrorEdit": "Project not found.",
       "loadErrorDuplicate": "The project to duplicate could not be found.",
-      "loadErrorGeneric": "Load failed",
       "missingSlug": "A project slug is required.",
       "backToDashboard": "Back to dashboard",
       "loadingLabel": "Loading…",
@@ -1412,7 +1410,6 @@
         "tagsPlaceholder": "AI, MCP, Portfolio",
         "stackPlaceholder": "Next.js, Firebase",
         "dependenciesHint": "Pick the hubs or upstream projects this one connects to.",
-        "screenshotsHint": "Shown on the detail page and drawer.",
         "ownerPlaceholder": "Name",
         "iconPlaceholder": "🗺️",
         "progressPlaceholder": "50",
@@ -1498,7 +1495,6 @@
       "missingHint": "These project references no longer exist. Click chips to remove them one by one.",
       "searchPlaceholder": "Search projects — name or slug",
       "noMatch": "No matching results",
-      "cycleBadge": "cycle",
       "hubBadge": "HUB"
     },
     "markdown": {
