@@ -286,10 +286,14 @@ export function findOrphans(rootPath, options = {}) {
  * 경로 못 찾으면 null. maxHops (기본 5) 초과면 cutoff.
  */
 export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
-  if (fromSlug === toSlug) return { from: fromSlug, to: toSlug, hops: [fromSlug] };
   const docs = loadVaultDocs(rootPath);
-  // slug → Set<neighbor slug>. 마지막 segment 매칭은 alias 로.
   const slugs = new Set(docs.map((d) => d.slug));
+  // 두 끝점이 vault 에 모두 존재해야 의미 있는 응답. 동일 slug 도 vault 안에
+  // 있을 때만 trivial path 반환 — 존재하지 않는 slug 에 대해 fake path 를
+  // 만들지 않도록 (이전 회귀: from===to 인 가짜 slug 도 hops:[slug] 반환했음).
+  if (!slugs.has(fromSlug) || !slugs.has(toSlug)) return null;
+  if (fromSlug === toSlug) return { from: fromSlug, to: toSlug, hops: [fromSlug] };
+  // 마지막 segment 매칭은 alias 로.
   const tailToFull = new Map();
   for (const slug of slugs) {
     const tail = slug.split('/').pop();
@@ -301,7 +305,6 @@ export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
     if (typeof ref !== 'string') return null;
     if (slugs.has(ref)) return ref;
     if (tailToFull.has(ref)) return tailToFull.get(ref);
-    // try matching by tail
     for (const slug of slugs) {
       if (slug.endsWith(`/${ref}`)) return slug;
     }
@@ -326,22 +329,15 @@ export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
       }
     }
   }
-  if (!slugs.has(fromSlug) || !slugs.has(toSlug)) return null;
-  // BFS
-  const queue = [fromSlug];
+  // BFS — depth 를 큐에 같이 들고 다녀서 매 dequeue 시 parent 체인을 거꾸로
+  // 거슬러 올라가는 O(D) 작업 회피. 큐도 head index 로 운용해 Array.shift()
+  // 의 O(V) 비용 제거 (큰 vault 에서 의미 있음).
+  const queue = [{ node: fromSlug, depth: 0 }];
   const visited = new Set([fromSlug]);
   const parent = new Map();
-  while (queue.length > 0) {
-    const cur = queue.shift();
-    const depth = (() => {
-      let d = 0;
-      let p = cur;
-      while (parent.has(p)) {
-        p = parent.get(p);
-        d += 1;
-      }
-      return d;
-    })();
+  let head = 0;
+  while (head < queue.length) {
+    const { node: cur, depth } = queue[head++];
     if (depth >= maxHops) continue;
     const neighbors = adj.get(cur) || new Set();
     for (const n of neighbors) {
@@ -349,7 +345,6 @@ export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
       visited.add(n);
       parent.set(n, cur);
       if (n === toSlug) {
-        // build path
         const hops = [n];
         let p = n;
         while (parent.has(p)) {
@@ -358,7 +353,7 @@ export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
         }
         return { from: fromSlug, to: toSlug, hops };
       }
-      queue.push(n);
+      queue.push({ node: n, depth: depth + 1 });
     }
   }
   return null;
