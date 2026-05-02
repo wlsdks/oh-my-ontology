@@ -1,7 +1,7 @@
 import { escapeHtml } from "./persistence";
 
 /**
- * 외부 popout / print 용 self-contained HTML 페이지 합성 (Fire 4-d-1).
+ * 외부 popout / print 용 self-contained HTML 페이지 합성.
  *
  * 호출자: `DocsVaultPage` 의 `handleExportDocHtml` — 문서 본문 article 의
  * `outerHTML` 을 받아 dark theme HTML 한 페이지로 wrap. 다운로드 파일 (.html)

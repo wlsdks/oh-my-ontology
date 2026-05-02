@@ -5,7 +5,7 @@ import { DocsVaultBacklinks } from "@/widgets/docs-vault/ui/DocsVaultBacklinks";
 import { Tooltip } from "@/shared/ui";
 
 /**
- * DocsVaultPage 의 우측 outline + 공유 + 파일 관리 + backlinks 패널 (Fire 4-d-3).
+ * DocsVaultPage 의 우측 outline + 공유 + 파일 관리 + backlinks 패널.
  *
  * 편집 중 (`editing=true`) 일 때는 caller 가 마운트 안 함 — Editor 가 자체 툴바
  * 사용. 따라서 본 컴포넌트는 view-only mode 전제.

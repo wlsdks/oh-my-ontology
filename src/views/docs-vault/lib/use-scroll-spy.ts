@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { scheduleStateSync } from "./persistence";
 
 /**
- * DocsVaultPage 의 article 스크롤 컨테이너에서 현재 heading 추적 (Fire 4-d-1).
+ * DocsVaultPage 의 article 스크롤 컨테이너에서 현재 heading 추적.
  *
  * IntersectionObserver 로 viewport 안 visible heading 을 추적하고, 그중 스크롤
  * 상단에 가장 가까운 heading 을 active 로 선택. 스크롤 위쪽에 visible heading

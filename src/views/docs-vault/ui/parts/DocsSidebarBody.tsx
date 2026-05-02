@@ -11,7 +11,7 @@ import { DocsVaultTree } from "@/widgets/docs-vault/ui/DocsVaultTree";
 import { Tooltip } from "@/shared/ui";
 
 /**
- * DocsVaultPage 의 사이드바 본문 (Fire 4-d-2).
+ * DocsVaultPage 의 사이드바 본문.
  *
  * 핀 / 최근 / 트리 / 태그 4 영역. 모바일은 drawer 안, 데스크톱은 left rail.
  *

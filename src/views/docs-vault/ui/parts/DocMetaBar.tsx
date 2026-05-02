@@ -6,7 +6,7 @@ import type { VaultDoc, VaultMode } from "@/entities/docs-vault";
  * 영·한 혼합 대략 감만 표시. 1분 미만은 "1분" 으로 floor.
  *
  * 추출 사유: 본 함수는 순수 — DocsVaultPage 본체에서 분리해 단위 test
- * 용이하게 (Fire 4-c).
+ * 용이하게.
  */
 export function estimateReadingMinutes(wordCount: number): number {
   return Math.max(1, Math.round(wordCount / 200));
