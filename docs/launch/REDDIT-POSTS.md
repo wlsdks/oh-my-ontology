@@ -50,8 +50,8 @@ depends_on:
 That's the entire schema. No DB. The frontmatter *is* the graph. You
 can edit it in Obsidian, vscode, neovim — anything that reads markdown.
 
-For AI agents, there's an MCP server (`oh-my-ontology-mcp`, 11 tools
-read+write) over JSON-RPC stdio. Register it in Claude Code's
+For AI agents, there's an MCP server (`oh-my-ontology-mcp`, 12 tools
+— 8 read + 4 write) over JSON-RPC stdio. Register it in Claude Code's
 `.mcp.json`:
 
 ```json
@@ -74,10 +74,10 @@ ways: Sigma WebGL topology, hierarchical tree, xyflow ERD builder. All
 read/write the same `.md` files via the browser File System Access API.
 Static export — works offline, no server.
 
-**Local-first first paint promise**: I went deep on making firebase JS
-not load on local-first routes. There's a `pnpm bundle:check` script
-that verifies user-facing routes contain 0 KB of Firebase. CI guard
-against regression.
+**Pure local-first**: no backend, no auth, no DB. The optional Firebase
+/ Firestore / Auth surfaces were permanently removed in R10. A
+`pnpm bundle:check` CI guard verifies the static export bundle stays
+firebase-free across every user-facing route.
 
 30-second try:
 
@@ -115,8 +115,9 @@ every conversation, I built a tiny MCP server that gives it a
 
 The trick: maintain a folder of markdown files where each file is a
 "node" (project, domain, capability, element) and frontmatter is the
-schema. The MCP server has 11 tools — list_concepts, get_concept,
-find_path (BFS), find_orphans, add_concept, patch_concept, etc.
+schema. The MCP server has 12 tools — list_concepts, get_concept,
+find_path (BFS), find_orphans, query_concepts, add_concept,
+patch_concept, etc.
 
 When I ask Claude "what's the impact of changing auth/login?", it calls
 `find_backlinks(slug=capabilities/login)` and returns actual answers
@@ -160,11 +161,11 @@ to stay local: oh-my-ontology is a markdown-based codebase ontology
 with a tiny MCP server.
 
 **Local-first**: Vault is just `.md` files in a folder. No cloud, no
-account, no Firebase by default. Static Next.js export so you can run
+account, no backend — period. Static Next.js export so you can run
 the visualization offline (it's a `out/` folder you can host or open
 file://).
 
-**MCP**: 11 tools, JSON-RPC stdio. Should work with any MCP-capable
+**MCP**: 12 tools (8 read + 4 write), JSON-RPC stdio. Should work with any MCP-capable
 agent (Claude Code, Continue.dev, custom). Doesn't pre-process your
 files into embeddings — agent just reads the markdown live.
 
