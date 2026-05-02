@@ -112,14 +112,19 @@ export function HomePage() {
     localGraphStack.length > 0 ? localGraphStack[localGraphStack.length - 1] : null;
   const [fitViewToken, setFitViewToken] = useState(0);
   const [sigmaVisibleCount, setSigmaVisibleCount] = useState<number | null>(null);
-  const [sigmaHintDismissed, setSigmaHintDismissed] = useState(() => {
-    if (typeof window === 'undefined') return true;
+  // SSR 시 true (hint 숨김) 으로 시작해 첫 paint 안정 — 이후 useEffect 로
+  // localStorage 와 sync. 이전 useState(() => typeof window === 'undefined') 패턴은
+  // 서버 / 클라이언트 hint 표시 여부가 다를 수 있어 hydration mismatch 발생.
+  const [sigmaHintDismissed, setSigmaHintDismissed] = useState(true);
+  useEffect(() => {
     try {
-      return window.localStorage.getItem('demo:sigma-hint-dismissed:v1') === '1';
+      const dismissed =
+        window.localStorage.getItem('demo:sigma-hint-dismissed:v1') === '1';
+      if (!dismissed) setSigmaHintDismissed(false);
     } catch {
-      return true;
+      /* private mode — keep dismissed=true */
     }
-  });
+  }, []);
   const dismissSigmaHint = useCallback(() => {
     setSigmaHintDismissed(true);
     try {
