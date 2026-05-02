@@ -3,11 +3,6 @@
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-
-// R10b (cloud surface 영구 제거) 이후 — 프로젝트 카드의 ontology badge 카운트
-// 가 vault frontmatter 기반 derivation 으로 다시 들어올 때까지 빈 맵.
-// module-scope 상수로 referential stability 보장 (매 mount 새 Map 생성 회피).
-const EMPTY_ONTOLOGY_COUNT_BY_SLUG: Map<string, number> = new Map();
 import { ArrowLeft, ArrowRight, FolderKanban, Shield } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTaxonomy } from "@/features/taxonomy";
@@ -19,6 +14,8 @@ import {
 import { ProjectQuickCreatePanel } from "@/features/project-quick-create";
 import { useProjectMutations, useProjects } from "@/features/project-data-source";
 import { downloadProjectsCsv } from "@/features/project-export";
+import { useOntologyInsight } from "@/features/vault-ontology";
+import { buildProjectOntologyCounts } from "@/shared/lib/ontology-tree";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui";
@@ -83,10 +80,18 @@ export function ProjectSelectorPage() {
   // 정적 메타와 동적 갱신 사이에 flicker 가 보이지 않게 한다.
   useDocumentTitle(t("documentTitle"));
 
-  // ontology nodes — 카드별 count badge 데이터. 부모 한 번 hook + count map
-  // R10b — vault frontmatter 기반 ontology 카운트 derivation 이 다시 들어올
-  // 때까지 module-scope EMPTY_ONTOLOGY_COUNT_BY_SLUG 로 fallback.
-  const ontologyCountBySlug = EMPTY_ONTOLOGY_COUNT_BY_SLUG;
+  // ontology nodes — 카드별 count badge 데이터. 부모 한 번 hook + count map.
+  // vault frontmatter (또는 빌드타임 dogfood) 의 노드를 buildProjectOntologyCounts
+  // 로 집계해 카드 우상단에 "ontology 4" 같은 chip 표시. project / document
+  // 메타 kind 제외 (domain / capability / element / unknown 합).
+  const { insight } = useOntologyInsight();
+  const ontologyCountBySlug = useMemo(() => {
+    if (!insight) return new Map<string, number>();
+    const counts = buildProjectOntologyCounts(insight.nodes);
+    const map = new Map<string, number>();
+    for (const [slug, c] of counts) map.set(slug, c.total);
+    return map;
+  }, [insight]);
 
   const filteredProjects = useMemo(
     () =>
