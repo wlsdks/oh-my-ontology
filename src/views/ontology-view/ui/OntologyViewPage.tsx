@@ -43,11 +43,12 @@ export function OntologyViewPage() {
   const locale = useLocale();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const accountId = null;
+  // R10 (auth + cloud surface 영구 제거) 후 accountId 항상 null. backward-compat
+  // 으로 child 컴포넌트가 prop 으로 받는 곳만 명시적으로 null 전달.
+  const accountId: string | null = null;
   const dataSourceMode = useDataSourceMode();
-  // ?account= 가 비었으면 인증 사용자의 owned membership 첫 번째로 자동 보강.
 
-  const { insight, error } = useOntologyInsight(accountId);
+  const { insight, error } = useOntologyInsight();
   // vault / dogfood 모드는 노드 lastApprovedAt 이 sentinel — "근거 문서" /
   // "발행 시점" stat 도 의미 0. mode 감지해서 stat strip / search 안내 hide.
   const isVaultSentinelMode =
