@@ -3,8 +3,7 @@
 import { useEffect } from 'react';
 
 const STORAGE_KEY = 'omot:locale';
-const SUPPORTED = ['en', 'ko'] as const;
-type Supported = (typeof SUPPORTED)[number];
+type Supported = 'en' | 'ko';
 
 function detect(): Supported {
   try {
