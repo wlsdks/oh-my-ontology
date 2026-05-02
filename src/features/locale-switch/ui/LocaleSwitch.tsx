@@ -6,8 +6,8 @@ import { useTransition } from 'react';
 
 const STORAGE_KEY = 'omot:locale';
 const LOCALES = [
-  { code: 'en', label: 'EN' },
-  { code: 'ko', label: 'KO' },
+  { code: 'en', label: 'EN', nameKey: 'english' },
+  { code: 'ko', label: 'KO', nameKey: 'korean' },
 ] as const;
 
 /**
@@ -47,7 +47,7 @@ export function LocaleSwitch() {
       aria-label={t('switcher')}
       className="inline-flex items-center gap-px rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-px text-[11px]"
     >
-      {LOCALES.map(({ code, label }) => {
+      {LOCALES.map(({ code, label, nameKey }) => {
         const active = code === locale;
         return (
           <button
@@ -56,6 +56,7 @@ export function LocaleSwitch() {
             onClick={() => switchTo(code)}
             disabled={isPending}
             aria-pressed={active}
+            aria-label={t(nameKey)}
             className={
               'rounded-[4px] px-2 py-1 font-medium transition-colors ' +
               (active
