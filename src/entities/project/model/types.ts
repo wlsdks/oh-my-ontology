@@ -29,7 +29,6 @@ export interface ProjectPosition {
  * Firestore 문서와 일대일 대응되지만 Timestamp → Date 변환이 적용된다.
  */
 export interface Project {
-  accountId?: string;
   slug: string;
   name: string;
   nameEn?: string;

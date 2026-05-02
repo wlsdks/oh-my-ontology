@@ -14,7 +14,6 @@ export function projectToInput(project: Project): ProjectInput {
     description: project.description,
     category: project.category,
     status: project.status,
-    accountId: project.accountId ?? undefined,
     owner: project.owner,
     isHub: project.isHub,
     progress: project.progress,
