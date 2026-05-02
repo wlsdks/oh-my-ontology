@@ -78,12 +78,12 @@ const STATIC_INSIGHT: { insight: KnowledgeProjectInsight; error: null } = {
  * - **static** → 빌드타임 dogfood 매니페스트 derivation. JSON import 라
  *   module-load 에 1 회 derive (메모이즈).
  *
- * 두 mode 다 firebase 의존 0. accountId 매개변수는 backward-compat 으로 받지만
- * 사용 안 한다 — 미래 cloud collab 단계에서 다시 필요해질 때 정의.
+ * 두 mode 다 firebase 의존 0.
  */
-export function useOntologyInsight(
-  _accountId?: string | null,
-): { insight: KnowledgeProjectInsight | null; error: Error | null } {
+export function useOntologyInsight(): {
+  insight: KnowledgeProjectInsight | null;
+  error: Error | null;
+} {
   const mode = useDataSourceMode();
   const vault = useVaultOntology();
 
