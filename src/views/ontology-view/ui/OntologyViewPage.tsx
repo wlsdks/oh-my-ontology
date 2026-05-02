@@ -42,9 +42,6 @@ export function OntologyViewPage() {
   const locale = useLocale();
   const searchParams = useSearchParams();
   const router = useRouter();
-  // R10 (auth + cloud surface 영구 제거) 후 accountId 항상 null. backward-compat
-  // 으로 child 컴포넌트가 prop 으로 받는 곳만 명시적으로 null 전달.
-  const accountId: string | null = null;
   const dataSourceMode = useDataSourceMode();
 
   const { insight, error } = useOntologyInsight();
@@ -430,7 +427,6 @@ relates:
       {selectedNode ? (
         <NodeDetailPanel
           node={selectedNode}
-          accountId={accountId}
           documentTitleByEvidenceId={documentTitleByEvidenceId}
           ego={egoSubgraph}
           egoHops={egoHops}
@@ -482,7 +478,7 @@ function OntologyMetaFooter({
   meta: { projectionVersion: string; publishedAt: Date } | null;
   nodeCount: number;
   edgeCount: number;
-  mode: 'static' | 'local' | 'cloud';
+  mode: 'static' | 'local';
 }) {
   const t = useTranslations('ontologyView.footer');
   const formatPublished = (d: Date) =>
@@ -519,28 +515,21 @@ function OntologyMetaFooter({
 }
 
 /**
- * "노드 링크 복사" 버튼 — `/ontology/?node=<id>&account=<acc>` 절대 URL 을
- * clipboard 에 쓰기. 진안 / 운영 사용자가 특정 노드를 다른 사람에게 공유할
- * 때 (Slack DM / spec 문서 인라인 링크) NodeDetailPanel 을 열어 두지 않고도
- * 같은 진입을 만들 수 있게 한다 (Fire 2).
- *
- * window.location.origin 은 `/ontology/?account=...` 과 결합해 절대 URL 로
- * 합성. accountId 가 null 이면 query 안에 ?account 없이 — 외부 방문자가
- * demo 공개 ontology 에 그대로 진입.
+ * "노드 링크 복사" 버튼 — `/ontology/?node=<id>` 절대 URL 을 clipboard 에
+ * 쓰기. 사용자가 특정 노드를 다른 사람에게 공유할 때 (Slack DM / spec
+ * 문서 인라인 링크) NodeDetailPanel 을 열어 두지 않고도 같은 진입을 만들
+ * 수 있게 한다.
  */
 function CopyNodeLinkButton({
   node,
-  accountId,
 }: {
   node: KnowledgeGraphNode;
-  accountId: string | null;
 }) {
   const t = useTranslations('ontologyView.copyLink');
   const { show } = useToast();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    // R10 후 accountId 항상 null — params 는 node 하나만.
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const url = `${origin}/ontology/?node=${encodeURIComponent(node.id)}`;
     try {
@@ -584,7 +573,6 @@ function CopyNodeLinkButton({
  */
 function NodeDetailPanel({
   node,
-  accountId,
   documentTitleByEvidenceId,
   ego,
   egoHops,
@@ -593,7 +581,6 @@ function NodeDetailPanel({
   onClose,
 }: {
   node: KnowledgeGraphNode;
-  accountId: string | null;
   documentTitleByEvidenceId: Map<string, string>;
   ego: OntologyEgoSubgraph | null;
   egoHops: 1 | 2;
@@ -652,7 +639,7 @@ function NodeDetailPanel({
           </h2>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <CopyNodeLinkButton node={node} accountId={accountId} />
+          <CopyNodeLinkButton node={node} />
           {/* R10b: cloud manual edge modal 제거. 새 edge 는 vault frontmatter
               array (capabilities/elements/dependencies/relates/contains/describes)
               에 직접 추가 또는 builder canvas (/ontology/edit) 에서. */}
