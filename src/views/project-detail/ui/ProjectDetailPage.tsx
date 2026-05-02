@@ -742,7 +742,6 @@ export function ProjectDetailPage({
                 <SigmaTopology
                   projects={neighborsTopologyProjects}
                   categories={categories}
-                  accountId={accountId}
                   selectedSlug={project.slug}
                   minimal
                   // 이웃 노드 클릭 시 해당 프로젝트 상세로 이동. 현재 페이지

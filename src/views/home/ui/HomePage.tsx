@@ -795,7 +795,6 @@ export function HomePage() {
                 <SigmaTopology
                   projects={localGraphProjects}
                   categories={taxonomyCategories}
-                  accountId={null}
                   selectedSlug={canvasSelectedSlug}
                   onSelectProject={(slug) => handleSelect(slug)}
                   onProjectOpen={(slug) => setLocalGraphStack((stack) => [...stack, slug])}
@@ -1009,7 +1008,6 @@ export function HomePage() {
         <ProjectDrawer
           project={showProjectTopologyScene ? null : drawerProject}
           allProjects={renderProjects}
-          accountId={null}
           activeProjectId={null}
           impactMode={impactMode}
           onChangeImpactMode={handleSelectImpactMode}

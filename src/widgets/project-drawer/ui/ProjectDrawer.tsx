@@ -45,7 +45,6 @@ import { PublicQuickActions } from "@/widgets/public-quick-actions";
 interface Props {
   project: Project | null;
   allProjects: Project[];
-  accountId?: string | null;
   /** 활성 컨테이너 id — 상세 페이지 URL 에 `?pj=` 로 이어 붙여 컨텍스트 유지. */
   activeProjectId?: string | null;
   impactMode: ProjectImpactMode;
@@ -69,7 +68,6 @@ interface Props {
 export function ProjectDrawer({
   project,
   allProjects,
-  accountId,
   activeProjectId,
   impactMode,
   onChangeImpactMode,

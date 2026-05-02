@@ -211,13 +211,6 @@ interface SigmaTopologyProps {
    * 를 넘기면 "Demo Reactor · Router" → "Router" 로 표시. 미지정이면 원본 유지.
    */
   stripNamePrefix?: string;
-  /**
-   * O-9b: 워크스페이스 accountId. 제공되면 `useKnowledgePublicNodes` 로
-   * ontology projection 을 구독해 일반 project 노드 (container / hub 제외)
-   * 의 borderColor 를 도미넌트 kind 별로 분기. 미제공이면 현행 무채색 유지.
-   * landing / 임베드 surface 처럼 ontology 와 무관한 곳은 생략 가능.
-   */
-  accountId?: string | null;
   className?: string;
 }
 
@@ -240,7 +233,6 @@ export function SigmaTopology({
   onFirstInteraction,
   minimal = false,
   stripNamePrefix,
-  accountId,
   className,
 }: SigmaTopologyProps) {
   const t = useTranslations('topologyWidgets.sigma');
