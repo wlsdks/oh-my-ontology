@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   ChevronRight,
-  Compass,
   Database,
   Layers,
   Tag,
@@ -62,17 +61,6 @@ function SettingsHubContent() {
           helper: '샘플로 시작하거나 CSV 로 한 번에 올리기',
           href: '/settings/import/',
           icon: Database,
-        },
-      ],
-    },
-    {
-      title: '오늘 점검',
-      items: [
-        {
-          label: '오늘 챙길 곳',
-          helper: '오래된 · 외톨이 · 허브 후보',
-          href: '/diagnostics/insights/',
-          icon: Compass,
         },
       ],
     },

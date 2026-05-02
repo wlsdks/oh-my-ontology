@@ -62,7 +62,6 @@ const CLOUD_ADMIN_ROUTES = [
   '/settings/categories',
   '/settings/statuses',
   '/settings/import',
-  '/diagnostics/insights',
 ];
 
 function listFirebaseChunks() {
