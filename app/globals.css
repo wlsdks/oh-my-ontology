@@ -167,11 +167,22 @@
     }
   }
 
-  /* 접근성: 고대비 모드(Windows 고대비·사파리 increase contrast) 대응 */
+  /*
+   * 접근성: 고대비 모드(Windows 고대비·사파리 increase contrast) 대응.
+   *
+   * "더 강한 대비" 의 의미는 mode 별로 반대 방향이다 — 다크 캔버스 위에선
+   * 텍스트를 더 밝게 (canvas 와 거리 ↑), 라이트 캔버스 위에선 더 어둡게.
+   * 라이트 분기를 빼면 light + prefers-contrast:more 사용자가 오히려 더
+   * 흐릿한 회색 위 회색을 보게 되던 회귀.
+   */
   @media (prefers-contrast: more) {
     :root {
       --color-text-tertiary: #b0b5be;
       --color-text-quaternary: #8f95a0;
+    }
+    html[data-theme="light"] {
+      --color-text-tertiary: #3b4048;
+      --color-text-quaternary: #565a64;
     }
   }
 
