@@ -199,13 +199,12 @@ export function ProjectForm({
   const [savedValues, setSavedValues] = useState<ProjectFormValues>(initialValues);
   const [values, setValues] = useState<ProjectFormValues>(initialValues);
 
-  // Fire 6-2/6-3 — RHF formState.isDirty 를 dirty tracking 의 단일 진실원으로.
-  // values prop 대신 setValue 헬퍼에서 매번 RHF 의 setValue 도 호출 (Fire 6-3).
-  // 외부 useState (`values`) 가 source of truth 유지 + RHF 가 dirty / submit
-  // 상태만 보강. Fire 6-4 에서 Controller 로 완전 위임 예정.
+  // RHF formState.isDirty 를 dirty tracking 의 단일 진실원으로 사용.
+  // 외부 useState (\`values\`) 가 source of truth 를 쥐고 setValue 헬퍼가
+  // 매 호출 RHF setValue 도 함께 호출 — RHF 는 dirty / submit 상태만 보강.
   //
   // resolver 의 input/output 타입 inference 가 zod default([]) 등으로 차이가
-  // 나서 RHF 의 Resolver 시그니처와 맞지 않음 — `as never` cast 로 회피.
+  // 나 RHF Resolver 시그니처와 맞지 않음 — \`as never\` cast 로 회피.
   const rhfMethods = useForm<ProjectFormValues>({
     defaultValues: initialValues,
     resolver: zodResolver(projectFormSchema) as never,
@@ -311,10 +310,9 @@ export function ProjectForm({
     values.detail,
     values.slug,
   ]);
-  // Fire 6-2 — JSON.stringify dirty → RHF formState.isDirty + savedValues
-  // baseline OR. RHF 가 deepEqual 로 비교 + reset(data) 후 즉시 false.
-  // savedValues 비교 보존 — RHF 의 isDirty 는 nested array 등에서 약간의 거짓
-  // negative 가능. 두 신호의 OR 가 안전.
+  // dirty 신호 = RHF formState.isDirty 또는 savedValues baseline 비교.
+  // RHF 의 isDirty 는 nested array 등에서 약간의 false-negative 가능 →
+  // savedValues 직접 비교를 OR 신호로 같이 사용.
   const isDirty =
     rhfIsDirty || JSON.stringify(values) !== JSON.stringify(savedValues);
 
@@ -363,12 +361,11 @@ export function ProjectForm({
   ) => {
     setSaveNotice(null);
     setValues((prev) => ({ ...prev, [key]: v }));
-    // Fire 6-3 — RHF 도 동기화 (shouldDirty:true) 해서 formState.isDirty 가
-    // 정상 작동. external values useState 는 여전히 source of truth (Fire 6-4
-    // 가 Controller 도입하면 제거).
+    // RHF 도 동시 setValue (\`shouldDirty: true\`) — formState.isDirty 가
+    // baseline 과 정확히 일치하도록.
     //
     // ProjectFormValues[K] 의 optional undefined 가 RHF Path-typed setValue
-    // 시그니처와 mismatch — `as never` cast 한 줄. Path<T> 가 string 의
+    // 시그니처와 mismatch — \`as never\` cast 한 줄. Path<T> 가 string 의
     // 부분집합이라 keyof T 와 호환 안 함 (RHF 7.x 의 정상 동작).
     rhfSetValue(
       key as Parameters<typeof rhfSetValue>[0],
@@ -546,7 +543,7 @@ export function ProjectForm({
       const input = formValuesToProjectInput(parsed.data, position);
       await onSubmit(input, { behavior: submitBehavior });
       setSavedValues(parsed.data);
-      // Fire 6-2 — RHF baseline 도 동기화. reset 후 isDirty=false 로 즉시 회복.
+      // RHF baseline 도 reset → isDirty=false 로 즉시 복원.
       rhfReset(parsed.data);
       if (submitBehavior === "stay") {
         setSaveNotice(
