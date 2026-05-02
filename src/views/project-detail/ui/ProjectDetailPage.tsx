@@ -88,7 +88,6 @@ function ProjectDetailBreadcrumb({
   const t = useTranslations("projectPages.detail");
   // Workspace ▸ Project 3단 컨텍스트 표시. 사용자가 "여기는 1 프로젝트 안"
   // 이라는 걸 한눈에 파악하도록 홈의 워크스페이스 지도와 구분 시그널.
-  // R10 후 ?account= query 제거 — workspaceHref / projectsListHref 모두 단순.
   const workspaceHref = '/';
   const projectsListHref = '/projects/';
   return (
@@ -141,7 +140,6 @@ function ProjectDetailTopBar({
   rightActions?: React.ReactNode;
 }) {
   const t = useTranslations("projectPages.detail");
-  // R10 후 ?account= query 제거 — docs vault 링크 단순.
   const docsVaultHref = '/docs/';
   return (
     <div className="flex items-start justify-between gap-4">
@@ -277,8 +275,8 @@ export function ProjectDetailPage({
     [router, slug],
   );
 
-  // P1-5 — 클라이언트 사이드 동적 타이틀. 정적 export metadata 가 slug
-  // 단위까지 미리 빌드되지만 동적 컨텍스트는 빌드 시 모름.
+  // 클라이언트 사이드 동적 타이틀. 정적 export metadata 는 slug 단위로
+  // 미리 빌드되지만 사용자 컨텍스트 (project.name) 는 클라이언트에서만.
   useDocumentTitle(
     Array.from(
       new Set(
@@ -304,10 +302,6 @@ export function ProjectDetailPage({
     setRelated(nextRelated);
     if (projectsQuery.loaded || projectsQuery.error !== null) setResolved(true);
   }, [projectsQuery.projects, projectsQuery.loaded, projectsQuery.error, slug, fallbackProjects]);
-
-  // R10b (cloud surface 영구 제거) 이후 — knowledge insight 패널은 미래에
-  // vault frontmatter 기반으로 재구성. 지금은 빈 insight 로 surface 만 유지.
-  // (downstream code 가 nullable 처리 안 한 곳을 위해 빈 배열 fallback.)
 
   if (!slug) {
     return (
@@ -385,9 +379,9 @@ export function ProjectDetailPage({
   // 포함해야 중앙 노드 주변에 선이 이어짐.
   const neighborsTopologyProjects = [project, ...nextProjectCandidates];
   const canManageProject = projectMutations.canEdit;
-  // 모든 인라인 편집은 useProjectMutations 한 진입점으로. R10b 후 mode 는
-  // local (vault patch) 만 mutate 가능하고 static 은 read-only 라 mutation
-  // 시도 자체가 거절됨.
+  // 모든 인라인 편집은 useProjectMutations 한 진입점으로. local (vault
+  // patch) 만 mutate 가능하고 static 은 read-only 라 mutation 시도 자체가
+  // 거절됨 — useProjectMutations 가 mode 별로 분기.
   const persistProject = (input: Parameters<typeof projectMutations.updateProject>[0]) =>
     projectMutations.updateProject(input);
   const saveProjectField = async (
