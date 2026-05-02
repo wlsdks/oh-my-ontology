@@ -35,7 +35,6 @@ import {
   type Project,
 } from "@/entities/project";
 import { useProjects, useProjectMutations } from "@/features/project-data-source";
-import { useDataSourceMode } from "@/features/data-source-mode";
 import { resolveSubscribeUpdate } from "../model/resolve-subscribe-update";
 import { DependencyPicker } from "@/features/project-edit/ui/DependencyPicker";
 import { CopyProjectLinkButton } from "@/features/project-share";
@@ -338,11 +337,13 @@ export function ProjectDetailPage({
     [accountId, router, slug],
   );
 
-  const [knowledgeInsight, setKnowledgeInsight] = useState<KnowledgeProjectInsight>({
-    nodes: [],
-    edges: [],
-    meta: null,
-  });
+  // R10b — knowledge insight 패널 (project-doc evidence 카드 / 노드 그래프) 은
+  // cloud surface 제거 이후 항상 빈 상태. 미래에 vault frontmatter 기반으로
+  // 재구성할 때 setter 다시 활성화. 지금은 const 로 단순화.
+  const knowledgeInsight: KnowledgeProjectInsight = useMemo(
+    () => ({ nodes: [], edges: [], meta: null }),
+    [],
+  );
   const currentPath = useMemo(() => {
     const search = searchParams.toString();
     return `${pathname}${search ? `?${search}` : ""}`;
@@ -363,8 +364,7 @@ export function ProjectDetailPage({
   // mode-aware projects read — vault 또는 Firestore. 단일 hook 으로 단발 fetch
   // + 실시간 구독을 통합. (이전엔 listProjects + subscribeProjects 두 effect 가
   // race 했지만 hook 이 항상 최신 snapshot 을 들고 있어 race 자체가 사라짐.)
-  const projectsQuery = useProjects(accountId);
-  const dataSourceMode = useDataSourceMode();
+  const projectsQuery = useProjects();
   const projectMutations = useProjectMutations();
   useEffect(() => {
     if (!slug) return;
@@ -378,56 +378,9 @@ export function ProjectDetailPage({
     if (projectsQuery.loaded || projectsQuery.error !== null) setResolved(true);
   }, [projectsQuery.projects, projectsQuery.loaded, projectsQuery.error, slug, fallbackProjects]);
 
-  // initial fetch — fallback 가 없는 경우 cloud 모드에서만 직접 getProject 로
-  // 한 번 더 시도. local 모드에선 useProjects 가 vault manifest 를 sync 로
-  // 들고 있어 별도 fetch 불필요. static 모드는 fallbackProjects 가 진실원이라
-  // 추가 cloud 호출 자체가 firebase chunk 를 끌고 와 회귀를 만든다.
-  useEffect(() => {
-    if (!slug || fallbackProject || projectsQuery.mode !== 'cloud') return;
-    let cancelled = false;
-    void import('@/entities/project/api')
-      .then(({ getProject }) => getProject(slug, accountId))
-      .then((fetched) => {
-        if (cancelled) return;
-        if (fetched) setProject(fetched);
-        setResolved(true);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setResolved(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [accountId, fallbackProject, slug, projectsQuery.mode]);
-
-  useEffect(() => {
-    if (!slug) return;
-    // mode-gate (Round 9a T0-2): cloud 모드일 때만 firestore 구독. local/static
-    // 모드 사용자가 detail 페이지를 열 때 firebase JS chunk 가 열리고 listener
-    // 가 트래픽을 만들던 회귀를 차단. (Round 1 leak gate 의 ProjectDetail 누락분.)
-    if (dataSourceMode !== 'cloud') {
-      setKnowledgeInsight({ nodes: [], edges: [], meta: null });
-      return;
-    }
-    let unsubscribe: (() => void) | null = null;
-    let cancelled = false;
-    void import('@/entities/knowledge-graph/api').then((mod) => {
-      if (cancelled) return;
-      unsubscribe = mod.subscribeKnowledgeProjectInsight(
-        slug,
-        accountId,
-        (nextInsight) => setKnowledgeInsight(nextInsight),
-        (error) => {
-          console.warn("[ProjectDetailPage] knowledge insight subscribe failed", error);
-        },
-      );
-    });
-    return () => {
-      cancelled = true;
-      unsubscribe?.();
-    };
-  }, [accountId, slug, dataSourceMode]);
+  // R10b (cloud surface 영구 제거) 이후 — knowledge insight 패널은 미래에
+  // vault frontmatter 기반으로 재구성. 지금은 빈 insight 로 surface 만 유지.
+  // (downstream code 가 nullable 처리 안 한 곳을 위해 빈 배열 fallback.)
 
   if (!slug) {
     return (

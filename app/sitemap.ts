@@ -1,5 +1,9 @@
 import type { MetadataRoute } from 'next';
-import { fetchAllProjectsAtBuild } from '@/entities/project/api';
+import {
+  deriveProjectsFromVault,
+  vaultManifest as staticVaultManifestRaw,
+  type VaultManifest,
+} from '@/entities/docs-vault';
 import { SITE_URL } from '@/shared/config';
 import { routing } from '@/i18n/routing';
 
@@ -9,7 +13,9 @@ export const dynamic = 'force-static';
 const STATIC_ROUTES = ['', 'projects', 'topology', 'docs', 'ontology', 'ontology/insights', 'ontology/relations'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const projects = await fetchAllProjectsAtBuild();
+  // R10b — vault manifest 의 `kind: project` doc 만으로 sitemap 생성. cloud
+  // fetch 단계 사라짐.
+  const projects = deriveProjectsFromVault(staticVaultManifestRaw as VaultManifest);
   const now = new Date();
 
   const entries: MetadataRoute.Sitemap = [];

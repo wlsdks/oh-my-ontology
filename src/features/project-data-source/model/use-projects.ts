@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useDataSourceMode } from '@/features/data-source-mode';
 import { useLocalVault } from '@/features/docs-vault-local';
 import {
@@ -17,80 +17,36 @@ import type { Project } from '@/entities/project';
 /**
  * mode-aware read 어댑터.
  *
- * - **local**: vault manifest 의 `projects/*.md` frontmatter 를 동기 매핑.
- *   사용자가 vault 에 .md 추가하면 즉시 list 에 반영. Firebase 의존 없음.
- * - **cloud**: 기존 `subscribeProjects` (Firestore onSnapshot) — 실시간 sync.
- * - **static**: 빌드 타임 docs/ontology/ 매니페스트 = dogfood 진실원.
- *   사용자가 vault 안 골랐고 인증 안 돼있어도 oh-my-ontology 자체 ontology
- *   가 즉시 보인다. 이게 mission v2 의 "0 마찰 진입" 약속의 read 측 구현 —
- *   builder/topology 가 빈 화면 대신 진짜 ontology 를 그린다.
+ * R10 (auth + cloud surface 영구 제거) 이후 2 모드:
  *
- * mission T7 — local 모드 사용자가 vault 에 추가한 프로젝트가 /projects ·
- * 토폴로지에서 안 보이던 read inconsistency 해결. mutation 측 (`useProjectMutations`)
- * 이 이미 mode-aware 라 read 도 같이 모드 정렬.
+ * - **local**: vault manifest 의 `projects/*.md` frontmatter 를 동기 매핑.
+ *   사용자가 vault 에 .md 추가하면 즉시 list 에 반영.
+ * - **static**: 빌드 타임 `docs/ontology/` 매니페스트 (dogfood). vault 미선택
+ *   사용자도 이 OSS 자체의 ontology 를 즉시 본다 — "0 마찰 진입" 의 read 구현.
+ *
+ * 둘 다 firebase 의존 0. 미래 cloud collab 단계에서 'cloud' 모드 + Firestore
+ * 구독을 다시 도입할 때 mode 분기를 새로 추가.
  */
 export interface UseProjectsState {
   projects: Project[];
   loaded: boolean;
   error: string | null;
-  mode: 'static' | 'local' | 'cloud';
+  mode: 'static' | 'local';
 }
 
-export function useProjects(accountId?: string | null): UseProjectsState {
+export function useProjects(): UseProjectsState {
   const mode = useDataSourceMode();
   const vault = useLocalVault();
-  const [cloudProjects, setCloudProjects] = useState<Project[]>([]);
-  const [cloudLoaded, setCloudLoaded] = useState(false);
-  const [cloudError, setCloudError] = useState<string | null>(null);
 
-  // local 모드 — manifest 가 sync 라 useEffect 없이 useMemo 로 즉시 derive.
   const localProjects = useMemo(() => {
     if (mode !== 'local' || !vault.manifest) return [];
     return deriveProjectsFromVault(vault.manifest);
   }, [mode, vault.manifest]);
 
-  // static 모드 — 빌드타임 dogfood 매니페스트. Firebase / vault 픽 없이도
-  // oh-my-ontology 자체 ontology 가 즉시 보인다. JSON import 라 동기 derive.
   const staticProjects = useMemo(() => {
     if (mode !== 'static') return [];
     return deriveProjectsFromVault(staticVaultManifest);
   }, [mode]);
-
-  // cloud — Firestore 구독. local-first 첫 paint 청크에 firebase 가 들어가지
-  // 않게 entity api 는 dynamic import (cloud 모드 진입 시점에만 다운로드).
-  useEffect(() => {
-    if (mode !== 'cloud') return;
-    setCloudError(null);
-    let unsubscribe: (() => void) | null = null;
-    let cancelled = false;
-    void import('@/entities/project/api')
-      .then(({ subscribeProjects }) => {
-        if (cancelled) return;
-        unsubscribe = subscribeProjects(
-          accountId ?? null,
-          (next) => {
-            setCloudProjects(next);
-            setCloudLoaded(true);
-          },
-          (error) => {
-            setCloudError(error.message?.trim() || '프로젝트를 불러오지 못했습니다.');
-            setCloudLoaded(true);
-          },
-        );
-      })
-      .catch((err) => {
-        // chunk fetch 실패 — spinner 가 영영 안 사라지지 않게 loaded=true +
-        // 에러 메시지로 UX 회복.
-        if (cancelled) return;
-        console.warn('[useProjects] cloud entity api chunk load failed', err);
-        setCloudError('프로젝트를 불러오지 못했습니다. 네트워크 확인 후 새로고침하세요.');
-        setCloudLoaded(true);
-      });
-    return () => {
-      cancelled = true;
-      unsubscribe?.();
-    };
-  }, [mode, accountId]);
 
   if (mode === 'local') {
     return {
@@ -100,18 +56,10 @@ export function useProjects(accountId?: string | null): UseProjectsState {
       mode,
     };
   }
-  if (mode === 'static') {
-    return {
-      projects: staticProjects,
-      loaded: true,
-      error: null,
-      mode,
-    };
-  }
   return {
-    projects: cloudProjects,
-    loaded: cloudLoaded,
-    error: cloudError,
+    projects: staticProjects,
+    loaded: true,
+    error: null,
     mode,
   };
 }

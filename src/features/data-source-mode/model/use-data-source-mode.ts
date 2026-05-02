@@ -22,11 +22,7 @@ export function useDataSourceMode(): DataSourceMode {
   const { status: vaultStatus } = useLocalVault();
 
   const mode = useMemo<DataSourceMode>(
-    () =>
-      getDataSourceMode({
-        vaultLoaded: vaultStatus === 'loaded',
-        isAuthenticated: false,
-      }),
+    () => getDataSourceMode({ vaultLoaded: vaultStatus === 'loaded' }),
     [vaultStatus],
   );
 

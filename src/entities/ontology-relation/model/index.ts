@@ -9,4 +9,3 @@ export {
   isOntologyRelationId,
   isRelationApplicable,
 } from './defaults';
-export { fromFirestore, toFirestore } from './mapper';

@@ -6,13 +6,12 @@ import { useRouter } from "@/i18n/navigation";
 import { ArrowLeft, ArrowUpRight, CopyPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ProjectForm } from "@/features/project-edit";
-import { useProjectMutations } from "@/features/project-data-source";
+import { useProjects, useProjectMutations } from "@/features/project-data-source";
 import {
   getProjectDetailHref,
   type Project,
   type ProjectInput,
 } from "@/entities/project";
-import { getProject, subscribeProjects } from "@/entities/project/api";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 import { useToast } from "@/shared/ui";
 
@@ -77,7 +76,9 @@ function EditorContent({
   const safeReturnLabel = t(resolveReturnLabelKey(normalizeReturnTo(returnTo)));
   const publicProjectHref = slug ? getProjectDetailHref(slug, accountId) : null;
   const [project, setProject] = useState<Project | null>(null);
-  const [allProjects, setAllProjects] = useState<Project[]>([]);
+  // R10b — `useProjects` (mode-aware: vault manifest 또는 정적 dogfood) 가
+  // allProjects 의 단일 source. 이전 cloud `subscribeProjects` 직접 호출 제거.
+  const { projects: allProjects } = useProjects();
   const [isDirty, setIsDirty] = useState(false);
   const [loading, setLoading] = useState(Boolean(targetSlug));
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -88,38 +89,21 @@ function EditorContent({
   }, [isDirty, t]);
 
   useEffect(() => {
-    const unsubscribe = subscribeProjects(accountId, (latest) => setAllProjects(latest));
-    return () => unsubscribe();
-  }, [accountId]);
-
-  useEffect(() => {
     if (!targetSlug) return;
 
-    let cancelled = false;
-    getProject(targetSlug, accountId)
-      .then((p) => {
-        if (cancelled) return;
-        if (!p) {
-          setLoadError(
-            mode === "edit"
-              ? t("loadErrorEdit")
-              : t("loadErrorDuplicate"),
-          );
-        } else {
-          setProject(p);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled)
-          setLoadError(err instanceof Error ? err.message : t("loadErrorGeneric"));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [accountId, duplicateFromSlug, mode, slug, targetSlug, t]);
+    // R10b: cloud `getProject` 호출 제거 — `useProjects` 결과에서 slug 매칭으로
+    // 동기 lookup. fallback 으로 빈 객체가 반환될 수 있어 `loadError` 분기 유지.
+    const found = allProjects.find((p) => p.slug === targetSlug);
+    if (found) {
+      setProject(found);
+      setLoading(false);
+      return;
+    }
+    if (allProjects.length > 0) {
+      setLoadError(mode === "edit" ? t("loadErrorEdit") : t("loadErrorDuplicate"));
+      setLoading(false);
+    }
+  }, [targetSlug, allProjects, mode, t]);
 
   const buildEditHref = (nextSlug: string) =>
     `/project/${encodeURIComponent(nextSlug)}/edit/?returnTo=${encodeURIComponent(safeReturnTo)}&saved=1`;

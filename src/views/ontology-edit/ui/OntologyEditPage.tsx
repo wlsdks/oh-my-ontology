@@ -171,24 +171,8 @@ export function OntologyEditPage() {
           );
           removeNode(nodeId);
           setSelectedId(null);
-        } else if (dataSourceMode === "cloud") {
-          if (!accountId) {
-            toast.show(t("toastNoAccount"), "error");
-            return;
-          }
-          const id = `${node.kind}.${slug}`;
-          const { addManualKnowledgeNode } = await import("@/entities/knowledge-graph/api");
-          await addManualKnowledgeNode({
-            accountId,
-            id,
-            title: node.title,
-            kind: node.kind,
-          });
-          toast.show(t("toastCloudSaved", { title: node.title }), "success");
-          removeNode(nodeId);
-          setSelectedId(null);
         } else {
-          // static — vault 미선택 + 비로그인. 둘 중 하나 활성화 안내.
+          // R10b — vault 미선택 (static) 시 vault picker 안내. cloud 분기 제거.
           toast.show(t("toastDemoMode"), "error");
         }
       } catch (err) {

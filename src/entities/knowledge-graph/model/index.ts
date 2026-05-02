@@ -15,11 +15,6 @@ export {
   KNOWLEDGE_GRAPH_SOURCES,
   isKnowledgeGraphSource,
 } from "./types";
-export {
-  fromFirestoreKnowledgeGraphNode,
-  fromFirestoreKnowledgeGraphEdge,
-  fromFirestoreKnowledgePublicMeta,
-} from "./mapper";
 export type { KnowledgeProjectEvidenceSummary } from "./evidence-summary";
 export { buildKnowledgeProjectEvidenceSummary } from "./evidence-summary";
 export type {
