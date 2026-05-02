@@ -10,7 +10,8 @@
       "ontology": "Ontology",
       "ontologyEdit": "Ontology Builder",
       "ontologyInsights": "Ontology Insights",
-      "ontologyRelations": "Ontology Relations"
+      "ontologyRelations": "Ontology Relations",
+      "projectNew": "New project"
     }
   },
   "nav": {
