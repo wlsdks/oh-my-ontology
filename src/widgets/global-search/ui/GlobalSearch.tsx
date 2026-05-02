@@ -52,7 +52,7 @@ export function GlobalSearch({
   const t = useTranslations("searchWidgets.globalSearch");
   const kindLabel = useOntologyKindLabel();
   const [query, setQuery] = useState("");
-  // Fire 2 — kind / project filter chip 으로 ontology 결과 좁히기. set 으로
+  // kind / project filter chip 으로 ontology 결과 좁히기. set 으로
   // 다중 선택 (toggle) 모델. 닫을 때 query 와 함께 초기화.
   const [selectedKinds, setSelectedKinds] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -101,13 +101,11 @@ export function GlobalSearch({
 
   // workspace project chip row 의 source — projects prop 이 있으면 그대로
   // (slug + name), 없으면 nodes 에서 발견된 distinct projectIds 만으로 fallback
-  // (slug 만 표시). 진안 본인 계정에서는 projects prop 이 흐르고, 데모 / demo
-  // 공개 surface 에서는 nodes 만 흐르는 시나리오 양쪽 다 chip 표시.
+  // (slug 만 표시) — projects prop 이 흐를 때와 nodes 만 흐를 때 양쪽 호환.
   //
-  // Fire 5 — @tanstack/react-virtual 도입으로 PROJECT_CHIP_LIMIT 캡 제거.
-  // demo-workspace (1,979 project) 같은 큰 워크스페이스 에서도 horizontal
-  // virtualizer 로 viewport 안 chip 만 렌더 (보통 ~10-15 개). ontology 빈도
-  // 가중 정렬은 유지 — 첫 화면에 가장 관련 있는 chip 이 먼저 보이도록.
+  // \`@tanstack/react-virtual\` horizontal virtualizer 로 큰 vault 에서도
+  // viewport 안 chip 만 렌더 (~10-15 개). ontology 빈도 가중 정렬은 유지 —
+  // 첫 화면에 가장 관련 있는 chip 이 먼저 보이도록.
   const projectChipSource = useMemo<Array<{ slug: string; label: string }>>(() => {
     const ontologyFreq = new Map<string, number>();
     for (const node of nodes) {
@@ -197,9 +195,9 @@ export function GlobalSearch({
           </kbd>
         </div>
 
-        {/* Fire 2 — kind / project chip filter row. ontology 결과 좁히기 전용
-            (documents / projects 결과는 영향 없음). 기본 펼침 — 사용자가
-            "어떻게 좁힐 수 있는지" 한눈에 보이게. 다중 선택 toggle. */}
+        {/* kind / project chip filter row — ontology 결과 좁히기 전용
+            (documents / projects 결과는 영향 없음). 기본 펼침이라 사용자가
+            "어떻게 좁힐 수 있는지" 한눈에 인지. 다중 선택 toggle. */}
         <div
           className="flex flex-col gap-1 border-b border-[color:var(--color-border-soft)] px-3 py-2"
           aria-label={t('filterAriaLabel')}
