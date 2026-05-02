@@ -8,9 +8,6 @@ import { ThemeToggle } from '@/features/theme-toggle';
 import { LocaleSwitch } from '@/features/locale-switch';
 import { Button, Tooltip } from '@/shared/ui';
 
-// (R10 — workspace selector 같은 외부 rightSlot 자리는 모두 사라져 prop 자체
-// 제거. 미래에 다시 필요하면 그때 type 다시 정의.)
-
 interface NavItem {
   id: 'docs' | 'ontology' | 'topology';
   /** Translation key under `nav.*` for the visible label. */
@@ -49,24 +46,19 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
 ];
 
 /**
- * 운영 메뉴 공통 nav. /knowledge ↔ /settings ↔ ontology 사이 전환이
- * 각 페이지 nav 안에 묻혀 있어 사용자가 메뉴 사이 점프 못 하던 문제
- * 해소. 모든 운영 페이지 상단에 동일하게 배치.
+ * 운영 surface (/docs, /ontology*, /topology) 공통 상단 nav. 페이지 별
+ * nav 에 메뉴를 묻으면 sub-surface 사이 점프가 끊겨 일관성 잃는다.
  *
- * 데스크톱 (md+): 탭 + 우측 보조 (mode badge · LocaleSwitch · ThemeToggle · Projects).
+ * 데스크톱 (md+): 탭 + 우측 보조 (ModeBadge · LocaleSwitch · ThemeToggle · Projects).
+ * 모바일 (<md): 탭만 horizontal scroll chip row 로 노출. 보조 버튼은
+ *   BottomTabBar 가 대체. iOS / Android 음원·뱅킹 앱에서 흔한 sub-tab.
  *
- * 모바일 (<md, A2-6): 탭만 horizontal scroll chip row 로 노출. 보조
- * 버튼은 BottomTabBar (지도 / 프로젝트 / 문서 / 정리) 와 사용자 메뉴가
- * 대체. 1 차 결정 (모바일 nav 자체 숨김) 은 sub-page 점프가 답 없는
- * 문제를 만들어 뒤집음. iOS / Android 표준
- * 가로 스크롤 칩 패턴 (음원/뱅킹 앱에서 흔한 sub-tab) 같은 형태.
- *
- * 활성 표시는 pathname prefix 매칭 — 동일 룰 양쪽 적용.
+ * 활성 표시는 pathname prefix 매칭.
  */
 /**
- * Mode badge — UX-2. 사용자가 *지금 어떤 source 에 데이터가 가는지* 한눈에
- * 보게. local 모드면 vault 폴더 이름 + doc count, cloud 면 "cloud sync",
- * static (비활성/비로그인) 이면 "데모". mode 바뀜 = 데이터 destination 바뀜.
+ * Mode badge — 사용자가 *데이터가 어디에 가는지* 한눈에 인지.
+ * - local 모드: vault 폴더 이름 + doc count chip
+ * - static 모드 (vault 미선택): "데모" / "Demo" chip
  */
 function ModeBadge({ mode }: { mode: 'static' | 'local' }) {
   // local 모드일 때만 vault 메타 가져오기. static 은 그냥 chip.
