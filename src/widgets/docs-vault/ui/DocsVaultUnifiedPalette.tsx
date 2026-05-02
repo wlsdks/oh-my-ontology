@@ -427,6 +427,7 @@ export function DocsVaultUnifiedPalette({
         transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
+        aria-modal="true"
         aria-label={t('dialogAriaLabel')}
         className="w-full max-w-[560px] overflow-hidden rounded-lg border border-[color:var(--color-divider)] bg-[color:rgba(12,14,20,0.98)] shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
       >
