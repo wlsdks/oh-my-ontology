@@ -60,8 +60,8 @@ export function LocalVaultPicker({
   const [nowTick, setNowTick] = useState(() => Date.now());
   useEffect(() => {
     if (status !== 'loaded' || lastLoadedAt === null) return;
-    const t = setInterval(() => setNowTick(Date.now()), 15_000);
-    return () => clearInterval(t);
+    const intervalId = setInterval(() => setNowTick(Date.now()), 15_000);
+    return () => clearInterval(intervalId);
   }, [status, lastLoadedAt]);
   if (status === 'unsupported') {
     return (
