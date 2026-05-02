@@ -105,7 +105,7 @@ The `useDataSourceMode()` hook resolves to one of two modes (R10b: cloud / auth 
 ### Projects
 
 #### `/projects` — Project list
-- **mode-aware**: local mode reads `projects/*.md` from the vault; cloud reads Firestore
+- **mode-aware**: local mode reads `projects/*.md` from the vault; static mode reads the build-time dogfood manifest
 - **search / filter**: query · category · status · displayed count
 - **per card**: ontology node count badge, quick actions (edit)
 - **ProjectQuickCreatePanel** — inline quick creation directly in the page (mode-aware)
@@ -122,11 +122,11 @@ The `useDataSourceMode()` hook resolves to one of two modes (R10b: cloud / auth 
 #### `/project/new` · `/project/[slug]/edit` — Editor
 - **full form**: name · slug · description · detail (markdown) · tags · stack · links · dependencies · icon · status · category · progress · timeline · screenshots
 - **auto-suggest**: when other project names appear in the description, a dependency suggestion chip is offered
-- **mode-aware mutations**: local → write/patch vault `.md`; cloud → Firestore upsert
+- **mode-aware mutations**: local → write/patch vault `.md`; static → rejected (read-only)
 - **post-save action choice**: "save and keep viewing" / "save and back to list" / "save and go to public view"
 
 #### `/project/fallback` — Static export fallback
-- A Firebase Hosting rewrite routes unknown slugs to a client-side Firestore lookup. Dynamic slugs that were unknown at build time still render correctly.
+- For dynamic slugs unknown at build time. The fallback page reads the URL on the client and renders ProjectDetailPage from the active vault manifest (or returns null in static mode).
 
 ### AI agent partner (`mcp/`)
 
