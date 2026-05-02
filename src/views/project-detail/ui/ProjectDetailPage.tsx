@@ -4,8 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -238,8 +237,6 @@ export function ProjectDetailPage({
 }: Props) {
   const t = useTranslations("projectPages.detail");
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { show: showToast } = useToast();
   const fallbackProjects = useMemo(() => resolveFallbackProjects(), []);
   const fallbackProject = fallbackProjects.find((item) => item.slug === slug) ?? null;
@@ -279,11 +276,6 @@ export function ProjectDetailPage({
     },
     [router, slug],
   );
-
-  const currentPath = useMemo(() => {
-    const search = searchParams.toString();
-    return `${pathname}${search ? `?${search}` : ""}`;
-  }, [pathname, searchParams]);
 
   // P1-5 — 클라이언트 사이드 동적 타이틀. 정적 export metadata 가 slug
   // 단위까지 미리 빌드되지만 동적 컨텍스트는 빌드 시 모름.

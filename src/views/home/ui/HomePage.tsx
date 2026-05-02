@@ -210,7 +210,6 @@ export function HomePage() {
   const {
     activeCategory,
     selectedSlug,
-    focusedHubSlug,
     impactMode,
   } = routeState;
   // 미래에 selector overlay 가 다시 도입될 때 setter 가 부활. 현재는 상수.
