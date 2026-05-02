@@ -1,11 +1,11 @@
 # oh-my-ontology
 
-> **AI-native codebase ontology workbench.** Humans and AI agents author the same vault.
-> Markdown frontmatter is the graph.
+> **AI-native, local-first codebase ontology workbench.** Humans and AI agents author the same vault.
+> Markdown frontmatter is the graph. No backend. No login.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Next.js](https://img.shields.io/badge/Built_with-Next.js-000?logo=next.js)](https://nextjs.org)
-[![MCP server](https://img.shields.io/badge/MCP-11_tools-5e6ad2)](mcp/README.md)
+[![MCP server](https://img.shields.io/badge/MCP-12_tools-5e6ad2)](mcp/README.md)
 
 ```bash
 npx oh-my-ontology init my-vault
@@ -15,8 +15,6 @@ $EDITOR project.md
 
 That's it. You now have a frontmatter-based ontology vault that humans
 and AI agents (Claude Code, Cursor, etc.) can read and write together.
-
-**Hosted demo (read-only, our own dogfood vault):** https://oh-my-ontology.web.app
 
 > 한국어 안내는 아래 [README (한국어)](#한국어-가이드) 섹션 참조.
 
@@ -34,10 +32,10 @@ it after every architectural decision.
 Three claims:
 
 1. **Markdown frontmatter is enough** — `kind: capability`, `domain: auth`,
-   `depends_on: [...]` is the entire schema. No DB. No backend required.
+   `depends_on: [...]` is the entire schema. No DB, no backend, no auth.
 2. **Humans and AI share one source of truth** — both edit the same `.md`
    files. No "AI memory" silo. Non-developers contribute by editing markdown.
-3. **The MCP server is the AI's only interface** — read 7 + write 4 tools
+3. **The MCP server is the AI's only interface** — 8 read + 4 write tools
    over JSON-RPC. The agent doesn't need to "ingest your codebase"; it
    reads the ontology you've already built.
 
@@ -61,9 +59,9 @@ AI uses when planning the next feature.
 The same frontmatter graph rendered three ways:
 
 - **Topology** (`/topology`) — Sigma WebGL spatial network of projects
-- **Tree** (`/`) — hierarchical drill-down (project → domain → capability → element)
+- **Tree** (`/`, `/ontology`) — hierarchical drill-down (project → domain → capability → element)
 - **ERD builder** (`/ontology/edit`) — xyflow canvas to add nodes and relations visually
-- **MCP** (separate package) — JSON-RPC over stdio, 11 tools
+- **MCP** (separate package) — JSON-RPC over stdio, 12 tools
 
 All four read and write the same `.md` files. Pick whichever view fits
 the moment.
@@ -76,7 +74,7 @@ the moment.
 npx oh-my-ontology init ./vault
 # Open ./vault/.mcp.json.example, copy into your MCP config (Claude Code, Cursor)
 # Set OMOT_VAULT to /absolute/path/to/your/vault
-# Restart the agent — 11 oh-my-ontology tools become available
+# Restart the agent — 12 oh-my-ontology tools become available
 ```
 
 ### With the visual workbench
@@ -91,38 +89,40 @@ pnpm dev   # http://localhost:3000
 Then visit `/docs` and pick your vault folder (browser File System Access
 API). The workbench reads/writes the same `.md` files the AI does.
 
-## Mission v2 promises (verifiable)
+No `.env`, no Firebase, no auth provider, no cloud account needed.
+
+## Verifiable promises
 
 | Promise | Verification |
 |---|---|
 | **vault frontmatter = the graph** (no review queue, no LLM extraction) | `grep -r "extractionJob" src/ → 0` |
-| **AI agent partner via MCP** | `mcp/` package, 11 tools, `mcp/scripts/verify.mjs` smoke test |
-| **Local-first first paint** (firebase JS not in critical path) | `pnpm bundle:check` — local-first routes 0 KB firebase |
-| **Dogfooding** | `docs/ontology/` is the project's own curated mental model (~23 nodes). Combined with the broader `docs/` tree the static demo shows ~130 nodes / 165 relations on `/ontology/insights`. |
+| **AI agent partner via MCP** | `mcp/` package, 12 tools, `mcp/scripts/verify.mjs` smoke |
+| **No backend** (Firebase / DB / auth) | `pnpm bundle:check` — firebase SDK chunk 0 (deps removed in R10) |
+| **Dogfooding** | `docs/ontology/` is the project's own curated mental model (~21 nodes). Combined with the broader `docs/` tree the static demo shows the project's own ontology on `/ontology/insights`. |
 
 ## Architecture
 
 - **Framework**: Next.js 16 App Router, `output: 'export'` (static)
+- **i18n**: next-intl 4.11 with `/[locale]/` URL prefix (en / ko)
 - **Visualization**: Sigma.js (WebGL) + Graphology + ForceAtlas2 + xyflow + dagre
 - **Local-first**: File System Access API + IndexedDB
-- **Optional cloud**: Firebase (Auth + Firestore + Storage). Lazy-loaded — chunks not in user-facing first paint.
-- **AI agent surface**: `mcp/` MCP server, stdio JSON-RPC, 11 tools
+- **AI agent surface**: `mcp/` MCP server, stdio JSON-RPC, 12 tools
 - **Architecture**: Feature-Sliced Design (ESLint boundaries enforced)
-- **Tests**: Vitest 100 files / 721 tests + Playwright e2e
+- **Tests**: Vitest unit + Playwright e2e
 
-Full details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md).
+Full details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`AGENTS.md`](AGENTS.md).
 
 ## Repo map
 
 ```
-app/            Next.js routes (thin wrappers)
+app/            Next.js routes (thin wrappers, locale-prefixed)
 src/            Feature-Sliced Design layers
   ├── views/    page-level components
   ├── widgets/  composite UI blocks
   ├── features/ user interactions
   ├── entities/ domain entities (project, ontology-class, knowledge-graph, …)
   └── shared/   ui primitives, lib, config
-mcp/            MCP server (`oh-my-ontology-mcp`, 11 tools)
+mcp/            MCP server (`oh-my-ontology-mcp`, 12 tools)
 cli/            `npx oh-my-ontology` (vault scaffold + setup)
 docs/           Long-form docs + dogfood vault (docs/ontology/)
 docs/archive/   Historical analysis docs
@@ -147,8 +147,8 @@ MIT — see [`LICENSE`](LICENSE).
 
 ## 한국어 가이드
 
-> 사람과 AI agent 가 같이 키우는 codebase ontology workbench.
-> markdown frontmatter 가 곧 그래프. AI 와 사람이 같은 vault 를 편집한다.
+> 사람과 AI agent 가 같이 키우는 local-first codebase ontology workbench.
+> markdown frontmatter 가 곧 그래프. 백엔드 / 로그인 0.
 
 ### 30초 시작
 
@@ -160,16 +160,16 @@ cd my-vault
 ```
 
 자세한 시작 가이드:
-- [`AGENTS.md`](AGENTS.md) — contributor (사람·AI 공통) 가이드, mission v2 정렬
-- [`docs/PRODUCT-DIRECTION.md`](docs/PRODUCT-DIRECTION.md) — mission v2 spec
+- [`AGENTS.md`](AGENTS.md) — contributor (사람·AI 공통) 가이드
+- [`docs/PRODUCT-DIRECTION.md`](docs/PRODUCT-DIRECTION.md) — mission spec
 - [`docs/FEATURES.md`](docs/FEATURES.md) — 사용자 가시 기능 전수
-- [`mcp/README.md`](mcp/README.md) — MCP 서버 등록 + 11 도구
+- [`mcp/README.md`](mcp/README.md) — MCP 서버 등록 + 12 도구
 
 ### 핵심 약속
 
 1. **vault frontmatter = 그래프** — 검수 큐 / 추출 워커 없음. frontmatter 자기-승인.
-2. **AI agent partner** — MCP 서버 (read 7 + write 4) 로 같은 vault read/write.
-3. **Local-first 첫 paint firebase 0KB** — `pnpm bundle:check` 가 회귀 차단.
+2. **AI agent partner** — MCP 서버 (read 8 + write 4) 로 같은 vault read/write.
+3. **Local-first single-source** — 사용자 디스크 vault 가 진실원. Firebase / 백엔드 / 인증 의존 0 (R10 — 2026-05).
 4. **Dogfooding** — `docs/ontology/` 가 프로젝트 자기 자신의 mental model.
 
 ### 로컬 개발
@@ -177,11 +177,11 @@ cd my-vault
 ```bash
 pnpm install
 pnpm dev                          # http://localhost:3000
-pnpm test:run                     # vitest 100 files / 721 tests
+pnpm test:run
 pnpm exec tsc --noEmit
 pnpm lint
 pnpm build                        # 정적 export → out/
-pnpm bundle:check                 # firebase 청크 회귀 차단
+pnpm bundle:check                 # local-first chunk 회귀 차단
 ```
 
 ### 사용자 가시 라우트
@@ -191,5 +191,5 @@ pnpm bundle:check                 # firebase 청크 회귀 차단
 | 시각화 | `/`, `/topology`, `/ontology`, `/ontology/edit`, `/ontology/insights`, `/ontology/relations` |
 | 프로젝트 | `/projects`, `/project/[slug]`, `/project/[slug]/edit`, `/project/new` |
 | Vault | `/docs` |
-| 인증 (옵션) | `/login`, `/signup`, `/account`, `/reset-password` |
-| 설정 (cloud) | `/settings`, `/settings/categories`, `/settings/statuses`, `/settings/import` |
+
+> R10 (2026-05): `/login`, `/signup`, `/account`, `/reset-password`, `/settings/*` 영구 제거. 미래 cloud collab 단계가 다시 도입될 때 인증 surface 새로 디자인.

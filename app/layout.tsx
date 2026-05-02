@@ -83,10 +83,6 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col overflow-x-hidden pb-[calc(56px+env(safe-area-inset-bottom))] md:pb-0">
-        <link rel="preconnect" href="https://firestore.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://firebaseinstallations.googleapis.com" />
-        <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

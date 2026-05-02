@@ -14,17 +14,9 @@ const VIEWPORTS = [
 
 const ROUTES = [
   "/",
-  "/login",
-  "/signup",
-  "/reset-password",
-  "/account",
   "/projects/",
   "/project/sample/",
-  // mission v2 정렬: admin + /review/knowledge 폐기 (PR #5/#6).
-  // 살아있는 mission v2 surface 추가 — /topology · /ontology · /ontology/edit
-  // · /docs · /settings/*.
-  "/knowledge/",
-  "/knowledge/documents/",
+  // R10 (auth + cloud surface 영구 제거) 이후 살아있는 user-facing surface 만.
   "/topology/",
   "/ontology/",
   "/ontology/edit/",

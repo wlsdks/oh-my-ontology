@@ -15,24 +15,20 @@
 
 ## 라우팅
 
-- `/admin/*` 네임스페이스에 라우트 추가 — 폐기됨. `/settings/*` · `/review/*` · `/diagnostics/*` 로.
+- 폐기된 namespace 부활 — `/admin/*`, `/login`, `/signup`, `/account`, `/reset-password`, `/settings/*`, `/knowledge/*`, `/review/*`, `/diagnostics/*` 등은 R10 (auth + cloud surface 영구 제거) 에서 잘려나갔다. 새 라우트 추가 시 `/`, `/topology`, `/docs`, `/ontology`, `/projects`, `/project/[slug]` 외 5 surface 안에서 디자인.
 - `pages/` 라우터 도입 — App Router 만 사용.
 - 정적 export 와 호환 안 되는 server-only API 라우트 (dynamic API endpoints, server actions).
 
-## 인증
+## 인증 / 백엔드
 
-- 외부 IAM provider 연동 (`NEXT_PUBLIC_IAM_BASE_URL`, JWT 자체 발급).
-- Magic link / SMS / OTP 신규 흐름.
-- localStorage 에 raw jwt 또는 password 저장.
-
-세부: `@.claude/rules/auth.md`.
+- 인증 surface 부활 (login / signup / account / password reset).
+- Firebase / Firestore / Cloud Functions / Storage 의존 재도입 — R10 결정으로 영구 제거됐다. 후원 / 협업 요청이 들어와 cloud collab 단계가 다시 도입될 때 새로 디자인.
+- 사용자 디스크 이외의 백엔드 SDK 신규 도입 (v0.x 는 local-first single-source).
 
 ## 코드 / 아키텍처
 
 - FSD import 방향 위반 (`entities` 에서 `widgets` import 등). ESLint 가 잡지만 사람이 우회하면 거절.
-- 동일 개념을 두 컬렉션 / 두 진입 경로에서 동시에 진실원으로 두기.
-- **`@/entities/<x>` 메인 barrel 에서 firestore api 함수 export 추가** — local-first 첫 paint 청크에 firebase JS 가 leak. api 는 `@/entities/<x>/api` 로만 진입. 자세히 `@.claude/rules/architecture.md`.
-- **mapper 에서 `instanceof Timestamp` 사용** — firebase/firestore 정적 import 가 entity model 까지 끌고 와 청크 회귀. `@/shared/lib/firestore-timestamp-coerce` 의 `coerceFirestoreDate` 사용.
+- 동일 개념을 두 진입 경로 (예: vault frontmatter 와 별도 store) 에서 동시에 진실원으로 두기.
 - `--no-verify` 로 git hook 우회.
 - `git push --force` 를 main 에.
 
@@ -46,7 +42,7 @@
 
 - Service account · API key · `.env*` 파일을 commit.
 - 사용자 디스크의 임의 파일을 자동 스캔 / 업로드 (local-first 원칙 위반).
-- Firestore rules 변경 없이 새 컬렉션 사용.
+- vault 외부 (Firestore / 서버) 로 사용자 데이터 silent 전송.
 
 ## 문서
 
@@ -57,7 +53,7 @@
 ## 의존성
 
 - 새 dependency 추가 시 PR 본문에 이유 명시 안 하기.
-- `firebase` 외에 별도 백엔드 SDK 도입 (v0.x 범위 밖).
+- 백엔드 SDK 도입 (Firebase / Supabase / 자체 서버 등) — R10 의 local-first 약속에 맞지 않음. 미래 cloud collab 단계에서 다시 평가.
 - node_modules 에 직접 patch (use `pnpm patch` instead).
 
 ## 🚫 npm publish — 사용자 명시 승인 없이 실행 절대 금지

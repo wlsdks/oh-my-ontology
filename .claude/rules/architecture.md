@@ -7,12 +7,12 @@
 ```
 app/                       Next.js 라우팅 (얇은 래퍼). 페이지 단의 metadata 와 entry 만.
 src/
-  ├── app/                 providers · 초기화 코드 (FirebaseProvider, ToastProvider 등)
+  ├── app/                 providers · 초기화 코드 (TaxonomyProvider, ToastProvider 등)
   ├── views/               페이지 컴포넌트 (route 1:1 또는 그룹)
   ├── widgets/             여러 features / entities 를 조합한 복합 UI 블록
   ├── features/            한 가지 사용자 인터랙션 단위 (form · picker · 검색)
-  ├── entities/            비즈니스 엔티티 (project · category · knowledge-document …)
-  └── shared/              UI primitives · lib · config · api · types
+  ├── entities/            비즈니스 엔티티 (project · category · ontology-class …)
+  └── shared/              UI primitives · lib · config · types
 ```
 
 **Import 방향**: `app → views → widgets → features → entities → shared`.
@@ -23,73 +23,41 @@ src/
 
 ## Next.js 정적 export 제약
 
-- `next.config.ts` 의 `output: 'export'` 가 default. 서버 런타임에 의존하는 코드 (RSC fetch streams, dynamic API routes) 는 쓰지 말 것.
-- Build-time fetch 가 필요한 경우 `OMOT_BUILD_PROJECT_SOURCE=firestore` 환경변수로 명시 opt-in.
+- `next.config.ts` 의 `output: 'export'` 가 default. 서버 런타임에 의존하는
+  코드 (RSC fetch streams, dynamic API routes) 는 쓰지 말 것.
+- Build-time fetch 는 vault 매니페스트 (`docs/ontology/`) 만 사용. 외부 API
+  fetch 신규 도입 금지 — local-first 원칙.
 - App Router 만 사용. `pages/` 라우터 도입 금지.
 
 ## URL 계약
 
-- 새 라우트는 `app/` 아래에만. `src/views/` 의 페이지 컴포넌트가 1:1 대응.
-- `/admin/*` 네임스페이스는 폐기. 새 라우트는 `/settings/*`, `/review/*`, `/diagnostics/*`, `/knowledge/*` 등 기능별로.
-- query 키는 `src/shared/lib/account-scope.ts` 의 상수를 공유 (`?account=`, `?pj=`).
-
-## 데이터 경계
-
-- 공개 surface 와 운영 surface 의 경계는 **데이터 모델** 로 구분 (URL 네임스페이스 아님).
-- `knowledgeApprovedNodes/Edges` (private canonical) ↔ `knowledgePublicNodes/Edges` (public projection).
-- raw markdown 은 Storage `knowledge-documents/` 에. Firestore 가 아닌 Storage 가 단일 진실원.
-- 권한은 Firestore rules 가 1차 게이트.
+- 새 라우트는 `app/[locale]/` 아래에만. `src/views/` 의 페이지 컴포넌트가 1:1 대응.
+- 살아있는 라우트: `/`, `/topology/`, `/docs/`, `/ontology/`, `/ontology/edit/`,
+  `/ontology/insights/`, `/ontology/relations/`, `/projects/`, `/project/[slug]/`,
+  `/project/[slug]/edit/`, `/project/new/`, `/project/fallback/`. R10 (auth +
+  cloud surface 영구 제거) 이후 외 namespace (`/login`, `/signup`, `/account`,
+  `/reset-password`, `/settings/*`, `/admin/*`, `/review/*`, `/diagnostics/*`,
+  `/knowledge/*`) 부활 금지.
+- 모든 라우트는 next-intl `[locale]` prefix 자동 추가 (en / ko 두 locale).
 
 ## 단일 진실원 원칙
 
-- 동일 개념을 두 컬렉션 / 두 화면 / 두 입력 경로에서 동시에 진실원으로 두지 말 것.
-- 새 컬렉션을 추가하기 전에 기존 컬렉션을 확장 가능한지 먼저 검토.
-- 스키마 변경은 docs-first — `docs/DATA-MODEL.md` 와 `firestore.rules` 를 같이 갱신.
+- vault frontmatter 가 ontology 의 진실원. 별도 store / DB 도입 금지.
+- 동일 개념을 두 입력 경로에서 동시에 진실원으로 두지 말 것.
+- 빌드타임 dogfood 매니페스트 (`docs/ontology/`) 는 vault 미선택 사용자를 위한
+  fallback — 사용자 vault 와 충돌 시 사용자 vault 우선.
 
-## Entity barrel vs api 분리 (PR #99 이후)
+## i18n 라우팅 가드
 
-mission v2 의 *"local-first 첫 paint firebase 0"* 약속을 코드로 보장하기 위한 import 규율.
+- 인-앱 라우트 이동은 `@/i18n/navigation` 의 `Link` / `useRouter` /
+  `usePathname` 사용 — 자동 locale prefix 보존.
+- `useSearchParams` 는 locale-agnostic 이라 `next/navigation` 에서 그대로 import.
+- locale-redirect 같은 의도적인 cross-locale 이동만 raw `next/navigation` router 사용.
 
-### 규칙
+## 회귀 방지
 
-- `@/entities/<x>` (메인 barrel) 은 **firebase 의존 0** — type, lib, pure helper, default constants 만 export.
-- `@/entities/<x>/api` 는 firestore subscribe / mutation 함수의 진입점 — 호출자가 명시적으로 이 경로를 적어야 한다.
-- mapper (`<x>/model/mapper.ts`) 는 `instanceof Timestamp` 대신 `@/shared/lib/firestore-timestamp-coerce` 의 `coerceFirestoreDate(value)` 사용. firebase 의존 0 유지.
-
-### import 분기 가이드
-
-```ts
-// ✅ 정적 import — 모든 페이지 첫 paint 청크에 들어가도 OK
-import type { Project } from '@/entities/project';
-import { getProjectDetailHref } from '@/entities/project/lib/detail-href';
-
-// ✅ cloud-mode-only 페이지 (settings/*, knowledge/documents 등) — 정적 import OK
-import { subscribeProjects } from '@/entities/project/api';
-
-// ✅ mode-aware feature / hook — useEffect / 핸들러 안 dynamic import
-useEffect(() => {
-  let unsubscribe: (() => void) | null = null;
-  let cancelled = false;
-  void import('@/entities/project/api')
-    .then(({ subscribeProjects }) => {
-      if (cancelled) return;
-      unsubscribe = subscribeProjects(...);
-    })
-    .catch((err) => {
-      // chunk fetch 실패 시 명시적 fallback (영원히 loading 방지)
-      if (cancelled) return;
-      console.warn('[<call-site>] firebase chunk load failed', err);
-      setError('...');
-    });
-  return () => { cancelled = true; unsubscribe?.(); };
-}, [...]);
-
-// ❌ 금지 — 메인 barrel 에서 api 함수 가져오기 (현재는 export 자체가 없음).
-// 새 api 함수 추가 시 절대 메인 barrel 에 export 하지 말 것.
-import { subscribeProjects } from '@/entities/project';
-```
-
-### 회귀 방지
-
-- ESLint 룰: `eslint.config.ts` 의 `no-restricted-imports` 가 `@/entities/<x>` 의 api 함수 import 패턴을 막는다.
-- 빌드 측정: `pnpm bundle:check` 가 user-facing 라우트 (`/`, `/topology`, `/docs` …) 의 firebase chunk 를 측정. 0 이 아니면 fail.
+- 빌드 측정: `pnpm bundle:check` 가 user-facing 라우트 (`/`, `/topology`, `/docs`,
+  …) 에 firebase SDK chunk 가 들어가지 않는지 검증. R10b 에서 firebase deps 자체를
+  제거했으므로 chunk 0 이 default 통과 조건.
+- ESLint 가 entity barrel ↔ api 분리 룰 (legacy) 을 일부 강제 — 현재는 api 폴더가
+  사라졌지만 룰은 남아 미래 cloud collab 단계에서 재도입 시 가드 역할.

@@ -6,6 +6,57 @@
 
 ---
 
+## 2026-05-03 — Round 10: permanent removal of auth + cloud surface
+
+`oh-my-ontology` is now a pure local-first OSS. All optional Firebase /
+Firestore / Auth / Cloud Functions / Storage code has been **permanently
+removed**. The `.md` files in your vault are the single source of truth.
+
+### User-visible changes
+
+- **No login** — `/login`, `/signup`, `/account`, `/reset-password` routes
+  are gone. The "Sign in" button in the landing header is gone. The
+  "Sign out" button in the operations nav is gone.
+- **No settings** — `/settings/categories`, `/settings/statuses`,
+  `/settings/import` were cloud-only and are gone. Categories / statuses
+  are now build-time defaults (vault-defined custom taxonomy is a future
+  feature).
+- **No cloud-mode badge** — the OperationsNav `cloud sync` chip can no
+  longer appear. Vault and demo (static) badges remain.
+- **No screenshot uploader** — was Firebase Storage-backed; gone. Markdown
+  inline images are the path forward.
+- **No manual node/edge cloud modal** — the "Add node" button on `/ontology`
+  now links straight to the builder canvas (`/ontology/edit`), where new
+  nodes are saved into the vault directory.
+- **No `.env` setup needed** — `pnpm dev` and `pnpm build` work without
+  any environment variables. `.env.example` is now a minimal placeholder.
+
+### Code / architecture
+
+- Net delete: ~20,000 lines (R10a 2225 + R10c 4634 + R10b 12227).
+- `DataSourceMode` enum narrowed: `'static' | 'local' | 'cloud'` → `'static' | 'local'`.
+- Deleted: `@/features/{user-auth,permissions,account-scope,docs-vault-access}`,
+  `@/widgets/account-menu`, `@/entities/admin`, every `@/entities/*/api`,
+  `@/shared/api/firebase.ts`, `firestore.rules`, `firebase.json`, mapper.ts
+  (Firestore ↔ Date) and their tests, manual-node/edge-create-modal widgets,
+  ScreenshotUploader.
+- `package.json`: removed `firebase`, `firebase-admin`, `firebase-tools`
+  dependencies. Removed `dev:firestore-emulator`, `dev:firebase-emulators`,
+  `test:e2e:public-*` scripts.
+- `pnpm bundle:check` now shows 0 firebase SDK chunks across all routes
+  (down from 731KB on settings pages pre-R10).
+- 5 e2e tests removed (auth/cloud-emulator-dependent). Remaining 14
+  e2e specs run without firebase emulators.
+
+### Future cloud collab
+
+When sponsorship / collaboration features come back, auth and cloud sync
+will be re-designed from scratch (the v0.x removal preserves git history
+as a reference but does not stub anything). For now, the OSS is
+single-user, single-machine, single-source.
+
+---
+
 ## 2026-05-02 — OSS launch readiness: English-first docs + npm publish guard
 
 ### User-visible changes
