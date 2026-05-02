@@ -81,6 +81,15 @@ describe('deriveOntologyFromVault', () => {
     expect(result.nodes.find((n) => n.id === 'unknown:legacy-checkout')?.kind).toBe('unknown');
     const relatedEdges = result.edges.filter((e) => e.type === 'related_to');
     expect(relatedEdges).toHaveLength(1);
+    // domain edge 는 domain (parent) → docNode (child) 방향이어야 트리에서
+    // 도메인 아래에 workflow 가 매달린다 (\`contains\` from=parent, to=child).
+    const domainContainsEdge = result.edges.find(
+      (e) =>
+        e.type === 'contains' &&
+        e.from === 'domain:payments' &&
+        e.to === 'workflow:payment',
+    );
+    expect(domainContainsEdge).toBeDefined();
   });
 
   it('dependencies → depends_on 같은 kind 에', () => {

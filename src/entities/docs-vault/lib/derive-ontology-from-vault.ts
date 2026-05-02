@@ -112,7 +112,10 @@ export function deriveOntologyFromVault(
 
     const fm = doc.frontmatter;
 
-    // domain (단일 string)
+    // domain (단일 string) — \`domain: X\` 는 \"이 문서가 X 도메인에 속한다\"
+    // 의미. \`contains\` edge 의 from 이 부모 (parent), to 가 자식 (child) 이라
+    // edge 는 domain → docNode 방향이어야 트리에서 도메인 아래에 capability /
+    // element 가 매달리는 기대 구조가 만들어진다.
     if (typeof fm.domain === 'string' && fm.domain.trim() !== '') {
       const domainSlug = slugifyName(fm.domain);
       if (domainSlug) {
@@ -127,9 +130,9 @@ export function deriveOntologyFromVault(
           });
         }
         edges.push({
-          id: `${docNode.id}--contains-->${domainId}`,
-          from: docNode.id,
-          to: domainId,
+          id: `${domainId}--contains-->${docNode.id}`,
+          from: domainId,
+          to: docNode.id,
           type: 'contains',
           source: 'frontmatter',
           sourceSlug: doc.slug,
