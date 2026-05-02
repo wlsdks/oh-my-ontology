@@ -23,26 +23,26 @@ import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { EmptyState } from "@/shared/ui";
 
-// UX-14: edge type 한국어 라벨 — relations 페이지 (UX-1) 와 통일.
+// edge type 사람 친화 라벨 (locale 자동) — relations 페이지와 동일 키 공유.
 function getEdgeTypeLabel(
   t: ReturnType<typeof useTranslations>,
   type: string,
 ): string {
   switch (type) {
     case "contains":
-      return t("edgeTypeKoContains");
+      return t("edgeTypeContains");
     case "belongs_to":
-      return t("edgeTypeKoBelongsTo");
+      return t("edgeTypeBelongsTo");
     case "depends_on":
-      return t("edgeTypeKoDependsOn");
+      return t("edgeTypeDependsOn");
     case "implements":
-      return t("edgeTypeKoImplements");
+      return t("edgeTypeImplements");
     case "uses":
-      return t("edgeTypeKoUses");
+      return t("edgeTypeUses");
     case "describes":
-      return t("edgeTypeKoDescribes");
+      return t("edgeTypeDescribes");
     case "related_to":
-      return t("edgeTypeKoRelatedTo");
+      return t("edgeTypeRelatedTo");
     default:
       return type;
   }

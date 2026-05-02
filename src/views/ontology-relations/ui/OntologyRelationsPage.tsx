@@ -19,19 +19,19 @@ function getTypeLabel(
 ): string {
   switch (type) {
     case "contains":
-      return t("edgeTypeKoContains");
+      return t("edgeTypeContains");
     case "belongs_to":
-      return t("edgeTypeKoBelongsTo");
+      return t("edgeTypeBelongsTo");
     case "depends_on":
-      return t("edgeTypeKoDependsOn");
+      return t("edgeTypeDependsOn");
     case "implements":
-      return t("edgeTypeKoImplements");
+      return t("edgeTypeImplements");
     case "uses":
-      return t("edgeTypeKoUses");
+      return t("edgeTypeUses");
     case "describes":
-      return t("edgeTypeKoDescribes");
+      return t("edgeTypeDescribes");
     case "related_to":
-      return t("edgeTypeKoRelatedTo");
+      return t("edgeTypeRelatedTo");
     default:
       return type;
   }
