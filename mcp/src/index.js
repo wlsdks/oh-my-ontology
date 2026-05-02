@@ -139,7 +139,8 @@ const TOOLS = [
         slug: { type: 'string', description: 'vault-relative slug (확장자 제외).' },
         kind: {
           type: 'string',
-          description: 'project / domain / capability / element / decision / workflow.',
+          enum: ['project', 'domain', 'capability', 'element', 'document'],
+          description: 'project / domain / capability / element / document. (vault-readme 는 README.md 자동 생성 시점에만 부여, agent 가 직접 지정하지 않음.)',
         },
         title: { type: 'string', description: '노드 제목.' },
         domain: { type: 'string', description: '소속 domain (선택).' },
@@ -456,9 +457,16 @@ function findEvidence({ title }) {
   return { query: title, matches };
 }
 
+const ADD_CONCEPT_KINDS = new Set(['project', 'domain', 'capability', 'element', 'document']);
+
 function addConcept({ slug, kind, title, domain, capabilities, elements, body }) {
   if (!slug || !kind || !title) {
     throw new Error('slug, kind, title 모두 필요합니다.');
+  }
+  if (!ADD_CONCEPT_KINDS.has(kind)) {
+    throw new Error(
+      `Unknown kind: ${kind}. project / domain / capability / element / document 중 하나여야 합니다.`,
+    );
   }
   const fm = { slug, kind, title };
   if (domain) fm.domain = domain;
