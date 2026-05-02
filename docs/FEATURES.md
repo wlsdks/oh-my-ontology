@@ -156,9 +156,9 @@
 
 > Phase 3 — Claude Code 같은 LLM agent 가 stdin/stdout JSON-RPC 로 ontology 를 read/write.
 
-- **패키지**: `mcp/` v0.2.0, `@modelcontextprotocol/sdk@^1.0.0` 의존
+- **패키지**: `mcp/` v0.5.0, `@modelcontextprotocol/sdk@^1.0.0` 의존
 - **등록**: `.mcp.json.example` 복사 후 `OMOT_VAULT=./docs/ontology` (또는 사용자 vault) 설정
-- **7 도구**:
+- **11 도구**:
 
 | 도구 | 동작 |
 |---|---|
@@ -177,7 +177,6 @@
 #### `/login`
 - email + password
 - Google OAuth (popup)
-- 데모 로그인 (read-only 데모 워크스페이스)
 - 비밀번호 재설정 link
 
 #### `/signup`
@@ -195,22 +194,18 @@
 
 ### 운영 / 설정
 
-#### `/diagnostics/insights` — 오늘 챙길 곳
-- **stale 프로젝트** (30일+ 무수정)
-- **orphan** (in/out edge 0)
-- **promotion 후보** (fan-in 높은 비-허브)
-- 각 항목 → 편집 / 상세 / 토폴로지 jump
-
 #### `/settings` — 정리 허브
 - iOS Settings 결의 grouped list, drill-in
-- 그룹: 지도 정비 (categories · statuses · 가져오기 · ontology) · 오늘 점검 (insights)
+- 그룹: 지도 정비 (categories · statuses · 가져오기)
 
-#### `/settings/categories` · `/settings/statuses` · `/settings/import` · `/settings/ontology` · `/settings/ontology/history`
+#### `/settings/categories` · `/settings/statuses` · `/settings/import`
 - 카테고리 라벨 / 설명 / 톤 (indigo · amber · neutral) / 캔버스 영역 편집
 - 상태 lifecycle 라벨 / dot 색 / 정렬
 - CSV 일괄 업로드 (mode-aware)
-- 활성 TBox 클래스 / 관계 read-only
-- TBox 버전 이력 snapshot list
+
+> mission v2 정렬: TBox surface (`/settings/ontology[/history]`) 는 제거됨 —
+> frontmatter `kind:` 가 곧 schema. `/diagnostics/insights` 도 제거됨 —
+> 사용자 가시 인사이트는 `/ontology/insights` 가 담당.
 
 ---
 
@@ -247,7 +242,7 @@
 
 | 항목 | 설명 |
 |---|---|
-| MCP 서버 | `mcp/` 패키지, stdin/stdout JSON-RPC, 7 도구 |
+| MCP 서버 | `mcp/` 패키지, stdin/stdout JSON-RPC, 11 도구 |
 | 등록 | `.mcp.json.example` 복사 → Claude Code 재시작 |
 | Vault | `OMOT_VAULT` env (default cwd) — 사용자 vault 또는 `docs/ontology/` (dogfood) |
 | 호환 | 어떤 vault 든 `kind:` frontmatter 가진 `.md` 만 노드. 기존 ontology format 그대로 |
@@ -379,17 +374,18 @@ md 파일 (vault 또는 cloud)              MCP 서버 (AI agent)
 
 ---
 
-## 4-A. demo 데이터 구조 (현재)
+## 4-A. static 데이터 (mission v2)
 
-`src/shared/mocks/demo-blueprint.ts` 의 `CONTAINER_THEMES`:
+mission v2 의 `static` 모드 진실원은 `docs/ontology/` dogfood vault 다 —
+프로젝트 자기 자신의 mental model 을 frontmatter md 로 표현. 빌드타임에
+`scripts/build-docs-vault.mjs` 가 vault 를 스캔해 `src/entities/docs-vault/data/manifest.json`
+으로 박는다.
 
-- **6 컨테이너** (Demo Workbench / Demo IAM / Demo Knowledge / Demo Vault / Demo Search / Demo Design) — Phase 1.5 슬림
-- 각 컨테이너 hub × leaf = **~50 flat projects** (이전 ~2250 에서 슬림)
-- cross-container 의존 1건씩 명시 (system boundary 시각화)
-- `getDemoGlobalOntology()` 가 6 domain × 4 capability + 3 element = **~42 ontology 노드** + ~42 contains edges
-- `knowledgeDocuments` 자동 생성 (각 hub/top-node 별 3-5 문서)
-
-> 잔재: `Demo Knowledge` 의 capabilities 일부에 mission v1 용어 ("검수 큐", "frontmatter 추출", "stub 승격") — T28 (BACKLOG.md) 에서 mission v2 정렬 예정.
+- **1 project + 8 domain + 9 capability + 4 element + 1 README ≈ 23 노드**
+- 사용자가 vault 안 골랐고 비로그인 (static) 모드면 이 manifest 로 즉시
+  topology / ontology / projects 가 그려짐 — 0 마찰 진입.
+- v1 의 `src/shared/mocks/demo-blueprint.ts` (6 컨테이너, ~50 projects) 는
+  PR #33/#34 (2026-04~05) 에서 폐기. 새 진실원은 dogfood vault.
 
 ## 4-B. 프레임워크 / 빌드타임 surface
 
@@ -405,7 +401,6 @@ md 파일 (vault 또는 cloud)              MCP 서버 (AI agent)
 | **app/error.tsx** | route-level error boundary | "예기치 않은 오류" + 재시도 / 토폴로지 홈 |
 | **app/global-error.tsx** | layout-level error boundary | 최후 방어 |
 | **app/project/[slug]/opengraph-image.tsx** | OG 이미지 | 프로젝트 상세 공유 시 동적 카드 |
-| **app/diagnostics/page.tsx** | redirect | `/diagnostics/insights` 로 client-side replace |
 | **app/project/fallback/** | 정적 export 폴백 | unknown slug → client-side Firestore 조회 |
 
 ---
@@ -442,7 +437,7 @@ md 파일 (vault 또는 cloud)              MCP 서버 (AI agent)
 - tsc 0 errors
 - eslint 0 errors (warnings 79 — 거의 모두 기존)
 - vitest **118 files / 848 tests pass** (V1.1 5 새 test 포함)
-- MCP server stdin/stdout JSON-RPC: initialize → tools/list (7 도구) → tools/call 모두 정상
+- MCP server stdin/stdout JSON-RPC: initialize → tools/list (11 도구) → tools/call 모두 정상
 - MCP parser smoke 7/7 pass
 - `node --check functions/index.js` syntax OK
 - Playwright MCP browser-level QA (15 라우트): 모든 mission v2 surface console error 0, mission v2 title 정렬
@@ -464,7 +459,7 @@ md 파일 (vault 또는 cloud)              MCP 서버 (AI agent)
 
 2. AI agent (Claude Code) 등록 (옵션):
    .mcp.json.example 복사 → OMOT_VAULT 설정 → Claude Code 재시작
-   → mcp__oh-my-ontology__* 7 도구 사용 가능
+   → mcp__oh-my-ontology__* 11 도구 사용 가능
 
 3. 새 프로젝트 추가:
    (a) vault 직접:

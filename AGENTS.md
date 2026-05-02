@@ -22,7 +22,7 @@ pnpm dev                          # http://localhost:3000 — 로그인 0, vault
 cp .env.example .env.local
 
 # 검증
-pnpm test:run                     # vitest 117 files / 843 tests
+pnpm test:run                     # vitest 104 files / 740 tests
 pnpm exec tsc --noEmit
 pnpm lint
 pnpm build                        # 정적 export → out/
@@ -110,11 +110,11 @@ scripts/                   시드 / 배포 / 검증 보조
 - `@docs/PRODUCT-DIRECTION.md` — mission v2 방향
 - `@docs/FEATURES.md` — 사용자가 *지금* 사용 가능한 기능 전수
 - `@docs/MISSION-CLEANUP-CANDIDATES.md` — mission 정렬 cleanup 진행 (4 stage 완료)
-- `@docs/ONTOLOGY-MODEL-V2-DRAFT.md` — V1.x → V2 ontology 모델 진화 spec
 - `@docs/MODE-AWARE-CRUD.md` — local/cloud/static 분기 contributor 가이드
 - `@docs/ARCHITECTURE.md` · `@docs/DATA-MODEL.md` · `@docs/DESIGN-SYSTEM.md` · `@docs/DEPLOYMENT.md`
 - `@docs/CHANGELOG.md` — 사용자 가시 변화 시간순
-- `@mcp/README.md` — AI agent partner (MCP 7 도구) 등록 + 사용
+- `@mcp/README.md` — AI agent partner (MCP 11 도구 — read 7 + write 4) 등록 + 사용
+- `@docs/archive/README.md` — 과거 분석 문서 보관 (현재 룰의 진실원 아님)
 
 ## 이 프로젝트의 ontology
 
