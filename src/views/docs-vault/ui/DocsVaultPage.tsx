@@ -124,7 +124,7 @@ function AdminDocsContent() {
   const querySlug = searchParams?.get('slug') ?? null;
   const queryView = parseView(searchParams?.get('view'));
   const queryAudience = parseAudience(searchParams?.get('audience'));
-  const adminDashboardHref = '/projects/';
+  const projectsListHref = '/projects/';
   const workspaceHref = '/';
   const getDocHref = useCallback(
     (slug: string, hash?: string) => buildDocsVaultHref({ slug, hash }),
@@ -1329,7 +1329,7 @@ function AdminDocsContent() {
         icon: '←',
         onRun: () => {
           if (typeof window !== 'undefined')
-            window.location.href = adminDashboardHref;
+            window.location.href = projectsListHref;
         },
       },
     ];
@@ -1342,7 +1342,7 @@ function AdminDocsContent() {
     canEditCurrent,
     editing,
     activeTag,
-    adminDashboardHref,
+    projectsListHref,
     localVault,
     handleCopyUrl,
     handleCreateNewDoc,
@@ -1929,8 +1929,7 @@ function AdminDocsContent() {
 
 export function DocsVaultPage() {
   // local-first 핵심 (`.claude/rules/local-first.md` §1) — vault picker 진입은
-  // 인증 게이트 없음. Guard 폐기 (mission v2: 사용자 로컬 디스크가 진실원이라
-  // cloud-side multi-account workspace 권한 체크 불필요).
+  // 인증 게이트 없음. 사용자 로컬 디스크가 진실원.
   return (
     <Suspense fallback={null}>
       <AdminDocsContent />
