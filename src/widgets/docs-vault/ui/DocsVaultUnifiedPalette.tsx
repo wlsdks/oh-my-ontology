@@ -94,6 +94,7 @@ export function DocsVaultUnifiedPalette({
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const bySlug = useMemo(() => {
     const m = new Map<string, VaultDoc>();
@@ -101,15 +102,22 @@ export function DocsVaultUnifiedPalette({
     return m;
   }, [docs]);
 
-  // mount 시 input focus + caret 을 prefix 뒤로.
+  // mount 시 input focus + caret 을 prefix 뒤로 + unmount 에 trigger 로 focus 복원.
+  // 다른 modal (SearchPalette / ProjectDrawer / DocsQuickDrawer / ShortcutSheet)
+  // 와 동일한 a11y 패턴 — 키보드 사용자가 ⌘K 로 열고 Esc 로 닫을 때 원래
+  // 작업하던 element 로 돌아가도록.
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
     const handle = requestAnimationFrame(() => {
       inputRef.current?.focus();
       // `> ` prefix 주입 시 caret 을 prefix 뒤로 배치
       const ql = initialQuery.length;
       inputRef.current?.setSelectionRange(ql, ql);
     });
-    return () => cancelAnimationFrame(handle);
+    return () => {
+      cancelAnimationFrame(handle);
+      previousFocusRef.current?.focus?.();
+    };
   }, [initialQuery]);
 
   // activeIdx 이 변경되면 리스트 스크롤 따라가기
