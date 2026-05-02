@@ -79,6 +79,12 @@ export default function RootLayout({
     <html
       lang="ko"
       className={`${inter.variable} ${jetbrainsMono.variable} h-full overflow-x-hidden`}
+      // 아래 inline script 가 hydration 전에 data-theme 속성을 박아주는데,
+      // React 는 SSR HTML 과 client render 의 attribute set 차이를
+      // hydration mismatch 로 보고 콘솔 error 를 찍는다. theme 라이브러리
+      // 표준 패턴 (Next.js docs · next-themes) 대로 html element 에만
+      // suppressHydrationWarning 을 켜 이 한 attribute 차이를 silent.
+      suppressHydrationWarning
     >
       {/*
         라이트/다크 토큰 swap — React hydration 전에 localStorage 의 사용자
