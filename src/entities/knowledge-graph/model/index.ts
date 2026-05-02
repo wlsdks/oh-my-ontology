@@ -16,5 +16,3 @@ export {
   KNOWLEDGE_GRAPH_SOURCES,
   isKnowledgeGraphSource,
 } from "./types";
-export type { KnowledgeProjectEvidenceSummary } from "./evidence-summary";
-export { buildKnowledgeProjectEvidenceSummary } from "./evidence-summary";

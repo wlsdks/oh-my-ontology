@@ -7,7 +7,6 @@ export type {
   KnowledgeGraphEdge,
   KnowledgePublicMeta,
   KnowledgeProjectInsight,
-  KnowledgeProjectEvidenceSummary,
   ManualNodeKind,
   QualifierValue,
 } from "./model";
@@ -16,7 +15,6 @@ export {
   isKnowledgeEdgeType,
   KNOWLEDGE_GRAPH_SOURCES,
   isKnowledgeGraphSource,
-  buildKnowledgeProjectEvidenceSummary,
 } from "./model";
 // R10b — cloud Firestore 의존 hook (`useKnowledgePublic*`) 및 mutation 함수
 // (`addManualKnowledgeNode/Edge`, `subscribeKnowledgeProjectInsight` 등) 영구
