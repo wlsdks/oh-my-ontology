@@ -219,20 +219,12 @@ function ProjectDetailState({
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Link
-            href={accountId ? `/?account=${encodeURIComponent(accountId)}` : '/'}
+            href={'/'}
             className="inline-flex h-9 items-center gap-2 rounded-md border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.1)] px-3 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:rgba(94,106,210,0.16)]"
           >
             <ArrowLeft size={14} />
             {t("stateBackToWorkspace")}
           </Link>
-          {accountId ? (
-            <Link
-              href={"/projects/"}
-              className="inline-flex h-9 items-center rounded-md border border-[color:var(--color-divider)] px-3 text-sm text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-            >
-              {t("stateProjectsList")}
-            </Link>
-          ) : null}
         </div>
       </section>
     </ProjectDetailShell>
