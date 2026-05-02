@@ -26,11 +26,11 @@ export interface ProjectOntologyOverviewProps {
  * 클릭 시 `/ontology/?account=...` 점프 — 트리에서 해당 프로젝트 root 로 진입.
  */
 export function ProjectOntologyOverview({
-  accountId,
+  accountId: _accountId,
   projectSlug,
   limit = 6,
 }: ProjectOntologyOverviewProps) {
-  const { insight } = useOntologyInsight(accountId);
+  const { insight } = useOntologyInsight();
   const kindLabel = useOntologyKindLabel();
   const nodes = insight?.nodes ?? [];
 
