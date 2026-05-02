@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, BookOpen, ChevronsRight, Network } from "lucide-react";
 import { cn } from "@/shared/lib/cn";
 import { MOTION } from "@/shared/motion";
@@ -26,24 +29,29 @@ interface Props {
 export function HeroCollapsed({
   className,
   onExpand,
-  title = "토폴로지",
-  subtitle = "워크스페이스 지도 펼치기",
+  title,
+  subtitle,
   icon,
-  ariaLabel = "좌측 패널 펼치기",
-  titleText = "좌측 패널 펼치기",
+  ariaLabel,
+  titleText,
   workspaceMapHref,
   onWorkspaceMapClick,
   docsVaultHref,
   ontologyHref,
 }: Props) {
+  const t = useTranslations("searchWidgets.hero");
+  const resolvedTitle = title ?? t("defaultTitleTopology");
+  const resolvedSubtitle = subtitle ?? t("collapsedSubtitle");
+  const resolvedAriaLabel = ariaLabel ?? t("collapsedAriaLabel");
+  const resolvedTitleText = titleText ?? t("collapsedTitleText");
   return (
     <div className="pointer-events-auto flex items-center gap-2">
       {workspaceMapHref ? (
         <Link
           href={workspaceMapHref}
           onClick={onWorkspaceMapClick}
-          aria-label="워크스페이스 지도로 돌아가기"
-          title="워크스페이스 지도로 돌아가기"
+          aria-label={t("backToWorkspace")}
+          title={t("backToWorkspace")}
           className="group inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] text-[color:var(--color-text-quaternary)] shadow-[0_8px_24px_rgba(0,0,0,0.22)] transition-colors hover:border-[color:rgba(224,196,140,0.35)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(224,196,140,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]"
         >
           <ArrowLeft size={15} />
@@ -52,8 +60,8 @@ export function HeroCollapsed({
     <motion.button
       type="button"
       onClick={onExpand}
-      aria-label={ariaLabel}
-      title={titleText}
+      aria-label={resolvedAriaLabel}
+      title={resolvedTitleText}
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={MOTION.fast}
@@ -85,10 +93,10 @@ export function HeroCollapsed({
           translate="no"
           className="max-w-[110px] truncate font-[var(--font-weight-signature)] text-[13px] text-[color:var(--color-text-primary)]"
         >
-          {title}
+          {resolvedTitle}
         </span>
         <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-[color:var(--color-text-quaternary)]">
-          {subtitle}
+          {resolvedSubtitle}
         </span>
       </span>
       <ChevronsRight
@@ -99,8 +107,8 @@ export function HeroCollapsed({
     {docsVaultHref ? (
       <Link
         href={docsVaultHref}
-        aria-label="문서 볼트 열기"
-        title="문서 볼트"
+        aria-label={t("openDocsVault")}
+        title={t("docsVault")}
         className="group inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] text-[color:var(--color-indigo-accent)] shadow-[0_8px_24px_rgba(0,0,0,0.22)] transition-colors hover:border-[color:rgba(94,106,210,0.38)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]"
       >
         <BookOpen size={15} />
@@ -109,8 +117,8 @@ export function HeroCollapsed({
     {ontologyHref ? (
       <Link
         href={ontologyHref}
-        aria-label="온톨로지 트리 열기"
-        title="온톨로지"
+        aria-label={t("openOntologyTree")}
+        title={t("ontology")}
         className="group inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] text-[color:var(--color-indigo-accent)] shadow-[0_8px_24px_rgba(0,0,0,0.22)] transition-colors hover:border-[color:rgba(94,106,210,0.38)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]"
       >
         <Network size={15} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import {
   composeManualEdgeId,
@@ -11,6 +12,17 @@ import {
   type KnowledgeGraphEdge,
   type KnowledgeGraphNode,
 } from "@/entities/knowledge-graph";
+
+// Edge enum value → i18n key. 표시 라벨만 번역, value 는 그대로 KnowledgeEdgeType 유지.
+const EDGE_KIND_LABEL_KEY: Record<KnowledgeEdgeType, string> = {
+  contains: "manualEdge.edgeKindContains",
+  belongs_to: "manualEdge.edgeKindBelongsTo",
+  depends_on: "manualEdge.edgeKindDependsOn",
+  implements: "manualEdge.edgeKindImplements",
+  uses: "manualEdge.edgeKindUses",
+  describes: "manualEdge.edgeKindDescribes",
+  related_to: "manualEdge.edgeKindRelatedTo",
+};
 
 export interface ManualEdgeCreateModalProps {
   open: boolean;
@@ -54,6 +66,7 @@ export function ManualEdgeCreateModal({
   prefillFromId = "",
   onCreated,
 }: ManualEdgeCreateModalProps) {
+  const t = useTranslations('ontologyWidgets');
   const [form, setForm] = useState<FormState>(() => initialForm(prefillFromId));
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -154,7 +167,7 @@ export function ManualEdgeCreateModal({
       onOpenChange(false);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "관계 생성 중 오류가 났어요.";
+        error instanceof Error ? error.message : t('manualEdge.submitErrorFallback');
       setSubmitError(message);
     } finally {
       setSubmitting(false);
@@ -177,19 +190,19 @@ export function ManualEdgeCreateModal({
         <header className="flex items-center justify-between border-b border-[color:var(--color-divider)] px-5 py-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-              Manual edge
+              {t('manualEdge.eyebrow')}
             </p>
             <h2
               id="manual-edge-modal-title"
               className="mt-1 text-base font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]"
             >
-              새 관계 직접 추가
+              {t('manualEdge.title')}
             </h2>
           </div>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            aria-label="모달 닫기"
+            aria-label={t('manualEdge.closeAria')}
             className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
           >
             <X size={14} />
@@ -201,14 +214,13 @@ export function ManualEdgeCreateModal({
             id="manual-edge-modal-desc"
             className="text-xs leading-5 text-[color:var(--color-text-tertiary)]"
           >
-            from → to 두 노드 사이에 관계를 직접 그립니다. 같은 (type, from,
-            to) 가 이미 있으면 자동 dedup.
+            {t('manualEdge.description')}
           </p>
 
           {/* FROM */}
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              From
+              {t('manualEdge.fromLabel')}
             </label>
             {fromNode ? (
               <div className="rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-sm">
@@ -224,8 +236,7 @@ export function ManualEdgeCreateModal({
               </div>
             ) : (
               <p className="rounded-lg border border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] px-3 py-2 text-xs text-[color:var(--color-status-danger)]">
-                from 노드를 찾을 수 없어요. 모달을 닫고 트리에서 다른 노드를
-                선택하세요.
+                {t('manualEdge.fromMissing')}
               </p>
             )}
           </div>
@@ -233,7 +244,7 @@ export function ManualEdgeCreateModal({
           {/* TYPE */}
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              관계 type
+              {t('manualEdge.typeLabel')}
             </label>
             <select
               value={form.type}
@@ -247,7 +258,7 @@ export function ManualEdgeCreateModal({
             >
               {KNOWLEDGE_EDGE_TYPES.map((type) => (
                 <option key={type} value={type}>
-                  {type}
+                  {t(EDGE_KIND_LABEL_KEY[type])}
                 </option>
               ))}
             </select>
@@ -256,7 +267,7 @@ export function ManualEdgeCreateModal({
           {/* TO */}
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              To
+              {t('manualEdge.toLabel')}
             </label>
             {selectedToNode ? (
               <div className="flex items-start justify-between gap-3 rounded-lg border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.08)] px-3 py-2 text-sm">
@@ -278,7 +289,7 @@ export function ManualEdgeCreateModal({
                   }
                   className="text-xs text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary)]"
                 >
-                  변경
+                  {t('manualEdge.toChange')}
                 </button>
               </div>
             ) : (
@@ -289,7 +300,7 @@ export function ManualEdgeCreateModal({
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, toQuery: event.target.value }))
                   }
-                  placeholder="노드 제목 또는 ID 검색"
+                  placeholder={t('manualEdge.toSearchPlaceholder')}
                   className="w-full rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:rgba(94,106,210,0.46)] focus:outline-none"
                 />
                 {toCandidates.length > 0 ? (
@@ -322,14 +333,14 @@ export function ManualEdgeCreateModal({
                   </ul>
                 ) : form.toQuery.trim().length > 0 ? (
                   <p className="mt-1 px-2 text-[11px] text-[color:var(--color-text-quaternary)]">
-                    매치 없음.
+                    {t('manualEdge.toNoMatch')}
                   </p>
                 ) : null}
               </>
             )}
             {edgeCollision ? (
               <p className="mt-1 text-[11px] text-[color:var(--color-status-warning)]">
-                같은 (type, from, to) 관계가 이미 존재합니다.
+                {t('manualEdge.edgeCollision')}
               </p>
             ) : null}
           </div>
@@ -337,7 +348,7 @@ export function ManualEdgeCreateModal({
           {/* LABEL */}
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              라벨 (옵션)
+              {t('manualEdge.labelLabel')}
             </label>
             <input
               type="text"
@@ -345,7 +356,7 @@ export function ManualEdgeCreateModal({
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, label: event.target.value }))
               }
-              placeholder="type 외에 더 설명이 필요할 때."
+              placeholder={t('manualEdge.labelPlaceholder')}
               className="w-full rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:rgba(94,106,210,0.46)] focus:outline-none"
             />
           </div>
@@ -353,7 +364,7 @@ export function ManualEdgeCreateModal({
           {/* NOTE */}
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              메모 (옵션)
+              {t('manualEdge.noteLabel')}
             </label>
             <textarea
               value={form.manualNote}
@@ -361,7 +372,7 @@ export function ManualEdgeCreateModal({
                 setForm((prev) => ({ ...prev, manualNote: event.target.value }))
               }
               rows={2}
-              placeholder="이 관계를 손으로 만든 이유."
+              placeholder={t('manualEdge.notePlaceholder')}
               className="w-full resize-none rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:rgba(94,106,210,0.46)] focus:outline-none"
             />
           </div>
@@ -371,7 +382,7 @@ export function ManualEdgeCreateModal({
               role="alert"
               className="rounded-lg border border-[color:rgba(245,158,11,0.32)] bg-[color:rgba(245,158,11,0.08)] px-3 py-2 text-xs text-[color:var(--color-status-warning)]"
             >
-              관계 “{alreadyExistsId}” 가 이미 존재합니다.
+              {t('manualEdge.alreadyExists', { id: alreadyExistsId })}
             </div>
           ) : null}
 
@@ -390,14 +401,14 @@ export function ManualEdgeCreateModal({
               onClick={() => onOpenChange(false)}
               className="rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
             >
-              취소
+              {t('manualEdge.cancel')}
             </button>
             <button
               type="submit"
               disabled={!canSubmit}
               className="rounded-lg border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.16)] px-3 py-2 text-xs font-medium text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "추가 중…" : "관계 추가"}
+              {submitting ? t('manualEdge.submitting') : t('manualEdge.submit')}
             </button>
           </div>
         </form>

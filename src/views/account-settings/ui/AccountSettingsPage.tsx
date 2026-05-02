@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, MailCheck, ShieldCheck, UserRound } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import {
   changePassword,
   getCurrentAuthProfile,
@@ -15,20 +16,22 @@ import {
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 import { PublicAccountMenu } from '@/widgets/account-menu';
 
-const PASSWORD_SUPPORT_PLACEHOLDER: PasswordSupportState = {
-  canChangePassword: false,
-  canResetPassword: false,
-  providerLabel: '확인 중',
-  reason: '계정 상태를 확인하고 있어요.',
-};
-
 export function AccountSettingsPage() {
   const router = useRouter();
+  const t = useTranslations('authPages.account');
+  const placeholderState = useMemo<PasswordSupportState>(
+    () => ({
+      canChangePassword: false,
+      canResetPassword: false,
+      providerLabel: t('providerLoadingLabel'),
+      reason: t('providerLoadingReason'),
+    }),
+    [t],
+  );
   const { status, user } = useUserAuth();
   const [profileEmail, setProfileEmail] = useState(user?.email ?? '');
-  const [passwordSupport, setPasswordSupport] = useState<PasswordSupportState>(
-    PASSWORD_SUPPORT_PLACEHOLDER,
-  );
+  const [passwordSupport, setPasswordSupport] =
+    useState<PasswordSupportState>(placeholderState);
   useEffect(() => {
     let cancelled = false;
     void getPasswordSupportState().then((support) => {
@@ -74,7 +77,7 @@ export function AccountSettingsPage() {
   const handleChangePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (newPassword !== confirmPassword) {
-      setChangeError('새 비밀번호 확인이 일치하지 않습니다.');
+      setChangeError(t('changePasswordErrorMismatch'));
       return;
     }
     setChangeSubmitting(true);
@@ -85,9 +88,9 @@ export function AccountSettingsPage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setChangeSuccess('비밀번호를 변경했습니다.');
+      setChangeSuccess(t('changePasswordSuccess'));
     } catch (error) {
-      setChangeError(error instanceof Error ? error.message : '비밀번호 변경에 실패했습니다.');
+      setChangeError(error instanceof Error ? error.message : t('changePasswordErrorFallback'));
     } finally {
       setChangeSubmitting(false);
     }
@@ -100,9 +103,9 @@ export function AccountSettingsPage() {
     setResetSuccess(null);
     try {
       await sendPasswordReset({ email: resetEmail });
-      setResetSuccess('재설정 안내를 보냈습니다. 이메일을 확인해주세요.');
+      setResetSuccess(t('resetSuccess'));
     } catch (error) {
-      setResetError(error instanceof Error ? error.message : '재설정 메일 전송에 실패했습니다.');
+      setResetError(error instanceof Error ? error.message : t('resetErrorFallback'));
     } finally {
       setResetSubmitting(false);
     }
@@ -110,13 +113,13 @@ export function AccountSettingsPage() {
 
   return (
     <main className="min-h-screen bg-[color:var(--color-canvas)] px-6 py-8 md:px-10">
-      <h1 className="sr-only">계정 설정</h1>
+      <h1 className="sr-only">{t('srHeading')}</h1>
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
         <div className="flex items-start justify-between gap-4">
           <Link href="/projects" className="inline-flex">
             <Button variant="outline" type="button" className="gap-2 rounded-full">
               <ArrowLeft size={15} />
-              이전 화면
+              {t('back')}
             </Button>
           </Link>
           <PublicAccountMenu accountId={null} accountLabel={null} />
@@ -124,21 +127,33 @@ export function AccountSettingsPage() {
 
         <Card className="rounded-[28px]">
           <CardHeader>
-            <CardTitle>계정 설정</CardTitle>
-            <CardDescription>로그인 상태와 비밀번호를 여기서 관리합니다.</CardDescription>
+            <CardTitle>{t('title')}</CardTitle>
+            <CardDescription>{t('description')}</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5 lg:grid-cols-2">
             <Card className="rounded-[24px] border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)]">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <UserRound size={18} />
-                  내 정보
+                  {t('profileTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-[color:var(--color-text-secondary)]">
-                <ProfileRow label="이름" value={user?.displayName?.trim() || null} />
-                <ProfileRow label="이메일" value={profileEmail || null} />
-                <ProfileRow label="로그인 방식" value={passwordSupport.providerLabel} />
+                <ProfileRow
+                  label={t('profileNameLabel')}
+                  value={user?.displayName?.trim() || null}
+                  emptyLabel={t('profileEmpty')}
+                />
+                <ProfileRow
+                  label={t('profileEmailLabel')}
+                  value={profileEmail || null}
+                  emptyLabel={t('profileEmpty')}
+                />
+                <ProfileRow
+                  label={t('profileProviderLabel')}
+                  value={passwordSupport.providerLabel}
+                  emptyLabel={t('profileEmpty')}
+                />
               </CardContent>
             </Card>
 
@@ -146,13 +161,13 @@ export function AccountSettingsPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <ShieldCheck size={18} />
-                  비밀번호 변경
+                  {t('changePasswordTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {passwordSupport.canChangePassword ? (
                   <form className="space-y-4" onSubmit={handleChangePassword}>
-                    <Field label="현재 비밀번호">
+                    <Field label={t('currentPasswordLabel')}>
                       <input
                         name="currentPassword"
                         type="password"
@@ -163,7 +178,7 @@ export function AccountSettingsPage() {
                         required
                       />
                     </Field>
-                    <Field label="새 비밀번호">
+                    <Field label={t('newPasswordLabel')}>
                       <input
                         name="newPassword"
                         type="password"
@@ -174,7 +189,7 @@ export function AccountSettingsPage() {
                         required
                       />
                     </Field>
-                    <Field label="새 비밀번호 확인">
+                    <Field label={t('confirmPasswordLabel')}>
                       <input
                         name="confirmPassword"
                         type="password"
@@ -192,12 +207,12 @@ export function AccountSettingsPage() {
                       <p className="text-sm text-[color:var(--color-indigo-accent)]">{changeSuccess}</p>
                     ) : null}
                     <Button type="submit" disabled={changeSubmitting}>
-                      {changeSubmitting ? '변경 중...' : '비밀번호 변경'}
+                      {changeSubmitting ? t('changePasswordSubmitting') : t('changePasswordSubmit')}
                     </Button>
                   </form>
                 ) : (
                   <p className="text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                    {passwordSupport.reason ?? '이 로그인 방식에서는 비밀번호를 직접 바꾸지 않습니다.'}
+                    {passwordSupport.reason ?? t('changePasswordUnavailable')}
                   </p>
                 )}
               </CardContent>
@@ -207,14 +222,14 @@ export function AccountSettingsPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <MailCheck size={18} />
-                  비밀번호 재설정
+                  {t('resetTitle')}
                 </CardTitle>
-                <CardDescription>로그인에 문제가 있으면 재설정 메일을 다시 받을 수 있습니다.</CardDescription>
+                <CardDescription>{t('resetDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
                 {passwordSupport.canResetPassword ? (
                   <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={handleResetPassword}>
-                    <Field label="이메일" className="flex-1">
+                    <Field label={t('resetEmailLabel')} className="flex-1">
                       <input
                         name="resetEmail"
                         type="email"
@@ -226,7 +241,7 @@ export function AccountSettingsPage() {
                       />
                     </Field>
                     <Button type="submit" variant="outline" disabled={resetSubmitting}>
-                      {resetSubmitting ? '보내는 중...' : '재설정 메일 보내기'}
+                      {resetSubmitting ? t('resetSubmitting') : t('resetSubmit')}
                     </Button>
                     {resetError ? (
                       <p className="text-sm text-[color:var(--color-status-danger)] sm:basis-full">{resetError}</p>
@@ -237,7 +252,7 @@ export function AccountSettingsPage() {
                   </form>
                 ) : (
                   <p className="text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                    {passwordSupport.reason ?? '이 로그인 방식에서는 재설정 메일을 보내지 않습니다.'}
+                    {passwordSupport.reason ?? t('resetUnavailable')}
                   </p>
                 )}
               </CardContent>
@@ -249,7 +264,15 @@ export function AccountSettingsPage() {
   );
 }
 
-function ProfileRow({ label, value }: { label: string; value: string | null }) {
+function ProfileRow({
+  label,
+  value,
+  emptyLabel,
+}: {
+  label: string;
+  value: string | null;
+  emptyLabel: string;
+}) {
   const trimmed = value?.trim() ?? '';
   return (
     <div className="grid gap-1 rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-3">
@@ -258,7 +281,7 @@ function ProfileRow({ label, value }: { label: string; value: string | null }) {
       </p>
       {trimmed.length === 0 ? (
         <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
-          미설정
+          {emptyLabel}
         </p>
       ) : (
         <p className="text-sm text-[color:var(--color-text-primary)]">{trimmed}</p>

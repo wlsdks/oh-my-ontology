@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AuthGoogleButton, signInWithEmail, useUserAuth } from '@/features/user-auth';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
@@ -16,6 +17,7 @@ function resolveNextHref(nextParam: string | null, accountId?: string | null) {
 export function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('authPages.login');
   const accountId = null;
   const nextHref = useMemo(
     () => resolveNextHref(searchParams.get('next'), accountId),
@@ -55,7 +57,7 @@ export function LoginPage() {
       await signInWithEmail({ email, password });
       router.replace(nextHref);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '로그인에 실패했습니다.');
+      setError(err instanceof Error ? err.message : t('errorFallback'));
     } finally {
       setSubmitting(false);
     }
@@ -63,29 +65,29 @@ export function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[color:var(--color-canvas)] px-6 py-6 md:px-10">
-      <h1 className="sr-only">로그인</h1>
+      <h1 className="sr-only">{t('srHeading')}</h1>
       <div className="mx-auto flex w-full max-w-md flex-col gap-4">
         <Card className="rounded-[28px]">
           <CardHeader>
-            <CardTitle>로그인</CardTitle>
-            <CardDescription>로그인하면 바로 이어서 볼 수 있습니다.</CardDescription>
+            <CardTitle>{t('title')}</CardTitle>
+            <CardDescription>{t('description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <AuthGoogleButton
-              label="Google로 로그인"
+              label={t('googleButton')}
               onSuccess={() => router.replace(nextHref)}
             />
 
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-[color:var(--color-divider)]" />
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                또는 이메일 로그인
+                {t('divider')}
               </span>
               <div className="h-px flex-1 bg-[color:var(--color-divider)]" />
             </div>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
-              <Field label="이메일">
+              <Field label={t('emailLabel')}>
                 <input
                   name="email"
                   type="email"
@@ -93,19 +95,19 @@ export function LoginPage() {
                   spellCheck={false}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t('emailPlaceholder')}
                   className={inputClassName}
                   required
                 />
               </Field>
-              <Field label="비밀번호">
+              <Field label={t('passwordLabel')}>
                 <input
                   name="password"
                   type="password"
                   autoComplete="current-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="비밀번호"
+                  placeholder={t('passwordPlaceholder')}
                   className={inputClassName}
                   required
                 />
@@ -115,7 +117,7 @@ export function LoginPage() {
                   href={passwordResetHref}
                   className="text-sm text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
                 >
-                  비밀번호 재설정
+                  {t('passwordResetLink')}
                 </Link>
               </div>
               {error ? (
@@ -127,18 +129,18 @@ export function LoginPage() {
                 </p>
               ) : null}
               <Button type="submit" disabled={submitting} className="w-full">
-                {submitting ? '로그인 중...' : '이메일로 로그인'}
+                {submitting ? t('submitting') : t('submit')}
               </Button>
             </form>
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--color-border-soft)] pt-4">
               <p className="text-sm text-[color:var(--color-text-tertiary)]">
-                아직 계정이 없나요?
+                {t('noAccount')}
               </p>
               <div className="flex items-center gap-2">
                 <Link href={signupHref} className="inline-flex">
                   <Button variant="outline" type="button">
-                    회원가입
+                    {t('signupCta')}
                   </Button>
                 </Link>
               </div>

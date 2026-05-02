@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   ChevronRight,
   Database,
@@ -39,26 +40,27 @@ interface HubGroup {
 function SettingsHubContent() {
   const searchParams = useSearchParams();
   const accountId = null;
+  const t = useTranslations('settings.hub');
 
   const groups: ReadonlyArray<HubGroup> = [
     {
-      title: '지도 정비',
+      title: t('groupContent'),
       items: [
         {
-          label: '카테고리',
-          helper: '지도 위 클러스터의 라벨·배치·크기',
+          label: t('categoriesLabel'),
+          helper: t('categoriesHelper'),
           href: '/settings/categories/',
           icon: Layers,
         },
         {
-          label: '상태',
-          helper: '프로젝트 상태 라벨과 dot 색',
+          label: t('statusesLabel'),
+          helper: t('statusesHelper'),
           href: '/settings/statuses/',
           icon: Tag,
         },
         {
-          label: '프로젝트 가져오기',
-          helper: '샘플로 시작하거나 CSV 로 한 번에 올리기',
+          label: t('importLabel'),
+          helper: t('importHelper'),
           href: '/settings/import/',
           icon: Database,
         },
@@ -68,16 +70,16 @@ function SettingsHubContent() {
 
   return (
     <main className="min-h-screen bg-[color:var(--color-canvas)]">
-      <h1 className="sr-only">정리</h1>
+      <h1 className="sr-only">{t('srTitle')}</h1>
       <OperationsNav />
 
       <div className="mx-auto w-full max-w-3xl px-5 py-6 md:px-10 md:py-10">
         <header>
           <h1 className="break-keep text-[28px] font-[var(--font-weight-signature)] tracking-[var(--tracking-section)] text-[color:var(--color-text-primary)] md:text-3xl">
-            정리
+            {t('title')}
           </h1>
           <p className="mt-2 break-keep text-sm leading-6 text-[color:var(--color-text-secondary)]">
-            지도 콘텐츠 정비 · 외부 연결 · 오늘 점검을 한곳에 모았어요.
+            {t('subtitle')}
           </p>
         </header>
 

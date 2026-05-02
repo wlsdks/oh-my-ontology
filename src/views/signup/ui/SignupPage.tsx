@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AuthGoogleButton, signUpWithEmail, useUserAuth } from '@/features/user-auth';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
@@ -12,9 +13,12 @@ function resolveNextHref(nextParam: string | null, accountId?: string | null) {
   return nextParam;
 }
 
+type AuthSignupTranslator = ReturnType<typeof useTranslations>;
+
 export function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('authPages.signup');
   const accountId = null;
   const nextHref = useMemo(
     () => resolveNextHref(searchParams.get('next'), accountId),
@@ -44,11 +48,11 @@ export function SignupPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (password.length < 8) {
-      setError('비밀번호는 8자 이상으로 입력해주세요.');
+      setError(t('errorPasswordTooShort'));
       return;
     }
     if (password !== confirmPassword) {
-      setError('비밀번호 확인이 일치하지 않습니다.');
+      setError(t('errorPasswordMismatch'));
       return;
     }
 
@@ -58,7 +62,7 @@ export function SignupPage() {
       await signUpWithEmail({ displayName, email, password });
       router.replace(nextHref);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '회원가입에 실패했습니다.');
+      setError(err instanceof Error ? err.message : t('errorFallback'));
     } finally {
       setSubmitting(false);
     }
@@ -66,44 +70,44 @@ export function SignupPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[color:var(--color-canvas)] px-6 py-6 md:px-10">
-      <h1 className="sr-only">계정 만들기</h1>
+      <h1 className="sr-only">{t('srHeading')}</h1>
       <div className="mx-auto flex w-full max-w-md flex-col gap-4">
         <Card className="rounded-[28px]">
           <CardHeader>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              Demo 시작
+              {t('eyebrow')}
             </p>
-            <CardTitle>계정 만들기</CardTitle>
-            <CardDescription>가입하면 바로 프로젝트로 들어갑니다.</CardDescription>
+            <CardTitle>{t('title')}</CardTitle>
+            <CardDescription>{t('description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <AuthGoogleButton
-              label="Google로 바로 가입"
+              label={t('googleButton')}
               onSuccess={() => router.replace(nextHref)}
             />
 
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-[color:var(--color-divider)]" />
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                또는 이메일로 가입
+                {t('divider')}
               </span>
               <div className="h-px flex-1 bg-[color:var(--color-divider)]" />
             </div>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
-              <Field label="이름">
+              <Field label={t('nameLabel')}>
                 <input
                   name="displayName"
                   type="text"
                   autoComplete="name"
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
-                  placeholder="표시할 이름"
+                  placeholder={t('namePlaceholder')}
                   className={inputClassName}
                   required
                 />
               </Field>
-              <Field label="이메일">
+              <Field label={t('emailLabel')}>
                 <input
                   name="email"
                   type="email"
@@ -111,14 +115,14 @@ export function SignupPage() {
                   spellCheck={false}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t('emailPlaceholder')}
                   className={inputClassName}
                   required
                 />
               </Field>
               <Field
-                label="비밀번호"
-                helper={passwordLengthHelper(password)}
+                label={t('passwordLabel')}
+                helper={passwordLengthHelper(password, t)}
               >
                 <input
                   name="password"
@@ -126,15 +130,15 @@ export function SignupPage() {
                   autoComplete="new-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="8자 이상 비밀번호"
+                  placeholder={t('passwordPlaceholder')}
                   className={inputClassName}
                   required
                   aria-describedby="signup-password-helper"
                 />
               </Field>
               <Field
-                label="비밀번호 확인"
-                helper={passwordMatchHelper(password, confirmPassword)}
+                label={t('confirmPasswordLabel')}
+                helper={passwordMatchHelper(password, confirmPassword, t)}
               >
                 <input
                   name="confirmPassword"
@@ -142,7 +146,7 @@ export function SignupPage() {
                   autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  placeholder="비밀번호를 한 번 더"
+                  placeholder={t('confirmPasswordPlaceholder')}
                   className={inputClassName}
                   required
                   aria-describedby="signup-confirm-helper"
@@ -158,18 +162,18 @@ export function SignupPage() {
                 disabled={submitting || !canSubmit(password, confirmPassword)}
                 className="w-full"
               >
-                {submitting ? '가입 중...' : '이메일로 회원가입'}
+                {submitting ? t('submitting') : t('submit')}
               </Button>
             </form>
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--color-border-soft)] pt-4">
               <p className="text-sm text-[color:var(--color-text-tertiary)]">
-                이미 계정이 있나요?
+                {t('haveAccount')}
               </p>
               <div className="flex items-center gap-2">
                 <Link href={loginHref} className="inline-flex">
                   <Button variant="outline" type="button">
-                    로그인
+                    {t('loginCta')}
                   </Button>
                 </Link>
               </div>
@@ -220,25 +224,26 @@ function Field({
   );
 }
 
-function passwordLengthHelper(password: string): HelperState {
-  if (password.length === 0) return { text: '8자 이상.', tone: 'idle' };
+function passwordLengthHelper(password: string, t: AuthSignupTranslator): HelperState {
+  if (password.length === 0) return { text: t('passwordHelperIdle'), tone: 'idle' };
   if (password.length < 8)
     return {
-      text: `${password.length}자 — 8자 이상 필요.`,
+      text: t('passwordHelperWarn', { length: password.length }),
       tone: 'warn',
     };
-  return { text: `${password.length}자 — 충분해요.`, tone: 'ok' };
+  return { text: t('passwordHelperOk', { length: password.length }), tone: 'ok' };
 }
 
 function passwordMatchHelper(
   password: string,
   confirmPassword: string,
+  t: AuthSignupTranslator,
 ): HelperState {
   if (confirmPassword.length === 0)
-    return { text: '위 비밀번호와 같게 한 번 더.', tone: 'idle' };
+    return { text: t('passwordMatchHelperIdle'), tone: 'idle' };
   if (password !== confirmPassword)
-    return { text: '아직 일치하지 않아요.', tone: 'warn' };
-  return { text: '일치합니다.', tone: 'ok' };
+    return { text: t('passwordMatchHelperWarn'), tone: 'warn' };
+  return { text: t('passwordMatchHelperOk'), tone: 'ok' };
 }
 
 function canSubmit(password: string, confirmPassword: string): boolean {

@@ -1,4 +1,5 @@
 import { Check, ChevronDown, Link2, Pencil, Printer, Star, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { VaultBacklinkEntry, VaultDoc } from "@/entities/docs-vault";
 import { DocsVaultBacklinks } from "@/widgets/docs-vault/ui/DocsVaultBacklinks";
 import { Tooltip } from "@/shared/ui";
@@ -53,6 +54,8 @@ export function DocsVaultDocOutlinePanel({
   onNavigate,
   onHeadingClick,
 }: DocsVaultDocOutlinePanelProps) {
+  const t = useTranslations("vaultWidgets.parts.outline");
+  const isPinned = pinnedSet.has(selectedDoc.slug);
   return (
     <aside className="hidden w-[240px] flex-none flex-col gap-6 overflow-auto border-l border-[color:var(--color-overlay-2)] px-4 py-8 lg:flex">
       <section className="flex flex-wrap gap-1.5">
@@ -60,29 +63,29 @@ export function DocsVaultDocOutlinePanel({
           type="button"
           onClick={() => onTogglePin(selectedDoc.slug)}
           className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 text-[11px] transition-colors ${
-            pinnedSet.has(selectedDoc.slug)
+            isPinned
               ? "border-[color:rgba(224,196,140,0.45)] bg-[color:rgba(224,196,140,0.08)] text-[color:rgba(232,200,148,0.95)]"
               : "border-[color:var(--color-divider)] text-[color:var(--color-text-tertiary)] hover:border-[color:rgba(224,196,140,0.35)] hover:text-[color:rgba(232,200,148,0.9)]"
           }`}
-          aria-pressed={pinnedSet.has(selectedDoc.slug)}
-          title={pinnedSet.has(selectedDoc.slug) ? "고정 해제" : "이 문서 고정"}
+          aria-pressed={isPinned}
+          title={isPinned ? t("unpinTooltip") : t("pinTooltip")}
         >
           <Star
             size={12}
-            fill={pinnedSet.has(selectedDoc.slug) ? "currentColor" : "none"}
+            fill={isPinned ? "currentColor" : "none"}
             aria-hidden
           />
-          {pinnedSet.has(selectedDoc.slug) ? "고정됨" : "고정"}
+          {isPinned ? t("pinned") : t("pin")}
         </button>
         {canEditCurrent ? (
-          <Tooltip content="이 파일 편집 (로컬 볼트에 직접 저장)" withProvider={false}>
+          <Tooltip content={t("editTooltip")} withProvider={false}>
             <button
               type="button"
               onClick={onStartEditing}
               className="inline-flex items-center gap-1.5 rounded-sm border border-[color:rgba(139,151,255,0.35)] bg-[color:rgba(94,106,210,0.08)] px-2 py-1 text-[11px] text-[color:rgba(200,210,255,0.9)] transition-colors hover:border-[color:rgba(139,151,255,0.55)] hover:bg-[color:rgba(94,106,210,0.14)]"
             >
               <Pencil size={12} aria-hidden />
-              편집
+              {t("edit")}
             </button>
           </Tooltip>
         ) : null}
@@ -90,7 +93,7 @@ export function DocsVaultDocOutlinePanel({
       <details className="group border-t border-[color:var(--color-overlay-2)] pt-4">
         <summary className="flex cursor-pointer list-none items-center justify-between rounded-sm py-1 text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(139,151,255,0.45)]">
           <span className="font-mono text-[10px] uppercase tracking-[0.14em]">
-            공유 · 출력
+            {t("shareSection")}
           </span>
           <ChevronDown
             size={12}
@@ -99,7 +102,7 @@ export function DocsVaultDocOutlinePanel({
           />
         </summary>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          <Tooltip content="이 문서로 오는 URL 을 클립보드에 복사" withProvider={false}>
+          <Tooltip content={t("copyTooltip")} withProvider={false}>
             <button
               type="button"
               onClick={() => onCopyUrl(selectedDoc.slug)}
@@ -112,17 +115,17 @@ export function DocsVaultDocOutlinePanel({
               {copiedSlug === selectedDoc.slug ? (
                 <>
                   <Check size={12} aria-hidden />
-                  복사됨
+                  {t("copied")}
                 </>
               ) : (
                 <>
                   <Link2 size={12} aria-hidden />
-                  링크 복사
+                  {t("copyLink")}
                 </>
               )}
             </button>
           </Tooltip>
-          <Tooltip content="브라우저 인쇄 다이얼로그 열기 (PDF 로 저장 가능)" withProvider={false}>
+          <Tooltip content={t("printTooltip")} withProvider={false}>
             <button
               type="button"
               onClick={() => {
@@ -131,7 +134,7 @@ export function DocsVaultDocOutlinePanel({
               className="inline-flex items-center gap-1.5 rounded-sm border border-[color:var(--color-divider)] px-2 py-1 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)]"
             >
               <Printer size={12} aria-hidden />
-              인쇄
+              {t("print")}
             </button>
           </Tooltip>
         </div>
@@ -140,7 +143,7 @@ export function DocsVaultDocOutlinePanel({
         <details className="group border-t border-[color:var(--color-overlay-2)] pt-4">
           <summary className="flex cursor-pointer list-none items-center justify-between rounded-sm py-1 text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(139,151,255,0.45)]">
             <span className="font-mono text-[10px] uppercase tracking-[0.14em]">
-              파일 관리
+              {t("fileSection")}
             </span>
             <ChevronDown
               size={12}
@@ -149,14 +152,14 @@ export function DocsVaultDocOutlinePanel({
             />
           </summary>
           <div className="mt-3">
-            <Tooltip content="이 문서를 로컬 볼트에서 삭제" withProvider={false}>
+            <Tooltip content={t("deleteTooltip")} withProvider={false}>
               <button
                 type="button"
                 onClick={() => void onDeleteCurrent()}
                 className="inline-flex items-center gap-1.5 rounded-sm border border-[color:var(--color-divider)] px-2 py-1 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(220,120,120,0.45)] hover:text-[color:rgba(240,180,180,0.95)]"
               >
                 <Trash2 size={12} aria-hidden />
-                삭제
+                {t("deleteAction")}
               </button>
             </Tooltip>
           </div>
@@ -167,7 +170,7 @@ export function DocsVaultDocOutlinePanel({
           {activeOutlineHeading ? (
             <div className="mb-3 rounded-md border border-[color:rgba(139,151,255,0.18)] bg-[color:rgba(94,106,210,0.06)] px-3 py-2">
               <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                현재 섹션
+                {t("currentSection")}
               </p>
               <p
                 className="mt-1 truncate text-[12px] font-medium text-[color:var(--color-text-primary)]"
@@ -181,7 +184,7 @@ export function DocsVaultDocOutlinePanel({
             </div>
           ) : null}
           <h3 className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-            목차
+            {t("tableOfContents")}
           </h3>
           <ul className="flex flex-col gap-1 text-[12px]">
             {outlineHeadings.map((h, index) => {
@@ -199,7 +202,7 @@ export function DocsVaultDocOutlinePanel({
                     }}
                     aria-label={
                       h.duplicate
-                        ? `${h.text}, ${h.occurrence}번째 섹션`
+                        ? t("duplicateAria", { text: h.text, n: h.occurrence })
                         : undefined
                     }
                     className={`relative block truncate rounded-sm px-1.5 py-0.5 transition-colors ${
@@ -219,8 +222,8 @@ export function DocsVaultDocOutlinePanel({
                       {h.duplicate ? (
                         <span
                           className="inline-flex h-4 min-w-4 flex-none items-center justify-center rounded-sm border border-[color:var(--color-divider)] px-1 font-mono text-[9px] text-[color:var(--color-text-quaternary)]"
-                          aria-label={`${h.text} ${h.occurrence}번째 섹션`}
-                          title={`${h.text} ${h.occurrence}번째 섹션`}
+                          aria-label={t("duplicateAria", { text: h.text, n: h.occurrence })}
+                          title={t("duplicateAria", { text: h.text, n: h.occurrence })}
                         >
                           #{h.occurrence}
                         </span>
@@ -237,7 +240,7 @@ export function DocsVaultDocOutlinePanel({
         <details className="group border-t border-[color:var(--color-overlay-2)] pt-4">
           <summary className="flex cursor-pointer list-none items-center justify-between rounded-sm py-1 text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]">
             <span className="font-mono text-[10px] uppercase tracking-[0.14em]">
-              참조 · {backlinksDetail.length}
+              {t("referencesHeader", { count: backlinksDetail.length })}
             </span>
             <ChevronDown
               size={12}

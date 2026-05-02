@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { FileText, Hash, Link2, Pin, Star } from 'lucide-react';
 import type { VaultDoc, VaultManifest } from '@/entities/docs-vault';
 
@@ -87,6 +88,9 @@ function computeStats(
 }
 
 export function DocsVaultStats({ manifest, pinnedSlugs, onSelect }: Props) {
+  const t = useTranslations('vaultWidgets.stats');
+  const locale = useLocale();
+  const numberLocale = locale === 'ko' ? 'ko-KR' : 'en-US';
   const stats = useMemo(
     () => computeStats(manifest, pinnedSlugs),
     [manifest, pinnedSlugs],
@@ -97,48 +101,48 @@ export function DocsVaultStats({ manifest, pinnedSlugs, onSelect }: Props) {
   return (
     <div className="mx-auto max-w-[960px] px-6 py-8 md:px-10 md:py-10">
       <h2 className="mb-1 text-[22px] font-semibold text-[color:var(--color-text-primary)]">
-        볼트 통계
+        {t('title')}
       </h2>
       <p className="mb-8 text-[12.5px] text-[color:var(--color-text-tertiary)]">
-        매니페스트 생성 기준 —{' '}
+        {t('manifestPrefix')}{' '}
         <span className="font-mono">
-          {new Date(manifest.generatedAt).toLocaleString('ko-KR')}
+          {new Date(manifest.generatedAt).toLocaleString(numberLocale)}
         </span>
       </p>
 
       {/* 핵심 숫자 카드 */}
       <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="문서" value={stats.docCount} unit="개" />
+        <StatCard label={t('cardDocs')} value={stats.docCount} unit={t('cardUnitDocs')} />
         <StatCard
-          label="총 단어"
-          value={stats.totalWords.toLocaleString('ko-KR')}
+          label={t('cardTotalWords')}
+          value={stats.totalWords.toLocaleString(numberLocale)}
         />
-        <StatCard label="평균 단어" value={stats.avgWords.toLocaleString('ko-KR')} />
-        <StatCard label="중앙값" value={stats.medianWords.toLocaleString('ko-KR')} />
+        <StatCard label={t('cardAvgWords')} value={stats.avgWords.toLocaleString(numberLocale)} />
+        <StatCard label={t('cardMedian')} value={stats.medianWords.toLocaleString(numberLocale)} />
       </section>
 
       {/* 모드별 비중 */}
       <section className="mb-8">
         <h3 className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-          모드별 분포
+          {t('modeDistribution')}
         </h3>
         {totalForModes > 0 ? (
           <div className="overflow-hidden rounded-md border border-[color:var(--color-border-soft)]">
             <div className="flex h-5 w-full">
               <ModeBar
-                label="기획자"
+                label={t('modePlanner')}
                 count={stats.modes.planner}
                 total={totalForModes}
                 color="rgba(224,196,140,0.75)"
               />
               <ModeBar
-                label="개발자"
+                label={t('modeEngineer')}
                 count={stats.modes.engineer}
                 total={totalForModes}
                 color="rgba(139,151,255,0.72)"
               />
               <ModeBar
-                label="공용"
+                label={t('modeBoth')}
                 count={stats.modes.both}
                 total={totalForModes}
                 color="rgba(180,190,210,0.6)"
@@ -148,19 +152,19 @@ export function DocsVaultStats({ manifest, pinnedSlugs, onSelect }: Props) {
         ) : null}
         <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[color:var(--color-text-tertiary)]">
           <ModeLegend
-            label="기획자"
+            label={t('modePlanner')}
             count={stats.modes.planner}
             total={totalForModes}
             color="rgba(224,196,140,0.85)"
           />
           <ModeLegend
-            label="개발자"
+            label={t('modeEngineer')}
             count={stats.modes.engineer}
             total={totalForModes}
             color="rgba(139,151,255,0.85)"
           />
           <ModeLegend
-            label="공용"
+            label={t('modeBoth')}
             count={stats.modes.both}
             total={totalForModes}
             color="rgba(180,190,210,0.85)"
@@ -171,7 +175,8 @@ export function DocsVaultStats({ manifest, pinnedSlugs, onSelect }: Props) {
       {/* 두 개 리스트 */}
       <section className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <RankList
-          title="가장 많이 인용된 문서"
+          title={t('topReferenced')}
+          emptyText={t('rankEmpty')}
           icon={<Link2 size={11} />}
           items={stats.topReferenced.map((x) => ({
             slug: x.doc.slug,
@@ -181,7 +186,8 @@ export function DocsVaultStats({ manifest, pinnedSlugs, onSelect }: Props) {
           onSelect={onSelect}
         />
         <RankList
-          title="가장 많은 외부 링크"
+          title={t('topOutlinks')}
+          emptyText={t('rankEmpty')}
           icon={<Link2 size={11} />}
           items={stats.topOutlinks.map((x) => ({
             slug: x.doc.slug,
@@ -196,22 +202,22 @@ export function DocsVaultStats({ manifest, pinnedSlugs, onSelect }: Props) {
       <section className="mb-8">
         <h3 className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
           <Hash size={10} aria-hidden />
-          태그 Top {stats.topTags.length}
+          {t('tagsTopHeader', { count: stats.topTags.length })}
         </h3>
         {stats.topTags.length === 0 ? (
           <p className="text-[12px] text-[color:var(--color-text-tertiary)]">
-            frontmatter 에 tags 가 있는 문서가 아직 없습니다.
+            {t('tagsEmpty')}
           </p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
-            {stats.topTags.map((t) => (
+            {stats.topTags.map((tagItem) => (
               <span
-                key={t.tag}
+                key={tagItem.tag}
                 className="inline-flex items-center gap-1 rounded-sm border border-[color:var(--color-border-soft)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-tertiary)]"
               >
-                {t.tag}
+                {tagItem.tag}
                 <span className="text-[color:var(--color-text-quaternary)]">
-                  {t.count}
+                  {tagItem.count}
                 </span>
               </span>
             ))}
@@ -222,17 +228,17 @@ export function DocsVaultStats({ manifest, pinnedSlugs, onSelect }: Props) {
       {/* 나머지 미니 지표 */}
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <StatCard
-          label="고정"
+          label={t('pinned')}
           value={stats.pinnedCount}
-          unit="개"
+          unit={t('pinnedUnit')}
           icon={<Pin size={11} aria-hidden />}
         />
         <StatCard
-          label="링크 없는 문서"
+          label={t('orphan')}
           value={stats.orphanCount}
-          unit="개"
+          unit={t('orphanUnit')}
           icon={<FileText size={11} aria-hidden />}
-          hint="어느 문서와도 연결되지 않은 외톨이. 수동 링크 추천 대상."
+          hint={t('orphanHint')}
         />
         {stats.biggest ? (
           <button
@@ -242,13 +248,13 @@ export function DocsVaultStats({ manifest, pinnedSlugs, onSelect }: Props) {
           >
             <div className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
               <Star size={10} aria-hidden />
-              가장 큰 문서
+              {t('biggest')}
             </div>
             <div className="mt-1 truncate text-[13px] text-[color:var(--color-text-primary)]">
               {stats.biggest.title}
             </div>
             <div className="font-mono text-[10px] text-[color:var(--color-text-tertiary)]">
-              {stats.biggest.wordCount.toLocaleString('ko-KR')} 단어
+              {stats.biggest.wordCount.toLocaleString(numberLocale)} {t('wordsUnit')}
             </div>
           </button>
         ) : null}
@@ -340,11 +346,13 @@ function ModeLegend({
 
 function RankList({
   title,
+  emptyText,
   icon,
   items,
   onSelect,
 }: {
   title: string;
+  emptyText: string;
   icon: React.ReactNode;
   items: Array<{ slug: string; title: string; count: number }>;
   onSelect: (slug: string) => void;
@@ -357,7 +365,7 @@ function RankList({
       </h3>
       {items.length === 0 ? (
         <p className="text-[12px] text-[color:var(--color-text-tertiary)]">
-          해당 항목이 없습니다.
+          {emptyText}
         </p>
       ) : (
         <ul className="flex flex-col gap-0.5">

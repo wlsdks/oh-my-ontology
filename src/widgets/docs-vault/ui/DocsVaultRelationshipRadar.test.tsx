@@ -1,10 +1,21 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { NextIntlClientProvider } from 'next-intl';
+import koMessages from '../../../../messages/ko.json';
 import type {
   RelationshipRadarSuggestion,
   VaultDoc,
 } from '@/entities/docs-vault';
 import { DocsVaultRelationshipRadar } from './DocsVaultRelationshipRadar';
+
+// next-intl provider 로 감싼 render — useTranslations 가 throw 하지 않게.
+function render(ui: React.ReactElement) {
+  return rtlRender(
+    <NextIntlClientProvider locale="ko" messages={koMessages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 
 function doc(overrides: Partial<VaultDoc> = {}): VaultDoc {
   return {

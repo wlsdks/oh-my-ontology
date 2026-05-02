@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Info, Maximize2, Minimize2, Wand2 } from "lucide-react";
 import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import { useUserAuth } from "@/features/user-auth";
@@ -76,14 +77,16 @@ const OntologyEditCanvas = dynamic<{
 );
 
 function CanvasSkeleton() {
+  const t = useTranslations("ontologyPages.edit.page");
   return (
     <div className="flex h-full items-center justify-center">
-      <p className="text-xs text-[color:var(--color-text-quaternary)]">캔버스 불러오는 중…</p>
+      <p className="text-xs text-[color:var(--color-text-quaternary)]">{t("canvasLoading")}</p>
     </div>
   );
 }
 
 export function OntologyEditPage() {
+  const t = useTranslations("ontologyPages.edit.page");
   const searchParams = useSearchParams();
   // single-user 모드: account scope 가 곧 로그인 사용자 uid. 비로그인 사용자는
   // 캔버스 자체를 볼 수 있지만 manual node 저장 시 toast 로 막힌다.
@@ -115,7 +118,7 @@ export function OntologyEditPage() {
       if (!node) return;
       const slug = slugify(node.title);
       if (!slug) {
-        toast.show("이름이 비어 있어 저장할 수 없어요.", "error");
+        toast.show(t("toastEmptyName"), "error");
         return;
       }
       setSavingId(nodeId);
@@ -142,12 +145,15 @@ export function OntologyEditPage() {
             slug: vaultSlug,
           });
           await vault.createDoc(vaultSlug, md);
-          toast.show(`"${node.title}" → vault/${vaultSlug}.md 저장`, "success");
+          toast.show(
+            t("toastSaveSuccess", { title: node.title, path: vaultSlug }),
+            "success",
+          );
           removeNode(nodeId);
           setSelectedId(null);
         } else if (dataSourceMode === "cloud") {
           if (!accountId) {
-            toast.show("계정이 확인되지 않았어요. 로그인하세요.", "error");
+            toast.show(t("toastNoAccount"), "error");
             return;
           }
           const id = `${node.kind}.${slug}`;
@@ -158,24 +164,21 @@ export function OntologyEditPage() {
             title: node.title,
             kind: node.kind,
           });
-          toast.show(`"${node.title}" 저장 완료`, "success");
+          toast.show(t("toastCloudSaved", { title: node.title }), "success");
           removeNode(nodeId);
           setSelectedId(null);
         } else {
           // static — vault 미선택 + 비로그인. 둘 중 하나 활성화 안내.
-          toast.show(
-            "데모 모드라 저장할 수 없어요. /docs 에서 vault 폴더를 열거나 로그인하세요.",
-            "error",
-          );
+          toast.show(t("toastDemoMode"), "error");
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "저장 실패";
+        const message = err instanceof Error ? err.message : t("toastSaveFailed");
         toast.show(message, "error");
       } finally {
         setSavingId(null);
       }
     },
-    [accountId, dataSourceMode, findById, removeNode, toast, vault],
+    [accountId, dataSourceMode, findById, removeNode, t, toast, vault],
   );
   const ephemeralSelected = findById(selectedId);
   // vault 모드에서는 selectedId 가 vault slug. manifest 에서 lookup
@@ -217,21 +220,21 @@ export function OntologyEditPage() {
     async (slug: string, nextTitle: string) => {
       const trimmed = nextTitle.trim();
       if (!trimmed) {
-        toast.show("제목이 비어 있어 저장할 수 없어요.", "error");
+        toast.show(t("toastTitleEmpty"), "error");
         return;
       }
       setRenamingId(slug);
       try {
         await vault.updateFrontmatter(slug, { title: trimmed });
-        toast.show(`"${trimmed}" 제목 저장`, "success");
+        toast.show(t("toastTitleSaved", { title: trimmed }), "success");
       } catch (err) {
-        const message = err instanceof Error ? err.message : "제목 저장 실패";
+        const message = err instanceof Error ? err.message : t("toastTitleSaveFailed");
         toast.show(message, "error");
       } finally {
         setRenamingId(null);
       }
     },
-    [toast, vault],
+    [t, toast, vault],
   );
 
   // vault frontmatter array 키 (capabilities/elements/dependencies/
@@ -247,11 +250,11 @@ export function OntologyEditPage() {
           [key]: next.length === 0 ? null : next,
         });
       } catch (err) {
-        const message = err instanceof Error ? err.message : "저장 실패";
+        const message = err instanceof Error ? err.message : t("toastSaveFailed");
         toast.show(message, "error");
       }
     },
-    [toast, vault],
+    [t, toast, vault],
   );
 
   // V1.2 vault-adaptation — frontmatter scalar literals (description / domain).
@@ -266,11 +269,11 @@ export function OntologyEditPage() {
           [key]: trimmed === "" ? null : trimmed,
         });
       } catch (err) {
-        const message = err instanceof Error ? err.message : "저장 실패";
+        const message = err instanceof Error ? err.message : t("toastSaveFailed");
         toast.show(message, "error");
       }
     },
-    [toast, vault],
+    [t, toast, vault],
   );
 
   // vault 노드 drag 좌표를 frontmatter.canvasPosition 으로 patch.
@@ -286,11 +289,11 @@ export function OntologyEditPage() {
           { skipRefresh: true },
         );
       } catch (err) {
-        const message = err instanceof Error ? err.message : "좌표 저장 실패";
+        const message = err instanceof Error ? err.message : t("toastPositionSaveFailed");
         toast.show(message, "error");
       }
     },
-    [toast, vault],
+    [t, toast, vault],
   );
 
   // vault delete — MCP delete_concept 와 같은 정책: backlinks 가 있으면
@@ -300,16 +303,23 @@ export function OntologyEditPage() {
     async (slug: string) => {
       if (!vault.manifest) return;
       const backlinks = findVaultBacklinks(vault.manifest, slug);
+      const preview = backlinks
+        .slice(0, 3)
+        .map((b) => b.slug)
+        .join(", ");
+      const rest =
+        backlinks.length > 3
+          ? t("confirmDeleteWithBacklinksRest", { count: backlinks.length - 3 })
+          : "";
       const message =
         backlinks.length > 0
-          ? `"${slug}" 를 삭제하면 ${backlinks.length} 개 노드가 dangling 됩니다 (` +
-            backlinks
-              .slice(0, 3)
-              .map((b) => b.slug)
-              .join(", ") +
-            (backlinks.length > 3 ? ` 외 ${backlinks.length - 3}개` : "") +
-            ").\n\n그래도 삭제할까요?"
-          : `"${slug}" 를 vault 에서 삭제할까요? 되돌릴 수 없습니다.`;
+          ? t("confirmDeleteWithBacklinks", {
+              slug,
+              count: backlinks.length,
+              preview,
+              rest,
+            })
+          : t("confirmDelete", { slug });
       // 정적 export + WebGL 캔버스 환경 — 가장 단순한 confirm dialog 가
       // SSR/hydration 위험 없음. modal UI 는 후속 PR 에서 OntologyEditPage 자체
       // dialog 컴포넌트로 통합 가능.
@@ -317,16 +327,16 @@ export function OntologyEditPage() {
       setRenamingId(slug);
       try {
         await vault.deleteDoc(slug);
-        toast.show(`"${slug}" 삭제`, "success");
+        toast.show(t("toastDeleteSuccess", { slug }), "success");
         setSelectedId(null);
       } catch (err) {
-        const m = err instanceof Error ? err.message : "삭제 실패";
+        const m = err instanceof Error ? err.message : t("toastDeleteFailed");
         toast.show(m, "error");
       } finally {
         setRenamingId(null);
       }
     },
-    [toast, vault],
+    [t, toast, vault],
   );
 
   const treeHref = accountId
@@ -390,16 +400,14 @@ export function OntologyEditPage() {
 
   const helpTooltip = (
     <div className="max-w-xs space-y-2 text-[12px] leading-5">
-      <p>
-        지식 그래프를 끌어다 그려서 만드는 워크스페이스.
-      </p>
+      <p>{t("helpIntro")}</p>
       <ul className="space-y-1 pl-3 text-[color:var(--color-text-tertiary)]">
-        <li>· 왼쪽 palette 에서 종류를 골라 <strong>클릭</strong> → 새 노드 추가</li>
-        <li>· 노드의 <strong>핸들에서 drag</strong> → 다른 노드로 drop → 관계 추가</li>
-        <li>· 임시 노드는 인디고 <strong>dashed</strong> → 인스펙터에서 이름 입력 + 저장</li>
+        <li>· {t("helpStepPalette")}</li>
+        <li>· {t("helpStepConnect")}</li>
+        <li>· {t("helpStepEphemeral")}</li>
       </ul>
       <p className="font-mono text-[10px] tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
-        N · 새 노드  /  Del · 선택 삭제  /  Esc · 선택 해제  /  F · 전체 화면
+        {t("helpShortcuts")}
       </p>
     </div>
   );
@@ -417,15 +425,15 @@ export function OntologyEditPage() {
         <header className="mb-2 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-indigo-accent)]">
-              Ontology Builder
+              {t("eyebrow")}
             </p>
             <h1 className="text-xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-              온톨로지 빌더
+              {t("title")}
             </h1>
             <Tooltip content={helpTooltip} withProvider={false}>
               <span
                 role="img"
-                aria-label="빌더 사용법 안내"
+                aria-label={t("helpAriaLabel")}
                 className="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-indigo-accent)]"
               >
                 <Info size={13} />
@@ -445,9 +453,9 @@ export function OntologyEditPage() {
                     })
                   }
                   className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.10)] px-3 text-xs text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.46)] hover:bg-[color:rgba(94,106,210,0.16)]"
-                  aria-label="현재 캔버스를 frontmatter md 로 내보내기"
+                  aria-label={t("exportAriaLabel")}
                 >
-                  md 내보내기 ↓
+                  {t("exportButton")}
                 </button>
                 <button
                   type="button"
@@ -456,16 +464,22 @@ export function OntologyEditPage() {
                     clearEphemeralEdges();
                   }}
                   className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(229,72,77,0.32)] hover:text-[color:var(--color-text-primary)]"
-                  aria-label={`임시 노드 ${ephemeralNodes.length}개 + 임시 관계 ${ephemeralEdges.length}개 모두 지우기`}
+                  aria-label={t("clearAriaLabel", {
+                    nodes: ephemeralNodes.length,
+                    edges: ephemeralEdges.length,
+                  })}
                 >
-                  임시 {ephemeralNodes.length}개 / 관계 {ephemeralEdges.length}개 지우기
+                  {t("clearButton", {
+                    nodes: ephemeralNodes.length,
+                    edges: ephemeralEdges.length,
+                  })}
                 </button>
               </>
             ) : null}
             {/* 레이아웃 알고리즘 토글 — dagre (계층 LR) ↔ force (organic) */}
             <div
               role="radiogroup"
-              aria-label="자동 레이아웃 알고리즘"
+              aria-label={t("layoutGroupAriaLabel")}
               className="inline-flex h-8 shrink-0 items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] p-0.5"
             >
               <button
@@ -473,56 +487,53 @@ export function OntologyEditPage() {
                 role="radio"
                 aria-checked={layoutMode === "dagre"}
                 onClick={() => setLayoutMode("dagre")}
-                title="kind 계층 LR (project → domain → capability → element)"
+                title={t("layoutDagreTitle")}
                 className={`rounded-full px-2 text-[10px] tracking-[0.04em] transition-colors ${
                   layoutMode === "dagre"
                     ? "bg-[color:rgba(94,106,210,0.18)] text-[color:rgba(159,170,235,0.95)]"
                     : "text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-secondary)]"
                 }`}
               >
-                계층
+                {t("layoutDagre")}
               </button>
               <button
                 type="button"
                 role="radio"
                 aria-checked={layoutMode === "force"}
                 onClick={() => setLayoutMode("force")}
-                title="ForceAtlas2 organic (토폴로지 와 같은 인력/척력 시뮬레이션)"
+                title={t("layoutForceTitle")}
                 className={`rounded-full px-2 text-[10px] tracking-[0.04em] transition-colors ${
                   layoutMode === "force"
                     ? "bg-[color:rgba(94,106,210,0.18)] text-[color:rgba(159,170,235,0.95)]"
                     : "text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-secondary)]"
                 }`}
               >
-                Force
+                {t("layoutForce")}
               </button>
             </div>
-            <Tooltip
-              content="모든 노드 위치를 자동 레이아웃 결과로 초기화 (frontmatter 의 canvasPosition 은 그대로 — 다음 진입 시 사용자 좌표 복원)"
-              withProvider={false}
-            >
+            <Tooltip content={t("autoLayoutTooltip")} withProvider={false}>
               <button
                 type="button"
                 onClick={() => setAutoLayoutToken((n) => n + 1)}
-                aria-label="캔버스 노드 자동 정렬"
+                aria-label={t("autoLayoutAriaLabel")}
                 className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-2.5 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
               >
                 <Wand2 size={12} />
-                자동 정렬
+                {t("autoLayoutButton")}
               </button>
             </Tooltip>
             <Link
               href={treeHref}
               className="inline-flex h-8 shrink-0 items-center gap-1 px-2 text-[11px] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-              aria-label="ontology 트리로 보기 (read-only)"
+              aria-label={t("treeLinkAriaLabel")}
             >
-              트리로 보기 <span aria-hidden>↗</span>
+              {t("treeLink")}
             </Link>
             <button
               type="button"
               onClick={() => setFullscreen((current) => !current)}
-              aria-label={fullscreen ? "전체 화면 종료 (F)" : "전체 화면 (F)"}
-              title={fullscreen ? "전체 화면 종료 (F)" : "전체 화면 (F)"}
+              aria-label={fullscreen ? t("fullscreenExit") : t("fullscreenEnter")}
+              title={fullscreen ? t("fullscreenExit") : t("fullscreenEnter")}
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
             >
               {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
@@ -575,15 +586,13 @@ export function OntologyEditPage() {
         <section className="flex flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] px-6 py-10 text-center md:hidden">
           <div className="flex flex-col gap-2">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-indigo-accent)]">
-              데스크톱 권장
+              {t("mobileEyebrow")}
             </p>
             <h2 className="text-base font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-              빌더는 큰 화면에서 정확해요
+              {t("mobileTitle")}
             </h2>
             <p className="max-w-xs break-keep text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
-              palette · 캔버스 · 인스펙터 3-단 ERD 레이아웃이라 모바일에선 겹쳐 보여요.
-              데스크톱 / 태블릿 가로 모드에서 다시 열어주세요. 그동안 트리 / 토폴로지
-              로 ontology 를 둘러볼 수 있어요.
+              {t("mobileBody")}
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -591,13 +600,13 @@ export function OntologyEditPage() {
               href={treeHref}
               className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.14)] px-3 text-[12px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)]"
             >
-              트리로 보기 →
+              {t("mobileTreeCta")}
             </Link>
             <Link
               href="/topology/"
               className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-[12px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
             >
-              토폴로지로
+              {t("mobileTopologyCta")}
             </Link>
           </div>
         </section>

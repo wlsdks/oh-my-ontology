@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PencilLine, X } from "lucide-react";
 import {
   projectToInput,
@@ -51,6 +52,7 @@ export function ProjectQuickEditPanel({
   documentNewHref,
   settingsHref,
 }: Props) {
+  const t = useTranslations("settings.quickEdit");
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<QuickEditValues>(() =>
     toQuickEditValues(project),
@@ -82,12 +84,12 @@ export function ProjectQuickEditPanel({
 
   const changedLabels = useMemo(() => {
     const labels: string[] = [];
-    if (values.name !== baseline.name) labels.push("이름");
-    if (values.description !== baseline.description) labels.push("설명");
-    if (values.owner !== baseline.owner) labels.push("담당");
-    if (values.tags !== baseline.tags) labels.push("태그");
+    if (values.name !== baseline.name) labels.push(t("labelName"));
+    if (values.description !== baseline.description) labels.push(t("labelDescription"));
+    if (values.owner !== baseline.owner) labels.push(t("labelOwner"));
+    if (values.tags !== baseline.tags) labels.push(t("labelTags"));
     return labels;
-  }, [baseline, values]);
+  }, [baseline, t, values]);
 
   const handleChange = (key: keyof QuickEditValues, value: string) => {
     setValues((current) => ({ ...current, [key]: value }));
@@ -105,7 +107,7 @@ export function ProjectQuickEditPanel({
     const nextInput = toProjectInput(project, values);
 
     if (!nextInput.name.trim() || !nextInput.description.trim()) {
-      setError("이름과 한 줄 설명은 비워둘 수 없습니다.");
+      setError(t("errorEmpty"));
       return;
     }
 
@@ -125,14 +127,14 @@ export function ProjectQuickEditPanel({
       setValues(nextBaseline);
       setNotice(
         changedLabels.length > 0
-          ? `바로 반영한 항목: ${changedLabels.join(", ")}`
-          : "변경 내용을 바로 반영했습니다.",
+          ? t("noticeApplied", { labels: changedLabels.join(", ") })
+          : t("noticeAppliedNoLabels"),
       );
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "변경 내용을 반영하지 못했습니다.",
+          : t("errorGeneric"),
       );
     } finally {
       setPending(false);
@@ -149,30 +151,30 @@ export function ProjectQuickEditPanel({
         onClick={() => setOpen((current) => !current)}
       >
         <PencilLine size={14} aria-hidden="true" />
-        {open ? "정보 수정 닫기" : "프로젝트 정보 수정"}
+        {open ? t("closeLabel") : t("openLabel")}
       </Button>
 
       {open ? (
         <div className="fixed inset-0 z-50">
           <button
             type="button"
-            aria-label="정보 수정 닫기"
+            aria-label={t("ariaCloseOverlay")}
             className="absolute inset-0 bg-[rgba(0,0,0,0.58)]"
             onClick={() => setOpen(false)}
           />
           <section
             role="dialog"
             aria-modal="true"
-            aria-label="프로젝트 정보 수정"
+            aria-label={t("ariaDialog")}
             className="absolute right-0 top-0 flex h-full w-full max-w-[30rem] flex-col border-l border-[color:var(--color-divider)] bg-[color:rgba(11,12,14,0.98)] shadow-[-24px_0_60px_rgba(0,0,0,0.34)]"
           >
             <div className="flex items-start justify-between gap-4 border-b border-[color:var(--color-border-soft)] px-5 py-5">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]">
-                  프로젝트 정보 수정
+                  {t("headerEyebrow")}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                  읽던 흐름을 끊지 않고 이름과 설명을 바로 바꿉니다.
+                  {t("headerSubtitle")}
                 </p>
               </div>
               <Button
@@ -189,7 +191,7 @@ export function ProjectQuickEditPanel({
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
               <label className="block">
                 <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                  프로젝트 이름
+                  {t("fieldName")}
                 </span>
                 <input
                   data-testid="public-quick-edit-name"
@@ -198,13 +200,13 @@ export function ProjectQuickEditPanel({
                   value={values.name}
                   onChange={(event) => handleChange("name", event.target.value)}
                   className="mt-2 h-11 w-full rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 text-sm text-[color:var(--color-text-primary)] outline-none transition-[border-color,box-shadow] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:var(--color-indigo-accent)] focus:ring-2 focus:ring-[color:rgba(94,106,210,0.24)]"
-                  placeholder="예: Demo IAM"
+                  placeholder={t("fieldNamePlaceholder")}
                 />
               </label>
 
               <label className="block">
                 <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                  한 줄 설명
+                  {t("fieldDescription")}
                 </span>
                 <textarea
                   data-testid="public-quick-edit-description"
@@ -214,14 +216,14 @@ export function ProjectQuickEditPanel({
                   onChange={(event) => handleChange("description", event.target.value)}
                   rows={4}
                   className="mt-2 w-full rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 py-3 text-sm leading-6 text-[color:var(--color-text-primary)] outline-none transition-[border-color,box-shadow] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:var(--color-indigo-accent)] focus:ring-2 focus:ring-[color:rgba(94,106,210,0.24)]"
-                  placeholder="이 프로젝트를 한 줄로 설명…"
+                  placeholder={t("fieldDescriptionPlaceholder")}
                 />
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
                   <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                    담당 · 선택
+                    {t("fieldOwner")}
                   </span>
                   <input
                     data-testid="public-quick-edit-owner"
@@ -230,13 +232,13 @@ export function ProjectQuickEditPanel({
                     value={values.owner}
                     onChange={(event) => handleChange("owner", event.target.value)}
                     className="mt-2 h-11 w-full rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 text-sm text-[color:var(--color-text-primary)] outline-none transition-[border-color,box-shadow] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:var(--color-indigo-accent)] focus:ring-2 focus:ring-[color:rgba(94,106,210,0.24)]"
-                    placeholder="예: 민혁"
+                    placeholder={t("fieldOwnerPlaceholder")}
                   />
                 </label>
 
                 <label className="block">
                   <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                    태그
+                    {t("fieldTags")}
                   </span>
                   <input
                     data-testid="public-quick-edit-tags"
@@ -245,7 +247,7 @@ export function ProjectQuickEditPanel({
                     value={values.tags}
                     onChange={(event) => handleChange("tags", event.target.value)}
                     className="mt-2 h-11 w-full rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 text-sm text-[color:var(--color-text-primary)] outline-none transition-[border-color,box-shadow] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:var(--color-indigo-accent)] focus:ring-2 focus:ring-[color:rgba(94,106,210,0.24)]"
-                    placeholder="예: auth, gateway"
+                    placeholder={t("fieldTagsPlaceholder")}
                   />
                 </label>
               </div>
@@ -268,7 +270,7 @@ export function ProjectQuickEditPanel({
                   onClick={() => void handleSubmit()}
                   disabled={!hasChanges || pending}
                 >
-                  {pending ? "적용 중…" : "변경 적용"}
+                  {pending ? t("applying") : t("apply")}
                 </Button>
                 <Button
                   type="button"
@@ -276,21 +278,21 @@ export function ProjectQuickEditPanel({
                   onClick={handleReset}
                   disabled={!hasChanges || pending}
                 >
-                  입력 되돌리기
+                  {t("reset")}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {documentNewHref ? (
                   <Link href={documentNewHref} className="inline-flex">
                     <Button type="button" variant="ghost">
-                      문서 등록
+                      {t("openDocument")}
                     </Button>
                   </Link>
                 ) : null}
                 {settingsHref ? (
                   <Link href={settingsHref} className="inline-flex">
                     <Button type="button" variant="outline">
-                      전체 편집
+                      {t("openSettings")}
                     </Button>
                   </Link>
                 ) : null}

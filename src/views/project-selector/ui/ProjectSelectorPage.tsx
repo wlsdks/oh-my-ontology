@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, FolderKanban, Shield } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useScopedAccountAccess } from "@/features/account-scope";
 import { useTaxonomy } from "@/features/taxonomy";
 import {
@@ -62,6 +63,7 @@ function matchesStatus(project: Project, status: string | null) {
 }
 
 export function ProjectSelectorPage() {
+  const t = useTranslations("projectPages.selector");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -83,7 +85,7 @@ export function ProjectSelectorPage() {
   // P1-5 — 탭·검색 컨텍스트. 컨테이너·계정 이름이 겹치면 Set dedup.
   // 페이지 메타 타이틀("프로젝트 · oh-my-ontology")과 동일한 첫 어휘를 사용해
   // 정적 메타와 동적 갱신 사이에 flicker 가 보이지 않게 한다.
-  useDocumentTitle("프로젝트 · oh-my-ontology");
+  useDocumentTitle(t("documentTitle"));
 
   // ontology nodes — 카드별 count badge 데이터. 부모 한 번 hook + count map
   // (1994 카드 각자 subscribe 회피). 권한 없으면 빈 배열, badge 자동 숨김.
@@ -213,7 +215,7 @@ export function ProjectSelectorPage() {
     return (
       <main className="min-h-screen bg-[color:var(--color-canvas)]">
         <div role="status" aria-live="polite" className="sr-only">
-          워크스페이스를 확인하고 있어요…
+          {t("loadingWorkspace")}
         </div>
       </main>
     );
@@ -233,7 +235,7 @@ export function ProjectSelectorPage() {
             className="inline-flex h-9 items-center gap-2 rounded-full border border-[color:rgba(224,196,140,0.4)] bg-[color:rgba(224,196,140,0.08)] px-4 text-[13px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(224,196,140,0.6)] hover:bg-[color:rgba(224,196,140,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(224,196,140,0.5)]"
           >
             <ArrowLeft size={14} aria-hidden="true" />
-            워크스페이스 지도
+            {t("workspaceMap")}
           </Link>
           <PublicAccountMenu
             accountId={null}
@@ -247,17 +249,20 @@ export function ProjectSelectorPage() {
         <header className="flex flex-col gap-3 border-b border-[color:var(--color-border-soft)] pb-5 md:flex-row md:items-end md:justify-between md:gap-6">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              프로젝트 목록
+              {t("headerEyebrow")}
             </p>
             <div className="mt-1 flex items-baseline gap-3">
               <h1 className="text-[32px] font-[var(--font-weight-signature)] leading-tight tracking-[var(--tracking-section)] text-[color:var(--color-text-primary)] md:text-3xl">
-                프로젝트
+                {t("headerTitle")}
               </h1>
               {projects.length > 0 ? (
                 <span className="font-mono text-[12px] text-[color:var(--color-text-quaternary)]">
                   {hasActiveFilter
-                    ? `${filteredProjects.length} / ${projects.length}`
-                    : `${projects.length}개`}
+                    ? t("countFiltered", {
+                        filtered: filteredProjects.length,
+                        total: projects.length,
+                      })
+                    : t("countTotal", { count: projects.length })}
                 </span>
               ) : null}
             </div>
@@ -285,18 +290,18 @@ export function ProjectSelectorPage() {
                   replaceQuery("");
                 }
               }}
-              placeholder="이름, 설명, 태그로 검색…"
+              placeholder={t("searchPlaceholder")}
               className="h-11 w-full rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 text-sm text-[color:var(--color-text-primary)] outline-none transition-colors placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:var(--color-indigo-accent)]"
               type="search"
               autoComplete="off"
-              aria-label="프로젝트 검색"
+              aria-label={t("searchAriaLabel")}
             />
           </div>
           {(categories.length > 0 || statuses.length > 0) ? (
             <div className="flex flex-col gap-3">
               {categories.length > 0 ? (
                 <FilterChipRow
-                  label="단계"
+                  label={t("filterPhaseLabel")}
                   options={categories.map((c) => ({
                     value: c.id,
                     label: c.label || c.id,
@@ -310,7 +315,7 @@ export function ProjectSelectorPage() {
               ) : null}
               {statuses.length > 0 ? (
                 <FilterChipRow
-                  label="상태"
+                  label={t("filterStatusLabel")}
                   options={statuses.map((s) => ({
                     value: s.id,
                     label: s.label || s.id,
@@ -328,7 +333,7 @@ export function ProjectSelectorPage() {
                   onClick={clearAllFilters}
                   className="self-start font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
                 >
-                  필터 모두 지우기 ×
+                  {t("clearAllFilters")}
                 </button>
               ) : null}
             </div>
@@ -341,15 +346,15 @@ export function ProjectSelectorPage() {
               <CardHeader>
                 <CardTitle>
                   {projects.length === 0
-                    ? "프로젝트가 없습니다"
-                    : "검색 결과가 없습니다"}
+                    ? t("emptyTitleNoProjects")
+                    : t("emptyTitleNoResults")}
                 </CardTitle>
                 <CardDescription>
                   {projects.length === 0
                     ? canMutateProjects
-                      ? "첫 프로젝트를 만들면 바로 들어갑니다."
-                      : "아직 볼 프로젝트가 없습니다."
-                    : "다른 이름으로 다시 찾아보세요."}
+                      ? t("emptyDescCanCreate")
+                      : t("emptyDescNoProjects")
+                    : t("emptyDescNoResults")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
@@ -362,7 +367,7 @@ export function ProjectSelectorPage() {
                           categories={categories}
                           statuses={statuses}
                           initiallyOpen
-                        submitLabel="만들고 첫 문서 쓰기"
+                        submitLabel={t("quickCreateSubmit")}
                         onCreated={(project) => {
                           const target = getPostCreateHref(project);
                           if (returnTo) {
@@ -383,18 +388,18 @@ export function ProjectSelectorPage() {
                       replaceQuery("");
                     }}
                   >
-                    검색 지우기
+                    {t("clearSearch")}
                   </Button>
                 ) : !isSignedIn ? (
                   <>
                     <Link href={loginHref} className="inline-flex">
                       <Button type="button" variant="outline">
-                        로그인
+                        {t("loginButton")}
                       </Button>
                     </Link>
                     <Link href={signupHref} className="inline-flex">
                       <Button type="button">
-                        회원가입
+                        {t("signUpButton")}
                       </Button>
                     </Link>
                   </>
@@ -403,14 +408,14 @@ export function ProjectSelectorPage() {
                   // overview (전체 토폴로지) 로 회귀 동선 노출.
                   <Link href={overviewHref} className="inline-flex">
                     <Button type="button" variant="outline">
-                      워크스페이스 지도로
+                      {t("gotoWorkspace")}
                     </Button>
                   </Link>
                 ) : null}
                 {projects.length > 0 ? (
                   <Link href={overviewHref} className="inline-flex">
                     <Button type="button" variant="ghost">
-                      전체 토폴로지
+                      {t("gotoFullTopology")}
                     </Button>
                   </Link>
                 ) : null}
@@ -420,11 +425,14 @@ export function ProjectSelectorPage() {
             <>
               <div className="mb-4 flex items-center justify-between gap-3 text-xs text-[color:var(--color-text-tertiary)]">
                 <span>
-                  {filteredProjects.length}개 중 {visibleProjects.length}개 표시
+                  {t("paginationVisible", {
+                    total: filteredProjects.length,
+                    visible: visibleProjects.length,
+                  })}
                 </span>
                 {hasMoreProjects ? (
                   <span className="font-mono uppercase tracking-[0.1em]">
-                    필요할 때 더 불러오기
+                    {t("paginationLoadOnDemand")}
                   </span>
                 ) : null}
               </div>
@@ -441,17 +449,17 @@ export function ProjectSelectorPage() {
                         <Link
                           href={getProjectDetailHref(project.slug)}
                           prefetch={false}
-                          aria-label={`${project.name} 상세로 가기`}
+                          aria-label={t("cardDetailAriaLabel", { name: project.name })}
                           className="min-w-0 rounded-md after:absolute after:inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                         >
                           <CardTitle className="truncate break-keep">{project.name}</CardTitle>
                           <CardDescription className="mt-2 line-clamp-2 break-keep">
-                            {project.description || "설명이 아직 없는 프로젝트입니다."}
+                            {project.description || t("cardDescriptionFallback")}
                           </CardDescription>
                         </Link>
                         <FolderKanban
                           size={18}
-                          aria-label="프로젝트"
+                          aria-label={t("cardProjectIconAriaLabel")}
                           className="shrink-0 text-[color:var(--color-text-tertiary)]"
                         />
                       </div>
@@ -462,9 +470,9 @@ export function ProjectSelectorPage() {
                           개발중/운영중/기획/아이디어). 두 축이 서로 겹쳐 보여
                           label 을 "단계 / 상태" 로 명확히 분리. */}
                       <div className="grid grid-cols-3 gap-2 rounded-[18px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3 py-3">
-                        <QuickFact label="단계" value={categoryLabel(project.category)} />
-                        <QuickFact label="상태" value={statusLabel(project.status)} />
-                        <QuickFact label="연결" value={`${project.dependencies.length}개`} />
+                        <QuickFact label={t("factPhase")} value={categoryLabel(project.category)} />
+                        <QuickFact label={t("factStatus")} value={statusLabel(project.status)} />
+                        <QuickFact label={t("factConnections")} value={t("factCount", { count: project.dependencies.length })} />
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between gap-2 text-sm text-[color:var(--color-text-secondary)]">
@@ -477,16 +485,16 @@ export function ProjectSelectorPage() {
                             return (
                               <span
                                 className="shrink-0 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.08)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-[color:rgba(159,170,235,0.95)]"
-                                title={`이 프로젝트의 ontology 노드 ${ontologyCount}개`}
+                                title={t("ontologyBadgeTitle", { count: ontologyCount })}
                               >
-                                Ontology {ontologyCount}
+                                {t("ontologyBadgeLabel", { count: ontologyCount })}
                               </span>
                             );
                           })()}
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
                           <span className="inline-flex items-center gap-1 break-keep text-[12px] text-[color:var(--color-indigo-accent)]">
-                            상세 보기
+                            {t("cardSeeMore")}
                             <ArrowRight size={13} aria-hidden="true" />
                           </span>
                           {/* relative z-10 으로 stretched link 위에 떠 있어
@@ -498,7 +506,7 @@ export function ProjectSelectorPage() {
                             prefetch={false}
                             className="relative z-10 inline-flex h-8 items-center break-keep rounded-md border border-[color:var(--color-divider)] px-3 text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
                           >
-                            토폴로지 보기
+                            {t("topologyView")}
                           </Link>
                         </div>
                       </div>
@@ -521,7 +529,7 @@ export function ProjectSelectorPage() {
                       )
                     }
                   >
-                    더 보기
+                    {t("loadMore")}
                     <span className="font-mono text-[10px] text-[color:var(--color-text-tertiary)]">
                       {visibleProjects.length}/{filteredProjects.length}
                     </span>
@@ -538,14 +546,14 @@ export function ProjectSelectorPage() {
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                    새 프로젝트 등록
+                    {t("newProjectEyebrow")}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                    목록 맨 아래에서 새 프로젝트를 빠르게 추가하고 첫 문서로 이동합니다.
+                    {t("newProjectDesc")}
                   </p>
                 </div>
                 <span className="rounded-full border border-[color:var(--color-divider)] px-3 py-1 text-xs text-[color:var(--color-text-secondary)]">
-                  폼 열기
+                  {t("openForm")}
                 </span>
               </summary>
               <div className="mt-4 border-t border-[color:var(--color-divider)] pt-4">
@@ -554,7 +562,7 @@ export function ProjectSelectorPage() {
                   projects={projects}
                   categories={categories}
                   statuses={statuses}
-                  submitLabel="만들고 첫 문서 쓰기"
+                  submitLabel={t("quickCreateSubmit")}
                   onCreated={(project) => {
                     const target = getPostCreateHref(project);
                     if (returnTo) {
@@ -577,11 +585,11 @@ export function ProjectSelectorPage() {
                   <div>
                     <p className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
                       <Shield size={12} aria-hidden="true" />
-                      관리 도구
+                      {t("adminToolsLabel")}
                     </p>
                   </div>
                   <span className="rounded-full border border-[color:var(--color-divider)] px-3 py-1 text-xs text-[color:var(--color-text-secondary)]">
-                    펼치기
+                    {t("expand")}
                   </span>
                 </summary>
                 <div className="mt-4 flex flex-wrap gap-2 border-t border-[color:var(--color-divider)] pt-4">
@@ -598,7 +606,7 @@ export function ProjectSelectorPage() {
                       );
                     }}
                   >
-                    CSV 내보내기 ({projects.length})
+                    {t("csvExport", { count: projects.length })}
                   </Button>
                 </div>
               </details>

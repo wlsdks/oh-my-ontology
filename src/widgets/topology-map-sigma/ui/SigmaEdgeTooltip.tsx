@@ -1,6 +1,7 @@
 'use client';
 
 import { useLayoutEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface SigmaEdgeTooltipData {
   source: string;
@@ -16,10 +17,10 @@ interface Props {
   data: SigmaEdgeTooltipData;
 }
 
-function kindLabel(kind?: string): string {
+function kindLabel(kind: string | undefined, containsLabel: string): string {
   if (kind === 'knowledge') return 'knowledge';
   if (kind === 'referenced-by') return 'referenced by';
-  if (kind === 'contains') return '소속';
+  if (kind === 'contains') return containsLabel;
   return 'depends on';
 }
 
@@ -29,6 +30,7 @@ function kindLabel(kind?: string): string {
  * bounding box 로 측정해 이름 길이에 무관하게 정확히 맞춘다.
  */
 export function SigmaEdgeTooltip({ data }: Props) {
+  const t = useTranslations('topologyWidgets.edgeTooltip');
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const [flip, setFlip] = useState<{ x: boolean; y: boolean }>({
     x: false,
@@ -60,7 +62,7 @@ export function SigmaEdgeTooltip({ data }: Props) {
       <span className="text-[color:rgba(139,151,255,0.85)]">→</span>
       <span>{data.targetName}</span>
       <span className="ml-1 font-mono text-[8px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-        {kindLabel(data.kind)}
+        {kindLabel(data.kind, t('kindContains'))}
       </span>
     </div>
   );

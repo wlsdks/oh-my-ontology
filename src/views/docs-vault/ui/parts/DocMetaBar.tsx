@@ -1,3 +1,4 @@
+import { useLocale, useTranslations } from "next-intl";
 import type { VaultDoc, VaultMode } from "@/entities/docs-vault";
 
 /**
@@ -10,12 +11,6 @@ import type { VaultDoc, VaultMode } from "@/entities/docs-vault";
 export function estimateReadingMinutes(wordCount: number): number {
   return Math.max(1, Math.round(wordCount / 200));
 }
-
-const MODE_LABEL: Record<VaultMode | "both", string> = {
-  planner: "기획자",
-  engineer: "개발자",
-  both: "공용",
-};
 
 const MODE_COLOR: Record<VaultMode | "both", string> = {
   planner: "rgba(224,196,140,0.9)",
@@ -34,10 +29,18 @@ function resolveModeKey(mode: VaultDoc["mode"]): VaultMode | "both" {
  * 호출자: `AdminDocsContent` 안 viewer 영역 헤더.
  */
 export function DocMetaBar({ doc }: { doc: VaultDoc }) {
+  const t = useTranslations("vaultWidgets.parts.meta");
+  const locale = useLocale();
+  const numberLocale = locale === "ko" ? "ko-KR" : "en-US";
   const readingMinutes = estimateReadingMinutes(doc.wordCount);
   const updated = new Date(doc.updatedAt);
   const modeKey = resolveModeKey(doc.mode);
-  const modeLabel = MODE_LABEL[modeKey];
+  const modeLabel =
+    modeKey === "planner"
+      ? t("modePlanner")
+      : modeKey === "engineer"
+        ? t("modeEngineer")
+        : t("modeBoth");
   const modeColor = MODE_COLOR[modeKey];
   return (
     <div className="mx-auto flex max-w-[760px] flex-wrap items-center gap-3 border-b border-[color:var(--color-overlay-2)] px-6 py-3 text-[11px] text-[color:var(--color-text-quaternary)] md:px-10">
@@ -48,21 +51,21 @@ export function DocMetaBar({ doc }: { doc: VaultDoc }) {
         {modeLabel}
       </span>
       <span className="font-mono tabular-nums">
-        {doc.wordCount.toLocaleString("ko-KR")} 단어
+        {t("wordsUnit", { count: doc.wordCount.toLocaleString(numberLocale) })}
       </span>
       <span className="font-mono tabular-nums">
-        ≈ {readingMinutes}분 읽기
+        {t("readingMinutes", { minutes: readingMinutes })}
       </span>
       {doc.tags.length > 0 ? (
         <span className="font-mono">
-          {doc.tags.map((t) => `#${t}`).join(" ")}
+          {doc.tags.map((tag) => `#${tag}`).join(" ")}
         </span>
       ) : null}
       <span
         className="ml-auto font-mono tabular-nums"
-        title={updated.toLocaleString("ko-KR")}
+        title={updated.toLocaleString(numberLocale)}
       >
-        {updated.toLocaleDateString("ko-KR", {
+        {updated.toLocaleDateString(numberLocale, {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",

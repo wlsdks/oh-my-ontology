@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
+import { useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Tooltip } from '@/shared/ui';
 import type { Project } from '@/entities/project';
@@ -38,6 +39,7 @@ export function SigmaHubRail({
   suppressed = false,
   stripNamePrefix,
 }: SigmaHubRailProps) {
+  const t = useTranslations('topologyWidgets.hubRail');
   const [open, setOpen] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem(RAIL_OPEN_KEY) === '1';
@@ -92,15 +94,15 @@ export function SigmaHubRail({
       (a, b) => (degreeBySlug.get(b.slug) ?? 0) - (degreeBySlug.get(a.slug) ?? 0),
     );
   if (hubs.length === 0) return null;
-  const railLabel = '허브';
+  const railLabel = t('label');
 
   if (!open) {
     return (
-      <Tooltip content="허브 바 펼치기" side="right" withProvider={false}>
+      <Tooltip content={t('expandTooltip')} side="right" withProvider={false}>
         <button
           type="button"
           onClick={() => setOpenPersisted(true)}
-          aria-label="허브 바 펼치기"
+          aria-label={t('expandAriaLabel')}
           className="pointer-events-auto absolute left-0 top-1/2 z-10 hidden h-16 w-5 -translate-y-1/2 items-center justify-center rounded-r-md border border-l-0 border-[color:var(--color-divider)] bg-[color:var(--color-panel)] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-inset md:flex"
         >
           <ChevronRight className="h-3 w-3" />
@@ -125,11 +127,11 @@ export function SigmaHubRail({
         <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-[color:var(--color-text-quaternary)]">
           {railLabel} · {hubs.length}
         </span>
-        <Tooltip content="허브 바 접기" side="right" withProvider={false}>
+        <Tooltip content={t('collapseTooltip')} side="right" withProvider={false}>
           <button
             type="button"
             onClick={() => setOpenPersisted(false)}
-            aria-label="허브 바 접기"
+            aria-label={t('collapseAriaLabel')}
             className="rounded-sm text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)]"
           >
             <ChevronLeft className="h-3 w-3" />
@@ -171,7 +173,7 @@ export function SigmaHubRail({
                 moveFocusToSlug(hubs[hubs.length - 1].slug);
               }
             }}
-            title={`${hub.name} · 연결 ${degree}`}
+            title={t('itemTitle', { name: hub.name, degree })}
             className={`relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-left text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-inset ${
               active
                 ? 'bg-[color:rgba(94,106,210,0.14)] text-[color:var(--color-text-primary)]'

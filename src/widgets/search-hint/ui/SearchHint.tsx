@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { useTranslations } from 'next-intl';
 import { RefreshCcw, Search } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 
@@ -22,6 +23,7 @@ export function SearchHint({
   onOpenSearch,
   onRelayout,
 }: Props) {
+  const t = useTranslations('searchWidgets.hint');
   const isMac = useSyncExternalStore(subscribe, getIsMac, getIsMacServer);
   const pillClass =
     'h-11 rounded-full border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] shadow-[0_10px_26px_rgba(0,0,0,0.14)]';
@@ -42,11 +44,11 @@ export function SearchHint({
             'hidden h-11 items-center gap-2 overflow-hidden px-4 text-[12px] font-[var(--font-weight-signature)] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] active:bg-[color:var(--color-overlay-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] md:flex',
             pillClass,
           )}
-          aria-label="자동 정렬"
-          title="노드 위치 자동 정렬"
+          aria-label={t('relayoutAriaLabel')}
+          title={t('relayoutTitle')}
         >
           <RefreshCcw size={14} />
-          <span className="hidden md:inline">자동 정렬</span>
+          <span className="hidden md:inline">{t('relayoutLabel')}</span>
         </button>
         <button
           type="button"
@@ -55,15 +57,15 @@ export function SearchHint({
             'group flex h-11 items-center gap-2 overflow-hidden px-3.5 text-[12px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors active:bg-[color:rgba(94,106,210,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] md:min-w-[176px] md:gap-2.5 md:pl-4 md:text-[color:var(--color-text-tertiary)] md:hover:text-[color:var(--color-text-primary)] md:active:bg-[color:var(--color-overlay-1)] xl:min-w-[208px]',
             pillClass,
           )}
-          aria-label="프로젝트 검색"
-          title="프로젝트 검색"
+          aria-label={t('searchAriaLabel')}
+          title={t('searchTitle')}
         >
           <Search
             size={14}
             className="text-[color:var(--color-text-secondary)] md:text-[color:var(--color-text-tertiary)] md:group-hover:text-[color:var(--color-text-secondary)]"
           />
           <span className="hidden md:inline md:group-hover:text-[color:var(--color-text-primary)]">
-            검색
+            {t('searchLabel')}
           </span>
           <span
             aria-hidden="true"

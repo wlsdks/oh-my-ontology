@@ -1,7 +1,19 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { NextIntlClientProvider } from 'next-intl';
+import koMessages from '../../../../messages/ko.json';
 import type { VaultDoc } from '@/entities/docs-vault';
 import { DocsVaultEditor } from './DocsVaultEditor';
+
+// next-intl provider 로 감싼 render — useTranslations 가 throw 하지 않게.
+// 기존 한국어 카피 assert 는 ko 로컬 메시지로 그대로 작동.
+function render(ui: React.ReactElement) {
+  return rtlRender(
+    <NextIntlClientProvider locale="ko" messages={koMessages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 
 const doc: VaultDoc = {
   slug: 'ARCHITECTURE',

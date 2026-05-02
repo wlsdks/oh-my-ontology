@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Check, Search, Sparkles, X } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import {
@@ -37,6 +38,7 @@ export function DependencyPicker({
   invalidSlugs = [],
   suggestions = [],
 }: Props) {
+  const t = useTranslations('settings.dependencyPicker');
   const [query, setQuery] = useState('');
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(
     () => new Set(),
@@ -134,7 +136,7 @@ export function DependencyPicker({
         </div>
       ) : (
         <p className="text-xs text-[color:var(--color-text-quaternary)]">
-          선택된 의존성이 없습니다. 아래에서 골라 추가하세요.
+          {t('emptyHint')}
         </p>
       )}
 
@@ -150,7 +152,7 @@ export function DependencyPicker({
               aria-hidden="true"
             />
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]">
-              추천 — 설명에서 발견한 다른 프로젝트
+              {t('suggestionsHeading')}
             </p>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -178,10 +180,10 @@ export function DependencyPicker({
                       }
                     }}
                     className="flex items-center gap-1 rounded-full border border-[color:var(--color-indigo-brand)] bg-[color:rgba(94,106,210,0.14)] px-2 py-0.5 text-[10px] text-[color:var(--color-indigo-accent)] hover:bg-[color:rgba(94,106,210,0.24)]"
-                    aria-label={`${suggestion.name} 의존성 추가`}
+                    aria-label={t('suggestionAcceptLabel', { name: suggestion.name })}
                   >
                     <Check size={10} />
-                    수락
+                    {t('suggestionAccept')}
                   </button>
                   <button
                     type="button"
@@ -194,7 +196,7 @@ export function DependencyPicker({
                       });
                     }}
                     className="flex items-center rounded-full border border-[color:var(--color-divider)] px-1.5 py-0.5 text-[color:var(--color-text-quaternary)] hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
-                    aria-label={`${suggestion.name} 제안 거절`}
+                    aria-label={t('suggestionRejectLabel', { name: suggestion.name })}
                   >
                     <X size={10} />
                   </button>
@@ -211,7 +213,7 @@ export function DependencyPicker({
           className="flex flex-col gap-2 rounded-lg border border-[color:rgba(244,183,49,0.25)] bg-[color:rgba(244,183,49,0.08)] p-3"
         >
           <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--color-status-warning)]">
-            Missing dependency reference
+            {t('missingHeading')}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {missingSelected.map((slug, index) => (
@@ -231,7 +233,7 @@ export function DependencyPicker({
             ))}
           </div>
           <p className="text-xs text-[color:var(--color-text-secondary)]">
-            더 이상 존재하지 않는 프로젝트 참조입니다. 칩을 눌러 하나씩 제거하세요.
+            {t('missingHint')}
           </p>
         </div>
       )}
@@ -243,7 +245,7 @@ export function DependencyPicker({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="프로젝트 검색 — 이름 또는 slug"
+          placeholder={t('searchPlaceholder')}
           className="flex-1 bg-transparent text-xs text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:outline-none"
         />
       </div>
@@ -251,7 +253,7 @@ export function DependencyPicker({
       {/* 미선택 목록 */}
       <div className="flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
         {filtered.length === 0 ? (
-          <p className="text-xs text-[color:var(--color-text-quaternary)]">일치하는 결과 없음</p>
+          <p className="text-xs text-[color:var(--color-text-quaternary)]">{t('noMatch')}</p>
         ) : (
           filtered.map((p) => (
             <button

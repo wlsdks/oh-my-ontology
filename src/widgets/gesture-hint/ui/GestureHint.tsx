@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Hand, Pointer, X } from "lucide-react";
 import { MOTION } from "@/shared/motion";
 
 const STORAGE_KEY = "demo:gesture-hint:dismissed:v1";
 
 export function GestureHint({ disabled = false }: { disabled?: boolean }) {
+  const t = useTranslations("searchWidgets.gestureHint");
   const [visible, setVisible] = useState(false);
   // 터치 환경에서만 보여준다. SSR 호환 — initializeWithValue:false 로
   // hydration mismatch 회피 (정적 export 호환).
@@ -59,22 +61,22 @@ export function GestureHint({ disabled = false }: { disabled?: boolean }) {
           </span>
           <div className="flex-1">
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              지도 조작
+              {t("eyebrow")}
             </p>
             <p className="mt-1 text-[12px] leading-[1.45] text-[color:var(--color-text-secondary)]">
-              두 손가락으로 확대·축소, 드래그로 이동. 노드를 탭하면 상세가 열려요.
+              {t("body")}
             </p>
             <div className="mt-2 flex items-center gap-1.5">
               <Pointer size={10} className="text-[color:var(--color-text-quaternary)]" />
               <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                탭 = 상세
+                {t("tapDetail")}
               </span>
             </div>
           </div>
           <button
             type="button"
             onClick={dismiss}
-            aria-label="힌트 닫기"
+            aria-label={t("closeAriaLabel")}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-strong)]"
           >
             <X size={13} />

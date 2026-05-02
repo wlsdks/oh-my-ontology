@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { getOntologyKindIcon, getOntologyKindLabel } from "@/entities/ontology-class";
 import type { ManualNodeKind } from "@/entities/knowledge-graph";
 
@@ -13,24 +14,12 @@ import type { ManualNodeKind } from "@/entities/knowledge-graph";
  */
 const PALETTE_KINDS: Array<{
   kind: Exclude<ManualNodeKind, "document">;
-  hint: string;
+  hintKey: "kindProjectHint" | "kindDomainHint" | "kindCapabilityHint" | "kindElementHint";
 }> = [
-  {
-    kind: "project",
-    hint: "최상위 단위 — 전체 워크스페이스의 한 프로젝트",
-  },
-  {
-    kind: "domain",
-    hint: "프로젝트 안의 큰 영역 — 인증 / 결제 / 알림 등",
-  },
-  {
-    kind: "capability",
-    hint: "도메인 안의 한 기능 — '사용자 로그인' 같은 동사형",
-  },
-  {
-    kind: "element",
-    hint: "역량 안의 작은 구성 — 화면 / 버튼 / API 등 구체 단위",
-  },
+  { kind: "project", hintKey: "kindProjectHint" },
+  { kind: "domain", hintKey: "kindDomainHint" },
+  { kind: "capability", hintKey: "kindCapabilityHint" },
+  { kind: "element", hintKey: "kindElementHint" },
 ];
 
 export interface OntologyKindPaletteProps {
@@ -38,30 +27,32 @@ export interface OntologyKindPaletteProps {
 }
 
 export function OntologyKindPalette({ onAddNode }: OntologyKindPaletteProps) {
+  const t = useTranslations("ontologyPages.edit.palette");
   return (
     <aside
-      aria-label="ontology 노드 종류 palette"
+      aria-label={t("ariaLabel")}
       className="flex h-full w-[200px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3"
     >
       <header>
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-          Palette
+          {t("eyebrow")}
         </p>
         <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
-          종류를 골라 클릭하면 캔버스 가운데에 새 노드가 생겨요.
+          {t("subtitle")}
         </p>
       </header>
       <ul className="flex flex-col gap-1.5">
         {PALETTE_KINDS.map((entry) => {
           const Icon = getOntologyKindIcon(entry.kind);
           const label = getOntologyKindLabel(entry.kind);
+          const hint = t(entry.hintKey);
           return (
             <li key={entry.kind}>
               <button
                 type="button"
                 onClick={() => onAddNode(entry.kind)}
                 className="group flex w-full items-start gap-2.5 rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-elevated)] px-3 py-2.5 text-left transition-colors hover:border-[color:rgba(94,106,210,0.46)] hover:bg-[color:rgba(94,106,210,0.08)]"
-                aria-label={`${label} 노드 추가 — ${entry.hint}`}
+                aria-label={t("addAriaLabel", { label, hint })}
               >
                 <span
                   aria-hidden
@@ -74,7 +65,7 @@ export function OntologyKindPalette({ onAddNode }: OntologyKindPaletteProps) {
                     {label}
                   </span>
                   <span className="text-[11px] leading-4 text-[color:var(--color-text-quaternary)] group-hover:text-[color:var(--color-text-tertiary)]">
-                    {entry.hint}
+                    {hint}
                   </span>
                 </span>
               </button>
@@ -84,7 +75,7 @@ export function OntologyKindPalette({ onAddNode }: OntologyKindPaletteProps) {
       </ul>
       <footer className="mt-auto pt-3">
         <p className="text-[10px] leading-4 text-[color:var(--color-text-quaternary)]">
-          새 노드는 임시 — 오른쪽 인스펙터에서 이름 입력 + 저장해야 vault/.md 로 들어가요.
+          {t("footerHint")}
         </p>
       </footer>
     </aside>

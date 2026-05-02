@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { BookOpen, ChevronDown, Compass, FolderKanban, LogOut, Moon, Shield, Sun, UserRound } from "lucide-react";
 import { useGlobalAdmin } from "@/features/permissions";
 import { useScopedAccountAccess } from "@/features/account-scope";
@@ -24,10 +25,11 @@ function resolveIdentityLabel(
     email?: string | null;
     displayName?: string | null;
   } | null,
+  fallback: { loading: string; myInfo: string },
 ) {
-  if (status === "loading") return "확인 중";
-  if (!user) return "내 정보";
-  return user.displayName?.trim() || user.email?.trim() || "내 정보";
+  if (status === "loading") return fallback.loading;
+  if (!user) return fallback.myInfo;
+  return user.displayName?.trim() || user.email?.trim() || fallback.myInfo;
 }
 
 export function PublicAccountMenu({
@@ -37,6 +39,7 @@ export function PublicAccountMenu({
   dismissToken,
   onOpenChange,
 }: Props) {
+  const t = useTranslations("searchWidgets.accountMenu");
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user } = useGlobalAdmin();
@@ -56,8 +59,12 @@ export function PublicAccountMenu({
     [scopedAccess.roleLabel],
   );
   const identityLabel = useMemo(
-    () => resolveIdentityLabel(menuStatus, visibleUser),
-    [menuStatus, visibleUser],
+    () =>
+      resolveIdentityLabel(menuStatus, visibleUser, {
+        loading: t("loading"),
+        myInfo: t("myInfo"),
+      }),
+    [menuStatus, visibleUser, t],
   );
   const currentPath = useMemo(() => {
     const search = searchParams?.toString() ?? "";
@@ -131,7 +138,7 @@ export function PublicAccountMenu({
         className="inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-3.5 text-left text-[color:var(--color-text-primary)] shadow-[0_10px_26px_rgba(0,0,0,0.14)] transition-[background-color,border-color,box-shadow,transform] duration-180 ease-out hover:border-[color:var(--color-border-strong)] hover:bg-[color:var(--color-panel)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.2)] active:translate-y-[1px] active:bg-[color:var(--color-overlay-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)] motion-reduce:transition-none motion-reduce:transform-none"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="내 정보 메뉴 열기"
+        aria-label={t("openMenuAriaLabel")}
       >
         <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-2)] text-[color:var(--color-text-secondary)]">
           <UserRound size={15} />
@@ -161,19 +168,19 @@ export function PublicAccountMenu({
       {open && (
         <div
           role="menu"
-          aria-label="내 정보 메뉴"
+          aria-label={t("menuAriaLabel")}
           className="absolute right-0 top-[calc(100%+0.75rem)] z-40 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-[20px] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] shadow-[0_28px_60px_rgba(0,0,0,0.34)]"
         >
           <div className="border-b border-[color:var(--color-border-soft)] px-4 py-4">
             <p className="mt-2 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-              {visibleUser?.displayName?.trim() || visibleUser?.email?.trim() || "로그인되지 않음"}
+              {visibleUser?.displayName?.trim() || visibleUser?.email?.trim() || t("notSignedIn")}
             </p>
             <div className="mt-3 inline-flex rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
               {statusCopy.badge}
             </div>
             {scopeLabel && (
               <p className="mt-3 text-xs leading-5 text-[color:var(--color-text-tertiary)]">
-                현재 화면:{" "}
+                {t("currentScope")}{" "}
                 <span className="text-[color:var(--color-text-primary)]">{scopeLabel}</span>
               </p>
             )}
@@ -190,7 +197,7 @@ export function PublicAccountMenu({
                 >
                     <span className="flex items-center gap-2">
                       <Compass size={15} className="text-[color:var(--color-text-tertiary)]" />
-                    워크스페이스 지도
+                    {t("workspaceMap")}
                   </span>
                 </Link>
               )}
@@ -206,7 +213,7 @@ export function PublicAccountMenu({
                 >
                   <span className="flex items-center gap-2">
                     <FolderKanban size={15} className="text-[color:var(--color-text-tertiary)]" />
-                    프로젝트
+                    {t("projects")}
                   </span>
                 </Link>
               )}
@@ -218,10 +225,10 @@ export function PublicAccountMenu({
               >
                 <span className="flex items-center gap-2">
                   <BookOpen size={15} className="text-[color:var(--color-text-tertiary)]" />
-                  문서 볼트
+                  {t("docsVault")}
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
-                  PKM
+                  {t("docsVaultBadge")}
                 </span>
               </Link>
               {menuStatus !== "guest" && (
@@ -233,7 +240,7 @@ export function PublicAccountMenu({
                 >
                   <span className="flex items-center gap-2">
                     <UserRound size={15} className="text-[color:var(--color-text-tertiary)]" />
-                    계정 설정
+                    {t("accountSettings")}
                   </span>
                 </Link>
               )}
@@ -249,7 +256,7 @@ export function PublicAccountMenu({
                       size={15}
                       className="text-[color:var(--color-indigo-accent)]"
                     />
-                    공간 관리
+                    {t("spaceManagement")}
                   </span>
                 </Link>
               ) : menuStatus === "guest" ? (
@@ -262,7 +269,7 @@ export function PublicAccountMenu({
                   >
                     <span className="flex items-center gap-2">
                       <UserRound size={15} className="text-[color:var(--color-text-tertiary)]" />
-                      로그인
+                      {t("signIn")}
                     </span>
                   </Link>
                   <Link
@@ -273,7 +280,7 @@ export function PublicAccountMenu({
                   >
                     <span className="flex items-center gap-2">
                       <Shield size={15} className="text-[color:var(--color-indigo-accent)]" />
-                      회원가입
+                      {t("signUp")}
                     </span>
                   </Link>
                 </div>
@@ -296,7 +303,7 @@ export function PublicAccountMenu({
                 >
                   <span className="flex items-center gap-2">
                     <LogOut size={15} className="text-[color:var(--color-text-tertiary)]" />
-                    로그아웃
+                    {t("signOut")}
                   </span>
                 </button>
               )}
@@ -313,6 +320,7 @@ export function PublicAccountMenu({
  * 사용자가 색 변화를 즉시 확인 가능. 다른 row 와 동일한 padding · radius.
  */
 function ThemeMenuRow() {
+  const t = useTranslations("searchWidgets.accountMenu");
   const [theme, setTheme] = useTheme();
   const isLight = theme === "light";
   return (
@@ -320,7 +328,7 @@ function ThemeMenuRow() {
       type="button"
       role="menuitem"
       onClick={() => setTheme(isLight ? "dark" : "light")}
-      aria-label={isLight ? "다크 모드로 전환" : "라이트 모드로 전환"}
+      aria-label={isLight ? t("themeSwitchToDark") : t("themeSwitchToLight")}
       className="mt-1 flex w-full items-center justify-between rounded-[12px] px-3 py-3 text-sm text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-overlay-2)]"
     >
       <span className="flex items-center gap-2">
@@ -329,10 +337,10 @@ function ThemeMenuRow() {
         ) : (
           <Sun size={15} className="text-[color:var(--color-text-tertiary)]" />
         )}
-        테마
+        {t("themeLabel")}
       </span>
       <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
-        {isLight ? "라이트" : "다크"}
+        {isLight ? t("themeLight") : t("themeDark")}
       </span>
     </button>
   );

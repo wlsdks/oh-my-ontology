@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { Upload, Trash2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { uploadScreenshot, deleteScreenshot } from '@/entities/project/api';
@@ -17,6 +18,7 @@ interface Props {
  * slug가 비어 있으면(= create 모드, 아직 저장 전) 업로드 차단 — 저장 후에만 가능.
  */
 export function ScreenshotUploader({ slug, value, onChange }: Props) {
+  const t = useTranslations('settings.screenshot');
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export function ScreenshotUploader({ slug, value, onChange }: Props) {
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     if (!canUpload) {
-      setError('프로젝트를 먼저 저장한 뒤 업로드하세요.');
+      setError(t('saveBeforeUploadError'));
       return;
     }
     setError(null);
@@ -36,17 +38,17 @@ export function ScreenshotUploader({ slug, value, onChange }: Props) {
       for (const file of Array.from(files)) {
         // storage.rules와 동기화: png/jpeg/webp, 5MB 제한.
         if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
-          throw new Error(`${file.name}: png/jpeg/webp만 허용됩니다.`);
+          throw new Error(t('fileTypeError', { name: file.name }));
         }
         if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`${file.name}: 5MB 초과`);
+          throw new Error(t('fileSizeError', { name: file.name }));
         }
         const url = await uploadScreenshot(slug, file);
         uploaded.push(url);
       }
       onChange([...value, ...uploaded]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '업로드 실패');
+      setError(err instanceof Error ? err.message : t('uploadFailed'));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -54,7 +56,7 @@ export function ScreenshotUploader({ slug, value, onChange }: Props) {
   };
 
   const handleDelete = async (url: string) => {
-    if (!confirm('이 스크린샷을 삭제할까요?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
     onChange(value.filter((u) => u !== url));
     // 스토리지 삭제는 best-effort — 실패해도 폼에선 제거
     void deleteScreenshot(url);
@@ -82,7 +84,7 @@ export function ScreenshotUploader({ slug, value, onChange }: Props) {
                 type="button"
                 onClick={() => handleDelete(url)}
                 className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-md bg-[color:var(--color-backdrop-strong)] text-[color:var(--color-text-tertiary)] opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
-                aria-label="삭제"
+                aria-label={t('deleteAria')}
               >
                 <Trash2 size={12} />
               </button>
@@ -91,7 +93,7 @@ export function ScreenshotUploader({ slug, value, onChange }: Props) {
         </div>
       ) : (
         <p className="text-xs text-[color:var(--color-text-quaternary)]">
-          등록된 스크린샷이 없습니다.
+          {t('emptyHint')}
         </p>
       )}
 
@@ -117,11 +119,11 @@ export function ScreenshotUploader({ slug, value, onChange }: Props) {
           )}
         >
           <Upload size={12} aria-hidden />
-          {uploading ? '업로드 중…' : '이미지 업로드 (여러 장 가능)'}
+          {uploading ? t('uploadingLabel') : t('uploadLabel')}
         </button>
         {!canUpload && (
           <p className="mt-1.5 text-[11px] text-[color:var(--color-text-quaternary)]">
-            새 프로젝트는 먼저 저장해야 업로드할 수 있습니다.
+            {t('saveBeforeUploadHint')}
           </p>
         )}
         {error && (

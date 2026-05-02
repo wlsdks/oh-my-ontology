@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, BookOpen, ChevronsLeft, List, Network, Search } from "lucide-react";
 import { Tooltip } from "@/shared/ui";
 import { cn } from "@/shared/lib/cn";
@@ -34,8 +37,8 @@ export function HeroHeader({
   activePathLabel,
   onOpenSearch,
   onCollapse,
-  title = "토폴로지",
-  eyebrow = "워크스페이스 지도",
+  title,
+  eyebrow,
   description,
   icon,
   projectsListHref,
@@ -44,11 +47,14 @@ export function HeroHeader({
   workspaceMapHref,
   onWorkspaceMapClick,
 }: Props) {
+  const t = useTranslations("searchWidgets.hero");
+  const resolvedTitle = title ?? t("defaultTitleTopology");
+  const resolvedEyebrow = eyebrow ?? t("defaultEyebrow");
   const summary =
     description ??
     (activePathLabel
-      ? `${activePathLabel} 흐름을 보고 있습니다.`
-      : "문서에서 자라는 연결 구조를 읽습니다.");
+      ? t("summaryActive", { label: activePathLabel })
+      : t("summaryDefault"));
 
   return (
     <motion.section
@@ -79,11 +85,11 @@ export function HeroHeader({
               />
             )}
             {onCollapse && (
-              <Tooltip content="좌측 패널 접기" side="bottom" withProvider={false}>
+              <Tooltip content={t("collapseLeft")} side="bottom" withProvider={false}>
                 <button
                   type="button"
                   onClick={onCollapse}
-                  aria-label="좌측 패널 접기"
+                  aria-label={t("collapseLeft")}
                   className="-mt-1 -mr-1 flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-strong)]"
                 >
                   <ChevronsLeft size={15} />
@@ -92,13 +98,13 @@ export function HeroHeader({
             )}
           </div>
           <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)] whitespace-nowrap">
-            {eyebrow}
+            {resolvedEyebrow}
           </p>
           <h1
             translate="no"
             className="mt-1.5 text-[32px] leading-[0.96] tracking-[var(--tracking-hero)] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] lg:text-[36px] xl:text-[44px]"
           >
-            {title}
+            {resolvedTitle}
           </h1>
 
           <p className="mt-4 max-w-[260px] text-[13px] leading-5 text-[color:var(--color-text-secondary)] lg:max-w-[280px] xl:max-w-[312px]">
@@ -113,7 +119,7 @@ export function HeroHeader({
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-[color:rgba(224,196,140,0.4)] bg-[color:rgba(224,196,140,0.08)] px-4 text-[13px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(224,196,140,0.6)] hover:bg-[color:rgba(224,196,140,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(224,196,140,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
               >
                 <ArrowLeft size={14} />
-                워크스페이스 지도
+                {t("workspaceMap")}
               </Link>
             ) : null}
             <button
@@ -122,7 +128,7 @@ export function HeroHeader({
               className="inline-flex h-9 items-center gap-2 rounded-full border border-[color:rgba(94,106,210,0.38)] bg-[color:rgba(94,106,210,0.14)] px-4 text-[13px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:rgba(94,106,210,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
             >
               <Search size={14} />
-              {title === "토폴로지" ? "프로젝트 찾기" : "다른 프로젝트 찾기"}
+              {resolvedTitle === t("defaultTitleTopology") ? t("findProject") : t("findOtherProject")}
             </button>
             {projectsListHref ? (
               <Link
@@ -130,27 +136,27 @@ export function HeroHeader({
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-4 text-[13px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
               >
                 <List size={14} />
-                프로젝트 목록
+                {t("projectsList")}
               </Link>
             ) : null}
             {docsVaultHref ? (
               <Link
                 href={docsVaultHref}
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-4 text-[13px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
-                aria-label="문서 볼트 열기 — 로컬 폴더·서버 문서를 한 곳에서 열람"
+                aria-label={t("docsVaultAriaLabel")}
               >
                 <BookOpen size={14} />
-                문서 볼트
+                {t("docsVault")}
               </Link>
             ) : null}
             {ontologyHref ? (
               <Link
                 href={ontologyHref}
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-4 text-[13px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
-                aria-label="온톨로지 트리 열기 — vault frontmatter 의 노드와 관계를 계층으로 본다"
+                aria-label={t("ontologyAriaLabel")}
               >
                 <Network size={14} />
-                온톨로지
+                {t("ontology")}
               </Link>
             ) : null}
           </div>

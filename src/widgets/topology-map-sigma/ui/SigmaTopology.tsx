@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
+import { useTranslations } from 'next-intl';
 import { Maximize2 } from 'lucide-react';
 import { Tooltip } from '@/shared/ui';
 import Sigma from 'sigma';
@@ -240,6 +241,7 @@ export function SigmaTopology({
   accountId,
   className,
 }: SigmaTopologyProps) {
+  const t = useTranslations('topologyWidgets.sigma');
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sigmaRef = useRef<ReturnType<typeof createSigma> | null>(null);
   // 미니맵 · aurora 처럼 sigma 인스턴스를 render 에 쓰는 자식들은 ref 를 직접
@@ -1360,7 +1362,7 @@ export function SigmaTopology({
         // 실제 네비게이션은 좌측 Hub Rail 의 버튼 목록으로 SR 사용자에게
         // 접근 가능 (각 버튼에 aria-label 존재).
         role="application"
-        aria-label="프로젝트 토폴로지 지도 — 좌측 허브 바에서 개별 프로젝트 바로가기"
+        aria-label={t('ariaLabel')}
         className="relative h-full w-full"
         style={{
           background: 'transparent',
@@ -1391,11 +1393,11 @@ export function SigmaTopology({
           으로 부드럽게 복귀. 메인 토폴로지엔 SigmaControls 안에 같은
           동작이 이미 있어 중복을 피한다. */}
       {minimal && sigmaInstance ? (
-        <Tooltip content="중앙 정렬" side="bottom" withProvider={false}>
+        <Tooltip content={t('recenterTooltip')} side="bottom" withProvider={false}>
           <button
             type="button"
             onClick={recenter}
-            aria-label="지도 중앙으로 정렬"
+            aria-label={t('recenterAriaLabel')}
             className="pointer-events-auto absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.32)] hover:text-[color:var(--color-text-primary)]"
           >
             <Maximize2 size={13} />
@@ -1461,7 +1463,7 @@ export function SigmaTopology({
             type="button"
             onClick={() => pathClearRef.current?.()}
             className="shrink-0 rounded-full border border-[color:var(--color-divider)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)]"
-            aria-label="경로 해제"
+            aria-label={t('pathClearAriaLabel')}
           >
             Esc
           </button>
@@ -1483,7 +1485,7 @@ export function SigmaTopology({
             </span>
             <span className="text-[color:var(--color-text-tertiary)]"> → </span>
             <span className="text-[color:var(--color-text-tertiary)]">
-              다른 노드를 Shift+클릭
+              {t('pathPickSecondNode')}
             </span>
           </span>
           <button
@@ -1512,15 +1514,15 @@ export function SigmaTopology({
         className={`pointer-events-none absolute bottom-6 left-4 z-10 ${minimal ? 'hidden' : 'hidden md:flex'} items-center gap-3 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-3 py-1.5 font-mono text-[10px] tracking-[0.14em] text-[color:var(--color-text-quaternary)] md:left-6 xl:left-8`}
       >
         <span>
-          <span className="text-[color:var(--color-text-secondary)]">{stats.nodes}</span> 노드
+          <span className="text-[color:var(--color-text-secondary)]">{stats.nodes}</span> {t('statsNodes')}
         </span>
         <span className="h-2 w-px bg-[color:var(--color-overlay-3)]" />
         <span>
-          <span className="text-[color:var(--color-indigo-accent)]">{stats.hubs}</span> 허브
+          <span className="text-[color:var(--color-indigo-accent)]">{stats.hubs}</span> {t('statsHubs')}
         </span>
         <span className="h-2 w-px bg-[color:var(--color-overlay-3)]" />
         <span>
-          <span className="text-[color:var(--color-text-secondary)]">{stats.edges}</span> 엣지
+          <span className="text-[color:var(--color-text-secondary)]">{stats.edges}</span> {t('statsEdges')}
         </span>
         {hubsOnly ? (
           <>
@@ -1553,19 +1555,19 @@ export function SigmaTopology({
       {!minimal && overlays?.auditHighlight ? (
         <div className="pointer-events-none absolute bottom-[60px] left-4 z-10 flex flex-col gap-1 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-3 py-2 md:left-6 xl:left-8">
           <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-            챙길 곳 표시
+            {t('auditLegendTitle')}
           </span>
           <LegendRow
             color={AUDIT_STALE_COLOR}
-            label={`오래된 · ${AUDIT_STALE_DAYS_THRESHOLD}일+ 안 건드림 (${auditSets.stale.size})`}
+            label={t('auditLegendStale', { threshold: AUDIT_STALE_DAYS_THRESHOLD, count: auditSets.stale.size })}
           />
           <LegendRow
             color={AUDIT_ORPHAN_COLOR}
-            label={`외톨이 · 연결 0 (${auditSets.orphan.size})`}
+            label={t('auditLegendOrphan', { count: auditSets.orphan.size })}
           />
           <LegendRow
             color={AUDIT_PROMOTION_COLOR}
-            label={`허브 후보 · ${AUDIT_PROMOTION_MIN_FAN_IN}개 이상 부름 (${auditSets.promotion.size})`}
+            label={t('auditLegendPromotion', { threshold: AUDIT_PROMOTION_MIN_FAN_IN, count: auditSets.promotion.size })}
           />
         </div>
       ) : null}

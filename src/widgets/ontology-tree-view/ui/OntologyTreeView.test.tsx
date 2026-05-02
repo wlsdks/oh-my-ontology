@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render as rtlRender, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
+import koMessages from "../../../../messages/ko.json";
 import { OntologyTreeView } from "./OntologyTreeView";
 import type { OntologyTreeBuildResult } from "@/shared/lib/ontology-tree";
 import type { KnowledgeGraphNode } from "@/entities/knowledge-graph";
+
+// next-intl provider 로 감싼 render 헬퍼 — useTranslations 가 throw 하지 않게.
+function render(ui: React.ReactElement) {
+  return rtlRender(
+    <NextIntlClientProvider locale="ko" messages={koMessages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 
 function makeNode(id: string, kind: string, title?: string): KnowledgeGraphNode {
   return {
@@ -250,12 +261,14 @@ describe("OntologyTreeView — UX-16 project chip", () => {
 });
 
 describe("OntologyTreeView — empty state", () => {
-  it("shows the emptyHint when no roots and no orphans", () => {
+  it("shows the default emptyHint when no roots and no orphans", () => {
     render(
       <OntologyTreeView result={{ roots: [], orphans: [], warnings: [] }} />,
     );
     expect(screen.getByTestId("ontology-tree-empty")).toBeInTheDocument();
-    expect(screen.getByText(/ontology 가 아직 자라지 않았어요/)).toBeInTheDocument();
+    // emptyHint prop 미전달 시 widget 내 기본 영문 fallback 사용 (caller 가
+    // 항상 i18n 키로 전달하기 때문에 fallback 은 빈 안전망 정도).
+    expect(screen.getByText(/hasn't grown yet/i)).toBeInTheDocument();
   });
 
   it("uses custom emptyHint", () => {

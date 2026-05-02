@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronUp, Maximize2, Search, Sliders, SlidersHorizontal, X } from 'lucide-react';
 import { Tooltip } from '@/shared/ui';
 import type {
@@ -35,6 +36,7 @@ export function SigmaControls({
   visibleCount,
   totalCount,
 }: SigmaControlsProps) {
+  const t = useTranslations('topologyWidgets.controls');
   const [expanded, setExpanded] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [forcesOpen, setForcesOpen] = useState(false);
@@ -90,11 +92,11 @@ export function SigmaControls({
               우측 floating 무게를 줄인다. */}
           {onFitView ? (
             <>
-              <Tooltip content="지도 전체 맞추기" side="left" withProvider={false}>
+              <Tooltip content={t('fitViewTooltip')} side="left" withProvider={false}>
                 <button
                   type="button"
                   onClick={onFitView}
-                  aria-label="지도 전체 맞추기"
+                  aria-label={t('fitViewAriaLabel')}
                   className="hidden h-9 w-9 items-center justify-center text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] active:bg-[color:rgba(94,106,210,0.18)] md:flex"
                 >
                   <Maximize2 className="h-4 w-4" />
@@ -103,11 +105,11 @@ export function SigmaControls({
               <div className="hidden h-px bg-[color:var(--color-border-soft)] md:block" />
             </>
           ) : null}
-          <Tooltip content="그래프 컨트롤" side="left" withProvider={false}>
+          <Tooltip content={t('openTooltip')} side="left" withProvider={false}>
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              aria-label="그래프 컨트롤 열기"
+              aria-label={t('openAriaLabel')}
               className="flex h-9 w-9 items-center justify-center text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -134,11 +136,11 @@ export function SigmaControls({
       {/* 펼친 상태에서도 Fit 버튼은 같은 우측 컬럼 top-[140px]에 남겨둔다.
           panel은 그 아래 top-[184px]부터. */}
       {onFitView ? (
-        <Tooltip content="지도 전체 맞추기" side="left" withProvider={false}>
+        <Tooltip content={t('fitViewTooltip')} side="left" withProvider={false}>
           <button
             type="button"
             onClick={onFitView}
-            aria-label="지도 전체 맞추기"
+            aria-label={t('fitViewAriaLabel')}
             className="pointer-events-auto absolute right-4 top-[140px] z-20 flex h-9 w-9 items-center justify-center rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] active:bg-[color:rgba(94,106,210,0.18)] md:right-6 xl:right-8"
           >
             <Maximize2 className="h-4 w-4" />
@@ -155,7 +157,7 @@ export function SigmaControls({
             onChange={(e) =>
               onChange({ ...value, searchQuery: e.target.value })
             }
-            placeholder="이름·slug 필터"
+            placeholder={t('searchPlaceholder')}
             className="w-full border-0 bg-transparent text-[12px] text-[color:var(--color-text-primary)] outline-none placeholder:text-[color:var(--color-text-quaternary)]"
           />
           {countBadge ? (
@@ -165,7 +167,7 @@ export function SigmaControls({
                   ? 'text-[color:rgba(139,151,255,0.9)]'
                   : 'text-[color:var(--color-text-quaternary)]'
               }`}
-              aria-label={`${visibleCount} / ${totalCount} 노드 표시`}
+              aria-label={t('searchCountAriaLabel', { visible: visibleCount as number, total: totalCount as number })}
             >
               {countBadge}
             </span>
@@ -175,7 +177,7 @@ export function SigmaControls({
               type="button"
               onClick={() => onChange({ ...value, searchQuery: '' })}
               className="font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-              aria-label="검색 지우기"
+              aria-label={t('clearSearchAriaLabel')}
             >
               Esc
             </button>
@@ -184,7 +186,7 @@ export function SigmaControls({
               type="button"
               onClick={() => setExpanded(false)}
               className="text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-              aria-label="컨트롤 닫기"
+              aria-label={t('closeAriaLabel')}
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -195,7 +197,7 @@ export function SigmaControls({
             허브-허브 엣지만 렌더. 클릭 한 번으로 전환. */}
         <label className="pointer-events-auto flex cursor-pointer items-center justify-between rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-3 py-2 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.28)]">
           <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-[color:var(--color-text-quaternary)]">
-            허브만 보기
+            {t('hubsOnlyLabel')}
           </span>
           <input
             type="checkbox"
@@ -212,14 +214,14 @@ export function SigmaControls({
           </span>
           <div className="mt-2 space-y-1.5">
             <OverlayToggle
-              label="최근 업데이트 pulse"
-              hint="7일 내 수정"
+              label={t('overlayRecentPulseLabel')}
+              hint={t('overlayRecentPulseHint')}
               checked={value.overlays.recentPulse}
               onChange={(next) => updateOverlay('recentPulse', next)}
             />
             <OverlayToggle
-              label="역참조 강조"
-              hint="나를 의존하는 쪽"
+              label={t('overlayBackrefLabel')}
+              hint={t('overlayBackrefHint')}
               checked={value.overlays.backrefHighlight}
               onChange={(next) => updateOverlay('backrefHighlight', next)}
             />
@@ -236,7 +238,7 @@ export function SigmaControls({
             <span className="flex items-center gap-2">
               <Sliders className="h-3 w-3 text-[color:var(--color-text-quaternary)]" />
               <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-[color:var(--color-text-quaternary)]">
-                고급 설정
+                {t('advancedHeader')}
               </span>
             </span>
             {advancedOpen ? (
@@ -250,14 +252,14 @@ export function SigmaControls({
             <div className="mt-3 space-y-4 border-t border-[color:var(--color-overlay-2)] pt-3">
               <div className="space-y-1.5">
                 <OverlayToggle
-                  label="소유자 색"
-                  hint="owner 해시"
+                  label={t('overlayOwnerLabel')}
+                  hint={t('overlayOwnerHint')}
                   checked={value.overlays.ownerTint}
                   onChange={(next) => updateOverlay('ownerTint', next)}
                 />
                 <OverlayToggle
-                  label="챙길 곳 표시"
-                  hint="오래된 · 외톨이 · 허브 후보"
+                  label={t('overlayAuditLabel')}
+                  hint={t('overlayAuditHint')}
                   checked={value.overlays.auditHighlight}
                   onChange={(next) => updateOverlay('auditHighlight', next)}
                 />
@@ -269,7 +271,7 @@ export function SigmaControls({
                     Depth
                   </span>
                   <span className="font-mono text-[10px] tracking-[0.08em] text-[color:var(--color-text-secondary)]">
-                    {value.depthLimit == null ? '전체' : `${value.depthLimit} HOP`}
+                    {value.depthLimit == null ? t('depthAll') : t('depthHop', { count: value.depthLimit })}
                   </span>
                 </div>
                 <input
@@ -341,7 +343,7 @@ export function SigmaControls({
                 type="button"
                 onClick={() => {
                   if (typeof window === 'undefined') return;
-                  if (!window.confirm('드래그한 노드 위치를 모두 초기화할까요?')) return;
+                  if (!window.confirm(t('resetLayoutConfirm'))) return;
                   try {
                     window.localStorage.removeItem('demo:sigma-node-positions:v1');
                   } catch {
@@ -350,9 +352,9 @@ export function SigmaControls({
                   window.location.reload();
                 }}
                 className="rounded-md border border-[color:var(--color-border-soft)] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-                aria-label="레이아웃 초기화"
+                aria-label={t('resetLayoutAriaLabel')}
               >
-                레이아웃 초기화
+                {t('resetLayoutButton')}
               </button>
             </div>
           ) : null}
@@ -363,9 +365,9 @@ export function SigmaControls({
             type="button"
             onClick={() => setHelpOpen(true)}
             className="rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-            aria-label="단축키 도움말"
+            aria-label={t('shortcutsAriaLabel')}
           >
-            ? 단축키
+            {t('shortcutsButton')}
           </button>
         </div>
       </div>
@@ -473,16 +475,17 @@ function SliderRow({
   );
 }
 
-const SHORTCUTS: { key: string; label: string }[] = [
-  { key: '/', label: '검색 포커스' },
-  { key: '1–6', label: 'Depth 홉 설정' },
-  { key: '0', label: 'Depth 전체' },
-  { key: '더블클릭', label: 'Local graph 진입' },
-  { key: 'Esc', label: 'Local graph 나가기 / 검색 지우기' },
-  { key: '?', label: '이 도움말 토글' },
-];
-
 function HelpOverlay({ onClose }: { onClose: () => void }) {
+  const t = useTranslations('topologyWidgets.controls');
+  const SHORTCUTS: { key: string; label: string }[] = [
+    { key: '/', label: t('shortcutFocusSearch') },
+    { key: '1–6', label: t('shortcutDepthHop') },
+    { key: '0', label: t('shortcutDepthAll') },
+    { key: t('shortcutKeyDoubleClick'), label: t('shortcutDoubleClick') },
+    { key: 'Esc', label: t('shortcutEsc') },
+    { key: '?', label: t('shortcutHelp') },
+  ];
+
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -499,7 +502,7 @@ function HelpOverlay({ onClose }: { onClose: () => void }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="키보드 단축키 도움말"
+        aria-label={t('helpDialogAriaLabel')}
         onClick={(e) => e.stopPropagation()}
         className="w-[320px] rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] p-5 shadow-[0_20px_48px_rgba(0,0,0,0.6)]"
       >
@@ -511,7 +514,7 @@ function HelpOverlay({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={onClose}
             className="text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-            aria-label="도움말 닫기"
+            aria-label={t('helpCloseAriaLabel')}
           >
             <X className="h-3.5 w-3.5" />
           </button>
