@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronUp, Maximize2, Search, Sliders, SlidersHorizontal, X } from 'lucide-react';
 import { Tooltip } from '@/shared/ui';
@@ -486,12 +486,19 @@ function HelpOverlay({ onClose }: { onClose: () => void }) {
     { key: '?', label: t('shortcutHelp') },
   ];
 
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
     const handler = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+      // 닫힐 때 trigger ("?" 도움말 버튼) 로 focus 복원 — 다른 modal 과 동일.
+      previousFocusRef.current?.focus?.();
+    };
   }, [onClose]);
 
   return (
