@@ -35,8 +35,8 @@ import {
   wouldCreateDependencyCycle,
   type Project,
 } from "@/entities/project";
-import { getProject, upsertProject } from "@/entities/project/api";
-import { useProjects } from "@/features/project-data-source";
+import { useProjects, useProjectMutations } from "@/features/project-data-source";
+import { useDataSourceMode } from "@/features/data-source-mode";
 import { resolveSubscribeUpdate } from "../model/resolve-subscribe-update";
 import { DependencyPicker } from "@/features/project-edit/ui/DependencyPicker";
 import { CopyProjectLinkButton } from "@/features/project-share";
@@ -66,7 +66,6 @@ import {
   buildKnowledgeProjectEvidenceSummary,
   type KnowledgeProjectInsight,
 } from "@/entities/knowledge-graph";
-import { subscribeKnowledgeProjectInsight } from "@/entities/knowledge-graph/api";
 
 interface Props {
   slug: string;
@@ -376,6 +375,8 @@ export function ProjectDetailPage({
   // + 실시간 구독을 통합. (이전엔 listProjects + subscribeProjects 두 effect 가
   // race 했지만 hook 이 항상 최신 snapshot 을 들고 있어 race 자체가 사라짐.)
   const projectsQuery = useProjects(accountId);
+  const dataSourceMode = useDataSourceMode();
+  const projectMutations = useProjectMutations();
   useEffect(() => {
     if (!slug) return;
     const { next, related: nextRelated } = resolveSubscribeUpdate(
@@ -388,13 +389,15 @@ export function ProjectDetailPage({
     if (projectsQuery.loaded || projectsQuery.error !== null) setResolved(true);
   }, [projectsQuery.projects, projectsQuery.loaded, projectsQuery.error, slug, fallbackProjects]);
 
-  // initial fetch — fallback 가 없는 경우 직접 getProject 로 한 번 더 시도.
-  // local 모드에선 useProjects 가 vault manifest 를 sync 로 들고 있어 별도
-  // fetch 불필요 + Firebase 미초기화 시 console 잡음 회피.
+  // initial fetch — fallback 가 없는 경우 cloud 모드에서만 직접 getProject 로
+  // 한 번 더 시도. local 모드에선 useProjects 가 vault manifest 를 sync 로
+  // 들고 있어 별도 fetch 불필요. static 모드는 fallbackProjects 가 진실원이라
+  // 추가 cloud 호출 자체가 firebase chunk 를 끌고 와 회귀를 만든다.
   useEffect(() => {
-    if (!slug || fallbackProject || projectsQuery.mode === 'local') return;
+    if (!slug || fallbackProject || projectsQuery.mode !== 'cloud') return;
     let cancelled = false;
-    void getProject(slug, accountId)
+    void import('@/entities/project/api')
+      .then(({ getProject }) => getProject(slug, accountId))
       .then((fetched) => {
         if (cancelled) return;
         if (fetched) setProject(fetched);
@@ -411,22 +414,31 @@ export function ProjectDetailPage({
 
   useEffect(() => {
     if (!slug) return;
-    // knowledgePublicNodes/Edges/Meta 는 Firestore rule 이 `allow read: if true`
-    // 로 열려 있어 게스트도 읽을 수 있다 (published projection). 과거 게스트
-    // 가드가 있었지만 rule 이 공개된 이후에도 남아 있어 공개 독자가 문서
-    // 기반 개념/연결을 못 보는 회귀 존재 — 제거.
-    const unsubscribe = subscribeKnowledgeProjectInsight(
-      slug,
-      accountId,
-      (nextInsight) => {
-        setKnowledgeInsight(nextInsight);
-      },
-      (error) => {
-        console.warn("[ProjectDetailPage] knowledge insight subscribe failed", error);
-      },
-    );
-    return () => unsubscribe();
-  }, [accountId, slug]);
+    // mode-gate (Round 9a T0-2): cloud 모드일 때만 firestore 구독. local/static
+    // 모드 사용자가 detail 페이지를 열 때 firebase JS chunk 가 열리고 listener
+    // 가 트래픽을 만들던 회귀를 차단. (Round 1 leak gate 의 ProjectDetail 누락분.)
+    if (dataSourceMode !== 'cloud') {
+      setKnowledgeInsight({ nodes: [], edges: [], meta: null });
+      return;
+    }
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
+    void import('@/entities/knowledge-graph/api').then((mod) => {
+      if (cancelled) return;
+      unsubscribe = mod.subscribeKnowledgeProjectInsight(
+        slug,
+        accountId,
+        (nextInsight) => setKnowledgeInsight(nextInsight),
+        (error) => {
+          console.warn("[ProjectDetailPage] knowledge insight subscribe failed", error);
+        },
+      );
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, [accountId, slug, dataSourceMode]);
 
   // 공개 상세(/project/[slug]/)는 누구나 읽을 수 있어야 한다. CLAUDE.md에도
   // "공개 상세"로 명시된 계약. 단 account 파라미터가 붙은 scoped URL
@@ -552,12 +564,13 @@ export function ProjectDetailPage({
         : insightDocumentNodes.length > 0
           ? t("ontologyReasonDocs", { count: insightDocumentNodes.length })
           : t("ontologyReasonEmpty"));
-  const canManageProject = scopedAccess.canManage;
-  // owner/editor 가 자기 공간 프로젝트를 보면 h1·description 등을 inline 에서
-  // 바로 고친다. subscribeProjects 가 snapshot 으로 로컬 project state 를
-  // 갱신해 optimistic update 는 불필요.
-  const persistProject = (input: Parameters<typeof upsertProject>[0]) =>
-    upsertProject(input);
+  const canManageProject = scopedAccess.canManage && projectMutations.canEdit;
+  // mode-aware persistence (Round 9a T0-1). 이전엔 cloud-only `upsertProject`
+  // 을 직접 호출해 vault 모드에서 인라인 편집이 firestore 로 silently 흘러갔다
+  // (편집 후 새로고침하면 사라지는 회귀). useProjectMutations 가 mode 에 따라
+  // vault patch 또는 cloud upsert 로 분기.
+  const persistProject = (input: Parameters<typeof projectMutations.updateProject>[0]) =>
+    projectMutations.updateProject(input);
   const saveProjectField = async (
     field: "name" | "description",
     next: string,

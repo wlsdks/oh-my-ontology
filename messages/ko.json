@@ -793,6 +793,7 @@
     "edit": {
       "page": {
         "canvasLoading": "캔버스 불러오는 중…",
+        "untitledPlaceholder": "(이름 입력)",
         "eyebrow": "Ontology Builder",
         "title": "온톨로지 빌더",
         "helpAriaLabel": "빌더 사용법 안내",
@@ -857,7 +858,15 @@
       },
       "canvas": {
         "ephemeralEdgeLabel": "관련 (임시)",
-        "emptyHint": "왼쪽 palette 에서 종류를 골라 클릭하면 첫 노드가 생겨요."
+        "emptyHint": "왼쪽 palette 에서 종류를 골라 클릭하면 첫 노드가 생겨요.",
+        "edgeLabels": {
+          "capabilities": "역량",
+          "elements": "요소",
+          "dependencies": "의존",
+          "relates": "관련",
+          "contains": "포함",
+          "describes": "설명"
+        }
       },
       "inspector": {
         "ariaLabel": "선택한 ontology 노드 상세",

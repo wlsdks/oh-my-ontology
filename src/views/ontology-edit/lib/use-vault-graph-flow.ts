@@ -11,6 +11,15 @@ import type { VaultDoc, VaultManifest } from "@/entities/docs-vault";
 export type VaultGraphLayoutMode = "dagre" | "force";
 
 /**
+ * 라벨 해석기 — kind enum / edge frontmatter key 를 사용자 locale 에 맞춰
+ * 변환. 호출자가 `useTranslations` 으로 만들어 주입한다 (Round 9a T0-4 —
+ * 이 lib 가 React 컴포넌트가 아니라 직접 `useTranslations` 못 쓰므로
+ * 함수 주입 패턴). resolver 없으면 raw key 노출.
+ */
+export type KindLabelResolver = (kind: string) => string;
+export type EdgeLabelResolver = (edgeKey: string) => string;
+
+/**
  * mission v2 빌더 — 로컬 vault 의 .md 노드를 캔버스 background 로 노출.
  *
  * cloud `useApprovedGraphFlow` 와 동일한 shape (xyflow Node[]/Edge[]) 를
@@ -40,6 +49,10 @@ export interface UseVaultGraphFlowOptions {
    * 와 같은 organic 분포). 사용자 선호 토글.
    */
   layoutMode?: VaultGraphLayoutMode;
+  /** Round 9a T0-4 — 노드 라벨 i18n. 미주입 시 raw kind enum 노출. */
+  kindLabelOf?: KindLabelResolver;
+  /** Round 9a T0-4 — 엣지 라벨 i18n. 미주입 시 raw frontmatter key 노출. */
+  edgeLabelOf?: EdgeLabelResolver;
 }
 
 export function useVaultGraphFlow(
@@ -48,13 +61,17 @@ export function useVaultGraphFlow(
 ) {
   const ignorePersistedPosition = options?.ignorePersistedPosition ?? false;
   const layoutMode = options?.layoutMode ?? "dagre";
+  const kindLabelOf = options?.kindLabelOf;
+  const edgeLabelOf = options?.edgeLabelOf;
   return useMemo(() => {
     if (!manifest) return { nodes: [] as Node[], edges: [] as Edge[] };
     return buildVaultGraphFlow(manifest, {
       ignorePersistedPosition,
       layoutMode,
+      kindLabelOf,
+      edgeLabelOf,
     });
-  }, [manifest, ignorePersistedPosition, layoutMode]);
+  }, [manifest, ignorePersistedPosition, layoutMode, kindLabelOf, edgeLabelOf]);
 }
 
 const NODE_WIDTH = 200;
@@ -81,10 +98,14 @@ export function buildVaultGraphFlow(
   options?: {
     ignorePersistedPosition?: boolean;
     layoutMode?: VaultGraphLayoutMode;
+    kindLabelOf?: KindLabelResolver;
+    edgeLabelOf?: EdgeLabelResolver;
   },
 ) {
   const ignorePersistedPosition = options?.ignorePersistedPosition ?? false;
   const layoutMode = options?.layoutMode ?? "dagre";
+  const resolveKindLabel = options?.kindLabelOf ?? ((kind: string) => kind);
+  const resolveEdgeLabel = options?.edgeLabelOf ?? ((key: string) => key);
   const ontologyDocs = manifest.docs.filter(
     (doc) => typeof doc.frontmatter.kind === "string" && doc.frontmatter.kind,
   );
@@ -160,7 +181,7 @@ export function buildVaultGraphFlow(
       type: "atlas",
       position: pos,
       data: {
-        label: `${kindLabel(kind)} · ${title}`,
+        label: `${resolveKindLabel(kind)} · ${title}`,
         kind,
         ephemeral: false,
         vault: true,
@@ -196,7 +217,7 @@ export function buildVaultGraphFlow(
           source: doc.slug,
           target: resolved,
           type: "default",
-          label: edgeLabel(key),
+          label: resolveEdgeLabel(key),
           labelStyle: edgeLabelStyle,
           labelBgStyle: edgeLabelBgStyle,
           labelBgPadding: [6, 4] as [number, number],
@@ -301,42 +322,6 @@ function computeForceLayout(
     });
   }
   return map;
-}
-
-function kindLabel(kind: string): string {
-  switch (kind) {
-    case "project":
-      return "프로젝트";
-    case "domain":
-      return "도메인";
-    case "capability":
-      return "역량";
-    case "element":
-      return "요소";
-    case "document":
-      return "문서";
-    default:
-      return kind;
-  }
-}
-
-function edgeLabel(key: string): string {
-  switch (key) {
-    case "capabilities":
-      return "역량";
-    case "elements":
-      return "요소";
-    case "dependencies":
-      return "의존";
-    case "relates":
-      return "관련";
-    case "contains":
-      return "포함";
-    case "describes":
-      return "설명";
-    default:
-      return key;
-  }
 }
 
 const edgeLabelStyle = {
