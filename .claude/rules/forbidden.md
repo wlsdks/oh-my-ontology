@@ -60,6 +60,18 @@
 - `firebase` 외에 별도 백엔드 SDK 도입 (v0.x 범위 밖).
 - node_modules 에 직접 patch (use `pnpm patch` instead).
 
+## 🚫 npm publish — 사용자 명시 승인 없이 실행 절대 금지
+
+`npm publish`, `pnpm publish`, `yarn publish` 등 **외부 레지스트리 발행 명령**은:
+
+- 사용자가 직접 "publish 해줘" / "npm 에 올려줘" 같이 *명시적* 지시를 하기 전엔 절대 실행하지 않는다.
+- "정리하자" · "다음 뭐 할까" · "마무리하자" 같은 모호한 지시는 publish 승인이 아니다.
+- `.claude/settings.json` 의 PreToolUse hook 이 1차 차단하고 있고, hook 이 비활성이어도 행동 규칙으로 금지.
+- *제안* 은 가능 — "이제 publish 가능합니다, 실행할까요?" 라고 묻고 사용자 답을 기다린 다음 실행.
+- `npm pack --dry-run` 같은 *읽기 전용 audit* 명령은 OK. 실제 발행 (`npm publish`, `npm pack` 의 tarball 업로드, `npm version` + 자동 publish chain) 은 금지.
+
+**왜**: npm 패키지는 영구 발행. 잘못된 버전이 나가면 24h 이후엔 되돌릴 수 없고, 사용자 본인 계정으로 발행되므로 평판이 직접 걸린다. 자동 publish 를 막아야 사용자가 PR/diff/audit 를 거쳐 의도적으로 발행할 수 있다.
+
 ## "왜" 를 물을 것
 
 위 룰을 어겨야 한다고 느낄 때는 PR 본문에 *왜* 를 적고, 룰 자체를 갱신하는 PR 을 먼저 올려라.

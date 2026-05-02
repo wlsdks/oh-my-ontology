@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# PreToolUse hook — Bash 명령에서 npm/pnpm/yarn publish 류를 차단한다.
+#
+# Claude Code 가 PreToolUse hook 으로 호출. stdin 으로 tool_input JSON 을 받고,
+# 명령에 publish 키워드가 들어 있으면 deny 하는 JSON 을 출력 (exit 0).
+#
+# 통과시키는 경우는 출력 없이 exit 0 — Claude Code 가 그대로 진행.
+#
+# 차단 규칙:
+# - `npm publish`, `pnpm publish`, `yarn publish` (실제 발행)
+# - `npm publish` 류가 chain (`&&`, `||`, `;`, `|`) 안에 섞여 있어도 차단
+# - `npm pack` (단순 dry-run 은 통과 — 키워드 `--dry-run` 포함 시)
+# - `npm version <patch|minor|major>` 가 자동 publish 와 결합된 경우 (`postversion` script)
+# - `npm whoami`, `npm view`, `npm pack --dry-run` 같은 read-only 는 통과
+#
+# 사용자가 명시 승인을 줘서 publish 를 실행하려면, 이 파일을 임시로 비활성화 (`mv block-npm-publish.sh block-npm-publish.sh.off`) 하거나, 사용자가 직접 터미널에서 실행한다.
+
+set -euo pipefail
+
+INPUT="$(cat)"
+
+# tool_name 이 Bash 가 아니면 패스
+TOOL_NAME=$(printf '%s' "$INPUT" | grep -o '"tool_name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+if [[ "$TOOL_NAME" != "Bash" ]]; then
+  exit 0
+fi
+
+# tool_input.command 추출 (JSON 안에 escape 된 따옴표 처리)
+COMMAND=$(printf '%s' "$INPUT" | python3 -c '
+import json, sys
+try:
+    data = json.load(sys.stdin)
+    cmd = data.get("tool_input", {}).get("command", "")
+    sys.stdout.write(cmd)
+except Exception:
+    sys.exit(0)
+' 2>/dev/null || echo "")
+
+if [[ -z "$COMMAND" ]]; then
+  exit 0
+fi
+
+# 정규식 매칭: publish 류 패턴
+# - (npm|pnpm|yarn) publish — 단어 경계 포함
+# - npm pack (dry-run 아닌 경우)
+BLOCKED=0
+REASON=""
+
+if echo "$COMMAND" | grep -E '(^|[[:space:]&|;])(npm|pnpm|yarn)[[:space:]]+publish([[:space:]]|$)' >/dev/null; then
+  BLOCKED=1
+  REASON="npm/pnpm/yarn publish 명령이 감지됐습니다. 외부 npm 레지스트리에 영구 발행되는 작업이라 사용자의 명시적 승인이 필수입니다."
+fi
+
+if [[ $BLOCKED -eq 0 ]] && echo "$COMMAND" | grep -E '(^|[[:space:]&|;])npm[[:space:]]+pack([[:space:]]|$)' >/dev/null; then
+  if ! echo "$COMMAND" | grep -E -- '--dry-run' >/dev/null; then
+    BLOCKED=1
+    REASON="'npm pack' 이 --dry-run 없이 실행되려고 합니다. 실제 tarball 생성/발행은 사용자 승인이 필수입니다 (감사용이면 --dry-run 추가)."
+  fi
+fi
+
+if [[ $BLOCKED -eq 1 ]]; then
+  # PreToolUse deny 형식 (Claude Code 1.x): JSON 으로 reason 전달
+  cat <<JSON
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "🚫 npm publish 가드: ${REASON}\n\n사용자가 명시적으로 'publish 해줘' 라고 지시한 경우에만 실행 가능합니다.\n.claude/rules/forbidden.md 와 CLAUDE.md 의 'npm publish' 섹션 참조.\n\n사용자 본인이 터미널에서 직접 실행하거나, .claude/hooks/block-npm-publish.sh 를 비활성화 후 실행하세요."
+  }
+}
+JSON
+  exit 0
+fi
+
+exit 0
