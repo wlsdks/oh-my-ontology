@@ -21,9 +21,6 @@ import { useProjectMutations, useProjects } from "@/features/project-data-source
 import { downloadProjectsCsv } from "@/features/project-export";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
-import {
-  ACCOUNT_QUERY_KEY,
-} from "@/shared/lib/account-scope";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 
