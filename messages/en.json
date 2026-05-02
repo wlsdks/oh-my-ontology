@@ -1007,7 +1007,13 @@
       "saveErrorTags": "Failed to save tags — {message}",
       "saveErrorStack": "Failed to save stack — {message}",
       "chipRemoveAria": "Remove {item}",
-      "chipAddAria": "Add"
+      "chipAddAria": "Add",
+      "linksAddLink": "Add link",
+      "linksAddCommit": "Add",
+      "linksAddCancel": "Cancel",
+      "linksLabelPlaceholder": "Label (e.g. Operations dashboard)",
+      "linksUrlPlaceholder": "https://...",
+      "linksRemoveAria": "Remove {label}"
     },
     "editor": {
       "documentTitleEdit": "Edit project · oh-my-ontology",

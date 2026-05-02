@@ -1007,7 +1007,13 @@
       "saveErrorTags": "태그 저장 실패 — {message}",
       "saveErrorStack": "스택 저장 실패 — {message}",
       "chipRemoveAria": "{item} 제거",
-      "chipAddAria": "추가"
+      "chipAddAria": "추가",
+      "linksAddLink": "링크 추가",
+      "linksAddCommit": "추가",
+      "linksAddCancel": "취소",
+      "linksLabelPlaceholder": "라벨 (예: 운영 대시보드)",
+      "linksUrlPlaceholder": "https://...",
+      "linksRemoveAria": "{label} 제거"
     },
     "editor": {
       "documentTitleEdit": "프로젝트 편집 · oh-my-ontology",

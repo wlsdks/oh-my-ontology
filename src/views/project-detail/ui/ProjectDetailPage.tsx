@@ -810,6 +810,14 @@ export function ProjectDetailPage({
                       onChange={saveLinks}
                       emptyHint={t("linksEmptyHint")}
                       ariaLabel={t("linksEditorAria")}
+                      addLinkLabel={t("linksAddLink")}
+                      commitLabel={t("linksAddCommit")}
+                      cancelLabel={t("linksAddCancel")}
+                      labelPlaceholder={t("linksLabelPlaceholder")}
+                      urlPlaceholder={t("linksUrlPlaceholder")}
+                      removeAriaLabel={(label) =>
+                        t("linksRemoveAria", { label })
+                      }
                     />
                   </div>
                 )}

@@ -17,6 +17,18 @@ interface Props {
   emptyHint?: string;
   className?: string;
   ariaLabel?: string;
+  /** "+ 링크 추가" 버튼의 visible text + aria-label. Default: 'Add link'. */
+  addLinkLabel?: string;
+  /** 인라인 추가 폼의 commit 버튼 label. Default: 'Add'. */
+  commitLabel?: string;
+  /** 인라인 추가 폼의 cancel 버튼 label. Default: 'Cancel'. */
+  cancelLabel?: string;
+  /** label 입력 placeholder. Default: 'Label'. */
+  labelPlaceholder?: string;
+  /** url 입력 placeholder. Default: 'https://...'. */
+  urlPlaceholder?: string;
+  /** 칩 X 버튼의 aria-label 빌더. Default: \`Remove {label}\`. */
+  removeAriaLabel?: (label: string) => string;
 }
 
 /**
@@ -34,6 +46,12 @@ export function LinkListEditor({
   emptyHint,
   className,
   ariaLabel,
+  addLinkLabel = "Add link",
+  commitLabel = "Add",
+  cancelLabel = "Cancel",
+  labelPlaceholder = "Label",
+  urlPlaceholder = "https://...",
+  removeAriaLabel = (label) => `Remove ${label}`,
 }: Props) {
   const [adding, setAdding] = useState(false);
   const [draftLabel, setDraftLabel] = useState("");
@@ -113,7 +131,7 @@ export function LinkListEditor({
               type="button"
               onClick={() => removeAt(idx)}
               className="shrink-0 text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-              aria-label={`${link.label} 제거`}
+              aria-label={removeAriaLabel(link.label)}
             >
               <X size={12} />
             </button>
@@ -129,7 +147,7 @@ export function LinkListEditor({
               value={draftLabel}
               onChange={(e) => setDraftLabel(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="라벨 (예: 운영 대시보드)"
+              placeholder={labelPlaceholder}
               className="flex-1 rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-2 py-1.5 text-xs text-[color:var(--color-text-primary)] outline-none focus:border-[color:var(--color-indigo-brand)]"
             />
             <input
@@ -137,7 +155,7 @@ export function LinkListEditor({
               value={draftUrl}
               onChange={(e) => setDraftUrl(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="https://..."
+              placeholder={urlPlaceholder}
               className="flex-1 rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-2 py-1.5 text-xs text-[color:var(--color-text-primary)] outline-none focus:border-[color:var(--color-indigo-brand)]"
             />
             <div className="flex shrink-0 items-center gap-1">
@@ -146,14 +164,14 @@ export function LinkListEditor({
                 onClick={commit}
                 className="rounded-md border border-[color:var(--color-indigo-brand)] bg-[color:rgba(94,106,210,0.16)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)] hover:bg-[color:rgba(94,106,210,0.24)]"
               >
-                추가
+                {commitLabel}
               </button>
               <button
                 type="button"
                 onClick={cancel}
                 className="rounded-md border border-[color:var(--color-divider)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary)]"
               >
-                취소
+                {cancelLabel}
               </button>
             </div>
           </div>
@@ -162,10 +180,10 @@ export function LinkListEditor({
             type="button"
             onClick={() => setAdding(true)}
             className="inline-flex items-center justify-center gap-1 self-start rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-transparent px-3 py-2 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-            aria-label="링크 추가"
+            aria-label={addLinkLabel}
           >
             <Plus size={11} />
-            링크 추가
+            {addLinkLabel}
           </button>
         )
       ) : null}

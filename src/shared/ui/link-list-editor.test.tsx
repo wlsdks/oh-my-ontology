@@ -41,8 +41,8 @@ describe('LinkListEditor — readonly', () => {
         onChange={() => {}}
       />,
     );
-    expect(screen.queryByLabelText(/제거/)).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('링크 추가')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Remove /)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Add link')).not.toBeInTheDocument();
   });
 });
 
@@ -55,8 +55,8 @@ describe('LinkListEditor — editable', () => {
         onChange={() => {}}
       />,
     );
-    expect(screen.getByLabelText('대시보드 제거')).toBeInTheDocument();
-    expect(screen.getByLabelText('링크 추가')).toBeInTheDocument();
+    expect(screen.getByLabelText('Remove 대시보드')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add link')).toBeInTheDocument();
   });
 
   it('removeAt fires onChange with item filtered by index', () => {
@@ -71,7 +71,7 @@ describe('LinkListEditor — editable', () => {
         onChange={onChange}
       />,
     );
-    fireEvent.click(screen.getByLabelText('a 제거'));
+    fireEvent.click(screen.getByLabelText('Remove a'));
     expect(onChange).toHaveBeenCalledWith([{ label: 'b', url: 'https://b' }]);
   });
 
@@ -80,8 +80,8 @@ describe('LinkListEditor — editable', () => {
     render(
       <LinkListEditor value={[]} editable onChange={onChange} />,
     );
-    fireEvent.click(screen.getByLabelText('링크 추가'));
-    const labelInput = screen.getByPlaceholderText(/라벨/) as HTMLInputElement;
+    fireEvent.click(screen.getByLabelText('Add link'));
+    const labelInput = screen.getByPlaceholderText('Label') as HTMLInputElement;
     const urlInput = screen.getByPlaceholderText('https://...') as HTMLInputElement;
     fireEvent.change(labelInput, { target: { value: '대시보드' } });
     fireEvent.change(urlInput, { target: { value: 'https://example.com' } });
@@ -96,8 +96,8 @@ describe('LinkListEditor — editable', () => {
     render(
       <LinkListEditor value={[]} editable onChange={onChange} />,
     );
-    fireEvent.click(screen.getByLabelText('링크 추가'));
-    const labelInput = screen.getByPlaceholderText(/라벨/) as HTMLInputElement;
+    fireEvent.click(screen.getByLabelText('Add link'));
+    const labelInput = screen.getByPlaceholderText('Label') as HTMLInputElement;
     fireEvent.change(labelInput, { target: { value: '라벨만' } });
     fireEvent.keyDown(labelInput, { key: 'Enter' });
     expect(onChange).not.toHaveBeenCalled();
@@ -108,12 +108,12 @@ describe('LinkListEditor — editable', () => {
     render(
       <LinkListEditor value={[]} editable onChange={onChange} />,
     );
-    fireEvent.click(screen.getByLabelText('링크 추가'));
-    const labelInput = screen.getByPlaceholderText(/라벨/) as HTMLInputElement;
+    fireEvent.click(screen.getByLabelText('Add link'));
+    const labelInput = screen.getByPlaceholderText('Label') as HTMLInputElement;
     fireEvent.change(labelInput, { target: { value: 'x' } });
     fireEvent.keyDown(labelInput, { key: 'Escape' });
     expect(onChange).not.toHaveBeenCalled();
-    // Esc 후 입력 영역 사라짐 → '링크 추가' toggle 다시 노출
-    expect(screen.getByLabelText('링크 추가')).toBeInTheDocument();
+    // Esc 후 입력 영역 사라짐 → 'Add link' toggle 다시 노출
+    expect(screen.getByLabelText('Add link')).toBeInTheDocument();
   });
 });
