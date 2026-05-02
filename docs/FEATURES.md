@@ -211,10 +211,10 @@ The `useDataSourceMode()` hook resolves to one of two modes (R10b: cloud / auth 
 | Hook | Responsibility |
 |---|---|
 | `useDataSourceMode()` | resolves local / static |
-| `useProjects(accountId)` | mode-specific project read (sync local / subscribe cloud) |
-| `useProjectMutations()` | mode-specific CRUD (vault file write / Firestore upsert) |
-| `useOntologyInsight(accountId)` | **new in mission v2** — local: converts vault frontmatter stubs; cloud: knowledgePublic projection. The `/` ontology hub auto-switches to vault mode when a vault is active |
-| `TaxonomyProvider` | local/static modes use defaults, cloud subscribes |
+| `useProjects()` | mode-specific project read (vault manifest / build-time dogfood) |
+| `useProjectMutations()` | mode-specific CRUD (vault file write — static rejects) |
+| `useOntologyInsight()` | local: converts vault frontmatter stubs; static: build-time dogfood manifest |
+| `TaxonomyProvider` | both modes use built-in defaults |
 | `useLocalVault()` | manifest + handle + commands |
 | `useVaultOntology()` | converts a vault manifest → OntologyStubNode/Edge |
 
