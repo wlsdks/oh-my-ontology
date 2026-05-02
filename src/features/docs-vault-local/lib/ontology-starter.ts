@@ -53,7 +53,7 @@ graph's keys (slug / kind / depends_on / capabilities / elements / domain).
 | \`capabilities: [...]\` | Capabilities this domain / project provides |
 | \`elements: [...]\` | Elements this capability / domain uses |
 | \`domain: <slug>\` | Parent domain of this capability/element |
-| \`evidenceIds: [doc-1, ...]\` | Evidence document IDs backing this node |
+| \`relates: [...]\` | Loose related-to references |
 
 ## Kinds
 
@@ -61,7 +61,7 @@ graph's keys (slug / kind / depends_on / capabilities / elements / domain).
 - \`domain\` — A large area (auth, billing, builder, …).
 - \`capability\` — A user-visible feature inside a domain (login, signup, …).
 - \`element\` — A smaller unit a capability uses (jwt-token, otp-store, …).
-- \`concept\` — Anything else (protocols, standards, external systems).
+- \`document\` — Evidence node (markdown doc backing other concepts).
 
 ## What an AI agent can do for you
 
@@ -136,7 +136,7 @@ the capabilities it owns under \`capabilities:\` in the frontmatter above.
 - Frontmatter keys:
   - \`capabilities: [...]\` — slugs of capabilities this domain owns
   - \`depends_on: [...]\` — other domains or external systems this depends on
-  - \`evidenceIds: [...]\` — evidence document IDs backing this node (optional)
+  - \`relates: [...]\` — loose related-to references (optional)
 
 ## Keep it or delete it?
 
@@ -169,7 +169,7 @@ keys above accordingly.
   - \`domain: <slug>\` — the single parent domain
   - \`elements: [...]\` — slugs of elements this capability uses
   - \`depends_on: [...]\` — other capabilities this depends on
-  - \`evidenceIds: [...]\` — spec / decision document IDs (optional)
+  - \`relates: [...]\` — loose related-to references (optional)
 `;
 
 const ELEMENT_MD = `---
@@ -190,8 +190,9 @@ element (\`elements/jwt-token.md\`) and set \`domain:\` to the right parent.
 - One or two paragraphs in the body covering *what / why / which interface*.
 - Frontmatter keys:
   - \`domain: <slug>\` — the single parent domain
+  - \`path: <src/...>\` — code path this element corresponds to (optional)
   - \`depends_on: [...]\` — other elements / capabilities this depends on
-  - \`evidenceIds: [...]\` — library docs or decision document IDs (optional)
+  - \`relates: [...]\` — loose related-to references (optional)
 `;
 
 export const ONTOLOGY_STARTER_FILES: ReadonlyArray<StarterFile> = [
