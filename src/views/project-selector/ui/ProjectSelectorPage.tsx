@@ -64,8 +64,8 @@ export function ProjectSelectorPage() {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
   const { categoryLabel, statusLabel, categories, statuses } = useTaxonomy();
-  // 진실원 모드 (local/cloud/static) — local 모드는 vault 가 활성화돼 있어
-  // 비로그인이라도 mutation 가능. static 만 read-only.
+  // 진실원 모드 (local/static) — local 모드는 vault 가 활성화돼 있어
+  // mutation 가능. static (빌드타임 dogfood) 만 read-only.
   const projectMutations = useProjectMutations();
   const canMutateProjects = projectMutations.canCreate;
   const { projects } = useProjects();
@@ -75,9 +75,9 @@ export function ProjectSelectorPage() {
   const visibleCount = parseProjectListLimit(
     searchParams.get(PROJECT_LIST_LIMIT_QUERY_KEY),
   );
-  // P1-5 — 탭·검색 컨텍스트. 컨테이너·계정 이름이 겹치면 Set dedup.
-  // 페이지 메타 타이틀("프로젝트 · oh-my-ontology")과 동일한 첫 어휘를 사용해
-  // 정적 메타와 동적 갱신 사이에 flicker 가 보이지 않게 한다.
+  // 탭 / 검색 결과 컨텍스트로 보일 동적 타이틀. 페이지 metadata 와 같은
+  // 첫 어휘 ("프로젝트" / "Projects") 를 사용해 정적 메타 → 동적 갱신
+  // 사이의 flicker 회피.
   useDocumentTitle(t("documentTitle"));
 
   // ontology nodes — 카드별 count badge 데이터. 부모 한 번 hook + count map.
@@ -198,10 +198,8 @@ export function ProjectSelectorPage() {
 
   return (
     <main id="main" className="min-h-screen bg-[color:var(--color-canvas)]">
-      {/* OperationsNav surface 일관성 (eval H1 finding) — 다른 운영 surface
-          (/docs, /ontology/edit, /ontology/insights, /settings/*) 와 같은
-          탭 + ModeBadge + LocaleSwitch + ThemeToggle. /projects 만 제외돼
-          있어 사용자가 cross-surface 점프 못 했음. */}
+      {/* /docs · /ontology* surface 와 동일한 OperationsNav 를 mount —
+          /projects 만 빼면 cross-surface 점프가 끊긴다. */}
       <OperationsNav />
       <div className="mx-auto max-w-6xl px-5 py-6 md:px-10 md:py-14">
         <div className="mb-5 flex items-center justify-end gap-3">
