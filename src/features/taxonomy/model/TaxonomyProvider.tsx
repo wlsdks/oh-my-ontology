@@ -1,13 +1,12 @@
 'use client';
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-// firebase 의존이 0 인 imports 만 — barrel (`@/entities/category`) 거치면
-// mapper.ts (Timestamp 사용) → firebase/firestore 가 따라온다.
-import { DEFAULT_CATEGORIES } from '@/entities/category/model/defaults';
-import { hasRegisteredCategoryRegions } from '@/entities/category/model/presence';
-import type { Category } from '@/entities/category/model/types';
-import { DEFAULT_STATUSES } from '@/entities/status/model/defaults';
-import type { Status } from '@/entities/status/model/types';
+import {
+  DEFAULT_CATEGORIES,
+  hasRegisteredCategoryRegions,
+  type Category,
+} from '@/entities/category';
+import { DEFAULT_STATUSES, type Status } from '@/entities/status';
 
 export interface TaxonomyContextValue {
   categories: Category[];

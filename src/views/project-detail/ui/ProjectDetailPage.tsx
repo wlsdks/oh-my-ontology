@@ -458,10 +458,9 @@ export function ProjectDetailPage({
           ? t("ontologyReasonDocs", { count: insightDocumentNodes.length })
           : t("ontologyReasonEmpty"));
   const canManageProject = projectMutations.canEdit;
-  // mode-aware persistence (Round 9a T0-1). 이전엔 cloud-only `upsertProject`
-  // 을 직접 호출해 vault 모드에서 인라인 편집이 firestore 로 silently 흘러갔다
-  // (편집 후 새로고침하면 사라지는 회귀). useProjectMutations 가 mode 에 따라
-  // vault patch 또는 cloud upsert 로 분기.
+  // 모든 인라인 편집은 useProjectMutations 한 진입점으로. R10b 후 mode 는
+  // local (vault patch) 만 mutate 가능하고 static 은 read-only 라 mutation
+  // 시도 자체가 거절됨.
   const persistProject = (input: Parameters<typeof projectMutations.updateProject>[0]) =>
     projectMutations.updateProject(input);
   const saveProjectField = async (
