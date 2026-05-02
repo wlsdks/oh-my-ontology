@@ -11,7 +11,6 @@ import {
   type KnowledgeGraphNode,
 } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
-import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import {
   buildOntologyEgoSubgraph,
   buildOntologyTree,
@@ -541,11 +540,9 @@ function CopyNodeLinkButton({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    const params = new URLSearchParams();
-    params.set("node", node.id);
-    if (accountId) params.set(ACCOUNT_QUERY_KEY, accountId);
+    // R10 후 accountId 항상 null — params 는 node 하나만.
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${origin}/ontology/?${params.toString()}`;
+    const url = `${origin}/ontology/?node=${encodeURIComponent(node.id)}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);

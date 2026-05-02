@@ -5,7 +5,6 @@ import { Link } from "@/i18n/navigation";
 import { ManualSourceChip } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import { useOntologyInsight } from "@/features/vault-ontology";
-import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import { buildMeaningfulOntologyStats } from "@/shared/lib/ontology-tree";
 
 export interface ProjectOntologyOverviewProps {
@@ -50,9 +49,7 @@ export function ProjectOntologyOverview({
 
   if (stats.total === 0) return null;
 
-  const ontologyHref = accountId
-    ? `/ontology/?${ACCOUNT_QUERY_KEY}=${encodeURIComponent(accountId)}`
-    : "/ontology/";
+  const ontologyHref = "/ontology/";
 
   // kind 카운트 — buildMeaningfulOntologyStats 가 정의한 사용자 관심 단위.
   const orderedKinds = (["domain", "capability", "element", "unknown"] as const)

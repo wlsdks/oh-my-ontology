@@ -6,7 +6,6 @@ import { Network } from "lucide-react";
 import { ManualSourceChip } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import { useOntologyInsight } from "@/features/vault-ontology";
-import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import {
   buildMeaningfulOntologyStats,
   selectRecentNodes,
@@ -26,8 +25,8 @@ export interface DashboardOntologySummaryProps {
  * `WorkspaceOntologyStrip` (한 줄 stat) 와 다르게 — 이 카드는 dashboard
  * 의 큰 panel 단위, 사용자가 ontology 상태를 dashboard 에서 깊게 본다.
  */
-export function DashboardOntologySummary({ accountId }: DashboardOntologySummaryProps) {
-  const { insight } = useOntologyInsight(accountId);
+export function DashboardOntologySummary({ accountId: _accountId }: DashboardOntologySummaryProps) {
+  const { insight } = useOntologyInsight();
   const kindLabel = useOntologyKindLabel();
   const nodes = insight?.nodes ?? [];
 
@@ -37,12 +36,9 @@ export function DashboardOntologySummary({ accountId }: DashboardOntologySummary
 
   if (nodes.length === 0) return null;
 
-  const ontologyHref = accountId
-    ? `/ontology/?${ACCOUNT_QUERY_KEY}=${encodeURIComponent(accountId)}`
-    : "/ontology/";
-  const insightsHref = accountId
-    ? `/ontology/insights/?${ACCOUNT_QUERY_KEY}=${encodeURIComponent(accountId)}`
-    : "/ontology/insights/";
+  // R10 후 accountId 항상 null — href 모두 단순.
+  const ontologyHref = "/ontology/";
+  const insightsHref = "/ontology/insights/";
 
   // kind 분포 — buildMeaningfulOntologyStats 가 정의한 사용자 관심 단위.
   const kindRows = (["domain", "capability", "element", "unknown"] as const)
@@ -111,7 +107,7 @@ export function DashboardOntologySummary({ accountId }: DashboardOntologySummary
             {recent.map((node) => (
               <li key={node.id}>
                 <Link
-                  href={`${ontologyHref}${accountId ? "&" : "?"}node=${encodeURIComponent(node.id)}`}
+                  href={`/ontology/?node=${encodeURIComponent(node.id)}`}
                   className="flex items-center gap-2 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-2.5 py-1.5 text-[12px] transition-colors hover:border-[color:rgba(94,106,210,0.32)]"
                 >
                   <span className="inline-flex shrink-0 items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">

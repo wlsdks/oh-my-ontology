@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Info, Maximize2, Minimize2, Wand2 } from "lucide-react";
-import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
 import {
   vaultManifest as staticVaultManifestRaw,
   type VaultManifest,
@@ -332,9 +331,7 @@ export function OntologyEditPage() {
     }
   }, [pendingDelete, t, toast, vault]);
 
-  const treeHref = accountId
-    ? `/ontology/?${ACCOUNT_QUERY_KEY}=${encodeURIComponent(accountId)}`
-    : "/ontology/";
+  const treeHref = "/ontology/";
 
   // Atlas 캔버스 단축키.
   // 스코프: input/textarea 포커스 시 비활성. 항상 ephemeral 만 영향.
