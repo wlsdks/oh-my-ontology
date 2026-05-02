@@ -72,12 +72,10 @@ export function BottomTabBar() {
 }
 
 function isTabActive(pathname: string, tab: TabItem): boolean {
-  if (tab.href === '/') {
-    // 홈은 정확히 / 또는 /?... 일 때만 활성. /projects 같은 곳에서 같이 점등하지 않게.
-    return pathname === '/' || pathname === '';
-  }
-  if (tab.matchPrefixes.length === 0) {
-    return pathname === tab.href || pathname === tab.href.replace(/\/$/, '');
-  }
-  return tab.matchPrefixes.some((p) => pathname.startsWith(p));
+  // matchPrefixes 가 우선 — `/` 홈 탭도 ['/ontology', '/topology'] prefix
+  // 위에서 활성화돼야 한다 (홈 탭 라벨이 "Ontology" 라 하위 surface 진입 시
+  // 아무 탭도 점등 안 되던 회귀 회피). prefix 가 안 잡히면 정확 일치 fallback —
+  // 그래야 / 일 때 home 탭만, /projects 일 때 projects 탭만 활성.
+  if (tab.matchPrefixes.some((p) => pathname.startsWith(p))) return true;
+  return pathname === tab.href || pathname === tab.href.replace(/\/$/, '');
 }
