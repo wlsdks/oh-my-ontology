@@ -8,13 +8,13 @@ elements: [src/views/ontology-edit/ui/OntologyEditPage.tsx, src/features/docs-va
 
 # Builder ↔ Vault md write (mode-aware)
 
-P1-1 (UX-4) — mission v2 의 *사람 + AI agent 양립* 약속의 코드 구현. 빌더 ephemeral
-노드 → mode 별 분기 저장. R10 (cloud surface 영구 제거) 이후 2 분기:
+mission v2 의 *사람 + AI agent 양립* 약속의 코드 구현. 빌더 ephemeral
+노드 → mode 별 분기 저장:
 
 - **local**: `vault.createDoc(${kind}s/${slug}, md)` — vault 디스크 직접 작성. AI agent (MCP) 가 같은 vault 에서 즉시 본다.
 - **static**: 저장 차단 + 안내 toast ("내 markdown 폴더 열기" 유도).
 
-frontmatter 형식 (mission v2):
+frontmatter 형식:
 
 ```yaml
 ---
@@ -27,5 +27,3 @@ title: Foo
 ```
 
 folder mapping: capability→capabilities, element→elements, domain→domains, project→projects, 그 외 kind+s.
-
-자세히: docs/UX-FIRST-PRINCIPLES.md §2 P1-1.
