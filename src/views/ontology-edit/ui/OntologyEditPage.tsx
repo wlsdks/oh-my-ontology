@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Info, Maximize2, Minimize2, Wand2 } from "lucide-react";
@@ -89,7 +88,6 @@ function CanvasSkeleton() {
 export function OntologyEditPage() {
   const t = useTranslations("ontologyPages.edit.page");
   const tKinds = useTranslations("kinds");
-  const searchParams = useSearchParams();
   const dataSourceMode = useDataSourceMode();
   const vault = useLocalVault();
 
