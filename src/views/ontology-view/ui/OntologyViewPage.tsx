@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -53,7 +53,7 @@ export function OntologyViewPage() {
   // setSelectedNode + setEgoHops(1) + URL ?node=<id> 동기화를 한 함수로.
   // 트리 / 검색 / neighbor 클릭 / 패널 닫기 모든 진입에서 같은 흐름.
   // history 안 쌓이게 router.replace 사용 (매 노드 클릭마다 뒤로가기 한 단계 X).
-  const selectNode = (next: KnowledgeGraphNode | null) => {
+  const selectNode = useCallback((next: KnowledgeGraphNode | null) => {
     setSelectedNode(next);
     setEgoHops(1);
     const params = new URLSearchParams(searchParams.toString());
@@ -64,7 +64,7 @@ export function OntologyViewPage() {
     }
     const qs = params.toString();
     router.replace(qs ? `/ontology/?${qs}` : "/ontology/", { scroll: false });
-  };
+  }, [router, searchParams]);
 
   // ESC 로 패널 닫기.
   useEffect(() => {
@@ -74,7 +74,7 @@ export function OntologyViewPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [selectedNode]);
+  }, [selectedNode, selectNode]);
 
   // ⌘K / Ctrl+K — 페이지-스코프 concept search 토글.
   useGlobalSearchHotkey(searchOpen, setSearchOpen);
