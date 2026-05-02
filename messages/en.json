@@ -1291,10 +1291,6 @@
       "closeSelected": "Close selected project",
       "expandLeftPanel": "Expand the left panel"
     },
-    "scene": {
-      "backToWorkspace": "Back to the workspace map",
-      "workspaceMap": "Workspace map"
-    },
     "controls": {
       "relayoutToast": "Relaying out the topology",
       "docsTooltip": "Docs vault quick look (D)",
@@ -1306,10 +1302,6 @@
       "close": "Close",
       "shortcutsTooltip": "Keyboard shortcuts (?)",
       "shortcutsAriaLabel": "View keyboard shortcuts"
-    },
-    "evidence": {
-      "openLabel": "{name} — open document evidence map",
-      "badge": "Document evidence"
     },
     "empty": {
       "noMatchesBody": "No projects match the current filters.",

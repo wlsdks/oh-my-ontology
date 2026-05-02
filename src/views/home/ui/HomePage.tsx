@@ -23,7 +23,6 @@ import {
 import { HeroHeader, HeroCollapsed } from "@/widgets/hero-header";
 import dynamic from "next/dynamic";
 import { ProjectDrawer } from "@/widgets/project-drawer";
-import { ProjectKnowledgeTopologyScene } from "@/widgets/project-knowledge-topology";
 import { SearchHint } from "@/widgets/search-hint";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
@@ -99,11 +98,6 @@ import { getProjectDetailHref } from "@/entities/project/lib/detail-href";
 import type { Project } from "@/entities/project/model/types";
 import type { ProjectImpactMode } from "@/entities/project/model/insights";
 import { buildDocsVaultHref } from "@/entities/docs-vault";
-// `buildKnowledgeProjectEvidenceSummary` + 타입은 firebase 의존 0 인 model
-// 경로로 직접. `subscribeKnowledgeProjectInsight` (Firestore 구독) 는
-// useEffect 안 dynamic import 로 분리.
-import { buildKnowledgeProjectEvidenceSummary } from "@/entities/knowledge-graph/model/evidence-summary";
-import type { KnowledgeProjectInsight } from "@/entities/knowledge-graph/model/types";
 import { useHomeRouteState } from "../model/use-home-route-state";
 
 const LEFT_PANEL_COLLAPSED_KEY = "demo:left-panel-collapsed:v2";
@@ -183,18 +177,6 @@ export function HomePage() {
   });
   const [docsDrawerOpen, setDocsDrawerOpen] = useState(false);
   const [docsPinnedCount, setDocsPinnedCount] = useState(0);
-  const [selectedKnowledgeInsight, setSelectedKnowledgeInsight] = useState<{
-    projectSlug: string | null;
-    insight: KnowledgeProjectInsight;
-  }>({
-    projectSlug: null,
-    insight: {
-      nodes: [],
-      edges: [],
-      meta: null,
-    },
-  });
-  const [knowledgeSceneProjectSlug, setKnowledgeSceneProjectSlug] = useState<string | null>(null);
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(() => {
     if (typeof window === "undefined") return true;
     const saved = window.localStorage.getItem(LEFT_PANEL_COLLAPSED_KEY);
@@ -483,21 +465,6 @@ export function HomePage() {
   }, []);
 
   const drawerOpen = drawerProject !== null;
-  const selectedEvidenceSummary = useMemo(
-    () =>
-      selectedKnowledgeInsight.projectSlug === selectedProject?.slug
-        ? buildKnowledgeProjectEvidenceSummary(selectedKnowledgeInsight.insight, {
-            subjectName: selectedProject.name,
-          })
-        : null,
-    [selectedKnowledgeInsight, selectedProject],
-  );
-  const selectedHasKnowledgeEvidence = selectedEvidenceSummary?.hasEvidence ?? false;
-  const showProjectTopologyScene =
-    knowledgeSceneProjectSlug === selectedProject?.slug &&
-    selectedProject !== null &&
-    selectedKnowledgeInsight.projectSlug === selectedProject.slug &&
-    selectedHasKnowledgeEvidence;
   const hideMobileOverlayControls = drawerOpen;
 
   const preloadProjectAsset = useCallback(
@@ -547,16 +514,6 @@ export function HomePage() {
     const handle = window.setTimeout(addTopHubs, 200);
     return () => window.clearTimeout(handle);
   }, [hubs, preloadProjectAsset, selectedSlug]);
-
-  // R10b — selected project 의 knowledge insight subscribe 제거 (cloud surface
-  // 사라지면서 항상 빈 insight). 미래에 vault frontmatter 기반 derivation 으로
-  // 다시 도입할 때 새 hook 으로.
-  useEffect(() => {
-    setSelectedKnowledgeInsight({
-      projectSlug: null,
-      insight: { nodes: [], edges: [], meta: null },
-    });
-  }, [selectedProject]);
 
   return (
     <main id="main" className="relative h-screen w-screen overflow-hidden bg-[color:var(--color-canvas)]">
@@ -753,34 +710,7 @@ export function HomePage() {
           </>
         )}
         <div className="absolute inset-0">
-          {showProjectTopologyScene ? (
-            <>
-              <ProjectKnowledgeTopologyScene
-                nodes={selectedKnowledgeInsight.insight.nodes}
-                edges={selectedKnowledgeInsight.insight.edges}
-                projectName={selectedProject?.name}
-                summaryText={selectedEvidenceSummary?.summaryText}
-                onOpenDetail={() => {
-                  if (!selectedProject) return;
-                  router.push(
-                    `${getProjectDetailHref(selectedProject.slug)}#project-detail-insight`,
-                  );
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setKnowledgeSceneProjectSlug(null)}
-                className="pointer-events-auto absolute left-1/2 top-[96px] z-30 inline-flex max-w-[calc(100vw-32px)] -translate-x-1/2 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-panel)] px-3 py-1.5 text-[12px] text-[color:var(--color-text-secondary)] shadow-[0_10px_28px_rgba(0,0,0,0.36)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)]"
-                aria-label={t('scene.backToWorkspace')}
-              >
-                <span className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                  Evidence
-                </span>
-                <span className="truncate">{t('scene.workspaceMap')}</span>
-              </button>
-            </>
-          ) : (
-            <>
+          <>
               <div
                 key={localGraphRoot ?? '__root__'}
                 className="absolute inset-0 animate-[sigmaFade_220ms_ease-out]"
@@ -888,25 +818,6 @@ export function HomePage() {
                 </div>
               ) : null}
 
-              {selectedProject && selectedHasKnowledgeEvidence ? (
-                <button
-                  type="button"
-                  onClick={() => setKnowledgeSceneProjectSlug(selectedProject.slug)}
-                  className={`pointer-events-auto absolute left-1/2 z-20 inline-flex max-w-[calc(100vw-32px)] -translate-x-1/2 items-center gap-2 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:var(--color-panel)] px-3 py-1.5 text-[12px] text-[color:var(--color-text-secondary)] shadow-[0_10px_28px_rgba(0,0,0,0.36)] transition-colors hover:border-[color:rgba(139,151,255,0.5)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] ${
-                    localGraphStack.length > 0 ? "top-[144px]" : "top-[96px]"
-                  }`}
-                  aria-label={t('evidence.openLabel', { name: selectedProject.name })}
-                >
-                  <BookOpen size={13} className="shrink-0 text-[color:var(--color-indigo-accent)]" />
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-indigo-accent)]">
-                    {t('evidence.badge')}
-                  </span>
-                  <span className="truncate">
-                    {selectedEvidenceSummary?.counts.documents ?? 0} docs · {selectedEvidenceSummary?.counts.edges ?? 0} links
-                  </span>
-                </button>
-              ) : null}
-
               {/* 필터 컨텍스트 — 현재 visible 노드 수가 전체보다 적으면 표시.
                   SigmaControls 검색창 배지와 중복이지만, controls가 접힌 상태에서도
                   필터 중임을 알려주는 컨텍스트 칩. */}
@@ -983,7 +894,6 @@ export function HomePage() {
                 </div>
               ) : null}
             </>
-          )}
         </div>
         {projectsError ? (
           <div
@@ -1006,7 +916,7 @@ export function HomePage() {
           </div>
         ) : null}
         <ProjectDrawer
-          project={showProjectTopologyScene ? null : drawerProject}
+          project={drawerProject}
           allProjects={renderProjects}
           activeProjectId={null}
           impactMode={impactMode}
@@ -1016,12 +926,6 @@ export function HomePage() {
             handleSelect(slug, { preserveImpact: impactMode !== "none" })
           }
           containerLabel={null}
-          knowledgeInsight={
-            selectedKnowledgeInsight.projectSlug === drawerProject?.slug
-              ? selectedKnowledgeInsight.insight
-              : null
-          }
-          onOpenKnowledgeScene={(slug) => setKnowledgeSceneProjectSlug(slug)}
         />
         <SearchPalette
           open={searchOpen}
