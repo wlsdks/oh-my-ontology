@@ -156,9 +156,9 @@ export function HomePage() {
     }
     return false;
   });
-  // Fire 2 — 홈에서도 ⇧⌘K 로 ontology / 문서 / 프로젝트 통합 검색 (project
-  // 전용 SearchPalette 와 별 슬롯). MountedGlobalSearch 가 controlled mode 로
-  // open state 를 받아서 작동.
+  // ⇧⌘K — ontology / 문서 / 프로젝트 통합 검색 (project 전용
+  // SearchPalette 와 별 슬롯). MountedGlobalSearch 가 controlled mode 로
+  // 이 open state 를 받아 동작.
   const [ontologySearchOpen, setOntologySearchOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(() => {
@@ -382,8 +382,8 @@ export function HomePage() {
   // 공용 useTypingShortcuts로 글로벌 키 단축키 통합.
   // portfolio 오버레이가 열려 있으면 모두 비활성.
   useTypingShortcuts([
-    // Fire 2 — ⇧⌘K 가 ⌘K 보다 먼저 매치되어야 (useTypingShortcuts 가 첫
-    // 일치 후 return). ontology / 문서 통합 검색 슬롯.
+    // ⇧⌘K (ontology / 문서 통합 검색) — useTypingShortcuts 는 첫 일치 후
+    // return 하므로 ⌘K 보다 먼저 정의해야 한다.
     {
       combo: { key: "k", meta: true, shift: true },
       onFire: () => setOntologySearchOpen((v) => !v),
@@ -901,10 +901,10 @@ export function HomePage() {
           }}
           containerLabel={null}
         />
-        {/* Fire 2 — ⇧⌘K 로 열리는 ontology / 문서 통합 검색. project 전용
-            SearchPalette 와 별 슬롯 — layer filter / 최근 검색 등 SearchPalette
-            의 고유 기능 보존. controlled mode (open/onOpenChange) 라 hotkey
-            는 useTypingShortcuts 가 관리. */}
+        {/* ⇧⌘K — ontology / 문서 통합 검색. project 전용 SearchPalette 와
+            별 슬롯이라 SearchPalette 의 layer filter / 최근 검색 같은 고유
+            기능 보존. controlled (open/onOpenChange) — hotkey 는 위
+            useTypingShortcuts 가 관리. */}
         <MountedGlobalSearch
           open={ontologySearchOpen}
           onOpenChange={setOntologySearchOpen}
