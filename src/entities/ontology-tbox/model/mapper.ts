@@ -1,4 +1,5 @@
-import { Timestamp, type DocumentData } from 'firebase/firestore';
+type DocumentData = Record<string, unknown>;
+import { coerceFirestoreDate } from '@/shared/lib/firestore-timestamp-coerce';
 import {
   fromFirestore as fromClassDoc,
   toFirestore as toClassDoc,
@@ -17,9 +18,7 @@ import type {
 } from './types';
 
 function toDate(value: unknown): Date {
-  if (value instanceof Timestamp) return value.toDate();
-  if (value instanceof Date) return value;
-  return new Date(0);
+  return coerceFirestoreDate(value);
 }
 
 /**

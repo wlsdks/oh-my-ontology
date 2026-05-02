@@ -1,4 +1,5 @@
-import { Timestamp, type DocumentData } from 'firebase/firestore';
+type DocumentData = Record<string, unknown>;
+import { coerceFirestoreDate } from '@/shared/lib/firestore-timestamp-coerce';
 import type {
   OntologyClass,
   OntologyClassInput,
@@ -25,16 +26,15 @@ function toElementType(value: unknown): OntologyElementType | undefined {
 }
 
 function toDate(value: unknown): Date {
-  if (value instanceof Timestamp) return value.toDate();
-  if (value instanceof Date) return value;
-  return new Date(0);
+  return coerceFirestoreDate(value);
 }
 
 function toOptionalDate(value: unknown): Date | undefined {
   if (value === undefined || value === null) return undefined;
-  if (value instanceof Timestamp) return value.toDate();
-  if (value instanceof Date) return value;
-  return undefined;
+  // 매칭 안 되는 값은 coerceFirestoreDate 가 epoch 0 fallback. 호출자
+  // 계약은 "정말 모르면 undefined" 라 epoch 0 은 undefined 로 정상화.
+  const d = coerceFirestoreDate(value);
+  return d.getTime() === 0 ? undefined : d;
 }
 
 export function fromFirestore(id: string, data: DocumentData): OntologyClass {

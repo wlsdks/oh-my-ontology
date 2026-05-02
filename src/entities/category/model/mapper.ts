@@ -1,5 +1,6 @@
-import { Timestamp, type DocumentData } from 'firebase/firestore';
+type DocumentData = Record<string, unknown>;
 import type { Category, CategoryInput } from './types';
+import { coerceFirestoreDate } from '@/shared/lib/firestore-timestamp-coerce';
 
 /**
  * Firestore 문서 → Category.
@@ -43,7 +44,5 @@ export function toFirestore(input: CategoryInput): Record<string, unknown> {
 }
 
 function toDate(value: unknown): Date {
-  if (value instanceof Timestamp) return value.toDate();
-  if (value instanceof Date) return value;
-  return new Date(0);
+  return coerceFirestoreDate(value);
 }

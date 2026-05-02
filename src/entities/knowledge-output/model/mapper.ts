@@ -1,4 +1,5 @@
-import { Timestamp, type DocumentData } from "firebase/firestore";
+type DocumentData = Record<string, unknown>;
+import { coerceFirestoreDate } from "@/shared/lib/firestore-timestamp-coerce";
 import { clampConfidence } from "./confidence";
 import type {
   KnowledgeOutput,
@@ -126,7 +127,5 @@ function mapEdge(value: unknown): KnowledgeOutputEdge | null {
 }
 
 function toDate(value: unknown): Date {
-  if (value instanceof Timestamp) return value.toDate();
-  if (value instanceof Date) return value;
-  return new Date(0);
+  return coerceFirestoreDate(value);
 }

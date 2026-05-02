@@ -1,7 +1,6 @@
 'use client';
 
-import { onAuthStateChanged, signOut as firebaseSignOut, type User as FirebaseUser } from 'firebase/auth';
-import { getFirebaseAuth } from '@/shared/api';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 export type AuthProviderKind = 'firebase';
 export type UserAuthStatus = 'loading' | 'unauthenticated' | 'authenticated';
@@ -70,14 +69,23 @@ export function getUserAuthState() {
   return state;
 }
 
-export function initializeUserAuthStore() {
+/**
+ * Firebase Auth 모듈은 dynamic import 로만 진입한다 — local-first 첫 paint
+ * 에서 auth SDK 청크 (~150kb gzipped) 가 다운로드되지 않게.
+ *
+ * 호출자 (`useUserAuth`) 는 fire-and-forget 으로 호출. 초기화 완료 전엔
+ * `state.status === 'loading'` 으로 시작하며, onAuthStateChanged 또는 2.5s
+ * 타임아웃이 도달하면 unauthenticated/authenticated 로 전환된다.
+ *
+ * 2.5s 타이머는 **initializeUserAuthStore 호출 시점부터** 측정 — dynamic
+ * import 가 끝나기 전이라도 deadline 이 지나면 unauthenticated 로 fallback
+ * 한다. 콜드 캐시에서 firebase 청크 다운로드만으로 5–8s 걸리는 환경 보호.
+ */
+export async function initializeUserAuthStore() {
   if (initialized || typeof window === 'undefined') return;
   initialized = true;
 
-  const auth = getFirebaseAuth();
-  // onAuthStateChanged 가 네트워크 지연으로 영원히 fire 안 될 수 있어 2.5 초
-  // 안에 콜 안 오면 unauthenticated 로 낙관 결정. 이후 실제 세션이 도착하면
-  // 그 때 state 가 authenticated 로 전환된다.
+  // 타이머 먼저 — dynamic import 가 끝나기 전 deadline 이 지나도 fallback.
   const AUTH_INIT_TIMEOUT_MS = 2500;
   let firebaseInitTimer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
     if (!firebaseResolved) {
@@ -86,6 +94,34 @@ export function initializeUserAuthStore() {
     }
     firebaseInitTimer = null;
   }, AUTH_INIT_TIMEOUT_MS);
+
+  let onAuthStateChanged:
+    | typeof import('firebase/auth').onAuthStateChanged
+    | null = null;
+  let getFirebaseAuth: typeof import('@/shared/api').getFirebaseAuth | null = null;
+  try {
+    const [authMod, sharedApi] = await Promise.all([
+      import('firebase/auth'),
+      import('@/shared/api'),
+    ]);
+    onAuthStateChanged = authMod.onAuthStateChanged;
+    getFirebaseAuth = sharedApi.getFirebaseAuth;
+  } catch (err) {
+    // chunk fetch 실패 — fallback timer 가 어차피 unauthenticated 으로
+    // 전환하지만, 명시적으로 한 번 더 닫아 race 회피.
+    console.warn('[initializeUserAuthStore] firebase chunk load failed', err);
+    if (!firebaseResolved) {
+      firebaseResolved = true;
+      recomputeState();
+    }
+    if (firebaseInitTimer) {
+      clearTimeout(firebaseInitTimer);
+      firebaseInitTimer = null;
+    }
+    return;
+  }
+
+  const auth = getFirebaseAuth();
   onAuthStateChanged(auth, (user) => {
     if (firebaseInitTimer) {
       clearTimeout(firebaseInitTimer);
@@ -98,6 +134,10 @@ export function initializeUserAuthStore() {
 }
 
 export async function signOutCombined() {
+  const [{ signOut: firebaseSignOut }, { getFirebaseAuth }] = await Promise.all([
+    import('firebase/auth'),
+    import('@/shared/api'),
+  ]);
   const auth = getFirebaseAuth();
   await firebaseSignOut(auth);
   firebaseResolved = true;
