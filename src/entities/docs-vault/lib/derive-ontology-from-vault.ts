@@ -6,8 +6,8 @@ import type { VaultDoc, VaultManifest } from '../model/types';
  * **로컬 모드 fast path** — V2 spec 의 V1.x ActionType 도입 전에도 사용자가
  * 작성한 frontmatter 만으로 ontology surface 가 보이도록.
  *
- * 입력 frontmatter 인식 키 (KnowledgeDocumentNewPage template 과 동일):
- * - `kind` — 노드 종류 (project / capability / element / decision / workflow / …)
+ * 입력 frontmatter 인식 키:
+ * - `kind` — 노드 종류 (project / domain / capability / element / document)
  * - `title` — 노드 제목 (없으면 firstHeading 또는 slug 의 마지막 segment)
  * - `domain` — 단일 domain 노드 후보 (string)
  * - `capabilities` — string[] (capability 노드 후보)
@@ -17,8 +17,7 @@ import type { VaultDoc, VaultManifest } from '../model/types';
  *
  * mission v2: vault frontmatter 자체가 진실원이라 별도 promote / 승격 단계
  * 없음. 출력 stub 은 즉시 ontology 그래프로 surface (\`/ontology\` 트리,
- * 빌더 캔버스, /insights / /relations 등). cloud Firestore 와의 sync 는
- * 옵션 — \`useDataSourceMode\` 가 cloud 일 때만 mutation 이 cloud 로.
+ * 빌더 캔버스, /insights / /relations 등).
  */
 
 export type OntologyStubSource = 'frontmatter';
