@@ -213,15 +213,8 @@ export function HomePage() {
     focusedHubSlug,
     impactMode,
   } = routeState;
-  const resetSigmaFilters = useCallback(() => {
-    setSigmaControls((current) => ({
-      ...current,
-      depthLimit: null,
-      searchQuery: "",
-      hubsOnly: false,
-    }));
-  }, []);
-  const [selectorOpen, setSelectorOpen] = useState(false);
+  // 미래에 selector overlay 가 다시 도입될 때 setter 가 부활. 현재는 상수.
+  const selectorOpen = false;
   const renderProjects = projects;
   const selectedProject = useMemo(
     () =>
@@ -358,23 +351,6 @@ export function HomePage() {
     }));
   }, [setRouteState]);
 
-  const handleToggleHub = useCallback(
-    (slug: string) => {
-      // 같은 허브 재클릭 → 해제
-      if (focusedHubSlug === slug) {
-        handleClose();
-        return;
-      }
-      // 다른 허브 선택 → 드로어 오픈 + 포커스
-      setRouteState((current) => ({
-        ...current,
-        selectedSlug: slug,
-        focusedHubSlug: slug,
-        impactMode: "none",
-      }));
-    },
-    [focusedHubSlug, handleClose, setRouteState],
-  );
 
   const handleSelectImpactMode = useCallback(
     (nextMode: ProjectImpactMode) => {
@@ -463,7 +439,6 @@ export function HomePage() {
   }, []);
 
   const drawerOpen = drawerProject !== null;
-  const hideMobileOverlayControls = drawerOpen;
 
   const preloadProjectAsset = useCallback(
     (slug: string) => {
