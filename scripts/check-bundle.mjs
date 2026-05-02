@@ -11,9 +11,10 @@
 //
 // 룰:
 //   - LOCAL_FIRST_ROUTES: firebase chunk 0 이어야 함. 위반 시 fail.
-//   - CLOUD_ADMIN_ROUTES: firebase chunk 정적 로드 OK (단순 보고).
 //
-// 새 user-facing 라우트 추가 시 LOCAL_FIRST_ROUTES 에 등록.
+// 새 user-facing 라우트 추가 시 LOCAL_FIRST_ROUTES 에 등록. 미래 cloud
+// collab 단계가 다시 도입되면 cloud-admin 보고 라우트 변수와 섹션을 다시
+// 추가.
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, basename } from 'node:path';
@@ -54,10 +55,6 @@ const LOCAL_FIRST_BASE_ROUTES = [
   'ontology/relations',
   'projects',
 ];
-// R10c (settings cloud-only surface 제거) 이후 cloud-admin 라우트 0.
-// 미래에 새 cloud-mode 라우트가 추가되면 여기에 등록.
-const CLOUD_ADMIN_BASE_ROUTES = [];
-
 function expandRoutes(baseRoutes) {
   const out = [];
   for (const locale of LOCALES) {
@@ -71,7 +68,6 @@ function expandRoutes(baseRoutes) {
 // Root `/` (locale-redirect page) 는 그 자체가 firebase 호출을 하면 안 되니
 // 별도로 추가.
 const LOCAL_FIRST_ROUTES = ['/', ...expandRoutes(LOCAL_FIRST_BASE_ROUTES)];
-const CLOUD_ADMIN_ROUTES = expandRoutes(CLOUD_ADMIN_BASE_ROUTES);
 
 function listFirebaseChunks() {
   const out = [];
@@ -152,28 +148,6 @@ function main() {
       console.log(`  ${route}: ❌ ${fmtKb(total)} (chunks: ${loaded.join(', ')})`);
       violations += 1;
     }
-  }
-
-  console.log();
-  console.log('## cloud-admin 라우트 (firebase 정적 로드 OK — 단순 보고)');
-  for (const route of CLOUD_ADMIN_ROUTES) {
-    const path = htmlPathForRoute(route);
-    let html;
-    try {
-      html = readFileSync(path, 'utf8');
-    } catch {
-      console.log(`  ${route}: (skip — HTML 없음)`);
-      continue;
-    }
-    const loaded = chunksLoadedBy(
-      html,
-      fbChunks.map((c) => c.id),
-    );
-    const total = loaded.reduce(
-      (sum, id) => sum + (fbChunks.find((c) => c.id === id)?.size ?? 0),
-      0,
-    );
-    console.log(`  ${route}: ${fmtKb(total)}`);
   }
 
   console.log();
