@@ -10,7 +10,7 @@ import {
   statSync,
   unlinkSync,
 } from 'node:fs';
-import { join, relative, dirname } from 'node:path';
+import { join, relative, dirname, resolve, sep } from 'node:path';
 
 import { parseFrontmatter, buildMarkdown } from './parser.mjs';
 
@@ -76,9 +76,32 @@ export function pathToSlug(rootPath, filePath) {
 
 /**
  * vault-relative slug → file path (확장자 자동 부착).
+ *
+ * 보안: AI agent / prompt injection 으로 악의적인 slug
+ * (\`../../etc/passwd\` 등) 가 들어와도 vault root 바깥의 파일을
+ * 가리키지 못하도록 normalize 후 root 포함 검사. 위반 시 throw —
+ * 호출자 (writeDoc / readDoc / patchFrontmatter / updateDoc /
+ * deleteDoc) 가 모두 실패하므로 vault 외부 read/write 모두 차단.
  */
 export function slugToPath(rootPath, slug) {
-  return join(rootPath, `${slug}.md`);
+  if (typeof slug !== 'string' || slug.length === 0) {
+    throw new Error('slug 가 비어있거나 string 이 아닙니다.');
+  }
+  // null byte injection 차단 — Node fs API 가 일부 환경에서 truncate 됨.
+  if (slug.includes('\0')) {
+    throw new Error('slug 에 null byte 가 포함됐습니다.');
+  }
+  const candidate = resolve(rootPath, `${slug}.md`);
+  const normalizedRoot = resolve(rootPath);
+  // candidate 가 rootPath 의 prefix 와 sep 로 이어지는지 확인.
+  // 정확히 normalizedRoot 자체이거나, normalizedRoot + sep 로 시작해야.
+  if (
+    candidate !== normalizedRoot &&
+    !candidate.startsWith(normalizedRoot + sep)
+  ) {
+    throw new Error(`slug 가 vault root 바깥을 가리킵니다: ${slug}`);
+  }
+  return candidate;
 }
 
 /**
