@@ -59,7 +59,12 @@ export function LandingPage() {
             </p>
           </div>
 
-          <MiniTopology caption={t('topologyCaption', { nodes: 14, relations: 21 })} />
+          <MiniTopology
+            caption={t('topologyCaption', {
+              nodes: MINI_HUBS.length + MINI_LEAVES.length,
+              relations: MINI_EDGES.length,
+            })}
+          />
         </div>
 
         <ValueChainRail
