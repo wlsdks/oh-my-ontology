@@ -19,18 +19,17 @@ import type { EphemeralEdge } from "./use-ephemeral-edges";
 export interface GraphExportInput {
   ephemeralNodes: EphemeralNode[];
   ephemeralEdges: EphemeralEdge[];
-  /** account id — JSON-LD 의 baseURI / GraphML 의 graph id 에 들어감. */
-  accountId: string;
 }
 
-const URN_BASE = 'urn:omot';
+const URN_BASE = 'urn:omot:atlas';
+const GRAPHML_GRAPH_ID = 'atlas';
 
 /**
  * JSON-LD 1.1 — `@context` + `@graph`. 각 노드는 schema.org/Thing 의
  * subclass 처럼 model. edgeType 은 predicate 으로 직렬화.
  */
 export function buildJsonLd(input: GraphExportInput): string {
-  const { ephemeralNodes, ephemeralEdges, accountId } = input;
+  const { ephemeralNodes, ephemeralEdges } = input;
 
   const context = {
     '@vocab': 'https://schema.org/',
@@ -56,7 +55,7 @@ export function buildJsonLd(input: GraphExportInput): string {
     const slug = simpleSlug(n.title);
     nodeIdToUri.set(
       n.id,
-      `${URN_BASE}:${accountId}:${n.kind}:${slug}-${shortId(n.id)}`,
+      `${URN_BASE}:${n.kind}:${slug}-${shortId(n.id)}`,
     );
   }
 
@@ -106,7 +105,7 @@ export function buildJsonLd(input: GraphExportInput): string {
  * edge attribute = edgeType.
  */
 export function buildGraphML(input: GraphExportInput): string {
-  const { ephemeralNodes, ephemeralEdges, accountId } = input;
+  const { ephemeralNodes, ephemeralEdges } = input;
   const lines: string[] = [];
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push(
@@ -118,7 +117,7 @@ export function buildGraphML(input: GraphExportInput): string {
   lines.push('  <key id="kind" for="node" attr.name="kind" attr.type="string"/>');
   lines.push('  <key id="title" for="node" attr.name="title" attr.type="string"/>');
   lines.push('  <key id="edgeType" for="edge" attr.name="edgeType" attr.type="string"/>');
-  lines.push(`  <graph id="${escapeXml(accountId)}" edgedefault="directed">`);
+  lines.push(`  <graph id="${GRAPHML_GRAPH_ID}" edgedefault="directed">`);
 
   for (const n of ephemeralNodes) {
     const slug = simpleSlug(n.title);
@@ -156,13 +155,13 @@ export function buildGraphML(input: GraphExportInput): string {
 export function downloadJsonLd(input: GraphExportInput): void {
   if (typeof window === 'undefined') return;
   const text = buildJsonLd(input);
-  download(text, `atlas-${input.accountId}-${stamp()}.jsonld`, 'application/ld+json');
+  download(text, `atlas-${stamp()}.jsonld`, 'application/ld+json');
 }
 
 export function downloadGraphML(input: GraphExportInput): void {
   if (typeof window === 'undefined') return;
   const text = buildGraphML(input);
-  download(text, `atlas-${input.accountId}-${stamp()}.graphml`, 'application/xml');
+  download(text, `atlas-${stamp()}.graphml`, 'application/xml');
 }
 
 function download(text: string, filename: string, mime: string): void {

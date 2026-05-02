@@ -12,16 +12,14 @@ import type { EphemeralEdge } from "./use-ephemeral-edges";
 export interface AtlasExportInput {
   ephemeralNodes: EphemeralNode[];
   ephemeralEdges: EphemeralEdge[];
-  /** account id — 추적용 metadata. */
-  accountId: string;
 }
 
 export function buildAtlasFrontmatterMarkdown(input: AtlasExportInput): string {
-  const { ephemeralNodes, ephemeralEdges, accountId } = input;
+  const { ephemeralNodes, ephemeralEdges } = input;
   const exportedAt = new Date().toISOString();
 
   const lines: string[] = [];
-  lines.push(`# Atlas export — ${accountId}`);
+  lines.push(`# Atlas export`);
   lines.push("");
   lines.push(
     `> 생성 시각: \`${exportedAt}\` · 임시 노드 ${ephemeralNodes.length}개 · 임시 관계 ${ephemeralEdges.length}개`,
@@ -94,7 +92,7 @@ export function downloadAtlasFrontmatter(input: AtlasExportInput): void {
     .replace(/[:T]/g, "-")
     .slice(0, 19);
   link.href = url;
-  link.download = `atlas-${input.accountId}-${stamp}.md`;
+  link.download = `atlas-${stamp}.md`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

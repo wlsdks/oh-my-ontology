@@ -34,7 +34,7 @@ const edges: EphemeralEdge[] = [
 describe('export-graph', () => {
   describe('buildJsonLd', () => {
     it('emits @context + @graph with kind classes + edge predicates', () => {
-      const out = buildJsonLd({ ephemeralNodes: nodes, ephemeralEdges: edges, accountId: 'demo' });
+      const out = buildJsonLd({ ephemeralNodes: nodes, ephemeralEdges: edges });
       const doc = JSON.parse(out);
       expect(doc['@context']).toBeDefined();
       expect(doc['@context']['@vocab']).toBe('https://schema.org/');
@@ -47,10 +47,10 @@ describe('export-graph', () => {
       expect(project.related_to).toEqual({ '@id': expect.stringMatching(/capability:login/) });
     });
 
-    it('includes account in URN', () => {
-      const out = buildJsonLd({ ephemeralNodes: nodes, ephemeralEdges: [], accountId: 'demo' });
+    it('emits stable URN with shortId suffix', () => {
+      const out = buildJsonLd({ ephemeralNodes: nodes, ephemeralEdges: [] });
       // Round 9b T1-9: URN 은 항상 ephemeral id 의 shortId suffix 로 collision 방지.
-      expect(out).toMatch(/urn:omot:demo:project:auth-platform-/);
+      expect(out).toMatch(/urn:omot:atlas:project:auth-platform-/);
     });
 
     it('disambiguates duplicate-titled nodes (Round 9b T1-9 collision fix)', () => {
@@ -58,7 +58,7 @@ describe('export-graph', () => {
         { id: 'n_xxx111', title: 'Auth', kind: 'capability', kindLabel: 'Capability', x: 0, y: 0 },
         { id: 'n_yyy222', title: 'Auth', kind: 'capability', kindLabel: 'Capability', x: 0, y: 0 },
       ];
-      const out = buildJsonLd({ ephemeralNodes: dupes, ephemeralEdges: [], accountId: 'demo' });
+      const out = buildJsonLd({ ephemeralNodes: dupes, ephemeralEdges: [] });
       const doc = JSON.parse(out);
       expect(doc['@graph']).toHaveLength(2);
       const ids = doc['@graph'].map((n: { '@id': string }) => n['@id']);
@@ -70,7 +70,7 @@ describe('export-graph', () => {
 
   describe('buildGraphML', () => {
     it('emits well-formed XML with kind/title/edgeType attributes', () => {
-      const out = buildGraphML({ ephemeralNodes: nodes, ephemeralEdges: edges, accountId: 'demo' });
+      const out = buildGraphML({ ephemeralNodes: nodes, ephemeralEdges: edges });
       expect(out).toContain('<?xml version="1.0"');
       expect(out).toContain('<graphml');
       expect(out).toContain('<key id="kind"');
@@ -86,14 +86,14 @@ describe('export-graph', () => {
       const xss: EphemeralNode[] = [
         { id: 'n_x', title: '<script>&"alert"</script>', kind: 'project', kindLabel: 'Project', x: 0, y: 0 },
       ];
-      const out = buildGraphML({ ephemeralNodes: xss, ephemeralEdges: [], accountId: 'demo' });
+      const out = buildGraphML({ ephemeralNodes: xss, ephemeralEdges: [] });
       expect(out).not.toContain('<script>');
       expect(out).toContain('&lt;script&gt;&amp;&quot;alert&quot;&lt;/script&gt;');
     });
 
     it('handles empty graph', () => {
-      const out = buildGraphML({ ephemeralNodes: [], ephemeralEdges: [], accountId: 'demo' });
-      expect(out).toContain('<graph id="demo" edgedefault="directed">');
+      const out = buildGraphML({ ephemeralNodes: [], ephemeralEdges: [] });
+      expect(out).toContain('<graph id="atlas" edgedefault="directed">');
       expect(out).toContain('</graph>');
     });
   });

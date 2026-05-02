@@ -90,9 +90,6 @@ export function OntologyEditPage() {
   const t = useTranslations("ontologyPages.edit.page");
   const tKinds = useTranslations("kinds");
   const searchParams = useSearchParams();
-  // R10 (auth 영구 제거) 이후 single-user OSS 도구. accountId 는 항상 null.
-  // ManualNode 저장은 vault (mission v2) 우선이라 인증 의존도 0.
-  const accountId: string | null = null;
   const dataSourceMode = useDataSourceMode();
   const vault = useLocalVault();
 
@@ -181,7 +178,7 @@ export function OntologyEditPage() {
         setSavingId(null);
       }
     },
-    [accountId, dataSourceMode, findById, removeNode, t, toast, vault],
+    [dataSourceMode, findById, removeNode, t, toast, vault],
   );
   const ephemeralSelected = findById(selectedId);
   // vault 모드에서는 selectedId 가 vault slug. manifest 에서 lookup
@@ -439,7 +436,6 @@ export function OntologyEditPage() {
                     downloadAtlasFrontmatter({
                       ephemeralNodes,
                       ephemeralEdges,
-                      accountId: "unscoped",
                     })
                   }
                   className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.10)] px-3 text-xs text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.46)] hover:bg-[color:rgba(94,106,210,0.16)]"
@@ -453,7 +449,6 @@ export function OntologyEditPage() {
                     downloadJsonLd({
                       ephemeralNodes,
                       ephemeralEdges,
-                      accountId: "unscoped",
                     })
                   }
                   className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.32)] hover:text-[color:var(--color-text-primary)]"
@@ -467,7 +462,6 @@ export function OntologyEditPage() {
                     downloadGraphML({
                       ephemeralNodes,
                       ephemeralEdges,
-                      accountId: "unscoped",
                     })
                   }
                   className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.32)] hover:text-[color:var(--color-text-primary)]"
