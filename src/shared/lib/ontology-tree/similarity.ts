@@ -1,10 +1,11 @@
 import type { KnowledgeGraphNode } from "@/entities/knowledge-graph";
 
 /**
- * 검수 후보 (candidate) 와 기존 ontology approved 노드의 비슷도 매칭.
+ * 새 노드 후보와 기존 ontology 노드의 비슷도 매칭.
  *
- * 검수자가 후보를 promote 할지 결정하기 전에 "이미 비슷한 노드가 있는가?"
- * 를 답하는 데 사용. dedup 회피 + 같은 개념의 중복 분기 방지.
+ * 사용자 / AI agent 가 새 노드를 만들기 전에 "이미 비슷한 노드가 있는가?"
+ * 를 답하는 데 사용 — dedup 회피 + 같은 개념의 중복 분기 방지.
+ * (빌더 ManualNodeCreateModal · 문서 작성 시 DocumentNewOntologyHints 등.)
  *
  * 점수 규칙 (높을수록 강한 매치):
  *   100 — title 정확 일치 (lower-case 비교) + 같은 kind
