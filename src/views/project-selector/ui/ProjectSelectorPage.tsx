@@ -333,7 +333,6 @@ export function ProjectSelectorPage() {
                   <>
                     <div className="w-full">
                         <ProjectQuickCreatePanel
-                          accountId={null}
                           projects={projects}
                           categories={categories}
                           statuses={statuses}
@@ -516,7 +515,6 @@ export function ProjectSelectorPage() {
               </summary>
               <div className="mt-4 border-t border-[color:var(--color-divider)] pt-4">
                 <ProjectQuickCreatePanel
-                  accountId={null}
                   projects={projects}
                   categories={categories}
                   statuses={statuses}

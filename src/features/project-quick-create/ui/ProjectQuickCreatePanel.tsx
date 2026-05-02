@@ -11,7 +11,6 @@ import { slugify } from "@/shared/lib/slugify";
 import { Button } from "@/shared/ui";
 
 interface Props {
-  accountId?: string | null;
   projects: Project[];
   categories: Category[];
   statuses: Status[];
@@ -34,7 +33,6 @@ function buildUniqueSlug(name: string, existingSlugs: Set<string>) {
 }
 
 export function ProjectQuickCreatePanel({
-  accountId,
   projects,
   categories,
   statuses,
@@ -80,7 +78,6 @@ export function ProjectQuickCreatePanel({
 
     try {
       const input = {
-        accountId: accountId ?? undefined,
         slug: derivedSlug,
         name: trimmedName,
         category: defaultCategoryId,
