@@ -57,9 +57,6 @@ function getEdgeTypeLabel(
 export function OntologyInsightsPage() {
   const t = useTranslations("ontologyPages.insights");
   const kindLabel = useOntologyKindLabel();
-  // R10 — accountId 항상 null. backward-compat 으로 child 컴포넌트가 prop 으로
-  // 받는 곳만 명시적으로 null 전달.
-  const accountId: string | null = null;
 
   const { insight, error } = useOntologyInsight();
 

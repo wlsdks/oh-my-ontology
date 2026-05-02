@@ -45,8 +45,6 @@ function getTypeLabel(
  */
 export function OntologyRelationsPage() {
   const t = useTranslations("ontologyPages.relations");
-  // R10 — accountId 항상 null.
-  const accountId: string | null = null;
 
   const { insight, error } = useOntologyInsight();
 
