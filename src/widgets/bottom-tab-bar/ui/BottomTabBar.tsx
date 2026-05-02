@@ -44,6 +44,7 @@ export function BottomTabBar() {
 
   return (
     <nav
+      data-tabbar="primary"
       aria-label={t('primaryAriaLabel')}
       className="pointer-events-auto fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-[color:var(--color-border-soft)] bg-[color:var(--color-nav-surface)] pb-[env(safe-area-inset-bottom)] md:hidden"
     >

@@ -213,10 +213,11 @@
 }
 
 /*
- * BottomTabBar 숨김 — dead-end surface (404, 인증) 가 body 에
- * data-no-tabbar 를 세팅하면 모바일 탭바 자체를 감춰 사용자가 카드
- * 내부의 명확한 출구만 보게 한다.
+ * BottomTabBar 숨김 — dead-end surface (404 등) 가 body 에 data-no-tabbar
+ * 를 세팅하면 모바일 탭바 자체를 감춰 사용자가 카드 내부의 명확한 출구만
+ * 보게 한다. 셀렉터는 locale-stable 한 data 속성으로 — aria-label 은
+ * 번역되므로 selector 로 쓰면 en locale 에서 매치 실패 (회귀).
  */
-body[data-no-tabbar] [aria-label="주요 메뉴"] {
+body[data-no-tabbar] [data-tabbar="primary"] {
   display: none;
 }
