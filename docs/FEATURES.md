@@ -41,15 +41,14 @@ The `useDataSourceMode()` hook resolves to one of two modes (R10b: cloud / auth 
 
 #### `/` — Ontology Tree Hub (the spine of mission v2)
 
-- **mode-aware** (Q1=(a) adopted, `useOntologyInsight`):
+- **mode-aware** (`useOntologyInsight`):
   - local: vault frontmatter stub nodes/edges surface immediately in tree, ego graph, and search
-  - cloud: subscribes to the `knowledgePublicNodes/Edges` projection
-  - static: demo manifest
+  - static: build-time dogfood manifest (this project's own ontology)
 - **hierarchy tree**: project → domain → capability → element (document nodes contribute as evidence only and are excluded from the tree)
-- **node click** → right-side detail panel: kind / title / summary / project link / evidence documents / **ego graph** (1-hop / 2-hop SVG) / neighbor list / "+ add relation" / "copy node link"
-- **top toolbar pills**: add node / search (⌘K / ⇧⌘K) / open builder → / insights / relations
-- **stat cards**: tree nodes / relations / evidence documents / unresolved stubs / last published
-- **stub handling**: unresolved references → in the `OntologyStubList` widget at the bottom of the tree, take "promote" (kind selection) / "dismiss" actions (cloud mode triggers the `promoteStubNode` / `dismissStubNode` callables)
+- **node click** → right-side detail panel: kind / title / summary / project link / evidence documents / **ego graph** (1-hop / 2-hop SVG) / neighbor list / "copy node link"
+- **top toolbar pills**: search (⌘K / ⇧⌘K) / open builder → / insights / relations
+- **stat cards**: tree nodes / relations / evidence documents
+- **stub handling**: unresolved references → `OntologyStubList` widget at the bottom of the tree shows them; resolve by adding the missing slug as a real node in the builder or by removing the dangling reference from frontmatter
 - **empty-vault empty-state** (mode-aware): when a vault is active, a 2-step "write frontmatter → tidy in builder". Otherwise, a 3-step "open vault → frontmatter → builder".
 - **shortcuts**: `⌘K` search · `⇧⌘K` global search · `?` shortcut sheet
 
@@ -65,7 +64,7 @@ The `useDataSourceMode()` hook resolves to one of two modes (R10b: cloud / auth 
 
 - **palette (left)**: click one of the 4 kinds → a new ephemeral node (indigo dashed) appears at the canvas center
 - **connect**: drag from the dot at a node's edge → drop on another node → ephemeral relation edge
-- **Inspector (right)**: when an ephemeral node is selected, name it + save → commits to `knowledgeApprovedNodes/Edges` (cloud) or vault `.md` (local)
+- **Inspector (right)**: when an ephemeral node is selected, name it + save → writes a vault `.md` (local mode) or shows a "open vault folder first" toast (static mode)
 - **md export**: download ephemeral nodes/edges as frontmatter markdown
 - **fullscreen toggle**: F key or the Maximize button at the top right — hides OperationsNav + uses the full viewport
 - **shortcuts**: N (new project node) · F (fullscreen) · Del (delete selection) · Esc (clear selection / exit fullscreen)
