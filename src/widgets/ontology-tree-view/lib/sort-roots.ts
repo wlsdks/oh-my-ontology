@@ -35,16 +35,6 @@ function rank(kind: string): number {
  */
 export type OntologyRootSortKey = "kind-title" | "evidence-desc" | "title";
 
-/** UI label — 정렬 dropdown 표시 텍스트. */
-export const ONTOLOGY_ROOT_SORT_LABEL: Record<OntologyRootSortKey, string> = {
-  "kind-title": "Kind 우선",
-  // mission v2 vault 모드는 evidenceCount 가 모두 0 이라 결과적으로 가나다
-  // fallback 으로 정렬됨. cloud 모드에서만 의미 있는 정렬이라 라벨은 v1
-  // "근거" 단어 회피 ("참조" 가 vault/cloud 양쪽 의미 통합).
-  "evidence-desc": "참조 많은 순",
-  title: "가나다",
-};
-
 function compareEvidenceDesc(a: OntologyTreeNode, b: OntologyTreeNode): number {
   const ea = a.node.evidenceCount ?? a.node.evidenceIds.length;
   const eb = b.node.evidenceCount ?? b.node.evidenceIds.length;
