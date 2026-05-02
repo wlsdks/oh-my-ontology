@@ -3,10 +3,7 @@ slug: domains/mode-aware-adapters
 kind: domain
 title: Mode-Aware Adapters
 capabilities:
-  - data-source-dispatch
-  - mode-aware-read
-  - mode-aware-mutation
-  - taxonomy-mode-bridge
+  - mode-aware-adapter
 elements:
   - src/features/data-source-mode
   - src/features/project-data-source
