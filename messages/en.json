@@ -1180,7 +1180,8 @@
       "renamePrompt": "New slug (without extension):",
       "renameAlreadyExists": "Document already exists: {slug}",
       "renameFailed": "Rename failed: {message}",
-      "newDocPrompt": "New document path (slug, no extension):"
+      "newDocPrompt": "New document path (slug, no extension):",
+      "createProjectBodyPlaceholder": "Write a project description here."
     }
   },
   "topology": {

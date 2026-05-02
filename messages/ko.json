@@ -1180,7 +1180,8 @@
       "renamePrompt": "새 slug (확장자 없이):",
       "renameAlreadyExists": "이미 존재하는 문서입니다: {slug}",
       "renameFailed": "이름 변경 실패: {message}",
-      "newDocPrompt": "새 문서 경로 (slug, 확장자 없이):"
+      "newDocPrompt": "새 문서 경로 (slug, 확장자 없이):",
+      "createProjectBodyPlaceholder": "프로젝트 설명을 여기에 써주세요."
     }
   },
   "topology": {

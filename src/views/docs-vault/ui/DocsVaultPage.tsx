@@ -542,7 +542,7 @@ function AdminDocsContent() {
       '',
       `# ${name}`,
       '',
-      '프로젝트 설명을 여기에 써주세요.',
+      t('dialog.createProjectBodyPlaceholder'),
       '',
     ].join('\n');
     try {
