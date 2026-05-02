@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Info, Link2, X } from "lucide-react";
 import {
   ManualSourceChip,
@@ -25,7 +25,6 @@ import { useDataSourceMode } from "@/features/data-source-mode";
 import {
   VaultOntologyStubsPanel,
   useOntologyInsight,
-  isVaultSentinelDate,
 } from "@/features/vault-ontology";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { Tooltip, useToast } from "@/shared/ui";
@@ -39,18 +38,11 @@ import { Tooltip, useToast } from "@/shared/ui";
  */
 export function OntologyViewPage() {
   const t = useTranslations('ontologyView');
-  const locale = useLocale();
   const searchParams = useSearchParams();
   const router = useRouter();
   const dataSourceMode = useDataSourceMode();
 
   const { insight, error } = useOntologyInsight();
-  // vault / dogfood 모드는 노드 lastApprovedAt 이 sentinel — "근거 문서" /
-  // "발행 시점" stat 도 의미 0. mode 감지해서 stat strip / search 안내 hide.
-  const isVaultSentinelMode =
-    insight !== null &&
-    insight.nodes.length > 0 &&
-    insight.nodes.every((n) => isVaultSentinelDate(n.lastApprovedAt));
   // 트리 row 클릭 시 우측 (mobile bottom) 패널에 노드 상세 노출.
   const [selectedNode, setSelectedNode] = useState<KnowledgeGraphNode | null>(null);
   // 글로벌 검색 — ⌘K / Ctrl+K 로 토글, 결과 선택 시 selectedNode 로 점프 / 문서 라우트로 점프.
