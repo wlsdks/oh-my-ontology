@@ -1040,7 +1040,6 @@ export function HomePage() {
             의 고유 기능 보존. controlled mode (open/onOpenChange) 라 hotkey
             는 useTypingShortcuts 가 관리. */}
         <MountedGlobalSearch
-          accountId={null}
           open={ontologySearchOpen}
           onOpenChange={setOntologySearchOpen}
           onSelectProject={(project) => handleSelect(project.slug)}

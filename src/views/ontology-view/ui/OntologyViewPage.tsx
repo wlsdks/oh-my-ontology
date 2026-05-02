@@ -450,7 +450,6 @@ relates:
 
       {/* ⇧⌘K — global search (ontology + projects). 다른 surface 와 일관성. */}
       <MountedGlobalSearch
-        accountId={accountId}
         open={globalSearchOpen}
         onOpenChange={setGlobalSearchOpen}
         onSelectNode={(node) => selectNode(node)}

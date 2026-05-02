@@ -155,7 +155,7 @@ export function OntologyInsightsPage() {
     <div>
       <OperationsNav />
       <div className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
-      <MountedGlobalSearch accountId={accountId} returnTo="/ontology/insights/" />
+      <MountedGlobalSearch />
 
       <section className="mb-8 space-y-3">
         {/* UX-8: 모바일 한정 좌상단 back chevron — 한 손 도달 가능 위치

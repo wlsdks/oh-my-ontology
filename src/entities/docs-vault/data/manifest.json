@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-02T14:05:29.899Z",
+  "generatedAt": "2026-05-02T17:18:49.538Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -27,129 +27,66 @@
         },
         {
           "depth": 2,
-          "text": "1. Current product structure",
-          "slug": "1-current-product-structure"
+          "text": "High-level shape",
+          "slug": "high-level-shape"
         },
         {
           "depth": 2,
-          "text": "2. Domain model",
-          "slug": "2-domain-model"
+          "text": "FSD layers",
+          "slug": "fsd-layers"
         },
         {
           "depth": 2,
-          "text": "3. Data and permission boundaries",
-          "slug": "3-data-and-permission-boundaries"
-        },
-        {
-          "depth": 2,
-          "text": "4. Responsibility split",
-          "slug": "4-responsibility-split"
+          "text": "Data flow",
+          "slug": "data-flow"
         },
         {
           "depth": 3,
-          "text": "Next.js app",
-          "slug": "nextjs-app"
+          "text": "Vault mode (user picked a markdown folder)",
+          "slug": "vault-mode-user-picked-a-markdown-folder"
         },
         {
           "depth": 3,
-          "text": "Firestore / Storage (cloud mode only)",
-          "slug": "firestore-storage-cloud-mode-only"
-        },
-        {
-          "depth": 3,
-          "text": "Cloud Functions",
-          "slug": "cloud-functions"
-        },
-        {
-          "depth": 3,
-          "text": "MCP server (introduced in mission v2)",
-          "slug": "mcp-server-introduced-in-mission-v2"
+          "text": "Static mode (no vault picked)",
+          "slug": "static-mode-no-vault-picked"
         },
         {
           "depth": 2,
-          "text": "5. Data boundaries",
-          "slug": "5-data-boundaries"
-        },
-        {
-          "depth": 3,
-          "text": "Public read model",
-          "slug": "public-read-model"
-        },
-        {
-          "depth": 3,
-          "text": "Self-account private model (account owner / members only)",
-          "slug": "self-account-private-model-account-owner-members-only"
-        },
-        {
-          "depth": 3,
-          "text": "Backend-owned model",
-          "slug": "backend-owned-model"
-        },
-        {
-          "depth": 4,
-          "text": "Cold storage (read-only after mission v2 cleanup)",
-          "slug": "cold-storage-read-only-after-mission-v2-cleanup"
+          "text": "Routes",
+          "slug": "routes"
         },
         {
           "depth": 2,
-          "text": "6. Permission model",
-          "slug": "6-permission-model"
+          "text": "Build pipeline",
+          "slug": "build-pipeline"
         },
         {
           "depth": 2,
-          "text": "7. FSD layer layout",
-          "slug": "7-fsd-layer-layout"
+          "text": "i18n routing contract",
+          "slug": "i18n-routing-contract"
         },
         {
           "depth": 2,
-          "text": "8. Pages and operational paths",
-          "slug": "8-pages-and-operational-paths"
+          "text": "Test surface",
+          "slug": "test-surface"
         },
         {
           "depth": 2,
-          "text": "9. Currently implemented vs planned",
-          "slug": "9-currently-implemented-vs-planned"
-        },
-        {
-          "depth": 3,
-          "text": "Already implemented",
-          "slug": "already-implemented"
-        },
-        {
-          "depth": 3,
-          "text": "Still in the planning stage",
-          "slug": "still-in-the-planning-stage"
-        },
-        {
-          "depth": 2,
-          "text": "10. Related documents",
-          "slug": "10-related-documents"
-        },
-        {
-          "depth": 2,
-          "text": "11. Scaling triggers",
-          "slug": "11-scaling-triggers"
+          "text": "Source-of-truth files",
+          "slug": "source-of-truth-files"
         }
       ],
-      "excerpt": "This document describes the current product's domain model and its public/operational structure. The service is no longer a simple public portfolio — it is now built around growing a documentbased ontology inside a workspace and reading/editing it from public surfaces. mission v2 alignment: The cloud LLM extraction flo",
-      "wordCount": 1987,
-      "updatedAt": "2026-05-02T10:11:16.212Z",
+      "excerpt": "202605 update — Round 10 permanently removed all auth + cloud surface. This doc reflects the postR10 state. Earlier cloudmode design notes are in docs/archive/. There is no backend, no database, no auth provider. The user's markdown folder is the single source of truth. Import direction: app → views → widgets → feature",
+      "wordCount": 796,
+      "updatedAt": "2026-05-02T16:29:38.380Z",
       "mode": "engineer",
       "linksOut": [
-        "rules/architecture-fsd",
+        "../AGENTS",
         "PRODUCT-DIRECTION",
         "FEATURES",
-        "BACKLOG",
-        "MODE-AWARE-CRUD",
-        "ONTOLOGY-MODEL-V2-DRAFT",
-        "MISSION-CLEANUP-CANDIDATES",
-        "DATA-MODEL",
         "DESIGN-SYSTEM",
         "DEPLOYMENT",
-        "CHANGELOG",
-        "../mcp/README",
-        "../AGENTS",
-        "../CLAUDE"
+        "CHANGELOG"
       ]
     },
     {
@@ -477,6 +414,252 @@
       "linksOut": []
     },
     {
+      "slug": "archive/DATA-MODEL",
+      "path": "docs/archive/DATA-MODEL.md",
+      "title": "Data Model",
+      "tags": [
+        "data-model",
+        "firestore",
+        "schema"
+      ],
+      "frontmatter": {
+        "title": "Data Model",
+        "tags": [
+          "data-model",
+          "firestore",
+          "schema"
+        ]
+      },
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Data Model",
+          "slug": "data-model"
+        },
+        {
+          "depth": 2,
+          "text": "1. Principles",
+          "slug": "1-principles"
+        },
+        {
+          "depth": 2,
+          "text": "2. Firestore collections",
+          "slug": "2-firestore-collections"
+        },
+        {
+          "depth": 2,
+          "text": "3. Public product collections",
+          "slug": "3-public-product-collections"
+        },
+        {
+          "depth": 3,
+          "text": "`projects/{slug}`",
+          "slug": "projectsslug"
+        },
+        {
+          "depth": 3,
+          "text": "`categories/{id}`",
+          "slug": "categoriesid"
+        },
+        {
+          "depth": 3,
+          "text": "`statuses/{id}`",
+          "slug": "statusesid"
+        },
+        {
+          "depth": 3,
+          "text": "`meta/site`",
+          "slug": "metasite"
+        },
+        {
+          "depth": 2,
+          "text": "4. Knowledge subsystem collections",
+          "slug": "4-knowledge-subsystem-collections"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeDocuments/{documentId}`",
+          "slug": "knowledgedocumentsdocumentid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeDocumentVersions/{versionId}`",
+          "slug": "knowledgedocumentversionsversionid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeDocumentChunks/{chunkId}`",
+          "slug": "knowledgedocumentchunkschunkid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeExtractionJobs/{jobId}`",
+          "slug": "knowledgeextractionjobsjobid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeExtractionOutputs/{outputId}`",
+          "slug": "knowledgeextractionoutputsoutputid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeEvidence/{evidenceId}`",
+          "slug": "knowledgeevidenceevidenceid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeReviews/{reviewId}`",
+          "slug": "knowledgereviewsreviewid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeReviewEvents/{eventId}`",
+          "slug": "knowledgerevieweventseventid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeApprovalEvents/{eventId}`",
+          "slug": "knowledgeapprovaleventseventid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeApprovedNodes/{nodeId}`",
+          "slug": "knowledgeapprovednodesnodeid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgeApprovedEdges/{edgeId}`",
+          "slug": "knowledgeapprovededgesedgeid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgePublishes/{publishId}`",
+          "slug": "knowledgepublishespublishid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgePublicNodes/{nodeId}`",
+          "slug": "knowledgepublicnodesnodeid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgePublicEdges/{edgeId}`",
+          "slug": "knowledgepublicedgesedgeid"
+        },
+        {
+          "depth": 3,
+          "text": "`knowledgePublicMeta/current`",
+          "slug": "knowledgepublicmetacurrent"
+        },
+        {
+          "depth": 3,
+          "text": "`ontologyClasses/{classId}`",
+          "slug": "ontologyclassesclassid"
+        },
+        {
+          "depth": 3,
+          "text": "`ontologyRelations/{relationId}`",
+          "slug": "ontologyrelationsrelationid"
+        },
+        {
+          "depth": 3,
+          "text": "`ontologyTBoxVersions/{versionId}`",
+          "slug": "ontologytboxversionsversionid"
+        },
+        {
+          "depth": 3,
+          "text": "`ontologyTBoxState/current`",
+          "slug": "ontologytboxstatecurrent"
+        },
+        {
+          "depth": 2,
+          "text": "5. Storage layout",
+          "slug": "5-storage-layout"
+        },
+        {
+          "depth": 2,
+          "text": "6. Trusted backend contract (historical)",
+          "slug": "6-trusted-backend-contract-historical"
+        },
+        {
+          "depth": 2,
+          "text": "7. Security summary",
+          "slug": "7-security-summary"
+        },
+        {
+          "depth": 2,
+          "text": "8. Retention / Backup principles",
+          "slug": "8-retention-backup-principles"
+        },
+        {
+          "depth": 2,
+          "text": "9. Change history",
+          "slug": "9-change-history"
+        }
+      ],
+      "excerpt": "This document covers the storage contracts of both the current public product and the designapproved knowledge subsystem v2. Whenever a collection schema changes, update this document first. The change process follows rules/firestoreschema.md. Singleuser mode (current): A single loggedin user is the owner of their own ",
+      "wordCount": 5359,
+      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "mode": "both",
+      "linksOut": [
+        "archive/rules/firestore-schema"
+      ]
+    },
+    {
+      "slug": "archive/DEPLOY-FIREBASE",
+      "path": "docs/archive/DEPLOY-FIREBASE.md",
+      "title": "Firebase Hosting deployment guide",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Firebase Hosting deployment guide",
+          "slug": "firebase-hosting-deployment-guide"
+        },
+        {
+          "depth": 2,
+          "text": "One-time setup (already done)",
+          "slug": "one-time-setup-already-done"
+        },
+        {
+          "depth": 2,
+          "text": "Deploy commands",
+          "slug": "deploy-commands"
+        },
+        {
+          "depth": 2,
+          "text": "Deployment URLs",
+          "slug": "deployment-urls"
+        },
+        {
+          "depth": 2,
+          "text": "Post-deploy smoke checks",
+          "slug": "post-deploy-smoke-checks"
+        },
+        {
+          "depth": 2,
+          "text": "Regression guard",
+          "slug": "regression-guard"
+        },
+        {
+          "depth": 2,
+          "text": "Cost",
+          "slug": "cost"
+        },
+        {
+          "depth": 2,
+          "text": "If you also want Firestore / Auth / Storage",
+          "slug": "if-you-also-want-firestore-auth-storage"
+        }
+      ],
+      "excerpt": "The hosted demo for ohmyontology runs on Firebase Hosting (project: ohmyontology) and serves a static export. Since Next.js is configured with output: 'export', there is no server runtime — the free Spark plan is more than enough. [x] Firebase project ohmyontology created [x] .firebaserc configured with default: ohmyon",
+      "wordCount": 352,
+      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "mode": "both",
+      "linksOut": []
+    },
+    {
       "slug": "archive/LOCAL-FIRST-SYNC",
       "path": "docs/archive/LOCAL-FIRST-SYNC.md",
       "title": "Local-first / Firebase Sync 정책",
@@ -567,6 +750,149 @@
       "excerpt": "Status: 부분 구현 + 활성 가이드. modeaware adapters (PR 5/6) + useOntologyInsight (Q1=(a)) 머지로 Static / Local / Cloud 3 모드는 코드 구현 완료. Hybrid (양방향 sync) 는 v2 협업 단계. 이 문서는 로컬 디스크의 markdown 폴더 와 Firebase (Firestore + Storage) 사이의 데이터 흐름·sync·충돌 정책을 명시한다. .claude/rules/localfirst.md 의 \"Notion 처럼 폴더만 선택해도 사용\" 헌장을 데이터 레이어에서 어떻게 구현하는지",
       "wordCount": 1170,
       "updatedAt": "2026-05-02T06:57:52.980Z",
+      "mode": "both",
+      "linksOut": []
+    },
+    {
+      "slug": "archive/MISSION-CLEANUP-CANDIDATES",
+      "path": "docs/archive/MISSION-CLEANUP-CANDIDATES.md",
+      "title": "Mission Cleanup Candidates — mission v2 와 코드 정렬 (✅ ARCHIVED)",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Mission Cleanup Candidates — mission v2 와 코드 정렬 (✅ ARCHIVED)",
+          "slug": "mission-cleanup-candidates-mission-v2-와-코드-정렬-archived"
+        },
+        {
+          "depth": 2,
+          "text": "1원리 분석 (요지)",
+          "slug": "1원리-분석-요지"
+        },
+        {
+          "depth": 2,
+          "text": "✅ 완료된 staging plan",
+          "slug": "완료된-staging-plan"
+        },
+        {
+          "depth": 2,
+          "text": "보존 결정 (mission 정렬 또는 cloud-mode 옵션)",
+          "slug": "보존-결정-mission-정렬-또는-cloud-mode-옵션"
+        },
+        {
+          "depth": 2,
+          "text": "Cold storage (read-only)",
+          "slug": "cold-storage-read-only"
+        },
+        {
+          "depth": 2,
+          "text": "firebase deploy 정책",
+          "slug": "firebase-deploy-정책"
+        }
+      ],
+      "excerpt": "✅ 모든 stage 머지 완료 (20260501 저녁, PR 511). 본 문서는 historical analysis 로 보관 — 같은 패턴의 cleanup 이 미래에 필요할 때 참조용. 사용자 가시 변화 시간순: docs/CHANGELOG.md (20260501 저녁 entry). 현재 nextwork: docs/BACKLOG.md. mission v2 = \"사람과 AI agent 가 같이 저작하는 codebase ontology\" (docs/PRODUCTDIRECTION.md). 척추 = md frontmatter → ontology. AI agent = MCP ",
+      "wordCount": 495,
+      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "mode": "both",
+      "linksOut": []
+    },
+    {
+      "slug": "archive/MODE-AWARE-CRUD",
+      "path": "docs/archive/MODE-AWARE-CRUD.md",
+      "title": "Mode-aware CRUD pattern",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Mode-aware CRUD pattern",
+          "slug": "mode-aware-crud-pattern"
+        },
+        {
+          "depth": 2,
+          "text": "1. Operational modes (data source mode)",
+          "slug": "1-operational-modes-data-source-mode"
+        },
+        {
+          "depth": 2,
+          "text": "2. Core modules introduced",
+          "slug": "2-core-modules-introduced"
+        },
+        {
+          "depth": 3,
+          "text": "2.1 Hook that observes the mode itself",
+          "slug": "21-hook-that-observes-the-mode-itself"
+        },
+        {
+          "depth": 3,
+          "text": "2.2 Per-entity mode-aware mutation hooks",
+          "slug": "22-per-entity-mode-aware-mutation-hooks"
+        },
+        {
+          "depth": 3,
+          "text": "2.3 entity ↔ frontmatter mappers",
+          "slug": "23-entity-frontmatter-mappers"
+        },
+        {
+          "depth": 3,
+          "text": "2.4 vault → ontology fast path",
+          "slug": "24-vault-ontology-fast-path"
+        },
+        {
+          "depth": 3,
+          "text": "2.5 AI agent partner (new in mission v2)",
+          "slug": "25-ai-agent-partner-new-in-mission-v2"
+        },
+        {
+          "depth": 2,
+          "text": "3. How to make a new entity's mutations mode-aware",
+          "slug": "3-how-to-make-a-new-entitys-mutations-mode-aware"
+        },
+        {
+          "depth": 3,
+          "text": "3.1 Add frontmatter serialization for the entity",
+          "slug": "31-add-frontmatter-serialization-for-the-entity"
+        },
+        {
+          "depth": 3,
+          "text": "3.2 Create a mode-aware mutation hook",
+          "slug": "32-create-a-mode-aware-mutation-hook"
+        },
+        {
+          "depth": 3,
+          "text": "3.3 Use the hook from UI components",
+          "slug": "33-use-the-hook-from-ui-components"
+        },
+        {
+          "depth": 3,
+          "text": "3.4 Gate on *mode*, not on *role*",
+          "slug": "34-gate-on-mode-not-on-role"
+        },
+        {
+          "depth": 2,
+          "text": "4. List subscribe should be mode-aware too (TODO — Phase 6+ follow-up)",
+          "slug": "4-list-subscribe-should-be-mode-aware-too-todo-phase-6-follow-up"
+        },
+        {
+          "depth": 2,
+          "text": "5. e2e test guidance",
+          "slug": "5-e2e-test-guidance"
+        },
+        {
+          "depth": 2,
+          "text": "6. Related specs / rules",
+          "slug": "6-related-specs-rules"
+        },
+        {
+          "depth": 2,
+          "text": "7. anti-pattern catalog (regression guard)",
+          "slug": "7-anti-pattern-catalog-regression-guard"
+        }
+      ],
+      "excerpt": "Status: Adopted (Phase 23, 20260501). Why: Root cause 1 from the planner audit — no modeaware hook existed, so every gate looked only at auth role. Nonloggedin users with an active local vault could not perform mutations. Spec location: Codelayer implementation of the .claude/rules/localfirst.md charter and docs/LOCALF",
+      "wordCount": 1104,
+      "updatedAt": "2026-05-02T16:29:38.381Z",
       "mode": "both",
       "linksOut": []
     },
@@ -1423,13 +1749,33 @@
         },
         {
           "depth": 2,
+          "text": "2026-05-03 — Round 10: permanent removal of auth + cloud surface",
+          "slug": "2026-05-03-round-10-permanent-removal-of-auth-cloud-surface"
+        },
+        {
+          "depth": 3,
+          "text": "User-visible changes",
+          "slug": "user-visible-changes"
+        },
+        {
+          "depth": 3,
+          "text": "Code / architecture",
+          "slug": "code-architecture"
+        },
+        {
+          "depth": 3,
+          "text": "Future cloud collab",
+          "slug": "future-cloud-collab"
+        },
+        {
+          "depth": 2,
           "text": "2026-05-02 — OSS launch readiness: English-first docs + npm publish guard",
           "slug": "2026-05-02-oss-launch-readiness-english-first-docs-npm-publish-guard"
         },
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes"
+          "slug": "user-visible-changes-2"
         },
         {
           "depth": 3,
@@ -1469,7 +1815,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-2"
+          "slug": "user-visible-changes-3"
         },
         {
           "depth": 3,
@@ -1494,7 +1840,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-3"
+          "slug": "user-visible-changes-4"
         },
         {
           "depth": 3,
@@ -1539,7 +1885,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-4"
+          "slug": "user-visible-changes-5"
         },
         {
           "depth": 3,
@@ -1574,7 +1920,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-5"
+          "slug": "user-visible-changes-6"
         },
         {
           "depth": 3,
@@ -1612,357 +1958,76 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. All OSSfacing docs are now Englishfirst — global contributors can read the full project fr",
-      "wordCount": 3005,
-      "updatedAt": "2026-05-02T09:34:08.145Z",
-      "mode": "both",
-      "linksOut": []
-    },
-    {
-      "slug": "DATA-MODEL",
-      "path": "docs/DATA-MODEL.md",
-      "title": "Data Model",
-      "tags": [
-        "data-model",
-        "firestore",
-        "schema"
-      ],
-      "frontmatter": {
-        "title": "Data Model",
-        "tags": [
-          "data-model",
-          "firestore",
-          "schema"
-        ]
-      },
-      "headings": [
-        {
-          "depth": 1,
-          "text": "Data Model",
-          "slug": "data-model"
-        },
-        {
-          "depth": 2,
-          "text": "1. Principles",
-          "slug": "1-principles"
-        },
-        {
-          "depth": 2,
-          "text": "2. Firestore collections",
-          "slug": "2-firestore-collections"
-        },
-        {
-          "depth": 2,
-          "text": "3. Public product collections",
-          "slug": "3-public-product-collections"
-        },
-        {
-          "depth": 3,
-          "text": "`projects/{slug}`",
-          "slug": "projectsslug"
-        },
-        {
-          "depth": 3,
-          "text": "`categories/{id}`",
-          "slug": "categoriesid"
-        },
-        {
-          "depth": 3,
-          "text": "`statuses/{id}`",
-          "slug": "statusesid"
-        },
-        {
-          "depth": 3,
-          "text": "`meta/site`",
-          "slug": "metasite"
-        },
-        {
-          "depth": 2,
-          "text": "4. Knowledge subsystem collections",
-          "slug": "4-knowledge-subsystem-collections"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeDocuments/{documentId}`",
-          "slug": "knowledgedocumentsdocumentid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeDocumentVersions/{versionId}`",
-          "slug": "knowledgedocumentversionsversionid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeDocumentChunks/{chunkId}`",
-          "slug": "knowledgedocumentchunkschunkid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeExtractionJobs/{jobId}`",
-          "slug": "knowledgeextractionjobsjobid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeExtractionOutputs/{outputId}`",
-          "slug": "knowledgeextractionoutputsoutputid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeEvidence/{evidenceId}`",
-          "slug": "knowledgeevidenceevidenceid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeReviews/{reviewId}`",
-          "slug": "knowledgereviewsreviewid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeReviewEvents/{eventId}`",
-          "slug": "knowledgerevieweventseventid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeApprovalEvents/{eventId}`",
-          "slug": "knowledgeapprovaleventseventid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeApprovedNodes/{nodeId}`",
-          "slug": "knowledgeapprovednodesnodeid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgeApprovedEdges/{edgeId}`",
-          "slug": "knowledgeapprovededgesedgeid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgePublishes/{publishId}`",
-          "slug": "knowledgepublishespublishid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgePublicNodes/{nodeId}`",
-          "slug": "knowledgepublicnodesnodeid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgePublicEdges/{edgeId}`",
-          "slug": "knowledgepublicedgesedgeid"
-        },
-        {
-          "depth": 3,
-          "text": "`knowledgePublicMeta/current`",
-          "slug": "knowledgepublicmetacurrent"
-        },
-        {
-          "depth": 3,
-          "text": "`ontologyClasses/{classId}`",
-          "slug": "ontologyclassesclassid"
-        },
-        {
-          "depth": 3,
-          "text": "`ontologyRelations/{relationId}`",
-          "slug": "ontologyrelationsrelationid"
-        },
-        {
-          "depth": 3,
-          "text": "`ontologyTBoxVersions/{versionId}`",
-          "slug": "ontologytboxversionsversionid"
-        },
-        {
-          "depth": 3,
-          "text": "`ontologyTBoxState/current`",
-          "slug": "ontologytboxstatecurrent"
-        },
-        {
-          "depth": 2,
-          "text": "5. Storage layout",
-          "slug": "5-storage-layout"
-        },
-        {
-          "depth": 2,
-          "text": "6. Trusted backend contract (historical)",
-          "slug": "6-trusted-backend-contract-historical"
-        },
-        {
-          "depth": 2,
-          "text": "7. Security summary",
-          "slug": "7-security-summary"
-        },
-        {
-          "depth": 2,
-          "text": "8. Retention / Backup principles",
-          "slug": "8-retention-backup-principles"
-        },
-        {
-          "depth": 2,
-          "text": "9. Change history",
-          "slug": "9-change-history"
-        }
-      ],
-      "excerpt": "This document covers the storage contracts of both the current public product and the designapproved knowledge subsystem v2. Whenever a collection schema changes, update this document first. The change process follows rules/firestoreschema.md. Singleuser mode (current): A single loggedin user is the owner of their own ",
-      "wordCount": 5359,
-      "updatedAt": "2026-05-02T10:11:16.212Z",
-      "mode": "engineer",
-      "linksOut": [
-        "rules/firestore-schema"
-      ]
-    },
-    {
-      "slug": "DEPLOY-FIREBASE",
-      "path": "docs/DEPLOY-FIREBASE.md",
-      "title": "Firebase Hosting deployment guide",
-      "tags": [],
-      "frontmatter": {},
-      "headings": [
-        {
-          "depth": 1,
-          "text": "Firebase Hosting deployment guide",
-          "slug": "firebase-hosting-deployment-guide"
-        },
-        {
-          "depth": 2,
-          "text": "One-time setup (already done)",
-          "slug": "one-time-setup-already-done"
-        },
-        {
-          "depth": 2,
-          "text": "Deploy commands",
-          "slug": "deploy-commands"
-        },
-        {
-          "depth": 2,
-          "text": "Deployment URLs",
-          "slug": "deployment-urls"
-        },
-        {
-          "depth": 2,
-          "text": "Post-deploy smoke checks",
-          "slug": "post-deploy-smoke-checks"
-        },
-        {
-          "depth": 2,
-          "text": "Regression guard",
-          "slug": "regression-guard"
-        },
-        {
-          "depth": 2,
-          "text": "Cost",
-          "slug": "cost"
-        },
-        {
-          "depth": 2,
-          "text": "If you also want Firestore / Auth / Storage",
-          "slug": "if-you-also-want-firestore-auth-storage"
-        }
-      ],
-      "excerpt": "The hosted demo for ohmyontology runs on Firebase Hosting (project: ohmyontology) and serves a static export. Since Next.js is configured with output: 'export', there is no server runtime — the free Spark plan is more than enough. [x] Firebase project ohmyontology created [x] .firebaserc configured with default: ohmyon",
-      "wordCount": 352,
-      "updatedAt": "2026-05-02T09:34:08.145Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. ohmyontology is now a pure localfirst OSS. All optional Firebase / Firestore / Auth / Clou",
+      "wordCount": 3339,
+      "updatedAt": "2026-05-02T16:29:38.380Z",
       "mode": "both",
       "linksOut": []
     },
     {
       "slug": "DEPLOYMENT",
       "path": "docs/DEPLOYMENT.md",
-      "title": "Deployment Guide",
+      "title": "Deployment",
       "tags": [],
       "frontmatter": {},
       "headings": [
         {
           "depth": 1,
-          "text": "Deployment Guide",
-          "slug": "deployment-guide"
+          "text": "Deployment",
+          "slug": "deployment"
         },
         {
           "depth": 2,
-          "text": "Table of contents",
-          "slug": "table-of-contents"
+          "text": "Build",
+          "slug": "build"
         },
         {
           "depth": 2,
-          "text": "1. Initial setup (one-time)",
-          "slug": "1-initial-setup-one-time"
-        },
-        {
-          "depth": 2,
-          "text": "2. Daily deploy flow",
-          "slug": "2-daily-deploy-flow"
-        },
-        {
-          "depth": 2,
-          "text": "3. Partial deploys",
-          "slug": "3-partial-deploys"
-        },
-        {
-          "depth": 2,
-          "text": "4. Environment variables",
-          "slug": "4-environment-variables"
-        },
-        {
-          "depth": 2,
-          "text": "5. Firebase project configuration",
-          "slug": "5-firebase-project-configuration"
+          "text": "Deploy targets",
+          "slug": "deploy-targets"
         },
         {
           "depth": 3,
-          "text": "Firestore collections",
-          "slug": "firestore-collections"
-        },
-        {
-          "depth": 2,
-          "text": "6. Custom domain hookup",
-          "slug": "6-custom-domain-hookup"
+          "text": "Firebase Hosting",
+          "slug": "firebase-hosting"
         },
         {
           "depth": 3,
-          "text": "Prerequisites",
-          "slug": "prerequisites"
+          "text": "Vercel",
+          "slug": "vercel"
         },
         {
           "depth": 3,
-          "text": "Hookup steps",
-          "slug": "hookup-steps"
-        },
-        {
-          "depth": 3,
-          "text": "What you must do after hookup",
-          "slug": "what-you-must-do-after-hookup"
-        },
-        {
-          "depth": 3,
-          "text": "apex domain support",
-          "slug": "apex-domain-support"
+          "text": "GitHub Pages, Netlify, S3, …",
+          "slug": "github-pages-netlify-s3"
         },
         {
           "depth": 2,
-          "text": "7. Rollback and version management",
-          "slug": "7-rollback-and-version-management"
+          "text": "i18n + routing",
+          "slug": "i18n-routing"
         },
         {
           "depth": 2,
-          "text": "8. Pre-deploy checklist",
-          "slug": "8-pre-deploy-checklist"
+          "text": "Verification",
+          "slug": "verification"
         },
         {
           "depth": 2,
-          "text": "9. Troubleshooting",
-          "slug": "9-troubleshooting"
+          "text": "What's NOT needed",
+          "slug": "whats-not-needed"
         },
         {
           "depth": 2,
-          "text": "Change log",
-          "slug": "change-log"
+          "text": "Future cloud collab",
+          "slug": "future-cloud-collab"
         }
       ],
-      "excerpt": "Static deployment guide based on Firebase Hosting. Live: https://ohmyontology.web.app This document is a singleplace checklist of every step you need when deploying to Firebase. It covers everything from firsttime setup to daily deploys, rollbacks, and custom domains. For the lightweight quickstart, see DEPLOYFIREBASE.",
-      "wordCount": 1630,
-      "updatedAt": "2026-05-02T10:11:16.212Z",
+      "excerpt": "202605 update — Round 10 removed all backend dependencies. The OSS now builds to a pure static site (output: 'export'), deployable to any static host (Firebase Hosting, Vercel, Netlify, GitHub Pages, S3 + CloudFront, …). The detailed Firebasespecific guide is archived in docs/archive/DEPLOYFIREBASE.md for reference. Th",
+      "wordCount": 364,
+      "updatedAt": "2026-05-02T16:29:38.381Z",
       "mode": "engineer",
       "linksOut": [
-        "DEPLOY-FIREBASE"
+        "archive/DEPLOY-FIREBASE"
       ]
     },
     {
@@ -2572,8 +2637,8 @@
         }
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260502 (postOSSlaunch readiness — CLI scaffold, web scaffold button, npm publish guard) Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG. Mission v2: \"an ontology of the cod",
-      "wordCount": 4438,
-      "updatedAt": "2026-05-02T09:34:08.146Z",
+      "wordCount": 4454,
+      "updatedAt": "2026-05-02T14:24:05.806Z",
       "mode": "both",
       "linksOut": [
         "old",
@@ -2841,149 +2906,6 @@
       "linksOut": []
     },
     {
-      "slug": "MISSION-CLEANUP-CANDIDATES",
-      "path": "docs/MISSION-CLEANUP-CANDIDATES.md",
-      "title": "Mission Cleanup Candidates — mission v2 와 코드 정렬 (✅ ARCHIVED)",
-      "tags": [],
-      "frontmatter": {},
-      "headings": [
-        {
-          "depth": 1,
-          "text": "Mission Cleanup Candidates — mission v2 와 코드 정렬 (✅ ARCHIVED)",
-          "slug": "mission-cleanup-candidates-mission-v2-와-코드-정렬-archived"
-        },
-        {
-          "depth": 2,
-          "text": "1원리 분석 (요지)",
-          "slug": "1원리-분석-요지"
-        },
-        {
-          "depth": 2,
-          "text": "✅ 완료된 staging plan",
-          "slug": "완료된-staging-plan"
-        },
-        {
-          "depth": 2,
-          "text": "보존 결정 (mission 정렬 또는 cloud-mode 옵션)",
-          "slug": "보존-결정-mission-정렬-또는-cloud-mode-옵션"
-        },
-        {
-          "depth": 2,
-          "text": "Cold storage (read-only)",
-          "slug": "cold-storage-read-only"
-        },
-        {
-          "depth": 2,
-          "text": "firebase deploy 정책",
-          "slug": "firebase-deploy-정책"
-        }
-      ],
-      "excerpt": "✅ 모든 stage 머지 완료 (20260501 저녁, PR 511). 본 문서는 historical analysis 로 보관 — 같은 패턴의 cleanup 이 미래에 필요할 때 참조용. 사용자 가시 변화 시간순: docs/CHANGELOG.md (20260501 저녁 entry). 현재 nextwork: docs/BACKLOG.md. mission v2 = \"사람과 AI agent 가 같이 저작하는 codebase ontology\" (docs/PRODUCTDIRECTION.md). 척추 = md frontmatter → ontology. AI agent = MCP ",
-      "wordCount": 495,
-      "updatedAt": "2026-05-01T13:52:36.988Z",
-      "mode": "both",
-      "linksOut": []
-    },
-    {
-      "slug": "MODE-AWARE-CRUD",
-      "path": "docs/MODE-AWARE-CRUD.md",
-      "title": "Mode-aware CRUD pattern",
-      "tags": [],
-      "frontmatter": {},
-      "headings": [
-        {
-          "depth": 1,
-          "text": "Mode-aware CRUD pattern",
-          "slug": "mode-aware-crud-pattern"
-        },
-        {
-          "depth": 2,
-          "text": "1. Operational modes (data source mode)",
-          "slug": "1-operational-modes-data-source-mode"
-        },
-        {
-          "depth": 2,
-          "text": "2. Core modules introduced",
-          "slug": "2-core-modules-introduced"
-        },
-        {
-          "depth": 3,
-          "text": "2.1 Hook that observes the mode itself",
-          "slug": "21-hook-that-observes-the-mode-itself"
-        },
-        {
-          "depth": 3,
-          "text": "2.2 Per-entity mode-aware mutation hooks",
-          "slug": "22-per-entity-mode-aware-mutation-hooks"
-        },
-        {
-          "depth": 3,
-          "text": "2.3 entity ↔ frontmatter mappers",
-          "slug": "23-entity-frontmatter-mappers"
-        },
-        {
-          "depth": 3,
-          "text": "2.4 vault → ontology fast path",
-          "slug": "24-vault-ontology-fast-path"
-        },
-        {
-          "depth": 3,
-          "text": "2.5 AI agent partner (new in mission v2)",
-          "slug": "25-ai-agent-partner-new-in-mission-v2"
-        },
-        {
-          "depth": 2,
-          "text": "3. How to make a new entity's mutations mode-aware",
-          "slug": "3-how-to-make-a-new-entitys-mutations-mode-aware"
-        },
-        {
-          "depth": 3,
-          "text": "3.1 Add frontmatter serialization for the entity",
-          "slug": "31-add-frontmatter-serialization-for-the-entity"
-        },
-        {
-          "depth": 3,
-          "text": "3.2 Create a mode-aware mutation hook",
-          "slug": "32-create-a-mode-aware-mutation-hook"
-        },
-        {
-          "depth": 3,
-          "text": "3.3 Use the hook from UI components",
-          "slug": "33-use-the-hook-from-ui-components"
-        },
-        {
-          "depth": 3,
-          "text": "3.4 Gate on *mode*, not on *role*",
-          "slug": "34-gate-on-mode-not-on-role"
-        },
-        {
-          "depth": 2,
-          "text": "4. List subscribe should be mode-aware too (TODO — Phase 6+ follow-up)",
-          "slug": "4-list-subscribe-should-be-mode-aware-too-todo-phase-6-follow-up"
-        },
-        {
-          "depth": 2,
-          "text": "5. e2e test guidance",
-          "slug": "5-e2e-test-guidance"
-        },
-        {
-          "depth": 2,
-          "text": "6. Related specs / rules",
-          "slug": "6-related-specs-rules"
-        },
-        {
-          "depth": 2,
-          "text": "7. anti-pattern catalog (regression guard)",
-          "slug": "7-anti-pattern-catalog-regression-guard"
-        }
-      ],
-      "excerpt": "Status: Adopted (Phase 23, 20260501). Why: Root cause 1 from the planner audit — no modeaware hook existed, so every gate looked only at auth role. Nonloggedin users with an active local vault could not perform mutations. Spec location: Codelayer implementation of the .claude/rules/localfirst.md charter and docs/LOCALF",
-      "wordCount": 1099,
-      "updatedAt": "2026-05-02T10:11:16.213Z",
-      "mode": "both",
-      "linksOut": []
-    },
-    {
       "slug": "ontology/capabilities/builder-vault-write",
       "path": "docs/ontology/capabilities/builder-vault-write.md",
       "title": "Builder ↔ Vault md write (mode-aware)",
@@ -3005,9 +2927,9 @@
           "slug": "builder-vault-md-write-mode-aware"
         }
       ],
-      "excerpt": "P11 (UX4) — mission v2 의 사람 + AI agent 양립 약속의 코드 구현. 빌더 ephemeral 노드 → mode 별 분기 저장: local: vault.createDoc(${kind}s/${slug}, md) — vault 디스크 직접 작성. AI agent (MCP) 가 같은 vault 에서 즉시 본다. cloud: 기존 addManualKnowledgeNode Firestore httpsCallable. static: 저장 차단 + 안내 toast (vault 또는 로그인 유도). frontmatter 형식 (mission v2): fold",
-      "wordCount": 93,
-      "updatedAt": "2026-05-01T14:20:33.682Z",
+      "excerpt": "P11 (UX4) — mission v2 의 사람 + AI agent 양립 약속의 코드 구현. 빌더 ephemeral 노드 → mode 별 분기 저장. R10 (cloud surface 영구 제거) 이후 2 분기: local: vault.createDoc(${kind}s/${slug}, md) — vault 디스크 직접 작성. AI agent (MCP) 가 같은 vault 에서 즉시 본다. static: 저장 차단 + 안내 toast (\"내 markdown 폴더 열기\" 유도). frontmatter 형식 (mission v2): folder mapping: capab",
+      "wordCount": 96,
+      "updatedAt": "2026-05-02T16:29:38.381Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3087,9 +3009,8 @@
         "title": "Mode-Aware Data Source Adapter",
         "domain": "mode-aware-adapters",
         "elements": [
-          "src/shared/hooks/use-data-source-mode",
+          "src/features/data-source-mode",
           "src/features/project-data-source",
-          "src/features/use-project-mutations",
           "src/features/vault-ontology"
         ],
         "relates": [
@@ -3105,9 +3026,9 @@
           "slug": "mode-aware-data-source-adapter"
         }
       ],
-      "excerpt": "useDataSourceMode() 가 vault 활성 / Firebase 로그인 / 둘 다 없음 → local / cloud / static 3 분기. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 호출자 코드는 단일. 적용 surface: useProjects — local: vault manifest, cloud: Firestore subscribe useProjectMutations — local: vault file write, cloud: Firestore upsert useOntologyInsight (mission v2) — loca",
-      "wordCount": 103,
-      "updatedAt": "2026-05-01T12:41:58.175Z",
+      "excerpt": "R10 (auth + cloud surface 영구 제거) 이후 2 mode: local — useLocalVault().status === 'loaded' (사용자 디스크 vault) static — vault 미선택. 빌드타임 dogfood 매니페스트 (docs/ontology/) 가 fallback. useDataSourceMode() 가 두 mode 를 분기. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 호출자 코드는 단일. 적용 surface: useProjects — local: vault manifest 의 kind: project ",
+      "wordCount": 107,
+      "updatedAt": "2026-05-02T16:29:38.382Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3341,45 +3262,6 @@
       "linksOut": []
     },
     {
-      "slug": "ontology/domains/auth-account",
-      "path": "docs/ontology/domains/auth-account.md",
-      "title": "Auth & Account (Optional)",
-      "tags": [],
-      "frontmatter": {
-        "slug": "domains/auth-account",
-        "kind": "domain",
-        "title": "Auth & Account (Optional)",
-        "capabilities": [
-          "firebase-email-password",
-          "firebase-google-oauth",
-          "account-settings",
-          "password-reset"
-        ],
-        "elements": [
-          "src/features/user-auth",
-          "src/views/login",
-          "src/views/signup",
-          "src/views/password-reset",
-          "src/views/account-settings"
-        ],
-        "relates": [
-          "domains/mode-aware-adapters"
-        ]
-      },
-      "headings": [
-        {
-          "depth": 1,
-          "text": "Auth & Account",
-          "slug": "auth-account"
-        }
-      ],
-      "excerpt": "옵션 layer. Firebase Auth (email/password + Google OAuth) 만. cloud 모드 전환 또는 sync 가 필요할 때만 사용. localfirst 흐름은 비로그인 default. 자세한 룰: .claude/rules/auth.md.",
-      "wordCount": 29,
-      "updatedAt": "2026-05-01T11:24:50.325Z",
-      "mode": "both",
-      "linksOut": []
-    },
-    {
       "slug": "ontology/domains/mode-aware-adapters",
       "path": "docs/ontology/domains/mode-aware-adapters.md",
       "title": "Mode-Aware Adapters",
@@ -3395,9 +3277,8 @@
           "taxonomy-mode-bridge"
         ],
         "elements": [
-          "src/features/project-data-source",
-          "src/shared/hooks/use-data-source-mode",
-          "src/features/use-project-mutations"
+          "src/features/data-source-mode",
+          "src/features/project-data-source"
         ],
         "relates": [
           "domains/vault-local-first",
@@ -3411,9 +3292,9 @@
           "slug": "mode-aware-adapters"
         }
       ],
-      "excerpt": "useDataSourceMode() 가 local / cloud / static 분기 결정. 같은 hook 호출이 모드별로 다른 source 를 본다 — 사용자에겐 단일 UX. 자세한 가이드: docs/MODEAWARECRUD.md.",
-      "wordCount": 27,
-      "updatedAt": "2026-05-01T11:24:50.325Z",
+      "excerpt": "useDataSourceMode() 가 local / static 분기 결정. R10 (auth + cloud surface 영구 제거) 이후 두 mode 만 존재. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 사용자에겐 단일 UX. 미래 cloud collab 단계가 다시 도입될 때 'cloud' mode 와 그 adapter 를 새로 추가.",
+      "wordCount": 50,
+      "updatedAt": "2026-05-02T16:29:38.382Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3497,46 +3378,6 @@
       "excerpt": "4layer class hierarchy (Project · Domain · Capability · Element + Document) + 7 relations + immutable schema versioning + evidencegrounded statements. 자세한 모델: docs/DATAMODEL.md, docs/ONTOLOGYMODELV2DRAFT.md (V2 spec).",
       "wordCount": 31,
       "updatedAt": "2026-05-01T11:24:50.325Z",
-      "mode": "both",
-      "linksOut": []
-    },
-    {
-      "slug": "ontology/domains/settings-diagnostics",
-      "path": "docs/ontology/domains/settings-diagnostics.md",
-      "title": "Settings & Diagnostics",
-      "tags": [],
-      "frontmatter": {
-        "slug": "domains/settings-diagnostics",
-        "kind": "domain",
-        "title": "Settings & Diagnostics",
-        "capabilities": [
-          "taxonomy-categories",
-          "taxonomy-statuses",
-          "csv-import",
-          "tbox-history-view",
-          "stale-orphan-insights"
-        ],
-        "elements": [
-          "src/views/settings",
-          "src/views/settings-categories",
-          "src/views/settings-statuses",
-          "src/views/settings-project-import",
-          "src/views/diagnostics-insights"
-        ],
-        "relates": [
-          "domains/ontology-core"
-        ]
-      },
-      "headings": [
-        {
-          "depth": 1,
-          "text": "Settings & Diagnostics",
-          "slug": "settings-diagnostics"
-        }
-      ],
-      "excerpt": "운영자 surface. 카테고리·상태 lifecycle 편집, CSV 일괄 import, TBox 버전 이력 readonly, stale / orphan / promotion 후보 진단. 1인 도구 default 라 admin 권한 게이트는 가벼운 화이트리스트.",
-      "wordCount": 32,
-      "updatedAt": "2026-05-01T11:24:50.326Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3761,9 +3602,7 @@
           "vault-local-first",
           "ontology-core",
           "views",
-          "ai-agent-partner",
-          "auth-account",
-          "settings-diagnostics"
+          "ai-agent-partner"
         ],
         "relates": [
           "domains/vault-local-first",
@@ -3784,9 +3623,9 @@
           "slug": "핵심-약속"
         }
       ],
-      "excerpt": "마크다운에서 자라는 오픈소스 온톨로지 워크벤치. 사람과 AI agent 가 같이 codebase 의 mental model 을 저작한다. md 가 진실원: vault 의 frontmatter 가 ontology 그대로 modeaware: local / cloud / static — 데이터 source 만 다르고 UX 동일 AI agent partner: MCP 서버를 통해 Claude Code 등이 ontology 를 read/write 3 view: topology (Sigma), tree (/ontology), builder (xyflow ERD)",
-      "wordCount": 68,
-      "updatedAt": "2026-05-02T03:24:41.164Z",
+      "excerpt": "마크다운에서 자라는 오픈소스 온톨로지 워크벤치. 사람과 AI agent 가 같이 codebase 의 mental model 을 저작한다. md 가 진실원: vault 의 frontmatter 가 ontology 그대로 localfirst: 사용자 디스크 (vault) 가 단일 진실원. 인증 / 백엔드 의존 0. AI agent partner: MCP 서버를 통해 Claude Code 등이 ontology 를 read/write 3 view: topology (Sigma), tree (/ontology), builder (xyflow ERD)",
+      "wordCount": 67,
+      "updatedAt": "2026-05-02T16:29:38.382Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3833,8 +3672,8 @@
         }
       ],
       "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 도구: listconcepts, getconcept, findevidence, addconcept, addrelation. 새 도메인이 생기면 domains/<slug.md 추가 새 ",
-      "wordCount": 161,
-      "updatedAt": "2026-05-01T11:24:50.324Z",
+      "wordCount": 160,
+      "updatedAt": "2026-05-02T17:01:19.322Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3997,8 +3836,8 @@
         }
       ],
       "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. This project is an ontology wor",
-      "wordCount": 1562,
-      "updatedAt": "2026-05-02T10:11:16.213Z",
+      "wordCount": 1567,
+      "updatedAt": "2026-05-02T14:24:05.807Z",
       "mode": "both",
       "linksOut": []
     },
@@ -4252,116 +4091,53 @@
     }
   ],
   "backlinksDetail": {
-    "rules/architecture-fsd": [
+    "../AGENTS": [
       {
         "fromSlug": "ARCHITECTURE",
-        "context": "reusable foundations ``` **Import direction**: `app → views → widgets → features → entities → shared` Detailed rules: **[`rules/architecture-fsd.md`]** ## 8. Pages and operational paths | Path | Role | Access | | --- | --- | --- | | `/` | ontology tree hub (project → d",
-        "linkText": "`rules/architecture-fsd.md`"
+        "context": "age config - `app/layout.tsx` — metadata, providers, head - `eslint.config.ts` — FSD boundary rules Long-form docs: - **[`AGENTS.md`]** — contributor guide (canonical for AI tools) - [`PRODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md) — mission - [`FEATURES.",
+        "linkText": "`AGENTS.md`"
       }
     ],
     "PRODUCT-DIRECTION": [
       {
         "fromSlug": "ARCHITECTURE",
-        "context": "n the docs but does not exist in the actual code, treat it as still in the planning stage. ## 10. Related documents - **[`PRODUCT-DIRECTION.md`]** — mission v2 direction - [`FEATURES.md`](./FEATURES.md) — exhaustive list of features users can use *right now* - [`BAC",
+        "context": "ts` — FSD boundary rules Long-form docs: - [`AGENTS.md`](../AGENTS.md) — contributor guide (canonical for AI tools) - **[`PRODUCT-DIRECTION.md`]** — mission - [`FEATURES.md`](./FEATURES.md) — currently shipping features - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — d",
         "linkText": "`PRODUCT-DIRECTION.md`"
       }
     ],
     "FEATURES": [
       {
         "fromSlug": "ARCHITECTURE",
-        "context": "planning stage. ## 10. Related documents - [`PRODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md) — mission v2 direction - **[`FEATURES.md`]** — exhaustive list of features users can use *right now* - [`BACKLOG.md`](./BACKLOG.md) — unified next-work (T28-T38) -",
+        "context": "/AGENTS.md) — contributor guide (canonical for AI tools) - [`PRODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md) — mission - **[`FEATURES.md`]** — currently shipping features - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — design tokens + forbidden patterns - [`DEPLO",
         "linkText": "`FEATURES.md`"
-      }
-    ],
-    "BACKLOG": [
-      {
-        "fromSlug": "ARCHITECTURE",
-        "context": "N.md) — mission v2 direction - [`FEATURES.md`](./FEATURES.md) — exhaustive list of features users can use *right now* - **[`BACKLOG.md`]** — unified next-work (T28-T38) - [`MODE-AWARE-CRUD.md`](./MODE-AWARE-CRUD.md) — local/cloud/static branching guide - [`O",
-        "linkText": "`BACKLOG.md`"
-      }
-    ],
-    "MODE-AWARE-CRUD": [
-      {
-        "fromSlug": "ARCHITECTURE",
-        "context": "— exhaustive list of features users can use *right now* - [`BACKLOG.md`](./BACKLOG.md) — unified next-work (T28-T38) - **[`MODE-AWARE-CRUD.md`]** — local/cloud/static branching guide - [`ONTOLOGY-MODEL-V2-DRAFT.md`](./ONTOLOGY-MODEL-V2-DRAFT.md) — V1.x → V2 spec -",
-        "linkText": "`MODE-AWARE-CRUD.md`"
-      }
-    ],
-    "ONTOLOGY-MODEL-V2-DRAFT": [
-      {
-        "fromSlug": "ARCHITECTURE",
-        "context": "md) — unified next-work (T28-T38) - [`MODE-AWARE-CRUD.md`](./MODE-AWARE-CRUD.md) — local/cloud/static branching guide - **[`ONTOLOGY-MODEL-V2-DRAFT.md`]** — V1.x → V2 spec - [`MISSION-CLEANUP-CANDIDATES.md`](./MISSION-CLEANUP-CANDIDATES.md) — 4-stage cleanup progress (all d",
-        "linkText": "`ONTOLOGY-MODEL-V2-DRAFT.md`"
-      }
-    ],
-    "MISSION-CLEANUP-CANDIDATES": [
-      {
-        "fromSlug": "ARCHITECTURE",
-        "context": "— local/cloud/static branching guide - [`ONTOLOGY-MODEL-V2-DRAFT.md`](./ONTOLOGY-MODEL-V2-DRAFT.md) — V1.x → V2 spec - **[`MISSION-CLEANUP-CANDIDATES.md`]** — 4-stage cleanup progress (all done) - [`DATA-MODEL.md`](./DATA-MODEL.md) — Firestore collections + Storage paths + Se",
-        "linkText": "`MISSION-CLEANUP-CANDIDATES.md`"
-      }
-    ],
-    "DATA-MODEL": [
-      {
-        "fromSlug": "ARCHITECTURE",
-        "context": "→ V2 spec - [`MISSION-CLEANUP-CANDIDATES.md`](./MISSION-CLEANUP-CANDIDATES.md) — 4-stage cleanup progress (all done) - **[`DATA-MODEL.md`]** — Firestore collections + Storage paths + Security Rules - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — design tokens / m",
-        "linkText": "`DATA-MODEL.md`"
       }
     ],
     "DESIGN-SYSTEM": [
       {
         "fromSlug": "ARCHITECTURE",
-        "context": "nup progress (all done) - [`DATA-MODEL.md`](./DATA-MODEL.md) — Firestore collections + Storage paths + Security Rules - **[`DESIGN-SYSTEM.md`]** — design tokens / motion / forbidden patterns - [`DEPLOYMENT.md`](./DEPLOYMENT.md) — Firebase deployment / rollback / d",
+        "context": "ODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md) — mission - [`FEATURES.md`](./FEATURES.md) — currently shipping features - **[`DESIGN-SYSTEM.md`]** — design tokens + forbidden patterns - [`DEPLOYMENT.md`](./DEPLOYMENT.md) — static export → static hosting - [`CHANGELO",
         "linkText": "`DESIGN-SYSTEM.md`"
       }
     ],
     "DEPLOYMENT": [
       {
         "fromSlug": "ARCHITECTURE",
-        "context": "orage paths + Security Rules - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — design tokens / motion / forbidden patterns - **[`DEPLOYMENT.md`]** — Firebase deployment / rollback / domains - [`CHANGELOG.md`](./CHANGELOG.md) — chronological user-visible changes - [`",
+        "context": "RES.md) — currently shipping features - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — design tokens + forbidden patterns - **[`DEPLOYMENT.md`]** — static export → static hosting - [`CHANGELOG.md`](./CHANGELOG.md) — chronological user-visible changes - [`docs/archi",
         "linkText": "`DEPLOYMENT.md`"
       }
     ],
     "CHANGELOG": [
       {
         "fromSlug": "ARCHITECTURE",
-        "context": "tokens / motion / forbidden patterns - [`DEPLOYMENT.md`](./DEPLOYMENT.md) — Firebase deployment / rollback / domains - **[`CHANGELOG.md`]** — chronological user-visible changes - [`../mcp/README.md`](../mcp/README.md) — MCP server 11 tools + registration - [`",
+        "context": "SYSTEM.md) — design tokens + forbidden patterns - [`DEPLOYMENT.md`](./DEPLOYMENT.md) — static export → static hosting - **[`CHANGELOG.md`]** — chronological user-visible changes - [`docs/archive/`](./archive/) — historical analysis docs (earlier cloud-mode des",
         "linkText": "`CHANGELOG.md`"
       }
     ],
-    "../mcp/README": [
-      {
-        "fromSlug": "ARCHITECTURE",
-        "context": "d) — Firebase deployment / rollback / domains - [`CHANGELOG.md`](./CHANGELOG.md) — chronological user-visible changes - **[`../mcp/README.md`]** — MCP server 11 tools + registration - [`../AGENTS.md`](../AGENTS.md) / [`../CLAUDE.md`](../CLAUDE.md) — agent / contri",
-        "linkText": "`../mcp/README.md`"
-      }
-    ],
-    "../AGENTS": [
-      {
-        "fromSlug": "ARCHITECTURE",
-        "context": "d) — chronological user-visible changes - [`../mcp/README.md`](../mcp/README.md) — MCP server 11 tools + registration - **[`../AGENTS.md`]** / [`../CLAUDE.md`](../CLAUDE.md) — agent / contributor guide - [`../.claude/rules/`](../.claude/rules/) — granular work",
-        "linkText": "`../AGENTS.md`"
-      }
-    ],
-    "../CLAUDE": [
-      {
-        "fromSlug": "ARCHITECTURE",
-        "context": "hanges - [`../mcp/README.md`](../mcp/README.md) — MCP server 11 tools + registration - [`../AGENTS.md`](../AGENTS.md) / **[`../CLAUDE.md`]** — agent / contributor guide - [`../.claude/rules/`](../.claude/rules/) — granular working rules ## 11. Scaling trigger",
-        "linkText": "`../CLAUDE.md`"
-      }
-    ],
-    "rules/firestore-schema": [
-      {
-        "fromSlug": "DATA-MODEL",
-        "context": "`knowledge subsystem v2`. Whenever a collection schema changes, update this document first. The change process follows **[`rules/firestore-schema.md`]**. > > **Single-user mode (current):** A single logged-in user is the owner of their own workspace. There is no account /",
-        "linkText": "`rules/firestore-schema.md`"
-      }
-    ],
-    "DEPLOY-FIREBASE": [
+    "archive/DEPLOY-FIREBASE": [
       {
         "fromSlug": "DEPLOYMENT",
-        "context": "s everything from first-time setup to daily deploys, rollbacks, and custom domains. For the lightweight quickstart, see **[`DEPLOY-FIREBASE.md`]**. ## Table of contents 1. [Initial setup (one-time)](#1-initial-setup-one-time) 2. [Daily deploy flow](#2-daily-deploy",
-        "linkText": "`DEPLOY-FIREBASE.md`"
+        "context": "rebase Hosting, Vercel, Netlify, GitHub Pages, S3 + CloudFront, …). The detailed Firebase-specific guide is archived in **[`docs/archive/DEPLOY-FIREBASE.md`]** for reference. ## Build ```bash pnpm install pnpm build # static export → out/ ``` This produces an `out/`",
+        "linkText": "`docs/archive/DEPLOY-FIREBASE.md`"
       }
     ],
     "design-references/DESIGN-linear": [
@@ -4383,6 +4159,13 @@
         "fromSlug": "FEATURES",
         "context": "Mutations | preserves the body and patches frontmatter | | Backlink rewrite | best-effort on renameDoc | auto-replaces `**[oldSlug]**` and `[text](old.md)` in other files | | Scaffold | command palette | seeds an empty vault with README + projects/ + sa",
         "linkText": "oldSlug"
+      }
+    ],
+    "archive/rules/firestore-schema": [
+      {
+        "fromSlug": "archive/DATA-MODEL",
+        "context": "`knowledge subsystem v2`. Whenever a collection schema changes, update this document first. The change process follows **[`rules/firestore-schema.md`]**. > > **Single-user mode (current):** A single logged-in user is the owner of their own workspace. There is no account /",
+        "linkText": "`rules/firestore-schema.md`"
       }
     ],
     "other-doc": [
@@ -4418,15 +4201,6 @@
       "ARCHITECTURE",
       "DESIGN-SYSTEM"
     ],
-    "data-model": [
-      "DATA-MODEL"
-    ],
-    "firestore": [
-      "DATA-MODEL"
-    ],
-    "schema": [
-      "DATA-MODEL"
-    ],
     "design": [
       "DESIGN-SYSTEM"
     ],
@@ -4435,6 +4209,15 @@
     ],
     "linear": [
       "DESIGN-SYSTEM"
+    ],
+    "data-model": [
+      "archive/DATA-MODEL"
+    ],
+    "firestore": [
+      "archive/DATA-MODEL"
+    ],
+    "schema": [
+      "archive/DATA-MODEL"
     ]
   },
   "tree": {
@@ -4455,11 +4238,39 @@
             "title": "Atomic Audit — Mission v2 First-Principles Decomposition"
           },
           {
+            "name": "DATA-MODEL",
+            "path": "archive/DATA-MODEL",
+            "type": "doc",
+            "slug": "archive/DATA-MODEL",
+            "title": "Data Model"
+          },
+          {
+            "name": "DEPLOY-FIREBASE",
+            "path": "archive/DEPLOY-FIREBASE",
+            "type": "doc",
+            "slug": "archive/DEPLOY-FIREBASE",
+            "title": "Firebase Hosting deployment guide"
+          },
+          {
             "name": "LOCAL-FIRST-SYNC",
             "path": "archive/LOCAL-FIRST-SYNC",
             "type": "doc",
             "slug": "archive/LOCAL-FIRST-SYNC",
             "title": "Local-first / Firebase Sync 정책"
+          },
+          {
+            "name": "MISSION-CLEANUP-CANDIDATES",
+            "path": "archive/MISSION-CLEANUP-CANDIDATES",
+            "type": "doc",
+            "slug": "archive/MISSION-CLEANUP-CANDIDATES",
+            "title": "Mission Cleanup Candidates — mission v2 와 코드 정렬 (✅ ARCHIVED)"
+          },
+          {
+            "name": "MODE-AWARE-CRUD",
+            "path": "archive/MODE-AWARE-CRUD",
+            "type": "doc",
+            "slug": "archive/MODE-AWARE-CRUD",
+            "title": "Mode-aware CRUD pattern"
           },
           {
             "name": "OFFLINE-FIRST-UX-FLOW",
@@ -4635,13 +4446,6 @@
                 "title": "AI Agent Partner"
               },
               {
-                "name": "auth-account",
-                "path": "ontology/domains/auth-account",
-                "type": "doc",
-                "slug": "ontology/domains/auth-account",
-                "title": "Auth & Account (Optional)"
-              },
-              {
                 "name": "mode-aware-adapters",
                 "path": "ontology/domains/mode-aware-adapters",
                 "type": "doc",
@@ -4661,13 +4465,6 @@
                 "type": "doc",
                 "slug": "ontology/domains/ontology-core",
                 "title": "Ontology Core (TBox · ABox · Evidence)"
-              },
-              {
-                "name": "settings-diagnostics",
-                "path": "ontology/domains/settings-diagnostics",
-                "type": "doc",
-                "slug": "ontology/domains/settings-diagnostics",
-                "title": "Settings & Diagnostics"
               },
               {
                 "name": "vault-local-first",
@@ -4758,25 +4555,11 @@
         "title": "CHANGELOG"
       },
       {
-        "name": "DATA-MODEL",
-        "path": "DATA-MODEL",
-        "type": "doc",
-        "slug": "DATA-MODEL",
-        "title": "Data Model"
-      },
-      {
-        "name": "DEPLOY-FIREBASE",
-        "path": "DEPLOY-FIREBASE",
-        "type": "doc",
-        "slug": "DEPLOY-FIREBASE",
-        "title": "Firebase Hosting deployment guide"
-      },
-      {
         "name": "DEPLOYMENT",
         "path": "DEPLOYMENT",
         "type": "doc",
         "slug": "DEPLOYMENT",
-        "title": "Deployment Guide"
+        "title": "Deployment"
       },
       {
         "name": "DESIGN-SYSTEM",
@@ -4791,20 +4574,6 @@
         "type": "doc",
         "slug": "FEATURES",
         "title": "FEATURES — oh-my-ontology"
-      },
-      {
-        "name": "MISSION-CLEANUP-CANDIDATES",
-        "path": "MISSION-CLEANUP-CANDIDATES",
-        "type": "doc",
-        "slug": "MISSION-CLEANUP-CANDIDATES",
-        "title": "Mission Cleanup Candidates — mission v2 와 코드 정렬 (✅ ARCHIVED)"
-      },
-      {
-        "name": "MODE-AWARE-CRUD",
-        "path": "MODE-AWARE-CRUD",
-        "type": "doc",
-        "slug": "MODE-AWARE-CRUD",
-        "title": "Mode-aware CRUD pattern"
       },
       {
         "name": "PRODUCT-DIRECTION",

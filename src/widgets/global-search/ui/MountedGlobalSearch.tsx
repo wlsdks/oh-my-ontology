@@ -9,7 +9,6 @@ import { useGlobalSearchHotkey } from "../lib/use-global-search-hotkey";
 import { GlobalSearch } from "./GlobalSearch";
 
 export interface MountedGlobalSearchProps {
-  accountId: string | null;
   /**
    * ontology 노드 선택 시 — 미제공이면 default = `/ontology/` 라우트로 push.
    * 페이지가 자체 패널 등 inline 처리하려면 이 콜백으로 흡수.
@@ -19,8 +18,6 @@ export interface MountedGlobalSearchProps {
    * project 선택 시 — 미제공이면 default = `/project/[slug]/` 로 push.
    */
   onSelectProject?: (project: Project) => void;
-  /** legacy returnTo prop — KnowledgeDocument 호스팅 제거 후 미사용. 호환을 위해 유지. */
-  returnTo?: string;
   /**
    * Fire 2 — 홈 토폴로지의 SearchPalette (⌘K) 와 동거. 기본 hotkey 를 ⇧⌘K
    * 로 변경.
@@ -43,7 +40,6 @@ export interface MountedGlobalSearchProps {
  * 가 진실원이라 `/docs` 의 자체 검색이 담당.
  */
 export function MountedGlobalSearch({
-  accountId,
   onSelectNode,
   onSelectProject,
   hotkeyShift = false,
@@ -90,8 +86,8 @@ export function MountedGlobalSearch({
           onSelectProject(project);
           return;
         }
-        // default — /project/[slug]/ 라우트로 점프. account 쿼리 보존.
-        router.push(getProjectDetailHref(project.slug, accountId));
+        // default — /project/[slug]/ 라우트로 점프.
+        router.push(getProjectDetailHref(project.slug));
       }}
     />
   );
