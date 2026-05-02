@@ -152,7 +152,7 @@ The `useDataSourceMode()` hook resolves to one of two modes (R10b: cloud / auth 
 | `patch_concept` | write | patch an existing node's frontmatter (per-key patch) + body |
 | `delete_concept` | write | remove a node and its inbound/outbound references |
 
-- **Dogfood vault**: `docs/ontology/` — this project's own mental model. 1 project + 8 domains + 9 capabilities + 4 elements + 1 vault-readme ≈ 23 nodes.
+- **Dogfood vault**: `docs/ontology/` — this project's own mental model. 1 project + 6 domains + 6 capabilities + 4 elements + 1 vault-readme ≈ 18 nodes.
 
 ### Auth / account
 
@@ -366,7 +366,7 @@ the project expresses its own mental model as frontmatter markdown. At build tim
 `scripts/build-docs-vault.mjs` scans the vault and bakes it into
 `src/entities/docs-vault/data/manifest.json`.
 
-- **1 project + 8 domains + 9 capabilities + 4 elements + 1 README ≈ 23 nodes**
+- **1 project + 6 domains + 6 capabilities + 4 elements + 1 README ≈ 18 nodes**
 - When a user has not selected a vault and is anonymous (static) mode, this manifest
   immediately renders topology / ontology / projects — zero-friction entry.
 - The v1 `src/shared/mocks/demo-blueprint.ts` (6 containers, ~50 projects) was
