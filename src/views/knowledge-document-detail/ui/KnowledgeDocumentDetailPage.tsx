@@ -972,7 +972,7 @@ function DetailContent({ documentId, returnTo }: Props) {
                 {!latestJob ? (
                   <>
                     <p className="text-sm text-[color:var(--color-text-tertiary)]">
-                      아직 추출 결과가 없어요. vault frontmatter (`/docs`) 또는 빌더 (`/ontology/edit`) 에서 노드를 직접 추가하세요.
+                      이 문서에 매달린 ontology 노드가 없어요. vault frontmatter (`/docs`) 또는 빌더 (`/ontology/edit`) 에서 노드를 직접 추가하세요.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Link href="/docs/" className="inline-flex">
@@ -1187,7 +1187,7 @@ function DetailContent({ documentId, returnTo }: Props) {
                   </>
                 ) : (
                   <p className="text-sm text-[color:var(--color-text-tertiary)]">
-                    아직 표시할 추출 결과가 없습니다.
+                    이 문서에 매달린 ontology 노드가 없습니다.
                   </p>
                 )}
               </CardContent>
@@ -1213,8 +1213,6 @@ function DetailContent({ documentId, returnTo }: Props) {
 //   src/views/knowledge-document-detail/ui/parts/PanelButton.tsx
 
 // Fire 4 — JobStatusBadge 분리: src/views/knowledge-document-detail/ui/parts/JobStatusBadge.tsx
-
-// Fire 4 — ExtractorVersionToggle 분리: src/views/knowledge-document-detail/ui/parts/ExtractorVersionToggle.tsx
 
 // Fire 4 — labels 분리: src/views/knowledge-document-detail/ui/parts/labels.ts
 
