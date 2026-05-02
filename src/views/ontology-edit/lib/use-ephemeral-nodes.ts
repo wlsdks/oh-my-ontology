@@ -9,22 +9,26 @@ import type { ManualNodeKind } from "@/entities/knowledge-graph";
  * 캔버스 안 in-memory 상태 — 새로고침 시 사라짐 (의도). 영구화는 인스펙터에서
  * 이름 입력 + 저장 시 vault 의 \`{kind}s/{slug}.md\` 작성 (mission v2: vault
  * frontmatter 가 진실원). id 충돌 회피 위해 timestamp + random suffix.
+ *
+ * Round 9a T0-4: kindLabel / 기본 title 은 caller (`OntologyEditCanvas`) 가
+ * locale 별 문자열을 주입. hook 자체는 i18n 무지 (lib 레이어).
  */
 export interface EphemeralNode {
   id: string;
   kind: Exclude<ManualNodeKind, "document">;
+  /** 캔버스 라벨 prefix — caller 가 t() 로 만든 locale-aware 문자열. */
   kindLabel: string;
   title: string;
   x: number;
   y: number;
 }
 
-const KIND_LABELS: Record<EphemeralNode["kind"], string> = {
-  project: "프로젝트",
-  domain: "도메인",
-  capability: "역량",
-  element: "요소",
-};
+export interface AddNodeOptions {
+  /** caller 의 t() 결과 — `프로젝트` / `Project` 등. 미주입 시 raw kind. */
+  kindLabel?: string;
+  /** 새 노드 placeholder 제목 — `(이름 입력)` / `(Untitled)` 등. */
+  defaultTitle?: string;
+}
 
 export function useEphemeralNodes() {
   const [nodes, setNodes] = useState<EphemeralNode[]>([]);
@@ -33,13 +37,16 @@ export function useEphemeralNodes() {
 
   // 새로 추가한 노드의 id 를 반환 → caller 가 inspector 자동 select 가능.
   const addNode = useCallback(
-    (kind: Exclude<ManualNodeKind, "document">): string => {
+    (
+      kind: Exclude<ManualNodeKind, "document">,
+      options?: AddNodeOptions,
+    ): string => {
       setOffset((prev) => prev + 1);
       const next: EphemeralNode = {
         id: `ephemeral-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
         kind,
-        kindLabel: KIND_LABELS[kind],
-        title: "(이름 입력)",
+        kindLabel: options?.kindLabel ?? kind,
+        title: options?.defaultTitle ?? "",
         // 캔버스 중앙 (대략) + offset 으로 stack 회피.
         x: 240 + offset * 24,
         y: 160 + offset * 24,

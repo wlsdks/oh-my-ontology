@@ -1,9 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Info, Maximize2, Minimize2, Wand2 } from "lucide-react";
 import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
@@ -90,6 +90,7 @@ function CanvasSkeleton() {
 
 export function OntologyEditPage() {
   const t = useTranslations("ontologyPages.edit.page");
+  const tKinds = useTranslations("kinds");
   const searchParams = useSearchParams();
   // single-user 모드: account scope 가 곧 로그인 사용자 uid. 비로그인 사용자는
   // 캔버스 자체를 볼 수 있지만 manual node 저장 시 toast 로 막힌다.
@@ -98,8 +99,18 @@ export function OntologyEditPage() {
   const dataSourceMode = useDataSourceMode();
   const vault = useLocalVault();
 
-  const { nodes: ephemeralNodes, addNode, clearAll, updateNode, findById, removeNode } =
+  const { nodes: ephemeralNodes, addNode: addNodeRaw, clearAll, updateNode, findById, removeNode } =
     useEphemeralNodes();
+  // Round 9a T0-4: ephemeral 노드의 kindLabel/placeholder 도 locale 별로
+  // 만들어서 hook 에 주입. hook 자체는 i18n 무지.
+  const addNode = useCallback(
+    (kind: 'project' | 'domain' | 'capability' | 'element') =>
+      addNodeRaw(kind, {
+        kindLabel: tKinds(kind),
+        defaultTitle: t('untitledPlaceholder'),
+      }),
+    [addNodeRaw, tKinds, t],
+  );
   const { edges: ephemeralEdges, addEdge: addEphemeralEdge, clearAll: clearEphemeralEdges } =
     useEphemeralEdges();
   const [selectedId, setSelectedId] = useState<string | null>(null);

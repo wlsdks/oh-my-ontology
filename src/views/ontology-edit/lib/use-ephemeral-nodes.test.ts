@@ -8,7 +8,7 @@ describe('useEphemeralNodes', () => {
     expect(result.current.nodes).toEqual([]);
   });
 
-  it('addNode returns new id and appends to nodes', () => {
+  it('addNode returns new id and appends to nodes — defaults to raw kind label + empty title (Round 9a T0-4: i18n 라벨은 caller 가 주입)', () => {
     const { result } = renderHook(() => useEphemeralNodes());
     let id = '';
     act(() => {
@@ -19,9 +19,19 @@ describe('useEphemeralNodes', () => {
     expect(result.current.nodes[0]).toMatchObject({
       id,
       kind: 'domain',
-      kindLabel: '도메인',
-      title: '(이름 입력)',
+      kindLabel: 'domain',
+      title: '',
     });
+  });
+
+  it('addNode accepts caller-provided locale labels (Round 9a T0-4)', () => {
+    const { result } = renderHook(() => useEphemeralNodes());
+    act(() => {
+      result.current.addNode('domain', { kindLabel: '도메인', defaultTitle: '(이름 입력)' });
+      result.current.addNode('domain', { kindLabel: 'Domain', defaultTitle: '(Untitled)' });
+    });
+    expect(result.current.nodes[0]).toMatchObject({ kindLabel: '도메인', title: '(이름 입력)' });
+    expect(result.current.nodes[1]).toMatchObject({ kindLabel: 'Domain', title: '(Untitled)' });
   });
 
   it('multiple addNode produces unique ids + offset stack', () => {
@@ -43,7 +53,7 @@ describe('useEphemeralNodes', () => {
     expect(ys[2]).toBeGreaterThan(ys[1]!);
   });
 
-  it('kind label mapping covers 4 kinds', () => {
+  it('kind enum is preserved for all 4 kinds (Round 9a T0-4: kindLabel default = raw kind)', () => {
     const { result } = renderHook(() => useEphemeralNodes());
     act(() => {
       result.current.addNode('project');
@@ -51,8 +61,11 @@ describe('useEphemeralNodes', () => {
       result.current.addNode('capability');
       result.current.addNode('element');
     });
+    const kinds = result.current.nodes.map((n) => n.kind);
+    expect(kinds).toEqual(['project', 'domain', 'capability', 'element']);
+    // default kindLabel — caller 가 i18n 안 주입했을 때 raw enum 그대로 노출.
     const labels = result.current.nodes.map((n) => n.kindLabel);
-    expect(labels).toEqual(['프로젝트', '도메인', '역량', '요소']);
+    expect(labels).toEqual(['project', 'domain', 'capability', 'element']);
   });
 
   it('updateNode partial title — leaves others unchanged', () => {

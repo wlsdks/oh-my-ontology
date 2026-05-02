@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { AuthGoogleButton, signInWithEmail, useUserAuth } from '@/features/user-auth';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
-function resolveNextHref(nextParam: string | null, accountId?: string | null) {
+function resolveNextHref(nextParam: string | null) {
   // 로그인 기본 도착지 = 워크스페이스 지도 (Layer 0). 사용자가 전체
   // 조망부터 보도록 `/projects` 리스트 대신 `/` 홈으로.
   if (!nextParam) return '/';
@@ -18,10 +18,9 @@ export function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations('authPages.login');
-  const accountId = null;
   const nextHref = useMemo(
-    () => resolveNextHref(searchParams.get('next'), accountId),
-    [accountId, searchParams],
+    () => resolveNextHref(searchParams.get('next')),
+    [searchParams],
   );
   const { status } = useUserAuth();
   const [email, setEmail] = useState('');
@@ -36,18 +35,18 @@ export function LoginPage() {
   }, [nextHref, router, status]);
 
   const signupHref = useMemo(() => {
-    const url = new URL('/signup', 'http://local.test');
     const next = searchParams.get('next');
-    if (next) url.searchParams.set('next', next);
-    return `${url.pathname}?${url.searchParams.toString()}`;
-  }, [accountId, searchParams]);
+    const params = new URLSearchParams();
+    if (next) params.set('next', next);
+    const qs = params.toString();
+    return qs ? `/signup?${qs}` : '/signup';
+  }, [searchParams]);
   const passwordResetHref = useMemo(() => {
-    const url = new URL('/reset-password', 'http://local.test');
-    if (email.trim()) {
-      url.searchParams.set('email', email.trim());
-    }
-    return `${url.pathname}?${url.searchParams.toString()}`;
-  }, [accountId, email]);
+    const params = new URLSearchParams();
+    if (email.trim()) params.set('email', email.trim());
+    const qs = params.toString();
+    return qs ? `/reset-password?${qs}` : '/reset-password';
+  }, [email]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

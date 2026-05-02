@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { BookOpen, ChevronDown, Compass, FolderKanban, LogOut, Moon, Shield, Sun, UserRound } from "lucide-react";
@@ -71,20 +71,17 @@ export function PublicAccountMenu({
     return `${pathname || "/"}${search ? `?${search}` : ""}`;
   }, [pathname, searchParams]);
   const loginHref = useMemo(() => {
-    const url = new URL("/login", "http://local.test");
-    url.searchParams.set("next", currentPath);
-    return `${url.pathname}?${url.searchParams.toString()}`;
-  }, [accountId, currentPath]);
+    const params = new URLSearchParams({ next: currentPath });
+    return `/login?${params.toString()}`;
+  }, [currentPath]);
   const signupHref = useMemo(() => {
-    const url = new URL("/signup", "http://local.test");
-    url.searchParams.set("next", currentPath);
-    return `${url.pathname}?${url.searchParams.toString()}`;
-  }, [accountId, currentPath]);
+    const params = new URLSearchParams({ next: currentPath });
+    return `/signup?${params.toString()}`;
+  }, [currentPath]);
   const projectsHref = useMemo(() => {
-    const url = new URL("/projects", "http://local.test");
-    url.searchParams.set("returnTo", currentPath);
-    return `${url.pathname}?${url.searchParams.toString()}`;
-  }, [accountId, currentPath]);
+    const params = new URLSearchParams({ returnTo: currentPath });
+    return `/projects?${params.toString()}`;
+  }, [currentPath]);
   const accountSettingsHref = "/account";
   const docsVaultHref = "/docs/";
   const settingsHref = scopedAccess.canManage

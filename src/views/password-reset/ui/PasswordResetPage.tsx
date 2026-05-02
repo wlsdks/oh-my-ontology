@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
 import { ArrowLeft, MailCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { sendPasswordReset } from '@/features/user-auth';
@@ -11,13 +11,10 @@ import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } fro
 export function PasswordResetPage() {
   const searchParams = useSearchParams();
   const t = useTranslations('authPages.resetPassword');
-  const accountId = null;
   const [email, setEmail] = useState(searchParams.get('email') ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const loginHref = useMemo(() => '/login', [accountId]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,7 +36,7 @@ export function PasswordResetPage() {
     <main className="flex min-h-screen items-center justify-center bg-[color:var(--color-canvas)] px-6 py-6 md:px-10">
       <h1 className="sr-only">{t('srHeading')}</h1>
       <div className="mx-auto flex w-full max-w-md flex-col gap-4">
-        <Link href={loginHref} className="inline-flex">
+        <Link href="/login" className="inline-flex">
           <Button variant="outline" type="button" className="gap-2 rounded-full">
             <ArrowLeft size={15} />
             {t('backToLogin')}
