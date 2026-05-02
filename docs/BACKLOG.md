@@ -178,19 +178,13 @@ PRODUCT-DIRECTION v2 Phase 4 — 비개발자 청중 (PM / 디자이너 / 운영
 - needs: CI runner 가 Playwright MCP 실행 가능한가 확인
 - est: 1-2 commit
 
-### T38. functions Firestore 컬렉션 archival
+### ~~T38. functions Firestore 컬렉션 archival~~ — VOID (R10b)
 
-- mission v2 후 `knowledgeExtractionJobs` / `knowledgeExtractionOutputs` / `knowledgeReviews` / `knowledgeApprovalEvents` 가 cold storage
-- archival or migration 정책 결정 후 schema 정리
-- needs: 운영 결정 (firebase 배포 안 함이면 marginal)
-- est: TBD
+R10b 에서 firebase / functions / firestore 의존 통째 삭제. archival 대상 자체 사라짐.
 
-### T24. knowledge-* 컬렉션 통합 검토 (변형)
+### ~~T24. knowledge-* 컬렉션 통합 검토~~ — VOID (R10b)
 
-- mission v2 후 진짜 필요한 컬렉션은 `knowledgeApprovedNodes/Edges` + `knowledgePublicNodes/Edges` + `knowledgePublicMeta` + `knowledgePublishes` 정도
-- `knowledgeDocuments` / `knowledgeDocumentVersions` / `knowledgeEvidence` 는 vault frontmatter 와 중복 — 통합 가능?
-- needs: T22 (V2 통합) 와 같이 검토
-- est: 큰 단위
+knowledge-* 컬렉션 자체가 사라짐. vault frontmatter 가 단일 진실원.
 
 ---
 
