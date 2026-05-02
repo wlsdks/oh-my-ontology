@@ -347,6 +347,17 @@ function AdminDocsContent() {
       ? localVault.manifest
       : serverManifest;
 
+  // tagCounts — 팔레트에 매 render 새 array 가 들어가지 않도록 memo.
+  // (manifest.tags 가 reference 안 바뀌면 array 도 동일.)
+  const tagCounts = useMemo(
+    () =>
+      Object.entries(manifest.tags).map(([tag, slugs]) => ({
+        tag,
+        count: slugs.length,
+      })),
+    [manifest.tags],
+  );
+
   // Viewer content resolver — 로컬은 파일 핸들로 읽기, 서버는 기본 fetch.
   const getDocContent = useMemo<
     ((slug: string) => Promise<string>) | undefined
@@ -1909,10 +1920,7 @@ function AdminDocsContent() {
             recentSlugs={recentSlugs}
             pinnedSlugs={pinnedSlugs}
             commands={commands}
-            tagCounts={Object.entries(manifest.tags).map(([tag, slugs]) => ({
-              tag,
-              count: slugs.length,
-            }))}
+            tagCounts={tagCounts}
             onDocSelect={(slug, q) => handleSelect(slug, q)}
             onTagSelect={(tag) => setActiveTag(tag)}
             initialQuery={paletteQuery ?? ''}
