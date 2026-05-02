@@ -9,16 +9,12 @@ import { test, type Page } from "@playwright/test";
 
 const ROUTES = [
   "/",
-  "/login",
-  "/signup",
-  "/reset-password",
   "/project/sample/",
-  // mission v2 정렬: admin namespace + /review/knowledge 폐기 (PR #5/#6).
-  // 살아있는 운영 surface 는 /knowledge/ · /settings/* · /diagnostics/*.
-  "/knowledge/",
+  "/docs/",
   "/topology/",
   "/ontology/",
   "/ontology/edit/",
+  "/projects/",
 ];
 
 interface Finding {

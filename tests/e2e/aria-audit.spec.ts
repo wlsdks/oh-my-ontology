@@ -11,10 +11,9 @@ import { expect, test } from "@playwright/test";
 
 const ROUTES = [
   "/",
-  "/login",
-  "/signup",
-  "/reset-password",
   "/project/sample/",
+  "/docs/",
+  "/topology/",
 ];
 
 test("접근성 없는 버튼·링크 탐지", async ({ page }) => {

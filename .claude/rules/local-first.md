@@ -4,35 +4,44 @@
 
 ## 한 줄
 
-> **Notion 처럼 — 폴더만 선택하면 바로 쓰고, 로그인은 옵션이다.**
+> **Notion / Obsidian 처럼 — markdown 폴더만 선택하면 바로 쓴다. 백엔드 의존 0.**
 
-## 이게 의미하는 바
+## 이게 의미하는 바 (R10 — auth + cloud surface 영구 제거)
 
-1. **로그인 없이 0 마찰 진입** — `pnpm dev` 후 첫 화면이 사용 가능해야 한다. 인증 게이트가 default 진입을 막지 않는다.
-2. **폴더 선택만으로 사용** — 사용자는 로컬 디스크의 markdown 폴더를 가리켜 즉시 토폴로지·트리·검수 흐름에 들어간다 (File System Access API 기반, `src/features/docs-vault-local/`).
-3. **데이터는 사용자 디스크가 우선, Firebase 는 옵션** — 로그인하지 않으면 IndexedDB / 디스크에만 저장. 로그인 후엔 Firebase 와 sync.
-4. **단일 사용자 모델로 시작** — multi-account workspace 는 v2 협업 단계에서. v0.x 는 1인 도구.
+1. **0 마찰 진입** — `pnpm dev` 후 첫 화면이 즉시 사용 가능. 인증 / 가드 자체가
+   존재하지 않는다 (R10).
+2. **폴더 선택만으로 사용** — 사용자는 로컬 디스크의 markdown 폴더를 가리켜 즉시
+   토폴로지·트리·빌더 흐름에 들어간다 (File System Access API 기반,
+   `src/features/docs-vault-local/`).
+3. **사용자 디스크가 단일 진실원** — vault 의 frontmatter 가 그대로 ontology.
+   별도 백엔드 / Firestore / Storage 의존 없음. 데이터는 사용자 디스크 + IndexedDB
+   에만 저장.
+4. **단일 사용자 모델** — v0.x 는 1인 도구. multi-account / 협업은 미래
+   cloud collab 단계가 다시 도입될 때 새로 디자인.
 
 ## 코드 가드
 
-- 새 기능을 만들 때 **"로그인 없이 동작 가능한가?"** 를 먼저 물어본다.
-- Firebase 의존이 필수 같으면, 그 기능은 옵션이거나 단계적 enhancement 로 디자인한다.
-- 권한 게이트 (`PermissionGate`, `useScopedAccountAccess`) 가 default 흐름을 막지 않게 둔다 — 게이트는 *데이터 변경* 같은 명시적 액션 앞에서만 활성화.
-- `src/features/docs-vault-local/` 가 로컬 폴더 기반 흐름의 진입점. 새 기능은 가능하면 이 흐름과 호환되게.
+- 새 기능을 만들 때 **"vault 만으로 동작 가능한가?"** 를 먼저 물어본다.
+- 백엔드 (Firestore / 서버 sync 등) 가 필수처럼 보이면 디자인 다시 — 사용자
+  디스크에 markdown 으로 표현 가능한 모델로 환원.
+- `src/features/docs-vault-local/` 가 로컬 폴더 기반 흐름의 진입점. 새 기능은
+  이 흐름과 호환되게.
 
 ## 데이터 모델 가드
 
-- Firebase 컬렉션을 기획할 때 같은 데이터의 **로컬 표현** 도 같이 디자인한다.
-- IndexedDB / File-System-Access 에서 표현 가능한 형태가 아니면 다시 생각.
-- 단순한 데이터를 우선 — 복잡한 cross-collection 관계 강제는 v2 로 미룬다.
+- vault frontmatter 가 곧 schema. 별도 store / 컬렉션 도입 금지.
+- IndexedDB 는 vault 캐시 / 사용자 설정 저장 정도까지만 — 진실원이 되어선 안 됨.
+- 단순한 data shape 우선. 복잡한 cross-vault 관계 강제는 미래 단계로.
 
 ## 인증
 
-- Firebase Auth (email/password + Google) 만. 외부 IAM 연동 금지 — `.claude/rules/auth.md` 참조.
-- 로그인하지 않은 사용자도 페이지를 본다. 차단은 *서버 변경* / *공유* 같은 명시적 액션 단계에서만.
+- **인증 surface 0** — login / signup / account / password reset 모두 R10 에서
+  영구 제거. `@/features/user-auth` / `@/features/permissions` /
+  `@/features/account-scope` 모두 삭제됨. 새 라우트 추가 시 인증 가드 부활 금지.
+- 미래 cloud collab 단계가 다시 도입될 때 인증 + 권한 모델 새로 디자인.
 
 ## 보안
 
-- Local 모드여도 사용자 디스크의 secret / credentials 같은 파일은 절대 자동 스캔 / 업로드하지 않는다.
-- `.env.local` 같은 dotfile 은 인덱싱에서 제외.
-- 로그인 후 sync 시 사용자 동의 없는 데이터 전송 금지.
+- 사용자 디스크의 secret / credentials 같은 파일은 절대 자동 스캔하지 않는다.
+- `.env.local` / `.git/` 같은 dotfile / 시스템 폴더는 vault 인덱싱에서 제외.
+- vault 외부 (HTTP / WebSocket / 외부 API) 로 사용자 데이터 silent 전송 금지.

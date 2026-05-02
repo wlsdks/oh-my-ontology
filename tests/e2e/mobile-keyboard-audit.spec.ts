@@ -32,8 +32,8 @@ async function snap(page: Page, name: string) {
 
 const MOBILE_ROUTES = [
   { name: "m01-root", url: "/" },
-  { name: "m02-login", url: "/login" },
-  { name: "m03-signup", url: "/signup" },
+  { name: "m02-topology", url: "/topology/" },
+  { name: "m03-docs", url: "/docs/" },
   { name: "m04-project-detail", url: "/project/sample/" },
 ];
 
