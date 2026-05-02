@@ -1077,7 +1077,7 @@
       "sourceServer": "Server",
       "sourceLocal": "Local",
       "ontologyHintPrefix": "First time? Try selecting this repo's ",
-      "ontologyHintSuffix": " — this tool's own ontology (21 nodes) appears in the tree instantly.",
+      "ontologyHintSuffix": " — this tool's own ontology (18 nodes) appears in the tree instantly.",
       "newDoc": "New doc"
     },
     "mobileDrawer": {
