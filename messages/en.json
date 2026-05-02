@@ -1213,5 +1213,98 @@
     "errorBanner": {
       "retry": "Retry"
     }
+  },
+  "ontologyView": {
+    "eyebrow": "Ontology",
+    "title": "Ontology tree",
+    "titleTooltip": {
+      "heading": "Hierarchical view of ontology nodes",
+      "body": "A tree grown directly from the frontmatter of `.md` files in your vault. No review step — changes apply instantly. Expanded in the order <hierarchy>project → domain → capability → element</hierarchy>.",
+      "footer": "Document nodes act as evidence and are excluded from the tree. <strong>To draw the graph yourself, use the ‘Open builder’</strong> button on the right."
+    },
+    "titleTooltipAria": "Explain what the ontology tree is",
+    "actions": {
+      "addNodeTooltip": "Add a new node manually",
+      "addNodeAria": "Add an ontology node manually",
+      "addNode": "Add node",
+      "searchTooltip": "Search (⌘K)",
+      "searchAria": "Open ontology node search",
+      "search": "Search",
+      "builderTooltip": "Builder canvas — pick a kind from the palette on the left, drag handles to add relations",
+      "builderAria": "Ontology builder — draw directly on the canvas",
+      "builder": "Open builder →",
+      "insightsTooltip": "Ontology insights — kind distribution · hub nodes · recent activity · orphans",
+      "insights": "Insights",
+      "relationsTooltip": "Relations — type distribution + strong evidence-rich relations",
+      "relations": "Relations"
+    },
+    "stat": {
+      "treeNodes": "Tree nodes",
+      "totalRelations": "Total relations",
+      "documents": "Evidence docs",
+      "publishedAt": "Published",
+      "publishedAtEmpty": "None yet"
+    },
+    "error": "Something went wrong while loading ontology data. {message}",
+    "loading": "Loading…",
+    "emptyHint": "The ontology hasn't grown yet. Follow the steps below to start your first graph.",
+    "getStarted": {
+      "eyebrow": "Get started",
+      "headingLocal": "Vault is empty — write frontmatter and it grows instantly",
+      "headingDefault": "The tree grows as documents grow",
+      "bodyLocal": "There are 0 `.md` files with ontology frontmatter in the active vault. Take the next 2 steps to create your first node.",
+      "bodyDefault": "An ontology is a graph of concepts and relations from vault frontmatter. Take the next 3 steps to grow your first tree.",
+      "stepLocalFrontmatterTitle": "Write frontmatter",
+      "stepLocalFrontmatterDesc": "Add frontmatter like `kind: capability` to any `.md` file in the vault and a stub node appears immediately.",
+      "stepLocalBuilderTitle": "Tidy in the builder",
+      "stepLocalBuilderDesc": "Use the /ontology/edit canvas to visually polish nodes and relations — saves to the vault and updates the tree.",
+      "stepCloudVaultTitle": "Open a vault",
+      "stepCloudVaultDesc": "From /docs, pick a markdown folder to activate the vault.",
+      "stepCloudFrontmatterTitle": "Add frontmatter",
+      "stepCloudFrontmatterDesc": "Write kind / capabilities / elements / relates in your docs and stub nodes are created automatically.",
+      "stepCloudBuilderTitle": "Tidy in the builder",
+      "stepCloudBuilderDesc": "Polish nodes and relations on the /ontology/edit canvas and they grow right into this tree.",
+      "ctaBuilder": "Open builder →",
+      "ctaBuilderShort": "Open builder",
+      "ctaVault": "Browse vault",
+      "ctaVaultOpen": "Open vault →",
+      "snippetEyebrow": "snippet",
+      "snippetSummary": "Your vault's first node — paste this frontmatter into a `.md` file and it appears in the tree right away",
+      "snippetHelp": "Save the content above into your vault as something like <code>capabilities/auth.md</code>. More frontmatter keys: <code>domain</code> · <code>capabilities</code> · <code>elements</code> · <code>relates</code> · <code>dependencies</code>."
+    },
+    "footer": {
+      "modeLocal": "Local vault",
+      "modeCloud": "Cloud",
+      "modeStatic": "Static demo"
+    },
+    "copyLink": {
+      "tooltip": "Copy a direct link to this node",
+      "ariaCopied": "Node link copied",
+      "ariaCopy": "Copy node link",
+      "toastSuccess": "Node link copied",
+      "toastError": "Copy failed — check browser permissions",
+      "badge": "Copied"
+    },
+    "detail": {
+      "ariaLabel": "Node detail: {title}",
+      "addEdgeTooltip": "Add a new relation from this node",
+      "addEdgeAria": "Add a relation from this node",
+      "addEdgeButton": "Relation",
+      "close": "Close",
+      "manualNote": "Author note",
+      "linkedProjects": "Linked projects",
+      "evidenceCount": "Evidence count",
+      "relations": "Relations {count}",
+      "relationsHopBreakdown": "· 1-hop {one} · 2-hop {two}",
+      "egoDepthAria": "Ego graph depth",
+      "egoTwoHopTooltip": "Includes neighbors one step further — labels may overlap with more nodes",
+      "neighborMissingKind": "Missing",
+      "neighborMissingTitle": "A node with this ID isn't in the graph yet",
+      "collapse": "Collapse",
+      "showMore": "+{count} more",
+      "relatedDocs": "Related documents {count}",
+      "projectDetailCta": "Public detail page →",
+      "stubWarning": "Unresolved reference — the slug pointed to by frontmatter doesn't exist in the vault. Create a node with this name in the builder (/ontology/edit), or remove the reference from frontmatter."
+    }
   }
 }

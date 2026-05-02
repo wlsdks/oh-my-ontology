@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-02T17:18:49.538Z",
+  "generatedAt": "2026-05-02T19:57:23.390Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -2968,12 +2968,12 @@
     {
       "slug": "ontology/capabilities/mcp-server",
       "path": "docs/ontology/capabilities/mcp-server.md",
-      "title": "MCP Server (10 tools)",
+      "title": "MCP Server (12 tools)",
       "tags": [],
       "frontmatter": {
         "slug": "capabilities/mcp-server",
         "kind": "capability",
-        "title": "MCP Server (10 tools)",
+        "title": "MCP Server (12 tools)",
         "domain": "ai-agent-partner",
         "elements": [
           "mcp/src/index.js",
@@ -2988,13 +2988,13 @@
       "headings": [
         {
           "depth": 1,
-          "text": "MCP Server (10 tools)",
-          "slug": "mcp-server-10-tools"
+          "text": "MCP Server (12 tools)",
+          "slug": "mcp-server-12-tools"
         }
       ],
-      "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버 (v0.4.0). 10 도구 노출: | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터) | | getconcept | 단일 slug 의 frontmatter + body excerpt + 이웃 | | findevidence | title 부분매칭으로 vault 문서 검색 | | findbacklinks | 특정 slug 를 가리키는 다른 노드들 (frontmatter array 키 + body wikilink/mdlink) | | fin",
-      "wordCount": 183,
-      "updatedAt": "2026-05-01T15:08:39.329Z",
+      "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 12 도구 노출 (read 8 + write 4): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터) | | getconcept | 단일 slug 의 frontmatter + body excerpt + 이웃 | | findevidence | title 부분매칭으로 vault 문서 검색 | | findbacklinks | 특정 slug 를 가리키는 다른 노드들 (frontmatter array 키 + body wikilink/mdlin",
+      "wordCount": 217,
+      "updatedAt": "2026-05-02T18:34:32.953Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3066,38 +3066,6 @@
       "linksOut": []
     },
     {
-      "slug": "ontology/capabilities/tbox-versioning",
-      "path": "docs/ontology/capabilities/tbox-versioning.md",
-      "title": "TBox Versioning (Schema as Git)",
-      "tags": [],
-      "frontmatter": {
-        "slug": "capabilities/tbox-versioning",
-        "kind": "capability",
-        "title": "TBox Versioning (Schema as Git)",
-        "domain": "ontology-core",
-        "elements": [
-          "src/entities/ontology-tbox",
-          "src/entities/ontology-class",
-          "src/entities/ontology-relation"
-        ],
-        "relates": [
-          "domains/ontology-core"
-        ]
-      },
-      "headings": [
-        {
-          "depth": 1,
-          "text": "TBox Versioning",
-          "slug": "tbox-versioning"
-        }
-      ],
-      "excerpt": "OntologyTBoxVersion — 4 layer classes + 7 relations 의 immutable snapshot. 모든 knowledgeApprovedNodes/Edges 가 tboxVersionId 를 frozen reference 로 가짐. schema 가 진화해도 과거 fact 는 그 시점 schema 로 해석 가능. 대부분의 ontology 도구가 못 하는 차별점. v2 spec (docs/ONTOLOGYMODELV2DRAFT.md) 의 dualwrite / dualread 마이그레이션도 이 기반 위.",
-      "wordCount": 52,
-      "updatedAt": "2026-05-01T11:24:50.324Z",
-      "mode": "both",
-      "linksOut": []
-    },
-    {
       "slug": "ontology/capabilities/topology-sigma-render",
       "path": "docs/ontology/capabilities/topology-sigma-render.md",
       "title": "Topology — Sigma WebGL Render",
@@ -3130,98 +3098,6 @@
       "linksOut": []
     },
     {
-      "slug": "ontology/capabilities/v1-1-qualifiers-rank",
-      "path": "docs/ontology/capabilities/v1-1-qualifiers-rank.md",
-      "title": "V1.1 — Statement Qualifiers + Rank (Wikidata 영감)",
-      "tags": [],
-      "frontmatter": {
-        "slug": "capabilities/v1-1-qualifiers-rank",
-        "kind": "capability",
-        "title": "V1.1 — Statement Qualifiers + Rank (Wikidata 영감)",
-        "domain": "ontology-core",
-        "elements": [
-          "src/entities/knowledge-graph/model/types.ts",
-          "src/entities/knowledge-graph/model/mapper.ts",
-          "functions/index.js"
-        ]
-      },
-      "headings": [
-        {
-          "depth": 1,
-          "text": "V1.1 — Statement Qualifiers + Rank",
-          "slug": "v11-statement-qualifiers-rank"
-        },
-        {
-          "depth": 2,
-          "text": "추가 필드 (옵셔널)",
-          "slug": "추가-필드-옵셔널"
-        },
-        {
-          "depth": 2,
-          "text": "QualifierValue union",
-          "slug": "qualifiervalue-union"
-        },
-        {
-          "depth": 2,
-          "text": "호환성",
-          "slug": "호환성"
-        },
-        {
-          "depth": 2,
-          "text": "구현 위치",
-          "slug": "구현-위치"
-        }
-      ],
-      "excerpt": "Wikidata 의 statement annotation 모델을 ontology edge 에 도입. additive (breakage 0), 마이그레이션 0, TBox 변경 0. qualifiers?: { propertyId: string; value: QualifierValue }[] — edge 의 한정자 rank?: \"preferred\" | \"normal\" | \"deprecated\" — 같은 (from, to, type) 다중 statement 우선순위 { kind: \"string\"; raw: string } { kind: \"time\"; iso: string; ",
-      "wordCount": 155,
-      "updatedAt": "2026-05-01T13:20:54.575Z",
-      "mode": "both",
-      "linksOut": []
-    },
-    {
-      "slug": "ontology/capabilities/v1-5-cardinality",
-      "path": "docs/ontology/capabilities/v1-5-cardinality.md",
-      "title": "V1.5 — Relation Cardinality (Palantir 영감)",
-      "tags": [],
-      "frontmatter": {
-        "slug": "capabilities/v1-5-cardinality",
-        "kind": "capability",
-        "title": "V1.5 — Relation Cardinality (Palantir 영감)",
-        "domain": "ontology-core",
-        "elements": [
-          "src/entities/ontology-relation/model/types.ts",
-          "src/entities/ontology-relation/model/mapper.ts"
-        ]
-      },
-      "headings": [
-        {
-          "depth": 1,
-          "text": "V1.5 — Relation Cardinality",
-          "slug": "v15-relation-cardinality"
-        },
-        {
-          "depth": 2,
-          "text": "추가 필드 (옵셔널)",
-          "slug": "추가-필드-옵셔널"
-        },
-        {
-          "depth": 2,
-          "text": "예시",
-          "slug": "예시"
-        },
-        {
-          "depth": 2,
-          "text": "검증",
-          "slug": "검증"
-        }
-      ],
-      "excerpt": "Palantirstyle cardinality constraints on OntologyRelation. additive (breakage 0), legacy = undefined → many/many. sourceCardinality?: \"one\" | \"many\" — source 가 같은 relation 으로 향할 수 있는 target 개수 targetCardinality?: \"one\" | \"many\" — target 이 받을 수 있는 source 개수 belongsto.sourceCardinality = one — 한 노드는 한 부모만 implements.targ",
-      "wordCount": 90,
-      "updatedAt": "2026-05-01T14:46:02.186Z",
-      "mode": "both",
-      "linksOut": []
-    },
-    {
       "slug": "ontology/domains/ai-agent-partner",
       "path": "docs/ontology/domains/ai-agent-partner.md",
       "title": "AI Agent Partner",
@@ -3231,12 +3107,7 @@
         "kind": "domain",
         "title": "AI Agent Partner",
         "capabilities": [
-          "mcp-server",
-          "mcp-list-concepts",
-          "mcp-get-concept",
-          "mcp-find-evidence",
-          "mcp-add-concept",
-          "mcp-add-relation"
+          "mcp-server"
         ],
         "elements": [
           "mcp/src/index.js",
@@ -3255,9 +3126,9 @@
           "slug": "ai-agent-partner"
         }
       ],
-      "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 5 도구를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출.",
-      "wordCount": 43,
-      "updatedAt": "2026-05-01T11:24:50.325Z",
+      "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 12 도구 (read 8 + write 4) 를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출.",
+      "wordCount": 49,
+      "updatedAt": "2026-05-02T19:08:04.401Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3433,17 +3304,14 @@
         "title": "Views (Topology · Tree · Builder)",
         "capabilities": [
           "topology-sigma-render",
-          "tree-ego-graph",
-          "builder-xyflow-canvas",
-          "md-export-from-builder",
-          "search-palette",
-          "global-search"
+          "ontology-hub-mode-aware",
+          "builder-vault-write"
         ],
         "elements": [
           "src/views/home",
           "src/views/ontology-view",
           "src/views/ontology-edit",
-          "src/widgets/sigma-topology",
+          "src/widgets/topology-map-sigma",
           "src/widgets/global-search"
         ],
         "relates": [
@@ -3459,7 +3327,7 @@
       ],
       "excerpt": "같은 ontology 그래프의 세 출구. 토폴로지 (Sigma + ForceAtlas2 spatial network), 트리 (/ontology 계층 + ego graph), 빌더 (xyflow ERD canvas + md 내보내기). 검색 — ⌘K 프로젝트 / ⇧⌘K 글로벌.",
       "wordCount": 33,
-      "updatedAt": "2026-05-01T11:24:50.326Z",
+      "updatedAt": "2026-05-02T19:29:41.586Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3591,11 +3459,8 @@
           "frontmatter-to-ontology",
           "mode-aware-adapter",
           "ontology-hub-mode-aware",
-          "3-view-rendering",
-          "ai-agent-partner",
-          "tbox-versioning",
-          "v1-1-qualifiers-rank",
-          "v1-5-cardinality",
+          "topology-sigma-render",
+          "mcp-server",
           "builder-vault-write"
         ],
         "elements": [
@@ -3625,7 +3490,7 @@
       ],
       "excerpt": "마크다운에서 자라는 오픈소스 온톨로지 워크벤치. 사람과 AI agent 가 같이 codebase 의 mental model 을 저작한다. md 가 진실원: vault 의 frontmatter 가 ontology 그대로 localfirst: 사용자 디스크 (vault) 가 단일 진실원. 인증 / 백엔드 의존 0. AI agent partner: MCP 서버를 통해 Claude Code 등이 ontology 를 read/write 3 view: topology (Sigma), tree (/ontology), builder (xyflow ERD)",
       "wordCount": 67,
-      "updatedAt": "2026-05-02T16:29:38.382Z",
+      "updatedAt": "2026-05-02T18:33:49.733Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3671,9 +3536,9 @@
           "slug": "갱신"
         }
       ],
-      "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 도구: listconcepts, getconcept, findevidence, addconcept, addrelation. 새 도메인이 생기면 domains/<slug.md 추가 새 ",
-      "wordCount": 160,
-      "updatedAt": "2026-05-02T17:01:19.322Z",
+      "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 12 도구 (read 8 + write 4): listconcepts · getconcept · findevidence · findbacklinks · findpath · listki",
+      "wordCount": 184,
+      "updatedAt": "2026-05-02T18:34:38.540Z",
       "mode": "both",
       "linksOut": []
     },
@@ -4387,7 +4252,7 @@
                 "path": "ontology/capabilities/mcp-server",
                 "type": "doc",
                 "slug": "ontology/capabilities/mcp-server",
-                "title": "MCP Server (10 tools)"
+                "title": "MCP Server (12 tools)"
               },
               {
                 "name": "mode-aware-adapter",
@@ -4404,32 +4269,11 @@
                 "title": "Ontology Hub — Mode-Aware (Q1=(a))"
               },
               {
-                "name": "tbox-versioning",
-                "path": "ontology/capabilities/tbox-versioning",
-                "type": "doc",
-                "slug": "ontology/capabilities/tbox-versioning",
-                "title": "TBox Versioning (Schema as Git)"
-              },
-              {
                 "name": "topology-sigma-render",
                 "path": "ontology/capabilities/topology-sigma-render",
                 "type": "doc",
                 "slug": "ontology/capabilities/topology-sigma-render",
                 "title": "Topology — Sigma WebGL Render"
-              },
-              {
-                "name": "v1-1-qualifiers-rank",
-                "path": "ontology/capabilities/v1-1-qualifiers-rank",
-                "type": "doc",
-                "slug": "ontology/capabilities/v1-1-qualifiers-rank",
-                "title": "V1.1 — Statement Qualifiers + Rank (Wikidata 영감)"
-              },
-              {
-                "name": "v1-5-cardinality",
-                "path": "ontology/capabilities/v1-5-cardinality",
-                "type": "doc",
-                "slug": "ontology/capabilities/v1-5-cardinality",
-                "title": "V1.5 — Relation Cardinality (Palantir 영감)"
               }
             ]
           },
