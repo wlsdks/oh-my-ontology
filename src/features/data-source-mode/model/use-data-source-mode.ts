@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { useUserAuth } from '@/features/user-auth';
 import { useLocalVault } from '@/features/docs-vault-local';
 import {
   getDataSourceMode,
@@ -12,27 +11,23 @@ import {
 /**
  * 현재 운영 모드 (`'static' | 'local' | 'cloud'`) 를 React 상태로 노출.
  *
- * 결정 규칙 (`getDataSourceMode` 와 일치):
- * - `useLocalVault().status === 'loaded'` 면 'local' (디스크가 진실원).
- * - 그 외 Firebase Auth 인증된 사용자면 'cloud'.
- * - 둘 다 아니면 'static' (정적 manifest).
- *
- * Auth status 가 'loading' 인 동안에는 *fallback* 으로 'static' 처리해 SSR /
- * 첫 paint 안정. 이후 인증 결과에 따라 자연 갱신.
+ * R10 (auth 영구 제거) 이후 cloud 분기 미사용 — 인증이 없으면 cloud 진입
+ * 불가. 결과적으로 모드는 항상 'local' (vault 선택됨) 또는 'static' (vault
+ * 없음 — 빌드타임 dogfood 매니페스트). 'cloud' 분기는 R10b 의 Firestore
+ * 호출자 정리 후 enum 자체를 좁힐 예정.
  *
  * 부수 효과: `window.__ohMyOntologyMode` 에 현재 mode 발행 (디버그 전용).
  */
 export function useDataSourceMode(): DataSourceMode {
-  const { status: authStatus } = useUserAuth();
   const { status: vaultStatus } = useLocalVault();
 
   const mode = useMemo<DataSourceMode>(
     () =>
       getDataSourceMode({
         vaultLoaded: vaultStatus === 'loaded',
-        isAuthenticated: authStatus === 'authenticated',
+        isAuthenticated: false,
       }),
-    [authStatus, vaultStatus],
+    [vaultStatus],
   );
 
   useEffect(() => {

@@ -17,7 +17,6 @@ import { useProjectMutations, useProjects } from "@/features/project-data-source
 import { downloadProjectsCsv } from "@/features/project-export";
 import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
 import { useDataSourceMode } from "@/features/data-source-mode";
-import { PublicAccountMenu } from "@/widgets/account-menu";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import {
@@ -237,10 +236,6 @@ export function ProjectSelectorPage() {
             <ArrowLeft size={14} aria-hidden="true" />
             {t("workspaceMap")}
           </Link>
-          <PublicAccountMenu
-            accountId={null}
-            accountLabel={null}
-          />
         </div>
 
         {/* 헤더 압축 — 큰 rounded panel 의 280px 빈공간 제거. eyebrow + 작은
