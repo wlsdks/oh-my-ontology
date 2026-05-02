@@ -2,20 +2,25 @@ import type { Project } from '@/entities/project';
 import type { VaultDoc, VaultManifest } from '../model/types';
 
 /**
- * vault manifest 의 `projects/*.md` 문서를 Project 도메인 모델로 매핑.
+ * vault manifest 에서 *project 노드* 를 Project 도메인 모델로 매핑.
+ *
+ * 인식 기준 (mission v2 — frontmatter 가 진실원):
+ *   1. `frontmatter.kind === 'project'` 인 doc (1순위, path 무관)
+ *   2. 또는 path 가 `projects/` 로 시작 (legacy 호환 — frontmatter 누락 시)
  *
  * `buildTopologyFromVault` 의 sync 동등물 — 후자는 raw .md 본문을 비동기로
  * 다시 읽지만, 매니페스트 의 VaultDoc 은 이미 frontmatter / excerpt 가 파싱
  * 되어있어 React 훅에서 sync 로 바로 호출 가능.
  *
- * 사용처: `useProjects` mode-aware 훅 — local 모드 read 측. 로그인 / Firebase
- * 없이 vault 만으로 /projects · / 토폴로지 가 살아남음 (mission inconsistency
- * T7 해결).
+ * 사용처: `useProjects` mode-aware 훅 — local / static (dogfood) 모드 read 측.
+ * 로그인 / Firebase 없이 vault 만으로 /projects · /topology 살아남음.
  */
 export function deriveProjectsFromVault(manifest: VaultManifest): Project[] {
   const projects: Project[] = [];
   for (const doc of manifest.docs) {
-    if (!doc.slug.startsWith('projects/')) continue;
+    const isProjectKind = doc.frontmatter?.kind === 'project';
+    const isLegacyPath = doc.slug.startsWith('projects/');
+    if (!isProjectKind && !isLegacyPath) continue;
     const project = mapVaultDocToProject(doc);
     if (project) projects.push(project);
   }
@@ -24,10 +29,14 @@ export function deriveProjectsFromVault(manifest: VaultManifest): Project[] {
 
 function mapVaultDocToProject(doc: VaultDoc): Project | null {
   const fm = doc.frontmatter;
-  const fileSlug = doc.slug.replace(/^projects\//, '');
+  // path 가 `projects/foo` 면 legacy fileSlug 추출, 아니면 last segment
+  // (예: dogfood `ontology/project` → `project`).
+  const fileSlug = doc.slug.startsWith('projects/')
+    ? doc.slug.replace(/^projects\//, '')
+    : doc.slug.split('/').pop() || doc.slug;
   if (!fileSlug) return null;
   const slug = typeof fm.slug === 'string' && fm.slug ? fm.slug : fileSlug;
-  const name = (fm.name as string) || doc.title || fileSlug;
+  const name = (fm.name as string) || (fm.title as string) || doc.title || fileSlug;
   const category = (fm.category as string) || 'uncategorized';
   const status = (fm.status as string) || 'active';
   const isHub =
