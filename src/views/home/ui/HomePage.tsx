@@ -91,12 +91,11 @@ const MountedGlobalSearch = dynamic(
 );
 import { GestureHint } from "@/widgets/gesture-hint";
 import { LiveAnnouncer, Tooltip, useToast } from "@/shared/ui";
-// Barrel (`@/entities/project`) 은 api/index.ts → firebase/firestore 를 끌어
-// 들이므로 lib/types 만 쓰는 import 는 직접 파일 경로로 우회. Project /
-// ProjectImpactMode 는 type 이라 erase 됐다.
-import { getProjectDetailHref } from "@/entities/project/lib/detail-href";
-import type { Project } from "@/entities/project/model/types";
-import type { ProjectImpactMode } from "@/entities/project/model/insights";
+import {
+  getProjectDetailHref,
+  type Project,
+  type ProjectImpactMode,
+} from "@/entities/project";
 import { buildDocsVaultHref } from "@/entities/docs-vault";
 import { useHomeRouteState } from "../model/use-home-route-state";
 
@@ -135,8 +134,8 @@ export function HomePage() {
     }
   }, []);
   const router = useRouter();
-  // mode-aware projects read — local 모드는 vault 매니페스트 sync, cloud 는
-  // Firestore onSnapshot. mission T7 — vault 의 .md 가 즉시 list/topology 에 반영.
+  // mode-aware projects read — local 모드는 vault 매니페스트 sync, static 은
+  // 빌드타임 dogfood 매니페스트. mission T7 — vault 의 .md 가 즉시 list/topology 에 반영.
   const projectsQuery = useProjects();
   const projects = projectsQuery.projects;
   const projectsError = projectsQuery.error;
