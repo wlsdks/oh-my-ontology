@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-02T19:57:23.390Z",
+  "generatedAt": "2026-05-02T22:24:19.846Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -1680,13 +1680,13 @@
         },
         {
           "depth": 3,
-          "text": "T38. functions Firestore 컬렉션 archival",
-          "slug": "t38-functions-firestore-컬렉션-archival"
+          "text": "~~T38. functions Firestore 컬렉션 archival~~ — VOID (R10b)",
+          "slug": "t38-functions-firestore-컬렉션-archival-void-r10b"
         },
         {
           "depth": 3,
-          "text": "T24. knowledge-* 컬렉션 통합 검토 (변형)",
-          "slug": "t24-knowledge--컬렉션-통합-검토-변형"
+          "text": "~~T24. knowledge-* 컬렉션 통합 검토~~ — VOID (R10b)",
+          "slug": "t24-knowledge--컬렉션-통합-검토-void-r10b"
         },
         {
           "depth": 2,
@@ -1730,8 +1730,8 @@
         }
       ],
       "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260501 저녁): mission v2 cleanup 7 PR 머지 후 전면 재정렬. | 항목 | 결과 | ||| | Phase 3 — MCP 서버 | ✅ PR 5/7 — mcp/ 패키지 v0.2.0, 7 도구 (listconcepts · getconcept · findevidence · findbacklinks · addconcept · addrelation · patchconcept) | | dogfood vaul",
-      "wordCount": 1471,
-      "updatedAt": "2026-05-01T13:36:09.750Z",
+      "wordCount": 1423,
+      "updatedAt": "2026-05-02T21:34:59.133Z",
       "mode": "both",
       "linksOut": []
     },
@@ -2592,13 +2592,18 @@
         },
         {
           "depth": 3,
-          "text": "Intentional absences",
-          "slug": "intentional-absences"
+          "text": "Removed by R10 (auth + cloud surface permanent removal, 2026-05)",
+          "slug": "removed-by-r10-auth-cloud-surface-permanent-removal-2026-05"
+        },
+        {
+          "depth": 3,
+          "text": "Intentional absences (R10b)",
+          "slug": "intentional-absences-r10b"
         },
         {
           "depth": 2,
-          "text": "6. Verification (post-OSS-launch readiness, 2026-05-02)",
-          "slug": "6-verification-post-oss-launch-readiness-2026-05-02"
+          "text": "6. Verification (post-OSS-launch readiness, 2026-05-03)",
+          "slug": "6-verification-post-oss-launch-readiness-2026-05-03"
         },
         {
           "depth": 2,
@@ -2637,8 +2642,8 @@
         }
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260502 (postOSSlaunch readiness — CLI scaffold, web scaffold button, npm publish guard) Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG. Mission v2: \"an ontology of the cod",
-      "wordCount": 4454,
-      "updatedAt": "2026-05-02T14:24:05.806Z",
+      "wordCount": 4381,
+      "updatedAt": "2026-05-02T21:21:30.116Z",
       "mode": "both",
       "linksOut": [
         "old",
@@ -2738,8 +2743,8 @@
         }
       ],
       "excerpt": "Submission type: Show HN Category: open source / dev tool (80 chars exactly — under HN's 80 char limit. If too long, fallback: Show HN: ohmyontology – frontmatter is the graph; AI agents read it via MCP) https://github.com/wlsdks/ohmyontology (Word count: ~280. HN expects substantive Show HN posts, not oneliners.) Best",
-      "wordCount": 440,
-      "updatedAt": "2026-05-02T07:34:04.693Z",
+      "wordCount": 441,
+      "updatedAt": "2026-05-02T21:39:42.472Z",
       "mode": "both",
       "linksOut": []
     },
@@ -2787,8 +2792,8 @@
         },
         {
           "depth": 3,
-          "text": "\"Firebase 도 쓰나요?\"",
-          "slug": "firebase-도-쓰나요"
+          "text": "\"백엔드는 뭘 쓰나요?\"",
+          "slug": "백엔드는-뭘-쓰나요"
         },
         {
           "depth": 2,
@@ -2796,9 +2801,9 @@
           "slug": "측정-지표-1주-후-자가-회고"
         }
       ],
-      "excerpt": "오픈소스 launch 단계의 publication 초안 모음. 메인테이너가 시점에 맞춰 직접 publish. 1. 사전 준비 [ ] CLI npm 배포 — cli/ 와 mcp/ 둘 다 npm publish [ ] Firebase Hosting 배포 — firebase deploy only hosting (firebase.json 의 hosting 블록 이미 설정 완료, project: ohmyontology → https://ohmyontology.web.app) [ ] hosted demo URL 이 README + CLI 안내 문구와 일치하는지 재확인 (ohmyo",
-      "wordCount": 536,
-      "updatedAt": "2026-05-02T07:34:04.693Z",
+      "excerpt": "오픈소스 launch 단계의 publication 초안 모음. 메인테이너가 시점에 맞춰 직접 publish. 1. 사전 준비 [ ] CLI npm 배포 — cli/ 와 mcp/ 둘 다 npm publish [ ] 정적 호스팅 (GitHub Pages / Vercel / Netlify / Cloudflare Pages 등) 배포 — pnpm build → out/ 업로드. 자세한 가이드는 docs/DEPLOYMENT.md. [ ] hosted demo URL 이 README + CLI 안내 문구와 일치하는지 재확인 [ ] 30s demo gif 녹화 + docs/lau",
+      "wordCount": 548,
+      "updatedAt": "2026-05-02T21:37:08.425Z",
       "mode": "both",
       "linksOut": []
     },
@@ -2841,8 +2846,8 @@
         }
       ],
       "excerpt": "Reddit responds best to honest, problemfirst framing. Each subreddit has its own norms; copy below tuned per audience. Title: ohmyontology — frontmatter as a codebase ontology, AI agents read it via MCP Body (400~500 words, Reddit allows longform better than HN): myproject/ ├── project.md ├── domains/ │ ├── auth.md │ └",
-      "wordCount": 886,
-      "updatedAt": "2026-05-02T07:34:04.694Z",
+      "wordCount": 900,
+      "updatedAt": "2026-05-02T21:39:03.541Z",
       "mode": "both",
       "linksOut": []
     },
@@ -2900,8 +2905,8 @@
         }
       ],
       "excerpt": "X 의 언어는 짧고 시각적. 5–7 트윗 짜리 thread 가 sweet spot. 각 트윗 280 chars 안. 1 트윗 = 1 idea. yaml kind: capability domain: domains/auth dependson: [capabilities/signup] Post the thread in one go (drafts feature) Pin tweet 1 to profile Quotetweet your HN submission link in a separate post a few hours later Tag relevant accounts only",
-      "wordCount": 438,
-      "updatedAt": "2026-05-02T07:34:04.694Z",
+      "wordCount": 440,
+      "updatedAt": "2026-05-02T21:38:03.359Z",
       "mode": "both",
       "linksOut": []
     },
@@ -2927,9 +2932,9 @@
           "slug": "builder-vault-md-write-mode-aware"
         }
       ],
-      "excerpt": "P11 (UX4) — mission v2 의 사람 + AI agent 양립 약속의 코드 구현. 빌더 ephemeral 노드 → mode 별 분기 저장. R10 (cloud surface 영구 제거) 이후 2 분기: local: vault.createDoc(${kind}s/${slug}, md) — vault 디스크 직접 작성. AI agent (MCP) 가 같은 vault 에서 즉시 본다. static: 저장 차단 + 안내 toast (\"내 markdown 폴더 열기\" 유도). frontmatter 형식 (mission v2): folder mapping: capab",
-      "wordCount": 96,
-      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "excerpt": "mission v2 의 사람 + AI agent 양립 약속의 코드 구현. 빌더 ephemeral 노드 → mode 별 분기 저장: local: vault.createDoc(${kind}s/${slug}, md) — vault 디스크 직접 작성. AI agent (MCP) 가 같은 vault 에서 즉시 본다. static: 저장 차단 + 안내 toast (\"내 markdown 폴더 열기\" 유도). frontmatter 형식: folder mapping: capability→capabilities, element→elements, domain→domains, projec",
+      "wordCount": 79,
+      "updatedAt": "2026-05-02T21:02:41.605Z",
       "mode": "both",
       "linksOut": []
     },
@@ -2945,7 +2950,7 @@
         "domain": "ontology-core",
         "elements": [
           "src/shared/lib/parse-frontmatter",
-          "src/shared/lib/derive-ontology-from-vault"
+          "src/entities/docs-vault/lib/derive-ontology-from-vault"
         ],
         "relates": [
           "domains/vault-local-first",
@@ -2959,9 +2964,9 @@
           "slug": "frontmatter-ontology-stub"
         }
       ],
-      "excerpt": "vault 의 .md 파일 frontmatter 를 직접 읽어 OntologyStub (nodes + edges + warnings) 으로 변환. AI 추출 / 검수 큐 거치지 않는 fastpath. 이게 mission \"frontmatter 가 자기승인\" 의 코드 표현. 지원 frontmatter 키: kind: (project / capability / element / domain / decision / workflow / ...) title:, domain: capabilities: [], elements: [] — 배열 노드 relates: [], depen",
-      "wordCount": 80,
-      "updatedAt": "2026-05-01T11:24:50.324Z",
+      "excerpt": "vault 의 .md 파일 frontmatter 를 직접 읽어 OntologyStub (nodes + edges + warnings) 으로 변환. AI 추출 / 검수 큐 거치지 않는 fastpath. 이게 mission \"frontmatter 가 자기승인\" 의 코드 표현. 지원 frontmatter 키: kind: — canonical 5: project / domain / capability / element / document title:, domain: capabilities: [], elements: [] — 배열 노드 relates: [], dependenc",
+      "wordCount": 79,
+      "updatedAt": "2026-05-02T20:18:44.457Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3055,13 +3060,13 @@
       "headings": [
         {
           "depth": 1,
-          "text": "Ontology Hub — Mode-Aware (Q1=(a))",
-          "slug": "ontology-hub-mode-aware-q1a"
+          "text": "Ontology Hub — Mode-Aware",
+          "slug": "ontology-hub-mode-aware"
         }
       ],
-      "excerpt": "LOOPTASK Open question 1 의 (a) — vault 활성 시 / 가 자동으로 그 데이터로 전환. mission v2 ideal \"Notion 처럼 폴더만 골라도 사용\" 의 ontology hub 표현. useOntologyInsight(accountId): mode === local → useVaultOntology 결과를 KnowledgeProjectInsight shape 으로 변환 mode !== local → useKnowledgePublicInsight 그대로 OntologyStubNode → KnowledgeGraphNode 변환은 sen",
-      "wordCount": 84,
-      "updatedAt": "2026-05-01T12:41:58.175Z",
+      "excerpt": "vault 활성 시 / 가 자동으로 그 데이터로 전환. mission v2 ideal \"Notion 처럼 폴더만 골라도 사용\" 의 ontology hub 표현. useOntologyInsight() 분기: local → useVaultOntology 결과를 KnowledgeProjectInsight shape 으로 변환 static → 빌드타임 dogfood 매니페스트 derivation (moduleload 1 회 메모이즈) OntologyStubNode → KnowledgeGraphNode 변환: sentinel lastApprovedAt = Date(0), la",
+      "wordCount": 94,
+      "updatedAt": "2026-05-02T20:19:31.371Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3076,7 +3081,7 @@
         "title": "Topology — Sigma WebGL Render",
         "domain": "views",
         "elements": [
-          "src/widgets/sigma-topology",
+          "src/widgets/topology-map-sigma",
           "src/views/home"
         ],
         "relates": [
@@ -3093,7 +3098,7 @@
       ],
       "excerpt": "Sigma.js + Graphology + ForceAtlas2 spatial network. 노드 클릭 → ProjectDrawer, hover → 1hop 이웃 강조, 좌측 Legend, 우측 SigmaHubRail (degree 상위), 하단 RegionNavigator (minimap). ⌘K 검색. Mission v2 후 /topology 라우트로 이동 — / 는 ontology hub 가 됨.",
       "wordCount": 46,
-      "updatedAt": "2026-05-01T11:24:50.325Z",
+      "updatedAt": "2026-05-02T20:20:04.707Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3142,10 +3147,7 @@
         "kind": "domain",
         "title": "Mode-Aware Adapters",
         "capabilities": [
-          "data-source-dispatch",
-          "mode-aware-read",
-          "mode-aware-mutation",
-          "taxonomy-mode-bridge"
+          "mode-aware-adapter"
         ],
         "elements": [
           "src/features/data-source-mode",
@@ -3165,7 +3167,7 @@
       ],
       "excerpt": "useDataSourceMode() 가 local / static 분기 결정. R10 (auth + cloud surface 영구 제거) 이후 두 mode 만 존재. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 사용자에겐 단일 UX. 미래 cloud collab 단계가 다시 도입될 때 'cloud' mode 와 그 adapter 를 새로 추가.",
       "wordCount": 50,
-      "updatedAt": "2026-05-02T16:29:38.382Z",
+      "updatedAt": "2026-05-02T20:03:33.726Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3178,15 +3180,6 @@
         "slug": "domains/onboarding-ux",
         "kind": "domain",
         "title": "Onboarding & UX (theme · toast · a11y · mobile)",
-        "capabilities": [
-          "theme-toggle-light-dark",
-          "toast-notifications",
-          "live-announcer-aria",
-          "mobile-bottom-tab",
-          "gesture-hints",
-          "keyboard-shortcuts",
-          "prefers-reduced-motion"
-        ],
         "elements": [
           "src/features/theme-toggle",
           "src/shared/ui/toast",
@@ -3207,7 +3200,7 @@
       ],
       "excerpt": "crosscutting. 라이트/다크 토글 (html[datatheme=\"light\"]), Sonner기반 toast, arialive 스크린리더 announce, 모바일 BottomTabBar + gesture hint, ⌘K · ⇧⌘K · ? · F · N · Esc 단축키, prefersreducedmotion 자동 존중. 자세한 디자인 룰: docs/DESIGNSYSTEM.md.",
       "wordCount": 37,
-      "updatedAt": "2026-05-01T11:24:50.325Z",
+      "updatedAt": "2026-05-02T20:01:24.400Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3221,18 +3214,13 @@
         "kind": "domain",
         "title": "Ontology Core (TBox · ABox · Evidence)",
         "capabilities": [
-          "frontmatter-to-ontology",
-          "tbox-class-relation",
-          "tbox-versioning",
-          "evidence-grounding",
-          "stub-resolution"
+          "frontmatter-to-ontology"
         ],
         "elements": [
           "src/entities/ontology-class",
           "src/entities/ontology-relation",
-          "src/entities/ontology-tbox",
           "src/entities/knowledge-graph",
-          "src/shared/lib/derive-ontology-from-vault"
+          "src/entities/docs-vault/lib/derive-ontology-from-vault"
         ],
         "relates": [
           "domains/vault-local-first",
@@ -3248,7 +3236,7 @@
       ],
       "excerpt": "4layer class hierarchy (Project · Domain · Capability · Element + Document) + 7 relations + immutable schema versioning + evidencegrounded statements. 자세한 모델: docs/DATAMODEL.md, docs/ONTOLOGYMODELV2DRAFT.md (V2 spec).",
       "wordCount": 31,
-      "updatedAt": "2026-05-01T11:24:50.325Z",
+      "updatedAt": "2026-05-02T20:02:15.456Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3261,14 +3249,6 @@
         "slug": "domains/vault-local-first",
         "kind": "domain",
         "title": "Vault — Local-First",
-        "capabilities": [
-          "folder-pick-fsa",
-          "manifest-build",
-          "fingerprint-watch",
-          "handle-persist",
-          "backlink-rewrite",
-          "vault-scaffold"
-        ],
         "elements": [
           "src/features/docs-vault-local",
           "src/entities/local-fs-handle",
@@ -3289,7 +3269,7 @@
       ],
       "excerpt": "사용자 디스크 폴더를 진실원으로. File System Access API + IndexedDB 기반 핸들 영속. focus / visibility 시 fingerprint 비교로 재스캔 shortcircuit. 자세한 정책: docs/LOCALFIRSTSYNC.md, docs/OFFLINEFIRSTUXFLOW.md.",
       "wordCount": 29,
-      "updatedAt": "2026-05-01T11:24:50.326Z",
+      "updatedAt": "2026-05-02T20:02:58.822Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3343,8 +3323,7 @@
         "domain": "vault-local-first",
         "path": "src/features/docs-vault-local",
         "relates": [
-          "domains/vault-local-first",
-          "elements/indexed-db"
+          "domains/vault-local-first"
         ]
       },
       "headings": [
@@ -3356,7 +3335,7 @@
       ],
       "excerpt": "브라우저 native API — showDirectoryPicker() 로 사용자 폴더 선택, FileSystemDirectoryHandle 로 read/write. 우리는 IndexedDB 에 핸들 영속, focus / visibility 시 fingerprint 비교 재스캔. SSRsafe (window 가드). 미지원 브라우저는 LocalVaultPicker 가 명시적 안내.",
       "wordCount": 38,
-      "updatedAt": "2026-05-01T11:24:50.326Z",
+      "updatedAt": "2026-05-02T20:17:36.155Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3454,7 +3433,14 @@
         "slug": "oh-my-ontology",
         "kind": "project",
         "title": "oh-my-ontology",
-        "domain": "workbench",
+        "domains": [
+          "vault-local-first",
+          "ontology-core",
+          "views",
+          "ai-agent-partner",
+          "mode-aware-adapters",
+          "onboarding-ux"
+        ],
         "capabilities": [
           "frontmatter-to-ontology",
           "mode-aware-adapter",
@@ -3464,16 +3450,10 @@
           "builder-vault-write"
         ],
         "elements": [
-          "vault-local-first",
-          "ontology-core",
-          "views",
-          "ai-agent-partner"
-        ],
-        "relates": [
-          "domains/vault-local-first",
-          "domains/ontology-core",
-          "domains/views",
-          "domains/ai-agent-partner"
+          "xyflow",
+          "file-system-access-api",
+          "mcp-sdk",
+          "sigma-graphology"
         ]
       },
       "headings": [
@@ -3490,7 +3470,7 @@
       ],
       "excerpt": "마크다운에서 자라는 오픈소스 온톨로지 워크벤치. 사람과 AI agent 가 같이 codebase 의 mental model 을 저작한다. md 가 진실원: vault 의 frontmatter 가 ontology 그대로 localfirst: 사용자 디스크 (vault) 가 단일 진실원. 인증 / 백엔드 의존 0. AI agent partner: MCP 서버를 통해 Claude Code 등이 ontology 를 read/write 3 view: topology (Sigma), tree (/ontology), builder (xyflow ERD)",
       "wordCount": 67,
-      "updatedAt": "2026-05-02T18:33:49.733Z",
+      "updatedAt": "2026-05-02T22:24:03.126Z",
       "mode": "both",
       "linksOut": []
     },
@@ -3929,18 +3909,13 @@
         },
         {
           "depth": 2,
-          "text": "Firebase (optional)",
-          "slug": "firebase-optional"
+          "text": "Hosted demo",
+          "slug": "hosted-demo"
         },
         {
           "depth": 3,
-          "text": "\"Permission denied\" reading `knowledgeApprovedNodes`",
-          "slug": "permission-denied-reading-knowledgeapprovednodes"
-        },
-        {
-          "depth": 3,
-          "text": "Hosted demo at oh-my-ontology.web.app shows your old data",
-          "slug": "hosted-demo-at-oh-my-ontologywebapp-shows-your-old-data"
+          "text": "The hosted demo shows different data than my vault",
+          "slug": "the-hosted-demo-shows-different-data-than-my-vault"
         },
         {
           "depth": 2,
@@ -3949,8 +3924,8 @@
         }
       ],
       "excerpt": "Common issues users hit when starting with ohmyontology. If your case isn't here, open an issue: https://github.com/wlsdks/ohmyontology/issues npm caches the package locally. Force a fresh fetch: The target folder already has README.md / project.md / etc. — the CLI never overwrites existing files. Either: Delete the co",
-      "wordCount": 872,
-      "updatedAt": "2026-05-02T09:34:08.147Z",
+      "wordCount": 854,
+      "updatedAt": "2026-05-02T21:34:07.924Z",
       "mode": "both",
       "linksOut": []
     }

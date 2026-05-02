@@ -2,7 +2,13 @@
 slug: oh-my-ontology
 kind: project
 title: oh-my-ontology
-domain: workbench
+domains:
+  - vault-local-first
+  - ontology-core
+  - views
+  - ai-agent-partner
+  - mode-aware-adapters
+  - onboarding-ux
 capabilities:
   - frontmatter-to-ontology
   - mode-aware-adapter
@@ -11,15 +17,10 @@ capabilities:
   - mcp-server
   - builder-vault-write
 elements:
-  - vault-local-first
-  - ontology-core
-  - views
-  - ai-agent-partner
-relates:
-  - domains/vault-local-first
-  - domains/ontology-core
-  - domains/views
-  - domains/ai-agent-partner
+  - xyflow
+  - file-system-access-api
+  - mcp-sdk
+  - sigma-graphology
 ---
 
 # oh-my-ontology
