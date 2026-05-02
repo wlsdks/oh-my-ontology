@@ -7,7 +7,6 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Info, Maximize2, Minimize2, Wand2 } from "lucide-react";
 import { ACCOUNT_QUERY_KEY } from "@/shared/lib/account-scope";
-import { useUserAuth } from "@/features/user-auth";
 import {
   vaultManifest as staticVaultManifestRaw,
   type VaultManifest,
@@ -92,10 +91,9 @@ export function OntologyEditPage() {
   const t = useTranslations("ontologyPages.edit.page");
   const tKinds = useTranslations("kinds");
   const searchParams = useSearchParams();
-  // single-user 모드: account scope 가 곧 로그인 사용자 uid. 비로그인 사용자는
-  // 캔버스 자체를 볼 수 있지만 manual node 저장 시 toast 로 막힌다.
-  const { user } = useUserAuth();
-  const accountId = user?.uid ?? null;
+  // R10 (auth 영구 제거) 이후 single-user OSS 도구. accountId 는 항상 null.
+  // ManualNode 저장은 vault (mission v2) 우선이라 인증 의존도 0.
+  const accountId: string | null = null;
   const dataSourceMode = useDataSourceMode();
   const vault = useLocalVault();
 

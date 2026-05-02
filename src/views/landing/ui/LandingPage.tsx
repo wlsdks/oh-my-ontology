@@ -8,36 +8,20 @@ import { cn } from "@/shared/lib/cn";
 import { buttonVariants, StaggeredFadeIn } from "@/shared/ui";
 import { LocaleSwitch } from "@/features/locale-switch";
 
-interface Props {
-  next?: string | null;
-}
-
-function buildAuthHref(
-  path: "/login" | "/signup",
-  next?: string | null,
-) {
-  if (!next?.trim()) return path;
-  const params = new URLSearchParams({ next: next.trim() });
-  return `${path}?${params.toString()}`;
-}
-
 /**
- * Landing — `/` 에서 비로그인 사용자가 처음 보는 화면.
+ * Landing — `/` 에서 vault 미선택 사용자가 처음 보는 화면.
  *
- * 헌장 (`.claude/rules/local-first.md`): "로그인은 옵션, 폴더만 선택하면 즉시
- * 사용". hero 옆 정적 미니 토폴로지로 *지식 그래프* 가 무엇인지 시각 증명 +
- * 3-step rail 로 mission 의 가치사슬 (markdown → 추출 → 3 view) 명시.
+ * 헌장 (`.claude/rules/local-first.md`): "폴더만 선택하면 즉시 사용".
+ * R10 (auth 영구 제거) 이후 hero 와 CTA 모두 vault 선택을 안내하는 단일
+ * 메시지로 통일 — 인증 / 로그인 분기 0.
  *
  * 디자인 헌장 준수: 단일 인디고 + 무채색, 애니메이션 0, gradient/glow/scale
  * hover 0. 미니 토폴로지는 frozen SVG (정적) — `prefers-reduced-motion`
  * 안전.
  */
-export function LandingPage({ next }: Props) {
+export function LandingPage() {
   const t = useTranslations('landing');
-  const tNav = useTranslations('nav');
   const tFooter = useTranslations('footer');
-  const loginHref = buildAuthHref("/login", next);
-  const hasReturnTarget = Boolean(next?.trim());
 
   return (
     <main
@@ -58,90 +42,57 @@ export function LandingPage({ next }: Props) {
             {t('headerKicker')}
           </span>
         </div>
-        <Link
-          href={loginHref}
-          className="text-[13px] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
-        >
-          {tNav('signIn')}
-        </Link>
       </header>
 
       <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center gap-12 py-12 md:gap-14 md:py-16">
         <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_22rem] md:items-center md:gap-12">
           <div className="space-y-5">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--color-text-quaternary)]">
-              {hasReturnTarget ? t('returnTargetEyebrow') : t('eyebrow')}
+              {t('eyebrow')}
             </p>
             <h1 className="text-[clamp(2.4rem,5vw,4rem)] leading-[1.04] font-[var(--font-weight-signature)] tracking-[var(--tracking-display)] text-[color:var(--color-text-primary)]">
-              {hasReturnTarget ? (
-                <>
-                  {t('returnTargetTitleLine1')}{' '}
-                  <span className="text-[color:var(--color-indigo-accent)]">{t('returnTargetTitleEmphasis')}</span>
-                </>
-              ) : (
-                <>
-                  {t('titleLine1')}<br />
-                  <span className="text-[color:var(--color-indigo-accent)]">{t('titleEmphasis')}</span>
-                </>
-              )}
+              {t('titleLine1')}<br />
+              <span className="text-[color:var(--color-indigo-accent)]">{t('titleEmphasis')}</span>
             </h1>
             <p className="max-w-xl text-base leading-7 text-[color:var(--color-text-secondary)]">
-              {hasReturnTarget ? t('returnTargetSubtitle') : t('subtitle')}
+              {t('subtitle')}
             </p>
           </div>
 
-          {!hasReturnTarget && (
-            <MiniTopology caption={t('topologyCaption', { nodes: 14, relations: 21 })} />
-          )}
+          <MiniTopology caption={t('topologyCaption', { nodes: 14, relations: 21 })} />
         </div>
 
-        {!hasReturnTarget && (
-          <ValueChainRail
-            steps={[
-              { index: '01', title: t('step1Title'), sub: t('step1Body') },
-              { index: '02', title: t('step2Title'), sub: t('step2Body') },
-              { index: '03', title: t('step3Title'), sub: t('step3Body') },
-            ]}
-          />
-        )}
+        <ValueChainRail
+          steps={[
+            { index: '01', title: t('step1Title'), sub: t('step1Body') },
+            { index: '02', title: t('step2Title'), sub: t('step2Body') },
+            { index: '03', title: t('step3Title'), sub: t('step3Body') },
+          ]}
+        />
 
         <div className="flex flex-wrap items-center gap-3">
-          {hasReturnTarget ? (
-            <Link
-              href={loginHref}
-              className={cn(buttonVariants({ size: "lg" }), "rounded-full")}
-            >
-              {t('returnTargetCta')}
-              <ArrowRight size={16} />
-            </Link>
-          ) : (
-            <>
-              <Link
-                href="/ontology/"
-                className={cn(buttonVariants({ size: "lg" }), "rounded-full min-w-[14rem]")}
-              >
-                {t('exploreCta')}
-                <ArrowRight size={16} />
-              </Link>
-              <Link
-                href="/docs/?intent=local"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "lg" }),
-                  "rounded-full",
-                )}
-              >
-                <FolderOpen size={16} />
-                {t('openVaultCta')}
-              </Link>
-            </>
-          )}
+          <Link
+            href="/ontology/"
+            className={cn(buttonVariants({ size: "lg" }), "rounded-full min-w-[14rem]")}
+          >
+            {t('exploreCta')}
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/docs/?intent=local"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "rounded-full",
+            )}
+          >
+            <FolderOpen size={16} />
+            {t('openVaultCta')}
+          </Link>
         </div>
 
-        {!hasReturnTarget && (
-          <p className="text-[12px] text-[color:var(--color-text-quaternary)]">
-            {t('privacyNote')}
-          </p>
-        )}
+        <p className="text-[12px] text-[color:var(--color-text-quaternary)]">
+          {t('privacyNote')}
+        </p>
       </section>
 
       <footer className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[color:var(--color-divider)] pt-4 text-[11px] text-[color:var(--color-text-quaternary)]">

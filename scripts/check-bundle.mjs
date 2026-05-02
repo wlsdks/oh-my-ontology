@@ -53,10 +53,6 @@ const LOCAL_FIRST_BASE_ROUTES = [
   'ontology/insights',
   'ontology/relations',
   'projects',
-  'login',
-  'signup',
-  'account',
-  'reset-password',
 ];
 const CLOUD_ADMIN_BASE_ROUTES = ['settings/categories', 'settings/statuses', 'settings/import'];
 

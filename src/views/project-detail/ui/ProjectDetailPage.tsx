@@ -25,7 +25,6 @@ import {
   useToast,
 } from "@/shared/ui";
 import { useScopedAccountAccess } from "@/features/account-scope";
-import { buildServiceEntryHref } from "@/features/user-auth";
 import {
   formatProjectIntegrityIssue,
   getProjectDetailHref,
@@ -43,7 +42,6 @@ import { DependencyPicker } from "@/features/project-edit/ui/DependencyPicker";
 import { CopyProjectLinkButton } from "@/features/project-share";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 import { useTaxonomy } from "@/features/taxonomy";
-import { PublicAccountMenu } from "@/widgets/account-menu";
 import { ProjectKnowledgeTopology } from "@/widgets/project-knowledge-topology";
 import { ProjectOntologyOverview } from "@/widgets/project-ontology-overview";
 
@@ -189,7 +187,6 @@ function ProjectDetailTopBar({
             className="hidden h-10 justify-center md:inline-flex"
           />
         ) : null}
-        <PublicAccountMenu accountId={accountId} />
       </div>
     </div>
   );
@@ -355,10 +352,9 @@ export function ProjectDetailPage({
     const search = searchParams.toString();
     return `${pathname}${search ? `?${search}` : ""}`;
   }, [pathname, searchParams]);
-  const landingHref = useMemo(
-    () => buildServiceEntryHref({ accountId, next: currentPath }),
-    [accountId, currentPath],
-  );
+  // R10 (auth 영구 제거) 후엔 redirect 시 항상 landing 으로. ?account= scope 로
+  // 떨어진 비로그인 사용자가 있던 시절의 next= 보존 흐름은 사라짐.
+  const landingHref = "/";
 
   // P1-5 — 클라이언트 사이드 동적 타이틀. 정적 export metadata 가 slug
   // 단위까지 미리 빌드되지만 동적 컨텍스트는 빌드 시 모름.

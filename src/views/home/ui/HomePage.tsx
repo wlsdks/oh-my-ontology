@@ -25,7 +25,6 @@ import dynamic from "next/dynamic";
 import { ProjectDrawer } from "@/widgets/project-drawer";
 import { ProjectKnowledgeTopologyScene } from "@/widgets/project-knowledge-topology";
 import { SearchHint } from "@/widgets/search-hint";
-import { PublicAccountMenu } from "@/widgets/account-menu";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import { useDocumentTitle } from "@/shared/lib/use-document-title";
 import { useTaxonomy } from "@/features/taxonomy";
@@ -170,7 +169,6 @@ export function HomePage() {
   // open state 를 받아서 작동.
   const [ontologySearchOpen, setOntologySearchOpen] = useState(false);
   const [presentationMode, setPresentationMode] = useState(false);
-  const [accountMenuDismissToken, setAccountMenuDismissToken] = useState(0);
   const [shortcutsOpen, setShortcutsOpen] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -227,9 +225,8 @@ export function HomePage() {
       return next;
     });
   }, []);
-  const dismissAccountMenu = useCallback(() => {
-    setAccountMenuDismissToken((current) => current + 1);
-  }, []);
+  // R10: PublicAccountMenu 제거 후 dismiss token 의미 0 — no-op.
+  const dismissAccountMenu = useCallback(() => {}, []);
   const {
     activeCategory,
     selectedSlug,
@@ -755,11 +752,6 @@ export function HomePage() {
                 </kbd>
               </button>
               </Tooltip>
-              <PublicAccountMenu
-                accountId={null}
-                accountLabel={null}
-                dismissToken={accountMenuDismissToken}
-              />
             </div>
           </>
       )}

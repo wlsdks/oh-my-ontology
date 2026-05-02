@@ -1,8 +1,7 @@
 'use client';
 
-import { Link, useRouter, usePathname } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { signOut } from '@/features/user-auth';
 import { useDataSourceMode } from '@/features/data-source-mode';
 import { useLocalVault } from '@/features/docs-vault-local';
 import { ThemeToggle } from '@/features/theme-toggle';
@@ -134,20 +133,8 @@ function ModeBadge({ mode }: { mode: 'static' | 'local' | 'cloud' }) {
 
 export function OperationsNav({ rightSlot }: OperationsNavProps) {
   const pathname = usePathname() ?? '';
-  const router = useRouter();
   const dataSourceMode = useDataSourceMode();
   const t = useTranslations('nav');
-
-  // 로그아웃 후 /login/ 으로 명시 redirect — 이전엔 같은 페이지에 머물러 데이터가
-  // 조용히 사라지는 회귀. PermissionGate 가 있는 페이지는 자동 fallback
-  // 했지만 ontology 3 페이지처럼 gate 없는 곳은 빈 상태로 남았음.
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } finally {
-      router.replace('/login/');
-    }
-  };
 
   const renderTab = (item: NavItem, variant: 'desktop' | 'mobile') => {
     const active = item.prefixes.some((p) => pathname.startsWith(p));
@@ -213,9 +200,6 @@ export function OperationsNav({ rightSlot }: OperationsNavProps) {
               {t('projectsCta')}
             </Button>
           </Link>
-          <Button variant="ghost" size="sm" type="button" onClick={() => void handleSignOut()}>
-            {t('signOut')}
-          </Button>
         </div>
       </div>
 
