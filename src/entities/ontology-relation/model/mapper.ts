@@ -31,7 +31,10 @@ function toDate(value: unknown): Date {
 
 function toOptionalDate(value: unknown): Date | undefined {
   if (value === undefined || value === null) return undefined;
-  return coerceFirestoreDate(value);
+  // 매칭 안 되는 값은 coerceFirestoreDate 가 epoch 0 fallback. 호출자
+  // 계약은 "정말 모르면 undefined" 라 epoch 0 은 undefined 로 정상화.
+  const d = coerceFirestoreDate(value);
+  return d.getTime() === 0 ? undefined : d;
 }
 
 export function fromFirestore(id: string, data: DocumentData): OntologyRelation {

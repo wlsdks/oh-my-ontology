@@ -60,8 +60,11 @@ export function AccountSettingsPage() {
       if (cancelled || !profile) return;
       setProfileEmail(profile.email ?? '');
       setResetEmail(profile.email ?? '');
+      // getPasswordSupportState 는 dynamic import — await 사이에 unmount
+      // 가능성. 다시 가드.
       const support = await getPasswordSupportState();
-      if (!cancelled) setPasswordSupport(support);
+      if (cancelled) return;
+      setPasswordSupport(support);
     });
     return () => {
       cancelled = true;

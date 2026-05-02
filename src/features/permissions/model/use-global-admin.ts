@@ -53,21 +53,34 @@ export function useGlobalAdmin(): GlobalAdminState {
       import('firebase/auth'),
       import('@/shared/api'),
       import('@/entities/admin/api'),
-    ]).then(([{ onAuthStateChanged }, { getFirebaseAuth }, { isAdmin }]) => {
-      if (cancelled) return;
-      const auth = getFirebaseAuth();
-      unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-          setFirebaseState({ status: 'unauthenticated', user: null });
-          return;
-        }
-        const allowed = await isAdmin(user.email);
-        setFirebaseState({
-          status: allowed ? 'authenticated' : 'not-allowed',
-          user,
+    ])
+      .then(([{ onAuthStateChanged }, { getFirebaseAuth }, { isAdmin }]) => {
+        if (cancelled) return;
+        const auth = getFirebaseAuth();
+        unsubscribe = onAuthStateChanged(auth, async (user) => {
+          if (!user) {
+            setFirebaseState({ status: 'unauthenticated', user: null });
+            return;
+          }
+          const allowed = await isAdmin(user.email);
+          // await 사이에 effect 가 cleanup 되면 setState 가 unmount 컴포넌트에
+          // fire 되니 한 번 더 cancelled 가드.
+          if (cancelled) return;
+          setFirebaseState({
+            status: allowed ? 'authenticated' : 'not-allowed',
+            user,
+          });
         });
+      })
+      .catch((err) => {
+        // chunk fetch 실패 시 (네트워크 끊김 / 광고차단) state 가 영원히
+        // 'loading' 으로 남으면 PermissionGate 가 영영 안 열린다 — 명시적
+        // 'unauthenticated' 로 fallback 해 cloud 기능을 잠그되 vault 모드는
+        // 계속 동작하게.
+        if (cancelled) return;
+        console.warn('[useGlobalAdmin] firebase chunk load failed', err);
+        setFirebaseState({ status: 'unauthenticated', user: null });
       });
-    });
 
     return () => {
       cancelled = true;

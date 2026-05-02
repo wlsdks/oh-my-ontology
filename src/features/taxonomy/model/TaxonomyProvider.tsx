@@ -71,7 +71,8 @@ export function TaxonomyProvider({ children }: Props) {
     void Promise.all([
       import('@/entities/category/api'),
       import('@/entities/status/api'),
-    ]).then(
+    ])
+      .then(
       ([
         { subscribeCategories, seedDefaultCategoriesIfEmpty },
         { subscribeStatuses, seedDefaultStatusesIfEmpty },
@@ -104,7 +105,15 @@ export function TaxonomyProvider({ children }: Props) {
           (err) => console.warn('[TaxonomyProvider] statuses subscribe error', err),
         );
       },
-    );
+    )
+      .catch((err) => {
+        // chunk fetch 실패 — defaults 로 hydrate 해 toolbar/fallback 이라도
+        // 정상화. 실제 동작은 무너져도 UI 가 영영 'loading' 에 갇히는 것 보단 낫다.
+        if (cancelled) return;
+        console.warn('[TaxonomyProvider] entity api chunk load failed', err);
+        setCategoriesHydrated(true);
+        setStatusesHydrated(true);
+      });
     return () => {
       cancelled = true;
       unsubCat?.();

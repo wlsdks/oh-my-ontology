@@ -63,20 +63,29 @@ export function useProjects(accountId?: string | null): UseProjectsState {
     setCloudError(null);
     let unsubscribe: (() => void) | null = null;
     let cancelled = false;
-    void import('@/entities/project/api').then(({ subscribeProjects }) => {
-      if (cancelled) return;
-      unsubscribe = subscribeProjects(
-        accountId ?? null,
-        (next) => {
-          setCloudProjects(next);
-          setCloudLoaded(true);
-        },
-        (error) => {
-          setCloudError(error.message?.trim() || '프로젝트를 불러오지 못했습니다.');
-          setCloudLoaded(true);
-        },
-      );
-    });
+    void import('@/entities/project/api')
+      .then(({ subscribeProjects }) => {
+        if (cancelled) return;
+        unsubscribe = subscribeProjects(
+          accountId ?? null,
+          (next) => {
+            setCloudProjects(next);
+            setCloudLoaded(true);
+          },
+          (error) => {
+            setCloudError(error.message?.trim() || '프로젝트를 불러오지 못했습니다.');
+            setCloudLoaded(true);
+          },
+        );
+      })
+      .catch((err) => {
+        // chunk fetch 실패 — spinner 가 영영 안 사라지지 않게 loaded=true +
+        // 에러 메시지로 UX 회복.
+        if (cancelled) return;
+        console.warn('[useProjects] cloud entity api chunk load failed', err);
+        setCloudError('프로젝트를 불러오지 못했습니다. 네트워크 확인 후 새로고침하세요.');
+        setCloudLoaded(true);
+      });
     return () => {
       cancelled = true;
       unsubscribe?.();
