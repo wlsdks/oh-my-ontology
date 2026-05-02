@@ -690,7 +690,7 @@ export function HomePage() {
                       자라고 있다" 즉각 인지. 매치 0 자동 숨김. */}
                   {!selectedProject ? (
                     <div className="pointer-events-auto self-start">
-                      <WorkspaceOntologyStrip accountId={null} />
+                      <WorkspaceOntologyStrip />
                     </div>
                   ) : null}
                 </div>

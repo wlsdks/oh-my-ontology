@@ -6,9 +6,6 @@ import { useTranslations } from "next-intl";
 import { useOntologyInsight } from "@/features/vault-ontology";
 import { buildMeaningfulOntologyStats } from "@/shared/lib/ontology-tree";
 
-export interface WorkspaceOntologyStripProps {
-  accountId: string | null;
-}
 
 /**
  * 워크스페이스 전반 ontology 한 줄 stat strip.
@@ -21,7 +18,7 @@ export interface WorkspaceOntologyStripProps {
  * 표시: 총 노드 / 도메인 / 역량 / 요소 카운트 + stub 강조 (있을 때만 amber) +
  * "트리 →" 링크. 최소 노이즈.
  */
-export function WorkspaceOntologyStrip({ accountId: _accountId }: WorkspaceOntologyStripProps) {
+export function WorkspaceOntologyStrip() {
   const t = useTranslations("searchWidgets.workspaceStrip");
   const { insight } = useOntologyInsight();
 

@@ -237,7 +237,7 @@ export function ProjectSelectorPage() {
 
         {/* 워크스페이스 ontology 한 줄 strip — 노드 카운트 + stub 강조.
             매치 0 자동 숨김. 공개 surface 가벼운 가시. */}
-        <WorkspaceOntologyStrip accountId={null} />
+        <WorkspaceOntologyStrip />
 
         {/* 검색 + 단계·상태 칩 — 1,979 프로젝트를 단계(작업중/예정) 와
             상태(개발중/운영중/기획/아이디어) 로 즉시 좁힐 수 있게. 칩에
