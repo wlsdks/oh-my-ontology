@@ -147,7 +147,7 @@ export function HeroHeader({
               <Link
                 href={ontologyHref}
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-4 text-[13px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
-                aria-label="온톨로지 트리 열기 — 승인된 노드와 관계를 계층으로 본다"
+                aria-label="온톨로지 트리 열기 — vault frontmatter 의 노드와 관계를 계층으로 본다"
               >
                 <Network size={14} />
                 온톨로지
