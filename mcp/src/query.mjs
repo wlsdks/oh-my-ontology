@@ -226,7 +226,11 @@ function evaluate(node, doc) {
     case 'cmp': {
       const actual = readField(doc, node.key);
       const target = node.value;
-      const matches = String(actual ?? '') === target;
+      // Panel E T1-2 (2026-05-02): 대소문자 무시 비교. 사용자 / LLM 둘 다
+      // `kind=Capability` 같은 표기를 자주 쓰는데 frontmatter 는 `kind: capability`
+      // 라 silent 0-match 됐던 foot-gun 제거.
+      const matches =
+        String(actual ?? '').toLowerCase() === target.toLowerCase();
       return node.op === '=' ? matches : !matches;
     }
     case 'has': {
