@@ -12,7 +12,7 @@ import { Button, Tooltip } from '@/shared/ui';
 // 제거. 미래에 다시 필요하면 그때 type 다시 정의.)
 
 interface NavItem {
-  id: 'knowledge' | 'ontology' | 'topology';
+  id: 'docs' | 'ontology' | 'topology';
   /** Translation key under `nav.*` for the visible label. */
   labelKey: 'docs' | 'ontology' | 'topology';
   /** Translation key under `nav.*` for the tooltip body. */
@@ -22,13 +22,11 @@ interface NavItem {
   prefixes: ReadonlyArray<string>;
 }
 
+// 진입점 3개 — docs (vault picker / editor), ontology (frontmatter
+// 트리·ego graph), topology (Sigma WebGL). vault 미선택 사용자도 모두 OK.
 const NAV_ITEMS: ReadonlyArray<NavItem> = [
-  // R10c (auth + cloud surface 정리) 이후 진입점 3개 — docs (vault picker /
-  // editor), ontology (frontmatter 트리·ego graph), topology (Sigma WebGL).
-  // settings (/categories|statuses|import) 는 cloud-only 였고 mission v2 의
-  // "frontmatter = schema" 와 모순돼 R10c 에서 제거.
   {
-    id: 'knowledge',
+    id: 'docs',
     labelKey: 'docs',
     tooltipKey: 'tooltipDocs',
     basePath: '/docs/',
