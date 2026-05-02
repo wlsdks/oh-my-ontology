@@ -55,14 +55,26 @@ export function OntologyRelationsPage() {
     () => (insight ? computeEdgeTypeDistribution(insight.edges) : new Map<string, number>()),
     [insight],
   );
+  // vault / dogfood 모드는 노드 evidenceCount 0 → "강한 관계" 정렬 의미 0.
+  // sentinel 모드면 panel 자체 hide + 무거운 selectStrongEdges 호출도 skip.
+  const isVaultSentinelMode = useMemo(
+    () =>
+      insight !== null &&
+      insight.nodes.length > 0 &&
+      insight.nodes.every((n) => isVaultSentinelDate(n.lastApprovedAt)),
+    [insight],
+  );
   const filteredEdges = useMemo(() => {
-    if (!insight) return [];
+    if (!insight || isVaultSentinelMode) return [];
     if (!selectedType) return insight.edges;
     return insight.edges.filter((e) => e.type === selectedType);
-  }, [insight, selectedType]);
+  }, [insight, isVaultSentinelMode, selectedType]);
   const strongEdges = useMemo(
-    () => (insight ? selectStrongEdges(filteredEdges, insight.nodes, 12) : []),
-    [insight, filteredEdges],
+    () =>
+      insight && !isVaultSentinelMode
+        ? selectStrongEdges(filteredEdges, insight.nodes, 12)
+        : [],
+    [insight, isVaultSentinelMode, filteredEdges],
   );
 
   // KNOWLEDGE_EDGE_TYPES 순서로 정렬 + 외래 type 은 끝에 추가.
@@ -73,17 +85,11 @@ export function OntologyRelationsPage() {
       .map(([type, count]) => ({ type, count }));
     return [...known, ...extra];
   }, [typeDist]);
-  const typeMax = typeRows.reduce((m, r) => Math.max(m, r.count), 0);
-  const totalEdges = insight?.edges.length ?? 0;
-  // vault / dogfood 모드는 노드 evidenceCount 0 → "강한 관계" 정렬 의미 0.
-  // sentinel 모드면 panel 자체 hide.
-  const isVaultSentinelMode = useMemo(
-    () =>
-      insight !== null &&
-      insight.nodes.length > 0 &&
-      insight.nodes.every((n) => isVaultSentinelDate(n.lastApprovedAt)),
-    [insight],
+  const typeMax = useMemo(
+    () => typeRows.reduce((m, r) => Math.max(m, r.count), 0),
+    [typeRows],
   );
+  const totalEdges = insight?.edges.length ?? 0;
 
   return (
     <div>
