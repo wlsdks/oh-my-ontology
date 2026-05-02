@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Clock, FileText, Pin, PinOff, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type {
@@ -45,6 +46,15 @@ export function DocsSidebarBody({
   onTagSelect,
 }: DocsSidebarBodyProps) {
   const t = useTranslations("vaultWidgets.parts.sidebar");
+  // 활성 태그가 매치하는 slug 집합 — DocsVaultTree 가 매 노드 재귀 시 .has()
+  // 로 조회. 매 render 새 Set 만들면 트리 내부 useMemo 들이 활성/해제 무관
+  // invalidate 되므로 부모에서 안정화. activeTag 가 null 이면 undefined
+  // (트리가 필터 자체 skip).
+  const activeTagSlugs = useMemo(
+    () =>
+      activeTag ? new Set(manifest.tags[activeTag] ?? []) : undefined,
+    [activeTag, manifest.tags],
+  );
   return (
     <>
       {pinnedSlugs.length > 0 ? (
@@ -152,9 +162,7 @@ export function DocsSidebarBody({
         audience={audience}
         audienceBySlug={audienceBySlug}
         activeTag={activeTag}
-        activeTagSlugs={
-          activeTag ? new Set(manifest.tags[activeTag] ?? []) : undefined
-        }
+        activeTagSlugs={activeTagSlugs}
       />
       <DocsVaultTags
         tags={manifest.tags}
