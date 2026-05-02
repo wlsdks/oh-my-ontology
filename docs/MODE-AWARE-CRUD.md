@@ -1,61 +1,61 @@
-# Mode-aware CRUD 패턴
+# Mode-aware CRUD pattern
 
-> **Status**: 도입 완료 (Phase 2-3, 2026-05-01).
-> **Why**: 기획자 audit 의 root cause 1 — *모드 인지 hook 부재로 모든 게이트가 auth role 만 봄*. local vault 활성 비로그인 사용자가 mutation 불가.
-> **Spec 의 위치**: `.claude/rules/local-first.md` 헌장 + `docs/LOCAL-FIRST-SYNC.md` § "운영 모드" 의 *코드 레이어 implementation*.
+> **Status**: Adopted (Phase 2-3, 2026-05-01).
+> **Why**: Root cause #1 from the planner audit — *no mode-aware hook existed, so every gate looked only at auth role*. Non-logged-in users with an active local vault could not perform mutations.
+> **Spec location**: *Code-layer implementation* of the `.claude/rules/local-first.md` charter and `docs/LOCAL-FIRST-SYNC.md` § "Operational modes".
 
-이 문서는 *어떤 entity 가 mutation 을 받는지가 사용자의 진실원 모드에 따라 다른 흐름* 을 갖도록 하는 패턴이다. 새 entity 에 mutation 을 추가할 때 이 가이드를 따라 mode-aware 로 만든다.
+This document describes a pattern where *which entity accepts mutations follows a different flow depending on the user's source-of-truth mode*. When you add mutations to a new entity, follow this guide to make it mode-aware.
 
 ---
 
-## 1. 운영 모드 (data source mode)
+## 1. Operational modes (data source mode)
 
-`docs/LOCAL-FIRST-SYNC.md` §2 의 4 모드 중 본 패턴이 다루는 것:
+Of the four modes defined in `docs/LOCAL-FIRST-SYNC.md` §2, this pattern covers:
 
-| Mode | 진실원 | mutation 가능? | 인증 필요? |
+| Mode | Source of truth | Mutations allowed? | Auth required? |
 |---|---|---|---|
-| **static** | `data/manifest.json` (빌드타임) | ❌ no-op + 거절 | — |
-| **local** | 사용자 디스크의 `.md` (vault) | ✅ 디스크 직접 쓰기 | ❌ 비로그인 OK |
-| **cloud** | Firestore `*` 컬렉션 | ✅ Firestore 쓰기 | ✅ Firebase Auth |
+| **static** | `data/manifest.json` (build-time) | ❌ no-op + reject | — |
+| **local** | `.md` files on the user's disk (vault) | ✅ direct disk writes | ❌ no login needed |
+| **cloud** | Firestore `*` collections | ✅ Firestore writes | ✅ Firebase Auth |
 
-(hybrid 는 v1.0+ 별도 spec.)
+(hybrid is a separate spec, v1.0+.)
 
 ---
 
-## 2. 도입된 핵심 모듈
+## 2. Core modules introduced
 
-### 2.1 모드 자체를 보는 hook
+### 2.1 Hook that observes the mode itself
 
-- `src/shared/lib/data-source-mode.ts` — 순수 함수 `getDataSourceMode({vaultLoaded, isAuthenticated}): DataSourceMode`. 우선순위: vault loaded > authenticated > static.
-- `src/features/data-source-mode/model/use-data-source-mode.ts` — `useUserAuth` + `useLocalVault` 합성 hook. `window.__ohMyOntologyMode` 디버그 expose.
+- `src/shared/lib/data-source-mode.ts` — pure function `getDataSourceMode({vaultLoaded, isAuthenticated}): DataSourceMode`. Priority: vault loaded > authenticated > static.
+- `src/features/data-source-mode/model/use-data-source-mode.ts` — hook composing `useUserAuth` + `useLocalVault`. Exposes `window.__ohMyOntologyMode` for debugging.
 
-### 2.2 entity 별 mode-aware mutation hook
+### 2.2 Per-entity mode-aware mutation hooks
 
-- `src/features/project-data-source/model/use-project-mutations.ts` — Project 의 create/update/delete + canCreate/canEdit/canDelete capability. local 분기는 `useLocalVault.createDoc` / `updateFrontmatter` / `deleteDoc`, cloud 분기는 entity API.
+- `src/features/project-data-source/model/use-project-mutations.ts` — Project create/update/delete + canCreate/canEdit/canDelete capabilities. The local branch uses `useLocalVault.createDoc` / `updateFrontmatter` / `deleteDoc`; the cloud branch uses the entity API.
 
-### 2.3 entity ↔ frontmatter 매퍼
+### 2.3 entity ↔ frontmatter mappers
 
-- `src/entities/docs-vault/lib/project-frontmatter.ts` — `projectToFrontmatter(project)` + `buildProjectMarkdown(project)`. local 모드 mutation 의 직렬화 유틸.
+- `src/entities/docs-vault/lib/project-frontmatter.ts` — `projectToFrontmatter(project)` + `buildProjectMarkdown(project)`. Serialization utilities for local-mode mutations.
 
 ### 2.4 vault → ontology fast path
 
-- `src/entities/docs-vault/lib/derive-ontology-from-vault.ts` — frontmatter `kind / capabilities / elements / relates / dependencies / domain` 에서 stub 노드/엣지 추출. 검수 큐 거치지 않은 *fast path* (mission v2 = frontmatter 자체가 자기-승인).
-- `src/features/vault-ontology/model/use-vault-ontology.ts` — useLocalVault + derive 합성 hook.
-- `src/features/vault-ontology/model/use-ontology-insight.ts` — **mission v2 신설** mode-aware ontology insight. local: vault frontmatter stub 변환, cloud: knowledgePublic projection. `/` ontology hub 가 vault 활성 시 자동 vault 모드.
+- `src/entities/docs-vault/lib/derive-ontology-from-vault.ts` — extracts stub nodes/edges from frontmatter `kind / capabilities / elements / relates / dependencies / domain`. A *fast path* that bypasses the review queue (mission v2 = frontmatter is self-approving).
+- `src/features/vault-ontology/model/use-vault-ontology.ts` — hook composing useLocalVault + derive.
+- `src/features/vault-ontology/model/use-ontology-insight.ts` — **new in mission v2**, mode-aware ontology insight. local: vault frontmatter stub conversion; cloud: knowledgePublic projection. The `/` ontology hub automatically switches to vault mode when a vault is active.
 
-### 2.5 AI agent partner (mission v2 신설)
+### 2.5 AI agent partner (new in mission v2)
 
-- `mcp/` 패키지 — `@modelcontextprotocol/sdk` 기반 stdin/stdout JSON-RPC 서버. AI agent (Claude Code 등) 가 vault `.md` 직접 read/write
-- 7 도구: `list_concepts` / `get_concept` / `find_evidence` / `find_backlinks` / `add_concept` / `add_relation` / `patch_concept`
-- 등록: `.mcp.json.example` 또는 `mcp/README.md`
+- The `mcp/` package — a stdin/stdout JSON-RPC server based on `@modelcontextprotocol/sdk`. Lets AI agents (Claude Code, etc.) read/write vault `.md` files directly.
+- 7 tools: `list_concepts` / `get_concept` / `find_evidence` / `find_backlinks` / `add_concept` / `add_relation` / `patch_concept`
+- Registration: `.mcp.json.example` or `mcp/README.md`
 
 ---
 
-## 3. 새 entity mutation 을 mode-aware 로 만드는 절차
+## 3. How to make a new entity's mutations mode-aware
 
-예: `Tag` 엔티티에 mode-aware CRUD 를 추가한다고 가정.
+Example: assume you want to add mode-aware CRUD for a `Tag` entity.
 
-### 3.1 entity 의 frontmatter 직렬화 추가
+### 3.1 Add frontmatter serialization for the entity
 
 ```ts
 // src/entities/docs-vault/lib/tag-frontmatter.ts
@@ -68,9 +68,9 @@ export function tagToFrontmatter(t: TagFrontmatterShape): Record<string, ...> { 
 export function buildTagMarkdown(t: TagFrontmatterShape): string { ... }
 ```
 
-local 모드의 `.md` 가 어디 (`tags/<slug>.md`) 에 저장될지도 결정.
+Also decide where the local-mode `.md` will live (e.g. `tags/<slug>.md`).
 
-### 3.2 mode-aware mutation hook 신설
+### 3.2 Create a mode-aware mutation hook
 
 ```ts
 // src/features/tag-data-source/model/use-tag-mutations.ts
@@ -82,100 +82,100 @@ export function useTagMutations(): TagMutations {
     if (mode === 'static') throw new Error(STATIC_REJECTION);
     if (mode === 'local') {
       const path = `tags/${input.slug}`;
-      if (vault.fileHandles.has(path)) throw new Error('이미 존재');
+      if (vault.fileHandles.has(path)) throw new Error('already exists');
       await vault.createDoc(path, buildTagMarkdown(input));
       return;
     }
     // cloud
     await cloudUpsertTag(input);
   };
-  // ... updateTag / deleteTag 비슷한 분기
+  // ... updateTag / deleteTag follow the same branching
   return { createTag, updateTag, deleteTag, canCreate: mode !== 'static', mode };
 }
 ```
 
-### 3.3 UI 컴포넌트에서 hook 사용
+### 3.3 Use the hook from UI components
 
 ```tsx
 function TagCreateForm() {
   const { createTag, canCreate, mode } = useTagMutations();
 
   if (!canCreate) {
-    return <p>정적 데모 모드. 폴더 열기 또는 로그인 후.</p>;
+    return <p>Static demo mode. Open a folder or sign in first.</p>;
   }
   // ... form
   await createTag(input);
 }
 ```
 
-### 3.4 게이트는 *mode* 기준, *role* 기준 X
+### 3.4 Gate on *mode*, not on *role*
 
-❌ 잘못된 패턴 (audit 가 발견한 문제):
+❌ Wrong pattern (the issue the audit surfaced):
 ```tsx
 const { canManage } = useScopedAccountAccess(); // = isLoggedIn
-return canManage ? <CreateButton /> : null;     // local 사용자 차단됨
+return canManage ? <CreateButton /> : null;     // local users get blocked
 ```
 
-✅ 올바른 패턴:
+✅ Correct pattern:
 ```tsx
 const { canCreate } = useTagMutations();        // = mode !== 'static'
-return canCreate ? <CreateButton /> : null;     // local 도 OK
+return canCreate ? <CreateButton /> : null;     // local users work too
 ```
 
 ---
 
-## 4. List subscribe 도 mode-aware (TODO — Phase 6+ 후속)
+## 4. List subscribe should be mode-aware too (TODO — Phase 6+ follow-up)
 
-현재는 mutation 만 mode-aware. **Read 측 (subscribe)** 은 아직 Firestore 우선:
-- `subscribeProjects(accountId, ...)` — Firestore 만 본다.
-- 결과: local 모드 사용자가 새 vault project 추가해도 list 에 안 나옴 (vault manifest 변경은 별도 surface).
+Today only mutations are mode-aware. **Reads (subscribe)** still default to Firestore:
+- `subscribeProjects(accountId, ...)` — looks at Firestore only.
+- Result: when a local-mode user adds a new vault project, it doesn't appear in the list (vault manifest changes show up on a separate surface).
 
-향후 도입 권장:
+Recommended direction:
 ```ts
 // src/features/project-data-source/model/use-projects.ts
 export function useProjects() {
   const mode = useDataSourceMode();
-  // mode === 'local' → useLocalVault().manifest 의 projects/*.md 를 buildTopologyFromVault 로
+  // mode === 'local' → run buildTopologyFromVault over useLocalVault().manifest projects/*.md
   // mode === 'cloud' → subscribeProjects (entity API)
-  // mode === 'static' → vaultManifest static
+  // mode === 'static' → static vaultManifest
 }
 ```
 
-이렇게 하면 *consumer 가 mode 인지 없이* 동일 hook 사용. 현재는 view 가 직접 entity API 호출 — 점진 swap 필요.
+Doing this lets *consumers use the same hook without knowing the mode*. Today, views call the entity API directly — this needs to be swapped out incrementally.
 
 ---
 
-## 5. e2e 테스트 가이드
+## 5. e2e test guidance
 
-각 mode-aware mutation 마다 3 시나리오 e2e:
-- **static**: createX 호출 시 거절 (toast or throw).
-- **local**: vault picker mock 후 vault active → createX → 디스크 .md 생성 확인.
-- **cloud**: Firebase Auth emulator 로 로그인 → createX → Firestore doc 생성 확인.
+For each mode-aware mutation, write three e2e scenarios:
+- **static**: calling createX is rejected (toast or throw).
+- **local**: mock the vault picker so a vault is active → call createX → verify the `.md` is created on disk.
+- **cloud**: sign in via the Firebase Auth emulator → call createX → verify the Firestore doc is created.
 
-본 시점 (2026-05-01) 의 e2e 는 local/cloud 시나리오가 미구현. Phase 6+ 후속.
-
----
-
-## 6. 관련 spec / 룰
-
-- `.claude/rules/local-first.md` — 헌장
-- `docs/LOCAL-FIRST-SYNC.md` — 4 모드 정의 + 충돌 모델
-- `docs/OFFLINE-FIRST-UX-FLOW.md` — UI 흐름 가이드 (5 페이지 게이트 분류 §5)
-- `docs/ONTOLOGY-MODEL-V2-DRAFT.md` — V1.x ontology 진화 (V1.4 ActionType 도 mode-aware capability 받음)
+As of writing (2026-05-01), the local/cloud e2e scenarios are not yet implemented. Phase 6+ follow-up.
 
 ---
 
-## 7. anti-pattern 모음 (회귀 차단)
+## 6. Related specs / rules
 
-도입 전에 발견된 (그리고 fix 된) 안티 패턴:
+- `.claude/rules/local-first.md` — the charter
+- `docs/LOCAL-FIRST-SYNC.md` — definition of the four modes + conflict model
+- `docs/OFFLINE-FIRST-UX-FLOW.md` — UI flow guide (5-page gate classification §5)
+- `docs/ONTOLOGY-MODEL-V2-DRAFT.md` — V1.x ontology evolution (V1.4 ActionType also gains a mode-aware capability)
 
-| ❌ | 해결 |
+---
+
+## 7. anti-pattern catalog (regression guard)
+
+Anti-patterns we found (and fixed) before adopting this pattern:
+
+| ❌ | Fix |
 |---|---|
-| `const accountId = null; useScopedAccountAccess(accountId)` 식 항상 null 하드코드 | `accountId` 파라미터 제거 (B4) |
-| Firestore 의 `Missing or insufficient permissions` raw 메시지가 사용자에게 그대로 노출 | accountId === null 면 구독 자체 skip + 빈 그래프 + loaded:true |
-| `<PermissionGate>` 가 페이지 entry 통째 차단 | 진입 게이트 → submit 시점 게이트 (Phase 3.2) |
-| entity API 가 `upsertProject(input)` 만 — Firestore 외 path 없음 | 호출자 (UI) 가 mode-aware hook 거쳐 분기. entity 는 그대로 cloud-only 유지하되 새 hook 이 wrapper 로 동작. |
+| `const accountId = null; useScopedAccountAccess(accountId)` — always-null hardcode | Removed the `accountId` parameter (B4) |
+| Firestore's raw `Missing or insufficient permissions` message leaked to the user | When accountId === null, skip the subscription itself + return an empty graph + loaded:true |
+| `<PermissionGate>` blocked the entire page entry | Moved from entry gate to submit-time gate (Phase 3.2) |
+| Entity API only had `upsertProject(input)` — no path outside Firestore | The caller (UI) branches via the mode-aware hook. The entity stays cloud-only, with the new hook acting as a wrapper. |
 
 ---
 
-> **결론**: mode-aware CRUD 는 *local-first 헌장의 코드 레이어 표현*. 새 entity 에 mutation 을 추가할 때 §3 의 4 단계를 따라 mode-aware 로. 이 패턴이 깨지면 *비로그인 + vault 사용자가 다시 dead-end* 회귀 — 헌장 위반.
+> **Bottom line**: mode-aware CRUD is *the code-layer expression of the local-first charter*. When you add mutations to a new entity, follow the four steps in §3 to make it mode-aware. Breaking this pattern regresses *non-logged-in + vault users back to a dead end* — a charter violation.

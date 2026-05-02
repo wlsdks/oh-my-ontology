@@ -5,20 +5,20 @@ tags: [data-model, firestore, schema]
 
 # Data Model
 
-> 이 문서는 현재 공개 제품과 설계 승인된 `knowledge subsystem v2`의 저장 계약을 함께 다룬다. 컬렉션 스키마 변경 시 반드시 이 문서를 먼저 갱신한다. 변경 프로세스는 [`rules/firestore-schema.md`](rules/firestore-schema.md)를 따른다.
+> This document covers the storage contracts of both the current public product and the design-approved `knowledge subsystem v2`. Whenever a collection schema changes, update this document first. The change process follows [`rules/firestore-schema.md`](rules/firestore-schema.md).
 >
-> **single-user 모드 (현재):** 1 명의 로그인 사용자가 자기 워크스페이스의 owner. account / membership 개념 없음. 모든 컬렉션은 root path. v2 협업 단계에서 multi-account 가 필요해지면 별도 ADR 로 도입.
+> **Single-user mode (current):** A single logged-in user is the owner of their own workspace. There is no account / membership concept. All collections live at the root path. If multi-account support becomes necessary during the v2 collaboration phase, it will be introduced via a separate ADR.
 
-## 1. 원칙
+## 1. Principles
 
-1. 현재 공개 제품의 canonical 데이터는 여전히 `projects`다.
-2. knowledge subsystem은 공개 제품과 분리된 인증-필수 subsystem으로 도입한다.
-3. knowledge의 canonical graph는 private store에 저장하고, 공개 화면은 projection만 읽는다.
-4. raw markdown는 Firestore가 아니라 Firebase Storage에 저장한다.
-5. backend-owned 컬렉션은 브라우저 클라이언트가 직접 쓰지 않는다.
-6. PostgreSQL/Prisma 전환 대비용 관계형 계약은 `database/ddl/postgres/`에 함께 유지한다.
+1. The canonical data of the current public product is still `projects`.
+2. The knowledge subsystem is introduced as an authentication-required subsystem, separate from the public product.
+3. The canonical graph of the knowledge subsystem is stored in a private store, and public surfaces read only from a projection.
+4. Raw markdown is stored in Firebase Storage, not in Firestore.
+5. Backend-owned collections are not written to directly by browser clients.
+6. Relational contracts in `database/ddl/postgres/` are kept in sync as preparation for a potential PostgreSQL/Prisma migration.
 
-## 2. Firestore 컬렉션
+## 2. Firestore collections
 
 ```text
 firestore/
@@ -30,19 +30,19 @@ firestore/
 │   └── {id}/
 ├── meta/
 │   └── site/
-├── knowledgeDocuments/              private 문서 헤더
+├── knowledgeDocuments/              private document headers
 │   └── {documentId}/
-├── knowledgeDocumentVersions/       private 원문 버전
+├── knowledgeDocumentVersions/       private source-text versions
 │   └── {versionId}/
-├── knowledgeDocumentChunks/         ⚠️ cold storage (mission v2 cleanup 후 read-only)
+├── knowledgeDocumentChunks/         ⚠️ cold storage (read-only after mission v2 cleanup)
 │   └── {chunkId}/
 ├── knowledgeEvidence/               ⚠️ cold storage (mission v2 cleanup)
 │   └── {evidenceId}/
-├── knowledgeExtractionJobs/         ⚠️ cold storage (extraction handler 제거됨, PR #5)
+├── knowledgeExtractionJobs/         ⚠️ cold storage (extraction handler removed, PR #5)
 │   └── {jobId}/
-├── knowledgeExtractionOutputs/      ⚠️ cold storage (extraction handler 제거됨)
+├── knowledgeExtractionOutputs/      ⚠️ cold storage (extraction handler removed)
 │   └── {outputId}/
-├── knowledgeReviews/                ⚠️ cold storage (applyReviewAction 제거됨, PR #6)
+├── knowledgeReviews/                ⚠️ cold storage (applyReviewAction removed, PR #6)
 │   └── {reviewId}/
 ├── knowledgeReviewEvents/           ⚠️ cold storage
 │   └── {eventId}/
@@ -60,443 +60,443 @@ firestore/
 │   └── {nodeId}/
 ├── knowledgePublicEdges/            public projection
 │   └── {edgeId}/
-├── ontologyClasses/                 ontology TBox — 노드 클래스 정의 (authed write, public read)
+├── ontologyClasses/                 ontology TBox — node class definitions (authed write, public read)
 │   └── {classId}/
-├── ontologyRelations/               ontology TBox — 관계 타입 정의 (authed write, public read)
+├── ontologyRelations/               ontology TBox — relation type definitions (authed write, public read)
 │   └── {relationId}/
 ├── ontologyTBoxVersions/            ontology TBox snapshot (immutable, append-only)
 │   └── {versionId}/
-└── ontologyTBoxState/               활성 TBox version 포인터
+└── ontologyTBoxState/               active TBox version pointer
     └── current/                     versionId + activatedAt + activatedBy
 ```
 
-## 3. 공개 제품 컬렉션
+## 3. Public product collections
 
 ### `projects/{slug}`
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `slug` | string | ✅ | URL용 kebab-case, 문서 ID와 동일 |
-| `name` | string | ✅ | 한글 이름 |
-| `nameEn` | string |  | 영문 이름 |
-| `category` | string | ✅ | `categories/{id}` 참조 |
-| `status` | string | ✅ | `statuses/{id}` 참조 |
-| `description` | string | ✅ | 1~2줄 요약 |
-| `detail` | string (markdown) |  | 상세 본문 |
-| `tags` | string[] |  | 태그 배열 |
-| `stack` | string[] |  | 기술 스택 |
-| `links` | `Array<{ label: string; url: string }>` |  | 외부 링크 |
-| `dependencies` | string[] |  | 의존 프로젝트 slug 배열 |
-| `owner` | string |  | 담당자 |
-| `icon` | string |  | 이모지 또는 URL |
-| `screenshots` | string[] |  | Storage URL 배열 |
-| `timeline.startedAt` | Timestamp |  | 시작일 |
-| `timeline.launchedAt` | Timestamp |  | 출시일 |
-| `progress` | number (0-100) |  | 진행도 |
-| `isHub` | boolean | ✅ | 허브 노드 여부 |
-| `position.x` | number | ✅ | 토폴로지 레이아웃 좌표 X |
-| `position.y` | number | ✅ | 토폴로지 레이아웃 좌표 Y |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `updatedAt` | Timestamp | ✅ | 수정일 |
+| `slug` | string | ✅ | URL-friendly kebab-case; identical to the document ID |
+| `name` | string | ✅ | Korean name |
+| `nameEn` | string |  | English name |
+| `category` | string | ✅ | Reference to `categories/{id}` |
+| `status` | string | ✅ | Reference to `statuses/{id}` |
+| `description` | string | ✅ | One- or two-line summary |
+| `detail` | string (markdown) |  | Long-form body |
+| `tags` | string[] |  | Tag array |
+| `stack` | string[] |  | Tech stack |
+| `links` | `Array<{ label: string; url: string }>` |  | External links |
+| `dependencies` | string[] |  | Array of dependent project slugs |
+| `owner` | string |  | Owner |
+| `icon` | string |  | Emoji or URL |
+| `screenshots` | string[] |  | Array of Storage URLs |
+| `timeline.startedAt` | Timestamp |  | Start date |
+| `timeline.launchedAt` | Timestamp |  | Launch date |
+| `progress` | number (0-100) |  | Progress |
+| `isHub` | boolean | ✅ | Whether the node is a hub |
+| `position.x` | number | ✅ | Topology layout coordinate X |
+| `position.y` | number | ✅ | Topology layout coordinate Y |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `updatedAt` | Timestamp | ✅ | Updated at |
 
 ### `categories/{id}`
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | 문서 ID와 동일 |
-| `label` | string | ✅ | 한글 라벨 |
-| `labelEn` | string |  | 영문 라벨 |
-| `order` | number | ✅ | 정렬 순서 |
-| `position.x` | number | ✅ | 클러스터 중심 X |
-| `position.y` | number | ✅ | 클러스터 중심 Y |
-| `size.width` | number | ✅ | 클러스터 폭 |
-| `size.height` | number | ✅ | 클러스터 높이 |
-| `radius` | number | ✅ | 네비게이션 zoom 계산용 반경 |
-| `borderStyle` | `"underline" \| "dashed" \| "sideLabel" \| "solid"` | ✅ | 카테고리 보더 표현 |
-| `sideLabelText` | string |  | `sideLabel`일 때 좌측 라벨 |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `updatedAt` | Timestamp | ✅ | 수정일 |
+| `id` | string | ✅ | Identical to the document ID |
+| `label` | string | ✅ | Korean label |
+| `labelEn` | string |  | English label |
+| `order` | number | ✅ | Sort order |
+| `position.x` | number | ✅ | Cluster center X |
+| `position.y` | number | ✅ | Cluster center Y |
+| `size.width` | number | ✅ | Cluster width |
+| `size.height` | number | ✅ | Cluster height |
+| `radius` | number | ✅ | Radius used for navigation zoom calculation |
+| `borderStyle` | `"underline" \| "dashed" \| "sideLabel" \| "solid"` | ✅ | Category border representation |
+| `sideLabelText` | string |  | Left-side label when `sideLabel` is used |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `updatedAt` | Timestamp | ✅ | Updated at |
 
 ### `statuses/{id}`
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | 문서 ID와 동일 |
-| `label` | string | ✅ | 한글 라벨 |
-| `labelEn` | string |  | 영문 라벨 |
-| `order` | number | ✅ | 정렬 순서 |
-| `dotColor` | `"success" \| "warning" \| "paused" \| "neutral"` | ✅ | 상태 점 색상 preset |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `updatedAt` | Timestamp | ✅ | 수정일 |
+| `id` | string | ✅ | Identical to the document ID |
+| `label` | string | ✅ | Korean label |
+| `labelEn` | string |  | English label |
+| `order` | number | ✅ | Sort order |
+| `dotColor` | `"success" \| "warning" \| "paused" \| "neutral"` | ✅ | Status-dot color preset |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `updatedAt` | Timestamp | ✅ | Updated at |
 
 ### `meta/site`
 
-| 필드 | 타입 | 설명 |
+| Field | Type | Description |
 | --- | --- | --- |
-| `title` | string | 사이트 타이틀 |
-| `description` | string | 사이트 설명 |
-| `lastUpdated` | Timestamp | 마지막 변경 시점 |
-| `viewCount` | number | 방문 카운트 (선택) |
+| `title` | string | Site title |
+| `description` | string | Site description |
+| `lastUpdated` | Timestamp | Last change time |
+| `viewCount` | number | Visit count (optional) |
 
-## 4. Knowledge subsystem 컬렉션
+## 4. Knowledge subsystem collections
 
 ### `knowledgeDocuments/{documentId}`
 
-문서 헤더와 현재 상태를 담는 admin private 엔트리.
+Admin-private entry that holds the document header and current state.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | 문서 ID |
-| `title` | string | ✅ | 현재 canonical 제목 |
-| `kind` | string | ✅ | 현재 canonical 문서 kind |
-| `projectIds` | string[] | ✅ | 연결된 프로젝트 slug 목록 |
-| `sourceType` | `"upload" \| "manual" \| "import"` | ✅ | 생성 경로 |
-| `currentVersionId` | string | ✅ | 현재 기준 version ID |
-| `formatScore` | number |  | 규격 적합도 |
-| `status` | `"draft" \| "ready" \| "processing" \| "reviewing" \| "published" \| "error"` | ✅ | 문서 운영 상태 |
-| `latestJobStatus` | string |  | 최근 추출 job 상태 요약 |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `updatedAt` | Timestamp | ✅ | 수정일 |
-| `createdBy` | string | ✅ | 생성 admin 이메일 |
+| `id` | string | ✅ | Document ID |
+| `title` | string | ✅ | Current canonical title |
+| `kind` | string | ✅ | Current canonical document kind |
+| `projectIds` | string[] | ✅ | List of linked project slugs |
+| `sourceType` | `"upload" \| "manual" \| "import"` | ✅ | Creation path |
+| `currentVersionId` | string | ✅ | Current reference version ID |
+| `formatScore` | number |  | Specification conformance score |
+| `status` | `"draft" \| "ready" \| "processing" \| "reviewing" \| "published" \| "error"` | ✅ | Document operational state |
+| `latestJobStatus` | string |  | Summary of the latest extraction job status |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `updatedAt` | Timestamp | ✅ | Updated at |
+| `createdBy` | string | ✅ | Email of the creating admin |
 
-`knowledgeDocuments`는 `currentVersionId`의 파생 헤더를 담는다. `title`, `kind`, `projectIds`는 version canonical metadata를 반영한다.
+`knowledgeDocuments` carries the derived header for `currentVersionId`. `title`, `kind`, and `projectIds` reflect the version's canonical metadata.
 
 ### `knowledgeDocumentVersions/{versionId}`
 
-원문 버전 메타. append-only로 취급한다.
+Source-text version metadata. Treated as append-only.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | version ID |
-| `documentId` | string | ✅ | 상위 문서 ID |
-| `title` | string | ✅ | version metadata 제목 |
-| `kind` | string | ✅ | version metadata kind |
-| `projectIds` | string[] | ✅ | version metadata project 연결 |
-| `frontmatter` | map |  | 파싱된 frontmatter |
-| `storagePath` | string | ✅ | Storage 원문 경로 |
-| `mimeType` | string | ✅ | `text/markdown` 또는 허용 MIME |
-| `sizeBytes` | number | ✅ | 원문 크기 |
-| `hash` | string | ✅ | version 해시 |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `createdBy` | string | ✅ | 생성 admin 이메일 |
+| `id` | string | ✅ | Version ID |
+| `documentId` | string | ✅ | Parent document ID |
+| `title` | string | ✅ | Version metadata title |
+| `kind` | string | ✅ | Version metadata kind |
+| `projectIds` | string[] | ✅ | Version metadata project links |
+| `frontmatter` | map |  | Parsed frontmatter |
+| `storagePath` | string | ✅ | Storage path of the source text |
+| `mimeType` | string | ✅ | `text/markdown` or another allowed MIME type |
+| `sizeBytes` | number | ✅ | Source-text size |
+| `hash` | string | ✅ | Version hash |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `createdBy` | string | ✅ | Email of the creating admin |
 
 ### `knowledgeDocumentChunks/{chunkId}`
 
-trusted backend가 생성하는 chunk 인덱스.
+Chunk index produced by the trusted backend.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | chunk ID |
-| `documentId` | string | ✅ | 문서 ID |
-| `documentVersionId` | string | ✅ | 기준 version ID |
-| `headingPath` | string[] |  | heading 경로 |
-| `markdown` | string | ✅ | chunk markdown |
-| `charStart` | number | ✅ | 원문 시작 오프셋 |
-| `charEnd` | number | ✅ | 원문 끝 오프셋 |
-| `chunkHash` | string | ✅ | chunk 내용 해시 |
-| `createdAt` | Timestamp | ✅ | 생성일 |
+| `id` | string | ✅ | Chunk ID |
+| `documentId` | string | ✅ | Document ID |
+| `documentVersionId` | string | ✅ | Reference version ID |
+| `headingPath` | string[] |  | Heading path |
+| `markdown` | string | ✅ | Chunk markdown |
+| `charStart` | number | ✅ | Source-text start offset |
+| `charEnd` | number | ✅ | Source-text end offset |
+| `chunkHash` | string | ✅ | Hash of the chunk content |
+| `createdAt` | Timestamp | ✅ | Created at |
 
 ### `knowledgeExtractionJobs/{jobId}`
 
-job queue 엔트리. admin UI는 enqueue를 요청하고, 실제 job 문서는 trusted backend가 생성/처리한다.
+Job queue entry. The admin UI requests an enqueue, and the actual job document is created and processed by the trusted backend.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | job ID |
-| `documentId` | string | ✅ | 대상 문서 ID |
-| `documentVersionId` | string | ✅ | 대상 version ID |
-| `extractorVersion` | string | ✅ | 추출기 버전 |
-| `idempotencyKey` | string | ✅ | 멱등 키. `(documentVersionId, extractorVersion)` 기반 |
-| `status` | `"queued" \| "leased" \| "processing" \| "succeeded" \| "failed" \| "superseded"` | ✅ | 상태 |
-| `attemptCount` | number | ✅ | 시도 횟수 |
-| `maxAttempts` | number | ✅ | 허용 최대 시도 횟수 |
-| `retryable` | boolean | ✅ | 재시도 가능 여부 |
-| `nextAttemptAt` | Timestamp |  | 다음 재시도 가능 시각 |
-| `leaseOwner` | string |  | 처리중인 worker 식별자 |
-| `leaseExpiresAt` | Timestamp |  | lease 만료 시점 |
-| `generation` | number | ✅ | lease 세대. stale 완료 방지용 |
-| `errorCode` | string |  | 마지막 에러 코드 |
-| `errorMessage` | string |  | 마지막 에러 메시지 |
-| `supersededByJobId` | string |  | 대체 job ID |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `updatedAt` | Timestamp | ✅ | 수정일 |
-| `requestedBy` | string | ✅ | enqueue한 admin 이메일 |
+| `id` | string | ✅ | Job ID |
+| `documentId` | string | ✅ | Target document ID |
+| `documentVersionId` | string | ✅ | Target version ID |
+| `extractorVersion` | string | ✅ | Extractor version |
+| `idempotencyKey` | string | ✅ | Idempotency key, derived from `(documentVersionId, extractorVersion)` |
+| `status` | `"queued" \| "leased" \| "processing" \| "succeeded" \| "failed" \| "superseded"` | ✅ | Status |
+| `attemptCount` | number | ✅ | Number of attempts |
+| `maxAttempts` | number | ✅ | Maximum allowed attempts |
+| `retryable` | boolean | ✅ | Whether retry is allowed |
+| `nextAttemptAt` | Timestamp |  | Next allowed retry time |
+| `leaseOwner` | string |  | Identifier of the worker currently processing the job |
+| `leaseExpiresAt` | Timestamp |  | Lease expiration time |
+| `generation` | number | ✅ | Lease generation; prevents stale completions |
+| `errorCode` | string |  | Last error code |
+| `errorMessage` | string |  | Last error message |
+| `supersededByJobId` | string |  | ID of the superseding job |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `updatedAt` | Timestamp | ✅ | Updated at |
+| `requestedBy` | string | ✅ | Email of the admin who enqueued the job |
 
-`jobId`는 가능하면 `idempotencyKey` 기반 deterministic ID를 사용한다. 브라우저는 중복 job을 직접 생성하지 않고 backend enqueue 경계로 요청한다.
+Wherever possible, `jobId` uses a deterministic ID derived from `idempotencyKey`. Browsers do not create duplicate jobs directly; they request one through the backend enqueue boundary.
 
 ### `knowledgeExtractionOutputs/{outputId}`
 
-trusted backend가 저장하는 raw extraction 결과.
+Raw extraction results stored by the trusted backend.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | output ID |
-| `jobId` | string | ✅ | 생성한 job ID |
-| `documentId` | string | ✅ | 문서 ID |
-| `documentVersionId` | string | ✅ | 문서 version ID |
-| `extractorVersion` | string | ✅ | 추출기 버전 |
-| `provider` | string | ✅ | 예: `gemini` |
-| `summary` | string |  | 문서 요약 |
-| `nodes` | `OutputNode[]` | ✅ | node 후보 목록 (아래 sub-schema) |
-| `edges` | `OutputEdge[]` | ✅ | edge 후보 목록 (아래 sub-schema) |
-| `warnings` | string[] |  | 경고 목록 |
-| `createdAt` | Timestamp | ✅ | 생성일 |
+| `id` | string | ✅ | Output ID |
+| `jobId` | string | ✅ | ID of the job that produced this output |
+| `documentId` | string | ✅ | Document ID |
+| `documentVersionId` | string | ✅ | Document version ID |
+| `extractorVersion` | string | ✅ | Extractor version |
+| `provider` | string | ✅ | e.g., `gemini` |
+| `summary` | string |  | Document summary |
+| `nodes` | `OutputNode[]` | ✅ | Candidate node list (sub-schema below) |
+| `edges` | `OutputEdge[]` | ✅ | Candidate edge list (sub-schema below) |
+| `warnings` | string[] |  | List of warnings |
+| `createdAt` | Timestamp | ✅ | Created at |
 
 `OutputNode` sub-schema:
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tempId` | string | ✅ | output 내부 임시 ID. approval 시 canonical node ID 로 매핑됨 |
-| `title` | string | ✅ | 노드 제목 |
-| `kind` | string | ✅ | `ontologyClasses` 의 합법 값 (project / domain / capability / element / document) |
-| `projectIds` | string[] | ✅ | 연결 프로젝트 |
-| `summary` | string |  | 내부 요약 |
-| `confidence` | number | ✅ | LLM 신뢰도 0~1. 보류 스펙 §6.3 정책: `≥ 0.85` 자동 승인 후보 / `0.60~0.84` 검수 / `< 0.60` 자동 반영 금지 |
-| `warnings` | string[] |  | 후보별 경고 |
+| `tempId` | string | ✅ | Output-internal temporary ID; mapped to a canonical node ID on approval |
+| `title` | string | ✅ | Node title |
+| `kind` | string | ✅ | Legal value from `ontologyClasses` (project / domain / capability / element / document) |
+| `projectIds` | string[] | ✅ | Linked projects |
+| `summary` | string |  | Internal summary |
+| `confidence` | number | ✅ | LLM confidence 0–1. Pending-spec §6.3 policy: `≥ 0.85` auto-approval candidate / `0.60–0.84` requires review / `< 0.60` cannot be applied automatically |
+| `warnings` | string[] |  | Per-candidate warnings |
 
 `OutputEdge` sub-schema:
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tempId` | string | ✅ | output 내부 임시 ID |
-| `fromTempId` | string | ✅ | source 노드의 tempId |
-| `toTempId` | string | ✅ | target 노드의 tempId |
-| `type` | `KnowledgeEdgeType` | ✅ | 7 종 enum (T-2). `ontologyRelations` 컬렉션과 정합 |
-| `label` | string |  | UI 표시용 라벨 |
-| `confidence` | number | ✅ | LLM 신뢰도 0~1. node 와 동일 정책 |
+| `tempId` | string | ✅ | Output-internal temporary ID |
+| `fromTempId` | string | ✅ | tempId of the source node |
+| `toTempId` | string | ✅ | tempId of the target node |
+| `type` | `KnowledgeEdgeType` | ✅ | One of 7 enum values (T-2). Aligned with the `ontologyRelations` collection |
+| `label` | string |  | Display label for the UI |
+| `confidence` | number | ✅ | LLM confidence 0–1; same policy as nodes |
 
-> **신뢰도 정책 (보류 스펙 §6.3 채택)**:
-> - `≥ 0.85` — high. 규격 문서 + 명시적 관계. 자동 승인 후보.
-> - `0.60 ~ 0.84` — medium. 문맥상 유력. 검수 큐로.
-> - `< 0.60` — low. 자동 반영 금지. 사용자 명시 승인 필요.
+> **Confidence policy (pending-spec §6.3 adopted)**:
+> - `≥ 0.85` — high. Conformant document with explicit relations. Auto-approval candidate.
+> - `0.60 – 0.84` — medium. Likely from context. Routed to the review queue.
+> - `< 0.60` — low. Cannot be applied automatically. Requires explicit user approval.
 
 ### `knowledgeEvidence/{evidenceId}`
 
-immutable evidence reference store.
+Immutable evidence reference store.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | evidence ID |
-| `documentId` | string | ✅ | 문서 ID |
-| `documentVersionId` | string | ✅ | version ID |
-| `versionHash` | string | ✅ | version 해시 |
-| `chunkId` | string | ✅ | chunk ID |
-| `chunkHash` | string | ✅ | chunk 해시 |
-| `charStart` | number | ✅ | 원문 시작 위치 |
-| `charEnd` | number | ✅ | 원문 끝 위치 |
-| `excerpt` | string | ✅ | 표시용 인용 텍스트 |
-| `locatorVersion` | string | ✅ | locator 계산 버전 |
-| `extractorVersion` | string | ✅ | 추출기 버전 |
-| `sourceOutputId` | string | ✅ | 생성한 extraction output ID |
-| `createdAt` | Timestamp | ✅ | 생성일 |
+| `id` | string | ✅ | Evidence ID |
+| `documentId` | string | ✅ | Document ID |
+| `documentVersionId` | string | ✅ | Version ID |
+| `versionHash` | string | ✅ | Version hash |
+| `chunkId` | string | ✅ | Chunk ID |
+| `chunkHash` | string | ✅ | Chunk hash |
+| `charStart` | number | ✅ | Source-text start position |
+| `charEnd` | number | ✅ | Source-text end position |
+| `excerpt` | string | ✅ | Quoted text for display |
+| `locatorVersion` | string | ✅ | Locator computation version |
+| `extractorVersion` | string | ✅ | Extractor version |
+| `sourceOutputId` | string | ✅ | ID of the extraction output that produced this evidence |
+| `createdAt` | Timestamp | ✅ | Created at |
 
 ### `knowledgeReviews/{reviewId}`
 
-운영자가 검수하는 리뷰 엔트리.
+Review entries for operators.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | review ID |
-| `documentId` | string | ✅ | 관련 문서 ID |
-| `documentVersionId` | string | ✅ | 관련 version ID |
-| `jobId` | string |  | 관련 job ID |
-| `type` | `"document-batch" \| "merge" \| "low-confidence"` | ✅ | 리뷰 버킷 |
-| `status` | `"open" \| "approved" \| "rejected" \| "snoozed" \| "superseded"` | ✅ | 상태 |
-| `payload` | map | ✅ | 리뷰 대상 데이터 |
-| `assignedTo` | string |  | 담당 admin 이메일 |
-| `createdAt` | Timestamp | ✅ | 생성일 |
-| `updatedAt` | Timestamp | ✅ | 수정일 |
+| `id` | string | ✅ | Review ID |
+| `documentId` | string | ✅ | Related document ID |
+| `documentVersionId` | string | ✅ | Related version ID |
+| `jobId` | string |  | Related job ID |
+| `type` | `"document-batch" \| "merge" \| "low-confidence"` | ✅ | Review bucket |
+| `status` | `"open" \| "approved" \| "rejected" \| "snoozed" \| "superseded"` | ✅ | Status |
+| `payload` | map | ✅ | Review target data |
+| `assignedTo` | string |  | Email of the assigned admin |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `updatedAt` | Timestamp | ✅ | Updated at |
 
 ### `knowledgeReviewEvents/{eventId}`
 
-review 감사 추적용 append-only 이벤트.
+Append-only events for review audit trails.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | event ID |
-| `reviewId` | string | ✅ | 대상 review ID |
-| `documentId` | string | ✅ | 관련 문서 ID |
-| `action` | string | ✅ | 예: `approve`, `reject`, `snooze`, `comment` |
-| `actor` | string | ✅ | 수행자 이메일 |
-| `fromStatus` | string |  | 이전 상태 |
-| `toStatus` | string | ✅ | 변경 후 상태 |
-| `decisionPayload` | map |  | 결정 세부 내용 |
-| `comment` | string |  | 운영 메모 |
-| `createdAt` | Timestamp | ✅ | 생성일 |
+| `id` | string | ✅ | Event ID |
+| `reviewId` | string | ✅ | Target review ID |
+| `documentId` | string | ✅ | Related document ID |
+| `action` | string | ✅ | e.g., `approve`, `reject`, `snooze`, `comment` |
+| `actor` | string | ✅ | Actor email |
+| `fromStatus` | string |  | Previous status |
+| `toStatus` | string | ✅ | New status |
+| `decisionPayload` | map |  | Decision details |
+| `comment` | string |  | Operations note |
+| `createdAt` | Timestamp | ✅ | Created at |
 
 ### `knowledgeApprovalEvents/{eventId}`
 
-approved graph 변경 이력.
+Change history for the approved graph.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | event ID |
-| `entityType` | `"node" \| "edge"` | ✅ | 대상 유형 |
-| `entityId` | string | ✅ | 대상 canonical ID |
-| `reviewId` | string |  | 근거 review ID |
-| `before` | map |  | 변경 전 스냅샷 |
-| `after` | map | ✅ | 변경 후 스냅샷 |
-| `approvedBy` | string | ✅ | 승인자 이메일 |
-| `approvedAt` | Timestamp | ✅ | 승인 시각 |
-| `revertsEventId` | string |  | 롤백 대상 event ID |
+| `id` | string | ✅ | Event ID |
+| `entityType` | `"node" \| "edge"` | ✅ | Target type |
+| `entityId` | string | ✅ | Target canonical ID |
+| `reviewId` | string |  | Source review ID |
+| `before` | map |  | Snapshot before the change |
+| `after` | map | ✅ | Snapshot after the change |
+| `approvedBy` | string | ✅ | Approver email |
+| `approvedAt` | Timestamp | ✅ | Approval time |
+| `revertsEventId` | string |  | ID of the event being rolled back |
 
 ### `knowledgeApprovedNodes/{nodeId}`
 
-knowledge canonical node store. admin-private이며 publish의 입력이다.
+Knowledge canonical node store. Admin-private and the input to publish.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | node ID. ontology 추출의 경우 `<kind>:<frontmatterId>` 형식 (id-resolution.md §1) |
-| `title` | string | ✅ | canonical 제목 |
-| `kind` | string | ✅ | node kind. `ontologyClasses` 의 합법 값. `unknown` = stub placeholder |
-| `projectIds` | string[] | ✅ | 연결 프로젝트. stub 은 빈 배열 |
-| `parentId` | string |  | canonical hierarchy parent |
-| `summary` | string |  | 내부 요약 |
-| `evidenceIds` | string[] | ✅ | 승인 근거 식별자 목록 |
-| `currentRevisionId` | string |  | 최근 approval event ID |
-| `lastApprovedAt` | Timestamp | ✅ | 최근 승인 시점 |
-| `lastApprovedBy` | string | ✅ | 최근 승인 admin 이메일 |
-| `isStub` | boolean |  | true 면 placeholder. 검수 큐가 별도 섹션에 노출 (id-resolution.md §2) |
-| `pendingType` | string |  | stub 일 때 frontmatter 가 명시한 edge type. promote 시 edge 복원에 사용 |
-| `pendingFromId` | string |  | stub 일 때 promote 시 복원할 source canonical ID |
-| `source` | `"manual" \| "extraction"` |  | 출처. legacy 데이터는 `undefined` (UI 가 `extraction` 으로 처리). manual editor v0 (B 라인) 부터 사용자 직접 작성 = `"manual"` |
-| `manualAuthor` | string |  | `source === "manual"` 시 작성자 uid. Firestore rules 가 author 본인만 update/delete 허용 |
-| `manualNote` | string |  | `source === "manual"` 시 작성자 자유 메모 (옵션) |
-| `tboxVersionId` | string |  | (P1 Phase 1) 이 노드 생성·검수 시점의 활성 TBox version ID (`ontologyTBoxVersions/{versionId}`). legacy = undefined → loader 가 `legacy-v0` 으로 처리 |
+| `id` | string | ✅ | Node ID. For ontology extraction, the format is `<kind>:<frontmatterId>` (id-resolution.md §1) |
+| `title` | string | ✅ | Canonical title |
+| `kind` | string | ✅ | Node kind. Legal value from `ontologyClasses`. `unknown` = stub placeholder |
+| `projectIds` | string[] | ✅ | Linked projects. Stubs are an empty array |
+| `parentId` | string |  | Canonical hierarchy parent |
+| `summary` | string |  | Internal summary |
+| `evidenceIds` | string[] | ✅ | List of identifiers backing the approval |
+| `currentRevisionId` | string |  | Most recent approval event ID |
+| `lastApprovedAt` | Timestamp | ✅ | Time of the most recent approval |
+| `lastApprovedBy` | string | ✅ | Email of the most recent approving admin |
+| `isStub` | boolean |  | When true, a placeholder. Surfaced separately in the review queue (id-resolution.md §2) |
+| `pendingType` | string |  | When stub, the edge type declared in frontmatter; used to restore the edge on promote |
+| `pendingFromId` | string |  | When stub, the source canonical ID to restore on promote |
+| `source` | `"manual" \| "extraction"` |  | Origin. Legacy data is `undefined` (the UI treats it as `extraction`). Manual editor v0 (B-line) onward, user-authored = `"manual"` |
+| `manualAuthor` | string |  | When `source === "manual"`, the author's uid. Firestore rules allow update/delete only by the author |
+| `manualNote` | string |  | When `source === "manual"`, an optional free-form note from the author |
+| `tboxVersionId` | string |  | (P1 Phase 1) Active TBox version ID at the time this node was created/reviewed (`ontologyTBoxVersions/{versionId}`). Legacy = undefined → loader treats as `legacy-v0` |
 
 ### `knowledgeApprovedEdges/{edgeId}`
 
-knowledge canonical edge store. admin-private이며 publish의 입력이다.
+Knowledge canonical edge store. Admin-private and the input to publish.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | edge ID |
-| `from` | string | ✅ | source node ID |
-| `to` | string | ✅ | target node ID |
-| `type` | `"contains" \| "belongs_to" \| "depends_on" \| "implements" \| "uses" \| "describes" \| "related_to"` | ✅ | 관계 타입. ontology TBox `ontologyRelations` 7 종과 일치. 카테고리: `contains`/`belongs_to`=structure, `depends_on`/`implements`/`uses`=behavior, `describes`=evidence, `related_to`=weak. 합법 값은 `ontologyRelations` 컬렉션에서 진리값. |
-| `projectIds` | string[] | ✅ | 연결 프로젝트 |
-| `evidenceIds` | string[] | ✅ | 승인 근거 식별자 목록 |
-| `currentRevisionId` | string |  | 최근 approval event ID |
-| `lastApprovedAt` | Timestamp | ✅ | 최근 승인 시점 |
-| `lastApprovedBy` | string | ✅ | 최근 승인 admin 이메일 |
-| `source` | `"manual" \| "extraction"` |  | node 와 동일 의미 (manual editor v0) |
-| `manualAuthor` | string |  | `source === "manual"` 시 작성자 uid |
-| `manualNote` | string |  | `source === "manual"` 시 작성자 자유 메모 |
-| `tboxVersionId` | string |  | (P1 Phase 1) 이 엣지 생성·검수 시점의 활성 TBox version ID. legacy = undefined |
-| `qualifiers` | `Array<{propertyId: string; value: QualifierValue}>` |  | **V1.1 (PR #10)** Wikidata 영감 statement 한정자. additive, breakage 0. legacy = undefined. `QualifierValue` union: `{kind:'string', raw}` / `{kind:'time', iso, precision}` / `{kind:'quantity', value, unit?}` / `{kind:'nodeRef', nodeId}`. |
-| `rank` | `"preferred" \| "normal" \| "deprecated"` |  | **V1.1 (PR #10)** 같은 (from, to, type) 의 다중 statement 우선순위. legacy = undefined → `rank ?? 'normal'` 폴백. |
+| `id` | string | ✅ | Edge ID |
+| `from` | string | ✅ | Source node ID |
+| `to` | string | ✅ | Target node ID |
+| `type` | `"contains" \| "belongs_to" \| "depends_on" \| "implements" \| "uses" \| "describes" \| "related_to"` | ✅ | Relation type. Aligned with the 7 entries of the ontology TBox `ontologyRelations`. Categories: `contains`/`belongs_to` = structure, `depends_on`/`implements`/`uses` = behavior, `describes` = evidence, `related_to` = weak. The source of truth for legal values is the `ontologyRelations` collection. |
+| `projectIds` | string[] | ✅ | Linked projects |
+| `evidenceIds` | string[] | ✅ | List of identifiers backing the approval |
+| `currentRevisionId` | string |  | Most recent approval event ID |
+| `lastApprovedAt` | Timestamp | ✅ | Time of the most recent approval |
+| `lastApprovedBy` | string | ✅ | Email of the most recent approving admin |
+| `source` | `"manual" \| "extraction"` |  | Same meaning as on nodes (manual editor v0) |
+| `manualAuthor` | string |  | When `source === "manual"`, the author's uid |
+| `manualNote` | string |  | When `source === "manual"`, an optional free-form note from the author |
+| `tboxVersionId` | string |  | (P1 Phase 1) Active TBox version ID at the time this edge was created/reviewed. Legacy = undefined |
+| `qualifiers` | `Array<{propertyId: string; value: QualifierValue}>` |  | **V1.1 (PR #10)** Wikidata-inspired statement qualifiers. Additive, zero breakage. Legacy = undefined. `QualifierValue` union: `{kind:'string', raw}` / `{kind:'time', iso, precision}` / `{kind:'quantity', value, unit?}` / `{kind:'nodeRef', nodeId}`. |
+| `rank` | `"preferred" \| "normal" \| "deprecated"` |  | **V1.1 (PR #10)** Priority among multiple statements with the same (from, to, type). Legacy = undefined → falls back to `rank ?? 'normal'`. |
 
 ### `knowledgePublishes/{publishId}`
 
-public projection publish 실행 이력.
+Execution history of public projection publishes.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | publish ID |
-| `status` | `"running" \| "succeeded" \| "failed" \| "rolled-back"` | ✅ | publish 상태 |
-| `initiatedBy` | string | ✅ | 실행 요청자 |
-| `startedAt` | Timestamp | ✅ | 시작 시각 |
-| `completedAt` | Timestamp |  | 완료 시각 |
-| `sourceApprovedRevision` | string | ✅ | 기준 canonical revision 또는 snapshot ID |
-| `nodeCount` | number |  | 반영 node 수 |
-| `edgeCount` | number |  | 반영 edge 수 |
-| `projectionVersion` | string | ✅ | projection schema 버전 |
-| `errorCode` | string |  | 실패 코드 |
-| `errorMessage` | string |  | 실패 메시지 |
-| `rollbackOfPublishId` | string |  | 롤백 대상 publish ID |
+| `id` | string | ✅ | Publish ID |
+| `status` | `"running" \| "succeeded" \| "failed" \| "rolled-back"` | ✅ | Publish status |
+| `initiatedBy` | string | ✅ | Initiator |
+| `startedAt` | Timestamp | ✅ | Start time |
+| `completedAt` | Timestamp |  | Completion time |
+| `sourceApprovedRevision` | string | ✅ | Reference canonical revision or snapshot ID |
+| `nodeCount` | number |  | Number of applied nodes |
+| `edgeCount` | number |  | Number of applied edges |
+| `projectionVersion` | string | ✅ | Projection schema version |
+| `errorCode` | string |  | Failure code |
+| `errorMessage` | string |  | Failure message |
+| `rollbackOfPublishId` | string |  | ID of the publish being rolled back |
 
 ### `knowledgePublicNodes/{nodeId}`
 
-공개용 projection node.
+Public projection node.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | node ID |
-| `title` | string | ✅ | 공개 제목 |
-| `kind` | string | ✅ | 공개 kind |
-| `projectIds` | string[] | ✅ | 연결 프로젝트 |
-| `parentId` | string |  | 공개용 계층 parent |
-| `summary` | string |  | 공개 요약 |
-| `evidenceCount` | number | ✅ | 공개 근거 수 |
-| `publishId` | string | ✅ | 생성한 publish ID |
-| `projectionVersion` | string | ✅ | projection schema 버전 |
-| `publishedAt` | Timestamp | ✅ | publish 반영 시각 |
-| `lastApprovedAt` | Timestamp | ✅ | 승인 반영 시점 |
+| `id` | string | ✅ | Node ID |
+| `title` | string | ✅ | Public title |
+| `kind` | string | ✅ | Public kind |
+| `projectIds` | string[] | ✅ | Linked projects |
+| `parentId` | string |  | Public hierarchy parent |
+| `summary` | string |  | Public summary |
+| `evidenceCount` | number | ✅ | Number of public evidence items |
+| `publishId` | string | ✅ | ID of the publish that produced this node |
+| `projectionVersion` | string | ✅ | Projection schema version |
+| `publishedAt` | Timestamp | ✅ | Time the publish was applied |
+| `lastApprovedAt` | Timestamp | ✅ | Time the approval was applied |
 
 ### `knowledgePublicEdges/{edgeId}`
 
-공개용 projection edge.
+Public projection edge.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | edge ID |
-| `from` | string | ✅ | source node ID |
-| `to` | string | ✅ | target node ID |
-| `type` | string | ✅ | 공개 관계 타입 |
-| `projectIds` | string[] | ✅ | 연결 프로젝트 |
-| `publishId` | string | ✅ | 생성한 publish ID |
-| `projectionVersion` | string | ✅ | projection schema 버전 |
-| `publishedAt` | Timestamp | ✅ | publish 반영 시각 |
-| `lastApprovedAt` | Timestamp | ✅ | 승인 반영 시점 |
+| `id` | string | ✅ | Edge ID |
+| `from` | string | ✅ | Source node ID |
+| `to` | string | ✅ | Target node ID |
+| `type` | string | ✅ | Public relation type |
+| `projectIds` | string[] | ✅ | Linked projects |
+| `publishId` | string | ✅ | ID of the publish that produced this edge |
+| `projectionVersion` | string | ✅ | Projection schema version |
+| `publishedAt` | Timestamp | ✅ | Time the publish was applied |
+| `lastApprovedAt` | Timestamp | ✅ | Time the approval was applied |
 
 ### `knowledgePublicMeta/current`
 
-현재 공개 projection pointer 문서.
+Pointer document for the currently public projection.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `currentPublishId` | string | ✅ | 현재 공개 snapshot publish ID |
-| `publishedAt` | Timestamp | ✅ | pointer 전환 시각 |
-| `projectionVersion` | string | ✅ | projection schema 버전 |
+| `currentPublishId` | string | ✅ | ID of the currently public snapshot publish |
+| `publishedAt` | Timestamp | ✅ | Pointer cutover time |
+| `projectionVersion` | string | ✅ | Projection schema version |
 
 ### `ontologyClasses/{classId}`
 
-ontology TBox — 노드 클래스 정의. `knowledgeApprovedNodes.kind` 의 합법 값 + 의미 메타. admin write, public read (공개 surface 가 클래스 라벨을 표시하기 위함).
+Ontology TBox — node class definitions. Legal values for `knowledgeApprovedNodes.kind` plus semantic metadata. Admin write, public read (so that public surfaces can display class labels).
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | class ID. kebab-case (예: `project`, `domain`, `capability`, `element`, `document`) |
-| `name` | string | ✅ | display name (한글 OK) |
-| `description` | string |  | 클래스가 무엇을 표현하는지 |
-| `parentClassId` | string |  | 상위 클래스 ID. 클래스 계층을 표현 (예: `element` < `capability`). 없으면 root |
-| `elementType` | string |  | `id` 가 `element` 인 경우 세부 분류 (`service` / `api` / `agent` / `workflow` / `schema` / `data-store` / `ui` / `prompt` / `integration`). 다른 클래스에는 사용 안 함 |
-| `version` | number | ✅ | TBox 버전 — schema 변경 추적용 |
-| `createdAt` | Timestamp | ✅ | 생성 시각 |
-| `createdBy` | string | ✅ | 생성자 이메일 또는 `system` |
-| `updatedAt` | Timestamp |  | 마지막 수정 시각 |
+| `id` | string | ✅ | Class ID. kebab-case (e.g., `project`, `domain`, `capability`, `element`, `document`) |
+| `name` | string | ✅ | Display name (Korean OK) |
+| `description` | string |  | What the class represents |
+| `parentClassId` | string |  | Parent class ID. Expresses the class hierarchy (e.g., `element` < `capability`). None means root |
+| `elementType` | string |  | Sub-classification when `id` is `element` (`service` / `api` / `agent` / `workflow` / `schema` / `data-store` / `ui` / `prompt` / `integration`). Not used for other classes |
+| `version` | number | ✅ | TBox version, used to track schema changes |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `createdBy` | string | ✅ | Creator email or `system` |
+| `updatedAt` | Timestamp |  | Last updated at |
 
-C-1 시드 (T-1):
+C-1 seed (T-1):
 
-| `id` | `name` | `parentClassId` | 비고 |
+| `id` | `name` | `parentClassId` | Notes |
 | --- | --- | --- | --- |
-| `project` | 프로젝트 | (root) | 외부에 드러나는 제품/시스템/이니셔티브 |
-| `domain` | 도메인 | (root) | 프로젝트 안의 큰 문제 영역 |
-| `capability` | 역량 | (root) | 도메인이 제공하는 기능적 능력 |
-| `element` | 요소 | (root) | 실제 구현체·자산·인터페이스·데이터 구조 (`elementType` 으로 세분화) |
-| `document` | 문서 | (root) | 근거 노드. 계층 트리에 매달지 않고 `describes` 관계로 연결 |
-| `unknown` | 미지 | (root) | stub placeholder — frontmatter `relates.target` 미존재 시 자동 생성. 검수 큐에서 promote/dismiss (id-resolution.md §2) |
+| `project` | 프로젝트 | (root) | Externally visible product/system/initiative |
+| `domain` | 도메인 | (root) | A large problem area within a project |
+| `capability` | 역량 | (root) | Functional ability provided by a domain |
+| `element` | 요소 | (root) | Actual implementation/asset/interface/data structure (sub-classified via `elementType`) |
+| `document` | 문서 | (root) | Evidence node. Not attached to the hierarchy tree; connected via `describes` |
+| `unknown` | 미지 | (root) | Stub placeholder — auto-created when frontmatter `relates.target` does not exist. Promoted/dismissed from the review queue (id-resolution.md §2) |
 
 ### `ontologyRelations/{relationId}`
 
-ontology TBox — 관계 타입 정의. `knowledgeApprovedEdges.type` 의 합법 값 + 제약. admin write, public read.
+Ontology TBox — relation type definitions. Legal values for `knowledgeApprovedEdges.type` plus constraints. Admin write, public read.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | string | ✅ | relation ID (예: `depends_on`) |
-| `name` | string | ✅ | display name (한글 OK) |
-| `inverseName` | string |  | 역방향 표시명 (예: `depended-on-by`) |
-| `description` | string |  | 관계의 의미 |
-| `sourceClassIds` | string[] | ✅ | source 로 허용되는 class ID 목록 (TBox 제약). 빈 배열 = 모든 클래스 허용 |
-| `targetClassIds` | string[] | ✅ | target 으로 허용되는 class ID 목록 |
-| `category` | `"structure" \| "behavior" \| "evidence" \| "weak"` | ✅ | 관계 카테고리. `structure` = 구조 관계 (`contains`, `belongs_to`), `behavior` = 동작 관계 (`depends_on`, `implements`, `uses`), `evidence` = 근거 관계 (`describes`), `weak` = 약 연관 (`related_to`) |
-| `symmetric` | boolean | ✅ | A→B 가 B→A 와 동치인가 (예: `related_to` 는 true, `depends_on` 은 false) |
-| `transitive` | boolean | ✅ | A→B + B→C ⇒ A→C 가 성립하는가 (예: `contains` 는 true, `uses` 는 false) |
-| `version` | number | ✅ | TBox 버전 |
-| `createdAt` | Timestamp | ✅ | 생성 시각 |
-| `createdBy` | string | ✅ | 생성자 이메일 또는 `system` |
-| `updatedAt` | Timestamp |  | 마지막 수정 시각 |
+| `id` | string | ✅ | Relation ID (e.g., `depends_on`) |
+| `name` | string | ✅ | Display name (Korean OK) |
+| `inverseName` | string |  | Reverse-direction display name (e.g., `depended-on-by`) |
+| `description` | string |  | Meaning of the relation |
+| `sourceClassIds` | string[] | ✅ | Class IDs allowed as the source (TBox constraint). Empty array = all classes allowed |
+| `targetClassIds` | string[] | ✅ | Class IDs allowed as the target |
+| `category` | `"structure" \| "behavior" \| "evidence" \| "weak"` | ✅ | Relation category. `structure` = structural relations (`contains`, `belongs_to`), `behavior` = behavioral relations (`depends_on`, `implements`, `uses`), `evidence` = evidence relation (`describes`), `weak` = weak association (`related_to`) |
+| `symmetric` | boolean | ✅ | Whether A→B is equivalent to B→A (e.g., `related_to` is true, `depends_on` is false) |
+| `transitive` | boolean | ✅ | Whether A→B + B→C ⇒ A→C holds (e.g., `contains` is true, `uses` is false) |
+| `version` | number | ✅ | TBox version |
+| `createdAt` | Timestamp | ✅ | Created at |
+| `createdBy` | string | ✅ | Creator email or `system` |
+| `updatedAt` | Timestamp |  | Last updated at |
 
-C-1 시드 (T-1, 7 종):
+C-1 seed (T-1, 7 entries):
 
 | `id` | `name` | `category` | `sourceClassIds` | `targetClassIds` | `symmetric` | `transitive` |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -506,40 +506,40 @@ C-1 시드 (T-1, 7 종):
 | `implements` | 구현 | behavior | `element` | `capability` | false | false |
 | `uses` | 사용 | behavior | `element`, `capability` | `element` | false | false |
 | `describes` | 설명 | evidence | `document` | `project`, `domain`, `capability`, `element` | false | false |
-| `related_to` | 연관 | weak | `[]` (모든 클래스) | `[]` | true | false |
+| `related_to` | 연관 | weak | `[]` (all classes) | `[]` | true | false |
 
-> 주의: `knowledgeApprovedEdges.type` enum 은 T-2 에서 5 → 7 종으로 확장된다. T-1 시드만으로는 데이터 정합성을 강제할 수 없으니 T-2 와 함께 적용해야 의미 있다.
+> Note: the `knowledgeApprovedEdges.type` enum is expanded from 5 → 7 in T-2. The T-1 seed alone cannot enforce data integrity; it becomes meaningful only when applied alongside T-2.
 
 ### `ontologyTBoxVersions/{versionId}`
 
-(P1 Phase 1) 한 시점의 TBox snapshot. `ontologyClasses` / `ontologyRelations` (활성, mutable) 가 변경될 때마다 immutable copy 를 박는다. fact node/edge 가 어느 시점 schema 로 만들어졌는지 추적해 audit trail + 추출 결과 재현 보존.
+(P1 Phase 1) Point-in-time TBox snapshot. Whenever `ontologyClasses` / `ontologyRelations` (active, mutable) change, an immutable copy is taken. This tracks which schema version a fact node/edge was created against, preserving the audit trail and the ability to reproduce extraction results.
 
-read = 인증 사용자, create = 인증 사용자 (createdBy 가 자기 uid 일치), update/delete 차단.
+read = authenticated users, create = authenticated users (createdBy must equal their own uid), update/delete blocked.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `versionId` | string | ✅ | doc ID. `v1` / `v2` / ... 또는 ISO timestamp. 형식 자유 — 정렬은 `createdAt` 기준 |
-| `classes` | object[] | ✅ | snapshot 시점 클래스 정의 배열. 각 항목은 `ontologyClasses` doc 와 동일 schema |
-| `relations` | object[] | ✅ | snapshot 시점 관계 정의 배열. 각 항목은 `ontologyRelations` doc 와 동일 schema |
-| `changeNote` | string |  | 사람이 읽는 변경 요약 (예: "concept 클래스 추가") |
-| `createdAt` | Timestamp | ✅ | snapshot 시각 |
-| `createdBy` | string | ✅ | 생성자 uid |
+| `versionId` | string | ✅ | Doc ID. `v1` / `v2` / ... or an ISO timestamp. Format is free-form — sorting is by `createdAt` |
+| `classes` | object[] | ✅ | Array of class definitions at snapshot time. Each entry has the same schema as an `ontologyClasses` doc |
+| `relations` | object[] | ✅ | Array of relation definitions at snapshot time. Each entry has the same schema as an `ontologyRelations` doc |
+| `changeNote` | string |  | Human-readable change summary (e.g., "added concept class") |
+| `createdAt` | Timestamp | ✅ | Snapshot time |
+| `createdBy` | string | ✅ | Creator uid |
 
 ### `ontologyTBoxState/current`
 
-(P1 Phase 1) 활성 TBox version 포인터. single-user 모드에선 `current` 단일 doc. 새 version 활성화는 `setDoc` 으로 swap — `ontologyTBoxVersions/{versionId}` 가 존재해야 의미 있음.
+(P1 Phase 1) Active TBox version pointer. In single-user mode this is a single doc named `current`. Activating a new version is done by `setDoc` swap — the corresponding `ontologyTBoxVersions/{versionId}` must already exist for it to be meaningful.
 
-read = 인증 사용자, create/update = 인증 사용자 (activatedBy 가 자기 uid 일치), delete 차단.
+read = authenticated users, create/update = authenticated users (activatedBy must equal their own uid), delete blocked.
 
-| 필드 | 타입 | 필수 | 설명 |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `versionId` | string | ✅ | 현재 활성 version. `ontologyTBoxVersions/{versionId}` 에 존재해야 함 |
-| `activatedAt` | Timestamp | ✅ | 활성화 시각 |
-| `activatedBy` | string | ✅ | 활성화한 uid |
+| `versionId` | string | ✅ | Currently active version. Must exist in `ontologyTBoxVersions/{versionId}` |
+| `activatedAt` | Timestamp | ✅ | Activation time |
+| `activatedBy` | string | ✅ | uid of the activator |
 
-> Phase 1 = 데이터 모델 + rules 토대만. UI (`/settings/ontology`) 는 Phase 2 에서. fact node 의 `tboxVersionId` writer 도 Phase 2 (UI 가 활성 versionId 구독해서 manual create 시 박는 흐름).
+> Phase 1 = data model + rules foundation only. The UI (`/settings/ontology`) lands in Phase 2. The `tboxVersionId` writer for fact nodes also lands in Phase 2 (the UI subscribes to the active versionId and stamps it on manual create).
 
-## 5. Storage 구조
+## 5. Storage layout
 
 ```text
 storage/
@@ -552,11 +552,11 @@ storage/
         └── {versionId}.md
 ```
 
-`knowledge-documents/*`는 append-only 원문 저장 경로로 사용한다 (`storage.rules` 참조).
+`knowledge-documents/*` is used as an append-only path for source-text storage (see `storage.rules`).
 
-## 6. Trusted backend 계약
+## 6. Trusted backend contract
 
-knowledge subsystem에서 아래 데이터는 trusted backend가 소유한다.
+Within the knowledge subsystem, the following data is owned by the trusted backend.
 
 - `knowledgeDocumentChunks`
 - `knowledgeEvidence`
@@ -569,33 +569,33 @@ knowledge subsystem에서 아래 데이터는 trusted backend가 소유한다.
 - `knowledgePublicNodes`
 - `knowledgePublicEdges`
 
-실행 경계는 **Cloud Functions for Firebase (2nd gen)** 또는 동급의 Firebase Admin SDK 기반 executor로 둔다.
+The execution boundary is **Cloud Functions for Firebase (2nd gen)** or an equivalent Firebase Admin SDK–based executor.
 
-브라우저 클라이언트는 이 컬렉션들에 직접 쓰지 않는다.
+Browser clients do not write to these collections directly.
 
-## 7. Security 요약
+## 7. Security summary
 
 - `projects`, `categories`, `statuses`, `meta`, `knowledgePublicMeta`, `knowledgePublicNodes`, `knowledgePublicEdges`:
-  - 공개 읽기
+  - Public read
 - `admins`:
-  - 본인 문서만 읽기, 쓰기 금지
+  - Read own document only; no writes
 - `knowledgeDocuments`, `knowledgeDocumentVersions`, `knowledgeReviews`:
-  - admin 읽기/쓰기
+  - Admin read/write
 - `knowledgeExtractionJobs`:
-  - admin 읽기, 브라우저 직접 쓰기 금지
+  - Admin read; no direct browser writes
 - `knowledgeDocumentChunks`, `knowledgeEvidence`, `knowledgeExtractionOutputs`, `knowledgeReviewEvents`, `knowledgeApprovalEvents`, `knowledgeApprovedNodes`, `knowledgeApprovedEdges`, `knowledgePublishes`:
-  - admin 읽기, 클라이언트 쓰기 금지
+  - Admin read; no client writes
 - `knowledge-documents/*` Storage:
-  - admin 읽기/쓰기
+  - Admin read/write
 
-## 8. Retention / Backup 원칙
+## 8. Retention / Backup principles
 
 - `knowledgeDocumentVersions`, `knowledgeEvidence`, `knowledgeApprovalEvents`, `knowledgePublishes`:
-  - 기본 영구 보존
+  - Retained indefinitely by default
 - `knowledgeDocumentChunks`, `knowledgeExtractionOutputs`, `knowledgeExtractionJobs`, `knowledgeReviewEvents`:
-  - archive/export 정책을 둔 뒤 정리 가능
-- publish rollback은 logical rollback이고, 재해 복구는 Firestore/Storage 백업 복구로 분리한다.
+  - Eligible for cleanup once an archive/export policy is in place
+- Publish rollback is a logical rollback; disaster recovery is handled separately via Firestore/Storage backup restores.
 
-## 9. 변경 이력
+## 9. Change history
 
-`oh-my-ontology` 로 코드베이스가 새로 출발한 시점부터의 변경만 기록한다. 본격적인 changelog 는 첫 release 후 별도 운영.
+Records only changes from the point at which the codebase relaunched as `oh-my-ontology`. A proper changelog will be operated separately after the first release.

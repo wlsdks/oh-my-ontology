@@ -59,7 +59,8 @@ export function parseDocumentedCollections(md) {
  */
 export function parseDocumentedStoragePaths(md) {
   const paths = new Set();
-  const section = md.match(/## 5\. Storage 구조[\s\S]*?(?=^## |\Z)/m);
+  // "## 5. Storage 구조" (legacy Korean) or "## 5. Storage layout" (English).
+  const section = md.match(/## 5\. Storage (?:구조|layout)[\s\S]*?(?=^## |\Z)/m);
   if (!section) return paths;
   // top-level 항목은 `├── name/` / `└── name/`. 루트 라벨 "storage/"나 중첩
   // 항목("│   └── …")은 제외하기 위해 트리 진입 기호 ├/└ 로 시작하는 행만 본다.

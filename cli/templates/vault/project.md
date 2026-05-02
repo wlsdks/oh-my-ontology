@@ -12,21 +12,25 @@ elements:
 
 # My project
 
-여기서 프로젝트의 한두 줄 요약을 적습니다 — *"무엇을 / 누구에게 / 왜"*.
+Write a one- or two-line summary of your project here — *what / for whom / why*.
 
-## 한 줄 mission
+## One-line mission
 
-이 프로젝트가 해결하는 문제 / 만드는 가치를 한 줄로.
+The problem this project solves, or the value it creates, in a single sentence.
 
-## 어떻게 자라는가
+## How it grows
 
-- frontmatter 의 `domains: [...]` 를 채우면 도메인 노드가 트리에 매달립니다.
-- 각 도메인 안 capability / element 도 같은 패턴.
-- AI agent 가 새 노드를 만들 때 이 파일의 `depends_on` / `domains` 가
-  자동 갱신될 수 있어요 — frontmatter 가 진실원이라 충돌 안 납니다.
+- Fill in `domains: [...]` in the frontmatter and the domain nodes hang
+  off your project tree automatically.
+- Each domain's capabilities and elements follow the same pattern.
+- When an AI agent adds a new node, this file's `depends_on` / `domains`
+  may auto-update — frontmatter is the source of truth, so there are no
+  conflicts.
 
-## 다음 단계
+## Next steps
 
-1. 이 파일의 `title` 과 `kind: project` 외 frontmatter 를 본인 프로젝트에 맞게 수정
-2. `domains/example.md` 같은 starter 를 본인 영역으로 rename / 복제
-3. AI agent (Claude Code 등) 등록 후 "이 vault 의 ontology 좀 정리해줘" 라고 요청
+1. Edit this file's `title` (and any other frontmatter besides `kind: project`)
+   to match your project.
+2. Rename or copy starters like `domains/example.md` into your real domains.
+3. Register an AI agent (Claude Code, Cursor, …) and ask it to "tidy up
+   the ontology in this vault."
