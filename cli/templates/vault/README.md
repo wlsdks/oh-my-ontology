@@ -30,8 +30,8 @@ graph's keys (slug / kind / depends_on / capabilities / elements / domain).
 3. Same pattern for capability and element — under `capabilities/` and `elements/`.
 4. Register an AI agent (Claude Code, Cursor, …) and it reads/writes the
    same vault, growing it alongside you.
-5. To see the graph, visit `https://oh-my-ontology.web.app` or point a
-   self-hosted workbench's `/docs` picker at this folder.
+5. To see the graph, point a self-hosted workbench's `/docs` picker at
+   this folder.
 
 ## Relations (frontmatter keys)
 
@@ -41,7 +41,7 @@ graph's keys (slug / kind / depends_on / capabilities / elements / domain).
 | `capabilities: [...]` | Capabilities this domain / project provides |
 | `elements: [...]` | Elements this capability / domain uses |
 | `domain: <slug>` | Parent domain of this capability/element |
-| `evidenceIds: [doc-1, ...]` | Evidence document IDs backing this node |
+| `relates: [...]` | Loose related-to references |
 
 ## Kinds
 
@@ -49,15 +49,15 @@ graph's keys (slug / kind / depends_on / capabilities / elements / domain).
 - `domain` — A large area (auth, billing, builder, …).
 - `capability` — A user-visible feature inside a domain (login, signup, …).
 - `element` — A smaller unit a capability uses (jwt-token, otp-store, …).
-- `concept` — Anything else (protocols, standards, external systems).
+- `document` — Evidence node (markdown doc backing other concepts).
 
 ## What an AI agent can do for you
 
-Once you register the `oh-my-ontology-mcp` server, the agent gets 11
+Once you register the `oh-my-ontology-mcp` server, the agent gets 12
 tools to read/write this vault:
 
-- **read 7**: list_concepts / get_concept / find_evidence / find_backlinks /
-  find_path / list_kinds / find_orphans
+- **read 8**: list_concepts / get_concept / find_evidence / find_backlinks /
+  find_path / list_kinds / find_orphans / query_concepts
 - **write 4**: add_concept / add_relation / patch_concept / delete_concept
 
 Details: https://github.com/wlsdks/oh-my-ontology/tree/main/mcp
