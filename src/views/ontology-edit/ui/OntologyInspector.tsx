@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import type { EphemeralNode } from "../lib/use-ephemeral-nodes";
 
@@ -67,13 +68,24 @@ export interface OntologyInspectorProps {
   saving?: boolean;
 }
 
-const KIND_LABEL_MAP: Record<string, string> = {
-  project: "프로젝트",
-  domain: "도메인",
-  capability: "역량",
-  element: "요소",
-  document: "문서",
-};
+type InspectorTranslator = ReturnType<typeof useTranslations>;
+
+function localizeKind(t: InspectorTranslator, kind: string): string {
+  switch (kind) {
+    case "project":
+      return t("kindLabelProject");
+    case "domain":
+      return t("kindLabelDomain");
+    case "capability":
+      return t("kindLabelCapability");
+    case "element":
+      return t("kindLabelElement");
+    case "document":
+      return t("kindLabelDocument");
+    default:
+      return kind;
+  }
+}
 
 export function OntologyInspector({
   ephemeralSelected,
@@ -88,18 +100,19 @@ export function OntologyInspector({
   onClearSelection,
   saving,
 }: OntologyInspectorProps) {
+  const t = useTranslations("ontologyPages.edit.inspector");
   const selected = ephemeralSelected ?? vaultSelected;
   return (
     <aside
-      aria-label="선택한 ontology 노드 상세"
+      aria-label={t("ariaLabel")}
       className="flex h-full w-[280px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3"
     >
       <header>
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-          Inspector
+          {t("eyebrow")}
         </p>
         <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
-          선택한 노드의 상세 + 인라인 편집.
+          {t("subtitle")}
         </p>
       </header>
       <AnimatePresence mode="wait">
@@ -110,12 +123,13 @@ export function OntologyInspector({
             className="rounded-md border border-dashed border-[color:var(--color-divider)] bg-[color:var(--color-elevated)] p-3"
           >
             <p className="text-[12px] leading-5 text-[color:var(--color-text-quaternary)]">
-              왼쪽 palette 에서 종류를 클릭해 첫 노드를 만들거나, 캔버스의 노드를 클릭하면 상세가 여기에 보여요.
+              {t("emptyHint")}
             </p>
           </motion.div>
         ) : ephemeralSelected ? (
           <motion.div key={`eph-${ephemeralSelected.id}`} {...FADE_MOTION}>
             <EphemeralDetail
+              t={t}
               node={ephemeralSelected}
               onRename={onRenameEphemeral}
               onSave={onSaveEphemeral}
@@ -126,6 +140,7 @@ export function OntologyInspector({
         ) : vaultSelected ? (
           <motion.div key={`vault-${vaultSelected.slug}`} {...FADE_MOTION}>
             <VaultDetail
+              t={t}
               node={vaultSelected}
               readOnly={vaultReadOnly}
               onSaveRename={onSaveVaultRename}
@@ -143,23 +158,27 @@ export function OntologyInspector({
 }
 
 // canonical id 미리보기 — 저장 후 실제 id 와 일치. kind.{slug}.
-function previewSlug(title: string): string {
+function previewSlug(title: string, fallback: string): string {
   const trimmed = title.trim();
-  if (!trimmed || trimmed === "(이름 입력)") return "(이름 후 자동)";
-  return trimmed
-    .toLowerCase()
-    .replace(/[^a-z0-9가-힣\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .slice(0, 32) || "(이름 후 자동)";
+  if (!trimmed || trimmed === "(이름 입력)") return fallback;
+  return (
+    trimmed
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .slice(0, 32) || fallback
+  );
 }
 
 function EphemeralDetail({
+  t,
   node,
   onRename,
   onSave,
   saving,
   onDeselect,
 }: {
+  t: InspectorTranslator;
   node: EphemeralNode;
   onRename: (id: string, title: string) => void;
   onSave?: (id: string) => Promise<void> | void;
@@ -168,16 +187,17 @@ function EphemeralDetail({
 }) {
   const titleEmpty = node.title.trim() === "" || node.title === "(이름 입력)";
   const canSave = !titleEmpty && Boolean(onSave) && !saving;
+  const fallbackPreview = t("previewSlugFallback");
   return (
     <div className="flex flex-col gap-3 rounded-md border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.06)] p-3">
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.18)] px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-primary)]">
-          ephemeral · {KIND_LABEL_MAP[node.kind] ?? node.kind}
+          {t("ephemeralBadge")} · {localizeKind(t, node.kind)}
         </span>
         <button
           type="button"
           onClick={onDeselect}
-          aria-label="선택 해제"
+          aria-label={t("deselectAriaLabel")}
           className="rounded-md p-1 text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
         >
           ×
@@ -185,13 +205,13 @@ function EphemeralDetail({
       </div>
       <label className="flex flex-col gap-1.5">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-          이름
+          {t("nameLabel")}
         </span>
         <input
           type="text"
           value={node.title}
           onChange={(e) => onRename(node.id, e.target.value)}
-          placeholder="(이름 입력)"
+          placeholder={t("namePlaceholder")}
           className="rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] px-2.5 py-1.5 text-[13px] text-[color:var(--color-text-primary)] outline-none transition-colors focus:border-[color:var(--color-indigo-brand)]"
         />
       </label>
@@ -199,15 +219,15 @@ function EphemeralDetail({
       <div className="grid grid-cols-2 gap-2 text-[10px]">
         <div>
           <p className="font-mono uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-            저장 ID
+            {t("saveIdLabel")}
           </p>
           <p className="mt-1 break-all font-mono text-[11px] text-[color:var(--color-text-tertiary)]">
-            {node.kind}.{previewSlug(node.title)}
+            {node.kind}.{previewSlug(node.title, fallbackPreview)}
           </p>
         </div>
         <div>
           <p className="font-mono uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-            좌표
+            {t("coordinateLabel")}
           </p>
           <p className="mt-1 font-mono text-[11px] tabular-nums text-[color:var(--color-text-tertiary)]">
             ({Math.round(node.x)}, {Math.round(node.y)})
@@ -219,29 +239,21 @@ function EphemeralDetail({
           type="button"
           onClick={() => onSave(node.id)}
           disabled={!canSave}
-          aria-label="이 노드를 manual 노드로 저장"
+          aria-label={t("saveButtonAriaLabel")}
           className="inline-flex h-9 items-center justify-center rounded-md border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.18)] px-3 text-[12px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {saving ? "저장 중…" : "manual 노드로 저장"}
+          {saving ? t("savingButton") : t("saveButton")}
         </button>
       ) : null}
       <p className="text-[11px] leading-4 text-[color:var(--color-text-quaternary)]">
-        {titleEmpty
-          ? "이름을 입력하면 저장할 수 있어요."
-          : "저장 시 vault 의 .md 파일로 (cloud 모드면 Firestore 에) 작성됩니다."}
+        {titleEmpty ? t("ephemeralFooterEmpty") : t("ephemeralFooterReady")}
       </p>
     </div>
   );
 }
 
-const ARRAY_KEY_LABELS: Record<VaultArrayKey, string> = {
-  capabilities: "역량 (capabilities)",
-  elements: "요소 (elements)",
-  dependencies: "의존 (dependencies)",
-  relates: "관련 (relates)",
-};
-
 function VaultDetail({
+  t,
   node,
   readOnly,
   onSaveRename,
@@ -251,6 +263,7 @@ function VaultDetail({
   saving,
   onDeselect,
 }: {
+  t: InspectorTranslator;
   node: VaultSelected;
   readOnly: boolean;
   onSaveRename?: (slug: string, nextTitle: string) => Promise<void> | void;
@@ -280,12 +293,12 @@ function VaultDetail({
     <div className="flex flex-col gap-3 rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] p-3">
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-2)] px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">
-          {readOnly ? "dogfood" : "vault"} · {KIND_LABEL_MAP[node.kind] ?? node.kind}
+          {readOnly ? t("dogfoodBadge") : t("vaultBadge")} · {localizeKind(t, node.kind)}
         </span>
         <button
           type="button"
           onClick={onDeselect}
-          aria-label="선택 해제"
+          aria-label={t("deselectAriaLabel")}
           className="rounded-md p-1 text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
         >
           ×
@@ -293,7 +306,7 @@ function VaultDetail({
       </div>
       <label className="flex flex-col gap-1.5">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-          제목 (frontmatter title)
+          {t("vaultTitleLabel")}
         </span>
         <input
           type="text"
@@ -305,7 +318,7 @@ function VaultDetail({
       </label>
       <div>
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-          slug
+          {t("vaultSlugLabel")}
         </p>
         <p className="mt-1 break-all font-mono text-[11px] text-[color:var(--color-text-tertiary)]">
           {node.slug}
@@ -316,33 +329,37 @@ function VaultDetail({
           type="button"
           onClick={() => onSaveRename(node.slug, draft)}
           disabled={!canSave}
-          aria-label="제목을 vault frontmatter 에 반영"
+          aria-label={t("vaultSaveAriaLabel")}
           className="inline-flex h-9 items-center justify-center rounded-md border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.18)] px-3 text-[12px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {saving ? "저장 중…" : dirty ? "vault 에 저장" : "변경 없음"}
+          {saving
+            ? t("vaultSavingButton")
+            : dirty
+              ? t("vaultSaveButton")
+              : t("vaultNoChange")}
         </button>
       ) : null}
       <p className="text-[11px] leading-4 text-[color:var(--color-text-quaternary)]">
-        {readOnly
-          ? "dogfood 매니페스트 — 빌드타임 baked. 직접 수정하려면 /docs 에서 vault 폴더를 여세요."
-          : "제목만 frontmatter `title:` 에 patch 됩니다. 본문이나 다른 키는 그대로 유지돼요. AI agent (MCP) 도 동일 vault 를 보고 있어 즉시 반영됩니다."}
+        {readOnly ? t("vaultFooterReadOnly") : t("vaultFooterEditable")}
       </p>
       {!readOnly && onEditLiteral ? (
         <div className="flex flex-col gap-2">
           <LiteralEditor
+            t={t}
             fieldKey="domain"
             value={node.domain}
             onCommit={(next) => onEditLiteral(node.slug, "domain", next)}
             disabled={saving}
-            placeholder="예: workbench"
+            placeholder={t("literalDomainPlaceholder")}
             multiline={false}
           />
           <LiteralEditor
+            t={t}
             fieldKey="description"
             value={node.description}
             onCommit={(next) => onEditLiteral(node.slug, "description", next)}
             disabled={saving}
-            placeholder="이 노드를 한 줄로 설명"
+            placeholder={t("literalDescriptionPlaceholder")}
             multiline
           />
         </div>
@@ -352,6 +369,7 @@ function VaultDetail({
           {(["capabilities", "elements", "dependencies", "relates"] as const).map(
             (key) => (
               <ArrayKeyEditor
+                t={t}
                 key={key}
                 fieldKey={key}
                 values={node[key]}
@@ -362,29 +380,42 @@ function VaultDetail({
           )}
         </div>
       ) : readOnly ? (
-        <ReadOnlyArraySummary node={node} />
+        <ReadOnlyArraySummary t={t} node={node} />
       ) : null}
       {!readOnly && onDelete ? (
         <button
           type="button"
           onClick={() => onDelete(node.slug)}
           disabled={saving}
-          aria-label="이 vault 노드 삭제"
+          aria-label={t("deleteAriaLabel")}
           className="inline-flex h-8 items-center justify-center rounded-md border border-[color:rgba(229,72,77,0.32)] bg-transparent px-3 text-[11px] text-[color:rgba(236,116,116,0.92)] transition-colors hover:border-[color:rgba(229,72,77,0.5)] hover:bg-[color:rgba(229,72,77,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          ⚠ vault 에서 삭제
+          {t("deleteButton")}
         </button>
       ) : null}
     </div>
   );
 }
 
-const LITERAL_LABELS: Record<VaultLiteralKey, string> = {
-  description: "설명 (description)",
-  domain: "도메인 (domain)",
-};
+function literalLabel(t: InspectorTranslator, key: VaultLiteralKey): string {
+  return key === "description" ? t("literalDescription") : t("literalDomain");
+}
+
+function arrayLabel(t: InspectorTranslator, key: VaultArrayKey): string {
+  switch (key) {
+    case "capabilities":
+      return t("arrayCapabilities");
+    case "elements":
+      return t("arrayElements");
+    case "dependencies":
+      return t("arrayDependencies");
+    case "relates":
+      return t("arrayRelates");
+  }
+}
 
 function LiteralEditor({
+  t,
   fieldKey,
   value,
   onCommit,
@@ -392,6 +423,7 @@ function LiteralEditor({
   placeholder,
   multiline,
 }: {
+  t: InspectorTranslator;
   fieldKey: VaultLiteralKey;
   value: string;
   onCommit: (next: string) => void;
@@ -416,7 +448,7 @@ function LiteralEditor({
   return (
     <div className="rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-2.5">
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-        {LITERAL_LABELS[fieldKey]}
+        {literalLabel(t, fieldKey)}
       </p>
       {multiline ? (
         <textarea
@@ -447,20 +479,20 @@ function LiteralEditor({
         />
       )}
       <p className="mt-1 text-[10px] text-[color:var(--color-text-quaternary)]">
-        {dirty
-          ? "포커스 해제 시 vault 에 자동 저장."
-          : "비우고 저장하면 frontmatter 키 자체가 삭제됩니다."}
+        {dirty ? t("literalAutoSaveDirty") : t("literalAutoSaveClean")}
       </p>
     </div>
   );
 }
 
 function ArrayKeyEditor({
+  t,
   fieldKey,
   values,
   onChange,
   disabled,
 }: {
+  t: InspectorTranslator;
   fieldKey: VaultArrayKey;
   values: string[];
   onChange: (next: string[]) => void;
@@ -484,7 +516,7 @@ function ArrayKeyEditor({
   return (
     <div className="rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-2.5">
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-        {ARRAY_KEY_LABELS[fieldKey]}
+        {arrayLabel(t, fieldKey)}
       </p>
       {values.length > 0 ? (
         <ul className="mt-2 flex flex-wrap gap-1">
@@ -494,7 +526,7 @@ function ArrayKeyEditor({
                 type="button"
                 onClick={() => remove(slug)}
                 disabled={disabled}
-                aria-label={`${slug} 제거`}
+                aria-label={t("arrayRemoveAriaLabel", { slug })}
                 className="inline-flex items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.10)] px-2 py-0.5 text-[11px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(229,72,77,0.46)] hover:bg-[color:rgba(229,72,77,0.10)] disabled:opacity-50"
               >
                 <span className="font-mono break-all">{slug}</span>
@@ -518,14 +550,14 @@ function ArrayKeyEditor({
             }
           }}
           disabled={disabled}
-          placeholder="slug 입력 + Enter"
+          placeholder={t("arrayInputPlaceholder")}
           className="flex-1 rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] px-2 py-1 font-mono text-[11px] text-[color:var(--color-text-primary)] outline-none transition-colors focus:border-[color:var(--color-indigo-brand)] disabled:opacity-50"
         />
         <button
           type="button"
           onClick={submit}
           disabled={disabled || !input.trim() || values.includes(input.trim())}
-          aria-label="추가"
+          aria-label={t("arrayAddAriaLabel")}
           className="inline-flex h-7 items-center justify-center rounded-md border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.18)] px-2 text-[11px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           +
@@ -539,7 +571,13 @@ function ArrayKeyEditor({
  * read-only 모드 (dogfood 매니페스트 기반) 의 array 키 요약. 편집 input 없이
  * chip 만 노출 — 사용자에게 "이 노드는 어떤 의존/역량을 갖는지" 정보만 전달.
  */
-function ReadOnlyArraySummary({ node }: { node: VaultSelected }) {
+function ReadOnlyArraySummary({
+  t,
+  node,
+}: {
+  t: InspectorTranslator;
+  node: VaultSelected;
+}) {
   const sections: Array<{ key: VaultArrayKey; values: string[] }> = (
     ["capabilities", "elements", "dependencies", "relates"] as const
   )
@@ -554,7 +592,7 @@ function ReadOnlyArraySummary({ node }: { node: VaultSelected }) {
           className="rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-2.5"
         >
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-            {ARRAY_KEY_LABELS[key]}
+            {arrayLabel(t, key)}
           </p>
           <ul className="mt-2 flex flex-wrap gap-1">
             {values.map((slug) => (

@@ -2,6 +2,7 @@
 
 import "@xyflow/react/dist/style.css";
 import { useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   Background,
   BackgroundVariant,
@@ -67,6 +68,7 @@ export function OntologyEditCanvas({
    */
   layoutMode?: "dagre" | "force";
 }) {
+  const t = useTranslations("ontologyPages.edit.canvas");
   // 진실원: live vault.manifest 우선, 없으면 빌드타임 dogfood 매니페스트.
   // 빌더에 진입한 사용자는 vault 폴더 안 골랐어도 oh-my-ontology 자체 ontology
   // 23 노드를 즉시 본다 — "0 마찰 진입" 약속의 캔버스 측 구현.
@@ -129,7 +131,7 @@ export function OntologyEditCanvas({
       source: e.source,
       target: e.target,
       type: "default",
-      label: "관련 (임시)",
+      label: t("ephemeralEdgeLabel"),
       labelStyle: {
         fontSize: 10,
         fill: "rgba(139, 151, 255, 0.98)",
@@ -150,7 +152,7 @@ export function OntologyEditCanvas({
       animated: false,
     }));
     return [...approvedEdges, ...ephemeralFlow];
-  }, [approvedEdges, ephemeralEdges]);
+  }, [approvedEdges, ephemeralEdges, t]);
 
   const handleConnect = useCallback(
     (connection: Connection) => {
@@ -224,7 +226,7 @@ export function OntologyEditCanvas({
       {allNodes.length === 0 ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <p className="text-sm text-[color:var(--color-text-tertiary)]">
-            왼쪽 palette 에서 종류를 골라 클릭하면 첫 노드가 생겨요.
+            {t("emptyHint")}
           </p>
         </div>
       ) : null}

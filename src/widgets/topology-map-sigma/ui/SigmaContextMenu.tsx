@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { getProjectDetailUrl } from '@/entities/project';
 import { useToast } from '@/shared/ui';
 
@@ -28,6 +29,7 @@ export function SigmaContextMenu({
   onDismiss,
 }: Props) {
   const toast = useToast();
+  const t = useTranslations('topologyWidgets.contextMenu');
   const copyDetailUrl = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       // P0-B Phase 6: getProjectDetailUrl 가 현재 URL 의 ?account / ?pj 를
@@ -35,8 +37,8 @@ export function SigmaContextMenu({
       const url = getProjectDetailUrl(window.location.origin, data.slug);
       void navigator.clipboard
         .writeText(url)
-        .then(() => toast.show('상세 URL 이 복사됐습니다', 'success'))
-        .catch(() => toast.show('복사에 실패했습니다', 'error'));
+        .then(() => toast.show(t('copySuccess'), 'success'))
+        .catch(() => toast.show(t('copyError'), 'error'));
     }
     onDismiss();
   };
@@ -58,7 +60,7 @@ export function SigmaContextMenu({
         }}
         className="px-3 py-2 text-left text-[12px] text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-overlay-2)]"
       >
-        포커스
+        {t('focus')}
       </button>
       <button
         type="button"
@@ -68,14 +70,14 @@ export function SigmaContextMenu({
         }}
         className="px-3 py-2 text-left text-[12px] text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-overlay-2)]"
       >
-        이웃만 보기 (Local)
+        {t('localGraph')}
       </button>
       <button
         type="button"
         onClick={copyDetailUrl}
         className="px-3 py-2 text-left text-[12px] text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-overlay-2)]"
       >
-        상세 URL 복사
+        {t('copyDetailUrl')}
       </button>
     </div>
   );

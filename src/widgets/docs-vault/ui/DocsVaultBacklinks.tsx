@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight, FileText } from 'lucide-react';
 import type {
   VaultBacklinkEntry,
@@ -25,12 +26,13 @@ export function DocsVaultBacklinks({
   onNavigate,
   hideHeading = false,
 }: Props) {
+  const t = useTranslations('vaultWidgets.backlinks');
   if (entries.length === 0) return null;
   return (
     <section>
       {hideHeading ? null : (
         <h3 className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-          역참조 · {entries.length}
+          {t('heading', { count: entries.length })}
         </h3>
       )}
       <ul className="flex flex-col gap-1.5 text-[12px]">
@@ -56,6 +58,7 @@ function BacklinkItem({
   doc: VaultDoc | undefined;
   onNavigate: (slug: string) => void;
 }) {
+  const t = useTranslations('vaultWidgets.backlinks');
   const [open, setOpen] = useState(false);
   if (!doc) return null;
   return (
@@ -65,7 +68,7 @@ function BacklinkItem({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          aria-label={open ? '컨텍스트 숨기기' : '컨텍스트 보기'}
+          aria-label={open ? t('collapse') : t('expand')}
           className="flex w-5 flex-none items-center justify-center text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-secondary)]"
         >
           {open ? <ChevronDown size={11} /> : <ChevronRight size={11} />}

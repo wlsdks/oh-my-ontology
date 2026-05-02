@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   KNOWLEDGE_EDGE_TYPES,
   ManualSourceChip,
@@ -24,15 +25,29 @@ import { OperationsNav } from "@/widgets/operations-nav";
 import { EmptyState } from "@/shared/ui";
 
 // UX-14: edge type 한국어 라벨 — relations 페이지 (UX-1) 와 통일.
-const INSIGHTS_EDGE_TYPE_LABEL_KO: Record<string, string> = {
-  contains: "포함",
-  belongs_to: "소속",
-  depends_on: "의존",
-  implements: "구현",
-  uses: "사용",
-  describes: "설명",
-  related_to: "연관",
-};
+function getEdgeTypeLabel(
+  t: ReturnType<typeof useTranslations>,
+  type: string,
+): string {
+  switch (type) {
+    case "contains":
+      return t("edgeTypeKoContains");
+    case "belongs_to":
+      return t("edgeTypeKoBelongsTo");
+    case "depends_on":
+      return t("edgeTypeKoDependsOn");
+    case "implements":
+      return t("edgeTypeKoImplements");
+    case "uses":
+      return t("edgeTypeKoUses");
+    case "describes":
+      return t("edgeTypeKoDescribes");
+    case "related_to":
+      return t("edgeTypeKoRelatedTo");
+    default:
+      return type;
+  }
+}
 
 /**
  * `/ontology/insights` — ontology 의 활동·구조를 한눈에.
@@ -41,6 +56,7 @@ const INSIGHTS_EDGE_TYPE_LABEL_KO: Record<string, string> = {
  * `/ontology` 트리 뷰의 보조 surface — 트리는 hierarchy, 인사이트는 통계.
  */
 export function OntologyInsightsPage() {
+  const t = useTranslations("ontologyPages.insights");
   const searchParams = useSearchParams();
   const accountId = null;
 
@@ -145,28 +161,28 @@ export function OntologyInsightsPage() {
             (iOS 표준 패턴). md+ 데스크톱은 기존 우상단 link 유지. */}
         <Link
           href={"/ontology/"}
-          aria-label="온톨로지 트리로 돌아가기"
+          aria-label={t("backTreeMobileAriaLabel")}
           className="inline-flex items-center gap-1 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] md:hidden"
         >
           <span aria-hidden>←</span>
-          <span>트리로</span>
+          <span>{t("backTreeMobile")}</span>
         </Link>
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-          Ontology · Insights
+          {t("eyebrow")}
         </p>
         <div className="flex items-start justify-between gap-4">
           <h1 className="break-keep text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-            인사이트
+            {t("title")}
           </h1>
           <Link
             href={"/ontology/"}
             className="hidden h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)] md:inline-flex"
           >
-            ← 트리로
+            {t("backTreeDesktop")}
           </Link>
         </div>
         <p className="break-keep text-sm leading-7 text-[color:var(--color-text-secondary)]">
-          전체 ontology 의 활동·구조 통계. 트리는 hierarchy 를 보여주고, 인사이트는 어디가 허브이고 무엇이 최근에 자랐는지를 보여줍니다.
+          {t("subtitle")}
         </p>
       </section>
 
@@ -175,13 +191,13 @@ export function OntologyInsightsPage() {
           role="alert"
           className="mb-6 rounded-2xl border border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] px-5 py-4 text-sm text-[color:var(--color-status-danger)]"
         >
-          ontology 데이터를 불러오는 중 오류가 났어요. {error.message}
+          {t("errorAlert", { message: error.message })}
         </div>
       ) : null}
 
       {!insight ? (
         <div className="rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-6 py-10 text-center text-sm text-[color:var(--color-text-tertiary)]">
-          불러오는 중…
+          {t("loading")}
         </div>
       ) : insight.nodes.length === 0 ? (
         <EmptyState
@@ -189,21 +205,27 @@ export function OntologyInsightsPage() {
           align="center"
           title={
             <>
-              아직 ontology 가 비어 있어요.{" "}
+              {t("emptyTitleBefore")}
               <Link
                 href={"/knowledge/documents/"}
                 className="text-[color:rgba(159,170,235,0.95)] underline"
               >
-                문서 볼트
-              </Link>{" "}
-              에서 시작해 보세요.
+                {t("emptyTitleLink")}
+              </Link>
+              {t("emptyTitleAfter")}
             </>
           }
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* kind 분포 */}
-          <Panel title="Kind 분포" subtitle={`총 ${totalNodes} 노드 · ${totalEdges} 관계`}>
+          <Panel
+            title={t("kindPanelTitle")}
+            subtitle={t("kindPanelSubtitle", {
+              nodes: totalNodes,
+              edges: totalEdges,
+            })}
+          >
             <ul className="space-y-2">
               {kindRows.map(({ kind, count }) => {
                 const pct = kindMax > 0 ? Math.round((count / kindMax) * 100) : 0;
@@ -243,8 +265,8 @@ export function OntologyInsightsPage() {
               가장 많은 도메인/기능/요소를 가진지 시각 확인. */}
           {projectRows.length > 0 ? (
             <Panel
-              title="프로젝트별 분포"
-              subtitle={`총 ${projectRows.length} 프로젝트 — 도메인·기능·요소 합계, 큰 순서`}
+              title={t("projectPanelTitle")}
+              subtitle={t("projectPanelSubtitle", { count: projectRows.length })}
             >
               <ul className="space-y-1.5" data-testid="insights-project-rows">
                 {projectRows.slice(0, 12).map(({ project, total }) => {
@@ -286,8 +308,8 @@ export function OntologyInsightsPage() {
               같은 helper 사용. */}
           {edgeTypeRows.length > 0 ? (
             <Panel
-              title="관계 종류 분포"
-              subtitle={`총 ${totalEdges} 관계 — 의미 관계 종류별 비율`}
+              title={t("edgeTypePanelTitle")}
+              subtitle={t("edgeTypePanelSubtitle", { count: totalEdges })}
             >
               <ul className="space-y-1.5" data-testid="insights-edge-type-rows">
                 {edgeTypeRows.slice(0, 8).map(({ type, count }) => {
@@ -301,7 +323,7 @@ export function OntologyInsightsPage() {
                     >
                       <div className="flex items-baseline justify-between gap-2 px-1">
                         <span className="min-w-0 truncate text-[color:var(--color-text-secondary)]">
-                          {INSIGHTS_EDGE_TYPE_LABEL_KO[type] ?? type}
+                          {getEdgeTypeLabel(t, type)}
                           <span className="ml-1 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
                             {type}
                           </span>
@@ -332,8 +354,8 @@ export function OntologyInsightsPage() {
               0 이면 카드 hide (조건부 surface). */}
           {crossProjectEdgeCount > 0 ? (
             <Panel
-              title="Cross-project 관계"
-              subtitle="두 노드가 서로 다른 프로젝트에 속한 edge — 의존 chain"
+              title={t("crossProjectPanelTitle")}
+              subtitle={t("crossProjectPanelSubtitle")}
             >
               <div
                 className="flex items-baseline gap-3"
@@ -352,15 +374,22 @@ export function OntologyInsightsPage() {
                 </span>
               </div>
               <p className="mt-2 text-[11px] leading-5 text-[color:var(--color-text-tertiary)]">
-                자세한 분기 표시는 <Link href={"/ontology/relations/"} className="underline text-[color:rgba(159,170,235,0.95)]">관계</Link> 페이지의 강한 관계 리스트 — `cross` chip 가 단 행을 부각.
+                {t("crossProjectFooterBefore")}
+                <Link
+                  href={"/ontology/relations/"}
+                  className="underline text-[color:rgba(159,170,235,0.95)]"
+                >
+                  {t("crossProjectFooterLink")}
+                </Link>
+                {t("crossProjectFooterAfter")}
               </p>
             </Panel>
           ) : null}
 
           {/* 허브 노드 — degree 상위 */}
-          <Panel title="허브 노드" subtitle="가장 많이 연결된 위 10 (document/project 제외)">
+          <Panel title={t("hubsPanelTitle")} subtitle={t("hubsPanelSubtitle")}>
             {topHubs.length === 0 ? (
-              <p className="text-[12px] text-[color:var(--color-text-tertiary)]">아직 연결된 노드가 없어요.</p>
+              <p className="text-[12px] text-[color:var(--color-text-tertiary)]">{t("hubsEmpty")}</p>
             ) : (
               <ol className="space-y-1">
                 {topHubs.map(({ node, degree }, idx) => (
@@ -391,11 +420,11 @@ export function OntologyInsightsPage() {
 
           {/* 최근 노드 (vault sentinel mode 면 timestamp 의미 0 — chip / 제목만) */}
           <Panel
-            title={isVaultSentinelMode ? "노드 미리보기" : "최근 활동"}
+            title={isVaultSentinelMode ? t("recentPanelTitleSentinel") : t("recentPanelTitleNormal")}
             subtitle={
               isVaultSentinelMode
-                ? `vault frontmatter 노드 ${recent.length}`
-                : "가장 최근 갱신된 노드 10"
+                ? t("recentSubtitleSentinel", { count: recent.length })
+                : t("recentSubtitleNormal")
             }
           >
             <ol className="space-y-1">
@@ -414,7 +443,7 @@ export function OntologyInsightsPage() {
                     <ManualSourceChip source={node.source} size="compact" />
                     {isVaultSentinelMode ? null : (
                       <span className="shrink-0 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
-                        {formatRelativeDate(node.lastApprovedAt)}
+                        {formatRelativeDate(t, node.lastApprovedAt)}
                       </span>
                     )}
                   </Link>
@@ -426,14 +455,21 @@ export function OntologyInsightsPage() {
           {/* 30일 활동 타임라인 — vault sentinel mode 에서는 timeline 의미 0 이라 hide */}
           {isVaultSentinelMode ? null : (
           <div className="md:col-span-2">
-            <Panel title="30일 활동" subtitle={`지난 30일 동안 갱신된 노드 ${activityTotal}`}>
+            <Panel
+              title={t("activityPanelTitle")}
+              subtitle={t("activityPanelSubtitle", { count: activityTotal })}
+            >
               {activityTotal === 0 ? (
                 <p className="text-[12px] text-[color:var(--color-text-tertiary)]">
-                  지난 30일에 갱신된 노드가 없어요.
+                  {t("activityEmpty")}
                 </p>
               ) : (
                 <div>
-                  <div className="flex h-20 items-end gap-[3px]" role="img" aria-label={`30일 활동 타임라인 — 총 ${activityTotal} 노드`}>
+                  <div
+                    className="flex h-20 items-end gap-[3px]"
+                    role="img"
+                    aria-label={t("activityChartAriaLabel", { count: activityTotal })}
+                  >
                     {activity.map((day) => {
                       const heightPct = activityMax > 0 ? (day.count / activityMax) * 100 : 0;
                       return (
@@ -451,7 +487,7 @@ export function OntologyInsightsPage() {
                   </div>
                   <div className="mt-2 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
                     <span>{activity[0]?.date}</span>
-                    <span>오늘</span>
+                    <span>{t("activityToday")}</span>
                   </div>
                 </div>
               )}
@@ -461,12 +497,12 @@ export function OntologyInsightsPage() {
 
           {/* 미연결 노드 */}
           <Panel
-            title="미연결 노드"
-            subtitle={`트리에 매달리지 않은 ${orphans.length} 노드`}
+            title={t("orphansPanelTitle")}
+            subtitle={t("orphansPanelSubtitle", { count: orphans.length })}
             accent={orphans.length > 0 ? "amber" : undefined}
           >
             {orphans.length === 0 ? (
-              <p className="text-[12px] text-[color:var(--color-text-tertiary)]">모두 트리에 연결되어 있어요.</p>
+              <p className="text-[12px] text-[color:var(--color-text-tertiary)]">{t("orphansEmpty")}</p>
             ) : (
               <ul className="space-y-1">
                 {orphans.slice(0, 10).map((node) => (
@@ -485,7 +521,7 @@ export function OntologyInsightsPage() {
                 ))}
                 {orphans.length > 10 ? (
                   <li className="font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
-                    +{orphans.length - 10} 더
+                    {t("orphansMore", { count: orphans.length - 10 })}
                   </li>
                 ) : null}
               </ul>
@@ -528,14 +564,17 @@ function Panel({
   );
 }
 
-function formatRelativeDate(d: Date): string {
+function formatRelativeDate(
+  t: ReturnType<typeof useTranslations>,
+  d: Date,
+): string {
   const now = Date.now();
   const diffMs = now - d.getTime();
   const day = 24 * 60 * 60 * 1000;
-  if (diffMs < day) return "오늘";
+  if (diffMs < day) return t("relativeToday");
   const days = Math.floor(diffMs / day);
-  if (days < 7) return `${days}일 전`;
-  if (days < 30) return `${Math.floor(days / 7)}주 전`;
-  if (days < 365) return `${Math.floor(days / 30)}달 전`;
+  if (days < 7) return t("relativeDays", { count: days });
+  if (days < 30) return t("relativeWeeks", { count: Math.floor(days / 7) });
+  if (days < 365) return t("relativeMonths", { count: Math.floor(days / 30) });
   return d.toLocaleDateString("ko-KR", { year: "numeric", month: "short" });
 }

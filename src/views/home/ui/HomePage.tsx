@@ -10,6 +10,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { BookOpen, X } from "lucide-react";
 import { useTypingShortcuts } from "@/shared/lib/use-typing-shortcut";
 import { useProjects } from "@/features/project-data-source";
@@ -36,6 +37,7 @@ import { useTaxonomy } from "@/features/taxonomy";
 // 화면이 그대로 보여 "멈춤" 느낌이라, 데이터 구독 skeleton 과 동일 톤
 // fallback 을 모듈 로드 단계에도 표시.
 function TopologyLoadingFallback() {
+  const t = useTranslations('topology');
   return (
     <div
       className="absolute inset-0 z-10 flex items-center justify-center"
@@ -49,7 +51,7 @@ function TopologyLoadingFallback() {
           <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--color-indigo-accent)] [animation-delay:300ms]" />
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--color-text-tertiary)]">
-          토폴로지 엔진 불러오는 중
+          {t('loadingEngine')}
         </span>
       </div>
     </div>
@@ -108,6 +110,7 @@ import { useHomeRouteState } from "../model/use-home-route-state";
 const LEFT_PANEL_COLLAPSED_KEY = "demo:left-panel-collapsed:v2";
 
 export function HomePage() {
+  const t = useTranslations('topology');
   const { categories: taxonomyCategories } = useTaxonomy();
   const [sigmaControls, setSigmaControls] = useState<SigmaControlsState>(
     DEFAULT_SIGMA_CONTROLS,
@@ -258,7 +261,7 @@ export function HomePage() {
       new Set(
         [
           selectedProject?.name,
-          "토폴로지",
+          t('documentTitle'),
           "oh-my-ontology",
         ].filter((value): value is string => Boolean(value)),
       ),
@@ -586,20 +589,24 @@ export function HomePage() {
         visible h1 을 두기 어려워 sr-only 로 문서 구조 only 에 보이게 한다.
       */}
       <h1 className="sr-only">
-        토폴로지 프로젝트 토폴로지 지도
+        {t('srHeading')}
       </h1>
       <GestureHint
         disabled={presentationMode || drawerOpen}
       />
       <LiveAnnouncer
         message={(() => {
-          if (presentationMode) return "프레젠테이션 모드 시작";
+          if (presentationMode) return t('presentationStarted');
           if (!selectedProject) return "";
           const deps = selectedProject.dependencies.length;
           const referenced = projects.filter((p) =>
             p.dependencies.includes(selectedProject.slug),
           ).length;
-          return `${selectedProject.name} 선택됨. 의존 ${deps}개, 연결 ${referenced}개.`;
+          return t('selectionAnnouncement', {
+            name: selectedProject.name,
+            deps,
+            referenced,
+          });
         })()}
       />
       {!presentationMode && (
@@ -624,7 +631,7 @@ export function HomePage() {
                     Demo
                   </span>
                   <p className="mt-0.5 max-w-[180px] text-[11px] leading-4 text-[color:var(--color-text-tertiary)]">
-                    프로젝트 의존도 지도.
+                    {t('mobileTagline')}
                   </p>
                 </div>
               </div>
@@ -633,34 +640,40 @@ export function HomePage() {
               // 성장 시그널 — 지난 7일 내 updatedAt 된 프로젝트 수.
               // "지식이 자라고 있다" 를 2초 안에 느끼게 하는 카운터. 0 이면 숨김.
               const growthLabel = recentlyUpdatedCount > 0
-                ? ` · 이번 주 +${recentlyUpdatedCount}`
+                ? t('workspace.growthThisWeek', { count: recentlyUpdatedCount })
                 : "";
-              const workspaceSubtitle = `Workspace · ${renderProjects.length} 프로젝트 · ${hubs.length} 허브${growthLabel}`;
-              const workspaceEyebrow = `Workspace · ${renderProjects.length} 프로젝트`;
+              const workspaceSubtitle = t('workspace.subtitle', {
+                projects: renderProjects.length,
+                hubs: hubs.length,
+                growth: growthLabel,
+              });
+              const workspaceEyebrow = t('workspace.eyebrow', {
+                projects: renderProjects.length,
+              });
               return hydrated && (leftPanelCollapsed || drawerOpen) ? (
                 <div className="pointer-events-none absolute left-4 top-4 z-10 hidden md:flex md:flex-col md:items-start md:gap-2 md:left-6 md:top-6 xl:left-8 xl:top-8">
                   <HeroCollapsed
                     onExpand={
                       drawerOpen ? handleClose : toggleLeftPanel
                     }
-                    title={selectedProject?.name ?? "토폴로지"}
+                    title={selectedProject?.name ?? t('workspace.fallbackTitle')}
                     subtitle={
                       selectedProject
-                        ? "선택한 프로젝트"
+                        ? t('workspace.selectedEyebrow')
                         : projects.length > 0
                           ? workspaceSubtitle
-                          : "워크스페이스 지도 펼치기"
+                          : t('workspace.expandHint')
                     }
                     icon={selectedProject?.icon ?? null}
                     ariaLabel={
                       drawerOpen
-                        ? "선택한 프로젝트 닫기"
-                        : "좌측 패널 펼치기"
+                        ? t('hero.closeSelected')
+                        : t('hero.expandLeftPanel')
                     }
                     titleText={
                       drawerOpen
-                        ? "선택한 프로젝트 닫기"
-                        : "좌측 패널 펼치기"
+                        ? t('hero.closeSelected')
+                        : t('hero.expandLeftPanel')
                     }
                     docsVaultHref={"/docs/"}
                     ontologyHref={"/ontology/"}
@@ -674,18 +687,21 @@ export function HomePage() {
                     activePathLabel={null}
                     onOpenSearch={() => setSearchOpen(true)}
                     onCollapse={toggleLeftPanel}
-                    title={selectedProject?.name ?? "토폴로지"}
+                    title={selectedProject?.name ?? t('workspace.fallbackTitle')}
                     eyebrow={
                       selectedProject
-                        ? "선택한 프로젝트"
+                        ? t('workspace.selectedEyebrow')
                         : projects.length > 0
                           ? workspaceEyebrow
-                          : "워크스페이스 지도"
+                          : t('workspace.mapEyebrow')
                     }
                     description={
                       selectedProject?.description ||
                       (projects.length > 0
-                        ? `${hubs.length}개 허브를 중심으로 ${projects.length}개 프로젝트가 엮여 있습니다. 노드를 클릭해 상세를 열어 볼 수 있어요.`
+                        ? t('workspace.description', {
+                            hubs: hubs.length,
+                            projects: projects.length,
+                          })
                         : undefined)
                     }
                     icon={selectedProject?.icon ?? null}
@@ -711,25 +727,25 @@ export function HomePage() {
               }}
               onRelayout={() => {
                 setTopologyRelayoutToken((current) => current + 1);
-                toast.show("토폴로지를 다시 정렬합니다", "info");
+                toast.show(t('controls.relayoutToast'), "info");
               }}
             />
             <div className="absolute right-4 top-4 z-20 flex items-center gap-2 md:right-6 md:top-6 xl:right-8 xl:top-8">
-              <Tooltip content="문서 볼트 빠른 보기 (D)" side="bottom" withProvider={false}>
+              <Tooltip content={t('controls.docsTooltip')} side="bottom" withProvider={false}>
               <button
                 type="button"
                 onClick={() => setDocsDrawerOpen((v) => !v)}
                 aria-expanded={docsDrawerOpen}
-                aria-label="문서 볼트 빠른 보기 열기 (D)"
+                aria-label={t('controls.docsAriaLabel')}
                 className="inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-3.5 text-[13px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] shadow-[0_10px_26px_rgba(0,0,0,0.14)] transition-[background-color,border-color,box-shadow,transform] duration-180 ease-out hover:border-[color:rgba(94,106,210,0.38)] hover:bg-[color:var(--color-panel)] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)] motion-reduce:transition-none motion-reduce:transform-none"
               >
                 <BookOpen size={15} className="text-[color:var(--color-indigo-accent)]" />
-                <span>문서</span>
+                <span>{t('controls.docsLabel')}</span>
                 {docsPinnedCount > 0 ? (
                   <span
                     className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[color:rgba(94,106,210,0.28)] px-1.5 font-mono text-[10px] tabular-nums text-[color:var(--color-indigo-accent)]"
-                    aria-label={`고정된 문서 ${docsPinnedCount}개`}
-                    title={`고정된 문서 ${docsPinnedCount}개`}
+                    aria-label={t('controls.pinnedDocsCount', { count: docsPinnedCount })}
+                    title={t('controls.pinnedDocsCount', { count: docsPinnedCount })}
                   >
                     {docsPinnedCount}
                   </span>
@@ -749,15 +765,15 @@ export function HomePage() {
       )}
       {presentationMode && (
           <>
-            <Tooltip content="프레젠테이션 모드 종료 (F)" side="bottom" withProvider={false}>
+            <Tooltip content={t('controls.exitPresentationTooltip')} side="bottom" withProvider={false}>
             <button
               type="button"
               onClick={() => setPresentationMode(false)}
               className="pointer-events-auto absolute right-4 top-4 z-10 flex h-11 items-center gap-2 rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] px-4 font-[var(--font-weight-signature)] text-[13px] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] active:bg-[color:var(--color-overlay-1)] md:right-10 md:top-10"
-              aria-label="프레젠테이션 모드 종료"
+              aria-label={t('controls.exitPresentationAriaLabel')}
             >
               <X size={14} />
-              <span className="hidden md:inline">닫기</span>
+              <span className="hidden md:inline">{t('controls.close')}</span>
               <span className="flex items-center rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-elevated)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--color-text-quaternary)]">
                 F
               </span>
@@ -784,12 +800,12 @@ export function HomePage() {
                 type="button"
                 onClick={() => setKnowledgeSceneProjectSlug(null)}
                 className="pointer-events-auto absolute left-1/2 top-[96px] z-30 inline-flex max-w-[calc(100vw-32px)] -translate-x-1/2 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-panel)] px-3 py-1.5 text-[12px] text-[color:var(--color-text-secondary)] shadow-[0_10px_28px_rgba(0,0,0,0.36)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)]"
-                aria-label="워크스페이스 지도로 돌아가기"
+                aria-label={t('scene.backToWorkspace')}
               >
                 <span className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
                   Evidence
                 </span>
-                <span className="truncate">워크스페이스 지도</span>
+                <span className="truncate">{t('scene.workspaceMap')}</span>
               </button>
             </>
           ) : (
@@ -841,11 +857,11 @@ export function HomePage() {
               {/* 단축키 도움말 진입점 — 우상단 SigmaControls 아래 36×36 아이콘.
                   ? 키로도 열리지만 시각적 affordance 가 없어 발견성 낮았음. */}
               {/* 키보드 단축키 도움말 — 모바일에서는 키보드가 없어 의미 없음. 데스크톱(md+) 에서만 노출. */}
-              <Tooltip content="키보드 단축키 (?)" side="left" withProvider={false}>
+              <Tooltip content={t('controls.shortcutsTooltip')} side="left" withProvider={false}>
               <button
                 type="button"
                 onClick={() => setShortcutsOpen(true)}
-                aria-label="키보드 단축키 보기"
+                aria-label={t('controls.shortcutsAriaLabel')}
                 className="pointer-events-auto absolute right-4 top-[228px] z-20 hidden h-9 w-9 items-center justify-center rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] font-mono text-[14px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)] md:right-6 md:flex xl:right-8"
               >
                 ?
@@ -909,11 +925,11 @@ export function HomePage() {
                   className={`pointer-events-auto absolute left-1/2 z-20 inline-flex max-w-[calc(100vw-32px)] -translate-x-1/2 items-center gap-2 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:var(--color-panel)] px-3 py-1.5 text-[12px] text-[color:var(--color-text-secondary)] shadow-[0_10px_28px_rgba(0,0,0,0.36)] transition-colors hover:border-[color:rgba(139,151,255,0.5)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] ${
                     localGraphStack.length > 0 ? "top-[144px]" : "top-[96px]"
                   }`}
-                  aria-label={`${selectedProject.name} 문서 근거 지도 보기`}
+                  aria-label={t('evidence.openLabel', { name: selectedProject.name })}
                 >
                   <BookOpen size={13} className="shrink-0 text-[color:var(--color-indigo-accent)]" />
                   <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-indigo-accent)]">
-                    문서 근거
+                    {t('evidence.badge')}
                   </span>
                   <span className="truncate">
                     {selectedEvidenceSummary?.counts.documents ?? 0} docs · {selectedEvidenceSummary?.counts.edges ?? 0} links
@@ -937,7 +953,7 @@ export function HomePage() {
                     No matches
                   </p>
                   <p className="text-[13px] text-[color:var(--color-text-secondary)]">
-                    현재 필터 조건에 맞는 프로젝트가 없습니다.
+                    {t('empty.noMatchesBody')}
                   </p>
                   <button
                     type="button"
@@ -950,7 +966,7 @@ export function HomePage() {
                     }
                     className="rounded-md border border-[color:rgba(139,151,255,0.3)] bg-[color:rgba(94,106,210,0.1)] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:rgba(139,151,255,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)]"
                   >
-                    필터 해제
+                    {t('empty.clearFilters')}
                   </button>
                 </div>
               ) : null}
@@ -963,35 +979,35 @@ export function HomePage() {
                 <div className="pointer-events-auto absolute bottom-14 left-4 z-10 hidden max-w-[320px] flex-col gap-2 rounded-2xl border border-[color:rgba(139,151,255,0.32)] bg-[color:var(--color-panel)] px-4 py-3 text-[11px] text-[color:var(--color-text-tertiary)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] sm:flex md:left-6 xl:left-8">
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-[12px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-                      프로젝트 지형도
+                      {t('hint.title')}
                     </p>
                     <button
                       type="button"
                       onClick={dismissSigmaHint}
-                      aria-label="안내 닫기"
+                      aria-label={t('hint.dismissAriaLabel')}
                       className="text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
                     >
                       <X size={12} />
                     </button>
                   </div>
                   <p className="leading-5">
-                    노드는 프로젝트, 선은 의존 관계입니다. 클릭해서 상세를 열고 검색으로 좁혀보세요.
+                    {t('hint.body')}
                   </p>
                   <ul className="flex flex-col gap-1 text-[11px] leading-5 text-[color:var(--color-text-tertiary)]">
                     <li>
-                      <span className="text-[color:var(--color-text-secondary)]">클릭</span>
-                      <span className="text-[color:var(--color-text-quaternary)]"> · 상세 패널 열기</span>
+                      <span className="text-[color:var(--color-text-secondary)]">{t('hint.click')}</span>
+                      <span className="text-[color:var(--color-text-quaternary)]">{t('hint.clickDescription')}</span>
                     </li>
                     <li>
-                      <span className="text-[color:var(--color-text-secondary)]">드래그</span>
-                      <span className="text-[color:var(--color-text-quaternary)]"> · 노드 위치 이동</span>
+                      <span className="text-[color:var(--color-text-secondary)]">{t('hint.drag')}</span>
+                      <span className="text-[color:var(--color-text-quaternary)]">{t('hint.dragDescription')}</span>
                     </li>
                     <li>
                       <kbd className="rounded border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-1 font-mono text-[9px]">⌘</kbd>
                       <kbd className="ml-0.5 rounded border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-1 font-mono text-[9px]">K</kbd>
-                      <span className="text-[color:var(--color-text-quaternary)]"> 검색 · </span>
+                      <span className="text-[color:var(--color-text-quaternary)]">{t('hint.searchDescription')}</span>
                       <kbd className="rounded border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-1 font-mono text-[9px]">?</kbd>
-                      <span className="text-[color:var(--color-text-quaternary)]"> 단축키</span>
+                      <span className="text-[color:var(--color-text-quaternary)]">{t('hint.shortcutsDescription')}</span>
                     </li>
                   </ul>
                 </div>
@@ -1015,7 +1031,7 @@ export function HomePage() {
               }}
               className="ml-2 rounded-full border border-[color:var(--color-divider)] px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
             >
-              다시 시도
+              {t('errorBanner.retry')}
             </button>
           </div>
         ) : null}

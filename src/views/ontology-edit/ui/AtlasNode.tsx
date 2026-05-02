@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 
 /**
@@ -51,6 +52,7 @@ const KIND_TONE: Record<
 };
 
 export function AtlasNode({ data, selected }: NodeProps) {
+  const t = useTranslations("ontologyPages.edit.atlasNode");
   const nodeData = data as AtlasNodeData;
   const tone = KIND_TONE[nodeData.kind] ?? KIND_TONE.element;
   const isEphemeral = Boolean(nodeData.ephemeral);
@@ -110,7 +112,7 @@ export function AtlasNode({ data, selected }: NodeProps) {
               background: tone.bg,
             }}
           >
-            임시
+            {t("ephemeralBadge")}
           </span>
         ) : null}
         <span style={{ flex: 1, minWidth: 0 }}>{nodeData.label}</span>

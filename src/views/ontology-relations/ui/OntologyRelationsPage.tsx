@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { KNOWLEDGE_EDGE_TYPES } from "@/entities/knowledge-graph";
 import { useOntologyInsight, isVaultSentinelDate } from "@/features/vault-ontology";
 import {
@@ -13,15 +14,29 @@ import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { EmptyState } from "@/shared/ui";
 
-const TYPE_LABEL_KO: Record<string, string> = {
-  contains: "포함",
-  belongs_to: "소속",
-  depends_on: "의존",
-  implements: "구현",
-  uses: "사용",
-  describes: "설명",
-  related_to: "연관",
-};
+function getTypeLabel(
+  t: ReturnType<typeof useTranslations>,
+  type: string,
+): string {
+  switch (type) {
+    case "contains":
+      return t("edgeTypeKoContains");
+    case "belongs_to":
+      return t("edgeTypeKoBelongsTo");
+    case "depends_on":
+      return t("edgeTypeKoDependsOn");
+    case "implements":
+      return t("edgeTypeKoImplements");
+    case "uses":
+      return t("edgeTypeKoUses");
+    case "describes":
+      return t("edgeTypeKoDescribes");
+    case "related_to":
+      return t("edgeTypeKoRelatedTo");
+    default:
+      return type;
+  }
+}
 
 /**
  * `/ontology/relations` — edge 단위 view.
@@ -30,6 +45,7 @@ const TYPE_LABEL_KO: Record<string, string> = {
  * (edge type) 의 분포 + 강한 관계 (evidence 풍부) 가 무엇인지.
  */
 export function OntologyRelationsPage() {
+  const t = useTranslations("ontologyPages.relations");
   const searchParams = useSearchParams();
   const accountId = null;
 
@@ -83,48 +99,48 @@ export function OntologyRelationsPage() {
             우상단 link 유지. */}
         <Link
           href={"/ontology/"}
-          aria-label="온톨로지 트리로 돌아가기"
+          aria-label={t("backTreeMobileAriaLabel")}
           className="inline-flex items-center gap-1 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] md:hidden"
         >
           <span aria-hidden>←</span>
-          <span>트리로</span>
+          <span>{t("backTreeMobile")}</span>
         </Link>
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-          Ontology · Relations
+          {t("eyebrow")}
         </p>
         <div className="flex items-start justify-between gap-4">
           <h1 className="break-keep text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-            관계
+            {t("title")}
           </h1>
           <div className="flex items-center gap-2">
             <Link
               href={"/ontology/"}
               className="hidden h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)] md:inline-flex"
             >
-              ← 트리로
+              {t("backTreeDesktop")}
             </Link>
             <Link
               href={"/ontology/insights/"}
               className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
             >
-              인사이트
+              {t("insightsLink")}
             </Link>
           </div>
         </div>
         <p className="break-keep text-sm leading-7 text-[color:var(--color-text-secondary)]">
-          노드는 트리, 통계는 인사이트. 관계는 *의미 관계 종류* 의 분포를 보여줍니다.
+          {t("subtitle")}
         </p>
       </section>
 
       {error ? (
         <div role="alert" className="mb-6 rounded-2xl border border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] px-5 py-4 text-sm text-[color:var(--color-status-danger)]">
-          관계 데이터를 불러오는 중 오류가 났어요. {error.message}
+          {t("errorAlert", { message: error.message })}
         </div>
       ) : null}
 
       {!insight ? (
         <div className="rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-6 py-10 text-center text-sm text-[color:var(--color-text-tertiary)]">
-          불러오는 중…
+          {t("loading")}
         </div>
       ) : totalEdges === 0 ? (
         <EmptyState
@@ -132,14 +148,14 @@ export function OntologyRelationsPage() {
           align="center"
           title={
             <>
-              아직 승인된 관계가 없어요.{" "}
+              {t("emptyTitleBefore")}
               <Link
                 href={"/ontology/"}
                 className="text-[color:rgba(159,170,235,0.95)] underline"
               >
-                트리
-              </Link>{" "}
-              에서 노드를 먼저 검토해 보세요.
+                {t("emptyTitleLink")}
+              </Link>
+              {t("emptyTitleAfter")}
             </>
           }
         />
@@ -149,10 +165,10 @@ export function OntologyRelationsPage() {
           <section className="rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-5 py-4">
             <header className="mb-3">
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                Edge type 분포
+                {t("typePanelTitle")}
               </p>
               <p className="mt-0.5 text-[11px] text-[color:var(--color-text-tertiary)]">
-                총 {totalEdges} 관계
+                {t("typePanelSubtitle", { count: totalEdges })}
               </p>
             </header>
             <ul className="space-y-2">
@@ -167,7 +183,11 @@ export function OntologyRelationsPage() {
                         type="button"
                         onClick={() => setSelectedType(active ? null : type)}
                         aria-pressed={active}
-                        title={active ? "필터 해제" : `${TYPE_LABEL_KO[type] ?? type} 만 보기`}
+                        title={
+                          active
+                            ? t("typeRowTitleClear")
+                            : t("typeRowTitleSelect", { label: getTypeLabel(t, type) })
+                        }
                         className={`block w-full rounded-md px-2 py-1 text-left transition-colors ${
                           active
                             ? "bg-[color:rgba(94,106,210,0.10)]"
@@ -182,7 +202,7 @@ export function OntologyRelationsPage() {
                                 : "text-[color:var(--color-text-secondary)]"
                             }
                           >
-                            {TYPE_LABEL_KO[type] ?? type}
+                            {getTypeLabel(t, type)}
                             <span className="ml-1 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">{type}</span>
                           </span>
                           <span className="font-mono text-[10px] tabular-nums text-[color:var(--color-text-quaternary)]">
@@ -209,7 +229,7 @@ export function OntologyRelationsPage() {
                 onClick={() => setSelectedType(null)}
                 className="mt-3 inline-flex items-center gap-1 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.10em] text-[color:var(--color-text-tertiary)] hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
               >
-                필터 해제
+                {t("typeFilterClear")}
               </button>
             ) : null}
           </section>
@@ -220,16 +240,18 @@ export function OntologyRelationsPage() {
           <section className="rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-5 py-4">
             <header className="mb-3">
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                강한 관계
+                {t("strongPanelTitle")}
                 {selectedType ? (
                   <span className="ml-1.5 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.08)] px-1.5 py-[1px] text-[9px] tracking-[0.10em] text-[color:rgba(159,170,235,0.95)]">
-                    {TYPE_LABEL_KO[selectedType] ?? selectedType}
+                    {getTypeLabel(t, selectedType)}
                   </span>
                 ) : null}
               </p>
               <p className="mt-0.5 text-[11px] text-[color:var(--color-text-tertiary)]">
-                근거 문서 많은 위 12 — 자주 인용되는 의미 연결
-                {selectedType ? ` · ${filteredEdges.length} 매치` : ""}
+                {t("strongPanelSubtitleBase")}
+                {selectedType
+                  ? t("strongPanelSubtitleFiltered", { count: filteredEdges.length })
+                  : ""}
               </p>
             </header>
             <ol className="space-y-1">
@@ -250,7 +272,7 @@ export function OntologyRelationsPage() {
                       {fromTitle ?? edge.from}
                     </Link>
                     <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.10em] text-[color:rgba(159,170,235,0.95)]">
-                      {TYPE_LABEL_KO[edge.type] ?? edge.type}
+                      {getTypeLabel(t, edge.type)}
                     </span>
                     <Link href={toHref} className="min-w-0 max-w-[8rem] flex-1 truncate text-[color:var(--color-text-primary)] hover:underline">
                       {toTitle ?? edge.to}
@@ -259,12 +281,15 @@ export function OntologyRelationsPage() {
                     {isCrossProject ? (
                       <span
                         className="shrink-0 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.10)] px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em] text-[color:rgba(159,170,235,0.95)]"
-                        title="두 노드가 다른 프로젝트에 속함 — cross-project 의존"
+                        title={t("crossChipTitle")}
                       >
-                        cross
+                        {t("crossChip")}
                       </span>
                     ) : null}
-                    <span className="shrink-0 font-mono text-[10px] tabular-nums text-[color:var(--color-text-quaternary)]" title={`evidence ${evidence}`}>
+                    <span
+                      className="shrink-0 font-mono text-[10px] tabular-nums text-[color:var(--color-text-quaternary)]"
+                      title={t("evidenceTooltip", { count: evidence })}
+                    >
                       {evidence}
                     </span>
                   </li>

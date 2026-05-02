@@ -4,11 +4,13 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, MailCheck } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { sendPasswordReset } from '@/features/user-auth';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
 export function PasswordResetPage() {
   const searchParams = useSearchParams();
+  const t = useTranslations('authPages.resetPassword');
   const accountId = null;
   const [email, setEmail] = useState(searchParams.get('email') ?? '');
   const [submitting, setSubmitting] = useState(false);
@@ -25,9 +27,9 @@ export function PasswordResetPage() {
 
     try {
       await sendPasswordReset({ email });
-      setSuccess('재설정 메일을 보냈습니다. 이메일을 확인해주세요.');
+      setSuccess(t('successMessage'));
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : '재설정 메일 전송에 실패했습니다.');
+      setError(nextError instanceof Error ? nextError.message : t('errorFallback'));
     } finally {
       setSubmitting(false);
     }
@@ -35,28 +37,28 @@ export function PasswordResetPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[color:var(--color-canvas)] px-6 py-6 md:px-10">
-      <h1 className="sr-only">비밀번호 재설정</h1>
+      <h1 className="sr-only">{t('srHeading')}</h1>
       <div className="mx-auto flex w-full max-w-md flex-col gap-4">
         <Link href={loginHref} className="inline-flex">
           <Button variant="outline" type="button" className="gap-2 rounded-full">
             <ArrowLeft size={15} />
-            로그인으로 돌아가기
+            {t('backToLogin')}
           </Button>
         </Link>
 
         <Card className="rounded-[28px]">
           <CardHeader>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              계정 복구
+              {t('eyebrow')}
             </p>
-            <CardTitle>비밀번호 재설정</CardTitle>
-            <CardDescription>로그인에 쓰는 이메일로 재설정 안내를 보냅니다.</CardDescription>
+            <CardTitle>{t('title')}</CardTitle>
+            <CardDescription>{t('description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             <form className="space-y-4" onSubmit={handleSubmit}>
               <label className="flex flex-col gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                  이메일
+                  {t('emailLabel')}
                 </span>
                 <input
                   name="email"
@@ -80,7 +82,7 @@ export function PasswordResetPage() {
                 </p>
               ) : null}
               <Button type="submit" disabled={submitting} className="w-full">
-                {submitting ? '보내는 중...' : '재설정 메일 보내기'}
+                {submitting ? t('submitting') : t('submit')}
               </Button>
             </form>
           </CardContent>

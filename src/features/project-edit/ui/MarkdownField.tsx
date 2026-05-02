@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/lib/cn';
 
 interface Props {
@@ -19,19 +20,20 @@ type Mode = 'write' | 'preview';
  * 마크다운 입력 필드. Write/Preview 탭 토글로 실시간 렌더링 확인.
  */
 export function MarkdownField({ id, value, onChange, placeholder, rows = 8 }: Props) {
+  const t = useTranslations('settings.markdown');
   const [mode, setMode] = useState<Mode>('write');
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] p-2">
       <div className="flex items-center gap-1 border-b border-[color:var(--color-overlay-2)] pb-1.5">
         <TabButton active={mode === 'write'} onClick={() => setMode('write')}>
-          Write
+          {t('tabWrite')}
         </TabButton>
         <TabButton active={mode === 'preview'} onClick={() => setMode('preview')}>
-          Preview
+          {t('tabPreview')}
         </TabButton>
         <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
-          Markdown · GFM
+          {t('footer')}
         </span>
       </div>
       {mode === 'write' ? (
@@ -68,7 +70,7 @@ export function MarkdownField({ id, value, onChange, placeholder, rows = 8 }: Pr
           {value.trim() ? (
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
           ) : (
-            <p className="text-[color:var(--color-text-quaternary)]">미리볼 내용 없음</p>
+            <p className="text-[color:var(--color-text-quaternary)]">{t('previewEmpty')}</p>
           )}
         </div>
       )}

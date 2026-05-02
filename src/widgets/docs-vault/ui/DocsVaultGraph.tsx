@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Graph from 'graphology';
 import forceAtlas2 from 'graphology-layout-forceatlas2';
 import Sigma from 'sigma';
@@ -358,12 +359,13 @@ export function DocsVaultGraph({
     );
   }, [selectedSlug]);
 
+  const t = useTranslations('vaultWidgets.graph');
   const tooltipDoc = tooltip ? docsBySlug.get(tooltip.slug) : null;
   return (
     <div className="relative h-full w-full">
       <div ref={containerRef} className="absolute inset-0" />
       <div className="pointer-events-none absolute left-3 top-3 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-        vault graph · {filteredSlugs.size}/{docs.length}
+        {t('indicator', { visible: filteredSlugs.size, total: docs.length })}
       </div>
       {tooltip && tooltipDoc ? (
         <GraphNodeTooltip
@@ -393,6 +395,7 @@ function GraphNodeTooltip({
   inDegree: number;
   outDegree: number;
 }) {
+  const t = useTranslations('vaultWidgets.graph');
   const W = 260;
   const H = 140;
   const vpW = typeof window !== 'undefined' ? window.innerWidth : 1440;
@@ -405,10 +408,10 @@ function GraphNodeTooltip({
   };
   const modeLabel =
     doc.mode === 'planner'
-      ? '기획자'
+      ? t('modePlanner')
       : doc.mode === 'engineer'
-        ? '개발자'
-        : '공용';
+        ? t('modeEngineer')
+        : t('modeBoth');
   const modeColor =
     doc.mode === 'planner'
       ? 'rgba(224,196,140,0.92)'

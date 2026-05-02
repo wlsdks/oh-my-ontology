@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import {
   MANUAL_NODE_KINDS,
@@ -55,6 +56,7 @@ export function ManualNodeCreateModal({
   existingNodes,
   onCreated,
 }: ManualNodeCreateModalProps) {
+  const t = useTranslations('ontologyWidgets');
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -142,7 +144,7 @@ export function ManualNodeCreateModal({
       onOpenChange(false);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "노드 생성 중 오류가 났어요.";
+        error instanceof Error ? error.message : t('manualNode.submitErrorFallback');
       setSubmitError(message);
     } finally {
       setSubmitting(false);
@@ -165,19 +167,19 @@ export function ManualNodeCreateModal({
         <header className="flex items-center justify-between border-b border-[color:var(--color-divider)] px-5 py-4">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-              Manual node
+              {t('manualNode.eyebrow')}
             </p>
             <h2
               id="manual-node-modal-title"
               className="mt-1 text-base font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]"
             >
-              새 노드 직접 추가
+              {t('manualNode.title')}
             </h2>
           </div>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            aria-label="모달 닫기"
+            aria-label={t('manualNode.closeAria')}
             className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
           >
             <X size={14} />
@@ -189,13 +191,12 @@ export function ManualNodeCreateModal({
             id="manual-node-modal-desc"
             className="text-xs leading-5 text-[color:var(--color-text-tertiary)]"
           >
-            ontology 에 노드를 직접 만듭니다 (vault frontmatter / 빌더와
-            같은 manual 출처). 한 가지만 빠르게 추가할 때 사용하세요.
+            {t('manualNode.description')}
           </p>
 
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              kind
+              {t('manualNode.kindLabel')}
             </label>
             <select
               value={form.kind}
@@ -220,7 +221,7 @@ export function ManualNodeCreateModal({
 
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              제목 *
+              {t('manualNode.titleLabel')}
             </label>
             <input
               ref={titleInputRef}
@@ -234,7 +235,7 @@ export function ManualNodeCreateModal({
                   id: prev.idEdited ? prev.id : buildSuggestedId(prev.kind, nextTitle),
                 }));
               }}
-              placeholder="예: 인증 게이트"
+              placeholder={t('manualNode.titlePlaceholder')}
               className="w-full rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:rgba(94,106,210,0.46)] focus:outline-none"
             />
             {dedupMatches.length > 0 ? (
@@ -247,8 +248,8 @@ export function ManualNodeCreateModal({
               >
                 <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.12em]">
                   {dedupMatches[0].score >= 80
-                    ? "이미 비슷한 노드가 있어요"
-                    : "비슷한 기존 노드"}
+                    ? t('manualNode.dedupHeadingHigh')
+                    : t('manualNode.dedupHeadingLow')}
                 </p>
                 <ul className="space-y-1">
                   {dedupMatches.slice(0, 3).map((match) => (
@@ -276,7 +277,7 @@ export function ManualNodeCreateModal({
 
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              ID *
+              {t('manualNode.idLabel')}
             </label>
             <input
               type="text"
@@ -288,27 +289,24 @@ export function ManualNodeCreateModal({
                   idEdited: true,
                 }))
               }
-              placeholder={suggestedId || "예: capability.auth-gate"}
+              placeholder={suggestedId || t('manualNode.idPlaceholder')}
               className="w-full rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 font-mono text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:rgba(94,106,210,0.46)] focus:outline-none"
             />
             <p className="mt-1 text-[11px] text-[color:var(--color-text-quaternary)]">
-              영문/숫자/<code className="font-mono">.</code>
-              <code className="font-mono">-</code>
-              <code className="font-mono">_</code>
-              <code className="font-mono">:</code> 만 사용. 제목 입력 시 자동 추천,
-              필요하면 직접 수정.
+              {t.rich('manualNode.idHelp', {
+                code: (chunks) => <code className="font-mono">{chunks}</code>,
+              })}
             </p>
             {idCollision ? (
               <p className="mt-1 text-[11px] text-[color:var(--color-status-warning)]">
-                이 ID 는 이미 “{idCollision.title}” 노드로 존재합니다. 다른 ID 로
-                바꾸세요.
+                {t('manualNode.idCollision', { title: idCollision.title })}
               </p>
             ) : null}
           </div>
 
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              요약 (옵션)
+              {t('manualNode.summaryLabel')}
             </label>
             <textarea
               value={form.summary}
@@ -316,14 +314,14 @@ export function ManualNodeCreateModal({
                 setForm((prev) => ({ ...prev, summary: event.target.value }))
               }
               rows={2}
-              placeholder="이 노드가 무엇을 의미하는지 한두 줄."
+              placeholder={t('manualNode.summaryPlaceholder')}
               className="w-full resize-none rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:rgba(94,106,210,0.46)] focus:outline-none"
             />
           </div>
 
           <div>
             <label className="mb-1 block font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              메모 (옵션)
+              {t('manualNode.noteLabel')}
             </label>
             <textarea
               value={form.manualNote}
@@ -331,7 +329,7 @@ export function ManualNodeCreateModal({
                 setForm((prev) => ({ ...prev, manualNote: event.target.value }))
               }
               rows={2}
-              placeholder="이 노드를 손으로 만든 이유, 향후 backfill 계획 등."
+              placeholder={t('manualNode.notePlaceholder')}
               className="w-full resize-none rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:rgba(94,106,210,0.46)] focus:outline-none"
             />
           </div>
@@ -341,8 +339,7 @@ export function ManualNodeCreateModal({
               role="alert"
               className="rounded-lg border border-[color:rgba(245,158,11,0.32)] bg-[color:rgba(245,158,11,0.08)] px-3 py-2 text-xs text-[color:var(--color-status-warning)]"
             >
-              ID “{alreadyExistsId}” 가 이미 존재합니다 (다른 source 로). 다른 ID 로
-              시도하거나 기존 노드를 확인하세요.
+              {t('manualNode.alreadyExists', { id: alreadyExistsId })}
             </div>
           ) : null}
 
@@ -361,14 +358,14 @@ export function ManualNodeCreateModal({
               onClick={() => onOpenChange(false)}
               className="rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-2 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
             >
-              취소
+              {t('manualNode.cancel')}
             </button>
             <button
               type="submit"
               disabled={!canSubmit}
               className="rounded-lg border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.16)] px-3 py-2 text-xs font-medium text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "추가 중…" : "노드 추가"}
+              {submitting ? t('manualNode.submitting') : t('manualNode.submit')}
             </button>
           </div>
         </form>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Search, X } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -49,13 +50,13 @@ interface Props {
   accountId?: string | null;
 }
 
-const MATCH_FIELD_LABELS = {
-  name: '이름',
-  nameEn: '영문',
-  slug: '슬러그',
-  tags: '태그',
-  stack: '스택',
-  description: '설명',
+const MATCH_FIELD_KEYS = {
+  name: 'matchFieldName',
+  nameEn: 'matchFieldNameEn',
+  slug: 'matchFieldSlug',
+  tags: 'matchFieldTags',
+  stack: 'matchFieldStack',
+  description: 'matchFieldDescription',
 } as const;
 
 const RECENT_SEARCH_KEY = 'demo:recent-search-slugs:v1';
@@ -146,10 +147,10 @@ type PaletteRow =
   | { kind: 'doc'; doc: VaultDoc }
   | { kind: 'project'; result: ProjectSearchResult };
 
-const LAYER_FILTERS: { value: LayerFilter; label: string }[] = [
-  { value: 'all', label: '전체' },
-  { value: 'hub', label: '허브' },
-  { value: 'node', label: '노드' },
+const LAYER_FILTERS: { value: LayerFilter; labelKey: 'layerAll' | 'layerHub' | 'layerNode' }[] = [
+  { value: 'all', labelKey: 'layerAll' },
+  { value: 'hub', labelKey: 'layerHub' },
+  { value: 'node', labelKey: 'layerNode' },
 ];
 
 function matchesLayerFilter(project: Project, filter: LayerFilter): boolean {
@@ -165,6 +166,7 @@ function SearchPaletteDialog({
   containerLabel,
   accountId,
 }: DialogProps) {
+  const t = useTranslations('searchWidgets.projectSearch');
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
@@ -341,7 +343,7 @@ function SearchPaletteDialog({
         <div className="flex items-center gap-3 border-b border-[color:var(--color-overlay-2)] px-4 py-3">
           <Search size={16} className="shrink-0 text-[color:var(--color-text-tertiary)]" />
           <label htmlFor="project-search-input" className="sr-only">
-            프로젝트 검색
+            {t('inputLabel')}
           </label>
           <input
             id="project-search-input"
@@ -350,7 +352,7 @@ function SearchPaletteDialog({
             name="project-search"
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder="프로젝트 검색… 이름, 태그, 스택"
+            placeholder={t('inputPlaceholder')}
             autoComplete="off"
             spellCheck={false}
             aria-describedby="search-palette-title"
@@ -370,7 +372,7 @@ function SearchPaletteDialog({
           <button
             type="button"
             onClick={onClose}
-            aria-label="검색 팔레트 닫기"
+            aria-label={t('closeAriaLabel')}
             className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-inset"
           >
             <X size={15} />
@@ -383,11 +385,11 @@ function SearchPaletteDialog({
               id="search-palette-title"
               className="font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]"
             >
-              {query.trim() ? "검색 결과" : "최근 업데이트"}
+              {query.trim() ? t('headingResults') : t('headingRecent')}
             </p>
             {containerLabel ? (
               <span className="rounded-full border border-[color:rgba(139,151,255,0.32)] bg-[color:rgba(94,106,210,0.12)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:rgba(139,151,255,0.95)]">
-                Project · {containerLabel}
+                {t('containerBadge', { name: containerLabel })}
               </span>
             ) : null}
           </div>
@@ -395,14 +397,14 @@ function SearchPaletteDialog({
             aria-live="polite"
             className="font-mono text-[9px] uppercase tracking-[0.12em] tabular-nums text-[color:var(--color-text-quaternary)]"
           >
-            {rows.length}개 표시
+            {t('rowsCount', { count: rows.length })}
           </span>
         </div>
         {/* Layer filter chip row — 전체/컨테이너/허브/노드 중 선택. 선택 시
             results 가 해당 계층만 포함. 기본 '전체'. */}
         <div
           role="tablist"
-          aria-label="계층 필터"
+          aria-label={t('layerFilterAriaLabel')}
           className="flex items-center gap-1.5 border-b border-[color:var(--color-overlay-2)] px-4 py-2"
         >
           {LAYER_FILTERS.map((option) => {
@@ -423,7 +425,7 @@ function SearchPaletteDialog({
                     : 'border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] text-[color:var(--color-text-tertiary)] hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]'
                 }`}
               >
-                {option.label}
+                {t(option.labelKey)}
               </button>
             );
           })}
@@ -431,7 +433,7 @@ function SearchPaletteDialog({
         {!query.trim() && recentProjects.length > 0 ? (
           <div className="border-b border-[color:var(--color-overlay-2)] px-4 py-2.5">
             <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-              최근 검색
+              {t('recentSection')}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {recentProjects.map((p) => (
@@ -457,13 +459,13 @@ function SearchPaletteDialog({
               id="search-palette-help"
               className="text-xs leading-6 text-[color:var(--color-text-tertiary)]"
             >
-              최근 업데이트된 프로젝트부터 보여줍니다. 이름, 태그, 스택으로 바로 좁혀볼 수 있습니다.
+              {t('helpRecent')}
             </p>
           </div>
         )}
         {query.trim() && (
           <p id="search-palette-help" className="sr-only">
-            위아래 화살표로 결과를 이동하고 엔터로 선택할 수 있습니다. ESC로 닫습니다.
+            {t('helpKeyboard')}
           </p>
         )}
 
@@ -477,7 +479,7 @@ function SearchPaletteDialog({
             <div className="border-b border-[color:var(--color-overlay-2)] px-3 py-2">
               <div className="mb-1 flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
                 <BookOpen size={10} aria-hidden />
-                문서 · {docResults.length}
+                {t('docsSection', { count: docResults.length })}
               </div>
               <ul className="flex flex-col gap-0.5">
                 {docResults.map((d, idx) => {
@@ -519,27 +521,31 @@ function SearchPaletteDialog({
             docResults.length > 0 ? null : projects.length === 0 ? (
               <div className="flex flex-col items-center px-4 py-8 text-center">
                 <p className="text-sm text-[color:var(--color-text-secondary)]">
-                  이 공간에는 아직 프로젝트가 없어요.
+                  {t('emptyNoProjectsTitle')}
                 </p>
                 <p className="mt-2 text-xs leading-6 text-[color:var(--color-text-tertiary)]">
-                  프로젝트가 추가되면 여기서 바로 검색·점프할 수 있어요.
+                  {t('emptyNoProjectsBody')}
                 </p>
                 <button
                   type="button"
                   onClick={onClose}
                   className="mt-4 rounded-full border border-[color:var(--color-overlay-3)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                 >
-                  닫기
+                  {t('emptyClose')}
                 </button>
               </div>
             ) : filteredProjects.length === 0 && layerFilter !== 'all' ? (
               // 쿼리 없어도 layer filter 가 너무 좁아 결과 0. filter 리셋 CTA.
               <div className="flex flex-col items-center px-4 py-8 text-center">
                 <p className="text-sm text-[color:var(--color-text-secondary)]">
-                  이 공간에 해당 계층이 없습니다.
+                  {t('emptyLayerTitle')}
                 </p>
                 <p className="mt-2 text-xs leading-6 text-[color:var(--color-text-tertiary)]">
-                  선택한 &ldquo;{LAYER_FILTERS.find((f) => f.value === layerFilter)?.label}&rdquo; 에 맞는 프로젝트가 없어요. 필터를 초기화하면 전체 목록이 다시 보입니다.
+                  {t('emptyLayerBody', {
+                    layer: t(
+                      LAYER_FILTERS.find((f) => f.value === layerFilter)?.labelKey ?? 'layerAll',
+                    ),
+                  })}
                 </p>
                 <button
                   type="button"
@@ -549,21 +555,21 @@ function SearchPaletteDialog({
                   }}
                   className="mt-4 rounded-full border border-[color:rgba(94,106,210,0.3)] bg-[color:rgba(94,106,210,0.08)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:rgba(139,151,255,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                 >
-                  필터 초기화
+                  {t('emptyLayerReset')}
                 </button>
               </div>
             ) : (
               <div className="flex flex-col items-center px-4 py-8 text-center">
-                <p className="text-sm text-[color:var(--color-text-secondary)]">검색 결과가 없습니다.</p>
+                <p className="text-sm text-[color:var(--color-text-secondary)]">{t('emptyNoMatchTitle')}</p>
                 <p className="mt-2 text-xs leading-6 text-[color:var(--color-text-tertiary)]">
-                  &ldquo;{query.trim()}&rdquo; 로 이름·태그·스택 어디에도 못 찾았어요. 단어를 다시 쓰거나 검색을 초기화해 전체 목록으로 돌아가 보세요.
+                  {t('emptyNoMatchBody', { query: query.trim() })}
                 </p>
                 <button
                   type="button"
                   onClick={() => setQuery('')}
                   className="mt-4 rounded-full border border-[color:rgba(94,106,210,0.3)] bg-[color:rgba(94,106,210,0.08)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:rgba(139,151,255,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                 >
-                  검색어 지우기
+                  {t('emptyNoMatchClear')}
                 </button>
               </div>
             )
@@ -614,7 +620,7 @@ function SearchPaletteDialog({
                           </span>
                           {r.project.isHub ? (
                             <span className="rounded-full bg-[color:var(--color-indigo-brand)] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-[color:var(--color-text-primary)]">
-                              허브
+                              {t('hub')}
                             </span>
                           ) : null}
                         </div>
@@ -630,7 +636,7 @@ function SearchPaletteDialog({
                           </span>
                           {query.trim() && (
                             <span className="rounded-full border border-[color:rgba(94,106,210,0.3)] bg-[color:rgba(94,106,210,0.08)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[color:var(--color-indigo-accent)]">
-                              {MATCH_FIELD_LABELS[r.matchedField]}
+                              {t(MATCH_FIELD_KEYS[r.matchedField])}
                             </span>
                           )}
                         </div>
@@ -654,16 +660,16 @@ function SearchPaletteDialog({
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--color-overlay-2)] bg-[color:var(--color-elevated)] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
           <div className="flex flex-wrap items-center gap-3">
             <span>
-              <kbd>↑↓</kbd> 이동
+              <kbd>↑↓</kbd> {t('shortcutMove')}
             </span>
             <span>
-              <kbd>↵</kbd> 선택
+              <kbd>↵</kbd> {t('shortcutSelect')}
             </span>
             <span>
-              <kbd>ESC</kbd> 닫기
+              <kbd>ESC</kbd> {t('shortcutClose')}
             </span>
           </div>
-          <span>{query.trim() ? `${rows.length} 결과` : "최근 10개 항목"}</span>
+          <span>{query.trim() ? t('footerResults', { count: rows.length }) : t('footerRecent')}</span>
         </div>
       </motion.div>
     </motion.div>

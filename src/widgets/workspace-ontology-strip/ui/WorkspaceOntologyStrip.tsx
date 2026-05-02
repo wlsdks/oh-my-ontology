@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useOntologyInsight } from "@/features/vault-ontology";
 import { buildMeaningfulOntologyStats } from "@/shared/lib/ontology-tree";
 
@@ -21,6 +22,7 @@ export interface WorkspaceOntologyStripProps {
  * "트리 →" 링크. 최소 노이즈.
  */
 export function WorkspaceOntologyStrip({ accountId }: WorkspaceOntologyStripProps) {
+  const t = useTranslations("searchWidgets.workspaceStrip");
   const { insight } = useOntologyInsight(accountId);
 
   const stats = useMemo(
@@ -46,22 +48,22 @@ export function WorkspaceOntologyStrip({ accountId }: WorkspaceOntologyStripProp
       <Link
         href={ontologyHref}
         className="inline-flex items-center gap-1.5 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.08)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.10em] text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.16)]"
-        aria-label="온톨로지 트리 열기"
+        aria-label={t("openOntologyAriaLabel")}
       >
         Ontology {counts.total}
         <span aria-hidden>→</span>
       </Link>
-      {counts.domain > 0 ? <CountChip label="도메인" value={counts.domain} /> : null}
-      {counts.capability > 0 ? <CountChip label="역량" value={counts.capability} /> : null}
-      {counts.element > 0 ? <CountChip label="요소" value={counts.element} /> : null}
+      {counts.domain > 0 ? <CountChip label={t("domain")} value={counts.domain} /> : null}
+      {counts.capability > 0 ? <CountChip label={t("capability")} value={counts.capability} /> : null}
+      {counts.element > 0 ? <CountChip label={t("element")} value={counts.element} /> : null}
       {counts.stub > 0 ? (
         <Link
           href={stubHref}
           className="inline-flex items-center gap-1 rounded-full border border-[color:rgba(255,179,71,0.32)] bg-[color:rgba(255,179,71,0.08)] px-2.5 py-1 text-[10px] tracking-[0.02em] text-[color:rgba(238,198,128,0.95)] transition-colors hover:bg-[color:rgba(255,179,71,0.16)]"
-          aria-label="미해결 참조 — 트리에서 승격 또는 폐기"
-          title="frontmatter 의 relates.target 이 가리킨 아직 존재하지 않는 노드. /ontology 트리 하단의 stub 리스트에서 승격 또는 폐기."
+          aria-label={t("stubAriaLabel")}
+          title={t("stubTitle")}
         >
-          미해결 참조 {counts.stub}
+          {t("stubLabel")} {counts.stub}
           <span aria-hidden>→</span>
         </Link>
       ) : null}

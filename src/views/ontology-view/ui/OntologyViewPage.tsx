@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Info, Link2, X } from "lucide-react";
 import {
   ManualSourceChip,
@@ -39,6 +40,7 @@ import { Tooltip, useToast } from "@/shared/ui";
  * 기본 동작은 noop — 추후 드릴-인 (T-6d 또는 별도 task) 으로 확장.
  */
 export function OntologyViewPage() {
+  const t = useTranslations('ontologyView');
   const searchParams = useSearchParams();
   const router = useRouter();
   const accountId = null;
@@ -158,25 +160,28 @@ export function OntologyViewPage() {
       <div className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
       <section className="mb-8 space-y-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-          Ontology
+          {t('eyebrow')}
         </p>
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
           <h1 className="flex items-center gap-2 break-keep text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-            온톨로지 트리
+            {t('title')}
             <Tooltip
               content={
                 <div className="max-w-[320px] space-y-2 text-left">
                   <p className="font-medium text-[color:var(--color-text-primary)]">
-                    ontology 노드의 계층 뷰
+                    {t('titleTooltip.heading')}
                   </p>
                   <p className="text-[color:var(--color-text-tertiary)]">
-                    vault 안 .md 파일의 frontmatter 가 그대로 자란 트리.
-                    검수 단계 없이 즉시 반영 —{" "}
-                    <span className="font-mono text-xs">project → domain → capability → element</span>{" "}
-                    순서로 펼쳐서 보여줍니다.
+                    {t.rich('titleTooltip.body', {
+                      hierarchy: (chunks) => (
+                        <span className="font-mono text-xs">{chunks}</span>
+                      ),
+                    })}
                   </p>
                   <p className="text-[color:var(--color-text-tertiary)]">
-                    문서 노드는 근거 역할이라 트리에서 제외돼요. <strong>그래프를 직접 그리려면 우측 &lsquo;빌더 열기&rsquo;</strong> 버튼을 눌러보세요.
+                    {t.rich('titleTooltip.footer', {
+                      strong: (chunks) => <strong>{chunks}</strong>,
+                    })}
                   </p>
                 </div>
               }
@@ -184,7 +189,7 @@ export function OntologyViewPage() {
             >
               <button
                 type="button"
-                aria-label="온톨로지 트리가 무엇인지 설명"
+                aria-label={t('titleTooltipAria')}
                 className="inline-flex items-center justify-center rounded-full text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-primary)]"
               >
                 <Info size={15} aria-hidden />
@@ -195,39 +200,39 @@ export function OntologyViewPage() {
               flex-wrap + horizontal scroll 보조. md+ 는 한 줄 유지. -mr/-ml
               음수 마진 + px padding 으로 우측 잘림 방지. */}
           <div className="-mx-1 flex w-full items-center gap-2 overflow-x-auto px-1 pb-1 md:w-auto md:flex-wrap md:overflow-visible md:pb-0">
-            <Tooltip content="새 노드 직접 추가" withProvider={false}>
+            <Tooltip content={t('actions.addNodeTooltip')} withProvider={false}>
               <button
                 type="button"
                 onClick={() => setManualOpen(true)}
-                aria-label="ontology 노드 직접 추가"
+                aria-label={t('actions.addNodeAria')}
                 className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.16)] px-3 text-xs text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)]"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M12 5v14M5 12h14" />
                 </svg>
-                <span className="hidden sm:inline">노드 추가</span>
+                <span className="hidden sm:inline">{t('actions.addNode')}</span>
               </button>
             </Tooltip>
-            <Tooltip content="검색 (⌘K)" withProvider={false}>
+            <Tooltip content={t('actions.searchTooltip')} withProvider={false}>
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                aria-label="ontology 노드 검색 열기"
+                aria-label={t('actions.searchAria')}
                 className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <circle cx="11" cy="11" r="7" />
                   <path d="m20 20-3.5-3.5" />
                 </svg>
-                <span className="hidden sm:inline">검색</span>
+                <span className="hidden sm:inline">{t('actions.search')}</span>
                 <kbd className="hidden font-mono text-[10px] text-[color:var(--color-text-quaternary)] sm:inline">⌘K</kbd>
               </button>
             </Tooltip>
-            <Tooltip content="빌더 캔버스 — 왼쪽 palette 에서 종류 골라 클릭, 핸들 drag 로 관계 추가" withProvider={false}>
+            <Tooltip content={t('actions.builderTooltip')} withProvider={false}>
               <Link
                 href={"/ontology/edit/"}
                 className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-indigo-brand)] bg-[color:var(--color-indigo-brand)] px-4 text-xs font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-opacity hover:opacity-90"
-                aria-label="온톨로지 빌더 — 캔버스에서 직접 그리기"
+                aria-label={t('actions.builderAria')}
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -235,25 +240,25 @@ export function OntologyViewPage() {
                   <rect x="14" y="14" width="7" height="7" rx="1" />
                   <path d="M10 6.5h4M17.5 10v4M10 17.5h4" />
                 </svg>
-                빌더 열기 →
+                {t('actions.builder')}
               </Link>
             </Tooltip>
-            <Tooltip content="ontology 인사이트 — kind 분포 · 허브 노드 · 최근 활동 · 미연결" withProvider={false}>
+            <Tooltip content={t('actions.insightsTooltip')} withProvider={false}>
               <Link
                 href={"/ontology/insights/"}
                 className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-                aria-label="ontology 인사이트 — kind 분포 · 허브 노드 · 최근 활동 · 미연결"
+                aria-label={t('actions.insightsTooltip')}
               >
-                인사이트
+                {t('actions.insights')}
               </Link>
             </Tooltip>
-            <Tooltip content="관계 — 종류 분포 + 근거 풍부한 강한 관계" withProvider={false}>
+            <Tooltip content={t('actions.relationsTooltip')} withProvider={false}>
               <Link
                 href={"/ontology/relations/"}
                 className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-                aria-label="관계 — 종류 분포 + 근거 풍부한 강한 관계"
+                aria-label={t('actions.relationsTooltip')}
               >
-                관계
+                {t('actions.relations')}
               </Link>
             </Tooltip>
           </div>
@@ -265,16 +270,16 @@ export function OntologyViewPage() {
       <section
         className={`mb-6 grid gap-3 ${isVaultSentinelMode ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4"}`}
       >
-        <Stat label="트리 노드" value={String(totalNodes)} />
-        <Stat label="총 관계" value={insight ? String(insight.edges.length) : "—"} />
+        <Stat label={t('stat.treeNodes')} value={String(totalNodes)} />
+        <Stat label={t('stat.totalRelations')} value={insight ? String(insight.edges.length) : "—"} />
         {isVaultSentinelMode ? null : (
           <>
             <Stat
-              label="근거 문서"
+              label={t('stat.documents')}
               value={String(docCount)}
             />
             <Stat
-              label="발행 시점"
+              label={t('stat.publishedAt')}
               value={
                 insight?.meta?.publishedAt
                   ? insight.meta.publishedAt.toLocaleDateString("ko-KR", {
@@ -282,7 +287,7 @@ export function OntologyViewPage() {
                       month: "short",
                       day: "numeric",
                     })
-                  : "아직 없음"
+                  : t('stat.publishedAtEmpty')
               }
             />
           </>
@@ -294,13 +299,13 @@ export function OntologyViewPage() {
           role="alert"
           className="mb-6 rounded-2xl border border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] px-5 py-4 text-sm text-[color:var(--color-status-danger)]"
         >
-          ontology 데이터를 불러오는 중 오류가 났어요. {error.message}
+          {t('error', { message: error.message })}
         </div>
       ) : null}
 
       {!treeResult ? (
         <div className="rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-6 py-10 text-center text-sm text-[color:var(--color-text-tertiary)]">
-          불러오는 중…
+          {t('loading')}
         </div>
       ) : (
         <>
@@ -312,7 +317,7 @@ export function OntologyViewPage() {
           <OntologyTreeView
             result={treeResult}
             onSelect={(node) => selectNode(node)}
-            emptyHint="ontology 가 아직 자라지 않았어요. 아래 단계로 첫 그래프를 시작할 수 있어요."
+            emptyHint={t('emptyHint')}
           />
           {/* 빈 상태 onboarding — tree / orphans 모두 비었을 때만 노출.
               "온톨로지란 무엇이고, 어떻게 자라는지" 가이드. 데이터 있을 때
@@ -322,28 +327,28 @@ export function OntologyViewPage() {
           {treeResult.roots.length === 0 && treeResult.orphans.length === 0 ? (
             <div className="mt-4 rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-5 py-5">
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                Get started
+                {t('getStarted.eyebrow')}
               </p>
               <h2 className="mt-1.5 break-keep text-base font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
                 {dataSourceMode === 'local'
-                  ? 'vault 가 비어있어요 — frontmatter 를 적으면 즉시 자라요'
-                  : '문서가 자라면 트리도 자라요'}
+                  ? t('getStarted.headingLocal')
+                  : t('getStarted.headingDefault')}
               </h2>
               <p className="mt-2 break-keep text-sm leading-6 text-[color:var(--color-text-secondary)]">
                 {dataSourceMode === 'local'
-                  ? '활성 vault 에 ontology frontmatter 가 있는 .md 파일이 0 개. 다음 2 단계로 첫 노드를 만들어요.'
-                  : '온톨로지는 vault frontmatter 의 개념·관계가 모인 그래프예요. 다음 3 단계로 첫 트리를 만들어 봐요.'}
+                  ? t('getStarted.bodyLocal')
+                  : t('getStarted.bodyDefault')}
               </p>
               <ol className="mt-4 space-y-2 text-sm text-[color:var(--color-text-secondary)]">
                 {(dataSourceMode === 'local'
                   ? [
-                      ["1", "frontmatter 적기", "vault 안 아무 .md 파일에 `kind: capability` 같은 frontmatter 추가하면 즉시 stub 노드로 등장."],
-                      ["2", "빌더에서 정리", "/ontology/edit 캔버스에서 시각적으로 노드·관계 다듬으면 그대로 vault 에 저장 + 트리 갱신."],
+                      ["1", t('getStarted.stepLocalFrontmatterTitle'), t('getStarted.stepLocalFrontmatterDesc')],
+                      ["2", t('getStarted.stepLocalBuilderTitle'), t('getStarted.stepLocalBuilderDesc')],
                     ]
                   : [
-                      ["1", "vault 열기", "/docs 에서 마크다운 폴더를 선택해 vault 를 활성화해요."],
-                      ["2", "frontmatter 추가", "문서에 kind / capabilities / elements / relates 를 적으면 자동으로 stub 노드가 만들어져요."],
-                      ["3", "빌더에서 정리", "/ontology/edit 캔버스에서 노드와 관계를 다듬으면 여기 트리에 그대로 자라요."],
+                      ["1", t('getStarted.stepCloudVaultTitle'), t('getStarted.stepCloudVaultDesc')],
+                      ["2", t('getStarted.stepCloudFrontmatterTitle'), t('getStarted.stepCloudFrontmatterDesc')],
+                      ["3", t('getStarted.stepCloudBuilderTitle'), t('getStarted.stepCloudBuilderDesc')],
                     ]
                 ).map(([step, title, desc]) => (
                   <li key={step} className="flex gap-3">
@@ -364,13 +369,13 @@ export function OntologyViewPage() {
                       href={"/ontology/edit/"}
                       className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:rgba(94,106,210,0.35)] bg-[color:rgba(94,106,210,0.10)] px-4 py-2 text-sm text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)]"
                     >
-                      빌더 열기 →
+                      {t('getStarted.ctaBuilder')}
                     </Link>
                     <Link
                       href={"/docs/"}
                       className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-4 py-2 text-sm text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
                     >
-                      vault 살펴보기
+                      {t('getStarted.ctaVault')}
                     </Link>
                   </>
                 ) : (
@@ -379,13 +384,13 @@ export function OntologyViewPage() {
                       href={"/docs/"}
                       className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:rgba(94,106,210,0.35)] bg-[color:rgba(94,106,210,0.10)] px-4 py-2 text-sm text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)]"
                     >
-                      vault 열기 →
+                      {t('getStarted.ctaVaultOpen')}
                     </Link>
                     <Link
                       href={"/ontology/edit/"}
                       className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-4 py-2 text-sm text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
                     >
-                      빌더 열기
+                      {t('getStarted.ctaBuilderShort')}
                     </Link>
                   </>
                 )}
@@ -397,8 +402,8 @@ export function OntologyViewPage() {
               {dataSourceMode === 'local' ? (
                 <details className="mt-4 rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-4 py-3">
                   <summary className="cursor-pointer list-none text-[12px] text-[color:var(--color-text-secondary)]">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">snippet</span>
-                    <span className="ml-2">vault 의 첫 노드 — 이 frontmatter 를 `.md` 파일에 붙여넣으면 즉시 트리에 등장</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">{t('getStarted.snippetEyebrow')}</span>
+                    <span className="ml-2">{t('getStarted.snippetSummary')}</span>
                   </summary>
                   <pre className="mt-3 overflow-x-auto rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-3 font-mono text-[11.5px] leading-5 text-[color:var(--color-text-secondary)]">{`---
 slug: capabilities/auth
@@ -415,7 +420,9 @@ relates:
 토큰 발급, 권한 검증, 세션 추적 등 사용자 인증 흐름.
 `}</pre>
                   <p className="mt-2 text-[11px] leading-5 text-[color:var(--color-text-tertiary)]">
-                    위 내용을 vault 안 어떤 디렉토리에든 <code className="font-mono">capabilities/auth.md</code> 같은 이름으로 저장하세요. 더 자세한 frontmatter 키: <code className="font-mono">domain</code> · <code className="font-mono">capabilities</code> · <code className="font-mono">elements</code> · <code className="font-mono">relates</code> · <code className="font-mono">dependencies</code>.
+                    {t.rich('getStarted.snippetHelp', {
+                      code: (chunks) => <code className="font-mono">{chunks}</code>,
+                    })}
                   </p>
                 </details>
               ) : null}
@@ -508,10 +515,11 @@ function OntologyMetaFooter({
   edgeCount: number;
   mode: 'static' | 'local' | 'cloud';
 }) {
+  const t = useTranslations('ontologyView.footer');
   const formatPublished = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const modeLabel =
-    mode === 'local' ? '로컬 vault' : mode === 'cloud' ? '클라우드' : '정적 데모';
+    mode === 'local' ? t('modeLocal') : mode === 'cloud' ? t('modeCloud') : t('modeStatic');
   return (
     <footer className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[color:var(--color-divider)] pt-3 text-[11px] text-[color:var(--color-text-quaternary)]">
       <span className="font-mono uppercase tracking-[0.14em]">
@@ -559,6 +567,7 @@ function CopyNodeLinkButton({
   node: KnowledgeGraphNode;
   accountId: string | null;
 }) {
+  const t = useTranslations('ontologyView.copyLink');
   const { show } = useToast();
   const [copied, setCopied] = useState(false);
 
@@ -571,20 +580,20 @@ function CopyNodeLinkButton({
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      show("노드 링크 복사됨", "success");
+      show(t('toastSuccess'), "success");
       window.setTimeout(() => setCopied(false), 1500);
     } catch (err) {
       console.warn("[CopyNodeLinkButton] clipboard write failed", err);
-      show("복사 실패 — 브라우저 권한 확인", "error");
+      show(t('toastError'), "error");
     }
   };
 
   return (
-    <Tooltip content="이 노드의 직접 링크 복사" withProvider={false}>
+    <Tooltip content={t('tooltip')} withProvider={false}>
       <button
         type="button"
         onClick={() => void handleCopy()}
-        aria-label={copied ? "노드 링크 복사됨" : "노드 링크 복사"}
+        aria-label={copied ? t('ariaCopied') : t('ariaCopy')}
         className={
           copied
             ? "flex h-8 items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.16)] px-2.5 text-[11px] text-[color:var(--color-indigo-accent)]"
@@ -592,7 +601,7 @@ function CopyNodeLinkButton({
         }
       >
         <Link2 size={14} aria-hidden />
-        {copied ? <span className="font-mono text-[10px] uppercase tracking-[0.10em]">복사</span> : null}
+        {copied ? <span className="font-mono text-[10px] uppercase tracking-[0.10em]">{t('badge')}</span> : null}
       </button>
     </Tooltip>
   );
@@ -628,6 +637,7 @@ function NodeDetailPanel({
   onClose: () => void;
   onAddEdge: (fromNode: KnowledgeGraphNode) => void;
 }) {
+  const t = useTranslations('ontologyView.detail');
   const kindLabel = getOntologyKindLabel(node.kind);
   const isProject = node.kind === "project";
   const isStub = node.kind === "unknown";
@@ -659,7 +669,7 @@ function NodeDetailPanel({
   return (
     <aside
       role="dialog"
-      aria-label={`노드 상세: ${node.title}`}
+      aria-label={t('ariaLabel', { title: node.title })}
       aria-modal="false"
       data-testid="ontology-node-detail"
       className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-30 mx-auto flex w-full max-w-md max-h-[min(60vh,520px)] flex-col overflow-y-auto overscroll-contain rounded-t-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] px-5 py-4 shadow-[0_-12px_28px_rgba(0,0,0,0.45)] md:bottom-auto md:right-6 md:top-24 md:left-auto md:mx-0 md:w-[360px] md:max-h-[calc(100vh-7rem)] md:rounded-2xl md:shadow-[0_12px_28px_rgba(0,0,0,0.45)]"
@@ -679,24 +689,24 @@ function NodeDetailPanel({
         <div className="flex shrink-0 items-center gap-1">
           <CopyNodeLinkButton node={node} accountId={accountId} />
           {!isStub ? (
-            <Tooltip content="이 노드를 from 으로 새 관계 추가" withProvider={false}>
+            <Tooltip content={t('addEdgeTooltip')} withProvider={false}>
             <button
               type="button"
               onClick={() => onAddEdge(node)}
-              aria-label="이 노드에서 관계 추가"
+              aria-label={t('addEdgeAria')}
               className="flex h-8 items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.16)] px-2.5 text-[11px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)]"
             >
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M12 5v14M5 12h14" />
               </svg>
-              <span>관계</span>
+              <span>{t('addEdgeButton')}</span>
             </button>
             </Tooltip>
           ) : null}
           <button
             type="button"
             onClick={onClose}
-            aria-label="닫기"
+            aria-label={t('close')}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[color:var(--color-text-tertiary)] hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
           >
             <X size={16} />
@@ -713,7 +723,7 @@ function NodeDetailPanel({
       {node.source === "manual" && node.manualNote ? (
         <div className="mb-3 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3 py-2">
           <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
-            작성 메모
+            {t('manualNote')}
           </p>
           <p className="break-keep text-[11px] leading-5 text-[color:var(--color-text-secondary)]">
             {node.manualNote}
@@ -731,11 +741,11 @@ function NodeDetailPanel({
             className={`grid gap-2 text-[11px] ${showEvidence ? "grid-cols-2" : "grid-cols-1"}`}
           >
             <DetailRow
-              label="연결 프로젝트"
+              label={t('linkedProjects')}
               value={node.projectIds.length > 0 ? node.projectIds.join(", ") : "—"}
             />
             {showEvidence ? (
-              <DetailRow label="근거 수" value={String(evidenceCount)} />
+              <DetailRow label={t('evidenceCount')} value={String(evidenceCount)} />
             ) : null}
           </dl>
         );
@@ -748,16 +758,19 @@ function NodeDetailPanel({
         <div className="mt-4">
           <div className="flex items-center justify-between gap-2">
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              관계 {ego.neighbors.length}
+              {t('relations', { count: ego.neighbors.length })}
               {egoHops === 2 && ego.neighbors.some((n) => n.hop === 2) ? (
                 <span className="ml-1 text-[color:var(--color-text-tertiary)]">
-                  · 1-hop {ego.neighbors.filter((n) => n.hop === 1).length} · 2-hop {ego.neighbors.filter((n) => n.hop === 2).length}
+                  {t('relationsHopBreakdown', {
+                    one: ego.neighbors.filter((n) => n.hop === 1).length,
+                    two: ego.neighbors.filter((n) => n.hop === 2).length,
+                  })}
                 </span>
               ) : null}
             </p>
             <div
               role="radiogroup"
-              aria-label="ego 그래프 깊이"
+              aria-label={t('egoDepthAria')}
               className="flex shrink-0 items-center gap-1 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] p-0.5"
             >
               <button
@@ -773,7 +786,7 @@ function NodeDetailPanel({
               >
                 1-hop
               </button>
-              <Tooltip content="한 다리 건넌 이웃까지 — 노드 수 늘어 라벨 겹침 가능" withProvider={false}>
+              <Tooltip content={t('egoTwoHopTooltip')} withProvider={false}>
               <button
                 type="button"
                 role="radio"
@@ -806,7 +819,7 @@ function NodeDetailPanel({
               const arrow = isOutgoing ? "→" : "←";
               const relationLabel = neighbor.edge.label ?? neighbor.edge.type;
               const neighborTitle = neighbor.node?.title ?? neighbor.neighborId;
-              const neighborKindLabel = neighbor.node ? getOntologyKindLabel(neighbor.node.kind) : "미연결";
+              const neighborKindLabel = neighbor.node ? getOntologyKindLabel(neighbor.node.kind) : t('neighborMissingKind');
               const ariaLabel = isOutgoing
                 ? `${node.title} → ${relationLabel} → ${neighborTitle}`
                 : `${neighborTitle} → ${relationLabel} → ${node.title}`;
@@ -842,7 +855,7 @@ function NodeDetailPanel({
                     <div
                       aria-label={ariaLabel}
                       className="flex w-full items-center gap-2 rounded-md border border-[color:rgba(255,179,71,0.20)] bg-[color:rgba(255,179,71,0.04)] px-2.5 py-1.5 text-[11px]"
-                      title="이 ID 의 노드가 아직 그래프에 없어요"
+                      title={t('neighborMissingTitle')}
                     >
                       {content}
                     </div>
@@ -859,8 +872,8 @@ function NodeDetailPanel({
               className="mt-1.5 inline-flex items-center font-mono text-[10px] uppercase tracking-[0.10em] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-indigo-accent)]"
             >
               {showAllNeighbors
-                ? "접기"
-                : `+${ego.neighbors.length - NEIGHBOR_PREVIEW}개 더`}
+                ? t('collapse')
+                : t('showMore', { count: ego.neighbors.length - NEIGHBOR_PREVIEW })}
             </button>
           ) : null}
         </div>
@@ -869,7 +882,7 @@ function NodeDetailPanel({
       {visibleEvidence.length > 0 ? (
         <div className="mt-4">
           <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-            관련 문서 {evidenceList.length}
+            {t('relatedDocs', { count: evidenceList.length })}
           </p>
           <ul className="mt-2 space-y-1">
             {visibleEvidence.map((evidenceId) => {
@@ -893,8 +906,8 @@ function NodeDetailPanel({
               className="mt-1.5 inline-flex items-center font-mono text-[10px] uppercase tracking-[0.10em] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-indigo-accent)]"
             >
               {showAllEvidence
-                ? "접기"
-                : `+${hiddenEvidenceCount}개 더`}
+                ? t('collapse')
+                : t('showMore', { count: hiddenEvidenceCount })}
             </button>
           ) : null}
         </div>
@@ -905,12 +918,12 @@ function NodeDetailPanel({
           href={`/project/${projectSlug}/`}
           className="mt-4 inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:rgba(94,106,210,0.35)] bg-[color:rgba(94,106,210,0.10)] px-3.5 py-1.5 text-xs text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)]"
         >
-          공개 상세 페이지 →
+          {t('projectDetailCta')}
         </Link>
       ) : null}
       {isStub ? (
         <p className="mt-4 break-keep rounded-md border border-[color:rgba(255,179,71,0.20)] bg-[color:rgba(255,179,71,0.06)] px-3 py-2 text-xs text-[color:rgba(238,198,128,0.95)]">
-          미해결 참조 — frontmatter 가 가리킨 slug 가 vault 안에 없어요. 빌더(/ontology/edit)에서 이 이름으로 노드를 만들거나, frontmatter 에서 참조를 빼세요.
+          {t('stubWarning')}
         </p>
       ) : null}
     </aside>

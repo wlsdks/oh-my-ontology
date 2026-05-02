@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   AnimatePresence,
   motion,
@@ -82,6 +83,7 @@ export function ProjectDrawer({
   onOpenKnowledgeScene,
   knowledgeInsight,
 }: Props) {
+  const t = useTranslations("vaultWidgets.projectDrawer");
   const isContainerNode = project?.category === "__container__";
   // Layer 1 drawer 제목에서도 container 이름 prefix 단축. "Demo Reactor · Router"
   // → "Router" (breadcrumb chip 에 이미 컨테이너 맥락 있음).
@@ -126,13 +128,13 @@ export function ProjectDrawer({
     const aside = asideRef.current;
     if (!aside) return;
     const closeBtn = aside.querySelector<HTMLButtonElement>(
-      'button[aria-label="닫기"]',
+      `button[aria-label="${t("closeAriaLabel")}"]`,
     );
     closeBtn?.focus();
     return () => {
       previousFocusRef.current?.focus?.();
     };
-  }, [project]);
+  }, [project, t]);
 
   useEffect(() => {
     if (!project) return;
@@ -249,10 +251,10 @@ export function ProjectDrawer({
   // 공개용 드로어는 "설명 → 핵심 정보 → 연결" 순서가 먼저 읽히도록 요약 정보를 묶는다.
   const signalItems = project
     ? [
-        { label: "상태", value: statusLabel(project.status) },
-        { label: "담당", value: project.owner ?? "공용 내부 시스템" },
-        { label: "연결됨", value: String(referencedBy.length) },
-        { label: "의존", value: String(project.dependencies.length) },
+        { label: t("signalStatus"), value: statusLabel(project.status) },
+        { label: t("signalOwner"), value: project.owner ?? t("ownerFallback") },
+        { label: t("signalConnected"), value: String(referencedBy.length) },
+        { label: t("signalDeps"), value: String(project.dependencies.length) },
       ]
     : [];
 
@@ -307,22 +309,25 @@ export function ProjectDrawer({
   const relationshipSummary = project
     ? (() => {
         if (project.isHub && referencedBy.length > 0) {
-          return `${referencedBy.length}개의 프로젝트가 이 허브와 연결됩니다.`;
+          return t("summaryHubReferenced", { count: referencedBy.length });
         }
 
         if (project.dependencies.length === 0 && referencedBy.length === 0) {
-          return "지금은 독립적으로 읽히는 프로젝트입니다.";
+          return t("summaryStandalone");
         }
 
         if (project.dependencies.length > 0 && referencedBy.length > 0) {
-          return `${project.dependencies.length}개의 의존과 ${referencedBy.length}개의 연결이 있습니다.`;
+          return t("summaryBoth", {
+            deps: project.dependencies.length,
+            refs: referencedBy.length,
+          });
         }
 
         if (project.dependencies.length > 0) {
-          return `${project.dependencies.length}개의 프로젝트에 의존합니다.`;
+          return t("summaryDepsOnly", { count: project.dependencies.length });
         }
 
-        return `${referencedBy.length}개의 프로젝트가 이 프로젝트와 연결됩니다.`;
+        return t("summaryRefsOnly", { count: referencedBy.length });
       })()
     : "";
   const relatedProjects = project
@@ -371,7 +376,7 @@ export function ProjectDrawer({
           ref={asideRef}
           role="dialog"
           aria-modal="true"
-          aria-label={project ? `${project.name} 상세 정보` : "프로젝트 상세 정보"}
+          aria-label={project ? t("ariaLabelWithName", { name: project.name }) : t("ariaLabelFallback")}
           aria-describedby={project ? `project-drawer-summary-${project.slug}` : undefined}
           initial={{ x: "100%", opacity: 0 }}
           animate={{ x: 0, opacity: 1, y: 0 }}
@@ -404,7 +409,7 @@ export function ProjectDrawer({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-tertiary)]">
-                  {isContainerNode ? "프로젝트" : categoryLabel(project.category)}
+                  {isContainerNode ? t("categoryProject") : categoryLabel(project.category)}
                 </span>
                 {containerLabel && !isContainerNode ? (
                   <span className="rounded-full border border-[color:rgba(139,151,255,0.32)] bg-[color:rgba(94,106,210,0.12)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:rgba(139,151,255,0.95)]">
@@ -413,15 +418,15 @@ export function ProjectDrawer({
                 ) : null}
                 {isContainerNode ? (
                   <span className="rounded-full border border-[color:rgba(224,196,140,0.45)] bg-[color:rgba(224,196,140,0.12)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:rgba(224,196,140,0.95)]">
-                    컨테이너
+                    {t("containerBadge")}
                   </span>
                 ) : project.isHub ? (
                   <span className="rounded-full border border-[color:rgba(113,112,255,0.5)] bg-[color:rgba(94,106,210,0.16)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]">
-                    허브
+                    {t("hubBadge")}
                   </span>
                 ) : (
                   <span className="rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-2)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-tertiary)]">
-                    서비스
+                    {t("serviceBadge")}
                   </span>
                 )}
               </div>
@@ -429,7 +434,7 @@ export function ProjectDrawer({
                 type="button"
                 onClick={onClose}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
-                aria-label="닫기"
+                aria-label={t("closeAriaLabel")}
               >
                 <X size={16} />
               </button>
@@ -532,7 +537,7 @@ export function ProjectDrawer({
                       }}
                       className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-md border border-[color:rgba(224,196,140,0.45)] bg-[color:rgba(224,196,140,0.1)] px-3 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(224,196,140,0.65)] hover:bg-[color:rgba(224,196,140,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(224,196,140,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                     >
-                      이 프로젝트 토폴로지 열기 <ArrowUpRight size={14} />
+                      {t("openContainerTopology")} <ArrowUpRight size={14} />
                     </button>
                   ) : onEnterContainer && project.isHub && !activeProjectId ? (
                     // Layer 0 Hub — 아직 컨테이너에 진입 안 한 상태. primary
@@ -546,7 +551,7 @@ export function ProjectDrawer({
                       }}
                       className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-md border border-[color:rgba(94,106,210,0.38)] bg-[color:rgba(94,106,210,0.12)] px-3 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:rgba(94,106,210,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                     >
-                      이 허브 토폴로지 열기 <ArrowUpRight size={14} />
+                      {t("openHubTopology")} <ArrowUpRight size={14} />
                     </button>
                   ) : project.isHub && activeProjectId ? (
                     // Layer 1 Hub — 이미 해당 컨테이너 안에서 이 허브를
@@ -563,25 +568,25 @@ export function ProjectDrawer({
                         onClick={handleDetailClick}
                         className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-md border border-[color:rgba(94,106,210,0.38)] bg-[color:rgba(94,106,210,0.12)] px-3 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:rgba(94,106,210,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                       >
-                        프로젝트 보기 <ArrowUpRight size={14} />
+                        {t("openProjectDetail")} <ArrowUpRight size={14} />
                       </Link>
                       <Link
                         href={docsVaultHref}
                         title={
                           primaryRelatedDocSlug
-                            ? `${project.name} 관련 최상위 문서 바로 열기`
-                            : "문서 볼트 홈으로"
+                            ? t("openDocsVaultTitleWithDoc", { name: project.name })
+                            : t("openDocsVaultTitleEmpty")
                         }
                         className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-[color:rgba(94,106,210,0.28)] bg-[color:rgba(94,106,210,0.04)] px-3 text-sm text-[color:var(--color-indigo-accent)] transition-colors hover:border-[color:rgba(94,106,210,0.55)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                       >
                         <BookOpen size={13} />
-                        문서 볼트
+                        {t("openDocsVault")}
                       </Link>
                       <Link
                         href={getTopologyProjectHref(project.slug, accountId)}
                         className="inline-flex h-10 items-center justify-center rounded-md border border-[color:var(--color-divider)] px-3 text-sm text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                       >
-                        토폴로지 보기
+                        {t("openTopology")}
                       </Link>
                     </div>
                   )}
@@ -595,17 +600,16 @@ export function ProjectDrawer({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ ...MOTION.medium, delay: 0.02 }}
                   className="mt-5 rounded-lg border border-[color:rgba(94,106,210,0.26)] bg-[color:rgba(94,106,210,0.07)] px-4 py-4 md:mt-6"
-                  aria-label="문서 근거"
+                  aria-label={t("evidenceSectionAria")}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]">
                         <BookOpen size={11} aria-hidden />
-                        문서 근거
+                        {t("evidenceTitle")}
                       </h3>
                       <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                        {evidenceSummary.summaryText ||
-                          "공개 반영된 문서에서 이 프로젝트를 설명하는 단서를 모았습니다."}
+                        {evidenceSummary.summaryText || t("evidenceFallback")}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -616,23 +620,23 @@ export function ProjectDrawer({
                           className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[color:rgba(94,106,210,0.42)] bg-[color:rgba(94,106,210,0.13)] px-3 text-xs font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(139,151,255,0.68)] hover:bg-[color:rgba(94,106,210,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                         >
                           <Network size={12} aria-hidden />
-                          지도 보기
+                          {t("evidenceMap")}
                         </button>
                       ) : null}
                       <Link
                         href={`${detailHref}#project-detail-insight`}
                         className="inline-flex h-8 items-center justify-center rounded-md border border-[color:rgba(94,106,210,0.32)] px-3 text-xs text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.58)] hover:bg-[color:rgba(94,106,210,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                       >
-                        더 읽기
+                        {t("evidenceReadMore")}
                       </Link>
                     </div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-3 gap-2">
                     {[
-                      { label: "문서", value: evidenceSummary.counts.documents },
-                      { label: "개념", value: evidenceSummary.counts.concepts },
-                      { label: "연결", value: evidenceSummary.counts.edges },
+                      { label: t("evidenceCountDocuments"), value: evidenceSummary.counts.documents },
+                      { label: t("evidenceCountConcepts"), value: evidenceSummary.counts.concepts },
+                      { label: t("evidenceCountEdges"), value: evidenceSummary.counts.edges },
                     ].map((item) => (
                       <div
                         key={item.label}
@@ -651,7 +655,7 @@ export function ProjectDrawer({
                   {evidenceSummary.featuredDocument ? (
                     <div className="mt-3 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-backdrop-soft)] px-3.5 py-3">
                       <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                        대표 문서
+                        {t("evidenceFeaturedLabel")}
                       </p>
                       <p className="mt-1 line-clamp-1 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
                         {evidenceSummary.featuredDocument.title}
@@ -701,7 +705,7 @@ export function ProjectDrawer({
                 >
                   <div className="flex items-center justify-between gap-4">
                     <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                      어디와 연결돼 있나
+                      {t("connectionsTitle")}
                     </h3>
                   </div>
                   <div className="mt-3 rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
@@ -711,7 +715,7 @@ export function ProjectDrawer({
                     {relatedProjects.length > 0 && (
                       <div className="mt-4">
                         <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                          이어서 볼 프로젝트
+                          {t("nextProjects")}
                         </p>
                         <div className="mt-2 flex flex-col items-start gap-2">
                           <button
@@ -724,7 +728,7 @@ export function ProjectDrawer({
                           </button>
                           {relatedProjects.length > 1 ? (
                             <p className="text-xs text-[color:var(--color-text-tertiary)]">
-                              관련 프로젝트 {relatedProjects.length - 1}개가 더 있습니다.
+                              {t("moreRelated", { count: relatedProjects.length - 1 })}
                             </p>
                           ) : null}
                         </div>
@@ -740,9 +744,9 @@ export function ProjectDrawer({
               <details className="mt-5 overflow-hidden rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)]">
                 <summary className="group flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-overlay-1)]">
                   <div className="min-w-0">
-                    <p>기본 정보 더 보기</p>
+                    <p>{t("moreInfoSummary")}</p>
                     <p className="mt-1 text-xs font-normal text-[color:var(--color-text-tertiary)]">
-                      태그, 링크, 상태를 이어서 볼 수 있습니다.
+                      {t("moreInfoHint")}
                     </p>
                   </div>
                   <ChevronDown
@@ -758,7 +762,7 @@ export function ProjectDrawer({
                       className="rounded-2xl border border-[color:rgba(244,183,49,0.25)] bg-[color:rgba(244,183,49,0.08)] px-4 py-3.5"
                     >
                       <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-status-warning)]">
-                        점검 필요
+                        {t("integrityTitle")}
                       </h3>
                       <ul className="mt-2 space-y-1.5 text-xs leading-5 text-[color:var(--color-text-secondary)]">
                         {integrityIssueLabels.map((label) => (
@@ -770,14 +774,14 @@ export function ProjectDrawer({
                   <section>
                     <div className="flex items-center justify-between gap-4">
                       <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                        기본 정보
+                        {t("basicInfo")}
                       </h3>
                       {impactInsight ? (
                         <span
                           id="project-drawer-impact-help"
                           className="text-xs text-[color:var(--color-text-tertiary)]"
                         >
-                          {impactMode === "none" ? "현재 노드만" : "연결만 보기"}
+                          {impactMode === "none" ? t("impactNone") : t("impactConnections")}
                         </span>
                       ) : null}
                     </div>
@@ -792,7 +796,7 @@ export function ProjectDrawer({
                         {completenessInsight ? (
                           <div className="rounded-xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3.5 py-3">
                             <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              완성도
+                              {t("completeness")}
                             </p>
                             <p className="mt-1 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
                               {completenessInsight.score}%
@@ -802,7 +806,7 @@ export function ProjectDrawer({
                         {freshnessInsight ? (
                           <div className="rounded-xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3.5 py-3">
                             <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              최근 변화
+                              {t("freshness")}
                             </p>
                             <p className="mt-1 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
                               {freshnessInsight.label}
@@ -815,10 +819,10 @@ export function ProjectDrawer({
                     {impactInsight && (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {[
-                          { mode: "none" as const, label: "기본" },
-                          { mode: "upstream" as const, label: "의존" },
-                          { mode: "downstream" as const, label: "영향" },
-                          { mode: "network" as const, label: "네트워크" },
+                          { mode: "none" as const, label: t("impactModeNone") },
+                          { mode: "upstream" as const, label: t("impactModeUpstream") },
+                          { mode: "downstream" as const, label: t("impactModeDownstream") },
+                          { mode: "network" as const, label: t("impactModeNetwork") },
                         ].map((item) => {
                           const active = impactMode === item.mode;
                           return (
@@ -855,13 +859,13 @@ export function ProjectDrawer({
                   {(project.tags.length > 0 || project.stack.length > 0) && (
                     <section>
                       <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                        태그와 스택
+                        {t("tagsAndStack")}
                       </h3>
                       <div className="mt-3 rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
                         {project.tags.length > 0 && (
                           <div>
                             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              태그
+                              {t("tags")}
                             </p>
                             <div className="mt-2 flex flex-wrap gap-1.5">
                               {project.tags.map((tag) => (
@@ -879,7 +883,7 @@ export function ProjectDrawer({
                         {project.stack.length > 0 && (
                           <div className={cn(project.tags.length > 0 && "mt-4")}>
                             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              스택
+                              {t("stack")}
                             </p>
                             <div className="mt-2 flex flex-wrap gap-1.5">
                               {project.stack.map((item) => (
@@ -902,14 +906,14 @@ export function ProjectDrawer({
                     missingDependencyIssues.length > 0) && (
                     <section>
                       <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                        연결
+                        {t("connections")}
                       </h3>
                       <div className="mt-3 grid gap-3">
                         {(project.dependencies.length > 0 ||
                           missingDependencyIssues.length > 0) && (
                           <div className="rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
                             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              의존 중
+                              {t("dependsOn")}
                             </p>
                             <ul className="mt-3 flex flex-wrap gap-1.5">
                               {dependencyItems.map((item) => {
@@ -934,7 +938,7 @@ export function ProjectDrawer({
                                     data-testid={`project-drawer-missing-dependency-${issue.dependencySlug}`}
                                     className="rounded-md border border-[color:rgba(244,183,49,0.25)] bg-[color:rgba(244,183,49,0.08)] px-2.5 py-1 text-xs text-[color:var(--color-status-warning)]"
                                   >
-                                    누락됨: {issue.dependencySlug}
+                                    {t("missingPrefix", { slug: issue.dependencySlug })}
                                   </span>
                                 </li>
                               ))}
@@ -945,7 +949,7 @@ export function ProjectDrawer({
                         {referencedBy.length > 0 && (
                           <div className="rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
                             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              이 프로젝트를 쓰는 곳
+                              {t("usedBy")}
                             </p>
                             <ul className="mt-3 flex flex-wrap gap-1.5">
                               {referencedByItems.map((item) => (
@@ -968,7 +972,7 @@ export function ProjectDrawer({
                           <div className="rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
                             <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
                               <BookOpen size={11} aria-hidden />
-                              관련 문서 · {relatedDocs.length}
+                              {t("relatedDocs", { count: relatedDocs.length })}
                             </p>
                             <ul className="mt-3 flex flex-col gap-1">
                               {relatedDocs.map((m) => {
@@ -1012,18 +1016,18 @@ export function ProjectDrawer({
                     project.links.length > 0) && (
                     <details className="rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-3">
                       <summary className="cursor-pointer list-none text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-                        대표 화면과 기록 더 보기
+                        {t("moreScreensAndRecords")}
                       </summary>
                       <div className="mt-4 space-y-5 border-t border-[color:var(--color-border-soft)] pt-4">
                         {project.screenshots[0] && (
                           <section>
                             <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              대표 화면
+                              {t("screenshotsTitle")}
                             </h3>
                             <div className="mt-3 overflow-hidden rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)]">
                               <Image
                                 src={project.screenshots[0]}
-                                alt={`${project.name} 화면 미리보기`}
+                                alt={t("screenshotAlt", { name: project.name })}
                                 width={1600}
                                 height={900}
                                 sizes="(min-width: 768px) 480px, 100vw"
@@ -1037,13 +1041,13 @@ export function ProjectDrawer({
                         {(project.timeline.startedAt || project.timeline.launchedAt) && (
                           <section>
                             <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              타임라인
+                              {t("timelineTitle")}
                             </h3>
                             <dl className="mt-3 space-y-2 rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4 text-sm text-[color:var(--color-text-secondary)]">
                               {project.timeline.startedAt && (
                                 <div className="flex items-baseline justify-between gap-4">
                                   <dt className="text-[color:var(--color-text-tertiary)]">
-                                    시작
+                                    {t("timelineStarted")}
                                   </dt>
                                   <dd className="font-mono">
                                     {formatDate(project.timeline.startedAt)}
@@ -1053,7 +1057,7 @@ export function ProjectDrawer({
                               {project.timeline.launchedAt && (
                                 <div className="flex items-baseline justify-between gap-4">
                                   <dt className="text-[color:var(--color-text-tertiary)]">
-                                    출시
+                                    {t("timelineLaunched")}
                                   </dt>
                                   <dd className="font-mono">
                                     {formatDate(project.timeline.launchedAt)}
@@ -1067,7 +1071,7 @@ export function ProjectDrawer({
                         {project.links.length > 0 && (
                           <section>
                             <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                              링크
+                              {t("linksTitle")}
                             </h3>
                             <ul className="mt-3 space-y-2 rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
                               {project.links.map((link, idx) => (
@@ -1098,7 +1102,7 @@ export function ProjectDrawer({
                   <PublicQuickActions
                     accountId={accountId}
                     projectSlug={project.slug}
-                    label="프로젝트 관리"
+                    label={t("manageLabel")}
                     className="w-full border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] shadow-none"
                   />
                 </div>
@@ -1106,7 +1110,7 @@ export function ProjectDrawer({
 
               <footer className="mt-6 border-t border-[color:var(--color-overlay-2)] pt-4 md:mt-8">
                 <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
-                  {project.slug} · 업데이트 {formatDate(project.updatedAt)}
+                  {t("footerUpdated", { slug: project.slug, date: formatDate(project.updatedAt) })}
                 </p>
               </footer>
             </motion.div>

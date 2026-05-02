@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Sparkles } from "lucide-react";
 import type { Category } from "@/entities/category";
 import { type Project } from "@/entities/project";
@@ -39,8 +40,10 @@ export function ProjectQuickCreatePanel({
   statuses,
   onCreated,
   initiallyOpen = false,
-  submitLabel = "만들고 바로 보기",
+  submitLabel,
 }: Props) {
+  const t = useTranslations("settings.quickCreate");
+  const effectiveSubmitLabel = submitLabel ?? t("defaultSubmit");
   const [open, setOpen] = useState(initiallyOpen);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -68,7 +71,7 @@ export function ProjectQuickCreatePanel({
     const trimmedDescription = description.trim();
 
     if (!trimmedName || !trimmedDescription) {
-      setError("프로젝트 이름과 한 줄 설명을 먼저 입력해주세요.");
+      setError(t("errorRequired"));
       return;
     }
 
@@ -107,7 +110,7 @@ export function ProjectQuickCreatePanel({
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "프로젝트를 만들지 못했습니다.",
+          : t("errorGeneric"),
       );
     } finally {
       setPending(false);
@@ -126,7 +129,7 @@ export function ProjectQuickCreatePanel({
         <>
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]">
-              새 프로젝트
+              {t("newProjectEyebrow")}
             </p>
           </div>
           <Button
@@ -136,17 +139,17 @@ export function ProjectQuickCreatePanel({
             onClick={() => setOpen(true)}
           >
             <Sparkles size={14} aria-hidden="true" />
-            빠른 만들기
+            {t("openLabel")}
           </Button>
         </>
       ) : (
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]">
-            빠르게 시작
+            {t("leadEyebrow")}
           </p>
           <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-            이름과 설명만 넣으면 됩니다.
+            {t("leadBody")}
           </p>
         </div>
         <Button
@@ -156,7 +159,7 @@ export function ProjectQuickCreatePanel({
           onClick={() => setOpen((current) => !current)}
         >
           <Sparkles size={14} aria-hidden="true" />
-          {open ? "닫기" : "빠른 만들기"}
+          {open ? t("closeLabel") : t("openLabel")}
         </Button>
       </div>
       )}
@@ -166,40 +169,40 @@ export function ProjectQuickCreatePanel({
           <div className="space-y-4">
             <label className="block">
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                프로젝트 이름
+                {t("fieldName")}
               </span>
               <input
                 data-testid="quick-create-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="예: 인증 허브"
+                placeholder={t("fieldNamePlaceholder")}
                 className="mt-2 h-11 w-full rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 text-sm text-[color:var(--color-text-primary)] outline-none transition-colors placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:var(--color-indigo-accent)]"
               />
             </label>
 
             <label className="block">
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                한 줄 설명
+                {t("fieldDescription")}
               </span>
               <textarea
                 data-testid="quick-create-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={4}
-                placeholder="이 프로젝트가 무엇을 하는지 한 줄로 적습니다."
+                placeholder={t("fieldDescriptionPlaceholder")}
                 className="mt-2 w-full rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 py-3 text-sm leading-6 text-[color:var(--color-text-primary)] outline-none transition-colors placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:var(--color-indigo-accent)]"
               />
             </label>
 
             <label className="block">
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                담당 · 선택
+                {t("fieldOwner")}
               </span>
               <input
                 data-testid="quick-create-owner"
                 value={owner}
                 onChange={(event) => setOwner(event.target.value)}
-                placeholder="예: 민혁"
+                placeholder={t("fieldOwnerPlaceholder")}
                 className="mt-2 h-11 w-full rounded-xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 text-sm text-[color:var(--color-text-primary)] outline-none transition-colors placeholder:text-[color:var(--color-text-quaternary)] focus:border-[color:var(--color-indigo-accent)]"
               />
             </label>
@@ -215,7 +218,7 @@ export function ProjectQuickCreatePanel({
                 onClick={() => void handleSubmit()}
                 disabled={pending}
               >
-                {pending ? "생성 중..." : submitLabel}
+                {pending ? t("submitting") : effectiveSubmitLabel}
               </Button>
             </div>
           </div>

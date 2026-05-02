@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useTranslations } from 'next-intl';
 import { ExternalLink, Hash } from 'lucide-react';
 import { buildDocsVaultHref, type VaultDoc } from '@/entities/docs-vault';
 
@@ -72,6 +73,7 @@ export function DocsVaultViewer({
   highlightQuery,
   resolveImage,
 }: Props) {
+  const t = useTranslations('vaultWidgets.viewer');
   const [raw, setRaw] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -196,7 +198,7 @@ export function DocsVaultViewer({
               <a
                 href={getProjectHref(projectSlug)}
                 className="text-[color:rgba(224,196,140,0.95)] underline underline-offset-2 decoration-[color:rgba(224,196,140,0.35)] hover:decoration-[color:rgba(232,200,148,1)]"
-                title={`프로젝트: ${projectSlug}`}
+                title={t('projectLinkTitle', { slug: projectSlug })}
               >
                 {children}
               </a>
@@ -227,7 +229,7 @@ export function DocsVaultViewer({
           return (
             <span
               className="border-b border-dashed border-[color:rgba(239,180,120,0.5)] text-[color:rgba(239,200,150,0.85)]"
-              title={`볼트에 없는 링크: ${wikiSlug}`}
+              title={t('wikilinkMissing', { slug: wikiSlug })}
               {...rest}
             >
               {children}
@@ -481,7 +483,7 @@ export function DocsVaultViewer({
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-center">
         <div className="text-[13px] text-[color:var(--color-text-tertiary)]">
-          문서를 불러오지 못했어요
+          {t('loadFailed')}
         </div>
         <div className="font-mono text-[11px] text-[color:var(--color-text-quaternary)]">
           {error}
@@ -649,6 +651,7 @@ function VaultImage({
   docSlug: string;
   resolve: (path: string) => Promise<string | null>;
 }) {
+  const t = useTranslations('vaultWidgets.viewer');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -696,7 +699,7 @@ function VaultImage({
     return (
       <span
         className="my-3 inline-block rounded-sm border border-dashed border-[color:rgba(239,180,120,0.5)] px-2 py-1 font-mono text-[10px] text-[color:rgba(239,200,150,0.8)]"
-        title={`볼트에 이미지 없음: ${src}`}
+        title={t('imageMissing', { src })}
       >
         🖼 {alt || src}
       </span>
@@ -737,6 +740,7 @@ function HeadingAnchor({
   docSlug: string;
   basePath: string;
 }) {
+  const t = useTranslations('vaultWidgets.viewer');
   const [copied, setCopied] = useState(false);
   const onClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -758,8 +762,8 @@ function HeadingAnchor({
     <button
       type="button"
       onClick={onClick}
-      aria-label={copied ? '앵커 URL 복사됨' : '이 섹션으로 오는 링크 복사'}
-      title={copied ? '복사됨' : '섹션 링크 복사'}
+      aria-label={copied ? t('anchorCopiedAria') : t('anchorCopyAria')}
+      title={copied ? t('anchorCopiedTitle') : t('anchorCopyTitle')}
       className={`absolute -left-6 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-sm transition-[background-color,color,opacity] ${
         copied
           ? 'text-[color:rgba(139,151,255,0.95)] opacity-100'

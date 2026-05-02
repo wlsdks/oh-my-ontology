@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { KnowledgeGraphEdge, KnowledgeGraphNode } from "@/entities/knowledge-graph";
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui";
@@ -49,13 +50,14 @@ interface PositionedNode extends DisplayNode {
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
-const KIND_LABEL: Record<DisplayKind, string> = {
-  document: "문서",
-  domain: "도메인",
-  capability: "기능",
-  element: "요소",
-  concept: "개념",
-  other: "기타",
+// Translation keys mapped to DisplayKind. Resolved inside components via useTranslations.
+const KIND_LABEL_KEY: Record<DisplayKind, string> = {
+  document: "kindDocument",
+  domain: "kindDomain",
+  capability: "kindCapability",
+  element: "kindElement",
+  concept: "kindConcept",
+  other: "kindOther",
 };
 
 // 디자인 헌장 §11: "채색은 인디고 하나 + 무채색". kind 별 차별화는 색이
@@ -391,9 +393,12 @@ export function ProjectKnowledgeTopology({
   edges,
   documentNewHref,
   canManageProject = false,
-  heading = "프로젝트 토폴로지",
-  description = "등록한 md 문서가 공개 반영되면 문서와 항목이 분해되어 이곳에서 하나의 프로젝트 토폴로지로 이어집니다.",
+  heading,
+  description,
 }: Props) {
+  const t = useTranslations("topologyWidgets.projectKnowledge");
+  const resolvedHeading = heading ?? t("heading");
+  const resolvedDescription = description ?? t("description");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -503,21 +508,21 @@ export function ProjectKnowledgeTopology({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
           <h2 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-            {heading}
+            {resolvedHeading}
           </h2>
           <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-            {description}
+            {resolvedDescription}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex rounded-full border border-[color:var(--color-divider)] px-3 py-1.5 text-xs text-[color:var(--color-text-secondary)]">
-            문서 {counts.document}개
+            {t("documentCount", { count: counts.document })}
           </span>
           <span className="inline-flex rounded-full border border-[color:rgba(94,106,210,0.28)] bg-[color:rgba(94,106,210,0.08)] px-3 py-1.5 text-xs text-[color:var(--color-text-primary)]">
-            항목 {itemCount}개
+            {t("itemCount", { count: itemCount })}
           </span>
           <span className="inline-flex rounded-full border border-[color:var(--color-divider)] px-3 py-1.5 text-xs text-[color:var(--color-text-secondary)]">
-            표시 연결 {displayEdges.length}개
+            {t("edgeCount", { count: displayEdges.length })}
           </span>
         </div>
       </div>
@@ -527,31 +532,29 @@ export function ProjectKnowledgeTopology({
           {canManageProject && documentNewHref ? (
             <>
               <p className="text-sm leading-6 text-[color:var(--color-text-primary)]">
-                아직 이 프로젝트에 반영된 지식 그래프가 없습니다.
+                {t("emptyManageHeadline")}
               </p>
               <p className="mt-1 text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                md 문서를 등록하면 자동으로 추출 작업이 큐에 올라가고, 승인·공개
-                반영을 마치면 여기에 항목과 연결이 바로 나타납니다.
+                {t("emptyManageBody")}
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Link href={documentNewHref} className="inline-flex">
                   <Button type="button" size="sm">
-                    md 문서 등록하러 가기 ↗
+                    {t("emptyManageCta")}
                   </Button>
                 </Link>
                 <p className="text-xs text-[color:var(--color-text-quaternary)]">
-                  등록 → 추출 → 승인 → 공개 반영 4단계.
+                  {t("emptyManageStages")}
                 </p>
               </div>
             </>
           ) : (
             <>
               <p className="text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                아직 이 프로젝트에 반영된 지식 그래프가 없습니다.
+                {t("emptyViewerHeadline")}
               </p>
               <p className="mt-1 text-xs leading-5 text-[color:var(--color-text-quaternary)]">
-                공간 주인이 이 프로젝트에 md 문서를 등록해 공개 반영하면 이곳에
-                항목과 연결이 바로 나타납니다.
+                {t("emptyViewerBody")}
               </p>
             </>
           )}
@@ -608,7 +611,7 @@ export function ProjectKnowledgeTopology({
                       {hoveredNode.title}
                     </p>
                     <p className="mt-1 text-[11px] text-[color:var(--color-text-quaternary)]">
-                      {KIND_LABEL[hoveredNode.kind]} · 연결 {hoveredNode.degree}개
+                      {t("tooltipDegree", { kind: t(KIND_LABEL_KEY[hoveredNode.kind]), count: hoveredNode.degree })}
                     </p>
                     {hoveredNode.summary ? (
                       <p className="mt-2 text-xs leading-5 text-[color:var(--color-text-secondary)]">
@@ -622,7 +625,7 @@ export function ProjectKnowledgeTopology({
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-            {(Object.keys(KIND_LABEL) as DisplayKind[]).map((kind) => {
+            {(Object.keys(KIND_LABEL_KEY) as DisplayKind[]).map((kind) => {
               const count = counts[kind];
               if (count === 0) return null;
               return (
@@ -631,7 +634,7 @@ export function ProjectKnowledgeTopology({
                   className="rounded-2xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-3"
                 >
                   <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                    {KIND_LABEL[kind]}
+                    {t(KIND_LABEL_KEY[kind])}
                   </p>
                   <p className="mt-2 text-lg font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
                     {count.toLocaleString("ko-KR")}
@@ -654,6 +657,7 @@ export function ProjectKnowledgeTopologyScene({
   onOpenDetail,
   className,
 }: SceneProps) {
+  const t = useTranslations("topologyWidgets.projectKnowledge");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -785,7 +789,7 @@ export function ProjectKnowledgeTopologyScene({
 
         <div className="pointer-events-none absolute left-4 top-4 z-10 max-w-[min(560px,calc(100vw-32px))] rounded-lg border border-[color:var(--color-overlay-3)] bg-[color:var(--color-panel)] px-4 py-3 shadow-[0_14px_34px_rgba(0,0,0,0.3)] md:left-8 md:top-8">
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-indigo-accent)]">
-            문서 근거 지도
+            {t("sceneTitle")}
           </p>
           {projectName ? (
             <h2 className="mt-1 line-clamp-1 text-[15px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
@@ -803,13 +807,13 @@ export function ProjectKnowledgeTopologyScene({
             solid panel bg 로 교체. α 0.82 → 0.96 으로 본문 위 가독성 유지. */}
         <div className="pointer-events-none absolute left-4 top-[136px] z-10 flex flex-wrap gap-2 md:left-8 md:top-[156px]">
           <span className="inline-flex rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] px-3 py-1.5 text-xs text-[color:var(--color-text-secondary)]">
-            문서 {counts.document}개
+            {t("documentCount", { count: counts.document })}
           </span>
           <span className="inline-flex rounded-full border border-[color:rgba(94,106,210,0.28)] bg-[color:var(--color-panel)] px-3 py-1.5 text-xs text-[color:var(--color-text-primary)]">
-            항목 {itemCount}개
+            {t("itemCount", { count: itemCount })}
           </span>
           <span className="inline-flex rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] px-3 py-1.5 text-xs text-[color:var(--color-text-secondary)]">
-            표시 연결 {displayEdges.length}개
+            {t("edgeCount", { count: displayEdges.length })}
           </span>
         </div>
 
@@ -850,11 +854,11 @@ export function ProjectKnowledgeTopologyScene({
                 {hoveredNode.title}
               </p>
               <p className="mt-1 text-[11px] text-[color:var(--color-text-quaternary)]">
-                {KIND_LABEL[hoveredNode.kind]} · 연결 {hoveredNode.degree}개
+                {t("tooltipDegree", { kind: t(KIND_LABEL_KEY[hoveredNode.kind]), count: hoveredNode.degree })}
               </p>
               {hoveredNode.kind === "document" && onOpenDetail ? (
                 <p className="mt-1 text-[11px] text-[color:var(--color-indigo-accent)]">
-                  클릭하면 상세 문서 근거로 이동합니다.
+                  {t("sceneOpenDetailHint")}
                 </p>
               ) : null}
               {hoveredNode.summary ? (

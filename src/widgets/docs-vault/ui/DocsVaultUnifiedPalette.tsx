@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import {
   Clock,
@@ -88,6 +89,7 @@ export function DocsVaultUnifiedPalette({
   initialQuery = '',
   getDocHref = (slug) => buildDocsVaultHref({ slug }),
 }: Props) {
+  const t = useTranslations('vaultWidgets.palette');
   const [query, setQuery] = useState(initialQuery);
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -156,7 +158,7 @@ export function DocsVaultUnifiedPalette({
         });
       }
       if (pinnedRows.length > 0) {
-        sections.push({ title: '고정', icon: <Pin size={10} aria-hidden />, size: pinnedRows.length });
+        sections.push({ title: t('secPinned'), icon: <Pin size={10} aria-hidden />, size: pinnedRows.length });
         out.push(...pinnedRows);
       }
       // 최근
@@ -181,7 +183,7 @@ export function DocsVaultUnifiedPalette({
         });
       }
       if (recentRows.length > 0) {
-        sections.push({ title: '최근', icon: <Clock size={10} aria-hidden />, size: recentRows.length });
+        sections.push({ title: t('secRecent'), icon: <Clock size={10} aria-hidden />, size: recentRows.length });
         out.push(...recentRows);
       }
       // 추천 명령 (top 5 visible)
@@ -205,7 +207,7 @@ export function DocsVaultUnifiedPalette({
         }));
       if (cmdRows.length > 0) {
         sections.push({
-          title: '자주 쓰는 명령',
+          title: t('secCommonCommands'),
           icon: <Terminal size={10} aria-hidden />,
           size: cmdRows.length,
         });
@@ -241,7 +243,7 @@ export function DocsVaultUnifiedPalette({
         });
       if (cmdRows.length > 0) {
         sections.push({
-          title: '명령',
+          title: t('secCommands'),
           icon: <Terminal size={10} aria-hidden />,
           size: cmdRows.length,
         });
@@ -253,15 +255,15 @@ export function DocsVaultUnifiedPalette({
     if (mode === 'tags') {
       const q = trimmed.slice(1).trim().toLowerCase();
       const tagRows: PaletteRow[] = tagCounts
-        .filter((t) => !q || t.tag.toLowerCase().includes(q))
+        .filter((tagItem) => !q || tagItem.tag.toLowerCase().includes(q))
         .slice(0, 20)
-        .map((t) => {
-          const idx = q ? t.tag.toLowerCase().indexOf(q) : -1;
+        .map((tagItem) => {
+          const idx = q ? tagItem.tag.toLowerCase().indexOf(q) : -1;
           const hit = idx >= 0 ? { start: idx, end: idx + q.length } : null;
           return {
             kind: 'tag' as const,
-            key: `tag:${t.tag}`,
-            label: <Highlight text={`#${t.tag}`} hit={hit ? { start: hit.start + 1, end: hit.end + 1 } : null} />,
+            key: `tag:${tagItem.tag}`,
+            label: <Highlight text={`#${tagItem.tag}`} hit={hit ? { start: hit.start + 1, end: hit.end + 1 } : null} />,
             icon: (
               <Hash
                 size={11}
@@ -269,13 +271,13 @@ export function DocsVaultUnifiedPalette({
                 aria-hidden
               />
             ),
-            meta: `${t.count}건`,
-            onRun: () => onTagSelect(t.tag),
+            meta: t('tagMeta', { count: tagItem.count }),
+            onRun: () => onTagSelect(tagItem.tag),
           };
         });
       if (tagRows.length > 0) {
         sections.push({
-          title: '태그',
+          title: t('secTags'),
           icon: <Hash size={10} aria-hidden />,
           size: tagRows.length,
         });
@@ -302,7 +304,7 @@ export function DocsVaultUnifiedPalette({
     }));
     if (docRows.length > 0) {
       sections.push({
-        title: '문서',
+        title: t('secDocs'),
         icon: <FileText size={10} aria-hidden />,
         size: docRows.length,
       });
@@ -316,7 +318,7 @@ export function DocsVaultUnifiedPalette({
       .slice(0, 5);
     if (cmdMatches.length > 0) {
       sections.push({
-        title: '명령',
+        title: t('secCommands'),
         icon: <Terminal size={10} aria-hidden />,
         size: cmdMatches.length,
       });
@@ -353,6 +355,7 @@ export function DocsVaultUnifiedPalette({
     tagCounts,
     onDocSelect,
     onTagSelect,
+    t,
   ]);
 
   // 섹션 별 시작 인덱스 계산 — 렌더 시 헤더를 어디에 끼울지.
@@ -424,7 +427,7 @@ export function DocsVaultUnifiedPalette({
         transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label="Docs Vault 팔레트"
+        aria-label={t('dialogAriaLabel')}
         className="w-full max-w-[560px] overflow-hidden rounded-lg border border-[color:var(--color-divider)] bg-[color:rgba(12,14,20,0.98)] shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
       >
         <div className="flex items-center gap-2 border-b border-[color:var(--color-overlay-2)] px-3 py-2">
@@ -439,14 +442,14 @@ export function DocsVaultUnifiedPalette({
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="검색 / > 명령 / # 태그…"
-            aria-label="Docs Vault 검색, 명령, 태그"
+            placeholder={t('inputPlaceholder')}
+            aria-label={t('inputAriaLabel')}
             className="min-w-0 flex-1 bg-transparent text-[13px] text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:outline-none"
           />
           <button
             type="button"
             onClick={onClose}
-            aria-label="닫기"
+            aria-label={t('closeAriaLabel')}
             className="flex h-6 w-6 items-center justify-center rounded-sm text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
           >
             <X size={12} />
@@ -459,7 +462,7 @@ export function DocsVaultUnifiedPalette({
         >
           {rows.length === 0 ? (
             <li className="px-3 py-8 text-center text-[12px] text-[color:var(--color-text-tertiary)]">
-              일치하는 항목이 없어요
+              {t('noMatches')}
             </li>
           ) : (
             rows.map((row, idx) => {
@@ -500,27 +503,27 @@ export function DocsVaultUnifiedPalette({
             <kbd className="rounded border border-[color:var(--color-divider)] px-1">
               ↑↓
             </kbd>{' '}
-            이동
+            {t('footerMove')}
           </span>
           <span>
             <kbd className="rounded border border-[color:var(--color-divider)] px-1">
               ↵
             </kbd>{' '}
-            실행
+            {t('footerRun')}
           </span>
           <span>
             <kbd className="rounded border border-[color:var(--color-divider)] px-1">
               Tab
             </kbd>{' '}
-            모드 전환
+            {t('footerSwitch')}
           </span>
           <span>
             <kbd className="rounded border border-[color:var(--color-divider)] px-1">
               Esc
             </kbd>{' '}
-            닫기
+            {t('footerClose')}
           </span>
-          <span className="ml-auto opacity-80">&gt; 명령 · # 태그</span>
+          <span className="ml-auto opacity-80">{t('footerLegend')}</span>
         </div>
       </motion.div>
     </motion.div>

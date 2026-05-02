@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { VaultMode } from "@/entities/docs-vault";
 
 /**
@@ -6,19 +7,20 @@ import type { VaultMode } from "@/entities/docs-vault";
  * 호출자: `AdminDocsContent` 의 viewer 영역 (selectedSlug 없을 때).
  */
 export function EmptyState({ audience }: { audience: VaultMode | "all" }) {
+  const t = useTranslations("vaultWidgets.parts.empty");
   const audienceLabel =
     audience === "planner"
-      ? "기획자"
+      ? t("audiencePlanner")
       : audience === "engineer"
-        ? "개발자"
-        : "전체";
+        ? t("audienceEngineer")
+        : t("audienceAll");
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-center">
       <div className="text-[14px] text-[color:var(--color-text-tertiary)]">
-        왼쪽 트리에서 문서를 선택하세요
+        {t("selectPrompt")}
       </div>
       <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-        관점 · {audienceLabel}
+        {t("audiencePrefix")} · {audienceLabel}
       </div>
     </div>
   );

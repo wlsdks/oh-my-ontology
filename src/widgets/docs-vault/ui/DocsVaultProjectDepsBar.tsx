@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronDown, Plus, X } from 'lucide-react';
 import type { FolderTopologyBuild } from '@/entities/docs-vault';
 
@@ -32,6 +33,7 @@ export function DocsVaultProjectDepsBar({
   onChange,
   onNavigateProject,
 }: Props) {
+  const t = useTranslations('vaultWidgets.depsBar');
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,9 +57,7 @@ export function DocsVaultProjectDepsBar({
   if (!current)
     return (
       <div className="mx-auto max-w-[760px] border-b border-[color:var(--color-overlay-2)] px-6 py-3 text-[11px] text-[color:var(--color-text-quaternary)] md:px-10">
-        이 문서는 Folder-Topology 에 등록되지 않았어요 — projects/ 디렉터리로
-        옮기고 frontmatter 에 `name` · `category` 를 채우면 토폴로지에
-        노드로 등장합니다.
+        {t('notRegistered')}
       </div>
     );
 
@@ -74,8 +74,7 @@ export function DocsVaultProjectDepsBar({
     // 순환 감지 — dep 이 currentSlug 를 (간접이든 직접이든) 의존하는지
     if (build && hasCircularDep(build, dep, currentSlug)) {
       const ok = window.confirm(
-        `경고: ${dep} 가 이미 ${currentSlug} 를 의존하고 있습니다.\n` +
-          `의존을 추가하면 순환이 생깁니다. 계속할까요?`,
+        t('circularConfirm', { dep, current: currentSlug }),
       );
       if (!ok) return;
     }
@@ -91,10 +90,10 @@ export function DocsVaultProjectDepsBar({
   return (
     <div className="mx-auto flex max-w-[760px] flex-wrap items-center gap-2 border-b border-[color:var(--color-overlay-2)] px-6 py-2 text-[11.5px] md:px-10">
       <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-        의존 · {dependencies.length}
+        {t('depsLabel', { count: dependencies.length })}
       </span>
       {dependencies.length === 0 ? (
-        <span className="text-[color:var(--color-text-quaternary)]">없음</span>
+        <span className="text-[color:var(--color-text-quaternary)]">{t('depsEmpty')}</span>
       ) : (
         <ul className="flex flex-wrap gap-1">
           {dependencies.map((dep) => {
@@ -113,7 +112,7 @@ export function DocsVaultProjectDepsBar({
                     type="button"
                     onClick={() => onNavigateProject(dep)}
                     className="transition-colors hover:text-[color:var(--color-text-primary)]"
-                    title={missing ? '볼트에 없는 의존' : dep}
+                    title={missing ? t('depMissingTitle') : dep}
                   >
                     {dep}
                   </button>
@@ -121,7 +120,7 @@ export function DocsVaultProjectDepsBar({
                     <button
                       type="button"
                       onClick={() => void handleRemove(dep)}
-                      aria-label={`${dep} 의존 제거`}
+                      aria-label={t('removeAriaLabel', { dep })}
                       className="rounded-sm p-0.5 text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:rgba(240,180,180,0.95)]"
                     >
                       <X size={10} aria-hidden />
@@ -143,10 +142,10 @@ export function DocsVaultProjectDepsBar({
             }}
             disabled={addable.length === 0}
             className="inline-flex items-center gap-1 rounded-sm border border-[color:rgba(139,151,255,0.35)] bg-[color:rgba(94,106,210,0.08)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[color:rgba(200,210,255,0.92)] transition-colors hover:border-[color:rgba(139,151,255,0.55)] disabled:cursor-not-allowed disabled:opacity-40"
-            title={addable.length === 0 ? '추가할 수 있는 프로젝트 없음' : '의존 추가'}
+            title={addable.length === 0 ? t('addNoneTitle') : t('addTooltip')}
           >
             <Plus size={10} aria-hidden />
-            추가
+            {t('addLabel')}
             <ChevronDown size={10} aria-hidden />
           </button>
           {open ? (

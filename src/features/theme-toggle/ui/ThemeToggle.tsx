@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "@/shared/lib/theme";
 import { cn } from "@/shared/lib/cn";
 
@@ -19,19 +20,21 @@ interface Props {
  * theme 값으로 swap.
  */
 export function ThemeToggle({ className }: Props) {
+  const t = useTranslations("featuresMisc.themeToggle");
   const [theme, setTheme] = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
   const isLight = theme === "light";
+  const switchLabel = isLight ? t("switchToDark") : t("switchToLight");
 
   return (
     <button
       type="button"
       onClick={() => setTheme(isLight ? "dark" : "light")}
-      aria-label={mounted ? (isLight ? "다크 모드로 전환" : "라이트 모드로 전환") : "테마 토글"}
-      title={mounted ? (isLight ? "다크 모드로 전환" : "라이트 모드로 전환") : undefined}
+      aria-label={mounted ? switchLabel : t("fallbackLabel")}
+      title={mounted ? switchLabel : undefined}
       className={cn(
         "inline-flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--color-border-soft)] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]",
         className,

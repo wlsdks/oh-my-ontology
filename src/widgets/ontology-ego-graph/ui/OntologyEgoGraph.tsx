@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { KnowledgeGraphNode } from "@/entities/knowledge-graph";
 import { getOntologyKindLabel } from "@/entities/ontology-class";
 import {
@@ -45,6 +46,7 @@ export function OntologyEgoGraph({
   width = 320,
   height = 200,
 }: OntologyEgoGraphProps) {
+  const t = useTranslations('ontologyWidgets');
   const layout = useMemo(
     () => buildRadialEgoLayout(ego, width, height, { padding: 36 }),
     [ego, width, height],
@@ -64,7 +66,11 @@ export function OntologyEgoGraph({
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
       role="img"
-      aria-label={`${centerNode.title} 의 관계 그래프 (${ego.neighbors.some((n) => n.hop === 2) ? "2" : "1"}-hop)`}
+      aria-label={
+        ego.neighbors.some((n) => n.hop === 2)
+          ? t('egoGraph.ariaLabelTwoHop', { title: centerNode.title })
+          : t('egoGraph.ariaLabelOneHop', { title: centerNode.title })
+      }
       className="block max-w-full"
     >
       <defs>
@@ -111,7 +117,7 @@ export function OntologyEgoGraph({
         const neighbor = ego.neighbors[i]!;
         const node = neighbor.node;
         const title = node?.title ?? neighbor.neighborId;
-        const kindLabel = node ? getOntologyKindLabel(node.kind) : "미연결";
+        const kindLabel = node ? getOntologyKindLabel(node.kind) : t('egoGraph.neighborMissingKind');
         const truncated = title.length > LABEL_MAX_CHARS ? `${title.slice(0, LABEL_MAX_CHARS - 1)}…` : title;
         const isHop2 = neighbor.hop === 2;
         const showLabel = shouldShowEgoLabel(neighbor.hop, i, density, hoveredIndex);
@@ -145,7 +151,14 @@ export function OntologyEgoGraph({
             className={clickable ? "cursor-pointer" : ""}
             role={clickable ? "button" : undefined}
             tabIndex={clickable ? 0 : undefined}
-            aria-label={`${title} (${kindLabel}, ${neighbor.direction === "outgoing" ? "outgoing" : "incoming"})`}
+            aria-label={t('egoGraph.neighborTitleAria', {
+              title,
+              kind: kindLabel,
+              direction:
+                neighbor.direction === "outgoing"
+                  ? t('egoGraph.directionOutgoing')
+                  : t('egoGraph.directionIncoming'),
+            })}
             data-neighbor-index={i}
             data-label-shown={showLabel ? "true" : "false"}
             onClick={clickable ? () => onSelectNeighbor!(node!) : undefined}
@@ -193,7 +206,7 @@ export function OntologyEgoGraph({
       })}
 
       {/* center — 마지막에 그려 위로 */}
-      <g aria-label={`중심: ${centerNode.title}`}>
+      <g aria-label={t('egoGraph.centerAria', { title: centerNode.title })}>
         <circle
           cx={layout.center.x}
           cy={layout.center.y}

@@ -1,6 +1,7 @@
 "use client";
 
 import { createElement, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Search, X } from "lucide-react";
 import { getOntologyKindIcon, getOntologyKindLabel } from "@/entities/ontology-class";
 import { ManualSourceChip } from "@/entities/knowledge-graph";
@@ -13,9 +14,14 @@ import {
 } from "@/shared/lib/ontology-tree";
 import {
   sortRoots,
-  ONTOLOGY_ROOT_SORT_LABEL,
   type OntologyRootSortKey,
 } from "../lib/sort-roots";
+
+const SORT_LABEL_KEY: Record<OntologyRootSortKey, string> = {
+  "kind-title": "tree.sortKindTitle",
+  "evidence-desc": "tree.sortEvidenceDesc",
+  title: "tree.sortTitle",
+};
 
 export interface OntologyTreeViewProps {
   result: OntologyTreeBuildResult;
@@ -90,12 +96,13 @@ function KindChip({ kind }: { kind: string }) {
  * 라는 native title 툴팁.
  */
 function EvidenceCountChip({ count }: { count: number | undefined }) {
+  const t = useTranslations('ontologyWidgets');
   if (!count || count <= 0) return null;
   return (
     <span
       data-testid="ontology-tree-evidence-chip"
       data-evidence-count={count}
-      title={`이 노드의 근거 (evidence) ${count}개 — 클릭해서 상세 보기`}
+      title={t('tree.evidenceChipTitle', { count })}
       className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-[color:rgba(94,106,210,0.24)] bg-[color:rgba(94,106,210,0.08)] px-1.5 py-[1px] font-mono text-[9px] tracking-[0.04em] text-[color:var(--color-indigo-accent)]"
     >
       <span aria-hidden>◆</span>
@@ -115,6 +122,7 @@ function TreeRow({
   onToggle: () => void;
   onSelect?: (node: OntologyTreeNode["node"]) => void;
 }) {
+  const t = useTranslations('ontologyWidgets');
   const hasChildren = treeNode.children.length > 0;
   // depth 0 = root → 0 padding. 그 후 16px 씩 들여쓰기.
   const indent = treeNode.depth * 16;
@@ -142,7 +150,7 @@ function TreeRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-label={expanded ? "접기" : "펼치기"}
+          aria-label={expanded ? t('tree.collapse') : t('tree.expand')}
           className="flex h-5 w-5 items-center justify-center rounded text-[color:var(--color-text-quaternary)] hover:bg-[color:var(--color-border-soft)] hover:text-[color:var(--color-text-secondary)]"
         >
           {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
@@ -189,6 +197,7 @@ function ProjectIdChip({
   kind: string;
   projectIds: ReadonlyArray<string> | undefined;
 }) {
+  const t = useTranslations('ontologyWidgets');
   if (kind === "project" || kind === "document") return null;
   if (!projectIds || projectIds.length === 0) return null;
   const first = projectIds[0]!;
@@ -198,7 +207,7 @@ function ProjectIdChip({
       data-testid="ontology-tree-project-chip"
       data-project-id={first}
       className="ml-auto shrink-0 rounded-full border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-1.5 py-[1px] font-mono text-[9px] tracking-[0.04em] text-[color:var(--color-text-quaternary)]"
-      title={extra > 0 ? `${first} (+${extra} 다른 프로젝트)` : first}
+      title={extra > 0 ? t('tree.projectChipMoreTitle', { first, extra }) : first}
     >
       <span className="truncate">{first}</span>
       {extra > 0 ? (
@@ -212,10 +221,11 @@ function ProjectIdChip({
 
 export function OntologyTreeView({
   result,
-  emptyHint = "ontology 가 아직 자라지 않았어요.",
+  emptyHint,
   defaultExpanded = true,
   onSelect,
 }: OntologyTreeViewProps) {
+  const t = useTranslations('ontologyWidgets');
   // expand 상태 — 노드 ID 단위. defaultExpanded 면 처음 모두 펼침.
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   // defaultExpanded=false 시 처음 모든 children-있는 노드를 collapsed 로 시작.
@@ -290,7 +300,7 @@ export function OntologyTreeView({
         className="rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-6 py-10 text-center text-sm text-[color:var(--color-text-tertiary)]"
         data-testid="ontology-tree-empty"
       >
-        {emptyHint}
+        {emptyHint ?? "The ontology hasn't grown yet."}
       </div>
     );
   }
@@ -322,15 +332,15 @@ export function OntologyTreeView({
           type="search"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="트리에서 노드 찾기 — 한·영 OK"
-          aria-label="트리 노드 검색"
+          placeholder={t('tree.searchPlaceholder')}
+          aria-label={t('tree.searchAriaLabel')}
           className="flex-1 bg-transparent text-[12px] text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:outline-none"
         />
         {isFiltering ? (
           <button
             type="button"
             onClick={() => setSearchQuery("")}
-            aria-label="검색 지우기"
+            aria-label={t('tree.searchClearAriaLabel')}
             className="flex h-5 w-5 items-center justify-center rounded text-[color:var(--color-text-quaternary)] hover:bg-[color:var(--color-border-soft)] hover:text-[color:var(--color-text-secondary)]"
           >
             <X size={11} />
@@ -340,27 +350,27 @@ export function OntologyTreeView({
       {collapsibleIds.size > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-[color:var(--color-text-tertiary)]">
           <span className="font-mono text-[10px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
-            {expandedCount} / {collapsibleIds.size} 펼침
+            {t('tree.expandedSummary', { expanded: expandedCount, total: collapsibleIds.size })}
           </span>
           <div className="flex flex-wrap items-center gap-1">
             {/* Fire 2 — 정렬 dropdown. native select 로 모바일 접근성 + 의존성
                 추가 0. 기본 'kind-title' 은 UX-12 정책 그대로. */}
             <label className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-2 py-[3px] text-[10px] text-[color:var(--color-text-tertiary)] focus-within:border-[color:rgba(94,106,210,0.32)]">
               <span className="font-mono uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
-                정렬
+                {t('tree.sortLabel')}
               </span>
               <select
                 value={sortKey}
                 onChange={(event) =>
                   setSortKey(event.target.value as OntologyRootSortKey)
                 }
-                aria-label="트리 정렬 방식"
+                aria-label={t('tree.sortAriaLabel')}
                 className="bg-transparent text-[10px] text-[color:var(--color-text-secondary)] focus:outline-none"
               >
                 {(["kind-title", "evidence-desc", "title"] as const).map(
                   (key) => (
                     <option key={key} value={key}>
-                      {ONTOLOGY_ROOT_SORT_LABEL[key]}
+                      {t(SORT_LABEL_KEY[key])}
                     </option>
                   ),
                 )}
@@ -370,23 +380,23 @@ export function OntologyTreeView({
               type="button"
               onClick={expandAll}
               disabled={!canExpandMore}
-              aria-label="전체 펼치기"
-              title="전체 펼치기"
+              aria-label={t('tree.expandAll')}
+              title={t('tree.expandAll')}
               className="inline-flex h-7 items-center gap-1 rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-2 text-[10px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[color:var(--color-divider)] disabled:hover:text-[color:var(--color-text-tertiary)]"
             >
               <ChevronsUpDown size={11} />
-              전체 펼치기
+              {t('tree.expandAll')}
             </button>
             <button
               type="button"
               onClick={collapseAll}
               disabled={!canCollapseMore}
-              aria-label="전체 접기"
-              title="전체 접기"
+              aria-label={t('tree.collapseAll')}
+              title={t('tree.collapseAll')}
               className="inline-flex h-7 items-center gap-1 rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-2 text-[10px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[color:var(--color-divider)] disabled:hover:text-[color:var(--color-text-tertiary)]"
             >
               <ChevronsDownUp size={11} />
-              전체 접기
+              {t('tree.collapseAll')}
             </button>
           </div>
         </div>
@@ -396,7 +406,7 @@ export function OntologyTreeView({
       </div>
       {isFiltering && filteredRoots.length === 0 && filteredOrphans.length === 0 ? (
         <div className="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-3 text-center text-xs text-[color:var(--color-text-tertiary)]">
-          &quot;{searchQuery}&quot; 와 일치하는 노드가 없어요.
+          {t('tree.noResults', { query: searchQuery })}
         </div>
       ) : null}
       {filteredOrphans.length > 0 ? (
@@ -408,10 +418,12 @@ export function OntologyTreeView({
             className="font-[var(--font-weight-signature)]"
             style={{ color: UNKNOWN_TONE.chipText }}
           >
-            연결되지 않은 노드 {filteredOrphans.length}
             {isFiltering && filteredOrphans.length !== result.orphans.length
-              ? ` / ${result.orphans.length}`
-              : ""}
+              ? t('tree.orphansHeadingFiltered', {
+                  filtered: filteredOrphans.length,
+                  total: result.orphans.length,
+                })
+              : t('tree.orphansHeading', { count: filteredOrphans.length })}
           </p>
           <ul className="mt-2 space-y-0.5">
             {filteredOrphans.slice(0, 8).map((node) => (
@@ -423,7 +435,7 @@ export function OntologyTreeView({
             ))}
             {filteredOrphans.length > 8 ? (
               <li className="text-[color:var(--color-text-quaternary)]">
-                …외 {filteredOrphans.length - 8} 건
+                {t('tree.orphansMore', { count: filteredOrphans.length - 8 })}
               </li>
             ) : null}
           </ul>
@@ -432,7 +444,7 @@ export function OntologyTreeView({
       {result.warnings.length > 0 ? (
         <details className="rounded-xl border border-[color:rgba(229,72,77,0.24)] bg-[color:rgba(229,72,77,0.06)] px-4 py-3 text-xs text-[color:var(--color-status-danger)]">
           <summary className="cursor-pointer font-[var(--font-weight-signature)]">
-            데이터 경고 {result.warnings.length} 건
+            {t('tree.warningsSummary', { count: result.warnings.length })}
           </summary>
           <ul className="mt-2 list-inside list-disc space-y-0.5">
             {result.warnings.slice(0, 12).map((w, i) => (

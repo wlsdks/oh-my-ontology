@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -48,6 +49,7 @@ export function DocsVaultEditor({
   onClose,
   allDocs,
 }: Props) {
+  const t = useTranslations('vaultWidgets.editor');
   const [content, setContent] = useState<string | null>(null);
   const [savedContent, setSavedContent] = useState<string | null>(null);
   const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
@@ -116,12 +118,13 @@ export function DocsVaultEditor({
 
   // 선택 영역을 wrapper (ex. **) 로 감싸고 caret 복구. 선택 없으면 caret
   // 위치에 placeholder 삽입 후 자동 선택.
-  const wrapSelection = useCallback((wrapper: string, placeholder = '텍스트') => {
+  const wrapSelection = useCallback((wrapper: string, placeholder?: string) => {
     const ta = taRef.current;
     if (!ta || content === null) return;
+    const ph = placeholder ?? t('placeholder');
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
-    const selected = content.slice(start, end) || placeholder;
+    const selected = content.slice(start, end) || ph;
     const next =
       content.slice(0, start) + wrapper + selected + wrapper + content.slice(end);
     setContent(next);
@@ -130,7 +133,7 @@ export function DocsVaultEditor({
       const selStart = start + wrapper.length;
       ta.setSelectionRange(selStart, selStart + selected.length);
     });
-  }, [content]);
+  }, [content, t]);
   // 현재 줄 앞에 prefix 를 붙인다 (heading, list, quote 용).
   const prefixLine = useCallback((prefix: string) => {
     const ta = taRef.current;
@@ -174,7 +177,7 @@ export function DocsVaultEditor({
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
     const selected = content.slice(start, end);
-    const body = `[${selected || '링크 텍스트'}](url)`;
+    const body = `[${selected || t('linkText')}](url)`;
     const next = content.slice(0, start) + body + content.slice(end);
     setContent(next);
     requestAnimationFrame(() => {
@@ -183,7 +186,7 @@ export function DocsVaultEditor({
       const urlStart = start + body.indexOf('(url)') + 1;
       ta.setSelectionRange(urlStart, urlStart + 3);
     });
-  }, [content]);
+  }, [content, t]);
 
   const doSave = useCallback(async () => {
     if (saving || content === null || !dirty) return;
@@ -200,23 +203,23 @@ export function DocsVaultEditor({
         setSavedFlash(false);
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '저장 실패');
+      setError(err instanceof Error ? err.message : t('saveFailed'));
     } finally {
       setSaving(false);
     }
-  }, [content, dirty, doc.slug, onSave, saving]);
+  }, [content, dirty, doc.slug, onSave, saving, t]);
 
   const requestClose = useCallback(() => {
     if (saving) return;
     if (
       dirty &&
       typeof window !== 'undefined' &&
-      !window.confirm('저장하지 않은 변경 사항을 버리고 편집을 닫을까요?')
+      !window.confirm(t('discardConfirm'))
     ) {
       return;
     }
     onClose();
-  }, [dirty, onClose, saving]);
+  }, [dirty, onClose, saving, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -294,7 +297,7 @@ export function DocsVaultEditor({
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-center">
         <div className="text-[13px] text-[color:var(--color-text-tertiary)]">
-          파일을 불러오지 못했어요
+          {t('loadFailed')}
         </div>
         <div className="font-mono text-[11px] text-[color:var(--color-text-quaternary)]">
           {error}
@@ -304,7 +307,7 @@ export function DocsVaultEditor({
           onClick={requestClose}
           className="mt-2 rounded-sm border border-[color:var(--color-divider)] px-2 py-1 text-[11px] text-[color:var(--color-text-tertiary)] hover:border-[color:rgba(139,151,255,0.3)] hover:text-[color:var(--color-text-primary)]"
         >
-          닫기
+          {t('close')}
         </button>
       </div>
     );
@@ -323,21 +326,21 @@ export function DocsVaultEditor({
       {/* 상단 액션 바 */}
       <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] px-4 py-2 text-[11.5px]">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-          편집 · {doc.slug}
+          {t('editorEyebrow', { slug: doc.slug })}
         </span>
         {dirty ? (
           <span
             className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:rgba(232,200,148,0.95)]"
             aria-live="polite"
           >
-            변경 사항 있음
+            {t('dirty')}
           </span>
         ) : savedFlash ? (
           <span
             className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:rgba(139,151,255,0.95)]"
             aria-live="polite"
           >
-            <Check size={11} aria-hidden /> 저장됨
+            <Check size={11} aria-hidden /> {t('saved')}
           </span>
         ) : null}
         <div className="ml-auto flex items-center gap-1.5">
@@ -350,31 +353,31 @@ export function DocsVaultEditor({
                 : 'border-[color:var(--color-divider)] text-[color:var(--color-text-tertiary)] hover:border-[color:rgba(139,151,255,0.3)] hover:text-[color:var(--color-text-primary)]'
             }`}
             aria-pressed={preview}
-            title="실시간 미리보기 split view"
+            title={t('previewTooltip')}
           >
             {preview ? (
               <EyeOff size={11} aria-hidden />
             ) : (
               <Eye size={11} aria-hidden />
             )}
-            미리보기
+            {t('preview')}
           </button>
           <button
             type="button"
             onClick={() => void doSave()}
             disabled={saving || !dirty}
             className="inline-flex items-center gap-1.5 rounded-sm border border-[color:rgba(139,151,255,0.35)] bg-[color:rgba(94,106,210,0.14)] px-2 py-1 text-[11px] text-[color:rgba(200,210,255,0.95)] transition-colors hover:border-[color:rgba(139,151,255,0.55)] disabled:cursor-not-allowed disabled:opacity-50"
-            title="저장 (⌘S)"
+            title={t('saveTooltip')}
           >
             {saving ? (
               <>
                 <Loader2 size={11} className="animate-spin" aria-hidden />
-                저장 중
+                {t('saving')}
               </>
             ) : (
               <>
                 <Save size={11} aria-hidden />
-                저장
+                {t('save')}
               </>
             )}
           </button>
@@ -383,10 +386,10 @@ export function DocsVaultEditor({
             onClick={requestClose}
             disabled={saving}
             className="inline-flex items-center gap-1 rounded-sm border border-transparent px-2 py-1 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:var(--color-overlay-3)] hover:text-[color:var(--color-text-primary)] disabled:cursor-not-allowed disabled:opacity-50"
-            title={dirty ? '변경 사항을 버리고 닫기 (Esc)' : '닫기 (Esc)'}
+            title={dirty ? t('closeUnsavedTooltip') : t('closeTooltip')}
           >
             <X size={11} aria-hidden />
-            {dirty ? '취소' : '닫기'}
+            {dirty ? t('cancel') : t('closeAction')}
           </button>
         </div>
       </div>
@@ -402,60 +405,60 @@ export function DocsVaultEditor({
       <div className="flex flex-none items-center gap-0.5 border-b border-[color:var(--color-overlay-2)] bg-[color:var(--color-elevated)] px-3 py-1 text-[color:var(--color-text-tertiary)]">
         <ToolbarButton
           icon={<Bold size={12} />}
-          label="굵게 ⌘B"
+          label={t('tbBold')}
           onClick={() => wrapSelection('**')}
         />
         <ToolbarButton
           icon={<Italic size={12} />}
-          label="기울임 ⌘I"
+          label={t('tbItalic')}
           onClick={() => wrapSelection('*')}
         />
         <ToolbarButton
           icon={<CodeIcon size={12} />}
-          label="인라인 코드"
+          label={t('tbCode')}
           onClick={() => wrapSelection('`')}
         />
         <span className="mx-1 h-4 w-px bg-[color:var(--color-divider)]" />
         <ToolbarButton
           icon={<Heading1 size={12} />}
-          label="H1"
+          label={t('tbH1')}
           onClick={() => prefixLine('# ')}
         />
         <ToolbarButton
           icon={<Heading2 size={12} />}
-          label="H2"
+          label={t('tbH2')}
           onClick={() => prefixLine('## ')}
         />
         <ToolbarButton
           icon={<Heading3 size={12} />}
-          label="H3"
+          label={t('tbH3')}
           onClick={() => prefixLine('### ')}
         />
         <span className="mx-1 h-4 w-px bg-[color:var(--color-divider)]" />
         <ToolbarButton
           icon={<List size={12} />}
-          label="불릿 리스트"
+          label={t('tbBullet')}
           onClick={() => prefixLine('- ')}
         />
         <ToolbarButton
           icon={<ListOrdered size={12} />}
-          label="번호 리스트"
+          label={t('tbNumbered')}
           onClick={() => prefixLine('1. ')}
         />
         <ToolbarButton
           icon={<CheckSquare size={12} />}
-          label="체크박스"
+          label={t('tbCheckbox')}
           onClick={() => prefixLine('- [ ] ')}
         />
         <ToolbarButton
           icon={<Quote size={12} />}
-          label="인용"
+          label={t('tbQuote')}
           onClick={() => prefixLine('> ')}
         />
         <span className="mx-1 h-4 w-px bg-[color:var(--color-divider)]" />
         <ToolbarButton
           icon={<LinkIcon size={12} />}
-          label="링크 ⌘K"
+          label={t('tbLink')}
           onClick={insertLink}
         />
       </div>
@@ -529,7 +532,7 @@ export function DocsVaultEditor({
           {autocomplete && acMatches.length > 0 ? (
             <div className="pointer-events-auto absolute bottom-3 left-3 z-10 w-[320px] overflow-hidden rounded-md border border-[color:rgba(139,151,255,0.3)] bg-[color:rgba(12,14,20,0.98)] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
               <div className="border-b border-[color:var(--color-overlay-2)] px-2 py-1 font-mono text-[9.5px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                {`wikilink · "${autocomplete.query}"`}
+                {t('wikilinkLabel', { query: autocomplete.query })}
               </div>
               <ul className="max-h-[220px] overflow-auto py-0.5">
                 {acMatches.map((d, idx) => (
@@ -559,7 +562,7 @@ export function DocsVaultEditor({
                 ))}
               </ul>
               <div className="border-t border-[color:var(--color-overlay-2)] px-2 py-1 font-mono text-[9.5px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                ↑↓ 이동 · ↵/Tab 삽입 · Esc 닫기
+                {t('wikilinkFooter')}
               </div>
             </div>
           ) : null}

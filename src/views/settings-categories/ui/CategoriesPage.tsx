@@ -9,6 +9,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, Plus, SquareArrowOutUpRight, Trash2 } from "lucide-react";
 import { PermissionGate } from "@/features/permissions";
 import type { Category } from "@/entities/category";
@@ -109,6 +110,7 @@ function buildReflowUpdates(
 
 function CategoriesContent() {
   const searchParams = useSearchParams();
+  const t = useTranslations("settings.categories");
   const initialSelectedId = searchParams.get("selected");
   const accountId = null;
   const safeReturnTo = normalizeReturnTo(
@@ -223,16 +225,16 @@ function CategoriesContent() {
         await upsertProjectPositions(updates);
         setMessage(
           reflowMode === "all"
-            ? "카테고리를 저장하고 전체 프로젝트를 재배치했습니다."
-            : "카테고리를 저장하고 이 영역의 프로젝트를 재배치했습니다.",
+            ? t("messageSavedAndReflowAll")
+            : t("messageSavedAndReflowSelected"),
         );
       } else {
         setMessage(
-          selectedId ? "카테고리를 저장했습니다." : "카테고리를 생성했습니다.",
+          selectedId ? t("messageSaved") : t("messageCreated"),
         );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "저장 실패");
+      setError(err instanceof Error ? err.message : t("errorSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -242,7 +244,7 @@ function CategoriesContent() {
     if (!selectedId) return;
     const refCount = projectCountByCategory.get(selectedId) ?? 0;
     if (refCount > 0) {
-      setError(`이 카테고리를 참조 중인 프로젝트가 ${refCount}개 있습니다.`);
+      setError(t("errorReferenced", { count: refCount }));
       return;
     }
 
@@ -260,9 +262,9 @@ function CategoriesContent() {
           categories.filter((category) => category.id !== selectedId),
         ),
       );
-      setMessage("카테고리를 삭제했습니다.");
+      setMessage(t("messageDeleted"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "삭제 실패");
+      setError(err instanceof Error ? err.message : t("errorDeleteFailed"));
     } finally {
       setSaving(false);
     }
@@ -319,8 +321,8 @@ function CategoriesContent() {
   );
   const confirmDiscardChanges = useCallback(() => {
     if (!isDirty) return true;
-    return window.confirm("저장하지 않은 변경사항이 있습니다. 정말 나갈까요?");
-  }, [isDirty]);
+    return window.confirm(t("discardConfirm"));
+  }, [isDirty, t]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -372,7 +374,7 @@ function CategoriesContent() {
       return;
     }
     if (!replacementCategoryId || replacementCategoryId === selectedId) {
-      setError("프로젝트를 옮길 대상 카테고리를 선택하세요.");
+      setError(t("errorPickReplacement"));
       return;
     }
 
@@ -380,7 +382,7 @@ function CategoriesContent() {
       (category) => category.id === replacementCategoryId,
     );
     if (!targetCategory) {
-      setError("대상 카테고리를 찾지 못했습니다.");
+      setError(t("errorReplacementMissing"));
       return;
     }
 
@@ -417,10 +419,13 @@ function CategoriesContent() {
       setSelectedId(null);
       setDraft(createEmptyDraft(getNextOrder(remainingCategories), remainingCategories));
       setMessage(
-        `프로젝트 ${selectedProjects.length}개를 ${replacementLabel} 카테고리로 옮기고 카테고리를 삭제했습니다.`,
+        t("messageReassigned", {
+          count: selectedProjects.length,
+          name: replacementLabel,
+        }),
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "재할당 삭제 실패");
+      setError(err instanceof Error ? err.message : t("errorReassignFailed"));
     } finally {
       setSaving(false);
     }
@@ -428,7 +433,7 @@ function CategoriesContent() {
 
   return (
     <main className="min-h-screen bg-[color:var(--color-canvas)]">
-      <h1 className="sr-only">카테고리 관리</h1>
+      <h1 className="sr-only">{t("srTitle")}</h1>
       <OperationsNav />
       <div className="mx-auto max-w-6xl px-5 py-6 md:px-12 md:py-10">
         <Link
@@ -438,16 +443,16 @@ function CategoriesContent() {
           className="inline-flex items-center gap-1.5 break-keep text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
         >
           <ArrowLeft size={14} />
-          정리
+          {t("back")}
         </Link>
 
         <header className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="break-keep text-[28px] font-[var(--font-weight-signature)] tracking-[var(--tracking-section)] text-[color:var(--color-text-primary)] md:text-3xl">
-              카테고리 관리
+              {t("title")}
             </h1>
             <p className="mt-2 break-keep text-sm text-[color:var(--color-text-tertiary)]">
-              토폴로지 클러스터의 라벨, 배치, 크기, 보더 스타일을 관리합니다.
+              {t("subtitle")}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -459,7 +464,7 @@ function CategoriesContent() {
               onClick={() => void handleSave("all")}
               disabled={saving}
             >
-              전체 프로젝트 재배치
+              {t("reflowAll")}
             </Button>
             <Button
               data-testid="category-new"
@@ -467,7 +472,8 @@ function CategoriesContent() {
               size="sm"
               onClick={handleNew}
             >
-              <Plus size={14} className="mr-1" />새 카테고리
+              <Plus size={14} className="mr-1" />
+              {t("newCategory")}
             </Button>
           </div>
         </header>
@@ -509,7 +515,7 @@ function CategoriesContent() {
                         </p>
                       </div>
                       <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--color-text-quaternary)]">
-                        {refCount} refs
+                        {t("refsBadge", { count: refCount })}
                       </span>
                     </div>
                   </button>
@@ -532,12 +538,12 @@ function CategoriesContent() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-                    {selectedId ? draft.label || selectedId : "새 카테고리"}
+                    {selectedId ? draft.label || selectedId : t("newCategoryEmpty")}
                   </h2>
                   <p className="mt-1 text-sm text-[color:var(--color-text-tertiary)]">
                     {selectedId
-                      ? `참조 프로젝트 ${selectedReferenceCount}개`
-                      : "새 영역을 추가하면 프로젝트 폼과 토폴로지에 바로 반영됩니다."}
+                      ? t("refsCountText", { count: selectedReferenceCount })
+                      : t("newCategoryHelper")}
                   </p>
                 </div>
                 {selectedId && (
@@ -559,7 +565,7 @@ function CategoriesContent() {
                     >
                       <Button type="button" size="sm" variant="ghost">
                         <SquareArrowOutUpRight size={14} className="mr-1" />
-                        프로젝트 만들기
+                        {t("createProject")}
                       </Button>
                     </Link>
                     <Button
@@ -571,14 +577,14 @@ function CategoriesContent() {
                       disabled={saving}
                     >
                       <Trash2 size={14} className="mr-1" />
-                      삭제
+                      {t("delete")}
                     </Button>
                   </div>
                 )}
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <Field label="ID">
+                <Field label={t("fieldId")}>
                   <input
                     data-testid="category-input-id"
                     value={draft.id}
@@ -596,12 +602,11 @@ function CategoriesContent() {
                       data-testid="category-id-locked-hint"
                       className="mt-1 text-[11px] text-[color:var(--color-text-quaternary)]"
                     >
-                      기존 카테고리 ID는 프로젝트 참조 때문에 변경할 수
-                      없습니다.
+                      {t("idLockedHint")}
                     </p>
                   )}
                 </Field>
-                <Field label="정렬 순서">
+                <Field label={t("fieldOrder")}>
                   <input
                     data-testid="category-input-order"
                     type="number"
@@ -615,7 +620,7 @@ function CategoriesContent() {
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   />
                 </Field>
-                <Field label="라벨">
+                <Field label={t("fieldLabel")}>
                   <input
                     data-testid="category-input-label"
                     value={draft.label}
@@ -628,7 +633,7 @@ function CategoriesContent() {
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   />
                 </Field>
-                <Field label="영문 라벨">
+                <Field label={t("fieldLabelEn")}>
                   <input
                     data-testid="category-input-label-en"
                     value={draft.labelEn}
@@ -641,7 +646,7 @@ function CategoriesContent() {
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   />
                 </Field>
-                <Field label="중심 X">
+                <Field label={t("fieldX")}>
                   <input
                     data-testid="category-input-x"
                     type="number"
@@ -655,7 +660,7 @@ function CategoriesContent() {
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   />
                 </Field>
-                <Field label="중심 Y">
+                <Field label={t("fieldY")}>
                   <input
                     data-testid="category-input-y"
                     type="number"
@@ -669,7 +674,7 @@ function CategoriesContent() {
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   />
                 </Field>
-                <Field label="너비">
+                <Field label={t("fieldWidth")}>
                   <input
                     data-testid="category-input-width"
                     type="number"
@@ -683,7 +688,7 @@ function CategoriesContent() {
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   />
                 </Field>
-                <Field label="높이">
+                <Field label={t("fieldHeight")}>
                   <input
                     data-testid="category-input-height"
                     type="number"
@@ -697,7 +702,7 @@ function CategoriesContent() {
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   />
                 </Field>
-                <Field label="반경">
+                <Field label={t("fieldRadius")}>
                   <input
                     type="number"
                     value={draft.radius}
@@ -710,7 +715,7 @@ function CategoriesContent() {
                     className="w-full rounded-lg border border-[color:var(--color-divider)] bg-[color:var(--color-canvas)] px-3 py-2 text-sm text-[color:var(--color-text-primary)]"
                   />
                 </Field>
-                <Field label="보더 스타일">
+                <Field label={t("fieldBorderStyle")}>
                   <select
                     data-testid="category-input-border-style"
                     value={draft.borderStyle}
@@ -730,7 +735,7 @@ function CategoriesContent() {
                     ))}
                   </select>
                 </Field>
-                <Field label="세로 라벨">
+                <Field label={t("fieldSideLabel")}>
                   <input
                     data-testid="category-input-side-label"
                     value={draft.sideLabelText}
@@ -770,7 +775,7 @@ function CategoriesContent() {
                     onClick={() => void handleSave("selected")}
                     disabled={saving}
                   >
-                    저장 후 이 영역 재배치
+                    {t("reflowSelected")}
                   </Button>
                 )}
                 <Button
@@ -780,10 +785,10 @@ function CategoriesContent() {
                   disabled={saving}
                 >
                   {saving
-                    ? "저장 중…"
+                    ? t("saving")
                     : selectedId
-                      ? "변경 저장"
-                      : "카테고리 생성"}
+                      ? t("saveExisting")
+                      : t("saveCreate")}
                 </Button>
               </div>
 
@@ -802,7 +807,7 @@ function CategoriesContent() {
                   </div>
                   {selectedProjects.length === 0 ? (
                     <p className="mt-3 text-sm text-[color:var(--color-text-tertiary)]">
-                      아직 이 카테고리를 쓰는 프로젝트가 없습니다.
+                      {t("noReferencedProjects")}
                     </p>
                   ) : (
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -834,13 +839,13 @@ function CategoriesContent() {
                       Reassign and delete
                     </h3>
                     <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--color-text-quaternary)]">
-                      {selectedProjects.length} projects
+                      {t("reassignProjectsBadge", { count: selectedProjects.length })}
                     </span>
                   </div>
 
                   {replacementCategories.length === 0 ? (
                     <p className="mt-3 text-sm text-[color:var(--color-text-tertiary)]">
-                      이 카테고리를 삭제하려면 다른 카테고리를 하나 더 만들어야 합니다.
+                      {t("needsAnotherCategory")}
                     </p>
                   ) : (
                     <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center">
@@ -865,7 +870,7 @@ function CategoriesContent() {
                         onClick={() => void handleReassignAndDelete()}
                         disabled={saving}
                       >
-                        프로젝트 옮기고 삭제
+                        {t("reassignAndDelete")}
                       </Button>
                     </div>
                   )}

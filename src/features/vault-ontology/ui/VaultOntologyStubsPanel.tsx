@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useVaultOntology } from '../model/use-vault-ontology';
 
 /**
@@ -14,6 +15,7 @@ import { useVaultOntology } from '../model/use-vault-ontology';
  * 디자인 헌장 안: 단일 인디고 + 무채색, 애니메이션 0.
  */
 export function VaultOntologyStubsPanel() {
+  const t = useTranslations('featuresMisc.vaultStubs');
   const { nodes, edges, warnings } = useVaultOntology();
 
   if (nodes.length === 0) {
@@ -28,12 +30,11 @@ export function VaultOntologyStubsPanel() {
             id="vault-stubs-heading"
             className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]"
           >
-            vault frontmatter ontology
+            {t('headingFallback')}
           </h2>
         </div>
         <p className="mt-3 text-[12.5px] leading-6 text-[color:var(--color-text-tertiary)]">
-          {warnings[0] ??
-            'vault 의 .md 어디에도 frontmatter `kind:` 가 없어 ontology 가 비어 있어요. 문서 상단에 `kind: project` (또는 capability / element / workflow / decision) 추가 시 즉시 노드로 자랍니다.'}
+          {warnings[0] ?? t('emptyBody')}
         </p>
       </section>
     );
@@ -59,15 +60,15 @@ export function VaultOntologyStubsPanel() {
             id="vault-stubs-heading"
             className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-indigo-accent)]"
           >
-            vault frontmatter ontology
+            {t('headingFallback')}
           </h2>
         </div>
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-          {nodes.length} nodes · {edges.length} relations
+          {t('summary', { nodes: nodes.length, edges: edges.length })}
         </p>
       </header>
       <p className="mt-2 text-[12px] text-[color:var(--color-text-tertiary)]">
-        vault 안 .md 의 frontmatter `kind:` 가 그대로 노드. 추출·검수 단계 없이 즉시 그래프.
+        {t('intro')}
       </p>
 
       {/* 다음 단계 안내 — frontmatter 만으로도 충분하지만 시각적으로 더
@@ -75,19 +76,15 @@ export function VaultOntologyStubsPanel() {
           path 가 폐기됐으므로 빌더 한 가지만 명시. */}
       <details className="mt-3 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-2)] px-3 py-2 text-[12px] text-[color:var(--color-text-secondary)]">
         <summary className="cursor-pointer font-[var(--font-weight-signature)]">
-          노드·관계를 시각적으로 다듬고 싶다면?
+          {t('polishSummary')}
         </summary>
         <div className="mt-2 space-y-2 text-[color:var(--color-text-tertiary)]">
-          <p>
-            `/ontology/edit/` 빌더 캔버스에서 같은 vault 를 ERD-like 캔버스로 보고
-            노드 위치 / frontmatter 키를 inline 편집할 수 있어요. 저장은 같은 vault
-            의 .md 에 직접 — 별도 promote 단계 없음.
-          </p>
+          <p>{t('polishBody')}</p>
           <Link
             href="/ontology/edit/"
             className="inline-flex h-7 items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.14)] px-3 text-[11px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)]"
           >
-            빌더 열기 <ArrowRight size={11} aria-hidden />
+            {t('polishCta')} <ArrowRight size={11} aria-hidden />
           </Link>
         </div>
       </details>
@@ -98,7 +95,7 @@ export function VaultOntologyStubsPanel() {
           return (
             <div key={kind}>
               <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-                {kind} · {group.length}
+                {t('groupSummary', { kind, count: group.length })}
               </p>
               <ul className="mt-2 grid gap-1.5 md:grid-cols-2">
                 {group.map((n) => (

@@ -6,6 +6,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ManualSourceChip, type KnowledgeGraphNode } from "@/entities/knowledge-graph";
 import { getOntologyKindLabel } from "@/entities/ontology-class";
 import type { Project } from "@/entities/project";
@@ -48,6 +49,7 @@ export function GlobalSearch({
   projects,
   onSelectProject,
 }: GlobalSearchProps) {
+  const t = useTranslations("searchWidgets.globalSearch");
   const [query, setQuery] = useState("");
   // Fire 2 — kind / project filter chip 으로 ontology 결과 좁히기. set 으로
   // 다중 선택 (toggle) 모델. 닫을 때 query 와 함께 초기화.
@@ -162,18 +164,17 @@ export function GlobalSearch({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-[color:rgba(8,9,12,0.66)]" />
         <Dialog.Content
-          aria-label="글로벌 검색"
+          aria-label={t('dialogAriaLabel')}
           className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[12vh]"
         >
           <VisuallyHidden>
-            <Dialog.Title>글로벌 검색</Dialog.Title>
+            <Dialog.Title>{t('dialogTitle')}</Dialog.Title>
             <Dialog.Description>
-              개념 (ontology 노드) · 글 (문서) · 프로젝트를 한 번에 검색합니다. 위·아래
-              화살표로 이동, Enter 로 선택, ESC 로 닫기.
+              {t('dialogDescription')}
             </Dialog.Description>
           </VisuallyHidden>
           <Command
-            label="글로벌 검색"
+            label={t('commandLabel')}
             shouldFilter={false}
             className="w-full max-w-xl overflow-hidden rounded-2xl border border-[color:var(--color-overlay-3)] bg-[color:var(--color-panel)] shadow-[0_20px_56px_rgba(0,0,0,0.50)]"
             onClick={(event) => event.stopPropagation()}
@@ -185,8 +186,8 @@ export function GlobalSearch({
             onValueChange={setQuery}
             placeholder={
               projects && projects.length > 0
-                ? "개념 · 프로젝트 검색 — 한·영 혼합 OK"
-                : "개념 검색 — 한·영 혼합 OK"
+                ? t('placeholderWithProjects')
+                : t('placeholderOntologyOnly')
             }
             className="flex-1 bg-transparent text-sm text-[color:var(--color-text-primary)] placeholder:text-[color:var(--color-text-quaternary)] focus:outline-none"
           />
@@ -200,14 +201,14 @@ export function GlobalSearch({
             "어떻게 좁힐 수 있는지" 한눈에 보이게. 다중 선택 toggle. */}
         <div
           className="flex flex-col gap-1 border-b border-[color:var(--color-border-soft)] px-3 py-2"
-          aria-label="ontology 필터"
+          aria-label={t('filterAriaLabel')}
         >
           <div className="flex items-center gap-2 overflow-x-auto">
             <span
               className="shrink-0 font-mono text-[10px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]"
               aria-hidden
             >
-              Kind
+              {t('kindLabel')}
             </span>
             {MEANINGFUL_ONTOLOGY_KINDS.map((kind) => {
               const active = selectedKinds.has(kind);
@@ -236,7 +237,7 @@ export function GlobalSearch({
                 }}
                 className="ml-auto shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-secondary)]"
               >
-                필터 해제
+                {t('clearFilter')}
               </button>
             ) : null}
           </div>
@@ -246,7 +247,7 @@ export function GlobalSearch({
                 className="shrink-0 font-mono text-[10px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]"
                 aria-hidden
               >
-                Project · {projectChipSource.length}
+                {t('projectLabel', { count: projectChipSource.length })}
               </span>
               {/* @tanstack/react-virtual horizontal virtualizer — 1,979
                   project 같은 큰 워크스페이스 에서도 viewport 안 chip 만 렌더
@@ -303,16 +304,16 @@ export function GlobalSearch({
           <Command.Empty className="px-3 py-6 text-center text-sm text-[color:var(--color-text-tertiary)]">
             {isEmptyQuery
               ? totalCorpus === 0
-                ? "아직 색인된 개념·글이 없어요. vault frontmatter 또는 빌더에서 첫 노드를 만들면 여기로 자라요."
-                : `${totalCorpus}개 항목이 색인되어 있어요. 한·영 모두 OK.`
-              : `"${query}" 와 일치하는 결과가 없어요.`}
+                ? t('emptyNoCorpus')
+                : t('emptyIndexed', { count: totalCorpus })
+              : t('emptyNoMatch', { query })}
           </Command.Empty>
 
           {ontologyResults.length > 0 ? (
             <Command.Group
               heading={
                 <span className="px-2 pb-1 pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  {isEmptyQuery ? "개념 · 최근" : "개념 · 매치"} · {ontologyResults.length}
+                  {isEmptyQuery ? t('groupConceptRecent') : t('groupConceptMatch')} · {ontologyResults.length}
                   {isEmptyQuery && ontologySize > ontologyResults.length ? ` / ${ontologySize}` : ""}
                 </span>
               }
@@ -344,9 +345,9 @@ export function GlobalSearch({
                     {evidenceCount > 0 ? (
                       <span
                         className="shrink-0 font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]"
-                        title={`근거 문서 ${evidenceCount}개`}
+                        title={t('evidenceTitle', { count: evidenceCount })}
                       >
-                        근거 {evidenceCount}
+                        {t('evidenceShort', { count: evidenceCount })}
                       </span>
                     ) : null}
                   </Command.Item>
@@ -359,7 +360,7 @@ export function GlobalSearch({
             <Command.Group
               heading={
                 <span className="px-2 pb-1 pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  {isEmptyQuery ? "프로젝트 · 최근" : "프로젝트 · 매치"} · {projectResults.length}
+                  {isEmptyQuery ? t('groupProjectRecent') : t('groupProjectMatch')} · {projectResults.length}
                   {isEmptyQuery && projectSize > projectResults.length ? ` / ${projectSize}` : ""}
                 </span>
               }
@@ -375,7 +376,7 @@ export function GlobalSearch({
                   className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-[color:var(--color-text-secondary)] aria-selected:bg-[color:rgba(94,106,210,0.14)] aria-selected:text-[color:var(--color-text-primary)]"
                 >
                   <span className="inline-flex shrink-0 items-center rounded-full border border-[color:rgba(94,106,210,0.20)] bg-[color:rgba(94,106,210,0.06)] px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em] text-[color:rgba(159,170,235,0.95)]">
-                    {project.isHub ? "허브" : "프로젝트"}
+                    {project.isHub ? t('hub') : t('project')}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-[color:var(--color-text-primary)]">
                     {project.name}
@@ -395,13 +396,13 @@ export function GlobalSearch({
         <div className="flex items-center justify-between gap-3 border-t border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
           <span>
             {isEmptyQuery
-              ? `${totalCorpus} 색인`
-              : `${totalMatches} 매치`}
+              ? t('indexed', { count: totalCorpus })
+              : t('matches', { count: totalMatches })}
           </span>
           <span className="flex items-center gap-3">
-            <span>↑↓ 이동</span>
-            <span>↵ 선택</span>
-            <span>ESC 닫기</span>
+            <span>{t('shortcutMove')}</span>
+            <span>{t('shortcutSelect')}</span>
+            <span>{t('shortcutClose')}</span>
           </span>
         </div>
           </Command>

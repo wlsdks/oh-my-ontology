@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUpRight,
@@ -220,6 +221,7 @@ function DocRow({
   onTogglePin: (slug: string) => void;
   trailingText?: string;
 }) {
+  const t = useTranslations("vaultWidgets.docsDrawer");
   const hasExcerpt = doc.excerpt.trim().length > 0;
   return (
     <div className="group flex flex-col rounded-[8px] transition-colors hover:bg-[color:rgba(94,106,210,0.1)]">
@@ -247,8 +249,12 @@ function DocRow({
             e.stopPropagation();
             onTogglePin(doc.slug);
           }}
-          aria-label={pinned ? `${doc.title} 고정 해제` : `${doc.title} 고정`}
-          title={pinned ? "고정 해제" : "고정"}
+          aria-label={
+            pinned
+              ? t("togglePinOff", { title: doc.title })
+              : t("togglePinOn", { title: doc.title })
+          }
+          title={pinned ? t("pinTooltipOn") : t("pinTooltipOff")}
           className={cn(
             "mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded transition-opacity",
             pinned
@@ -280,6 +286,7 @@ export function DocsQuickDrawer({
       : basePath,
   contextProject,
 }: Props) {
+  const t = useTranslations("vaultWidgets.docsDrawer");
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [pinnedSlugs, setPinnedSlugs] = useState<string[]>([]);
@@ -463,7 +470,7 @@ export function DocsQuickDrawer({
             ref={panelRef}
             role="dialog"
             aria-modal="true"
-            aria-label="문서 볼트 빠른 접근"
+            aria-label={t("ariaLabel")}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -486,10 +493,10 @@ export function DocsQuickDrawer({
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-indigo-accent)]">
-                    문서 볼트
+                    {t("eyebrow")}
                   </p>
                   <p className="mt-1 text-[13px] text-[color:var(--color-text-secondary)]">
-                    등록된 문서 {totalDocs}개를 한눈에.
+                    {t("totalLine", { count: totalDocs })}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -497,16 +504,16 @@ export function DocsQuickDrawer({
                     href={getDocHref()}
                     onClick={onClose}
                     className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 py-1 text-[11px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.4)] hover:text-[color:var(--color-text-primary)]"
-                    aria-label="문서 볼트 전체 페이지로 이동"
+                    aria-label={t("openAllAriaLabel")}
                   >
                     <BookOpen size={11} />
-                    전체
+                    {t("openAllLabel")}
                     <ArrowUpRight size={11} />
                   </Link>
                   <button
                     type="button"
                     onClick={onClose}
-                    aria-label="드로어 닫기"
+                    aria-label={t("closeAriaLabel")}
                     className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-strong)]"
                   >
                     <X size={14} />
@@ -545,17 +552,17 @@ export function DocsQuickDrawer({
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="제목·경로 빠른 필터…"
+                  placeholder={t("filterPlaceholder")}
                   name="docsQuickFilter"
                   autoComplete="off"
                   className="flex-1 bg-transparent text-[13px] text-[color:var(--color-text-primary)] placeholder-[color:var(--color-text-quaternary)] outline-none"
-                  aria-label="문서 제목·경로 필터"
+                  aria-label={t("filterAriaLabel")}
                 />
                 {query ? (
                   <button
                     type="button"
                     onClick={() => setQuery("")}
-                    aria-label="필터 지우기"
+                    aria-label={t("filterClearAriaLabel")}
                     className="text-[color:var(--color-text-quaternary)] hover:text-[color:var(--color-text-primary)]"
                   >
                     <X size={13} aria-hidden />
@@ -567,17 +574,17 @@ export function DocsQuickDrawer({
                 <div
                   className="-mx-1 mt-2.5 flex gap-1.5 overflow-x-auto px-1 py-0.5 [&::-webkit-scrollbar]:h-0"
                   role="toolbar"
-                  aria-label="태그 필터"
+                  aria-label={t("tagToolbarAriaLabel")}
                 >
                   {activeTag && (
                     <button
                       type="button"
                       onClick={() => setActiveTag(null)}
                       className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-2 py-1 text-[10px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)]"
-                      aria-label="태그 필터 해제"
+                      aria-label={t("tagClearAriaLabel")}
                     >
                       <X size={10} />
-                      해제
+                      {t("tagClearLabel")}
                     </button>
                   )}
                   {topTags.map(({ tag, count }) => {
@@ -616,7 +623,7 @@ export function DocsQuickDrawer({
                     <section className="mb-4 rounded-[12px] border border-[color:rgba(94,106,210,0.24)] bg-[color:rgba(94,106,210,0.06)] p-2">
                       <p className="mb-1.5 flex items-center gap-1 px-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-indigo-accent)]">
                         <Link2 size={10} />
-                        {contextProject.name} 관련 · {relatedDocs.length}
+                        {t("relatedSection", { name: contextProject.name, count: relatedDocs.length })}
                       </p>
                       <div className="space-y-0.5">
                         {relatedDocs.map((m) => (
@@ -644,7 +651,7 @@ export function DocsQuickDrawer({
                     <section className="mb-4">
                       <p className="mb-1.5 flex items-center gap-1 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-indigo-accent)]">
                         <Star size={10} />
-                        고정 · {pinnedDocs.length}
+                        {t("pinnedSection", { count: pinnedDocs.length })}
                       </p>
                       <div className="space-y-0.5">
                         {pinnedDocs.map((doc) => (
@@ -665,7 +672,7 @@ export function DocsQuickDrawer({
                     <section className="mb-4">
                       <p className="mb-1.5 flex items-center gap-1 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
                         <Clock size={10} />
-                        최근 열람 · {recentViewed.length}
+                        {t("recentSection", { count: recentViewed.length })}
                       </p>
                       <div className="space-y-0.5">
                         {recentViewed.map((doc) => (
@@ -685,7 +692,7 @@ export function DocsQuickDrawer({
                   <section className="mb-4">
                     <p className="mb-1.5 flex items-center gap-1 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
                       <Clock size={10} />
-                      최근 수정 · {modifiedDocs.length}
+                      {t("modifiedSection", { count: modifiedDocs.length })}
                     </p>
                     <div className="space-y-0.5">
                       {modifiedDocs.map((doc) => (
@@ -696,7 +703,7 @@ export function DocsQuickDrawer({
                           onClose={onClose}
                           pinned={pinnedSet.has(doc.slug)}
                           onTogglePin={handleTogglePin}
-                          trailingText={formatRelative(doc.updatedAt)}
+                          trailingText={formatRelative(doc.updatedAt, t)}
                         />
                       ))}
                     </div>
@@ -707,10 +714,10 @@ export function DocsQuickDrawer({
               <section>
                 <p className="mb-1.5 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
                   {trimmedQuery
-                    ? `검색 결과 · "${query}"`
+                    ? t("searchHeader", { query })
                     : activeTag
-                      ? `#${activeTag} · ${activeTagSlugs?.size ?? 0}`
-                      : `폴더별 · ${totalDocs}`}
+                      ? t("tagHeader", { tag: activeTag, count: activeTagSlugs?.size ?? 0 })
+                      : t("folderHeader", { count: totalDocs })}
                 </p>
                 {filteredTree ? (
                   <TreeBranch
@@ -726,10 +733,10 @@ export function DocsQuickDrawer({
                   <div className="rounded-[10px] border border-dashed border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 py-5 text-center">
                     <p className="text-[12px] text-[color:var(--color-text-tertiary)]">
                       {trimmedQuery
-                        ? `"${query}" 에 일치하는 문서가 없습니다`
+                        ? t("emptySearch", { query })
                         : activeTag
-                          ? `#${activeTag} 태그가 붙은 문서가 없습니다`
-                          : "등록된 문서가 없습니다"}
+                          ? t("emptyTag", { tag: activeTag })
+                          : t("emptyAll")}
                     </p>
                     <div className="mt-2 flex items-center justify-center gap-2">
                       {(trimmedQuery || activeTag) && (
@@ -742,7 +749,7 @@ export function DocsQuickDrawer({
                           }}
                           className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-overlay-3)] px-2.5 py-1 text-[11px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.4)] hover:text-[color:var(--color-text-primary)]"
                         >
-                          필터 해제
+                          {t("clearFilters")}
                         </button>
                       )}
                       <Link
@@ -751,7 +758,7 @@ export function DocsQuickDrawer({
                         className="inline-flex items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.1)] px-2.5 py-1 text-[11px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.5)]"
                       >
                         <BookOpen size={11} />
-                        전체 볼트 열기
+                        {t("openVault")}
                       </Link>
                     </div>
                   </div>
@@ -766,11 +773,11 @@ export function DocsQuickDrawer({
             >
               <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
                 <kbd className="rounded border border-[color:var(--color-overlay-3)] px-1 py-0.5 tabular-nums">↑↓</kbd>
-                {" "}이동 ·{" "}
+                {" "}{t("footerMove")} ·{" "}
                 <kbd className="rounded border border-[color:var(--color-overlay-3)] px-1 py-0.5 tabular-nums">↵</kbd>
-                {" "}열기 ·{" "}
+                {" "}{t("footerOpen")} ·{" "}
                 <kbd className="rounded border border-[color:var(--color-overlay-3)] px-1 py-0.5 tabular-nums">Esc</kbd>
-                {" "}닫기 · 모바일 swipe
+                {" "}{t("footerClose")} · {t("footerSwipe")}
               </p>
             </footer>
           </motion.aside>
@@ -780,16 +787,19 @@ export function DocsQuickDrawer({
   );
 }
 
-function formatRelative(iso: string): string {
+function formatRelative(
+  iso: string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
   if (!iso) return "";
   const date = new Date(iso);
   const diffMs = Date.now() - date.getTime();
   const day = 24 * 60 * 60 * 1000;
-  if (diffMs < day) return "오늘";
-  if (diffMs < 2 * day) return "어제";
+  if (diffMs < day) return t("today");
+  if (diffMs < 2 * day) return t("yesterday");
   const days = Math.floor(diffMs / day);
-  if (days < 30) return `${days}일 전`;
+  if (days < 30) return t("daysAgo", { count: days });
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months}달 전`;
-  return `${Math.floor(months / 12)}년 전`;
+  if (months < 12) return t("monthsAgo", { count: months });
+  return t("yearsAgo", { count: Math.floor(months / 12) });
 }

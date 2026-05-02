@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/cn";
 import { useTypingShortcuts } from "@/shared/lib/use-typing-shortcut";
 import { formatDate } from "@/shared/lib/format-date";
@@ -98,6 +99,7 @@ function ProjectDetailBreadcrumb({
   accountId?: string | null;
   projectName?: string | null;
 }) {
+  const t = useTranslations("projectPages.detail");
   // Workspace ▸ Project 3단 컨텍스트 표시. 사용자가 "여기는 1 프로젝트 안"
   // 이라는 걸 한눈에 파악하도록 홈의 워크스페이스 지도와 구분 시그널.
   const workspaceHref = accountId
@@ -111,10 +113,10 @@ function ProjectDetailBreadcrumb({
       <Link
         href={workspaceHref}
         className="inline-flex items-center gap-1.5 break-keep text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]"
-        aria-label="워크스페이스 지도로 돌아가기"
+        aria-label={t("topBarBackToWorkspaceAria")}
       >
         <ArrowLeft size={14} />
-        {accountId ?? 'Workspace'}
+        {accountId ?? t("topBarWorkspaceFallback")}
       </Link>
       <span aria-hidden className="text-[color:var(--color-text-quaternary)]">
         ▸
@@ -123,13 +125,13 @@ function ProjectDetailBreadcrumb({
         href={projectsListHref}
         className="font-mono text-[11px] uppercase tracking-[0.12em] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
       >
-        Projects
+        {t("topBarProjectsLabel")}
       </Link>
       <span aria-hidden className="text-[color:var(--color-text-quaternary)]">
         ▸
       </span>
       <span className="max-w-[240px] truncate font-mono text-[11px] uppercase tracking-[0.12em] text-[color:var(--color-text-primary)]">
-        {projectName ?? slug ?? 'Project'}
+        {projectName ?? slug ?? t("topBarProjectFallback")}
       </span>
       {/* 모바일에서는 헤더 바로 아래 큰 액션 버튼이 따로 있어 중복.
           데스크톱(md+)에서만 breadcrumb 옆에 작은 액션으로 노출. */}
@@ -139,7 +141,7 @@ function ProjectDetailBreadcrumb({
         className="hidden md:inline-flex"
       >
         <Button type="button" variant="outline" size="sm">
-          토폴로지 보기
+          {t("topBarTopologyView")}
         </Button>
       </Link>
     </div>
@@ -157,6 +159,7 @@ function ProjectDetailTopBar({
   projectName?: string | null;
   rightActions?: React.ReactNode;
 }) {
+  const t = useTranslations("projectPages.detail");
   const docsVaultHref = accountId
     ? `/docs/?account=${encodeURIComponent(accountId)}`
     : '/docs/';
@@ -175,7 +178,7 @@ function ProjectDetailTopBar({
         >
           <Button type="button" variant="ghost" size="sm">
             <BookOpen size={14} aria-hidden="true" />
-            문서 볼트
+            {t("topBarDocsVault")}
           </Button>
         </Link>
         {rightActions}
@@ -205,6 +208,7 @@ function ProjectDetailState({
   slug?: string;
   accountId?: string | null;
 }) {
+  const t = useTranslations("projectPages.detail");
   return (
     <ProjectDetailShell>
       <ProjectDetailTopBar slug={slug} accountId={accountId} />
@@ -224,14 +228,14 @@ function ProjectDetailState({
             className="inline-flex h-9 items-center gap-2 rounded-md border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.1)] px-3 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:rgba(94,106,210,0.16)]"
           >
             <ArrowLeft size={14} />
-            Workspace 지도로 돌아가기
+            {t("stateBackToWorkspace")}
           </Link>
           {accountId ? (
             <Link
               href={"/projects/"}
               className="inline-flex h-9 items-center rounded-md border border-[color:var(--color-divider)] px-3 text-sm text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
             >
-              프로젝트 목록
+              {t("stateProjectsList")}
             </Link>
           ) : null}
         </div>
@@ -258,17 +262,29 @@ function resolveProjectMonogram(project: Project) {
     .join("");
 }
 
-function resolveProjectConnectionSummary(project: Project, dependencyProjects: Project[]) {
+type DetailTranslator = ReturnType<typeof useTranslations<"projectPages.detail">>;
+
+function resolveProjectConnectionSummary(
+  project: Project,
+  dependencyProjects: Project[],
+  t: DetailTranslator,
+) {
   if (dependencyProjects.length === 0) {
-    return `${project.name} 프로젝트는 현재 독립 구조로 읽을 수 있습니다.`;
+    return t("connectionSummaryStandalone", { name: project.name });
   }
 
   const visibleDependencies = dependencyProjects.slice(0, 2).map((item) => item.name);
   const remainder = dependencyProjects.length - visibleDependencies.length;
+  const deps = visibleDependencies.join(", ");
 
-  return `${project.name} 프로젝트는 ${visibleDependencies.join(", ")}${
-    remainder > 0 ? ` 외 ${remainder}개` : ""
-  }를 기반으로 동작합니다.`;
+  if (remainder > 0) {
+    return t("connectionSummaryWithDepsRemainder", {
+      name: project.name,
+      deps,
+      remainder,
+    });
+  }
+  return t("connectionSummaryWithDeps", { name: project.name, deps });
 }
 
 export function ProjectDetailPage({
@@ -277,6 +293,7 @@ export function ProjectDetailPage({
   initialProject = null,
   initialRelated = [],
 }: Props) {
+  const t = useTranslations("projectPages.detail");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -348,7 +365,7 @@ export function ProjectDetailPage({
   useDocumentTitle(
     Array.from(
       new Set(
-        [project?.name, "Demo"].filter(
+        [project?.name, t("documentTitleSuffix")].filter(
           (value): value is string => Boolean(value),
         ),
       ),
@@ -435,8 +452,8 @@ export function ProjectDetailPage({
     return (
       <ProjectDetailState
         testId="project-detail-invalid"
-        title="프로젝트를 찾을 수 없음"
-        description="유효한 프로젝트 slug가 없어 상세 페이지를 표시할 수 없습니다."
+        title={t("stateInvalidTitle")}
+        description={t("stateInvalidDesc")}
         slug={slug}
         accountId={accountId}
       />
@@ -448,8 +465,8 @@ export function ProjectDetailPage({
       return (
         <ProjectDetailState
           testId="project-detail-loading"
-          title="프로젝트 불러오는 중"
-          description="프로젝트 데이터를 불러오는 중입니다."
+          title={t("stateLoadingTitle")}
+          description={t("stateLoadingDesc")}
           slug={slug}
           accountId={accountId}
         />
@@ -459,8 +476,8 @@ export function ProjectDetailPage({
     return (
         <ProjectDetailState
           testId="project-detail-not-found"
-          title="프로젝트를 찾을 수 없음"
-          description="이 slug에 해당하는 프로젝트를 찾지 못했습니다."
+          title={t("stateNotFoundTitle")}
+          description={t("stateNotFoundDesc")}
           slug={slug}
           accountId={accountId}
         />
@@ -492,23 +509,23 @@ export function ProjectDetailPage({
     ? statusDotByTone[projectStatus.dotColor] ?? statusDotByTone.neutral
     : null;
   const heroMetaItems = [
-    { label: "상태", value: statusLabel(project.status), dot: statusDot },
-    { label: "담당", value: project.owner ?? "공용 내부 시스템", dot: null },
+    { label: t("metaStatus"), value: statusLabel(project.status), dot: statusDot },
+    { label: t("metaOwner"), value: project.owner ?? t("ownerFallback"), dot: null },
     ...(project.progress !== undefined
-      ? [{ label: "진행", value: `${project.progress}%`, dot: null }]
+      ? [{ label: t("metaProgress"), value: t("progressSuffix", { value: project.progress }), dot: null }]
       : []),
-    { label: "의존", value: `${dependencyProjects.length}개`, dot: null },
-    { label: "연결", value: `${referencedBy.length}개`, dot: null },
+    { label: t("metaDependencies"), value: t("countSuffix", { count: dependencyProjects.length }), dot: null },
+    { label: t("metaConnections"), value: t("countSuffix", { count: referencedBy.length }), dot: null },
   ];
   const heroSignals = [
-    project.owner ? `담당 ${project.owner}` : "공용 내부 시스템",
-    project.progress !== undefined ? `진행 ${project.progress}%` : null,
-    project.tags[0] ? `태그 ${project.tags[0]}` : null,
-    project.stack[0] ? `스택 ${project.stack[0]}` : null,
+    project.owner ? t("ownerWithName", { name: project.owner }) : t("ownerFallback"),
+    project.progress !== undefined ? t("progressLabel", { value: project.progress }) : null,
+    project.tags[0] ? t("tagLabel", { value: project.tags[0] }) : null,
+    project.stack[0] ? t("stackLabel", { value: project.stack[0] }) : null,
   ]
     .filter(Boolean)
     .slice(0, 3);
-  const connectionNote = resolveProjectConnectionSummary(project, dependencyProjects);
+  const connectionNote = resolveProjectConnectionSummary(project, dependencyProjects, t);
   const nextProjectCandidates = [...dependencyProjects, ...referencedBy].filter(
     (candidate, index, array) =>
       candidate.slug !== project.slug &&
@@ -527,15 +544,14 @@ export function ProjectDetailPage({
   const ontologyReasonNote =
     evidenceSummary.summaryText ||
     (insightEdgeLabels.length > 0
-      ? `문서에서는 ${insightEdgeLabels.slice(0, 2).join(" · ")} 같은 연결이 반복되어 이 프로젝트가 함께 언급됩니다.`
+      ? t("ontologyReasonEdges", { labels: insightEdgeLabels.slice(0, 2).join(" · ") })
       : insightConceptNodes.length > 0
-        ? `문서에서는 ${insightConceptNodes
-            .slice(0, 3)
-            .map((node) => node.title)
-            .join(" · ")} 같은 항목이 함께 나타납니다.`
+        ? t("ontologyReasonConcepts", {
+            names: insightConceptNodes.slice(0, 3).map((node) => node.title).join(" · "),
+          })
         : insightDocumentNodes.length > 0
-          ? `${insightDocumentNodes.length}개 문서가 공통으로 이 프로젝트를 함께 설명합니다.`
-          : "아직 공개된 문서가 충분하지 않아, 문서가 더 쌓이면 이 프로젝트가 왜 연결되는지 이곳에서 읽을 수 있습니다.");
+          ? t("ontologyReasonDocs", { count: insightDocumentNodes.length })
+          : t("ontologyReasonEmpty"));
   const canManageProject = scopedAccess.canManage;
   // owner/editor 가 자기 공간 프로젝트를 보면 h1·description 등을 inline 에서
   // 바로 고친다. subscribeProjects 가 snapshot 으로 로컬 project state 를
@@ -553,10 +569,10 @@ export function ProjectDetailPage({
         [field]: next,
         accountId: accountId ?? project.accountId ?? undefined,
       });
-      showToast(`${field === "name" ? "이름" : "설명"} 저장됨`, "success");
+      showToast(field === "name" ? t("saveSuccessName") : t("saveSuccessDescription"), "success");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "저장 실패";
-      showToast(`저장 실패 — ${message}`, "error");
+      const message = err instanceof Error ? err.message : t("saveErrorGeneric");
+      showToast(t("saveErrorPrefix", { message }), "error");
       throw err;
     }
   };
@@ -571,8 +587,8 @@ export function ProjectDetailPage({
         accountId: accountId ?? project.accountId ?? undefined,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "저장 실패";
-      showToast(`의존 저장 실패 — ${message}`, "error");
+      const message = err instanceof Error ? err.message : t("saveErrorGeneric");
+      showToast(t("saveErrorDeps", { message }), "error");
     }
   };
   // links 저장 경로 — label+url 쌍이라 별도 서명.
@@ -585,8 +601,8 @@ export function ProjectDetailPage({
         accountId: accountId ?? project.accountId ?? undefined,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "저장 실패";
-      showToast(`링크 저장 실패 — ${message}`, "error");
+      const message = err instanceof Error ? err.message : t("saveErrorGeneric");
+      showToast(t("saveErrorLinks", { message }), "error");
     }
   };
   // tags/stack 같은 배열 필드 공용 저장 경로. 단건 추가·삭제마다 호출.
@@ -599,8 +615,8 @@ export function ProjectDetailPage({
         accountId: accountId ?? project.accountId ?? undefined,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "저장 실패";
-      showToast(`${field === "tags" ? "태그" : "스택"} 저장 실패 — ${message}`, "error");
+      const message = err instanceof Error ? err.message : t("saveErrorGeneric");
+      showToast(field === "tags" ? t("saveErrorTags", { message }) : t("saveErrorStack", { message }), "error");
     }
   };
   // cycle 유발 후보 사전 계산 — picker 에 invalidSlugs 로 전달해 disabled.
@@ -612,7 +628,7 @@ export function ProjectDetailPage({
       wouldCreateDependencyCycle(dependencyUniverse, project.slug, candidate.slug),
     )
     .map((candidate) => candidate.slug);
-  const heroMeta = [project.isHub ? "허브" : "서비스", statusLabel(project.status)]
+  const heroMeta = [project.isHub ? t("heroLabelHub") : t("heroLabelService"), statusLabel(project.status)]
     .filter(Boolean)
     .join(" · ");
   const storyMarkdownClassName =
@@ -658,7 +674,7 @@ export function ProjectDetailPage({
           </div>
           <div className="relative z-10 flex items-center gap-3">
             <span className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-              개별 프로젝트
+              {t("heroLabel")}
             </span>
             {heroMeta ? (
               <span className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
@@ -690,7 +706,7 @@ export function ProjectDetailPage({
             value={project.name}
             editable={canManageProject}
             onSave={(next) => saveProjectField("name", next)}
-            ariaLabel="프로젝트 이름"
+            ariaLabel={t("inlineNameAria")}
             className="relative z-10 mt-3 text-[36px] leading-[0.98] tracking-[var(--tracking-hero)] text-pretty font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] md:text-[64px]"
           />
 
@@ -706,8 +722,8 @@ export function ProjectDetailPage({
             value={project.description}
             editable={canManageProject}
             onSave={(next) => saveProjectField("description", next)}
-            ariaLabel="프로젝트 설명"
-            placeholder="이 프로젝트를 한 줄로 설명하세요"
+            ariaLabel={t("inlineDescriptionAria")}
+            placeholder={t("inlineDescriptionPlaceholder")}
             dataTestId="project-detail-description"
             className="relative z-10 mt-4 max-w-2xl text-[15px] leading-7 text-[color:var(--color-text-secondary)] md:text-[17px] md:leading-8"
           />
@@ -746,9 +762,9 @@ export function ProjectDetailPage({
           {canManageProject ? (
             <div className="relative z-10 mt-6 max-w-2xl">
               <DetailCard
-                eyebrow="의존"
-                title="의존하는 프로젝트"
-                description="이 프로젝트가 기대는 허브·서비스를 고르면 토폴로지에 즉시 반영됩니다. cycle 유발 후보는 선택 안 됩니다."
+                eyebrow={t("depCardEyebrow")}
+                title={t("depCardTitle")}
+                description={t("depCardDescription")}
               >
                 <DependencyPicker
                   value={project.dependencies}
@@ -772,7 +788,7 @@ export function ProjectDetailPage({
                 href={getTopologyProjectHref(project.slug, accountId)}
                 className="inline-flex h-10 items-center justify-center rounded-md border border-[color:rgba(94,106,210,0.38)] bg-[color:rgba(94,106,210,0.12)] px-4 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:rgba(94,106,210,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]"
               >
-                토폴로지 보기
+                {t("topBarTopologyView")}
               </Link>
             </div>
           </div>
@@ -790,14 +806,16 @@ export function ProjectDetailPage({
             <article className="overflow-hidden rounded-[28px] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)]">
               <header className="border-b border-[color:var(--color-divider)] px-6 py-5 md:px-8">
                 <p className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                  연결 지도
+                  {t("neighborMapEyebrow")}
                 </p>
                 <h2 className="mt-2 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-                  {project.name} · 1-hop 이웃 {neighborsTopologyProjects.length - 1}개
+                  {t("neighborMapTitle", {
+                    name: project.name,
+                    count: neighborsTopologyProjects.length - 1,
+                  })}
                 </h2>
                 <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
-                  이 프로젝트와 직접 이어진 프로젝트만 담은 작은 지도.
-                  드래그·hover·클릭 모두 메인 토폴로지와 동일하게 동작합니다.
+                  {t("neighborMapDescription")}
                 </p>
               </header>
               <div className="h-[520px] w-full">
@@ -833,8 +851,8 @@ export function ProjectDetailPage({
               nodes={knowledgeInsight.nodes}
               edges={knowledgeInsight.edges}
               canManageProject={canManageProject}
-              heading={`${project.name} · 문서 토폴로지`}
-              description={`이 프로젝트에 등록된 md 문서에서 분해된 개념·연결을 그래프로 보여줍니다. 홈의 "워크스페이스 지도" (프로젝트 간 의존) 와 달리, 한 프로젝트 안의 내용만 담깁니다.`}
+              heading={t("knowledgeTopologyHeading", { name: project.name })}
+              description={t("knowledgeTopologyDescription")}
             />
           ) : null}
 
@@ -846,10 +864,10 @@ export function ProjectDetailPage({
             <article className="order-2 overflow-hidden rounded-[28px] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)]">
               <div className="border-b border-[color:var(--color-divider)] px-6 py-5 md:px-8">
                 <h2 className="text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-                  프로젝트 정보
+                  {t("infoCardTitle")}
                 </h2>
                 <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
-                  공간 주인이 직접 작성한 프로젝트 설명입니다.
+                  {t("infoCardDescription")}
                 </p>
               </div>
               <div className="px-6 py-6 md:px-8">
@@ -867,7 +885,7 @@ export function ProjectDetailPage({
               className="order-2 rounded-[28px] border border-[color:rgba(244,183,49,0.25)] bg-[color:rgba(244,183,49,0.08)] px-6 py-5 md:px-8"
             >
               <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-status-warning)]">
-                점검 필요
+                {t("integrityWarn")}
               </p>
               <ul className="mt-2 space-y-1 text-sm text-[color:var(--color-text-secondary)]">
                 {integrityIssueLabels.map((label) => (
@@ -888,10 +906,10 @@ export function ProjectDetailPage({
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                    문서 근거
+                    {t("evidenceTitle")}
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                    홈 지도에서 본 공개 근거를 문서, 개념, 연결 이유 순서로 풀어 읽습니다.
+                    {t("evidenceDescription")}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
@@ -907,7 +925,7 @@ export function ProjectDetailPage({
                 <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(240px,0.88fr)]">
                   <div className="space-y-3">
                     <p className="text-[11px] text-[color:var(--color-text-quaternary)]">
-                      대표 문서
+                      {t("evidenceRepDoc")}
                     </p>
                     {insightDocumentNodes.slice(0, 1).map((node) => (
                       <div
@@ -918,13 +936,13 @@ export function ProjectDetailPage({
                           {node.title}
                         </p>
                         <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                          {node.summary || "문서 기반 요약이 아직 없습니다."}
+                          {node.summary || t("evidenceDocSummaryFallback")}
                         </p>
                       </div>
                     ))}
                     {insightDocumentNodes.length > 1 ? (
                       <p className="text-xs text-[color:var(--color-text-tertiary)]">
-                        문서 {insightDocumentNodes.length - 1}개가 더 있습니다.
+                        {t("evidenceMoreDocs", { count: insightDocumentNodes.length - 1 })}
                       </p>
                     ) : null}
                   </div>
@@ -932,7 +950,7 @@ export function ProjectDetailPage({
                   <div className="space-y-4">
                     <div>
                       <p className="text-[11px] text-[color:var(--color-text-quaternary)]">
-                        문서에서 보이는 연결
+                        {t("evidenceConnectionsTitle")}
                       </p>
                       <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
                         {ontologyReasonNote}
@@ -941,12 +959,12 @@ export function ProjectDetailPage({
 
                     <details className="rounded-[20px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-3">
                       <summary className="cursor-pointer list-none text-[11px] text-[color:var(--color-text-quaternary)]">
-                        더 읽기
+                        {t("evidenceMoreReadCta")}
                       </summary>
                       {insightConceptNodes.length > 0 ? (
                         <div className="mt-3">
                           <p className="text-[11px] text-[color:var(--color-text-quaternary)]">
-                            같이 등장한 항목
+                            {t("evidenceCoOccurringTitle")}
                           </p>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {insightConceptNodes.slice(0, 4).map((node) => (
@@ -960,7 +978,7 @@ export function ProjectDetailPage({
                           </div>
                           {evidenceSummary.counts.concepts > insightConceptNodes.length ? (
                             <p className="mt-2 text-xs text-[color:var(--color-text-tertiary)]">
-                              개념이 더 있습니다.
+                              {t("evidenceMoreConcepts")}
                             </p>
                           ) : null}
                         </div>
@@ -968,7 +986,7 @@ export function ProjectDetailPage({
                       {insightEdgeLabels.length > 0 ? (
                         <div className="mt-4">
                           <p className="text-[11px] text-[color:var(--color-text-quaternary)]">
-                            자주 드러난 연결 이유
+                            {t("evidenceConnectionReasonsTitle")}
                           </p>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {insightEdgeLabels.map((label, index) => (
@@ -998,7 +1016,11 @@ export function ProjectDetailPage({
                         </div>
                       ) : null}
                       <p className="mt-4 text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                        문서 {evidenceSummary.counts.documents}개, 개념 {evidenceSummary.counts.concepts}개, 연결 {evidenceSummary.counts.edges}개가 공개되어 있습니다.
+                        {t("evidenceCounts", {
+                          documents: evidenceSummary.counts.documents,
+                          concepts: evidenceSummary.counts.concepts,
+                          edges: evidenceSummary.counts.edges,
+                        })}
                       </p>
                     </details>
                   </div>
@@ -1010,7 +1032,7 @@ export function ProjectDetailPage({
           {project.screenshots.length > 0 && (
             <details className="order-3 overflow-hidden rounded-[28px] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)]">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] md:px-8">
-                화면 보기
+                {t("screenshotsToggle")}
               </summary>
               <div className="border-t border-[color:var(--color-divider)] px-6 py-6 md:px-8">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
@@ -1054,10 +1076,10 @@ export function ProjectDetailPage({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                  연결된 프로젝트
+                  {t("neighborsCardTitle")}
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                  이 프로젝트를 중심으로 한 1-hop 이웃.
+                  {t("neighborsCardDescription")}
                 </p>
               </div>
             </div>
@@ -1088,33 +1110,33 @@ export function ProjectDetailPage({
                 ))}
                 {nextProjectCandidates.length > 1 ? (
                   <p className="text-xs text-[color:var(--color-text-tertiary)]">
-                    메인 컨텐츠의 연결 지도 섹션에서 {nextProjectCandidates.length}개 연결을 모두 둘러볼 수 있습니다.
+                    {t("neighborsMoreNote", { count: nextProjectCandidates.length })}
                   </p>
                 ) : null}
               </div>
             ) : (
               <p className="mt-5 text-sm leading-6 text-[color:var(--color-text-tertiary)]">
-                아직 직접 연결된 프로젝트가 많지 않습니다.
+                {t("neighborsEmpty")}
               </p>
             )}
 
             <details className="mt-5 rounded-[20px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-3">
               <summary className="cursor-pointer list-none text-[11px] text-[color:var(--color-text-quaternary)]">
-                추가 정보 보기
+                {t("moreInfoToggle")}
               </summary>
               <div className="mt-4 space-y-5 border-t border-[color:var(--color-border-soft)] pt-4">
                 {(canManageProject || project.links.length > 0) && (
                   <div>
                     <p className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                      바로가기
+                      {t("linksTitle")}
                     </p>
                     <LinkListEditor
                       className="mt-3"
                       value={project.links}
                       editable={canManageProject}
                       onChange={saveLinks}
-                      emptyHint="등록된 링크가 없습니다"
-                      ariaLabel="바로가기 링크 편집기"
+                      emptyHint={t("linksEmptyHint")}
+                      ariaLabel={t("linksEditorAria")}
                     />
                   </div>
                 )}
@@ -1124,39 +1146,39 @@ export function ProjectDetailPage({
                   project.stack.length > 0) && (
                   <div>
                     <p className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                      구성
+                      {t("compositionTitle")}
                     </p>
                     {(canManageProject || project.tags.length > 0) && (
                       <div className="mt-3">
                         <p className="text-[11px] text-[color:var(--color-text-quaternary)]">
-                          태그
+                          {t("tagsTitle")}
                         </p>
                         <ChipListEditor
                           className="mt-2"
                           value={project.tags}
                           editable={canManageProject}
                           onChange={(next) => saveListField("tags", next)}
-                          placeholder="태그 추가"
+                          placeholder={t("tagsPlaceholder")}
                           variant="default"
-                          emptyHint="아직 태그가 없습니다"
-                          ariaLabel="태그 편집기"
+                          emptyHint={t("tagsEmptyHint")}
+                          ariaLabel={t("tagsEditorAria")}
                         />
                       </div>
                     )}
                     {(canManageProject || project.stack.length > 0) && (
                       <div className="mt-4">
                         <p className="text-[11px] text-[color:var(--color-text-quaternary)]">
-                          기술 스택
+                          {t("stackTitle")}
                         </p>
                         <ChipListEditor
                           className="mt-2"
                           value={project.stack}
                           editable={canManageProject}
                           onChange={(next) => saveListField("stack", next)}
-                          placeholder="스택 추가"
+                          placeholder={t("stackPlaceholder")}
                           variant="indigo"
-                          emptyHint="아직 등록된 스택이 없습니다"
-                          ariaLabel="기술 스택 편집기"
+                          emptyHint={t("stackEmptyHint")}
+                          ariaLabel={t("stackEditorAria")}
                         />
                       </div>
                     )}
@@ -1165,23 +1187,23 @@ export function ProjectDetailPage({
 
                 <div>
                   <p className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                    기본 정보
+                    {t("basicInfoTitle")}
                   </p>
                   <dl className="mt-3 space-y-3 text-sm text-[color:var(--color-text-secondary)]">
                     <div className="flex items-start justify-between gap-3">
-                      <dt className="text-[color:var(--color-text-tertiary)]">경로</dt>
+                      <dt className="text-[color:var(--color-text-tertiary)]">{t("basicInfoPath")}</dt>
                       <dd className="text-right text-[color:var(--color-text-primary)]">
                         {categoryLabel(project.category)}
                       </dd>
                     </div>
                     <div className="flex items-start justify-between gap-3">
-                      <dt className="text-[color:var(--color-text-tertiary)]">슬러그</dt>
+                      <dt className="text-[color:var(--color-text-tertiary)]">{t("basicInfoSlug")}</dt>
                       <dd className="font-mono tabular-nums text-right text-[color:var(--color-text-primary)]">
                         {project.slug}
                       </dd>
                     </div>
                     <div className="flex items-start justify-between gap-3">
-                      <dt className="text-[color:var(--color-text-tertiary)]">업데이트</dt>
+                      <dt className="text-[color:var(--color-text-tertiary)]">{t("basicInfoUpdatedAt")}</dt>
                       <dd className="font-mono tabular-nums text-right text-[color:var(--color-text-primary)]">
                         {formatDate(project.updatedAt)}
                       </dd>
@@ -1201,7 +1223,7 @@ export function ProjectDetailPage({
 
       <footer className="mt-12 border-t border-[color:var(--color-overlay-2)] pt-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[color:var(--color-text-quaternary)]">
-          {project.slug} · 업데이트 {formatDate(project.updatedAt)}
+          {t("footerSummary", { slug: project.slug, date: formatDate(project.updatedAt) })}
         </p>
       </footer>
       <SearchPalette

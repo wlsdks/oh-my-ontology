@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, CopyPlus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ProjectForm } from "@/features/project-edit";
 import { useProjectMutations } from "@/features/project-data-source";
 import {
@@ -40,12 +41,18 @@ function normalizeReturnTo(returnTo?: string): string {
   return returnTo;
 }
 
-function resolveReturnLabel(returnTo: string): string {
-  if (returnTo.startsWith("/project/")) return "프로젝트 상세로";
-  if (returnTo.startsWith("/projects")) return "프로젝트 목록으로";
-  if (returnTo.startsWith("/settings/categories")) return "카테고리 관리로";
-  if (returnTo.startsWith("/settings/statuses")) return "상태 관리로";
-  return "프로젝트 목록으로";
+type ReturnLabelKey =
+  | "returnToProjectDetail"
+  | "returnToProjectsList"
+  | "returnToCategories"
+  | "returnToStatuses";
+
+function resolveReturnLabelKey(returnTo: string): ReturnLabelKey {
+  if (returnTo.startsWith("/project/")) return "returnToProjectDetail";
+  if (returnTo.startsWith("/projects")) return "returnToProjectsList";
+  if (returnTo.startsWith("/settings/categories")) return "returnToCategories";
+  if (returnTo.startsWith("/settings/statuses")) return "returnToStatuses";
+  return "returnToProjectsList";
 }
 
 function EditorContent({
@@ -58,15 +65,16 @@ function EditorContent({
   accountId,
   savedNotice,
 }: Props) {
+  const t = useTranslations("projectPages.editor");
   const router = useRouter();
   const toast = useToast();
   const projectMutations = useProjectMutations();
   const targetSlug = mode === "edit" ? slug : duplicateFromSlug;
   useDocumentTitle(
-    (mode === "edit" ? "프로젝트 편집 · oh-my-ontology" : "새 프로젝트 · oh-my-ontology"),
+    (mode === "edit" ? t("documentTitleEdit") : t("documentTitleNew")),
   );
   const safeReturnTo = normalizeReturnTo(returnTo);
-  const safeReturnLabel = resolveReturnLabel(normalizeReturnTo(returnTo));
+  const safeReturnLabel = t(resolveReturnLabelKey(normalizeReturnTo(returnTo)));
   const publicProjectHref = slug ? getProjectDetailHref(slug, accountId) : null;
   const [project, setProject] = useState<Project | null>(null);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
@@ -76,8 +84,8 @@ function EditorContent({
 
   const confirmDiscardChanges = useCallback(() => {
     if (!isDirty) return true;
-    return window.confirm("저장하지 않은 변경사항이 있습니다. 정말 나갈까요?");
-  }, [isDirty]);
+    return window.confirm(t("confirmDiscardChanges"));
+  }, [isDirty, t]);
 
   useEffect(() => {
     const unsubscribe = subscribeProjects(accountId, (latest) => setAllProjects(latest));
@@ -94,8 +102,8 @@ function EditorContent({
         if (!p) {
           setLoadError(
             mode === "edit"
-              ? "프로젝트를 찾을 수 없습니다."
-              : "복제할 프로젝트를 찾을 수 없습니다.",
+              ? t("loadErrorEdit")
+              : t("loadErrorDuplicate"),
           );
         } else {
           setProject(p);
@@ -103,7 +111,7 @@ function EditorContent({
       })
       .catch((err) => {
         if (!cancelled)
-          setLoadError(err instanceof Error ? err.message : "로드 실패");
+          setLoadError(err instanceof Error ? err.message : t("loadErrorGeneric"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -111,7 +119,7 @@ function EditorContent({
     return () => {
       cancelled = true;
     };
-  }, [accountId, duplicateFromSlug, mode, slug, targetSlug]);
+  }, [accountId, duplicateFromSlug, mode, slug, targetSlug, t]);
 
   const buildEditHref = (nextSlug: string) =>
     `/project/${encodeURIComponent(nextSlug)}/edit/?returnTo=${encodeURIComponent(safeReturnTo)}&saved=1`;
@@ -124,14 +132,14 @@ function EditorContent({
     if (mode === "create") {
       await projectMutations.createProject(payload);
       if (options.behavior === "stay") {
-        toast.show(`"${input.name}" 생성 · 편집 화면에서 세부 정보 채우기`, "success");
+        toast.show(t("createdAndOpenToast", { name: input.name }), "success");
         router.replace(buildEditHref(input.slug));
         return;
       }
     } else {
       await projectMutations.updateProject(payload);
       if (options.behavior === "stay") {
-        toast.show(`"${input.name}" 저장 완료`, "success");
+        toast.show(t("savedToast", { name: input.name }), "success");
         return;
       }
     }
@@ -141,7 +149,7 @@ function EditorContent({
   const handleDelete = async () => {
     if (!slug) return;
     await projectMutations.deleteProject(slug);
-    toast.show("프로젝트 삭제", "success");
+    toast.show(t("deleteToast"), "success");
     router.push(safeReturnTo);
   };
 
@@ -179,7 +187,7 @@ function EditorContent({
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="font-mono text-xs uppercase tracking-[0.15em] text-[color:var(--color-text-quaternary)]">
-          불러오는 중…
+          {t("loadingLabel")}
         </p>
       </div>
     );
@@ -194,13 +202,13 @@ function EditorContent({
           className="max-w-md text-center"
         >
           <p className="text-sm text-[color:var(--color-status-danger)]">
-            프로젝트 slug가 필요합니다.
+            {t("missingSlug")}
           </p>
           <Link
             href={safeReturnTo}
             className="mt-4 inline-block text-xs text-[color:var(--color-indigo-accent)] underline"
           >
-            대시보드로 돌아가기
+            {t("backToDashboard")}
           </Link>
         </div>
       </div>
@@ -222,7 +230,7 @@ function EditorContent({
             href={safeReturnTo}
             className="mt-4 inline-block text-xs text-[color:var(--color-indigo-accent)] underline"
           >
-            대시보드로 돌아가기
+            {t("backToDashboard")}
           </Link>
         </div>
       </div>
@@ -246,20 +254,20 @@ function EditorContent({
           <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--color-text-quaternary)]">
             {mode === "create"
               ? duplicateFromSlug
-                ? "복제해서 만들기"
-                : "새 프로젝트 만들기"
-              : "프로젝트 편집"}
+                ? t("eyebrowDuplicate")
+                : t("eyebrowCreate")
+              : t("eyebrowEdit")}
           </p>
           <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <h1 className="text-2xl font-[var(--font-weight-signature)] tracking-[var(--tracking-section)] text-[color:var(--color-text-primary)] md:text-3xl">
               {mode === "create"
                 ? duplicateFromSlug
-                  ? `복제본 만들기 · ${project?.name ?? duplicateFromSlug}`
-                  : "새 프로젝트"
+                  ? t("titleDuplicate", { name: project?.name ?? duplicateFromSlug })
+                  : t("titleNew")
                 : project?.name}
             </h1>
             <p className="max-w-xl text-sm text-[color:var(--color-text-tertiary)] md:text-right">
-              메타데이터, 연결 관계, 스크린샷과 상세 설명을 한 번에 정리하는 편집 화면입니다.
+              {t("headerSubtitle")}
             </p>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-[color:var(--color-text-quaternary)]">
@@ -273,18 +281,18 @@ function EditorContent({
                   aria-hidden
                   className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--color-status-warning)]"
                 />
-                저장 안 됨
+                {t("dirtyBadge")}
               </span>
             )}
             <span className="rounded-full border border-[color:var(--color-divider)] px-3 py-1">
-              돌아갈 위치 유지
+              {t("chipKeepReturn")}
             </span>
             <span className="rounded-full border border-[color:var(--color-divider)] px-3 py-1">
-              저장하고 계속 보기 가능
+              {t("chipSaveAndContinue")}
             </span>
             {mode === "edit" && (
               <span className="rounded-full border border-[color:var(--color-divider)] px-3 py-1">
-                현재 프로젝트 수정 중
+                {t("chipEditingCurrent")}
               </span>
             )}
           </div>
@@ -295,11 +303,11 @@ function EditorContent({
                   href={publicProjectHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="공개 화면을 새 탭에서 보기"
+                  aria-label={t("openPublicAria")}
                   className="inline-flex h-9 items-center gap-2 rounded-md border border-[color:rgba(94,106,210,0.24)] bg-[color:rgba(94,106,210,0.08)] px-3 text-sm text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:rgba(94,106,210,0.12)]"
                 >
                   <ArrowUpRight size={14} />
-                  공개 화면 보기
+                  {t("openPublicLabel")}
                 </Link>
               )}
               {mode === "edit" && slug && (
@@ -319,7 +327,7 @@ function EditorContent({
                   className="inline-flex h-9 items-center gap-2 rounded-md border border-[color:var(--color-divider)] px-3 text-sm text-[color:var(--color-text-primary)] transition-colors hover:border-[color:var(--color-indigo-brand)] hover:bg-[color:var(--color-overlay-1)]"
                 >
                   <CopyPlus size={14} />
-                  복제
+                  {t("duplicateLabel")}
                 </Link>
               )}
             </div>
@@ -331,7 +339,7 @@ function EditorContent({
             role="status"
             className="mt-6 rounded-xl border border-[color:rgba(94,106,210,0.28)] bg-[color:rgba(94,106,210,0.1)] px-5 py-4 text-sm text-[color:var(--color-indigo-accent)]"
           >
-            방금 저장했습니다. 이 화면에서 계속 다듬거나 공개 화면 보기로 바로 결과를 확인할 수 있습니다.
+            {t("savedNotice")}
           </div>
         ) : null}
 
@@ -339,23 +347,23 @@ function EditorContent({
           <section className="mt-6 grid gap-3 md:grid-cols-2">
             <div className="rounded-xl border border-[color:rgba(94,106,210,0.18)] bg-[color:rgba(94,106,210,0.06)] px-5 py-4">
               <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]">
-                가장 쉬운 시작
+                {t("tipEyebrowEasiest")}
               </p>
               <h2 className="mt-2 text-lg font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-                이름, 카테고리, 상태, 짧은 설명만 채우고 먼저 저장하세요.
+                {t("tipTitleEasiest")}
               </h2>
               <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                저장 후 다시 열어 연결 관계, 스크린샷, 운영 정보까지 천천히 보강할 수 있습니다.
+                {t("tipDescEasiest")}
               </p>
             </div>
             <div className="rounded-xl border border-[color:var(--color-overlay-2)] bg-[color:var(--color-panel)] px-5 py-4">
               <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                처음 쓰는 운영자용
+                {t("tipEyebrowFirstTime")}
               </p>
               <ol className="mt-3 space-y-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                <li>1. 이름을 입력하면 slug는 자동으로 맞춰집니다.</li>
-                <li>2. 짧은 설명 한 줄만 있어도 공개 카드와 드로어가 채워집니다.</li>
-                <li>3. 상세 항목은 아래에서 펼쳐서 필요한 만큼만 입력하면 됩니다.</li>
+                <li>{t("tipFirstTimeStep1")}</li>
+                <li>{t("tipFirstTimeStep2")}</li>
+                <li>{t("tipFirstTimeStep3")}</li>
               </ol>
             </div>
           </section>
@@ -365,10 +373,10 @@ function EditorContent({
           {mode === "edit" && slug && (
             <div className="mb-6 rounded-xl border border-[color:rgba(94,106,210,0.18)] bg-[color:rgba(94,106,210,0.06)] px-5 py-4">
               <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-indigo-accent)]">
-                공개 화면과 함께 작업
+                {t("publicCompanionEyebrow")}
               </p>
               <p className="mt-2 text-sm leading-6 text-[color:var(--color-text-secondary)]">
-                편집 중에도 공개 상세와 연결 문서를 열어 실제 노출 상태를 바로 확인할 수 있습니다. 변경 후 저장하고 다시 열면 공개 화면에 즉시 반영됩니다.
+                {t("publicCompanionDesc")}
               </p>
             </div>
           )}

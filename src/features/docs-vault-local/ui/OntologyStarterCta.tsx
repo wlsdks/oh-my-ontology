@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   /** 클릭 시 useLocalVault.scaffoldOntology() 호출. created/skipped 반환. */
@@ -20,6 +21,7 @@ interface Props {
  * 자연스럽지만 이 컴포넌트는 결과만 emit — 호출자 (DocsVaultPage) 가 toast.
  */
 export function OntologyStarterCta({ onScaffold, docCount }: Props) {
+  const t = useTranslations('featuresMisc.starterCta');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isEmpty = docCount === 0;
@@ -30,7 +32,7 @@ export function OntologyStarterCta({ onScaffold, docCount }: Props) {
     try {
       await onScaffold();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'starter 만들기 실패');
+      setError(err instanceof Error ? err.message : t('errorFallback'));
     } finally {
       setBusy(false);
     }
@@ -40,20 +42,25 @@ export function OntologyStarterCta({ onScaffold, docCount }: Props) {
     // 빈 vault — 큰 카드로 "여기서 시작" 안내
     return (
       <section
-        aria-label="ontology starter 시드"
+        aria-label={t('emptyAriaLabel')}
         className="rounded-2xl border border-dashed border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.06)] px-5 py-6 text-center"
       >
         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--color-indigo-accent)]">
-          빈 폴더 감지됨
+          {t('emptyEyebrow')}
         </p>
         <h2 className="mt-2 break-keep text-lg font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-          ontology starter 만들기
+          {t('emptyTitle')}
         </h2>
         <p className="mt-2 break-keep text-[12px] leading-6 text-[color:var(--color-text-secondary)]">
-          5 개의 starter markdown 파일 (project / domain / capability / element + README)
-          과 AI agent 등록용 <code className="rounded bg-[color:var(--color-overlay-2)] px-1 font-mono text-[10.5px]">.mcp.json.example</code> 을 이 폴더에 만듭니다.
+          {t.rich('emptyBodyLine1', {
+            code: (chunks) => (
+              <code className="rounded bg-[color:var(--color-overlay-2)] px-1 font-mono text-[10.5px]">
+                {chunks}
+              </code>
+            ),
+          })}
           <br />
-          그 다음 frontmatter 를 본인 프로젝트에 맞게 수정하면 즉시 트리·토폴로지·빌더에 반영돼요.
+          {t('emptyBodyLine2')}
         </p>
         <button
           type="button"
@@ -62,7 +69,7 @@ export function OntologyStarterCta({ onScaffold, docCount }: Props) {
           className="mt-4 inline-flex items-center gap-2 rounded-md border border-[color:var(--color-indigo-brand)] bg-[color:rgba(94,106,210,0.18)] px-4 py-2 text-[12.5px] text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:rgba(94,106,210,0.28)] disabled:opacity-60"
         >
           <Sparkles size={13} aria-hidden />
-          {busy ? '만드는 중…' : 'starter 시드 만들기'}
+          {busy ? t('emptyBusy') : t('emptyCta')}
         </button>
         {error ? (
           <p
@@ -82,11 +89,11 @@ export function OntologyStarterCta({ onScaffold, docCount }: Props) {
       type="button"
       onClick={handleClick}
       disabled={busy}
-      title="ontology starter 5 파일을 추가합니다 (이미 있는 파일은 안 건드립니다)"
+      title={t('secondaryTitle')}
       className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-3 py-1.5 text-[11.5px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.46)] hover:text-[color:var(--color-text-primary)] disabled:opacity-60"
     >
       <Sparkles size={12} aria-hidden />
-      {busy ? '추가 중…' : 'ontology starter 추가'}
+      {busy ? t('secondaryBusy') : t('secondaryLabel')}
     </button>
   );
 }
