@@ -402,17 +402,19 @@ the project expresses its own mental model as frontmatter markdown. At build tim
 - **legacy redirects** (/project/topology, /project/view)
 
 ### Removed by mission v2 cleanup
-- **`/review/knowledge` review queue** — page + route + entity callables + functions handler all removed (Stage 4)
-- **AI Cloud Functions** — `extract-gemini.js` + `ontology-extract.js` deleted entirely (Stage 3)
-- **Cloud LLM extraction flow** — `enqueueExtractionJob` / `processExtractionJob` / `reclaimStaleExtractionJobs` removed (Stage 3)
-- **`applyReviewAction` callable** — removed (Stage 4)
-- **"Start analysis" UI CTA** — removed from all 4 views (Stage 1)
-- **`approveKnowledgeOutput` / `rejectKnowledgeOutput` httpsCallable wrappers** — removed (Stage 4)
-- **the dual stepper's "analysis stage"** — KnowledgeDocumentDetailPage went from 4 steps to 2 (Stage 4)
-- **`/knowledge/*` routes + `KnowledgeDocument` / `KnowledgeDocumentVersion` entities** — entire surface retired (commit `a906635`). The vault is the single source of truth.
-- **`/diagnostics/*` routes + Firestore seed scripts** — operations insights are now owned by `/ontology/insights` (commit `b323571`)
-- **TBox surface (`/settings/ontology[/history]`)** — `kind:` in frontmatter *is* the schema (commit `3a46c78`)
-- **`functions/` folder itself** — Cloud Functions deploy retired (commit `8eac23e`); the project ships as a pure static export
+- **AI Cloud LLM extraction flow** — `extract-gemini.js` / `ontology-extract.js` Cloud Functions + `enqueueExtractionJob` / `processExtractionJob` / `reclaimStaleExtractionJobs` callables (vault frontmatter is self-approving)
+- **Review queue (`/review/knowledge`)** — page + route + `applyReviewAction` / `approveKnowledgeOutput` / `rejectKnowledgeOutput` callables
+- **`/knowledge/*` routes + `KnowledgeDocument` entities** — vault is the single source of truth
+- **`/diagnostics/*` routes + Firestore seed scripts** — operations insights now owned by `/ontology/insights`
+- **TBox surface (`/settings/ontology[/history]`)** — `kind:` in frontmatter *is* the schema
+- **`functions/` folder** — Cloud Functions deploy retired; pure static export
+
+### Removed by R10 (auth + cloud surface permanent removal, 2026-05)
+- **Auth surfaces** — `/login`, `/signup`, `/account`, `/reset-password`, `/settings/*`
+- **Cloud entity API + Firestore subscribers** — `useKnowledgePublic*` / `subscribe*` hooks, all Firestore upsert paths
+- **Manual node/edge add modals** — cloud Firestore writers
+- **Project knowledge topology widget** — orphan after manual modals removed (~875 LOC)
+- **`KnowledgePublicMeta` / `evidence-summary` lib / `ontology-frontmatter` lib / `ontology-relation` entity / `topology-layout` / `project-import`** — orphan dead-code cascades
 
 ### Intentional absences (R10b)
 - **Auth surface**: none — login / signup / settings / account routes permanently removed
