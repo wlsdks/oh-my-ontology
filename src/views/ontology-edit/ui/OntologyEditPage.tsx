@@ -576,6 +576,7 @@ export function OntologyEditPage() {
             ephemeralSelected={ephemeralSelected}
             vaultSelected={vaultSelected}
             vaultReadOnly={!hasLiveVault}
+            untitledPlaceholder={t('untitledPlaceholder')}
             onRenameEphemeral={(id, title) => updateNode(id, { title })}
             onSaveEphemeral={saveEphemeral}
             onSaveVaultRename={renameVaultDoc}

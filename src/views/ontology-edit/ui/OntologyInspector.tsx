@@ -50,6 +50,10 @@ export interface OntologyInspectorProps {
   /** true 면 vault 가 read-only (빌드타임 dogfood 매니페스트 기반). 인스펙터의
    *  rename/array/literal/delete 모두 disabled — disk 권한 없어 patch 불가. */
   vaultReadOnly?: boolean;
+  /** ephemeral 노드 생성 시 부여된 placeholder 제목 — locale 별로 다르므로
+   *  (\`(이름 입력)\` / \`(enter a name)\`) caller 가 그대로 전달. previewSlug /
+   *  titleEmpty 가 placeholder vs 실제 title 을 구분하는 데 사용. */
+  untitledPlaceholder?: string;
   onRenameEphemeral: (id: string, title: string) => void;
   onSaveEphemeral?: (id: string) => Promise<void> | void;
   onSaveVaultRename?: (slug: string, nextTitle: string) => Promise<void> | void;
@@ -91,6 +95,7 @@ export function OntologyInspector({
   ephemeralSelected,
   vaultSelected,
   vaultReadOnly = false,
+  untitledPlaceholder,
   onRenameEphemeral,
   onSaveEphemeral,
   onSaveVaultRename,
@@ -131,6 +136,7 @@ export function OntologyInspector({
             <EphemeralDetail
               t={t}
               node={ephemeralSelected}
+              untitledPlaceholder={untitledPlaceholder}
               onRename={onRenameEphemeral}
               onSave={onSaveEphemeral}
               saving={Boolean(saving)}
@@ -158,9 +164,14 @@ export function OntologyInspector({
 }
 
 // canonical id 미리보기 — 저장 후 실제 id 와 일치. kind.{slug}.
-function previewSlug(title: string, fallback: string): string {
+function previewSlug(
+  title: string,
+  fallback: string,
+  untitledPlaceholder?: string,
+): string {
   const trimmed = title.trim();
-  if (!trimmed || trimmed === "(이름 입력)") return fallback;
+  if (!trimmed) return fallback;
+  if (untitledPlaceholder && trimmed === untitledPlaceholder) return fallback;
   return (
     trimmed
       .toLowerCase()
@@ -173,6 +184,7 @@ function previewSlug(title: string, fallback: string): string {
 function EphemeralDetail({
   t,
   node,
+  untitledPlaceholder,
   onRename,
   onSave,
   saving,
@@ -180,12 +192,15 @@ function EphemeralDetail({
 }: {
   t: InspectorTranslator;
   node: EphemeralNode;
+  untitledPlaceholder?: string;
   onRename: (id: string, title: string) => void;
   onSave?: (id: string) => Promise<void> | void;
   saving: boolean;
   onDeselect: () => void;
 }) {
-  const titleEmpty = node.title.trim() === "" || node.title === "(이름 입력)";
+  const titleEmpty =
+    node.title.trim() === "" ||
+    (untitledPlaceholder !== undefined && node.title === untitledPlaceholder);
   const canSave = !titleEmpty && Boolean(onSave) && !saving;
   const fallbackPreview = t("previewSlugFallback");
   return (
@@ -222,7 +237,7 @@ function EphemeralDetail({
             {t("saveIdLabel")}
           </p>
           <p className="mt-1 break-all font-mono text-[11px] text-[color:var(--color-text-tertiary)]">
-            {node.kind}.{previewSlug(node.title, fallbackPreview)}
+            {node.kind}.{previewSlug(node.title, fallbackPreview, untitledPlaceholder)}
           </p>
         </div>
         <div>
