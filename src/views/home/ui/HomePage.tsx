@@ -205,15 +205,11 @@ export function HomePage() {
       return next;
     });
   }, []);
-  // R10: PublicAccountMenu 제거 후 dismiss token 의미 0 — no-op.
-  const dismissAccountMenu = useCallback(() => {}, []);
   const {
     activeCategory,
     selectedSlug,
     impactMode,
   } = routeState;
-  // 미래에 selector overlay 가 다시 도입될 때 setter 가 부활. 현재는 상수.
-  const selectorOpen = false;
   const renderProjects = projects;
   const selectedProject = useMemo(
     () =>
@@ -627,7 +623,6 @@ export function HomePage() {
             })()}
             <SearchHint
               onOpenSearch={() => {
-                dismissAccountMenu();
                 setSearchOpen(true);
               }}
               onRelayout={() => {
@@ -745,9 +740,7 @@ export function HomePage() {
                 onSelect={(slug) => handleSelect(slug)}
                 // Hero 패널이 펼쳐져 있을 때 겹침 방지. hero 가 Collapsed
                 // (pill) 이거나 drawer 상태면 Hub Rail 이 정상 노출.
-                // selector dropdown 이 열린 동안에도 같은 좌상단 영역과 겹쳐
-                // 보이므로 함께 suppress.
-                suppressed={(!leftPanelCollapsed && !drawerOpen) || selectorOpen}
+                suppressed={!leftPanelCollapsed && !drawerOpen}
               />
               {localGraphStack.length > 0 ? (
                 <div className="pointer-events-auto absolute left-1/2 top-[96px] z-30 flex max-w-[70vw] -translate-x-1/2 items-center gap-2 rounded-full border border-[color:rgba(139,151,255,0.32)] bg-[color:var(--color-panel)] px-3 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
