@@ -210,7 +210,7 @@ export function SigmaControls({
         {/* 지도 overlay — 공개 사용자가 바로 이해할 정보만 먼저 노출. */}
         <div className="pointer-events-auto rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-3 py-2.5">
           <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-[color:var(--color-text-quaternary)]">
-            Overlay
+            {t('overlayHeader')}
           </span>
           <div className="mt-2 space-y-1.5">
             <OverlayToggle
@@ -268,7 +268,7 @@ export function SigmaControls({
               <div>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-[color:var(--color-text-quaternary)]">
-                    Depth
+                    {t('depthLabel')}
                   </span>
                   <span className="font-mono text-[10px] tracking-[0.08em] text-[color:var(--color-text-secondary)]">
                     {value.depthLimit == null ? t('depthAll') : t('depthHop', { count: value.depthLimit })}
@@ -297,7 +297,7 @@ export function SigmaControls({
                   <span className="flex items-center gap-2">
                     <Sliders className="h-3 w-3 text-[color:var(--color-text-quaternary)]" />
                     <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-[color:var(--color-text-quaternary)]">
-                      Forces
+                      {t('forcesHeader')}
                     </span>
                   </span>
                   {forcesOpen ? (
@@ -309,7 +309,7 @@ export function SigmaControls({
                 {forcesOpen ? (
                   <div className="space-y-2.5 border-t border-[color:var(--color-overlay-2)] px-3 py-3">
                     <SliderRow
-                      label="Repel"
+                      label={t('forcesRepel')}
                       min={-800}
                       max={-50}
                       step={10}
@@ -318,7 +318,7 @@ export function SigmaControls({
                       onChange={(v) => updateForces('repel', v)}
                     />
                     <SliderRow
-                      label="Link"
+                      label={t('forcesLink')}
                       min={30}
                       max={180}
                       step={5}
@@ -327,7 +327,7 @@ export function SigmaControls({
                       onChange={(v) => updateForces('linkDistance', v)}
                     />
                     <SliderRow
-                      label="Collide"
+                      label={t('forcesCollide')}
                       min={0.5}
                       max={2.2}
                       step={0.1}
