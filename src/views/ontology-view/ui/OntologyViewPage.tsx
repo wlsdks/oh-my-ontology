@@ -258,33 +258,17 @@ export function OntologyViewPage() {
         </div>
       </section>
 
-      {/* vault / dogfood 모드는 "근거 문서" + "발행 시점" stat 의미 0 (cloud LLM
-          추출/publish flow 의존) — 2 col grid. cloud 모드만 4 col stat strip. */}
+      {/* tree node + relation stat strip. R10b 후 insight.meta 는 항상 null
+          이라 "발행 시점" stat 영구 제거. 사용자가 vault 에 document kind
+          노드를 만들면 추가 카운트만 surface (docCount > 0 일 때만). */}
       <section
-        className={`mb-6 grid gap-3 ${isVaultSentinelMode ? "grid-cols-2" : "grid-cols-2 md:grid-cols-4"}`}
+        className={`mb-6 grid gap-3 ${docCount > 0 ? "grid-cols-3" : "grid-cols-2"}`}
       >
         <Stat label={t('stat.treeNodes')} value={String(totalNodes)} />
         <Stat label={t('stat.totalRelations')} value={insight ? String(insight.edges.length) : "—"} />
-        {isVaultSentinelMode ? null : (
-          <>
-            <Stat
-              label={t('stat.documents')}
-              value={String(docCount)}
-            />
-            <Stat
-              label={t('stat.publishedAt')}
-              value={
-                insight?.meta?.publishedAt
-                  ? insight.meta.publishedAt.toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US', {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })
-                  : t('stat.publishedAtEmpty')
-              }
-            />
-          </>
-        )}
+        {docCount > 0 ? (
+          <Stat label={t('stat.documents')} value={String(docCount)} />
+        ) : null}
       </section>
 
       {error ? (
@@ -451,7 +435,6 @@ relates:
       />
 
       <OntologyMetaFooter
-        meta={insight?.meta ?? null}
         nodeCount={insight?.nodes.length ?? 0}
         edgeCount={insight?.edges.length ?? 0}
         mode={dataSourceMode}
@@ -470,19 +453,15 @@ relates:
  * ontology 가 어느 시점·어느 buildup 인지* 사용자에게 알려줌.
  */
 function OntologyMetaFooter({
-  meta,
   nodeCount,
   edgeCount,
   mode,
 }: {
-  meta: { projectionVersion: string; publishedAt: Date } | null;
   nodeCount: number;
   edgeCount: number;
   mode: 'static' | 'local';
 }) {
   const t = useTranslations('ontologyView.footer');
-  const formatPublished = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const modeLabel = mode === 'local' ? t('modeLocal') : t('modeStatic');
   return (
     <footer className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[color:var(--color-divider)] pt-3 text-[11px] text-[color:var(--color-text-quaternary)]">
@@ -493,23 +472,6 @@ function OntologyMetaFooter({
       <span className="font-mono uppercase tracking-[0.14em]">
         mode: {modeLabel}
       </span>
-      {meta ? (
-        <>
-          <span aria-hidden>·</span>
-          <span className="font-mono">
-            projection {meta.projectionVersion}
-          </span>
-          <span aria-hidden>·</span>
-          <span className="font-mono">
-            published {formatPublished(meta.publishedAt)}
-          </span>
-        </>
-      ) : (
-        <>
-          <span aria-hidden>·</span>
-          <span className="font-mono">no public projection yet</span>
-        </>
-      )}
     </footer>
   );
 }
