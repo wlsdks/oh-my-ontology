@@ -1582,5 +1582,12 @@
       "noticeApplied": "Applied: {labels}",
       "noticeAppliedNoLabels": "Applied the changes."
     }
+  },
+  "copyProjectLink": {
+    "toastSuccess": "Link copied",
+    "toastError": "Copy failed",
+    "labelCopied": "Link copied",
+    "labelError": "Copy failed",
+    "labelIdle": "Copy link"
   }
 }

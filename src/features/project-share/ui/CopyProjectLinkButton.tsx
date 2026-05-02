@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, Link2 } from "lucide-react";
 import { getProjectDetailUrl } from "@/entities/project";
 import { copyText } from "@/shared/lib/copy-text";
@@ -25,6 +26,7 @@ export function CopyProjectLinkButton({
 }: Props) {
   const [state, setState] = useState<CopyState>("idle");
   const toast = useToast();
+  const t = useTranslations("copyProjectLink");
 
   useEffect(() => {
     if (state === "idle") return;
@@ -40,24 +42,24 @@ export function CopyProjectLinkButton({
       const copied = await copyText(url);
       if (copied) {
         setState("copied");
-        toast.show("링크가 복사됐습니다", "success");
+        toast.show(t("toastSuccess"), "success");
       } else {
         setState("error");
-        toast.show("복사에 실패했습니다", "error");
+        toast.show(t("toastError"), "error");
       }
     } catch {
       setState("error");
-      toast.show("복사에 실패했습니다", "error");
+      toast.show(t("toastError"), "error");
     }
   };
 
   const icon = state === "copied" ? <Check size={14} /> : <Link2 size={14} />;
   const label =
     state === "copied"
-      ? "링크 복사됨"
+      ? t("labelCopied")
       : state === "error"
-        ? "복사 실패"
-        : "링크 복사";
+        ? t("labelError")
+        : t("labelIdle");
 
   return (
     <>

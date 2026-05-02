@@ -1582,5 +1582,12 @@
       "noticeApplied": "바로 반영한 항목: {labels}",
       "noticeAppliedNoLabels": "변경 내용을 바로 반영했습니다."
     }
+  },
+  "copyProjectLink": {
+    "toastSuccess": "링크가 복사됐습니다",
+    "toastError": "복사에 실패했습니다",
+    "labelCopied": "링크 복사됨",
+    "labelError": "복사 실패",
+    "labelIdle": "링크 복사"
   }
 }
