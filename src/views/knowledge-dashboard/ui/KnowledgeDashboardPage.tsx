@@ -217,13 +217,13 @@ function DashboardContent() {
               href={getKnowledgeDocumentListHref(accountId)}
               cta="문서 목록 열기"
             />
-            {/* 온톨로지 surface — knowledge 의 두 번째 척추. 문서 → 검수 → 그래프
-                의 마지막 단계 결과를 트리로 본다. T-6 / T-9 진입점. */}
+            {/* 온톨로지 surface — knowledge 의 두 번째 척추. mission v2 에서
+                vault frontmatter / 빌더가 진실원, 검수 단계 없음. */}
             <SummaryCard
               icon={<Network size={16} />}
               eyebrow="온톨로지"
-              title="승인된 그래프 트리"
-              description="승인된 노드와 관계를 계층 트리로 펼쳐서 봐요."
+              title="ontology 그래프 트리"
+              description="vault frontmatter 가 키워낸 노드·관계를 계층 트리로 봐요."
               href={"/ontology/"}
               cta="온톨로지 열기"
             />
@@ -245,7 +245,7 @@ function DashboardContent() {
                         공개 = 비-로그인 방문자에게 보이는 화면
                       </p>
                       <p className="mt-1 text-[color:var(--color-text-tertiary)]">
-                        검수에서 골라낸 노드/관계를 외부 방문자도 볼 수 있게 발행한 결과예요. 발행하면 토폴로지와 프로젝트 상세에 나타납니다.
+                        vault frontmatter / 빌더에서 만든 노드·관계를 외부 방문자도 볼 수 있게 발행한 결과예요. 발행하면 토폴로지와 프로젝트 상세에 나타납니다.
                       </p>
                     </div>
                   }
