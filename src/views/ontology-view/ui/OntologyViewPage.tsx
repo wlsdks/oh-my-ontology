@@ -548,9 +548,8 @@ function NodeDetailPanel({
   const isStub = node.kind === "unknown";
   const isDocument = node.kind === "document";
   const projectSlug = isProject ? node.projectIds[0] ?? null : null;
-  // document 노드는 evidenceIds[0] 가 자기 자신의 underlying ID — 직접 점프 CTA.
-  // 그 외 노드는 evidenceIds 가 근거 문서 목록 — "관련 문서" 리스트.
-  const ownDocumentId = isDocument ? node.evidenceIds[0] ?? null : null;
+  // document 노드는 evidenceIds[0] 가 자기 자신의 underlying ID. 그 외
+  // 노드는 evidenceIds 가 근거 문서 목록 — "관련 문서" 리스트.
   const evidenceList = isDocument ? [] : node.evidenceIds;
   // audit N1 — "+N개 더" 가 텍스트라 더 보기 불가했음. 사용자가 토글해서
   // 모든 이웃 / 근거를 볼 수 있게. node 변경 시 state 초기화 (다른 노드의
