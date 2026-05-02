@@ -39,9 +39,15 @@ export function isKnowledgeEdgeType(value: unknown): value is KnowledgeEdgeType 
 }
 
 /**
- * 노드/엣지의 출처. v0 백본은 모두 추출-검수-승인 거친 결과 (`extraction`).
- * Manual editor v0 (B 라인) 부터 사용자가 직접 만든 `manual` 값이 추가된다.
- * 옵션 필드 — legacy 데이터는 `undefined`, UI 가 `extraction` 기본값으로 처리.
+ * 노드/엣지의 출처.
+ *
+ * - `manual` — mission v2 의 표준 값. vault frontmatter 자체 + 빌더 추가 +
+ *   MCP write 모두 사람/AI agent 의 *직접 작성* 이라 동일 출처로 분류.
+ * - `extraction` — v1 cloud LLM 추출 워커의 결과 표식. mission v2 에서
+ *   추출 큐 (\`enqueueExtractionJob\` 등) 가 폐기되어 신규 할당은 일어나지
+ *   않으나, Firestore legacy 데이터에 남은 값을 호환 위해 enum 에 보존.
+ *
+ * 옵션 필드 — legacy 데이터는 \`undefined\`, UI 가 \`extraction\` 기본값으로 처리.
  */
 export type KnowledgeGraphSource = 'manual' | 'extraction';
 
