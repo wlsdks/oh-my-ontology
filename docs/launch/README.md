@@ -7,8 +7,8 @@
 
 1. **사전 준비**
    - [ ] CLI npm 배포 — `cli/` 와 `mcp/` 둘 다 `npm publish`
-   - [ ] Firebase Hosting 배포 — `firebase deploy --only hosting` (`firebase.json` 의 `hosting` 블록 이미 설정 완료, project: `oh-my-ontology` → `https://oh-my-ontology.web.app`)
-   - [ ] hosted demo URL 이 README + CLI 안내 문구와 일치하는지 재확인 (`oh-my-ontology.web.app`)
+   - [ ] 정적 호스팅 (GitHub Pages / Vercel / Netlify / Cloudflare Pages 등) 배포 — `pnpm build` → `out/` 업로드. 자세한 가이드는 `docs/DEPLOYMENT.md`.
+   - [ ] hosted demo URL 이 README + CLI 안내 문구와 일치하는지 재확인
    - [ ] 30s demo gif 녹화 + `docs/launch/demo.gif` 로 commit (storyboard: `docs/launch/DEMO-GIF-STORYBOARD.md`)
    - [x] GitHub Discussions 활성화 + 카테고리 setup (이 PR 에서 자동 활성화됨)
 
@@ -48,11 +48,14 @@
 
 ### "MCP 가 뭐예요?"
 
-> Model Context Protocol — Anthropic 이 만든 LLM 도구 호출 표준. JSON-RPC over stdio. Claude Code / Cursor / Continue 등이 지원. 우리 서버는 11 tools 로 vault read/write.
+> Model Context Protocol — Anthropic 이 만든 LLM 도구 호출 표준. JSON-RPC over stdio. Claude Code / Cursor / Continue 등이 지원. 우리 서버는 12 tools (read 8 + write 4) 로 vault read/write.
 
-### "Firebase 도 쓰나요?"
+### "백엔드는 뭘 쓰나요?"
 
-> 옵션. 로그인 / cloud sync / 다중 디바이스 가 필요하면 Firebase Auth + Firestore 쓸 수 있는데, 코어 사용자는 vault 만으로 동작 (firebase JS 가 첫 paint 청크에 0KB). git 으로 sync 해도 됨.
+> 0. 사용자 디스크의 markdown 폴더가 진실원. 인증 / 데이터베이스 /
+> 서버 런타임 모두 없음. 빌드 결과물은 순수 정적 export — 어디든 배포 가능.
+> 다중 디바이스 동기화는 git 으로 (사용자가 폴더를 git repo 로 관리하면
+> 자연스럽게 됨).
 
 ## 측정 지표 (1주 후 자가 회고)
 
