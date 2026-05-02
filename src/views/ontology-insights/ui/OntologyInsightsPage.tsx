@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   KNOWLEDGE_EDGE_TYPES,
   ManualSourceChip,
@@ -56,6 +56,8 @@ function getEdgeTypeLabel(
  */
 export function OntologyInsightsPage() {
   const t = useTranslations("ontologyPages.insights");
+  const locale = useLocale();
+  const dateLocale = locale === "ko" ? "ko-KR" : "en-US";
   const kindLabel = useOntologyKindLabel();
 
   const { insight, error } = useOntologyInsight();
@@ -441,7 +443,7 @@ export function OntologyInsightsPage() {
                     <ManualSourceChip source={node.source} size="compact" />
                     {isVaultSentinelMode ? null : (
                       <span className="shrink-0 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
-                        {formatRelativeDate(t, node.lastApprovedAt)}
+                        {formatRelativeDate(t, node.lastApprovedAt, dateLocale)}
                       </span>
                     )}
                   </Link>
@@ -565,6 +567,7 @@ function Panel({
 function formatRelativeDate(
   t: ReturnType<typeof useTranslations>,
   d: Date,
+  dateLocale: string,
 ): string {
   const now = Date.now();
   const diffMs = now - d.getTime();
@@ -574,5 +577,5 @@ function formatRelativeDate(
   if (days < 7) return t("relativeDays", { count: days });
   if (days < 30) return t("relativeWeeks", { count: Math.floor(days / 7) });
   if (days < 365) return t("relativeMonths", { count: Math.floor(days / 30) });
-  return d.toLocaleDateString("ko-KR", { year: "numeric", month: "short" });
+  return d.toLocaleDateString(dateLocale, { year: "numeric", month: "short" });
 }
