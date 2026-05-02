@@ -1,21 +1,20 @@
 ---
 slug: elements/example
 kind: element
-title: 예시 요소
+title: Example element
 domain: domains/example
 ---
 
-# 예시 요소
+# Example element
 
-Element = capability 가 쓰는 더 작은 단위 (jwt-token, otp-store,
-indexeddb-adapter, sigma-canvas, …). 이 파일을 본인 element 이름으로
-rename 하고 (`elements/jwt-token.md`) 위 frontmatter `domain:` 을
-정확한 도메인으로 적어주세요.
+An *element* is a smaller unit a capability uses (jwt-token, otp-store,
+indexeddb-adapter, sigma-canvas, …). Rename this file to match a real
+element (`elements/jwt-token.md`) and set `domain:` to the right parent.
 
-## 어떻게 채우나
+## How to fill it in
 
-- 본문은 *무엇을 / 왜 / 어떤 인터페이스* 한두 단락.
-- frontmatter 키:
-  - `domain: <slug>` — 상위 도메인 한 개
-  - `depends_on: [...]` — 다른 element / capability 에 의존하면
-  - `evidenceIds: [...]` — 라이브러리 docs / 결정 문서 ID (선택)
+- One or two paragraphs in the body covering *what / why / which interface*.
+- Frontmatter keys:
+  - `domain: <slug>` — the single parent domain
+  - `depends_on: [...]` — other elements / capabilities this depends on
+  - `evidenceIds: [...]` — library docs or decision document IDs (optional)

@@ -1,134 +1,136 @@
-# npm publish 단계별 가이드
+# npm publish — step-by-step guide
 
-이 프로젝트는 두 npm 패키지를 publish 합니다:
+This project publishes two npm packages:
 
-| 패키지 | 위치 | 무엇 | publish 필수성 |
+| Package | Path | What | Required? |
 |---|---|---|---|
-| `oh-my-ontology-mcp` | `mcp/` | MCP 서버 (AI agent 가 vault read/write) | **필수** — AI agent 통합의 핵심 |
-| `oh-my-ontology` | `cli/` | `init` CLI (vault scaffold) | **선택** — web workbench 의 scaffold 버튼이 대체 가능 |
+| `oh-my-ontology-mcp` | `mcp/` | MCP server (AI agents read/write the vault) | **Required** — the core of the AI agent integration |
+| `oh-my-ontology` | `cli/` | `init` CLI (vault scaffold) | **Optional** — the web workbench's scaffold button does the same thing |
 
-> **비용**: $0 — npm 의 public package 는 영구 무료. 다운로드/사용자 무제한.
-> 단, npm 계정 + 2FA 가 필요 (계정도 무료).
+> **Cost**: $0. Public npm packages are permanently free. Unlimited downloads / users.
+> You do need an npm account with 2FA (free).
+
+> 🚫 **AI agent guard**: This project blocks `npm publish` / `pnpm publish` / `yarn publish` from being run by Claude Code or any AI agent — see `.claude/settings.json`, `CLAUDE.md`, `.claude/rules/forbidden.md`. You (the human maintainer) run these commands yourself, in a real terminal, after deliberate review.
 
 ---
 
-## 사전 점검 (이미 끝남, 참고용)
+## Pre-flight check (already done, kept for reference)
 
-`pnpm` 의 npm pack dry-run 으로 어떤 파일이 publish 될지 사전 확인 가능:
+`npm pack --dry-run` shows exactly which files would be published:
 
 ```bash
 cd mcp
 npm pack --dry-run
-# Tarball Contents 표시 — README.md, package.json, src/*, scripts/verify.mjs
-# 이 외 파일은 publish 안 됨
+# Tarball Contents — README.md, package.json, src/*, scripts/verify.mjs
+# Anything else is excluded.
 
 cd ../cli
 npm pack --dry-run
 # README.md, package.json, src/index.mjs, templates/vault/*.md
 ```
 
-이미 audit 끝 — secret/PII 0, 절대경로 0.
+We've audited: 0 secrets, 0 PII, 0 absolute paths.
 
 ---
 
-## 1단계: npm 계정 만들고 로그인
+## Step 1 — npm account and login
 
-### a) npm 계정 만들기 (이미 가입했다면 skip)
+### a) Create an npm account (skip if you already have one)
 
-1. https://www.npmjs.com/signup — 이메일 + 패스워드 (비번은 강하게)
-2. 이메일 인증 (메일에서 링크 클릭)
-3. **2FA 설정 강력 권장** — 계정 lock 방지:
-   - 로그인 후 https://www.npmjs.com/settings/{username}/account
-   - "Two-Factor Authentication" 섹션 → "Enable 2FA"
-   - "auth-only" 모드 선택 (publish 시점에만 OTP 입력) — 모바일 OTP 앱 (1Password / Authy / Google Authenticator) 으로 QR 스캔
-   - **recovery codes 안전한 곳에 저장**
+1. https://www.npmjs.com/signup — email + password (use a strong one).
+2. Verify the email link npm sends.
+3. **Strongly recommended: enable 2FA** to protect against account lockout / takeover:
+   - After login, visit https://www.npmjs.com/settings/{username}/account
+   - "Two-Factor Authentication" → "Enable 2FA"
+   - Pick "auth-only" (OTP only at publish time) and scan the QR with a mobile OTP app (1Password / Authy / Google Authenticator).
+   - **Save the recovery codes somewhere safe.**
 
-### b) 터미널에서 로그인
+### b) Login from the terminal
 
 ```bash
 npm login
-# 브라우저가 열리고 npm 로그인 페이지로 이동
-# 로그인 후 OTP 입력
-# "Logged in as <username>" 메시지 뜨면 성공
+# Browser opens to the npm login page.
+# After you log in, enter the OTP.
+# "Logged in as <username>" means success.
 ```
 
-확인:
+Verify:
 
 ```bash
 npm whoami
-# 본인 username 출력되면 OK
+# prints your username
 ```
 
 ---
 
-## 2단계: 패키지 이름 사용 가능한지 확인
+## Step 2 — Check the package names are available
 
 ```bash
 npm view oh-my-ontology
-# 만약 "404 Not Found" 면 사용 가능 (✅)
-# 만약 패키지 정보가 나오면 이미 다른 사람이 사용 중 — 다른 이름 필요
+# "404 Not Found" = name available ✅
+# Any other output = someone else owns this name
 
 npm view oh-my-ontology-mcp
-# 동일 체크
+# Same check
 ```
 
-만약 충돌하면:
-- 옵션 A: 다른 이름 (예: `wlsdks-oh-my-ontology`)
-- 옵션 B: scope 사용 (`@wlsdks/oh-my-ontology`) — 공개 scope 도 무료
+If a name is taken:
+
+- Option A: pick another name (e.g. `wlsdks-oh-my-ontology`)
+- Option B: use a scope (`@wlsdks/oh-my-ontology`) — public scopes are also free
 
 ---
 
-## 3단계: MCP 서버 publish (먼저, 핵심이므로)
+## Step 3 — Publish the MCP server (this is the important one)
 
 ```bash
 cd mcp
 npm publish --access=public
-# OTP 입력 (2FA 활성화한 경우)
-# "+ oh-my-ontology-mcp@0.5.0" 출력되면 성공
+# Enter OTP when prompted (if 2FA enabled)
+# "+ oh-my-ontology-mcp@0.5.0" = success
 ```
 
-확인:
-- https://www.npmjs.com/package/oh-my-ontology-mcp 페이지가 뜸
-- `npx -y oh-my-ontology-mcp` 가 어디서든 동작 (테스트해보려면 다른 디렉토리에서):
+Verify:
+
+- https://www.npmjs.com/package/oh-my-ontology-mcp shows the package page
+- `npx -y oh-my-ontology-mcp` works from any folder. Test from a fresh shell:
 
 ```bash
 cd /tmp
 OMOT_VAULT=/path/to/some/folder npx -y oh-my-ontology-mcp
-# 서버가 시작되며 stdin 대기 — Ctrl+C 로 종료
+# Server starts, waits on stdin. Ctrl+C to exit.
 ```
 
 ---
 
-## 4단계: CLI publish (선택)
+## Step 4 — Publish the CLI (optional)
 
 ```bash
 cd cli
 npm publish --access=public
-# OTP 입력
+# OTP if needed
 ```
 
-확인:
+Verify:
 
 ```bash
 cd /tmp
 npx oh-my-ontology --help
-# Help 메시지 출력
+# prints help
 npx oh-my-ontology init test-vault
-# test-vault 폴더에 5 md + .mcp.json.example 시드
+# creates test-vault/ with 5 .md files + .mcp.json.example
 rm -rf test-vault
 ```
 
-CLI 를 publish *안* 하려면? — 사용자는 web workbench 의 `/docs` 페이지에서
-"starter 시드 만들기" 버튼으로 같은 결과 얻을 수 있음. CLI 는 *AI-native
-developer 의 1줄 setup* 편의용.
+Don't want to publish the CLI? Users can get the same scaffold from the web workbench's `/docs` page → "Create starter seed" button. The CLI is just a convenience for AI-native developers who prefer one-line setup.
 
 ---
 
-## 5단계: 동작 확인
+## Step 5 — Confirm everything works
 
-### A) AI agent 등록 (Claude Code 예시)
+### A) Register with an AI agent (Claude Code example)
 
-`~/.config/claude-code/mcp.json` (또는 적절한 경로) 에:
+In `~/.config/claude-code/mcp.json` (or wherever your agent reads MCP config):
 
 ```json
 {
@@ -144,90 +146,90 @@ developer 의 1줄 setup* 편의용.
 }
 ```
 
-Claude Code 재시작 → tool 목록에 `oh-my-ontology__list_concepts` 등 11
-도구가 나타나면 성공.
+Restart Claude Code. The tool list should show `oh-my-ontology__list_concepts` and 10 others.
 
-### B) 사용자 vault 시작 (CLI 사용 케이스)
+### B) Start a user vault (CLI path)
 
 ```bash
-# 어디서든
+# from anywhere
 npx oh-my-ontology init my-vault
 cd my-vault
 ls -la
-# 5 md + .mcp.json.example
+# 5 .md files + .mcp.json.example
 ```
 
-### C) 사용자 vault 시작 (workbench 사용 케이스)
+### C) Start a user vault (workbench path)
 
-1. https://oh-my-ontology.web.app/docs (Firebase 배포 후)
-2. "내 PC 의 마크다운 폴더 열기" → 빈 폴더 선택
-3. "starter 시드 만들기" 버튼 클릭
-4. 5 md + .mcp.json.example 자동 작성
+1. https://oh-my-ontology.web.app/docs (after Firebase deploy)
+2. "Open my markdown folder" → pick an empty folder
+3. Click "Create starter seed"
+4. 5 .md files + .mcp.json.example are written automatically
 
 ---
 
-## Unpublish / 패키지 삭제
+## Unpublish / remove a package
 
-publish 후 24시간 안에는 unpublish 가능 (실수로 잘못 올렸을 때):
+Within 24 hours of publish, you can unpublish (for honest mistakes):
 
 ```bash
 npm unpublish oh-my-ontology-mcp@0.5.0
 ```
 
-24시간 후엔 unpublish 불가 — `deprecate` 만 가능 (사용자 install 시 경고만):
+After 24 hours, unpublish is no longer allowed — only `deprecate` (installers see a warning, the version stays):
 
 ```bash
-npm deprecate oh-my-ontology-mcp@0.5.0 "version 0.5.0 has critical bug, use 0.5.1+"
+npm deprecate oh-my-ontology-mcp@0.5.0 "0.5.0 has a critical bug, use 0.5.1+"
 ```
 
-> 따라서 첫 publish 전에 `npm pack --dry-run` 으로 한 번 더 확인 권장.
-> 우리는 이미 audit 끝.
+> So always run `npm pack --dry-run` once more before the first publish.
+> We've already audited.
 
 ---
 
-## 버전 올리기 (다음 publish 부터)
+## Bumping the version (every subsequent publish)
 
-코드 변경 후 다시 publish 하려면 버전 bump 필수 (npm 은 같은 버전 재publish 막음):
+After code changes, you must bump the version — npm rejects republishing the same one:
 
 ```bash
 cd mcp
 # Patch (bug fix): 0.5.0 → 0.5.1
 npm version patch
-# 또는 minor: 0.5.0 → 0.6.0
+# Or minor: 0.5.0 → 0.6.0
 npm version minor
-# 또는 major: 0.5.0 → 1.0.0
+# Or major: 0.5.0 → 1.0.0
 npm version major
 
 npm publish --access=public
 ```
 
-버전 bump 는 자동으로 `package.json` 의 version 갱신 + git commit + tag 생성.
+`npm version` automatically updates `package.json`, creates a git commit, and tags it.
 
 ---
 
-## 트러블슈팅
+## Troubleshooting
 
-| 증상 | 원인 / 해결 |
+| Symptom | Cause / fix |
 |---|---|
-| `403 Forbidden` | 2FA OTP 잘못 또는 만료. 다시 시도. |
-| `404 Not Found` (publish 시) | scope 패키지인데 `--access=public` 안 줬을 때. 추가. |
-| `EEXIST` (`oh-my-ontology` already exists) | 이름 충돌. 다른 이름 또는 scope 사용. |
-| `npx oh-my-ontology` 안 됨 | publish 후 npm CDN 반영에 1-2분 걸림. 잠시 후 재시도. |
+| `403 Forbidden` | 2FA OTP wrong or expired. Try again. |
+| `404 Not Found` (on publish) | Scoped package without `--access=public`. Add the flag. |
+| `EEXIST` (`oh-my-ontology` already exists) | Name conflict. Pick a different name or use a scope. |
+| `npx oh-my-ontology` doesn't work right after publish | npm CDN takes 1–2 min to propagate. Wait and retry. |
+| Claude Code blocks the publish command | Expected — see "AI agent guard" up top. Run from a real terminal yourself. |
 
 ---
 
-## 한 줄 요약
+## One-line summary
 
 ```bash
-# 한 번만 (계정 + 로그인)
+# Once (account + login)
 npm login
 
-# 매 publish 시
+# Each publish
 cd mcp && npm publish --access=public
 cd ../cli && npm publish --access=public
 
-# 동작 확인
+# Smoke test
 cd /tmp && npx oh-my-ontology init test-vault && rm -rf test-vault
 ```
 
-전부 무료. 24시간 안에 실수 되돌리기 가능. 평생 사용자 무제한.
+Free. Reversible within 24h. Unlimited users forever.
