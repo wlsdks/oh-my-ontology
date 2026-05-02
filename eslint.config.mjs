@@ -226,23 +226,6 @@ const eslintConfig = defineConfig([
                 "firestore api 는 '@/entities/knowledge-document/api' 로 직접 import 하세요.",
             },
             {
-              name: '@/entities/knowledge-evidence',
-              importNames: ['subscribeKnowledgeEvidenceByDocument'],
-              message:
-                "firestore api 는 '@/entities/knowledge-evidence/api' 로 직접 import 하세요.",
-            },
-            {
-              name: '@/entities/knowledge-job',
-              importNames: ['subscribeKnowledgeJobsByDocument'],
-              message: "firestore api 는 '@/entities/knowledge-job/api' 로 직접 import 하세요.",
-            },
-            {
-              name: '@/entities/knowledge-output',
-              importNames: ['subscribeKnowledgeOutputsByDocument'],
-              message:
-                "firestore api 는 '@/entities/knowledge-output/api' 로 직접 import 하세요.",
-            },
-            {
               name: '@/entities/knowledge-graph',
               importNames: [
                 'listKnowledgeProjectInsight',
