@@ -23,14 +23,9 @@ import type { VaultBacklinkMatch } from "../lib/find-vault-backlinks";
 import { findVaultBacklinks } from "../lib/find-vault-backlinks";
 
 /**
- * P1-1 (UX-4) — local 모드 vault `.md` write path.
- *
- * 빌더 ephemeral 노드 → `${kind}/${slug}.md` 로 vault 직접 작성.
- * frontmatter 는 mission v2 V1.x 호환 — kind / title / domain. 본문은
- * `# {title}` 한 줄. 사용자가 그 후 vault 에서 직접 편집 가능.
- *
- * mission v2 의 *사람 + AI agent 양립* 약속의 코드 구현 — 빌더로 만든
- * 노드를 AI agent (MCP) 가 같은 vault 에서 즉시 본다.
+ * 빌더 ephemeral 노드 → `${kind}s/${slug}.md` 로 vault 직접 작성.
+ * frontmatter: kind / title / slug. 본문은 `# {title}` 한 줄 — 그 후
+ * 사용자 또는 AI agent (MCP) 가 같은 vault 에서 이어서 편집한다.
  */
 function buildVaultMarkdown(args: {
   kind: string;
@@ -138,9 +133,9 @@ export function OntologyEditPage() {
       setSavingId(nodeId);
       try {
         if (dataSourceMode === "local") {
-          // P1-1: vault `.md` 직접 작성. 경로 = `${kind}s/${slug}.md`
-          // (capabilities/auth-platform 같은 형식 — dogfood vault 와 일치).
-          // kind 의 복수형: capability→capabilities, element→elements,
+          // vault `.md` 직접 작성. 경로 = `${kind}s/${slug}.md`
+          // (capabilities/auth-platform — dogfood vault 와 같은 폴더 패턴).
+          // kind 복수형: capability→capabilities, element→elements,
           // domain→domains, project→projects. 그 외는 kind 그대로 +s.
           const folder =
             node.kind === "capability"
