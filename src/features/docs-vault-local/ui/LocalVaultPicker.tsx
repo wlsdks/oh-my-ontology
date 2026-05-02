@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { FolderOpen, FolderX, HardDrive, RefreshCw, Shield } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Tooltip } from '@/shared/ui';
 
 interface Props {
@@ -56,6 +56,8 @@ export function LocalVaultPicker({
   onRequestPermission,
 }: Props) {
   const t = useTranslations('featuresMisc.localVaultPicker');
+  const locale = useLocale();
+  const dateLocale = locale === 'ko' ? 'ko-KR' : 'en-US';
   // 상대시각이 실시간으로 업데이트되도록 15초 tick. loaded 상태일 때만 작동.
   const [nowTick, setNowTick] = useState(() => Date.now());
   useEffect(() => {
@@ -131,7 +133,7 @@ export function LocalVaultPicker({
         {lastLoadedAt !== null ? (
           <span
             className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]"
-            title={new Date(lastLoadedAt).toLocaleString('ko-KR')}
+            title={new Date(lastLoadedAt).toLocaleString(dateLocale)}
           >
             {t('loadedScannedSuffix', {
               relative: formatRelative(nowTick, lastLoadedAt, t),
