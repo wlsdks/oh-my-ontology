@@ -16,11 +16,8 @@
     "docs-vault:build": "node scripts/build-docs-vault.mjs",
     "lint": "eslint",
     "bundle:check": "node scripts/check-bundle.mjs",
-    "seed": "node scripts/seed-via-rest.mjs",
-    "seed:emulator": "node scripts/seed-emulator.mjs",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:e2e:knowledge": "firebase emulators:exec --project demo-oh-my-ontology --only firestore,storage \"node scripts/run-knowledge-smoke.mjs\"",
     "test:e2e:public-topology": "firebase emulators:exec --project demo-oh-my-ontology --only firestore \"node scripts/run-public-topology-e2e.mjs\"",
     "test:e2e:public-auth": "firebase emulators:exec --project demo-oh-my-ontology --only auth \"node scripts/run-public-auth-e2e.mjs\"",
     "test:e2e:public-account-menu": "node scripts/run-public-account-menu-e2e.mjs"

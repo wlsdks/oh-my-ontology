@@ -14,7 +14,7 @@ interface OperationsNavProps {
 }
 
 interface NavItem {
-  id: 'knowledge' | 'ontology' | 'topology' | 'settings' | 'diagnostics';
+  id: 'knowledge' | 'ontology' | 'topology' | 'settings';
   label: string;
   /** Tooltip 본문 — 라벨이 짧아 첫 사용자에게 의미 약할 때 보조 안내. */
   description: string;
@@ -65,20 +65,13 @@ function buildItems(mode: 'static' | 'local' | 'cloud'): ReadonlyArray<NavItem> 
       basePath: '/settings/categories/',
       prefixes: ['/settings'],
     },
-    {
-      id: 'diagnostics',
-      label: '챙길 곳',
-      description: '지금 손대야 할 프로젝트 / 데이터 상태 / 마이그레이션 도구',
-      basePath: '/diagnostics/insights/',
-      prefixes: ['/diagnostics'],
-    },
   ];
 }
 
 /**
- * 운영 메뉴 공통 nav. /knowledge ↔ /settings ↔ /diagnostics ↔ ontology
- * 사이 전환이 각 페이지 nav 안에 묻혀 있어 사용자가 메뉴 사이 점프
- * 못 하던 문제 해소. 모든 운영 페이지 상단에 동일하게 배치.
+ * 운영 메뉴 공통 nav. /knowledge ↔ /settings ↔ ontology 사이 전환이
+ * 각 페이지 nav 안에 묻혀 있어 사용자가 메뉴 사이 점프 못 하던 문제
+ * 해소. 모든 운영 페이지 상단에 동일하게 배치.
  *
  * 데스크톱 (md+): 탭 + 우측 보조 (rightSlot / 프로젝트 / 로그아웃).
  *
