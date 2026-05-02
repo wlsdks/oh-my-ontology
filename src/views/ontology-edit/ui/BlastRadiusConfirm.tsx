@@ -34,11 +34,19 @@ interface Props {
 export function BlastRadiusConfirm({ open, slug, title, backlinks, onCancel, onConfirm }: Props) {
   const t = useTranslations('ontologyPages.edit.page.blastRadius');
   const cancelRef = useRef<HTMLButtonElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   // Auto-focus the safe action (cancel) so accidental Enter does not
   // trigger destructive delete. mirrors browser confirm() default-no.
+  // 닫힐 때 trigger (보통 toolbar 의 Delete 버튼) 로 focus 복원 — 다른
+  // modal 과 동일한 a11y 패턴.
   useEffect(() => {
-    if (open) cancelRef.current?.focus();
+    if (!open) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    cancelRef.current?.focus();
+    return () => {
+      previousFocusRef.current?.focus?.();
+    };
   }, [open]);
 
   useEffect(() => {
