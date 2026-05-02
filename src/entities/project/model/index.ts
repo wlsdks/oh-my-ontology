@@ -7,7 +7,7 @@ export type {
   ProjectPosition,
   ProjectInput,
 } from './types';
-export { fromFirestore, toFirestore, projectToInput } from './mapper';
+export { projectToInput } from './to-input';
 export { SEED_PROJECTS } from './seed-data';
 export { resolveFallbackProjects } from './fallback';
 export { computeHubSlugs, isSharedNode } from './hub';

@@ -44,7 +44,6 @@ import {
   isProjectPositionInsideCategory,
 } from "../model/placement";
 import { DependencyPicker } from "./DependencyPicker";
-import { ScreenshotUploader } from "./ScreenshotUploader";
 import { MarkdownField } from "./MarkdownField";
 
 interface Props {
@@ -1098,14 +1097,9 @@ export function ProjectForm({
             <Hint>{t("fields.dependenciesHint")}</Hint>
           </FieldRow>
 
-          <FieldRow label={t("fields.screenshots")}>
-            <ScreenshotUploader
-              slug={values.slug}
-              value={values.screenshots}
-              onChange={(next) => setValue("screenshots", next)}
-            />
-            <Hint>{t("fields.screenshotsHint")}</Hint>
-          </FieldRow>
+          {/* R10b — Screenshot uploader 는 Firebase Storage 의존이라 cloud surface
+              제거와 함께 삭제. 사용자가 markdown 안에 이미지 인라인하거나 vault
+              내부 image asset 으로 처리하는 흐름이 local-first 정합. */}
         </FormSection>
 
         <FormSection

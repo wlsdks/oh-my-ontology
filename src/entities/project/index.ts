@@ -8,8 +8,6 @@ export type {
   ProjectInput,
 } from "./model";
 export {
-  fromFirestore,
-  toFirestore,
   SEED_PROJECTS,
   resolveFallbackProjects,
   computeHubSlugs,
@@ -51,10 +49,8 @@ export type {
   ProjectRelationshipKind,
   ProjectRelationshipMeta,
 } from "./model";
-// API 함수는 barrel 에서 제외 — `@/entities/project/api` 로 직접 import 한다.
-// 이유: 이 barrel 을 type / lib only 로 import 하는 페이지가 많은데, api/
-// 가 firebase/firestore 를 정적으로 끌어와 local-first 첫 paint 청크에 ~640kb
-// 의 firestore SDK 가 박힌다. 분리해 cloud-mode 페이지만 firebase 다운로드.
+// R10b — cloud entity api 영구 제거. mission v2 (vault frontmatter = 진실원)
+// 정합. 미래 cloud collab 단계가 다시 도입될 때 새 api/ 폴더로.
 export { getProjectDetailHref, getProjectDetailUrl } from "./lib/detail-href";
 export { getTopologyProjectHref } from "./lib/topology-href";
 export { ProjectCard } from "./ui/ProjectCard";

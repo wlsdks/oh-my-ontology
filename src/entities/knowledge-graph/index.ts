@@ -22,9 +22,6 @@ export {
   isKnowledgeEdgeType,
   KNOWLEDGE_GRAPH_SOURCES,
   isKnowledgeGraphSource,
-  fromFirestoreKnowledgeGraphNode,
-  fromFirestoreKnowledgeGraphEdge,
-  fromFirestoreKnowledgePublicMeta,
   buildKnowledgeProjectEvidenceSummary,
   MANUAL_NODE_KINDS,
   MANUAL_NODE_ERROR_MESSAGE,
@@ -33,17 +30,9 @@ export {
   validateManualKnowledgeEdgeInput,
   composeManualEdgeId,
 } from "./model";
-// Firestore 구독 훅 (`useKnowledgePublic*`) 은 내부에서 dynamic import 만
-// 사용해 firebase 의존이 없다 — 정적 import 가능. mutation / direct subscribe
-// 함수는 `@/entities/knowledge-graph/api` 경로로 분리.
-export { useKnowledgePublicNodes } from "./api/use-knowledge-public-nodes";
-export {
-  useKnowledgePublicInsight,
-  type UseKnowledgePublicInsightResult,
-} from "./api/use-knowledge-public-insight";
-export type {
-  AddManualKnowledgeNodeResult,
-  AddManualKnowledgeEdgeResult,
-} from "./api/knowledge-graph-api";
+// R10b — cloud Firestore 의존 hook (`useKnowledgePublic*`) 및 mutation 함수
+// (`addManualKnowledgeNode/Edge`, `subscribeKnowledgeProjectInsight` 등) 영구
+// 제거. mission v2 single-source ('vault frontmatter = graph') 정합. 미래
+// cloud collab 단계가 다시 도입될 때 새 api/ 폴더로.
 export { ManualSourceChip } from "./ui/ManualSourceChip";
 export type { ManualSourceChipProps } from "./ui/ManualSourceChip";

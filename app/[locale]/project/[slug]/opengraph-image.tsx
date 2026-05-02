@@ -1,5 +1,4 @@
 import { ImageResponse } from 'next/og';
-import { fetchAllProjectsAtBuild } from '@/entities/project/api';
 import {
   deriveProjectsFromVault,
   vaultManifest as staticVaultManifestRaw,
@@ -23,14 +22,9 @@ interface Params {
 }
 
 export async function generateStaticParams(): Promise<Params[]> {
-  const cloudProjects = await fetchAllProjectsAtBuild();
-  const vaultProjects = deriveProjectsFromVault(staticVaultManifest);
-  const slugs = new Set<string>();
-  for (const p of cloudProjects) slugs.add(p.slug);
-  for (const p of vaultProjects) slugs.add(p.slug);
+  const projects = deriveProjectsFromVault(staticVaultManifest);
+  const slugs = new Set<string>(projects.map((p) => p.slug));
   if (slugs.size === 0) slugs.add('iam');
-  // OG image is locale-independent so we generate one per (locale, slug)
-  // pair to satisfy the static export contract; the rendered PNG is identical.
   const out: Params[] = [];
   for (const locale of ['en', 'ko']) {
     for (const slug of slugs) out.push({ locale, slug });
@@ -44,7 +38,7 @@ export default async function ProjectOgImage({
   params: Promise<Params>;
 }) {
   const { slug } = await params;
-  const projects = await fetchAllProjectsAtBuild();
+  const projects = deriveProjectsFromVault(staticVaultManifest);
   const project = projects.find((p) => p.slug === slug);
 
   const accent = project?.isHub ? INDIGO_BRAND : INDIGO_HIGHLIGHT;

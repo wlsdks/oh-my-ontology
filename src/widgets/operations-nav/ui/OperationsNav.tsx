@@ -72,8 +72,8 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
  * 보게. local 모드면 vault 폴더 이름 + doc count, cloud 면 "cloud sync",
  * static (비활성/비로그인) 이면 "데모". mode 바뀜 = 데이터 destination 바뀜.
  */
-function ModeBadge({ mode }: { mode: 'static' | 'local' | 'cloud' }) {
-  // local 모드일 때만 vault 메타 가져오기. cloud/static 은 그냥 chip.
+function ModeBadge({ mode }: { mode: 'static' | 'local' }) {
+  // local 모드일 때만 vault 메타 가져오기. static 은 그냥 chip.
   // useLocalVault 자체는 SSR-safe (window 가드).
   const vault = useLocalVault();
   const t = useTranslations('modeBadge');
@@ -91,19 +91,6 @@ function ModeBadge({ mode }: { mode: 'static' | 'local' | 'cloud' }) {
           <span>{t('vaultLabel')}</span>
           <span className="text-[color:var(--color-text-tertiary)]">·</span>
           <span>{t('vaultDocs', { count: docCount })}</span>
-        </span>
-      </Tooltip>
-    );
-  }
-  if (mode === 'cloud') {
-    return (
-      <Tooltip content={t('cloudTooltip')}>
-        <span
-          aria-label={t('cloudAriaLabel')}
-          className="inline-flex h-7 items-center gap-1.5 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-[color:var(--color-text-secondary)]"
-        >
-          <span aria-hidden>●</span>
-          <span>{t('cloudLabel')}</span>
         </span>
       </Tooltip>
     );

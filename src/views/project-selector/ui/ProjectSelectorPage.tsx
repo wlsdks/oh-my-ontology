@@ -14,8 +14,6 @@ import {
 import { ProjectQuickCreatePanel } from "@/features/project-quick-create";
 import { useProjectMutations, useProjects } from "@/features/project-data-source";
 import { downloadProjectsCsv } from "@/features/project-export";
-import { useKnowledgePublicNodes } from "@/entities/knowledge-graph";
-import { useDataSourceMode } from "@/features/data-source-mode";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import {
@@ -84,21 +82,10 @@ export function ProjectSelectorPage() {
   useDocumentTitle(t("documentTitle"));
 
   // ontology nodes — 카드별 count badge 데이터. 부모 한 번 hook + count map
-  // (1994 카드 각자 subscribe 회피). 권한 없으면 빈 배열, badge 자동 숨김.
-  // mode-gate: cloud 가 아니면 Firestore 구독 skip (local/static 에서는 vault
-  // 데이터로 대체되거나 badge 자체가 의미 없음 — local-first 약속 유지).
-  const dataSourceMode = useDataSourceMode();
-  const ontologyNodes = useKnowledgePublicNodes(null, dataSourceMode === 'cloud');
-  const ontologyCountBySlug = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const node of ontologyNodes) {
-      if (node.kind === "document" || node.kind === "project") continue;
-      for (const slug of node.projectIds) {
-        map.set(slug, (map.get(slug) ?? 0) + 1);
-      }
-    }
-    return map;
-  }, [ontologyNodes]);
+  // R10b (cloud surface 영구 제거) 이후 — 프로젝트 카드의 ontology badge 는
+  // vault frontmatter 기반으로 미래에 다시 도입할 때 새 derivation 으로.
+  // 지금은 빈 맵으로 단순화.
+  const ontologyCountBySlug = useMemo(() => new Map<string, number>(), []);
 
   const filteredProjects = useMemo(
     () =>

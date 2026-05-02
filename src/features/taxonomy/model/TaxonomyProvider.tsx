@@ -1,23 +1,13 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
-// firebase 의존이 0 인 파일에서만 정적 import — barrel (`@/entities/category`)
-// 을 거치면 mapper.ts (Timestamp 사용) → firebase/firestore 가 따라온다.
-// API 함수 (subscribe*, seed*) 는 cloud 모드 진입 시점 dynamic import 로 분리.
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
+// firebase 의존이 0 인 imports 만 — barrel (`@/entities/category`) 거치면
+// mapper.ts (Timestamp 사용) → firebase/firestore 가 따라온다.
 import { DEFAULT_CATEGORIES } from '@/entities/category/model/defaults';
 import { hasRegisteredCategoryRegions } from '@/entities/category/model/presence';
 import type { Category } from '@/entities/category/model/types';
 import { DEFAULT_STATUSES } from '@/entities/status/model/defaults';
 import type { Status } from '@/entities/status/model/types';
-import { useDataSourceMode } from '@/features/data-source-mode';
 
 export interface TaxonomyContextValue {
   categories: Category[];
@@ -49,93 +39,31 @@ interface Props {
   children: ReactNode;
 }
 
+/**
+ * R10b (cloud surface 영구 제거) 이후 — defaults 만 노출하는 정적 provider.
+ *
+ * 이전엔 cloud 모드에서 Firestore `categories` / `statuses` 컬렉션을 구독해
+ * 사용자가 settings 페이지에서 추가한 분류를 실시간 반영했다. 그 surface 가
+ * 사라지면서 taxonomy 도 빌드타임 defaults 만으로 충분.
+ *
+ * vault 기반 사용자 정의 분류 (예: `categories.md` frontmatter) 는 추후 단계.
+ */
 export function TaxonomyProvider({ children }: Props) {
-  // mode-aware — local/static 모드는 Firebase 미초기화일 수 있으므로
-  // Firestore 구독 skip 하고 defaults 만 사용. cloud 모드만 실시간 sync.
-  // (vault 의 categories.md / statuses.md 기반 사용자 정의는 추후 단계.)
-  const mode = useDataSourceMode();
-  const subscribeCloud = mode === 'cloud';
-  const [categories, setCategories] = useState<Category[]>(defaultCategories);
-  const [statuses, setStatuses] = useState<Status[]>(defaultStatuses);
-  const [categoriesHydrated, setCategoriesHydrated] = useState(!subscribeCloud);
-  const [statusesHydrated, setStatusesHydrated] = useState(!subscribeCloud);
-  const seededCategoriesRef = useRef(false);
-  const seededStatusesRef = useRef(false);
-
-  useEffect(() => {
-    if (!subscribeCloud) return;
-    let unsubCat: (() => void) | null = null;
-    let unsubStat: (() => void) | null = null;
-    let cancelled = false;
-
-    void Promise.all([
-      import('@/entities/category/api'),
-      import('@/entities/status/api'),
-    ])
-      .then(
-      ([
-        { subscribeCategories, seedDefaultCategoriesIfEmpty },
-        { subscribeStatuses, seedDefaultStatusesIfEmpty },
-      ]) => {
-        if (cancelled) return;
-        unsubCat = subscribeCategories(
-          (list) => {
-            setCategories(list.length > 0 ? list : defaultCategories);
-            setCategoriesHydrated(true);
-            if (!seededCategoriesRef.current && list.length === 0) {
-              seededCategoriesRef.current = true;
-              void seedDefaultCategoriesIfEmpty().catch((err) => {
-                console.warn('[TaxonomyProvider] categories seed error', err);
-              });
-            }
-          },
-          (err) => console.warn('[TaxonomyProvider] categories subscribe error', err),
-        );
-        unsubStat = subscribeStatuses(
-          (list) => {
-            setStatuses(list.length > 0 ? list : defaultStatuses);
-            setStatusesHydrated(true);
-            if (!seededStatusesRef.current && list.length === 0) {
-              seededStatusesRef.current = true;
-              void seedDefaultStatusesIfEmpty().catch((err) => {
-                console.warn('[TaxonomyProvider] statuses seed error', err);
-              });
-            }
-          },
-          (err) => console.warn('[TaxonomyProvider] statuses subscribe error', err),
-        );
-      },
-    )
-      .catch((err) => {
-        // chunk fetch 실패 — defaults 로 hydrate 해 toolbar/fallback 이라도
-        // 정상화. 실제 동작은 무너져도 UI 가 영영 'loading' 에 갇히는 것 보단 낫다.
-        if (cancelled) return;
-        console.warn('[TaxonomyProvider] entity api chunk load failed', err);
-        setCategoriesHydrated(true);
-        setStatusesHydrated(true);
-      });
-    return () => {
-      cancelled = true;
-      unsubCat?.();
-      unsubStat?.();
-    };
-  }, [subscribeCloud]);
-
   const value = useMemo<TaxonomyContextValue>(() => {
-    const categoryMap = new Map(categories.map((c) => [c.id, c]));
-    const statusMap = new Map(statuses.map((s) => [s.id, s]));
+    const categoryMap = new Map(defaultCategories.map((c) => [c.id, c]));
+    const statusMap = new Map(defaultStatuses.map((s) => [s.id, s]));
     return {
-      categories,
-      statuses,
-      categoriesHydrated,
-      statusesHydrated,
-      showCategoryRegions: hasRegisteredCategoryRegions(categories),
+      categories: defaultCategories,
+      statuses: defaultStatuses,
+      categoriesHydrated: true,
+      statusesHydrated: true,
+      showCategoryRegions: hasRegisteredCategoryRegions(defaultCategories),
       getCategory: (id) => categoryMap.get(id),
       getStatus: (id) => statusMap.get(id),
       categoryLabel: (id) => categoryMap.get(id)?.label ?? id,
       statusLabel: (id) => statusMap.get(id)?.label ?? id,
     };
-  }, [categories, statuses, categoriesHydrated, statusesHydrated]);
+  }, []);
 
   return <TaxonomyContext.Provider value={value}>{children}</TaxonomyContext.Provider>;
 }

@@ -548,35 +548,14 @@ export function HomePage() {
     return () => window.clearTimeout(handle);
   }, [hubs, preloadProjectAsset, selectedSlug]);
 
+  // R10b — selected project 의 knowledge insight subscribe 제거 (cloud surface
+  // 사라지면서 항상 빈 insight). 미래에 vault frontmatter 기반 derivation 으로
+  // 다시 도입할 때 새 hook 으로.
   useEffect(() => {
-    if (!selectedProject) return;
-    // Firestore 구독 — entity api 는 dynamic import 로 first paint 청크에서
-    // 분리. 선택된 project 가 바뀔 때마다 다시 구독한다.
-    let unsubscribe: (() => void) | null = null;
-    let cancelled = false;
-    void import("@/entities/knowledge-graph/api").then(
-      ({ subscribeKnowledgeProjectInsight }) => {
-        if (cancelled) return;
-        unsubscribe = subscribeKnowledgeProjectInsight(
-          selectedProject.slug,
-          null,
-          (nextInsight) => {
-            setSelectedKnowledgeInsight({
-              projectSlug: selectedProject.slug,
-              insight: nextInsight,
-            });
-          },
-          (error) => {
-            console.warn("[HomePage] knowledge insight subscribe failed", error);
-          },
-        );
-      },
-    );
-
-    return () => {
-      cancelled = true;
-      unsubscribe?.();
-    };
+    setSelectedKnowledgeInsight({
+      projectSlug: null,
+      insight: { nodes: [], edges: [], meta: null },
+    });
   }, [selectedProject]);
 
   return (

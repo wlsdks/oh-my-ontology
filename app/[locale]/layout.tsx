@@ -3,7 +3,6 @@ import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { MotionProvider } from '@/app-providers/providers';
-import '@/shared/lib/firestore-noise-patch';
 import { TaxonomyProvider } from '@/features/taxonomy';
 import { BottomTabBar } from '@/widgets/bottom-tab-bar';
 import { ToastProvider, TooltipProvider } from '@/shared/ui';

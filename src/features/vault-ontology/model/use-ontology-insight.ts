@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { useDataSourceMode } from '@/features/data-source-mode';
 import {
-  useKnowledgePublicInsight,
   type KnowledgeGraphNode,
   type KnowledgeGraphEdge,
   type KnowledgeProjectInsight,
@@ -70,36 +69,29 @@ const STATIC_INSIGHT: { insight: KnowledgeProjectInsight; error: null } = {
 };
 
 /**
- * Mode-aware ontology insight 구독.
+ * Mode-aware ontology insight 어댑터.
  *
- * mission v2 진실원 우선순위 — `vault picked (local) > 빌드타임 dogfood
- * (static) > Firestore (cloud)`. PR #33 이 projects 측에 적용한 정책을 ontology
- * insight 에도 확장: 사용자가 vault 안 골랐고 비인증 (static) 이어도
- * oh-my-ontology 자체 ontology 가 즉시 보임.
+ * R10 (auth + cloud surface 영구 제거) 이후 2 모드:
  *
- * - `local` → `useVaultOntology` 결과를 `KnowledgeProjectInsight` shape 로 변환
- *   (sourceSlug 는 sentinel 값으로 채움 — 검수 chain 의 시작점은 vault 그 자체).
- * - `static` → 빌드타임 dogfood 매니페스트 derivation. JSON import 라 module-load
- *   에 1 회 derive (메모이즈) — 첫 paint 부터 즉시 노드/엣지 표시.
- * - `cloud` → 기존 `useKnowledgePublicInsight` 그대로.
+ * - **local** → `useVaultOntology` 결과를 `KnowledgeProjectInsight` shape 로
+ *   변환. 사용자 디스크의 frontmatter 가 진실원.
+ * - **static** → 빌드타임 dogfood 매니페스트 derivation. JSON import 라
+ *   module-load 에 1 회 derive (메모이즈).
+ *
+ * 두 mode 다 firebase 의존 0. accountId 매개변수는 backward-compat 으로 받지만
+ * 사용 안 한다 — 미래 cloud collab 단계에서 다시 필요해질 때 정의.
  */
 export function useOntologyInsight(
-  accountId: string | null,
+  _accountId?: string | null,
 ): { insight: KnowledgeProjectInsight | null; error: Error | null } {
   const mode = useDataSourceMode();
-  // Only open the Firestore subscription on cloud mode. Without this gate
-  // the hook would dynamic-import firebase + open 4 outbound Listen channel
-  // requests even when the caller is on static / local — a local-first
-  // contract violation surfaced by the 2026-05-02 perf audit.
-  const cloud = useKnowledgePublicInsight(accountId, mode === 'cloud');
   const vault = useVaultOntology();
 
   return useMemo(() => {
     if (mode === 'static') return STATIC_INSIGHT;
-    if (mode !== 'local') return cloud;
     return {
       insight: derivationToInsight(vault),
       error: null,
     };
-  }, [mode, cloud, vault]);
+  }, [mode, vault]);
 }

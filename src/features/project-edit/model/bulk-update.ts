@@ -1,6 +1,6 @@
 import type { Category } from "@/entities/category";
-import { projectToInput } from "../../../entities/project/model/mapper";
-import type { Project } from "../../../entities/project/model/types";
+import { projectToInput } from "@/entities/project/model/to-input";
+import type { Project } from "@/entities/project/model/types";
 import { findProjectPlacement } from "./placement";
 
 function sortProjectsForBulkUpdate(projects: Project[]) {

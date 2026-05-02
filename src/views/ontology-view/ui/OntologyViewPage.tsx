@@ -20,8 +20,6 @@ import {
   type OntologyTreeBuildResult,
 } from "@/shared/lib/ontology-tree";
 import { GlobalSearch, MountedGlobalSearch, useGlobalSearchHotkey } from "@/widgets/global-search";
-import { ManualEdgeCreateModal } from "@/widgets/manual-edge-create-modal";
-import { ManualNodeCreateModal } from "@/widgets/manual-node-create-modal";
 import { OntologyEgoGraph } from "@/widgets/ontology-ego-graph";
 import { OntologyTreeView } from "@/widgets/ontology-tree-view";
 import { useDataSourceMode } from "@/features/data-source-mode";
@@ -78,11 +76,6 @@ export function OntologyViewPage() {
     const qs = params.toString();
     router.replace(qs ? `/ontology/?${qs}` : "/ontology/", { scroll: false });
   };
-  // manual node create — 사용자가 트리 surface 에서 직접 노드 추가하는 modal.
-  const [manualOpen, setManualOpen] = useState(false);
-  // manual edge create — 노드 상세 패널 "+ 관계 추가" 진입.
-  const [edgeOpen, setEdgeOpen] = useState(false);
-  const [edgeFromId, setEdgeFromId] = useState<string>("");
 
   // ESC 로 패널 닫기.
   useEffect(() => {
@@ -202,10 +195,11 @@ export function OntologyViewPage() {
               flex-wrap + horizontal scroll 보조. md+ 는 한 줄 유지. -mr/-ml
               음수 마진 + px padding 으로 우측 잘림 방지. */}
           <div className="-mx-1 flex w-full items-center gap-2 overflow-x-auto px-1 pb-1 md:w-auto md:flex-wrap md:overflow-visible md:pb-0">
+            {/* R10b — Add Node 는 빌더 (/ontology/edit) 에서. cloud manual node
+                modal 사라지면서 vault 기반 단일 진입점으로 통일. */}
             <Tooltip content={t('actions.addNodeTooltip')} withProvider={false}>
-              <button
-                type="button"
-                onClick={() => setManualOpen(true)}
+              <Link
+                href="/ontology/edit/"
                 aria-label={t('actions.addNodeAria')}
                 className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.16)] px-3 text-xs text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)]"
               >
@@ -213,7 +207,7 @@ export function OntologyViewPage() {
                   <path d="M12 5v14M5 12h14" />
                 </svg>
                 <span className="hidden sm:inline">{t('actions.addNode')}</span>
-              </button>
+              </Link>
             </Tooltip>
             <Tooltip content={t('actions.searchTooltip')} withProvider={false}>
               <button
@@ -443,10 +437,6 @@ relates:
           onChangeEgoHops={setEgoHops}
           onSelectNeighbor={(neighbor) => selectNode(neighbor)}
           onClose={() => selectNode(null)}
-          onAddEdge={(fromNode) => {
-            setEdgeFromId(fromNode.id);
-            setEdgeOpen(true);
-          }}
         />
       ) : null}
 
@@ -463,28 +453,6 @@ relates:
         open={globalSearchOpen}
         onOpenChange={setGlobalSearchOpen}
         onSelectNode={(node) => selectNode(node)}
-      />
-
-      <ManualNodeCreateModal
-        open={manualOpen}
-        onOpenChange={setManualOpen}
-        accountId={accountId ?? ""}
-        existingNodes={insight?.nodes ?? []}
-        onCreated={(nodeId) => {
-          // 새로 만든 노드를 즉시 selectedNode 로 띄움 — 사용자 만든 결과 확인.
-          // insight 가 곧 onSnapshot 으로 갱신되면 패널이 정식 데이터로 교체됨.
-          const justCreated = (insight?.nodes ?? []).find((n) => n.id === nodeId);
-          if (justCreated) selectNode(justCreated);
-        }}
-      />
-
-      <ManualEdgeCreateModal
-        open={edgeOpen}
-        onOpenChange={setEdgeOpen}
-        accountId={accountId ?? ""}
-        existingNodes={insight?.nodes ?? []}
-        existingEdges={insight?.edges ?? []}
-        prefillFromId={edgeFromId}
       />
 
       <OntologyMetaFooter
@@ -520,8 +488,7 @@ function OntologyMetaFooter({
   const t = useTranslations('ontologyView.footer');
   const formatPublished = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const modeLabel =
-    mode === 'local' ? t('modeLocal') : mode === 'cloud' ? t('modeCloud') : t('modeStatic');
+  const modeLabel = mode === 'local' ? t('modeLocal') : t('modeStatic');
   return (
     <footer className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[color:var(--color-divider)] pt-3 text-[11px] text-[color:var(--color-text-quaternary)]">
       <span className="font-mono uppercase tracking-[0.14em]">
@@ -627,7 +594,6 @@ function NodeDetailPanel({
   onChangeEgoHops,
   onSelectNeighbor,
   onClose,
-  onAddEdge,
 }: {
   node: KnowledgeGraphNode;
   accountId: string | null;
@@ -637,7 +603,6 @@ function NodeDetailPanel({
   onChangeEgoHops: (hops: 1 | 2) => void;
   onSelectNeighbor: (node: KnowledgeGraphNode) => void;
   onClose: () => void;
-  onAddEdge: (fromNode: KnowledgeGraphNode) => void;
 }) {
   const t = useTranslations('ontologyView.detail');
   const getKindLabel = useOntologyKindLabel();
@@ -691,21 +656,9 @@ function NodeDetailPanel({
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <CopyNodeLinkButton node={node} accountId={accountId} />
-          {!isStub ? (
-            <Tooltip content={t('addEdgeTooltip')} withProvider={false}>
-            <button
-              type="button"
-              onClick={() => onAddEdge(node)}
-              aria-label={t('addEdgeAria')}
-              className="flex h-8 items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.16)] px-2.5 text-[11px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)]"
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              <span>{t('addEdgeButton')}</span>
-            </button>
-            </Tooltip>
-          ) : null}
+          {/* R10b: cloud manual edge modal 제거. 새 edge 는 vault frontmatter
+              array (capabilities/elements/dependencies/relates/contains/describes)
+              에 직접 추가 또는 builder canvas (/ontology/edit) 에서. */}
           <button
             type="button"
             onClick={onClose}

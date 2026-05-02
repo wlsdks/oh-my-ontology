@@ -5,23 +5,17 @@
   "license": "MIT",
   "sideEffects": [
     "*.css",
-    "**/firestore-noise-patch*",
     "**/globals.css"
   ],
   "scripts": {
     "predev": "pnpm docs-vault:build",
     "dev": "next dev",
-    "dev:firestore-emulator": "firebase emulators:start --project demo-oh-my-ontology --only firestore",
-    "dev:firebase-emulators": "firebase emulators:start --project demo-oh-my-ontology --only auth,firestore,functions,storage",
     "build": "pnpm docs-vault:build && next build",
     "docs-vault:build": "node scripts/build-docs-vault.mjs",
     "lint": "eslint",
     "bundle:check": "node scripts/check-bundle.mjs",
     "test": "vitest",
-    "test:run": "vitest run",
-    "test:e2e:public-topology": "firebase emulators:exec --project demo-oh-my-ontology --only firestore \"node scripts/run-public-topology-e2e.mjs\"",
-    "test:e2e:public-auth": "firebase emulators:exec --project demo-oh-my-ontology --only auth \"node scripts/run-public-auth-e2e.mjs\"",
-    "test:e2e:public-account-menu": "node scripts/run-public-account-menu-e2e.mjs"
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.0.0",
@@ -38,7 +32,6 @@
     "cmdk": "^1.1.1",
     "d3-force": "^3.0.0",
     "d3-force-reuse": "^1.0.1",
-    "firebase": "^12.12.1",
     "framer-motion": "^12.38.0",
     "graphology": "^0.26.0",
     "graphology-layout-forceatlas2": "^0.10.1",
@@ -69,8 +62,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "eslint-plugin-boundaries": "^6.0.2",
-    "firebase-admin": "^13.8.0",
-    "firebase-tools": "^15.16.0",
     "jsdom": "^29.0.2",
     "tailwindcss": "^4.2.4",
     "typescript": "^5",
