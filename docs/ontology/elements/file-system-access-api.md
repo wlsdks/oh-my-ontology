@@ -6,7 +6,6 @@ domain: vault-local-first
 path: src/features/docs-vault-local
 relates:
   - domains/vault-local-first
-  - elements/indexed-db
 ---
 
 # File System Access API
