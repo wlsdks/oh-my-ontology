@@ -1033,7 +1033,6 @@ export function HomePage() {
             handleSelect(slug);
           }}
           containerLabel={null}
-          accountId={null}
         />
         {/* Fire 2 — ⇧⌘K 로 열리는 ontology / 문서 통합 검색. project 전용
             SearchPalette 와 별 슬롯 — layer filter / 최근 검색 등 SearchPalette

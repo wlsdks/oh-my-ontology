@@ -45,7 +45,6 @@ interface Props {
   onSelect: (slug: string) => void;
   /** P0-B Phase 6 — 활성 컨테이너 이름. truthy 면 헤더에 "Project · {name}" 배지 노출. */
   containerLabel?: string | null;
-  accountId?: string | null;
 }
 
 const MATCH_FIELD_KEYS = {
@@ -114,7 +113,6 @@ export function SearchPalette({
   projects,
   onSelect,
   containerLabel,
-  accountId,
 }: Props) {
   return (
     <AnimatePresence>
@@ -124,7 +122,6 @@ export function SearchPalette({
           onClose={onClose}
           onSelect={onSelect}
           containerLabel={containerLabel}
-          accountId={accountId}
         />
       )}
     </AnimatePresence>
@@ -136,7 +133,6 @@ interface DialogProps {
   onClose: () => void;
   onSelect: (slug: string) => void;
   containerLabel?: string | null;
-  accountId?: string | null;
 }
 
 type LayerFilter = 'all' | 'hub' | 'node';
@@ -162,7 +158,6 @@ function SearchPaletteDialog({
   onClose,
   onSelect,
   containerLabel,
-  accountId,
 }: DialogProps) {
   const t = useTranslations('searchWidgets.projectSearch');
   const router = useRouter();

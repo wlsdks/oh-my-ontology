@@ -1152,7 +1152,6 @@ export function ProjectDetailPage({
         projects={related}
         onSelect={handleSearchSelect}
         containerLabel={null}
-        accountId={accountId}
       />
       <ShortcutSheet
         open={shortcutsOpen}
