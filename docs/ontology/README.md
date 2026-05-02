@@ -14,9 +14,9 @@ title: oh-my-ontology — 자기 ontology vault
 ```
 docs/ontology/
 ├── project.md            — root project 노드 (oh-my-ontology)
-├── domains/              — 도메인 8개 (vault, ontology-core, views, ai-partner …)
-├── capabilities/         — capability 노드 (frontmatter → ontology, mode-aware adapter …)
-└── elements/             — element 노드 (코드 디렉토리 / 라이브러리 / 데이터 모델)
+├── domains/              — 도메인 6개 (vault, ontology-core, views, ai-agent-partner, mode-aware-adapters, onboarding-ux)
+├── capabilities/         — capability 9개 (frontmatter → ontology, mode-aware adapter, mcp-server …)
+└── elements/             — element 4개 (코드 디렉토리 / 라이브러리)
 ```
 
 ## 사용
