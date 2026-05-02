@@ -1,97 +1,123 @@
 # Contributing to oh-my-ontology
 
-오픈소스 컨트리뷰션을 환영합니다. 이 가이드는 처음 참여하는 분이 5 분 안에 첫 PR 흐름을 이해할 수 있게 만든 짧은 안내입니다.
+Welcome. We aim to keep contributing as low-friction as possible. This
+project is built around the idea that *humans and AI agents are equal
+contributors to a shared mental model*. That belief shapes how we run
+the repo too — both humans and AI tools (Claude Code, Cursor, Aider,
+Copilot, ...) read [`AGENTS.md`](AGENTS.md) for canonical contributor
+guidance.
 
-## 시작하기
+## TL;DR
 
 ```bash
-git clone https://github.com/wlsdks/oh-my-ontology.git
+git clone https://github.com/wlsdks/oh-my-ontology
 cd oh-my-ontology
 pnpm install
-cp .env.example .env.local        # Firebase 사용 시 값 채움 (없어도 dev 서버는 뜸)
 pnpm dev                          # http://localhost:3000
+
+# Before opening a PR
+pnpm exec tsc --noEmit
+pnpm test:run
+pnpm lint
+pnpm build                        # static export
+pnpm bundle:check                 # firebase chunk regression guard
 ```
 
-자세한 작업 가이드는 [`AGENTS.md`](AGENTS.md) 와 [`.claude/rules/`](.claude/rules/) 안 9 개 rule 파일을 참조하세요.
+> 🇰🇷 한국어로 기여하셔도 됩니다. AGENTS.md 와 docs/* 가 한국어 + 영문 혼용입니다.
 
-## PR 워크플로
+## Ways to contribute (no code required)
 
-1. **Issue 로 의도 공유** — 코드 변경 전에 issue 또는 discussion 으로 방향을 짧게 적어주세요. 작업 중복 / 방향 차이 방지.
-2. **새 브랜치에서 작업** — `feat/...`, `fix/...`, `docs/...`, `chore/...`, `refactor/...` prefix.
-3. **작은 단위로 커밋** — 한 commit 에 두 가지 작업 단위가 섞이지 않게.
-4. **검증 통과 확인** —
-   ```bash
-   pnpm exec tsc --noEmit          # 0 errors
-   pnpm lint                       # 0 errors
-   pnpm test:run                   # 모든 단위 test 통과
-   ```
-5. **PR 본문 작성** — `Summary` / `Test plan` 두 섹션. 디자인 변경은 before/after 스크린샷 (다크 / 라이트 양쪽).
-6. **review** — main 브랜치는 항상 PR 통해 머지. 직접 push 금지.
+The most valuable contributions today:
 
-## 커밋 메시지
+1. **Try `npx oh-my-ontology init` and tell us what's confusing** — file
+   an issue with what you tried and where you got stuck.
+2. **Bring your own vault** — point the workbench `/docs` picker at a
+   real codebase ontology you maintain. Tell us what missing tools or
+   visualizations would change your day.
+3. **Audit `docs/ontology/`** — our dogfood vault. Open a PR that
+   improves a domain's frontmatter, or rewrites a confusing capability
+   description.
 
-영문 conventional prefix + 한국어 (또는 영어) 본문.
+Non-code issues: use [GitHub Issues](https://github.com/wlsdks/oh-my-ontology/issues)
+with the `frontmatter-ergonomics` / `mcp-tools` / `view-perf` /
+`onboarding` labels (suggest one in your issue title if no label fits).
 
-허용 prefix: `feat:` · `fix:` · `docs:` · `refactor:` · `chore:` · `test:` · `style:` · `perf:`
+## Code contributions
 
-예시:
+### Branch & commit
 
+- Branch: `feat/...`, `fix/...`, `refactor/...`, `chore/...`, `docs/...`.
+  Don't push to `main`.
+- Commits: English `feat:` / `fix:` / `refactor:` prefix, body in Korean
+  or English. Explain the *why* — the diff explains the *what*. Korean
+  prefixes (`정리`, `구조`, `루프`) are not used.
+- Don't bypass git hooks (`--no-verify`).
+
+### Verification before PR
+
+```bash
+pnpm exec tsc --noEmit          # 0 errors
+pnpm lint                       # 0 errors (warnings OK to keep)
+pnpm test:run                   # all unit + component tests pass
+pnpm exec playwright test       # if you touched user-facing flows
+pnpm build                      # static export must succeed
+pnpm bundle:check               # local-first routes must stay 0 KB firebase
 ```
-feat: 검색 팔레트 모바일 시트로 분리
-fix: 다크 모드 alpha 토큰 :root emit 회귀 정정
-docs: contributor 가이드 작성
-```
 
-본문은 변경의 **왜** 를 적습니다. **무엇** 은 diff 가 이미 알려줍니다.
+### PR body template
 
-## 코드 스타일
+A short PR is fine. We expect:
 
-- TypeScript strict, `pnpm lint` 가 통과해야 함
-- ESLint `eslint-plugin-boundaries` 가 FSD import 방향을 강제 — 위반 시 빌드 깨짐
-- 자세한 룰: [`.claude/rules/architecture.md`](.claude/rules/architecture.md), [`.claude/rules/design.md`](.claude/rules/design.md)
+- **Summary** (2-3 lines or a short bullet list)
+- **Test plan** (how you verified — paste command output if relevant)
 
-## 디자인 룰
+For design changes, attach before/after screenshots in both light and
+dark modes (the design system is dark-first but light-mode tokens exist).
 
-- **Linear 베이스, 무채색 + 단일 인디고** 라는 극단적 제약. 자세한 토큰 / 모션 / 금지 패턴: [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md), [`.claude/rules/design.md`](.claude/rules/design.md), [`.claude/rules/forbidden.md`](.claude/rules/forbidden.md)
-- 새 brand color, glassmorphism, glow pulse, scale hover 같은 패턴은 PR 단계에서 반려됩니다.
+### Architecture rules (enforced)
 
-## 테스트
+We use [Feature-Sliced Design](https://feature-sliced.design/) with
+ESLint boundaries. Import direction: `app → views → widgets → features →
+entities → shared`. Reverse direction is blocked at lint time.
 
-- 단위 / 컴포넌트: Vitest + Testing Library
-- E2E: Playwright
-- TDD-first 가 권장 — 새 기능 / 버그 fix 전에 실패하는 test 부터.
-- 자세한 룰: [`.claude/rules/testing.md`](.claude/rules/testing.md)
+PR #99 introduced a stricter rule: **`@/entities/<x>` barrel must not
+re-export firestore api functions.** API functions live at
+`@/entities/<x>/api`. The lint rule `no-restricted-imports` blocks the
+violation. Why? See
+[`.claude/rules/architecture.md`](.claude/rules/architecture.md) "Entity
+barrel vs api 분리" section — the goal is keeping firebase JS out of
+local-first routes' first-paint chunks.
 
-## 데이터 모델 변경
+## Mission v2 alignment
 
-스키마 변경은 **문서가 먼저** 입니다.
+If a feature/route/widget would conflict with mission v2 ("vault
+frontmatter = the graph, AI agent partner via MCP, local-first"), please
+flag it in your PR. We've spent significant effort cleaning up v1 LLM
+extraction / TBox / cloud-only patterns; we want to avoid quietly
+re-introducing them.
 
-1. `docs/DATA-MODEL.md` 갱신
-2. `firestore.rules` / `storage.rules` / `firestore.indexes.json` 같이 수정
-3. `src/entities/*/model` 타입 + `src/entities/*/api` CRUD 시그니처 확인
-4. emulator 로 검증 — `pnpm dev:firestore-emulator`
-5. 마이그레이션 필요하면 `scripts/migrations/` 에 스크립트 추가
+The 1-line gate question:
+*"Does X contradict the spine (vault frontmatter), partner (MCP), or
+self-approval (no review queue) flow?"* — if yes, please open a discussion
+before code.
 
-자세한 룰: [`.claude/rules/firestore-schema.md`](.claude/rules/firestore-schema.md)
+## Working with AI agents in this repo
 
-## 인증
+This repo is designed to be safely worked on by AI coding agents. If
+you're an AI agent reading this:
 
-Firebase Auth (email/password + Google OAuth) 만 허용. 외부 IAM 연동 / magic link / OTP 신규 흐름 도입은 거절합니다.
+- Read `AGENTS.md` first.
+- All `.claude/rules/*.md` are your contributor rules. They auto-load in
+  Claude Code.
+- The dogfood vault at `docs/ontology/` is your context map for the
+  project — read it as you would explore a codebase.
 
-자세한 룰: [`.claude/rules/auth.md`](.claude/rules/auth.md)
+## Code of conduct
 
-## Local-first 원칙
+Be kind. Assume good intent. Disagree on code, not on people.
+Korean and English are both first-class languages here.
 
-이 프로젝트의 가장 큰 UX 약속은 **"Notion 처럼 — 폴더만 선택하면 바로 쓰고, 로그인은 옵션"** 입니다.
+## License
 
-새 기능을 만들 때 가장 먼저 묻는 질문: **"로그인 없이 동작 가능한가?"**. 자세한 가드: [`.claude/rules/local-first.md`](.claude/rules/local-first.md)
-
-## 행동 강령
-
-- 의견 차이는 issue / PR 댓글에서 직설적이지만 친절하게.
-- 회사 codename, 타사 이름, 다른 contributor 의 인적 정보를 코드 / 주석 / 커밋에 박지 마세요.
-- 보안 이슈는 public issue 가 아닌 maintainer 에게 직접 (이메일).
-
-## 라이선스
-
-contribution 은 [MIT License](LICENSE) 아래로 라이선싱됩니다.
+By contributing, you agree your work is licensed under MIT (the project's
+license).

@@ -1,0 +1,47 @@
+name: 🧑‍🌾 Onboarding friction
+description: I tried `npx oh-my-ontology init` (or the workbench) and got stuck.
+title: "[onboarding] "
+labels: ["onboarding", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        These are the most valuable issues for us right now. Even tiny friction matters — describe it.
+
+  - type: dropdown
+    id: starting-point
+    attributes:
+      label: Where did you start?
+      options:
+        - "npx oh-my-ontology init"
+        - "Hosted demo (oh-my-ontology.web.app)"
+        - "Cloned the repo and ran pnpm dev"
+        - "MCP server registered into my AI agent"
+    validations:
+      required: true
+
+  - type: textarea
+    id: stuck
+    attributes:
+      label: Where did you get stuck?
+      description: |
+        The exact step that took longer than 30 seconds, or made you re-read docs, or made you give up.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      placeholder: macOS / Linux / Windows · Node version · which AI agent
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Screenshots, terminal output, vague feelings — all welcome.

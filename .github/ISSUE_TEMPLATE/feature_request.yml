@@ -1,0 +1,59 @@
+name: 💡 Feature request
+description: Suggest a new capability or improvement.
+title: "[feat] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your idea. To keep mission focus we ask a few questions.
+        한국어로 작성하셔도 OK 입니다.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the user need, not the solution.
+      placeholder: e.g. "Non-developers struggle to find which capability owns a feature when reading our markdown vault"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: How would the feature work? UI? CLI? MCP tool?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      description: Where does this live?
+      options:
+        - Workbench UI (/, /topology, /ontology/*, /docs)
+        - Project view (/projects, /project/*)
+        - MCP server (new tool or change to existing)
+        - CLI (oh-my-ontology init or new subcommand)
+        - Vault frontmatter convention (new key)
+        - Docs / onboarding
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: mission-fit
+    attributes:
+      label: Mission v2 fit
+      description: |
+        Mission v2 = "vault frontmatter is the graph; humans + AI agents author the same vault; local-first".
+        Does this proposal align with that, or change it? Be honest. We may decline proposals that quietly re-introduce extraction workers / review queues / cloud-only flows.
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you considered and why this one is better.

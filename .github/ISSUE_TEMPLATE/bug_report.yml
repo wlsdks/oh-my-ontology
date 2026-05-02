@@ -1,0 +1,82 @@
+name: 🐞 Bug report
+description: Something doesn't work as expected. Crashes, regressions, broken UI.
+title: "[bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report. Please fill out the sections that apply.
+        한국어로 작성하셔도 OK 입니다.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: A clear description of the bug.
+      placeholder: e.g. clicking "자동 정렬" on /ontology/edit throws a console error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      placeholder: e.g. canvas should re-layout with dagre algorithm
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Numbered list. Include vault state if relevant.
+      placeholder: |
+        1. Run `pnpm dev`
+        2. Visit /ontology/edit
+        3. Click "자동 정렬" button
+        4. Open DevTools console
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      description: Which area is affected?
+      options:
+        - "/ — landing / ontology hub"
+        - "/topology"
+        - "/ontology, /ontology/edit, /ontology/insights, /ontology/relations"
+        - "/projects, /project/*"
+        - "/docs (vault picker)"
+        - "/login, /signup, /account, /reset-password"
+        - "/settings/*"
+        - MCP server (oh-my-ontology-mcp)
+        - CLI (oh-my-ontology init)
+        - Hosted demo (Firebase)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS / browser / Node / pnpm versions if relevant
+      placeholder: macOS 15.4 · Chrome 130 · Node 20.20 · pnpm 9
+    validations:
+      required: false
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console / network output
+      description: Paste relevant DevTools console errors or terminal output. Hide secrets.
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag-drop images. Both dark + light if visual regression.
