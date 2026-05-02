@@ -70,10 +70,10 @@ export function DocsVaultGraph({
     return out;
   }, [docs, mode]);
 
-  // focus 모드에서 selectedSlug 로부터 focusHops 이내 reachable 한 slug 집합.
-  // directed graph 지만 하이라이트 용도라 undirected BFS — in/out 양쪽 모두.
-  const focusReachable = useMemo(() => {
-    if (focusMode !== 'local' || !selectedSlug) return null;
+  // 무방향 인접 맵 — directed 그래프지만 focus reachability hop 계산은
+  // 양방향이라 한 번만 빌드. docs 가 갱신될 때만 재계산. focusReachable 안에
+  // 두면 selectedSlug 클릭 한 번에 전체 그래프를 다시 훑었음.
+  const undirectedAdj = useMemo(() => {
     const adj = new Map<string, Set<string>>();
     for (const d of docs) {
       if (!adj.has(d.slug)) adj.set(d.slug, new Set());
@@ -83,12 +83,18 @@ export function DocsVaultGraph({
         adj.get(t)!.add(d.slug);
       }
     }
+    return adj;
+  }, [docs]);
+
+  // focus 모드에서 selectedSlug 로부터 focusHops 이내 reachable 한 slug 집합.
+  const focusReachable = useMemo(() => {
+    if (focusMode !== 'local' || !selectedSlug) return null;
     const visited = new Set<string>([selectedSlug]);
     let frontier = [selectedSlug];
     for (let i = 0; i < focusHops; i += 1) {
       const next: string[] = [];
       for (const s of frontier) {
-        const neighbors = adj.get(s);
+        const neighbors = undirectedAdj.get(s);
         if (!neighbors) continue;
         for (const n of neighbors) {
           if (!visited.has(n)) {
@@ -101,7 +107,7 @@ export function DocsVaultGraph({
       if (frontier.length === 0) break;
     }
     return visited;
-  }, [docs, focusMode, focusHops, selectedSlug]);
+  }, [undirectedAdj, focusMode, focusHops, selectedSlug]);
 
   // 최종 visible 집합 — mode 필터 ∩ focus 필터.
   const filteredSlugs = useMemo(() => {
