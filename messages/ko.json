@@ -658,6 +658,15 @@
         "duplicateAria": "{text}, {n}번째 섹션",
         "referencesHeader": "참조 · {count}"
       }
+    },
+    "audienceMismatch": {
+      "sectionAria": "현재 관점 밖의 문서 안내",
+      "title": "현재 관점 밖의 참고 문서",
+      "body": "이 문서는 {label} 관점입니다. 본문은 그대로 유지되고, 트리와 추천만 현재 관점 기준으로 정렬됩니다.",
+      "switchButton": "{label} 관점으로 보기",
+      "audiencePlanner": "기획자",
+      "audienceEngineer": "개발자",
+      "audienceBoth": "공용"
     }
   },
   "ontologyPages": {

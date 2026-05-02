@@ -658,6 +658,15 @@
         "duplicateAria": "{text}, occurrence {n}",
         "referencesHeader": "References · {count}"
       }
+    },
+    "audienceMismatch": {
+      "sectionAria": "Documents outside the current view",
+      "title": "Reference document outside the current view",
+      "body": "This document is from the {label} perspective. The body stays as-is — only the tree and recommendations are sorted for the current view.",
+      "switchButton": "View through {label} perspective",
+      "audiencePlanner": "planner",
+      "audienceEngineer": "engineer",
+      "audienceBoth": "shared"
     }
   },
   "ontologyPages": {

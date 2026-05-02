@@ -1,6 +1,17 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { NextIntlClientProvider } from 'next-intl';
+import koMessages from '../../../../messages/ko.json';
 import { DocsVaultAudienceMismatchNotice } from './DocsVaultAudienceMismatchNotice';
+
+// next-intl provider 로 감싸 useTranslations 가 throw 하지 않게.
+function render(ui: React.ReactElement) {
+  return rtlRender(
+    <NextIntlClientProvider locale="ko" messages={koMessages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 
 describe('DocsVaultAudienceMismatchNotice', () => {
   it('explains that the body stays visible and switches to the document audience', () => {
@@ -38,11 +49,13 @@ describe('DocsVaultAudienceMismatchNotice', () => {
     ).not.toBeInTheDocument();
 
     rerender(
-      <DocsVaultAudienceMismatchNotice
-        docMode="both"
-        currentAudience="planner"
-        onSwitchAudience={vi.fn()}
-      />,
+      <NextIntlClientProvider locale="ko" messages={koMessages}>
+        <DocsVaultAudienceMismatchNotice
+          docMode="both"
+          currentAudience="planner"
+          onSwitchAudience={vi.fn()}
+        />
+      </NextIntlClientProvider>,
     );
 
     expect(
@@ -50,11 +63,13 @@ describe('DocsVaultAudienceMismatchNotice', () => {
     ).not.toBeInTheDocument();
 
     rerender(
-      <DocsVaultAudienceMismatchNotice
-        docMode="engineer"
-        currentAudience="all"
-        onSwitchAudience={vi.fn()}
-      />,
+      <NextIntlClientProvider locale="ko" messages={koMessages}>
+        <DocsVaultAudienceMismatchNotice
+          docMode="engineer"
+          currentAudience="all"
+          onSwitchAudience={vi.fn()}
+        />
+      </NextIntlClientProvider>,
     );
 
     expect(
