@@ -2,14 +2,6 @@
 slug: domains/onboarding-ux
 kind: domain
 title: Onboarding & UX (theme · toast · a11y · mobile)
-capabilities:
-  - theme-toggle-light-dark
-  - toast-notifications
-  - live-announcer-aria
-  - mobile-bottom-tab
-  - gesture-hints
-  - keyboard-shortcuts
-  - prefers-reduced-motion
 elements:
   - src/features/theme-toggle
   - src/shared/ui/toast
