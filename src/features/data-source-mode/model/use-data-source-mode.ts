@@ -9,12 +9,12 @@ import {
 } from '@/shared/lib/data-source-mode';
 
 /**
- * 현재 운영 모드 (`'static' | 'local' | 'cloud'`) 를 React 상태로 노출.
+ * 현재 운영 모드 (`'static' | 'local'`) 를 React 상태로 노출.
  *
- * R10 (auth 영구 제거) 이후 cloud 분기 미사용 — 인증이 없으면 cloud 진입
- * 불가. 결과적으로 모드는 항상 'local' (vault 선택됨) 또는 'static' (vault
- * 없음 — 빌드타임 dogfood 매니페스트). 'cloud' 분기는 R10b 의 Firestore
- * 호출자 정리 후 enum 자체를 좁힐 예정.
+ * R10b (cloud surface 영구 제거) 후 모드는 두 가지: 'local' (vault 선택됨,
+ * 사용자 디스크가 진실원) 또는 'static' (vault 미선택, 빌드타임 dogfood
+ * 매니페스트). 미래 cloud collab 단계가 다시 도입될 때 'cloud' 모드를
+ * enum 에 다시 추가.
  *
  * 부수 효과: `window.__ohMyOntologyMode` 에 현재 mode 발행 (디버그 전용).
  */
