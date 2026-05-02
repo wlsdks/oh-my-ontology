@@ -35,7 +35,7 @@
     "vaultTooltip": "Vault mode — {name} ({count} docs). Every change is saved to your local disk.",
     "demoLabel": "demo",
     "demoAriaLabel": "Demo mode",
-    "demoTooltip": "Demo mode — no vault picked, signed out. Build-time demo manifest only; changes are not saved."
+    "demoTooltip": "Demo mode — no vault picked. Build-time demo manifest only; changes are not saved."
   },
   "locale": {
     "switcher": "Language",
