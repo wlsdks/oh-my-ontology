@@ -1241,9 +1241,7 @@
     "stat": {
       "treeNodes": "Tree nodes",
       "totalRelations": "Total relations",
-      "documents": "Evidence docs",
-      "publishedAt": "Published",
-      "publishedAtEmpty": "None yet"
+      "documents": "Evidence docs"
     },
     "error": "Something went wrong while loading ontology data. {message}",
     "loading": "Loading…",
@@ -1286,9 +1284,6 @@
     },
     "detail": {
       "ariaLabel": "Node detail: {title}",
-      "addEdgeTooltip": "Add a new relation from this node",
-      "addEdgeAria": "Add a relation from this node",
-      "addEdgeButton": "Relation",
       "close": "Close",
       "manualNote": "Author note",
       "linkedProjects": "Linked projects",

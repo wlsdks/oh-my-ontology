@@ -1241,9 +1241,7 @@
     "stat": {
       "treeNodes": "트리 노드",
       "totalRelations": "총 관계",
-      "documents": "근거 문서",
-      "publishedAt": "발행 시점",
-      "publishedAtEmpty": "아직 없음"
+      "documents": "근거 문서"
     },
     "error": "ontology 데이터를 불러오는 중 오류가 났어요. {message}",
     "loading": "불러오는 중…",
@@ -1286,9 +1284,6 @@
     },
     "detail": {
       "ariaLabel": "노드 상세: {title}",
-      "addEdgeTooltip": "이 노드를 from 으로 새 관계 추가",
-      "addEdgeAria": "이 노드에서 관계 추가",
-      "addEdgeButton": "관계",
       "close": "닫기",
       "manualNote": "작성 메모",
       "linkedProjects": "연결 프로젝트",
