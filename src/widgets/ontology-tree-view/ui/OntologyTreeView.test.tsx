@@ -221,3 +221,70 @@ describe("OntologyTreeView — orphans + warnings", () => {
 
 // vitest auto-import vi for spies
 import { vi } from "vitest";
+
+describe("OntologyTreeView — selectedId 강조·자동 expand", () => {
+  function deepResult(): OntologyTreeBuildResult {
+    return {
+      roots: [
+        {
+          node: makeNode("p1", "project", "Sample"),
+          depth: 0,
+          children: [
+            {
+              node: makeNode("d1", "domain", "인증"),
+              depth: 1,
+              children: [
+                {
+                  node: makeNode("c1", "capability", "로그인"),
+                  depth: 2,
+                  children: [],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      orphans: [],
+      warnings: [],
+    };
+  }
+
+  it("선택된 노드 행에 aria-selected=true / data-selected=true", () => {
+    render(<OntologyTreeView result={deepResult()} selectedId="c1" />);
+    const rows = screen.getAllByTestId("ontology-tree-row");
+    const selected = rows.find((r) => r.getAttribute("data-kind") === "capability");
+    expect(selected).toBeDefined();
+    expect(selected!.getAttribute("aria-selected")).toBe("true");
+    expect(selected!.getAttribute("data-selected")).toBe("true");
+  });
+
+  it("선택되지 않은 행은 aria-selected=false", () => {
+    render(<OntologyTreeView result={deepResult()} selectedId="c1" />);
+    const rows = screen.getAllByTestId("ontology-tree-row");
+    const project = rows.find((r) => r.getAttribute("data-kind") === "project");
+    expect(project!.getAttribute("aria-selected")).toBe("false");
+  });
+
+  it("selectedId 미지정 시 모든 행 aria-selected=false", () => {
+    render(<OntologyTreeView result={deepResult()} />);
+    const rows = screen.getAllByTestId("ontology-tree-row");
+    for (const row of rows) {
+      expect(row.getAttribute("aria-selected")).toBe("false");
+    }
+  });
+
+  it("collapsed 상태에서도 selectedId 의 조상이 force-open 되어 행이 보임", () => {
+    // defaultExpanded=false → 모든 노드 시작 collapsed.
+    // selectedId="c1" 의 조상 (p1, d1) 이 펼쳐져야 c1 row 가 렌더된다.
+    render(
+      <OntologyTreeView
+        result={deepResult()}
+        selectedId="c1"
+        defaultExpanded={false}
+      />,
+    );
+    expect(screen.getByText("로그인")).toBeInTheDocument();
+    expect(screen.getByText("인증")).toBeInTheDocument();
+    expect(screen.getByText("Sample")).toBeInTheDocument();
+  });
+});
