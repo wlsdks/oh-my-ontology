@@ -1,5 +1,6 @@
 import type { Project } from '@/entities/project';
 import type { VaultDoc, VaultManifest } from '../model/types';
+import { computeProjectSlug } from './project-slug';
 
 /**
  * vault manifest 에서 *project 노드* 를 Project 도메인 모델로 매핑.
@@ -29,13 +30,16 @@ export function deriveProjectsFromVault(manifest: VaultManifest): Project[] {
 
 function mapVaultDocToProject(doc: VaultDoc): Project | null {
   const fm = doc.frontmatter;
-  // path 가 `projects/foo` 면 legacy fileSlug 추출, 아니면 last segment
-  // (예: dogfood `ontology/project` → `project`).
+  // slug 산정은 computeProjectSlug 단일화 — buildTopologyDeeplinkForDoc
+  // 과 같은 helper 를 공유해야 토폴로지 ?p=<slug> deeplink 가 drawer 를
+  // 정확히 연다.
+  const slug = computeProjectSlug(doc);
+  if (!slug) return null;
+  // name fallback 은 사람-읽기 좋은 파일명 (fm.slug 와 다른 값이어도) 을
+  // 우선 — fileSlug 는 그래서 별도 계산.
   const fileSlug = doc.slug.startsWith('projects/')
     ? doc.slug.replace(/^projects\//, '')
     : doc.slug.split('/').pop() || doc.slug;
-  if (!fileSlug) return null;
-  const slug = typeof fm.slug === 'string' && fm.slug ? fm.slug : fileSlug;
   const name = (fm.name as string) || (fm.title as string) || doc.title || fileSlug;
   const category = (fm.category as string) || 'uncategorized';
   const status = (fm.status as string) || 'active';
