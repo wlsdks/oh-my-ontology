@@ -70,6 +70,7 @@ const OntologyEditCanvas = dynamic<{
     sourceKind: string,
     targetKind: string,
   ) => void;
+  onPersistEphemeralEdge?: (edgeId: string) => void;
   onRemoveEphemeralEdge?: (edgeId: string) => void;
   onVaultNodeDragStop?: (slug: string, position: { x: number; y: number }) => void;
   autoLayoutToken?: number;
@@ -382,6 +383,103 @@ export function OntologyEditPage() {
       }
     },
     [effectiveManifest, hasLiveVault, inferEdgeKey, t, toast, vault],
+  );
+  /**
+   * Round 4 cut I — ephemeral edge "Save" 칩 클릭 orchestrator.
+   *
+   * 호출 흐름:
+   *   1. edge id 로 useEphemeralEdges 에서 edge lookup
+   *   2. source / target 각각 resolve:
+   *      - ReactFlow node id 가 ephemeralNodes 에 있으면 ephemeral 노드:
+   *        title 검증 → vault.createDoc 으로 vault 화 → vaultSlug 획득.
+   *      - 그 외엔 vault 노드 (id == vault slug 직접) → docsBySlug 에서
+   *        kind 추출.
+   *   3. 두 endpoint 의 vault slug + kind 로 connectVaultEdge 호출 —
+   *      source frontmatter array 에 target slug append.
+   *   4. removeEphemeralEdge 로 in-memory ephemeral edge 정리.
+   *
+   * vault↔vault edge 는 이미 OntologyEditCanvas.handleConnect 가 자동
+   * persist 하므로 여기로 들어오지 않는다 — 본 함수는 한쪽 이상이
+   * ephemeral 인 edge 만 처리.
+   *
+   * 자동-persist 안 한 이유: ephemeral 노드 title 비었을 때 untitled.md
+   * silent pollution 위험 (AGENTS.md self-approving 원칙 위반). 명시적
+   * 사용자 클릭 + title 검증 (toastEdgePersistNeedsTitle).
+   */
+  const persistEphemeralEdge = useCallback(
+    async (edgeId: string) => {
+      const edge = ephemeralEdges.find((e) => e.id === edgeId);
+      if (!edge) return;
+      if (!hasLiveVault) {
+        toast.show(t("toastVaultEdgeDemo"), "error");
+        return;
+      }
+      const resolveEndpoint = async (
+        nodeId: string,
+      ): Promise<{ slug: string; kind: string } | null> => {
+        const ephem = findById(nodeId);
+        if (ephem) {
+          const slug = slugify(ephem.title);
+          if (!slug) {
+            toast.show(t("toastEdgePersistNeedsTitle"), "error");
+            return null;
+          }
+          const folder =
+            ephem.kind === "capability"
+              ? "capabilities"
+              : ephem.kind === "element"
+                ? "elements"
+                : ephem.kind === "domain"
+                  ? "domains"
+                  : ephem.kind === "project"
+                    ? "projects"
+                    : `${ephem.kind}s`;
+          const vaultSlug = `${folder}/${slug}`;
+          try {
+            const md = buildVaultMarkdown({
+              kind: ephem.kind,
+              title: ephem.title,
+              slug: vaultSlug,
+            });
+            await vault.createDoc(vaultSlug, md);
+            removeNode(nodeId);
+            return { slug: vaultSlug, kind: ephem.kind };
+          } catch (err) {
+            const message =
+              err instanceof Error ? err.message : t("toastSaveFailed");
+            toast.show(message, "error");
+            return null;
+          }
+        }
+        // vault 노드 — 이미 영구화. id == vault slug.
+        const doc = docsBySlug.get(nodeId);
+        if (!doc || typeof doc.frontmatter.kind !== "string") return null;
+        return { slug: doc.slug, kind: String(doc.frontmatter.kind) };
+      };
+      const sourceInfo = await resolveEndpoint(edge.source);
+      if (!sourceInfo) return;
+      const targetInfo = await resolveEndpoint(edge.target);
+      if (!targetInfo) return;
+      await connectVaultEdge(
+        sourceInfo.slug,
+        targetInfo.slug,
+        sourceInfo.kind,
+        targetInfo.kind,
+      );
+      removeEphemeralEdge(edgeId);
+    },
+    [
+      ephemeralEdges,
+      hasLiveVault,
+      toast,
+      t,
+      findById,
+      vault,
+      removeNode,
+      docsBySlug,
+      connectVaultEdge,
+      removeEphemeralEdge,
+    ],
   );
 
   // V1.2 vault-adaptation — frontmatter scalar literals (description / domain).
@@ -731,6 +829,7 @@ export function OntologyEditPage() {
               onSelectionChange={setSelectedId}
               onConnect={addEphemeralEdge}
               onVaultConnect={connectVaultEdge}
+              onPersistEphemeralEdge={persistEphemeralEdge}
               onRemoveEphemeralEdge={removeEphemeralEdge}
               onVaultNodeDragStop={persistVaultPosition}
               autoLayoutToken={autoLayoutToken}

@@ -634,8 +634,8 @@
         "helpAriaLabel": "빌더 사용법 안내",
         "helpIntro": "지식 그래프를 끌어다 그려서 만드는 워크스페이스.",
         "helpStepPalette": "왼쪽 palette 에서 종류를 골라 클릭 → 새 노드 추가",
-        "helpStepConnect": "노드의 핸들에서 drag → 다른 노드로 drop → 관계 추가 (export / 인스펙터 array 로 보존)",
-        "helpStepEphemeral": "임시 노드는 amber dashed → 인스펙터에서 이름 입력 + 저장 (vault .md 로)",
+        "helpStepConnect": "핸들에서 drag → 다른 노드로 drop. vault↔vault 관계는 자동 저장. 한쪽이 미저장 (amber) 이면 edge 의 Save 칩 클릭.",
+        "helpStepEphemeral": "임시 노드 / 임시 edge 는 amber dashed — 인스펙터에서 이름 입력 후 edge 의 Save 클릭하면 노드 + 관계가 한 번에 저장됩니다.",
         "helpShortcuts": "P · 프로젝트 / D · 도메인 / C · 기능 / E · 요소  ·  Del · 선택 삭제  ·  Esc · 선택 해제  ·  F · 전체 화면",
         "exportButton": "md 내보내기 ↓",
         "exportAriaLabel": "현재 캔버스를 frontmatter md 로 내보내기",
@@ -674,6 +674,7 @@
         "toastVaultEdgeAdded": "관계 추가 — {source}.{key} ▸ {target}",
         "toastVaultEdgeDuplicate": "이미 있는 관계입니다",
         "toastVaultEdgeDemo": "데모 모드라 관계 추가 안 됨. /docs 에서 vault 폴더를 여세요.",
+        "toastEdgePersistNeedsTitle": "저장 안 된 노드의 이름을 먼저 입력한 뒤 edge 의 Save 를 눌러주세요.",
         "blastRadius": {
           "titleClean": "이 노드를 삭제할까요?",
           "titleWithBacklinks": "{count} 개 노드가 이 노드를 참조하는데, 그래도 삭제?",
@@ -689,7 +690,9 @@
         }
       },
       "canvas": {
-        "ephemeralEdgeLabel": "관련 (임시)",
+        "ephemeralEdgeSaveLabel": "저장",
+        "ephemeralEdgeSaveAria": "이 관계를 vault 에 저장",
+        "ephemeralEdgeSaveTooltip": "이 관계를 저장합니다. 미저장 노드가 있으면 함께 저장됩니다.",
         "emptyHint": "왼쪽 palette 에서 종류를 골라 클릭하면 첫 노드가 생겨요.",
         "minimapAriaLabel": "캔버스 미니맵 — 클릭/드래그로 빠른 이동",
         "edgeLabels": {
@@ -757,7 +760,7 @@
         "stepPaletteStrong": "왼쪽 종류 클릭 (또는 P/D/C/E)",
         "stepPaletteBody": " — 프로젝트 · 도메인 · 역량 · 요소 4 종류. 키보드 단축키로 바로 추가 가능. 가운데에 임시 노드가 떠요. (코드 식별자: project / domain / capability / element)",
         "stepConnectStrong": "노드 가장자리 점을 끌어",
-        "stepConnectBody": " 다른 노드 위에 놓으면 — 둘 사이에 *관계 (의존 / 포함 / 묘사)* 가 그려져요. ※ 그린 관계는 export (md/json-ld) 로 보존되거나, 노드 저장 후 인스펙터의 dependencies/relates 에 수동 추가하세요.",
+        "stepConnectBody": " 다른 노드 위에 놓으면 — 둘 사이에 *관계 (의존 / 포함 / 묘사)* 가 그려져요. vault↔vault 관계는 자동 저장됩니다. 한쪽이 미저장 (amber) 이면 edge 의 **Save** 칩 한 번에 노드와 관계 모두 vault 에 저장.",
         "stepSaveStrong": "저장",
         "stepSaveBody": " — vault 가 열려 있으면 `.md` 로 디스크에 직접 저장. 미선택 모드는 read-only (오른쪽 위 \"내 마크다운 폴더 열기\"). 같은 지도를 AI agent 도 MCP 로 read/write.",
         "shortcutsHint": "빠른 키 — P/D/C/E 새 노드 · Del 지우기 · Esc 취소",
@@ -1131,9 +1134,12 @@
     },
     "titleTooltipAria": "온톨로지 트리가 무엇인지 설명",
     "actions": {
-      "searchTooltip": "검색 (⌘K)",
+      "searchTooltip": "이 화면 노드 검색 (⌘K)",
       "searchAria": "ontology 노드 검색 열기",
       "search": "검색",
+      "globalSearchTooltip": "노드 + 프로젝트 통합 검색 (⇧⌘K)",
+      "globalSearchAria": "노드와 프로젝트 통합 검색 열기",
+      "globalSearch": "전체",
       "builderTooltip": "빌더 캔버스 — 왼쪽 palette 에서 종류 골라 클릭, 핸들 drag 로 관계 추가",
       "builderAria": "온톨로지 빌더 — 캔버스에서 직접 그리기",
       "builder": "빌더 열기 →"

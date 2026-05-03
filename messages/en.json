@@ -634,8 +634,8 @@
         "helpAriaLabel": "Builder help",
         "helpIntro": "A workspace where you draw your knowledge graph by hand.",
         "helpStepPalette": "Click a kind from the palette on the left to add a new node",
-        "helpStepConnect": "Drag handle → drop on target → relation added (preserved via export / inspector arrays)",
-        "helpStepEphemeral": "Ephemeral nodes have an amber dashed border — name them in the inspector and save to vault .md",
+        "helpStepConnect": "Drag handle → drop on target. Vault↔vault relations save automatically. If either node is unsaved (amber), click the Save chip on the edge.",
+        "helpStepEphemeral": "Ephemeral nodes / edges have amber dashed styling — name the node in the inspector, then click Save on the edge to commit both at once.",
         "helpShortcuts": "P · project / D · domain / C · capability / E · element  ·  Del · delete selected  ·  Esc · clear  ·  F · fullscreen",
         "exportButton": "Export md ↓",
         "exportAriaLabel": "Export current canvas as frontmatter md",
@@ -674,6 +674,7 @@
         "toastVaultEdgeAdded": "Relation added — {source}.{key} ▸ {target}",
         "toastVaultEdgeDuplicate": "This relation already exists",
         "toastVaultEdgeDemo": "Demo mode — open a vault folder from /docs to add relations.",
+        "toastEdgePersistNeedsTitle": "Name the unsaved node first, then click Save on the edge.",
         "blastRadius": {
           "titleClean": "Delete this node?",
           "titleWithBacklinks": "{count} nodes depend on this — delete anyway?",
@@ -689,7 +690,9 @@
         }
       },
       "canvas": {
-        "ephemeralEdgeLabel": "related (ephemeral)",
+        "ephemeralEdgeSaveLabel": "Save",
+        "ephemeralEdgeSaveAria": "Save this relation to the vault",
+        "ephemeralEdgeSaveTooltip": "Save this relation. Unsaved nodes are saved first.",
         "emptyHint": "Click a kind in the left palette to create your first node.",
         "minimapAriaLabel": "Canvas minimap — click/drag to navigate",
         "edgeLabels": {
@@ -757,7 +760,7 @@
         "stepPaletteStrong": "Click a kind on the left (or press P/D/C/E)",
         "stepPaletteBody": " — Project · Domain · Capability · Element. Hit the matching key to drop one without leaving the canvas. (Code identifiers: project / domain / capability / element)",
         "stepConnectStrong": "Drag from a node's edge handle",
-        "stepConnectBody": " and drop on another node — the two get a *relation (depends / contains / describes)* between them. Note: drawn edges are preserved via export (md/json-ld), or by adding to the inspector's dependencies/relates after each node is saved.",
+        "stepConnectBody": " and drop on another node — the two get a *relation (depends / contains / describes)* between them. Vault↔vault relations save automatically. If either endpoint is unsaved (amber), click the **Save** chip on the edge to persist both at once.",
         "stepSaveStrong": "Save",
         "stepSaveBody": " — straight to disk as `.md` when a vault is open. Without a vault the canvas is read-only (open one from the top right). AI agents read and write the same map over MCP.",
         "shortcutsHint": "Quick keys — P/D/C/E new node · Del delete · Esc cancel",
@@ -1131,9 +1134,12 @@
     },
     "titleTooltipAria": "Explain what the ontology tree is",
     "actions": {
-      "searchTooltip": "Search (⌘K)",
+      "searchTooltip": "Search this view's nodes (⌘K)",
       "searchAria": "Open ontology node search",
       "search": "Search",
+      "globalSearchTooltip": "Search nodes and projects together (⇧⌘K)",
+      "globalSearchAria": "Open global search across nodes and projects",
+      "globalSearch": "All",
       "builderTooltip": "Builder canvas — pick a kind from the palette on the left, drag handles to add relations",
       "builderAria": "Ontology builder — draw directly on the canvas",
       "builder": "Open builder →"

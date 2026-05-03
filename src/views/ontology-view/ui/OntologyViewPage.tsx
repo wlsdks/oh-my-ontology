@@ -205,6 +205,26 @@ export function OntologyViewPage() {
                 <kbd className="hidden font-mono text-[10px] text-[color:var(--color-text-quaternary)] sm:inline">⌘K</kbd>
               </button>
             </Tooltip>
+            {/* 노드 + 프로젝트 통합 검색 — ⇧⌘K 단축키 (이전엔 단축키만
+                있어 PM 발견성 0). 라벨 "All" 은 통합 의미 — codex 검증:
+                현재 GlobalSearch 가 ontology 노드 + 프로젝트 만 cover,
+                docs 미포함 → "전체"/"All" 은 OK 지만 docs 약속 안 함. */}
+            <Tooltip content={t('actions.globalSearchTooltip')} withProvider={false}>
+              <button
+                type="button"
+                onClick={() => setGlobalSearchOpen(true)}
+                aria-label={t('actions.globalSearchAria')}
+                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <circle cx="11" cy="11" r="7" />
+                  <circle cx="11" cy="11" r="3" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+                <span className="hidden sm:inline">{t('actions.globalSearch')}</span>
+                <kbd className="hidden font-mono text-[10px] text-[color:var(--color-text-quaternary)] sm:inline">⇧⌘K</kbd>
+              </button>
+            </Tooltip>
             <Tooltip content={t('actions.builderTooltip')} withProvider={false}>
               <Link
                 href={"/ontology/edit/"}

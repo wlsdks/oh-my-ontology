@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-03T11:59:31.006Z",
+  "generatedAt": "2026-05-03T12:53:19.711Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -1737,8 +1737,8 @@
         },
         {
           "depth": 2,
-          "text": "2026-05-03 — Surface diet: 5 dead UI cuts",
-          "slug": "2026-05-03-surface-diet-5-dead-ui-cuts"
+          "text": "2026-05-03 — Surface diet Round 3: 첫 인상 + IA 정리",
+          "slug": "2026-05-03-surface-diet-round-3-첫-인상-ia-정리"
         },
         {
           "depth": 3,
@@ -1747,8 +1747,8 @@
         },
         {
           "depth": 3,
-          "text": "단축키 변경",
-          "slug": "단축키-변경"
+          "text": "Decision recorded (no UI change)",
+          "slug": "decision-recorded-no-ui-change"
         },
         {
           "depth": 3,
@@ -1759,6 +1759,66 @@
           "depth": 3,
           "text": "Test",
           "slug": "test"
+        },
+        {
+          "depth": 3,
+          "text": "Deferred (Round 4 candidates)",
+          "slug": "deferred-round-4-candidates"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-03 — Surface diet Round 2: 라우트 통합 + /docs 헤더 직접화",
+          "slug": "2026-05-03-surface-diet-round-2-라우트-통합-docs-헤더-직접화"
+        },
+        {
+          "depth": 3,
+          "text": "User-visible changes",
+          "slug": "user-visible-changes-2"
+        },
+        {
+          "depth": 3,
+          "text": "Documentation cleanup (Round 1 leftovers)",
+          "slug": "documentation-cleanup-round-1-leftovers"
+        },
+        {
+          "depth": 3,
+          "text": "코드 / 아키텍처",
+          "slug": "코드-아키텍처-2"
+        },
+        {
+          "depth": 3,
+          "text": "Test",
+          "slug": "test-2"
+        },
+        {
+          "depth": 3,
+          "text": "Deferred",
+          "slug": "deferred"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-03 — Surface diet: 5 dead UI cuts",
+          "slug": "2026-05-03-surface-diet-5-dead-ui-cuts"
+        },
+        {
+          "depth": 3,
+          "text": "User-visible changes",
+          "slug": "user-visible-changes-3"
+        },
+        {
+          "depth": 3,
+          "text": "단축키 변경",
+          "slug": "단축키-변경"
+        },
+        {
+          "depth": 3,
+          "text": "코드 / 아키텍처",
+          "slug": "코드-아키텍처-3"
+        },
+        {
+          "depth": 3,
+          "text": "Test",
+          "slug": "test-3"
         },
         {
           "depth": 3,
@@ -1773,7 +1833,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-2"
+          "slug": "user-visible-changes-4"
         },
         {
           "depth": 3,
@@ -1793,7 +1853,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-3"
+          "slug": "user-visible-changes-5"
         },
         {
           "depth": 3,
@@ -1833,7 +1893,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-4"
+          "slug": "user-visible-changes-6"
         },
         {
           "depth": 3,
@@ -1858,7 +1918,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-5"
+          "slug": "user-visible-changes-7"
         },
         {
           "depth": 3,
@@ -1903,7 +1963,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-6"
+          "slug": "user-visible-changes-8"
         },
         {
           "depth": 3,
@@ -1938,7 +1998,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-7"
+          "slug": "user-visible-changes-9"
         },
         {
           "depth": 3,
@@ -1976,9 +2036,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Firstprinciples audit of every UI surface — does each toggle / mode / widget serve the use",
-      "wordCount": 3773,
-      "updatedAt": "2026-05-03T11:54:43.400Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. 3 에이전트 병렬 회의 (user journey audit · inbound link 매핑 · IA 의견) 종합 결정. PM 입장 첫 인상 / IA 명확성에 집중",
+      "wordCount": 4679,
+      "updatedAt": "2026-05-03T12:20:55.264Z",
       "linksOut": []
     },
     {

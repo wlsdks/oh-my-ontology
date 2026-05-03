@@ -25,6 +25,9 @@ import { useVaultGraphFlow } from "../lib/use-vault-graph-flow";
 import type { EphemeralNode } from "../lib/use-ephemeral-nodes";
 import type { EphemeralEdge } from "../lib/use-ephemeral-edges";
 import { ATLAS_NODE_TYPES } from "./AtlasNode";
+import { EphemeralEdge as EphemeralEdgeComponent } from "./EphemeralEdge";
+
+const EDGE_TYPES = { ephemeral: EphemeralEdgeComponent };
 
 const staticVaultManifest = staticVaultManifestRaw as VaultManifest;
 
@@ -116,6 +119,7 @@ export function OntologyEditCanvas({
   onSelectionChange,
   onConnect,
   onVaultConnect,
+  onPersistEphemeralEdge,
   onRemoveEphemeralEdge,
   onVaultNodeDragStop,
   autoLayoutToken = 0,
@@ -136,6 +140,10 @@ export function OntologyEditCanvas({
     sourceKind: string,
     targetKind: string,
   ) => void;
+  /** ephemeral edge "Save" 칩 클릭 시 — endpoint ephemeral 노드 (있으면)
+   *  먼저 vault 에 createDoc 으로 저장한 뒤 source frontmatter array 에
+   *  target slug 추가. 부모가 orchestrator 보유 (vault writes 책임). */
+  onPersistEphemeralEdge?: (edgeId: string) => void;
   /** ephemeral edge 삭제 콜백 — Del/Backspace 로 선택된 edge 제거 시. */
   onRemoveEphemeralEdge?: (edgeId: string) => void;
   /** vault 노드 drag-stop 시 호출 — 좌표를 frontmatter.canvasPosition 으로 patch. */
@@ -300,38 +308,23 @@ export function OntologyEditCanvas({
   const allNodes = localNodes;
 
   const allEdges: Edge[] = useMemo(() => {
-    // ephemeral edge — amber alpha (warning amber, hub amber 와 구분되는 신호 톤)
-    // 로 노드와 동일하게 '저장 안 됨' 시각 신호. vault edge 는 인디고 유지 →
-    // vault vs ephemeral 한눈 차별 + 저장 상태 시각 일관성.
+    // ephemeral edge — amber alpha (warning amber, hub amber 와 구분되는
+    // 신호 톤) 로 노드와 동일하게 '저장 안 됨' 시각 신호. vault edge 는
+    // 인디고 유지 → vault vs ephemeral 한눈 차별. 가운데 "Save" 칩이
+    // EphemeralEdge 컴포넌트 안에서 onPersist 콜백 호출 — 부모 orchestrator
+    // 가 endpoint ephemeral 노드 + edge 를 vault 로 영구화.
     const ephemeralFlow: Edge[] = ephemeralEdges.map((e) => ({
       id: e.id,
       source: e.source,
       target: e.target,
-      type: "default",
-      label: t("ephemeralEdgeLabel"),
-      labelStyle: {
-        fontSize: 10,
-        fill: "rgba(255, 179, 71, 0.95)",
-        fontWeight: 600,
-      },
-      labelBgStyle: {
-        fill: "rgba(14, 16, 22, 0.92)",
-        stroke: "rgba(255, 179, 71, 0.55)",
-        strokeWidth: 1,
-      },
-      labelBgPadding: [6, 4] as [number, number],
-      labelBgBorderRadius: 4,
-      style: {
-        stroke: "rgba(255, 179, 71, 0.66)",
-        strokeWidth: 1.5,
-        strokeDasharray: "5 4",
-      },
+      type: "ephemeral",
+      data: { onPersist: onPersistEphemeralEdge },
       animated: false,
       // ephemeral edge 는 Del/Backspace 로 삭제 가능 (vault 와 차별).
       deletable: true,
     }));
     return [...vaultEdges, ...ephemeralFlow];
-  }, [vaultEdges, ephemeralEdges, t]);
+  }, [vaultEdges, ephemeralEdges, onPersistEphemeralEdge]);
 
   const handleConnect = useCallback(
     (connection: Connection) => {
@@ -401,6 +394,7 @@ export function OntologyEditCanvas({
         nodes={allNodes}
         edges={allEdges}
         nodeTypes={ATLAS_NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
         defaultEdgeOptions={{ animated: false }}
         proOptions={{ hideAttribution: true }}
         nodesConnectable

@@ -290,7 +290,14 @@ function DocsVaultContent() {
       view: next === 'server' && view === 'folder-topology' ? 'doc' : view,
     });
     if (next === 'server' && view === 'folder-topology') setView('doc');
-  }, [replaceUrlState, view]);
+    // Local 로 전환 시 vault picker 가 dropdown 안 깊숙이 묻혀 dead-end
+    // 발생 → ?intent=local 의 자동-펼침 동작과 동일하게, 헤더 토글
+    // 클릭만으로도 picker 즉시 노출. 이미 vault loaded 면 dropdown 펼칠
+    // 필요 없음 (사용자는 picker 가 아니라 문서 작업하러 옴).
+    if (next === 'local' && localVault.status !== 'loaded') {
+      setAdvancedOpen(true);
+    }
+  }, [replaceUrlState, view, localVault.status]);
 
   // 현재 활성 매니페스트 — source 에 따라 분기. 로컬은 loaded 이전엔 null.
   const manifest: VaultManifest =
