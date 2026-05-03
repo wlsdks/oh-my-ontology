@@ -23,28 +23,11 @@ const MANIFEST_OUT = path.join(
   'manifest.json',
 );
 
-// 기획자 모드: superpowers (specs/plans/notes), CHANGELOG, DESIGN-SYSTEM, ADMIN-GUIDE, 기타 charters
-// 개발자 모드: ARCHITECTURE, DATA-MODEL, DESIGN-SYSTEM, DEPLOYMENT, SEED-DATA, rules/, ADMIN-GUIDE
-// both: 위 교집합 (DESIGN-SYSTEM, ADMIN-GUIDE) 는 알파벳순이 아니라 분류에서 'both' 로 표기.
+// vault doc 의 audience 분류 — src/shared/lib/parse-frontmatter.ts 의
+// classifyMode 와 동일 규칙. 실제로 docs/ 에 잔존하는 ARCHITECTURE /
+// DEPLOYMENT 만 'engineer', 나머지는 default 'both'.
 function classifyMode(slug) {
-  if (slug === 'DESIGN-SYSTEM' || slug === 'ADMIN-GUIDE' || slug === 'CHANGELOG') {
-    return 'both';
-  }
-  if (
-    slug.startsWith('superpowers/specs/') ||
-    slug.startsWith('superpowers/plans/') ||
-    slug.startsWith('superpowers/notes/') ||
-    slug.startsWith('charters/')
-  ) {
-    return 'planner';
-  }
-  if (
-    slug === 'ARCHITECTURE' ||
-    slug === 'DATA-MODEL' ||
-    slug === 'DEPLOYMENT' ||
-    slug === 'SEED-DATA' ||
-    slug.startsWith('rules/')
-  ) {
+  if (slug === 'ARCHITECTURE' || slug === 'DEPLOYMENT') {
     return 'engineer';
   }
   return 'both';
