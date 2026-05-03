@@ -610,11 +610,11 @@ function DocsVaultContent() {
       '',
       `# ${iso}`,
       '',
-      '## 할 일',
+      `## ${t('dialog.dailyNoteTasksHeading')}`,
       '',
       '- ',
       '',
-      '## 메모',
+      `## ${t('dialog.dailyNoteMemoHeading')}`,
       '',
       '',
     ].join('\n');
@@ -648,7 +648,7 @@ function DocsVaultContent() {
     });
     const tocBlock = [
       '<!-- toc:start -->',
-      '## 목차',
+      `## ${t('dialog.tocHeading')}`,
       '',
       ...tocLines,
       '<!-- toc:end -->',
