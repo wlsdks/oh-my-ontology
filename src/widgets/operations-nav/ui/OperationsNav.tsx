@@ -34,8 +34,12 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
     id: 'ontology',
     labelKey: 'ontology',
     tooltipKey: 'tooltipOntology',
+    // `/` 와 `/ontology` 둘 다 OntologyViewPage 를 렌더 (R3 dual-surface
+    // 결정). 탭은 `/` 로 보내 home / back-link target 의도를 유지하되,
+    // 활성 매칭에 `/` 의 exact-match 가 포함되어야 사용자가 `/` 에 있을
+    // 때도 ontology 탭이 highlight 된다.
     basePath: '/',
-    prefixes: ['/ontology'],
+    prefixes: ['/', '/ontology'],
   },
   {
     id: 'topology',
@@ -118,7 +122,11 @@ export function OperationsNav() {
   const isAtHome = pathname.replace(/\/$/, '') === '';
 
   const renderTab = (item: NavItem, variant: 'desktop' | 'mobile') => {
-    const active = item.prefixes.some((p) => pathname.startsWith(p));
+    // 빈 prefix 는 위험 (모든 path 매칭) — `/` 는 exact-match,
+    // 그 외엔 startsWith 로 sub-path 까지 활성.
+    const active = item.prefixes.some((p) =>
+      p === '/' ? pathname === '/' : pathname.startsWith(p),
+    );
     const href = item.basePath;
     // 모바일 chip 은 본문 톤 (text-[12px]) 유지하되 padding 살짝 줄여
     // 3 개가 375 폭 가로 스크롤 안에 자연스럽게 흐르게.
