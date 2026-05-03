@@ -105,10 +105,17 @@ export function OntologyViewPage() {
     return buildOntologyTree(insight.nodes, insight.edges);
   }, [insight]);
 
-  const totalNodes = treeResult ? countTreeNodes(treeResult.roots) : 0;
-  const docCount = insight
-    ? insight.nodes.filter((n) => n.kind === "document").length
-    : 0;
+  // treeResult / insight 가 동일할 때 매 selection re-render 마다 재계산
+  // 회피. countTreeNodes 는 트리 walk + filter 는 O(N) — 작아도 매 클릭마다
+  // 도는 건 낭비.
+  const totalNodes = useMemo(
+    () => (treeResult ? countTreeNodes(treeResult.roots) : 0),
+    [treeResult],
+  );
+  const docCount = useMemo(
+    () => (insight ? insight.nodes.filter((n) => n.kind === "document").length : 0),
+    [insight],
+  );
 
   // evidenceId (= 실제 knowledge document ID) → document 노드 매핑.
   // document kind 노드의 evidenceIds[0] 이 자기 자신의 underlying document ID.
