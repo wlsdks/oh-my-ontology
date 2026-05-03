@@ -43,10 +43,13 @@ export function collectProjectDependencyClosure(
 ): Project[] {
   const projectMap = new Map(projects.map((project) => [project.slug, project]));
   const included = new Set<string>();
+  // BFS — head pointer 로 큐 순회. \`Array.shift()\` 는 O(n) 이라 큰 vault
+  // 에서 dequeue 마다 전체 배열을 좌측 이동 → O(n²). head index 로 회피.
   const queue = [...new Set(targetSlugs)];
+  let head = 0;
 
-  while (queue.length > 0) {
-    const slug = queue.shift();
+  while (head < queue.length) {
+    const slug = queue[head++];
     if (!slug || included.has(slug)) {
       continue;
     }
@@ -85,10 +88,12 @@ export function collectProjectDependentClosure(
   }
 
   const included = new Set<string>();
+  // BFS — head pointer 로 dequeue O(1) 보장 (shift 는 O(n)).
   const queue = [...new Set(targetSlugs)];
+  let head = 0;
 
-  while (queue.length > 0) {
-    const slug = queue.shift();
+  while (head < queue.length) {
+    const slug = queue[head++];
     if (!slug || included.has(slug)) {
       continue;
     }
@@ -132,10 +137,12 @@ export function collectProjectConnectedClosure(
   }
 
   const included = new Set<string>();
+  // BFS — head pointer 로 dequeue O(1) 보장 (shift 는 O(n)).
   const queue = [...new Set(targetSlugs)];
+  let head = 0;
 
-  while (queue.length > 0) {
-    const slug = queue.shift();
+  while (head < queue.length) {
+    const slug = queue[head++];
     if (!slug || included.has(slug)) {
       continue;
     }
