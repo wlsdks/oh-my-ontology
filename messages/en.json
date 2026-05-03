@@ -1203,8 +1203,6 @@
       "ariaLabel": "Node detail: {title}",
       "close": "Close",
       "manualNote": "Author note",
-      "linkedProjects": "Linked projects",
-      "evidenceCount": "Evidence count",
       "relations": "Relations {count}",
       "relationsHopBreakdown": "· 1-hop {one} · 2-hop {two}",
       "egoDepthAria": "Ego graph depth",

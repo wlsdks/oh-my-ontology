@@ -620,40 +620,12 @@ function NodeDetailPanel({
         </div>
       ) : null}
 
-      {/* DetailRow grid — vault 모드에서는 두 row 모두 의미 0 이라 가려진다:
-          - linkedProjects: vault 노드는 projectIds 가 항상 []
-          - evidenceCount: vault 모드는 evidenceCount 필드 자체가 undefined.
-            evidenceIds.length 로 fallback 하면 sourceSlug 1 개 때문에 항상
-            "1" 노출 → cycle 6 이후 dead UI 라 evidenceCount 명시값일 때만
-            카운트. 하단 "관련 문서" 섹션 + 점프 chip 이 같은 정보 더 풍부
-            하게 보여줌.
-          legacy cloud 모드 (evidenceCount 가 수치로 채워지는 경우) 에서는
-          정상 노출. */}
-      {(() => {
-        const evidenceCount = node.evidenceCount ?? 0;
-        const showLinkedProjects = node.projectIds.length > 0;
-        const showEvidence = evidenceCount > 0;
-        if (!showLinkedProjects && !showEvidence) return null;
-        return (
-          <dl
-            className={`grid gap-2 text-[11px] ${
-              showLinkedProjects && showEvidence
-                ? "grid-cols-2"
-                : "grid-cols-1"
-            }`}
-          >
-            {showLinkedProjects ? (
-              <DetailRow
-                label={t('linkedProjects')}
-                value={node.projectIds.join(", ")}
-              />
-            ) : null}
-            {showEvidence ? (
-              <DetailRow label={t('evidenceCount')} value={String(evidenceCount)} />
-            ) : null}
-          </dl>
-        );
-      })()}
+      {/* R10 이후 vault 가 유일 모드 — node.projectIds 는 항상 [],
+          node.evidenceCount 는 항상 undefined. cycle 10 에서 vault dead
+          row 두 개를 가리는 가드만 추가했지만 실제 노출 케이스가 영구
+          0 이라 cycle 16 에서 IIFE 자체 + DetailRow 컴포넌트 + linkedProjects
+          / evidenceCount i18n 키까지 한꺼번에 제거. 같은 정보가 필요해
+          지면 '관련 문서' 섹션 + 점프 chip 이 더 풍부하게 보여 줌. */}
       <p className="mt-2 break-all font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
         {node.id}
       </p>
@@ -847,19 +819,6 @@ function NodeDetailPanel({
         </p>
       ) : null}
     </aside>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-2.5 py-1.5">
-      <p className="font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
-        {label}
-      </p>
-      <p className="mt-0.5 break-keep text-[color:var(--color-text-primary)]">
-        {value}
-      </p>
-    </div>
   );
 }
 
