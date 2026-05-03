@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-02T22:24:19.846Z",
+  "generatedAt": "2026-05-03T00:03:03.496Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -2643,7 +2643,7 @@
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260502 (postOSSlaunch readiness — CLI scaffold, web scaffold button, npm publish guard) Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG. Mission v2: \"an ontology of the cod",
       "wordCount": 4381,
-      "updatedAt": "2026-05-02T21:21:30.116Z",
+      "updatedAt": "2026-05-02T23:54:16.955Z",
       "mode": "both",
       "linksOut": [
         "old",
@@ -3682,7 +3682,7 @@
       ],
       "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. This project is an ontology wor",
       "wordCount": 1567,
-      "updatedAt": "2026-05-02T14:24:05.807Z",
+      "updatedAt": "2026-05-02T23:54:25.725Z",
       "mode": "both",
       "linksOut": []
     },
