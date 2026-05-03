@@ -319,6 +319,20 @@ html[data-theme="light"] [class*="border-[color:rgba(94,106,210,0.46)]"] {
 }
 
 /*
+ * 라이트 모드 — 인디고 overlay 위 "active text" rgba(200,210,255,*) 시프트.
+ * 다크에선 짙은 캔버스에서 pale indigo text 가 active 시그널이지만 라이트
+ * 흰 캔버스에선 거의 invisible (사용자 보고: "LOCAL 글자가 안 보여").
+ *
+ * 9 callsite — DocsVaultPage 의 LOCAL badge / vault picker buttons /
+ * outline panel 의 current section pill / DocsVaultTags 활성 태그 /
+ * DocsVaultViewer 의 inline code 등. 모두 인디고 alpha background 위에
+ * 얹는 텍스트라 라이트 모드에선 deep indigo 로 시프트해 readable.
+ */
+html[data-theme="light"] [class*="text-[color:rgba(200,210,255"] {
+  color: rgba(40, 50, 175, 0.96);
+}
+
+/*
  * 라이트 모드 hover affordance — chrome buttons / 텍스트 링크 처럼 명시
  * hover bg 가 없는 인터랙티브 요소에 subtle bg overlay. 다크에선 텍스트
  * tertiary → primary 색 차이가 크지만 라이트에선 같은 차이가 시야적으로
