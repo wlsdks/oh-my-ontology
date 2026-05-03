@@ -893,6 +893,7 @@
       "neighborMapEyebrow": "Connection map",
       "neighborMapTitle": "{name} · {count} 1-hop neighbors",
       "neighborMapDescription": "A small map containing only the projects directly linked to this one. Drag, hover, and click behave just like the main topology.",
+      "neighborMapEmpty": "No directly linked projects yet. Add a slug under `dependencies:` in this project's frontmatter and the neighbors will appear here.",
       "infoCardTitle": "Project info",
       "infoCardDescription": "Project description written by the workspace owner.",
       "integrityWarn": "Needs review",

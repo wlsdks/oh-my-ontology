@@ -645,23 +645,24 @@ export function ProjectDetailPage({
           {/* 연결 지도 — 이 프로젝트 + 1-hop 이웃 만 담은 미니 Sigma 토폴로지.
               메인 워크스페이스 지도와 동일한 physics · 드래그 · hover · 라벨
               동작. minimal=true 로 minimap · aurora · stats pill · URL sync ·
-              키보드 nav 는 끈다. */}
-          {neighborsTopologyProjects.length > 1 ? (
-            <article className="overflow-hidden rounded-[28px] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)]">
-              <header className="border-b border-[color:var(--color-divider)] px-6 py-5 md:px-8">
-                <p className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
-                  {t("neighborMapEyebrow")}
-                </p>
-                <h2 className="mt-2 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-                  {t("neighborMapTitle", {
-                    name: project.name,
-                    count: neighborsTopologyProjects.length - 1,
-                  })}
-                </h2>
-                <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
-                  {t("neighborMapDescription")}
-                </p>
-              </header>
+              키보드 nav 는 끈다. 이웃 0 개여도 카드 자체는 렌더해 좌측 하단
+              레이아웃 공백 (우측 "Linked projects" 와 비대칭) 방지. */}
+          <article className="overflow-hidden rounded-[28px] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)]">
+            <header className="border-b border-[color:var(--color-divider)] px-6 py-5 md:px-8">
+              <p className="break-keep text-[11px] text-[color:var(--color-text-quaternary)]">
+                {t("neighborMapEyebrow")}
+              </p>
+              <h2 className="mt-2 text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
+                {t("neighborMapTitle", {
+                  name: project.name,
+                  count: Math.max(0, neighborsTopologyProjects.length - 1),
+                })}
+              </h2>
+              <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
+                {t("neighborMapDescription")}
+              </p>
+            </header>
+            {neighborsTopologyProjects.length > 1 ? (
               <div className="h-[520px] w-full">
                 <SigmaTopology
                   projects={neighborsTopologyProjects}
@@ -683,8 +684,22 @@ export function ProjectDetailPage({
                   }}
                 />
               </div>
-            </article>
-          ) : null}
+            ) : (
+              <div className="flex h-[260px] flex-col items-center justify-center gap-3 px-6 py-10 text-center md:px-10">
+                <div
+                  aria-hidden
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)]"
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
+                    0
+                  </span>
+                </div>
+                <p className="max-w-md text-[12.5px] leading-6 text-[color:var(--color-text-tertiary)]">
+                  {t("neighborMapEmpty")}
+                </p>
+              </div>
+            )}
+          </article>
 
           {/* "프로젝트 정보" 카드는 project.detail 마크다운이 있을 때만 렌더.
               예전엔 detail 없을 때 fallback으로 이름/설명을 다시 노출해서 Hero와
