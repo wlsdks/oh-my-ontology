@@ -747,6 +747,9 @@
         "toastPositionSaveFailed": "Failed to save position",
         "toastDeleteSuccess": "Deleted \"{slug}\"",
         "toastDeleteFailed": "Delete failed",
+        "toastVaultEdgeAdded": "Relation added — {source}.{key} ▸ {target}",
+        "toastVaultEdgeDuplicate": "This relation already exists",
+        "toastVaultEdgeDemo": "Demo mode — open a vault folder from /docs to add relations.",
         "blastRadius": {
           "titleClean": "Delete this node?",
           "titleWithBacklinks": "{count} nodes depend on this — delete anyway?",

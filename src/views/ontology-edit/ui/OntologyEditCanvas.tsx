@@ -47,6 +47,7 @@ export function OntologyEditCanvas({
   ephemeralEdges,
   onSelectionChange,
   onConnect,
+  onVaultConnect,
   onVaultNodeDragStop,
   autoLayoutToken = 0,
   layoutMode = "dagre",
@@ -56,6 +57,13 @@ export function OntologyEditCanvas({
   ephemeralEdges: EphemeralEdge[];
   onSelectionChange?: (selectedId: string | null) => void;
   onConnect?: (connection: Connection) => void;
+  /** vault↔vault edge 생성 시 호출 — source frontmatter array patch. */
+  onVaultConnect?: (
+    sourceSlug: string,
+    targetSlug: string,
+    sourceKind: string,
+    targetKind: string,
+  ) => void;
   /** vault 노드 drag-stop 시 호출 — 좌표를 frontmatter.canvasPosition 으로 patch. */
   onVaultNodeDragStop?: (slug: string, position: { x: number; y: number }) => void;
   /**
@@ -228,9 +236,33 @@ export function OntologyEditCanvas({
 
   const handleConnect = useCallback(
     (connection: Connection) => {
+      if (!connection.source || !connection.target) return;
+      const sourceNode = allNodes.find((n) => n.id === connection.source);
+      const targetNode = allNodes.find((n) => n.id === connection.target);
+      const sourceData = sourceNode?.data as
+        | { vault?: boolean; kind?: string }
+        | undefined;
+      const targetData = targetNode?.data as
+        | { vault?: boolean; kind?: string }
+        | undefined;
+      const sourceIsVault = sourceData?.vault === true;
+      const targetIsVault = targetData?.vault === true;
+      // vault ↔ vault: frontmatter array patch (영구). 인스펙터 array
+      // editor 와 같은 진실원 (vault frontmatter) 갱신.
+      if (sourceIsVault && targetIsVault && onVaultConnect) {
+        onVaultConnect(
+          connection.source,
+          connection.target,
+          sourceData?.kind ?? "element",
+          targetData?.kind ?? "element",
+        );
+        return;
+      }
+      // 그 외 (ephemeral 포함): in-memory ephemeral edge — 노드 저장 후
+      // 인스펙터 array 로 옮기거나 export 해야 보존됨.
       onConnect?.(connection);
     },
-    [onConnect],
+    [allNodes, onConnect, onVaultConnect],
   );
 
   const hasLiveVault = vaultManifest !== null;

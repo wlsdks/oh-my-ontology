@@ -747,6 +747,9 @@
         "toastPositionSaveFailed": "좌표 저장 실패",
         "toastDeleteSuccess": "\"{slug}\" 삭제",
         "toastDeleteFailed": "삭제 실패",
+        "toastVaultEdgeAdded": "관계 추가 — {source}.{key} ▸ {target}",
+        "toastVaultEdgeDuplicate": "이미 있는 관계입니다",
+        "toastVaultEdgeDemo": "데모 모드라 관계 추가 안 됨. /docs 에서 vault 폴더를 여세요.",
         "blastRadius": {
           "titleClean": "이 노드를 삭제할까요?",
           "titleWithBacklinks": "{count} 개 노드가 이 노드를 참조하는데, 그래도 삭제?",

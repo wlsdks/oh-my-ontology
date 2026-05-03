@@ -63,6 +63,12 @@ const OntologyEditCanvas = dynamic<{
   ephemeralEdges: ReturnType<typeof useEphemeralEdges>["edges"];
   onSelectionChange?: (selectedId: string | null) => void;
   onConnect?: (connection: import("@xyflow/react").Connection) => void;
+  onVaultConnect?: (
+    sourceSlug: string,
+    targetSlug: string,
+    sourceKind: string,
+    targetKind: string,
+  ) => void;
   onVaultNodeDragStop?: (slug: string, position: { x: number; y: number }) => void;
   autoLayoutToken?: number;
   layoutMode?: "dagre" | "force";
@@ -291,6 +297,62 @@ export function OntologyEditPage() {
       }
     },
     [t, toast, vault],
+  );
+
+  // 캔버스에서 vault A 핸들 → vault B 드래그 시 호출. source 의
+  // frontmatter 에 적절한 array key 로 target slug 추가 — 인스펙터 array
+  // editor 와 동일 진실원, ERD 빌더의 자연스러운 관계 추가 흐름.
+  // kind pair 별 의미: project↔project=dependencies, domain→capability=
+  // capabilities, capability→element=elements, 그 외=relates.
+  const inferEdgeKey = useCallback(
+    (
+      sourceKind: string,
+      targetKind: string,
+    ): "capabilities" | "elements" | "dependencies" | "relates" => {
+      if (sourceKind === "project" && targetKind === "project") return "dependencies";
+      if (sourceKind === "domain" && targetKind === "capability") return "capabilities";
+      if (sourceKind === "capability" && targetKind === "element") return "elements";
+      return "relates";
+    },
+    [],
+  );
+  const connectVaultEdge = useCallback(
+    async (
+      sourceSlug: string,
+      targetSlug: string,
+      sourceKind: string,
+      targetKind: string,
+    ) => {
+      // dogfood vault (read-only) 에선 patch 불가 — 안내 토스트.
+      if (!hasLiveVault) {
+        toast.show(t("toastVaultEdgeDemo"), "error");
+        return;
+      }
+      const key = inferEdgeKey(sourceKind, targetKind);
+      const sourceDoc = effectiveManifest.docs.find((d) => d.slug === sourceSlug);
+      const existing = sourceDoc?.frontmatter[key];
+      const currentArray = Array.isArray(existing)
+        ? existing.filter((v): v is string => typeof v === "string")
+        : [];
+      // 자기 자신 또는 중복 reference 무시.
+      const targetRef = targetSlug;
+      if (sourceSlug === targetSlug || currentArray.includes(targetRef)) {
+        toast.show(t("toastVaultEdgeDuplicate"), "info");
+        return;
+      }
+      const next = [...currentArray, targetRef];
+      try {
+        await vault.updateFrontmatter(sourceSlug, { [key]: next });
+        toast.show(
+          t("toastVaultEdgeAdded", { key, source: sourceSlug, target: targetSlug }),
+          "success",
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : t("toastSaveFailed");
+        toast.show(message, "error");
+      }
+    },
+    [effectiveManifest, hasLiveVault, inferEdgeKey, t, toast, vault],
   );
 
   // V1.2 vault-adaptation — frontmatter scalar literals (description / domain).
@@ -615,6 +677,7 @@ export function OntologyEditPage() {
               ephemeralEdges={ephemeralEdges}
               onSelectionChange={setSelectedId}
               onConnect={addEphemeralEdge}
+              onVaultConnect={connectVaultEdge}
               onVaultNodeDragStop={persistVaultPosition}
               autoLayoutToken={autoLayoutToken}
               layoutMode={layoutMode}

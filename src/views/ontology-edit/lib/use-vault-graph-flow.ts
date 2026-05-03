@@ -187,8 +187,10 @@ export function buildVaultGraphFlow(
       height: NODE_HEIGHT,
       // drag 활성. drag-stop 시 page 가 frontmatter.canvasPosition patch.
       draggable: true,
-      // edge 재생성은 vault 진실원 보호 위해 비활성. 인스펙터/frontmatter 수정.
-      connectable: false,
+      // 핸들 drag 로 edge 생성 활성 — onConnect 핸들러가 source/target
+      // 의 vault 여부에 따라 분기 (vault↔vault → frontmatter array patch,
+      // 그 외 → ephemeral edge).
+      connectable: true,
       selectable: true,
     };
   });
