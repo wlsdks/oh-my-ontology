@@ -493,9 +493,11 @@ export function OntologyEditCanvas({
         .react-flow__node-atlas:hover {
           filter: brightness(1.06);
         }
-        /* Handle (connection point) — 기본 8x8 작아서 hover affordance
-           약함. 노드 hover 시 핸들 크기 12x12 + glow 로 'drag here' 신호 강화. */
+        /* Handle (connection point) — 기본 9x9. 노드 hover 시 12x12 + glow,
+           핸들 직접 hover 시 14x14 + 더 강한 glow → 'drag here' 신호 강화. */
         .react-flow__handle {
+          width: 9px;
+          height: 9px;
           transition: width 160ms ease-out, height 160ms ease-out,
                       box-shadow 160ms ease-out, opacity 160ms ease-out;
         }

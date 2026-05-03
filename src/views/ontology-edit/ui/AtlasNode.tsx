@@ -89,8 +89,6 @@ export function AtlasNode({ data, selected }: NodeProps) {
         position={Position.Top}
         style={{
           background: tone.accent,
-          width: 8,
-          height: 8,
           border: "2px solid rgba(14, 16, 22, 0.9)",
         }}
       />
@@ -139,8 +137,6 @@ export function AtlasNode({ data, selected }: NodeProps) {
         position={Position.Bottom}
         style={{
           background: tone.accent,
-          width: 8,
-          height: 8,
           border: "2px solid rgba(14, 16, 22, 0.9)",
         }}
       />
