@@ -166,19 +166,6 @@ function verifyRead(
 }
 
 /**
- * write 경로 공통 — readwrite 권한이 없으면 ask 후 거부 시 throw.
- * inline `queryPermission` / `requestPermission` 보일러를 압축한다.
- */
-async function ensureReadWrite(
-  handle: FileSystemDirectoryHandle | FileSystemFileHandle,
-): Promise<void> {
-  const result = await verifyHandlePermission(handle, 'readwrite', { ask: true });
-  if (result !== 'granted') {
-    throw new Error('Write permission denied');
-  }
-}
-
-/**
  * @internal — 직접 호출 금지. `useLocalVault()` (LocalVaultProvider 의
  * consumer) 를 통해서만 접근. 본 훅은 LocalVaultProvider 가 1 회 mount
  * 해 단일 인스턴스 (state / IDB rehydrate / fingerprint rescan / FS read)
@@ -207,6 +194,24 @@ export function useLocalVaultInternal() {
 
   /** 마지막 성공 빌드의 fingerprint — auto-refresh 시 변경 없으면 skip 의 비교 기준. */
   const lastFingerprintRef = useRef<string | null>(null);
+
+  /**
+   * Round 9 cut — 쓰기 전에 readwrite permission 확보. 거부 시 state 를
+   * 'permission-needed' 로 업데이트해 LocalVaultPicker 의 reauth UI 가
+   * 즉시 노출되게 한다. 이전엔 saveDoc 가 throw 만 하고 state 는 'loaded'
+   * 로 남아 사용자가 picker 로 가도 권한 문제임을 모름. 호출 후 throw 는
+   * 그대로 — 상위 try/catch (editor 등) 가 inline error 표시 책임 유지.
+   */
+  const requireWritePermission = useCallback(
+    async (handle: FileSystemDirectoryHandle | FileSystemFileHandle) => {
+      const result = await verifyHandlePermission(handle, 'readwrite', { ask: true });
+      if (result !== 'granted') {
+        setState((s) => ({ ...s, status: 'permission-needed' }));
+        throw new Error('Write permission denied');
+      }
+    },
+    [],
+  );
 
   const load = useCallback(async (handle: FileSystemDirectoryHandle) => {
     setState((s) => ({ ...s, status: 'loading', handle, errorMessage: null }));
@@ -387,7 +392,7 @@ export function useLocalVaultInternal() {
     } | null> => {
       if (!state.handle) return null;
       // readwrite permission — 쓰기 경로에만 호출되므로 여기서 확보.
-      await ensureReadWrite(state.handle);
+      await requireWritePermission(state.handle);
       const parts = slug.split('/').filter(Boolean);
       if (parts.length === 0) throw new Error('Empty slug');
       const fileName = `${parts[parts.length - 1]}.md`;
@@ -399,7 +404,7 @@ export function useLocalVaultInternal() {
       }
       return { parent, fileName };
     },
-    [state.handle],
+    [state.handle, requireWritePermission],
   );
 
   /**
@@ -410,14 +415,14 @@ export function useLocalVaultInternal() {
     async (slug: string, content: string) => {
       const fh = state.fileHandles.get(slug);
       if (!fh) throw new Error(`Local vault: no file handle for "${slug}"`);
-      await ensureReadWrite(fh);
+      await requireWritePermission(fh);
       const writable = await fh.createWritable();
       await writable.write(content);
       await writable.close();
       // 저장 성공 뒤 전체 매니페스트 재스캔 — backlinks/headings 등 반영.
       if (state.handle) await load(state.handle);
     },
-    [state.fileHandles, state.handle, load],
+    [state.fileHandles, state.handle, load, requireWritePermission],
   );
 
   /**
@@ -476,7 +481,7 @@ export function useLocalVaultInternal() {
     ) => {
       const fh = state.fileHandles.get(slug);
       if (!fh) throw new Error(`Local vault: no file handle for "${slug}"`);
-      await ensureReadWrite(fh);
+      await requireWritePermission(fh);
       const file = await fh.getFile();
       const raw = await file.text();
       const next = applyFrontmatterUpdates(raw, updates);
@@ -486,7 +491,7 @@ export function useLocalVaultInternal() {
       await writable.close();
       if (!opts.skipRefresh && state.handle) await load(state.handle);
     },
-    [state.fileHandles, state.handle, load],
+    [state.fileHandles, state.handle, load, requireWritePermission],
   );
 
   /**
@@ -697,7 +702,7 @@ export function useLocalVaultInternal() {
     if (!state.handle) {
       throw new Error('Vault is not open');
     }
-    await ensureReadWrite(state.handle);
+    await requireWritePermission(state.handle);
     let created = 0;
     let skipped = 0;
     for (const { relPath, content } of ONTOLOGY_STARTER_FILES) {
@@ -751,7 +756,13 @@ export function useLocalVaultInternal() {
     }
     if (state.handle) await load(state.handle);
     return { created, skipped };
-  }, [state.fileHandles, state.handle, getParentAndName, load]);
+  }, [
+    state.fileHandles,
+    state.handle,
+    getParentAndName,
+    load,
+    requireWritePermission,
+  ]);
 
   return {
     status: state.status,

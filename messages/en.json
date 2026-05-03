@@ -990,6 +990,13 @@
       "vaultToolsTooltip": "Vault tools",
       "vaultToolsAriaLabel": "Open vault tools menu"
     },
+    "vaultStatus": {
+      "localTooltip": "Pick a folder on your disk as the vault",
+      "unsupportedTooltip": "Local folders need Chrome, Edge, or Safari 18.2+ (File System Access API)",
+      "permissionNeededBanner": "Vault is paused — re-grant folder access to keep editing. Showing sample docs until then.",
+      "errorBanner": "Vault folder is unavailable ({message}). Showing sample docs — open the picker to re-pick or refresh.",
+      "openPicker": "Open picker"
+    },
     "advanced": {
       "viewTopology": "Topology",
       "sourceServer": "Sample",

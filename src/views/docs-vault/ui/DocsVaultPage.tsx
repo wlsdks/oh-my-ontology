@@ -1282,21 +1282,46 @@ function DocsVaultContent() {
               <Package size={11} aria-hidden />
               {t('advanced.sourceServer')}
             </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={source === 'local'}
-              disabled={localVault.status === 'unsupported'}
-              onClick={() => handleSourceChange('local')}
-              className={`inline-flex items-center gap-1 rounded-sm px-2 py-1 transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
-                source === 'local'
-                  ? 'bg-[color:rgba(94,106,210,0.16)] text-[color:var(--color-text-primary)]'
-                  : 'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary)]'
-              }`}
+            <Tooltip
+              content={
+                localVault.status === 'unsupported'
+                  ? t('vaultStatus.unsupportedTooltip')
+                  : t('vaultStatus.localTooltip')
+              }
+              withProvider={false}
             >
-              <HardDrive size={11} aria-hidden />
-              {t('advanced.sourceLocal')}
-            </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={source === 'local'}
+                disabled={localVault.status === 'unsupported'}
+                aria-describedby={
+                  localVault.status === 'unsupported'
+                    ? 'docs-vault-local-unsupported-hint'
+                    : undefined
+                }
+                onClick={() => handleSourceChange('local')}
+                className={`inline-flex items-center gap-1 rounded-sm px-2 py-1 transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+                  source === 'local'
+                    ? 'bg-[color:rgba(94,106,210,0.16)] text-[color:var(--color-text-primary)]'
+                    : 'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary)]'
+                }`}
+              >
+                <HardDrive size={11} aria-hidden />
+                {t('advanced.sourceLocal')}
+              </button>
+            </Tooltip>
+            {/* unsupported 상태일 때 sr-only hint 노출 — 시각적으론 disabled
+                opacity 와 tooltip 만으로 신호. 스크린리더 사용자는 disabled
+                button 만 듣고는 *왜* disabled 인지 모르므로 별도 description. */}
+            {localVault.status === 'unsupported' ? (
+              <span
+                id="docs-vault-local-unsupported-hint"
+                className="sr-only"
+              >
+                {t('vaultStatus.unsupportedTooltip')}
+              </span>
+            ) : null}
           </div>
           <Tooltip content={t('header.paletteTooltip')} withProvider={false}>
             <button
@@ -1405,6 +1430,34 @@ function DocsVaultContent() {
           ) : null}
         </div>
       </header>
+
+      {/* Round 9 cut — local source 인데 vault 가 error / permission-needed
+          상태일 때 명시 banner. 이전엔 silent 으로 server 매니페스트 (샘플
+          docs) 가 표시돼 사용자가 자기 vault 가 죽었음을 모름. picker 토글로
+          바로 fix 가능 (헤더 우측 gear). */}
+      {source === 'local' &&
+      (localVault.status === 'error' ||
+        localVault.status === 'permission-needed') ? (
+        <div
+          className="flex flex-none items-center gap-2 border-b border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] px-4 py-2 text-[12px] text-[color:var(--color-status-danger)]"
+          role="status"
+        >
+          <span className="flex-1">
+            {localVault.status === 'permission-needed'
+              ? t('vaultStatus.permissionNeededBanner')
+              : t('vaultStatus.errorBanner', {
+                  message: localVault.errorMessage ?? '',
+                })}
+          </span>
+          <button
+            type="button"
+            onClick={() => setAdvancedOpen(true)}
+            className="rounded-sm border border-[color:rgba(229,72,77,0.32)] px-2 py-0.5 text-[11px] transition-colors hover:bg-[color:rgba(229,72,77,0.14)]"
+          >
+            {t('vaultStatus.openPicker')}
+          </button>
+        </div>
+      ) : null}
 
       <div className="flex min-h-0 flex-1">
         {/* 좌측 트리 — md+ 에서만 inline aside */}
