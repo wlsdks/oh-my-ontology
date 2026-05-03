@@ -34,7 +34,7 @@ export async function generateStaticParams(): Promise<Params[]> {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<Params>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const projects = deriveProjectsFromVault(staticVaultManifest);
@@ -47,7 +47,7 @@ export async function generateMetadata({
   }
 
   const title = project.name;
-  const description = project.description || `${project.name} — Demo`;
+  const description = project.description || `${project.name} — oh-my-ontology`;
   // Next.js 16 + output:'export' 환경에서 metadataBase 기반 상대경로가 실제
   // 빌드 HTML 에 canonical / og:url 로 emit 되지 않는 회귀가 있음 — 절대
   // URL 로 명시해 회피. 루트 layout 의 metadataBase 와 같은 SITE_URL 사용.
@@ -77,7 +77,7 @@ export async function generateMetadata({
       canonical: canonicalUrl,
     },
     openGraph: {
-      siteName: 'Demo',
+      siteName: 'oh-my-ontology',
       title,
       description,
       type: 'article',
@@ -99,9 +99,9 @@ export async function generateMetadata({
 export default async function Page({
   params,
 }: {
-  params: Promise<Params>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const projects = deriveProjectsFromVault(staticVaultManifest);
   const project = projects.find((p) => p.slug === slug);
 
@@ -109,20 +109,20 @@ export default async function Page({
     notFound();
   }
 
-  // CreativeWork 구조화 데이터 — Google 의 rich snippet 에서 프로젝트
-  // 이름·설명·작성자·키워드 를 인식 가능하게 한다. SoftwareApplication 대신
-  // CreativeWork 를 쓰는 이유: 포트폴리오 항목이 꼭 실행 가능한 소프트웨어만
-  // 있지 않음 (문서·연구 등 포함 가능).
+  // CreativeWork 구조화 데이터 — Google rich snippet 에서 프로젝트 이름·
+  // 설명·작성자·키워드 인식. CreativeWork 가 SoftwareApplication 보다 일반적
+  // (포트폴리오 항목이 꼭 실행 가능한 software 만은 아니므로).
+  const inLanguage = locale === 'ko' ? 'ko-KR' : 'en-US';
   const creativeWorkLd = {
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
     name: project.name,
-    description: project.description || `${project.name} — Demo`,
+    description: project.description || `${project.name} — oh-my-ontology`,
     url: absoluteUrl(`/project/${slug}/`),
-    inLanguage: 'ko-KR',
+    inLanguage,
     author: {
       '@type': 'Organization',
-      name: 'Demo',
+      name: 'oh-my-ontology',
     },
     keywords: Array.from(
       new Set(
