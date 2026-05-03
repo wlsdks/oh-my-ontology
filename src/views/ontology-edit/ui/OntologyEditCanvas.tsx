@@ -386,6 +386,7 @@ export function OntologyEditCanvas({
         onNodesChange={onNodesChange}
         onConnect={handleConnect}
         onSelectionChange={handleSelectionChange}
+        onPaneClick={() => onSelectionChange?.(null)}
         onNodeDragStop={handleNodeDragStop}
         onEdgesDelete={(deleted) => {
           // 위 ephemeral edge 의 deletable: true / vault edge 의 deletable: false
