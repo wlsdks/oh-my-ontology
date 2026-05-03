@@ -11,6 +11,7 @@ export {
   isKnowledgeEdgeType,
   KNOWLEDGE_GRAPH_SOURCES,
   isKnowledgeGraphSource,
+  useEdgeTypeLabel,
 } from "./model";
 export { ManualSourceChip } from "./ui/ManualSourceChip";
 export type { ManualSourceChipProps } from "./ui/ManualSourceChip";

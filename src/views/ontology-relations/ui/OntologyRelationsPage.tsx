@@ -3,36 +3,12 @@
 import { Link } from "@/i18n/navigation";
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { KNOWLEDGE_EDGE_TYPES } from "@/entities/knowledge-graph";
+import { KNOWLEDGE_EDGE_TYPES, useEdgeTypeLabel } from "@/entities/knowledge-graph";
 import { useOntologyInsight } from "@/features/vault-ontology";
 import { computeEdgeTypeDistribution } from "@/shared/lib/ontology-tree";
 import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { EmptyState } from "@/shared/ui";
-
-function getTypeLabel(
-  t: ReturnType<typeof useTranslations>,
-  type: string,
-): string {
-  switch (type) {
-    case "contains":
-      return t("edgeTypeContains");
-    case "belongs_to":
-      return t("edgeTypeBelongsTo");
-    case "depends_on":
-      return t("edgeTypeDependsOn");
-    case "implements":
-      return t("edgeTypeImplements");
-    case "uses":
-      return t("edgeTypeUses");
-    case "describes":
-      return t("edgeTypeDescribes");
-    case "related_to":
-      return t("edgeTypeRelatedTo");
-    default:
-      return type;
-  }
-}
 
 /**
  * `/ontology/relations` — edge 단위 view.
@@ -42,6 +18,7 @@ function getTypeLabel(
  */
 export function OntologyRelationsPage() {
   const t = useTranslations("ontologyPages.relations");
+  const edgeTypeLabel = useEdgeTypeLabel();
 
   const { insight, error } = useOntologyInsight();
 
@@ -154,7 +131,7 @@ export function OntologyRelationsPage() {
                   <li key={type} className="px-2 py-1 text-[12px]">
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="text-[color:var(--color-text-secondary)]">
-                        {getTypeLabel(t, type)}
+                        {edgeTypeLabel(type)}
                         <span className="ml-1 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">{type}</span>
                       </span>
                       <span className="font-mono text-[10px] tabular-nums text-[color:var(--color-text-quaternary)]">

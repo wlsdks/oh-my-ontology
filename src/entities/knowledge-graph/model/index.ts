@@ -12,3 +12,4 @@ export {
   KNOWLEDGE_GRAPH_SOURCES,
   isKnowledgeGraphSource,
 } from "./types";
+export { useEdgeTypeLabel } from "./use-edge-type-label";

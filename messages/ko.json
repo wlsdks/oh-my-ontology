@@ -74,6 +74,15 @@
     "vault-readme": "Vault 안내",
     "unknown": "미지"
   },
+  "edgeTypes": {
+    "contains": "포함",
+    "belongs_to": "소속",
+    "depends_on": "의존",
+    "implements": "구현",
+    "uses": "사용",
+    "describes": "설명",
+    "related_to": "연관"
+  },
   "topologyWidgets": {
     "sigma": {
       "ariaLabel": "프로젝트 토폴로지 지도 — 좌측 허브 바에서 개별 프로젝트 바로가기",
@@ -855,14 +864,7 @@
       "orphansPanelTitle": "미연결 노드",
       "orphansPanelSubtitle": "트리에 매달리지 않은 {count} 노드",
       "orphansEmpty": "모두 트리에 연결되어 있어요.",
-      "orphansMore": "+{count} 더",
-      "edgeTypeContains": "포함",
-      "edgeTypeBelongsTo": "소속",
-      "edgeTypeDependsOn": "의존",
-      "edgeTypeImplements": "구현",
-      "edgeTypeUses": "사용",
-      "edgeTypeDescribes": "설명",
-      "edgeTypeRelatedTo": "연관"
+      "orphansMore": "+{count} 더"
     },
     "relations": {
       "eyebrow": "Ontology · Relations",
@@ -878,14 +880,7 @@
       "emptyTitleLink": "트리",
       "emptyTitleAfter": " 에서 노드를 먼저 검토해 보세요.",
       "typePanelTitle": "Edge type 분포",
-      "typePanelSubtitle": "총 {count} 관계",
-      "edgeTypeContains": "포함",
-      "edgeTypeBelongsTo": "소속",
-      "edgeTypeDependsOn": "의존",
-      "edgeTypeImplements": "구현",
-      "edgeTypeUses": "사용",
-      "edgeTypeDescribes": "설명",
-      "edgeTypeRelatedTo": "연관"
+      "typePanelSubtitle": "총 {count} 관계"
     }
   },
   "projectPages": {

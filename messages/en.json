@@ -74,6 +74,15 @@
     "vault-readme": "Vault README",
     "unknown": "Unresolved"
   },
+  "edgeTypes": {
+    "contains": "Contains",
+    "belongs_to": "Belongs to",
+    "depends_on": "Depends on",
+    "implements": "Implements",
+    "uses": "Uses",
+    "describes": "Describes",
+    "related_to": "Related to"
+  },
   "topologyWidgets": {
     "sigma": {
       "ariaLabel": "Project topology map — jump to individual projects from the hub bar on the left",
@@ -855,14 +864,7 @@
       "orphansPanelTitle": "Unconnected nodes",
       "orphansPanelSubtitle": "{count} nodes not hanging from the tree",
       "orphansEmpty": "Every node is connected to the tree.",
-      "orphansMore": "+{count} more",
-      "edgeTypeContains": "Contains",
-      "edgeTypeBelongsTo": "Belongs to",
-      "edgeTypeDependsOn": "Depends on",
-      "edgeTypeImplements": "Implements",
-      "edgeTypeUses": "Uses",
-      "edgeTypeDescribes": "Describes",
-      "edgeTypeRelatedTo": "Related to"
+      "orphansMore": "+{count} more"
     },
     "relations": {
       "eyebrow": "Ontology · Relations",
@@ -878,14 +880,7 @@
       "emptyTitleLink": "tree",
       "emptyTitleAfter": ".",
       "typePanelTitle": "Edge type distribution",
-      "typePanelSubtitle": "{count} relations total",
-      "edgeTypeContains": "Contains",
-      "edgeTypeBelongsTo": "Belongs to",
-      "edgeTypeDependsOn": "Depends on",
-      "edgeTypeImplements": "Implements",
-      "edgeTypeUses": "Uses",
-      "edgeTypeDescribes": "Describes",
-      "edgeTypeRelatedTo": "Related to"
+      "typePanelSubtitle": "{count} relations total"
     }
   },
   "projectPages": {

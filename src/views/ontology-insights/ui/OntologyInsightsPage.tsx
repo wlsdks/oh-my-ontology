@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import {
   KNOWLEDGE_EDGE_TYPES,
   ManualSourceChip,
+  useEdgeTypeLabel,
 } from "@/entities/knowledge-graph";
 import { useOntologyInsight } from "@/features/vault-ontology";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
@@ -22,31 +23,6 @@ import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { EmptyState } from "@/shared/ui";
 
-// edge type 사람 친화 라벨 (locale 자동) — relations 페이지와 동일 키 공유.
-function getEdgeTypeLabel(
-  t: ReturnType<typeof useTranslations>,
-  type: string,
-): string {
-  switch (type) {
-    case "contains":
-      return t("edgeTypeContains");
-    case "belongs_to":
-      return t("edgeTypeBelongsTo");
-    case "depends_on":
-      return t("edgeTypeDependsOn");
-    case "implements":
-      return t("edgeTypeImplements");
-    case "uses":
-      return t("edgeTypeUses");
-    case "describes":
-      return t("edgeTypeDescribes");
-    case "related_to":
-      return t("edgeTypeRelatedTo");
-    default:
-      return type;
-  }
-}
-
 /**
  * `/ontology/insights` — ontology 의 구조를 한눈에.
  *
@@ -59,6 +35,7 @@ function getEdgeTypeLabel(
 export function OntologyInsightsPage() {
   const t = useTranslations("ontologyPages.insights");
   const kindLabel = useOntologyKindLabel();
+  const edgeTypeLabel = useEdgeTypeLabel();
 
   const { insight, error } = useOntologyInsight();
 
@@ -310,7 +287,7 @@ export function OntologyInsightsPage() {
                     >
                       <div className="flex items-baseline justify-between gap-2 px-1">
                         <span className="min-w-0 truncate text-[color:var(--color-text-secondary)]">
-                          {getEdgeTypeLabel(t, type)}
+                          {edgeTypeLabel(type)}
                           <span className="ml-1 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
                             {type}
                           </span>
