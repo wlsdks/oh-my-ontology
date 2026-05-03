@@ -194,7 +194,9 @@ export function OntologyEditPage() {
             "success",
           );
           removeNode(nodeId);
-          setSelectedId(null);
+          // 저장된 노드의 vault id 로 select 전환 — 이어서 dependencies /
+          // capabilities 등 frontmatter 편집 흐름이 끊기지 않게.
+          setSelectedId(vaultSlug);
         } else {
           // vault 미선택 (static) 시 vault picker 안내 — static 은 read-only.
           toast.show(t("toastDemoMode"), "error");
