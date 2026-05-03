@@ -375,7 +375,7 @@ function DocsVaultContent() {
     };
   }, [source, localVault.imageHandles]);
 
-  // 편집은 로컬 볼트일 때만. R10 (auth 영구 제거) 후 cap 체크 제거.
+  // 편집은 로컬 볼트일 때만 (vault handle 이 있어야 disk 에 patch 가능).
   const canEditCurrent = source === 'local';
   const editResolver = useMemo<
     ((slug: string) => Promise<string>) | undefined

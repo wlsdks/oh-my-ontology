@@ -12,8 +12,7 @@ import { LocaleSwitch } from "@/features/locale-switch";
  * Landing — `/` 에서 vault 미선택 사용자가 처음 보는 화면.
  *
  * 헌장 (`.claude/rules/local-first.md`): "폴더만 선택하면 즉시 사용".
- * R10 (auth 영구 제거) 이후 hero 와 CTA 모두 vault 선택을 안내하는 단일
- * 메시지로 통일 — 인증 / 로그인 분기 0.
+ * hero / CTA 모두 vault 선택을 안내하는 단일 메시지로 통일 — 인증 분기 0.
  *
  * 디자인 헌장 준수: 단일 인디고 + 무채색, 애니메이션 0, gradient/glow/scale
  * hover 0. 미니 토폴로지는 frozen SVG (정적) — `prefers-reduced-motion`

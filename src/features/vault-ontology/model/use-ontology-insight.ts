@@ -69,16 +69,12 @@ const STATIC_INSIGHT: { insight: KnowledgeProjectInsight; error: null } = {
 };
 
 /**
- * Mode-aware ontology insight 어댑터.
- *
- * R10 (auth + cloud surface 영구 제거) 이후 2 모드:
+ * Mode-aware ontology insight 어댑터. 2 모드:
  *
  * - **local** → `useVaultOntology` 결과를 `KnowledgeProjectInsight` shape 로
  *   변환. 사용자 디스크의 frontmatter 가 진실원.
  * - **static** → 빌드타임 dogfood 매니페스트 derivation. JSON import 라
  *   module-load 에 1 회 derive (메모이즈).
- *
- * 두 mode 다 firebase 의존 0.
  */
 export function useOntologyInsight(): {
   insight: KnowledgeProjectInsight | null;

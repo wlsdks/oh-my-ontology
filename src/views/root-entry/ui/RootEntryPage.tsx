@@ -5,10 +5,7 @@ import { OntologyViewPage } from "@/views/ontology-view";
 import { LandingPage } from "@/views/landing";
 
 /**
- * 루트 `/` 진입 분기.
- *
- * R10 (auth 영구 제거) 이후 분기 pivot 이 *인증* → *vault 선택 여부* 로
- * 단순화. mission v2 + local-first.md 약속 그대로:
+ * 루트 `/` 진입 분기 — vault 선택 여부에 따라 두 surface 로 갈림:
  *
  * - vault 미선택 → LandingPage (첫 인상 — "이게 뭔지" 5초 설명 + "내 폴더 열기" CTA)
  * - vault 선택됨 → OntologyViewPage (실제 hub — 트리 + ego graph + stub)

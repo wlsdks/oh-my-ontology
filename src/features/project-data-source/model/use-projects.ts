@@ -15,17 +15,12 @@ const staticVaultManifest = staticVaultManifestRaw as VaultManifest;
 import type { Project } from '@/entities/project';
 
 /**
- * mode-aware read 어댑터.
- *
- * R10 (auth + cloud surface 영구 제거) 이후 2 모드:
+ * mode-aware read 어댑터. 2 모드:
  *
  * - **local**: vault manifest 의 `projects/*.md` frontmatter 를 동기 매핑.
  *   사용자가 vault 에 .md 추가하면 즉시 list 에 반영.
  * - **static**: 빌드 타임 `docs/ontology/` 매니페스트 (dogfood). vault 미선택
  *   사용자도 이 OSS 자체의 ontology 를 즉시 본다 — "0 마찰 진입" 의 read 구현.
- *
- * 둘 다 firebase 의존 0. 미래 cloud collab 단계에서 'cloud' 모드 + Firestore
- * 구독을 다시 도입할 때 mode 분기를 새로 추가.
  */
 export interface UseProjectsState {
   projects: Project[];

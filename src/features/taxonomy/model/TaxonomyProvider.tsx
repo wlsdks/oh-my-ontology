@@ -39,13 +39,9 @@ interface Props {
 }
 
 /**
- * R10b (cloud surface 영구 제거) 이후 — defaults 만 노출하는 정적 provider.
- *
- * 이전엔 cloud 모드에서 Firestore `categories` / `statuses` 컬렉션을 구독해
- * 사용자가 settings 페이지에서 추가한 분류를 실시간 반영했다. 그 surface 가
- * 사라지면서 taxonomy 도 빌드타임 defaults 만으로 충분.
- *
- * vault 기반 사용자 정의 분류 (예: `categories.md` frontmatter) 는 추후 단계.
+ * defaults 만 노출하는 정적 provider — taxonomy (categories / statuses) 는
+ * 빌드타임 defaults 만으로 충분. vault 기반 사용자 정의 분류 (예:
+ * `categories.md` frontmatter) 는 추후 단계.
  */
 export function TaxonomyProvider({ children }: Props) {
   const value = useMemo<TaxonomyContextValue>(() => {

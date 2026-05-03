@@ -10,9 +10,7 @@ import {
 import type { ProjectInput } from '@/entities/project';
 
 /**
- * mode 별로 분기되는 project mutation hook.
- *
- * R10 (auth + cloud surface 영구 제거) 이후 2 모드:
+ * mode 별로 분기되는 project mutation hook. 2 모드:
  *
  * - **local**: vault `projects/<slug>.md` 를 직접 read/write/delete. 사용자
  *   디스크가 진실원. 충돌 검사는 manifest 의 fileHandles 에서 hit 여부.
