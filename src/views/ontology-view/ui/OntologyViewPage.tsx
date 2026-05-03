@@ -12,6 +12,7 @@ import {
 } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import { getTopologyProjectHref } from "@/entities/project";
+import { buildDocsVaultHref } from "@/entities/docs-vault";
 import {
   buildOntologyEgoSubgraph,
   buildOntologyTree,
@@ -559,8 +560,9 @@ function NodeDetailPanel({
     ? evidenceList
     : evidenceList.slice(0, EVIDENCE_PREVIEW);
   const hiddenEvidenceCount = Math.max(0, evidenceList.length - visibleEvidence.length);
-  // evidenceId 는 vault `.md` slug — 별도 detail 라우트가 없어 클릭
-  // 불가능한 chip 으로만 표시.
+  // evidenceId 는 vault `.md` slug. /docs/?slug=... viewer 가 대응 라우트라
+  // 각 chip 을 그 viewer 로 가는 Link 로 노출 — ontology 그래프 → 원문 docs
+  // 한 클릭 점프.
 
   return (
     <aside
@@ -773,12 +775,14 @@ function NodeDetailPanel({
             {visibleEvidence.map((evidenceId) => {
               const title = documentTitleByEvidenceId.get(evidenceId) ?? evidenceId;
               return (
-                <li
-                  key={evidenceId}
-                  className="block truncate rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-2.5 py-1.5 text-[11px] text-[color:var(--color-text-secondary)]"
-                  title={title}
-                >
-                  {title}
+                <li key={evidenceId}>
+                  <Link
+                    href={buildDocsVaultHref({ slug: evidenceId })}
+                    className="block truncate rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-2.5 py-1.5 text-[11px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
+                    title={title}
+                  >
+                    {title}
+                  </Link>
                 </li>
               );
             })}

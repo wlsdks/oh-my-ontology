@@ -43,7 +43,11 @@ function derivationToInsight(
     title: stub.title,
     kind: stub.kind,
     projectIds: [],
-    evidenceIds: [],
+    // canonical 노드는 sourceSlug = 자기 자신 doc.slug, 합성 노드 (참조만 받고
+    // 자체 doc 이 없는 stub) 는 sourceSlug = 처음 참조한 doc.slug. 둘 다
+    // 사용자가 "근거 문서" 로 점프하면 맥락이 잡히므로 그대로 첫번째
+    // evidenceId 로 노출. 없으면 빈 배열.
+    evidenceIds: stub.sourceSlug ? [stub.sourceSlug] : [],
     lastApprovedAt: VAULT_SENTINEL_DATE,
     lastApprovedBy: VAULT_SENTINEL_AUTHOR,
     summary: stub.summary,
