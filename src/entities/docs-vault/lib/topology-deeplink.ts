@@ -1,3 +1,4 @@
+import { getTopologyProjectHref } from "@/entities/project";
 import type { VaultDoc } from "../model/types";
 import { computeProjectSlug } from "./project-slug";
 
@@ -6,7 +7,8 @@ import { computeProjectSlug } from "./project-slug";
  * Project 엔티티로 변환해 토폴로지 그래프 노드로 등재한다. 같은
  * slug 산정 helper (computeProjectSlug) 를 공유해 ?p=<slug> deeplink 가
  * drawer 를 항상 정확히 연다. 그 외 kind 는 토폴로지에 1:1 노드가 없으므로
- * null.
+ * null. URL 빌더는 getTopologyProjectHref 로 위임 — encoding/key 정책
+ * 단일화 (cycle 42).
  */
 export function buildTopologyDeeplinkForDoc(doc: VaultDoc): string | null {
   const rawKind = doc.frontmatter?.kind;
@@ -14,5 +16,5 @@ export function buildTopologyDeeplinkForDoc(doc: VaultDoc): string | null {
   if (kind !== "project") return null;
   const slug = computeProjectSlug(doc);
   if (!slug) return null;
-  return `/topology/?p=${encodeURIComponent(slug)}`;
+  return getTopologyProjectHref(slug);
 }
