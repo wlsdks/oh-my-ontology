@@ -8,7 +8,6 @@ import {
   Background,
   BackgroundVariant,
   ConnectionLineType,
-  Controls,
   MiniMap,
   ReactFlow,
   useReactFlow,
@@ -390,10 +389,6 @@ export function OntologyEditCanvas({
           "--xy-edge-stroke-default": "rgba(94, 106, 210, 0.46)",
           "--xy-handle-background-color-default": "var(--color-indigo-brand)",
           "--xy-handle-border-color-default": "var(--color-overlay-3)",
-          "--xy-controls-button-background-color-default":
-            "rgba(20, 22, 28, 0.94)",
-          "--xy-controls-button-color-default":
-            "var(--color-text-secondary)",
           "--xy-background-color-default": "rgba(8, 10, 14, 0.94)",
           "--xy-background-pattern-color-default":
             "var(--color-overlay-2)",
@@ -446,7 +441,10 @@ export function OntologyEditCanvas({
         maxZoom={2}
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
-        <Controls position="bottom-right" showInteractive={false} />
+        {/* xyflow Controls (zoom +/- / fitView) 는 우하단 MiniMap 과 겹침 +
+            기본 스타일이 light theme 이라 dark canvas 와 어색 (Fit View
+            아이콘 흰색 등). 사용자 navigation 은 MiniMap (점프) + 자동정렬
+            (fit) + 마우스 휠 (zoom) 으로 충분 → 별도 Controls 미노출. */}
         <FitViewOnAutoLayout token={autoLayoutToken} layoutMode={layoutMode} />
         <FocusNodeOnDemand token={focusToken} nodeId={focusNodeId} />
         {/* MiniMap — 노드 많아질 때 빠른 navigation. 헌장 §11 호환:
