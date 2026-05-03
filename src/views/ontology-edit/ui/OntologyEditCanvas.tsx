@@ -384,15 +384,16 @@ export function OntologyEditCanvas({
       className={`relative h-full w-full ${isLayoutAnimating ? "rf-layout-animating" : ""}`}
       style={
         {
-          "--xy-node-background-color-default": "rgba(14, 16, 22, 0.96)",
+          // canvas / node 색을 토큰 기반으로 — light/dark 자동 적응 (이전엔
+          // hardcoded dark rgba 라 light theme 에서 dark 섬으로 시각 충돌).
+          "--xy-node-background-color-default": "var(--color-panel)",
           "--xy-node-color-default": "var(--color-text-primary)",
           "--xy-node-border-default": "1px solid var(--color-overlay-3)",
           "--xy-edge-stroke-default": "rgba(94, 106, 210, 0.46)",
           "--xy-handle-background-color-default": "var(--color-indigo-brand)",
           "--xy-handle-border-color-default": "var(--color-overlay-3)",
-          "--xy-background-color-default": "rgba(8, 10, 14, 0.94)",
-          "--xy-background-pattern-color-default":
-            "var(--color-overlay-2)",
+          "--xy-background-color-default": "var(--color-canvas)",
+          "--xy-background-pattern-color-default": "var(--color-overlay-2)",
         } as React.CSSProperties
       }
     >
@@ -456,9 +457,9 @@ export function OntologyEditCanvas({
           ariaLabel={t("minimapAriaLabel")}
           pannable
           zoomable
-          maskColor="rgba(8, 10, 14, 0.7)"
+          maskColor="var(--color-overlay-3)"
           style={{
-            background: "rgba(14, 16, 22, 0.94)",
+            background: "var(--color-panel)",
             border: "1px solid var(--color-border-soft)",
             width: 160,
             height: 96,
