@@ -250,7 +250,7 @@ export function OntologyInsightsPage() {
               subtitle={t("edgeTypePanelSubtitle", { count: totalEdges })}
             >
               <ul className="space-y-1.5" data-testid="insights-edge-type-rows">
-                {edgeTypeRows.slice(0, 8).map(({ type, count }) => {
+                {edgeTypeRows.map(({ type, count }) => {
                   const pct = edgeTypeMax > 0 ? Math.round((count / edgeTypeMax) * 100) : 0;
                   return (
                     <li
@@ -309,16 +309,6 @@ export function OntologyInsightsPage() {
                     : "—"}
                 </span>
               </div>
-              <p className="mt-2 text-[11px] leading-5 text-[color:var(--color-text-tertiary)]">
-                {t("crossProjectFooterBefore")}
-                <Link
-                  href={"/ontology/relations/"}
-                  className="underline text-[color:rgba(159,170,235,0.95)]"
-                >
-                  {t("crossProjectFooterLink")}
-                </Link>
-                {t("crossProjectFooterAfter")}
-              </p>
             </Panel>
           ) : null}
 

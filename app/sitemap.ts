@@ -10,7 +10,7 @@ import { routing } from '@/i18n/routing';
 // Static export — must resolve at build time.
 export const dynamic = 'force-static';
 
-const STATIC_ROUTES = ['', 'projects', 'topology', 'docs', 'ontology', 'ontology/insights', 'ontology/relations'];
+const STATIC_ROUTES = ['', 'projects', 'topology', 'docs', 'ontology', 'ontology/insights'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 빌드 타임 dogfood vault manifest 의 `kind: project` doc 만으로 sitemap

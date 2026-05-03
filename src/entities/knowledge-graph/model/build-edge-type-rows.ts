@@ -11,9 +11,8 @@ const KNOWN_EDGE_TYPE_SET: ReadonlySet<string> = new Set(KNOWLEDGE_EDGE_TYPES);
  * edge type 분포 → bar 행 배열. canonical (KNOWLEDGE_EDGE_TYPES) 순서로
  * 먼저, 외래 type 은 뒤에 입력 순서대로. count 0 행은 제외.
  *
- * /ontology/insights · /ontology/relations 양쪽이 같은 mini bar 패널을
- * 그리는데 이전엔 각자 같은 로직 (canonical map + extra filter) 을 inline
- * 으로 들고 있었다 — 단일 진실원으로 통합.
+ * /ontology/insights 의 edge type 패널 입력. 별도 surface 가 추가될 때
+ * 같은 helper 를 재사용해 단일 진실원 유지.
  */
 export function buildEdgeTypeRows(
   typeDist: ReadonlyMap<string, number>,

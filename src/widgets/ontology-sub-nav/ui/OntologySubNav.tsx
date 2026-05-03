@@ -2,7 +2,7 @@
 
 import { Link, usePathname } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { BarChart3, GitBranch, Network, Share2 } from 'lucide-react';
+import { BarChart3, GitBranch, Network } from 'lucide-react';
 import { useOntologyInsight } from '@/features/vault-ontology';
 
 /**
@@ -38,7 +38,6 @@ const SUB_ITEMS: ReadonlyArray<SubItem> = [
   { href: '/ontology/', labelKey: 'tree', icon: Network, exactMatches: ['', '/ontology'], prefixMatches: [] },
   { href: '/ontology/edit/', labelKey: 'builder', icon: GitBranch, exactMatches: [], prefixMatches: ['/ontology/edit'] },
   { href: '/ontology/insights/', labelKey: 'insights', icon: BarChart3, exactMatches: [], prefixMatches: ['/ontology/insights'] },
-  { href: '/ontology/relations/', labelKey: 'relations', icon: Share2, exactMatches: [], prefixMatches: ['/ontology/relations'] },
 ];
 
 function isItemActive(pathname: string, item: SubItem): boolean {
@@ -52,7 +51,7 @@ function isItemActive(pathname: string, item: SubItem): boolean {
  * 노출 여부 결정에 사용.
  *
  * - '' (정규화된 /) — RootEntry → OntologyViewPage (vault 선택 시)
- * - '/ontology' / '/ontology/edit' / '/ontology/insights' / '/ontology/relations'
+ * - '/ontology' / '/ontology/edit' / '/ontology/insights'
  */
 export function shouldShowOntologySubNav(pathname: string): boolean {
   const normalized = pathname.replace(/\/$/, '');

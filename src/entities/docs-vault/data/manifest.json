@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-03T11:41:40.249Z",
+  "generatedAt": "2026-05-03T11:55:08.738Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -77,8 +77,8 @@
         }
       ],
       "excerpt": "202605 update — Round 10 permanently removed all auth + cloud surface. This doc reflects the postR10 state. Earlier cloudmode design notes are in docs/archive/. There is no backend, no database, no auth provider. The user's markdown folder is the single source of truth. Import direction: app → views → widgets → feature",
-      "wordCount": 796,
-      "updatedAt": "2026-05-02T16:29:38.380Z",
+      "wordCount": 795,
+      "updatedAt": "2026-05-03T11:53:50.351Z",
       "linksOut": [
         "../AGENTS",
         "PRODUCT-DIRECTION",
@@ -1737,13 +1737,43 @@
         },
         {
           "depth": 2,
+          "text": "2026-05-03 — Surface diet: 5 dead UI cuts",
+          "slug": "2026-05-03-surface-diet-5-dead-ui-cuts"
+        },
+        {
+          "depth": 3,
+          "text": "User-visible changes",
+          "slug": "user-visible-changes"
+        },
+        {
+          "depth": 3,
+          "text": "단축키 변경",
+          "slug": "단축키-변경"
+        },
+        {
+          "depth": 3,
+          "text": "코드 / 아키텍처",
+          "slug": "코드-아키텍처"
+        },
+        {
+          "depth": 3,
+          "text": "Test",
+          "slug": "test"
+        },
+        {
+          "depth": 3,
+          "text": "Deferred / kept (codex second opinion)",
+          "slug": "deferred-kept-codex-second-opinion"
+        },
+        {
+          "depth": 2,
           "text": "2026-05-03 — Round 10: permanent removal of auth + cloud surface",
           "slug": "2026-05-03-round-10-permanent-removal-of-auth-cloud-surface"
         },
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes"
+          "slug": "user-visible-changes-2"
         },
         {
           "depth": 3,
@@ -1763,7 +1793,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-2"
+          "slug": "user-visible-changes-3"
         },
         {
           "depth": 3,
@@ -1803,7 +1833,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-3"
+          "slug": "user-visible-changes-4"
         },
         {
           "depth": 3,
@@ -1828,7 +1858,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-4"
+          "slug": "user-visible-changes-5"
         },
         {
           "depth": 3,
@@ -1873,7 +1903,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-5"
+          "slug": "user-visible-changes-6"
         },
         {
           "depth": 3,
@@ -1908,7 +1938,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-6"
+          "slug": "user-visible-changes-7"
         },
         {
           "depth": 3,
@@ -1946,9 +1976,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. ohmyontology is now a pure localfirst OSS. All optional Firebase / Firestore / Auth / Clou",
-      "wordCount": 3339,
-      "updatedAt": "2026-05-02T16:29:38.380Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Firstprinciples audit of every UI surface — does each toggle / mode / widget serve the use",
+      "wordCount": 3773,
+      "updatedAt": "2026-05-03T11:54:43.400Z",
       "linksOut": []
     },
     {
@@ -2336,8 +2366,8 @@
         }
       ],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see designreferences/DESIGNlinear.md. Linear's \"starlight rising from darkness\" aesthetic aligns precisely with the constellation metaphor of the topology. The extreme constraint of blackandwhite plus a single indi",
-      "wordCount": 706,
-      "updatedAt": "2026-05-02T10:11:16.212Z",
+      "wordCount": 703,
+      "updatedAt": "2026-05-03T11:54:08.873Z",
       "linksOut": [
         "design-references/DESIGN-linear"
       ]
@@ -2393,11 +2423,6 @@
           "depth": 4,
           "text": "`/ontology/insights` — Insights",
           "slug": "ontologyinsights-insights"
-        },
-        {
-          "depth": 4,
-          "text": "`/ontology/relations` — Relation distribution",
-          "slug": "ontologyrelations-relation-distribution"
         },
         {
           "depth": 3,
@@ -2626,8 +2651,8 @@
         }
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260502 (postOSSlaunch readiness — CLI scaffold, web scaffold button, npm publish guard) Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG. Mission v2: \"an ontology of the cod",
-      "wordCount": 4381,
-      "updatedAt": "2026-05-02T23:54:16.955Z",
+      "wordCount": 4345,
+      "updatedAt": "2026-05-03T11:54:01.717Z",
       "linksOut": [
         "old",
         "oldSlug"

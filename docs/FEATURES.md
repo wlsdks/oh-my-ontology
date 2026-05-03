@@ -72,17 +72,13 @@ The `useDataSourceMode()` hook resolves to one of two modes (R10b: cloud / auth 
 - **layout**: simple grid
 
 #### `/ontology/insights` — Insights
-- **kind distribution** (bars), **distribution per project** (sorted), **relation type distribution**
+- **kind distribution** (bars), **distribution per project** (sorted)
+- **edge type distribution** — full per-relation-type bar list (canonical order)
 - **cross-project relation** ratio / absolute count
 - **top 10 hub nodes** (by degree, excluding documents and projects)
-- **10 most recent activities** (relative time)
-- **30-day activity timeline** (per-day approval bars)
+- **node preview** (vault frontmatter sample)
 - **disconnected nodes** (orphans, highlighted in amber)
 - every entry click → jumps to `/ontology/?node=<id>`
-
-#### `/ontology/relations` — Relation distribution
-- **edge type distribution** (left) — click to toggle filter
-- **top 12 strongest relations** (sorted by evidence richness) — from → type → to + cross chip + evidence count
 
 ### Vault Local-First
 

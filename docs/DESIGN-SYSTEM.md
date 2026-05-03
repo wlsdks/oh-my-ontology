@@ -120,7 +120,7 @@ Example: `/ontology` page
 
 ### Surfaces where this applies (current)
 
-`/ontology/edit`, `/ontology/insights`, `/ontology/relations`, `/settings/*`, `/account` — all follow the same pattern.
+`/ontology/edit`, `/ontology/insights` — all follow the same pattern.
 
 The public surfaces `/`, `/topology`, `/docs`, `/projects`, `/project/[slug]` use the standalone Korean h1 pattern (without an English eyebrow caption) — these are the browse surfaces, not the operations surfaces.
 

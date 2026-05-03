@@ -41,8 +41,7 @@
     "edgeCount": "{count, plural, one {# edge} other {# edges}}",
     "tree": "Tree",
     "builder": "Builder",
-    "insights": "Insights",
-    "relations": "Relations"
+    "insights": "Insights"
   },
   "modeBadge": {
     "vaultLabel": "vault",
@@ -805,9 +804,6 @@
       "edgeTypePanelSubtitle": "{count} relations total — split by semantic relation type",
       "crossProjectPanelTitle": "Cross-project relations",
       "crossProjectPanelSubtitle": "Edges where the two nodes belong to different projects — dependency chains",
-      "crossProjectFooterBefore": "For per-edge-type counts, see the ",
-      "crossProjectFooterLink": "relations",
-      "crossProjectFooterAfter": " page.",
       "hubsPanelTitle": "Hub nodes",
       "hubsPanelSubtitle": "Top 10 most-connected (excluding document/project)",
       "hubsEmpty": "No connected nodes yet.",
@@ -817,18 +813,6 @@
       "orphansPanelSubtitle": "{count} nodes not hanging from the tree",
       "orphansEmpty": "Every node is connected to the tree.",
       "orphansMore": "+{count} more"
-    },
-    "relations": {
-      "eyebrow": "Ontology · Relations",
-      "title": "Relations",
-      "subtitle": "Nodes live in the tree, stats live in insights. Relations show the distribution of *semantic relation types*.",
-      "errorAlert": "Couldn't load relation data. {message}",
-      "loading": "Loading…",
-      "emptyTitleBefore": "No approved relations yet. Start by reviewing nodes in the ",
-      "emptyTitleLink": "tree",
-      "emptyTitleAfter": ".",
-      "typePanelTitle": "Edge type distribution",
-      "typePanelSubtitle": "{count} relations total"
     }
   },
   "projectPages": {

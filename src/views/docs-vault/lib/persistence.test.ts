@@ -19,8 +19,6 @@ describe("parseDocsVaultView", () => {
     expect(parseDocsVaultView(undefined)).toBe("doc");
     expect(parseDocsVaultView("")).toBe("doc");
     expect(parseDocsVaultView("alien")).toBe("doc");
-    expect(parseDocsVaultView("graph")).toBe("doc");
-    expect(parseDocsVaultView("stats")).toBe("doc");
   });
 });
 

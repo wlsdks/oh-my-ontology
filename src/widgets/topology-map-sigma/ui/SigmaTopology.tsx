@@ -66,8 +66,8 @@ import { SigmaNodeTooltip, type SigmaNodeTooltipData } from './SigmaNodeTooltip'
 
 const POSITION_STORAGE_KEY = 'demo:sigma-node-positions:v1';
 
-// audit overlay 임계값 — /diagnostics/insights 의 값과 동일하게 맞춘다. 리스트와 맵이
-// 같은 문제 집합을 지시하도록.
+// audit overlay 임계값 — 30 일 이상 비변경 노드를 stale 강조, fan-in 4
+// 이상이면 promotion 후보. dogfood 18 노드 규모 default.
 const AUDIT_STALE_DAYS_THRESHOLD = 30;
 const AUDIT_PROMOTION_MIN_FAN_IN = 4;
 
@@ -281,8 +281,8 @@ export function SigmaTopology({
   ]);
 
   // audit overlay 용 slug 집합. overlay 가 off 인 동안은 빈 Set 로 cheap.
-  // /diagnostics/insights 와 동일 로직·임계값을 사용해 리스트와 맵이 같은 집합을
-  // 가리키도록.
+  // 위의 AUDIT_STALE_DAYS_THRESHOLD / AUDIT_PROMOTION_MIN_FAN_IN 임계값
+  // 사용 — stale 노드 / orphan / promotion 후보 3 종을 한 번에 분류.
   const auditSets = useMemo(() => {
     if (!overlays?.auditHighlight) {
       return {

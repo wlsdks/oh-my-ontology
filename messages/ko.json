@@ -41,8 +41,7 @@
     "edgeCount": "{count} 관계",
     "tree": "트리",
     "builder": "빌더",
-    "insights": "인사이트",
-    "relations": "관계 분포"
+    "insights": "인사이트"
   },
   "modeBadge": {
     "vaultLabel": "vault",
@@ -805,9 +804,6 @@
       "edgeTypePanelSubtitle": "총 {count} 관계 — 의미 관계 종류별 비율",
       "crossProjectPanelTitle": "Cross-project 관계",
       "crossProjectPanelSubtitle": "두 노드가 서로 다른 프로젝트에 속한 edge — 의존 chain",
-      "crossProjectFooterBefore": "edge type 별 카운트는 ",
-      "crossProjectFooterLink": "관계",
-      "crossProjectFooterAfter": " 페이지에서 확인.",
       "hubsPanelTitle": "허브 노드",
       "hubsPanelSubtitle": "가장 많이 연결된 위 10 (document/project 제외)",
       "hubsEmpty": "아직 연결된 노드가 없어요.",
@@ -817,18 +813,6 @@
       "orphansPanelSubtitle": "트리에 매달리지 않은 {count} 노드",
       "orphansEmpty": "모두 트리에 연결되어 있어요.",
       "orphansMore": "+{count} 더"
-    },
-    "relations": {
-      "eyebrow": "Ontology · Relations",
-      "title": "관계",
-      "subtitle": "노드는 트리, 통계는 인사이트. 관계는 *의미 관계 종류* 의 분포를 보여줍니다.",
-      "errorAlert": "관계 데이터를 불러오는 중 오류가 났어요. {message}",
-      "loading": "불러오는 중…",
-      "emptyTitleBefore": "아직 승인된 관계가 없어요. ",
-      "emptyTitleLink": "트리",
-      "emptyTitleAfter": " 에서 노드를 먼저 검토해 보세요.",
-      "typePanelTitle": "Edge type 분포",
-      "typePanelSubtitle": "총 {count} 관계"
     }
   },
   "projectPages": {

@@ -18,8 +18,7 @@ tags: [architecture, infra, overview]
 │ ├─ /docs                   vault picker + editor       │
 │ ├─ /ontology               tree + ego graph            │
 │ ├─ /ontology/edit          xyflow ERD builder          │
-│ ├─ /ontology/insights      graph census + hubs         │
-│ ├─ /ontology/relations     edge type distribution      │
+│ ├─ /ontology/insights      graph census + hubs + edges │
 │ ├─ /projects               project list                │
 │ └─ /project/[slug]         project detail              │
 ├────────────────────────────────────────────────────────┤
@@ -102,8 +101,7 @@ This is the "first impression" state — visitors see a real ontology
 /docs                      vault picker / editor / unified palette
 /ontology                  tree + ego graph
 /ontology/edit             ERD canvas builder (xyflow)
-/ontology/insights         graph insights
-/ontology/relations        relation distribution
+/ontology/insights         graph insights (kind dist · hubs · edge types)
 /projects                  project list (cards)
 /project/[slug]            project detail (inline edit when vault loaded)
 /project/[slug]/edit       full project editor

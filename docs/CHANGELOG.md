@@ -62,7 +62,9 @@ widget serve the user's 3 jobs (그래프 본다 / 그래프 쓴다 / 개념 찾
   / icon / progress / isHub / nameEn / detail / 등).
 - `/docs view: folder-topology` — keep (project 스캐폴드 + 포지션 저장
   capability 가 아직 다른 surface 에 없음).
-- `/ontology/insights` + `/ontology/relations` 통합 → 별도 PR.
+- ~~`/ontology/insights` + `/ontology/relations` 통합~~ → 같은 사이클 내
+  Round 2 cut A 로 처리. `/ontology/relations` 라우트 제거, edge type
+  분포는 `/ontology/insights` 로 흡수.
 - `/` (vault 있을 때) ↔ `/ontology` 중복 (둘 다 `OntologyViewPage` 렌더) →
   별도 결정.
 
