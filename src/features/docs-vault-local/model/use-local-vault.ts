@@ -174,7 +174,7 @@ async function ensureReadWrite(
 ): Promise<void> {
   const result = await verifyHandlePermission(handle, 'readwrite', { ask: true });
   if (result !== 'granted') {
-    throw new Error('쓰기 권한이 거부되었습니다');
+    throw new Error('Write permission denied');
   }
 }
 
@@ -379,7 +379,7 @@ export function useLocalVault() {
       // readwrite permission — 쓰기 경로에만 호출되므로 여기서 확보.
       await ensureReadWrite(state.handle);
       const parts = slug.split('/').filter(Boolean);
-      if (parts.length === 0) throw new Error('빈 slug');
+      if (parts.length === 0) throw new Error('Empty slug');
       const fileName = `${parts[parts.length - 1]}.md`;
       let parent: FileSystemDirectoryHandle = state.handle;
       for (let i = 0; i < parts.length - 1; i += 1) {
@@ -399,7 +399,7 @@ export function useLocalVault() {
   const saveDoc = useCallback(
     async (slug: string, content: string) => {
       const fh = state.fileHandles.get(slug);
-      if (!fh) throw new Error(`로컬 볼트에 ${slug} 없음`);
+      if (!fh) throw new Error(`Local vault: no file handle for "${slug}"`);
       await ensureReadWrite(fh);
       const writable = await fh.createWritable();
       await writable.write(content);
@@ -417,10 +417,10 @@ export function useLocalVault() {
   const createDoc = useCallback(
     async (slug: string, content: string) => {
       if (state.fileHandles.has(slug)) {
-        throw new Error(`이미 존재하는 문서: ${slug}`);
+        throw new Error(`Document already exists: "${slug}"`);
       }
       const resolved = await getParentAndName(slug, true);
-      if (!resolved) throw new Error('볼트가 열려있지 않습니다');
+      if (!resolved) throw new Error('Vault is not open');
       const fh = await resolved.parent.getFileHandle(resolved.fileName, {
         create: true,
       });
@@ -439,7 +439,7 @@ export function useLocalVault() {
   const deleteDoc = useCallback(
     async (slug: string) => {
       const resolved = await getParentAndName(slug, false);
-      if (!resolved) throw new Error('볼트가 열려있지 않습니다');
+      if (!resolved) throw new Error('Vault is not open');
       await resolved.parent.removeEntry(resolved.fileName);
       if (state.handle) await load(state.handle);
     },
@@ -465,7 +465,7 @@ export function useLocalVault() {
       opts: { skipRefresh?: boolean } = {},
     ) => {
       const fh = state.fileHandles.get(slug);
-      if (!fh) throw new Error(`로컬 볼트에 ${slug} 없음`);
+      if (!fh) throw new Error(`Local vault: no file handle for "${slug}"`);
       await ensureReadWrite(fh);
       const file = await fh.getFile();
       const raw = await file.text();
@@ -495,14 +495,14 @@ export function useLocalVault() {
     ) => {
       if (oldSlug === newSlug) return;
       if (state.fileHandles.has(newSlug)) {
-        throw new Error(`이미 존재하는 문서: ${newSlug}`);
+        throw new Error(`Document already exists: "${newSlug}"`);
       }
       const oldFh = state.fileHandles.get(oldSlug);
-      if (!oldFh) throw new Error(`로컬 볼트에 ${oldSlug} 없음`);
+      if (!oldFh) throw new Error(`Local vault: no file handle for "${oldSlug}"`);
       const file = await oldFh.getFile();
       const content = await file.text();
       const newResolved = await getParentAndName(newSlug, true);
-      if (!newResolved) throw new Error('볼트가 열려있지 않습니다');
+      if (!newResolved) throw new Error('Vault is not open');
       const newFh = await newResolved.parent.getFileHandle(
         newResolved.fileName,
         { create: true },
@@ -686,7 +686,7 @@ export function useLocalVault() {
    */
   const scaffoldOntology = useCallback(async () => {
     if (!state.handle) {
-      throw new Error('볼트가 열려있지 않습니다');
+      throw new Error('Vault is not open');
     }
     await ensureReadWrite(state.handle);
     let created = 0;
