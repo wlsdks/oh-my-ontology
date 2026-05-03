@@ -96,7 +96,6 @@ export function OntologyRelationsPage() {
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="text-[color:var(--color-text-secondary)]">
                         {edgeTypeLabel(type)}
-                        <span className="ml-1 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">{type}</span>
                       </span>
                       <span className="font-mono text-[10px] tabular-nums text-[color:var(--color-text-quaternary)]">
                         {count}

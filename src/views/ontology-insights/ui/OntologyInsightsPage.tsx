@@ -260,11 +260,10 @@ export function OntologyInsightsPage() {
                       data-edge-type={type}
                     >
                       <div className="flex items-baseline justify-between gap-2 px-1">
+                        {/* 영문 코드 (contains / related_to) 노출 안 함 — 한글
+                            라벨이면 충분, 비개발자에게 코드명은 noise. */}
                         <span className="min-w-0 truncate text-[color:var(--color-text-secondary)]">
                           {edgeTypeLabel(type)}
-                          <span className="ml-1 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
-                            {type}
-                          </span>
                         </span>
                         <span className="font-mono text-[10px] tabular-nums text-[color:var(--color-text-quaternary)]">
                           {count}
@@ -380,15 +379,14 @@ export function OntologyInsightsPage() {
             </ol>
           </Panel>
 
-          {/* 미연결 노드 */}
-          <Panel
-            title={t("orphansPanelTitle")}
-            subtitle={t("orphansPanelSubtitle", { count: orphans.length })}
-            accent={orphans.length > 0 ? "amber" : undefined}
-          >
-            {orphans.length === 0 ? (
-              <p className="text-[12px] text-[color:var(--color-text-tertiary)]">{t("orphansEmpty")}</p>
-            ) : (
+          {/* 미연결 노드 — 0 개면 panel 자체 hide (모두 트리에 연결됨이 default 라
+              빈 카드로 자리 차지할 가치 없음). orphan 가 있을 때만 amber 톤 강조. */}
+          {orphans.length > 0 ? (
+            <Panel
+              title={t("orphansPanelTitle")}
+              subtitle={t("orphansPanelSubtitle", { count: orphans.length })}
+              accent="amber"
+            >
               <ul className="space-y-1">
                 {orphans.slice(0, 10).map((node) => (
                   <li
@@ -410,8 +408,8 @@ export function OntologyInsightsPage() {
                   </li>
                 ) : null}
               </ul>
-            )}
-          </Panel>
+            </Panel>
+          ) : null}
         </div>
       )}
       </div>
