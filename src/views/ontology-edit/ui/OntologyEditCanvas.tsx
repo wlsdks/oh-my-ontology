@@ -1,7 +1,7 @@
 "use client";
 
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   applyNodeChanges,
@@ -169,8 +169,16 @@ export function OntologyEditCanvas({
   // 외부 데이터 (vault/ephemeral) 가 변하면 *구조* (추가/삭제/data 변경)
   // 만 갱신하고, 기존 노드의 위치는 보존 — 사용자가 드래그한 결과가
   // 부모 re-render 로 reset 되는 회귀 방지.
+  // 단, autoLayoutToken 이 변했을 땐 사용자 의도 = '재정렬' 이므로 위치
+  // preserve 안 하고 baseNodes 그대로 (auto-layout 결과) 적용.
+  const prevAutoLayoutTokenRef = useRef(autoLayoutToken);
   useEffect(() => {
+    const isAutoLayoutTrigger = prevAutoLayoutTokenRef.current !== autoLayoutToken;
+    prevAutoLayoutTokenRef.current = autoLayoutToken;
     setLocalNodes((current) => {
+      if (isAutoLayoutTrigger) {
+        return baseNodes;
+      }
       const currentById = new Map(current.map((n) => [n.id, n]));
       return baseNodes.map((b) => {
         const existing = currentById.get(b.id);
@@ -180,7 +188,7 @@ export function OntologyEditCanvas({
         return b;
       });
     });
-  }, [baseNodes]);
+  }, [baseNodes, autoLayoutToken]);
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setLocalNodes((current) => applyNodeChanges(changes, current));
   }, []);
