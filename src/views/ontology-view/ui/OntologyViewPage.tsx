@@ -11,6 +11,7 @@ import {
   type KnowledgeGraphNode,
 } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
+import { getTopologyProjectHref } from "@/entities/project";
 import {
   buildOntologyEgoSubgraph,
   buildOntologyTree,
@@ -798,12 +799,26 @@ function NodeDetailPanel({
       ) : null}
 
       {isProject && projectSlug ? (
-        <Link
-          href={`/project/${projectSlug}/`}
-          className="mt-4 inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:rgba(94,106,210,0.35)] bg-[color:rgba(94,106,210,0.10)] px-3.5 py-1.5 text-xs text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)]"
-        >
-          {t('projectDetailCta')}
-        </Link>
+        // 두 surface 로의 점프 — 한 줄 안에서 시각 weight 구분.
+        // primary (indigo) = 공개 상세 페이지 (정적 SEO 노출 surface),
+        // secondary (무채색) = 토폴로지 (project drawer 가 열린 상태로
+        // Sigma 그래프). 1원칙: ontology / topology / project-detail 셋
+        // 다 같은 vault doc 의 다른 투영 → 한 selection 안에서 모두 도달
+        // 가능해야 한다.
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Link
+            href={`/project/${projectSlug}/`}
+            className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:rgba(94,106,210,0.35)] bg-[color:rgba(94,106,210,0.10)] px-3.5 py-1.5 text-xs text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)]"
+          >
+            {t('projectDetailCta')}
+          </Link>
+          <Link
+            href={getTopologyProjectHref(projectSlug)}
+            className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3.5 py-1.5 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
+          >
+            {t('topologyCta')}
+          </Link>
+        </div>
       ) : null}
       {isStub ? (
         <p className="mt-4 break-keep rounded-md border border-[color:rgba(255,179,71,0.20)] bg-[color:rgba(255,179,71,0.06)] px-3 py-2 text-xs text-[color:rgba(238,198,128,0.95)]">

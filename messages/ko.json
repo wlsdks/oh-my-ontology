@@ -1214,6 +1214,7 @@
       "showMore": "+{count}개 더",
       "relatedDocs": "관련 문서 {count}",
       "projectDetailCta": "공개 상세 페이지 →",
+      "topologyCta": "토폴로지에서 보기 →",
       "stubWarning": "미해결 참조 — frontmatter 가 가리킨 slug 가 vault 안에 없어요. 빌더(/ontology/edit)에서 이 이름으로 노드를 만들거나, frontmatter 에서 참조를 빼세요."
     }
   },

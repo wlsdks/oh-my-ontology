@@ -1214,6 +1214,7 @@
       "showMore": "+{count} more",
       "relatedDocs": "Related documents {count}",
       "projectDetailCta": "Public detail page →",
+      "topologyCta": "Open in topology →",
       "stubWarning": "Unresolved reference — the slug pointed to by frontmatter doesn't exist in the vault. Create a node with this name in the builder (/ontology/edit), or remove the reference from frontmatter."
     }
   },
