@@ -340,6 +340,13 @@ function VaultDetail({
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter → 변경사항 있으면 저장 — ephemeral 인스펙터와 동일 패턴.
+            if (e.key === "Enter" && canSave && onSaveRename) {
+              e.preventDefault();
+              void onSaveRename(node.slug, draft);
+            }
+          }}
           disabled={readOnly}
           className="rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] px-2.5 py-1.5 text-[13px] text-[color:var(--color-text-primary)] outline-none transition-colors focus:border-[color:var(--color-indigo-brand)] disabled:opacity-60"
         />
