@@ -857,14 +857,7 @@
       "hubsPanelSubtitle": "Top 10 most-connected (excluding document/project)",
       "hubsEmpty": "No connected nodes yet.",
       "recentPanelTitleSentinel": "Node preview",
-      "recentPanelTitleNormal": "Recent activity",
       "recentSubtitleSentinel": "{count} vault frontmatter nodes",
-      "recentSubtitleNormal": "10 most recently updated nodes",
-      "activityPanelTitle": "30-day activity",
-      "activityPanelSubtitle": "{count} nodes updated in the past 30 days",
-      "activityEmpty": "No nodes were updated in the past 30 days.",
-      "activityChartAriaLabel": "30-day activity timeline — {count} nodes total",
-      "activityToday": "Today",
       "orphansPanelTitle": "Unconnected nodes",
       "orphansPanelSubtitle": "{count} nodes not hanging from the tree",
       "orphansEmpty": "Every node is connected to the tree.",
@@ -875,11 +868,7 @@
       "edgeTypeImplements": "Implements",
       "edgeTypeUses": "Uses",
       "edgeTypeDescribes": "Describes",
-      "edgeTypeRelatedTo": "Related to",
-      "relativeToday": "today",
-      "relativeDays": "{count}d ago",
-      "relativeWeeks": "{count}w ago",
-      "relativeMonths": "{count}mo ago"
+      "edgeTypeRelatedTo": "Related to"
     },
     "relations": {
       "eyebrow": "Ontology · Relations",

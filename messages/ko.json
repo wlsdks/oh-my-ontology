@@ -857,14 +857,7 @@
       "hubsPanelSubtitle": "가장 많이 연결된 위 10 (document/project 제외)",
       "hubsEmpty": "아직 연결된 노드가 없어요.",
       "recentPanelTitleSentinel": "노드 미리보기",
-      "recentPanelTitleNormal": "최근 활동",
       "recentSubtitleSentinel": "vault frontmatter 노드 {count}",
-      "recentSubtitleNormal": "가장 최근 갱신된 노드 10",
-      "activityPanelTitle": "30일 활동",
-      "activityPanelSubtitle": "지난 30일 동안 갱신된 노드 {count}",
-      "activityEmpty": "지난 30일에 갱신된 노드가 없어요.",
-      "activityChartAriaLabel": "30일 활동 타임라인 — 총 {count} 노드",
-      "activityToday": "오늘",
       "orphansPanelTitle": "미연결 노드",
       "orphansPanelSubtitle": "트리에 매달리지 않은 {count} 노드",
       "orphansEmpty": "모두 트리에 연결되어 있어요.",
@@ -875,11 +868,7 @@
       "edgeTypeImplements": "구현",
       "edgeTypeUses": "사용",
       "edgeTypeDescribes": "설명",
-      "edgeTypeRelatedTo": "연관",
-      "relativeToday": "오늘",
-      "relativeDays": "{count}일 전",
-      "relativeWeeks": "{count}주 전",
-      "relativeMonths": "{count}달 전"
+      "edgeTypeRelatedTo": "연관"
     },
     "relations": {
       "eyebrow": "Ontology · Relations",

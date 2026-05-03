@@ -2,15 +2,14 @@
 
 import { useMemo } from "react";
 import { Link } from "@/i18n/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   KNOWLEDGE_EDGE_TYPES,
   ManualSourceChip,
 } from "@/entities/knowledge-graph";
-import { useOntologyInsight, isVaultSentinelDate } from "@/features/vault-ontology";
+import { useOntologyInsight } from "@/features/vault-ontology";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import {
-  buildActivityTimeline,
   buildOntologyTree,
   buildProjectOntologyCounts,
   computeEdgeTypeDistribution,
@@ -49,15 +48,16 @@ function getEdgeTypeLabel(
 }
 
 /**
- * `/ontology/insights` — ontology 의 활동·구조를 한눈에.
+ * `/ontology/insights` — ontology 의 구조를 한눈에.
  *
- * 4 패널: kind 분포 / 허브 노드 (degree 상위) / 최근 활동 / 미연결 노드 (orphans).
+ * 패널: kind 분포 / 허브 노드 (degree 상위) / 최근 노드 / 미연결 노드 (orphans).
  * `/ontology` 트리 뷰의 보조 surface — 트리는 hierarchy, 인사이트는 통계.
+ *
+ * R10b 후 lastApprovedAt 이 모든 노드에서 VAULT_SENTINEL_DATE (epoch 0) 라
+ * "30일 활동 timeline" 패널과 노드별 relative timestamp 는 영구 의미 0 → 제거됨.
  */
 export function OntologyInsightsPage() {
   const t = useTranslations("ontologyPages.insights");
-  const locale = useLocale();
-  const dateLocale = locale === "ko" ? "ko-KR" : "en-US";
   const kindLabel = useOntologyKindLabel();
 
   const { insight, error } = useOntologyInsight();
@@ -78,24 +78,9 @@ export function OntologyInsightsPage() {
     if (!insight) return [];
     return buildOntologyTree(insight.nodes, insight.edges).orphans;
   }, [insight]);
-  const activity = useMemo(
-    () => (insight ? buildActivityTimeline(insight.nodes, { days: 30 }) : []),
-    [insight],
-  );
-  const activityMax = useMemo(() => activity.reduce((m, d) => Math.max(m, d.count), 0), [activity]);
-  const activityTotal = useMemo(() => activity.reduce((s, d) => s + d.count, 0), [activity]);
 
   const totalNodes = insight?.nodes.length ?? 0;
   const totalEdges = insight?.edges.length ?? 0;
-  // vault / dogfood 모드는 lastApprovedAt 이 sentinel (epoch 0 = 1970-01-01).
-  // 30일 활동 timeline + 노드별 timestamp 표시는 의미 0 이라 mode-aware hide.
-  const isVaultSentinelMode = useMemo(
-    () =>
-      insight !== null &&
-      insight.nodes.length > 0 &&
-      insight.nodes.every((n) => isVaultSentinelDate(n.lastApprovedAt)),
-    [insight],
-  );
 
   // kind 분포 — sorted desc + 시각용 합계.
   const kindRows = useMemo(() => {
@@ -419,14 +404,10 @@ export function OntologyInsightsPage() {
             )}
           </Panel>
 
-          {/* 최근 노드 (vault sentinel mode 면 timestamp 의미 0 — chip / 제목만) */}
+          {/* 최근 노드 — vault sentinel mode 라 timestamp 없이 chip / 제목만. */}
           <Panel
-            title={isVaultSentinelMode ? t("recentPanelTitleSentinel") : t("recentPanelTitleNormal")}
-            subtitle={
-              isVaultSentinelMode
-                ? t("recentSubtitleSentinel", { count: recent.length })
-                : t("recentSubtitleNormal")
-            }
+            title={t("recentPanelTitleSentinel")}
+            subtitle={t("recentSubtitleSentinel", { count: recent.length })}
           >
             <ol className="space-y-1">
               {recent.map((node) => (
@@ -442,59 +423,11 @@ export function OntologyInsightsPage() {
                       {node.title}
                     </span>
                     <ManualSourceChip source={node.source} size="compact" />
-                    {isVaultSentinelMode ? null : (
-                      <span className="shrink-0 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
-                        {formatRelativeDate(t, node.lastApprovedAt, dateLocale)}
-                      </span>
-                    )}
                   </Link>
                 </li>
               ))}
             </ol>
           </Panel>
-
-          {/* 30일 활동 타임라인 — vault sentinel mode 에서는 timeline 의미 0 이라 hide */}
-          {isVaultSentinelMode ? null : (
-          <div className="md:col-span-2">
-            <Panel
-              title={t("activityPanelTitle")}
-              subtitle={t("activityPanelSubtitle", { count: activityTotal })}
-            >
-              {activityTotal === 0 ? (
-                <p className="text-[12px] text-[color:var(--color-text-tertiary)]">
-                  {t("activityEmpty")}
-                </p>
-              ) : (
-                <div>
-                  <div
-                    className="flex h-20 items-end gap-[3px]"
-                    role="img"
-                    aria-label={t("activityChartAriaLabel", { count: activityTotal })}
-                  >
-                    {activity.map((day) => {
-                      const heightPct = activityMax > 0 ? (day.count / activityMax) * 100 : 0;
-                      return (
-                        <div
-                          key={day.date}
-                          className="flex-1 rounded-t-sm transition-colors"
-                          style={{
-                            height: `${Math.max(heightPct, day.count > 0 ? 6 : 2)}%`,
-                            backgroundColor: day.count > 0 ? "rgba(159,170,235,0.55)" : "var(--color-overlay-2)",
-                          }}
-                          title={`${day.date} · ${day.count}`}
-                        />
-                      );
-                    })}
-                  </div>
-                  <div className="mt-2 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
-                    <span>{activity[0]?.date}</span>
-                    <span>{t("activityToday")}</span>
-                  </div>
-                </div>
-              )}
-            </Panel>
-          </div>
-          )}
 
           {/* 미연결 노드 */}
           <Panel
@@ -565,18 +498,3 @@ function Panel({
   );
 }
 
-function formatRelativeDate(
-  t: ReturnType<typeof useTranslations>,
-  d: Date,
-  dateLocale: string,
-): string {
-  const now = Date.now();
-  const diffMs = now - d.getTime();
-  const day = 24 * 60 * 60 * 1000;
-  if (diffMs < day) return t("relativeToday");
-  const days = Math.floor(diffMs / day);
-  if (days < 7) return t("relativeDays", { count: days });
-  if (days < 30) return t("relativeWeeks", { count: Math.floor(days / 7) });
-  if (days < 365) return t("relativeMonths", { count: Math.floor(days / 30) });
-  return d.toLocaleDateString(dateLocale, { year: "numeric", month: "short" });
-}

@@ -10,7 +10,7 @@ export type {
   EgoLayoutEdge,
   EgoLayoutResult,
 } from "./ego-layout";
-export type { OntologyDegreeRow, ActivityTimelineDay } from "./insights";
+export type { OntologyDegreeRow } from "./insights";
 export { buildOntologyTree, countTreeNodes, flattenTree } from "./build-tree";
 export { buildOntologyEgoSubgraph } from "./build-ego";
 export { buildRadialEgoLayout } from "./ego-layout";
@@ -26,7 +26,6 @@ export {
   computeDegreeCentrality,
   selectTopByDegree,
   selectRecentNodes,
-  buildActivityTimeline,
 } from "./insights";
 export type { SimilarityCandidate, SimilarityMatch } from "./similarity";
 export { findSimilarOntologyNodes } from "./similarity";

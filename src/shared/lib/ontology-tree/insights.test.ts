@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { KnowledgeGraphEdge, KnowledgeGraphNode } from "@/entities/knowledge-graph";
 import {
-  buildActivityTimeline,
   computeDegreeCentrality,
   computeKindDistribution,
   selectRecentNodes,
@@ -144,54 +143,3 @@ describe("selectRecentNodes", () => {
   });
 });
 
-describe("buildActivityTimeline", () => {
-  // now 고정 — 2026-04-27 12:00 local. 자정 기준 오늘 = 2026-04-27.
-  const now = new Date(2026, 3, 27, 12, 0, 0);
-
-  it("default 30 일 — 모든 day count=0 으로 prefill", () => {
-    const result = buildActivityTimeline([], { now });
-    expect(result).toHaveLength(30);
-    expect(result.every((d) => d.count === 0)).toBe(true);
-  });
-
-  it("date asc 정렬", () => {
-    const result = buildActivityTimeline([], { now, days: 5 });
-    expect(result.map((d) => d.date)).toEqual([
-      "2026-04-23",
-      "2026-04-24",
-      "2026-04-25",
-      "2026-04-26",
-      "2026-04-27",
-    ]);
-  });
-
-  it("같은 날 노드 여러 → 카운트 합산", () => {
-    const day = new Date(2026, 3, 25, 9, 0, 0);
-    const result = buildActivityTimeline(
-      [
-        node("a", "capability", day),
-        node("b", "capability", day),
-        node("c", "capability", day),
-      ],
-      { now, days: 5 },
-    );
-    expect(result.find((d) => d.date === "2026-04-25")?.count).toBe(3);
-  });
-
-  it("범위 밖 노드 무시", () => {
-    const old = new Date(2025, 0, 1);
-    const today = new Date(2026, 3, 27, 9, 0, 0);
-    const result = buildActivityTimeline(
-      [node("old", "capability", old), node("today", "capability", today)],
-      { now, days: 5 },
-    );
-    const total = result.reduce((s, d) => s + d.count, 0);
-    expect(total).toBe(1); // today 만
-    expect(result.find((d) => d.date === "2026-04-27")?.count).toBe(1);
-  });
-
-  it("days 인자로 윈도우 크기 변경", () => {
-    const result = buildActivityTimeline([], { now, days: 7 });
-    expect(result).toHaveLength(7);
-  });
-});
