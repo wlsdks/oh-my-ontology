@@ -845,7 +845,7 @@
         "collapseAriaLabel": "팔레트 접기 (캔버스 공간 확보)",
         "expandAriaLabel": "팔레트 펼치기",
         "addAriaLabel": "{label} 노드 추가 — {hint}",
-        "footerHint": "새 노드는 임시 — 오른쪽 인스펙터에서 이름 입력 + 저장해야 vault/.md 로 들어가요.",
+        "footerHint": "임시 노드 → 인스펙터에서 이름 입력 + Enter 로 저장.",
         "kindProjectHint": "최상위 단위 — 전체 워크스페이스의 한 프로젝트",
         "kindDomainHint": "프로젝트 안의 큰 영역 — 인증 / 결제 / 알림 등",
         "kindCapabilityHint": "도메인 안의 한 기능 — '사용자 로그인' 같은 동사형",

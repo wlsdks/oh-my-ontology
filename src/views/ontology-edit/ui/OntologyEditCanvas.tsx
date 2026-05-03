@@ -43,8 +43,11 @@ function FitViewOnAutoLayout({ token }: { token: number }) {
     prevTokenRef.current = token;
     if (token <= 0) return;
     // 자동 layout 결과가 baseNodes → localNodes 로 propagate 된 후 fit.
+    // minZoom 0.6 — 큰 그래프에서도 노드 글자 가독성 보장 (이보다 작아지면
+    // 일부 노드가 화면 밖이지만 사용자가 pan 으로 이동 가능).
+    // maxZoom 1 — 노드 적을 때 과도 확대 방지.
     const t = setTimeout(() => {
-      reactFlow.fitView({ duration: 400, padding: 0.2 });
+      reactFlow.fitView({ duration: 400, padding: 0.2, minZoom: 0.6, maxZoom: 1 });
     }, 80);
     return () => clearTimeout(t);
   }, [token, reactFlow]);
@@ -400,7 +403,7 @@ export function OntologyEditCanvas({
           }
         }}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.2, minZoom: 0.6, maxZoom: 1 }}
         // viewport 밖 노드는 render 스킵 — vault 가 50+ 노드로 자라도
         // pan/zoom 부드럽게 유지 (xyflow 권장 perf 옵션).
         onlyRenderVisibleElements
@@ -420,7 +423,7 @@ export function OntologyEditCanvas({
             인디고 alpha + 무채색 alpha mask. ephemeral 은 amber 로 vault
             와 차별. 좌하단 — Controls (우하단) 와 분리. */}
         <MiniMap
-          position="bottom-left"
+          position="bottom-right"
           ariaLabel={t("minimapAriaLabel")}
           pannable
           zoomable
@@ -428,12 +431,15 @@ export function OntologyEditCanvas({
           style={{
             background: "rgba(14, 16, 22, 0.94)",
             border: "1px solid var(--color-border-soft)",
+            width: 160,
+            height: 96,
+            marginBottom: 56,
           }}
           nodeColor={(node) => {
             const data = node.data as { ephemeral?: boolean } | undefined;
             return data?.ephemeral
-              ? "rgba(255, 179, 71, 0.7)"
-              : "rgba(139, 151, 255, 0.7)";
+              ? "rgba(255, 179, 71, 0.78)"
+              : "rgba(139, 151, 255, 0.78)";
           }}
           nodeStrokeWidth={2}
         />

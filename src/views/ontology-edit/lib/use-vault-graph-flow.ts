@@ -251,10 +251,10 @@ function computeDagreLayout(
   if (docs.length === 0) return map;
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  // rankdir LR — 좌→우 계층 흐름. nodesep / ranksep 은 노드 간 여백 +
-  // 계층 간 여백. NODE_WIDTH/HEIGHT 보다 약간 크게 잡아 라벨 chip 이
-  // 다른 노드 가려지지 않도록.
-  g.setGraph({ rankdir: "LR", nodesep: 32, ranksep: 80, marginx: 24, marginy: 24 });
+  // rankdir LR — 좌→우 계층 흐름. nodesep / ranksep 축소 — 빽빽하게 배치해
+  // viewport fitView 시 노드 글자가 너무 작아지지 않게 (이전엔 18 노드가
+  // 가로로 너무 펼쳐져 화면 fit 시 노드 가독성 떨어짐).
+  g.setGraph({ rankdir: "LR", nodesep: 24, ranksep: 56, marginx: 16, marginy: 16 });
   for (const doc of docs) {
     g.setNode(doc.slug, { width: NODE_WIDTH, height: NODE_HEIGHT });
   }

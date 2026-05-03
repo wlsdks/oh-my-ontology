@@ -845,7 +845,7 @@
         "collapseAriaLabel": "Collapse palette (more canvas room)",
         "expandAriaLabel": "Expand palette",
         "addAriaLabel": "Add a {label} node — {hint}",
-        "footerHint": "New nodes are ephemeral — type a name in the inspector on the right and save before they go into vault/.md.",
+        "footerHint": "Draft node → name in inspector + Enter to save.",
         "kindProjectHint": "Top-level — one project in the whole workspace",
         "kindDomainHint": "A big area inside a project — auth / billing / notifications, …",
         "kindCapabilityHint": "One feature inside a domain — verb-style like \"sign in\"",
