@@ -15,5 +15,3 @@ export {
   buildEdgeTypeRows,
 } from "./model";
 export type { EdgeTypeRow } from "./model";
-export { ManualSourceChip } from "./ui/ManualSourceChip";
-export type { ManualSourceChipProps } from "./ui/ManualSourceChip";

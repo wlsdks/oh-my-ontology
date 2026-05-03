@@ -6,10 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Info, Link2, X } from "lucide-react";
-import {
-  ManualSourceChip,
-  type KnowledgeGraphNode,
-} from "@/entities/knowledge-graph";
+import type { KnowledgeGraphNode } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import { getTopologyProjectHref } from "@/entities/project";
 import { buildDocsVaultHref } from "@/entities/docs-vault";
@@ -581,7 +578,6 @@ function NodeDetailPanel({
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
               {kindLabel}
             </p>
-            <ManualSourceChip source={node.source} size="compact" />
           </div>
           <h2 className="mt-1 break-keep text-lg font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
             {node.title}

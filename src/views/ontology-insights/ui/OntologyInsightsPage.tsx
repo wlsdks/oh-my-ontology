@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import {
-  ManualSourceChip,
   buildEdgeTypeRows,
   useEdgeTypeLabel,
 } from "@/entities/knowledge-graph";
@@ -323,7 +322,6 @@ export function OntologyInsightsPage() {
                       <span className="min-w-0 flex-1 truncate text-[color:var(--color-text-primary)]">
                         {node.title}
                       </span>
-                      <ManualSourceChip source={node.source} size="compact" />
                       <span className="shrink-0 font-mono text-[10px] tabular-nums text-[color:var(--color-text-tertiary)]">
                         {degree}
                       </span>
@@ -352,7 +350,6 @@ export function OntologyInsightsPage() {
                     <span className="min-w-0 flex-1 truncate text-[color:var(--color-text-primary)]">
                       {node.title}
                     </span>
-                    <ManualSourceChip source={node.source} size="compact" />
                   </Link>
                 </li>
               ))}
@@ -380,7 +377,6 @@ export function OntologyInsightsPage() {
                       <span className="min-w-0 flex-1 truncate text-[color:var(--color-text-primary)]">
                         {node.title}
                       </span>
-                      <ManualSourceChip source={node.source} size="compact" />
                     </Link>
                   </li>
                 ))}

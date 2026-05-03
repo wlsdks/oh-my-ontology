@@ -7,7 +7,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { ManualSourceChip, type KnowledgeGraphNode } from "@/entities/knowledge-graph";
+import type { KnowledgeGraphNode } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import type { Project } from "@/entities/project";
 import {
@@ -338,7 +338,6 @@ export function GlobalSearch({
                   <span className="min-w-0 flex-1 truncate text-[color:var(--color-text-primary)]">
                     {node.title}
                   </span>
-                  <ManualSourceChip source={node.source} size="compact" />
                   {node.summary ? (
                     <span className="hidden min-w-0 max-w-[14rem] truncate text-xs text-[color:var(--color-text-quaternary)] md:block">
                       {node.summary}

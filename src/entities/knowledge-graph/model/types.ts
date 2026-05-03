@@ -70,7 +70,9 @@ export interface KnowledgeGraphNode {
   evidenceIds: string[];
   lastApprovedAt: Date;
   lastApprovedBy: string;
-  /** 항상 \`'manual'\` (사람 / AI agent 직접 작성) — ManualSourceChip surface. */
+  /** R10b 이후 항상 \`'manual'\` (cloud LLM 추출 워커 영구 제거됨). 호환성
+   *  목적으로 필드는 유지하되 UI 노출은 cycle 19 에서 제거 — 단일 값이라
+   *  chip 의 정보 가치 0. */
   source?: KnowledgeGraphSource;
   /** 사용자 / AI agent 가 남긴 자유 메모 (옵션) — NodeDetailPanel 의 \"메모\" 섹션. */
   manualNote?: string;

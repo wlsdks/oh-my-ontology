@@ -4,7 +4,6 @@ import { createElement, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Search, X } from "lucide-react";
 import { getOntologyKindIcon, useOntologyKindLabel } from "@/entities/ontology-class";
-import { ManualSourceChip } from "@/entities/knowledge-graph";
 import {
   filterTreeByQuery,
   flattenTree,
@@ -144,7 +143,6 @@ function TreeRow({
       >
         <KindChip kind={treeNode.node.kind} />
         <span className="truncate">{treeNode.node.title}</span>
-        <ManualSourceChip source={treeNode.node.source} size="compact" />
         {/* EvidenceCountChip 은 R10 후 evidenceCount 가 항상 undefined 라
             영구 미렌더 dead chip 이라 cycle 15 에서 제거. 미래 collab
             단계에서 외부 evidenceCount 가 다시 채워지면 재도입. */}
@@ -414,7 +412,6 @@ export function OntologyTreeView({
               <li key={node.id} className="flex items-center gap-2">
                 <KindChip kind={node.kind} />
                 <span className="truncate">{node.title}</span>
-                <ManualSourceChip source={node.source} size="compact" />
               </li>
             ))}
             {filteredOrphans.length > 8 ? (

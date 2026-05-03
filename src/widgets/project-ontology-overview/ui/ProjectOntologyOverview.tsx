@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { Link } from "@/i18n/navigation";
-import { ManualSourceChip } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import { useOntologyInsight } from "@/features/vault-ontology";
 import { buildMeaningfulOntologyStats } from "@/shared/lib/ontology-tree";
@@ -96,7 +95,6 @@ export function ProjectOntologyOverview({
               >
                 {node.title}
               </span>
-              <ManualSourceChip source={node.source} size="compact" />
             </li>
           ))}
         </ul>
