@@ -10,8 +10,8 @@ import type { ManualNodeKind } from "@/entities/knowledge-graph";
  * 이름 입력 + 저장 시 vault 의 \`{kind}s/{slug}.md\` 작성 (mission v2: vault
  * frontmatter 가 진실원). id 충돌 회피 위해 timestamp + random suffix.
  *
- * Round 9a T0-4: kindLabel / 기본 title 은 caller (`OntologyEditCanvas`) 가
- * locale 별 문자열을 주입. hook 자체는 i18n 무지 (lib 레이어).
+ * kindLabel / 기본 title 은 caller (\`OntologyEditCanvas\`) 가 locale 별
+ * 문자열로 주입. hook 자체는 i18n 무지 (lib 레이어).
  */
 export interface EphemeralNode {
   id: string;

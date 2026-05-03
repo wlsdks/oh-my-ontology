@@ -88,8 +88,8 @@ export function OntologyEditPage() {
 
   const { nodes: ephemeralNodes, addNode: addNodeRaw, clearAll, updateNode, findById, removeNode } =
     useEphemeralNodes();
-  // Round 9a T0-4: ephemeral 노드의 kindLabel/placeholder 도 locale 별로
-  // 만들어서 hook 에 주입. hook 자체는 i18n 무지.
+  // ephemeral 노드의 kindLabel / placeholder 도 locale 별로 caller 가
+  // 미리 만들어 hook 에 주입 — hook 자체는 i18n 무지.
   const addNode = useCallback(
     (kind: 'project' | 'domain' | 'capability' | 'element') =>
       addNodeRaw(kind, {
@@ -289,10 +289,9 @@ export function OntologyEditPage() {
     [t, toast, vault],
   );
 
-  // vault delete — Round 6: window.confirm() → BlastRadiusConfirm modal.
-  // backlinks 를 visual 카드로 보여주고 의식적인 confirm 받음. 데이터는
-  // 이전과 동일 (findVaultBacklinks) — surface 만 풍부한 다이얼로그로 승격
-  // (eval Feature power F5, "launch demo's hero moment").
+  // vault delete — BlastRadiusConfirm modal 로 backlinks 를 시각적으로
+  // 보여주고 의식적인 confirm 을 받음. 데이터는 findVaultBacklinks 그대로
+  // 사용하고 surface 만 native confirm() 에서 다이얼로그로 승격.
   const deleteVaultDoc = useCallback(
     (slug: string) => {
       if (!vault.manifest) return;

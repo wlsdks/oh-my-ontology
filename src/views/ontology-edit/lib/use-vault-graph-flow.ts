@@ -12,9 +12,8 @@ export type VaultGraphLayoutMode = "dagre" | "force";
 
 /**
  * 라벨 해석기 — kind enum / edge frontmatter key 를 사용자 locale 에 맞춰
- * 변환. 호출자가 `useTranslations` 으로 만들어 주입한다 (Round 9a T0-4 —
- * 이 lib 가 React 컴포넌트가 아니라 직접 `useTranslations` 못 쓰므로
- * 함수 주입 패턴). resolver 없으면 raw key 노출.
+ * 변환. 이 lib 는 React 컴포넌트가 아니라 직접 \`useTranslations\` 호출
+ * 못 함 → 호출자가 i18n-resolved 함수를 주입. 미주입 시 raw key 노출.
  */
 export type KindLabelResolver = (kind: string) => string;
 export type EdgeLabelResolver = (edgeKey: string) => string;
@@ -49,9 +48,9 @@ export interface UseVaultGraphFlowOptions {
    * 와 같은 organic 분포). 사용자 선호 토글.
    */
   layoutMode?: VaultGraphLayoutMode;
-  /** Round 9a T0-4 — 노드 라벨 i18n. 미주입 시 raw kind enum 노출. */
+  /** 노드 라벨 i18n resolver. 미주입 시 raw kind enum 노출. */
   kindLabelOf?: KindLabelResolver;
-  /** Round 9a T0-4 — 엣지 라벨 i18n. 미주입 시 raw frontmatter key 노출. */
+  /** 엣지 라벨 i18n resolver. 미주입 시 raw frontmatter key 노출. */
   edgeLabelOf?: EdgeLabelResolver;
 }
 

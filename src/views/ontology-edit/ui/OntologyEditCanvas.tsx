@@ -75,8 +75,8 @@ export function OntologyEditCanvas({
   // 빌더 진입자는 vault 폴더 미선택이어도 oh-my-ontology 자체 ontology
   // (18 노드 dogfood) 을 즉시 본다 — "0 마찰 진입" 약속의 캔버스 측 구현.
   const effectiveManifest = vaultManifest ?? staticVaultManifest;
-  // Round 9a T0-4 — kindLabel / edgeLabel resolver 주입. lib 가 React 가
-  // 아니라 직접 t() 못 씀 → 함수로 위임.
+  // kindLabel / edgeLabel resolver 주입 — lib 는 React 가 아니라 직접
+  // t() 호출 못 함. 호출자가 i18n-resolved 함수를 위임.
   const kindLabelOf = useCallback(
     (kind: string) => {
       try {
@@ -116,9 +116,8 @@ export function OntologyEditCanvas({
 
   const allNodes: Node[] = useMemo(() => {
     // approved 노드도 atlas custom type 으로 변환 (kind 별 시각 톤).
-    // Round 9a T0-4: 이전엔 라벨 문자열 ("{kindLabel} · {title}") 을
-    // 한국어 매칭으로 reverse-parse 했는데, locale 바뀌면 깨짐. 이제
-    // `useVaultGraphFlow` 가 `data.kind` 를 enum 으로 직접 박아주므로 그대로 사용.
+    // \`useVaultGraphFlow\` 가 \`data.kind\` 를 enum 으로 직접 채워주므로
+    // 라벨 문자열을 reverse-parse 하지 않는다 (locale 무관 안전).
     const approvedAtlas: Node[] = approvedNodes.map((n) => {
       const data = n.data as { label?: string; kind?: string };
       const kind = (data.kind ?? "element") as "project" | "domain" | "capability" | "element";
