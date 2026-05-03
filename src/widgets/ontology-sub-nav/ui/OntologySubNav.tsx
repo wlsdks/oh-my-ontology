@@ -26,7 +26,9 @@ import { useOntologyInsight } from '@/features/vault-ontology';
  */
 interface SubItem {
   href: string;
-  labelKey: 'tree' | 'builder' | 'insights' | 'relations';
+  // R2 cut A 에서 'relations' 라우트가 제거됐으므로 labelKey 도 3 가지로
+  // 좁힌다. 미래 collab 단계에서 다시 도입되면 union 확장.
+  labelKey: 'tree' | 'builder' | 'insights';
   icon: typeof Network;
   /** pathname 정규화 (끝 / 제거) 후 정확히 일치하는 경로들. tree 는
    *  '' (루트) + '/ontology' 모두 — vault 선택 시 RootEntryPage 가 같은
