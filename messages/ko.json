@@ -820,7 +820,9 @@
         "arrayRelates": "관련된 노드",
         "arrayInputPlaceholder": "노드 경로 입력 후 Enter",
         "arrayAddAriaLabel": "추가",
-        "arrayRemoveAriaLabel": "{slug} 제거"
+        "arrayRemoveAriaLabel": "{slug} 제거",
+        "backlinksLabel": "이 노드를 참조 ({count})",
+        "backlinkTooltip": "{title} — {keys}"
       },
       "onboarding": {
         "dialogAriaLabel": "빌더 시작 안내",

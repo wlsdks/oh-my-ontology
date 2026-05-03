@@ -270,6 +270,14 @@ export function OntologyEditPage() {
     };
   }, [selectedId, ephemeralSelected, docsBySlug]);
 
+  // 선택된 vault 노드를 frontmatter array 로 가리키는 다른 노드 list.
+  // ontology 탐색 핵심 — '이 노드를 누가 사용하나'. delete 시 backlinks
+  // 도 같은 함수 사용 (BlastRadiusConfirm).
+  const vaultBacklinks = useMemo(() => {
+    if (!vaultSelected) return [];
+    return findVaultBacklinks(effectiveManifest, vaultSelected.slug);
+  }, [vaultSelected, effectiveManifest]);
+
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const renameVaultDoc = useCallback(
     async (slug: string, nextTitle: string) => {
@@ -716,6 +724,8 @@ export function OntologyEditPage() {
           <OntologyInspector
             ephemeralSelected={ephemeralSelected}
             vaultSelected={vaultSelected}
+            vaultBacklinks={vaultBacklinks}
+            onSelectBacklink={setSelectedId}
             vaultReadOnly={!hasLiveVault}
             untitledPlaceholder={t('untitledPlaceholder')}
             onRenameEphemeral={(id, title) => updateNode(id, { title })}

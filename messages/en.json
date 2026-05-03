@@ -820,7 +820,9 @@
         "arrayRelates": "Related nodes",
         "arrayInputPlaceholder": "Type a node path + Enter",
         "arrayAddAriaLabel": "Add",
-        "arrayRemoveAriaLabel": "Remove {slug}"
+        "arrayRemoveAriaLabel": "Remove {slug}",
+        "backlinksLabel": "Referenced by ({count})",
+        "backlinkTooltip": "{title} — {keys}"
       },
       "onboarding": {
         "dialogAriaLabel": "Builder onboarding",

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import type { EphemeralNode } from "../lib/use-ephemeral-nodes";
+import type { VaultBacklinkMatch } from "../lib/find-vault-backlinks";
 
 // 헌장 §11 + a11y — motion-reduce 사용자 보호. 짧은 fade 만 (transform 없음).
 const FADE_MOTION = {
@@ -48,6 +49,10 @@ export interface VaultSelected {
 export interface OntologyInspectorProps {
   ephemeralSelected: EphemeralNode | null;
   vaultSelected: VaultSelected | null;
+  /** 선택된 vault 노드를 frontmatter array 로 가리키는 다른 vault 노드들. */
+  vaultBacklinks?: VaultBacklinkMatch[];
+  /** backlink chip 클릭 시 호출 — 인스펙터를 그 노드로 점프. */
+  onSelectBacklink?: (slug: string) => void;
   /** true 면 vault 가 read-only (빌드타임 dogfood 매니페스트 기반). 인스펙터의
    *  rename/array/literal/delete 모두 disabled — disk 권한 없어 patch 불가. */
   vaultReadOnly?: boolean;
@@ -81,6 +86,8 @@ type KindLabelResolver = (kind: string) => string;
 export function OntologyInspector({
   ephemeralSelected,
   vaultSelected,
+  vaultBacklinks = [],
+  onSelectBacklink,
   vaultReadOnly = false,
   untitledPlaceholder,
   onRenameEphemeral,
@@ -184,6 +191,8 @@ export function OntologyInspector({
               t={t}
               kindLabel={kindLabel}
               node={vaultSelected}
+              backlinks={vaultBacklinks}
+              onSelectBacklink={onSelectBacklink}
               readOnly={vaultReadOnly}
               onSaveRename={onSaveVaultRename}
               onEditArrayKey={onEditVaultArrayKey}
@@ -328,6 +337,8 @@ function VaultDetail({
   t,
   kindLabel,
   node,
+  backlinks,
+  onSelectBacklink,
   readOnly,
   onSaveRename,
   onEditArrayKey,
@@ -339,6 +350,8 @@ function VaultDetail({
   t: InspectorTranslator;
   kindLabel: KindLabelResolver;
   node: VaultSelected;
+  backlinks: VaultBacklinkMatch[];
+  onSelectBacklink?: (slug: string) => void;
   readOnly: boolean;
   onSaveRename?: (slug: string, nextTitle: string) => Promise<void> | void;
   onEditArrayKey?: (
@@ -463,6 +476,37 @@ function VaultDetail({
         </div>
       ) : readOnly ? (
         <ReadOnlyArraySummary t={t} node={node} />
+      ) : null}
+      {backlinks.length > 0 ? (
+        <div className="rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-2.5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
+            {t("backlinksLabel", { count: backlinks.length })}
+          </p>
+          <ul className="mt-2 flex flex-wrap gap-1">
+            {backlinks.map((bl) => (
+              <li key={bl.slug}>
+                <button
+                  type="button"
+                  onClick={() => onSelectBacklink?.(bl.slug)}
+                  disabled={!onSelectBacklink}
+                  title={t("backlinkTooltip", {
+                    title: bl.title,
+                    keys: bl.matchedKeys.join(", "),
+                  })}
+                  className="inline-flex items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.08)] px-2 py-0.5 text-[11px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.55)] hover:bg-[color:rgba(94,106,210,0.16)] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span className="break-keep">{bl.title}</span>
+                  <span
+                    aria-hidden
+                    className="rounded-sm bg-[color:rgba(94,106,210,0.22)] px-1 font-mono text-[9px] uppercase tracking-[0.06em] text-[color:rgba(159,170,235,0.95)]"
+                  >
+                    {bl.matchedKeys[0]}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
       {!readOnly && onDelete ? (
         <button
