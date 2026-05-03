@@ -355,7 +355,7 @@ function DocsVaultContent() {
     const handles = localVault.fileHandles;
     return async (slug: string) => {
       const fh = handles.get(slug);
-      if (!fh) throw new Error(`로컬 볼트에 ${slug} 없음`);
+      if (!fh) throw new Error(`Local vault: no file handle for "${slug}"`);
       const file = await fh.getFile();
       return file.text();
     };
@@ -385,7 +385,7 @@ function DocsVaultContent() {
     const handles = localVault.fileHandles;
     return async (slug: string) => {
       const fh = handles.get(slug);
-      if (!fh) throw new Error(`로컬 볼트에 ${slug} 없음`);
+      if (!fh) throw new Error(`Local vault: no file handle for "${slug}"`);
       const file = await fh.getFile();
       return file.text();
     };
