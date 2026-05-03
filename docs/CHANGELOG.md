@@ -6,6 +6,74 @@
 
 ---
 
+## 2026-05-03 — Surface diet Round 5: skeptic round (1 fix · 3 skip)
+
+3 에이전트 회의주의 회의 (codex skeptic · Explore polish hunt · Plan
+test design). 사용자 directive: "정말 하는게 좋다고 판단되는것만 해야
+한다 + 검수도 하면서". 결과: 1 개 진짜 버그 fix, 나머지 후보들은 가치
+< 비용 으로 SKIP.
+
+### Bug fix (CRITICAL — Round 4 약속 위반)
+
+- **Ephemeral 노드 placeholder title silent pollution 차단** —
+  `addNode` 가 새 노드를 `defaultTitle: t('untitledPlaceholder')` 로
+  채움 ("(enter a name)" / "(이름 입력)"). 사용자가 입력 안 하고 edge
+  Save chip 누르면 `slugify("(enter a name)")` = `"enter-a-name"` →
+  vault 에 `enter-a-name.md` 가 silent 생성되고 있었음. Inspector 의
+  save 버튼은 같은 룰로 disabled 됐지만 chip 은 무방비.
+  → `isUntitledTitle(title, placeholder)` helper 추출 + `saveEphemeral`
+  과 `persistEphemeralEdge.resolveEndpoint` 양쪽에 가드. 8 단위 테스트
+  (빈 문자열 / 공백 / 정확 매치 / trim / 실 입력 / substring / locale
+  전환 / 빈 placeholder defensive) 로 회귀 lock. Round 4 가 약속한
+  AGENTS.md self-approving frontmatter 원칙 진짜로 보장.
+
+### SKIP decisions (codex skeptic 검증)
+
+각 후보를 SKIP 한 근거:
+
+- **K — Search palette 통합** SKIP. 두 팔레트는 *중복 아님* —
+  `SearchPalette` = docs + projects + recent + project layer 패턴,
+  `GlobalSearch` = ontology 노드 + 옵셔널 프로젝트 + kind/project 필터.
+  합치려면 ranking · sections · filters · shortcuts · empty states · 선택
+  semantics 전부 재설계 = 큰 비용. Round 4 H 가 두 버튼 나란히 노출
+  → 발견성 문제는 이미 해결. VS Code 의 `⌘P` quick-open vs `⇧⌘P`
+  command palette 처럼 scoped palette 둘이 *기능*.
+- **L — LocalVaultPicker 헤더 hoist** SKIP. Round 4 J 가 dead-end 패치
+  완료 (`?intent=local` URL + manual click 둘 다 dropdown 자동 펼침).
+  1회성 picker 를 영구 header UI 로 hoist = 좁은 헤더 / 모바일 공간을
+  vault loaded 후엔 secondary 가 되는 control 에 영구 점유 = 가치 ≪
+  비용.
+- **M — 10 단위 테스트 + 4 helper refactor** SKIP. codex 회의: 제안된
+  10 시나리오 중 절반은 mock shape 검증 (orchestrator 가 결국 vault.
+  createDoc / updateFrontmatter / toast 의 thin 래퍼). 더 중요한 product
+  risk (placeholder 검증) 가 본 PR Cut N 으로 fix 되며 8 테스트로
+  회귀 lock 됨. 추가 refactor 는 dedup 가치는 있으나 별도 PR 로 평가.
+
+### Explore 결과 — codebase clean
+
+Orphan i18n 0 · 죽은 export 0 · 죽은 localStorage 0 · stale comments 0 ·
+inconsistencies 0 · untranslated copy 0. Round 1-4 가 깔끔하게 마무리됨
+재확인.
+
+### 코드 / 아키텍처
+
+- 1 commit (`fix:`) · 4 파일 · +145 / -19 LOC.
+- 새 파일 2: `is-untitled-title.ts` (~30 LOC) + 테스트 (~50 LOC).
+- 8 새 단위 테스트.
+
+### Test
+
+- 580 (was 571) tests pass · build green · typecheck clean.
+
+### Round 6 자연 후보 (만약 진행 시)
+
+- **(없음 / wait-for-signal)** — 4 라운드 surface 다이어트 + 1 라운드
+  bug fix 후 codex / Explore 모두 "더 손볼 곳 없음" 신호. 다음 라운드는
+  사용자가 새 마찰점을 발견하거나 새 feature 요청을 받을 때 자연 발생.
+  현재 페이스로 강행 시 over-engineering.
+
+---
+
 ## 2026-05-03 — Surface diet Round 4: 검색 발견성 + 빌더 edge 영속
 
 3 에이전트 병렬 회의 (codex pressure-test · general-purpose UX walkthrough

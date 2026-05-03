@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-03T13:02:52.534Z",
+  "generatedAt": "2026-05-03T13:04:35.783Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -1737,6 +1737,41 @@
         },
         {
           "depth": 2,
+          "text": "2026-05-03 — Surface diet Round 5: skeptic round (1 fix · 3 skip)",
+          "slug": "2026-05-03-surface-diet-round-5-skeptic-round-1-fix-3-skip"
+        },
+        {
+          "depth": 3,
+          "text": "Bug fix (CRITICAL — Round 4 약속 위반)",
+          "slug": "bug-fix-critical-round-4-약속-위반"
+        },
+        {
+          "depth": 3,
+          "text": "SKIP decisions (codex skeptic 검증)",
+          "slug": "skip-decisions-codex-skeptic-검증"
+        },
+        {
+          "depth": 3,
+          "text": "Explore 결과 — codebase clean",
+          "slug": "explore-결과-codebase-clean"
+        },
+        {
+          "depth": 3,
+          "text": "코드 / 아키텍처",
+          "slug": "코드-아키텍처"
+        },
+        {
+          "depth": 3,
+          "text": "Test",
+          "slug": "test"
+        },
+        {
+          "depth": 3,
+          "text": "Round 6 자연 후보 (만약 진행 시)",
+          "slug": "round-6-자연-후보-만약-진행-시"
+        },
+        {
+          "depth": 2,
           "text": "2026-05-03 — Surface diet Round 4: 검색 발견성 + 빌더 edge 영속",
           "slug": "2026-05-03-surface-diet-round-4-검색-발견성-빌더-edge-영속"
         },
@@ -1758,12 +1793,12 @@
         {
           "depth": 3,
           "text": "코드 / 아키텍처",
-          "slug": "코드-아키텍처"
+          "slug": "코드-아키텍처-2"
         },
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test"
+          "slug": "test-2"
         },
         {
           "depth": 3,
@@ -1788,12 +1823,12 @@
         {
           "depth": 3,
           "text": "코드 / 아키텍처",
-          "slug": "코드-아키텍처-2"
+          "slug": "코드-아키텍처-3"
         },
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-2"
+          "slug": "test-3"
         },
         {
           "depth": 3,
@@ -1818,12 +1853,12 @@
         {
           "depth": 3,
           "text": "코드 / 아키텍처",
-          "slug": "코드-아키텍처-3"
+          "slug": "코드-아키텍처-4"
         },
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-3"
+          "slug": "test-4"
         },
         {
           "depth": 3,
@@ -1848,12 +1883,12 @@
         {
           "depth": 3,
           "text": "코드 / 아키텍처",
-          "slug": "코드-아키텍처-4"
+          "slug": "코드-아키텍처-5"
         },
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-4"
+          "slug": "test-5"
         },
         {
           "depth": 3,
@@ -2071,9 +2106,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. 3 에이전트 병렬 회의 (codex pressuretest · generalpurpose UX walkthrough · Plan architect Builder ",
-      "wordCount": 5251,
-      "updatedAt": "2026-05-03T12:54:41.561Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. 3 에이전트 회의주의 회의 (codex skeptic · Explore polish hunt · Plan test design). 사용자 directive: \"정",
+      "wordCount": 5750,
+      "updatedAt": "2026-05-03T13:04:26.882Z",
       "linksOut": []
     },
     {
