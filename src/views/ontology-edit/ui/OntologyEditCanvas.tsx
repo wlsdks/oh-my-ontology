@@ -213,7 +213,7 @@ export function OntologyEditCanvas({
     // \`useVaultGraphFlow\` 가 \`data.kind\` 를 enum 으로 직접 채워주므로
     // 라벨 문자열을 reverse-parse 하지 않는다 (locale 무관 안전).
     const vaultAtlas: Node[] = vaultNodes.map((n) => {
-      const data = n.data as { label?: string; kind?: string };
+      const data = n.data as { label?: string; kind?: string; description?: string };
       const kind = (data.kind ?? "element") as "project" | "domain" | "capability" | "element";
       return {
         ...n,
@@ -224,6 +224,7 @@ export function OntologyEditCanvas({
           ephemeral: false,
           // vault flag — handleNodeDragStop 가 frontmatter patch 여부 판정에 사용.
           vault: true,
+          description: data.description ?? "",
         },
         // vault 노드 명시적 draggable. 이전엔 spread 만 의존했는데 일부 케이스에서
         // ReactFlow 가 nodesDraggable + 노드 자체 flag 둘 다 봐야 정상 드래그 활성.

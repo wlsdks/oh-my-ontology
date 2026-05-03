@@ -173,6 +173,10 @@ export function buildVaultGraphFlow(
     const pos = persistedPos ?? fallbackPositions.get(doc.slug) ?? { x: 0, y: 0 };
     const kind = String(doc.frontmatter.kind);
     const title = doc.title || doc.slug;
+    const description =
+      typeof doc.frontmatter.description === "string"
+        ? doc.frontmatter.description
+        : "";
     return {
       id: doc.slug,
       type: "atlas",
@@ -182,6 +186,7 @@ export function buildVaultGraphFlow(
         kind,
         ephemeral: false,
         vault: true,
+        description,
       },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,

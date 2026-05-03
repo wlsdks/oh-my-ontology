@@ -16,6 +16,8 @@ export interface AtlasNodeData {
   label: string;
   kind: "project" | "domain" | "capability" | "element" | "ephemeral";
   ephemeral?: boolean;
+  /** vault 노드 frontmatter.description — hover 시 native title tooltip 으로 노출. */
+  description?: string;
   /** kindLabel 별도 (예: '프로젝트' / '도메인'). label 안에 이미 prefix 로 들어감. */
   [key: string]: unknown;
 }
@@ -63,8 +65,14 @@ export function AtlasNode({ data, selected }: NodeProps) {
   const borderWidth = isEphemeral ? 2 : 1;
   const borderColor = isEphemeral ? "rgba(255, 179, 71, 0.55)" : tone.border;
   const ephemeralBadgeColor = "rgba(255, 179, 71, 0.95)";
+  // hover 시 native browser tooltip — description 있으면 frontmatter 미리보기,
+  // 없으면 label 만. 사용자가 클릭 안 해도 노드 정체 빠르게 확인.
+  const hoverTitle = nodeData.description
+    ? `${nodeData.label}\n\n${nodeData.description}`
+    : nodeData.label;
   return (
     <div
+      title={hoverTitle}
       style={{
         minWidth: 220,
         minHeight: 60,
