@@ -314,22 +314,36 @@ function computeForceLayout(
   forceAtlas2.assign(g, {
     iterations,
     settings: {
-      gravity: 1.5,
+      gravity: 1.0,
       scalingRatio: 4,
       strongGravityMode: false,
       barnesHutOptimize: docs.length > 80,
       slowDown: 2,
     },
   });
-  // graphology 의 좌표는 노드 중심. xyflow 좌상단 변환. FA2 결과 좌표가
-  // 작아 노드 박스 (200x56) 가 겹치지 않도록 적당히 spread (× 60).
-  const SPREAD = 60;
+  // FA2 결과 좌표 → 알려진 viewport-friendly 범위로 normalize. 이전엔 raw
+  // 좌표 × SPREAD 했더니 outliers 가 huge value 로 튀어 viewport 가 밖으로
+  // 날아가는 회귀. 모든 좌표의 bounding box 계산 후 (0,0)~(targetW, targetH)
+  // 로 매핑 — fitView 가 안정적으로 잡힘.
+  const TARGET_W = Math.max(1000, docs.length * 120);
+  const TARGET_H = Math.max(700, docs.length * 70);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  const raw = new Map<string, { x: number; y: number }>();
   for (const doc of docs) {
     const attrs = g.getNodeAttributes(doc.slug);
     if (typeof attrs.x !== "number" || typeof attrs.y !== "number") continue;
-    map.set(doc.slug, {
-      x: attrs.x * SPREAD - NODE_WIDTH / 2,
-      y: attrs.y * SPREAD - NODE_HEIGHT / 2,
+    raw.set(doc.slug, { x: attrs.x, y: attrs.y });
+    if (attrs.x < minX) minX = attrs.x;
+    if (attrs.x > maxX) maxX = attrs.x;
+    if (attrs.y < minY) minY = attrs.y;
+    if (attrs.y > maxY) maxY = attrs.y;
+  }
+  const rangeX = Math.max(maxX - minX, 1);
+  const rangeY = Math.max(maxY - minY, 1);
+  for (const [slug, p] of raw.entries()) {
+    map.set(slug, {
+      x: ((p.x - minX) / rangeX) * TARGET_W - NODE_WIDTH / 2,
+      y: ((p.y - minY) / rangeY) * TARGET_H - NODE_HEIGHT / 2,
     });
   }
   return map;

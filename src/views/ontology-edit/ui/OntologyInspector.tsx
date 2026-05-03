@@ -131,7 +131,7 @@ export function OntologyInspector({
   return (
     <aside
       aria-label={t("ariaLabel")}
-      className="flex h-full w-[280px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3"
+      className="flex h-full w-[360px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3 xl:w-[400px]"
     >
       <header className="flex items-start justify-between gap-2">
         <div className="flex-1">

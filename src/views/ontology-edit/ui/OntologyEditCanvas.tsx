@@ -30,27 +30,38 @@ import { ATLAS_NODE_TYPES } from "./AtlasNode";
 const staticVaultManifest = staticVaultManifestRaw as VaultManifest;
 
 /**
- * autoLayoutToken 변할 때 viewport fitView 를 부드럽게 (duration: 400ms)
- * 애니메이션. ReactFlow 의 자식이라 useReactFlow 가 store 에 접근 가능.
- * 자동정렬 후 viewport 가 새 layout 에 맞춰 부드럽게 fit — Sigma 류
- * 부드러움 (이전엔 즉시 jump).
+ * autoLayoutToken / layoutMode 변할 때 viewport fitView 를 부드럽게
+ * (duration: 400ms) 애니메이션. ReactFlow 의 자식이라 useReactFlow 가
+ * store 에 접근 가능. 자동정렬 후 또는 layout 알고리즘 토글 후 viewport 가
+ * 새 layout 에 맞춰 부드럽게 fit — Sigma 류 부드러움.
  */
-function FitViewOnAutoLayout({ token }: { token: number }) {
+function FitViewOnAutoLayout({
+  token,
+  layoutMode,
+}: {
+  token: number;
+  layoutMode: "dagre" | "force";
+}) {
   const reactFlow = useReactFlow();
   const prevTokenRef = useRef(token);
+  const prevLayoutModeRef = useRef(layoutMode);
   useEffect(() => {
-    if (prevTokenRef.current === token) return;
+    const tokenChanged = prevTokenRef.current !== token;
+    const modeChanged = prevLayoutModeRef.current !== layoutMode;
     prevTokenRef.current = token;
-    if (token <= 0) return;
+    prevLayoutModeRef.current = layoutMode;
+    // token 변화는 0 trigger 무시 (mount 직후), modeChanged 는 항상 trigger.
+    if (!modeChanged && (!tokenChanged || token <= 0)) return;
     // 자동 layout 결과가 baseNodes → localNodes 로 propagate 된 후 fit.
-    // minZoom 0.6 — 큰 그래프에서도 노드 글자 가독성 보장 (이보다 작아지면
-    // 일부 노드가 화면 밖이지만 사용자가 pan 으로 이동 가능).
-    // maxZoom 1 — 노드 적을 때 과도 확대 방지.
+    // setTimeout 180ms — useEffect → setLocalNodes → ReactFlow re-render →
+    // 새 position propagate 가 완료된 후 fitView 가 정확한 bounding box 계산.
+    // minZoom 0.4 — force layout 은 spread 큰 좌표 사용 → 더 작은 zoom 필요.
+    // maxZoom 1.2 — 적은 노드일 때 과도 확대 약간 허용.
     const t = setTimeout(() => {
-      reactFlow.fitView({ duration: 400, padding: 0.2, minZoom: 0.6, maxZoom: 1 });
-    }, 80);
+      reactFlow.fitView({ duration: 400, padding: 0.2, minZoom: 0.4, maxZoom: 1.2 });
+    }, 180);
     return () => clearTimeout(t);
-  }, [token, reactFlow]);
+  }, [token, layoutMode, reactFlow]);
   return null;
 }
 
@@ -250,14 +261,17 @@ export function OntologyEditCanvas({
   // 외부 데이터 (vault/ephemeral) 가 변하면 *구조* (추가/삭제/data 변경)
   // 만 갱신하고, 기존 노드의 위치는 보존 — 사용자가 드래그한 결과가
   // 부모 re-render 로 reset 되는 회귀 방지.
-  // 단, autoLayoutToken 이 변했을 땐 사용자 의도 = '재정렬' 이므로 위치
-  // preserve 안 하고 baseNodes 그대로 (auto-layout 결과) 적용.
+  // 단, autoLayoutToken 이나 layoutMode 가 변했을 땐 사용자 의도 = '재정렬'
+  // 이므로 위치 preserve 안 하고 baseNodes 그대로 (auto-layout 결과) 적용.
   const prevAutoLayoutTokenRef = useRef(autoLayoutToken);
+  const prevLayoutModeRef = useRef(layoutMode);
   useEffect(() => {
     const isAutoLayoutTrigger = prevAutoLayoutTokenRef.current !== autoLayoutToken;
+    const isLayoutModeChange = prevLayoutModeRef.current !== layoutMode;
     prevAutoLayoutTokenRef.current = autoLayoutToken;
+    prevLayoutModeRef.current = layoutMode;
     setLocalNodes((current) => {
-      if (isAutoLayoutTrigger) {
+      if (isAutoLayoutTrigger || isLayoutModeChange) {
         return baseNodes;
       }
       const currentById = new Map(current.map((n) => [n.id, n]));
@@ -269,7 +283,7 @@ export function OntologyEditCanvas({
         return b;
       });
     });
-  }, [baseNodes, autoLayoutToken]);
+  }, [baseNodes, autoLayoutToken, layoutMode]);
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setLocalNodes((current) => applyNodeChanges(changes, current));
   }, []);
@@ -409,7 +423,7 @@ export function OntologyEditCanvas({
           }
         }}
         fitView
-        fitViewOptions={{ padding: 0.2, minZoom: 0.6, maxZoom: 1 }}
+        fitViewOptions={{ padding: 0.2, minZoom: 0.4, maxZoom: 1.2 }}
         // viewport 밖 노드는 render 스킵 — vault 가 50+ 노드로 자라도
         // pan/zoom 부드럽게 유지 (xyflow 권장 perf 옵션).
         onlyRenderVisibleElements
@@ -423,7 +437,7 @@ export function OntologyEditCanvas({
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
         <Controls position="bottom-right" showInteractive={false} />
-        <FitViewOnAutoLayout token={autoLayoutToken} />
+        <FitViewOnAutoLayout token={autoLayoutToken} layoutMode={layoutMode} />
         <FocusNodeOnDemand token={focusToken} nodeId={focusNodeId} />
         {/* MiniMap — 노드 많아질 때 빠른 navigation. 헌장 §11 호환:
             인디고 alpha + 무채색 alpha mask. ephemeral 은 amber 로 vault
