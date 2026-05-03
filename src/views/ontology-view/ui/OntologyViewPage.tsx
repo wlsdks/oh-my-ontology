@@ -374,16 +374,18 @@ export function OntologyViewPage() {
                   <pre className="mt-3 overflow-x-auto rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-3 font-mono text-[11.5px] leading-5 text-[color:var(--color-text-secondary)]">{`---
 slug: capabilities/auth
 kind: capability
-title: 인증
+title: Authentication
 domain: auth
 relates:
   - elements/jwt
   - elements/refresh-token
 ---
 
-# 인증
+# Authentication
 
-토큰 발급, 권한 검증, 세션 추적 등 사용자 인증 흐름.
+Token issuance, permission checks, session tracking — the user
+authentication flow. Replace this body with a 1-2 line summary of
+what this capability does.
 `}</pre>
                   <p className="mt-2 text-[11px] leading-5 text-[color:var(--color-text-tertiary)]">
                     {t.rich('getStarted.snippetHelp', {
