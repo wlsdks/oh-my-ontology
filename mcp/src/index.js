@@ -79,20 +79,20 @@ const TOOLS = [
   {
     name: 'list_concepts',
     description:
-      'Vault 의 모든 ontology 노드 (.md 의 frontmatter `kind:`) 를 나열. ' +
-      'kind / project_filter 로 필터 가능. AI agent 가 codebase 의 mental ' +
-      'model 을 빠르게 파악할 때 첫 호출.',
+      'List every ontology node in the vault (each .md file with a frontmatter `kind:`). ' +
+      'Filter by kind / project_filter. AI agents call this first to grasp the ' +
+      "codebase's mental model.",
     inputSchema: {
       type: 'object',
       properties: {
         kind: {
           type: 'string',
           description:
-            '특정 kind 만 필터 (예: project, domain, capability, element). 미지정 시 모두.',
+            'Filter to one kind (e.g. project, domain, capability, element). Omit to return all.',
         },
         limit: {
           type: 'number',
-          description: '최대 반환 수. 기본 100.',
+          description: 'Max rows to return. Defaults to 100.',
         },
       },
     },
@@ -100,13 +100,13 @@ const TOOLS = [
   {
     name: 'get_concept',
     description:
-      '단일 노드 (slug) 의 frontmatter + body excerpt + 직접 연결된 이웃 (dependencies / relates) 반환.',
+      'Fetch a single node by slug — its frontmatter, a body excerpt, and direct neighbors (dependencies / relates).',
     inputSchema: {
       type: 'object',
       properties: {
         slug: {
           type: 'string',
-          description: 'vault-relative slug (예: projects/auth-platform). 확장자 제외.',
+          description: 'Vault-relative slug (e.g. projects/auth-platform). Omit the .md extension.',
         },
       },
       required: ['slug'],
@@ -115,13 +115,13 @@ const TOOLS = [
   {
     name: 'find_evidence',
     description:
-      '특정 concept (kind + title) 을 언급하는 vault 문서 목록 반환. AI agent 가 "이 capability 가 어디 코드 / 문서에 실현됐나" 를 추적할 때 사용.',
+      "Find vault docs that mention a given concept by title. Useful when an AI agent asks where a capability is realized in code or docs.",
     inputSchema: {
       type: 'object',
       properties: {
         title: {
           type: 'string',
-          description: '찾을 concept 의 title (case-insensitive 부분 매칭).',
+          description: 'Concept title to search for (case-insensitive substring match).',
         },
       },
       required: ['title'],
@@ -130,33 +130,33 @@ const TOOLS = [
   {
     name: 'add_concept',
     description:
-      '새 ontology 노드 (.md 파일) 작성. AI agent 가 코드 분석 결과 새 ' +
-      'capability / element / project 를 발견했을 때 호출. 기존 slug 면 ' +
-      '에러 — 그땐 patch_concept 사용.',
+      'Create a new ontology node (.md file). Call when an AI agent finds a new ' +
+      'capability / element / project from code analysis. Throws if the slug ' +
+      'already exists — use patch_concept in that case.',
     inputSchema: {
       type: 'object',
       properties: {
-        slug: { type: 'string', description: 'vault-relative slug (확장자 제외).' },
+        slug: { type: 'string', description: 'Vault-relative slug (omit the .md extension).' },
         kind: {
           type: 'string',
           enum: ['project', 'domain', 'capability', 'element', 'document'],
-          description: 'project / domain / capability / element / document. (vault-readme 는 README.md 자동 생성 시점에만 부여, agent 가 직접 지정하지 않음.)',
+          description: 'project / domain / capability / element / document. (vault-readme is reserved for the auto-generated README.md and should not be set by agents.)',
         },
-        title: { type: 'string', description: '노드 제목.' },
-        domain: { type: 'string', description: '소속 domain (선택).' },
+        title: { type: 'string', description: 'Display title for the node.' },
+        domain: { type: 'string', description: 'Parent domain slug (optional).' },
         capabilities: {
           type: 'array',
           items: { type: 'string' },
-          description: '이 노드가 다루는 capabilities (project 인 경우).',
+          description: 'Capability slugs this node owns (project nodes).',
         },
         elements: {
           type: 'array',
           items: { type: 'string' },
-          description: '이 노드가 사용하는 elements (project 인 경우).',
+          description: 'Element slugs this node uses (project nodes).',
         },
         body: {
           type: 'string',
-          description: 'markdown 본문 (선택). 미지정 시 `# {title}` 으로 자동.',
+          description: 'Markdown body (optional). Defaults to `# {title}` when omitted.',
         },
       },
       required: ['slug', 'kind', 'title'],
@@ -165,17 +165,18 @@ const TOOLS = [
   {
     name: 'add_relation',
     description:
-      '두 노드 사이에 의미 관계 추가. relations / dependencies / relates ' +
-      'frontmatter 배열에 append. relation type 별로 다른 키에 저장.',
+      'Add a semantic relation between two nodes. Appends to the matching ' +
+      'frontmatter array (dependencies / relates / contains / describes); the ' +
+      'relation type picks which key receives the entry.',
     inputSchema: {
       type: 'object',
       properties: {
-        from: { type: 'string', description: 'from slug.' },
-        to: { type: 'string', description: 'to slug.' },
+        from: { type: 'string', description: 'Source slug.' },
+        to: { type: 'string', description: 'Target slug.' },
         type: {
           type: 'string',
           enum: ['depends_on', 'relates', 'contains', 'describes'],
-          description: 'relation type.',
+          description: 'Relation type.',
         },
       },
       required: ['from', 'to', 'type'],
@@ -184,22 +185,22 @@ const TOOLS = [
   {
     name: 'patch_concept',
     description:
-      '기존 ontology 노드 (.md 파일) 의 frontmatter 와/또는 body 를 갱신. ' +
-      'AI agent 가 기존 노드를 수정·심화·재분류할 때 사용. frontmatter ' +
-      'patch 는 키 단위 — null = 키 삭제, 미지정 = 기존 보존. body 는 전체 ' +
-      '교체 또는 미지정 시 보존.',
+      'Update the frontmatter and/or body of an existing ontology node. Use ' +
+      'when an AI agent revises, deepens, or reclassifies a node. Frontmatter ' +
+      'patches are key-by-key — null deletes a key, omission preserves it. ' +
+      'Body is fully replaced when provided, otherwise preserved.',
     inputSchema: {
       type: 'object',
       properties: {
-        slug: { type: 'string', description: 'vault-relative slug (확장자 제외).' },
+        slug: { type: 'string', description: 'Vault-relative slug (omit the .md extension).' },
         frontmatter: {
           type: 'object',
           description:
-            '갱신할 frontmatter 키-값 (예: { kind: "capability", domain: "views" }). null 은 키 삭제.',
+            'Frontmatter key/value patches (e.g. { kind: "capability", domain: "views" }). null removes the key.',
         },
         body: {
           type: 'string',
-          description: 'markdown 본문 전체 교체 (옵션). 미지정 시 보존.',
+          description: 'Full replacement markdown body (optional). Preserved when omitted.',
         },
       },
       required: ['slug'],
@@ -208,16 +209,16 @@ const TOOLS = [
   {
     name: 'find_backlinks',
     description:
-      '특정 노드 (slug) 를 가리키는 다른 노드 목록 반환. frontmatter 배열 ' +
-      '키 (capabilities / elements / dependencies / relates / contains / ' +
-      'describes 등) 와 body 의 wikilink / markdown link 모두 검사. AI ' +
-      'agent 가 "이 노드 의존자가 누구인지" 그래프 탐색 시 사용.',
+      'Return every node that points to the target slug. Scans both frontmatter ' +
+      'array keys (capabilities / elements / dependencies / relates / contains / ' +
+      'describes etc.) and the wikilinks / markdown links in the body. Used by ' +
+      'AI agents to walk the graph from a node to its dependents.',
     inputSchema: {
       type: 'object',
       properties: {
         slug: {
           type: 'string',
-          description: 'backlink 대상 vault-relative slug (확장자 제외).',
+          description: 'Target vault-relative slug (omit the .md extension).',
         },
       },
       required: ['slug'],
@@ -226,17 +227,17 @@ const TOOLS = [
   {
     name: 'find_path',
     description:
-      '두 노드 (slug) 사이 그래프 최단 경로 (BFS, 무방향). 경로 못 ' +
-      '찾으면 null. AI agent 가 transitive 의존 chain 추적 시 사용. ' +
-      'maxHops 기본 5.',
+      'Shortest path between two nodes (undirected BFS). Returns null when no ' +
+      'path is found within maxHops. Used by AI agents to trace transitive ' +
+      'dependency chains. maxHops defaults to 5.',
     inputSchema: {
       type: 'object',
       properties: {
-        from: { type: 'string', description: 'from slug.' },
-        to: { type: 'string', description: 'to slug.' },
+        from: { type: 'string', description: 'Source slug.' },
+        to: { type: 'string', description: 'Target slug.' },
         maxHops: {
           type: 'number',
-          description: '최대 hop 수 (기본 5).',
+          description: 'Maximum hop count (default 5).',
         },
       },
       required: ['from', 'to'],
@@ -245,9 +246,9 @@ const TOOLS = [
   {
     name: 'list_kinds',
     description:
-      'vault 의 kind 분포 통계 — { total, byKind: { capability: N, ... } }. ' +
-      'AI agent 가 vault 의 census 를 빠르게 파악할 때 사용 (list_concepts 후 ' +
-      'count 보다 효율).',
+      "Vault kind distribution — { total, byKind: { capability: N, ... } }. " +
+      'A quick census so AI agents can size up the vault without paging through ' +
+      'list_concepts.',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -256,23 +257,23 @@ const TOOLS = [
   {
     name: 'find_orphans',
     description:
-      'vault 의 고립 노드 (어느 다른 노드도 frontmatter array 키에서 가리키지 ' +
-      '않는 doc) 목록. AI agent 가 cleanup 시작점 / 사용자가 "안 쓰이는 ' +
-      '노드 뭐냐" 점검 시 사용. find_backlinks 와 같은 매칭 정책 (절대 slug ' +
-      '또는 마지막 segment). vault-readme 같은 sentinel kind 는 기본 제외.',
+      'List orphan nodes — docs that no other node references via any frontmatter ' +
+      'array key. Useful as a cleanup starting point or to answer "which nodes ' +
+      'are unused?". Same matching policy as find_backlinks (full slug or final ' +
+      'segment). Sentinel kinds like vault-readme are excluded by default.',
     inputSchema: {
       type: 'object',
       properties: {
         kind: {
           type: 'string',
           description:
-            '특정 kind 만 대상 (예: capability). 미지정 시 모든 kind.',
+            'Restrict to one kind (e.g. capability). Omit for all kinds.',
         },
         excludeKinds: {
           type: 'array',
           items: { type: 'string' },
           description:
-            '결과에서 제외할 kind 목록. 미지정 시 [\'vault-readme\'] 기본.',
+            "Kinds to exclude from results. Defaults to ['vault-readme'].",
         },
       },
     },
@@ -280,28 +281,29 @@ const TOOLS = [
   {
     name: 'query_concepts',
     description:
-      'Typed filter DSL — vault 노드를 조건으로 검색. saved-filter / smart-list ' +
-      '용도. find_path (BFS) 가 못 답하는 "어느 capability 가 element 가 0?" / ' +
-      '"domain=auth 의 stub 만" / "vault-readme 빼고 has(depends_on)" 같은 질문.\n\n' +
-      'Grammar (대소문자 무시, 공백 자유):\n' +
-      '  filter   := atom (AND|OR atom)*\n' +
-      '  atom     := NOT? predicate\n' +
+      'Typed filter DSL — search vault nodes by predicate. Built for saved-filter / ' +
+      'smart-list cases that find_path (BFS) cannot answer, such as "which ' +
+      'capabilities have zero elements?", "stub-only nodes in domain=auth", or ' +
+      '"has(depends_on) excluding vault-readme".\n\n' +
+      'Grammar (case-insensitive keywords, whitespace-tolerant):\n' +
+      '  filter    := atom (AND|OR atom)*\n' +
+      '  atom      := NOT? predicate\n' +
       '  predicate := key=value | key!=value | has(key)\n\n' +
-      'Keys: kind / domain / slug / title (= 비교) + 임의 frontmatter 배열 키 (has).\n' +
-      '예: `kind=capability AND domain=auth AND NOT has(elements)` ' +
-      '— auth 도메인의 cap 중 element 가 0 인 곳 (= 미완성된 cap).',
+      'Keys: kind / domain / slug / title for equality, plus any frontmatter array key for has(...).\n' +
+      'Example: `kind=capability AND domain=auth AND NOT has(elements)` — ' +
+      'capabilities under domain auth that have zero elements (= unfinished caps).',
     inputSchema: {
       type: 'object',
       properties: {
         filter: {
           type: 'string',
           description:
-            '필터 식. 예: kind=capability AND has(elements). NOT / AND / OR 지원, ' +
-            '값에 공백 / 특수문자 있으면 "..." 또는 \'...\' 로 quote.',
+            'Filter expression. Example: kind=capability AND has(elements). Supports NOT / AND / OR. ' +
+            "Wrap values containing whitespace or special characters with \"...\" or '...'.",
         },
         limit: {
           type: 'number',
-          description: '최대 반환 수. 기본 100.',
+          description: 'Max rows to return. Defaults to 100.',
         },
       },
       required: ['filter'],
@@ -310,28 +312,28 @@ const TOOLS = [
   {
     name: 'delete_concept',
     description:
-      '⚠ DESTRUCTIVE — vault 의 .md 파일 영구 삭제. 안전 가드 2단:\n' +
-      '  1. confirm: true 미지정 시 dry-run — 삭제 없이 backlinks 미리보기만 반환.\n' +
-      '  2. backlinks 가 있으면 throw — 다른 노드가 이 slug 를 가리키는 한 거부. ' +
-      'force: true 명시하면 backlinks 무시하고 삭제 (참조 노드들은 dangling 됨).\n' +
-      '삭제 응답에 frontmatter + body 를 같이 반환 — 사용자가 실수로 삭제했을 때 ' +
-      'add_concept 으로 재생성 가능. 디렉토리는 건드리지 않음.',
+      '⚠ DESTRUCTIVE — permanently deletes the vault .md file. Two-stage safety:\n' +
+      '  1. Without confirm: true the call is a dry-run — returns a backlinks preview without deleting.\n' +
+      '  2. If any backlinks exist the call throws — refuses while other nodes still reference this slug. ' +
+      'Pass force: true to delete anyway (the referrers become dangling).\n' +
+      'Successful deletion returns the frontmatter + body so a user who deleted by mistake ' +
+      'can recreate the node via add_concept. Directories are left untouched.',
     inputSchema: {
       type: 'object',
       properties: {
         slug: {
           type: 'string',
-          description: 'vault-relative slug (확장자 제외).',
+          description: 'Vault-relative slug (omit the .md extension).',
         },
         confirm: {
           type: 'boolean',
           description:
-            '실제 삭제 확정. 미지정·false 면 dry-run (삭제 없이 backlinks 미리보기).',
+            'Actually delete when true. Omit or false for a dry-run (backlinks preview, no delete).',
         },
         force: {
           type: 'boolean',
           description:
-            'backlinks 가 있어도 삭제 강행 (참조 노드들은 dangling 됨). 기본 false.',
+            'Delete even when backlinks exist (referrers become dangling). Defaults to false.',
         },
       },
       required: ['slug'],
