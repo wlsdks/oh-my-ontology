@@ -1,4 +1,3 @@
-export type { OntologyClass } from './model';
 export {
   DEFAULT_ONTOLOGY_CLASSES,
   getOntologyKindLabel,
