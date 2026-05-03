@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-03T13:04:35.783Z",
+  "generatedAt": "2026-05-03T13:14:14.174Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -3397,12 +3397,12 @@
     {
       "slug": "ontology/domains/views",
       "path": "docs/ontology/domains/views.md",
-      "title": "Views (Topology · Tree · Builder)",
+      "title": "Views (Topology · Browse · Builder)",
       "tags": [],
       "frontmatter": {
         "slug": "domains/views",
         "kind": "domain",
-        "title": "Views (Topology · Tree · Builder)",
+        "title": "Views (Topology · Browse · Builder)",
         "capabilities": [
           "topology-sigma-render",
           "ontology-hub-mode-aware",
@@ -3426,9 +3426,9 @@
           "slug": "views"
         }
       ],
-      "excerpt": "같은 ontology 그래프의 세 출구. 토폴로지 (Sigma + ForceAtlas2 spatial network), 트리 (/ontology 계층 + ego graph), 빌더 (xyflow ERD canvas + md 내보내기). 검색 — ⌘K 프로젝트 / ⇧⌘K 글로벌.",
-      "wordCount": 33,
-      "updatedAt": "2026-05-02T19:29:41.586Z",
+      "excerpt": "같은 ontology 그래프의 세 출구. 토폴로지 (Sigma + ForceAtlas2 spatial network), 둘러보기 (/ontology 트리 계층 + ego graph + 노드 detail), 빌더 (xyflow ERD canvas + md 내보내기). 검색 — ⌘K 프로젝트 / ⇧⌘K 노드+프로젝트 통합.",
+      "wordCount": 38,
+      "updatedAt": "2026-05-03T13:13:58.019Z",
       "linksOut": []
     },
     {
@@ -4394,7 +4394,7 @@
                 "path": "ontology/domains/views",
                 "type": "doc",
                 "slug": "ontology/domains/views",
-                "title": "Views (Topology · Tree · Builder)"
+                "title": "Views (Topology · Browse · Builder)"
               }
             ]
           },

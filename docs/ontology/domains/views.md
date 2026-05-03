@@ -1,7 +1,7 @@
 ---
 slug: domains/views
 kind: domain
-title: Views (Topology · Tree · Builder)
+title: Views (Topology · Browse · Builder)
 capabilities:
   - topology-sigma-render
   - ontology-hub-mode-aware
@@ -19,5 +19,5 @@ relates:
 # Views
 
 같은 ontology 그래프의 세 출구. 토폴로지 (Sigma + ForceAtlas2 spatial network),
-트리 (`/ontology` 계층 + ego graph), 빌더 (xyflow ERD canvas + md 내보내기).
-검색 — `⌘K` 프로젝트 / `⇧⌘K` 글로벌.
+둘러보기 (`/ontology` 트리 계층 + ego graph + 노드 detail), 빌더 (xyflow ERD
+canvas + md 내보내기). 검색 — `⌘K` 프로젝트 / `⇧⌘K` 노드+프로젝트 통합.

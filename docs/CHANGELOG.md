@@ -6,6 +6,79 @@
 
 ---
 
+## 2026-05-03 — Surface diet Round 6: MCP parity + vault drift (2 fix · 2 skip)
+
+2 에이전트 좁은 회의 (Explore — dogfood vault drift · codex — validation
+parity gap + MCP README drift). Round 5 의 회의주의 모드 유지: "정말
+하는게 좋다고 판단되는것만". 4 발견 중 2 개 fix, 2 개 SKIP.
+
+### Bug fix #1 — MCP patch_concept blank title 차단 (Cut O)
+
+codex 발견: UI 의 `renameVaultDoc` 은 blank title 을 reject 하지만
+`mcp/src/index.js:509` `patch_concept` 가 frontmatter 임의 patch 허용해
+AI agent 가 `{ title: "" }` 또는 `{ title: "   " }` 를 보내면 vault
+노드 title 이 silent 으로 비워짐. Round 5 의 ephemeral placeholder
+pollution 과 같은 parity 문제 — 이번엔 entry point 가 MCP.
+
+→ 새 helper `mcp/src/validate.mjs` 의 `isValidVaultTitle()` 로 단일
+진실원. `addConcept` (필수 입력) + `patchConcept` (frontmatter 에 title
+포함 시) 양쪽 가드. `null` 은 "title 키 삭제" 의도라 별도 에러 메시지
+(frontmatter 깨짐 방지). 3 단위 테스트 (비-string / 빈 / trim 후 비 /
+정상).
+
+### Doc fix #2 — dogfood vault label drift (Cut P)
+
+Explore 발견: `docs/ontology/domains/views.md` 의 title 이 "Views
+(Topology · **Tree** · Builder)" 로 남음. Round 3 cut F 에서 sub-nav
+"Tree" → "Browse" rename 했지만 vault 가 갱신 안 됨. body 도 검색 단축키
+설명이 stale → 함께 갱신 (`⌘K` 프로젝트 / `⇧⌘K` 노드+프로젝트 통합).
+docs-vault:build 재실행 → manifest sync.
+
+### Skip decisions (codex 자체가 "maybe")
+
+- **MCP add_concept project minimal 입력 허용** — codex 발견: `add_concept`
+  가 project 를 slug/kind/title 만으로 허용하는데 UI `ProjectForm` 은
+  category/status/description 필수. SKIP 근거: AI agent 가 incremental
+  하게 stub 짓고 나중에 patch 하는 건 합리적 워크플로 (인간 폼 ≠ 에이전트
+  API 같을 필요 없음). 진짜 데이터 무결성 문제 발견 시 Round 7 에서 재검.
+- **/docs folder-topology project scaffold description 누락** — codex 발견:
+  `DocsVaultPage:499` 의 quick scaffold 가 description 없이 작성. SKIP
+  근거: scaffold 는 "빠른 stub 생성" 의도, `/project/new` 폼은 "canonical
+  authoring". 다른 목적의 다른 contract — 사용자가 stub 후 폼에서 보강
+  가능. UI 깨짐 보고되면 재검.
+
+### Other findings — clean
+
+- Explore: 잘못된 finding 1 개 (xyflow.md "F 키 fullscreen") — 검증
+  결과 빌더의 F 키는 살아있음 (line 599-600). presentation mode 의 F
+  키와 빌더 fullscreen 의 F 키를 conflate. 수정 안 함.
+- codex: mcp/README 12 도구 vs 코드 (clean). verify.mjs 도 12/12 통과.
+- 기타 vault 매니페스트 카운트 (domain 6 / capability 6 / element 4) 모두
+  정확.
+
+### 코드 / 아키텍처
+
+- 2 commit (예정) · 6 파일.
+- 새 파일 2: `mcp/src/validate.mjs` (~25 LOC) + 테스트 (~30 LOC).
+- mcp package.json `test` 스크립트에 validate.test.mjs 추가.
+- views.md frontmatter title 1 줄 + body 1 단락 갱신.
+- manifest.json 자동 재생성.
+
+### Test
+
+- pnpm test:run: 579 pass · pnpm exec tsc: clean · pnpm build: green ·
+  cd mcp && pnpm test: 5 pass · MCP verify.mjs: 12/12 도구 OK.
+
+### Round 7 자연 후보 (만약 진행 시)
+
+- **Codex 의 "maybe" 2 개 후속 검증** — 실제 사용자/에이전트가 minimal
+  project 또는 description-less project scaffold 로 UI 깨짐 보고하는지.
+  데이터 driven 결정.
+- **그 외 = wait-for-signal** 유지. 6 라운드 surface 다이어트 + 2 라운드
+  bug fix 후 codex / Explore 모두 큰 시그널 없음.
+
+---
+
 ## 2026-05-03 — Surface diet Round 5: skeptic round (1 fix · 3 skip)
 
 3 에이전트 회의주의 회의 (codex skeptic · Explore polish hunt · Plan
