@@ -29,7 +29,7 @@ export interface Category {
   label: string;
   /** 영문 라벨 (툴팁·Legend 부기 등 선택). */
   labelEn?: string;
-  /** 정렬 순서 (RegionNavigator·Legend·filters 공통). */
+  /** 정렬 순서 (placement / Legend / filters 공통). */
   order: number;
   /** 클러스터 박스 중심 좌표. */
   position: CategoryPosition;
@@ -44,9 +44,4 @@ export interface Category {
    * 미설정 시 labelEn 또는 label을 사용.
    */
   sideLabelText?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
-
-/** 생성·수정 입력 — createdAt/updatedAt은 서버가 관리. */
-export type CategoryInput = Omit<Category, 'createdAt' | 'updatedAt'>;

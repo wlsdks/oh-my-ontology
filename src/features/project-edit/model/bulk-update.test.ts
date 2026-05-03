@@ -17,8 +17,6 @@ const categories: Category[] = [
     size: { width: 1200, height: 900 },
     radius: 320,
     borderStyle: "dashed",
-    createdAt: new Date("2026-04-01T00:00:00.000Z"),
-    updatedAt: new Date("2026-04-01T00:00:00.000Z"),
   },
   {
     id: "consulting",
@@ -30,8 +28,6 @@ const categories: Category[] = [
     radius: 320,
     borderStyle: "sideLabel",
     sideLabelText: "Consulting",
-    createdAt: new Date("2026-04-01T00:00:00.000Z"),
-    updatedAt: new Date("2026-04-01T00:00:00.000Z"),
   },
 ];
 

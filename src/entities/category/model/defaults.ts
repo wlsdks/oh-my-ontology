@@ -7,7 +7,7 @@ import type { Category } from "./types";
  * 좌표·크기는 원본 하드코딩 값 그대로 이관.
  * 원본: 이전 entities/project/model/layout.ts의 CLUSTER_* 상수.
  */
-export const DEFAULT_CATEGORIES: Omit<Category, "createdAt" | "updatedAt">[] = [
+export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "in-progress",
     label: "작업중",

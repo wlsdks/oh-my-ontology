@@ -1,36 +1,17 @@
 'use client';
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import {
-  DEFAULT_CATEGORIES,
-  hasRegisteredCategoryRegions,
-  type Category,
-} from '@/entities/category';
+import { DEFAULT_CATEGORIES, type Category } from '@/entities/category';
 import { DEFAULT_STATUSES, type Status } from '@/entities/status';
 
 export interface TaxonomyContextValue {
   categories: Category[];
   statuses: Status[];
-  categoriesHydrated: boolean;
-  statusesHydrated: boolean;
-  showCategoryRegions: boolean;
   getCategory: (id: string) => Category | undefined;
   getStatus: (id: string) => Status | undefined;
   categoryLabel: (id: string) => string;
   statusLabel: (id: string) => string;
 }
-
-const defaultCategories: Category[] = DEFAULT_CATEGORIES.map((c) => ({
-  ...c,
-  createdAt: new Date(0),
-  updatedAt: new Date(0),
-}));
-
-const defaultStatuses: Status[] = DEFAULT_STATUSES.map((s) => ({
-  ...s,
-  createdAt: new Date(0),
-  updatedAt: new Date(0),
-}));
 
 const TaxonomyContext = createContext<TaxonomyContextValue | null>(null);
 
@@ -45,14 +26,11 @@ interface Props {
  */
 export function TaxonomyProvider({ children }: Props) {
   const value = useMemo<TaxonomyContextValue>(() => {
-    const categoryMap = new Map(defaultCategories.map((c) => [c.id, c]));
-    const statusMap = new Map(defaultStatuses.map((s) => [s.id, s]));
+    const categoryMap = new Map(DEFAULT_CATEGORIES.map((c) => [c.id, c]));
+    const statusMap = new Map(DEFAULT_STATUSES.map((s) => [s.id, s]));
     return {
-      categories: defaultCategories,
-      statuses: defaultStatuses,
-      categoriesHydrated: true,
-      statusesHydrated: true,
-      showCategoryRegions: hasRegisteredCategoryRegions(defaultCategories),
+      categories: DEFAULT_CATEGORIES,
+      statuses: DEFAULT_STATUSES,
       getCategory: (id) => categoryMap.get(id),
       getStatus: (id) => statusMap.get(id),
       categoryLabel: (id) => categoryMap.get(id)?.label ?? id,

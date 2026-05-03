@@ -18,8 +18,6 @@ function category(overrides: Partial<Category> = {}): Category {
     size: { width: 1200, height: 900 },
     radius: 320,
     borderStyle: 'solid',
-    createdAt: new Date(0),
-    updatedAt: new Date(0),
     ...overrides,
   };
 }
