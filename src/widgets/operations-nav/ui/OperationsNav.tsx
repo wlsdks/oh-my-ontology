@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/features/theme-toggle';
 import { LocaleSwitch } from '@/features/locale-switch';
 import { Tooltip } from '@/shared/ui';
 import { OntologySubNav, shouldShowOntologySubNav } from '@/widgets/ontology-sub-nav';
+import { isOperationsTabActive } from '../lib/is-tab-active';
 
 interface NavItem {
   id: 'docs' | 'ontology' | 'topology';
@@ -122,11 +123,7 @@ export function OperationsNav() {
   const isAtHome = pathname.replace(/\/$/, '') === '';
 
   const renderTab = (item: NavItem, variant: 'desktop' | 'mobile') => {
-    // 빈 prefix 는 위험 (모든 path 매칭) — `/` 는 exact-match,
-    // 그 외엔 startsWith 로 sub-path 까지 활성.
-    const active = item.prefixes.some((p) =>
-      p === '/' ? pathname === '/' : pathname.startsWith(p),
-    );
+    const active = isOperationsTabActive(pathname, item.prefixes);
     const href = item.basePath;
     // 모바일 chip 은 본문 톤 (text-[12px]) 유지하되 padding 살짝 줄여
     // 3 개가 375 폭 가로 스크롤 안에 자연스럽게 흐르게.
