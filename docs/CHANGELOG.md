@@ -6,6 +6,86 @@
 
 ---
 
+## 2026-05-03 — Surface diet Round 4: 검색 발견성 + 빌더 edge 영속
+
+3 에이전트 병렬 회의 (codex pressure-test · general-purpose UX walkthrough
+· Plan architect Builder edge persistence) 후 합의된 3 컷.
+
+### User-visible changes
+
+- **`/docs` Local 토글 첫 클릭이 picker 자동 노출** — Round 2 가 source
+  토글을 헤더로 hoist 했지만 사용자가 헤더에서 직접 "Local" 클릭 시 picker
+  UI 가 dropdown 안 깊숙이 묻혀 있어 next-step 모호. handleSourceChange
+  에 한 줄 추가 — `?intent=local` URL 진입과 manual 클릭이 동일 동작
+  (이미 vault loaded 면 펼침 안 함).
+- **`/ontology` 글로벌 검색 (⇧⌘K) 가시화 버튼** — 이전엔 단축키만 있고
+  visible button 없어 PM 이 ⇧⌘K 의 존재를 모름. ⌘K 옆에 "All" / "전체"
+  버튼 추가 — 노드 + 프로젝트 통합 검색. 라벨은 정직 (codex 검증:
+  GlobalSearch 가 ontology 노드 + 프로젝트만 cover, docs 미포함).
+- **빌더 edge 에 "Save" 칩** — 가장 큰 Round 4 변경. 이전엔 사용자가
+  endpoint 한쪽이 ephemeral 인 edge 를 그려도 in-memory 로만 남고
+  새로고침 시 사라짐. 사용자는 어떤 edge 가 saved/unsaved 인지 모름.
+  → ephemeral edge 가운데 amber chip "Save" 노출. 클릭 시 endpoint
+  ephemeral 노드 (있으면) → vault 에 createDoc, 그 vault slug 들로
+  source frontmatter array 자동 patch, ephemeral edge 정리.
+
+### Critical discovery (codex + UX walkthrough)
+
+vault↔vault edge 는 **이미 자동 persist** 되고 있었다 (`onVaultConnect`).
+"ephemeral" 은 한쪽이라도 unsaved palette node 일 때만. 즉 빌더의 진짜
+friction 은 자동/수동 구분 없는 시각 신호 + onboarding 카피의 misleading.
+
+→ helpStepConnect / helpStepEphemeral / stepConnectStrong 등 onboarding
+카피 4 곳 정정: "vault↔vault 자동 저장. 한쪽이 미저장 (amber) 이면 edge
+의 Save 칩 클릭."
+
+### 디자인 결정 — 4 design 비교 후 B 채택
+
+Plan 에이전트가 4 가지 design 검토:
+- A (auto-persist on edge drop): untitled.md silent pollution 위험
+  (AGENTS.md self-approving 원칙 위반).
+- B (per-edge save chip): 명시적 intent + 0 header 공간 + sandbox 보존.
+- C (배치 banner): 3rd surface 추가 (palette + inspector + banner — clutter).
+- D (solidify on inspector visit): 현재 friction + magic.
+
+→ B 채택. codex 의 "DEFER" 우려 (slug mapping / failure recovery / 복잡도)
+는 Plan 의 chip 단순화로 자연스럽게 해결됨.
+
+### 코드 / 아키텍처
+
+- 1 commit · 8 파일 · +322 / -47 LOC.
+- 새 파일 1: `EphemeralEdge.tsx` (~85 LOC custom xyflow edge 컴포넌트).
+- DocsVaultPage handleSourceChange 1-line 추가.
+- OntologyViewPage 두 번째 search 버튼 (~30 LOC).
+- OntologyEditPage persistEphemeralEdge orchestrator (~75 LOC) + 동적
+  타입에 prop 추가.
+- OntologyEditCanvas: edgeTypes 등록 + ephemeralFlow 매핑 단순화 (label /
+  labelStyle / labelBgStyle 제거 — chip 이 흡수).
+- 새 i18n 키 11 (`actions.globalSearch*` 3 + `toastEdgePersistNeedsTitle` 1
+  + `ephemeralEdgeSave*` 3 + onboarding 4 정정).
+- 제거 1 (`canvas.ephemeralEdgeLabel` — chip 이 흡수).
+
+### Test
+
+- 571 tests pass · build green.
+- EphemeralEdge persist orchestrator 단위 테스트는 다음 PR 보류 — 로직
+  검증은 우선 dogfood 수동 확인.
+
+### Round 5 자연 후보
+
+- **Search palette 통합** — UX walkthrough 권장 highest-effort: ⌘K /
+  ⇧⌘K 두 개를 한 unified palette 로 합치고 섹션 구분 (Projects · Nodes
+  · Docs). 현재 본 PR 은 두 버튼 노출로 발견성만 닫음. 통합은 ranking /
+  section UX 별도 design 필요.
+- **/docs LocalVaultPicker 헤더 hoist** — Round 4 의 J 는 dropdown 자동
+  펼침으로 dead-end 만 닫음. picker 자체를 dropdown 밖 header-adjacent
+  panel 로 옮기면 "Advanced" 가 아니라 first-run primary affordance 가
+  됨.
+- **EphemeralEdge persist 단위 테스트** — 본 PR 미포함. resolveEndpoint
+  ephemeral / vault / 빈 title / static 모드 4 시나리오.
+
+---
+
 ## 2026-05-03 — Surface diet Round 3: 첫 인상 + IA 정리
 
 3 에이전트 병렬 회의 (user journey audit · inbound link 매핑 · IA 의견)
