@@ -1,11 +1,6 @@
-export type {
-  OntologyClass,
-  OntologyClassInput,
-  OntologyElementType,
-} from './model';
+export type { OntologyClass } from './model';
 export {
   DEFAULT_ONTOLOGY_CLASSES,
-  isOntologyClassId,
   getOntologyKindLabel,
   getOntologyKindIcon,
 } from './model';
