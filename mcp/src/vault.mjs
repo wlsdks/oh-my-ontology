@@ -85,11 +85,11 @@ export function pathToSlug(rootPath, filePath) {
  */
 export function slugToPath(rootPath, slug) {
   if (typeof slug !== 'string' || slug.length === 0) {
-    throw new Error('slug 가 비어있거나 string 이 아닙니다.');
+    throw new Error('slug must be a non-empty string');
   }
   // null byte injection 차단 — Node fs API 가 일부 환경에서 truncate 됨.
   if (slug.includes('\0')) {
-    throw new Error('slug 에 null byte 가 포함됐습니다.');
+    throw new Error('slug must not contain a null byte');
   }
   const candidate = resolve(rootPath, `${slug}.md`);
   const normalizedRoot = resolve(rootPath);
@@ -99,7 +99,7 @@ export function slugToPath(rootPath, slug) {
     candidate !== normalizedRoot &&
     !candidate.startsWith(normalizedRoot + sep)
   ) {
-    throw new Error(`slug 가 vault root 바깥을 가리킵니다: ${slug}`);
+    throw new Error(`slug points outside the vault root: "${slug}"`);
   }
   return candidate;
 }
@@ -441,7 +441,7 @@ export function findBacklinks(rootPath, targetSlug) {
  */
 export function ensureVaultRoot(rootPath) {
   if (!rootPath) {
-    throw new Error('OMOT_VAULT 환경 변수 또는 --vault 인수로 vault root 를 지정하세요.');
+    throw new Error('Set the vault root via OMOT_VAULT env var or --vault arg.');
   }
   if (!existsSync(rootPath)) {
     throw new Error(`Vault root not found: ${rootPath}`);

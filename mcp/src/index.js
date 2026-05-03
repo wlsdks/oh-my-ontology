@@ -461,7 +461,7 @@ const ADD_CONCEPT_KINDS = new Set(['project', 'domain', 'capability', 'element',
 
 function addConcept({ slug, kind, title, domain, capabilities, elements, body }) {
   if (!slug || !kind || !title) {
-    throw new Error('slug, kind, title 모두 필요합니다.');
+    throw new Error('slug, kind, and title are all required.');
   }
   if (!ADD_CONCEPT_KINDS.has(kind)) {
     throw new Error(
@@ -488,7 +488,7 @@ const RELATION_KEY = {
 
 function addRelation({ from, to, type }) {
   if (!from || !to || !type) {
-    throw new Error('from, to, type 모두 필요합니다.');
+    throw new Error('from, to, and type are all required.');
   }
   const key = RELATION_KEY[type];
   if (!key) {
@@ -506,10 +506,10 @@ function addRelation({ from, to, type }) {
 
 function patchConcept({ slug, frontmatter, body }) {
   if (!slug) {
-    throw new Error('slug 가 필요합니다.');
+    throw new Error('slug is required.');
   }
   if (frontmatter === undefined && body === undefined) {
-    throw new Error('frontmatter 또는 body 중 하나는 지정해야 합니다.');
+    throw new Error('At least one of `frontmatter` or `body` is required.');
   }
   const filePath = updateDoc(VAULT_ROOT, slug, { frontmatter, body });
   return { ok: true, slug, filePath };
@@ -517,7 +517,7 @@ function patchConcept({ slug, frontmatter, body }) {
 
 function findBacklinksTool({ slug }) {
   if (!slug) {
-    throw new Error('slug 가 필요합니다.');
+    throw new Error('slug is required.');
   }
   const matches = findBacklinks(VAULT_ROOT, slug);
   return { target: slug, total: matches.length, matches };
@@ -525,7 +525,7 @@ function findBacklinksTool({ slug }) {
 
 function findPathTool({ from, to, maxHops }) {
   if (!from || !to) {
-    throw new Error('from, to 모두 필요합니다.');
+    throw new Error('from and to are both required.');
   }
   const result = findPath(VAULT_ROOT, from, to, typeof maxHops === 'number' ? maxHops : 5);
   if (!result) {
@@ -576,7 +576,7 @@ function queryConceptsTool({ filter, limit }) {
 
 function deleteConcept({ slug, confirm = false, force = false }) {
   if (!slug) {
-    throw new Error('slug 가 필요합니다.');
+    throw new Error('slug is required.');
   }
   // 존재 검사 — dry-run 이 \"삭제 가능\" 이라고 거짓 안내 안 하도록.
   // (실제 삭제 단계의 deleteDoc 도 다시 throw 하지만, dry-run path 는
