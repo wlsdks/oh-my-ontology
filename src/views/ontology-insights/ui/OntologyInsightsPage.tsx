@@ -22,7 +22,6 @@ import {
 } from "@/shared/lib/ontology-tree";
 import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
-import { OntologySubNav } from "@/widgets/ontology-sub-nav";
 import { EmptyState } from "@/shared/ui";
 
 /**
@@ -113,17 +112,12 @@ export function OntologyInsightsPage() {
   return (
     <div>
       <OperationsNav />
-      <OntologySubNav />
       <div className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
       <MountedGlobalSearch />
 
       <section className="mb-8 space-y-3">
-        {/* '← 트리로' pill 은 OntologySubNav 의 [트리] 탭과 destination
-            중복 (둘 다 /ontology/) — 사용자 피드백으로 제거. SubNav 가
-            모바일/데스크톱 양쪽에서 항상 노출되니 backlink 추가 필요 X. */}
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-          {t("eyebrow")}
-        </p>
+        {/* eyebrow + back pill 은 OperationsNav 의 SubNav 행이 'ONTOLOGY'
+            caption + active '인사이트' pill 로 이미 노출 → 중복 제거. */}
         <h1 className="break-keep text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
           {t("title")}
         </h1>

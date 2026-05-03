@@ -13,7 +13,6 @@ import { useDataSourceMode } from "@/features/data-source-mode";
 import { useLocalVault } from "@/features/docs-vault-local";
 import { slugify } from "@/shared/lib/slugify";
 import { OperationsNav } from "@/widgets/operations-nav";
-import { OntologySubNav } from "@/widgets/ontology-sub-nav";
 import { Tooltip, useToast } from "@/shared/ui";
 import { useEphemeralNodes } from "../lib/use-ephemeral-nodes";
 import { useEphemeralEdges } from "../lib/use-ephemeral-edges";
@@ -112,6 +111,41 @@ export function OntologyEditPage() {
   // layout 알고리즘 — dagre (default, kind 계층 LR) 또는 force (organic).
   // 헤더 토글로 사용자가 선택. 변경 시 in-memory layout 만 재계산 (frontmatter 그대로).
   const [layoutMode, setLayoutMode] = useState<"dagre" | "force">("dagre");
+  // 팔레트 / 인스펙터 접기 상태 — 사용자가 캔버스 공간 더 필요할 때.
+  // localStorage 저장 (페이지 재진입 시 마지막 선호 유지).
+  const [paletteCollapsed, setPaletteCollapsed] = useState(false);
+  const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (window.localStorage.getItem("demo:builder-palette:collapsed:v1") === "1") {
+        setPaletteCollapsed(true);
+      }
+      if (window.localStorage.getItem("demo:builder-inspector:collapsed:v1") === "1") {
+        setInspectorCollapsed(true);
+      }
+    } catch {
+      /* private mode */
+    }
+  }, []);
+  const togglePalette = useCallback(() => {
+    setPaletteCollapsed((current) => {
+      const next = !current;
+      try {
+        window.localStorage.setItem("demo:builder-palette:collapsed:v1", next ? "1" : "0");
+      } catch { /* private mode */ }
+      return next;
+    });
+  }, []);
+  const toggleInspector = useCallback(() => {
+    setInspectorCollapsed((current) => {
+      const next = !current;
+      try {
+        window.localStorage.setItem("demo:builder-inspector:collapsed:v1", next ? "1" : "0");
+      } catch { /* private mode */ }
+      return next;
+    });
+  }, []);
   // Blast-radius modal state — driven by deleteVaultDoc requesting a
   // confirmation. Stays null when the user is not actively confirming a
   // delete; opens when delete is clicked and resolves on cancel/confirm.
@@ -409,12 +443,9 @@ export function OntologyEditPage() {
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)]">
-      {fullscreen ? null : (
-        <>
-          <OperationsNav />
-          <OntologySubNav />
-        </>
-      )}
+      {/* OperationsNav 가 ontology surface (/, /ontology*) 에선 SubNav 행을
+          inline 으로 함께 렌더 — 한 nav block 으로 융합. */}
+      {fullscreen ? null : <OperationsNav />}
       <main
         className={
           fullscreen
@@ -424,9 +455,9 @@ export function OntologyEditPage() {
       >
         <header className="mb-2 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-indigo-accent)]">
-              {t("eyebrow")}
-            </p>
+            {/* eyebrow 'ONTOLOGY BUILDER' 는 OperationsNav 의 SubNav 행이
+                같은 caption ('ONTOLOGY') + active '빌더' pill 로 이미 노출 →
+                중복 제거. h1 만 남겨 페이지 정체성 유지. */}
             <h1 className="text-xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
               {t("title")}
             </h1>
@@ -567,6 +598,8 @@ export function OntologyEditPage() {
             모바일에만 노출. md+ 에서는 정상 빌더. */}
         <section className="relative hidden flex-1 overflow-hidden rounded-xl border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] md:flex">
           <OntologyKindPalette
+            collapsed={paletteCollapsed}
+            onToggleCollapsed={togglePalette}
             onAddNode={(kind) => {
               const newId = addNode(kind);
               // 추가 직후 inspector 가 바로 열리도록 self-select.
@@ -601,6 +634,8 @@ export function OntologyEditPage() {
             onDeleteVault={deleteVaultDoc}
             saving={savingId !== null || renamingId !== null}
             onClearSelection={() => setSelectedId(null)}
+            collapsed={inspectorCollapsed}
+            onToggleCollapsed={toggleInspector}
           />
         </section>
         {/* 모바일 fallback — md 미만에서 빌더 layout 이 겹치므로 데스크톱

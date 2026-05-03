@@ -1,9 +1,10 @@
 "use client";
 
 import "@xyflow/react/dist/style.css";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
+  applyNodeChanges,
   Background,
   BackgroundVariant,
   Controls,
@@ -11,6 +12,7 @@ import {
   type Connection,
   type Edge,
   type Node,
+  type NodeChange,
   type OnSelectionChangeParams,
 } from "@xyflow/react";
 import {
@@ -113,7 +115,10 @@ export function OntologyEditCanvas({
     [onSelectionChange],
   );
 
-  const allNodes: Node[] = useMemo(() => {
+  // 외부 데이터 (vault + ephemeral) 로부터 빌드한 "기준 노드" — 위치는
+  // positionOverrides 가 있으면 그걸 우선 적용. 외부 데이터가 변하거나
+  // override 가 변할 때만 재계산.
+  const baseNodes: Node[] = useMemo(() => {
     // vault 노드도 atlas custom type 으로 변환 (kind 별 시각 톤).
     // \`useVaultGraphFlow\` 가 \`data.kind\` 를 enum 으로 직접 채워주므로
     // 라벨 문자열을 reverse-parse 하지 않는다 (locale 무관 안전).
@@ -127,7 +132,12 @@ export function OntologyEditCanvas({
           label: data.label ?? "",
           kind,
           ephemeral: false,
+          // vault flag — handleNodeDragStop 가 frontmatter patch 여부 판정에 사용.
+          vault: true,
         },
+        // vault 노드 명시적 draggable. 이전엔 spread 만 의존했는데 일부 케이스에서
+        // ReactFlow 가 nodesDraggable + 노드 자체 flag 둘 다 봐야 정상 드래그 활성.
+        draggable: true,
       };
     });
     const ephemeralFlow: Node[] = ephemeralNodes.map((n) => ({
@@ -148,6 +158,32 @@ export function OntologyEditCanvas({
     }));
     return [...vaultAtlas, ...ephemeralFlow];
   }, [vaultNodes, ephemeralNodes]);
+
+  // ReactFlow 가 controlled 모드에서 드래그를 반영하려면 nodes prop 이
+  // 매 frame 갱신돼야 함. 이전 구현은 useMemo 결과만 전달하고 onNodesChange
+  // 가 없어 드래그 시도 자체가 ReactFlow 내부에서 polyfill 못 해 노드가
+  // 안 움직였다. 이제 local nodes state + applyNodeChanges 패턴으로
+  // ReactFlow 의 drag 이벤트를 받아 즉시 위치 업데이트한다.
+  const [localNodes, setLocalNodes] = useState<Node[]>(baseNodes);
+  // 외부 데이터 (vault/ephemeral) 가 변하면 *구조* (추가/삭제/data 변경)
+  // 만 갱신하고, 기존 노드의 위치는 보존 — 사용자가 드래그한 결과가
+  // 부모 re-render 로 reset 되는 회귀 방지.
+  useEffect(() => {
+    setLocalNodes((current) => {
+      const currentById = new Map(current.map((n) => [n.id, n]));
+      return baseNodes.map((b) => {
+        const existing = currentById.get(b.id);
+        if (existing) {
+          return { ...b, position: existing.position };
+        }
+        return b;
+      });
+    });
+  }, [baseNodes]);
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setLocalNodes((current) => applyNodeChanges(changes, current));
+  }, []);
+  const allNodes = localNodes;
 
   const allEdges: Edge[] = useMemo(() => {
     // ephemeral edge — amber alpha (warning amber, hub amber 와 구분되는 신호 톤)
@@ -231,6 +267,8 @@ export function OntologyEditCanvas({
         defaultEdgeOptions={{ animated: false }}
         proOptions={{ hideAttribution: true }}
         nodesConnectable
+        nodesDraggable
+        onNodesChange={onNodesChange}
         onConnect={handleConnect}
         onSelectionChange={handleSelectionChange}
         onNodeDragStop={handleNodeDragStop}

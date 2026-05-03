@@ -1,1 +1,1 @@
-export { OntologySubNav } from './ui/OntologySubNav';
+export { OntologySubNav, shouldShowOntologySubNav } from './ui/OntologySubNav';

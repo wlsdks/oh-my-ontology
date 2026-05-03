@@ -27,7 +27,12 @@
     "tooltipOntology": "vault frontmatter 의 노드·관계 계층 그래프 (project → domain → capability → element)",
     "tooltipTopology": "프로젝트 의존도 지도 — 온톨로지의 한 출구 view",
     "primaryAriaLabel": "주요 메뉴",
-    "notificationsAriaLabel": "작업 알림"
+    "notificationsAriaLabel": "작업 알림",
+    "subNavToggleLabel": "온톨로지",
+    "subNavExpandTooltip": "온톨로지 서브메뉴 펼치기 (트리 / 빌더 / 인사이트 / 관계)",
+    "subNavCollapseTooltip": "온톨로지 서브메뉴 접기",
+    "subNavExpandAria": "온톨로지 서브메뉴 펼치기",
+    "subNavCollapseAria": "온톨로지 서브메뉴 접기"
   },
   "ontologySubNav": {
     "ariaLabel": "온톨로지 서브메뉴",
@@ -772,6 +777,8 @@
         "ariaLabel": "선택한 ontology 노드 상세",
         "eyebrow": "Inspector",
         "subtitle": "선택한 노드의 상세 + 인라인 편집.",
+        "collapseAriaLabel": "인스펙터 접기 (캔버스 공간 확보)",
+        "expandAriaLabel": "인스펙터 펼치기",
         "emptyHint": "왼쪽 palette 에서 종류를 클릭해 첫 노드를 만들거나, 캔버스의 노드를 클릭하면 상세가 여기에 보여요.",
         "ephemeralBadge": "ephemeral",
         "vaultBadge": "vault",
@@ -831,6 +838,8 @@
         "ariaLabel": "ontology 노드 종류 palette",
         "eyebrow": "Palette",
         "subtitle": "종류를 골라 클릭하면 캔버스 가운데에 새 노드가 생겨요.",
+        "collapseAriaLabel": "팔레트 접기 (캔버스 공간 확보)",
+        "expandAriaLabel": "팔레트 펼치기",
         "addAriaLabel": "{label} 노드 추가 — {hint}",
         "footerHint": "새 노드는 임시 — 오른쪽 인스펙터에서 이름 입력 + 저장해야 vault/.md 로 들어가요.",
         "kindProjectHint": "최상위 단위 — 전체 워크스페이스의 한 프로젝트",

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import type { EphemeralNode } from "../lib/use-ephemeral-nodes";
 
@@ -70,6 +71,8 @@ export interface OntologyInspectorProps {
   onDeleteVault?: (slug: string) => Promise<void> | void;
   onClearSelection: () => void;
   saving?: boolean;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 }
 
 type InspectorTranslator = ReturnType<typeof useTranslations>;
@@ -88,24 +91,68 @@ export function OntologyInspector({
   onDeleteVault,
   onClearSelection,
   saving,
+  collapsed = false,
+  onToggleCollapsed,
 }: OntologyInspectorProps) {
   const t = useTranslations("ontologyPages.edit.inspector");
   // canonical kind 라벨 — kinds.* i18n namespace 기반. 이전엔 inspector 자체
   // 의 kindLabel* 키로 중복 정의했으나 동일 값이라 정리.
   const kindLabel = useOntologyKindLabel();
   const selected = ephemeralSelected ?? vaultSelected;
+  if (collapsed) {
+    return (
+      <aside
+        aria-label={t("ariaLabel")}
+        className="flex h-full w-11 shrink-0 flex-col items-center gap-2 border-l border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] py-3"
+      >
+        {onToggleCollapsed ? (
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={t("expandAriaLabel")}
+            title={t("expandAriaLabel")}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
+          >
+            <ChevronLeft size={14} />
+          </button>
+        ) : null}
+        {selected ? (
+          <span
+            aria-hidden
+            className="rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.18)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-[color:var(--color-text-primary)]"
+            title={selected.title}
+          >
+            ●
+          </span>
+        ) : null}
+      </aside>
+    );
+  }
   return (
     <aside
       aria-label={t("ariaLabel")}
-      className="flex h-full w-[320px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3 xl:w-[360px]"
+      className="flex h-full w-[280px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3"
     >
-      <header>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-          {t("eyebrow")}
-        </p>
-        <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
-          {t("subtitle")}
-        </p>
+      <header className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
+            {t("eyebrow")}
+          </p>
+          <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
+            {t("subtitle")}
+          </p>
+        </div>
+        {onToggleCollapsed ? (
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={t("collapseAriaLabel")}
+            title={t("collapseAriaLabel")}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
+          >
+            <ChevronRight size={13} />
+          </button>
+        ) : null}
       </header>
       <AnimatePresence mode="wait">
         {!selected ? (

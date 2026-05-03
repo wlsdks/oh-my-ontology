@@ -15,7 +15,12 @@ import { useOntologyInsight } from '@/features/vault-ontology';
  *   데이터를 보고 있다는 시각 cue
  * 로 일관성을 회복한다.
  *
- * OperationsNav 바로 아래에 mount — 각 ontology page 가 본문 시작 전에 한 번씩.
+ * OperationsNav 안에 inline 렌더 — 둘이 한 nav block 으로 시각적 융합돼
+ * vertical chrome 감소. nav landmark 는 부모 (OperationsNav) 가 제공하므로
+ * 본 컴포넌트의 outer 는 div.
+ *
+ * pathname 매칭으로 노출 자체를 결정 — / (RootEntry → OntologyView 인 경우)
+ * 와 /ontology* 에서만 보임. shouldShowOntologySubNav 헬퍼 export.
  */
 interface SubItem {
   href: string;
@@ -42,6 +47,18 @@ function isItemActive(pathname: string, item: SubItem): boolean {
   return item.prefixMatches.some((p) => normalized.startsWith(p));
 }
 
+/**
+ * 현재 pathname 이 ontology surface 인지 — OperationsNav 가 SubNav 행
+ * 노출 여부 결정에 사용.
+ *
+ * - '' (정규화된 /) — RootEntry → OntologyViewPage (vault 선택 시)
+ * - '/ontology' / '/ontology/edit' / '/ontology/insights' / '/ontology/relations'
+ */
+export function shouldShowOntologySubNav(pathname: string): boolean {
+  const normalized = pathname.replace(/\/$/, '');
+  return normalized === '' || normalized.startsWith('/ontology');
+}
+
 export function OntologySubNav() {
   const pathname = usePathname() ?? '';
   const t = useTranslations('ontologySubNav');
@@ -52,49 +69,49 @@ export function OntologySubNav() {
   const edgeCount = insight?.edges.length ?? null;
 
   return (
-    <nav
+    <div
+      id="ontology-sub-nav"
+      role="group"
       aria-label={t('ariaLabel')}
-      className="border-b border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)]"
+      className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[color:var(--color-divider)] px-4 py-1.5 md:px-6"
     >
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 md:px-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--color-text-quaternary)]">
-          {t('caption')}
-          {nodeCount !== null ? (
-            <>
-              <span className="mx-1.5 text-[color:var(--color-text-quaternary)]">·</span>
-              <span className="text-[color:var(--color-text-tertiary)]">
-                {t('nodeCount', { count: nodeCount })}
-              </span>
-              <span className="mx-1.5 text-[color:var(--color-text-quaternary)]">·</span>
-              <span className="text-[color:var(--color-text-tertiary)]">
-                {t('edgeCount', { count: edgeCount ?? 0 })}
-              </span>
-            </>
-          ) : null}
-        </p>
-        <ul className="flex items-center gap-1 overflow-x-auto">
-          {SUB_ITEMS.map((item) => {
-            const active = isItemActive(pathname, item);
-            const Icon = item.icon;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  aria-current={active ? 'page' : undefined}
-                  className={
-                    active
-                      ? 'inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full border border-[color:rgba(94,106,210,0.4)] bg-[color:rgba(94,106,210,0.14)] px-2.5 text-[11px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]'
-                      : 'inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]'
-                  }
-                >
-                  <Icon size={12} aria-hidden />
-                  <span>{t(item.labelKey)}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </nav>
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--color-text-quaternary)]">
+        {t('caption')}
+        {nodeCount !== null ? (
+          <>
+            <span className="mx-1.5 text-[color:var(--color-text-quaternary)]">·</span>
+            <span className="text-[color:var(--color-text-tertiary)]">
+              {t('nodeCount', { count: nodeCount })}
+            </span>
+            <span className="mx-1.5 text-[color:var(--color-text-quaternary)]">·</span>
+            <span className="text-[color:var(--color-text-tertiary)]">
+              {t('edgeCount', { count: edgeCount ?? 0 })}
+            </span>
+          </>
+        ) : null}
+      </p>
+      <ul className="flex items-center gap-1 overflow-x-auto">
+        {SUB_ITEMS.map((item) => {
+          const active = isItemActive(pathname, item);
+          const Icon = item.icon;
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={
+                  active
+                    ? 'inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full border border-[color:rgba(94,106,210,0.4)] bg-[color:rgba(94,106,210,0.14)] px-2.5 text-[11px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]'
+                    : 'inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]'
+                }
+              >
+                <Icon size={12} aria-hidden />
+                <span>{t(item.labelKey)}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

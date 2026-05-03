@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getOntologyKindIcon, useOntologyKindLabel } from "@/entities/ontology-class";
 import type { ManualNodeKind } from "@/entities/knowledge-graph";
 
@@ -11,6 +12,9 @@ import type { ManualNodeKind } from "@/entities/knowledge-graph";
  * - kind 별 미니 아이콘 (`getOntologyKindIcon` 공용 — Tree / Stub / Search 와 같음)
  * - hover 시 인디고 alpha 톤만 변화 (헌장 §11 — scale 없이 색만)
  * - label + hint 2-line hierarchy
+ *
+ * collapsed 시 280→44px 로 축소, 아이콘만 노출. 인스펙터와 같은 폭으로
+ * 좌우 대칭 + 사용자가 캔버스 공간 더 필요할 때 접을 수 있다.
  */
 const PALETTE_KINDS: Array<{
   kind: Exclude<ManualNodeKind, "document">;
@@ -26,23 +30,84 @@ const PALETTE_KINDS: Array<{
 
 export interface OntologyKindPaletteProps {
   onAddNode: (kind: Exclude<ManualNodeKind, "document">) => void;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 }
 
-export function OntologyKindPalette({ onAddNode }: OntologyKindPaletteProps) {
+export function OntologyKindPalette({
+  onAddNode,
+  collapsed = false,
+  onToggleCollapsed,
+}: OntologyKindPaletteProps) {
   const t = useTranslations("ontologyPages.edit.palette");
   const kindLabel = useOntologyKindLabel();
+
+  if (collapsed) {
+    return (
+      <aside
+        aria-label={t("ariaLabel")}
+        className="flex h-full w-11 shrink-0 flex-col items-center gap-2 border-r border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] py-3"
+      >
+        {onToggleCollapsed ? (
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={t("expandAriaLabel")}
+            title={t("expandAriaLabel")}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
+          >
+            <ChevronRight size={14} />
+          </button>
+        ) : null}
+        <ul className="flex flex-col gap-1.5">
+          {PALETTE_KINDS.map((entry) => {
+            const Icon = getOntologyKindIcon(entry.kind);
+            const label = kindLabel(entry.kind);
+            const hint = t(entry.hintKey);
+            return (
+              <li key={entry.kind}>
+                <button
+                  type="button"
+                  onClick={() => onAddNode(entry.kind)}
+                  aria-label={t("addAriaLabel", { label, hint })}
+                  title={`${label} (${entry.shortcut})`}
+                  className="group flex h-9 w-9 items-center justify-center rounded-md border border-[color:var(--color-divider)] bg-[color:var(--color-elevated)] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(94,106,210,0.46)] hover:bg-[color:rgba(94,106,210,0.08)] hover:text-[color:var(--color-indigo-accent)]"
+                >
+                  <Icon size={14} />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </aside>
+    );
+  }
+
   return (
     <aside
       aria-label={t("ariaLabel")}
-      className="flex h-full w-[200px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3"
+      className="flex h-full w-[280px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3"
     >
-      <header>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
-          {t("eyebrow")}
-        </p>
-        <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
-          {t("subtitle")}
-        </p>
+      <header className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
+            {t("eyebrow")}
+          </p>
+          <p className="mt-1 text-[12px] leading-5 text-[color:var(--color-text-tertiary)]">
+            {t("subtitle")}
+          </p>
+        </div>
+        {onToggleCollapsed ? (
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={t("collapseAriaLabel")}
+            title={t("collapseAriaLabel")}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
+          >
+            <ChevronLeft size={13} />
+          </button>
+        ) : null}
       </header>
       <ul className="flex flex-col gap-1.5">
         {PALETTE_KINDS.map((entry) => {
