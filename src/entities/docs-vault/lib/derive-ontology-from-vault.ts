@@ -324,7 +324,7 @@ export function deriveOntologyFromVault(
 
   if (nodes.size === 0) {
     warnings.push(
-      'vault 의 .md 어디에도 frontmatter `kind:` 가 없어 ontology 후보가 비어있습니다. 문서 상단 `---` 블록에 `kind: project` (또는 capability / element / workflow / decision) 추가 시 즉시 노드로 자랍니다.',
+      'vault 의 .md 어디에도 frontmatter `kind:` 가 없어 ontology 후보가 비어있습니다. 문서 상단 `---` 블록에 `kind: project` (또는 domain / capability / element / document) 추가 시 즉시 노드로 자랍니다.',
     );
   }
 
