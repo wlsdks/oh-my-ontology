@@ -620,20 +620,34 @@ function NodeDetailPanel({
         </div>
       ) : null}
 
-      {/* "근거 수" stat: vault frontmatter 에는 evidenceCount 가 채워지지
-          않아 항상 0 → 표시 의미 0. 둘 다 0 이면 row 자체 hide → 1-col
-          grid 로 단순화. */}
+      {/* DetailRow grid — vault 모드에서는 두 row 모두 의미 0 이라 가려진다:
+          - linkedProjects: vault 노드는 projectIds 가 항상 []
+          - evidenceCount: vault 모드는 evidenceCount 필드 자체가 undefined.
+            evidenceIds.length 로 fallback 하면 sourceSlug 1 개 때문에 항상
+            "1" 노출 → cycle 6 이후 dead UI 라 evidenceCount 명시값일 때만
+            카운트. 하단 "관련 문서" 섹션 + 점프 chip 이 같은 정보 더 풍부
+            하게 보여줌.
+          legacy cloud 모드 (evidenceCount 가 수치로 채워지는 경우) 에서는
+          정상 노출. */}
       {(() => {
-        const evidenceCount = node.evidenceCount ?? node.evidenceIds.length;
+        const evidenceCount = node.evidenceCount ?? 0;
+        const showLinkedProjects = node.projectIds.length > 0;
         const showEvidence = evidenceCount > 0;
+        if (!showLinkedProjects && !showEvidence) return null;
         return (
           <dl
-            className={`grid gap-2 text-[11px] ${showEvidence ? "grid-cols-2" : "grid-cols-1"}`}
+            className={`grid gap-2 text-[11px] ${
+              showLinkedProjects && showEvidence
+                ? "grid-cols-2"
+                : "grid-cols-1"
+            }`}
           >
-            <DetailRow
-              label={t('linkedProjects')}
-              value={node.projectIds.length > 0 ? node.projectIds.join(", ") : "—"}
-            />
+            {showLinkedProjects ? (
+              <DetailRow
+                label={t('linkedProjects')}
+                value={node.projectIds.join(", ")}
+              />
+            ) : null}
             {showEvidence ? (
               <DetailRow label={t('evidenceCount')} value={String(evidenceCount)} />
             ) : null}
