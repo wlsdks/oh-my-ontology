@@ -9,18 +9,6 @@ domains:
   - ai-agent-partner
   - mode-aware-adapters
   - onboarding-ux
-capabilities:
-  - frontmatter-to-ontology
-  - mode-aware-adapter
-  - ontology-hub-mode-aware
-  - topology-sigma-render
-  - mcp-server
-  - builder-vault-write
-elements:
-  - xyflow
-  - file-system-access-api
-  - mcp-sdk
-  - sigma-graphology
 ---
 
 # oh-my-ontology

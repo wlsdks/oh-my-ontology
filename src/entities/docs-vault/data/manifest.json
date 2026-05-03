@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-03T00:03:03.496Z",
+  "generatedAt": "2026-05-03T00:39:45.322Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -3440,20 +3440,6 @@
           "ai-agent-partner",
           "mode-aware-adapters",
           "onboarding-ux"
-        ],
-        "capabilities": [
-          "frontmatter-to-ontology",
-          "mode-aware-adapter",
-          "ontology-hub-mode-aware",
-          "topology-sigma-render",
-          "mcp-server",
-          "builder-vault-write"
-        ],
-        "elements": [
-          "xyflow",
-          "file-system-access-api",
-          "mcp-sdk",
-          "sigma-graphology"
         ]
       },
       "headings": [
@@ -3470,7 +3456,7 @@
       ],
       "excerpt": "마크다운에서 자라는 오픈소스 온톨로지 워크벤치. 사람과 AI agent 가 같이 codebase 의 mental model 을 저작한다. md 가 진실원: vault 의 frontmatter 가 ontology 그대로 localfirst: 사용자 디스크 (vault) 가 단일 진실원. 인증 / 백엔드 의존 0. AI agent partner: MCP 서버를 통해 Claude Code 등이 ontology 를 read/write 3 view: topology (Sigma), tree (/ontology), builder (xyflow ERD)",
       "wordCount": 67,
-      "updatedAt": "2026-05-02T22:24:03.126Z",
+      "updatedAt": "2026-05-03T00:39:40.697Z",
       "mode": "both",
       "linksOut": []
     },
