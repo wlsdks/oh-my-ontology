@@ -18,7 +18,7 @@ function n(
     evidenceIds: [],
     lastApprovedAt: new Date(),
     lastApprovedBy: "system",
-  } as KnowledgeGraphNode;
+  };
 }
 
 describe("buildProjectOntologyCounts", () => {
