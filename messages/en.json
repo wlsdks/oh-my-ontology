@@ -721,6 +721,7 @@
         "exportGraphMlButton": "GraphML ↓",
         "exportGraphMlAriaLabel": "Export current canvas as GraphML (Gephi / Cytoscape)",
         "clearButton": "Clear {nodes} ephemeral / {edges} relations",
+        "clearButtonConfirm": "Click again → permanently remove {nodes} + {edges}",
         "clearAriaLabel": "Clear {nodes} ephemeral nodes and {edges} ephemeral relations",
         "layoutGroupAriaLabel": "Auto-layout algorithm",
         "layoutDagre": "Hierarchy",

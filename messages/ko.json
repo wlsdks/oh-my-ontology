@@ -721,6 +721,7 @@
         "exportGraphMlButton": "GraphML ↓",
         "exportGraphMlAriaLabel": "현재 캔버스를 GraphML (Gephi / Cytoscape) 로 내보내기",
         "clearButton": "임시 {nodes}개 / 관계 {edges}개 지우기",
+        "clearButtonConfirm": "다시 클릭 → {nodes}개 + {edges}개 영구 삭제",
         "clearAriaLabel": "임시 노드 {nodes}개 + 임시 관계 {edges}개 모두 지우기",
         "layoutGroupAriaLabel": "자동 레이아웃 알고리즘",
         "layoutDagre": "계층",

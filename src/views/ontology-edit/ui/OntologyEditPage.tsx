@@ -173,6 +173,14 @@ export function OntologyEditPage() {
     title?: string;
     backlinks: VaultBacklinkMatch[];
   } | null>(null);
+  // Clear-all 두 단계 confirm — 첫 클릭에 confirming=true (3s), 같은 버튼
+  // 다시 클릭 시 실제 clear. 실수로 임시 작업 다 날아가는 회귀 방지.
+  const [clearConfirming, setClearConfirming] = useState(false);
+  useEffect(() => {
+    if (!clearConfirming) return;
+    const timer = setTimeout(() => setClearConfirming(false), 3000);
+    return () => clearTimeout(timer);
+  }, [clearConfirming]);
   const toast = useToast();
 
   const saveEphemeral = useCallback(
@@ -611,19 +619,33 @@ export function OntologyEditPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    clearAll();
-                    clearEphemeralEdges();
+                    if (clearConfirming) {
+                      clearAll();
+                      clearEphemeralEdges();
+                      setClearConfirming(false);
+                    } else {
+                      setClearConfirming(true);
+                    }
                   }}
-                  className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(229,72,77,0.32)] hover:text-[color:var(--color-text-primary)]"
+                  className={
+                    clearConfirming
+                      ? "inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:rgba(229,72,77,0.55)] bg-[color:rgba(229,72,77,0.18)] px-3 text-xs text-[color:rgba(236,116,116,0.95)] transition-colors hover:bg-[color:rgba(229,72,77,0.28)]"
+                      : "inline-flex h-8 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(229,72,77,0.32)] hover:text-[color:var(--color-text-primary)]"
+                  }
                   aria-label={t("clearAriaLabel", {
                     nodes: ephemeralNodes.length,
                     edges: ephemeralEdges.length,
                   })}
                 >
-                  {t("clearButton", {
-                    nodes: ephemeralNodes.length,
-                    edges: ephemeralEdges.length,
-                  })}
+                  {clearConfirming
+                    ? t("clearButtonConfirm", {
+                        nodes: ephemeralNodes.length,
+                        edges: ephemeralEdges.length,
+                      })
+                    : t("clearButton", {
+                        nodes: ephemeralNodes.length,
+                        edges: ephemeralEdges.length,
+                      })}
                 </button>
               </>
             ) : null}
