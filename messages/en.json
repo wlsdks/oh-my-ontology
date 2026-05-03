@@ -3,7 +3,6 @@
     "siteName": "oh-my-ontology",
     "siteTagline": "Open-source ontology workbench",
     "pages": {
-      "home": "oh-my-ontology",
       "topology": "Topology",
       "docs": "Docs Vault",
       "projects": "Projects",

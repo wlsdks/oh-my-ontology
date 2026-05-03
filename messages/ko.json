@@ -3,7 +3,6 @@
     "siteName": "oh-my-ontology",
     "siteTagline": "오픈소스 온톨로지 워크벤치",
     "pages": {
-      "home": "oh-my-ontology",
       "topology": "토폴로지",
       "docs": "Docs Vault",
       "projects": "프로젝트",
