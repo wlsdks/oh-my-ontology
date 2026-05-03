@@ -90,6 +90,7 @@ const MountedGlobalSearch = dynamic(
   { ssr: false },
 );
 import { GestureHint } from "@/widgets/gesture-hint";
+import { PINNED_DOCS_STORAGE_PREFIX } from "@/widgets/docs-vault";
 import { LiveAnnouncer, Tooltip, useToast } from "@/shared/ui";
 import {
   getProjectDetailHref,
@@ -363,7 +364,7 @@ export function HomePage() {
     if (typeof window === "undefined") return;
     try {
       const raw = window.localStorage.getItem(
-        "demo:docs-vault:pinned:v1:server",
+        `${PINNED_DOCS_STORAGE_PREFIX}server`,
       );
       if (!raw) {
         queueMicrotask(() => setDocsPinnedCount(0));
