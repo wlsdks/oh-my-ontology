@@ -15,6 +15,7 @@ export interface ManualSourceChipProps {
  *
  * 향후 cloud collab 단계에서 다른 source 가 추가되면 그때 chip 부활 예정.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- props 시그니처는 caller 호환 유지를 위해 보존
 export function ManualSourceChip(_props: ManualSourceChipProps) {
   return null;
 }

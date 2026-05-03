@@ -142,7 +142,6 @@ function DocsVaultContent() {
       setAdvancedOpen(true);
     }
     // mount 1회만 — 사용자가 직접 닫은 후 reload 시 다시 안 열리게.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [mobileTreeOpen, setMobileTreeOpen] = useState(false);
   const localVault = useLocalVault();
