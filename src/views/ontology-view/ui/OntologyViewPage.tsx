@@ -47,8 +47,8 @@ export function OntologyViewPage() {
   const [selectedNode, setSelectedNode] = useState<KnowledgeGraphNode | null>(null);
   // 글로벌 검색 — ⌘K / Ctrl+K 로 토글, 결과 선택 시 selectedNode 로 점프 / 문서 라우트로 점프.
   const [searchOpen, setSearchOpen] = useState(false);
-  // S5: 1-hop 기본, 사용자가 토글로 2-hop 까지 확장 가능. 노드 변경 시
-  // 자동 1-hop 으로 복귀해 2-hop 의 큰 ego 를 누적해 보지 않게.
+  // 1-hop 기본, 사용자가 토글로 2-hop 까지 확장 가능. 노드 변경 시 자동
+  // 1-hop 으로 복귀해 2-hop 의 큰 ego 를 누적해 보지 않게.
   const [egoHops, setEgoHops] = useState<1 | 2>(1);
   // setSelectedNode + setEgoHops(1) + URL ?node=<id> 동기화를 한 함수로.
   // 트리 / 검색 / neighbor 클릭 / 패널 닫기 모든 진입에서 같은 흐름.
@@ -136,9 +136,8 @@ export function OntologyViewPage() {
 
   return (
     <div>
-      {/* OperationsNav 는 풀폭으로 (다른 운영 페이지 — /knowledge 등 — 과
-          동일 정렬). 이전엔 본문 max-w 안에 같이 갇혀 좌우 여백이 크게 잡혀
-          가운데로 몰려 보이는 회귀가 있었음. */}
+      {/* OperationsNav 는 풀폭으로 (본문 max-w 안에 갇히면 좌우 여백 과대로
+          가운데 몰려 보이는 회귀 회피). */}
       <OperationsNav />
       <div className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
       <section className="mb-8 space-y-3">
@@ -847,7 +846,7 @@ function Stat({
   href?: string;
   /** 라벨이 입문자에게 외계어인 경우 카드 내부에 1 줄 풀설명 (짧게 유지). */
   hint?: string;
-  /** hint 가 길면 별도 풀설명을 호버 title 로. UX-6: 좁은 카드 wrap 회피. */
+  /** hint 가 길면 별도 풀설명을 호버 title 로 — 좁은 카드 wrap 회피. */
   hintFull?: string;
   /** grid 안에서 col-span 등 layout 변형. */
   className?: string;
