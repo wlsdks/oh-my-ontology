@@ -90,27 +90,6 @@ function KindChip({ kind }: { kind: string }) {
   );
 }
 
-/**
- * 노드의 evidence 수 chip — \"이 노드의 출처가 얼마나 많은가\" 가시화.
- * evidence 0 일 때는 미렌더 (chip 노이즈 차단). hover 시 \"이 노드의 출처
- * N개\" native title 툴팁.
- */
-function EvidenceCountChip({ count }: { count: number | undefined }) {
-  const t = useTranslations('ontologyWidgets');
-  if (!count || count <= 0) return null;
-  return (
-    <span
-      data-testid="ontology-tree-evidence-chip"
-      data-evidence-count={count}
-      title={t('tree.evidenceChipTitle', { count })}
-      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-[color:rgba(94,106,210,0.24)] bg-[color:rgba(94,106,210,0.08)] px-1.5 py-[1px] font-mono text-[9px] tracking-[0.04em] text-[color:var(--color-indigo-accent)]"
-    >
-      <span aria-hidden>◆</span>
-      {count}
-    </span>
-  );
-}
-
 function TreeRow({
   treeNode,
   expanded,
@@ -166,7 +145,9 @@ function TreeRow({
         <KindChip kind={treeNode.node.kind} />
         <span className="truncate">{treeNode.node.title}</span>
         <ManualSourceChip source={treeNode.node.source} size="compact" />
-        <EvidenceCountChip count={treeNode.node.evidenceCount} />
+        {/* EvidenceCountChip 은 R10 후 evidenceCount 가 항상 undefined 라
+            영구 미렌더 dead chip 이라 cycle 15 에서 제거. 미래 collab
+            단계에서 외부 evidenceCount 가 다시 채워지면 재도입. */}
         {/* UX-16: 첫 번째 projectIds 를 quaternary mono chip 으로 — 외부
             visitor 가 어느 프로젝트에 속하는지 즉시 인지. 다중 project
             은 truncate, project / document kind 자체는 자기참조라 제외

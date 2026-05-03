@@ -174,7 +174,6 @@
   },
   "ontologyWidgets": {
     "tree": {
-      "evidenceChipTitle": "이 노드의 근거 (evidence) {count}개 — 클릭해서 상세 보기",
       "expand": "펼치기",
       "collapse": "접기",
       "searchPlaceholder": "트리에서 노드 찾기 — 한·영 OK",

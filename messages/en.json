@@ -174,7 +174,6 @@
   },
   "ontologyWidgets": {
     "tree": {
-      "evidenceChipTitle": "{count} pieces of evidence for this node — click for details",
       "expand": "Expand",
       "collapse": "Collapse",
       "searchPlaceholder": "Find a node in the tree — Korean or English",
