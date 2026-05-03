@@ -19,7 +19,7 @@ interface DetailCardProps {
 }
 
 /**
- * 프로젝트 상세·사이드바·어드민 등에서 재사용하는 공통 카드 프레임.
+ * 프로젝트 상세·사이드바 등에서 재사용하는 공통 카드 프레임.
  * rounded-[28px] · border · bg-panel 디자인 토큰 통일. 헤더/본문 분리.
  */
 export function DetailCard({

@@ -20,9 +20,7 @@ interface StaggeredFadeInProps {
 
 /**
  * Stagger fade-in — `opacity 0 → 1` + `translateY {y}px → 0` 을 자식들에
- * 순차 적용. 디자인 시스템이 약속한 motion 패턴을 단일 컴포넌트로 통일
- * (eval Aesthetic agent 의 P1 finding — landing 의 3 카드, insights 의
- * 4 panels 등에 stagger 가 약속됐는데 미구현이었음).
+ * 순차 적용. 디자인 시스템이 약속한 motion 패턴을 단일 컴포넌트로 통일.
  *
  * 동작:
  * - mount 후 1 tick 뒤에 `opacity` + `transform` 활성화 (initial paint

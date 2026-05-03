@@ -19,7 +19,7 @@ interface EmptyStateProps {
    */
   tone?: 'dashed' | 'solid';
   /**
-   * 정렬. `left` (기본) 는 카드 / 목록 위 ㅏ안의 일관된 흐름. `center` 는
+   * 정렬. `left` (기본) 는 카드 / 목록 안의 일관된 흐름. `center` 는
    * 페이지 본문이 통째로 비어 단 한 문장만 보여줄 때.
    */
   align?: 'left' | 'center';
