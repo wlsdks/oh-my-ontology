@@ -14,6 +14,7 @@ import { MOTION, SPRING } from "@/shared/motion";
 import { ArrowUpRight, BookOpen, ChevronDown, X } from "lucide-react";
 import { cn } from "@/shared/lib/cn";
 import {
+  buildDocsVaultHref,
   findRelatedDocs,
   vaultManifest,
   type VaultManifest,
@@ -321,11 +322,9 @@ export function ProjectDrawer({
     ? getProjectDetailHref(project.slug)
     : "#";
   // 관련 문서 top 1 slug — 있으면 문서 볼트가 그 문서를 바로 열게 딥링크.
-  // 없으면 볼트 홈 ('/docs/') 로.
+  // 없으면 볼트 홈 ('/docs/') 로. URL 형식은 buildDocsVaultHref 에 위임.
   const primaryRelatedDocSlug = relatedDocs[0]?.doc.slug ?? null;
-  const docsVaultHref = primaryRelatedDocSlug
-    ? `/docs/?slug=${encodeURIComponent(primaryRelatedDocSlug)}`
-    : "/docs/";
+  const docsVaultHref = buildDocsVaultHref({ slug: primaryRelatedDocSlug });
   // `<Link>` 의 기본 click 이 framer-motion drag 속성·drawer 언마운트와
   // race 해 가끔 navigate 가 소실되는 케이스가 보고됐다. onClick 에서
   // 명시적으로 router.push 해 drawer 닫히기 전에 navigation 을 먼저 kick
@@ -863,7 +862,7 @@ export function ProjectDrawer({
                                 return (
                                   <li key={m.doc.slug}>
                                     <Link
-                                      href={`/docs/?slug=${encodeURIComponent(m.doc.slug)}`}
+                                      href={buildDocsVaultHref({ slug: m.doc.slug })}
                                       className="group flex flex-col gap-1 rounded-md border border-transparent px-2 py-1 text-left text-[12px] text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(139,151,255,0.3)] hover:text-[color:var(--color-text-primary)]"
                                     >
                                       <span className="flex items-center gap-2">
