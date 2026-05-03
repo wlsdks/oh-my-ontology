@@ -14,7 +14,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { ChevronDown, Sparkles } from "lucide-react";
-import { Link } from "@/i18n/navigation";
 import { cn } from "@/shared/lib/cn";
 import { slugify } from "@/shared/lib/slugify";
 import { Button } from "@/shared/ui";
@@ -945,12 +944,6 @@ export function ProjectForm({
                   </span>
                 </Hint>
               )}
-              <Hint>
-                <Link href="/settings/categories" className="underline">
-                  {t("fields.categoryManageHintLink")}
-                </Link>
-                {t("fields.categoryManageHintSuffix")}
-              </Hint>
             </FieldRow>
 
             <FieldRow
@@ -975,12 +968,6 @@ export function ProjectForm({
                   </span>
                 </Hint>
               )}
-              <Hint>
-                <Link href="/settings/statuses" className="underline">
-                  {t("fields.statusManageHintLink")}
-                </Link>
-                {t("fields.statusManageHintSuffix")}
-              </Hint>
             </FieldRow>
           </div>
         </FormSection>

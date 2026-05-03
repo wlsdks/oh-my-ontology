@@ -31,25 +31,17 @@ function normalizeReturnTo(returnTo?: string): string {
   if (!returnTo) return DEFAULT_RETURN_TO;
   if (
     !returnTo.startsWith("/projects") &&
-    !returnTo.startsWith("/project/") &&
-    !returnTo.startsWith("/settings/")
+    !returnTo.startsWith("/project/")
   ) {
     return DEFAULT_RETURN_TO;
   }
   return returnTo;
 }
 
-type ReturnLabelKey =
-  | "returnToProjectDetail"
-  | "returnToProjectsList"
-  | "returnToCategories"
-  | "returnToStatuses";
+type ReturnLabelKey = "returnToProjectDetail" | "returnToProjectsList";
 
 function resolveReturnLabelKey(returnTo: string): ReturnLabelKey {
   if (returnTo.startsWith("/project/")) return "returnToProjectDetail";
-  if (returnTo.startsWith("/projects")) return "returnToProjectsList";
-  if (returnTo.startsWith("/settings/categories")) return "returnToCategories";
-  if (returnTo.startsWith("/settings/statuses")) return "returnToStatuses";
   return "returnToProjectsList";
 }
 
