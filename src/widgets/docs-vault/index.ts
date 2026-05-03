@@ -8,7 +8,6 @@ export { DocsVaultAudienceMismatchNotice } from './ui/DocsVaultAudienceMismatchN
 export { DocsVaultGraph } from './ui/DocsVaultGraph';
 export { DocsVaultFolderTopology } from './ui/DocsVaultFolderTopology';
 export { DocsVaultProjectDepsBar } from './ui/DocsVaultProjectDepsBar';
-export { DocsVaultRelationshipRadar } from './ui/DocsVaultRelationshipRadar';
 export { DocsVaultStats } from './ui/DocsVaultStats';
 export { DocsVaultTags } from './ui/DocsVaultTags';
 export { searchDocs } from './lib/search';
@@ -25,12 +24,3 @@ export {
   togglePinnedDoc,
   PINNED_DOCS_STORAGE_PREFIX,
 } from './lib/pinned-docs';
-export {
-  clearDismissedRadarReviewState,
-  makeRadarReviewKey,
-  readRadarReviewState,
-  updateRadarReviewState,
-  writeRadarReviewState,
-  RADAR_REVIEW_STORAGE_PREFIX,
-} from './lib/radar-review-state';
-export type { RadarReviewState } from './lib/radar-review-state';

@@ -42,7 +42,6 @@ import { useDocsVaultScrollSpy } from '../lib/use-scroll-spy';
 import {
   buildDocsVaultHref,
   buildTopologyFromVault,
-  findRelationshipRadarSuggestions,
   type FolderTopologyBuild,
   vaultManifest,
   type VaultManifest,
@@ -51,7 +50,6 @@ import {
 import { DocsVaultAudienceMismatchNotice } from '@/widgets/docs-vault/ui/DocsVaultAudienceMismatchNotice';
 import { DocsVaultEditor } from '@/widgets/docs-vault/ui/DocsVaultEditor';
 import { DocsVaultProjectDepsBar } from '@/widgets/docs-vault/ui/DocsVaultProjectDepsBar';
-import { DocsVaultRelationshipRadar } from '@/widgets/docs-vault/ui/DocsVaultRelationshipRadar';
 import { DocsVaultStats } from '@/widgets/docs-vault/ui/DocsVaultStats';
 import { DocsVaultUnifiedPalette } from '@/widgets/docs-vault/ui/DocsVaultUnifiedPalette';
 import { DocsVaultViewer } from '@/widgets/docs-vault/ui/DocsVaultViewer';
@@ -61,12 +59,6 @@ import {
   readPinnedDocs,
   togglePinnedDoc,
 } from '@/widgets/docs-vault/lib/pinned-docs';
-import {
-  clearDismissedRadarReviewState,
-  makeRadarReviewKey,
-  readRadarReviewState,
-  updateRadarReviewState,
-} from '@/widgets/docs-vault/lib/radar-review-state';
 import {
   migrateLegacyRecentDocs,
   pushRecentDoc,
@@ -176,12 +168,6 @@ function DocsVaultContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [mobileTreeOpen, setMobileTreeOpen] = useState(false);
-  const [radarConfirmedKeys, setRadarConfirmedKeys] = useState<Set<string>>(
-    () => new Set(),
-  );
-  const [radarDismissedKeys, setRadarDismissedKeys] = useState<Set<string>>(
-    () => new Set(),
-  );
   const localVault = useLocalVault();
 
   const replaceUrlState = useCallback(
@@ -260,9 +246,6 @@ function DocsVaultContent() {
     scheduleStateSync(() => {
       setRecentSlugs(readRecentDocs(recentKey));
       setPinnedSlugs(readPinnedDocs(recentKey));
-      const reviewState = readRadarReviewState(recentKey);
-      setRadarConfirmedKeys(reviewState.confirmed);
-      setRadarDismissedKeys(reviewState.dismissed);
     });
   }, [recentKey]);
 
@@ -1040,79 +1023,6 @@ function DocsVaultContent() {
     selectedDoc !== null &&
     selectedDoc.mode !== audience &&
     selectedDoc.mode !== 'both';
-  const selectedRadarDismissedSlugs = useMemo(() => {
-    if (!selectedSlug) return new Set<string>();
-    const prefix = `${selectedSlug}->`;
-    return new Set(
-      [...radarDismissedKeys]
-        .filter((key) => key.startsWith(prefix))
-        .map((key) => key.slice(prefix.length)),
-    );
-  }, [radarDismissedKeys, selectedSlug]);
-  const selectedRadarConfirmedSlugs = useMemo(() => {
-    if (!selectedSlug) return new Set<string>();
-    const prefix = `${selectedSlug}->`;
-    return new Set(
-      [...radarConfirmedKeys]
-        .filter((key) => key.startsWith(prefix))
-        .map((key) => key.slice(prefix.length)),
-    );
-  }, [radarConfirmedKeys, selectedSlug]);
-  const selectedRadarDismissedCount = selectedRadarDismissedSlugs.size;
-  const radarSuggestions = useMemo(
-    () =>
-      findRelationshipRadarSuggestions(manifest.docs, selectedSlug, {
-        audience,
-        dismissedSlugs: selectedRadarDismissedSlugs,
-        limit: 4,
-      }),
-    [audience, manifest.docs, selectedRadarDismissedSlugs, selectedSlug],
-  );
-  const handleConfirmRadarSuggestion = useCallback(
-    (slug: string) => {
-      if (!selectedSlug) return;
-      const next = updateRadarReviewState(
-        recentKey,
-        makeRadarReviewKey(selectedSlug, slug),
-        'confirmed',
-      );
-      setRadarConfirmedKeys(next.confirmed);
-      setRadarDismissedKeys(next.dismissed);
-    },
-    [recentKey, selectedSlug],
-  );
-  const handleDismissRadarSuggestion = useCallback(
-    (slug: string) => {
-      if (!selectedSlug) return;
-      const next = updateRadarReviewState(
-        recentKey,
-        makeRadarReviewKey(selectedSlug, slug),
-        'dismissed',
-      );
-      setRadarConfirmedKeys(next.confirmed);
-      setRadarDismissedKeys(next.dismissed);
-    },
-    [recentKey, selectedSlug],
-  );
-  const handleResetRadarSuggestion = useCallback(
-    (slug: string) => {
-      if (!selectedSlug) return;
-      const next = updateRadarReviewState(
-        recentKey,
-        makeRadarReviewKey(selectedSlug, slug),
-        'pending',
-      );
-      setRadarConfirmedKeys(next.confirmed);
-      setRadarDismissedKeys(next.dismissed);
-    },
-    [recentKey, selectedSlug],
-  );
-  const handleClearDismissedRadarSuggestions = useCallback(() => {
-    if (!selectedSlug) return;
-    const next = clearDismissedRadarReviewState(recentKey, selectedSlug);
-    setRadarConfirmedKeys(next.confirmed);
-    setRadarDismissedKeys(next.dismissed);
-  }, [recentKey, selectedSlug]);
   const backlinksDetail = selectedSlug
     ? (manifest.backlinksDetail?.[selectedSlug] ?? [])
     : [];
@@ -1828,18 +1738,6 @@ function DocsVaultContent() {
                         docMode={selectedDoc.mode}
                         currentAudience={audience}
                         onSwitchAudience={handleAudienceChange}
-                      />
-                    ) : null}
-                    {audience === 'planner' ? (
-                      <DocsVaultRelationshipRadar
-                        suggestions={radarSuggestions}
-                        confirmedSlugs={selectedRadarConfirmedSlugs}
-                        dismissedCount={selectedRadarDismissedCount}
-                        onNavigate={handleSelect}
-                        onConfirm={handleConfirmRadarSuggestion}
-                        onReset={handleResetRadarSuggestion}
-                        onDismiss={handleDismissRadarSuggestion}
-                        onClearDismissed={handleClearDismissedRadarSuggestions}
                       />
                     ) : null}
                     {selectedDoc.slug.startsWith('projects/') &&

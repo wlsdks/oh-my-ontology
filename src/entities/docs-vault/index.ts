@@ -6,8 +6,6 @@ export type {
   VaultMode,
   VaultTreeNode,
 } from './model/types';
-export type { RelationshipRadarSuggestion } from './model/relationship-radar';
-export { findRelationshipRadarSuggestions } from './model/relationship-radar';
 export { default as vaultManifest } from './data/manifest.json';
 export {
   buildLocalManifest,
