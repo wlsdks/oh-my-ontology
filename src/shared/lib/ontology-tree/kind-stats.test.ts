@@ -15,7 +15,6 @@ function n(id: string, kind: string): KnowledgeGraphNode {
     projectIds: [],
     parentId: null,
     summary: "",
-    evidenceCount: 0,
     accountId: null,
     source: "extraction",
   } as unknown as KnowledgeGraphNode;

@@ -68,9 +68,6 @@ export interface KnowledgeGraphNode {
   projectIds: string[];
   summary?: string;
   evidenceIds: string[];
-  /** evidenceIds.length 로 derived. UI 에서 \"근거 수\" 표시용. vault sentinel
-   *  모드는 0. */
-  evidenceCount?: number;
   lastApprovedAt: Date;
   lastApprovedBy: string;
   /** 항상 \`'manual'\` (사람 / AI agent 직접 작성) — ManualSourceChip surface. */
@@ -87,8 +84,6 @@ export interface KnowledgeGraphEdge {
   label?: string;
   projectIds: string[];
   evidenceIds: string[];
-  /** evidenceIds.length 로 derived. \"강한 관계\" 정렬 + edge 두께 가중에 쓴다. */
-  evidenceCount?: number;
   lastApprovedAt: Date;
   lastApprovedBy: string;
   /** node 와 동일 — \`'manual'\` */

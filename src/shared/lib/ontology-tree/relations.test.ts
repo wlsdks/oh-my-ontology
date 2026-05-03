@@ -24,7 +24,6 @@ const edge = (
   from: string,
   to: string,
   type = "depends_on",
-  evidenceCount?: number,
   evidenceIds: string[] = [],
 ): KnowledgeGraphEdge => ({
   id,
@@ -33,7 +32,6 @@ const edge = (
   type,
   projectIds: [],
   evidenceIds,
-  evidenceCount,
   lastApprovedAt: APPROVED_AT,
   lastApprovedBy: "test",
 });
