@@ -30,7 +30,7 @@ export function isVaultSentinelDate(d: Date | null | undefined): boolean {
 }
 
 // 빌드타임 dogfood 매니페스트 — JSON import. mode === 'static' 일 때
-// 진실원. local/cloud 와는 별 path.
+// 진실원. local 모드와는 별 path.
 const staticVaultManifest = staticVaultManifestRaw as VaultManifest;
 const STATIC_DERIVATION: VaultOntologyDerivation =
   deriveOntologyFromVault(staticVaultManifest);

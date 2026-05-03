@@ -71,9 +71,8 @@ export function VaultOntologyStubsPanel() {
         {t('intro')}
       </p>
 
-      {/* 다음 단계 안내 — frontmatter 만으로도 충분하지만 시각적으로 더
-          편하게 다듬고 싶을 때의 옵션. mission v2 에서 cloud 검수 큐 promote
-          path 가 폐기됐으므로 빌더 한 가지만 명시. */}
+      {/* 다음 단계 안내 — frontmatter 만으로도 ontology 가 자라지만,
+          시각적으로 다듬고 싶을 때 빌더 (\`/ontology/edit\`) 가 옵션. */}
       <details className="mt-3 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-2)] px-3 py-2 text-[12px] text-[color:var(--color-text-secondary)]">
         <summary className="cursor-pointer font-[var(--font-weight-signature)]">
           {t('polishSummary')}

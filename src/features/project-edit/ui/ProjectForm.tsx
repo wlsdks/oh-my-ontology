@@ -1094,9 +1094,8 @@ export function ProjectForm({
             <Hint>{t("fields.dependenciesHint")}</Hint>
           </FieldRow>
 
-          {/* R10b — Screenshot uploader 는 Firebase Storage 의존이라 cloud surface
-              제거와 함께 삭제. 사용자가 markdown 안에 이미지 인라인하거나 vault
-              내부 image asset 으로 처리하는 흐름이 local-first 정합. */}
+          {/* Screenshot uploader 없음 — local-first 흐름은 markdown 안
+              이미지 인라인 또는 vault 내부 image asset 으로 처리. */}
         </FormSection>
 
         <FormSection
