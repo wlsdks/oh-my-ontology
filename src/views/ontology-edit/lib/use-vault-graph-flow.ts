@@ -19,10 +19,8 @@ export type KindLabelResolver = (kind: string) => string;
 export type EdgeLabelResolver = (edgeKey: string) => string;
 
 /**
- * mission v2 빌더 — 로컬 vault 의 .md 노드를 캔버스 background 로 노출.
- *
- * cloud `useApprovedGraphFlow` 와 동일한 shape (xyflow Node[]/Edge[]) 를
- * 반환하되 진실원이 vault manifest 다. node id = vault slug (예:
+ * 빌더 — vault 의 .md 노드를 캔버스 background 로 노출. xyflow Node[]/Edge[]
+ * 를 반환하며 진실원은 vault manifest. node id = vault slug (예:
  * `capabilities/mcp-server`) — 인스펙터가 이 id 로 manifest.docs 에서
  * 다시 frontmatter 를 lookup 하고 vault.updateFrontmatter 로 patch.
  *

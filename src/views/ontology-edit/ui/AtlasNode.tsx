@@ -10,7 +10,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
  * - 단일 인디고 alpha (hue 살짝 다름 — kind 별 차별화)
  * - glow / 보라핑크 / scale hover X
  * - rounded + soft shadow (정적, 무채색 alpha)
- * - approved (실선 border) vs ephemeral (dashed border) 시각 구분
+ * - vault (실선 border) vs ephemeral (dashed border) 시각 구분
  */
 export interface AtlasNodeData {
   label: string;
