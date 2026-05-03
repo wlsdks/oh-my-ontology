@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
@@ -194,6 +194,16 @@ function EphemeralDetail({
     (untitledPlaceholder !== undefined && node.title === untitledPlaceholder);
   const canSave = !titleEmpty && Boolean(onSave) && !saving;
   const fallbackPreview = t("previewSlugFallback");
+  // 새 ephemeral 노드가 select 되면 name input 에 즉시 focus + 전체 선택 →
+  // 사용자가 P/D/C/E 단축키로 노드 추가 후 바로 타이핑 시작 가능 (인스펙터
+  // 클릭 1단계 제거). node.id 별로 한 번만 발화.
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    const input = nameInputRef.current;
+    if (!input) return;
+    input.focus({ preventScroll: true });
+    input.select();
+  }, [node.id]);
   return (
     <div className="flex flex-col gap-3 rounded-md border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.06)] p-3">
       <div className="flex items-center justify-between gap-2">
@@ -215,9 +225,17 @@ function EphemeralDetail({
           {t("nameLabel")}
         </span>
         <input
+          ref={nameInputRef}
           type="text"
           value={node.title}
           onChange={(e) => onRename(node.id, e.target.value)}
+          onKeyDown={(e) => {
+            // Enter → 즉시 저장 (canSave 조건 통과 시). 빌더 productivity 핵심 단축.
+            if (e.key === "Enter" && canSave && onSave) {
+              e.preventDefault();
+              void onSave(node.id);
+            }
+          }}
           placeholder={t("namePlaceholder")}
           className="rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-elevated)] px-2.5 py-1.5 text-[13px] text-[color:var(--color-text-primary)] outline-none transition-colors focus:border-[color:var(--color-indigo-brand)]"
         />
