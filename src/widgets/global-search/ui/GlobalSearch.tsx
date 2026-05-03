@@ -318,7 +318,12 @@ export function GlobalSearch({
               }
             >
               {ontologyResults.map(({ node }) => {
-                const evidenceCount = node.evidenceCount ?? node.evidenceIds.length;
+                // vault 모드는 node.evidenceCount 가 undefined 이고
+                // evidenceIds 에는 cycle 6 이후 sourceSlug 1 개가 항상 들어
+                // 있어 fallback (?? evidenceIds.length) 을 쓰면 모든 결과에
+                // "근거 1" chip 이 떠서 misleading. evidenceCount 명시값일
+                // 때만 chip 노출 (legacy cloud 모드 한정으로 의미 있음).
+                const evidenceCount = node.evidenceCount ?? 0;
                 return (
                   <Command.Item
                     key={`ontology:${node.id}`}
