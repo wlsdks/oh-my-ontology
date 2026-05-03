@@ -1,5 +1,5 @@
 /**
- * Ontology tree builder (T-6a).
+ * Ontology tree builder.
  *
  * KnowledgeGraphNode + KnowledgeGraphEdge → 트리 구조.
  *

@@ -52,9 +52,8 @@ export const DEFAULT_ONTOLOGY_CLASSES: OntologyClassInput[] = [
     createdBy: 'system',
   },
   {
-    // T-12: stub placeholder. frontmatter relates.target 이 미존재 노드를
-    // 가리킬 때 자동 생성된다. 검수자가 promote (kind 선택) 또는 dismiss.
-    // 결정: 2026-04-27-ontology-id-resolution.md §2.
+    // stub placeholder kind — frontmatter relates.target 이 미존재 노드를
+    // 가리킬 때 자동 생성된다.
     id: 'unknown',
     name: '미지',
     description: 'frontmatter relates.target 이 가리키는 미존재 노드의 placeholder. 검수자가 promote 또는 dismiss.',

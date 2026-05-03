@@ -249,10 +249,8 @@ export function ProjectDetailPage({
   );
   const { categories, statuses, categoryLabel, statusLabel } = useTaxonomy();
 
-  // 상세에서 Cmd+K · ? 는 모두 현재 페이지 내에서 오버레이로 열린다.
-  // 비로그인 방문자는 `/`가 ServiceEntryLanding 이라 홈으로 튕기면 오버레이가
-  // 사라지는 현상이 있었기 때문(T-11, T-16). 상세에서 바로 띄워야 "지금 여기"
-  // 맥락을 유지한다.
+  // 상세에서 Cmd+K · ? 는 모두 현재 페이지 내 오버레이로 열린다 — 홈으로
+  // 튕기면 오버레이가 사라져 \"지금 여기\" 맥락을 잃기 때문.
   const [searchOpen, setSearchOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   useTypingShortcuts([

@@ -30,11 +30,11 @@ import { OperationsNav } from "@/widgets/operations-nav";
 import { Tooltip, useToast } from "@/shared/ui";
 
 /**
- * `/ontology` — ontology view v0 (T-6c).
+ * `/ontology` — ontology view.
  *
- * `knowledgePublic{Nodes,Edges}` 를 account-scoped 로 구독해 트리 구조로
- * 표시. Document 노드는 트리에서 제외 (근거 노드). 선택 행 클릭 시
- * 기본 동작은 noop — 추후 드릴-인 (T-6d 또는 별도 task) 으로 확장.
+ * vault frontmatter (또는 빌드타임 dogfood) 를 트리 구조로 표시. document
+ * 노드는 트리에서 제외 (근거 노드). 선택 행 클릭 시 기본 동작은 noop —
+ * 인스펙터 패널이 옆에서 디테일을 보여준다.
  */
 export function OntologyViewPage() {
   const t = useTranslations('ontologyView');
