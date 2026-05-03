@@ -24,13 +24,12 @@ export interface MountedGlobalSearchProps {
    */
   onSelectProject?: (project: Project) => void;
   /**
-   * Fire 2 — 홈 토폴로지의 SearchPalette (⌘K) 와 동거. 기본 hotkey 를 ⇧⌘K
-   * 로 변경.
+   * 홈 토폴로지의 SearchPalette (⌘K) 와 동거 시 기본 hotkey 를 ⇧⌘K 로 변경.
    */
   hotkeyShift?: boolean;
   /**
-   * Fire 2 — 외부에서 open state 를 관리하고 싶을 때 (다른 hotkey / 버튼 등).
-   * 미지정 시 self-managed.
+   * 외부에서 open state 를 관리하고 싶을 때 (다른 hotkey / 버튼 등). 미지정
+   * 시 self-managed.
    */
   open?: boolean;
   onOpenChange?: (next: boolean) => void;
@@ -39,11 +38,8 @@ export interface MountedGlobalSearchProps {
 /**
  * 글로벌 검색 단일 mount — vault frontmatter (또는 빌드타임 dogfood) 의
  * ontology nodes + 사용자 projects 구독, ⌘K hotkey 등록, GlobalSearch 렌더
- * 모두 처리.
- *
- * mission v2 정렬: cloud markdown 호스팅 (`/knowledge/documents/*`) 제거 후
- * 검색 source 는 ontology nodes + projects 두 개. raw markdown 검색은 vault
- * 가 진실원이라 `/docs` 의 자체 검색이 담당.
+ * 모두 처리. raw markdown 검색은 vault 가 진실원이라 \`/docs\` 의 자체 검색이
+ * 담당.
  */
 export function MountedGlobalSearch({
   onSelectNode,
