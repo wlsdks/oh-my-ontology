@@ -4,8 +4,8 @@ import { useMemo } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import {
-  KNOWLEDGE_EDGE_TYPES,
   ManualSourceChip,
+  buildEdgeTypeRows,
   useEdgeTypeLabel,
 } from "@/entities/knowledge-graph";
 import { useOntologyInsight } from "@/features/vault-ontology";
@@ -88,19 +88,10 @@ export function OntologyInsightsPage() {
     () => (insight ? computeEdgeTypeDistribution(insight.edges) : new Map<string, number>()),
     [insight],
   );
-  const edgeTypeRows = useMemo(() => {
-    const known = KNOWLEDGE_EDGE_TYPES.map((t) => ({
-      type: t,
-      count: edgeTypeDist.get(t) ?? 0,
-    }));
-    const extra = Array.from(edgeTypeDist.entries())
-      .filter(
-        ([t]) =>
-          !KNOWLEDGE_EDGE_TYPES.includes(t as (typeof KNOWLEDGE_EDGE_TYPES)[number]),
-      )
-      .map(([type, count]) => ({ type, count }));
-    return [...known, ...extra].filter((r) => r.count > 0);
-  }, [edgeTypeDist]);
+  const edgeTypeRows = useMemo(
+    () => buildEdgeTypeRows(edgeTypeDist),
+    [edgeTypeDist],
+  );
   // edgeTypeRows 는 canonical 순서 (contains, belongs_to, …) 라 [0] 가 max
   // 가 아니다 — 실제 max 는 reduce 로 별도 계산. 이전엔 bar pct 가 잘못된
   // baseline 으로 정규화돼 100% 초과 / 비율 왜곡 회귀가 있었다.

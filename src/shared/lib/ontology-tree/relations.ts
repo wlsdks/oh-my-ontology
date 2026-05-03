@@ -1,4 +1,7 @@
-import type { KnowledgeGraphEdge, KnowledgeGraphNode } from "@/entities/knowledge-graph";
+import type {
+  KnowledgeGraphEdge,
+  KnowledgeGraphNode,
+} from "@/entities/knowledge-graph";
 
 /**
  * edge type 별 카운트. 입력 순서 보존 — UI 가 KNOWLEDGE_EDGE_TYPES 정렬 적용 가능.

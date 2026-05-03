@@ -3,7 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { KNOWLEDGE_EDGE_TYPES, useEdgeTypeLabel } from "@/entities/knowledge-graph";
+import { buildEdgeTypeRows, useEdgeTypeLabel } from "@/entities/knowledge-graph";
 import { useOntologyInsight } from "@/features/vault-ontology";
 import { computeEdgeTypeDistribution } from "@/shared/lib/ontology-tree";
 import { MountedGlobalSearch } from "@/widgets/global-search";
@@ -27,14 +27,7 @@ export function OntologyRelationsPage() {
     [insight],
   );
 
-  // KNOWLEDGE_EDGE_TYPES 순서로 정렬 + 외래 type 은 끝에 추가.
-  const typeRows = useMemo(() => {
-    const known = KNOWLEDGE_EDGE_TYPES.map((t) => ({ type: t, count: typeDist.get(t) ?? 0 }));
-    const extra = Array.from(typeDist.entries())
-      .filter(([t]) => !KNOWLEDGE_EDGE_TYPES.includes(t as (typeof KNOWLEDGE_EDGE_TYPES)[number]))
-      .map(([type, count]) => ({ type, count }));
-    return [...known, ...extra];
-  }, [typeDist]);
+  const typeRows = useMemo(() => buildEdgeTypeRows(typeDist), [typeDist]);
   const typeMax = useMemo(
     () => typeRows.reduce((m, r) => Math.max(m, r.count), 0),
     [typeRows],
@@ -123,9 +116,7 @@ export function OntologyRelationsPage() {
             </p>
           </header>
           <ul className="space-y-2">
-            {typeRows
-              .filter((r) => r.count > 0)
-              .map(({ type, count }) => {
+            {typeRows.map(({ type, count }) => {
                 const pct = typeMax > 0 ? Math.round((count / typeMax) * 100) : 0;
                 return (
                   <li key={type} className="px-2 py-1 text-[12px]">
