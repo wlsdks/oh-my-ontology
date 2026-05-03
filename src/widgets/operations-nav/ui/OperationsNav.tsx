@@ -50,8 +50,9 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
  * nav 에 메뉴를 묻으면 sub-surface 사이 점프가 끊겨 일관성 잃는다.
  *
  * 데스크톱 (md+): 탭 + 우측 보조 (ModeBadge · LocaleSwitch · ThemeToggle · Projects).
- * 모바일 (<md): 탭만 horizontal scroll chip row 로 노출. 보조 버튼은
- *   BottomTabBar 가 대체. iOS / Android 음원·뱅킹 앱에서 흔한 sub-tab.
+ * 모바일 (<md): 탭만 horizontal scroll chip row 로 노출 (NAV_ITEMS 3개가
+ *   375 폭 안에 자연스럽게 흐름). 보조 버튼은 BottomTabBar 가 대체. iOS /
+ *   Android 음원·뱅킹 앱에서 흔한 sub-tab.
  *
  * 활성 표시는 pathname prefix 매칭.
  */
@@ -105,7 +106,7 @@ export function OperationsNav() {
     const active = item.prefixes.some((p) => pathname.startsWith(p));
     const href = item.basePath;
     // 모바일 chip 은 본문 톤 (text-[12px]) 유지하되 padding 살짝 줄여
-    // 5 개가 375 폭 가로 스크롤 안에 자연스럽게 흐르게.
+    // 3 개가 375 폭 가로 스크롤 안에 자연스럽게 흐르게.
     const sizeClass =
       variant === 'mobile' ? 'h-8 px-2.5 text-[12px]' : 'h-8 px-3 text-[12px]';
     return (
@@ -136,7 +137,7 @@ export function OperationsNav() {
       aria-label={t('ariaLabel')}
       className="sticky top-0 z-30 border-b border-[color:var(--color-border-soft)] bg-[color:var(--color-nav-surface)]"
     >
-      {/* 데스크톱 — 워크스페이스 복귀 + 5 탭 + 우측 보조 버튼들. DOM
+      {/* 데스크톱 — 워크스페이스 복귀 + 3 탭 + 우측 보조 버튼들. DOM
           순서상 먼저 둬 e2e locator (`first()`) 가 hidden mobile 이 아닌
           visible desktop 을 잡게 함. */}
       <div className="hidden items-center justify-between gap-3 px-4 py-2.5 md:flex md:px-6">
