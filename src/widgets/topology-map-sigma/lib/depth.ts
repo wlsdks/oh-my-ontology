@@ -14,9 +14,12 @@ export function computeDepthMap(
   if (!source || !graph.hasNode(source)) return result;
 
   result.set(source, 0);
+  // BFS — head pointer 로 dequeue O(1). \`Array.shift()\` 는 O(n) 이라
+  // 큰 그래프에서 O(n²) 회귀.
   const queue: string[] = [source];
-  while (queue.length > 0) {
-    const current = queue.shift()!;
+  let head = 0;
+  while (head < queue.length) {
+    const current = queue[head++];
     const d = result.get(current) ?? 0;
     graph.forEachNeighbor(current, (neighbor) => {
       if (result.has(neighbor)) return;
@@ -41,8 +44,9 @@ export function shortestPath(
   const parent = new Map<string, string>();
   parent.set(source, source);
   const queue: string[] = [source];
-  while (queue.length > 0) {
-    const current = queue.shift()!;
+  let head = 0;
+  while (head < queue.length) {
+    const current = queue[head++];
     if (current === target) break;
     graph.forEachNeighbor(current, (neighbor) => {
       if (parent.has(neighbor)) return;

@@ -192,9 +192,11 @@ function hasCircularDep(
 ): boolean {
   const bySlug = new Map(build.projects.map((p) => [p.slug, p]));
   const visited = new Set<string>();
+  // BFS — head pointer 로 dequeue O(1) (\`Array.shift()\` 는 O(n)).
   const queue = [candidate];
-  while (queue.length > 0) {
-    const cur = queue.shift()!;
+  let head = 0;
+  while (head < queue.length) {
+    const cur = queue[head++];
     if (cur === target) return true;
     if (visited.has(cur)) continue;
     visited.add(cur);
