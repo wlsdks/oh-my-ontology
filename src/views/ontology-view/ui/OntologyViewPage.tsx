@@ -282,6 +282,7 @@ export function OntologyViewPage() {
             result={treeResult}
             onSelect={(node) => selectNode(node)}
             emptyHint={t('emptyHint')}
+            selectedId={selectedNode?.id ?? null}
           />
           {/* 빈 상태 onboarding — tree / orphans 모두 비었을 때만 노출.
               "온톨로지란 무엇이고, 어떻게 자라는지" 가이드. 데이터 있을 때

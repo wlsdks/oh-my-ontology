@@ -29,6 +29,9 @@ export interface OntologyTreeViewProps {
   defaultExpanded?: boolean;
   /** 행 클릭 콜백 — 상세 패널로 라우팅 등에 사용. */
   onSelect?: (node: OntologyTreeNode["node"]) => void;
+  /** 외부에서 선택된 노드 id (deeplink ?node=..., panel 클릭 등). 트리 행
+   *  하나만 시각/접근성 selected 상태로 표시한다. */
+  selectedId?: string | null;
 }
 
 const KIND_TONE: Record<
@@ -94,11 +97,14 @@ function TreeRow({
   expanded,
   onToggle,
   onSelect,
+  selected,
 }: {
   treeNode: OntologyTreeNode;
   expanded: boolean;
   onToggle: () => void;
   onSelect?: (node: OntologyTreeNode["node"]) => void;
+  /** 외부 selection 과 일치하는 행 — aria-selected + 시각 active 톤. */
+  selected: boolean;
 }) {
   const t = useTranslations('ontologyWidgets');
   const hasChildren = treeNode.children.length > 0;
@@ -112,16 +118,20 @@ function TreeRow({
   const dimClass = isElementKind
     ? "opacity-60 hover:opacity-100 focus-within:opacity-100 transition-opacity"
     : "";
+  const selectedClass = selected
+    ? "bg-[color:rgba(94,106,210,0.12)] ring-1 ring-inset ring-[color:rgba(94,106,210,0.32)]"
+    : "hover:bg-[color:var(--color-overlay-2)]";
   return (
     <div
       role="treeitem"
       aria-expanded={hasChildren ? expanded : undefined}
-      aria-selected={false}
+      aria-selected={selected}
       data-testid="ontology-tree-row"
       data-kind={treeNode.node.kind}
       data-depth={treeNode.depth}
       data-dim={isElementKind ? "true" : "false"}
-      className={`flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-[color:var(--color-overlay-2)] ${dimClass}`}
+      data-selected={selected ? "true" : "false"}
+      className={`flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors ${selectedClass} ${dimClass}`}
       style={{ paddingLeft: `${indent + 8}px` }}
     >
       {hasChildren ? (
@@ -167,6 +177,7 @@ export function OntologyTreeView({
   emptyHint,
   defaultExpanded = true,
   onSelect,
+  selectedId,
 }: OntologyTreeViewProps) {
   const t = useTranslations('ontologyWidgets');
   // expand 상태 — 노드 ID 단위. defaultExpanded 면 처음 모두 펼침.
@@ -262,6 +273,7 @@ export function OntologyTreeView({
           expanded={expanded}
           onToggle={() => toggle(treeNode.node.id)}
           onSelect={onSelect}
+          selected={selectedId === treeNode.node.id}
         />
         {expanded && treeNode.children.length > 0 ? (
           <div role="group">
