@@ -13,8 +13,8 @@ export const dynamic = 'force-static';
 const STATIC_ROUTES = ['', 'projects', 'topology', 'docs', 'ontology', 'ontology/insights', 'ontology/relations'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // R10b — vault manifest 의 `kind: project` doc 만으로 sitemap 생성. cloud
-  // fetch 단계 사라짐.
+  // 빌드 타임 dogfood vault manifest 의 `kind: project` doc 만으로 sitemap
+  // 합성. local-first 라 외부 fetch 없이 정적 export 가능.
   const projects = deriveProjectsFromVault(staticVaultManifestRaw as VaultManifest);
   const now = new Date();
 
