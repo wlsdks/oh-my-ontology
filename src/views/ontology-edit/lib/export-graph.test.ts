@@ -49,11 +49,11 @@ describe('export-graph', () => {
 
     it('emits stable URN with shortId suffix', () => {
       const out = buildJsonLd({ ephemeralNodes: nodes, ephemeralEdges: [] });
-      // Round 9b T1-9: URN 은 항상 ephemeral id 의 shortId suffix 로 collision 방지.
+      // URN 은 항상 ephemeral id 의 shortId suffix 로 collision 방지.
       expect(out).toMatch(/urn:omot:atlas:project:auth-platform-/);
     });
 
-    it('disambiguates duplicate-titled nodes (Round 9b T1-9 collision fix)', () => {
+    it('disambiguates duplicate-titled nodes (collision fix)', () => {
       const dupes: EphemeralNode[] = [
         { id: 'n_xxx111', title: 'Auth', kind: 'capability', kindLabel: 'Capability', x: 0, y: 0 },
         { id: 'n_yyy222', title: 'Auth', kind: 'capability', kindLabel: 'Capability', x: 0, y: 0 },

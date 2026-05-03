@@ -8,7 +8,7 @@ describe('useEphemeralNodes', () => {
     expect(result.current.nodes).toEqual([]);
   });
 
-  it('addNode returns new id and appends to nodes — defaults to raw kind label + empty title (Round 9a T0-4: i18n 라벨은 caller 가 주입)', () => {
+  it('addNode returns new id and appends to nodes — defaults to raw kind label + empty title (i18n 라벨은 caller 가 주입)', () => {
     const { result } = renderHook(() => useEphemeralNodes());
     let id = '';
     act(() => {
@@ -24,7 +24,7 @@ describe('useEphemeralNodes', () => {
     });
   });
 
-  it('addNode accepts caller-provided locale labels (Round 9a T0-4)', () => {
+  it('addNode accepts caller-provided locale labels', () => {
     const { result } = renderHook(() => useEphemeralNodes());
     act(() => {
       result.current.addNode('domain', { kindLabel: '도메인', defaultTitle: '(이름 입력)' });
@@ -53,7 +53,7 @@ describe('useEphemeralNodes', () => {
     expect(ys[2]).toBeGreaterThan(ys[1]!);
   });
 
-  it('kind enum is preserved for all 4 kinds (Round 9a T0-4: kindLabel default = raw kind)', () => {
+  it('kind enum is preserved for all 4 kinds (kindLabel default = raw kind)', () => {
     const { result } = renderHook(() => useEphemeralNodes());
     act(() => {
       result.current.addNode('project');
