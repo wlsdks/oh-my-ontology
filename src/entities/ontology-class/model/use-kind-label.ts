@@ -2,7 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 
-const KNOWN_KINDS = ['project', 'domain', 'capability', 'element', 'document', 'unknown'] as const;
+// vault-readme: scaffold 한 vault root 의 README.md 가 갖는 sentinel kind.
+// 6 정식 kind 외 i18n 라벨이 잡히지 않으면 사용자가 raw "vault-readme" 텍스트를
+// 보던 회귀 — i18n 키는 messages 에 이미 있어서 단순 list 추가로 wire.
+const KNOWN_KINDS = ['project', 'domain', 'capability', 'element', 'document', 'vault-readme', 'unknown'] as const;
 type KnownKind = (typeof KNOWN_KINDS)[number];
 
 function isKnown(kind: string): kind is KnownKind {
