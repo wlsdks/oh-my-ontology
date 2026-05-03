@@ -35,8 +35,10 @@ export interface ProjectFrontmatterShape {
   position?: { x: number; y: number };
 }
 
-// 컴파일 타임 sanity — Project 와 ProjectInput 이 ProjectFrontmatterShape
-// 의 superset 이어야. 새 필드 도입 시 이 line 으로 회귀 발견.
+// 컴파일 타임 sanity — \`Project\` 와 \`ProjectInput\` 이 ProjectFrontmatterShape
+// 의 \`extends\` 관계에 있는지 확인. (참고: 이 check 는 FM 의 필드가 모두
+// Project 에 있는지만 보장. Project 에 새 필드가 추가돼도 자동으로
+// FM 에 추가되지는 않으므로 직렬화 누락 위험은 별도 점검.)
 type _ProjectAssignable = Project extends ProjectFrontmatterShape ? true : false;
 type _ProjectInputAssignable = ProjectInput extends ProjectFrontmatterShape ? true : false;
 const _projectCheck: _ProjectAssignable = true;
