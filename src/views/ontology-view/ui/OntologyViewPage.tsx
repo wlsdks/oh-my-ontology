@@ -119,14 +119,17 @@ export function OntologyViewPage() {
     [insight],
   );
 
-  // evidenceId (= 실제 knowledge document ID) → document 노드 매핑.
-  // document kind 노드의 evidenceIds[0] 이 자기 자신의 underlying document ID.
-  // 일반 노드의 evidenceIds 도 같은 ID 공간을 쓰므로 lookup 으로 title 복원 가능.
+  // evidenceId → 사람-읽기 좋은 title 매핑.
+  // - vault 모드 (현재 default): 모든 노드의 evidenceIds[0] 이 sourceSlug
+  //   이고 canonical 노드의 title = 그 doc 의 title. 가장 먼저 set 된
+  //   canonical 매핑이 if (!map.has) 가드로 우선되어 정확한 doc title
+  //   복원.
+  // - legacy 'document' kind 노드 (현재 vault 에는 등장 X) 도 동일 ID
+  //   공간을 공유하므로 같은 루프로 흡수.
   const documentTitleByEvidenceId = useMemo(() => {
     const map = new Map<string, string>();
     if (!insight) return map;
     for (const n of insight.nodes) {
-      if (n.kind !== "document") continue;
       for (const eid of n.evidenceIds) {
         if (!map.has(eid)) map.set(eid, n.title);
       }
