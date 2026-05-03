@@ -5,13 +5,8 @@ import { HomePage } from "@/views/home";
 import { absoluteUrl } from "@/shared/config";
 
 /**
- * `/topology` — Sigma WebGL 토폴로지 view.
- *
- * Phase 1 (Direction A) 진행 중: 토폴로지는 출구 view 중 하나로 격하되며
- * `/` 는 ontology hub 가 된다. 이 라우트는 토폴로지 자체로의 명시적 진입점.
- *
- * 현재는 `/` 와 동일한 HomePage 렌더 (alias). `/` 가 ontology hub 로 교체된
- * 다음 sub-step 이후엔 토폴로지 전용 surface 가 됨.
+ * `/topology` — Sigma WebGL 토폴로지 surface. 현재는 `/` (HomePage) 와 동일
+ * 컴포넌트를 렌더하는 명시적 진입점 alias.
  */
 export async function generateMetadata({
   params,
@@ -22,7 +17,6 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "metadata" });
   return {
     title: t("pages.topology"),
-    description: "프로젝트 의존도 지도. 온톨로지의 한 출구 view.",
     alternates: {
       canonical: absoluteUrl("/topology/"),
     },
