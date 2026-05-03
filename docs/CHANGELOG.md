@@ -6,6 +6,72 @@
 
 ---
 
+## 2026-05-03 — Surface diet Round 3: 첫 인상 + IA 정리
+
+3 에이전트 병렬 회의 (user journey audit · inbound link 매핑 · IA 의견)
+종합 결정. PM 입장 첫 인상 / IA 명확성에 집중한 4 컷 + 1 closure.
+
+### User-visible changes
+
+- **Landing primary CTA 재설계** — 이전엔 "Explore the ontology" (데모
+  트리) 가 primary, "내 마크다운 폴더 열기" 가 secondary. 새 사용자가
+  첫 클릭에서 데모로 빠져 자기 vault 활성화 경로를 못 찾는 dead-end.
+  → 순서 swap: "내 마크다운 폴더 열기" 가 primary indigo solid,
+  "데모 먼저 보기" 가 secondary outline.
+- **Landing 카피 단순화 (PM 친화)** — "Markdown frontmatter is the graph"
+  / "ERD" / "MCP" / "grep markdown" 같은 dev jargon 제거. "프로젝트의
+  조각들 — 기능 / 모듈 / 누가 무엇에 의존하는지 — 를 마크다운 파일로
+  정리합니다" 같은 행동 / 결과 중심 카피로.
+- **`/ontology/insights` 패널 재배치** — Cut A 후속. 순서를 kind →
+  edge types → projects → hubs → recent → orphans 로 (구조 진단을
+  위로). 이전 "Cross-project relations" 별도 카드 (Cut A 에서 footer
+  link 빠진 후 orphan card 됨) 를 edge types 패널 상단 inline caption
+  으로 fold ("이 중 N 개 (X%) 가 cross-project").
+- **Insights 의 "미연결 노드" 클릭 가능** — 이전엔 hubs / recent 만
+  /ontology/?node= 로 연결되고 orphans 는 display-only dead-end.
+  hover transition + Link 으로 정렬 — "정리 후보 발견 → 즉시 점프"
+  가능.
+- **Sub-nav 항상 노출 + "Tree" → "Browse" rename** — 이전엔 chevron
+  토글 default-collapse 로 발견성 0 (사용자가 토글을 안 누름). 항상
+  노출로 단순화 (localStorage / 토글 / chevron 모두 제거). 라벨도
+  "Tree" 라고 했지만 실제 페이지가 트리 + ego 그래프 + 노드 detail 패널
+  까지 보여주므로 "Browse" / "둘러보기" 로 rename.
+
+### Decision recorded (no UI change)
+
+- **`/` ↔ `/ontology` 라우트 dedupe — keep both 결정**. 둘 다
+  `OntologyViewPage` 를 렌더하지만 codex 어드바이저 + 3 에이전트 inbound
+  매핑 결과 *역할이 다름*: `/` = home / back-link / error fallback (10
+  inbound), `/ontology` = explicit deep-link namespace (19 inbound).
+  redirect 통합 시 한쪽 inbound 가 깨짐. RootEntryPage docstring 에
+  의도 명시.
+
+### 코드 / 아키텍처
+
+- 5 commit (예정), 약 ~150 LOC 변경 (대부분 카피 / 순서 / 위치 재배치).
+- OperationsNav: subNavOpen / SUBNAV_OPEN_KEY localStorage / chevron /
+  toggle 함수 / 4 개 i18n 키 (subNav* family) 제거.
+- 새 i18n 키 1 개 (`vaultWidgets.insights.edgeTypeCrossProjectInline`),
+  제거 7 개 (subNav*, crossProjectPanelTitle/Subtitle, crossProjectFooter*).
+
+### Test
+
+- 571 tests pass (변동 없음).
+
+### Deferred (Round 4 candidates)
+
+- ⌘K vs ⇧⌘K 발견성 — 한 버튼이 둘 다 안내. 현재는 button 이 ⌘K
+  hint 만 보여줌 (search 결과가 ontology 노드만일 거라 PM 이 글로벌
+  검색 단축키를 모름).
+- Builder edge 영속성 자동화. 현재 onboarding 이 "edge 그리고 inspector
+  array 에 직접 추가" 라고 안내 — UX 마찰 큼.
+- /docs 의 LocalVaultPicker 첫 진입 affordance — picker 가 advanced
+  dropdown 안 깊숙이 묻혀 있음 (소스 토글이 헤더로 나와도 picker 자체는
+  여전히 dropdown 안). landing CTA `?intent=local` 는 여전히 기어 자동
+  펼침으로 보완 중.
+
+---
+
 ## 2026-05-03 — Surface diet Round 2: 라우트 통합 + /docs 헤더 직접화
 
 Round 1 컷 (5 곳) 직후 codex 어드바이저 재pressure-test 로 합의된 2 곳을
