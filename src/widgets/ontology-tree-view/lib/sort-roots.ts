@@ -29,18 +29,14 @@ function rank(kind: string): number {
  * OntologyTreeView 헤더에서 선택 가능한 root 정렬 mode.
  *
  * - `kind-title` (기본) — 위계 우선 정책 (project < domain < capability < element).
- * - `evidence-desc` — 근거 (evidenceIds 수) 가 많은 노드부터. "내 ontology
- *   에서 어떤 노드가 가장 자료가 많은지" 발견용.
  * - `title` — kind 무시, 가나다순. 알파벳 직접 lookup 시.
+ *
+ * R10 이후 vault frontmatter 가 유일한 진실원이라 evidenceCount 가 채워
+ * 지지 않는다. 이전에 있던 `evidence-desc` mode 는 모든 노드가 동률
+ * (0 또는 1) 이라 사실상 title 정렬과 동일해 사용자에게 misleading 한
+ * dead UI 였다 — 제거.
  */
-export type OntologyRootSortKey = "kind-title" | "evidence-desc" | "title";
-
-function compareEvidenceDesc(a: OntologyTreeNode, b: OntologyTreeNode): number {
-  const ea = a.node.evidenceCount ?? a.node.evidenceIds.length;
-  const eb = b.node.evidenceCount ?? b.node.evidenceIds.length;
-  if (ea !== eb) return eb - ea;
-  return a.node.title.localeCompare(b.node.title, "ko");
-}
+export type OntologyRootSortKey = "kind-title" | "title";
 
 function compareTitleKo(a: OntologyTreeNode, b: OntologyTreeNode): number {
   return a.node.title.localeCompare(b.node.title, "ko");
@@ -65,8 +61,6 @@ export function sortRoots(
   key: OntologyRootSortKey = "kind-title",
 ): OntologyTreeNode[] {
   switch (key) {
-    case "evidence-desc":
-      return [...roots].sort(compareEvidenceDesc);
     case "title":
       return [...roots].sort(compareTitleKo);
     case "kind-title":

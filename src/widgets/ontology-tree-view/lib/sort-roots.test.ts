@@ -112,39 +112,6 @@ describe("sortRoots — Fire 2 multi-key", () => {
     expect(a.map((r) => r.node.id)).toEqual(b.map((r) => r.node.id));
   });
 
-  it("'evidence-desc' — 근거 많은 노드 먼저, 동률은 가나다", () => {
-    const sorted = sortRoots(corpus, "evidence-desc");
-    expect(sorted.map((r) => r.node.id)).toEqual([
-      "c1", // 4
-      "e1", // 3
-      "p1", // 2
-      "d1", // 1
-      "c2", // 0
-    ]);
-  });
-
-  it("'evidence-desc' — evidenceCount 우선 (있으면) > evidenceIds.length", () => {
-    const withCount = [
-      {
-        node: {
-          id: "x",
-          title: "X",
-          kind: "capability",
-          projectIds: [],
-          evidenceIds: ["e1"],
-          evidenceCount: 99,
-          lastApprovedAt: new Date(),
-          lastApprovedBy: "test",
-        },
-        depth: 0,
-        children: [],
-      },
-      makeRoot("y", "capability", "Y", ["e1", "e2", "e3"]),
-    ];
-    const sorted = sortRoots(withCount, "evidence-desc");
-    expect(sorted.map((r) => r.node.id)).toEqual(["x", "y"]);
-  });
-
   it("'title' — kind 무시 가나다순", () => {
     const sorted = sortRoots(corpus, "title");
     expect(sorted.map((r) => r.node.title)).toEqual([
@@ -158,7 +125,7 @@ describe("sortRoots — Fire 2 multi-key", () => {
 
   it("immutable — 입력 배열 변형 없음", () => {
     const before = [...corpus];
-    sortRoots(corpus, "evidence-desc");
+    sortRoots(corpus, "kind-title");
     sortRoots(corpus, "title");
     expect(corpus).toEqual(before);
   });

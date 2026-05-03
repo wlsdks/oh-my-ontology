@@ -19,7 +19,6 @@ import {
 
 const SORT_LABEL_KEY: Record<OntologyRootSortKey, string> = {
   "kind-title": "tree.sortKindTitle",
-  "evidence-desc": "tree.sortEvidenceDesc",
   title: "tree.sortTitle",
 };
 
@@ -235,9 +234,8 @@ export function OntologyTreeView({
   // inline 검색 — ⌘K 글로벌 검색과 별개로 트리 안 빠른 좁히기.
   // 매치 노드 + 부모 chain 보존, 형제 제외.
   const [searchQuery, setSearchQuery] = useState("");
-  // 트리 정렬 mode — 기본 kind 우선 (위계). 'evidence-desc' 는 "어떤
-  // 노드에 자료 많이 쌓였나" 발견용, 'title' 은 알파벳 lookup. 페이지
-  // reload 마다 default 로 회귀.
+  // 트리 정렬 mode — 기본 kind 우선 (위계). 'title' 은 알파벳 lookup.
+  // 페이지 reload 마다 default 로 회귀.
   const [sortKey, setSortKey] = useState<OntologyRootSortKey>("kind-title");
   const sortedRoots = useMemo(
     () => sortRoots(result.roots, sortKey),
@@ -374,13 +372,11 @@ export function OntologyTreeView({
                 aria-label={t('tree.sortAriaLabel')}
                 className="bg-transparent text-[10px] text-[color:var(--color-text-secondary)] focus:outline-none"
               >
-                {(["kind-title", "evidence-desc", "title"] as const).map(
-                  (key) => (
-                    <option key={key} value={key}>
-                      {t(SORT_LABEL_KEY[key])}
-                    </option>
-                  ),
-                )}
+                {(["kind-title", "title"] as const).map((key) => (
+                  <option key={key} value={key}>
+                    {t(SORT_LABEL_KEY[key])}
+                  </option>
+                ))}
               </select>
             </label>
             <button
