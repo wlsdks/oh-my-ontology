@@ -63,87 +63,36 @@ export function isKnowledgeGraphSource(value: unknown): value is KnowledgeGraphS
 
 export interface KnowledgeGraphNode {
   id: string;
-  accountId?: string;
   title: string;
   kind: string;
   projectIds: string[];
-  parentId?: string;
   summary?: string;
   evidenceIds: string[];
+  /** evidenceIds.length 로 derived. UI 에서 \"근거 수\" 표시용. vault sentinel
+   *  모드는 0. */
   evidenceCount?: number;
-  currentRevisionId?: string;
   lastApprovedAt: Date;
   lastApprovedBy: string;
-  publishId?: string;
-  projectionVersion?: string;
-  publishedAt?: Date;
-  /** R10b 후 항상 `'manual'` (사람 / AI agent 직접 작성). */
+  /** 항상 \`'manual'\` (사람 / AI agent 직접 작성) — ManualSourceChip surface. */
   source?: KnowledgeGraphSource;
-  /** 작성자 uid (옵션). */
-  manualAuthor?: string;
-  /** 사용자가 남긴 자유 메모 (옵션). */
+  /** 사용자 / AI agent 가 남긴 자유 메모 (옵션) — NodeDetailPanel 의 \"메모\" 섹션. */
   manualNote?: string;
-  /** P1 Phase 1 — 이 노드 생성/검수 시점의 활성 TBox version ID. fact 와
-   *  schema 가 시간상 일치 추적용. legacy 데이터는 `undefined` 또는
-   *  `'legacy-v0'`. spec: 2026-04-28-ontology-tbox-evolution.md */
-  tboxVersionId?: string;
 }
-
-/**
- * V1.1 (Wikidata 영감) — statement qualifier value union. legacy edge / 노드 변환
- * 시에는 항상 undefined. 새 edge 가 명시적으로 채울 때만 존재.
- *
- * 자세한 spec: docs/ONTOLOGY-MODEL-V2-DRAFT.md §2.
- */
-export type QualifierValue =
-  | { kind: 'string'; raw: string }
-  | { kind: 'time'; iso: string; precision: 'year' | 'month' | 'day' }
-  | { kind: 'quantity'; value: number; unit?: string }
-  | { kind: 'nodeRef'; nodeId: string };
-
-export interface EdgeQualifier {
-  /** 한정자 property id — `OntologyRelation.id` 또는 새 ontology
-   *  qualifier property id 재사용. legacy 호환을 위해 string 으로 둔다. */
-  propertyId: string;
-  value: QualifierValue;
-}
-
-/**
- * V1.1 (Wikidata 영감) — statement rank. 같은 (from, to, type) 의 다중 statement
- * 중 우선순위. legacy edge 는 undefined → 코드는 `rank ?? 'normal'` 폴백.
- */
-export type EdgeRank = 'preferred' | 'normal' | 'deprecated';
 
 export interface KnowledgeGraphEdge {
   id: string;
-  accountId?: string;
   from: string;
   to: string;
   type: string;
   label?: string;
   projectIds: string[];
   evidenceIds: string[];
-  /** evidenceIds.length 로 derived. 클라이언트가 edge 두께 가중에 쓴다.
-   *  approved/public 양쪽에서 사용 가능. */
+  /** evidenceIds.length 로 derived. \"강한 관계\" 정렬 + edge 두께 가중에 쓴다. */
   evidenceCount?: number;
-  currentRevisionId?: string;
   lastApprovedAt: Date;
   lastApprovedBy: string;
-  publishId?: string;
-  projectionVersion?: string;
-  publishedAt?: Date;
-  /** Manual editor v0 — node 와 동일 의미. */
+  /** node 와 동일 — \`'manual'\` */
   source?: KnowledgeGraphSource;
-  manualAuthor?: string;
-  manualNote?: string;
-  /** P1 Phase 1 — node 와 동일 의미. */
-  tboxVersionId?: string;
-  /** V1.1 — Wikidata-style statement qualifier 배열 (옵션, additive). legacy
-   *  edge 는 undefined. UI / publish projection 모두 그대로 통과. */
-  qualifiers?: EdgeQualifier[];
-  /** V1.1 — Wikidata-style statement rank (옵션, additive). legacy 는 undefined
-   *  → 'normal' 로 해석. */
-  rank?: EdgeRank;
 }
 
 export interface KnowledgeProjectInsight {

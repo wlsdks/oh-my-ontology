@@ -10,12 +10,14 @@ const node = (id: string, title: string, kind = "capability"): KnowledgeGraphNod
   kind,
   projectIds: [],
   evidenceIds: [],
-  parentId: undefined,
   lastApprovedAt: APPROVED_AT,
   lastApprovedBy: "test",
 });
-function withParent(n: KnowledgeGraphNode, parentId: string): KnowledgeGraphNode {
-  return { ...n, parentId };
+// 트리 구조는 \`contains\` edges 로 표현 (KnowledgeGraphNode.parentId 필드는
+// 폐기 — buildOntologyTree 가 \`edge.type==='contains'\` 의 from/to 로 부모
+// 추론). 이 helper 는 dead-field-free 노드를 그냥 복제 (호출 site 가독성용).
+function withParent(n: KnowledgeGraphNode): KnowledgeGraphNode {
+  return { ...n };
 }
 
 describe("filterTreeByQuery", () => {
@@ -25,9 +27,9 @@ describe("filterTreeByQuery", () => {
   // └─ child-2 (title: "logout")
   const nodes = [
     node("root", "프로젝트", "project"),
-    withParent(node("child-1", "로그인"), "root"),
-    withParent(node("grand-1", "세션", "element"), "child-1"),
-    withParent(node("child-2", "로그아웃"), "root"),
+    withParent(node("child-1", "로그인")),
+    withParent(node("grand-1", "세션", "element")),
+    withParent(node("child-2", "로그아웃")),
   ];
   const edges = [
     {
@@ -98,7 +100,7 @@ describe("filterTreeByQuery", () => {
   it("대소문자 무시 (lower-case 비교)", () => {
     const enNodes = [
       node("root", "ROOT", "project"),
-      withParent(node("c1", "AUTH-LOGIN"), "root"),
+      withParent(node("c1", "AUTH-LOGIN")),
     ];
     const enEdges = [
       {
