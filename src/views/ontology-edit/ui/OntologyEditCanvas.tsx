@@ -52,6 +52,37 @@ function FitViewOnAutoLayout({ token }: { token: number }) {
 }
 
 /**
+ * focusToken 이 증가할 때마다 focusNodeId 노드로 viewport 부드럽게 pan.
+ * 검색 (⇧⌘K) 결과 클릭 → 인스펙터에서 노드 보이지만 canvas 위치 모르는
+ * 문제 해소. setCenter(x, y, { zoom, duration }).
+ */
+function FocusNodeOnDemand({
+  token,
+  nodeId,
+}: {
+  token: number;
+  nodeId: string | null;
+}) {
+  const reactFlow = useReactFlow();
+  const prevTokenRef = useRef(token);
+  useEffect(() => {
+    if (prevTokenRef.current === token) return;
+    prevTokenRef.current = token;
+    if (!nodeId) return;
+    const node = reactFlow.getNode(nodeId);
+    if (!node) return;
+    // 노드 중심 = position + width/2, height/2. width/height 누락 시 fallback.
+    const w = node.width ?? 200;
+    const h = node.height ?? 56;
+    reactFlow.setCenter(node.position.x + w / 2, node.position.y + h / 2, {
+      zoom: 1.2,
+      duration: 400,
+    });
+  }, [token, nodeId, reactFlow]);
+  return null;
+}
+
+/**
  * ERD canvas — vault frontmatter 가 진실원.
  *
  * 디자인 헌장 §11 호환:
@@ -76,6 +107,8 @@ export function OntologyEditCanvas({
   onVaultNodeDragStop,
   autoLayoutToken = 0,
   layoutMode = "dagre",
+  focusNodeId = null,
+  focusToken = 0,
 }: {
   vaultManifest: VaultManifest | null;
   ephemeralNodes: EphemeralNode[];
@@ -93,6 +126,10 @@ export function OntologyEditCanvas({
   onRemoveEphemeralEdge?: (edgeId: string) => void;
   /** vault 노드 drag-stop 시 호출 — 좌표를 frontmatter.canvasPosition 으로 patch. */
   onVaultNodeDragStop?: (slug: string, position: { x: number; y: number }) => void;
+  /** 외부 (검색 등) 에서 viewport 를 특정 노드로 pan 시키는 트리거.
+   *  토큰이 증가할 때마다 focusNodeId 노드로 부드럽게 setCenter. */
+  focusNodeId?: string | null;
+  focusToken?: number;
   /**
    * 헤더의 "자동 정렬" 버튼이 눌릴 때마다 increment 되는 token.
    * 0 보다 크면 \`frontmatter.canvasPosition\` 무시하고 자동 layout 결과로 reset.
@@ -377,6 +414,7 @@ export function OntologyEditCanvas({
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
         <Controls position="bottom-right" showInteractive={false} />
         <FitViewOnAutoLayout token={autoLayoutToken} />
+        <FocusNodeOnDemand token={focusToken} nodeId={focusNodeId} />
         {/* MiniMap — 노드 많아질 때 빠른 navigation. 헌장 §11 호환:
             인디고 alpha + 무채색 alpha mask. ephemeral 은 amber 로 vault
             와 차별. 좌하단 — Controls (우하단) 와 분리. */}

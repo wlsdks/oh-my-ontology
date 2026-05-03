@@ -74,6 +74,8 @@ const OntologyEditCanvas = dynamic<{
   onVaultNodeDragStop?: (slug: string, position: { x: number; y: number }) => void;
   autoLayoutToken?: number;
   layoutMode?: "dagre" | "force";
+  focusNodeId?: string | null;
+  focusToken?: number;
 }>(
   () => import("./OntologyEditCanvas").then((m) => m.OntologyEditCanvas),
   { ssr: false, loading: () => <CanvasSkeleton /> },
@@ -120,6 +122,10 @@ export function OntologyEditPage() {
   // 자체는 그대로라 다음 mount 부터 다시 사용자 좌표 복원 (선호 보존). 사용자가
   // 다시 drag-stop 하면 그때부터 새 frontmatter 좌표로 갱신.
   const [autoLayoutToken, setAutoLayoutToken] = useState(0);
+  // focusToken — 외부 (검색 등) 가 noticed 변화 트리거. 매 increment 시
+  // canvas 가 focusNodeId 노드로 viewport pan.
+  const [focusToken, setFocusToken] = useState(0);
+  const [focusNodeId, setFocusNodeId] = useState<string | null>(null);
   // layout 알고리즘 — dagre (default, kind 계층 LR) 또는 force (organic).
   // 헤더 토글로 사용자가 선택. 변경 시 in-memory layout 만 재계산 (frontmatter 그대로).
   const [layoutMode, setLayoutMode] = useState<"dagre" | "force">("dagre");
@@ -520,7 +526,11 @@ export function OntologyEditPage() {
           편집 가능. fullscreen 모드에선 hotkey 도 작동 (캔버스에 mount). */}
       <MountedGlobalSearch
         hotkeyShift
-        onSelectNode={(node) => setSelectedId(node.id)}
+        onSelectNode={(node) => {
+          setSelectedId(node.id);
+          setFocusNodeId(node.id);
+          setFocusToken((n) => n + 1);
+        }}
       />
       <main
         className={
@@ -694,6 +704,8 @@ export function OntologyEditPage() {
               onVaultNodeDragStop={persistVaultPosition}
               autoLayoutToken={autoLayoutToken}
               layoutMode={layoutMode}
+              focusNodeId={focusNodeId}
+              focusToken={focusToken}
             />
             <BuilderOnboarding
               empty={ephemeralNodes.length === 0 && ephemeralEdges.length === 0}
