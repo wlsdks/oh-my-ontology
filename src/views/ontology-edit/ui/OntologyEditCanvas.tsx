@@ -8,6 +8,7 @@ import {
   Background,
   BackgroundVariant,
   Controls,
+  MiniMap,
   ReactFlow,
   type Connection,
   type Edge,
@@ -277,6 +278,27 @@ export function OntologyEditCanvas({
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
         <Controls position="bottom-right" showInteractive={false} />
+        {/* MiniMap — 노드 많아질 때 빠른 navigation. 헌장 §11 호환:
+            인디고 alpha + 무채색 alpha mask. ephemeral 은 amber 로 vault
+            와 차별. 좌하단 — Controls (우하단) 와 분리. */}
+        <MiniMap
+          position="bottom-left"
+          ariaLabel={t("minimapAriaLabel")}
+          pannable
+          zoomable
+          maskColor="rgba(8, 10, 14, 0.7)"
+          style={{
+            background: "rgba(14, 16, 22, 0.94)",
+            border: "1px solid var(--color-border-soft)",
+          }}
+          nodeColor={(node) => {
+            const data = node.data as { ephemeral?: boolean } | undefined;
+            return data?.ephemeral
+              ? "rgba(255, 179, 71, 0.7)"
+              : "rgba(139, 151, 255, 0.7)";
+          }}
+          nodeStrokeWidth={2}
+        />
       </ReactFlow>
       {allNodes.length === 0 ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

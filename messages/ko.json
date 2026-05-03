@@ -764,6 +764,7 @@
       "canvas": {
         "ephemeralEdgeLabel": "관련 (임시)",
         "emptyHint": "왼쪽 palette 에서 종류를 골라 클릭하면 첫 노드가 생겨요.",
+        "minimapAriaLabel": "캔버스 미니맵 — 클릭/드래그로 빠른 이동",
         "edgeLabels": {
           "capabilities": "역량",
           "elements": "요소",
