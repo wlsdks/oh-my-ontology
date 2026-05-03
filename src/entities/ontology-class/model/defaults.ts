@@ -63,7 +63,7 @@ export const DEFAULT_ONTOLOGY_CLASSES: OntologyClassInput[] = [
 ];
 
 /**
- * 클래스 ID 가 합법인지 확인 — knowledgeApprovedNodes.kind 의 진입 시 검증.
+ * 클래스 ID 가 합법 kind 인지 확인 — vault frontmatter \`kind:\` 검증에 사용.
  */
 export function isOntologyClassId(id: string, classes: OntologyClass[]): boolean {
   return classes.some((c) => c.id === id);

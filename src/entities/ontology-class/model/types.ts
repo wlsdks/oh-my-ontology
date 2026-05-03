@@ -1,9 +1,8 @@
 /**
- * Ontology TBox — 노드 클래스 정의.
+ * Ontology TBox — 노드 클래스 (kind) 정의.
  *
- * `knowledgeApprovedNodes.kind` 의 합법 값 + 의미 메타.
- * 보류 스펙 (2026-04-17 ontology-driven-project-map.md) 의 4-layer 모델
- * (Project → Domain → Capability → Element) + Document 근거 노드를 받아옴.
+ * 4-layer 모델 (Project → Domain → Capability → Element) + Document 근거
+ * 노드. vault frontmatter \`kind:\` 의 합법 값과 1:1 대응.
  */
 
 /** Element 클래스의 세부 분류 — 더 깊은 트리 대신 elementType 으로 표현. */

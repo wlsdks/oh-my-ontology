@@ -102,8 +102,8 @@ export function OntologyEditCanvas({
     kindLabelOf,
     edgeLabelOf,
   });
-  const approvedNodes = vaultFlow.nodes;
-  const approvedEdges = vaultFlow.edges;
+  const vaultNodes = vaultFlow.nodes;
+  const vaultEdges = vaultFlow.edges;
 
   const handleSelectionChange = useCallback(
     (params: OnSelectionChangeParams) => {
@@ -114,10 +114,10 @@ export function OntologyEditCanvas({
   );
 
   const allNodes: Node[] = useMemo(() => {
-    // approved 노드도 atlas custom type 으로 변환 (kind 별 시각 톤).
+    // vault 노드도 atlas custom type 으로 변환 (kind 별 시각 톤).
     // \`useVaultGraphFlow\` 가 \`data.kind\` 를 enum 으로 직접 채워주므로
     // 라벨 문자열을 reverse-parse 하지 않는다 (locale 무관 안전).
-    const approvedAtlas: Node[] = approvedNodes.map((n) => {
+    const vaultAtlas: Node[] = vaultNodes.map((n) => {
       const data = n.data as { label?: string; kind?: string };
       const kind = (data.kind ?? "element") as "project" | "domain" | "capability" | "element";
       return {
@@ -146,8 +146,8 @@ export function OntologyEditCanvas({
       connectable: true,
       selectable: true,
     }));
-    return [...approvedAtlas, ...ephemeralFlow];
-  }, [approvedNodes, ephemeralNodes]);
+    return [...vaultAtlas, ...ephemeralFlow];
+  }, [vaultNodes, ephemeralNodes]);
 
   const allEdges: Edge[] = useMemo(() => {
     const ephemeralFlow: Edge[] = ephemeralEdges.map((e) => ({
@@ -175,8 +175,8 @@ export function OntologyEditCanvas({
       },
       animated: false,
     }));
-    return [...approvedEdges, ...ephemeralFlow];
-  }, [approvedEdges, ephemeralEdges, t]);
+    return [...vaultEdges, ...ephemeralFlow];
+  }, [vaultEdges, ephemeralEdges, t]);
 
   const handleConnect = useCallback(
     (connection: Connection) => {
