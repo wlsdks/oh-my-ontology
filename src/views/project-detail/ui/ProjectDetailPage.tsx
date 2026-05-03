@@ -512,12 +512,11 @@ export function ProjectDetailPage({
           )}
 
           {/*
-            모든 hub 상세에서 제목을 인디고-accent (#7170ff) 로 칠하면
-            246개 hub 페이지가 일제히 brand-emphasis 색이 되어, 정작
-            "이 페이지가 핵심 hub 다" 신호가 묻힌다. 디자인 시스템의
-            "단일 인디고" 는 강조용이지 모든 hub 의 제목 색이 아니다.
-            제목은 무채색으로 통일하고, hub 식별은 breadcrumb prefix
-            (예: "Demo · ...") + 토폴로지 노드 크기/색으로 충분.
+            hub 상세 제목을 일괄 인디고-accent 로 칠하면 brand-emphasis 가
+            모든 hub 페이지에 퍼져 정작 "이 페이지가 핵심 hub" 신호가 묻힌다.
+            디자인 시스템의 "단일 인디고" 는 강조용 — 모든 hub 제목 색이
+            아니다. 제목은 무채색으로 통일하고, hub 식별은 breadcrumb +
+            토폴로지 노드 크기/색으로 충분.
           */}
           <InlineEditable
             as="h1"
@@ -643,7 +642,7 @@ export function ProjectDetailPage({
                   selectedSlug={project.slug}
                   minimal
                   // 이웃 노드 클릭 시 해당 프로젝트 상세로 이동. 현재 페이지
-                  // 자신(slug) 클릭은 무시. account 쿼리 보존.
+                  // 자신(slug) 클릭은 무시.
                   onSelectProject={(slug) => {
                     if (slug === project.slug) return;
                     router.push(getProjectDetailHref(slug));
