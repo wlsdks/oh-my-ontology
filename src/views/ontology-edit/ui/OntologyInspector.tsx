@@ -588,6 +588,22 @@ function ArrayKeyEditor({
   useEffect(() => {
     setInput("");
   }, [valuesSignature, fieldKey]);
+  // 새 항목 추가 (vault edge 캔버스 그리기 또는 inspector 직접 입력) 시
+  // 해당 chip 에 amber 잠깐 highlight → '추가됐다' 시각 인지. 1200ms 후
+  // 자동 fade. ref 로 prev 추적해 useEffect deps 만 valuesSignature.
+  const prevValuesRef = useRef<string[]>(values);
+  const [recentlyAdded, setRecentlyAdded] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  useEffect(() => {
+    const prev = prevValuesRef.current;
+    const newOnes = values.filter((v) => !prev.includes(v));
+    prevValuesRef.current = values;
+    if (newOnes.length === 0) return;
+    setRecentlyAdded(new Set(newOnes));
+    const timer = setTimeout(() => setRecentlyAdded(new Set()), 1200);
+    return () => clearTimeout(timer);
+  }, [valuesSignature, values]);
   const submit = () => {
     const trimmed = input.trim();
     if (!trimmed || values.includes(trimmed) || disabled) return;
@@ -605,22 +621,29 @@ function ArrayKeyEditor({
       </p>
       {values.length > 0 ? (
         <ul className="mt-2 flex flex-wrap gap-1">
-          {values.map((slug) => (
-            <li key={slug}>
-              <button
-                type="button"
-                onClick={() => remove(slug)}
-                disabled={disabled}
-                aria-label={t("arrayRemoveAriaLabel", { slug })}
-                className="inline-flex items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.10)] px-2 py-0.5 text-[11px] text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(229,72,77,0.46)] hover:bg-[color:rgba(229,72,77,0.10)] disabled:opacity-50"
-              >
-                <span className="font-mono break-all">{slug}</span>
-                <span aria-hidden className="text-[color:var(--color-text-tertiary)]">
-                  ×
-                </span>
-              </button>
-            </li>
-          ))}
+          {values.map((slug) => {
+            const isNew = recentlyAdded.has(slug);
+            return (
+              <li key={slug}>
+                <button
+                  type="button"
+                  onClick={() => remove(slug)}
+                  disabled={disabled}
+                  aria-label={t("arrayRemoveAriaLabel", { slug })}
+                  className={
+                    isNew
+                      ? "inline-flex items-center gap-1 rounded-full border border-[color:rgba(255,179,71,0.6)] bg-[color:rgba(255,179,71,0.16)] px-2 py-0.5 text-[11px] text-[color:var(--color-text-primary)] transition-[background,border] duration-1000 ease-out"
+                      : "inline-flex items-center gap-1 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.10)] px-2 py-0.5 text-[11px] text-[color:var(--color-text-primary)] transition-[background,border] duration-1000 ease-out hover:border-[color:rgba(229,72,77,0.46)] hover:bg-[color:rgba(229,72,77,0.10)] disabled:opacity-50"
+                  }
+                >
+                  <span className="font-mono break-all">{slug}</span>
+                  <span aria-hidden className="text-[color:var(--color-text-tertiary)]">
+                    ×
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
       <div className="mt-2 flex gap-1">
