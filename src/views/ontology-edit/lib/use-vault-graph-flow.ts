@@ -192,6 +192,10 @@ export function buildVaultGraphFlow(
       // 그 외 → ephemeral edge).
       connectable: true,
       selectable: true,
+      // 캔버스 Del 로 vault 노드 직접 삭제 금지 — frontmatter 진실원
+      // 영구 손실 위험. 인스펙터의 '삭제' 버튼은 backlink 검사 + 확인
+      // 모달 거쳐 안전하게 처리.
+      deletable: false,
     };
   });
 
@@ -223,6 +227,9 @@ export function buildVaultGraphFlow(
           labelBgBorderRadius: 4,
           style: edgeStrokeStyleByKey(key),
           animated: false,
+          // vault edge 는 frontmatter 진실원이라 캔버스 Del 로 삭제 금지.
+          // 인스펙터의 array editor (-) 버튼만 patch 권한.
+          deletable: false,
         });
       }
     }

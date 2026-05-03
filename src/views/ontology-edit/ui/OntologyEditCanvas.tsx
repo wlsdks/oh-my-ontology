@@ -48,6 +48,7 @@ export function OntologyEditCanvas({
   onSelectionChange,
   onConnect,
   onVaultConnect,
+  onRemoveEphemeralEdge,
   onVaultNodeDragStop,
   autoLayoutToken = 0,
   layoutMode = "dagre",
@@ -64,6 +65,8 @@ export function OntologyEditCanvas({
     sourceKind: string,
     targetKind: string,
   ) => void;
+  /** ephemeral edge 삭제 콜백 — Del/Backspace 로 선택된 edge 제거 시. */
+  onRemoveEphemeralEdge?: (edgeId: string) => void;
   /** vault 노드 drag-stop 시 호출 — 좌표를 frontmatter.canvasPosition 으로 patch. */
   onVaultNodeDragStop?: (slug: string, position: { x: number; y: number }) => void;
   /**
@@ -230,6 +233,8 @@ export function OntologyEditCanvas({
         strokeDasharray: "5 4",
       },
       animated: false,
+      // ephemeral edge 는 Del/Backspace 로 삭제 가능 (vault 와 차별).
+      deletable: true,
     }));
     return [...vaultEdges, ...ephemeralFlow];
   }, [vaultEdges, ephemeralEdges, t]);
@@ -313,6 +318,17 @@ export function OntologyEditCanvas({
         onConnect={handleConnect}
         onSelectionChange={handleSelectionChange}
         onNodeDragStop={handleNodeDragStop}
+        onEdgesDelete={(deleted) => {
+          // 위 ephemeral edge 의 deletable: true / vault edge 의 deletable: false
+          // 가 1차 가드 — xyflow 가 vault edge 는 애초에 delete 시도 안 함.
+          // 만일을 대비해 id pattern 으로 한 번 더 필터.
+          if (!onRemoveEphemeralEdge) return;
+          for (const e of deleted) {
+            if (e.id.startsWith("ephemeral-edge-")) {
+              onRemoveEphemeralEdge(e.id);
+            }
+          }
+        }}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         // viewport 밖 노드는 render 스킵 — vault 가 50+ 노드로 자라도

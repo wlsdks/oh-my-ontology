@@ -69,6 +69,7 @@ const OntologyEditCanvas = dynamic<{
     sourceKind: string,
     targetKind: string,
   ) => void;
+  onRemoveEphemeralEdge?: (edgeId: string) => void;
   onVaultNodeDragStop?: (slug: string, position: { x: number; y: number }) => void;
   autoLayoutToken?: number;
   layoutMode?: "dagre" | "force";
@@ -104,8 +105,12 @@ export function OntologyEditPage() {
       }),
     [addNodeRaw, tKinds, t],
   );
-  const { edges: ephemeralEdges, addEdge: addEphemeralEdge, clearAll: clearEphemeralEdges } =
-    useEphemeralEdges();
+  const {
+    edges: ephemeralEdges,
+    addEdge: addEphemeralEdge,
+    clearAll: clearEphemeralEdges,
+    removeEdge: removeEphemeralEdge,
+  } = useEphemeralEdges();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
@@ -678,6 +683,7 @@ export function OntologyEditPage() {
               onSelectionChange={setSelectedId}
               onConnect={addEphemeralEdge}
               onVaultConnect={connectVaultEdge}
+              onRemoveEphemeralEdge={removeEphemeralEdge}
               onVaultNodeDragStop={persistVaultPosition}
               autoLayoutToken={autoLayoutToken}
               layoutMode={layoutMode}
