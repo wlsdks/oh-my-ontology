@@ -97,7 +97,7 @@ export function OntologyInspector({
   return (
     <aside
       aria-label={t("ariaLabel")}
-      className="flex h-full w-[280px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3"
+      className="flex h-full w-[320px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-3 xl:w-[360px]"
     >
       <header>
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">

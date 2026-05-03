@@ -360,10 +360,19 @@ export function OntologyEditPage() {
         setFullscreen((current) => !current);
         return;
       }
-      // N — palette 첫 kind (project) 추가 + 즉시 select
-      if (event.key === "n" || event.key === "N") {
+      // 단축키로 4 kind 모두 추가 — palette 클릭과 1:1 (P/D/C/E).
+      // N (legacy alias) 도 P 와 동일 — 기존 사용자 호환.
+      const kindByKey: Record<string, "project" | "domain" | "capability" | "element"> = {
+        p: "project",
+        n: "project",
+        d: "domain",
+        c: "capability",
+        e: "element",
+      };
+      const lower = event.key.toLowerCase();
+      if (lower in kindByKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
         event.preventDefault();
-        const newId = addNode("project");
+        const newId = addNode(kindByKey[lower]);
         setSelectedId(newId);
         return;
       }

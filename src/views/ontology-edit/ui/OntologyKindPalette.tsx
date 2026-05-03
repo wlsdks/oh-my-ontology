@@ -15,11 +15,13 @@ import type { ManualNodeKind } from "@/entities/knowledge-graph";
 const PALETTE_KINDS: Array<{
   kind: Exclude<ManualNodeKind, "document">;
   hintKey: "kindProjectHint" | "kindDomainHint" | "kindCapabilityHint" | "kindElementHint";
+  /** 키보드 단축키 — palette 클릭과 1:1 (P/D/C/E). */
+  shortcut: "P" | "D" | "C" | "E";
 }> = [
-  { kind: "project", hintKey: "kindProjectHint" },
-  { kind: "domain", hintKey: "kindDomainHint" },
-  { kind: "capability", hintKey: "kindCapabilityHint" },
-  { kind: "element", hintKey: "kindElementHint" },
+  { kind: "project", hintKey: "kindProjectHint", shortcut: "P" },
+  { kind: "domain", hintKey: "kindDomainHint", shortcut: "D" },
+  { kind: "capability", hintKey: "kindCapabilityHint", shortcut: "C" },
+  { kind: "element", hintKey: "kindElementHint", shortcut: "E" },
 ];
 
 export interface OntologyKindPaletteProps {
@@ -62,8 +64,16 @@ export function OntologyKindPalette({ onAddNode }: OntologyKindPaletteProps) {
                   <Icon size={14} />
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="text-[13px] font-medium text-[color:var(--color-text-primary)]">
-                    {label}
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] font-medium text-[color:var(--color-text-primary)]">
+                      {label}
+                    </span>
+                    <kbd
+                      aria-hidden
+                      className="shrink-0 rounded border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-1.5 py-px font-mono text-[9px] uppercase tracking-[0.06em] text-[color:var(--color-text-quaternary)] group-hover:text-[color:var(--color-text-tertiary)]"
+                    >
+                      {entry.shortcut}
+                    </kbd>
                   </span>
                   <span className="text-[11px] leading-4 text-[color:var(--color-text-quaternary)] group-hover:text-[color:var(--color-text-tertiary)]">
                     {hint}

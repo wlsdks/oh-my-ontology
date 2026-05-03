@@ -19,11 +19,10 @@
     "topology": "Topology",
     "docs": "Docs",
     "projects": "Projects",
-    "back": "Back",
+    "back": "Home",
     "ariaLabel": "Operations menu",
     "ariaLabelMobile": "Operations menu (mobile)",
-    "backToWorkspace": "Back to the workspace map",
-    "projectsCta": "Projects →",
+    "backToWorkspace": "Home (topology map)",
     "tooltipDocs": "The .md files in your vault — add `kind:` to frontmatter and they become ontology nodes",
     "tooltipOntology": "Hierarchical view of frontmatter nodes (project → domain → capability → element)",
     "tooltipTopology": "Project dependency map — one of the ontology's exit views",
@@ -697,7 +696,7 @@
         "helpStepPalette": "Click a kind from the palette on the left to add a new node",
         "helpStepConnect": "Drag from a node's handle and drop on another node to add a relation",
         "helpStepEphemeral": "Ephemeral nodes are dashed indigo — name them in the inspector and save",
-        "helpShortcuts": "N · new node  /  Del · delete selected  /  Esc · clear selection  /  F · fullscreen",
+        "helpShortcuts": "P · project / D · domain / C · capability / E · element  ·  Del · delete selected  ·  Esc · clear  ·  F · fullscreen",
         "exportButton": "Export md ↓",
         "exportAriaLabel": "Export current canvas as frontmatter md",
         "exportJsonLdButton": "JSON-LD ↓",
@@ -808,13 +807,13 @@
         "title": "More than an ERD — let's draw your domain *map*",
         "intro": "Not a code or DB schema, but a visual map of *features, relationships, and roles*. PMs, designers, and ops folks can draw it themselves. AI agents (Claude Code, …) add nodes to the same map.",
         "closeAriaLabel": "Close onboarding",
-        "stepPaletteStrong": "Click a kind on the left",
-        "stepPaletteBody": " — Project · Domain · Capability · Element. A draft node lands in the middle. (Code identifiers: project / domain / capability / element)",
+        "stepPaletteStrong": "Click a kind on the left (or press P/D/C/E)",
+        "stepPaletteBody": " — Project · Domain · Capability · Element. Hit the matching key to drop one without leaving the canvas. (Code identifiers: project / domain / capability / element)",
         "stepConnectStrong": "Drag from a node's edge handle",
         "stepConnectBody": " and drop on another node — the two get a *relation (depends / contains / describes)* between them.",
         "stepSaveStrong": "Save",
         "stepSaveBody": " — straight to disk as `.md` when a vault is open. Without a vault the canvas is read-only (open one from the top right). AI agents read and write the same map over MCP.",
-        "shortcutsHint": "Quick keys — N new node · Del delete · Esc cancel",
+        "shortcutsHint": "Quick keys — P/D/C/E new node · Del delete · Esc cancel",
         "dontShowAgain": "Don't show again",
         "getStarted": "Get started"
       },
@@ -830,7 +829,8 @@
         "kindElementHint": "A small piece inside a capability — screen / button / API"
       },
       "atlasNode": {
-        "ephemeralBadge": "draft"
+        "ephemeralBadge": "draft",
+        "ephemeralUnsavedHint": "↳ Inspector ▸ Save"
       }
     },
     "insights": {
@@ -1195,6 +1195,8 @@
       "titleNoDeps": "No dependencies to draw yet",
       "bodyNoProjects": "Connect a markdown folder or create your first project in the builder. Fill in `dependencies:` in the frontmatter and lines appear here automatically.",
       "bodyNoDeps": "Add a single dependency between two projects (`dependencies:` frontmatter) and a line will appear here automatically. The builder canvas can also draw them via drag.",
+      "crossViewHint": "This view only shows *project dependencies*. Other node kinds — domains, capabilities, elements — live in the tree and the builder.",
+      "ctaTree": "See everything in the tree",
       "ctaBuilder": "Add a dependency in the builder",
       "ctaOpenVault": "Open my markdown folder"
     },

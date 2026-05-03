@@ -56,30 +56,34 @@ export function AtlasNode({ data, selected }: NodeProps) {
   const nodeData = data as AtlasNodeData;
   const tone = KIND_TONE[nodeData.kind] ?? KIND_TONE.element;
   const isEphemeral = Boolean(nodeData.ephemeral);
+  // ephemeral 은 *저장 필요* 신호 — 디자인 헌장 §11 의 warning amber
+  // (rgba(255,179,71,*)) 사용 (hub amber #d4b478 와 구분되는 신호 톤).
+  // border 두께도 2px 로 강조 — vault 의 1px solid 와 한눈에 차별.
   const borderStyle = isEphemeral ? "dashed" : "solid";
+  const borderWidth = isEphemeral ? 2 : 1;
+  const borderColor = isEphemeral ? "rgba(255, 179, 71, 0.55)" : tone.border;
+  const ephemeralBadgeColor = "rgba(255, 179, 71, 0.95)";
   return (
     <div
       style={{
-        // 헌장 §11 — rounded + 무채색 alpha bg + 단일 인디고 border
-        // soft shadow (선명도 X, 무채색 alpha)
         minWidth: 200,
         minHeight: 56,
         padding: "10px 14px",
         borderRadius: 12,
-        border: `1px ${borderStyle} ${tone.border}`,
-        background: tone.bg,
+        border: `${borderWidth}px ${borderStyle} ${borderColor}`,
+        background: isEphemeral
+          ? "rgba(255, 179, 71, 0.06)"
+          : tone.bg,
         color: "var(--color-text-primary)",
         boxShadow: selected
-          ? `0 0 0 2px ${tone.accent}, 0 8px 18px rgba(0, 0, 0, 0.32)`
+          ? `0 0 0 2px ${isEphemeral ? "rgba(255, 179, 71, 0.55)" : tone.accent}, 0 8px 18px rgba(0, 0, 0, 0.32)`
           : "0 4px 12px rgba(0, 0, 0, 0.22)",
-        // 헌장 §11 — transition 은 box-shadow / border 만 (transform / scale X)
         transition: "box-shadow 180ms ease-out, border-color 180ms ease-out",
         fontSize: 13,
         lineHeight: 1.4,
         wordBreak: "keep-all",
       }}
     >
-      {/* source / target handle — 인디고 dot. ephemeral 노드는 connectable. */}
       <Handle
         type="target"
         position={Position.Top}
@@ -105,11 +109,11 @@ export function AtlasNode({ data, selected }: NodeProps) {
               fontFamily: "var(--font-mono)",
               letterSpacing: "0.10em",
               textTransform: "uppercase",
-              color: tone.accent,
+              color: ephemeralBadgeColor,
               padding: "2px 6px",
               borderRadius: 4,
-              border: `1px solid ${tone.border}`,
-              background: tone.bg,
+              border: `1px solid ${ephemeralBadgeColor}`,
+              background: "rgba(255, 179, 71, 0.10)",
             }}
           >
             {t("ephemeralBadge")}
@@ -117,6 +121,19 @@ export function AtlasNode({ data, selected }: NodeProps) {
         ) : null}
         <span style={{ flex: 1, minWidth: 0 }}>{nodeData.label}</span>
       </div>
+      {isEphemeral ? (
+        <p
+          style={{
+            marginTop: 6,
+            fontSize: 10,
+            color: "rgba(255, 179, 71, 0.78)",
+            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {t("ephemeralUnsavedHint")}
+        </p>
+      ) : null}
       <Handle
         type="source"
         position={Position.Bottom}
