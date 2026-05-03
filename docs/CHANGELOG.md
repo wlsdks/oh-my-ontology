@@ -6,6 +6,69 @@
 
 ---
 
+## 2026-05-03 — Surface diet Round 2: 라우트 통합 + /docs 헤더 직접화
+
+Round 1 컷 (5 곳) 직후 codex 어드바이저 재pressure-test 로 합의된 2 곳을
+처리. 합의 안 된 1 건 (`/` ↔ `/ontology` 중복) 은 별도 사이클로 보류 —
+nav / search / 노드 선택 URL 재작성 등 inbound 의존이 많아 careful pass
+필요.
+
+### User-visible changes
+
+- **`/ontology/relations` 라우트 제거** — 122-줄 페이지가 단일 패널 (edge
+  type 분포) 만 들고 있었고, `/ontology/insights` 가 같은 분포 패널 (top
+  8 → 전체로 확장) 을 이미 보여줌. Sub-nav "Relations" 탭 / sitemap entry /
+  insights 의 self-link footer 모두 제거. 동일 데이터를 두 라우트로
+  분산시켜 인지 비용만 추가하던 구조.
+- **`/docs` 상단 source 토글 직접 노출** — 이전에 우상단 gear 아이콘
+  (Settings2) 뒤 dropdown 깊숙이 묻혀 있던 "샘플 vs 내 vault" 결정을
+  헤더 인라인 2-button radio 로 노출. 비개발자에게 가장 중요한 결정이
+  발견 비용 0 이 됨.
+- **`/docs` advanced dropdown 은 local 모드 전용** — gear 버튼 자체가
+  source === 'local' 일 때만 렌더. 안에는 folder-topology 토글 +
+  LocalVaultPicker + ontology scaffold + new doc 버튼만 (server 모드에
+선 dropdown 자체가 사라짐). tooltip "Advanced" → "Vault tools".
+- **insights edge type 패널 = 전체 분포** — 이전 top 8 slice 제거.
+  relations 페이지가 잘라내지 않고 모든 edge type 을 보여줬으므로 그
+  capability 를 insights 가 흡수.
+
+### Documentation cleanup (Round 1 leftovers)
+
+- `docs/FEATURES.md` insights 섹션: stale "30-day timeline" / "10 most
+  recent activities (relative time)" / "top 12 strongest relations"
+  (이미 제거된 기능들) → 실제 구현된 Node preview / 전체 edge type 분포
+  로 정정.
+- `docs/ARCHITECTURE.md` 라우트 표 (2 곳) 갱신.
+- `docs/DESIGN-SYSTEM.md` 의 stale `/settings/*` `/account` 라우트 언급
+  제거 (R10 에서 진작 영구 제거됐는데 docs drift).
+- `SigmaTopology.tsx` 의 stale `/diagnostics/insights` 주석 (2 곳, R10
+  이전 audit 페이지 reference) 정리.
+- `persistence.test.ts` 의 'graph' / 'stats' 명시 fallback assertion
+  제거 (이미 unknown fallback 으로 커버됨).
+
+### 코드 / 아키텍처
+
+- 2 commit, 약 ~330 LOC 삭제.
+- 라우트 1 개 (`/ontology/relations/`) + 페이지 컴포넌트 (`OntologyRelationsPage`)
+  + barrel + sub-nav entry 제거.
+- 13 개 i18n 번역 키 제거 + 3 개 신규 (sourceAriaLabel / vaultToolsTooltip /
+  vaultToolsAriaLabel).
+- DocsVaultPage advanced dropdown 안의 "View" / "Source" 섹션 헤더 +
+  source picker 2-button grid 제거.
+
+### Test
+
+- 571 tests pass (변동 없음).
+
+### Deferred
+
+- `/` ↔ `/ontology` 라우트 중복 (vault-active 시 둘 다 OntologyViewPage
+  렌더). codex 권고: `/ontology` canonical permalink, root → `/ontology/`
+  redirect. 별도 PR 에서 inbound 의존 (OperationsNav active marker, search
+  palette, 노드 선택 URL 재작성) 검토 후 처리.
+
+---
+
 ## 2026-05-03 — Surface diet: 5 dead UI cuts
 
 First-principles audit of every UI surface — does each toggle / mode /
