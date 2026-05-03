@@ -13,6 +13,7 @@ import { useDataSourceMode } from "@/features/data-source-mode";
 import { useLocalVault } from "@/features/docs-vault-local";
 import { slugify } from "@/shared/lib/slugify";
 import { OperationsNav } from "@/widgets/operations-nav";
+import { OntologySubNav } from "@/widgets/ontology-sub-nav";
 import { Tooltip, useToast } from "@/shared/ui";
 import { useEphemeralNodes } from "../lib/use-ephemeral-nodes";
 import { useEphemeralEdges } from "../lib/use-ephemeral-edges";
@@ -408,7 +409,12 @@ export function OntologyEditPage() {
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)]">
-      {fullscreen ? null : <OperationsNav />}
+      {fullscreen ? null : (
+        <>
+          <OperationsNav />
+          <OntologySubNav />
+        </>
+      )}
       <main
         className={
           fullscreen

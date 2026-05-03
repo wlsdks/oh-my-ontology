@@ -27,6 +27,7 @@ import {
   useOntologyInsight,
 } from "@/features/vault-ontology";
 import { OperationsNav } from "@/widgets/operations-nav";
+import { OntologySubNav } from "@/widgets/ontology-sub-nav";
 import { Tooltip, useToast } from "@/shared/ui";
 
 /**
@@ -146,6 +147,7 @@ export function OntologyViewPage() {
       {/* OperationsNav 는 풀폭으로 (본문 max-w 안에 갇히면 좌우 여백 과대로
           가운데 몰려 보이는 회귀 회피). */}
       <OperationsNav />
+      <OntologySubNav />
       <div className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
       <section className="mb-8 space-y-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">

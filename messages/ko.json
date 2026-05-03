@@ -29,6 +29,16 @@
     "primaryAriaLabel": "주요 메뉴",
     "notificationsAriaLabel": "작업 알림"
   },
+  "ontologySubNav": {
+    "ariaLabel": "온톨로지 서브메뉴",
+    "caption": "ONTOLOGY",
+    "nodeCount": "{count} 노드",
+    "edgeCount": "{count} 관계",
+    "tree": "트리",
+    "builder": "빌더",
+    "insights": "인사이트",
+    "relations": "관계 분포"
+  },
   "modeBadge": {
     "vaultLabel": "vault",
     "vaultDocs": "{count} docs",

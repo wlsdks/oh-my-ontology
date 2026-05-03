@@ -22,6 +22,7 @@ import {
 } from "@/shared/lib/ontology-tree";
 import { MountedGlobalSearch } from "@/widgets/global-search";
 import { OperationsNav } from "@/widgets/operations-nav";
+import { OntologySubNav } from "@/widgets/ontology-sub-nav";
 import { EmptyState } from "@/shared/ui";
 
 /**
@@ -112,6 +113,7 @@ export function OntologyInsightsPage() {
   return (
     <div>
       <OperationsNav />
+      <OntologySubNav />
       <div className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
       <MountedGlobalSearch />
 

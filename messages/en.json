@@ -29,6 +29,16 @@
     "primaryAriaLabel": "Primary menu",
     "notificationsAriaLabel": "Notifications"
   },
+  "ontologySubNav": {
+    "ariaLabel": "Ontology submenu",
+    "caption": "ONTOLOGY",
+    "nodeCount": "{count, plural, one {# node} other {# nodes}}",
+    "edgeCount": "{count, plural, one {# edge} other {# edges}}",
+    "tree": "Tree",
+    "builder": "Builder",
+    "insights": "Insights",
+    "relations": "Relations"
+  },
   "modeBadge": {
     "vaultLabel": "vault",
     "vaultDocs": "{count} docs",
