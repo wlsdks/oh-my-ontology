@@ -63,7 +63,7 @@ async function step1ParserSmoke() {
         log('ok', stdout.trim().split('\n').slice(-1)[0]);
         res(true);
       } else {
-        log('fail', `parser test 실패 (exit ${code})`);
+        log('fail', `parser test failed (exit ${code})`);
         if (stdout) console.error(stdout);
         if (stderr) console.error(stderr);
         res(false);
@@ -127,13 +127,13 @@ async function step2BootAndCall() {
       const callRes = responses.find((r) => r.id === 3);
 
       if (!initRes || !initRes.result) {
-        log('fail', `initialize 응답 없음. stderr: ${stderr.slice(0, 300)}`);
+        log('fail', `no initialize response. stderr: ${stderr.slice(0, 300)}`);
         return res(false);
       }
       log('ok', `initialize OK — server ${initRes.result.serverInfo?.name}@${initRes.result.serverInfo?.version}`);
 
       if (!listRes || !listRes.result?.tools) {
-        log('fail', 'tools/list 응답 없음');
+        log('fail', 'no tools/list response');
         return res(false);
       }
       const toolNames = listRes.result.tools.map((t) => t.name).sort();
@@ -141,31 +141,31 @@ async function step2BootAndCall() {
       const missing = expectedSorted.filter((n) => !toolNames.includes(n));
       const extra = toolNames.filter((n) => !expectedSorted.includes(n));
       if (missing.length > 0 || extra.length > 0) {
-        log('fail', `tools 불일치 — missing: ${missing.join(',') || '(없음)'}, extra: ${extra.join(',') || '(없음)'}`);
+        log('fail', `tools mismatch — missing: ${missing.join(',') || '(none)'}, extra: ${extra.join(',') || '(none)'}`);
         return res(false);
       }
       log('ok', `tools/list ${toolNames.length}/${EXPECTED_TOOLS.length} — ${toolNames.join(' · ')}`);
 
       if (!callRes || !callRes.result) {
-        log('fail', 'list_concepts 호출 응답 없음');
+        log('fail', 'no list_concepts response');
         return res(false);
       }
       try {
         const text = callRes.result.content?.[0]?.text || '';
         const parsed = JSON.parse(text);
-        log('ok', `list_concepts — vault total ${parsed.total} 노드 (vaultRoot ${parsed.vaultRoot})`);
+        log('ok', `list_concepts — vault total ${parsed.total} nodes (vaultRoot ${parsed.vaultRoot})`);
         if (parsed.total === 0) {
-          log('info', '경고: vault 가 비어있음. OMOT_VAULT 가 올바른 폴더를 가리키는지 확인 (예: ./docs/ontology)');
+          log('info', 'Warning: vault is empty. Make sure OMOT_VAULT points to the right folder (e.g. ./docs/ontology)');
         }
         res(true);
       } catch (err) {
-        log('fail', `list_concepts 응답 파싱 실패: ${err.message}`);
+        log('fail', `failed to parse list_concepts response: ${err.message}`);
         res(false);
       }
     });
 
     proc.on('error', (err) => {
-      log('fail', `서버 spawn 실패: ${err.message}`);
+      log('fail', `server spawn failed: ${err.message}`);
       res(false);
     });
   });
@@ -177,7 +177,7 @@ async function main() {
   if (!ok1) process.exit(1);
   const ok2 = await step2BootAndCall();
   if (!ok2) process.exit(1);
-  console.log(`\n\x1b[32m전체 통과\x1b[0m — Claude Code 에 .mcp.json 등록 후 재시작하면 ${EXPECTED_TOOLS.length} 도구 사용 가능합니다.\n`);
+  console.log(`\n\x1b[32mAll passed\x1b[0m — register .mcp.json with Claude Code and restart to use the ${EXPECTED_TOOLS.length} tools.\n`);
   process.exit(0);
 }
 
