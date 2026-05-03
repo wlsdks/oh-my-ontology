@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
-import type { KnowledgeGraphNode } from "@/entities/knowledge-graph";
+import {
+  buildOntologyNodeHref,
+  type KnowledgeGraphNode,
+} from "@/entities/knowledge-graph";
 import { type Project, getProjectDetailHref } from "@/entities/project";
 import { useProjects } from "@/features/project-data-source";
 import { useOntologyInsight } from "@/features/vault-ontology";
@@ -82,7 +85,7 @@ export function MountedGlobalSearch({
         }
         // default — /ontology 페이지로 점프 + deeplink ?node=<id>. 페이지가
         // insight 로드 후 해당 노드를 selectedNode 로 자동 설정.
-        router.push(`/ontology/?node=${encodeURIComponent(node.id)}`);
+        router.push(buildOntologyNodeHref(node.id));
       }}
       onSelectProject={(project) => {
         if (onSelectProject) {

@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import {
   buildEdgeTypeRows,
+  buildOntologyNodeHref,
   useEdgeTypeLabel,
 } from "@/entities/knowledge-graph";
 import { useOntologyInsight } from "@/features/vault-ontology";
@@ -310,7 +311,7 @@ export function OntologyInsightsPage() {
                 {topHubs.map(({ node, degree }, idx) => (
                   <li key={node.id}>
                     <Link
-                      href={`/ontology/?node=${encodeURIComponent(node.id)}`}
+                      href={buildOntologyNodeHref(node.id)}
                       className="flex items-center gap-2 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-2.5 py-1.5 text-[12px] transition-colors hover:border-[color:rgba(94,106,210,0.32)]"
                     >
                       <span className="w-5 shrink-0 font-mono text-[10px] text-[color:var(--color-text-quaternary)]">
@@ -341,7 +342,7 @@ export function OntologyInsightsPage() {
               {recent.map((node) => (
                 <li key={node.id}>
                   <Link
-                    href={`/ontology/?node=${encodeURIComponent(node.id)}`}
+                    href={buildOntologyNodeHref(node.id)}
                     className="flex items-center gap-2 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-2.5 py-1.5 text-[12px] transition-colors hover:border-[color:rgba(94,106,210,0.32)]"
                   >
                     <span className="inline-flex shrink-0 items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
@@ -368,7 +369,7 @@ export function OntologyInsightsPage() {
                 {orphans.slice(0, 10).map((node) => (
                   <li key={node.id}>
                     <Link
-                      href={`/ontology/?node=${encodeURIComponent(node.id)}`}
+                      href={buildOntologyNodeHref(node.id)}
                       className="flex items-center gap-2 rounded-md border border-[color:rgba(255,179,71,0.18)] bg-[color:rgba(255,179,71,0.04)] px-2.5 py-1.5 text-[12px] transition-colors hover:border-[color:rgba(255,179,71,0.40)] hover:bg-[color:rgba(255,179,71,0.08)]"
                     >
                       <span className="inline-flex shrink-0 items-center rounded-full border border-[color:rgba(255,179,71,0.30)] bg-[color:rgba(255,179,71,0.08)] px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em] text-[color:rgba(238,198,128,0.95)]">

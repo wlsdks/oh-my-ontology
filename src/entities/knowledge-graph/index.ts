@@ -11,3 +11,4 @@ export {
   buildEdgeTypeRows,
 } from "./model";
 export type { EdgeTypeRow } from "./model";
+export { buildOntologyNodeHref } from "./lib/ontology-node-href";

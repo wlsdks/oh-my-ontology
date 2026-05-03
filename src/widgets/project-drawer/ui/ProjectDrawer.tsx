@@ -32,6 +32,7 @@ import {
   type Project,
   type ProjectImpactMode,
 } from "@/entities/project";
+import { buildOntologyNodeHref } from "@/entities/knowledge-graph";
 import { CopyProjectLinkButton } from "@/features/project-share";
 import { useTaxonomy } from "@/features/taxonomy";
 import { useBodyScrollLock } from "@/shared/lib/use-body-scroll-lock";
@@ -562,7 +563,7 @@ export function ProjectDrawer({
                           이 자동 열린다 (fm.slug 가 filename 과 다른 경우엔
                           매칭 실패해도 페이지는 graceful 로드). */}
                       <Link
-                        href={`/ontology/?node=${encodeURIComponent(`project:${project.slug}`)}`}
+                        href={buildOntologyNodeHref(`project:${project.slug}`)}
                         className="inline-flex h-10 items-center justify-center rounded-md border border-[color:var(--color-divider)] px-3 text-sm text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-panel)]"
                       >
                         {t("openOntology")}
