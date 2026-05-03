@@ -92,9 +92,9 @@ function KindChip({ kind }: { kind: string }) {
 }
 
 /**
- * 노드의 evidence 수 chip — V1.0 모델의 강점 가시화 (기획자 audit F6).
- * evidence 0 일 때는 미렌더 (chip 노이즈 차단). hover 시 "이 노드의 출처 N개"
- * 라는 native title 툴팁.
+ * 노드의 evidence 수 chip — \"이 노드의 출처가 얼마나 많은가\" 가시화.
+ * evidence 0 일 때는 미렌더 (chip 노이즈 차단). hover 시 \"이 노드의 출처
+ * N개\" native title 툴팁.
  */
 function EvidenceCountChip({ count }: { count: number | undefined }) {
   const t = useTranslations('ontologyWidgets');

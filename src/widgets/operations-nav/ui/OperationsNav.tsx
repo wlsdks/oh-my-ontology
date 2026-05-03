@@ -110,9 +110,9 @@ export function OperationsNav() {
       variant === 'mobile' ? 'h-8 px-2.5 text-[12px]' : 'h-8 px-3 text-[12px]';
     return (
       <li key={item.id}>
-        {/* audit A6 — role='tab'/'tablist' 는 panel 페어링이 있어야 의미 있음.
-            여기 항목들은 별도 라우트로 navigate 하는 plain link 라 정직하게
-            link 시맨틱 만 유지. aria-current='page' 로 활성 항목 표시. */}
+        {/* role='tab'/'tablist' 는 tabpanel 페어링이 있어야 의미가 있음.
+            여기 항목은 별도 라우트로 navigate 하는 plain link 라 link
+            시맨틱 만 유지하고 aria-current='page' 로 활성 항목 표시. */}
         <Tooltip content={t(item.tooltipKey)}>
           <Link
             href={href}

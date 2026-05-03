@@ -435,12 +435,9 @@ relates:
 }
 
 /**
- * V1.0 강점 가시화 footer — projection version + 마지막 publish + 노드/엣지
- * count + 현재 운영 모드. /ontology 페이지 하단 영구 노출.
- *
- * V1.0 모델은 schema versioning + projection 분리 + audit chain 까지 갖췄지만
- * UI 노출이 거의 없었다 (기획자 audit F6). footer 한 줄로 *지금 보고 있는
- * ontology 가 어느 시점·어느 buildup 인지* 사용자에게 알려줌.
+ * /ontology 페이지 하단 영구 footer — 노드/엣지 count + 현재 운영 모드를
+ * 한 줄로 노출해 사용자에게 \"지금 보고 있는 ontology 가 어느 source 인지\"
+ * (vault vs dogfood) 알려준다.
  */
 function OntologyMetaFooter({
   nodeCount,
@@ -550,9 +547,8 @@ function NodeDetailPanel({
   // document 노드는 evidenceIds[0] 가 자기 자신의 underlying ID. 그 외
   // 노드는 evidenceIds 가 근거 문서 목록 — "관련 문서" 리스트.
   const evidenceList = isDocument ? [] : node.evidenceIds;
-  // audit N1 — "+N개 더" 가 텍스트라 더 보기 불가했음. 사용자가 토글해서
-  // 모든 이웃 / 근거를 볼 수 있게. node 변경 시 state 초기화 (다른 노드의
-  // 펼친 상태 가 새 패널에 새 옴 안 함).
+  // \"+N개 더\" 토글 — 사용자가 모든 이웃 / 근거를 펼칠 수 있게. node
+  // 변경 시 state 초기화 (다른 노드의 펼친 상태가 새 패널에 안 새도록).
   const [showAllNeighbors, setShowAllNeighbors] = useState(false);
   const [showAllEvidence, setShowAllEvidence] = useState(false);
   useEffect(() => {
