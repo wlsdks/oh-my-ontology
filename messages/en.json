@@ -585,7 +585,9 @@
       "meta": {
         "wordsUnit": "{count} words",
         "readingMinutes": "≈ {minutes} min read",
-        "ontologyKindTitle": "Open {kind} node in ontology tree"
+        "ontologyKindTitle": "Open {kind} node in ontology tree",
+        "topologyLinkLabel": "topology",
+        "topologyLinkTitle": "Open this project in topology"
       },
       "sidebar": {
         "pinnedHeader": "Pinned · {count}",

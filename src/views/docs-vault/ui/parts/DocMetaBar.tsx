@@ -1,5 +1,9 @@
 import { useLocale, useTranslations } from "next-intl";
-import { buildOntologyDeeplinkForDoc, type VaultDoc } from "@/entities/docs-vault";
+import {
+  buildOntologyDeeplinkForDoc,
+  buildTopologyDeeplinkForDoc,
+  type VaultDoc,
+} from "@/entities/docs-vault";
 import { Link } from "@/i18n/navigation";
 import { estimateReadingMinutes } from "./reading-minutes";
 
@@ -23,6 +27,8 @@ export function DocMetaBar({ doc }: { doc: VaultDoc }) {
   const kindValue = ontologyHref
     ? String(doc.frontmatter?.kind ?? "").trim()
     : "";
+  // project kind 만 토폴로지에 1:1 노드가 있어 ?p= deeplink 의미가 있다.
+  const topologyHref = buildTopologyDeeplinkForDoc(doc);
   return (
     <div className="mx-auto flex max-w-[760px] flex-wrap items-center gap-3 border-b border-[color:var(--color-overlay-2)] px-6 py-3 text-[11px] text-[color:var(--color-text-quaternary)] md:px-10">
       <span className="font-mono tabular-nums">
@@ -38,6 +44,15 @@ export function DocMetaBar({ doc }: { doc: VaultDoc }) {
           className="font-mono underline-offset-2 transition-colors hover:text-[color:var(--color-indigo-accent)] hover:underline"
         >
           kind:{kindValue}
+        </Link>
+      ) : null}
+      {topologyHref ? (
+        <Link
+          href={topologyHref}
+          title={t("topologyLinkTitle")}
+          className="font-mono underline-offset-2 transition-colors hover:text-[color:var(--color-indigo-accent)] hover:underline"
+        >
+          {t("topologyLinkLabel")}
         </Link>
       ) : null}
       {doc.tags.length > 0 ? (
