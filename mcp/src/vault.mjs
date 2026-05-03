@@ -368,12 +368,15 @@ export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
       visited.add(n);
       parent.set(n, cur);
       if (n === toSlug) {
+        // Path reconstruction: push to end + reverse 한 번 (O(D)). 이전엔 매
+        // step 마다 \`hops.unshift(p)\` 라 O(D²) — maxHops 가 작아도 안티패턴.
         const hops = [n];
         let p = n;
         while (parent.has(p)) {
           p = parent.get(p);
-          hops.unshift(p);
+          hops.push(p);
         }
+        hops.reverse();
         return { from: fromSlug, to: toSlug, hops };
       }
       queue.push({ node: n, depth: depth + 1 });
