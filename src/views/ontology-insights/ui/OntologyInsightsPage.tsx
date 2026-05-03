@@ -138,7 +138,13 @@ export function OntologyInsightsPage() {
       .map(([type, count]) => ({ type, count }));
     return [...known, ...extra].filter((r) => r.count > 0);
   }, [edgeTypeDist]);
-  const edgeTypeMax = edgeTypeRows[0]?.count ?? 0;
+  // edgeTypeRows 는 canonical 순서 (contains, belongs_to, …) 라 [0] 가 max
+  // 가 아니다 — 실제 max 는 reduce 로 별도 계산. 이전엔 bar pct 가 잘못된
+  // baseline 으로 정규화돼 100% 초과 / 비율 왜곡 회귀가 있었다.
+  const edgeTypeMax = useMemo(
+    () => edgeTypeRows.reduce((m, r) => Math.max(m, r.count), 0),
+    [edgeTypeRows],
+  );
 
   // cross-project edge 카운트 — 양 끝 노드의 projectIds 가 disjoint 인 edge
   // 만 셈. 전체 edge 의 비율로 사용자에게 \"ontology 가 얼마나 분산됐나\"
