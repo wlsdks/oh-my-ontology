@@ -3,7 +3,6 @@ export type {
   VaultDoc,
   VaultHeading,
   VaultManifest,
-  VaultMode,
   VaultTreeNode,
 } from './model/types';
 export { default as vaultManifest } from './data/manifest.json';

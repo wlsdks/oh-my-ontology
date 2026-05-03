@@ -571,12 +571,6 @@
       "footerClose": "Close",
       "footerLegend": "> command · # tag"
     },
-    "graph": {
-      "indicator": "vault graph · {visible}/{total}",
-      "modePlanner": "Planner",
-      "modeEngineer": "Engineer",
-      "modeBoth": "Shared"
-    },
     "depsBar": {
       "notRegistered": "This document isn't registered in Folder-Topology — move it to the projects/ directory and fill `name` · `category` in frontmatter to make it appear as a node.",
       "depsLabel": "Depends · {count}",
@@ -595,9 +589,6 @@
     },
     "parts": {
       "meta": {
-        "modePlanner": "Planner",
-        "modeEngineer": "Engineer",
-        "modeBoth": "Shared",
         "wordsUnit": "{count} words",
         "readingMinutes": "≈ {minutes} min read"
       },
@@ -607,11 +598,7 @@
         "unpinTooltip": "Unpin"
       },
       "empty": {
-        "selectPrompt": "Pick a document from the tree on the left",
-        "audiencePrefix": "Audience",
-        "audiencePlanner": "Planner",
-        "audienceEngineer": "Engineer",
-        "audienceAll": "All"
+        "selectPrompt": "Pick a document from the tree on the left"
       },
       "outline": {
         "pinTooltip": "Pin this document",
@@ -634,15 +621,6 @@
         "duplicateAria": "{text}, occurrence {n}",
         "referencesHeader": "References · {count}"
       }
-    },
-    "audienceMismatch": {
-      "sectionAria": "Documents outside the current view",
-      "title": "Reference document outside the current view",
-      "body": "This document is from the {label} perspective. The body stays as-is — only the tree and recommendations are sorted for the current view.",
-      "switchButton": "View through {label} perspective",
-      "audiencePlanner": "planner",
-      "audienceEngineer": "engineer",
-      "audienceBoth": "shared"
     },
     "tags": {
       "sectionLabel": "Tags",
@@ -1025,12 +1003,7 @@
       "title": "Docs Vault",
       "docCount": "{count} docs",
       "localBadge": "Local",
-      "audienceAriaLabel": "Document audience",
-      "audienceLabel": "Audience",
-      "audienceAll": "All",
-      "audiencePlanner": "Planner",
-      "audienceEngineer": "Engineer",
-      "paletteTooltip": "Search · commands · tags — Tab to switch audience",
+      "paletteTooltip": "Search · commands · tags",
       "paletteAriaLabel": "Open palette (search · commands · tags)",
       "advancedTooltip": "Advanced",
       "advancedAriaLabel": "Open advanced menu"
@@ -1064,9 +1037,6 @@
       "viewFolderTopology": "View · Folder topology (projects/*.md)",
       "scaffoldTopology": "Initialize this folder as a topology vault",
       "createProject": "Add new project (projects/…md)",
-      "audienceAll": "Audience · All",
-      "audiencePlanner": "Audience · Planner",
-      "audienceEngineer": "Audience · Engineer",
       "sourceServer": "Source · Sample vault",
       "sourceLocal": "Source · Local PC folder",
       "pinDoc": "Pin this doc",

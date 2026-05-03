@@ -1,8 +1,6 @@
 // docs-vault 매니페스트 스키마. scripts/build-docs-vault.mjs 가 빌드타임에
 // 생성한 JSON 과 정확히 같은 shape. 런타임에서는 import 만으로 접근 가능.
 
-export type VaultMode = 'planner' | 'engineer' | 'both';
-
 export interface VaultHeading {
   depth: number;
   text: string;
@@ -20,7 +18,6 @@ export interface VaultDoc {
   excerpt: string;
   wordCount: number;
   updatedAt: string;
-  mode: VaultMode;
   linksOut: string[];
 }
 

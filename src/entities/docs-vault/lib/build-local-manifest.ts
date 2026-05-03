@@ -1,6 +1,5 @@
 import {
   buildExcerpt,
-  classifyMode,
   extractHeadings,
   extractOutLinksWithContext,
   firstHeading,
@@ -10,7 +9,6 @@ import type {
   VaultBacklinkEntry,
   VaultDoc,
   VaultManifest,
-  VaultMode,
   VaultTreeNode,
 } from '../model/types';
 
@@ -222,7 +220,6 @@ export async function buildLocalManifest(
       excerpt: buildExcerpt(body),
       wordCount: body.split(/\s+/).filter(Boolean).length,
       updatedAt: new Date(file.lastModified).toISOString(),
-      mode: classifyMode(slug) as VaultMode,
       linksOut,
     });
   }

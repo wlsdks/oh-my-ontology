@@ -42,9 +42,7 @@ import {
   type FolderTopologyBuild,
   vaultManifest,
   type VaultManifest,
-  type VaultMode,
 } from '@/entities/docs-vault';
-import { DocsVaultAudienceMismatchNotice } from '@/widgets/docs-vault/ui/DocsVaultAudienceMismatchNotice';
 import { DocsVaultEditor } from '@/widgets/docs-vault/ui/DocsVaultEditor';
 import { DocsVaultProjectDepsBar } from '@/widgets/docs-vault/ui/DocsVaultProjectDepsBar';
 import { DocsVaultUnifiedPalette } from '@/widgets/docs-vault/ui/DocsVaultUnifiedPalette';
@@ -83,14 +81,10 @@ import { DocsSidebarBody } from "./parts/DocsSidebarBody";
 import { DocsVaultDocOutlinePanel } from "./parts/DocsVaultDocOutlinePanel";
 import { EmptyState } from "./parts/EmptyState";
 import {
-  parseDocsVaultAudience as parseAudience,
   parseDocsVaultView as parseView,
-  readStoredAudience,
   readStoredSource,
   scheduleStateSync,
-  storeAudience,
   storeSource,
-  type DocsVaultAudience,
   type DocsVaultSource as Source,
   type DocsVaultView,
 } from "../lib/persistence";
@@ -100,7 +94,6 @@ function DocsVaultContent() {
   const searchParams = useSearchParams();
   const querySlug = searchParams?.get('slug') ?? null;
   const queryView = parseView(searchParams?.get('view'));
-  const queryAudience = parseAudience(searchParams?.get('audience'));
   const projectsListHref = '/projects/';
   const workspaceHref = '/';
   const getDocHref = useCallback(
@@ -112,8 +105,6 @@ function DocsVaultContent() {
     [],
   );
   const [selectedSlug, setSelectedSlug] = useState<string | null>(querySlug);
-  const [audience, setAudience] =
-    useState<DocsVaultAudience>(queryAudience);
   // 통합 팔레트 하나로 3 단축키 수렴. openWith 가 truthy 이면 open,
   // 값은 초기 쿼리 (`>` 명령, `#` 태그, `` 기본).
   const [paletteQuery, setPaletteQuery] = useState<string | null>(null);
@@ -160,7 +151,6 @@ function DocsVaultContent() {
     (next: {
       slug?: string | null;
       view?: DocsVaultView;
-      audience?: DocsVaultAudience;
     }) => {
       if (typeof window === 'undefined') return;
       const url = new URL(window.location.href);
@@ -175,13 +165,6 @@ function DocsVaultContent() {
           url.searchParams.delete('view');
         }
       }
-      if ('audience' in next) {
-        if (next.audience && next.audience !== 'all') {
-          url.searchParams.set('audience', next.audience);
-        } else {
-          url.searchParams.delete('audience');
-        }
-      }
       window.history.replaceState({}, '', url.toString());
       window.dispatchEvent(new Event('app:urlchange'));
     },
@@ -193,15 +176,6 @@ function DocsVaultContent() {
       setView(next);
       replaceUrlState({ view: next });
       setAdvancedOpen(false);
-    },
-    [replaceUrlState],
-  );
-
-  const handleAudienceChange = useCallback(
-    (next: DocsVaultAudience) => {
-      setAudience(next);
-      storeAudience(next);
-      replaceUrlState({ audience: next });
     },
     [replaceUrlState],
   );
@@ -905,7 +879,6 @@ function DocsVaultContent() {
     if (initialPrefsAppliedRef.current) return;
     initialPrefsAppliedRef.current = true;
     scheduleStateSync(() => {
-      if (!searchParams?.has('audience')) setAudience(readStoredAudience());
       if (!searchParams?.has('view')) setView(queryView);
     });
   }, [searchParams, queryView]);
@@ -926,22 +899,11 @@ function DocsVaultContent() {
       scheduleStateSync(() => setView(queryView));
     }
   }, [prevQueryView, queryView, view]);
-  const prevQueryAudience = usePrevious(queryAudience);
-  useEffect(() => {
-    if (prevQueryAudience !== queryAudience && queryAudience !== audience) {
-      scheduleStateSync(() => setAudience(queryAudience));
-    }
-  }, [prevQueryAudience, queryAudience, audience]);
 
   const docsBySlug = useMemo(() => {
     const map = new Map<string, (typeof manifest.docs)[number]>();
     for (const d of manifest.docs) map.set(d.slug, d);
     return map;
-  }, [manifest]);
-  const audienceBySlug = useMemo(() => {
-    const out: Record<string, VaultMode> = {};
-    for (const d of manifest.docs) out[d.slug] = d.mode;
-    return out;
   }, [manifest]);
   const vaultSlugs = useMemo(
     () => new Set(manifest.docs.map((d) => d.slug)),
@@ -1004,11 +966,6 @@ function DocsVaultContent() {
   ]);
 
   const selectedDoc = selectedSlug ? (docsBySlug.get(selectedSlug) ?? null) : null;
-  const selectedDocOutsideAudience =
-    audience !== 'all' &&
-    selectedDoc !== null &&
-    selectedDoc.mode !== audience &&
-    selectedDoc.mode !== 'both';
   const backlinksDetail = selectedSlug
     ? (manifest.backlinksDetail?.[selectedSlug] ?? [])
     : [];
@@ -1081,27 +1038,6 @@ function DocsVaultContent() {
         icon: '🧩',
         visible: canEditCurrent && source === 'local',
         onRun: () => void handleCreateProject(),
-      },
-      {
-        id: 'audience-all',
-        label: t('commands.audienceAll'),
-        icon: '◎',
-        visible: audience !== 'all',
-        onRun: () => handleAudienceChange('all'),
-      },
-      {
-        id: 'audience-planner',
-        label: t('commands.audiencePlanner'),
-        icon: '◎',
-        visible: audience !== 'planner',
-        onRun: () => handleAudienceChange('planner'),
-      },
-      {
-        id: 'audience-engineer',
-        label: t('commands.audienceEngineer'),
-        icon: '◎',
-        visible: audience !== 'engineer',
-        onRun: () => handleAudienceChange('engineer'),
       },
       {
         id: 'source-server',
@@ -1235,7 +1171,6 @@ function DocsVaultContent() {
     ];
   }, [
     view,
-    audience,
     source,
     selectedSlug,
     pinnedSet,
@@ -1253,7 +1188,6 @@ function DocsVaultContent() {
     handleExportVault,
     handleImportVault,
     handleInsertToc,
-    handleAudienceChange,
     handleViewChange,
     handleRenameCurrent,
     handleScaffoldTopology,
@@ -1277,8 +1211,6 @@ function DocsVaultContent() {
       recentSlugs={recentSlugs}
       selectedSlug={selectedSlug}
       docsBySlug={docsBySlug}
-      audience={audience}
-      audienceBySlug={audienceBySlug}
       activeTag={activeTag}
       manifest={manifest}
       onSelect={handleSelectFromSidebar}
@@ -1323,29 +1255,6 @@ function DocsVaultContent() {
           ) : null}
         </div>
         <div className="ml-auto flex flex-none flex-wrap items-center justify-end gap-2">
-          <div
-            className="flex items-center gap-1 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-0.5 text-[11px]"
-            aria-label={t('header.audienceAriaLabel')}
-          >
-            <span className="px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-              {t('header.audienceLabel')}
-            </span>
-            {(['all', 'planner', 'engineer'] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => handleAudienceChange(m)}
-                className={`rounded-sm px-2.5 py-1 transition-colors ${
-                  audience === m
-                    ? 'bg-[color:rgba(94,106,210,0.14)] text-[color:var(--color-text-primary)]'
-                    : 'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary)]'
-                }`}
-                aria-pressed={audience === m}
-              >
-                {m === 'all' ? t('header.audienceAll') : m === 'planner' ? t('header.audiencePlanner') : t('header.audienceEngineer')}
-              </button>
-            ))}
-          </div>
           <Tooltip content={t('header.paletteTooltip')} withProvider={false}>
             <button
               type="button"
@@ -1623,13 +1532,6 @@ function DocsVaultContent() {
                 ) : (
                   <>
                     <DocMetaBar doc={selectedDoc} />
-                    {selectedDocOutsideAudience ? (
-                      <DocsVaultAudienceMismatchNotice
-                        docMode={selectedDoc.mode}
-                        currentAudience={audience}
-                        onSwitchAudience={handleAudienceChange}
-                      />
-                    ) : null}
                     {selectedDoc.slug.startsWith('projects/') &&
                     source === 'local' ? (
                       <DocsVaultProjectDepsBar
@@ -1701,7 +1603,7 @@ function DocsVaultContent() {
               ) : null}
             </div>
           ) : (
-            <EmptyState audience={audience} />
+            <EmptyState />
           )}
         </main>
       </div>

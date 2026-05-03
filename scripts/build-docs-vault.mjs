@@ -23,16 +23,6 @@ const MANIFEST_OUT = path.join(
   'manifest.json',
 );
 
-// vault doc 의 audience 분류 — src/shared/lib/parse-frontmatter.ts 의
-// classifyMode 와 동일 규칙. 실제로 docs/ 에 잔존하는 ARCHITECTURE /
-// DEPLOYMENT 만 'engineer', 나머지는 default 'both'.
-function classifyMode(slug) {
-  if (slug === 'ARCHITECTURE' || slug === 'DEPLOYMENT') {
-    return 'engineer';
-  }
-  return 'both';
-}
-
 async function walk(dir) {
   const out = [];
   const entries = await readdir(dir, { withFileTypes: true });
@@ -362,7 +352,6 @@ async function main() {
       excerpt: buildExcerpt(body),
       wordCount: body.split(/\s+/).filter(Boolean).length,
       updatedAt: st.mtime.toISOString(),
-      mode: classifyMode(slug),
       linksOut,
     });
 

@@ -13,7 +13,6 @@ function makeDoc(partial: Partial<VaultDoc> & { slug: string }): VaultDoc {
     excerpt: "",
     wordCount: 0,
     updatedAt: "2026-05-02T00:00:00Z",
-    mode: "both",
     linksOut: [],
   };
 }

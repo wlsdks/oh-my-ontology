@@ -1,11 +1,7 @@
 import { useMemo } from "react";
 import { Clock, FileText, Pin, PinOff, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type {
-  VaultDoc,
-  VaultManifest,
-  VaultMode,
-} from "@/entities/docs-vault";
+import type { VaultDoc, VaultManifest } from "@/entities/docs-vault";
 import { DocsVaultTags } from "@/widgets/docs-vault/ui/DocsVaultTags";
 import { DocsVaultTree } from "@/widgets/docs-vault/ui/DocsVaultTree";
 import { Tooltip } from "@/shared/ui";
@@ -23,8 +19,6 @@ export interface DocsSidebarBodyProps {
   recentSlugs: string[];
   selectedSlug: string | null;
   docsBySlug: Map<string, VaultDoc>;
-  audience: VaultMode | "all";
-  audienceBySlug: Record<string, VaultMode>;
   activeTag: string | null;
   manifest: VaultManifest;
   onSelect: (slug: string) => void;
@@ -37,8 +31,6 @@ export function DocsSidebarBody({
   recentSlugs,
   selectedSlug,
   docsBySlug,
-  audience,
-  audienceBySlug,
   activeTag,
   manifest,
   onSelect,
@@ -159,8 +151,6 @@ export function DocsSidebarBody({
         tree={manifest.tree}
         selectedSlug={selectedSlug}
         onSelect={onSelect}
-        audience={audience}
-        audienceBySlug={audienceBySlug}
         activeTag={activeTag}
         activeTagSlugs={activeTagSlugs}
       />

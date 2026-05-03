@@ -3,43 +3,16 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight, FileText, Folder } from 'lucide-react';
-import type {
-  VaultMode,
-  VaultTreeNode,
-} from '@/entities/docs-vault';
+import type { VaultTreeNode } from '@/entities/docs-vault';
 
 interface Props {
   tree: VaultTreeNode;
   selectedSlug: string | null;
   onSelect: (slug: string) => void;
-  /** 관점 필터 — 문서를 숨기지 않고 해당 관점 문서를 먼저 보여준다. */
-  audience: VaultMode | 'all';
-  /** slug → mode 조회 맵. 트리에는 mode 가 없어서 docs 배열에서 매핑. */
-  audienceBySlug: Record<string, VaultMode>;
   /** 활성 태그 필터. null 이면 태그 필터 해제. */
   activeTag?: string | null;
   /** 활성 태그가 매치하는 slug 집합. activeTag 가 있을 때만 사용. */
   activeTagSlugs?: Set<string>;
-}
-
-function audienceRank(
-  node: VaultTreeNode,
-  audience: VaultMode | 'all',
-  audienceBySlug: Record<string, VaultMode>,
-): number {
-  if (audience === 'all') return 0;
-  if (node.type === 'doc' && node.slug) {
-    const m = audienceBySlug[node.slug] ?? 'both';
-    if (m === audience) return 0;
-    if (m === 'both') return 1;
-    return 2;
-  }
-  return Math.min(
-    ...(node.children ?? []).map((child) =>
-      audienceRank(child, audience, audienceBySlug),
-    ),
-    2,
-  );
 }
 
 function matchesTag(node: VaultTreeNode, activeTagSlugs?: Set<string>): boolean {
@@ -53,16 +26,12 @@ function TreeNode({
   depth,
   selectedSlug,
   onSelect,
-  audience,
-  audienceBySlug,
   activeTagSlugs,
 }: {
   node: VaultTreeNode;
   depth: number;
   selectedSlug: string | null;
   onSelect: (slug: string) => void;
-  audience: VaultMode | 'all';
-  audienceBySlug: Record<string, VaultMode>;
   activeTagSlugs?: Set<string>;
 }) {
   // 태그 필터 활성 시에는 모든 디렉터리 자동 펼침 — 매치된 문서만 보이므로
@@ -72,8 +41,6 @@ function TreeNode({
 
   if (node.type === 'doc' && node.slug) {
     const active = selectedSlug === node.slug;
-    const rank = audienceRank(node, audience, audienceBySlug);
-    const faded = audience !== 'all' && rank === 2 && !active;
     return (
       <button
         type="button"
@@ -82,8 +49,6 @@ function TreeNode({
         className={`group relative flex w-full items-center gap-2 rounded-sm px-2 py-1 text-left text-[12px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:ring-inset ${
           active
             ? 'bg-[color:rgba(94,106,210,0.14)] text-[color:var(--color-text-primary)]'
-            : faded
-              ? 'text-[color:rgba(150,156,170,0.5)] hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-secondary)]'
             : 'text-[color:var(--color-text-tertiary)] hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]'
         }`}
         style={{ paddingLeft: `${8 + depth * 12}px` }}
@@ -129,25 +94,19 @@ function TreeNode({
       {(open || activeTagSlugs) && node.children ? (
         <div>
           {[...node.children]
-            .sort((a, b) => {
-              const rankDiff =
-                audienceRank(a, audience, audienceBySlug) -
-                audienceRank(b, audience, audienceBySlug);
-              if (rankDiff !== 0) return rankDiff;
-              return (a.title ?? a.name).localeCompare(b.title ?? b.name, 'ko');
-            })
+            .sort((a, b) =>
+              (a.title ?? a.name).localeCompare(b.title ?? b.name, 'ko'),
+            )
             .map((child) => (
-            <TreeNode
-              key={child.path}
-              node={child}
-              depth={depth + 1}
-              selectedSlug={selectedSlug}
-              onSelect={onSelect}
-              audience={audience}
-              audienceBySlug={audienceBySlug}
-              activeTagSlugs={activeTagSlugs}
-            />
-          ))}
+              <TreeNode
+                key={child.path}
+                node={child}
+                depth={depth + 1}
+                selectedSlug={selectedSlug}
+                onSelect={onSelect}
+                activeTagSlugs={activeTagSlugs}
+              />
+            ))}
         </div>
       ) : null}
     </div>
@@ -156,14 +115,11 @@ function TreeNode({
 
 /**
  * Vault 문서 트리. 디렉터리는 접기/펼치기, 문서는 클릭 시 onSelect.
- * 모드 필터를 주면 해당 모드 문서만 보여준다.
  */
 export function DocsVaultTree({
   tree,
   selectedSlug,
   onSelect,
-  audience,
-  audienceBySlug,
   activeTag,
   activeTagSlugs,
 }: Props) {
@@ -176,25 +132,19 @@ export function DocsVaultTree({
       className="flex h-full flex-col gap-0.5 overflow-auto py-2"
     >
       {[...children]
-        .sort((a, b) => {
-          const rankDiff =
-            audienceRank(a, audience, audienceBySlug) -
-            audienceRank(b, audience, audienceBySlug);
-          if (rankDiff !== 0) return rankDiff;
-          return (a.title ?? a.name).localeCompare(b.title ?? b.name, 'ko');
-        })
+        .sort((a, b) =>
+          (a.title ?? a.name).localeCompare(b.title ?? b.name, 'ko'),
+        )
         .map((child) => (
-        <TreeNode
-          key={child.path}
-          node={child}
-          depth={0}
-          selectedSlug={selectedSlug}
-          onSelect={onSelect}
-          audience={audience}
-          audienceBySlug={audienceBySlug}
-          activeTagSlugs={tagSlugs}
-        />
-      ))}
+          <TreeNode
+            key={child.path}
+            node={child}
+            depth={0}
+            selectedSlug={selectedSlug}
+            onSelect={onSelect}
+            activeTagSlugs={tagSlugs}
+          />
+        ))}
     </nav>
   );
 }

@@ -26,7 +26,6 @@ const doc: VaultDoc = {
   excerpt: 'Architecture overview',
   wordCount: 10,
   updatedAt: '2026-04-23',
-  mode: 'engineer',
   linksOut: [],
 };
 

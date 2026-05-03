@@ -256,14 +256,3 @@ export function extractOutLinksWithContext(
   return { slugs: [...slugs], contexts };
 }
 
-/**
- * vault doc 의 audience 분류 — DocsVaultAudienceMismatchNotice 와
- * 사이드 트리 정렬 (audienceRank) 의 입력. 사용자 vault 가 같은 slug 를
- * 쓰면 같은 분류를 받지만, 보통은 default 'both' 로 떨어진다.
- */
-export function classifyMode(slug: string): 'planner' | 'engineer' | 'both' {
-  if (slug === 'ARCHITECTURE' || slug === 'DEPLOYMENT') {
-    return 'engineer';
-  }
-  return 'both';
-}

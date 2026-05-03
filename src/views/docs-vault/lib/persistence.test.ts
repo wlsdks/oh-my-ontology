@@ -1,14 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  DOCS_VAULT_AUDIENCE_KEY,
   DOCS_VAULT_SOURCE_KEY,
   escapeHtml,
-  parseDocsVaultAudience,
   parseDocsVaultView,
-  readStoredAudience,
   readStoredSource,
   scheduleStateSync,
-  storeAudience,
   storeSource,
 } from "./persistence";
 
@@ -28,21 +24,6 @@ describe("parseDocsVaultView", () => {
   });
 });
 
-describe("parseDocsVaultAudience", () => {
-  it("3 종 known value 그대로 반환", () => {
-    expect(parseDocsVaultAudience("planner")).toBe("planner");
-    expect(parseDocsVaultAudience("engineer")).toBe("engineer");
-    expect(parseDocsVaultAudience("all")).toBe("all");
-  });
-
-  it("unknown / null / undefined 는 'all' fallback", () => {
-    expect(parseDocsVaultAudience(null)).toBe("all");
-    expect(parseDocsVaultAudience(undefined)).toBe("all");
-    expect(parseDocsVaultAudience("")).toBe("all");
-    expect(parseDocsVaultAudience("alien")).toBe("all");
-  });
-});
-
 describe("escapeHtml", () => {
   it("4 entity 정확히 치환", () => {
     expect(escapeHtml("a&b<c>d\"e")).toBe("a&amp;b&lt;c&gt;d&quot;e");
@@ -57,7 +38,7 @@ describe("escapeHtml", () => {
   });
 });
 
-describe("source / audience storage", () => {
+describe("source storage", () => {
   beforeEach(() => {
     window.localStorage.clear();
   });
@@ -78,34 +59,6 @@ describe("source / audience storage", () => {
   it("source: 잘못된 값 저장돼 있으면 'server' fallback", () => {
     window.localStorage.setItem(DOCS_VAULT_SOURCE_KEY, "garbage");
     expect(readStoredSource()).toBe("server");
-  });
-
-  it("audience: 빈 storage 는 'all' default", () => {
-    expect(readStoredAudience()).toBe("all");
-  });
-
-  it("audience: 저장 후 다시 read", () => {
-    storeAudience("planner");
-    expect(readStoredAudience()).toBe("planner");
-    expect(window.localStorage.getItem(DOCS_VAULT_AUDIENCE_KEY)).toBe(
-      "planner",
-    );
-  });
-
-  it("audience: legacy key (`demo:docs-vault:mode`) fallback", () => {
-    window.localStorage.setItem("demo:docs-vault:mode", "engineer");
-    expect(readStoredAudience()).toBe("engineer");
-  });
-
-  it("audience: 신규 key 가 우선, legacy 무시", () => {
-    window.localStorage.setItem(DOCS_VAULT_AUDIENCE_KEY, "planner");
-    window.localStorage.setItem("demo:docs-vault:mode", "engineer");
-    expect(readStoredAudience()).toBe("planner");
-  });
-
-  it("audience: 잘못된 값 저장돼 있으면 'all' fallback", () => {
-    window.localStorage.setItem(DOCS_VAULT_AUDIENCE_KEY, "garbage");
-    expect(readStoredAudience()).toBe("all");
   });
 });
 

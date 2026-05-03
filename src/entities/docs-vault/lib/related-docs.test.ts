@@ -14,7 +14,6 @@ function doc(overrides: Partial<VaultDoc> = {}): VaultDoc {
     excerpt: overrides.excerpt ?? '',
     wordCount: 0,
     updatedAt: '2026-04-23T00:00:00.000Z',
-    mode: overrides.mode ?? 'both',
     linksOut: overrides.linksOut ?? [],
     ...overrides,
   };
@@ -33,7 +32,7 @@ describe('findRelatedDocs', () => {
   it('frontmatter projects 배열 매치는 최고 점수', () => {
     const docs = [
       doc({ slug: 'a', frontmatter: { projects: ['reactor'] } }),
-      doc({ slug: 'b', excerpt: 'reactor 를 한 번 언급', mode: 'both' }),
+      doc({ slug: 'b', excerpt: 'reactor 를 한 번 언급' }),
     ];
     const result = findRelatedDocs(docs, {
       projectSlug: 'reactor',

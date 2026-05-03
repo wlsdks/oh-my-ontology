@@ -14,7 +14,6 @@ function makeDoc(partial: Partial<VaultDoc> & { slug: string }): VaultDoc {
     excerpt: partial.excerpt ?? '',
     wordCount: partial.wordCount ?? 0,
     updatedAt: partial.updatedAt ?? '2026-04-01T00:00:00.000Z',
-    mode: partial.mode ?? 'engineer',
     linksOut: partial.linksOut ?? [],
   };
 }
