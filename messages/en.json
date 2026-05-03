@@ -813,7 +813,7 @@
         "stepConnectStrong": "Drag from a node's edge handle",
         "stepConnectBody": " and drop on another node — the two get a *relation (depends / contains / describes)* between them.",
         "stepSaveStrong": "Save",
-        "stepSaveBody": " — straight to disk as `.md` in vault mode, or to Firestore in cloud mode. AI agents read and write the same map over MCP.",
+        "stepSaveBody": " — straight to disk as `.md` when a vault is open. Without a vault the canvas is read-only (open one from the top right). AI agents read and write the same map over MCP.",
         "shortcutsHint": "Quick keys — N new node · Del delete · Esc cancel",
         "dontShowAgain": "Don't show again",
         "getStarted": "Get started"

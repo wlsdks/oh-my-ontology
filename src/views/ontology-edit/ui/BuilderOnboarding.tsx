@@ -61,7 +61,7 @@ export function BuilderOnboarding({ empty }: BuilderOnboardingProps) {
           transition={{ duration: 0.22, ease: [0.42, 0, 0.58, 1] }}
           role="dialog"
           aria-label={t("dialogAriaLabel")}
-          className="pointer-events-auto absolute left-1/2 top-1/2 z-20 w-[min(440px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[color:rgba(94,106,210,0.32)] bg-[color:var(--color-panel)] p-5 shadow-[0_24px_48px_rgba(0,0,0,0.42)]"
+          className="pointer-events-auto absolute left-1/2 top-1/2 z-20 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[color:rgba(94,106,210,0.32)] bg-[color:var(--color-panel)] p-5 shadow-[0_24px_48px_rgba(0,0,0,0.42)]"
         >
           <header className="mb-4 flex items-start justify-between gap-3">
             <div>
@@ -119,22 +119,22 @@ export function BuilderOnboarding({ empty }: BuilderOnboardingProps) {
               </p>
             </li>
           </ol>
-          <footer className="mt-5 flex items-center justify-between gap-3 border-t border-[color:var(--color-border-soft)] pt-3">
-            <p className="font-mono text-[10px] tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
+          <footer className="mt-5 flex flex-col items-stretch gap-3 border-t border-[color:var(--color-border-soft)] pt-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="break-keep font-mono text-[10px] tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
               {t("shortcutsHint")}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
                 onClick={() => dismiss(true)}
-                className="rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-2.5 py-1.5 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
+                className="whitespace-nowrap break-keep rounded-md border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-2.5 py-1.5 text-[11px] text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)]"
               >
                 {t("dontShowAgain")}
               </button>
               <button
                 type="button"
                 onClick={() => dismiss(false)}
-                className="rounded-md border border-[color:var(--color-indigo-brand)] bg-[color:rgba(94,106,210,0.18)] px-3 py-1.5 text-[11px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:rgba(94,106,210,0.26)]"
+                className="whitespace-nowrap break-keep rounded-md border border-[color:var(--color-indigo-brand)] bg-[color:rgba(94,106,210,0.18)] px-3 py-1.5 text-[11px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:rgba(94,106,210,0.26)]"
               >
                 {t("getStarted")}
               </button>

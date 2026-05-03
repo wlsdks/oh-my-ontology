@@ -813,7 +813,7 @@
         "stepConnectStrong": "노드 가장자리 점을 끌어",
         "stepConnectBody": " 다른 노드 위에 놓으면 — 둘 사이에 *관계 (의존 / 포함 / 묘사)* 가 그려져요.",
         "stepSaveStrong": "저장",
-        "stepSaveBody": " — vault 모드면 `.md` 로 디스크에 직접, cloud 모드면 Firestore 에. 같은 지도를 AI agent 도 MCP 로 read/write.",
+        "stepSaveBody": " — vault 가 열려 있으면 `.md` 로 디스크에 직접 저장. 미선택 모드는 read-only (오른쪽 위 \"내 마크다운 폴더 열기\"). 같은 지도를 AI agent 도 MCP 로 read/write.",
         "shortcutsHint": "빠른 키 — N 새 노드 · Del 지우기 · Esc 취소",
         "dontShowAgain": "다시 보지 않기",
         "getStarted": "시작하기"
