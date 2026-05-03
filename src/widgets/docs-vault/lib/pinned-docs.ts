@@ -32,10 +32,6 @@ function writePinned(key: VaultRecentKey, list: string[]) {
   }
 }
 
-export function isPinned(key: VaultRecentKey, slug: string): boolean {
-  return readPinnedDocs(key).includes(slug);
-}
-
 /** toggle pin. 고정 추가 시 맨 앞에 insert, 해제 시 제거. 최신 리스트 반환. */
 export function togglePinnedDoc(
   key: VaultRecentKey,

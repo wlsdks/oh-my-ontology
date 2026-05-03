@@ -23,7 +23,6 @@ export type { VaultRecentKey } from './lib/recent-docs';
 export {
   readPinnedDocs,
   togglePinnedDoc,
-  isPinned,
   PINNED_DOCS_STORAGE_PREFIX,
 } from './lib/pinned-docs';
 export {
