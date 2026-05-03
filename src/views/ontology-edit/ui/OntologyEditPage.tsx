@@ -13,6 +13,7 @@ import { useDataSourceMode } from "@/features/data-source-mode";
 import { useLocalVault } from "@/features/docs-vault-local";
 import { slugify } from "@/shared/lib/slugify";
 import { OperationsNav } from "@/widgets/operations-nav";
+import { MountedGlobalSearch } from "@/widgets/global-search";
 import { Tooltip, useToast } from "@/shared/ui";
 import { useEphemeralNodes } from "../lib/use-ephemeral-nodes";
 import { useEphemeralEdges } from "../lib/use-ephemeral-edges";
@@ -515,6 +516,12 @@ export function OntologyEditPage() {
       {/* OperationsNav 가 ontology surface (/, /ontology*) 에선 SubNav 행을
           inline 으로 함께 렌더 — 한 nav block 으로 융합. */}
       {fullscreen ? null : <OperationsNav />}
+      {/* ⇧⌘K — 큰 ontology 에서 노드 빠른 점프. 선택 시 인스펙터에서 즉시
+          편집 가능. fullscreen 모드에선 hotkey 도 작동 (캔버스에 mount). */}
+      <MountedGlobalSearch
+        hotkeyShift
+        onSelectNode={(node) => setSelectedId(node.id)}
+      />
       <main
         className={
           fullscreen
