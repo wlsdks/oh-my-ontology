@@ -577,31 +577,6 @@
       "modeEngineer": "개발자",
       "modeBoth": "공용"
     },
-    "stats": {
-      "title": "볼트 통계",
-      "manifestPrefix": "매니페스트 생성 기준 —",
-      "cardDocs": "문서",
-      "cardUnitDocs": "개",
-      "cardTotalWords": "총 단어",
-      "cardAvgWords": "평균 단어",
-      "cardMedian": "중앙값",
-      "modeDistribution": "모드별 분포",
-      "modePlanner": "기획자",
-      "modeEngineer": "개발자",
-      "modeBoth": "공용",
-      "topReferenced": "가장 많이 인용된 문서",
-      "topOutlinks": "가장 많은 외부 링크",
-      "tagsTopHeader": "태그 Top {count}",
-      "tagsEmpty": "frontmatter 에 tags 가 있는 문서가 아직 없습니다.",
-      "pinned": "고정",
-      "pinnedUnit": "개",
-      "orphan": "링크 없는 문서",
-      "orphanUnit": "개",
-      "orphanHint": "어느 문서와도 연결되지 않은 외톨이. 수동 링크 추천 대상.",
-      "biggest": "가장 큰 문서",
-      "wordsUnit": "단어",
-      "rankEmpty": "해당 항목이 없습니다."
-    },
     "depsBar": {
       "notRegistered": "이 문서는 Folder-Topology 에 등록되지 않았어요 — projects/ 디렉터리로 옮기고 frontmatter 에 `name` · `category` 를 채우면 토폴로지에 노드로 등장합니다.",
       "depsLabel": "의존 · {count}",
@@ -1062,9 +1037,6 @@
     },
     "advanced": {
       "viewSection": "보기",
-      "viewDoc": "문서",
-      "viewGraph": "그래프",
-      "viewStats": "통계",
       "viewTopology": "토폴로지",
       "sourceSection": "소스",
       "sourceServer": "샘플",
@@ -1085,18 +1057,10 @@
       "scaffoldCta": "이 폴더를 토폴로지 볼트로 초기화",
       "needEditPermission": "편집 권한이 필요합니다 (로컬 볼트)"
     },
-    "graph": {
-      "focusAll": "전체",
-      "focusLocalEnabled": "선택 문서 주변 2-hop 만 보기",
-      "focusLocalDisabled": "문서를 선택하면 활성화됩니다",
-      "focusLocalLabel": "이웃 2-hop"
-    },
     "commands": {
       "openPalette": "팔레트 열기 (검색 · 명령 · 태그)",
       "findTags": "태그 찾기",
       "viewDoc": "뷰 · 문서 보기",
-      "viewGraph": "뷰 · 링크 그래프",
-      "viewStats": "뷰 · 볼트 통계",
       "viewFolderTopology": "뷰 · Folder Topology (projects/*.md)",
       "scaffoldTopology": "이 폴더를 Topology 볼트로 초기화",
       "createProject": "새 프로젝트 추가 (projects/…md)",

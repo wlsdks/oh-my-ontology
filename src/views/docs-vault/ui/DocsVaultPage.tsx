@@ -15,14 +15,11 @@ import { useTranslations } from 'next-intl';
 import { AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
-  BarChart3,
-  FileText,
   FilePlus,
   FolderCog,
   HardDrive,
   Layers,
   Menu,
-  Network,
   Package,
   Search,
   Settings2,
@@ -50,7 +47,6 @@ import {
 import { DocsVaultAudienceMismatchNotice } from '@/widgets/docs-vault/ui/DocsVaultAudienceMismatchNotice';
 import { DocsVaultEditor } from '@/widgets/docs-vault/ui/DocsVaultEditor';
 import { DocsVaultProjectDepsBar } from '@/widgets/docs-vault/ui/DocsVaultProjectDepsBar';
-import { DocsVaultStats } from '@/widgets/docs-vault/ui/DocsVaultStats';
 import { DocsVaultUnifiedPalette } from '@/widgets/docs-vault/ui/DocsVaultUnifiedPalette';
 import { DocsVaultViewer } from '@/widgets/docs-vault/ui/DocsVaultViewer';
 import type { VaultCommand } from '@/widgets/docs-vault/model/command';
@@ -67,22 +63,13 @@ import {
   type VaultRecentKey,
 } from '@/widgets/docs-vault/lib/recent-docs';
 
-// DocsVaultFolderTopology 와 DocsVaultGraph 모두 Sigma WebGL 을 top-level
-// 모듈에서 초기화하므로 SSR 에서 평가되면 WebGL2RenderingContext not
-// defined 로 빌드 실패. 반드시 dynamic + ssr:false.
+// DocsVaultFolderTopology 는 Sigma WebGL 을 top-level 모듈에서 초기화하므로
+// SSR 에서 평가되면 WebGL2RenderingContext not defined 로 빌드 실패. 반드시
+// dynamic + ssr:false.
 const DocsVaultFolderTopology = dynamic(
   () =>
     import('@/widgets/docs-vault/ui/DocsVaultFolderTopology').then(
       (m) => m.DocsVaultFolderTopology,
-    ),
-  { ssr: false },
-);
-
-// WebGL Sigma 는 SSR 빌드에서 잡히지 않도록 dynamic + ssr:false.
-const DocsVaultGraph = dynamic(
-  () =>
-    import('@/widgets/docs-vault/ui/DocsVaultGraph').then(
-      (m) => m.DocsVaultGraph,
     ),
   { ssr: false },
 );
@@ -142,7 +129,6 @@ function DocsVaultContent() {
     'idle' | 'rebuilding' | 'fresh'
   >('idle');
   const freshResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [graphFocus, setGraphFocus] = useState<'all' | 'local'>('all');
   const [highlightQuery, setHighlightQuery] = useState<string | undefined>(
     undefined,
   );
@@ -1076,20 +1062,6 @@ function DocsVaultContent() {
         onRun: () => handleViewChange('doc'),
       },
       {
-        id: 'view-graph',
-        label: t('commands.viewGraph'),
-        icon: '🕸️',
-        visible: view !== 'graph',
-        onRun: () => handleViewChange('graph'),
-      },
-      {
-        id: 'view-stats',
-        label: t('commands.viewStats'),
-        icon: '📊',
-        visible: view !== 'stats',
-        onRun: () => handleViewChange('stats'),
-      },
-      {
         id: 'view-folder-topology',
         label: t('commands.viewFolderTopology'),
         icon: '🗺️',
@@ -1408,58 +1380,34 @@ function DocsVaultContent() {
                 role="menu"
                 className="absolute right-0 top-10 z-30 w-[300px] rounded-md border border-[color:var(--color-divider)] bg-[color:rgba(14,15,18,0.98)] p-2 shadow-[0_18px_48px_rgba(0,0,0,0.38)]"
               >
-                <div className="mb-2 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
-                  {t('advanced.viewSection')}
-                </div>
-                <div className="grid grid-cols-3 gap-1">
-                  {[
-                    { value: 'doc' as const, label: t('advanced.viewDoc'), icon: FileText },
-                    { value: 'graph' as const, label: t('advanced.viewGraph'), icon: Network },
-                    { value: 'stats' as const, label: t('advanced.viewStats'), icon: BarChart3 },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={item.value}
-                        type="button"
-                        role="menuitemradio"
-                        aria-checked={view === item.value}
-                        onClick={() => handleViewChange(item.value)}
-                        className={`inline-flex items-center justify-center gap-1 rounded-sm px-2 py-1.5 text-[11px] transition-colors ${
-                          view === item.value
-                            ? 'bg-[color:rgba(94,106,210,0.16)] text-[color:var(--color-text-primary)]'
-                            : 'text-[color:var(--color-text-tertiary)] hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]'
-                        }`}
-                      >
-                        <Icon size={12} aria-hidden />
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </div>
                 {source === 'local' ? (
-                  <button
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={view === 'folder-topology'}
-                    onClick={() => handleViewChange('folder-topology')}
-                    className={`mt-1 inline-flex w-full items-center justify-center gap-1 rounded-sm px-2 py-1.5 text-[11px] transition-colors ${
-                      view === 'folder-topology'
-                        ? 'bg-[color:rgba(94,106,210,0.16)] text-[color:var(--color-text-primary)]'
-                        : 'text-[color:var(--color-text-tertiary)] hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]'
-                    }`}
-                  >
-                    <Layers size={12} aria-hidden />
-                    {t('advanced.viewTopology')}
-                    {folderTopoStatus === 'rebuilding' ? (
-                      <span
-                        aria-hidden
-                        className="h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--color-indigo-accent)]"
-                      />
-                    ) : null}
-                  </button>
+                  <>
+                    <div className="mb-2 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
+                      {t('advanced.viewSection')}
+                    </div>
+                    <button
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={view === 'folder-topology'}
+                      onClick={() => handleViewChange(view === 'folder-topology' ? 'doc' : 'folder-topology')}
+                      className={`inline-flex w-full items-center justify-center gap-1 rounded-sm px-2 py-1.5 text-[11px] transition-colors ${
+                        view === 'folder-topology'
+                          ? 'bg-[color:rgba(94,106,210,0.16)] text-[color:var(--color-text-primary)]'
+                          : 'text-[color:var(--color-text-tertiary)] hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]'
+                      }`}
+                    >
+                      <Layers size={12} aria-hidden />
+                      {t('advanced.viewTopology')}
+                      {folderTopoStatus === 'rebuilding' ? (
+                        <span
+                          aria-hidden
+                          className="h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--color-indigo-accent)]"
+                        />
+                      ) : null}
+                    </button>
+                    <div className="my-2 h-px bg-[color:var(--color-border-soft)]" />
+                  </>
                 ) : null}
-                <div className="my-2 h-px bg-[color:var(--color-border-soft)]" />
                 <div className="mb-2 px-2 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
                   {t('advanced.sourceSection')}
                 </div>
@@ -1654,64 +1602,6 @@ function DocsVaultContent() {
                   )}
                 </div>
               )}
-            </div>
-          ) : view === 'stats' ? (
-            <div className="min-w-0 flex-1 overflow-auto">
-              <DocsVaultStats
-                manifest={manifest}
-                pinnedSlugs={pinnedSlugs}
-                onSelect={(slug) => {
-                  handleSelect(slug);
-                  handleViewChange('doc');
-                }}
-              />
-            </div>
-          ) : view === 'graph' ? (
-            <div className="relative flex min-h-0 flex-1">
-              {/* focus 모드 토글 — 선택 없으면 'local' 비활성 */}
-              <div className="pointer-events-auto absolute right-3 top-3 z-10 flex items-center gap-1 rounded-md border border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] p-0.5 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => setGraphFocus('all')}
-                  aria-pressed={graphFocus === 'all'}
-                  className={`rounded-sm px-2 py-1 transition-colors ${
-                    graphFocus === 'all'
-                      ? 'bg-[color:rgba(94,106,210,0.14)] text-[color:var(--color-text-primary)]'
-                      : 'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary)]'
-                  }`}
-                >
-                  {t('graph.focusAll')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGraphFocus('local')}
-                  aria-pressed={graphFocus === 'local'}
-                  disabled={!selectedSlug}
-                  className={`rounded-sm px-2 py-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                    graphFocus === 'local'
-                      ? 'bg-[color:rgba(94,106,210,0.14)] text-[color:var(--color-text-primary)]'
-                      : 'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary)]'
-                  }`}
-                  title={
-                    selectedSlug
-                      ? t('graph.focusLocalEnabled')
-                      : t('graph.focusLocalDisabled')
-                  }
-                >
-                  {t('graph.focusLocalLabel')}
-                </button>
-              </div>
-              <DocsVaultGraph
-                docs={manifest.docs}
-                selectedSlug={selectedSlug}
-                onSelect={(slug) => {
-                  handleSelect(slug);
-                  handleViewChange('doc');
-                }}
-                mode="all"
-                focusMode={graphFocus}
-                focusHops={2}
-              />
             </div>
           ) : selectedDoc ? (
             <div className="flex min-h-0 flex-1">

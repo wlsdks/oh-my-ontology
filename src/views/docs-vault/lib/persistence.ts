@@ -12,7 +12,7 @@ import type { VaultMode } from "@/entities/docs-vault";
  */
 
 export type DocsVaultSource = "server" | "local";
-export type DocsVaultView = "doc" | "graph" | "stats" | "folder-topology";
+export type DocsVaultView = "doc" | "folder-topology";
 export type DocsVaultAudience = VaultMode | "all";
 
 export const DOCS_VAULT_SOURCE_KEY = "demo:docs-vault:source";
@@ -22,12 +22,7 @@ const DOCS_VAULT_LEGACY_MODE_KEY = "demo:docs-vault:mode";
 
 /** URL `?view=` → 검증된 enum. 알 수 없는 값은 'doc' fallback. */
 export function parseDocsVaultView(value?: string | null): DocsVaultView {
-  if (
-    value === "doc" ||
-    value === "graph" ||
-    value === "stats" ||
-    value === "folder-topology"
-  ) {
+  if (value === "doc" || value === "folder-topology") {
     return value;
   }
   return "doc";

@@ -13,10 +13,8 @@ import {
 } from "./persistence";
 
 describe("parseDocsVaultView", () => {
-  it("4 종 known value 그대로 반환", () => {
+  it("known value 그대로 반환", () => {
     expect(parseDocsVaultView("doc")).toBe("doc");
-    expect(parseDocsVaultView("graph")).toBe("graph");
-    expect(parseDocsVaultView("stats")).toBe("stats");
     expect(parseDocsVaultView("folder-topology")).toBe("folder-topology");
   });
 
@@ -25,6 +23,8 @@ describe("parseDocsVaultView", () => {
     expect(parseDocsVaultView(undefined)).toBe("doc");
     expect(parseDocsVaultView("")).toBe("doc");
     expect(parseDocsVaultView("alien")).toBe("doc");
+    expect(parseDocsVaultView("graph")).toBe("doc");
+    expect(parseDocsVaultView("stats")).toBe("doc");
   });
 });
 

@@ -577,31 +577,6 @@
       "modeEngineer": "Engineer",
       "modeBoth": "Shared"
     },
-    "stats": {
-      "title": "Vault stats",
-      "manifestPrefix": "Generated at —",
-      "cardDocs": "Docs",
-      "cardUnitDocs": "items",
-      "cardTotalWords": "Total words",
-      "cardAvgWords": "Avg words",
-      "cardMedian": "Median",
-      "modeDistribution": "Mode distribution",
-      "modePlanner": "Planner",
-      "modeEngineer": "Engineer",
-      "modeBoth": "Shared",
-      "topReferenced": "Most referenced",
-      "topOutlinks": "Most outgoing links",
-      "tagsTopHeader": "Tags Top {count}",
-      "tagsEmpty": "No documents have frontmatter tags yet.",
-      "pinned": "Pinned",
-      "pinnedUnit": "items",
-      "orphan": "Orphan documents",
-      "orphanUnit": "items",
-      "orphanHint": "Disconnected from any other doc. Manual link candidates.",
-      "biggest": "Largest doc",
-      "wordsUnit": "words",
-      "rankEmpty": "No items."
-    },
     "depsBar": {
       "notRegistered": "This document isn't registered in Folder-Topology — move it to the projects/ directory and fill `name` · `category` in frontmatter to make it appear as a node.",
       "depsLabel": "Depends · {count}",
@@ -1062,9 +1037,6 @@
     },
     "advanced": {
       "viewSection": "View",
-      "viewDoc": "Doc",
-      "viewGraph": "Graph",
-      "viewStats": "Stats",
       "viewTopology": "Topology",
       "sourceSection": "Source",
       "sourceServer": "Sample",
@@ -1085,18 +1057,10 @@
       "scaffoldCta": "Initialize this folder as a topology vault",
       "needEditPermission": "Edit permission required (local vault)"
     },
-    "graph": {
-      "focusAll": "All",
-      "focusLocalEnabled": "Show 2-hop neighborhood of selected doc",
-      "focusLocalDisabled": "Select a doc to enable",
-      "focusLocalLabel": "2-hop neighbors"
-    },
     "commands": {
       "openPalette": "Open palette (search · commands · tags)",
       "findTags": "Find tags",
       "viewDoc": "View · Document",
-      "viewGraph": "View · Link graph",
-      "viewStats": "View · Vault stats",
       "viewFolderTopology": "View · Folder topology (projects/*.md)",
       "scaffoldTopology": "Initialize this folder as a topology vault",
       "createProject": "Add new project (projects/…md)",
