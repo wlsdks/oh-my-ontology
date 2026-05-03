@@ -70,6 +70,11 @@
   --shadow-card: none;
   --shadow-card-elevated: none;
 
+  /* Sigma 뷰포트 모서리 vignette — 다크에선 visible 한 dark fade, 라이트에선
+     거의 invisible (흰 캔버스에 까만 vignette 가 grey smudge 로 보이던 회귀
+     fix). 라이트 모드 블록에서 override. */
+  --color-vignette: rgba(0, 0, 0, 0.28);
+
   /*
    * 다크 톤 surface — modal backdrop / sticky nav 배경 / 강한 패널 처럼
    * "주변보다 짙게" 만드는 곳. 다크에선 캔버스 톤, 라이트에선 약하게
@@ -149,12 +154,25 @@
     --color-text-tertiary: #5b6068;
     --color-text-quaternary: #6f7480;
 
-    --color-border-soft: rgba(0, 0, 0, 0.12);
-    --color-border-strong: rgba(0, 0, 0, 0.24);
+    /* 인디고 mode-aware tone-down — design.md 가 "single indigo (#5e6ad2)"
+       원칙이지만 같은 hex 가 다크/라이트에서 시각적으로 다른 톤으로 인지됨:
+       - 다크 #08090a 위 #5e6ad2 = 차분한 인디고 (배경 대비 brightness 차이로
+         hue 보다 lightness 차이가 먼저 인식 → "딥블루")
+       - 라이트 #fff 위 #5e6ad2 = 동일 색이 채도 강조돼 "보라" 로 인식
+       라이트 한정으로 살짝 darker / less saturated 한 indigo 로 시프트 →
+       흰 캔버스에서 grown-up 인디고 톤. Linear / Notion / Sentry 의 light
+       primary 가 모두 dark 보다 살짝 깊은 음영 사용. Hue 는 동일 indigo
+       family 라 "단일 인디고" 원칙 유지. */
+    --color-indigo-brand: #4d56c8;
+    --color-indigo-accent: #5e6ad2;
+    --color-indigo-hover: #424bb6;
+
+    --color-border-soft: rgba(0, 0, 0, 0.14);
+    --color-border-strong: rgba(0, 0, 0, 0.26);
     --color-overlay-1: rgba(0, 0, 0, 0.025);
     --color-overlay-2: rgba(0, 0, 0, 0.05);
     --color-overlay-3: rgba(0, 0, 0, 0.10);
-    --color-divider: rgba(0, 0, 0, 0.14);
+    --color-divider: rgba(0, 0, 0, 0.16);
     --color-tap-highlight: rgba(0, 0, 0, 0.05);
 
     /* 라이트 전용 — 카드 elevation. 다크에선 토큰 대비만으로 충분하지만
@@ -169,6 +187,10 @@
     --color-backdrop-medium: rgba(243, 245, 249, 0.78);
     --color-backdrop-soft: rgba(0, 0, 0, 0.05);
     --color-nav-surface: rgba(255, 255, 255, 0.96);
+
+    /* Vignette 라이트 — 검정 알파 0.28 이 흰 캔버스 위에선 grey smudge.
+       매우 약한 alpha 로 시각적 vignette 효과만 살짝. */
+    --color-vignette: rgba(15, 23, 42, 0.05);
   }
 
   body {
@@ -273,4 +295,39 @@ body[data-no-tabbar] [data-tabbar="primary"] {
 html[data-theme="light"] [class*="bg-[color:var(--color-panel)]"]:not([data-no-card-shadow]):not(button):not(a):not([role="dialog"]):not([role="menu"]):not(input):not(textarea):not(label),
 html[data-theme="light"] [class*="bg-[color:var(--color-elevated)]"]:not([data-no-card-shadow]):not(button):not(a):not([role="dialog"]):not([role="menu"]):not(input):not(textarea):not(label) {
   box-shadow: var(--shadow-card);
+}
+
+/*
+ * 라이트 모드 인디고 알파 backgrounds 톤다운 — Tailwind 의 inline
+ * `bg-[color:rgba(94,106,210,N)]` 클래스가 cmd/ctrl active state /
+ * search palette pill / "active" 표시 등에 ~199 곳 사용. 다크에선 짙은
+ * 캔버스 위 살짝 인디고 글로우 로 자연스럽지만 라이트에선 흰 위에 진한
+ * 보라 글로우 → 사용자 보고 "버튼 보라색이 좀 그러네". 같은 클래스를
+ * 라이트에서만 더 차분한 인디고 알파로 시프트.
+ *
+ * 가장 prominent 한 active alpha 들 (0.14 / 0.16 / 0.18 / 0.22 / 0.28 /
+ * 0.32) 만 시프트 — hover/뉘앙스 알파 (0.06 / 0.08 / 0.10) 는 그대로.
+ */
+html[data-theme="light"] [class*="bg-[color:rgba(94,106,210,0.14)]"],
+html[data-theme="light"] [class*="bg-[color:rgba(94,106,210,0.16)]"],
+html[data-theme="light"] [class*="bg-[color:rgba(94,106,210,0.18)]"] {
+  background-color: rgba(77, 86, 200, 0.12);
+}
+html[data-theme="light"] [class*="border-[color:rgba(94,106,210,0.4)]"],
+html[data-theme="light"] [class*="border-[color:rgba(94,106,210,0.46)]"] {
+  border-color: rgba(77, 86, 200, 0.32);
+}
+
+/*
+ * 라이트 모드 hover affordance — chrome buttons / 텍스트 링크 처럼 명시
+ * hover bg 가 없는 인터랙티브 요소에 subtle bg overlay. 다크에선 텍스트
+ * tertiary → primary 색 차이가 크지만 라이트에선 같은 차이가 시야적으로
+ * 작아 hover 없이도 가능 시그널 약함.
+ *
+ * Tailwind 의 transition-colors 클래스를 가진 button/a 에만 적용 — 명시
+ * hover bg 가 있는 요소는 cascade 로 override 되므로 안전.
+ */
+html[data-theme="light"] a[class*="transition-colors"]:hover:not([class*="hover:bg-"]):not([class*="bg-[color"]),
+html[data-theme="light"] button[class*="transition-colors"]:hover:not([class*="hover:bg-"]):not([class*="bg-[color"]):not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.04);
 }

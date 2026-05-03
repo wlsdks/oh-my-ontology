@@ -1379,12 +1379,14 @@ export function SigmaTopology({
           transformOrigin: 'center center',
         }}
       />
-      {/* 뷰포트 모서리 subtle vignette — 중심부로 시선 유도. */}
+      {/* 뷰포트 모서리 subtle vignette — 중심부로 시선 유도. mode-aware
+          토큰 사용 — 다크에선 dark fade, 라이트에선 거의 invisible (까만
+          vignette 가 흰 캔버스 위에선 grey smudge 로 보이던 fix). */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.28) 100%)',
+            'radial-gradient(ellipse at center, transparent 60%, var(--color-vignette) 100%)',
         }}
       />
 
