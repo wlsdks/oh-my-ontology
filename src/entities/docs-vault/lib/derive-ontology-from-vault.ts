@@ -9,7 +9,9 @@ import type { VaultDoc, VaultManifest } from '../model/types';
  * 입력 frontmatter 인식 키:
  * - `kind` — 노드 종류 (project / domain / capability / element / document)
  * - `title` — 노드 제목 (없으면 firstHeading 또는 slug 의 마지막 segment)
- * - `domain` — 단일 domain 노드 후보 (string)
+ * - `domain` — 단일 domain 노드 후보 (string). docNode 의 부모로 매달림.
+ * - `domains` — string[] domain 노드 후보. 보통 project.md 가 자기가 포함하는
+ *   도메인 목록을 노출할 때. docNode 가 도메인의 부모로 매달림.
  * - `capabilities` — string[] (capability 노드 후보)
  * - `elements` — string[] (element 노드 후보)
  * - `relates` — string[] (related_to edge 후보)
@@ -138,6 +140,33 @@ export function deriveOntologyFromVault(
           sourceSlug: doc.slug,
         });
       }
+    }
+
+    // domains[] — \`domains: ['auth', 'billing']\` 식 plural array. 보통
+    // project.md 가 자기가 포함하는 도메인 목록을 노출할 때. \`contains\` edge
+    // 의 from = parent (docNode = project), to = child (domain). \`domain:\`
+    // singular 와 방향이 반대 — 주체가 누가 누구를 포함하는지가 다르다.
+    for (const dom of asStringArray(fm.domains)) {
+      const domSlug = slugifyName(dom);
+      if (!domSlug) continue;
+      const domId = `domain:${domSlug}`;
+      if (!nodes.has(domId)) {
+        nodes.set(domId, {
+          id: domId,
+          title: dom,
+          kind: 'domain',
+          sourceSlug: doc.slug,
+          source: 'frontmatter',
+        });
+      }
+      edges.push({
+        id: `${docNode.id}--contains-->${domId}`,
+        from: docNode.id,
+        to: domId,
+        type: 'contains',
+        source: 'frontmatter',
+        sourceSlug: doc.slug,
+      });
     }
 
     // capabilities[]

@@ -92,6 +92,30 @@ describe('deriveOntologyFromVault', () => {
     expect(domainContainsEdge).toBeDefined();
   });
 
+  it('domains[] (plural) — project → 자식 도메인 contains edge', () => {
+    const result = deriveOntologyFromVault(
+      makeManifest([
+        makeDoc({
+          slug: 'project',
+          frontmatter: {
+            kind: 'project',
+            title: 'workbench',
+            domains: ['auth', 'billing'],
+          },
+        }),
+      ]),
+    );
+    expect(result.nodes.find((n) => n.id === 'domain:auth')).toBeDefined();
+    expect(result.nodes.find((n) => n.id === 'domain:billing')).toBeDefined();
+    const containsToAuth = result.edges.find(
+      (e) =>
+        e.type === 'contains' &&
+        e.from === 'project:project' &&
+        e.to === 'domain:auth',
+    );
+    expect(containsToAuth).toBeDefined();
+  });
+
   it('dependencies → depends_on 같은 kind 에', () => {
     const result = deriveOntologyFromVault(
       makeManifest([
