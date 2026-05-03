@@ -191,8 +191,7 @@ export function ProjectSelectorPage() {
       scroll: false,
     });
   }, [pathname, router, searchParams]);
-  // mission v2: cloud markdown 호스팅 surface 제거 후 새 프로젝트 생성 직후엔
-  // 그냥 프로젝트 상세로 보낸다.
+  // 새 프로젝트 생성 직후 이동 — returnTo 가 있으면 그쪽으로, 없으면 상세 페이지.
   const getPostCreateHref = (project: { slug: string; name: string }) =>
     returnTo || getProjectDetailHref(project.slug);
 
@@ -242,8 +241,8 @@ export function ProjectSelectorPage() {
             매치 0 자동 숨김. 공개 surface 가벼운 가시. */}
         <WorkspaceOntologyStrip />
 
-        {/* 검색 + 단계·상태 칩 — 1,979 프로젝트를 단계(작업중/예정) 와
-            상태(개발중/운영중/기획/아이디어) 로 즉시 좁힐 수 있게. 칩에
+        {/* 검색 + 단계·상태 칩 — 큰 프로젝트 목록을 단계 (작업중/예정) 와
+            상태 (개발중/운영중/기획/아이디어) 로 즉시 좁힐 수 있게. 칩에
             카운트를 합성해 사용자가 어느 필터가 의미 있는지 한눈에 본다. */}
         <section className="mt-6 flex flex-col gap-4">
           <div className="relative">
