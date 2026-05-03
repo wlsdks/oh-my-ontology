@@ -11,6 +11,7 @@ import {
 import { useOntologyInsight } from "@/features/vault-ontology";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import {
+  UNKNOWN_TONE,
   buildOntologyTree,
   buildProjectOntologyCounts,
   computeEdgeTypeDistribution,
@@ -204,7 +205,7 @@ export function OntologyInsightsPage() {
                           width: `${pct}%`,
                           backgroundColor:
                             kind === "unknown"
-                              ? "rgba(255,179,71,0.6)"
+                              ? UNKNOWN_TONE.strokeStrong
                               : kind === "project"
                                 ? "rgba(159,170,235,0.65)"
                                 : "rgba(159,170,235,0.40)",
