@@ -8,7 +8,7 @@ import {
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 /**
- * Radix UI 기반 tooltip wrapper (Fire 5).
+ * Radix UI 기반 tooltip wrapper.
  *
  * Tailwind `title` HTML 속성 대신 사용 — 모바일 터치 호환 + 스타일 일관성 +
  * keyboard focus 시 표시. 단일 mount 만 필요한 사이트는 `Tooltip` 컴포넌트로,

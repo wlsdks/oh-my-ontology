@@ -12,7 +12,7 @@ interface ToastApi {
 }
 
 /**
- * sonner 기반 토스트 (Fire 5).
+ * sonner 기반 토스트.
  *
  * 변경:
  * - 자체 ToastProvider (framer-motion + state stack) → sonner `<Toaster />`
