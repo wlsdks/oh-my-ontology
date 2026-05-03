@@ -6,6 +6,13 @@ export type ProjectIntegrityIssue =
   | { code: "missing-dependency"; dependencySlug: string }
   | { code: "duplicate-dependency"; dependencySlug: string };
 
+// deriveProjectsFromVault 의 silent fallback 값 — frontmatter 누락 시
+// 자동 채워지는 default 라 'integrity 점검 필요' 로 잡으면 사용자에게
+// 모순 (' 카테고리 없음: uncategorized' 같은) 으로 보임. 이 값들은
+// '분류 안 함' / '활성' 의미라 정상 상태로 취급.
+const SILENT_CATEGORY_FALLBACKS = new Set(["uncategorized"]);
+const SILENT_STATUS_FALLBACKS = new Set(["active"]);
+
 export function getProjectIntegrityIssues(
   project: Project,
   options: {
@@ -19,14 +26,20 @@ export function getProjectIntegrityIssues(
   const projectSlugs = new Set(options.allProjects.map((item) => item.slug));
   const issues: ProjectIntegrityIssue[] = [];
 
-  if (!categoryIds.has(project.category)) {
+  if (
+    !categoryIds.has(project.category) &&
+    !SILENT_CATEGORY_FALLBACKS.has(project.category)
+  ) {
     issues.push({
       code: "missing-category",
       categoryId: project.category,
     });
   }
 
-  if (!statusIds.has(project.status)) {
+  if (
+    !statusIds.has(project.status) &&
+    !SILENT_STATUS_FALLBACKS.has(project.status)
+  ) {
     issues.push({
       code: "missing-status",
       statusId: project.status,
@@ -58,9 +71,9 @@ export function getProjectIntegrityIssues(
 export function formatProjectIntegrityIssue(issue: ProjectIntegrityIssue): string {
   switch (issue.code) {
     case "missing-category":
-      return `카테고리 없음: ${issue.categoryId}`;
+      return `분류 사전에 없는 카테고리: ${issue.categoryId}`;
     case "missing-status":
-      return `상태 없음: ${issue.statusId}`;
+      return `분류 사전에 없는 상태: ${issue.statusId}`;
     case "missing-dependency":
       return `의존성 누락: ${issue.dependencySlug}`;
     case "duplicate-dependency":
