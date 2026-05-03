@@ -345,12 +345,13 @@ export function ProjectDetailPage({
   const referencedBy = related.filter((p) => p.dependencies.includes(slug));
   const heroMonogram = resolveProjectMonogram(project);
   // status dot color → CSS 변수 매핑. 상태 칩 좌측에 작은 점으로 상태 인식
-  // 속도 상향. 디자인 시스템 범위 내 (이미 사용 중인 success/warning/paused
-  // 카라).
+  // 속도 상향. 디자인 시스템 토큰만 참조 — 이전엔 var() 의 fallback hex 가
+  // 토큰 실제 값과 drift 했었다 (e.g. token #27a644 vs fallback #78be96).
+  // 토큰은 globals.css :root 에서 항상 정의되므로 fallback 자체 불필요.
   const statusDotByTone: Record<string, string> = {
-    success: 'var(--color-status-success, #78be96)',
-    warning: 'var(--color-status-warning, #c8b482)',
-    paused: 'var(--color-status-paused, #b496aa)',
+    success: 'var(--color-status-success)',
+    warning: 'var(--color-status-warning)',
+    paused: 'var(--color-status-paused)',
     neutral: 'rgba(160, 170, 190, 0.75)',
   };
   const projectStatus = statuses.find((s) => s.id === project.status);
