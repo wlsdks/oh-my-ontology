@@ -11,7 +11,7 @@ import {
   type KnowledgeGraphNode,
 } from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
-import { getTopologyProjectHref } from "@/entities/project";
+import { getProjectDetailHref, getTopologyProjectHref } from "@/entities/project";
 import { buildDocsVaultHref } from "@/entities/docs-vault";
 import {
   buildOntologyEgoSubgraph,
@@ -789,7 +789,7 @@ function NodeDetailPanel({
         // 가능해야 한다.
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Link
-            href={`/project/${projectSlug}/`}
+            href={getProjectDetailHref(projectSlug)}
             className="inline-flex items-center gap-1.5 break-keep rounded-full border border-[color:rgba(94,106,210,0.35)] bg-[color:rgba(94,106,210,0.10)] px-3.5 py-1.5 text-xs text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.18)]"
           >
             {t('projectDetailCta')}
