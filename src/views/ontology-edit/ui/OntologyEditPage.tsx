@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Info, Maximize2, Minimize2, Wand2 } from "lucide-react";
@@ -184,9 +184,15 @@ export function OntologyEditPage() {
   // read-only — patch 시도하면 disk 권한 없어 어차피 fail.
   const hasLiveVault = vault.manifest !== null;
   const effectiveManifest = vault.manifest ?? (staticVaultManifestRaw as VaultManifest);
-  const vaultSelected = (() => {
+  // slug → doc Map 한 번 — vaultSelected 재계산 외에도 다른 lookup 에서
+  // 재사용. 이전엔 매 render 마다 manifest.docs.find 로 O(N) 스캔.
+  const docsBySlug = useMemo(
+    () => new Map(effectiveManifest.docs.map((d) => [d.slug, d])),
+    [effectiveManifest],
+  );
+  const vaultSelected = useMemo(() => {
     if (!selectedId || ephemeralSelected) return null;
-    const doc = effectiveManifest.docs.find((d) => d.slug === selectedId);
+    const doc = docsBySlug.get(selectedId);
     if (!doc || typeof doc.frontmatter.kind !== "string") return null;
     const fm = doc.frontmatter as Record<string, unknown>;
     const asStrings = (v: unknown): string[] =>
@@ -206,7 +212,7 @@ export function OntologyEditPage() {
       dependencies: asStrings(fm.dependencies),
       relates: asStrings(fm.relates),
     };
-  })();
+  }, [selectedId, ephemeralSelected, docsBySlug]);
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const renameVaultDoc = useCallback(
