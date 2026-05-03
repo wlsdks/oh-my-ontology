@@ -6,7 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Info, Link2, X } from "lucide-react";
-import type { KnowledgeGraphNode } from "@/entities/knowledge-graph";
+import {
+  buildOntologyNodeHref,
+  type KnowledgeGraphNode,
+} from "@/entities/knowledge-graph";
 import { useOntologyKindLabel } from "@/entities/ontology-class";
 import { getTopologyProjectHref } from "@/entities/project";
 import { buildDocsVaultHref } from "@/entities/docs-vault";
@@ -480,7 +483,7 @@ function CopyNodeLinkButton({
 
   const handleCopy = async () => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${origin}/ontology/?node=${encodeURIComponent(node.id)}`;
+    const url = `${origin}${buildOntologyNodeHref(node.id)}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
