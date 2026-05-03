@@ -15,7 +15,7 @@ import type { ManualNodeKind } from "@/entities/knowledge-graph";
  */
 export interface EphemeralNode {
   id: string;
-  kind: Exclude<ManualNodeKind, "document">;
+  kind: ManualNodeKind;
   /** 캔버스 라벨 prefix — caller 가 t() 로 만든 locale-aware 문자열. */
   kindLabel: string;
   title: string;
@@ -38,7 +38,7 @@ export function useEphemeralNodes() {
   // 새로 추가한 노드의 id 를 반환 → caller 가 inspector 자동 select 가능.
   const addNode = useCallback(
     (
-      kind: Exclude<ManualNodeKind, "document">,
+      kind: ManualNodeKind,
       options?: AddNodeOptions,
     ): string => {
       setOffset((prev) => prev + 1);

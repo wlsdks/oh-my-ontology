@@ -17,7 +17,7 @@ import type { ManualNodeKind } from "@/entities/knowledge-graph";
  * 좌우 대칭 + 사용자가 캔버스 공간 더 필요할 때 접을 수 있다.
  */
 const PALETTE_KINDS: Array<{
-  kind: Exclude<ManualNodeKind, "document">;
+  kind: ManualNodeKind;
   hintKey: "kindProjectHint" | "kindDomainHint" | "kindCapabilityHint" | "kindElementHint";
   /** 키보드 단축키 — palette 클릭과 1:1 (P/D/C/E). */
   shortcut: "P" | "D" | "C" | "E";
@@ -29,7 +29,7 @@ const PALETTE_KINDS: Array<{
 ];
 
 export interface OntologyKindPaletteProps {
-  onAddNode: (kind: Exclude<ManualNodeKind, "document">) => void;
+  onAddNode: (kind: ManualNodeKind) => void;
   collapsed?: boolean;
   onToggleCollapsed?: () => void;
 }

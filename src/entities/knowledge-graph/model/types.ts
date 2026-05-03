@@ -34,10 +34,10 @@ export const KNOWLEDGE_EDGE_TYPES: readonly KnowledgeEdgeType[] = [
 
 /**
  * 빌더 (`/ontology/edit`) 가 손으로 만들 수 있는 ontology 노드 kind. document
- * 는 캔버스에서 직접 만들지 않지만 (frontmatter 진실원에서 derive), Exclude
- * 로 narrow 해 쓰는 곳이 있어 union 에 포함.
+ * kind 는 frontmatter 진실원에서 derive 되므로 빌더 캔버스 외부 — 본 union
+ * 에 포함되지 않는다.
  */
-export type ManualNodeKind = 'project' | 'domain' | 'capability' | 'element' | 'document';
+export type ManualNodeKind = 'project' | 'domain' | 'capability' | 'element';
 
 export interface KnowledgeGraphNode {
   id: string;
