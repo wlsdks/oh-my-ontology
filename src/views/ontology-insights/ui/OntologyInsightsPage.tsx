@@ -26,7 +26,8 @@ import { EmptyState } from "@/shared/ui";
 /**
  * `/ontology/insights` — ontology 의 구조를 한눈에.
  *
- * 패널: kind 분포 / 허브 노드 (degree 상위) / 최근 노드 / 미연결 노드 (orphans).
+ * 패널: kind 분포 · 프로젝트별 분포 · edge type 분포 · 허브 노드 (degree 상위)
+ * · cross-project edge 카운트 · 최근 노드 · 미연결 노드 (orphans).
  * `/ontology` 트리 뷰의 보조 surface — 트리는 hierarchy, 인사이트는 통계.
  *
  * R10b 후 lastApprovedAt 이 모든 노드에서 VAULT_SENTINEL_DATE (epoch 0) 라
