@@ -774,7 +774,7 @@
         "ephemeralBadge": "ephemeral",
         "vaultBadge": "vault",
         "dogfoodBadge": "dogfood",
-        "deselectAriaLabel": "선택 해제",
+        "deselectAriaLabel": "노드 선택 해제 (인스펙터는 그대로)",
         "nameLabel": "이름",
         "namePlaceholder": "(이름 입력)",
         "saveIdLabel": "저장 ID",

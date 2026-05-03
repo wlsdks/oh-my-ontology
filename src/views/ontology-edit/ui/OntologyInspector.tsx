@@ -204,6 +204,7 @@ function EphemeralDetail({
           type="button"
           onClick={onDeselect}
           aria-label={t("deselectAriaLabel")}
+          title={t("deselectAriaLabel")}
           className="rounded-md p-1 text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
         >
           ×
@@ -307,6 +308,7 @@ function VaultDetail({
           type="button"
           onClick={onDeselect}
           aria-label={t("deselectAriaLabel")}
+          title={t("deselectAriaLabel")}
           className="rounded-md p-1 text-[color:var(--color-text-quaternary)] transition-colors hover:bg-[color:var(--color-overlay-2)] hover:text-[color:var(--color-text-primary)]"
         >
           ×

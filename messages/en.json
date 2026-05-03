@@ -774,7 +774,7 @@
         "ephemeralBadge": "ephemeral",
         "vaultBadge": "vault",
         "dogfoodBadge": "dogfood",
-        "deselectAriaLabel": "Deselect",
+        "deselectAriaLabel": "Deselect node (inspector stays)",
         "nameLabel": "Name",
         "namePlaceholder": "(enter a name)",
         "saveIdLabel": "Save ID",
