@@ -903,7 +903,7 @@ export function ProjectForm({
                 setValue("name", v);
                 syncSlugFromName(v);
               }}
-              placeholder="Demo"
+              placeholder={t("fields.namePlaceholder")}
               autoComplete="off"
               aria-invalid={Boolean(errors.name)}
             />
@@ -916,7 +916,7 @@ export function ProjectForm({
               data-testid="project-input-name-en"
               value={values.nameEn ?? ""}
               onChange={(v) => setValue("nameEn", v)}
-              placeholder="Demo"
+              placeholder={t("fields.nameEnPlaceholder")}
               autoComplete="off"
             />
           </FieldRow>

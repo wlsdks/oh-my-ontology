@@ -1403,6 +1403,8 @@
         "statusMissingWarning": "Current status reference is broken. Pick another status to recover.",
         "categoryMissingOption": "Missing category · {id}",
         "statusMissingOption": "Missing status · {id}",
+        "namePlaceholder": "My project",
+        "nameEnPlaceholder": "English name",
         "descriptionPlaceholder": "1-2 line summary — shown in drawer and node",
         "detailPlaceholder": "# Heading\n\n**Markdown supported** — shown on detail page",
         "linksPlaceholder": "GitHub|https://github.com/...\nDocs|https://docs.example.com",
