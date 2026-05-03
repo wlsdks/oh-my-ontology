@@ -334,8 +334,8 @@ export function OntologyInsightsPage() {
 
           {/* 최근 노드 — vault sentinel mode 라 timestamp 없이 chip / 제목만. */}
           <Panel
-            title={t("recentPanelTitleSentinel")}
-            subtitle={t("recentSubtitleSentinel", { count: recent.length })}
+            title={t("recentPanelTitle")}
+            subtitle={t("recentSubtitle", { count: recent.length })}
           >
             <ol className="space-y-1">
               {recent.map((node) => (
