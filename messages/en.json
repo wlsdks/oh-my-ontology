@@ -928,8 +928,8 @@
       "ontologyBadgeLabel": "Ontology {count}"
     },
     "detail": {
-      "topBarBackToWorkspaceAria": "Back to workspace map",
-      "topBarWorkspaceFallback": "Workspace",
+      "topBarBackToWorkspaceAria": "Home (workspace map)",
+      "topBarWorkspaceFallback": "Home",
       "topBarProjectsLabel": "Projects",
       "topBarProjectFallback": "Project",
       "topBarTopologyView": "View topology",
@@ -1226,19 +1226,12 @@
     },
     "titleTooltipAria": "Explain what the ontology tree is",
     "actions": {
-      "addNodeTooltip": "Add a new node manually",
-      "addNodeAria": "Add an ontology node manually",
-      "addNode": "Add node",
       "searchTooltip": "Search (⌘K)",
       "searchAria": "Open ontology node search",
       "search": "Search",
       "builderTooltip": "Builder canvas — pick a kind from the palette on the left, drag handles to add relations",
       "builderAria": "Ontology builder — draw directly on the canvas",
-      "builder": "Open builder →",
-      "insightsTooltip": "Ontology insights — kind distribution · hub nodes · recent activity · orphans",
-      "insights": "Insights",
-      "relationsTooltip": "Relations — type distribution + strong evidence-rich relations",
-      "relations": "Relations"
+      "builder": "Open builder →"
     },
     "stat": {
       "treeNodes": "Tree nodes",

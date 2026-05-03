@@ -191,20 +191,8 @@ export function OntologyViewPage() {
               flex-wrap + horizontal scroll 보조. md+ 는 한 줄 유지. -mr/-ml
               음수 마진 + px padding 으로 우측 잘림 방지. */}
           <div className="-mx-1 flex w-full items-center gap-2 overflow-x-auto px-1 pb-1 md:w-auto md:flex-wrap md:overflow-visible md:pb-0">
-            {/* Add Node 는 빌더 (/ontology/edit) — vault frontmatter 가
-                단일 진입점이라 별도 modal 안 둔다. */}
-            <Tooltip content={t('actions.addNodeTooltip')} withProvider={false}>
-              <Link
-                href="/ontology/edit/"
-                aria-label={t('actions.addNodeAria')}
-                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:rgba(94,106,210,0.46)] bg-[color:rgba(94,106,210,0.16)] px-3 text-xs text-[color:var(--color-text-primary)] transition-colors hover:border-[color:rgba(94,106,210,0.66)]"
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                <span className="hidden sm:inline">{t('actions.addNode')}</span>
-              </Link>
-            </Tooltip>
+            {/* Add Node 는 '빌더' CTA 와 destination 동일 → 중복 제거.
+                인사이트 / 관계 pill 도 OntologySubNav 가 항상 노출하므로 제거. */}
             <Tooltip content={t('actions.searchTooltip')} withProvider={false}>
               <button
                 type="button"
@@ -233,24 +221,6 @@ export function OntologyViewPage() {
                   <path d="M10 6.5h4M17.5 10v4M10 17.5h4" />
                 </svg>
                 {t('actions.builder')}
-              </Link>
-            </Tooltip>
-            <Tooltip content={t('actions.insightsTooltip')} withProvider={false}>
-              <Link
-                href={"/ontology/insights/"}
-                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-                aria-label={t('actions.insightsTooltip')}
-              >
-                {t('actions.insights')}
-              </Link>
-            </Tooltip>
-            <Tooltip content={t('actions.relationsTooltip')} withProvider={false}>
-              <Link
-                href={"/ontology/relations/"}
-                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-                aria-label={t('actions.relationsTooltip')}
-              >
-                {t('actions.relations')}
               </Link>
             </Tooltip>
           </div>
