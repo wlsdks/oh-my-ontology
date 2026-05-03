@@ -257,10 +257,9 @@ export function OntologyInsightsPage() {
             </ul>
           </Panel>
 
-          {/* UX-13: 프로젝트별 분포 — 외부 visitor 가 12 외부 프로젝트
-              별 노드 누적을 한 카드에서 인지. document/project 메타
-              kind 제외 (4 kind 합계). 운영 시드 후 어느 프로젝트가
-              가장 많은 도메인/기능/요소를 가진지 시각 확인. */}
+          {/* 프로젝트별 분포 — 어느 프로젝트가 가장 많은 도메인/기능/
+              요소를 가진지 시각 확인. document / project 메타 kind 제외
+              (4 kind 합계). */}
           {projectRows.length > 0 ? (
             <Panel
               title={t("projectPanelTitle")}
@@ -300,10 +299,9 @@ export function OntologyInsightsPage() {
             </Panel>
           ) : null}
 
-          {/* UX-14: edge type 분포 — 운영 누적 엣지의 의미 관계 type
-              비율을 한 카드에서 인지 (belongs_to / implements / contains
-              / uses / depends_on 등). relations 페이지의 분포 패널과
-              같은 helper 사용. */}
+          {/* edge type 분포 — 의미 관계 type 비율 (belongs_to / implements
+              / contains / uses / depends_on 등). relations 페이지의 분포
+              패널과 같은 helper 사용. */}
           {edgeTypeRows.length > 0 ? (
             <Panel
               title={t("edgeTypePanelTitle")}
@@ -346,10 +344,9 @@ export function OntologyInsightsPage() {
             </Panel>
           ) : null}
 
-          {/* UX-17: cross-project edge 카운트 — 운영 D-cont-1 시드된
-              cross-project 의존을 별도 패널로 인지. 전체 edge 대비 비율
-              표시해 ontology 분산도 즉시 인지. crossProjectEdgeCount 가
-              0 이면 카드 hide (조건부 surface). */}
+          {/* cross-project edge 카운트 — 전체 edge 대비 비율로 ontology
+              분산도 인지. crossProjectEdgeCount 가 0 이면 카드 자체 hide
+              (조건부 surface). */}
           {crossProjectEdgeCount > 0 ? (
             <Panel
               title={t("crossProjectPanelTitle")}

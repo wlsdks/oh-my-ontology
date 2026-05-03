@@ -98,8 +98,8 @@ export function OntologyRelationsPage() {
       <MountedGlobalSearch />
 
       <section className="mb-8 space-y-3">
-        {/* UX-8: 모바일 좌상단 back chevron (iOS 표준 패턴). md+ 는 기존
-            우상단 link 유지. */}
+        {/* 모바일 한정 좌상단 back chevron — 한 손 도달 가능 위치 (iOS
+            표준 패턴). md+ 데스크톱은 우상단 link 유지. */}
         <Link
           href={"/ontology/"}
           aria-label={t("backTreeMobileAriaLabel")}
@@ -280,7 +280,8 @@ export function OntologyRelationsPage() {
                     <Link href={toHref} className="min-w-0 max-w-[8rem] flex-1 truncate text-[color:var(--color-text-primary)] hover:underline">
                       {toTitle ?? edge.to}
                     </Link>
-                    {/* UX-15: cross-project edge 인지 한 단어 chip + 인디고 border. 같은 type 안에서 시각 분기. */}
+                    {/* cross-project edge 인지용 chip + 인디고 border —
+                        같은 edge type 안에서 시각 분기. */}
                     {isCrossProject ? (
                       <span
                         className="shrink-0 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.10)] px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em] text-[color:rgba(159,170,235,0.95)]"
