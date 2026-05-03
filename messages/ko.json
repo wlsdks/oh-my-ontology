@@ -846,9 +846,6 @@
     "insights": {
       "eyebrow": "Ontology · Insights",
       "title": "인사이트",
-      "backTreeMobileAriaLabel": "온톨로지 트리로 돌아가기",
-      "backTreeMobile": "트리로",
-      "backTreeDesktop": "← 트리로",
       "subtitle": "전체 ontology 의 활동·구조 통계. 트리는 hierarchy 를 보여주고, 인사이트는 어디가 허브이고 무엇이 최근에 자랐는지를 보여줍니다.",
       "errorAlert": "ontology 데이터를 불러오는 중 오류가 났어요. {message}",
       "loading": "불러오는 중…",
@@ -879,10 +876,6 @@
     "relations": {
       "eyebrow": "Ontology · Relations",
       "title": "관계",
-      "backTreeMobileAriaLabel": "온톨로지 트리로 돌아가기",
-      "backTreeMobile": "트리로",
-      "backTreeDesktop": "← 트리로",
-      "insightsLink": "인사이트",
       "subtitle": "노드는 트리, 통계는 인사이트. 관계는 *의미 관계 종류* 의 분포를 보여줍니다.",
       "errorAlert": "관계 데이터를 불러오는 중 오류가 났어요. {message}",
       "loading": "불러오는 중…",

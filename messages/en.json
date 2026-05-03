@@ -846,9 +846,6 @@
     "insights": {
       "eyebrow": "Ontology · Insights",
       "title": "Insights",
-      "backTreeMobileAriaLabel": "Back to the ontology tree",
-      "backTreeMobile": "To tree",
-      "backTreeDesktop": "← To tree",
       "subtitle": "Activity and structure stats for the whole ontology. The tree shows hierarchy; insights show where the hubs are and what grew most recently.",
       "errorAlert": "Couldn't load ontology data. {message}",
       "loading": "Loading…",
@@ -879,10 +876,6 @@
     "relations": {
       "eyebrow": "Ontology · Relations",
       "title": "Relations",
-      "backTreeMobileAriaLabel": "Back to the ontology tree",
-      "backTreeMobile": "To tree",
-      "backTreeDesktop": "← To tree",
-      "insightsLink": "Insights",
       "subtitle": "Nodes live in the tree, stats live in insights. Relations show the distribution of *semantic relation types*.",
       "errorAlert": "Couldn't load relation data. {message}",
       "loading": "Loading…",

@@ -118,30 +118,15 @@ export function OntologyInsightsPage() {
       <MountedGlobalSearch />
 
       <section className="mb-8 space-y-3">
-        {/* 모바일 한정 좌상단 back chevron — 한 손 도달 가능 위치 (iOS
-            표준 패턴). md+ 데스크톱은 우상단 link 유지. */}
-        <Link
-          href={"/ontology/"}
-          aria-label={t("backTreeMobileAriaLabel")}
-          className="inline-flex items-center gap-1 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] md:hidden"
-        >
-          <span aria-hidden>←</span>
-          <span>{t("backTreeMobile")}</span>
-        </Link>
+        {/* '← 트리로' pill 은 OntologySubNav 의 [트리] 탭과 destination
+            중복 (둘 다 /ontology/) — 사용자 피드백으로 제거. SubNav 가
+            모바일/데스크톱 양쪽에서 항상 노출되니 backlink 추가 필요 X. */}
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
           {t("eyebrow")}
         </p>
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="break-keep text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-            {t("title")}
-          </h1>
-          <Link
-            href={"/ontology/"}
-            className="hidden h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)] md:inline-flex"
-          >
-            {t("backTreeDesktop")}
-          </Link>
-        </div>
+        <h1 className="break-keep text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
+          {t("title")}
+        </h1>
         <p className="break-keep text-sm leading-7 text-[color:var(--color-text-secondary)]">
           {t("subtitle")}
         </p>

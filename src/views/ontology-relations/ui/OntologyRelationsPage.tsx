@@ -43,38 +43,14 @@ export function OntologyRelationsPage() {
       <MountedGlobalSearch />
 
       <section className="mb-8 space-y-3">
-        {/* 모바일 한정 좌상단 back chevron — 한 손 도달 가능 위치 (iOS
-            표준 패턴). md+ 데스크톱은 우상단 link 유지. */}
-        <Link
-          href={"/ontology/"}
-          aria-label={t("backTreeMobileAriaLabel")}
-          className="inline-flex items-center gap-1 text-xs text-[color:var(--color-text-tertiary)] transition-colors hover:text-[color:var(--color-text-primary)] md:hidden"
-        >
-          <span aria-hidden>←</span>
-          <span>{t("backTreeMobile")}</span>
-        </Link>
+        {/* '← 트리로' / '인사이트 보기' link 들은 OntologySubNav 의
+            [트리] / [인사이트] 탭과 destination 중복 — 사용자 피드백으로 제거. */}
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
           {t("eyebrow")}
         </p>
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="break-keep text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
-            {t("title")}
-          </h1>
-          <div className="flex items-center gap-2">
-            <Link
-              href={"/ontology/"}
-              className="hidden h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)] md:inline-flex"
-            >
-              {t("backTreeDesktop")}
-            </Link>
-            <Link
-              href={"/ontology/insights/"}
-              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-3 text-xs text-[color:var(--color-text-secondary)] transition-colors hover:border-[color:rgba(94,106,210,0.32)] hover:text-[color:var(--color-text-primary)]"
-            >
-              {t("insightsLink")}
-            </Link>
-          </div>
-        </div>
+        <h1 className="break-keep text-2xl font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
+          {t("title")}
+        </h1>
         <p className="break-keep text-sm leading-7 text-[color:var(--color-text-secondary)]">
           {t("subtitle")}
         </p>
