@@ -488,6 +488,7 @@ export function OntologyEditCanvas({
       <style jsx global>{`
         .react-flow__node-atlas {
           transition: filter 180ms ease-out;
+          animation: rfNodeAppear 220ms ease-out;
         }
         .react-flow__node-atlas:hover {
           filter: brightness(1.06);
@@ -495,8 +496,22 @@ export function OntologyEditCanvas({
         .react-flow__edge-path {
           transition: stroke-width 180ms ease-out;
         }
+        .react-flow__edge {
+          animation: rfEdgeAppear 240ms ease-out;
+        }
         .react-flow__edge:hover .react-flow__edge-path {
           stroke-width: 2.5px;
+        }
+        /* 새 노드 / edge mount 시 부드러운 fade-in — 역동성 + 사용자가
+           '추가됐다' 인지 빠름. id 새로 생긴 노드만 적용 (layout
+           transition 과 별도). */
+        @keyframes rfNodeAppear {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes rfEdgeAppear {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         /* layout 변경 시 일시적 슬라이드 애니메이션 — fitView duration
            (400ms) 와 매칭. 드래그 중엔 클래스 비활성이라 즉각 반응. */
@@ -507,6 +522,10 @@ export function OntologyEditCanvas({
           transition: opacity 400ms ease-out;
         }
         @media (prefers-reduced-motion: reduce) {
+          .react-flow__node-atlas,
+          .react-flow__edge {
+            animation: none;
+          }
           .rf-layout-animating .react-flow__node,
           .rf-layout-animating .react-flow__edge {
             transition: none;
