@@ -933,7 +933,7 @@
       "newProjectEyebrow": "새 프로젝트 등록",
       "newProjectDesc": "목록 맨 아래에서 새 프로젝트를 빠르게 추가하고 첫 문서로 이동합니다.",
       "openForm": "폼 열기",
-      "adminToolsLabel": "관리 도구",
+      "adminToolsLabel": "워크스페이스 도구",
       "expand": "펼치기",
       "csvExport": "CSV 내보내기 ({count})",
       "cardSeeMore": "상세 보기",

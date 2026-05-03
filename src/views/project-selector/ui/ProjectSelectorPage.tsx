@@ -532,39 +532,37 @@ export function ProjectSelectorPage() {
         ) : null}
 
         {canMutateProjects && (
-          <section className="mt-8 grid gap-4 md:grid-cols-2">
-            {canMutateProjects && (
-              <details className="rounded-[20px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]">
-                  <div>
-                    <p className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
-                      <Shield size={12} aria-hidden="true" />
-                      {t("adminToolsLabel")}
-                    </p>
-                  </div>
-                  <span className="rounded-full border border-[color:var(--color-divider)] px-3 py-1 text-xs text-[color:var(--color-text-secondary)]">
-                    {t("expand")}
-                  </span>
-                </summary>
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-[color:var(--color-divider)] pt-4">
-                  {/* CSV 백업 — 현재 목록(검색 필터 적용 전 전체) 을 다운로드.
-                      import 과 동일 스키마라 round-trip 가능. */}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      const stamp = new Date().toISOString().slice(0, 10);
-                      downloadProjectsCsv(
-                        projects,
-                        `demo-projects-workspace-${stamp}.csv`,
-                      );
-                    }}
-                  >
-                    {t("csvExport", { count: projects.length })}
-                  </Button>
+          <section className="mt-8">
+            <details className="rounded-[20px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-4 py-4">
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgba(94,106,210,0.46)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-canvas)]">
+                <div>
+                  <p className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-text-quaternary)]">
+                    <Shield size={12} aria-hidden="true" />
+                    {t("adminToolsLabel")}
+                  </p>
                 </div>
-              </details>
-            )}
+                <span className="rounded-full border border-[color:var(--color-divider)] px-3 py-1 text-xs text-[color:var(--color-text-secondary)]">
+                  {t("expand")}
+                </span>
+              </summary>
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-[color:var(--color-divider)] pt-4">
+                {/* CSV 백업 — 현재 목록(검색 필터 적용 전 전체) 을 다운로드.
+                    import 과 동일 스키마라 round-trip 가능. */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    const stamp = new Date().toISOString().slice(0, 10);
+                    downloadProjectsCsv(
+                      projects,
+                      `oh-my-ontology-projects-${stamp}.csv`,
+                    );
+                  }}
+                >
+                  {t("csvExport", { count: projects.length })}
+                </Button>
+              </div>
+            </details>
           </section>
         )}
       </div>

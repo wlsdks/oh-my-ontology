@@ -933,7 +933,7 @@
       "newProjectEyebrow": "Add new project",
       "newProjectDesc": "Quickly add a new project from the bottom of the list and jump to its first doc.",
       "openForm": "Open form",
-      "adminToolsLabel": "Admin tools",
+      "adminToolsLabel": "Workspace tools",
       "expand": "Expand",
       "csvExport": "Export CSV ({count})",
       "cardSeeMore": "See details",
