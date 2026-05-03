@@ -740,9 +740,10 @@ function DocsVaultContent() {
       window.alert(t('dialog.noValidRaws'));
       return;
     }
-    const existing = slugs.filter((s) =>
-      manifest.docs.some((d) => d.slug === s),
-    );
+    // existing slug Set 한 번 — 이전엔 \`manifest.docs.some(...)\` 를 dedup
+    // check 와 import loop 양쪽에서 호출해 O(N×M) 였다. Set lookup 으로 O(N+M).
+    const existingSlugSet = new Set(manifest.docs.map((d) => d.slug));
+    const existing = slugs.filter((s) => existingSlugSet.has(s));
     let overwrite = false;
     if (existing.length > 0) {
       overwrite = window.confirm(
@@ -755,7 +756,7 @@ function DocsVaultContent() {
     for (const slug of slugs) {
       const content = raws[slug];
       if (typeof content !== 'string') continue;
-      const exists = manifest.docs.some((d) => d.slug === slug);
+      const exists = existingSlugSet.has(slug);
       try {
         if (exists) {
           if (overwrite) {
