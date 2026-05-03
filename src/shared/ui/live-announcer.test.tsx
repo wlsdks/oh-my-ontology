@@ -24,15 +24,13 @@ describe('LiveAnnouncer', () => {
     expect(el.getAttribute('aria-live')).toBe('assertive');
   });
 
-  it('message has trailing zero-width space (iOS VoiceOver dedup workaround)', () => {
+  it('renders message verbatim into aria-live region', () => {
     const { container } = render(<LiveAnnouncer message="알림" />);
     const el = container.firstElementChild as HTMLElement;
-    // iOS VoiceOver 가 같은 message 의 반복 update 를 무시 — 매번 보이지 않는
-    // ​ 를 끝에 붙여 dedup 회피.
-    expect(el.textContent).toBe('알림​');
+    expect(el.textContent).toBe('알림');
   });
 
-  it('empty message renders empty text (no zero-width space artifact)', () => {
+  it('empty message renders empty text', () => {
     const { container } = render(<LiveAnnouncer message="" />);
     const el = container.firstElementChild as HTMLElement;
     expect(el.textContent).toBe('');
