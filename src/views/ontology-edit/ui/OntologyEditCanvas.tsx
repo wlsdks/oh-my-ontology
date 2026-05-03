@@ -150,6 +150,9 @@ export function OntologyEditCanvas({
   }, [vaultNodes, ephemeralNodes]);
 
   const allEdges: Edge[] = useMemo(() => {
+    // ephemeral edge — amber alpha (warning amber, hub amber 와 구분되는 신호 톤)
+    // 로 노드와 동일하게 '저장 안 됨' 시각 신호. vault edge 는 인디고 유지 →
+    // vault vs ephemeral 한눈 차별 + 저장 상태 시각 일관성.
     const ephemeralFlow: Edge[] = ephemeralEdges.map((e) => ({
       id: e.id,
       source: e.source,
@@ -158,18 +161,18 @@ export function OntologyEditCanvas({
       label: t("ephemeralEdgeLabel"),
       labelStyle: {
         fontSize: 10,
-        fill: "rgba(139, 151, 255, 0.98)",
+        fill: "rgba(255, 179, 71, 0.95)",
         fontWeight: 600,
       },
       labelBgStyle: {
         fill: "rgba(14, 16, 22, 0.92)",
-        stroke: "rgba(94, 106, 210, 0.66)",
+        stroke: "rgba(255, 179, 71, 0.55)",
         strokeWidth: 1,
       },
       labelBgPadding: [6, 4] as [number, number],
       labelBgBorderRadius: 4,
       style: {
-        stroke: "rgba(94, 106, 210, 0.78)",
+        stroke: "rgba(255, 179, 71, 0.66)",
         strokeWidth: 1.5,
         strokeDasharray: "5 4",
       },
