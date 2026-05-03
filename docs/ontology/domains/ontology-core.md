@@ -6,7 +6,6 @@ capabilities:
   - frontmatter-to-ontology
 elements:
   - src/entities/ontology-class
-  - src/entities/ontology-relation
   - src/entities/knowledge-graph
   - src/entities/docs-vault/lib/derive-ontology-from-vault
 relates:
@@ -16,6 +15,8 @@ relates:
 
 # Ontology Core
 
-4-layer class hierarchy (Project · Domain · Capability · Element + Document) + 7 relations
-+ immutable schema versioning + evidence-grounded statements. 자세한 모델: `docs/DATA-MODEL.md`,
-`docs/ONTOLOGY-MODEL-V2-DRAFT.md` (V2 spec).
+4-layer class hierarchy (Project · Domain · Capability · Element + Document) +
+7 edge types (KNOWLEDGE_EDGE_TYPES) + evidence-grounded statements. Vault
+frontmatter is the single source of truth — derive-ontology-from-vault turns
+\`.md\` frontmatter into the in-memory graph. Architecture overview:
+\`docs/ARCHITECTURE.md\`.

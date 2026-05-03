@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-03T04:09:00.252Z",
+  "generatedAt": "2026-05-03T04:15:54.082Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -3218,7 +3218,6 @@
         ],
         "elements": [
           "src/entities/ontology-class",
-          "src/entities/ontology-relation",
           "src/entities/knowledge-graph",
           "src/entities/docs-vault/lib/derive-ontology-from-vault"
         ],
@@ -3234,9 +3233,9 @@
           "slug": "ontology-core"
         }
       ],
-      "excerpt": "4layer class hierarchy (Project · Domain · Capability · Element + Document) + 7 relations + immutable schema versioning + evidencegrounded statements. 자세한 모델: docs/DATAMODEL.md, docs/ONTOLOGYMODELV2DRAFT.md (V2 spec).",
-      "wordCount": 31,
-      "updatedAt": "2026-05-02T20:02:15.456Z",
+      "excerpt": "4layer class hierarchy (Project · Domain · Capability · Element + Document) + 7 edge types (KNOWLEDGEEDGETYPES) + evidencegrounded statements. Vault frontmatter is the single source of truth — deriveontologyfromvault turns \\.md\\ frontmatter into the inmemory graph. Architecture overview: \\docs/ARCHITECTURE.md\\.",
+      "wordCount": 43,
+      "updatedAt": "2026-05-03T04:15:51.958Z",
       "mode": "both",
       "linksOut": []
     },
