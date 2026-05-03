@@ -64,7 +64,6 @@ function mapVaultDocToProject(doc: VaultDoc): Project | null {
     screenshots: [],
     timeline: {},
     isHub,
-    hubSlugs: coerceStringArray(fm.hubSlugs),
     position,
     createdAt,
     updatedAt,

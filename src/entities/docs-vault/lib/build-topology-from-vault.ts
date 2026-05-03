@@ -118,7 +118,6 @@ function mapFrontmatterToProject(
     screenshots: [],
     timeline: {},
     isHub,
-    hubSlugs: coerceStringArray(fm.hubSlugs),
     position,
     createdAt,
     updatedAt,

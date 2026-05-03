@@ -50,13 +50,6 @@ export interface Project {
   timeline: ProjectTimeline;
   progress?: number;
   isHub: boolean;
-  /**
-   * Node(isHub=false) 가 소속된 Hub slugs. 여러 Hub 를 걸칠 수 있어 배열.
-   * Hub 자신은 이 필드가 비어 있어야 한다. 공개 노드 보기 breadcrumb·검색
-   * facet·knowledge 추출 앵커 등에서 부모 Hub 체인 표시에 사용. 미지정(legacy)
-   * 이면 dependencies 중 isHub=true 인 항목으로 추론.
-   */
-  hubSlugs?: string[];
   position: ProjectPosition;
   createdAt: Date;
   updatedAt: Date;
