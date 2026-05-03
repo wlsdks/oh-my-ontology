@@ -17,6 +17,7 @@ import { MountedGlobalSearch } from "@/widgets/global-search";
 import { Tooltip, useToast } from "@/shared/ui";
 import { useEphemeralNodes } from "../lib/use-ephemeral-nodes";
 import { useEphemeralEdges } from "../lib/use-ephemeral-edges";
+import { isUntitledTitle } from "../lib/is-untitled-title";
 import { downloadAtlasFrontmatter } from "../lib/export-frontmatter";
 import { downloadGraphML, downloadJsonLd } from "../lib/export-graph";
 import { BlastRadiusConfirm } from "./BlastRadiusConfirm";
@@ -188,6 +189,14 @@ export function OntologyEditPage() {
     async (nodeId: string) => {
       const node = findById(nodeId);
       if (!node) return;
+      // placeholder ("(enter a name)" / "(이름 입력)") 그대로 통과 시
+      // slugify 가 "enter-a-name.md" 를 만들어 vault 에 silent pollution.
+      // Inspector 의 save 버튼은 같은 룰로 disabled 되지만 다른 진입점에서
+      // 들어올 수 있어 함수 자체에서 가드.
+      if (isUntitledTitle(node.title, t("untitledPlaceholder"))) {
+        toast.show(t("toastEmptyName"), "error");
+        return;
+      }
       const slug = slugify(node.title);
       if (!slug) {
         toast.show(t("toastEmptyName"), "error");
@@ -419,6 +428,13 @@ export function OntologyEditPage() {
       ): Promise<{ slug: string; kind: string } | null> => {
         const ephem = findById(nodeId);
         if (ephem) {
+          // placeholder ("(enter a name)") 통과 시 enter-a-name.md silent
+          // 생성 → reject. Round 4 가 약속한 "no untitled.md pollution"
+          // 를 chip 진입점에서도 보장.
+          if (isUntitledTitle(ephem.title, t("untitledPlaceholder"))) {
+            toast.show(t("toastEdgePersistNeedsTitle"), "error");
+            return null;
+          }
           const slug = slugify(ephem.title);
           if (!slug) {
             toast.show(t("toastEdgePersistNeedsTitle"), "error");

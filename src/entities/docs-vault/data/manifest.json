@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-03T12:53:19.711Z",
+  "generatedAt": "2026-05-03T13:02:52.534Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -1737,8 +1737,8 @@
         },
         {
           "depth": 2,
-          "text": "2026-05-03 — Surface diet Round 3: 첫 인상 + IA 정리",
-          "slug": "2026-05-03-surface-diet-round-3-첫-인상-ia-정리"
+          "text": "2026-05-03 — Surface diet Round 4: 검색 발견성 + 빌더 edge 영속",
+          "slug": "2026-05-03-surface-diet-round-4-검색-발견성-빌더-edge-영속"
         },
         {
           "depth": 3,
@@ -1747,8 +1747,13 @@
         },
         {
           "depth": 3,
-          "text": "Decision recorded (no UI change)",
-          "slug": "decision-recorded-no-ui-change"
+          "text": "Critical discovery (codex + UX walkthrough)",
+          "slug": "critical-discovery-codex-ux-walkthrough"
+        },
+        {
+          "depth": 3,
+          "text": "디자인 결정 — 4 design 비교 후 B 채택",
+          "slug": "디자인-결정-4-design-비교-후-b-채택"
         },
         {
           "depth": 3,
@@ -1759,6 +1764,36 @@
           "depth": 3,
           "text": "Test",
           "slug": "test"
+        },
+        {
+          "depth": 3,
+          "text": "Round 5 자연 후보",
+          "slug": "round-5-자연-후보"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-03 — Surface diet Round 3: 첫 인상 + IA 정리",
+          "slug": "2026-05-03-surface-diet-round-3-첫-인상-ia-정리"
+        },
+        {
+          "depth": 3,
+          "text": "User-visible changes",
+          "slug": "user-visible-changes-2"
+        },
+        {
+          "depth": 3,
+          "text": "Decision recorded (no UI change)",
+          "slug": "decision-recorded-no-ui-change"
+        },
+        {
+          "depth": 3,
+          "text": "코드 / 아키텍처",
+          "slug": "코드-아키텍처-2"
+        },
+        {
+          "depth": 3,
+          "text": "Test",
+          "slug": "test-2"
         },
         {
           "depth": 3,
@@ -1773,7 +1808,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-2"
+          "slug": "user-visible-changes-3"
         },
         {
           "depth": 3,
@@ -1783,12 +1818,12 @@
         {
           "depth": 3,
           "text": "코드 / 아키텍처",
-          "slug": "코드-아키텍처-2"
+          "slug": "코드-아키텍처-3"
         },
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-2"
+          "slug": "test-3"
         },
         {
           "depth": 3,
@@ -1803,7 +1838,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-3"
+          "slug": "user-visible-changes-4"
         },
         {
           "depth": 3,
@@ -1813,12 +1848,12 @@
         {
           "depth": 3,
           "text": "코드 / 아키텍처",
-          "slug": "코드-아키텍처-3"
+          "slug": "코드-아키텍처-4"
         },
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-3"
+          "slug": "test-4"
         },
         {
           "depth": 3,
@@ -1833,7 +1868,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-4"
+          "slug": "user-visible-changes-5"
         },
         {
           "depth": 3,
@@ -1853,7 +1888,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-5"
+          "slug": "user-visible-changes-6"
         },
         {
           "depth": 3,
@@ -1893,7 +1928,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-6"
+          "slug": "user-visible-changes-7"
         },
         {
           "depth": 3,
@@ -1918,7 +1953,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-7"
+          "slug": "user-visible-changes-8"
         },
         {
           "depth": 3,
@@ -1963,7 +1998,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-8"
+          "slug": "user-visible-changes-9"
         },
         {
           "depth": 3,
@@ -1998,7 +2033,7 @@
         {
           "depth": 3,
           "text": "User-visible changes",
-          "slug": "user-visible-changes-9"
+          "slug": "user-visible-changes-10"
         },
         {
           "depth": 3,
@@ -2036,9 +2071,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. 3 에이전트 병렬 회의 (user journey audit · inbound link 매핑 · IA 의견) 종합 결정. PM 입장 첫 인상 / IA 명확성에 집중",
-      "wordCount": 4679,
-      "updatedAt": "2026-05-03T12:20:55.264Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. 3 에이전트 병렬 회의 (codex pressuretest · generalpurpose UX walkthrough · Plan architect Builder ",
+      "wordCount": 5251,
+      "updatedAt": "2026-05-03T12:54:41.561Z",
       "linksOut": []
     },
     {
