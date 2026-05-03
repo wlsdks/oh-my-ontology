@@ -3,11 +3,10 @@ import type { EphemeralEdge } from "./use-ephemeral-edges";
 
 /**
  * Atlas frontmatter export — 캔버스의 ephemeral 노드/엣지를 단일 md 파일로
- * 변환. spec `2026-04-27-ontology-frontmatter-contract.md` 의 등급 A 형식과
- * 호환:
+ * 변환:
  *
  * - 노드별 yaml frontmatter + 빈 본문 (사용자가 채울 수 있게)
- * - 엣지는 별도 `## 관계` 섹션에 list 로
+ * - 엣지는 별도 \`## 관계\` 섹션에 list 로
  */
 export interface AtlasExportInput {
   ephemeralNodes: EphemeralNode[];
