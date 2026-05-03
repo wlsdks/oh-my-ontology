@@ -715,9 +715,8 @@ export function useLocalVault() {
     // .mcp.json.example — 사용자가 AI agent 설정으로 복사. vault 폴더의
     // 절대경로는 브라우저가 모르니 placeholder 로 두고 안내.
     //
-    // overwrite guard (eval round 4 — perf agent finding):
-    // 사용자가 .mcp.json.example 을 customize 했을 수도 있으니 기존 파일이
-    // 있으면 skip. 처음 scaffold 일 때만 생성.
+    // overwrite guard: 사용자가 .mcp.json.example 을 customize 했을 수도
+    // 있으니 기존 파일이 있으면 skip. 처음 scaffold 일 때만 생성.
     try {
       let alreadyExists = false;
       try {
