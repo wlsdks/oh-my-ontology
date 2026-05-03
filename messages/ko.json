@@ -223,8 +223,6 @@
       "groupConceptMatch": "개념 · 매치",
       "groupProjectRecent": "프로젝트 · 최근",
       "groupProjectMatch": "프로젝트 · 매치",
-      "evidenceTitle": "근거 문서 {count}개",
-      "evidenceShort": "근거 {count}",
       "hub": "허브",
       "project": "프로젝트",
       "indexed": "{count} 색인",

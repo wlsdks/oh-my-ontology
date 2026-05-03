@@ -317,46 +317,35 @@ export function GlobalSearch({
                 </span>
               }
             >
-              {ontologyResults.map(({ node }) => {
-                // vault 모드는 node.evidenceCount 가 undefined 이고
-                // evidenceIds 에는 cycle 6 이후 sourceSlug 1 개가 항상 들어
-                // 있어 fallback (?? evidenceIds.length) 을 쓰면 모든 결과에
-                // "근거 1" chip 이 떠서 misleading. evidenceCount 명시값일
-                // 때만 chip 노출 (legacy cloud 모드 한정으로 의미 있음).
-                const evidenceCount = node.evidenceCount ?? 0;
-                return (
-                  <Command.Item
-                    key={`ontology:${node.id}`}
-                    value={`ontology:${node.id}`}
-                    onSelect={() => {
-                      onSelectNode(node);
-                      closeAndClear();
-                    }}
-                    className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-[color:var(--color-text-secondary)] aria-selected:bg-[color:rgba(94,106,210,0.14)] aria-selected:text-[color:var(--color-text-primary)]"
-                  >
-                    <span className="inline-flex shrink-0 items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
-                      {kindLabel(node.kind)}
+              {/* R10 후 vault 가 유일 모드 — node.evidenceCount 가 영구
+                  undefined 이라 'Evidence N' chip 도 cycle 16 의
+                  NodeDetailPanel 정리와 같은 정책으로 제거. 같은 정보가
+                  필요해지면 cycle 6 의 ontology→docs 점프 chip 이 더
+                  풍부하게 보여 줌. */}
+              {ontologyResults.map(({ node }) => (
+                <Command.Item
+                  key={`ontology:${node.id}`}
+                  value={`ontology:${node.id}`}
+                  onSelect={() => {
+                    onSelectNode(node);
+                    closeAndClear();
+                  }}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-[color:var(--color-text-secondary)] aria-selected:bg-[color:rgba(94,106,210,0.14)] aria-selected:text-[color:var(--color-text-primary)]"
+                >
+                  <span className="inline-flex shrink-0 items-center rounded-full border border-[color:var(--color-overlay-3)] bg-[color:var(--color-overlay-1)] px-1.5 py-[1px] font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]">
+                    {kindLabel(node.kind)}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[color:var(--color-text-primary)]">
+                    {node.title}
+                  </span>
+                  <ManualSourceChip source={node.source} size="compact" />
+                  {node.summary ? (
+                    <span className="hidden min-w-0 max-w-[14rem] truncate text-xs text-[color:var(--color-text-quaternary)] md:block">
+                      {node.summary}
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-[color:var(--color-text-primary)]">
-                      {node.title}
-                    </span>
-                    <ManualSourceChip source={node.source} size="compact" />
-                    {node.summary ? (
-                      <span className="hidden min-w-0 max-w-[14rem] truncate text-xs text-[color:var(--color-text-quaternary)] md:block">
-                        {node.summary}
-                      </span>
-                    ) : null}
-                    {evidenceCount > 0 ? (
-                      <span
-                        className="shrink-0 font-mono text-[9px] uppercase tracking-[0.10em] text-[color:var(--color-text-quaternary)]"
-                        title={t('evidenceTitle', { count: evidenceCount })}
-                      >
-                        {t('evidenceShort', { count: evidenceCount })}
-                      </span>
-                    ) : null}
-                  </Command.Item>
-                );
-              })}
+                  ) : null}
+                </Command.Item>
+              ))}
             </Command.Group>
           ) : null}
 

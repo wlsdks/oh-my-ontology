@@ -223,8 +223,6 @@
       "groupConceptMatch": "Concept · matches",
       "groupProjectRecent": "Project · recent",
       "groupProjectMatch": "Project · matches",
-      "evidenceTitle": "{count} evidence document(s)",
-      "evidenceShort": "Evidence {count}",
       "hub": "Hub",
       "project": "Project",
       "indexed": "{count} indexed",
