@@ -3,6 +3,7 @@
 import { Link, usePathname } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Network, FolderKanban, FileText } from 'lucide-react';
+import { isBottomTabActive } from '../lib/is-tab-active';
 
 interface TabItem {
   href: string;
@@ -59,10 +60,5 @@ export function BottomTabBar() {
 }
 
 function isTabActive(pathname: string, tab: TabItem): boolean {
-  // matchPrefixes 가 우선 — `/` 홈 탭도 ['/ontology', '/topology'] prefix
-  // 위에서 활성화돼야 한다 (홈 탭 라벨이 "Ontology" 라 하위 surface 진입 시
-  // 아무 탭도 점등 안 되던 회귀 회피). prefix 가 안 잡히면 정확 일치 fallback —
-  // 그래야 / 일 때 home 탭만, /projects 일 때 projects 탭만 활성.
-  if (tab.matchPrefixes.some((p) => pathname.startsWith(p))) return true;
-  return pathname === tab.href || pathname === tab.href.replace(/\/$/, '');
+  return isBottomTabActive(pathname, tab.href, tab.matchPrefixes);
 }
