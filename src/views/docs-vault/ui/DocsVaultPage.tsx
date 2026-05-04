@@ -33,6 +33,7 @@ import { Tooltip, useToast } from '@/shared/ui';
 // 추출된 page-local helpers.
 import { buildDocsVaultPopoutHtml } from '../lib/popout-template';
 import { useAdvancedMenu } from '../lib/use-advanced-menu';
+import { useDocsVaultPersistence } from '../lib/use-docs-vault-persistence';
 import { useDocsVaultScrollSpy } from '../lib/use-scroll-spy';
 import { useFolderTopo } from '../lib/use-folder-topo';
 import { replaceDocsVaultUrlState } from '../lib/url-state';
@@ -48,15 +49,11 @@ import { DocsVaultViewer } from '@/widgets/docs-vault/ui/DocsVaultViewer';
 import type { VaultCommand } from '@/widgets/docs-vault/model/command';
 import {
   PINNED_DOCS_STORAGE_PREFIX,
-  readPinnedDocs,
-  togglePinnedDoc,
 } from '@/widgets/docs-vault/lib/pinned-docs';
 import {
   migrateLegacyRecentDocs,
   pushRecentDoc,
-  readRecentDocs,
   RECENT_DOCS_STORAGE_PREFIX,
-  type VaultRecentKey,
 } from '@/widgets/docs-vault/lib/recent-docs';
 
 // DocsVaultFolderTopology 는 Sigma WebGL 을 top-level 모듈에서 초기화하므로
@@ -118,8 +115,6 @@ function DocsVaultContent() {
     undefined,
   );
   const [editing, setEditing] = useState(false);
-  const [recentSlugs, setRecentSlugs] = useState<string[]>([]);
-  const [pinnedSlugs, setPinnedSlugs] = useState<string[]>([]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   // ?intent=local — landing CTA "내 마크다운 폴더 열기" 의 진입 query.
   // source 초기값을 'local' 로 박아 처음부터 picker UI 가 우측 sidebar 에
@@ -142,6 +137,19 @@ function DocsVaultContent() {
   const [mobileTreeOpen, setMobileTreeOpen] = useState(false);
   const localVault = useLocalVault();
   const toast = useToast();
+
+  // R11 #16 step 5 — pinned/recent persistence 는 useDocsVaultPersistence hook
+  // 에서 캡슐화. setter 들은 view 의 다양한 mutation 사이트 (delete/new-doc 등)
+  // 가 직접 호출하므로 외부 노출.
+  const {
+    recentKey,
+    recentSlugs,
+    setRecentSlugs,
+    pinnedSlugs,
+    setPinnedSlugs,
+    pinnedSet,
+    togglePin: handleTogglePin,
+  } = useDocsVaultPersistence({ source, localVault });
 
   // R11 #14 — vault frontmatter validation 요약. local 모드일 때만 manifest
   // docs 의 parsed frontmatter 를 보고 missing-kind / empty-kind / unknown-kind
@@ -175,15 +183,6 @@ function DocsVaultContent() {
     [replaceUrlState, setAdvancedOpen],
   );
 
-  // 현재 활성 볼트의 recent namespace key. 로컬 폴더 이름이 핸들에서
-  // 나오기 때문에 localVault.handle 의존.
-  const recentKey = useMemo<VaultRecentKey>(() => {
-    if (source === 'local' && localVault.handle) {
-      return `local:${localVault.handle.name}`;
-    }
-    return 'server';
-  }, [source, localVault.handle]);
-
   useEffect(() => {
     migrateLegacyRecentDocs();
     // ?intent=local 진입 사용자는 localStorage 의 stored 'server' 보다 url
@@ -195,23 +194,6 @@ function DocsVaultContent() {
     }
     scheduleStateSync(() => setSource(readStoredSource()));
   }, []);
-
-  // recentKey 가 바뀔 때마다 해당 볼트의 recent + pinned 목록 로드.
-  useEffect(() => {
-    scheduleStateSync(() => {
-      setRecentSlugs(readRecentDocs(recentKey));
-      setPinnedSlugs(readPinnedDocs(recentKey));
-    });
-  }, [recentKey]);
-
-  const handleTogglePin = useCallback(
-    (slug: string) => {
-      setPinnedSlugs(togglePinnedDoc(recentKey, slug));
-    },
-    [recentKey],
-  );
-
-  const pinnedSet = useMemo(() => new Set(pinnedSlugs), [pinnedSlugs]);
 
   // URL 복사 feedback — 최근에 복사된 slug 를 잠깐 기억하고 2초 뒤 reset.
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
@@ -373,7 +355,7 @@ function DocsVaultContent() {
         t('dialog.deleteFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, t]);
+  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, setPinnedSlugs, setRecentSlugs, t]);
 
   const {
     folderTopo,
@@ -439,7 +421,7 @@ function DocsVaultContent() {
         t('dialog.createFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, manifest, folderTopo, localVault, recentKey, replaceUrlState, t]);
+  }, [canEditCurrent, manifest, folderTopo, localVault, recentKey, replaceUrlState, setRecentSlugs, t]);
 
   // Scaffold 실행 헬퍼 — confirm 거쳐 useLocalVault.scaffoldTopology.
   const handleScaffoldTopology = useCallback(async () => {
@@ -462,7 +444,7 @@ function DocsVaultContent() {
         t('dialog.scaffoldFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, localVault, recentKey, replaceUrlState, t]);
+  }, [canEditCurrent, localVault, recentKey, replaceUrlState, setRecentSlugs, t]);
 
   const handleDailyNote = useCallback(async () => {
     if (!canEditCurrent) return;
@@ -511,7 +493,7 @@ function DocsVaultContent() {
         t('dialog.dailyNoteFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, manifest, localVault, recentKey, t]);
+  }, [canEditCurrent, manifest, localVault, recentKey, setRecentSlugs, t]);
 
   const handleInsertToc = useCallback(async () => {
     if (!canEditCurrent || !selectedSlug) return;
@@ -755,7 +737,7 @@ function DocsVaultContent() {
         t('dialog.renameFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, t]);
+  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, setPinnedSlugs, setRecentSlugs, t]);
 
   const handleCreateNewDoc = useCallback(async () => {
     if (!canEditCurrent) return;
@@ -792,7 +774,7 @@ function DocsVaultContent() {
         t('dialog.createFailed', { message: err instanceof Error ? err.message : String(err) }),
       );
     }
-  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, replaceUrlState, t]);
+  }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, replaceUrlState, setRecentSlugs, t]);
 
   // 마운트 1 회 — 초기 URL 값이 없을 때 localStorage 선호값으로 보강.
   // useRef 로 '실행 여부' 를 가두고 dep 는 컴포넌트 stable 값들만 명시.
@@ -860,7 +842,7 @@ function DocsVaultContent() {
       setRecentSlugs(pushRecentDoc(recentKey, slug));
       replaceUrlState({ slug });
     },
-    [recentKey, replaceUrlState],
+    [recentKey, replaceUrlState, setRecentSlugs],
   );
 
   useTypingShortcuts([
