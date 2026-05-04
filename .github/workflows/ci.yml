@@ -47,19 +47,12 @@ jobs:
       - name: Vault validate (dogfood frontmatter integrity)
         run: pnpm vault:validate
 
-      - name: Install Playwright (chromium only)
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: E2E (audit-only spec — aria / overflow / mobile / ui-audit)
-        # a11y-structure 는 CI 환경에서 page.evaluate navigation race 가 있어
-        # 별도 task (#25) 로 보수 후 추가. 나머지 5 spec 은 CI 안정.
-        run: |
-          pnpm exec playwright test \
-            tests/e2e/aria-audit.spec.ts \
-            tests/e2e/ui-audit-v2.spec.ts \
-            tests/e2e/overflow-sweep.spec.ts \
-            tests/e2e/mobile-overflow-check.spec.ts \
-            tests/e2e/mobile-keyboard-audit.spec.ts
+      # R11 #24 — audit-only e2e CI 게이트 시도했으나 CI 환경 navigation race
+      # 빈도 높아 reverted (a11y-structure / aria-audit / overflow-sweep
+      # mobile-390 등 회귀). audit spec 은 console dump 의도라 실질 가드 0
+      # 이고 보수 부담이 가치를 초과. e2e CI 게이트는 #12 functional spec
+      # 보수 완료 후 재평가. playwright.config.ts 의 webServer 는 로컬 e2e
+      # 편의 위해 유지.
 
       - name: Build (static export)
         run: pnpm build
