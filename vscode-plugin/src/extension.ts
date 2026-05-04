@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { walkVault, VaultNode } from './walk-vault';
 import { OntologyTreeProvider } from './tree-provider';
 import { findOntologyMatch } from './code-match';
+import { writeDoc, resolveSlug } from './write-vault';
 
 const STORAGE_VAULT_KEY = 'oh-my-ontology.vaultPath';
 
@@ -101,6 +102,74 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }
       const doc = await vscode.workspace.openTextDocument(currentMatch.filePath);
       await vscode.window.showTextDocument(doc);
+    }),
+    vscode.commands.registerCommand('ohMyOntology.addConcept', async () => {
+      const vaultPath = await resolveVaultPath(context);
+      if (!vaultPath) {
+        vscode.window.showWarningMessage(
+          'oh-my-ontology: pick a vault folder first (use the Activity Bar entry).',
+        );
+        return;
+      }
+      const kindPick = await vscode.window.showQuickPick(
+        [
+          { label: 'capability', description: 'A user-visible feature' },
+          { label: 'element', description: 'A concrete code unit' },
+          { label: 'domain', description: 'A grouping of capabilities' },
+          { label: 'document', description: 'A reference doc' },
+          { label: 'project', description: 'Top-level (usually one per workspace)' },
+        ],
+        { placeHolder: 'Pick the kind of concept to add' },
+      );
+      if (!kindPick) return;
+      const kind = kindPick.label;
+
+      const rawSlug = await vscode.window.showInputBox({
+        placeHolder: 'slug — e.g. token-issue (auto-prefixed to capabilities/token-issue)',
+        prompt: 'Slug for the new concept (no .md extension)',
+        validateInput: (v) =>
+          !v || !v.trim() ? 'slug is required' : null,
+      });
+      if (!rawSlug) return;
+
+      const title = await vscode.window.showInputBox({
+        placeHolder: 'title — e.g. "Token issue"',
+        prompt: 'Display title',
+        validateInput: (v) =>
+          !v || !v.trim() ? 'title is required' : null,
+      });
+      if (!title) return;
+
+      let domain: string | undefined;
+      if (kind === 'capability' || kind === 'element') {
+        const domainPick = await vscode.window.showInputBox({
+          placeHolder: 'parent domain (optional, e.g. auth)',
+          prompt: 'Parent domain slug — leave empty to skip',
+        });
+        domain = domainPick?.trim() || undefined;
+      }
+
+      const slug = resolveSlug(kind, rawSlug.trim(), true);
+      const fm: Record<string, unknown> = {
+        slug,
+        kind,
+        title: title.trim(),
+      };
+      if (domain) fm.domain = domain;
+
+      try {
+        const filePath = await writeDoc(vaultPath, slug, { frontmatter: fm });
+        await refresh();
+        const doc = await vscode.workspace.openTextDocument(filePath);
+        await vscode.window.showTextDocument(doc);
+        vscode.window.setStatusBarMessage(
+          `oh-my-ontology: created ${slug}.md`,
+          4000,
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        vscode.window.showErrorMessage(`oh-my-ontology: ${msg}`);
+      }
     }),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('oh-my-ontology.vaultPath')) {

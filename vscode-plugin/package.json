@@ -2,7 +2,7 @@
   "name": "oh-my-ontology-vscode",
   "displayName": "oh-my-ontology",
   "description": "View and navigate the ontology vault from inside VSCode — sibling of the CLI and MCP server.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "wlsdks",
   "engines": {
     "vscode": "^1.85.0"
@@ -47,6 +47,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "ohMyOntology.addConcept",
+        "title": "oh-my-ontology: Add concept",
+        "icon": "$(add)"
+      },
+      {
         "command": "ohMyOntology.openNode",
         "title": "Open node .md"
       }
@@ -54,14 +59,19 @@
     "menus": {
       "view/title": [
         {
+          "command": "ohMyOntology.addConcept",
+          "when": "view == ohMyOntology.tree",
+          "group": "navigation@1"
+        },
+        {
           "command": "ohMyOntology.refresh",
           "when": "view == ohMyOntology.tree",
-          "group": "navigation"
+          "group": "navigation@2"
         },
         {
           "command": "ohMyOntology.pickVault",
           "when": "view == ohMyOntology.tree",
-          "group": "navigation"
+          "group": "navigation@3"
         }
       ]
     },
@@ -79,7 +89,7 @@
   "scripts": {
     "compile": "tsc -p .",
     "watch": "tsc -p . --watch",
-    "test": "npm run compile && node --test src/code-match.test.mjs",
+    "test": "npm run compile && node --test src/code-match.test.mjs src/write-vault.test.mjs",
     "vscode:prepublish": "npm run compile"
   },
   "devDependencies": {
