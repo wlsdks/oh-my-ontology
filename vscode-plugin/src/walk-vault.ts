@@ -8,6 +8,12 @@ export interface VaultNode {
   title: string;
   filePath: string;
   domain?: string;
+  /**
+   * Source-code path the node represents (e.g. `src/features/docs-vault-local`).
+   * Usually present on `kind: element`. Used for code↔ontology jump — when the
+   * developer opens a file under this path, the plugin surfaces this node.
+   */
+  path?: string;
   capabilities?: string[];
   elements?: string[];
 }
@@ -55,6 +61,7 @@ async function walk(
           title: String(frontmatter.title ?? slug),
           filePath: full,
           domain: optionalString(frontmatter.domain),
+          path: optionalString(frontmatter.path),
           capabilities: optionalArray(frontmatter.capabilities),
           elements: optionalArray(frontmatter.elements),
         });
