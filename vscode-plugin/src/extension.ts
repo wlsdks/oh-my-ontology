@@ -62,9 +62,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
     if (!editor) {
       currentMatch = null;
-      matchStatusBar.text = `$(circle-outline) oh-my-ontology · ${cachedNodes.length} nodes`;
-      matchStatusBar.tooltip = `oh-my-ontology · ${cachedNodes.length} nodes loaded · no editor active.`;
-      matchStatusBar.command = 'ohMyOntology.refresh';
+      matchStatusBar.text = `$(graph) oh-my-ontology · ${cachedNodes.length} nodes`;
+      matchStatusBar.tooltip = `oh-my-ontology · ${cachedNodes.length} nodes loaded · click to open the graph view.`;
+      matchStatusBar.command = 'ohMyOntology.openGraph';
       matchStatusBar.show();
       backlinksProvider.clear();
       return;
@@ -79,9 +79,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
     currentMatch = match;
     if (!match) {
-      matchStatusBar.text = `$(circle-outline) oh-my-ontology · ${cachedNodes.length} nodes · no match`;
-      matchStatusBar.tooltip = `oh-my-ontology · this file isn't owned by any ontology node.\n${cachedNodes.length} nodes loaded · click to refresh.`;
-      matchStatusBar.command = 'ohMyOntology.refresh';
+      matchStatusBar.text = `$(graph) oh-my-ontology · ${cachedNodes.length} nodes · no match`;
+      matchStatusBar.tooltip = `oh-my-ontology · this file isn't owned by any ontology node.\n${cachedNodes.length} nodes loaded · click to open the graph view.`;
+      matchStatusBar.command = 'ohMyOntology.openGraph';
       matchStatusBar.show();
       backlinksProvider.clear();
       return;
@@ -164,6 +164,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
   };
 
+  let firstVaultLoadDone = false;
+
   const refresh = async (): Promise<void> => {
     const vaultPath = await resolveVaultPath(context);
     if (!vaultPath) {
@@ -186,6 +188,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         graphPanel.update(nodes);
       } else {
         graphPanel = null;
+      }
+      // R13 #65 — auto-open graph on first vault load (opt-in setting)
+      if (!firstVaultLoadDone && nodes.length > 0) {
+        firstVaultLoadDone = true;
+        const auto = vscode.workspace
+          .getConfiguration('oh-my-ontology')
+          .get<boolean>('autoOpenGraph', false);
+        if (auto && !graphPanel) {
+          await vscode.commands.executeCommand('ohMyOntology.openGraph');
+        }
       }
       updateMatchForActiveEditor();
     } catch (err) {

@@ -2,7 +2,7 @@
   "name": "oh-my-ontology-vscode",
   "displayName": "oh-my-ontology",
   "description": "View and navigate the ontology vault from inside VSCode — sibling of the CLI and MCP server.",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "publisher": "wlsdks",
   "engines": {
     "vscode": "^1.85.0"
@@ -47,6 +47,10 @@
       {
         "view": "ohMyOntology.tree",
         "contents": "Pick a vault folder (a directory containing .md files with `kind:` frontmatter).\n\n[Open vault folder](command:ohMyOntology.pickVault)\n\nOr set `oh-my-ontology.vaultPath` in your settings."
+      },
+      {
+        "view": "ohMyOntology.backlinks",
+        "contents": "Backlinks for the active editor's matching node will appear here.\n\nOpen a code file owned by an ontology node, or open an ontology `.md` directly.\n\n— or —\n\n[$(graph) Open the graph view](command:ohMyOntology.openGraph)\n\n[$(add) Add a new concept](command:ohMyOntology.addConcept)"
       }
     ],
     "commands": [
@@ -132,6 +136,11 @@
           "type": "string",
           "default": "",
           "description": "Absolute path to `mcp/src/index.js`. Empty = auto-detect `<workspace>/mcp/src/index.js`."
+        },
+        "oh-my-ontology.autoOpenGraph": {
+          "type": "boolean",
+          "default": false,
+          "description": "Open the graph view automatically on first vault load. Off by default — flip to true if you always want the graph next to your editor."
         }
       }
     }
