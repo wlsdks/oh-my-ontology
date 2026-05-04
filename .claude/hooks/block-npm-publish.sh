@@ -41,17 +41,27 @@ if [[ -z "$COMMAND" ]]; then
 fi
 
 # 정규식 매칭: publish 류 패턴
-# - (npm|pnpm|yarn) publish — 단어 경계 포함
-# - npm pack (dry-run 아닌 경우)
+# - (npm|pnpm|yarn) publish — *명령 시작점* 만 매치. line 시작 또는
+#   shell chain delimiter (&&, ||, ;, |) 직후. heredoc body / commit
+#   message 본문 안의 단어는 *명령 시작* 이 아니라 매치 안 됨 (R11 #28
+#   false positive fix).
+# - npm pack (dry-run 아닌 경우) — 같은 정밀화.
 BLOCKED=0
 REASON=""
 
-if echo "$COMMAND" | grep -E '(^|[[:space:]&|;])(npm|pnpm|yarn)[[:space:]]+publish([[:space:]]|$)' >/dev/null; then
+# 명령 시작점 patterns:
+#   ^                       — line 시작 (each line, multi-line input 의 각 줄)
+#   (&&|\|\||;|\|)\s+       — shell chain delimiter 직후 (&&, ||, ;, |)
+# 단순 공백 (" ") 만 앞에 있는 경우 (heredoc 본문) 는 cover 안 함.
+PUBLISH_RE='(^|(&&|\|\||;|\|)[[:space:]]+)(npm|pnpm|yarn)[[:space:]]+publish([[:space:]]|$)'
+PACK_RE='(^|(&&|\|\||;|\|)[[:space:]]+)npm[[:space:]]+pack([[:space:]]|$)'
+
+if echo "$COMMAND" | grep -E "$PUBLISH_RE" >/dev/null; then
   BLOCKED=1
   REASON="npm/pnpm/yarn publish 명령이 감지됐습니다. 외부 npm 레지스트리에 영구 발행되는 작업이라 사용자의 명시적 승인이 필수입니다."
 fi
 
-if [[ $BLOCKED -eq 0 ]] && echo "$COMMAND" | grep -E '(^|[[:space:]&|;])npm[[:space:]]+pack([[:space:]]|$)' >/dev/null; then
+if [[ $BLOCKED -eq 0 ]] && echo "$COMMAND" | grep -E "$PACK_RE" >/dev/null; then
   if ! echo "$COMMAND" | grep -E -- '--dry-run' >/dev/null; then
     BLOCKED=1
     REASON="'npm pack' 이 --dry-run 없이 실행되려고 합니다. 실제 tarball 생성/발행은 사용자 승인이 필수입니다 (감사용이면 --dry-run 추가)."
