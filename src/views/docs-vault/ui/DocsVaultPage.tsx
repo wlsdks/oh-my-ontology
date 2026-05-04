@@ -36,6 +36,7 @@ import { useAdvancedMenu } from '../lib/use-advanced-menu';
 import { useDocsVaultPersistence } from '../lib/use-docs-vault-persistence';
 import { useDocsVaultScrollSpy } from '../lib/use-scroll-spy';
 import { useFolderTopo } from '../lib/use-folder-topo';
+import { usePaletteState } from '../lib/use-palette-state';
 import { replaceDocsVaultUrlState } from '../lib/url-state';
 import {
   buildDocsVaultHref,
@@ -102,8 +103,8 @@ function DocsVaultContent() {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(querySlug);
   // 통합 팔레트 하나로 3 단축키 수렴. openWith 가 truthy 이면 open,
   // 값은 초기 쿼리 (`>` 명령, `#` 태그, `` 기본).
-  const [paletteQuery, setPaletteQuery] = useState<string | null>(null);
-  const paletteOpen = paletteQuery !== null;
+  // R12 #26 step — palette state 는 usePaletteState hook 에서 캡슐화.
+  const { paletteQuery, setPaletteQuery, paletteOpen } = usePaletteState();
   const [view, setView] = useState<DocsVaultView>(queryView);
   const {
     open: advancedOpen,
@@ -1097,6 +1098,7 @@ function DocsVaultContent() {
     handleScaffoldTopology,
     handleSourceChange,
     handleTogglePin,
+    setPaletteQuery,
     t,
   ]);
 
