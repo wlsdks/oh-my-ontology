@@ -221,6 +221,7 @@ export async function buildLocalManifest(
       wordCount: body.split(/\s+/).filter(Boolean).length,
       updatedAt: new Date(file.lastModified).toISOString(),
       linksOut,
+      mtime: file.lastModified,
     });
   }
 

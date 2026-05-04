@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { useTranslations } from 'next-intl';
 import { Maximize2 } from 'lucide-react';
+import { ErrorBoundary } from '@/shared/ui';
+import { SigmaErrorFallback } from './SigmaErrorFallback';
 import { Tooltip } from '@/shared/ui';
 import Sigma from 'sigma';
 import EdgeCurveProgram from '@sigma/edge-curve';
@@ -218,7 +220,7 @@ interface SigmaTopologyProps {
   className?: string;
 }
 
-export function SigmaTopology({
+function SigmaTopologyImpl({
   projects,
   categories,
   selectedSlug,
@@ -1602,5 +1604,24 @@ function LegendRow({ color, label }: { color: string; label: string }) {
       />
       {label}
     </span>
+  );
+}
+
+/**
+ * R11 #9 — public entrypoint. Sigma render 가 throw 하면 fallback UI.
+ * resetKey 로 props 변경 시 boundary 자동 reset (사용자가 selectedSlug 등을
+ * 바꿨는데 이전 error 가 남아있는 회귀 회피).
+ */
+export function SigmaTopology(props: SigmaTopologyProps) {
+  const resetKey = `${props.projects.length}|${props.selectedSlug ?? ''}|${props.depthLimit ?? ''}`;
+  return (
+    <ErrorBoundary
+      resetKey={resetKey}
+      fallback={({ error, reset }) => (
+        <SigmaErrorFallback error={error} onReset={reset} />
+      )}
+    >
+      <SigmaTopologyImpl {...props} />
+    </ErrorBoundary>
   );
 }

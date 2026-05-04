@@ -1,7 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FolderOpen, FolderX, HardDrive, RefreshCw, Shield } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  FolderOpen,
+  FolderX,
+  HardDrive,
+  RefreshCw,
+  Shield,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Tooltip } from '@/shared/ui';
 
@@ -19,6 +27,14 @@ interface Props {
   errorMessage: string | null;
   /** 마지막 스캔 epoch ms. null 이면 표시 안 함. */
   lastLoadedAt: number | null;
+  /**
+   * R11 #14 — vault frontmatter validation 결과. error 1+ 또는 warning 1+
+   * 일 때 chip 으로 표시. null/0 이면 chip 숨김.
+   */
+  validationSummary?: {
+    errorCount: number;
+    warningCount: number;
+  } | null;
   onOpen: () => void;
   onClose: () => void;
   onRefresh: () => void;
@@ -50,6 +66,7 @@ export function LocalVaultPicker({
   docCount,
   errorMessage,
   lastLoadedAt,
+  validationSummary,
   onOpen,
   onClose,
   onRefresh,
@@ -139,6 +156,37 @@ export function LocalVaultPicker({
               relative: formatRelative(nowTick, lastLoadedAt, t),
             })}
           </span>
+        ) : null}
+        {validationSummary &&
+        (validationSummary.errorCount > 0 ||
+          validationSummary.warningCount > 0) ? (
+          <Tooltip
+            content={t('validationTooltip', {
+              errors: validationSummary.errorCount,
+              warnings: validationSummary.warningCount,
+            })}
+            withProvider={false}
+          >
+            <span
+              role="status"
+              aria-live="polite"
+              className={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] ${
+                validationSummary.errorCount > 0
+                  ? 'border-[color:rgba(229,72,77,0.32)] bg-[color:rgba(229,72,77,0.08)] text-[color:var(--color-status-danger)]'
+                  : 'border-[color:rgba(244,183,49,0.32)] bg-[color:rgba(244,183,49,0.10)] text-[color:var(--color-status-warning)]'
+              }`}
+            >
+              {validationSummary.errorCount > 0 ? (
+                <AlertCircle size={11} aria-hidden />
+              ) : (
+                <AlertTriangle size={11} aria-hidden />
+              )}
+              {t('validationChip', {
+                errors: validationSummary.errorCount,
+                warnings: validationSummary.warningCount,
+              })}
+            </span>
+          </Tooltip>
         ) : null}
         <Tooltip content={t('rescanTooltip')} withProvider={false}>
           <button

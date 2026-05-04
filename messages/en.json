@@ -1052,6 +1052,7 @@
       "noHeadings": "This document has no h2/h3 headings.",
       "notLocalFile": "This document is not a local vault file.",
       "tocFailed": "TOC insertion failed: {message}",
+      "vaultConflict": "This vault file was modified externally (other editor / AI). Refresh and save again.",
       "notRendered": "Document is not rendered yet. Try again.",
       "jsonParseFailed": "JSON parse failed: {message}",
       "noValidRaws": "No valid `raws` field.",
@@ -1070,6 +1071,12 @@
     "srHeading": "Topology project topology map",
     "selectionAnnouncement": "{name} selected. {deps, plural, one {# dependency} other {# dependencies}}, {referenced, plural, one {# reference} other {# references}}.",
     "mobileTagline": "Project dependency map.",
+    "errorFallback": {
+      "title": "Topology failed to render",
+      "body": "WebGL context may have been lost or there's a GPU resource issue. Try again or switch to the tree view.",
+      "retry": "Try again",
+      "switchToTree": "Switch to tree view"
+    },
     "workspace": {
       "growthThisWeek": " · +{count} this week",
       "subtitle": "Workspace · {projects} projects · {hubs} hubs{growth}",
@@ -1227,7 +1234,9 @@
       "closeAriaLabel": "Close local vault",
       "openOpening": "Opening folder…",
       "openLoading": "Building manifest…",
-      "openLabel": "Open my markdown folder"
+      "openLabel": "Open my markdown folder",
+      "validationChip": "{errors, plural, =0 {⚠ {warnings}} other {✗ {errors}}}",
+      "validationTooltip": "{errors, plural, =0 {{warnings} frontmatter warning(s) — run pnpm vault:validate for detail} other {{errors} frontmatter error(s){warnings, plural, =0 {} other {, {warnings} warning(s)}} — some nodes are missing from the graph. Run pnpm vault:validate for detail}}"
     },
     "starterCta": {
       "errorFallback": "Failed to create starter",

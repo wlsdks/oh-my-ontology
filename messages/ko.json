@@ -1052,6 +1052,7 @@
       "noHeadings": "h2/h3 heading 이 없는 문서입니다.",
       "notLocalFile": "이 문서는 로컬 볼트 파일이 아닙니다.",
       "tocFailed": "TOC 삽입 실패: {message}",
+      "vaultConflict": "vault 의 이 파일이 외부 (다른 에디터/AI) 에 의해 변경됐습니다. 새로 고침 후 다시 저장해주세요.",
       "notRendered": "문서가 아직 렌더링되지 않았습니다. 다시 시도하세요.",
       "jsonParseFailed": "JSON 파싱 실패: {message}",
       "noValidRaws": "유효한 raws 필드가 없습니다.",
@@ -1070,6 +1071,12 @@
     "srHeading": "토폴로지 프로젝트 토폴로지 지도",
     "selectionAnnouncement": "{name} 선택됨. 의존 {deps}개, 연결 {referenced}개.",
     "mobileTagline": "프로젝트 의존도 지도.",
+    "errorFallback": {
+      "title": "토폴로지를 불러오지 못했습니다",
+      "body": "WebGL context 가 손실되었거나 GPU 자원 문제일 수 있어요. 다시 시도하거나 트리 뷰로 전환해보세요.",
+      "retry": "다시 시도",
+      "switchToTree": "트리 뷰로 전환"
+    },
     "workspace": {
       "growthThisWeek": " · 이번 주 +{count}",
       "subtitle": "Workspace · {projects} 프로젝트 · {hubs} 허브{growth}",
@@ -1227,7 +1234,9 @@
       "closeAriaLabel": "로컬 볼트 닫기",
       "openOpening": "폴더 여는 중…",
       "openLoading": "매니페스트 빌드 중…",
-      "openLabel": "내 PC 의 마크다운 폴더 열기"
+      "openLabel": "내 PC 의 마크다운 폴더 열기",
+      "validationChip": "{errors, plural, =0 {⚠ {warnings}} other {✗ {errors}}}",
+      "validationTooltip": "{errors, plural, =0 {frontmatter 경고 {warnings} 건 — pnpm vault:validate 로 상세} other {frontmatter 오류 {errors} 건{warnings, plural, =0 {} other {, 경고 {warnings} 건}} — 일부 노드가 graph 에서 빠졌습니다. pnpm vault:validate 로 상세}}"
     },
     "starterCta": {
       "errorFallback": "starter 만들기 실패",

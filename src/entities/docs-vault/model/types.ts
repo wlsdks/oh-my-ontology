@@ -19,6 +19,12 @@ export interface VaultDoc {
   wordCount: number;
   updatedAt: string;
   linksOut: string[];
+  /**
+   * R11 #15 — local 모드의 conflict 감지에 사용. file.lastModified (ms).
+   * static 모드는 빌드 시점 산출물이라 undefined. caller (saveDoc) 가
+   * 옵션 expectedMtime 으로 그대로 전달해 외부 변경 감지.
+   */
+  mtime?: number;
 }
 
 export interface VaultTreeNode {

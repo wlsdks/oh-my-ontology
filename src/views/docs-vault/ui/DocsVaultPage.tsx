@@ -28,11 +28,13 @@ import {
 import {
   LocalVaultPicker,
   OntologyStarterCta,
+  VaultConflictError,
   useLocalVault,
 } from '@/features/docs-vault-local';
 import { useTypingShortcuts } from '@/shared/lib/use-typing-shortcut';
 import { usePrevious } from '@/shared/lib/use-previous';
-import { Tooltip } from '@/shared/ui';
+import { summarizeVaultValidation } from '@/shared/lib/validate-vault-document';
+import { Tooltip, useToast } from '@/shared/ui';
 // 추출된 page-local helpers.
 import { buildDocsVaultPopoutHtml } from '../lib/popout-template';
 import { useDocsVaultScrollSpy } from '../lib/use-scroll-spy';
@@ -145,6 +147,25 @@ function DocsVaultContent() {
   }, []);
   const [mobileTreeOpen, setMobileTreeOpen] = useState(false);
   const localVault = useLocalVault();
+  const toast = useToast();
+
+  // R11 #14 — vault frontmatter validation 요약. local 모드일 때만 manifest
+  // docs 의 parsed frontmatter 를 보고 missing-kind / empty-kind / unknown-kind
+  // 검출. error 0 / warning 0 이면 picker 가 chip 안 그림.
+  const localVaultValidationSummary = useMemo(() => {
+    if (source !== 'local' || !localVault.manifest) return null;
+    const summary = summarizeVaultValidation(
+      localVault.manifest.docs.map((d) => ({
+        slug: d.slug,
+        frontmatter: d.frontmatter,
+      })),
+    );
+    if (summary.errorCount === 0 && summary.warningCount === 0) return null;
+    return {
+      errorCount: summary.errorCount,
+      warningCount: summary.warningCount,
+    };
+  }, [source, localVault.manifest]);
 
   const replaceUrlState = useCallback(
     (next: {
@@ -1389,6 +1410,7 @@ function DocsVaultContent() {
                       docCount={localVault.manifest?.docs.length ?? 0}
                       errorMessage={localVault.errorMessage}
                       lastLoadedAt={localVault.lastLoadedAt}
+                      validationSummary={localVaultValidationSummary}
                       onOpen={localVault.open}
                       onClose={localVault.close}
                       onRefresh={localVault.refresh}
@@ -1576,7 +1598,17 @@ function DocsVaultContent() {
                     doc={selectedDoc}
                     getDocContent={editResolver}
                     onSave={async (slug, content) => {
-                      await localVault.saveDoc(slug, content);
+                      try {
+                        await localVault.saveDoc(slug, content, {
+                          expectedMtime: selectedDoc.mtime,
+                        });
+                      } catch (err) {
+                        if (err instanceof VaultConflictError) {
+                          toast.show(t('dialog.vaultConflict'), 'error');
+                          return;
+                        }
+                        throw err;
+                      }
                     }}
                     onClose={() => setEditing(false)}
                     allDocs={manifest.docs}

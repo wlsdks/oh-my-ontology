@@ -23,6 +23,26 @@ import {
  *  사용자가 IDE 로 짧게 오갈 때마다 번쩍이므로 2초 간격으로 throttle. */
 const AUTO_REFRESH_DEBOUNCE_MS = 2000;
 
+/**
+ * R11 #15 — vault 의 .md 가 외부 (다른 에디터 / AI MCP) 에 의해 변경된 채
+ * 사용자가 GUI 에서 save 하려 할 때 silent overwrite 차단. mcp 측의
+ * VaultConflictError 와 같은 의미.
+ */
+export class VaultConflictError extends Error {
+  readonly slug: string;
+  readonly expectedMtime: number;
+  readonly currentMtime: number;
+  constructor(slug: string, expectedMtime: number, currentMtime: number) {
+    super(
+      `Vault conflict — "${slug}" was modified externally between read and write.`,
+    );
+    this.name = 'VaultConflictError';
+    this.slug = slug;
+    this.expectedMtime = expectedMtime;
+    this.currentMtime = currentMtime;
+  }
+}
+
 type Status =
   | 'idle'
   | 'opening'
@@ -413,12 +433,30 @@ export function useLocalVaultInternal() {
   /**
    * 특정 slug 의 md 파일 내용을 새로 쓴다. readwrite 권한이 없으면 먼저
    * 승인 요청. 성공 시 manifest 를 재스캔해 최신 상태로.
+   *
+   * R11 #15 — options.expectedMtime 옵션 (manifest doc.mtime). 지정 시 write
+   * 직전 fs file.lastModified 와 비교해 외부 변경 감지 → VaultConflictError
+   * throw. 미지정 시 검증 skip (기존 호출자 호환).
    */
   const saveDoc = useCallback(
-    async (slug: string, content: string) => {
+    async (
+      slug: string,
+      content: string,
+      options: { expectedMtime?: number } = {},
+    ) => {
       const fh = state.fileHandles.get(slug);
       if (!fh) throw new Error(`Local vault: no file handle for "${slug}"`);
       await requireWritePermission(fh);
+      if (typeof options.expectedMtime === 'number') {
+        const file = await fh.getFile();
+        if (file.lastModified !== options.expectedMtime) {
+          throw new VaultConflictError(
+            slug,
+            options.expectedMtime,
+            file.lastModified,
+          );
+        }
+      }
       const writable = await fh.createWritable();
       await writable.write(content);
       await writable.close();
