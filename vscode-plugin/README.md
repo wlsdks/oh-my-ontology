@@ -89,7 +89,7 @@ different folder via the Activity Bar header to override.
 
 ## Status
 
-**v0.5.0 — self-match.** Working features:
+**v0.5.0 — self-match + e2e harness.** Working features:
 
 - Activity Bar entry + Ontology TreeView grouped by `kind`
 - **Backlinks panel (v0.4.0)** — second TreeView under Activity Bar, populated by `find_backlinks` against the node matching the current editor.
@@ -100,6 +100,7 @@ different folder via the Activity Bar header to override.
 - Add concept command — Command Palette / TreeView `+` button (v0.3.0)
 - **MCP server spawn (v0.4.0)** — plugin spawns `mcp/src/index.js` on activate, sends JSON-RPC over stdio to populate the backlinks panel. **Falls back to in-process scan** when the server is unavailable, so the plugin still works in offline / standalone mode. Same wire protocol as Claude Code uses.
 - **Self-match (v0.5.0)** — when you open an ontology node's `.md` file directly (e.g. `docs/ontology/elements/sigma-graphology.md`), the plugin recognizes that as the node and the **Backlinks panel auto-populates with who points to that node**. Status bar also shows the node title. The natural reading flow now works.
+- **Headless e2e harness (v0.5.0)** — `npm run test:e2e` downloads VSCode (cached in `.vscode-test/`) and runs the plugin in a real extension host. Verifies activation, command registration, configuration schema, and contributes. CI runs the same suite under `xvfb-run` so future PRs that break the integration get caught automatically.
 
 **Not yet:**
 
