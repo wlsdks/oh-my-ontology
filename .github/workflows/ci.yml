@@ -44,6 +44,9 @@ jobs:
       - name: Test
         run: pnpm test:run
 
+      - name: Vault validate (dogfood frontmatter integrity)
+        run: pnpm vault:validate
+
       - name: Build (static export)
         run: pnpm build
 

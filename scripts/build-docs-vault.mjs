@@ -9,6 +9,7 @@ import { readFile, writeFile, mkdir, readdir, stat, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseFrontmatter } from './lib/parse-frontmatter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -39,109 +40,8 @@ async function walk(dir) {
   return out;
 }
 
-// frontmatter 파서. `---\n...\n---\n` 블록만 인식. gray-matter 의존 회피.
-// src/shared/lib/parse-frontmatter.ts 의 런타임 parser 와 capability 동기화:
-//   key: value                          (scalar)
-//   key: [a, b]                         (inline list)
-//   key: { x: 1, y: 2 }                 (inline object)
-//   key:\n  - item1\n  - item2          (block list)
-//   key:\n  child: 1\n  other: 2        (block object)
-function parseFrontmatter(raw) {
-  if (!raw.startsWith('---')) return { frontmatter: {}, body: raw };
-  const end = raw.indexOf('\n---', 3);
-  if (end === -1) return { frontmatter: {}, body: raw };
-  const block = raw.slice(4, end).trim();
-  const body = raw.slice(end + 4).replace(/^\r?\n/, '');
-  const frontmatter = {};
-  const lines = block.split('\n');
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    const idx = line.indexOf(':');
-    if (idx === -1) continue;
-    const key = line.slice(0, idx).trim();
-    const value = line.slice(idx + 1).trim();
-    if (!key) continue;
-    if (value === '') {
-      const lookahead = peekIndentedKind(lines, i + 1);
-      if (lookahead === 'list') {
-        const items = [];
-        let j = i + 1;
-        while (j < lines.length) {
-          const dashMatch = lines[j].match(/^\s+-\s+(.+)$/);
-          if (!dashMatch) break;
-          items.push(unquote(dashMatch[1].trim()));
-          j += 1;
-        }
-        frontmatter[key] = items;
-        i = j - 1;
-        continue;
-      }
-      if (lookahead === 'object') {
-        const obj = {};
-        let j = i + 1;
-        while (j < lines.length) {
-          const m = lines[j].match(/^(\s+)([^\s:][^:]*):\s*(.*)$/);
-          if (!m) break;
-          const childKey = m[2].trim();
-          if (!childKey) break;
-          obj[childKey] = parseScalar(m[3].trim());
-          j += 1;
-        }
-        frontmatter[key] = obj;
-        i = j - 1;
-        continue;
-      }
-      frontmatter[key] = '';
-      continue;
-    }
-    if (value.startsWith('[') && value.endsWith(']')) {
-      frontmatter[key] = value
-        .slice(1, -1)
-        .split(',')
-        .map((s) => unquote(s.trim()))
-        .filter(Boolean);
-      continue;
-    }
-    if (value.startsWith('{') && value.endsWith('}')) {
-      const inner = value.slice(1, -1).trim();
-      const obj = {};
-      if (inner) {
-        for (const part of inner.split(',')) {
-          const cIdx = part.indexOf(':');
-          if (cIdx === -1) continue;
-          const k = part.slice(0, cIdx).trim();
-          const v = part.slice(cIdx + 1).trim();
-          if (!k) continue;
-          obj[k] = parseScalar(v);
-        }
-      }
-      frontmatter[key] = obj;
-      continue;
-    }
-    frontmatter[key] = unquote(value);
-  }
-  return { frontmatter, body };
-}
-
-function peekIndentedKind(lines, start) {
-  if (start >= lines.length) return null;
-  const next = lines[start];
-  if (/^\s+-\s+/.test(next)) return 'list';
-  if (/^\s+[^\s:][^:]*:\s*\S?/.test(next)) return 'object';
-  return null;
-}
-
-function parseScalar(value) {
-  const v = unquote(value);
-  if (v === 'true') return true;
-  if (v === 'false') return false;
-  if (v !== '' && !Number.isNaN(Number(v))) return Number(v);
-  return v;
-}
-
-function unquote(value) {
-  return value.replace(/^["']|["']$/g, '');
-}
+// parser 는 scripts/lib/parse-frontmatter.mjs 의 단일 진실원에서 import.
+// (R11 — 빌드 스크립트 / validator CLI / 런타임 파서 drift 방지)
 
 function slugFromPath(full) {
   const rel = path.relative(DOCS_DIR, full).replace(/\\/g, '/');
