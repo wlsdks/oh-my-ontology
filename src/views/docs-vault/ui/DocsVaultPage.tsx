@@ -32,6 +32,7 @@ import { summarizeVaultValidation } from '@/shared/lib/validate-vault-document';
 import { Tooltip, useToast } from '@/shared/ui';
 // 추출된 page-local helpers.
 import { buildDocsVaultPopoutHtml } from '../lib/popout-template';
+import { useAdvancedMenu } from '../lib/use-advanced-menu';
 import { useDocsVaultScrollSpy } from '../lib/use-scroll-spy';
 import {
   buildDocsVaultHref,
@@ -107,8 +108,11 @@ function DocsVaultContent() {
   const [paletteQuery, setPaletteQuery] = useState<string | null>(null);
   const paletteOpen = paletteQuery !== null;
   const [view, setView] = useState<DocsVaultView>(queryView);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const advancedMenuRef = useRef<HTMLDivElement | null>(null);
+  const {
+    open: advancedOpen,
+    setOpen: setAdvancedOpen,
+    ref: advancedMenuRef,
+  } = useAdvancedMenu();
   const [folderTopo, setFolderTopo] = useState<FolderTopologyBuild | null>(
     null,
   );
@@ -223,29 +227,6 @@ function DocsVaultContent() {
       setPinnedSlugs(readPinnedDocs(recentKey));
     });
   }, [recentKey]);
-
-  useEffect(() => {
-    if (!advancedOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      if (
-        target instanceof Node &&
-        advancedMenuRef.current?.contains(target)
-      ) {
-        return;
-      }
-      setAdvancedOpen(false);
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setAdvancedOpen(false);
-    };
-    window.addEventListener('pointerdown', handlePointerDown);
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [advancedOpen]);
 
   const handleTogglePin = useCallback(
     (slug: string) => {
