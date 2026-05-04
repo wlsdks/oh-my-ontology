@@ -50,6 +50,7 @@ ${COLORS.bold}Usage:${COLORS.reset}
   npx oh-my-ontology add <kind> <slug>        Scaffold a new ontology node (.md)
        --title "..."                          ${COLORS.dim}required, non-empty${COLORS.reset}
        --domain X --body "..." --vault path   ${COLORS.dim}optional${COLORS.reset}
+       --auto-prefix                          ${COLORS.dim}kind→folder (capability→capabilities/) opt-in${COLORS.reset}
   npx oh-my-ontology find <query> [vault]     Search slug + title (case-insensitive)
        --kind X --json                        ${COLORS.dim}optional${COLORS.reset}
   npx oh-my-ontology --help                   Show this help

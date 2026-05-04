@@ -11,6 +11,17 @@ const COLORS = {
 
 const KNOWN_KINDS = ['project', 'domain', 'capability', 'element', 'document'];
 
+// R12 #37 — `--auto-prefix` opt-in 시 kind → folder 자동 prefix.
+// dogfood vault 패턴 (`capabilities/foo`, `domains/auth`, `elements/jwt`) 따름.
+// project / document 는 prefix 없음 (root level).
+const KIND_FOLDER = {
+  project: '',
+  domain: 'domains/',
+  capability: 'capabilities/',
+  element: 'elements/',
+  document: '',
+};
+
 /**
  * R12 #34 — \`oh-my-ontology add <kind> <slug> --title=... [--domain X] [--body "..."] [--vault path]\`
  *
@@ -25,8 +36,16 @@ export function runAdd(args) {
     return 1;
   }
 
-  const { kind, slug, title, domain, body, vault } = opts;
+  const { kind, slug: rawSlug, title, domain, body, vault, autoPrefix } = opts;
   const vaultPath = resolve(vault);
+
+  // R12 #37 — opt-in folder prefix (capability → capabilities/foo).
+  // 사용자가 이미 prefix 명시 (`capabilities/foo`) 한 경우 두 번 적용 회피.
+  const folder = KIND_FOLDER[kind] || '';
+  const slug =
+    autoPrefix && folder && !rawSlug.startsWith(folder)
+      ? `${folder}${rawSlug}`
+      : rawSlug;
 
   const fm = {
     slug,
@@ -56,7 +75,7 @@ export function runAdd(args) {
 
 function parseArgs(args) {
   const positional = [];
-  const flags = { vault: '.' };
+  const flags = { vault: '.', autoPrefix: false };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
     if (a === '--vault') flags.vault = args[++i] || '.';
@@ -67,6 +86,7 @@ function parseArgs(args) {
     else if (a.startsWith('--domain=')) flags.domain = a.slice('--domain='.length);
     else if (a === '--body') flags.body = args[++i] || '';
     else if (a.startsWith('--body=')) flags.body = a.slice('--body='.length);
+    else if (a === '--auto-prefix') flags.autoPrefix = true;
     else if (a.startsWith('--')) {
       return { error: `unknown flag: ${a}` };
     } else {
@@ -92,6 +112,7 @@ function parseArgs(args) {
     domain: flags.domain,
     body: flags.body,
     vault: flags.vault,
+    autoPrefix: flags.autoPrefix,
   };
 }
 

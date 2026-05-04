@@ -196,6 +196,47 @@ await test('add — unknown kind 거부', async () => {
   }
 });
 
+await test('add --auto-prefix — kind 별 folder 자동 (R12 #37)', async () => {
+  const root = withVault([]);
+  try {
+    const r = await run([
+      'add',
+      'capability',
+      'foo',
+      '--title',
+      'Foo',
+      '--auto-prefix',
+      '--vault',
+      root,
+    ]);
+    assert.equal(r.code, 0);
+    const written = readFileSync(join(root, 'capabilities/foo.md'), 'utf-8');
+    assert.match(written, /slug: capabilities\/foo/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('add (default) — auto-prefix 안 적용 (backward compat)', async () => {
+  const root = withVault([]);
+  try {
+    const r = await run([
+      'add',
+      'capability',
+      'bar',
+      '--title',
+      'Bar',
+      '--vault',
+      root,
+    ]);
+    assert.equal(r.code, 0);
+    const written = readFileSync(join(root, 'bar.md'), 'utf-8');
+    assert.match(written, /slug: bar/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('find — title 부분매칭', async () => {
   const root = withVault([
     {
