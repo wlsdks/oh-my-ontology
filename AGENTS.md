@@ -60,12 +60,18 @@ src/                       FSD layers
   ├── features/            interaction units
   ├── entities/            business entities
   └── shared/              UI · lib · config primitives
-mcp/                       MCP server (the AI agent's surface)
+mcp/                       MCP server (the AI agent's surface) — npm pkg, 14 tools
+cli/                       CLI binary (developer's daily entry point) — npm pkg, R12 v0.2
+                           init / list / validate / add / find
 docs/                      long-form docs
-docs/ontology/             this project's own ontology vault (dogfood)
+docs/ontology/             this project's own ontology vault (dogfood — 22 nodes)
 tests/                     Vitest unit + Playwright E2E
-scripts/                   build helpers (vault → static manifest, bundle audit)
+  └── contract/            cross-package contract tests (parser 4-way, validator 3-way)
+scripts/                   vault tooling (R11) + perf baseline (R11) + dogfood walk (R12)
+                           build-docs-vault · validate-vault · migrate-vault
+                           dogfood-mcp-walk · perf-vault
 .claude/rules/             granular working rules (auto-loaded)
+.githooks/                 pre-push tsc gate (R11 #2)
 ```
 
 **Import direction**: `app → views → widgets → features → entities → shared`. ESLint blocks the reverse.
