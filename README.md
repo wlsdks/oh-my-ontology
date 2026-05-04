@@ -123,7 +123,7 @@ becoming graph nodes.
 | **AI agent partner via MCP** | `mcp/` package, 14 tools, `mcp/scripts/verify.mjs` smoke |
 | **No backend** (Firebase / DB / auth) | `pnpm bundle:check` — firebase SDK chunk 0 (deps removed in R10) |
 | **Dogfooding** | `docs/ontology/` is the project's own curated mental model (~21 nodes — domains 6 · capabilities 9 · elements 4 · project 1 · vault-readme 1). |
-| **AI agent quality measurement** *(first data point)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks × 3 categories. Claude Code self-run 2026-05-04: MCP-on cuts hallucinations 9 → 0, Cat A correctness +1.0, tool calls 4.3 → 1.0, Cat C neutral (negative control passes). [Full results](docs/benchmark/results/2026-05-04-claude-code.md). Codex 14 cells pending human run. |
+| **AI agent quality measurement** *(cross-agent data, n=2)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks × 3 categories × 2 agents. **Claude Code 2026-05-04**: MCP-on cuts hallucinations 9 → 0, Cat A correctness +1.0. **Codex 2026-05-04**: Codex sandbox blocks MCP execution; raw grep already robust enough that Cat A delta only +0.33. [Claude Code](docs/benchmark/results/2026-05-04-claude-code.md) · [Codex](docs/benchmark/results/2026-05-04-codex.md). MCP value is **agent-specific** — strong for Claude Code, sandbox-limited for Codex. |
 
 ## Architecture
 
