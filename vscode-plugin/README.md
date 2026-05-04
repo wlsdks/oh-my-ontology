@@ -60,7 +60,9 @@ Click any node to open its `.md` in the editor.
 |---|---|
 | `ohMyOntology.pickVault` | Pick vault folder |
 | `ohMyOntology.refresh` | Refresh |
+| `ohMyOntology.addConcept` | **Add concept (v0.3.0)** — kind picker → slug → title → optional domain → writes `<vault>/<auto-prefix>/<slug>.md` |
 | `ohMyOntology.openNode` | Open node .md (invoked when you click a tree item) |
+| `ohMyOntology.openMatchedNode` | Open the node matching the active editor (status bar click) |
 
 ## Auto-detection
 
@@ -70,18 +72,19 @@ different folder via the Activity Bar header to override.
 
 ## Status
 
-**v0.2.0 — code↔ontology jump.** Working features:
+**v0.3.0 — write surface (Add concept).** Working features:
 
 - Activity Bar entry + TreeView grouped by `kind`
 - Auto-detect `docs/ontology/` in workspace
 - Pick-vault dialog (persisted across sessions)
 - Click node → open `.md`
-- **Status bar match (v0.2.0)** — when the active editor is a file owned by an ontology node (matched by `path:` frontmatter or capability `elements:` array), the status bar shows the node title. Click → jump to the node's `.md`.
+- Status bar match — active editor's file → owning ontology node, click to jump (v0.2.0)
+- **Add concept command (v0.3.0)** — `oh-my-ontology: Add concept` from the Command Palette OR the `+` button at the top of the tree view. QuickPick (kind) → InputBox (slug) → InputBox (title) → optional domain → writes the new `.md` with auto-prefix (`capabilities/foo`, `domains/foo`, `elements/foo`). Refuses duplicate slugs. Tree refreshes and the new `.md` opens in the editor.
 
 **Not yet:**
 
-- Add-concept / patch-concept commands (write surface)
-- MCP server connection (use raw filesystem read for now)
+- patch-concept / rename-concept / merge-concepts (other write tools)
+- MCP server connection (currently uses direct filesystem write — same contract as the CLI's `add`, gated by `package.json` `files` for tarball, but no dry-run/conflict-mtime path yet)
 - Marketplace publishing
 
 The frontmatter parser is the same lenient one shared across CLI / MCP
