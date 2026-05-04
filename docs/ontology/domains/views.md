@@ -7,6 +7,8 @@ capabilities:
   - ontology-hub-mode-aware
   - builder-vault-write
 elements:
+  - sigma-graphology
+  - xyflow
   - src/views/home
   - src/views/ontology-view
   - src/views/ontology-edit
@@ -14,6 +16,7 @@ elements:
   - src/widgets/global-search
 relates:
   - domains/ontology-core
+  - domains/onboarding-ux
 ---
 
 # Views

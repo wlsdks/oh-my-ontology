@@ -6,6 +6,7 @@ capabilities:
   - mcp-server
   - mcp-conflict-guard
 elements:
+  - mcp-sdk
   - mcp/src/index.js
   - mcp/src/parser.mjs
   - mcp/src/vault.mjs
