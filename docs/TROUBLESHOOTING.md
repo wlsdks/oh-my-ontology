@@ -42,6 +42,39 @@ The File System Access API requires:
 
 ---
 
+## CLI commands (R12 — list / validate / add / find)
+
+### `oh-my-ontology validate` exits 1 with `unclosed-frontmatter`
+
+Your `.md` file has the opening `---` but no closing `---`. The frontmatter parser is lenient by-design — it returns an empty frontmatter for malformed blocks, so the doc silently disappears from the graph. The validator surfaces this.
+
+Fix: open the offending file (`oh-my-ontology validate <vault>` prints the path) and add the closing `---` line.
+
+### `oh-my-ontology validate` warns `missing-kind` / `unknown-kind`
+
+- `missing-kind` (warning, not error) — the frontmatter has ontology signal keys (`domain`, `capabilities`, `elements`, `relates`, `dependencies`) but no `kind:`. Add `kind: capability` (or domain/element/document/project).
+- `unknown-kind` (warning) — `kind:` value is not one of `project / domain / capability / element / document / vault-readme`. Either fix the typo or add to `KNOWN_VAULT_KINDS` if you genuinely need a new kind.
+
+### `oh-my-ontology add` throws `Doc already exists`
+
+Intentional — `add` never overwrites. If you want to update the doc:
+
+- Edit the file directly, or
+- Use the MCP `patch_concept` tool (AI agent), or
+- Delete the file (`rm`) then re-`add`.
+
+### `pnpm vault:migrate <id> --write` refuses with "commit 안 된 .md 변경"
+
+Safety guard (R11 #21). The migrator refuses to write on top of uncommitted `.md` changes — your work and the migration would mix in the same commit.
+
+Fix: `git stash` or `git commit` your work, then re-run. Or override with `--force` if you understand the risk.
+
+### `pnpm dogfood:walk` fails with `Vault path does not exist`
+
+The walk runs against `docs/ontology/` by default. If you renamed/moved that folder, update `scripts/dogfood-mcp-walk.mjs` (the `VAULT` constant near the top).
+
+---
+
 ## MCP server (Claude Code, Cursor, etc.)
 
 ### Agent doesn't see `oh-my-ontology__list_concepts` etc.
