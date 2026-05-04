@@ -423,10 +423,48 @@ function SigmaTopologyImpl({
     return buildProjectOntologyCounts(ontologyInsight.nodes);
   }, [ontologyInsight]);
 
+  // R13 #70 — runtime diff highlight. polling 으로 새로 들어오거나 갱신된
+  // project slug 들을 5s 간 'recently changed' 로 마크 → buildGraph 가 그
+  // slug 의 노드를 recentlyUpdated:true 로 빌드 → 기존 recent pulse 가
+  // amber sine 진동. AI agent / IDE 가 vault 만지면 그래프에서 직접 느껴짐.
+  const RUNTIME_RECENT_TTL_MS = 5000;
+  const [runtimeRecentSlugs, setRuntimeRecentSlugs] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const prevSlugsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
+  useEffect(() => {
+    const currentSlugs = new Set(projects.map((p) => p.slug));
+    // 첫 mount — projects 가 처음 로드될 때 모든 slug 가 added 처럼 보이지
+    // 않게 baseline 만 저장하고 끝.
+    if (!initializedRef.current) {
+      prevSlugsRef.current = currentSlugs;
+      initializedRef.current = true;
+      return;
+    }
+    const added = [...currentSlugs].filter((s) => !prevSlugsRef.current.has(s));
+    prevSlugsRef.current = currentSlugs;
+    if (added.length === 0) return;
+    setRuntimeRecentSlugs((prev) => {
+      const next = new Set(prev);
+      for (const s of added) next.add(s);
+      return next;
+    });
+    const timer = setTimeout(() => {
+      setRuntimeRecentSlugs((prev) => {
+        const next = new Set(prev);
+        for (const s of added) next.delete(s);
+        return next;
+      });
+    }, RUNTIME_RECENT_TTL_MS);
+    return () => clearTimeout(timer);
+  }, [projects]);
+
   const graph = useMemo(() => {
     const g = buildGraph(projects, categories, {
       stripNamePrefix,
       ontologyCountsBySlug,
+      runtimeRecentSlugs,
     });
     const iterations = g.order > 600 ? 120 : g.order > 200 ? 240 : 360;
     settleLayout(g, iterations);
@@ -450,7 +488,7 @@ function SigmaTopologyImpl({
       }
     }
     return g;
-  }, [projects, categories, stripNamePrefix, ontologyCountsBySlug]);
+  }, [projects, categories, stripNamePrefix, ontologyCountsBySlug, runtimeRecentSlugs]);
 
   useEffect(() => {
     let anyRecent = false;
