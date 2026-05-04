@@ -23,9 +23,30 @@ Either way, **measurement before further investment**.
 | [`rubric.md`](rubric.md) | How to score: correctness 0–3, tool-call count, hallucination count, subjective utility 1–5. |
 | [`results/2026-05-template.md`](results/2026-05-template.md) | Empty matrix (task × agent × mode). Fill in after each measurement run. |
 
-## How to measure (manual, by the human)
+## How to measure
 
-This is **not automated**. We deliberately measure in the same agent shells real users live in (Claude Code, Codex CLI), at subscription pricing — not via raw API calls — because that's the actual user economics.
+Two paths, depending on which agent:
+
+- **Claude Code**: manual, see "Manual run protocol" below. (Claude Code CLI doesn't expose a non-interactive mode that's safe to script.)
+- **Codex CLI**: **automated** via [`scripts/benchmark.mjs`](../../scripts/benchmark.mjs) (R13 #62) — `pnpm benchmark --bypass` runs all 7 tasks × 2 modes, captures transcripts, and writes a tool-call summary table. Correctness/hallucination scoring still happens by hand against the saved transcripts.
+
+### Codex automated run
+
+```bash
+pnpm benchmark --dry-run     # verify config without spawning codex
+pnpm benchmark --bypass      # full 14-cell run (~5-10 minutes)
+pnpm benchmark --bypass --on-only   # ON-only (faster re-test after vault change)
+```
+
+Why `--bypass` is required: Codex's `exec` mode default-denies all MCP tool calls, so without `--dangerously-bypass-approvals-and-sandbox` the ON column would be indistinguishable from OFF (Codex would just fall back to grep). The flag is required by-design — the script fails fast without it.
+
+Output:
+- `docs/benchmark/results/<date>-codex-<task>-<mode>.txt` — per-cell raw transcript
+- `docs/benchmark/results/<date>-codex-summary.md` — auto-generated tool-call table
+
+### Manual run protocol
+
+This is **not automated** for Claude Code. We deliberately measure in the same agent shells real users live in, at subscription pricing — not via raw API calls — because that's the actual user economics.
 
 ### Setup
 
