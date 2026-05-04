@@ -47,16 +47,18 @@ jobs:
       - name: Vault validate (dogfood frontmatter integrity)
         run: pnpm vault:validate
 
-      # vscode-plugin v0.4.0 (R13 #49–#52). Run unit + MCP-integration tests
-      # via npm (its own toolchain — TypeScript compile + node --test).
-      # Then verify it packages cleanly into a .vsix so we catch
+      # vscode-plugin v0.5.0 (R13 #49–#54). Run unit + MCP-integration
+      # tests, headless e2e via @vscode/test-electron, and verify the
+      # plugin packages cleanly into a .vsix so we catch
       # marketplace-relevant regressions (manifest issues, missing files,
-      # broken contributes) before publish.
-      - name: VSCode plugin — install + test + package
+      # broken contributes) before publish. xvfb-run gives the test
+      # harness a virtual display on Linux runners.
+      - name: VSCode plugin — install + test + e2e + package
         run: |
           cd vscode-plugin
           npm install --no-audit --no-fund
           npm test
+          xvfb-run -a npm run test:e2e
           npx @vscode/vsce package --no-yarn --out /tmp/oh-my-ontology-vscode.vsix
           ls -lh /tmp/oh-my-ontology-vscode.vsix
 

@@ -112,11 +112,18 @@
     "compile": "tsc -p .",
     "watch": "tsc -p . --watch",
     "test": "npm run compile && node --test src/code-match.test.mjs src/write-vault.test.mjs src/backlinks-local.test.mjs src/mcp-client.test.mjs",
+    "test:e2e": "npm run compile && node out/test/runTests.js",
     "vscode:prepublish": "npm run compile"
   },
   "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.9",
+    "@vscode/vsce": "^3.0.0",
+    "glob": "^10.3.10",
+    "mocha": "^10.2.0",
     "typescript": "^5.3.0"
   },
   "license": "MIT",
