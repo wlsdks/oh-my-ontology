@@ -47,6 +47,9 @@ ${COLORS.bold}Usage:${COLORS.reset}
                                               ${COLORS.dim}--kind <kind>     filter by kind${COLORS.reset}
                                               ${COLORS.dim}--json            JSON output${COLORS.reset}
   npx oh-my-ontology validate [vault]         Frontmatter integrity check (exit 1 on errors)
+  npx oh-my-ontology add <kind> <slug>        Scaffold a new ontology node (.md)
+       --title "..."                          ${COLORS.dim}required, non-empty${COLORS.reset}
+       --domain X --body "..." --vault path   ${COLORS.dim}optional${COLORS.reset}
   npx oh-my-ontology --help                   Show this help
   npx oh-my-ontology --version                Print version
 
@@ -191,6 +194,11 @@ if (SUBCOMMAND === 'list') {
 if (SUBCOMMAND === 'validate') {
   const { runValidate } = await import('./commands/validate.mjs');
   exit(runValidate(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'add') {
+  const { runAdd } = await import('./commands/add.mjs');
+  exit(runAdd(ARGS.slice(1)));
 }
 
 fail(`unknown command: ${SUBCOMMAND}`);

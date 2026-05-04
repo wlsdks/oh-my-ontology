@@ -106,3 +106,48 @@ function parseScalar(value) {
 function unquote(value) {
   return value.replace(/^["']|["']$/g, "");
 }
+
+// frontmatter 작성 — value 를 raw markdown 으로 직렬화. mcp/src/parser.mjs
+// 의 serializeFrontmatter / buildMarkdown 와 contract 일관 (drift 차단은
+// 별도 contract test 후속).
+// null 값은 key 삭제, undefined 는 skip.
+
+export function serializeFrontmatter(fm) {
+  const lines = [];
+  for (const [key, value] of Object.entries(fm)) {
+    if (value === null || value === undefined) continue;
+    lines.push(`${key}: ${serializeValue(value)}`);
+  }
+  return lines.join("\n");
+}
+
+function serializeValue(v) {
+  if (Array.isArray(v)) {
+    return `[${v
+      .map((s) =>
+        typeof s === "string" && needsQuote(s)
+          ? `"${s.replace(/"/g, '\\"')}"`
+          : String(s),
+      )
+      .join(", ")}]`;
+  }
+  if (typeof v === "boolean") return v ? "true" : "false";
+  if (typeof v === "number") return String(v);
+  if (typeof v === "object") {
+    const entries = Object.entries(v).map(
+      ([k, val]) => `${k}: ${serializeValue(val)}`,
+    );
+    return `{ ${entries.join(", ")} }`;
+  }
+  return needsQuote(v) ? `"${v.replace(/"/g, '\\"')}"` : v;
+}
+
+function needsQuote(s) {
+  return /[:,\[\]"{}]|^\s|\s$/.test(s);
+}
+
+// 본문 + frontmatter 합쳐서 markdown 생성.
+export function buildMarkdown({ frontmatter, body = "" }) {
+  const fmBlock = serializeFrontmatter(frontmatter);
+  return `---\n${fmBlock}\n---\n\n${body || ""}`;
+}
