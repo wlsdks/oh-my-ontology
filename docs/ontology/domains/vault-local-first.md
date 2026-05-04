@@ -2,7 +2,11 @@
 slug: domains/vault-local-first
 kind: domain
 title: Vault — Local-First
+capabilities:
+  - vault-validator
+  - vault-migrator
 elements:
+  - file-system-access-api
   - src/features/docs-vault-local
   - src/entities/local-fs-handle
   - src/entities/docs-vault

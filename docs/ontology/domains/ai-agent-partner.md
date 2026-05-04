@@ -4,6 +4,7 @@ kind: domain
 title: AI Agent Partner
 capabilities:
   - mcp-server
+  - mcp-conflict-guard
 elements:
   - mcp/src/index.js
   - mcp/src/parser.mjs
