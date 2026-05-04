@@ -2,7 +2,7 @@
   "name": "oh-my-ontology-vscode",
   "displayName": "oh-my-ontology",
   "description": "View and navigate the ontology vault from inside VSCode — sibling of the CLI and MCP server.",
-  "version": "0.8.3",
+  "version": "0.9.0",
   "publisher": "wlsdks",
   "engines": {
     "vscode": "^1.85.0"
@@ -50,7 +50,7 @@
       },
       {
         "view": "ohMyOntology.backlinks",
-        "contents": "Backlinks for the active editor's matching node will appear here.\n\nOpen a code file owned by an ontology node, or open an ontology `.md` directly.\n\n— or —\n\n[$(graph) Open the graph view](command:ohMyOntology.openGraph)\n\n[$(add) Add a new concept](command:ohMyOntology.addConcept)"
+        "contents": "Backlinks for the active editor's matching node will appear here.\n\nOpen a code file owned by an ontology node, or open an ontology `.md` directly.\n\n[$(add) Add a new concept](command:ohMyOntology.addConcept)\n\nFor a graph view of the whole vault, run `pnpm dev` and open `/topology` in the browser."
       }
     ],
     "commands": [
@@ -68,11 +68,6 @@
         "command": "ohMyOntology.addConcept",
         "title": "oh-my-ontology: Add concept",
         "icon": "$(add)"
-      },
-      {
-        "command": "ohMyOntology.openGraph",
-        "title": "oh-my-ontology: Open graph",
-        "icon": "$(graph)"
       },
       {
         "command": "ohMyOntology.renameConcept",
@@ -98,24 +93,19 @@
     "menus": {
       "view/title": [
         {
-          "command": "ohMyOntology.openGraph",
+          "command": "ohMyOntology.addConcept",
           "when": "view == ohMyOntology.tree",
           "group": "navigation@1"
         },
         {
-          "command": "ohMyOntology.addConcept",
+          "command": "ohMyOntology.refresh",
           "when": "view == ohMyOntology.tree",
           "group": "navigation@2"
         },
         {
-          "command": "ohMyOntology.refresh",
-          "when": "view == ohMyOntology.tree",
-          "group": "navigation@3"
-        },
-        {
           "command": "ohMyOntology.pickVault",
           "when": "view == ohMyOntology.tree",
-          "group": "navigation@4"
+          "group": "navigation@3"
         }
       ]
     },
@@ -136,11 +126,6 @@
           "type": "string",
           "default": "",
           "description": "Absolute path to `mcp/src/index.js`. Empty = auto-detect `<workspace>/mcp/src/index.js`."
-        },
-        "oh-my-ontology.autoOpenGraph": {
-          "type": "boolean",
-          "default": false,
-          "description": "Open the graph view automatically on first vault load. Off by default — flip to true if you always want the graph next to your editor."
         }
       }
     }
@@ -148,7 +133,7 @@
   "scripts": {
     "compile": "tsc -p .",
     "watch": "tsc -p . --watch",
-    "test": "npm run compile && node --test src/code-match.test.mjs src/write-vault.test.mjs src/backlinks-local.test.mjs src/mcp-client.test.mjs src/graph-view.test.mjs",
+    "test": "npm run compile && node --test src/code-match.test.mjs src/write-vault.test.mjs src/backlinks-local.test.mjs src/mcp-client.test.mjs",
     "test:e2e": "npm run compile && node out/test/runTests.js",
     "vscode:prepublish": "npm run compile"
   },
@@ -168,10 +153,5 @@
     "type": "git",
     "url": "https://github.com/wlsdks/oh-my-ontology.git",
     "directory": "vscode-plugin"
-  },
-  "dependencies": {
-    "cytoscape": "^3.33.3",
-    "cytoscape-dagre": "^2.5.0",
-    "dagre": "^0.8.5"
   }
 }

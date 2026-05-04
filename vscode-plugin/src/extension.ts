@@ -6,7 +6,6 @@ import { findOntologyMatch } from './code-match';
 import { writeDoc, resolveSlug } from './write-vault';
 import { McpClient } from './mcp-client';
 import { Backlink, BacklinksProvider } from './backlinks-provider';
-import { GraphPanelHandle, showGraphView } from './graph-view';
 
 const STORAGE_VAULT_KEY = 'oh-my-ontology.vaultPath';
 
@@ -34,7 +33,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   let cachedNodes: VaultNode[] = [];
   let currentMatch: VaultNode | null = null;
   let mcpClient: McpClient | null = null;
-  let graphPanel: GraphPanelHandle | null = null;
 
   const updateMatchForActiveEditor = (): void => {
     const editor = vscode.window.activeTextEditor;
@@ -62,9 +60,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
     if (!editor) {
       currentMatch = null;
-      matchStatusBar.text = `$(graph) oh-my-ontology · ${cachedNodes.length} nodes`;
-      matchStatusBar.tooltip = `oh-my-ontology · ${cachedNodes.length} nodes loaded · click to open the graph view.`;
-      matchStatusBar.command = 'ohMyOntology.openGraph';
+      matchStatusBar.text = `$(circle-outline) oh-my-ontology · ${cachedNodes.length} nodes`;
+      matchStatusBar.tooltip = `oh-my-ontology · ${cachedNodes.length} nodes loaded · no editor active.`;
+      matchStatusBar.command = 'ohMyOntology.refresh';
       matchStatusBar.show();
       backlinksProvider.clear();
       return;
@@ -79,9 +77,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
     currentMatch = match;
     if (!match) {
-      matchStatusBar.text = `$(graph) oh-my-ontology · ${cachedNodes.length} nodes · no match`;
-      matchStatusBar.tooltip = `oh-my-ontology · this file isn't owned by any ontology node.\n${cachedNodes.length} nodes loaded · click to open the graph view.`;
-      matchStatusBar.command = 'ohMyOntology.openGraph';
+      matchStatusBar.text = `$(circle-outline) oh-my-ontology · ${cachedNodes.length} nodes · no match`;
+      matchStatusBar.tooltip = `oh-my-ontology · this file isn't owned by any ontology node.\n${cachedNodes.length} nodes loaded.`;
+      matchStatusBar.command = 'ohMyOntology.refresh';
       matchStatusBar.show();
       backlinksProvider.clear();
       return;
@@ -92,10 +90,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     matchStatusBar.command = 'ohMyOntology.openMatchedNode';
     matchStatusBar.show();
     void loadBacklinksFor(match.slug);
-    // R13 #64 — sync graph panel highlight with active editor
-    if (graphPanel?.isAlive()) {
-      graphPanel.setActive(match.slug);
-    }
   };
 
   /**
@@ -164,8 +158,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
   };
 
-  let firstVaultLoadDone = false;
-
   const refresh = async (): Promise<void> => {
     const vaultPath = await resolveVaultPath(context);
     if (!vaultPath) {
@@ -183,22 +175,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         4000,
       );
       await ensureMcpClient(vaultPath);
-      // R13 #64 — push refreshed nodes to live graph panel
-      if (graphPanel?.isAlive()) {
-        graphPanel.update(nodes);
-      } else {
-        graphPanel = null;
-      }
-      // R13 #65 — auto-open graph on first vault load (opt-in setting)
-      if (!firstVaultLoadDone && nodes.length > 0) {
-        firstVaultLoadDone = true;
-        const auto = vscode.workspace
-          .getConfiguration('oh-my-ontology')
-          .get<boolean>('autoOpenGraph', false);
-        if (auto && !graphPanel) {
-          await vscode.commands.executeCommand('ohMyOntology.openGraph');
-        }
-      }
       updateMatchForActiveEditor();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -433,26 +409,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
       },
     ),
-    vscode.commands.registerCommand('ohMyOntology.openGraph', () => {
-      if (cachedNodes.length === 0) {
-        vscode.window.showWarningMessage(
-          'oh-my-ontology: pick a vault folder first.',
-        );
-        return;
-      }
-      // R13 #64 — reveal existing panel if it's still alive (don't double-open).
-      if (graphPanel?.isAlive()) {
-        graphPanel.panel.reveal();
-        graphPanel.update(cachedNodes);
-        if (currentMatch) graphPanel.setActive(currentMatch.slug);
-        return;
-      }
-      graphPanel = showGraphView(context, cachedNodes);
-      graphPanel.panel.onDidDispose(() => {
-        graphPanel = null;
-      });
-      if (currentMatch) graphPanel.setActive(currentMatch.slug);
-    }),
     vscode.commands.registerCommand(
       'ohMyOntology.openBacklink',
       async (b: Backlink) => {
