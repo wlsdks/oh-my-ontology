@@ -5,56 +5,78 @@ import { useToast } from '@/shared/ui/toast';
 import { useLocalVault } from './LocalVaultProvider';
 
 /**
- * R13 #71 — vault polling 결과 *시각적 알림*. polling 으로 새 노드가
- * 들어오면 toast 로 명시 (예: "Added: capabilities/foo").
+ * R13 #71 + #72 — vault polling 결과 *시각적 알림*. polling 으로 detect 한
+ * 변화를 어떤 페이지에서든 toast 로 알림.
  *
- * polling (#69) + diff highlight (#70) 가 그래프 안 변화는 만들었지만,
- * 사용자가 그래프 안 보고 다른 페이지 (/docs / /ontology 등) 보고 있으면
- * 변화 인지 못함. toast 는 어느 페이지에서든 보여 *cross-page* alive
- * 신호 가 됨.
+ * #71 added detection: 새로운 slug 등장 → "Added: <slug>" info toast.
+ * #72 modified detection: slug 같지만 mtime 변화 → "Edited: <slug>"
+ *   success toast. 사용자 / AI agent 가 IDE 에서 .md 편집한 경우.
  *
  * 동작:
- *   - LocalVaultProvider 안에 mount, manifest.docs slug set 추적
- *   - 첫 mount 는 baseline 만 저장 (false-positive 방지)
- *   - 이후 새로 등장한 slug 가 1+ 개면 sonner info toast
- *   - 3+ 개 동시 추가면 처음 3 + "+N more"
+ *   - LocalVaultProvider 안에 mount, manifest.docs 의 (slug, mtime) Map 추적
+ *   - 첫 mount 는 baseline 만 (false-positive 방지)
+ *   - 이후 diff:
+ *     · slug 신규 → added
+ *     · slug 동일 + mtime 새로움 → modified
+ *   - added/modified 합쳐 처음 3 명시 + "+N more"
  *
- * 삭제 / 수정 detection 은 일단 제외 — slug 가 같으면 같은 노드라 가정.
- * 추후 mtime / fingerprint diff 로 확장 가능.
+ * 삭제 detection 은 일단 제외 — 사용자 명시 액션 후 toast 가 더 가치 있음
+ * (delete_concept 같은 명령 자체가 toast 띄우면 됨, polling 결과로 다시
+ * toast 띄우면 noise).
  */
 export function VaultDiffToaster() {
   const { status, manifest } = useLocalVault();
   const toast = useToast();
-  const prevSlugsRef = useRef<Set<string> | null>(null);
+  const prevMapRef = useRef<Map<string, number | null> | null>(null);
 
   useEffect(() => {
     if (status !== 'loaded' || !manifest) return;
-    const currentSlugs = new Set<string>(
-      manifest.docs.map((d: { slug: string }) => d.slug),
+
+    type DocLite = { slug: string; mtime?: number };
+    const currentMap = new Map<string, number | null>(
+      manifest.docs.map((d: DocLite) => [d.slug, d.mtime ?? null]),
     );
 
     // 첫 load — baseline 저장만 하고 끝
-    if (prevSlugsRef.current === null) {
-      prevSlugsRef.current = currentSlugs;
+    if (prevMapRef.current === null) {
+      prevMapRef.current = currentMap;
       return;
     }
 
-    const prev = prevSlugsRef.current;
+    const prev = prevMapRef.current;
     const added: string[] = [];
-    for (const s of currentSlugs) {
-      if (!prev.has(s)) added.push(s);
+    const modified: string[] = [];
+    for (const [slug, mtime] of currentMap) {
+      const prevMtime = prev.get(slug);
+      if (prevMtime === undefined) {
+        added.push(slug);
+        continue;
+      }
+      // mtime 비교: 둘 중 하나가 null (static manifest) 이면 비교 의미 없으니 skip
+      if (prevMtime !== null && mtime !== null && mtime > prevMtime) {
+        modified.push(slug);
+      }
     }
-    prevSlugsRef.current = currentSlugs;
-    if (added.length === 0) return;
+    prevMapRef.current = currentMap;
 
-    // 처음 3 명시, 나머지는 합산
+    if (added.length === 0 && modified.length === 0) return;
+
     const PREVIEW = 3;
-    const preview = added.slice(0, PREVIEW);
-    for (const slug of preview) {
+    const overflow = Math.max(0, added.length + modified.length - PREVIEW);
+
+    let shown = 0;
+    for (const slug of added) {
+      if (shown >= PREVIEW) break;
       toast.show(`Added: ${slug}`, 'info');
+      shown += 1;
     }
-    if (added.length > PREVIEW) {
-      toast.show(`+${added.length - PREVIEW} more node(s)`, 'info');
+    for (const slug of modified) {
+      if (shown >= PREVIEW) break;
+      toast.show(`Edited: ${slug}`, 'success');
+      shown += 1;
+    }
+    if (overflow > 0) {
+      toast.show(`+${overflow} more node(s)`, 'info');
     }
   }, [status, manifest, toast]);
 
