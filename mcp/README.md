@@ -44,7 +44,7 @@ If `OMOT_VAULT` is not set, the current working directory is used as the vault r
 
 ### 2. Restart Claude Code
 
-The server connects over stdio. You should now see 12 tools under the `oh-my-ontology` namespace.
+The server connects over stdio. You should now see 14 tools under the `oh-my-ontology` namespace.
 
 ### 3. Call the tools
 
@@ -56,12 +56,12 @@ The server connects over stdio. You should now see 12 tools under the `oh-my-ont
 → mcp__oh-my-ontology__get_concept({ slug: 'capabilities/mcp-server' })
 ```
 
-## The 12 tools (v0.6.0)
+## The 14 tools (v0.7.0)
 
 | Tool | What it does |
 |---|---|
-| `list_concepts` | Lists every node in the vault (any `.md` with a `kind:` frontmatter). Options: `kind`, `limit`. |
-| `get_concept` | Fetches a single node by `slug` (no extension): frontmatter + body excerpt + neighbors (dependencies / relates). |
+| `list_concepts` | Lists every node in the vault (any `.md` with a `kind:` frontmatter). Options: `kind`, `limit`. **R11**: when the vault has frontmatter corruption, response includes `vaultWarnings: { errorCount, warningCount }` so AI agents can flag it to the user. |
+| `get_concept` | Fetches a single node by `slug` (no extension): frontmatter + body excerpt + neighbors (dependencies / relates) + `mtime` (ms — pass to subsequent `patch_concept` / `delete_concept` as `expected_mtime` to detect concurrent external edits). **R11**: response includes `warnings: [...]` when this doc has frontmatter issues (unclosed-frontmatter / empty-kind / missing-kind / unknown-kind / parse-zero-keys). |
 | `find_evidence` | Partial-match search by `title` — scans frontmatter title/capabilities/elements as well as body content. |
 | `find_backlinks` | Finds every node that points to a given `slug`. Inspects all frontmatter array keys (capabilities / elements / dependencies / relates / …) plus body wikilinks/markdown links. |
 | `find_path` | Shortest path between two slugs (BFS, undirected). Option: `maxHops` (default 5). |
@@ -69,9 +69,11 @@ The server connects over stdio. You should now see 12 tools under the `oh-my-ont
 | `find_orphans` | **v0.5** Finds isolated nodes — docs that no other node references in its frontmatter. Options: `kind` (filter), `excludeKinds` (skip, default `['vault-readme']`). Useful as a starting point for cleanup or auditing unused nodes. |
 | `query_concepts` | **v0.6** Typed filter DSL — `kind=X AND has(Y) AND NOT ...`. Saved-filter / smart-list use case. |
 | `add_concept` | Creates a new `.md` node. Required: `slug`, `kind`, `title`. Optional: `domain`, `capabilities`, `elements`, `body`. Throws if the slug already exists. |
-| `add_relation` | Adds an edge between two slugs. `type`: `depends_on` (→ dependencies), `relates` (→ relates), `contains` (→ contains), `describes` (→ describes). Appends to the appropriate frontmatter array. |
-| `patch_concept` | Updates an existing node's frontmatter (per-key patch — `null` deletes a key) and/or body. Use this when you need to *modify* a slug that `add_concept` would reject as duplicate. |
-| `delete_concept` | **v0.4 ⚠ DESTRUCTIVE** Permanently deletes a node. Two-stage safety: ① without `confirm:true`, runs as a dry-run (with a backlinks preview); ② if backlinks exist, throws unless `force:true`. The response captures the deleted frontmatter + body so you can recover from mistakes. |
+| `add_relation` | Adds an edge between two slugs. `type`: `depends_on` (→ dependencies), `relates` (→ relates), `contains` (→ contains), `describes` (→ describes). Appends to the appropriate frontmatter array. **R11**: optional `expected_mtime` on the source slug for conflict detection. |
+| `patch_concept` | Updates an existing node's frontmatter (per-key patch — `null` deletes a key) and/or body. Use this when you need to *modify* a slug that `add_concept` would reject as duplicate. **R11**: optional `expected_mtime` for conflict detection — pass the `mtime` from `get_concept`; throws `VaultConflictError` if the file has been modified externally since you read it. |
+| `delete_concept` | **v0.4 ⚠ DESTRUCTIVE** Permanently deletes a node. Two-stage safety: ① without `confirm:true`, runs as a dry-run (with a backlinks preview); ② if backlinks exist, throws unless `force:true`. The response captures the deleted frontmatter + body so you can recover from mistakes. **R11**: optional `expected_mtime` for conflict detection. |
+| `rename_concept` | **v0.7 ⚠ MULTI-FILE** Atomically renames a slug — moves the .md file, updates the moved file's `slug:` key, and rewrites every backlink (frontmatter array entries, inline string keys like `domain`, body links `[[oldSlug]]` / `(oldSlug.md)`). Tail-only references (`mcp-server` for `capabilities/mcp-server`) are also redirected. Without `confirm:true`, runs as a dry-run with a full update preview. Replaces the manual loop of `find_backlinks` + N `patch_concept` calls. **R11**: optional `expected_mtime` for the source slug. |
+| `merge_concepts` | **v0.7 ⚠ DESTRUCTIVE MULTI-FILE** Folds `fromSlug` into `intoSlug` — every backlink to `fromSlug` is redirected, then `fromSlug.md` is deleted. The `intoSlug` node is preserved as-is (frontmatter / body are not auto-merged — use `patch_concept` after if you want to combine descriptions). Without `confirm:true`, runs as a dry-run. **R11**: optional `expected_mtime` for `fromSlug`. |
 
 ## Local verification (UX-3)
 
@@ -90,10 +92,10 @@ A successful run looks like this:
 ✓ result: 7 passed, 0 failed
 · step 2 — server boot + tools/list + list_concepts
 ✓ initialize OK — server oh-my-ontology-mcp@0.6.0
-✓ tools/list 12/12 — add_concept · add_relation · delete_concept · find_backlinks · find_evidence · find_orphans · find_path · get_concept · list_concepts · list_kinds · patch_concept · query_concepts
-✓ list_concepts — vault total 18 nodes
+✓ tools/list 14/14 — add_concept · add_relation · delete_concept · find_backlinks · find_evidence · find_orphans · find_path · get_concept · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · rename_concept
+✓ list_concepts — vault total 21 nodes
 
-All checks passed — register .mcp.json with Claude Code, restart, and the 12 tools are ready.
+All checks passed — register .mcp.json with Claude Code, restart, and the 14 tools are ready.
 ```
 
 On failure, it tells you which step blocked progress and prints a diagnostic message.
@@ -122,7 +124,7 @@ After you add `.mcp.json` and restart Claude Code, try the following with your L
 > 3. Call `find_backlinks({ slug: "capabilities/mcp-server" })` to find what depends on that capability.
 > 4. (Optional) Call `add_concept` to create a new capability node — `slug`, `kind`, and `title` are required.
 
-If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 12 tools (8 read + 4 write), the human + AI co-authoring loop is officially open.
+If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 14 tools (8 read + 6 write), the human + AI co-authoring loop is officially open.
 
 ## Design principles
 
@@ -133,6 +135,7 @@ If those four tools respond cleanly, your read/write round-trip against the vaul
 
 ## Status
 
+- 0.7.0 — 14 tools (8 read + 6 write). Added `rename_concept` and `merge_concepts` (graph-level write — atomic backlink redirect across all referrers).
 - 0.6.0 — 12 tools (8 read + 4 write). Added `query_concepts` (typed filter DSL).
 - 0.5.0 — 7 read + 4 write. Added `find_orphans`.
 - 0.4.0 — 10 tools (6 read + 4 write). Added `delete_concept` (dry-run + backlinks guard).

@@ -15,6 +15,58 @@ import { join, relative, dirname, resolve, sep } from 'node:path';
 import { parseFrontmatter, buildMarkdown } from './parser.mjs';
 
 /**
+ * 외부 변경 감지 (R11 #8). 사람 GUI · 외부 에디터 · 다른 AI MCP 가 같은 .md
+ * 를 동시에 만질 때 silent overwrite 차단.
+ *
+ * 동작: caller 가 옵션으로 `expectedMtime` 을 넘기면 write 직전 현재 mtime 과
+ * 비교. 다르면 ConflictError throw — caller 가 사용자에게 알리고 강행 여부
+ * 결정. 옵션 미지정이면 검증 skip (회귀 회피 — 기존 호출자 호환).
+ *
+ * mtime 은 ms 정밀 정수. fs 파일시스템마다 정밀도가 다르지만 MCP 호출 빈도
+ * 낮아 1s 단위 변경 감지로도 충분.
+ */
+export class VaultConflictError extends Error {
+  constructor(slug, expectedMtime, currentMtime) {
+    super(
+      `Vault conflict — "${slug}" was modified externally between read and write. ` +
+        `expectedMtime=${expectedMtime} currentMtime=${currentMtime}. ` +
+        `Re-read the doc and try again, or pass force:true to overwrite.`,
+    );
+    this.name = 'VaultConflictError';
+    this.code = 'VAULT_CONFLICT';
+    this.slug = slug;
+    this.expectedMtime = expectedMtime;
+    this.currentMtime = currentMtime;
+  }
+}
+
+/**
+ * 파일 mtime (ms). 파일 없으면 null. caller 가 read-modify-write 흐름에서
+ * read 직후 캡처해 후속 write 호출에 expectedMtime 으로 전달.
+ */
+export function getFileMtime(filePath) {
+  try {
+    return statSync(filePath).mtimeMs;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * write 직전 mtime 검증. expected !== current 면 ConflictError throw.
+ * expected 가 null/undefined 면 검증 skip.
+ */
+function assertMtime(slug, filePath, expectedMtime) {
+  if (expectedMtime === null || expectedMtime === undefined) return;
+  const current = getFileMtime(filePath);
+  if (current === null) return; // 파일 자체가 없으면 후속 write 가 어차피 throw
+  // mtime 비교는 1ms 미만 정밀도 차이를 무시 — 일부 fs 가 ms 미만 truncate.
+  if (Math.abs(current - expectedMtime) >= 1) {
+    throw new VaultConflictError(slug, expectedMtime, current);
+  }
+}
+
+/**
  * frontmatter 의 array 키 중 *그래프 엣지로 해석되는* 6 개. 새 edge 타입을
  * 추가하면 (e.g. 'aggregates', 'implements') 여기만 갱신하면 findOrphans /
  * findPath 등 모두 자동 cover. 예전에 두 함수가 각자 로컬로 같은 배열을
@@ -125,7 +177,10 @@ export function vaultSlugExists(rootPath, slug) {
 }
 
 /**
- * 한 .md 파일을 읽어 { slug, frontmatter, body, raw }.
+ * 한 .md 파일을 읽어 { slug, frontmatter, body, raw, mtime }.
+ *
+ * mtime: read 시점의 파일 mtimeMs. caller 가 후속 write 의 `expectedMtime`
+ * 으로 전달해 conflict 감지 가능 (R11 #8).
  */
 export function readDoc(rootPath, filePath) {
   const raw = readFileSync(filePath, 'utf-8');
@@ -135,6 +190,7 @@ export function readDoc(rootPath, filePath) {
     frontmatter,
     body,
     raw,
+    mtime: getFileMtime(filePath),
   };
 }
 
@@ -163,15 +219,24 @@ export function writeDoc(rootPath, slug, { frontmatter, body = '' }) {
 }
 
 /**
- * doc 영구 삭제. 호출자가 confirmation / backlinks 검사를 책임진다.
- * 반환: 삭제 직전 캡처한 { slug, filePath, frontmatter, body, raw }.
- * 파일 없으면 throw.
+ * patchFrontmatter / updateDoc / deleteDoc / redirectBacklinks 의 옵션 형태:
+ *   { expectedMtime?: number }
+ *
+ * caller 가 read 시점 mtime 을 전달하면 write 직전 mtime 변경 감지 → conflict
+ * throw. 미지정이면 검증 skip (기존 호출자 호환).
  */
-export function deleteDoc(rootPath, slug) {
+
+/**
+ * doc 영구 삭제. 호출자가 confirmation / backlinks 검사를 책임진다.
+ * 반환: 삭제 직전 캡처한 { slug, filePath, frontmatter, body, raw, mtime }.
+ * 파일 없으면 throw. expectedMtime 옵션으로 외부 변경 감지 가능.
+ */
+export function deleteDoc(rootPath, slug, options = {}) {
   const filePath = slugToPath(rootPath, slug);
   if (!existsSync(filePath)) {
     throw new Error(`Doc not found: ${slug}`);
   }
+  assertMtime(slug, filePath, options.expectedMtime);
   const captured = readDoc(rootPath, filePath);
   unlinkSync(filePath);
   return { ...captured, filePath };
@@ -179,13 +244,14 @@ export function deleteDoc(rootPath, slug) {
 
 /**
  * 기존 doc 의 frontmatter 만 patch. body 보존. patch 객체의 null 은 키
- * 삭제, undefined 는 skip.
+ * 삭제, undefined 는 skip. options.expectedMtime 으로 외부 변경 감지.
  */
-export function patchFrontmatter(rootPath, slug, patch) {
+export function patchFrontmatter(rootPath, slug, patch, options = {}) {
   const filePath = slugToPath(rootPath, slug);
   if (!existsSync(filePath)) {
     throw new Error(`Doc not found: ${slug}`);
   }
+  assertMtime(slug, filePath, options.expectedMtime);
   const raw = readFileSync(filePath, 'utf-8');
   const { frontmatter, body } = parseFrontmatter(raw);
   const next = { ...frontmatter };
@@ -204,13 +270,15 @@ export function patchFrontmatter(rootPath, slug, patch) {
 /**
  * 기존 doc 의 frontmatter + body 를 동시에 갱신. frontmatter 는 patchFrontmatter
  * 와 동일한 patch 의미 (null = 삭제, undefined = skip). body 가 string 이면
- * 교체, undefined 면 보존, null 이면 빈 본문.
+ * 교체, undefined 면 보존, null 이면 빈 본문. expectedMtime 옵션으로 외부
+ * 변경 감지.
  */
-export function updateDoc(rootPath, slug, { frontmatter: patch, body }) {
+export function updateDoc(rootPath, slug, { frontmatter: patch, body, expectedMtime }) {
   const filePath = slugToPath(rootPath, slug);
   if (!existsSync(filePath)) {
     throw new Error(`Doc not found: ${slug}`);
   }
+  assertMtime(slug, filePath, expectedMtime);
   const raw = readFileSync(filePath, 'utf-8');
   const { frontmatter, body: oldBody } = parseFrontmatter(raw);
   const nextFm = { ...frontmatter };
@@ -453,6 +521,125 @@ export function findBacklinks(rootPath, targetSlug) {
     });
   }
   return matches;
+}
+
+/**
+ * targetSlug 를 가리키는 모든 vault doc 의 frontmatter array 키와 body link
+ * 를 nextSlug 로 치환. rename_concept / merge_concepts 의 핵심 동작.
+ *
+ * 매칭 정책 (findBacklinks 와 동일):
+ *  - 절대 slug 매칭 (`capabilities/mcp-server`)
+ *  - 마지막 segment 매칭 (`mcp-server`) — 이때 치환은 *같은 표현* 유지를 위해
+ *    target tail 그대로 두지 않고 nextSlug 의 tail 로 치환 (rename 의도라
+ *    슬러그 어느 표현이든 일관성 있게 새 이름이 보여야 한다).
+ *  - 끝부분 일치 (`*** /mcp-server`) 도 같은 정책.
+ *
+ * 본문 치환: `[[targetSlug]]` 와 `(targetSlug.md)` 를 nextSlug 로 치환.
+ *
+ * options.dryRun = true 면 디스크에 쓰지 않고 미리보기만.
+ *
+ * 반환: { updates: [{ slug, beforeKeys, afterKeys, bodyHit }], totalUpdated }.
+ */
+export function redirectBacklinks(rootPath, targetSlug, nextSlug, options = {}) {
+  const { dryRun = false } = options;
+  if (typeof targetSlug !== 'string' || !targetSlug) {
+    throw new Error('targetSlug is required.');
+  }
+  if (typeof nextSlug !== 'string' || !nextSlug) {
+    throw new Error('nextSlug is required.');
+  }
+  if (targetSlug === nextSlug) {
+    return { updates: [], totalUpdated: 0 };
+  }
+
+  const docs = loadVaultDocs(rootPath);
+  const targetTail = targetSlug.split('/').pop();
+  const nextTail = nextSlug.split('/').pop();
+
+  function rewriteArrayItem(value) {
+    if (typeof value !== 'string') return { value, changed: false };
+    if (value === targetSlug) return { value: nextSlug, changed: true };
+    if (value === targetTail) return { value: nextTail, changed: true };
+    if (value.endsWith(`/${targetTail}`)) {
+      // path-prefixed tail — 보존 prefix + 새 tail
+      const prefix = value.slice(0, value.length - targetTail.length);
+      return { value: `${prefix}${nextTail}`, changed: true };
+    }
+    return { value, changed: false };
+  }
+
+  const updates = [];
+  for (const doc of docs) {
+    if (doc.slug === targetSlug) continue;
+    const filePath = slugToPath(rootPath, doc.slug);
+    const nextFm = { ...doc.frontmatter };
+    const beforeKeys = [];
+    const afterKeys = [];
+    let fmChanged = false;
+
+    for (const key of Object.keys(nextFm)) {
+      const value = nextFm[key];
+      if (Array.isArray(value)) {
+        const before = [...value];
+        const after = value.map((v) => rewriteArrayItem(v).value);
+        if (before.some((b, i) => b !== after[i])) {
+          // dedup — 이미 nextSlug 가 있으면 중복 추가하지 않음
+          const seen = new Set();
+          const deduped = [];
+          for (const item of after) {
+            if (typeof item === 'string') {
+              if (seen.has(item)) continue;
+              seen.add(item);
+            }
+            deduped.push(item);
+          }
+          nextFm[key] = deduped;
+          beforeKeys.push({ key, before });
+          afterKeys.push({ key, after: deduped });
+          fmChanged = true;
+        }
+      } else if (typeof value === 'string') {
+        const r = rewriteArrayItem(value);
+        if (r.changed) {
+          nextFm[key] = r.value;
+          beforeKeys.push({ key, before: value });
+          afterKeys.push({ key, after: r.value });
+          fmChanged = true;
+        }
+      }
+    }
+
+    let nextBody = doc.body;
+    let bodyChanged = false;
+    if (nextBody.includes(`[[${targetSlug}]]`)) {
+      nextBody = nextBody.split(`[[${targetSlug}]]`).join(`[[${nextSlug}]]`);
+      bodyChanged = true;
+    }
+    if (nextBody.includes(`[[${targetTail}]]`)) {
+      nextBody = nextBody.split(`[[${targetTail}]]`).join(`[[${nextTail}]]`);
+      bodyChanged = true;
+    }
+    if (nextBody.includes(`(${targetSlug}.md)`)) {
+      nextBody = nextBody.split(`(${targetSlug}.md)`).join(`(${nextSlug}.md)`);
+      bodyChanged = true;
+    }
+
+    if (!fmChanged && !bodyChanged) continue;
+
+    updates.push({
+      slug: doc.slug,
+      beforeKeys,
+      afterKeys,
+      bodyChanged,
+    });
+
+    if (!dryRun) {
+      const md = buildMarkdown({ frontmatter: nextFm, body: nextBody });
+      writeFileSync(filePath, md, 'utf-8');
+    }
+  }
+
+  return { updates, totalUpdated: updates.length };
 }
 
 /**

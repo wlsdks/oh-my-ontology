@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * oh-my-ontology-mcp — MCP 서버 v0.6.0 (도구 12종 = read 8 + write 4).
+* oh-my-ontology-mcp — MCP 서버 v0.7.0 (도구 14종 = read 8 + write 6).
  *
  * AI agent (Claude Code 등) 가 vault 의 ontology 를 읽고 쓸 수 있게.
  *
@@ -14,11 +14,13 @@
  *   - find_orphans      — 어느 다른 노드도 frontmatter 에서 가리키지 않는 doc
  *   - query_concepts    — typed filter DSL (kind=X AND has(Y) AND NOT ...)
  *
- * write 4:
+ * write 6:
  *   - add_concept       — 새 노드 (.md 파일 작성, 기존 slug 면 throw)
  *   - add_relation      — 두 노드 사이 edge (frontmatter 배열 키 append)
  *   - patch_concept     — 기존 노드 frontmatter (key 단위, null = 삭제) + body
  *   - delete_concept    — 노드 영구 삭제 (dry-run + backlinks 가드 + force)
+ *   - rename_concept    — slug 변경 + 모든 backlink 의 array/body 자동 redirect
+ *   - merge_concepts    — 두 노드 합치기 (from 의 모든 backlink 를 into 로 redirect 후 from 삭제)
  *
  * 환경 변수:
  *   OMOT_VAULT=/abs/path/to/vault   — vault root 디렉토리. 미지정 시 cwd.
@@ -38,6 +40,7 @@ import { resolve } from 'node:path';
 
 import { existsSync } from 'node:fs';
 import {
+  VaultConflictError,
   deleteDoc,
   ensureVaultRoot,
   findBacklinks,
@@ -46,14 +49,19 @@ import {
   listKinds,
   loadVaultDocs,
   readDoc,
+  redirectBacklinks,
   slugToPath,
   patchFrontmatter,
   updateDoc,
   vaultSlugExists,
   writeDoc,
 } from './vault.mjs';
+import { writeFileSync, unlinkSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { mkdirSync } from 'node:fs';
+import { buildMarkdown } from './parser.mjs';
 import { parseFilter } from './query.mjs';
-import { isValidVaultTitle } from './validate.mjs';
+import { isValidVaultTitle, validateVaultDocument } from './validate.mjs';
 
 const VAULT_ROOT = resolve(process.env.OMOT_VAULT || process.cwd());
 // import-time throw 면 stdio transport 가 붙기 전 stack trace 가 stderr 로
@@ -71,7 +79,7 @@ try {
 }
 
 const server = new Server(
-  { name: 'oh-my-ontology-mcp', version: '0.6.0' },
+  { name: 'oh-my-ontology-mcp', version: '0.7.0' },
   { capabilities: { tools: {} } },
 );
 
@@ -169,7 +177,9 @@ const TOOLS = [
     description:
       'Add a semantic relation between two nodes. Appends to the matching ' +
       'frontmatter array (dependencies / relates / contains / describes); the ' +
-      'relation type picks which key receives the entry.',
+      'relation type picks which key receives the entry. **R11**: optional ' +
+      '`expected_mtime` — pass the source-side `mtime` from a prior get_concept ' +
+      'so concurrent external edits throw VaultConflictError.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -179,6 +189,11 @@ const TOOLS = [
           type: 'string',
           enum: ['depends_on', 'relates', 'contains', 'describes'],
           description: 'Relation type.',
+        },
+        expected_mtime: {
+          type: 'number',
+          description:
+            'Optional conflict guard for the source slug. If the source mtimeMs differs at write time, the call throws.',
         },
       },
       required: ['from', 'to', 'type'],
@@ -190,7 +205,10 @@ const TOOLS = [
       'Update the frontmatter and/or body of an existing ontology node. Use ' +
       'when an AI agent revises, deepens, or reclassifies a node. Frontmatter ' +
       'patches are key-by-key — null deletes a key, omission preserves it. ' +
-      'Body is fully replaced when provided, otherwise preserved.',
+      'Body is fully replaced when provided, otherwise preserved. Pass ' +
+      '`expected_mtime` (from the previous get_concept response) to detect ' +
+      'concurrent external edits — throws VaultConflictError if the file has ' +
+      'changed on disk since you read it.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -203,6 +221,11 @@ const TOOLS = [
         body: {
           type: 'string',
           description: 'Full replacement markdown body (optional). Preserved when omitted.',
+        },
+        expected_mtime: {
+          type: 'number',
+          description:
+            'Optional conflict guard. If the file mtimeMs differs at write time, the call throws so the caller can re-read and retry. Pass the `mtime` field from the most recent get_concept response.',
         },
       },
       required: ['slug'],
@@ -312,6 +335,87 @@ const TOOLS = [
     },
   },
   {
+    name: 'rename_concept',
+    description:
+      '⚠ MULTI-FILE WRITE — change a slug and update every backlink in one atomic graph-level operation. ' +
+      'Renames the .md file (oldSlug → newSlug, directory move OK), updates the moved file\'s ' +
+      'frontmatter `slug:` key, and rewrites every backlink — frontmatter array entries (capabilities / ' +
+      'elements / dependencies / relates / contains / describes), inline-string keys, and body links ' +
+      '`[[oldSlug]]` / `(oldSlug.md)`. Tail-only references (`mcp-server` for `capabilities/mcp-server`) ' +
+      'are also redirected to the new tail. Two-stage safety:\n' +
+      '  1. Without confirm: true the call is a dry-run — returns `updates` (each affected file with ' +
+      'before/after array keys + bodyChanged flag) without writing.\n' +
+      '  2. With confirm: true the file is moved and all backlinks are rewritten in one pass.\n' +
+      'Throws if oldSlug missing or newSlug already taken (unless overwrite: true). Use this instead ' +
+      'of patch_concept + N find_backlinks + N patch_concept loops.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        oldSlug: {
+          type: 'string',
+          description: 'Current vault-relative slug (omit the .md extension).',
+        },
+        newSlug: {
+          type: 'string',
+          description: 'Target vault-relative slug (omit the .md extension). Directories are created if needed.',
+        },
+        confirm: {
+          type: 'boolean',
+          description:
+            'Actually perform the rename when true. Omit or false for a dry-run preview.',
+        },
+        overwrite: {
+          type: 'boolean',
+          description:
+            'Allow overwriting an existing file at newSlug. Defaults to false (throws if newSlug exists).',
+        },
+        expected_mtime: {
+          type: 'number',
+          description:
+            'Optional conflict guard for oldSlug. Pass the `mtime` from get_concept; throws VaultConflictError if the source has been modified externally since you read it.',
+        },
+      },
+      required: ['oldSlug', 'newSlug'],
+    },
+  },
+  {
+    name: 'merge_concepts',
+    description:
+      '⚠ DESTRUCTIVE MULTI-FILE WRITE — fold one node into another. Every backlink to fromSlug is ' +
+      'redirected to intoSlug (frontmatter array entries + body links), then fromSlug is deleted. The ' +
+      'intoSlug node is preserved as-is — its frontmatter / body are not merged automatically (use ' +
+      'patch_concept after if you want to combine descriptions). Tail-only references are also ' +
+      'redirected. Two-stage safety:\n' +
+      '  1. Without confirm: true the call is a dry-run — returns the redirect plan + list of deletions ' +
+      'without writing.\n' +
+      '  2. With confirm: true the rewrites and the delete happen in one pass.\n' +
+      'Throws if either slug is missing.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        fromSlug: {
+          type: 'string',
+          description: 'Slug to dissolve. Its file is deleted after backlinks redirect.',
+        },
+        intoSlug: {
+          type: 'string',
+          description: 'Slug to keep. Receives every redirected backlink.',
+        },
+        confirm: {
+          type: 'boolean',
+          description:
+            'Actually perform the merge when true. Omit or false for a dry-run.',
+        },
+        expected_mtime: {
+          type: 'number',
+          description:
+            'Optional conflict guard for fromSlug. Throws if the source has been modified externally.',
+        },
+      },
+      required: ['fromSlug', 'intoSlug'],
+    },
+  },
+  {
     name: 'delete_concept',
     description:
       '⚠ DESTRUCTIVE — permanently deletes the vault .md file. Two-stage safety:\n' +
@@ -319,7 +423,9 @@ const TOOLS = [
       '  2. If any backlinks exist the call throws — refuses while other nodes still reference this slug. ' +
       'Pass force: true to delete anyway (the referrers become dangling).\n' +
       'Successful deletion returns the frontmatter + body so a user who deleted by mistake ' +
-      'can recreate the node via add_concept. Directories are left untouched.',
+      'can recreate the node via add_concept. Directories are left untouched. Pass ' +
+      '`expected_mtime` to guard against concurrent external edits — throws if the file ' +
+      'changed on disk since you read it.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -336,6 +442,11 @@ const TOOLS = [
           type: 'boolean',
           description:
             'Delete even when backlinks exist (referrers become dangling). Defaults to false.',
+        },
+        expected_mtime: {
+          type: 'number',
+          description:
+            'Optional conflict guard — file mtimeMs at read time. If it differs at delete time, the call throws.',
         },
       },
       required: ['slug'],
@@ -373,6 +484,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return ok(findOrphansTool(args));
       case 'query_concepts':
         return ok(queryConceptsTool(args));
+      case 'rename_concept':
+        return ok(renameConcept(args));
+      case 'merge_concepts':
+        return ok(mergeConcepts(args));
       case 'delete_concept':
         return ok(deleteConcept(args));
       default:
@@ -396,6 +511,20 @@ function ok(result) {
 
 function listConcepts({ kind, limit = 100 }) {
   const docs = loadVaultDocs(VAULT_ROOT);
+
+  // R11 #23 — vault-wide validation 카운트. raw 모두 검증해 silent corruption
+  // 가시화. AI agent 가 vault 상태를 한 번에 인지 가능 (UI banner #14 의 짝).
+  let errorCount = 0;
+  let warningCount = 0;
+  for (const doc of docs) {
+    if (!doc.raw) continue;
+    const report = validateVaultDocument(doc.raw);
+    for (const issue of report.issues) {
+      if (issue.severity === 'error') errorCount += 1;
+      else warningCount += 1;
+    }
+  }
+
   const filtered = docs.filter((doc) => {
     const docKind = doc.frontmatter.kind;
     if (kind && docKind !== kind) return false;
@@ -412,6 +541,10 @@ function listConcepts({ kind, limit = 100 }) {
       capabilities: doc.frontmatter.capabilities,
       elements: doc.frontmatter.elements,
     })),
+    vaultWarnings:
+      errorCount + warningCount > 0
+        ? { errorCount, warningCount }
+        : undefined,
   };
 }
 
@@ -427,6 +560,9 @@ function getConcept({ slug }) {
     }
     throw err;
   }
+  // R11 #23 — 이 doc 의 frontmatter corruption 검출. AI agent 가 응답에서
+  // warnings 보고 사용자에게 안내 / vault:validate 권장 가능.
+  const validation = doc.raw ? validateVaultDocument(doc.raw) : null;
   return {
     slug: doc.slug,
     frontmatter: doc.frontmatter,
@@ -435,6 +571,12 @@ function getConcept({ slug }) {
       dependencies: doc.frontmatter.dependencies || [],
       relates: doc.frontmatter.relates || [],
     },
+    // R11 #8 — read-modify-write 흐름에서 caller (AI agent) 가 후속
+    // patch_concept / delete_concept 의 expected_mtime 으로 그대로 넘겨
+    // 외부 변경 감지 가능. ms 단위 fs mtime.
+    mtime: doc.mtime,
+    warnings:
+      validation && validation.issues.length > 0 ? validation.issues : undefined,
   };
 }
 
@@ -495,7 +637,7 @@ const RELATION_KEY = {
   describes: 'describes',
 };
 
-function addRelation({ from, to, type }) {
+function addRelation({ from, to, type, expected_mtime }) {
   if (!from || !to || !type) {
     throw new Error('from, to, and type are all required.');
   }
@@ -520,11 +662,14 @@ function addRelation({ from, to, type }) {
     return { ok: true, alreadyExists: true, from, to, type };
   }
   const next = [...existing, to];
-  patchFrontmatter(VAULT_ROOT, from, { [key]: next });
+  patchFrontmatter(VAULT_ROOT, from, { [key]: next }, {
+    expectedMtime:
+      typeof expected_mtime === 'number' ? expected_mtime : undefined,
+  });
   return { ok: true, from, to, type, key };
 }
 
-function patchConcept({ slug, frontmatter, body }) {
+function patchConcept({ slug, frontmatter, body, expected_mtime }) {
   if (!slug) {
     throw new Error('slug is required.');
   }
@@ -544,7 +689,11 @@ function patchConcept({ slug, frontmatter, body }) {
       throw new Error('title must be a non-empty string.');
     }
   }
-  const filePath = updateDoc(VAULT_ROOT, slug, { frontmatter, body });
+  const filePath = updateDoc(VAULT_ROOT, slug, {
+    frontmatter,
+    body,
+    expectedMtime: typeof expected_mtime === 'number' ? expected_mtime : undefined,
+  });
   return { ok: true, slug, filePath };
 }
 
@@ -607,7 +756,135 @@ function queryConceptsTool({ filter, limit }) {
   };
 }
 
-function deleteConcept({ slug, confirm = false, force = false }) {
+function renameConcept({ oldSlug, newSlug, confirm = false, overwrite = false, expected_mtime }) {
+  if (!oldSlug || !newSlug) {
+    throw new Error('oldSlug and newSlug are both required.');
+  }
+  if (oldSlug === newSlug) {
+    throw new Error('oldSlug and newSlug are identical.');
+  }
+  if (!vaultSlugExists(VAULT_ROOT, oldSlug)) {
+    throw new Error(`Source slug does not exist in vault: "${oldSlug}"`);
+  }
+  if (!overwrite && vaultSlugExists(VAULT_ROOT, newSlug)) {
+    throw new Error(
+      `Target slug already exists: "${newSlug}". Pass overwrite: true to replace it.`,
+    );
+  }
+
+  const sourcePath = slugToPath(VAULT_ROOT, oldSlug);
+  const targetPath = slugToPath(VAULT_ROOT, newSlug);
+  const sourceDoc = readDoc(VAULT_ROOT, sourcePath);
+
+  // R11 closeout — source mtime conflict guard. read 직후 expected 와 비교.
+  if (typeof expected_mtime === 'number' && sourceDoc.mtime !== expected_mtime) {
+    throw new VaultConflictError(oldSlug, expected_mtime, sourceDoc.mtime);
+  }
+
+  // Step 1 — dry-run preview of every backlink rewrite.
+  const preview = redirectBacklinks(VAULT_ROOT, oldSlug, newSlug, { dryRun: true });
+
+  if (!confirm) {
+    return {
+      ok: false,
+      dryRun: true,
+      oldSlug,
+      newSlug,
+      sourcePath,
+      targetPath,
+      moved: false,
+      backlinkUpdates: preview,
+      message: `dry-run — confirm:true 를 주면 파일 이동 + ${preview.totalUpdated} 곳 backlink redirect 가 실제 적용됩니다.`,
+    };
+  }
+
+  // Step 2 — write target with updated frontmatter (slug key reflects new path).
+  const nextFrontmatter = { ...sourceDoc.frontmatter };
+  if (typeof nextFrontmatter.slug === 'string') {
+    nextFrontmatter.slug = newSlug;
+  }
+  mkdirSync(dirname(targetPath), { recursive: true });
+  const md = buildMarkdown({ frontmatter: nextFrontmatter, body: sourceDoc.body });
+  writeFileSync(targetPath, md, 'utf-8');
+
+  // Step 3 — redirect all backlinks (write mode).
+  const result = redirectBacklinks(VAULT_ROOT, oldSlug, newSlug, { dryRun: false });
+
+  // Step 4 — remove the old file last (so partial failure doesn't lose data).
+  if (sourcePath !== targetPath) {
+    unlinkSync(sourcePath);
+  }
+
+  return {
+    ok: true,
+    oldSlug,
+    newSlug,
+    sourcePath,
+    targetPath,
+    moved: true,
+    backlinkUpdates: result,
+  };
+}
+
+function mergeConcepts({ fromSlug, intoSlug, confirm = false, expected_mtime }) {
+  if (!fromSlug || !intoSlug) {
+    throw new Error('fromSlug and intoSlug are both required.');
+  }
+  if (fromSlug === intoSlug) {
+    throw new Error('fromSlug and intoSlug are identical.');
+  }
+  if (!vaultSlugExists(VAULT_ROOT, fromSlug)) {
+    throw new Error(`fromSlug does not exist in vault: "${fromSlug}"`);
+  }
+  if (!vaultSlugExists(VAULT_ROOT, intoSlug)) {
+    throw new Error(`intoSlug does not exist in vault: "${intoSlug}"`);
+  }
+
+  const fromPath = slugToPath(VAULT_ROOT, fromSlug);
+  const fromDoc = readDoc(VAULT_ROOT, fromPath);
+
+  // R11 closeout — fromSlug mtime conflict guard.
+  if (typeof expected_mtime === 'number' && fromDoc.mtime !== expected_mtime) {
+    throw new VaultConflictError(fromSlug, expected_mtime, fromDoc.mtime);
+  }
+
+  const preview = redirectBacklinks(VAULT_ROOT, fromSlug, intoSlug, { dryRun: true });
+
+  if (!confirm) {
+    return {
+      ok: false,
+      dryRun: true,
+      fromSlug,
+      intoSlug,
+      fromPath,
+      deleted: false,
+      backlinkUpdates: preview,
+      capturedFrom: {
+        frontmatter: fromDoc.frontmatter,
+        bodyExcerpt: fromDoc.body.slice(0, 200),
+      },
+      message: `dry-run — confirm:true 를 주면 ${preview.totalUpdated} 곳 backlink redirect 후 ${fromSlug}.md 가 영구 삭제됩니다.`,
+    };
+  }
+
+  const result = redirectBacklinks(VAULT_ROOT, fromSlug, intoSlug, { dryRun: false });
+  unlinkSync(fromPath);
+
+  return {
+    ok: true,
+    fromSlug,
+    intoSlug,
+    fromPath,
+    deleted: true,
+    backlinkUpdates: result,
+    capturedFrom: {
+      frontmatter: fromDoc.frontmatter,
+      body: fromDoc.body,
+    },
+  };
+}
+
+function deleteConcept({ slug, confirm = false, force = false, expected_mtime }) {
   if (!slug) {
     throw new Error('slug is required.');
   }
@@ -642,7 +919,9 @@ function deleteConcept({ slug, confirm = false, force = false }) {
     );
   }
 
-  const deleted = deleteDoc(VAULT_ROOT, slug);
+  const deleted = deleteDoc(VAULT_ROOT, slug, {
+    expectedMtime: typeof expected_mtime === 'number' ? expected_mtime : undefined,
+  });
   return {
     ok: true,
     slug,
