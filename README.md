@@ -123,7 +123,7 @@ becoming graph nodes.
 | **AI agent partner via MCP** | `mcp/` package, 14 tools, `mcp/scripts/verify.mjs` smoke |
 | **No backend** (Firebase / DB / auth) | `pnpm bundle:check` — firebase SDK chunk 0 (deps removed in R10) |
 | **Dogfooding** | `docs/ontology/` is the project's own curated mental model (~21 nodes — domains 6 · capabilities 9 · elements 4 · project 1 · vault-readme 1). |
-| **AI agent quality measurement** *(cross-agent, n=1 confirmed + 1 unmeasurable)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks × 3 categories × 2 agents. **Claude Code**: MCP-on cuts hallucinations 9 → 0, Cat A correctness +1.0 ([results](docs/benchmark/results/2026-05-04-claude-code.md)). **Codex**: `codex exec` (non-interactive) structurally default-denies MCP tool calls regardless of `--sandbox` setting — needs interactive mode or explicit bypass to genuinely measure ([results](docs/benchmark/results/2026-05-04-codex.md)). |
+| **AI agent quality measurement** *(cross-agent, n=2 measured)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks × 3 categories × 2 agents. **Claude Code**: MCP-on cuts hallucinations 9 → 0, Cat A correctness +1.0 (quality win) ([results](docs/benchmark/results/2026-05-04-claude-code.md)). **Codex** (bypass-authorized): MCP-on cuts Cat A tool calls 7.0 → 1.67 (76% reduction; efficiency win), correctness already saturated OFF ([results](docs/benchmark/results/2026-05-04-codex.md)). MCP delivers value to both agents through *different mechanisms*. Negative control (Cat C) passes for both — agents correctly defer to Read/Grep on file-read tasks. |
 
 ## Architecture
 
