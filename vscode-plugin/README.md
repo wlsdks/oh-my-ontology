@@ -92,7 +92,7 @@ different folder via the Activity Bar header to override.
 
 ## Status
 
-**v0.8.0 — graph webview.** Working features:
+**v0.9.0 — graph webview removed.** Working features:
 
 - Activity Bar entry + Ontology TreeView grouped by `kind`
 - **Backlinks panel (v0.4.0)** — second TreeView under Activity Bar, populated by `find_backlinks` against the node matching the current editor.
@@ -106,11 +106,11 @@ different folder via the Activity Bar header to override.
 - **Headless e2e harness (v0.5.0)** — `npm run test:e2e` downloads VSCode (cached in `.vscode-test/`) and runs the plugin in a real extension host. Verifies activation, command registration, configuration schema, and contributes. CI runs the same suite under `xvfb-run` so future PRs that break the integration get caught automatically.
 - **Informative status bar (v0.6.0)** — the status bar is no longer hidden when no node owns the active file. Four states surface the plugin's state: (a) no workspace, (b) no vault picked → click to pick, (c) vault loaded · no editor or no match → dim hint with node count, (d) match → kind icon + title (clickable). The plugin always lets you know it's alive.
 - **Rename + merge concepts (v0.7.0)** — `oh-my-ontology: Rename concept` and `oh-my-ontology: Merge concepts` from the Command Palette. Both invoke MCP write tools (`rename_concept` / `merge_concepts`) with the **dry-run + confirm** pattern: first call shows you exactly which files will change, second call (after modal confirm) commits. Atomic backlink redirect for rename. Merge is destructive (deletes `fromSlug.md`) and requires "Confirm merge (destructive)" in the modal.
-- **Graph webview (v0.8.0–v0.8.1)** — `oh-my-ontology: Open graph` (or the graph icon at the top of the tree view). Opens a cytoscape + dagre graph in a side editor tab — split with your code so you can navigate the ontology visually while editing. Click a node → its `.md` opens in the main editor. **v0.8.1 adds**: hover tooltip (kind / slug / domain / path), search box with focus + dim non-matches, active-editor sync (current file's matched node glows in the graph), live update on vault refresh, panel reuse (re-running `Open graph` reveals the existing tab). Toolbar `Fit` / `Relayout`.
+
+**Removed in v0.9.0:** the in-IDE graph webview (cytoscape + dagre, R13 #63–#66). Visual graph navigation is the **web workbench's** job — `pnpm dev` and open `/topology`. The plugin's role is the *list-based* IDE-side companion: tree, status bar match, backlinks, and write commands. See `docs/CHANGELOG.md` (R13) for the full reasoning.
 
 **Not yet:**
 
-- patch-concept / rename-concept / merge-concepts (other write tools)
 - Marketplace publishing
 
 The frontmatter parser is the same lenient one shared across CLI / MCP
