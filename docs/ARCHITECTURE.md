@@ -38,17 +38,36 @@ tags: [architecture, infra, overview]
        ↑ stdio JSON-RPC
 
 ┌────────────────────────────────────────────────────────┐
-│ MCP server (mcp/)                                       │
-│ ├─ 8 read tools   list_concepts · get_concept · ...    │
-│ └─ 4 write tools  add_concept · add_relation · ...     │
+│ MCP server (mcp/, v0.7.0 — R11)                         │
+│ ├─ 8 read tools   list_concepts · get_concept ·        │
+│ │                  find_evidence · find_backlinks ·     │
+│ │                  find_path · list_kinds ·             │
+│ │                  find_orphans · query_concepts        │
+│ └─ 6 write tools  add_concept · add_relation ·         │
+│                    patch_concept · delete_concept ·     │
+│                    rename_concept · merge_concepts (R11)│
 │                                                         │
 │ AI agent (Claude Code, Cursor, …) reads/writes the     │
 │ same vault directory the user picked in /docs.         │
 └────────────────────────────────────────────────────────┘
+
+       ↑ stdio JSON-RPC (separate process)
+
+┌────────────────────────────────────────────────────────┐
+│ CLI (cli/, v0.2.0 — R12)                               │
+│ ├─ init [folder]              scaffold a vault         │
+│ ├─ list [vault]               list nodes (filters)     │
+│ ├─ validate [vault]           frontmatter integrity    │
+│ ├─ add <kind> <slug>          scaffold a node          │
+│ └─ find <query> [vault]       search slug + title      │
+│                                                         │
+│ Developer-primary daily entry point. Same `.md` files. │
+└────────────────────────────────────────────────────────┘
 ```
 
 There is no backend, no database, no auth provider. The user's markdown
-folder is the single source of truth.
+folder is the single source of truth. Both the MCP server (AI agent) and
+the CLI (developer) read/write that single source.
 
 ## FSD layers
 
@@ -121,9 +140,11 @@ All routes are wrapped under `/[locale]/` by next-intl (en, ko).
 pnpm docs-vault:build      # docs/ontology/*.md → src/entities/docs-vault/data/manifest.json
 pnpm build                 # next build → static export → out/
 pnpm bundle:check          # verifies firebase SDK chunk = 0 across user-facing routes
+pnpm vault:validate        # R11 — frontmatter integrity (5 issue codes; CI gate)
+pnpm vault:migrate --list  # R11 — schema migration runner (dry-run default)
 ```
 
-The `docs-vault:build` step is automatic via `predev` and `prebuild` npm hooks.
+The `docs-vault:build` step is automatic via `predev` and `prebuild` npm hooks. `vault:validate` runs in CI on every PR (`.github/workflows/ci.yml`).
 
 ## i18n routing contract
 
