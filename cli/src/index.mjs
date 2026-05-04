@@ -50,6 +50,8 @@ ${COLORS.bold}Usage:${COLORS.reset}
   npx oh-my-ontology add <kind> <slug>        Scaffold a new ontology node (.md)
        --title "..."                          ${COLORS.dim}required, non-empty${COLORS.reset}
        --domain X --body "..." --vault path   ${COLORS.dim}optional${COLORS.reset}
+  npx oh-my-ontology find <query> [vault]     Search slug + title (case-insensitive)
+       --kind X --json                        ${COLORS.dim}optional${COLORS.reset}
   npx oh-my-ontology --help                   Show this help
   npx oh-my-ontology --version                Print version
 
@@ -199,6 +201,11 @@ if (SUBCOMMAND === 'validate') {
 if (SUBCOMMAND === 'add') {
   const { runAdd } = await import('./commands/add.mjs');
   exit(runAdd(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'find') {
+  const { runFind } = await import('./commands/find.mjs');
+  exit(runFind(ARGS.slice(1)));
 }
 
 fail(`unknown command: ${SUBCOMMAND}`);
