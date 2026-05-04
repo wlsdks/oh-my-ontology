@@ -34,10 +34,9 @@ import { Tooltip, useToast } from '@/shared/ui';
 import { buildDocsVaultPopoutHtml } from '../lib/popout-template';
 import { useAdvancedMenu } from '../lib/use-advanced-menu';
 import { useDocsVaultScrollSpy } from '../lib/use-scroll-spy';
+import { useFolderTopo } from '../lib/use-folder-topo';
 import {
   buildDocsVaultHref,
-  buildTopologyFromVault,
-  type FolderTopologyBuild,
   vaultManifest,
   type VaultManifest,
 } from '@/entities/docs-vault';
@@ -113,14 +112,7 @@ function DocsVaultContent() {
     setOpen: setAdvancedOpen,
     ref: advancedMenuRef,
   } = useAdvancedMenu();
-  const [folderTopo, setFolderTopo] = useState<FolderTopologyBuild | null>(
-    null,
-  );
-  const [folderTopoError, setFolderTopoError] = useState<string | null>(null);
-  const [folderTopoStatus, setFolderTopoStatus] = useState<
-    'idle' | 'rebuilding' | 'fresh'
-  >('idle');
-  const freshResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // R11 #16 step 3 — folder-topology build 흐름은 useFolderTopo hook 으로 캡슐화.
   const [highlightQuery, setHighlightQuery] = useState<string | undefined>(
     undefined,
   );
@@ -143,7 +135,9 @@ function DocsVaultContent() {
       setAdvancedOpen(true);
     }
     // mount 1회만 — 사용자가 직접 닫은 후 reload 시 다시 안 열리게.
-  }, []);
+    // setAdvancedOpen 은 useAdvancedMenu 의 useCallback wrap 결과라 ref-stable
+    // 이지만 ESLint 가 destructured method 의 stability 추적 못 해 명시.
+  }, [setAdvancedOpen]);
   const [mobileTreeOpen, setMobileTreeOpen] = useState(false);
   const localVault = useLocalVault();
   const toast = useToast();
@@ -196,7 +190,7 @@ function DocsVaultContent() {
       replaceUrlState({ view: next });
       setAdvancedOpen(false);
     },
-    [replaceUrlState],
+    [replaceUrlState, setAdvancedOpen],
   );
 
   // 현재 활성 볼트의 recent namespace key. 로컬 폴더 이름이 핸들에서
@@ -293,7 +287,7 @@ function DocsVaultContent() {
     if (next === 'local' && localVault.status !== 'loaded') {
       setAdvancedOpen(true);
     }
-  }, [replaceUrlState, view, localVault.status]);
+  }, [replaceUrlState, view, localVault.status, setAdvancedOpen]);
 
   // 현재 활성 매니페스트 — source 에 따라 분기. 로컬은 loaded 이전엔 null.
   const manifest: VaultManifest =
@@ -399,69 +393,12 @@ function DocsVaultContent() {
     }
   }, [canEditCurrent, selectedSlug, manifest, localVault, recentKey, t]);
 
-  // Folder-Topology 빌드 — projects/*.md + categories.md + statuses.md 로드
-  // → parser 호출. source==='local' 이고 vault 에 projects/ 가 있을 때만.
-  const buildFolderTopology = useCallback(async () => {
-    if (source !== 'local') return;
-    setFolderTopoError(null);
-    setFolderTopoStatus('rebuilding');
-    try {
-      const projectSlugs = manifest.docs
-        .filter((d) => d.slug.startsWith('projects/'))
-        .map((d) => d.slug);
-      if (projectSlugs.length === 0) {
-        setFolderTopo(null);
-        return;
-      }
-      const loadRaw = async (slug: string) => {
-        const fh = localVault.fileHandles.get(slug);
-        if (!fh) throw new Error(`no handle: ${slug}`);
-        const file = await fh.getFile();
-        return file.text();
-      };
-      const categoriesFh = localVault.fileHandles.get('categories');
-      const statusesFh = localVault.fileHandles.get('statuses');
-      const categoriesRaw = categoriesFh
-        ? await (await categoriesFh.getFile()).text()
-        : undefined;
-      const statusesRaw = statusesFh
-        ? await (await statusesFh.getFile()).text()
-        : undefined;
-      const build = await buildTopologyFromVault({
-        projectSlugs,
-        loadRaw,
-        categoriesRaw,
-        statusesRaw,
-      });
-      setFolderTopo(build);
-      // 갱신 완료 feedback — 2초간 "fresh" 표시 후 idle 로.
-      setFolderTopoStatus('fresh');
-      if (freshResetTimerRef.current) clearTimeout(freshResetTimerRef.current);
-      freshResetTimerRef.current = setTimeout(
-        () => setFolderTopoStatus('idle'),
-        2000,
-      );
-    } catch (err) {
-      setFolderTopoError(
-        err instanceof Error ? err.message : String(err),
-      );
-      setFolderTopo(null);
-      setFolderTopoStatus('idle');
-    }
-  }, [source, manifest, localVault]);
-
-  useEffect(
-    () => () => {
-      if (freshResetTimerRef.current) clearTimeout(freshResetTimerRef.current);
-    },
-    [],
-  );
-
-  // view='folder-topology' 로 전환되거나 manifest 가 refresh 되면 자동 빌드.
-  useEffect(() => {
-    if (view !== 'folder-topology') return;
-    scheduleStateSync(() => void buildFolderTopology());
-  }, [view, buildFolderTopology]);
+  const {
+    folderTopo,
+    folderTopoError,
+    folderTopoStatus,
+    buildFolderTopology,
+  } = useFolderTopo({ source, view, manifest, localVault });
 
   /**
    * Folder-Topology 에서 "+ 프로젝트" 버튼 — 새 projects/{slug}.md 를

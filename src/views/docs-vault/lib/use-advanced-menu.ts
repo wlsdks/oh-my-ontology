@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * R11 #16 step 2 — DocsVaultPage 의 advanced dropdown menu state machine 추출.
@@ -16,8 +16,15 @@ import { useEffect, useRef, useState } from 'react';
  * shared/lib 로 승격 (현재는 사용처 1, over-engineering 회피).
  */
 export function useAdvancedMenu() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpenInternal] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  // ESLint 의 react-hooks/exhaustive-deps 가 useState setter 를 hook 결과
+  // (= 객체 method) 에서 stability 추적 못 하므로 useCallback 으로 wrap —
+  // ref-stable 명시. setState setter 는 본래 stable 이라 기능 영향 0.
+  const setOpen = useCallback<typeof setOpenInternal>(
+    (next) => setOpenInternal(next),
+    [],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -26,10 +33,10 @@ export function useAdvancedMenu() {
       if (target instanceof Node && ref.current?.contains(target)) {
         return;
       }
-      setOpen(false);
+      setOpenInternal(false);
     };
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') setOpenInternal(false);
     };
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('keydown', handleKeyDown);
