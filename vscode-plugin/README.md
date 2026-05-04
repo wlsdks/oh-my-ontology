@@ -70,16 +70,16 @@ different folder via the Activity Bar header to override.
 
 ## Status
 
-**v0.1.0 — minimal viable plugin.** Working features:
+**v0.2.0 — code↔ontology jump.** Working features:
 
 - Activity Bar entry + TreeView grouped by `kind`
 - Auto-detect `docs/ontology/` in workspace
 - Pick-vault dialog (persisted across sessions)
 - Click node → open `.md`
+- **Status bar match (v0.2.0)** — when the active editor is a file owned by an ontology node (matched by `path:` frontmatter or capability `elements:` array), the status bar shows the node title. Click → jump to the node's `.md`.
 
 **Not yet:**
 
-- File-link backlinks (open the source file an element points at)
 - Add-concept / patch-concept commands (write surface)
 - MCP server connection (use raw filesystem read for now)
 - Marketplace publishing
