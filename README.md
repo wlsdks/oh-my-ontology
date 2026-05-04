@@ -123,7 +123,7 @@ becoming graph nodes.
 | **AI agent partner via MCP** | `mcp/` package, 14 tools, `mcp/scripts/verify.mjs` smoke |
 | **No backend** (Firebase / DB / auth) | `pnpm bundle:check` — firebase SDK chunk 0 (deps removed in R10) |
 | **Dogfooding** | `docs/ontology/` is the project's own curated mental model (~21 nodes — domains 6 · capabilities 9 · elements 4 · project 1 · vault-readme 1). |
-| **AI agent quality measurement** *(in progress)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks across 3 categories (cross-cutting / semantic / negative-control), measured on Claude Code + Codex with MCP off vs on. The single biggest unverified premise: that the ontology actually helps. |
+| **AI agent quality measurement** *(first data point)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks × 3 categories. Claude Code self-run 2026-05-04: MCP-on cuts hallucinations 9 → 0, Cat A correctness +1.0, tool calls 4.3 → 1.0, Cat C neutral (negative control passes). [Full results](docs/benchmark/results/2026-05-04-claude-code.md). Codex 14 cells pending human run. |
 
 ## Architecture
 
