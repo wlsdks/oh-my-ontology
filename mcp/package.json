@@ -20,7 +20,12 @@
   },
   "main": "./src/index.js",
   "files": [
-    "src",
+    "src/index.js",
+    "src/parser.mjs",
+    "src/parser.test.mjs",
+    "src/query.mjs",
+    "src/validate.mjs",
+    "src/vault.mjs",
     "scripts/verify.mjs",
     "README.md"
   ],
