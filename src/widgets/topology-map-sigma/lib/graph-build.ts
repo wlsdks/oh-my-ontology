@@ -149,6 +149,13 @@ export function buildGraph(
      * 방지). 일반 project 만 받음.
      */
     ontologyCountsBySlug?: Map<string, OntologyCountsForProject>;
+    /**
+     * R13 #70 — runtime diff highlight. polling 으로 방금 들어온 (또는
+     * 갱신된) project slug 들. 이 set 안의 노드는 calendar-time 기준의
+     * recentlyUpdated 와 OR — 그래서 매우 오래 전 만든 노드여도 사용자가
+     * 방금 .md 를 추가했으면 pulse. 기본 비어있음 = 기존 동작 유지.
+     */
+    runtimeRecentSlugs?: ReadonlySet<string>;
   },
 ): Graph<SigmaNodeAttrs, SigmaEdgeAttrs> {
   const graph = new Graph<SigmaNodeAttrs, SigmaEdgeAttrs>({ type: 'directed', multi: false });
@@ -174,7 +181,9 @@ export function buildGraph(
   projects.forEach((project, index) => {
     const theta = jitter(index) * Math.PI * 2;
     const r = jitter(index + 7) * 40;
-    const recent = isProjectRecentlyUpdated(project, 7);
+    const recent =
+      isProjectRecentlyUpdated(project, 7) ||
+      options?.runtimeRecentSlugs?.has(project.slug) === true;
 
     // O-9b: 일반 project 노드 (hub 제외) 만 ontology 도미넌트 kind 에 따라
     // borderColor 분기. fill 은 분기 안 함 — 헌장 "허브만 유일한 채색" +
