@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${CSP_SOURCE}; style-src ${CSP_SOURCE} 'unsafe-inline'; font-src ${CSP_SOURCE};" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${CSP_SOURCE} 'nonce-${NONCE}'; style-src ${CSP_SOURCE} 'unsafe-inline'; font-src ${CSP_SOURCE}; img-src ${CSP_SOURCE} data:;" />
     <style>
       :root {
         color-scheme: light dark;
@@ -53,10 +53,10 @@
     </div>
     <div id="cy"></div>
     <div id="tooltip" role="tooltip"></div>
-    <script src="${CYTOSCAPE_URI}"></script>
-    <script src="${DAGRE_URI}"></script>
-    <script src="${CY_DAGRE_URI}"></script>
-    <script>
+    <script nonce="${NONCE}" src="${CYTOSCAPE_URI}"></script>
+    <script nonce="${NONCE}" src="${DAGRE_URI}"></script>
+    <script nonce="${NONCE}" src="${CY_DAGRE_URI}"></script>
+    <script nonce="${NONCE}">
       const vscode = acquireVsCodeApi();
       cytoscape.use(cytoscapeDagre);
 
