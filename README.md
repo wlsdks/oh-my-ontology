@@ -41,11 +41,12 @@ Three claims:
 
 1. **Markdown frontmatter is enough** — `kind: capability`, `domain: auth`,
    `depends_on: [...]` is the entire schema. No DB, no backend, no auth.
-2. **Humans and AI share one source of truth** — both edit the same `.md`
-   files. No "AI memory" silo. Non-developers contribute by editing markdown.
-3. **The MCP server is the AI's only interface** — 8 read + 4 write tools
-   over JSON-RPC. The agent doesn't need to "ingest your codebase"; it
-   reads the ontology you've already built.
+2. **Developer + AI agent share one source of truth** — both edit the same
+   `.md` files. The developer authors via CLI / web UI / (planned) VSCode
+   plugin; the AI agent reads + writes via MCP. Same git repo, same diff.
+3. **MCP server gives the AI its only interface** — **14 tools** (8 read +
+   6 write) over JSON-RPC. The agent doesn't need to "ingest your codebase";
+   it reads the ontology the developer already curates.
 
 ## Why we built this
 
@@ -53,14 +54,15 @@ Codebases keep growing. AI assistants can suggest code, but they don't
 *understand* the project's mental model — every conversation starts from
 zero. Existing solutions tie that knowledge to one vendor's memory store
 (Cursor's chats, Claude's projects). We wanted something **portable,
-plain-text, and non-developer accessible**: vault frontmatter you can
-edit in Obsidian, commit to git, and an AI agent reads via a tiny MCP
-server.
+plain-text, and lives next to the code**: vault frontmatter you commit
+to git, and the AI agent reads via a tiny MCP server.
 
-The non-developer angle matters. PMs, designers, and domain experts can
-read and edit the same markdown — they don't need to learn the codebase,
-they just contribute to its mental model. Their edits become input the
-AI uses when planning the next feature.
+The primary audience is the **developer + their AI agent** (R12, 2026-05).
+The developer is already in the codebase — the cost of authoring frontmatter
+is low. Their AI agent (Claude Code, Cursor) is the *real* daily user of
+the 14 MCP tools — it needs ground-truth structure to give better answers,
+and without a developer maintaining it, the ontology rots. PM/designer
+friendliness is a side effect of plain markdown, not a target.
 
 ## Three views, one vault
 
