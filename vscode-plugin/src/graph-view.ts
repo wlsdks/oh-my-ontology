@@ -106,12 +106,27 @@ function renderHtml(
   const cytoscapeUri = mediaUri("cytoscape.min.js").toString();
   const dagreUri = mediaUri("dagre.min.js").toString();
   const cyDagreUri = mediaUri("cytoscape-dagre.js").toString();
+  // R13 #66 — CSP fix. Inline scripts need a nonce; without it, the
+  // webview shows the toolbar (HTML loads fine) but the cytoscape init
+  // script is silently blocked → graph stays at "loading…".
+  const nonce = generateNonce();
 
   const templatePath = path.join(extensionUri.fsPath, "media", "graph.html");
   const template = fs.readFileSync(templatePath, "utf-8");
   return template
     .replaceAll("${CSP_SOURCE}", webview.cspSource)
+    .replaceAll("${NONCE}", nonce)
     .replaceAll("${CYTOSCAPE_URI}", cytoscapeUri)
     .replaceAll("${DAGRE_URI}", dagreUri)
     .replaceAll("${CY_DAGRE_URI}", cyDagreUri);
+}
+
+function generateNonce(): string {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "";
+  for (let i = 0; i < 32; i += 1) {
+    out += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return out;
 }
