@@ -4,8 +4,8 @@ kind: capability
 title: Frontmatter → Ontology Stub
 domain: ontology-core
 elements:
-  - src/shared/lib/parse-frontmatter
-  - src/entities/docs-vault/lib/derive-ontology-from-vault
+  - src/shared/lib/parse-frontmatter.ts
+  - src/entities/docs-vault/lib/derive-ontology-from-vault.ts
 relates:
   - domains/vault-local-first
   - domains/ontology-core

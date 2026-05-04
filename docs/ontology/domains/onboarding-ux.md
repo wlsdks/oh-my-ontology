@@ -7,8 +7,8 @@ capabilities:
   - vscode-plugin-ide-entry
 elements:
   - src/features/theme-toggle
-  - src/shared/ui/toast
-  - src/shared/ui/live-announcer
+  - src/shared/ui/toast.tsx
+  - src/shared/ui/live-announcer.tsx
   - src/widgets/bottom-tab-bar
   - src/widgets/gesture-hint
 relates:

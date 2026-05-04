@@ -47,6 +47,9 @@ jobs:
       - name: Vault validate (dogfood frontmatter integrity)
         run: pnpm vault:validate
 
+      - name: Vault paths audit (capability/element 의 path 가 실 코드 일치)
+        run: pnpm vault:audit
+
       # vscode-plugin v0.5.0 (R13 #49–#54). Run unit + MCP-integration
       # tests, headless e2e via @vscode/test-electron, and verify the
       # plugin packages cleanly into a .vsix so we catch
