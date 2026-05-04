@@ -152,22 +152,26 @@ ${COLORS.green}${COLORS.bold}done${COLORS.reset} — vault scaffolded.
 
 ${COLORS.bold}Next steps:${COLORS.reset}
 
-  ${COLORS.dim}1.${COLORS.reset} Open the vault folder in your editor:
+  ${COLORS.dim}1.${COLORS.reset} ${COLORS.bold}Explore the vault from the terminal:${COLORS.reset}
        ${COLORS.cyan}cd ${target}${COLORS.reset}
-       ${COLORS.cyan}\$EDITOR .${COLORS.reset}
+       ${COLORS.cyan}oh-my-ontology list${COLORS.reset}                        ${COLORS.dim}# 5 starter nodes${COLORS.reset}
+       ${COLORS.cyan}oh-my-ontology validate${COLORS.reset}                    ${COLORS.dim}# frontmatter integrity${COLORS.reset}
 
-  ${COLORS.dim}2.${COLORS.reset} Edit ${COLORS.bold}project.md${COLORS.reset} — set your project's name and description.
+  ${COLORS.dim}2.${COLORS.reset} ${COLORS.bold}Add your first node:${COLORS.reset}
+       ${COLORS.cyan}oh-my-ontology add capability auth/token-issue --title="Token issue" --domain=auth${COLORS.reset}
+       ${COLORS.cyan}oh-my-ontology find token${COLORS.reset}                  ${COLORS.dim}# verify it shows up${COLORS.reset}
+
+  ${COLORS.dim}3.${COLORS.reset} ${COLORS.bold}Edit project.md${COLORS.reset} — set your project's real name + description.
        Then add domains / capabilities / elements as you discover them.
 
-  ${COLORS.dim}3.${COLORS.reset} Wire it up to an AI agent (Claude Code, Cursor, …):
+  ${COLORS.dim}4.${COLORS.reset} ${COLORS.bold}Wire it up to an AI agent${COLORS.reset} (Claude Code, Cursor, …):
        Copy ${COLORS.bold}.mcp.json.example${COLORS.reset} to your agent's MCP config
        (e.g. \`~/.config/claude-code/mcp.json\`). Restart the agent — you'll
-       see the ${COLORS.bold}oh-my-ontology${COLORS.reset} namespace with read/write tools.
+       see the ${COLORS.bold}oh-my-ontology${COLORS.reset} namespace with 14 tools (8 read + 6 write).
 
-  ${COLORS.dim}4.${COLORS.reset} See the graph (optional):
-       Visit ${COLORS.bold}https://oh-my-ontology.web.app${COLORS.reset} (read-only static demo)
-       OR clone the workbench: ${COLORS.cyan}git clone https://github.com/wlsdks/oh-my-ontology${COLORS.reset}
-       and point its ${COLORS.bold}/docs${COLORS.reset} picker at this folder.
+  ${COLORS.dim}5.${COLORS.reset} ${COLORS.bold}See the graph${COLORS.reset} (optional, web UI):
+       ${COLORS.cyan}git clone https://github.com/wlsdks/oh-my-ontology${COLORS.reset}
+       Point its ${COLORS.bold}/docs${COLORS.reset} picker at this vault.
 
 ${COLORS.dim}AI agents and humans now share the same vault. Have fun.${COLORS.reset}
 `);
