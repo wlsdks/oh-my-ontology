@@ -10,7 +10,7 @@ elements:
   - src/features/docs-vault-local
   - src/entities/local-fs-handle
   - src/entities/docs-vault
-  - src/shared/lib/idb-kv
+  - src/shared/lib/idb-kv.ts
 relates:
   - domains/mode-aware-adapters
   - domains/ontology-core

@@ -7,7 +7,7 @@ capabilities:
 elements:
   - src/entities/ontology-class
   - src/entities/knowledge-graph
-  - src/entities/docs-vault/lib/derive-ontology-from-vault
+  - src/entities/docs-vault/lib/derive-ontology-from-vault.ts
 relates:
   - domains/vault-local-first
   - domains/views
