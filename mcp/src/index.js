@@ -62,6 +62,11 @@ import { mkdirSync } from 'node:fs';
 import { buildMarkdown } from './parser.mjs';
 import { parseFilter } from './query.mjs';
 import { isValidVaultTitle, validateVaultDocument } from './validate.mjs';
+import {
+  buildFrontmatter,
+  defaultBody,
+  missingExpectedFields,
+} from './schema.mjs';
 
 const VAULT_ROOT = resolve(process.env.OMOT_VAULT || process.cwd());
 // import-time throw 면 stdio transport 가 붙기 전 stack trace 가 stderr 로
@@ -183,7 +188,11 @@ const TOOLS = [
     description:
       'Create a new ontology node (.md file). Call when an AI agent finds a new ' +
       'capability / element / project from code analysis. Throws if the slug ' +
-      'already exists — use patch_concept in that case.',
+      'already exists — use patch_concept in that case. The frontmatter is ' +
+      'normalized per kind (project gets `domains/capabilities/elements` empty ' +
+      'arrays; capability gets `elements: []`; capability/element should also ' +
+      'set `domain:` so the tree has a parent — missing extras come back as ' +
+      '`warnings` in the response, not as an error.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -194,20 +203,24 @@ const TOOLS = [
           description: 'project / domain / capability / element / document. (vault-readme is reserved for the auto-generated README.md and should not be set by agents.)',
         },
         title: { type: 'string', description: 'Display title for the node.' },
-        domain: { type: 'string', description: 'Parent domain slug (optional).' },
+        domain: {
+          type: 'string',
+          description:
+            'Parent domain slug. Strongly expected for kind=capability and kind=element — without it the node floats orphaned in the tree.',
+        },
         capabilities: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Capability slugs this node owns (project nodes).',
+          description: 'Capability slugs this node owns (project / domain).',
         },
         elements: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Element slugs this node uses (project nodes).',
+          description: 'Element slugs this node uses (project / capability).',
         },
         body: {
           type: 'string',
-          description: 'Markdown body (optional). Defaults to `# {title}` when omitted.',
+          description: 'Markdown body (optional). When omitted a kind-specific starter body is written so the file is self-explanatory in the editor.',
         },
       },
       required: ['slug', 'kind', 'title'],
@@ -660,15 +673,32 @@ function addConcept({ slug, kind, title, domain, capabilities, elements, body })
       `Unknown kind: ${kind}. project / domain / capability / element / document 중 하나여야 합니다.`,
     );
   }
-  const fm = { slug, kind, title };
-  if (domain) fm.domain = domain;
-  if (capabilities && capabilities.length > 0) fm.capabilities = capabilities;
-  if (elements && elements.length > 0) fm.elements = elements;
+  // R14 — schema 가 kind 별 양식 (project: domains/capabilities/elements 빈
+  // 배열, capability: elements 빈 배열, …) 을 채워 호출자가 부분 정보만 줘도
+  // 일관된 frontmatter 가 디스크에 남도록. CLI add 와 같은 schema 모듈을
+  // 공유 (contract test 가 drift 차단).
+  const fm = buildFrontmatter({
+    slug,
+    kind,
+    title,
+    domain,
+    capabilities,
+    elements,
+  });
   const filePath = writeDoc(VAULT_ROOT, slug, {
     frontmatter: fm,
-    body: body || `# ${title}\n`,
+    body: body || defaultBody(kind, title),
   });
-  return { ok: true, slug, filePath };
+  // schema 의 requiredExtras 누락 검사 → 응답에 advisory 로 포함.
+  // throw 하지 않음 — agent 흐름 자연스럽게, 사용자가 후속 patch_concept 로
+  // 보완 가능. (capability/element 의 domain 누락 등이 흔한 케이스)
+  const missing = missingExpectedFields(kind, fm);
+  return {
+    ok: true,
+    slug,
+    filePath,
+    ...(missing.length > 0 ? { warnings: missing.map((k) => `expected field "${k}" missing for kind "${kind}"`) } : {}),
+  };
 }
 
 const RELATION_KEY = {
