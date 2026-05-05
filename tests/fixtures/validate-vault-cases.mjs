@@ -21,9 +21,17 @@ export const VALIDATE_CASES = [
     expectedOk: true,
   },
   {
-    name: 'canonical kind = capability — clean',
-    input: '---\nkind: capability\ntitle: Cap\n---\n',
+    // R14 — capability/element 는 domain 없으면 missing-expected-field warning.
+    // domain 까지 채운 경우가 'clean' baseline.
+    name: 'canonical kind = capability — clean (with domain)',
+    input: '---\nkind: capability\ntitle: Cap\ndomain: domains/auth\n---\n',
     expectedCodes: [],
+    expectedOk: true,
+  },
+  {
+    name: 'capability without domain → missing-expected-field warning',
+    input: '---\nkind: capability\ntitle: Cap\n---\n',
+    expectedCodes: ['missing-expected-field'],
     expectedOk: true,
   },
   {

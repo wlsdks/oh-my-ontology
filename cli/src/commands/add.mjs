@@ -1,25 +1,20 @@
 import { resolve, relative } from 'node:path';
 import { writeDoc } from '../lib/write-vault.mjs';
+import {
+  VAULT_KINDS,
+  buildFrontmatter,
+  defaultBody,
+  folderForKind,
+  missingExpectedFields,
+} from '../lib/schema.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
   red: '\x1b[31m',
+  yellow: '\x1b[33m',
   dim: '\x1b[2m',
   bold: '\x1b[1m',
   reset: '\x1b[0m',
-};
-
-const KNOWN_KINDS = ['project', 'domain', 'capability', 'element', 'document'];
-
-// R12 #37 — `--auto-prefix` opt-in 시 kind → folder 자동 prefix.
-// dogfood vault 패턴 (`capabilities/foo`, `domains/auth`, `elements/jwt`) 따름.
-// project / document 는 prefix 없음 (root level).
-const KIND_FOLDER = {
-  project: '',
-  domain: 'domains/',
-  capability: 'capabilities/',
-  element: 'elements/',
-  document: '',
 };
 
 /**
@@ -41,29 +36,36 @@ export function runAdd(args) {
 
   // R12 #37 — opt-in folder prefix (capability → capabilities/foo).
   // 사용자가 이미 prefix 명시 (`capabilities/foo`) 한 경우 두 번 적용 회피.
-  const folder = KIND_FOLDER[kind] || '';
+  // R14 — folder mapping 은 schema.mjs 의 single source 사용 (mcp 와 일치).
+  const folder = folderForKind(kind);
   const slug =
     autoPrefix && folder && !rawSlug.startsWith(folder)
       ? `${folder}${rawSlug}`
       : rawSlug;
 
-  const fm = {
-    slug,
-    kind,
-    title,
-  };
-  if (domain) fm.domain = domain;
+  // R14 — schema 가 kind 별 양식 (project: domains/capabilities/elements 빈
+  // 배열, capability: elements 빈 배열) 자동 채움. AI agent 의 add_concept
+  // 과 동일 결과 → 두 진입점이 항상 같은 frontmatter 모양 만든다.
+  const fm = buildFrontmatter({ slug, kind, title, domain });
 
   try {
     const filePath = writeDoc(vaultPath, slug, {
       frontmatter: fm,
-      body: body || `# ${title}\n`,
+      body: body || defaultBody(kind, title),
     });
     const rel = relative(process.cwd(), filePath);
     console.log(
       `${COLORS.green}ok${COLORS.reset}    ${rel}\n` +
         `${COLORS.dim}      ${kind} · ${slug}${domain ? ` · domain=${domain}` : ''}${COLORS.reset}`,
     );
+    // schema 의 requiredExtras 누락 (capability/element 의 domain 등) 은
+    // advisory warning 으로 출력 — 사용자가 후속에 채울 수 있게.
+    const missing = missingExpectedFields(kind, fm);
+    for (const key of missing) {
+      process.stderr.write(
+        `${COLORS.yellow}warn${COLORS.reset}  expected field "${key}" missing for kind "${kind}" — add it later with --domain or by editing the file.\n`,
+      );
+    }
     return 0;
   } catch (err) {
     process.stderr.write(
@@ -97,9 +99,9 @@ function parseArgs(args) {
     return { error: 'kind and slug are required' };
   }
   const [kind, slug] = positional;
-  if (!KNOWN_KINDS.includes(kind)) {
+  if (!VAULT_KINDS.includes(kind)) {
     return {
-      error: `unknown kind: ${kind}. one of ${KNOWN_KINDS.join(' / ')}`,
+      error: `unknown kind: ${kind}. one of ${VAULT_KINDS.join(' / ')}`,
     };
   }
   if (!flags.title || flags.title.trim() === '') {
@@ -120,7 +122,7 @@ function printAddUsage() {
   process.stderr.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology add <kind> <slug> --title="..." [--domain X] [--body "..."] [--vault path]\n` +
-      `\n${COLORS.bold}kind:${COLORS.reset} ${KNOWN_KINDS.join(' / ')}\n` +
+      `\n${COLORS.bold}kind:${COLORS.reset} ${VAULT_KINDS.join(' / ')}\n` +
       `\nExample:\n` +
       `  oh-my-ontology add capability auth/token-issue --title="Token issue" --domain=auth\n`,
   );

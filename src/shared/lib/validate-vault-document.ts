@@ -19,7 +19,22 @@ export type VaultIssueCode =
   | "empty-kind"
   | "missing-kind"
   | "unknown-kind"
+  | "missing-expected-field"
   | "parse-zero-keys";
+
+/**
+ * R14 — kind 별 "있어야 좋은" 필드 dict. mcp/src/schema.mjs &
+ * cli/src/lib/schema.mjs 의 `requiredExtras` 와 일치 — contract test 가
+ * 동기화 강제. UI/Web 측에서 advisory warning 출력에 쓰인다 (hard error
+ * 아님 — pre-existing vault 호환).
+ */
+export const KIND_EXPECTED_EXTRAS: Readonly<Record<string, readonly string[]>> = {
+  project: [],
+  domain: [],
+  capability: ["domain"],
+  element: ["domain"],
+  document: [],
+};
 
 export interface VaultDocumentIssue {
   code: VaultIssueCode;
@@ -106,9 +121,36 @@ export function validateVaultDocument(raw: string): VaultDocumentReport {
       severity: "warning",
       message: `\`kind: ${rawKind.trim()}\` 는 인식되지 않는 값입니다. 인식되는 값: ${KNOWN_VAULT_KINDS.join(" / ")}.`,
     });
+  } else {
+    // R14 — kind 별 expected 필드 (capability/element 의 domain 등) 누락
+    // 시 advisory warning. parser 가 raw 도 봤으니 frontmatter 객체 그대로 검사.
+    const trimmedKind = rawKind.trim();
+    pushMissingExpectedExtrasIssues(trimmedKind, frontmatter, issues);
   }
 
   return { ok: issuesHaveNoErrors(issues), issues };
+}
+
+function pushMissingExpectedExtrasIssues(
+  kind: string,
+  frontmatter: Record<string, unknown>,
+  issues: VaultDocumentIssue[],
+): void {
+  const expected = KIND_EXPECTED_EXTRAS[kind] ?? [];
+  for (const key of expected) {
+    const value = frontmatter[key];
+    const isMissing =
+      value === undefined ||
+      value === null ||
+      (typeof value === "string" && value.trim() === "");
+    if (isMissing) {
+      issues.push({
+        code: "missing-expected-field",
+        severity: "warning",
+        message: `\`${key}:\` 가 비어있습니다 — kind=${kind} 노드는 ${key} 가 있어야 트리에서 부모를 찾을 수 있습니다.`,
+      });
+    }
+  }
 }
 
 function issuesHaveNoErrors(issues: readonly VaultDocumentIssue[]): boolean {
@@ -176,6 +218,11 @@ export function validateVaultDocFrontmatter(
       severity: "warning",
       message: `\`kind: ${rawKind.trim()}\` 는 인식되지 않는 값입니다. 인식되는 값: ${KNOWN_VAULT_KINDS.join(" / ")}.`,
     });
+  } else {
+    // R14 — kind 별 expected 필드 누락 시 advisory warning. parser
+    // 결과만 보는 fast path 에서도 동일 동작.
+    const trimmedKind = rawKind.trim();
+    pushMissingExpectedExtrasIssues(trimmedKind, frontmatter, issues);
   }
 
   return { ok: issuesHaveNoErrors(issues), issues };

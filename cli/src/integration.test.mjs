@@ -107,8 +107,10 @@ await test('list --json — JSON 머신 가독', async () => {
 });
 
 await test('validate — clean vault: exit 0', async () => {
+  // R14 — capability/element 는 domain 까지 박아야 missing-expected-field
+  // warning 없이 clean. canonical kind 인식 자체를 보는 fixture 라 domain 추가.
   const root = withVault([
-    { slug: 'a', content: '---\nkind: capability\n---\n' },
+    { slug: 'a', content: '---\nkind: capability\ndomain: domains/auth\n---\n' },
   ]);
   try {
     const r = await run(['validate', root]);

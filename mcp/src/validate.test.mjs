@@ -67,18 +67,31 @@ describe('validateVaultDocument (R11 #23)', () => {
     assert.equal(r.issues.some((i) => i.code === 'unknown-kind'), true);
   });
 
-  it('canonical kind 6 종 모두 인식', () => {
-    for (const k of [
-      'project',
-      'domain',
-      'capability',
-      'element',
-      'document',
-      'vault-readme',
-    ]) {
-      const r = validateVaultDocument(`---\nkind: ${k}\n---\n`);
+  it('canonical kind 6 종 모두 인식 (capability/element 는 domain 채워야 clean)', () => {
+    // R14 — capability/element 는 domain 누락 시 missing-expected-field warn.
+    // canonical kind 가 인식 자체는 되는지 보는 테스트라 domain 까지 박아 clean.
+    const cases = [
+      { k: 'project' },
+      { k: 'domain' },
+      { k: 'capability', extra: 'domain: domains/auth' },
+      { k: 'element', extra: 'domain: domains/auth' },
+      { k: 'document' },
+      { k: 'vault-readme' },
+    ];
+    for (const { k, extra } of cases) {
+      const extraLine = extra ? `\n${extra}` : '';
+      const r = validateVaultDocument(`---\nkind: ${k}${extraLine}\n---\n`);
       assert.equal(r.ok, true, `kind=${k}`);
       assert.equal(r.issues.length, 0, `kind=${k}`);
     }
+  });
+
+  it('R14 — capability without domain → missing-expected-field warning', () => {
+    const r = validateVaultDocument('---\nkind: capability\ntitle: X\n---\n');
+    assert.equal(r.ok, true);
+    assert.equal(
+      r.issues.some((i) => i.code === 'missing-expected-field'),
+      true,
+    );
   });
 });
