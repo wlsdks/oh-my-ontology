@@ -29,7 +29,7 @@ pnpm bundle:check                 # local-first chunk leak guard
 pnpm vault:validate               # frontmatter integrity (R11 — runs in CI too)
 pnpm vault:migrate --list         # see registered schema migrations (R11)
 
-# Register an AI agent (Claude Code) — copy .mcp.json.example, follow mcp/README.md
+# AI agent (Claude Code) auto-registers via this repo's `.mcp.json` — `mcp/README.md` has details.
 ```
 
 No `.env`, no auth provider, no backend setup needed. Round 10 (2026-05) permanently removed the optional Firebase / Firestore / Auth surface — the OSS is now pure local-first.
@@ -64,7 +64,7 @@ mcp/                       MCP server (the AI agent's surface) — npm pkg, 14 t
 cli/                       CLI binary (developer's daily entry point) — npm pkg, R12 v0.2
                            init / list / validate / add / find / import
 docs/                      long-form docs
-docs/ontology/             this project's own ontology vault (dogfood — 22 nodes)
+docs/ontology/             this project's own ontology vault (dogfood — 25 nodes)
 tests/                     Vitest unit + Playwright E2E
   └── contract/            cross-package contract tests (parser 4-way, validator 3-way)
 scripts/                   vault tooling (R11) + perf baseline (R11) + dogfood walk (R12)
@@ -203,7 +203,10 @@ pnpm exec tsc --noEmit
 pnpm lint
 pnpm build                        # 정적 export → out/
 pnpm vault:validate               # frontmatter integrity (R11 — CI 게이트)
+pnpm vault:audit                  # capability/element path drift 가드 (R12)
 pnpm vault:migrate --list         # 등록된 schema 마이그레이션 (R11)
+
+# AI agent (Claude Code 등) 는 이 repo 의 `.mcp.json` 으로 자동 등록 — 자세한 사용법 mcp/README.md.
 ```
 
 `.env` 파일 / 인증 provider / 백엔드 설정 불필요. R10 (2026-05) 에서 옵션이었던 Firebase / Firestore / Auth surface 영구 제거 — OSS 는 순수 local-first.
@@ -229,6 +232,8 @@ pnpm vault:migrate --list         # 등록된 schema 마이그레이션 (R11)
 이 프로젝트 자신의 mental model 은 `docs/ontology/` 에 frontmatter md 로 표현되어 있다 (dogfooding — 우리 데이터 형식으로 우리 자신을 기술).
 
 - 진입점: `docs/ontology/README.md` · `docs/ontology/project.md`
-- 약 18 노드 (도메인 6 · capability 6 · element 4 · project 1 · vault-readme 1)
-- AI agent 는 `mcp/` MCP 서버로 query 가능 — 등록 가이드 `mcp/README.md` · 예시 `.mcp.json.example`
-- 새 도메인/capability/element 가 생기면 같은 디렉토리에 추가 (`add_concept` 도구로 또는 직접 작성)
+- 25 노드 (capability 12 · domain 6 · element 4 · project 1 · vault-readme 1) — 이 repo 의 `.mcp.json` 자동 등록 후 `mcp__oh-my-ontology__list_concepts` 로 즉시 조회
+- AI agent 는 `mcp/` MCP 서버로 query/write — 등록 가이드 `mcp/README.md`. **R14 부터** `add_concept` / `add` / `import` 세 진입점이 같은 schema 모듈로 양식 정규화 (`mcp/src/schema.mjs` ↔ `cli/src/lib/schema.mjs`)
+- 새 도메인/capability/element 가 생기면 같은 디렉토리에 추가 (`add_concept` 도구로 또는 직접 작성). **R14 의 `/ontology-sync` skill** 또는 SessionStart hook 으로 자동 sync 가능
+
+> **AI agent 가 코드 작업 중 ontology 를 *어떻게* 읽고 쓸지** 의 자세한 패턴 (Read at start / Write at end / skip 케이스 / kind 별 frontmatter 양식) 은 영문 섹션 *"Working with the ontology while you code"* + *"Frontmatter shape per kind (R14)"* 참조. R14 wave 에서 추가된 핵심 가이드.
