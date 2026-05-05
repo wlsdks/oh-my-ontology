@@ -59,27 +59,38 @@ describe("validateVaultDocument", () => {
     expect(r.issues.map((i) => i.code)).toContain("parse-zero-keys");
   });
 
-  it("trim 된 kind 가 canonical 이면 ok", () => {
-    const raw = `---\nkind:    capability   \n---\n`;
+  it("trim 된 kind 가 canonical 이면 ok (capability + domain)", () => {
+    // R14 — capability/element 는 domain 누락 시 missing-expected-field
+    // warning. canonical kind 인식 자체를 보는 케이스라 domain 까지 박아 clean.
+    const raw = `---\nkind:    capability   \ndomain: domains/auth\n---\n`;
     const r = validateVaultDocument(raw);
     expect(r.ok).toBe(true);
     expect(r.issues).toHaveLength(0);
   });
 
   it("6 종 모두 인식 (project / domain / capability / element / document / vault-readme)", () => {
-    const kinds = [
-      "project",
-      "domain",
-      "capability",
-      "element",
-      "document",
-      "vault-readme",
+    // capability/element 는 domain 까지 박아야 clean — R14 schema 가 부모
+    // 누락에 advisory warn.
+    const cases: Array<{ kind: string; extra?: string }> = [
+      { kind: "project" },
+      { kind: "domain" },
+      { kind: "capability", extra: "domain: domains/auth" },
+      { kind: "element", extra: "domain: domains/auth" },
+      { kind: "document" },
+      { kind: "vault-readme" },
     ];
-    for (const k of kinds) {
-      const r = validateVaultDocument(`---\nkind: ${k}\n---\n`);
-      expect(r.ok, `kind=${k}`).toBe(true);
-      expect(r.issues, `kind=${k}`).toHaveLength(0);
+    for (const c of cases) {
+      const extraLine = c.extra ? `\n${c.extra}` : "";
+      const r = validateVaultDocument(`---\nkind: ${c.kind}${extraLine}\n---\n`);
+      expect(r.ok, `kind=${c.kind}`).toBe(true);
+      expect(r.issues, `kind=${c.kind}`).toHaveLength(0);
     }
+  });
+
+  it("R14 — capability/element 가 domain 없으면 missing-expected-field warning", () => {
+    const r = validateVaultDocument(`---\nkind: capability\ntitle: X\n---\n`);
+    expect(r.ok).toBe(true);
+    expect(r.issues.map((i) => i.code)).toContain("missing-expected-field");
   });
 
   it("error 와 warning 이 동시에 있으면 ok=false (error 우선)", () => {
@@ -123,10 +134,20 @@ describe("validateVaultDocFrontmatter (parsed-only fast path)", () => {
     expect(r.issues.map((i) => i.code)).toContain("empty-kind");
   });
 
-  it("canonical kind 는 ok", () => {
-    const r = validateVaultDocFrontmatter({ kind: "capability", title: "X" });
+  it("canonical kind 는 ok (capability with domain)", () => {
+    const r = validateVaultDocFrontmatter({
+      kind: "capability",
+      title: "X",
+      domain: "domains/auth",
+    });
     expect(r.ok).toBe(true);
     expect(r.issues).toHaveLength(0);
+  });
+
+  it("R14 — capability without domain → missing-expected-field warning", () => {
+    const r = validateVaultDocFrontmatter({ kind: "capability", title: "X" });
+    expect(r.ok).toBe(true);
+    expect(r.issues.map((i) => i.code)).toContain("missing-expected-field");
   });
 
   it("non-canonical kind 는 unknown-kind warning", () => {

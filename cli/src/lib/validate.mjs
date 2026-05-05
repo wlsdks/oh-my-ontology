@@ -4,6 +4,7 @@
 // contract.test.ts 의 fixture 매트릭스 (3-way 강제).
 
 import { parseFrontmatter } from './parse-frontmatter.mjs';
+import { missingExpectedFields } from './schema.mjs';
 
 export const KNOWN_VAULT_KINDS = [
   'project',
@@ -68,6 +69,17 @@ export function validateVaultDocument(raw) {
       severity: 'warning',
       message: `\`kind: ${rawKind.trim()}\` 는 인식되지 않는 값입니다.`,
     });
+  } else {
+    // R14 — kind 별 expected 필드 (capability/element 의 domain) advisory.
+    // mcp/src/validate.mjs 와 동일 schema 모듈 사용.
+    const trimmedKind = rawKind.trim();
+    for (const key of missingExpectedFields(trimmedKind, frontmatter)) {
+      issues.push({
+        code: 'missing-expected-field',
+        severity: 'warning',
+        message: `\`${key}:\` 가 비어있습니다 — kind=${trimmedKind} 노드는 ${key} 가 있어야 트리에서 부모를 찾을 수 있습니다.`,
+      });
+    }
   }
 
   return {

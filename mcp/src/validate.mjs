@@ -20,10 +20,11 @@ export function isValidVaultTitle(value) {
 }
 
 import { parseFrontmatter } from './parser.mjs';
+import { missingExpectedFields } from './schema.mjs';
 
 /**
  * R11 #23 — vault frontmatter silent corruption 검출. src/shared/lib/
- * validate-vault-document.ts 와 같은 5 issue codes 보장 (drift 시 contract
+ * validate-vault-document.ts 와 같은 issue codes 보장 (drift 시 contract
  * test 가 차단). raw 까지 보고 unclosed/parse-zero 검출.
  *
  * issue codes:
@@ -31,6 +32,7 @@ import { parseFrontmatter } from './parser.mjs';
  *  - empty-kind (error)
  *  - missing-kind (warning)
  *  - unknown-kind (warning)
+ *  - missing-expected-field (warning) — R14
  *  - parse-zero-keys (warning)
  *
  * @param {string} raw
@@ -99,6 +101,17 @@ export function validateVaultDocument(raw) {
       severity: 'warning',
       message: `\`kind: ${rawKind.trim()}\` 는 인식되지 않는 값입니다.`,
     });
+  } else {
+    // R14 — kind 별 expected 필드 누락 (capability/element 의 domain) advisory.
+    // schema.mjs 가 single source — UI/CLI/MCP 셋이 같은 dict 사용.
+    const trimmedKind = rawKind.trim();
+    for (const key of missingExpectedFields(trimmedKind, frontmatter)) {
+      issues.push({
+        code: 'missing-expected-field',
+        severity: 'warning',
+        message: `\`${key}:\` 가 비어있습니다 — kind=${trimmedKind} 노드는 ${key} 가 있어야 트리에서 부모를 찾을 수 있습니다.`,
+      });
+    }
   }
 
   return {
