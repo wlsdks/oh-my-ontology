@@ -1,8 +1,8 @@
 # FEATURES — oh-my-ontology
 
 > Complete inventory of features users can **actually use right now**.
-> Last updated: 2026-05-06 (post-Round-15 — VSCode plugin 제거, 3 surface 회복).
-> Body sections below 본문 일부는 R10 시점 snapshot — surface 표기는 정확하지만 UI 디테일은 sweep 대기.
+> Last updated: 2026-05-06 (post-Round-15 — VSCode plugin 제거, 3 surface 회복 + R14 자동화/live updates 추가 반영).
+> Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI micro-detail 은 R10 후 변화 작아 별도 sweep 보다 *대부분 정확* 가정.
 > Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG.
 
 ---
@@ -11,6 +11,12 @@
 
 > **Mission v3**: "One codebase, one ontology, that the developer and their AI agent grow together."
 > **Operating model**: single-user tool. Local-first vault. No login, no backend. **3 surface (CLI · MCP · Web)** — AI agents (Claude Code, Codex, Cursor) read/write directly through the MCP server.
+
+| Surface | Entry | Audience |
+|---|---|---|
+| **CLI** (R12 / R14 / R15) | `oh-my-ontology init / list / validate / add / find / import` | developer terminal — vault scaffold, daily exploration, bulk import |
+| **MCP** (R5 / R7 / R11 / R14) | 14 tools (8 read · 6 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings |
+| **Web** (8 routes, R10 surface diet) | `pnpm dev` / static export | sigma topology · tree+ego · ERD builder · insights — graph visualization, mobile-friendly |
 
 ```
 input (humans + AI agents)     parse           store              output
@@ -382,6 +388,23 @@ Used when a non-existent slug is hit in static export. Redirects or shows "not f
 
 Run via `pnpm exec node mcp/src/index.js` (registered in user's `.mcp.json`). AI agents read/write the same vault as humans.
 
+**R14 — workflow automation** (Claude Code-specific):
+
+| Trigger | What | Where |
+|---|---|---|
+| **SessionStart hook** (implicit) | Vault census (kind counts + first 8 entries) auto-injected into agent's system context on session start | `.claude/hooks/inject-ontology-summary.sh` — silent in repos without a vault |
+| **`/ontology-sync` skill** (explicit) | "I'm done with this task — please sync the ontology now" loop. git diff + context → MCP write tools | `.claude/skills/ontology-sync/SKILL.md` |
+| **`mcp__oh-my-ontology__*` `instructions` field** (R13 v0.7.1) | Server's initialize response carries kind hierarchy, first-time workflow, write safety patterns — every connecting agent gets the discipline without trial-and-error | `mcp/src/index.js` |
+
+R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind frontmatter schema (`mcp/src/schema.mjs` ↔ `cli/src/lib/schema.mjs`) — three entry points, one shape.
+
+**R14 — vault live updates** (`/topology` + all pages):
+
+- **5s polling** (visible-only) — `useLocalVault` fingerprint check while tab visible
+- **Graph diff pulse** — newly appearing slugs amber-pulse for 5s on `/topology`
+- **Toasts** — `Added: <slug>` (info) / `Edited: <slug>` (success, mtime change) on every page
+- Effect: IDE / AI agent / CLI 변경이 웹 탭 *focus 안 해도* ~5s 안에 그래프 + toast.
+
 #### Read tools (8)
 1. **list_concepts** `{ kind?, limit? }` — every node, optional kind + limit (default 100)
 2. **get_concept** `{ slug }` — full detail: frontmatter + body excerpt + neighbors + `mtime` (ms; **R11** caller가 후속 patch/delete 의 `expected_mtime` 으로 전달하면 외부 변경 감지)
@@ -478,21 +501,17 @@ Run via `pnpm exec node mcp/src/index.js` (registered in user's `.mcp.json`). AI
 
 ---
 
-## 6. What was removed (Rounds 1–9)
+## 6. What was removed / added (Rounds 1–15)
 
 For full reasoning see `docs/CHANGELOG.md`. High-level:
 
-- **Round 1** — presentation mode (F fullscreen on home) · Relationship Radar widget · `/docs view: graph` · `/docs view: stats` · audience toggle (전체/기획자/엔지니어) + `VaultMode` schema
-- **Round 2** — `/ontology/relations` route (folded into `/ontology/insights`) · `/docs` advanced gear simplified (source toggle hoisted to header)
-- **Round 3** — Landing primary CTA swap (local-first activation primary) · landing copy de-jargoned · insights panel reorder + cross-project Panel folded · sub-nav "Tree" → "Browse" + always visible
-- **Round 4** — `/docs` Local picker auto-open · `/ontology` `⇧⌘K` button visible · ephemeral edge "Save" chip
-- **Round 5** — ephemeral placeholder pollution fix (`isUntitledTitle`)
-- **Round 6** — MCP `patch_concept` blank title parity (`isValidVaultTitle`) · vault label drift fix
-- **Round 7** — MCP `add_relation` slug existence check (`vaultSlugExists`)
-- **Round 8** — `LocalVaultProvider` SSoT refactor (8 callsites → 1 instance)
-- **Round 9** — `saveDoc` permission state sync · vault error banner · unsupported browser tooltip
-
-Permanently removed earlier (R10): `/login`, `/signup`, `/account`, `/reset-password`, `/settings/*`, `/admin/*`, `/review/*`, `/diagnostics/*`, `/knowledge/*`, Firebase / Firestore / Auth / Storage SDKs, screenshot uploader, manual node/edge cloud modal, cloud-mode badge.
+- **Round 1-9** (2026-04~05 surface diet + robustness) — presentation mode · Relationship Radar · audience toggle · `/ontology/relations` route · landing CTA swap · `LocalVaultProvider` SSoT · vault error banner · permission state sync. Earlier auth (R10) and cloud (R10b) surface permanently removed.
+- **Round 10 / 10b** — `/login` / `/signup` / `/account` / `/reset-password` / `/settings/*` / `/admin/*` / `/review/*` / `/diagnostics/*` / `/knowledge/*` 모두 제거. Firebase / Firestore / Auth / Storage SDKs, screenshot uploader, manual node/edge cloud modal — pure local-first 회귀.
+- **Round 11** — `pnpm vault:validate` / `vault:migrate` 신규. MCP v0.7.0 — 14 tools (8 read + 6 write, `rename_concept` / `merge_concepts` 추가). 3-way frontmatter parser contract. mtime 기반 conflict guard.
+- **Round 12** — primary audience = developer + AI agent (PM-primary 결정 reverted). CLI 4 명령 추가 (`list / validate / add / find` — `init` 외). Cross-package contract 4-way. dogfood orphan 8 → 1.
+- **Round 13** — AI agent quality 첫 측정 (Claude Code + Codex, n=2). MCP `instructions` field (v0.7.1). VSCode plugin v0.1.0 → v0.9.0 (R15 에서 제거).
+- **Round 14** — *AI agent ↔ vault 자동 sync*. Web 즉시 반영 4 단계 (5s polling / graph pulse / added toast / modified toast). Frontmatter schema 양식 (3 진입점 동기화). CLI `import` 명령 (외부 .md 정규화). `/ontology-sync` skill + AGENTS read-while-coding 룰. SessionStart hook (vault census 자동 inject).
+- **Round 15** — VSCode plugin 제거 (4 surface → 3). CLI `init` 의 mcp 등록 마찰 1 step 제거 (`.mcp.json` 자체 생성, cwd + vault 양쪽). `add` / `import` 의 `--auto-prefix` default on (starter layout 일관). `--raw-slug` opt-out.
 
 ---
 
