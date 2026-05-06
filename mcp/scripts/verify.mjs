@@ -36,6 +36,7 @@ const EXPECTED_TOOLS = [
   'list_kinds',
   'find_orphans',
   'query_concepts',
+  'analyze_repo_structure',
   'add_concept',
   'add_relation',
   'patch_concept',

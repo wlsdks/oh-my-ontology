@@ -60,6 +60,7 @@ import { writeFileSync, unlinkSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { buildMarkdown } from './parser.mjs';
+import { analyzeRepoStructure } from './analyze.mjs';
 import { parseFilter } from './query.mjs';
 import { isValidVaultTitle, validateVaultDocument } from './validate.mjs';
 import {
@@ -389,6 +390,41 @@ const TOOLS = [
     },
   },
   {
+    name: 'analyze_repo_structure',
+    description:
+      'R16 (autonomous ingest base) — analyze a code repository and propose ontology node candidates. ' +
+      'side effect 0 (vault frontmatter NOT modified). Returns deterministic candidates the agent ' +
+      'should review and selectively pass to add_concept. Detects:\n' +
+      '  - package.json `name` → project candidate\n' +
+      '  - README.md first H1 → project title fallback\n' +
+      '  - README.md H2 sections (skipping generic "Usage"/"Installation"/etc) → domain candidates\n' +
+      '  - src/features|entities|widgets|views/* (FSD) → capability/element candidates\n' +
+      '  - src/* depth-1 folders (generic) → capability candidates + index entry → element\n\n' +
+      'Use this once when a user asks "이 codebase 분석해줘" / "bootstrap the ontology". ' +
+      'Single source of truth preserved — only the user (via your subsequent add_concept calls) ' +
+      'writes to the vault.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        rootPath: {
+          type: 'string',
+          description:
+            'Repository root to analyze. Defaults to the MCP server cwd.',
+        },
+        maxDepth: {
+          type: 'number',
+          description: 'Folder walk depth (default 2). Higher → more elements.',
+        },
+        ignore: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            "Extra folder names to skip (added to defaults: node_modules, .git, dist, build, …).",
+        },
+      },
+    },
+  },
+  {
     name: 'rename_concept',
     description:
       '⚠ MULTI-FILE WRITE — change a slug and update every backlink in one atomic graph-level operation. ' +
@@ -538,6 +574,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return ok(findOrphansTool(args));
       case 'query_concepts':
         return ok(queryConceptsTool(args));
+      case 'analyze_repo_structure':
+        return ok(analyzeRepoStructureTool(args));
       case 'rename_concept':
         return ok(renameConcept(args));
       case 'merge_concepts':
@@ -825,6 +863,19 @@ function queryConceptsTool({ filter, limit }) {
     matches,
     limited: matches.length >= cap,
   };
+}
+
+// R16 (b3) — analyze_repo_structure thin wrapper. side effect 0 — vault
+// frontmatter 절대 안 건드림. 사용자 검토 후 별도 add_concept 호출이 진실
+// 진입.
+function analyzeRepoStructureTool({ rootPath, maxDepth, ignore } = {}) {
+  const target = rootPath
+    ? resolve(rootPath)
+    : process.cwd();
+  return analyzeRepoStructure(target, {
+    maxDepth: typeof maxDepth === 'number' ? maxDepth : undefined,
+    ignore: Array.isArray(ignore) ? ignore : undefined,
+  });
 }
 
 function renameConcept({ oldSlug, newSlug, confirm = false, overwrite = false, expected_mtime }) {

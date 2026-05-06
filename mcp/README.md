@@ -44,7 +44,7 @@ If `OMOT_VAULT` is not set, the current working directory is used as the vault r
 
 ### 2. Restart Claude Code
 
-The server connects over stdio. You should now see 14 tools under the `oh-my-ontology` namespace.
+The server connects over stdio. You should now see 15 tools under the `oh-my-ontology` namespace.
 
 ### 3. Call the tools
 
@@ -56,7 +56,7 @@ The server connects over stdio. You should now see 14 tools under the `oh-my-ont
 → mcp__oh-my-ontology__get_concept({ slug: 'capabilities/mcp-server' })
 ```
 
-## The 14 tools (v0.7.1)
+## The 15 tools (v0.7.1)
 
 | Tool | What it does |
 |---|---|
@@ -68,6 +68,7 @@ The server connects over stdio. You should now see 14 tools under the `oh-my-ont
 | `list_kinds` | Vault kind census: `{ total, byKind: { capability: N, ... } }`. |
 | `find_orphans` | **v0.5** Finds isolated nodes — docs that no other node references in its frontmatter. Options: `kind` (filter), `excludeKinds` (skip, default `['vault-readme']`). Useful as a starting point for cleanup or auditing unused nodes. |
 | `query_concepts` | **v0.6** Typed filter DSL — `kind=X AND has(Y) AND NOT ...`. Saved-filter / smart-list use case. |
+| `analyze_repo_structure` | **R16** Analyze a code repository (default cwd) and propose ontology node candidates from `package.json` / `README.md` H2 / `src/` folders. **side effect 0** — vault NOT modified. The agent (or human) reviews and selectively passes accepted candidates to `add_concept` / `add_relation`. Detects FSD vs generic layout. Use once when bootstrapping a fresh repo. |
 | `add_concept` | Creates a new `.md` node. Required: `slug`, `kind`, `title`. Optional: `domain`, `capabilities`, `elements`, `body`. **R14**: frontmatter is normalized per kind (project gets `domains/capabilities/elements: []`; capability gets `elements: []`; capability/element should set `domain` — missing extras come back in `warnings`). Body defaults to a kind-specific starter. Throws if the slug already exists. |
 | `add_relation` | Adds an edge between two slugs. `type`: `depends_on` (→ dependencies), `relates` (→ relates), `contains` (→ contains), `describes` (→ describes). Appends to the appropriate frontmatter array. **R11**: optional `expected_mtime` on the source slug for conflict detection. |
 | `patch_concept` | Updates an existing node's frontmatter (per-key patch — `null` deletes a key) and/or body. Use this when you need to *modify* a slug that `add_concept` would reject as duplicate. **R11**: optional `expected_mtime` for conflict detection — pass the `mtime` from `get_concept`; throws `VaultConflictError` if the file has been modified externally since you read it. |
@@ -130,7 +131,7 @@ A successful run looks like this:
 ✓ tools/list 14/14 — add_concept · add_relation · delete_concept · find_backlinks · find_evidence · find_orphans · find_path · get_concept · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · rename_concept
 ✓ list_concepts — vault total 25 nodes
 
-All checks passed — register .mcp.json with Claude Code, restart, and the 14 tools are ready.
+All checks passed — register .mcp.json with Claude Code, restart, and the 15 tools are ready.
 ```
 
 On failure, it tells you which step blocked progress and prints a diagnostic message.
@@ -159,7 +160,7 @@ After you add `.mcp.json` and restart Claude Code, try the following with your L
 > 3. Call `find_backlinks({ slug: "capabilities/mcp-server" })` to find what depends on that capability.
 > 4. (Optional) Call `add_concept` to create a new capability node — `slug`, `kind`, and `title` are required.
 
-If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 14 tools (8 read + 6 write), the human + AI co-authoring loop is officially open.
+If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 15 tools (9 read + 6 write), the human + AI co-authoring loop is officially open.
 
 ## Design principles
 
@@ -170,7 +171,7 @@ If those four tools respond cleanly, your read/write round-trip against the vaul
 
 ## Status
 
-- 0.7.1 — 14 tools. Added `instructions` field on initialize response — Claude Code / Cursor see kind hierarchy + workflow + write-tool dry-run pattern + `expected_mtime` conflict guard guidance on connect, no per-session trial-and-error.
+- 0.7.1 — 15 tools. Added `instructions` field on initialize response — Claude Code / Cursor see kind hierarchy + workflow + write-tool dry-run pattern + `expected_mtime` conflict guard guidance on connect, no per-session trial-and-error.
 - 0.7.0 — 14 tools (8 read + 6 write). Added `rename_concept` and `merge_concepts` (graph-level write — atomic backlink redirect across all referrers).
 - 0.6.0 — 12 tools (8 read + 4 write). Added `query_concepts` (typed filter DSL).
 - 0.5.0 — 7 read + 4 write. Added `find_orphans`.

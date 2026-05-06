@@ -1,5 +1,17 @@
 # Changelog — oh-my-ontology-mcp
 
+## 0.8.0 — 2026-05-06 (R16 — autonomous bootstrap base)
+
+### Added
+
+- **`analyze_repo_structure`** — 새 도구. 사용자 한 줄 *"이 codebase 분석해줘"* 후 AI agent 가 호출할 deterministic 도구. **side effect 0** — vault frontmatter 절대 안 건드림, 후보만 return. 감지: `package.json` `name/description` → project 후보, `README.md` 첫 H1 → project title fallback, `README.md` H2 (Usage/Installation 등 generic skip) → domain 후보, `src/features|entities|widgets|views/*` (FSD) 또는 `src/*` (generic) → capability/element 후보. + `suggestedRelations` (project contains 각 capability).
+- 사용자 검토 후 *명시 add_concept / add_relation* 만 vault 진입 — 단일 source of truth 보존.
+- 7 unit test — FSD / generic / no package.json / generic README 섹션 skip / ignored folders / empty dir / suggested relations.
+
+### Tools count
+
+- **15 (9 read + 6 write)** — analyze_repo_structure 가 read (side effect 0).
+
 ## 0.7.1 — 2026-05-04
 
 ### Added

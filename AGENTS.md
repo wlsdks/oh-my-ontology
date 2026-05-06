@@ -6,7 +6,7 @@
 
 ## Project overview
 
-`oh-my-ontology` is **a local-first codebase ontology workbench for the developer + their AI agent**. The `.md` frontmatter inside the vault *is* the nodes and edges — frontmatter is self-approving, no separate review step. Developer edits via CLI (`oh-my-ontology init/list/validate/add/find/import`) or web UI (`/ontology`, `/docs`); AI agent (Claude Code, Codex, Cursor) reads/writes the same `.md` files via the `mcp/` MCP server (14 tools).
+`oh-my-ontology` is **a local-first codebase ontology workbench for the developer + their AI agent**. The `.md` frontmatter inside the vault *is* the nodes and edges — frontmatter is self-approving, no separate review step. Developer edits via CLI (`oh-my-ontology init/list/validate/add/find/import`) or web UI (`/ontology`, `/docs`); AI agent (Claude Code, Codex, Cursor) reads/writes the same `.md` files via the `mcp/` MCP server (15 tools).
 
 For direction, see `docs/PRODUCT-DIRECTION.md`. For features users can use right now, see `docs/FEATURES.md`.
 
@@ -60,7 +60,7 @@ src/                       FSD layers
   ├── features/            interaction units
   ├── entities/            business entities
   └── shared/              UI · lib · config primitives
-mcp/                       MCP server (the AI agent's surface) — npm pkg, 14 tools
+mcp/                       MCP server (the AI agent's surface) — npm pkg, 15 tools
 cli/                       CLI binary (developer's daily entry point) — npm pkg, R12 v0.2
                            init / list / validate / add / find / import
 docs/                      long-form docs
@@ -125,7 +125,7 @@ Long-form docs:
 - `@docs/FEATURES.md` — features users can use right now
 - `@docs/ARCHITECTURE.md` · `@docs/DESIGN-SYSTEM.md`
 - `@docs/CHANGELOG.md` — chronological user-visible changes
-- `@mcp/README.md` — AI agent partner (MCP 14 tools — read 8 + write 6) registration + usage
+- `@mcp/README.md` — AI agent partner (MCP 15 tools — read 9 + write 6) registration + usage
 - `@docs/archive/` — historical analysis docs (no longer normative)
 
 ## This project's own ontology
@@ -150,6 +150,11 @@ The vault is the **shared mental model** between the developer and the AI agent.
 - `find_path(from, to)` — does a relation already exist?
 
 A 30-second read at the top of the task often replaces a 10-minute re-discovery in the code.
+
+**Bootstrap an empty vault** (R16). When a user just ran `oh-my-ontology init` on a fresh repo and the vault has only the 5 starter nodes, don't make the user hand-author every node. Instead:
+
+- Call `analyze_repo_structure` once. **Side effect 0** — it returns deterministic candidates (project + domains[] + capabilities[] + elements[] + suggestedRelations[]) by reading `package.json` / `README.md` H2 sections / `src/` folder layout (FSD or generic). It does NOT write to the vault.
+- Show the candidates to the user, let them prune obvious noise, then call `add_concept` / `add_relation` per accepted candidate. This is the only path into the vault — single source of truth preserved.
 
 **Write at the end of a task** (the part that's easy to skip). When a unit of work introduced a new capability / element / domain, or renamed/folded an existing one, mirror the change in the vault:
 
@@ -185,7 +190,7 @@ When an AI agent (`add_concept`) or a developer (`oh-my-ontology add` / `oh-my-o
 
 ### 프로젝트 개요
 
-`oh-my-ontology` 는 **개발자와 그 AI agent 가 같이 키우는 local-first codebase ontology workbench** 다. vault 의 `.md` frontmatter 가 *그대로* 노드와 관계 — 자기-승인이라 별도 검수 단계 없음. 개발자는 CLI (`oh-my-ontology init/list/validate/add/find/import`) 또는 웹 UI (`/ontology`, `/docs`) 로 편집, AI agent (Claude Code, Codex, Cursor) 는 `mcp/` MCP 서버 (14 tools) 로 같은 `.md` 파일을 read/write.
+`oh-my-ontology` 는 **개발자와 그 AI agent 가 같이 키우는 local-first codebase ontology workbench** 다. vault 의 `.md` frontmatter 가 *그대로* 노드와 관계 — 자기-승인이라 별도 검수 단계 없음. 개발자는 CLI (`oh-my-ontology init/list/validate/add/find/import`) 또는 웹 UI (`/ontology`, `/docs`) 로 편집, AI agent (Claude Code, Codex, Cursor) 는 `mcp/` MCP 서버 (15 tools) 로 같은 `.md` 파일을 read/write.
 
 핵심 원칙 한 줄 (v3, R11 fire #25):
 
@@ -249,6 +254,11 @@ vault 는 개발자와 AI agent 가 **공유하는 mental model**. ontology 의 
 - `find_path(from, to)` — 관계가 이미 있나?
 
 작업 head 의 30 초 read 가 코드에서의 10 분 재발견을 자주 대신해 줌.
+
+**빈 vault 부트스트랩** (R16). 사용자가 fresh repo 에서 `oh-my-ontology init` 만 한 직후 — 5 starter 노드 외 빈 vault. 사용자가 매 노드 손 작성 부담 — 대신:
+
+- `analyze_repo_structure` 1 회 호출. **side effect 0** — `package.json` / `README.md` H2 / `src/` 폴더 layout (FSD or generic) 읽어 deterministic 후보 (project + domains[] + capabilities[] + elements[] + suggestedRelations[]) 반환. vault 변경 안 함.
+- 후보를 사용자에게 보여주고 noise 제외 후 채택된 것만 `add_concept` / `add_relation`. 단일 source of truth 보존 — vault 진입은 *명시 add* 만.
 
 **작업 끝에 write** (쉽게 빠뜨림). 한 작업 단위가 새 capability / element / domain 을 도입했거나 기존 것을 rename / 합쳤다면, vault 에 반영:
 
