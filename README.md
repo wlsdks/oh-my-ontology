@@ -2,8 +2,8 @@
 
 > **One codebase, one ontology, that the developer and their AI agent grow together.**
 >
-> Local-first markdown vault. Developer authors via CLI / web UI / VSCode plugin (v0.1.0 MVP).
-> AI agent (Claude Code, Cursor) reads + writes the same `.md` files via MCP — 14 tools.
+> Local-first markdown vault. Developer authors via CLI / web UI.
+> AI agent (Claude Code, Codex, Cursor) reads + writes the same `.md` files via MCP — 14 tools.
 > No backend. No login. The git repo is the source of truth.
 
 [![CI](https://github.com/wlsdks/oh-my-ontology/actions/workflows/ci.yml/badge.svg)](https://github.com/wlsdks/oh-my-ontology/actions/workflows/ci.yml)
@@ -42,8 +42,8 @@ Three claims:
 1. **Markdown frontmatter is enough** — `kind: capability`, `domain: auth`,
    `depends_on: [...]` is the entire schema. No DB, no backend, no auth.
 2. **Developer + AI agent share one source of truth** — both edit the same
-   `.md` files. The developer authors via CLI / web UI / (planned) VSCode
-   plugin; the AI agent reads + writes via MCP. Same git repo, same diff.
+   `.md` files. The developer authors via CLI / web UI; the AI agent reads
+   + writes via MCP (Claude Code, Codex, Cursor). Same git repo, same diff.
 3. **MCP server gives the AI its only interface** — **14 tools** (8 read +
    6 write) over JSON-RPC. The agent doesn't need to "ingest your codebase";
    it reads the ontology the developer already curates.
@@ -117,13 +117,19 @@ becoming graph nodes.
 
 ## Verifiable promises
 
+> 📊 **Headline measurement** (R13 benchmark, [methodology](docs/benchmark/)):
+> Claude Code with MCP-on **cuts hallucinated answers 9 → 0** on cross-cutting graph tasks.
+> Codex with MCP-on **cuts tool calls 76%** (7.0 → 1.67/task) at saturated correctness.
+> Same MCP tools, two agents, two different value mechanisms.
+
 | Promise | Verification |
 |---|---|
 | **vault frontmatter = the graph** (no review queue, no LLM extraction) | `grep -r "extractionJob" src/ → 0` |
 | **AI agent partner via MCP** | `mcp/` package, 14 tools, `mcp/scripts/verify.mjs` smoke |
 | **No backend** (Firebase / DB / auth) | `pnpm bundle:check` — firebase SDK chunk 0 (deps removed in R10) |
-| **Dogfooding** | `docs/ontology/` is the project's own curated mental model (~21 nodes — domains 6 · capabilities 9 · elements 4 · project 1 · vault-readme 1). |
-| **AI agent quality measurement** *(cross-agent, n=2 measured)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks × 3 categories × 2 agents. **Claude Code**: MCP-on cuts hallucinations 9 → 0, Cat A correctness +1.0 (quality win) ([results](docs/benchmark/results/2026-05-04-claude-code.md)). **Codex** (bypass-authorized): MCP-on cuts Cat A tool calls 7.0 → 1.67 (76% reduction; efficiency win), correctness already saturated OFF ([results](docs/benchmark/results/2026-05-04-codex.md)). MCP delivers value to both agents through *different mechanisms*. Negative control (Cat C) passes for both — agents correctly defer to Read/Grep on file-read tasks. |
+| **Dogfooding** | `docs/ontology/` is this project's own curated mental model — **25 nodes** (capabilities 12 · domains 6 · elements 4 · project 1 · vault-readme 1). The MCP server you'd run is the one we use to write *this README*. |
+| **Vault scale** | `node scripts/perf-vault.mjs` measures walk + read + parse on synthetic vaults. **2,000 .md files in 33 ms** (linear, ~17 µs/file). Sub-second up to 1,000 nodes — the ontology will not become the bottleneck. |
+| **AI agent quality measurement** *(cross-agent, n=2)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks × 3 categories × 2 agents (Claude Code + Codex). [Claude Code results](docs/benchmark/results/2026-05-04-claude-code.md): hallucinations 9 → 0, Cat A correctness +1.0. [Codex results](docs/benchmark/results/2026-05-04-codex.md): Cat A tool calls 7.0 → 1.67. Negative control (Cat C, file-read tasks) passes for both — agents correctly defer to Read/Grep, no over-reach. |
 
 ## Architecture
 
@@ -148,8 +154,7 @@ src/            Feature-Sliced Design layers
   ├── entities/ domain entities (project, ontology-class, knowledge-graph, …)
   └── shared/   ui primitives, lib, config
 mcp/            MCP server (`oh-my-ontology-mcp`, 14 tools) — AI agent surface
-cli/            `npx oh-my-ontology` (vault scaffold + 5 commands) — developer terminal surface
-vscode-plugin/  VSCode extension (`oh-my-ontology-vscode`) — developer IDE surface (v0.1.0 MVP)
+cli/            `npx oh-my-ontology` (vault scaffold + 6 commands) — developer terminal surface
 docs/           Long-form docs + dogfood vault (docs/ontology/) + benchmark results
 docs/archive/   Historical analysis docs
 scripts/        Build helpers

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useToast } from '@/shared/ui/toast';
+import { diffVaultManifest } from '../lib/diff-manifest';
 import { useLocalVault } from './LocalVaultProvider';
 
 /**
@@ -43,20 +44,10 @@ export function VaultDiffToaster() {
       return;
     }
 
-    const prev = prevMapRef.current;
-    const added: string[] = [];
-    const modified: string[] = [];
-    for (const [slug, mtime] of currentMap) {
-      const prevMtime = prev.get(slug);
-      if (prevMtime === undefined) {
-        added.push(slug);
-        continue;
-      }
-      // mtime 비교: 둘 중 하나가 null (static manifest) 이면 비교 의미 없으니 skip
-      if (prevMtime !== null && mtime !== null && mtime > prevMtime) {
-        modified.push(slug);
-      }
-    }
+    const { added, modified } = diffVaultManifest(
+      prevMapRef.current,
+      currentMap,
+    );
     prevMapRef.current = currentMap;
 
     if (added.length === 0 && modified.length === 0) return;

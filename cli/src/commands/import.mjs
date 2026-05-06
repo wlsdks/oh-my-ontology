@@ -263,10 +263,12 @@ function walkMarkdown(dir, out) {
 
 function parseArgs(args) {
   const positional = [];
+  // R15 — autoPrefix default on. starter 와 일관된 layout (kind→folder).
+  // 명시 opt-out: --raw-slug (or --no-auto-prefix).
   const flags = {
     vault: '.',
     kind: null,
-    autoPrefix: false,
+    autoPrefix: true,
     rename: false,
     dryRun: false,
   };
@@ -277,6 +279,7 @@ function parseArgs(args) {
     else if (a === '--kind') flags.kind = args[++i] || null;
     else if (a.startsWith('--kind=')) flags.kind = a.slice('--kind='.length);
     else if (a === '--auto-prefix') flags.autoPrefix = true;
+    else if (a === '--raw-slug' || a === '--no-auto-prefix') flags.autoPrefix = false;
     else if (a === '--rename') flags.rename = true;
     else if (a === '--dry-run') flags.dryRun = true;
     else if (a.startsWith('--')) {

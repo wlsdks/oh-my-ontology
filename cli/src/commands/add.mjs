@@ -77,7 +77,9 @@ export function runAdd(args) {
 
 function parseArgs(args) {
   const positional = [];
-  const flags = { vault: '.', autoPrefix: false };
+  // R15 — autoPrefix default on. starter 와 일관된 layout (kind→folder).
+  // 명시 opt-out: --raw-slug (or --no-auto-prefix).
+  const flags = { vault: '.', autoPrefix: true };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
     if (a === '--vault') flags.vault = args[++i] || '.';
@@ -89,6 +91,7 @@ function parseArgs(args) {
     else if (a === '--body') flags.body = args[++i] || '';
     else if (a.startsWith('--body=')) flags.body = a.slice('--body='.length);
     else if (a === '--auto-prefix') flags.autoPrefix = true;
+    else if (a === '--raw-slug' || a === '--no-auto-prefix') flags.autoPrefix = false;
     else if (a.startsWith('--')) {
       return { error: `unknown flag: ${a}` };
     } else {

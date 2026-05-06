@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-04T04:06:28.207Z",
+  "generatedAt": "2026-05-05T23:41:13.232Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -76,9 +76,9 @@
           "slug": "source-of-truth-files"
         }
       ],
-      "excerpt": "202605 update — Round 10 permanently removed all auth + cloud surface. This doc reflects the postR10 state. Earlier cloudmode design notes are in docs/archive/. There is no backend, no database, no auth provider. The user's markdown folder is the single source of truth. Import direction: app → views → widgets → feature",
-      "wordCount": 795,
-      "updatedAt": "2026-05-04T01:27:35.682Z",
+      "excerpt": "202605 update — Round 10 permanently removed all auth + cloud surface. This doc reflects the postR10 state. Earlier cloudmode design notes are in docs/archive/. There is no backend, no database, no auth provider. The user's markdown folder is the single source of truth. Both the MCP server (AI agent) and the CLI (devel",
+      "wordCount": 939,
+      "updatedAt": "2026-05-04T07:25:28.161Z",
       "linksOut": [
         "../AGENTS",
         "PRODUCT-DIRECTION",
@@ -1539,18 +1539,28 @@
         },
         {
           "depth": 2,
-          "text": "✅ 완료 (mission v2 phase, 2026-05-01)",
-          "slug": "완료-mission-v2-phase-2026-05-01"
+          "text": "✅ 완료 (R12-R14, 2026-05-04 ~ 2026-05-05)",
+          "slug": "완료-r12-r14-2026-05-04-2026-05-05"
         },
         {
           "depth": 3,
-          "text": "Phase 3 (AI agent partner) + mission v2 cleanup 7 PR 머지",
-          "slug": "phase-3-ai-agent-partner-mission-v2-cleanup-7-pr-머지"
+          "text": "R14 (#155-#163, 2026-05-05) — AI agent ↔ vault 자동 sync + 웹 즉시 반영",
+          "slug": "r14-155-163-2026-05-05-ai-agent-vault-자동-sync-웹-즉시-반영"
         },
         {
           "depth": 3,
-          "text": "그 이전 (refactor/first-principles-slim-1 PR #1, 23 commits)",
-          "slug": "그-이전-refactorfirst-principles-slim-1-pr-1-23-commits"
+          "text": "R13 (#43-#67, 2026-05-04) — AI agent quality 첫 측정 + VSCode plugin",
+          "slug": "r13-43-67-2026-05-04-ai-agent-quality-첫-측정-vscode-plugin"
+        },
+        {
+          "depth": 3,
+          "text": "R12 (#27-#42, 2026-05-04) — developer-primary 결정 + CLI 5 명령 + dogfood graph 완전화",
+          "slug": "r12-27-42-2026-05-04-developer-primary-결정-cli-5-명령-dogfood-graph-완전화"
+        },
+        {
+          "depth": 3,
+          "text": "R11 (2026-05-04) — vault tooling + parser contract + MCP graph-level write",
+          "slug": "r11-2026-05-04-vault-tooling-parser-contract-mcp-graph-level-write"
         },
         {
           "depth": 3,
@@ -1559,28 +1569,18 @@
         },
         {
           "depth": 2,
-          "text": "결정 필요 (user input 후 unblock)",
-          "slug": "결정-필요-user-input-후-unblock"
-        },
-        {
-          "depth": 3,
-          "text": "V2 spec Open questions Q3-Q8",
-          "slug": "v2-spec-open-questions-q3-q8"
-        },
-        {
-          "depth": 3,
-          "text": "T13. OperationsNav 온톨로지 탭 분기 결정",
-          "slug": "t13-operationsnav-온톨로지-탭-분기-결정"
+          "text": "~~결정 필요 (user input 후 unblock)~~ — Q3-Q8 자체 무효",
+          "slug": "결정-필요-user-input-후-unblock-q3-q8-자체-무효"
         },
         {
           "depth": 2,
-          "text": "P0 — 즉시 실행 가능 (mission v2 정렬, 위험 낮음, 가치 큼)",
-          "slug": "p0-즉시-실행-가능-mission-v2-정렬-위험-낮음-가치-큼"
+          "text": "P0 — 즉시 실행 가능 (위험 낮음, 가치 큼)",
+          "slug": "p0-즉시-실행-가능-위험-낮음-가치-큼"
         },
         {
           "depth": 3,
-          "text": "T28. demo blueprint mission v2 정렬",
-          "slug": "t28-demo-blueprint-mission-v2-정렬"
+          "text": "~~T28. demo blueprint mission v2 정렬~~ — VOID",
+          "slug": "t28-demo-blueprint-mission-v2-정렬-void"
         },
         {
           "depth": 3,
@@ -1589,68 +1589,23 @@
         },
         {
           "depth": 3,
-          "text": "T30. MCP `find_path(from, to)` — 두 노드 사이 graph 경로",
-          "slug": "t30-mcp-find_pathfrom-to-두-노드-사이-graph-경로"
+          "text": "~~F1. dogfood vscode-plugin capability 갱신~~ — VOID (R15)",
+          "slug": "f1-dogfood-vscode-plugin-capability-갱신-void-r15"
         },
         {
           "depth": 3,
-          "text": "T31. MCP `list_kinds` / `list_domains` — kind 분포 요약",
-          "slug": "t31-mcp-list_kinds-list_domains-kind-분포-요약"
+          "text": "F2. VaultDiffToaster diff logic 단위 test",
+          "slug": "f2-vaultdifftoaster-diff-logic-단위-test"
+        },
+        {
+          "depth": 3,
+          "text": "C3. AI agent benchmark scale n=2 → n=5+ — *user-triggered*",
+          "slug": "c3-ai-agent-benchmark-scale-n2-n5-user-triggered"
         },
         {
           "depth": 2,
-          "text": "P1 — V1.x 진화 (additive, breakage 0)",
-          "slug": "p1-v1x-진화-additive-breakage-0"
-        },
-        {
-          "depth": 3,
-          "text": "T19. V1.5 — Relation Cardinality",
-          "slug": "t19-v15-relation-cardinality"
-        },
-        {
-          "depth": 3,
-          "text": "T20. V1.3 — Rich References",
-          "slug": "t20-v13-rich-references"
-        },
-        {
-          "depth": 3,
-          "text": "T21. V1.2 — Literal Properties",
-          "slug": "t21-v12-literal-properties"
-        },
-        {
-          "depth": 3,
-          "text": "T32. V1.4 — Action Type — DEFERRED",
-          "slug": "t32-v14-action-type-deferred"
-        },
-        {
-          "depth": 3,
-          "text": "T22. V2 통합 KnowledgeStatement (5-phase)",
-          "slug": "t22-v2-통합-knowledgestatement-5-phase"
-        },
-        {
-          "depth": 2,
-          "text": "P2 — Phase 4 (비개발자 surface 다듬기)",
-          "slug": "p2-phase-4-비개발자-surface-다듬기"
-        },
-        {
-          "depth": 3,
-          "text": "T33. 빌더 onboarding \"ERD 이상 — 도메인 지도\" 카피 정렬",
-          "slug": "t33-빌더-onboarding-erd-이상-도메인-지도-카피-정렬"
-        },
-        {
-          "depth": 3,
-          "text": "T34. 기술 용어 ↔ 한국어 일반 용어 매핑 layer",
-          "slug": "t34-기술-용어-한국어-일반-용어-매핑-layer"
-        },
-        {
-          "depth": 3,
-          "text": "T35. 노드 색 / 아이콘 — kind 별 친숙",
-          "slug": "t35-노드-색-아이콘-kind-별-친숙"
-        },
-        {
-          "depth": 3,
-          "text": "T36. 검색 시 \"코드 / 문서 / 사람\" 분류 (PM 친화)",
-          "slug": "t36-검색-시-코드-문서-사람-분류-pm-친화"
+          "text": "~~P1 — V1.x 진화 (cloud-first 가정)~~ — 모두 N/A 또는 머지됨",
+          "slug": "p1-v1x-진화-cloud-first-가정-모두-na-또는-머지됨"
         },
         {
           "depth": 2,
@@ -1659,13 +1614,18 @@
         },
         {
           "depth": 3,
-          "text": "T23. mode-aware e2e tests",
-          "slug": "t23-mode-aware-e2e-tests"
+          "text": "T37. Playwright MCP routine QA",
+          "slug": "t37-playwright-mcp-routine-qa"
         },
         {
           "depth": 3,
-          "text": "T37. mode-aware Playwright MCP routine QA",
-          "slug": "t37-mode-aware-playwright-mcp-routine-qa"
+          "text": "F3. .mcp.json git-tracked (✅ 이번 R14 closeout 에서 추가)",
+          "slug": "f3-mcpjson-git-tracked-이번-r14-closeout-에서-추가"
+        },
+        {
+          "depth": 3,
+          "text": "~~T23. mode-aware e2e tests~~ — VOID (R10b)",
+          "slug": "t23-mode-aware-e2e-tests-void-r10b"
         },
         {
           "depth": 3,
@@ -1684,11 +1644,6 @@
         },
         {
           "depth": 3,
-          "text": "MCP `delete_concept`",
-          "slug": "mcp-delete_concept"
-        },
-        {
-          "depth": 3,
           "text": "CHANGELOG batch cleanup",
           "slug": "changelog-batch-cleanup"
         },
@@ -1703,9 +1658,9 @@
           "slug": "t27-큰-view-파일-정리"
         },
         {
-          "depth": 3,
-          "text": "m4. 비활성화된 e2e 재활성화",
-          "slug": "m4-비활성화된-e2e-재활성화"
+          "depth": 2,
+          "text": "~~P2 — Phase 4 (비개발자 surface 다듬기)~~ — DROPPED (R12 #33)",
+          "slug": "p2-phase-4-비개발자-surface-다듬기-dropped-r12-33"
         },
         {
           "depth": 2,
@@ -1718,9 +1673,606 @@
           "slug": "참조-문서"
         }
       ],
-      "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260501 저녁): mission v2 cleanup 7 PR 머지 후 전면 재정렬. | 항목 | 결과 | ||| | Phase 3 — MCP 서버 | ✅ PR 5/7 — mcp/ 패키지 v0.2.0, 7 도구 (listconcepts · getconcept · findevidence · findbacklinks · addconcept · addrelation · patchconcept) | | dogfood vaul",
-      "wordCount": 1423,
-      "updatedAt": "2026-05-04T01:27:35.683Z",
+      "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260506): R12/R13/R14 wave 묶음 정리 후 전면 재정렬. 4 surface 완성, dogfood 25 노드, AI agent ↔ vault 자동 sync 도달. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | 156 | graph diff pulse | ✅ 새 노드 amber s",
+      "wordCount": 1361,
+      "updatedAt": "2026-05-05T23:40:34.918Z",
+      "linksOut": []
+    },
+    {
+      "slug": "benchmark/README",
+      "path": "docs/benchmark/README.md",
+      "title": "Benchmark — does the ontology actually help AI agents?",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Benchmark — does the ontology actually help AI agents?",
+          "slug": "benchmark-does-the-ontology-actually-help-ai-agents"
+        },
+        {
+          "depth": 2,
+          "text": "Why this exists",
+          "slug": "why-this-exists"
+        },
+        {
+          "depth": 2,
+          "text": "What's in here",
+          "slug": "whats-in-here"
+        },
+        {
+          "depth": 2,
+          "text": "How to measure",
+          "slug": "how-to-measure"
+        },
+        {
+          "depth": 3,
+          "text": "Codex automated run",
+          "slug": "codex-automated-run"
+        },
+        {
+          "depth": 3,
+          "text": "Manual run protocol",
+          "slug": "manual-run-protocol"
+        },
+        {
+          "depth": 3,
+          "text": "Setup",
+          "slug": "setup"
+        },
+        {
+          "depth": 3,
+          "text": "Run protocol",
+          "slug": "run-protocol"
+        },
+        {
+          "depth": 3,
+          "text": "Run all four cells per task",
+          "slug": "run-all-four-cells-per-task"
+        },
+        {
+          "depth": 2,
+          "text": "Honest measurement principles",
+          "slug": "honest-measurement-principles"
+        },
+        {
+          "depth": 2,
+          "text": "What we're hoping to learn",
+          "slug": "what-were-hoping-to-learn"
+        },
+        {
+          "depth": 2,
+          "text": "Current measurement status",
+          "slug": "current-measurement-status"
+        },
+        {
+          "depth": 3,
+          "text": "Re-measurement triggers (user runs these manually)",
+          "slug": "re-measurement-triggers-user-runs-these-manually"
+        }
+      ],
+      "excerpt": "The single biggest unverified premise of this project: \"AI agents work better when they can read and write the codebase ontology vault.\" Until we have data, this is a belief, not a claim. This folder is the first attempt to put it on a measurement scale. We built CLI · MCP · 14 tools · web workbench all on top of one a",
+      "wordCount": 1034,
+      "updatedAt": "2026-05-05T23:36:19.129Z",
+      "linksOut": [
+        "benchmark/tasks",
+        "benchmark/rubric",
+        "benchmark/results/2026-05-template"
+      ]
+    },
+    {
+      "slug": "benchmark/results/2026-05-04-claude-code",
+      "path": "docs/benchmark/results/2026-05-04-claude-code.md",
+      "title": "Benchmark run — 2026-05-04 — Claude Code (self-measurement)",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Benchmark run — 2026-05-04 — Claude Code (self-measurement)",
+          "slug": "benchmark-run-2026-05-04-claude-code-self-measurement"
+        },
+        {
+          "depth": 2,
+          "text": "Setup",
+          "slug": "setup"
+        },
+        {
+          "depth": 2,
+          "text": "Per-task results",
+          "slug": "per-task-results"
+        },
+        {
+          "depth": 3,
+          "text": "A1 — Domain composition (vault-local-first)",
+          "slug": "a1-domain-composition-vault-local-first"
+        },
+        {
+          "depth": 3,
+          "text": "A2 — Stub / unfinished detection (kind=capability AND NOT has(elements))",
+          "slug": "a2-stub-unfinished-detection-kindcapability-and-not-haselements"
+        },
+        {
+          "depth": 3,
+          "text": "A3 — Reference graph for capabilities/mcp-server",
+          "slug": "a3-reference-graph-for-capabilitiesmcp-server"
+        },
+        {
+          "depth": 3,
+          "text": "B1 — Validator issue codes",
+          "slug": "b1-validator-issue-codes"
+        },
+        {
+          "depth": 3,
+          "text": "B2 — Conflict guard mechanism",
+          "slug": "b2-conflict-guard-mechanism"
+        },
+        {
+          "depth": 3,
+          "text": "C1 — Function exports of validate-vault-document.ts (negative control)",
+          "slug": "c1-function-exports-of-validate-vault-documentts-negative-control"
+        },
+        {
+          "depth": 3,
+          "text": "C2 — package.json scripts (negative control)",
+          "slug": "c2-packagejson-scripts-negative-control"
+        },
+        {
+          "depth": 2,
+          "text": "Summary",
+          "slug": "summary"
+        },
+        {
+          "depth": 3,
+          "text": "Within-agent delta (Claude Code OFF → ON, primary signal)",
+          "slug": "within-agent-delta-claude-code-off-on-primary-signal"
+        },
+        {
+          "depth": 3,
+          "text": "Hallucination totals",
+          "slug": "hallucination-totals"
+        },
+        {
+          "depth": 2,
+          "text": "Interpretation",
+          "slug": "interpretation"
+        },
+        {
+          "depth": 3,
+          "text": "Decision implications",
+          "slug": "decision-implications"
+        },
+        {
+          "depth": 2,
+          "text": "Raw transcripts",
+          "slug": "raw-transcripts"
+        },
+        {
+          "depth": 2,
+          "text": "What's next",
+          "slug": "whats-next"
+        }
+      ],
+      "excerpt": "Caveat — read this before the numbers. This run was performed by Claude Code (Opus 4.7, 1M context) measuring itself. The MCPoff mode was simulated by deliberately using only Read/Grep/Bash/Edit. The MCPon mode was simulated by spawning mcp/src/index.js with stdio JSONRPC (the real protocol path Claude Code uses when o",
+      "wordCount": 1775,
+      "updatedAt": "2026-05-04T08:29:49.277Z",
+      "linksOut": []
+    },
+    {
+      "slug": "benchmark/results/2026-05-04-codex",
+      "path": "docs/benchmark/results/2026-05-04-codex.md",
+      "title": "Benchmark run — 2026-05-04 — Codex CLI",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Benchmark run — 2026-05-04 — Codex CLI",
+          "slug": "benchmark-run-2026-05-04-codex-cli"
+        },
+        {
+          "depth": 2,
+          "text": "Setup",
+          "slug": "setup"
+        },
+        {
+          "depth": 2,
+          "text": "A surprising finding before the table",
+          "slug": "a-surprising-finding-before-the-table"
+        },
+        {
+          "depth": 2,
+          "text": "Per-task results",
+          "slug": "per-task-results"
+        },
+        {
+          "depth": 3,
+          "text": "A1 — Domain composition",
+          "slug": "a1-domain-composition"
+        },
+        {
+          "depth": 3,
+          "text": "A2 — Stub / unfinished detection",
+          "slug": "a2-stub-unfinished-detection"
+        },
+        {
+          "depth": 3,
+          "text": "A3 — Reference graph for capabilities/mcp-server",
+          "slug": "a3-reference-graph-for-capabilitiesmcp-server"
+        },
+        {
+          "depth": 3,
+          "text": "B1 — Validator issue codes",
+          "slug": "b1-validator-issue-codes"
+        },
+        {
+          "depth": 3,
+          "text": "B2 — Conflict guard mechanism",
+          "slug": "b2-conflict-guard-mechanism"
+        },
+        {
+          "depth": 3,
+          "text": "C1 — Function exports (negative control)",
+          "slug": "c1-function-exports-negative-control"
+        },
+        {
+          "depth": 3,
+          "text": "C2 — package.json scripts (negative control)",
+          "slug": "c2-packagejson-scripts-negative-control"
+        },
+        {
+          "depth": 2,
+          "text": "Summary",
+          "slug": "summary"
+        },
+        {
+          "depth": 3,
+          "text": "Within-agent delta (Codex OFF → ON)",
+          "slug": "within-agent-delta-codex-off-on"
+        },
+        {
+          "depth": 3,
+          "text": "Hallucination totals",
+          "slug": "hallucination-totals"
+        },
+        {
+          "depth": 2,
+          "text": "Cross-agent comparison (Claude Code vs Codex)",
+          "slug": "cross-agent-comparison-claude-code-vs-codex"
+        },
+        {
+          "depth": 2,
+          "text": "Honest interpretation",
+          "slug": "honest-interpretation"
+        },
+        {
+          "depth": 2,
+          "text": "Decision implications",
+          "slug": "decision-implications"
+        },
+        {
+          "depth": 2,
+          "text": "Caveats",
+          "slug": "caveats"
+        },
+        {
+          "depth": 2,
+          "text": "Re-measurement attempt (same day, structural finding)",
+          "slug": "re-measurement-attempt-same-day-structural-finding"
+        },
+        {
+          "depth": 3,
+          "text": "Structural finding",
+          "slug": "structural-finding"
+        },
+        {
+          "depth": 3,
+          "text": "What this means for the benchmark",
+          "slug": "what-this-means-for-the-benchmark"
+        },
+        {
+          "depth": 3,
+          "text": "Updated cross-agent conclusion",
+          "slug": "updated-cross-agent-conclusion"
+        },
+        {
+          "depth": 2,
+          "text": "Re-measurement — bypass authorized (same day, n=2 attempt)",
+          "slug": "re-measurement-bypass-authorized-same-day-n2-attempt"
+        },
+        {
+          "depth": 3,
+          "text": "Per-task results (Codex MCP-on with bypass)",
+          "slug": "per-task-results-codex-mcp-on-with-bypass"
+        },
+        {
+          "depth": 3,
+          "text": "Headline metrics — Codex bypass run (Codex OFF → ON-bypass)",
+          "slug": "headline-metrics-codex-bypass-run-codex-off-on-bypass"
+        },
+        {
+          "depth": 3,
+          "text": "Final cross-agent conclusion (n=2 measured)",
+          "slug": "final-cross-agent-conclusion-n2-measured"
+        },
+        {
+          "depth": 3,
+          "text": "Important caveat for Codex automation",
+          "slug": "important-caveat-for-codex-automation"
+        },
+        {
+          "depth": 2,
+          "text": "Raw data",
+          "slug": "raw-data"
+        }
+      ],
+      "excerpt": "Companion to 20260504claudecode.md. Same 7 tasks, same rubric, different agent stack. Repo HEAD: post PR 130–133 merge Vault: 22 nodes, 5% orphans (project root) Codex CLI: codexcli 0.128.0 (model: gpt5.5, sandbox: readonly, approval: never) MCP registration: codex mcp add ohmyontology env OMOTVAULT=... node mcp/src/in",
+      "wordCount": 2629,
+      "updatedAt": "2026-05-04T08:58:33.017Z",
+      "linksOut": [
+        "benchmark/results/2026-05-04-claude-code"
+      ]
+    },
+    {
+      "slug": "benchmark/results/2026-05-04-codex-scale-N100-summary",
+      "path": "docs/benchmark/results/2026-05-04-codex-scale-N100-summary.md",
+      "title": "Benchmark scale — 2026-05-04 — Codex (N=100)",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Benchmark scale — 2026-05-04 — Codex (N=100)",
+          "slug": "benchmark-scale-2026-05-04-codex-n100"
+        },
+        {
+          "depth": 2,
+          "text": "Result",
+          "slug": "result"
+        },
+        {
+          "depth": 2,
+          "text": "Interpretation",
+          "slug": "interpretation"
+        }
+      ],
+      "excerpt": "Tmp vault: /var/folders/4y/kbv6fs2g9fmpp7236t79rc0000gn/T/omotscale1001hNgIV (N=100 nodes, 32 reference elements/hub). Single highMCPadvantage task (findbacklinks(elements/hub)). | Mode | Shell exec | MCP calls | Duration | ||||| | OFF | 3 | 0 | 21.6s | | ON | 8 | 0 | 35.0s | Δ shell calls: 5 (negative = MCP saved exec",
+      "wordCount": 105,
+      "updatedAt": "2026-05-04T11:45:31.991Z",
+      "linksOut": []
+    },
+    {
+      "slug": "benchmark/results/2026-05-template",
+      "path": "docs/benchmark/results/2026-05-template.md",
+      "title": "Benchmark run — YYYY-MM-DD",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Benchmark run — YYYY-MM-DD",
+          "slug": "benchmark-run-yyyy-mm-dd"
+        },
+        {
+          "depth": 2,
+          "text": "Setup",
+          "slug": "setup"
+        },
+        {
+          "depth": 2,
+          "text": "Per-task results",
+          "slug": "per-task-results"
+        },
+        {
+          "depth": 3,
+          "text": "A1 — Domain composition",
+          "slug": "a1-domain-composition"
+        },
+        {
+          "depth": 3,
+          "text": "A2 — Stub / unfinished detection",
+          "slug": "a2-stub-unfinished-detection"
+        },
+        {
+          "depth": 3,
+          "text": "A3 — Reference graph for a specific node",
+          "slug": "a3-reference-graph-for-a-specific-node"
+        },
+        {
+          "depth": 3,
+          "text": "B1 — Validator issue codes",
+          "slug": "b1-validator-issue-codes"
+        },
+        {
+          "depth": 3,
+          "text": "B2 — Conflict guard mechanism",
+          "slug": "b2-conflict-guard-mechanism"
+        },
+        {
+          "depth": 3,
+          "text": "C1 — Function exports (negative control)",
+          "slug": "c1-function-exports-negative-control"
+        },
+        {
+          "depth": 3,
+          "text": "C2 — package.json scripts (negative control)",
+          "slug": "c2-packagejson-scripts-negative-control"
+        },
+        {
+          "depth": 2,
+          "text": "Summary",
+          "slug": "summary"
+        },
+        {
+          "depth": 3,
+          "text": "Within-agent delta (primary signal)",
+          "slug": "within-agent-delta-primary-signal"
+        },
+        {
+          "depth": 3,
+          "text": "Tool-call efficiency",
+          "slug": "tool-call-efficiency"
+        },
+        {
+          "depth": 3,
+          "text": "Hallucination totals",
+          "slug": "hallucination-totals"
+        },
+        {
+          "depth": 2,
+          "text": "Interpretation",
+          "slug": "interpretation"
+        },
+        {
+          "depth": 2,
+          "text": "Raw transcripts",
+          "slug": "raw-transcripts"
+        }
+      ],
+      "excerpt": "Rename this file to your actual run date (e.g. 20260510.md). Each run goes in its own file so we can track effect over time as the ontology evolves. Repo HEAD: <git revparse HEAD Vault size: <pnpm dogfood:walk | grep \"vault size\" nodes Claude Code version: <claude version Codex CLI version: <codex version Date / grader",
+      "wordCount": 787,
+      "updatedAt": "2026-05-04T08:22:28.421Z",
+      "linksOut": []
+    },
+    {
+      "slug": "benchmark/rubric",
+      "path": "docs/benchmark/rubric.md",
+      "title": "Rubric — how to score each run",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Rubric — how to score each run",
+          "slug": "rubric-how-to-score-each-run"
+        },
+        {
+          "depth": 2,
+          "text": "The four axes",
+          "slug": "the-four-axes"
+        },
+        {
+          "depth": 3,
+          "text": "1. Correctness (0–3) — primary score",
+          "slug": "1-correctness-03-primary-score"
+        },
+        {
+          "depth": 3,
+          "text": "2. Tool-call count",
+          "slug": "2-tool-call-count"
+        },
+        {
+          "depth": 3,
+          "text": "3. Hallucinations (count)",
+          "slug": "3-hallucinations-count"
+        },
+        {
+          "depth": 3,
+          "text": "4. Subjective utility (1–5) — last, optional",
+          "slug": "4-subjective-utility-15-last-optional"
+        },
+        {
+          "depth": 2,
+          "text": "What the data should show",
+          "slug": "what-the-data-should-show"
+        },
+        {
+          "depth": 3,
+          "text": "If the ontology helps (positive result)",
+          "slug": "if-the-ontology-helps-positive-result"
+        },
+        {
+          "depth": 3,
+          "text": "If the ontology doesn't help (null result)",
+          "slug": "if-the-ontology-doesnt-help-null-result"
+        },
+        {
+          "depth": 3,
+          "text": "If the ontology hurts (negative result)",
+          "slug": "if-the-ontology-hurts-negative-result"
+        },
+        {
+          "depth": 2,
+          "text": "A note on ties",
+          "slug": "a-note-on-ties"
+        }
+      ],
+      "excerpt": "Score each agent × mode × task cell (28 cells total per measurement run). Be strict. If you find yourself wanting to round up because the agent \"almost\" got it, write the gap in the Notes column instead of inflating. | Score | Meaning | ||| | 3 | Fully correct. Every item the prompt asked for is present and accurate; n",
+      "wordCount": 638,
+      "updatedAt": "2026-05-04T08:22:28.421Z",
+      "linksOut": []
+    },
+    {
+      "slug": "benchmark/tasks",
+      "path": "docs/benchmark/tasks.md",
+      "title": "Benchmark tasks",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Benchmark tasks",
+          "slug": "benchmark-tasks"
+        },
+        {
+          "depth": 2,
+          "text": "Category A — cross-cutting graph questions",
+          "slug": "category-a-cross-cutting-graph-questions"
+        },
+        {
+          "depth": 3,
+          "text": "A1 — Domain composition",
+          "slug": "a1-domain-composition"
+        },
+        {
+          "depth": 3,
+          "text": "A2 — Stub / unfinished detection",
+          "slug": "a2-stub-unfinished-detection"
+        },
+        {
+          "depth": 3,
+          "text": "A3 — Reference graph for a specific node",
+          "slug": "a3-reference-graph-for-a-specific-node"
+        },
+        {
+          "depth": 2,
+          "text": "Category B — semantic / design questions",
+          "slug": "category-b-semantic-design-questions"
+        },
+        {
+          "depth": 3,
+          "text": "B1 — Validator issue codes",
+          "slug": "b1-validator-issue-codes"
+        },
+        {
+          "depth": 3,
+          "text": "B2 — Conflict guard mechanism",
+          "slug": "b2-conflict-guard-mechanism"
+        },
+        {
+          "depth": 2,
+          "text": "Category C — negative control (raw grep / read sufficient)",
+          "slug": "category-c-negative-control-raw-grep-read-sufficient"
+        },
+        {
+          "depth": 3,
+          "text": "C1 — Function exports",
+          "slug": "c1-function-exports"
+        },
+        {
+          "depth": 3,
+          "text": "C2 — package.json scripts",
+          "slug": "c2-packagejson-scripts"
+        },
+        {
+          "depth": 2,
+          "text": "How tasks were chosen",
+          "slug": "how-tasks-were-chosen"
+        }
+      ],
+      "excerpt": "7 tasks across 3 categories. Each has a known correct answer (verifiable by human against the current docs/ontology/ vault, code, and PR history) so we can grade independent of the AI's confidence. Paste the prompt verbatim into a fresh agent session. No followups. Questions where the answer requires reasoning over mul",
+      "wordCount": 796,
+      "updatedAt": "2026-05-04T08:22:28.422Z",
       "linksOut": []
     },
     {
@@ -1734,6 +2286,166 @@
           "depth": 1,
           "text": "CHANGELOG",
           "slug": "changelog"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-06 — Round 15: VSCode plugin 제거 — AI-agent 터미널 시대로 진입점 단순화",
+          "slug": "2026-05-06-round-15-vscode-plugin-제거-ai-agent-터미널-시대로-진입점-단순화"
+        },
+        {
+          "depth": 3,
+          "text": "왜 제거?",
+          "slug": "왜-제거"
+        },
+        {
+          "depth": 3,
+          "text": "제거 범위",
+          "slug": "제거-범위"
+        },
+        {
+          "depth": 3,
+          "text": "보존 (재도입 시 root)",
+          "slug": "보존-재도입-시-root"
+        },
+        {
+          "depth": 3,
+          "text": "Surface 표 갱신",
+          "slug": "surface-표-갱신"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-05 — Round 14: AI agent ↔ vault 자동 sync + 웹 즉시 반영 + frontmatter schema",
+          "slug": "2026-05-05-round-14-ai-agent-vault-자동-sync-웹-즉시-반영-frontmatter-schema"
+        },
+        {
+          "depth": 3,
+          "text": "Web 즉시 반영 — polling → 그래프 pulse → 두 toast (#155 #156 #157 #158)",
+          "slug": "web-즉시-반영-polling-그래프-pulse-두-toast-155-156-157-158"
+        },
+        {
+          "depth": 3,
+          "text": "Walkthrough 검증 + topology↔ontology 회복 (#159)",
+          "slug": "walkthrough-검증-topologyontology-회복-159"
+        },
+        {
+          "depth": 3,
+          "text": "Frontmatter schema 양식 — three entry points 동기화 (#160)",
+          "slug": "frontmatter-schema-양식-three-entry-points-동기화-160"
+        },
+        {
+          "depth": 3,
+          "text": "CLI `import` — 외부 .md schema 정규화 후 vault 정착 (#161)",
+          "slug": "cli-import-외부-md-schema-정규화-후-vault-정착-161"
+        },
+        {
+          "depth": 3,
+          "text": "`/ontology-sync` agent skill + AGENTS read-while-coding 룰 (#162)",
+          "slug": "ontology-sync-agent-skill-agents-read-while-coding-룰-162"
+        },
+        {
+          "depth": 3,
+          "text": "SessionStart hook — vault 요약 자동 inject (#163)",
+          "slug": "sessionstart-hook-vault-요약-자동-inject-163"
+        },
+        {
+          "depth": 3,
+          "text": "Dogfood vault 갱신",
+          "slug": "dogfood-vault-갱신"
+        },
+        {
+          "depth": 3,
+          "text": "4 surface 모두 작동",
+          "slug": "4-surface-모두-작동"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-04 — Round 13: AI agent quality 첫 측정 + VSCode plugin MVP",
+          "slug": "2026-05-04-round-13-ai-agent-quality-첫-측정-vscode-plugin-mvp"
+        },
+        {
+          "depth": 3,
+          "text": "AI agent quality benchmark (#47, #48)",
+          "slug": "ai-agent-quality-benchmark-47-48"
+        },
+        {
+          "depth": 3,
+          "text": "MCP `instructions` field (#45)",
+          "slug": "mcp-instructions-field-45"
+        },
+        {
+          "depth": 3,
+          "text": "VSCode plugin v0.1.0 MVP (#49)",
+          "slug": "vscode-plugin-v010-mvp-49"
+        },
+        {
+          "depth": 3,
+          "text": "Scaffold drift 정정 (#46)",
+          "slug": "scaffold-drift-정정-46"
+        },
+        {
+          "depth": 3,
+          "text": "VSCode plugin v0.2.0 → v0.5.0 (#50 #51 #52 #54 #55)",
+          "slug": "vscode-plugin-v020-v050-50-51-52-54-55"
+        },
+        {
+          "depth": 3,
+          "text": "4-layer 자동 검증 (#53 #55)",
+          "slug": "4-layer-자동-검증-53-55"
+        },
+        {
+          "depth": 3,
+          "text": "4 surface 완성",
+          "slug": "4-surface-완성"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-04 — Round 12: developer-primary 방향 + CLI 5 명령 + dogfood graph 강화",
+          "slug": "2026-05-04-round-12-developer-primary-방향-cli-5-명령-dogfood-graph-강화"
+        },
+        {
+          "depth": 3,
+          "text": "Primary audience 결정 (#33)",
+          "slug": "primary-audience-결정-33"
+        },
+        {
+          "depth": 3,
+          "text": "CLI 4 새 명령 (#32 #34 #35) — developer 매일 진입점",
+          "slug": "cli-4-새-명령-32-34-35-developer-매일-진입점"
+        },
+        {
+          "depth": 3,
+          "text": "Cross-package contract 4-way / 3-way (#32 #27 후속)",
+          "slug": "cross-package-contract-4-way-3-way-32-27-후속"
+        },
+        {
+          "depth": 3,
+          "text": "AI agent dogfood walk + graph 완전화 (#38 #39)",
+          "slug": "ai-agent-dogfood-walk-graph-완전화-38-39"
+        },
+        {
+          "depth": 3,
+          "text": "영구 가드 추가 (R11 8 → R12 10)",
+          "slug": "영구-가드-추가-r11-8-r12-10"
+        },
+        {
+          "depth": 3,
+          "text": "Tarball 정밀화",
+          "slug": "tarball-정밀화"
+        },
+        {
+          "depth": 3,
+          "text": "신규 file (R12)",
+          "slug": "신규-file-r12"
+        },
+        {
+          "depth": 3,
+          "text": "Test count",
+          "slug": "test-count"
+        },
+        {
+          "depth": 3,
+          "text": "다음 (R13 candidates, 신호 대기)",
+          "slug": "다음-r13-candidates-신호-대기"
         },
         {
           "depth": 2,
@@ -1773,7 +2485,7 @@
         {
           "depth": 3,
           "text": "Dogfood vault 갱신",
-          "slug": "dogfood-vault-갱신"
+          "slug": "dogfood-vault-갱신-2"
         },
         {
           "depth": 3,
@@ -2341,9 +3053,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. 분석 기반 1원칙 라운드. silent corruption / parser drift / schema 진화 부재 / AI agent write 비대칭 4 갭을 한",
-      "wordCount": 8818,
-      "updatedAt": "2026-05-04T03:39:22.419Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. R14 closeout (PR 164) 후 사용자 명시 — \"vscode plugin 은 없어도 될 듯. 이제 대부분 vscode 안 쓰고 claude code ",
+      "wordCount": 11606,
+      "updatedAt": "2026-05-05T23:39:41.986Z",
       "linksOut": [
         "slug"
       ]
@@ -3123,8 +3835,8 @@
         }
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260503 (postRound9 — surface diet 8 rounds + LocalVaultProvider + robustness audit) Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG. Mission v2: \"an ontology of the codebas",
-      "wordCount": 4053,
-      "updatedAt": "2026-05-04T02:20:35.054Z",
+      "wordCount": 4061,
+      "updatedAt": "2026-05-04T05:38:08.586Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -3414,6 +4126,41 @@
       "linksOut": []
     },
     {
+      "slug": "ontology/capabilities/cli-developer-entry",
+      "path": "docs/ontology/capabilities/cli-developer-entry.md",
+      "title": "CLI Developer Entry (init / list / validate / add / find)",
+      "tags": [],
+      "frontmatter": {
+        "slug": "capabilities/cli-developer-entry",
+        "kind": "capability",
+        "title": "CLI Developer Entry (init / list / validate / add / find)",
+        "domain": "onboarding-ux",
+        "elements": [
+          "cli/src/index.mjs",
+          "cli/src/commands/list.mjs",
+          "cli/src/commands/validate.mjs",
+          "cli/src/commands/add.mjs",
+          "cli/src/commands/find.mjs"
+        ],
+        "relates": [
+          "capabilities/mcp-server",
+          "capabilities/vault-validator",
+          "domains/onboarding-ux"
+        ]
+      },
+      "headings": [
+        {
+          "depth": 1,
+          "text": "CLI Developer Entry",
+          "slug": "cli-developer-entry"
+        }
+      ],
+      "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. 5 명령으로 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | What it does | ||| | ohmyontology init [folder] | Scaffold vault (5 starter .md + .mcp.json.example) | | ohmyontology list [vault] | List ontology nodes (color table, kind X filter, json) | | ohmyont",
+      "wordCount": 181,
+      "updatedAt": "2026-05-04T07:32:33.448Z",
+      "linksOut": []
+    },
+    {
       "slug": "ontology/capabilities/frontmatter-to-ontology",
       "path": "docs/ontology/capabilities/frontmatter-to-ontology.md",
       "title": "Frontmatter → Ontology Stub",
@@ -3424,8 +4171,8 @@
         "title": "Frontmatter → Ontology Stub",
         "domain": "ontology-core",
         "elements": [
-          "src/shared/lib/parse-frontmatter",
-          "src/entities/docs-vault/lib/derive-ontology-from-vault"
+          "src/shared/lib/parse-frontmatter.ts",
+          "src/entities/docs-vault/lib/derive-ontology-from-vault.ts"
         ],
         "relates": [
           "domains/vault-local-first",
@@ -3441,7 +4188,7 @@
       ],
       "excerpt": "vault 의 .md 파일 frontmatter 를 직접 읽어 OntologyStub (nodes + edges + warnings) 으로 변환. AI 추출 / 검수 큐 거치지 않는 fastpath. 이게 mission \"frontmatter 가 자기승인\" 의 코드 표현. 지원 frontmatter 키: kind: — canonical 5: project / domain / capability / element / document title:, domain: capabilities: [], elements: [] — 배열 노드 relates: [], dependenc",
       "wordCount": 79,
-      "updatedAt": "2026-05-04T01:27:35.685Z",
+      "updatedAt": "2026-05-04T11:37:08.799Z",
       "linksOut": []
     },
     {
@@ -3588,6 +4335,82 @@
       "linksOut": []
     },
     {
+      "slug": "ontology/capabilities/ontology-sync-skill",
+      "path": "docs/ontology/capabilities/ontology-sync-skill.md",
+      "title": "Ontology-Sync Agent Skill (.claude/skills/ontology-sync)",
+      "tags": [],
+      "frontmatter": {
+        "slug": "capabilities/ontology-sync-skill",
+        "kind": "capability",
+        "title": "Ontology-Sync Agent Skill (.claude/skills/ontology-sync)",
+        "domain": "ai-agent-partner",
+        "elements": [
+          ".claude/skills/ontology-sync/SKILL.md"
+        ],
+        "dependencies": [
+          "capabilities/mcp-server"
+        ]
+      },
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Ontology-Sync Agent Skill",
+          "slug": "ontology-sync-agent-skill"
+        },
+        {
+          "depth": 2,
+          "text": "어디에 매여 있나",
+          "slug": "어디에-매여-있나"
+        }
+      ],
+      "excerpt": "Claude Code 가 코드 변경 후 자동으로 호출하는 userinvocable skill. .claude/skills/ontologysync/SKILL.md 한 파일이 곧 surface — 새 capability / element / domain 가 등장하면 MCP write 도구 (addconcept / patchconcept / addrelation) 로 vault 에 반영하라는 워크플로를 LLM 에게 지시한다. MCP 서버가 런타임 도구 라면 이 skill 은 사용 규약 — readthenwrite, 중복 slug 회피, 5 줄 changelog reply,",
+      "wordCount": 105,
+      "updatedAt": "2026-05-05T15:22:53.804Z",
+      "linksOut": []
+    },
+    {
+      "slug": "ontology/capabilities/session-start-ontology-context",
+      "path": "docs/ontology/capabilities/session-start-ontology-context.md",
+      "title": "SessionStart Ontology Context Injection (.claude/hooks/inject-ontology-summary.sh)",
+      "tags": [],
+      "frontmatter": {
+        "slug": "capabilities/session-start-ontology-context",
+        "kind": "capability",
+        "title": "SessionStart Ontology Context Injection (.claude/hooks/inject-ontology-summary.sh)",
+        "domain": "ai-agent-partner",
+        "elements": [
+          ".claude/hooks/inject-ontology-summary.sh"
+        ],
+        "dependencies": [
+          "capabilities/cli-developer-entry"
+        ],
+        "relates": [
+          "capabilities/ontology-sync-skill"
+        ]
+      },
+      "headings": [
+        {
+          "depth": 1,
+          "text": "SessionStart Ontology Context Injection",
+          "slug": "sessionstart-ontology-context-injection"
+        },
+        {
+          "depth": 2,
+          "text": "어디에 매여 있나",
+          "slug": "어디에-매여-있나"
+        },
+        {
+          "depth": 2,
+          "text": "Vault 결정 우선순위",
+          "slug": "vault-결정-우선순위"
+        }
+      ],
+      "excerpt": "Claude Code 가 새 세션을 열 때 한 번 실행되어 현재 디렉토리의 ontology vault 요약 (총 노드 수 · kind 분포 · 첫 8 노드 샘플) 을 agent system context 에 inject 한다. 매 prompt 마다 사용자가 \"ontology 활용해\" 라고 알려주지 않아도 agent 가 작업 첫 순간부터 vault 를 인지한다. domains/aiagentpartner — agent 가 vault 와 상호작용하는 surface 군. capabilities/clideveloperentry — vault 요약을 만들 때 ohmyontolo",
+      "wordCount": 152,
+      "updatedAt": "2026-05-05T15:29:33.665Z",
+      "linksOut": []
+    },
+    {
       "slug": "ontology/capabilities/topology-sigma-render",
       "path": "docs/ontology/capabilities/topology-sigma-render.md",
       "title": "Topology — Sigma WebGL Render",
@@ -3616,6 +4439,61 @@
       "excerpt": "Sigma.js + Graphology + ForceAtlas2 spatial network. 노드 클릭 → ProjectDrawer, hover → 1hop 이웃 강조, 우측 SigmaHubRail (degree 상위), 우측 SigmaMinimap. ⌘K 검색. / (홈 hub) 와 /topology (alias) 양쪽에서 동일 컴포넌트 (HomePage) 가 mount.",
       "wordCount": 42,
       "updatedAt": "2026-05-04T01:27:35.686Z",
+      "linksOut": []
+    },
+    {
+      "slug": "ontology/capabilities/vault-live-updates",
+      "path": "docs/ontology/capabilities/vault-live-updates.md",
+      "title": "Vault Live Updates (5s polling + diff toast + graph pulse)",
+      "tags": [],
+      "frontmatter": {
+        "slug": "capabilities/vault-live-updates",
+        "kind": "capability",
+        "title": "Vault Live Updates (5s polling + diff toast + graph pulse)",
+        "domain": "vault-local-first",
+        "elements": [
+          "src/features/docs-vault-local/model/use-local-vault.ts",
+          "src/features/docs-vault-local/model/VaultDiffToaster.tsx",
+          "src/features/docs-vault-local/lib/diff-manifest.ts",
+          "src/widgets/topology-map-sigma/lib/graph-build.ts"
+        ],
+        "relates": [
+          "capabilities/builder-vault-write",
+          "capabilities/mcp-conflict-guard",
+          "capabilities/topology-sigma-render",
+          "domains/vault-local-first"
+        ]
+      },
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Vault Live Updates (5s polling + diff toast + graph pulse)",
+          "slug": "vault-live-updates-5s-polling-diff-toast-graph-pulse"
+        },
+        {
+          "depth": 2,
+          "text": "4 단계 흐름",
+          "slug": "4-단계-흐름"
+        },
+        {
+          "depth": 2,
+          "text": "핵심 결정",
+          "slug": "핵심-결정"
+        },
+        {
+          "depth": 2,
+          "text": "diff helper 분리",
+          "slug": "diff-helper-분리"
+        },
+        {
+          "depth": 2,
+          "text": "참조 PR",
+          "slug": "참조-pr"
+        }
+      ],
+      "excerpt": "R14 (155158, 20260504 ~ 20260505) 에 도입된 web 즉시 반영 능력. 사용자 명시 \"웹에서나 잘 반영되면 좋겠는데? 그걸 강화하는건 어때\" 의 4 단계 답. IDE / AI agent / CLI 어느 surface 가 vault .md 만지면 웹 탭이 focus 안 해도 ~5s 안에 반영. | Step | What | Where 인지 | |||| | 155 polling | 5s 간격 fingerprint check + visibleonly 자동 reload | 백그라운드 | | 156 graph diff pulse | 새 노드 amber ",
+      "wordCount": 289,
+      "updatedAt": "2026-05-05T23:36:19.129Z",
       "linksOut": []
     },
     {
@@ -3720,12 +4598,17 @@
         "kind": "domain",
         "title": "AI Agent Partner",
         "capabilities": [
-          "mcp-server"
+          "mcp-server",
+          "mcp-conflict-guard",
+          "ontology-sync-skill",
+          "session-start-ontology-context"
         ],
         "elements": [
+          "mcp-sdk",
           "mcp/src/index.js",
           "mcp/src/parser.mjs",
-          "mcp/src/vault.mjs"
+          "mcp/src/vault.mjs",
+          ".claude/hooks/inject-ontology-summary.sh"
         ],
         "relates": [
           "domains/vault-local-first",
@@ -3741,7 +4624,7 @@
       ],
       "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 14 도구 (read 8 + write 6) 를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출.",
       "wordCount": 49,
-      "updatedAt": "2026-05-04T02:12:02.434Z",
+      "updatedAt": "2026-05-05T15:29:33.665Z",
       "linksOut": []
     },
     {
@@ -3780,16 +4663,19 @@
     {
       "slug": "ontology/domains/onboarding-ux",
       "path": "docs/ontology/domains/onboarding-ux.md",
-      "title": "Onboarding & UX (theme · toast · a11y · mobile)",
+      "title": "Onboarding & UX (theme · toast · a11y · mobile · CLI)",
       "tags": [],
       "frontmatter": {
         "slug": "domains/onboarding-ux",
         "kind": "domain",
-        "title": "Onboarding & UX (theme · toast · a11y · mobile)",
+        "title": "Onboarding & UX (theme · toast · a11y · mobile · CLI)",
+        "capabilities": [
+          "cli-developer-entry"
+        ],
         "elements": [
           "src/features/theme-toggle",
-          "src/shared/ui/toast",
-          "src/shared/ui/live-announcer",
+          "src/shared/ui/toast.tsx",
+          "src/shared/ui/live-announcer.tsx",
           "src/widgets/bottom-tab-bar",
           "src/widgets/gesture-hint"
         ],
@@ -3806,7 +4692,7 @@
       ],
       "excerpt": "crosscutting. 라이트/다크 토글 (html[datatheme=\"light\"]), Sonner기반 toast, arialive 스크린리더 announce, 모바일 BottomTabBar + gesture hint, ⌘K · ⇧⌘K · ? · F · N · Esc 단축키, prefersreducedmotion 자동 존중. 자세한 디자인 룰: docs/DESIGNSYSTEM.md.",
       "wordCount": 37,
-      "updatedAt": "2026-05-04T01:27:35.686Z",
+      "updatedAt": "2026-05-05T23:37:41.046Z",
       "linksOut": []
     },
     {
@@ -3824,7 +4710,7 @@
         "elements": [
           "src/entities/ontology-class",
           "src/entities/knowledge-graph",
-          "src/entities/docs-vault/lib/derive-ontology-from-vault"
+          "src/entities/docs-vault/lib/derive-ontology-from-vault.ts"
         ],
         "relates": [
           "domains/vault-local-first",
@@ -3840,7 +4726,7 @@
       ],
       "excerpt": "4layer class hierarchy (Project · Domain · Capability · Element + Document) + 7 edge types (KNOWLEDGEEDGETYPES) + evidencegrounded statements. Vault frontmatter is the single source of truth — deriveontologyfromvault turns \\.md\\ frontmatter into the inmemory graph. Architecture overview: \\docs/ARCHITECTURE.md\\.",
       "wordCount": 43,
-      "updatedAt": "2026-05-04T01:27:35.686Z",
+      "updatedAt": "2026-05-04T11:37:08.799Z",
       "linksOut": []
     },
     {
@@ -3852,11 +4738,17 @@
         "slug": "domains/vault-local-first",
         "kind": "domain",
         "title": "Vault — Local-First",
+        "capabilities": [
+          "vault-validator",
+          "vault-migrator",
+          "vault-live-updates"
+        ],
         "elements": [
+          "file-system-access-api",
           "src/features/docs-vault-local",
           "src/entities/local-fs-handle",
           "src/entities/docs-vault",
-          "src/shared/lib/idb-kv"
+          "src/shared/lib/idb-kv.ts"
         ],
         "relates": [
           "domains/mode-aware-adapters",
@@ -3870,9 +4762,9 @@
           "slug": "vault-local-first"
         }
       ],
-      "excerpt": "사용자 디스크 폴더를 진실원으로. File System Access API + IndexedDB 기반 핸들 영속. focus / visibility 시 fingerprint 비교로 재스캔 shortcircuit. 자세한 원칙: .claude/rules/localfirst.md. 사용자 surface: docs/FEATURES.md.",
-      "wordCount": 31,
-      "updatedAt": "2026-05-04T01:27:35.686Z",
+      "excerpt": "사용자 디스크 폴더를 진실원으로. File System Access API + IndexedDB 기반 핸들 영속. focus / visibility 시 fingerprint 비교로 재스캔 shortcircuit. R14 부터는 visible 인 동안 5s polling 으로 focus 안 해도 자동 반영 (vaultliveupdates). 자세한 원칙: .claude/rules/localfirst.md. 사용자 surface: docs/FEATURES.md.",
+      "wordCount": 45,
+      "updatedAt": "2026-05-05T23:36:19.129Z",
       "linksOut": []
     },
     {
@@ -3890,6 +4782,8 @@
           "builder-vault-write"
         ],
         "elements": [
+          "sigma-graphology",
+          "xyflow",
           "src/views/home",
           "src/views/ontology-view",
           "src/views/ontology-edit",
@@ -3897,7 +4791,8 @@
           "src/widgets/global-search"
         ],
         "relates": [
-          "domains/ontology-core"
+          "domains/ontology-core",
+          "domains/onboarding-ux"
         ]
       },
       "headings": [
@@ -3909,7 +4804,7 @@
       ],
       "excerpt": "같은 ontology 그래프의 세 출구. 토폴로지 (Sigma + ForceAtlas2 spatial network), 둘러보기 (/ontology 트리 계층 + ego graph + 노드 detail), 빌더 (xyflow ERD canvas + md 내보내기). 검색 — ⌘K 프로젝트 / ⇧⌘K 노드+프로젝트 통합.",
       "wordCount": 38,
-      "updatedAt": "2026-05-04T01:27:35.686Z",
+      "updatedAt": "2026-05-04T06:15:02.628Z",
       "linksOut": []
     },
     {
@@ -4117,8 +5012,13 @@
         },
         {
           "depth": 2,
-          "text": "TL;DR — first principle in one line (v2)",
-          "slug": "tldr-first-principle-in-one-line-v2"
+          "text": "TL;DR — first principle in one line (v3, 2026-05-04)",
+          "slug": "tldr-first-principle-in-one-line-v3-2026-05-04"
+        },
+        {
+          "depth": 3,
+          "text": "Why developer-primary",
+          "slug": "why-developer-primary"
         },
         {
           "depth": 2,
@@ -4137,8 +5037,8 @@
         },
         {
           "depth": 2,
-          "text": "2. Two audiences, one ontology",
-          "slug": "2-two-audiences-one-ontology"
+          "text": "2. One primary audience (v3 — PM dropped)",
+          "slug": "2-one-primary-audience-v3-pm-dropped"
         },
         {
           "depth": 2,
@@ -4222,8 +5122,13 @@
         },
         {
           "depth": 3,
-          "text": "⏳ Phase 4 — Polish for non-developers — upcoming",
-          "slug": "phase-4-polish-for-non-developers-upcoming"
+          "text": "🚫 Phase 4 — Polish for non-developers — **dropped (R11 fire #25)**",
+          "slug": "phase-4-polish-for-non-developers-dropped-r11-fire-25"
+        },
+        {
+          "depth": 3,
+          "text": "⏳ Phase 4 (replacement) — Developer + AI agent depth",
+          "slug": "phase-4-replacement-developer-ai-agent-depth"
         },
         {
           "depth": 2,
@@ -4261,9 +5166,9 @@
           "slug": "option-c-review-this-doc-extra-decisions"
         }
       ],
-      "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. This project is an ontology wor",
-      "wordCount": 1576,
-      "updatedAt": "2026-05-04T02:11:02.394Z",
+      "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. One codebase, one ontology, tha",
+      "wordCount": 1788,
+      "updatedAt": "2026-05-05T23:38:39.906Z",
       "linksOut": []
     },
     {
@@ -4398,6 +5303,36 @@
         },
         {
           "depth": 2,
+          "text": "CLI commands (R12 — list / validate / add / find)",
+          "slug": "cli-commands-r12-list-validate-add-find"
+        },
+        {
+          "depth": 3,
+          "text": "`oh-my-ontology validate` exits 1 with `unclosed-frontmatter`",
+          "slug": "oh-my-ontology-validate-exits-1-with-unclosed-frontmatter"
+        },
+        {
+          "depth": 3,
+          "text": "`oh-my-ontology validate` warns `missing-kind` / `unknown-kind`",
+          "slug": "oh-my-ontology-validate-warns-missing-kind-unknown-kind"
+        },
+        {
+          "depth": 3,
+          "text": "`oh-my-ontology add` throws `Doc already exists`",
+          "slug": "oh-my-ontology-add-throws-doc-already-exists"
+        },
+        {
+          "depth": 3,
+          "text": "`pnpm vault:migrate <id> --write` refuses with \"commit 안 된 .md 변경\"",
+          "slug": "pnpm-vaultmigrate-id---write-refuses-with-commit-안-된-md-변경"
+        },
+        {
+          "depth": 3,
+          "text": "`pnpm dogfood:walk` fails with `Vault path does not exist`",
+          "slug": "pnpm-dogfoodwalk-fails-with-vault-path-does-not-exist"
+        },
+        {
+          "depth": 2,
           "text": "MCP server (Claude Code, Cursor, etc.)",
           "slug": "mcp-server-claude-code-cursor-etc"
         },
@@ -4503,8 +5438,8 @@
         }
       ],
       "excerpt": "Common issues users hit when starting with ohmyontology. If your case isn't here, open an issue: https://github.com/wlsdks/ohmyontology/issues npm caches the package locally. Force a fresh fetch: The target folder already has README.md / project.md / etc. — the CLI never overwrites existing files. Either: Delete the co",
-      "wordCount": 854,
-      "updatedAt": "2026-05-04T01:27:35.683Z",
+      "wordCount": 1126,
+      "updatedAt": "2026-05-04T07:37:50.220Z",
       "linksOut": []
     }
   ],
@@ -4617,6 +5552,34 @@
         "fromSlug": "archive/ONTOLOGY-MODEL-V2-DRAFT",
         "context": "le: 결제 시스템 parents: [] projects: [checkout] summary: 결제 요청부터 정산까지의 흐름 --- # 결제 시스템 [[doc:payment-spec]] 에 명시된 흐름을 구현. **[capability:tax]** 에 의존. ``` → Firestore: - `knowledgeApprovedNodes/project:checkout` ← frontmatter + summary - `knowledgeApprovedEdges/<",
         "linkText": "capability:tax"
+      }
+    ],
+    "benchmark/tasks": [
+      {
+        "fromSlug": "benchmark/README",
+        "context": "s elsewhere. Either way, **measurement before further investment**. ## What's in here | File | Purpose | |---|---| | **[`tasks.md`]** | 7 benchmark tasks — 3 categories (cross-cutting / semantic / negative-control). Each task has a known correct answer",
+        "linkText": "`tasks.md`"
+      }
+    ],
+    "benchmark/rubric": [
+      {
+        "fromSlug": "benchmark/README",
+        "context": "3 categories (cross-cutting / semantic / negative-control). Each task has a known correct answer for human grading. | | **[`rubric.md`]** | How to score: correctness 0–3, tool-call count, hallucination count, subjective utility 1–5. | | [`results/2026-05-te",
+        "linkText": "`rubric.md`"
+      }
+    ],
+    "benchmark/results/2026-05-template": [
+      {
+        "fromSlug": "benchmark/README",
+        "context": "bric.md`](rubric.md) | How to score: correctness 0–3, tool-call count, hallucination count, subjective utility 1–5. | | **[`results/2026-05-template.md`]** | Empty matrix (task × agent × mode). Fill in after each measurement run. | ## How to measure Two paths, depending on",
+        "linkText": "`results/2026-05-template.md`"
+      }
+    ],
+    "benchmark/results/2026-05-04-claude-code": [
+      {
+        "fromSlug": "benchmark/results/2026-05-04-codex",
+        "context": "# Benchmark run — 2026-05-04 — Codex CLI > Companion to **[`2026-05-04-claude-code.md`]**. > Same 7 tasks, same rubric, different agent stack. ## Setup - **Repo HEAD**: post PR #130–#133 merge - **Vault**: 2",
+        "linkText": "`2026-05-04-claude-code.md`"
       }
     ]
   },
@@ -4733,6 +5696,69 @@
         ]
       },
       {
+        "name": "benchmark",
+        "path": "benchmark",
+        "type": "dir",
+        "children": [
+          {
+            "name": "results",
+            "path": "benchmark/results",
+            "type": "dir",
+            "children": [
+              {
+                "name": "2026-05-04-claude-code",
+                "path": "benchmark/results/2026-05-04-claude-code",
+                "type": "doc",
+                "slug": "benchmark/results/2026-05-04-claude-code",
+                "title": "Benchmark run — 2026-05-04 — Claude Code (self-measurement)"
+              },
+              {
+                "name": "2026-05-04-codex",
+                "path": "benchmark/results/2026-05-04-codex",
+                "type": "doc",
+                "slug": "benchmark/results/2026-05-04-codex",
+                "title": "Benchmark run — 2026-05-04 — Codex CLI"
+              },
+              {
+                "name": "2026-05-04-codex-scale-N100-summary",
+                "path": "benchmark/results/2026-05-04-codex-scale-N100-summary",
+                "type": "doc",
+                "slug": "benchmark/results/2026-05-04-codex-scale-N100-summary",
+                "title": "Benchmark scale — 2026-05-04 — Codex (N=100)"
+              },
+              {
+                "name": "2026-05-template",
+                "path": "benchmark/results/2026-05-template",
+                "type": "doc",
+                "slug": "benchmark/results/2026-05-template",
+                "title": "Benchmark run — YYYY-MM-DD"
+              }
+            ]
+          },
+          {
+            "name": "README",
+            "path": "benchmark/README",
+            "type": "doc",
+            "slug": "benchmark/README",
+            "title": "Benchmark — does the ontology actually help AI agents?"
+          },
+          {
+            "name": "rubric",
+            "path": "benchmark/rubric",
+            "type": "doc",
+            "slug": "benchmark/rubric",
+            "title": "Rubric — how to score each run"
+          },
+          {
+            "name": "tasks",
+            "path": "benchmark/tasks",
+            "type": "doc",
+            "slug": "benchmark/tasks",
+            "title": "Benchmark tasks"
+          }
+        ]
+      },
+      {
         "name": "design-references",
         "path": "design-references",
         "type": "dir",
@@ -4806,6 +5832,13 @@
                 "title": "Builder ↔ Vault md write (mode-aware)"
               },
               {
+                "name": "cli-developer-entry",
+                "path": "ontology/capabilities/cli-developer-entry",
+                "type": "doc",
+                "slug": "ontology/capabilities/cli-developer-entry",
+                "title": "CLI Developer Entry (init / list / validate / add / find)"
+              },
+              {
                 "name": "frontmatter-to-ontology",
                 "path": "ontology/capabilities/frontmatter-to-ontology",
                 "type": "doc",
@@ -4841,11 +5874,32 @@
                 "title": "Ontology Hub — Mode-Aware (Q1=(a))"
               },
               {
+                "name": "ontology-sync-skill",
+                "path": "ontology/capabilities/ontology-sync-skill",
+                "type": "doc",
+                "slug": "ontology/capabilities/ontology-sync-skill",
+                "title": "Ontology-Sync Agent Skill (.claude/skills/ontology-sync)"
+              },
+              {
+                "name": "session-start-ontology-context",
+                "path": "ontology/capabilities/session-start-ontology-context",
+                "type": "doc",
+                "slug": "ontology/capabilities/session-start-ontology-context",
+                "title": "SessionStart Ontology Context Injection (.claude/hooks/inject-ontology-summary.sh)"
+              },
+              {
                 "name": "topology-sigma-render",
                 "path": "ontology/capabilities/topology-sigma-render",
                 "type": "doc",
                 "slug": "ontology/capabilities/topology-sigma-render",
                 "title": "Topology — Sigma WebGL Render"
+              },
+              {
+                "name": "vault-live-updates",
+                "path": "ontology/capabilities/vault-live-updates",
+                "type": "doc",
+                "slug": "ontology/capabilities/vault-live-updates",
+                "title": "Vault Live Updates (5s polling + diff toast + graph pulse)"
               },
               {
                 "name": "vault-migrator",
@@ -4887,7 +5941,7 @@
                 "path": "ontology/domains/onboarding-ux",
                 "type": "doc",
                 "slug": "ontology/domains/onboarding-ux",
-                "title": "Onboarding & UX (theme · toast · a11y · mobile)"
+                "title": "Onboarding & UX (theme · toast · a11y · mobile · CLI)"
               },
               {
                 "name": "ontology-core",
