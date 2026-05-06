@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ontology",
-  "version": "0.3.0",
-  "description": "AI-native codebase ontology workbench — vault scaffold + list/validate/add/find/import + graph-level backlinks/rename/merge/delete/query CLI.",
+  "version": "0.4.0",
+  "description": "AI-native codebase ontology workbench — vault scaffold + list/validate/add/find/import + graph-level backlinks/rename/merge/delete/query + R16 analyze (autonomous bootstrap).",
   "type": "module",
   "bin": {
     "oh-my-ontology": "src/index.mjs"
@@ -38,6 +38,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "oh-my-ontology-mcp": "^0.7.1"
+    "oh-my-ontology-mcp": "^0.8.0"
   }
 }

@@ -1,5 +1,13 @@
 # Changelog — oh-my-ontology (CLI)
 
+## 0.4.0 — 2026-05-06 (R16 — autonomous ingest base)
+
+### Added — `analyze` command (12th, mcp v0.8.0 spawn wrapper)
+
+- `oh-my-ontology analyze [rootPath]` — code repo (default cwd) walk, propose ontology node candidates. **side effect 0** — vault NOT modified. Detects FSD vs generic layout, package.json name → project, README H2 → domains.
+- `--json` / `--max-depth N` flags.
+- 사용자가 결과 검토 후 `oh-my-ontology add` 또는 AI agent `add_concept` 으로 명시 진입.
+
 ## 0.3.0 — 2026-05-06 (R15 follow-up — graph-level commands)
 
 ### Added — 5 graph-level commands (Concern 4 fix)

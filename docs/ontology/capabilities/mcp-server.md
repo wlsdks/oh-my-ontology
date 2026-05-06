@@ -1,20 +1,21 @@
 ---
 slug: capabilities/mcp-server
 kind: capability
-title: MCP Server (14 tools)
+title: MCP Server (15 tools)
 domain: ai-agent-partner
 elements:
   - mcp/src/index.js
   - mcp/src/parser.mjs
   - mcp/src/vault.mjs
+  - mcp/src/analyze.mjs
 relates:
   - capabilities/frontmatter-to-ontology
   - domains/ai-agent-partner
 ---
 
-# MCP Server (14 tools)
+# MCP Server (15 tools)
 
-`@modelcontextprotocol/sdk` 기반 stdio JSON-RPC 서버. 14 도구 노출 (read 8 + write 6):
+`@modelcontextprotocol/sdk` 기반 stdio JSON-RPC 서버. 15 도구 노출 (read 9 + write 6):
 
 | 도구 | 동작 |
 |---|---|
@@ -26,6 +27,7 @@ relates:
 | `list_kinds` | kind 분포 census (`{ total, byKind: { capability: N, ... } }`) |
 | `find_orphans` | 어디서도 link 안 받는 고립 노드 (kind 필터, vault-readme 자동 제외) |
 | `query_concepts` | DSL 기반 ad-hoc 쿼리 (frontmatter 키 = / contains / exists 조합) |
+| `analyze_repo_structure` | **R16** code repo (default cwd) 분석 → ontology 노드 후보 제안. **side effect 0** — vault 변경 안 함. AI agent 가 빈 vault bootstrap 시 사용 (사용자 한 줄 *"이 codebase 분석해줘"*). FSD vs generic detect. |
 | `add_concept` | 새 노드 (.md) 작성 — 기존 slug 면 throw |
 | `add_relation` | depends_on / relates / contains / describes edge 추가 |
 | `patch_concept` | 기존 노드 frontmatter (key 단위 patch) + body 갱신 |

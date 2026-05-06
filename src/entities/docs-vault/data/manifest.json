@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-06T06:43:57.685Z",
+  "generatedAt": "2026-05-06T07:40:22.486Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -2289,6 +2289,41 @@
         },
         {
           "depth": 2,
+          "text": "2026-05-06 — Round 15 follow-up #2: Project type honest (Concern 1 fix)",
+          "slug": "2026-05-06-round-15-follow-up-2-project-type-honest-concern-1-fix"
+        },
+        {
+          "depth": 3,
+          "text": "변경 — Project type 정직화",
+          "slug": "변경-project-type-정직화"
+        },
+        {
+          "depth": 3,
+          "text": "derive 함수 — silent fabrication 제거",
+          "slug": "derive-함수-silent-fabrication-제거"
+        },
+        {
+          "depth": 3,
+          "text": "Callsite 정리 (legacy fabrication 명시화)",
+          "slug": "callsite-정리-legacy-fabrication-명시화"
+        },
+        {
+          "depth": 3,
+          "text": "TaxonomyProvider signature 변경",
+          "slug": "taxonomyprovider-signature-변경"
+        },
+        {
+          "depth": 3,
+          "text": "Test",
+          "slug": "test"
+        },
+        {
+          "depth": 3,
+          "text": "Mission align",
+          "slug": "mission-align"
+        },
+        {
+          "depth": 2,
           "text": "2026-05-06 — Round 15 follow-up: CLI graph-level 5 명령 (Concern 4 fix)",
           "slug": "2026-05-06-round-15-follow-up-cli-graph-level-5-명령-concern-4-fix"
         },
@@ -2305,7 +2340,7 @@
         {
           "depth": 3,
           "text": "Mission align",
-          "slug": "mission-align"
+          "slug": "mission-align-2"
         },
         {
           "depth": 3,
@@ -2555,7 +2590,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test"
+          "slug": "test-2"
         },
         {
           "depth": 3,
@@ -2595,7 +2630,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-2"
+          "slug": "test-3"
         },
         {
           "depth": 3,
@@ -2625,7 +2660,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-3"
+          "slug": "test-4"
         },
         {
           "depth": 3,
@@ -2670,7 +2705,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-4"
+          "slug": "test-5"
         },
         {
           "depth": 3,
@@ -2710,7 +2745,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-5"
+          "slug": "test-6"
         },
         {
           "depth": 3,
@@ -2745,7 +2780,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-6"
+          "slug": "test-7"
         },
         {
           "depth": 3,
@@ -2780,7 +2815,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-7"
+          "slug": "test-8"
         },
         {
           "depth": 3,
@@ -2810,7 +2845,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-8"
+          "slug": "test-9"
         },
         {
           "depth": 3,
@@ -2840,7 +2875,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-9"
+          "slug": "test-10"
         },
         {
           "depth": 3,
@@ -2870,7 +2905,7 @@
         {
           "depth": 3,
           "text": "Test",
-          "slug": "test-10"
+          "slug": "test-11"
         },
         {
           "depth": 3,
@@ -3088,9 +3123,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. postpublish architectural audit (Plan agent advisor) 발견 blocking concern — CLI 6 vs MCP 14",
-      "wordCount": 12000,
-      "updatedAt": "2026-05-06T06:32:01.996Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. postpublish architectural audit (Plan agent advisor) 의 blocking Concern 1 fix. Project 18 ",
+      "wordCount": 12425,
+      "updatedAt": "2026-05-06T06:48:12.698Z",
       "linksOut": [
         "slug"
       ]

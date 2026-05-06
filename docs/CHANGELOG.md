@@ -6,6 +6,44 @@
 
 ---
 
+## 2026-05-06 — Round 16: 자율 ingest base — `analyze_repo_structure` 첫 도구
+
+사용자 grill-me 결정 (Q1: AI 자동 ontology 화 / Q2: 자율 ingest from codebase 가 가장 critical 약점). *"MCP 가 잘 되면서 온톨로지화를 기가막히게"* + *"단일 source of truth 보존"* 의 첫 step.
+
+### MCP `analyze_repo_structure` (15번째 tool, mcp v0.7.1 → v0.8.0)
+
+사용자 한 줄 *"이 codebase 분석해줘"* 후 AI agent (Claude Code, Codex, Cursor) 가 호출할 *deterministic helper*. **side effect 0** — vault frontmatter 절대 안 건드림, 후보만 return:
+
+- `package.json` `name/description` → project candidate
+- `README.md` 첫 H1 → project title fallback
+- `README.md` H2 sections (Usage / Installation / Tests 등 generic skip) → domain candidates
+- `src/features|entities|widgets|views/*` (FSD) 또는 `src/*` (generic) → capability/element candidates
+- `suggestedRelations` — project contains 각 capability
+
+응답 shape: `{ rootPath, framework, project, domains[], capabilities[], elements[], suggestedRelations[], skipped[] }`. 사용자 검토 후 *명시 add_concept / add_relation* 만 vault 진입 → **단일 source of truth 보존**.
+
+### CLI `analyze` 명령 (cli v0.3.0 → v0.4.0, 11 → 12 명령)
+
+mcp child_process spawn wrapper. 동일 contract — color CLI / `--json` / `--max-depth`. publish 후 `npx oh-my-ontology analyze` 한 줄로 분석.
+
+### Tests + dogfood
+
+mcp/src/analyze.test.mjs — 7 unit case (FSD / generic / no package.json / generic README skip / ignored folders / empty dir / suggested relations). dogfood `capabilities/mcp-server.md` 갱신 (15 tools, analyze.mjs element 추가). AGENTS.md *"빈 vault bootstrap"* 섹션 영문 + 한국어 추가.
+
+### Mission align
+
+이전 — 사용자가 `init` 후 *수동 add* 25 회 (Paravel real-codebase dogfood 측정). *첫 user Aha moment* 부족.
+이후 — agent 가 한 번 `analyze_repo_structure` → 30+ 후보 즉시. 사용자 검토 + 1-clicks add_concept 다발 호출. *기가막히다* 의 base.
+
+### 다음 step (R17 후보)
+
+- `infer_imports` (TypeScript / JS import graph → dependency 관계)
+- `extract_domains_from_readme` (heading 기반 deeper)
+- `/ontology-bootstrap` skill (한 줄 흐름 orchestrate)
+- agent 의 *implicit detect* 강화 (작업 중 자율 sync)
+
+---
+
 ## 2026-05-06 — Round 15 follow-up #2: Project type honest (Concern 1 fix)
 
 post-publish architectural audit (Plan agent advisor) 의 *blocking* Concern 1 fix. **`Project` 18 fields silent fabrication** — vault frontmatter 4 fields ↔ web 18 fields *두 source-of-truth*. `deriveProjectsFromVault` 가 fabricated default (`category: 'uncategorized'` / `status: 'active'` / `isHub: false` / `position: { x:0, y:0 }`) 을 박아 web 이 *vault 가 가지지 않은 정보* 를 표시. README *"frontmatter is the graph"* 약속과 충돌.
