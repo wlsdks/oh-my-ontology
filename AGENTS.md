@@ -133,7 +133,7 @@ Long-form docs:
 This project describes its own mental model in `docs/ontology/` as frontmatter markdown (dogfooding — we describe ourselves in our own data format).
 
 - Entry points: `docs/ontology/README.md` · `docs/ontology/project.md`
-- ~18 nodes (domains / capabilities / elements / project / vault-readme)
+- ~25 nodes (domains / capabilities / elements / project / vault-readme)
 - AI agents query it via the `mcp/` MCP server — registration guide in `mcp/README.md`, example in `.mcp.json.example`
 - When you discover a new domain / capability / element, add it to the same directory (with the MCP `add_concept` tool, or by hand)
 
@@ -236,4 +236,36 @@ pnpm vault:migrate --list         # 등록된 schema 마이그레이션 (R11)
 - AI agent 는 `mcp/` MCP 서버로 query/write — 등록 가이드 `mcp/README.md`. **R14 부터** `add_concept` / `add` / `import` 세 진입점이 같은 schema 모듈로 양식 정규화 (`mcp/src/schema.mjs` ↔ `cli/src/lib/schema.mjs`)
 - 새 도메인/capability/element 가 생기면 같은 디렉토리에 추가 (`add_concept` 도구로 또는 직접 작성). **R14 의 `/ontology-sync` skill** 또는 SessionStart hook 으로 자동 sync 가능
 
-> **AI agent 가 코드 작업 중 ontology 를 *어떻게* 읽고 쓸지** 의 자세한 패턴 (Read at start / Write at end / skip 케이스 / kind 별 frontmatter 양식) 은 영문 섹션 *"Working with the ontology while you code"* + *"Frontmatter shape per kind (R14)"* 참조. R14 wave 에서 추가된 핵심 가이드.
+### 코드 작업 중 ontology 다루기
+
+vault 는 개발자와 AI agent 가 **공유하는 mental model**. ontology 의 read / write 를 *별개 작업* 이 아니라 *모든 non-trivial 코드 작업의 일부* 로 취급. 두 패턴:
+
+**작업 시작 시 read** (싸고, 자주 빠뜨림). 잘 모르는 영역을 만지기 전에 vault 에 묻기:
+
+- `list_kinds` — 어떤 kind 가 codebase 에 몇 개씩?
+- `list_concepts` (kind / project filter) — 전체 노드 표
+- `get_concept(slug)` — 확장하기 전에 노드 + 이웃 확인
+- `find_backlinks(slug)` — 누가 이 노드 의존? (rename/merge *전에* 실행)
+- `find_path(from, to)` — 관계가 이미 있나?
+
+작업 head 의 30 초 read 가 코드에서의 10 분 재발견을 자주 대신해 줌.
+
+**작업 끝에 write** (쉽게 빠뜨림). 한 작업 단위가 새 capability / element / domain 을 도입했거나 기존 것을 rename / 합쳤다면, vault 에 반영:
+
+- 새 노드 → `add_concept(slug, kind, title, domain?, …)` — frontmatter 가 kind 별 자동 정규화, body 는 kind-specific starter, 강 expected 필드 누락은 `warnings` 로 회신
+- 기존 노드 사이 새 edge → `add_relation(from, to, type)`
+- 코드의 노드가 이동/이름 변경 → `rename_concept(oldSlug, newSlug)` (dry-run 후 `confirm: true`) — 모든 backlink 자동 재배선
+- 거의 같은 두 노드 합치기 → `merge_concepts(fromSlug, intoSlug)` (같은 dry-run 패턴)
+- 기존 노드 정련 → `patch_concept(slug, frontmatter, body, expected_mtime)` — `expected_mtime` 은 직전 `get_concept` 에서. 동시 사람 편집 silent overwrite 차단
+
+명시적 "이 작업 끝났으니 ontology sync 해줘" 루프는 **`/ontology-sync`** skill (`.claude/skills/ontology-sync/SKILL.md`) 로. read-then-write 패턴 + skip 케이스 (typo, style nudge) 체크리스트 묶음.
+
+암시적 "이 repo 방금 열었어" 루프는 **SessionStart hook** (`.claude/hooks/inject-ontology-summary.sh`) 이 처리. Claude Code 가 workspace 에 attach 할 때 한 번 vault census (kind 카운트 + 첫 8 항목) 를 system context 에 inject — agent 가 message #1 부터 ontology 를 이미 인지. vault 없는 repo 에선 silent exit, 글로벌 활성화 안전.
+
+**ontology skip** 케이스: typo fix, 주석 수정, 한 줄 style nudge, lint config, shape 변화 없는 test fixture. *codebase 가 무엇인지* 바뀌는 변화는 vault 로, 아니면 그대로.
+
+### Kind 별 frontmatter 양식 (R14)
+
+AI agent (`add_concept`) 또는 개발자 (`oh-my-ontology add` / `import`) 가 새 노드를 만들면, frontmatter 는 `kind` 별로 정규화되어 외부 .md 흡수도 일관. 전체 표는 `mcp/README.md`, source 는 `mcp/src/schema.mjs` (mirror `cli/src/lib/schema.mjs`). Contract test: `tests/contract/vault-schema.contract.test.ts`. Validator 가 강하게 기대되는 필드 누락 (예: capability/element 의 `domain:`) 을 `missing-expected-field` warning 으로 노출 — advisory 만, hard error 아님 (기존 vault 호환 보존).
+
+`oh-my-ontology import <path...>` 가 bulk path: 본인 `.md` (단일 파일, 디렉토리, 다수) 를 넘기면 같은 schema 거쳐 vault 에 자리잡음. frontmatter `kind`/`slug`/`title` 우선, `--kind` 가 fallback, 첫 `# H1` 이 title fallback, `--auto-prefix` (R15 default on) / `--rename` / `--dry-run` 이 일반 충돌 케이스 cover. `add_concept` / `add` 와 같은 shape — 하나의 schema, 세 진입점.
