@@ -586,5 +586,188 @@ function existsSyncTest(p) {
   }
 }
 
+// ── R15 graph-level commands (backlinks/query/rename/merge/delete) ───────
+//
+// 이 명령들은 mcp child_process spawn — relative path fallback (../../mcp/
+// src/index.js) 으로 monorepo dev 환경에서 작동.
+
+async function buildGraphFixture() {
+  const root = withVault([
+    {
+      slug: 'capabilities/foo',
+      content:
+        '---\nkind: capability\nslug: capabilities/foo\ntitle: Foo\ndomain: domains/auth\nelements: [src/foo.ts]\n---\n\n# Foo\n',
+    },
+    {
+      slug: 'capabilities/bar',
+      content:
+        '---\nkind: capability\nslug: capabilities/bar\ntitle: Bar\ndomain: domains/auth\nrelates: [capabilities/foo]\n---\n\n# Bar\n',
+    },
+    {
+      slug: 'domains/auth',
+      content:
+        '---\nkind: domain\nslug: domains/auth\ntitle: Auth\ncapabilities: [capabilities/foo, capabilities/bar]\n---\n\n# Auth\n',
+    },
+  ]);
+  return root;
+}
+
+await test('backlinks — capabilities/foo 의 backlinks (bar relates + auth capabilities)', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['backlinks', 'capabilities/foo', root]);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /backlink/);
+    assert.match(clean, /capabilities\/bar/);
+    assert.match(clean, /domains\/auth/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('backlinks --json — JSON 응답 파싱', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['backlinks', 'capabilities/foo', root, '--json']);
+    assert.equal(r.code, 0);
+    const data = JSON.parse(r.stdout);
+    assert.ok(Array.isArray(data.matches));
+    assert.ok(data.matches.length >= 1);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('query — kind=capability AND has(elements)', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run([
+      'query',
+      'kind=capability AND has(elements)',
+      root,
+    ]);
+    assert.equal(r.code, 0);
+    const clean = stripAnsi(r.stdout);
+    // Only foo has elements; bar has relates only.
+    assert.match(clean, /capabilities\/foo/);
+    assert.doesNotMatch(clean, /capabilities\/bar.*\n/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('rename — dry-run preview, no disk change', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run([
+      'rename',
+      'capabilities/foo',
+      'capabilities/foo-renamed',
+      root,
+    ]);
+    assert.equal(r.code, 0);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /dry-run/);
+    assert.match(clean, /capabilities\/foo-renamed/);
+    // foo.md 그대로 존재 (dry-run)
+    assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), true);
+    assert.equal(
+      existsSyncTest(join(root, 'capabilities/foo-renamed.md')),
+      false,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('rename --confirm — 파일 이동 + backlink redirect', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run([
+      'rename',
+      'capabilities/foo',
+      'capabilities/foo-renamed',
+      root,
+      '--confirm',
+    ]);
+    assert.equal(r.code, 0, `stderr: ${r.stderr}`);
+    assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
+    assert.equal(
+      existsSyncTest(join(root, 'capabilities/foo-renamed.md')),
+      true,
+    );
+    // bar 의 relates 가 redirect 됐는지
+    const barText = readFileSync(
+      join(root, 'capabilities/bar.md'),
+      'utf-8',
+    );
+    assert.match(barText, /capabilities\/foo-renamed/);
+    assert.doesNotMatch(barText, /relates:.*\bcapabilities\/foo\b(?!-renamed)/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('delete — backlinks 있으면 dry-run 에서 경고', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['delete', 'capabilities/foo', root]);
+    assert.equal(r.code, 0);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /dry-run/);
+    assert.match(clean, /backlink/);
+    assert.match(clean, /--force/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('delete --confirm (no backlinks) — 파일 삭제', async () => {
+  const root = withVault([
+    {
+      slug: 'capabilities/lonely',
+      content:
+        '---\nkind: capability\nslug: capabilities/lonely\ntitle: Lonely\ndomain: domains/auth\n---\n',
+    },
+  ]);
+  try {
+    const r = await run([
+      'delete',
+      'capabilities/lonely',
+      root,
+      '--confirm',
+    ]);
+    assert.equal(r.code, 0, `stderr: ${r.stderr}`);
+    assert.equal(
+      existsSyncTest(join(root, 'capabilities/lonely.md')),
+      false,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('merge — dry-run preview', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run([
+      'merge',
+      'capabilities/foo',
+      'capabilities/bar',
+      root,
+    ]);
+    assert.equal(r.code, 0);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /dry-run/);
+    assert.match(clean, /capabilities\/foo/);
+    assert.match(clean, /capabilities\/bar/);
+    // foo.md 그대로 존재 (dry-run)
+    assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 console.log(`\ncli integration: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

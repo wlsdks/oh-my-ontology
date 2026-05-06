@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ontology",
-  "version": "0.2.0",
-  "description": "AI-native codebase ontology workbench — vault scaffold + list/validate/add/find CLI.",
+  "version": "0.3.0",
+  "description": "AI-native codebase ontology workbench — vault scaffold + list/validate/add/find/import + graph-level backlinks/rename/merge/delete/query CLI.",
   "type": "module",
   "bin": {
     "oh-my-ontology": "src/index.mjs"
@@ -36,5 +36,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "oh-my-ontology-mcp": "^0.7.1"
   }
 }

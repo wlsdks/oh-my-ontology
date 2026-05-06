@@ -1,5 +1,33 @@
 # Changelog — oh-my-ontology (CLI)
 
+## 0.3.0 — 2026-05-06 (R15 follow-up — graph-level commands)
+
+### Added — 5 graph-level commands (Concern 4 fix)
+
+post-publish architectural audit 발견 — CLI 6 vs MCP 14 ergonomic asymmetry. 개발자가 *위험한-그러나-필수* 작업 (rename / merge / delete) 을 *AI agent 통해서만* 할 수 있어 mission *"developer + AI agent grow together"* inversion. 이 PR 이 fix.
+
+- **`backlinks <slug>`** — find every node referencing the target. wraps MCP `find_backlinks`. `--json` for raw output.
+- **`query "<filter>"`** — typed filter DSL. wraps MCP `query_concepts`. `kind=X AND has(Y) AND NOT domain=Z`, parens / OR / NOT.
+- **`rename <oldSlug> <newSlug>`** — atomic rename. wraps MCP `rename_concept`. dry-run by default, `--confirm` to apply.
+- **`merge <fromSlug> <intoSlug>`** — atomic merge. wraps MCP `merge_concepts`. dry-run by default, `--confirm` to apply.
+- **`delete <slug>`** — permanent delete. wraps MCP `delete_concept`. dry-run by default, `--confirm` to apply, `--force` to ignore backlinks.
+
+### Implementation — `cli/src/lib/mcp-call.mjs` (single source of truth via spawn)
+
+새 명령들은 MCP server child_process spawn + JSON-RPC 로 호출. mcp 가 *진실원*, cli 는 thin wrapper. drift surface 0 (logic 복제 안 함). spawn overhead ~50-100ms per call — 한 번씩 호출이라 acceptable.
+
+- mcp entry resolution: `OMOT_MCP_PATH` env → `require.resolve('oh-my-ontology-mcp/src/index.js')` → monorepo dev fallback (`../../../mcp/src/index.js`)
+- cli/package.json 에 `oh-my-ontology-mcp ^0.7.1` dependency 명시 — `npm install` 시 mcp 자동 설치
+
+### Tests
+
+cli integration 24 → **32** (+8 new):
+- backlinks (color + JSON)
+- query (DSL filter)
+- rename (dry-run + confirm + backlink redirect 검증)
+- delete (backlinks 가드 + force)
+- merge (dry-run preview)
+
 ## Unreleased — 2026-05-06 (R15)
 
 ### Changed — `init` 의 mcp 등록 마찰 1 step 제거

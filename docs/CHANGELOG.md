@@ -6,6 +6,46 @@
 
 ---
 
+## 2026-05-06 — Round 15 follow-up: CLI graph-level 5 명령 (Concern 4 fix)
+
+post-publish architectural audit (Plan agent advisor) 발견 *blocking* concern — **CLI 6 vs MCP 14 ergonomic asymmetry**. 개발자가 *위험한-그러나-필수* 작업 (rename / merge / delete / query / backlinks) 을 *AI agent 통해서만* 할 수 있어 mission *"developer + AI agent grow together"* inversion. 이 PR 이 fix.
+
+### CLI 5 graph-level 명령 추가 (cli v0.2.0 → v0.3.0, 6 → **11 명령**)
+
+| Command | Wraps MCP tool |
+|---|---|
+| `backlinks <slug>` | `find_backlinks` |
+| `query "<filter>"` | `query_concepts` (typed DSL) |
+| `rename <old> <new>` | `rename_concept` (dry-run + --confirm) |
+| `merge <from> <into>` | `merge_concepts` (dry-run + --confirm) |
+| `delete <slug>` | `delete_concept` (dry-run + --confirm + --force) |
+
+### Implementation — `cli/src/lib/mcp-call.mjs` (single source of truth via spawn)
+
+새 명령들은 MCP server child_process spawn + JSON-RPC 로 호출. mcp 가 *진실원*, cli 는 thin wrapper. drift surface 0 (logic 복제 안 함). spawn overhead ~50-100ms per call — 한 번씩 호출이라 acceptable.
+
+- mcp entry resolution: `OMOT_MCP_PATH` env → `require.resolve('oh-my-ontology-mcp/src/index.js')` → monorepo dev fallback
+- `cli/package.json` 에 `dependencies: { "oh-my-ontology-mcp": "^0.7.1" }` 명시 — npm install 시 mcp 자동
+
+### Mission align
+
+이전 — cli 는 *온톨로지 노드 만들기* (init/add/import) 까지만, *그래프 변경* 은 mcp-only. AI agent 가 *유일한 ergonomic write surface* 였음. 이제 — cli 가 mcp 와 *동등 권한*. 사용자가 본인 daily 로 rename/merge/delete 사용 가능.
+
+### Tests
+
+cli integration **24 → 32** (+8 new):
+- backlinks 컬러 + JSON
+- query DSL filter
+- rename dry-run + --confirm + backlink redirect 검증
+- delete backlinks 가드 + --confirm
+- merge dry-run preview
+
+### Dogfood vault
+
+`capabilities/cli-developer-entry.md` 갱신 — 6 → 11 명령, 5 element 추가 (backlinks/query/rename/merge/delete + mcp-call helper).
+
+---
+
 ## 2026-05-06 — Round 15: VSCode plugin 제거 — AI-agent 터미널 시대로 진입점 단순화
 
 R14 closeout (PR #164) 후 사용자 명시 — *"vscode plugin 은 없어도 될 듯. 이제 대부분 vscode 안 쓰고 claude code / codex 를 사용하지"*. R13 에서 v0.1.0 → v0.9.0 까지 키운 4번째 surface 통째 제거. 4 surface (CLI · MCP · Web · VSCode) → **3 surface (CLI · MCP · Web)**.
