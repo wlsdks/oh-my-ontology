@@ -14,7 +14,7 @@ import {
   statSync,
   readdirSync,
 } from 'node:fs';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stdout, stderr, argv, exit, cwd } from 'node:process';
 
@@ -134,34 +134,54 @@ function runInit(targetArg) {
     warn(`${skipped} existing file(s) preserved (not overwritten)`);
   }
 
-  // .mcp.json — wired to *this* vault. Open this folder in an AI agent
-  // (Claude Code, Cursor, …) and the 14 MCP tools are auto-registered.
-  // Existing .mcp.json is preserved (user might have other servers wired).
-  const mcpJson = join(target, '.mcp.json');
-  const mcpExample = join(target, '.mcp.json.example');
-  const mcpConfig = {
-    mcpServers: {
-      'oh-my-ontology': {
-        command: 'npx',
-        args: ['-y', 'oh-my-ontology-mcp'],
-        env: {
-          // Relative to the vault folder — portable across machines.
-          OMOT_VAULT: '.',
+  // .mcp.json — wired to *this* vault. Two locations covered:
+  //   1. cwd (codebase root) — typical "open myproject in Claude Code" flow.
+  //      OMOT_VAULT points to the vault sub-folder relative to cwd.
+  //   2. vault target — for "open the vault folder itself in Claude Code"
+  //      flow. OMOT_VAULT='.' (vault is cwd).
+  // Existing .mcp.json in either location is preserved (user might have
+  // other servers wired) — a `.mcp.json.example` is dropped instead so the
+  // user can diff and merge by hand.
+  function mcpConfigForVault(omotVault) {
+    return {
+      mcpServers: {
+        'oh-my-ontology': {
+          command: 'npx',
+          args: ['-y', 'oh-my-ontology-mcp'],
+          env: { OMOT_VAULT: omotVault },
         },
       },
-    },
-  };
-  const mcpJsonText = JSON.stringify(mcpConfig, null, 2) + '\n';
-  if (!existsSync(mcpJson)) {
-    writeFileSync(mcpJson, mcpJsonText);
-    ok(`  .mcp.json`);
-  } else {
-    warn(`  .mcp.json already exists — preserved (manual merge if needed)`);
-    // Still drop a reference example so the user can diff against it.
-    if (!existsSync(mcpExample)) {
-      writeFileSync(mcpExample, mcpJsonText);
-      ok(`  .mcp.json.example`);
+    };
+  }
+  function writeMcpJson(dir, omotVault, label) {
+    const mcpJson = join(dir, '.mcp.json');
+    const mcpExample = join(dir, '.mcp.json.example');
+    const mcpJsonText =
+      JSON.stringify(mcpConfigForVault(omotVault), null, 2) + '\n';
+    if (!existsSync(mcpJson)) {
+      writeFileSync(mcpJson, mcpJsonText);
+      ok(`  ${label}/.mcp.json (OMOT_VAULT=${omotVault})`);
+    } else {
+      warn(
+        `  ${label}/.mcp.json already exists — preserved (manual merge if needed)`,
+      );
+      if (!existsSync(mcpExample)) {
+        writeFileSync(mcpExample, mcpJsonText);
+        ok(`  ${label}/.mcp.json.example`);
+      }
     }
+  }
+
+  // 1. Vault target itself — vault is cwd, OMOT_VAULT='.'
+  writeMcpJson(target, '.', 'vault');
+
+  // 2. cwd (codebase root) — only if distinct from target. OMOT_VAULT is the
+  //    relative path from cwd to target.
+  const cwdPath = cwd();
+  if (resolve(cwdPath) !== resolve(target)) {
+    let omotRel = relative(cwdPath, target) || '.';
+    if (!omotRel.startsWith('.')) omotRel = `./${omotRel}`;
+    writeMcpJson(cwdPath, omotRel, 'cwd');
   }
 
   stdout.write(`
@@ -182,10 +202,10 @@ ${COLORS.bold}Next steps:${COLORS.reset}
        Then add domains / capabilities / elements as you discover them.
 
   ${COLORS.dim}4.${COLORS.reset} ${COLORS.bold}Open this folder in an AI agent${COLORS.reset} (Claude Code, Cursor, …):
-       The vault already includes a wired ${COLORS.bold}.mcp.json${COLORS.reset} — open
-       this folder, restart the agent, and the ${COLORS.bold}oh-my-ontology${COLORS.reset}
-       namespace appears with 14 tools (8 read + 6 write).
-       (For a project-wide setup, copy the same .mcp.json to your codebase root.)
+       Both your codebase root (cwd) and the vault folder now have a wired
+       ${COLORS.bold}.mcp.json${COLORS.reset}. Open either folder, restart the agent,
+       and the ${COLORS.bold}oh-my-ontology${COLORS.reset} namespace appears with 14 tools
+       (8 read + 6 write).
 
   ${COLORS.dim}5.${COLORS.reset} ${COLORS.bold}See the graph${COLORS.reset} (optional, web UI):
        ${COLORS.cyan}git clone https://github.com/wlsdks/oh-my-ontology${COLORS.reset}

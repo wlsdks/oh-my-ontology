@@ -147,8 +147,8 @@ await test('add — 새 노드 + duplicate throws', async () => {
       root,
     ]);
     assert.equal(r1.code, 0, `first add should succeed, got ${r1.code}: ${r1.stderr}`);
-    // 파일 실제로 작성됐는지
-    const written = readFileSync(join(root, 'auth/foo.md'), 'utf-8');
+    // R15 — auto-prefix default on, capability → capabilities/ folder
+    const written = readFileSync(join(root, 'capabilities/auth/foo.md'), 'utf-8');
     assert.match(written, /kind: capability/);
     assert.match(written, /title: Foo/);
 
@@ -219,7 +219,7 @@ await test('add --auto-prefix — kind 별 folder 자동 (R12 #37)', async () =>
   }
 });
 
-await test('add (default) — auto-prefix 안 적용 (backward compat)', async () => {
+await test('add (default) — kind→folder 자동 (R15 default on)', async () => {
   const root = withVault([]);
   try {
     const r = await run([
@@ -232,8 +232,31 @@ await test('add (default) — auto-prefix 안 적용 (backward compat)', async (
       root,
     ]);
     assert.equal(r.code, 0);
-    const written = readFileSync(join(root, 'bar.md'), 'utf-8');
-    assert.match(written, /slug: bar/);
+    // R15 — default auto-prefix → capabilities/bar.md
+    const written = readFileSync(join(root, 'capabilities/bar.md'), 'utf-8');
+    assert.match(written, /slug: capabilities\/bar/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('add --raw-slug — auto-prefix 명시 opt-out (R15)', async () => {
+  const root = withVault([]);
+  try {
+    const r = await run([
+      'add',
+      'capability',
+      'baz',
+      '--title',
+      'Baz',
+      '--raw-slug',
+      '--vault',
+      root,
+    ]);
+    assert.equal(r.code, 0);
+    // --raw-slug 으로 root 에 직접
+    const written = readFileSync(join(root, 'baz.md'), 'utf-8');
+    assert.match(written, /slug: baz/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -305,7 +328,8 @@ await test('import — input frontmatter 의 kind 사용, schema arrayDefaults �
     );
     const r = await run(['import', file, '--vault', vault]);
     assert.equal(r.code, 0);
-    const written = readFileSync(join(vault, 'token-issue.md'), 'utf-8');
+    // R15 — auto-prefix default on, capability → capabilities/ folder
+    const written = readFileSync(join(vault, 'capabilities/token-issue.md'), 'utf-8');
     assert.match(written, /kind: capability/);
     assert.match(written, /domain: domains\/auth/);
     // schema arrayDefaults — capability 는 elements: [] 자동 추가.
@@ -333,7 +357,8 @@ await test('import — frontmatter kind 없으면 --kind fallback', async () => 
       'capability',
     ]);
     assert.equal(r.code, 0);
-    const written = readFileSync(join(vault, 'foo.md'), 'utf-8');
+    // R15 — auto-prefix default on, capability → capabilities/ folder
+    const written = readFileSync(join(vault, 'capabilities/foo.md'), 'utf-8');
     assert.match(written, /kind: capability/);
     // title 은 첫 H1 'Foo' 추출.
     assert.match(written, /title: Foo/);
@@ -390,8 +415,13 @@ await test('import --auto-prefix — kind→folder 자동', async () => {
 
 await test('import — slug 충돌 시 default skip, --rename 시 -2 회피', async () => {
   // 같은 slug 의 .md 가 vault 에 이미 있는 상태로 시작.
+  // R15 — auto-prefix default on, vault seed slug 도 capabilities/ 안.
   const vault = withVault([
-    { slug: 'foo', content: '---\nkind: capability\ntitle: Existing\ndomain: domains/auth\n---\n' },
+    {
+      slug: 'capabilities/foo',
+      content:
+        '---\nkind: capability\nslug: capabilities/foo\ntitle: Existing\ndomain: domains/auth\n---\n',
+    },
   ]);
   const src = withTmpDir();
   try {
@@ -402,17 +432,20 @@ await test('import — slug 충돌 시 default skip, --rename 시 -2 회피', as
       'utf-8',
     );
 
-    // default — skip + 종료 1 (모두 conflict 라 imported 0)
+    // default — auto-prefix on, slug 가 capabilities/foo 로 충돌.
     const r1 = await run(['import', file, '--vault', vault]);
     assert.equal(r1.code, 1);
     const c1 = stripAnsi(r1.stderr + r1.stdout);
     assert.match(c1, /conflict|already exists/);
 
-    // --rename — foo-2.md 로 import 성공
+    // --rename — capabilities/foo-2.md 로 import 성공
     const r2 = await run(['import', file, '--vault', vault, '--rename']);
     assert.equal(r2.code, 0);
-    const written = readFileSync(join(vault, 'foo-2.md'), 'utf-8');
-    assert.match(written, /slug: foo-2/);
+    const written = readFileSync(
+      join(vault, 'capabilities/foo-2.md'),
+      'utf-8',
+    );
+    assert.match(written, /slug: capabilities\/foo-2/);
     assert.match(written, /title: Imported/);
   } finally {
     rmSync(vault, { recursive: true, force: true });
@@ -463,8 +496,9 @@ await test('import — 디렉토리 재귀 walk', async () => {
     );
     const r = await run(['import', src, '--vault', vault]);
     assert.equal(r.code, 0);
-    assert.equal(existsSyncTest(join(vault, 'a.md')), true);
-    assert.equal(existsSyncTest(join(vault, 'b.md')), true);
+    // R15 — auto-prefix default on, domain → domains/ folder
+    assert.equal(existsSyncTest(join(vault, 'domains/a.md')), true);
+    assert.equal(existsSyncTest(join(vault, 'domains/b.md')), true);
   } finally {
     rmSync(vault, { recursive: true, force: true });
     rmSync(src, { recursive: true, force: true });
