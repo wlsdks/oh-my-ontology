@@ -57,6 +57,18 @@ ${COLORS.bold}Usage:${COLORS.reset}
        --vault path                           ${COLORS.dim}target vault root (default: cwd)${COLORS.reset}
        --kind K                               ${COLORS.dim}fallback kind when input has no kind:${COLORS.reset}
        --auto-prefix --rename --dry-run       ${COLORS.dim}folder prefix · slug rename · plan-only${COLORS.reset}
+
+${COLORS.bold}Graph-level commands${COLORS.reset} ${COLORS.dim}(R15 — wraps the MCP server, same authority as an AI agent)${COLORS.reset}
+  npx oh-my-ontology backlinks <slug>         Every node referencing the slug (--json)
+  npx oh-my-ontology query "<filter>"         Typed filter DSL (kind=X AND has(elements))
+       --limit N --json                       ${COLORS.dim}default limit 100${COLORS.reset}
+  npx oh-my-ontology rename <old> <new>       Atomic rename — moves .md, redirects every backlink
+       --confirm                              ${COLORS.dim}default dry-run (preview); --confirm to apply${COLORS.reset}
+  npx oh-my-ontology merge <from> <into>      Atomic merge — redirect backlinks then delete fromSlug
+       --confirm                              ${COLORS.dim}default dry-run; --confirm to apply${COLORS.reset}
+  npx oh-my-ontology delete <slug>            Permanent delete (refuses if backlinks remain)
+       --confirm --force                      ${COLORS.dim}--confirm to apply; --force to ignore backlinks${COLORS.reset}
+
   npx oh-my-ontology --help                   Show this help
   npx oh-my-ontology --version                Print version
 
@@ -253,6 +265,32 @@ if (SUBCOMMAND === 'find') {
 if (SUBCOMMAND === 'import') {
   const { runImport } = await import('./commands/import.mjs');
   exit(runImport(ARGS.slice(1)));
+}
+
+// R15 graph-level commands — async (spawn MCP). Each returns a Promise<exitCode>.
+if (SUBCOMMAND === 'backlinks') {
+  const { runBacklinks } = await import('./commands/backlinks.mjs');
+  exit(await runBacklinks(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'query') {
+  const { runQuery } = await import('./commands/query.mjs');
+  exit(await runQuery(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'rename') {
+  const { runRename } = await import('./commands/rename.mjs');
+  exit(await runRename(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'merge') {
+  const { runMerge } = await import('./commands/merge.mjs');
+  exit(await runMerge(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'delete') {
+  const { runDelete } = await import('./commands/delete.mjs');
+  exit(await runDelete(ARGS.slice(1)));
 }
 
 fail(`unknown command: ${SUBCOMMAND}`);

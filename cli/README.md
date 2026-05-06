@@ -22,6 +22,20 @@ and AI agents (Claude Code, Cursor, etc.) can read and write together.
 | `oh-my-ontology find <query> [vault]` | Search slug + title (case-insensitive, `--kind X --json`) |
 | `oh-my-ontology import <path...>` | **R14** Import external `.md` into the vault. Reads each file's frontmatter, falls back to `--kind` when missing, derives `slug` from the filename and `title` from the first H1, then writes through the same schema as `add`. Options: `--vault path`, `--kind K`, `--auto-prefix` (R15 **default on**, kind→folder), `--raw-slug` (opt out), `--rename` (auto `-2`/`-3` on slug clash), `--dry-run` (preview only). Accepts files or directories (recursive, `.git`/`node_modules` skipped). |
 
+### Graph-level commands (R15 follow-up)
+
+These wrap the MCP server (`oh-my-ontology-mcp`) so the developer has the same authority as an AI agent — find backlinks, rename / merge / delete safely, run a typed filter DSL. Each spawn is ~50–100 ms one-shot; commands that mutate the graph are dry-run by default with an explicit `--confirm` flag.
+
+| Command | What it does |
+|---|---|
+| `oh-my-ontology backlinks <slug>` | Lists every node referencing the target (`matches[]` from MCP `find_backlinks`, `--json` for raw). |
+| `oh-my-ontology query "<filter>"` | Typed filter DSL — `kind=X AND has(Y) AND NOT domain=Z`, parens / OR / NOT supported. (`--limit N --json`) |
+| `oh-my-ontology rename <oldSlug> <newSlug>` | Atomic rename — moves the `.md`, updates `slug:`, rewrites every backlink (frontmatter array entries, inline strings, body links). Default dry-run preview; `--confirm` to apply. |
+| `oh-my-ontology merge <fromSlug> <intoSlug>` | Atomic merge — redirects every backlink `from → into`, then deletes `from.md`. Default dry-run; `--confirm` to apply. The `into` node's frontmatter / body are **not** auto-combined — edit by hand if needed. |
+| `oh-my-ontology delete <slug>` | Permanent delete. Default refuses if any backlinks remain — preview them with the bare command, then `--confirm` to apply (or `--force` to delete anyway). |
+
+These commands require `oh-my-ontology-mcp` (declared in `dependencies` — `npm install` pulls it in automatically).
+
 The vault is a plain folder of `.md` files. **Frontmatter is the graph.**
 
 ## How AI agents fit in

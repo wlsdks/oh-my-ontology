@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-05T23:41:13.232Z",
+  "generatedAt": "2026-05-06T04:25:04.781Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -1675,7 +1675,7 @@
       ],
       "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260506): R12/R13/R14 wave 묶음 정리 후 전면 재정렬. 4 surface 완성, dogfood 25 노드, AI agent ↔ vault 자동 sync 도달. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | 156 | graph diff pulse | ✅ 새 노드 amber s",
       "wordCount": 1361,
-      "updatedAt": "2026-05-05T23:40:34.918Z",
+      "updatedAt": "2026-05-06T02:02:33.369Z",
       "linksOut": []
     },
     {
@@ -1753,7 +1753,7 @@
       ],
       "excerpt": "The single biggest unverified premise of this project: \"AI agents work better when they can read and write the codebase ontology vault.\" Until we have data, this is a belief, not a claim. This folder is the first attempt to put it on a measurement scale. We built CLI · MCP · 14 tools · web workbench all on top of one a",
       "wordCount": 1034,
-      "updatedAt": "2026-05-05T23:36:19.129Z",
+      "updatedAt": "2026-05-06T02:02:33.371Z",
       "linksOut": [
         "benchmark/tasks",
         "benchmark/rubric",
@@ -2311,6 +2311,11 @@
           "depth": 3,
           "text": "Surface 표 갱신",
           "slug": "surface-표-갱신"
+        },
+        {
+          "depth": 3,
+          "text": "CLI `init` 의 mcp 등록 마찰 1 step 제거",
+          "slug": "cli-init-의-mcp-등록-마찰-1-step-제거"
         },
         {
           "depth": 2,
@@ -3054,8 +3059,8 @@
         }
       ],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. R14 closeout (PR 164) 후 사용자 명시 — \"vscode plugin 은 없어도 될 듯. 이제 대부분 vscode 안 쓰고 claude code ",
-      "wordCount": 11606,
-      "updatedAt": "2026-05-05T23:39:41.986Z",
+      "wordCount": 11707,
+      "updatedAt": "2026-05-06T02:02:33.370Z",
       "linksOut": [
         "slug"
       ]
@@ -3452,6 +3457,157 @@
       ]
     },
     {
+      "slug": "dogfood-friction-2026-05-06",
+      "path": "docs/dogfood-friction-2026-05-06.md",
+      "title": "Dogfood friction report — external-user simulation (2026-05-06)",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Dogfood friction report — external-user simulation (2026-05-06)",
+          "slug": "dogfood-friction-report-external-user-simulation-2026-05-06"
+        },
+        {
+          "depth": 2,
+          "text": "TL;DR",
+          "slug": "tldr"
+        },
+        {
+          "depth": 2,
+          "text": "측정 환경",
+          "slug": "측정-환경"
+        },
+        {
+          "depth": 2,
+          "text": "🚨 Critical friction (publish 후에도 그대로)",
+          "slug": "critical-friction-publish-후에도-그대로"
+        },
+        {
+          "depth": 3,
+          "text": "F1. `.mcp.json` 위치가 vault target 안 — 사용자가 codebase root 에서 못 인식",
+          "slug": "f1-mcpjson-위치가-vault-target-안-사용자가-codebase-root-에서-못-인식"
+        },
+        {
+          "depth": 3,
+          "text": "F2. `add` 의 default layout drift — starter 와 다른 위치",
+          "slug": "f2-add-의-default-layout-drift-starter-와-다른-위치"
+        },
+        {
+          "depth": 2,
+          "text": "⚙️ Setup friction (publish 가 plan 이라 자연 해결)",
+          "slug": "setup-friction-publish-가-plan-이라-자연-해결"
+        },
+        {
+          "depth": 3,
+          "text": "F3. `pnpm link --global` 이 `pnpm setup` prereq",
+          "slug": "f3-pnpm-link---global-이-pnpm-setup-prereq"
+        },
+        {
+          "depth": 3,
+          "text": "F4. `npx -y oh-my-ontology-mcp` 가 publish 전 404",
+          "slug": "f4-npx--y-oh-my-ontology-mcp-가-publish-전-404"
+        },
+        {
+          "depth": 2,
+          "text": "측정 통과 사항",
+          "slug": "측정-통과-사항"
+        },
+        {
+          "depth": 2,
+          "text": "Fix priority",
+          "slug": "fix-priority"
+        },
+        {
+          "depth": 2,
+          "text": "기록되지 않은 — *진짜 외부 사용자 입장의 한계*",
+          "slug": "기록되지-않은-진짜-외부-사용자-입장의-한계"
+        },
+        {
+          "depth": 2,
+          "text": "Perf 측정 — vault scale (R11 #31 baseline 갱신, 2026-05-06)",
+          "slug": "perf-측정-vault-scale-r11-31-baseline-갱신-2026-05-06"
+        }
+      ],
+      "excerpt": "Setup: /tmp/omotdogfood 에 작은 todo app (4 도메인: auth/task/notification/user) 만든 후, npm link 로 cli + mcp 글로벌 시뮬. 외부 사용자 첫 흐름 시뮬레이션. 2 critical friction — fix 가치 큼, publish 후에도 그대로 (즉시 fix 가능) 2 setup friction — publish 가 원래 plan 이라 publish 후 사라짐 (fix 불필요) MCP 14 tools 동작 — sandbox vault (7 nodes) 에 spawn 후 listconcepts / ",
+      "wordCount": 941,
+      "updatedAt": "2026-05-06T02:02:33.371Z",
+      "linksOut": []
+    },
+    {
+      "slug": "dogfood-paravel-2026-05-06",
+      "path": "docs/dogfood-paravel-2026-05-06.md",
+      "title": "Dogfood — real external codebase (sanitized, 2026-05-06)",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Dogfood — real external codebase (sanitized, 2026-05-06)",
+          "slug": "dogfood-real-external-codebase-sanitized-2026-05-06"
+        },
+        {
+          "depth": 2,
+          "text": "TL;DR",
+          "slug": "tldr"
+        },
+        {
+          "depth": 2,
+          "text": "측정 환경",
+          "slug": "측정-환경"
+        },
+        {
+          "depth": 2,
+          "text": "✅ PR #165 두 fix 검증 (real codebase)",
+          "slug": "pr-165-두-fix-검증-real-codebase"
+        },
+        {
+          "depth": 3,
+          "text": "F1 — cwd .mcp.json 자동 생성",
+          "slug": "f1-cwd-mcpjson-자동-생성"
+        },
+        {
+          "depth": 3,
+          "text": "F2 — auto-prefix default on",
+          "slug": "f2-auto-prefix-default-on"
+        },
+        {
+          "depth": 2,
+          "text": "측정 결과 — sub-second cli 부담",
+          "slug": "측정-결과-sub-second-cli-부담"
+        },
+        {
+          "depth": 2,
+          "text": "🚨 새 친구션 발견",
+          "slug": "새-친구션-발견"
+        },
+        {
+          "depth": 3,
+          "text": "F5 — element kind 의 path-style slug + auto-prefix → 4단계 nested",
+          "slug": "f5-element-kind-의-path-style-slug-auto-prefix-4단계-nested"
+        },
+        {
+          "depth": 2,
+          "text": "통과 사항",
+          "slug": "통과-사항"
+        },
+        {
+          "depth": 2,
+          "text": "*진짜 외부 사용자 입장의 한계* 여전히 남음",
+          "slug": "진짜-외부-사용자-입장의-한계-여전히-남음"
+        },
+        {
+          "depth": 2,
+          "text": "Paravel-App vault 자체 정책",
+          "slug": "paravel-app-vault-자체-정책"
+        }
+      ],
+      "excerpt": "Setup: 사용자 본인 real codebase (Korean enterprise community app, React Native + Expo + FSD, 1.8 GB, 20 features) 에 npm link 로 publish 시뮬한 cli + mcp 적용. PR 165 (R15 closeout) 머지 직후 main 의 cli init (cwd .mcp.json + autoprefix default) + cli add 사용. Sanitization: codebase 이름 / company codename / specific feature names 추상화. 도",
+      "wordCount": 825,
+      "updatedAt": "2026-05-06T02:24:50.499Z",
+      "linksOut": []
+    },
+    {
       "slug": "FEATURES",
       "path": "docs/FEATURES.md",
       "title": "FEATURES — oh-my-ontology",
@@ -3820,8 +3976,8 @@
         },
         {
           "depth": 2,
-          "text": "6. What was removed (Rounds 1–9)",
-          "slug": "6-what-was-removed-rounds-19"
+          "text": "6. What was removed / added (Rounds 1–15)",
+          "slug": "6-what-was-removed-added-rounds-115"
         },
         {
           "depth": 2,
@@ -3834,9 +3990,9 @@
           "slug": "8-source-of-truth-files"
         }
       ],
-      "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260503 (postRound9 — surface diet 8 rounds + LocalVaultProvider + robustness audit) Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG. Mission v2: \"an ontology of the codebas",
-      "wordCount": 4061,
-      "updatedAt": "2026-05-04T05:38:08.586Z",
+      "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260506 (postRound15 — VSCode plugin 제거, 3 surface 회복 + R14 자동화/live updates 추가 반영). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아 별도 sweep 보다 대부분 정확 가정. Update trigger:",
+      "wordCount": 4485,
+      "updatedAt": "2026-05-06T02:02:33.370Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -4493,7 +4649,7 @@
       ],
       "excerpt": "R14 (155158, 20260504 ~ 20260505) 에 도입된 web 즉시 반영 능력. 사용자 명시 \"웹에서나 잘 반영되면 좋겠는데? 그걸 강화하는건 어때\" 의 4 단계 답. IDE / AI agent / CLI 어느 surface 가 vault .md 만지면 웹 탭이 focus 안 해도 ~5s 안에 반영. | Step | What | Where 인지 | |||| | 155 polling | 5s 간격 fingerprint check + visibleonly 자동 reload | 백그라운드 | | 156 graph diff pulse | 새 노드 amber ",
       "wordCount": 289,
-      "updatedAt": "2026-05-05T23:36:19.129Z",
+      "updatedAt": "2026-05-06T02:02:33.371Z",
       "linksOut": []
     },
     {
@@ -4692,7 +4848,7 @@
       ],
       "excerpt": "crosscutting. 라이트/다크 토글 (html[datatheme=\"light\"]), Sonner기반 toast, arialive 스크린리더 announce, 모바일 BottomTabBar + gesture hint, ⌘K · ⇧⌘K · ? · F · N · Esc 단축키, prefersreducedmotion 자동 존중. 자세한 디자인 룰: docs/DESIGNSYSTEM.md.",
       "wordCount": 37,
-      "updatedAt": "2026-05-05T23:37:41.046Z",
+      "updatedAt": "2026-05-06T02:02:33.372Z",
       "linksOut": []
     },
     {
@@ -4764,7 +4920,7 @@
       ],
       "excerpt": "사용자 디스크 폴더를 진실원으로. File System Access API + IndexedDB 기반 핸들 영속. focus / visibility 시 fingerprint 비교로 재스캔 shortcircuit. R14 부터는 visible 인 동안 5s polling 으로 focus 안 해도 자동 반영 (vaultliveupdates). 자세한 원칙: .claude/rules/localfirst.md. 사용자 surface: docs/FEATURES.md.",
       "wordCount": 45,
-      "updatedAt": "2026-05-05T23:36:19.129Z",
+      "updatedAt": "2026-05-06T02:02:33.372Z",
       "linksOut": []
     },
     {
@@ -5168,7 +5324,7 @@
       ],
       "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. One codebase, one ontology, tha",
       "wordCount": 1788,
-      "updatedAt": "2026-05-05T23:38:39.906Z",
+      "updatedAt": "2026-05-06T02:02:33.370Z",
       "linksOut": []
     },
     {
@@ -6051,6 +6207,20 @@
         "type": "doc",
         "slug": "DESIGN-SYSTEM",
         "title": "Design System"
+      },
+      {
+        "name": "dogfood-friction-2026-05-06",
+        "path": "dogfood-friction-2026-05-06",
+        "type": "doc",
+        "slug": "dogfood-friction-2026-05-06",
+        "title": "Dogfood friction report — external-user simulation (2026-05-06)"
+      },
+      {
+        "name": "dogfood-paravel-2026-05-06",
+        "path": "dogfood-paravel-2026-05-06",
+        "type": "doc",
+        "slug": "dogfood-paravel-2026-05-06",
+        "title": "Dogfood — real external codebase (sanitized, 2026-05-06)"
       },
       {
         "name": "FEATURES",
