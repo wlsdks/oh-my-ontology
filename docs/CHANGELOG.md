@@ -35,11 +35,20 @@ mcp/src/analyze.test.mjs — 7 unit case (FSD / generic / no package.json / gene
 이전 — 사용자가 `init` 후 *수동 add* 25 회 (Paravel real-codebase dogfood 측정). *첫 user Aha moment* 부족.
 이후 — agent 가 한 번 `analyze_repo_structure` → 30+ 후보 즉시. 사용자 검토 + 1-clicks add_concept 다발 호출. *기가막히다* 의 base.
 
+### R16 follow-up — `/ontology-bootstrap` skill
+
+`/ontology-sync` (이미 자란 vault 의 incremental sync) 의 cold-start 짝. agent 한 줄 사용자 의도 ("이 codebase 분석해줘") → `analyze_repo_structure` → 5 줄 요약 → yes/pick/refine 분기 → `add_concept` / `add_relation` 다발 → 마무리 census diff.
+
+- `.claude/skills/ontology-bootstrap/SKILL.md` 신설 — agent prompt 수준에서 흐름 orchestrate. 진입은 `add_concept` 만 → 단일 source of truth 보존
+- AGENTS.md 의 *빈 vault bootstrap* 섹션 (영문 + 한국어) 갱신 — skill cross-ref
+- dogfood `capabilities/ontology-bootstrap-skill` (26번째 노드) + `domains/ai-agent-partner.capabilities` endorse
+
+vault 25 → 26 노드 (capability 14). orphan 1 (의도적 project) / drift 0 / validate clean.
+
 ### 다음 step (R17 후보)
 
 - `infer_imports` (TypeScript / JS import graph → dependency 관계)
 - `extract_domains_from_readme` (heading 기반 deeper)
-- `/ontology-bootstrap` skill (한 줄 흐름 orchestrate)
 - agent 의 *implicit detect* 강화 (작업 중 자율 sync)
 
 ---

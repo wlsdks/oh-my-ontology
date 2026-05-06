@@ -151,10 +151,11 @@ The vault is the **shared mental model** between the developer and the AI agent.
 
 A 30-second read at the top of the task often replaces a 10-minute re-discovery in the code.
 
-**Bootstrap an empty vault** (R16). When a user just ran `oh-my-ontology init` on a fresh repo and the vault has only the 5 starter nodes, don't make the user hand-author every node. Instead:
+**Bootstrap an empty vault** (R16). When a user just ran `oh-my-ontology init` on a fresh repo and the vault has only the 5 starter nodes, don't make the user hand-author every node. Use the **`/ontology-bootstrap`** skill (`.claude/skills/ontology-bootstrap/SKILL.md`):
 
-- Call `analyze_repo_structure` once. **Side effect 0** — it returns deterministic candidates (project + domains[] + capabilities[] + elements[] + suggestedRelations[]) by reading `package.json` / `README.md` H2 sections / `src/` folder layout (FSD or generic). It does NOT write to the vault.
-- Show the candidates to the user, let them prune obvious noise, then call `add_concept` / `add_relation` per accepted candidate. This is the only path into the vault — single source of truth preserved.
+- It calls `analyze_repo_structure` once. **Side effect 0** — returns deterministic candidates (project + domains[] + capabilities[] + elements[] + suggestedRelations[]) by reading `package.json` / `README.md` H2 sections / `src/` folder layout (FSD or generic). Vault NOT modified.
+- Shows the candidates compactly, lets the user prune / refine, then lands the accepted ones via `add_concept` / `add_relation`. Single source of truth preserved — only the user (via your subsequent calls) writes to the vault.
+- Companion to `/ontology-sync` (incremental, post-bootstrap).
 
 **Write at the end of a task** (the part that's easy to skip). When a unit of work introduced a new capability / element / domain, or renamed/folded an existing one, mirror the change in the vault:
 
@@ -255,10 +256,11 @@ vault 는 개발자와 AI agent 가 **공유하는 mental model**. ontology 의 
 
 작업 head 의 30 초 read 가 코드에서의 10 분 재발견을 자주 대신해 줌.
 
-**빈 vault 부트스트랩** (R16). 사용자가 fresh repo 에서 `oh-my-ontology init` 만 한 직후 — 5 starter 노드 외 빈 vault. 사용자가 매 노드 손 작성 부담 — 대신:
+**빈 vault 부트스트랩** (R16). 사용자가 fresh repo 에서 `oh-my-ontology init` 만 한 직후 — 5 starter 노드 외 빈 vault. 사용자가 매 노드 손 작성 부담 — 대신 **`/ontology-bootstrap`** skill (`.claude/skills/ontology-bootstrap/SKILL.md`) 사용:
 
-- `analyze_repo_structure` 1 회 호출. **side effect 0** — `package.json` / `README.md` H2 / `src/` 폴더 layout (FSD or generic) 읽어 deterministic 후보 (project + domains[] + capabilities[] + elements[] + suggestedRelations[]) 반환. vault 변경 안 함.
-- 후보를 사용자에게 보여주고 noise 제외 후 채택된 것만 `add_concept` / `add_relation`. 단일 source of truth 보존 — vault 진입은 *명시 add* 만.
+- `analyze_repo_structure` 1 회 호출. **side effect 0** — `package.json` / `README.md` H2 / `src/` 폴더 layout 읽어 deterministic 후보 반환. vault 변경 안 함.
+- 후보를 사용자에게 *5 줄 max* 요약 → confirm/pick/refine 분기 → 채택된 것만 `add_concept` / `add_relation`. 단일 source of truth 보존.
+- `/ontology-sync` 의 *cold-start* 짝 (sync 는 incremental, bootstrap 은 post-init).
 
 **작업 끝에 write** (쉽게 빠뜨림). 한 작업 단위가 새 capability / element / domain 을 도입했거나 기존 것을 rename / 합쳤다면, vault 에 반영:
 
