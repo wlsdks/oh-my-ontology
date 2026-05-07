@@ -24,10 +24,15 @@ const COLORS = {
  * R+ — \`--strict\` 플래그 (cycle 42): warning 도 exit 1. CI 가 missing-
  * expected-field (capability/element 의 domain 누락 등) 도 차단하려 할 때.
  * default 는 errors 만 fail.
+ *
+ * R+ — \`--fail-on=<code1,code2,...>\` (cycle 43): 특정 issue code 만 fail.
+ * \`--strict\` 보다 우선 — listed code 들에 해당하는 issue 1+ 시 exit 1,
+ * 나머지는 무시. CI 가 점진적으로 특정 violation 만 hard-gate 하려 할 때.
  */
 export function runValidate(args) {
   const json = args.includes('--json');
   const strict = args.includes('--strict');
+  const failOn = parseFailOn(args);
   const vaultPath = resolve(args.find((a) => !a.startsWith('--')) || '.');
   const files = walkMd(vaultPath);
   const reports = [];
@@ -54,8 +59,8 @@ export function runValidate(args) {
   // R+ — JSON 출력은 항상 같은 shape (clean vault 도 problems: [] 로). caller
   // 가 .summary.errorFiles 만 보고 분기 가능 — text 모드의 분기 없는 단일
   // structure.
+  const groups = groupIssuesByCode(reports);
   if (json) {
-    const groups = groupIssuesByCode(reports);
     const byCode = {};
     for (const g of groups) {
       byCode[g.code] = {
@@ -82,13 +87,14 @@ export function runValidate(args) {
             warningFiles,
             byCode,
             strict,
+            failOn,
           },
         },
         null,
         2,
       ) + '\n',
     );
-    return decideExit(errorFiles, warningFiles, strict);
+    return decideExit(errorFiles, warningFiles, strict, failOn, groups);
   }
 
   if (reports.length === 0) {
@@ -113,7 +119,7 @@ export function runValidate(args) {
   // R+ — issue code 별 그룹 요약. 큰 vault 에서 같은 종류 경고가 30+ 줄 흐를
   // 때 *어느 코드가 얼마나 많은지* 한눈에. 2+ 회 등장한 code 만 노출 — 1
   // 회짜리는 위 per-file 출력으로 충분.
-  const groups = groupIssuesByCode(reports);
+  // (groups 는 위에서 한 번 빌드해놨음 — JSON / fail-on / 텍스트 모두 공유.)
   const repeatedCodes = groups.filter((g) => g.count >= 2);
   if (repeatedCodes.length > 0) {
     console.log(`\n${COLORS.dim}── grouped by code ──${COLORS.reset}`);
@@ -129,23 +135,53 @@ export function runValidate(args) {
     }
   }
 
-  const strictTag =
-    strict && warningFiles > 0
-      ? ` ${COLORS.dim}[--strict: warning 도 exit 1]${COLORS.reset}`
-      : '';
+  let modeTag = '';
+  if (failOn && failOn.length > 0) {
+    const matched = failOn.filter((code) => groups.some((g) => g.code === code));
+    if (matched.length > 0) {
+      modeTag = ` ${COLORS.dim}[--fail-on=${failOn.join(',')}: matched ${matched.join(',')}]${COLORS.reset}`;
+    } else {
+      modeTag = ` ${COLORS.dim}[--fail-on=${failOn.join(',')}: no match → exit 0]${COLORS.reset}`;
+    }
+  } else if (strict && warningFiles > 0) {
+    modeTag = ` ${COLORS.dim}[--strict: warning 도 exit 1]${COLORS.reset}`;
+  }
   console.log(
     `\n[validate] ${files.length} 파일 / ${reports.length} 문제 ` +
       `(${COLORS.red}error ${errorFiles}${COLORS.reset} · ` +
-      `${COLORS.yellow}warning ${warningFiles}${COLORS.reset})${strictTag}`,
+      `${COLORS.yellow}warning ${warningFiles}${COLORS.reset})${modeTag}`,
   );
-  return decideExit(errorFiles, warningFiles, strict);
+  return decideExit(errorFiles, warningFiles, strict, failOn, groups);
 }
 
-// strict 모드면 warning 도 fail. default 는 errors 만 fail.
-function decideExit(errorFiles, warningFiles, strict) {
+// 우선순위: --fail-on (있으면 그것만) > --strict > default (errors only).
+function decideExit(errorFiles, warningFiles, strict, failOn, groups) {
+  if (failOn && failOn.length > 0) {
+    return groups.some((g) => failOn.includes(g.code)) ? 1 : 0;
+  }
   if (errorFiles > 0) return 1;
   if (strict && warningFiles > 0) return 1;
   return 0;
+}
+
+function parseFailOn(args) {
+  // \`--fail-on=code1,code2\` 또는 \`--fail-on code1,code2\`. 비어 있거나
+  // 지정 안 됐으면 null.
+  for (let i = 0; i < args.length; i += 1) {
+    const a = args[i];
+    if (a === '--fail-on') return splitCsv(args[i + 1]);
+    if (a.startsWith('--fail-on=')) return splitCsv(a.slice('--fail-on='.length));
+  }
+  return null;
+}
+
+function splitCsv(value) {
+  if (typeof value !== 'string' || value.trim() === '') return null;
+  const out = value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return out.length > 0 ? out : null;
 }
 
 /**

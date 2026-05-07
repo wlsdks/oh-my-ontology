@@ -174,6 +174,94 @@ await test('validate — 1회짜리 code 는 grouped 섹션 안 보임 (per-file
   }
 });
 
+await test('validate --fail-on=empty-kind — empty-kind 있으면 exit 1 (R+ cycle 43)', async () => {
+  const root = withVault([
+    { slug: 'broken', content: '---\nkind:\ntitle: X\n---\n' },
+    { slug: 'capWithoutDomain', content: '---\nkind: capability\ntitle: A\n---\n' },
+  ]);
+  try {
+    const r = await run(['validate', root, '--fail-on=empty-kind']);
+    assert.equal(r.code, 1);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /--fail-on=empty-kind: matched empty-kind/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('validate --fail-on=empty-kind — empty-kind 없으면 exit 0 (warning 무관)', async () => {
+  // 다른 warning (missing-expected-field) 만 있는 vault. --fail-on 이 그
+  // code 가 아니므로 exit 0.
+  const root = withVault([
+    { slug: 'capWithoutDomain', content: '---\nkind: capability\ntitle: A\n---\n' },
+  ]);
+  try {
+    const r = await run(['validate', root, '--fail-on=empty-kind']);
+    assert.equal(r.code, 0, 'empty-kind 없으니 exit 0 (warning 무시)');
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /--fail-on=empty-kind: no match → exit 0/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('validate --fail-on=code1,code2 — 다중 code (CSV) 중 하나라도 매치되면 exit 1', async () => {
+  const root = withVault([
+    { slug: 'a', content: '---\nkind: capability\ntitle: A\n---\n' },
+  ]);
+  try {
+    // missing-expected-field warning 만 있음. CSV 에 그 code 포함.
+    const r = await run([
+      'validate',
+      root,
+      '--fail-on=empty-kind,missing-expected-field',
+    ]);
+    assert.equal(r.code, 1);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /matched missing-expected-field/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('validate --fail-on 이 --strict 보다 우선 — 다른 warning 은 fail 안 함', async () => {
+  // --strict 면 missing-expected-field warning → exit 1.
+  // --strict --fail-on=empty-kind 면 → empty-kind 만 보고 exit 0.
+  const root = withVault([
+    { slug: 'a', content: '---\nkind: capability\ntitle: A\n---\n' },
+  ]);
+  try {
+    const r = await run([
+      'validate',
+      root,
+      '--strict',
+      '--fail-on=empty-kind',
+    ]);
+    assert.equal(r.code, 0, '--fail-on 이 --strict 무력화');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('validate --json --fail-on — summary.failOn 노출', async () => {
+  const root = withVault([
+    { slug: 'broken', content: '---\nkind:\ntitle: X\n---\n' },
+  ]);
+  try {
+    const r = await run([
+      'validate',
+      root,
+      '--json',
+      '--fail-on=empty-kind',
+    ]);
+    assert.equal(r.code, 1);
+    const data = JSON.parse(r.stdout);
+    assert.deepEqual(data.summary.failOn, ['empty-kind']);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('validate --strict — warning 만 있어도 exit 1 (R+ cycle 42)', async () => {
   // capability 의 domain 누락 → missing-expected-field warning. default 면
   // exit 0 (errors 만 fail), --strict 면 exit 1.
