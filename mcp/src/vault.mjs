@@ -204,13 +204,76 @@ export function loadVaultDocs(rootPath) {
 }
 
 /**
+ * vault 에서 badSlug 와 비슷한 slug 후보를 반환 — AI agent 가 오타 / 접두 누락
+ * 으로 not-found 를 받았을 때 다음 액션 후보를 제시.
+ *
+ * 매칭 단계 (먼저 hit 되는 게 우선):
+ *  1. tail 정확 일치 — `auth` 입력 → `capabilities/auth`, `domains/auth` 등.
+ *  2. tail substring 양방향 — `auth` ⊂ `auth-platform`, `oauth` ⊃ `auth`.
+ *  3. tail prefix — 사용자가 일부만 친 경우.
+ *
+ * 자기 자신 (badSlug) 은 후보에서 제외. limit (기본 3) 까지 반환.
+ *
+ * 가벼운 substring 비교만 — Levenshtein 같은 distance 는 큰 vault 에서
+ * 비싸고 false positive 도 많다. 이 helper 는 "did you mean" 을 만드는
+ * 게 목표가 아니라 "이런 slug 들이 vault 에 있어요" 를 1 호출에 보여주는 게 목표.
+ */
+export function suggestSimilarSlugs(rootPath, badSlug, limit = 3) {
+  if (typeof badSlug !== 'string' || badSlug.length === 0) return [];
+  const docs = loadVaultDocs(rootPath);
+  const all = docs.map((d) => d.slug).filter((s) => s !== badSlug);
+  const tail = badSlug.split('/').pop() || badSlug;
+  const lowerTail = tail.toLowerCase();
+  const lowerBad = badSlug.toLowerCase();
+  const tier1 = []; // exact tail match
+  const tier2 = []; // substring (either direction)
+  const tier3 = []; // prefix match on tail or full slug
+  for (const slug of all) {
+    const candTail = (slug.split('/').pop() || slug).toLowerCase();
+    if (candTail === lowerTail) {
+      tier1.push(slug);
+      continue;
+    }
+    if (
+      candTail.includes(lowerTail)
+      || lowerTail.includes(candTail)
+      || slug.toLowerCase().includes(lowerBad)
+    ) {
+      tier2.push(slug);
+      continue;
+    }
+    if (candTail.startsWith(lowerTail) || slug.toLowerCase().startsWith(lowerBad)) {
+      tier3.push(slug);
+    }
+  }
+  return [...tier1, ...tier2, ...tier3].slice(0, limit);
+}
+
+/**
+ * AI agent 가 not-found / dup 에러를 받을 때 다음 액션을 곧바로 결정할 수
+ * 있도록 actionable suffix 를 만든다. caller 는 에러 메시지에 이 결과를 붙임.
+ */
+function notFoundSuffix(rootPath, slug) {
+  const suggestions = suggestSimilarSlugs(rootPath, slug);
+  const lines = [
+    'Use list_concepts() to see all slugs, or find_evidence(query) to search by title.',
+  ];
+  if (suggestions.length > 0) {
+    lines.push(`Similar slugs in this vault: ${suggestions.map((s) => `"${s}"`).join(', ')}.`);
+  }
+  return lines.join(' ');
+}
+
+/**
  * 새 doc 작성. 디렉토리 자동 생성. 기존 파일 있으면 throw (덮어쓰기 의도라면
  * 호출자가 명시적으로).
  */
 export function writeDoc(rootPath, slug, { frontmatter, body = '' }) {
   const filePath = slugToPath(rootPath, slug);
   if (existsSync(filePath)) {
-    throw new Error(`Doc already exists: ${slug}`);
+    throw new Error(
+      `Doc already exists at "${slug}". To update fields, use patch_concept(slug, frontmatter, body, expected_mtime). To rename, use rename_concept(oldSlug, newSlug). Never delete-then-add — that loses backlinks.`,
+    );
   }
   mkdirSync(dirname(filePath), { recursive: true });
   const md = buildMarkdown({ frontmatter, body });
@@ -234,7 +297,7 @@ export function writeDoc(rootPath, slug, { frontmatter, body = '' }) {
 export function deleteDoc(rootPath, slug, options = {}) {
   const filePath = slugToPath(rootPath, slug);
   if (!existsSync(filePath)) {
-    throw new Error(`Doc not found: ${slug}`);
+    throw new Error(`Doc not found: "${slug}". ${notFoundSuffix(rootPath, slug)}`);
   }
   assertMtime(slug, filePath, options.expectedMtime);
   const captured = readDoc(rootPath, filePath);
@@ -249,7 +312,7 @@ export function deleteDoc(rootPath, slug, options = {}) {
 export function patchFrontmatter(rootPath, slug, patch, options = {}) {
   const filePath = slugToPath(rootPath, slug);
   if (!existsSync(filePath)) {
-    throw new Error(`Doc not found: ${slug}`);
+    throw new Error(`Doc not found: "${slug}". ${notFoundSuffix(rootPath, slug)}`);
   }
   assertMtime(slug, filePath, options.expectedMtime);
   const raw = readFileSync(filePath, 'utf-8');
@@ -276,7 +339,7 @@ export function patchFrontmatter(rootPath, slug, patch, options = {}) {
 export function updateDoc(rootPath, slug, { frontmatter: patch, body, expectedMtime }) {
   const filePath = slugToPath(rootPath, slug);
   if (!existsSync(filePath)) {
-    throw new Error(`Doc not found: ${slug}`);
+    throw new Error(`Doc not found: "${slug}". ${notFoundSuffix(rootPath, slug)}`);
   }
   assertMtime(slug, filePath, expectedMtime);
   const raw = readFileSync(filePath, 'utf-8');

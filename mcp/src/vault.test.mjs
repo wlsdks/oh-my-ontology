@@ -4,7 +4,13 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { findPath, vaultSlugExists } from './vault.mjs';
+import {
+  deleteDoc,
+  findPath,
+  suggestSimilarSlugs,
+  vaultSlugExists,
+  writeDoc,
+} from './vault.mjs';
 
 let root;
 
@@ -97,5 +103,111 @@ describe('findPath — edge metadata (R+)', () => {
     const r = findPath(pathRoot, 'project', 'project');
     assert.deepEqual(r.hops, ['project']);
     assert.deepEqual(r.edges, []);
+  });
+});
+
+describe('suggestSimilarSlugs (R+)', () => {
+  let suggestRoot;
+  beforeEach(() => {
+    suggestRoot = mkdtempSync(join(tmpdir(), 'omot-vault-suggest-'));
+    mkdirSync(join(suggestRoot, 'capabilities'), { recursive: true });
+    mkdirSync(join(suggestRoot, 'domains'), { recursive: true });
+    writeFileSync(
+      join(suggestRoot, 'capabilities', 'mcp-server.md'),
+      '---\nslug: capabilities/mcp-server\nkind: capability\n---\n',
+    );
+    writeFileSync(
+      join(suggestRoot, 'capabilities', 'mcp-conflict-guard.md'),
+      '---\nslug: capabilities/mcp-conflict-guard\nkind: capability\n---\n',
+    );
+    writeFileSync(
+      join(suggestRoot, 'domains', 'ai-agent-partner.md'),
+      '---\nslug: domains/ai-agent-partner\nkind: domain\n---\n',
+    );
+  });
+  afterEach(() => {
+    rmSync(suggestRoot, { recursive: true, force: true });
+  });
+
+  it('tail 정확 일치가 최우선', () => {
+    const r = suggestSimilarSlugs(suggestRoot, 'mcp-server');
+    assert.deepEqual(r[0], 'capabilities/mcp-server');
+  });
+
+  it('substring 매치 — 일부만 친 경우', () => {
+    const r = suggestSimilarSlugs(suggestRoot, 'mcp');
+    assert.ok(r.includes('capabilities/mcp-server'));
+    assert.ok(r.includes('capabilities/mcp-conflict-guard'));
+  });
+
+  it('전혀 안 비슷하면 빈 배열', () => {
+    const r = suggestSimilarSlugs(suggestRoot, 'totally-unrelated-xyz');
+    assert.deepEqual(r, []);
+  });
+
+  it('limit 존중 (default 3)', () => {
+    const r = suggestSimilarSlugs(suggestRoot, 'a', 2);
+    assert.ok(r.length <= 2);
+  });
+
+  it('빈 / null badSlug 는 빈 배열', () => {
+    assert.deepEqual(suggestSimilarSlugs(suggestRoot, ''), []);
+    assert.deepEqual(suggestSimilarSlugs(suggestRoot, null), []);
+  });
+});
+
+describe('actionable 에러 메시지 (R+)', () => {
+  let errRoot;
+  beforeEach(() => {
+    errRoot = mkdtempSync(join(tmpdir(), 'omot-vault-err-'));
+    mkdirSync(join(errRoot, 'capabilities'), { recursive: true });
+    writeFileSync(
+      join(errRoot, 'capabilities', 'mcp-server.md'),
+      '---\nslug: capabilities/mcp-server\nkind: capability\n---\n',
+    );
+  });
+  afterEach(() => {
+    rmSync(errRoot, { recursive: true, force: true });
+  });
+
+  it('writeDoc duplicate slug — patch_concept 사용 권장 + rename 옵션 명시', () => {
+    let caught;
+    try {
+      writeDoc(errRoot, 'capabilities/mcp-server', {
+        frontmatter: { slug: 'capabilities/mcp-server', kind: 'capability', title: 'X' },
+      });
+    } catch (e) {
+      caught = e;
+    }
+    assert.ok(caught, 'should throw');
+    assert.match(caught.message, /already exists/);
+    assert.match(caught.message, /patch_concept/);
+    assert.match(caught.message, /rename_concept/);
+  });
+
+  it('deleteDoc not-found (substring-similar slug) — 비슷한 slug 후보 노출', () => {
+    let caught;
+    try {
+      // bad slug 가 'mcp-server' 를 substring 으로 포함 — 후보 매칭 가능.
+      deleteDoc(errRoot, 'capabilities/mcp-server-x');
+    } catch (e) {
+      caught = e;
+    }
+    assert.ok(caught);
+    assert.match(caught.message, /not found/i);
+    assert.match(caught.message, /list_concepts/);
+    assert.match(caught.message, /capabilities\/mcp-server/);
+  });
+
+  it('deleteDoc not-found (전혀 안 비슷한 slug) — list_concepts fallback 안내만', () => {
+    let caught;
+    try {
+      deleteDoc(errRoot, 'totally/unrelated-xyz');
+    } catch (e) {
+      caught = e;
+    }
+    assert.ok(caught);
+    assert.match(caught.message, /not found/i);
+    assert.match(caught.message, /list_concepts/);
   });
 });

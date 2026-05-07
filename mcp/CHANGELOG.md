@@ -4,7 +4,12 @@
 
 ### Changed
 
-- **`find_path` now returns `edges[]` with `via` (relation type) per hop.** 기존 `hops: [slug, ...]` 는 backward compatible 로 유지하면서 같은 응답에 `edges: [{ from, to, via }]` 추가. `via` 는 두 slug 를 연결한 frontmatter 키 (`capabilities` / `elements` / `dependencies` / `relates` / `contains` / `describes`) — AI agent 가 path 를 받았을 때 *왜* A 와 B 가 연결됐는지 한 hop 단위로 본다. trivial path (`from === to`) 의 경우 `edges: []`.
+- **에러 메시지를 actionable 하게.** AI agent 가 다음 액션을 한 호출에 결정 가능:
+  - `add_concept` 가 dup slug 만나면 `patch_concept` (업데이트) / `rename_concept` (이동) 사용 권장 + "delete-then-add 금지 — backlinks 유실" 명시.
+  - 모든 not-found 에러 (deleteDoc / patchFrontmatter / updateDoc) 가 `list_concepts` / `find_evidence` 안내 + 같은 vault 안의 *비슷한 slug 후보* (substring / prefix 매치) 동봉.
+  - `add_relation` 의 source/target 누락 시 비슷한 slug 후보 또는 `add_concept` 안내. AI agent 가 typo / hallucinated slug 를 받았을 때 즉시 자가 수정 가능.
+- 새 export `suggestSimilarSlugs(rootPath, badSlug, limit=3)` — Levenshtein 없이 tail 정확/substring 양방향/prefix 3-tier 매칭. 큰 vault 에서도 가벼움.
+- 7 신규 unit test (suggest 5 + actionable error 2).
 
 ## 0.9.0 — 2026-05-06 (R17 — import graph → depends_on edges)
 

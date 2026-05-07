@@ -52,6 +52,7 @@ import {
   redirectBacklinks,
   slugToPath,
   patchFrontmatter,
+  suggestSimilarSlugs,
   updateDoc,
   vaultSlugExists,
   writeDoc,
@@ -807,10 +808,18 @@ function addRelation({ from, to, type, expected_mtime }) {
   // 후속에서 어차피 throw 하지만 메시지가 ENOENT raw 라 사용자 친화적
   // 에러로 선검증.
   if (!vaultSlugExists(VAULT_ROOT, from)) {
-    throw new Error(`Source slug does not exist in vault: "${from}"`);
+    const suggestions = suggestSimilarSlugs(VAULT_ROOT, from);
+    const suffix = suggestions.length > 0
+      ? ` Did you mean: ${suggestions.map((s) => `"${s}"`).join(', ')}?`
+      : ' Use list_concepts() to see all slugs, or add_concept(slug, kind, title) to create it first.';
+    throw new Error(`Source slug does not exist in vault: "${from}".${suffix}`);
   }
   if (!vaultSlugExists(VAULT_ROOT, to)) {
-    throw new Error(`Target slug does not exist in vault: "${to}"`);
+    const suggestions = suggestSimilarSlugs(VAULT_ROOT, to);
+    const suffix = suggestions.length > 0
+      ? ` Did you mean: ${suggestions.map((s) => `"${s}"`).join(', ')}?`
+      : ' Use list_concepts() to see all slugs, or add_concept(slug, kind, title) to create it first.';
+    throw new Error(`Target slug does not exist in vault: "${to}".${suffix}`);
   }
   const doc = readDoc(VAULT_ROOT, slugToPath(VAULT_ROOT, from));
   const existing = Array.isArray(doc.frontmatter[key]) ? doc.frontmatter[key] : [];
