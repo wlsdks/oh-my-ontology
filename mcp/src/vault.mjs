@@ -505,6 +505,11 @@ export function findOrphans(rootPath, options = {}) {
       slug: doc.slug,
       kind,
       title: doc.frontmatter.title || doc.frontmatter.name || doc.slug,
+      // R+ — list_concepts / find_backlinks 와 동일 shape. agent 가 orphans
+      // 받자마자 "특정 도메인 orphan 만 / 최근 변경된 orphan 만" sort/filter
+      // 가능 — 후속 get_concept 없이.
+      domain: doc.frontmatter.domain,
+      mtime: doc.mtime,
     });
   }
   return { total: orphans.length, orphans };

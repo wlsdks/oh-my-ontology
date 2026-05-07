@@ -403,6 +403,46 @@ await test("find_backlinks — 매치 row 에 domain + mtime 포함 (R+)", async
   }
 });
 
+await test("find_orphans — orphan row 에 domain + mtime 포함 (R+)", async () => {
+  // list_concepts / find_backlinks 와 동일 shape. agent 가 orphans 받자마자
+  // sort/filter 가능 — 후속 get_concept 없이.
+  const root = makeVault([
+    {
+      slug: "domains/auth",
+      content: "---\nkind: domain\ntitle: Auth\n---\n", // referenced by 0 — orphan
+    },
+    {
+      slug: "capabilities/orphan-cap",
+      content:
+        "---\nkind: capability\ntitle: Orphan\ndomain: identity\n---\n", // 어느 곳도 reference 안 함 → orphan
+    },
+    {
+      slug: "capabilities/used-cap",
+      content:
+        "---\nkind: capability\ntitle: Used\ndomain: identity\nrelates: [capabilities/orphan-cap]\n---\n",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "find_orphans"),
+    ]);
+    const result = getCallParsed(responses, 2);
+    // domains/auth + used-cap (어느 곳도 used-cap 을 reference 안 함) — 둘 다 orphan
+    assert.ok(result.total >= 1);
+    for (const o of result.orphans) {
+      assert.equal(typeof o.mtime, "number", `${o.slug}.mtime number`);
+      assert.ok(o.mtime > 0);
+    }
+    const usedCap = result.orphans.find((o) => o.slug === "capabilities/used-cap");
+    if (usedCap) {
+      assert.equal(usedCap.domain, "identity");
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("get_concept 응답에 mtime (R11 #8) 포함", async () => {
   const root = makeVault([
     { slug: "foo", content: "---\nkind: capability\ntitle: Foo\n---\nbody" },
