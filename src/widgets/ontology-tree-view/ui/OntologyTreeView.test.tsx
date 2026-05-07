@@ -188,7 +188,7 @@ describe("OntologyTreeView — keyboard nav (R+)", () => {
     expect(screen.queryByText("인증")).toBeInTheDocument();
   });
 
-  it("ArrowLeft on already-collapsed → no-op", () => {
+  it("ArrowLeft on already-collapsed root → no-op (parent 없음)", () => {
     render(<OntologyTreeView result={makeResult()} />);
     const projectBtn = screen
       .getAllByRole("button")
@@ -198,10 +198,60 @@ describe("OntologyTreeView — keyboard nav (R+)", () => {
           && b.getAttribute("data-row-slug") === "p1",
       )!;
     projectBtn.focus();
+    // 첫 ArrowLeft — 펼쳐진 root 를 접음.
     fireEvent.keyDown(projectBtn, { key: "ArrowLeft" });
     expect(screen.queryByText("인증")).not.toBeInTheDocument();
+    // 두번째 ArrowLeft — 이미 접힌 root → parent 가 없어 no-op (focus 유지).
     fireEvent.keyDown(projectBtn, { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(projectBtn);
     expect(screen.queryByText("인증")).not.toBeInTheDocument();
+  });
+
+  it("ArrowLeft on leaf → 부모 행 focus (R+ 표준 ARIA)", () => {
+    render(<OntologyTreeView result={makeResult()} />);
+    const leafBtn = screen
+      .getAllByRole("button")
+      .find(
+        (b) =>
+          b.getAttribute("data-tree-select-button") === "true"
+          && b.getAttribute("data-row-slug") === "c1",
+      )!;
+    const domainBtn = screen
+      .getAllByRole("button")
+      .find(
+        (b) =>
+          b.getAttribute("data-tree-select-button") === "true"
+          && b.getAttribute("data-row-slug") === "d1",
+      )!;
+    leafBtn.focus();
+    fireEvent.keyDown(leafBtn, { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(domainBtn);
+  });
+
+  it("ArrowLeft on collapsed non-root → 부모 행 focus", () => {
+    render(<OntologyTreeView result={makeResult()} />);
+    // domain 행 (d1) 을 먼저 접고, 그 상태에서 ArrowLeft → project (p1) 로 이동.
+    const domainBtn = screen
+      .getAllByRole("button")
+      .find(
+        (b) =>
+          b.getAttribute("data-tree-select-button") === "true"
+          && b.getAttribute("data-row-slug") === "d1",
+      )!;
+    const projectBtn = screen
+      .getAllByRole("button")
+      .find(
+        (b) =>
+          b.getAttribute("data-tree-select-button") === "true"
+          && b.getAttribute("data-row-slug") === "p1",
+      )!;
+    domainBtn.focus();
+    // d1 의 ←: 펼쳐진 → 접음
+    fireEvent.keyDown(domainBtn, { key: "ArrowLeft" });
+    expect(screen.queryByText("로그인")).not.toBeInTheDocument();
+    // 다시 ←: 이제 접힌 d1 에서 부모 p1 로 focus.
+    fireEvent.keyDown(domainBtn, { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(projectBtn);
   });
 
   it("Home → 첫 행 focus", () => {
@@ -314,7 +364,8 @@ describe("OntologyTreeView — keyboard nav (R+)", () => {
     expect(document.activeElement).toBe(buttons[0]);
   });
 
-  it("ArrowLeft / ArrowRight on leaf row → no-op", () => {
+  it("ArrowRight on leaf row → no-op (collapse/expand 변동 없음)", () => {
+    // ArrowLeft 의 leaf 동작은 별도 test (parent focus) — 여기는 ArrowRight 만.
     render(<OntologyTreeView result={makeResult()} />);
     const leafBtn = screen
       .getAllByRole("button")
@@ -326,7 +377,7 @@ describe("OntologyTreeView — keyboard nav (R+)", () => {
     expect(leafBtn.getAttribute("data-row-has-children")).toBe("false");
     leafBtn.focus();
     fireEvent.keyDown(leafBtn, { key: "ArrowRight" });
-    fireEvent.keyDown(leafBtn, { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(leafBtn);
     expect(screen.queryByText("인증")).toBeInTheDocument();
     expect(screen.queryByText("로그인")).toBeInTheDocument();
   });
