@@ -44,7 +44,7 @@ If `OMOT_VAULT` is not set, the current working directory is used as the vault r
 
 ### 2. Restart Claude Code
 
-The server connects over stdio. You should now see 16 tools under the `oh-my-ontology` namespace.
+The server connects over stdio. You should now see 17 tools under the `oh-my-ontology` namespace.
 
 ### 3. Call the tools
 
@@ -56,12 +56,13 @@ The server connects over stdio. You should now see 16 tools under the `oh-my-ont
 → mcp__oh-my-ontology__get_concept({ slug: 'capabilities/mcp-server' })
 ```
 
-## The 16 tools (v0.7.1)
+## The 17 tools (v0.7.1)
 
 | Tool | What it does |
 |---|---|
 | `list_concepts` | Lists every node in the vault (any `.md` with a `kind:` frontmatter). Options: `kind`, `domain` (filter by frontmatter `domain:` slug — combine with `kind` for "all capabilities under auth" in one call), `since` (mtime-based incremental sync — only nodes with `mtime > since` ms; pair with the `mtime` returned in earlier responses for "what changed since I last looked"; strict `>` so re-passing the prior max does not double-fetch), `summary` (opt-in — when true, each row includes a prose `summary` (max 200 chars, heading/표/코드/리스트/인용 skip — same `extractSummaryExcerpt` helper as `get_concept` / `find_evidence`) so agents get list + previews in one call instead of N follow-up `get_concept` calls; default off to keep payload small), `limit`. Each node row includes `mtime` (ms) — agents can sort/filter "what changed recently" without a follow-up `get_concept` call. **R11**: when the vault has frontmatter corruption, response includes `vaultWarnings: { errorCount, warningCount }` so AI agents can flag it to the user. |
 | `get_concept` | Fetches a single node by `slug` (no extension): frontmatter + body excerpt (R+ — *prose-only*: heading / 표 / 코드블록 / 리스트 / 인용 skip 후 첫 단락만 — agent 가 markdown table syntax 대신 사람이 의도한 설명문을 받음, max 800 chars) + neighbors (dependencies / relates) + `mtime` (ms — pass to subsequent `patch_concept` / `delete_concept` as `expected_mtime` to detect concurrent external edits). **R11**: response includes `warnings: [...]` when this doc has frontmatter issues (unclosed-frontmatter / empty-kind / missing-kind / unknown-kind / parse-zero-keys). |
+| `get_concepts` | **R+** Batch reader — accepts an array of slugs (max 50), returns `concepts[]` with the same per-row shape as `get_concept` (frontmatter + excerpt + neighbors + mtime + warnings?). Order of `concepts[]` matches input `slugs[]`. Missing slugs return `{ slug, ok: false, error }` rather than aborting the batch. Replaces N×`get_concept` round-trips when an agent already has K specific slugs (e.g. from `list_concepts` / `find_path` / `find_orphans`) and needs full bodies for all of them. |
 | `find_evidence` | Partial-match search by `title` — scans frontmatter title/capabilities/elements as well as body content. Each match row includes `slug, kind, title, domain, mtime, matchedIn, excerpt` (same shape as `list_concepts` / `find_backlinks` / `find_orphans` / `query_concepts` plus the `excerpt` is a prose preview, max 200 chars, heading/표/코드/리스트/인용 skip — same `extractSummaryExcerpt` helper as `get_concept`) so agents see *what the matching doc says* without a follow-up get_concept call. |
 | `find_backlinks` | Finds every node that points to a given `slug`. Inspects all frontmatter array keys (capabilities / elements / dependencies / relates / …) plus body wikilinks/markdown links. Each match row includes `kind`, `title`, `domain`, `mtime` (same shape as `list_concepts`) — agents can sort/filter "which referrer is in domain X" or "which referrer was touched recently" without follow-up `get_concept` calls. |
 | `find_path` | Shortest path between two slugs (BFS, undirected). Returns `{ from, to, hops, edges, hopCount, found }` where `edges[i] = { from, to, via }` and `via` is the frontmatter key (`capabilities` / `elements` / `dependencies` / `relates` / `contains` / `describes`) that linked the pair — so the agent sees not just *that* A and B are connected but *why*. Option: `maxHops` (default 5). |
@@ -132,7 +133,7 @@ A successful run looks like this:
 ✓ tools/list 16/16 — add_concept · add_relation · analyze_repo_structure · delete_concept · find_backlinks · find_evidence · find_orphans · find_path · get_concept · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · rename_concept
 ✓ list_concepts — vault total 25 nodes
 
-All checks passed — register .mcp.json with Claude Code, restart, and the 16 tools are ready.
+All checks passed — register .mcp.json with Claude Code, restart, and the 17 tools are ready.
 ```
 
 On failure, it tells you which step blocked progress and prints a diagnostic message.
@@ -161,7 +162,7 @@ After you add `.mcp.json` and restart Claude Code, try the following with your L
 > 3. Call `find_backlinks({ slug: "capabilities/mcp-server" })` to find what depends on that capability.
 > 4. (Optional) Call `add_concept` to create a new capability node — `slug`, `kind`, and `title` are required.
 
-If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 16 tools (10 read + 6 write), the human + AI co-authoring loop is officially open.
+If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 17 tools (11 read + 6 write), the human + AI co-authoring loop is officially open.
 
 ## Design principles
 

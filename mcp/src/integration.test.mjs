@@ -490,6 +490,68 @@ await test("get_concept 응답에 mtime (R11 #8) 포함", async () => {
   }
 });
 
+// R+ — get_concepts 배치 reader. K개 slug → 1 round trip. 입력 순서 보존,
+// missing slug 는 batch 를 abort 하지 않고 { ok: false, error } 행으로 surface.
+await test("get_concepts — 배치 read, 입력 순서 보존 + partial result", async () => {
+  const root = makeVault([
+    { slug: "alpha", content: "---\nkind: capability\ntitle: Alpha\n---\nbody A" },
+    { slug: "beta", content: "---\nkind: element\ntitle: Beta\n---\nbody B" },
+    { slug: "gamma", content: "---\nkind: capability\ntitle: Gamma\n---\nbody G" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "get_concepts", { slugs: ["beta", "missing-slug", "alpha"] }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.equal(result.concepts.length, 3, "concepts row 수 = 입력 slugs 수");
+    // 순서 보존: 입력 [beta, missing, alpha] → 출력 같은 순서.
+    assert.equal(result.concepts[0].slug, "beta");
+    assert.equal(result.concepts[0].ok, true);
+    assert.equal(result.concepts[0].frontmatter.title, "Beta");
+    assert.equal(typeof result.concepts[0].mtime, "number");
+    assert.ok(result.concepts[0].mtime > 0);
+    // missing slug → ok:false, error message, batch 살아남음.
+    assert.equal(result.concepts[1].slug, "missing-slug");
+    assert.equal(result.concepts[1].ok, false);
+    assert.match(result.concepts[1].error, /not found/i);
+    // 그 다음 valid 한 slug 는 정상 처리.
+    assert.equal(result.concepts[2].slug, "alpha");
+    assert.equal(result.concepts[2].ok, true);
+    assert.equal(result.concepts[2].frontmatter.title, "Alpha");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// R+ — get_concepts 빈 배열 / cap (50) 가드. 정상 빈 응답 vs error.
+await test("get_concepts — 빈 slugs[] → 빈 concepts[], 51개 → error", async () => {
+  const root = makeVault([
+    { slug: "foo", content: "---\nkind: capability\ntitle: Foo\n---\n" },
+  ]);
+  try {
+    const { responses: r1 } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "get_concepts", { slugs: [] }),
+    ]);
+    const empty = getCallParsed(r1, 2);
+    assert.deepEqual(empty.concepts, []);
+
+    // 51개 → error response (batch 호출 자체가 throw, MCP 가 error 직렬화).
+    const tooMany = Array.from({ length: 51 }, (_, i) => `s${i}`);
+    const { responses: r2 } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "get_concepts", { slugs: tooMany }),
+    ]);
+    // server 는 throw → MCP 응답에 isError content 또는 error 필드. text 안에
+    // 우리 cap 메시지 ("Too many slugs") 가 있는지로만 검증.
+    const text = JSON.stringify(r2.find((r) => r.id === 2));
+    assert.match(text, /Too many slugs|50/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("patch_concept — expected_mtime stale 면 conflict error response", async () => {
   const root = makeVault([
     { slug: "foo", content: "---\nkind: capability\ntitle: Foo\n---\n" },

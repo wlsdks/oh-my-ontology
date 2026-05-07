@@ -1,20 +1,21 @@
 ---
 slug: capabilities/mcp-server
 kind: capability
-title: MCP Server (16 tools)
+title: MCP Server (17 tools)
 domain: ai-agent-partner
 elements: [mcp/src/index.js, mcp/src/parser.mjs, mcp/src/vault.mjs, mcp/src/analyze.mjs, mcp/src/infer-imports.mjs]
 relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 ---
 
-# MCP Server (16 tools)
+# MCP Server (17 tools)
 
-`@modelcontextprotocol/sdk` 기반 stdio JSON-RPC 서버. 16 도구 노출 (read 10 + write 6):
+`@modelcontextprotocol/sdk` 기반 stdio JSON-RPC 서버. 17 도구 노출 (read 11 + write 6):
 
 | 도구 | 동작 |
 |---|---|
 | `list_concepts` | vault 의 모든 노드 (kind 필터) |
 | `get_concept` | 단일 slug 의 frontmatter + body excerpt + 이웃 |
+| `get_concepts` | **R+** 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing 은 partial result) |
 | `find_evidence` | title 부분매칭으로 vault 문서 검색 |
 | `find_backlinks` | 특정 slug 를 가리키는 다른 노드들 (frontmatter array 키 + body wikilink/mdlink) |
 | `find_path` | 두 slug 사이 그래프 최단 경로 (BFS, 무방향, default maxHops 5) |

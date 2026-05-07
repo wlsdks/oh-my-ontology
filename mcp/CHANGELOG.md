@@ -4,6 +4,7 @@
 
 ### Added
 
+- **`get_concepts` (17번째 MCP 도구) — 배치 reader.** 입력 `{slugs: string[]}` (max 50), 출력 `{concepts: [{slug, ok: true, frontmatter, excerpt, neighbors, mtime, warnings?} | {slug, ok: false, error}, ...]}`. 입력 순서 보존. agent 가 `list_concepts` / `find_path` / `find_orphans` 결과의 K 개 slug 에 대해 full body+neighbors 가 필요할 때 K round-trip → 1 round-trip. partial result — missing slug 이 있어도 batch 가 abort 되지 않고 그 행만 `ok:false` 로. read tool 11 종 = list_concepts · get_concept · **get_concepts** · find_evidence · find_backlinks · find_path · list_kinds · find_orphans · query_concepts · analyze_repo_structure · infer_imports. write 6 = 변동 없음. 신규 integration test 2 건 (배치 read + partial / 빈 + cap).
 - **`find_evidence` 매치 row 에 `domain` + `mtime` 추가.** 기존 row 는 `slug, kind, title, matchedIn, excerpt` 만 — domain/mtime 누락이라 read tool 5종 중 유일하게 일관성 갭. 추가하여 list_concepts · find_backlinks · find_orphans · query_concepts · find_evidence 모두 동일 shape (`slug, kind, title, domain, mtime, ...specific`). 기존 find_evidence 테스트에 mtime > 0 assertion 추가.
 - **`query_concepts` 매치 row 에 `mtime` 추가.** 기존 row 는 `slug, kind, title, domain, capabilities, elements` 만 — `mtime` 누락이라 read tool 4종 중 유일하게 staleness 정보 없음. 추가하여 list_concepts · find_backlinks · find_orphans · query_concepts 모두 일관 shape. 신규 integration test 1건.
 - **`find_orphans` orphan row 에 `domain` + `mtime` 포함.** `list_concepts` / `find_backlinks` 와 동일 shape — read tool 응답 일관성 완성. agent 가 orphans 받자마자 "old orphans in domain X" sort/filter 가능, 후속 `get_concept` 없이. 신규 integration test 1건.
