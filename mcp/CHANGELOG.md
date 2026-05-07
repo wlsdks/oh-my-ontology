@@ -4,6 +4,7 @@
 
 ### Added
 
+- **`find_orphans` orphan row 에 `domain` + `mtime` 포함.** `list_concepts` / `find_backlinks` 와 동일 shape — read tool 응답 일관성 완성. agent 가 orphans 받자마자 "old orphans in domain X" sort/filter 가능, 후속 `get_concept` 없이. 신규 integration test 1건.
 - **`find_backlinks` 매치 row 에 `domain` + `mtime` 포함.** `list_concepts` 와 동일 shape. agent 가 backlinks 받자마자 "어느 도메인 referrer / 언제 변경" 파악 → sort/filter 가능, 후속 `get_concept` 없이. 신규 integration test 1건.
 - **`list_concepts` `summary: true` opt-in** — 각 row 에 prose `summary` (max 200 chars, `extractSummaryExcerpt` helper 3rd consumer) 동봉. agent 가 한 호출로 vault 노드 list + 각 노드 무슨 내용인지 파악 가능 → 후속 N×`get_concept` 절약. default off (페이로드 부풀림 방지). 신규 integration test 1건 (default 미포함 / `summary:true` 시 prose 포함 검증).
 - **`list_concepts` 응답 각 node 에 `mtime` (ms).** `get_concept` 의 `mtime` 과 같은 의미. AI agent 가 list 한 호출로 *어느 노드가 최근에 변경됐나* 파악 → sort/filter 가능, 후속 `get_concept` 없이. 외부 변경 감지 (예: `expected_mtime` 으로 patch 보호) 흐름에도 도움. 신규 integration test 1건 (모든 node.mtime 이 number > 0).
