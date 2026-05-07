@@ -8,8 +8,46 @@ const COLORS = {
   yellow: '\x1b[33m',
   green: '\x1b[32m',
   dim: '\x1b[2m',
+  bold: '\x1b[1m',
   reset: '\x1b[0m',
 };
+
+// R+ — cycle 44: validateVaultDocument 가 surface 하는 6 issue codes 의
+// canonical list. --list-codes 출력 + --fail-on 의 unknown code 감지에
+// 사용. cli/src/lib/validate.mjs (3-way contract) 의 코드와 일관 — drift
+// 시 contract test 가 실패하도록 곧 추가 권장.
+const KNOWN_CODES = [
+  {
+    code: 'unclosed-frontmatter',
+    severity: 'error',
+    description: '`---` 가 닫히지 않음 — 파일 머리에 frontmatter 가 끝나지 않았습니다.',
+  },
+  {
+    code: 'parse-zero-keys',
+    severity: 'warning',
+    description: 'frontmatter 가 0 keys 로 파싱됨 — YAML syntax 깨짐 가능.',
+  },
+  {
+    code: 'missing-kind',
+    severity: 'warning',
+    description: '`kind:` 키 자체가 없음 — 그래프에서 빠짐.',
+  },
+  {
+    code: 'empty-kind',
+    severity: 'error',
+    description: '`kind:` 값이 비어있음 — 그래프에서 빠지고 invalid.',
+  },
+  {
+    code: 'unknown-kind',
+    severity: 'warning',
+    description: 'project / domain / capability / element / document 외 값.',
+  },
+  {
+    code: 'missing-expected-field',
+    severity: 'warning',
+    description: 'kind 별 강하게 기대되는 필드 누락 (예: capability/element 의 `domain:`).',
+  },
+];
 
 /**
  * R11 #32 — \`oh-my-ontology validate [vault]\`
@@ -30,9 +68,26 @@ const COLORS = {
  * 나머지는 무시. CI 가 점진적으로 특정 violation 만 hard-gate 하려 할 때.
  */
 export function runValidate(args) {
+  // --list-codes 는 vault 안 보고 즉시 출력. 다른 옵션이 같이 와도 무시.
+  if (args.includes('--list-codes')) {
+    return printKnownCodes(args.includes('--json'));
+  }
+
   const json = args.includes('--json');
   const strict = args.includes('--strict');
   const failOn = parseFailOn(args);
+  // R+ — cycle 44: --fail-on 에 unknown code 가 들어오면 stderr 경고.
+  // 실행은 진행 (silently no-match 로 빠지는 것보다 *명시 경고* 가 나음).
+  if (failOn) {
+    const known = new Set(KNOWN_CODES.map((c) => c.code));
+    const unknown = failOn.filter((c) => !known.has(c));
+    if (unknown.length > 0) {
+      process.stderr.write(
+        `${COLORS.yellow}warning${COLORS.reset}  --fail-on 에 알려지지 않은 code: ${unknown.join(', ')}. ` +
+          `사용 가능한 code 목록: ${COLORS.bold}oh-my-ontology validate --list-codes${COLORS.reset}\n`,
+      );
+    }
+  }
   const vaultPath = resolve(args.find((a) => !a.startsWith('--')) || '.');
   const files = walkMd(vaultPath);
   const reports = [];
@@ -182,6 +237,27 @@ function splitCsv(value) {
     .map((s) => s.trim())
     .filter(Boolean);
   return out.length > 0 ? out : null;
+}
+
+// R+ — cycle 44: --list-codes 출력. text 모드는 사람이 읽기 좋은 표,
+// --json 모드는 머신 가독 (CI 가 어떤 code 가 있는지 동적으로 알 수 있게).
+function printKnownCodes(asJson) {
+  if (asJson) {
+    process.stdout.write(JSON.stringify({ codes: KNOWN_CODES }, null, 2) + '\n');
+    return 0;
+  }
+  process.stdout.write(
+    `${COLORS.bold}validate issue codes${COLORS.reset} ${COLORS.dim}(--fail-on=<code> 로 특정 code 만 fail)${COLORS.reset}\n\n`,
+  );
+  for (const c of KNOWN_CODES) {
+    const severityColor = c.severity === 'error' ? COLORS.red : COLORS.yellow;
+    const severityTag = c.severity === 'error' ? '✗ error  ' : '▲ warning';
+    process.stdout.write(
+      `  ${severityColor}${severityTag}${COLORS.reset}  ${COLORS.bold}${c.code.padEnd(24)}${COLORS.reset}  ${COLORS.dim}${c.description}${COLORS.reset}\n`,
+    );
+  }
+  process.stdout.write('\n');
+  return 0;
 }
 
 /**

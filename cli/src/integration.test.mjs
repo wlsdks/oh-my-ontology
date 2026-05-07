@@ -174,6 +174,52 @@ await test('validate — 1회짜리 code 는 grouped 섹션 안 보임 (per-file
   }
 });
 
+await test('validate --list-codes — 6 issue code 목록 출력 (R+ cycle 44)', async () => {
+  const r = await run(['validate', '--list-codes']);
+  assert.equal(r.code, 0);
+  const clean = stripAnsi(r.stdout);
+  for (const code of [
+    'unclosed-frontmatter',
+    'parse-zero-keys',
+    'missing-kind',
+    'empty-kind',
+    'unknown-kind',
+    'missing-expected-field',
+  ]) {
+    assert.match(clean, new RegExp(code), `${code} 가 출력에 있어야`);
+  }
+  // severity 표시
+  assert.match(clean, /error/i);
+  assert.match(clean, /warning/i);
+});
+
+await test('validate --list-codes --json — codes 배열 머신 가독', async () => {
+  const r = await run(['validate', '--list-codes', '--json']);
+  assert.equal(r.code, 0);
+  const data = JSON.parse(r.stdout);
+  assert.ok(Array.isArray(data.codes));
+  assert.ok(data.codes.length >= 6);
+  for (const c of data.codes) {
+    assert.equal(typeof c.code, 'string');
+    assert.ok(c.severity === 'error' || c.severity === 'warning');
+    assert.equal(typeof c.description, 'string');
+  }
+});
+
+await test('validate --fail-on=does-not-exist — stderr 에 unknown code 경고 (R+ cycle 44)', async () => {
+  const root = withVault([
+    { slug: 'p', content: '---\nkind: project\ntitle: P\n---\n' },
+  ]);
+  try {
+    const r = await run(['validate', root, '--fail-on=does-not-exist']);
+    // unknown code 경고가 stderr 에 보여야 (실행은 그대로 — 매치 없으니 exit 0).
+    assert.equal(r.code, 0);
+    assert.match(r.stderr, /알려지지 않은 code|--list-codes/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('validate --fail-on=empty-kind — empty-kind 있으면 exit 1 (R+ cycle 43)', async () => {
   const root = withVault([
     { slug: 'broken', content: '---\nkind:\ntitle: X\n---\n' },

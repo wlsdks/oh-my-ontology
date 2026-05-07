@@ -48,6 +48,7 @@ ${COLORS.bold}Usage:${COLORS.reset}
                                               ${COLORS.dim}--json            JSON output${COLORS.reset}
   npx oh-my-ontology validate [vault]         Frontmatter integrity check (exit 1 on errors)
        --json --strict --fail-on=code,...     ${COLORS.dim}structured · warning 도 fail · 특정 code 만 fail${COLORS.reset}
+       --list-codes                           ${COLORS.dim}사용 가능한 issue code 목록 (--fail-on 발견용)${COLORS.reset}
   npx oh-my-ontology add <kind> <slug>        Scaffold a new ontology node (.md)
        --title "..."                          ${COLORS.dim}required, non-empty${COLORS.reset}
        --domain X --body "..." --vault path   ${COLORS.dim}optional${COLORS.reset}
