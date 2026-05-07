@@ -455,7 +455,10 @@ function OntologyMetaFooter({
   const modeLabel = mode === 'local' ? t('modeLocal') : t('modeStatic');
   return (
     <footer className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[color:var(--color-divider)] pt-3 text-[11px] text-[color:var(--color-text-quaternary)]">
-      <span className="font-mono uppercase tracking-[0.14em]">
+      <span
+        className="font-mono uppercase tracking-[0.14em] underline decoration-dotted decoration-[color:var(--color-text-quaternary)] underline-offset-4 cursor-help"
+        title={t('countsHint')}
+      >
         {t('counts', { nodes: nodeCount, edges: edgeCount })}
       </span>
       <span aria-hidden>·</span>
