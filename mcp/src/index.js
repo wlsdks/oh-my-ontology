@@ -43,6 +43,7 @@ import {
   VaultConflictError,
   deleteDoc,
   ensureVaultRoot,
+  extractSummaryExcerpt,
   findBacklinks,
   findOrphans,
   findPath,
@@ -702,7 +703,7 @@ function getConcept({ slug }) {
   return {
     slug: doc.slug,
     frontmatter: doc.frontmatter,
-    excerpt: doc.body.slice(0, 800),
+    excerpt: extractSummaryExcerpt(doc.body),
     neighbors: {
       dependencies: doc.frontmatter.dependencies || [],
       relates: doc.frontmatter.relates || [],
