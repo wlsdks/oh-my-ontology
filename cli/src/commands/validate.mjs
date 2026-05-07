@@ -59,10 +59,59 @@ export function runValidate(args) {
     }
   }
 
+  // R+ — issue code 별 그룹 요약. 큰 vault 에서 같은 종류 경고가 30+ 줄 흐를
+  // 때 *어느 코드가 얼마나 많은지* 한눈에. 2+ 회 등장한 code 만 노출 — 1
+  // 회짜리는 위 per-file 출력으로 충분.
+  const groups = groupIssuesByCode(reports);
+  const repeatedCodes = groups.filter((g) => g.count >= 2);
+  if (repeatedCodes.length > 0) {
+    console.log(`\n${COLORS.dim}── grouped by code ──${COLORS.reset}`);
+    for (const g of repeatedCodes) {
+      const color = g.severity === 'error' ? COLORS.red : COLORS.yellow;
+      const tag = g.severity === 'error' ? '✗' : '▲';
+      const head = g.files.slice(0, 3).join(', ');
+      const tail = g.files.length > 3 ? ` (+${g.files.length - 3} more)` : '';
+      console.log(
+        `  ${color}${tag}${COLORS.reset} ${g.code} — ${g.count} occurrence${g.count === 1 ? '' : 's'}` +
+          `\n     ${COLORS.dim}${head}${tail}${COLORS.reset}`,
+      );
+    }
+  }
+
   console.log(
     `\n[validate] ${files.length} 파일 / ${reports.length} 문제 ` +
       `(${COLORS.red}error ${errorFiles}${COLORS.reset} · ` +
       `${COLORS.yellow}warning ${warningFiles}${COLORS.reset})`,
   );
   return errorFiles > 0 ? 1 : 0;
+}
+
+/**
+ * reports 를 issue code 별로 묶는다. severity 는 같은 code 내에서 max
+ * (error > warning) — 한 code 가 양쪽으로 등장하면 더 높은 severity 표시.
+ * files 는 등장 순 dedup. count 는 같은 file 의 같은 code 가 여러 번이어도
+ * file 당 1로 카운트 (사용자 입장에서 "몇 개 file 이 영향받았나" 가 더 유용).
+ */
+function groupIssuesByCode(reports) {
+  const map = new Map();
+  for (const { file, report } of reports) {
+    const seenInFile = new Set();
+    for (const issue of report.issues) {
+      const key = issue.code;
+      if (seenInFile.has(key)) continue;
+      seenInFile.add(key);
+      if (!map.has(key)) {
+        map.set(key, { code: key, severity: issue.severity, files: [], count: 0 });
+      }
+      const entry = map.get(key);
+      if (issue.severity === 'error') entry.severity = 'error';
+      entry.files.push(file);
+      entry.count += 1;
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => {
+    // error 먼저, 그 안에서 count 내림차순
+    if (a.severity !== b.severity) return a.severity === 'error' ? -1 : 1;
+    return b.count - a.count;
+  });
 }

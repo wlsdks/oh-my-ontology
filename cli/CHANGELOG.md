@@ -1,5 +1,14 @@
 # Changelog — oh-my-ontology (CLI)
 
+## Unreleased
+
+### Changed — `validate` 출력 grouped summary
+
+- 같은 issue code 가 2+ file 에서 등장하면 per-file 출력 끝에 *grouped by code* 요약 섹션 자동 부착. `<severity> <code> — <count> occurrences\n     file1, file2, file3 (+N more)` 형식으로 *어느 종류 경고가 얼마나 많은지* 한눈에. error 우선, count 내림차순.
+- 1 회짜리 code 는 per-file 출력만으로 충분 — grouped 섹션에 노출 안 함 (노이즈 회피).
+- per-file detail / exit code 는 변동 없음 (CI 회귀 0).
+- 신규 integration test 2건 (3 capability missing-domain → grouped 등장 / 단일 empty-kind → grouped 안 뜸).
+
 ## 0.5.0 — 2026-05-06 (R17 — import graph → depends_on)
 
 ### Added — `infer-imports` command (13th, mcp v0.9.0 spawn wrapper)
