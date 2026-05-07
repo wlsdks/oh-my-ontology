@@ -1159,5 +1159,168 @@ await test('infer-imports --apply --json — applied / summary 필드 노출', a
   }
 });
 
+// ── infer-imports --threshold N (R+ — weak edge 차단) ────────────────────
+
+function makeStrongImportRepo() {
+  // a 가 b 를 3번 import (count 3), c 를 1번 import (count 1).
+  const repo = mkdtempSync(join(tmpdir(), 'cli-thr-'));
+  mkdirSync(join(repo, 'src', 'a'), { recursive: true });
+  mkdirSync(join(repo, 'src', 'b'), { recursive: true });
+  mkdirSync(join(repo, 'src', 'c'), { recursive: true });
+  // a 안 3개 파일이 b 를 import → b 는 count=3
+  writeFileSync(
+    join(repo, 'src', 'a', 'one.ts'),
+    "import { x } from '../b';\nexport const a1 = x;\n",
+    'utf-8',
+  );
+  writeFileSync(
+    join(repo, 'src', 'a', 'two.ts'),
+    "import { x } from '../b';\nexport const a2 = x;\n",
+    'utf-8',
+  );
+  writeFileSync(
+    join(repo, 'src', 'a', 'three.ts'),
+    "import { x } from '../b';\nexport const a3 = x;\n",
+    'utf-8',
+  );
+  // a/four 만 c 를 import → c 는 count=1 (weak)
+  writeFileSync(
+    join(repo, 'src', 'a', 'four.ts'),
+    "import { y } from '../c';\nexport const a4 = y;\n",
+    'utf-8',
+  );
+  writeFileSync(
+    join(repo, 'src', 'b', 'index.ts'),
+    'export const x = 1;\n',
+    'utf-8',
+  );
+  writeFileSync(
+    join(repo, 'src', 'c', 'index.ts'),
+    'export const y = 1;\n',
+    'utf-8',
+  );
+  return repo;
+}
+
+await test('infer-imports --threshold 3 — count < 3 edges 필터 (preview 모드)', async () => {
+  const vault = withVault([]);
+  const repo = makeStrongImportRepo();
+  try {
+    // 사전 — threshold 없이는 a→b · a→c 두 edge 모두 보여야 함.
+    const noThr = await run([
+      'infer-imports',
+      repo,
+      '--vault',
+      vault,
+      '--json',
+    ]);
+    assert.equal(noThr.code, 0);
+    const noThrData = JSON.parse(noThr.stdout);
+    assert.ok(
+      noThrData.moduleEdges.length >= 2,
+      `expected 2+ edges, got ${noThrData.moduleEdges.length}`,
+    );
+
+    // threshold 3 — count < 3 인 a→c 는 제외.
+    const r = await run([
+      'infer-imports',
+      repo,
+      '--vault',
+      vault,
+      '--threshold',
+      '3',
+      '--json',
+    ]);
+    assert.equal(r.code, 0);
+    const data = JSON.parse(r.stdout);
+    assert.ok(data.moduleEdges.length < noThrData.moduleEdges.length);
+    for (const m of data.moduleEdges) {
+      assert.ok(m.count >= 3, `${m.from}→${m.to} count=${m.count} should be ≥3`);
+    }
+    // thresholdApplied 메타데이터.
+    assert.ok(data.thresholdApplied);
+    assert.equal(data.thresholdApplied.threshold, 3);
+    assert.ok(data.thresholdApplied.filteredOut >= 1);
+  } finally {
+    rmSync(vault, { recursive: true, force: true });
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+await test('infer-imports --threshold 3 --apply — 약한 edge 는 land 안 됨', async () => {
+  // vault 에 a, b, c 모두 존재 — threshold 없으면 a→b, a→c 둘 다 land.
+  // threshold 3 면 a→b 만 land, a→c 는 filtered out (depend on c 안 생김).
+  const vault = withVault([
+    { slug: 'a', content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n' },
+    { slug: 'b', content: '---\nkind: capability\ntitle: B\ndomain: x\n---\n' },
+    { slug: 'c', content: '---\nkind: capability\ntitle: C\ndomain: x\n---\n' },
+  ]);
+  const repo = makeStrongImportRepo();
+  try {
+    const r = await run([
+      'infer-imports',
+      repo,
+      '--vault',
+      vault,
+      '--apply',
+      '--threshold',
+      '3',
+    ]);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const aDoc = readFileSync(join(vault, 'a.md'), 'utf-8');
+    // a 는 b 의존 (count=3, ≥ threshold).
+    assert.match(aDoc, /dependencies:.*\bb\b/s);
+    // a 는 c 의존 *없음* (count=1, < threshold) — filter out.
+    assert.doesNotMatch(aDoc, /\bc\b/);
+  } finally {
+    rmSync(vault, { recursive: true, force: true });
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+await test('infer-imports --threshold 0 (또는 미지정) — 변경 없음', async () => {
+  const vault = withVault([]);
+  const repo = makeStrongImportRepo();
+  try {
+    const r = await run([
+      'infer-imports',
+      repo,
+      '--vault',
+      vault,
+      '--threshold',
+      '1',
+      '--json',
+    ]);
+    // threshold=1 이면 count >= 1 — 사실상 모든 edge. 필터 메타데이터도 안 붙음
+    // (코드가 threshold > 1 일 때만 필터).
+    assert.equal(r.code, 0);
+    const data = JSON.parse(r.stdout);
+    assert.equal(data.thresholdApplied, undefined);
+  } finally {
+    rmSync(vault, { recursive: true, force: true });
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+await test('infer-imports --threshold abc — 잘못된 입력 거부', async () => {
+  const vault = withVault([]);
+  const repo = makeStrongImportRepo();
+  try {
+    const r = await run([
+      'infer-imports',
+      repo,
+      '--vault',
+      vault,
+      '--threshold',
+      'abc',
+    ]);
+    assert.equal(r.code, 1);
+    assert.match(r.stderr, /threshold/i);
+  } finally {
+    rmSync(vault, { recursive: true, force: true });
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
 console.log(`\ncli integration: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
