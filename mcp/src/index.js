@@ -717,6 +717,10 @@ function listConcepts({ kind, domain, limit = 100 }) {
       domain: doc.frontmatter.domain,
       capabilities: doc.frontmatter.capabilities,
       elements: doc.frontmatter.elements,
+      // R+ — per-node mtime (ms). agent 가 list 응답만으로 "어느 노드가 최근에
+      // 변경됐나" 파악 가능. get_concept 의 mtime field 와 일관 — 같은 의미.
+      // sort 가능 + 외부 변경 감지에도 활용.
+      mtime: doc.mtime,
     })),
     vaultWarnings:
       errorCount + warningCount > 0

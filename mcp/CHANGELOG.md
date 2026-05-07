@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- **`list_concepts` 응답 각 node 에 `mtime` (ms).** `get_concept` 의 `mtime` 과 같은 의미. AI agent 가 list 한 호출로 *어느 노드가 최근에 변경됐나* 파악 → sort/filter 가능, 후속 `get_concept` 없이. 외부 변경 감지 (예: `expected_mtime` 으로 patch 보호) 흐름에도 도움. 신규 integration test 1건 (모든 node.mtime 이 number > 0).
+
 ### Changed
 
 - **`get_concept` excerpt 가 prose-aware.** 기존 `body.slice(0, 800)` 은 dogfood `capabilities/mcp-server.md` 같이 H1+표 위주 문서에선 800자 모두 markdown table syntax 만 채워져 agent token budget 낭비. 새 `extractSummaryExcerpt` helper 가 heading / 표 / 코드블록 / 리스트 / 인용을 skip 후 첫 prose 단락만 추출. 측정: dogfood `capabilities/mcp-server.md` excerpt **800 chars (table syntax) → 78 chars (clear prose summary)** — agent 가 받는 의미 밀도 ~10x ↑. block-only body 는 fallback 으로 원본 trim. 9 신규 unit test (prose / H1 skip / 표 skip / 코드블록 skip / multi-line / 빈 body / block-only / maxLen cap / 리스트).
