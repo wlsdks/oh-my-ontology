@@ -737,6 +737,54 @@ await test("add_relations — 빈 relations[] → 빈 results, 51개 → error",
   }
 });
 
+// R+ — cycle 46: validate_vault tool. agent 가 vault 전체 health 한 호출에.
+await test("validate_vault — clean vault: scanned/problems[]/summary 시그너처", async () => {
+  const root = makeVault([
+    { slug: "p", content: "---\nkind: project\ntitle: P\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "validate_vault", {}),
+    ]);
+    const r = getCallParsed(responses, 2);
+    assert.equal(typeof r.scanned, "number");
+    assert.deepEqual(r.problems, []);
+    assert.equal(r.summary.errorFiles, 0);
+    assert.equal(r.summary.warningFiles, 0);
+    assert.deepEqual(r.summary.byCode, {});
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("validate_vault — empty-kind error 와 missing-expected-field warning 모두 surface", async () => {
+  const root = makeVault([
+    { slug: "broken", content: "---\nkind:\ntitle: X\n---\n" },
+    { slug: "capWithoutDomain", content: "---\nkind: capability\ntitle: A\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "validate_vault", {}),
+    ]);
+    const r = getCallParsed(responses, 2);
+    assert.ok(r.problems.length >= 2);
+    // byCode aggregation
+    assert.ok(r.summary.byCode["empty-kind"]);
+    assert.equal(r.summary.byCode["empty-kind"].severity, "error");
+    assert.ok(r.summary.byCode["missing-expected-field"]);
+    assert.equal(
+      r.summary.byCode["missing-expected-field"].severity,
+      "warning",
+    );
+    assert.ok(r.summary.errorFiles >= 1);
+    assert.ok(r.summary.warningFiles >= 1);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("patch_concept — expected_mtime stale 면 conflict error response", async () => {
   const root = makeVault([
     { slug: "foo", content: "---\nkind: capability\ntitle: Foo\n---\n" },
