@@ -1,15 +1,15 @@
 ---
 slug: capabilities/mcp-server
 kind: capability
-title: MCP Server (19 tools)
+title: MCP Server (20 tools)
 domain: ai-agent-partner
 elements: [mcp/src/index.js, mcp/src/parser.mjs, mcp/src/vault.mjs, mcp/src/analyze.mjs, mcp/src/infer-imports.mjs]
 relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 ---
 
-# MCP Server (19 tools)
+# MCP Server (20 tools)
 
-`@modelcontextprotocol/sdk` 기반 stdio JSON-RPC 서버. 19 도구 노출 (read 11 + write 8):
+`@modelcontextprotocol/sdk` 기반 stdio JSON-RPC 서버. 20 도구 노출 (read 12 + write 8):
 
 | 도구 | 동작 |
 |---|---|
@@ -22,6 +22,7 @@ relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 | `list_kinds` | kind 분포 census (`{ total, byKind: { capability: N, ... } }`) |
 | `find_orphans` | 어디서도 link 안 받는 고립 노드 (kind 필터, vault-readme 자동 제외) |
 | `query_concepts` | DSL 기반 ad-hoc 쿼리 (frontmatter 키 = / contains / exists 조합) |
+| `validate_vault` | **R+** vault 전체 health 한 호출 (per-doc + byCode aggregate) — `list_concepts → K×get_concept` K-roundtrip 대체 |
 | `analyze_repo_structure` | **R16** code repo (default cwd) 분석 → ontology 노드 후보 제안. **side effect 0** — vault 변경 안 함. AI agent 가 빈 vault bootstrap 시 사용 (사용자 한 줄 *"이 codebase 분석해줘"*). FSD vs generic detect. |
 | `infer_imports` | **R17** TS/JS import graph 추출 → file/module-level edge + external (npm) imports 분리. **side effect 0**. analyze_repo_structure 후 *real* dependency edge 를 add_relation 으로 land 하기 위한 입력. |
 | `add_concept` | 새 노드 (.md) 작성 — 기존 slug 면 throw |

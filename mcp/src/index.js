@@ -14,6 +14,7 @@
  *   - list_kinds             — vault kind 분포 census
  *   - find_orphans           — 어느 다른 노드도 frontmatter 에서 가리키지 않는 doc
  *   - query_concepts         — typed filter DSL (kind=X AND has(Y) AND NOT ...)
+ *   - validate_vault         — vault 전체 health 한 호출 (per-doc + byCode aggregate)
  *   - analyze_repo_structure — R16, code repo 분석 → ontology 후보 (side effect 0)
  *   - infer_imports          — R17, TS/JS import graph → depends_on 후보 (side effect 0)
  *
@@ -100,9 +101,9 @@ try {
 // 매번 시행착오로 학습되는 문제를 단번에 해소.
 const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where each \`.md\` with a frontmatter \`kind:\` is an ontology node. The graph encodes the codebase's mental model and is shared with the human via plain markdown.
 
-## Tool inventory (19 tools = read 11 + write 8)
+## Tool inventory (20 tools = read 12 + write 8)
 
-**read** — \`list_concepts\` · \`get_concept\` · \`get_concepts\` · \`find_evidence\` · \`find_backlinks\` · \`find_path\` · \`list_kinds\` · \`find_orphans\` · \`query_concepts\` · \`analyze_repo_structure\` · \`infer_imports\`.
+**read** — \`list_concepts\` · \`get_concept\` · \`get_concepts\` · \`find_evidence\` · \`find_backlinks\` · \`find_path\` · \`list_kinds\` · \`find_orphans\` · \`query_concepts\` · \`validate_vault\` · \`analyze_repo_structure\` · \`infer_imports\`.
 **write** — \`add_concept\` · \`add_concepts\` · \`add_relation\` · \`add_relations\` · \`patch_concept\` · \`delete_concept\` · \`rename_concept\` · \`merge_concepts\`.
 
 ## Kind hierarchy (top → leaf)
@@ -537,6 +538,19 @@ const TOOLS = [
     },
   },
   {
+    name: 'validate_vault',
+    description:
+      'R+ (cycle 46) — validate every doc in the vault, return per-doc + per-code aggregate. ' +
+      'Replaces the K-round-trip pattern of `list_concepts` then per-doc `get_concept` (whose `warnings: [...]` is per-file). ' +
+      '6 issue codes — `unclosed-frontmatter`, `parse-zero-keys`, `missing-kind`, `empty-kind`, `unknown-kind`, `missing-expected-field`. ' +
+      'Returns `{ scanned, problems: [{slug, issues: [{code, severity, message}]}], summary: { problemFiles, errorFiles, warningFiles, byCode: { code: { severity, count, files } } } }`. ' +
+      'side effect 0. Use when an agent needs the *whole-vault* health view (e.g. before / after a batch write, or surfacing issues to the user).',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
     name: 'infer_imports',
     description:
       'R17 (autonomous ingest deeper) — walk TS/JS files in a code repo and infer file-level + module-level import edges. ' +
@@ -768,6 +782,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return ok(findOrphansTool(args));
       case 'query_concepts':
         return ok(queryConceptsTool(args));
+      case 'validate_vault':
+        return ok(validateVaultTool());
       case 'analyze_repo_structure':
         return ok(analyzeRepoStructureTool(args));
       case 'infer_imports':
@@ -1202,6 +1218,72 @@ function queryConceptsTool({ filter, limit }) {
     total: matches.length,
     matches,
     limited: matches.length >= cap,
+  };
+}
+
+// R+ — cycle 46: validate_vault tool. agent 가 vault 전체 health 를 한
+// 호출에 받음. CLI `oh-my-ontology validate --json` 와 같은 shape.
+// per-doc \`warnings\` (get_concept) + vault aggregate (\`vaultWarnings\` in
+// list_concepts) 의 빠진 중간 — 둘 다 합친 detailed report.
+function validateVaultTool() {
+  const docs = loadVaultDocs(VAULT_ROOT);
+  const problems = [];
+  let errorFiles = 0;
+  let warningFiles = 0;
+  // byCode aggregation: { code → { severity, count, files: Set<slug> } }
+  const byCodeMap = new Map();
+  for (const doc of docs) {
+    const result = validateVaultDocument(doc.raw || '');
+    if (!result.issues || result.issues.length === 0) continue;
+    let hasError = false;
+    const seenInDoc = new Set();
+    for (const issue of result.issues) {
+      if (issue.severity === 'error') hasError = true;
+      if (!byCodeMap.has(issue.code)) {
+        byCodeMap.set(issue.code, {
+          severity: issue.severity,
+          count: 0,
+          files: new Set(),
+        });
+      }
+      const entry = byCodeMap.get(issue.code);
+      // severity escalates if any issue of this code is error
+      if (issue.severity === 'error') entry.severity = 'error';
+      // count = file count (per-file), not per-issue
+      if (!seenInDoc.has(issue.code)) {
+        seenInDoc.add(issue.code);
+        entry.count += 1;
+        entry.files.add(doc.slug);
+      }
+    }
+    if (hasError) errorFiles += 1;
+    else warningFiles += 1;
+    problems.push({
+      slug: doc.slug,
+      issues: result.issues.map((i) => ({
+        code: i.code,
+        severity: i.severity,
+        message: i.message,
+      })),
+    });
+  }
+  const byCode = {};
+  for (const [code, entry] of byCodeMap.entries()) {
+    byCode[code] = {
+      severity: entry.severity,
+      count: entry.count,
+      files: [...entry.files],
+    };
+  }
+  return {
+    scanned: docs.length,
+    problems,
+    summary: {
+      problemFiles: problems.length,
+      errorFiles,
+      warningFiles,
+      byCode,
+    },
   };
 }
 

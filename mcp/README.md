@@ -44,7 +44,7 @@ If `OMOT_VAULT` is not set, the current working directory is used as the vault r
 
 ### 2. Restart Claude Code
 
-The server connects over stdio. You should now see 19 tools under the `oh-my-ontology` namespace.
+The server connects over stdio. You should now see 20 tools under the `oh-my-ontology` namespace.
 
 ### 3. Call the tools
 
@@ -56,7 +56,7 @@ The server connects over stdio. You should now see 19 tools under the `oh-my-ont
 → mcp__oh-my-ontology__get_concept({ slug: 'capabilities/mcp-server' })
 ```
 
-## The 19 tools (v0.7.1)
+## The 20 tools (v0.7.1)
 
 | Tool | What it does |
 |---|---|
@@ -69,6 +69,7 @@ The server connects over stdio. You should now see 19 tools under the `oh-my-ont
 | `list_kinds` | Vault kind census: `{ total, byKind: { capability: N, ... } }`. |
 | `find_orphans` | **v0.5** Finds isolated nodes — docs that no other node references in its frontmatter. Options: `kind` (filter), `excludeKinds` (skip, default `['vault-readme']`). Each orphan row includes `kind`, `title`, `domain`, `mtime` (same shape as `list_concepts` / `find_backlinks`) — agents can sort/filter "old orphans in domain X" without follow-up `get_concept` calls. Useful as a starting point for cleanup or auditing unused nodes. |
 | `query_concepts` | **v0.6** Typed filter DSL — `kind=X AND has(Y) AND NOT ...`. Saved-filter / smart-list use case. Each match row includes `slug, kind, title, domain, capabilities, elements, mtime` (same shape as `list_concepts` / `find_backlinks` / `find_orphans`) so agents can sort/filter staleness without follow-up calls. |
+| `validate_vault` | **R+** Validate every doc in the vault, return `{ scanned, problems: [{slug, issues}], summary: { problemFiles, errorFiles, warningFiles, byCode } }`. 6 issue codes (`unclosed-frontmatter`, `parse-zero-keys`, `missing-kind`, `empty-kind`, `unknown-kind`, `missing-expected-field`). One round-trip whole-vault health check — use before / after a batch write, or to surface issues. Replaces the K-roundtrip pattern of `list_concepts` then per-doc `get_concept` (whose `warnings: [...]` is per-file). |
 | `analyze_repo_structure` | **R16** Analyze a code repository (default cwd) and propose ontology node candidates from `package.json` / `README.md` H2 / `src/` folders. **side effect 0** — vault NOT modified. The agent (or human) reviews and selectively passes accepted candidates to `add_concept` / `add_relation`. Detects FSD vs generic layout. Use once when bootstrapping a fresh repo. |
 | `infer_imports` | **R17** Walk TS/JS files and parse imports → file-level + module-level dependency edges. **side effect 0**. Resolves relative paths + `@/*` aliases (Next.js / FSD convention), classifies external (npm) separately, collapses to module edges (capability A → B with import count). The agent reviews `moduleEdges` and selectively passes accepted edges to `add_relation` as `depends_on`. Use after `analyze_repo_structure` to pull *real* dependency edges from the code. |
 | `add_concept` | Creates a new `.md` node. Required: `slug`, `kind`, `title`. Optional: `domain`, `capabilities`, `elements`, `body`. **R14**: frontmatter is normalized per kind (project gets `domains/capabilities/elements: []`; capability gets `elements: []`; capability/element should set `domain` — missing extras come back in `warnings`). Body defaults to a kind-specific starter. Throws if the slug already exists. |
@@ -135,7 +136,7 @@ A successful run looks like this:
 ✓ tools/list 16/16 — add_concept · add_relation · analyze_repo_structure · delete_concept · find_backlinks · find_evidence · find_orphans · find_path · get_concept · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · rename_concept
 ✓ list_concepts — vault total 25 nodes
 
-All checks passed — register .mcp.json with Claude Code, restart, and the 19 tools are ready.
+All checks passed — register .mcp.json with Claude Code, restart, and the 20 tools are ready.
 ```
 
 On failure, it tells you which step blocked progress and prints a diagnostic message.
@@ -164,7 +165,7 @@ After you add `.mcp.json` and restart Claude Code, try the following with your L
 > 3. Call `find_backlinks({ slug: "capabilities/mcp-server" })` to find what depends on that capability.
 > 4. (Optional) Call `add_concept` to create a new capability node — `slug`, `kind`, and `title` are required.
 
-If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 19 tools (11 read + 8 write), the human + AI co-authoring loop is officially open.
+If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 20 tools (12 read + 8 write), the human + AI co-authoring loop is officially open.
 
 ## Design principles
 

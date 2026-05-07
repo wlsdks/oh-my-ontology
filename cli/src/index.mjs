@@ -237,8 +237,8 @@ ${COLORS.bold}Next steps:${COLORS.reset}
   ${COLORS.dim}5.${COLORS.reset} ${COLORS.bold}Open this folder in an AI agent${COLORS.reset} (Claude Code, Cursor, …):
        Both your codebase root (cwd) and the vault folder now have a wired
        ${COLORS.bold}.mcp.json${COLORS.reset}. Open either folder, restart the agent,
-       and the ${COLORS.bold}oh-my-ontology${COLORS.reset} namespace appears with 19 tools
-       (11 read + 8 write).
+       and the ${COLORS.bold}oh-my-ontology${COLORS.reset} namespace appears with 20 tools
+       (12 read + 8 write).
 
   ${COLORS.dim}6.${COLORS.reset} ${COLORS.bold}See the graph${COLORS.reset} (optional, web UI):
        ${COLORS.cyan}git clone https://github.com/wlsdks/oh-my-ontology${COLORS.reset}
