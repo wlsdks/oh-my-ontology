@@ -186,6 +186,11 @@ const TOOLS = [
           description:
             'Filter to nodes with `mtime > since` (ms). Pair with the `mtime` returned in earlier `list_concepts` / `get_concept` responses for incremental sync — "what changed since I last looked". Strict greater-than (mtime === since 는 제외) so re-passing the max from a previous response does not double-fetch.',
         },
+        summary: {
+          type: 'boolean',
+          description:
+            'When true, each node row includes a `summary` (max 200 chars, prose-only — heading / 표 / 코드블록 / 리스트 / 인용 skip 후 첫 단락만, same `extractSummaryExcerpt` helper as `get_concept` / `find_evidence`). Useful for "scan + overview" without N follow-up `get_concept` calls. Default false to keep payload small.',
+        },
         limit: {
           type: 'number',
           description: 'Max rows to return. Defaults to 100.',
@@ -686,7 +691,7 @@ function ok(result) {
 
 // ── 도구 구현 ─────────────────────────────────────────────────────────────
 
-function listConcepts({ kind, domain, since, limit = 100 }) {
+function listConcepts({ kind, domain, since, summary, limit = 100 }) {
   const docs = loadVaultDocs(VAULT_ROOT);
 
   // R11 #23 — vault-wide validation 카운트. raw 모두 검증해 silent corruption
@@ -732,6 +737,12 @@ function listConcepts({ kind, domain, since, limit = 100 }) {
       // 변경됐나" 파악 가능. get_concept 의 mtime field 와 일관 — 같은 의미.
       // sort 가능 + 외부 변경 감지에도 활용.
       mtime: doc.mtime,
+      // R+ — opt-in summary. agent 가 list 한 호출로 "각 노드 무슨 내용인가?"
+      // 파악 가능. 200자 cap 으로 페이로드 부풀림 방지 (find_evidence 와 동일).
+      // 호출자가 summary:true 명시 안 하면 비활성 (기존 동작 보존).
+      ...(summary === true
+        ? { summary: extractSummaryExcerpt(doc.body, 200) }
+        : {}),
     })),
     vaultWarnings:
       errorCount + warningCount > 0

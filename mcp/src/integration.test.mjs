@@ -265,6 +265,52 @@ await test("find_evidence — 각 match 에 prose excerpt 동봉 (R+)", async ()
   }
 });
 
+await test("list_concepts — summary opt-in (R+) — 각 노드에 prose 요약", async () => {
+  // agent 가 한 호출로 "vault 노드 list + 무슨 내용인지" 모두 받음. 후속
+  // get_concept N 회 안 함. summary:false (default) 일 때는 응답에 안 들어감.
+  const root = makeVault([
+    {
+      slug: "capabilities/auth",
+      content:
+        "---\nkind: capability\ntitle: Auth\n---\n\n# Auth\n\n인증 흐름 일원화 capability — 로그인/로그아웃.\n",
+    },
+    {
+      slug: "capabilities/billing",
+      content:
+        "---\nkind: capability\ntitle: Billing\n---\n\n결제 처리 — 카드 + 페이팔.\n",
+    },
+  ]);
+  try {
+    // default: summary 없음
+    const { responses: r1 } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "list_concepts"),
+    ]);
+    const out1 = getCallParsed(r1, 2);
+    assert.equal(out1.total, 2);
+    for (const node of out1.nodes) {
+      assert.equal(node.summary, undefined, "default 에선 summary 안 들어감");
+    }
+
+    // summary:true → 모든 노드에 prose 요약
+    const { responses: r2 } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "list_concepts", { summary: true }),
+    ]);
+    const out2 = getCallParsed(r2, 2);
+    for (const node of out2.nodes) {
+      assert.equal(typeof node.summary, "string", `${node.slug}.summary 가 string`);
+      // markdown heading / table syntax 안 들어가야 (prose 만)
+      assert.doesNotMatch(node.summary, /^#/);
+      assert.doesNotMatch(node.summary, /^\|/);
+    }
+    const auth = out2.nodes.find((n) => n.slug === "capabilities/auth");
+    assert.match(auth.summary, /인증 흐름/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("list_concepts — since 필터 (R+) — incremental sync", async () => {
   // agent 가 이전 list 응답에서 캡처한 max mtime 을 since 로 패스 → vault 의
   // *바뀐 것만* 전송. strict mtime > since 로 같은 max 재전송해도 double-fetch 0.
