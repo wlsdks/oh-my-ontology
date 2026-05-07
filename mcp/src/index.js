@@ -7,6 +7,7 @@
  * read 10:
  *   - list_concepts          — vault 의 노드 목록 (kind / project_filter)
  *   - get_concept            — 단일 노드 + 이웃 (dependencies / relates) + mtime
+ *   - get_concepts           — 배치 read (slugs[] → concepts[], partial 허용)
  *   - find_evidence          — title / capabilities / elements / body 부분매칭
  *   - find_backlinks         — 특정 slug 를 가리키는 다른 노드들
  *   - find_path              — 두 slug 사이 BFS 최단 경로 + edges[via] (R+)
@@ -97,9 +98,9 @@ try {
 // 매번 시행착오로 학습되는 문제를 단번에 해소.
 const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where each \`.md\` with a frontmatter \`kind:\` is an ontology node. The graph encodes the codebase's mental model and is shared with the human via plain markdown.
 
-## Tool inventory (16 tools = read 10 + write 6)
+## Tool inventory (17 tools = read 11 + write 6)
 
-**read** — \`list_concepts\` · \`get_concept\` · \`find_evidence\` · \`find_backlinks\` · \`find_path\` · \`list_kinds\` · \`find_orphans\` · \`query_concepts\` · \`analyze_repo_structure\` · \`infer_imports\`.
+**read** — \`list_concepts\` · \`get_concept\` · \`get_concepts\` · \`find_evidence\` · \`find_backlinks\` · \`find_path\` · \`list_kinds\` · \`find_orphans\` · \`query_concepts\` · \`analyze_repo_structure\` · \`infer_imports\`.
 **write** — \`add_concept\` · \`add_relation\` · \`patch_concept\` · \`delete_concept\` · \`rename_concept\` · \`merge_concepts\`.
 
 ## Kind hierarchy (top → leaf)
@@ -211,6 +212,22 @@ const TOOLS = [
         },
       },
       required: ['slug'],
+    },
+  },
+  {
+    name: 'get_concepts',
+    description:
+      'Fetch *multiple* nodes in one call — same per-row shape as `get_concept` (frontmatter + excerpt + neighbors + mtime + warnings?), but accepts an array of slugs. Use when you have K specific slugs from `list_concepts` / `find_path` / `find_orphans` etc. and need their full details — saves K-1 round-trips. Order of `concepts[]` matches input `slugs[]`. Missing slugs return `{ slug, ok: false, error }` rather than aborting the batch — agents handle partial results gracefully.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slugs: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Vault-relative slugs (e.g. ["capabilities/x", "elements/y"]). Omit the .md extension. Max 50 per call.',
+        },
+      },
+      required: ['slugs'],
     },
   },
   {
@@ -644,6 +661,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return ok(listConcepts(args));
       case 'get_concept':
         return ok(getConcept(args));
+      case 'get_concepts':
+        return ok(getConceptsBatch(args));
       case 'find_evidence':
         return ok(findEvidence(args));
       case 'add_concept':
@@ -781,6 +800,39 @@ function getConcept({ slug }) {
     warnings:
       validation && validation.issues.length > 0 ? validation.issues : undefined,
   };
+}
+
+// R+ — get_concept 의 batch 변종. 입력 slugs[] 순서를 보존하고 missing slug 는
+// 배치를 abort 하지 않고 { ok: false, error } 행으로 surface — agent 가
+// partial result 받아 핸들링 (예: list_concepts 결과를 재검증 없이 그대로
+// 사용하다 stale slug 한두 개 있어도 배치 전체가 죽지 않음). 50 cap 은
+// payload 폭주 방지 (vault 가 더 큰 경우 청크 분할).
+function getConceptsBatch({ slugs }) {
+  if (!Array.isArray(slugs)) {
+    throw new Error('slugs must be an array of strings');
+  }
+  if (slugs.length === 0) {
+    return { concepts: [] };
+  }
+  if (slugs.length > 50) {
+    throw new Error(
+      `Too many slugs: ${slugs.length}. Max 50 per call — split into multiple get_concepts batches.`
+    );
+  }
+  const concepts = slugs.map((slug) => {
+    if (typeof slug !== 'string' || !slug) {
+      return { slug: String(slug), ok: false, error: 'invalid-slug' };
+    }
+    try {
+      const result = getConcept({ slug });
+      return { ok: true, ...result };
+    } catch (err) {
+      const msg = err && err.message ? err.message : String(err);
+      // Doc not found 같은 친화 메시지를 그대로 surface — 절대 경로 leak 방지.
+      return { slug, ok: false, error: msg };
+    }
+  });
+  return { concepts };
 }
 
 function findEvidence({ title }) {
