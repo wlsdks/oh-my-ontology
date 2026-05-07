@@ -6,10 +6,80 @@
 
 ---
 
-## Unreleased — docs tool count sync
+## 2026-05-07 — Round 18: AI agent UX 강화 루프 — read shape · batch tools · ARIA tree · CLI --apply
 
-- `AGENTS.md`, `README.md` (root), `docs/FEATURES.md`, `docs/PRODUCT-DIRECTION.md`, `mcp/README.md` 의 stale "14 / 15 tools" / "read 8" / "read 9" 표기를 **R17 후 실제 16 tools (read 10 + write 6)** 로 일괄 동기화. `mcp/scripts/verify.mjs` doc-comment 도 같이.
-- 문서를 처음 보는 개발자 / AI agent 가 *현재 surface* 를 정확히 보게 — round 별 진화 이력은 그대로 보존.
+자율 개선 루프 ~30 PR. **mcp 16→19 tools (read 10→11, write 6→8), cli 13→15 commands, /ontology-bootstrap round-trip ~25→3**. agent (Claude Code · Cursor · Codex) 가 적은 호출로 더 정확한 vault sync, 사용자가 키보드만으로 tree 완전 항해, agent-less CLI 도 batch parity.
+
+### MCP — read tool 응답 shape 완전 일관 (#176 #180 #183 #186 #189 #191 #194 #195 #196)
+
+read tool 5종 (`list_concepts` · `find_backlinks` · `find_orphans` · `query_concepts` · `find_evidence`) 매치 row 가 모두 같은 shape: `{ slug, kind, title, domain, mtime, ...specific }`. agent 가 어느 read tool 결과든 동일 sort/filter 로직 재사용 — staleness 감지 (mtime), 도메인 필터 모두 후속 `get_concept` 없이.
+
+- `list_concepts`: `domain` 필터 (kind 결합), `since` 필터 (mtime-based incremental sync), 각 row `mtime`, `summary: true` opt-in (prose 미리보기 N+1→1 호출).
+- `get_concept`: excerpt 가 *prose-aware* (heading/표/코드/리스트/인용 skip). dogfood `mcp-server.md` excerpt 800ch (table syntax) → 78ch (clear summary).
+- 에러 메시지가 *actionable* — "Did you mean: ..." suggestion + 다음 액션 한 호출에 결정.
+- `find_path` 응답에 `edges[via]` 추가 — agent 가 *왜* A↔B 가 연결됐는지 (어느 frontmatter key 가 link 했는지) 한눈에.
+
+### MCP — 배치 도구 3개 신규 (R+, 16→19 tools, #197 #198 #199)
+
+- **`get_concepts`** (read 11번째) — 입력 `{slugs: string[]}` (max 50), 출력 `{concepts: [...]}`. K round-trip → 1, partial result (missing slug 은 row-level `ok: false`).
+- **`add_concepts`** (write 7번째) — 배치 노드 작성. 입력 *내* 중복 slug 사전 감지로 명료한 에러 ("duplicate slug in input batch"), atomic rollback 없음 (partial 시맨틱).
+- **`add_relations`** (write 8번째) — 배치 edge 작성. idempotent (동일 edge → `alreadyExists: true`), 50-row chunk 분할 가능.
+
+이로써 `/ontology-bootstrap` 흐름이 `analyze_repo_structure → add_concepts → add_relations` **3 round-trip 으로 완결** (이전 ~25). skill 본문 (`#200`) 도 새 도구 사용 가이드로 갱신.
+
+### Tree — full ARIA tree 키보드 패턴 (#188 #190 #201 #202)
+
+`/ontology` · `/` 페이지의 tree widget 이 W3C WAI tree role 표준 키 셋 완전 정합:
+
+- **↑/↓** — 다음/이전 visible row focus
+- **←/→** — collapse/expand
+- **Home/End** — 첫/마지막 row (Cmd/Ctrl/Alt 모디파이어 무시 — 브라우저 스크롤 보존)
+- **type-to-search** — 라틴/한글/숫자 1글자, 600ms 누적 buffer, wrap-around, 같은 char 반복으로 advance
+- **← (leaf 또는 이미 접힘)** — parent row focus (depth-based walk-back)
+
+기존 Tab 흐름은 그대로 유지 — additive layer.
+
+### CLI — agent-less full bootstrap (#203 #204)
+
+agent (Claude Code 등) 없는 환경 (CI · plain shell) 도 1줄로 vault 부트스트랩:
+
+```bash
+oh-my-ontology analyze . --apply       # 노드 batch land (add_concepts + add_relations)
+oh-my-ontology infer-imports . --apply # depends_on edges land (50-row chunk)
+```
+
+`--apply` 미지정 default 는 read-only — \"git push --force\" UX 로 명시적 opt-in. partial result ("N landed · M already existed · K errors"), `--json` 시 머신 가독, 두번째 실행 idempotent.
+
+### CLI — graph-level 명령 보강 (#182 #192 #193)
+
+- `validate` — grouped-by-code 요약 섹션 (큰 vault 가독성)
+- `orphans` — `find_orphans` MCP wrapper (15번째 명령)
+- `path` — 회귀 fix 재도입 + `edges[via]` CLI 노출
+
+### /topology 사용성 (#173 #174 #185)
+
+- 도메인·고연결 ontology 노드 라벨 항상 노출, multi-parent self-warning 침묵 (시각적 noise 차단)
+- ontology 노드 클릭 → 빈 drawer 대신 `/ontology` ego graph 로 라우팅
+- edge dedup · `?` 키 글로벌 검색 충돌 fix · 모바일 truncate 회귀 일괄 정리
+
+### Skill / Docs / Dogfood (#178 #179 #181 #200 #205)
+
+- MCP `instructions` 필드 — agent 가 첫 메시지부터 정확한 가이드 (kind 계층 · 첫 호출 순서 · dry-run + confirm 패턴 · `expected_mtime` conflict guard)
+- AGENTS.md / README.md / docs/FEATURES.md / mcp/README.md — tool count + read/write 분포 일괄 동기화 (16→19 흐름 따라 매 cycle)
+- `/ontology-bootstrap` skill — 본문이 새 batch 도구 사용으로 갱신, CLI fallback 도 `--apply` 짝으로 batch parity
+- dogfood `capabilities/cli-developer-entry` — 11→15 명령, --apply 반영 (cycle 동안 stale)
+
+### 측정
+
+| 지표 | R17 끝 | R18 끝 |
+|---|---|---|
+| MCP 도구 | 16 (read 10 + write 6) | **19 (read 11 + write 8)** |
+| CLI 명령 | 13 | **15** |
+| `/ontology-bootstrap` round-trip | ~25 | **3** |
+| 전체 vitest | ~810 | **839** |
+| MCP integration test | 14 | **24** |
+| CLI integration test | 32 | **49** |
+| stale tool count refs | 5 docs | 0 |
 
 ## 2026-05-06 — Round 17: `infer_imports` — TS/JS import graph → depends_on edges
 
