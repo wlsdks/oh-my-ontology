@@ -1,5 +1,16 @@
 # Changelog — oh-my-ontology (CLI)
 
+## Unreleased
+
+### Added — `path` command (14th)
+
+- `oh-my-ontology path <from> <to> [vault]` — 두 slug 사이 최단 경로 (BFS, 무방향). MCP `find_path` 의 thin wrapper.
+- 각 hop 사이에 `via` (frontmatter 키 = relation type) 를 한 줄로 표시 — `capabilities` / `elements` / `dependencies` / `relates` / `contains` / `describes`. AI agent 가 path 를 받아 *왜* A 와 B 가 연결됐는지 한 호출에 본다.
+- 옵션: `--max-hops N` (기본 5), `--json` (raw 응답).
+- trivial path (`from === to`) 는 0 hops 안내.
+- 누락 인자 시 usage + exit 1.
+- 신규 integration test 4건 (1-hop / json edges / trivial / arg validation).
+
 ## 0.5.0 — 2026-05-06 (R17 — import graph → depends_on)
 
 ### Added — `infer-imports` command (13th, mcp v0.9.0 spawn wrapper)

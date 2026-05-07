@@ -66,6 +66,8 @@ ${COLORS.bold}Bootstrap${COLORS.reset} ${COLORS.dim}(R16/R17 — autonomous inge
 
 ${COLORS.bold}Graph-level commands${COLORS.reset} ${COLORS.dim}(R15 — wraps the MCP server, same authority as an AI agent)${COLORS.reset}
   npx oh-my-ontology backlinks <slug>         Every node referencing the slug (--json)
+  npx oh-my-ontology path <from> <to>         Shortest path (BFS) with relation type per hop
+       --max-hops N --json                    ${COLORS.dim}default 5${COLORS.reset}
   npx oh-my-ontology query "<filter>"         Typed filter DSL (kind=X AND has(elements))
        --limit N --json                       ${COLORS.dim}default limit 100${COLORS.reset}
   npx oh-my-ontology rename <old> <new>       Atomic rename — moves .md, redirects every backlink
@@ -277,6 +279,11 @@ if (SUBCOMMAND === 'import') {
 if (SUBCOMMAND === 'backlinks') {
   const { runBacklinks } = await import('./commands/backlinks.mjs');
   exit(await runBacklinks(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'path') {
+  const { runPath } = await import('./commands/path.mjs');
+  exit(await runPath(ARGS.slice(1)));
 }
 
 if (SUBCOMMAND === 'query') {

@@ -639,6 +639,64 @@ await test('backlinks --json — JSON 응답 파싱', async () => {
   }
 });
 
+await test('path — capabilities/bar → capabilities/foo (1 hop, via relates)', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['path', 'capabilities/bar', 'capabilities/foo', root]);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /1 hop/);
+    assert.match(clean, /capabilities\/bar/);
+    assert.match(clean, /capabilities\/foo/);
+    // bar.relates 가 foo 를 가리키므로 via=relates 로 노출
+    assert.match(clean, /relates/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('path --json — edges[] 포함된 raw 응답 파싱', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run([
+      'path',
+      'capabilities/bar',
+      'capabilities/foo',
+      root,
+      '--json',
+    ]);
+    assert.equal(r.code, 0);
+    const data = JSON.parse(r.stdout);
+    assert.ok(Array.isArray(data.hops), 'hops 배열');
+    assert.ok(Array.isArray(data.edges), 'edges 배열');
+    assert.equal(data.edges.length, data.hops.length - 1, 'edges 길이는 hops - 1');
+    assert.equal(data.found, true);
+    // first edge 의 via 는 frontmatter key (capabilities/bar 의 relates 로
+    // capabilities/foo 를 가리킨다 — bar 가 from, foo 가 to).
+    assert.equal(data.edges[0].via, 'relates');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('path — same slug → 0 hops trivial', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['path', 'capabilities/foo', 'capabilities/foo', root]);
+    assert.equal(r.code, 0);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /same slug|0 hops/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('path — 두 인자 누락 시 usage + exit 1', async () => {
+  const r = await run(['path', 'only-one']);
+  assert.equal(r.code, 1);
+  assert.match(stripAnsi(r.stderr), /from.*to.*required|both/);
+});
+
 await test('query — kind=capability AND has(elements)', async () => {
   const root = await buildGraphFixture();
   try {
