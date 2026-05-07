@@ -977,6 +977,9 @@ function queryConceptsTool({ filter, limit }) {
       domain: doc.frontmatter.domain,
       capabilities: doc.frontmatter.capabilities,
       elements: doc.frontmatter.elements,
+      // R+ — list_concepts / find_backlinks / find_orphans 와 동일 shape.
+      // agent 가 query 결과에서 staleness sort/filter 가능, 후속 호출 없이.
+      mtime: doc.mtime,
     });
   }
   return {
