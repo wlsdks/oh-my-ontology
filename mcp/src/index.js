@@ -119,20 +119,25 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 ### A. Vault already has nodes (typical) — orient first
 
 1. \`list_kinds\` — see the kind census (how many projects/domains/capabilities/…).
-2. \`list_concepts\` — full node table. Watch \`vaultWarnings\` — if non-zero, surface it to the user before making decisions on stale data.
-3. \`get_concept(slug)\` — frontmatter + body excerpt + neighbors (dependencies / relates) + \`mtime\`. **Capture the \`mtime\`** if you plan to write later.
-4. \`find_backlinks(slug)\` — understand how a node is referenced (run *before* rename / merge).
+2. \`list_concepts\` — full node table. Pass \`summary: true\` for prose previews per row (avoid N follow-up \`get_concept\` calls). Pass \`since: <prevMaxMtime>\` for incremental sync. Watch \`vaultWarnings\` — if non-zero, surface it to the user before making decisions on stale data.
+3. \`get_concept(slug)\` — frontmatter + body excerpt + neighbors (dependencies / relates) + \`mtime\`. **Capture the \`mtime\`** if you plan to write later. **For K specific slugs use \`get_concepts({slugs: [...]})\` (max 50) to fetch all in one call instead of K round-trips.**
+4. \`find_backlinks(slug)\` — understand how a node is referenced (run *before* rename / merge). Each row already includes \`domain\` + \`mtime\` — no follow-up \`get_concept\` needed for sort/filter.
 5. \`find_path(from, to)\` — "how does A relate to B?" (BFS, undirected). Returns \`hops: [slug...]\` **and \`edges: [{from, to, via}]\` where \`via\` is the frontmatter key (\`capabilities\` / \`elements\` / \`dependencies\` / \`relates\` / \`contains\` / \`describes\`) that linked the pair** — so you see not just *that* A and B are connected but *why*.
 6. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates).
 7. \`query_concepts(filter)\` — structured questions like \`kind=capability AND domain=auth AND NOT has(elements)\` (= "unfinished caps under auth").
 
-### B. Vault is empty / cold-start — bootstrap from code (R16 / R17)
+All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
 
-When the user says "이 codebase 분석해줘" or you find only the 5 starter nodes:
+### B. Vault is empty / cold-start — bootstrap from code (R16 / R17 / R+)
 
-1. \`analyze_repo_structure\` — walk \`package.json\` / \`README.md\` H2 / \`src/\` (FSD vs generic detect). Returns deterministic candidates (project + domains[] + capabilities[] + elements[] + suggestedRelations[]). **side effect 0 — vault NOT modified.** You review & prune the list with the user.
-2. \`infer_imports\` — walk TS/JS source, collapse to module-level edges with import counts. **side effect 0.** You review \`moduleEdges\` with the user, then convert accepted ones into \`add_relation(..., type: 'depends_on')\` calls.
-3. Land accepted candidates with \`add_concept\` / \`add_relation\`. The user (via your subsequent calls) is the single source of truth — never auto-write the proposals.
+When the user says "이 codebase 분석해줘" or you find only the 5 starter nodes. **Modern path is 3 round-trips total — analyze + add_concepts + add_relations** (down from per-row K calls):
+
+1. \`analyze_repo_structure\` — walk \`package.json\` / \`README.md\` H2 / \`src/\` (FSD vs generic detect). Returns deterministic candidates (project + domains[] + capabilities[] + elements[] + suggestedRelations[]). **side effect 0 — vault NOT modified.** Show the candidates compactly, let the user prune / refine.
+2. \`add_concepts({concepts: [...]})\` — assemble the accepted project + domains + capabilities + elements into one array (max 50) and land them in **one batch call**. Each row processed independently: existing-slug / invalid-kind / missing-required surface as \`{ok: false, error}\`; the rest still land. Pre-checks duplicate slugs *within input batch*. Use single \`add_concept\` only when you need atomic per-call semantics.
+3. \`add_relations({relations: [...]})\` — convert \`suggestedRelations\` into the same shape and land all edges in **one batch call**. Idempotent (\`alreadyExists: true\` on second run); 50-row chunk if you have more.
+4. (Optional, R17) \`infer_imports\` for TS/JS \`depends_on\` edges from the actual import graph. Then another \`add_relations\` batch with \`type: 'depends_on'\`. The CLI \`oh-my-ontology bootstrap\` packages all 4 steps into one command.
+
+Throughout: the user (via your add_concepts / add_relations calls) is the single source of truth — never auto-write proposals without their confirmation.
 
 ## Write tools — safety patterns
 
