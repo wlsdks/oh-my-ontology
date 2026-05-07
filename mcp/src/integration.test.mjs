@@ -403,6 +403,30 @@ await test("find_backlinks — 매치 row 에 domain + mtime 포함 (R+)", async
   }
 });
 
+await test("query_concepts — 매치 row 에 mtime 포함 (R+)", async () => {
+  // list_concepts / find_backlinks / find_orphans 와 동일 shape — read tool
+  // 응답 일관성. agent 가 DSL query 결과를 sort/filter 추가 호출 없이 처리.
+  const root = makeVault([
+    { slug: "a", content: "---\nkind: capability\ntitle: A\ndomain: x\n---\n" },
+    { slug: "b", content: "---\nkind: capability\ntitle: B\ndomain: x\n---\n" },
+    { slug: "c", content: "---\nkind: domain\ntitle: C\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "query_concepts", { filter: "kind=capability" }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.equal(result.total, 2);
+    for (const m of result.matches) {
+      assert.equal(typeof m.mtime, "number", `${m.slug}.mtime number`);
+      assert.ok(m.mtime > 0);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("find_orphans — orphan row 에 domain + mtime 포함 (R+)", async () => {
   // list_concepts / find_backlinks 와 동일 shape. agent 가 orphans 받자마자
   // sort/filter 가능 — 후속 get_concept 없이.
