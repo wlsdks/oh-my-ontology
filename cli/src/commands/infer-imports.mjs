@@ -16,7 +16,8 @@ const COLORS = {
 };
 
 export async function runInferImports(args) {
-  const { rootPath, vault, json, maxFiles, apply, error } = parseArgs(args);
+  const { rootPath, vault, json, maxFiles, apply, threshold, error } =
+    parseArgs(args);
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -39,6 +40,19 @@ export async function runInferImports(args) {
     return 2;
   }
 
+  // R+ — --threshold N 필터 (count >= N). 큰 codebase 의 약한 import (count=1
+  // accidental) 가 ontology 에 노이즈 들어가는 걸 차단. moduleEdges 만 적용
+  // (file-level edges/external/unresolved 는 그대로 — agent diagnostic 용).
+  let filteredOut = 0;
+  if (threshold && threshold > 1 && Array.isArray(result.moduleEdges)) {
+    const before = result.moduleEdges.length;
+    result.moduleEdges = result.moduleEdges.filter(
+      (m) => Number(m.count) >= threshold,
+    );
+    filteredOut = before - result.moduleEdges.length;
+    result.thresholdApplied = { threshold, filteredOut };
+  }
+
   // R+ — --apply 분기. moduleEdges 를 depends_on 관계로 batch land.
   // analyze --apply (cycle 29) 와 짝 — agent-less full bootstrap pair.
   if (apply) {
@@ -59,6 +73,12 @@ export async function runInferImports(args) {
     `${COLORS.bold}infer-imports${COLORS.reset} ${COLORS.dim}${target}${COLORS.reset} ` +
       `${COLORS.dim}— ${result.filesScanned} files / ${fileEdges} edges / ${ext} external / ${unres} unresolved${COLORS.reset}\n\n`,
   );
+
+  if (filteredOut > 0) {
+    process.stdout.write(
+      `  ${COLORS.dim}--threshold ${threshold} filtered ${filteredOut} weak edges (count < ${threshold})${COLORS.reset}\n\n`,
+    );
+  }
 
   if (modEdges.length > 0) {
     process.stdout.write(
@@ -97,7 +117,17 @@ function parseArgs(args) {
       flags.maxFiles = Number(args[++i]) || undefined;
     else if (a.startsWith('--max-files='))
       flags.maxFiles = Number(a.slice('--max-files='.length)) || undefined;
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a === '--threshold') {
+      const v = Number(args[++i]);
+      if (!Number.isFinite(v) || v < 1)
+        return { error: '--threshold must be a positive integer' };
+      flags.threshold = v;
+    } else if (a.startsWith('--threshold=')) {
+      const v = Number(a.slice('--threshold='.length));
+      if (!Number.isFinite(v) || v < 1)
+        return { error: '--threshold must be a positive integer' };
+      flags.threshold = v;
+    } else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
   return {
@@ -106,6 +136,7 @@ function parseArgs(args) {
     json: flags.json,
     apply: flags.apply,
     maxFiles: flags.maxFiles,
+    threshold: flags.threshold,
   };
 }
 
@@ -200,7 +231,8 @@ function summarizeRelations(rows) {
 function printUsage() {
   process.stderr.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
-      `  oh-my-ontology infer-imports [rootPath] [--vault path] [--apply] [--json] [--max-files N]\n\n` +
+      `  oh-my-ontology infer-imports [rootPath] [--vault path] [--apply] [--json]\n` +
+      `                              [--max-files N] [--threshold N]\n\n` +
       `${COLORS.bold}What it does:${COLORS.reset}\n` +
       `  Walk TS/JS files (default: src,lib,app,packages → fallback rootPath),\n` +
       `  parse imports (static / dynamic / require / re-export / side-effect),\n` +
@@ -208,10 +240,14 @@ function printUsage() {
       `  collapse to module edges (capability A → B with import count).\n\n` +
       `  Default: ${COLORS.bold}side effect 0${COLORS.reset} — vault 변경 안 함, moduleEdges 만 출력.\n` +
       `  ${COLORS.bold}--apply${COLORS.reset}: moduleEdges 를 depends_on 관계로 batch land\n` +
-      `  (50 단위 chunk, partial — 없는 endpoint 는 row-level error).\n\n` +
+      `  (50 단위 chunk, partial — 없는 endpoint 는 row-level error).\n` +
+      `  ${COLORS.bold}--threshold N${COLORS.reset}: count < N 인 약한 module edge 를 필터.\n` +
+      `  큰 codebase 의 accidental cross-feature import 가 ontology 에\n` +
+      `  들어가는 걸 차단. preview / --apply / --json 모두 적용.\n\n` +
       `${COLORS.bold}Examples:${COLORS.reset}\n` +
-      `  oh-my-ontology infer-imports                    # preview only\n` +
-      `  oh-my-ontology infer-imports ~/my-app --json    # machine output\n` +
-      `  oh-my-ontology infer-imports --apply            # land depends_on edges\n`,
+      `  oh-my-ontology infer-imports                       # preview only\n` +
+      `  oh-my-ontology infer-imports ~/my-app --json       # machine output\n` +
+      `  oh-my-ontology infer-imports --apply               # land depends_on edges\n` +
+      `  oh-my-ontology infer-imports --apply --threshold 3 # only count ≥ 3 edges\n`,
   );
 }
