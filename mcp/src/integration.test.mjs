@@ -168,6 +168,29 @@ await test("list_concepts — tmp vault 의 노드 수 정확히 보고", async 
   }
 });
 
+await test("list_concepts — 각 노드에 mtime 포함 (R+)", async () => {
+  // get_concept 의 mtime 과 같은 의미. agent 가 list 한 호출로 "어느 노드가
+  // 최근에 변경됐나" 파악 가능 — 후속 get_concept 없이 sort/filter.
+  const root = makeVault([
+    { slug: "a", content: "---\nkind: capability\ntitle: A\n---\n" },
+    { slug: "b", content: "---\nkind: capability\ntitle: B\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "list_concepts"),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.equal(result.total, 2);
+    for (const node of result.nodes) {
+      assert.equal(typeof node.mtime, "number", `${node.slug}.mtime 은 number`);
+      assert.ok(node.mtime > 0, `${node.slug}.mtime > 0`);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("get_concept 응답에 mtime (R11 #8) 포함", async () => {
   const root = makeVault([
     { slug: "foo", content: "---\nkind: capability\ntitle: Foo\n---\nbody" },
