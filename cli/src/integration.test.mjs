@@ -134,6 +134,46 @@ await test('validate — empty kind: exit 1 + empty-kind code', async () => {
   }
 });
 
+await test('validate — 2+ 같은 code → "grouped by code" 요약 섹션 (R+)', async () => {
+  // 같은 missing-expected-field warning 이 3 file 에서 — grouped 섹션에
+  // "missing-expected-field — 3 occurrences" + 첫 3 file 노출되어야 함.
+  const root = withVault([
+    { slug: 'cap1', content: '---\nkind: capability\ntitle: One\n---\n' },
+    { slug: 'cap2', content: '---\nkind: capability\ntitle: Two\n---\n' },
+    { slug: 'cap3', content: '---\nkind: capability\ntitle: Three\n---\n' },
+  ]);
+  try {
+    const r = await run(['validate', root]);
+    // capability missing domain → warning, exit 0 (warning only)
+    assert.equal(r.code, 0);
+    const clean = stripAnsi(r.stdout);
+    // per-file detail 보존
+    assert.match(clean, /cap1\.md/);
+    assert.match(clean, /cap2\.md/);
+    // grouped section 등장
+    assert.match(clean, /grouped by code/);
+    assert.match(clean, /missing-expected-field — 3 occurrences/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('validate — 1회짜리 code 는 grouped 섹션 안 보임 (per-file 만)', async () => {
+  // 단일 issue 는 per-file 출력만으로 충분 — grouped 섹션 노이즈 회피.
+  const root = withVault([
+    { slug: 'bad', content: '---\nkind:\n---\n' }, // empty-kind error
+  ]);
+  try {
+    const r = await run(['validate', root]);
+    assert.equal(r.code, 1);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /empty-kind/);
+    assert.doesNotMatch(clean, /grouped by code/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('add — 새 노드 + duplicate throws', async () => {
   const root = withVault([]);
   try {
