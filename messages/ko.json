@@ -183,7 +183,7 @@
     "tree": {
       "expand": "펼치기",
       "collapse": "접기",
-      "searchPlaceholder": "트리에서 노드 찾기 — 한·영 OK",
+      "searchPlaceholder": "트리에서 찾기 — 이름 · slug 둘 다",
       "searchAriaLabel": "트리 노드 검색",
       "searchClearAriaLabel": "검색 지우기",
       "expandedSummary": "{expanded} / {total} 펼침",
@@ -1190,6 +1190,7 @@
     },
     "footer": {
       "counts": "노드 {nodes} · 관계 {edges}",
+      "countsHint": "frontmatter 가 명시한 implicit stub 까지 포함합니다 — vault 의 .md 파일 수와는 다를 수 있어요.",
       "modePrefix": "모드",
       "modeLocal": "로컬 vault",
       "modeStatic": "정적 데모"

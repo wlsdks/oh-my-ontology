@@ -3,7 +3,11 @@ import type { OntologyTreeNode } from "./types";
 /**
  * 트리에서 query 매치하는 노드만 남기되 **부모 chain 보존**.
  *
- * 매치 기준: node.title.lower-case includes query.lower-case (한·영 혼합 OK).
+ * 매치 기준: node.title 또는 node.id (kind:slug 형태) 의 lower-case includes
+ * query.lower-case (한·영 혼합 OK). 개발자는 frontmatter / 코드에서 slug 를
+ * 일상적으로 보기 때문에 'mcp-server' 같은 slug 검색이 빈 결과로 떨어지면
+ * 안 된다.
+ *
  * 매치 노드의 모든 조상은 무조건 살아남고 (트리 형태 유지), 형제 (매치 안 한)
  * 는 제외. 매치 노드의 자손은 모두 살림 (사용자가 컨텍스트 보길 기대).
  *
@@ -20,7 +24,9 @@ export function filterTreeByQuery(
   if (trimmed === "") return roots.slice();
 
   function visit(node: OntologyTreeNode): OntologyTreeNode | null {
-    const titleMatch = node.node.title.toLowerCase().includes(trimmed);
+    const titleMatch =
+      node.node.title.toLowerCase().includes(trimmed)
+      || node.node.id.toLowerCase().includes(trimmed);
     const filteredChildren = node.children
       .map(visit)
       .filter((c): c is OntologyTreeNode => c !== null);

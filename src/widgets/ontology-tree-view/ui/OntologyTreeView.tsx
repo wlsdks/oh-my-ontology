@@ -131,7 +131,7 @@ function TreeRow({
       data-depth={treeNode.depth}
       data-dim={isElementKind ? "true" : "false"}
       data-selected={selected ? "true" : "false"}
-      className={`flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors ${selectedClass} ${dimClass}`}
+      className={`flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 transition-colors ${selectedClass} ${dimClass}`}
       style={{ paddingLeft: `${indent + 8}px` }}
     >
       {hasChildren ? (
@@ -139,20 +139,21 @@ function TreeRow({
           type="button"
           onClick={onToggle}
           aria-label={expanded ? t('tree.collapse') : t('tree.expand')}
-          className="flex h-5 w-5 items-center justify-center rounded text-[color:var(--color-text-quaternary)] hover:bg-[color:var(--color-border-soft)] hover:text-[color:var(--color-text-secondary)]"
+          className="flex h-5 w-5 flex-none items-center justify-center rounded text-[color:var(--color-text-quaternary)] hover:bg-[color:var(--color-border-soft)] hover:text-[color:var(--color-text-secondary)]"
         >
           {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         </button>
       ) : (
-        <span className="inline-block h-5 w-5" aria-hidden />
+        <span className="inline-block h-5 w-5 flex-none" aria-hidden />
       )}
       <button
         type="button"
         onClick={() => onSelect?.(treeNode.node)}
-        className="flex flex-1 items-center gap-2 break-keep text-left text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]"
+        title={treeNode.node.title}
+        className="flex min-w-0 flex-1 items-center gap-2 break-keep text-left text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]"
       >
         <KindChip kind={treeNode.node.kind} />
-        <span className="truncate">{treeNode.node.title}</span>
+        <span className="min-w-0 flex-1 truncate">{treeNode.node.title}</span>
         {/* EvidenceCountChip / ProjectIdChip 모두 R10 후 vault 모드에서
             evidenceCount / projectIds 가 영구 빈 값이라 미렌더되어 cycle
             15 / 24 에서 제거. 미래에 vault 측에서 해당 값을 derive 해
@@ -202,7 +203,11 @@ export function OntologyTreeView({
   const filteredOrphans = useMemo(() => {
     const trimmed = searchQuery.trim().toLowerCase();
     if (trimmed === "") return result.orphans;
-    return result.orphans.filter((n) => n.title.toLowerCase().includes(trimmed));
+    return result.orphans.filter(
+      (n) =>
+        n.title.toLowerCase().includes(trimmed)
+        || n.id.toLowerCase().includes(trimmed),
+    );
   }, [result.orphans, searchQuery]);
   const isFiltering = searchQuery.trim() !== "";
 
@@ -408,9 +413,9 @@ export function OntologyTreeView({
           </p>
           <ul className="mt-2 space-y-0.5">
             {filteredOrphans.slice(0, 8).map((node) => (
-              <li key={node.id} className="flex items-center gap-2">
+              <li key={node.id} className="flex min-w-0 items-center gap-2" title={node.title}>
                 <KindChip kind={node.kind} />
-                <span className="truncate">{node.title}</span>
+                <span className="min-w-0 flex-1 truncate">{node.title}</span>
               </li>
             ))}
             {filteredOrphans.length > 8 ? (

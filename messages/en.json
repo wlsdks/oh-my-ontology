@@ -183,7 +183,7 @@
     "tree": {
       "expand": "Expand",
       "collapse": "Collapse",
-      "searchPlaceholder": "Find a node in the tree — Korean or English",
+      "searchPlaceholder": "Filter the tree — by title or slug",
       "searchAriaLabel": "Search tree nodes",
       "searchClearAriaLabel": "Clear search",
       "expandedSummary": "{expanded} / {total} expanded",
@@ -1190,6 +1190,7 @@
     },
     "footer": {
       "counts": "{nodes} nodes · {edges} relations",
+      "countsHint": "Includes implicit stubs declared in frontmatter — may exceed the count of .md files in the vault.",
       "modePrefix": "mode",
       "modeLocal": "Local vault",
       "modeStatic": "Static demo"

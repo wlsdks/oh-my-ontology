@@ -97,6 +97,32 @@ describe("filterTreeByQuery", () => {
     expect(r).toHaveLength(0);
   });
 
+  it("slug (node.id) 도 매치 — 사용자가 'mcp-server' 같은 slug 로 검색", () => {
+    // 개발자는 frontmatter / 코드에서 slug 형태 (kind:tail) 를 일상적으로 본다.
+    // 검색이 title 만 매칭하면 'mcp-server' 같은 slug 검색이 빈 결과로 떨어져
+    // 사용자가 이 트리에 없다고 오해. id 도 매치 대상에 포함.
+    const slugNodes = [
+      node("root", "프로젝트", "project"),
+      withParent(node("capability:mcp-server", "MCP Server (16 tools)")),
+    ];
+    const slugEdges = [
+      {
+        id: "e",
+        from: "root",
+        to: "capability:mcp-server",
+        type: "contains",
+        projectIds: [],
+        evidenceIds: [],
+        lastApprovedAt: APPROVED_AT,
+        lastApprovedBy: "test",
+      },
+    ];
+    const slugTree = buildOntologyTree(slugNodes, slugEdges);
+    const r = filterTreeByQuery(slugTree.roots, "mcp-server");
+    expect(r).toHaveLength(1);
+    expect(r[0]?.children[0]?.node.id).toBe("capability:mcp-server");
+  });
+
   it("대소문자 무시 (lower-case 비교)", () => {
     const enNodes = [
       node("root", "ROOT", "project"),
