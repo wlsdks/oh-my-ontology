@@ -69,10 +69,14 @@ export function buildOntologyTree(
       continue;
     }
     if (parentOf.has(childId)) {
+      const existingParent = parentOf.get(childId)!;
+      // 같은 parent 가 두 번 등장하는 self-warning (양방향 frontmatter 중복)
+      // 은 silent — derive-ontology-from-vault 의 dedup 이 normally 차단하지만
+      // 외부 manifest 가 들어왔을 때를 위한 defense-in-depth. 진짜 다중 부모
+      // (서로 다른 parent) 만 사용자에게 노출.
+      if (existingParent === parentId) continue;
       warnings.push(
-        `node "${childId}" has multiple parents — keeping first (${parentOf.get(
-          childId,
-        )}), ignoring (${parentId})`,
+        `node "${childId}" has multiple parents — keeping first (${existingParent}), ignoring (${parentId})`,
       );
       continue;
     }

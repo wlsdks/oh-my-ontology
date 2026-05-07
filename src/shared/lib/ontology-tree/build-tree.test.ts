@@ -150,6 +150,22 @@ describe("buildOntologyTree — error handling", () => {
     expect(p1.children.find((c) => c.node.id === "d1")).toBeTruthy();
   });
 
+  it("same-parent 중복 contains edge 는 silent (양방향 frontmatter 자기 중복 방어)", () => {
+    // 진짜 다중 부모 (서로 다른 parent) 만 사용자에게 노출되어야 한다.
+    // 같은 (parent, child) 가 두 번 들어오는 건 vault 양방향 frontmatter
+    // 중복일 뿐 정보 가치 없음 — derive-ontology 가 dedup 하지만 외부
+    // manifest 흡수 시 defense-in-depth.
+    const nodes = [makeNode("p1", "project"), makeNode("d1", "domain")];
+    const edges = [
+      makeEdge("e1", "p1", "d1", "contains"),
+      makeEdge("e2", "p1", "d1", "contains"),
+    ];
+    const result = buildOntologyTree(nodes, edges);
+    expect(result.warnings.some((w) => w.includes("multiple parents"))).toBe(false);
+    const p1 = result.roots.find((r) => r.node.id === "p1")!;
+    expect(p1.children.find((c) => c.node.id === "d1")).toBeTruthy();
+  });
+
   it("breaks cycles", () => {
     const nodes = [
       makeNode("a", "domain"),

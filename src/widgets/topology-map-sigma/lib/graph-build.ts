@@ -83,6 +83,13 @@ const HUB_COLOR = INDIGO_HUB;
 const NODE_OUTER_HALO = 'rgba(0, 0, 0, 0)'; // 비허브는 halo 없음 (투명)
 
 /**
+ * ontology 노드가 forceLabel = true 로 승격되는 degree 기준.
+ * 5 = 한 노드가 다른 노드 5 이상에 연결됨 → "이 도메인/역량 안에 뭔가 많다"
+ * 신호. 이 임계 미만은 fingerprint 기여가 작아 hover 라벨로 충분.
+ */
+const ONTOLOGY_LABEL_DEGREE = 5;
+
+/**
  * 디자인 시스템이 색 추가를 금지(무채색 + 단일 인디고)하므로 도메인 구분은
  * 회색 luminance + 아주 옅은 tint 로 표현. 채도는 최대 ~6% 로 유지해 "무채색
  * 계열" 범위를 깨지 않되 slug prefix 로 도메인 클러스터를 구분할 수 있도록.
@@ -342,6 +349,12 @@ export function buildGraph(
   // degree 기반 크기 재계산 — 연결이 많을수록 커진다.
   // Hub: 10 → 13, Node: 4.5 → 7.5. 화면 픽셀 기준 ~2x 일관 비율.
   // ontology 노드는 base 3.5 를 유지하되 degree 영향은 약하게.
+  //
+  // forceLabel 정책 (R+ usability):
+  //   - domain kind → 항상 라벨. 트리 최상위라 navigation 앵커.
+  //   - 기타 ontology 노드 → degree ≥ ONTOLOGY_LABEL_DEGREE 이면 라벨.
+  //     "어디가 hub-like 인지" 한 눈에 보여 사용자가 80 노드 그래프에서
+  //     fingerprint 잡을 수 있게. element 처럼 1~2 edge 인 leaf 는 hover 의존.
   graph.forEachNode((id, attrs) => {
     const degree = graph.degree(id);
     if (attrs.isHub) {
@@ -356,6 +369,11 @@ export function buildGraph(
         'size',
         3.5 + Math.min(2, Math.log2(Math.max(1, degree)) * 0.4),
       );
+      const isDomain = attrs.ontologyTopKind === 'domain';
+      const isHighDegree = degree >= ONTOLOGY_LABEL_DEGREE;
+      if (isDomain || isHighDegree) {
+        graph.setNodeAttribute(id, 'forceLabel', true);
+      }
     } else {
       graph.setNodeAttribute(
         id,
