@@ -11,7 +11,8 @@ import { test, expect } from "@playwright/test";
  *  1. `/docs/` 의 source 토글을 'local' 로 미리 설정 (localStorage seed).
  *  2. 폴더 열기 버튼이 보인다.
  *  3. 클릭 → mock 핸들이 반환되며 buildLocalManifest 가 1 문서를 빌드.
- *  4. loaded 헤더가 vault 이름 (TestVault) + "1 문서" 배지를 보인다.
+ *  4. loaded 헤더가 문서 수를 보이고, auto-open tools panel 은 닫힌다.
+ *     수동으로 tools 를 열면 vault 이름 (TestVault) 이 보인다.
  *
  * 실행: 별도 dev server (`next dev -p 3100`) 가 떠 있어야 함.
  *   pnpm exec playwright test tests/e2e/local-vault-picker.spec.ts
@@ -79,9 +80,13 @@ test.describe("로컬 볼트 picker", () => {
     await expect(openButton).toBeVisible();
     await openButton.click();
 
-    // loaded 헤더 — vault 이름 + 문서 수 배지가 함께 떠야 한다.
-    await expect(page.getByText("TestVault")).toBeVisible({ timeout: 15_000 });
+    // loaded 헤더 — 문서 수가 먼저 보여야 하고, intent 로 자동 열린 tools
+    // panel 은 로드 완료 후 닫혀 본문을 가리지 않아야 한다.
     await expect(page.getByText("1 DOCS").first()).toBeVisible();
+    await expect(page.locator('[role="menu"]')).not.toBeVisible();
+
+    await page.getByRole("button", { name: "Open vault tools menu" }).click();
+    await expect(page.getByText("TestVault")).toBeVisible({ timeout: 15_000 });
   });
 
   test("loaded 상태에서 닫기 클릭 시 idle 로 복귀", async ({ page }) => {
@@ -94,7 +99,11 @@ test.describe("로컬 볼트 picker", () => {
       name: /Open my markdown folder/,
     });
     await openButton.click();
-    await expect(page.getByText("TestVault")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("1 DOCS").first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.getByRole("button", { name: "Open vault tools menu" }).click();
+    await expect(page.getByText("TestVault")).toBeVisible();
 
     // 닫기 버튼 (aria-label) 클릭 → 다시 idle 의 폴더 열기 버튼이 나타나야.
     await page.getByRole("button", { name: "Close local vault" }).click();

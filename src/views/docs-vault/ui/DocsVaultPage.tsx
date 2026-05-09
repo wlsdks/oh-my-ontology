@@ -112,6 +112,7 @@ function DocsVaultContent() {
     setOpen: setAdvancedOpen,
     ref: advancedMenuRef,
   } = useAdvancedMenu();
+  const localIntentAutoOpenRef = useRef(false);
   // R11 #16 step 3 — folder-topology build 흐름은 useFolderTopo hook 으로 캡슐화.
   const [highlightQuery, setHighlightQuery] = useState<string | undefined>(
     undefined,
@@ -130,6 +131,7 @@ function DocsVaultContent() {
     const intent = new URLSearchParams(window.location.search).get('intent');
     if (intent === 'local') {
       window.queueMicrotask(() => {
+        localIntentAutoOpenRef.current = true;
         setSource('local');
         setAdvancedOpen(true);
       });
@@ -237,6 +239,17 @@ function DocsVaultContent() {
     }
   }, [source, localVault.status]);
 
+  useEffect(() => {
+    if (
+      source === 'local' &&
+      localVault.status === 'loaded' &&
+      localIntentAutoOpenRef.current
+    ) {
+      localIntentAutoOpenRef.current = false;
+      setAdvancedOpen(false);
+    }
+  }, [source, localVault.status, setAdvancedOpen]);
+
   const handleSourceChange = useCallback((next: Source) => {
     setSource(next);
     storeSource(next);
@@ -253,6 +266,7 @@ function DocsVaultContent() {
     // 클릭만으로도 picker 즉시 노출. 이미 vault loaded 면 dropdown 펼칠
     // 필요 없음 (사용자는 picker 가 아니라 문서 작업하러 옴).
     if (next === 'local' && localVault.status !== 'loaded') {
+      localIntentAutoOpenRef.current = true;
       setAdvancedOpen(true);
     }
   }, [replaceUrlState, view, localVault.status, setAdvancedOpen]);
@@ -1133,8 +1147,8 @@ function DocsVaultContent() {
   return (
     <div className="flex h-screen flex-col bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)]">
       {/* 상단 바 — workspace 복귀 + 타이틀 + 소스 토글 + 모드 토글 */}
-      <header className="flex min-h-14 flex-none flex-wrap items-center gap-x-3 gap-y-2 border-b border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-4 py-2">
-        <div className="flex min-w-[280px] flex-1 flex-wrap items-center gap-3">
+      <header className="flex min-h-14 flex-none flex-wrap items-center gap-x-3 gap-y-2 border-b border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] px-3 py-2 md:px-4">
+        <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 md:gap-3">
           <button
             type="button"
             onClick={() => setMobileTreeOpen(true)}
@@ -1147,19 +1161,19 @@ function DocsVaultContent() {
           <Link
             href={workspaceHref}
             aria-label={t('header.backToWorkspaceAriaLabel')}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:var(--color-divider)] px-3 text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)]"
+            className="inline-flex h-8 w-8 flex-none items-center justify-center gap-1.5 rounded-full border border-[color:var(--color-divider)] text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:border-[color:rgba(139,151,255,0.35)] hover:text-[color:var(--color-text-primary)] sm:w-auto sm:px-3"
           >
             <ArrowLeft size={12} aria-hidden />
-            {t('header.back')}
+            <span className="hidden sm:inline">{t('header.back')}</span>
           </Link>
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-[14px] font-semibold">{t('header.title')}</h1>
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
+          <div className="flex min-w-0 flex-none items-baseline gap-2">
+            <h1 className="whitespace-nowrap text-[14px] font-semibold">{t('header.title')}</h1>
+            <span className="hidden font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)] min-[360px]:inline">
               {t('header.docCount', { count: manifest.docs.length })}
             </span>
           </div>
           {source === 'local' ? (
-            <span className="inline-flex items-center gap-1 rounded-sm border border-[color:rgba(139,151,255,0.24)] bg-[color:rgba(94,106,210,0.08)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:rgba(200,210,255,0.86)]">
+            <span className="hidden items-center gap-1 rounded-sm border border-[color:rgba(139,151,255,0.24)] bg-[color:rgba(94,106,210,0.08)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[color:rgba(200,210,255,0.86)] min-[460px]:inline-flex">
               <HardDrive size={10} aria-hidden />
               {t('header.localBadge')}
             </span>
@@ -1168,14 +1182,14 @@ function DocsVaultContent() {
             <Link
               href="/topology/"
               aria-label={t('header.topologyAriaLabel')}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[color:rgba(139,151,255,0.28)] bg-[color:rgba(94,106,210,0.08)] px-2.5 text-[12px] text-[color:rgba(200,210,255,0.92)] transition-colors hover:border-[color:rgba(139,151,255,0.5)] hover:bg-[color:rgba(94,106,210,0.14)] hover:text-[color:var(--color-text-primary)]"
+              className="ml-auto inline-flex h-8 flex-none items-center gap-1.5 rounded-md border border-[color:rgba(139,151,255,0.28)] bg-[color:rgba(94,106,210,0.08)] px-2 text-[12px] text-[color:rgba(200,210,255,0.92)] transition-colors hover:border-[color:rgba(139,151,255,0.5)] hover:bg-[color:rgba(94,106,210,0.14)] hover:text-[color:var(--color-text-primary)] md:ml-0 md:px-2.5"
             >
               <Network size={13} aria-hidden />
               <span>{t('header.topology')}</span>
             </Link>
           </Tooltip>
         </div>
-        <div className="ml-auto flex flex-none flex-wrap items-center justify-end gap-2">
+        <div className="flex w-full flex-none flex-wrap items-center justify-end gap-2 md:ml-auto md:w-auto">
           {/* Source 토글 — 이전엔 advanced dropdown 안 깊숙이 묻혀 있던 가장
               중요한 결정 (샘플 vs 내 vault) 를 헤더에 직접 노출. */}
           <div

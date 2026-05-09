@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T15:02:04.097Z",
+  "generatedAt": "2026-05-09T15:12:34.865Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -2289,6 +2289,11 @@
         },
         {
           "depth": 2,
+          "text": "2026-05-10 — Mobile docs responsive polish",
+          "slug": "2026-05-10-mobile-docs-responsive-polish"
+        },
+        {
+          "depth": 2,
           "text": "2026-05-09 — Cleaner single-file repo bootstrap graph",
           "slug": "2026-05-09-cleaner-single-file-repo-bootstrap-graph"
         },
@@ -3283,9 +3288,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Large demo bootstrap uncovered a second coldstart quality issue: singlefile layered repos ",
-      "wordCount": 14720,
-      "updatedAt": "2026-05-09T15:00:57.008Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Real mobile browser review found the /docs header and localvault tools were too desktopsha",
+      "wordCount": 14810,
+      "updatedAt": "2026-05-09T15:11:40.912Z",
       "linksOut": [
         "slug"
       ]

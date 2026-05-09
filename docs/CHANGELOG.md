@@ -6,6 +6,18 @@
 
 ---
 
+## 2026-05-10 — Mobile docs responsive polish
+
+Real mobile browser review found the `/docs` header and local-vault tools were
+too desktop-shaped after the Topology shortcut was added.
+
+- The mobile docs header now keeps Back, title, doc count, and Topology in one
+  compact row, with source/search/tools controls on the second row.
+- The local-vault tools panel no longer stays open after a successful folder
+  load from `?intent=local`, so the first document is not covered by a floating
+  menu.
+- The tools menu uses a viewport-bounded mobile sheet when opened manually.
+
 ## 2026-05-09 — Cleaner single-file repo bootstrap graph
 
 Large demo bootstrap uncovered a second cold-start quality issue: single-file
