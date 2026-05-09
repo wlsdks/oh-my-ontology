@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T07:45:50.234Z",
+  "generatedAt": "2026-05-09T07:52:53.893Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -4529,8 +4529,8 @@
         }
       ],
       "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령 추가 — 총 16 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | What it does | ||| | ohmyontology init [folder] | S",
-      "wordCount": 594,
-      "updatedAt": "2026-05-09T07:33:22.087Z",
+      "wordCount": 635,
+      "updatedAt": "2026-05-09T07:51:18.980Z",
       "linksOut": []
     },
     {
@@ -5858,8 +5858,8 @@
         }
       ],
       "excerpt": "Common issues users hit when starting with ohmyontology. If your case isn't here, open an issue: https://github.com/wlsdks/ohmyontology/issues npm caches the package locally. Force a fresh fetch: The target folder already has README.md / project.md / etc. — the CLI never overwrites existing files. Either: Delete the co",
-      "wordCount": 1148,
-      "updatedAt": "2026-05-09T07:27:13.350Z",
+      "wordCount": 1206,
+      "updatedAt": "2026-05-09T07:51:06.797Z",
       "linksOut": []
     }
   ],

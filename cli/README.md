@@ -45,10 +45,9 @@ The vault is a plain folder of `.md` files. **Frontmatter is the graph.**
 
 ## How AI agents fit in
 
-`init` (R15) automatically writes a wired `.mcp.json` to both your codebase
-root and the vault folder. Open either in an AI agent (Claude Code, Codex,
-Cursor) and the agent gets **20 tools** (12 read + 8 write) to read and
-write the vault — same data the developer sees.
+`init` automatically writes a wired `.mcp.json` to both your codebase root
+and the vault folder. Claude Code and Cursor pick that project config up
+after restart and expose **20 tools** (12 read + 8 write).
 
 ```jsonc
 // .mcp.json (in your agent's config dir)
@@ -66,6 +65,16 @@ write the vault — same data the developer sees.
 When running from this source checkout before npm publish, `init` writes an
 equivalent `node /absolute/path/to/mcp/src/index.js` command instead of `npx`
 so Claude Code can connect immediately without hitting the npm registry.
+
+Codex stores MCP servers in its own config, so `init` also prints the exact
+one-line command to run from a clean setup:
+
+```bash
+codex mcp add oh-my-ontology --env OMOT_VAULT=/absolute/path/to/vault -- node /absolute/path/to/mcp/src/index.js
+```
+
+For a published install, the command uses `npx -y oh-my-ontology-mcp` instead
+of the source-checkout `node .../mcp/src/index.js` path.
 
 20 tools:
 `list_concepts` / `get_concept` / `get_concepts` / `find_evidence` /

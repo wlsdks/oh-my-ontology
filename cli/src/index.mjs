@@ -136,6 +136,12 @@ function resolveMcpServerCommand() {
   return { command: 'npx', args: ['-y', 'oh-my-ontology-mcp'] };
 }
 
+function shellQuote(value) {
+  const s = String(value);
+  if (/^[A-Za-z0-9_/:=.,@%+-]+$/.test(s)) return s;
+  return `'${s.replace(/'/g, `'\\''`)}'`;
+}
+
 function copyTree(srcRoot, destRoot) {
   let created = 0;
   let skipped = 0;
@@ -167,6 +173,7 @@ function copyTree(srcRoot, destRoot) {
 
 function runInit(targetArg) {
   const target = resolve(cwd(), targetArg ?? 'vault');
+  const serverCommand = resolveMcpServerCommand();
   info(`scaffolding ontology vault at ${COLORS.bold}${target}${COLORS.reset}`);
 
   if (!existsSync(TEMPLATE_ROOT)) {
@@ -192,7 +199,6 @@ function runInit(targetArg) {
   // other servers wired) — a `.mcp.json.example` is dropped instead so the
   // user can diff and merge by hand.
   function mcpConfigForVault(omotVault) {
-    const serverCommand = resolveMcpServerCommand();
     return {
       mcpServers: {
         'oh-my-ontology': {
@@ -234,6 +240,18 @@ function runInit(targetArg) {
     writeMcpJson(cwdPath, omotRel, 'cwd');
   }
 
+  const codexSetupCommand = [
+    'codex',
+    'mcp',
+    'add',
+    'oh-my-ontology',
+    '--env',
+    `OMOT_VAULT=${target}`,
+    '--',
+    serverCommand.command,
+    ...serverCommand.args,
+  ].map(shellQuote).join(' ');
+
   stdout.write(`
 ${COLORS.green}${COLORS.bold}done${COLORS.reset} — vault scaffolded.
 
@@ -258,11 +276,16 @@ ${COLORS.bold}Next steps:${COLORS.reset}
   ${COLORS.dim}4.${COLORS.reset} ${COLORS.bold}Edit project.md${COLORS.reset} — set your project's real name + description.
        Then add domains / capabilities / elements as you discover them.
 
-  ${COLORS.dim}5.${COLORS.reset} ${COLORS.bold}Open this folder in an AI agent${COLORS.reset} (Claude Code, Cursor, …):
+  ${COLORS.dim}5.${COLORS.reset} ${COLORS.bold}Open this folder in an AI agent${COLORS.reset}:
+       ${COLORS.bold}Claude Code / Cursor${COLORS.reset}
        Both your codebase root (cwd) and the vault folder now have a wired
        ${COLORS.bold}.mcp.json${COLORS.reset}. Open either folder, restart the agent,
        and the ${COLORS.bold}oh-my-ontology${COLORS.reset} namespace appears with 20 tools
        (12 read + 8 write).
+
+       ${COLORS.bold}Codex${COLORS.reset}
+       ${COLORS.cyan}${codexSetupCommand}${COLORS.reset}
+       ${COLORS.dim}Codex stores MCP servers in its own config, so run this once from a clean setup.${COLORS.reset}
 
   ${COLORS.dim}6.${COLORS.reset} ${COLORS.bold}See the graph${COLORS.reset} (optional, web UI):
        ${COLORS.cyan}git clone https://github.com/wlsdks/oh-my-ontology${COLORS.reset}

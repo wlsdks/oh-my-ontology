@@ -81,8 +81,18 @@ The walk runs against `docs/ontology/` by default. If you renamed/moved that fol
 
 1. Confirm the MCP server is reachable. Published install: `npx -y oh-my-ontology-mcp` should start a stdio server and wait (Ctrl+C to exit). Source checkout: the generated config should use `node` with an absolute `mcp/src/index.js` path.
 2. Check the agent's MCP config — published install uses `command: "npx", args: ["-y", "oh-my-ontology-mcp"]`; source checkout uses `command: "node", args: ["/absolute/path/to/mcp/src/index.js"]`.
-3. Set `env.OMOT_VAULT` to the **absolute path** of the vault folder (the browser app's `.mcp.json.example` ships a placeholder; you must replace it).
-4. Restart the agent (Claude Code / Cursor pickup MCP config at start).
+3. Set `env.OMOT_VAULT` to the **absolute path** of the vault folder for global agent configs. Project `.mcp.json` can use a path relative to the project root.
+4. Claude Code / Cursor: restart the agent so it picks up the project `.mcp.json`.
+5. Codex: run the `codex mcp add ...` line printed by `oh-my-ontology init`; Codex does not auto-load project `.mcp.json`.
+
+Clean-room verification for maintainers:
+
+```bash
+pnpm smoke:onboarding
+```
+
+The smoke creates a temp project with isolated `HOME` / `CODEX_HOME`, confirms
+there are no preconfigured Codex MCP servers, then runs the setup from scratch.
 
 ### "Vault path does not exist" / `EACCES`
 

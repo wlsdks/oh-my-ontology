@@ -1,0 +1,109 @@
+#!/usr/bin/env node
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const CLI = join(ROOT, 'cli', 'src', 'index.mjs');
+const VERIFY = join(ROOT, 'mcp', 'scripts', 'verify.mjs');
+
+function run(cmd, args, options = {}) {
+  const result = spawnSync(cmd, args, {
+    cwd: options.cwd,
+    env: options.env,
+    encoding: 'utf-8',
+  });
+  if (options.allowFailure) return result;
+  assert.equal(
+    result.status,
+    0,
+    `${cmd} ${args.join(' ')} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+  );
+  return result;
+}
+
+function hasCommand(command) {
+  return spawnSync('sh', ['-lc', `command -v ${command}`], {
+    encoding: 'utf-8',
+  }).status === 0;
+}
+
+const temp = mkdtempSync(join(tmpdir(), 'omot-clean-onboarding-'));
+const fakeHome = join(temp, 'home');
+const fakeCodexHome = join(temp, 'codex-home');
+const project = join(temp, 'project');
+mkdirSync(fakeHome, { recursive: true });
+mkdirSync(fakeCodexHome, { recursive: true });
+mkdirSync(join(project, 'src', 'features', 'capture'), { recursive: true });
+writeFileSync(
+  join(project, 'package.json'),
+  JSON.stringify({ name: 'clean-onboarding-app', type: 'module' }, null, 2),
+);
+writeFileSync(
+  join(project, 'README.md'),
+  '# Clean Onboarding App\n\n## Capture\n\nCapture short notes.\n',
+);
+
+const init = run('node', [CLI, 'init', 'ontology'], { cwd: project });
+assert.match(init.stdout, /codex mcp add oh-my-ontology/);
+assert.match(init.stdout, /20 tools/);
+
+const mcpConfig = JSON.parse(readFileSync(join(project, '.mcp.json'), 'utf-8'));
+const server = mcpConfig.mcpServers['oh-my-ontology'];
+assert.equal(server.command, 'node');
+assert.ok(server.args[0].endsWith('/mcp/src/index.js'));
+assert.equal(server.env.OMOT_VAULT, './ontology');
+
+run('node', [VERIFY], {
+  cwd: ROOT,
+  env: { ...process.env, OMOT_VAULT: join(project, 'ontology') },
+});
+
+if (hasCommand('claude')) {
+  const claude = run('claude', ['mcp', 'list'], {
+    cwd: project,
+    env: { ...process.env, HOME: fakeHome },
+  });
+  assert.match(claude.stdout, /oh-my-ontology: .*Connected/);
+} else {
+  console.log('skip claude clean check: claude command not found');
+}
+
+if (hasCommand('codex')) {
+  const before = run('codex', ['mcp', 'list'], {
+    cwd: project,
+    env: { ...process.env, CODEX_HOME: fakeCodexHome },
+  });
+  assert.match(before.stdout, /No MCP servers configured yet/);
+
+  run(
+    'codex',
+    [
+      'mcp',
+      'add',
+      'oh-my-ontology',
+      '--env',
+      `OMOT_VAULT=${join(project, 'ontology')}`,
+      '--',
+      server.command,
+      ...server.args,
+    ],
+    {
+      cwd: project,
+      env: { ...process.env, CODEX_HOME: fakeCodexHome },
+    },
+  );
+  const get = run('codex', ['mcp', 'get', 'oh-my-ontology'], {
+    cwd: project,
+    env: { ...process.env, CODEX_HOME: fakeCodexHome },
+  });
+  assert.match(get.stdout, /oh-my-ontology/);
+  assert.match(get.stdout, /transport: stdio/);
+} else {
+  console.log('skip codex clean check: codex command not found');
+}
+
+console.log(`clean onboarding smoke passed: ${project}`);

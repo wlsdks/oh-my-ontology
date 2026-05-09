@@ -85,6 +85,8 @@ await test('init — generated MCP config points at a runnable local server in s
     assert.match(clean, /20 tools/);
     assert.doesNotMatch(clean, /16 MCP tools|16 tools/);
     assert.doesNotMatch(clean, /bootstrap .*--apply/);
+    assert.match(clean, /Codex/);
+    assert.match(clean, /codex mcp add oh-my-ontology/);
 
     const config = JSON.parse(readFileSync(join(root, '.mcp.json'), 'utf-8'));
     const server = config.mcpServers['oh-my-ontology'];
