@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowUpRight, CopyPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ProjectForm } from "@/features/project-edit";
 import { useProjects, useProjectMutations } from "@/features/project-data-source";
+import { VaultConflictError } from "@/features/docs-vault-local";
 import {
   getProjectDetailHref,
   type Project,
@@ -106,21 +107,28 @@ function EditorContent({
     input: ProjectInput,
     options: { behavior: "stay" | "return" },
   ) => {
-    if (mode === "create") {
-      await projectMutations.createProject(input);
-      if (options.behavior === "stay") {
-        toast.show(t("createdAndOpenToast", { name: input.name }), "success");
-        router.replace(buildEditHref(input.slug));
-        return;
+    try {
+      if (mode === "create") {
+        await projectMutations.createProject(input);
+        if (options.behavior === "stay") {
+          toast.show(t("createdAndOpenToast", { name: input.name }), "success");
+          router.replace(buildEditHref(input.slug));
+          return;
+        }
+      } else {
+        await projectMutations.updateProject(input);
+        if (options.behavior === "stay") {
+          toast.show(t("savedToast", { name: input.name }), "success");
+          return;
+        }
       }
-    } else {
-      await projectMutations.updateProject(input);
-      if (options.behavior === "stay") {
-        toast.show(t("savedToast", { name: input.name }), "success");
-        return;
+      router.push(safeReturnTo);
+    } catch (err) {
+      if (err instanceof VaultConflictError) {
+        throw new Error(t("vaultConflict"));
       }
+      throw err;
     }
-    router.push(safeReturnTo);
   };
 
   const handleDelete = async () => {

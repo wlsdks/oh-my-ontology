@@ -34,6 +34,7 @@ import {
   type Project,
 } from "@/entities/project";
 import { useProjects, useProjectMutations } from "@/features/project-data-source";
+import { VaultConflictError } from "@/features/docs-vault-local";
 import { resolveSubscribeUpdate } from "../model/resolve-subscribe-update";
 import { DependencyPicker } from "@/features/project-edit/ui/DependencyPicker";
 import { CopyProjectLinkButton } from "@/features/project-share";
@@ -416,6 +417,12 @@ export function ProjectDetailPage({
   // 거절됨 — useProjectMutations 가 mode 별로 분기.
   const persistProject = (input: Parameters<typeof projectMutations.updateProject>[0]) =>
     projectMutations.updateProject(input);
+  const projectSaveErrorMessage = (err: unknown) =>
+    err instanceof VaultConflictError
+      ? t("saveErrorConflict")
+      : err instanceof Error
+        ? err.message
+        : t("saveErrorGeneric");
   const saveProjectField = async (
     field: "name" | "description",
     next: string,
@@ -428,7 +435,7 @@ export function ProjectDetailPage({
       });
       showToast(field === "name" ? t("saveSuccessName") : t("saveSuccessDescription"), "success");
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("saveErrorGeneric");
+      const message = projectSaveErrorMessage(err);
       showToast(t("saveErrorPrefix", { message }), "error");
       throw err;
     }
@@ -443,7 +450,7 @@ export function ProjectDetailPage({
         dependencies: next,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("saveErrorGeneric");
+      const message = projectSaveErrorMessage(err);
       showToast(t("saveErrorDeps", { message }), "error");
     }
   };
@@ -456,7 +463,7 @@ export function ProjectDetailPage({
         links: next,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("saveErrorGeneric");
+      const message = projectSaveErrorMessage(err);
       showToast(t("saveErrorLinks", { message }), "error");
     }
   };
@@ -469,7 +476,7 @@ export function ProjectDetailPage({
         [field]: next,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("saveErrorGeneric");
+      const message = projectSaveErrorMessage(err);
       showToast(field === "tags" ? t("saveErrorTags", { message }) : t("saveErrorStack", { message }), "error");
     }
   };
