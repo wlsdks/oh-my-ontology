@@ -118,7 +118,7 @@ cd /tmp
 npx oh-my-ontology --help
 # prints help
 npx oh-my-ontology init test-vault
-# creates test-vault/ with 5 .md files + .mcp.json.example
+# creates test-vault/ with 5 .md files + wired .mcp.json
 rm -rf test-vault
 ```
 
@@ -146,7 +146,7 @@ In `~/.config/claude-code/mcp.json` (or wherever your agent reads MCP config):
 }
 ```
 
-Restart Claude Code. The tool list should show `oh-my-ontology__list_concepts` and 10 others.
+Restart Claude Code. The tool list should show the `oh-my-ontology` namespace with 20 tools.
 
 ### B) Start a user vault (CLI path)
 
@@ -155,7 +155,7 @@ Restart Claude Code. The tool list should show `oh-my-ontology__list_concepts` a
 npx oh-my-ontology init my-vault
 cd my-vault
 ls -la
-# 5 .md files + .mcp.json.example
+# 5 .md files + .mcp.json
 ```
 
 ### C) Start a user vault (workbench path)
@@ -163,7 +163,7 @@ ls -la
 1. https://oh-my-ontology.web.app/docs (after Firebase deploy)
 2. "Open my markdown folder" → pick an empty folder
 3. Click "Create starter seed"
-4. 5 .md files + .mcp.json.example are written automatically
+4. 5 .md files + a copyable .mcp.json.example are written automatically
 
 ---
 

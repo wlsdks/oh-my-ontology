@@ -29,6 +29,14 @@ The `/docs/?intent=local` first-time path now has E2E coverage for the
 the current route/tool surface: `/ontology/relations` is no longer listed as a
 live route, MCP is 20 tools, and the dogfood vault count is 26 nodes.
 
+### Launch copy current-surface guard
+
+Launch drafts, publish notes, and README setup copy now describe the current
+MCP/onboarding contract: 20 tools, generated `.mcp.json` files for Claude
+Code/Cursor, Codex's printed `mcp add` command, and the 26-node dogfood vault.
+A unit test blocks stale launch claims such as "12 tools", old dogfood demo
+counts, and obsolete test totals from returning to current-facing docs.
+
 ### Local vault change toast coverage
 
 `VaultDiffToaster` now delegates toast planning to a pure helper. Unit coverage

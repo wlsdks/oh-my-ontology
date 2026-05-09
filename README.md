@@ -85,9 +85,9 @@ the moment.
 
 ```bash
 npx oh-my-ontology init ./vault
-# Open ./vault/.mcp.json.example, copy into your MCP config (Claude Code, Cursor)
-# Set OMOT_VAULT to /absolute/path/to/your/vault
-# Restart the agent — 20 oh-my-ontology tools become available
+# Claude Code / Cursor: open the repo or vault folder and restart;
+# init wrote wired .mcp.json files in both places.
+# Codex: run the exact `codex mcp add ...` command printed by init.
 ```
 
 ### With the visual workbench
@@ -190,7 +190,8 @@ MIT — see [`LICENSE`](LICENSE).
 npx oh-my-ontology init my-vault
 cd my-vault
 # project.md 와 domains/example.md 를 본인 환경에 맞게 수정
-# .mcp.json.example 을 AI agent (Claude Code 등) 의 MCP 설정으로 복사
+# Claude Code / Cursor 는 생성된 .mcp.json 을 자동 인식
+# Codex 는 init 이 출력한 codex mcp add 명령을 실행
 ```
 
 자세한 시작 가이드:

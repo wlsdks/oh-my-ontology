@@ -17,7 +17,7 @@ README 첫 화면에 박을 30초 GIF / mp4 의 스토리보드. **claim → pro
 
 ## Cut 3 (12–18s) — "토폴로지 view"
 
-- **screen**: `/topology` Sigma WebGL — dogfood vault (130 노드, 165 관계) drag / hover.
+- **screen**: `/topology` Sigma WebGL — current dogfood vault (26 노드) drag / hover.
 - **action**: 사용자가 한 노드 hover → 1-hop 이웃 강조 → 클릭 → ProjectDrawer.
 - **caption**: `Sigma topology · 1 click → context`
 
@@ -29,7 +29,7 @@ README 첫 화면에 박을 30초 GIF / mp4 의 스토리보드. **claim → pro
 
 ## Cut 5 (24–30s) — "30 초 setup"
 
-- **screen**: terminal `npx oh-my-ontology init my-vault` 실행 → starter 파일들 생성 → "Next steps:" 안내 표시.
+- **screen**: terminal `npx oh-my-ontology init my-vault` 실행 → starter 파일들과 `.mcp.json` 생성 → "Next steps:" 안내 표시.
 - **action**: 사용자가 vault 폴더로 cd 한 후 끝.
 - **caption**: `npx oh-my-ontology init my-vault — 30 seconds, you're in`
 

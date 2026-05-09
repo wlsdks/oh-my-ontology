@@ -28,9 +28,10 @@ silo, or in nobody's.
 oh-my-ontology takes the opposite path. The mental model is a folder of
 markdown files. Frontmatter is the graph: `kind: capability`, `domain:
 auth`, `depends_on: [...]`. Humans edit it in any markdown editor. AI
-agents read and write it via a tiny MCP server (12 tools — list,
-get, find_path, find_orphans, query_concepts, add_concept, patch_concept,
-delete, ...).
+agents read and write it via a tiny MCP server (20 tools — list,
+get, validate_vault, analyze_repo_structure, infer_imports, find_path,
+find_orphans, query_concepts, add_concept, add_concepts, patch_concept,
+rename_concept, ...).
 
 Three views over the same vault: Sigma WebGL topology, hierarchical
 tree, and an xyflow ERD builder. Local-first by default — the static
@@ -40,10 +41,10 @@ paint chunk (verified by a CI script).
 30-second start:
 
   npx oh-my-ontology init my-vault
-  # then copy .mcp.json.example to your AI agent's MCP config
+  # Claude Code/Cursor read the generated .mcp.json; Codex uses the printed mcp add command
 
-Hosted demo (read-only, our own dogfood vault — ~130 nodes, 165
-relations): https://oh-my-ontology.web.app
+Hosted demo (read-only, our own dogfood vault — 26 nodes):
+https://oh-my-ontology.web.app
 
 What I'd love feedback on:
 

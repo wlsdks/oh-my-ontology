@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T11:57:49.578Z",
+  "generatedAt": "2026-05-09T12:15:26.945Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -2299,6 +2299,11 @@
         },
         {
           "depth": 3,
+          "text": "Launch copy current-surface guard",
+          "slug": "launch-copy-current-surface-guard"
+        },
+        {
+          "depth": 3,
           "text": "Local vault change toast coverage",
           "slug": "local-vault-change-toast-coverage"
         },
@@ -3259,8 +3264,8 @@
         }
       ],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Fresh user setup now covers the full init → bootstrap → validate → MCP register journey. a",
-      "wordCount": 14283,
-      "updatedAt": "2026-05-09T11:56:25.502Z",
+      "wordCount": 14344,
+      "updatedAt": "2026-05-09T12:11:31.017Z",
       "linksOut": [
         "slug"
       ]
@@ -4254,7 +4259,7 @@
       ],
       "excerpt": "README 첫 화면에 박을 30초 GIF / mp4 의 스토리보드. claim → proof 5 컷 시퀀스. 각 컷 ~6초. screen: 좌측 vscode (또는 Obsidian) 가 domains/auth.md 를 열어 frontmatter 보임. 우측 Claude Code terminal 에서 ohmyontology 도구 호출 결과 표시. action: 사람이 markdown 의 capabilities: 키에 capabilities/login 추가 → 저장. AI 가 같은 vault 의 capabilities/login.md 를 addconcept 로 생성. ",
       "wordCount": 414,
-      "updatedAt": "2026-05-02T07:34:04.693Z",
+      "updatedAt": "2026-05-09T12:10:44.411Z",
       "linksOut": []
     },
     {
@@ -4291,8 +4296,8 @@
         }
       ],
       "excerpt": "Submission type: Show HN Category: open source / dev tool (80 chars exactly — under HN's 80 char limit. If too long, fallback: Show HN: ohmyontology – frontmatter is the graph; AI agents read it via MCP) https://github.com/wlsdks/ohmyontology (Word count: ~280. HN expects substantive Show HN posts, not oneliners.) Best",
-      "wordCount": 441,
-      "updatedAt": "2026-05-02T21:39:42.472Z",
+      "wordCount": 447,
+      "updatedAt": "2026-05-09T12:10:44.411Z",
       "linksOut": []
     },
     {
@@ -4350,7 +4355,7 @@
       ],
       "excerpt": "오픈소스 launch 단계의 publication 초안 모음. 메인테이너가 시점에 맞춰 직접 publish. 1. 사전 준비 [ ] CLI npm 배포 — cli/ 와 mcp/ 둘 다 npm publish [ ] 정적 호스팅 (GitHub Pages / Vercel / Netlify / Cloudflare Pages 등) 배포 — pnpm build → out/ 업로드. 자세한 가이드는 docs/DEPLOYMENT.md. [ ] hosted demo URL 이 README + CLI 안내 문구와 일치하는지 재확인 [ ] 30s demo gif 녹화 + docs/lau",
       "wordCount": 548,
-      "updatedAt": "2026-05-02T21:37:08.425Z",
+      "updatedAt": "2026-05-09T12:10:44.411Z",
       "linksOut": []
     },
     {
@@ -4377,8 +4382,13 @@
         },
         {
           "depth": 1,
-          "text": "then add this to ~/.config/claude-code/mcp.json:",
-          "slug": "then-add-this-to-configclaude-codemcpjson"
+          "text": "Claude Code / Cursor can use the generated .mcp.json.",
+          "slug": "claude-code-cursor-can-use-the-generated-mcpjson"
+        },
+        {
+          "depth": 1,
+          "text": "Manual config shape:",
+          "slug": "manual-config-shape"
         },
         {
           "depth": 2,
@@ -4392,8 +4402,8 @@
         }
       ],
       "excerpt": "Reddit responds best to honest, problemfirst framing. Each subreddit has its own norms; copy below tuned per audience. Title: ohmyontology — frontmatter as a codebase ontology, AI agents read it via MCP Body (400~500 words, Reddit allows longform better than HN): myproject/ ├── project.md ├── domains/ │ ├── auth.md │ └",
-      "wordCount": 900,
-      "updatedAt": "2026-05-02T21:39:03.541Z",
+      "wordCount": 921,
+      "updatedAt": "2026-05-09T12:15:15.565Z",
       "linksOut": []
     },
     {
@@ -4450,8 +4460,8 @@
         }
       ],
       "excerpt": "X 의 언어는 짧고 시각적. 5–7 트윗 짜리 thread 가 sweet spot. 각 트윗 280 chars 안. 1 트윗 = 1 idea. yaml kind: capability domain: domains/auth dependson: [capabilities/signup] Post the thread in one go (drafts feature) Pin tweet 1 to profile Quotetweet your HN submission link in a separate post a few hours later Tag relevant accounts only",
-      "wordCount": 440,
-      "updatedAt": "2026-05-02T21:38:03.359Z",
+      "wordCount": 443,
+      "updatedAt": "2026-05-09T12:10:44.413Z",
       "linksOut": []
     },
     {
@@ -5700,8 +5710,8 @@
         }
       ],
       "excerpt": "This project publishes two npm packages: | Package | Path | What | Required? | ||||| | ohmyontologymcp | mcp/ | MCP server (AI agents read/write the vault) | Required — the core of the AI agent integration | | ohmyontology | cli/ | init CLI (vault scaffold) | Optional — the web workbench's scaffold button does the same",
-      "wordCount": 957,
-      "updatedAt": "2026-05-02T09:34:08.147Z",
+      "wordCount": 962,
+      "updatedAt": "2026-05-09T12:11:10.213Z",
       "linksOut": []
     },
     {
