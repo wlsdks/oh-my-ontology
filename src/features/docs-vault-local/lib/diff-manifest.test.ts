@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diffVaultManifest } from './diff-manifest';
+import { diffVaultManifest, planVaultDiffToasts } from './diff-manifest';
 
 describe('diffVaultManifest', () => {
   it('첫 mount 와 동일 → added/modified 모두 빈 배열', () => {
@@ -111,5 +111,69 @@ describe('diffVaultManifest', () => {
     expect(diffVaultManifest(prev, current).added).toEqual([
       'capabilities/foo',
     ]);
+  });
+});
+
+describe('planVaultDiffToasts', () => {
+  it('변화가 없으면 toast 계획도 비어 있다', () => {
+    expect(planVaultDiffToasts({ added: [], modified: [] })).toEqual([]);
+  });
+
+  it('added 와 modified 를 사용자 문구 + variant 로 변환한다', () => {
+    expect(
+      planVaultDiffToasts({
+        added: ['capabilities/new'],
+        modified: ['domains/existing'],
+      }),
+    ).toEqual([
+      { message: 'Added: capabilities/new', variant: 'info' },
+      { message: 'Edited: domains/existing', variant: 'success' },
+    ]);
+  });
+
+  it('preview limit 안에서는 added 를 먼저 보여주고 남은 칸에 modified 를 보여준다', () => {
+    expect(
+      planVaultDiffToasts(
+        {
+          added: ['a', 'b'],
+          modified: ['c', 'd'],
+        },
+        3,
+      ),
+    ).toEqual([
+      { message: 'Added: a', variant: 'info' },
+      { message: 'Added: b', variant: 'info' },
+      { message: 'Edited: c', variant: 'success' },
+      { message: '+1 more node(s)', variant: 'info' },
+    ]);
+  });
+
+  it('added 만으로 preview 가 차면 modified 는 overflow 로만 집계한다', () => {
+    expect(
+      planVaultDiffToasts(
+        {
+          added: ['a', 'b', 'c', 'd'],
+          modified: ['e'],
+        },
+        3,
+      ),
+    ).toEqual([
+      { message: 'Added: a', variant: 'info' },
+      { message: 'Added: b', variant: 'info' },
+      { message: 'Added: c', variant: 'info' },
+      { message: '+2 more node(s)', variant: 'info' },
+    ]);
+  });
+
+  it('preview limit 0 은 개별 항목 없이 전체 overflow 만 보여준다', () => {
+    expect(
+      planVaultDiffToasts(
+        {
+          added: ['a'],
+          modified: ['b'],
+        },
+        0,
+      ),
+    ).toEqual([{ message: '+2 more node(s)', variant: 'info' }]);
   });
 });

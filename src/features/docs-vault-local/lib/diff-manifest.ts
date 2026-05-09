@@ -31,3 +31,36 @@ export function diffVaultManifest(
   }
   return { added, modified };
 }
+
+export type VaultDiffToast = {
+  message: string;
+  variant: 'info' | 'success';
+};
+
+export function planVaultDiffToasts(
+  diff: { added: string[]; modified: string[] },
+  previewLimit = 3,
+): VaultDiffToast[] {
+  const limit = Math.max(0, previewLimit);
+  const planned: VaultDiffToast[] = [];
+  let shown = 0;
+
+  for (const slug of diff.added) {
+    if (shown >= limit) break;
+    planned.push({ message: `Added: ${slug}`, variant: 'info' });
+    shown += 1;
+  }
+
+  for (const slug of diff.modified) {
+    if (shown >= limit) break;
+    planned.push({ message: `Edited: ${slug}`, variant: 'success' });
+    shown += 1;
+  }
+
+  const overflow = Math.max(0, diff.added.length + diff.modified.length - limit);
+  if (overflow > 0) {
+    planned.push({ message: `+${overflow} more node(s)`, variant: 'info' });
+  }
+
+  return planned;
+}

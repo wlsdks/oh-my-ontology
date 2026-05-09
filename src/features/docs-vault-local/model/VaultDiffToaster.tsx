@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useToast } from '@/shared/ui/toast';
-import { diffVaultManifest } from '../lib/diff-manifest';
+import { diffVaultManifest, planVaultDiffToasts } from '../lib/diff-manifest';
 import { useLocalVault } from './LocalVaultProvider';
 
 /**
@@ -52,22 +52,8 @@ export function VaultDiffToaster() {
 
     if (added.length === 0 && modified.length === 0) return;
 
-    const PREVIEW = 3;
-    const overflow = Math.max(0, added.length + modified.length - PREVIEW);
-
-    let shown = 0;
-    for (const slug of added) {
-      if (shown >= PREVIEW) break;
-      toast.show(`Added: ${slug}`, 'info');
-      shown += 1;
-    }
-    for (const slug of modified) {
-      if (shown >= PREVIEW) break;
-      toast.show(`Edited: ${slug}`, 'success');
-      shown += 1;
-    }
-    if (overflow > 0) {
-      toast.show(`+${overflow} more node(s)`, 'info');
+    for (const planned of planVaultDiffToasts({ added, modified })) {
+      toast.show(planned.message, planned.variant);
     }
   }, [status, manifest, toast]);
 

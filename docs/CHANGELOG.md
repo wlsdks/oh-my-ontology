@@ -22,6 +22,13 @@ Claude/Cursor, and Codex needs the printed `mcp add` command.
 (`oh-my-ontology analyze . --vault ./ontology` and `bootstrap . --vault
 ./ontology`) instead of placeholder `/path/to/your/repo` examples.
 
+### Local vault change toast coverage
+
+`VaultDiffToaster` now delegates toast planning to a pure helper. Unit coverage
+locks added/modified classification, null `mtime` skip behavior, removed-node
+silence, preview ordering, and overflow copy so local vault polling can keep
+showing concise external edit feedback without brittle component-only logic.
+
 ### Web E2E modernization
 
 Playwright E2E was realigned to the current local-first, locale-prefixed

@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T11:42:39.303Z",
+  "generatedAt": "2026-05-09T11:53:00.690Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -1594,8 +1594,8 @@
         },
         {
           "depth": 3,
-          "text": "F2. VaultDiffToaster diff logic 단위 test",
-          "slug": "f2-vaultdifftoaster-diff-logic-단위-test"
+          "text": "~~F2. VaultDiffToaster diff logic 단위 test~~ — DONE (2026-05-09)",
+          "slug": "f2-vaultdifftoaster-diff-logic-단위-test-done-2026-05-09"
         },
         {
           "depth": 3,
@@ -1674,8 +1674,8 @@
         }
       ],
       "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260506): R12/R13/R14 wave 묶음 정리 후 전면 재정렬. 4 surface 완성, dogfood 25 노드, AI agent ↔ vault 자동 sync 도달. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | 156 | graph diff pulse | ✅ 새 노드 amber s",
-      "wordCount": 1361,
-      "updatedAt": "2026-05-09T06:48:12.841Z",
+      "wordCount": 1332,
+      "updatedAt": "2026-05-09T11:52:14.074Z",
       "linksOut": []
     },
     {
@@ -2291,6 +2291,11 @@
           "depth": 2,
           "text": "2026-05-09 — Clean onboarding bootstrap polish",
           "slug": "2026-05-09-clean-onboarding-bootstrap-polish"
+        },
+        {
+          "depth": 3,
+          "text": "Local vault change toast coverage",
+          "slug": "local-vault-change-toast-coverage"
         },
         {
           "depth": 3,
@@ -3249,8 +3254,8 @@
         }
       ],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Fresh user setup now covers the full init → bootstrap → validate → MCP register journey. a",
-      "wordCount": 14185,
-      "updatedAt": "2026-05-09T11:42:10.908Z",
+      "wordCount": 14231,
+      "updatedAt": "2026-05-09T11:52:14.075Z",
       "linksOut": [
         "slug"
       ]
@@ -3640,8 +3645,8 @@
         }
       ],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see designreferences/DESIGNlinear.md. Linear's \"starlight rising from darkness\" aesthetic aligns precisely with the constellation metaphor of the topology. The extreme constraint of blackandwhite plus a single indi",
-      "wordCount": 703,
-      "updatedAt": "2026-05-03T11:54:08.873Z",
+      "wordCount": 694,
+      "updatedAt": "2026-05-09T11:48:53.267Z",
       "linksOut": [
         "design-references/DESIGN-linear"
       ]
