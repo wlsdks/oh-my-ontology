@@ -6,6 +6,20 @@
 
 ---
 
+## 2026-05-09 — Cleaner single-file repo bootstrap graph
+
+Large demo bootstrap uncovered a second cold-start quality issue: single-file
+layered repos could land support folders such as `src/domain` and `src/storage`
+as fake capability nodes (`capabilities/domain`, `capabilities/storage`).
+
+- Import graph module collapse now keeps `src/features/*.js` as capabilities
+  while classifying support-layer files (`domain`, `storage`, `integrations`,
+  `reports`, `shared`, `app`, `lib`, `utils`) as elements.
+- A clean `init → bootstrap` run on the large demo now lands 5 README domains,
+  8 user-facing capabilities, and 18 implementation elements with zero errors.
+- Regression coverage now blocks folder-name capability noise from returning
+  for single-file layered projects.
+
 ## 2026-05-09 — Docs-to-topology navigation visibility
 
 Large demo project follow-up found a real discoverability gap: after loading a

@@ -126,27 +126,55 @@ test('module-level edge collapse (FSD features/ — capability folder slug, anal
   }
 });
 
-test('module-level edge collapse (single-file feature modules strip source extension)', () => {
+test('module-level edge collapse (single-file layered repo classifies support layers precisely)', () => {
   const root = withRepo((r) => {
     mkdirSync(join(r, 'src/features'), { recursive: true });
     mkdirSync(join(r, 'src/domain'), { recursive: true });
+    mkdirSync(join(r, 'src/storage'), { recursive: true });
     writeFileSync(
       join(r, 'src/features/check-in.js'),
-      'import { normalizeHabit } from "../domain/habit.js";\nexport const checkIn = normalizeHabit;\n',
+      [
+        'import { normalizeHabit } from "../domain/habit.js";',
+        'import { appendEntry } from "../storage/json-store.js";',
+        'export const checkIn = () => appendEntry(normalizeHabit("write"));',
+      ].join('\n'),
     );
     writeFileSync(
       join(r, 'src/domain/habit.js'),
       'export const normalizeHabit = (habit) => habit;\n',
     );
+    writeFileSync(
+      join(r, 'src/storage/json-store.js'),
+      'export const appendEntry = (entry) => entry;\n',
+    );
   });
   try {
     const r = inferImports(root);
-    const e = r.moduleEdges.find(
-      (x) => x.from === 'capabilities/check-in' && x.to === 'capabilities/domain',
+    assert.ok(
+      r.moduleEdges.some(
+        (x) =>
+          x.from === 'capabilities/check-in' &&
+          x.to === 'elements/src/domain/habit',
+      ),
+      `expected feature → domain-model element edge, got: ${JSON.stringify(r.moduleEdges)}`,
     );
     assert.ok(
-      e,
-      `expected extensionless module edge capabilities/check-in → capabilities/domain, got: ${JSON.stringify(r.moduleEdges)}`,
+      r.moduleEdges.some(
+        (x) =>
+          x.from === 'capabilities/check-in' &&
+          x.to === 'elements/src/storage/json-store',
+      ),
+      `expected feature → storage element edge, got: ${JSON.stringify(r.moduleEdges)}`,
+    );
+    assert.equal(
+      r.moduleEdges.some((x) => x.to === 'capabilities/domain'),
+      false,
+      `did not expect folder-name capability noise: ${JSON.stringify(r.moduleEdges)}`,
+    );
+    assert.equal(
+      r.moduleEdges.some((x) => x.to === 'domains/habit'),
+      false,
+      `did not expect implementation model as ontology domain: ${JSON.stringify(r.moduleEdges)}`,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });

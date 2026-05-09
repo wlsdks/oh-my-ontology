@@ -1874,9 +1874,9 @@ await test('bootstrap — single-file layered repo import endpoints 먼저 생�
         (row) =>
           row.ok === true &&
           row.from === 'capabilities/check-in' &&
-          row.to === 'capabilities/storage',
+          row.to === 'elements/src/storage/json-store',
       ),
-      `expected check-in → storage relation, got: ${JSON.stringify(data.imports.relations)}`,
+      `expected check-in → storage element relation, got: ${JSON.stringify(data.imports.relations)}`,
     );
     assert.ok(
       data.imports.containmentRelations.some(
@@ -1901,7 +1901,22 @@ await test('bootstrap — single-file layered repo import endpoints 먼저 생�
       'utf-8',
     );
     assert.match(checkInDoc, /domain: domains\/writing-habit-tracking/);
-    assert.match(checkInDoc, /dependencies:.*\bstorage\b/s);
+    assert.match(checkInDoc, /dependencies:.*elements\/src\/storage\/json-store/s);
+    assert.equal(
+      existsSyncTest(join(vault, 'capabilities', 'domain.md')),
+      false,
+      'support layer should not become capabilities/domain',
+    );
+    assert.equal(
+      existsSyncTest(join(vault, 'capabilities', 'storage.md')),
+      false,
+      'support layer should not become capabilities/storage',
+    );
+    assert.equal(
+      existsSyncTest(join(vault, 'elements', 'src', 'storage', 'json-store.md')),
+      true,
+      'storage implementation should become an element',
+    );
   } finally {
     rmSync(vault, { recursive: true, force: true });
     rmSync(repo, { recursive: true, force: true });

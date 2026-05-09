@@ -54,6 +54,27 @@ const RESOLVE_EXT_ORDER = [
   '.cts',
 ];
 
+const SUPPORT_ELEMENT_BUCKETS = new Set([
+  'app',
+  'apps',
+  'domain',
+  'domains',
+  'integration',
+  'integrations',
+  'infra',
+  'infrastructure',
+  'lib',
+  'libs',
+  'report',
+  'reports',
+  'shared',
+  'storage',
+  'store',
+  'stores',
+  'util',
+  'utils',
+]);
+
 // matches: import ... from "X", import("X"), require("X"), export ... from "X"
 const IMPORT_RE =
   /(?:\bimport\s+(?:[\s\S]*?)\s+from\s+|\bimport\s*\(\s*|\brequire\s*\(\s*|\bexport\s+(?:[\s\S]*?)\s+from\s+)['"]([^'"]+)['"]/g;
@@ -299,11 +320,33 @@ function moduleOf(filePath, sourceFolders) {
       if (elementBuckets.has(next) && parts[i + 2]) {
         return `elements/${parts[i]}/${next}/${stripSourceExtension(parts[i + 2])}`;
       }
-      // generic — sourceFolder 다음 첫 segment 가 module.
+      // Single-file layered repos are common in small apps:
+      //   src/features/check-in.js   -> user-facing capability
+      //   src/domain/habit.js        -> implementation element
+      //   src/storage/json-store.js  -> implementation element
+      //
+      // Treating every depth-1 folder as a capability produces noisy ontology
+      // nodes like `capabilities/domain` and `capabilities/storage`. Keep
+      // feature files as capabilities, but classify support layers by their
+      // role so bootstrap lands a more useful graph on a clean vault.
+      if (next === 'features' && parts[i + 2]) {
+        return `capabilities/${stripSourceExtension(parts[i + 2])}`;
+      }
+      if (isSupportElementBucket(next) && parts[i + 2]) {
+        return `elements/${parts.slice(i, parts.length).join('/')}`.replace(
+          /\.[^.\\/]+$/,
+          '',
+        );
+      }
+      // Generic fallback — sourceFolder 다음 첫 segment 가 module.
       return `capabilities/${next}`;
     }
   }
   return null;
+}
+
+function isSupportElementBucket(segment) {
+  return SUPPORT_ELEMENT_BUCKETS.has(segment);
 }
 
 function stripSourceExtension(segment) {

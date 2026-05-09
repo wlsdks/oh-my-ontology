@@ -103,7 +103,7 @@ Both routes render the same `HomePage` (R3 keep-both decision: `/` = home/back-l
 - Footer: "slug · updated DATE"
 
 #### Mobile-only
-- `BottomTabBar` (3 tabs: Ontology / Projects / Docs) at safe-area bottom
+- `BottomTabBar` (4 tabs: Ontology / Topology / Projects / Docs) at safe-area bottom
 - `GestureHint` overlay (dismissible, not persisted)
 
 #### Global keyboard shortcuts (all `useTypingShortcuts`-gated)
@@ -456,7 +456,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 - Sub-nav row appears on `/ontology/*` (R3 always visible)
 
 ### `BottomTabBar` (mobile only, `md:` hidden)
-- 3 tabs: Ontology (matches `/ontology` or `/topology`) · Projects (`/projects` or `/project`) · Docs (`/docs`)
+- 4 tabs: Ontology (`/`, `/ontology`) · Topology (`/topology`) · Projects (`/projects` or `/project`) · Docs (`/docs`)
 - Min height 56 px (safe-area)
 
 ### Search palettes (separate by design — R5 skip merge)
