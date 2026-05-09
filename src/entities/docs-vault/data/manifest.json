@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T11:18:02.046Z",
+  "generatedAt": "2026-05-09T11:42:39.303Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -2293,6 +2293,11 @@
           "slug": "2026-05-09-clean-onboarding-bootstrap-polish"
         },
         {
+          "depth": 3,
+          "text": "Web E2E modernization",
+          "slug": "web-e2e-modernization"
+        },
+        {
           "depth": 2,
           "text": "2026-05-07 — Round 18: AI agent UX 강화 루프 — read shape · batch tools · vault health · ARIA tree · CLI --apply",
           "slug": "2026-05-07-round-18-ai-agent-ux-강화-루프-read-shape-batch-tools-vault-health-aria-tree-cli---apply"
@@ -3244,8 +3249,8 @@
         }
       ],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Fresh user setup now covers the full init → bootstrap → validate → MCP register journey. a",
-      "wordCount": 14114,
-      "updatedAt": "2026-05-09T11:16:56.241Z",
+      "wordCount": 14185,
+      "updatedAt": "2026-05-09T11:42:10.908Z",
       "linksOut": [
         "slug"
       ]

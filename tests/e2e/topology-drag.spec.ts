@@ -8,14 +8,14 @@ import { expect, test, type Page } from "@playwright/test";
  * Sigma 좌표가 생겼는지 확인한다.
  */
 
-const DRAG_TARGET_SLUG = "sample";
+const DRAG_TARGET_SLUG = "oh-my-ontology";
 const POSITION_STORAGE_KEY = "demo:sigma-node-positions:v1";
 
 async function openHomeWithFocusedNode(page: Page) {
   await page.addInitScript((storageKey) => {
     window.localStorage.removeItem(storageKey);
   }, POSITION_STORAGE_KEY);
-  await page.goto(`/?p=${DRAG_TARGET_SLUG}`);
+  await page.goto(`/en/topology/?p=${DRAG_TARGET_SLUG}`);
   await expect(page.getByTestId("sigma-topology-viewport")).toBeVisible({
     timeout: 20_000,
   });

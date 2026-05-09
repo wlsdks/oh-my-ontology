@@ -22,6 +22,16 @@ Claude/Cursor, and Codex needs the printed `mcp add` command.
 (`oh-my-ontology analyze . --vault ./ontology` and `bootstrap . --vault
 ./ontology`) instead of placeholder `/path/to/your/repo` examples.
 
+### Web E2E modernization
+
+Playwright E2E was realigned to the current local-first, locale-prefixed
+surface. Stale `/login`, `/knowledge`, `/review/*`, and `/project/sample`
+expectations were replaced with `/en` routes, the dogfood `oh-my-ontology`
+project, local vault picker copy, and static topology smoke. Full browser E2E
+now passes (`27 passed`), and the accessibility structure audit reports zero
+findings after adding the ontology page main landmark and demoting rendered
+markdown document H1s inside the Docs Vault page.
+
 ## 2026-05-07 — Round 18: AI agent UX 강화 루프 — read shape · batch tools · vault health · ARIA tree · CLI --apply
 
 자율 개선 루프 ~30 PR. **mcp 16→20 tools (read 10→12, write 6→8), cli 13→15 commands, /ontology-bootstrap round-trip ~25→3**. agent (Claude Code · Cursor · Codex) 가 적은 호출로 더 정확한 vault sync, 사용자가 키보드만으로 tree 완전 항해, agent-less CLI 도 batch parity.

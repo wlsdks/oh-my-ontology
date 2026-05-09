@@ -10,10 +10,10 @@ import { expect, test } from "@playwright/test";
  */
 
 const ROUTES = [
-  "/",
-  "/project/sample/",
-  "/docs/",
-  "/topology/",
+  "/en/",
+  "/en/project/oh-my-ontology/",
+  "/en/docs/",
+  "/en/topology/",
 ];
 
 test("접근성 없는 버튼·링크 탐지", async ({ page }) => {

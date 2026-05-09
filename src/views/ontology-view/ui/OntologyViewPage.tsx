@@ -161,12 +161,12 @@ export function OntologyViewPage() {
 
 
   return (
-    <div>
+    <>
       {/* OperationsNav 는 풀폭으로 (본문 max-w 안에 갇히면 좌우 여백 과대로
           가운데 몰려 보이는 회귀 회피). 'ontology surface' 인 / 와 /ontology*
           에선 OperationsNav 가 SubNav 행을 inline 으로 함께 렌더. */}
       <OperationsNav />
-      <div className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
+      <main id="main" className="mx-auto max-w-5xl px-5 py-8 md:px-8 md:py-12">
       <section className="mb-8 space-y-3">
         {/* eyebrow 는 SubNav 의 'ONTOLOGY' caption 과 중복 → 제거. */}
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
@@ -446,8 +446,8 @@ what this capability does.
         edgeCount={insight?.edges.length ?? 0}
         mode={dataSourceMode}
       />
-      </div>
-    </div>
+      </main>
+    </>
   );
 }
 

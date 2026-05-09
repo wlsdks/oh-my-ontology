@@ -6,12 +6,11 @@ import { expect, test } from "@playwright/test";
  * 체감 지연이나 문구 결손은 console 리포트로 남겨 다음 사이클 티켓 후보로 쓴다.
  *
  * 다루는 구간:
- *   A1. 공유 링크(`/project/sample/`)로 진입 → 상세가 즉시 읽힘
- *   A2. 루트(`/`) 진입 → landing이 제품 성격을 10초 안에 설명
+ *   A1. 공유 링크(`/en/project/oh-my-ontology/`)로 진입 → 상세가 즉시 읽힘
+ *   A2. 루트(`/en/`) 진입 → landing이 제품 성격을 10초 안에 설명
  *   A5. 상세에서 Cmd+K 검색 팔레트가 열림·닫힘
  *
- * A3(데모 로그인)·A4(토폴로지 드래그 → 드로어)는 emulator·데이터 의존이라
- * 별도 spec(public-topology / topology-drag-public)에서 다룬다.
+ * A3/A4 topology interaction is covered by topology-drag.
  */
 
 const FINDING_LIMIT = 15;
@@ -27,15 +26,9 @@ test("A1·A2·A5 공개 여정 한 플로우", async ({ page }) => {
   });
 
   // ── A1. 공유 링크 → 상세 ────────────────────────────────────────────────
-  // sample 프로젝트의 실제 이름은 "Demo" (포트폴리오 자체가 주인공).
-  // title 포맷 규약은 `<project.name> · Demo` 이므로 `Demo` 를 반드시 포함
-  // 해야 하고, 비어있으면 안 된다. slug 와 name 이 일반적으로 다르므로 slug
-  // 자체를 title 에서 찾는 건 잘못(cycle 19~24 에서 "demo" 문자열 검색이
-  // 계속 false-positive 찾아오던 버그). 대신 SEO 정합성은
-  // entities/project/model/seo-metadata.test.ts 에서 전 프로젝트 엄격 검증.
-  const EXPECTED_DETAIL_NAME = "Demo";
+  const EXPECTED_DETAIL_NAME = "oh-my-ontology";
   const detailStart = Date.now();
-  await page.goto("/project/sample/", { waitUntil: "domcontentloaded" });
+  await page.goto("/en/project/oh-my-ontology/", { waitUntil: "domcontentloaded" });
   const detailHeading = page.getByRole("heading").first();
   await expect(detailHeading).toBeVisible({ timeout: 10_000 });
   const detailTtfb = Date.now() - detailStart;
@@ -63,28 +56,26 @@ test("A1·A2·A5 공개 여정 한 플로우", async ({ page }) => {
 
   // ── A2. 루트 landing ────────────────────────────────────────────────────
   const landingStart = Date.now();
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  // Demo 브랜드 마크가 hero 영역에 반드시 있어야 한다(§1.3 단일 채색 랜딩).
-  const demo = page.getByText("Demo", { exact: true }).first();
-  await expect(demo).toBeVisible({ timeout: 10_000 });
+  await page.goto("/en/", { waitUntil: "domcontentloaded" });
+  const productName = page.getByText("oh-my-ontology", { exact: true }).first();
+  await expect(productName).toBeVisible({ timeout: 10_000 });
   const landingTtfb = Date.now() - landingStart;
   if (landingTtfb > 5_000) {
-    findings.push(`A2 landing Demo 마크까지 ${landingTtfb}ms (5s 초과)`);
+    findings.push(`A2 landing product mark까지 ${landingTtfb}ms (5s 초과)`);
   }
-  // 비로그인 landing(ServiceEntryLanding)의 핵심 설명 문구와 헤드라인.
-  const landingSub = page.getByText("문서 기반 프로젝트 토폴로지");
+  const landingSub = page.getByText("Map your codebase — projects, features");
   if ((await landingSub.count()) === 0) {
-    findings.push("A2 landing subtitle '문서 기반 프로젝트 토폴로지' 사라짐");
+    findings.push("A2 landing subtitle missing");
   }
-  const landingH1 = page.getByRole("heading", { name: /문서가\s*프로젝트/ });
+  const landingH1 = page.getByRole("heading", { name: /Codebase ontology/ });
   if ((await landingH1.count()) === 0) {
-    findings.push("A2 landing h1 '문서가 프로젝트 구조가 됩니다' 사라짐");
+    findings.push("A2 landing h1 missing");
   }
 
   // ── A5. 상세 Cmd+K → 같은 페이지에서 검색 팔레트 ───────────────────────
   // T-11 이후, 상세에서 Cmd+K는 `/`로 튕기지 않고 상세 페이지 안에 SearchPalette를
   // 바로 연다. URL은 그대로, Escape로 닫히며 다시 Cmd+K로 토글된다.
-  await page.goto("/project/sample/", { waitUntil: "domcontentloaded" });
+  await page.goto("/en/project/oh-my-ontology/", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading").first()).toBeVisible({ timeout: 10_000 });
   await page.waitForTimeout(600); // hydration + useTypingShortcuts bind
   const isMac = process.platform === "darwin";
@@ -103,7 +94,7 @@ test("A1·A2·A5 공개 여정 한 플로우", async ({ page }) => {
   await page.evaluate(() => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "?" }));
   });
-  const shortcutDialog = page.getByRole("dialog", { name: "키보드 단축키" });
+  const shortcutDialog = page.getByRole("dialog", { name: "Keyboard shortcuts" });
   await expect(shortcutDialog).toBeVisible({ timeout: 3_000 });
   expect(new URL(page.url()).pathname).toBe(detailPathBefore);
   await page.keyboard.press("Escape");
@@ -111,7 +102,7 @@ test("A1·A2·A5 공개 여정 한 플로우", async ({ page }) => {
 
   // ── 리포트 ──────────────────────────────────────────────────────────────
   console.log(`[JOURNEY-A] A1 detail heading ${detailTtfb}ms`);
-  console.log(`[JOURNEY-A] A2 landing Demo ${landingTtfb}ms`);
+  console.log(`[JOURNEY-A] A2 landing product mark ${landingTtfb}ms`);
   console.log(`[JOURNEY-A] findings=${findings.length} pageerror=${pageErrors.length} console.error=${consoleErrors.length}`);
   for (const f of findings.slice(0, FINDING_LIMIT)) console.log(`[JOURNEY-A]   • ${f}`);
   for (const e of pageErrors.slice(0, FINDING_LIMIT)) console.log(`[JOURNEY-A]   ! pageerror: ${e}`);

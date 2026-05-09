@@ -8,12 +8,12 @@ import { expect, test } from "@playwright/test";
  */
 
 test("공개 상세 → 홈 뒤로가기", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/en/");
   await page.waitForLoadState("domcontentloaded");
   const landingPath = new URL(page.url()).pathname;
 
-  await page.goto("/project/sample/");
-  await page.waitForURL(/\/project\/sample\/?/);
+  await page.goto("/en/project/oh-my-ontology/");
+  await page.waitForURL(/\/en\/project\/oh-my-ontology\/?/);
 
   await Promise.all([
     page.waitForURL((url) => new URL(url.toString()).pathname === landingPath, {
@@ -25,33 +25,35 @@ test("공개 상세 → 홈 뒤로가기", async ({ page }) => {
 });
 
 test("404에서 '홈으로' CTA가 history 보존 없이 홈 이동", async ({ page }) => {
-  await page.goto("/");
-  await page.goto("/this-route-really-does-not-exist/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("길을 잃은");
+  await page.goto("/en/");
+  await page.goto("/en/this-route-really-does-not-exist/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "Looks like you're lost.",
+  );
 
   // "홈으로" 링크 클릭(Link 컴포넌트 → push). 이후 뒤로가기 시 404로 돌아가지
   // 말고 홈 이전(홈)으로. Link push 이기 때문에 history에 404 → 홈 두 단계가
   // 남음은 허용. 핵심은 404에서 홈으로 갈 수 있는가.
   await Promise.all([
-    page.waitForURL((url) => new URL(url.toString()).pathname === "/", {
+    page.waitForURL((url) => new URL(url.toString()).pathname === "/en/", {
       timeout: 10_000,
     }),
-    page.getByRole("link", { name: "홈으로" }).click(),
+    page.getByRole("link", { name: "Home" }).click(),
   ]);
-  expect(new URL(page.url()).pathname).toBe("/");
+  expect(new URL(page.url()).pathname).toBe("/en/");
 });
 
 test("404 '이전 화면으로' 버튼이 history 있을 때 goBack", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/en/");
   const firstPath = new URL(page.url()).pathname;
-  await page.goto("/another-missing-route/");
+  await page.goto("/en/another-missing-route/");
 
   // 버튼은 window.history.length > 1에서만 goBack 호출.
   await Promise.all([
     page.waitForURL((url) => new URL(url.toString()).pathname === firstPath, {
       timeout: 10_000,
     }),
-    page.getByRole("button", { name: "이전 화면으로" }).click(),
+    page.getByRole("button", { name: "Previous screen" }).click(),
   ]);
   expect(new URL(page.url()).pathname).toBe(firstPath);
 });

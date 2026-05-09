@@ -3,8 +3,8 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
 /**
- * knowledge-phase-2a 브랜치의 실제 UI 상태 audit.
- * 주요 공개 라우트와 admin 라우트를 순회하며 콘솔 에러·네트워크 실패·스크린샷 수집.
+ * Current local-first public surface audit.
+ * 주요 공개 라우트를 순회하며 콘솔 에러·네트워크 실패·스크린샷 수집.
  */
 
 const OUT = path.resolve("output/ui-audit/v2");
@@ -58,13 +58,12 @@ test.beforeAll(async () => {
 });
 
 const routes: Array<{ name: string; url: string; wait?: number }> = [
-  { name: "01-root", url: "/", wait: 1200 },
-  { name: "02-login", url: "/login", wait: 600 },
-  { name: "03-signup", url: "/signup", wait: 600 },
-  { name: "04-reset-password", url: "/reset-password", wait: 600 },
-  { name: "05-account", url: "/account", wait: 800 },
-  { name: "06-projects", url: "/projects/", wait: 800 },
-  { name: "07-project-detail", url: "/project/sample/", wait: 1000 },
+  { name: "01-root", url: "/en/", wait: 1200 },
+  { name: "02-docs", url: "/en/docs/", wait: 800 },
+  { name: "03-ontology", url: "/en/ontology/", wait: 800 },
+  { name: "04-topology", url: "/en/topology/", wait: 1000 },
+  { name: "05-projects", url: "/en/projects/", wait: 800 },
+  { name: "06-project-detail", url: "/en/project/oh-my-ontology/", wait: 1000 },
 ];
 
 test("데스크탑 라우트 순회", async ({ page }) => {
@@ -91,7 +90,7 @@ test("모바일 루트와 상세", async ({ page }) => {
   const bucket = makeBucket();
   hook(page, bucket);
 
-  for (const r of [routes[0], routes[1], routes[6]]) {
+  for (const r of [routes[0], routes[2], routes[5]]) {
     const res = await page.goto(r.url, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(r.wait ?? 500);
     await snap(page, `mobile-${r.name}`);

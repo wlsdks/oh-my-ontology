@@ -288,14 +288,14 @@ export function DocsVaultViewer({
       h1({ children, ...rest }) {
         const slug = nextHeadingSlug(children);
         return (
-          <h1
+          <h2
             id={slug}
             className="group relative mt-0 mb-6 text-[26px] font-semibold leading-tight text-[color:var(--color-text-primary)]"
             {...rest}
           >
             {highlightChildren(children, 'h1')}
             <HeadingAnchor anchor={slug} docSlug={doc.slug} basePath={basePath} />
-          </h1>
+          </h2>
         );
       },
       h2({ children, ...rest }) {

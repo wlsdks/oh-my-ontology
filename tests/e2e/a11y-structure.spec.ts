@@ -8,13 +8,13 @@ import { test, type Page } from "@playwright/test";
  */
 
 const ROUTES = [
-  "/",
-  "/project/sample/",
-  "/docs/",
-  "/topology/",
-  "/ontology/",
-  "/ontology/edit/",
-  "/projects/",
+  "/en/",
+  "/en/project/oh-my-ontology/",
+  "/en/docs/",
+  "/en/topology/",
+  "/en/ontology/",
+  "/en/ontology/edit/",
+  "/en/projects/",
 ];
 
 interface Finding {

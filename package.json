@@ -23,7 +23,8 @@
     "lint": "eslint",
     "bundle:check": "node scripts/check-bundle.mjs",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.0.0",
