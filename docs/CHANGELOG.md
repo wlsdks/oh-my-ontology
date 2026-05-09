@@ -22,6 +22,13 @@ Claude/Cursor, and Codex needs the printed `mcp add` command.
 (`oh-my-ontology analyze . --vault ./ontology` and `bootstrap . --vault
 ./ontology`) instead of placeholder `/path/to/your/repo` examples.
 
+### Docs first-time path and route drift cleanup
+
+The `/docs/?intent=local` first-time path now has E2E coverage for the
+`docs/ontology/` dogfood hint. README and PRODUCT-DIRECTION were realigned with
+the current route/tool surface: `/ontology/relations` is no longer listed as a
+live route, MCP is 20 tools, and the dogfood vault count is 26 nodes.
+
 ### Local vault change toast coverage
 
 `VaultDiffToaster` now delegates toast planning to a pure helper. Unit coverage

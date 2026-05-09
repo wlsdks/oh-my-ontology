@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T11:53:00.690Z",
+  "generatedAt": "2026-05-09T11:57:49.578Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -1584,8 +1584,8 @@
         },
         {
           "depth": 3,
-          "text": "T29. /docs/ first-time UX — dogfood vault hint",
-          "slug": "t29-docs-first-time-ux-dogfood-vault-hint"
+          "text": "~~T29. /docs/ first-time UX — dogfood vault hint~~ — DONE (2026-05-09)",
+          "slug": "t29-docs-first-time-ux-dogfood-vault-hint-done-2026-05-09"
         },
         {
           "depth": 3,
@@ -1673,9 +1673,9 @@
           "slug": "참조-문서"
         }
       ],
-      "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260506): R12/R13/R14 wave 묶음 정리 후 전면 재정렬. 4 surface 완성, dogfood 25 노드, AI agent ↔ vault 자동 sync 도달. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | 156 | graph diff pulse | ✅ 새 노드 amber s",
-      "wordCount": 1332,
-      "updatedAt": "2026-05-09T11:52:14.074Z",
+      "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260509): localfirst 3 surface (CLI · MCP · Web) 기준으로 재정렬. dogfood 26 노드, clean onboarding + Codex MCP setup smoke + current web E2E 복구 완료. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | ",
+      "wordCount": 1334,
+      "updatedAt": "2026-05-09T11:56:25.501Z",
       "linksOut": []
     },
     {
@@ -2291,6 +2291,11 @@
           "depth": 2,
           "text": "2026-05-09 — Clean onboarding bootstrap polish",
           "slug": "2026-05-09-clean-onboarding-bootstrap-polish"
+        },
+        {
+          "depth": 3,
+          "text": "Docs first-time path and route drift cleanup",
+          "slug": "docs-first-time-path-and-route-drift-cleanup"
         },
         {
           "depth": 3,
@@ -3254,8 +3259,8 @@
         }
       ],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Fresh user setup now covers the full init → bootstrap → validate → MCP register journey. a",
-      "wordCount": 14231,
-      "updatedAt": "2026-05-09T11:52:14.075Z",
+      "wordCount": 14283,
+      "updatedAt": "2026-05-09T11:56:25.502Z",
       "linksOut": [
         "slug"
       ]
@@ -4185,9 +4190,9 @@
           "slug": "8-source-of-truth-files"
         }
       ],
-      "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260506 (postRound15 — VSCode plugin 제거, 3 surface 회복 + R14 자동화/live updates 추가 반영). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아 별도 sweep 보다 대부분 정확 가정. Update trigger:",
-      "wordCount": 4599,
-      "updatedAt": "2026-05-09T08:02:06.039Z",
+      "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260509 (postcleanonboarding — CLI · MCP · Web 3 surface, 20 MCP tools, clean Codex setup smoke, current web E2E restored). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아",
+      "wordCount": 4605,
+      "updatedAt": "2026-05-09T11:56:54.214Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -5602,8 +5607,8 @@
         }
       ],
       "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. One codebase, one ontology, tha",
-      "wordCount": 1802,
-      "updatedAt": "2026-05-09T06:39:51.937Z",
+      "wordCount": 1790,
+      "updatedAt": "2026-05-09T11:56:04.273Z",
       "linksOut": []
     },
     {

@@ -1,7 +1,7 @@
 # FEATURES — oh-my-ontology
 
 > Complete inventory of features users can **actually use right now**.
-> Last updated: 2026-05-06 (post-Round-15 — VSCode plugin 제거, 3 surface 회복 + R14 자동화/live updates 추가 반영).
+> Last updated: 2026-05-09 (post-clean-onboarding — CLI · MCP · Web 3 surface, 20 MCP tools, clean Codex setup smoke, current web E2E restored).
 > Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI micro-detail 은 R10 후 변화 작아 별도 sweep 보다 *대부분 정확* 가정.
 > Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG.
 

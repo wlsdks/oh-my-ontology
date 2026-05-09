@@ -222,7 +222,7 @@ pnpm bundle:check                 # local-first chunk 회귀 차단
 
 | 영역 | 라우트 |
 |---|---|
-| 시각화 | `/`, `/topology`, `/ontology`, `/ontology/edit`, `/ontology/insights`, `/ontology/relations` |
+| 시각화 | `/`, `/topology`, `/ontology`, `/ontology/edit`, `/ontology/insights` |
 | 프로젝트 | `/projects`, `/project/[slug]`, `/project/[slug]/edit`, `/project/new` |
 | Vault | `/docs` |
 

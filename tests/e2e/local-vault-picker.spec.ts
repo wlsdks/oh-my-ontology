@@ -53,6 +53,20 @@ const REMOVE_SHOW_DIRECTORY_PICKER = `
 `;
 
 test.describe("로컬 볼트 picker", () => {
+  test("first-time local intent shows the dogfood vault hint", async ({ page }) => {
+    await page.addInitScript(PRESET_LOCAL_SOURCE);
+
+    await page.goto("/en/docs/?intent=local");
+
+    await expect(
+      page.getByText(/First time\? Try selecting this repo's/),
+    ).toBeVisible();
+    await expect(page.getByText("docs/ontology/")).toBeVisible();
+    await expect(
+      page.getByText(/this tool's own ontology vault appears/),
+    ).toBeVisible();
+  });
+
   test("폴더 선택 후 매니페스트가 빌드되어 문서 1개 표시", async ({ page }) => {
     await page.addInitScript(MOCK_PICKER_SCRIPT);
     await page.addInitScript(PRESET_LOCAL_SOURCE);
