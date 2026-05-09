@@ -79,8 +79,8 @@ The walk runs against `docs/ontology/` by default. If you renamed/moved that fol
 
 ### Agent doesn't see `oh-my-ontology__list_concepts` etc.
 
-1. Confirm the package is reachable: `npx -y oh-my-ontology-mcp` (it should start a stdio server and wait — Ctrl+C to exit).
-2. Check the agent's MCP config — `command` should be `npx`, `args: ["-y", "oh-my-ontology-mcp"]`.
+1. Confirm the MCP server is reachable. Published install: `npx -y oh-my-ontology-mcp` should start a stdio server and wait (Ctrl+C to exit). Source checkout: the generated config should use `node` with an absolute `mcp/src/index.js` path.
+2. Check the agent's MCP config — published install uses `command: "npx", args: ["-y", "oh-my-ontology-mcp"]`; source checkout uses `command: "node", args: ["/absolute/path/to/mcp/src/index.js"]`.
 3. Set `env.OMOT_VAULT` to the **absolute path** of the vault folder (the browser app's `.mcp.json.example` ships a placeholder; you must replace it).
 4. Restart the agent (Claude Code / Cursor pickup MCP config at start).
 

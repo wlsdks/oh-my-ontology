@@ -378,7 +378,7 @@ function printUsage() {
       `                           [--max-depth N] [--max-files N]\n\n` +
       `${COLORS.bold}What it does:${COLORS.reset}\n` +
       `  1줄 full bootstrap. analyze --apply (노드 + suggested relations) +\n` +
-      `  infer-imports --apply (depends_on edges) 를 합친 단일 명령.\n` +
+      `  infer-imports --apply (depends_on edges) 를 합친 적용 명령.\n` +
       `  agent-less 환경 (CI · plain shell) 또는 새 repo 진입 직후 흐름.\n\n` +
       `${COLORS.bold}Examples:${COLORS.reset}\n` +
       `  oh-my-ontology bootstrap                       # cwd → cwd vault\n` +

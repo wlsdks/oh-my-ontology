@@ -16,12 +16,14 @@ import {
 } from 'node:fs';
 import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { stdout, stderr, argv, exit, cwd } from 'node:process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_ROOT = resolve(__dirname, '..', 'templates', 'vault');
 const PKG_ROOT = resolve(__dirname, '..');
 const PKG = JSON.parse(readFileSync(join(PKG_ROOT, 'package.json'), 'utf-8'));
+const require_ = createRequire(import.meta.url);
 
 const COLORS = {
   reset: '\x1b[0m',
@@ -113,6 +115,27 @@ function fail(msg) {
   stderr.write(`${COLORS.bold}error${COLORS.reset} ${msg}\n`);
 }
 
+function resolveMcpServerCommand() {
+  const envPath = process.env.OMOT_MCP_PATH;
+  if (envPath && existsSync(envPath)) {
+    return { command: 'node', args: [envPath] };
+  }
+
+  try {
+    return {
+      command: 'node',
+      args: [require_.resolve('oh-my-ontology-mcp/src/index.js')],
+    };
+  } catch {
+    const monoDev = resolve(PKG_ROOT, '..', 'mcp', 'src', 'index.js');
+    if (existsSync(monoDev)) {
+      return { command: 'node', args: [monoDev] };
+    }
+  }
+
+  return { command: 'npx', args: ['-y', 'oh-my-ontology-mcp'] };
+}
+
 function copyTree(srcRoot, destRoot) {
   let created = 0;
   let skipped = 0;
@@ -169,11 +192,12 @@ function runInit(targetArg) {
   // other servers wired) — a `.mcp.json.example` is dropped instead so the
   // user can diff and merge by hand.
   function mcpConfigForVault(omotVault) {
+    const serverCommand = resolveMcpServerCommand();
     return {
       mcpServers: {
         'oh-my-ontology': {
-          command: 'npx',
-          args: ['-y', 'oh-my-ontology-mcp'],
+          command: serverCommand.command,
+          args: serverCommand.args,
           env: { OMOT_VAULT: omotVault },
         },
       },
@@ -221,8 +245,8 @@ ${COLORS.bold}Next steps:${COLORS.reset}
        ${COLORS.cyan}oh-my-ontology validate${COLORS.reset}                    ${COLORS.dim}# frontmatter integrity${COLORS.reset}
 
   ${COLORS.dim}2.${COLORS.reset} ${COLORS.bold}Bootstrap from your codebase${COLORS.reset} (recommended — agent-less, 1 line):
-       ${COLORS.cyan}oh-my-ontology bootstrap /path/to/your/repo${COLORS.reset} ${COLORS.dim}# preview only${COLORS.reset}
-       ${COLORS.cyan}oh-my-ontology bootstrap /path/to/your/repo --apply${COLORS.reset}
+       ${COLORS.cyan}oh-my-ontology analyze /path/to/your/repo${COLORS.reset}    ${COLORS.dim}# preview candidates only${COLORS.reset}
+       ${COLORS.cyan}oh-my-ontology bootstrap /path/to/your/repo${COLORS.reset}  ${COLORS.dim}# apply nodes + edges${COLORS.reset}
        ${COLORS.dim}analyze (project + domains + capabilities + elements) + infer-imports${COLORS.reset}
        ${COLORS.dim}(depends_on edges) batch land in 3 round-trips. --threshold N filters${COLORS.reset}
        ${COLORS.dim}weak imports.${COLORS.reset}

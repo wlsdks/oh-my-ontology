@@ -57,9 +57,9 @@ The response shape:
   "rootPath": "/path/to/repo",
   "framework": "fsd" | "next" | "generic",
   "project":      { "slug": "...", "title": "..." },
-  "domains":      [{ "slug", "title", "evidence": { "source": "README.md", "line": 7 } }, …],
-  "capabilities": [{ "slug", "title", "evidence": { "source": "src/features/auth" } }, …],
-  "elements":     [{ "slug", "title", "evidence": { "source": "src/widgets/header" } }, …],
+  "domains":      [{ "slug": "domains/auth", "title", "evidence": { "source": "README.md", "line": 7 } }, …],
+  "capabilities": [{ "slug": "capabilities/login", "title", "domain": "domains/auth", "evidence": { "source": "src/features/login" } }, …],
+  "elements":     [{ "slug": "elements/src/widgets/header", "title", "evidence": { "source": "src/widgets/header" } }, …],
   "suggestedRelations": [{ "from": "<project>", "to": "<cap>", "type": "contains" }, …],
   "skipped":      [{ "path": "...", "reason": "dotfile/ignore" }, …]
 }
@@ -74,9 +74,9 @@ Five lines max — the agent is the curator, not the encyclopedia. Group by kind
 ```
 Detected framework: fsd
 project:       my-app — Sample app
-domains (3):   authentication · billing · notifications     ← README.md
-capabilities (5): auth · billing · user · …                 ← src/features/* + src/entities/*
-elements (2):  src/widgets/header · src/views/home          ← FSD widget/view dirs
+domains (3):   domains/authentication · domains/billing · … ← README.md
+capabilities (5): capabilities/auth · capabilities/user · … ← src/features/* + src/entities/*
+elements (2):  elements/src/widgets/header · …              ← FSD widget/view dirs
 
 Land all of these as the ontology bootstrap? (yes / pick / refine)
 ```

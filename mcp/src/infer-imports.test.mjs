@@ -101,10 +101,9 @@ test('dynamic import + require + reexport detected', () => {
   }
 });
 
-test('module-level edge collapse (FSD features/ — bucket 접두 stripped, analyze 와 일관)', () => {
-  // R+ — cycle 35: features/X · entities/X 는 inner 이름만 slug.
-  // analyze_repo_structure 가 capability 후보 slug 을 같은 식으로 만들어
-  // bootstrap 의 add_relations 가 endpoint 매치 가능.
+test('module-level edge collapse (FSD features/ — capability folder slug, analyze 와 일관)', () => {
+  // features/X · entities/X 는 capabilities/X 로 맞춘다. analyze_repo_structure
+  // 후보와 같은 slug 라 bootstrap 의 add_relations endpoint 가 매치된다.
   const root = withRepo((r) => {
     mkdirSync(join(r, 'src/features/auth'), { recursive: true });
     mkdirSync(join(r, 'src/features/billing'), { recursive: true });
@@ -118,18 +117,17 @@ test('module-level edge collapse (FSD features/ — bucket 접두 stripped, anal
   try {
     const r = inferImports(root);
     const e = r.moduleEdges.find(
-      (x) => x.from === 'auth' && x.to === 'billing',
+      (x) => x.from === 'capabilities/auth' && x.to === 'capabilities/billing',
     );
-    assert.ok(e, `expected module edge auth → billing, got: ${JSON.stringify(r.moduleEdges)}`);
+    assert.ok(e, `expected module edge capabilities/auth → capabilities/billing, got: ${JSON.stringify(r.moduleEdges)}`);
     assert.equal(e.count, 2, '두 import 합산');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-test('module-level edge collapse (FSD widgets/ — path-style 유지, element slug 와 일관)', () => {
-  // R+ — cycle 35: widgets/X · views/X 는 path-style 유지 (analyze 가 element
-  // 후보 slug 으로 같은 식 — relative path).
+test('module-level edge collapse (FSD widgets/ — element folder slug, analyze 와 일관)', () => {
+  // widgets/X · views/X 는 elements/src/... path-style 로 유지한다.
   const root = withRepo((r) => {
     mkdirSync(join(r, 'src/widgets/header'), { recursive: true });
     mkdirSync(join(r, 'src/widgets/footer'), { recursive: true });
@@ -142,9 +140,9 @@ test('module-level edge collapse (FSD widgets/ — path-style 유지, element sl
   try {
     const r = inferImports(root);
     const e = r.moduleEdges.find(
-      (x) => x.from === 'widgets/header' && x.to === 'widgets/footer',
+      (x) => x.from === 'elements/src/widgets/header' && x.to === 'elements/src/widgets/footer',
     );
-    assert.ok(e, `expected module edge widgets/header → widgets/footer, got: ${JSON.stringify(r.moduleEdges)}`);
+    assert.ok(e, `expected module edge elements/src/widgets/header → elements/src/widgets/footer, got: ${JSON.stringify(r.moduleEdges)}`);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

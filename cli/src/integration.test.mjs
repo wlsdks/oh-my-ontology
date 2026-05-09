@@ -19,9 +19,10 @@ import { tmpdir } from 'node:os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, 'index.mjs');
 
-function run(args) {
+function run(args, options = {}) {
   return new Promise((resolve, reject) => {
     const proc = spawn('node', [CLI, ...args], {
+      cwd: options.cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     let stdout = '';
@@ -70,6 +71,26 @@ await test('list — empty vault: 0 노드 메시지', async () => {
     const r = await run(['list', root]);
     assert.equal(r.code, 0);
     assert.match(r.stdout, /ontology 노드 0|0 ontology 노드/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('init — generated MCP config points at a runnable local server in source checkout', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'cli-init-'));
+  try {
+    const r = await run(['init', 'ontology'], { cwd: root });
+    assert.equal(r.code, 0);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /20 tools/);
+    assert.doesNotMatch(clean, /16 MCP tools|16 tools/);
+    assert.doesNotMatch(clean, /bootstrap .*--apply/);
+
+    const config = JSON.parse(readFileSync(join(root, '.mcp.json'), 'utf-8'));
+    const server = config.mcpServers['oh-my-ontology'];
+    assert.equal(server.env.OMOT_VAULT, './ontology');
+    assert.equal(server.command, 'node');
+    assert.match(server.args[0], /mcp\/src\/index\.js$/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -1308,11 +1329,11 @@ function makeImportRepo() {
 await test('infer-imports --apply — depends_on 관계 land (endpoints 존재 시)', async () => {
   const vault = withVault([
     {
-      slug: 'a',
+      slug: 'capabilities/a',
       content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n',
     },
     {
-      slug: 'b',
+      slug: 'capabilities/b',
       content: '---\nkind: capability\ntitle: B\ndomain: x\n---\n',
     },
   ]);
@@ -1330,7 +1351,7 @@ await test('infer-imports --apply — depends_on 관계 land (endpoints 존재 �
     assert.match(clean, /infer-imports --apply/);
     assert.match(clean, /landed|already existed/);
     // a.md 의 frontmatter 에 dependencies (inline 또는 list) 에 b 포함.
-    const aDoc = readFileSync(join(vault, 'a.md'), 'utf-8');
+    const aDoc = readFileSync(join(vault, 'capabilities', 'a.md'), 'utf-8');
     assert.match(aDoc, /dependencies:.*\bb\b/s);
   } finally {
     rmSync(vault, { recursive: true, force: true });
@@ -1341,16 +1362,16 @@ await test('infer-imports --apply — depends_on 관계 land (endpoints 존재 �
 await test('infer-imports (default) — vault 변경 0', async () => {
   const vault = withVault([
     {
-      slug: 'a',
+      slug: 'capabilities/a',
       content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n',
     },
   ]);
   const repo = makeImportRepo();
   try {
-    const before = readFileSync(join(vault, 'a.md'), 'utf-8');
+    const before = readFileSync(join(vault, 'capabilities', 'a.md'), 'utf-8');
     const r = await run(['infer-imports', repo, '--vault', vault]);
     assert.equal(r.code, 0);
-    const after = readFileSync(join(vault, 'a.md'), 'utf-8');
+    const after = readFileSync(join(vault, 'capabilities', 'a.md'), 'utf-8');
     assert.equal(after, before, 'a.md 내용 그대로 (default 모드)');
   } finally {
     rmSync(vault, { recursive: true, force: true });
@@ -1362,7 +1383,7 @@ await test('infer-imports --apply — endpoint 없으면 row-level error, batch 
   // vault 에 a 만 있고 b 가 없음 — a → b edge 는 fail 행, batch 자체는 OK.
   const vault = withVault([
     {
-      slug: 'a',
+      slug: 'capabilities/a',
       content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n',
     },
   ]);
@@ -1388,8 +1409,8 @@ await test('infer-imports --apply — endpoint 없으면 row-level error, batch 
 
 await test('infer-imports --apply — 마지막 vault census 라인 (R+ cycle 38)', async () => {
   const vault = withVault([
-    { slug: 'a', content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n' },
-    { slug: 'b', content: '---\nkind: capability\ntitle: B\ndomain: x\n---\n' },
+    { slug: 'capabilities/a', content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n' },
+    { slug: 'capabilities/b', content: '---\nkind: capability\ntitle: B\ndomain: x\n---\n' },
   ]);
   const repo = makeImportRepo();
   try {
@@ -1413,11 +1434,11 @@ await test('infer-imports --apply — 마지막 vault census 라인 (R+ cycle 38
 await test('infer-imports --apply --json — applied / summary 필드 노출', async () => {
   const vault = withVault([
     {
-      slug: 'a',
+      slug: 'capabilities/a',
       content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n',
     },
     {
-      slug: 'b',
+      slug: 'capabilities/b',
       content: '---\nkind: capability\ntitle: B\ndomain: x\n---\n',
     },
   ]);
@@ -1535,9 +1556,9 @@ await test('infer-imports --threshold 3 --apply — 약한 edge 는 land 안 됨
   // vault 에 a, b, c 모두 존재 — threshold 없으면 a→b, a→c 둘 다 land.
   // threshold 3 면 a→b 만 land, a→c 는 filtered out (depend on c 안 생김).
   const vault = withVault([
-    { slug: 'a', content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n' },
-    { slug: 'b', content: '---\nkind: capability\ntitle: B\ndomain: x\n---\n' },
-    { slug: 'c', content: '---\nkind: capability\ntitle: C\ndomain: x\n---\n' },
+    { slug: 'capabilities/a', content: '---\nkind: capability\ntitle: A\ndomain: x\n---\n' },
+    { slug: 'capabilities/b', content: '---\nkind: capability\ntitle: B\ndomain: x\n---\n' },
+    { slug: 'capabilities/c', content: '---\nkind: capability\ntitle: C\ndomain: x\n---\n' },
   ]);
   const repo = makeStrongImportRepo();
   try {
@@ -1551,7 +1572,7 @@ await test('infer-imports --threshold 3 --apply — 약한 edge 는 land 안 됨
       '3',
     ]);
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
-    const aDoc = readFileSync(join(vault, 'a.md'), 'utf-8');
+    const aDoc = readFileSync(join(vault, 'capabilities', 'a.md'), 'utf-8');
     // a 는 b 의존 (count=3, ≥ threshold).
     assert.match(aDoc, /dependencies:.*\bb\b/s);
     // a 는 c 의존 *없음* (count=1, < threshold) — filter out.
@@ -1644,16 +1665,16 @@ await test('bootstrap — analyze + infer-imports 한 명령으로 land (FSD slu
     assert.match(clean, /2\) imports/);
     // project + capability 노드 land
     assert.equal(existsSyncTest(join(vault, 'bs-app.md')), true, 'project');
-    assert.equal(existsSyncTest(join(vault, 'auth.md')), true, 'auth capability');
+    assert.equal(existsSyncTest(join(vault, 'capabilities', 'auth.md')), true, 'auth capability');
     assert.equal(
-      existsSyncTest(join(vault, 'billing.md')),
+      existsSyncTest(join(vault, 'capabilities', 'billing.md')),
       true,
       'billing capability',
     );
-    // R+ — FSD slug parity 확인. analyze 가 "auth" / "billing" 으로 capability
-    // 만들고, infer_imports 의 module slug 도 "auth" → "billing" 으로 일치해야
+    // R+ — FSD slug parity 확인. analyze 가 "capabilities/auth" /
+    // "capabilities/billing" 으로 capability 만들고, infer_imports 의 module slug 도 일치해야
     // depends_on 에지가 진짜 land 됨. cycle 34 known issue 의 회귀 차단.
-    const authDoc = readFileSync(join(vault, 'auth.md'), 'utf-8');
+    const authDoc = readFileSync(join(vault, 'capabilities', 'auth.md'), 'utf-8');
     assert.match(
       authDoc,
       /dependencies:.*\bbilling\b/s,

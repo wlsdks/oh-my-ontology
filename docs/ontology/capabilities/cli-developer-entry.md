@@ -15,7 +15,7 @@ R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import
 
 | Command | What it does |
 |---|---|
-| `oh-my-ontology init [folder]` | Scaffold vault (5 starter .md + `.mcp.json` cwd + vault) |
+| `oh-my-ontology init [folder]` | Scaffold vault (5 starter .md + `.mcp.json` cwd + vault). Source checkout 에서는 npm 404 없이 바로 붙도록 local `mcp/src/index.js` 를 가리킴. |
 | `oh-my-ontology list [vault]` | List ontology nodes (color table, `--kind X` filter, `--json`) |
 | `oh-my-ontology validate [vault]` | Frontmatter integrity check (6 issue codes; CI gate via exit 1, R+ grouped-by-code 요약) |
 | `oh-my-ontology add <kind> <slug> --title="..."` | Scaffold new node (duplicate throw, `--domain --body --vault`, R15 `--auto-prefix` default on, `--raw-slug` opt-out) |
@@ -26,9 +26,9 @@ R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import
 
 | Command | What it does |
 |---|---|
-| `oh-my-ontology bootstrap [rootPath]` | **R+** 1줄 full bootstrap. analyze --apply (노드 + suggested relations) + infer-imports --apply (depends_on edges) 합본. `--threshold N` (약한 import 차단), `--skip-imports` (1단계만), `--json`. agent-less 흐름의 가장 짧은 path. |
-| `oh-my-ontology analyze [rootPath]` | **R16** Walk `package.json` / `README.md` H2 / `src/` → ontology 노드 후보. side effect 0 (default). **R+ `--apply`**: 후보를 `add_concepts` + `add_relations` 배치로 land. |
-| `oh-my-ontology infer-imports [rootPath]` | **R17** TS/JS import graph → moduleEdges. side effect 0 (default). **R+ `--apply`**: moduleEdges 를 `depends_on` 관계로 batch land (50-row chunk). **R+ `--threshold N`**: count < N 약한 edge 필터. |
+| `oh-my-ontology bootstrap [rootPath]` | **R+** 1줄 full bootstrap 적용 명령. analyze --apply (노드 + suggested relations) + infer-imports --apply (depends_on edges) 합본. `--threshold N` (약한 import 차단), `--skip-imports` (1단계만), `--json`. agent-less 흐름의 가장 짧은 path. |
+| `oh-my-ontology analyze [rootPath]` | **R16** Walk `package.json` / `README.md` H2 / `src/` → ontology 노드 후보. side effect 0 (default). 후보 slug 는 starter/CLI add 와 같은 `domains/*`, `capabilities/*`, `elements/src/...` shape. **R+ `--apply`**: 후보를 `add_concepts` + `add_relations` 배치로 land. |
+| `oh-my-ontology infer-imports [rootPath]` | **R17** TS/JS import graph → moduleEdges. side effect 0 (default). moduleEdges 역시 folder-prefixed slug 로 analyze 후보와 바로 매치. **R+ `--apply`**: moduleEdges 를 `depends_on` 관계로 batch land (50-row chunk). **R+ `--threshold N`**: count < N 약한 edge 필터. |
 
 ## Graph-level commands (R15 follow-up — Concern 4 fix + R+ extras)
 
@@ -52,4 +52,4 @@ cli 가 별도 npm package — `oh-my-ontology` binary. cli/package.json 의 `de
 
 ## 회귀 차단
 
-cli/src/integration.test.mjs — **58 spawn-based** integration test (R12 #40 11 + R14 add/import 9 + R15 follow-up 8 + R15 hint 4 + R+ analyze/infer-imports apply 4×2 + R+ threshold 4 + R+ bootstrap 5). 매 PR 마다 graph-level 명령의 dry-run/confirm 경로 + backlink redirect 검증.
+cli/src/integration.test.mjs — **77 spawn-based** integration test. 매 PR 마다 init MCP config, graph-level 명령의 dry-run/confirm 경로, backlink redirect, analyze/infer-imports/bootstrap apply 경로를 검증.

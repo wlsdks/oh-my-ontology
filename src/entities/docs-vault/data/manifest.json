@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T07:11:10.679Z",
+  "generatedAt": "2026-05-09T07:45:50.234Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -4529,8 +4529,8 @@
         }
       ],
       "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령 추가 — 총 16 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | What it does | ||| | ohmyontology init [folder] | S",
-      "wordCount": 583,
-      "updatedAt": "2026-05-07T11:33:05.212Z",
+      "wordCount": 594,
+      "updatedAt": "2026-05-09T07:33:22.087Z",
       "linksOut": []
     },
     {
@@ -4643,8 +4643,8 @@
         }
       ],
       "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 20 도구 노출 (read 12 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터) | | getconcept | 단일 slug 의 frontmatter + body excerpt + 이웃 | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing 은 partial result) | | findevidence | title 부분매칭으로 vau",
-      "wordCount": 458,
-      "updatedAt": "2026-05-07T11:33:05.213Z",
+      "wordCount": 471,
+      "updatedAt": "2026-05-09T07:33:30.754Z",
       "linksOut": []
     },
     {
@@ -4717,8 +4717,8 @@
         }
       ],
       "excerpt": "R16 followup — /ontologybootstrap slash skill 의 coldstart counterpart. /ontologysync 가 이미 자란 vault 의 incremental sync 라면, 이 skill 은 fresh init 직후 빈 vault 를 codebase 에서 한 번에 채우는 흐름. 1. listkinds — vault 가 진짜 coldstart 인지 (≤ 5 nodes) 확인 2. analyzerepostructure 1 회 호출 (mcp 도구, R16 v0.8.0) — package.json / README.md H2 / s",
-      "wordCount": 241,
-      "updatedAt": "2026-05-07T11:33:05.214Z",
+      "wordCount": 258,
+      "updatedAt": "2026-05-09T07:33:36.812Z",
       "linksOut": []
     },
     {
@@ -5858,8 +5858,8 @@
         }
       ],
       "excerpt": "Common issues users hit when starting with ohmyontology. If your case isn't here, open an issue: https://github.com/wlsdks/ohmyontology/issues npm caches the package locally. Force a fresh fetch: The target folder already has README.md / project.md / etc. — the CLI never overwrites existing files. Either: Delete the co",
-      "wordCount": 1126,
-      "updatedAt": "2026-05-04T10:06:27.437Z",
+      "wordCount": 1148,
+      "updatedAt": "2026-05-09T07:27:13.350Z",
       "linksOut": []
     }
   ],

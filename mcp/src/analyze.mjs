@@ -81,6 +81,9 @@ export function analyzeRepoStructure(rootPath, options = {}) {
   const skipped = [];
   const project = detectProject(rootPath);
   const { domains, readmePath } = detectDomainsFromReadme(rootPath);
+  const domainSlugsByTail = new Map(
+    domains.map((domain) => [tailSlug(domain.slug), domain.slug]),
+  );
 
   // SOURCE_FOLDERS 중 첫 번째 존재하는 것을 src dir 로
   let srcDir = null;
@@ -132,8 +135,8 @@ export function analyzeRepoStructure(rootPath, options = {}) {
           // element 후보 (FSD 정의)
           const isCapabilityish = r === 'features' || r === 'entities';
           const slug = isCapabilityish
-            ? `${sub}`
-            : `${r}/${sub}`;
+            ? `capabilities/${sub}`
+            : `elements/${relative(rootPath, subPath)}`;
           const evidence = {
             source: relative(rootPath, subPath),
           };
@@ -141,11 +144,14 @@ export function analyzeRepoStructure(rootPath, options = {}) {
             capabilities.push({
               slug,
               title: humanize(sub),
+              ...(domainSlugsByTail.has(slugify(sub))
+                ? { domain: domainSlugsByTail.get(slugify(sub)) }
+                : {}),
               evidence,
             });
           } else {
             elements.push({
-              slug: relative(rootPath, subPath),
+              slug,
               title: humanize(sub),
               evidence,
             });
@@ -162,8 +168,11 @@ export function analyzeRepoStructure(rootPath, options = {}) {
         const subPath = join(srcDir, sub);
         if (!statSync(subPath).isDirectory()) continue;
         capabilities.push({
-          slug: sub,
+          slug: `capabilities/${sub}`,
           title: humanize(sub),
+          ...(domainSlugsByTail.has(slugify(sub))
+            ? { domain: domainSlugsByTail.get(slugify(sub)) }
+            : {}),
           evidence: { source: relative(rootPath, subPath) },
         });
         // index 파일이 있으면 element 추가
@@ -171,7 +180,7 @@ export function analyzeRepoStructure(rootPath, options = {}) {
           const ep = join(subPath, entry);
           if (existsSync(ep)) {
             elements.push({
-              slug: relative(rootPath, ep),
+              slug: `elements/${relative(rootPath, ep)}`,
               title: `${humanize(sub)} entry`,
               evidence: { source: relative(rootPath, ep) },
             });
@@ -258,8 +267,6 @@ function detectDomainsFromReadme(rootPath) {
         const m = lines[i].match(/^##\s+(.+?)\s*$/);
         if (!m) continue;
         const title = m[1].trim();
-        const slug = slugify(title);
-        if (!slug || seen.has(slug)) continue;
         // skip generic README sections
         if (
           /^(usage|installation|getting started|quick start|license|contributing|requirements|features|setup|status|tech stack|architecture|folder map|routes|tests?|documentation)$/i.test(
@@ -268,6 +275,10 @@ function detectDomainsFromReadme(rootPath) {
         ) {
           continue;
         }
+        const rawSlug = slugify(title);
+        if (!rawSlug) continue;
+        const slug = `domains/${rawSlug}`;
+        if (seen.has(slug)) continue;
         seen.add(slug);
         domains.push({
           slug,
@@ -298,4 +309,8 @@ function slugify(s) {
     .replace(/[^a-z0-9가-힣\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-');
+}
+
+function tailSlug(slug) {
+  return String(slug).split('/').filter(Boolean).at(-1) ?? '';
 }

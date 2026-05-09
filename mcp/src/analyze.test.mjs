@@ -38,15 +38,15 @@ test('FSD repo — features/ + entities/ → capabilities, widgets/ + views/ →
     assert.equal(r.framework, 'fsd');
     assert.deepEqual(
       [...r.capabilities.map((c) => c.slug)].sort(),
-      ['auth', 'billing', 'user'],
+      ['capabilities/auth', 'capabilities/billing', 'capabilities/user'],
     );
     assert.deepEqual(
       [...r.elements.map((e) => e.slug)].sort(),
-      ['src/views/home', 'src/widgets/header'],
+      ['elements/src/views/home', 'elements/src/widgets/header'],
     );
     assert.deepEqual(
       r.domains.map((d) => d.slug),
-      ['authentication', 'billing'],
+      ['domains/authentication', 'domains/billing'],
     );
     assert.equal(r.project.slug, 'my-app');
     assert.equal(r.project.title, 'Sample');
@@ -68,7 +68,7 @@ test('Generic repo — src/ depth-1 folders → capabilities', () => {
     assert.equal(r.framework, 'generic');
     assert.deepEqual(
       r.capabilities.map((c) => c.slug).sort(),
-      ['api', 'db'],
+      ['capabilities/api', 'capabilities/db'],
     );
     // index.ts → element
     const apiEl = r.elements.find((e) => e.slug.endsWith('api/index.ts'));
@@ -101,7 +101,7 @@ test('Generic README sections (Usage / Installation / Tests) skipped from domain
     const r = analyzeRepoStructure(root);
     assert.deepEqual(
       r.domains.map((d) => d.slug),
-      ['real-domain'],
+      ['domains/real-domain'],
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -119,7 +119,7 @@ test('Ignored folders skip — node_modules / .git / dist', () => {
     const r = analyzeRepoStructure(root);
     assert.deepEqual(
       r.capabilities.map((c) => c.slug),
-      ['real'],
+      ['capabilities/real'],
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -155,8 +155,25 @@ test('Suggested relations — project contains each capability', () => {
     );
     assert.deepEqual(
       r.suggestedRelations.map((rel) => rel.to).sort(),
-      ['auth', 'billing'],
+      ['capabilities/auth', 'capabilities/billing'],
     );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('README domain and feature with same name do not collide', () => {
+  const root = withRepo((r) => {
+    writeFileSync(join(r, 'package.json'), JSON.stringify({ name: 'notes' }));
+    writeFileSync(join(r, 'README.md'), '# Notes\n\n## Capture\n');
+    mkdirSync(join(r, 'src/features/capture'), { recursive: true });
+  });
+  try {
+    const r = analyzeRepoStructure(root);
+    assert.deepEqual(r.domains.map((d) => d.slug), ['domains/capture']);
+    assert.deepEqual(r.capabilities.map((c) => c.slug), ['capabilities/capture']);
+    assert.equal(r.capabilities[0].domain, 'domains/capture');
+    assert.equal(r.suggestedRelations[0].to, 'capabilities/capture');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

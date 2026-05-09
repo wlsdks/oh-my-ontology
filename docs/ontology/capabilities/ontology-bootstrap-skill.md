@@ -12,7 +12,7 @@ R16 follow-up — `/ontology-bootstrap` slash skill 의 cold-start counterpart. 
 
 1. `list_kinds` — vault 가 진짜 cold-start 인지 (≤ 5 nodes) 확인
 2. `analyze_repo_structure` 1 회 호출 (mcp 도구, R16 v0.8.0)
-   — `package.json` / `README.md` H2 / `src/` 폴더 → deterministic 후보. side effect 0.
+   — `package.json` / `README.md` H2 / `src/` 폴더 → deterministic 후보. side effect 0. 후보 slug 는 `domains/*`, `capabilities/*`, `elements/src/...` 로 생성돼 README H2 와 feature folder 이름이 같아도 충돌하지 않음.
 3. 후보를 사용자에게 *5 줄 max* 요약 (kind 별 count + 상위 3 + evidence)
 4. 사용자 분기 — yes / pick / refine
 5. **`add_concepts`** (R+ batch writer, max 50) 1 회 — project + domains + capabilities + elements 일괄 land. 그 다음 **`add_relations`** (R+ batch edge writer, max 50) 1 회 — suggestedRelations 일괄 land. 두 호출 모두 partial result · idempotent.
