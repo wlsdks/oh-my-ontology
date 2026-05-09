@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "@/shared/lib/theme";
@@ -9,6 +9,7 @@ import { cn } from "@/shared/lib/cn";
 interface Props {
   className?: string;
 }
+const subscribeStaticSnapshot = () => () => undefined;
 
 /**
  * 라이트/다크 모드 토글 버튼. 한 글자짜리 icon 토글이라 상단 nav 의
@@ -22,10 +23,11 @@ interface Props {
 export function ThemeToggle({ className }: Props) {
   const t = useTranslations("featuresMisc.themeToggle");
   const [theme, setTheme] = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    subscribeStaticSnapshot,
+    () => true,
+    () => false,
+  );
   const isLight = theme === "light";
   const switchLabel = isLight ? t("switchToDark") : t("switchToLight");
 

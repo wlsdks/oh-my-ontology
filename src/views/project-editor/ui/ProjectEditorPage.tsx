@@ -85,13 +85,17 @@ function EditorContent({
     // loadError 로 빈 상세 카드 노출 (slug 가 manifest 에 없는 경우).
     const found = allProjects.find((p) => p.slug === targetSlug);
     if (found) {
-      setProject(found);
-      setLoading(false);
+      window.queueMicrotask(() => {
+        setProject(found);
+        setLoading(false);
+      });
       return;
     }
     if (allProjects.length > 0) {
-      setLoadError(mode === "edit" ? t("loadErrorEdit") : t("loadErrorDuplicate"));
-      setLoading(false);
+      window.queueMicrotask(() => {
+        setLoadError(mode === "edit" ? t("loadErrorEdit") : t("loadErrorDuplicate"));
+        setLoading(false);
+      });
     }
   }, [targetSlug, allProjects, mode, t]);
 

@@ -29,10 +29,7 @@ export function BuilderOnboarding({ empty }: BuilderOnboardingProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!empty) {
-      setVisible(false);
-      return;
-    }
+    if (!empty) return;
     if (typeof window === "undefined") return;
     if (window.localStorage.getItem(STORAGE_KEY) === "1") return;
     // 캔버스가 mount 직후 잠깐 빈 상태 → 200ms 후 노출 (flash 회피).
@@ -53,7 +50,7 @@ export function BuilderOnboarding({ empty }: BuilderOnboardingProps) {
 
   return (
     <AnimatePresence>
-      {visible ? (
+      {empty && visible ? (
         <motion.aside
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

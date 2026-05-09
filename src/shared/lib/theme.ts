@@ -10,7 +10,7 @@
  *   data-theme 을 미리 박아 줘 라이트 사용자도 flash 없이 첫 화면이 라이트.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export type Theme = "light" | "dark";
 
@@ -46,19 +46,14 @@ export function persistTheme(theme: Theme): void {
 }
 
 /**
- * 컴포넌트에서 쓸 hook. 마운트 시점에 localStorage 읽어 동기화.
- * setTheme 호출 시 dom + storage 둘 다 갱신.
+ * 컴포넌트에서 쓸 hook. 초기값은 lazy initializer 로 읽고, setTheme 호출 시
+ * dom + storage 둘 다 갱신. 첫 paint 전 data-theme 적용은 app/layout.tsx 의
+ * inline script 가 담당한다.
  */
 export function useTheme(): readonly [Theme, (next: Theme) => void] {
   const [theme, setThemeState] = useState<Theme>(() =>
     typeof window === "undefined" ? "dark" : readStoredTheme(),
   );
-
-  useEffect(() => {
-    const stored = readStoredTheme();
-    setThemeState(stored);
-    applyTheme(stored);
-  }, []);
 
   const setTheme = (next: Theme) => {
     setThemeState(next);

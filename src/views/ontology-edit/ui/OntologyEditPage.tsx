@@ -134,21 +134,22 @@ export function OntologyEditPage() {
   const [layoutMode, setLayoutMode] = useState<"dagre" | "force">("dagre");
   // 팔레트 / 인스펙터 접기 상태 — 사용자가 캔버스 공간 더 필요할 때.
   // localStorage 저장 (페이지 재진입 시 마지막 선호 유지).
-  const [paletteCollapsed, setPaletteCollapsed] = useState(false);
-  const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const [paletteCollapsed, setPaletteCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
     try {
-      if (window.localStorage.getItem("demo:builder-palette:collapsed:v1") === "1") {
-        setPaletteCollapsed(true);
-      }
-      if (window.localStorage.getItem("demo:builder-inspector:collapsed:v1") === "1") {
-        setInspectorCollapsed(true);
-      }
+      return window.localStorage.getItem("demo:builder-palette:collapsed:v1") === "1";
     } catch {
-      /* private mode */
+      return false;
     }
-  }, []);
+  });
+  const [inspectorCollapsed, setInspectorCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return window.localStorage.getItem("demo:builder-inspector:collapsed:v1") === "1";
+    } catch {
+      return false;
+    }
+  });
   const togglePalette = useCallback(() => {
     setPaletteCollapsed((current) => {
       const next = !current;

@@ -369,10 +369,18 @@ function VaultDetail({
   onDeselect: () => void;
 }) {
   // local draft — 사용자가 입력 중에 patch 가 일어나지 않게 buffer.
-  const [draft, setDraft] = useState(node.title);
-  useEffect(() => {
-    setDraft(node.title);
-  }, [node.slug, node.title]);
+  const [draftState, setDraftState] = useState(() => ({
+    slug: node.slug,
+    title: node.title,
+    draft: node.title,
+  }));
+  const draft =
+    draftState.slug === node.slug && draftState.title === node.title
+      ? draftState.draft
+      : node.title;
+  const setDraft = (next: string) => {
+    setDraftState({ slug: node.slug, title: node.title, draft: next });
+  };
   const trimmed = draft.trim();
   const dirty = trimmed !== "" && trimmed !== node.title;
   const canSave = !readOnly && dirty && Boolean(onSaveRename) && !saving;
@@ -560,10 +568,18 @@ function LiteralEditor({
   // local draft — 입력 중엔 vault 에 patch 안 함. blur 또는 Enter (single-line)
   // 시 commit. 사용자 변경이 file write 빈도를 결정 — 너무 자주 쓰면 IDE/editor
   // 가 잡고 있을 때 race.
-  const [draft, setDraft] = useState(value);
-  useEffect(() => {
-    setDraft(value);
-  }, [fieldKey, value]);
+  const [draftState, setDraftState] = useState(() => ({
+    fieldKey,
+    value,
+    draft: value,
+  }));
+  const draft =
+    draftState.fieldKey === fieldKey && draftState.value === value
+      ? draftState.draft
+      : value;
+  const setDraft = (next: string) => {
+    setDraftState({ fieldKey, value, draft: next });
+  };
   const dirty = draft !== value;
   const commit = () => {
     if (!dirty || disabled) return;
@@ -624,14 +640,22 @@ function ArrayKeyEditor({
   onChange: (next: string[]) => void;
   disabled: boolean;
 }) {
-  const [input, setInput] = useState("");
   // 노드 변경 시 입력 buffer 초기화 — 다른 노드의 입력이 새 노드에 새 옴 안 함.
   // 이전 deps 의 \`values.join("|")\` 가 복합 표현 (lint 경고) 이라 별도
   // signature 로 추출.
   const valuesSignature = values.join("|");
-  useEffect(() => {
-    setInput("");
-  }, [valuesSignature, fieldKey]);
+  const [inputState, setInputState] = useState(() => ({
+    fieldKey,
+    valuesSignature,
+    input: "",
+  }));
+  const input =
+    inputState.fieldKey === fieldKey && inputState.valuesSignature === valuesSignature
+      ? inputState.input
+      : "";
+  const setInput = (next: string) => {
+    setInputState({ fieldKey, valuesSignature, input: next });
+  };
   // 새 항목 추가 (vault edge 캔버스 그리기 또는 inspector 직접 입력) 시
   // 해당 chip 에 amber 잠깐 highlight → '추가됐다' 시각 인지. 1200ms 후
   // 자동 fade. ref 로 prev 추적해 useEffect deps 만 valuesSignature.

@@ -302,14 +302,21 @@ export function ProjectDetailPage({
   const projectMutations = useProjectMutations();
   useEffect(() => {
     if (!slug) return;
+    let cancelled = false;
     const { next, related: nextRelated } = resolveSubscribeUpdate(
       projectsQuery.projects,
       slug,
       fallbackProjects,
     );
-    if (next) setProject(next);
-    setRelated(nextRelated);
-    if (projectsQuery.loaded || projectsQuery.error !== null) setResolved(true);
+    window.queueMicrotask(() => {
+      if (cancelled) return;
+      if (next) setProject(next);
+      setRelated(nextRelated);
+      if (projectsQuery.loaded || projectsQuery.error !== null) setResolved(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [projectsQuery.projects, projectsQuery.loaded, projectsQuery.error, slug, fallbackProjects]);
 
   // related slug → project Map 한 번 — 아래 dependencyProjects 가 매 dep 마다

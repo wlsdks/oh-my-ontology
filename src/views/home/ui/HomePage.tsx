@@ -113,19 +113,14 @@ export function HomePage() {
     localGraphStack.length > 0 ? localGraphStack[localGraphStack.length - 1] : null;
   const [fitViewToken, setFitViewToken] = useState(0);
   const [sigmaVisibleCount, setSigmaVisibleCount] = useState<number | null>(null);
-  // SSR 시 true (hint 숨김) 으로 시작해 첫 paint 안정 — 이후 useEffect 로
-  // localStorage 와 sync. 이전 useState(() => typeof window === 'undefined') 패턴은
-  // 서버 / 클라이언트 hint 표시 여부가 다를 수 있어 hydration mismatch 발생.
-  const [sigmaHintDismissed, setSigmaHintDismissed] = useState(true);
-  useEffect(() => {
+  const [sigmaHintDismissed, setSigmaHintDismissed] = useState(() => {
+    if (typeof window === 'undefined') return true;
     try {
-      const dismissed =
-        window.localStorage.getItem('demo:sigma-hint-dismissed:v1') === '1';
-      if (!dismissed) setSigmaHintDismissed(false);
+      return window.localStorage.getItem('demo:sigma-hint-dismissed:v1') === '1';
     } catch {
-      /* private mode — keep dismissed=true */
+      return true;
     }
-  }, []);
+  });
   const dismissSigmaHint = useCallback(() => {
     setSigmaHintDismissed(true);
     try {
@@ -792,7 +787,7 @@ export function HomePage() {
                   좌하단 stats bar (bottom-6, ~32px) 위로 옮겨 중앙 시야를 비운다.
                   bottom-20 (80px) → stats bar 와 24px gap. 이전 bottom-14 는
                   카드와 stats 가 거의 붙어있어 두 박스가 한 덩어리처럼 보였다. */}
-              {!sigmaHintDismissed && sigmaVisibleCount !== 0 ? (
+              {hydrated && !sigmaHintDismissed && sigmaVisibleCount !== 0 ? (
                 <div className="pointer-events-auto absolute bottom-20 left-4 z-10 hidden max-w-[320px] flex-col gap-2 rounded-2xl border border-[color:rgba(139,151,255,0.32)] bg-[color:var(--color-panel)] px-4 py-3 text-[11px] text-[color:var(--color-text-tertiary)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] sm:flex md:left-6 xl:left-8">
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-[12px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">

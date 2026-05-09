@@ -128,8 +128,10 @@ function DocsVaultContent() {
     if (typeof window === 'undefined') return;
     const intent = new URLSearchParams(window.location.search).get('intent');
     if (intent === 'local') {
-      setSource('local');
-      setAdvancedOpen(true);
+      window.queueMicrotask(() => {
+        setSource('local');
+        setAdvancedOpen(true);
+      });
     }
     // mount 1회만 — 사용자가 직접 닫은 후 reload 시 다시 안 열리게.
     // setAdvancedOpen 은 useAdvancedMenu 의 useCallback wrap 결과라 ref-stable

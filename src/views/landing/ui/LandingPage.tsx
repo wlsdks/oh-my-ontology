@@ -197,8 +197,13 @@ function MiniTopology({ caption }: { caption: string }) {
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     reducedMotionRef.current = reducedMotion;
     if (reducedMotion) {
-      setProgress(1);
-      return;
+      rafRef.current = window.requestAnimationFrame(() => {
+        setProgress(1);
+        rafRef.current = null;
+      });
+      return () => {
+        if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
+      };
     }
     const tick = (now: number) => {
       if (startRef.current === null) startRef.current = now;

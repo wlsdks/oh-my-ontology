@@ -92,13 +92,27 @@ export function OntologyViewPage() {
   const deeplinkNodeId = searchParams.get("node");
   useEffect(() => {
     if (!insight) return;
+    let cancelled = false;
     if (!deeplinkNodeId) {
-      if (selectedNode) setSelectedNode(null);
-      return;
+      if (selectedNode) {
+        window.queueMicrotask(() => {
+          if (!cancelled) setSelectedNode(null);
+        });
+      }
+      return () => {
+        cancelled = true;
+      };
     }
     if (selectedNode?.id === deeplinkNodeId) return;
     const found = insight.nodes.find((n) => n.id === deeplinkNodeId);
-    if (found) setSelectedNode(found);
+    if (found) {
+      window.queueMicrotask(() => {
+        if (!cancelled) setSelectedNode(found);
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
   }, [deeplinkNodeId, insight, selectedNode]);
 
 
@@ -555,12 +569,35 @@ function NodeDetailPanel({
   const evidenceList = isDocument ? [] : node.evidenceIds;
   // \"+N개 더\" 토글 — 사용자가 모든 이웃 / 근거를 펼칠 수 있게. node
   // 변경 시 state 초기화 (다른 노드의 펼친 상태가 새 패널에 안 새도록).
-  const [showAllNeighbors, setShowAllNeighbors] = useState(false);
-  const [showAllEvidence, setShowAllEvidence] = useState(false);
-  useEffect(() => {
-    setShowAllNeighbors(false);
-    setShowAllEvidence(false);
-  }, [node.id]);
+  const [panelExpansion, setPanelExpansion] = useState(() => ({
+    nodeId: node.id,
+    showAllNeighbors: false,
+    showAllEvidence: false,
+  }));
+  const showAllNeighbors =
+    panelExpansion.nodeId === node.id ? panelExpansion.showAllNeighbors : false;
+  const showAllEvidence =
+    panelExpansion.nodeId === node.id ? panelExpansion.showAllEvidence : false;
+  const setShowAllNeighbors = (next: (current: boolean) => boolean) => {
+    setPanelExpansion((current) => ({
+      nodeId: node.id,
+      showAllNeighbors: next(
+        current.nodeId === node.id ? current.showAllNeighbors : false,
+      ),
+      showAllEvidence:
+        current.nodeId === node.id ? current.showAllEvidence : false,
+    }));
+  };
+  const setShowAllEvidence = (next: (current: boolean) => boolean) => {
+    setPanelExpansion((current) => ({
+      nodeId: node.id,
+      showAllNeighbors:
+        current.nodeId === node.id ? current.showAllNeighbors : false,
+      showAllEvidence: next(
+        current.nodeId === node.id ? current.showAllEvidence : false,
+      ),
+    }));
+  };
   const NEIGHBOR_PREVIEW = 6;
   const EVIDENCE_PREVIEW = 6;
   const visibleEvidence = showAllEvidence

@@ -134,6 +134,7 @@ export function GlobalSearch({
   // 평균값 (10~16 자 chip 의 padding 포함 ~110 px). measureElement 가 실제
   // 크기를 보정. overscan 4 는 좌우 스크롤 시 끊김 회피.
   const projectScrollRef = useRef<HTMLDivElement | null>(null);
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual owns imperative measurement functions; this component does not pass the virtualizer through memoized children.
   const projectVirtualizer = useVirtualizer({
     count: projectChipSource.length,
     horizontal: true,

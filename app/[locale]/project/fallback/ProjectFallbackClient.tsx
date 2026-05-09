@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { ProjectDetailPage } from "@/views/project-detail";
 
-type Resolution = { state: "pending" } | { state: "slug"; slug: string } | { state: "redirect" };
+const subscribeStaticSnapshot = () => () => undefined;
 
 // 브라우저에 도달한 path 에서 slug 를 추출. cleanUrls + trailingSlash
 // 정책상 path 는 `/project/<slug>/` 형태. CDN rewrite 가 이 페이지로 unknown
@@ -23,22 +23,22 @@ function extractSlug(): string | null {
 
 export function ProjectFallbackClient() {
   const router = useRouter();
-  const [resolution, setResolution] = useState<Resolution>({ state: "pending" });
+  const resolvedSlug = useSyncExternalStore(
+    subscribeStaticSnapshot,
+    () => extractSlug() ?? "__redirect__",
+    () => "__pending__",
+  );
 
   useEffect(() => {
-    const slug = extractSlug();
-    if (slug) {
-      setResolution({ state: "slug", slug });
-    } else {
-      setResolution({ state: "redirect" });
+    if (resolvedSlug === "__redirect__") {
       router.replace("/projects");
     }
-  }, [router]);
+  }, [resolvedSlug, router]);
 
-  if (resolution.state !== "slug") return null;
+  if (resolvedSlug === "__pending__" || resolvedSlug === "__redirect__") return null;
   return (
     <ProjectDetailPage
-      slug={resolution.slug}
+      slug={resolvedSlug}
       initialProject={null}
       initialRelated={[]}
     />

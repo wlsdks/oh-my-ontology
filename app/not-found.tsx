@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { ArrowLeft, Compass, Search } from "lucide-react";
 import koMessages from "@/messages/ko.json";
 import enMessages from "@/messages/en.json";
@@ -20,6 +20,7 @@ import enMessages from "@/messages/en.json";
  */
 const LOCALE_MESSAGES = { ko: koMessages, en: enMessages } as const;
 type SupportedLocale = keyof typeof LOCALE_MESSAGES;
+const subscribeStaticSnapshot = () => () => undefined;
 
 function detectLocale(): SupportedLocale {
   if (typeof window === "undefined") return "en";
@@ -29,12 +30,11 @@ function detectLocale(): SupportedLocale {
 
 export default function NotFound() {
   const router = useRouter();
-  // SSR/정적 export 시 'en' 으로 시작 → mount 후 URL 기반으로 보정.
-  // 정적 prerender 결과와 첫 hydration 결과가 일치해야 mismatch 없음.
-  const [locale, setLocale] = useState<SupportedLocale>("en");
-  useEffect(() => {
-    setLocale(detectLocale());
-  }, []);
+  const locale = useSyncExternalStore<SupportedLocale>(
+    subscribeStaticSnapshot,
+    detectLocale,
+    () => "en",
+  );
   const t = LOCALE_MESSAGES[locale].notFound;
 
   // 404 surface 는 dead-end 카드만 노출. 모바일 BottomTabBar 가
