@@ -18,4 +18,7 @@ relates:
 
 cross-cutting. 라이트/다크 토글 (`html[data-theme="light"]`), Sonner-기반 toast, aria-live
 스크린리더 announce, 모바일 BottomTabBar + gesture hint, ⌘K · ⇧⌘K · ? · F · N · Esc 단축키,
-`prefers-reduced-motion` 자동 존중. 자세한 디자인 룰: `docs/DESIGN-SYSTEM.md`.
+`prefers-reduced-motion` 자동 존중. fresh vault onboarding 도 이 domain 의 일부:
+CLI `init` 과 web workbench starter 가 같은 5-node vault README/setup 내용을 제공하고,
+Claude Code/Cursor `.mcp.json` 흐름과 Codex `mcp add` 흐름을 동시에 안내한다. 자세한
+디자인 룰: `docs/DESIGN-SYSTEM.md`.

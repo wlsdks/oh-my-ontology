@@ -37,6 +37,13 @@ Code/Cursor, Codex's printed `mcp add` command, and the 26-node dogfood vault.
 A unit test blocks stale launch claims such as "12 tools", old dogfood demo
 counts, and obsolete test totals from returning to current-facing docs.
 
+### Starter vault agent setup parity
+
+The starter vault README now spells out both AI-agent setup paths: generated
+`.mcp.json` for Claude Code/Cursor and the explicit `codex mcp add` command for
+Codex. Web workbench starter content and CLI templates are now covered by a
+byte-for-byte parity test, so the two onboarding surfaces cannot drift silently.
+
 ### Local vault change toast coverage
 
 `VaultDiffToaster` now delegates toast planning to a pure helper. Unit coverage

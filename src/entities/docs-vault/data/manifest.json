@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T12:15:26.945Z",
+  "generatedAt": "2026-05-09T12:24:42.622Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -2304,6 +2304,11 @@
         },
         {
           "depth": 3,
+          "text": "Starter vault agent setup parity",
+          "slug": "starter-vault-agent-setup-parity"
+        },
+        {
+          "depth": 3,
           "text": "Local vault change toast coverage",
           "slug": "local-vault-change-toast-coverage"
         },
@@ -3264,8 +3269,8 @@
         }
       ],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Fresh user setup now covers the full init → bootstrap → validate → MCP register journey. a",
-      "wordCount": 14344,
-      "updatedAt": "2026-05-09T12:11:31.017Z",
+      "wordCount": 14398,
+      "updatedAt": "2026-05-09T12:21:23.505Z",
       "linksOut": [
         "slug"
       ]
@@ -4559,8 +4564,8 @@
         }
       ],
       "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령 추가 — 총 16 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | What it does | ||| | ohmyontology init [folder] | S",
-      "wordCount": 691,
-      "updatedAt": "2026-05-09T11:17:05.514Z",
+      "wordCount": 725,
+      "updatedAt": "2026-05-09T12:24:35.167Z",
       "linksOut": []
     },
     {
@@ -5140,9 +5145,9 @@
           "slug": "onboarding-ux"
         }
       ],
-      "excerpt": "crosscutting. 라이트/다크 토글 (html[datatheme=\"light\"]), Sonner기반 toast, arialive 스크린리더 announce, 모바일 BottomTabBar + gesture hint, ⌘K · ⇧⌘K · ? · F · N · Esc 단축키, prefersreducedmotion 자동 존중. 자세한 디자인 룰: docs/DESIGNSYSTEM.md.",
-      "wordCount": 37,
-      "updatedAt": "2026-05-06T09:30:43.296Z",
+      "excerpt": "crosscutting. 라이트/다크 토글 (html[datatheme=\"light\"]), Sonner기반 toast, arialive 스크린리더 announce, 모바일 BottomTabBar + gesture hint, ⌘K · ⇧⌘K · ? · F · N · Esc 단축키, prefersreducedmotion 자동 존중. fresh vault onboarding 도 이 domain 의 일부: CLI init 과 web workbench starter 가 같은 5node vault README/setup 내용을 제공하고, Claude Code/Cursor .mc",
+      "wordCount": 68,
+      "updatedAt": "2026-05-09T12:24:35.166Z",
       "linksOut": []
     },
     {

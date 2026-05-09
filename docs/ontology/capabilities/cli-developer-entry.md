@@ -54,4 +54,9 @@ cli 가 별도 npm package — `oh-my-ontology` binary. cli/package.json 의 `de
 
 cli/src/integration.test.mjs — **81 spawn-based** integration test. 매 PR 마다 help 출력의 setup contract, init MCP config + copy-paste bootstrap 명령, graph-level 명령의 dry-run/confirm 경로, backlink redirect, analyze/infer-imports/bootstrap apply 경로, fresh init starter prune/preserve/replace 경로를 검증.
 
+src/features/docs-vault-local/lib/ontology-starter.test.ts — web workbench starter 의 5개
+파일이 `cli/templates/vault/` 와 byte-for-byte 동일한지 검증. starter README 안에
+Claude Code/Cursor `.mcp.json` 경로와 Codex `codex mcp add ...` 경로가 모두 남아있는지도
+확인해 CLI/Web onboarding drift 를 차단한다.
+
 scripts/smoke-clean-onboarding.mjs — fresh user smoke. 임시 `HOME` / `CODEX_HOME` 과 새 프로젝트를 만들고 `init → bootstrap → validate` 부터 Claude project `.mcp.json` health, Codex `mcp add` 등록까지 clean-room 으로 검증.

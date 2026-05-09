@@ -1,8 +1,12 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ONTOLOGY_STARTER_FILES,
   buildMcpConfigJson,
 } from "./ontology-starter";
+
+const ROOT = path.resolve(__dirname, "../../../..");
 
 describe("ONTOLOGY_STARTER_FILES", () => {
   it("5 시드 파일 제공 — README + project + 3 example (domain/capability/element)", () => {
@@ -27,6 +31,29 @@ describe("ONTOLOGY_STARTER_FILES", () => {
       (f) => f.relPath === "domains/example.md",
     );
     expect(example?.content).toMatch(/^slug:\s+domains\/example/m);
+  });
+
+  it("web starter 와 CLI template 은 같은 vault README/setup 안내를 제공", () => {
+    for (const starterFile of ONTOLOGY_STARTER_FILES) {
+      const template = readFileSync(
+        path.join(ROOT, "cli/templates/vault", starterFile.relPath),
+        "utf8",
+      );
+      expect(starterFile.content).toBe(template);
+    }
+  });
+
+  it("starter README 는 Claude/Cursor 와 Codex MCP setup 을 같이 안내", () => {
+    const readme = ONTOLOGY_STARTER_FILES.find(
+      (f) => f.relPath === "README.md",
+    )?.content;
+
+    expect(readme).toContain("## AI agent setup");
+    expect(readme).toContain("Claude Code / Cursor");
+    expect(readme).toContain("Codex");
+    expect(readme).toContain("codex mcp add oh-my-ontology");
+    expect(readme).toContain(".mcp.json.example");
+    expect(readme).toContain("OMOT_VAULT");
   });
 });
 
