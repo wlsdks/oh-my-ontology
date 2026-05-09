@@ -108,8 +108,10 @@ function TreeRow({
 }) {
   const t = useTranslations('ontologyWidgets');
   const hasChildren = treeNode.children.length > 0;
-  // depth 0 = root → 0 padding. 그 후 16px 씩 들여쓰기.
-  const indent = treeNode.depth * 16;
+  // depth 0 = root → 0 padding. Mobile/narrow panes cannot afford unbounded
+  // indentation: deep element paths otherwise force a desktop-width min-content
+  // tree. Cap visual indentation while preserving hierarchy.
+  const indent = Math.min(treeNode.depth * 16, 64);
   // UX-11 — element kind 노드는 default dim 처리해 project / domain /
   // capability 가 시각적으로 떠오르게. hover/focus 시 opacity 회복.
   // 운영 데이터 분포 기준 element 454 / capability 115 / domain 21 /
@@ -131,7 +133,7 @@ function TreeRow({
       data-depth={treeNode.depth}
       data-dim={isElementKind ? "true" : "false"}
       data-selected={selected ? "true" : "false"}
-      className={`flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 transition-colors ${selectedClass} ${dimClass}`}
+      className={`flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-md px-2 py-1.5 transition-colors ${selectedClass} ${dimClass}`}
       style={{ paddingLeft: `${indent + 8}px` }}
     >
       {hasChildren ? (
@@ -155,7 +157,7 @@ function TreeRow({
         data-row-depth={treeNode.depth}
         data-row-has-children={hasChildren ? "true" : "false"}
         data-row-expanded={hasChildren ? (expanded ? "true" : "false") : ""}
-        className="flex min-w-0 flex-1 items-center gap-2 break-keep text-left text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:rounded-sm"
+        className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden break-keep text-left text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:rounded-sm"
       >
         <KindChip kind={treeNode.node.kind} />
         <span className="min-w-0 flex-1 truncate">{treeNode.node.title}</span>
@@ -524,7 +526,7 @@ export function OntologyTreeView({
       <div
         role="tree"
         data-testid="ontology-tree"
-        className="space-y-0.5"
+        className="max-w-full space-y-0.5 overflow-hidden"
         onKeyDown={handleTreeKeyDown}
       >
         {filteredRoots.map((root) => renderSubtree(root))}

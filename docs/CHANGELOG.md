@@ -17,6 +17,9 @@ too desktop-shaped after the Topology shortcut was added.
   load from `?intent=local`, so the first document is not covered by a floating
   menu.
 - The tools menu uses a viewport-bounded mobile sheet when opened manually.
+- Follow-up cmux-width review fixed `/ontology` narrow layout: mobile stat
+  cards stack, the demo badge no longer pushes past 320 px, and deep tree rows
+  clamp indentation/truncate inside the viewport.
 
 ## 2026-05-09 — Cleaner single-file repo bootstrap graph
 

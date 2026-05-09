@@ -203,7 +203,7 @@ export function OperationsNav() {
         >
           {NAV_ITEMS.map((item) => renderTab(item, 'mobile'))}
         </ul>
-        <div className="ml-auto shrink-0">
+        <div className="ml-auto hidden shrink-0 min-[360px]:block">
           <ModeBadge mode={dataSourceMode} />
         </div>
       </div>

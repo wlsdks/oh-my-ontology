@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T15:12:34.865Z",
+  "generatedAt": "2026-05-09T15:20:43.058Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -3289,8 +3289,8 @@
         }
       ],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Real mobile browser review found the /docs header and localvault tools were too desktopsha",
-      "wordCount": 14810,
-      "updatedAt": "2026-05-09T15:11:40.912Z",
+      "wordCount": 14840,
+      "updatedAt": "2026-05-09T15:20:36.262Z",
       "linksOut": [
         "slug"
       ]
