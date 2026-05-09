@@ -235,9 +235,11 @@ function runInit(targetArg) {
   // 2. cwd (codebase root) — only if distinct from target. OMOT_VAULT is the
   //    relative path from cwd to target.
   const cwdPath = cwd();
+  let cwdVaultArg = '.';
   if (resolve(cwdPath) !== resolve(target)) {
     let omotRel = relative(cwdPath, target) || '.';
     if (!omotRel.startsWith('.')) omotRel = `./${omotRel}`;
+    cwdVaultArg = omotRel;
     writeMcpJson(cwdPath, omotRel, 'cwd');
   }
 
@@ -252,6 +254,16 @@ function runInit(targetArg) {
     serverCommand.command,
     ...serverCommand.args,
   ].map(shellQuote).join(' ');
+  const analyzeCommand = ['oh-my-ontology', 'analyze', '.', '--vault', cwdVaultArg]
+    .map(shellQuote)
+    .join(' ');
+  const bootstrapCommand = [
+    'oh-my-ontology',
+    'bootstrap',
+    '.',
+    '--vault',
+    cwdVaultArg,
+  ].map(shellQuote).join(' ');
 
   stdout.write(`
 ${COLORS.green}${COLORS.bold}done${COLORS.reset} — vault scaffolded.
@@ -264,8 +276,8 @@ ${COLORS.bold}Next steps:${COLORS.reset}
        ${COLORS.cyan}oh-my-ontology validate${COLORS.reset}                    ${COLORS.dim}# frontmatter integrity${COLORS.reset}
 
   ${COLORS.dim}2.${COLORS.reset} ${COLORS.bold}Bootstrap from your codebase${COLORS.reset} (recommended — agent-less, 1 line):
-       ${COLORS.cyan}oh-my-ontology analyze /path/to/your/repo${COLORS.reset}    ${COLORS.dim}# preview candidates only${COLORS.reset}
-       ${COLORS.cyan}oh-my-ontology bootstrap /path/to/your/repo${COLORS.reset}  ${COLORS.dim}# apply nodes + edges${COLORS.reset}
+       ${COLORS.cyan}${analyzeCommand}${COLORS.reset}     ${COLORS.dim}# preview candidates only${COLORS.reset}
+       ${COLORS.cyan}${bootstrapCommand}${COLORS.reset}   ${COLORS.dim}# apply nodes + edges${COLORS.reset}
        ${COLORS.dim}analyze (project + domains + capabilities + elements) + infer-imports${COLORS.reset}
        ${COLORS.dim}(depends_on edges) batch land in 3 round-trips. --threshold N filters${COLORS.reset}
        ${COLORS.dim}weak imports.${COLORS.reset}

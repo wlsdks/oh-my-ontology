@@ -15,7 +15,7 @@ R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import
 
 | Command | What it does |
 |---|---|
-| `oh-my-ontology init [folder]` | Scaffold vault (5 starter .md + `.mcp.json` cwd + vault). Source checkout 에서는 npm 404 없이 바로 붙도록 local `mcp/src/index.js` 를 가리킴. Codex 는 project `.mcp.json` 을 자동으로 읽지 않으므로 exact `codex mcp add ...` 명령도 출력. |
+| `oh-my-ontology init [folder]` | Scaffold vault (5 starter .md + `.mcp.json` cwd + vault). Source checkout 에서는 npm 404 없이 바로 붙도록 local `mcp/src/index.js` 를 가리킴. Codex 는 project `.mcp.json` 을 자동으로 읽지 않으므로 exact `codex mcp add ...` 명령도 출력. repo root 기준 copy-paste bootstrap 명령 (`analyze . --vault ./ontology`, `bootstrap . --vault ./ontology`) 도 함께 출력. |
 | `oh-my-ontology list [vault]` | List ontology nodes (color table, `--kind X` filter, `--json`) |
 | `oh-my-ontology validate [vault]` | Frontmatter integrity check (6 issue codes; CI gate via exit 1, R+ grouped-by-code 요약) |
 | `oh-my-ontology add <kind> <slug> --title="..."` | Scaffold new node (duplicate throw, `--domain --body --vault`, R15 `--auto-prefix` default on, `--raw-slug` opt-out) |
@@ -52,6 +52,6 @@ cli 가 별도 npm package — `oh-my-ontology` binary. cli/package.json 의 `de
 
 ## 회귀 차단
 
-cli/src/integration.test.mjs — **81 spawn-based** integration test. 매 PR 마다 help 출력의 setup contract, init MCP config, graph-level 명령의 dry-run/confirm 경로, backlink redirect, analyze/infer-imports/bootstrap apply 경로, fresh init starter prune/preserve/replace 경로를 검증.
+cli/src/integration.test.mjs — **81 spawn-based** integration test. 매 PR 마다 help 출력의 setup contract, init MCP config + copy-paste bootstrap 명령, graph-level 명령의 dry-run/confirm 경로, backlink redirect, analyze/infer-imports/bootstrap apply 경로, fresh init starter prune/preserve/replace 경로를 검증.
 
 scripts/smoke-clean-onboarding.mjs — fresh user smoke. 임시 `HOME` / `CODEX_HOME` 과 새 프로젝트를 만들고 `init → bootstrap → validate` 부터 Claude project `.mcp.json` health, Codex `mcp add` 등록까지 clean-room 으로 검증.

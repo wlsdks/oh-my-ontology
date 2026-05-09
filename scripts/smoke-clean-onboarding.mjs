@@ -56,6 +56,9 @@ writeFileSync(
 const init = run('node', [CLI, 'init', 'ontology'], { cwd: project });
 assert.match(init.stdout, /codex mcp add oh-my-ontology/);
 assert.match(init.stdout, /20 tools/);
+assert.match(init.stdout, /oh-my-ontology analyze \. --vault \.\/ontology/);
+assert.match(init.stdout, /oh-my-ontology bootstrap \. --vault \.\/ontology/);
+assert.doesNotMatch(init.stdout, /\/path\/to\/your\/repo/);
 
 const mcpConfig = JSON.parse(readFileSync(join(project, '.mcp.json'), 'utf-8'));
 const server = mcpConfig.mcpServers['oh-my-ontology'];
@@ -70,7 +73,7 @@ run('node', [VERIFY], {
 
 const bootstrap = run(
   'node',
-  [CLI, 'bootstrap', project, '--vault', join(project, 'ontology'), '--skip-imports'],
+  [CLI, 'bootstrap', '.', '--vault', './ontology', '--skip-imports'],
   { cwd: project },
 );
 assert.match(bootstrap.stdout, /starters.*4.*removed/);

@@ -18,6 +18,9 @@ registers the printed command.
 CLI help now matches the current setup contract: auto-prefix is default,
 `--raw-slug` is the opt-out, `init` writes real `.mcp.json` files for
 Claude/Cursor, and Codex needs the printed `mcp add` command.
+`init` also prints copy-pasteable repo-root bootstrap commands
+(`oh-my-ontology analyze . --vault ./ontology` and `bootstrap . --vault
+./ontology`) instead of placeholder `/path/to/your/repo` examples.
 
 ## 2026-05-07 — Round 18: AI agent UX 강화 루프 — read shape · batch tools · vault health · ARIA tree · CLI --apply
 
