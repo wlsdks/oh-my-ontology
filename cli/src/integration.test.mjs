@@ -1178,6 +1178,85 @@ function makeRepoFixture() {
   return repo;
 }
 
+await test('analyze --apply — clean init starter nodes are pruned', async () => {
+  const repo = makeRepoFixture();
+  try {
+    const init = await run(['init', 'ontology'], { cwd: repo });
+    assert.equal(init.code, 0, `init failed: ${init.stdout}\n${init.stderr}`);
+
+    const vault = join(repo, 'ontology');
+    const r = await run(['analyze', repo, '--vault', vault, '--apply']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /starters\s+4 removed/);
+    assert.equal(existsSyncTest(join(vault, 'project.md')), false);
+    assert.equal(existsSyncTest(join(vault, 'domains', 'example.md')), false);
+    assert.equal(
+      existsSyncTest(join(vault, 'capabilities', 'example.md')),
+      false,
+    );
+    assert.equal(existsSyncTest(join(vault, 'elements', 'example.md')), false);
+    assert.equal(existsSyncTest(join(vault, 'test-app.md')), true);
+    assert.equal(existsSyncTest(join(vault, 'capabilities', 'auth.md')), true);
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+await test('analyze --apply — edited starter nodes are preserved', async () => {
+  const repo = makeRepoFixture();
+  try {
+    const init = await run(['init', 'ontology'], { cwd: repo });
+    assert.equal(init.code, 0, `init failed: ${init.stdout}\n${init.stderr}`);
+
+    const vault = join(repo, 'ontology');
+    const editedDomain = join(vault, 'domains', 'example.md');
+    writeFileSync(
+      editedDomain,
+      readFileSync(editedDomain, 'utf-8').replace(
+        'title: Example domain',
+        'title: Edited domain',
+      ),
+      'utf-8',
+    );
+
+    const r = await run(['analyze', repo, '--vault', vault, '--apply']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /starters\s+3 removed · 1 preserved/);
+    assert.equal(existsSyncTest(editedDomain), true);
+    assert.match(readFileSync(editedDomain, 'utf-8'), /title: Edited domain/);
+    assert.equal(existsSyncTest(join(vault, 'capabilities', 'example.md')), false);
+    assert.equal(existsSyncTest(join(vault, 'test-app.md')), true);
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+await test('analyze --apply — project slug can replace untouched starter project', async () => {
+  const repo = mkdtempSync(join(tmpdir(), 'cli-repo-project-'));
+  try {
+    writeFileSync(
+      join(repo, 'package.json'),
+      JSON.stringify({ name: 'project', description: 'Real project app' }, null, 2),
+      'utf-8',
+    );
+    mkdirSync(join(repo, 'src', 'features', 'auth'), { recursive: true });
+    const init = await run(['init', 'ontology'], { cwd: repo });
+    assert.equal(init.code, 0, `init failed: ${init.stdout}\n${init.stderr}`);
+
+    const vault = join(repo, 'ontology');
+    const r = await run(['analyze', repo, '--vault', vault, '--apply']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const projectDoc = readFileSync(join(vault, 'project.md'), 'utf-8');
+    assert.match(projectDoc, /title: Real project app/);
+    assert.doesNotMatch(projectDoc, /title: My project/);
+    assert.equal(existsSyncTest(join(vault, 'capabilities', 'auth.md')), true);
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
 await test('analyze --apply — concepts/relations vault 에 land', async () => {
   const vault = withVault([]);
   const repo = makeRepoFixture();

@@ -33,6 +33,16 @@ graph's keys (slug / kind / depends_on / capabilities / elements / domain).
 5. To see the graph, point a self-hosted workbench's `/docs` picker at
    this folder.
 
+Prefer an automatic first graph? From your codebase root:
+
+```bash
+oh-my-ontology bootstrap . --vault <this-folder>
+```
+
+The command analyzes `package.json`, README headings, and `src/` layout,
+then replaces untouched starter examples with real project/domain/capability
+nodes. If you edited a starter file, it is preserved.
+
 ## Relations (frontmatter keys)
 
 | Key | What it expresses |

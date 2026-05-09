@@ -6,6 +6,15 @@
 
 ---
 
+## 2026-05-09 — Clean onboarding bootstrap polish
+
+Fresh user setup now covers the full `init → bootstrap → validate → MCP
+register` journey. `analyze --apply` and `bootstrap` remove untouched `init`
+starter examples before real repo-derived nodes land, while preserving any
+starter file the user already edited. The clean onboarding smoke uses isolated
+`HOME` and `CODEX_HOME`, confirms Codex starts with no MCP servers, then
+registers the printed command.
+
 ## 2026-05-07 — Round 18: AI agent UX 강화 루프 — read shape · batch tools · vault health · ARIA tree · CLI --apply
 
 자율 개선 루프 ~30 PR. **mcp 16→20 tools (read 10→12, write 6→8), cli 13→15 commands, /ontology-bootstrap round-trip ~25→3**. agent (Claude Code · Cursor · Codex) 가 적은 호출로 더 정확한 vault sync, 사용자가 키보드만으로 tree 완전 항해, agent-less CLI 도 batch parity.

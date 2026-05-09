@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -61,6 +67,33 @@ run('node', [VERIFY], {
   cwd: ROOT,
   env: { ...process.env, OMOT_VAULT: join(project, 'ontology') },
 });
+
+const bootstrap = run(
+  'node',
+  [CLI, 'bootstrap', project, '--vault', join(project, 'ontology'), '--skip-imports'],
+  { cwd: project },
+);
+assert.match(bootstrap.stdout, /starters.*4.*removed/);
+assert.equal(existsSync(join(project, 'ontology', 'project.md')), false);
+assert.equal(
+  existsSync(join(project, 'ontology', 'domains', 'example.md')),
+  false,
+);
+assert.equal(
+  existsSync(join(project, 'ontology', 'capabilities', 'example.md')),
+  false,
+);
+assert.equal(
+  existsSync(join(project, 'ontology', 'elements', 'example.md')),
+  false,
+);
+assert.equal(existsSync(join(project, 'ontology', 'clean-onboarding-app.md')), true);
+assert.equal(existsSync(join(project, 'ontology', 'domains', 'capture.md')), true);
+assert.equal(
+  existsSync(join(project, 'ontology', 'capabilities', 'capture.md')),
+  true,
+);
+run('node', [CLI, 'validate', join(project, 'ontology')], { cwd: project });
 
 if (hasCommand('claude')) {
   const claude = run('claude', ['mcp', 'list'], {

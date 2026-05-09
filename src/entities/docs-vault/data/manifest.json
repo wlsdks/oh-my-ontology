@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T07:52:53.893Z",
+  "generatedAt": "2026-05-09T08:06:12.243Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -2289,6 +2289,11 @@
         },
         {
           "depth": 2,
+          "text": "2026-05-09 — Clean onboarding bootstrap polish",
+          "slug": "2026-05-09-clean-onboarding-bootstrap-polish"
+        },
+        {
+          "depth": 2,
           "text": "2026-05-07 — Round 18: AI agent UX 강화 루프 — read shape · batch tools · vault health · ARIA tree · CLI --apply",
           "slug": "2026-05-07-round-18-ai-agent-ux-강화-루프-read-shape-batch-tools-vault-health-aria-tree-cli---apply"
         },
@@ -3238,9 +3243,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. 자율 개선 루프 ~30 PR. mcp 16→20 tools (read 10→12, write 6→8), cli 13→15 commands, /ontologyboo",
-      "wordCount": 13995,
-      "updatedAt": "2026-05-09T06:41:17.744Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Fresh user setup now covers the full init → bootstrap → validate → MCP register journey. a",
+      "wordCount": 14062,
+      "updatedAt": "2026-05-09T08:02:00.573Z",
       "linksOut": [
         "slug"
       ]
@@ -4171,8 +4176,8 @@
         }
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260506 (postRound15 — VSCode plugin 제거, 3 surface 회복 + R14 자동화/live updates 추가 반영). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아 별도 sweep 보다 대부분 정확 가정. Update trigger:",
-      "wordCount": 4587,
-      "updatedAt": "2026-05-09T06:40:22.962Z",
+      "wordCount": 4599,
+      "updatedAt": "2026-05-09T08:02:06.039Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -4529,8 +4534,8 @@
         }
       ],
       "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령 추가 — 총 16 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | What it does | ||| | ohmyontology init [folder] | S",
-      "wordCount": 635,
-      "updatedAt": "2026-05-09T07:51:18.980Z",
+      "wordCount": 666,
+      "updatedAt": "2026-05-09T08:05:44.339Z",
       "linksOut": []
     },
     {

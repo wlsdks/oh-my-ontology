@@ -21,8 +21,8 @@ and AI agents (Claude Code, Cursor, etc.) can read and write together.
 | `oh-my-ontology add <kind> <slug> --title="..."` | Scaffold a new node (`--domain X --body "..." --vault path`); throws on duplicate slug. **R15**: `--auto-prefix` is now **default on** (kind→folder, e.g. `add capability foo` → `capabilities/foo.md`) for consistency with the `init` starter layout. Use `--raw-slug` (or `--no-auto-prefix`) to opt out. |
 | `oh-my-ontology find <query> [vault]` | Search slug + title (case-insensitive, `--kind X --json`) |
 | `oh-my-ontology import <path...>` | **R14** Import external `.md` into the vault. Reads each file's frontmatter, falls back to `--kind` when missing, derives `slug` from the filename and `title` from the first H1, then writes through the same schema as `add`. Options: `--vault path`, `--kind K`, `--auto-prefix` (R15 **default on**, kind→folder), `--raw-slug` (opt out), `--rename` (auto `-2`/`-3` on slug clash), `--dry-run` (preview only). Accepts files or directories (recursive, `.git`/`node_modules` skipped). |
-| `oh-my-ontology bootstrap [rootPath]` | Analyze a repo and apply the first ontology graph in one command: project/domains/capabilities/elements plus import-derived `depends_on` edges. Use `analyze` first for preview-only review. |
-| `oh-my-ontology analyze [rootPath]` | Preview repo-derived candidates without writing. `--apply` lands those candidates via batch MCP calls. |
+| `oh-my-ontology bootstrap [rootPath]` | Analyze a repo and apply the first ontology graph in one command: project/domains/capabilities/elements plus import-derived `depends_on` edges. In a fresh `init` vault, untouched starter examples are removed before real nodes land; edited starter files are preserved. Use `analyze` first for preview-only review. |
+| `oh-my-ontology analyze [rootPath]` | Preview repo-derived candidates without writing. `--apply` lands those candidates via batch MCP calls and prunes untouched `init` starter examples the same way as `bootstrap`. |
 | `oh-my-ontology infer-imports [rootPath]` | Preview TS/JS import-derived module edges without writing. `--apply` lands `depends_on` edges. |
 
 ### Graph-level commands (R15 follow-up)
@@ -75,6 +75,16 @@ codex mcp add oh-my-ontology --env OMOT_VAULT=/absolute/path/to/vault -- node /a
 
 For a published install, the command uses `npx -y oh-my-ontology-mcp` instead
 of the source-checkout `node .../mcp/src/index.js` path.
+
+For the shortest fresh setup, run:
+
+```bash
+npx oh-my-ontology init ontology
+npx oh-my-ontology bootstrap . --vault ontology
+```
+
+`bootstrap` replaces the untouched starter files with repo-derived nodes. If
+you already edited any starter file, that file stays on disk.
 
 20 tools:
 `list_concepts` / `get_concept` / `get_concepts` / `find_evidence` /

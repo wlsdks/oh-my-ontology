@@ -14,7 +14,7 @@
 
 | Surface | Entry | Audience |
 |---|---|---|
-| **CLI** (R12 / R14 / R15) | `oh-my-ontology init / list / validate / add / find / import` | developer terminal — vault scaffold, daily exploration, bulk import |
+| **CLI** (R12 / R14 / R15+) | `oh-my-ontology init / list / validate / add / find / import / analyze / infer-imports / bootstrap / graph commands` | developer terminal — vault scaffold, daily exploration, bulk import, clean first graph |
 | **MCP** (R5 / R7 / R11 / R14 / R16 / R17) | 20 tools (12 read · 8 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings · bootstrap empty vault (R16 `analyze_repo_structure` · R17 `infer_imports`) |
 | **Web** (8 routes, R10 surface diet) | `pnpm dev` / static export | sigma topology · tree+ego · ERD builder · insights — graph visualization, mobile-friendly |
 

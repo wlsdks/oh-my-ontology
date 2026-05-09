@@ -21,6 +21,11 @@
 
 import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import {
+  pruneUntouchedStarterNodes,
+  restorePrunedStarterNodes,
+  summarizePrunedStarterNodes,
+} from '../lib/prune-starters.mjs';
 import { getVaultCensus, writeVaultCensus } from '../lib/vault-census.mjs';
 
 const COLORS = {
@@ -61,12 +66,15 @@ export async function runBootstrap(args) {
   }
 
   const concepts = collectConcepts(analyzeResult);
+  const prunedStarters =
+    concepts.length > 0 ? pruneUntouchedStarterNodes(vaultRoot) : null;
   let conceptsRows = [];
   if (concepts.length > 0) {
     try {
       const r = await callMcpTool(vaultRoot, 'add_concepts', { concepts });
       conceptsRows = r.concepts ?? [];
     } catch (err) {
+      restorePrunedStarterNodes(vaultRoot, prunedStarters);
       process.stderr.write(
         `${COLORS.red}error${COLORS.reset}  add_concepts: ${err instanceof Error ? err.message : String(err)}\n`,
       );
@@ -143,6 +151,7 @@ export async function runBootstrap(args) {
                 thresholdApplied: importsResult?.thresholdApplied,
                 relations: importsRows,
               },
+          prunedStarters: summarizePrunedStarterNodes(prunedStarters),
           summary,
           vaultCensus,
         },
@@ -156,6 +165,7 @@ export async function runBootstrap(args) {
   process.stdout.write(
     `${COLORS.bold}bootstrap${COLORS.reset} ${COLORS.dim}repo=${target}\n           vault=${vaultRoot}${COLORS.reset}\n\n`,
   );
+  printPrunedStarters(prunedStarters);
   process.stdout.write(
     `  ${COLORS.bold}1) analyze${COLORS.reset}    concepts: ` +
       `${COLORS.green}${summary.conceptsLanded}${COLORS.reset} landed · ` +
@@ -229,6 +239,21 @@ export async function runBootstrap(args) {
   writeVaultCensus(vaultCensus);
 
   return summary.errors === 0 ? 0 : 1;
+}
+
+function printPrunedStarters(prunedStarters) {
+  if (
+    !prunedStarters ||
+    (prunedStarters.removed.length === 0 &&
+      prunedStarters.preserved.length === 0)
+  ) {
+    return;
+  }
+  process.stdout.write(
+    `  ${COLORS.bold}starters${COLORS.reset}   ` +
+      `${COLORS.green}${prunedStarters.removed.length}${COLORS.reset} removed · ` +
+      `${COLORS.dim}${prunedStarters.preserved.length}${COLORS.reset} preserved (edited)\n`,
+  );
 }
 
 function collectConcepts(analyzeResult) {
