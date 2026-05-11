@@ -630,7 +630,11 @@ export function OntologyTreeView({
       {result.warnings.length > 0 ? (
         <details
           id="tree-data-warnings"
-          className="group scroll-mt-24 rounded-xl border border-[color:rgba(229,72,77,0.24)] bg-[color:rgba(229,72,77,0.06)] px-4 py-3 text-xs text-[color:var(--color-status-danger)] open:bg-[color:rgba(229,72,77,0.09)]"
+          // R+ PR #223 의 stat strip amber pill 과 톤 통일 — red (status-danger)
+          // 은 *error* 신호, multi-parent drop 은 *warning* 신호. 디자인
+          // 헌장도 amber 가 stub/warning, red 가 error. 같은 신호인데 두 톤
+          // 이 어긋나면 사용자 시각 헷갈림.
+          className="group scroll-mt-24 rounded-xl border border-[color:rgba(255,179,71,0.30)] bg-[color:rgba(255,179,71,0.06)] px-4 py-3 text-xs text-[color:rgba(238,198,128,0.95)] open:bg-[color:rgba(255,179,71,0.09)]"
         >
           <summary className="flex cursor-pointer list-none items-center gap-2 font-[var(--font-weight-signature)] [&::-webkit-details-marker]:hidden">
             <ChevronRight className="h-3 w-3 flex-none transition-transform duration-150 group-open:rotate-90" />
