@@ -135,7 +135,19 @@ function deriveDocNode(doc: VaultDoc): OntologyStubNode | null {
   const rawKind = typeof fm.kind === 'string' ? fm.kind.trim() : '';
   if (!rawKind) return null;
   const title = doc.title?.trim() || doc.slug.split('/').pop() || doc.slug;
-  const id = `${rawKind}:${doc.slug.split('/').pop() || doc.slug}`;
+  // project kind 는 *user-facing slug* (frontmatter.slug 우선) 로 id 형성 —
+  // computeProjectSlug 와 정합. 그래서 PR #253 의 BFS 가 매다는 projectIds
+  // 값이 Project.slug 와 match → /projects 카드 fact strip / /ontology/
+  // insights projectRows 모두 정확한 매핑. 다른 kind 는 file slug 그대로
+  // (relates/depends_on 의 외부 ref 호환).
+  let idSlug: string;
+  const fmSlug = typeof fm.slug === 'string' ? fm.slug.trim() : '';
+  if (rawKind === 'project' && fmSlug) {
+    idSlug = fmSlug;
+  } else {
+    idSlug = doc.slug.split('/').pop() || doc.slug;
+  }
+  const id = `${rawKind}:${idSlug}`;
   return {
     id,
     title,
