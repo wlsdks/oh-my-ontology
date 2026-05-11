@@ -911,9 +911,11 @@ function SigmaTopologyImpl({
       if (containerRef.current) {
         containerRef.current.style.cursor = hoveredNode ? 'pointer' : '';
       }
-      queueMicrotask(() => {
-        dragMoved = false;
-      });
+      // dragMoved reset 은 *다음 downNode* 에서. queueMicrotask 로 즉시
+      // reset 하면 mouseup → microtask flush → clickNode 순서에서 click
+      // 가드 (if dragMoved return) 가 무력화 → 드래그 후 손 떼면 노드
+      // detail 로 들어가는 회귀. downNode 에서 dragMoved=false 로 다시
+      // 시작하므로 상태 leak 없음.
     };
     captor.on('mouseup', endDrag);
 
