@@ -21,6 +21,22 @@ const SORT_LABEL_KEY: Record<OntologyRootSortKey, string> = {
   title: "tree.sortTitle",
 };
 
+/**
+ * implicit file path element 식별 — capability frontmatter 의 `elements:
+ * [src/widgets/foo]` 같은 inline 참조로 만든 element. 트리에 file path 가
+ * leaf 로 등장해서 capability 하나가 16 file 을 한꺼번에 노출하는 *첫인상
+ * 정보 과다* 의 원인. 휴리스틱: kind === 'element' + title 에 slash 포함 +
+ * 공백 없음 (path 패턴). 사람 친화적 element 라벨 (`File System Access API`
+ * 등) 은 공백 포함이라 제외.
+ */
+function isImplicitFileElement(node: { kind: string; title: string }): boolean {
+  if (node.kind !== "element") return false;
+  const title = node.title ?? "";
+  if (!title.includes("/")) return false;
+  if (/\s/.test(title)) return false;
+  return true;
+}
+
 export interface OntologyTreeViewProps {
   result: OntologyTreeBuildResult;
   /** 빈 상태 메시지 — 데이터가 아직 없을 때. */
@@ -220,6 +236,22 @@ export function OntologyTreeView({
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   // defaultExpanded=false 시 처음 모든 children-있는 노드를 collapsed 로 시작.
   // 단순 v0 구현: defaultExpanded 변경 무시.
+
+  // R+ capability 의 implicit file element 그룹 펼침 — capability id 집합.
+  // 그룹은 *capability 별* 로 따로 토글 (한 capability 의 file path 그룹만
+  // 펼치고 다른 capability 는 닫힌 상태 유지). search 중엔 강제 펼침
+  // (isFiltering 분기로 적용).
+  const [expandedImplicit, setExpandedImplicit] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const toggleImplicit = (id: string) => {
+    setExpandedImplicit((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   // inline 검색 — ⌘K 글로벌 검색과 별개로 트리 안 빠른 좁히기.
   // 매치 노드 + 부모 chain 보존, 형제 제외.
@@ -490,6 +522,67 @@ export function OntologyTreeView({
 
   function renderSubtree(treeNode: OntologyTreeNode): React.ReactNode {
     const expanded = !isCollapsed(treeNode.node.id);
+    const hasChildren = treeNode.children.length > 0;
+    // capability 노드의 children 중 implicit file path element (e.g.
+    // `src/widgets/...`) 가 4 개 이상이면 *그룹 chip* 으로 압축. 첫 진입에
+    // capability 하나가 16 file path 를 한꺼번에 펼치는 정보 과다 해소.
+    // explicit element (frontmatter 정의된 named 노드) 와 자식 capability
+    // 등은 그대로 노출. 검색 중이면 그룹 자동 펼침 (matched element 가
+    // 보이게).
+    let childrenNode: React.ReactNode = null;
+    if (expanded && hasChildren) {
+      if (treeNode.node.kind === 'capability') {
+        const implicit: OntologyTreeNode[] = [];
+        const explicit: OntologyTreeNode[] = [];
+        for (const c of treeNode.children) {
+          if (isImplicitFileElement(c.node)) implicit.push(c);
+          else explicit.push(c);
+        }
+        const groupOpen =
+          isFiltering || expandedImplicit.has(treeNode.node.id);
+        const shouldGroup = implicit.length >= 4 && !groupOpen;
+        const indentPx = Math.min((treeNode.depth + 1) * 16, 64) + 8;
+        childrenNode = (
+          <div role="group">
+            {explicit.map((child) => renderSubtree(child))}
+            {shouldGroup ? (
+              <button
+                type="button"
+                onClick={() => toggleImplicit(treeNode.node.id)}
+                aria-expanded="false"
+                className="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-[color:var(--color-text-tertiary)] transition-colors hover:bg-[color:var(--color-overlay-2)]"
+                style={{ paddingLeft: `${indentPx}px` }}
+              >
+                <ChevronRight size={12} className="flex-none text-[color:var(--color-text-quaternary)]" />
+                <span>{t('tree.implicitElementsShow', { count: implicit.length })}</span>
+              </button>
+            ) : (
+              <>
+                {implicit.map((child) => renderSubtree(child))}
+                {implicit.length >= 4 && !isFiltering ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleImplicit(treeNode.node.id)}
+                    aria-expanded="true"
+                    className="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-[color:var(--color-text-quaternary)] transition-colors hover:text-[color:var(--color-text-tertiary)] hover:bg-[color:var(--color-overlay-2)]"
+                    style={{ paddingLeft: `${indentPx}px` }}
+                  >
+                    <ChevronDown size={12} className="flex-none" />
+                    <span>{t('tree.implicitElementsHide')}</span>
+                  </button>
+                ) : null}
+              </>
+            )}
+          </div>
+        );
+      } else {
+        childrenNode = (
+          <div role="group">
+            {treeNode.children.map((child) => renderSubtree(child))}
+          </div>
+        );
+      }
+    }
     return (
       <div key={treeNode.node.id} role="group">
         <TreeRow
@@ -499,11 +592,7 @@ export function OntologyTreeView({
           onSelect={onSelect}
           selected={selectedId === treeNode.node.id}
         />
-        {expanded && treeNode.children.length > 0 ? (
-          <div role="group">
-            {treeNode.children.map((child) => renderSubtree(child))}
-          </div>
-        ) : null}
+        {childrenNode}
       </div>
     );
   }
