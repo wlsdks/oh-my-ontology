@@ -27,6 +27,11 @@ export interface OntologyTreeViewProps {
   emptyHint?: string;
   /** 시작 시 모든 노드 펼침 여부. 기본 true. */
   defaultExpanded?: boolean;
+  /** R12 — first-impression UX: capability 노드는 default 접힘. element
+   *  file path leaf 가 capability 마다 길게 펼쳐져 첫 화면 정보 과다.
+   *  capability 한 줄만 보이고, 클릭하면 elements 펼침. domain 까지는
+   *  default 펼침 유지 — 위계 자체를 한눈에. */
+  collapseCapabilitiesByDefault?: boolean;
   /** 행 클릭 콜백 — 상세 패널로 라우팅 등에 사용. */
   onSelect?: (node: OntologyTreeNode["node"]) => void;
   /** 외부에서 선택된 노드 id (deeplink ?node=..., panel 클릭 등). 트리 행
@@ -160,7 +165,29 @@ function TreeRow({
         className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden break-keep text-left text-sm font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[color:rgba(94,106,210,0.5)] focus-visible:rounded-sm"
       >
         <KindChip kind={treeNode.node.kind} />
-        <span className="min-w-0 flex-1 truncate">{treeNode.node.title}</span>
+        {(() => {
+          // R12 — element 의 file path 라벨은 모바일에서 ellipsis 가 *파일명*
+          // 을 먹어 식별 불가 ("src/features/.../use-projec…"). prefix 만
+          // 잘리고 basename 은 항상 보이게 split. path 아닌 element 는 일반
+          // truncate. element 외 kind 도 그대로.
+          const title = treeNode.node.title;
+          const isElementPath =
+            treeNode.node.kind === "element" && title.includes("/") && !title.includes(" ");
+          if (!isElementPath) {
+            return <span className="min-w-0 flex-1 truncate">{title}</span>;
+          }
+          const lastSlash = title.lastIndexOf("/");
+          const prefix = title.slice(0, lastSlash + 1);
+          const basename = title.slice(lastSlash + 1);
+          return (
+            <span className="flex min-w-0 flex-1 items-center">
+              <span className="min-w-0 truncate text-[color:var(--color-text-quaternary)]">
+                {prefix}
+              </span>
+              <span className="flex-none">{basename}</span>
+            </span>
+          );
+        })()}
         {/* EvidenceCountChip / ProjectIdChip 모두 R10 후 vault 모드에서
             evidenceCount / projectIds 가 영구 빈 값이라 미렌더되어 cycle
             15 / 24 에서 제거. 미래에 vault 측에서 해당 값을 derive 해
@@ -184,6 +211,7 @@ export function OntologyTreeView({
   result,
   emptyHint,
   defaultExpanded = true,
+  collapseCapabilitiesByDefault = true,
   onSelect,
   selectedId,
 }: OntologyTreeViewProps) {
@@ -251,6 +279,9 @@ export function OntologyTreeView({
   const isCollapsed = (id: string) => {
     // selectedId 의 조상은 항상 펼친 상태로 보이도록 override.
     if (forceOpenAncestors.has(id)) return false;
+    // capability default-collapsed: collapsed Set 의미가 *반전* — Set 에
+    // 있으면 "사용자가 펼친" 것, 없으면 "default 접힌" 그대로.
+    if (defaultCollapsedIds.has(id)) return !collapsed.has(id);
     if (defaultExpanded) return collapsed.has(id);
     // collapsed 가 default → 토글된 것만 펼침.
     return !collapsed.has(id);
@@ -265,23 +296,52 @@ export function OntologyTreeView({
     return ids;
   }, [result.roots]);
 
-  // \`collapsed\` Set 의미가 \`defaultExpanded\` 에 따라 뒤집힌다:
-  // - true (default): collapsed Set = 접힌 노드 → expanded = total - collapsed
-  // - false: collapsed Set = 펼친 노드 → expanded = collapsed.size
-  // 둘 다 동일 변수 이름을 쓰는 v0 구현 단순화에 따른 quirk.
-  const expandedCount = defaultExpanded
-    ? collapsibleIds.size - collapsed.size
-    : collapsed.size;
+  // R12 — first-impression UX: capability 노드는 default 접힘.
+  // capability 가 children (element) 을 가질 때만 의미. element/domain/project 는 영향 X.
+  // 작은 트리 (수십 노드) 라 매 렌더 O(N) 계산 — useMemo 는 lint 의 manual
+  // memoization 보존 룰과 충돌해서 인라인.
+  const defaultCollapsedIds = new Set<string>();
+  if (collapseCapabilitiesByDefault) {
+    for (const flat of flattenTree(result.roots)) {
+      if (flat.node.kind === "capability" && flat.children.length > 0) {
+        defaultCollapsedIds.add(flat.node.id);
+      }
+    }
+  }
+
+  // \`collapsed\` Set 의미가 \`defaultExpanded\` 와 노드별 \`defaultCollapsedIds\`
+  // 에 따라 뒤집힌다. 매 렌더 O(N) 단순 계산 — 작은 트리 (수십 노드) 라
+  // useMemo 비용보다 인라인이 가독성 우위.
+  let expandedCount = 0;
+  for (const id of collapsibleIds) {
+    let isCol: boolean;
+    if (forceOpenAncestors.has(id)) {
+      isCol = false;
+    } else if (defaultCollapsedIds.has(id)) {
+      isCol = !collapsed.has(id);
+    } else if (defaultExpanded) {
+      isCol = collapsed.has(id);
+    } else {
+      isCol = !collapsed.has(id);
+    }
+    if (!isCol) expandedCount += 1;
+  }
   const canExpandMore = expandedCount < collapsibleIds.size;
   const canCollapseMore = expandedCount > 0;
 
   const expandAll = () => {
-    setCollapsed(new Set());
+    // capability default-collapsed 가 있으면 그것들을 set 에 채워야 펼쳐짐
+    // (반전 의미). 그 외 ID 는 비워 둠.
+    setCollapsed(new Set(defaultCollapsedIds));
   };
   const collapseAll = () => {
-    // defaultExpanded 가 true 면 collapsed Set 에 모든 ID 가 들어가야 모두 접힘.
-    // false 면 빈 Set 이 모두 접힘.
-    setCollapsed(defaultExpanded ? new Set(collapsibleIds) : new Set());
+    // defaultExpanded 노드: set 에 추가 → 접힘.
+    // capability default-collapsed: set 에서 제외 → default 접힘 유지.
+    const next = new Set<string>();
+    for (const id of collapsibleIds) {
+      if (!defaultCollapsedIds.has(id)) next.add(id);
+    }
+    setCollapsed(next);
   };
 
   // R+ — 트리 키보드 nav. Tab 으로 트리 진입 후 다음 키로 power-user 이동:
@@ -568,7 +628,10 @@ export function OntologyTreeView({
         </div>
       ) : null}
       {result.warnings.length > 0 ? (
-        <details className="group rounded-xl border border-[color:rgba(229,72,77,0.24)] bg-[color:rgba(229,72,77,0.06)] px-4 py-3 text-xs text-[color:var(--color-status-danger)] open:bg-[color:rgba(229,72,77,0.09)]">
+        <details
+          id="tree-data-warnings"
+          className="group scroll-mt-24 rounded-xl border border-[color:rgba(229,72,77,0.24)] bg-[color:rgba(229,72,77,0.06)] px-4 py-3 text-xs text-[color:var(--color-status-danger)] open:bg-[color:rgba(229,72,77,0.09)]"
+        >
           <summary className="flex cursor-pointer list-none items-center gap-2 font-[var(--font-weight-signature)] [&::-webkit-details-marker]:hidden">
             <ChevronRight className="h-3 w-3 flex-none transition-transform duration-150 group-open:rotate-90" />
             <span className="flex-1">{t('tree.warningsSummary', { count: result.warnings.length })}</span>

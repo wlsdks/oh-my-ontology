@@ -109,7 +109,7 @@
       "pathPickSecondNode": "다른 노드를 Shift+클릭",
       "statsNodes": "노드",
       "statsHubs": "허브",
-      "statsEdges": "엣지",
+      "statsEdges": "관계",
       "auditLegendTitle": "챙길 곳 표시",
       "auditLegendStale": "오래된 · {threshold}일+ 안 건드림 ({count})",
       "auditLegendOrphan": "외톨이 · 연결 0 ({count})",
@@ -377,6 +377,8 @@
     },
     "workspaceStrip": {
       "openOntologyAriaLabel": "온톨로지 트리 열기",
+      "ontologyLabel": "도메인+역량+요소",
+      "ontologyTitle": "프로젝트가 가진 ontology 노드 합 — project / vault-readme 노드는 제외. /ontology 의 '노드 N' 카운트와 다를 수 있음.",
       "domain": "도메인",
       "capability": "역량",
       "element": "요소",
@@ -850,6 +852,9 @@
       "factStatus": "상태",
       "factConnections": "연결",
       "factCount": "{count}개",
+      "factDomain": "도메인",
+      "factCapability": "역량",
+      "factElement": "요소",
       "categoryUncategorized": "미분류",
       "ontologyBadgeTitle": "이 프로젝트의 ontology 노드 {count}개",
       "ontologyBadgeLabel": "Ontology {count}"
@@ -1128,9 +1133,9 @@
       "ctaOpenVault": "마크다운 폴더 열기"
     },
     "hint": {
-      "title": "프로젝트 지형도",
+      "title": "온톨로지 지형도",
       "dismissAriaLabel": "안내 닫기",
-      "body": "노드는 프로젝트, 선은 의존 관계입니다. 클릭해서 상세를 열고 검색으로 좁혀보세요.",
+      "body": "노드는 프로젝트 · 도메인 · 역량 · 요소. 선은 의존 · 관련 · 포함 관계입니다. 클릭해서 상세를 열고 검색으로 좁혀보세요.",
       "click": "클릭",
       "clickDescription": " · 상세 패널 열기",
       "drag": "드래그",
@@ -1165,7 +1170,10 @@
     "stat": {
       "treeNodes": "트리 노드",
       "totalRelations": "총 관계",
-      "documents": "근거 문서"
+      "documents": "근거 문서",
+      "warnings": "데이터 경고",
+      "warningsHint": "다중 부모 등으로 트리에서 누락된 관계",
+      "warningsAria": "데이터 경고 {count}건 — 클릭해서 자세히 보기"
     },
     "error": "ontology 데이터를 불러오는 중 오류가 났어요. {message}",
     "loading": "불러오는 중…",

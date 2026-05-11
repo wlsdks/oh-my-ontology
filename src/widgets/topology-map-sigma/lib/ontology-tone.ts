@@ -26,6 +26,19 @@ const ONTOLOGY_BORDER_BY_KIND: Record<MeaningfulOntologyKind, string> = {
 /** 모든 ontology border 의 단일 두께 — 헌장의 "size 변동 최소" 정책. */
 export const ONTOLOGY_BORDER_WIDTH = 1.5;
 
+/**
+ * R12 — kind 별 노드 size. domain (큰 분류) > capability (관심 단위) >
+ * element (구현체). 사용자가 그래프 첫인상에서 위계를 색이 아닌 *크기* 로
+ * 인지하게. project leaf (4.5) 보다 작고 hub (10+) 와 차이 보존 — 헌장의
+ * "허브만 유일한 채색" 약속과 충돌 X (인디고 fill 은 hub 만).
+ */
+export const ONTOLOGY_NODE_SIZE_BY_KIND: Record<MeaningfulOntologyKind, number> = {
+  domain: 5.5,
+  capability: 4,
+  element: 2.8,
+  unknown: 3.2,
+};
+
 export interface OntologyBorderTone {
   borderColor: string;
   borderWidth: number;

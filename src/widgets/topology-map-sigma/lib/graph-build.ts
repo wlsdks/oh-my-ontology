@@ -16,7 +16,7 @@ import {
   type MeaningfulOntologyKind,
   type OntologyCountsForProject,
 } from '@/shared/lib/ontology-tree';
-import { ontologyBorderTone } from './ontology-tone';
+import { ontologyBorderTone, ONTOLOGY_NODE_SIZE_BY_KIND } from './ontology-tone';
 import { resolveTopologyPalette, applyLeafFillSaturate } from './topology-palette';
 
 export interface SigmaNodeAttrs {
@@ -303,8 +303,10 @@ export function buildGraph(
       graph.addNode(node.id, {
         x: Math.cos(theta) * r,
         y: Math.sin(theta) * r,
-        // ontology 노드는 project leaf (4.5) 보다 작게 — 시각적 위계 보존.
-        size: 3.5,
+        // R12 — kind 별 size 차등. domain (5.5) > capability (4) > element
+        // (2.8). 위계가 *크기* 로 한눈에 — color 단일 제약 보존하면서 시각
+        // 정보량 증가.
+        size: ONTOLOGY_NODE_SIZE_BY_KIND[kind],
         label: node.title,
         forceLabel: false,
         recentlyUpdated: false,
@@ -368,10 +370,17 @@ export function buildGraph(
         10 + Math.min(3, Math.log2(Math.max(1, degree)) * 0.8),
       );
     } else if (attrs.isOntology) {
+      // R12 — kind 별 base size (ONTOLOGY_NODE_SIZE_BY_KIND) + degree 가중.
+      // 이전 단일 3.5 → domain 5.5 / capability 4 / element 2.8 로 첫인상
+      // 위계 강화. degree 영향은 약하게 유지.
+      const kind = attrs.ontologyTopKind;
+      const base = kind && ONTOLOGY_NODE_SIZE_BY_KIND[kind] !== undefined
+        ? ONTOLOGY_NODE_SIZE_BY_KIND[kind]
+        : 3.5;
       graph.setNodeAttribute(
         id,
         'size',
-        3.5 + Math.min(2, Math.log2(Math.max(1, degree)) * 0.4),
+        base + Math.min(2, Math.log2(Math.max(1, degree)) * 0.4),
       );
       const isDomain = attrs.ontologyTopKind === 'domain';
       const isHighDegree = degree >= ONTOLOGY_LABEL_DEGREE;

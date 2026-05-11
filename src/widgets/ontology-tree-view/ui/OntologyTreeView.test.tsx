@@ -417,7 +417,9 @@ describe("OntologyTreeView — UX-11 element kind dim", () => {
   }
 
   it("element kind row 에 data-dim=true + opacity-60 클래스", () => {
-    render(<OntologyTreeView result={withElement()} />);
+    // R12 — capability default-collapsed 라 element 가 안 보임. 이 케이스는
+    // *element row dim 자체* 의 단위 테스트라 capability 펼친 상태를 명시적으로 요청.
+    render(<OntologyTreeView result={withElement()} collapseCapabilitiesByDefault={false} />);
     const rows = screen.getAllByTestId("ontology-tree-row");
     const elementRow = rows.find((r) => r.getAttribute("data-kind") === "element");
     expect(elementRow).toBeDefined();
@@ -428,7 +430,7 @@ describe("OntologyTreeView — UX-11 element kind dim", () => {
   });
 
   it("non-element kind row (project/domain/capability) 에 data-dim=false + opacity 클래스 없음", () => {
-    render(<OntologyTreeView result={withElement()} />);
+    render(<OntologyTreeView result={withElement()} collapseCapabilitiesByDefault={false} />);
     const rows = screen.getAllByTestId("ontology-tree-row");
     const projectRow = rows.find((r) => r.getAttribute("data-kind") === "project");
     const domainRow = rows.find((r) => r.getAttribute("data-kind") === "domain");

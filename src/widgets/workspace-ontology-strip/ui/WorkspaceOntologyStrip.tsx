@@ -46,8 +46,9 @@ export function WorkspaceOntologyStrip() {
         href={ontologyHref}
         className="inline-flex items-center gap-1.5 rounded-full border border-[color:rgba(94,106,210,0.32)] bg-[color:rgba(94,106,210,0.08)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.10em] text-[color:rgba(159,170,235,0.95)] transition-colors hover:bg-[color:rgba(94,106,210,0.16)]"
         aria-label={t("openOntologyAriaLabel")}
+        title={t("ontologyTitle")}
       >
-        Ontology {counts.total}
+        {t("ontologyLabel")} {counts.total}
         <span aria-hidden>→</span>
       </Link>
       {counts.domain > 0 ? <CountChip label={t("domain")} value={counts.domain} /> : null}

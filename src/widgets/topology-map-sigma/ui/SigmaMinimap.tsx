@@ -177,7 +177,7 @@ export function SigmaMinimap({ sigma, graph }: SigmaMinimapProps) {
           Map
         </span>
         <span className="font-mono text-[9px] tracking-[0.08em] text-[color:var(--color-text-tertiary)]">
-          {totalNodes} · {primaryCount} {primaryLabel}
+          {primaryCount > 0 ? `${totalNodes} · ${primaryCount} ${primaryLabel}` : `${totalNodes} nodes`}
         </span>
       </div>
       <svg
