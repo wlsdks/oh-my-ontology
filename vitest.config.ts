@@ -26,6 +26,11 @@ export default defineConfig({
       '@/features': path.resolve(__dirname, './src/features'),
       '@/entities': path.resolve(__dirname, './src/entities'),
       '@/shared': path.resolve(__dirname, './src/shared'),
+      // tsconfig paths 의 `@/i18n/*` 와 정합 — vitest 의 fallback `@/*` →
+      // `./*` 가 `@/i18n/foo` 를 `./i18n/foo` (존재 X) 로 잘못 resolve 하지
+      // 않도록 명시. 현재 .test.{ts,tsx} 에 i18n alias import 가 없어 latent
+      // 회귀였음.
+      '@/i18n': path.resolve(__dirname, './src/i18n'),
       '@': path.resolve(__dirname, './'),
     },
   },
