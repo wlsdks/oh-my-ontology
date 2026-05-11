@@ -15,7 +15,10 @@ import { ProjectQuickCreatePanel } from "@/features/project-quick-create";
 import { useProjectMutations, useProjects } from "@/features/project-data-source";
 import { downloadProjectsCsv } from "@/features/project-export";
 import { useOntologyInsight } from "@/features/vault-ontology";
-import { buildProjectOntologyCounts } from "@/shared/lib/ontology-tree";
+import {
+  buildProjectOntologyCounts,
+  type OntologyCountsForProject,
+} from "@/shared/lib/ontology-tree";
 import { OperationsNav } from "@/widgets/operations-nav";
 import { WorkspaceOntologyStrip } from "@/widgets/workspace-ontology-strip";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui";
@@ -89,13 +92,13 @@ export function ProjectSelectorPage() {
   // 로 집계해 카드 우상단에 "ontology 4" 같은 chip 표시. project / document
   // 메타 kind 제외 (domain / capability / element / unknown 합).
   const { insight } = useOntologyInsight();
-  const ontologyCountBySlug = useMemo(() => {
-    if (!insight) return new Map<string, number>();
-    const counts = buildProjectOntologyCounts(insight.nodes);
-    const map = new Map<string, number>();
-    for (const [slug, c] of counts) map.set(slug, c.total);
-    return map;
-  }, [insight]);
+  // 카드 fact 영역이 stale 한 단계/상태/연결 (cloud-mode 잔재) 대신 ontology
+  // breakdown 으로 fallback 할 수 있도록 byKind 까지 보존. badge chip 은
+  // .total 만 쓰는데, 같은 데이터 흐름에서 카드 본문도 같이 활용.
+  const ontologyCountsBySlug = useMemo<Map<string, OntologyCountsForProject>>(
+    () => (insight ? buildProjectOntologyCounts(insight.nodes) : new Map()),
+    [insight],
+  );
 
   const filteredProjects = useMemo(
     () =>
@@ -419,22 +422,43 @@ export function ProjectSelectorPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="flex flex-1 flex-col justify-between space-y-4">
-                      {/* 카드 내 요약 3 fact. "구분" 은 category (lifecycle
-                          phase: 작업중/예정), "상태" 는 status (구체 단계:
-                          개발중/운영중/기획/아이디어). 두 축이 서로 겹쳐 보여
-                          label 을 "단계 / 상태" 로 명확히 분리. */}
-                      <div className="grid grid-cols-3 gap-2 rounded-[18px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3 py-3">
-                        <QuickFact label={t("factPhase")} value={categoryLabel(project.category)} />
-                        <QuickFact label={t("factStatus")} value={statusLabel(project.status)} />
-                        <QuickFact label={t("factConnections")} value={t("factCount", { count: project.dependencies.length })} />
-                      </div>
+                      {/* 카드 내 요약 fact strip. R12 — cloud-mode 의
+                          단계/상태/연결 3축은 dogfood 같은 local-first
+                          프로젝트에서 모두 "—"/0 으로 비어 회귀.
+                          ontology breakdown (도메인/역량/요소) 이 있으면
+                          그걸 우선 — 없으면 기존 3 fact 가 fallback. */}
+                      {(() => {
+                        const counts = ontologyCountsBySlug.get(project.slug);
+                        const hasOntology = (counts?.total ?? 0) > 0;
+                        if (hasOntology) {
+                          return (
+                            <div className="grid grid-cols-3 gap-2 rounded-[18px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3 py-3">
+                              <QuickFact label={t("factDomain")} value={String(counts!.byKind.domain)} />
+                              <QuickFact label={t("factCapability")} value={String(counts!.byKind.capability)} />
+                              <QuickFact label={t("factElement")} value={String(counts!.byKind.element)} />
+                            </div>
+                          );
+                        }
+                        const phase = categoryLabel(project.category);
+                        const status = statusLabel(project.status);
+                        const conn = project.dependencies.length;
+                        const allEmpty = phase === "—" && status === "—" && conn === 0;
+                        if (allEmpty) return null;
+                        return (
+                          <div className="grid grid-cols-3 gap-2 rounded-[18px] border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3 py-3">
+                            <QuickFact label={t("factPhase")} value={phase} />
+                            <QuickFact label={t("factStatus")} value={status} />
+                            <QuickFact label={t("factConnections")} value={t("factCount", { count: conn })} />
+                          </div>
+                        );
+                      })()}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between gap-2 text-sm text-[color:var(--color-text-secondary)]">
                           <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[color:var(--color-text-quaternary)]">
                             {project.slug}
                           </span>
                           {(() => {
-                            const ontologyCount = ontologyCountBySlug.get(project.slug) ?? 0;
+                            const ontologyCount = ontologyCountsBySlug.get(project.slug)?.total ?? 0;
                             if (ontologyCount === 0) return null;
                             return (
                               <span

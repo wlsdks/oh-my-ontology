@@ -1408,12 +1408,18 @@ function SigmaTopologyImpl({
     graph.forEachNode((_, attrs) => {
       if (attrs.isHub) hubs += 1;
     });
+    // ontology extension 이 켜진 surface 에선 edge 카운트를 vault 의 원본
+    // 관계 (insight.edges.length) 와 정렬 — graphology 의 graph.size 는
+    // 같은 (from,to) 쌍을 1개로 dedup 해서 /ontology 의 "총 관계" 와
+    // 카운트가 어긋났다 (141 vs 135).
+    const originalRelationCount =
+      showOntologyNodes && ontologyInsight ? ontologyInsight.edges.length : graph.size;
     return {
       nodes: graph.order,
       hubs,
-      edges: graph.size,
+      edges: originalRelationCount,
     };
-  }, [graph]);
+  }, [graph, showOntologyNodes, ontologyInsight]);
 
   return (
     <div className={`relative h-full w-full overflow-hidden ${className ?? ''}`}>
@@ -1588,10 +1594,14 @@ function SigmaTopologyImpl({
         <span>
           <span className="text-[color:var(--color-text-secondary)]">{stats.nodes}</span> {t('statsNodes')}
         </span>
-        <span className="h-2 w-px bg-[color:var(--color-overlay-3)]" />
-        <span>
-          <span className="text-[color:var(--color-indigo-accent)]">{stats.hubs}</span> {t('statsHubs')}
-        </span>
+        {stats.hubs > 0 ? (
+          <>
+            <span className="h-2 w-px bg-[color:var(--color-overlay-3)]" />
+            <span>
+              <span className="text-[color:var(--color-indigo-accent)]">{stats.hubs}</span> {t('statsHubs')}
+            </span>
+          </>
+        ) : null}
         <span className="h-2 w-px bg-[color:var(--color-overlay-3)]" />
         <span>
           <span className="text-[color:var(--color-text-secondary)]">{stats.edges}</span> {t('statsEdges')}

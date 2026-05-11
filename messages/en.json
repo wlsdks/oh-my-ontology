@@ -109,7 +109,7 @@
       "pathPickSecondNode": "Shift+click another node",
       "statsNodes": "nodes",
       "statsHubs": "hubs",
-      "statsEdges": "edges",
+      "statsEdges": "relations",
       "auditLegendTitle": "Things to look at",
       "auditLegendStale": "Stale · {threshold} day+ untouched ({count})",
       "auditLegendOrphan": "Orphan · 0 connections ({count})",
@@ -377,6 +377,8 @@
     },
     "workspaceStrip": {
       "openOntologyAriaLabel": "Open ontology tree",
+      "ontologyLabel": "Domains+Capabilities+Elements",
+      "ontologyTitle": "Sum of ontology nodes owned by this project — excludes project / vault-readme nodes. May differ from the 'N nodes' count on /ontology.",
       "domain": "Domain",
       "capability": "Capability",
       "element": "Element",
@@ -850,6 +852,9 @@
       "factStatus": "Status",
       "factConnections": "Links",
       "factCount": "{count}",
+      "factDomain": "Domains",
+      "factCapability": "Capabilities",
+      "factElement": "Elements",
       "categoryUncategorized": "Uncategorized",
       "ontologyBadgeTitle": "{count} ontology nodes for this project",
       "ontologyBadgeLabel": "Ontology {count}"
@@ -1128,9 +1133,9 @@
       "ctaOpenVault": "Open my markdown folder"
     },
     "hint": {
-      "title": "Project terrain map",
+      "title": "Ontology terrain map",
       "dismissAriaLabel": "Close hint",
-      "body": "Nodes are projects, lines are dependencies. Click to open details, search to narrow.",
+      "body": "Nodes are projects · domains · capabilities · elements. Lines are depends-on / related / contains. Click to open details, search to narrow.",
       "click": "Click",
       "clickDescription": " · open the detail panel",
       "drag": "Drag",
@@ -1165,7 +1170,10 @@
     "stat": {
       "treeNodes": "Tree nodes",
       "totalRelations": "Total relations",
-      "documents": "Evidence docs"
+      "documents": "Evidence docs",
+      "warnings": "Data warnings",
+      "warningsHint": "Relations dropped from the tree (multi-parent etc.)",
+      "warningsAria": "Data warnings {count} — click for details"
     },
     "error": "Something went wrong while loading ontology data. {message}",
     "loading": "Loading…",

@@ -256,10 +256,12 @@ function computeDagreLayout(
   if (docs.length === 0) return map;
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  // rankdir LR — 좌→우 계층 흐름. nodesep / ranksep 축소 — 빽빽하게 배치해
-  // viewport fitView 시 노드 글자가 너무 작아지지 않게 (이전엔 18 노드가
-  // 가로로 너무 펼쳐져 화면 fit 시 노드 가독성 떨어짐).
-  g.setGraph({ rankdir: "LR", nodesep: 24, ranksep: 56, marginx: 16, marginy: 16 });
+  // rankdir LR — 좌→우 계층 흐름. R12 — capability 가 14+ 같은 rank 에 쌓이는
+  // 케이스에서 nodesep=24 면 NODE_HEIGHT 와 비교해 라벨 영역이 겹침. 60 으로
+  // 늘려 행간 라벨 충돌 완화. ranksep 은 70 으로 확장 — 화살표 라벨 (포함/관련)
+  // 가 column 사이에 들어갈 공간 확보. fitView 가 자동 줌-아웃해서 너무
+  // 작아지지 않게 비율 유지.
+  g.setGraph({ rankdir: "LR", nodesep: 60, ranksep: 70, marginx: 16, marginy: 16 });
   for (const doc of docs) {
     g.setNode(doc.slug, { width: NODE_WIDTH, height: NODE_HEIGHT });
   }

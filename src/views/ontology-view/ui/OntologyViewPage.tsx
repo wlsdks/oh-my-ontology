@@ -264,18 +264,38 @@ export function OntologyViewPage() {
       </section>
 
       {/* tree node + relation stat strip. 사용자가 vault 에 document kind
-          노드를 만들면 추가 카운트만 surface (docCount > 0 일 때만). */}
+          노드를 만들면 추가 카운트만 surface (docCount > 0 일 때만).
+          treeResult.warnings 가 있으면 (multi-parent silent drop 등) amber
+          액션 칸을 추가 — 페이지 끝의 details disclosure 로 스크롤. */}
       <section
         className={
-          docCount > 0
-            ? "mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3"
-            : "mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2"
+          (() => {
+            const cols = 2 + (docCount > 0 ? 1 : 0) + ((treeResult?.warnings.length ?? 0) > 0 ? 1 : 0);
+            if (cols >= 4) return "mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4";
+            if (cols === 3) return "mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3";
+            return "mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2";
+          })()
         }
       >
         <Stat label={t('stat.treeNodes')} value={String(totalNodes)} />
         <Stat label={t('stat.totalRelations')} value={insight ? String(insight.edges.length) : "—"} />
         {docCount > 0 ? (
           <Stat label={t('stat.documents')} value={String(docCount)} />
+        ) : null}
+        {treeResult && treeResult.warnings.length > 0 ? (
+          <Stat
+            label={t('stat.warnings')}
+            value={`⚠ ${treeResult.warnings.length}`}
+            accent="amber"
+            hint={t('stat.warningsHint')}
+            ariaLabel={t('stat.warningsAria', { count: treeResult.warnings.length })}
+            onClick={() => {
+              const el = document.getElementById('tree-data-warnings');
+              if (!el) return;
+              if (el instanceof HTMLDetailsElement) el.open = true;
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
+          />
         ) : null}
       </section>
 
@@ -860,9 +880,11 @@ function Stat({
   value,
   accent,
   href,
+  onClick,
   hint,
   hintFull,
   className,
+  ariaLabel,
 }: {
   label: string;
   value: string;
@@ -870,12 +892,15 @@ function Stat({
   accent?: "amber" | "indigo";
   /** truthy 면 카드 자체가 Link 로 렌더 — 사용자 행동 유도. */
   href?: string;
+  /** href 없이 in-page 점프 / 토글 등 액션이 필요할 때. */
+  onClick?: () => void;
   /** 라벨이 입문자에게 외계어인 경우 카드 내부에 1 줄 풀설명 (짧게 유지). */
   hint?: string;
   /** hint 가 길면 별도 풀설명을 호버 title 로 — 좁은 카드 wrap 회피. */
   hintFull?: string;
   /** grid 안에서 col-span 등 layout 변형. */
   className?: string;
+  ariaLabel?: string;
 }) {
   const accentClass =
     accent === "amber"
@@ -914,6 +939,18 @@ function Stat({
       >
         {body}
       </Link>
+    );
+  }
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel}
+        className={`${wrapperClass} block w-full text-left transition-colors hover:border-[color:rgba(94,106,210,0.32)]`}
+      >
+        {body}
+      </button>
     );
   }
   return <div className={wrapperClass}>{body}</div>;
