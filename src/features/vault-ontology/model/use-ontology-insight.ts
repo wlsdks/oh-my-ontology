@@ -55,6 +55,48 @@ function derivationToInsight(
     lastApprovedAt: VAULT_SENTINEL_DATE,
     lastApprovedBy: VAULT_SENTINEL_AUTHOR,
   }));
+
+  // R+ projectIds 채우기 — vault frontmatter 에 `project:` 키가 없어도
+  // contains 관계를 BFS 로 transitive closure 잡아 각 project 노드의 후손
+  // 에 그 project slug 매달기. dogfood 처럼 single-project vault 에서
+  // ProjectSelector 카드의 도메인/역량/요소 fact strip 이 빈 map 으로
+  // 빠져 hide 되던 회귀 차단. UI fallback (PR #252) 도 유지 — 정확한 fix
+  // 가 데이터 보강 끝나면 조건 false 가 되어 자동 skip.
+  const projectNodes = nodes.filter((n) => n.kind === 'project');
+  if (projectNodes.length > 0) {
+    const containsAdj = new Map<string, string[]>();
+    for (const e of edges) {
+      const isContains = e.type === 'contains' || e.type === 'belongs_to';
+      if (!isContains) continue;
+      // belongs_to 는 contains 의 역방향 — 일관되게 container → contained
+      // 로 정규화.
+      const [from, to] = e.type === 'contains' ? [e.from, e.to] : [e.to, e.from];
+      const arr = containsAdj.get(from);
+      if (arr) arr.push(to);
+      else containsAdj.set(from, [to]);
+    }
+    const nodeById = new Map(nodes.map((n) => [n.id, n]));
+    for (const p of projectNodes) {
+      const projectSlug = p.id.replace(/^project:/, '');
+      const visited = new Set<string>([p.id]);
+      const queue: string[] = [p.id];
+      while (queue.length > 0) {
+        const cur = queue.shift()!;
+        const children = containsAdj.get(cur);
+        if (!children) continue;
+        for (const c of children) {
+          if (visited.has(c)) continue;
+          visited.add(c);
+          queue.push(c);
+          const cnode = nodeById.get(c);
+          if (cnode && !cnode.projectIds.includes(projectSlug)) {
+            cnode.projectIds.push(projectSlug);
+          }
+        }
+      }
+    }
+  }
+
   return { nodes, edges };
 }
 
