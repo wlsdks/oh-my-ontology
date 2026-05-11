@@ -837,10 +837,17 @@ function DocsVaultContent() {
   useEffect(() => {
     if (selectedSlug && docsBySlug.has(selectedSlug)) return;
 
+    // 첫 진입 default — `docs/README.md` 가 vault 에 없는 경우가 default
+    // (`AGENTS.md` 자체가 canonical 가이드). 그래서 ARCHITECTURE 가 fallback
+    // 으로 잡혀왔는데, 처음 들어온 사용자에게 *지금 쓸 수 있는 기능 목록*
+    // (FEATURES) 이 ARCHITECTURE 보다 첫인상 가치가 크다. AGENTS.md 가
+    // "features users can use right now, see docs/FEATURES.md" 로 직접 지목.
     const candidates = [
       ...pinnedSlugs,
       ...recentSlugs,
       'README',
+      'FEATURES',
+      'PRODUCT-DIRECTION',
       'ARCHITECTURE',
       manifest.docs[0]?.slug,
     ];
