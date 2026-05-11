@@ -80,7 +80,12 @@ export interface SigmaEdgeAttrs {
 }
 
 const HUB_COLOR = INDIGO_HUB;
-const NODE_OUTER_HALO = 'rgba(0, 0, 0, 0)'; // 비허브는 halo 없음 (투명)
+// R+ 사용자 비전: "은하계의 별처럼 / 별자리처럼". 비허브 노드에도 매우
+// 흐릿한 푸른 별빛 halo (alpha 0.06). 어두운 캔버스 위에서 작은 dot 가
+// *light bloom* 처럼 보여 stick 시각이 별 collection 으로 전환. hub 의
+// 강한 인디고 halo (palette.hubOuterHalo, alpha 0.08-0.32) 는 그대로 —
+// 별 vs 큰 별 (Sirius 급) 위계 보존.
+const NODE_OUTER_HALO = 'rgba(180, 195, 230, 0.06)';
 
 /**
  * ontology 노드가 forceLabel = true 로 승격되는 degree 기준.
@@ -345,8 +350,9 @@ export function buildGraph(
             : 'depends-on';
       graph.addEdge(edge.from, edge.to, {
         // ontology 엣지는 project↔project dependencies 보다 가늘게 — 메인
-        // 의존 골격이 시야에서 사라지지 않도록.
-        size: 0.35,
+        // 의존 골격이 시야에서 사라지지 않도록. R+ stick-bug 후속: 0.35 →
+        // 0.28 로 더 얇게.
+        size: 0.28,
         color: palette.edge,
         kind,
         // R+ 사용자 피드백: zoom out 시 거의 직선 (0.06) 이 "대벌레 다리"

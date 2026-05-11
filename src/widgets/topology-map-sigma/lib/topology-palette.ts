@@ -44,9 +44,13 @@ const DARK: TopologyPalette = {
   nodeBorder: 'rgba(200, 210, 230, 0.3)',
   hubBorder: 'rgba(139, 151, 255, 0.55)',
   hubOuterHalo: 'rgba(139, 151, 255, 0.08)',
-  edge: 'rgba(170, 185, 210, 0.08)',
-  edgeContains: 'rgba(170, 185, 210, 0.10)',
-  edgeDependsOn: 'rgba(139, 151, 255, 0.16)',
+  // R+ 사용자 피드백: zoom out 시 흰 stick 시각. edge 톤을 white-blue 에서
+  // 더 cool blue-dust 로 시프트 + alpha 살짝 낮춤. dark bg 위에서 "흰 가는
+  // 선" 이 아닌 "푸른 먼지" 느낌. RGB 170/185/210 (white-blue) → 130/150/195
+  // (vivid blue-grey). alpha 0.08 → 0.06.
+  edge: 'rgba(130, 150, 195, 0.06)',
+  edgeContains: 'rgba(130, 150, 195, 0.08)',
+  edgeDependsOn: 'rgba(139, 151, 255, 0.14)',
   edgeDim: 'rgba(255, 255, 255, 0.005)',
   labelText: 'rgba(235, 240, 250, 0.95)',
   leafFillSaturate: 1,
