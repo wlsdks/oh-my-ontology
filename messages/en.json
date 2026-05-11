@@ -194,6 +194,8 @@
       "expandAll": "Expand all",
       "collapseAll": "Collapse all",
       "noResults": "No nodes match \"{query}\".",
+      "implicitElementsShow": "📂 Show {count} files",
+      "implicitElementsHide": "▴ Collapse files",
       "orphansHeading": "Unconnected nodes {count}",
       "orphansHeadingFiltered": "Unconnected nodes {filtered} / {total}",
       "orphansMore": "…and {count} more",
