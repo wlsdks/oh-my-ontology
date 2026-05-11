@@ -19,7 +19,7 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: '/',
     name: 'oh-my-ontology',
     short_name: 'oh-my-ontology',
-    description: '문서·프로젝트·허브·노드, 모든 컨텍스트를 하나의 지도로.',
+    description: '사람과 AI 에이전트가 같이 키우는 코드베이스 온톨로지 워크벤치.',
     start_url: '/',
     display: 'standalone',
     orientation: 'any',
