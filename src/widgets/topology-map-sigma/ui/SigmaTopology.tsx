@@ -984,7 +984,6 @@ function SigmaTopologyImpl({
       setContextMenu({ slug: node, name: attrs.label, x: event.x, y: event.y });
     });
     renderer.on('rightClickStage', () => setContextMenu(null));
-    renderer.on('clickStage', () => setContextMenu(null));
     renderer.on('doubleClickNode', ({ node, event }) => {
       // 옵시디언의 "이 노드로 포커스" 동작 — Local graph 모드 트리거.
       event.preventSigmaDefault();
@@ -994,7 +993,11 @@ function SigmaTopologyImpl({
         onFirstInteractionRef.current?.();
       }
     });
+    // clickStage 한 군데에서 두 가지 사이드 이펙트 처리 — 이전엔
+    // `setContextMenu(null)` 과 `onPaneClickRef` 가 별도 .on() 두 호출로
+    // 등록되어 같은 이벤트 multiple handler. 같은 effect 묶음으로 통합.
     renderer.on('clickStage', () => {
+      setContextMenu(null);
       onPaneClickRef.current?.();
     });
     renderer.on('enterNode', ({ node, event }) => {
