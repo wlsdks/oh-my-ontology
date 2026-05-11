@@ -16,6 +16,7 @@ import { useProjectMutations, useProjects } from "@/features/project-data-source
 import { downloadProjectsCsv } from "@/features/project-export";
 import { useOntologyInsight } from "@/features/vault-ontology";
 import {
+  buildMeaningfulOntologyStats,
   buildProjectOntologyCounts,
   type OntologyCountsForProject,
 } from "@/shared/lib/ontology-tree";
@@ -95,8 +96,28 @@ export function ProjectSelectorPage() {
   // 카드 fact 영역이 stale 한 단계/상태/연결 (cloud-mode 잔재) 대신 ontology
   // breakdown 으로 fallback 할 수 있도록 byKind 까지 보존. badge chip 은
   // .total 만 쓰는데, 같은 데이터 흐름에서 카드 본문도 같이 활용.
+  // R+ 회귀 fix: dogfood 처럼 *single-project vault* 의 ontology 노드들이
+  // frontmatter 에 `project:` 없는 경우 projectIds 빈 array → counts map
+  // 에 entry 0 → 카드 fact strip 안 보임. project 가 정확히 1 개면 모든
+  // ontology 노드를 그 project 에 매달기 fallback.
   const ontologyCountsBySlug = useMemo<Map<string, OntologyCountsForProject>>(
-    () => (insight ? buildProjectOntologyCounts(insight.nodes) : new Map()),
+    () => {
+      if (!insight) return new Map();
+      const map = buildProjectOntologyCounts(insight.nodes);
+      // single-project vault 인데 어떤 노드도 그 project 에 매달리지 않은
+      // 케이스 — 모든 ontology 노드의 합을 그 project 카드에 노출.
+      const projectKindCount = insight.nodes.filter((n) => n.kind === "project").length;
+      if (projectKindCount === 1 && map.size === 0) {
+        const onlyProject = insight.nodes.find((n) => n.kind === "project");
+        if (onlyProject) {
+          const stats = buildMeaningfulOntologyStats(insight.nodes);
+          if (stats.total > 0) {
+            map.set(onlyProject.id.replace(/^project:/, ""), stats);
+          }
+        }
+      }
+      return map;
+    },
     [insight],
   );
 
