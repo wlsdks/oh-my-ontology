@@ -289,10 +289,15 @@ function DocsVaultContent() {
   );
 
   // Viewer content resolver — 로컬은 파일 핸들로 읽기, 서버는 기본 fetch.
+  // R+ 사용자 보고: `?intent=local` 진입 시 source='local' 강제 set 후
+  // vault 미선택 (handles 0) 단계에서 viewer 가 fh 없는 slug 를 요청해
+  // "no file handle for 'FEATURES'" 에러 노출. handles 가 empty 면 server
+  // fetch fallback — 사용자가 picker 클릭 전까지 demo content 노출.
   const getDocContent = useMemo<
     ((slug: string) => Promise<string>) | undefined
   >(() => {
     if (source !== 'local') return undefined;
+    if (localVault.fileHandles.size === 0) return undefined;
     const handles = localVault.fileHandles;
     return async (slug: string) => {
       const fh = handles.get(slug);
