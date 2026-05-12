@@ -36,9 +36,12 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'cycles') {
     return engine.cycles(query);
   }
+  if (operation === 'topological_order') {
+    return engine.topologicalOrder(query);
+  }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage, cycles.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage, cycles, topological_order.',
   );
 }
 
@@ -515,6 +518,85 @@ export function createOntologyEngine(artifact) {
     }
   }
 
+  function topologicalOrder(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 100);
+    const typeSet = normalizeTypes(options.types ?? ['dependencies']);
+    const includeIsolated = options.includeIsolated === true;
+    const selectedEdges = edges.filter((edge) => edge.resolved && typeAllowed(edge.via, typeSet));
+    const slugs = new Set();
+    const adjacency = new Map();
+    const indegree = new Map();
+    const edgePairs = new Set();
+
+    if (includeIsolated) {
+      for (const node of nodes) slugs.add(node.slug);
+    }
+
+    for (const edge of selectedEdges) {
+      slugs.add(edge.from);
+      slugs.add(edge.to);
+      const prerequisite = edge.to;
+      const dependent = edge.from;
+      const pairKey = `${prerequisite}\0${dependent}`;
+      if (edgePairs.has(pairKey)) continue;
+      edgePairs.add(pairKey);
+      if (!adjacency.has(prerequisite)) adjacency.set(prerequisite, new Set());
+      adjacency.get(prerequisite).add(dependent);
+      indegree.set(dependent, (indegree.get(dependent) || 0) + 1);
+      if (!indegree.has(prerequisite)) indegree.set(prerequisite, 0);
+    }
+
+    for (const slug of slugs) {
+      if (!adjacency.has(slug)) adjacency.set(slug, new Set());
+      if (!indegree.has(slug)) indegree.set(slug, 0);
+    }
+
+    const ordered = [];
+    const layers = [];
+    let ready = [...slugs].filter((slug) => indegree.get(slug) === 0).sort();
+    let rank = 0;
+
+    while (ready.length > 0) {
+      const layer = ready;
+      layers.push({ rank, nodes: layer.map((slug) => summarizeNode(nodeBySlug.get(slug))) });
+      for (const slug of layer) ordered.push({ rank, slug, node: summarizeNode(nodeBySlug.get(slug)) });
+
+      const nextReady = [];
+      for (const slug of layer) {
+        for (const next of [...(adjacency.get(slug) || [])].sort()) {
+          indegree.set(next, indegree.get(next) - 1);
+          if (indegree.get(next) === 0) nextReady.push(next);
+        }
+      }
+      ready = [...new Set(nextReady)].sort();
+      rank += 1;
+    }
+
+    const blocked = [...slugs]
+      .filter((slug) => (indegree.get(slug) || 0) > 0)
+      .sort()
+      .map((slug) => ({
+        slug,
+        remainingInDegree: indegree.get(slug),
+        node: summarizeNode(nodeBySlug.get(slug)),
+      }));
+
+    return {
+      operation: 'topological_order',
+      relationTypes: [...typeSet].sort(),
+      prerequisiteFirst: true,
+      includeIsolated,
+      acyclic: blocked.length === 0,
+      totalNodes: slugs.size,
+      orderedCount: ordered.length,
+      selectedEdges: selectedEdges.length,
+      limited: ordered.length > limit,
+      order: ordered.slice(0, limit),
+      layers: limitLayers(layers, limit),
+      blocked,
+    };
+  }
+
   function schemaPatterns() {
     const patternMap = new Map();
     for (const edge of edges) {
@@ -618,6 +700,7 @@ export function createOntologyEngine(artifact) {
     components,
     lineage,
     cycles,
+    topologicalOrder,
   };
 }
 
@@ -694,6 +777,22 @@ function normalizeCycle(nodes, edges) {
     nodes: closedNodes,
     edges: rotatedEdges,
   };
+}
+
+function limitLayers(layers, limit) {
+  const out = [];
+  let remaining = limit;
+  for (const layer of layers) {
+    if (remaining <= 0) break;
+    const nodes = layer.nodes.slice(0, remaining);
+    out.push({
+      rank: layer.rank,
+      nodes,
+      limited: layer.nodes.length > nodes.length,
+    });
+    remaining -= nodes.length;
+  }
+  return out;
 }
 
 function edgeAllowed(edge, typeSet, includeExternal, includeUnresolved) {

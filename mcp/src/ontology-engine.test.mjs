@@ -425,4 +425,88 @@ describe('queryCompiledOntology', () => {
     });
     assert.equal(shortDepth.totalCycles, 0);
   });
+
+  it('returns prerequisite-first topological order for dependency edges', () => {
+    const ordered = compileOntology(
+      [
+        doc('capabilities/app', {
+          kind: 'capability',
+          title: 'App',
+          depends_on: ['capabilities/auth', 'capabilities/ui'],
+        }),
+        doc('capabilities/auth', {
+          kind: 'capability',
+          title: 'Auth',
+          depends_on: ['capabilities/storage'],
+        }),
+        doc('capabilities/storage', {
+          kind: 'capability',
+          title: 'Storage',
+        }),
+        doc('capabilities/ui', {
+          kind: 'capability',
+          title: 'UI',
+        }),
+        doc('capabilities/unrelated', {
+          kind: 'capability',
+          title: 'Unrelated',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(ordered, {
+      operation: 'topological_order',
+    });
+
+    assert.equal(result.operation, 'topological_order');
+    assert.equal(result.acyclic, true);
+    assert.equal(result.totalNodes, 4);
+    assert.equal(result.selectedEdges, 3);
+    assert.deepEqual(
+      result.layers.map((layer) => ({
+        rank: layer.rank,
+        nodes: layer.nodes.map((node) => node.slug),
+      })),
+      [
+        { rank: 0, nodes: ['capabilities/storage', 'capabilities/ui'] },
+        { rank: 1, nodes: ['capabilities/auth'] },
+        { rank: 2, nodes: ['capabilities/app'] },
+      ],
+    );
+    assert.deepEqual(result.order.map((row) => row.slug), [
+      'capabilities/storage',
+      'capabilities/ui',
+      'capabilities/auth',
+      'capabilities/app',
+    ]);
+
+    const withIsolated = queryCompiledOntology(ordered, {
+      operation: 'topological_order',
+      includeIsolated: true,
+      limit: 2,
+    });
+    assert.equal(withIsolated.totalNodes, 5);
+    assert.equal(withIsolated.limited, true);
+    assert.deepEqual(withIsolated.order.map((row) => row.slug), [
+      'capabilities/storage',
+      'capabilities/ui',
+    ]);
+
+    const cyclic = queryCompiledOntology(
+      compileOntology(
+        [
+          doc('capabilities/a', { kind: 'capability', title: 'A', depends_on: ['capabilities/b'] }),
+          doc('capabilities/b', { kind: 'capability', title: 'B', depends_on: ['capabilities/a'] }),
+        ],
+        { includeIndexes: true },
+      ),
+      { operation: 'topological_order' },
+    );
+    assert.equal(cyclic.acyclic, false);
+    assert.deepEqual(cyclic.blocked.map((row) => row.slug), [
+      'capabilities/a',
+      'capabilities/b',
+    ]);
+  });
 });

@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components/lineage/cycles", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components/lineage/cycles/topological_order", async () => {
   const root = makeVault([
     {
       slug: "domains/auth",
@@ -325,6 +325,9 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       }),
       callTool(11, "query_ontology", {
         operation: "cycles",
+      }),
+      callTool(12, "query_ontology", {
+        operation: "topological_order",
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -402,6 +405,14 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
     const cycles = getCallParsed(responses, 11);
     assert.equal(cycles.totalCycles, 0);
     assert.deepEqual(cycles.relationTypes, ["dependencies"]);
+
+    const topologicalOrder = getCallParsed(responses, 12);
+    assert.equal(topologicalOrder.acyclic, true);
+    assert.deepEqual(topologicalOrder.order.map((row) => row.slug), [
+      "domains/auth",
+      "capabilities/login",
+      "capabilities/session",
+    ]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
