@@ -498,7 +498,7 @@ const TOOLS = [
           type: 'array',
           items: { type: 'string' },
           description:
-            'Optional relation/frontmatter keys to include, e.g. ["domain", "dependencies", "contains"].',
+            'Optional relation types/frontmatter keys to include, e.g. ["domain", "depends_on", "contains"]. Public add_relation types are normalized to stored graph keys.',
         },
         includeNodes: {
           type: 'boolean',
@@ -1323,7 +1323,7 @@ function findNeighborsTool({ slug, direction = 'both', types, includeNodes = tru
   const docBySlug = new Map(docs.map((doc) => [doc.slug, doc]));
   const centerDoc = docBySlug.get(center);
   const typeSet = Array.isArray(types) && types.length > 0
-    ? new Set(types.filter((type) => typeof type === 'string' && type.trim()))
+    ? new Set(types.map(normalizeGraphRelationKey).filter(Boolean))
     : null;
   const edgeLimit = typeof limit === 'number' && limit > 0 ? Math.min(limit, 500) : 100;
   const edges = [];
@@ -1394,6 +1394,13 @@ function findNeighborsTool({ slug, direction = 'both', types, includeNodes = tru
         ? undefined
         : [...neighborSlugs].sort().map((neighborSlug) => summarizeDoc(docBySlug.get(neighborSlug))),
   };
+}
+
+function normalizeGraphRelationKey(type) {
+  if (typeof type !== 'string') return null;
+  const trimmed = type.trim();
+  if (!trimmed) return null;
+  return RELATION_KEY[trimmed] || trimmed;
 }
 
 function summarizeDoc(doc) {
