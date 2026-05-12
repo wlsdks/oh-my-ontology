@@ -126,6 +126,36 @@ export const VAULT_KIND_SCHEMA = {
   },
 };
 
+const GRAPH_ARRAY_KEYS = new Set([
+  'domains',
+  'capabilities',
+  'elements',
+  'dependencies',
+  'depends_on',
+  'relates',
+  'contains',
+  'describes',
+]);
+
+function normalizeGraphArray(key, value) {
+  if (!GRAPH_ARRAY_KEYS.has(key) || !Array.isArray(value)) return value;
+  const seen = new Set();
+  const refs = [];
+  const passthrough = [];
+  for (const item of value) {
+    if (typeof item !== 'string') {
+      passthrough.push(item);
+      continue;
+    }
+    const ref = item.trim();
+    if (!ref || seen.has(ref)) continue;
+    seen.add(ref);
+    refs.push(ref);
+  }
+  refs.sort((a, b) => a.localeCompare(b, 'en'));
+  return [...refs, ...passthrough];
+}
+
 /**
  * Build a normalized frontmatter object for a new node.
  *
@@ -147,15 +177,15 @@ export function buildFrontmatter({ slug, kind, title, ...extras }) {
   // Caller-supplied keys win over arrayDefaults — explicit values aren't
   // overwritten by an empty array.
   for (const key of schema.arrayDefaults) {
-    accumulator[key] = Array.isArray(extras[key]) ? extras[key] : [];
+    accumulator[key] = Array.isArray(extras[key]) ? normalizeGraphArray(key, extras[key]) : [];
   }
   for (const [key, value] of Object.entries(extras)) {
     if (value === undefined || value === null) continue;
     if (key in accumulator && Array.isArray(accumulator[key]) && Array.isArray(value)) {
-      accumulator[key] = value;
+      accumulator[key] = normalizeGraphArray(key, value);
       continue;
     }
-    accumulator[key] = value;
+    accumulator[key] = normalizeGraphArray(key, value);
   }
   // 사용자 가독성 — schema 의 preferredOrder 로 키 정렬. 정의 안 된 키
   // (사용자가 import 한 외부 frontmatter 의 custom_field 등) 는 뒤에 append.

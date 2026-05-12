@@ -20,12 +20,12 @@ export const BUILD_FM_CASES = [
     },
   },
   {
-    name: 'project — 호출자가 capabilities 명시하면 그 값 보존',
+    name: 'project — 호출자가 capabilities 명시하면 canonical set 으로 보존',
     input: {
       slug: 'demo',
       kind: 'project',
       title: 'Demo',
-      capabilities: ['cap-a', 'cap-b'],
+      capabilities: [' cap-b ', 'cap-a', 'cap-b', ''],
     },
     expected: {
       slug: 'demo',
@@ -34,6 +34,27 @@ export const BUILD_FM_CASES = [
       domains: [],
       capabilities: ['cap-a', 'cap-b'],
       elements: [],
+    },
+  },
+  {
+    name: 'project — graph arrays 는 모두 dedup + sort',
+    input: {
+      slug: 'demo',
+      kind: 'project',
+      title: 'Demo',
+      domains: ['domains/z', 'domains/a', 'domains/z'],
+      dependencies: ['capabilities/b', 'capabilities/a', 'capabilities/b'],
+      relates: ['docs/rfc', 'docs/adr', 'docs/rfc'],
+    },
+    expected: {
+      slug: 'demo',
+      kind: 'project',
+      title: 'Demo',
+      dependencies: ['capabilities/a', 'capabilities/b'],
+      domains: ['domains/a', 'domains/z'],
+      capabilities: [],
+      elements: [],
+      relates: ['docs/adr', 'docs/rfc'],
     },
   },
   {

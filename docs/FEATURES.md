@@ -420,7 +420,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 12. **infer_imports** `{ repoRoot? }` — side-effect-free TS/JS import graph → dependency edge candidates
 
 #### Write tools (8)
-13. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md` (throws on existing slug)
+13. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md`; graph arrays are trimmed, deduped, and sorted on write (throws on existing slug)
    - **R6 validation**: title must be non-empty trimmed string (`isValidVaultTitle`)
 14. **add_concepts** `{ concepts }` — batch create nodes (max 50), order-preserving partial results
 15. **patch_concept** `{ slug, frontmatter?, body?, expected_mtime? }` — update existing (`null` value deletes key)
