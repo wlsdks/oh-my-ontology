@@ -244,6 +244,64 @@ describe('queryCompiledOntology', () => {
     assert.equal(newPattern.schemaPattern, null);
   });
 
+  it('matches compiled edges by graph pattern filters', () => {
+    const result = queryCompiledOntology(artifact(), {
+      operation: 'match_edges',
+      fromKind: 'capability',
+      type: 'depends_on',
+      toKind: 'domain',
+    });
+
+    assert.equal(result.operation, 'match_edges');
+    assert.deepEqual(result.filters, {
+      from: null,
+      to: null,
+      fromKind: 'capability',
+      toKind: 'domain',
+      types: ['dependencies'],
+      includeExternal: false,
+      includeUnresolved: false,
+    });
+    assert.equal(result.totalMatches, 1);
+    assert.deepEqual(
+      result.edges.map((edge) => ({
+        from: edge.from,
+        to: edge.to,
+        via: edge.via,
+        fromKind: edge.fromNode.kind,
+        toKind: edge.toKind,
+      })),
+      [
+        {
+          from: 'capabilities/login',
+          to: 'domains/auth',
+          via: 'dependencies',
+          fromKind: 'capability',
+          toKind: 'domain',
+        },
+      ],
+    );
+
+    const external = queryCompiledOntology(artifact(), {
+      operation: 'match_edges',
+      from: 'capabilities/login',
+      toKind: 'external',
+      includeExternal: true,
+    });
+    assert.equal(external.totalMatches, 1);
+    assert.deepEqual(external.edges.map((edge) => edge.to), ['src/auth/login.ts']);
+    assert.equal(external.edges[0].toNode, null);
+
+    const limited = queryCompiledOntology(artifact(), {
+      operation: 'match_edges',
+      fromKind: 'capability',
+      limit: 2,
+    });
+    assert.equal(limited.totalMatches, 3);
+    assert.equal(limited.limited, true);
+    assert.equal(limited.edges.length, 2);
+  });
+
   it('returns deterministic connected components over resolved graph edges', () => {
     const disconnected = compileOntology(
       [

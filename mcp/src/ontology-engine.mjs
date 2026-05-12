@@ -24,6 +24,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'schema') {
     return engine.schema(query);
   }
+  if (operation === 'match_edges') {
+    return engine.matchEdges(query);
+  }
   if (operation === 'relation_check') {
     return engine.relationCheck(query);
   }
@@ -47,7 +50,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage, cycles, topological_order, recommend_relations, health.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, match_edges, relation_check, components, lineage, cycles, topological_order, recommend_relations, health.',
   );
 }
 
@@ -323,6 +326,68 @@ export function createOntologyEngine(artifact) {
       totalPatterns: patterns.length,
       limited: patterns.length > limit,
       patterns: patterns.slice(0, limit),
+    };
+  }
+
+  function matchEdges(options = {}) {
+    const limit = normalizeLimit(options.limit);
+    const typeSet = normalizeTypes(
+      Array.isArray(options.types) && options.types.length > 0
+        ? options.types
+        : [options.type ?? options.relation].filter(Boolean),
+    );
+    const from = typeof options.from === 'string' && options.from.trim()
+      ? resolve(options.from, 'from')
+      : null;
+    const to = typeof options.to === 'string' && options.to.trim()
+      ? resolve(options.to, 'to')
+      : null;
+    const fromKind = normalizeOptionalString(options.fromKind);
+    const toKind = normalizeOptionalString(options.toKind);
+    const includeExternal = options.includeExternal === true;
+    const includeUnresolved = options.includeUnresolved === true;
+    const matches = [];
+
+    for (const edge of [...edges].sort(compareEdges)) {
+      if (!edgeAllowed(edge, typeSet, includeExternal, includeUnresolved)) continue;
+      if (from && edge.from !== from) continue;
+      if (to && edge.to !== to) continue;
+
+      const fromNode = nodeBySlug.get(edge.from);
+      const toNode = edge.resolved ? nodeBySlug.get(edge.to) : null;
+      if (fromKind && fromNode?.kind !== fromKind) continue;
+      if (toKind) {
+        if (edge.resolved) {
+          if (toNode?.kind !== toKind) continue;
+        } else if (edge.external) {
+          if (toKind !== 'external') continue;
+        } else if (toKind !== 'unresolved') {
+          continue;
+        }
+      }
+
+      matches.push({
+        ...formatCompiledEdge(edge),
+        fromNode: summarizeNode(fromNode),
+        toNode: summarizeNode(toNode),
+        toKind: edge.resolved ? toNode?.kind || 'unknown' : edge.external ? 'external' : 'unresolved',
+      });
+    }
+
+    return {
+      operation: 'match_edges',
+      filters: {
+        from,
+        to,
+        fromKind,
+        toKind,
+        types: typeSet ? [...typeSet].sort() : null,
+        includeExternal,
+        includeUnresolved,
+      },
+      totalMatches: matches.length,
+      limited: matches.length > limit,
+      edges: matches.slice(0, limit),
     };
   }
 
@@ -883,6 +948,7 @@ export function createOntologyEngine(artifact) {
     subgraph,
     overview,
     schema,
+    matchEdges,
     relationCheck,
     components,
     lineage,
@@ -1002,6 +1068,10 @@ function typeAllowed(via, typeSet) {
 function normalizeTypes(types) {
   if (!Array.isArray(types) || types.length === 0) return null;
   return new Set(types.filter((type) => typeof type === 'string').map(normalizeRelationType));
+}
+
+function normalizeOptionalString(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 function normalizeRelationType(type) {
