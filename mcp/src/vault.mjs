@@ -710,37 +710,34 @@ export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
  */
 export function findBacklinks(rootPath, targetSlug) {
   const docs = loadVaultDocs(rootPath);
+  const resolveRef = buildRefResolver(docs);
+  const resolvedTarget = resolveRef(targetSlug) || targetSlug;
   const matches = [];
-  // frontmatter array 키 안의 항목이 targetSlug 와 일치 또는 끝부분 일치
-  // (예: targetSlug='capabilities/mcp-server' 가 항목 'mcp-server' 와도
-  // 매칭). markdown link 형식 `(./capabilities/mcp-server.md)` 도 잡는다.
-  const slugTail = targetSlug.split('/').pop();
+  // Graph frontmatter 는 collectNeighborRefs 기준으로 읽는다. 그래야
+  // depends_on 같은 legacy key 도 canonical dependencies edge 로 보이고,
+  // targetSlug 가 frontmatter slug alias 여도 같은 노드를 찾는다.
+  const requestedTail = targetSlug.split('/').pop();
+  const resolvedTail = resolvedTarget.split('/').pop();
+  const bodyNeedles = new Set([
+    targetSlug,
+    resolvedTarget,
+    requestedTail,
+    resolvedTail,
+  ].filter(Boolean));
   for (const doc of docs) {
-    if (doc.slug === targetSlug) continue;
+    if (doc.slug === resolvedTarget) continue;
     const matchedKeys = [];
-    for (const key of Object.keys(doc.frontmatter)) {
-      const value = doc.frontmatter[key];
-      if (Array.isArray(value)) {
-        if (
-          value.some(
-            (v) =>
-              typeof v === 'string' &&
-              (v === targetSlug || v === slugTail || v.endsWith(`/${slugTail}`)),
-          )
-        ) {
-          matchedKeys.push(key);
-        }
-      } else if (typeof value === 'string') {
-        if (value === targetSlug || value === slugTail) {
-          matchedKeys.push(key);
-        }
-      }
+    for (const { key, ref } of collectNeighborRefs(doc)) {
+      const resolved = resolveRef(ref);
+      if (resolved !== resolvedTarget) continue;
+      if (!matchedKeys.includes(key)) matchedKeys.push(key);
     }
-    const bodyHit =
-      doc.body.includes(`[[${targetSlug}]]`) ||
-      doc.body.includes(`[[${slugTail}]]`) ||
-      doc.body.includes(`(${targetSlug}.md)`) ||
-      doc.body.includes(`/${slugTail}.md`);
+    const bodyHit = [...bodyNeedles].some(
+      (needle) =>
+        doc.body.includes(`[[${needle}]]`) ||
+        doc.body.includes(`(${needle}.md)`) ||
+        doc.body.includes(`/${needle}.md`),
+    );
     if (matchedKeys.length === 0 && !bodyHit) continue;
     matches.push({
       slug: doc.slug,
@@ -756,6 +753,34 @@ export function findBacklinks(rootPath, targetSlug) {
     });
   }
   return matches;
+}
+
+function buildRefResolver(docs) {
+  const slugs = new Set(docs.map((d) => d.slug));
+  const tailToFull = new Map();
+  const frontmatterSlugToFull = new Map();
+  for (const slug of slugs) {
+    const tail = slug.split('/').pop();
+    if (tail && tail !== slug && !tailToFull.has(tail)) {
+      tailToFull.set(tail, slug);
+    }
+  }
+  for (const doc of docs) {
+    const fmSlug = doc.frontmatter.slug;
+    if (typeof fmSlug === 'string' && fmSlug.trim() && !frontmatterSlugToFull.has(fmSlug)) {
+      frontmatterSlugToFull.set(fmSlug, doc.slug);
+    }
+  }
+  return (ref) => {
+    if (typeof ref !== 'string') return null;
+    if (slugs.has(ref)) return ref;
+    if (frontmatterSlugToFull.has(ref)) return frontmatterSlugToFull.get(ref);
+    if (tailToFull.has(ref)) return tailToFull.get(ref);
+    for (const slug of slugs) {
+      if (slug.endsWith(`/${ref}`)) return slug;
+    }
+    return null;
+  };
 }
 
 /**

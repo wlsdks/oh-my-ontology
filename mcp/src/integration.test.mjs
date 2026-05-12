@@ -444,6 +444,55 @@ await test("find_backlinks — 매치 row 에 domain + mtime 포함 (R+)", async
   }
 });
 
+await test("find_backlinks — target alias 와 legacy depends_on 을 canonical graph edge 로 읽음", async () => {
+  const root = makeVault([
+    {
+      slug: "domains/auth",
+      content: "---\nslug: auth-domain\nkind: domain\ntitle: Auth\n---\n",
+    },
+    {
+      slug: "capabilities/login",
+      content:
+        "---\nkind: capability\ntitle: Login\ndepends_on: [auth-domain]\n---\n",
+    },
+    {
+      slug: "capabilities/logout",
+      content:
+        "---\nkind: capability\ntitle: Logout\nrelates: [domains/auth]\n---\nSee [[auth-domain]].",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "find_backlinks", { slug: "auth-domain" }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.equal(result.target, "auth-domain");
+    assert.equal(result.total, 2);
+    assert.deepEqual(
+      result.matches.map((match) => ({
+        slug: match.slug,
+        matchedKeys: match.matchedKeys,
+        matchedInBody: match.matchedInBody,
+      })),
+      [
+        {
+          slug: "capabilities/login",
+          matchedKeys: ["dependencies"],
+          matchedInBody: undefined,
+        },
+        {
+          slug: "capabilities/logout",
+          matchedKeys: ["relates"],
+          matchedInBody: true,
+        },
+      ],
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("find_neighbors — one-hop graph subgraph 를 방향/타입 기준으로 반환", async () => {
   const root = makeVault([
     {
