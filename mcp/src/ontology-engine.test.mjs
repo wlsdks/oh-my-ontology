@@ -244,6 +244,63 @@ describe('queryCompiledOntology', () => {
     assert.equal(newPattern.schemaPattern, null);
   });
 
+  it('matches compiled nodes by graph-derived attributes', () => {
+    const result = queryCompiledOntology(artifact(), {
+      operation: 'match_nodes',
+      kind: 'capability',
+      minInDegree: 1,
+      sort: 'inDegree',
+    });
+
+    assert.equal(result.operation, 'match_nodes');
+    assert.deepEqual(result.filters, {
+      kind: 'capability',
+      domain: null,
+      slugContains: null,
+      minDegree: null,
+      maxDegree: null,
+      minInDegree: 1,
+      minOutDegree: null,
+      hasIncoming: null,
+      hasOutgoing: null,
+      sort: 'inDegree',
+    });
+    assert.equal(result.totalMatches, 1);
+    assert.deepEqual(
+      result.nodes.map((node) => ({
+        slug: node.slug,
+        degree: node.degree,
+        inDegree: node.inDegree,
+        outDegree: node.outDegree,
+      })),
+      [
+        {
+          slug: 'capabilities/login',
+          degree: 4,
+          inDegree: 1,
+          outDegree: 3,
+        },
+      ],
+    );
+
+    const outbound = queryCompiledOntology(artifact(), {
+      operation: 'match_nodes',
+      kind: 'capability',
+      hasOutgoing: true,
+      limit: 1,
+    });
+    assert.equal(outbound.totalMatches, 2);
+    assert.equal(outbound.limited, true);
+    assert.deepEqual(outbound.nodes.map((node) => node.slug), ['capabilities/login']);
+
+    const slugSearch = queryCompiledOntology(artifact(), {
+      operation: 'match_nodes',
+      slugContains: 'AUTH',
+      sort: 'slug',
+    });
+    assert.deepEqual(slugSearch.nodes.map((node) => node.slug), ['domains/auth']);
+  });
+
   it('matches compiled edges by graph pattern filters', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'match_edges',

@@ -24,6 +24,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'schema') {
     return engine.schema(query);
   }
+  if (operation === 'match_nodes') {
+    return engine.matchNodes(query);
+  }
   if (operation === 'match_edges') {
     return engine.matchEdges(query);
   }
@@ -50,7 +53,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, match_edges, relation_check, components, lineage, cycles, topological_order, recommend_relations, health.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, match_nodes, match_edges, relation_check, components, lineage, cycles, topological_order, recommend_relations, health.',
   );
 }
 
@@ -326,6 +329,61 @@ export function createOntologyEngine(artifact) {
       totalPatterns: patterns.length,
       limited: patterns.length > limit,
       patterns: patterns.slice(0, limit),
+    };
+  }
+
+  function matchNodes(options = {}) {
+    const limit = normalizeLimit(options.limit);
+    const kind = normalizeOptionalString(options.kind);
+    const domain = normalizeOptionalString(options.domain);
+    const slugContains = normalizeOptionalString(options.slugContains)?.toLowerCase() || null;
+    const minDegree = normalizeNonNegativeInteger(options.minDegree);
+    const maxDegree = normalizeNonNegativeInteger(options.maxDegree);
+    const minInDegree = normalizeNonNegativeInteger(options.minInDegree);
+    const minOutDegree = normalizeNonNegativeInteger(options.minOutDegree);
+    const hasIncoming = typeof options.hasIncoming === 'boolean' ? options.hasIncoming : null;
+    const hasOutgoing = typeof options.hasOutgoing === 'boolean' ? options.hasOutgoing : null;
+    const sort = normalizeNodeSort(options.sort);
+    const rows = [];
+
+    for (const node of nodes) {
+      const inDegree = node.inDegree || 0;
+      const outDegree = node.outDegree || 0;
+      const degree = inDegree + outDegree;
+      if (kind && node.kind !== kind) continue;
+      if (domain && node.domain !== domain) continue;
+      if (slugContains && !node.slug.toLowerCase().includes(slugContains)) continue;
+      if (minDegree !== null && degree < minDegree) continue;
+      if (maxDegree !== null && degree > maxDegree) continue;
+      if (minInDegree !== null && inDegree < minInDegree) continue;
+      if (minOutDegree !== null && outDegree < minOutDegree) continue;
+      if (hasIncoming !== null && (inDegree > 0) !== hasIncoming) continue;
+      if (hasOutgoing !== null && (outDegree > 0) !== hasOutgoing) continue;
+      rows.push({
+        ...summarizeNode(node),
+        degree,
+      });
+    }
+
+    rows.sort((left, right) => compareNodeRows(left, right, sort));
+
+    return {
+      operation: 'match_nodes',
+      filters: {
+        kind,
+        domain,
+        slugContains,
+        minDegree,
+        maxDegree,
+        minInDegree,
+        minOutDegree,
+        hasIncoming,
+        hasOutgoing,
+        sort,
+      },
+      totalMatches: rows.length,
+      limited: rows.length > limit,
+      nodes: rows.slice(0, limit),
     };
   }
 
@@ -948,6 +1006,7 @@ export function createOntologyEngine(artifact) {
     subgraph,
     overview,
     schema,
+    matchNodes,
     matchEdges,
     relationCheck,
     components,
@@ -1072,6 +1131,36 @@ function normalizeTypes(types) {
 
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function normalizeNonNegativeInteger(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  return Math.max(0, Math.trunc(value));
+}
+
+function normalizeNodeSort(value) {
+  if (
+    value === 'slug' ||
+    value === 'inDegree' ||
+    value === 'outDegree' ||
+    value === 'degree'
+  ) {
+    return value;
+  }
+  return 'degree';
+}
+
+function compareNodeRows(left, right, sort) {
+  if (sort === 'slug') return left.slug.localeCompare(right.slug);
+  const leftValue = left[sort] || 0;
+  const rightValue = right[sort] || 0;
+  if (rightValue !== leftValue) return rightValue - leftValue;
+  if (sort !== 'degree') {
+    const leftDegree = left.degree || 0;
+    const rightDegree = right.degree || 0;
+    if (rightDegree !== leftDegree) return rightDegree - leftDegree;
+  }
+  return left.slug.localeCompare(right.slug);
 }
 
 function normalizeRelationType(type) {

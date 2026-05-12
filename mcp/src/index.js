@@ -16,7 +16,7 @@
  *   - find_orphans           — 어느 다른 노드도 frontmatter 에서 가리키지 않는 doc
  *   - query_concepts         — typed filter DSL (kind=X AND has(Y) AND NOT ...)
  *   - compile_ontology       — vault 를 deterministic graph artifact 로 compile
- *   - query_ontology         — compiled graph engine query (neighbors / path / impact / subgraph / overview / schema / match_edges / relation_check / components / lineage / cycles / topological_order / recommend_relations / health)
+ *   - query_ontology         — compiled graph engine query (neighbors / path / impact / subgraph / overview / schema / match_nodes / match_edges / relation_check / components / lineage / cycles / topological_order / recommend_relations / health)
  *   - validate_vault         — vault 전체 health 한 호출 (per-doc + byCode aggregate)
  *   - analyze_repo_structure — R16, code repo 분석 → ontology 후보 (side effect 0)
  *   - infer_imports          — R17, TS/JS import graph → depends_on 후보 (side effect 0)
@@ -138,7 +138,7 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 7. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates).
 8. \`query_concepts(filter)\` — structured questions like \`kind=capability AND domain=auth AND NOT has(elements)\` (= "unfinished caps under auth").
 9. \`compile_ontology({includeIndexes:true})\` — compiler-style graph artifact: canonical nodes, edges, aliases, issues, stable \`graphHash\`, \`maxMtime\`, and query indexes.
-10. \`query_ontology({operation:'neighbors'|'path'|'impact'|'subgraph'|'overview'|'schema'|'match_edges'|'relation_check'|'components'|'lineage'|'cycles'|'topological_order'|'recommend_relations'|'health', ...})\` — graph-engine query over the compiled artifact. Use \`neighbors\` for local graph view, \`path\` for relation route, \`impact\` for "what depends on this?" change analysis, \`subgraph\` for a bounded N-hop graph slice, \`overview\` for dashboard-style graph aggregates, \`schema\` for \`(:kind)-[:relation]->(:kind)\` patterns, \`match_edges\` for graph DB-style edge pattern rows, \`relation_check\` before writes, \`components\` to find disconnected graph islands, \`lineage\` for project/domain/capability containment, \`cycles\` for directed dependency-cycle checks, \`topological_order\` for prerequisite-first dependency ordering, \`recommend_relations\` for safe domain-containment suggestions, and \`health\` for a one-shot graph integrity dashboard.
+10. \`query_ontology({operation:'neighbors'|'path'|'impact'|'subgraph'|'overview'|'schema'|'match_nodes'|'match_edges'|'relation_check'|'components'|'lineage'|'cycles'|'topological_order'|'recommend_relations'|'health', ...})\` — graph-engine query over the compiled artifact. Use \`neighbors\` for local graph view, \`path\` for relation route, \`impact\` for "what depends on this?" change analysis, \`subgraph\` for a bounded N-hop graph slice, \`overview\` for dashboard-style graph aggregates, \`schema\` for \`(:kind)-[:relation]->(:kind)\` patterns, \`match_nodes\` for graph DB-style node rows with degree filters, \`match_edges\` for graph DB-style edge pattern rows, \`relation_check\` before writes, \`components\` to find disconnected graph islands, \`lineage\` for project/domain/capability containment, \`cycles\` for directed dependency-cycle checks, \`topological_order\` for prerequisite-first dependency ordering, \`recommend_relations\` for safe domain-containment suggestions, and \`health\` for a one-shot graph integrity dashboard.
 
 All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
 
@@ -626,7 +626,7 @@ const TOOLS = [
   {
     name: 'query_ontology',
     description:
-      'Run graph-engine queries over the freshly compiled ontology artifact. Operations: `neighbors` (local graph neighborhood), `path` (compiled-edge route between two nodes), `impact` (incoming by default: what depends on this node), `subgraph` (bounded N-hop graph slice for UI/agent views), `overview` (counts, relation distribution, and hubs), `schema` (kind-relation-kind patterns), `match_edges` (graph DB-style edge pattern rows), `relation_check` (schema-aware preflight before add_relation), `components` (connected graph islands), `lineage` (project/domain/capability containment), `cycles` (directed dependency-cycle checks), `topological_order` (prerequisite-first dependency ordering), `recommend_relations` (safe domain-containment suggestions), and `health` (one-shot graph integrity dashboard). ' +
+      'Run graph-engine queries over the freshly compiled ontology artifact. Operations: `neighbors` (local graph neighborhood), `path` (compiled-edge route between two nodes), `impact` (incoming by default: what depends on this node), `subgraph` (bounded N-hop graph slice for UI/agent views), `overview` (counts, relation distribution, and hubs), `schema` (kind-relation-kind patterns), `match_nodes` (graph DB-style node rows with degree filters), `match_edges` (graph DB-style edge pattern rows), `relation_check` (schema-aware preflight before add_relation), `components` (connected graph islands), `lineage` (project/domain/capability containment), `cycles` (directed dependency-cycle checks), `topological_order` (prerequisite-first dependency ordering), `recommend_relations` (safe domain-containment suggestions), and `health` (one-shot graph integrity dashboard). ' +
       'Accepts canonical slugs or unique aliases. side effect 0. Use this when you need graph-database-like answers without pulling the full compile_ontology payload.',
     inputSchema: {
       type: 'object',
@@ -640,6 +640,7 @@ const TOOLS = [
             'subgraph',
             'overview',
             'schema',
+            'match_nodes',
             'match_edges',
             'relation_check',
             'components',
@@ -687,7 +688,45 @@ const TOOLS = [
         kind: {
           type: 'string',
           description:
-            'recommend_relations only: optional node kind filter, currently capability or element.',
+            'match_nodes/recommend_relations: optional node kind filter. recommend_relations currently supports capability or element.',
+        },
+        domain: {
+          type: 'string',
+          description: 'match_nodes only: optional exact domain filter.',
+        },
+        slugContains: {
+          type: 'string',
+          description: 'match_nodes only: optional case-insensitive substring filter on canonical slug.',
+        },
+        minDegree: {
+          type: 'number',
+          description: 'match_nodes only: minimum total graph degree.',
+        },
+        maxDegree: {
+          type: 'number',
+          description: 'match_nodes only: maximum total graph degree.',
+        },
+        minInDegree: {
+          type: 'number',
+          description: 'match_nodes only: minimum incoming graph degree.',
+        },
+        minOutDegree: {
+          type: 'number',
+          description: 'match_nodes only: minimum outgoing graph degree.',
+        },
+        hasIncoming: {
+          type: 'boolean',
+          description: 'match_nodes only: require presence or absence of incoming graph edges.',
+        },
+        hasOutgoing: {
+          type: 'boolean',
+          description: 'match_nodes only: require presence or absence of outgoing graph edges.',
+        },
+        sort: {
+          type: 'string',
+          enum: ['degree', 'inDegree', 'outDegree', 'slug'],
+          description:
+            'match_nodes only: sort rows by degree, inDegree, outDegree, or slug. Defaults to degree.',
         },
         fromKind: {
           type: 'string',
