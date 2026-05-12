@@ -23,7 +23,7 @@ relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 | `list_kinds` | kind 분포 census (`{ total, byKind: { capability: N, ... } }`) |
 | `find_orphans` | 어디서도 graph frontmatter link 안 받는 고립 노드 (`domains` / `domain` containment 포함, kind 필터, vault-readme 자동 제외) |
 | `query_concepts` | DSL 기반 ad-hoc 쿼리 (frontmatter 키 = / contains / exists 조합) |
-| `compile_ontology` | vault 전체를 deterministic graph artifact 로 compile (nodes / canonical edges / aliases / issues / optional adjacency indexes) |
+| `compile_ontology` | vault 전체를 deterministic graph artifact 로 compile (nodes / canonical edges / aliases / issues / stable `graphHash` / `maxMtime` / optional query indexes) |
 | `query_ontology` | compiled artifact 위 graph engine 질의 (`neighbors` / `path` / `impact`) — graph DB 같은 답변을 full artifact 없이 반환 |
 | `validate_vault` | **R+** vault 전체 health 한 호출 (per-doc + byCode aggregate) — `list_concepts → K×get_concept` K-roundtrip 대체 |
 | `analyze_repo_structure` | **R16** code repo (default cwd) 분석 → ontology 노드 후보 제안. **side effect 0** — vault 변경 안 함. AI agent 가 빈 vault bootstrap 시 사용 (사용자 한 줄 *"이 codebase 분석해줘"*). FSD vs generic detect. 후보 slug 는 `domains/*`, `capabilities/*`, `elements/src/...` 로 starter layout 과 일치. |

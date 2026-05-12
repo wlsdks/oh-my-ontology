@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { collectNeighborRefs } from './vault.mjs';
 
 const COMPILER_VERSION = 1;
@@ -89,7 +91,9 @@ export function compileOntology(docs, options = {}) {
   const nodeBySlug = new Map(nodes.map((node) => [node.slug, node]));
   const out = {};
   const incoming = {};
+  const edgeById = {};
   for (const edge of edges) {
+    edgeById[edge.id] = edge;
     if (!out[edge.from]) out[edge.from] = [];
     out[edge.from].push(edge.id);
     const fromNode = nodeBySlug.get(edge.from);
@@ -102,9 +106,29 @@ export function compileOntology(docs, options = {}) {
   }
   for (const edgeIds of Object.values(out)) edgeIds.sort();
   for (const edgeIds of Object.values(incoming)) edgeIds.sort();
+  const byKind = groupNodes(nodes, 'kind');
+  const byDomain = groupNodes(nodes, 'domain');
+  const aliasToSlugIndex = Object.fromEntries(aliases.map(({ alias, slug }) => [alias, slug]));
+  const graphHash = hashGraph({
+    version: COMPILER_VERSION,
+    nodes: nodes.map(({ slug, kind, title, domain, outDegree, inDegree }) => ({
+      slug,
+      kind,
+      title,
+      domain,
+      outDegree,
+      inDegree,
+    })),
+    edges,
+    aliases,
+    ambiguousAliases,
+    issues,
+  });
 
   return {
     version: COMPILER_VERSION,
+    graphHash,
+    maxMtime: Math.max(0, ...nodes.map((node) => Number(node.mtime) || 0)),
     nodeCount: nodes.length,
     edgeCount: edges.length,
     resolvedEdgeCount: edges.filter((edge) => edge.resolved).length,
@@ -115,8 +139,26 @@ export function compileOntology(docs, options = {}) {
     aliases,
     ambiguousAliases,
     issues,
-    indexes: includeIndexes ? { out, in: incoming } : undefined,
+    indexes: includeIndexes
+      ? { out, in: incoming, byKind, byDomain, edgeById, aliasToSlug: aliasToSlugIndex }
+      : undefined,
   };
+}
+
+function groupNodes(nodes, key) {
+  const grouped = {};
+  for (const node of nodes) {
+    const value = node[key];
+    if (typeof value !== 'string' || !value.trim()) continue;
+    if (!grouped[value]) grouped[value] = [];
+    grouped[value].push(node.slug);
+  }
+  for (const slugs of Object.values(grouped)) slugs.sort();
+  return Object.fromEntries(Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)));
+}
+
+function hashGraph(payload) {
+  return createHash('sha256').update(JSON.stringify(payload)).digest('hex');
 }
 
 function isPathLikeGraphRef(ref) {

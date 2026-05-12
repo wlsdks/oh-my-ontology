@@ -137,7 +137,7 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 6. \`find_path(from, to)\` — "how does A relate to B?" (BFS, undirected). Returns \`hops: [slug...]\` **and \`edges: [{from, to, via}]\` where \`via\` is the frontmatter key (\`domains\` / \`domain\` / \`capabilities\` / \`elements\` / \`dependencies\` / \`relates\` / \`contains\` / \`describes\`) that linked the pair** — so you see not just *that* A and B are connected but *why*.
 7. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates).
 8. \`query_concepts(filter)\` — structured questions like \`kind=capability AND domain=auth AND NOT has(elements)\` (= "unfinished caps under auth").
-9. \`compile_ontology({includeIndexes:true})\` — compiler-style graph artifact: canonical nodes, edges, aliases, issues, and adjacency indexes.
+9. \`compile_ontology({includeIndexes:true})\` — compiler-style graph artifact: canonical nodes, edges, aliases, issues, stable \`graphHash\`, \`maxMtime\`, and query indexes.
 10. \`query_ontology({operation:'neighbors'|'path'|'impact', ...})\` — graph-engine query over the compiled artifact. Use \`neighbors\` for local graph view, \`path\` for relation route, and \`impact\` for "what depends on this?" change analysis.
 
 All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
@@ -611,14 +611,14 @@ const TOOLS = [
     name: 'compile_ontology',
     description:
       'Compile the whole markdown vault into a deterministic graph artifact: canonical nodes, edges, aliases, graph issues, and optional adjacency indexes. ' +
-      'This is the compiler-style read path for graph-database-like use: call it before advanced reasoning, indexing, export, or non-developer-friendly graph views. side effect 0.',
+      'This is the compiler-style read path for graph-database-like use: call it before advanced reasoning, indexing, export, or non-developer-friendly graph views. Includes a stable semantic graphHash and maxMtime for cache invalidation. side effect 0.',
     inputSchema: {
       type: 'object',
       properties: {
         includeIndexes: {
           type: 'boolean',
           description:
-            'When true, include adjacency indexes `{out, in}` keyed by canonical slug. Defaults false to keep payload smaller.',
+            'When true, include indexes `{out, in, byKind, byDomain, edgeById, aliasToSlug}`. Defaults false to keep payload smaller.',
         },
       },
     },
@@ -1573,6 +1573,8 @@ function compileOntologyTool({ includeIndexes } = {}) {
     summary: {
       nodes: artifact.nodeCount,
       edges: artifact.edgeCount,
+      graphHash: artifact.graphHash,
+      maxMtime: artifact.maxMtime,
       resolvedEdges: artifact.resolvedEdgeCount,
       externalEdges: artifact.externalEdgeCount,
       unresolvedEdges: artifact.unresolvedEdgeCount,
@@ -1590,6 +1592,8 @@ function queryOntologyTool(args = {}) {
     compiledSummary: {
       nodes: artifact.nodeCount,
       edges: artifact.edgeCount,
+      graphHash: artifact.graphHash,
+      maxMtime: artifact.maxMtime,
       resolvedEdges: artifact.resolvedEdgeCount,
       externalEdges: artifact.externalEdgeCount,
       unresolvedEdges: artifact.unresolvedEdgeCount,

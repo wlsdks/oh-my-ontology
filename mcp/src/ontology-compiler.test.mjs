@@ -12,6 +12,15 @@ function doc(slug, frontmatter = {}) {
   };
 }
 
+function timedDoc(slug, frontmatter = {}, mtime = 1) {
+  return {
+    slug,
+    frontmatter,
+    body: '',
+    mtime,
+  };
+}
+
 describe('compileOntology', () => {
   it('compiles nodes, canonical edges, aliases, and adjacency indexes', () => {
     const result = compileOntology(
@@ -28,6 +37,8 @@ describe('compileOntology', () => {
     );
 
     assert.equal(result.version, 1);
+    assert.match(result.graphHash, /^[a-f0-9]{64}$/);
+    assert.equal(result.maxMtime, 1);
     assert.equal(result.nodeCount, 2);
     assert.equal(result.edgeCount, 2);
     assert.equal(result.resolvedEdgeCount, 1);
@@ -64,6 +75,16 @@ describe('compileOntology', () => {
     assert.deepEqual(result.indexes.in['domains/auth'], [
       'capabilities/login->domains/auth:dependencies:auth-domain',
     ]);
+    assert.deepEqual(result.indexes.byKind, {
+      capability: ['capabilities/login'],
+      domain: ['domains/auth'],
+    });
+    assert.deepEqual(result.indexes.byDomain, {});
+    assert.equal(
+      result.indexes.edgeById['capabilities/login->domains/auth:dependencies:auth-domain'].to,
+      'domains/auth',
+    );
+    assert.equal(result.indexes.aliasToSlug['auth-domain'], 'domains/auth');
     assert.deepEqual(result.nodes.find((node) => node.slug === 'capabilities/login'), {
       slug: 'capabilities/login',
       kind: 'capability',
@@ -123,5 +144,20 @@ describe('compileOntology', () => {
         external: true,
       },
     ]);
+  });
+
+  it('keeps graphHash stable across mtime-only changes', () => {
+    const first = compileOntology([
+      timedDoc('domains/auth', { kind: 'domain', title: 'Auth' }, 10),
+      timedDoc('capabilities/login', { kind: 'capability', domain: 'auth' }, 20),
+    ]);
+    const second = compileOntology([
+      timedDoc('domains/auth', { kind: 'domain', title: 'Auth' }, 100),
+      timedDoc('capabilities/login', { kind: 'capability', domain: 'auth' }, 200),
+    ]);
+
+    assert.equal(first.graphHash, second.graphHash);
+    assert.equal(first.maxMtime, 20);
+    assert.equal(second.maxMtime, 200);
   });
 });

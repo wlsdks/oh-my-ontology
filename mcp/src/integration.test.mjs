@@ -214,16 +214,16 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
     ]);
     const result = getCallParsed(responses, 2);
     assert.equal(result.version, 1);
-    assert.deepEqual(result.summary, {
-      nodes: 2,
-      edges: 2,
-      resolvedEdges: 1,
-      externalEdges: 0,
-      unresolvedEdges: 1,
-      aliases: result.aliases.length,
-      ambiguousAliases: 0,
-      issues: 1,
-    });
+    assert.equal(result.summary.nodes, 2);
+    assert.equal(result.summary.edges, 2);
+    assert.match(result.summary.graphHash, /^[a-f0-9]{64}$/);
+    assert.equal(result.summary.maxMtime > 0, true);
+    assert.equal(result.summary.resolvedEdges, 1);
+    assert.equal(result.summary.externalEdges, 0);
+    assert.equal(result.summary.unresolvedEdges, 1);
+    assert.equal(result.summary.aliases, result.aliases.length);
+    assert.equal(result.summary.ambiguousAliases, 0);
+    assert.equal(result.summary.issues, 1);
     assert.deepEqual(
       result.edges.map((edge) => ({
         from: edge.from,
