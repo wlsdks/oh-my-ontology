@@ -344,8 +344,8 @@ const TOOLS = [
     name: 'add_relation',
     description:
       'Add a semantic relation between two nodes. Appends to the matching ' +
-      'frontmatter array (dependencies / relates / contains / describes); the ' +
-      'relation type picks which key receives the entry. **R11**: optional ' +
+      'frontmatter graph key (domains / capabilities / elements / dependencies / relates / contains / describes); ' +
+      '`domain` sets the source node\'s inline parent domain. The relation type picks which key receives the entry. **R11**: optional ' +
       '`expected_mtime` — pass the source-side `mtime` from a prior get_concept ' +
       'so concurrent external edits throw VaultConflictError. ' +
       '**For multiple edges (e.g. all suggestedRelations from analyze, or all moduleEdges from infer_imports) use `add_relations({relations: [...]})` (batch, idempotent, max 50).**',
@@ -356,7 +356,16 @@ const TOOLS = [
         to: { type: 'string', description: 'Target slug.' },
         type: {
           type: 'string',
-          enum: ['depends_on', 'relates', 'contains', 'describes'],
+          enum: [
+            'depends_on',
+            'relates',
+            'contains',
+            'describes',
+            'domains',
+            'capabilities',
+            'elements',
+            'domain',
+          ],
           description: 'Relation type.',
         },
         expected_mtime: {
@@ -392,7 +401,16 @@ const TOOLS = [
               to: { type: 'string' },
               type: {
                 type: 'string',
-                enum: ['depends_on', 'relates', 'contains', 'describes'],
+                enum: [
+                  'depends_on',
+                  'relates',
+                  'contains',
+                  'describes',
+                  'domains',
+                  'capabilities',
+                  'elements',
+                  'domain',
+                ],
               },
               expected_mtime: { type: 'number' },
             },
@@ -1077,6 +1095,10 @@ const RELATION_KEY = {
   relates: 'relates',
   contains: 'contains',
   describes: 'describes',
+  domains: 'domains',
+  capabilities: 'capabilities',
+  elements: 'elements',
+  domain: 'domain',
 };
 
 function addRelation({ from, to, type, expected_mtime }) {
@@ -1107,6 +1129,20 @@ function addRelation({ from, to, type, expected_mtime }) {
     throw new Error(`Target slug does not exist in vault: "${to}".${suffix}`);
   }
   const doc = readDoc(VAULT_ROOT, slugToPath(VAULT_ROOT, from));
+  if (key === 'domain') {
+    const existingDomain = doc.frontmatter.domain;
+    if (existingDomain === to) {
+      return { ok: true, alreadyExists: true, from, to, type };
+    }
+    if (typeof existingDomain === 'string' && existingDomain.trim()) {
+      throw new Error(`Source slug already has domain "${existingDomain}". Use patch_concept to change it explicitly.`);
+    }
+    patchFrontmatter(VAULT_ROOT, from, { domain: to }, {
+      expectedMtime:
+        typeof expected_mtime === 'number' ? expected_mtime : undefined,
+    });
+    return { ok: true, from, to, type, key };
+  }
   const existing = Array.isArray(doc.frontmatter[key]) ? doc.frontmatter[key] : [];
   if (existing.includes(to)) {
     return { ok: true, alreadyExists: true, from, to, type };

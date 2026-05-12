@@ -426,8 +426,8 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 15. **patch_concept** `{ slug, frontmatter?, body?, expected_mtime? }` — update existing (`null` value deletes key); graph arrays are trimmed, deduped, and sorted on patch
     - **R6 validation**: rejects `title: null` and `title: ""`
     - **R11 conflict guard**: optional `expected_mtime` (from get_concept response). Throws `VaultConflictError` if file mtime differs at write time — caller re-reads and retries.
-16. **add_relation** `{ from, to, type }` — append to source frontmatter array
-    - type enum: `depends_on` (→ `dependencies`) / `relates` / `contains` / `describes`
+16. **add_relation** `{ from, to, type }` — append to source frontmatter graph key
+    - type enum: `depends_on` (→ `dependencies`) / `relates` / `contains` / `describes` / `domains` / `capabilities` / `elements` / `domain`
     - **R7 validation**: both `from` AND `to` slug must exist in vault (`vaultSlugExists`)
     - Idempotent: duplicate returns `{ alreadyExists: true }`
 17. **add_relations** `{ relations }` — batch edge writer (max 50), idempotent per row; stored relation arrays are deduped and sorted as canonical graph sets

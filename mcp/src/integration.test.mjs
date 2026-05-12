@@ -1100,5 +1100,73 @@ await test("add_relation — 기존 relation 배열도 중복 제거 + 정렬", 
   }
 });
 
+await test("add_relation — graph containment 배열 키도 직접 write", async () => {
+  const root = makeVault([
+    { slug: "project", content: "---\nkind: project\ntitle: Project\n---\n" },
+    { slug: "domains/auth", content: "---\nkind: domain\ntitle: Auth\n---\n" },
+    { slug: "domains/billing", content: "---\nkind: domain\ntitle: Billing\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "add_relation", {
+        from: "project",
+        to: "domains/billing",
+        type: "domains",
+      }),
+      callTool(3, "add_relation", {
+        from: "project",
+        to: "domains/auth",
+        type: "domains",
+      }),
+      callTool(4, "get_concept", { slug: "project" }),
+    ]);
+    assert.equal(getCallParsed(responses, 2).ok, true);
+    assert.equal(getCallParsed(responses, 3).ok, true);
+    const project = getCallParsed(responses, 4);
+    assert.deepEqual(project.frontmatter.domains, ["domains/auth", "domains/billing"]);
+    assert.deepEqual(project.outgoingEdges, [
+      { to: "domains/auth", via: "domains" },
+      { to: "domains/billing", via: "domains" },
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("add_relation — domain 타입은 inline parent domain 을 설정", async () => {
+  const root = makeVault([
+    { slug: "capabilities/login", content: "---\nkind: capability\ntitle: Login\n---\n" },
+    { slug: "domains/auth", content: "---\nkind: domain\ntitle: Auth\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "add_relation", {
+        from: "capabilities/login",
+        to: "domains/auth",
+        type: "domain",
+      }),
+      callTool(3, "add_relation", {
+        from: "capabilities/login",
+        to: "domains/auth",
+        type: "domain",
+      }),
+      callTool(4, "get_concept", { slug: "capabilities/login" }),
+    ]);
+    assert.equal(getCallParsed(responses, 2).ok, true);
+    assert.equal(getCallParsed(responses, 3).alreadyExists, true);
+    const login = getCallParsed(responses, 4);
+    assert.equal(login.frontmatter.domain, "domains/auth");
+    assert.ok(
+      login.outgoingEdges.some(
+        (edge) => edge.to === "domains/auth" && edge.via === "domain",
+      ),
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 console.log(`\nintegration: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
