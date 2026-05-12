@@ -1012,6 +1012,27 @@ await test("list_concepts — corrupt doc 있으면 vaultWarnings 카운트 (R11
   }
 });
 
+await test("list_concepts — dangling graph reference 도 vaultWarnings 에 포함", async () => {
+  const root = makeVault([
+    {
+      slug: "a",
+      content: "---\nkind: project\ntitle: A\ndependencies: [missing]\n---\n",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "list_concepts"),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.ok(result.vaultWarnings, "vaultWarnings 필드 존재");
+    assert.equal(result.vaultWarnings.errorCount, 0);
+    assert.equal(result.vaultWarnings.warningCount, 1);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("get_concept — corrupt doc 응답에 warnings 노출 (R11 #23)", async () => {
   const root = makeVault([
     { slug: "weird", content: "---\nkind: bogus\n---\nbody" },

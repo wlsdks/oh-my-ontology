@@ -833,6 +833,10 @@ function listConcepts({ kind, domain, since, summary, limit = 100 }) {
       else warningCount += 1;
     }
   }
+  for (const { issue } of findDanglingGraphReferenceIssues(docs)) {
+    if (issue.severity === 'error') errorCount += 1;
+    else warningCount += 1;
+  }
 
   // R+ — `since` (ms) 가 number 면 mtime > since 만 통과. AI agent 의 incremental
   // sync 시나리오: 이전 list 응답에서 최대 mtime 을 캡처 → 다음 호출에 since 로
