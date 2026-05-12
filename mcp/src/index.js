@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * oh-my-ontology-mcp — MCP 서버 (도구 22종 = read 14 + write 8).
+ * oh-my-ontology-mcp — MCP 서버 (도구 23종 = read 15 + write 8).
  *
  * AI agent (Claude Code 등) 가 vault 의 ontology 를 읽고 쓸 수 있게.
  *
- * read 14:
+ * read 15:
  *   - list_concepts          — vault 의 노드 목록 (kind / project_filter)
  *   - get_concept            — 단일 노드 + graph 이웃 + mtime
  *   - get_concepts           — 배치 read (slugs[] → concepts[], partial 허용)
@@ -16,6 +16,7 @@
  *   - find_orphans           — 어느 다른 노드도 frontmatter 에서 가리키지 않는 doc
  *   - query_concepts         — typed filter DSL (kind=X AND has(Y) AND NOT ...)
  *   - compile_ontology       — vault 를 deterministic graph artifact 로 compile
+ *   - query_ontology         — compiled graph engine query (neighbors / path / impact)
  *   - validate_vault         — vault 전체 health 한 호출 (per-doc + byCode aggregate)
  *   - analyze_repo_structure — R16, code repo 분석 → ontology 후보 (side effect 0)
  *   - infer_imports          — R17, TS/JS import graph → depends_on 후보 (side effect 0)
@@ -75,6 +76,7 @@ import { buildMarkdown } from './parser.mjs';
 import { analyzeRepoStructure } from './analyze.mjs';
 import { inferImports } from './infer-imports.mjs';
 import { compileOntology } from './ontology-compiler.mjs';
+import { queryCompiledOntology } from './ontology-engine.mjs';
 import { parseFilter } from './query.mjs';
 import { isValidVaultTitle, validateVaultDocument } from './validate.mjs';
 import {
@@ -109,9 +111,9 @@ try {
 // 매번 시행착오로 학습되는 문제를 단번에 해소.
 const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where each \`.md\` with a frontmatter \`kind:\` is an ontology node. The graph encodes the codebase's mental model and is shared with the human via plain markdown.
 
-## Tool inventory (22 tools = read 14 + write 8)
+## Tool inventory (23 tools = read 15 + write 8)
 
-**read** — \`list_concepts\` · \`get_concept\` · \`get_concepts\` · \`find_evidence\` · \`find_backlinks\` · \`find_neighbors\` · \`find_path\` · \`list_kinds\` · \`find_orphans\` · \`query_concepts\` · \`compile_ontology\` · \`validate_vault\` · \`analyze_repo_structure\` · \`infer_imports\`.
+**read** — \`list_concepts\` · \`get_concept\` · \`get_concepts\` · \`find_evidence\` · \`find_backlinks\` · \`find_neighbors\` · \`find_path\` · \`list_kinds\` · \`find_orphans\` · \`query_concepts\` · \`compile_ontology\` · \`query_ontology\` · \`validate_vault\` · \`analyze_repo_structure\` · \`infer_imports\`.
 **write** — \`add_concept\` · \`add_concepts\` · \`add_relation\` · \`add_relations\` · \`patch_concept\` · \`delete_concept\` · \`rename_concept\` · \`merge_concepts\`.
 
 ## Kind hierarchy (top → leaf)
@@ -136,6 +138,7 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 7. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates).
 8. \`query_concepts(filter)\` — structured questions like \`kind=capability AND domain=auth AND NOT has(elements)\` (= "unfinished caps under auth").
 9. \`compile_ontology({includeIndexes:true})\` — compiler-style graph artifact: canonical nodes, edges, aliases, issues, and adjacency indexes.
+10. \`query_ontology({operation:'neighbors'|'path'|'impact', ...})\` — graph-engine query over the compiled artifact. Use \`neighbors\` for local graph view, \`path\` for relation route, and \`impact\` for "what depends on this?" change analysis.
 
 All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
 
@@ -621,6 +624,69 @@ const TOOLS = [
     },
   },
   {
+    name: 'query_ontology',
+    description:
+      'Run graph-engine queries over the freshly compiled ontology artifact. Operations: `neighbors` (local graph neighborhood), `path` (compiled-edge route between two nodes), and `impact` (incoming by default: what depends on this node). ' +
+      'Accepts canonical slugs or unique aliases. side effect 0. Use this when you need graph-database-like answers without pulling the full compile_ontology payload.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        operation: {
+          type: 'string',
+          enum: ['neighbors', 'path', 'impact'],
+          description: 'Query operation to run.',
+        },
+        slug: {
+          type: 'string',
+          description: 'Center node slug or unique alias. Required for neighbors and impact.',
+        },
+        from: {
+          type: 'string',
+          description: 'Source node slug or unique alias. Required for path.',
+        },
+        to: {
+          type: 'string',
+          description: 'Target node slug or unique alias. Required for path.',
+        },
+        direction: {
+          type: 'string',
+          enum: ['incoming', 'outgoing', 'both', 'undirected'],
+          description:
+            'neighbors/impact: incoming, outgoing, or both. path: outgoing, incoming, or undirected (default).',
+        },
+        types: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Optional relation types to include, e.g. ["dependencies"] or ["depends_on"].',
+        },
+        depth: {
+          type: 'number',
+          description: 'impact traversal depth. Defaults to 2, capped at 20.',
+        },
+        maxHops: {
+          type: 'number',
+          description: 'path traversal hop cap. Defaults to 5, capped at 20.',
+        },
+        includeExternal: {
+          type: 'boolean',
+          description:
+            'neighbors only: include external path-like element refs. Defaults false.',
+        },
+        includeUnresolved: {
+          type: 'boolean',
+          description:
+            'neighbors only: include dangling unresolved refs. Defaults false.',
+        },
+        limit: {
+          type: 'number',
+          description: 'Max rows to return. Defaults to 100, capped at 500.',
+        },
+      },
+      required: ['operation'],
+    },
+  },
+  {
     name: 'validate_vault',
     description:
       'R+ (cycle 46) — validate every doc in the vault, return per-doc + per-code aggregate. ' +
@@ -869,6 +935,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return ok(queryConceptsTool(args));
       case 'compile_ontology':
         return ok(compileOntologyTool(args));
+      case 'query_ontology':
+        return ok(queryOntologyTool(args));
       case 'validate_vault':
         return ok(validateVaultTool());
       case 'analyze_repo_structure':
@@ -1510,6 +1578,21 @@ function compileOntologyTool({ includeIndexes } = {}) {
       unresolvedEdges: artifact.unresolvedEdgeCount,
       aliases: artifact.aliases.length,
       ambiguousAliases: artifact.ambiguousAliases.length,
+      issues: artifact.issues.length,
+    },
+  };
+}
+
+function queryOntologyTool(args = {}) {
+  const artifact = compileOntology(loadVaultDocs(VAULT_ROOT), { includeIndexes: true });
+  return {
+    ...queryCompiledOntology(artifact, args),
+    compiledSummary: {
+      nodes: artifact.nodeCount,
+      edges: artifact.edgeCount,
+      resolvedEdges: artifact.resolvedEdgeCount,
+      externalEdges: artifact.externalEdgeCount,
+      unresolvedEdges: artifact.unresolvedEdgeCount,
       issues: artifact.issues.length,
     },
   };

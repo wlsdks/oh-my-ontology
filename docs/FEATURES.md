@@ -15,7 +15,7 @@
 | Surface | Entry | Audience |
 |---|---|---|
 | **CLI** (R12 / R14 / R15+) | `oh-my-ontology init / list / validate / add / find / import / analyze / infer-imports / bootstrap / graph commands` | developer terminal — vault scaffold, daily exploration, bulk import, clean first graph |
-| **MCP** (R5 / R7 / R11 / R14 / R16 / R17) | 22 tools (14 read · 8 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings · bootstrap empty vault (R16 `analyze_repo_structure` · R17 `infer_imports`) |
+| **MCP** (R5 / R7 / R11 / R14 / R16 / R17) | 23 tools (15 read · 8 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings · bootstrap empty vault (R16 `analyze_repo_structure` · R17 `infer_imports`) |
 | **Web** (8 routes, R10 surface diet) | `pnpm dev` / static export | sigma topology · tree+ego · ERD builder · insights — graph visualization, mobile-friendly |
 
 ```
@@ -384,7 +384,7 @@ Used when a non-existent slug is hit in static export. Redirects or shows "not f
 
 ---
 
-## 3. MCP server (22 tools)
+## 3. MCP server (23 tools)
 
 Run via `pnpm exec node mcp/src/index.js` (registered in user's `.mcp.json`). AI agents read/write the same vault as humans.
 
@@ -405,7 +405,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 - **Toasts** — `Added: <slug>` (info) / `Edited: <slug>` (success, mtime change) on every page
 - Effect: IDE / AI agent / CLI 변경이 웹 탭 *focus 안 해도* ~5s 안에 그래프 + toast.
 
-#### Read tools (14)
+#### Read tools (15)
 1. **list_concepts** `{ kind?, domain?, since?, summary?, limit? }` — every node, optional filters, mtime, and summary preview
 2. **get_concept** `{ slug }` — full detail: frontmatter + prose excerpt + graph neighbors / `outgoingEdges[]` + `mtime` (ms; **R11** caller가 후속 patch/delete 의 `expected_mtime` 으로 전달하면 외부 변경 감지); warnings include frontmatter issues and dangling outgoing graph references
 3. **get_concepts** `{ slugs }` — batch read (max 50), order-preserving partial results with the same per-node warnings
@@ -417,9 +417,10 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 9. **find_orphans** `{ kind?, excludeKinds? }` — isolated nodes across graph frontmatter, including `domains` / `domain` containment (defaults exclude `vault-readme`)
 10. **query_concepts** `{ filter, limit? }` — typed filter DSL with AND/OR/NOT on `kind` / `domain` / `slug` / `title` / `has(arrayKey)`
 11. **compile_ontology** `{ includeIndexes? }` — deterministic graph artifact with canonical `nodes[]`, `edges[]`, aliases, issues, and optional adjacency indexes
-12. **validate_vault** — whole-vault health check with per-file issues and grouped summary, including non-canonical graph arrays and dangling graph references
-13. **analyze_repo_structure** `{ repoRoot? }` — side-effect-free bootstrap candidates from package / README / source layout
-14. **infer_imports** `{ repoRoot? }` — side-effect-free TS/JS import graph → dependency edge candidates
+12. **query_ontology** `{ operation, ... }` — graph-engine query over the compiled artifact (`neighbors`, `path`, `impact`) for graph-database-like answers without pulling the full compile payload
+13. **validate_vault** — whole-vault health check with per-file issues and grouped summary, including non-canonical graph arrays and dangling graph references
+14. **analyze_repo_structure** `{ repoRoot? }` — side-effect-free bootstrap candidates from package / README / source layout
+15. **infer_imports** `{ repoRoot? }` — side-effect-free TS/JS import graph → dependency edge candidates
 
 #### Write tools (8)
 1. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md`; graph arrays are trimmed, deduped, and sorted on write (throws on existing slug)

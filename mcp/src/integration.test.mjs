@@ -148,11 +148,13 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     const getC = findDesc("get_concept");
     const findN = findDesc("find_neighbors");
     const compile = findDesc("compile_ontology");
+    const query = findDesc("query_ontology");
     const addC = findDesc("add_concept");
     const addR = findDesc("add_relation");
     assert.ok(getC && /get_concepts/.test(getC), "get_concept → get_concepts hint");
     assert.ok(findN && /one-hop graph neighborhood/i.test(findN), "find_neighbors graph hint");
     assert.ok(compile && /deterministic graph artifact/i.test(compile), "compile_ontology compiler hint");
+    assert.ok(query && /graph-engine queries/i.test(query), "query_ontology engine hint");
     assert.ok(addC && /add_concepts/.test(addC), "add_concept → add_concepts hint");
     assert.ok(addR && /add_relations/.test(addR), "add_relation → add_relations hint");
   } finally {
@@ -187,6 +189,7 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /get_concepts/);
     assert.match(instructions, /find_neighbors/);
     assert.match(instructions, /compile_ontology/);
+    assert.match(instructions, /query_ontology/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -253,6 +256,68 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
       "capabilities/login->domains/auth:dependencies:auth-domain",
     ]);
     assert.ok(result.issues.some((issue) => issue.code === "dangling-graph-reference"));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("query_ontology — compiled graph engine neighbors/path/impact", async () => {
+  const root = makeVault([
+    {
+      slug: "domains/auth",
+      content: "---\nslug: auth-domain\nkind: domain\ntitle: Auth\n---\n",
+    },
+    {
+      slug: "capabilities/login",
+      content:
+        "---\nkind: capability\ntitle: Login\ndepends_on: [auth-domain]\nelements: [src/auth/login.ts]\n---\n",
+    },
+    {
+      slug: "capabilities/session",
+      content:
+        "---\nkind: capability\ntitle: Session\ndepends_on: [capabilities/login]\n---\n",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "query_ontology", {
+        operation: "neighbors",
+        slug: "auth-domain",
+        direction: "incoming",
+        types: ["dependencies"],
+      }),
+      callTool(3, "query_ontology", {
+        operation: "path",
+        from: "capabilities/session",
+        to: "auth-domain",
+      }),
+      callTool(4, "query_ontology", {
+        operation: "impact",
+        slug: "domains/auth",
+        depth: 2,
+      }),
+    ]);
+    const neighbors = getCallParsed(responses, 2);
+    assert.deepEqual(neighbors.nodes.map((node) => node.slug), ["capabilities/login"]);
+    assert.equal(neighbors.compiledSummary.nodes, 3);
+
+    const path = getCallParsed(responses, 3);
+    assert.equal(path.found, true);
+    assert.deepEqual(path.hops, [
+      "capabilities/session",
+      "capabilities/login",
+      "domains/auth",
+    ]);
+
+    const impact = getCallParsed(responses, 4);
+    assert.deepEqual(
+      impact.nodes.map((row) => ({ slug: row.slug, distance: row.distance })),
+      [
+        { slug: "capabilities/login", distance: 1 },
+        { slug: "capabilities/session", distance: 2 },
+      ],
+    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
