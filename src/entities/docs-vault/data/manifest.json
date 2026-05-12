@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-09T15:20:43.058Z",
+  "generatedAt": "2026-05-12T23:10:54.313Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -77,8 +77,8 @@
         }
       ],
       "excerpt": "202605 update — Round 10 permanently removed all auth + cloud surface. This doc reflects the postR10 state. Earlier cloudmode design notes are in docs/archive/. There is no backend, no database, no auth provider. The user's markdown folder is the single source of truth. Both the MCP server (AI agent) and the CLI (devel",
-      "wordCount": 956,
-      "updatedAt": "2026-05-09T06:48:12.840Z",
+      "wordCount": 957,
+      "updatedAt": "2026-05-12T15:56:32.523Z",
       "linksOut": [
         "../AGENTS",
         "PRODUCT-DIRECTION",
@@ -1675,7 +1675,7 @@
       ],
       "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260509): localfirst 3 surface (CLI · MCP · Web) 기준으로 재정렬. dogfood 26 노드, clean onboarding + Codex MCP setup smoke + current web E2E 복구 완료. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | ",
       "wordCount": 1334,
-      "updatedAt": "2026-05-09T11:56:25.501Z",
+      "updatedAt": "2026-05-12T22:29:55.144Z",
       "linksOut": []
     },
     {
@@ -2286,6 +2286,11 @@
           "depth": 1,
           "text": "CHANGELOG",
           "slug": "changelog"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-11 — Ontology surface UX pass + 토폴로지 별자리 톤",
+          "slug": "2026-05-11-ontology-surface-ux-pass-토폴로지-별자리-톤"
         },
         {
           "depth": 2,
@@ -3288,9 +3293,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. Real mobile browser review found the /docs header and localvault tools were too desktopsha",
-      "wordCount": 14840,
-      "updatedAt": "2026-05-09T15:20:36.262Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. UI 점검 보고서 (/, /topology, /ontology, /ontology/insights, /ontology/edit, /docs, /projects) ",
+      "wordCount": 15070,
+      "updatedAt": "2026-05-11T23:22:47.060Z",
       "linksOut": [
         "slug"
       ]
@@ -4151,13 +4156,13 @@
         },
         {
           "depth": 2,
-          "text": "3. MCP server (20 tools)",
-          "slug": "3-mcp-server-20-tools"
+          "text": "3. MCP server (23 tools)",
+          "slug": "3-mcp-server-23-tools"
         },
         {
           "depth": 4,
-          "text": "Read tools (12)",
-          "slug": "read-tools-12"
+          "text": "Read tools (15)",
+          "slug": "read-tools-15"
         },
         {
           "depth": 4,
@@ -4221,8 +4226,8 @@
         }
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260509 (postcleanonboarding — CLI · MCP · Web 3 surface, 20 MCP tools, clean Codex setup smoke, current web E2E restored). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아",
-      "wordCount": 4608,
-      "updatedAt": "2026-05-09T15:00:50.376Z",
+      "wordCount": 4791,
+      "updatedAt": "2026-05-12T23:07:18.359Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -4500,8 +4505,8 @@
         "title": "Builder ↔ Vault md write (mode-aware)",
         "domain": "views",
         "elements": [
-          "src/views/ontology-edit/ui/OntologyEditPage.tsx",
-          "src/features/docs-vault-local/model/use-local-vault.ts"
+          "src/features/docs-vault-local/model/use-local-vault.ts",
+          "src/views/ontology-edit/ui/OntologyEditPage.tsx"
         ]
       },
       "headings": [
@@ -4513,7 +4518,7 @@
       ],
       "excerpt": "mission v2 의 사람 + AI agent 양립 약속의 코드 구현. 빌더 ephemeral 노드 → mode 별 분기 저장: local: vault.createDoc(${kind}s/${slug}, md) — vault 디스크 직접 작성. AI agent (MCP) 가 같은 vault 에서 즉시 본다. static: 저장 차단 + 안내 toast (\"내 markdown 폴더 열기\" 유도). frontmatter 형식: folder mapping: capability→capabilities, element→elements, domain→domains, projec",
       "wordCount": 79,
-      "updatedAt": "2026-05-02T21:02:41.605Z",
+      "updatedAt": "2026-05-12T15:58:45.722Z",
       "linksOut": []
     },
     {
@@ -4527,22 +4532,22 @@
         "title": "CLI Developer Entry (16 commands incl. bootstrap)",
         "domain": "onboarding-ux",
         "elements": [
-          "cli/src/index.mjs",
-          "cli/src/commands/list.mjs",
-          "cli/src/commands/validate.mjs",
           "cli/src/commands/add.mjs",
+          "cli/src/commands/analyze.mjs",
+          "cli/src/commands/backlinks.mjs",
+          "cli/src/commands/bootstrap.mjs",
+          "cli/src/commands/delete.mjs",
           "cli/src/commands/find.mjs",
           "cli/src/commands/import.mjs",
-          "cli/src/commands/analyze.mjs",
           "cli/src/commands/infer-imports.mjs",
-          "cli/src/commands/bootstrap.mjs",
-          "cli/src/commands/backlinks.mjs",
+          "cli/src/commands/list.mjs",
+          "cli/src/commands/merge.mjs",
+          "cli/src/commands/orphans.mjs",
+          "cli/src/commands/path.mjs",
           "cli/src/commands/query.mjs",
           "cli/src/commands/rename.mjs",
-          "cli/src/commands/merge.mjs",
-          "cli/src/commands/delete.mjs",
-          "cli/src/commands/path.mjs",
-          "cli/src/commands/orphans.mjs",
+          "cli/src/commands/validate.mjs",
+          "cli/src/index.mjs",
           "cli/src/lib/mcp-call.mjs"
         ],
         "relates": [
@@ -4584,8 +4589,8 @@
         }
       ],
       "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령 추가 — 총 16 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | What it does | ||| | ohmyontology init [folder] | S",
-      "wordCount": 803,
-      "updatedAt": "2026-05-09T15:01:10.692Z",
+      "wordCount": 804,
+      "updatedAt": "2026-05-12T15:58:45.724Z",
       "linksOut": []
     },
     {
@@ -4599,12 +4604,12 @@
         "title": "Frontmatter → Ontology Stub",
         "domain": "ontology-core",
         "elements": [
-          "src/shared/lib/parse-frontmatter.ts",
-          "src/entities/docs-vault/lib/derive-ontology-from-vault.ts"
+          "src/entities/docs-vault/lib/derive-ontology-from-vault.ts",
+          "src/shared/lib/parse-frontmatter.ts"
         ],
         "relates": [
-          "domains/vault-local-first",
-          "domains/ontology-core"
+          "domains/ontology-core",
+          "domains/vault-local-first"
         ]
       },
       "headings": [
@@ -4616,7 +4621,7 @@
       ],
       "excerpt": "vault 의 .md 파일 frontmatter 를 직접 읽어 OntologyStub (nodes + edges + warnings) 으로 변환. AI 추출 / 검수 큐 거치지 않는 fastpath. 이게 mission \"frontmatter 가 자기승인\" 의 코드 표현. 지원 frontmatter 키: kind: — canonical 5: project / domain / capability / element / document title:, domain: capabilities: [], elements: [] — 배열 노드 relates: [], dependenc",
       "wordCount": 129,
-      "updatedAt": "2026-05-09T13:20:00.357Z",
+      "updatedAt": "2026-05-12T15:58:45.725Z",
       "linksOut": []
     },
     {
@@ -4630,11 +4635,11 @@
         "title": "MCP Conflict Guard (mtime 기반 silent overwrite 차단)",
         "domain": "ai-agent-partner",
         "elements": [
-          "mcp/src/vault.mjs",
           "mcp/src/index.js",
+          "mcp/src/vault.mjs",
           "src/features/docs-vault-local/model/use-local-vault.ts",
-          "src/views/ontology-edit/ui/OntologyEditPage.tsx",
-          "src/features/project-data-source/model/use-project-mutations.ts"
+          "src/features/project-data-source/model/use-project-mutations.ts",
+          "src/views/ontology-edit/ui/OntologyEditPage.tsx"
         ],
         "relates": [
           "capabilities/mcp-server",
@@ -4665,25 +4670,27 @@
       ],
       "excerpt": "같은 .md 가 사람 GUI · 외부 에디터 · 다른 AI MCP 에 의해 동시 편집될 때 silent overwrite 차단. R11 8 에서 MCP 측 도입, R+ 에서 local UI 의 본문 저장과 frontmatter patch 경로까지 확장. 1. AI agent 가 getconcept 호출 → 응답에 mtime (ms) 포함 2. agent 가 분석 / 수정 후 patchconcept({ slug, frontmatter, expectedmtime: <prev mtime }) 호출 3. write 직전 server 가 현재 mtime 과 비교 4. 다르면 ",
       "wordCount": 183,
-      "updatedAt": "2026-05-09T07:10:30.722Z",
+      "updatedAt": "2026-05-12T15:58:45.725Z",
       "linksOut": []
     },
     {
       "slug": "ontology/capabilities/mcp-server",
       "path": "docs/ontology/capabilities/mcp-server.md",
-      "title": "MCP Server (20 tools)",
+      "title": "MCP Server (23 tools)",
       "tags": [],
       "frontmatter": {
         "slug": "capabilities/mcp-server",
         "kind": "capability",
-        "title": "MCP Server (20 tools)",
+        "title": "MCP Server (23 tools)",
         "domain": "ai-agent-partner",
         "elements": [
-          "mcp/src/index.js",
-          "mcp/src/parser.mjs",
-          "mcp/src/vault.mjs",
           "mcp/src/analyze.mjs",
-          "mcp/src/infer-imports.mjs"
+          "mcp/src/index.js",
+          "mcp/src/infer-imports.mjs",
+          "mcp/src/ontology-compiler.mjs",
+          "mcp/src/ontology-engine.mjs",
+          "mcp/src/parser.mjs",
+          "mcp/src/vault.mjs"
         ],
         "relates": [
           "capabilities/frontmatter-to-ontology",
@@ -4693,13 +4700,13 @@
       "headings": [
         {
           "depth": 1,
-          "text": "MCP Server (20 tools)",
-          "slug": "mcp-server-20-tools"
+          "text": "MCP Server (23 tools)",
+          "slug": "mcp-server-23-tools"
         }
       ],
-      "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 20 도구 노출 (read 12 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터) | | getconcept | 단일 slug 의 frontmatter + body excerpt + 이웃 | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing 은 partial result) | | findevidence | title 부분매칭으로 vau",
-      "wordCount": 471,
-      "updatedAt": "2026-05-09T07:33:30.754Z",
+      "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing 은 partial result) | | ",
+      "wordCount": 633,
+      "updatedAt": "2026-05-12T23:07:14.498Z",
       "linksOut": []
     },
     {
@@ -4718,9 +4725,9 @@
           "src/features/vault-ontology"
         ],
         "relates": [
-          "domains/vault-local-first",
+          "capabilities/ontology-hub-mode-aware",
           "domains/mode-aware-adapters",
-          "capabilities/ontology-hub-mode-aware"
+          "domains/vault-local-first"
         ]
       },
       "headings": [
@@ -4732,7 +4739,7 @@
       ],
       "excerpt": "R10 (auth + cloud surface 영구 제거) 이후 2 mode: local — useLocalVault().status === 'loaded' (사용자 디스크 vault) static — vault 미선택. 빌드타임 dogfood 매니페스트 (docs/ontology/) 가 fallback. useDataSourceMode() 가 두 mode 를 분기. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 호출자 코드는 단일. 적용 surface: useProjects — local: vault manifest 의 kind: project ",
       "wordCount": 107,
-      "updatedAt": "2026-05-02T16:29:38.382Z",
+      "updatedAt": "2026-05-12T15:58:45.726Z",
       "linksOut": []
     },
     {
@@ -4791,8 +4798,8 @@
           "src/views/ontology-view/ui/OntologyViewPage.tsx"
         ],
         "relates": [
-          "capabilities/mode-aware-adapter",
           "capabilities/frontmatter-to-ontology",
+          "capabilities/mode-aware-adapter",
           "domains/views"
         ]
       },
@@ -4805,7 +4812,7 @@
       ],
       "excerpt": "vault 활성 시 / 가 자동으로 그 데이터로 전환. mission v2 ideal \"Notion 처럼 폴더만 골라도 사용\" 의 ontology hub 표현. useOntologyInsight() 분기: local → useVaultOntology 결과를 KnowledgeProjectInsight shape 으로 변환 static → 빌드타임 dogfood 매니페스트 derivation (moduleload 1 회 메모이즈) OntologyStubNode → KnowledgeGraphNode 변환: sentinel lastApprovedAt = Date(0), la",
       "wordCount": 94,
-      "updatedAt": "2026-05-02T20:19:31.371Z",
+      "updatedAt": "2026-05-12T15:58:45.727Z",
       "linksOut": []
     },
     {
@@ -4895,12 +4902,12 @@
         "title": "Topology — Sigma WebGL Render",
         "domain": "views",
         "elements": [
-          "src/widgets/topology-map-sigma",
-          "src/views/home"
+          "src/views/home",
+          "src/widgets/topology-map-sigma"
         ],
         "relates": [
-          "elements/sigma-graphology",
-          "domains/views"
+          "domains/views",
+          "elements/sigma-graphology"
         ]
       },
       "headings": [
@@ -4912,7 +4919,7 @@
       ],
       "excerpt": "Sigma.js + Graphology + ForceAtlas2 spatial network. 노드 클릭 → ProjectDrawer, hover → 1hop 이웃 강조, 우측 SigmaHubRail (degree 상위), 우측 SigmaMinimap. ⌘K 검색. / (홈 hub) 와 /topology (alias) 양쪽에서 동일 컴포넌트 (HomePage) 가 mount.",
       "wordCount": 42,
-      "updatedAt": "2026-05-03T03:11:33.466Z",
+      "updatedAt": "2026-05-12T15:58:45.727Z",
       "linksOut": []
     },
     {
@@ -4926,9 +4933,9 @@
         "title": "Vault Live Updates (5s polling + diff toast + graph pulse)",
         "domain": "vault-local-first",
         "elements": [
+          "src/features/docs-vault-local/lib/diff-manifest.ts",
           "src/features/docs-vault-local/model/use-local-vault.ts",
           "src/features/docs-vault-local/model/VaultDiffToaster.tsx",
-          "src/features/docs-vault-local/lib/diff-manifest.ts",
           "src/widgets/topology-map-sigma/lib/graph-build.ts"
         ],
         "relates": [
@@ -4967,7 +4974,7 @@
       ],
       "excerpt": "R14 (155158, 20260504 ~ 20260505) 에 도입된 web 즉시 반영 능력. 사용자 명시 \"웹에서나 잘 반영되면 좋겠는데? 그걸 강화하는건 어때\" 의 4 단계 답. IDE / AI agent / CLI 어느 surface 가 vault .md 만지면 웹 탭이 focus 안 해도 ~5s 안에 반영. | Step | What | Where 인지 | |||| | 155 polling | 5s 간격 fingerprint check + visibleonly 자동 reload | 백그라운드 | | 156 graph diff pulse | 새 노드 amber ",
       "wordCount": 289,
-      "updatedAt": "2026-05-06T09:30:43.295Z",
+      "updatedAt": "2026-05-12T15:58:45.728Z",
       "linksOut": []
     },
     {
@@ -5032,8 +5039,8 @@
         "title": "Vault Validator (Silent Corruption 가시화)",
         "domain": "vault-local-first",
         "elements": [
-          "src/shared/lib/validate-vault-document.ts",
-          "scripts/validate-vault.mjs"
+          "scripts/validate-vault.mjs",
+          "src/shared/lib/validate-vault-document.ts"
         ],
         "relates": [
           "capabilities/frontmatter-to-ontology",
@@ -5057,9 +5064,9 @@
           "slug": "issue-codes"
         }
       ],
-      "excerpt": "frontmatter parser 가 lenient bydesign — 닫힘 빠짐 / 빈 키 / 잘못된 들여쓰기에서 조용히 빈 frontmatter 반환. 사용자가 .md 잘못 작성하면 노드가 graph 에서 조용히 사라짐. R11 에서 이 silent corruption 을 가시화. 1. CLI — pnpm vault:validate [vaultPath] validateVaultDocument(raw) — 5 issue codes: unclosedfrontmatter / emptykind / missingkind / unknownkind / parsezerokeys",
-      "wordCount": 194,
-      "updatedAt": "2026-05-04T10:06:27.439Z",
+      "excerpt": "frontmatter parser 가 lenient bydesign — 닫힘 빠짐 / 빈 키 / 잘못된 들여쓰기에서 조용히 빈 frontmatter 반환. 사용자가 .md 잘못 작성하면 노드가 graph 에서 조용히 사라짐. R11 에서 이 silent corruption 을 가시화. 1. CLI — pnpm vault:validate [vaultPath] validateVaultDocument(raw) — frontmatter corruption + graph array canonicality issue codes error 1+ 시 exit 1 (CI 게이트 가능",
+      "wordCount": 223,
+      "updatedAt": "2026-05-12T16:08:26.043Z",
       "linksOut": []
     },
     {
@@ -5072,22 +5079,22 @@
         "kind": "domain",
         "title": "AI Agent Partner",
         "capabilities": [
-          "mcp-server",
           "mcp-conflict-guard",
+          "mcp-server",
+          "ontology-bootstrap-skill",
           "ontology-sync-skill",
-          "session-start-ontology-context",
-          "ontology-bootstrap-skill"
+          "session-start-ontology-context"
         ],
         "elements": [
+          ".claude/hooks/inject-ontology-summary.sh",
           "mcp-sdk",
           "mcp/src/index.js",
           "mcp/src/parser.mjs",
-          "mcp/src/vault.mjs",
-          ".claude/hooks/inject-ontology-summary.sh"
+          "mcp/src/vault.mjs"
         ],
         "relates": [
-          "domains/vault-local-first",
-          "domains/ontology-core"
+          "domains/ontology-core",
+          "domains/vault-local-first"
         ]
       },
       "headings": [
@@ -5097,9 +5104,9 @@
           "slug": "ai-agent-partner"
         }
       ],
-      "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 20 도구 (read 12 + write 8) 를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출.",
+      "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 23 도구 (read 15 + write 8) 를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출.",
       "wordCount": 49,
-      "updatedAt": "2026-05-09T06:47:30.089Z",
+      "updatedAt": "2026-05-12T22:30:18.750Z",
       "linksOut": []
     },
     {
@@ -5119,8 +5126,8 @@
           "src/features/project-data-source"
         ],
         "relates": [
-          "domains/vault-local-first",
-          "domains/ontology-core"
+          "domains/ontology-core",
+          "domains/vault-local-first"
         ]
       },
       "headings": [
@@ -5132,7 +5139,7 @@
       ],
       "excerpt": "useDataSourceMode() 가 local / static 분기 결정. R10 (auth + cloud surface 영구 제거) 이후 두 mode 만 존재. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 사용자에겐 단일 UX. 미래 cloud collab 단계가 다시 도입될 때 'cloud' mode 와 그 adapter 를 새로 추가.",
       "wordCount": 50,
-      "updatedAt": "2026-05-02T20:03:33.726Z",
+      "updatedAt": "2026-05-12T15:58:45.729Z",
       "linksOut": []
     },
     {
@@ -5149,8 +5156,8 @@
         ],
         "elements": [
           "src/features/theme-toggle",
-          "src/shared/ui/toast.tsx",
           "src/shared/ui/live-announcer.tsx",
+          "src/shared/ui/toast.tsx",
           "src/widgets/bottom-tab-bar",
           "src/widgets/gesture-hint"
         ],
@@ -5167,7 +5174,7 @@
       ],
       "excerpt": "crosscutting. 라이트/다크 토글 (html[datatheme=\"light\"]), Sonner기반 toast, arialive 스크린리더 announce, 모바일 BottomTabBar + gesture hint, ⌘K · ⇧⌘K · ? · F · N · Esc 단축키, prefersreducedmotion 자동 존중. fresh vault onboarding 도 이 domain 의 일부: CLI init 과 web workbench starter 가 같은 5node vault README/setup 내용을 제공하고, Claude Code/Cursor .mc",
       "wordCount": 102,
-      "updatedAt": "2026-05-09T14:37:14.394Z",
+      "updatedAt": "2026-05-12T15:58:45.729Z",
       "linksOut": []
     },
     {
@@ -5183,9 +5190,9 @@
           "frontmatter-to-ontology"
         ],
         "elements": [
-          "src/entities/ontology-class",
+          "src/entities/docs-vault/lib/derive-ontology-from-vault.ts",
           "src/entities/knowledge-graph",
-          "src/entities/docs-vault/lib/derive-ontology-from-vault.ts"
+          "src/entities/ontology-class"
         ],
         "relates": [
           "domains/vault-local-first",
@@ -5201,7 +5208,7 @@
       ],
       "excerpt": "4layer class hierarchy (Project · Domain · Capability · Element + Document) + 7 edge types (KNOWLEDGEEDGETYPES) + evidencegrounded statements. Vault frontmatter is the single source of truth — deriveontologyfromvault turns \\.md\\ frontmatter into the inmemory graph. Architecture overview: \\docs/ARCHITECTURE.md\\.",
       "wordCount": 43,
-      "updatedAt": "2026-05-05T03:30:20.981Z",
+      "updatedAt": "2026-05-12T15:58:45.730Z",
       "linksOut": []
     },
     {
@@ -5214,15 +5221,15 @@
         "kind": "domain",
         "title": "Vault — Local-First",
         "capabilities": [
-          "vault-validator",
+          "vault-live-updates",
           "vault-migrator",
-          "vault-live-updates"
+          "vault-validator"
         ],
         "elements": [
           "file-system-access-api",
-          "src/features/docs-vault-local",
-          "src/entities/local-fs-handle",
           "src/entities/docs-vault",
+          "src/entities/local-fs-handle",
+          "src/features/docs-vault-local",
           "src/shared/lib/idb-kv.ts"
         ],
         "relates": [
@@ -5239,7 +5246,7 @@
       ],
       "excerpt": "사용자 디스크 폴더를 진실원으로. File System Access API + IndexedDB 기반 핸들 영속. focus / visibility 시 fingerprint 비교로 재스캔 shortcircuit. R14 부터는 visible 인 동안 5s polling 으로 focus 안 해도 자동 반영 (vaultliveupdates). 자세한 원칙: .claude/rules/localfirst.md. 사용자 surface: docs/FEATURES.md.",
       "wordCount": 45,
-      "updatedAt": "2026-05-06T09:30:43.296Z",
+      "updatedAt": "2026-05-12T15:58:45.730Z",
       "linksOut": []
     },
     {
@@ -5252,22 +5259,22 @@
         "kind": "domain",
         "title": "Views (Topology · Browse · Builder)",
         "capabilities": [
-          "topology-sigma-render",
+          "builder-vault-write",
           "ontology-hub-mode-aware",
-          "builder-vault-write"
+          "topology-sigma-render"
         ],
         "elements": [
           "sigma-graphology",
-          "xyflow",
           "src/views/home",
-          "src/views/ontology-view",
           "src/views/ontology-edit",
+          "src/views/ontology-view",
+          "src/widgets/global-search",
           "src/widgets/topology-map-sigma",
-          "src/widgets/global-search"
+          "xyflow"
         ],
         "relates": [
-          "domains/ontology-core",
-          "domains/onboarding-ux"
+          "domains/onboarding-ux",
+          "domains/ontology-core"
         ]
       },
       "headings": [
@@ -5279,7 +5286,7 @@
       ],
       "excerpt": "같은 ontology 그래프의 세 출구. 토폴로지 (Sigma + ForceAtlas2 spatial network), 둘러보기 (/ontology 트리 계층 + ego graph + 노드 detail), 빌더 (xyflow ERD canvas + md 내보내기). 검색 — ⌘K 프로젝트 / ⇧⌘K 노드+프로젝트 통합.",
       "wordCount": 38,
-      "updatedAt": "2026-05-04T10:06:27.442Z",
+      "updatedAt": "2026-05-12T15:58:45.730Z",
       "linksOut": []
     },
     {
@@ -5401,12 +5408,12 @@
         "kind": "project",
         "title": "oh-my-ontology",
         "domains": [
-          "vault-local-first",
-          "ontology-core",
-          "views",
           "ai-agent-partner",
           "mode-aware-adapters",
-          "onboarding-ux"
+          "onboarding-ux",
+          "ontology-core",
+          "vault-local-first",
+          "views"
         ]
       },
       "headings": [
@@ -5423,7 +5430,7 @@
       ],
       "excerpt": "마크다운에서 자라는 오픈소스 온톨로지 워크벤치. 사람과 AI agent 가 같이 codebase 의 mental model 을 저작한다. md 가 진실원: vault 의 frontmatter 가 ontology 그대로 localfirst: 사용자 디스크 (vault) 가 단일 진실원. 인증 / 백엔드 의존 0. AI agent partner: MCP 서버를 통해 Claude Code 등이 ontology 를 read/write 3 view: topology (Sigma), tree (/ontology), builder (xyflow ERD)",
       "wordCount": 67,
-      "updatedAt": "2026-05-03T00:39:40.697Z",
+      "updatedAt": "2026-05-12T15:58:45.731Z",
       "linksOut": []
     },
     {
@@ -5468,9 +5475,9 @@
           "slug": "갱신"
         }
       ],
-      "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 총 26 노드. 정확한 census 는 ohmyontology list 또는 mcp listkinds 호출. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 20 도구 (read 12 + write 8): read — listcon",
-      "wordCount": 264,
-      "updatedAt": "2026-05-09T06:39:51.938Z",
+      "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 총 26 노드. 정확한 census 는 ohmyontology list 또는 mcp listkinds 호출. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 23 도구 (read 15 + write 8): read — listcon",
+      "wordCount": 270,
+      "updatedAt": "2026-05-12T22:30:07.207Z",
       "linksOut": []
     },
     {
@@ -5642,8 +5649,8 @@
         }
       ],
       "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. One codebase, one ontology, tha",
-      "wordCount": 1790,
-      "updatedAt": "2026-05-09T11:56:04.273Z",
+      "wordCount": 1799,
+      "updatedAt": "2026-05-12T22:29:48.702Z",
       "linksOut": []
     },
     {
@@ -5736,7 +5743,7 @@
       ],
       "excerpt": "This project publishes two npm packages: | Package | Path | What | Required? | ||||| | ohmyontologymcp | mcp/ | MCP server (AI agents read/write the vault) | Required — the core of the AI agent integration | | ohmyontology | cli/ | init CLI (vault scaffold) | Optional — the web workbench's scaffold button does the same",
       "wordCount": 962,
-      "updatedAt": "2026-05-09T12:11:10.213Z",
+      "updatedAt": "2026-05-12T22:29:52.167Z",
       "linksOut": []
     },
     {
@@ -6332,7 +6339,7 @@
                 "path": "ontology/capabilities/mcp-server",
                 "type": "doc",
                 "slug": "ontology/capabilities/mcp-server",
-                "title": "MCP Server (20 tools)"
+                "title": "MCP Server (23 tools)"
               },
               {
                 "name": "mode-aware-adapter",

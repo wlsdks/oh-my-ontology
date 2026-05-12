@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components", async () => {
   const root = makeVault([
     {
       slug: "domains/auth",
@@ -315,6 +315,9 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
         from: "capabilities/session",
         to: "auth-domain",
         type: "depends_on",
+      }),
+      callTool(9, "query_ontology", {
+        operation: "components",
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -371,6 +374,16 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
     assert.equal(relationCheck.exists, false);
     assert.equal(relationCheck.verdict, "matches_existing_schema");
     assert.equal(relationCheck.schemaPattern.toKind, "domain");
+
+    const components = getCallParsed(responses, 9);
+    assert.equal(components.totalComponents, 1);
+    assert.equal(components.largestSize, 3);
+    assert.equal(components.singletonCount, 0);
+    assert.deepEqual(components.components[0].nodes.map((node) => node.slug), [
+      "capabilities/login",
+      "capabilities/session",
+      "domains/auth",
+    ]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

@@ -25,9 +25,12 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'relation_check') {
     return engine.relationCheck(query);
   }
+  if (operation === 'components') {
+    return engine.components(query);
+  }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components.',
   );
 }
 
@@ -345,6 +348,54 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function components(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 20);
+    const nodeLimit = normalizeLimit(options.nodeLimit ?? 25);
+    const typeSet = normalizeTypes(options.types);
+    const visited = new Set();
+    const groups = [];
+
+    for (const node of nodes) {
+      if (visited.has(node.slug)) continue;
+      const queue = [node.slug];
+      const slugs = [];
+      visited.add(node.slug);
+
+      while (queue.length > 0) {
+        const current = queue.shift();
+        slugs.push(current);
+
+        for (const { next } of traversalEdges(current, 'undirected', typeSet)) {
+          if (visited.has(next)) continue;
+          visited.add(next);
+          queue.push(next);
+        }
+      }
+
+      slugs.sort();
+      groups.push({ slugs, size: slugs.length });
+    }
+
+    groups.sort(
+      (a, b) => b.size - a.size || (a.slugs[0] || '').localeCompare(b.slugs[0] || ''),
+    );
+
+    return {
+      operation: 'components',
+      totalComponents: groups.length,
+      largestSize: groups[0]?.size || 0,
+      singletonCount: groups.filter((group) => group.size === 1).length,
+      limited: groups.length > limit,
+      components: groups.slice(0, limit).map((group, index) => ({
+        id: index + 1,
+        size: group.size,
+        kinds: countBy(group.slugs.map((slug) => nodeBySlug.get(slug)).filter(Boolean), 'kind'),
+        nodeLimited: group.slugs.length > nodeLimit,
+        nodes: group.slugs.slice(0, nodeLimit).map((slug) => summarizeNode(nodeBySlug.get(slug))),
+      })),
+    };
+  }
+
   function schemaPatterns() {
     const patternMap = new Map();
     for (const edge of edges) {
@@ -409,7 +460,7 @@ export function createOntologyEngine(artifact) {
     return candidates;
   }
 
-  return { resolve, neighbors, path, impact, subgraph, overview, schema, relationCheck };
+  return { resolve, neighbors, path, impact, subgraph, overview, schema, relationCheck, components };
 }
 
 function countBy(items, key) {
@@ -454,6 +505,17 @@ function topHubs(nodes, limit) {
     }))
     .sort((a, b) => b.degree - a.degree || b.inDegree - a.inDegree || a.slug.localeCompare(b.slug))
     .slice(0, limit);
+}
+
+function summarizeNode(node) {
+  return {
+    slug: node.slug,
+    kind: node.kind,
+    title: node.title,
+    domain: node.domain,
+    inDegree: node.inDegree || 0,
+    outDegree: node.outDegree || 0,
+  };
 }
 
 function edgeAllowed(edge, typeSet, includeExternal, includeUnresolved) {

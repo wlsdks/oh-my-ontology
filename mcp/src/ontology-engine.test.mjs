@@ -243,4 +243,59 @@ describe('queryCompiledOntology', () => {
     assert.equal(newPattern.verdict, 'new_schema_pattern');
     assert.equal(newPattern.schemaPattern, null);
   });
+
+  it('returns deterministic connected components over resolved graph edges', () => {
+    const disconnected = compileOntology(
+      [
+        doc('domains/auth', { slug: 'auth-domain', kind: 'domain', title: 'Auth' }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'auth-domain',
+        }),
+        doc('domains/billing', { kind: 'domain', title: 'Billing' }),
+        doc('capabilities/payments', {
+          kind: 'capability',
+          title: 'Payments',
+          domain: 'billing',
+        }),
+        doc('capabilities/orphan', { kind: 'capability', title: 'Orphan' }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(disconnected, {
+      operation: 'components',
+      limit: 2,
+      nodeLimit: 1,
+    });
+
+    assert.equal(result.operation, 'components');
+    assert.equal(result.totalComponents, 3);
+    assert.equal(result.largestSize, 2);
+    assert.equal(result.singletonCount, 1);
+    assert.equal(result.limited, true);
+    assert.deepEqual(
+      result.components.map((component) => ({
+        size: component.size,
+        kinds: component.kinds,
+        nodeLimited: component.nodeLimited,
+        firstNode: component.nodes[0].slug,
+      })),
+      [
+        {
+          size: 2,
+          kinds: { capability: 1, domain: 1 },
+          nodeLimited: true,
+          firstNode: 'capabilities/login',
+        },
+        {
+          size: 2,
+          kinds: { capability: 1, domain: 1 },
+          nodeLimited: true,
+          firstNode: 'capabilities/payments',
+        },
+      ],
+    );
+  });
 });
