@@ -997,16 +997,16 @@ await test('path — 두 인자 누락 시 usage + exit 1', async () => {
 await test('orphans — graph fixture 에서 referenced 노드 0건 보고', async () => {
   // buildGraphFixture: foo (referenced by bar.relates + auth.capabilities),
   // bar (referenced by 0 — orphan? but auth domain.capabilities 가 references bar),
-  // auth (root domain — no incoming references → orphan).
-  // 정확한 그래프: foo, bar 둘 다 referenced. auth (domain) 만 orphan.
+  // auth (referenced by foo/bar domain: inline parent).
+  // 정확한 그래프: foo, bar, auth 모두 referenced.
   const root = await buildGraphFixture();
   try {
     const r = await run(['orphans', root]);
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
-    // domain auth 는 어디서도 reference 안 받음 → orphan 으로 등장
-    assert.match(clean, /domains\/auth/);
-    // foo / bar 는 referenced — orphan 아님
+    assert.match(clean, /vault clean ✓|orphan 0/);
+    // domain / capability 모두 referenced — orphan 아님
+    assert.doesNotMatch(clean, /domains\/auth/);
     assert.doesNotMatch(clean, /capabilities\/foo/);
     assert.doesNotMatch(clean, /capabilities\/bar/);
   } finally {
@@ -1021,7 +1021,7 @@ await test('orphans --json — JSON 응답 파싱', async () => {
     assert.equal(r.code, 0);
     const data = JSON.parse(r.stdout);
     assert.ok(Array.isArray(data.orphans));
-    assert.ok(data.orphans.some((o) => o.slug === 'domains/auth'));
+    assert.equal(data.orphans.some((o) => o.slug === 'domains/auth'), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

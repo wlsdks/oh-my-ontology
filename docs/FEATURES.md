@@ -411,9 +411,9 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 3. **get_concepts** `{ slugs }` — batch read (max 50), order-preserving partial results
 4. **find_evidence** `{ title }` — partial-match across title / capabilities / elements / body, with `domain`, `mtime`, and prose excerpt
 5. **find_backlinks** `{ slug }` — every node referencing target (frontmatter arrays + wikilinks/markdown)
-6. **find_path** `{ from, to, maxHops? }` — shortest undirected BFS (default 5 hops, includes `edges[via]`)
+6. **find_path** `{ from, to, maxHops? }` — shortest undirected BFS across graph frontmatter, including `domains` / `domain` containment (default 5 hops, includes `edges[via]`)
 7. **list_kinds** — vault kind census `{ total, byKind: { capability: N, … } }`
-8. **find_orphans** `{ kind?, excludeKinds? }` — isolated nodes (defaults exclude `vault-readme`)
+8. **find_orphans** `{ kind?, excludeKinds? }` — isolated nodes across graph frontmatter, including `domains` / `domain` containment (defaults exclude `vault-readme`)
 9. **query_concepts** `{ filter, limit? }` — typed filter DSL with AND/OR/NOT on `kind` / `domain` / `slug` / `title` / `has(arrayKey)`
 10. **validate_vault** — whole-vault health check with per-file issues and grouped summary
 11. **analyze_repo_structure** `{ repoRoot? }` — side-effect-free bootstrap candidates from package / README / source layout

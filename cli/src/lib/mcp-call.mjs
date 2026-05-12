@@ -11,8 +11,8 @@
 //
 // Resolution order for the mcp entry:
 //   1. OMOT_MCP_PATH env (explicit override)
-//   2. node:require.resolve('oh-my-ontology-mcp/src/index.js')
-//   3. relative ../../../mcp/src/index.js (monorepo dev)
+//   2. relative ../../../mcp/src/index.js (monorepo dev)
+//   3. node:require.resolve('oh-my-ontology-mcp/src/index.js')
 
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -28,12 +28,11 @@ function resolveMcpEntry() {
   if (process.env.OMOT_MCP_PATH && existsSync(process.env.OMOT_MCP_PATH)) {
     return process.env.OMOT_MCP_PATH;
   }
+  const monoDev = resolve(__dirname, '../../../mcp/src/index.js');
+  if (existsSync(monoDev)) return monoDev;
   try {
     return require_.resolve('oh-my-ontology-mcp/src/index.js');
   } catch {
-    // monorepo dev fallback
-    const monoDev = resolve(__dirname, '../../../mcp/src/index.js');
-    if (existsSync(monoDev)) return monoDev;
     throw new Error(
       'oh-my-ontology-mcp not found. Install it (`npm install oh-my-ontology-mcp`) ' +
         'or set OMOT_MCP_PATH to mcp/src/index.js.',

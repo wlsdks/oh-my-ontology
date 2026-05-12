@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import {
   deleteDoc,
   extractSummaryExcerpt,
+  findOrphans,
   findPath,
   suggestSimilarSlugs,
   vaultSlugExists,
@@ -64,15 +65,20 @@ describe('findPath — edge metadata (R+)', () => {
   beforeEach(() => {
     pathRoot = mkdtempSync(join(tmpdir(), 'omot-vault-path-'));
     mkdirSync(join(pathRoot, 'capabilities'), { recursive: true });
+    mkdirSync(join(pathRoot, 'domains'), { recursive: true });
     mkdirSync(join(pathRoot, 'elements'), { recursive: true });
     // domain → contains → capability → elements (1 hop = capability, 2 hop = element)
     writeFileSync(
       join(pathRoot, 'project.md'),
-      '---\nslug: project\nkind: project\ncapabilities: [auth]\n---\n',
+      '---\nslug: project-display\nkind: project\ndomains: [identity]\ncapabilities: [auth]\n---\n',
+    );
+    writeFileSync(
+      join(pathRoot, 'domains', 'identity.md'),
+      '---\nslug: domains/identity\nkind: domain\n---\n',
     );
     writeFileSync(
       join(pathRoot, 'capabilities', 'auth.md'),
-      '---\nslug: capabilities/auth\nkind: capability\nelements: [token]\n---\n',
+      '---\nslug: capabilities/auth\nkind: capability\ndomain: identity\nelements: [token]\n---\n',
     );
     writeFileSync(
       join(pathRoot, 'elements', 'token.md'),
@@ -104,6 +110,66 @@ describe('findPath — edge metadata (R+)', () => {
     const r = findPath(pathRoot, 'project', 'project');
     assert.deepEqual(r.hops, ['project']);
     assert.deepEqual(r.edges, []);
+  });
+
+  it('domains[] project containment 도 path edge 로 해석', () => {
+    const r = findPath(pathRoot, 'project', 'domains/identity');
+    assert.ok(r, 'project.domains[] 경로가 존재해야 한다');
+    assert.deepEqual(r.hops, ['project', 'domains/identity']);
+    assert.deepEqual(r.edges[0], {
+      from: 'project',
+      to: 'domains/identity',
+      via: 'domains',
+    });
+  });
+
+  it('frontmatter slug 를 endpoint alias 로 해석', () => {
+    const r = findPath(pathRoot, 'project-display', 'domains/identity');
+    assert.ok(r, 'frontmatter slug alias 경로가 존재해야 한다');
+    assert.deepEqual(r.hops, ['project', 'domains/identity']);
+  });
+
+  it('domain: inline parent 도 path edge 로 해석', () => {
+    const r = findPath(pathRoot, 'capabilities/auth', 'domains/identity');
+    assert.ok(r, 'capability.domain 경로가 존재해야 한다');
+    assert.deepEqual(r.hops, ['capabilities/auth', 'domains/identity']);
+    assert.deepEqual(r.edges[0], {
+      from: 'capabilities/auth',
+      to: 'domains/identity',
+      via: 'domain',
+    });
+  });
+});
+
+describe('findOrphans — graph frontmatter keys', () => {
+  let orphanRoot;
+  beforeEach(() => {
+    orphanRoot = mkdtempSync(join(tmpdir(), 'omot-vault-orphans-'));
+    mkdirSync(join(orphanRoot, 'capabilities'), { recursive: true });
+    mkdirSync(join(orphanRoot, 'domains'), { recursive: true });
+    writeFileSync(
+      join(orphanRoot, 'project.md'),
+      '---\nslug: project\nkind: project\ndomains: [identity]\n---\n',
+    );
+    writeFileSync(
+      join(orphanRoot, 'domains', 'identity.md'),
+      '---\nslug: domains/identity\nkind: domain\n---\n',
+    );
+    writeFileSync(
+      join(orphanRoot, 'capabilities', 'auth.md'),
+      '---\nslug: capabilities/auth\nkind: capability\ndomain: identity\n---\n',
+    );
+  });
+  afterEach(() => {
+    rmSync(orphanRoot, { recursive: true, force: true });
+  });
+
+  it('domains[] 와 domain: inline 참조를 orphan 판정에 반영', () => {
+    const result = findOrphans(orphanRoot, { kind: 'domain' });
+    assert.equal(
+      result.orphans.some((node) => node.slug === 'domains/identity'),
+      false,
+    );
   });
 });
 

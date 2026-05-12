@@ -67,12 +67,13 @@ function assertMtime(slug, filePath, expectedMtime) {
 }
 
 /**
- * frontmatter 의 array 키 중 *그래프 엣지로 해석되는* 6 개. 새 edge 타입을
+ * frontmatter 의 array 키 중 *그래프 엣지로 해석되는* 키. 새 edge 타입을
  * 추가하면 (e.g. 'aggregates', 'implements') 여기만 갱신하면 findOrphans /
  * findPath 등 모두 자동 cover. 예전에 두 함수가 각자 로컬로 같은 배열을
  * 들고 있어 drift 위험.
  */
 const NEIGHBOR_KEYS = Object.freeze([
+  'domains',
   'capabilities',
   'elements',
   'dependencies',
@@ -80,6 +81,8 @@ const NEIGHBOR_KEYS = Object.freeze([
   'contains',
   'describes',
 ]);
+
+const INLINE_NEIGHBOR_KEYS = Object.freeze(['domain']);
 
 /**
  * Graph relation arrays should be stable on disk. Agent writes can arrive in
@@ -102,6 +105,20 @@ export function normalizeRelationRefs(values) {
   }
   refs.sort((a, b) => a.localeCompare(b, 'en'));
   return [...refs, ...passthrough];
+}
+
+function collectNeighborRefs(doc) {
+  const refs = [];
+  for (const key of NEIGHBOR_KEYS) {
+    const value = doc.frontmatter[key];
+    if (!Array.isArray(value)) continue;
+    for (const ref of value) refs.push({ key, ref });
+  }
+  for (const key of INLINE_NEIGHBOR_KEYS) {
+    const ref = doc.frontmatter[key];
+    if (typeof ref === 'string' && ref.trim()) refs.push({ key, ref });
+  }
+  return refs;
 }
 
 /**
@@ -464,10 +481,10 @@ export function listKinds(rootPath) {
 }
 
 /**
- * vault 의 orphan 노드 찾기 — 다른 어느 노드도 frontmatter array 키
- * (capabilities/elements/dependencies/relates/contains/describes) 에서
- * 가리키지 않는 doc. 매칭 정책은 findBacklinks 와 동일 (절대 slug 또는
- * 마지막 segment).
+ * vault 의 orphan 노드 찾기 — 다른 어느 노드도 frontmatter graph 키
+ * (domains/capabilities/elements/dependencies/relates/contains/describes/domain)
+ * 에서 가리키지 않는 doc. 매칭 정책은 findBacklinks 와 동일 (절대 slug
+ * 또는 마지막 segment).
  *
  * 옵션:
  *   - kind: 특정 kind 만 대상
@@ -486,33 +503,41 @@ export function findOrphans(rootPath, options = {}) {
   );
   const slugs = new Set(docs.map((d) => d.slug));
   const tailToFull = new Map();
+  const frontmatterSlugToFull = new Map();
   for (const slug of slugs) {
     const tail = slug.split('/').pop();
     if (tail && tail !== slug && !tailToFull.has(tail)) {
       tailToFull.set(tail, slug);
     }
   }
+  for (const doc of docs) {
+    const fmSlug = doc.frontmatter.slug;
+    if (typeof fmSlug === 'string' && fmSlug.trim() && !frontmatterSlugToFull.has(fmSlug)) {
+      frontmatterSlugToFull.set(fmSlug, doc.slug);
+    }
+  }
   const referenced = new Set();
   for (const doc of docs) {
-    for (const key of NEIGHBOR_KEYS) {
-      const value = doc.frontmatter[key];
-      if (!Array.isArray(value)) continue;
-      for (const ref of value) {
-        if (typeof ref !== 'string') continue;
-        if (slugs.has(ref)) {
-          if (ref !== doc.slug) referenced.add(ref);
-          continue;
-        }
-        if (tailToFull.has(ref)) {
-          const resolved = tailToFull.get(ref);
-          if (resolved && resolved !== doc.slug) referenced.add(resolved);
-          continue;
-        }
-        for (const slug of slugs) {
-          if (slug.endsWith(`/${ref}`) && slug !== doc.slug) {
-            referenced.add(slug);
-            break;
-          }
+    for (const { ref } of collectNeighborRefs(doc)) {
+      if (typeof ref !== 'string') continue;
+      if (slugs.has(ref)) {
+        if (ref !== doc.slug) referenced.add(ref);
+        continue;
+      }
+      if (frontmatterSlugToFull.has(ref)) {
+        const resolved = frontmatterSlugToFull.get(ref);
+        if (resolved && resolved !== doc.slug) referenced.add(resolved);
+        continue;
+      }
+      if (tailToFull.has(ref)) {
+        const resolved = tailToFull.get(ref);
+        if (resolved && resolved !== doc.slug) referenced.add(resolved);
+        continue;
+      }
+      for (const slug of slugs) {
+        if (slug.endsWith(`/${ref}`) && slug !== doc.slug) {
+          referenced.add(slug);
+          break;
         }
       }
     }
@@ -539,9 +564,9 @@ export function findOrphans(rootPath, options = {}) {
 }
 
 /**
- * 두 slug 사이 그래프 최단 경로 (T30, BFS). edge 는 frontmatter array
- * 키 (capabilities, elements, dependencies, relates, contains, describes)
- * 의 항목 + 양방향 (backlink) 으로 구성된 무방향 그래프.
+ * 두 slug 사이 그래프 최단 경로 (T30, BFS). edge 는 frontmatter graph
+ * 키 (domains, capabilities, elements, dependencies, relates, contains,
+ * describes, domain) 의 항목 + 양방향 (backlink) 으로 구성된 무방향 그래프.
  *
  * 항목 string 이 절대 slug 또는 slug 의 마지막 segment 둘 다 매칭
  * 가능하도록 — findBacklinks 와 같은 정책.
@@ -551,32 +576,44 @@ export function findOrphans(rootPath, options = {}) {
 export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
   const docs = loadVaultDocs(rootPath);
   const slugs = new Set(docs.map((d) => d.slug));
-  // 두 끝점이 vault 에 모두 존재해야 의미 있는 응답. 동일 slug 도 vault 안에
-  // 있을 때만 trivial path 반환 — 존재하지 않는 slug 에 대해 fake path 를
-  // 만들지 않도록 (이전 회귀: from===to 인 가짜 slug 도 hops:[slug] 반환했음).
-  if (!slugs.has(fromSlug) || !slugs.has(toSlug)) return null;
-  if (fromSlug === toSlug) return { from: fromSlug, to: toSlug, hops: [fromSlug], edges: [] };
-  // 마지막 segment 매칭은 alias 로.
+  // 마지막 segment 와 frontmatter slug 는 alias 로. project.md 가
+  // `slug: oh-my-ontology` 같은 user-facing slug 를 갖는 dogfood vault 에서
+  // file slug 와 frontmatter slug 가 달라도 같은 노드로 탐색한다.
   const tailToFull = new Map();
+  const frontmatterSlugToFull = new Map();
   for (const slug of slugs) {
     const tail = slug.split('/').pop();
     if (tail && tail !== slug && !tailToFull.has(tail)) {
       tailToFull.set(tail, slug);
     }
   }
+  for (const doc of docs) {
+    const fmSlug = doc.frontmatter.slug;
+    if (typeof fmSlug === 'string' && fmSlug.trim() && !frontmatterSlugToFull.has(fmSlug)) {
+      frontmatterSlugToFull.set(fmSlug, doc.slug);
+    }
+  }
   function resolveRef(ref) {
     if (typeof ref !== 'string') return null;
     if (slugs.has(ref)) return ref;
+    if (frontmatterSlugToFull.has(ref)) return frontmatterSlugToFull.get(ref);
     if (tailToFull.has(ref)) return tailToFull.get(ref);
     for (const slug of slugs) {
       if (slug.endsWith(`/${ref}`)) return slug;
     }
     return null;
   }
-  // adjacency: 무방향, 각 edge 는 frontmatter `via` 키 (capabilities / elements
-  // / dependencies / relates / contains / describes) 를 기록한다. 한 doc 가
+  const resolvedFrom = resolveRef(fromSlug);
+  const resolvedTo = resolveRef(toSlug);
+  // 두 끝점이 vault 에 모두 존재해야 의미 있는 응답. 동일 slug 도 vault 안에
+  // 있을 때만 trivial path 반환 — 존재하지 않는 slug 에 대해 fake path 를
+  // 만들지 않도록 (이전 회귀: from===to 인 가짜 slug 도 hops:[slug] 반환했음).
+  if (!resolvedFrom || !resolvedTo) return null;
+  if (resolvedFrom === resolvedTo) return { from: fromSlug, to: toSlug, hops: [resolvedFrom], edges: [] };
+  // adjacency: 무방향, 각 edge 는 frontmatter `via` 키 (domains / capabilities /
+  // elements / dependencies / relates / contains / describes / domain) 를 기록한다. 한 doc 가
   // 같은 neighbor 를 여러 키에서 참조하면 *첫 키* 를 기억 (가장 구체적인 의미를
-  // 잃지 않게 NEIGHBOR_KEYS 순서가 capabilities → describes 로 의미적 specificity 약화).
+  // 잃지 않게 NEIGHBOR_KEYS 순서가 domains → describes 로 의미적 specificity 약화).
   // AI agent 가 path 를 받았을 때 "왜 이 두 노드가 연결됐는지" 한 hop 단위로
   // 표현 가능 — 단순 slug 시퀀스보다 mental model 전달력 ↑.
   const adj = new Map();
@@ -587,22 +624,18 @@ export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
     if (!adj.get(b).has(a)) adj.get(b).set(a, via);
   }
   for (const doc of docs) {
-    for (const key of NEIGHBOR_KEYS) {
-      const value = doc.frontmatter[key];
-      if (!Array.isArray(value)) continue;
-      for (const ref of value) {
-        const resolved = resolveRef(ref);
-        if (resolved && resolved !== doc.slug) {
-          addEdge(doc.slug, resolved, key);
-        }
+    for (const { key, ref } of collectNeighborRefs(doc)) {
+      const resolved = resolveRef(ref);
+      if (resolved && resolved !== doc.slug) {
+        addEdge(doc.slug, resolved, key);
       }
     }
   }
   // BFS — depth 를 큐에 같이 들고 다녀서 매 dequeue 시 parent 체인을 거꾸로
   // 거슬러 올라가는 O(D) 작업 회피. 큐도 head index 로 운용해 Array.shift()
   // 의 O(V) 비용 제거 (큰 vault 에서 의미 있음).
-  const queue = [{ node: fromSlug, depth: 0 }];
-  const visited = new Set([fromSlug]);
+  const queue = [{ node: resolvedFrom, depth: 0 }];
+  const visited = new Set([resolvedFrom]);
   const parent = new Map();
   const parentVia = new Map();
   let head = 0;
@@ -615,7 +648,7 @@ export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
       visited.add(n);
       parent.set(n, cur);
       parentVia.set(n, via);
-      if (n === toSlug) {
+      if (n === resolvedTo) {
         // Path reconstruction: push to end + reverse 한 번 (O(D)). 이전엔 매
         // step 마다 \`hops.unshift(p)\` 라 O(D²) — maxHops 가 작아도 안티패턴.
         // edges[] 는 hops i ↔ i+1 사이 'via' (frontmatter key) 를 노출.
