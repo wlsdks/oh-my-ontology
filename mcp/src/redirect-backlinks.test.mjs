@@ -92,6 +92,23 @@ test("dedup — 이미 nextSlug 가 있으면 중복 안 추가", () => {
   rmSync(root, { recursive: true, force: true });
 });
 
+test("relation array canonical sort — redirect 후 정렬", () => {
+  const root = makeVault();
+  writeMd(root, "old-slug", "---\nkind: capability\n---\n");
+  writeMd(root, "b-slug", "---\nkind: capability\n---\n");
+  writeMd(root, "a-slug", "---\nkind: capability\n---\n");
+  writeMd(root, "z-slug", "---\nkind: capability\n---\n");
+  writeMd(
+    root,
+    "ref",
+    "---\nkind: project\ndependencies: [z-slug, old-slug, a-slug]\n---\n",
+  );
+  redirectBacklinks(root, "old-slug", "b-slug");
+  const after = readMd(root, "ref");
+  assert.match(after, /dependencies: \[a-slug, b-slug, z-slug\]/);
+  rmSync(root, { recursive: true, force: true });
+});
+
 test("body link [[slug]] 와 (slug.md) 도 치환", () => {
   const root = makeVault();
   writeMd(root, "target", "---\nkind: capability\n---\n");

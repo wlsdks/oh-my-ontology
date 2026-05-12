@@ -430,7 +430,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
     - type enum: `depends_on` (→ `dependencies`) / `relates` / `contains` / `describes`
     - **R7 validation**: both `from` AND `to` slug must exist in vault (`vaultSlugExists`)
     - Idempotent: duplicate returns `{ alreadyExists: true }`
-17. **add_relations** `{ relations }` — batch edge writer (max 50), idempotent per row
+17. **add_relations** `{ relations }` — batch edge writer (max 50), idempotent per row; stored relation arrays are deduped and sorted as canonical graph sets
 18. **delete_concept** `{ slug, confirm?, force?, expected_mtime? }` — permanent delete
     - `confirm: false` (dry-run with backlinks preview) / `true` (actual)
     - `force: false` (throw if backlinks exist) / `true` (delete anyway)

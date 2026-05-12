@@ -55,6 +55,7 @@ import {
   findPath,
   listKinds,
   loadVaultDocs,
+  normalizeRelationRefs,
   readDoc,
   redirectBacklinks,
   slugToPath,
@@ -1094,7 +1095,7 @@ function addRelation({ from, to, type, expected_mtime }) {
   if (existing.includes(to)) {
     return { ok: true, alreadyExists: true, from, to, type };
   }
-  const next = [...existing, to];
+  const next = normalizeRelationRefs([...existing, to]);
   patchFrontmatter(VAULT_ROOT, from, { [key]: next }, {
     expectedMtime:
       typeof expected_mtime === 'number' ? expected_mtime : undefined,

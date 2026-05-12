@@ -657,10 +657,10 @@ await test("add_concepts — 입력 내 중복 slug 두번째는 ok:false", asyn
 });
 
 // R+ — add_relations 배치 writer. analyze_repo_structure (suggestedRelations)
-// / infer_imports (moduleEdges) 출력을 한 호출에 land. 입력 순서 보존,
-// idempotent (같은 edge 두번 → 두번째는 alreadyExists), missing slug 은
-// row-level fail.
-await test("add_relations — 배치 write, 순서 보존 + idempotent + partial", async () => {
+// / infer_imports (moduleEdges) 출력을 한 호출에 land. 결과 row 는 입력 순서 보존,
+// frontmatter relation 배열은 canonical sort, idempotent (같은 edge 두번 →
+// 두번째는 alreadyExists), missing slug 은 row-level fail.
+await test("add_relations — 배치 write, row 순서 보존 + canonical sort + partial", async () => {
   const root = makeVault([
     { slug: "p", content: "---\nkind: project\ntitle: P\n---\n" },
     { slug: "c1", content: "---\nkind: capability\ntitle: C1\ndomain: x\n---\n" },
@@ -671,9 +671,9 @@ await test("add_relations — 배치 write, 순서 보존 + idempotent + partial
       ...INIT_REQUESTS,
       callTool(2, "add_relations", {
         relations: [
-          { from: "p", to: "c1", type: "contains" },
-          // 같은 from 으로 누적 — readDoc 이 매번 다시 읽어 누락 없음
           { from: "p", to: "c2", type: "contains" },
+          // 같은 from 으로 누적 — readDoc 이 매번 다시 읽어 누락 없음
+          { from: "p", to: "c1", type: "contains" },
           // idempotent — 같은 edge 두번
           { from: "p", to: "c1", type: "contains" },
           // missing target → ok:false
@@ -688,9 +688,9 @@ await test("add_relations — 배치 write, 순서 보존 + idempotent + partial
     assert.equal(result.relations.length, 5, "relations row 수 = 입력 길이");
     // 순서 보존
     assert.equal(result.relations[0].ok, true);
-    assert.equal(result.relations[0].to, "c1");
+    assert.equal(result.relations[0].to, "c2");
     assert.equal(result.relations[1].ok, true);
-    assert.equal(result.relations[1].to, "c2");
+    assert.equal(result.relations[1].to, "c1");
     // idempotent — 두번째는 alreadyExists
     assert.equal(result.relations[2].ok, true);
     assert.equal(result.relations[2].alreadyExists, true);
@@ -700,7 +700,7 @@ await test("add_relations — 배치 write, 순서 보존 + idempotent + partial
     // unknown type
     assert.equal(result.relations[4].ok, false);
     assert.match(result.relations[4].error, /Unknown relation type|weird-type/i);
-    // p.contains 에 c1, c2 두 개만 land
+    // p.contains 는 edge set 기준으로 중복 제거 + 정렬되어 land
     const p = getCallParsed(responses, 3);
     assert.deepEqual(p.frontmatter.contains, ["c1", "c2"]);
   } finally {
@@ -955,6 +955,31 @@ await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (i
     assert.equal(first.alreadyExists, undefined);
     assert.equal(second.ok, true);
     assert.equal(second.alreadyExists, true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("add_relation — 기존 relation 배열도 중복 제거 + 정렬", async () => {
+  const root = makeVault([
+    {
+      slug: "a",
+      content: "---\nkind: project\ntitle: A\ndependencies: [z, b]\n---\n",
+    },
+    { slug: "b", content: "---\nkind: capability\ntitle: B\n---\n" },
+    { slug: "m", content: "---\nkind: capability\ntitle: M\n---\n" },
+    { slug: "z", content: "---\nkind: capability\ntitle: Z\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "add_relation", { from: "a", to: "m", type: "depends_on" }),
+      callTool(3, "get_concept", { slug: "a" }),
+    ]);
+    const first = getCallParsed(responses, 2);
+    const a = getCallParsed(responses, 3);
+    assert.equal(first.ok, true);
+    assert.deepEqual(a.frontmatter.dependencies, ["b", "m", "z"]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

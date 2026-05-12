@@ -82,6 +82,29 @@ const NEIGHBOR_KEYS = Object.freeze([
 ]);
 
 /**
+ * Graph relation arrays should be stable on disk. Agent writes can arrive in
+ * different orders, but the same edge set should serialize the same way.
+ */
+export function normalizeRelationRefs(values) {
+  if (!Array.isArray(values)) return [];
+  const seen = new Set();
+  const refs = [];
+  const passthrough = [];
+  for (const value of values) {
+    if (typeof value !== 'string') {
+      passthrough.push(value);
+      continue;
+    }
+    const ref = value.trim();
+    if (!ref || seen.has(ref)) continue;
+    seen.add(ref);
+    refs.push(ref);
+  }
+  refs.sort((a, b) => a.localeCompare(b, 'en'));
+  return [...refs, ...passthrough];
+}
+
+/**
  * body 에서 *prose 한 단락* 만 뽑아 excerpt 로. AI agent 가 get_concept 응답
  * 에서 받는 body 미리보기를 markdown 표 / 코드블록 syntax 가 아니라 *사람이
  * 의도해서 쓴 첫 설명문* 으로 받게 한다.
@@ -729,16 +752,9 @@ export function redirectBacklinks(rootPath, targetSlug, nextSlug, options = {}) 
         const before = [...value];
         const after = value.map((v) => rewriteArrayItem(v).value);
         if (before.some((b, i) => b !== after[i])) {
-          // dedup — 이미 nextSlug 가 있으면 중복 추가하지 않음
-          const seen = new Set();
-          const deduped = [];
-          for (const item of after) {
-            if (typeof item === 'string') {
-              if (seen.has(item)) continue;
-              seen.add(item);
-            }
-            deduped.push(item);
-          }
+          // dedup + sort — 이미 nextSlug 가 있으면 중복 추가하지 않고, 같은
+          // 그래프 상태는 같은 frontmatter 배열로 남긴다.
+          const deduped = normalizeRelationRefs(after);
           nextFm[key] = deduped;
           beforeKeys.push({ key, before });
           afterKeys.push({ key, after: deduped });
