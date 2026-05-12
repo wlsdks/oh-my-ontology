@@ -15,7 +15,7 @@
 | Surface | Entry | Audience |
 |---|---|---|
 | **CLI** (R12 / R14 / R15+) | `oh-my-ontology init / list / validate / add / find / import / analyze / infer-imports / bootstrap / graph commands` | developer terminal — vault scaffold, daily exploration, bulk import, clean first graph |
-| **MCP** (R5 / R7 / R11 / R14 / R16 / R17) | 20 tools (12 read · 8 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings · bootstrap empty vault (R16 `analyze_repo_structure` · R17 `infer_imports`) |
+| **MCP** (R5 / R7 / R11 / R14 / R16 / R17) | 21 tools (13 read · 8 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings · bootstrap empty vault (R16 `analyze_repo_structure` · R17 `infer_imports`) |
 | **Web** (8 routes, R10 surface diet) | `pnpm dev` / static export | sigma topology · tree+ego · ERD builder · insights — graph visualization, mobile-friendly |
 
 ```
@@ -384,7 +384,7 @@ Used when a non-existent slug is hit in static export. Redirects or shows "not f
 
 ---
 
-## 3. MCP server (20 tools)
+## 3. MCP server (21 tools)
 
 Run via `pnpm exec node mcp/src/index.js` (registered in user's `.mcp.json`). AI agents read/write the same vault as humans.
 
@@ -405,43 +405,44 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 - **Toasts** — `Added: <slug>` (info) / `Edited: <slug>` (success, mtime change) on every page
 - Effect: IDE / AI agent / CLI 변경이 웹 탭 *focus 안 해도* ~5s 안에 그래프 + toast.
 
-#### Read tools (12)
+#### Read tools (13)
 1. **list_concepts** `{ kind?, domain?, since?, summary?, limit? }` — every node, optional filters, mtime, and summary preview
 2. **get_concept** `{ slug }` — full detail: frontmatter + prose excerpt + graph neighbors / `outgoingEdges[]` + `mtime` (ms; **R11** caller가 후속 patch/delete 의 `expected_mtime` 으로 전달하면 외부 변경 감지); warnings include frontmatter issues and dangling outgoing graph references
 3. **get_concepts** `{ slugs }` — batch read (max 50), order-preserving partial results with the same per-node warnings
 4. **find_evidence** `{ title }` — partial-match across title / capabilities / elements / body, with `domain`, `mtime`, and prose excerpt
 5. **find_backlinks** `{ slug }` — every node referencing target (frontmatter arrays + wikilinks/markdown)
-6. **find_path** `{ from, to, maxHops? }` — shortest undirected BFS across graph frontmatter, including `domains` / `domain` containment (default 5 hops, includes `edges[via]`)
-7. **list_kinds** — vault kind census `{ total, byKind: { capability: N, … } }`
-8. **find_orphans** `{ kind?, excludeKinds? }` — isolated nodes across graph frontmatter, including `domains` / `domain` containment (defaults exclude `vault-readme`)
-9. **query_concepts** `{ filter, limit? }` — typed filter DSL with AND/OR/NOT on `kind` / `domain` / `slug` / `title` / `has(arrayKey)`
-10. **validate_vault** — whole-vault health check with per-file issues and grouped summary, including non-canonical graph arrays and dangling graph references
-11. **analyze_repo_structure** `{ repoRoot? }` — side-effect-free bootstrap candidates from package / README / source layout
-12. **infer_imports** `{ repoRoot? }` — side-effect-free TS/JS import graph → dependency edge candidates
+6. **find_neighbors** `{ slug, direction?, types?, includeNodes?, limit? }` — one-hop local graph around a node, with canonical incoming/outgoing `edges[]` and neighbor summaries
+7. **find_path** `{ from, to, maxHops? }` — shortest undirected BFS across graph frontmatter, including `domains` / `domain` containment (default 5 hops, includes `edges[via]`)
+8. **list_kinds** — vault kind census `{ total, byKind: { capability: N, … } }`
+9. **find_orphans** `{ kind?, excludeKinds? }` — isolated nodes across graph frontmatter, including `domains` / `domain` containment (defaults exclude `vault-readme`)
+10. **query_concepts** `{ filter, limit? }` — typed filter DSL with AND/OR/NOT on `kind` / `domain` / `slug` / `title` / `has(arrayKey)`
+11. **validate_vault** — whole-vault health check with per-file issues and grouped summary, including non-canonical graph arrays and dangling graph references
+12. **analyze_repo_structure** `{ repoRoot? }` — side-effect-free bootstrap candidates from package / README / source layout
+13. **infer_imports** `{ repoRoot? }` — side-effect-free TS/JS import graph → dependency edge candidates
 
 #### Write tools (8)
-13. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md`; graph arrays are trimmed, deduped, and sorted on write (throws on existing slug)
+1. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md`; graph arrays are trimmed, deduped, and sorted on write (throws on existing slug)
    - **R6 validation**: title must be non-empty trimmed string (`isValidVaultTitle`)
-14. **add_concepts** `{ concepts }` — batch create nodes (max 50), order-preserving partial results
-15. **patch_concept** `{ slug, frontmatter?, body?, expected_mtime? }` — update existing (`null` value deletes key); graph arrays are trimmed, deduped, and sorted on patch
+2. **add_concepts** `{ concepts }` — batch create nodes (max 50), order-preserving partial results
+3. **patch_concept** `{ slug, frontmatter?, body?, expected_mtime? }` — update existing (`null` value deletes key); graph arrays are trimmed, deduped, and sorted on patch
     - **R6 validation**: rejects `title: null` and `title: ""`
     - **R11 conflict guard**: optional `expected_mtime` (from get_concept response). Throws `VaultConflictError` if file mtime differs at write time — caller re-reads and retries.
-16. **add_relation** `{ from, to, type }` — append to source frontmatter graph key
+4. **add_relation** `{ from, to, type }` — append to source frontmatter graph key
     - type enum: `depends_on` (→ `dependencies`) / `relates` / `contains` / `describes` / `domains` / `capabilities` / `elements` / `domain`
     - **R7 validation**: both `from` AND `to` slug must exist in vault (`vaultSlugExists`)
     - Unique tail aliases and frontmatter `slug:` aliases are resolved to canonical file slugs before write
     - Idempotent: duplicate returns `{ alreadyExists: true }`
-17. **add_relations** `{ relations }` — batch edge writer (max 50), idempotent per row; stored relation arrays are deduped and sorted as canonical graph sets
-18. **delete_concept** `{ slug, confirm?, force?, expected_mtime? }` — permanent delete
+5. **add_relations** `{ relations }` — batch edge writer (max 50), idempotent per row; stored relation arrays are deduped and sorted as canonical graph sets
+6. **delete_concept** `{ slug, confirm?, force?, expected_mtime? }` — permanent delete
     - `confirm: false` (dry-run with backlinks preview) / `true` (actual)
     - `force: false` (throw if backlinks exist) / `true` (delete anyway)
     - **R11 conflict guard**: optional `expected_mtime`
-19. **rename_concept** `{ oldSlug, newSlug, confirm?, overwrite? }` — **R11** atomic graph-level rename
+7. **rename_concept** `{ oldSlug, newSlug, confirm?, overwrite? }` — **R11** atomic graph-level rename
     - Moves the .md file, updates the moved file's `slug:` key, rewrites every backlink (frontmatter array entries, inline string keys like `domain`, body links `[[oldSlug]]` / `(oldSlug.md)`)
     - Tail-only references (`mcp-server` for `capabilities/mcp-server`) also redirected to the new tail
     - `confirm: false` (dry-run with full update preview) / `true` (actual)
     - Replaces the manual `find_backlinks` + N `patch_concept` loop
-20. **merge_concepts** `{ fromSlug, intoSlug, confirm? }` — **R11** atomic graph-level merge
+8. **merge_concepts** `{ fromSlug, intoSlug, confirm? }` — **R11** atomic graph-level merge
     - Redirects every backlink `fromSlug` → `intoSlug`, then deletes `fromSlug.md`
     - `intoSlug` node preserved as-is (frontmatter / body not auto-merged — use `patch_concept` after to combine)
     - `confirm: false` (dry-run) / `true` (actual)

@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
- * oh-my-ontology-mcp — MCP 서버 (도구 20종 = read 12 + write 8).
+ * oh-my-ontology-mcp — MCP 서버 (도구 21종 = read 13 + write 8).
  *
  * AI agent (Claude Code 등) 가 vault 의 ontology 를 읽고 쓸 수 있게.
  *
- * read 12:
+ * read 13:
  *   - list_concepts          — vault 의 노드 목록 (kind / project_filter)
  *   - get_concept            — 단일 노드 + graph 이웃 + mtime
  *   - get_concepts           — 배치 read (slugs[] → concepts[], partial 허용)
  *   - find_evidence          — title / capabilities / elements / body 부분매칭
  *   - find_backlinks         — 특정 slug 를 가리키는 다른 노드들
+ *   - find_neighbors         — 특정 slug 주변의 incoming/outgoing graph edge
  *   - find_path              — 두 slug 사이 BFS 최단 경로 + edges[via] (R+)
  *   - list_kinds             — vault kind 분포 census
  *   - find_orphans           — 어느 다른 노드도 frontmatter 에서 가리키지 않는 doc
@@ -106,9 +107,9 @@ try {
 // 매번 시행착오로 학습되는 문제를 단번에 해소.
 const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where each \`.md\` with a frontmatter \`kind:\` is an ontology node. The graph encodes the codebase's mental model and is shared with the human via plain markdown.
 
-## Tool inventory (20 tools = read 12 + write 8)
+## Tool inventory (21 tools = read 13 + write 8)
 
-**read** — \`list_concepts\` · \`get_concept\` · \`get_concepts\` · \`find_evidence\` · \`find_backlinks\` · \`find_path\` · \`list_kinds\` · \`find_orphans\` · \`query_concepts\` · \`validate_vault\` · \`analyze_repo_structure\` · \`infer_imports\`.
+**read** — \`list_concepts\` · \`get_concept\` · \`get_concepts\` · \`find_evidence\` · \`find_backlinks\` · \`find_neighbors\` · \`find_path\` · \`list_kinds\` · \`find_orphans\` · \`query_concepts\` · \`validate_vault\` · \`analyze_repo_structure\` · \`infer_imports\`.
 **write** — \`add_concept\` · \`add_concepts\` · \`add_relation\` · \`add_relations\` · \`patch_concept\` · \`delete_concept\` · \`rename_concept\` · \`merge_concepts\`.
 
 ## Kind hierarchy (top → leaf)
@@ -128,9 +129,10 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 2. \`list_concepts\` — full node table. Pass \`summary: true\` for prose previews per row (avoid N follow-up \`get_concept\` calls). Pass \`since: <prevMaxMtime>\` for incremental sync. Watch \`vaultWarnings\` — if non-zero, surface it to the user before making decisions on stale data.
 3. \`get_concept(slug)\` — frontmatter + body excerpt + graph neighbors / outgoingEdges + \`mtime\`. **Capture the \`mtime\`** if you plan to write later. **For K specific slugs use \`get_concepts({slugs: [...]})\` (max 50) to fetch all in one call instead of K round-trips.**
 4. \`find_backlinks(slug)\` — understand how a node is referenced (run *before* rename / merge). Each row already includes \`domain\` + \`mtime\` — no follow-up \`get_concept\` needed for sort/filter.
-5. \`find_path(from, to)\` — "how does A relate to B?" (BFS, undirected). Returns \`hops: [slug...]\` **and \`edges: [{from, to, via}]\` where \`via\` is the frontmatter key (\`domains\` / \`domain\` / \`capabilities\` / \`elements\` / \`dependencies\` / \`relates\` / \`contains\` / \`describes\`) that linked the pair** — so you see not just *that* A and B are connected but *why*.
-6. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates).
-7. \`query_concepts(filter)\` — structured questions like \`kind=capability AND domain=auth AND NOT has(elements)\` (= "unfinished caps under auth").
+5. \`find_neighbors(slug)\` — one-hop graph subgraph around a node; use \`direction\` / \`types\` to inspect incoming, outgoing, or both.
+6. \`find_path(from, to)\` — "how does A relate to B?" (BFS, undirected). Returns \`hops: [slug...]\` **and \`edges: [{from, to, via}]\` where \`via\` is the frontmatter key (\`domains\` / \`domain\` / \`capabilities\` / \`elements\` / \`dependencies\` / \`relates\` / \`contains\` / \`describes\`) that linked the pair** — so you see not just *that* A and B are connected but *why*.
+7. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates).
+8. \`query_concepts(filter)\` — structured questions like \`kind=capability AND domain=auth AND NOT has(elements)\` (= "unfinished caps under auth").
 
 All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
 
@@ -473,6 +475,45 @@ const TOOLS = [
     },
   },
   {
+    name: 'find_neighbors',
+    description:
+      'Return the one-hop graph neighborhood around a node. Unlike find_backlinks, ' +
+      'this is graph-frontmatter only and can include outgoing, incoming, or both ' +
+      'directions. Returns canonical edges plus neighbor node summaries so agents ' +
+      'can inspect a local subgraph in one call.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: {
+          type: 'string',
+          description:
+            'Center node slug, unique tail slug, or frontmatter `slug` alias.',
+        },
+        direction: {
+          type: 'string',
+          enum: ['outgoing', 'incoming', 'both'],
+          description: 'Edge direction to include. Defaults to both.',
+        },
+        types: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Optional relation/frontmatter keys to include, e.g. ["domain", "dependencies", "contains"].',
+        },
+        includeNodes: {
+          type: 'boolean',
+          description:
+            'When true (default), include neighbor node summaries for resolved edges.',
+        },
+        limit: {
+          type: 'number',
+          description: 'Max edges to return. Defaults to 100.',
+        },
+      },
+      required: ['slug'],
+    },
+  },
+  {
     name: 'find_path',
     description:
       'Shortest path between two nodes (undirected BFS). Returns ' +
@@ -797,6 +838,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return ok(patchConcept(args));
       case 'find_backlinks':
         return ok(findBacklinksTool(args));
+      case 'find_neighbors':
+        return ok(findNeighborsTool(args));
       case 'find_path':
         return ok(findPathTool(args));
       case 'list_kinds':
@@ -1263,6 +1306,112 @@ function findBacklinksTool({ slug }) {
   }
   const matches = findBacklinks(VAULT_ROOT, slug);
   return { target: slug, total: matches.length, matches };
+}
+
+function findNeighborsTool({ slug, direction = 'both', types, includeNodes = true, limit = 100 }) {
+  if (!slug) {
+    throw new Error('slug is required.');
+  }
+  if (!['outgoing', 'incoming', 'both'].includes(direction)) {
+    throw new Error('direction must be one of: outgoing, incoming, both.');
+  }
+  const docs = loadVaultDocs(VAULT_ROOT);
+  const center = resolveExistingVaultSlug(slug, docs);
+  if (!center) {
+    throw new Error(`Doc not found: ${slug}`);
+  }
+  const docBySlug = new Map(docs.map((doc) => [doc.slug, doc]));
+  const centerDoc = docBySlug.get(center);
+  const typeSet = Array.isArray(types) && types.length > 0
+    ? new Set(types.filter((type) => typeof type === 'string' && type.trim()))
+    : null;
+  const edgeLimit = typeof limit === 'number' && limit > 0 ? Math.min(limit, 500) : 100;
+  const edges = [];
+  const seen = new Set();
+  const pushEdge = (edge) => {
+    if (typeSet && !typeSet.has(edge.via)) return;
+    const key = `${edge.direction}\0${edge.from}\0${edge.to}\0${edge.via}\0${edge.ref || ''}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    edges.push(edge);
+  };
+
+  if (direction === 'outgoing' || direction === 'both') {
+    for (const { key, ref } of collectNeighborRefs(centerDoc)) {
+      const resolved = resolveGraphRef(ref, docs);
+      pushEdge({
+        direction: 'outgoing',
+        from: center,
+        to: resolved.slug || ref,
+        via: key,
+        ref,
+        resolved: Boolean(resolved.slug),
+        ...(resolved.error ? { unresolvedReason: resolved.error } : {}),
+      });
+    }
+  }
+
+  if (direction === 'incoming' || direction === 'both') {
+    for (const doc of docs) {
+      if (doc.slug === center) continue;
+      for (const { key, ref } of collectNeighborRefs(doc)) {
+        const resolved = resolveGraphRef(ref, docs);
+        if (resolved.slug !== center) continue;
+        pushEdge({
+          direction: 'incoming',
+          from: doc.slug,
+          to: center,
+          via: key,
+          ref,
+          resolved: true,
+        });
+      }
+    }
+  }
+
+  edges.sort((a, b) =>
+    `${a.direction}:${a.via}:${a.from}:${a.to}`.localeCompare(
+      `${b.direction}:${b.via}:${b.from}:${b.to}`,
+    )
+  );
+  const limitedEdges = edges.slice(0, edgeLimit);
+  const neighborSlugs = new Set();
+  for (const edge of limitedEdges) {
+    if (edge.resolved && edge.from !== center) neighborSlugs.add(edge.from);
+    if (edge.resolved && edge.to !== center) neighborSlugs.add(edge.to);
+  }
+
+  return {
+    center,
+    requested: slug,
+    direction,
+    types: typeSet ? [...typeSet].sort() : undefined,
+    totalEdges: edges.length,
+    limited: edges.length > limitedEdges.length,
+    edges: limitedEdges,
+    nodes:
+      includeNodes === false
+        ? undefined
+        : [...neighborSlugs].sort().map((neighborSlug) => summarizeDoc(docBySlug.get(neighborSlug))),
+  };
+}
+
+function summarizeDoc(doc) {
+  return {
+    slug: doc.slug,
+    kind: doc.frontmatter.kind,
+    title: doc.frontmatter.title || doc.frontmatter.name || doc.slug,
+    domain: doc.frontmatter.domain,
+    mtime: doc.mtime,
+  };
+}
+
+function resolveGraphRef(ref, docs) {
+  try {
+    return { slug: resolveExistingVaultSlug(ref, docs) };
+  } catch (err) {
+    return { slug: null, error: err && err.message ? err.message : String(err) };
+  }
 }
 
 function findPathTool({ from, to, maxHops }) {

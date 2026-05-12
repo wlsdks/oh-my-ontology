@@ -146,9 +146,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.ok(Array.isArray(tools));
     const findDesc = (name) => tools.find((t) => t.name === name)?.description;
     const getC = findDesc("get_concept");
+    const findN = findDesc("find_neighbors");
     const addC = findDesc("add_concept");
     const addR = findDesc("add_relation");
     assert.ok(getC && /get_concepts/.test(getC), "get_concept → get_concepts hint");
+    assert.ok(findN && /one-hop graph neighborhood/i.test(findN), "find_neighbors graph hint");
     assert.ok(addC && /add_concepts/.test(addC), "add_concept → add_concepts hint");
     assert.ok(addR && /add_relations/.test(addR), "add_relation → add_relations hint");
   } finally {
@@ -181,6 +183,7 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /add_concepts/);
     assert.match(instructions, /add_relations/);
     assert.match(instructions, /get_concepts/);
+    assert.match(instructions, /find_neighbors/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -436,6 +439,68 @@ await test("find_backlinks — 매치 row 에 domain + mtime 포함 (R+)", async
     assert.equal(m.domain, "identity");
     assert.equal(typeof m.mtime, "number");
     assert.ok(m.mtime > 0);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("find_neighbors — one-hop graph subgraph 를 방향/타입 기준으로 반환", async () => {
+  const root = makeVault([
+    {
+      slug: "domains/auth",
+      content: "---\nkind: domain\ntitle: Auth\ncapabilities: [capabilities/login]\n---\n",
+    },
+    {
+      slug: "capabilities/login",
+      content:
+        "---\nkind: capability\ntitle: Login\ndomain: domains/auth\ndependencies: [elements/token]\nrelates: [missing-node]\n---\n",
+    },
+    {
+      slug: "elements/token",
+      content: "---\nkind: element\ntitle: Token\ndomain: domains/auth\n---\n",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "find_neighbors", { slug: "login" }),
+      callTool(3, "find_neighbors", {
+        slug: "login",
+        direction: "incoming",
+        types: ["capabilities"],
+      }),
+    ]);
+    const both = getCallParsed(responses, 2);
+    assert.equal(both.center, "capabilities/login");
+    assert.equal(both.requested, "login");
+    assert.equal(both.totalEdges, 4);
+    assert.deepEqual(
+      both.edges.map((edge) => `${edge.direction}:${edge.via}:${edge.from}->${edge.to}`),
+      [
+        "incoming:capabilities:domains/auth->capabilities/login",
+        "outgoing:dependencies:capabilities/login->elements/token",
+        "outgoing:domain:capabilities/login->domains/auth",
+        "outgoing:relates:capabilities/login->missing-node",
+      ],
+    );
+    assert.equal(both.edges.find((edge) => edge.via === "relates").resolved, false);
+    assert.deepEqual(
+      both.nodes.map((node) => node.slug),
+      ["domains/auth", "elements/token"],
+    );
+
+    const incoming = getCallParsed(responses, 3);
+    assert.deepEqual(incoming.types, ["capabilities"]);
+    assert.deepEqual(incoming.edges, [
+      {
+        direction: "incoming",
+        from: "domains/auth",
+        to: "capabilities/login",
+        via: "capabilities",
+        ref: "capabilities/login",
+        resolved: true,
+      },
+    ]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

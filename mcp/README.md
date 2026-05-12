@@ -44,7 +44,7 @@ If `OMOT_VAULT` is not set, the current working directory is used as the vault r
 
 ### 2. Restart Claude Code
 
-The server connects over stdio. You should now see 20 tools under the `oh-my-ontology` namespace.
+The server connects over stdio. You should now see 21 tools under the `oh-my-ontology` namespace.
 
 ### 3. Call the tools
 
@@ -56,7 +56,7 @@ The server connects over stdio. You should now see 20 tools under the `oh-my-ont
 → mcp__oh-my-ontology__get_concept({ slug: 'capabilities/mcp-server' })
 ```
 
-## The 20 tools
+## The 21 tools
 
 | Tool | What it does |
 |---|---|
@@ -65,6 +65,7 @@ The server connects over stdio. You should now see 20 tools under the `oh-my-ont
 | `get_concepts` | **R+** Batch reader — accepts an array of slugs (max 50), returns `concepts[]` with the same per-row shape as `get_concept` (frontmatter + excerpt + neighbors + mtime + warnings?). Order of `concepts[]` matches input `slugs[]`. Missing slugs return `{ slug, ok: false, error }` rather than aborting the batch. Replaces N×`get_concept` round-trips when an agent already has K specific slugs (e.g. from `list_concepts` / `find_path` / `find_orphans`) and needs full bodies for all of them. |
 | `find_evidence` | Partial-match search by `title` — scans frontmatter title/capabilities/elements as well as body content. Each match row includes `slug, kind, title, domain, mtime, matchedIn, excerpt` (same shape as `list_concepts` / `find_backlinks` / `find_orphans` / `query_concepts` plus the `excerpt` is a prose preview, max 200 chars, heading/표/코드/리스트/인용 skip — same `extractSummaryExcerpt` helper as `get_concept`) so agents see *what the matching doc says* without a follow-up get_concept call. |
 | `find_backlinks` | Finds every node that points to a given `slug`. Inspects all frontmatter array keys (capabilities / elements / dependencies / relates / …) plus body wikilinks/markdown links. Each match row includes `kind`, `title`, `domain`, `mtime` (same shape as `list_concepts`) — agents can sort/filter "which referrer is in domain X" or "which referrer was touched recently" without follow-up `get_concept` calls. |
+| `find_neighbors` | **R+** One-hop graph neighborhood around a node. Accepts `slug`, optional `direction` (`outgoing` / `incoming` / `both`, default both), optional `types` relation-key filter, `includeNodes`, and `limit`. Returns canonical `edges[]` (`{direction, from, to, via, ref, resolved}`) plus neighbor node summaries so agents can inspect a local graph subview without combining `get_concept` + `find_backlinks` manually. |
 | `find_path` | Shortest path between two slugs (BFS, undirected). Returns `{ from, to, hops, edges, hopCount, found }` where `edges[i] = { from, to, via }` and `via` is the frontmatter key (`domains` / `domain` / `capabilities` / `elements` / `dependencies` / `relates` / `contains` / `describes`) that linked the pair — so the agent sees not just *that* A and B are connected but *why*. Option: `maxHops` (default 5). |
 | `list_kinds` | Vault kind census: `{ total, byKind: { capability: N, ... } }`. |
 | `find_orphans` | **v0.5** Finds isolated nodes — docs that no other node references through graph frontmatter (`domains` / `domain` / `capabilities` / `elements` / `dependencies` / `relates` / `contains` / `describes`). Options: `kind` (filter), `excludeKinds` (skip, default `['vault-readme']`). Each orphan row includes `kind`, `title`, `domain`, `mtime` (same shape as `list_concepts` / `find_backlinks`) — agents can sort/filter "old orphans in domain X" without follow-up `get_concept` calls. Useful as a starting point for cleanup or auditing unused nodes. |
@@ -133,10 +134,10 @@ A successful run looks like this:
 ✓ result: 7 passed, 0 failed
 · step 2 — server boot + tools/list + list_concepts
 ✓ initialize OK — server oh-my-ontology-mcp@0.10.0
-✓ tools/list 20/20 — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · delete_concept · find_backlinks · find_evidence · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · rename_concept · validate_vault
+✓ tools/list 21/21 — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · rename_concept · validate_vault
 ✓ list_concepts — vault total 26 nodes
 
-All checks passed — register .mcp.json with Claude Code, restart, and the 20 tools are ready.
+All checks passed — register .mcp.json with Claude Code, restart, and the 21 tools are ready.
 ```
 
 On failure, it tells you which step blocked progress and prints a diagnostic message.
@@ -162,10 +163,10 @@ After you add `.mcp.json` and restart Claude Code, try the following with your L
 > **First exploration — confirm the vault's ontology is visible**
 > 1. Call `mcp__oh-my-ontology__list_concepts` to list every node in the vault.
 > 2. Call `get_concept({ slug: "project" })` to see the root node's frontmatter and neighbors.
-> 3. Call `find_backlinks({ slug: "capabilities/mcp-server" })` to find what depends on that capability.
+> 3. Call `find_neighbors({ slug: "capabilities/mcp-server" })` to inspect the local graph around that capability.
 > 4. (Optional) Call `add_concept` to create a new capability node — `slug`, `kind`, and `title` are required.
 
-If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 20 tools (12 read + 8 write), the human + AI co-authoring loop is officially open.
+If those four tools respond cleanly, your read/write round-trip against the vault is working. Once an agent starts *committing* its analysis of your codebase to the ontology through these 21 tools (13 read + 8 write), the human + AI co-authoring loop is officially open.
 
 ## Design principles
 
@@ -176,7 +177,7 @@ If those four tools respond cleanly, your read/write round-trip against the vaul
 
 ## Status
 
-- 0.10.0 — 20 tools. Added `get_concepts`, `add_concepts`, `add_relations`, and `validate_vault`; current split is 12 read + 8 write.
+- 0.10.0 — 21 tools. Added `get_concepts`, `add_concepts`, `add_relations`, `validate_vault`, and `find_neighbors`; current split is 13 read + 8 write.
 - 0.7.1 — 16 tools. Added `instructions` field on initialize response — Claude Code / Cursor see kind hierarchy + workflow + write-tool dry-run pattern + `expected_mtime` conflict guard guidance on connect, no per-session trial-and-error.
 - 0.7.0 — 14 tools (8 read + 6 write). Added `rename_concept` and `merge_concepts` (graph-level write — atomic backlink redirect across all referrers).
 - 0.6.0 — 12 tools (8 read + 4 write). Added `query_concepts` (typed filter DSL).
