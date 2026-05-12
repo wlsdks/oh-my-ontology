@@ -133,4 +133,27 @@ describe('queryCompiledOntology', () => {
     assert.equal(limited.totalNodes, 2);
     assert.equal(limited.limited, true);
   });
+
+  it('returns graph overview aggregates for dashboard-style use', () => {
+    const result = queryCompiledOntology(artifact(), {
+      operation: 'overview',
+      limit: 2,
+    });
+
+    assert.equal(result.graph.nodes, 3);
+    assert.equal(result.graph.resolvedEdges, 3);
+    assert.equal(result.graph.externalEdges, 1);
+    assert.match(result.graph.graphHash, /^[a-f0-9]{64}$/);
+    assert.deepEqual(result.byKind, { capability: 2, domain: 1 });
+    assert.deepEqual(result.byDomain, { auth: 1 });
+    assert.deepEqual(result.byRelation, {
+      dependencies: 2,
+      domain: 1,
+      elements: 1,
+    });
+    assert.deepEqual(result.hubs.map((hub) => hub.slug), [
+      'capabilities/login',
+      'domains/auth',
+    ]);
+  });
 });

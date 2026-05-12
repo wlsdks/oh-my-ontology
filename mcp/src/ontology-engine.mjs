@@ -16,8 +16,11 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'subgraph') {
     return engine.subgraph(query.slug ?? query.seed, query);
   }
+  if (operation === 'overview') {
+    return engine.overview(query);
+  }
 
-  throw new Error('operation must be one of: neighbors, path, impact, subgraph.');
+  throw new Error('operation must be one of: neighbors, path, impact, subgraph, overview.');
 }
 
 export function createOntologyEngine(artifact) {
@@ -253,6 +256,36 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function overview(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 10);
+    const byKind = countBy(nodes, 'kind');
+    const byDomain = countBy(nodes, 'domain');
+    const byRelation = countEdges(edges, 'via');
+    const graph = {
+      nodes: nodes.length,
+      edges: edges.length,
+      resolvedEdges: edges.filter((edge) => edge.resolved).length,
+      externalEdges: edges.filter((edge) => edge.external).length,
+      unresolvedEdges: edges.filter((edge) => !edge.resolved && !edge.external).length,
+      aliases: Array.isArray(artifact?.aliases) ? artifact.aliases.length : 0,
+      ambiguousAliases: Array.isArray(artifact?.ambiguousAliases)
+        ? artifact.ambiguousAliases.length
+        : 0,
+      issues: Array.isArray(artifact?.issues) ? artifact.issues.length : 0,
+      graphHash: artifact?.graphHash,
+      maxMtime: artifact?.maxMtime,
+    };
+
+    return {
+      operation: 'overview',
+      graph,
+      byKind,
+      byDomain,
+      byRelation,
+      hubs: topHubs(nodes, limit),
+    };
+  }
+
   function traversalEdges(slug, direction, typeSet) {
     const candidates = [];
     if (direction === 'outgoing' || direction === 'both' || direction === 'undirected') {
@@ -273,7 +306,51 @@ export function createOntologyEngine(artifact) {
     return candidates;
   }
 
-  return { resolve, neighbors, path, impact, subgraph };
+  return { resolve, neighbors, path, impact, subgraph, overview };
+}
+
+function countBy(items, key) {
+  const counts = new Map();
+  for (const item of items) {
+    const value = item[key];
+    if (typeof value !== 'string' || !value.trim()) continue;
+    counts.set(value, (counts.get(value) || 0) + 1);
+  }
+  return sortedCountObject(counts);
+}
+
+function countEdges(items, key) {
+  const counts = new Map();
+  for (const item of items) {
+    const value = item[key];
+    if (typeof value !== 'string' || !value.trim()) continue;
+    counts.set(value, (counts.get(value) || 0) + 1);
+  }
+  return sortedCountObject(counts);
+}
+
+function sortedCountObject(counts) {
+  return Object.fromEntries(
+    [...counts.entries()].sort(([leftKey, leftCount], [rightKey, rightCount]) => {
+      if (rightCount !== leftCount) return rightCount - leftCount;
+      return leftKey.localeCompare(rightKey);
+    }),
+  );
+}
+
+function topHubs(nodes, limit) {
+  return [...nodes]
+    .map((node) => ({
+      slug: node.slug,
+      kind: node.kind,
+      title: node.title,
+      domain: node.domain,
+      inDegree: node.inDegree || 0,
+      outDegree: node.outDegree || 0,
+      degree: (node.inDegree || 0) + (node.outDegree || 0),
+    }))
+    .sort((a, b) => b.degree - a.degree || b.inDegree - a.inDegree || a.slug.localeCompare(b.slug))
+    .slice(0, limit);
 }
 
 function edgeAllowed(edge, typeSet, includeExternal, includeUnresolved) {
