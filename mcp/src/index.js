@@ -1182,7 +1182,17 @@ function resolveExistingVaultSlug(slug, docs = null) {
       frontmatterMatches.push(doc.slug);
     }
   }
+  if (frontmatterMatches.length > 1) {
+    throw new Error(
+      `Ambiguous frontmatter slug alias "${slug}" matches: ${frontmatterMatches.join(', ')}. Use an exact vault-relative slug.`
+    );
+  }
   if (frontmatterMatches.length === 1) return frontmatterMatches[0];
+  if (tailMatches.length > 1) {
+    throw new Error(
+      `Ambiguous tail slug alias "${slug}" matches: ${tailMatches.join(', ')}. Use an exact vault-relative slug.`
+    );
+  }
   if (tailMatches.length === 1) return tailMatches[0];
   return null;
 }

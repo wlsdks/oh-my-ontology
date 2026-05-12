@@ -597,6 +597,34 @@ await test("get_concept/get_concepts — tail/frontmatter slug alias 를 canonic
   }
 });
 
+await test("get_concept/add_relation — ambiguous alias 는 명시적 에러로 surface", async () => {
+  const root = makeVault([
+    { slug: "domains/auth", content: "---\nkind: domain\ntitle: Auth\n---\n" },
+    { slug: "capabilities/auth", content: "---\nkind: capability\ntitle: Auth\n---\n" },
+    { slug: "project", content: "---\nkind: project\ntitle: Project\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "get_concept", { slug: "auth" }),
+      callTool(3, "add_relation", {
+        from: "project",
+        to: "auth",
+        type: "domains",
+      }),
+      callTool(4, "get_concept", { slug: "domains/auth" }),
+    ]);
+    assert.equal(isErrorResponse(responses, 2), true);
+    assert.match(getCallText(responses, 2), /Ambiguous tail slug alias "auth"/);
+    assert.equal(isErrorResponse(responses, 3), true);
+    assert.match(getCallText(responses, 3), /Ambiguous tail slug alias "auth"/);
+    const exact = getCallParsed(responses, 4);
+    assert.equal(exact.slug, "domains/auth");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 // R+ — get_concepts 배치 reader. K개 slug → 1 round trip. 입력 순서 보존,
 // missing slug 는 batch 를 abort 하지 않고 { ok: false, error } 행으로 surface.
 await test("get_concepts — 배치 read, 입력 순서 보존 + partial result", async () => {
