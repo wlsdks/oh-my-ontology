@@ -429,6 +429,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 16. **add_relation** `{ from, to, type }` — append to source frontmatter graph key
     - type enum: `depends_on` (→ `dependencies`) / `relates` / `contains` / `describes` / `domains` / `capabilities` / `elements` / `domain`
     - **R7 validation**: both `from` AND `to` slug must exist in vault (`vaultSlugExists`)
+    - Unique tail aliases and frontmatter `slug:` aliases are resolved to canonical file slugs before write
     - Idempotent: duplicate returns `{ alreadyExists: true }`
 17. **add_relations** `{ relations }` — batch edge writer (max 50), idempotent per row; stored relation arrays are deduped and sorted as canonical graph sets
 18. **delete_concept** `{ slug, confirm?, force?, expected_mtime? }` — permanent delete

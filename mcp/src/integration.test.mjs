@@ -1168,5 +1168,44 @@ await test("add_relation — domain 타입은 inline parent domain 을 설정", 
   }
 });
 
+await test("add_relation — tail/frontmatter slug alias 를 canonical slug 로 저장", async () => {
+  const root = makeVault([
+    { slug: "project", content: "---\nkind: project\ntitle: Project\n---\n" },
+    {
+      slug: "domains/auth",
+      content: "---\nslug: auth-domain\nkind: domain\ntitle: Auth\n---\n",
+    },
+    { slug: "capabilities/login", content: "---\nkind: capability\ntitle: Login\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "add_relation", {
+        from: "project",
+        to: "auth",
+        type: "domains",
+      }),
+      callTool(3, "add_relation", {
+        from: "login",
+        to: "auth-domain",
+        type: "domain",
+      }),
+      callTool(4, "get_concept", { slug: "project" }),
+      callTool(5, "get_concept", { slug: "capabilities/login" }),
+    ]);
+    const projectEdge = getCallParsed(responses, 2);
+    const loginEdge = getCallParsed(responses, 3);
+    assert.equal(projectEdge.to, "domains/auth");
+    assert.equal(loginEdge.from, "capabilities/login");
+    assert.equal(loginEdge.to, "domains/auth");
+    const project = getCallParsed(responses, 4);
+    const login = getCallParsed(responses, 5);
+    assert.deepEqual(project.frontmatter.domains, ["domains/auth"]);
+    assert.equal(login.frontmatter.domain, "domains/auth");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 console.log(`\nintegration: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

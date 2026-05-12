@@ -1109,50 +1109,70 @@ function addRelation({ from, to, type, expected_mtime }) {
   if (!key) {
     throw new Error(`Unknown relation type: ${type}`);
   }
+  const canonicalFrom = resolveExistingVaultSlug(from);
+  const canonicalTo = resolveExistingVaultSlug(to);
   // vault 에 실재하는 slug 인지 양쪽 검증. 누락 시 frontmatter array 에
   // dangling reference 가 silently 추가되는 걸 차단 (AI agent 가 typo /
-  // hallucinated slug 보낼 때 깔끔한 에러로 노출). from 은 readDoc 이
-  // 후속에서 어차피 throw 하지만 메시지가 ENOENT raw 라 사용자 친화적
-  // 에러로 선검증.
-  if (!vaultSlugExists(VAULT_ROOT, from)) {
+  // hallucinated slug 보낼 때 깔끔한 에러로 노출). direct slug 뿐 아니라
+  // read/path 와 같은 tail/frontmatter slug alias 도 canonical slug 로 저장.
+  if (!canonicalFrom) {
     const suggestions = suggestSimilarSlugs(VAULT_ROOT, from);
     const suffix = suggestions.length > 0
       ? ` Did you mean: ${suggestions.map((s) => `"${s}"`).join(', ')}?`
       : ' Use list_concepts() to see all slugs, or add_concept(slug, kind, title) to create it first.';
     throw new Error(`Source slug does not exist in vault: "${from}".${suffix}`);
   }
-  if (!vaultSlugExists(VAULT_ROOT, to)) {
+  if (!canonicalTo) {
     const suggestions = suggestSimilarSlugs(VAULT_ROOT, to);
     const suffix = suggestions.length > 0
       ? ` Did you mean: ${suggestions.map((s) => `"${s}"`).join(', ')}?`
       : ' Use list_concepts() to see all slugs, or add_concept(slug, kind, title) to create it first.';
     throw new Error(`Target slug does not exist in vault: "${to}".${suffix}`);
   }
-  const doc = readDoc(VAULT_ROOT, slugToPath(VAULT_ROOT, from));
+  const doc = readDoc(VAULT_ROOT, slugToPath(VAULT_ROOT, canonicalFrom));
   if (key === 'domain') {
     const existingDomain = doc.frontmatter.domain;
-    if (existingDomain === to) {
-      return { ok: true, alreadyExists: true, from, to, type };
+    if (existingDomain === canonicalTo) {
+      return { ok: true, alreadyExists: true, from: canonicalFrom, to: canonicalTo, type };
     }
     if (typeof existingDomain === 'string' && existingDomain.trim()) {
       throw new Error(`Source slug already has domain "${existingDomain}". Use patch_concept to change it explicitly.`);
     }
-    patchFrontmatter(VAULT_ROOT, from, { domain: to }, {
+    patchFrontmatter(VAULT_ROOT, canonicalFrom, { domain: canonicalTo }, {
       expectedMtime:
         typeof expected_mtime === 'number' ? expected_mtime : undefined,
     });
-    return { ok: true, from, to, type, key };
+    return { ok: true, from: canonicalFrom, to: canonicalTo, type, key };
   }
   const existing = Array.isArray(doc.frontmatter[key]) ? doc.frontmatter[key] : [];
-  if (existing.includes(to)) {
-    return { ok: true, alreadyExists: true, from, to, type };
+  if (existing.includes(canonicalTo)) {
+    return { ok: true, alreadyExists: true, from: canonicalFrom, to: canonicalTo, type };
   }
-  const next = normalizeRelationRefs([...existing, to]);
-  patchFrontmatter(VAULT_ROOT, from, { [key]: next }, {
+  const next = normalizeRelationRefs([...existing, canonicalTo]);
+  patchFrontmatter(VAULT_ROOT, canonicalFrom, { [key]: next }, {
     expectedMtime:
       typeof expected_mtime === 'number' ? expected_mtime : undefined,
   });
-  return { ok: true, from, to, type, key };
+  return { ok: true, from: canonicalFrom, to: canonicalTo, type, key };
+}
+
+function resolveExistingVaultSlug(slug) {
+  if (typeof slug !== 'string' || slug.trim() === '') return null;
+  if (vaultSlugExists(VAULT_ROOT, slug)) return slug;
+  const docs = loadVaultDocs(VAULT_ROOT);
+  const tailMatches = [];
+  const frontmatterMatches = [];
+  for (const doc of docs) {
+    const tail = doc.slug.split('/').pop();
+    if (tail === slug) tailMatches.push(doc.slug);
+    const fmSlug = doc.frontmatter.slug;
+    if (typeof fmSlug === 'string' && fmSlug.trim() === slug) {
+      frontmatterMatches.push(doc.slug);
+    }
+  }
+  if (frontmatterMatches.length === 1) return frontmatterMatches[0];
+  if (tailMatches.length === 1) return tailMatches[0];
+  return null;
 }
 
 // R+ — add_relation 의 batch 변종. analyze_repo_structure (suggestedRelations)
