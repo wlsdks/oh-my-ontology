@@ -33,9 +33,12 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'lineage') {
     return engine.lineage(query.slug, query);
   }
+  if (operation === 'cycles') {
+    return engine.cycles(query);
+  }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage, cycles.',
   );
 }
 
@@ -462,6 +465,56 @@ export function createOntologyEngine(artifact) {
     return { rows: sortLineageRows(rows), edges: collectedEdges, limited };
   }
 
+  function cycles(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 20);
+    const maxDepth = normalizeDepth(options.maxHops ?? options.depth, 8);
+    const typeSet = normalizeTypes(options.types ?? ['dependencies']);
+    const cycleMap = new Map();
+    const sortedNodes = [...nodes].sort((a, b) => a.slug.localeCompare(b.slug));
+
+    for (const node of sortedNodes) {
+      if (cycleMap.size > limit) break;
+      findCyclesFrom(node.slug, node.slug, [node.slug], [], new Set([node.slug]));
+    }
+
+    const rows = [...cycleMap.values()].sort(
+      (a, b) => a.length - b.length || a.nodes.join('\0').localeCompare(b.nodes.join('\0')),
+    );
+
+    return {
+      operation: 'cycles',
+      relationTypes: [...typeSet].sort(),
+      maxDepth,
+      totalCycles: rows.length,
+      limited: rows.length > limit,
+      cycles: rows.slice(0, limit),
+    };
+
+    function findCyclesFrom(start, current, path, edgePath, visited) {
+      if (path.length > maxDepth || cycleMap.size > limit) return;
+
+      for (const edge of outgoing.get(current) || []) {
+        if (!edge.resolved || !typeAllowed(edge.via, typeSet)) continue;
+        if (edge.to === start && path.length > 1) {
+          const cycle = normalizeCycle(path, [...edgePath, edge]);
+          if (!cycleMap.has(cycle.key) && cycleMap.size <= limit) {
+            cycleMap.set(cycle.key, {
+              id: cycle.key,
+              length: cycle.nodes.length - 1,
+              nodes: cycle.nodes,
+              edges: cycle.edges.map(formatCompiledEdge),
+            });
+          }
+          continue;
+        }
+        if (visited.has(edge.to) || path.length >= maxDepth) continue;
+        visited.add(edge.to);
+        findCyclesFrom(start, edge.to, [...path, edge.to], [...edgePath, edge], visited);
+        visited.delete(edge.to);
+      }
+    }
+  }
+
   function schemaPatterns() {
     const patternMap = new Map();
     for (const edge of edges) {
@@ -564,6 +617,7 @@ export function createOntologyEngine(artifact) {
     relationCheck,
     components,
     lineage,
+    cycles,
   };
 }
 
@@ -625,6 +679,21 @@ function summarizeNode(node) {
 
 function sortLineageRows(rows) {
   return [...rows].sort((a, b) => a.distance - b.distance || a.slug.localeCompare(b.slug));
+}
+
+function normalizeCycle(nodes, edges) {
+  let startIndex = 0;
+  for (let i = 1; i < nodes.length; i += 1) {
+    if (nodes[i].localeCompare(nodes[startIndex]) < 0) startIndex = i;
+  }
+  const rotatedNodes = [...nodes.slice(startIndex), ...nodes.slice(0, startIndex)];
+  const rotatedEdges = [...edges.slice(startIndex), ...edges.slice(0, startIndex)];
+  const closedNodes = [...rotatedNodes, rotatedNodes[0]];
+  return {
+    key: rotatedNodes.join('->'),
+    nodes: closedNodes,
+    edges: rotatedEdges,
+  };
 }
 
 function edgeAllowed(edge, typeSet, includeExternal, includeUnresolved) {

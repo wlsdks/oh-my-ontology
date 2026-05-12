@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components/lineage", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components/lineage/cycles", async () => {
   const root = makeVault([
     {
       slug: "domains/auth",
@@ -322,6 +322,9 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       callTool(10, "query_ontology", {
         operation: "lineage",
         slug: "auth-domain",
+      }),
+      callTool(11, "query_ontology", {
+        operation: "cycles",
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -395,6 +398,10 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
     assert.deepEqual(lineage.descendants.nodes.map((row) => row.slug), [
       "capabilities/login",
     ]);
+
+    const cycles = getCallParsed(responses, 11);
+    assert.equal(cycles.totalCycles, 0);
+    assert.deepEqual(cycles.relationTypes, ["dependencies"]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

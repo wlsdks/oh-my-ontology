@@ -367,4 +367,62 @@ describe('queryCompiledOntology', () => {
       'capabilities/session',
     ]);
   });
+
+  it('detects directed dependency cycles deterministically', () => {
+    const cyclic = compileOntology(
+      [
+        doc('capabilities/a', {
+          kind: 'capability',
+          title: 'A',
+          depends_on: ['capabilities/b'],
+        }),
+        doc('capabilities/b', {
+          kind: 'capability',
+          title: 'B',
+          depends_on: ['capabilities/c'],
+        }),
+        doc('capabilities/c', {
+          kind: 'capability',
+          title: 'C',
+          depends_on: ['capabilities/a'],
+        }),
+        doc('capabilities/d', {
+          kind: 'capability',
+          title: 'D',
+          depends_on: ['capabilities/e'],
+        }),
+        doc('capabilities/e', {
+          kind: 'capability',
+          title: 'E',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(cyclic, {
+      operation: 'cycles',
+    });
+
+    assert.equal(result.operation, 'cycles');
+    assert.deepEqual(result.relationTypes, ['dependencies']);
+    assert.equal(result.totalCycles, 1);
+    assert.equal(result.limited, false);
+    assert.deepEqual(result.cycles[0].nodes, [
+      'capabilities/a',
+      'capabilities/b',
+      'capabilities/c',
+      'capabilities/a',
+    ]);
+    assert.deepEqual(result.cycles[0].edges.map((edge) => edge.via), [
+      'dependencies',
+      'dependencies',
+      'dependencies',
+    ]);
+
+    const shortDepth = queryCompiledOntology(cyclic, {
+      operation: 'cycles',
+      maxHops: 2,
+    });
+    assert.equal(shortDepth.totalCycles, 0);
+  });
 });
