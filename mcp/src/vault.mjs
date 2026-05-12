@@ -83,9 +83,12 @@ const NEIGHBOR_KEYS = Object.freeze([
 ]);
 
 const INLINE_NEIGHBOR_KEYS = Object.freeze(['domain']);
+const NEIGHBOR_KEY_ALIASES = Object.freeze({
+  depends_on: 'dependencies',
+});
 const GRAPH_ARRAY_KEYS = new Set([
   ...NEIGHBOR_KEYS,
-  'depends_on',
+  ...Object.keys(NEIGHBOR_KEY_ALIASES),
 ]);
 
 /**
@@ -120,18 +123,33 @@ function normalizeFrontmatterValue(key, value) {
 
 export function collectNeighborRefs(doc) {
   const refs = [];
+  const seen = new Set();
+  const pushRef = (key, ref) => {
+    if (typeof ref !== 'string') return;
+    const trimmed = ref.trim();
+    if (!trimmed) return;
+    const canonicalKey = NEIGHBOR_KEY_ALIASES[key] || key;
+    const seenKey = `${canonicalKey}\0${trimmed}`;
+    if (seen.has(seenKey)) return;
+    seen.add(seenKey);
+    refs.push({ key: canonicalKey, ref: trimmed });
+  };
   for (const key of NEIGHBOR_KEYS) {
     const value = doc.frontmatter[key];
     if (!Array.isArray(value)) continue;
     for (const ref of value) {
-      if (typeof ref !== 'string') continue;
-      const trimmed = ref.trim();
-      if (trimmed) refs.push({ key, ref: trimmed });
+      pushRef(key, ref);
+    }
+  }
+  for (const key of Object.keys(NEIGHBOR_KEY_ALIASES)) {
+    const value = doc.frontmatter[key];
+    if (!Array.isArray(value)) continue;
+    for (const ref of value) {
+      pushRef(key, ref);
     }
   }
   for (const key of INLINE_NEIGHBOR_KEYS) {
-    const ref = doc.frontmatter[key];
-    if (typeof ref === 'string' && ref.trim()) refs.push({ key, ref: ref.trim() });
+    pushRef(key, doc.frontmatter[key]);
   }
   return refs;
 }
