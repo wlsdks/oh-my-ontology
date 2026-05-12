@@ -6,7 +6,7 @@
  *
  * read 12:
  *   - list_concepts          — vault 의 노드 목록 (kind / project_filter)
- *   - get_concept            — 단일 노드 + 이웃 (dependencies / relates) + mtime
+ *   - get_concept            — 단일 노드 + graph 이웃 + mtime
  *   - get_concepts           — 배치 read (slugs[] → concepts[], partial 허용)
  *   - find_evidence          — title / capabilities / elements / body 부분매칭
  *   - find_backlinks         — 특정 slug 를 가리키는 다른 노드들
@@ -47,6 +47,7 @@ import { resolve } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import {
   VaultConflictError,
+  collectNeighborRefs,
   deleteDoc,
   ensureVaultRoot,
   extractSummaryExcerpt,
@@ -125,7 +126,7 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 
 1. \`list_kinds\` — see the kind census (how many projects/domains/capabilities/…).
 2. \`list_concepts\` — full node table. Pass \`summary: true\` for prose previews per row (avoid N follow-up \`get_concept\` calls). Pass \`since: <prevMaxMtime>\` for incremental sync. Watch \`vaultWarnings\` — if non-zero, surface it to the user before making decisions on stale data.
-3. \`get_concept(slug)\` — frontmatter + body excerpt + neighbors (dependencies / relates) + \`mtime\`. **Capture the \`mtime\`** if you plan to write later. **For K specific slugs use \`get_concepts({slugs: [...]})\` (max 50) to fetch all in one call instead of K round-trips.**
+3. \`get_concept(slug)\` — frontmatter + body excerpt + graph neighbors / outgoingEdges + \`mtime\`. **Capture the \`mtime\`** if you plan to write later. **For K specific slugs use \`get_concepts({slugs: [...]})\` (max 50) to fetch all in one call instead of K round-trips.**
 4. \`find_backlinks(slug)\` — understand how a node is referenced (run *before* rename / merge). Each row already includes \`domain\` + \`mtime\` — no follow-up \`get_concept\` needed for sort/filter.
 5. \`find_path(from, to)\` — "how does A relate to B?" (BFS, undirected). Returns \`hops: [slug...]\` **and \`edges: [{from, to, via}]\` where \`via\` is the frontmatter key (\`domains\` / \`domain\` / \`capabilities\` / \`elements\` / \`dependencies\` / \`relates\` / \`contains\` / \`describes\`) that linked the pair** — so you see not just *that* A and B are connected but *why*.
 6. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates).
@@ -214,7 +215,7 @@ const TOOLS = [
   {
     name: 'get_concept',
     description:
-      'Fetch a single node by slug — its frontmatter, a body excerpt, and direct neighbors (dependencies / relates). **For K specific slugs in one call use `get_concepts({slugs: [...]})` (max 50) instead of K round-trips.**',
+      'Fetch a single node by slug — its frontmatter, a body excerpt, direct graph neighbors, outgoingEdges, and mtime. **For K specific slugs in one call use `get_concepts({slugs: [...]})` (max 50) instead of K round-trips.**',
     inputSchema: {
       type: 'object',
       properties: {
@@ -892,14 +893,25 @@ function getConcept({ slug }) {
   // R11 #23 — 이 doc 의 frontmatter corruption 검출. AI agent 가 응답에서
   // warnings 보고 사용자에게 안내 / vault:validate 권장 가능.
   const validation = doc.raw ? validateVaultDocument(doc.raw) : null;
+  const outgoingEdges = collectNeighborRefs(doc).map(({ key, ref }) => ({
+    to: ref,
+    via: key,
+  }));
   return {
     slug: doc.slug,
     frontmatter: doc.frontmatter,
     excerpt: extractSummaryExcerpt(doc.body),
     neighbors: {
+      domains: doc.frontmatter.domains || [],
+      domain: doc.frontmatter.domain || null,
+      capabilities: doc.frontmatter.capabilities || [],
+      elements: doc.frontmatter.elements || [],
       dependencies: doc.frontmatter.dependencies || [],
       relates: doc.frontmatter.relates || [],
+      contains: doc.frontmatter.contains || [],
+      describes: doc.frontmatter.describes || [],
     },
+    outgoingEdges,
     // R11 #8 — read-modify-write 흐름에서 caller (AI agent) 가 후속
     // patch_concept / delete_concept 의 expected_mtime 으로 그대로 넘겨
     // 외부 변경 감지 가능. ms 단위 fs mtime.

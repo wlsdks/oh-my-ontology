@@ -407,7 +407,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 
 #### Read tools (12)
 1. **list_concepts** `{ kind?, domain?, since?, summary?, limit? }` — every node, optional filters, mtime, and summary preview
-2. **get_concept** `{ slug }` — full detail: frontmatter + prose excerpt + neighbors + `mtime` (ms; **R11** caller가 후속 patch/delete 의 `expected_mtime` 으로 전달하면 외부 변경 감지)
+2. **get_concept** `{ slug }` — full detail: frontmatter + prose excerpt + graph neighbors / `outgoingEdges[]` + `mtime` (ms; **R11** caller가 후속 patch/delete 의 `expected_mtime` 으로 전달하면 외부 변경 감지)
 3. **get_concepts** `{ slugs }` — batch read (max 50), order-preserving partial results
 4. **find_evidence** `{ title }` — partial-match across title / capabilities / elements / body, with `domain`, `mtime`, and prose excerpt
 5. **find_backlinks** `{ slug }` — every node referencing target (frontmatter arrays + wikilinks/markdown)

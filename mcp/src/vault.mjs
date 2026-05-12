@@ -107,16 +107,20 @@ export function normalizeRelationRefs(values) {
   return [...refs, ...passthrough];
 }
 
-function collectNeighborRefs(doc) {
+export function collectNeighborRefs(doc) {
   const refs = [];
   for (const key of NEIGHBOR_KEYS) {
     const value = doc.frontmatter[key];
     if (!Array.isArray(value)) continue;
-    for (const ref of value) refs.push({ key, ref });
+    for (const ref of value) {
+      if (typeof ref !== 'string') continue;
+      const trimmed = ref.trim();
+      if (trimmed) refs.push({ key, ref: trimmed });
+    }
   }
   for (const key of INLINE_NEIGHBOR_KEYS) {
     const ref = doc.frontmatter[key];
-    if (typeof ref === 'string' && ref.trim()) refs.push({ key, ref });
+    if (typeof ref === 'string' && ref.trim()) refs.push({ key, ref: ref.trim() });
   }
   return refs;
 }

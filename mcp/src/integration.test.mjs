@@ -523,6 +523,42 @@ await test("get_concept 응답에 mtime (R11 #8) 포함", async () => {
   }
 });
 
+await test("get_concept — graph neighbors 와 outgoingEdges 포함", async () => {
+  const root = makeVault([
+    {
+      slug: "project",
+      content:
+        "---\nkind: project\ntitle: Project\ndomains: [identity]\ncapabilities: [capabilities/auth]\ncontains: [documents/guide]\n---\nbody",
+    },
+    {
+      slug: "capabilities/auth",
+      content:
+        "---\nkind: capability\ntitle: Auth\ndomain: identity\nelements: [token]\ndependencies: [storage]\nrelates: [security]\ndescribes: [documents/auth]\n---\nbody",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "get_concept", { slug: "capabilities/auth" }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.deepEqual(result.neighbors.domain, "identity");
+    assert.deepEqual(result.neighbors.elements, ["token"]);
+    assert.deepEqual(result.neighbors.dependencies, ["storage"]);
+    assert.deepEqual(result.neighbors.relates, ["security"]);
+    assert.deepEqual(result.neighbors.describes, ["documents/auth"]);
+    assert.deepEqual(result.outgoingEdges, [
+      { to: "token", via: "elements" },
+      { to: "storage", via: "dependencies" },
+      { to: "security", via: "relates" },
+      { to: "documents/auth", via: "describes" },
+      { to: "identity", via: "domain" },
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 // R+ — get_concepts 배치 reader. K개 slug → 1 round trip. 입력 순서 보존,
 // missing slug 는 batch 를 abort 하지 않고 { ok: false, error } 행으로 surface.
 await test("get_concepts — 배치 read, 입력 순서 보존 + partial result", async () => {
