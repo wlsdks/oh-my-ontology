@@ -94,4 +94,15 @@ describe('validateVaultDocument (R11 #23)', () => {
       true,
     );
   });
+
+  it('graph 배열 중복/비정렬이면 non-canonical-graph-array warning', () => {
+    const r = validateVaultDocument(
+      '---\nkind: project\ntitle: X\ndependencies: [z, a, z]\n---\n',
+    );
+    assert.equal(r.ok, true);
+    assert.equal(
+      r.issues.some((i) => i.code === 'non-canonical-graph-array'),
+      true,
+    );
+  });
 });

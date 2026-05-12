@@ -211,7 +211,7 @@ await test('validate — 1회짜리 code 는 grouped 섹션 안 보임 (per-file
   }
 });
 
-await test('validate --list-codes — 6 issue code 목록 출력 (R+ cycle 44)', async () => {
+await test('validate --list-codes — issue code 목록 출력 (R+ cycle 44)', async () => {
   const r = await run(['validate', '--list-codes']);
   assert.equal(r.code, 0);
   const clean = stripAnsi(r.stdout);
@@ -222,6 +222,7 @@ await test('validate --list-codes — 6 issue code 목록 출력 (R+ cycle 44)',
     'empty-kind',
     'unknown-kind',
     'missing-expected-field',
+    'non-canonical-graph-array',
   ]) {
     assert.match(clean, new RegExp(code), `${code} 가 출력에 있어야`);
   }

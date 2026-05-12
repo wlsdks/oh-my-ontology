@@ -12,7 +12,7 @@ const COLORS = {
   reset: '\x1b[0m',
 };
 
-// R+ — cycle 44: validateVaultDocument 가 surface 하는 6 issue codes 의
+// R+ — cycle 44: validateVaultDocument 가 surface 하는 issue codes 의
 // canonical list. --list-codes 출력 + --fail-on 의 unknown code 감지에
 // 사용. cli/src/lib/validate.mjs (3-way contract) 의 코드와 일관 — cycle
 // 45 의 contract test (tests/contract/known-codes-drift.contract.test.ts)
@@ -50,14 +50,17 @@ export const KNOWN_CODES = [
     severity: 'warning',
     description: 'kind 별 강하게 기대되는 필드 누락 (예: capability/element 의 `domain:`).',
   },
+  {
+    code: 'non-canonical-graph-array',
+    severity: 'warning',
+    description: 'graph 배열이 trim/dedup/sort 된 canonical set 이 아님.',
+  },
 ];
 
 /**
  * R11 #32 — \`oh-my-ontology validate [vault]\`
  *
- * vault 의 frontmatter integrity 검증. 5 issue codes (unclosed-frontmatter
- * / empty-kind / missing-kind / unknown-kind / parse-zero-keys). error 1+
- * 시 exit 1.
+ * vault 의 frontmatter integrity 검증. error issue 1+ 시 exit 1.
  *
  * R+ — \`--json\` 플래그 (cycle 40): 머신 가독 출력. CI / 스크립트 / agent
  * 가 ANSI strip 없이 issue 행을 그대로 파싱.

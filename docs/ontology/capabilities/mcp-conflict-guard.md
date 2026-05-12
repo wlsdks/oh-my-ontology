@@ -4,11 +4,11 @@ kind: capability
 title: MCP Conflict Guard (mtime 기반 silent overwrite 차단)
 domain: ai-agent-partner
 elements:
-  - mcp/src/vault.mjs
   - mcp/src/index.js
+  - mcp/src/vault.mjs
   - src/features/docs-vault-local/model/use-local-vault.ts
-  - src/views/ontology-edit/ui/OntologyEditPage.tsx
   - src/features/project-data-source/model/use-project-mutations.ts
+  - src/views/ontology-edit/ui/OntologyEditPage.tsx
 relates:
   - capabilities/mcp-server
   - domains/ai-agent-partner

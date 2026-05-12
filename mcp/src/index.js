@@ -547,7 +547,7 @@ const TOOLS = [
     description:
       'R+ (cycle 46) — validate every doc in the vault, return per-doc + per-code aggregate. ' +
       'Replaces the K-round-trip pattern of `list_concepts` then per-doc `get_concept` (whose `warnings: [...]` is per-file). ' +
-      '6 issue codes — `unclosed-frontmatter`, `parse-zero-keys`, `missing-kind`, `empty-kind`, `unknown-kind`, `missing-expected-field`. ' +
+      '7 issue codes — `unclosed-frontmatter`, `parse-zero-keys`, `missing-kind`, `empty-kind`, `unknown-kind`, `missing-expected-field`, `non-canonical-graph-array`. ' +
       'Returns `{ scanned, problems: [{slug, issues: [{code, severity, message}]}], summary: { problemFiles, errorFiles, warningFiles, byCode: { code: { severity, count, files } } } }`. ' +
       'side effect 0. Use when an agent needs the *whole-vault* health view (e.g. before / after a batch write, or surfacing issues to the user).',
     inputSchema: {

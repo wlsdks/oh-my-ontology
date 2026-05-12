@@ -8,9 +8,9 @@ elements:
   - src/features/project-data-source
   - src/features/vault-ontology
 relates:
-  - domains/vault-local-first
-  - domains/mode-aware-adapters
   - capabilities/ontology-hub-mode-aware
+  - domains/mode-aware-adapters
+  - domains/vault-local-first
 ---
 
 # Mode-Aware Data Source Adapter

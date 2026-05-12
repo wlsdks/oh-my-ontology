@@ -6,8 +6,8 @@ capabilities:
   - cli-developer-entry
 elements:
   - src/features/theme-toggle
-  - src/shared/ui/toast.tsx
   - src/shared/ui/live-announcer.tsx
+  - src/shared/ui/toast.tsx
   - src/widgets/bottom-tab-bar
   - src/widgets/gesture-hint
 relates:

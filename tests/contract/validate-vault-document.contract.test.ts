@@ -7,7 +7,7 @@ import { validateVaultDocument as validateCli } from '../../cli/src/lib/validate
 /**
  * R11 #27 — vault validator contract. src/shared/lib (런타임 + UI fast path
  * 의 raw 검증) 와 mcp/src/validate.mjs (AI agent surface) 가 같은 raw 입력에
- * 대해 같은 5 issue codes set 을 보장. 한 쪽이 코드 추가/변경/제거 시 contract
+ * 대해 같은 issue codes set 을 보장. 한 쪽이 코드 추가/변경/제거 시 contract
  * test 가 즉시 차단 — parser 3-way contract (#3) 와 같은 패턴.
  *
  * mcp 가 별도 npm package 라 물리적 단일 모듈 통합 불가능 → contract test 가

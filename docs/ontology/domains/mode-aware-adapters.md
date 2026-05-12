@@ -8,8 +8,8 @@ elements:
   - src/features/data-source-mode
   - src/features/project-data-source
 relates:
-  - domains/vault-local-first
   - domains/ontology-core
+  - domains/vault-local-first
 ---
 
 # Mode-Aware Adapters

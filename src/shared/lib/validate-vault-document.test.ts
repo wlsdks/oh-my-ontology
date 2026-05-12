@@ -93,6 +93,16 @@ describe("validateVaultDocument", () => {
     expect(r.issues.map((i) => i.code)).toContain("missing-expected-field");
   });
 
+  it("graph 배열 중복/비정렬이면 non-canonical-graph-array warning", () => {
+    const r = validateVaultDocument(
+      `---\nkind: project\ntitle: X\ndependencies: [z, a, z]\n---\n`,
+    );
+    expect(r.ok).toBe(true);
+    expect(r.issues.map((i) => i.code)).toContain(
+      "non-canonical-graph-array",
+    );
+  });
+
   it("error 와 warning 이 동시에 있으면 ok=false (error 우선)", () => {
     // unclosed → 즉시 return 이라 동시 케이스를 다른 형태로 만든다:
     // empty-kind (error) 만 있는 케이스가 ok=false 인지만 확인.
@@ -148,6 +158,18 @@ describe("validateVaultDocFrontmatter (parsed-only fast path)", () => {
     const r = validateVaultDocFrontmatter({ kind: "capability", title: "X" });
     expect(r.ok).toBe(true);
     expect(r.issues.map((i) => i.code)).toContain("missing-expected-field");
+  });
+
+  it("graph 배열 중복/비정렬이면 non-canonical-graph-array warning", () => {
+    const r = validateVaultDocFrontmatter({
+      kind: "project",
+      title: "X",
+      dependencies: ["z", "a", "z"],
+    });
+    expect(r.ok).toBe(true);
+    expect(r.issues.map((i) => i.code)).toContain(
+      "non-canonical-graph-array",
+    );
   });
 
   it("non-canonical kind 는 unknown-kind warning", () => {

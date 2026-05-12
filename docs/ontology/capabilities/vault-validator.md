@@ -4,8 +4,8 @@ kind: capability
 title: Vault Validator (Silent Corruption 가시화)
 domain: vault-local-first
 elements:
-  - src/shared/lib/validate-vault-document.ts
   - scripts/validate-vault.mjs
+  - src/shared/lib/validate-vault-document.ts
 relates:
   - capabilities/frontmatter-to-ontology
   - domains/vault-local-first
@@ -20,7 +20,7 @@ R11 에서 이 silent corruption 을 가시화.
 ## 두 surface
 
 1. **CLI** — `pnpm vault:validate [vaultPath]`
-   - `validateVaultDocument(raw)` — 5 issue codes: unclosed-frontmatter / empty-kind / missing-kind / unknown-kind / parse-zero-keys
+   - `validateVaultDocument(raw)` — frontmatter corruption + graph array canonicality issue codes
    - error 1+ 시 exit 1 (CI 게이트 가능)
    - dogfood vault 는 매 PR 마다 `.github/workflows/ci.yml` 의 step 으로 자동 검증
 
@@ -37,6 +37,8 @@ R11 에서 이 silent corruption 을 가시화.
 | `empty-kind` | error | both |
 | `missing-kind` | warning | both |
 | `unknown-kind` | warning | both |
+| `missing-expected-field` | warning | both |
+| `non-canonical-graph-array` | warning | both |
 | `parse-zero-keys` | warning | CLI only |
 
-UI 측은 fast path 라 raw 의존 issue 는 detect 못 하지만 *대부분의 사용자 실수* (kind 값 오타 / 빠뜨림) 는 cover.
+UI 측은 fast path 라 raw 의존 issue 는 detect 못 하지만 *대부분의 사용자 실수* (kind 값 오타 / 빠뜨림 / graph 배열 drift) 는 cover.

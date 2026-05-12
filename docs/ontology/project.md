@@ -3,12 +3,12 @@ slug: oh-my-ontology
 kind: project
 title: oh-my-ontology
 domains:
-  - vault-local-first
-  - ontology-core
-  - views
   - ai-agent-partner
   - mode-aware-adapters
   - onboarding-ux
+  - ontology-core
+  - vault-local-first
+  - views
 ---
 
 # oh-my-ontology

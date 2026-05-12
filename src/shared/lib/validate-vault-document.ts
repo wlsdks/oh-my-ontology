@@ -20,6 +20,7 @@ export type VaultIssueCode =
   | "missing-kind"
   | "unknown-kind"
   | "missing-expected-field"
+  | "non-canonical-graph-array"
   | "parse-zero-keys";
 
 /**
@@ -63,6 +64,17 @@ export const KNOWN_VAULT_KINDS = [
 ] as const;
 
 export type KnownVaultKind = (typeof KNOWN_VAULT_KINDS)[number];
+
+const GRAPH_ARRAY_KEYS = [
+  "domains",
+  "capabilities",
+  "elements",
+  "dependencies",
+  "depends_on",
+  "relates",
+  "contains",
+  "describes",
+] as const;
 
 export function validateVaultDocument(raw: string): VaultDocumentReport {
   const issues: VaultDocumentIssue[] = [];
@@ -127,6 +139,8 @@ export function validateVaultDocument(raw: string): VaultDocumentReport {
     const trimmedKind = rawKind.trim();
     pushMissingExpectedExtrasIssues(trimmedKind, frontmatter, issues);
   }
+
+  pushNonCanonicalGraphArrayIssues(frontmatter, issues);
 
   return { ok: issuesHaveNoErrors(issues), issues };
 }
@@ -225,7 +239,35 @@ export function validateVaultDocFrontmatter(
     pushMissingExpectedExtrasIssues(trimmedKind, frontmatter, issues);
   }
 
+  pushNonCanonicalGraphArrayIssues(frontmatter, issues);
+
   return { ok: issuesHaveNoErrors(issues), issues };
+}
+
+function pushNonCanonicalGraphArrayIssues(
+  frontmatter: Record<string, unknown>,
+  issues: VaultDocumentIssue[],
+): void {
+  for (const key of GRAPH_ARRAY_KEYS) {
+    const value = frontmatter[key];
+    if (!Array.isArray(value)) continue;
+    const refs = value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim());
+    const canonical = [...new Set(refs.filter(Boolean))].sort((a, b) =>
+      a.localeCompare(b),
+    );
+    if (
+      refs.length !== canonical.length ||
+      refs.some((item, index) => item !== canonical[index])
+    ) {
+      issues.push({
+        code: "non-canonical-graph-array",
+        severity: "warning",
+        message: `\`${key}:\` graph 배열이 정렬/중복제거된 canonical set 이 아닙니다 — add_relation 또는 patch_concept 로 다시 저장하면 정리됩니다.`,
+      });
+    }
+  }
 }
 
 export interface VaultValidationSummary {

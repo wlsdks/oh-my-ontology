@@ -3,20 +3,20 @@ slug: domains/views
 kind: domain
 title: Views (Topology · Browse · Builder)
 capabilities:
-  - topology-sigma-render
-  - ontology-hub-mode-aware
   - builder-vault-write
+  - ontology-hub-mode-aware
+  - topology-sigma-render
 elements:
   - sigma-graphology
-  - xyflow
   - src/views/home
-  - src/views/ontology-view
   - src/views/ontology-edit
-  - src/widgets/topology-map-sigma
+  - src/views/ontology-view
   - src/widgets/global-search
+  - src/widgets/topology-map-sigma
+  - xyflow
 relates:
-  - domains/ontology-core
   - domains/onboarding-ux
+  - domains/ontology-core
 ---
 
 # Views

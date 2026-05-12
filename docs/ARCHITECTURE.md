@@ -143,7 +143,7 @@ All routes are wrapped under `/[locale]/` by next-intl (en, ko).
 pnpm docs-vault:build      # docs/ontology/*.md → src/entities/docs-vault/data/manifest.json
 pnpm build                 # next build → static export → out/
 pnpm bundle:check          # verifies firebase SDK chunk = 0 across user-facing routes
-pnpm vault:validate        # R11 — frontmatter integrity (5 issue codes; CI gate)
+pnpm vault:validate        # R11+ — frontmatter integrity + graph array drift (CI gate)
 pnpm vault:migrate --list  # R11 — schema migration runner (dry-run default)
 ```
 

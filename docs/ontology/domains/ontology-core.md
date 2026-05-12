@@ -5,9 +5,9 @@ title: Ontology Core (TBox · ABox · Evidence)
 capabilities:
   - frontmatter-to-ontology
 elements:
-  - src/entities/ontology-class
-  - src/entities/knowledge-graph
   - src/entities/docs-vault/lib/derive-ontology-from-vault.ts
+  - src/entities/knowledge-graph
+  - src/entities/ontology-class
 relates:
   - domains/vault-local-first
   - domains/views

@@ -64,4 +64,10 @@ export const VALIDATE_CASES = [
     expectedCodes: ['parse-zero-keys'],
     expectedOk: true,
   },
+  {
+    name: 'graph 배열 중복/비정렬 → non-canonical-graph-array warning',
+    input: '---\nkind: project\ntitle: Foo\ndependencies: [z, a, z]\n---\n',
+    expectedCodes: ['non-canonical-graph-array'],
+    expectedOk: true,
+  },
 ];

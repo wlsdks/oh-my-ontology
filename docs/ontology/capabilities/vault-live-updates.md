@@ -4,9 +4,9 @@ kind: capability
 title: Vault Live Updates (5s polling + diff toast + graph pulse)
 domain: vault-local-first
 elements:
+  - src/features/docs-vault-local/lib/diff-manifest.ts
   - src/features/docs-vault-local/model/use-local-vault.ts
   - src/features/docs-vault-local/model/VaultDiffToaster.tsx
-  - src/features/docs-vault-local/lib/diff-manifest.ts
   - src/widgets/topology-map-sigma/lib/graph-build.ts
 relates:
   - capabilities/builder-vault-write

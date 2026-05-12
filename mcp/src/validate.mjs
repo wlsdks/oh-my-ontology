@@ -33,6 +33,7 @@ import { missingExpectedFields } from './schema.mjs';
  *  - missing-kind (warning)
  *  - unknown-kind (warning)
  *  - missing-expected-field (warning) — R14
+ *  - non-canonical-graph-array (warning)
  *  - parse-zero-keys (warning)
  *
  * @param {string} raw
@@ -45,6 +46,17 @@ export const KNOWN_VAULT_KINDS = [
   'element',
   'document',
   'vault-readme',
+];
+
+const GRAPH_ARRAY_KEYS = [
+  'domains',
+  'capabilities',
+  'elements',
+  'dependencies',
+  'depends_on',
+  'relates',
+  'contains',
+  'describes',
 ];
 
 export function validateVaultDocument(raw) {
@@ -114,8 +126,33 @@ export function validateVaultDocument(raw) {
     }
   }
 
+  pushNonCanonicalGraphArrayIssues(frontmatter, issues);
+
   return {
     ok: !issues.some((i) => i.severity === 'error'),
     issues,
   };
+}
+
+function pushNonCanonicalGraphArrayIssues(frontmatter, issues) {
+  for (const key of GRAPH_ARRAY_KEYS) {
+    const value = frontmatter[key];
+    if (!Array.isArray(value)) continue;
+    const refs = value
+      .filter((item) => typeof item === 'string')
+      .map((item) => item.trim());
+    const canonical = [...new Set(refs.filter(Boolean))].sort((a, b) =>
+      a.localeCompare(b),
+    );
+    if (
+      refs.length !== canonical.length ||
+      refs.some((item, index) => item !== canonical[index])
+    ) {
+      issues.push({
+        code: 'non-canonical-graph-array',
+        severity: 'warning',
+        message: `\`${key}:\` graph 배열이 정렬/중복제거된 canonical set 이 아닙니다 — add_relation 또는 patch_concept 로 다시 저장하면 정리됩니다.`,
+      });
+    }
+  }
 }

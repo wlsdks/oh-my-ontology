@@ -3,7 +3,7 @@ slug: capabilities/mcp-server
 kind: capability
 title: MCP Server (20 tools)
 domain: ai-agent-partner
-elements: [mcp/src/index.js, mcp/src/parser.mjs, mcp/src/vault.mjs, mcp/src/analyze.mjs, mcp/src/infer-imports.mjs]
+elements: [mcp/src/analyze.mjs, mcp/src/index.js, mcp/src/infer-imports.mjs, mcp/src/parser.mjs, mcp/src/vault.mjs]
 relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 ---
 

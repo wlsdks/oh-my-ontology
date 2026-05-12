@@ -4,11 +4,11 @@ kind: capability
 title: Topology — Sigma WebGL Render
 domain: views
 elements:
-  - src/widgets/topology-map-sigma
   - src/views/home
+  - src/widgets/topology-map-sigma
 relates:
-  - elements/sigma-graphology
   - domains/views
+  - elements/sigma-graphology
 ---
 
 # Topology — Sigma WebGL Render

@@ -25,6 +25,26 @@ const KNOWN_VAULT_KINDS = [
   "vault-readme",
 ];
 
+const GRAPH_ARRAY_KEYS = [
+  "domains",
+  "capabilities",
+  "elements",
+  "dependencies",
+  "depends_on",
+  "relates",
+  "contains",
+  "describes",
+];
+
+const KIND_EXPECTED_EXTRAS = {
+  project: [],
+  domain: [],
+  capability: ["domain"],
+  element: ["domain"],
+  document: [],
+  "vault-readme": [],
+};
+
 async function walk(dir) {
   const out = [];
   const entries = await readdir(dir, { withFileTypes: true });
@@ -95,12 +115,53 @@ function validate(raw) {
       severity: "warning",
       message: `\`kind: ${rawKind.trim()}\` 는 인식되지 않는 값입니다. 인식되는 값: ${KNOWN_VAULT_KINDS.join(" / ")}.`,
     });
+  } else {
+    const trimmedKind = rawKind.trim();
+    for (const key of KIND_EXPECTED_EXTRAS[trimmedKind] ?? []) {
+      const value = frontmatter[key];
+      const isMissing =
+        value === undefined ||
+        value === null ||
+        (typeof value === "string" && value.trim() === "");
+      if (isMissing) {
+        issues.push({
+          code: "missing-expected-field",
+          severity: "warning",
+          message: `\`${key}:\` 가 비어있습니다 — kind=${trimmedKind} 노드는 ${key} 가 있어야 트리에서 부모를 찾을 수 있습니다.`,
+        });
+      }
+    }
   }
+
+  pushNonCanonicalGraphArrayIssues(frontmatter, issues);
 
   return {
     ok: !issues.some((i) => i.severity === "error"),
     issues,
   };
+}
+
+function pushNonCanonicalGraphArrayIssues(frontmatter, issues) {
+  for (const key of GRAPH_ARRAY_KEYS) {
+    const value = frontmatter[key];
+    if (!Array.isArray(value)) continue;
+    const refs = value
+      .filter((item) => typeof item === "string")
+      .map((item) => item.trim());
+    const canonical = [...new Set(refs.filter(Boolean))].sort((a, b) =>
+      a.localeCompare(b),
+    );
+    if (
+      refs.length !== canonical.length ||
+      refs.some((item, index) => item !== canonical[index])
+    ) {
+      issues.push({
+        code: "non-canonical-graph-array",
+        severity: "warning",
+        message: `\`${key}:\` graph 배열이 정렬/중복제거된 canonical set 이 아닙니다 — add_relation 또는 patch_concept 로 다시 저장하면 정리됩니다.`,
+      });
+    }
+  }
 }
 
 async function main() {

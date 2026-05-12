@@ -3,7 +3,7 @@ slug: capabilities/builder-vault-write
 kind: capability
 title: Builder ↔ Vault md write (mode-aware)
 domain: views
-elements: [src/views/ontology-edit/ui/OntologyEditPage.tsx, src/features/docs-vault-local/model/use-local-vault.ts]
+elements: [src/features/docs-vault-local/model/use-local-vault.ts, src/views/ontology-edit/ui/OntologyEditPage.tsx]
 ---
 
 # Builder ↔ Vault md write (mode-aware)
