@@ -16,7 +16,7 @@
  *   - find_orphans           — 어느 다른 노드도 frontmatter 에서 가리키지 않는 doc
  *   - query_concepts         — typed filter DSL (kind=X AND has(Y) AND NOT ...)
  *   - compile_ontology       — vault 를 deterministic graph artifact 로 compile
- *   - query_ontology         — compiled graph engine query (neighbors / path / impact / subgraph / overview / schema)
+ *   - query_ontology         — compiled graph engine query (neighbors / path / impact / subgraph / overview / schema / relation_check)
  *   - validate_vault         — vault 전체 health 한 호출 (per-doc + byCode aggregate)
  *   - analyze_repo_structure — R16, code repo 분석 → ontology 후보 (side effect 0)
  *   - infer_imports          — R17, TS/JS import graph → depends_on 후보 (side effect 0)
@@ -138,7 +138,7 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 7. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates).
 8. \`query_concepts(filter)\` — structured questions like \`kind=capability AND domain=auth AND NOT has(elements)\` (= "unfinished caps under auth").
 9. \`compile_ontology({includeIndexes:true})\` — compiler-style graph artifact: canonical nodes, edges, aliases, issues, stable \`graphHash\`, \`maxMtime\`, and query indexes.
-10. \`query_ontology({operation:'neighbors'|'path'|'impact'|'subgraph'|'overview'|'schema', ...})\` — graph-engine query over the compiled artifact. Use \`neighbors\` for local graph view, \`path\` for relation route, \`impact\` for "what depends on this?" change analysis, \`subgraph\` for a bounded N-hop graph slice, \`overview\` for dashboard-style graph aggregates, and \`schema\` for \`(:kind)-[:relation]->(:kind)\` patterns.
+10. \`query_ontology({operation:'neighbors'|'path'|'impact'|'subgraph'|'overview'|'schema'|'relation_check', ...})\` — graph-engine query over the compiled artifact. Use \`neighbors\` for local graph view, \`path\` for relation route, \`impact\` for "what depends on this?" change analysis, \`subgraph\` for a bounded N-hop graph slice, \`overview\` for dashboard-style graph aggregates, \`schema\` for \`(:kind)-[:relation]->(:kind)\` patterns, and \`relation_check\` before writes.
 
 All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
 
@@ -626,14 +626,14 @@ const TOOLS = [
   {
     name: 'query_ontology',
     description:
-      'Run graph-engine queries over the freshly compiled ontology artifact. Operations: `neighbors` (local graph neighborhood), `path` (compiled-edge route between two nodes), `impact` (incoming by default: what depends on this node), `subgraph` (bounded N-hop graph slice for UI/agent views), `overview` (counts, relation distribution, and hubs), and `schema` (kind-relation-kind patterns). ' +
+      'Run graph-engine queries over the freshly compiled ontology artifact. Operations: `neighbors` (local graph neighborhood), `path` (compiled-edge route between two nodes), `impact` (incoming by default: what depends on this node), `subgraph` (bounded N-hop graph slice for UI/agent views), `overview` (counts, relation distribution, and hubs), `schema` (kind-relation-kind patterns), and `relation_check` (schema-aware preflight before add_relation). ' +
       'Accepts canonical slugs or unique aliases. side effect 0. Use this when you need graph-database-like answers without pulling the full compile_ontology payload.',
     inputSchema: {
       type: 'object',
       properties: {
         operation: {
           type: 'string',
-          enum: ['neighbors', 'path', 'impact', 'subgraph', 'overview', 'schema'],
+          enum: ['neighbors', 'path', 'impact', 'subgraph', 'overview', 'schema', 'relation_check'],
           description: 'Query operation to run.',
         },
         slug: {
@@ -663,6 +663,15 @@ const TOOLS = [
           items: { type: 'string' },
           description:
             'Optional relation types to include, e.g. ["dependencies"] or ["depends_on"].',
+        },
+        type: {
+          type: 'string',
+          description:
+            'Relation type for relation_check, e.g. depends_on, relates, contains, describes, domains, capabilities, elements, or domain.',
+        },
+        relation: {
+          type: 'string',
+          description: 'Alias for type when operation is relation_check.',
         },
         depth: {
           type: 'number',

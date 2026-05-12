@@ -22,8 +22,13 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'schema') {
     return engine.schema(query);
   }
+  if (operation === 'relation_check') {
+    return engine.relationCheck(query);
+  }
 
-  throw new Error('operation must be one of: neighbors, path, impact, subgraph, overview, schema.');
+  throw new Error(
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check.',
+  );
 }
 
 export function createOntologyEngine(artifact) {
@@ -291,8 +296,57 @@ export function createOntologyEngine(artifact) {
 
   function schema(options = {}) {
     const limit = normalizeLimit(options.limit ?? 50);
-    const patternMap = new Map();
+    const patterns = schemaPatterns();
 
+    return {
+      operation: 'schema',
+      totalPatterns: patterns.length,
+      limited: patterns.length > limit,
+      patterns: patterns.slice(0, limit),
+    };
+  }
+
+  function relationCheck(options = {}) {
+    const from = resolve(options.from, 'from');
+    const to = resolve(options.to, 'to');
+    const relationInput = options.type ?? options.relation;
+    if (typeof relationInput !== 'string' || !relationInput.trim()) {
+      throw new Error('type (string) is required for relation_check.');
+    }
+    const relation = normalizeRelationType(relationInput.trim());
+    const fromKind = nodeBySlug.get(from)?.kind || 'unknown';
+    const toKind = nodeBySlug.get(to)?.kind || 'unknown';
+    const existing = edges.filter(
+      (edge) => edge.from === from && edge.to === to && edge.via === relation && edge.resolved,
+    );
+    const matchedPattern = schemaPatterns().find(
+      (pattern) =>
+        pattern.fromKind === fromKind &&
+        pattern.relation === relation &&
+        pattern.toKind === toKind,
+    );
+    const verdict = existing.length > 0
+      ? 'already_exists'
+      : matchedPattern
+        ? 'matches_existing_schema'
+        : 'new_schema_pattern';
+
+    return {
+      operation: 'relation_check',
+      from,
+      to,
+      relation,
+      fromKind,
+      toKind,
+      exists: existing.length > 0,
+      verdict,
+      matchingEdges: existing.map(formatCompiledEdge),
+      schemaPattern: matchedPattern || null,
+    };
+  }
+
+  function schemaPatterns() {
+    const patternMap = new Map();
     for (const edge of edges) {
       const fromKind = nodeBySlug.get(edge.from)?.kind || 'unknown';
       const toKind = edge.resolved
@@ -326,21 +380,13 @@ export function createOntologyEngine(artifact) {
         });
       }
     }
-
-    const patterns = [...patternMap.values()].sort(
+    return [...patternMap.values()].sort(
       (a, b) =>
         b.count - a.count ||
         a.fromKind.localeCompare(b.fromKind) ||
         a.relation.localeCompare(b.relation) ||
         a.toKind.localeCompare(b.toKind),
     );
-
-    return {
-      operation: 'schema',
-      totalPatterns: patterns.length,
-      limited: patterns.length > limit,
-      patterns: patterns.slice(0, limit),
-    };
   }
 
   function traversalEdges(slug, direction, typeSet) {
@@ -363,7 +409,7 @@ export function createOntologyEngine(artifact) {
     return candidates;
   }
 
-  return { resolve, neighbors, path, impact, subgraph, overview, schema };
+  return { resolve, neighbors, path, impact, subgraph, overview, schema, relationCheck };
 }
 
 function countBy(items, key) {
@@ -471,6 +517,18 @@ function formatPathEdge(edge, traversedFrom, traversedTo) {
     via: edge.via,
     traversedFrom,
     traversedTo,
+  };
+}
+
+function formatCompiledEdge(edge) {
+  return {
+    id: edge.id,
+    from: edge.from,
+    to: edge.to,
+    via: edge.via,
+    ref: edge.ref,
+    resolved: edge.resolved,
+    external: edge.external,
   };
 }
 

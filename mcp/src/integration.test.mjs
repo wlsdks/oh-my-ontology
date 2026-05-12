@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check", async () => {
   const root = makeVault([
     {
       slug: "domains/auth",
@@ -309,6 +309,12 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       }),
       callTool(7, "query_ontology", {
         operation: "schema",
+      }),
+      callTool(8, "query_ontology", {
+        operation: "relation_check",
+        from: "capabilities/session",
+        to: "auth-domain",
+        type: "depends_on",
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -359,6 +365,12 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
           pattern.toKind === "domain",
       ),
     );
+
+    const relationCheck = getCallParsed(responses, 8);
+    assert.equal(relationCheck.relation, "dependencies");
+    assert.equal(relationCheck.exists, false);
+    assert.equal(relationCheck.verdict, "matches_existing_schema");
+    assert.equal(relationCheck.schemaPattern.toKind, "domain");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

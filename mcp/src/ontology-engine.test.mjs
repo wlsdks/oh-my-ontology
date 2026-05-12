@@ -209,4 +209,38 @@ describe('queryCompiledOntology', () => {
       ],
     );
   });
+
+  it('checks a proposed relation against existing edges and schema patterns', () => {
+    const existing = queryCompiledOntology(artifact(), {
+      operation: 'relation_check',
+      from: 'capabilities/login',
+      to: 'auth-domain',
+      type: 'depends_on',
+    });
+    assert.equal(existing.relation, 'dependencies');
+    assert.equal(existing.exists, true);
+    assert.equal(existing.verdict, 'already_exists');
+    assert.equal(existing.schemaPattern.count, 1);
+    assert.equal(existing.matchingEdges.length, 1);
+
+    const schemaMatch = queryCompiledOntology(artifact(), {
+      operation: 'relation_check',
+      from: 'capabilities/session',
+      to: 'auth-domain',
+      type: 'depends_on',
+    });
+    assert.equal(schemaMatch.exists, false);
+    assert.equal(schemaMatch.verdict, 'matches_existing_schema');
+    assert.equal(schemaMatch.schemaPattern.toKind, 'domain');
+
+    const newPattern = queryCompiledOntology(artifact(), {
+      operation: 'relation_check',
+      from: 'domains/auth',
+      to: 'capabilities/session',
+      type: 'relates',
+    });
+    assert.equal(newPattern.exists, false);
+    assert.equal(newPattern.verdict, 'new_schema_pattern');
+    assert.equal(newPattern.schemaPattern, null);
+  });
 });
