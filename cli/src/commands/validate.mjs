@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { walkMd } from '../lib/walk-vault.mjs';
+import { parseFrontmatter } from '../lib/parse-frontmatter.mjs';
 import { validateVaultDocument } from '../lib/validate.mjs';
 
 const COLORS = {
@@ -55,6 +56,12 @@ export const KNOWN_CODES = [
     severity: 'warning',
     description: 'graph 배열이 trim/dedup/sort 된 canonical set 이 아님.',
   },
+  {
+    code: 'dangling-graph-reference',
+    severity: 'warning',
+    scope: 'vault',
+    description: 'graph reference 가 vault 의 어떤 node 로도 resolve 되지 않음.',
+  },
 ];
 
 /**
@@ -96,6 +103,8 @@ export function runValidate(args) {
   }
   const vaultPath = resolve(args.find((a) => !a.startsWith('--')) || '.');
   const files = walkMd(vaultPath);
+  const entries = [];
+  const reportByFile = new Map();
   const reports = [];
   let errorFiles = 0;
   let warningFiles = 0;
@@ -107,8 +116,23 @@ export function runValidate(args) {
     } catch {
       continue;
     }
+    const slug = relative(vaultPath, file).replace(/\\/g, '/').replace(/\.md$/, '');
+    const { frontmatter } = parseFrontmatter(raw);
+    entries.push({ file, slug, frontmatter });
     const report = validateVaultDocument(raw);
-    if (report.issues.length === 0) continue;
+    reportByFile.set(file, report);
+  }
+
+  for (const { file, issue } of findDanglingGraphReferenceIssues(entries)) {
+    const report = reportByFile.get(file);
+    if (!report) continue;
+    report.issues.push(issue);
+    report.ok = !report.issues.some((i) => i.severity === 'error');
+  }
+
+  for (const file of files) {
+    const report = reportByFile.get(file);
+    if (!report || report.issues.length === 0) continue;
     reports.push({
       file: relative(process.cwd(), file),
       report,
@@ -294,4 +318,85 @@ function groupIssuesByCode(reports) {
     if (a.severity !== b.severity) return a.severity === 'error' ? -1 : 1;
     return b.count - a.count;
   });
+}
+
+const GRAPH_REFERENCE_KEYS = [
+  'domains',
+  'capabilities',
+  'elements',
+  'dependencies',
+  'depends_on',
+  'relates',
+  'contains',
+  'describes',
+];
+
+function collectGraphRefs(frontmatter) {
+  const refs = [];
+  for (const key of GRAPH_REFERENCE_KEYS) {
+    const value = frontmatter[key];
+    if (!Array.isArray(value)) continue;
+    for (const ref of value) refs.push({ key, ref });
+  }
+  const domain = frontmatter.domain;
+  if (typeof domain === 'string' && domain.trim()) {
+    refs.push({ key: 'domain', ref: domain });
+  }
+  return refs;
+}
+
+function findDanglingGraphReferenceIssues(entries) {
+  const slugs = new Set(entries.map((entry) => entry.slug));
+  const tailToFull = new Map();
+  const frontmatterSlugToFull = new Map();
+  for (const slug of slugs) {
+    const tail = slug.split('/').pop();
+    if (tail && tail !== slug && !tailToFull.has(tail)) {
+      tailToFull.set(tail, slug);
+    }
+  }
+  for (const entry of entries) {
+    const fmSlug = entry.frontmatter.slug;
+    if (typeof fmSlug === 'string' && fmSlug.trim() && !frontmatterSlugToFull.has(fmSlug)) {
+      frontmatterSlugToFull.set(fmSlug, entry.slug);
+    }
+  }
+  const resolveRef = (ref) => {
+    if (typeof ref !== 'string') return null;
+    if (slugs.has(ref)) return ref;
+    if (frontmatterSlugToFull.has(ref)) return frontmatterSlugToFull.get(ref);
+    if (tailToFull.has(ref)) return tailToFull.get(ref);
+    for (const slug of slugs) {
+      if (slug.endsWith(`/${ref}`)) return slug;
+    }
+    return null;
+  };
+  const issues = [];
+  for (const entry of entries) {
+    for (const { key, ref } of collectGraphRefs(entry.frontmatter)) {
+      if (typeof ref !== 'string' || ref.trim() === '') continue;
+      if (key === 'elements' && isPathLikeGraphRef(ref)) continue;
+      if (resolveRef(ref)) continue;
+      issues.push({
+        file: entry.file,
+        issue: {
+          code: 'dangling-graph-reference',
+          severity: 'warning',
+          message: `\`${key}:\` graph reference "${ref}" 가 vault 의 어떤 node 로도 resolve 되지 않습니다.`,
+        },
+      });
+    }
+  }
+  return issues;
+}
+
+function isPathLikeGraphRef(ref) {
+  return (
+    ref.startsWith('src/') ||
+    ref.startsWith('mcp/') ||
+    ref.startsWith('cli/') ||
+    ref.startsWith('scripts/') ||
+    ref.startsWith('.claude/') ||
+    /\.[A-Za-z0-9]+$/.test(ref)
+  );
 }

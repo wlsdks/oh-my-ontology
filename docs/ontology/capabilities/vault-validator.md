@@ -39,6 +39,7 @@ R11 에서 이 silent corruption 을 가시화.
 | `unknown-kind` | warning | both |
 | `missing-expected-field` | warning | both |
 | `non-canonical-graph-array` | warning | both |
+| `dangling-graph-reference` | warning | CLI / MCP whole-vault validation |
 | `parse-zero-keys` | warning | CLI only |
 
-UI 측은 fast path 라 raw 의존 issue 는 detect 못 하지만 *대부분의 사용자 실수* (kind 값 오타 / 빠뜨림 / graph 배열 drift) 는 cover.
+UI 측은 fast path 라 raw 의존 issue 와 whole-vault reference issue 는 detect 못 하지만 *대부분의 사용자 실수* (kind 값 오타 / 빠뜨림 / graph 배열 drift) 는 cover.

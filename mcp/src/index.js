@@ -547,7 +547,7 @@ const TOOLS = [
     description:
       'R+ (cycle 46) — validate every doc in the vault, return per-doc + per-code aggregate. ' +
       'Replaces the K-round-trip pattern of `list_concepts` then per-doc `get_concept` (whose `warnings: [...]` is per-file). ' +
-      '7 issue codes — `unclosed-frontmatter`, `parse-zero-keys`, `missing-kind`, `empty-kind`, `unknown-kind`, `missing-expected-field`, `non-canonical-graph-array`. ' +
+      '8 issue codes — `unclosed-frontmatter`, `parse-zero-keys`, `missing-kind`, `empty-kind`, `unknown-kind`, `missing-expected-field`, `non-canonical-graph-array`, `dangling-graph-reference`. ' +
       'Returns `{ scanned, problems: [{slug, issues: [{code, severity, message}]}], summary: { problemFiles, errorFiles, warningFiles, byCode: { code: { severity, count, files } } } }`. ' +
       'side effect 0. Use when an agent needs the *whole-vault* health view (e.g. before / after a batch write, or surfacing issues to the user).',
     inputSchema: {
@@ -1243,17 +1243,27 @@ function queryConceptsTool({ filter, limit }) {
 // list_concepts) 의 빠진 중간 — 둘 다 합친 detailed report.
 function validateVaultTool() {
   const docs = loadVaultDocs(VAULT_ROOT);
+  const docIssues = new Map();
+  for (const doc of docs) {
+    const result = validateVaultDocument(doc.raw || '');
+    docIssues.set(doc.slug, result.issues || []);
+  }
+  for (const issue of findDanglingGraphReferenceIssues(docs)) {
+    const issues = docIssues.get(issue.slug) || [];
+    issues.push(issue.issue);
+    docIssues.set(issue.slug, issues);
+  }
   const problems = [];
   let errorFiles = 0;
   let warningFiles = 0;
   // byCode aggregation: { code → { severity, count, files: Set<slug> } }
   const byCodeMap = new Map();
   for (const doc of docs) {
-    const result = validateVaultDocument(doc.raw || '');
-    if (!result.issues || result.issues.length === 0) continue;
+    const issues = docIssues.get(doc.slug) || [];
+    if (issues.length === 0) continue;
     let hasError = false;
     const seenInDoc = new Set();
-    for (const issue of result.issues) {
+    for (const issue of issues) {
       if (issue.severity === 'error') hasError = true;
       if (!byCodeMap.has(issue.code)) {
         byCodeMap.set(issue.code, {
@@ -1276,7 +1286,7 @@ function validateVaultTool() {
     else warningFiles += 1;
     problems.push({
       slug: doc.slug,
-      issues: result.issues.map((i) => ({
+      issues: issues.map((i) => ({
         code: i.code,
         severity: i.severity,
         message: i.message,
@@ -1301,6 +1311,62 @@ function validateVaultTool() {
       byCode,
     },
   };
+}
+
+function findDanglingGraphReferenceIssues(docs) {
+  const slugs = new Set(docs.map((d) => d.slug));
+  const tailToFull = new Map();
+  const frontmatterSlugToFull = new Map();
+  for (const slug of slugs) {
+    const tail = slug.split('/').pop();
+    if (tail && tail !== slug && !tailToFull.has(tail)) {
+      tailToFull.set(tail, slug);
+    }
+  }
+  for (const doc of docs) {
+    const fmSlug = doc.frontmatter.slug;
+    if (typeof fmSlug === 'string' && fmSlug.trim() && !frontmatterSlugToFull.has(fmSlug)) {
+      frontmatterSlugToFull.set(fmSlug, doc.slug);
+    }
+  }
+  const resolveRef = (ref) => {
+    if (typeof ref !== 'string') return null;
+    if (slugs.has(ref)) return ref;
+    if (frontmatterSlugToFull.has(ref)) return frontmatterSlugToFull.get(ref);
+    if (tailToFull.has(ref)) return tailToFull.get(ref);
+    for (const slug of slugs) {
+      if (slug.endsWith(`/${ref}`)) return slug;
+    }
+    return null;
+  };
+  const issues = [];
+  for (const doc of docs) {
+    for (const { key, ref } of collectNeighborRefs(doc)) {
+      if (typeof ref !== 'string' || ref.trim() === '') continue;
+      if (key === 'elements' && isPathLikeGraphRef(ref)) continue;
+      if (resolveRef(ref)) continue;
+      issues.push({
+        slug: doc.slug,
+        issue: {
+          code: 'dangling-graph-reference',
+          severity: 'warning',
+          message: `\`${key}:\` graph reference "${ref}" 가 vault 의 어떤 node 로도 resolve 되지 않습니다.`,
+        },
+      });
+    }
+  }
+  return issues;
+}
+
+function isPathLikeGraphRef(ref) {
+  return (
+    ref.startsWith('src/') ||
+    ref.startsWith('mcp/') ||
+    ref.startsWith('cli/') ||
+    ref.startsWith('scripts/') ||
+    ref.startsWith('.claude/') ||
+    /\.[A-Za-z0-9]+$/.test(ref)
+  );
 }
 
 // R16 (b3) — analyze_repo_structure thin wrapper. side effect 0 — vault

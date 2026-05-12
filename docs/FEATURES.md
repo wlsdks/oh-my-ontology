@@ -415,7 +415,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 7. **list_kinds** — vault kind census `{ total, byKind: { capability: N, … } }`
 8. **find_orphans** `{ kind?, excludeKinds? }` — isolated nodes across graph frontmatter, including `domains` / `domain` containment (defaults exclude `vault-readme`)
 9. **query_concepts** `{ filter, limit? }` — typed filter DSL with AND/OR/NOT on `kind` / `domain` / `slug` / `title` / `has(arrayKey)`
-10. **validate_vault** — whole-vault health check with per-file issues and grouped summary, including non-canonical graph array drift
+10. **validate_vault** — whole-vault health check with per-file issues and grouped summary, including non-canonical graph arrays and dangling graph references
 11. **analyze_repo_structure** `{ repoRoot? }` — side-effect-free bootstrap candidates from package / README / source layout
 12. **infer_imports** `{ repoRoot? }` — side-effect-free TS/JS import graph → dependency edge candidates
 

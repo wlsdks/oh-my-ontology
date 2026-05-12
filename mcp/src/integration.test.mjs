@@ -821,6 +821,33 @@ await test("validate_vault — empty-kind error 와 missing-expected-field warni
   }
 });
 
+await test("validate_vault — dangling graph reference warning surface", async () => {
+  const root = makeVault([
+    {
+      slug: "a",
+      content: "---\nkind: project\ntitle: A\ndependencies: [missing]\n---\n",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "validate_vault", {}),
+    ]);
+    const r = getCallParsed(responses, 2);
+    const problem = r.problems.find((p) => p.slug === "a");
+    assert.ok(problem, "a 문제 row");
+    assert.ok(
+      problem.issues.some((i) => i.code === "dangling-graph-reference"),
+    );
+    assert.equal(
+      r.summary.byCode["dangling-graph-reference"].severity,
+      "warning",
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("patch_concept — expected_mtime stale 면 conflict error response", async () => {
   const root = makeVault([
     { slug: "foo", content: "---\nkind: capability\ntitle: Foo\n---\n" },

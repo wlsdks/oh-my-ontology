@@ -171,13 +171,31 @@ async function main() {
     : path.join(ROOT, "docs", "ontology");
 
   const files = await walk(vaultDir);
+  const entries = [];
+  const reportByFile = new Map();
   const reports = [];
   let errorFiles = 0;
   let warningFiles = 0;
 
   for (const file of files) {
     const raw = await readFile(file, "utf8");
+    const { frontmatter } = parseFrontmatter(raw);
+    const slug = path.relative(vaultDir, file).replace(/\\/g, "/").replace(/\.md$/, "");
+    entries.push({ file, slug, frontmatter });
     const report = validate(raw);
+    reportByFile.set(file, report);
+  }
+
+  for (const { file, issue } of findDanglingGraphReferenceIssues(entries)) {
+    const report = reportByFile.get(file);
+    if (!report) continue;
+    report.issues.push(issue);
+    report.ok = !report.issues.some((i) => i.severity === "error");
+  }
+
+  for (const file of files) {
+    const report = reportByFile.get(file);
+    if (!report) continue;
     if (report.issues.length === 0) continue;
     reports.push({ file: path.relative(ROOT, file), report });
     if (report.issues.some((i) => i.severity === "error")) errorFiles += 1;
@@ -204,6 +222,76 @@ async function main() {
   );
 
   process.exit(errorFiles > 0 ? 1 : 0);
+}
+
+function collectGraphRefs(frontmatter) {
+  const refs = [];
+  for (const key of GRAPH_ARRAY_KEYS) {
+    const value = frontmatter[key];
+    if (!Array.isArray(value)) continue;
+    for (const ref of value) refs.push({ key, ref });
+  }
+  const domain = frontmatter.domain;
+  if (typeof domain === "string" && domain.trim()) {
+    refs.push({ key: "domain", ref: domain });
+  }
+  return refs;
+}
+
+function findDanglingGraphReferenceIssues(entries) {
+  const slugs = new Set(entries.map((entry) => entry.slug));
+  const tailToFull = new Map();
+  const frontmatterSlugToFull = new Map();
+  for (const slug of slugs) {
+    const tail = slug.split("/").pop();
+    if (tail && tail !== slug && !tailToFull.has(tail)) {
+      tailToFull.set(tail, slug);
+    }
+  }
+  for (const entry of entries) {
+    const fmSlug = entry.frontmatter.slug;
+    if (typeof fmSlug === "string" && fmSlug.trim() && !frontmatterSlugToFull.has(fmSlug)) {
+      frontmatterSlugToFull.set(fmSlug, entry.slug);
+    }
+  }
+  const resolveRef = (ref) => {
+    if (typeof ref !== "string") return null;
+    if (slugs.has(ref)) return ref;
+    if (frontmatterSlugToFull.has(ref)) return frontmatterSlugToFull.get(ref);
+    if (tailToFull.has(ref)) return tailToFull.get(ref);
+    for (const slug of slugs) {
+      if (slug.endsWith(`/${ref}`)) return slug;
+    }
+    return null;
+  };
+  const issues = [];
+  for (const entry of entries) {
+    for (const { key, ref } of collectGraphRefs(entry.frontmatter)) {
+      if (typeof ref !== "string" || ref.trim() === "") continue;
+      if (key === "elements" && isPathLikeGraphRef(ref)) continue;
+      if (resolveRef(ref)) continue;
+      issues.push({
+        file: entry.file,
+        issue: {
+          code: "dangling-graph-reference",
+          severity: "warning",
+          message: `\`${key}:\` graph reference "${ref}" 가 vault 의 어떤 node 로도 resolve 되지 않습니다.`,
+        },
+      });
+    }
+  }
+  return issues;
+}
+
+function isPathLikeGraphRef(ref) {
+  return (
+    ref.startsWith("src/") ||
+    ref.startsWith("mcp/") ||
+    ref.startsWith("cli/") ||
+    ref.startsWith("scripts/") ||
+    ref.startsWith(".claude/") ||
+    /\.[A-Za-z0-9]+$/.test(ref)
+  );
 }
 
 main().catch((err) => {

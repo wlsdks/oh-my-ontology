@@ -15,8 +15,8 @@ import { KNOWN_CODES } from '../../cli/src/commands/validate.mjs';
  *   - severity 불일치 시 `--fail-on` 결정 흐름 어긋남
  *
  * 두 contract:
- * 1. KNOWN_CODES.map(c => c.code) 가 fixture 가 elicit 하는 모든 code 와 일치.
- * 2. 각 KNOWN_CODES 엔트리의 severity 가 실제 validator 출력의 severity 와 동일.
+ * 1. document-scope KNOWN_CODES 가 fixture 가 elicit 하는 모든 code 와 일치.
+ * 2. document-scope KNOWN_CODES 엔트리의 severity 가 실제 validator 출력의 severity 와 동일.
  */
 
 interface ValidatorReport {
@@ -34,7 +34,9 @@ describe('KNOWN_CODES drift contract — list-codes / fail-on UX 진실원', () 
     for (const c of VALIDATE_CASES) {
       for (const code of c.expectedCodes) fixtureCodes.add(code);
     }
-    const knownCodes = new Set(KNOWN_CODES.map((c) => c.code));
+    const knownCodes = new Set(
+      KNOWN_CODES.filter((c) => c.scope !== 'vault').map((c) => c.code),
+    );
     // 양방향 — 추가/누락 모두 잡힘.
     expect([...knownCodes].sort()).toEqual([...fixtureCodes].sort());
   });
@@ -48,7 +50,7 @@ describe('KNOWN_CODES drift contract — list-codes / fail-on UX 진실원', () 
   it('각 KNOWN_CODES.severity 가 validator 실제 출력 severity 와 일치', () => {
     // 각 code 별로 fixture 에서 그 code 를 elicit 하는 첫 case 를 찾고,
     // 실제 validator 를 돌려 severity 비교.
-    for (const known of KNOWN_CODES) {
+    for (const known of KNOWN_CODES.filter((c) => c.scope !== 'vault')) {
       const fixtureCase = VALIDATE_CASES.find((c) =>
         c.expectedCodes.includes(known.code),
       );

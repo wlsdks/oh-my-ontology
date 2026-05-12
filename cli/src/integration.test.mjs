@@ -148,6 +148,7 @@ await test('validate — clean vault: exit 0', async () => {
   // warning 없이 clean. canonical kind 인식 자체를 보는 fixture 라 domain 추가.
   const root = withVault([
     { slug: 'a', content: '---\nkind: capability\ndomain: domains/auth\n---\n' },
+    { slug: 'domains/auth', content: '---\nkind: domain\ntitle: Auth\n---\n' },
   ]);
   try {
     const r = await run(['validate', root]);
@@ -223,6 +224,7 @@ await test('validate --list-codes — issue code 목록 출력 (R+ cycle 44)', a
     'unknown-kind',
     'missing-expected-field',
     'non-canonical-graph-array',
+    'dangling-graph-reference',
   ]) {
     assert.match(clean, new RegExp(code), `${code} 가 출력에 있어야`);
   }
@@ -429,6 +431,23 @@ await test('validate --json — empty-kind error: problems[] / summary.byCode, e
     assert.ok(data.summary.byCode['empty-kind']);
     assert.equal(data.summary.byCode['empty-kind'].severity, 'error');
     assert.ok(data.summary.errorFiles >= 1);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('validate --json — dangling graph reference warning', async () => {
+  const root = withVault([
+    { slug: 'a', content: '---\nkind: project\ntitle: A\ndependencies: [missing]\n---\n' },
+  ]);
+  try {
+    const r = await run(['validate', root, '--json']);
+    assert.equal(r.code, 0);
+    const data = JSON.parse(r.stdout);
+    const p = data.problems.find((x) => /a\.md$/.test(x.file));
+    assert.ok(p, 'a.md 가 problems 에 있어야');
+    assert.ok(p.issues.some((i) => i.code === 'dangling-graph-reference'));
+    assert.equal(data.summary.byCode['dangling-graph-reference'].severity, 'warning');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
