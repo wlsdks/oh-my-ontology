@@ -42,9 +42,12 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'recommend_relations') {
     return engine.recommendRelations(query);
   }
+  if (operation === 'health') {
+    return engine.health(query);
+  }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage, cycles, topological_order, recommend_relations.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage, cycles, topological_order, recommend_relations, health.',
   );
 }
 
@@ -648,6 +651,126 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function health(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 10);
+    const overviewResult = overview({ limit });
+    const componentResult = components({
+      limit: normalizeLimit(options.componentLimit ?? 5),
+      nodeLimit: normalizeLimit(options.nodeLimit ?? 10),
+      types: options.componentTypes ?? options.types,
+    });
+    const cycleResult = cycles({
+      limit: normalizeLimit(options.cycleLimit ?? 5),
+      maxHops: options.maxHops ?? options.depth,
+      types: options.dependencyTypes ?? ['dependencies'],
+    });
+    const recommendationResult = recommendRelations({
+      limit: normalizeLimit(options.recommendationLimit ?? 20),
+    });
+    const orderResult = topologicalOrder({
+      limit: normalizeLimit(options.orderLimit ?? 20),
+      types: options.dependencyTypes ?? ['dependencies'],
+    });
+    const issueCount = Array.isArray(artifact?.issues) ? artifact.issues.length : 0;
+    const graph = overviewResult.graph;
+    const checks = [
+      healthCheck({
+        id: 'compile_issues',
+        status: issueCount === 0 ? 'pass' : 'warn',
+        count: issueCount,
+        message:
+          issueCount === 0
+            ? 'Compiled ontology artifact has no compiler issues.'
+            : 'Compiled ontology artifact has compiler issues; inspect compile_ontology.issues.',
+      }),
+      healthCheck({
+        id: 'unresolved_edges',
+        status: graph.unresolvedEdges === 0 ? 'pass' : 'warn',
+        count: graph.unresolvedEdges,
+        message:
+          graph.unresolvedEdges === 0
+            ? 'Every internal edge resolves to a known ontology node.'
+            : 'Some internal edges do not resolve to a known ontology node.',
+      }),
+      healthCheck({
+        id: 'dependency_cycles',
+        status: cycleResult.totalCycles === 0 ? 'pass' : 'fail',
+        count: cycleResult.totalCycles,
+        message:
+          cycleResult.totalCycles === 0
+            ? 'No directed dependency cycles were detected.'
+            : 'Directed dependency cycles block a clean prerequisite-first graph order.',
+      }),
+      healthCheck({
+        id: 'relation_recommendations',
+        status: recommendationResult.totalRecommendations === 0 ? 'pass' : 'warn',
+        count: recommendationResult.totalRecommendations,
+        message:
+          recommendationResult.totalRecommendations === 0
+            ? 'No safe domain-containment relation suggestions are pending.'
+            : 'Safe domain-containment relation suggestions are available.',
+      }),
+      healthCheck({
+        id: 'components',
+        status: componentResult.totalComponents <= 1 ? 'pass' : 'info',
+        count: componentResult.totalComponents,
+        message:
+          componentResult.totalComponents <= 1
+            ? 'The resolved ontology graph is connected.'
+            : 'The resolved ontology graph has disconnected islands; this can be intentional for README or reference nodes.',
+      }),
+    ];
+    const status = checks.some((check) => check.status === 'fail' || check.status === 'warn')
+      ? 'needs_attention'
+      : 'healthy';
+
+    return {
+      operation: 'health',
+      status,
+      graphHash: graph.graphHash,
+      maxMtime: graph.maxMtime,
+      summary: {
+        nodes: graph.nodes,
+        edges: graph.edges,
+        resolvedEdges: graph.resolvedEdges,
+        externalEdges: graph.externalEdges,
+        unresolvedEdges: graph.unresolvedEdges,
+        issues: graph.issues,
+        ambiguousAliases: graph.ambiguousAliases,
+        components: componentResult.totalComponents,
+        largestComponentSize: componentResult.largestSize,
+        singletonComponents: componentResult.singletonCount,
+        dependencyCycles: cycleResult.totalCycles,
+        relationRecommendations: recommendationResult.totalRecommendations,
+        dependencyOrderAcyclic: orderResult.acyclic,
+      },
+      checks,
+      components: {
+        totalComponents: componentResult.totalComponents,
+        largestSize: componentResult.largestSize,
+        singletonCount: componentResult.singletonCount,
+        limited: componentResult.limited,
+        components: componentResult.components,
+      },
+      dependencyCycles: {
+        totalCycles: cycleResult.totalCycles,
+        limited: cycleResult.limited,
+        cycles: cycleResult.cycles,
+      },
+      relationRecommendations: {
+        totalRecommendations: recommendationResult.totalRecommendations,
+        limited: recommendationResult.limited,
+        recommendations: recommendationResult.recommendations,
+      },
+      dependencyOrder: {
+        acyclic: orderResult.acyclic,
+        totalNodes: orderResult.totalNodes,
+        orderedCount: orderResult.orderedCount,
+        blocked: orderResult.blocked,
+      },
+    };
+  }
+
   function schemaPatterns() {
     const patternMap = new Map();
     for (const edge of edges) {
@@ -766,7 +889,12 @@ export function createOntologyEngine(artifact) {
     cycles,
     topologicalOrder,
     recommendRelations,
+    health,
   };
+}
+
+function healthCheck({ id, status, count, message }) {
+  return { id, status, count, message };
 }
 
 function countBy(items, key) {

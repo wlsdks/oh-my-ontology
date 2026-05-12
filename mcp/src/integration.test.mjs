@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components/lineage/cycles/topological_order/recommend_relations", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components/lineage/cycles/topological_order/recommend_relations/health", async () => {
   const root = makeVault([
     {
       slug: "domains/auth",
@@ -331,6 +331,9 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       }),
       callTool(13, "query_ontology", {
         operation: "recommend_relations",
+      }),
+      callTool(14, "query_ontology", {
+        operation: "health",
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -426,6 +429,14 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
         type: "capabilities",
       },
     ]);
+
+    const health = getCallParsed(responses, 14);
+    assert.equal(health.operation, "health");
+    assert.equal(health.status, "needs_attention");
+    assert.equal(health.summary.nodes, 3);
+    assert.equal(health.summary.dependencyCycles, 0);
+    assert.equal(health.summary.relationRecommendations, 1);
+    assert.equal(health.checks.find((check) => check.id === "relation_recommendations").status, "warn");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

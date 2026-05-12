@@ -606,4 +606,96 @@ describe('queryCompiledOntology', () => {
       'capabilities/login',
     ]);
   });
+
+  it('returns a one-shot health dashboard for clean ontology graphs', () => {
+    const clean = compileOntology(
+      [
+        doc('domains/auth', {
+          slug: 'auth-domain',
+          kind: 'domain',
+          title: 'Auth',
+          capabilities: ['capabilities/login', 'capabilities/session'],
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'auth-domain',
+        }),
+        doc('capabilities/session', {
+          kind: 'capability',
+          title: 'Session',
+          domain: 'auth-domain',
+          depends_on: ['capabilities/login'],
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(clean, {
+      operation: 'health',
+    });
+
+    assert.equal(result.operation, 'health');
+    assert.equal(result.status, 'healthy');
+    assert.equal(result.summary.nodes, 3);
+    assert.equal(result.summary.components, 1);
+    assert.equal(result.summary.dependencyCycles, 0);
+    assert.equal(result.summary.relationRecommendations, 0);
+    assert.equal(result.summary.dependencyOrderAcyclic, true);
+    assert.deepEqual(
+      result.checks.map((check) => ({ id: check.id, status: check.status, count: check.count })),
+      [
+        { id: 'compile_issues', status: 'pass', count: 0 },
+        { id: 'unresolved_edges', status: 'pass', count: 0 },
+        { id: 'dependency_cycles', status: 'pass', count: 0 },
+        { id: 'relation_recommendations', status: 'pass', count: 0 },
+        { id: 'components', status: 'pass', count: 1 },
+      ],
+    );
+  });
+
+  it('marks graph health as needing attention when integrity checks fail', () => {
+    const degraded = compileOntology(
+      [
+        doc('domains/auth', {
+          slug: 'auth-domain',
+          kind: 'domain',
+          title: 'Auth',
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'auth-domain',
+          depends_on: ['capabilities/session', 'capabilities/missing'],
+        }),
+        doc('capabilities/session', {
+          kind: 'capability',
+          title: 'Session',
+          domain: 'auth-domain',
+          depends_on: ['capabilities/login'],
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(degraded, {
+      operation: 'health',
+    });
+
+    assert.equal(result.status, 'needs_attention');
+    assert.equal(result.summary.unresolvedEdges, 1);
+    assert.equal(result.summary.dependencyCycles, 1);
+    assert.equal(result.summary.relationRecommendations, 2);
+    assert.equal(result.summary.dependencyOrderAcyclic, false);
+    assert.equal(result.checks.find((check) => check.id === 'unresolved_edges').status, 'warn');
+    assert.equal(result.checks.find((check) => check.id === 'dependency_cycles').status, 'fail');
+    assert.equal(
+      result.checks.find((check) => check.id === 'relation_recommendations').status,
+      'warn',
+    );
+    assert.deepEqual(result.dependencyOrder.blocked.map((row) => row.slug), [
+      'capabilities/login',
+      'capabilities/session',
+    ]);
+  });
 });
