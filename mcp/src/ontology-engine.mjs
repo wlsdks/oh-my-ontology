@@ -39,9 +39,12 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'topological_order') {
     return engine.topologicalOrder(query);
   }
+  if (operation === 'recommend_relations') {
+    return engine.recommendRelations(query);
+  }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage, cycles, topological_order.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage, cycles, topological_order, recommend_relations.',
   );
 }
 
@@ -597,6 +600,54 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function recommendRelations(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 50);
+    const kindFilter = typeof options.kind === 'string' && options.kind.trim()
+      ? options.kind.trim()
+      : null;
+    const recommendations = [];
+
+    for (const node of [...nodes].sort((a, b) => a.slug.localeCompare(b.slug))) {
+      if (node.kind !== 'capability' && node.kind !== 'element') continue;
+      if (kindFilter && node.kind !== kindFilter) continue;
+      const domainSlug = resolveOptional(node.domain);
+      if (!domainSlug) continue;
+      const relation = node.kind === 'capability' ? 'capabilities' : 'elements';
+      if (hasResolvedEdge(domainSlug, node.slug, relation) || hasResolvedEdge(domainSlug, node.slug, 'contains')) {
+        continue;
+      }
+
+      recommendations.push({
+        kind: 'missing_domain_containment',
+        score: 1,
+        from: domainSlug,
+        to: node.slug,
+        relation,
+        reason: `${node.slug} has domain "${node.domain}", but ${domainSlug} does not link back via ${relation}.`,
+        proposedAction: {
+          tool: 'add_relation',
+          args: {
+            from: domainSlug,
+            to: node.slug,
+            type: relation,
+          },
+        },
+        nodes: {
+          from: summarizeNode(nodeBySlug.get(domainSlug)),
+          to: summarizeNode(node),
+        },
+      });
+    }
+
+    return {
+      operation: 'recommend_relations',
+      mode: 'domain_containment',
+      totalRecommendations: recommendations.length,
+      limited: recommendations.length > limit,
+      recommendations: recommendations.slice(0, limit),
+    };
+  }
+
   function schemaPatterns() {
     const patternMap = new Map();
     for (const edge of edges) {
@@ -688,6 +739,19 @@ export function createOntologyEngine(artifact) {
     return candidates;
   }
 
+  function resolveOptional(input) {
+    if (typeof input !== 'string' || !input.trim()) return null;
+    const candidate = input.trim();
+    if (nodeBySlug.has(candidate)) return candidate;
+    return aliasToSlug.get(candidate) || null;
+  }
+
+  function hasResolvedEdge(from, to, via) {
+    return (outgoing.get(from) || []).some(
+      (edge) => edge.resolved && edge.to === to && edge.via === via,
+    );
+  }
+
   return {
     resolve,
     neighbors,
@@ -701,6 +765,7 @@ export function createOntologyEngine(artifact) {
     lineage,
     cycles,
     topologicalOrder,
+    recommendRelations,
   };
 }
 

@@ -509,4 +509,101 @@ describe('queryCompiledOntology', () => {
       'capabilities/b',
     ]);
   });
+
+  it('recommends missing parent-to-child domain containment relations', () => {
+    const graph = compileOntology(
+      [
+        doc('domains/auth', {
+          slug: 'auth-domain',
+          kind: 'domain',
+          title: 'Auth',
+          capabilities: ['capabilities/session'],
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'auth-domain',
+        }),
+        doc('capabilities/session', {
+          kind: 'capability',
+          title: 'Session',
+          domain: 'auth-domain',
+        }),
+        doc('elements/token', {
+          kind: 'element',
+          title: 'Token',
+          domain: 'auth-domain',
+        }),
+        doc('elements/claims', {
+          kind: 'element',
+          title: 'Claims',
+          domain: 'auth-domain',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(graph, {
+      operation: 'recommend_relations',
+    });
+
+    assert.equal(result.operation, 'recommend_relations');
+    assert.equal(result.mode, 'domain_containment');
+    assert.equal(result.totalRecommendations, 3);
+    assert.deepEqual(
+      result.recommendations.map((row) => ({
+        kind: row.kind,
+        from: row.from,
+        to: row.to,
+        relation: row.relation,
+        action: row.proposedAction.args,
+      })),
+      [
+        {
+          kind: 'missing_domain_containment',
+          from: 'domains/auth',
+          to: 'capabilities/login',
+          relation: 'capabilities',
+          action: {
+            from: 'domains/auth',
+            to: 'capabilities/login',
+            type: 'capabilities',
+          },
+        },
+        {
+          kind: 'missing_domain_containment',
+          from: 'domains/auth',
+          to: 'elements/claims',
+          relation: 'elements',
+          action: {
+            from: 'domains/auth',
+            to: 'elements/claims',
+            type: 'elements',
+          },
+        },
+        {
+          kind: 'missing_domain_containment',
+          from: 'domains/auth',
+          to: 'elements/token',
+          relation: 'elements',
+          action: {
+            from: 'domains/auth',
+            to: 'elements/token',
+            type: 'elements',
+          },
+        },
+      ],
+    );
+
+    const onlyCapabilities = queryCompiledOntology(graph, {
+      operation: 'recommend_relations',
+      kind: 'capability',
+      limit: 1,
+    });
+    assert.equal(onlyCapabilities.totalRecommendations, 1);
+    assert.equal(onlyCapabilities.limited, false);
+    assert.deepEqual(onlyCapabilities.recommendations.map((row) => row.to), [
+      'capabilities/login',
+    ]);
+  });
 });

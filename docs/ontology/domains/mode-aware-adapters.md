@@ -4,6 +4,7 @@ kind: domain
 title: Mode-Aware Adapters
 capabilities:
   - mode-aware-adapter
+  - ontology-hub-mode-aware
 elements:
   - src/features/data-source-mode
   - src/features/project-data-source

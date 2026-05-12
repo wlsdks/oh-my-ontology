@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-12T23:27:05.837Z",
+  "generatedAt": "2026-05-12T23:33:48.123Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -4226,8 +4226,8 @@
         }
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260509 (postcleanonboarding — CLI · MCP · Web 3 surface, 20 MCP tools, clean Codex setup smoke, current web E2E restored). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아",
-      "wordCount": 4794,
-      "updatedAt": "2026-05-12T23:24:02.987Z",
+      "wordCount": 4795,
+      "updatedAt": "2026-05-12T23:29:25.380Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -4705,8 +4705,8 @@
         }
       ],
       "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing 은 partial result) | | ",
-      "wordCount": 639,
-      "updatedAt": "2026-05-12T23:23:58.318Z",
+      "wordCount": 641,
+      "updatedAt": "2026-05-12T23:29:20.003Z",
       "linksOut": []
     },
     {
@@ -5119,7 +5119,8 @@
         "kind": "domain",
         "title": "Mode-Aware Adapters",
         "capabilities": [
-          "mode-aware-adapter"
+          "mode-aware-adapter",
+          "ontology-hub-mode-aware"
         ],
         "elements": [
           "src/features/data-source-mode",
@@ -5139,7 +5140,7 @@
       ],
       "excerpt": "useDataSourceMode() 가 local / static 분기 결정. R10 (auth + cloud surface 영구 제거) 이후 두 mode 만 존재. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 사용자에겐 단일 UX. 미래 cloud collab 단계가 다시 도입될 때 'cloud' mode 와 그 adapter 를 새로 추가.",
       "wordCount": 50,
-      "updatedAt": "2026-05-12T15:58:45.729Z",
+      "updatedAt": "2026-05-12T23:31:06.921Z",
       "linksOut": []
     },
     {

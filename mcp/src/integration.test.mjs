@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components/lineage/cycles/topological_order", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/relation_check/components/lineage/cycles/topological_order/recommend_relations", async () => {
   const root = makeVault([
     {
       slug: "domains/auth",
@@ -328,6 +328,9 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       }),
       callTool(12, "query_ontology", {
         operation: "topological_order",
+      }),
+      callTool(13, "query_ontology", {
+        operation: "recommend_relations",
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -412,6 +415,16 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       "domains/auth",
       "capabilities/login",
       "capabilities/session",
+    ]);
+
+    const recommendations = getCallParsed(responses, 13);
+    assert.equal(recommendations.totalRecommendations, 1);
+    assert.deepEqual(recommendations.recommendations.map((row) => row.proposedAction.args), [
+      {
+        from: "domains/auth",
+        to: "capabilities/login",
+        type: "capabilities",
+      },
     ]);
   } finally {
     rmSync(root, { recursive: true, force: true });
