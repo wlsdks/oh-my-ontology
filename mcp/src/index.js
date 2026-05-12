@@ -915,6 +915,10 @@ function getConcept({ slug }) {
   // R11 #23 — 이 doc 의 frontmatter corruption 검출. AI agent 가 응답에서
   // warnings 보고 사용자에게 안내 / vault:validate 권장 가능.
   const validation = doc.raw ? validateVaultDocument(doc.raw) : null;
+  const warnings = validation ? [...validation.issues] : [];
+  for (const dangling of findDanglingGraphReferenceIssues(loadVaultDocs(VAULT_ROOT))) {
+    if (dangling.slug === doc.slug) warnings.push(dangling.issue);
+  }
   const outgoingEdges = collectNeighborRefs(doc).map(({ key, ref }) => ({
     to: ref,
     via: key,
@@ -938,8 +942,7 @@ function getConcept({ slug }) {
     // patch_concept / delete_concept 의 expected_mtime 으로 그대로 넘겨
     // 외부 변경 감지 가능. ms 단위 fs mtime.
     mtime: doc.mtime,
-    warnings:
-      validation && validation.issues.length > 0 ? validation.issues : undefined,
+    warnings: warnings.length > 0 ? warnings : undefined,
   };
 }
 

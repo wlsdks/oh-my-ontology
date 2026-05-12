@@ -1053,6 +1053,34 @@ await test("get_concept — corrupt doc 응답에 warnings 노출 (R11 #23)", as
   }
 });
 
+await test("get_concept — dangling outgoing graph reference 를 warnings 에 포함", async () => {
+  const root = makeVault([
+    {
+      slug: "a",
+      content: "---\nkind: project\ntitle: A\ndependencies: [missing]\n---\n",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "get_concept", { slug: "a" }),
+      callTool(3, "get_concepts", { slugs: ["a"] }),
+    ]);
+    const single = getCallParsed(responses, 2);
+    const batch = getCallParsed(responses, 3);
+    assert.ok(
+      single.warnings.some((w) => w.code === "dangling-graph-reference"),
+    );
+    assert.ok(
+      batch.concepts[0].warnings.some(
+        (w) => w.code === "dangling-graph-reference",
+      ),
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (idempotent)", async () => {
   const root = makeVault([
     { slug: "a", content: "---\nkind: project\ntitle: A\n---\n" },
