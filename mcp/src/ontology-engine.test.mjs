@@ -298,4 +298,73 @@ describe('queryCompiledOntology', () => {
       ],
     );
   });
+
+  it('returns containment lineage across parent arrays and inline domain refs', () => {
+    const contained = compileOntology(
+      [
+        doc('project', {
+          kind: 'project',
+          title: 'Project',
+          domains: ['auth-domain'],
+        }),
+        doc('domains/auth', {
+          slug: 'auth-domain',
+          kind: 'domain',
+          title: 'Auth',
+          capabilities: ['capabilities/login'],
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'auth-domain',
+          elements: ['elements/token'],
+        }),
+        doc('capabilities/session', {
+          kind: 'capability',
+          title: 'Session',
+          domain: 'auth-domain',
+        }),
+        doc('elements/token', {
+          kind: 'element',
+          title: 'Token',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(contained, {
+      operation: 'lineage',
+      slug: 'capabilities/login',
+    });
+
+    assert.equal(result.operation, 'lineage');
+    assert.equal(result.center, 'capabilities/login');
+    assert.deepEqual(
+      result.ancestors.nodes.map((row) => ({ slug: row.slug, distance: row.distance, via: row.via })),
+      [
+        { slug: 'domains/auth', distance: 1, via: 'domain' },
+        { slug: 'project', distance: 2, via: 'domains' },
+      ],
+    );
+    assert.deepEqual(
+      result.descendants.nodes.map((row) => ({
+        slug: row.slug,
+        distance: row.distance,
+        via: row.via,
+      })),
+      [{ slug: 'elements/token', distance: 1, via: 'elements' }],
+    );
+
+    const domain = queryCompiledOntology(contained, {
+      operation: 'lineage',
+      slug: 'auth-domain',
+      depth: 1,
+    });
+
+    assert.deepEqual(domain.ancestors.nodes.map((row) => row.slug), ['project']);
+    assert.deepEqual(domain.descendants.nodes.map((row) => row.slug), [
+      'capabilities/login',
+      'capabilities/session',
+    ]);
+  });
 });

@@ -1,4 +1,6 @@
 const DEFAULT_LIMIT = 100;
+const DOWNWARD_CONTAINMENT_TYPES = new Set(['domains', 'capabilities', 'elements', 'contains']);
+const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
 
 export function queryCompiledOntology(artifact, query = {}) {
   const operation = query.operation;
@@ -28,9 +30,12 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'components') {
     return engine.components(query);
   }
+  if (operation === 'lineage') {
+    return engine.lineage(query.slug, query);
+  }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, relation_check, components, lineage.',
   );
 }
 
@@ -396,6 +401,67 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function lineage(slugOrAlias, options = {}) {
+    const center = resolve(slugOrAlias, 'slug');
+    const depth = normalizeDepth(options.depth, 20);
+    const limit = normalizeLimit(options.limit);
+    const ancestors = collectLineage(center, 'ancestors', depth, limit);
+    const descendants = collectLineage(center, 'descendants', depth, limit);
+
+    return {
+      operation: 'lineage',
+      center,
+      node: nodeBySlug.get(center),
+      depth,
+      ancestors: {
+        total: ancestors.rows.length,
+        limited: ancestors.limited,
+        nodes: ancestors.rows,
+      },
+      descendants: {
+        total: descendants.rows.length,
+        limited: descendants.limited,
+        nodes: descendants.rows,
+      },
+      edges: uniqueEdges([...ancestors.edges, ...descendants.edges]).sort((a, b) =>
+        edgeSortKey(a).localeCompare(edgeSortKey(b)),
+      ),
+    };
+  }
+
+  function collectLineage(center, mode, depth, limit) {
+    const discovered = new Map([[center, { slug: center, distance: 0 }]]);
+    const rows = [];
+    const collectedEdges = [];
+    const queue = [{ slug: center, distance: 0 }];
+    let limited = false;
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (current.distance >= depth) continue;
+
+      for (const { next, edge } of containmentTraversalEdges(current.slug, mode)) {
+        collectedEdges.push(formatPathEdge(edge, current.slug, next));
+        if (discovered.has(next)) continue;
+        const row = {
+          slug: next,
+          distance: current.distance + 1,
+          via: edge.via,
+          node: summarizeNode(nodeBySlug.get(next)),
+        };
+        discovered.set(next, row);
+        rows.push(row);
+        queue.push(row);
+        if (rows.length >= limit) {
+          limited = true;
+          return { rows: sortLineageRows(rows), edges: collectedEdges, limited };
+        }
+      }
+    }
+
+    return { rows: sortLineageRows(rows), edges: collectedEdges, limited };
+  }
+
   function schemaPatterns() {
     const patternMap = new Map();
     for (const edge of edges) {
@@ -460,7 +526,45 @@ export function createOntologyEngine(artifact) {
     return candidates;
   }
 
-  return { resolve, neighbors, path, impact, subgraph, overview, schema, relationCheck, components };
+  function containmentTraversalEdges(slug, mode) {
+    const candidates = [];
+    if (mode === 'descendants') {
+      for (const edge of outgoing.get(slug) || []) {
+        if (!edge.resolved || !DOWNWARD_CONTAINMENT_TYPES.has(edge.via)) continue;
+        candidates.push({ next: edge.to, edge });
+      }
+      for (const edge of incoming.get(slug) || []) {
+        if (!edge.resolved || !UPWARD_CONTAINMENT_TYPES.has(edge.via)) continue;
+        candidates.push({ next: edge.from, edge });
+      }
+    } else {
+      for (const edge of incoming.get(slug) || []) {
+        if (!edge.resolved || !DOWNWARD_CONTAINMENT_TYPES.has(edge.via)) continue;
+        candidates.push({ next: edge.from, edge });
+      }
+      for (const edge of outgoing.get(slug) || []) {
+        if (!edge.resolved || !UPWARD_CONTAINMENT_TYPES.has(edge.via)) continue;
+        candidates.push({ next: edge.to, edge });
+      }
+    }
+    candidates.sort((a, b) =>
+      `${a.next}:${edgeSortKey(a.edge)}`.localeCompare(`${b.next}:${edgeSortKey(b.edge)}`),
+    );
+    return candidates;
+  }
+
+  return {
+    resolve,
+    neighbors,
+    path,
+    impact,
+    subgraph,
+    overview,
+    schema,
+    relationCheck,
+    components,
+    lineage,
+  };
 }
 
 function countBy(items, key) {
@@ -508,6 +612,7 @@ function topHubs(nodes, limit) {
 }
 
 function summarizeNode(node) {
+  if (!node) return null;
   return {
     slug: node.slug,
     kind: node.kind,
@@ -516,6 +621,10 @@ function summarizeNode(node) {
     inDegree: node.inDegree || 0,
     outDegree: node.outDegree || 0,
   };
+}
+
+function sortLineageRows(rows) {
+  return [...rows].sort((a, b) => a.distance - b.distance || a.slug.localeCompare(b.slug));
 }
 
 function edgeAllowed(edge, typeSet, includeExternal, includeUnresolved) {
