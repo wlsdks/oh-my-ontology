@@ -423,7 +423,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 13. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md`; graph arrays are trimmed, deduped, and sorted on write (throws on existing slug)
    - **R6 validation**: title must be non-empty trimmed string (`isValidVaultTitle`)
 14. **add_concepts** `{ concepts }` — batch create nodes (max 50), order-preserving partial results
-15. **patch_concept** `{ slug, frontmatter?, body?, expected_mtime? }` — update existing (`null` value deletes key)
+15. **patch_concept** `{ slug, frontmatter?, body?, expected_mtime? }` — update existing (`null` value deletes key); graph arrays are trimmed, deduped, and sorted on patch
     - **R6 validation**: rejects `title: null` and `title: ""`
     - **R11 conflict guard**: optional `expected_mtime` (from get_concept response). Throws `VaultConflictError` if file mtime differs at write time — caller re-reads and retries.
 16. **add_relation** `{ from, to, type }` — append to source frontmatter array

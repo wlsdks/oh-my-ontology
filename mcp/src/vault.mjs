@@ -83,6 +83,10 @@ const NEIGHBOR_KEYS = Object.freeze([
 ]);
 
 const INLINE_NEIGHBOR_KEYS = Object.freeze(['domain']);
+const GRAPH_ARRAY_KEYS = new Set([
+  ...NEIGHBOR_KEYS,
+  'depends_on',
+]);
 
 /**
  * Graph relation arrays should be stable on disk. Agent writes can arrive in
@@ -105,6 +109,13 @@ export function normalizeRelationRefs(values) {
   }
   refs.sort((a, b) => a.localeCompare(b, 'en'));
   return [...refs, ...passthrough];
+}
+
+function normalizeFrontmatterValue(key, value) {
+  if (GRAPH_ARRAY_KEYS.has(key) && Array.isArray(value)) {
+    return normalizeRelationRefs(value);
+  }
+  return value;
 }
 
 export function collectNeighborRefs(doc) {
@@ -427,7 +438,7 @@ export function patchFrontmatter(rootPath, slug, patch, options = {}) {
     if (value === null) {
       delete next[key];
     } else if (value !== undefined) {
-      next[key] = value;
+      next[key] = normalizeFrontmatterValue(key, value);
     }
   }
   const md = buildMarkdown({ frontmatter: next, body });
@@ -455,7 +466,7 @@ export function updateDoc(rootPath, slug, { frontmatter: patch, body, expectedMt
       if (value === null) {
         delete nextFm[key];
       } else if (value !== undefined) {
-        nextFm[key] = value;
+        nextFm[key] = normalizeFrontmatterValue(key, value);
       }
     }
   }

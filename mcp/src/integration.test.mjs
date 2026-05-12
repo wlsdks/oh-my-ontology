@@ -845,6 +845,37 @@ await test("patch_concept — expected_mtime stale 면 conflict error response",
   }
 });
 
+await test("patch_concept — graph 배열 patch 는 canonical set 으로 저장", async () => {
+  const root = makeVault([
+    { slug: "foo", content: "---\nkind: project\ntitle: Foo\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "patch_concept", {
+        slug: "foo",
+        frontmatter: {
+          domains: ["domains/z", " domains/a ", "domains/z", ""],
+          dependencies: ["b", "a", "b"],
+        },
+      }),
+      callTool(3, "get_concept", { slug: "foo" }),
+    ]);
+    assert.equal(isErrorResponse(responses, 2), false);
+    const result = getCallParsed(responses, 3);
+    assert.deepEqual(result.frontmatter.domains, ["domains/a", "domains/z"]);
+    assert.deepEqual(result.frontmatter.dependencies, ["a", "b"]);
+    assert.deepEqual(result.outgoingEdges, [
+      { to: "domains/a", via: "domains" },
+      { to: "domains/z", via: "domains" },
+      { to: "a", via: "dependencies" },
+      { to: "b", via: "dependencies" },
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("rename_concept dry-run — preview 만, 디스크 변경 0", async () => {
   const root = makeVault([
     { slug: "old-target", content: "---\nkind: capability\ntitle: Old\n---\n" },
