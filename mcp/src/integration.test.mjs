@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/all_paths/explain_relation/reachability/pattern_walk/impact/blast_radius/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/domain_profile/domain_matrix/project_scope/project_map/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/growth_plan/workspace_brief/health", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/all_paths/query_plan/explain_relation/reachability/pattern_walk/impact/blast_radius/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/domain_profile/domain_matrix/project_scope/project_map/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/growth_plan/workspace_brief/health", async () => {
   const root = makeVault([
     {
       slug: "project",
@@ -408,6 +408,14 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/ex
       }),
       callTool(30, "query_ontology", {
         operation: "health",
+      }),
+      callTool(31, "query_ontology", {
+        operation: "query_plan",
+        targetOperation: "all_paths",
+        from: "capabilities/session",
+        to: "auth-domain",
+        maxHops: 3,
+        types: ["depends_on"],
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -654,6 +662,17 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/ex
     assert.equal(health.summary.dependencyCycles, 0);
     assert.equal(health.summary.relationRecommendations, 1);
     assert.equal(health.checks.find((check) => check.id === "relation_recommendations").status, "warn");
+
+    const queryPlan = getCallParsed(responses, 31);
+    assert.equal(queryPlan.operation, "query_plan");
+    assert.equal(queryPlan.targetOperation, "all_paths");
+    assert.equal(queryPlan.sideEffect, false);
+    assert.equal(queryPlan.normalized.from, "capabilities/session");
+    assert.equal(queryPlan.normalized.to, "domains/auth");
+    assert.deepEqual(queryPlan.normalized.types, ["dependencies"]);
+    assert.equal(queryPlan.estimate.strategy, "bounded_path_enumeration");
+    assert.equal(queryPlan.estimate.edgeScans, 4);
+    assert.equal(queryPlan.estimate.costClass, "low");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

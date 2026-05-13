@@ -15,6 +15,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'all_paths') {
     return engine.allPaths(query.from, query.to, query);
   }
+  if (operation === 'query_plan') {
+    return engine.queryPlan(query);
+  }
   if (operation === 'explain_relation') {
     return engine.explainRelation(query.from, query.to, query);
   }
@@ -95,7 +98,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, all_paths, explain_relation, reachability, pattern_walk, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
+    'operation must be one of: neighbors, path, all_paths, query_plan, explain_relation, reachability, pattern_walk, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
   );
 }
 
@@ -299,6 +302,132 @@ export function createOntologyEngine(artifact) {
       shortestHopCount: rows[0]?.hopCount ?? null,
       byLength: sortedCountObject(lengthCounts),
       paths: rows,
+    };
+  }
+
+  function queryPlan(options = {}) {
+    const targetOperation = normalizePlanTargetOperation(options.targetOperation);
+    const limit = normalizeLimit(options.limit);
+    const typeSet = normalizeTypes(options.types);
+    const normalized = {
+      targetOperation,
+      types: typeSet ? [...typeSet].sort() : null,
+      limit,
+    };
+    const indexesUsed = [];
+    const warnings = [];
+    let estimate;
+
+    if (targetOperation === 'neighbors') {
+      const slug = resolve(options.slug, 'slug');
+      const direction = normalizeDirection(options.direction, 'both');
+      const rows = filteredEdges(slug, { ...options, direction });
+      normalized.slug = slug;
+      normalized.direction = direction;
+      indexesUsed.push(...adjacencyIndexesForDirection(direction));
+      if (typeSet) indexesUsed.push('edge.type filter');
+      estimate = {
+        strategy: 'adjacency_lookup',
+        edgeScans: rows.length,
+        resultUpperBound: Math.min(rows.length, limit),
+        costClass: queryCostClass(rows.length),
+      };
+    } else if (
+      targetOperation === 'path' ||
+      targetOperation === 'all_paths' ||
+      targetOperation === 'explain_relation'
+    ) {
+      const from = resolve(options.from, 'from');
+      const to = resolve(options.to, 'to');
+      const direction = normalizePathDirection(options.direction);
+      const maxHops = normalizeDepth(options.maxHops, 5);
+      const traversal = traversalEstimate(from, direction, typeSet, maxHops);
+      normalized.from = from;
+      normalized.to = to;
+      normalized.direction = direction;
+      normalized.maxHops = maxHops;
+      indexesUsed.push(...adjacencyIndexesForDirection(direction), 'aliasToSlug');
+      if (typeSet) indexesUsed.push('edge.type filter');
+      if (targetOperation === 'all_paths' && traversal.potentialPathUpperBound > limit) {
+        warnings.push('all_paths may be truncated by limit; reduce maxHops or add relation types.');
+      }
+      estimate = {
+        strategy: targetOperation === 'all_paths' ? 'bounded_path_enumeration' : 'bounded_bfs',
+        edgeScans: traversal.edgeScans,
+        reachableWithinDepth: traversal.reachableWithinDepth,
+        frontierByDepth: traversal.frontierByDepth,
+        potentialPathUpperBound: traversal.potentialPathUpperBound,
+        resultUpperBound: targetOperation === 'all_paths'
+          ? Math.min(traversal.potentialPathUpperBound, limit)
+          : 1,
+        costClass: queryCostClass(traversal.edgeScans + traversal.potentialPathUpperBound),
+      };
+    } else if (
+      targetOperation === 'reachability' ||
+      targetOperation === 'impact' ||
+      targetOperation === 'blast_radius' ||
+      targetOperation === 'subgraph'
+    ) {
+      const slug = resolve(options.slug ?? options.seed, 'slug');
+      const direction = normalizeTraversalDirection(
+        options.direction,
+        targetOperation === 'impact' || targetOperation === 'blast_radius' ? 'incoming' : 'outgoing',
+      );
+      const depth = normalizeDepth(options.depth, targetOperation === 'reachability' ? 3 : 2);
+      const traversal = traversalEstimate(slug, direction, typeSet, depth);
+      normalized.slug = slug;
+      normalized.direction = direction;
+      normalized.depth = depth;
+      indexesUsed.push(...adjacencyIndexesForDirection(direction));
+      if (typeSet) indexesUsed.push('edge.type filter');
+      estimate = {
+        strategy: 'bounded_graph_expansion',
+        edgeScans: traversal.edgeScans,
+        reachableWithinDepth: traversal.reachableWithinDepth,
+        frontierByDepth: traversal.frontierByDepth,
+        resultUpperBound: Math.min(traversal.reachableWithinDepth, limit),
+        costClass: queryCostClass(traversal.edgeScans),
+      };
+    } else if (targetOperation === 'match_nodes') {
+      indexesUsed.push('nodes');
+      estimate = {
+        strategy: 'node_scan',
+        nodeScans: nodes.length,
+        resultUpperBound: Math.min(nodes.length, limit),
+        costClass: queryCostClass(nodes.length),
+      };
+    } else if (targetOperation === 'match_edges') {
+      indexesUsed.push('edges');
+      estimate = {
+        strategy: 'edge_scan',
+        edgeScans: edges.length,
+        resultUpperBound: Math.min(edges.length, limit),
+        costClass: queryCostClass(edges.length),
+      };
+    } else {
+      indexesUsed.push('compiled_artifact');
+      estimate = {
+        strategy: 'aggregate_scan',
+        nodeScans: nodes.length,
+        edgeScans: edges.length,
+        costClass: queryCostClass(nodes.length + edges.length),
+      };
+    }
+
+    return {
+      operation: 'query_plan',
+      targetOperation,
+      sideEffect: false,
+      graph: {
+        nodes: nodes.length,
+        edges: edges.length,
+        resolvedEdges: edges.filter((edge) => edge.resolved).length,
+        graphHash: artifact?.graphHash,
+      },
+      normalized,
+      indexesUsed: [...new Set(indexesUsed)].sort(),
+      estimate,
+      warnings,
     };
   }
 
@@ -2192,6 +2321,44 @@ export function createOntologyEngine(artifact) {
     return candidates;
   }
 
+  function traversalEstimate(start, direction, typeSet, depth) {
+    const visited = new Set([start]);
+    let frontier = [start];
+    let edgeScans = 0;
+    let potentialPathUpperBound = 1;
+    const frontierByDepth = [];
+
+    for (let distance = 1; distance <= depth; distance += 1) {
+      const next = new Set();
+      let candidateEdges = 0;
+      for (const slug of frontier) {
+        const candidates = traversalEdges(slug, direction, typeSet);
+        candidateEdges += candidates.length;
+        for (const { next: nextSlug } of candidates) {
+          if (!visited.has(nextSlug)) next.add(nextSlug);
+        }
+      }
+      edgeScans += candidateEdges;
+      potentialPathUpperBound *= Math.max(1, candidateEdges);
+      for (const slug of next) visited.add(slug);
+      frontierByDepth.push({
+        distance,
+        frontierNodes: frontier.length,
+        candidateEdges,
+        newNodes: next.size,
+      });
+      frontier = [...next].sort();
+      if (frontier.length === 0) break;
+    }
+
+    return {
+      edgeScans,
+      reachableWithinDepth: visited.size - 1,
+      potentialPathUpperBound,
+      frontierByDepth,
+    };
+  }
+
   function containmentTraversalEdges(slug, mode) {
     const candidates = [];
     if (mode === 'descendants') {
@@ -2381,6 +2548,7 @@ export function createOntologyEngine(artifact) {
     neighbors,
     path,
     allPaths,
+    queryPlan,
     explainRelation,
     reachability,
     patternWalk,
@@ -2623,6 +2791,44 @@ function compareNodeRows(left, right, sort) {
     if (rightDegree !== leftDegree) return rightDegree - leftDegree;
   }
   return left.slug.localeCompare(right.slug);
+}
+
+function normalizePlanTargetOperation(value) {
+  const allowed = new Set([
+    'neighbors',
+    'path',
+    'all_paths',
+    'explain_relation',
+    'reachability',
+    'impact',
+    'blast_radius',
+    'subgraph',
+    'overview',
+    'schema',
+    'facets',
+    'match_nodes',
+    'match_edges',
+    'components',
+    'cycles',
+    'topological_order',
+    'growth_plan',
+    'workspace_brief',
+    'health',
+  ]);
+  if (typeof value === 'string' && allowed.has(value)) return value;
+  throw new Error('targetOperation is required for query_plan and must name a supported query.');
+}
+
+function adjacencyIndexesForDirection(direction) {
+  if (direction === 'incoming') return ['in'];
+  if (direction === 'outgoing') return ['out'];
+  return ['in', 'out'];
+}
+
+function queryCostClass(score) {
+  if (score >= 1000) return 'high';
+  if (score >= 100) return 'medium';
+  return 'low';
 }
 
 function normalizeRelationType(type) {

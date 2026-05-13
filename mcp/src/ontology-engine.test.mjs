@@ -112,6 +112,40 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('plans bounded graph queries before execution', () => {
+    const result = queryCompiledOntology(artifact(), {
+      operation: 'query_plan',
+      targetOperation: 'path',
+      from: 'capabilities/session',
+      to: 'auth-domain',
+      maxHops: 3,
+      types: ['depends_on'],
+    });
+
+    assert.equal(result.operation, 'query_plan');
+    assert.equal(result.targetOperation, 'path');
+    assert.equal(result.sideEffect, false);
+    assert.deepEqual(result.normalized, {
+      targetOperation: 'path',
+      types: ['dependencies'],
+      limit: 100,
+      from: 'capabilities/session',
+      to: 'domains/auth',
+      direction: 'undirected',
+      maxHops: 3,
+    });
+    assert.deepEqual(result.indexesUsed, ['aliasToSlug', 'edge.type filter', 'in', 'out']);
+    assert.equal(result.estimate.strategy, 'bounded_bfs');
+    assert.equal(result.estimate.edgeScans, 4);
+    assert.equal(result.estimate.reachableWithinDepth, 2);
+    assert.equal(result.estimate.costClass, 'low');
+    assert.deepEqual(result.estimate.frontierByDepth, [
+      { distance: 1, frontierNodes: 1, candidateEdges: 1, newNodes: 1 },
+      { distance: 2, frontierNodes: 1, candidateEdges: 2, newNodes: 1 },
+      { distance: 3, frontierNodes: 1, candidateEdges: 1, newNodes: 0 },
+    ]);
+  });
+
   it('explains how two nodes relate through direct edges, paths, and shared neighbors', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'explain_relation',
