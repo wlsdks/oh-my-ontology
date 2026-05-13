@@ -42,6 +42,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'lineage') {
     return engine.lineage(query.slug, query);
   }
+  if (operation === 'containment_tree') {
+    return engine.containmentTree(query.slug, query);
+  }
   if (operation === 'cycles') {
     return engine.cycles(query);
   }
@@ -56,7 +59,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, relation_check, components, lineage, cycles, topological_order, recommend_relations, health.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, health.',
   );
 }
 
@@ -612,6 +615,101 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function containmentTree(slugOrAlias, options = {}) {
+    const root = normalizeOptionalString(slugOrAlias);
+    const depth = normalizeDepth(options.depth, 20);
+    const limit = normalizeLimit(options.limit ?? 200);
+    const includeOrphans = options.includeOrphans === true;
+    const rootSlugs = root
+      ? [resolve(root, 'slug')]
+      : defaultContainmentRoots(includeOrphans);
+    const cycles = [];
+    let emittedNodes = 0;
+    let limited = false;
+
+    const roots = [];
+    for (const rootSlug of rootSlugs) {
+      const tree = buildContainmentNode(rootSlug, null, 0, []);
+      if (tree) roots.push(tree);
+      if (limited) break;
+    }
+
+    return {
+      operation: 'containment_tree',
+      root: root ? rootSlugs[0] : null,
+      depth,
+      totalRoots: rootSlugs.length,
+      emittedNodes,
+      limited,
+      roots,
+      cycles,
+    };
+
+    function buildContainmentNode(slug, via, distance, path) {
+      if (emittedNodes >= limit) {
+        limited = true;
+        return null;
+      }
+      emittedNodes += 1;
+      const row = {
+        slug,
+        via,
+        distance,
+        node: summarizeNode(nodeBySlug.get(slug)),
+        children: [],
+      };
+      if (distance >= depth) return row;
+
+      for (const { next, edge } of containmentChildren(slug)) {
+        if (path.includes(next)) {
+          cycles.push({
+            from: slug,
+            to: next,
+            via: edge.via,
+            path: [...path, slug, next],
+          });
+          continue;
+        }
+        const child = buildContainmentNode(next, edge.via, distance + 1, [...path, slug]);
+        if (child) row.children.push(child);
+        if (limited) break;
+      }
+      return row;
+    }
+  }
+
+  function defaultContainmentRoots(includeOrphans) {
+    const projectRoots = nodes
+      .filter((node) => node.kind === 'project')
+      .map((node) => node.slug)
+      .sort();
+    if (projectRoots.length === 0) return ancestorlessRootSlugs(new Set());
+    if (!includeOrphans) return projectRoots;
+
+    const included = new Set();
+    for (const rootSlug of projectRoots) {
+      included.add(rootSlug);
+      const queue = [rootSlug];
+      while (queue.length > 0) {
+        const current = queue.shift();
+        for (const { next } of containmentChildren(current)) {
+          if (included.has(next)) continue;
+          included.add(next);
+          queue.push(next);
+        }
+      }
+    }
+
+    return [...projectRoots, ...ancestorlessRootSlugs(included)];
+  }
+
+  function ancestorlessRootSlugs(excluded) {
+    return nodes
+      .filter((node) => !excluded.has(node.slug) && containmentTraversalEdges(node.slug, 'ancestors').length === 0)
+      .map((node) => node.slug)
+      .sort();
+  }
+
   function collectLineage(center, mode, depth, limit) {
     const discovered = new Map([[center, { slug: center, distance: 0 }]]);
     const rows = [];
@@ -1033,6 +1131,17 @@ export function createOntologyEngine(artifact) {
     return candidates;
   }
 
+  function containmentChildren(slug) {
+    const bySlug = new Map();
+    for (const candidate of containmentTraversalEdges(slug, 'descendants')) {
+      const previous = bySlug.get(candidate.next);
+      if (!previous || (previous.edge.via === 'domain' && candidate.edge.via !== 'domain')) {
+        bySlug.set(candidate.next, candidate);
+      }
+    }
+    return [...bySlug.values()].sort((a, b) => a.next.localeCompare(b.next));
+  }
+
   function resolveOptional(input) {
     if (typeof input !== 'string' || !input.trim()) return null;
     const candidate = input.trim();
@@ -1060,6 +1169,7 @@ export function createOntologyEngine(artifact) {
     relationCheck,
     components,
     lineage,
+    containmentTree,
     cycles,
     topologicalOrder,
     recommendRelations,

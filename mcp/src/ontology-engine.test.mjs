@@ -544,6 +544,110 @@ describe('queryCompiledOntology', () => {
     ]);
   });
 
+  it('returns a project-first containment tree', () => {
+    const contained = compileOntology(
+      [
+        doc('project', {
+          kind: 'project',
+          title: 'Project',
+          domains: ['auth-domain'],
+        }),
+        doc('domains/auth', {
+          slug: 'auth-domain',
+          kind: 'domain',
+          title: 'Auth',
+          capabilities: ['capabilities/login'],
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'auth-domain',
+          elements: ['elements/token'],
+        }),
+        doc('capabilities/session', {
+          kind: 'capability',
+          title: 'Session',
+          domain: 'auth-domain',
+        }),
+        doc('elements/token', {
+          kind: 'element',
+          title: 'Token',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(contained, {
+      operation: 'containment_tree',
+    });
+
+    assert.equal(result.operation, 'containment_tree');
+    assert.equal(result.root, null);
+    assert.equal(result.totalRoots, 1);
+    assert.equal(result.emittedNodes, 5);
+    assert.equal(result.limited, false);
+    assert.deepEqual(result.cycles, []);
+    assert.deepEqual(
+      result.roots.map((root) => ({
+        slug: root.slug,
+        children: root.children.map((child) => ({
+          slug: child.slug,
+          via: child.via,
+          children: child.children.map((grandchild) => ({
+            slug: grandchild.slug,
+            via: grandchild.via,
+            children: grandchild.children.map((leaf) => ({
+              slug: leaf.slug,
+              via: leaf.via,
+            })),
+          })),
+        })),
+      })),
+      [
+        {
+          slug: 'project',
+          children: [
+            {
+              slug: 'domains/auth',
+              via: 'domains',
+              children: [
+                {
+                  slug: 'capabilities/login',
+                  via: 'capabilities',
+                  children: [{ slug: 'elements/token', via: 'elements' }],
+                },
+                {
+                  slug: 'capabilities/session',
+                  via: 'domain',
+                  children: [],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    );
+
+    const subtree = queryCompiledOntology(contained, {
+      operation: 'containment_tree',
+      slug: 'auth-domain',
+      depth: 1,
+    });
+    assert.equal(subtree.root, 'domains/auth');
+    assert.equal(subtree.emittedNodes, 3);
+    assert.deepEqual(subtree.roots[0].children.map((child) => child.slug), [
+      'capabilities/login',
+      'capabilities/session',
+    ]);
+
+    const limited = queryCompiledOntology(contained, {
+      operation: 'containment_tree',
+      limit: 2,
+    });
+    assert.equal(limited.limited, true);
+    assert.equal(limited.emittedNodes, 2);
+  });
+
   it('detects directed dependency cycles deterministically', () => {
     const cyclic = compileOntology(
       [

@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/facets/match_nodes/match_edges/relation_check/components/lineage/cycles/topological_order/recommend_relations/health", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/facets/match_nodes/match_edges/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/health", async () => {
   const root = makeVault([
     {
       slug: "domains/auth",
@@ -340,15 +340,19 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
         slug: "auth-domain",
       }),
       callTool(14, "query_ontology", {
-        operation: "cycles",
+        operation: "containment_tree",
+        slug: "auth-domain",
       }),
       callTool(15, "query_ontology", {
-        operation: "topological_order",
+        operation: "cycles",
       }),
       callTool(16, "query_ontology", {
-        operation: "recommend_relations",
+        operation: "topological_order",
       }),
       callTool(17, "query_ontology", {
+        operation: "recommend_relations",
+      }),
+      callTool(18, "query_ontology", {
         operation: "health",
       }),
     ]);
@@ -442,11 +446,18 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       "capabilities/login",
     ]);
 
-    const cycles = getCallParsed(responses, 14);
+    const containmentTree = getCallParsed(responses, 14);
+    assert.equal(containmentTree.operation, "containment_tree");
+    assert.equal(containmentTree.root, "domains/auth");
+    assert.deepEqual(containmentTree.roots[0].children.map((child) => child.slug), [
+      "capabilities/login",
+    ]);
+
+    const cycles = getCallParsed(responses, 15);
     assert.equal(cycles.totalCycles, 0);
     assert.deepEqual(cycles.relationTypes, ["dependencies"]);
 
-    const topologicalOrder = getCallParsed(responses, 15);
+    const topologicalOrder = getCallParsed(responses, 16);
     assert.equal(topologicalOrder.acyclic, true);
     assert.deepEqual(topologicalOrder.order.map((row) => row.slug), [
       "domains/auth",
@@ -454,7 +465,7 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       "capabilities/session",
     ]);
 
-    const recommendations = getCallParsed(responses, 16);
+    const recommendations = getCallParsed(responses, 17);
     assert.equal(recommendations.totalRecommendations, 1);
     assert.deepEqual(recommendations.recommendations.map((row) => row.proposedAction.args), [
       {
@@ -464,7 +475,7 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       },
     ]);
 
-    const health = getCallParsed(responses, 17);
+    const health = getCallParsed(responses, 18);
     assert.equal(health.operation, "health");
     assert.equal(health.status, "needs_attention");
     assert.equal(health.summary.nodes, 3);
