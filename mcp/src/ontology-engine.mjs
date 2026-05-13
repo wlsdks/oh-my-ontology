@@ -2355,6 +2355,8 @@ export function createOntologyEngine(artifact) {
       byPhase: countBy(filteredActions, 'phase'),
       bySeverity: countBy(filteredActions, 'severity'),
       limited: filteredActions.length > limit,
+      nextExecutableAction: filteredActions.find((action) => action.executable) ?? null,
+      nextReviewAction: filteredActions.find((action) => !action.executable) ?? null,
       actions: filteredActions.slice(0, limit),
     };
   }

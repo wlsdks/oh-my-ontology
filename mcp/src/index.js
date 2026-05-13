@@ -1825,23 +1825,30 @@ function compactPostWriteMaintenance(limit = 5) {
     summary: result.summary,
     byPhase: result.byPhase,
     bySeverity: result.bySeverity,
-    actions: result.actions.map((action) => ({
-      id: action.id,
-      phase: action.phase,
-      kind: action.kind,
-      severity: action.severity,
-      executable: action.executable,
-      reason: action.reason,
-      proposedAction: action.proposedAction,
-      node: action.node
-        ? {
-            slug: action.node.slug,
-            kind: action.node.kind,
-            title: action.node.title,
-          }
-        : undefined,
-      nodes: compactMaintenanceNodes(action.nodes),
-    })),
+    nextExecutableAction: compactMaintenanceAction(result.nextExecutableAction),
+    nextReviewAction: compactMaintenanceAction(result.nextReviewAction),
+    actions: result.actions.map(compactMaintenanceAction),
+  };
+}
+
+function compactMaintenanceAction(action) {
+  if (!action) return null;
+  return {
+    id: action.id,
+    phase: action.phase,
+    kind: action.kind,
+    severity: action.severity,
+    executable: action.executable,
+    reason: action.reason,
+    proposedAction: action.proposedAction,
+    node: action.node
+      ? {
+          slug: action.node.slug,
+          kind: action.node.kind,
+          title: action.node.title,
+        }
+      : undefined,
+    nodes: compactMaintenanceNodes(action.nodes),
   };
 }
 

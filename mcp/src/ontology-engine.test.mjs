@@ -314,6 +314,8 @@ describe('queryCompiledOntology', () => {
       'materialize_external_element',
       'unassigned_node',
     ]);
+    assert.equal(result.nextExecutableAction.kind, 'add_missing_relation');
+    assert.equal(result.nextReviewAction.kind, 'unassigned_node');
     assert.match(result.actions[0].id, /^maint_[a-f0-9]{8}$/);
     assert.equal(result.actions[0].executable, true);
     assert.equal(result.actions[2].executable, false);
@@ -347,6 +349,8 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.bySeverity, { warn: 1 });
     assert.deepEqual(result.actions.map((action) => action.kind), ['add_missing_relation']);
     assert.equal(result.actions[0].executable, true);
+    assert.equal(result.nextExecutableAction.kind, 'add_missing_relation');
+    assert.equal(result.nextReviewAction, null);
   });
 
   it('explains how two nodes relate through direct edges, paths, and shared neighbors', () => {

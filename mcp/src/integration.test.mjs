@@ -1943,6 +1943,14 @@ await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (i
     assert.equal(first.changed, true);
     assert.ok(first.postWriteMaintenance, "single write returns post-write maintenance summary");
     assert.ok(Array.isArray(first.postWriteMaintenance.actions));
+    assert.ok(
+      Object.hasOwn(first.postWriteMaintenance, "nextExecutableAction"),
+      "postWriteMaintenance exposes the next executable action pointer",
+    );
+    assert.ok(
+      Object.hasOwn(first.postWriteMaintenance, "nextReviewAction"),
+      "postWriteMaintenance exposes the next review action pointer",
+    );
     if (first.postWriteMaintenance.actions.length > 0) {
       assert.match(first.postWriteMaintenance.actions[0].id, /^maint_[a-f0-9]{8}$/);
       assert.equal(typeof first.postWriteMaintenance.actions[0].executable, "boolean");
