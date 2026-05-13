@@ -118,6 +118,51 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('returns transitive reachability layers and shortest paths from a start node', () => {
+    const result = queryCompiledOntology(artifact(), {
+      operation: 'reachability',
+      slug: 'capabilities/session',
+      depth: 3,
+      types: ['dependencies'],
+    });
+
+    assert.equal(result.operation, 'reachability');
+    assert.equal(result.start, 'capabilities/session');
+    assert.equal(result.direction, 'outgoing');
+    assert.deepEqual(result.summary, {
+      reachableNodes: 2,
+      traversedEdges: 2,
+      layers: 2,
+      terminalNodes: 1,
+    });
+    assert.deepEqual(result.byKind, { capability: 1, domain: 1 });
+    assert.deepEqual(result.byRelation, { dependencies: 2 });
+    assert.deepEqual(
+      result.layers.map((layer) => ({
+        distance: layer.distance,
+        nodes: layer.nodes.map((node) => node.slug),
+      })),
+      [
+        { distance: 1, nodes: ['capabilities/login'] },
+        { distance: 2, nodes: ['domains/auth'] },
+      ],
+    );
+    assert.deepEqual(
+      result.paths.rows.map((row) => ({ slug: row.slug, path: row.path })),
+      [
+        {
+          slug: 'capabilities/login',
+          path: ['capabilities/session', 'capabilities/login'],
+        },
+        {
+          slug: 'domains/auth',
+          path: ['capabilities/session', 'capabilities/login', 'domains/auth'],
+        },
+      ],
+    );
+    assert.deepEqual(result.terminalNodes.map((node) => node.slug), ['domains/auth']);
+  });
+
   it('returns incoming change impact by default', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'impact',

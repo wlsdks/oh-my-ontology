@@ -15,6 +15,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'explain_relation') {
     return engine.explainRelation(query.from, query.to, query);
   }
+  if (operation === 'reachability') {
+    return engine.reachability(query.slug, query);
+  }
   if (operation === 'impact') {
     return engine.impact(query.slug, query);
   }
@@ -86,7 +89,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, explain_relation, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
+    'operation must be one of: neighbors, path, explain_relation, reachability, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
   );
 }
 
@@ -270,6 +273,94 @@ export function createOntologyEngine(artifact) {
         total: commonNeighbors.length,
         limited: commonNeighbors.length > limit,
         rows: commonNeighbors.slice(0, limit),
+      },
+    };
+  }
+
+  function reachability(slugOrAlias, options = {}) {
+    const start = resolve(slugOrAlias, 'slug');
+    const direction = normalizeTraversalDirection(options.direction, 'outgoing');
+    const depth = normalizeDepth(options.depth, 3);
+    const limit = normalizeLimit(options.limit);
+    const typeSet = normalizeTypes(options.types);
+    const discovered = new Map([[start, { slug: start, distance: 0, path: [start], edges: [] }]]);
+    const collectedEdges = [];
+    const queue = [discovered.get(start)];
+
+    while (queue.length > 0 && discovered.size < limit + 1) {
+      const current = queue.shift();
+      if (current.distance >= depth) continue;
+      const candidates = traversalEdges(current.slug, direction, typeSet);
+      for (const { next, edge } of candidates) {
+        const formattedEdge = formatPathEdge(edge, current.slug, next);
+        collectedEdges.push(formattedEdge);
+        if (discovered.has(next)) continue;
+        const item = {
+          slug: next,
+          distance: current.distance + 1,
+          path: [...current.path, next],
+          edges: [...current.edges, formattedEdge],
+        };
+        discovered.set(next, item);
+        queue.push(item);
+        if (discovered.size >= limit + 1) break;
+      }
+    }
+
+    const rows = [...discovered.values()]
+      .filter((row) => row.slug !== start)
+      .sort((a, b) => a.distance - b.distance || a.slug.localeCompare(b.slug));
+    const limitedRows = rows.slice(0, limit);
+    const layerMap = new Map();
+    for (const row of limitedRows) {
+      if (!layerMap.has(row.distance)) layerMap.set(row.distance, []);
+      layerMap.get(row.distance).push(row);
+    }
+    const edgeRows = uniqueEdges(collectedEdges)
+      .filter((edge) => discovered.has(edge.from) && discovered.has(edge.to))
+      .sort((a, b) => edgeSortKey(a).localeCompare(edgeSortKey(b)));
+    const terminalRows = limitedRows.filter(
+      (row) => traversalEdges(row.slug, direction, typeSet).length === 0,
+    );
+    const nodeRows = limitedRows.map((row) => ({
+      ...row,
+      node: summarizeNode(nodeBySlug.get(row.slug)),
+    }));
+
+    return {
+      operation: 'reachability',
+      start,
+      node: summarizeNode(nodeBySlug.get(start)),
+      direction,
+      depth,
+      summary: {
+        reachableNodes: rows.length,
+        traversedEdges: edgeRows.length,
+        layers: layerMap.size,
+        terminalNodes: terminalRows.length,
+      },
+      byKind: countBy(
+        limitedRows.map((row) => nodeBySlug.get(row.slug)).filter(Boolean),
+        'kind',
+      ),
+      byRelation: countEdges(edgeRows, 'via'),
+      layers: [...layerMap.entries()]
+        .sort(([left], [right]) => left - right)
+        .map(([distance, layerRows]) => ({
+          distance,
+          total: layerRows.length,
+          nodes: layerRows.map((row) => summarizeNode(nodeBySlug.get(row.slug))),
+        })),
+      paths: {
+        total: rows.length,
+        limited: rows.length > limit,
+        rows: nodeRows,
+      },
+      terminalNodes: terminalRows.map((row) => summarizeNode(nodeBySlug.get(row.slug))),
+      edges: {
+        total: edgeRows.length,
+        limited: edgeRows.length > limit,
+        rows: edgeRows.slice(0, limit),
       },
     };
   }
@@ -2125,6 +2216,7 @@ export function createOntologyEngine(artifact) {
     neighbors,
     path,
     explainRelation,
+    reachability,
     impact,
     blastRadius,
     subgraph,
@@ -2365,6 +2457,18 @@ function normalizeDirection(direction, fallback) {
 function normalizePathDirection(direction) {
   if (direction === 'incoming' || direction === 'outgoing') return direction;
   return 'undirected';
+}
+
+function normalizeTraversalDirection(direction, fallback) {
+  if (
+    direction === 'incoming' ||
+    direction === 'outgoing' ||
+    direction === 'both' ||
+    direction === 'undirected'
+  ) {
+    return direction;
+  }
+  return fallback;
 }
 
 function normalizeDepth(value, fallback) {
