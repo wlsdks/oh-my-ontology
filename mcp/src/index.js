@@ -441,7 +441,8 @@ const TOOLS = [
       'Body is fully replaced when provided, otherwise preserved. Pass ' +
       '`expected_mtime` (from the previous get_concept response) to detect ' +
       'concurrent external edits — throws VaultConflictError if the file has ' +
-      'changed on disk since you read it.',
+      'changed on disk since you read it. Changed writes return compact ' +
+      '`postWriteMaintenance` so agents can immediately continue graph cleanup.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -941,7 +942,8 @@ const TOOLS = [
       'before/after array keys + bodyChanged flag) without writing.\n' +
       '  2. With confirm: true the file is moved and all backlinks are rewritten in one pass.\n' +
       'Throws if oldSlug missing or newSlug already taken (unless overwrite: true). Use this instead ' +
-      'of patch_concept + N find_backlinks + N patch_concept loops.',
+      'of patch_concept + N find_backlinks + N patch_concept loops. Confirmed writes return compact ' +
+      '`postWriteMaintenance` for the final graph.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -983,7 +985,7 @@ const TOOLS = [
       '  1. Without confirm: true the call is a dry-run — returns the redirect plan + list of deletions ' +
       'without writing.\n' +
       '  2. With confirm: true the rewrites and the delete happen in one pass.\n' +
-      'Throws if either slug is missing.',
+      'Throws if either slug is missing. Confirmed writes return compact `postWriteMaintenance` for the final graph.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1019,7 +1021,7 @@ const TOOLS = [
       'Successful deletion returns the frontmatter + body so a user who deleted by mistake ' +
       'can recreate the node via add_concept. Directories are left untouched. Pass ' +
       '`expected_mtime` to guard against concurrent external edits — throws if the file ' +
-      'changed on disk since you read it.',
+      'changed on disk since you read it. Confirmed deletes return compact `postWriteMaintenance` for the final graph.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1573,7 +1575,13 @@ function patchConcept({ slug, frontmatter, body, expected_mtime }) {
     body,
     expectedMtime: typeof expected_mtime === 'number' ? expected_mtime : undefined,
   });
-  return { ok: true, slug, filePath };
+  return {
+    ok: true,
+    slug,
+    filePath,
+    changed: true,
+    postWriteMaintenance: compactPostWriteMaintenance(),
+  };
 }
 
 function findBacklinksTool({ slug }) {
@@ -2056,6 +2064,8 @@ function renameConcept({ oldSlug, newSlug, confirm = false, overwrite = false, e
     targetPath,
     moved: true,
     backlinkUpdates: result,
+    changed: true,
+    postWriteMaintenance: compactPostWriteMaintenance(),
   };
 }
 
@@ -2110,10 +2120,12 @@ function mergeConcepts({ fromSlug, intoSlug, confirm = false, expected_mtime }) 
     fromPath,
     deleted: true,
     backlinkUpdates: result,
+    changed: true,
     capturedFrom: {
       frontmatter: fromDoc.frontmatter,
       body: fromDoc.body,
     },
+    postWriteMaintenance: compactPostWriteMaintenance(),
   };
 }
 
@@ -2161,10 +2173,12 @@ function deleteConcept({ slug, confirm = false, force = false, expected_mtime })
     filePath: deleted.filePath ?? filePath,
     forced: backlinks.length > 0 ? true : undefined,
     backlinksAtDelete: backlinks.length > 0 ? backlinks : undefined,
+    changed: true,
     captured: {
       frontmatter: deleted.frontmatter,
       body: deleted.body,
     },
+    postWriteMaintenance: compactPostWriteMaintenance(),
   };
 }
 

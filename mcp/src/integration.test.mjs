@@ -1699,6 +1699,10 @@ await test("patch_concept — graph 배열 patch 는 canonical set 으로 저장
       callTool(3, "get_concept", { slug: "foo" }),
     ]);
     assert.equal(isErrorResponse(responses, 2), false);
+    const patched = getCallParsed(responses, 2);
+    assert.equal(patched.changed, true);
+    assert.ok(patched.postWriteMaintenance, "patch_concept returns post-write maintenance summary");
+    assert.ok(Array.isArray(patched.postWriteMaintenance.actions));
     const result = getCallParsed(responses, 3);
     assert.deepEqual(result.frontmatter.domains, ["domains/a", "domains/z"]);
     assert.deepEqual(result.frontmatter.dependencies, ["a", "b"]);
@@ -1761,6 +1765,9 @@ await test("rename_concept confirm:true — 파일 이동 + backlink redirect", 
     assert.equal(result.ok, true);
     assert.equal(result.moved, true);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
+    assert.equal(result.changed, true);
+    assert.ok(result.postWriteMaintenance, "rename_concept confirm returns post-write maintenance summary");
+    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -1788,6 +1795,31 @@ await test("merge_concepts confirm:true — fromSlug 삭제 + backlink redirect"
     assert.equal(result.ok, true);
     assert.equal(result.deleted, true);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
+    assert.equal(result.changed, true);
+    assert.ok(result.postWriteMaintenance, "merge_concepts confirm returns post-write maintenance summary");
+    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("delete_concept confirm:true — 삭제 후 post-write maintenance summary 반환", async () => {
+  const root = makeVault([
+    { slug: "gone", content: "---\nkind: capability\ntitle: Gone\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "delete_concept", {
+        slug: "gone",
+        confirm: true,
+      }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.equal(result.ok, true);
+    assert.equal(result.changed, true);
+    assert.ok(result.postWriteMaintenance, "delete_concept confirm returns post-write maintenance summary");
+    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
