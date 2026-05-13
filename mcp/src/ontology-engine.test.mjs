@@ -311,6 +311,9 @@ describe('queryCompiledOntology', () => {
       'materialize_external_element',
       'unassigned_node',
     ]);
+    assert.match(result.actions[0].id, /^maint_[a-f0-9]{8}$/);
+    assert.equal(result.actions[0].executable, true);
+    assert.equal(result.actions[2].executable, false);
     assert.deepEqual(result.actions[0].proposedAction, {
       tool: 'add_relation',
       args: {

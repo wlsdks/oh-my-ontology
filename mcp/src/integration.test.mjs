@@ -737,6 +737,8 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/qu
       "add_missing_relation",
       "materialize_external_element",
     ]);
+    assert.match(maintenancePlan.actions[0].id, /^maint_[a-f0-9]{8}$/);
+    assert.equal(maintenancePlan.actions[0].executable, true);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -1941,6 +1943,10 @@ await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (i
     assert.equal(first.changed, true);
     assert.ok(first.postWriteMaintenance, "single write returns post-write maintenance summary");
     assert.ok(Array.isArray(first.postWriteMaintenance.actions));
+    if (first.postWriteMaintenance.actions.length > 0) {
+      assert.match(first.postWriteMaintenance.actions[0].id, /^maint_[a-f0-9]{8}$/);
+      assert.equal(typeof first.postWriteMaintenance.actions[0].executable, "boolean");
+    }
     assert.equal(second.ok, true);
     assert.equal(second.alreadyExists, true);
     assert.equal(second.changed, false);

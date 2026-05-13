@@ -2320,6 +2320,7 @@ export function createOntologyEngine(artifact) {
     }
 
     actions.sort(compareMaintenanceActions);
+    const annotatedActions = actions.map(annotateMaintenanceAction);
 
     return {
       operation: 'maintenance_plan',
@@ -2335,10 +2336,10 @@ export function createOntologyEngine(artifact) {
         unassignedNodes: unassignedNodes.total,
         emptyDomains: emptyDomains.total,
       },
-      byPhase: countBy(actions, 'phase'),
-      bySeverity: countBy(actions, 'severity'),
-      limited: actions.length > limit,
-      actions: actions.slice(0, limit),
+      byPhase: countBy(annotatedActions, 'phase'),
+      bySeverity: countBy(annotatedActions, 'severity'),
+      limited: annotatedActions.length > limit,
+      actions: annotatedActions.slice(0, limit),
     };
   }
 
@@ -3310,6 +3311,57 @@ function compareMaintenanceActions(left, right) {
   if (phaseDelta !== 0) return phaseDelta;
   if ((right.score || 0) !== (left.score || 0)) return (right.score || 0) - (left.score || 0);
   return `${left.kind}:${left.reason}`.localeCompare(`${right.kind}:${right.reason}`);
+}
+
+function annotateMaintenanceAction(action) {
+  return {
+    id: maintenanceActionId(action),
+    executable: Boolean(action.proposedAction?.tool),
+    ...action,
+  };
+}
+
+function maintenanceActionId(action) {
+  const payload = {
+    phase: action.phase,
+    kind: action.kind,
+    severity: action.severity,
+    proposedAction: action.proposedAction ?? null,
+    node: action.node?.slug ?? null,
+    nodes: normalizeMaintenanceActionNodes(action.nodes),
+    issue: action.issue
+      ? {
+          code: action.issue.code,
+          slug: action.issue.slug,
+          ref: action.issue.ref,
+        }
+      : null,
+    cycle: Array.isArray(action.cycle) ? action.cycle : null,
+    reason: action.reason,
+  };
+  return `maint_${hashString(JSON.stringify(payload))}`;
+}
+
+function normalizeMaintenanceActionNodes(nodesValue) {
+  if (!nodesValue) return null;
+  if (Array.isArray(nodesValue)) return nodesValue.map((node) => node?.slug ?? node).sort();
+  if (typeof nodesValue === 'object') {
+    return Object.fromEntries(
+      Object.entries(nodesValue)
+        .map(([key, node]) => [key, node?.slug ?? node])
+        .sort(([left], [right]) => left.localeCompare(right)),
+    );
+  }
+  return nodesValue;
+}
+
+function hashString(value) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 function normalizeIterations(value) {

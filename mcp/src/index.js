@@ -629,7 +629,7 @@ const TOOLS = [
   {
     name: 'query_ontology',
     description:
-      'Run graph-engine queries over the freshly compiled ontology artifact. Operations: `neighbors` (local graph neighborhood), `path` (one compiled-edge route between two nodes), `all_paths` (bounded simple paths between two nodes), `query_plan` (EXPLAIN-style side-effect-free cost/index estimate before a target operation), `centrality` (PageRank-style core-node ranking plus bridge/authority/hub lists), `communities` (label-propagation clusters inside the graph), `similar_nodes` (duplicate/overlap candidates before writes), `explain_relation` (direct edges, shortest path, and shared-neighbor explanation between two nodes), `reachability` (transitive graph closure from a start node), `pattern_walk` (explicit relation-sequence paths such as project → domains → capabilities), `impact` (incoming by default: what depends on this node), `blast_radius` (impact grouped by kind/domain with cross-domain edge risk), `subgraph` (bounded N-hop graph slice for UI/agent views), `overview` (counts, relation distribution, and hubs), `schema` (kind-relation-kind patterns), `facets` (filter/dashboard aggregates), `match_nodes` (graph DB-style node rows with degree filters), `match_edges` (graph DB-style edge pattern rows), `node_profile` (single node detail dashboard), `domain_profile` (domain detail dashboard), `domain_matrix` (domain-to-domain coupling), `project_scope` (project-contained graph slice), `project_map` (domain-by-domain project map), `relation_check` (schema-aware preflight before add_relation), `components` (connected graph islands), `lineage` and `containment_tree` (project/domain/capability containment), `cycles` (directed dependency-cycle checks), `topological_order` (prerequisite-first dependency ordering), `recommend_relations` (safe domain-containment suggestions), `growth_plan` (side-effect-free ontology expansion candidates), `maintenance_plan` (ordered post-write graph cleanup/repair actions), `workspace_brief` (first-contact status + next actions), and `health` (one-shot graph integrity dashboard). ' +
+      'Run graph-engine queries over the freshly compiled ontology artifact. Operations: `neighbors` (local graph neighborhood), `path` (one compiled-edge route between two nodes), `all_paths` (bounded simple paths between two nodes), `query_plan` (EXPLAIN-style side-effect-free cost/index estimate before a target operation), `centrality` (PageRank-style core-node ranking plus bridge/authority/hub lists), `communities` (label-propagation clusters inside the graph), `similar_nodes` (duplicate/overlap candidates before writes), `explain_relation` (direct edges, shortest path, and shared-neighbor explanation between two nodes), `reachability` (transitive graph closure from a start node), `pattern_walk` (explicit relation-sequence paths such as project → domains → capabilities), `impact` (incoming by default: what depends on this node), `blast_radius` (impact grouped by kind/domain with cross-domain edge risk), `subgraph` (bounded N-hop graph slice for UI/agent views), `overview` (counts, relation distribution, and hubs), `schema` (kind-relation-kind patterns), `facets` (filter/dashboard aggregates), `match_nodes` (graph DB-style node rows with degree filters), `match_edges` (graph DB-style edge pattern rows), `node_profile` (single node detail dashboard), `domain_profile` (domain detail dashboard), `domain_matrix` (domain-to-domain coupling), `project_scope` (project-contained graph slice), `project_map` (domain-by-domain project map), `relation_check` (schema-aware preflight before add_relation), `components` (connected graph islands), `lineage` and `containment_tree` (project/domain/capability containment), `cycles` (directed dependency-cycle checks), `topological_order` (prerequisite-first dependency ordering), `recommend_relations` (safe domain-containment suggestions), `growth_plan` (side-effect-free ontology expansion candidates), `maintenance_plan` (ordered post-write graph cleanup/repair actions with stable action `id` and `executable` flags), `workspace_brief` (first-contact status + next actions), and `health` (one-shot graph integrity dashboard). ' +
       'Accepts canonical slugs or unique aliases. side effect 0. Use this when you need graph-database-like answers without pulling the full compile_ontology payload.',
     inputSchema: {
       type: 'object',
@@ -1809,9 +1809,11 @@ function compactPostWriteMaintenance(limit = 5) {
     byPhase: result.byPhase,
     bySeverity: result.bySeverity,
     actions: result.actions.map((action) => ({
+      id: action.id,
       phase: action.phase,
       kind: action.kind,
       severity: action.severity,
+      executable: action.executable,
       reason: action.reason,
       proposedAction: action.proposedAction,
       node: action.node
@@ -1821,15 +1823,27 @@ function compactPostWriteMaintenance(limit = 5) {
             title: action.node.title,
           }
         : undefined,
-      nodes: Array.isArray(action.nodes)
-        ? action.nodes.map((node) => ({
-            slug: node.slug,
-            kind: node.kind,
-            title: node.title,
-          }))
-        : undefined,
+      nodes: compactMaintenanceNodes(action.nodes),
     })),
   };
+}
+
+function compactMaintenanceNodes(nodesValue) {
+  if (!nodesValue) return undefined;
+  const compactNode = (node) => ({
+    slug: node.slug,
+    kind: node.kind,
+    title: node.title,
+  });
+  if (Array.isArray(nodesValue)) {
+    return nodesValue.map(compactNode);
+  }
+  if (typeof nodesValue === 'object') {
+    return Object.fromEntries(
+      Object.entries(nodesValue).map(([key, node]) => [key, compactNode(node)]),
+    );
+  }
+  return undefined;
 }
 
 // R+ — cycle 46: validate_vault tool. agent 가 vault 전체 health 를 한
