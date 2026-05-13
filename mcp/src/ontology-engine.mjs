@@ -36,6 +36,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'node_profile') {
     return engine.nodeProfile(query.slug, query);
   }
+  if (operation === 'domain_profile') {
+    return engine.domainProfile(query.slug ?? query.domain, query);
+  }
   if (operation === 'project_scope') {
     return engine.projectScope(query.slug ?? query.project, query);
   }
@@ -68,7 +71,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, health.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, health.',
   );
 }
 
@@ -611,6 +614,50 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function domainProfile(slugOrAlias, options = {}) {
+    const limit = normalizeLimit(options.limit ?? 100);
+    const itemLimit = normalizeLimit(options.itemLimit ?? 20);
+    const domain = resolveDomainRoot(slugOrAlias);
+    const included = collectContainmentScope(domain);
+    const scopedNodes = sortedNodesInScope(included);
+    const capabilities = scopedNodes.filter((node) => node.kind === 'capability');
+    const elements = scopedNodes.filter((node) => node.kind === 'element');
+    const edgesByScope = partitionScopeEdges(included);
+    const parentProjects = containmentParentsFor(domain)
+      .filter(({ next }) => nodeBySlug.get(next)?.kind === 'project')
+      .map(({ next, edge }) => ({
+        slug: next,
+        via: edge.via,
+        node: summarizeNode(nodeBySlug.get(next)),
+      }));
+
+    return {
+      operation: 'domain_profile',
+      domain,
+      node: summarizeNode(nodeBySlug.get(domain)),
+      parents: {
+        projects: parentProjects,
+      },
+      summary: {
+        nodes: scopedNodes.length,
+        capabilities: capabilities.length,
+        elements: elements.length,
+        internalEdges: edgesByScope.internal.length,
+        boundaryEdges: edgesByScope.boundary.length,
+        externalEdges: edgesByScope.external.length,
+        unresolvedEdges: edgesByScope.unresolved.length,
+      },
+      capabilities: limitedNodeList(capabilities, itemLimit),
+      elements: limitedNodeList(elements, itemLimit),
+      hotspots: topHubs(scopedNodes, itemLimit),
+      edges: {
+        boundary: scopeEdgeGroup(edgesByScope.boundary, included, limit),
+        external: scopeEdgeGroup(edgesByScope.external, included, limit),
+        unresolved: scopeEdgeGroup(edgesByScope.unresolved, included, limit),
+      },
+    };
+  }
+
   function projectScope(slugOrAlias, options = {}) {
     const limit = normalizeLimit(options.limit ?? 200);
     const project = resolveProjectRoot(slugOrAlias);
@@ -878,6 +925,15 @@ export function createOntologyEngine(artifact) {
     throw new Error(
       `project_scope requires a project slug because multiple project roots exist: ${projectRoots.join(', ')}`,
     );
+  }
+
+  function resolveDomainRoot(slugOrAlias) {
+    const slug = resolve(slugOrAlias, 'domain');
+    const node = nodeBySlug.get(slug);
+    if (node?.kind !== 'domain') {
+      throw new Error(`domain "${slug}" must resolve to a kind: domain node.`);
+    }
+    return slug;
   }
 
   function collectContainmentScope(rootSlug) {
@@ -1481,6 +1537,7 @@ export function createOntologyEngine(artifact) {
     matchNodes,
     matchEdges,
     nodeProfile,
+    domainProfile,
     projectScope,
     projectMap,
     relationCheck,
