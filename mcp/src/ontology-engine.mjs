@@ -12,6 +12,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'path') {
     return engine.path(query.from, query.to, query);
   }
+  if (operation === 'explain_relation') {
+    return engine.explainRelation(query.from, query.to, query);
+  }
   if (operation === 'impact') {
     return engine.impact(query.slug, query);
   }
@@ -83,7 +86,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
+    'operation must be one of: neighbors, path, explain_relation, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
   );
 }
 
@@ -223,6 +226,52 @@ export function createOntologyEngine(artifact) {
     }
 
     return { operation: 'path', from, to, found: false, maxHops, hops: [], edges: [] };
+  }
+
+  function explainRelation(fromInput, toInput, options = {}) {
+    const from = resolve(fromInput, 'from');
+    const to = resolve(toInput, 'to');
+    const limit = normalizeLimit(options.limit ?? 20);
+    const maxHops = normalizeDepth(options.maxHops, 5);
+    const direction = normalizePathDirection(options.direction);
+    const typeSet = normalizeTypes(options.types);
+    const allSlugs = new Set(nodes.map((node) => node.slug));
+    const directEdges = resolvedEdgesBetween(from, to, typeSet);
+    const shortest = path(from, to, { ...options, direction, maxHops });
+    const commonNeighbors = commonNeighborRows(from, to, typeSet, limit);
+    const fromDomain = nearestDomainFor(from, allSlugs);
+    const toDomain = nearestDomainFor(to, allSlugs);
+
+    return {
+      operation: 'explain_relation',
+      from,
+      to,
+      fromNode: summarizeNode(nodeBySlug.get(from)),
+      toNode: summarizeNode(nodeBySlug.get(to)),
+      verdict: relationVerdict(from, to, directEdges, shortest, commonNeighbors),
+      domains: {
+        from: fromDomain,
+        to: toDomain,
+        sameDomain: Boolean(fromDomain && toDomain && fromDomain === toDomain),
+      },
+      direct: {
+        total: directEdges.length,
+        edges: directEdges,
+      },
+      shortestPath: {
+        found: shortest.found,
+        direction,
+        maxHops,
+        hopCount: shortest.hopCount ?? null,
+        hops: shortest.hops,
+        edges: shortest.edges,
+      },
+      commonNeighbors: {
+        total: commonNeighbors.length,
+        limited: commonNeighbors.length > limit,
+        rows: commonNeighbors.slice(0, limit),
+      },
+    };
   }
 
   function impact(slugOrAlias, options = {}) {
@@ -1808,6 +1857,65 @@ export function createOntologyEngine(artifact) {
     );
   }
 
+  function resolvedEdgesBetween(from, to, typeSet) {
+    return edges
+      .filter((edge) => {
+        if (!edge.resolved || !typeAllowed(edge.via, typeSet)) return false;
+        return (edge.from === from && edge.to === to) || (edge.from === to && edge.to === from);
+      })
+      .sort(compareEdges)
+      .map((edge) => ({
+        ...formatCompiledEdge(edge),
+        direction: edge.from === from && edge.to === to ? 'outgoing' : 'incoming',
+        fromNode: summarizeNode(nodeBySlug.get(edge.from)),
+        toNode: summarizeNode(nodeBySlug.get(edge.to)),
+      }));
+  }
+
+  function commonNeighborRows(from, to, typeSet, limit) {
+    const fromNeighbors = explainNeighborMap(from, typeSet);
+    const toNeighbors = explainNeighborMap(to, typeSet);
+    const rows = [];
+    for (const slug of [...fromNeighbors.keys()].sort()) {
+      if (!toNeighbors.has(slug)) continue;
+      rows.push({
+        slug,
+        node: summarizeNode(nodeBySlug.get(slug)),
+        fromEdges: fromNeighbors.get(slug).slice(0, limit),
+        toEdges: toNeighbors.get(slug).slice(0, limit),
+      });
+    }
+    return rows.sort((a, b) => {
+      const aDegree = (a.node?.inDegree || 0) + (a.node?.outDegree || 0);
+      const bDegree = (b.node?.inDegree || 0) + (b.node?.outDegree || 0);
+      return bDegree - aDegree || a.slug.localeCompare(b.slug);
+    });
+  }
+
+  function explainNeighborMap(slug, typeSet) {
+    const byNeighbor = new Map();
+    for (const { next, edge } of traversalEdges(slug, 'both', typeSet)) {
+      if (!byNeighbor.has(next)) byNeighbor.set(next, []);
+      byNeighbor.get(next).push({
+        ...formatPathEdge(edge, slug, next),
+        direction: edge.from === slug ? 'outgoing' : 'incoming',
+        via: edge.via,
+      });
+    }
+    for (const rows of byNeighbor.values()) {
+      rows.sort((a, b) => edgeSortKey(a).localeCompare(edgeSortKey(b)));
+    }
+    return byNeighbor;
+  }
+
+  function relationVerdict(from, to, directEdges, shortest, commonNeighbors) {
+    if (from === to) return 'same_node';
+    if (directEdges.length > 0) return 'direct';
+    if (shortest.found) return 'path';
+    if (commonNeighbors.length > 0) return 'common_neighbor';
+    return 'unrelated_within_hops';
+  }
+
   function traversalEdges(slug, direction, typeSet) {
     const candidates = [];
     if (direction === 'outgoing' || direction === 'both' || direction === 'undirected') {
@@ -2016,6 +2124,7 @@ export function createOntologyEngine(artifact) {
     resolve,
     neighbors,
     path,
+    explainRelation,
     impact,
     blastRadius,
     subgraph,

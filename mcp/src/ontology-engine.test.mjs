@@ -81,6 +81,43 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.edges.map((edge) => edge.via), ['dependencies', 'dependencies']);
   });
 
+  it('explains how two nodes relate through direct edges, paths, and shared neighbors', () => {
+    const result = queryCompiledOntology(artifact(), {
+      operation: 'explain_relation',
+      from: 'capabilities/session',
+      to: 'auth-domain',
+      maxHops: 3,
+    });
+
+    assert.equal(result.operation, 'explain_relation');
+    assert.equal(result.from, 'capabilities/session');
+    assert.equal(result.to, 'domains/auth');
+    assert.equal(result.verdict, 'path');
+    assert.deepEqual(result.domains, {
+      from: null,
+      to: 'domains/auth',
+      sameDomain: false,
+    });
+    assert.equal(result.direct.total, 0);
+    assert.deepEqual(result.shortestPath.hops, [
+      'capabilities/session',
+      'capabilities/login',
+      'domains/auth',
+    ]);
+    assert.equal(result.shortestPath.hopCount, 2);
+    assert.deepEqual(result.commonNeighbors.rows.map((row) => row.slug), [
+      'capabilities/login',
+    ]);
+    assert.deepEqual(
+      result.commonNeighbors.rows[0].fromEdges.map((edge) => ({
+        from: edge.from,
+        to: edge.to,
+        direction: edge.direction,
+      })),
+      [{ from: 'capabilities/session', to: 'capabilities/login', direction: 'outgoing' }],
+    );
+  });
+
   it('returns incoming change impact by default', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'impact',
