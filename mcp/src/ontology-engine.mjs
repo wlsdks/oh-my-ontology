@@ -18,6 +18,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'query_plan') {
     return engine.queryPlan(query);
   }
+  if (operation === 'centrality') {
+    return engine.centrality(query);
+  }
   if (operation === 'explain_relation') {
     return engine.explainRelation(query.from, query.to, query);
   }
@@ -98,7 +101,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, all_paths, query_plan, explain_relation, reachability, pattern_walk, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
+    'operation must be one of: neighbors, path, all_paths, query_plan, centrality, explain_relation, reachability, pattern_walk, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
   );
 }
 
@@ -428,6 +431,65 @@ export function createOntologyEngine(artifact) {
       indexesUsed: [...new Set(indexesUsed)].sort(),
       estimate,
       warnings,
+    };
+  }
+
+  function centrality(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 10);
+    const iterations = normalizeIterations(options.iterations);
+    const typeSet = normalizeTypes(options.types);
+    const resolvedEdges = edges.filter((edge) => edge.resolved && typeAllowed(edge.via, typeSet));
+    const outgoingNeighbors = new Map(nodes.map((node) => [node.slug, new Set()]));
+    const incomingNeighbors = new Map(nodes.map((node) => [node.slug, new Set()]));
+    const outgoingEdgesBySlug = new Map(nodes.map((node) => [node.slug, []]));
+
+    for (const edge of resolvedEdges) {
+      outgoingNeighbors.get(edge.from)?.add(edge.to);
+      incomingNeighbors.get(edge.to)?.add(edge.from);
+      outgoingEdgesBySlug.get(edge.from)?.push(edge);
+    }
+
+    const pageRank = pageRankScores(nodes, outgoingEdgesBySlug, iterations);
+    const rows = nodes
+      .map((node) => {
+        const inDegree = incomingNeighbors.get(node.slug)?.size || 0;
+        const outDegree = outgoingNeighbors.get(node.slug)?.size || 0;
+        return {
+          ...summarizeNode(node),
+          inDegree,
+          outDegree,
+          degree: inDegree + outDegree,
+          pageRank: roundScore(pageRank.get(node.slug) || 0),
+          bridgeScore: inDegree * outDegree,
+        };
+      })
+      .sort(compareCentralityRows);
+
+    return {
+      operation: 'centrality',
+      graph: {
+        nodes: nodes.length,
+        edges: edges.length,
+        resolvedEdges: resolvedEdges.length,
+        graphHash: artifact?.graphHash,
+      },
+      parameters: {
+        types: typeSet ? [...typeSet].sort() : null,
+        iterations,
+        limit,
+      },
+      rankings: {
+        pageRank: rows.slice(0, limit),
+        bridges: [...rows]
+          .sort((a, b) => b.bridgeScore - a.bridgeScore || compareCentralityRows(a, b))
+          .slice(0, limit),
+        authorities: [...rows]
+          .sort((a, b) => b.inDegree - a.inDegree || compareCentralityRows(a, b))
+          .slice(0, limit),
+        hubs: [...rows]
+          .sort((a, b) => b.outDegree - a.outDegree || compareCentralityRows(a, b))
+          .slice(0, limit),
+      },
     };
   }
 
@@ -2549,6 +2611,7 @@ export function createOntologyEngine(artifact) {
     path,
     allPaths,
     queryPlan,
+    centrality,
     explainRelation,
     reachability,
     patternWalk,
@@ -2793,11 +2856,52 @@ function compareNodeRows(left, right, sort) {
   return left.slug.localeCompare(right.slug);
 }
 
+function pageRankScores(nodes, outgoingEdgesBySlug, iterations) {
+  const totalNodes = nodes.length;
+  if (totalNodes === 0) return new Map();
+  const damping = 0.85;
+  let scores = new Map(nodes.map((node) => [node.slug, 1 / totalNodes]));
+  const slugs = nodes.map((node) => node.slug);
+
+  for (let iteration = 0; iteration < iterations; iteration += 1) {
+    const nextScores = new Map(slugs.map((slug) => [slug, (1 - damping) / totalNodes]));
+    for (const slug of slugs) {
+      const outgoingRows = outgoingEdgesBySlug.get(slug) || [];
+      if (outgoingRows.length === 0) {
+        const share = (scores.get(slug) || 0) / totalNodes;
+        for (const target of slugs) {
+          nextScores.set(target, nextScores.get(target) + damping * share);
+        }
+        continue;
+      }
+      const uniqueTargets = [...new Set(outgoingRows.map((edge) => edge.to))];
+      const share = (scores.get(slug) || 0) / uniqueTargets.length;
+      for (const target of uniqueTargets) {
+        nextScores.set(target, nextScores.get(target) + damping * share);
+      }
+    }
+    scores = nextScores;
+  }
+
+  return scores;
+}
+
+function compareCentralityRows(left, right) {
+  if (right.pageRank !== left.pageRank) return right.pageRank - left.pageRank;
+  if (right.degree !== left.degree) return right.degree - left.degree;
+  return left.slug.localeCompare(right.slug);
+}
+
+function roundScore(value) {
+  return Number(value.toFixed(6));
+}
+
 function normalizePlanTargetOperation(value) {
   const allowed = new Set([
     'neighbors',
     'path',
     'all_paths',
+    'centrality',
     'explain_relation',
     'reachability',
     'impact',
@@ -2829,6 +2933,11 @@ function queryCostClass(score) {
   if (score >= 1000) return 'high';
   if (score >= 100) return 'medium';
   return 'low';
+}
+
+function normalizeIterations(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 20;
+  return Math.max(1, Math.min(100, Math.trunc(value)));
 }
 
 function normalizeRelationType(type) {

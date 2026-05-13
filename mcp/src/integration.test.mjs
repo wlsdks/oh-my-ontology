@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/all_paths/query_plan/explain_relation/reachability/pattern_walk/impact/blast_radius/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/domain_profile/domain_matrix/project_scope/project_map/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/growth_plan/workspace_brief/health", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/all_paths/query_plan/centrality/explain_relation/reachability/pattern_walk/impact/blast_radius/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/domain_profile/domain_matrix/project_scope/project_map/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/growth_plan/workspace_brief/health", async () => {
   const root = makeVault([
     {
       slug: "project",
@@ -416,6 +416,11 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/qu
         to: "auth-domain",
         maxHops: 3,
         types: ["depends_on"],
+      }),
+      callTool(32, "query_ontology", {
+        operation: "centrality",
+        types: ["depends_on"],
+        limit: 2,
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -673,6 +678,19 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/qu
     assert.equal(queryPlan.estimate.strategy, "bounded_path_enumeration");
     assert.equal(queryPlan.estimate.edgeScans, 4);
     assert.equal(queryPlan.estimate.costClass, "low");
+
+    const centrality = getCallParsed(responses, 32);
+    assert.equal(centrality.operation, "centrality");
+    assert.equal(centrality.graph.nodes, 4);
+    assert.equal(centrality.graph.resolvedEdges, 2);
+    assert.deepEqual(centrality.rankings.pageRank.map((row) => row.slug), [
+      "domains/auth",
+      "capabilities/login",
+    ]);
+    assert.deepEqual(centrality.rankings.bridges.map((row) => row.slug), [
+      "capabilities/login",
+      "domains/auth",
+    ]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

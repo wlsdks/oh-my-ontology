@@ -146,6 +146,39 @@ describe('queryCompiledOntology', () => {
     ]);
   });
 
+  it('ranks graph centrality for core nodes and bridges', () => {
+    const result = queryCompiledOntology(artifact(), {
+      operation: 'centrality',
+      types: ['depends_on'],
+      limit: 3,
+    });
+
+    assert.equal(result.operation, 'centrality');
+    assert.deepEqual(result.parameters, {
+      types: ['dependencies'],
+      iterations: 20,
+      limit: 3,
+    });
+    assert.equal(result.graph.nodes, 3);
+    assert.equal(result.graph.resolvedEdges, 2);
+    assert.deepEqual(result.rankings.pageRank.map((row) => row.slug), [
+      'domains/auth',
+      'capabilities/login',
+      'capabilities/session',
+    ]);
+    assert.equal(result.rankings.pageRank[0].pageRank, 0.474412);
+    assert.deepEqual(result.rankings.bridges.map((row) => [row.slug, row.bridgeScore]), [
+      ['capabilities/login', 1],
+      ['domains/auth', 0],
+      ['capabilities/session', 0],
+    ]);
+    assert.deepEqual(result.rankings.hubs.map((row) => row.slug), [
+      'capabilities/login',
+      'capabilities/session',
+      'domains/auth',
+    ]);
+  });
+
   it('explains how two nodes relate through direct edges, paths, and shared neighbors', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'explain_relation',
