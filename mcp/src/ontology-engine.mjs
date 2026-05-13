@@ -2245,6 +2245,9 @@ export function createOntologyEngine(artifact) {
     const danglingReferences = danglingReferenceCandidates(limit);
     const unassignedNodes = unassignedNodeCandidates(limit);
     const emptyDomains = emptyDomainCandidates(limit);
+    const canonicalizationActions = Array.isArray(artifact?.canonicalizationActions)
+      ? artifact.canonicalizationActions
+      : [];
     const actions = [];
 
     for (const issue of Array.isArray(artifact?.issues) ? artifact.issues : []) {
@@ -2265,6 +2268,24 @@ export function createOntologyEngine(artifact) {
         score: 1,
         reason: `Dependency cycle detected across ${cycle.length} nodes.`,
         cycle,
+      });
+    }
+    for (const row of canonicalizationActions) {
+      actions.push({
+        phase: 'repair',
+        kind: 'canonicalize_graph_arrays',
+        severity: 'warn',
+        score: 0.95,
+        reason: `${row.slug} has non-canonical graph arrays: ${row.keys.join(', ')}.`,
+        proposedAction: {
+          tool: 'patch_concept',
+          args: {
+            slug: row.slug,
+            frontmatter: row.frontmatter,
+            expected_mtime: row.expected_mtime,
+          },
+        },
+        node: summarizeNode(nodeBySlug.get(row.slug)),
       });
     }
     for (const row of danglingReferences.rows) {
@@ -2353,6 +2374,7 @@ export function createOntologyEngine(artifact) {
         reviewActions: annotatedActions.filter((action) => !action.executable).length,
         compileIssues: Array.isArray(artifact?.issues) ? artifact.issues.length : 0,
         dependencyCycles: cycleResult.totalCycles,
+        canonicalizationActions: canonicalizationActions.length,
         danglingReferences: danglingReferences.total,
         relationRecommendations: relationRecommendations.totalRecommendations,
         externalElementRefs: externalElementRefs.total,

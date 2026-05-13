@@ -4,12 +4,12 @@ import { strict as assert } from 'node:assert';
 import { compileOntology } from './ontology-compiler.mjs';
 import { queryCompiledOntology } from './ontology-engine.mjs';
 
-function doc(slug, frontmatter = {}) {
+function doc(slug, frontmatter = {}, mtime = 1) {
   return {
     slug,
     frontmatter,
     body: '',
-    mtime: 1,
+    mtime,
   };
 }
 
@@ -302,6 +302,7 @@ describe('queryCompiledOntology', () => {
       reviewActions: 1,
       compileIssues: 0,
       dependencyCycles: 0,
+      canonicalizationActions: 0,
       danglingReferences: 0,
       relationRecommendations: 1,
       externalElementRefs: 1,
@@ -358,6 +359,49 @@ describe('queryCompiledOntology', () => {
     assert.equal(result.actions[0].executable, true);
     assert.equal(result.nextExecutableAction.kind, 'add_missing_relation');
     assert.equal(result.nextReviewAction, null);
+  });
+
+  it('plans executable canonicalization for dirty graph arrays', () => {
+    const result = queryCompiledOntology(
+      compileOntology(
+        [
+          doc('domains/auth', { slug: 'auth-domain', kind: 'domain', title: 'Auth' }),
+          doc('capabilities/login', {
+            kind: 'capability',
+            title: 'Login',
+            dependencies: ['zeta', 'domains/auth', 'zeta'],
+            relates: ['capabilities/session', 'capabilities/session'],
+          }, 123),
+          doc('capabilities/session', {
+            kind: 'capability',
+            title: 'Session',
+          }),
+        ],
+        { includeIndexes: true },
+      ),
+      {
+        operation: 'maintenance_plan',
+        executableOnly: true,
+        phases: ['repair'],
+        limit: 10,
+      },
+    );
+
+    const action = result.actions.find((row) => row.kind === 'canonicalize_graph_arrays');
+    assert.ok(action);
+    assert.equal(result.summary.canonicalizationActions, 1);
+    assert.equal(action.executable, true);
+    assert.deepEqual(action.proposedAction, {
+      tool: 'patch_concept',
+      args: {
+        slug: 'capabilities/login',
+        frontmatter: {
+          dependencies: ['domains/auth', 'zeta'],
+          relates: ['capabilities/session'],
+        },
+        expected_mtime: 123,
+      },
+    });
   });
 
   it('resumes maintenance actions after a stable action id', () => {

@@ -160,4 +160,36 @@ describe('compileOntology', () => {
     assert.equal(first.maxMtime, 20);
     assert.equal(second.maxMtime, 200);
   });
+
+  it('reports graph array canonicalization actions outside graphHash', () => {
+    const dirty = compileOntology([
+      doc('project', {
+        kind: 'project',
+        capabilities: ['capabilities/z', 'capabilities/a', 'capabilities/z'],
+      }),
+      doc('capabilities/a', { kind: 'capability' }),
+      doc('capabilities/z', { kind: 'capability' }),
+    ]);
+    const clean = compileOntology([
+      doc('project', {
+        kind: 'project',
+        capabilities: ['capabilities/a', 'capabilities/z'],
+      }),
+      doc('capabilities/a', { kind: 'capability' }),
+      doc('capabilities/z', { kind: 'capability' }),
+    ]);
+
+    assert.deepEqual(dirty.canonicalizationActions, [
+      {
+        slug: 'project',
+        keys: ['capabilities'],
+        frontmatter: {
+          capabilities: ['capabilities/a', 'capabilities/z'],
+        },
+        expected_mtime: 1,
+      },
+    ]);
+    assert.deepEqual(clean.canonicalizationActions, []);
+    assert.equal(dirty.graphHash, clean.graphHash);
+  });
 });

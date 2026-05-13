@@ -86,10 +86,11 @@ const INLINE_NEIGHBOR_KEYS = Object.freeze(['domain']);
 const NEIGHBOR_KEY_ALIASES = Object.freeze({
   depends_on: 'dependencies',
 });
-const GRAPH_ARRAY_KEYS = new Set([
+export const GRAPH_ARRAY_KEYS = Object.freeze([
   ...NEIGHBOR_KEYS,
   ...Object.keys(NEIGHBOR_KEY_ALIASES),
 ]);
+const GRAPH_ARRAY_KEY_SET = new Set(GRAPH_ARRAY_KEYS);
 
 /**
  * Graph relation arrays should be stable on disk. Agent writes can arrive in
@@ -115,7 +116,7 @@ export function normalizeRelationRefs(values) {
 }
 
 function normalizeFrontmatterValue(key, value) {
-  if (GRAPH_ARRAY_KEYS.has(key) && Array.isArray(value)) {
+  if (GRAPH_ARRAY_KEY_SET.has(key) && Array.isArray(value)) {
     return normalizeRelationRefs(value);
   }
   return value;

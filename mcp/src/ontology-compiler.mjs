@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { collectNeighborRefs } from './vault.mjs';
+import { GRAPH_ARRAY_KEYS, collectNeighborRefs, normalizeRelationRefs } from './vault.mjs';
 
 const COMPILER_VERSION = 1;
 
@@ -43,7 +43,31 @@ export function compileOntology(docs, options = {}) {
 
   const edges = [];
   const edgeKeys = new Set();
+  const canonicalizationActions = [];
   for (const doc of docs) {
+    const frontmatterPatch = {};
+    const keys = [];
+    for (const key of GRAPH_ARRAY_KEYS) {
+      const value = doc.frontmatter?.[key];
+      if (!Array.isArray(value)) continue;
+      const canonical = normalizeRelationRefs(value);
+      const alreadyCanonical =
+        value.length === canonical.length &&
+        value.every((item, index) => item === canonical[index]);
+      if (alreadyCanonical) {
+        continue;
+      }
+      frontmatterPatch[key] = canonical;
+      keys.push(key);
+    }
+    if (keys.length > 0) {
+      canonicalizationActions.push({
+        slug: doc.slug,
+        keys,
+        frontmatter: frontmatterPatch,
+        expected_mtime: doc.mtime,
+      });
+    }
     for (const { key, ref } of collectNeighborRefs(doc)) {
       const resolved = aliasToSlug.get(ref) || null;
       const external = !resolved && key === 'elements' && isPathLikeGraphRef(ref);
@@ -139,6 +163,7 @@ export function compileOntology(docs, options = {}) {
     aliases,
     ambiguousAliases,
     issues,
+    canonicalizationActions,
     indexes: includeIndexes
       ? { out, in: incoming, byKind, byDomain, edgeById, aliasToSlug: aliasToSlugIndex }
       : undefined,
