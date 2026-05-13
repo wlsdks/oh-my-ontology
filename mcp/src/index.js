@@ -276,6 +276,7 @@ const TOOLS = [
       'arrays; capability gets `elements: []`; capability/element should also ' +
       'set `domain:` so the tree has a parent — missing extras come back as ' +
       '`warnings` in the response, not as an error. ' +
+      'Successful writes return `postWriteMaintenance` (compact `maintenance_plan`) so agents can immediately see graph cleanup / relation suggestions after the new node lands. ' +
       '**For bulk creation (e.g. bootstrap flow with 5+ nodes) use `add_concepts({concepts: [...]})` (batch, max 50, partial result) — saves K-1 round-trips.**',
     inputSchema: {
       type: 'object',
@@ -320,7 +321,7 @@ const TOOLS = [
       'missing-required-fields surface as `{ slug, ok: false, error }` rows; the rest ' +
       'still land. `concepts[]` order in the response matches the input. Cap = 50 per ' +
       'call (split into multiple batches for larger sets). NO atomic rollback — if you ' +
-      'need all-or-nothing semantics use single `add_concept` calls.',
+      'need all-or-nothing semantics use single `add_concept` calls. When at least one row changes the vault, the response includes one compact `postWriteMaintenance` summary for the final graph.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -356,6 +357,7 @@ const TOOLS = [
       '`domain` sets the source node\'s inline parent domain. The relation type picks which key receives the entry. **R11**: optional ' +
       '`expected_mtime` — pass the source-side `mtime` from a prior get_concept ' +
       'so concurrent external edits throw VaultConflictError. ' +
+      'Changed writes return `postWriteMaintenance` (compact `maintenance_plan`) so agents can immediately see graph cleanup / relation suggestions after the edge lands. ' +
       '**For multiple edges (e.g. all suggestedRelations from analyze, or all moduleEdges from infer_imports) use `add_relations({relations: [...]})` (batch, idempotent, max 50).**',
     inputSchema: {
       type: 'object',
@@ -396,7 +398,7 @@ const TOOLS = [
       '`relations[]` order in the response matches the input. Cap = 50 per call. ' +
       'NO atomic rollback — for all-or-nothing semantics use single `add_relation` calls. ' +
       'Tip: avoid `expected_mtime` in batch when multiple rows share the same `from` slug — ' +
-      'the first row mutates that file so the second would see a stale mtime.',
+      'the first row mutates that file so the second would see a stale mtime. When at least one row changes the vault, the response includes one compact `postWriteMaintenance` summary for the final graph.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1305,7 +1307,7 @@ function findEvidence({ title }) {
 
 const ADD_CONCEPT_KINDS = new Set(['project', 'domain', 'capability', 'element', 'document']);
 
-function addConcept({ slug, kind, title, domain, capabilities, elements, body }) {
+function addConcept({ slug, kind, title, domain, capabilities, elements, body }, options = {}) {
   if (!slug || !kind || !title) {
     throw new Error('slug, kind, and title are all required.');
   }
@@ -1343,7 +1345,11 @@ function addConcept({ slug, kind, title, domain, capabilities, elements, body })
     ok: true,
     slug,
     filePath,
+    changed: true,
     ...(missing.length > 0 ? { warnings: missing.map((k) => `expected field "${k}" missing for kind "${kind}"`) } : {}),
+    ...(options.includePostWriteMaintenance === false
+      ? {}
+      : { postWriteMaintenance: compactPostWriteMaintenance() }),
   };
 }
 
@@ -1375,14 +1381,19 @@ function addConceptsBatch({ concepts }) {
     }
     if (slug) seenInBatch.add(slug);
     try {
-      const result = addConcept(spec || {});
+      const result = addConcept(spec || {}, { includePostWriteMaintenance: false });
       return result;
     } catch (err) {
       const msg = err && err.message ? err.message : String(err);
       return { slug: slug || String(slug), ok: false, error: msg };
     }
   });
-  return { concepts: results };
+  return {
+    concepts: results,
+    postWriteMaintenance: results.some((row) => row.ok && row.changed !== false)
+      ? compactPostWriteMaintenance()
+      : undefined,
+  };
 }
 
 const RELATION_KEY = {
@@ -1396,7 +1407,7 @@ const RELATION_KEY = {
   domain: 'domain',
 };
 
-function addRelation({ from, to, type, expected_mtime }) {
+function addRelation({ from, to, type, expected_mtime }, options = {}) {
   if (!from || !to || !type) {
     throw new Error('from, to, and type are all required.');
   }
@@ -1428,7 +1439,7 @@ function addRelation({ from, to, type, expected_mtime }) {
   if (key === 'domain') {
     const existingDomain = doc.frontmatter.domain;
     if (existingDomain === canonicalTo) {
-      return { ok: true, alreadyExists: true, from: canonicalFrom, to: canonicalTo, type };
+      return { ok: true, alreadyExists: true, changed: false, from: canonicalFrom, to: canonicalTo, type };
     }
     if (typeof existingDomain === 'string' && existingDomain.trim()) {
       throw new Error(`Source slug already has domain "${existingDomain}". Use patch_concept to change it explicitly.`);
@@ -1437,18 +1448,38 @@ function addRelation({ from, to, type, expected_mtime }) {
       expectedMtime:
         typeof expected_mtime === 'number' ? expected_mtime : undefined,
     });
-    return { ok: true, from: canonicalFrom, to: canonicalTo, type, key };
+    return {
+      ok: true,
+      changed: true,
+      from: canonicalFrom,
+      to: canonicalTo,
+      type,
+      key,
+      ...(options.includePostWriteMaintenance === false
+        ? {}
+        : { postWriteMaintenance: compactPostWriteMaintenance() }),
+    };
   }
   const existing = Array.isArray(doc.frontmatter[key]) ? doc.frontmatter[key] : [];
   if (existing.includes(canonicalTo)) {
-    return { ok: true, alreadyExists: true, from: canonicalFrom, to: canonicalTo, type };
+    return { ok: true, alreadyExists: true, changed: false, from: canonicalFrom, to: canonicalTo, type };
   }
   const next = normalizeRelationRefs([...existing, canonicalTo]);
   patchFrontmatter(VAULT_ROOT, canonicalFrom, { [key]: next }, {
     expectedMtime:
       typeof expected_mtime === 'number' ? expected_mtime : undefined,
   });
-  return { ok: true, from: canonicalFrom, to: canonicalTo, type, key };
+  return {
+    ok: true,
+    changed: true,
+    from: canonicalFrom,
+    to: canonicalTo,
+    type,
+    key,
+    ...(options.includePostWriteMaintenance === false
+      ? {}
+      : { postWriteMaintenance: compactPostWriteMaintenance() }),
+  };
 }
 
 function resolveExistingVaultSlug(slug, docs = null) {
@@ -1500,7 +1531,7 @@ function addRelationsBatch({ relations }) {
   }
   const results = relations.map((spec) => {
     try {
-      return addRelation(spec || {});
+      return addRelation(spec || {}, { includePostWriteMaintenance: false });
     } catch (err) {
       const msg = err && err.message ? err.message : String(err);
       const from = spec && typeof spec.from === 'string' ? spec.from : '';
@@ -1509,7 +1540,12 @@ function addRelationsBatch({ relations }) {
       return { ok: false, from, to, type, error: msg };
     }
   });
-  return { relations: results };
+  return {
+    relations: results,
+    postWriteMaintenance: results.some((row) => row.ok && row.changed !== false)
+      ? compactPostWriteMaintenance()
+      : undefined,
+  };
 }
 
 function patchConcept({ slug, frontmatter, body, expected_mtime }) {
@@ -1750,6 +1786,41 @@ function queryOntologyTool(args = {}) {
       unresolvedEdges: artifact.unresolvedEdgeCount,
       issues: artifact.issues.length,
     },
+  };
+}
+
+function compactPostWriteMaintenance(limit = 5) {
+  const artifact = compileOntology(loadVaultDocs(VAULT_ROOT), { includeIndexes: true });
+  const result = queryCompiledOntology(artifact, {
+    operation: 'maintenance_plan',
+    limit,
+  });
+  return {
+    graphHash: result.graphHash,
+    summary: result.summary,
+    byPhase: result.byPhase,
+    bySeverity: result.bySeverity,
+    actions: result.actions.map((action) => ({
+      phase: action.phase,
+      kind: action.kind,
+      severity: action.severity,
+      reason: action.reason,
+      proposedAction: action.proposedAction,
+      node: action.node
+        ? {
+            slug: action.node.slug,
+            kind: action.node.kind,
+            title: action.node.title,
+          }
+        : undefined,
+      nodes: Array.isArray(action.nodes)
+        ? action.nodes.map((node) => ({
+            slug: node.slug,
+            kind: node.kind,
+            title: node.title,
+          }))
+        : undefined,
+    })),
   };
 }
 

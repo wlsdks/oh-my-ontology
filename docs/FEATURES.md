@@ -423,18 +423,18 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 15. **infer_imports** `{ repoRoot? }` — side-effect-free TS/JS import graph → dependency edge candidates
 
 #### Write tools (8)
-1. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md`; graph arrays are trimmed, deduped, and sorted on write (throws on existing slug)
+1. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md`; graph arrays are trimmed, deduped, and sorted on write (throws on existing slug); changed writes return compact `postWriteMaintenance`
    - **R6 validation**: title must be non-empty trimmed string (`isValidVaultTitle`)
-2. **add_concepts** `{ concepts }` — batch create nodes (max 50), order-preserving partial results
+2. **add_concepts** `{ concepts }` — batch create nodes (max 50), order-preserving partial results; changed batches return compact `postWriteMaintenance` for the final graph
 3. **patch_concept** `{ slug, frontmatter?, body?, expected_mtime? }` — update existing (`null` value deletes key); graph arrays are trimmed, deduped, and sorted on patch
     - **R6 validation**: rejects `title: null` and `title: ""`
     - **R11 conflict guard**: optional `expected_mtime` (from get_concept response). Throws `VaultConflictError` if file mtime differs at write time — caller re-reads and retries.
-4. **add_relation** `{ from, to, type }` — append to source frontmatter graph key
+4. **add_relation** `{ from, to, type }` — append to source frontmatter graph key; changed writes return compact `postWriteMaintenance`
     - type enum: `depends_on` (→ `dependencies`) / `relates` / `contains` / `describes` / `domains` / `capabilities` / `elements` / `domain`
     - **R7 validation**: both `from` AND `to` slug must exist in vault (`vaultSlugExists`)
     - Unique tail aliases and frontmatter `slug:` aliases are resolved to canonical file slugs before write
     - Idempotent: duplicate returns `{ alreadyExists: true }`
-5. **add_relations** `{ relations }` — batch edge writer (max 50), idempotent per row; stored relation arrays are deduped and sorted as canonical graph sets
+5. **add_relations** `{ relations }` — batch edge writer (max 50), idempotent per row; stored relation arrays are deduped and sorted as canonical graph sets; changed batches return compact `postWriteMaintenance` for the final graph
 6. **delete_concept** `{ slug, confirm?, force?, expected_mtime? }` — permanent delete
     - `confirm: false` (dry-run with backlinks preview) / `true` (actual)
     - `force: false` (throw if backlinks exist) / `true` (delete anyway)

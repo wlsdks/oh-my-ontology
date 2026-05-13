@@ -1459,6 +1459,10 @@ await test("add_concepts — 배치 write, 순서 보존 + partial result", asyn
     assert.equal(result.concepts[3].slug, "gamma");
     assert.equal(result.concepts[3].ok, false);
     assert.match(result.concepts[3].error, /required|title/i);
+    assert.ok(result.postWriteMaintenance, "batch write returns post-write maintenance summary");
+    assert.equal(typeof result.postWriteMaintenance.summary.compileIssues, "number");
+    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
+    assert.equal(result.concepts[0].postWriteMaintenance, undefined);
     // list 응답에 alpha + beta 가 추가됨, gamma 는 안 됨.
     const list = getCallParsed(responses, 3);
     const slugs = list.nodes.map((n) => n.slug).sort();
@@ -1538,6 +1542,10 @@ await test("add_relations — 배치 write, row 순서 보존 + canonical sort +
     // unknown type
     assert.equal(result.relations[4].ok, false);
     assert.match(result.relations[4].error, /Unknown relation type|weird-type/i);
+    assert.ok(result.postWriteMaintenance, "batch relation write returns post-write maintenance summary");
+    assert.equal(typeof result.postWriteMaintenance.summary.compileIssues, "number");
+    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
+    assert.equal(result.relations[0].postWriteMaintenance, undefined);
     // p.contains 는 edge set 기준으로 중복 제거 + 정렬되어 land
     const p = getCallParsed(responses, 3);
     assert.deepEqual(p.frontmatter.contains, ["c1", "c2"]);
@@ -1898,8 +1906,13 @@ await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (i
     const second = getCallParsed(responses, 3);
     assert.equal(first.ok, true);
     assert.equal(first.alreadyExists, undefined);
+    assert.equal(first.changed, true);
+    assert.ok(first.postWriteMaintenance, "single write returns post-write maintenance summary");
+    assert.ok(Array.isArray(first.postWriteMaintenance.actions));
     assert.equal(second.ok, true);
     assert.equal(second.alreadyExists, true);
+    assert.equal(second.changed, false);
+    assert.equal(second.postWriteMaintenance, undefined);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
