@@ -36,6 +36,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'node_profile') {
     return engine.nodeProfile(query.slug, query);
   }
+  if (operation === 'project_scope') {
+    return engine.projectScope(query.slug ?? query.project, query);
+  }
   if (operation === 'relation_check') {
     return engine.relationCheck(query);
   }
@@ -62,7 +65,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, health.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, project_scope, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, health.',
   );
 }
 
@@ -605,6 +608,54 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function projectScope(slugOrAlias, options = {}) {
+    const limit = normalizeLimit(options.limit ?? 200);
+    const project = resolveProjectRoot(slugOrAlias);
+    const included = collectContainmentScope(project);
+    const nodeRows = [...included]
+      .map((slug) => nodeBySlug.get(slug))
+      .filter(Boolean)
+      .sort((a, b) => a.slug.localeCompare(b.slug));
+    const internalEdges = [];
+    const boundaryEdges = [];
+    const externalEdges = [];
+    const unresolvedEdges = [];
+
+    for (const edge of [...edges].sort(compareEdges)) {
+      if (!included.has(edge.from)) continue;
+      if (edge.resolved && included.has(edge.to)) internalEdges.push(edge);
+      else if (edge.resolved) boundaryEdges.push(edge);
+      else if (edge.external) externalEdges.push(edge);
+      else unresolvedEdges.push(edge);
+    }
+
+    return {
+      operation: 'project_scope',
+      project,
+      node: summarizeNode(nodeBySlug.get(project)),
+      summary: {
+        nodes: nodeRows.length,
+        internalEdges: internalEdges.length,
+        boundaryEdges: boundaryEdges.length,
+        externalEdges: externalEdges.length,
+        unresolvedEdges: unresolvedEdges.length,
+      },
+      byKind: countBy(nodeRows, 'kind'),
+      byDomain: countBy(nodeRows, 'domain'),
+      nodes: {
+        total: nodeRows.length,
+        limited: nodeRows.length > limit,
+        rows: nodeRows.slice(0, limit).map(summarizeNode),
+      },
+      edges: {
+        internal: scopeEdgeGroup(internalEdges, included, limit),
+        boundary: scopeEdgeGroup(boundaryEdges, included, limit),
+        external: scopeEdgeGroup(externalEdges, included, limit),
+        unresolved: scopeEdgeGroup(unresolvedEdges, included, limit),
+      },
+    };
+  }
+
   function components(options = {}) {
     const limit = normalizeLimit(options.limit ?? 20);
     const nodeLimit = normalizeLimit(options.nodeLimit ?? 25);
@@ -767,6 +818,42 @@ export function createOntologyEngine(artifact) {
     }
 
     return [...projectRoots, ...ancestorlessRootSlugs(included)];
+  }
+
+  function resolveProjectRoot(slugOrAlias) {
+    if (typeof slugOrAlias === 'string' && slugOrAlias.trim()) {
+      const slug = resolve(slugOrAlias, 'project');
+      const node = nodeBySlug.get(slug);
+      if (node?.kind !== 'project') {
+        throw new Error(`project "${slug}" must resolve to a kind: project node.`);
+      }
+      return slug;
+    }
+    const projectRoots = nodes
+      .filter((node) => node.kind === 'project')
+      .map((node) => node.slug)
+      .sort();
+    if (projectRoots.length === 1) return projectRoots[0];
+    if (projectRoots.length === 0) {
+      throw new Error('project_scope requires a project slug because the compiled graph has no kind: project root.');
+    }
+    throw new Error(
+      `project_scope requires a project slug because multiple project roots exist: ${projectRoots.join(', ')}`,
+    );
+  }
+
+  function collectContainmentScope(rootSlug) {
+    const included = new Set([rootSlug]);
+    const queue = [rootSlug];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      for (const { next } of containmentChildren(current)) {
+        if (included.has(next)) continue;
+        included.add(next);
+        queue.push(next);
+      }
+    }
+    return included;
   }
 
   function ancestorlessRootSlugs(excluded) {
@@ -1258,6 +1345,27 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function scopeEdgeGroup(rows, scopeSlugs, limit) {
+    return {
+      total: rows.length,
+      byRelation: countEdges(rows, 'via'),
+      limited: rows.length > limit,
+      edges: rows.slice(0, limit).map((edge) => ({
+        ...formatCompiledEdge(edge),
+        fromNode: summarizeNode(nodeBySlug.get(edge.from)),
+        toNode: edge.resolved ? summarizeNode(nodeBySlug.get(edge.to)) : null,
+        toScope: classifyEdgeScope(edge, scopeSlugs),
+      })),
+    };
+  }
+
+  function classifyEdgeScope(edge, scopeSlugs) {
+    if (edge.resolved && scopeSlugs.has(edge.to)) return 'internal';
+    if (edge.external) return 'external';
+    if (edge.resolved) return 'boundary';
+    return 'unresolved';
+  }
+
   return {
     resolve,
     neighbors,
@@ -1270,6 +1378,7 @@ export function createOntologyEngine(artifact) {
     matchNodes,
     matchEdges,
     nodeProfile,
+    projectScope,
     relationCheck,
     components,
     lineage,

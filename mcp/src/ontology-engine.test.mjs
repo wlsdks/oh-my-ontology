@@ -701,6 +701,84 @@ describe('queryCompiledOntology', () => {
     assert.equal(limited.emittedNodes, 2);
   });
 
+  it('returns a project-scoped graph slice', () => {
+    const contained = compileOntology(
+      [
+        doc('project', {
+          kind: 'project',
+          title: 'Project',
+          domains: ['auth-domain'],
+        }),
+        doc('domains/auth', {
+          slug: 'auth-domain',
+          kind: 'domain',
+          title: 'Auth',
+          capabilities: ['capabilities/login'],
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'auth-domain',
+          elements: ['elements/token'],
+        }),
+        doc('capabilities/session', {
+          kind: 'capability',
+          title: 'Session',
+          domain: 'auth-domain',
+          depends_on: ['capabilities/login'],
+        }),
+        doc('elements/token', {
+          kind: 'element',
+          title: 'Token',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(contained, {
+      operation: 'project_scope',
+    });
+
+    assert.equal(result.operation, 'project_scope');
+    assert.equal(result.project, 'project');
+    assert.deepEqual(result.summary, {
+      nodes: 5,
+      internalEdges: 6,
+      boundaryEdges: 0,
+      externalEdges: 0,
+      unresolvedEdges: 0,
+    });
+    assert.deepEqual(result.byKind, {
+      capability: 2,
+      domain: 1,
+      element: 1,
+      project: 1,
+    });
+    assert.deepEqual(result.nodes.rows.map((node) => node.slug), [
+      'capabilities/login',
+      'capabilities/session',
+      'domains/auth',
+      'elements/token',
+      'project',
+    ]);
+    assert.deepEqual(result.edges.internal.byRelation, {
+      capabilities: 1,
+      dependencies: 1,
+      domain: 2,
+      domains: 1,
+      elements: 1,
+    });
+    assert.equal(result.edges.internal.edges.every((edge) => edge.toScope === 'internal'), true);
+
+    const limited = queryCompiledOntology(contained, {
+      operation: 'project_scope',
+      limit: 2,
+    });
+    assert.equal(limited.nodes.total, 5);
+    assert.equal(limited.nodes.limited, true);
+    assert.equal(limited.edges.internal.limited, true);
+  });
+
   it('detects directed dependency cycles deterministically', () => {
     const cyclic = compileOntology(
       [

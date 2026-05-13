@@ -261,8 +261,12 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/health", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/project_scope/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/health", async () => {
   const root = makeVault([
+    {
+      slug: "project",
+      content: "---\nkind: project\ntitle: Project\ndomains: [auth-domain]\n---\n",
+    },
     {
       slug: "domains/auth",
       content: "---\nslug: auth-domain\nkind: domain\ntitle: Auth\n---\n",
@@ -331,38 +335,41 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
         slug: "capabilities/login",
       }),
       callTool(12, "query_ontology", {
+        operation: "project_scope",
+      }),
+      callTool(13, "query_ontology", {
         operation: "relation_check",
         from: "capabilities/session",
         to: "auth-domain",
         type: "depends_on",
       }),
-      callTool(13, "query_ontology", {
+      callTool(14, "query_ontology", {
         operation: "components",
       }),
-      callTool(14, "query_ontology", {
+      callTool(15, "query_ontology", {
         operation: "lineage",
         slug: "auth-domain",
       }),
-      callTool(15, "query_ontology", {
+      callTool(16, "query_ontology", {
         operation: "containment_tree",
         slug: "auth-domain",
       }),
-      callTool(16, "query_ontology", {
+      callTool(17, "query_ontology", {
         operation: "cycles",
       }),
-      callTool(17, "query_ontology", {
+      callTool(18, "query_ontology", {
         operation: "topological_order",
       }),
-      callTool(18, "query_ontology", {
+      callTool(19, "query_ontology", {
         operation: "recommend_relations",
       }),
-      callTool(19, "query_ontology", {
+      callTool(20, "query_ontology", {
         operation: "health",
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
     assert.deepEqual(neighbors.nodes.map((node) => node.slug), ["capabilities/login"]);
-    assert.equal(neighbors.compiledSummary.nodes, 3);
+    assert.equal(neighbors.compiledSummary.nodes, 4);
 
     const path = getCallParsed(responses, 3);
     assert.equal(path.found, true);
@@ -377,6 +384,7 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       impact.nodes.map((row) => ({ slug: row.slug, distance: row.distance })),
       [
         { slug: "capabilities/login", distance: 1 },
+        { slug: "project", distance: 1 },
         { slug: "capabilities/session", distance: 2 },
       ],
     );
@@ -386,20 +394,22 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
     assert.deepEqual(subgraph.nodes.map((row) => row.slug), [
       "domains/auth",
       "capabilities/login",
+      "project",
       "capabilities/session",
     ]);
-    assert.equal(subgraph.edges.length, 3);
+    assert.equal(subgraph.edges.length, 4);
 
     const overview = getCallParsed(responses, 6);
-    assert.equal(overview.graph.nodes, 3);
+    assert.equal(overview.graph.nodes, 4);
     assert.equal(overview.byKind.capability, 2);
+    assert.equal(overview.byKind.project, 1);
     assert.deepEqual(overview.hubs.map((hub) => hub.slug), [
       "capabilities/login",
       "domains/auth",
     ]);
 
     const schema = getCallParsed(responses, 7);
-    assert.equal(schema.totalPatterns, 4);
+    assert.equal(schema.totalPatterns, 5);
     assert.ok(
       schema.patterns.some(
         (pattern) =>
@@ -411,8 +421,9 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
 
     const facets = getCallParsed(responses, 8);
     assert.equal(facets.operation, "facets");
-    assert.equal(facets.graph.nodes, 3);
+    assert.equal(facets.graph.nodes, 4);
     assert.equal(facets.nodes.byKind.capability, 2);
+    assert.equal(facets.nodes.byKind.project, 1);
     assert.equal(facets.edges.byResolution.external, 1);
 
     const matchNodes = getCallParsed(responses, 9);
@@ -433,41 +444,50 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
     assert.deepEqual(nodeProfile.degree, { in: 1, out: 3, total: 4 });
     assert.equal(nodeProfile.edges.outgoing.total, 3);
 
-    const relationCheck = getCallParsed(responses, 12);
+    const projectScope = getCallParsed(responses, 12);
+    assert.equal(projectScope.operation, "project_scope");
+    assert.equal(projectScope.project, "project");
+    assert.equal(projectScope.summary.nodes, 3);
+    assert.equal(projectScope.summary.internalEdges, 3);
+    assert.equal(projectScope.summary.externalEdges, 1);
+
+    const relationCheck = getCallParsed(responses, 13);
     assert.equal(relationCheck.relation, "dependencies");
     assert.equal(relationCheck.exists, false);
     assert.equal(relationCheck.verdict, "matches_existing_schema");
     assert.equal(relationCheck.schemaPattern.toKind, "domain");
 
-    const components = getCallParsed(responses, 13);
+    const components = getCallParsed(responses, 14);
     assert.equal(components.totalComponents, 1);
-    assert.equal(components.largestSize, 3);
+    assert.equal(components.largestSize, 4);
     assert.equal(components.singletonCount, 0);
     assert.deepEqual(components.components[0].nodes.map((node) => node.slug), [
       "capabilities/login",
       "capabilities/session",
       "domains/auth",
+      "project",
     ]);
 
-    const lineage = getCallParsed(responses, 14);
+    const lineage = getCallParsed(responses, 15);
     assert.equal(lineage.center, "domains/auth");
-    assert.equal(lineage.ancestors.total, 0);
+    assert.equal(lineage.ancestors.total, 1);
+    assert.deepEqual(lineage.ancestors.nodes.map((row) => row.slug), ["project"]);
     assert.deepEqual(lineage.descendants.nodes.map((row) => row.slug), [
       "capabilities/login",
     ]);
 
-    const containmentTree = getCallParsed(responses, 15);
+    const containmentTree = getCallParsed(responses, 16);
     assert.equal(containmentTree.operation, "containment_tree");
     assert.equal(containmentTree.root, "domains/auth");
     assert.deepEqual(containmentTree.roots[0].children.map((child) => child.slug), [
       "capabilities/login",
     ]);
 
-    const cycles = getCallParsed(responses, 16);
+    const cycles = getCallParsed(responses, 17);
     assert.equal(cycles.totalCycles, 0);
     assert.deepEqual(cycles.relationTypes, ["dependencies"]);
 
-    const topologicalOrder = getCallParsed(responses, 17);
+    const topologicalOrder = getCallParsed(responses, 18);
     assert.equal(topologicalOrder.acyclic, true);
     assert.deepEqual(topologicalOrder.order.map((row) => row.slug), [
       "domains/auth",
@@ -475,7 +495,7 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       "capabilities/session",
     ]);
 
-    const recommendations = getCallParsed(responses, 18);
+    const recommendations = getCallParsed(responses, 19);
     assert.equal(recommendations.totalRecommendations, 1);
     assert.deepEqual(recommendations.recommendations.map((row) => row.proposedAction.args), [
       {
@@ -485,10 +505,10 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
       },
     ]);
 
-    const health = getCallParsed(responses, 19);
+    const health = getCallParsed(responses, 20);
     assert.equal(health.operation, "health");
     assert.equal(health.status, "needs_attention");
-    assert.equal(health.summary.nodes, 3);
+    assert.equal(health.summary.nodes, 4);
     assert.equal(health.summary.dependencyCycles, 0);
     assert.equal(health.summary.relationRecommendations, 1);
     assert.equal(health.checks.find((check) => check.id === "relation_recommendations").status, "warn");
