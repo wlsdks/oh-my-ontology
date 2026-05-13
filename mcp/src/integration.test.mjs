@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/domain_profile/project_scope/project_map/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/growth_plan/health", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/impact/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/domain_profile/project_scope/project_map/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/growth_plan/workspace_brief/health", async () => {
   const root = makeVault([
     {
       slug: "project",
@@ -374,6 +374,9 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
         operation: "growth_plan",
       }),
       callTool(23, "query_ontology", {
+        operation: "workspace_brief",
+      }),
+      callTool(24, "query_ontology", {
         operation: "health",
       }),
     ]);
@@ -546,7 +549,16 @@ await test("query_ontology — compiled graph engine neighbors/path/impact/subgr
     assert.equal(growthPlan.summary.danglingReferences, 0);
     assert.equal(growthPlan.summary.totalActions, 2);
 
-    const health = getCallParsed(responses, 23);
+    const workspaceBrief = getCallParsed(responses, 23);
+    assert.equal(workspaceBrief.operation, "workspace_brief");
+    assert.equal(workspaceBrief.status, "needs_attention");
+    assert.equal(workspaceBrief.summary.nodes, 4);
+    assert.equal(workspaceBrief.summary.projects, 1);
+    assert.equal(workspaceBrief.summary.growthActions, 2);
+    assert.deepEqual(workspaceBrief.projects.maps.map((project) => project.project), ["project"]);
+    assert.ok(workspaceBrief.nextActions.some((action) => action.kind === "materialize_external_elements"));
+
+    const health = getCallParsed(responses, 24);
     assert.equal(health.operation, "health");
     assert.equal(health.status, "needs_attention");
     assert.equal(health.summary.nodes, 4);

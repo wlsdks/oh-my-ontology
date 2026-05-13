@@ -69,12 +69,15 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'growth_plan') {
     return engine.growthPlan(query);
   }
+  if (operation === 'workspace_brief') {
+    return engine.workspaceBrief(query);
+  }
   if (operation === 'health') {
     return engine.health(query);
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, health.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
   );
 }
 
@@ -917,10 +920,7 @@ export function createOntologyEngine(artifact) {
       }
       return slug;
     }
-    const projectRoots = nodes
-      .filter((node) => node.kind === 'project')
-      .map((node) => node.slug)
-      .sort();
+    const projectRoots = projectRootSlugs();
     if (projectRoots.length === 1) return projectRoots[0];
     if (projectRoots.length === 0) {
       throw new Error('project_scope requires a project slug because the compiled graph has no kind: project root.');
@@ -928,6 +928,13 @@ export function createOntologyEngine(artifact) {
     throw new Error(
       `project_scope requires a project slug because multiple project roots exist: ${projectRoots.join(', ')}`,
     );
+  }
+
+  function projectRootSlugs() {
+    return nodes
+      .filter((node) => node.kind === 'project')
+      .map((node) => node.slug)
+      .sort();
   }
 
   function resolveDomainRoot(slugOrAlias) {
@@ -1345,6 +1352,67 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function workspaceBrief(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 10);
+    const overviewResult = overview({ limit });
+    const healthResult = health({
+      limit,
+      componentLimit: limit,
+      cycleLimit: limit,
+      recommendationLimit: limit,
+      orderLimit: limit,
+      nodeLimit: limit,
+    });
+    const growthResult = growthPlan({ limit });
+    const projectRoots = projectRootSlugs();
+    const projectMaps = projectRoots.slice(0, limit).map((project) => {
+      const map = projectMap(project, { limit, itemLimit: Math.min(limit, 20) });
+      return {
+        project,
+        node: map.node,
+        summary: map.summary,
+        domains: map.domains.map((domain) => ({
+          slug: domain.slug,
+          node: domain.node,
+          summary: domain.summary,
+        })),
+        unassigned: map.unassigned,
+      };
+    });
+    const nextActions = workspaceNextActions(healthResult, growthResult, limit);
+
+    return {
+      operation: 'workspace_brief',
+      status: healthResult.status,
+      summary: {
+        graphHash: overviewResult.graph.graphHash,
+        maxMtime: overviewResult.graph.maxMtime,
+        nodes: overviewResult.graph.nodes,
+        edges: overviewResult.graph.edges,
+        projects: projectRoots.length,
+        domains: overviewResult.byKind.domain || 0,
+        capabilities: overviewResult.byKind.capability || 0,
+        elements: overviewResult.byKind.element || 0,
+        externalEdges: overviewResult.graph.externalEdges,
+        unresolvedEdges: overviewResult.graph.unresolvedEdges,
+        issues: overviewResult.graph.issues,
+        growthActions: growthResult.summary.totalActions,
+      },
+      health: {
+        status: healthResult.status,
+        checks: healthResult.checks,
+      },
+      growth: growthResult.summary,
+      projects: {
+        total: projectRoots.length,
+        limited: projectRoots.length > limit,
+        maps: projectMaps,
+      },
+      hotspots: overviewResult.hubs,
+      nextActions,
+    };
+  }
+
   function health(options = {}) {
     const limit = normalizeLimit(options.limit ?? 10);
     const overviewResult = overview({ limit });
@@ -1667,6 +1735,52 @@ export function createOntologyEngine(artifact) {
     return null;
   }
 
+  function workspaceNextActions(healthResult, growthResult, limit) {
+    const actions = [];
+    for (const check of healthResult.checks) {
+      if (check.status === 'pass') continue;
+      actions.push({
+        kind: 'health_check',
+        severity: check.status,
+        id: check.id,
+        count: check.count,
+        message: check.message,
+      });
+    }
+    if (growthResult.summary.relationRecommendations > 0) {
+      actions.push({
+        kind: 'add_missing_relations',
+        severity: 'warn',
+        count: growthResult.summary.relationRecommendations,
+        message: 'Add missing domain containment relations before relying on project/domain rollups.',
+        sample: growthResult.relationRecommendations.recommendations
+          .slice(0, Math.min(3, limit))
+          .map((row) => row.proposedAction),
+      });
+    }
+    if (growthResult.summary.danglingReferences > 0) {
+      actions.push({
+        kind: 'resolve_dangling_references',
+        severity: 'warn',
+        count: growthResult.summary.danglingReferences,
+        message: 'Resolve dangling graph references or create the missing ontology nodes.',
+        sample: growthResult.danglingReferences.rows.slice(0, Math.min(3, limit)),
+      });
+    }
+    if (growthResult.summary.externalElementRefs > 0) {
+      actions.push({
+        kind: 'materialize_external_elements',
+        severity: 'info',
+        count: growthResult.summary.externalElementRefs,
+        message: 'Materialize frequently referenced external files as element nodes when they should be first-class.',
+        sample: growthResult.externalElementRefs.rows
+          .slice(0, Math.min(3, limit))
+          .map((row) => row.proposedAction),
+      });
+    }
+    return actions.slice(0, limit);
+  }
+
   return {
     resolve,
     neighbors,
@@ -1690,6 +1804,7 @@ export function createOntologyEngine(artifact) {
     topologicalOrder,
     recommendRelations,
     growthPlan,
+    workspaceBrief,
     health,
   };
 }

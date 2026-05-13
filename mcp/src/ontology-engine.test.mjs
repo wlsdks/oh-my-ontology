@@ -1250,6 +1250,58 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.emptyDomains.rows.map((row) => row.slug), ['domains/empty']);
   });
 
+  it('returns a one-shot workspace brief for first-contact agent orientation', () => {
+    const graph = compileOntology(
+      [
+        doc('project', {
+          kind: 'project',
+          title: 'Project',
+          domains: ['domains/auth'],
+        }),
+        doc('domains/auth', {
+          kind: 'domain',
+          title: 'Auth',
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'domains/auth',
+          elements: ['src/auth/login.ts'],
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(graph, {
+      operation: 'workspace_brief',
+      limit: 5,
+    });
+
+    assert.equal(result.operation, 'workspace_brief');
+    assert.equal(result.status, 'needs_attention');
+    assert.equal(result.summary.nodes, 3);
+    assert.equal(result.summary.projects, 1);
+    assert.equal(result.summary.domains, 1);
+    assert.equal(result.summary.capabilities, 1);
+    assert.equal(result.summary.externalEdges, 1);
+    assert.equal(result.summary.growthActions, 2);
+    assert.deepEqual(result.projects.maps.map((project) => project.project), ['project']);
+    assert.deepEqual(result.projects.maps[0].domains.map((domain) => domain.slug), ['domains/auth']);
+    assert.deepEqual(result.growth, {
+      relationRecommendations: 1,
+      externalElementRefs: 1,
+      danglingReferences: 0,
+      unassignedNodes: 0,
+      emptyDomains: 0,
+      totalActions: 2,
+    });
+    assert.deepEqual(result.nextActions.map((action) => action.kind), [
+      'health_check',
+      'add_missing_relations',
+      'materialize_external_elements',
+    ]);
+  });
+
   it('returns a one-shot health dashboard for clean ontology graphs', () => {
     const clean = compileOntology(
       [
