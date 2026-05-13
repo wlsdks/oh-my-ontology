@@ -2329,6 +2329,17 @@ export function createOntologyEngine(artifact) {
       if (severityFilter && !severityFilter.has(action.severity)) return false;
       return true;
     });
+    const afterActionId = typeof options.afterActionId === 'string' && options.afterActionId.trim()
+      ? options.afterActionId.trim()
+      : null;
+    const afterIndex = afterActionId
+      ? filteredActions.findIndex((action) => action.id === afterActionId)
+      : -1;
+    const cursorFound = afterActionId ? afterIndex >= 0 : true;
+    const cursorActions = afterActionId
+      ? (cursorFound ? filteredActions.slice(afterIndex + 1) : [])
+      : filteredActions;
+    const pageActions = cursorActions.slice(0, limit);
 
     return {
       operation: 'maintenance_plan',
@@ -2337,6 +2348,7 @@ export function createOntologyEngine(artifact) {
       summary: {
         totalActions: actions.length,
         filteredActions: filteredActions.length,
+        remainingActions: cursorActions.length,
         executableActions: annotatedActions.filter((action) => action.executable).length,
         reviewActions: annotatedActions.filter((action) => !action.executable).length,
         compileIssues: Array.isArray(artifact?.issues) ? artifact.issues.length : 0,
@@ -2352,12 +2364,19 @@ export function createOntologyEngine(artifact) {
         phases: phaseFilter ? [...phaseFilter].sort() : [],
         severities: severityFilter ? [...severityFilter].sort() : [],
       },
-      byPhase: countBy(filteredActions, 'phase'),
-      bySeverity: countBy(filteredActions, 'severity'),
-      limited: filteredActions.length > limit,
-      nextExecutableAction: filteredActions.find((action) => action.executable) ?? null,
-      nextReviewAction: filteredActions.find((action) => !action.executable) ?? null,
-      actions: filteredActions.slice(0, limit),
+      cursor: {
+        afterActionId,
+        found: cursorFound,
+        startIndex: afterActionId ? (cursorFound ? afterIndex + 1 : null) : 0,
+        nextAfterActionId: pageActions.length > 0 ? pageActions[pageActions.length - 1].id : null,
+        hasMore: cursorActions.length > limit,
+      },
+      byPhase: countBy(cursorActions, 'phase'),
+      bySeverity: countBy(cursorActions, 'severity'),
+      limited: cursorActions.length > limit,
+      nextExecutableAction: cursorActions.find((action) => action.executable) ?? null,
+      nextReviewAction: cursorActions.find((action) => !action.executable) ?? null,
+      actions: pageActions,
     };
   }
 

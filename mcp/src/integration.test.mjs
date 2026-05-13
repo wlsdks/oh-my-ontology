@@ -733,11 +733,13 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/qu
     assert.equal(maintenancePlan.sideEffect, false);
     assert.equal(maintenancePlan.summary.relationRecommendations, 1);
     assert.equal(maintenancePlan.summary.externalElementRefs, 1);
+    assert.equal(maintenancePlan.cursor.found, true);
     assert.deepEqual(maintenancePlan.actions.slice(0, 2).map((action) => action.kind), [
       "add_missing_relation",
       "materialize_external_element",
     ]);
     assert.match(maintenancePlan.actions[0].id, /^maint_[a-f0-9]{8}$/);
+    assert.match(maintenancePlan.cursor.nextAfterActionId, /^maint_[a-f0-9]{8}$/);
     assert.equal(maintenancePlan.actions[0].executable, true);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -1950,6 +1952,10 @@ await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (i
     assert.ok(
       Object.hasOwn(first.postWriteMaintenance, "nextReviewAction"),
       "postWriteMaintenance exposes the next review action pointer",
+    );
+    assert.ok(
+      Object.hasOwn(first.postWriteMaintenance, "cursor"),
+      "postWriteMaintenance exposes maintenance cursor metadata",
     );
     if (first.postWriteMaintenance.actions.length > 0) {
       assert.match(first.postWriteMaintenance.actions[0].id, /^maint_[a-f0-9]{8}$/);

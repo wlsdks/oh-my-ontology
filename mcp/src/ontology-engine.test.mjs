@@ -297,6 +297,7 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.summary, {
       totalActions: 3,
       filteredActions: 3,
+      remainingActions: 3,
       executableActions: 2,
       reviewActions: 1,
       compileIssues: 0,
@@ -309,6 +310,11 @@ describe('queryCompiledOntology', () => {
     });
     assert.deepEqual(result.byPhase, { link: 1, materialize: 1, review: 1 });
     assert.deepEqual(result.bySeverity, { info: 2, warn: 1 });
+    assert.equal(result.cursor.afterActionId, null);
+    assert.equal(result.cursor.found, true);
+    assert.equal(result.cursor.startIndex, 0);
+    assert.equal(result.cursor.nextAfterActionId, result.actions[2].id);
+    assert.equal(result.cursor.hasMore, false);
     assert.deepEqual(result.actions.map((action) => action.kind), [
       'add_missing_relation',
       'materialize_external_element',
@@ -345,12 +351,59 @@ describe('queryCompiledOntology', () => {
     });
     assert.equal(result.summary.totalActions, 3);
     assert.equal(result.summary.filteredActions, 1);
+    assert.equal(result.summary.remainingActions, 1);
     assert.deepEqual(result.byPhase, { link: 1 });
     assert.deepEqual(result.bySeverity, { warn: 1 });
     assert.deepEqual(result.actions.map((action) => action.kind), ['add_missing_relation']);
     assert.equal(result.actions[0].executable, true);
     assert.equal(result.nextExecutableAction.kind, 'add_missing_relation');
     assert.equal(result.nextReviewAction, null);
+  });
+
+  it('resumes maintenance actions after a stable action id', () => {
+    const first = queryCompiledOntology(artifact(), {
+      operation: 'maintenance_plan',
+      limit: 1,
+    });
+
+    assert.equal(first.actions.length, 1);
+    assert.equal(first.cursor.hasMore, true);
+    assert.equal(first.cursor.nextAfterActionId, first.actions[0].id);
+
+    const second = queryCompiledOntology(artifact(), {
+      operation: 'maintenance_plan',
+      afterActionId: first.cursor.nextAfterActionId,
+      limit: 10,
+    });
+
+    assert.deepEqual(second.actions.map((action) => action.kind), [
+      'materialize_external_element',
+      'unassigned_node',
+    ]);
+    assert.equal(second.cursor.afterActionId, first.cursor.nextAfterActionId);
+    assert.equal(second.cursor.found, true);
+    assert.equal(second.cursor.startIndex, 1);
+    assert.equal(second.cursor.hasMore, false);
+    assert.equal(second.summary.filteredActions, 3);
+    assert.equal(second.summary.remainingActions, 2);
+    assert.equal(second.nextExecutableAction.kind, 'materialize_external_element');
+    assert.equal(second.nextReviewAction.kind, 'unassigned_node');
+
+    const missing = queryCompiledOntology(artifact(), {
+      operation: 'maintenance_plan',
+      afterActionId: 'maint_missing',
+      limit: 10,
+    });
+
+    assert.equal(missing.cursor.found, false);
+    assert.equal(missing.cursor.startIndex, null);
+    assert.equal(missing.summary.filteredActions, 3);
+    assert.equal(missing.summary.remainingActions, 0);
+    assert.deepEqual(missing.actions, []);
+    assert.deepEqual(missing.byPhase, {});
+    assert.deepEqual(missing.bySeverity, {});
+    assert.equal(missing.nextExecutableAction, null);
+    assert.equal(missing.nextReviewAction, null);
   });
 
   it('explains how two nodes relate through direct edges, paths, and shared neighbors', () => {
