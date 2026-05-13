@@ -163,6 +163,65 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.terminalNodes.map((node) => node.slug), ['domains/auth']);
   });
 
+  it('walks an explicit relation pattern from a start node', () => {
+    const graph = compileOntology(
+      [
+        doc('project', {
+          kind: 'project',
+          title: 'Project',
+          domains: ['domains/auth'],
+        }),
+        doc('domains/auth', {
+          kind: 'domain',
+          title: 'Auth',
+          capabilities: ['capabilities/login'],
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          elements: ['elements/login-form'],
+        }),
+        doc('elements/login-form', {
+          kind: 'element',
+          title: 'Login Form',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+    const result = queryCompiledOntology(graph, {
+      operation: 'pattern_walk',
+      slug: 'project',
+      pattern: ['domains', 'capabilities', 'elements'],
+    });
+
+    assert.equal(result.operation, 'pattern_walk');
+    assert.equal(result.start, 'project');
+    assert.deepEqual(result.pattern, ['domains', 'capabilities', 'elements']);
+    assert.deepEqual(result.summary, {
+      steps: 3,
+      matchedPaths: 1,
+      endNodes: 1,
+      traversedEdges: 3,
+    });
+    assert.deepEqual(
+      result.layers.map((layer) => ({
+        relation: layer.relation,
+        nodes: layer.nodes.map((node) => node.slug),
+      })),
+      [
+        { relation: 'domains', nodes: ['domains/auth'] },
+        { relation: 'capabilities', nodes: ['capabilities/login'] },
+        { relation: 'elements', nodes: ['elements/login-form'] },
+      ],
+    );
+    assert.deepEqual(result.paths.rows[0].path, [
+      'project',
+      'domains/auth',
+      'capabilities/login',
+      'elements/login-form',
+    ]);
+  });
+
   it('returns incoming change impact by default', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'impact',

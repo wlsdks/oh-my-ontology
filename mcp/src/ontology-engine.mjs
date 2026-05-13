@@ -18,6 +18,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'reachability') {
     return engine.reachability(query.slug, query);
   }
+  if (operation === 'pattern_walk') {
+    return engine.patternWalk(query.slug, query);
+  }
   if (operation === 'impact') {
     return engine.impact(query.slug, query);
   }
@@ -89,7 +92,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, explain_relation, reachability, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
+    'operation must be one of: neighbors, path, explain_relation, reachability, pattern_walk, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
   );
 }
 
@@ -361,6 +364,76 @@ export function createOntologyEngine(artifact) {
         total: edgeRows.length,
         limited: edgeRows.length > limit,
         rows: edgeRows.slice(0, limit),
+      },
+    };
+  }
+
+  function patternWalk(slugOrAlias, options = {}) {
+    const start = resolve(slugOrAlias, 'slug');
+    const pattern = normalizePattern(options.pattern);
+    const direction = normalizeTraversalDirection(options.direction, 'outgoing');
+    const limit = normalizeLimit(options.limit);
+    let paths = [{ slug: start, path: [start], edges: [] }];
+    let limited = false;
+    const layers = [];
+
+    pattern.forEach((relation, index) => {
+      const nextPaths = [];
+      const relationSet = new Set([relation]);
+      for (const row of paths) {
+        const candidates = traversalEdges(row.slug, direction, relationSet);
+        for (const { next, edge } of candidates) {
+          if (row.path.includes(next)) continue;
+          const formattedEdge = formatPathEdge(edge, row.slug, next);
+          nextPaths.push({
+            slug: next,
+            path: [...row.path, next],
+            edges: [...row.edges, formattedEdge],
+          });
+          if (nextPaths.length >= limit) {
+            limited = true;
+            break;
+          }
+        }
+        if (limited) break;
+      }
+      nextPaths.sort((a, b) => a.path.join('\0').localeCompare(b.path.join('\0')));
+      layers.push(patternLayer(index + 1, relation, nextPaths));
+      paths = nextPaths.slice(0, limit);
+    });
+
+    const endSlugs = [...new Set(paths.map((row) => row.slug))].sort();
+    const edgeRows = uniqueEdges(paths.flatMap((row) => row.edges)).sort((a, b) =>
+      edgeSortKey(a).localeCompare(edgeSortKey(b)),
+    );
+
+    return {
+      operation: 'pattern_walk',
+      start,
+      node: summarizeNode(nodeBySlug.get(start)),
+      direction,
+      pattern,
+      summary: {
+        steps: pattern.length,
+        matchedPaths: paths.length,
+        endNodes: endSlugs.length,
+        traversedEdges: edgeRows.length,
+      },
+      layers,
+      endNodes: endSlugs.map((slug) => summarizeNode(nodeBySlug.get(slug))),
+      paths: {
+        total: paths.length,
+        limited,
+        rows: paths.map((row) => ({
+          end: row.slug,
+          node: summarizeNode(nodeBySlug.get(row.slug)),
+          path: row.path,
+          edges: row.edges,
+        })),
+      },
+      edges: {
+        total: edgeRows.length,
+        rows: edgeRows,
       },
     };
   }
@@ -2007,6 +2080,17 @@ export function createOntologyEngine(artifact) {
     return 'unrelated_within_hops';
   }
 
+  function patternLayer(step, relation, paths) {
+    const slugs = [...new Set(paths.map((row) => row.slug))].sort();
+    return {
+      step,
+      relation,
+      totalPaths: paths.length,
+      totalNodes: slugs.length,
+      nodes: slugs.map((slug) => summarizeNode(nodeBySlug.get(slug))),
+    };
+  }
+
   function traversalEdges(slug, direction, typeSet) {
     const candidates = [];
     if (direction === 'outgoing' || direction === 'both' || direction === 'undirected') {
@@ -2217,6 +2301,7 @@ export function createOntologyEngine(artifact) {
     path,
     explainRelation,
     reachability,
+    patternWalk,
     impact,
     blastRadius,
     subgraph,
@@ -2409,6 +2494,19 @@ function typeAllowed(via, typeSet) {
 function normalizeTypes(types) {
   if (!Array.isArray(types) || types.length === 0) return null;
   return new Set(types.filter((type) => typeof type === 'string').map(normalizeRelationType));
+}
+
+function normalizePattern(pattern) {
+  if (!Array.isArray(pattern) || pattern.length === 0) {
+    throw new Error('pattern (non-empty string array) is required for pattern_walk.');
+  }
+  const normalized = pattern
+    .filter((relation) => typeof relation === 'string' && relation.trim())
+    .map((relation) => normalizeRelationType(relation.trim()));
+  if (normalized.length === 0) {
+    throw new Error('pattern must contain at least one relation type.');
+  }
+  return normalized.slice(0, 20);
 }
 
 function normalizeOptionalString(value) {
