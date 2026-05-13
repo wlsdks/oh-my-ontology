@@ -420,6 +420,59 @@ describe('queryCompiledOntology', () => {
     assert.equal(limited.edges.length, 2);
   });
 
+  it('returns a compiled node profile for detail views', () => {
+    const result = queryCompiledOntology(artifact(), {
+      operation: 'node_profile',
+      slug: 'capabilities/login',
+    });
+
+    assert.equal(result.operation, 'node_profile');
+    assert.equal(result.center, 'capabilities/login');
+    assert.equal(result.node.kind, 'capability');
+    assert.deepEqual(result.degree, { in: 1, out: 3, total: 4 });
+    assert.equal(result.edges.incoming.total, 1);
+    assert.deepEqual(result.edges.incoming.byRelation, { dependencies: 1 });
+    assert.deepEqual(
+      result.edges.incoming.edges.map((edge) => ({
+        from: edge.from,
+        to: edge.to,
+        via: edge.via,
+        other: edge.otherNode.slug,
+      })),
+      [
+        {
+          from: 'capabilities/session',
+          to: 'capabilities/login',
+          via: 'dependencies',
+          other: 'capabilities/session',
+        },
+      ],
+    );
+    assert.equal(result.edges.outgoing.total, 3);
+    assert.deepEqual(result.edges.outgoing.byRelation, {
+      dependencies: 1,
+      domain: 1,
+      elements: 1,
+    });
+    assert.equal(result.edges.outgoing.edges.find((edge) => edge.external).otherKind, 'external');
+    assert.deepEqual(
+      result.containment.parents.map((row) => ({ slug: row.slug, via: row.via })),
+      [{ slug: 'domains/auth', via: 'domain' }],
+    );
+    assert.deepEqual(result.containment.children, []);
+    assert.deepEqual(result.lineage.ancestors.nodes.map((row) => row.slug), ['domains/auth']);
+    assert.deepEqual(result.lineage.descendants.nodes, []);
+
+    const limited = queryCompiledOntology(artifact(), {
+      operation: 'node_profile',
+      slug: 'capabilities/login',
+      limit: 1,
+    });
+    assert.equal(limited.edges.outgoing.total, 3);
+    assert.equal(limited.edges.outgoing.limited, true);
+    assert.equal(limited.edges.outgoing.edges.length, 1);
+  });
+
   it('returns deterministic connected components over resolved graph edges', () => {
     const disconnected = compileOntology(
       [
