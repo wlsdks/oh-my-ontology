@@ -261,7 +261,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
   }
 });
 
-await test("query_ontology — compiled graph engine neighbors/path/all_paths/query_plan/centrality/communities/explain_relation/reachability/pattern_walk/impact/blast_radius/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/domain_profile/domain_matrix/project_scope/project_map/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/growth_plan/workspace_brief/health", async () => {
+await test("query_ontology — compiled graph engine neighbors/path/all_paths/query_plan/centrality/communities/similar_nodes/explain_relation/reachability/pattern_walk/impact/blast_radius/subgraph/overview/schema/facets/match_nodes/match_edges/node_profile/domain_profile/domain_matrix/project_scope/project_map/relation_check/components/lineage/containment_tree/cycles/topological_order/recommend_relations/growth_plan/workspace_brief/health", async () => {
   const root = makeVault([
     {
       slug: "project",
@@ -426,6 +426,14 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/qu
         operation: "communities",
         types: ["depends_on"],
         limit: 3,
+      }),
+      callTool(34, "query_ontology", {
+        operation: "similar_nodes",
+        candidateSlug: "capabilities/login-flow",
+        title: "Login",
+        kind: "capability",
+        domain: "auth-domain",
+        limit: 2,
       }),
     ]);
     const neighbors = getCallParsed(responses, 2);
@@ -706,6 +714,15 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/qu
       "capabilities/session",
       "domains/auth",
     ]);
+
+    const similarNodes = getCallParsed(responses, 34);
+    assert.equal(similarNodes.operation, "similar_nodes");
+    assert.equal(similarNodes.source.mode, "candidate");
+    assert.deepEqual(similarNodes.matches.map((row) => row.node.slug), [
+      "capabilities/login",
+      "capabilities/session",
+    ]);
+    assert.equal(similarNodes.matches[0].signals.title, 0.35);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

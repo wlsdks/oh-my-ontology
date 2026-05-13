@@ -24,6 +24,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'communities') {
     return engine.communities(query);
   }
+  if (operation === 'similar_nodes') {
+    return engine.similarNodes(query);
+  }
   if (operation === 'explain_relation') {
     return engine.explainRelation(query.from, query.to, query);
   }
@@ -104,7 +107,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, all_paths, query_plan, centrality, communities, explain_relation, reachability, pattern_walk, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
+    'operation must be one of: neighbors, path, all_paths, query_plan, centrality, communities, similar_nodes, explain_relation, reachability, pattern_walk, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
   );
 }
 
@@ -1581,6 +1584,74 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function similarNodes(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 10);
+    const typeSet = normalizeTypes(options.types);
+    const sourceSlug = normalizeOptionalString(options.slug);
+    const resolvedSource = sourceSlug ? resolve(sourceSlug, 'slug') : null;
+    const sourceNode = resolvedSource ? nodeBySlug.get(resolvedSource) : null;
+    const candidate = sourceNode || {
+      slug: normalizeOptionalString(options.candidateSlug) || normalizeOptionalString(options.title) || '',
+      kind: normalizeOptionalString(options.kind),
+      title: normalizeOptionalString(options.title) || normalizeOptionalString(options.candidateSlug) || '',
+      domain: normalizeOptionalString(options.domain),
+    };
+    const sourceNeighbors = resolvedSource
+      ? new Set(traversalEdges(resolvedSource, 'undirected', typeSet).map((row) => row.next))
+      : new Set();
+    const rows = [];
+
+    for (const node of nodes) {
+      if (resolvedSource && node.slug === resolvedSource) continue;
+      const targetNeighbors = new Set(
+        traversalEdges(node.slug, 'undirected', typeSet).map((row) => row.next),
+      );
+      const score = similarityScore(candidate, node, sourceNeighbors, targetNeighbors);
+      if (score.total <= 0) continue;
+      rows.push({
+        node: summarizeNode(node),
+        score: roundScore(score.total),
+        signals: {
+          slug: roundScore(score.slug),
+          title: roundScore(score.title),
+          kind: roundScore(score.kind),
+          domain: roundScore(score.domain),
+          neighbors: roundScore(score.neighbors),
+        },
+        sharedNeighbors: [...sourceNeighbors]
+          .filter((slug) => targetNeighbors.has(slug))
+          .sort()
+          .map((slug) => summarizeNode(nodeBySlug.get(slug))),
+      });
+    }
+
+    rows.sort((a, b) => b.score - a.score || a.node.slug.localeCompare(b.node.slug));
+
+    return {
+      operation: 'similar_nodes',
+      source: resolvedSource
+        ? {
+            mode: 'existing',
+            slug: resolvedSource,
+            node: summarizeNode(sourceNode),
+          }
+        : {
+            mode: 'candidate',
+            slug: candidate.slug || null,
+            kind: candidate.kind || null,
+            title: candidate.title || null,
+            domain: candidate.domain || null,
+          },
+      parameters: {
+        types: typeSet ? [...typeSet].sort() : null,
+        limit,
+      },
+      totalMatches: rows.length,
+      limited: rows.length > limit,
+      matches: rows.slice(0, limit),
+    };
+  }
+
   function lineage(slugOrAlias, options = {}) {
     const center = resolve(slugOrAlias, 'slug');
     const depth = normalizeDepth(options.depth, 20);
@@ -2719,6 +2790,7 @@ export function createOntologyEngine(artifact) {
     queryPlan,
     centrality,
     communities,
+    similarNodes,
     explainRelation,
     reachability,
     patternWalk,
@@ -3029,6 +3101,43 @@ function propagateCommunityLabels(adjacency, iterations) {
   return labels;
 }
 
+function similarityScore(source, target, sourceNeighbors, targetNeighbors) {
+  const slug = tokenJaccard(source.slug, target.slug) * 0.35;
+  const title = tokenJaccard(source.title, target.title) * 0.35;
+  const kind = source.kind && target.kind && source.kind === target.kind ? 0.1 : 0;
+  const domain = source.domain && target.domain && source.domain === target.domain ? 0.1 : 0;
+  const neighbors = setJaccard(sourceNeighbors, targetNeighbors) * 0.1;
+  return {
+    slug,
+    title,
+    kind,
+    domain,
+    neighbors,
+    total: slug + title + kind + domain + neighbors,
+  };
+}
+
+function tokenJaccard(left, right) {
+  return setJaccard(new Set(textTokens(left)), new Set(textTokens(right)));
+}
+
+function textTokens(value) {
+  return String(value || '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 2);
+}
+
+function setJaccard(left, right) {
+  if (!left || !right || left.size === 0 || right.size === 0) return 0;
+  let intersection = 0;
+  for (const value of left) {
+    if (right.has(value)) intersection += 1;
+  }
+  const union = new Set([...left, ...right]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
 function compareCentralityRows(left, right) {
   if (right.pageRank !== left.pageRank) return right.pageRank - left.pageRank;
   if (right.degree !== left.degree) return right.degree - left.degree;
@@ -3046,6 +3155,7 @@ function normalizePlanTargetOperation(value) {
     'all_paths',
     'centrality',
     'communities',
+    'similar_nodes',
     'explain_relation',
     'reachability',
     'impact',

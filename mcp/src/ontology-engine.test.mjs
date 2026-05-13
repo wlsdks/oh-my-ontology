@@ -237,6 +237,55 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('finds similar nodes for an add candidate before writing', () => {
+    const result = queryCompiledOntology(
+      compileOntology(
+        [
+          doc('domains/auth', { kind: 'domain', title: 'Auth' }),
+          doc('capabilities/login', {
+            kind: 'capability',
+            title: 'Login Flow',
+            domain: 'domains/auth',
+          }),
+          doc('capabilities/login-page', {
+            kind: 'capability',
+            title: 'Login Page',
+            domain: 'domains/auth',
+          }),
+          doc('capabilities/billing', {
+            kind: 'capability',
+            title: 'Billing Charge',
+          }),
+        ],
+        { includeIndexes: true },
+      ),
+      {
+        operation: 'similar_nodes',
+        candidateSlug: 'capabilities/login-flow',
+        title: 'Login Flow',
+        kind: 'capability',
+        domain: 'domains/auth',
+      },
+    );
+
+    assert.equal(result.operation, 'similar_nodes');
+    assert.deepEqual(result.source, {
+      mode: 'candidate',
+      slug: 'capabilities/login-flow',
+      kind: 'capability',
+      title: 'Login Flow',
+      domain: 'domains/auth',
+    });
+    assert.deepEqual(result.matches.map((row) => row.node.slug), [
+      'capabilities/login',
+      'capabilities/login-page',
+      'capabilities/billing',
+    ]);
+    assert.equal(result.matches[0].score, 0.783333);
+    assert.equal(result.matches[0].signals.title, 0.35);
+    assert.equal(result.matches[0].signals.domain, 0.1);
+  });
+
   it('explains how two nodes relate through direct edges, paths, and shared neighbors', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'explain_relation',
