@@ -39,6 +39,9 @@ export function queryCompiledOntology(artifact, query = {}) {
   if (operation === 'domain_profile') {
     return engine.domainProfile(query.slug ?? query.domain, query);
   }
+  if (operation === 'domain_matrix') {
+    return engine.domainMatrix(query);
+  }
   if (operation === 'project_scope') {
     return engine.projectScope(query.slug ?? query.project, query);
   }
@@ -77,7 +80,7 @@ export function queryCompiledOntology(artifact, query = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
+    'operation must be one of: neighbors, path, impact, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, workspace_brief, health.',
   );
 }
 
@@ -664,6 +667,123 @@ export function createOntologyEngine(artifact) {
     };
   }
 
+  function domainMatrix(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 100);
+    const project = normalizeOptionalString(options.project ?? options.slug);
+    const scope = project
+      ? collectContainmentScope(resolveProjectRoot(project))
+      : new Set(nodes.map((node) => node.slug));
+    const scopedNodes = sortedNodesInScope(scope);
+    const domainSlugs = scopedNodes
+      .filter((node) => node.kind === 'domain')
+      .map((node) => node.slug);
+    const domainStats = new Map(domainSlugs.map((slug) => [
+      slug,
+      {
+        slug,
+        node: summarizeNode(nodeBySlug.get(slug)),
+        nodes: 0,
+        outgoing: 0,
+        incoming: 0,
+        selfEdges: 0,
+        externalEdges: 0,
+        unresolvedEdges: 0,
+      },
+    ]));
+    const domainForNode = new Map();
+    let assignedNodes = 0;
+
+    for (const node of scopedNodes) {
+      const domain = nearestDomainFor(node.slug, scope);
+      if (!domain) continue;
+      domainForNode.set(node.slug, domain);
+      assignedNodes += 1;
+      const stats = domainStats.get(domain);
+      if (stats) stats.nodes += 1;
+    }
+
+    const connectionMap = new Map();
+    let selfDomainEdges = 0;
+    let crossDomainEdges = 0;
+    let externalEdges = 0;
+    let unresolvedEdges = 0;
+
+    for (const edge of edges) {
+      if (!scope.has(edge.from)) continue;
+      const fromDomain = domainForNode.get(edge.from);
+      if (!fromDomain) continue;
+      const fromStats = domainStats.get(fromDomain);
+      if (edge.external) {
+        externalEdges += 1;
+        if (fromStats) fromStats.externalEdges += 1;
+        continue;
+      }
+      if (!edge.resolved || !scope.has(edge.to)) {
+        unresolvedEdges += 1;
+        if (fromStats) fromStats.unresolvedEdges += 1;
+        continue;
+      }
+      const toDomain = domainForNode.get(edge.to);
+      if (!toDomain) continue;
+      if (fromDomain === toDomain) {
+        selfDomainEdges += 1;
+        if (fromStats) fromStats.selfEdges += 1;
+        continue;
+      }
+      crossDomainEdges += 1;
+      if (fromStats) fromStats.outgoing += 1;
+      const toStats = domainStats.get(toDomain);
+      if (toStats) toStats.incoming += 1;
+      const key = `${fromDomain}\0${toDomain}`;
+      if (!connectionMap.has(key)) {
+        connectionMap.set(key, {
+          from: fromDomain,
+          to: toDomain,
+          count: 0,
+          byRelation: new Map(),
+          examples: [],
+        });
+      }
+      const row = connectionMap.get(key);
+      row.count += 1;
+      row.byRelation.set(edge.via, (row.byRelation.get(edge.via) || 0) + 1);
+      if (row.examples.length < 3) row.examples.push(formatCompiledEdge(edge));
+    }
+
+    const connections = [...connectionMap.values()]
+      .map((row) => ({
+        from: row.from,
+        to: row.to,
+        count: row.count,
+        byRelation: sortedCountObject(row.byRelation),
+        fromNode: summarizeNode(nodeBySlug.get(row.from)),
+        toNode: summarizeNode(nodeBySlug.get(row.to)),
+        examples: row.examples,
+      }))
+      .sort((a, b) => b.count - a.count || a.from.localeCompare(b.from) || a.to.localeCompare(b.to));
+
+    return {
+      operation: 'domain_matrix',
+      project: project ? resolveProjectRoot(project) : null,
+      summary: {
+        domains: domainSlugs.length,
+        nodes: scopedNodes.length,
+        assignedNodes,
+        unassignedNodes: scopedNodes.length - assignedNodes,
+        crossDomainEdges,
+        selfDomainEdges,
+        externalEdges,
+        unresolvedEdges,
+      },
+      domains: [...domainStats.values()].sort((a, b) => a.slug.localeCompare(b.slug)),
+      connections: {
+        total: connections.length,
+        limited: connections.length > limit,
+        rows: connections.slice(0, limit),
+      },
+    };
+  }
+
   function projectScope(slugOrAlias, options = {}) {
     const limit = normalizeLimit(options.limit ?? 200);
     const project = resolveProjectRoot(slugOrAlias);
@@ -958,6 +1078,29 @@ export function createOntologyEngine(artifact) {
       }
     }
     return included;
+  }
+
+  function nearestDomainFor(slug, scopeSlugs) {
+    const node = nodeBySlug.get(slug);
+    if (!node || !scopeSlugs.has(slug)) return null;
+    if (node.kind === 'domain') return slug;
+    const inlineDomain = resolveOptional(node.domain);
+    if (inlineDomain && scopeSlugs.has(inlineDomain) && nodeBySlug.get(inlineDomain)?.kind === 'domain') {
+      return inlineDomain;
+    }
+    const visited = new Set([slug]);
+    const queue = [slug];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      for (const { next } of containmentParentsFor(current)) {
+        if (visited.has(next) || !scopeSlugs.has(next)) continue;
+        const parent = nodeBySlug.get(next);
+        if (parent?.kind === 'domain') return next;
+        visited.add(next);
+        queue.push(next);
+      }
+    }
+    return null;
   }
 
   function intersectSlugSets(left, right) {
@@ -1794,6 +1937,7 @@ export function createOntologyEngine(artifact) {
     matchEdges,
     nodeProfile,
     domainProfile,
+    domainMatrix,
     projectScope,
     projectMap,
     relationCheck,

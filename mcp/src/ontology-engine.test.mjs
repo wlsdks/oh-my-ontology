@@ -942,6 +942,111 @@ describe('queryCompiledOntology', () => {
     ]);
   });
 
+  it('returns a domain-to-domain dependency matrix', () => {
+    const matrix = compileOntology(
+      [
+        doc('project', {
+          kind: 'project',
+          title: 'Project',
+          domains: ['domains/auth', 'domains/billing'],
+        }),
+        doc('domains/auth', {
+          kind: 'domain',
+          title: 'Auth',
+        }),
+        doc('domains/billing', {
+          kind: 'domain',
+          title: 'Billing',
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'domains/auth',
+          depends_on: ['capabilities/invoice'],
+          elements: ['elements/token', 'src/auth/login.ts'],
+        }),
+        doc('capabilities/session', {
+          kind: 'capability',
+          title: 'Session',
+          domain: 'domains/auth',
+          depends_on: ['capabilities/login'],
+        }),
+        doc('capabilities/invoice', {
+          kind: 'capability',
+          title: 'Invoice',
+          domain: 'domains/billing',
+        }),
+        doc('elements/token', {
+          kind: 'element',
+          title: 'Token',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const result = queryCompiledOntology(matrix, {
+      operation: 'domain_matrix',
+      project: 'project',
+    });
+
+    assert.equal(result.operation, 'domain_matrix');
+    assert.equal(result.project, 'project');
+    assert.deepEqual(result.summary, {
+      domains: 2,
+      nodes: 7,
+      assignedNodes: 6,
+      unassignedNodes: 1,
+      crossDomainEdges: 1,
+      selfDomainEdges: 5,
+      externalEdges: 1,
+      unresolvedEdges: 0,
+    });
+    assert.deepEqual(
+      result.domains.map((domain) => ({
+        slug: domain.slug,
+        nodes: domain.nodes,
+        outgoing: domain.outgoing,
+        incoming: domain.incoming,
+        selfEdges: domain.selfEdges,
+        externalEdges: domain.externalEdges,
+      })),
+      [
+        {
+          slug: 'domains/auth',
+          nodes: 4,
+          outgoing: 1,
+          incoming: 0,
+          selfEdges: 4,
+          externalEdges: 1,
+        },
+        {
+          slug: 'domains/billing',
+          nodes: 2,
+          outgoing: 0,
+          incoming: 1,
+          selfEdges: 1,
+          externalEdges: 0,
+        },
+      ],
+    );
+    assert.deepEqual(
+      result.connections.rows.map((row) => ({
+        from: row.from,
+        to: row.to,
+        count: row.count,
+        byRelation: row.byRelation,
+      })),
+      [
+        {
+          from: 'domains/auth',
+          to: 'domains/billing',
+          count: 1,
+          byRelation: { dependencies: 1 },
+        },
+      ],
+    );
+  });
+
   it('detects directed dependency cycles deterministically', () => {
     const cyclic = compileOntology(
       [
