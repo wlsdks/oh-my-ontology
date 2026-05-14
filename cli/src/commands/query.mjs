@@ -2,8 +2,8 @@
 // Typed filter DSL: kind=X AND has(elements) AND NOT domain=auth.
 // Thin wrapper over MCP query_concepts.
 
-import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -32,7 +32,7 @@ export async function runQuery(args) {
     return 1;
   }
 
-  const vaultRoot = resolve(process.cwd(), vault);
+  const vaultRoot = resolveVaultRoot(vault);
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_concepts', { filter, limit });

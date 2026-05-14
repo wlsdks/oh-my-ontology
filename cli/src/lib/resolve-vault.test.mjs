@@ -1,0 +1,80 @@
+import { strict as assert } from 'node:assert';
+import { mkdtempSync, mkdirSync, realpathSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import test from 'node:test';
+import { resolveVaultRoot } from './resolve-vault.mjs';
+
+test('resolveVaultRoot — explicit 인자가 1순위 (env 보다 강함)', () => {
+  process.env.OMOT_VAULT = '/tmp/env-vault';
+  try {
+    const got = resolveVaultRoot('./my-vault');
+    assert.equal(got, resolve(process.cwd(), 'my-vault'));
+  } finally {
+    delete process.env.OMOT_VAULT;
+  }
+});
+
+test("resolveVaultRoot — explicit 이 '.' 면 default 로 취급 (env 가 다음 차례)", () => {
+  process.env.OMOT_VAULT = '/tmp/env-vault';
+  try {
+    const got = resolveVaultRoot('.');
+    assert.equal(got, resolve(process.cwd(), '/tmp/env-vault'));
+  } finally {
+    delete process.env.OMOT_VAULT;
+  }
+});
+
+test('resolveVaultRoot — env 가 2순위', () => {
+  delete process.env.OMOT_VAULT;
+  process.env.OMOT_VAULT = '/tmp/foo';
+  try {
+    const got = resolveVaultRoot();
+    assert.equal(got, resolve(process.cwd(), '/tmp/foo'));
+  } finally {
+    delete process.env.OMOT_VAULT;
+  }
+});
+
+test('resolveVaultRoot — cwd/docs/ontology 자동 감지 (3 순위)', () => {
+  // 임시 cwd 에 docs/ontology 디렉토리 만들고 chdir. macOS 의 tmp 는 symlink
+  // (`/var/folders` → `/private/var/folders`) 라 realpathSync 로 정규화 후 비교.
+  const tmp = realpathSync(mkdtempSync(resolve(tmpdir(), 'omot-vault-test-')));
+  const vaultDir = resolve(tmp, 'docs/ontology');
+  mkdirSync(vaultDir, { recursive: true });
+  const prevCwd = process.cwd();
+  process.chdir(tmp);
+  try {
+    delete process.env.OMOT_VAULT;
+    const got = resolveVaultRoot();
+    assert.equal(got, vaultDir);
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('resolveVaultRoot — fallback 은 cwd (4 순위, 아무것도 없을 때)', () => {
+  // cwd 에 docs/ontology 없는 임시 디렉토리 — realpathSync 로 정규화.
+  const tmp = realpathSync(mkdtempSync(resolve(tmpdir(), 'omot-vault-test-')));
+  const prevCwd = process.cwd();
+  process.chdir(tmp);
+  try {
+    delete process.env.OMOT_VAULT;
+    const got = resolveVaultRoot();
+    assert.equal(got, tmp);
+  } finally {
+    process.chdir(prevCwd);
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('resolveVaultRoot — 빈 문자열 explicit 은 default 로 취급', () => {
+  process.env.OMOT_VAULT = '/tmp/from-env';
+  try {
+    const got = resolveVaultRoot('');
+    assert.equal(got, resolve(process.cwd(), '/tmp/from-env'));
+  } finally {
+    delete process.env.OMOT_VAULT;
+  }
+});

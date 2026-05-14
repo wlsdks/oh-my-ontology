@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { parseFrontmatter } from '../lib/parse-frontmatter.mjs';
+import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { walkMd, pathToSlug } from '../lib/walk-vault.mjs';
 
 const COLORS = {
@@ -26,7 +26,7 @@ const KIND_COLORS = {
  * --kind <kind> 필터, --json 머신 가독 출력.
  */
 export function runList(args) {
-  const vaultPath = resolve(args.find((a) => !a.startsWith('--')) || '.');
+  const vaultPath = resolveVaultRoot(args.find((a) => !a.startsWith('--')));
   const kindFilter = pickFlag(args, '--kind');
   const asJson = args.includes('--json');
 

@@ -2,8 +2,8 @@
 // Lists isolated nodes — docs that no other node references in their
 // frontmatter. Thin wrapper over MCP find_orphans.
 
-import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -31,7 +31,7 @@ export async function runOrphans(args) {
     return 1;
   }
 
-  const vaultRoot = resolve(process.cwd(), vault);
+  const vaultRoot = resolveVaultRoot(vault);
   const toolArgs = {};
   if (kind) toolArgs.kind = kind;
   if (excludeKinds.length > 0) toolArgs.excludeKinds = excludeKinds;
