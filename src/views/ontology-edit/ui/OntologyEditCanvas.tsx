@@ -32,6 +32,7 @@ import {
   type AlignAction,
   type AlignableNode,
 } from "../lib/align-nodes";
+import { resolveDomainTint } from "../lib/domain-color";
 
 const EDGE_TYPES = { ephemeral: EphemeralEdgeComponent };
 
@@ -495,7 +496,16 @@ export function OntologyEditCanvas({
             (220) 안에 9 줄 의 dot 가 깔려 시각 노이즈 강함. 36 은 ~6 줄로
             여유 — 노드와 dot 의 시각 위계가 더 자연 (캔버스 = 빈 종이,
             dot = 약한 그리드 hint). */}
-        <Background variant={BackgroundVariant.Dots} gap={36} size={1} />
+        {/* gap 36 + size 1.2 + 인디고 hint 색 — 너무 강하면 캔버스가 종이 →
+            방안지 느낌으로 변해 노드를 가린다. 약하게 깔린 'snap-able' 시각
+            힌트가 목표. snapGrid (16px) 의 배수 (gap 32) 와 정확히 일치시키면
+            점 밀도 1.5× → 시각 노이즈. 36 이 그래픽적으로 더 자연. */}
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={36}
+          size={1.2}
+          color="rgba(139, 151, 255, 0.22)"
+        />
         {/* xyflow Controls (zoom +/- / fitView) 는 우하단 MiniMap 과 겹침 +
             기본 스타일이 light theme 이라 dark canvas 와 어색 (Fit View
             아이콘 흰색 등). 사용자 navigation 은 MiniMap (점프) + 자동정렬
@@ -519,11 +529,18 @@ export function OntologyEditCanvas({
             marginBottom: 56,
           }}
           nodeColor={(node) => {
-            const data = node.data as { ephemeral?: boolean } | undefined;
-            return data?.ephemeral
-              ? "rgba(255, 179, 71, 0.78)"
-              : "rgba(139, 151, 255, 0.78)";
+            const data = node.data as
+              | { ephemeral?: boolean; domainSlug?: string | null }
+              | undefined;
+            if (data?.ephemeral) return "rgba(255, 179, 71, 0.78)";
+            // 도메인 tint 가 미니맵 노드에도 반영되어, 같은 hue 끼리 모여
+            // 있는 게 미니맵 한눈 navigation 의 단서가 됨.
+            if (typeof data?.domainSlug === "string" && data.domainSlug) {
+              return resolveDomainTint(data.domainSlug).accent;
+            }
+            return "rgba(139, 151, 255, 0.78)";
           }}
+          nodeStrokeColor="rgba(14, 16, 22, 0.85)"
           nodeStrokeWidth={2}
         />
       </ReactFlow>
