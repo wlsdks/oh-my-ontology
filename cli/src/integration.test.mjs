@@ -1130,6 +1130,48 @@ await test('overview --limit 3 — 허브 N 만 출력', async () => {
   }
 });
 
+await test('node — graph fixture 의 capabilities/foo deep dive', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['node', 'capabilities/foo', root]);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    // header
+    assert.match(clean, /capability/);
+    assert.match(clean, /slug\s+capabilities\/foo/);
+    // foo 는 bar 가 relates 로 reference + auth domain 의 capabilities 로 reference
+    assert.match(clean, /INCOMING/);
+    assert.match(clean, /capabilities\/bar|domains\/auth/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('node --json — JSON 응답 node/edges/lineage 키 노출', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['node', 'capabilities/foo', root, '--json']);
+    assert.equal(r.code, 0);
+    const data = JSON.parse(r.stdout);
+    assert.equal(data.operation, 'node_profile');
+    assert.equal(data.center, 'capabilities/foo');
+    assert.ok(data.node);
+    assert.equal(data.node.slug, 'capabilities/foo');
+    assert.ok(data.edges);
+    assert.ok(data.edges.incoming);
+    assert.ok(data.edges.outgoing);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('node — slug 누락 시 usage + exit 1', async () => {
+  const r = await run(['node']);
+  assert.equal(r.code, 1);
+  const clean = stripAnsi(r.stderr);
+  assert.match(clean, /slug is required/);
+});
+
 await test('rename — dry-run preview, no disk change', async () => {
   const root = await buildGraphFixture();
   try {
