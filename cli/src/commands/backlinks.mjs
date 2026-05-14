@@ -1,8 +1,8 @@
 // R15 follow-up — `oh-my-ontology backlinks <slug> [vault]`
 // Lists every node referencing the target. Thin wrapper over MCP find_backlinks.
 
-import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -21,7 +21,7 @@ export async function runBacklinks(args) {
     return 1;
   }
 
-  const vaultRoot = resolve(process.cwd(), vault);
+  const vaultRoot = resolveVaultRoot(vault);
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'find_backlinks', { slug });

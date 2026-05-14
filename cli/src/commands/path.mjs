@@ -4,8 +4,8 @@
 // (relation type per hop) 도 함께 사용자에게 노출해, 두 노드가 *왜* 연결됐는지
 // 한 줄로 본다.
 
-import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -25,7 +25,7 @@ export async function runPath(args) {
     return 1;
   }
 
-  const vaultRoot = resolve(process.cwd(), vault);
+  const vaultRoot = resolveVaultRoot(vault);
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'find_path', {

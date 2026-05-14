@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
-import { resolve, relative } from 'node:path';
+import { relative } from 'node:path';
 import { walkMd } from '../lib/walk-vault.mjs';
 import { parseFrontmatter } from '../lib/parse-frontmatter.mjs';
+import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { validateVaultDocument } from '../lib/validate.mjs';
 
 const COLORS = {
@@ -101,7 +102,7 @@ export function runValidate(args) {
       );
     }
   }
-  const vaultPath = resolve(args.find((a) => !a.startsWith('--')) || '.');
+  const vaultPath = resolveVaultRoot(args.find((a) => !a.startsWith('--')));
   const files = walkMd(vaultPath);
   const entries = [];
   const reportByFile = new Map();
