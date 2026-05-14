@@ -306,6 +306,7 @@ describe('queryCompiledOntology', () => {
       danglingReferences: 0,
       relationRecommendations: 1,
       externalElementRefs: 1,
+      externalElementRefsIgnored: 0,
       unassignedNodes: 1,
       emptyDomains: 0,
     });
@@ -1925,6 +1926,7 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.summary, {
       relationRecommendations: 1,
       externalElementRefs: 1,
+      externalElementRefsIgnored: 0,
       danglingReferences: 1,
       unassignedNodes: 1,
       emptyDomains: 1,
@@ -1956,6 +1958,44 @@ describe('queryCompiledOntology', () => {
     ]);
     assert.deepEqual(result.unassignedNodes.rows.map((row) => row.slug), ['capabilities/orphan']);
     assert.deepEqual(result.emptyDomains.rows.map((row) => row.slug), ['domains/empty']);
+  });
+
+  it('omotIgnorePatterns 가 매치되는 external element ref 를 materialize 추천에서 제외 + ignored 카운트 노출', () => {
+    const graph = compileOntology(
+      [
+        doc('project', { kind: 'project', title: 'P', domains: ['domains/x'] }),
+        doc('domains/x', {
+          kind: 'domain',
+          title: 'X',
+          capabilities: ['capabilities/foo'],
+        }),
+        doc('capabilities/foo', {
+          kind: 'capability',
+          title: 'Foo',
+          domain: 'x',
+          // 두 external element ref (둘 다 path-like — `.` 가 있어 external 로 인식).
+          // src/** 매치 1 + 매치 안 됨 1.
+          elements: ['src/foo.ts', 'external/lib.ts'],
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const without = queryCompiledOntology(graph, { operation: 'growth_plan', limit: 10 });
+    // ignore 없을 때 둘 다 candidate
+    assert.equal(without.summary.externalElementRefs, 2);
+    assert.equal(without.summary.externalElementRefsIgnored, 0);
+
+    const withIgnore = queryCompiledOntology(
+      graph,
+      { operation: 'growth_plan', limit: 10 },
+      { omotIgnorePatterns: ['src/**'] },
+    );
+    // 'src/foo.ts' 는 매치, 'external/lib.ts' 는 안 매치
+    assert.equal(withIgnore.summary.externalElementRefs, 1);
+    assert.equal(withIgnore.summary.externalElementRefsIgnored, 1);
+    assert.equal(withIgnore.externalElementRefs.rows[0].ref, 'external/lib.ts');
+    assert.equal(withIgnore.externalElementRefs.ignored, 1);
   });
 
   it('returns a one-shot workspace brief for first-contact agent orientation', () => {
@@ -1998,6 +2038,7 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.growth, {
       relationRecommendations: 1,
       externalElementRefs: 1,
+      externalElementRefsIgnored: 0,
       danglingReferences: 0,
       unassignedNodes: 0,
       emptyDomains: 0,

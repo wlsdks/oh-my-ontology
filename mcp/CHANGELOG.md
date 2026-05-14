@@ -1,5 +1,15 @@
 # Changelog — oh-my-ontology-mcp
 
+## 0.12.0 — 2026-05-14
+
+### Added — `.omotignore` for materialize noise reduction
+
+- vault 루트의 `.omotignore` 파일 (gitignore-style glob 패턴) 이 `growth_plan` / `maintenance_plan` 의 `materialize_external_element` 추천에서 매치되는 ref 를 제외. 의도된 외부 코드 (예: `src/**`, `cli/**`) 가 매번 80+ noise 로 surface 되던 paper cut 정정.
+- 패턴 문법: `*` (디렉토리 안 모든 문자) · `**` (재귀) · `?` (단일 char) · `/`·이름 path. `#` 주석 + 빈 줄 skip. 부정 (`!`) 1차 미지원.
+- 응답 투명성: `growth_plan` / `maintenance_plan` 의 summary 에 `externalElementRefsIgnored: N` 카운트 노출. 사용자가 "왜 추천이 줄었지" 분간 가능.
+- `mcp/src/omot-ignore.mjs` (load + glob match) + 11 신규 단위 테스트.
+- `createOntologyEngine(artifact, { omotIgnorePatterns })` 옵션 + `queryCompiledOntology(artifact, query, { omotIgnorePatterns })` chain. wrapper 가 `loadOmotIgnore(VAULT_ROOT)` 호출.
+
 ## 0.11.0 — 2026-05-14
 
 ### Added — `compile_ontology` summary + nodes/edges pagination
