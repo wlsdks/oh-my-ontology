@@ -90,6 +90,8 @@ ${COLORS.bold}Graph-level commands${COLORS.reset} ${COLORS.dim}(R15 — wraps th
        --json                                 ${COLORS.dim}exit 0 만 healthy${COLORS.reset}
   npx oh-my-ontology workspace-brief [vault]  Status + hotspots + project 요약 + next actions 한 화면
        --json
+  npx oh-my-ontology node <slug> [vault]      한 노드 deep dive — header · lineage · incoming/outgoing edges
+       --json                                 ${COLORS.dim}relation 별 그룹 + 노드 title 동봉${COLORS.reset}
   npx oh-my-ontology rename <old> <new>       Atomic rename — moves .md, redirects every backlink
        --confirm                              ${COLORS.dim}default dry-run (preview); --confirm to apply${COLORS.reset}
   npx oh-my-ontology merge <from> <into>      Atomic merge — redirect backlinks then delete fromSlug
@@ -404,6 +406,11 @@ if (SUBCOMMAND === 'health') {
 if (SUBCOMMAND === 'workspace-brief') {
   const { runWorkspaceBrief } = await import('./commands/workspace-brief.mjs');
   exit(await runWorkspaceBrief(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'node') {
+  const { runNodeProfile } = await import('./commands/node-profile.mjs');
+  exit(await runNodeProfile(ARGS.slice(1)));
 }
 
 if (SUBCOMMAND === 'query') {

@@ -1,5 +1,14 @@
 # Changelog — oh-my-ontology (CLI)
 
+## 0.9.0 — 2026-05-14
+
+### Added — `node` 명령 (23rd, query_ontology node_profile wrap)
+
+- `oh-my-ontology node <slug> [vault] [--json]` — 한 노드 전체 deep dive. MCP `query_ontology({operation: 'node_profile'})` thin wrapper.
+- 출력: header (kind · title · slug · domain · degree · aliases) + LINEAGE chain (project → domain → ... → 이 노드) + INCOMING/OUTGOING edges (relation 별 그룹, peer 노드 title 동봉, external 마크).
+- 기존 `backlinks` 가 incoming 만, `path` 가 두 노드 사이만 보여줬다면 `node` 는 *한 노드 둘레의 전부* — dev 가 모르는 노드 만났을 때 첫 호출.
+- 신규 integration test 3건 (counts / --json / slug 누락 usage).
+
 ## 0.8.0 — 2026-05-14
 
 ### Added — 5 graph commands (18–22, query_ontology operations)
