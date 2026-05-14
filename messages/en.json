@@ -705,6 +705,19 @@
           "contains": "contains",
           "describes": "describes",
           "domains": "domain"
+        },
+        "alignToolbar": {
+          "ariaLabel": "Align selected nodes",
+          "selectedCount": "{count} selected",
+          "left": "Align left",
+          "centerX": "Align center (horizontal)",
+          "right": "Align right",
+          "top": "Align top",
+          "centerY": "Align center (vertical)",
+          "bottom": "Align bottom",
+          "distributeH": "Distribute horizontally",
+          "distributeV": "Distribute vertically",
+          "distributeHint": "Distribute requires 3+ selected"
         }
       },
       "inspector": {
