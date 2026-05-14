@@ -1,10 +1,12 @@
+import { refMatchesOmotIgnore } from './omot-ignore.mjs';
+
 const DEFAULT_LIMIT = 100;
 const DOWNWARD_CONTAINMENT_TYPES = new Set(['domains', 'capabilities', 'elements', 'contains']);
 const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
 
-export function queryCompiledOntology(artifact, query = {}) {
+export function queryCompiledOntology(artifact, query = {}, options = {}) {
   const operation = query.operation;
-  const engine = createOntologyEngine(artifact);
+  const engine = createOntologyEngine(artifact, options);
 
   if (operation === 'neighbors') {
     return engine.neighbors(query.slug, query);
@@ -114,7 +116,10 @@ export function queryCompiledOntology(artifact, query = {}) {
   );
 }
 
-export function createOntologyEngine(artifact) {
+export function createOntologyEngine(artifact, options = {}) {
+  const omotIgnorePatterns = Array.isArray(options.omotIgnorePatterns)
+    ? options.omotIgnorePatterns
+    : [];
   const nodes = Array.isArray(artifact?.nodes) ? artifact.nodes : [];
   const edges = Array.isArray(artifact?.edges) ? artifact.edges : [];
   const nodeBySlug = new Map(nodes.map((node) => [node.slug, node]));
@@ -1879,8 +1884,22 @@ export function createOntologyEngine(artifact) {
   }
 
   function externalElementCandidates(limit) {
-    const rows = edges
-      .filter((edge) => edge.external && edge.via === 'elements')
+    // `.omotignore` 패턴에 매치되는 ref 는 *의도된 외부 코드* 로 간주, materialize
+    // 추천에서 skip. ignored 카운트는 응답에 같이 노출 (투명성 — 사용자가 "왜
+    // 외부 ref 가 적게 보이지?" 묻지 않도록).
+    const allExternal = edges.filter(
+      (edge) => edge.external && edge.via === 'elements',
+    );
+    let ignored = 0;
+    const kept = [];
+    for (const edge of allExternal) {
+      if (refMatchesOmotIgnore(edge.ref, omotIgnorePatterns)) {
+        ignored += 1;
+        continue;
+      }
+      kept.push(edge);
+    }
+    const rows = kept
       .sort(compareEdges)
       .map((edge) => {
         const slug = suggestedSlugForReference(edge.ref, 'element');
@@ -1903,7 +1922,9 @@ export function createOntologyEngine(artifact) {
         };
       });
 
-    return limitedCandidateGroup(rows, limit);
+    const result = limitedCandidateGroup(rows, limit);
+    if (ignored > 0) result.ignored = ignored;
+    return result;
   }
 
   function danglingReferenceCandidates(limit) {
@@ -2219,6 +2240,7 @@ export function createOntologyEngine(artifact) {
       summary: {
         relationRecommendations: relationRecommendations.totalRecommendations,
         externalElementRefs: externalElementRefs.total,
+        externalElementRefsIgnored: externalElementRefs.ignored ?? 0,
         danglingReferences: danglingReferences.total,
         unassignedNodes: unassignedNodes.total,
         emptyDomains: emptyDomains.total,
@@ -2380,6 +2402,7 @@ export function createOntologyEngine(artifact) {
         danglingReferences: danglingReferences.total,
         relationRecommendations: relationRecommendations.totalRecommendations,
         externalElementRefs: externalElementRefs.total,
+        externalElementRefsIgnored: externalElementRefs.ignored ?? 0,
         unassignedNodes: unassignedNodes.total,
         emptyDomains: emptyDomains.total,
       },

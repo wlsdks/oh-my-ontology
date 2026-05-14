@@ -77,6 +77,7 @@ import { analyzeRepoStructure } from './analyze.mjs';
 import { inferImports } from './infer-imports.mjs';
 import { compileOntology } from './ontology-compiler.mjs';
 import { queryCompiledOntology } from './ontology-engine.mjs';
+import { loadOmotIgnore } from './omot-ignore.mjs';
 import { parseFilter } from './query.mjs';
 import { isValidVaultTitle, validateVaultDocument } from './validate.mjs';
 import {
@@ -1847,8 +1848,9 @@ function compileOntologyTool({
 
 function queryOntologyTool(args = {}) {
   const artifact = compileOntology(loadVaultDocs(VAULT_ROOT), { includeIndexes: true });
+  const omotIgnorePatterns = loadOmotIgnore(VAULT_ROOT);
   return {
-    ...queryCompiledOntology(artifact, args),
+    ...queryCompiledOntology(artifact, args, { omotIgnorePatterns }),
     compiledSummary: {
       nodes: artifact.nodeCount,
       edges: artifact.edgeCount,
@@ -1864,10 +1866,11 @@ function queryOntologyTool(args = {}) {
 
 function compactPostWriteMaintenance(limit = 5) {
   const artifact = compileOntology(loadVaultDocs(VAULT_ROOT), { includeIndexes: true });
+  const omotIgnorePatterns = loadOmotIgnore(VAULT_ROOT);
   const result = queryCompiledOntology(artifact, {
     operation: 'maintenance_plan',
     limit,
-  });
+  }, { omotIgnorePatterns });
   return {
     graphHash: result.graphHash,
     summary: result.summary,
