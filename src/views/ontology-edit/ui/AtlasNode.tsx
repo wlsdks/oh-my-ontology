@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { resolveDomainTint } from "../lib/domain-color";
@@ -61,6 +62,10 @@ const KIND_TONE: Record<
 export function AtlasNode({ data, selected }: NodeProps) {
   const t = useTranslations("ontologyPages.edit.atlasNode");
   const nodeData = data as AtlasNodeData;
+  // 호버 elevation — 디자인 헌장 §11 의 'scale hover 금지' 약속 안에서 box-shadow
+  // 만 강화 (translateY 도 안 씀). React state 로 hover 분기 — 인라인 스타일이
+  // CSS hover 보다 우선이라 state 가 가장 깔끔.
+  const [hovered, setHovered] = useState(false);
   const tone = KIND_TONE[nodeData.kind] ?? KIND_TONE.element;
   const isEphemeral = Boolean(nodeData.ephemeral);
   // ephemeral 은 *저장 필요* 신호 — 디자인 헌장 §11 의 warning amber
@@ -87,9 +92,23 @@ export function AtlasNode({ data, selected }: NodeProps) {
   // ephemeral 은 amber 신호색이 강해서 도메인 tint 적용 안 함 (혼동 방지).
   // domain 노드 자기 카드도 자기 색으로 hue 진하게 (좌측 4px bar, bg tint).
   const showDomainTint = !isEphemeral && nodeData.domainSlug;
+  // 선택 / hover / 기본 시각 위계 — 디자인 헌장 §11 의 단일 인디고 약속 안에서
+  // box-shadow elevation 으로만 차별. scale / translate 금지.
+  //  - selected: indigo halo + ring (또는 ephemeral 의 amber halo)
+  //  - hovered: 그림자 한 단계 강화 (rest 보다 또렷, selected 보단 약함)
+  //  - rest: 살짝 떠있는 default shadow
+  const selectedShadow = selected
+    ? `0 0 0 2px ${isEphemeral ? "rgba(255, 179, 71, 0.62)" : tone.accent}, 0 0 22px ${isEphemeral ? "rgba(255, 179, 71, 0.32)" : "rgba(139, 151, 255, 0.32)"}, 0 12px 28px rgba(0, 0, 0, 0.42)`
+    : null;
+  const hoveredShadow = hovered
+    ? "0 8px 22px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(139, 151, 255, 0.22)"
+    : null;
+  const restShadow = "0 4px 12px rgba(0, 0, 0, 0.22)";
   return (
     <div
       title={hoverTitle}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         minWidth: 220,
         minHeight: 60,
@@ -108,10 +127,9 @@ export function AtlasNode({ data, selected }: NodeProps) {
             ? `linear-gradient(to right, ${domainTint.bg}, ${tone.bg})`
             : tone.bg,
         color: "var(--color-text-primary)",
-        boxShadow: selected
-          ? `0 0 0 2px ${isEphemeral ? "rgba(255, 179, 71, 0.6)" : tone.accent}, 0 10px 22px rgba(0, 0, 0, 0.36)`
-          : "0 4px 12px rgba(0, 0, 0, 0.22)",
-        transition: "box-shadow 180ms ease-out, border-color 180ms ease-out",
+        boxShadow: selectedShadow ?? hoveredShadow ?? restShadow,
+        transition:
+          "box-shadow 200ms ease-out, border-color 200ms ease-out",
         fontSize: 13,
         lineHeight: 1.4,
         wordBreak: "keep-all",
