@@ -705,6 +705,19 @@
           "contains": "포함",
           "describes": "설명",
           "domains": "도메인"
+        },
+        "alignToolbar": {
+          "ariaLabel": "선택한 노드 정렬",
+          "selectedCount": "{count} 개 선택됨",
+          "left": "왼쪽 정렬",
+          "centerX": "가로 가운데 정렬",
+          "right": "오른쪽 정렬",
+          "top": "위쪽 정렬",
+          "centerY": "세로 가운데 정렬",
+          "bottom": "아래쪽 정렬",
+          "distributeH": "가로 균등 분포",
+          "distributeV": "세로 균등 분포",
+          "distributeHint": "분포는 3 개 이상 선택 필요"
         }
       },
       "inspector": {

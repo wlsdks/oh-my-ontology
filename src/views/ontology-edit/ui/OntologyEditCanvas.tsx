@@ -26,6 +26,12 @@ import type { EphemeralNode } from "../lib/use-ephemeral-nodes";
 import type { EphemeralEdge } from "../lib/use-ephemeral-edges";
 import { ATLAS_NODE_TYPES } from "./AtlasNode";
 import { EphemeralEdge as EphemeralEdgeComponent } from "./EphemeralEdge";
+import { AlignToolbar } from "./AlignToolbar";
+import {
+  computeAlignedPositions,
+  type AlignAction,
+  type AlignableNode,
+} from "../lib/align-nodes";
 
 const EDGE_TYPES = { ephemeral: EphemeralEdgeComponent };
 
@@ -372,6 +378,50 @@ export function OntologyEditCanvas({
     [onVaultNodeDragStop, hasLiveVault],
   );
 
+  // 다중 선택 정렬 — selected 노드 (vault + ephemeral 모두 후보) 의 새 좌표를
+  // pure 함수로 계산 후 in-memory state 갱신. vault 노드에 한해 frontmatter
+  // canvasPosition 도 patch (drag-stop 과 동일 정신).
+  const selectedAlignable: AlignableNode[] = useMemo(() => {
+    return allNodes
+      .filter((n) => n.selected)
+      .map((n) => ({
+        id: n.id,
+        position: { x: n.position.x, y: n.position.y },
+        // n.width / n.height 가 undefined 일 수도 있어 default fallback. vault
+        // 노드는 220/60 으로 명시. ephemeral 도 220/64 라 비슷.
+        width: typeof n.width === "number" ? n.width : 220,
+        height: typeof n.height === "number" ? n.height : 60,
+      }));
+  }, [allNodes]);
+
+  const handleAlign = useCallback(
+    (action: AlignAction) => {
+      const updates = computeAlignedPositions(selectedAlignable, action);
+      if (updates.size === 0) return;
+      // in-memory: setLocalNodes 가 ReactFlow 캔버스에 즉시 반영.
+      setLocalNodes((current) =>
+        current.map((n) => {
+          const next = updates.get(n.id);
+          return next ? { ...n, position: next } : n;
+        }),
+      );
+      // vault 노드는 frontmatter.canvasPosition 도 patch — 다음 mount 부터
+      // 정렬 결과 유지. dogfood 매니페스트일 땐 skip (disk 권한 없음).
+      if (!hasLiveVault) return;
+      for (const [id, pos] of updates) {
+        const node = allNodes.find((n) => n.id === id);
+        const data = node?.data as { vault?: boolean } | undefined;
+        if (data?.vault) {
+          onVaultNodeDragStop?.(id, {
+            x: Math.round(pos.x),
+            y: Math.round(pos.y),
+          });
+        }
+      }
+    },
+    [selectedAlignable, allNodes, onVaultNodeDragStop, hasLiveVault],
+  );
+
   return (
     <div
       className={`relative h-full w-full ${isLayoutAnimating ? "rf-layout-animating" : ""}`}
@@ -390,6 +440,7 @@ export function OntologyEditCanvas({
         } as React.CSSProperties
       }
     >
+      <AlignToolbar selected={selectedAlignable} onApply={handleAlign} />
       <ReactFlow
         nodes={allNodes}
         edges={allEdges}
@@ -399,6 +450,10 @@ export function OntologyEditCanvas({
         proOptions={{ hideAttribution: true }}
         nodesConnectable
         nodesDraggable
+        // 16px 그리드 snap — drag 시 항상 정수 그리드 정렬. 사용자가
+        // 손으로도 깔끔하게 배치할 수 있도록.
+        snapToGrid
+        snapGrid={[16, 16]}
         // 사용자가 핸들에서 끌어 connection 그릴 때 미리보기 line — 인디고
         // alpha bezier 로 테마 일관 + 곡선이라 부드러움.
         connectionLineType={ConnectionLineType.Bezier}
