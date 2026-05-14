@@ -1,5 +1,16 @@
 # Changelog — oh-my-ontology-mcp
 
+## 0.11.0 — 2026-05-14
+
+### Added — `compile_ontology` summary + nodes/edges pagination
+
+- **`summary: true` 옵션** — `nodes` / `edges` / `aliases` / `ambiguousAliases` / `canonicalizationActions` / `indexes` 배열 일괄 omit. `graphHash` + `maxMtime` + 카운트 (`nodeCount` / `edgeCount` / `aliasCount` / `ambiguousAliasCount` / `issueCount` / `canonicalizationActionCount` / `resolvedEdgeCount` / `externalEdgeCount` / `unresolvedEdgeCount`) + `byKind` / `byDomain` aggregate counts 만 반환. cache invalidation / graph-size 판단 / 변화 감지 용 cheap polling.
+- **`nodesLimit` / `nodesOffset`** — nodes 배열 slice. 응답에 `nodesPagination: { offset, limit, total, returned, hasMore, nextOffset }` 메타 동봉.
+- **`edgesLimit` / `edgesOffset`** — edges 배열 독립 slice + `edgesPagination`.
+- 옵션 미지정 시 기존과 동일 (backward compat).
+- 동기: dogfood 26 노드 vault 에서도 응답 64KB/1910 line → MCP 토큰 한도 초과. 100+ 노드 vault 에선 AI agent 가 도구 호출 자체를 못 함 → mission v3 의 AI-agent-primary 약속 깨짐.
+- 신규 단위 테스트 5 (summary 형태 / hash 동일 / nodes slice / edges slice / no-meta backward compat).
+
 ## 0.10.0 — 2026-05-07 (R18/R20 — batch tools + vault health)
 
 ### Added

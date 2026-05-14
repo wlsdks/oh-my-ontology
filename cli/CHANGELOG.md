@@ -1,6 +1,13 @@
 # Changelog — oh-my-ontology (CLI)
 
-## Unreleased
+## 0.6.0 — 2026-05-14
+
+### Fixed — graph-level 명령 vault 자동 감지
+
+- `list / query / path / orphans / backlinks / find / validate` 가 vault 인자 미지정 시 cwd 전체를 walk 하던 paper cut 정정. self-dogfood (이 repo 안에서 CLI 사용) 시 `public/docs-vault/` (build 미러) 와 `cli/templates/vault/` 까지 잡혀 노드 수가 2 배로 보임.
+- 신규 `cli/src/lib/resolve-vault.mjs` — 우선순위: 1) 명시 인자 → 2) `OMOT_VAULT` env → 3) cwd 의 `docs/ontology/` 자동 감지 → 4) cwd fallback. MCP 서버 `OMOT_VAULT` 규약과 동일.
+- 신규 단위 테스트 6 (`resolve-vault.test.mjs`) — explicit 우선 / env / 자동 감지 / cwd fallback / 빈 문자열 default / macOS realpath symlink.
+- add / import / init 등 *생성* 명령은 그대로 (명시 destination 필요).
 
 ### Added — `path` command (16th, mcp find_path wrapper) — 회귀 fix
 

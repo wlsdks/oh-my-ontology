@@ -1,6 +1,6 @@
 {
   "name": "oh-my-ontology-mcp",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "MCP server — humans and AI agents read/write the same codebase ontology vault. Current surface: 23 tools (15 read + 8 write).",
   "keywords": [
     "mcp",
