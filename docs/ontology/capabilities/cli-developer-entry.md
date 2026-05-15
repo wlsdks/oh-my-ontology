@@ -65,6 +65,7 @@ scripts/smoke-clean-onboarding.mjs — fresh user smoke. 임시 `HOME` / `CODEX_
 
 scripts/check-package-contracts.mjs — publish 전 package manifest gate. `mcp/` 와
 `cli/` 의 bin / main / npm scripts 에서 도달 가능한 local import와 실행 파일이
-`package.json#files` 에 포함되는지 검사하고, CLI 의 `oh-my-ontology-mcp`
-dependency 가 현재 MCP package version 을 추적하는지 확인한다. source checkout 에서는
-통과하지만 npm tarball 에서만 깨지는 release drift 를 차단한다.
+`package.json#files` 에 포함되는지 검사한다. 반대로 `files` 항목이 실제 package
+파일/디렉토리/glob 과 매치되는지도 확인하고, CLI 의 `oh-my-ontology-mcp` dependency
+가 현재 MCP package version 을 추적하는지 본다. source checkout 에서는 통과하지만
+npm tarball 에서만 깨지는 release drift 를 차단한다.

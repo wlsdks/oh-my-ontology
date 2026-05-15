@@ -3,7 +3,7 @@
 // This catches npm tarball drift before a maintainer reaches `npm publish`.
 
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, normalize, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,6 +33,20 @@ function globToRegExp(pattern) {
   return new RegExp(`^${escaped}$`);
 }
 
+function listFiles(root, dir = root) {
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listFiles(root, full));
+    } else if (entry.isFile()) {
+      files.push(normalizeRel(relative(root, full)));
+    }
+  }
+  return files.sort();
+}
+
 function isCoveredByFiles(relPath, files) {
   const path = normalizeRel(relPath);
   return files.some((entry) => {
@@ -41,6 +55,16 @@ function isCoveredByFiles(relPath, files) {
     if (normalized.includes('*')) return globToRegExp(normalized).test(path);
     return path.startsWith(`${normalized}/`);
   });
+}
+
+function fileEntryMatches(entry, packageFiles, dir) {
+  const normalized = normalizeRel(entry).replace(/\/$/, '');
+  if (normalized.includes('*')) {
+    const re = globToRegExp(normalized);
+    return packageFiles.some((file) => re.test(file));
+  }
+  if (existsSync(join(dir, normalized))) return true;
+  return packageFiles.some((file) => file.startsWith(`${normalized}/`));
 }
 
 function parseScriptFileRefs(command) {
@@ -112,6 +136,15 @@ function checkPackage({ label, dir }) {
   const pkg = readJson(join(dir, 'package.json'));
   const files = pkg.files ?? [];
   assert.ok(files.length > 0, `${label}: package.json#files must be explicit`);
+
+  const packageFiles = listFiles(dir);
+  for (const entry of files) {
+    assert.equal(
+      fileEntryMatches(entry, packageFiles, dir),
+      true,
+      `${label}: package.json#files entry does not match any package file: ${entry}`,
+    );
+  }
 
   const entrypoints = packageEntrypoints(pkg, dir);
   const reachable = collectReachableFiles(entrypoints);
