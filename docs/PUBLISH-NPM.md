@@ -5,7 +5,7 @@ This project publishes two npm packages:
 | Package | Path | What | Required? |
 |---|---|---|---|
 | `oh-my-ontology-mcp` | `mcp/` | MCP server (AI agents read/write the vault) | **Required** — the core of the AI agent integration |
-| `oh-my-ontology` | `cli/` | `init` CLI (vault scaffold) | **Optional** — the web workbench's scaffold button does the same thing |
+| `oh-my-ontology` | `cli/` | 25-command developer CLI (vault scaffold, bootstrap, compile, graph CRUD/deep dive) | **Recommended** — the shortest terminal path and the MCP-backed developer surface |
 
 > **Cost**: $0. Public npm packages are permanently free. Unlimited downloads / users.
 > You do need an npm account with 2FA (free).
@@ -22,11 +22,12 @@ This project publishes two npm packages:
 cd mcp
 npm pack --dry-run
 # Tarball Contents — README.md, package.json, src/*, scripts/verify.mjs
-# Anything else is excluded.
+# Current package: oh-my-ontology-mcp@0.12.0
 
 cd ../cli
 npm pack --dry-run
-# README.md, package.json, src/index.mjs, templates/vault/*.md
+# README.md, package.json, src/index.mjs, src/commands/*, src/lib/*, templates/vault/*.md
+# Current package: oh-my-ontology@0.11.0
 ```
 
 We've audited: 0 secrets, 0 PII, 0 absolute paths.
@@ -87,7 +88,7 @@ If a name is taken:
 cd mcp
 npm publish --access=public
 # Enter OTP when prompted (if 2FA enabled)
-# "+ oh-my-ontology-mcp@0.5.0" = success
+# "+ oh-my-ontology-mcp@0.12.0" = success
 ```
 
 Verify:
@@ -105,6 +106,10 @@ OMOT_VAULT=/path/to/some/folder npx -y oh-my-ontology-mcp
 
 ## Step 4 — Publish the CLI (optional)
 
+Publish MCP first. The CLI package depends on the current MCP package
+(`oh-my-ontology-mcp@^0.12.0`) for graph-level commands such as `compile`,
+`bootstrap`, `rename`, and `node`.
+
 ```bash
 cd cli
 npm publish --access=public
@@ -117,12 +122,18 @@ Verify:
 cd /tmp
 npx oh-my-ontology --help
 # prints help
+npx oh-my-ontology --version
+# prints 0.11.0
 npx oh-my-ontology init test-vault
 # creates test-vault/ with 5 .md files + wired .mcp.json
 rm -rf test-vault
 ```
 
-Don't want to publish the CLI? Users can get the same scaffold from the web workbench's `/docs` page → "Create starter seed" button. The CLI is just a convenience for AI-native developers who prefer one-line setup.
+Don't want to publish the CLI? Users can still create starter files from the
+web workbench's `/docs` page → "Create starter seed" button. But they will miss
+the terminal-native graph workflow (`bootstrap`, `compile --fix`, graph CRUD,
+deep-dive commands), so publishing the CLI is recommended for AI-native
+developers.
 
 ---
 
@@ -172,13 +183,15 @@ ls -la
 Within 24 hours of publish, you can unpublish (for honest mistakes):
 
 ```bash
-npm unpublish oh-my-ontology-mcp@0.5.0
+npm unpublish oh-my-ontology-mcp@0.12.0
+npm unpublish oh-my-ontology@0.11.0
 ```
 
 After 24 hours, unpublish is no longer allowed — only `deprecate` (installers see a warning, the version stays):
 
 ```bash
-npm deprecate oh-my-ontology-mcp@0.5.0 "0.5.0 has a critical bug, use 0.5.1+"
+npm deprecate oh-my-ontology-mcp@0.12.0 "0.12.0 has a critical bug, use 0.12.1+"
+npm deprecate oh-my-ontology@0.11.0 "0.11.0 has a critical bug, use 0.11.1+"
 ```
 
 > So always run `npm pack --dry-run` once more before the first publish.
@@ -192,11 +205,11 @@ After code changes, you must bump the version — npm rejects republishing the s
 
 ```bash
 cd mcp
-# Patch (bug fix): 0.5.0 → 0.5.1
+# Patch (bug fix): 0.12.0 → 0.12.1
 npm version patch
-# Or minor: 0.5.0 → 0.6.0
+# Or minor: 0.12.0 → 0.13.0
 npm version minor
-# Or major: 0.5.0 → 1.0.0
+# Or major: 0.12.0 → 1.0.0
 npm version major
 
 npm publish --access=public
