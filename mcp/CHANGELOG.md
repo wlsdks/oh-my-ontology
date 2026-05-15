@@ -13,6 +13,7 @@
 ### Fixed — package tarball runtime files
 
 - `package.json#files` now includes runtime-only imports `src/schema.mjs` and `src/omot-ignore.mjs`. Packed installs can boot `src/index.js` and run `compile_ontology` / `query_ontology` without source-checkout-only files.
+- `package.json#files` now ships `src/*.test.mjs`, matching the package `npm test` script; `omot-ignore.test.mjs` is included in that script so the new ignore matcher stays covered.
 
 ## 0.11.0 — 2026-05-14
 
