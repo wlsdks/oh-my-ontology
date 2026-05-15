@@ -23,6 +23,7 @@ function run(args, options = {}) {
   return new Promise((resolve, reject) => {
     const proc = spawn('node', [CLI, ...args], {
       cwd: options.cwd,
+      env: { ...process.env, ...options.env },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     let stdout = '';
@@ -74,6 +75,7 @@ await test('help — current setup contract and default slug layout are not stal
   assert.doesNotMatch(clean, /auto-prefix.*opt-in/);
   assert.match(clean, /Codex 'mcp add'/);
   assert.match(clean, /Recommends 'bootstrap'/);
+  assert.match(clean, /mcp-verify/);
 });
 
 await test('list — empty vault: 0 노드 메시지', async () => {
@@ -107,6 +109,26 @@ await test('init — generated MCP config points at a runnable local server in s
     assert.equal(server.env.OMOT_VAULT, './ontology');
     assert.equal(server.command, 'node');
     assert.match(server.args[0], /mcp\/src\/index\.js$/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('mcp-verify — runs MCP package verify against a resolved vault', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'cli-mcp-verify-'));
+  try {
+    const init = await run(['init', 'ontology'], { cwd: root });
+    assert.equal(init.code, 0, `stdout: ${init.stdout}\nstderr: ${init.stderr}`);
+
+    const r = await run(['mcp-verify', 'ontology'], {
+      cwd: root,
+      env: { OMOT_VERIFY_TIMEOUT_MS: '1000' },
+    });
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /tools\/list 23\/23/);
+    assert.match(clean, /workspace_brief/);
+    assert.match(clean, /health/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

@@ -1,15 +1,15 @@
 ---
 slug: capabilities/cli-developer-entry
 kind: capability
-title: CLI Developer Entry (25 commands — vault + compile + graph deep dive)
+title: CLI Developer Entry (26 commands — vault + MCP verify + graph deep dive)
 domain: onboarding-ux
-elements: [cli/src/commands/add.mjs, cli/src/commands/analyze.mjs, cli/src/commands/backlinks.mjs, cli/src/commands/blast-radius.mjs, cli/src/commands/bootstrap.mjs, cli/src/commands/compile.mjs, cli/src/commands/cycles.mjs, cli/src/commands/delete.mjs, cli/src/commands/find.mjs, cli/src/commands/health.mjs, cli/src/commands/hubs.mjs, cli/src/commands/import.mjs, cli/src/commands/infer-imports.mjs, cli/src/commands/list.mjs, cli/src/commands/merge.mjs, cli/src/commands/node-profile.mjs, cli/src/commands/orphans.mjs, cli/src/commands/overview.mjs, cli/src/commands/path.mjs, cli/src/commands/query.mjs, cli/src/commands/rename.mjs, cli/src/commands/similar.mjs, cli/src/commands/validate.mjs, cli/src/commands/workspace-brief.mjs, cli/src/index.mjs, cli/src/lib/mcp-call.mjs, cli/src/lib/resolve-vault.mjs, scripts/check-package-contracts.mjs, scripts/check-package-contracts.test.mjs]
+elements: [cli/src/commands/add.mjs, cli/src/commands/analyze.mjs, cli/src/commands/backlinks.mjs, cli/src/commands/blast-radius.mjs, cli/src/commands/bootstrap.mjs, cli/src/commands/compile.mjs, cli/src/commands/cycles.mjs, cli/src/commands/delete.mjs, cli/src/commands/find.mjs, cli/src/commands/health.mjs, cli/src/commands/hubs.mjs, cli/src/commands/import.mjs, cli/src/commands/infer-imports.mjs, cli/src/commands/list.mjs, cli/src/commands/mcp-verify.mjs, cli/src/commands/merge.mjs, cli/src/commands/node-profile.mjs, cli/src/commands/orphans.mjs, cli/src/commands/overview.mjs, cli/src/commands/path.mjs, cli/src/commands/query.mjs, cli/src/commands/rename.mjs, cli/src/commands/similar.mjs, cli/src/commands/validate.mjs, cli/src/commands/workspace-brief.mjs, cli/src/index.mjs, cli/src/lib/mcp-call.mjs, cli/src/lib/resolve-vault.mjs, scripts/check-package-contracts.mjs, scripts/check-package-contracts.test.mjs, scripts/smoke-packed-cli.mjs]
 relates: [capabilities/mcp-server, capabilities/vault-validator, domains/onboarding-ux]
 ---
 
 # CLI Developer Entry
 
-R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import`, R15 follow-up 에서 graph-level 5 명령, R16-R17 에서 `analyze` / `infer-imports`, R+ cycle 에서 `path` / `orphans` + 두 `--apply` 플래그 + `bootstrap` 합본 명령, 그리고 `compile` 명령 추가 — **총 25 명령**. 사용자가 vault 만든 후 *터미널 즉시* ontology 작업 가능 — 웹 UI / MCP 등록 불필요.
+R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import`, R15 follow-up 에서 graph-level 5 명령, R16-R17 에서 `analyze` / `infer-imports`, R+ cycle 에서 `path` / `orphans` + 두 `--apply` 플래그 + `bootstrap` 합본 명령, `compile`, 그리고 설치된 MCP surface 를 확인하는 `mcp-verify` 명령 추가 — **총 26 명령**. 사용자가 vault 만든 후 *터미널 즉시* ontology 작업 가능 — 웹 UI / MCP 등록 불필요.
 
 ## Local commands (R12 + R14 — vault scaffold + frontmatter)
 
@@ -18,6 +18,7 @@ R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import
 | `oh-my-ontology init [folder]` | Scaffold vault (5 starter .md + `.mcp.json` cwd + vault). Source checkout 에서는 npm 404 없이 바로 붙도록 local `mcp/src/index.js` 를 가리킴. Codex 는 project `.mcp.json` 을 자동으로 읽지 않으므로 exact `codex mcp add ...` 명령도 출력. repo root 기준 copy-paste bootstrap 명령 (`analyze . --vault ./ontology`, `bootstrap . --vault ./ontology`) 도 함께 출력. |
 | `oh-my-ontology list [vault]` | List ontology nodes (color table, `--kind X` filter, `--json`) |
 | `oh-my-ontology validate [vault]` | Frontmatter integrity + graph array drift check (CI gate via exit 1, R+ grouped-by-code 요약) |
+| `oh-my-ontology mcp-verify [vault]` | Installed MCP verify wrapper — parser smoke, server boot, 23-tool inventory, `list_concepts`, `workspace_brief`, `health` 를 resolved vault 에서 실행 |
 | `oh-my-ontology add <kind> <slug> --title="..."` | Scaffold new node (duplicate throw, `--domain --body --vault`, R15 `--auto-prefix` default on, `--raw-slug` opt-out) |
 | `oh-my-ontology find <query> [vault]` | Search slug + title with yellow highlight (`--kind --json`) |
 | `oh-my-ontology import <path...>` | **R14** Import external `.md` (frontmatter normalize + `--auto-prefix` / `--rename` / `--dry-run`) |
@@ -62,6 +63,10 @@ Claude Code/Cursor `.mcp.json` 경로와 Codex `codex mcp add ...` 경로가 모
 확인해 CLI/Web onboarding drift 를 차단한다.
 
 scripts/smoke-clean-onboarding.mjs — fresh user smoke. 임시 `HOME` / `CODEX_HOME` 과 새 프로젝트를 만들고 `init → bootstrap → validate` 부터 Claude project `.mcp.json` health, Codex `mcp add` 등록까지 clean-room 으로 검증.
+
+scripts/smoke-packed-cli.mjs — packed install smoke. local MCP + CLI tarball 을 임시
+프로젝트에 설치한 뒤 `init`, installed `mcp-verify`, MCP package `npm run verify`,
+`compile --summary` 를 실행해 source checkout 에서는 안 보이는 bin/package/files drift 를 잡는다.
 
 scripts/check-package-contracts.mjs — publish 전 package manifest gate. `mcp/` 와
 `cli/` 의 bin / main / npm scripts 에서 도달 가능한 local import와 실행 파일이

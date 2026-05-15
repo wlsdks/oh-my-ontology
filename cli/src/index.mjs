@@ -51,6 +51,7 @@ ${COLORS.bold}Usage:${COLORS.reset}
   npx oh-my-ontology validate [vault]         Frontmatter integrity check (exit 1 on errors)
        --json --strict --fail-on=code,...     ${COLORS.dim}structured · warning 도 fail · 특정 code 만 fail${COLORS.reset}
        --list-codes                           ${COLORS.dim}사용 가능한 issue code 목록 (--fail-on 발견용)${COLORS.reset}
+  npx oh-my-ontology mcp-verify [vault]       MCP server boot + tool inventory + first-contact health
   npx oh-my-ontology add <kind> <slug>        Scaffold a new ontology node (.md)
        --title "..."                          ${COLORS.dim}required, non-empty${COLORS.reset}
        --domain X --body "..." --vault path   ${COLORS.dim}optional${COLORS.reset}
@@ -292,6 +293,7 @@ ${COLORS.bold}Next steps:${COLORS.reset}
        ${COLORS.cyan}cd ${target}${COLORS.reset}
        ${COLORS.cyan}oh-my-ontology list${COLORS.reset}                        ${COLORS.dim}# 5 starter nodes${COLORS.reset}
        ${COLORS.cyan}oh-my-ontology validate${COLORS.reset}                    ${COLORS.dim}# frontmatter integrity${COLORS.reset}
+       ${COLORS.cyan}oh-my-ontology mcp-verify${COLORS.reset}                  ${COLORS.dim}# server + 23-tool MCP health${COLORS.reset}
 
   ${COLORS.dim}2.${COLORS.reset} ${COLORS.bold}Bootstrap from your codebase${COLORS.reset} (recommended — agent-less, 1 line):
        ${COLORS.cyan}${analyzeCommand}${COLORS.reset}     ${COLORS.dim}# preview candidates only${COLORS.reset}
@@ -349,6 +351,11 @@ if (SUBCOMMAND === 'list') {
 if (SUBCOMMAND === 'validate') {
   const { runValidate } = await import('./commands/validate.mjs');
   exit(runValidate(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'mcp-verify') {
+  const { runMcpVerify } = await import('./commands/mcp-verify.mjs');
+  exit(await runMcpVerify(ARGS.slice(1)));
 }
 
 if (SUBCOMMAND === 'add') {

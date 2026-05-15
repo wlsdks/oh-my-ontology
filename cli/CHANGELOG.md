@@ -2,6 +2,11 @@
 
 ## 0.11.0 — 2026-05-16
 
+### Added — `mcp-verify` command
+
+- `oh-my-ontology mcp-verify [vault]` — installed CLI wrapper around the MCP package verify script. Runs parser smoke, server boot, 23-tool inventory, `list_concepts`, `workspace_brief`, and `health` against the resolved vault.
+- 신규 integration test 1건 (`mcp-verify` runs against a fresh `init` vault with a short verify timeout).
+
 ### Added — `compile` 명령 (25th, compile_ontology wrap + canonicalization apply)
 
 - `oh-my-ontology compile [vault] [--summary] [--json]` — MCP `compile_ontology` thin wrapper. deterministic `graphHash`, node/edge counts, unresolved issue counts, and pagination metadata를 CLI에서 확인.

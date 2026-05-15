@@ -84,6 +84,14 @@ try {
   assert.match(server.args[0], /node_modules\/oh-my-ontology-mcp\/src\/index\.js$/);
   assert.equal(server.env.OMOT_VAULT, './ontology');
 
+  const cliMcpVerify = run(cliBin, ['mcp-verify', 'ontology'], {
+    cwd: projectDir,
+    env: { OMOT_VERIFY_TIMEOUT_MS: '1000' },
+  });
+  assert.match(cliMcpVerify.stdout, /tools\/list 23\/23/);
+  assert.match(cliMcpVerify.stdout, /workspace_brief/);
+  assert.match(cliMcpVerify.stdout, /health/);
+
   const installedMcpPkg = JSON.parse(
     readFileSync(join(installDir, 'node_modules', 'oh-my-ontology-mcp', 'package.json'), 'utf-8'),
   );

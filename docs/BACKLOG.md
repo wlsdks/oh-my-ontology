@@ -3,7 +3,7 @@
 > 작업 *순번* 만. user 가 "T?? 진행해" 하면 그것만 분해해서 실행.
 > 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제.
 >
-> **갱신 (2026-05-16)**: local-first 3 surface (CLI · MCP · Web) 기준으로 재정렬. dogfood 28 노드, CLI 25 commands, MCP 23 tools, deterministic compile/reorder path 반영.
+> **갱신 (2026-05-16)**: local-first 3 surface (CLI · MCP · Web) 기준으로 재정렬. dogfood 28 노드, CLI 26 commands, MCP 23 tools, installed MCP health path 반영.
 
 ---
 
