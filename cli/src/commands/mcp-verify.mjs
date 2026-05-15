@@ -97,6 +97,7 @@ function parseArgs(args) {
 
 function parseVault(value) {
   const path = String(value ?? '').trim();
+  if (path.startsWith('--')) return false;
   return path ? path : false;
 }
 

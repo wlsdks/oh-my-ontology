@@ -148,6 +148,10 @@ await test('mcp-verify — rejects ambiguous vault arguments', async () => {
   assert.equal(missing.code, 1);
   assert.match(stripAnsi(missing.stderr), /--vault requires a path/);
 
+  const flagValue = await run(['mcp-verify', '--vault', '--timeout-ms', '1000']);
+  assert.equal(flagValue.code, 1);
+  assert.match(stripAnsi(flagValue.stderr), /--vault requires a path/);
+
   const empty = await run(['mcp-verify', '--vault=']);
   assert.equal(empty.code, 1);
   assert.match(stripAnsi(empty.stderr), /--vault requires a path/);
