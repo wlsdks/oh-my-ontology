@@ -139,10 +139,12 @@ pnpm docs-vault:build      # docs/ontology/*.md → src/entities/docs-vault/data
 pnpm build                 # next build → static export → out/
 pnpm bundle:check          # verifies firebase SDK chunk = 0 across user-facing routes
 pnpm vault:validate        # R11+ — frontmatter integrity + graph array drift (CI gate)
+pnpm vault:audit           # dogfood ontology capability/element paths exist in repo
+pnpm package:check         # MCP/CLI package files contract + self-test (CI gate)
 pnpm vault:migrate --list  # R11 — schema migration runner (dry-run default)
 ```
 
-The `docs-vault:build` step is automatic via `predev` and `prebuild` npm hooks. `vault:validate` runs in CI on every PR (`.github/workflows/ci.yml`).
+The `docs-vault:build` step is automatic via `predev` and `prebuild` npm hooks. `vault:validate`, `vault:audit`, and `package:check` run in CI on every PR (`.github/workflows/ci.yml`).
 
 ## i18n routing contract
 

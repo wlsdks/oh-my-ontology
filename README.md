@@ -109,14 +109,27 @@ No `.env`, no Firebase, no auth provider, no cloud account needed.
 ```bash
 pnpm vault:validate              # frontmatter integrity audit (CI gate)
 pnpm vault:validate /your/vault  # validate any folder, not just dogfood
+pnpm vault:audit                 # dogfood ontology paths match real repo files
 pnpm vault:migrate --list        # see registered schema migrations
 pnpm vault:migrate <id>          # dry-run a migration (default — no disk writes)
 pnpm vault:migrate <id> --write  # apply a migration to disk
 ```
 
-CI runs `pnpm vault:validate` on every PR. The `LocalVaultPicker` shows a
-chip when your vault has frontmatter issues so you know which docs aren't
-becoming graph nodes.
+CI runs `pnpm vault:validate`, `pnpm vault:audit`, and `pnpm package:check`
+on every PR. The `LocalVaultPicker` shows a chip when your vault has
+frontmatter issues so you know which docs aren't becoming graph nodes.
+
+### Package / MCP release checks
+
+```bash
+pnpm package:check              # MCP/CLI package files contract + self-test
+pnpm smoke:packed-cli           # pack/install MCP+CLI, init+compile, installed MCP verify
+cd mcp && OMOT_VAULT=../docs/ontology npm run verify
+```
+
+Use these when changing `mcp/`, `cli/`, package manifests, or release
+scripts. `npm run verify` calls `workspace_brief` and `health`, so the
+same first-contact diagnosis an AI agent should run is exercised locally.
 
 ## Verifiable promises
 
