@@ -7,6 +7,7 @@
  * 사용법:
  *   node mcp/scripts/verify.mjs                    # vault = cwd
  *   OMOT_VAULT=./docs/ontology node mcp/scripts/verify.mjs
+ *   OMOT_VERIFY_TIMEOUT_MS=15000 npm run verify    # larger/slower vaults
  *
  * 검증 항목:
  *   1. parser smoke test (parser.test.mjs) 통과
@@ -27,6 +28,7 @@ const MCP_ROOT = resolve(__dirname, '..');
 const PARSER_TEST = join(MCP_ROOT, 'src', 'parser.test.mjs');
 const SERVER_ENTRY = join(MCP_ROOT, 'src', 'index.js');
 const VAULT = process.env.OMOT_VAULT || process.cwd();
+const VERIFY_TIMEOUT_MS = Number.parseInt(process.env.OMOT_VERIFY_TIMEOUT_MS || '8000', 10);
 
 const EXPECTED_TOOLS = [
   'list_concepts',
@@ -62,6 +64,10 @@ function log(level, msg) {
   console.log(`${tag} ${msg}`);
 }
 
+function verifyTimeoutMs() {
+  return Number.isFinite(VERIFY_TIMEOUT_MS) && VERIFY_TIMEOUT_MS > 0 ? VERIFY_TIMEOUT_MS : 8000;
+}
+
 async function step1ParserSmoke() {
   log('info', 'step 1 — parser smoke test');
   return new Promise((res) => {
@@ -85,7 +91,8 @@ async function step1ParserSmoke() {
 }
 
 async function step2BootAndCall() {
-  log('info', `step 2 — server boot + tools/list + list_concepts (vault=${VAULT})`);
+  const timeoutMs = verifyTimeoutMs();
+  log('info', `step 2 — server boot + tools/list + list_concepts (vault=${VAULT}, timeout=${timeoutMs}ms)`);
 
   const lines = [
     JSON.stringify({
@@ -131,9 +138,10 @@ async function step2BootAndCall() {
     proc.stderr.on('data', (b) => (stderr += b.toString()));
 
     proc.stdin.write(lines.join('\n') + '\n');
-    setTimeout(() => proc.kill('SIGTERM'), 2000);
+    const timer = setTimeout(() => proc.kill('SIGTERM'), timeoutMs);
 
     proc.on('close', () => {
+      clearTimeout(timer);
       const responses = stdout
         .split('\n')
         .filter(Boolean)

@@ -126,6 +126,8 @@ if you change one, mirror the other.
 ```bash
 cd mcp && npm install
 OMOT_VAULT=../docs/ontology npm run verify
+# Larger/slower vaults can raise the child-process wait window:
+OMOT_VERIFY_TIMEOUT_MS=15000 OMOT_VAULT=../docs/ontology npm run verify
 ```
 
 A successful run looks like this:
@@ -134,7 +136,7 @@ A successful run looks like this:
 [oh-my-ontology-mcp verify]
 · step 1 — parser smoke test
 ✓ result: 7 passed, 0 failed
-· step 2 — server boot + tools/list + list_concepts (vault=../docs/ontology)
+· step 2 — server boot + tools/list + list_concepts (vault=../docs/ontology, timeout=8000ms)
 ✓ initialize OK — server oh-my-ontology-mcp@0.12.0
 ✓ tools/list 23/23 — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
 ✓ list_concepts — vault total 28 nodes (vaultRoot /path/to/docs/ontology)
@@ -147,7 +149,8 @@ All passed — register .mcp.json with Claude Code and restart to use the 23 too
 On failure, it tells you which step blocked progress and prints a diagnostic message. The
 verify path exercises the same first-contact graph diagnosis an agent should run:
 `tools/list`, `list_concepts`, `query_ontology({operation:"workspace_brief"})`, and
-`query_ontology({operation:"health"})`.
+`query_ontology({operation:"health"})`. The default wait window is 8 seconds; set
+`OMOT_VERIFY_TIMEOUT_MS` if your vault is large or on a slow filesystem.
 
 ### Manual verification (reference)
 
