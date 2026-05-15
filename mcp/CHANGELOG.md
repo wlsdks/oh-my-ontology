@@ -19,6 +19,7 @@
 - `npm run verify` uses an 8s server wait window by default and supports `OMOT_VERIFY_TIMEOUT_MS` for larger/slower vaults.
 - `OMOT_VERIFY_TIMEOUT_MS` is validated as a strict positive integer, so partial values like `1000ms` fail instead of being silently truncated.
 - `npm run verify` now exits as soon as all first-contact JSON-RPC responses arrive, while true timeout failures name the missing response groups and suggest increasing `OMOT_VERIFY_TIMEOUT_MS`.
+- `npm run verify` now distinguishes server startup failures before `initialize` from timeout failures, preserving stderr such as invalid `OMOT_VAULT` diagnostics.
 
 ## 0.11.0 — 2026-05-14
 

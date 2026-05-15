@@ -76,6 +76,11 @@ export function verifyTimeoutFailure(timeoutMs) {
   return `server verify timed out after ${timeoutMs}ms. Increase OMOT_VERIFY_TIMEOUT_MS for large or slow vaults.`;
 }
 
+export function serverStartupFailure(stderr) {
+  const detail = String(stderr || '').trim().slice(0, 300);
+  return detail ? `server failed before initialize. stderr: ${detail}` : 'no initialize response';
+}
+
 export function hasAllFirstContactResponses(stdout) {
   const ids = new Set(
     stdout
@@ -262,7 +267,7 @@ async function step2BootAndCall() {
       }
 
       if (!initRes || !initRes.result) {
-        log('fail', `no initialize response. stderr: ${stderr.slice(0, 300)}`);
+        log('fail', serverStartupFailure(stderr));
         return res(false);
       }
       log('ok', `initialize OK — server ${initRes.result.serverInfo?.name}@${initRes.result.serverInfo?.version}`);

@@ -5,6 +5,7 @@ import {
   diagnosisBlockingFailure,
   hasAllFirstContactResponses,
   parseVerifyTimeoutMs,
+  serverStartupFailure,
   validateVaultFailure,
   verifyTimeoutFailure,
   vaultWarningsFailure,
@@ -29,6 +30,11 @@ describe('verify.mjs first-contact gates', () => {
       verifyTimeoutFailure(1),
       'server verify timed out after 1ms. Increase OMOT_VERIFY_TIMEOUT_MS for large or slow vaults.',
     );
+  });
+
+  it('formats startup failures before initialize separately from timeouts', () => {
+    assert.equal(serverStartupFailure('Vault root not found'), 'server failed before initialize. stderr: Vault root not found');
+    assert.equal(serverStartupFailure(''), 'no initialize response');
   });
 
   it('detects when all first-contact JSON-RPC responses arrived', () => {
