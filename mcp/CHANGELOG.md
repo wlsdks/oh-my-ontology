@@ -10,6 +10,10 @@
 - `mcp/src/omot-ignore.mjs` (load + glob match) + 11 신규 단위 테스트.
 - `createOntologyEngine(artifact, { omotIgnorePatterns })` 옵션 + `queryCompiledOntology(artifact, query, { omotIgnorePatterns })` chain. wrapper 가 `loadOmotIgnore(VAULT_ROOT)` 호출.
 
+### Fixed — package tarball runtime files
+
+- `package.json#files` now includes runtime-only imports `src/schema.mjs` and `src/omot-ignore.mjs`. Packed installs can boot `src/index.js` and run `compile_ontology` / `query_ontology` without source-checkout-only files.
+
 ## 0.11.0 — 2026-05-14
 
 ### Added — `compile_ontology` summary + nodes/edges pagination

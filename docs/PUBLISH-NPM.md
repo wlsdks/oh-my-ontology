@@ -40,6 +40,14 @@ npm pack --dry-run
 
 We've audited: 0 secrets, 0 PII, 0 absolute paths.
 
+For a stronger local release smoke, run the packed-install check:
+
+```bash
+pnpm smoke:packed-cli
+# packs mcp/ + cli/, installs both tarballs into a temp project,
+# then runs installed oh-my-ontology init + compile.
+```
+
 ---
 
 ## Step 1 — npm account and login

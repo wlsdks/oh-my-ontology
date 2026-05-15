@@ -17,6 +17,7 @@
     "vault:migrate": "node scripts/migrate-vault.mjs",
     "vault:audit": "node scripts/audit-vault-paths.mjs",
     "smoke:onboarding": "node scripts/smoke-clean-onboarding.mjs",
+    "smoke:packed-cli": "node scripts/smoke-packed-cli.mjs",
     "benchmark": "node scripts/benchmark.mjs",
     "benchmark:scale": "node scripts/benchmark-scale.mjs",
     "dogfood:walk": "node scripts/dogfood-mcp-walk.mjs",

@@ -55,7 +55,7 @@ writeFileSync(
 
 const init = run('node', [CLI, 'init', 'ontology'], { cwd: project });
 assert.match(init.stdout, /codex mcp add oh-my-ontology/);
-assert.match(init.stdout, /20 tools/);
+assert.match(init.stdout, /23 tools/);
 assert.match(init.stdout, /oh-my-ontology analyze \. --vault \.\/ontology/);
 assert.match(init.stdout, /oh-my-ontology bootstrap \. --vault \.\/ontology/);
 assert.doesNotMatch(init.stdout, /\/path\/to\/your\/repo/);
