@@ -1,6 +1,6 @@
 # Changelog — oh-my-ontology (CLI)
 
-## Unreleased
+## 0.11.0 — 2026-05-16
 
 ### Added — `compile` 명령 (25th, compile_ontology wrap + canonicalization apply)
 
@@ -8,6 +8,11 @@
 - `--fix` — compiler가 산출한 `canonicalizationActions`만 `patch_concept`로 적용해 relation 배열을 trim/dedupe/sort. bootstrap 이후 ontology가 구축되면 같은 write path로 재정렬 가능.
 - 옵션: `--indexes`, `--nodes-limit/--nodes-offset`, `--edges-limit/--edges-offset`.
 - 신규 integration test 1건 (`compile --fix` relation-array canonicalization).
+
+### Changed — package release contract
+
+- `oh-my-ontology` package version `0.11.0`.
+- `oh-my-ontology-mcp` dependency bumped to `^0.12.0` so published CLI installs pick up the current 23-tool MCP release surface directly.
 
 ## 0.10.0 — 2026-05-14
 
@@ -129,7 +134,7 @@ cli integration 24 → **32** (+8 new):
 - delete (backlinks 가드 + force)
 - merge (dry-run preview)
 
-## Unreleased — 2026-05-06 (R15)
+## 0.3.1 — 2026-05-06 (R15 init MCP config)
 
 ### Changed — `init` 의 mcp 등록 마찰 1 step 제거
 

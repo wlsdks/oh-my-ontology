@@ -1,6 +1,6 @@
 {
   "name": "oh-my-ontology",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "AI-native codebase ontology workbench — vault scaffold + graph-level/CRUD commands + MCP 23-tool agent surface.",
   "type": "module",
   "bin": {
@@ -38,6 +38,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "oh-my-ontology-mcp": "^0.11.0"
+    "oh-my-ontology-mcp": "^0.12.0"
   }
 }
