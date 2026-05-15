@@ -19,6 +19,7 @@ Korean or English both fine.
 - [ ] `pnpm build` — static export succeeds
 - [ ] `pnpm bundle:check` — local-first routes still 0 KB firebase
 - [ ] If `mcp/`, `cli/`, package manifests, or release scripts changed: `pnpm package:check`
+- [ ] If MCP tools / dogfood ontology changed: `pnpm dogfood:walk`
 - [ ] Browser smoke test on changed surfaces (paste console errors here, ideally 0)
 - [ ] If design changed: light + dark mode screenshots attached
 
