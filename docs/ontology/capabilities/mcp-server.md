@@ -49,7 +49,8 @@ diagnosis 경로까지 확인한다. vault warning / validate problem / `fail` h
 exit 1 로 처리하되, starter vault 의
 권고 수준 `needs_attention` 은 출력만 하고 설치 검증은 통과시킨다.
 기본 server wait 는 8초이며 큰 vault / 느린 파일시스템에서는
-`OMOT_VERIFY_TIMEOUT_MS` 로 늘릴 수 있다.
+양의 정수 millisecond 값인 `OMOT_VERIFY_TIMEOUT_MS` 로 늘릴 수 있다.
+`1000ms` 같은 부분 숫자 값은 조용히 truncate 하지 않고 실패한다.
 
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `workspace_brief` 와 `health`

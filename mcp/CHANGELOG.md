@@ -17,6 +17,7 @@
 - `npm run verify` now exercises `query_ontology` first-contact diagnosis (`workspace_brief` + `health`), not just server boot, tool inventory, and `list_concepts`.
 - `npm run verify` now fails on blocking first-contact diagnosis problems: `list_concepts` vault warnings or `fail` health checks return exit 1, while advisory `needs_attention` states still print for starter vaults.
 - `npm run verify` uses an 8s server wait window by default and supports `OMOT_VERIFY_TIMEOUT_MS` for larger/slower vaults.
+- `OMOT_VERIFY_TIMEOUT_MS` is validated as a strict positive integer, so partial values like `1000ms` fail instead of being silently truncated.
 
 ## 0.11.0 — 2026-05-14
 

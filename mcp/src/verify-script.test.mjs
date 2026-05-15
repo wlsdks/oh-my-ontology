@@ -3,11 +3,25 @@ import { describe, it } from 'node:test';
 
 import {
   diagnosisBlockingFailure,
+  parseVerifyTimeoutMs,
   validateVaultFailure,
   vaultWarningsFailure,
 } from '../scripts/verify.mjs';
 
 describe('verify.mjs first-contact gates', () => {
+  it('parses verify timeout env as a strict positive integer', () => {
+    assert.equal(parseVerifyTimeoutMs(undefined), 8000);
+    assert.equal(parseVerifyTimeoutMs(''), 8000);
+    assert.equal(parseVerifyTimeoutMs('15000'), 15000);
+  });
+
+  it('rejects partial or non-positive verify timeout env values', () => {
+    assert.equal(parseVerifyTimeoutMs('1000ms'), false);
+    assert.equal(parseVerifyTimeoutMs('0'), false);
+    assert.equal(parseVerifyTimeoutMs('-1'), false);
+    assert.equal(parseVerifyTimeoutMs('nope'), false);
+  });
+
   it('accepts clean list_concepts payloads', () => {
     assert.equal(vaultWarningsFailure({ total: 1 }), null);
     assert.equal(vaultWarningsFailure({ vaultWarnings: { errorCount: 0, warningCount: 0 } }), null);

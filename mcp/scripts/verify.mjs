@@ -29,7 +29,7 @@ const MCP_ROOT = resolve(__dirname, '..');
 const PARSER_TEST = join(MCP_ROOT, 'src', 'parser.test.mjs');
 const SERVER_ENTRY = join(MCP_ROOT, 'src', 'index.js');
 const VAULT = process.env.OMOT_VAULT || process.cwd();
-const VERIFY_TIMEOUT_MS = Number.parseInt(process.env.OMOT_VERIFY_TIMEOUT_MS || '8000', 10);
+const VERIFY_TIMEOUT_MS_RAW = process.env.OMOT_VERIFY_TIMEOUT_MS;
 
 const EXPECTED_TOOLS = [
   'list_concepts',
@@ -65,8 +65,15 @@ function log(level, msg) {
   console.log(`${tag} ${msg}`);
 }
 
+export function parseVerifyTimeoutMs(value, fallback = 8000) {
+  if (value == null || value === '') return fallback;
+  if (!/^[1-9]\d*$/.test(String(value))) return false;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : false;
+}
+
 function verifyTimeoutMs() {
-  return Number.isFinite(VERIFY_TIMEOUT_MS) && VERIFY_TIMEOUT_MS > 0 ? VERIFY_TIMEOUT_MS : 8000;
+  return parseVerifyTimeoutMs(VERIFY_TIMEOUT_MS_RAW);
 }
 
 export function vaultWarningsFailure(parsed) {
@@ -126,6 +133,10 @@ async function step1ParserSmoke() {
 
 async function step2BootAndCall() {
   const timeoutMs = verifyTimeoutMs();
+  if (timeoutMs === false) {
+    log('fail', 'OMOT_VERIFY_TIMEOUT_MS must be a positive integer');
+    return false;
+  }
   log('info', `step 2 — server boot + tools/list + list_concepts (vault=${VAULT}, timeout=${timeoutMs}ms)`);
 
   const lines = [
@@ -307,6 +318,10 @@ async function step2BootAndCall() {
 
 async function main() {
   console.log('\n[oh-my-ontology-mcp verify]\n');
+  if (verifyTimeoutMs() === false) {
+    log('fail', 'OMOT_VERIFY_TIMEOUT_MS must be a positive integer');
+    process.exit(1);
+  }
   const ok1 = await step1ParserSmoke();
   if (!ok1) process.exit(1);
   const ok2 = await step2BootAndCall();
