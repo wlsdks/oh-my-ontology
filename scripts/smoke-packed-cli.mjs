@@ -84,10 +84,10 @@ try {
   assert.match(server.args[0], /node_modules\/oh-my-ontology-mcp\/src\/index\.js$/);
   assert.equal(server.env.OMOT_VAULT, './ontology');
 
-  const cliMcpVerify = run(cliBin, ['mcp-verify', 'ontology'], {
+  const cliMcpVerify = run(cliBin, ['mcp-verify', 'ontology', '--timeout-ms', '1000'], {
     cwd: projectDir,
-    env: { OMOT_VERIFY_TIMEOUT_MS: '1000' },
   });
+  assert.match(cliMcpVerify.stdout, /timeout=1000ms/);
   assert.match(cliMcpVerify.stdout, /tools\/list 23\/23/);
   assert.match(cliMcpVerify.stdout, /workspace_brief/);
   assert.match(cliMcpVerify.stdout, /health/);

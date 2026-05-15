@@ -120,18 +120,22 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     const init = await run(['init', 'ontology'], { cwd: root });
     assert.equal(init.code, 0, `stdout: ${init.stdout}\nstderr: ${init.stderr}`);
 
-    const r = await run(['mcp-verify', 'ontology'], {
-      cwd: root,
-      env: { OMOT_VERIFY_TIMEOUT_MS: '1000' },
-    });
+    const r = await run(['mcp-verify', 'ontology', '--timeout-ms', '1000'], { cwd: root });
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
+    assert.match(clean, /timeout=1000ms/);
     assert.match(clean, /tools\/list 23\/23/);
     assert.match(clean, /workspace_brief/);
     assert.match(clean, /health/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+await test('mcp-verify — rejects invalid timeout values', async () => {
+  const r = await run(['mcp-verify', '--timeout-ms', 'nope']);
+  assert.equal(r.code, 1);
+  assert.match(stripAnsi(r.stderr), /--timeout-ms must be a positive integer/);
 });
 
 await test('compile --fix — applies compiler relation-array canonicalization', async () => {

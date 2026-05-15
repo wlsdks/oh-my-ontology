@@ -19,7 +19,7 @@ const COLORS = {
 };
 
 export async function runMcpVerify(args) {
-  const { vault, error } = parseArgs(args);
+  const { vault, timeoutMs, error } = parseArgs(args);
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -37,7 +37,7 @@ export async function runMcpVerify(args) {
     return 2;
   }
 
-  return runVerifyScript(verifyScript, vaultRoot);
+  return runVerifyScript(verifyScript, vaultRoot, timeoutMs);
 }
 
 function resolveVerifyScript() {
@@ -56,10 +56,14 @@ function resolveVerifyScript() {
   }
 }
 
-function runVerifyScript(verifyScript, vaultRoot) {
+function runVerifyScript(verifyScript, vaultRoot, timeoutMs) {
   return new Promise((resolveP) => {
     const proc = spawn('node', [verifyScript], {
-      env: { ...process.env, OMOT_VAULT: vaultRoot },
+      env: {
+        ...process.env,
+        OMOT_VAULT: vaultRoot,
+        ...(timeoutMs ? { OMOT_VERIFY_TIMEOUT_MS: timeoutMs } : {}),
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     proc.stdout.on('data', (b) => process.stdout.write(b));
@@ -73,25 +77,33 @@ function runVerifyScript(verifyScript, vaultRoot) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.' };
+  const flags = { vault: '.', timeoutMs: null };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
     if (a === '--vault') flags.vault = args[++i] || '.';
     else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    else if (a === '--timeout-ms') flags.timeoutMs = parseTimeout(args[++i]);
+    else if (a.startsWith('--timeout-ms=')) flags.timeoutMs = parseTimeout(a.slice('--timeout-ms='.length));
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
+  if (flags.timeoutMs === false) return { error: '--timeout-ms must be a positive integer' };
   if (positional.length > 0 && flags.vault === '.') flags.vault = positional[0];
   if (positional.length > 1) return { error: `too many arguments: ${positional.slice(1).join(' ')}` };
-  return { vault: flags.vault };
+  return { vault: flags.vault, timeoutMs: flags.timeoutMs };
+}
+
+function parseTimeout(value) {
+  const parsed = Number.parseInt(value ?? '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? String(parsed) : false;
 }
 
 function printUsage() {
   process.stderr.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
-      `  oh-my-ontology mcp-verify [vault]\n` +
-      `  oh-my-ontology mcp-verify --vault path\n\n` +
+      `  oh-my-ontology mcp-verify [vault] [--timeout-ms N]\n` +
+      `  oh-my-ontology mcp-verify --vault path --timeout-ms 15000\n\n` +
       `Runs the MCP package verify CLI against the resolved vault.\n`,
   );
 }

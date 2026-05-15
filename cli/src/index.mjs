@@ -52,6 +52,7 @@ ${COLORS.bold}Usage:${COLORS.reset}
        --json --strict --fail-on=code,...     ${COLORS.dim}structured · warning 도 fail · 특정 code 만 fail${COLORS.reset}
        --list-codes                           ${COLORS.dim}사용 가능한 issue code 목록 (--fail-on 발견용)${COLORS.reset}
   npx oh-my-ontology mcp-verify [vault]       MCP server boot + tool inventory + first-contact health
+       --timeout-ms N                         ${COLORS.dim}large / slow vault server wait override${COLORS.reset}
   npx oh-my-ontology add <kind> <slug>        Scaffold a new ontology node (.md)
        --title "..."                          ${COLORS.dim}required, non-empty${COLORS.reset}
        --domain X --body "..." --vault path   ${COLORS.dim}optional${COLORS.reset}
