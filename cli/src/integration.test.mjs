@@ -93,7 +93,7 @@ await test('init — generated MCP config points at a runnable local server in s
     const r = await run(['init', 'ontology'], { cwd: root });
     assert.equal(r.code, 0);
     const clean = stripAnsi(r.stdout);
-    assert.match(clean, /20 tools/);
+    assert.match(clean, /23 tools/);
     assert.doesNotMatch(clean, /16 MCP tools|16 tools/);
     assert.doesNotMatch(clean, /bootstrap .*--apply/);
     assert.match(clean, /Codex/);
@@ -107,6 +107,39 @@ await test('init — generated MCP config points at a runnable local server in s
     assert.equal(server.env.OMOT_VAULT, './ontology');
     assert.equal(server.command, 'node');
     assert.match(server.args[0], /mcp\/src\/index\.js$/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('compile --fix — applies compiler relation-array canonicalization', async () => {
+  const root = withVault([
+    {
+      slug: 'project',
+      content:
+        '---\nkind: project\ntitle: Project\ncapabilities:\n  - capabilities/z\n  - capabilities/a\n  - capabilities/z\n---\n',
+    },
+    {
+      slug: 'capabilities/a',
+      content: '---\nkind: capability\ntitle: A\n---\n',
+    },
+    {
+      slug: 'capabilities/z',
+      content: '---\nkind: capability\ntitle: Z\n---\n',
+    },
+  ]);
+  try {
+    const preview = await run(['compile', root]);
+    assert.equal(preview.code, 0, `stdout: ${preview.stdout}\nstderr: ${preview.stderr}`);
+    assert.match(stripAnsi(preview.stdout), /reorder available/);
+
+    const fixed = await run(['compile', root, '--fix']);
+    assert.equal(fixed.code, 0, `stdout: ${fixed.stdout}\nstderr: ${fixed.stderr}`);
+    assert.match(stripAnsi(fixed.stdout), /reorder 1\/1 applied/);
+
+    const text = readFileSync(join(root, 'project.md'), 'utf-8');
+    assert.match(text, /capabilities: \[capabilities\/a, capabilities\/z\]/);
+    assert.doesNotMatch(text, /capabilities\/z\n  - capabilities\/a\n  - capabilities\/z/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

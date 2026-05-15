@@ -78,6 +78,8 @@ ${COLORS.bold}Graph-level commands${COLORS.reset} ${COLORS.dim}(R15 — wraps th
        --max-hops N --json                    ${COLORS.dim}default 5${COLORS.reset}
   npx oh-my-ontology query "<filter>"         Typed filter DSL (kind=X AND has(elements))
        --limit N --json                       ${COLORS.dim}default limit 100${COLORS.reset}
+  npx oh-my-ontology compile [vault]         Deterministic graph compile + optional reorder
+       --summary --fix --json                 ${COLORS.dim}hash/counts · canonicalize relation arrays${COLORS.reset}
   npx oh-my-ontology overview [vault]         Vault first-contact dashboard (counts + 분포 + 허브)
        --limit N --json                       ${COLORS.dim}허브 N 개 (default 10) · machine output${COLORS.reset}
   npx oh-my-ontology hubs [vault]             Centrality 4 rankings — PageRank / Bridges / Authorities / Hubs
@@ -309,8 +311,8 @@ ${COLORS.bold}Next steps:${COLORS.reset}
        ${COLORS.bold}Claude Code / Cursor${COLORS.reset}
        Both your codebase root (cwd) and the vault folder now have a wired
        ${COLORS.bold}.mcp.json${COLORS.reset}. Open either folder, restart the agent,
-       and the ${COLORS.bold}oh-my-ontology${COLORS.reset} namespace appears with 20 tools
-       (12 read + 8 write).
+       and the ${COLORS.bold}oh-my-ontology${COLORS.reset} namespace appears with 23 tools
+       (15 read + 8 write).
 
        ${COLORS.bold}Codex${COLORS.reset}
        ${COLORS.cyan}${codexSetupCommand}${COLORS.reset}
@@ -423,6 +425,11 @@ if (SUBCOMMAND === 'similar') {
 if (SUBCOMMAND === 'query') {
   const { runQuery } = await import('./commands/query.mjs');
   exit(await runQuery(ARGS.slice(1)));
+}
+
+if (SUBCOMMAND === 'compile') {
+  const { runCompile } = await import('./commands/compile.mjs');
+  exit(await runCompile(ARGS.slice(1)));
 }
 
 if (SUBCOMMAND === 'rename') {

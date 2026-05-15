@@ -15,7 +15,7 @@ and AI agents (Claude Code, Cursor, etc.) can read and write together.
 
 | Command | What it does |
 |---|---|
-| `oh-my-ontology init [folder]` | Scaffold a new vault (project / domain / capability / element starter .md). **R15+**: also drops a wired `.mcp.json` in *both* cwd (codebase root, `OMOT_VAULT='./<vault>'`) and the vault folder (`OMOT_VAULT='.'`) — open either in an AI agent and the 20 MCP tools auto-register. Existing `.mcp.json` is preserved (`.mcp.json.example` falls back instead). |
+| `oh-my-ontology init [folder]` | Scaffold a new vault (project / domain / capability / element starter .md). **R15+**: also drops a wired `.mcp.json` in *both* cwd (codebase root, `OMOT_VAULT='./<vault>'`) and the vault folder (`OMOT_VAULT='.'`) — open either in an AI agent and the 23 MCP tools auto-register. Existing `.mcp.json` is preserved (`.mcp.json.example` falls back instead). |
 | `oh-my-ontology list [vault]` | List ontology nodes (color table; `--kind X` filter, `--json`) |
 | `oh-my-ontology validate [vault]` | Frontmatter integrity (includes `missing-expected-field`, `non-canonical-graph-array`, and `dangling-graph-reference`; `exit 1` on errors — usable as a CI gate). Same code 가 2+ file 에서 등장하면 끝에 *grouped by code* 요약 섹션이 자동으로 붙어 *어느 종류 경고가 얼마나 많은지* 한눈에 파악. |
 | `oh-my-ontology add <kind> <slug> --title="..."` | Scaffold a new node (`--domain X --body "..." --vault path`); throws on duplicate slug. **R15**: `--auto-prefix` is now **default on** (kind→folder, e.g. `add capability foo` → `capabilities/foo.md`) for consistency with the `init` starter layout. Use `--raw-slug` (or `--no-auto-prefix`) to opt out. |
@@ -24,10 +24,11 @@ and AI agents (Claude Code, Cursor, etc.) can read and write together.
 | `oh-my-ontology bootstrap [rootPath]` | Analyze a repo and apply the first ontology graph in one command: project/domains/capabilities/elements plus import-derived `depends_on` edges. In a fresh `init` vault, untouched starter examples are removed before real nodes land; edited starter files are preserved. Use `analyze` first for preview-only review. |
 | `oh-my-ontology analyze [rootPath]` | Preview repo-derived candidates without writing. `--apply` lands those candidates via batch MCP calls and prunes untouched `init` starter examples the same way as `bootstrap`. |
 | `oh-my-ontology infer-imports [rootPath]` | Preview TS/JS import-derived module edges without writing. `--apply` lands `depends_on` edges. |
+| `oh-my-ontology compile [vault]` | Compile the vault through MCP `compile_ontology` and print deterministic graph counts/hash. Use `--summary` for cheap polling, `--json` for the raw artifact, and `--fix` to apply compiler relation-array canonicalization actions. |
 
 ### Graph-level commands (R15 follow-up)
 
-These wrap the MCP server (`oh-my-ontology-mcp`) so the developer has the same authority as an AI agent — find backlinks, rename / merge / delete safely, run a typed filter DSL. Each spawn is ~50–100 ms one-shot; commands that mutate the graph are dry-run by default with an explicit `--confirm` flag.
+These wrap the MCP server (`oh-my-ontology-mcp`) so the developer has the same authority as an AI agent — compile the graph, find backlinks, rename / merge / delete safely, run a typed filter DSL. Each spawn is ~50–100 ms one-shot; commands that mutate the graph are dry-run by default with an explicit `--confirm` flag, except `compile --fix`, which only applies compiler-produced canonicalization patches.
 
 | Command | What it does |
 |---|---|
@@ -47,7 +48,7 @@ The vault is a plain folder of `.md` files. **Frontmatter is the graph.**
 
 `init` automatically writes a wired `.mcp.json` to both your codebase root
 and the vault folder. Claude Code and Cursor pick that project config up
-after restart and expose **20 tools** (12 read + 8 write).
+after restart and expose **23 tools** (15 read + 8 write).
 
 ```jsonc
 // .mcp.json (in your agent's config dir)
@@ -81,16 +82,23 @@ For the shortest fresh setup, run:
 ```bash
 npx oh-my-ontology init ontology
 npx oh-my-ontology bootstrap . --vault ontology
+npx oh-my-ontology compile ontology --summary
 ```
 
 `bootstrap` replaces the untouched starter files with repo-derived nodes. If
 you already edited any starter file, that file stays on disk.
 
-20 tools:
+`compile` gives you the deterministic graph hash/counts after the ontology is
+built. Add `--fix` to apply compiler-produced relation-array canonicalization
+actions, which trims duplicates and reorders graph arrays through the same MCP
+`patch_concept` write path agents use.
+
+23 tools:
 `list_concepts` / `get_concept` / `get_concepts` / `find_evidence` /
-`find_backlinks` / `find_path` / `list_kinds` / `find_orphans` /
-`query_concepts` / `validate_vault` / `analyze_repo_structure` /
-`infer_imports` (read 12) + `add_concept` / `add_concepts` /
+`find_backlinks` / `find_neighbors` / `find_path` / `list_kinds` /
+`find_orphans` / `query_concepts` / `compile_ontology` / `query_ontology` /
+`validate_vault` / `analyze_repo_structure` / `infer_imports` (read 15) +
+`add_concept` / `add_concepts` /
 `add_relation` / `add_relations` / `patch_concept` / `delete_concept` /
 `rename_concept` / `merge_concepts` (write 8).
 

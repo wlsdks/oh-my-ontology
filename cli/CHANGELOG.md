@@ -1,5 +1,14 @@
 # Changelog — oh-my-ontology (CLI)
 
+## Unreleased
+
+### Added — `compile` 명령 (25th, compile_ontology wrap + canonicalization apply)
+
+- `oh-my-ontology compile [vault] [--summary] [--json]` — MCP `compile_ontology` thin wrapper. deterministic `graphHash`, node/edge counts, unresolved issue counts, and pagination metadata를 CLI에서 확인.
+- `--fix` — compiler가 산출한 `canonicalizationActions`만 `patch_concept`로 적용해 relation 배열을 trim/dedupe/sort. bootstrap 이후 ontology가 구축되면 같은 write path로 재정렬 가능.
+- 옵션: `--indexes`, `--nodes-limit/--nodes-offset`, `--edges-limit/--edges-offset`.
+- 신규 integration test 1건 (`compile --fix` relation-array canonicalization).
+
 ## 0.10.0 — 2026-05-14
 
 ### Added — `similar` 명령 (24th, query_ontology similar_nodes wrap)

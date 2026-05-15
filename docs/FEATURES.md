@@ -1,7 +1,7 @@
 # FEATURES — oh-my-ontology
 
 > Complete inventory of features users can **actually use right now**.
-> Last updated: 2026-05-09 (post-clean-onboarding — CLI · MCP · Web 3 surface, 20 MCP tools, clean Codex setup smoke, current web E2E restored).
+> Last updated: 2026-05-16 (CLI compile command — CLI · MCP · Web 3 surface, 23 MCP tools, deterministic compile/reorder path).
 > Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI micro-detail 은 R10 후 변화 작아 별도 sweep 보다 *대부분 정확* 가정.
 > Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG.
 
@@ -14,7 +14,7 @@
 
 | Surface | Entry | Audience |
 |---|---|---|
-| **CLI** (R12 / R14 / R15+ · 24 commands) | `init / add / import / list / find / validate / query` (vault basics) · `analyze / infer-imports / bootstrap` (autonomous ingest) · `backlinks / orphans / path / rename / merge / delete` (graph CRUD) · `overview / hubs / blast-radius / cycles / health / workspace-brief / node / similar` (graph deep dive — `query_ontology` ops) | developer terminal — vault scaffold, daily exploration, bulk import, graph deep dive (same authority as AI agent via MCP) |
+| **CLI** (R12 / R14 / R15+ · 25 commands) | `init / add / import / list / find / validate / query / compile` (vault basics + deterministic graph compile) · `analyze / infer-imports / bootstrap` (autonomous ingest) · `backlinks / orphans / path / rename / merge / delete` (graph CRUD) · `overview / hubs / blast-radius / cycles / health / workspace-brief / node / similar` (graph deep dive — `query_ontology` ops) | developer terminal — vault scaffold, daily exploration, bulk import, graph deep dive (same authority as AI agent via MCP) |
 | **MCP** (R5 / R7 / R11 / R14 / R16 / R17) | 23 tools (15 read · 8 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings · bootstrap empty vault (R16 `analyze_repo_structure` · R17 `infer_imports`) |
 | **Web** (8 routes, R10 surface diet) | `pnpm dev` / static export | sigma topology · tree+ego · ERD builder · insights — graph visualization, mobile-friendly |
 
