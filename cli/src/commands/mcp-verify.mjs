@@ -77,21 +77,27 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.', timeoutMs: null };
+  const flags = { vault: null, timeoutMs: null };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVault(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVault(a.slice('--vault='.length));
     else if (a === '--timeout-ms') flags.timeoutMs = parseTimeout(args[++i]);
     else if (a.startsWith('--timeout-ms=')) flags.timeoutMs = parseTimeout(a.slice('--timeout-ms='.length));
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
+  if (flags.vault === false) return { error: '--vault requires a path' };
   if (flags.timeoutMs === false) return { error: '--timeout-ms must be a positive integer' };
-  if (positional.length > 0 && flags.vault === '.') flags.vault = positional[0];
+  if (flags.vault && positional.length > 0) return { error: 'pass vault as either positional argument or --vault, not both' };
   if (positional.length > 1) return { error: `too many arguments: ${positional.slice(1).join(' ')}` };
-  return { vault: flags.vault, timeoutMs: flags.timeoutMs };
+  return { vault: flags.vault || positional[0] || '.', timeoutMs: flags.timeoutMs };
+}
+
+function parseVault(value) {
+  const path = String(value ?? '').trim();
+  return path ? path : false;
 }
 
 function parseTimeout(value) {

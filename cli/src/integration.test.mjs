@@ -143,6 +143,20 @@ await test('mcp-verify — rejects invalid timeout values', async () => {
   assert.match(stripAnsi(partial.stderr), /--timeout-ms must be a positive integer/);
 });
 
+await test('mcp-verify — rejects ambiguous vault arguments', async () => {
+  const missing = await run(['mcp-verify', '--vault']);
+  assert.equal(missing.code, 1);
+  assert.match(stripAnsi(missing.stderr), /--vault requires a path/);
+
+  const empty = await run(['mcp-verify', '--vault=']);
+  assert.equal(empty.code, 1);
+  assert.match(stripAnsi(empty.stderr), /--vault requires a path/);
+
+  const duplicate = await run(['mcp-verify', 'ontology', '--vault', 'docs/ontology']);
+  assert.equal(duplicate.code, 1);
+  assert.match(stripAnsi(duplicate.stderr), /either positional argument or --vault/);
+});
+
 await test('compile --fix — applies compiler relation-array canonicalization', async () => {
   const root = withVault([
     {
