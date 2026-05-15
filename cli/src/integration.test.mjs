@@ -162,11 +162,17 @@ await test('mcp-verify — rejects ambiguous vault arguments', async () => {
 });
 
 await test('mcp-verify — fails an explicit missing verify script override', async () => {
-  const r = await run(['mcp-verify', 'docs/ontology'], {
+  const missing = await run(['mcp-verify', 'docs/ontology'], {
     env: { OMOT_MCP_VERIFY_PATH: join(tmpdir(), 'missing-omot-verify-script.mjs') },
   });
-  assert.equal(r.code, 2);
-  assert.match(stripAnsi(r.stderr), /OMOT_MCP_VERIFY_PATH does not exist/);
+  assert.equal(missing.code, 2);
+  assert.match(stripAnsi(missing.stderr), /OMOT_MCP_VERIFY_PATH does not exist/);
+
+  const directory = await run(['mcp-verify', 'docs/ontology'], {
+    env: { OMOT_MCP_VERIFY_PATH: tmpdir() },
+  });
+  assert.equal(directory.code, 2);
+  assert.match(stripAnsi(directory.stderr), /OMOT_MCP_VERIFY_PATH is not a file/);
 });
 
 await test('compile --fix — applies compiler relation-array canonicalization', async () => {

@@ -4,7 +4,7 @@
 
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
@@ -43,7 +43,8 @@ export async function runMcpVerify(args) {
 function resolveVerifyScript() {
   const envPath = process.env.OMOT_MCP_VERIFY_PATH;
   if (envPath) {
-    if (existsSync(envPath)) return envPath;
+    if (isFile(envPath)) return envPath;
+    if (existsSync(envPath)) throw new Error(`OMOT_MCP_VERIFY_PATH is not a file: ${envPath}`);
     throw new Error(`OMOT_MCP_VERIFY_PATH does not exist: ${envPath}`);
   }
 
@@ -56,6 +57,14 @@ function resolveVerifyScript() {
     throw new Error(
       'oh-my-ontology-mcp verify script not found. Install oh-my-ontology-mcp or set OMOT_MCP_VERIFY_PATH.',
     );
+  }
+}
+
+function isFile(path) {
+  try {
+    return statSync(path).isFile();
+  } catch {
+    return false;
   }
 }
 
