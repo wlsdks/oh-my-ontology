@@ -134,15 +134,20 @@ A successful run looks like this:
 [oh-my-ontology-mcp verify]
 · step 1 — parser smoke test
 ✓ result: 7 passed, 0 failed
-· step 2 — server boot + tools/list + list_concepts
+· step 2 — server boot + tools/list + list_concepts (vault=../docs/ontology)
 ✓ initialize OK — server oh-my-ontology-mcp@0.12.0
 ✓ tools/list 23/23 — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
-✓ list_concepts — vault total 28 nodes
+✓ list_concepts — vault total 28 nodes (vaultRoot /path/to/docs/ontology)
+✓ workspace_brief — healthy (28 nodes, nextActions 1)
+✓ health — healthy (5 checks, issues 0)
 
-All checks passed — register .mcp.json with Claude Code, restart, and the 23 tools are ready.
+All passed — register .mcp.json with Claude Code and restart to use the 23 tools.
 ```
 
-On failure, it tells you which step blocked progress and prints a diagnostic message.
+On failure, it tells you which step blocked progress and prints a diagnostic message. The
+verify path exercises the same first-contact graph diagnosis an agent should run:
+`tools/list`, `list_concepts`, `query_ontology({operation:"workspace_brief"})`, and
+`query_ontology({operation:"health"})`.
 
 ### Manual verification (reference)
 

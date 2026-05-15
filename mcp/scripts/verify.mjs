@@ -13,6 +13,7 @@
  *   2. server boot — initialize JSON-RPC 응답
  *   3. tools/list — 23 도구 모두 노출
  *   4. tools/call list_concepts — vault 노드 수 출력
+ *   5. tools/call query_ontology workspace_brief + health — agent first-contact graph diagnosis
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */
@@ -105,6 +106,18 @@ async function step2BootAndCall() {
       method: 'tools/call',
       params: { name: 'list_concepts', arguments: { limit: 5 } },
     }),
+    JSON.stringify({
+      jsonrpc: '2.0',
+      id: 4,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'workspace_brief', limit: 3 } },
+    }),
+    JSON.stringify({
+      jsonrpc: '2.0',
+      id: 5,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'health' } },
+    }),
   ];
 
   return new Promise((res) => {
@@ -136,6 +149,8 @@ async function step2BootAndCall() {
       const initRes = responses.find((r) => r.id === 1);
       const listRes = responses.find((r) => r.id === 2);
       const callRes = responses.find((r) => r.id === 3);
+      const briefRes = responses.find((r) => r.id === 4);
+      const healthRes = responses.find((r) => r.id === 5);
 
       if (!initRes || !initRes.result) {
         log('fail', `no initialize response. stderr: ${stderr.slice(0, 300)}`);
@@ -168,9 +183,43 @@ async function step2BootAndCall() {
         if (parsed.total === 0) {
           log('info', 'Warning: vault is empty. Make sure OMOT_VAULT points to the right folder (e.g. ./docs/ontology)');
         }
-        res(true);
       } catch (err) {
         log('fail', `failed to parse list_concepts response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!briefRes || !briefRes.result) {
+        log('fail', 'no query_ontology workspace_brief response');
+        return res(false);
+      }
+      try {
+        const text = briefRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        if (parsed.operation !== 'workspace_brief') {
+          log('fail', `workspace_brief returned unexpected operation: ${parsed.operation}`);
+          return res(false);
+        }
+        log('ok', `workspace_brief — ${parsed.status} (${parsed.summary?.nodes ?? 0} nodes, nextActions ${(parsed.nextActions || []).length})`);
+      } catch (err) {
+        log('fail', `failed to parse workspace_brief response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!healthRes || !healthRes.result) {
+        log('fail', 'no query_ontology health response');
+        return res(false);
+      }
+      try {
+        const text = healthRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        if (parsed.operation !== 'health') {
+          log('fail', `health returned unexpected operation: ${parsed.operation}`);
+          return res(false);
+        }
+        log('ok', `health — ${parsed.status} (${(parsed.checks || []).length} checks, issues ${parsed.summary?.compileIssues ?? 0})`);
+        res(true);
+      } catch (err) {
+        log('fail', `failed to parse health response: ${err.message}`);
         res(false);
       }
     });
