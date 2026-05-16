@@ -1483,6 +1483,53 @@ await test('merge — dry-run preview', async () => {
   }
 });
 
+await test('graph write commands — reject ambiguous vault arguments before MCP call', async () => {
+  const cases = [
+    {
+      args: ['rename', 'capabilities/foo', 'capabilities/bar', '--vault'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['rename', 'capabilities/foo', 'capabilities/bar', '--vault='],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['rename', 'capabilities/foo', 'capabilities/bar', 'ontology', '--vault', 'docs/ontology'],
+      pattern: /either positional argument or --vault/,
+    },
+    {
+      args: ['rename', 'capabilities/foo', 'capabilities/bar', 'one', 'two'],
+      pattern: /too many arguments: two/,
+    },
+    {
+      args: ['merge', 'capabilities/foo', 'capabilities/bar', '--vault', '--json'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['merge', 'capabilities/foo', 'capabilities/bar', 'ontology', '--vault', 'docs/ontology'],
+      pattern: /either positional argument or --vault/,
+    },
+    {
+      args: ['delete', 'capabilities/foo', '--vault', '--confirm'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['delete', 'capabilities/foo', 'ontology', '--vault', 'docs/ontology'],
+      pattern: /either positional argument or --vault/,
+    },
+    {
+      args: ['delete', 'capabilities/foo', 'one', 'two'],
+      pattern: /too many arguments: two/,
+    },
+  ];
+
+  for (const c of cases) {
+    const r = await run(c.args);
+    assert.equal(r.code, 1, `${c.args.join(' ')}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.match(stripAnsi(r.stderr), c.pattern);
+  }
+});
+
 // ── analyze --apply (R+ — agent-less bootstrap) ─────────────────────────
 //
 // CLI 가 analyze_repo_structure 결과를 add_concepts + add_relations 배치로

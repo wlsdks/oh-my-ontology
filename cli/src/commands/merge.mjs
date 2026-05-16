@@ -6,6 +6,7 @@
 
 import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -91,12 +92,12 @@ export async function runMerge(args) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.', confirm: false, json: false };
+  const flags = { vault: null, confirm: false, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--confirm') flags.confirm = true;
     else if (a === '--json') flags.json = true;
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
@@ -105,13 +106,12 @@ function parseArgs(args) {
   if (positional.length < 2) {
     return { error: 'fromSlug and intoSlug are required' };
   }
-  if (positional.length >= 3 && flags.vault === '.') {
-    flags.vault = positional[2];
-  }
+  const vaultResult = resolveTrailingVaultArg({ vault: flags.vault, positional, vaultIndex: 2 });
+  if (vaultResult.error) return vaultResult;
   return {
     fromSlug: positional[0],
     intoSlug: positional[1],
-    vault: flags.vault,
+    vault: vaultResult.vault,
     confirm: flags.confirm,
     json: flags.json,
   };

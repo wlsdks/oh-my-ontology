@@ -4,6 +4,7 @@
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -194,8 +195,8 @@ function parseArgs(args) {
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = parseVault(args[++i]);
-    else if (a.startsWith('--vault=')) flags.vault = parseVault(a.slice('--vault='.length));
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a === '--summary') flags.summary = true;
     else if (a === '--indexes') flags.includeIndexes = true;
@@ -214,16 +215,9 @@ function parseArgs(args) {
   for (const value of Object.values(flags)) {
     if (value instanceof Error) return { error: value.message };
   }
-  if (flags.vault === false) return { error: '--vault requires a path' };
-  if (flags.vault && positional.length > 0) return { error: 'pass vault as either positional argument or --vault, not both' };
-  if (positional.length > 1) return { error: `too many arguments: ${positional.slice(1).join(' ')}` };
-  return { ...flags, vault: flags.vault || positional[0] || '.' };
-}
-
-function parseVault(value) {
-  const path = String(value ?? '').trim();
-  if (path.startsWith('--')) return false;
-  return path ? path : false;
+  const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
+  if (vaultResult.error) return vaultResult;
+  return { ...flags, vault: vaultResult.vault };
 }
 
 function parseNumberFlag(flag, raw) {

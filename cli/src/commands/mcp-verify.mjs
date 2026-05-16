@@ -8,6 +8,7 @@ import { existsSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require_ = createRequire(import.meta.url);
@@ -93,24 +94,17 @@ function parseArgs(args) {
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = parseVault(args[++i]);
-    else if (a.startsWith('--vault=')) flags.vault = parseVault(a.slice('--vault='.length));
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--timeout-ms') flags.timeoutMs = parseTimeout(args[++i]);
     else if (a.startsWith('--timeout-ms=')) flags.timeoutMs = parseTimeout(a.slice('--timeout-ms='.length));
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
-  if (flags.vault === false) return { error: '--vault requires a path' };
   if (flags.timeoutMs === false) return { error: '--timeout-ms must be a positive integer' };
-  if (flags.vault && positional.length > 0) return { error: 'pass vault as either positional argument or --vault, not both' };
-  if (positional.length > 1) return { error: `too many arguments: ${positional.slice(1).join(' ')}` };
-  return { vault: flags.vault || positional[0] || '.', timeoutMs: flags.timeoutMs };
-}
-
-function parseVault(value) {
-  const path = String(value ?? '').trim();
-  if (path.startsWith('--')) return false;
-  return path ? path : false;
+  const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
+  if (vaultResult.error) return vaultResult;
+  return { vault: vaultResult.vault, timeoutMs: flags.timeoutMs };
 }
 
 function parseTimeout(value) {
