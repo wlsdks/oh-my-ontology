@@ -2495,11 +2495,11 @@ export function createOntologyEngine(artifact, options = {}) {
     const overviewResult = overview({ limit });
     const healthResult = health({
       limit,
-      componentLimit: limit,
-      cycleLimit: limit,
-      recommendationLimit: limit,
-      orderLimit: limit,
-      nodeLimit: limit,
+      componentLimit: options.componentLimit ?? limit,
+      cycleLimit: options.cycleLimit ?? limit,
+      recommendationLimit: options.recommendationLimit ?? limit,
+      orderLimit: options.orderLimit ?? limit,
+      nodeLimit: options.nodeLimit ?? limit,
       dependencyTypes: options.dependencyTypes,
       componentTypes: options.componentTypes ?? options.types,
     });

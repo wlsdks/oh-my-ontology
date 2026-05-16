@@ -2636,6 +2636,27 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('validates workspace brief health tuning limits through the embedded health call', () => {
+    const graph = compileOntology(
+      [
+        doc('domains/auth', {
+          kind: 'domain',
+          title: 'Auth',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    assert.throws(
+      () =>
+        queryCompiledOntology(graph, {
+          operation: 'workspace_brief',
+          componentLimit: 501,
+        }),
+      /componentLimit must be <= 500/,
+    );
+  });
+
   it('returns a one-shot health dashboard for clean ontology graphs', () => {
     const clean = compileOntology(
       [
