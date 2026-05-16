@@ -1874,6 +1874,32 @@ describe("evaluateDogfoodGate", () => {
       }),
       ["workspace_brief response missing nextAction identifier at index 0"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
+          operation: "workspace_brief",
+          status: "healthy",
+          summary: { nodes: 1, edges: 0, issues: 0 },
+          nextActions: [{ id: "components", severity: "info", count: -1 }],
+          health: okShape.brief.health,
+        },
+      }),
+      ["workspace_brief response malformed nextAction count at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        tunedBrief: {
+          operation: "workspace_brief",
+          status: "healthy",
+          summary: { nodes: 1, edges: 0, issues: 0 },
+          nextActions: [{ id: "components", severity: "info", count: 1.5 }],
+          health: okShape.tunedBrief.health,
+        },
+      }),
+      ["workspace_brief_tuned response malformed nextAction count at index 0"],
+    );
   });
 
   it("fails on malformed health payloads", () => {

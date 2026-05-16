@@ -3473,6 +3473,9 @@ function workspaceBriefShapeFailure(result, label = "workspace_brief") {
     if (typeof action.id !== "string" && typeof action.kind !== "string") {
       return `${label} response missing nextAction identifier at index ${index}`;
     }
+    if (!hasOptionalNonNegativeInteger(action.count)) {
+      return `${label} response malformed nextAction count at index ${index}`;
+    }
   }
   if (!result.health || typeof result.health !== "object" || Array.isArray(result.health)) {
     return `${label} response missing health block`;
@@ -3554,6 +3557,10 @@ function numericSummaryFailure(label, summary, keys) {
     }
   }
   return null;
+}
+
+function hasOptionalNonNegativeInteger(value) {
+  return value == null || (Number.isInteger(value) && value >= 0);
 }
 
 function checksShapeFailure(label, checks, { requireNonEmpty = false } = {}) {
