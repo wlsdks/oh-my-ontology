@@ -3085,7 +3085,10 @@ function explainRelationShapeFailure(result) {
   if (directFailure) return directFailure;
   const pathFailure = shortestRelationPathFailure(result.shortestPath, result.from, result.to);
   if (pathFailure) return pathFailure;
-  const commonFailure = commonNeighborBucketFailure("explain_relation commonNeighbors", result.commonNeighbors);
+  const commonFailure = commonNeighborBucketFailure("explain_relation commonNeighbors", result.commonNeighbors, {
+    from: result.from,
+    to: result.to,
+  });
   if (commonFailure) return commonFailure;
   return null;
 }
@@ -3158,7 +3161,7 @@ function relationEdgeBucketFailure(label, bucket) {
   return null;
 }
 
-function commonNeighborBucketFailure(label, bucket) {
+function commonNeighborBucketFailure(label, bucket, options = {}) {
   if (!bucket || typeof bucket !== "object" || Array.isArray(bucket)) {
     return `${label} missing bucket`;
   }
@@ -3196,6 +3199,14 @@ function commonNeighborBucketFailure(label, bucket) {
         if (edgeFailure) return edgeFailure;
         if (!["incoming", "outgoing"].includes(edge.direction)) {
           return `${label} ${key} missing direction at index ${edgeIndex}`;
+        }
+        const endpoint = key === "fromEdges" ? options.from : options.to;
+        if (endpoint) {
+          const connectsForward = edge.from === endpoint && edge.to === row.slug;
+          const connectsBackward = edge.from === row.slug && edge.to === endpoint;
+          if (!connectsForward && !connectsBackward) {
+            return `${label} ${key} endpoint mismatch at index ${edgeIndex}`;
+          }
         }
       }
     }

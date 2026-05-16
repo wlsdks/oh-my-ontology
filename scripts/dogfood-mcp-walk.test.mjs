@@ -3534,6 +3534,52 @@ describe("evaluateDogfoodGate", () => {
       }),
       ["explain_relation commonNeighbors row missing slug at index 0"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        explainRelation: {
+          ...okShape.explainRelation,
+          commonNeighbors: {
+            ...okShape.explainRelation.commonNeighbors,
+            rows: [
+              {
+                ...okShape.explainRelation.commonNeighbors.rows[0],
+                fromEdges: [
+                  {
+                    ...okShape.explainRelation.commonNeighbors.rows[0].fromEdges[0],
+                    to: "domains/other",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+      ["explain_relation commonNeighbors fromEdges endpoint mismatch at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        explainRelation: {
+          ...okShape.explainRelation,
+          commonNeighbors: {
+            ...okShape.explainRelation.commonNeighbors,
+            rows: [
+              {
+                ...okShape.explainRelation.commonNeighbors.rows[0],
+                toEdges: [
+                  {
+                    ...okShape.explainRelation.commonNeighbors.rows[0].toEdges[0],
+                    from: "domains/other",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+      ["explain_relation commonNeighbors toEdges endpoint mismatch at index 0"],
+    );
   });
 
   it("fails on malformed neighbors payloads", () => {
