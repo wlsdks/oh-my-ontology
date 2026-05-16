@@ -14,6 +14,11 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { EXPECTED_TOOLS } from "../scripts/verify.mjs";
 import {
+  MAINTENANCE_KIND_VALUES,
+  MAINTENANCE_PHASE_VALUES,
+  MAINTENANCE_SEVERITY_VALUES,
+} from "./ontology-engine.mjs";
+import {
   formatNoTestMatchMessage,
   formatTestFilterSuffix,
   resolveTestNamePattern,
@@ -391,18 +396,9 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         orderLimitType: "integer",
         dependencyTypesItem: "string",
         componentTypesItem: "string",
-        phasesEnum: ["validate", "repair", "link", "materialize", "review"],
-        severitiesEnum: ["fail", "warn", "info"],
-        maintenanceKindsEnum: [
-          "inspect_compile_issue",
-          "break_dependency_cycle",
-          "canonicalize_graph_arrays",
-          "resolve_dangling_reference",
-          "add_missing_relation",
-          "materialize_external_element",
-          "unassigned_node",
-          "empty_domain",
-        ],
+        phasesEnum: MAINTENANCE_PHASE_VALUES,
+        severitiesEnum: MAINTENANCE_SEVERITY_VALUES,
+        maintenanceKindsEnum: MAINTENANCE_KIND_VALUES,
         componentTypesDescription:
           "health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.",
       },

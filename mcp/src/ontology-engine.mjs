@@ -5,9 +5,9 @@ const DEFAULT_LIMIT = 100;
 const DOWNWARD_CONTAINMENT_TYPES = new Set(['domains', 'capabilities', 'elements', 'contains']);
 const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
 const HEALTH_IGNORED_COMPONENT_KINDS = new Set(['vault-readme']);
-const MAINTENANCE_PHASES = new Set(['validate', 'repair', 'link', 'materialize', 'review']);
-const MAINTENANCE_SEVERITIES = new Set(['fail', 'warn', 'info']);
-const MAINTENANCE_KINDS = new Set([
+export const MAINTENANCE_PHASE_VALUES = Object.freeze(['validate', 'repair', 'link', 'materialize', 'review']);
+export const MAINTENANCE_SEVERITY_VALUES = Object.freeze(['fail', 'warn', 'info']);
+export const MAINTENANCE_KIND_VALUES = Object.freeze([
   'inspect_compile_issue',
   'break_dependency_cycle',
   'canonicalize_graph_arrays',
@@ -17,6 +17,9 @@ const MAINTENANCE_KINDS = new Set([
   'unassigned_node',
   'empty_domain',
 ]);
+const MAINTENANCE_PHASES = new Set(MAINTENANCE_PHASE_VALUES);
+const MAINTENANCE_SEVERITIES = new Set(MAINTENANCE_SEVERITY_VALUES);
+const MAINTENANCE_KINDS = new Set(MAINTENANCE_KIND_VALUES);
 export const QUERY_ONTOLOGY_OPERATIONS = Object.freeze([
   'neighbors',
   'path',

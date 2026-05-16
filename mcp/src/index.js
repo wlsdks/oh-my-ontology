@@ -78,6 +78,9 @@ import { analyzeRepoStructure } from './analyze.mjs';
 import { inferImports } from './infer-imports.mjs';
 import { compileOntology } from './ontology-compiler.mjs';
 import {
+  MAINTENANCE_KIND_VALUES,
+  MAINTENANCE_PHASE_VALUES,
+  MAINTENANCE_SEVERITY_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   queryCompiledOntology,
@@ -841,7 +844,7 @@ const TOOLS = [
           type: 'array',
           items: {
             ...NON_BLANK_STRING_SCHEMA,
-            enum: ['validate', 'repair', 'link', 'materialize', 'review'],
+            enum: MAINTENANCE_PHASE_VALUES,
           },
           description:
             'maintenance_plan only: optional phase filter, e.g. ["repair", "link", "materialize"].',
@@ -850,7 +853,7 @@ const TOOLS = [
           type: 'array',
           items: {
             ...NON_BLANK_STRING_SCHEMA,
-            enum: ['fail', 'warn', 'info'],
+            enum: MAINTENANCE_SEVERITY_VALUES,
           },
           description:
             'maintenance_plan only: optional severity filter, e.g. ["fail", "warn"].',
@@ -859,16 +862,7 @@ const TOOLS = [
           type: 'array',
           items: {
             ...NON_BLANK_STRING_SCHEMA,
-            enum: [
-              'inspect_compile_issue',
-              'break_dependency_cycle',
-              'canonicalize_graph_arrays',
-              'resolve_dangling_reference',
-              'add_missing_relation',
-              'materialize_external_element',
-              'unassigned_node',
-              'empty_domain',
-            ],
+            enum: MAINTENANCE_KIND_VALUES,
           },
           description:
             'maintenance_plan only: optional action-kind filter, e.g. ["add_missing_relation", "canonicalize_graph_arrays"].',

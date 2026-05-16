@@ -40,6 +40,9 @@ import {
   parseJsonRpcResponses,
 } from './json-rpc-lines.mjs';
 import {
+  MAINTENANCE_KIND_VALUES,
+  MAINTENANCE_PHASE_VALUES,
+  MAINTENANCE_SEVERITY_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
 } from '../src/ontology-engine.mjs';
@@ -55,16 +58,6 @@ const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
 const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
-const MAINTENANCE_KIND_ENUM = [
-  'inspect_compile_issue',
-  'break_dependency_cycle',
-  'canonicalize_graph_arrays',
-  'resolve_dangling_reference',
-  'add_missing_relation',
-  'materialize_external_element',
-  'unassigned_node',
-  'empty_domain',
-];
 
 export const EXPECTED_READ_TOOLS = [
   'list_concepts',
@@ -139,15 +132,15 @@ export function toolsListSchemaFailure(tools) {
   }
 
   const phases = propertyAt(queryTool, ['properties', 'phases']);
-  if (!sameArray(phases?.items?.enum, ['validate', 'repair', 'link', 'materialize', 'review'])) {
+  if (!sameArray(phases?.items?.enum, MAINTENANCE_PHASE_VALUES)) {
     return 'query_ontology phases enum schema drift';
   }
   const severities = propertyAt(queryTool, ['properties', 'severities']);
-  if (!sameArray(severities?.items?.enum, ['fail', 'warn', 'info'])) {
+  if (!sameArray(severities?.items?.enum, MAINTENANCE_SEVERITY_VALUES)) {
     return 'query_ontology severities enum schema drift';
   }
   const kinds = propertyAt(queryTool, ['properties', 'kinds']);
-  if (!sameArray(kinds?.items?.enum, MAINTENANCE_KIND_ENUM)) {
+  if (!sameArray(kinds?.items?.enum, MAINTENANCE_KIND_VALUES)) {
     return 'query_ontology maintenance kinds enum schema drift';
   }
 
@@ -261,10 +254,10 @@ export function strictMaintenanceFilterFailure(response, field = 'phases') {
   }
   const text = response.result.content?.[0]?.text || '';
   const allowedPattern = field === 'severities'
-    ? /fail, warn, info/i
+    ? new RegExp(MAINTENANCE_SEVERITY_VALUES.join(', '), 'i')
     : field === 'kinds'
-      ? /inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain/i
-      : /validate, repair, link, materialize, review/i;
+      ? new RegExp(MAINTENANCE_KIND_VALUES.join(', '), 'i')
+      : new RegExp(MAINTENANCE_PHASE_VALUES.join(', '), 'i');
   if (!new RegExp(`${field} items must be one of`, 'i').test(text)) {
     return `strict maintenance filter response did not report the invalid maintenance_plan ${field} filter`;
   }

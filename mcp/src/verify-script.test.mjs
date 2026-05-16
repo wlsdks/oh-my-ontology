@@ -5,6 +5,9 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  MAINTENANCE_KIND_VALUES,
+  MAINTENANCE_PHASE_VALUES,
+  MAINTENANCE_SEVERITY_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
 } from './ontology-engine.mjs';
@@ -185,20 +188,11 @@ describe('verify.mjs first-contact gates', () => {
           properties: {
             operation: { enum: QUERY_ONTOLOGY_OPERATIONS },
             targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
-            phases: { items: { enum: ['validate', 'repair', 'link', 'materialize', 'review'] } },
-            severities: { items: { enum: ['fail', 'warn', 'info'] } },
+            phases: { items: { enum: MAINTENANCE_PHASE_VALUES } },
+            severities: { items: { enum: MAINTENANCE_SEVERITY_VALUES } },
             kinds: {
               items: {
-                enum: [
-                  'inspect_compile_issue',
-                  'break_dependency_cycle',
-                  'canonicalize_graph_arrays',
-                  'resolve_dangling_reference',
-                  'add_missing_relation',
-                  'materialize_external_element',
-                  'unassigned_node',
-                  'empty_domain',
-                ],
+                enum: MAINTENANCE_KIND_VALUES,
               },
             },
           },
@@ -615,7 +609,7 @@ describe('verify.mjs first-contact gates', () => {
       strictMaintenanceFilterFailure({
         result: {
           isError: true,
-          content: [{ text: 'kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain.' }],
+          content: [{ text: `kinds items must be one of: ${MAINTENANCE_KIND_VALUES.join(', ')}.` }],
         },
       }, 'kinds'),
       null,
