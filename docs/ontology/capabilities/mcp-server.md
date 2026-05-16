@@ -109,6 +109,8 @@ malformed row 가 `unknown` advisory/coverage 로 숨지 않는다.
 성공 출력도 `workspace_brief` / `workspace_brief_tuned` 라인에 validated health check count 를, `health` /
 tuned `health` 라인에 check `id:status:count` coverage 를 드러내 agent 가 nextActions 와 실제 검증 축을
 한 화면에서 확인하게 한다.
+compact `postWriteMaintenance` action `score`, executable `proposedAction`, and current-page next action pointer guidance
+도 설치 verify 범위에 포함해 write-tool 후속 안내가 agent 작업 큐 계약과 갈라지지 않게 한다.
 `get_concepts` 는 `list_concepts` 에서 얻은 실제 slug 최대 2개와 missing slug 를 섞어
 설치 검증에서도 batch reader 의 성공 row 와 partial row 계약을 확인한다.
 `find_orphans` 는 기본 row shape 와 project / vault-readme root-sentinel 기본 제외
@@ -147,6 +149,9 @@ from/to kind + relation 과 일치하고, `matchingEdges` 가 요청한 from/to/
 `query_ontology(maintenance_plan)` 은 현재 page 가 제한되지 않은 경우
 `byPhase` / `bySeverity` / `byKind` bucket 이 action 목록과 일치하는지도 확인해
 agent 작업 큐 요약이 실제 action row 와 갈라지지 않게 한다.
+installed verify 도 compact `postWriteMaintenance` action `score`, executable `proposedAction`,
+and current-page next action pointer guidance 를 함께 확인해 write-tool 후속 안내가
+agent 작업 큐 계약과 갈라지지 않게 한다.
 또한 `get_concepts` 를 실제 project / mcp-server slug 와 missing slug 를 섞어
 호출해 batch reader 의 성공 row 와 partial row 가 동시에 유지되는지 확인한다.
 project-node `list_concepts` probe 도 fail-closed 로 확인해 verify / dogfood vault 에서
@@ -188,6 +193,9 @@ action tool/slug/kind 계약을 검사해 agent 작업 큐가 실제 graph targe
 growth breakdown 도 맞물려 검증해 first-contact action count drift 를 막는다.
 installed verify 도 같은 `workspace_brief` growth count drift 를 fail-fast 로 확인해
 repo dogfood 와 외부 MCP 설치 smoke 의 first-contact 계약이 갈라지지 않게 한다.
+installed verify 의 `maintenance_plan` cursor smoke 도 `totalActions` / `filteredActions` /
+`remainingActions` / `executableActions` / `reviewActions` count 와 관계를 검증해
+post-write work queue summary 가 drift 나도 설치 경로에서 fail-fast 한다.
 post-write compact `postWriteMaintenance` 도 executable action 의 `proposedAction` 과
 `add_missing_relation` endpoint args 를 통합 테스트에서 확인해 write 직후 후속 action 이 drift 나지 않게 한다.
 `maintenance_plan.phases` 는 `validate` / `repair` / `link` / `materialize` / `review`,

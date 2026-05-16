@@ -301,7 +301,11 @@ reports `cursor.found=false`, the cursor miss reason, zero remaining actions,
 and no next actions. A companion ready-page smoke calls `maintenance_plan`
 without `afterActionId` and fails unless the response keeps the stable cursor
 shape, including `cursor.found=true`, explicit `cursor.reason=null`,
-`startIndex=0`, `remainingActions`, and next-action pointers.
+`startIndex=0`, `remainingActions`, and next-action pointers. Both cursor
+smokes also validate the maintenance summary counts (`totalActions`,
+`filteredActions`, `remainingActions`, `executableActions`, `reviewActions`)
+and their count relationships, so installed verify catches work-queue drift
+before an agent follows stale cleanup guidance.
 `project_scope` is a hard gate when the vault has a `kind: project` node. The
 verify path probes `kind: project` directly before graph smoke, so containment
 checks are not skipped just because the project node was outside the first
