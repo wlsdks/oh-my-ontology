@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -62,6 +62,8 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [25, "recommend_relations"],
   [26, "cycles"],
   [27, "topological_order"],
+  [28, "lineage"],
+  [29, "containment_tree"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -236,6 +238,18 @@ export function buildDogfoodRequests() {
       operation: "topological_order",
       limit: 10,
     }),
+    call(28, "query_ontology", {
+      operation: "lineage",
+      slug: "capabilities/mcp-server",
+      depth: 3,
+      limit: 10,
+    }),
+    call(29, "query_ontology", {
+      operation: "containment_tree",
+      slug: "project",
+      depth: 3,
+      limit: 30,
+    }),
   ];
 }
 
@@ -304,6 +318,8 @@ export function evaluateDogfoodGate({
   relationRecommendations,
   cycles,
   topologicalOrder,
+  lineage,
+  containmentTree,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -332,6 +348,8 @@ export function evaluateDogfoodGate({
   recordResult(failures, "recommend_relations", relationRecommendations);
   recordResult(failures, "cycles", cycles);
   recordResult(failures, "topological_order", topologicalOrder);
+  recordResult(failures, "lineage", lineage);
+  recordResult(failures, "containment_tree", containmentTree);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -441,6 +459,14 @@ export function evaluateDogfoodGate({
   if (topologicalOrder) {
     const topologicalOrderFailure = topologicalOrderShapeFailure(topologicalOrder);
     if (topologicalOrderFailure) failures.push(topologicalOrderFailure);
+  }
+  if (lineage) {
+    const lineageFailure = lineageShapeFailure(lineage);
+    if (lineageFailure) failures.push(lineageFailure);
+  }
+  if (containmentTree) {
+    const containmentTreeFailure = containmentTreeShapeFailure(containmentTree);
+    if (containmentTreeFailure) failures.push(containmentTreeFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -1328,6 +1354,193 @@ function topologicalNodeRowFailure(label, row, index, { requireRank = false } = 
   return null;
 }
 
+function lineageShapeFailure(result) {
+  if (result.operation !== "lineage") {
+    return `lineage response operation mismatch — ${result.operation}`;
+  }
+  if (result.center !== "capabilities/mcp-server") {
+    return `lineage response center mismatch — ${result.center}`;
+  }
+  if (!Number.isInteger(result.depth) || result.depth < 0) {
+    return "lineage response missing depth";
+  }
+  if (!result.node || result.node.slug !== result.center) {
+    return "lineage response missing center node";
+  }
+  for (const key of ["ancestors", "descendants"]) {
+    const bucketFailure = lineageBucketFailure(`lineage ${key}`, result[key]);
+    if (bucketFailure) return bucketFailure;
+  }
+  if (!Array.isArray(result.edges)) {
+    return "lineage response missing edges array";
+  }
+  for (const [index, edge] of result.edges.entries()) {
+    const edgeFailure = graphEdgeFailure("lineage edge", edge, index);
+    if (edgeFailure) return edgeFailure;
+  }
+  const ancestorSlugs = new Set(result.ancestors.nodes.map((row) => row.slug));
+  const descendantSlugs = new Set(result.descendants.nodes.map((row) => row.slug));
+  if (!ancestorSlugs.has("domains/ai-agent-partner")) {
+    return "lineage response missing ai-agent-partner ancestor";
+  }
+  if (descendantSlugs.has(result.center) || ancestorSlugs.has(result.center)) {
+    return "lineage response includes center in lineage rows";
+  }
+  return null;
+}
+
+function lineageBucketFailure(label, bucket) {
+  if (!bucket || typeof bucket !== "object" || Array.isArray(bucket)) {
+    return `${label} missing bucket`;
+  }
+  if (!Number.isInteger(bucket.total) || bucket.total < 0) {
+    return `${label} missing total`;
+  }
+  if (typeof bucket.limited !== "boolean") {
+    return `${label} missing limited flag`;
+  }
+  if (!Array.isArray(bucket.nodes)) {
+    return `${label} missing nodes`;
+  }
+  if (bucket.nodes.length > bucket.total) {
+    return `${label} nodes exceed total — nodes ${bucket.nodes.length}, total ${bucket.total}`;
+  }
+  if (!bucket.limited && bucket.nodes.length !== bucket.total) {
+    return `${label} node count mismatch — nodes ${bucket.nodes.length}, total ${bucket.total}`;
+  }
+  for (const [index, row] of bucket.nodes.entries()) {
+    const rowFailure = lineageNodeFailure(label, row, index);
+    if (rowFailure) return rowFailure;
+  }
+  return null;
+}
+
+function lineageNodeFailure(label, row, index) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    return `${label} malformed row at index ${index}`;
+  }
+  if (typeof row.slug !== "string" || row.slug.length === 0) {
+    return `${label} row missing slug at index ${index}`;
+  }
+  if (!row.node || row.node.slug !== row.slug) {
+    return `${label} row missing node summary: ${row.slug}`;
+  }
+  if (!Number.isInteger(row.distance) || row.distance <= 0) {
+    return `${label} row missing distance: ${row.slug}`;
+  }
+  if (typeof row.via !== "string" || row.via.length === 0) {
+    return `${label} row missing via: ${row.slug}`;
+  }
+  return null;
+}
+
+function containmentTreeShapeFailure(result) {
+  if (result.operation !== "containment_tree") {
+    return `containment_tree response operation mismatch — ${result.operation}`;
+  }
+  if (result.root !== "project") {
+    return `containment_tree response root mismatch — ${result.root}`;
+  }
+  for (const key of ["depth", "totalRoots", "emittedNodes"]) {
+    if (!Number.isInteger(result[key]) || result[key] < 0) {
+      return `containment_tree response missing ${key}`;
+    }
+  }
+  if (typeof result.limited !== "boolean") {
+    return "containment_tree response missing limited flag";
+  }
+  if (!Array.isArray(result.roots)) {
+    return "containment_tree response missing roots";
+  }
+  if (result.roots.length > result.totalRoots) {
+    return `containment_tree roots exceed total — roots ${result.roots.length}, total ${result.totalRoots}`;
+  }
+  if (!result.limited && result.roots.length !== result.totalRoots) {
+    return `containment_tree root count mismatch — roots ${result.roots.length}, total ${result.totalRoots}`;
+  }
+  if (!Array.isArray(result.cycles)) {
+    return "containment_tree response missing cycles";
+  }
+  let countedNodes = 0;
+  for (const [index, root] of result.roots.entries()) {
+    const rootFailure = containmentNodeFailure(root, index, {
+      expectedSlug: index === 0 ? "project" : null,
+      expectedDistance: 0,
+      path: [],
+    });
+    if (rootFailure) return rootFailure;
+    countedNodes += countContainmentNodes(root);
+  }
+  if (countedNodes !== result.emittedNodes) {
+    return `containment_tree emitted node mismatch — emitted ${result.emittedNodes}, counted ${countedNodes}`;
+  }
+  for (const [index, cycle] of result.cycles.entries()) {
+    const edgeFailure = graphEdgeFailure("containment_tree cycle", cycle, index);
+    if (edgeFailure) return edgeFailure;
+    if (!Array.isArray(cycle.path) || cycle.path.length === 0) {
+      return `containment_tree cycle missing path at index ${index}`;
+    }
+  }
+  return null;
+}
+
+function containmentNodeFailure(row, index, { expectedSlug = null, expectedDistance = null, path = [] } = {}) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    return `containment_tree malformed node at index ${index}`;
+  }
+  if (typeof row.slug !== "string" || row.slug.length === 0) {
+    return `containment_tree node missing slug at index ${index}`;
+  }
+  if (expectedSlug && row.slug !== expectedSlug) {
+    return `containment_tree root slug mismatch — ${row.slug}`;
+  }
+  if (!Number.isInteger(row.distance) || row.distance < 0) {
+    return `containment_tree node missing distance: ${row.slug}`;
+  }
+  if (expectedDistance != null && row.distance !== expectedDistance) {
+    return `containment_tree node distance mismatch: ${row.slug}`;
+  }
+  if (row.distance === 0 && row.via !== null) {
+    return `containment_tree root should not have via: ${row.slug}`;
+  }
+  if (row.distance > 0 && (typeof row.via !== "string" || row.via.length === 0)) {
+    return `containment_tree child missing via: ${row.slug}`;
+  }
+  if (!row.node || row.node.slug !== row.slug) {
+    return `containment_tree node summary mismatch: ${row.slug}`;
+  }
+  if (!Array.isArray(row.children)) {
+    return `containment_tree node missing children: ${row.slug}`;
+  }
+  if (path.includes(row.slug)) {
+    return `containment_tree repeated node in path: ${row.slug}`;
+  }
+  for (const [childIndex, child] of row.children.entries()) {
+    const childFailure = containmentNodeFailure(child, childIndex, {
+      expectedDistance: row.distance + 1,
+      path: [...path, row.slug],
+    });
+    if (childFailure) return childFailure;
+  }
+  return null;
+}
+
+function countContainmentNodes(row) {
+  return 1 + row.children.reduce((sum, child) => sum + countContainmentNodes(child), 0);
+}
+
+function graphEdgeFailure(label, edge, index) {
+  if (!edge || typeof edge !== "object" || Array.isArray(edge)) {
+    return `${label} malformed edge at index ${index}`;
+  }
+  for (const key of ["from", "to", "via"]) {
+    if (typeof edge[key] !== "string" || edge[key].length === 0) {
+      return `${label} missing ${key} at index ${index}`;
+    }
+  }
+  return null;
+}
+
 function candidateGroupShapeFailure(label, group, expectedTotal) {
   if (!group || typeof group !== "object" || Array.isArray(group)) {
     return `${label} missing group`;
@@ -2010,6 +2223,30 @@ async function main() {
     }
   }
 
+  // 27. lineage
+  header(`query_ontology(lineage mcp-server)`);
+  const lineage = getResult(responses, 28);
+  if (lineage) {
+    console.log(
+      `  center ${lineage.center ?? "n/a"} · ancestors ${lineage.ancestors?.total ?? "n/a"} · descendants ${lineage.descendants?.total ?? "n/a"} · edges ${lineage.edges?.length ?? "n/a"}`,
+    );
+    for (const row of (lineage.ancestors?.nodes || []).slice(0, 5)) {
+      console.log(`  ancestor d${row.distance}: ${row.slug} via ${row.via}`);
+    }
+  }
+
+  // 28. containment_tree
+  header(`query_ontology(containment_tree project)`);
+  const containmentTree = getResult(responses, 29);
+  if (containmentTree) {
+    console.log(
+      `  root ${containmentTree.root ?? "n/a"} · roots ${containmentTree.roots?.length ?? "n/a"} / total ${containmentTree.totalRoots ?? "n/a"} · emitted ${containmentTree.emittedNodes ?? "n/a"} · limited ${containmentTree.limited ?? "n/a"}`,
+    );
+    for (const root of (containmentTree.roots || []).slice(0, 3)) {
+      console.log(`  ${root.slug}: ${(root.children || []).length} children`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -2037,6 +2274,8 @@ async function main() {
     relationRecommendations,
     cycles,
     topologicalOrder,
+    lineage,
+    containmentTree,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -2078,6 +2317,8 @@ async function main() {
   console.log(`  recommend_relations: ${relationRecommendations?.totalRecommendations ?? "n/a"} recommendations`);
   console.log(`  cycles: ${cycles?.totalCycles ?? "n/a"} total`);
   console.log(`  topological_order: ${topologicalOrder?.orderedCount ?? "n/a"} ordered · acyclic ${topologicalOrder?.acyclic ?? "n/a"}`);
+  console.log(`  lineage: ${lineage?.ancestors?.total ?? "n/a"} ancestors · ${lineage?.descendants?.total ?? "n/a"} descendants`);
+  console.log(`  containment_tree: ${containmentTree?.emittedNodes ?? "n/a"} emitted · limited ${containmentTree?.limited ?? "n/a"}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

@@ -616,6 +616,74 @@ const okShape = {
     ],
     blocked: [],
   },
+  lineage: {
+    operation: "lineage",
+    center: "capabilities/mcp-server",
+    node: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+    depth: 3,
+    ancestors: {
+      total: 2,
+      limited: false,
+      nodes: [
+        { slug: "domains/ai-agent-partner", distance: 1, via: "domain", node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" } },
+        { slug: "project", distance: 2, via: "domains", node: { slug: "project", kind: "project", title: "Project" } },
+      ],
+    },
+    descendants: {
+      total: 1,
+      limited: false,
+      nodes: [
+        { slug: "elements/mcp-sdk", distance: 1, via: "elements", node: { slug: "elements/mcp-sdk", kind: "element", title: "MCP SDK" } },
+      ],
+    },
+    edges: [
+      { from: "capabilities/mcp-server", to: "domains/ai-agent-partner", via: "domain" },
+      { from: "project", to: "domains/ai-agent-partner", via: "domains" },
+      { from: "capabilities/mcp-server", to: "elements/mcp-sdk", via: "elements" },
+    ],
+  },
+  containmentTree: {
+    operation: "containment_tree",
+    root: "project",
+    depth: 3,
+    totalRoots: 1,
+    emittedNodes: 4,
+    limited: false,
+    roots: [
+      {
+        slug: "project",
+        via: null,
+        distance: 0,
+        node: { slug: "project", kind: "project", title: "Project" },
+        children: [
+          {
+            slug: "domains/ai-agent-partner",
+            via: "domains",
+            distance: 1,
+            node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" },
+            children: [
+              {
+                slug: "capabilities/mcp-server",
+                via: "capabilities",
+                distance: 2,
+                node: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+                children: [
+                  {
+                    slug: "elements/mcp-sdk",
+                    via: "elements",
+                    distance: 3,
+                    node: { slug: "elements/mcp-sdk", kind: "element", title: "MCP SDK" },
+                    children: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    cycles: [],
+  },
 };
 
 describe("recordResult", () => {
@@ -698,6 +766,8 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(25), "recommend_relations");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(26), "cycles");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(27), "topological_order");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(28), "lineage");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(29), "containment_tree");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1711,6 +1781,122 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["topological_order blocked row missing remainingInDegree: capabilities/a"],
+    );
+  });
+
+  it("fails on malformed lineage payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, lineage: { ...okShape.lineage, operation: "containment_tree" } }),
+      ["lineage response operation mismatch — containment_tree"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, lineage: { ...okShape.lineage, center: "capabilities/other" } }),
+      ["lineage response center mismatch — capabilities/other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        lineage: {
+          ...okShape.lineage,
+          ancestors: { ...okShape.lineage.ancestors, nodes: okShape.lineage.ancestors.nodes.slice(0, 1) },
+        },
+      }),
+      ["lineage ancestors node count mismatch — nodes 1, total 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        lineage: {
+          ...okShape.lineage,
+          ancestors: { ...okShape.lineage.ancestors, nodes: [{ ...okShape.lineage.ancestors.nodes[0], node: { slug: "domains/other" } }, okShape.lineage.ancestors.nodes[1]] },
+        },
+      }),
+      ["lineage ancestors row missing node summary: domains/ai-agent-partner"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        lineage: {
+          ...okShape.lineage,
+          ancestors: { ...okShape.lineage.ancestors, nodes: [{ ...okShape.lineage.ancestors.nodes[0], distance: 0 }, okShape.lineage.ancestors.nodes[1]] },
+        },
+      }),
+      ["lineage ancestors row missing distance: domains/ai-agent-partner"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        lineage: {
+          ...okShape.lineage,
+          ancestors: { ...okShape.lineage.ancestors, nodes: [{ ...okShape.lineage.ancestors.nodes[0], via: "" }, okShape.lineage.ancestors.nodes[1]] },
+        },
+      }),
+      ["lineage ancestors row missing via: domains/ai-agent-partner"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        lineage: {
+          ...okShape.lineage,
+          edges: [{ ...okShape.lineage.edges[0], via: "" }],
+        },
+      }),
+      ["lineage edge missing via at index 0"],
+    );
+  });
+
+  it("fails on malformed containment_tree payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, containmentTree: { ...okShape.containmentTree, operation: "lineage" } }),
+      ["containment_tree response operation mismatch — lineage"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, containmentTree: { ...okShape.containmentTree, root: "other" } }),
+      ["containment_tree response root mismatch — other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, containmentTree: { ...okShape.containmentTree, emittedNodes: 5 } }),
+      ["containment_tree emitted node mismatch — emitted 5, counted 4"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        containmentTree: {
+          ...okShape.containmentTree,
+          roots: [{ ...okShape.containmentTree.roots[0], via: "domains" }],
+        },
+      }),
+      ["containment_tree root should not have via: project"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        containmentTree: {
+          ...okShape.containmentTree,
+          roots: [
+            {
+              ...okShape.containmentTree.roots[0],
+              children: [{ ...okShape.containmentTree.roots[0].children[0], distance: 2 }],
+            },
+          ],
+        },
+      }),
+      ["containment_tree node distance mismatch: domains/ai-agent-partner"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        containmentTree: {
+          ...okShape.containmentTree,
+          roots: [
+            {
+              ...okShape.containmentTree.roots[0],
+              children: [{ ...okShape.containmentTree.roots[0].children[0], node: { slug: "domains/other" } }],
+            },
+          ],
+        },
+      }),
+      ["containment_tree node summary mismatch: domains/ai-agent-partner"],
     );
   });
 
