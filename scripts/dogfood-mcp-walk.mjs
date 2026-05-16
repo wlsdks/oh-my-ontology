@@ -605,13 +605,19 @@ function projectMapShapeFailure(result) {
     if (capabilitiesFailure) return capabilitiesFailure;
     const elementsFailure = summarizedNodeBucketFailure(`project_map elements: ${domain.slug}`, domain.elements);
     if (elementsFailure) return elementsFailure;
+    if (domain.capabilities.total !== domain.summary.capabilities) {
+      return `project_map capabilities total mismatch — ${domain.slug}: summary ${domain.summary.capabilities}, bucket ${domain.capabilities.total}`;
+    }
+    if (domain.elements.total !== domain.summary.elements) {
+      return `project_map elements total mismatch — ${domain.slug}: summary ${domain.summary.elements}, bucket ${domain.elements.total}`;
+    }
   }
   const unassignedFailure = summarizedNodeBucketFailure("project_map unassigned", result.unassigned);
   if (unassignedFailure) return unassignedFailure;
   if (!Array.isArray(result.hotspots)) {
     return "project_map response missing hotspots array";
   }
-  return null;
+  return matchRowsFailure("project_map hotspots", result.hotspots);
 }
 
 function summarizedNodeBucketFailure(label, bucket) {
@@ -629,6 +635,9 @@ function summarizedNodeBucketFailure(label, bucket) {
   }
   if (bucket.nodes.length > bucket.total) {
     return `${label} nodes exceed total — nodes ${bucket.nodes.length}, total ${bucket.total}`;
+  }
+  if (!bucket.limited && bucket.nodes.length !== bucket.total) {
+    return `${label} node count mismatch — nodes ${bucket.nodes.length}, total ${bucket.total}`;
   }
   return matchRowsFailure(label, bucket.nodes);
 }

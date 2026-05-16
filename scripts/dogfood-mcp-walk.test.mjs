@@ -812,8 +812,37 @@ describe("evaluateDogfoodGate", () => {
       ["project_map capabilities: domains/auth nodes exceed total — nodes 1, total 0"],
     );
     assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectMap: {
+          ...okShape.projectMap,
+          domains: [
+            {
+              ...okShape.projectMap.domains[0],
+              summary: { ...okShape.projectMap.domains[0].summary, capabilities: 2 },
+            },
+          ],
+        },
+      }),
+      ["project_map capabilities total mismatch — domains/auth: summary 2, bucket 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectMap: {
+          ...okShape.projectMap,
+          unassigned: { total: 1, limited: false, nodes: [] },
+        },
+      }),
+      ["project_map unassigned node count mismatch — nodes 0, total 1"],
+    );
+    assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, projectMap: { ...okShape.projectMap, hotspots: null } }),
       ["project_map response missing hotspots array"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, projectMap: { ...okShape.projectMap, hotspots: [{}] } }),
+      ["project_map hotspots response missing row slug at index 0"],
     );
   });
 
