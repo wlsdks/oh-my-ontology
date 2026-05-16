@@ -640,7 +640,12 @@ describe('package contract helpers', () => {
     assert.match(smoke, /health_tuned — \.\*compile_issues:\(pass\|warn\)/);
     assert.match(smoke, /health_tuned — \.\*checks/);
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
-    assert.match(smoke, /invalid-enum rejection smoke/);
+    assert.match(smoke, /runtime unknown-argument/);
+    assert.match(smoke, /invalid-enum rejection/);
+    assert.ok(smoke.includes('missing maintenance_plan\\.afterActionId cursor smoke'));
+    assert.match(smoke, /maintenance cursor — missing afterActionId reported/);
+    assert.ok(smoke.includes('directMcpVerify.stdout, /maintenance cursor'));
+    assert.ok(smoke.includes('directMcpVerifyVaultFlag.stdout, /maintenance cursor'));
     assert.match(smoke, /project_scope — skipped \\\(no project node in vault\\\)/);
     assert.match(smoke, /path — elements\\\/example → project \\\(1 hop, 1 edge\\\)/);
     assert.match(smoke, /path — domains\\\/core → domains\\\/core \\\(0 hops, 0 edges\\\)/);

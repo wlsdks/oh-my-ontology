@@ -229,6 +229,7 @@ try {
   assert.match(cliMcpVerify.stdout, /overview/);
   assert.match(cliMcpVerify.stdout, /overview query_plan/);
   assert.match(cliMcpVerify.stdout, /project_map query_plan/);
+  assert.match(cliMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(cliMcpVerify.stdout, /neighbors — elements\/example/);
   assert.match(cliMcpVerify.stdout, /path — elements\/example → project \(1 hop, 1 edge\)/);
   assert.match(cliMcpVerify.stdout, /project_scope/);
@@ -238,6 +239,7 @@ try {
   const cliProjectlessMcpVerify = run(cliBin, ['mcp-verify', projectlessVault, '--timeout-ms', '1000'], {
     cwd: projectDir,
   });
+  assert.match(cliProjectlessMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(cliProjectlessMcpVerify.stdout, /neighbors — domains\/core/);
   assert.match(cliProjectlessMcpVerify.stdout, /path — domains\/core → domains\/core \(0 hops, 0 edges\)/);
   assert.match(cliProjectlessMcpVerify.stdout, /project_scope — skipped \(no project node in vault\)/);
@@ -257,7 +259,8 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /compile_ontology/);
   assert.match(cliMcpVerifyHelp.stdout, /neighbors\/node-to-project path\/project_scope graph-query smoke/);
   assert.match(cliMcpVerifyHelp.stdout, /tools\/list schema strictness/);
-  assert.match(cliMcpVerifyHelp.stdout, /runtime unknown-argument \/ invalid-enum rejection smoke/);
+  assert.match(cliMcpVerifyHelp.stdout, /runtime unknown-argument \/ invalid-enum rejection/);
+  assert.match(cliMcpVerifyHelp.stdout, /missing maintenance_plan\.afterActionId cursor smoke/);
 
   const missingVerifyOverride = runRaw(cliBin, ['mcp-verify', 'ontology'], {
     cwd: projectDir,
@@ -327,6 +330,7 @@ try {
   assert.match(mcpVerify.stdout, /overview/);
   assert.match(mcpVerify.stdout, /overview query_plan/);
   assert.match(mcpVerify.stdout, /project_map query_plan/);
+  assert.match(mcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(mcpVerify.stdout, /neighbors — elements\/example/);
   assert.match(mcpVerify.stdout, /path — elements\/example → project \(1 hop, 1 edge\)/);
   assert.match(mcpVerify.stdout, /project_scope/);
@@ -350,6 +354,7 @@ try {
   assert.match(directMcpVerify.stdout, /workspace_brief — .*next actions, .*health checks/);
   assert.match(directMcpVerify.stdout, /workspace_brief_tuned — .*next actions, .*health checks/);
   assert.match(directMcpVerify.stdout, /health_tuned — .*checks/);
+  assert.match(directMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
 
   const directMcpVerifyVaultFlag = run(
     'npm',
@@ -368,6 +373,7 @@ try {
   assert.match(directMcpVerifyVaultFlag.stdout, /timeout=1000ms/);
   assert.match(directMcpVerifyVaultFlag.stdout, /vault total 5 nodes/);
   assert.match(directMcpVerifyVaultFlag.stdout, /project probe — 1 project node/);
+  assert.match(directMcpVerifyVaultFlag.stdout, /maintenance cursor — missing afterActionId reported/);
 
   const directMcpVerifyHelp = run(
     'npm',
