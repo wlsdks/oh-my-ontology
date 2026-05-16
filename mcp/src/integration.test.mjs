@@ -705,6 +705,12 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /unknown arguments are rejected/i);
     assert.match(instructions, /Unknown argument "lmit" for list_concepts/);
     assert.match(instructions, /Did you mean "limit"\?/);
+    assert.match(instructions, /maintenance_plan/);
+    assert.match(instructions, /phases.*severities.*kinds/);
+    assert.match(instructions, /afterActionId/);
+    assert.match(instructions, /cursor\.found=false/);
+    assert.match(instructions, /cursor\.reason/);
+    assert.match(instructions, /zero remaining actions/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

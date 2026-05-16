@@ -690,6 +690,8 @@ describe('verify.mjs first-contact gates', () => {
       'unknown arguments are rejected instead of being ignored.',
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
+      'maintenance_plan phases, severities, and kinds filters are enum-validated.',
+      'maintenance_plan afterActionId cursor misses return cursor.found=false and cursor.reason.',
       'This filler keeps the instructions representative of a real initialize response.',
     ].join('\n');
 
@@ -717,6 +719,14 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('Did you mean "overview"?', '') } }),
       'initialize instructions missing nearest enum hint guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('phases, severities, and kinds', 'filters') } }),
+      'initialize instructions missing maintenance filter enum guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('cursor.found=false and cursor.reason', 'empty page') } }),
+      'initialize instructions missing maintenance cursor miss guidance',
     );
   });
 

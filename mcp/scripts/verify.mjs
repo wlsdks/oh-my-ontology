@@ -314,6 +314,8 @@ export function initializeInstructionsFailure(response) {
     ['strict arguments guidance', /unknown arguments are rejected/i],
     ['nearest argument hint guidance', /Did you mean "limit"\?/],
     ['nearest enum hint guidance', /Did you mean "overview"\?/],
+    ['maintenance filter enum guidance', /phases.*severities.*kinds/],
+    ['maintenance cursor miss guidance', /afterActionId[\s\S]*cursor\.found=false[\s\S]*cursor\.reason/],
   ];
   for (const [label, pattern] of required) {
     if (!pattern.test(instructions)) {

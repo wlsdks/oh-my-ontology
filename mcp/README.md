@@ -270,7 +270,10 @@ read-only diagnosis flow, `expected_mtime`, `rename_concept` existing
 `newSlug` / `overwrite: true` safety, or `delete_concept.force` / dangling
 referrers safety. It also gates strict-input typo recovery guidance, including
 unknown argument rejection plus nearest argument/value hints such as
-`Did you mean "limit"?` and `Did you mean "overview"?`.
+`Did you mean "limit"?` and `Did you mean "overview"?`. Maintenance work-queue
+guidance is gated too: `initialize.instructions` must mention enum-validated
+`maintenance_plan` filters and unknown `afterActionId` cursor misses with
+`cursor.found=false` plus `cursor.reason`.
 The verify path also makes runtime negative calls with `list_concepts.lmit`,
 `query_ontology.operation="overveiw"`, typoed `maintenance_plan.phases`, and
 typoed `maintenance_plan.severities` / `maintenance_plan.kinds`,

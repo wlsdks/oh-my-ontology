@@ -260,6 +260,10 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /strict-input typo recovery guidance/);
     assert.match(verifySection, /`Did you mean "limit"\?`/);
     assert.match(verifySection, /`Did you mean "overview"\?`/);
+    assert.match(verifySection, /Maintenance work-queue\s+guidance is gated too/);
+    assert.match(verifySection, /enum-validated\s+`maintenance_plan` filters/);
+    assert.match(verifySection, /unknown `afterActionId` cursor misses/);
+    assert.match(verifySection, /`cursor\.found=false` plus `cursor\.reason`/);
     assert.match(verifySection, /runtime negative calls with `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"`/);
     assert.match(verifySection, /`maintenance_plan\.afterActionId="maint_missing"`/);
@@ -554,6 +558,9 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /`kind: project`/);
     assert.match(dogfoodSection, /`list_kinds\.byKind\.project`/);
     assert.match(doc, /MCP `initialize\.instructions` 의 `query_ontology\.operation`\s+안내와 `query_plan\.targetOperation` 안내도 같은 allow-list 에서 생성/);
+    assert.match(doc, /`maintenance_plan` work-queue 안내도 first-contact 에 포함/);
+    assert.match(doc, /unknown `afterActionId` cursor 의 `cursor\.found=false`/);
+    assert.match(doc, /`cursor\.reason` 계약/);
     assert.match(dogfoodSection, /`project_map` query_plan/);
     assert.match(dogfoodSection, /실제\s+`project_map` 실행/);
     assert.match(dogfoodSection, /`neighbors`/);
