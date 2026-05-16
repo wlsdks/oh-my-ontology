@@ -94,6 +94,10 @@ export const EXPECTED_DESTRUCTIVE_TOOLS = [
   'merge_concepts',
   'rename_concept',
 ];
+export const EXPECTED_IDEMPOTENT_TOOLS = [
+  'add_relation',
+  'add_relations',
+];
 
 export function expectedToolSplitLabel() {
   return `${EXPECTED_READ_TOOLS.length} read + ${EXPECTED_WRITE_TOOLS.length} write`;
@@ -160,6 +164,11 @@ export function toolsListSchemaFailure(tools) {
   const destructiveDriftTool = tools.find((tool) => tool?.annotations?.destructiveHint !== expectedDestructiveTools.has(tool?.name));
   if (destructiveDriftTool) {
     return `tools/list destructiveHint annotation drift: ${destructiveDriftTool.name || '(unknown)'}`;
+  }
+  const expectedIdempotentTools = new Set(EXPECTED_IDEMPOTENT_TOOLS);
+  const idempotentDriftTool = tools.find((tool) => tool?.annotations?.idempotentHint !== expectedIdempotentTools.has(tool?.name));
+  if (idempotentDriftTool) {
+    return `tools/list idempotentHint annotation drift: ${idempotentDriftTool.name || '(unknown)'}`;
   }
 
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');

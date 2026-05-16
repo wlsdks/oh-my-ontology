@@ -21,7 +21,7 @@ import {
   stderrWarningFailures,
   workspaceNextActionSummary,
 } from "./dogfood-mcp-walk.mjs";
-import { EXPECTED_DESTRUCTIVE_TOOLS, EXPECTED_TOOLS } from "../mcp/scripts/verify.mjs";
+import { EXPECTED_DESTRUCTIVE_TOOLS, EXPECTED_IDEMPOTENT_TOOLS, EXPECTED_TOOLS } from "../mcp/scripts/verify.mjs";
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -52,6 +52,7 @@ function makeDogfoodToolsList() {
         annotations: {
           readOnlyHint: !WRITE_TOOL_NAMES.has(name),
           destructiveHint: EXPECTED_DESTRUCTIVE_TOOLS.includes(name),
+          idempotentHint: EXPECTED_IDEMPOTENT_TOOLS.includes(name),
           openWorldHint: false,
         },
         inputSchema: {
@@ -1757,6 +1758,12 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: destructiveDrifted }),
       ["tools/list: tools/list destructiveHint annotation drift: delete_concept"],
+    );
+    const idempotentDrifted = makeDogfoodToolsList();
+    idempotentDrifted.tools.find((tool) => tool.name === "add_relation").annotations.idempotentHint = false;
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: idempotentDrifted }),
+      ["tools/list: tools/list idempotentHint annotation drift: add_relation"],
     );
     const drifted = makeDogfoodToolsList();
     drifted.tools.find((tool) => tool.name === "query_ontology").inputSchema.properties.afterActionId.description =

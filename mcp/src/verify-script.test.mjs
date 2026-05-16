@@ -21,6 +21,7 @@ import {
   diagnosisBlockingFailure,
   diagnosisIssueCount,
   EXPECTED_DESTRUCTIVE_TOOLS,
+  EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_READ_TOOLS,
   EXPECTED_TOOLS,
   EXPECTED_WRITE_TOOLS,
@@ -275,6 +276,7 @@ describe('verify.mjs first-contact gates', () => {
       annotations: {
         readOnlyHint: EXPECTED_READ_TOOLS.includes(tool.name),
         destructiveHint: EXPECTED_DESTRUCTIVE_TOOLS.includes(tool.name),
+        idempotentHint: EXPECTED_IDEMPOTENT_TOOLS.includes(tool.name),
         openWorldHint: false,
       },
     }));
@@ -344,6 +346,14 @@ describe('verify.mjs first-contact gates', () => {
           : tool
       ))),
       'tools/list destructiveHint annotation drift: merge_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'add_relations'
+          ? { ...tool, annotations: { ...tool.annotations, idempotentHint: false } }
+          : tool
+      ))),
+      'tools/list idempotentHint annotation drift: add_relations',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'query_ontology')),

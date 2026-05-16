@@ -304,6 +304,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`annotations\.readOnlyHint` read\/write split/);
     assert.match(verifySection, /`annotations\.destructiveHint`/);
     assert.match(verifySection, /`annotations\.openWorldHint:false`/);
+    assert.match(verifySection, /`annotations\.idempotentHint`/);
     assert.match(verifySection, /required `query_ontology\.operation`/);
     assert.match(verifySection, /`query_ontology\.operation` \/[\s\S]*`query_ontology\.targetOperation` enums/);
     assert.match(verifySection, /same 50-row cap used by `get_concepts`, `add_concepts`,\s+and `add_relations`/);
@@ -663,6 +664,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`tools\/list` 의 `annotations\.readOnlyHint`/);
     assert.match(doc, /`annotations\.destructiveHint`/);
     assert.match(doc, /`annotations\.openWorldHint:false`/);
+    assert.match(doc, /`annotations\.idempotentHint`/);
     assert.match(doc, /15 read \/ 8 write split/);
     assert.match(doc, /annotation drift/);
     assert.match(doc, /MCP `initialize\.instructions` 의 `query_ontology\.operation`\s+안내와 `query_plan\.targetOperation` 안내도 같은 allow-list 에서 생성/);

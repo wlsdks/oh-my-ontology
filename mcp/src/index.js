@@ -1174,12 +1174,18 @@ const DESTRUCTIVE_TOOL_NAMES = new Set([
   'rename_concept',
 ]);
 
+const IDEMPOTENT_TOOL_NAMES = new Set([
+  'add_relation',
+  'add_relations',
+]);
+
 const TOOLS_FOR_LIST = TOOLS.map((tool) => ({
   ...tool,
   annotations: {
     ...(tool.annotations || {}),
     readOnlyHint: READ_TOOL_NAMES.has(tool.name),
     destructiveHint: DESTRUCTIVE_TOOL_NAMES.has(tool.name),
+    idempotentHint: IDEMPOTENT_TOOL_NAMES.has(tool.name),
     openWorldHint: false,
   },
   inputSchema: {
