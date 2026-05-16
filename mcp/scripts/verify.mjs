@@ -571,7 +571,7 @@ export function verifyUsage() {
     'Also checks strict unknown-argument / invalid-enum rejection, maintenance_plan filter enums,\n' +
     'and maintenance_plan cursor handling: ready page (cursor.found=true, cursor.reason=null)\n' +
     'plus missing afterActionId (cursor.found=false, reason, empty page).\n' +
-    'Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point at the first executable/review page actions.\n'
+    'Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point only at the first executable/review action in the current returned page.\n'
   );
 }
 

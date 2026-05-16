@@ -211,8 +211,8 @@ strict unknown-argument / invalid-enum rejection, enum-validated
 missing `afterActionId`): the ready page must keep `cursor.found=true`,
 `cursor.reason=null`, and the missing cursor still reports `cursor.found=false`,
 reason, empty page. Ready pages also verify `nextExecutableAction` /
-`nextReviewAction` point at the first executable/review page actions. This help
-path does not start the MCP server.
+`nextReviewAction` point only at the first executable/review action in the
+current returned page. This help path does not start the MCP server.
 
 A successful run looks like this:
 

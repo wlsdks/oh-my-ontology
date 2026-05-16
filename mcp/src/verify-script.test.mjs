@@ -571,7 +571,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /cursor\.found=true, cursor\.reason=null/);
     assert.match(verifyUsage(), /missing afterActionId/);
     assert.match(verifyUsage(), /cursor\.found=false, reason, empty page/);
-    assert.match(verifyUsage(), /nextExecutableAction \/ nextReviewAction point at the first executable\/review page actions/);
+    assert.match(verifyUsage(), /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   });
 
   it('fails malformed strict argument smoke responses', () => {

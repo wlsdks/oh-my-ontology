@@ -125,6 +125,6 @@ function printUsage(output = process.stderr) {
       `Node census is cross-checked across list_kinds/list_concepts/compile_ontology/overview; validate_vault.scanned stays file-level health.\n` +
       `Also checks tools/list schema strictness, runtime unknown-argument / invalid-enum rejection, and maintenance_plan cursor smoke.\n` +
       `Maintenance filters are enum-validated for phases/severities/kinds; cursor smoke checks both cursor.found=true with cursor.reason=null and cursor.found=false with the miss reason, zero remaining actions, and no next actions.\n` +
-      `Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point at the first executable/review page actions.\n`,
+      `Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point only at the first executable/review action in the current returned page.\n`,
   );
 }

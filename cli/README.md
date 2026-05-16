@@ -80,7 +80,7 @@ report `cursor.found=true` with `cursor.reason=null`, while a missing
 `afterActionId` must report `cursor.found=false`, include the cursor miss
 reason, return zero remaining actions, and expose no next action.
 For ready pages it also verifies `nextExecutableAction` / `nextReviewAction`
-point at the first executable/review page actions.
+point only at the first executable/review action in the current returned page.
 The wrapper help mirrors that contract too, including enum-validated
 `maintenance_plan.phases` / `maintenance_plan.severities` /
 `maintenance_plan.kinds` filters, so a user can inspect the strict work-queue

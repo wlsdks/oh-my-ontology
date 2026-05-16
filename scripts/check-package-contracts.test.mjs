@@ -232,7 +232,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /maintenance_plan cursor handling \(ready page \+\s+missing `afterActionId`\)/);
     assert.match(verifySection, /ready page must keep `cursor\.found=true`,\s+`cursor\.reason=null`/);
     assert.match(verifySection, /missing cursor still reports `cursor\.found=false`,\s+reason, empty page/);
-    assert.match(verifySection, /`nextExecutableAction` \/\s+`nextReviewAction` point at the first executable\/review page actions/);
+    assert.match(verifySection, /`nextExecutableAction` \/\s+`nextReviewAction` point only at the first executable\/review action in the\s+current returned page/);
     assert.match(verifySection, /list_concepts\/project probe\/get_concepts\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety guidance present/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums/);
@@ -362,7 +362,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`maintenance_plan` cursor contract/);
     assert.match(verifySection, /`cursor\.found=true` with `cursor\.reason=null`/);
     assert.match(verifySection, /`cursor\.found=false`/);
-    assert.match(verifySection, /`nextExecutableAction` \/ `nextReviewAction`\s+point at the first executable\/review page actions/);
+    assert.match(verifySection, /`nextExecutableAction` \/ `nextReviewAction`\s+point only at the first executable\/review action in the current returned page/);
     assert.match(verifySection, /enum-validated\s+`maintenance_plan\.phases` \/ `maintenance_plan\.severities` \/\s+`maintenance_plan\.kinds` filters/);
     assert.match(verifySection, /strict work-queue\s+checks before starting the MCP server/);
     assert.match(verifySection, /Batch tool caps/);
@@ -696,7 +696,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /Maintenance filters are enum-validated for phases\\\/severities\\\/kinds/);
     assert.match(smoke, /cursor smoke checks both cursor\\\.found=true with cursor\\\.reason=null and cursor\\\.found=false/);
     assert.match(smoke, /zero remaining actions, and no next actions/);
-    assert.match(smoke, /nextExecutableAction \\\/ nextReviewAction point at the first executable\\\/review page actions/);
+    assert.match(smoke, /nextExecutableAction \\\/ nextReviewAction point only at the first executable\\\/review action in the current returned page/);
     assert.match(smoke, /maintenance cursor — missing afterActionId reported/);
     assert.match(smoke, /maintenance cursor — ready page stable/);
     assert.ok(smoke.includes('directMcpVerify.stdout, /maintenance cursor'));
