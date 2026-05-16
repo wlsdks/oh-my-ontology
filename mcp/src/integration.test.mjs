@@ -478,7 +478,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         maxDegreeType: findTool("query_ontology")?.inputSchema?.properties?.maxDegree?.type,
         maxDegreeMinimum: findTool("query_ontology")?.inputSchema?.properties?.maxDegree?.minimum,
         minInDegreeType: findTool("query_ontology")?.inputSchema?.properties?.minInDegree?.type,
+        minInDegreeMinimum:
+          findTool("query_ontology")?.inputSchema?.properties?.minInDegree?.minimum,
         minOutDegreeType: findTool("query_ontology")?.inputSchema?.properties?.minOutDegree?.type,
+        minOutDegreeMinimum:
+          findTool("query_ontology")?.inputSchema?.properties?.minOutDegree?.minimum,
       },
       {
         minDegreeType: "integer",
@@ -486,7 +490,9 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         maxDegreeType: "integer",
         maxDegreeMinimum: 0,
         minInDegreeType: "integer",
+        minInDegreeMinimum: 0,
         minOutDegreeType: "integer",
+        minOutDegreeMinimum: 0,
       },
       "query_ontology exposes integer match_nodes degree filters",
     );
