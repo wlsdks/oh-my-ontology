@@ -1222,6 +1222,13 @@ function requireOptionalDirection(value, name, allowed) {
   }
 }
 
+function requireOptionalEnum(value, name, allowed) {
+  if (value === undefined) return;
+  if (!allowed.includes(value)) {
+    throw new Error(`${name} must be one of: ${allowed.join(', ')}.`);
+  }
+}
+
 function requireOptionalBoolean(value, name) {
   if (value === undefined) return;
   if (typeof value !== 'boolean') {
@@ -2068,6 +2075,7 @@ function validateQueryOntologyArgs(args = {}) {
     requireOptionalNonNegativeInteger(args[key], key);
   }
   requireOptionalDirection(args.direction, 'direction', ['incoming', 'outgoing', 'both', 'undirected']);
+  requireOptionalEnum(args.sort, 'sort', ['degree', 'inDegree', 'outDegree', 'slug']);
   for (const key of [
     'includeExternal',
     'includeUnresolved',

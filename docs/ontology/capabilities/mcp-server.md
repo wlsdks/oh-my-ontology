@@ -48,6 +48,8 @@ reject 한다. `tools/list` 도 scalar string 과 string-array item 에 같은
 같은 string-array contract 로 검증해 잘못된 relation / maintenance filter 를
 조용히 drop 하지 않는다. match/search 계열 optional scalar filter 도 core 에서
 같은 blank/padded/null-byte contract 로 검증한다.
+`match_nodes.sort` 도 schema enum 과 runtime/core validation 이 같이 움직여
+잘못된 정렬 키를 degree 기본값으로 조용히 흡수하지 않는다.
 read/query flag 와 destructive write safety switch 의 boolean 입력도 명시적으로
 검증해 문자열 `"true"` 같은 값을 조용히 false처럼 처리하지 않는다.
 `query_ontology` 의 rows/group limit 은 500 초과, traversal depth/maxHops 는

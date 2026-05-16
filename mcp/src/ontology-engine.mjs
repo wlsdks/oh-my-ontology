@@ -3332,6 +3332,7 @@ function normalizeNonNegativeInteger(value, name) {
 }
 
 function normalizeNodeSort(value) {
+  if (value === undefined || value === null) return 'degree';
   if (
     value === 'slug' ||
     value === 'inDegree' ||
@@ -3340,7 +3341,7 @@ function normalizeNodeSort(value) {
   ) {
     return value;
   }
-  return 'degree';
+  throw new Error('sort must be one of: degree, inDegree, outDegree, slug.');
 }
 
 function compareNodeRows(left, right, sort) {

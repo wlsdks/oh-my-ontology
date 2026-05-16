@@ -1314,6 +1314,13 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('rejects invalid match_nodes sort instead of defaulting to degree', () => {
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', sort: 'mtime' }),
+      /sort must be one of: degree, inDegree, outDegree, slug/,
+    );
+  });
+
   it('rejects invalid optional scalar filters instead of ignoring them', () => {
     assert.throws(
       () => queryCompiledOntology(artifact(), { operation: 'match_nodes', kind: 123 }),
