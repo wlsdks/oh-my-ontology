@@ -2746,7 +2746,10 @@ function nodeProfileShapeFailure(result) {
     return "node_profile response missing edges";
   }
   for (const key of ["incoming", "outgoing"]) {
-    const edgeGroupFailure = profileEdgeGroupFailure(`node_profile ${key}`, result.edges[key]);
+    const edgeGroupFailure = profileEdgeGroupFailure(`node_profile ${key}`, result.edges[key], {
+      center: result.center,
+      direction: key,
+    });
     if (edgeGroupFailure) return edgeGroupFailure;
   }
   if (!result.containment || typeof result.containment !== "object" || Array.isArray(result.containment)) {
@@ -3189,7 +3192,7 @@ function commonNeighborBucketFailure(label, bucket) {
   return null;
 }
 
-function profileEdgeGroupFailure(label, group) {
+function profileEdgeGroupFailure(label, group, options = {}) {
   if (!group || typeof group !== "object" || Array.isArray(group)) {
     return `${label} missing group`;
   }
@@ -3214,11 +3217,29 @@ function profileEdgeGroupFailure(label, group) {
   for (const [index, edge] of group.edges.entries()) {
     const edgeFailure = graphEdgeFailure(label, edge, index);
     if (edgeFailure) return edgeFailure;
+    if (options.center && options.direction === "incoming" && edge.to !== options.center) {
+      return `${label} edge target mismatch at index ${index}`;
+    }
+    if (options.center && options.direction === "outgoing" && edge.from !== options.center) {
+      return `${label} edge source mismatch at index ${index}`;
+    }
     if (typeof edge.otherKind !== "string" || edge.otherKind.length === 0) {
       return `${label} edge missing otherKind at index ${index}`;
     }
     if (edge.resolved && (!edge.otherNode || typeof edge.otherNode.slug !== "string")) {
       return `${label} edge missing otherNode at index ${index}`;
+    }
+    if (edge.resolved && edge.otherNode.kind !== edge.otherKind) {
+      return `${label} edge otherKind mismatch at index ${index}`;
+    }
+    if (edge.resolved && options.center && options.direction === "incoming" && edge.otherNode.slug !== edge.from) {
+      return `${label} edge otherNode source mismatch at index ${index}`;
+    }
+    if (edge.resolved && options.center && options.direction === "outgoing" && edge.otherNode.slug !== edge.to) {
+      return `${label} edge otherNode target mismatch at index ${index}`;
+    }
+    if (edge.external && edge.otherNode !== null) {
+      return `${label} external edge has otherNode at index ${index}`;
     }
   }
   return null;

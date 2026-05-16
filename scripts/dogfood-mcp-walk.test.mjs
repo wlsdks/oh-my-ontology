@@ -3300,6 +3300,54 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         nodeProfile: {
           ...okShape.nodeProfile,
+          edges: {
+            ...okShape.nodeProfile.edges,
+            incoming: {
+              ...okShape.nodeProfile.edges.incoming,
+              edges: [{ ...okShape.nodeProfile.edges.incoming.edges[0], to: "capabilities/other" }],
+            },
+          },
+        },
+      }),
+      ["node_profile incoming edge target mismatch at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        nodeProfile: {
+          ...okShape.nodeProfile,
+          edges: {
+            ...okShape.nodeProfile.edges,
+            outgoing: {
+              ...okShape.nodeProfile.edges.outgoing,
+              edges: [{ ...okShape.nodeProfile.edges.outgoing.edges[0], from: "capabilities/other" }],
+            },
+          },
+        },
+      }),
+      ["node_profile outgoing edge source mismatch at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        nodeProfile: {
+          ...okShape.nodeProfile,
+          edges: {
+            ...okShape.nodeProfile.edges,
+            outgoing: {
+              ...okShape.nodeProfile.edges.outgoing,
+              edges: [{ ...okShape.nodeProfile.edges.outgoing.edges[0], otherKind: "element" }],
+            },
+          },
+        },
+      }),
+      ["node_profile outgoing edge otherKind mismatch at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        nodeProfile: {
+          ...okShape.nodeProfile,
           containment: { ...okShape.nodeProfile.containment, parents: [{ ...okShape.nodeProfile.containment.parents[0], via: "" }] },
         },
       }),

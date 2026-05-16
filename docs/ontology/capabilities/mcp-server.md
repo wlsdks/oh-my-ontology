@@ -132,6 +132,9 @@ node search 의 방향성 degree contract 가 조용히 깨지지 않게 한다.
 `query_ontology(match_edges)` row 는 `fromNode` / `toNode` summary 와 `toKind`
 정합성, external edge 의 `toNode: null` contract 까지 dogfood 해 edge search
 endpoint 가 resolved/external 대상을 혼동하지 않게 한다.
+`query_ontology(node_profile)` 의 incoming/outgoing edge groups 도 center 기준 방향,
+`otherNode` / `otherKind` 정합성을 확인해 노드 상세 진단이 반대 방향 edge 를
+정상 관계처럼 보여주지 않게 한다.
 또한 `get_concepts` 를 실제 project / mcp-server slug 와 missing slug 를 섞어
 호출해 batch reader 의 성공 row 와 partial row 가 동시에 유지되는지 확인한다.
 project-node `list_concepts` probe 도 fail-closed 로 확인해 verify / dogfood vault 에서
