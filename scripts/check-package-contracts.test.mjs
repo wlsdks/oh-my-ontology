@@ -172,6 +172,9 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /id\/status\/count/);
     assert.match(dogfoodSection, /`project_map` query_plan/);
     assert.match(dogfoodSection, /실제\s+`project_map` 실행/);
+    assert.match(dogfoodSection, /`neighbors`/);
+    assert.match(dogfoodSection, /`path`/);
+    assert.match(dogfoodSection, /`project_scope`/);
     assert.match(dogfoodSection, /`domain_profile`/);
     assert.match(dogfoodSection, /`domain_matrix`/);
     assert.match(dogfoodSection, /`components`/);

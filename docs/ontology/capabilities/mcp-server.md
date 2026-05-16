@@ -110,7 +110,8 @@ capabilities 경로로, `query_ontology(all_paths)` 와
 `query_plan(targetOperation:"all_paths")` 를 mcp-server → vault-local-first
 경로로 호출해 agent 가 단계형 graph traversal, 다중 path enumeration, 실행 전
 plan contract 를 받을 수 있는지 확인한다. `project_map` query_plan 과 실제
-`project_map` 실행, 그리고 `domain_profile` / `domain_matrix` / `components` /
+`project_map` 실행, 그리고 `neighbors` / `path` / `project_scope` /
+`domain_profile` / `domain_matrix` / `components` /
 `reachability` / `impact` / `blast_radius` / `subgraph` / `schema` / `facets` /
 `match_nodes` / `match_edges` / `node_profile` / `centrality` / `communities` /
 `similar_nodes` / `explain_relation` / `lineage` / `containment_tree` / `cycles` / `topological_order` /
@@ -204,7 +205,7 @@ path 가 있을 때만 true 다.
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
 `workspace_brief`, `health`, `compile_ontology`, `overview`, `pattern_walk`,
-`all_paths`, `all_paths query_plan`, `project_map query_plan`, `project_map`,
+`all_paths`, `all_paths query_plan`, `neighbors`, `path`, `project_map query_plan`, `project_scope`, `project_map`,
 `domain_profile`, `domain_matrix`, `components`, `reachability`, `impact`,
 `blast_radius`, `subgraph`, `schema`, `facets`, `match_nodes`, `match_edges`,
 `node_profile`, `lineage`, `containment_tree`, `cycles`, `topological_order`, `relation_check`, `recommend_relations`,

@@ -1147,6 +1147,114 @@ const okShape = {
       ],
     },
   },
+  neighbors: {
+    operation: "neighbors",
+    center: "capabilities/mcp-server",
+    node: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+    total: 2,
+    limited: false,
+    edges: [
+      {
+        direction: "outgoing",
+        id: "capabilities/mcp-server:domain:domains/ai-agent-partner",
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        via: "domain",
+        ref: "domains/ai-agent-partner",
+        resolved: true,
+        external: false,
+      },
+      {
+        direction: "incoming",
+        id: "capabilities/ontology-sync-skill:dependencies:capabilities/mcp-server",
+        from: "capabilities/ontology-sync-skill",
+        to: "capabilities/mcp-server",
+        via: "dependencies",
+        ref: "capabilities/mcp-server",
+        resolved: true,
+        external: false,
+      },
+    ],
+    nodes: [
+      { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" },
+      { slug: "capabilities/ontology-sync-skill", kind: "capability", title: "Ontology Sync Skill" },
+    ],
+  },
+  queryPath: {
+    operation: "path",
+    from: "capabilities/mcp-server",
+    to: "domains/vault-local-first",
+    found: true,
+    hopCount: 2,
+    hops: ["capabilities/mcp-server", "domains/ai-agent-partner", "domains/vault-local-first"],
+    edges: [
+      {
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        via: "domain",
+        traversedFrom: "capabilities/mcp-server",
+        traversedTo: "domains/ai-agent-partner",
+      },
+      {
+        from: "domains/ai-agent-partner",
+        to: "domains/vault-local-first",
+        via: "relates",
+        traversedFrom: "domains/ai-agent-partner",
+        traversedTo: "domains/vault-local-first",
+      },
+    ],
+  },
+  projectScope: {
+    operation: "project_scope",
+    project: "project",
+    node: { slug: "project", kind: "project", title: "Project" },
+    summary: {
+      nodes: 3,
+      internalEdges: 2,
+      boundaryEdges: 1,
+      externalEdges: 1,
+      unresolvedEdges: 0,
+    },
+    byKind: { project: 1, domain: 1, capability: 1 },
+    byDomain: { "domains/ai-agent-partner": 2 },
+    nodes: {
+      total: 3,
+      limited: false,
+      rows: [
+        { slug: "project", kind: "project", title: "Project" },
+        { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" },
+        { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+      ],
+    },
+    edges: {
+      internal: {
+        total: 2,
+        byRelation: { domains: 1, capabilities: 1 },
+        limited: false,
+        edges: [
+          { from: "project", to: "domains/ai-agent-partner", via: "domains", toScope: "internal" },
+          { from: "domains/ai-agent-partner", to: "capabilities/mcp-server", via: "capabilities", toScope: "internal" },
+        ],
+      },
+      boundary: {
+        total: 1,
+        byRelation: { relates: 1 },
+        limited: false,
+        edges: [
+          { from: "capabilities/mcp-server", to: "domains/vault-local-first", via: "relates", toScope: "boundary" },
+        ],
+      },
+      external: {
+        total: 1,
+        byRelation: { elements: 1 },
+        limited: false,
+        edges: [
+          { from: "capabilities/mcp-server", to: "mcp/src/index.js", via: "elements", toScope: "external" },
+        ],
+      },
+      unresolved: { total: 0, byRelation: {}, limited: false, edges: [] },
+    },
+  },
 };
 
 describe("recordResult", () => {
@@ -1244,6 +1352,9 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(40), "communities");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(41), "similar_nodes");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(42), "explain_relation");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(43), "neighbors");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(44), "path");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(45), "project_scope");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -2804,6 +2915,108 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["explain_relation commonNeighbors row missing slug at index 0"],
+    );
+  });
+
+  it("fails on malformed neighbors payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, neighbors: { ...okShape.neighbors, operation: "path" } }),
+      ["neighbors response operation mismatch — path"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, neighbors: { ...okShape.neighbors, center: "capabilities/other" } }),
+      ["neighbors response center mismatch — capabilities/other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, neighbors: { ...okShape.neighbors, total: 3 } }),
+      ["neighbors edge count mismatch — edges 2, total 3"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        neighbors: {
+          ...okShape.neighbors,
+          edges: [{ ...okShape.neighbors.edges[0], direction: "sideways" }, okShape.neighbors.edges[1]],
+        },
+      }),
+      ["neighbors edge missing direction at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        neighbors: {
+          ...okShape.neighbors,
+          edges: [{ ...okShape.neighbors.edges[0], from: "capabilities/other" }, okShape.neighbors.edges[1]],
+        },
+      }),
+      ["neighbors outgoing edge does not start at center at index 0"],
+    );
+  });
+
+  it("fails on malformed path operation payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, queryPath: { ...okShape.queryPath, operation: "find_path" } }),
+      ["path operation response mismatch — find_path"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, queryPath: { ...okShape.queryPath, from: "capabilities/other" } }),
+      ["path operation from mismatch — capabilities/other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, queryPath: { ...okShape.queryPath, found: false } }),
+      ["path operation expected mcp-server → vault-local-first path"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, queryPath: { ...okShape.queryPath, hopCount: 3 } }),
+      ["path operation response hop mismatch — hopCount 3, hops 3"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        queryPath: {
+          ...okShape.queryPath,
+          edges: [{ ...okShape.queryPath.edges[0], traversedTo: "domains/other" }, okShape.queryPath.edges[1]],
+        },
+      }),
+      ["path operation traversal mismatch at index 0"],
+    );
+  });
+
+  it("fails on malformed project_scope payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, projectScope: { ...okShape.projectScope, operation: "project_map" } }),
+      ["project_scope response operation mismatch — project_map"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, projectScope: { ...okShape.projectScope, project: "other" } }),
+      ["project_scope response project mismatch — other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectScope: { ...okShape.projectScope, nodes: { ...okShape.projectScope.nodes, total: 2 } },
+      }),
+      ["project_scope nodes total mismatch — summary 3, bucket 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectScope: { ...okShape.projectScope, byKind: { project: 1 } },
+      }),
+      ["project_scope byKind count mismatch — summary 3, byKind 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectScope: {
+          ...okShape.projectScope,
+          edges: {
+            ...okShape.projectScope.edges,
+            boundary: { ...okShape.projectScope.edges.boundary, total: 2 },
+          },
+        },
+      }),
+      ["project_scope boundary edges edge count mismatch — edges 1, total 2"],
     );
   });
 
