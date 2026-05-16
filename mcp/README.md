@@ -93,7 +93,8 @@ arguments before the tool call instead of relying on silent fallback.
 String-array options are strict too: relation filters such as
 `find_neighbors.types` / `query_ontology.types`, `query_ontology.pattern`, and
 `maintenance_plan` filters reject non-string array items instead of silently
-dropping them.
+dropping them; blank, whitespace-padded, and null-byte items are rejected at the
+MCP boundary as well.
 Batch arrays expose the same runtime cap as schema too: `get_concepts.slugs`,
 `add_concepts.concepts`, and `add_relations.relations` all advertise
 `maxItems: 50`.

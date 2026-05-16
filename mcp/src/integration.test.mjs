@@ -1366,8 +1366,19 @@ await test("MCP read/query tools — invalid numeric and direction options are r
         operation: "maintenance_plan",
         phases: ["repair", 7],
       }),
+      callTool(18, "find_neighbors", { slug: "a", types: ["depends_on", " "] }),
+      callTool(19, "query_ontology", {
+        operation: "neighbors",
+        slug: "a",
+        types: [" depends_on"],
+      }),
+      callTool(20, "query_ontology", {
+        operation: "pattern_walk",
+        slug: "a",
+        pattern: ["dependencies\0"],
+      }),
     ]);
-    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]) {
+    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
     assert.match(responses.find((r) => r.id === 2).result.content[0].text, /limit must be a positive integer/i);
@@ -1386,6 +1397,9 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 15).result.content[0].text, /types must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
+    assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);
+    assert.match(responses.find((r) => r.id === 19).result.content[0].text, /types items must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 20).result.content[0].text, /pattern items must not contain a null byte/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -1789,8 +1803,20 @@ await test("MCP write tools — blank/padded string inputs are rejected before d
         confirm: true,
       }),
       callTool(10, "list_concepts"),
+      callTool(11, "add_concept", {
+        slug: "array-bad",
+        kind: "capability",
+        title: "Array Bad",
+        capabilities: ["ok", " "],
+      }),
+      callTool(12, "add_concept", {
+        slug: "array-padded",
+        kind: "capability",
+        title: "Array Padded",
+        elements: [" element"],
+      }),
     ]);
-    for (const id of [2, 3, 4, 5, 7, 8, 9]) {
+    for (const id of [2, 3, 4, 5, 7, 8, 9, 11, 12]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
     assert.match(responses.find((r) => r.id === 2).result.content[0].text, /slug must be a non-empty string/i);
@@ -1806,6 +1832,8 @@ await test("MCP write tools — blank/padded string inputs are rejected before d
     assert.match(responses.find((r) => r.id === 7).result.content[0].text, /oldSlug must not have leading or trailing whitespace/i);
     assert.match(responses.find((r) => r.id === 8).result.content[0].text, /intoSlug must not have leading or trailing whitespace/i);
     assert.match(responses.find((r) => r.id === 9).result.content[0].text, /slug must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 11).result.content[0].text, /capabilities items must be non-empty strings/i);
+    assert.match(responses.find((r) => r.id === 12).result.content[0].text, /elements items must not have leading or trailing whitespace/i);
 
     const list = getCallParsed(responses, 10);
     const slugs = list.nodes.map((node) => node.slug);

@@ -1439,6 +1439,15 @@ function requireOptionalStringArray(value, name) {
     if (typeof item !== 'string') {
       throw new Error(`${name} must be an array of strings.`);
     }
+    if (item.trim() === '') {
+      throw new Error(`${name} items must be non-empty strings.`);
+    }
+    if (item !== item.trim()) {
+      throw new Error(`${name} items must not have leading or trailing whitespace.`);
+    }
+    if (item.includes('\0')) {
+      throw new Error(`${name} items must not contain a null byte.`);
+    }
   }
 }
 
