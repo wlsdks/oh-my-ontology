@@ -174,6 +174,9 @@ npm run verify -- ../docs/ontology --timeout-ms 15000
 OMOT_VERIFY_TIMEOUT_MS=15000 OMOT_VAULT=../docs/ontology npm run verify
 ```
 
+When both are present, an explicit positional vault or `--vault` argument takes
+precedence over `OMOT_VAULT`.
+
 A successful run looks like this:
 
 ```

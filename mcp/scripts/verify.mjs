@@ -337,6 +337,7 @@ export function verifyUsage() {
     '  npm run verify -- [vault] [--timeout-ms N]\n' +
     '  npm run verify -- --vault path --timeout-ms 15000\n\n' +
     'Runs the MCP server first-contact verification against the resolved vault.\n' +
+    'Explicit [vault] or --vault arguments take precedence over OMOT_VAULT.\n' +
     'Checks parser smoke, server boot, tool inventory, project probe, batch reads, node census,\n' +
     'vault validation, workspace health, compile/overview, query plans, and graph-query smoke.\n'
   );
