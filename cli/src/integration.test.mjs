@@ -18,6 +18,10 @@ import { tmpdir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, 'index.mjs');
+const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', '..', 'mcp', 'package.json'), 'utf-8'));
+const EXPECTED_TOOL_COUNT = MCP_PKG.description.match(/(\d+) tools/)?.[1];
+
+assert.ok(EXPECTED_TOOL_COUNT, 'mcp/package.json description must include the current tool count');
 
 function run(args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -95,7 +99,7 @@ await test('init — generated MCP config points at a runnable local server in s
     const r = await run(['init', 'ontology'], { cwd: root });
     assert.equal(r.code, 0);
     const clean = stripAnsi(r.stdout);
-    assert.match(clean, /23 tools/);
+    assert.match(clean, new RegExp(`${EXPECTED_TOOL_COUNT} tools`));
     assert.doesNotMatch(clean, /16 MCP tools|16 tools/);
     assert.doesNotMatch(clean, /bootstrap .*--apply/);
     assert.match(clean, /Codex/);
@@ -124,7 +128,7 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /timeout=1000ms/);
-    assert.match(clean, /tools\/list 23\/23/);
+    assert.match(clean, new RegExp(`tools/list ${EXPECTED_TOOL_COUNT}/${EXPECTED_TOOL_COUNT}`));
     assert.match(clean, /validate_vault/);
     assert.match(clean, /workspace_brief/);
     assert.match(clean, /health/);
