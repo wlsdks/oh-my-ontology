@@ -5,6 +5,7 @@
 import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { getVaultCensus, writeVaultCensus } from '../lib/vault-census.mjs';
+import { parseVaultFlag, resolveSingleRootPathArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -106,12 +107,12 @@ export async function runInferImports(args) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.', json: false, apply: false };
+  const flags = { vault: null, json: false, apply: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a === '--apply') flags.apply = true;
     else if (a === '--max-files')
@@ -131,9 +132,12 @@ function parseArgs(args) {
     } else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
+  if (flags.vault === false) return { error: '--vault requires a path' };
+  const rootResult = resolveSingleRootPathArg({ positional });
+  if (rootResult.error) return rootResult;
   return {
-    rootPath: positional[0] ?? '.',
-    vault: flags.vault,
+    rootPath: rootResult.rootPath,
+    vault: flags.vault || '.',
     json: flags.json,
     apply: flags.apply,
     maxFiles: flags.maxFiles,

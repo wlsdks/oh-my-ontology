@@ -30,3 +30,10 @@ export function resolveTrailingVaultArg({
   }
   return { vault: vault || positional[vaultIndex] || defaultVault };
 }
+
+export function resolveSingleRootPathArg({ positional, defaultRootPath = '.' }) {
+  if (positional.length > 1) {
+    return { error: `too many arguments: ${positional.slice(1).join(' ')}` };
+  }
+  return { rootPath: positional[0] || defaultRootPath };
+}

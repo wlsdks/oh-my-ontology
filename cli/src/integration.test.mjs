@@ -1530,6 +1530,53 @@ await test('graph write commands — reject ambiguous vault arguments before MCP
   }
 });
 
+await test('repo analysis commands — reject invalid vault/root arguments before MCP call', async () => {
+  const cases = [
+    {
+      args: ['analyze', '--vault', '--apply'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['analyze', '--vault='],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['analyze', 'one', 'two'],
+      pattern: /too many arguments: two/,
+    },
+    {
+      args: ['infer-imports', '--vault', '--apply'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['infer-imports', '--vault='],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['infer-imports', 'one', 'two'],
+      pattern: /too many arguments: two/,
+    },
+    {
+      args: ['bootstrap', '--vault', '--skip-imports'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['bootstrap', '--vault='],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['bootstrap', 'one', 'two'],
+      pattern: /too many arguments: two/,
+    },
+  ];
+
+  for (const c of cases) {
+    const r = await run(c.args);
+    assert.equal(r.code, 1, `${c.args.join(' ')}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.match(stripAnsi(r.stderr), c.pattern);
+  }
+});
+
 // ── analyze --apply (R+ — agent-less bootstrap) ─────────────────────────
 //
 // CLI 가 analyze_repo_structure 결과를 add_concepts + add_relations 배치로
