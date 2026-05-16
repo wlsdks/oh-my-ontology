@@ -1258,7 +1258,7 @@ const okShape = {
   strictArgs: {
     result: {
       isError: true,
-      content: [{ text: 'Unknown argument "lmit" for list_concepts. Allowed arguments: kind, limit.' }],
+      content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: kind, limit.' }],
     },
   },
 };
@@ -1401,6 +1401,10 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, strictArgs: { result: { isError: true, content: [{ text: "different error" }] } } }),
       ["strict_args: strict arguments response did not report the unknown list_concepts argument"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictArgs: { result: { isError: true, content: [{ text: 'Unknown argument "lmit" for list_concepts.' }] } } }),
+      ["strict_args: strict arguments response did not suggest the closest list_concepts argument"],
     );
   });
 

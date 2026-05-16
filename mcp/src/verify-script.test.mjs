@@ -303,6 +303,10 @@ describe('verify.mjs first-contact gates', () => {
       strictArgsFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
       'strict arguments response did not report the unknown list_concepts argument',
     );
+    assert.equal(
+      strictArgsFailure({ result: { isError: true, content: [{ text: 'Unknown argument "lmit" for list_concepts.' }] } }),
+      'strict arguments response did not suggest the closest list_concepts argument',
+    );
   });
 
   it('rejects partial or non-positive verify timeout env values', () => {

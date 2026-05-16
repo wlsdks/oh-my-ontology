@@ -176,6 +176,9 @@ export function strictArgsFailure(response) {
   if (!/Unknown argument "lmit" for list_concepts/i.test(text)) {
     return 'strict arguments response did not report the unknown list_concepts argument';
   }
+  if (!/Did you mean "limit"\?/i.test(text)) {
+    return 'strict arguments response did not suggest the closest list_concepts argument';
+  }
   return null;
 }
 

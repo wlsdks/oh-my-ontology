@@ -607,6 +607,7 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /health/);
     assert.match(instructions, /unknown arguments are rejected/i);
     assert.match(instructions, /Unknown argument "lmit" for list_concepts/);
+    assert.match(instructions, /Did you mean "limit"\?/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -708,8 +709,10 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
     }
     assert.equal(isErrorResponse(responses, 6), true);
     assert.match(getCallText(responses, 6), /Unknown argument "lmit" for list_concepts/i);
+    assert.match(getCallText(responses, 6), /Did you mean "limit"\?/i);
     assert.equal(isErrorResponse(responses, 7), true);
     assert.match(getCallText(responses, 7), /Unknown argument "limit" for list_kinds/i);
+    assert.doesNotMatch(getCallText(responses, 7), /Did you mean/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
