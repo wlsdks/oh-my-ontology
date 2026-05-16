@@ -149,8 +149,9 @@ from/to kind + relation 과 일치하고, `matchingEdges` 가 요청한 from/to/
 `query_ontology(maintenance_plan)` 은 현재 page 가 제한되지 않은 경우
 `byPhase` / `bySeverity` / `byKind` bucket 이 action 목록과 일치하는지도 확인해
 agent 작업 큐 요약이 실제 action row 와 갈라지지 않게 한다. dogfood walk 는
-`totalActions` / `filteredActions` / `remainingActions` summary 관계도 검증해
-source checkout MCP work queue count drift 를 fail-fast 로 잡는다.
+`totalActions` / `filteredActions` / `remainingActions` summary 관계와
+`byPhase` / `bySeverity` / `byKind` bucket 합계도 검증해 source checkout MCP work
+queue count drift 를 fail-fast 로 잡는다.
 installed verify 도 compact `postWriteMaintenance` action `score`, executable `proposedAction`,
 and current-page next action pointer guidance 를 함께 확인해 write-tool 후속 안내가
 agent 작업 큐 계약과 갈라지지 않게 한다.

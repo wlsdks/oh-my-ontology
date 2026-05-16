@@ -1619,6 +1619,11 @@ function maintenancePlanShapeFailure(result, options = {}) {
       return `maintenance_plan response missing ${key}`;
     }
   }
+  const bucketTotalFailure =
+    maintenanceBucketTotalFailure(result.byPhase, result.summary.remainingActions, "byPhase") ||
+    maintenanceBucketTotalFailure(result.bySeverity, result.summary.remainingActions, "bySeverity") ||
+    maintenanceBucketTotalFailure(result.byKind, result.summary.remainingActions, "byKind");
+  if (bucketTotalFailure) return bucketTotalFailure;
   if (typeof result.limited !== "boolean") {
     return "maintenance_plan response missing limited flag";
   }
@@ -1676,6 +1681,14 @@ function maintenancePlanShapeFailure(result, options = {}) {
   for (const [index, action] of result.actions.entries()) {
     const actionFailure = maintenanceActionFailure(action, index);
     if (actionFailure) return actionFailure;
+  }
+  return null;
+}
+
+function maintenanceBucketTotalFailure(bucket, remainingActions, bucketName) {
+  const total = Object.values(bucket).reduce((sum, count) => sum + (Number.isInteger(count) ? count : 0), 0);
+  if (total !== remainingActions) {
+    return `maintenance_plan ${bucketName} total mismatch — remaining ${remainingActions}, bucket ${total}`;
   }
   return null;
 }

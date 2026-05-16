@@ -2645,7 +2645,7 @@ describe("evaluateDogfoodGate", () => {
           byPhase: { link: 2, review: 1 },
         },
       }),
-      ["maintenance_plan byPhase mismatch"],
+      ["maintenance_plan byPhase total mismatch — remaining 2, bucket 3"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -2655,7 +2655,7 @@ describe("evaluateDogfoodGate", () => {
           bySeverity: { warn: 1 },
         },
       }),
-      ["maintenance_plan bySeverity mismatch"],
+      ["maintenance_plan bySeverity total mismatch — remaining 2, bucket 1"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -2666,6 +2666,16 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["maintenance_plan byKind mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          byKind: { add_missing_relation: 1 },
+        },
+      }),
+      ["maintenance_plan byKind total mismatch — remaining 2, bucket 1"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -2866,6 +2876,9 @@ describe("evaluateDogfoodGate", () => {
           ...okShape.maintenancePlanMissingCursor,
           summary: { ...okShape.maintenancePlanMissingCursor.summary, remainingActions: 1 },
           cursor: { ...okShape.maintenancePlanMissingCursor.cursor, nextAfterActionId: "maint_link" },
+          byPhase: { link: 1 },
+          bySeverity: { warn: 1 },
+          byKind: { add_missing_relation: 1 },
           actions: okShape.maintenancePlan.actions.slice(0, 1),
         },
       }),
