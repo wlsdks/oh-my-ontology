@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-16T12:45:22.085Z",
+  "generatedAt": "2026-05-16T12:55:52.304Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -4759,6 +4759,8 @@
           "mcp/src/ontology-compiler.mjs",
           "mcp/src/ontology-engine.mjs",
           "mcp/src/parser.mjs",
+          "mcp/src/suggestions.mjs",
+          "mcp/src/suggestions.test.mjs",
           "mcp/src/vault.mjs",
           "mcp/src/verify-script.test.mjs",
           "scripts/dogfood-mcp-walk.mjs",
@@ -4778,7 +4780,7 @@
       ],
       "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터, limit default 100 / max 500) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, m",
       "wordCount": 3196,
-      "updatedAt": "2026-05-16T12:45:16.848Z",
+      "updatedAt": "2026-05-16T12:55:44.240Z",
       "linksOut": []
     },
     {

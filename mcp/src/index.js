@@ -90,6 +90,10 @@ import {
   defaultBody,
   missingExpectedFields,
 } from './schema.mjs';
+import {
+  closestAllowedValue,
+  formatAllowedValueError,
+} from './suggestions.mjs';
 
 const STDIO_MAX_LISTENERS = 50;
 process.stdout.setMaxListeners(Math.max(process.stdout.getMaxListeners(), STDIO_MAX_LISTENERS));
@@ -1176,7 +1180,7 @@ function normalizeToolArguments(args, toolName) {
       if (allowed.has(key)) continue;
       const allowedNames = [...allowed].sort();
       const allowedText = allowedNames.length > 0 ? allowedNames.join(', ') : 'no arguments';
-      const suggestion = closestAllowedArgument(key, allowedNames);
+      const suggestion = closestAllowedValue(key, allowedNames);
       const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
       throw new Error(
         `Unknown argument "${key}" for ${toolName}.${suggestionText} Allowed arguments: ${allowedText}.`,
@@ -1184,40 +1188,6 @@ function normalizeToolArguments(args, toolName) {
     }
   }
   return args;
-}
-
-function closestAllowedArgument(input, allowedNames) {
-  if (!input || allowedNames.length === 0) return null;
-  let best = null;
-  for (const candidate of allowedNames) {
-    const distance = levenshteinDistance(input, candidate);
-    if (!best || distance < best.distance) {
-      best = { candidate, distance };
-    }
-  }
-  if (!best) return null;
-  const threshold = Math.max(2, Math.floor(best.candidate.length / 3));
-  return best.distance <= threshold ? best.candidate : null;
-}
-
-function levenshteinDistance(a, b) {
-  const prev = Array.from({ length: b.length + 1 }, (_, index) => index);
-  const curr = Array.from({ length: b.length + 1 }, () => 0);
-  for (let i = 1; i <= a.length; i += 1) {
-    curr[0] = i;
-    for (let j = 1; j <= b.length; j += 1) {
-      const substitutionCost = a[i - 1] === b[j - 1] ? 0 : 1;
-      curr[j] = Math.min(
-        prev[j] + 1,
-        curr[j - 1] + 1,
-        prev[j - 1] + substitutionCost,
-      );
-    }
-    for (let j = 0; j <= b.length; j += 1) {
-      prev[j] = curr[j];
-    }
-  }
-  return prev[b.length];
 }
 
 function requireOptionalNonNegativeNumber(value, name) {
@@ -1259,22 +1229,6 @@ function requireOptionalEnum(value, name, allowed) {
   if (!allowed.includes(value)) {
     throw new Error(formatAllowedValueError(name, value, allowed));
   }
-}
-
-function formatAllowedValueError(name, value, allowed) {
-  const suggestion = typeof value === 'string'
-    ? closestAllowedArgument(value, allowed)
-    : null;
-  const receivedText = ` Received: ${formatErrorValue(value)}.`;
-  const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
-  return `${name} must be one of: ${allowed.join(', ')}.${receivedText}${suggestionText}`;
-}
-
-function formatErrorValue(value) {
-  if (typeof value === 'string') return `"${value}"`;
-  if (value === null) return 'null';
-  if (Array.isArray(value)) return 'array';
-  return typeof value;
 }
 
 function requireOptionalBoolean(value, name) {
