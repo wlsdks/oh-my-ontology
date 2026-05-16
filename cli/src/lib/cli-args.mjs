@@ -37,3 +37,11 @@ export function resolveSingleRootPathArg({ positional, defaultRootPath = '.' }) 
   }
   return { rootPath: positional[0] || defaultRootPath };
 }
+
+export function parsePositiveIntegerFlag(flag, value) {
+  if (!/^[1-9]\d*$/.test(String(value ?? ''))) {
+    return new Error(`${flag} must be a positive integer`);
+  }
+  const parsed = Number.parseInt(value, 10);
+  return Number.isSafeInteger(parsed) ? parsed : new Error(`${flag} must be a positive integer`);
+}

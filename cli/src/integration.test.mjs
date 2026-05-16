@@ -1577,6 +1577,49 @@ await test('repo analysis commands — reject invalid vault/root arguments befor
   }
 });
 
+await test('repo analysis commands — reject invalid numeric option values before MCP call', async () => {
+  const cases = [
+    {
+      args: ['analyze', '--max-depth'],
+      pattern: /--max-depth must be a positive integer/,
+    },
+    {
+      args: ['analyze', '--max-depth=abc'],
+      pattern: /--max-depth must be a positive integer/,
+    },
+    {
+      args: ['infer-imports', '--max-files', '--json'],
+      pattern: /--max-files must be a positive integer/,
+    },
+    {
+      args: ['infer-imports', '--max-files=0'],
+      pattern: /--max-files must be a positive integer/,
+    },
+    {
+      args: ['infer-imports', '--threshold', '--json'],
+      pattern: /--threshold must be a positive integer/,
+    },
+    {
+      args: ['bootstrap', '--max-depth', '--skip-imports'],
+      pattern: /--max-depth must be a positive integer/,
+    },
+    {
+      args: ['bootstrap', '--max-files=abc'],
+      pattern: /--max-files must be a positive integer/,
+    },
+    {
+      args: ['bootstrap', '--threshold=0'],
+      pattern: /--threshold must be a positive integer/,
+    },
+  ];
+
+  for (const c of cases) {
+    const r = await run(c.args);
+    assert.equal(r.code, 1, `${c.args.join(' ')}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.match(stripAnsi(r.stderr), c.pattern);
+  }
+});
+
 // ── analyze --apply (R+ — agent-less bootstrap) ─────────────────────────
 //
 // CLI 가 analyze_repo_structure 결과를 add_concepts + add_relations 배치로

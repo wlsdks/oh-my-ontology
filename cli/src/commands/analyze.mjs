@@ -11,7 +11,11 @@ import {
   summarizePrunedStarterNodes,
 } from '../lib/prune-starters.mjs';
 import { getVaultCensus, writeVaultCensus } from '../lib/vault-census.mjs';
-import { parseVaultFlag, resolveSingleRootPathArg } from '../lib/cli-args.mjs';
+import {
+  parsePositiveIntegerFlag,
+  parseVaultFlag,
+  resolveSingleRootPathArg,
+} from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -147,11 +151,14 @@ function parseArgs(args) {
     else if (a === '--json') flags.json = true;
     else if (a === '--apply') flags.apply = true;
     else if (a === '--max-depth')
-      flags.maxDepth = Number(args[++i]) || undefined;
+      flags.maxDepth = parsePositiveIntegerFlag('--max-depth', args[++i]);
     else if (a.startsWith('--max-depth='))
-      flags.maxDepth = Number(a.slice('--max-depth='.length)) || undefined;
+      flags.maxDepth = parsePositiveIntegerFlag('--max-depth', a.slice('--max-depth='.length));
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
+  }
+  for (const value of Object.values(flags)) {
+    if (value instanceof Error) return { error: value.message };
   }
   if (flags.vault === false) return { error: '--vault requires a path' };
   const rootResult = resolveSingleRootPathArg({ positional });

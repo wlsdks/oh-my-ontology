@@ -27,7 +27,11 @@ import {
   summarizePrunedStarterNodes,
 } from '../lib/prune-starters.mjs';
 import { getVaultCensus, writeVaultCensus } from '../lib/vault-census.mjs';
-import { parseVaultFlag, resolveSingleRootPathArg } from '../lib/cli-args.mjs';
+import {
+  parsePositiveIntegerFlag,
+  parseVaultFlag,
+  resolveSingleRootPathArg,
+} from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -559,25 +563,26 @@ function parseArgs(args) {
     else if (a === '--json') flags.json = true;
     else if (a === '--skip-imports') flags.skipImports = true;
     else if (a === '--max-depth')
-      flags.maxDepth = Number(args[++i]) || undefined;
+      flags.maxDepth = parsePositiveIntegerFlag('--max-depth', args[++i]);
     else if (a.startsWith('--max-depth='))
-      flags.maxDepth = Number(a.slice('--max-depth='.length)) || undefined;
+      flags.maxDepth = parsePositiveIntegerFlag('--max-depth', a.slice('--max-depth='.length));
     else if (a === '--max-files')
-      flags.maxFiles = Number(args[++i]) || undefined;
+      flags.maxFiles = parsePositiveIntegerFlag('--max-files', args[++i]);
     else if (a.startsWith('--max-files='))
-      flags.maxFiles = Number(a.slice('--max-files='.length)) || undefined;
+      flags.maxFiles = parsePositiveIntegerFlag('--max-files', a.slice('--max-files='.length));
     else if (a === '--threshold') {
-      const v = Number(args[++i]);
-      if (!Number.isFinite(v) || v < 1)
-        return { error: '--threshold must be a positive integer' };
+      const v = parsePositiveIntegerFlag('--threshold', args[++i]);
+      if (v instanceof Error) return { error: v.message };
       flags.threshold = v;
     } else if (a.startsWith('--threshold=')) {
-      const v = Number(a.slice('--threshold='.length));
-      if (!Number.isFinite(v) || v < 1)
-        return { error: '--threshold must be a positive integer' };
+      const v = parsePositiveIntegerFlag('--threshold', a.slice('--threshold='.length));
+      if (v instanceof Error) return { error: v.message };
       flags.threshold = v;
     } else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
+  }
+  for (const value of Object.values(flags)) {
+    if (value instanceof Error) return { error: value.message };
   }
   if (flags.vault === false) return { error: '--vault requires a path' };
   const rootResult = resolveSingleRootPathArg({ positional });
