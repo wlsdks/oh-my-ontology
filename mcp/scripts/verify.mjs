@@ -16,6 +16,7 @@
  *   4. tools/call list_concepts — vault 노드 수 출력
  *   5. tools/call validate_vault — whole-vault frontmatter / graph-reference health
  *   6. tools/call query_ontology workspace_brief + health — agent first-contact graph diagnosis
+ *   7. tools/call compile_ontology(summary) — compiler graph summary contract
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */
@@ -79,6 +80,7 @@ const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [4, 'validate_vault'],
   [5, 'workspace_brief'],
   [6, 'health'],
+  [7, 'compile_ontology'],
 ]);
 
 function log(level, msg) {
@@ -227,6 +229,42 @@ export function validateVaultFailure(parsed) {
   return `validate_vault found ${problemFiles} problem file(s) — errors ${summary.errorFiles}, warnings ${summary.warningFiles}${suffix}`;
 }
 
+export function compileSummaryFailure(parsed) {
+  if (!Number.isInteger(parsed?.version) || parsed.version < 1) {
+    return 'compile_ontology response missing version';
+  }
+  if (typeof parsed.graphHash !== 'string' || parsed.graphHash.length === 0) {
+    return 'compile_ontology response missing graphHash';
+  }
+  if (!Number.isFinite(parsed.maxMtime) || parsed.maxMtime < 0) {
+    return 'compile_ontology response missing maxMtime';
+  }
+  const countFailure = numericFieldsFailure('compile_ontology', parsed, [
+    'nodeCount',
+    'edgeCount',
+    'resolvedEdgeCount',
+    'externalEdgeCount',
+    'unresolvedEdgeCount',
+    'aliasCount',
+    'ambiguousAliasCount',
+    'issueCount',
+    'canonicalizationActionCount',
+  ]);
+  if (countFailure) return countFailure;
+  const byKindFailure = countMapFailure('compile_ontology', 'byKind', parsed.byKind);
+  if (byKindFailure) return byKindFailure;
+  const byDomainFailure = countMapFailure('compile_ontology', 'byDomain', parsed.byDomain);
+  if (byDomainFailure) return byDomainFailure;
+  const byKindTotal = Object.values(parsed.byKind).reduce((sum, count) => sum + count, 0);
+  if (byKindTotal !== parsed.nodeCount) {
+    return `compile_ontology response byKind mismatch — nodeCount ${parsed.nodeCount}, byKind ${byKindTotal}`;
+  }
+  if (parsed.resolvedEdgeCount + parsed.externalEdgeCount < parsed.edgeCount) {
+    return 'compile_ontology response edge counts do not cover edgeCount';
+  }
+  return null;
+}
+
 export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   if (parsed?.operation !== expectedOperation) {
     return `${label} returned unexpected operation: ${parsed?.operation}`;
@@ -260,6 +298,33 @@ function validateByCodeAggregate(byCode) {
     }
     if (!Array.isArray(entry.files)) {
       return `validate_vault response missing byCode files: ${code}`;
+    }
+  }
+  return null;
+}
+
+function numericFieldsFailure(label, value, keys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return `${label} response missing numeric fields`;
+  }
+  for (const key of keys) {
+    if (!Number.isInteger(value[key]) || value[key] < 0) {
+      return `${label} response missing ${key}`;
+    }
+  }
+  return null;
+}
+
+function countMapFailure(label, key, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return `${label} response missing ${key} aggregate`;
+  }
+  for (const [entryKey, count] of Object.entries(value)) {
+    if (entryKey.length === 0) {
+      return `${label} response has empty ${key} key`;
+    }
+    if (!Number.isInteger(count) || count < 0) {
+      return `${label} response missing ${key} count: ${entryKey || 'unknown'}`;
     }
   }
   return null;
@@ -364,6 +429,12 @@ async function step2BootAndCall() {
       method: 'tools/call',
       params: { name: 'query_ontology', arguments: { operation: 'health' } },
     }),
+    JSON.stringify({
+      jsonrpc: '2.0',
+      id: 7,
+      method: 'tools/call',
+      params: { name: 'compile_ontology', arguments: { summary: true } },
+    }),
   ];
 
   return new Promise((res) => {
@@ -402,6 +473,7 @@ async function step2BootAndCall() {
       const validateRes = responses.find((r) => r.id === 4);
       const briefRes = responses.find((r) => r.id === 5);
       const healthRes = responses.find((r) => r.id === 6);
+      const compileRes = responses.find((r) => r.id === 7);
       const missingResponses = [
         ['initialize', initRes],
         ['tools/list', listRes],
@@ -409,6 +481,7 @@ async function step2BootAndCall() {
         ['validate_vault', validateRes],
         ['workspace_brief', briefRes],
         ['health', healthRes],
+        ['compile_ontology', compileRes],
       ].filter(([, response]) => !response?.result);
       const errorRes = responses.find((response) => (
         FIRST_CONTACT_RESPONSE_LABELS.has(response?.id) && response?.error
@@ -521,9 +594,27 @@ async function step2BootAndCall() {
           return res(false);
         }
         log('ok', `health — ${parsed.status} (${(parsed.checks || []).length} checks, issues ${diagnosisIssueCount(parsed)})`);
-        res(true);
       } catch (err) {
         log('fail', `failed to parse health response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!compileRes || !compileRes.result) {
+        log('fail', 'no compile_ontology response');
+        return res(false);
+      }
+      try {
+        const text = compileRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = compileSummaryFailure(parsed);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        log('ok', `compile_ontology — graph ${parsed.graphHash.slice(0, 12)} (${parsed.nodeCount} nodes, ${parsed.edgeCount} edges, issues ${parsed.issueCount})`);
+        res(true);
+      } catch (err) {
+        log('fail', `failed to parse compile_ontology response: ${err.message}`);
         res(false);
       }
     });

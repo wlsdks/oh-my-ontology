@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   advisoryNextActionsSummary,
+  compileSummaryFailure,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
   EXPECTED_READ_TOOLS,
@@ -66,7 +67,7 @@ describe('verify.mjs first-contact gates', () => {
   it('detects when all first-contact JSON-RPC responses arrived', () => {
     assert.equal(
       hasAllFirstContactResponses(
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6, 7]
           .map((id) => JSON.stringify({ jsonrpc: '2.0', id, result: {} }))
           .join('\n'),
       ),
@@ -220,6 +221,58 @@ describe('verify.mjs first-contact gates', () => {
         d: { severity: 'warning', count: 1, files: [] },
       }, 2),
       'a:error:3, c:warning:2, +2 more',
+    );
+  });
+
+  it('accepts clean compile_ontology summary payloads', () => {
+    assert.equal(
+      compileSummaryFailure({
+        version: 1,
+        graphHash: 'abc123',
+        maxMtime: 1,
+        nodeCount: 1,
+        edgeCount: 2,
+        resolvedEdgeCount: 1,
+        externalEdgeCount: 1,
+        unresolvedEdgeCount: 0,
+        aliasCount: 1,
+        ambiguousAliasCount: 0,
+        issueCount: 0,
+        canonicalizationActionCount: 0,
+        byKind: { project: 1 },
+        byDomain: {},
+      }),
+      null,
+    );
+  });
+
+  it('fails malformed compile_ontology summary payloads', () => {
+    const clean = {
+      version: 1,
+      graphHash: 'abc123',
+      maxMtime: 1,
+      nodeCount: 1,
+      edgeCount: 2,
+      resolvedEdgeCount: 1,
+      externalEdgeCount: 1,
+      unresolvedEdgeCount: 0,
+      aliasCount: 1,
+      ambiguousAliasCount: 0,
+      issueCount: 0,
+      canonicalizationActionCount: 0,
+      byKind: { project: 1 },
+      byDomain: {},
+    };
+    assert.equal(compileSummaryFailure({ ...clean, version: 0 }), 'compile_ontology response missing version');
+    assert.equal(compileSummaryFailure({ ...clean, graphHash: '' }), 'compile_ontology response missing graphHash');
+    assert.equal(compileSummaryFailure({ ...clean, maxMtime: -1 }), 'compile_ontology response missing maxMtime');
+    assert.equal(compileSummaryFailure({ ...clean, nodeCount: undefined }), 'compile_ontology response missing nodeCount');
+    assert.equal(compileSummaryFailure({ ...clean, byKind: null }), 'compile_ontology response missing byKind aggregate');
+    assert.equal(compileSummaryFailure({ ...clean, byDomain: { '': 1 } }), 'compile_ontology response has empty byDomain key');
+    assert.equal(compileSummaryFailure({ ...clean, byKind: { project: 2 } }), 'compile_ontology response byKind mismatch — nodeCount 1, byKind 2');
+    assert.equal(
+      compileSummaryFailure({ ...clean, edgeCount: 3, resolvedEdgeCount: 1, externalEdgeCount: 1 }),
+      'compile_ontology response edge counts do not cover edgeCount',
     );
   });
 
