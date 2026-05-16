@@ -9,6 +9,7 @@ import {
   buildFirstContactRequests,
   buildGetConceptsSmokeSlugs,
   buildGraphQuerySmokeArgs,
+  buildGraphQuerySmokeRequests,
   compileSummaryFailure,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
@@ -219,6 +220,56 @@ describe('verify.mjs first-contact gates', () => {
       { slug: 'capabilities/a', project: null, hasNode: true, hasProject: false },
     );
     assert.deepEqual(buildGraphQuerySmokeArgs({ nodes: [] }), { slug: null, project: null, hasNode: false, hasProject: false });
+  });
+
+  it('builds graph-query smoke requests for project, projectless, and empty vaults', () => {
+    const projectSmoke = buildGraphQuerySmokeRequests({
+      slug: 'project',
+      project: 'project',
+      hasNode: true,
+      hasProject: true,
+    });
+    assert.deepEqual(projectSmoke.expectedResponseIds, [13, 14, 15]);
+    assert.deepEqual(
+      projectSmoke.requests.map((request) => request.method),
+      ['tools/call', 'tools/call', 'tools/call'],
+    );
+    assert.deepEqual(
+      projectSmoke.requests.map((request) => request.params.name),
+      ['query_ontology', 'query_ontology', 'query_ontology'],
+    );
+    assert.deepEqual(
+      projectSmoke.requests.map((request) => request.params.arguments.operation),
+      ['neighbors', 'path', 'project_scope'],
+    );
+    assert.deepEqual(projectSmoke.requests[1].params.arguments, {
+      operation: 'path',
+      from: 'project',
+      to: 'project',
+    });
+    assert.equal(projectSmoke.requests[2].params.arguments.project, 'project');
+
+    const projectlessSmoke = buildGraphQuerySmokeRequests({
+      slug: 'domains/core',
+      project: null,
+      hasNode: true,
+      hasProject: false,
+    });
+    assert.deepEqual(projectlessSmoke.expectedResponseIds, [13, 14]);
+    assert.deepEqual(
+      projectlessSmoke.requests.map((request) => request.params.arguments.operation),
+      ['neighbors', 'path'],
+    );
+
+    assert.deepEqual(
+      buildGraphQuerySmokeRequests({
+        slug: null,
+        project: null,
+        hasNode: false,
+        hasProject: false,
+      }),
+      { requests: [], expectedResponseIds: [] },
+    );
   });
 
   it('fails malformed get_concepts batch payloads', () => {

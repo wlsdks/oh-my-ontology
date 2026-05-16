@@ -225,6 +225,38 @@ export function buildGraphQuerySmokeArgs(listPayload) {
   };
 }
 
+export function buildGraphQuerySmokeRequests(graphSmoke) {
+  const requests = [];
+  const expectedResponseIds = [];
+  if (graphSmoke?.hasNode) {
+    requests.push(
+      {
+        jsonrpc: '2.0',
+        id: 13,
+        method: 'tools/call',
+        params: { name: 'query_ontology', arguments: { operation: 'neighbors', slug: graphSmoke.slug, limit: 5 } },
+      },
+      {
+        jsonrpc: '2.0',
+        id: 14,
+        method: 'tools/call',
+        params: { name: 'query_ontology', arguments: { operation: 'path', from: graphSmoke.slug, to: graphSmoke.slug } },
+      },
+    );
+    expectedResponseIds.push(13, 14);
+  }
+  if (graphSmoke?.hasProject) {
+    requests.push({
+      jsonrpc: '2.0',
+      id: 15,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'project_scope', project: graphSmoke.project, limit: 5 } },
+    });
+    expectedResponseIds.push(15);
+  }
+  return { requests, expectedResponseIds };
+}
+
 export function firstContactErrorFailure(response) {
   const label = FIRST_CONTACT_RESPONSE_LABELS.get(response?.id) || `id ${response?.id}`;
   const message = response?.error?.message || JSON.stringify(response?.error || {});
@@ -939,38 +971,12 @@ async function step2BootAndCall() {
           if (!sentGraphQuerySmoke) {
             sentGraphQuerySmoke = true;
             const graphSmoke = buildGraphQuerySmokeArgs(listPayload);
-            const graphQueryRequests = [];
-            if (!graphSmoke.hasNode) {
-              expectedFirstContactIds.delete(13);
-              expectedFirstContactIds.delete(14);
-              expectedFirstContactIds.delete(15);
-            } else {
-              graphQueryRequests.push(
-                {
-                  jsonrpc: '2.0',
-                  id: 13,
-                  method: 'tools/call',
-                  params: { name: 'query_ontology', arguments: { operation: 'neighbors', slug: graphSmoke.slug, limit: 5 } },
-                },
-                {
-                  jsonrpc: '2.0',
-                  id: 14,
-                  method: 'tools/call',
-                  params: { name: 'query_ontology', arguments: { operation: 'path', from: graphSmoke.slug, to: graphSmoke.slug } },
-                },
-              );
+            const graphSmokePlan = buildGraphQuerySmokeRequests(graphSmoke);
+            for (const id of [13, 14, 15]) {
+              if (!graphSmokePlan.expectedResponseIds.includes(id)) expectedFirstContactIds.delete(id);
             }
-            if (!graphSmoke.hasProject) expectedFirstContactIds.delete(15);
-            if (graphSmoke.hasProject) {
-              graphQueryRequests.push({
-                jsonrpc: '2.0',
-                id: 15,
-                method: 'tools/call',
-                params: { name: 'query_ontology', arguments: { operation: 'project_scope', project: graphSmoke.project, limit: 5 } },
-              });
-            }
-            if (graphQueryRequests.length > 0) {
-              proc.stdin.write(graphQueryRequests.map((request) => JSON.stringify(request)).join('\n') + '\n');
+            if (graphSmokePlan.requests.length > 0) {
+              proc.stdin.write(graphSmokePlan.requests.map((request) => JSON.stringify(request)).join('\n') + '\n');
             }
           }
         }
