@@ -157,6 +157,28 @@ await test('init — generated MCP config points at a runnable local server in s
   }
 });
 
+await test('init — rejects unknown flags and extra positional args before writing', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'cli-init-args-'));
+  try {
+    const flag = await run(['init', '--bogus'], { cwd: root });
+    assert.equal(flag.code, 1);
+    assert.match(stripAnsi(flag.stderr), /unknown init flag: --bogus/);
+    assert.equal(existsSyncTest(join(root, '--bogus')), false);
+
+    const extra = await run(['init', 'one', 'two'], { cwd: root });
+    assert.equal(extra.code, 1);
+    assert.match(stripAnsi(extra.stderr), /too many arguments: two/);
+    assert.equal(existsSyncTest(join(root, 'one')), false);
+
+    const help = await run(['init', '--help'], { cwd: root });
+    assert.equal(help.code, 0);
+    assert.match(stripAnsi(help.stderr), /Usage:/);
+    assert.equal(existsSyncTest(join(root, '--help')), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('mcp-verify — runs MCP package verify against a resolved vault', async () => {
   const root = mkdtempSync(join(tmpdir(), 'cli-mcp-verify-'));
   try {

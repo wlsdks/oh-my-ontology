@@ -15,7 +15,7 @@ R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import
 
 | Command | What it does |
 |---|---|
-| `oh-my-ontology init [folder]` | Scaffold vault (5 starter .md + `.mcp.json` cwd + vault). Source checkout 에서는 npm 404 없이 바로 붙도록 local `mcp/src/index.js` 를 가리킴. Codex 는 project `.mcp.json` 을 자동으로 읽지 않으므로 exact `codex mcp add ...` 명령도 출력. repo root 기준 copy-paste bootstrap 명령 (`analyze . --vault ./ontology`, `bootstrap . --vault ./ontology`) 도 함께 출력. MCP tool count / read-write split 안내는 `oh-my-ontology-mcp/package.json` metadata 를 읽고, source checkout 에서는 monorepo `mcp/package.json` 으로 fallback 해서 stale hardcode 를 피한다. |
+| `oh-my-ontology init [folder]` | Scaffold vault (5 starter .md + `.mcp.json` cwd + vault). Source checkout 에서는 npm 404 없이 바로 붙도록 local `mcp/src/index.js` 를 가리킴. Codex 는 project `.mcp.json` 을 자동으로 읽지 않으므로 exact `codex mcp add ...` 명령도 출력. repo root 기준 copy-paste bootstrap 명령 (`analyze . --vault ./ontology`, `bootstrap . --vault ./ontology`) 도 함께 출력. MCP tool count / read-write split 안내는 `oh-my-ontology-mcp/package.json` metadata 를 읽고, source checkout 에서는 monorepo `mcp/package.json` 으로 fallback 해서 stale hardcode 를 피한다. unknown flag / 초과 positional 은 파일 쓰기 전에 거부하고 `init --help` 는 폴더를 만들지 않고 usage 만 출력한다. |
 | `oh-my-ontology list [vault]` | List ontology nodes (color table, `--kind X` filter, `--json`). `--kind` 값을 vault 로 오해하지 않도록 flag/value parsing 을 분리하고 빈 `--vault` / 중복 vault 입력을 거부한다. |
 | `oh-my-ontology validate [vault]` | Frontmatter integrity + graph array drift check (CI gate via exit 1, R+ grouped-by-code 요약). `--fail-on` 값을 vault 로 오해하지 않도록 flag/value parsing 을 분리하고 빈 `--vault` / 중복 vault 입력을 거부한다. |
 | `oh-my-ontology mcp-verify [vault]` | Installed MCP verify wrapper — parser smoke, server boot, 23-tool inventory, `list_concepts`, `validate_vault`, `workspace_brief`, `health` 를 resolved vault 에서 실행. `--timeout-ms N` 으로 큰/느린 vault wait 조절. |
@@ -55,7 +55,7 @@ cli 가 별도 npm package — `oh-my-ontology` binary. cli/package.json 의 `de
 
 ## 회귀 차단
 
-cli/src/integration.test.mjs — **106 spawn-based** integration test. 매 PR 마다 command inventory 와 package command count metadata, help 출력의 setup contract, init MCP config + copy-paste bootstrap 명령, MCP tool count metadata 기반 출력, local/frontmatter 명령의 vault/value argument 거부, compile `--fix` canonicalization 경로와 vault 인자 ambiguity 거부, graph-level 명령의 dry-run/confirm 경로와 write-command/read-command vault ambiguity 및 diagnostic option 값 거부, repo-analysis 명령의 vault/root/numeric argument 거부, backlink redirect, analyze/infer-imports/bootstrap apply 경로, fresh init starter prune/preserve/replace 경로, single-file layered repo 의 bootstrap endpoint 자동 생성 경로를 검증.
+cli/src/integration.test.mjs — **107 spawn-based** integration test. 매 PR 마다 command inventory 와 package command count metadata, help 출력의 setup contract, init MCP config + copy-paste bootstrap 명령, init flag/positional misuse 거부, MCP tool count metadata 기반 출력, local/frontmatter 명령의 vault/value argument 거부, compile `--fix` canonicalization 경로와 vault 인자 ambiguity 거부, graph-level 명령의 dry-run/confirm 경로와 write-command/read-command vault ambiguity 및 diagnostic option 값 거부, repo-analysis 명령의 vault/root/numeric argument 거부, backlink redirect, analyze/infer-imports/bootstrap apply 경로, fresh init starter prune/preserve/replace 경로, single-file layered repo 의 bootstrap endpoint 자동 생성 경로를 검증.
 
 src/features/docs-vault-local/lib/ontology-starter.test.ts — web workbench starter 의 5개
 파일이 `cli/templates/vault/` 와 byte-for-byte 동일한지 검증. starter README 안에

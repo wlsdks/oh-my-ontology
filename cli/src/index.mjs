@@ -142,6 +142,29 @@ function fail(msg) {
   stderr.write(`${COLORS.bold}error${COLORS.reset} ${msg}\n`);
 }
 
+function parseInitArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) {
+    return { help: true };
+  }
+  const positional = [];
+  for (const arg of args) {
+    if (arg.startsWith('--')) return { error: `unknown init flag: ${arg}` };
+    positional.push(arg);
+  }
+  if (positional.length > 1) {
+    return { error: `too many arguments: ${positional.slice(1).join(' ')}` };
+  }
+  return { target: positional[0] };
+}
+
+function printInitUsage() {
+  stderr.write(
+    `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
+      `  oh-my-ontology init [folder]\n\n` +
+      `Scaffold a local ontology vault. Default folder: ./vault\n`,
+  );
+}
+
 function resolveMcpServerCommand() {
   const envPath = process.env.OMOT_MCP_PATH;
   if (envPath && existsSync(envPath)) {
@@ -346,7 +369,17 @@ if (SUBCOMMAND === '--version' || SUBCOMMAND === '-v') {
 }
 
 if (SUBCOMMAND === 'init') {
-  runInit(ARGS[1]);
+  const parsed = parseInitArgs(ARGS.slice(1));
+  if (parsed.help) {
+    printInitUsage();
+    exit(0);
+  }
+  if (parsed.error) {
+    fail(parsed.error);
+    printInitUsage();
+    exit(1);
+  }
+  runInit(parsed.target);
   exit(0);
 }
 
