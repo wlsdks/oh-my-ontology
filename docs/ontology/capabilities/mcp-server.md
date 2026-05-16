@@ -214,7 +214,7 @@ dispatch 가 갈라지지 않도록 한다. `get_concepts` / `add_concepts` /
 제외 설명도 설치 verify 에서 확인해 MCP client 가 runtime cleanup 의미와 같은
 계약을 보게 한다. `tools/list` description 은 write 후 compact
 `postWriteMaintenance` 의 action `score` 와 current-page next action pointer 를
-안내하고, integration contract 가 이 설명을 고정해 MCP client 가 tool 목록만으로도
+안내하고, integration contract 와 설치 verify 가 이 설명을 고정해 MCP client 가 tool 목록만으로도
 write 직후 cleanup 우선순위를 알 수 있게 한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
 실제로 보내고 unknown argument 거절 응답을 기대한다. write safety 도 같은 경로에서 `expected_mtime`
 conflict guard, destructive tool 의 `confirm` dry-run switch, `rename_concept.overwrite`, `delete_concept.force`

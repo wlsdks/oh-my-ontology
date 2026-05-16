@@ -113,6 +113,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'add_concepts',
+        description:
+          'Batch writes return postWriteMaintenance with score and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           required: ['concepts'],
@@ -121,6 +123,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'add_relations',
+        description:
+          'Batch writes return postWriteMaintenance with score and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           required: ['relations'],
@@ -139,6 +143,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'add_relation',
+        description:
+          'Changed writes return postWriteMaintenance with score and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           properties: { expected_mtime: { type: 'number', minimum: 0 } },
@@ -146,6 +152,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'patch_concept',
+        description:
+          'Changed writes return postWriteMaintenance with score and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           properties: { expected_mtime: { type: 'number', minimum: 0 } },
@@ -153,6 +161,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'rename_concept',
+        description:
+          'Confirmed writes return postWriteMaintenance with score and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           properties: {
@@ -164,6 +174,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'merge_concepts',
+        description:
+          'Confirmed writes return postWriteMaintenance with score and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           properties: {
@@ -174,6 +186,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'delete_concept',
+        description:
+          'Confirmed deletes return postWriteMaintenance with score and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           properties: {
@@ -247,6 +261,12 @@ describe('verify.mjs first-contact gates', () => {
           },
         },
       },
+      {
+        name: 'add_concept',
+        description:
+          'Successful writes return postWriteMaintenance with score and current-page next action pointers.',
+        inputSchema: { additionalProperties: false, properties: {} },
+      },
     ];
     const withQueryTool = (queryTool) => [
       ...tools.slice(0, 10),
@@ -255,6 +275,22 @@ describe('verify.mjs first-contact gates', () => {
 
     assert.equal(toolsListSchemaFailure(tools), null);
     assert.equal(toolsListSchemaFailure(null), 'tools/list response missing tools array');
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'add_concept'
+          ? { ...tool, description: 'Successful writes return postWriteMaintenance with current-page next action pointers.' }
+          : tool
+      ))),
+      'add_concept description missing maintenance action score guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'patch_concept'
+          ? { ...tool, description: 'Changed writes return postWriteMaintenance with score.' }
+          : tool
+      ))),
+      'patch_concept description missing maintenance next action pointer guidance',
+    );
     assert.equal(
       toolsListSchemaFailure([{ name: 'list_concepts', inputSchema: { properties: {} } }]),
       'tools/list schema missing additionalProperties:false: list_concepts',

@@ -274,7 +274,10 @@ tool schemas for the same 50-row cap used by `get_concepts`, `add_concepts`,
 and `add_relations` at runtime, the `find_orphans.excludeKinds` string-array
 schema and root/sentinel default description, plus write-safety schemas for
 `expected_mtime` conflict guards, destructive-tool `confirm` dry-run switches,
-`rename_concept.overwrite`, and `delete_concept.force`.
+`rename_concept.overwrite`, and `delete_concept.force`. It also verifies write
+tool descriptions keep compact `postWriteMaintenance` action `score` and
+current-page next action pointer guidance, so installed MCP clients can infer
+cleanup priority from `tools/list` alone.
 The `initialize.instructions` gate fails if first-contact guidance loses the
 read-only diagnosis flow, `expected_mtime`, `rename_concept` existing
 `newSlug` / `overwrite: true` safety, or `delete_concept.force` / dangling

@@ -333,6 +333,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /batch tools must keep their 50-row caps/);
     assert.match(verifySection, /validates the installed `find_orphans\.excludeKinds` schema and default description/);
     assert.match(verifySection, /write tools must keep their `expected_mtime` \/ `confirm` \/ `rename_concept\.overwrite` \/ `delete_concept\.force` safety schemas/);
+    assert.match(verifySection, /write tool descriptions keep compact `postWriteMaintenance` action `score`/);
+    assert.match(verifySection, /current-page next action pointer guidance/);
     assert.match(verifySection, /`initialize\.instructions` now names the destructive-write safety boundaries directly/);
     assert.match(verifySection, /`overwrite: true`/);
     assert.match(verifySection, /dangling referrers/);

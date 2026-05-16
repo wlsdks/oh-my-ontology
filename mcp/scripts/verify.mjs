@@ -242,6 +242,30 @@ export function toolsListSchemaFailure(tools) {
     return 'rename_concept.overwrite destructive safety schema drift';
   }
 
+  for (const toolName of [
+    'add_concept',
+    'add_concepts',
+    'add_relation',
+    'add_relations',
+    'patch_concept',
+    'rename_concept',
+    'merge_concepts',
+    'delete_concept',
+  ]) {
+    const tool = tools.find((candidate) => candidate?.name === toolName);
+    if (!tool) return `tools/list response missing ${toolName} tool`;
+    const description = tool.description || '';
+    if (!/postWriteMaintenance/.test(description)) {
+      return `${toolName} description missing postWriteMaintenance guidance`;
+    }
+    if (!/score/.test(description)) {
+      return `${toolName} description missing maintenance action score guidance`;
+    }
+    if (!/next action pointers|nextExecutableAction/.test(description)) {
+      return `${toolName} description missing maintenance next action pointer guidance`;
+    }
+  }
+
   return null;
 }
 
