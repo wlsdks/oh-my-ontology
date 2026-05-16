@@ -62,7 +62,8 @@ error message 를 바로 출력한다.
 를 함께 출력해, AI agent 가 첫 접촉에서 받는 graph diagnosis 품질을 계속 확인한다.
 요청한 JSON-RPC 응답이 모두 도착하거나 error 응답이 오면 timeout 까지 기다리지 않고
 즉시 종료해 반복 dogfood 비용을 낮춘다. timeout 으로 끝나면 누락된 응답 label 을
-gate failure 에 함께 출력한다.
+gate failure 에 함께 출력한다. 느린 환경에서는 양의 정수 millisecond 값인
+`OMOT_DOGFOOD_TIMEOUT_MS` 로 dogfood wait 를 늘릴 수 있다.
 핵심 응답 누락, vault warning, 예상 graph path 부재, `workspace_brief` / `health`
 비정상 상태는 exit 1 로 처리한다. `pnpm dogfood:test` 는 이 gate 판정을 fixture 로
 검증해 dogfood walk 의 실패 조건이 조용히 약해지지 않게 막는다.

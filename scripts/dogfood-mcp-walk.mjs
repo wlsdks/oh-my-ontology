@@ -16,6 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const SERVER = join(ROOT, "mcp", "src", "index.js");
 const VAULT = join(ROOT, "docs", "ontology");
+const DOGFOOD_TIMEOUT_MS_RAW = process.env.OMOT_DOGFOOD_TIMEOUT_MS;
 
 const DOGFOOD_RESPONSE_LABELS = new Map([
   [1, "initialize"],
@@ -105,6 +106,13 @@ export function missingResponseLabels(responses, labels = DOGFOOD_RESPONSE_LABEL
 
 export function rpcTimeoutFailure(timeoutMs, missingLabels) {
   return `rpc: timed out after ${timeoutMs}ms waiting for ${missingLabels.join(", ")}`;
+}
+
+export function parseDogfoodTimeoutMs(value, fallback = 5000) {
+  if (value == null || value === "") return fallback;
+  if (!/^[1-9]\d*$/.test(String(value))) return false;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : false;
 }
 
 const init = [
@@ -202,6 +210,12 @@ function header(title) {
 }
 
 async function main() {
+  const timeoutMs = parseDogfoodTimeoutMs(DOGFOOD_TIMEOUT_MS_RAW);
+  if (timeoutMs === false) {
+    console.error("OMOT_DOGFOOD_TIMEOUT_MS must be a positive integer");
+    process.exit(1);
+  }
+
   console.log(
     `${COLORS.bold}AI agent dogfood walk${COLORS.reset} ${COLORS.dim}(vault=${VAULT})${COLORS.reset}`,
   );
@@ -221,7 +235,6 @@ async function main() {
     call(9, "query_ontology", { operation: "health" }),
   ];
 
-  const timeoutMs = 5000;
   const { responses, stderr, timedOut } = await rpc(requests, timeoutMs);
 
   // 1. list_kinds

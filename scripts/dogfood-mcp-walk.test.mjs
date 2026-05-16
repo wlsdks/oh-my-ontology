@@ -6,6 +6,7 @@ import {
   evaluateDogfoodGate,
   expectedResponseIds,
   missingResponseLabels,
+  parseDogfoodTimeoutMs,
   parseRpcResponses,
   recordResult,
   rpcTimeoutFailure,
@@ -44,6 +45,14 @@ describe("recordResult", () => {
 });
 
 describe("rpc response completion helpers", () => {
+  it("parses dogfood timeout env as a strict positive integer", () => {
+    assert.equal(parseDogfoodTimeoutMs(undefined), 5000);
+    assert.equal(parseDogfoodTimeoutMs(""), 5000);
+    assert.equal(parseDogfoodTimeoutMs("12000"), 12000);
+    assert.equal(parseDogfoodTimeoutMs("1000ms"), false);
+    assert.equal(parseDogfoodTimeoutMs("0"), false);
+  });
+
   it("derives response ids from requests with JSON-RPC ids", () => {
     assert.deepEqual(
       [...expectedResponseIds([{ id: 1 }, { method: "notifications/initialized" }, { id: 2 }])],
