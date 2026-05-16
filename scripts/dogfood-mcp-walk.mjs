@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology all_paths / pattern_walk / workspace_brief / health.
+// query_ontology query_plan / all_paths / pattern_walk / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -46,6 +46,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [11, "compile_ontology"],
   [12, "pattern_walk"],
   [13, "all_paths"],
+  [14, "all_paths_query_plan"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -181,6 +182,7 @@ export function evaluateDogfoodGate({
   compiled,
   patternWalk,
   allPaths,
+  allPathsPlan,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -195,6 +197,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "compile_ontology", compiled);
   recordResult(failures, "pattern_walk", patternWalk);
   recordResult(failures, "all_paths", allPaths);
+  recordResult(failures, "all_paths_query_plan", allPathsPlan);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -243,9 +246,21 @@ export function evaluateDogfoodGate({
     const patternWalkFailure = patternWalkShapeFailure(patternWalk);
     if (patternWalkFailure) failures.push(patternWalkFailure);
   }
+  let allPathsFailure = null;
   if (allPaths) {
-    const allPathsFailure = allPathsShapeFailure(allPaths);
+    allPathsFailure = allPathsShapeFailure(allPaths);
     if (allPathsFailure) failures.push(allPathsFailure);
+  }
+  let allPathsPlanFailure = null;
+  if (allPathsPlan) {
+    allPathsPlanFailure = allPathsPlanShapeFailure(allPathsPlan);
+    if (allPathsPlanFailure) failures.push(allPathsPlanFailure);
+  }
+  if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
+    const plannedLimit = allPathsPlan.normalized.limit;
+    if (allPaths.paths.length > plannedLimit) {
+      failures.push(`all_paths query_plan limit below returned rows — rows ${allPaths.paths.length}, planned ${plannedLimit}`);
+    }
   }
   const consistencyFailures = crossToolConsistencyFailures({ kinds, list, validation, compiled });
   failures.push(...consistencyFailures);
@@ -370,6 +385,46 @@ function allPathsShapeFailure(result) {
       return `all_paths response duplicate path signature at index ${i}`;
     }
     seen.add(signature);
+  }
+  return null;
+}
+
+function allPathsPlanShapeFailure(result) {
+  if (result.operation !== "query_plan") {
+    return "all_paths query_plan response operation mismatch";
+  }
+  if (result.targetOperation !== "all_paths") {
+    return "all_paths query_plan targetOperation mismatch";
+  }
+  if (result.sideEffect !== false) {
+    return "all_paths query_plan must be side-effect-free";
+  }
+  if (!result.normalized || result.normalized.targetOperation !== "all_paths") {
+    return "all_paths query_plan missing normalized targetOperation";
+  }
+  if (result.normalized.limit !== 25) {
+    return `all_paths query_plan default limit mismatch — expected 25, got ${result.normalized.limit}`;
+  }
+  if (result.normalized.from !== "capabilities/mcp-server") {
+    return `all_paths query_plan normalized from mismatch — ${result.normalized.from}`;
+  }
+  if (result.normalized.to !== "domains/vault-local-first") {
+    return `all_paths query_plan normalized to mismatch — ${result.normalized.to}`;
+  }
+  if (!result.estimate || result.estimate.strategy !== "bounded_path_enumeration") {
+    return "all_paths query_plan missing bounded path estimate";
+  }
+  if (!Number.isInteger(result.estimate.resultUpperBound) || result.estimate.resultUpperBound < 0) {
+    return "all_paths query_plan missing resultUpperBound";
+  }
+  if (result.estimate.resultUpperBound > result.normalized.limit) {
+    return `all_paths query_plan resultUpperBound exceeds limit — upper ${result.estimate.resultUpperBound}, limit ${result.normalized.limit}`;
+  }
+  if (!["low", "medium", "high"].includes(result.estimate.costClass)) {
+    return "all_paths query_plan missing costClass";
+  }
+  if (!Array.isArray(result.warnings)) {
+    return "all_paths query_plan missing warnings array";
   }
   return null;
 }
@@ -621,6 +676,13 @@ async function main() {
       maxHops: 4,
       limit: 3,
     }),
+    call(14, "query_ontology", {
+      operation: "query_plan",
+      targetOperation: "all_paths",
+      from: "capabilities/mcp-server",
+      to: "domains/vault-local-first",
+      maxHops: 4,
+    }),
   ];
 
   const { responses, stderr, timedOut } = await rpc(requests, timeoutMs);
@@ -778,6 +840,18 @@ async function main() {
     }
   }
 
+  // 13. all_paths query_plan
+  header(`query_ontology(query_plan all_paths mcp-server → vault-local-first)`);
+  const allPathsPlan = getResult(responses, 14);
+  if (allPathsPlan) {
+    console.log(
+      `  strategy: ${allPathsPlan.estimate?.strategy ?? "n/a"} · limit ${allPathsPlan.normalized?.limit ?? "n/a"} · upper ${allPathsPlan.estimate?.resultUpperBound ?? "n/a"} · cost ${allPathsPlan.estimate?.costClass ?? "n/a"}`,
+    );
+    for (const warning of allPathsPlan.warnings || []) {
+      console.log(`  warning: ${warning}`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -791,6 +865,7 @@ async function main() {
     compiled,
     patternWalk,
     allPaths,
+    allPathsPlan,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -816,6 +891,7 @@ async function main() {
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
   console.log(`  pattern_walk: ${patternWalk?.paths?.rows?.length ?? "n/a"} paths (${patternWalk?.paths?.limited ? "limited" : "complete"})`);
   console.log(`  all_paths: ${allPaths?.paths?.length ?? "n/a"} paths (${allPaths?.limited ? "limited" : "complete"})`);
+  console.log(`  all_paths query_plan: ${allPathsPlan?.estimate?.costClass ?? "n/a"} · limit ${allPathsPlan?.normalized?.limit ?? "n/a"}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

@@ -105,6 +105,31 @@ const okShape = {
       },
     ],
   },
+  allPathsPlan: {
+    operation: "query_plan",
+    targetOperation: "all_paths",
+    sideEffect: false,
+    normalized: {
+      targetOperation: "all_paths",
+      types: null,
+      limit: 25,
+      from: "capabilities/mcp-server",
+      to: "domains/vault-local-first",
+      direction: "undirected",
+      maxHops: 4,
+    },
+    indexesUsed: ["aliasToSlug", "in", "out"],
+    estimate: {
+      strategy: "bounded_path_enumeration",
+      edgeScans: 20,
+      reachableWithinDepth: 8,
+      frontierByDepth: [],
+      potentialPathUpperBound: 40,
+      resultUpperBound: 25,
+      costClass: "medium",
+    },
+    warnings: ["all_paths may be truncated by limit; reduce maxHops or add relation types."],
+  },
 };
 
 describe("recordResult", () => {
@@ -479,6 +504,43 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["all_paths response duplicate path signature at index 2"],
+    );
+  });
+
+  it("fails on malformed all_paths query_plan payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, allPathsPlan: { ...okShape.allPathsPlan, operation: "all_paths" } }),
+      ["all_paths query_plan response operation mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        allPathsPlan: {
+          ...okShape.allPathsPlan,
+          normalized: { ...okShape.allPathsPlan.normalized, limit: 100 },
+        },
+      }),
+      ["all_paths query_plan default limit mismatch — expected 25, got 100"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        allPathsPlan: {
+          ...okShape.allPathsPlan,
+          estimate: { ...okShape.allPathsPlan.estimate, resultUpperBound: 26 },
+        },
+      }),
+      ["all_paths query_plan resultUpperBound exceeds limit — upper 26, limit 25"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        allPathsPlan: {
+          ...okShape.allPathsPlan,
+          warnings: null,
+        },
+      }),
+      ["all_paths query_plan missing warnings array"],
     );
   });
 
