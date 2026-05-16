@@ -226,6 +226,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.ok(findN && /one-hop graph neighborhood/i.test(findN), "find_neighbors graph hint");
     assert.ok(compile && /deterministic graph artifact/i.test(compile), "compile_ontology compiler hint");
     assert.ok(query && /graph-engine queries/i.test(query), "query_ontology engine hint");
+    assert.ok(query && /cursor\.found=true/.test(query), "query_ontology ready cursor found hint");
+    assert.ok(query && /cursor\.reason=null/.test(query), "query_ontology ready cursor reason hint");
     assert.ok(
       validate && /first-contact before writes/i.test(validate),
       "validate_vault first-contact before writes hint",
@@ -427,7 +429,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         severitiesEnum: MAINTENANCE_SEVERITY_VALUES,
         maintenanceKindsEnum: MAINTENANCE_KIND_VALUES,
         afterActionIdDescription:
-          "maintenance_plan only: stable action id cursor; return actions after this id. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
+          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
         componentTypesDescription:
           "health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.",
       },

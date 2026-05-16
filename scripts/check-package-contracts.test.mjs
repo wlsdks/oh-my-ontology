@@ -127,13 +127,15 @@ describe('package contract helpers', () => {
 
     assert.match(row, /`health` \/ `workspace_brief` can tune their internal probes/);
     assert.match(row, /`phases`, `severities`, and `kinds` are enum-validated/);
-    assert.match(row, /`cursor\.reason` when a cursor is not found/);
+    assert.match(row, /ready pages with `cursor\.found=true` \/ `cursor\.reason=null`/);
+    assert.match(row, /cursor miss `reason`/);
     assert.match(addConceptRow, /`operation:"maintenance_plan"`/);
     assert.match(addConceptRow, /`sideEffect:false`/);
     assert.match(addConceptRow, /`filters`/);
     assert.match(addConceptRow, /`limited`/);
     assert.match(addConceptRow, /next action pointers/);
-    assert.match(featureRow, /`cursor\.reason` when a cursor is not found/);
+    assert.match(featureRow, /explicit `cursor\.reason` metadata/);
+    assert.match(featureRow, /ready pages report `cursor\.found=true` with `cursor\.reason=null`/);
     assert.match(featureRow, /unknown cursors return an empty page with `cursor\.found=false`/);
     assert.match(featureRow, /zero remaining actions, and no next actions/);
     for (const option of [
