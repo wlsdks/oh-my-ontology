@@ -55,9 +55,11 @@ export function dogfoodVaultCensus(root) {
     if (frontmatter.kind === "project") byKind.project += 1;
     if (frontmatter.kind === "vault-readme") byKind["vault-readme"] += 1;
   }
+  const total = Object.values(byKind).reduce((sum, count) => sum + count, 0);
 
   return {
-    total: files.length,
+    files: files.length,
+    total,
     byKind,
   };
 }

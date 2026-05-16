@@ -97,7 +97,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial row/);
     assert.match(verifySection, new RegExp(`✓ list_concepts — vault total ${census.total} nodes`));
     assert.match(verifySection, new RegExp(`✓ list_kinds — ${census.total} nodes \\(${kindSummary}\\)`));
-    assert.match(verifySection, new RegExp(`✓ validate_vault — ${census.total} files, 0 problem files`));
+    assert.match(verifySection, new RegExp(`✓ validate_vault — ${census.files} files, 0 problem files`));
     assert.match(verifySection, new RegExp(`✓ workspace_brief — healthy \\(${census.total} nodes, 0 next actions, 5 health checks\\)`));
     assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass/);
     assert.match(verifySection, /✓ neighbors — elements\/file-system-access-api/);

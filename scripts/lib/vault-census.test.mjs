@@ -43,6 +43,7 @@ describe("vault-census", () => {
     withTempDir((root) => {
       assert.equal(countMarkdownFiles(join(root, "missing")), 0);
       assert.deepEqual(dogfoodVaultCensus(root), {
+        files: 0,
         total: 0,
         byKind: {
           capabilities: 0,
@@ -68,6 +69,7 @@ describe("vault-census", () => {
       writeFileSync(join(ontology, "elements", "token.md"), "---\nkind: element\n---\n# Token\n");
 
       assert.deepEqual(dogfoodVaultCensus(root), {
+        files: 5,
         total: 5,
         byKind: {
           capabilities: 1,
@@ -88,7 +90,8 @@ describe("vault-census", () => {
       writeFileSync(join(ontology, "capabilities", "no-kind.md"), "# No kind\n");
 
       assert.deepEqual(dogfoodVaultCensus(root), {
-        total: 2,
+        files: 2,
+        total: 1,
         byKind: {
           capabilities: 0,
           domains: 1,
