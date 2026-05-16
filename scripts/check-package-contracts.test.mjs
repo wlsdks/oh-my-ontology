@@ -136,6 +136,14 @@ describe('package contract helpers', () => {
     assert.match(readme, new RegExp(`element ${census.byKind.elements}개`));
   });
 
+  it('keeps dogfood CLI capability docs from freezing integration test counts', () => {
+    const doc = readFileSync('docs/ontology/capabilities/cli-developer-entry.md', 'utf-8');
+    const regressionSection = doc.split('## 회귀 차단')[1] ?? '';
+
+    assert.doesNotMatch(regressionSection, /\*\*\d+ spawn-based\*\* integration test/);
+    assert.match(regressionSection, /spawn-based integration suite/);
+  });
+
   it('parses package script file references', () => {
     assert.deepEqual(parseScriptFileRefs('node --test src/a.test.mjs scripts/check.mjs'), [
       'src/a.test.mjs',
