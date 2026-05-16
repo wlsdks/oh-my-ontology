@@ -378,6 +378,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
           findTool("query_ontology")?.inputSchema?.properties?.phases?.items?.enum,
         severitiesEnum:
           findTool("query_ontology")?.inputSchema?.properties?.severities?.items?.enum,
+        maintenanceKindsEnum:
+          findTool("query_ontology")?.inputSchema?.properties?.kinds?.items?.enum,
         componentTypesDescription:
           findTool("query_ontology")?.inputSchema?.properties?.componentTypes?.description,
       },
@@ -391,6 +393,16 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         componentTypesItem: "string",
         phasesEnum: ["validate", "repair", "link", "materialize", "review"],
         severitiesEnum: ["fail", "warn", "info"],
+        maintenanceKindsEnum: [
+          "inspect_compile_issue",
+          "break_dependency_cycle",
+          "canonicalize_graph_arrays",
+          "resolve_dangling_reference",
+          "add_missing_relation",
+          "materialize_external_element",
+          "unassigned_node",
+          "empty_domain",
+        ],
         componentTypesDescription:
           "health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.",
       },
@@ -1910,12 +1922,13 @@ await test("MCP read/query tools — invalid numeric and direction options are r
       callTool(59, "query_ontology", { operation: "workspace_brief", componentLimit: 501 }),
       callTool(60, "query_ontology", { operation: "maintenance_plan", phases: ["repiar"] }),
       callTool(61, "query_ontology", { operation: "maintenance_plan", severities: ["fatal"] }),
+      callTool(62, "query_ontology", { operation: "maintenance_plan", kinds: ["add_mising_relation"] }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
       21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
       38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
-      55, 56, 57, 58, 59, 60, 61,
+      55, 56, 57, 58, 59, 60, 61, 62,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -1954,6 +1967,7 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 59).result.content[0].text, /componentLimit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 60).result.content[0].text, /phases items must be one of: validate, repair, link, materialize, review/i);
     assert.match(responses.find((r) => r.id === 61).result.content[0].text, /severities items must be one of: fail, warn, info/i);
+    assert.match(responses.find((r) => r.id === 62).result.content[0].text, /kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);

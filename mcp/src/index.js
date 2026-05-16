@@ -857,7 +857,19 @@ const TOOLS = [
         },
         kinds: {
           type: 'array',
-          items: NON_BLANK_STRING_SCHEMA,
+          items: {
+            ...NON_BLANK_STRING_SCHEMA,
+            enum: [
+              'inspect_compile_issue',
+              'break_dependency_cycle',
+              'canonicalize_graph_arrays',
+              'resolve_dangling_reference',
+              'add_missing_relation',
+              'materialize_external_element',
+              'unassigned_node',
+              'empty_domain',
+            ],
+          },
           description:
             'maintenance_plan only: optional action-kind filter, e.g. ["add_missing_relation", "canonicalize_graph_arrays"].',
         },

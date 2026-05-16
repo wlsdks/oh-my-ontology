@@ -124,6 +124,7 @@ describe('package contract helpers', () => {
     }
     assert.match(strictInputSection, /`maintenance_plan\.phases` is additionally\s+limited to `validate` \/ `repair` \/ `link` \/ `materialize` \/ `review`/);
     assert.match(strictInputSection, /`maintenance_plan\.severities` is limited to `fail` \/ `warn` \/ `info`/);
+    assert.match(strictInputSection, /`maintenance_plan\.kinds`\s+is limited to `inspect_compile_issue` \/ `break_dependency_cycle`/);
   });
 
   it('keeps the MCP README explicit about destructive write safety switches', () => {
@@ -536,6 +537,8 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /`maintenance_plan`/);
     assert.match(dogfoodSection, /`maintenance_plan\.phases` 는 `validate` \/ `repair`/);
     assert.match(dogfoodSection, /`maintenance_plan\.severities` 는 `fail` \/ `warn` \/ `info`/);
+    assert.match(dogfoodSection, /`maintenance_plan\.kinds` 는/);
+    assert.match(dogfoodSection, /`kinds: \["add_mising_relation"\]`/);
 
     const verifySection = doc.split('환경변수 `OMOT_VAULT`')[1]?.split('`get_concepts` 는')[0] ?? '';
     assert.match(verifySection, /실제 `neighbors` \/[\s\S]*node→project `path` \/ `project_scope`/);

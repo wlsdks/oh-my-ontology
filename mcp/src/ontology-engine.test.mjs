@@ -644,6 +644,13 @@ describe('queryCompiledOntology', () => {
     assert.throws(
       () => queryCompiledOntology(artifact(), {
         operation: 'maintenance_plan',
+        kinds: ['add_mising_relation'],
+      }),
+      /kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'maintenance_plan',
         phases: ['repair\0'],
       }),
       /phases items must not contain a null byte/,

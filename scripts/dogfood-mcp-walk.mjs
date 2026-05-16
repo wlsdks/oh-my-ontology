@@ -92,14 +92,19 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [50, "workspace_brief_tuned"],
   [51, "strict_maintenance_phase_filter"],
   [52, "strict_maintenance_severity_filter"],
+  [53, "strict_maintenance_kind_filter"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
 const NEXT_ACTION_SEVERITIES = new Set(["info", "warn", "fail"]);
+const RPC_WRITE_BATCH_SIZE = 40;
 
 function rpc(requests, timeoutMs = 3000) {
   return new Promise((resolveP, rejectP) => {
     const expectedIds = expectedResponseIds(requests);
+    const chunks = chunkRequests(requests, RPC_WRITE_BATCH_SIZE);
+    const sentIds = new Set();
+    let nextChunkIndex = 0;
     const proc = spawn("node", [SERVER], {
       env: { ...process.env, OMOT_VAULT: VAULT },
       stdio: ["pipe", "pipe", "pipe"],
@@ -109,9 +114,28 @@ function rpc(requests, timeoutMs = 3000) {
     let completed = false;
     let timedOut = false;
     let timer = null;
+    const writeNextChunk = () => {
+      const chunk = chunks[nextChunkIndex];
+      if (!chunk) return;
+      nextChunkIndex += 1;
+      for (const id of expectedResponseIds(chunk)) {
+        sentIds.add(id);
+      }
+      proc.stdin.write(chunk.map((r) => JSON.stringify(r)).join("\n") + "\n");
+    };
     proc.stdout.on("data", (b) => {
       stdout += b.toString();
-      if (!completed && shouldFinishRpc(stdout, expectedIds)) {
+      if (completed) return;
+      if (hasAnyErrorResponse(stdout, expectedIds)) {
+        completed = true;
+        if (timer) clearTimeout(timer);
+        proc.kill("SIGTERM");
+        return;
+      }
+      while (nextChunkIndex < chunks.length && hasAllResponses(stdout, sentIds)) {
+        writeNextChunk();
+      }
+      if (hasAllResponses(stdout, expectedIds)) {
         completed = true;
         if (timer) clearTimeout(timer);
         proc.kill("SIGTERM");
@@ -119,8 +143,7 @@ function rpc(requests, timeoutMs = 3000) {
     });
     proc.stderr.on("data", (b) => (stderr += b.toString()));
 
-    const lines = requests.map((r) => JSON.stringify(r)).join("\n") + "\n";
-    proc.stdin.write(lines);
+    writeNextChunk();
     timer = setTimeout(() => {
       timedOut = true;
       proc.kill("SIGTERM");
@@ -133,6 +156,14 @@ function rpc(requests, timeoutMs = 3000) {
     });
     proc.on("error", rejectP);
   });
+}
+
+function chunkRequests(requests, size) {
+  const chunks = [];
+  for (let index = 0; index < requests.length; index += size) {
+    chunks.push(requests.slice(index, index + size));
+  }
+  return chunks;
 }
 
 export { DOGFOOD_RESPONSE_LABELS, expectedResponseIds, missingResponseLabels };
@@ -281,6 +312,10 @@ export function buildDogfoodRequests() {
     call(52, "query_ontology", {
       operation: "maintenance_plan",
       severities: ["fatal"],
+    }),
+    call(53, "query_ontology", {
+      operation: "maintenance_plan",
+      kinds: ["add_mising_relation"],
     }),
     call(24, "query_ontology", {
       operation: "growth_plan",
@@ -499,6 +534,7 @@ export function evaluateDogfoodGate({
   strictEnum,
   strictMaintenancePhaseFilter,
   strictMaintenanceSeverityFilter,
+  strictMaintenanceKindFilter,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -557,6 +593,8 @@ export function evaluateDogfoodGate({
   if (strictMaintenancePhaseFilterError) failures.push(`strict_maintenance_phase_filter: ${strictMaintenancePhaseFilterError}`);
   const strictMaintenanceSeverityFilterError = strictMaintenanceFilterFailure(strictMaintenanceSeverityFilter, "severities");
   if (strictMaintenanceSeverityFilterError) failures.push(`strict_maintenance_severity_filter: ${strictMaintenanceSeverityFilterError}`);
+  const strictMaintenanceKindFilterError = strictMaintenanceFilterFailure(strictMaintenanceKindFilter, "kinds");
+  if (strictMaintenanceKindFilterError) failures.push(`strict_maintenance_kind_filter: ${strictMaintenanceKindFilterError}`);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -4046,7 +4084,7 @@ async function main() {
   }
 
   // 47. strict maintenance filter rejection
-  header("strict maintenance filters — invalid phase/severity rejection");
+  header("strict maintenance filters — invalid phase/severity/kind rejection");
   const strictMaintenancePhaseFilter = responses.find((response) => response.id === 51);
   const strictMaintenancePhaseFilterText = strictMaintenancePhaseFilter?.result?.content?.[0]?.text || "";
   console.log(`  phase rejected: ${strictMaintenancePhaseFilter?.result?.isError === true}`);
@@ -4058,6 +4096,12 @@ async function main() {
   console.log(`  severity rejected: ${strictMaintenanceSeverityFilter?.result?.isError === true}`);
   if (strictMaintenanceSeverityFilterText) {
     console.log(`  ${strictMaintenanceSeverityFilterText}`);
+  }
+  const strictMaintenanceKindFilter = responses.find((response) => response.id === 53);
+  const strictMaintenanceKindFilterText = strictMaintenanceKindFilter?.result?.content?.[0]?.text || "";
+  console.log(`  kind rejected: ${strictMaintenanceKindFilter?.result?.isError === true}`);
+  if (strictMaintenanceKindFilterText) {
+    console.log(`  ${strictMaintenanceKindFilterText}`);
   }
 
   const failures = evaluateDogfoodGate({
@@ -4112,6 +4156,7 @@ async function main() {
     strictEnum,
     strictMaintenancePhaseFilter,
     strictMaintenanceSeverityFilter,
+    strictMaintenanceKindFilter,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -4182,6 +4227,7 @@ async function main() {
   console.log(`  strict_enum: rejected ${strictEnum?.result?.isError === true}`);
   console.log(`  strict_maintenance_phase_filter: rejected ${strictMaintenancePhaseFilter?.result?.isError === true}`);
   console.log(`  strict_maintenance_severity_filter: rejected ${strictMaintenanceSeverityFilter?.result?.isError === true}`);
+  console.log(`  strict_maintenance_kind_filter: rejected ${strictMaintenanceKindFilter?.result?.isError === true}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

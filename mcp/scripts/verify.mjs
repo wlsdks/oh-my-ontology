@@ -55,6 +55,16 @@ const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
 const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
+const MAINTENANCE_KIND_ENUM = [
+  'inspect_compile_issue',
+  'break_dependency_cycle',
+  'canonicalize_graph_arrays',
+  'resolve_dangling_reference',
+  'add_missing_relation',
+  'materialize_external_element',
+  'unassigned_node',
+  'empty_domain',
+];
 
 export const EXPECTED_READ_TOOLS = [
   'list_concepts',
@@ -135,6 +145,10 @@ export function toolsListSchemaFailure(tools) {
   const severities = propertyAt(queryTool, ['properties', 'severities']);
   if (!sameArray(severities?.items?.enum, ['fail', 'warn', 'info'])) {
     return 'query_ontology severities enum schema drift';
+  }
+  const kinds = propertyAt(queryTool, ['properties', 'kinds']);
+  if (!sameArray(kinds?.items?.enum, MAINTENANCE_KIND_ENUM)) {
+    return 'query_ontology maintenance kinds enum schema drift';
   }
 
   const findOrphansTool = tools.find((candidate) => candidate?.name === 'find_orphans');
@@ -248,7 +262,9 @@ export function strictMaintenanceFilterFailure(response, field = 'phases') {
   const text = response.result.content?.[0]?.text || '';
   const allowedPattern = field === 'severities'
     ? /fail, warn, info/i
-    : /validate, repair, link, materialize, review/i;
+    : field === 'kinds'
+      ? /inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain/i
+      : /validate, repair, link, materialize, review/i;
   if (!new RegExp(`${field} items must be one of`, 'i').test(text)) {
     return `strict maintenance filter response did not report the invalid maintenance_plan ${field} filter`;
   }
@@ -307,6 +323,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [21, 'workspace_brief_tuned'],
   [22, 'strict_maintenance_phase_filter'],
   [23, 'strict_maintenance_severity_filter'],
+  [24, 'strict_maintenance_kind_filter'],
 ]);
 
 function log(level, msg) {
@@ -616,6 +633,15 @@ export function buildFirstContactRequests() {
       params: {
         name: 'query_ontology',
         arguments: { operation: 'maintenance_plan', severities: ['fatal'] },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 24,
+      method: 'tools/call',
+      params: {
+        name: 'query_ontology',
+        arguments: { operation: 'maintenance_plan', kinds: ['add_mising_relation'] },
       },
     },
   ];
@@ -1539,6 +1565,7 @@ async function step2BootAndCall() {
       const orphansRes = responses.find((r) => r.id === 19);
       const strictMaintenancePhaseFilterRes = responses.find((r) => r.id === 22);
       const strictMaintenanceSeverityFilterRes = responses.find((r) => r.id === 23);
+      const strictMaintenanceKindFilterRes = responses.find((r) => r.id === 24);
       let kindsPayload = null;
       let listPayload = null;
       let validationPayload = null;
@@ -1615,7 +1642,12 @@ async function step2BootAndCall() {
         log('fail', strictMaintenanceSeverityFilter);
         return res(false);
       }
-      log('ok', 'strict maintenance filters — invalid phase/severity rejected at runtime');
+      const strictMaintenanceKindFilter = strictMaintenanceFilterFailure(strictMaintenanceKindFilterRes, 'kinds');
+      if (strictMaintenanceKindFilter) {
+        log('fail', strictMaintenanceKindFilter);
+        return res(false);
+      }
+      log('ok', 'strict maintenance filters — invalid phase/severity/kind rejected at runtime');
 
       if (!callRes || !callRes.result) {
         log('fail', 'no list_concepts response');

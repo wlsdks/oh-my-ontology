@@ -187,6 +187,20 @@ describe('verify.mjs first-contact gates', () => {
             targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
             phases: { items: { enum: ['validate', 'repair', 'link', 'materialize', 'review'] } },
             severities: { items: { enum: ['fail', 'warn', 'info'] } },
+            kinds: {
+              items: {
+                enum: [
+                  'inspect_compile_issue',
+                  'break_dependency_cycle',
+                  'canonicalize_graph_arrays',
+                  'resolve_dangling_reference',
+                  'add_missing_relation',
+                  'materialize_external_element',
+                  'unassigned_node',
+                  'empty_domain',
+                ],
+              },
+            },
           },
         },
       },
@@ -321,6 +335,21 @@ describe('verify.mjs first-contact gates', () => {
         },
       )),
       'query_ontology severities enum schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...tools[10],
+          inputSchema: {
+            ...tools[10].inputSchema,
+            properties: {
+              ...tools[10].inputSchema.properties,
+              kinds: { items: { enum: ['add_missing_relation'] } },
+            },
+          },
+        },
+      )),
+      'query_ontology maintenance kinds enum schema drift',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'get_concepts')),
@@ -583,6 +612,15 @@ describe('verify.mjs first-contact gates', () => {
       null,
     );
     assert.equal(
+      strictMaintenanceFilterFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain.' }],
+        },
+      }, 'kinds'),
+      null,
+    );
+    assert.equal(
       strictMaintenanceFilterFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
       'strict maintenance filter response was not rejected',
     );
@@ -597,6 +635,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictMaintenanceFilterFailure({ result: { isError: true, content: [{ text: 'severities items must be one of: fail, warn.' }] } }, 'severities'),
       'strict maintenance filter response did not list allowed maintenance_plan severities',
+    );
+    assert.equal(
+      strictMaintenanceFilterFailure({ result: { isError: true, content: [{ text: 'kinds items must be one of: add_missing_relation.' }] } }, 'kinds'),
+      'strict maintenance filter response did not list allowed maintenance_plan kinds',
     );
   });
 
@@ -698,6 +740,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(21), 'workspace_brief_tuned');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(22), 'strict_maintenance_phase_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(23), 'strict_maintenance_severity_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(24), 'strict_maintenance_kind_filter');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

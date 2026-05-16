@@ -1297,6 +1297,12 @@ const okShape = {
       content: [{ text: 'severities items must be one of: fail, warn, info.' }],
     },
   },
+  strictMaintenanceKindFilter: {
+    result: {
+      isError: true,
+      content: [{ text: 'kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain.' }],
+    },
+  },
 };
 
 describe("recordResult", () => {
@@ -1404,6 +1410,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(50), "workspace_brief_tuned");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(51), "strict_maintenance_phase_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(52), "strict_maintenance_severity_filter");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(53), "strict_maintenance_kind_filter");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1497,6 +1504,18 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["strict_maintenance_severity_filter: strict maintenance filter response did not list allowed maintenance_plan severities"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictMaintenanceKindFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'kinds items must be one of: add_missing_relation.' }],
+          },
+        },
+      }),
+      ["strict_maintenance_kind_filter: strict maintenance filter response did not list allowed maintenance_plan kinds"],
     );
   });
 

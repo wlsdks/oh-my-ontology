@@ -7,6 +7,16 @@ const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
 const HEALTH_IGNORED_COMPONENT_KINDS = new Set(['vault-readme']);
 const MAINTENANCE_PHASES = new Set(['validate', 'repair', 'link', 'materialize', 'review']);
 const MAINTENANCE_SEVERITIES = new Set(['fail', 'warn', 'info']);
+const MAINTENANCE_KINDS = new Set([
+  'inspect_compile_issue',
+  'break_dependency_cycle',
+  'canonicalize_graph_arrays',
+  'resolve_dangling_reference',
+  'add_missing_relation',
+  'materialize_external_element',
+  'unassigned_node',
+  'empty_domain',
+]);
 export const QUERY_ONTOLOGY_OPERATIONS = Object.freeze([
   'neighbors',
   'path',
@@ -2323,7 +2333,7 @@ export function createOntologyEngine(artifact, options = {}) {
     const limit = normalizeLimit(options.limit, 25);
     const phaseFilter = normalizeStringSet(options.phases, 'phases', MAINTENANCE_PHASES);
     const severityFilter = normalizeStringSet(options.severities, 'severities', MAINTENANCE_SEVERITIES);
-    const kindFilter = normalizeStringSet(options.kinds, 'kinds');
+    const kindFilter = normalizeStringSet(options.kinds, 'kinds', MAINTENANCE_KINDS);
     const cycleResult = cycles({ limit, types: options.dependencyTypes ?? ['dependencies'] });
     const relationRecommendations = recommendRelations({ limit });
     const externalElementRefs = externalElementCandidates(limit);
