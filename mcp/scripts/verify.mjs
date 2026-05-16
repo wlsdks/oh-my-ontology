@@ -321,7 +321,9 @@ export function parseVerifyArgs({
     }
   }
 
-  const envVault = parseOptionalVerifyVaultEnv(env.OMOT_VAULT);
+  const envVault = positionalVault
+    ? { error: null, vault: null }
+    : parseOptionalVerifyVaultEnv(env.OMOT_VAULT);
   return {
     error: error ?? envVault.error,
     help,
