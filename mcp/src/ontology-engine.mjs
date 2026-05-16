@@ -1023,9 +1023,10 @@ export function createOntologyEngine(artifact, options = {}) {
 
   function matchNodes(options = {}) {
     const limit = normalizeLimit(options.limit);
-    const kind = normalizeOptionalString(options.kind);
-    const domain = normalizeOptionalString(options.domain);
-    const slugContains = normalizeOptionalString(options.slugContains)?.toLowerCase() || null;
+    const kind = normalizeOptionalString(options.kind, 'kind');
+    const domain = normalizeOptionalString(options.domain, 'domain');
+    const slugContains =
+      normalizeOptionalString(options.slugContains, 'slugContains')?.toLowerCase() || null;
     const minDegree = normalizeNonNegativeInteger(options.minDegree, 'minDegree');
     const maxDegree = normalizeNonNegativeInteger(options.maxDegree, 'maxDegree');
     const minInDegree = normalizeNonNegativeInteger(options.minInDegree, 'minInDegree');
@@ -1083,14 +1084,12 @@ export function createOntologyEngine(artifact, options = {}) {
         ? options.types
         : [options.type ?? options.relation].filter(Boolean),
     );
-    const from = typeof options.from === 'string' && options.from.trim()
-      ? resolve(options.from, 'from')
-      : null;
-    const to = typeof options.to === 'string' && options.to.trim()
-      ? resolve(options.to, 'to')
-      : null;
-    const fromKind = normalizeOptionalString(options.fromKind);
-    const toKind = normalizeOptionalString(options.toKind);
+    const fromInput = normalizeOptionalString(options.from, 'from');
+    const toInput = normalizeOptionalString(options.to, 'to');
+    const from = fromInput ? resolve(fromInput, 'from') : null;
+    const to = toInput ? resolve(toInput, 'to') : null;
+    const fromKind = normalizeOptionalString(options.fromKind, 'fromKind');
+    const toKind = normalizeOptionalString(options.toKind, 'toKind');
     const includeExternal = options.includeExternal === true;
     const includeUnresolved = options.includeUnresolved === true;
     const matches = [];
@@ -1286,7 +1285,7 @@ export function createOntologyEngine(artifact, options = {}) {
 
   function domainMatrix(options = {}) {
     const limit = normalizeLimit(options.limit ?? 100);
-    const project = normalizeOptionalString(options.project ?? options.slug);
+    const project = normalizeOptionalString(options.project ?? options.slug, 'project');
     const scope = project
       ? collectContainmentScope(resolveProjectRoot(project))
       : new Set(nodes.map((node) => node.slug));
@@ -1651,14 +1650,20 @@ export function createOntologyEngine(artifact, options = {}) {
   function similarNodes(options = {}) {
     const limit = normalizeLimit(options.limit ?? 10);
     const typeSet = normalizeTypes(options.types);
-    const sourceSlug = normalizeOptionalString(options.slug);
+    const sourceSlug = normalizeOptionalString(options.slug, 'slug');
     const resolvedSource = sourceSlug ? resolve(sourceSlug, 'slug') : null;
     const sourceNode = resolvedSource ? nodeBySlug.get(resolvedSource) : null;
     const candidate = sourceNode || {
-      slug: normalizeOptionalString(options.candidateSlug) || normalizeOptionalString(options.title) || '',
-      kind: normalizeOptionalString(options.kind),
-      title: normalizeOptionalString(options.title) || normalizeOptionalString(options.candidateSlug) || '',
-      domain: normalizeOptionalString(options.domain),
+      slug:
+        normalizeOptionalString(options.candidateSlug, 'candidateSlug') ||
+        normalizeOptionalString(options.title, 'title') ||
+        '',
+      kind: normalizeOptionalString(options.kind, 'kind'),
+      title:
+        normalizeOptionalString(options.title, 'title') ||
+        normalizeOptionalString(options.candidateSlug, 'candidateSlug') ||
+        '',
+      domain: normalizeOptionalString(options.domain, 'domain'),
     };
     const sourceNeighbors = resolvedSource
       ? new Set(traversalEdges(resolvedSource, 'undirected', typeSet).map((row) => row.next))
@@ -1745,7 +1750,7 @@ export function createOntologyEngine(artifact, options = {}) {
   }
 
   function containmentTree(slugOrAlias, options = {}) {
-    const root = normalizeOptionalString(slugOrAlias);
+    const root = normalizeOptionalString(slugOrAlias, 'slug');
     const depth = normalizeDepth(options.depth, 20);
     const limit = normalizeLimit(options.limit ?? 200);
     const includeOrphans = options.includeOrphans === true;
@@ -3300,8 +3305,22 @@ function normalizePattern(pattern) {
   return normalized.slice(0, 20);
 }
 
-function normalizeOptionalString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+function normalizeOptionalString(value, name) {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'string') {
+    throw new Error(`${name} must be a string.`);
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(`${name} must be a non-empty string.`);
+  }
+  if (trimmed !== value) {
+    throw new Error(`${name} must not have leading or trailing whitespace.`);
+  }
+  if (trimmed.includes('\0')) {
+    throw new Error(`${name} must not contain a null byte.`);
+  }
+  return trimmed;
 }
 
 function normalizeNonNegativeInteger(value, name) {

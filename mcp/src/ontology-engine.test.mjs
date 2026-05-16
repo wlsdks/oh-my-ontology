@@ -1314,6 +1314,29 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('rejects invalid optional scalar filters instead of ignoring them', () => {
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', kind: 123 }),
+      /kind must be a string/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', domain: ' ' }),
+      /domain must be a non-empty string/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', slugContains: ' auth' }),
+      /slugContains must not have leading or trailing whitespace/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'similar_nodes', title: 'Login\0' }),
+      /title must not contain a null byte/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_edges', from: ' capabilities/login' }),
+      /from must not have leading or trailing whitespace/,
+    );
+  });
+
   it('matches compiled edges by graph pattern filters', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'match_edges',
