@@ -270,6 +270,32 @@ try {
   assert.equal(directoryVerifyOverride.status, 2);
   assert.match(directoryVerifyOverride.stderr, /OMOT_MCP_VERIFY_PATH is not a file/);
 
+  const missingMcpEntryOverride = runRaw(cliBin, ['overview', 'ontology'], {
+    cwd: projectDir,
+    env: { OMOT_MCP_PATH: join(temp, 'missing-mcp-entry.js') },
+  });
+  assert.equal(missingMcpEntryOverride.status, 2);
+  assert.match(missingMcpEntryOverride.stderr, /OMOT_MCP_PATH does not exist/);
+  assert.doesNotMatch(missingMcpEntryOverride.stderr, /MODULE_NOT_FOUND|mcp exited/);
+
+  const directoryMcpEntryOverride = runRaw(cliBin, ['overview', 'ontology'], {
+    cwd: projectDir,
+    env: { OMOT_MCP_PATH: temp },
+  });
+  assert.equal(directoryMcpEntryOverride.status, 2);
+  assert.match(directoryMcpEntryOverride.stderr, /OMOT_MCP_PATH is not a file/);
+  assert.doesNotMatch(directoryMcpEntryOverride.stderr, /MODULE_NOT_FOUND|mcp exited/);
+
+  const missingVaultRoot = runRaw(cliBin, ['list', 'not-a-vault'], { cwd: projectDir });
+  assert.equal(missingVaultRoot.status, 2);
+  assert.match(missingVaultRoot.stderr, /Vault root not found/);
+  assert.equal(missingVaultRoot.stdout, '');
+
+  const missingMcpVaultRoot = runRaw(cliBin, ['overview', 'not-a-vault'], { cwd: projectDir });
+  assert.equal(missingMcpVaultRoot.status, 2);
+  assert.match(missingMcpVaultRoot.stderr, /Vault root not found/);
+  assert.doesNotMatch(missingMcpVaultRoot.stderr, /mcp exited|vault root 검증 실패/);
+
   const installedMcpPkg = JSON.parse(
     readFileSync(join(installDir, 'node_modules', 'oh-my-ontology-mcp', 'package.json'), 'utf-8'),
   );

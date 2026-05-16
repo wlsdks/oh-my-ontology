@@ -68,7 +68,7 @@ scripts/smoke-clean-onboarding.mjs — fresh user smoke. 임시 `HOME` / `CODEX_
 
 scripts/smoke-packed-cli.mjs — packed install smoke. local MCP + CLI tarball 을 임시
 프로젝트에 설치한 뒤 `init`, installed `mcp-verify`, MCP package `npm run verify`,
-installed `mcp-verify --help`, `compile --summary`, blocking `workspace-brief --json`,
+installed `mcp-verify --help`, invalid installed `OMOT_MCP_PATH` / vault root failures, `compile --summary`, blocking `workspace-brief --json`,
 `cycles --json`, `compile --json`, `path --json` exit 를 실행하고 installed verify 의
 health check count 출력과 `overview`/`project_map` query_plan / `neighbors` / `path` /
 `project_scope` smoke 출력, project-less vault 의 `project_scope` skip, empty vault 의
