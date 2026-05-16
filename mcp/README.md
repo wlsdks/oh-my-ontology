@@ -189,12 +189,12 @@ A successful run looks like this:
 ✓ validate_vault — 28 files, problemFiles 0
 ✓ workspace_brief — healthy (28 nodes, nextActions 0, healthChecks 5)
 ✓ health — healthy (5 checks: compile_issues:pass, unresolved_edges:pass, dependency_cycles:pass, relation_recommendations:pass, components:pass, issues 0)
-✓ compile_ontology — graph 01dcdf26c195 (28 nodes, 200 edges, issues 0)
-✓ overview — graph 01dcdf26c195 (28 nodes, 200 edges, hubs 5)
-✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 200)
-✓ project_map query_plan — aggregate_scan (medium, nodes 28, edges 200)
-✓ neighbors — project (5/6 edges, limited true)
-✓ path — project → project (0 hops)
+✓ compile_ontology — graph 192c6e615658 (28 nodes, 202 edges, issues 0)
+✓ overview — graph 192c6e615658 (28 nodes, 202 edges, hubs 5)
+✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 202)
+✓ project_map query_plan — aggregate_scan (medium, nodes 28, edges 202)
+✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
+✓ path — elements/file-system-access-api → project (2 hops)
 ✓ project_scope — project (27 nodes, internalEdges 92)
 
 All passed — register .mcp.json with Claude Code and restart to use the 23 tools.

@@ -89,8 +89,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ list_kinds/);
     assert.match(verifySection, /✓ workspace_brief — healthy \(28 nodes, nextActions 0, healthChecks 5\)/);
     assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass/);
-    assert.match(verifySection, /✓ neighbors — project/);
-    assert.match(verifySection, /✓ path — project/);
+    assert.match(verifySection, /✓ neighbors — elements\/file-system-access-api/);
+    assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops\)/);
+    assert.doesNotMatch(verifySection, /✓ path — project → project/);
     assert.match(verifySection, /✓ project_scope — project/);
     assert.match(verifySection, /`list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
