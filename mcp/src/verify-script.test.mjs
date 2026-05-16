@@ -102,7 +102,7 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('accepts clean validate_vault payloads', () => {
-    assert.equal(validateVaultFailure({ scanned: 1, summary: { problemFiles: 0 } }), null);
+    assert.equal(validateVaultFailure({ scanned: 1, summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0 } }), null);
   });
 
   it('fails when validate_vault reports problem files', () => {
@@ -117,6 +117,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(validateVaultFailure({ scanned: -1, summary: { problemFiles: 0 } }), 'validate_vault response missing scanned count');
     assert.equal(validateVaultFailure({ scanned: 1, summary: {} }), 'validate_vault response missing problemFiles count');
     assert.equal(validateVaultFailure({ scanned: 1, summary: { problemFiles: -1 } }), 'validate_vault response missing problemFiles count');
+    assert.equal(validateVaultFailure({ scanned: 1, summary: { problemFiles: 0, warningFiles: 0 } }), 'validate_vault response missing errorFiles count');
+    assert.equal(validateVaultFailure({ scanned: 1, summary: { problemFiles: 0, errorFiles: -1, warningFiles: 0 } }), 'validate_vault response missing errorFiles count');
+    assert.equal(validateVaultFailure({ scanned: 1, summary: { problemFiles: 0, errorFiles: 0 } }), 'validate_vault response missing warningFiles count');
+    assert.equal(validateVaultFailure({ scanned: 1, summary: { problemFiles: 0, errorFiles: 0, warningFiles: -1 } }), 'validate_vault response missing warningFiles count');
     assert.equal(validateVaultFailure({}), 'validate_vault response missing summary');
   });
 

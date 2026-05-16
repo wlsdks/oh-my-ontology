@@ -141,9 +141,15 @@ export function validateVaultFailure(parsed) {
   if (!Number.isInteger(summary.problemFiles) || summary.problemFiles < 0) {
     return 'validate_vault response missing problemFiles count';
   }
+  if (!Number.isInteger(summary.errorFiles) || summary.errorFiles < 0) {
+    return 'validate_vault response missing errorFiles count';
+  }
+  if (!Number.isInteger(summary.warningFiles) || summary.warningFiles < 0) {
+    return 'validate_vault response missing warningFiles count';
+  }
   const problemFiles = summary.problemFiles;
   if (problemFiles === 0) return null;
-  return `validate_vault found ${problemFiles} problem file(s) — errors ${summary.errorFiles || 0}, warnings ${summary.warningFiles || 0}`;
+  return `validate_vault found ${problemFiles} problem file(s) — errors ${summary.errorFiles}, warnings ${summary.warningFiles}`;
 }
 
 export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
