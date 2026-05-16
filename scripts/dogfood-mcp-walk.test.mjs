@@ -928,6 +928,8 @@ const okShape = {
         slug: "capabilities/mcp-server",
         kind: "capability",
         title: "MCP Server",
+        inDegree: 3,
+        outDegree: 4,
         degree: 7,
       },
     ],
@@ -3216,6 +3218,18 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, nodes: [{ ...okShape.matchNodes.nodes[0], degree: -1 }] } }),
       ["match_nodes row missing degree: capabilities/mcp-server"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, nodes: [{ ...okShape.matchNodes.nodes[0], inDegree: -1 }] } }),
+      ["match_nodes row missing inDegree: capabilities/mcp-server"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, nodes: [{ ...okShape.matchNodes.nodes[0], outDegree: 1.5 }] } }),
+      ["match_nodes row missing outDegree: capabilities/mcp-server"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, nodes: [{ ...okShape.matchNodes.nodes[0], degree: 8 }] } }),
+      ["match_nodes row degree mismatch: capabilities/mcp-server"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, nodes: [{ ...okShape.matchNodes.nodes[0], slug: "capabilities/cli" }] } }),

@@ -126,6 +126,9 @@ snapshot 을 보고 있는 회귀를 잡는다.
 dogfood walk 는 `find_evidence.matches`, `find_path.hops/hopCount`,
 `find_backlinks.matches`, `find_orphans.orphans` 의 기본 row shape 도 검증해
 agent 가 받는 탐색 결과가 실제로 사용할 수 있는 구조인지 확인한다.
+`query_ontology(match_nodes)` row 도 `inDegree` / `outDegree` / `degree` 를
+검증하고 `degree = inDegree + outDegree` invariant 를 확인해, graph DB 스타일
+node search 의 방향성 degree contract 가 조용히 깨지지 않게 한다.
 또한 `get_concepts` 를 실제 project / mcp-server slug 와 missing slug 를 섞어
 호출해 batch reader 의 성공 row 와 partial row 가 동시에 유지되는지 확인한다.
 project-node `list_concepts` probe 도 fail-closed 로 확인해 verify / dogfood vault 에서

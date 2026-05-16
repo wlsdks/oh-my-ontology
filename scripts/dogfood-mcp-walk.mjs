@@ -2643,8 +2643,17 @@ function matchNodesShapeFailure(result) {
   for (const [index, node] of result.nodes.entries()) {
     const rowFailure = matchRowsFailure("match_nodes", [node]);
     if (rowFailure) return rowFailure.replace("at index 0", `at index ${index}`);
+    if (!Number.isInteger(node.inDegree) || node.inDegree < 0) {
+      return `match_nodes row missing inDegree: ${node.slug}`;
+    }
+    if (!Number.isInteger(node.outDegree) || node.outDegree < 0) {
+      return `match_nodes row missing outDegree: ${node.slug}`;
+    }
     if (!Number.isInteger(node.degree) || node.degree < 0) {
       return `match_nodes row missing degree: ${node.slug}`;
+    }
+    if (node.degree !== node.inDegree + node.outDegree) {
+      return `match_nodes row degree mismatch: ${node.slug}`;
     }
     if (node.kind !== "capability") {
       return `match_nodes row kind mismatch: ${node.slug}`;
