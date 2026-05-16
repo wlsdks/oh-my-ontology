@@ -380,6 +380,90 @@ const okShape = {
       count: 1,
     },
   },
+  maintenancePlan: {
+    operation: "maintenance_plan",
+    sideEffect: false,
+    graphHash: "abc123",
+    summary: {
+      totalActions: 2,
+      filteredActions: 2,
+      remainingActions: 2,
+      executableActions: 1,
+      reviewActions: 1,
+      compileIssues: 0,
+      dependencyCycles: 0,
+      canonicalizationActions: 0,
+      danglingReferences: 0,
+      relationRecommendations: 1,
+      externalElementRefs: 0,
+      externalElementRefsIgnored: 0,
+      unassignedNodes: 1,
+      emptyDomains: 0,
+    },
+    filters: {
+      executableOnly: false,
+      phases: [],
+      severities: [],
+      kinds: [],
+    },
+    cursor: {
+      afterActionId: null,
+      found: true,
+      startIndex: 0,
+      nextAfterActionId: "maint_review",
+      hasMore: false,
+    },
+    byPhase: { link: 1, review: 1 },
+    bySeverity: { warn: 1, info: 1 },
+    byKind: { add_missing_relation: 1, unassigned_node: 1 },
+    limited: false,
+    nextExecutableAction: {
+      id: "maint_link",
+      phase: "link",
+      kind: "add_missing_relation",
+      severity: "warn",
+      score: 1,
+      reason: "Missing containment relation.",
+      executable: true,
+      proposedAction: {
+        tool: "add_relation",
+        args: { from: "domains/ai-agent-partner", to: "capabilities/mcp-server", type: "capabilities" },
+      },
+    },
+    nextReviewAction: {
+      id: "maint_review",
+      phase: "review",
+      kind: "unassigned_node",
+      severity: "info",
+      score: 0.5,
+      reason: "Node has no project assignment.",
+      executable: false,
+    },
+    actions: [
+      {
+        id: "maint_link",
+        phase: "link",
+        kind: "add_missing_relation",
+        severity: "warn",
+        score: 1,
+        reason: "Missing containment relation.",
+        executable: true,
+        proposedAction: {
+          tool: "add_relation",
+          args: { from: "domains/ai-agent-partner", to: "capabilities/mcp-server", type: "capabilities" },
+        },
+      },
+      {
+        id: "maint_review",
+        phase: "review",
+        kind: "unassigned_node",
+        severity: "info",
+        score: 0.5,
+        reason: "Node has no project assignment.",
+        executable: false,
+      },
+    ],
+  },
 };
 
 describe("recordResult", () => {
@@ -457,6 +541,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(20), "domain_matrix");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(21), "components");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(22), "relation_check");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(23), "maintenance_plan");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1197,6 +1282,67 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["relation_check matching edge missing via at index 0"],
+    );
+  });
+
+  it("fails on malformed maintenance_plan payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, maintenancePlan: { ...okShape.maintenancePlan, operation: "growth_plan" } }),
+      ["maintenance_plan response operation mismatch — growth_plan"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, maintenancePlan: { ...okShape.maintenancePlan, sideEffect: true } }),
+      ["maintenance_plan must be side-effect free"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          summary: { ...okShape.maintenancePlan.summary, reviewActions: 2 },
+        },
+      }),
+      ["maintenance_plan action count mismatch — executable 1, review 2, total 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          cursor: { ...okShape.maintenancePlan.cursor, hasMore: "false" },
+        },
+      }),
+      ["maintenance_plan cursor missing hasMore flag"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          cursor: { ...okShape.maintenancePlan.cursor, nextAfterActionId: "maint_other" },
+        },
+      }),
+      ["maintenance_plan cursor nextAfterActionId does not match last action"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          actions: [{ ...okShape.maintenancePlan.actions[0], proposedAction: null }, okShape.maintenancePlan.actions[1]],
+        },
+      }),
+      ["maintenance_plan executable action missing proposedAction: maint_link"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          actions: [{ ...okShape.maintenancePlan.actions[0], score: Number.NaN }, okShape.maintenancePlan.actions[1]],
+        },
+      }),
+      ["maintenance_plan action missing score: maint_link"],
     );
   });
 

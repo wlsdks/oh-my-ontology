@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / relation_check / components / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / relation_check / components / maintenance_plan / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -57,6 +57,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [20, "domain_matrix"],
   [21, "components"],
   [22, "relation_check"],
+  [23, "maintenance_plan"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -211,6 +212,10 @@ export function buildDogfoodRequests() {
       to: "domains/ai-agent-partner",
       type: "domain",
     }),
+    call(23, "query_ontology", {
+      operation: "maintenance_plan",
+      limit: 5,
+    }),
   ];
 }
 
@@ -274,6 +279,7 @@ export function evaluateDogfoodGate({
   domainMatrix,
   components,
   relationCheck,
+  maintenancePlan,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -297,6 +303,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "domain_matrix", domainMatrix);
   recordResult(failures, "components", components);
   recordResult(failures, "relation_check", relationCheck);
+  recordResult(failures, "maintenance_plan", maintenancePlan);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -386,6 +393,10 @@ export function evaluateDogfoodGate({
   if (relationCheck) {
     const relationCheckFailure = relationCheckShapeFailure(relationCheck);
     if (relationCheckFailure) failures.push(relationCheckFailure);
+  }
+  if (maintenancePlan) {
+    const maintenancePlanFailure = maintenancePlanShapeFailure(maintenancePlan);
+    if (maintenancePlanFailure) failures.push(maintenancePlanFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -917,6 +928,129 @@ function relationCheckShapeFailure(result) {
       if (typeof edge[key] !== "string" || edge[key].length === 0) {
         return `relation_check matching edge missing ${key} at index ${index}`;
       }
+    }
+  }
+  return null;
+}
+
+function maintenancePlanShapeFailure(result) {
+  if (result.operation !== "maintenance_plan") {
+    return `maintenance_plan response operation mismatch — ${result.operation}`;
+  }
+  if (result.sideEffect !== false) {
+    return "maintenance_plan must be side-effect free";
+  }
+  if (typeof result.graphHash !== "string" || result.graphHash.length === 0) {
+    return "maintenance_plan response missing graphHash";
+  }
+  const summaryFailure = numericSummaryFailure("maintenance_plan", result.summary, [
+    "totalActions",
+    "filteredActions",
+    "remainingActions",
+    "executableActions",
+    "reviewActions",
+    "compileIssues",
+    "dependencyCycles",
+    "canonicalizationActions",
+    "danglingReferences",
+    "relationRecommendations",
+    "externalElementRefs",
+    "externalElementRefsIgnored",
+    "unassignedNodes",
+    "emptyDomains",
+  ]);
+  if (summaryFailure) return summaryFailure;
+  if (result.summary.executableActions + result.summary.reviewActions !== result.summary.totalActions) {
+    return `maintenance_plan action count mismatch — executable ${result.summary.executableActions}, review ${result.summary.reviewActions}, total ${result.summary.totalActions}`;
+  }
+  if (!result.filters || typeof result.filters !== "object" || Array.isArray(result.filters)) {
+    return "maintenance_plan response missing filters";
+  }
+  if (typeof result.filters.executableOnly !== "boolean") {
+    return "maintenance_plan filters missing executableOnly";
+  }
+  for (const key of ["phases", "severities", "kinds"]) {
+    if (!Array.isArray(result.filters[key])) {
+      return `maintenance_plan filters missing ${key}`;
+    }
+  }
+  const cursorFailure = maintenanceCursorFailure(result.cursor);
+  if (cursorFailure) return cursorFailure;
+  for (const key of ["byPhase", "bySeverity", "byKind"]) {
+    if (!result[key] || typeof result[key] !== "object" || Array.isArray(result[key])) {
+      return `maintenance_plan response missing ${key}`;
+    }
+  }
+  if (typeof result.limited !== "boolean") {
+    return "maintenance_plan response missing limited flag";
+  }
+  if (!Array.isArray(result.actions)) {
+    return "maintenance_plan response missing actions array";
+  }
+  if (result.actions.length > result.summary.remainingActions) {
+    return `maintenance_plan actions exceed remaining — actions ${result.actions.length}, remaining ${result.summary.remainingActions}`;
+  }
+  if (result.actions.length > 0 && result.cursor.nextAfterActionId !== result.actions[result.actions.length - 1].id) {
+    return "maintenance_plan cursor nextAfterActionId does not match last action";
+  }
+  for (const key of ["nextExecutableAction", "nextReviewAction"]) {
+    if (result[key] !== null && (!result[key] || typeof result[key] !== "object" || Array.isArray(result[key]))) {
+      return `maintenance_plan malformed ${key}`;
+    }
+  }
+  for (const [index, action] of result.actions.entries()) {
+    const actionFailure = maintenanceActionFailure(action, index);
+    if (actionFailure) return actionFailure;
+  }
+  return null;
+}
+
+function maintenanceCursorFailure(cursor) {
+  if (!cursor || typeof cursor !== "object" || Array.isArray(cursor)) {
+    return "maintenance_plan response missing cursor";
+  }
+  if (cursor.afterActionId !== null && typeof cursor.afterActionId !== "string") {
+    return "maintenance_plan cursor missing afterActionId";
+  }
+  if (typeof cursor.found !== "boolean") {
+    return "maintenance_plan cursor missing found flag";
+  }
+  if (cursor.startIndex !== null && (!Number.isInteger(cursor.startIndex) || cursor.startIndex < 0)) {
+    return "maintenance_plan cursor missing startIndex";
+  }
+  if (cursor.nextAfterActionId !== null && typeof cursor.nextAfterActionId !== "string") {
+    return "maintenance_plan cursor missing nextAfterActionId";
+  }
+  if (typeof cursor.hasMore !== "boolean") {
+    return "maintenance_plan cursor missing hasMore flag";
+  }
+  return null;
+}
+
+function maintenanceActionFailure(action, index) {
+  if (!action || typeof action !== "object" || Array.isArray(action)) {
+    return `maintenance_plan malformed action at index ${index}`;
+  }
+  for (const key of ["id", "phase", "kind", "severity", "reason"]) {
+    if (typeof action[key] !== "string" || action[key].length === 0) {
+      return `maintenance_plan action missing ${key} at index ${index}`;
+    }
+  }
+  if (typeof action.score !== "number" || !Number.isFinite(action.score) || action.score < 0) {
+    return `maintenance_plan action missing score: ${action.id}`;
+  }
+  if (typeof action.executable !== "boolean") {
+    return `maintenance_plan action missing executable flag: ${action.id}`;
+  }
+  if (action.executable && (!action.proposedAction || typeof action.proposedAction !== "object" || Array.isArray(action.proposedAction))) {
+    return `maintenance_plan executable action missing proposedAction: ${action.id}`;
+  }
+  if (action.proposedAction) {
+    if (typeof action.proposedAction.tool !== "string" || action.proposedAction.tool.length === 0) {
+      return `maintenance_plan proposedAction missing tool: ${action.id}`;
+    }
+    if (!action.proposedAction.args || typeof action.proposedAction.args !== "object" || Array.isArray(action.proposedAction.args)) {
+      return `maintenance_plan proposedAction missing args: ${action.id}`;
     }
   }
   return null;
@@ -1482,6 +1616,21 @@ async function main() {
     );
   }
 
+  // 22. maintenance_plan
+  header(`query_ontology(maintenance_plan)`);
+  const maintenancePlan = getResult(responses, 23);
+  if (maintenancePlan) {
+    console.log(
+      `  actions ${maintenancePlan.actions?.length ?? "n/a"} / remaining ${maintenancePlan.summary?.remainingActions ?? "n/a"} · executable ${maintenancePlan.summary?.executableActions ?? "n/a"} · review ${maintenancePlan.summary?.reviewActions ?? "n/a"}`,
+    );
+    console.log(
+      `  cursor next ${maintenancePlan.cursor?.nextAfterActionId ?? "none"} · hasMore ${maintenancePlan.cursor?.hasMore ?? "n/a"}`,
+    );
+    for (const action of (maintenancePlan.actions || []).slice(0, 5)) {
+      console.log(`  ${action.id}: ${action.phase}/${action.kind} · ${action.severity} · executable ${action.executable}`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -1504,6 +1653,7 @@ async function main() {
     domainMatrix,
     components,
     relationCheck,
+    maintenancePlan,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1540,6 +1690,7 @@ async function main() {
   console.log(`  domain_matrix: ${domainMatrix?.summary?.crossDomainEdges ?? "n/a"} cross-domain edges · ${domainMatrix?.connections?.total ?? "n/a"} connections`);
   console.log(`  components: ${components?.totalComponents ?? "n/a"} total · largest ${components?.largestSize ?? "n/a"}`);
   console.log(`  relation_check: ${relationCheck?.verdict ?? "n/a"} · exists ${relationCheck?.exists ?? "n/a"}`);
+  console.log(`  maintenance_plan: ${maintenancePlan?.summary?.remainingActions ?? "n/a"} remaining · ${maintenancePlan?.summary?.executableActions ?? "n/a"} executable`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

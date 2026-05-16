@@ -176,6 +176,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /`domain_matrix`/);
     assert.match(dogfoodSection, /`components`/);
     assert.match(dogfoodSection, /`relation_check`/);
+    assert.match(dogfoodSection, /`maintenance_plan`/);
   });
 
   it('keeps packed CLI smoke aligned with installed hard gates', () => {
