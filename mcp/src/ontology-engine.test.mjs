@@ -555,6 +555,7 @@ describe('queryCompiledOntology', () => {
     });
     assert.equal(result.cursor.afterActionId, null);
     assert.equal(result.cursor.found, true);
+    assert.equal(result.cursor.reason, null);
     assert.equal(result.cursor.startIndex, 0);
     assert.equal(result.cursor.nextAfterActionId, result.actions[2].id);
     assert.equal(result.cursor.hasMore, false);
@@ -725,6 +726,7 @@ describe('queryCompiledOntology', () => {
     ]);
     assert.equal(second.cursor.afterActionId, first.cursor.nextAfterActionId);
     assert.equal(second.cursor.found, true);
+    assert.equal(second.cursor.reason, null);
     assert.equal(second.cursor.startIndex, 1);
     assert.equal(second.cursor.hasMore, false);
     assert.equal(second.summary.filteredActions, 3);
@@ -739,6 +741,7 @@ describe('queryCompiledOntology', () => {
     });
 
     assert.equal(missing.cursor.found, false);
+    assert.equal(missing.cursor.reason, 'afterActionId not found in filtered maintenance actions');
     assert.equal(missing.cursor.startIndex, null);
     assert.equal(missing.summary.filteredActions, 3);
     assert.equal(missing.summary.remainingActions, 0);

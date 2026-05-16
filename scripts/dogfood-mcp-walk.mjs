@@ -1568,6 +1568,12 @@ function maintenanceCursorFailure(cursor) {
   if (typeof cursor.found !== "boolean") {
     return "maintenance_plan cursor missing found flag";
   }
+  if (cursor.reason !== null && typeof cursor.reason !== "string") {
+    return "maintenance_plan cursor missing reason";
+  }
+  if (!cursor.found && !cursor.reason) {
+    return "maintenance_plan cursor not found without reason";
+  }
   if (cursor.startIndex !== null && (!Number.isInteger(cursor.startIndex) || cursor.startIndex < 0)) {
     return "maintenance_plan cursor missing startIndex";
   }

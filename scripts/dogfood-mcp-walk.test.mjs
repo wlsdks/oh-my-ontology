@@ -427,6 +427,7 @@ const okShape = {
     cursor: {
       afterActionId: null,
       found: true,
+      reason: null,
       startIndex: 0,
       nextAfterActionId: "maint_review",
       hasMore: false,
@@ -2349,6 +2350,16 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["maintenance_plan cursor missing hasMore flag"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          cursor: { ...okShape.maintenancePlan.cursor, found: false, reason: null },
+        },
+      }),
+      ["maintenance_plan cursor not found without reason"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({

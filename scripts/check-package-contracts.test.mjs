@@ -124,6 +124,7 @@ describe('package contract helpers', () => {
 
     assert.match(row, /`health` \/ `workspace_brief` can tune their internal probes/);
     assert.match(row, /`phases`, `severities`, and `kinds` are enum-validated/);
+    assert.match(row, /`cursor\.reason` when a cursor is not found/);
     for (const option of [
       'componentLimit',
       'cycleLimit',
@@ -525,6 +526,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /workspace_brief\.nextActions/);
     assert.match(dogfoodSection, /health\.checks/);
     assert.match(doc, /`orderLimit`, `nodeLimit`, `dependencyTypes`, `componentTypes`/);
+    assert.match(doc, /cursor miss `reason`/);
     assert.match(dogfoodSection, /identifier\/severity/);
     assert.match(dogfoodSection, /id\/status\/count/);
     assert.match(dogfoodSection, /`edges\[\]\.from`/);

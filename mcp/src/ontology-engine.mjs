@@ -2491,6 +2491,7 @@ export function createOntologyEngine(artifact, options = {}) {
       cursor: {
         afterActionId,
         found: cursorFound,
+        reason: cursorFound ? null : 'afterActionId not found in filtered maintenance actions',
         startIndex: afterActionId ? (cursorFound ? afterIndex + 1 : null) : 0,
         nextAfterActionId: pageActions.length > 0 ? pageActions[pageActions.length - 1].id : null,
         hasMore: cursorActions.length > limit,
