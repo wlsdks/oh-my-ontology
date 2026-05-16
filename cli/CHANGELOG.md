@@ -5,7 +5,7 @@
 ### Changed — graph write commands
 
 - `oh-my-ontology rename <oldSlug> <newSlug> --confirm --overwrite` now exposes MCP `rename_concept.overwrite`, so the developer CLI can intentionally replace an existing target slug instead of routing that safety switch only through AI-agent MCP calls.
-- Graph diagnostic exit gates now treat malformed `compile`, `cycles`, `path`, `health.checks`, `workspace_brief.health.checks`, and `workspace_brief.nextActions` rows as failures instead of clean shell-gate results.
+- Graph diagnostic exit gates now treat malformed `compile`, `cycles`, `path` hop/edge payloads, `health.checks`, `workspace_brief.health.checks`, and `workspace_brief.nextActions` rows as failures instead of clean shell-gate results.
 
 ### Added — `mcp-verify` command
 

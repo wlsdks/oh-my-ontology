@@ -332,7 +332,7 @@ describe('package contract helpers', () => {
     const changelog = readFileSync('cli/CHANGELOG.md', 'utf-8');
     const verifySection = changelog.split('### Added — `mcp-verify` command')[1]?.split('### Added — `compile`')[0] ?? '';
 
-    assert.match(changelog, /malformed `compile`, `cycles`, `path`, `health\.checks`, `workspace_brief\.health\.checks`, and `workspace_brief\.nextActions` rows/);
+    assert.match(changelog, /malformed `compile`, `cycles`, `path` hop\/edge payloads, `health\.checks`, `workspace_brief\.health\.checks`, and `workspace_brief\.nextActions` rows/);
     assert.match(verifySection, /`list_concepts`, `get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /split between node census checks/);
@@ -467,6 +467,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /empty vault/);
     assert.match(mcpVerifyRow, /node-targeted graph smoke/);
     assert.match(implementationSection, /query-result-contract\.mjs/);
+    assert.match(implementationSection, /`path` found:false 와 hop\/edge alignment/);
     assert.match(implementationSection, /malformed `compile` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
     assert.match(implementationSection, /fail-closed/);
   });
