@@ -267,6 +267,32 @@ function makeDogfoodToolsList() {
           },
         };
       }
+      if (name === "find_path") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["from", "to", "found"],
+          properties: {
+            from: { type: "string" },
+            to: { type: "string" },
+            found: { type: "boolean" },
+            reason: { type: "string" },
+            hopCount: { type: "integer", minimum: 0 },
+            hops: { type: "array", items: { type: "string" } },
+            edges: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["from", "to", "via"],
+                properties: {
+                  from: { type: "string" },
+                  to: { type: "string" },
+                  via: { type: "string" },
+                },
+              },
+            },
+          },
+        };
+      }
       if (name === "list_kinds") {
         tool.outputSchema = {
           type: "object",
@@ -418,6 +444,7 @@ const okShape = {
   ev: { matches: [] },
   evStructured: { matches: [] },
   path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b", via: "relates" }] },
+  pathStructured: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b", via: "relates" }] },
   bl: {
     target: "capabilities/mcp-server",
     total: 1,
@@ -2075,6 +2102,12 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, toolsList: neighborsOutputSchemaDrifted }),
       ["tools/list: find_neighbors outputSchema edges drift"],
     );
+    const pathOutputSchemaDrifted = makeDogfoodToolsList();
+    pathOutputSchemaDrifted.tools.find((tool) => tool.name === "find_path").outputSchema.properties.edges.items.properties.via.type = "number";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: pathOutputSchemaDrifted }),
+      ["tools/list: find_path outputSchema edge via drift"],
+    );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),
       ["list_concepts structuredContent mismatch"],
@@ -2331,6 +2364,13 @@ describe("evaluateDogfoodGate", () => {
         path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b" }] },
       }),
       ["find_path response missing edge via at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        pathStructured: { found: true, hopCount: 1, hops: ["a", "c"], edges: [{ from: "a", to: "c", via: "relates" }] },
+      }),
+      ["find_path structuredContent mismatch"],
     );
   });
 

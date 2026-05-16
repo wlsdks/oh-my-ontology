@@ -608,6 +608,7 @@ export function evaluateDogfoodGate({
   ev,
   evStructured,
   path,
+  pathStructured,
   bl,
   blStructured,
   orph,
@@ -775,6 +776,9 @@ export function evaluateDogfoodGate({
   if (path) {
     const pathFailure = pathShapeFailure(path);
     if (pathFailure) failures.push(pathFailure);
+    else if (pathStructured !== undefined && JSON.stringify(pathStructured) !== JSON.stringify(path)) {
+      failures.push("find_path structuredContent mismatch");
+    }
     else if (!path.found) failures.push("find_path: expected mcp-server → vault-local-first path");
   }
   if (bl) {
@@ -4111,7 +4115,9 @@ async function main() {
   // 5. find_path
   header(`find_path(capabilities/mcp-server → domains/vault-local-first)`);
   const path = getResult(responses, 5);
+  const pathStructured = getRpcResult(responses, 5)?.structuredContent ?? null;
   if (path) {
+    console.log(`  structuredContent: ${JSON.stringify(pathStructured) === JSON.stringify(path) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     if (path.found) {
       console.log(`  hops: ${path.hopCount}`);
       console.log(`  ${path.hops.join(" → ")}`);
@@ -4678,6 +4684,7 @@ async function main() {
     ev,
     evStructured,
     path,
+    pathStructured,
     bl,
     blStructured,
     orph,

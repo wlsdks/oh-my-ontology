@@ -847,6 +847,33 @@ const TOOLS = [
       },
       required: ['from', 'to'],
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        from: NON_BLANK_STRING_SCHEMA,
+        to: NON_BLANK_STRING_SCHEMA,
+        found: { type: 'boolean' },
+        reason: { type: 'string' },
+        hopCount: { type: 'integer', minimum: 0 },
+        hops: {
+          type: 'array',
+          items: NON_BLANK_STRING_SCHEMA,
+        },
+        edges: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              from: NON_BLANK_STRING_SCHEMA,
+              to: NON_BLANK_STRING_SCHEMA,
+              via: NON_BLANK_STRING_SCHEMA,
+            },
+            required: ['from', 'to', 'via'],
+          },
+        },
+      },
+      required: ['from', 'to', 'found'],
+    },
   },
   {
     name: 'list_kinds',

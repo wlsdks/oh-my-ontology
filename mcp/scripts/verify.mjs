@@ -427,6 +427,43 @@ export function toolsListSchemaFailure(tools) {
     return 'find_neighbors outputSchema node mtime drift';
   }
 
+  const findPathTool = tools.find((tool) => tool?.name === 'find_path');
+  if (!findPathTool) return 'tools/list response missing find_path tool';
+  if (findPathTool.outputSchema?.type !== 'object') {
+    return 'find_path outputSchema root drift';
+  }
+  if (!sameArray(findPathTool.outputSchema?.required, ['from', 'to', 'found'])) {
+    return 'find_path outputSchema required drift';
+  }
+  for (const propertyName of ['from', 'to']) {
+    if (outputPropertyAt(findPathTool, ['properties', propertyName])?.type !== 'string') {
+      return `find_path outputSchema ${propertyName} drift`;
+    }
+  }
+  if (outputPropertyAt(findPathTool, ['properties', 'found'])?.type !== 'boolean') {
+    return 'find_path outputSchema found drift';
+  }
+  const findPathHopCountSchema = outputPropertyAt(findPathTool, ['properties', 'hopCount']);
+  if (findPathHopCountSchema?.type !== 'integer' || findPathHopCountSchema.minimum !== 0) {
+    return 'find_path outputSchema hopCount drift';
+  }
+  if (outputPropertyAt(findPathTool, ['properties', 'hops'])?.type !== 'array' || outputPropertyAt(findPathTool, ['properties', 'hops'])?.items?.type !== 'string') {
+    return 'find_path outputSchema hops drift';
+  }
+  const findPathEdgesSchema = outputPropertyAt(findPathTool, ['properties', 'edges']);
+  if (
+    findPathEdgesSchema?.type !== 'array' ||
+    findPathEdgesSchema.items?.type !== 'object' ||
+    !sameArray(findPathEdgesSchema.items?.required, ['from', 'to', 'via'])
+  ) {
+    return 'find_path outputSchema edges drift';
+  }
+  for (const propertyName of ['from', 'to', 'via']) {
+    if (findPathEdgesSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `find_path outputSchema edge ${propertyName} drift`;
+    }
+  }
+
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
 

@@ -512,6 +512,34 @@ describe('verify.mjs first-contact gates', () => {
           },
         },
       },
+      {
+        name: 'find_path',
+        inputSchema: { additionalProperties: false, required: ['from', 'to'], properties: {} },
+        outputSchema: {
+          type: 'object',
+          required: ['from', 'to', 'found'],
+          properties: {
+            from: { type: 'string' },
+            to: { type: 'string' },
+            found: { type: 'boolean' },
+            reason: { type: 'string' },
+            hopCount: { type: 'integer', minimum: 0 },
+            hops: { type: 'array', items: { type: 'string' } },
+            edges: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['from', 'to', 'via'],
+                properties: {
+                  from: { type: 'string' },
+                  to: { type: 'string' },
+                  via: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      },
     ].map((tool) => ({
       ...tool,
       annotations: {
@@ -1124,6 +1152,41 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'find_neighbors outputSchema node mtime drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_path'),
+        {
+          ...tools.find((tool) => tool.name === 'find_path'),
+          outputSchema: { ...tools.find((tool) => tool.name === 'find_path').outputSchema, required: ['from', 'found', 'to'] },
+        },
+      ]),
+      'find_path outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_path'),
+        {
+          ...tools.find((tool) => tool.name === 'find_path'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'find_path').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'find_path').outputSchema.properties,
+              edges: {
+                ...tools.find((tool) => tool.name === 'find_path').outputSchema.properties.edges,
+                items: {
+                  ...tools.find((tool) => tool.name === 'find_path').outputSchema.properties.edges.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'find_path').outputSchema.properties.edges.items.properties,
+                    via: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'find_path outputSchema edge via drift',
     );
     assert.equal(
       toolsListSchemaFailure([

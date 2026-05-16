@@ -366,6 +366,13 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(findNeighbors?.outputSchema?.properties?.totalEdges?.type, "integer");
     assert.deepEqual(findNeighbors?.outputSchema?.properties?.edges?.items?.required, ["direction", "from", "to", "via", "ref", "resolved"]);
     assert.deepEqual(findNeighbors?.outputSchema?.properties?.nodes?.items?.required, ["slug", "kind", "title", "mtime"]);
+    const findPath = findTool("find_path");
+    assert.equal(findPath?.outputSchema?.type, "object");
+    assert.deepEqual(findPath?.outputSchema?.required, ["from", "to", "found"]);
+    assert.equal(findPath?.outputSchema?.properties?.found?.type, "boolean");
+    assert.equal(findPath?.outputSchema?.properties?.hopCount?.type, "integer");
+    assert.equal(findPath?.outputSchema?.properties?.hops?.items?.type, "string");
+    assert.deepEqual(findPath?.outputSchema?.properties?.edges?.items?.required, ["from", "to", "via"]);
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -2032,6 +2039,52 @@ await test("find_neighbors — one-hop graph subgraph 를 방향/타입 기준�
         (edge) => edge.via === "dependencies" && edge.to === "elements/token",
       ),
     );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("find_path — structuredContent 로 shortest path 계약을 노출", async () => {
+  const root = makeVault([
+    {
+      slug: "domains/auth",
+      content: "---\nkind: domain\ntitle: Auth\n---\n",
+    },
+    {
+      slug: "capabilities/login",
+      content:
+        "---\nkind: capability\ntitle: Login\ndomain: domains/auth\ndependencies: [elements/token]\n---\n",
+    },
+    {
+      slug: "elements/token",
+      content: "---\nkind: element\ntitle: Token\n---\n",
+    },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "find_path", { from: "login", to: "elements/token" }),
+      callTool(3, "find_path", { from: "login", to: "missing-node" }),
+    ]);
+    const found = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), found);
+    assert.equal(found.from, "login");
+    assert.equal(found.to, "elements/token");
+    assert.equal(found.found, true);
+    assert.equal(found.hopCount, 1);
+    assert.deepEqual(found.hops, ["capabilities/login", "elements/token"]);
+    assert.deepEqual(found.edges, [
+      { from: "capabilities/login", to: "elements/token", via: "dependencies" },
+    ]);
+
+    const missing = getCallParsed(responses, 3);
+    assert.deepEqual(getCallStructured(responses, 3), missing);
+    assert.deepEqual(missing, {
+      from: "login",
+      to: "missing-node",
+      found: false,
+      reason: "경로 없음 (또는 maxHops 초과)",
+    });
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
