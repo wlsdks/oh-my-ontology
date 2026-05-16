@@ -82,6 +82,10 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /pnpm smoke:packed-cli/);
     assert.match(releaseChecks, /mcp-verify --help/);
     assert.match(releaseChecks, /graph-query smoke scope/);
+    assert.match(releaseChecks, /flow\/help\/failure/);
+    assert.match(releaseChecks, /dependency-cycle vault/);
+    assert.match(releaseChecks, /workspace-brief --json` exits 1/);
+    assert.match(releaseChecks, /fail-severity nextActions/);
     assert.match(releaseChecks, /validate_vault` problem files/);
   });
 

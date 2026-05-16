@@ -125,7 +125,7 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 pnpm package:check              # MCP/CLI package files contract + self-test
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
-pnpm smoke:packed-cli           # pack/install MCP+CLI, verify installed flow/help + tarball summary
+pnpm smoke:packed-cli           # pack/install MCP+CLI, verify installed flow/help/failure + tarball summary
 pnpm dogfood:walk               # actual MCP stdio walk over this repo's ontology
 cd mcp && OMOT_VAULT=../docs/ontology npm run verify
 ```
@@ -137,7 +137,8 @@ change. `npm run verify` calls `workspace_brief` and `health`, so the
 same first-contact diagnosis an AI agent should run is exercised locally.
 `smoke:packed-cli` also checks the installed `mcp-verify --help` output, so
 release tarballs keep exposing the graph-query smoke scope without starting a
-server.
+server. It also creates a dependency-cycle vault and checks installed
+`workspace-brief --json` exits 1 on fail-severity nextActions.
 `dogfood:walk` runs that diagnosis plus graph lookup tasks against this
 repo's own `docs/ontology` vault and exits non-zero if the core MCP
 responses, path check, vault warnings, `validate_vault` problem files,
