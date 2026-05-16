@@ -468,8 +468,7 @@ export function patchFrontmatter(rootPath, slug, patch, options = {}) {
 /**
  * 기존 doc 의 frontmatter + body 를 동시에 갱신. frontmatter 는 patchFrontmatter
  * 와 동일한 patch 의미 (null = 삭제, undefined = skip). body 가 string 이면
- * 교체, undefined 면 보존, null 이면 빈 본문. expectedMtime 옵션으로 외부
- * 변경 감지.
+ * 교체, undefined 면 보존. expectedMtime 옵션으로 외부 변경 감지.
  */
 export function updateDoc(rootPath, slug, { frontmatter: patch, body, expectedMtime }) {
   const filePath = slugToPath(rootPath, slug);
@@ -489,8 +488,10 @@ export function updateDoc(rootPath, slug, { frontmatter: patch, body, expectedMt
       }
     }
   }
-  const nextBody =
-    body === undefined ? oldBody : body === null ? '' : body;
+  if (body !== undefined && typeof body !== 'string') {
+    throw new Error('body must be a string.');
+  }
+  const nextBody = body === undefined ? oldBody : body;
   const md = buildMarkdown({ frontmatter: nextFm, body: nextBody });
   writeFileSync(filePath, md, 'utf-8');
   return filePath;

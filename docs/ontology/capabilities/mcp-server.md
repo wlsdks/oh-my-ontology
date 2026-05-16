@@ -202,6 +202,8 @@ rootPath / ignore / sourceFolders / maxDepth / maxFiles contract 를 검증해
 잘못된 cold-start 분석 입력을 문자열화하거나 기본값으로 흡수하지 않는다.
 `compile_ontology` 도 core compiler 에서 summary / includeIndexes boolean 과
 pagination null 값을 검증해 invalid option 을 false 또는 미지정으로 흡수하지 않는다.
+`patch_concept` 의 body contract 도 core `updateDoc` 까지 동일하게 적용해
+null body 를 빈 본문으로 silent clear 하지 않는다.
 `tools/list` inputSchema 도 같은 integer / minimum / maximum 제약을 노출해
 agent 가 호출 전 잘못된 인자를 스스로 고칠 수 있게 한다.
 `match_nodes` 의 degree 필터 (`minDegree`, `maxDegree`, `minInDegree`,

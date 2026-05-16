@@ -134,6 +134,22 @@ test("updateDoc 도 expectedMtime 옵션 따른다", () => {
   rmSync(root, { recursive: true, force: true });
 });
 
+test("updateDoc 는 null body 를 빈 본문으로 coerce 하지 않는다", () => {
+  const root = makeVault();
+  writeMd(root, "foo", "---\nkind: capability\n---\nold body");
+
+  assert.throws(
+    () =>
+      updateDoc(root, "foo", {
+        body: null,
+      }),
+    /body must be a string/,
+  );
+  const after = readFileSync(join(root, "foo.md"), "utf-8");
+  assert.match(after, /old body/);
+  rmSync(root, { recursive: true, force: true });
+});
+
 test("deleteDoc 도 expectedMtime 옵션 따른다", () => {
   const root = makeVault();
   const file = writeMd(root, "foo", "---\nkind: capability\n---\n");
