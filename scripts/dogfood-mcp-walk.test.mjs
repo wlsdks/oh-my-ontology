@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  DOGFOOD_RESPONSE_LABELS,
   evaluateDogfoodGate,
   expectedResponseIds,
   missingResponseLabels,
@@ -235,6 +236,19 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       rpcTimeoutFailure(5000, missing),
       "rpc: timed out after 5000ms waiting for list_kinds, list_concepts",
+    );
+  });
+
+  it("keeps dogfood response labels aligned with the get_concepts smoke", () => {
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(16), "get_concepts");
+    const responsesWithoutGetConcepts = [...DOGFOOD_RESPONSE_LABELS.keys()]
+      .filter((id) => id !== 16)
+      .map((id) => ({ id, result: {} }));
+    const missing = missingResponseLabels(responsesWithoutGetConcepts, DOGFOOD_RESPONSE_LABELS);
+    assert.deepEqual(missing, ["get_concepts"]);
+    assert.equal(
+      rpcTimeoutFailure(5000, missing),
+      "rpc: timed out after 5000ms waiting for get_concepts",
     );
   });
 

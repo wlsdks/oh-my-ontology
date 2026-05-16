@@ -90,7 +90,7 @@ function rpc(requests, timeoutMs = 3000) {
   });
 }
 
-export { expectedResponseIds, missingResponseLabels };
+export { DOGFOOD_RESPONSE_LABELS, expectedResponseIds, missingResponseLabels };
 
 export function parseRpcResponses(stdout) {
   return parseJsonRpcResponses(stdout);
