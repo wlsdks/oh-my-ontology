@@ -565,7 +565,7 @@ export function validateVaultFailure(parsed) {
   }
   const codeSummary = validationCodeSummary(summary.byCode);
   const suffix = codeSummary ? ` — codes ${codeSummary}` : '';
-  return `validate_vault found ${problemFiles} problem file(s) — errors ${summary.errorFiles}, warnings ${summary.warningFiles}${suffix}`;
+  return `validate_vault found ${formatCount(problemFiles, 'problem file')} — errors ${summary.errorFiles}, warnings ${summary.warningFiles}${suffix}`;
 }
 
 export function compileSummaryFailure(parsed) {
@@ -1312,7 +1312,13 @@ async function step2BootAndCall() {
           return res(false);
         }
         validationPayload = parsed;
-        log('ok', `validate_vault — ${parsed.scanned ?? 0} files, problemFiles ${parsed.summary?.problemFiles ?? 0}`);
+        log(
+          'ok',
+          `validate_vault — ${formatCount(parsed.scanned ?? 0, 'file')}, ${formatCount(
+            parsed.summary?.problemFiles ?? 0,
+            'problem file',
+          )}`,
+        );
       } catch (err) {
         log('fail', `failed to parse validate_vault response: ${err.message}`);
         return res(false);

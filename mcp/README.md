@@ -186,7 +186,7 @@ A successful run looks like this:
 ✓ list_concepts — vault total 28 nodes (vaultRoot /path/to/docs/ontology)
 ✓ get_concepts — 2 ok rows, 1 partial row
 ✓ list_kinds — 28 nodes (capability:16, domain:6, element:4, project:1, vault-readme:1)
-✓ validate_vault — 28 files, problemFiles 0
+✓ validate_vault — 28 files, 0 problem files
 ✓ workspace_brief — healthy (28 nodes, nextActions 0, healthChecks 5)
 ✓ health — healthy (5 checks: compile_issues:pass, unresolved_edges:pass, dependency_cycles:pass, relation_recommendations:pass, components:pass, issues 0)
 ✓ compile_ontology — graph 192c6e615658 (28 nodes, 202 edges, issues 0)

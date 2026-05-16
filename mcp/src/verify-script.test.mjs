@@ -666,7 +666,7 @@ describe('verify.mjs first-contact gates', () => {
           },
         },
       }),
-      'validate_vault found 2 problem file(s) — errors 1, warnings 1 — codes dangling-graph-reference:warning:2, missing-kind:error:1',
+      'validate_vault found 2 problem files — errors 1, warnings 1 — codes dangling-graph-reference:warning:2, missing-kind:error:1',
     );
   });
 
