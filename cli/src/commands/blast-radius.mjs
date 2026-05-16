@@ -3,6 +3,7 @@
 // MCP `query_ontology({operation: 'blast_radius'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { assertQueryOperation } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   parsePositiveIntegerFlag,
@@ -52,6 +53,7 @@ export async function runBlastRadius(args) {
       depth,
       direction,
     });
+    assertQueryOperation(result, 'blast_radius');
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

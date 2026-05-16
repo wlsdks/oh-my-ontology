@@ -3,6 +3,7 @@
 // 만들기 전 *duplicate 회피* 와 `/ontology-extract` skill 의 핵심 cross-check.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { assertQueryOperation } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   parsePositiveIntegerFlag,
@@ -48,6 +49,7 @@ export async function runSimilar(args) {
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_ontology', toolArgs);
+    assertQueryOperation(result, 'similar_nodes');
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

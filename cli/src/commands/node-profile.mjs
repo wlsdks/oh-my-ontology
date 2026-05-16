@@ -3,6 +3,7 @@
 // header / 도메인 / containment lineage / incoming-outgoing edges (relation 별 그룹) 한 화면.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { assertQueryOperation } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
 
@@ -41,6 +42,7 @@ export async function runNodeProfile(args) {
       operation: 'node_profile',
       slug,
     });
+    assertQueryOperation(result, 'node_profile');
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

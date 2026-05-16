@@ -2,6 +2,7 @@
 // MCP `query_ontology({operation: 'cycles'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { assertQueryOperation } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   parsePositiveIntegerFlag,
@@ -33,6 +34,7 @@ export async function runCycles(args) {
       operation: 'cycles',
       maxHops,
     });
+    assertQueryOperation(result, 'cycles');
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

@@ -2,6 +2,7 @@
 // MCP `query_ontology({operation: 'workspace_brief'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { assertQueryOperation } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
@@ -41,6 +42,7 @@ export async function runWorkspaceBrief(args) {
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_ontology', { operation: 'workspace_brief' });
+    assertQueryOperation(result, 'workspace_brief');
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,
