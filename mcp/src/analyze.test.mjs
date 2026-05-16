@@ -178,3 +178,31 @@ test('README domain and feature with same name do not collide', () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('invalid analyze options are rejected instead of coerced', () => {
+  const root = withRepo(() => {});
+  try {
+    assert.throws(
+      () => analyzeRepoStructure(` ${root}`),
+      /rootPath must not have leading or trailing whitespace/,
+    );
+    assert.throws(
+      () => analyzeRepoStructure(root, { maxDepth: 11 }),
+      /maxDepth must be <= 10/,
+    );
+    assert.throws(
+      () => analyzeRepoStructure(root, { maxDepth: 1.5 }),
+      /maxDepth must be a non-negative integer/,
+    );
+    assert.throws(
+      () => analyzeRepoStructure(root, { ignore: ['dist', 7] }),
+      /ignore must be an array of strings/,
+    );
+    assert.throws(
+      () => analyzeRepoStructure(root, { ignore: ['dist', ' '] }),
+      /ignore items must be non-empty strings/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

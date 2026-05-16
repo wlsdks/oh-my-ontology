@@ -197,6 +197,9 @@ core graph engine 직접 호출도 `iterations` 를 같은 1..100 integer contra
 positive integer, max 500 contract 로 검증해 page 크기를 silent clamp 하지 않는다.
 `direction` 도 core 에서 `incoming` / `outgoing` / `both` / `undirected`
 enum contract 로 검증해 잘못된 방향을 기본 traversal 로 흡수하지 않는다.
+`analyze_repo_structure` / `infer_imports` 도 wrapper 밖 core 함수에서
+rootPath / ignore / sourceFolders / maxDepth / maxFiles contract 를 검증해
+잘못된 cold-start 분석 입력을 문자열화하거나 기본값으로 흡수하지 않는다.
 `tools/list` inputSchema 도 같은 integer / minimum / maximum 제약을 노출해
 agent 가 호출 전 잘못된 인자를 스스로 고칠 수 있게 한다.
 `match_nodes` 의 degree 필터 (`minDegree`, `maxDegree`, `minInDegree`,

@@ -69,13 +69,14 @@ const ELEMENT_ENTRY_FILES = [
  * @returns analysis result
  */
 export function analyzeRepoStructure(rootPath, options = {}) {
+  validateRootPath(rootPath);
   if (!existsSync(rootPath) || !statSync(rootPath).isDirectory()) {
     throw new Error(`rootPath not a directory: ${rootPath}`);
   }
-  const maxDepth = options.maxDepth ?? 2;
+  const maxDepth = optionalNonNegativeInteger(options.maxDepth, 'maxDepth', { max: 10 }) ?? 2;
   const ignore = new Set([
     ...DEFAULT_IGNORE,
-    ...((options.ignore ?? []).map(String)),
+    ...optionalStringArray(options.ignore, 'ignore'),
   ]);
 
   const skipped = [];
@@ -313,4 +314,47 @@ function slugify(s) {
 
 function tailSlug(slug) {
   return String(slug).split('/').filter(Boolean).at(-1) ?? '';
+}
+
+function validateRootPath(rootPath) {
+  if (typeof rootPath !== 'string' || !rootPath.trim()) {
+    throw new Error('rootPath must be a non-empty string.');
+  }
+  if (rootPath.trim() !== rootPath) {
+    throw new Error('rootPath must not have leading or trailing whitespace.');
+  }
+  if (rootPath.includes('\0')) {
+    throw new Error('rootPath must not contain a null byte.');
+  }
+}
+
+function optionalNonNegativeInteger(value, name, options = {}) {
+  if (value === undefined) return null;
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative integer.`);
+  }
+  if (options.max !== undefined && value > options.max) {
+    throw new Error(`${name} must be <= ${options.max}.`);
+  }
+  return value;
+}
+
+function optionalStringArray(value, name) {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || !value.every((item) => typeof item === 'string')) {
+    throw new Error(`${name} must be an array of strings.`);
+  }
+  return value.map((item) => {
+    const trimmed = item.trim();
+    if (!trimmed) {
+      throw new Error(`${name} items must be non-empty strings.`);
+    }
+    if (trimmed !== item) {
+      throw new Error(`${name} items must not have leading or trailing whitespace.`);
+    }
+    if (trimmed.includes('\0')) {
+      throw new Error(`${name} items must not contain a null byte.`);
+    }
+    return trimmed;
+  });
 }

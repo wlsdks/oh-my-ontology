@@ -96,15 +96,18 @@ const SIDE_IMPORT_RE = /\bimport\s+['"]([^'"]+)['"]/g;
  * }}
  */
 export function inferImports(rootPath, options = {}) {
+  validateRootPath(rootPath);
   if (!existsSync(rootPath) || !statSync(rootPath).isDirectory()) {
     throw new Error(`rootPath not a directory: ${rootPath}`);
   }
   const ignore = new Set([
     ...DEFAULT_IGNORE,
-    ...(options.ignore ?? []).map(String),
+    ...optionalStringArray(options.ignore, 'ignore'),
   ]);
-  const maxFiles = typeof options.maxFiles === 'number' ? options.maxFiles : 5000;
-  const sourceFolders = options.sourceFolders ?? ['src', 'lib', 'app', 'packages'];
+  const maxFiles = optionalPositiveInteger(options.maxFiles, 'maxFiles', { max: 50000 }) ?? 5000;
+  const sourceFolders = optionalStringArray(options.sourceFolders, 'sourceFolders', {
+    fallback: ['src', 'lib', 'app', 'packages'],
+  });
 
   // Resolve search roots — defined source folders that exist, plus rootPath
   // itself if no source folder exists (so simple repos still work).
@@ -343,6 +346,49 @@ function moduleOf(filePath, sourceFolders) {
     }
   }
   return null;
+}
+
+function validateRootPath(rootPath) {
+  if (typeof rootPath !== 'string' || !rootPath.trim()) {
+    throw new Error('rootPath must be a non-empty string.');
+  }
+  if (rootPath.trim() !== rootPath) {
+    throw new Error('rootPath must not have leading or trailing whitespace.');
+  }
+  if (rootPath.includes('\0')) {
+    throw new Error('rootPath must not contain a null byte.');
+  }
+}
+
+function optionalPositiveInteger(value, name, options = {}) {
+  if (value === undefined) return null;
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${name} must be a positive integer.`);
+  }
+  if (options.max !== undefined && value > options.max) {
+    throw new Error(`${name} must be <= ${options.max}.`);
+  }
+  return value;
+}
+
+function optionalStringArray(value, name, options = {}) {
+  if (value === undefined) return options.fallback ?? [];
+  if (!Array.isArray(value) || !value.every((item) => typeof item === 'string')) {
+    throw new Error(`${name} must be an array of strings.`);
+  }
+  return value.map((item) => {
+    const trimmed = item.trim();
+    if (!trimmed) {
+      throw new Error(`${name} items must be non-empty strings.`);
+    }
+    if (trimmed !== item) {
+      throw new Error(`${name} items must not have leading or trailing whitespace.`);
+    }
+    if (trimmed.includes('\0')) {
+      throw new Error(`${name} items must not contain a null byte.`);
+    }
+    return trimmed;
+  });
 }
 
 function isSupportElementBucket(segment) {

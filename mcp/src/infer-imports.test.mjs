@@ -255,3 +255,31 @@ test('side-effect import (import "X") 감지', () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('invalid infer options are rejected instead of coerced', () => {
+  const root = withRepo(() => {});
+  try {
+    assert.throws(
+      () => inferImports(`${root}\0`),
+      /rootPath must not contain a null byte/,
+    );
+    assert.throws(
+      () => inferImports(root, { sourceFolders: ['src', ' lib'] }),
+      /sourceFolders items must not have leading or trailing whitespace/,
+    );
+    assert.throws(
+      () => inferImports(root, { ignore: ['dist', 7] }),
+      /ignore must be an array of strings/,
+    );
+    assert.throws(
+      () => inferImports(root, { maxFiles: 0 }),
+      /maxFiles must be a positive integer/,
+    );
+    assert.throws(
+      () => inferImports(root, { maxFiles: 50001 }),
+      /maxFiles must be <= 50000/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
