@@ -91,6 +91,19 @@ describe('verify.mjs first-contact gates', () => {
         },
       },
       {
+        name: 'find_orphans',
+        inputSchema: {
+          additionalProperties: false,
+          properties: {
+            excludeKinds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: "Defaults to ['project', 'vault-readme']. Pass [] to include every kind.",
+            },
+          },
+        },
+      },
+      {
         name: 'add_concepts',
         inputSchema: {
           additionalProperties: false,
@@ -173,7 +186,7 @@ describe('verify.mjs first-contact gates', () => {
       },
     ];
     const withQueryTool = (queryTool) => [
-      ...tools.slice(0, 9),
+      ...tools.slice(0, 10),
       queryTool,
     ];
 
@@ -188,11 +201,55 @@ describe('verify.mjs first-contact gates', () => {
       'tools/list response missing query_ontology tool',
     );
     assert.equal(
+      toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'find_orphans')),
+      'tools/list response missing find_orphans tool',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.slice(0, 2),
+        {
+          ...tools[2],
+          inputSchema: {
+            ...tools[2].inputSchema,
+            properties: {
+              excludeKinds: {
+                type: 'array',
+                items: { type: 'number' },
+                description: "Defaults to ['project', 'vault-readme'].",
+              },
+            },
+          },
+        },
+        ...tools.slice(3),
+      ]),
+      'find_orphans.excludeKinds schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.slice(0, 2),
+        {
+          ...tools[2],
+          inputSchema: {
+            ...tools[2].inputSchema,
+            properties: {
+              excludeKinds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Pass [] to include every kind.',
+              },
+            },
+          },
+        },
+        ...tools.slice(3),
+      ]),
+      'find_orphans.excludeKinds default description drift',
+    );
+    assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[9],
+          ...tools[10],
           inputSchema: {
-            ...tools[9].inputSchema,
+            ...tools[10].inputSchema,
             required: [],
           },
         },
@@ -202,11 +259,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[9],
+          ...tools[10],
           inputSchema: {
-            ...tools[9].inputSchema,
+            ...tools[10].inputSchema,
             properties: {
-              ...tools[9].inputSchema.properties,
+              ...tools[10].inputSchema.properties,
               operation: { enum: QUERY_ONTOLOGY_OPERATIONS.filter((operation) => operation !== 'health') },
             },
           },
@@ -217,11 +274,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[9],
+          ...tools[10],
           inputSchema: {
-            ...tools[9].inputSchema,
+            ...tools[10].inputSchema,
             properties: {
-              ...tools[9].inputSchema.properties,
+              ...tools[10].inputSchema.properties,
               targetOperation: { enum: [...QUERY_PLAN_TARGET_OPERATIONS, 'query_plan'] },
             },
           },
@@ -249,46 +306,46 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure([
-        ...tools.slice(0, 2),
+        ...tools.slice(0, 3),
         {
-          ...tools[2],
+          ...tools[3],
           inputSchema: {
-            ...tools[2].inputSchema,
+            ...tools[3].inputSchema,
             properties: { concepts: { type: 'array', maxItems: 51 } },
           },
         },
-        ...tools.slice(3),
+        ...tools.slice(4),
       ]),
       'add_concepts.concepts batch cap schema drift',
     );
     assert.equal(
       toolsListSchemaFailure([
-        ...tools.slice(0, 4),
+        ...tools.slice(0, 5),
         {
-          ...tools[4],
+          ...tools[5],
           inputSchema: {
-            ...tools[4].inputSchema,
+            ...tools[5].inputSchema,
             properties: { expected_mtime: { type: 'number' } },
           },
         },
-        ...tools.slice(5),
+        ...tools.slice(6),
       ]),
       'add_relation.expected_mtime conflict guard schema drift',
     );
     assert.equal(
       toolsListSchemaFailure([
-        ...tools.slice(0, 8),
+        ...tools.slice(0, 9),
         {
-          ...tools[8],
+          ...tools[9],
           inputSchema: {
-            ...tools[8].inputSchema,
+            ...tools[9].inputSchema,
             properties: {
-              ...tools[8].inputSchema.properties,
+              ...tools[9].inputSchema.properties,
               confirm: { type: 'string' },
             },
           },
         },
-        tools[9],
+        tools[10],
       ]),
       'delete_concept.confirm dry-run safety schema drift',
     );

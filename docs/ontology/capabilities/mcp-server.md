@@ -182,7 +182,9 @@ required `query_ontology.operation`, `operation` / `targetOperation` enum 이
 runtime allow-list 와 일치하는지 검사해, MCP client schema 와 실제 graph engine
 dispatch 가 갈라지지 않도록 한다. `get_concepts` / `add_concepts` /
 `add_relations` 의 batch 배열도 runtime 과 같은 50-row cap 을 schema 에 노출하는지
-설치 verify 에서 확인한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
+설치 verify 에서 확인한다. `find_orphans.excludeKinds` schema 와 root/sentinel 기본
+제외 설명도 설치 verify 에서 확인해 MCP client 가 runtime cleanup 의미와 같은
+계약을 보게 한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
 실제로 보내고 unknown argument 거절 응답을 기대한다. write safety 도 같은 경로에서 `expected_mtime`
 conflict guard 와 destructive tool 의 `confirm` dry-run switch schema 를 검사한다.
 `initialize.instructions` 는 agent 가 write 도구부터 시도하지 않도록

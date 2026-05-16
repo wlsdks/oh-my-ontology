@@ -125,6 +125,16 @@ export function toolsListSchemaFailure(tools) {
     return 'query_ontology targetOperation enum schema drift';
   }
 
+  const findOrphansTool = tools.find((candidate) => candidate?.name === 'find_orphans');
+  if (!findOrphansTool) return 'tools/list response missing find_orphans tool';
+  const excludeKinds = propertyAt(findOrphansTool, ['properties', 'excludeKinds']);
+  if (excludeKinds?.type !== 'array' || excludeKinds?.items?.type !== 'string') {
+    return 'find_orphans.excludeKinds schema drift';
+  }
+  if (!/project/.test(excludeKinds.description || '') || !/vault-readme/.test(excludeKinds.description || '')) {
+    return 'find_orphans.excludeKinds default description drift';
+  }
+
   for (const [toolName, propertyName] of [
     ['get_concepts', 'slugs'],
     ['add_concepts', 'concepts'],

@@ -163,7 +163,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /required `query_ontology\.operation`/);
     assert.match(verifySection, /`query_ontology\.operation` \/[\s\S]*`query_ontology\.targetOperation` enums/);
     assert.match(verifySection, /same 50-row cap used by `get_concepts`, `add_concepts`,\s+and `add_relations`/);
-    assert.match(verifySection, /write-safety schemas for `expected_mtime`/);
+    assert.match(verifySection, /`find_orphans\.excludeKinds` string-array\s+schema and root\/sentinel default description/);
+    assert.match(verifySection, /write-safety schemas for\s+`expected_mtime`/);
     assert.match(verifySection, /destructive-tool `confirm` dry-run switches/);
     assert.match(verifySection, /runtime negative calls with `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"`/);
@@ -204,6 +205,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`query_ontology\.operation` must stay required/);
     assert.match(verifySection, /graph engine runtime allow-lists/);
     assert.match(verifySection, /batch tools must keep their 50-row caps/);
+    assert.match(verifySection, /validates the installed `find_orphans\.excludeKinds` schema and default description/);
     assert.match(verifySection, /write tools must keep their `expected_mtime` \/ `confirm` safety schemas/);
     assert.match(verifySection, /runtime negative smoke calls with invalid `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"` inputs/);
