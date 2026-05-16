@@ -219,6 +219,15 @@ describe('queryCompiledOntology', () => {
       { distance: 2, frontierNodes: 1, candidateEdges: 2, newNodes: 1 },
       { distance: 3, frontierNodes: 1, candidateEdges: 1, newNodes: 0 },
     ]);
+
+    const allPathsPlan = queryCompiledOntology(artifact(), {
+      operation: 'query_plan',
+      targetOperation: 'all_paths',
+      from: 'capabilities/session',
+      to: 'auth-domain',
+      maxHops: 3,
+    });
+    assert.equal(allPathsPlan.normalized.limit, 25);
   });
 
   it('ranks graph centrality for core nodes and bridges', () => {

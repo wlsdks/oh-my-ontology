@@ -1039,6 +1039,7 @@ await test("query_ontology — compiled graph engine neighbors/path/all_paths/qu
     assert.equal(queryPlan.estimate.strategy, "bounded_path_enumeration");
     assert.equal(queryPlan.estimate.edgeScans, 4);
     assert.equal(queryPlan.estimate.costClass, "low");
+    assert.equal(queryPlan.normalized.limit, 25);
 
     const centrality = getCallParsed(responses, 32);
     assert.equal(centrality.operation, "centrality");

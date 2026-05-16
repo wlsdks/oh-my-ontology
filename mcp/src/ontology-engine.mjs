@@ -347,7 +347,9 @@ export function createOntologyEngine(artifact, options = {}) {
 
   function queryPlan(options = {}) {
     const targetOperation = normalizePlanTargetOperation(options.targetOperation);
-    const limit = normalizeLimit(options.limit);
+    const limit = normalizeLimit(
+      options.limit ?? (targetOperation === 'all_paths' ? 25 : DEFAULT_LIMIT),
+    );
     const typeSet = normalizeTypes(options.types);
     const normalized = {
       targetOperation,
