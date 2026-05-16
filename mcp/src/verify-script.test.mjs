@@ -123,6 +123,18 @@ describe('verify.mjs first-contact gates', () => {
       }),
       null,
     );
+    assert.equal(
+      getConceptsFailure({
+        concepts: [
+          {
+            ok: false,
+            slug: 'missing-verify-slug',
+            error: 'Doc not found: missing-verify-slug',
+          },
+        ],
+      }),
+      null,
+    );
   });
 
   it('builds get_concepts smoke slugs from the current list response', () => {
