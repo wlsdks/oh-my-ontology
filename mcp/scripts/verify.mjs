@@ -296,6 +296,37 @@ export function toolsListSchemaFailure(tools) {
     return 'get_concepts outputSchema row outgoingEdges drift';
   }
 
+  const findEvidenceTool = tools.find((tool) => tool?.name === 'find_evidence');
+  if (!findEvidenceTool) return 'tools/list response missing find_evidence tool';
+  if (findEvidenceTool.outputSchema?.type !== 'object') {
+    return 'find_evidence outputSchema root drift';
+  }
+  if (!sameArray(findEvidenceTool.outputSchema?.required, ['query', 'matches'])) {
+    return 'find_evidence outputSchema required drift';
+  }
+  if (outputPropertyAt(findEvidenceTool, ['properties', 'query'])?.type !== 'string') {
+    return 'find_evidence outputSchema query drift';
+  }
+  const evidenceMatchesSchema = outputPropertyAt(findEvidenceTool, ['properties', 'matches']);
+  if (
+    evidenceMatchesSchema?.type !== 'array' ||
+    evidenceMatchesSchema.items?.type !== 'object' ||
+    !sameArray(evidenceMatchesSchema.items?.required, ['slug', 'kind', 'title', 'mtime', 'matchedIn', 'excerpt'])
+  ) {
+    return 'find_evidence outputSchema matches drift';
+  }
+  for (const propertyName of ['slug', 'kind', 'title', 'excerpt']) {
+    if (evidenceMatchesSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `find_evidence outputSchema match ${propertyName} drift`;
+    }
+  }
+  if (evidenceMatchesSchema.items?.properties?.mtime?.type !== 'number' || evidenceMatchesSchema.items?.properties?.mtime?.minimum !== 0) {
+    return 'find_evidence outputSchema match mtime drift';
+  }
+  if (!sameArray(evidenceMatchesSchema.items?.properties?.matchedIn?.enum, ['frontmatter', 'body'])) {
+    return 'find_evidence outputSchema match matchedIn drift';
+  }
+
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
 

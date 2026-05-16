@@ -584,6 +584,7 @@ export function evaluateDogfoodGate({
   batch,
   batchStructured,
   ev,
+  evStructured,
   path,
   bl,
   orph,
@@ -744,6 +745,9 @@ export function evaluateDogfoodGate({
   if (ev) {
     const evidenceFailure = evidenceShapeFailure(ev);
     if (evidenceFailure) failures.push(evidenceFailure);
+    else if (evStructured !== undefined && JSON.stringify(evStructured) !== JSON.stringify(ev)) {
+      failures.push("find_evidence structuredContent mismatch");
+    }
   }
   if (path) {
     const pathFailure = pathShapeFailure(path);
@@ -4069,7 +4073,9 @@ async function main() {
   // 4. find_evidence
   header(`find_evidence(title="vault")`);
   const ev = getResult(responses, 4);
+  const evStructured = getRpcResult(responses, 4)?.structuredContent ?? null;
   if (ev) {
+    console.log(`  structuredContent: ${JSON.stringify(evStructured) === JSON.stringify(ev) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     console.log(`  matches: ${ev.matches?.length || 0}`);
     for (const m of (ev.matches || []).slice(0, 5)) {
       console.log(`  ${m.kind?.padEnd(13) || ""} ${m.slug.padEnd(40)} (${m.matchedIn})`);
@@ -4642,6 +4648,7 @@ async function main() {
     batch,
     batchStructured,
     ev,
+    evStructured,
     path,
     bl,
     orph,

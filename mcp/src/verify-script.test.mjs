@@ -415,6 +415,32 @@ describe('verify.mjs first-contact gates', () => {
           },
         },
       },
+      {
+        name: 'find_evidence',
+        inputSchema: { additionalProperties: false, required: ['title'], properties: {} },
+        outputSchema: {
+          type: 'object',
+          required: ['query', 'matches'],
+          properties: {
+            query: { type: 'string' },
+            matches: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'kind', 'title', 'mtime', 'matchedIn', 'excerpt'],
+                properties: {
+                  slug: { type: 'string' },
+                  kind: { type: 'string' },
+                  title: { type: 'string' },
+                  mtime: { type: 'number', minimum: 0 },
+                  matchedIn: { enum: ['frontmatter', 'body'] },
+                  excerpt: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      },
     ].map((tool) => ({
       ...tool,
       annotations: {
@@ -910,6 +936,41 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => !['list_concepts', 'get_concepts', 'get_concept'].includes(tool.name)),
       ]),
       'get_concept outputSchema neighbors dependencies drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_evidence'),
+        {
+          ...tools.find((tool) => tool.name === 'find_evidence'),
+          outputSchema: { ...tools.find((tool) => tool.name === 'find_evidence').outputSchema, required: ['matches', 'query'] },
+        },
+      ]),
+      'find_evidence outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_evidence'),
+        {
+          ...tools.find((tool) => tool.name === 'find_evidence'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'find_evidence').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'find_evidence').outputSchema.properties,
+              matches: {
+                ...tools.find((tool) => tool.name === 'find_evidence').outputSchema.properties.matches,
+                items: {
+                  ...tools.find((tool) => tool.name === 'find_evidence').outputSchema.properties.matches.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'find_evidence').outputSchema.properties.matches.items.properties,
+                    matchedIn: { enum: ['frontmatter'] },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'find_evidence outputSchema match matchedIn drift',
     );
     assert.equal(
       toolsListSchemaFailure([

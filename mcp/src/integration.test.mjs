@@ -342,6 +342,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.deepEqual(getConceptsTool?.outputSchema?.properties?.concepts?.items?.required, ["ok", "slug"]);
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.ok?.type, "boolean");
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.mtime?.type, "number");
+    const findEvidence = findTool("find_evidence");
+    assert.equal(findEvidence?.outputSchema?.type, "object");
+    assert.deepEqual(findEvidence?.outputSchema?.required, ["query", "matches"]);
+    assert.equal(findEvidence?.outputSchema?.properties?.matches?.type, "array");
+    assert.deepEqual(findEvidence?.outputSchema?.properties?.matches?.items?.required, ["slug", "kind", "title", "mtime", "matchedIn", "excerpt"]);
+    assert.deepEqual(findEvidence?.outputSchema?.properties?.matches?.items?.properties?.matchedIn?.enum, ["frontmatter", "body"]);
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -1710,6 +1716,7 @@ await test("find_evidence — 각 match 에 prose excerpt 동봉 (R+)", async ()
       callTool(2, "find_evidence", { title: "auth" }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.ok(Array.isArray(result.matches));
     assert.ok(result.matches.length >= 1);
     for (const m of result.matches) {

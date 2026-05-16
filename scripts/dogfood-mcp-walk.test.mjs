@@ -175,6 +175,30 @@ function makeDogfoodToolsList() {
           },
         };
       }
+      if (name === "find_evidence") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["query", "matches"],
+          properties: {
+            query: { type: "string" },
+            matches: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "kind", "title", "mtime", "matchedIn", "excerpt"],
+                properties: {
+                  slug: { type: "string" },
+                  kind: { type: "string" },
+                  title: { type: "string" },
+                  mtime: { type: "number", minimum: 0 },
+                  matchedIn: { enum: ["frontmatter", "body"] },
+                  excerpt: { type: "string" },
+                },
+              },
+            },
+          },
+        };
+      }
       if (name === "list_kinds") {
         tool.outputSchema = {
           type: "object",
@@ -324,6 +348,7 @@ const okShape = {
     ],
   },
   ev: { matches: [] },
+  evStructured: { matches: [] },
   path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b", via: "relates" }] },
   bl: {
     total: 1,
@@ -1943,6 +1968,12 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, toolsList: getConceptOutputSchemaDrifted }),
       ["tools/list: get_concept outputSchema neighbors relates drift"],
     );
+    const evidenceOutputSchemaDrifted = makeDogfoodToolsList();
+    evidenceOutputSchemaDrifted.tools.find((tool) => tool.name === "find_evidence").outputSchema.properties.matches.items.properties.matchedIn.enum = ["frontmatter"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: evidenceOutputSchemaDrifted }),
+      ["tools/list: find_evidence outputSchema match matchedIn drift"],
+    );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),
       ["list_concepts structuredContent mismatch"],
@@ -2157,6 +2188,10 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, ev: { matches: [{}] } }),
       ["find_evidence response missing row slug at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, evStructured: { matches: [{ slug: "other" }] } }),
+      ["find_evidence structuredContent mismatch"],
     );
   });
 

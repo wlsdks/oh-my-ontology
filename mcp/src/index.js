@@ -462,6 +462,32 @@ const TOOLS = [
       },
       required: ['title'],
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        query: NON_BLANK_STRING_SCHEMA,
+        matches: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              kind: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              domain: { type: 'string' },
+              mtime: { type: 'number', minimum: 0 },
+              matchedIn: {
+                type: 'string',
+                enum: ['frontmatter', 'body'],
+              },
+              excerpt: { type: 'string' },
+            },
+            required: ['slug', 'kind', 'title', 'mtime', 'matchedIn', 'excerpt'],
+          },
+        },
+      },
+      required: ['query', 'matches'],
+    },
   },
   {
     name: 'add_concept',
