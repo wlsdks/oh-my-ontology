@@ -154,7 +154,7 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
 function blockingNextActions(actions) {
   if (!Array.isArray(actions)) return [];
   return actions
-    .filter((action) => action?.severity === 'warn' || action?.severity === 'fail')
+    .filter((action) => action?.severity === 'fail')
     .map((action) => action.id || action.kind || 'unknown');
 }
 

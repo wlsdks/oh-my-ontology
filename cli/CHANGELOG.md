@@ -5,6 +5,7 @@
 ### Added — `mcp-verify` command
 
 - `oh-my-ontology mcp-verify [vault] [--timeout-ms N]` — installed CLI wrapper around the MCP package verify script. Runs parser smoke, server boot, 23-tool inventory, `list_concepts`, `validate_vault`, `workspace_brief`, and `health` against the resolved vault.
+- `mcp-verify` blocks fail-severity first-contact problems while still allowing warn-level starter-vault diagnostics to print, so fresh `init` users can confirm MCP wiring before graph cleanup.
 - 신규 integration test 2건 (`mcp-verify` runs against a fresh `init` vault with a short verify timeout, invalid timeout rejected).
 
 ### Added — `compile` 명령 (25th, compile_ontology wrap + canonicalization apply)

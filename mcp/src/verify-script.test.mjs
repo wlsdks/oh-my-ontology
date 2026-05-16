@@ -158,7 +158,25 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
-  it('fails workspace_brief responses with warn/fail next actions', () => {
+  it('accepts workspace_brief responses with warn next actions', () => {
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'needs_attention',
+          nextActions: [
+            { kind: 'health_check', severity: 'warn', id: 'compile_issues' },
+            { kind: 'add_missing_relations', severity: 'warn', count: 2 },
+          ],
+        },
+        'workspace_brief',
+      ),
+      null,
+    );
+  });
+
+  it('fails workspace_brief responses with fail next actions', () => {
     assert.equal(
       diagnosisBlockingFailure(
         'workspace_brief',
@@ -167,13 +185,12 @@ describe('verify.mjs first-contact gates', () => {
           status: 'healthy',
           nextActions: [
             { kind: 'health_check', severity: 'info', id: 'components' },
-            { kind: 'materialize_external_elements', severity: 'warn', count: 2 },
             { kind: 'resolve_dangling_references', severity: 'fail', count: 1 },
           ],
         },
         'workspace_brief',
       ),
-      'workspace_brief has actionable nextActions: materialize_external_elements, resolve_dangling_references',
+      'workspace_brief has actionable nextActions: resolve_dangling_references',
     );
   });
 });
