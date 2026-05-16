@@ -37,7 +37,9 @@ export function pathResultExitCode(result) {
 
 export function healthResultExitCode(result) {
   const status = result?.status ?? 'unknown';
-  const checks = Array.isArray(result?.checks) ? result.checks : [];
+  if (!Array.isArray(result?.checks)) return 1;
+  const checks = result.checks;
+  if (checks.some((check) => !validHealthCheck(check))) return 1;
   if (checks.some((check) => check?.status === 'fail')) return 1;
   return status === 'healthy' || status === 'pass' ? 0 : 1;
 }
@@ -46,8 +48,34 @@ export function workspaceBriefExitCode(result) {
   if (!Array.isArray(result?.nextActions)) return 1;
   if (!Array.isArray(result?.health?.checks)) return 1;
   const next = result.nextActions;
+  if (next.some((action) => !validNextAction(action))) return 1;
+  if (result.health.checks.some((check) => !validHealthCheck(check))) return 1;
   if (next.some((action) => action?.severity === 'fail')) return 1;
   return result.health.checks.some((check) => check?.status === 'fail') ? 1 : 0;
+}
+
+function validNextAction(action) {
+  return Boolean(
+    action
+    && typeof action === 'object'
+    && !Array.isArray(action)
+    && hasNonEmptyString(action.id, action.kind)
+    && hasNonEmptyString(action.severity)
+  );
+}
+
+function validHealthCheck(check) {
+  return Boolean(
+    check
+    && typeof check === 'object'
+    && !Array.isArray(check)
+    && hasNonEmptyString(check.id)
+    && hasNonEmptyString(check.status)
+  );
+}
+
+function hasNonEmptyString(...values) {
+  return values.some((value) => typeof value === 'string' && value.length > 0);
 }
 
 function numberValue(value, fallback = 0) {
