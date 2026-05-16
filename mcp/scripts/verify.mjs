@@ -867,7 +867,12 @@ async function step2BootAndCall() {
           log('fail', failure);
           return res(false);
         }
-        log('ok', `workspace_brief — ${parsed.status} (${parsed.summary?.nodes ?? 0} nodes, nextActions ${(parsed.nextActions || []).length})`);
+        log(
+          'ok',
+          `workspace_brief — ${parsed.status} (${parsed.summary?.nodes ?? 0} nodes, nextActions ${
+            (parsed.nextActions || []).length
+          }, healthChecks ${(parsed.health?.checks || []).length})`,
+        );
         const advisory = advisoryNextActionsSummary(parsed.nextActions);
         if (advisory) log('info', `workspace_brief advisory nextActions — ${advisory}`);
       } catch (err) {

@@ -179,11 +179,11 @@ A successful run looks like this:
 ✓ get_concepts — 2 ok rows, 1 partial rows
 ✓ list_kinds — 28 nodes (capability:16, domain:6, element:4, project:1, vault-readme:1)
 ✓ validate_vault — 28 files, problemFiles 0
-✓ workspace_brief — healthy (28 nodes, nextActions 0)
+✓ workspace_brief — healthy (28 nodes, nextActions 0, healthChecks 5)
 ✓ health — healthy (5 checks, issues 0)
-✓ compile_ontology — graph cc3174c08d48 (28 nodes, 199 edges, issues 0)
-✓ overview — graph cc3174c08d48 (28 nodes, 199 edges, hubs 5)
-✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 199)
+✓ compile_ontology — graph 01dcdf26c195 (28 nodes, 200 edges, issues 0)
+✓ overview — graph 01dcdf26c195 (28 nodes, 200 edges, hubs 5)
+✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 200)
 
 All passed — register .mcp.json with Claude Code and restart to use the 23 tools.
 ```
@@ -204,7 +204,8 @@ verify before cleanup. Missing or malformed first-contact diagnosis payloads
 such as `workspace_brief.nextActions`, `workspace_brief.health.checks`, and
 `health.checks` also fail the command instead of being treated as clean.
 Non-blocking `workspace_brief.nextActions` are printed as a short
-advisory list. The default wait window is 8 seconds; set
+advisory list, and the success line includes the `workspace_brief.health.checks`
+count that the verify gate validated. The default wait window is 8 seconds; set
 `OMOT_VERIFY_TIMEOUT_MS` to a positive integer millisecond value if your vault
 is large or on a slow filesystem.
 

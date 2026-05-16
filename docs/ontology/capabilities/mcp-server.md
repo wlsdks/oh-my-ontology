@@ -72,6 +72,8 @@ fail severity `workspace_brief.nextActions` 는 exit 1 로 처리하되, starter
 `workspace_brief.nextActions`, `workspace_brief.health.checks`, `health.checks`
 같은 first-contact diagnosis payload 의 핵심 배열이 빠지거나 malformed 이면
 clean vault 로 오인하지 않고 verify 를 실패시킨다.
+성공 출력도 `workspace_brief` 라인에 validated health check count 를 드러내
+agent 가 nextActions 와 health coverage 를 한 화면에서 확인하게 한다.
 `get_concepts` 는 `list_concepts` 에서 얻은 실제 slug 최대 2개와 missing slug 를 섞어
 설치 검증에서도 batch reader 의 성공 row 와 partial row 계약을 확인한다.
 verify 는 `list_kinds.total`, `list_concepts.total`, `validate_vault.scanned`,
