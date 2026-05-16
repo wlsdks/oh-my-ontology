@@ -2486,10 +2486,36 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         maintenancePlan: {
           ...okShape.maintenancePlan,
+          actions: [okShape.maintenancePlan.actions[1]],
+          cursor: { ...okShape.maintenancePlan.cursor, nextAfterActionId: "maint_review" },
+          nextExecutableAction: okShape.maintenancePlan.nextExecutableAction,
+          nextReviewAction: okShape.maintenancePlan.actions[1],
+        },
+      }),
+      ["maintenance_plan unexpected nextExecutableAction outside current page"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
           nextReviewAction: null,
         },
       }),
       ["maintenance_plan nextReviewAction does not match first review page action"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          actions: [okShape.maintenancePlan.actions[0]],
+          cursor: { ...okShape.maintenancePlan.cursor, nextAfterActionId: "maint_link" },
+          nextExecutableAction: okShape.maintenancePlan.actions[0],
+          nextReviewAction: okShape.maintenancePlan.nextReviewAction,
+        },
+      }),
+      ["maintenance_plan unexpected nextReviewAction outside current page"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({

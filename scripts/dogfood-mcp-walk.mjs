@@ -1590,9 +1590,15 @@ function maintenancePlanShapeFailure(result, options = {}) {
     if (firstExecutableAction && result.nextExecutableAction?.id !== firstExecutableAction.id) {
       return "maintenance_plan nextExecutableAction does not match first executable page action";
     }
+    if (!firstExecutableAction && result.nextExecutableAction !== null) {
+      return "maintenance_plan unexpected nextExecutableAction outside current page";
+    }
     const firstReviewAction = result.actions.find((action) => action?.executable === false);
     if (firstReviewAction && result.nextReviewAction?.id !== firstReviewAction.id) {
       return "maintenance_plan nextReviewAction does not match first review page action";
+    }
+    if (!firstReviewAction && result.nextReviewAction !== null) {
+      return "maintenance_plan unexpected nextReviewAction outside current page";
     }
   }
   for (const [index, action] of result.actions.entries()) {
