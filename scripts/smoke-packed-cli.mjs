@@ -28,17 +28,21 @@ const expectedToolCount = MCP_PKG.description.match(/(\d+) tools/)?.[1];
 assert.ok(expectedToolCount, 'mcp/package.json description must include the current tool count');
 
 function run(cmd, args, options = {}) {
-  const result = spawnSync(cmd, args, {
-    cwd: options.cwd,
-    env: { ...process.env, ...options.env },
-    encoding: 'utf-8',
-  });
+  const result = runRaw(cmd, args, options);
   assert.equal(
     result.status,
     0,
     `${cmd} ${args.join(' ')} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
   return result;
+}
+
+function runRaw(cmd, args, options = {}) {
+  return spawnSync(cmd, args, {
+    cwd: options.cwd,
+    env: { ...process.env, ...options.env },
+    encoding: 'utf-8',
+  });
 }
 
 function packPackage(packageDir, destination) {
@@ -109,6 +113,23 @@ try {
   assert.match(mcpVerify.stdout, /validate_vault/);
   assert.match(mcpVerify.stdout, /workspace_brief/);
   assert.match(mcpVerify.stdout, /health/);
+
+  const invalidMcpVerifyTimeout = runRaw(
+    'npm',
+    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), 'run', 'verify'],
+    {
+      cwd: projectDir,
+      env: {
+        OMOT_VAULT: join(projectDir, 'ontology'),
+        OMOT_VERIFY_TIMEOUT_MS: '1000ms',
+      },
+    },
+  );
+  assert.equal(invalidMcpVerifyTimeout.status, 1);
+  assert.match(
+    `${invalidMcpVerifyTimeout.stdout}\n${invalidMcpVerifyTimeout.stderr}`,
+    /OMOT_VERIFY_TIMEOUT_MS must be a positive integer/,
+  );
 
   const compile = run(cliBin, ['compile', 'ontology', '--summary'], { cwd: projectDir });
   assert.match(compile.stdout, /compiled ontology/);
