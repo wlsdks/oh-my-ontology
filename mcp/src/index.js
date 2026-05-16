@@ -899,7 +899,7 @@ const TOOLS = [
       'Replaces the K-round-trip pattern of `list_concepts` then per-doc `get_concept` (whose `warnings: [...]` is per-file). ' +
       '8 issue codes — `unclosed-frontmatter`, `parse-zero-keys`, `missing-kind`, `empty-kind`, `unknown-kind`, `missing-expected-field`, `non-canonical-graph-array`, `dangling-graph-reference`. ' +
       'Returns `{ scanned, problems: [{slug, issues: [{code, severity, message}]}], summary: { problemFiles, errorFiles, warningFiles, byCode: { code: { severity, count, files } } } }`. ' +
-      'side effect 0. Use when an agent needs the *whole-vault* health view (e.g. before / after a batch write, or surfacing issues to the user).',
+      'side effect 0. Use when an agent needs the *whole-vault* health view: first-contact before writes, before / after a batch write, or surfacing issues to the user.',
     inputSchema: {
       type: 'object',
       properties: {},
