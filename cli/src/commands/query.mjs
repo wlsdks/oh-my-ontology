@@ -4,6 +4,7 @@
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -66,12 +67,12 @@ export async function runQuery(args) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.', json: false, limit: 100 };
+  const flags = { vault: null, json: false, limit: 100 };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a === '--limit') flags.limit = Number(args[++i]) || 100;
     else if (a.startsWith('--limit='))
@@ -82,12 +83,11 @@ function parseArgs(args) {
   if (positional.length === 0) {
     return { error: 'filter is required (e.g. "kind=capability AND has(elements)")' };
   }
-  if (positional.length >= 2 && flags.vault === '.') {
-    flags.vault = positional[1];
-  }
+  const vaultResult = resolveTrailingVaultArg({ vault: flags.vault, positional, vaultIndex: 1 });
+  if (vaultResult.error) return vaultResult;
   return {
     filter: positional[0],
-    vault: flags.vault,
+    vault: vaultResult.vault,
     json: flags.json,
     limit: flags.limit,
   };

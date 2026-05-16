@@ -4,6 +4,7 @@
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -133,12 +134,12 @@ function sortByCount(obj) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.', json: false, hubsLimit: 10 };
+  const flags = { vault: null, json: false, hubsLimit: 10 };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a === '--limit') flags.hubsLimit = Number(args[++i]) || 10;
     else if (a.startsWith('--limit='))
@@ -146,10 +147,10 @@ function parseArgs(args) {
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
-  // first positional = vault (optional, overrides default).
-  if (positional.length > 0 && flags.vault === '.') flags.vault = positional[0];
+  const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
+  if (vaultResult.error) return vaultResult;
   return {
-    vault: flags.vault,
+    vault: vaultResult.vault,
     json: flags.json,
     hubsLimit: flags.hubsLimit,
   };

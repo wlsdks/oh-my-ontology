@@ -4,6 +4,7 @@
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -143,12 +144,12 @@ function renderEdgesByRelation(edges, peerField) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.', json: false };
+  const flags = { vault: null, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
@@ -156,9 +157,9 @@ function parseArgs(args) {
   if (positional.length === 0) {
     return { error: 'slug is required (e.g. `node capabilities/foo`)' };
   }
-  const [slug, vault] = positional;
-  if (vault && flags.vault === '.') flags.vault = vault;
-  return { slug, vault: flags.vault, json: flags.json };
+  const vaultResult = resolveTrailingVaultArg({ vault: flags.vault, positional, vaultIndex: 1 });
+  if (vaultResult.error) return vaultResult;
+  return { slug: positional[0], vault: vaultResult.vault, json: flags.json };
 }
 
 function printUsage() {

@@ -4,6 +4,7 @@
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -79,12 +80,12 @@ export async function runOrphans(args) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.', json: false, kind: null, excludeKinds: [] };
+  const flags = { vault: null, json: false, kind: null, excludeKinds: [] };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a === '--kind') flags.kind = args[++i] || null;
     else if (a.startsWith('--kind=')) flags.kind = a.slice('--kind='.length);
@@ -103,12 +104,10 @@ function parseArgs(args) {
     } else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
-  // Optional first positional is vault path (parity with list/find/validate/backlinks).
-  if (positional.length >= 1 && flags.vault === '.') {
-    flags.vault = positional[0];
-  }
+  const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
+  if (vaultResult.error) return vaultResult;
   return {
-    vault: flags.vault,
+    vault: vaultResult.vault,
     json: flags.json,
     kind: flags.kind,
     excludeKinds: flags.excludeKinds,

@@ -6,6 +6,7 @@
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -83,12 +84,12 @@ export async function runPath(args) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: '.', json: false, maxHops: undefined };
+  const flags = { vault: null, json: false, maxHops: undefined };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a === '--max-hops') {
       const next = args[++i];
@@ -113,11 +114,9 @@ function parseArgs(args) {
     return { error: 'both <from> and <to> are required' };
   }
   // 3rd positional = vault path (parity with list/find/validate/backlinks/orphans).
-  const [from, to, maybeVault] = positional;
-  if (maybeVault && flags.vault === '.') {
-    flags.vault = maybeVault;
-  }
-  return { from, to, vault: flags.vault, json: flags.json, maxHops: flags.maxHops };
+  const vaultResult = resolveTrailingVaultArg({ vault: flags.vault, positional, vaultIndex: 2 });
+  if (vaultResult.error) return vaultResult;
+  return { from: positional[0], to: positional[1], vault: vaultResult.vault, json: flags.json, maxHops: flags.maxHops };
 }
 
 function printUsage() {

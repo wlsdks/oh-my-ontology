@@ -1175,6 +1175,69 @@ await test('path — 두 인자 누락 시 usage + exit 1', async () => {
   assert.match(stripAnsi(r.stderr), /from.*to.*required|both/);
 });
 
+await test('read-only graph commands — reject ambiguous vault arguments before MCP call', async () => {
+  const cases = [
+    {
+      args: ['backlinks', 'capabilities/foo', '--vault'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['backlinks', 'capabilities/foo', 'ontology', '--vault', 'docs/ontology'],
+      pattern: /either positional argument or --vault/,
+    },
+    {
+      args: ['query', 'kind=capability', 'one', 'two'],
+      pattern: /too many arguments: two/,
+    },
+    {
+      args: ['path', 'capabilities/foo', 'capabilities/bar', '--vault='],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['path', 'capabilities/foo', 'capabilities/bar', 'ontology', '--vault', 'docs/ontology'],
+      pattern: /either positional argument or --vault/,
+    },
+    {
+      args: ['orphans', '--vault', '--json'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['node', 'capabilities/foo', 'ontology', '--vault', 'docs/ontology'],
+      pattern: /either positional argument or --vault/,
+    },
+    {
+      args: ['overview', 'ontology', '--vault', 'docs/ontology'],
+      pattern: /either positional argument or --vault/,
+    },
+    {
+      args: ['hubs', 'one', 'two'],
+      pattern: /too many arguments: two/,
+    },
+    {
+      args: ['health', '--vault='],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['cycles', '--vault', '--json'],
+      pattern: /--vault requires a path/,
+    },
+    {
+      args: ['blast-radius', 'capabilities/foo', 'one', 'two'],
+      pattern: /too many arguments: two/,
+    },
+    {
+      args: ['workspace-brief', 'ontology', '--vault', 'docs/ontology'],
+      pattern: /either positional argument or --vault/,
+    },
+  ];
+
+  for (const c of cases) {
+    const r = await run(c.args);
+    assert.equal(r.code, 1, `${c.args.join(' ')}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.match(stripAnsi(r.stderr), c.pattern);
+  }
+});
+
 await test('orphans — graph fixture 에서 referenced 노드 0건 보고', async () => {
   // buildGraphFixture: foo (referenced by bar.relates + auth.capabilities),
   // bar (referenced by 0 — orphan? but auth domain.capabilities 가 references bar),

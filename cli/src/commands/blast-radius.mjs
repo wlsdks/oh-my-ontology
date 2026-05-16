@@ -4,6 +4,7 @@
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -102,7 +103,7 @@ function render(result, requestedSlug) {
 
 function parseArgs(args) {
   const flags = {
-    vault: '.',
+    vault: null,
     json: false,
     depth: undefined,
     direction: 'incoming',
@@ -110,8 +111,8 @@ function parseArgs(args) {
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a === '--depth') flags.depth = Number(args[++i]) || undefined;
     else if (a.startsWith('--depth=')) flags.depth = Number(a.slice('--depth='.length)) || undefined;
@@ -124,11 +125,11 @@ function parseArgs(args) {
   if (positional.length === 0) {
     return { error: 'slug is required (e.g. `blast-radius capabilities/foo`)' };
   }
-  const [slug, vault] = positional;
-  if (vault && flags.vault === '.') flags.vault = vault;
+  const vaultResult = resolveTrailingVaultArg({ vault: flags.vault, positional, vaultIndex: 1 });
+  if (vaultResult.error) return vaultResult;
   return {
-    slug,
-    vault: flags.vault,
+    slug: positional[0],
+    vault: vaultResult.vault,
     json: flags.json,
     depth: flags.depth,
     direction: flags.direction,
