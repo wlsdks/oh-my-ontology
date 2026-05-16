@@ -73,6 +73,8 @@ Read/query handler 도 numeric pagination / traversal 옵션을 조용히 기본
 흡수하지 않는다. `list_concepts.limit`, `find_neighbors.limit`, `find_path.maxHops`,
 `query_concepts.limit`, `compile_ontology` pagination, `query_ontology` 의 limit /
 depth / iterations / direction 값이 범위를 벗어나면 MCP error 로 노출된다.
+`tools/list` inputSchema 도 같은 integer / minimum / maximum 제약을 노출해
+agent 가 호출 전 잘못된 인자를 스스로 고칠 수 있게 한다.
 
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `workspace_brief` 와 `health`

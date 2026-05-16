@@ -84,6 +84,13 @@ The server connects over stdio. You should now see 23 tools under the `oh-my-ont
 | `rename_concept` | **v0.7 ⚠ MULTI-FILE** Atomically renames a slug — moves the .md file, updates the moved file's `slug:` key, and rewrites every backlink (frontmatter array entries, inline string keys like `domain`, body links `[[oldSlug]]` / `(oldSlug.md)`). Tail-only references (`mcp-server` for `capabilities/mcp-server`) are also redirected. Without `confirm:true`, runs as a dry-run with a full update preview. Replaces the manual loop of `find_backlinks` + N `patch_concept` calls. **R11**: optional `expected_mtime` for the source slug. Confirmed renames return compact `postWriteMaintenance`. |
 | `merge_concepts` | **v0.7 ⚠ DESTRUCTIVE MULTI-FILE** Folds `fromSlug` into `intoSlug` — every backlink to `fromSlug` is redirected, then `fromSlug.md` is deleted. The `intoSlug` node is preserved as-is (frontmatter / body are not auto-merged — use `patch_concept` after if you want to combine descriptions). Without `confirm:true`, runs as a dry-run. **R11**: optional `expected_mtime` for `fromSlug`. Confirmed merges return compact `postWriteMaintenance`. |
 
+Read/query numeric options are intentionally strict. `tools/list` exposes the same
+integer / minimum / maximum constraints that the runtime enforces for
+`list_concepts.limit`, `find_neighbors.limit`, `find_path.maxHops`,
+`query_concepts.limit`, `compile_ontology` pagination, and `query_ontology`
+limit/depth/iteration controls, so MCP clients and agents can correct invalid
+arguments before the tool call instead of relying on silent fallback.
+
 ## Frontmatter shape per kind (R14)
 
 When `add_concept` writes a new `.md`, the frontmatter is normalized by

@@ -206,8 +206,9 @@ const TOOLS = [
         },
         since: {
           type: 'number',
+          minimum: 0,
           description:
-            'Filter to nodes with `mtime > since` (ms). Pair with the `mtime` returned in earlier `list_concepts` / `get_concept` responses for incremental sync — "what changed since I last looked". Strict greater-than (mtime === since 는 제외) so re-passing the max from a previous response does not double-fetch.',
+            'Non-negative mtime threshold. Filter to nodes with `mtime > since` (ms). Pair with the `mtime` returned in earlier `list_concepts` / `get_concept` responses for incremental sync — "what changed since I last looked". Strict greater-than (mtime === since 는 제외) so re-passing the max from a previous response does not double-fetch.',
         },
         summary: {
           type: 'boolean',
@@ -215,8 +216,9 @@ const TOOLS = [
             'When true, each node row includes a `summary` (max 200 chars, prose-only — heading / 표 / 코드블록 / 리스트 / 인용 skip 후 첫 단락만, same `extractSummaryExcerpt` helper as `get_concept` / `find_evidence`). Useful for "scan + overview" without N follow-up `get_concept` calls. Default false to keep payload small.',
         },
         limit: {
-          type: 'number',
-          description: 'Max rows to return. Defaults to 100.',
+          type: 'integer',
+          minimum: 1,
+          description: 'Positive integer max rows to return. Defaults to 100.',
         },
       },
     },
@@ -516,8 +518,10 @@ const TOOLS = [
             'When true (default), include neighbor node summaries for resolved edges.',
         },
         limit: {
-          type: 'number',
-          description: 'Max edges to return. Defaults to 100.',
+          type: 'integer',
+          minimum: 1,
+          maximum: 500,
+          description: 'Positive integer max edges to return. Defaults to 100, max 500.',
         },
       },
       required: ['slug'],
@@ -538,8 +542,9 @@ const TOOLS = [
         from: { type: 'string', description: 'Source slug.' },
         to: { type: 'string', description: 'Target slug.' },
         maxHops: {
-          type: 'number',
-          description: 'Maximum hop count (default 5).',
+          type: 'integer',
+          minimum: 0,
+          description: 'Non-negative integer maximum hop count (default 5).',
         },
       },
       required: ['from', 'to'],
@@ -604,8 +609,9 @@ const TOOLS = [
             "Wrap values containing whitespace or special characters with \"...\" or '...'.",
         },
         limit: {
-          type: 'number',
-          description: 'Max rows to return. Defaults to 100.',
+          type: 'integer',
+          minimum: 1,
+          description: 'Positive integer max rows to return. Defaults to 100.',
         },
       },
       required: ['filter'],
@@ -631,20 +637,24 @@ const TOOLS = [
             'When true, omit `nodes` / `edges` / `aliases` / `ambiguousAliases` / `canonicalizationActions` / `indexes` arrays — return only `graphHash`, `maxMtime`, counts (`nodeCount`/`edgeCount`/`aliasCount`/...), and aggregate `byKind`/`byDomain` as counts. Cheap polling for cache invalidation and graph-size assessment.',
         },
         nodesLimit: {
-          type: 'number',
-          description: 'Max nodes to return. Pair with `nodesOffset` to paginate. Omit for unlimited (backward compat).',
+          type: 'integer',
+          minimum: 0,
+          description: 'Non-negative integer max nodes to return. Pair with `nodesOffset` to paginate. Omit for unlimited (backward compat).',
         },
         nodesOffset: {
-          type: 'number',
-          description: 'Starting index in the sorted nodes array. Defaults 0.',
+          type: 'integer',
+          minimum: 0,
+          description: 'Non-negative integer starting index in the sorted nodes array. Defaults 0.',
         },
         edgesLimit: {
-          type: 'number',
-          description: 'Max edges to return. Pair with `edgesOffset` to paginate.',
+          type: 'integer',
+          minimum: 0,
+          description: 'Non-negative integer max edges to return. Pair with `edgesOffset` to paginate.',
         },
         edgesOffset: {
-          type: 'number',
-          description: 'Starting index in the sorted edges array. Defaults 0.',
+          type: 'integer',
+          minimum: 0,
+          description: 'Non-negative integer starting index in the sorted edges array. Defaults 0.',
         },
       },
     },
@@ -703,9 +713,11 @@ const TOOLS = [
             'query_plan only: operation to explain before execution, e.g. path, all_paths, reachability, impact, subgraph, match_nodes, or match_edges.',
         },
         iterations: {
-          type: 'number',
+          type: 'integer',
+          minimum: 1,
+          maximum: 100,
           description:
-            'centrality/communities only: PageRank or label-propagation iteration count. Defaults to 20, capped at 100.',
+            'centrality/communities only: positive integer PageRank or label-propagation iteration count. Defaults to 20, max 100.',
         },
         slug: {
           type: 'string',
@@ -819,11 +831,13 @@ const TOOLS = [
           description: 'Alias for type when operation is relation_check.',
         },
         depth: {
-          type: 'number',
+          type: 'integer',
+          minimum: 0,
           description: 'reachability/impact/blast_radius/subgraph/lineage/containment_tree traversal depth. Defaults to 3 for reachability, 2 for impact/blast_radius/subgraph, and 20 for lineage/containment_tree; capped at 20.',
         },
         maxHops: {
-          type: 'number',
+          type: 'integer',
+          minimum: 0,
           description: 'path/all_paths/explain_relation traversal hop cap or cycles max depth. Defaults to 5 for path/all_paths/explain_relation and 8 for cycles; capped at 20.',
         },
         includeExternal: {
@@ -875,17 +889,20 @@ const TOOLS = [
             'maintenance_plan only: stable action id cursor; return actions after this id. Unknown cursors return an empty page with cursor.found=false.',
         },
         limit: {
-          type: 'number',
-          description: 'Max rows/components/order entries to return. Defaults to 100, capped at 500.',
+          type: 'integer',
+          minimum: 1,
+          description: 'Positive integer max rows/components/order entries to return. Defaults to 100, capped at 500.',
         },
         nodeLimit: {
-          type: 'number',
-          description: 'components/communities only: max node summaries per group. Defaults to 25, capped at 500.',
+          type: 'integer',
+          minimum: 1,
+          description: 'components/communities only: positive integer max node summaries per group. Defaults to 25, capped at 500.',
         },
         itemLimit: {
-          type: 'number',
+          type: 'integer',
+          minimum: 1,
           description:
-            'project_map only: max capability/element/hotspot summaries per domain. Defaults to 20, capped at 500.',
+            'project_map only: positive integer max capability/element/hotspot summaries per domain. Defaults to 20, capped at 500.',
         },
       },
       required: ['operation'],

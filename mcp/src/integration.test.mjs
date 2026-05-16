@@ -195,6 +195,54 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       assert.equal(confirm?.type, "boolean", `${toolName} exposes confirm dry-run safety switch`);
       assert.match(confirm?.description ?? "", /dry-run|actually/i);
     }
+
+    assert.deepEqual(
+      {
+        type: findTool("list_concepts")?.inputSchema?.properties?.limit?.type,
+        minimum: findTool("list_concepts")?.inputSchema?.properties?.limit?.minimum,
+      },
+      { type: "integer", minimum: 1 },
+      "list_concepts exposes positive integer limit schema",
+    );
+    assert.equal(
+      findTool("list_concepts")?.inputSchema?.properties?.since?.minimum,
+      0,
+      "list_concepts exposes non-negative since schema",
+    );
+    assert.deepEqual(
+      {
+        type: findTool("find_neighbors")?.inputSchema?.properties?.limit?.type,
+        minimum: findTool("find_neighbors")?.inputSchema?.properties?.limit?.minimum,
+        maximum: findTool("find_neighbors")?.inputSchema?.properties?.limit?.maximum,
+      },
+      { type: "integer", minimum: 1, maximum: 500 },
+      "find_neighbors exposes bounded integer limit schema",
+    );
+    assert.deepEqual(
+      {
+        type: findTool("find_path")?.inputSchema?.properties?.maxHops?.type,
+        minimum: findTool("find_path")?.inputSchema?.properties?.maxHops?.minimum,
+      },
+      { type: "integer", minimum: 0 },
+      "find_path exposes non-negative integer maxHops schema",
+    );
+    assert.deepEqual(
+      {
+        type: findTool("compile_ontology")?.inputSchema?.properties?.nodesOffset?.type,
+        minimum: findTool("compile_ontology")?.inputSchema?.properties?.nodesOffset?.minimum,
+      },
+      { type: "integer", minimum: 0 },
+      "compile_ontology exposes non-negative pagination schema",
+    );
+    assert.deepEqual(
+      {
+        type: findTool("query_ontology")?.inputSchema?.properties?.iterations?.type,
+        minimum: findTool("query_ontology")?.inputSchema?.properties?.iterations?.minimum,
+        maximum: findTool("query_ontology")?.inputSchema?.properties?.iterations?.maximum,
+      },
+      { type: "integer", minimum: 1, maximum: 100 },
+      "query_ontology exposes bounded iterations schema",
+    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
