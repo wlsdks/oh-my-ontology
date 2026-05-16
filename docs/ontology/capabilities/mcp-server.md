@@ -78,7 +78,8 @@ validation / diagnosis / compile / overview / query planning 은 계속 hard gat
 
 환경변수 `OMOT_VAULT` 로 vault 위치 지정. 등록 가이드: `mcp/README.md`. 1줄 verify:
 `npm run verify` (mcp/) — parser smoke, server boot, 23-tool inventory
-(`15 read + 8 write` split 포함), `list_concepts`,
+(`15 read + 8 write` split 포함), strict argument schema 와 graph-query enum schema,
+`list_concepts`,
 `get_concepts`, `list_kinds`, `validate_vault`, `workspace_brief`, `health`, `compile_ontology({ summary: true })`,
 `query_ontology(overview)`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`, 그리고 실제 `neighbors` /
@@ -162,6 +163,10 @@ error message 를 바로 출력한다.
 `tools/list` registry, `verify.mjs` 의 `EXPECTED_TOOLS`, `mcp/package.json`
 tool count metadata, 그리고 `initialize.instructions` 의 agent-facing inventory 가
 서로 drift 나지 않도록 같은 23-tool 목록을 교차 검증한다.
+installed verify 도 `tools/list` schema 의 `additionalProperties:false` 와
+`query_ontology.operation` / `targetOperation` enum 이 runtime allow-list 와
+일치하는지 검사해, MCP client schema 와 실제 graph engine dispatch 가 갈라지지
+않도록 한다.
 `initialize.instructions` 는 agent 가 write 도구부터 시도하지 않도록
 `validate_vault`, `workspace_brief`, `overview`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`

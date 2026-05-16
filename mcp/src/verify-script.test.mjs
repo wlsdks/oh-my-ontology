@@ -5,6 +5,10 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  QUERY_ONTOLOGY_OPERATIONS,
+  QUERY_PLAN_TARGET_OPERATIONS,
+} from './ontology-engine.mjs';
+import {
   advisoryNextActionsSummary,
   buildFirstContactRequests,
   buildGetConceptsSmokeSlugs,
@@ -34,6 +38,7 @@ import {
   projectMapQueryPlanFailure,
   projectScopeFailure,
   serverStartupFailure,
+  toolsListSchemaFailure,
   validationCodeSummary,
   validateVaultFailure,
   verifyCountConsistencyFailure,
@@ -53,6 +58,68 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(described[2], String(EXPECTED_READ_TOOLS.length));
     assert.equal(described[3], String(EXPECTED_WRITE_TOOLS.length));
     assert.equal(expectedToolSplitLabel(), `${described[2]} read + ${described[3]} write`);
+  });
+
+  it('fails tools/list schema drift for strict arguments and graph-query enums', () => {
+    const tools = [
+      {
+        name: 'list_concepts',
+        inputSchema: { additionalProperties: false, properties: {} },
+      },
+      {
+        name: 'query_ontology',
+        inputSchema: {
+          additionalProperties: false,
+          properties: {
+            operation: { enum: QUERY_ONTOLOGY_OPERATIONS },
+            targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
+          },
+        },
+      },
+    ];
+
+    assert.equal(toolsListSchemaFailure(tools), null);
+    assert.equal(toolsListSchemaFailure(null), 'tools/list response missing tools array');
+    assert.equal(
+      toolsListSchemaFailure([{ name: 'list_concepts', inputSchema: { properties: {} } }]),
+      'tools/list schema missing additionalProperties:false: list_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'query_ontology')),
+      'tools/list response missing query_ontology tool',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        tools[0],
+        {
+          ...tools[1],
+          inputSchema: {
+            ...tools[1].inputSchema,
+            properties: {
+              ...tools[1].inputSchema.properties,
+              operation: { enum: QUERY_ONTOLOGY_OPERATIONS.filter((operation) => operation !== 'health') },
+            },
+          },
+        },
+      ]),
+      'query_ontology operation enum schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        tools[0],
+        {
+          ...tools[1],
+          inputSchema: {
+            ...tools[1].inputSchema,
+            properties: {
+              ...tools[1].inputSchema.properties,
+              targetOperation: { enum: [...QUERY_PLAN_TARGET_OPERATIONS, 'query_plan'] },
+            },
+          },
+        },
+      ]),
+      'query_ontology targetOperation enum schema drift',
+    );
   });
 
   it('parses verify timeout env as a strict positive integer', () => {

@@ -180,6 +180,7 @@ A successful run looks like this:
 · step 2 — server boot + tools/list + list_concepts/get_concepts/list_kinds (vault=../docs/ontology, timeout=8000ms)
 ✓ initialize OK — server oh-my-ontology-mcp@0.12.0
 ✓ tools/list 23/23 (15 read + 8 write) — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
+✓ tools/list schema contract — strict arguments + graph-query enums
 ✓ list_concepts — vault total 28 nodes (vaultRoot /path/to/docs/ontology)
 ✓ get_concepts — 2 ok rows, 1 partial rows
 ✓ list_kinds — 28 nodes (capability:16, domain:6, element:4, project:1, vault-readme:1)
@@ -208,6 +209,10 @@ verify path exercises and gates the same first-contact graph diagnosis an agent 
 plus actual `query_ontology({operation:"neighbors"})`,
 `query_ontology({operation:"path"})`, and
 `query_ontology({operation:"project_scope"})` smoke calls.
+The `tools/list` gate also checks that every tool rejects unknown arguments via
+`additionalProperties:false`, and that `query_ontology.operation` /
+`query_ontology.targetOperation` enums match the graph engine's runtime
+allow-lists.
 `project_scope` is a hard gate when the vault has a `kind: project` node; valid
 project-less vaults skip that one containment-specific check while still
 gating `neighbors` and `path`. Empty vaults skip node-targeted graph smoke until

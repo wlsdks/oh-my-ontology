@@ -69,6 +69,7 @@ describe('package contract helpers', () => {
     const verifySection = readme.split('### One-line verify CLI')[1]?.split('### Manual verification')[0] ?? '';
 
     assert.match(verifySection, /list_concepts\/get_concepts\/list_kinds/);
+    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums/);
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial rows/);
     assert.match(verifySection, /✓ list_kinds/);
     assert.match(verifySection, /✓ workspace_brief — healthy \(28 nodes, nextActions 0, healthChecks 5\)/);
@@ -81,6 +82,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`query_ontology\(\{operation:"neighbors"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"path"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"project_scope"\}\)`/);
+    assert.match(verifySection, /`additionalProperties:false`/);
+    assert.match(verifySection, /`query_ontology\.operation` \/[\s\S]*`query_ontology\.targetOperation` enums/);
     assert.match(verifySection, /project-less vaults skip/);
     assert.match(verifySection, /Empty vaults skip node-targeted graph smoke/);
     assert.match(verifySection, /`list_kinds` \/ `compile_ontology` \/ `overview`\s+census shape\/count mismatches/);
@@ -108,6 +111,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /requires every health check row to include non-empty `id` and `status`/);
     assert.match(verifySection, /prints the validated `workspace_brief\.health\.checks` count/);
     assert.match(verifySection, /health check `id:status` coverage/);
+    assert.match(verifySection, /validates the installed `tools\/list` schema contract/);
+    assert.match(verifySection, /graph engine runtime allow-lists/);
   });
 
   it('keeps the CLI README explicit about mcp-verify help scope', () => {
@@ -116,6 +121,7 @@ describe('package contract helpers', () => {
 
     assert.match(verifySection, /mcp-verify --help/);
     assert.match(verifySection, /graph-query smoke contract/);
+    assert.match(verifySection, /`tools\/list` schema contract/);
     assert.match(verifySection, /get_concepts/);
     assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /stdout/);

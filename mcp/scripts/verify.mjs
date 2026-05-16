@@ -12,7 +12,7 @@
  * 검증 항목:
  *   1. parser smoke test (parser.test.mjs) 통과
  *   2. server boot — initialize JSON-RPC 응답
- *   3. tools/list — 23 도구 모두 노출
+ *   3. tools/list — 23 도구 모두 노출 + graph-query enum schema contract
  *   4. tools/call list_concepts — vault 노드 수 출력
  *   5. tools/call get_concepts — batch reader success + partial-row contract
  *   6. tools/call list_kinds — kind census aggregate
@@ -34,6 +34,10 @@ import {
   missingResponseLabels,
   parseJsonRpcResponses,
 } from './json-rpc-lines.mjs';
+import {
+  QUERY_ONTOLOGY_OPERATIONS,
+  QUERY_PLAN_TARGET_OPERATIONS,
+} from '../src/ontology-engine.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_ROOT = resolve(__dirname, '..');
@@ -75,6 +79,34 @@ export const EXPECTED_TOOLS = [...EXPECTED_READ_TOOLS, ...EXPECTED_WRITE_TOOLS];
 
 export function expectedToolSplitLabel() {
   return `${EXPECTED_READ_TOOLS.length} read + ${EXPECTED_WRITE_TOOLS.length} write`;
+}
+
+function sameArray(left, right) {
+  return Array.isArray(left) &&
+    Array.isArray(right) &&
+    left.length === right.length &&
+    left.every((value, index) => value === right[index]);
+}
+
+export function toolsListSchemaFailure(tools) {
+  if (!Array.isArray(tools)) return 'tools/list response missing tools array';
+  const schemaDriftTool = tools.find((tool) => tool?.inputSchema?.additionalProperties !== false);
+  if (schemaDriftTool) {
+    return `tools/list schema missing additionalProperties:false: ${schemaDriftTool.name || '(unknown)'}`;
+  }
+
+  const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
+  if (!queryTool) return 'tools/list response missing query_ontology tool';
+
+  if (!sameArray(queryTool.inputSchema?.properties?.operation?.enum, QUERY_ONTOLOGY_OPERATIONS)) {
+    return 'query_ontology operation enum schema drift';
+  }
+
+  if (!sameArray(queryTool.inputSchema?.properties?.targetOperation?.enum, QUERY_PLAN_TARGET_OPERATIONS)) {
+    return 'query_ontology targetOperation enum schema drift';
+  }
+
+  return null;
 }
 
 export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
@@ -1055,6 +1087,12 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', `tools/list ${toolNames.length}/${EXPECTED_TOOLS.length} (${expectedToolSplitLabel()}) — ${toolNames.join(' · ')}`);
+      const schemaFailure = toolsListSchemaFailure(listRes.result.tools);
+      if (schemaFailure) {
+        log('fail', schemaFailure);
+        return res(false);
+      }
+      log('ok', 'tools/list schema contract — strict arguments + graph-query enums');
 
       if (!callRes || !callRes.result) {
         log('fail', 'no list_concepts response');
