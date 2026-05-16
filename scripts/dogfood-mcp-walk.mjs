@@ -3631,6 +3631,8 @@ function workspaceBriefShapeFailure(result, label = "workspace_brief") {
   }
   const summaryFailure = numericSummaryFailure(label, result.summary, ["nodes", "edges", "issues"]);
   if (summaryFailure) return summaryFailure;
+  const growthFailure = workspaceBriefGrowthFailure(label, result);
+  if (growthFailure) return growthFailure;
   if (!Array.isArray(result.nextActions)) {
     return `${label} response missing nextActions array`;
   }
@@ -3657,6 +3659,34 @@ function workspaceBriefShapeFailure(result, label = "workspace_brief") {
     return `${label} response missing health block`;
   }
   return checksShapeFailure(label, result.health.checks, { requireNonEmpty: true });
+}
+
+function workspaceBriefGrowthFailure(label, result) {
+  if (result.growth == null) return null;
+  const growthFailure = numericSummaryFailure(`${label} growth`, result.growth, [
+    "relationRecommendations",
+    "externalElementRefs",
+    "danglingReferences",
+    "unassignedNodes",
+    "emptyDomains",
+    "totalActions",
+  ]);
+  if (growthFailure) return growthFailure;
+  if (result.summary.growthActions != null && result.summary.growthActions !== result.growth.totalActions) {
+    return `${label} growthActions mismatch — summary ${result.summary.growthActions}, growth ${result.growth.totalActions}`;
+  }
+  for (const action of Array.isArray(result.nextActions) ? result.nextActions : []) {
+    if (action.kind === "add_missing_relations" && action.count !== result.growth.relationRecommendations) {
+      return `${label} add_missing_relations count mismatch — nextAction ${action.count}, growth ${result.growth.relationRecommendations}`;
+    }
+    if (action.kind === "resolve_dangling_references" && action.count !== result.growth.danglingReferences) {
+      return `${label} resolve_dangling_references count mismatch — nextAction ${action.count}, growth ${result.growth.danglingReferences}`;
+    }
+    if (action.kind === "materialize_external_elements" && action.count !== result.growth.externalElementRefs) {
+      return `${label} materialize_external_elements count mismatch — nextAction ${action.count}, growth ${result.growth.externalElementRefs}`;
+    }
+  }
+  return null;
 }
 
 function workspaceNextActionSampleFailure(label, action, index) {

@@ -68,15 +68,31 @@ const okShape = {
   brief: {
     operation: "workspace_brief",
     status: "healthy",
-    summary: { nodes: 1, edges: 0, issues: 0 },
+    summary: { nodes: 1, edges: 0, issues: 0, growthActions: 0 },
     nextActions: [],
+    growth: {
+      relationRecommendations: 0,
+      externalElementRefs: 0,
+      danglingReferences: 0,
+      unassignedNodes: 0,
+      emptyDomains: 0,
+      totalActions: 0,
+    },
     health: { checks: [{ id: "compile_issues", status: "pass", count: 0 }] },
   },
   tunedBrief: {
     operation: "workspace_brief",
     status: "healthy",
-    summary: { nodes: 1, edges: 0, issues: 0 },
+    summary: { nodes: 1, edges: 0, issues: 0, growthActions: 0 },
     nextActions: [],
+    growth: {
+      relationRecommendations: 0,
+      externalElementRefs: 0,
+      danglingReferences: 0,
+      unassignedNodes: 0,
+      emptyDomains: 0,
+      totalActions: 0,
+    },
     health: { checks: [{ id: "compile_issues", status: "pass", count: 0 }] },
   },
   health: {
@@ -1851,6 +1867,28 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({
         ...okShape,
         brief: {
+          ...okShape.brief,
+          summary: { ...okShape.brief.summary, growthActions: 2 },
+        },
+      }),
+      ["workspace_brief growthActions mismatch — summary 2, growth 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
+          ...okShape.brief,
+          growth: { ...okShape.brief.growth, relationRecommendations: 2, totalActions: 2 },
+          summary: { ...okShape.brief.summary, growthActions: 2 },
+          nextActions: [{ kind: "add_missing_relations", severity: "info", count: 1 }],
+        },
+      }),
+      ["workspace_brief add_missing_relations count mismatch — nextAction 1, growth 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
           operation: "workspace_brief",
           status: "healthy",
           summary: { nodes: 1, edges: 0, issues: 0 },
@@ -1925,6 +1963,8 @@ describe("evaluateDogfoodGate", () => {
               sample: [{ tool: "add_concept", args: { from: "domains/a", to: "capabilities/b", type: "capabilities" } }],
             },
           ],
+          growth: { ...okShape.brief.growth, relationRecommendations: 1, totalActions: 1 },
+          summary: { ...okShape.brief.summary, growthActions: 1 },
         },
       }),
       ["workspace_brief response nextAction add_missing_relations sample tool mismatch at index 0.0"],
@@ -1942,6 +1982,8 @@ describe("evaluateDogfoodGate", () => {
               sample: [{ tool: "add_concept", args: { slug: "elements/file", kind: "capability" } }],
             },
           ],
+          growth: { ...okShape.brief.growth, externalElementRefs: 1, totalActions: 1 },
+          summary: { ...okShape.brief.summary, growthActions: 1 },
         },
       }),
       ["workspace_brief response malformed materialize_external_elements sample args at index 0.0"],
@@ -1959,6 +2001,8 @@ describe("evaluateDogfoodGate", () => {
               sample: [{ kind: "materialize_external_element", score: 0.7, reason: "Resolve dangling reference." }],
             },
           ],
+          growth: { ...okShape.brief.growth, danglingReferences: 1, totalActions: 1 },
+          summary: { ...okShape.brief.summary, growthActions: 1 },
         },
       }),
       ["workspace_brief response malformed resolve_dangling_references sample kind at index 0.0"],
@@ -4092,6 +4136,8 @@ describe("evaluateDogfoodGate", () => {
       ...okShape,
       brief: {
         ...okShape.brief,
+        growth: { ...okShape.brief.growth, externalElementRefs: 2, danglingReferences: 1, totalActions: 3 },
+        summary: { ...okShape.brief.summary, growthActions: 3 },
         nextActions: [
           { kind: "health_check", severity: "info", id: "components" },
           { kind: "materialize_external_elements", severity: "warn", count: 2 },
