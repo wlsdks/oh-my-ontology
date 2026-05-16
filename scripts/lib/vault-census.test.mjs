@@ -27,6 +27,18 @@ describe("vault-census", () => {
     });
   });
 
+  it("counts a single markdown file path and ignores a non-markdown file path", () => {
+    withTempDir((root) => {
+      const markdown = join(root, "node.md");
+      const text = join(root, "node.txt");
+      writeFileSync(markdown, "# Node\n");
+      writeFileSync(text, "not ontology\n");
+
+      assert.equal(countMarkdownFiles(markdown), 1);
+      assert.equal(countMarkdownFiles(text), 0);
+    });
+  });
+
   it("treats missing folders as empty", () => {
     withTempDir((root) => {
       assert.equal(countMarkdownFiles(join(root, "missing")), 0);

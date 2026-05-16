@@ -1,8 +1,11 @@
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 export function countMarkdownFiles(root) {
   if (!existsSync(root)) return 0;
+  const stats = statSync(root);
+  if (stats.isFile()) return root.endsWith(".md") ? 1 : 0;
+  if (!stats.isDirectory()) return 0;
   let count = 0;
   for (const entry of readdirSync(root, { withFileTypes: true })) {
     const full = join(root, entry.name);
