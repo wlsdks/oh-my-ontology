@@ -23,6 +23,11 @@ const okShape = {
     vaultRoot: "/tmp/vault",
     nodes: [{ slug: "project", kind: "project", title: "Project", mtime: 1 }],
   },
+  projectProbe: {
+    total: 1,
+    vaultRoot: "/tmp/vault",
+    nodes: [{ slug: "project", kind: "project", title: "Project", mtime: 1 }],
+  },
   batch: {
     concepts: [
       {
@@ -1369,6 +1374,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(45), "project_scope");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(46), "strict_args");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(47), "strict_enum");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(48), "project_probe");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1444,6 +1450,23 @@ describe("evaluateDogfoodGate", () => {
       list: { total: 1, nodes: [] },
     });
     assert.deepEqual(failures, ["list_concepts response missing vaultRoot"]);
+  });
+
+  it("fails when the dogfood project probe cannot find a project node", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectProbe: { total: 0, vaultRoot: "/tmp/vault", nodes: [] },
+      }),
+      ["project_probe response missing project node"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectProbe: { total: 1, nodes: [{ slug: "project", kind: "project", title: "Project", mtime: 1 }] },
+      }),
+      ["project_probe: list_concepts response missing vaultRoot"],
+    );
   });
 
   it("fails on malformed get_concepts dogfood payloads", () => {

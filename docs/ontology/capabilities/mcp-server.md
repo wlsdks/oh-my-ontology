@@ -117,6 +117,9 @@ dogfood walk 는 `find_evidence.matches`, `find_path.hops/hopCount`,
 agent 가 받는 탐색 결과가 실제로 사용할 수 있는 구조인지 확인한다.
 또한 `get_concepts` 를 실제 project / mcp-server slug 와 missing slug 를 섞어
 호출해 batch reader 의 성공 row 와 partial row 가 동시에 유지되는지 확인한다.
+project-node `list_concepts` probe 도 fail-closed 로 확인해 dogfood vault 에서
+`project_scope` smoke 가 하드코딩된 slug 에만 기대지 않고 실제 project-node
+discovery 계약을 검증한다.
 또한 `workspace_brief.summary` / `nextActions` /
 `workspace_brief.health.checks` 와 `health.summary` / `checks` 의 numeric
 contract 를 검증해 first-contact 진단 결과가 status 문자열만 맞고 실제 분석
@@ -274,7 +277,7 @@ safety 를 위해 limit 과 offset 계약을 분리한다. `nodesLimit` / `edges
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
 `workspace_brief`, `health`, `compile_ontology`, `overview`, `pattern_walk`,
-`all_paths`, `all_paths query_plan`, `neighbors`, `path`, `project_map query_plan`, `project_scope`, `project_map`,
+project-node `list_concepts` probe, `all_paths`, `all_paths query_plan`, `neighbors`, `path`, `project_map query_plan`, `project_scope`, `project_map`,
 `domain_profile`, `domain_matrix`, `components`, `reachability`, `impact`,
 `blast_radius`, `subgraph`, `schema`, `facets`, `match_nodes`, `match_edges`,
 `node_profile`, `lineage`, `containment_tree`, `cycles`, `topological_order`, `relation_check`, `recommend_relations`,
@@ -284,6 +287,8 @@ safety 를 위해 limit 과 offset 계약을 분리한다. `nodesLimit` / `edges
 dogfood 의 `list_concepts.vaultWarnings` / `validate_vault` 판정은
 `mcp/scripts/verify.mjs` 의 helper 를 재사용해 installed verify 와 dogfood gate 가
 서로 다른 first-contact payload 계약으로 갈라지지 않게 한다.
+project probe 도 fail-closed 로 확인해 dogfood vault 에서 `project_scope` smoke 가
+하드코딩된 slug 에만 기대지 않고 실제 project-node discovery 계약을 검증한다.
 `list_concepts.vaultWarnings` 도 `errorCount` / `warningCount` count shape 를
 검증해, malformed warning payload 가 clean list response 로 오인되지 않게 한다.
 요청한 JSON-RPC 응답이 모두 도착하거나 error 응답이 오면 timeout 까지 기다리지 않고

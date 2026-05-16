@@ -4,7 +4,7 @@
 // *진짜 AI agent 입장* 에서
 // 받는 정보 quality 측정.
 //
-// write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
+// write 안 함 (dogfood vault 보존). list_kinds / list_concepts / project probe / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // strict unknown-argument and invalid-enum rejection / validate_vault / compile_ontology(summary) /
 // query_ontology overview / query_plan / neighbors / path / all_paths / pattern_walk / project_scope / centrality / communities / similar_nodes / explain_relation / reachability / impact / blast_radius / subgraph / schema / facets / match_nodes / match_edges / node_profile / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
@@ -86,6 +86,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [45, "project_scope"],
   [46, "strict_args"],
   [47, "strict_enum"],
+  [48, "project_probe"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -175,6 +176,7 @@ export function buildDogfoodRequests() {
     ...init,
     call(2, "list_kinds"),
     call(3, "list_concepts", { limit: 30 }),
+    call(48, "list_concepts", { kind: "project", limit: 1 }),
     call(16, "get_concepts", {
       slugs: ["project", "capabilities/mcp-server", "missing-dogfood-slug"],
     }),
@@ -454,6 +456,7 @@ export function evaluateDogfoodGate({
   neighbors,
   queryPath,
   projectScope,
+  projectProbe,
   strictArgs,
   strictEnum,
 }) {
@@ -502,6 +505,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "neighbors", neighbors);
   recordResult(failures, "path", queryPath);
   recordResult(failures, "project_scope", projectScope);
+  recordResult(failures, "project_probe", projectProbe);
 
   const strictFailure = strictArgsFailure(strictArgs);
   if (strictFailure) failures.push(`strict_args: ${strictFailure}`);
@@ -515,6 +519,13 @@ export function evaluateDogfoodGate({
   if (list) {
     const listFailure = listConceptsFailure(list);
     if (listFailure) failures.push(listFailure);
+  }
+  if (projectProbe) {
+    const projectProbeFailure = listConceptsFailure(projectProbe);
+    if (projectProbeFailure) failures.push(`project_probe: ${projectProbeFailure}`);
+    if (!projectProbeFailure && projectProbe.total < 1) {
+      failures.push("project_probe response missing project node");
+    }
   }
   if (batch) {
     const batchFailure = getConceptsShapeFailure(batch);
@@ -3374,6 +3385,14 @@ async function main() {
     }
   }
 
+  // 2b. project probe
+  header("project probe — list_concepts(kind=project)");
+  const projectProbe = getResult(responses, 48);
+  if (projectProbe) {
+    const projectSlugs = (projectProbe.nodes || []).map((node) => node.slug).join(", ") || "none";
+    console.log(`  ${formatCount(projectProbe.total ?? 0, "project node")} · ${projectSlugs}`);
+  }
+
   // 3. get_concepts (batch reader + partial row)
   header("get_concepts — batch read + partial row");
   const batch = getResult(responses, 16);
@@ -3940,6 +3959,7 @@ async function main() {
     neighbors,
     queryPath,
     projectScope,
+    projectProbe,
     strictArgs,
     strictEnum,
   });
@@ -3959,6 +3979,7 @@ async function main() {
   console.log(
     `  list_concepts vaultWarnings: ${list?.vaultWarnings ? "있음 (vault 정합성 회귀!)" : "0 (clean)"}`,
   );
+  console.log(`  project_probe: ${projectProbe ? formatCount(projectProbe.total ?? 0, "project node") : "n/a"}`);
   console.log(`  get_concepts: ${(batch?.concepts || []).filter((row) => row?.ok === true).length} ok · ${(batch?.concepts || []).filter((row) => row?.ok === false).length} partial`);
   console.log(
     `  validate_vault: ${validation ? formatCount(validation.summary?.problemFiles ?? 0, "problem file") : "n/a"}`,
