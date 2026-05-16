@@ -588,6 +588,8 @@ const okShape = {
           from: "capabilities/mcp-server",
           ref: "capabilities/missing",
           relation: "dependencies",
+          inferredKind: "capability",
+          suggestedSlug: "capabilities/missing",
           reason: "Resolve dangling reference.",
           proposedAction: {
             tool: "add_concept",
@@ -2779,6 +2781,27 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         growthPlan: {
           ...okShape.growthPlan,
+          externalElementRefs: {
+            ...okShape.growthPlan.externalElementRefs,
+            rows: [
+              {
+                ...okShape.growthPlan.externalElementRefs.rows[0],
+                proposedAction: {
+                  ...okShape.growthPlan.externalElementRefs.rows[0].proposedAction,
+                  args: { ...okShape.growthPlan.externalElementRefs.rows[0].proposedAction.args, slug: "elements/other" },
+                },
+              },
+            ],
+          },
+        },
+      }),
+      ["growth_plan.externalElementRefs proposedAction slug mismatch: materialize_external_element"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        growthPlan: {
+          ...okShape.growthPlan,
           danglingReferences: {
             ...okShape.growthPlan.danglingReferences,
             rows: [{ ...okShape.growthPlan.danglingReferences.rows[0], proposedAction: { tool: "", args: {} } }],
@@ -2786,6 +2809,27 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["growth_plan.danglingReferences proposedAction missing tool: resolve_dangling_reference"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        growthPlan: {
+          ...okShape.growthPlan,
+          danglingReferences: {
+            ...okShape.growthPlan.danglingReferences,
+            rows: [
+              {
+                ...okShape.growthPlan.danglingReferences.rows[0],
+                proposedAction: {
+                  ...okShape.growthPlan.danglingReferences.rows[0].proposedAction,
+                  args: { ...okShape.growthPlan.danglingReferences.rows[0].proposedAction.args, kind: "element" },
+                },
+              },
+            ],
+          },
+        },
+      }),
+      ["growth_plan.danglingReferences proposedAction kind mismatch: resolve_dangling_reference"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -2833,6 +2877,24 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["recommend_relations row missing proposedAction: missing_domain_containment"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationRecommendations: {
+          ...okShape.relationRecommendations,
+          recommendations: [
+            {
+              ...okShape.relationRecommendations.recommendations[0],
+              proposedAction: {
+                ...okShape.relationRecommendations.recommendations[0].proposedAction,
+                args: { ...okShape.relationRecommendations.recommendations[0].proposedAction.args, to: "capabilities/other" },
+              },
+            },
+          ],
+        },
+      }),
+      ["recommend_relations proposedAction relation args mismatch: missing_domain_containment"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({

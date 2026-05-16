@@ -178,6 +178,8 @@ ready `maintenance_plan` cursor / missing `maintenance_plan.afterActionId` curso
 strict unknown-argument and invalid-enum rejection smoke 도 추가로 dogfood 해, installed
 verify 의 missing cursor smoke 와 aggregate target smoke 가 이 repo 의 반복 MCP walk 에서 실제
 project/domain map 과 특정 domain drill-down 출력까지 이어지는지 본다.
+`growth_plan` / `recommend_relations` 의 `proposedAction` 은 row 의 source/target/slug/kind 와
+args 가 일치하는지도 dogfood 해 agent 가 drift 난 실행 액션을 그대로 따라가지 않게 한다.
 `maintenance_plan.phases` 는 `validate` / `repair` / `link` / `materialize` / `review`,
 `maintenance_plan.severities` 는 `fail` / `warn` / `info`, `maintenance_plan.kinds` 는
 `inspect_compile_issue` / `break_dependency_cycle` / `canonicalize_graph_arrays` /
