@@ -54,6 +54,16 @@ describe('package contract helpers', () => {
     assert.match(validateVaultRow, /first-contact before writes/);
   });
 
+  it('keeps the MCP verify README aligned with first-contact census gates', () => {
+    const readme = readFileSync('mcp/README.md', 'utf-8');
+    const verifySection = readme.split('### One-line verify CLI')[1]?.split('### Manual verification')[0] ?? '';
+
+    assert.match(verifySection, /list_concepts\/list_kinds/);
+    assert.match(verifySection, /✓ list_kinds/);
+    assert.match(verifySection, /`list_concepts`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /list_kinds` census shape\/count mismatches/);
+  });
+
   it('keeps the CLI README explicit about mcp-verify help scope', () => {
     const readme = readFileSync('cli/README.md', 'utf-8');
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
