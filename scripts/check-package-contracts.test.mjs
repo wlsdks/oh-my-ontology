@@ -161,8 +161,13 @@ describe('package contract helpers', () => {
 
   it('keeps dogfood CLI docs explicit about fail-closed graph diagnostics', () => {
     const doc = readFileSync('docs/ontology/capabilities/cli-developer-entry.md', 'utf-8');
+    const mcpVerifyRow = doc.split('| `oh-my-ontology mcp-verify [vault]` |')[1]?.split('\n')[0] ?? '';
     const implementationSection = doc.split('## 구현 단일 진실원')[1]?.split('## 회귀 차단')[0] ?? '';
 
+    assert.match(mcpVerifyRow, /실제 `neighbors` \/ self-`path` \/ `project_scope` graph smoke/);
+    assert.match(mcpVerifyRow, /project-less vault/);
+    assert.match(mcpVerifyRow, /empty vault/);
+    assert.match(mcpVerifyRow, /node-targeted graph smoke/);
     assert.match(implementationSection, /query-result-contract\.mjs/);
     assert.match(implementationSection, /malformed `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
     assert.match(implementationSection, /fail-closed/);
@@ -209,6 +214,11 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /`recommend_relations`/);
     assert.match(dogfoodSection, /`growth_plan`/);
     assert.match(dogfoodSection, /`maintenance_plan`/);
+
+    const verifySection = doc.split('환경변수 `OMOT_VAULT`')[1]?.split('`get_concepts` 는')[0] ?? '';
+    assert.match(verifySection, /실제 `neighbors` \/[\s\S]*self-`path` \/ `project_scope`/);
+    assert.match(verifySection, /project\s+노드가 있을 때만 containment hard gate/);
+    assert.match(verifySection, /빈 vault 는 node-targeted graph\s+smoke 를 skip/);
   });
 
   it('keeps packed CLI smoke aligned with installed hard gates', () => {
@@ -229,6 +239,8 @@ describe('package contract helpers', () => {
     assert.match(smokeSection, /compile --json/);
     assert.match(smokeSection, /path --json/);
     assert.match(smokeSection, /health check count/);
+    assert.match(smokeSection, /`overview`\/`project_map` query_plan \/ `neighbors` \/ `path` \//);
+    assert.match(smokeSection, /`project_scope` smoke/);
   });
 
   it('keeps the self-ontology README census aligned with the vault files', () => {
