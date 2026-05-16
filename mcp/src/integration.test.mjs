@@ -407,6 +407,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(compileOntology?.outputSchema?.properties?.graphHash?.type, "string");
     assert.equal(compileOntology?.outputSchema?.properties?.nodeCount?.type, "integer");
     assert.equal(compileOntology?.outputSchema?.properties?.byKind?.additionalProperties?.type, "integer");
+    const analyzeRepo = findTool("analyze_repo_structure");
+    assert.equal(analyzeRepo?.outputSchema?.type, "object");
+    assert.deepEqual(analyzeRepo?.outputSchema?.required, ["rootPath", "framework", "domains", "capabilities", "elements", "suggestedRelations", "skipped"]);
+    assert.deepEqual(analyzeRepo?.outputSchema?.properties?.framework?.enum, ["fsd", "next", "generic"]);
+    assert.deepEqual(analyzeRepo?.outputSchema?.properties?.capabilities?.items?.required, ["slug", "title", "evidence"]);
+    assert.deepEqual(analyzeRepo?.outputSchema?.properties?.suggestedRelations?.items?.required, ["from", "to", "type"]);
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -1178,6 +1184,36 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
     assert.ok(result.issues.some((issue) => issue.code === "dangling-graph-reference"));
   } finally {
     rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("analyze_repo_structure — bootstrap candidates expose structuredContent", async () => {
+  const vaultRoot = makeVault();
+  const repoRoot = mkdtempSync(join(tmpdir(), "omot-analyze-"));
+  try {
+    writeFileSync(
+      join(repoRoot, "package.json"),
+      JSON.stringify({ name: "sample-app", description: "Sample App" }, null, 2),
+      "utf-8",
+    );
+    writeFileSync(repoRoot + "/README.md", "# Sample App\n\n## Auth\n\nLogin flows.\n", "utf-8");
+    mkdirSync(join(repoRoot, "src", "features", "auth"), { recursive: true });
+    writeFileSync(join(repoRoot, "src", "features", "auth", "index.ts"), "export const auth = true;\n", "utf-8");
+
+    const { responses } = await rpc(vaultRoot, [
+      ...INIT_REQUESTS,
+      callTool(2, "analyze_repo_structure", { rootPath: repoRoot }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
+    assert.equal(result.framework, "fsd");
+    assert.deepEqual(result.project, { slug: "sample-app", title: "Sample App" });
+    assert.ok(result.domains.some((domain) => domain.slug === "domains/auth"));
+    assert.ok(result.capabilities.some((capability) => capability.slug === "capabilities/auth"));
+    assert.ok(result.suggestedRelations.some((relation) => relation.from === "sample-app" && relation.to === "capabilities/auth" && relation.type === "contains"));
+  } finally {
+    rmSync(vaultRoot, { recursive: true, force: true });
+    rmSync(repoRoot, { recursive: true, force: true });
   }
 });
 

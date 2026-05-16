@@ -429,6 +429,60 @@ function makeDogfoodToolsList() {
           },
         };
       }
+      if (name === "analyze_repo_structure") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["rootPath", "framework", "domains", "capabilities", "elements", "suggestedRelations", "skipped"],
+          properties: {
+            rootPath: { type: "string" },
+            framework: { enum: ["fsd", "next", "generic"] },
+            domains: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "title", "evidence"],
+                properties: {
+                  slug: { type: "string" },
+                  title: { type: "string" },
+                  evidence: { type: "object", required: ["source"] },
+                },
+              },
+            },
+            capabilities: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "title", "evidence"],
+                properties: {
+                  slug: { type: "string" },
+                  title: { type: "string" },
+                  evidence: { type: "object", required: ["source"] },
+                },
+              },
+            },
+            elements: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "title", "evidence"],
+                properties: {
+                  slug: { type: "string" },
+                  title: { type: "string" },
+                  evidence: { type: "object", required: ["source"] },
+                },
+              },
+            },
+            suggestedRelations: {
+              type: "array",
+              items: { type: "object", required: ["from", "to", "type"] },
+            },
+            skipped: {
+              type: "array",
+              items: { type: "object", required: ["path", "reason"] },
+            },
+          },
+        };
+      }
       if (name === "get_concepts") {
         tool.inputSchema.required = ["slugs"];
         tool.inputSchema.properties.slugs = { type: "array", maxItems: 50 };
@@ -552,6 +606,26 @@ const okShape = {
     total: 1,
     matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server", mtime: 1 }],
     limited: false,
+  },
+  analyzedRepo: {
+    rootPath: "/repo",
+    framework: "fsd",
+    project: { slug: "sample", title: "Sample" },
+    domains: [{ slug: "domains/auth", title: "Auth", evidence: { source: "README.md", line: 3 } }],
+    capabilities: [{ slug: "capabilities/auth", title: "Auth", evidence: { source: "src/features/auth" } }],
+    elements: [{ slug: "elements/src/views/home", title: "Home", evidence: { source: "src/views/home" } }],
+    suggestedRelations: [{ from: "sample", to: "capabilities/auth", type: "contains" }],
+    skipped: [{ path: "src/.cache", reason: "dotfile/ignore" }],
+  },
+  analyzedRepoStructured: {
+    rootPath: "/repo",
+    framework: "fsd",
+    project: { slug: "sample", title: "Sample" },
+    domains: [{ slug: "domains/auth", title: "Auth", evidence: { source: "README.md", line: 3 } }],
+    capabilities: [{ slug: "capabilities/auth", title: "Auth", evidence: { source: "src/features/auth" } }],
+    elements: [{ slug: "elements/src/views/home", title: "Home", evidence: { source: "src/views/home" } }],
+    suggestedRelations: [{ from: "sample", to: "capabilities/auth", type: "contains" }],
+    skipped: [{ path: "src/.cache", reason: "dotfile/ignore" }],
   },
   validation: {
     scanned: 1,
@@ -2079,6 +2153,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(54), "maintenance_plan_missing_cursor");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(55), "tools_list");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(56), "query_concepts");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(57), "analyze_repo_structure");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -2239,6 +2314,12 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: compileOutputSchemaDrifted }),
       ["tools/list: compile_ontology outputSchema byKind drift"],
+    );
+    const analyzeOutputSchemaDrifted = makeDogfoodToolsList();
+    analyzeOutputSchemaDrifted.tools.find((tool) => tool.name === "analyze_repo_structure").outputSchema.properties.framework.enum = ["fsd", "generic"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: analyzeOutputSchemaDrifted }),
+      ["tools/list: analyze_repo_structure outputSchema framework drift"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),
@@ -2545,6 +2626,18 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, queryConceptsStructured: { ...okShape.queryConcepts, total: 2 } }),
       ["query_concepts structuredContent mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, analyzedRepo: { ...okShape.analyzedRepo, framework: "unknown" } }),
+      ["analyze_repo_structure response unknown framework: unknown"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, analyzedRepo: { ...okShape.analyzedRepo, capabilities: [{ slug: "capabilities/auth", title: "Auth" }] } }),
+      ["analyze_repo_structure response missing capabilities evidence source: capabilities/auth"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, analyzedRepoStructured: { ...okShape.analyzedRepo, framework: "generic" } }),
+      ["analyze_repo_structure structuredContent mismatch"],
     );
   });
 

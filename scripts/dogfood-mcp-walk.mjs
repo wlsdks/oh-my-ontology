@@ -104,6 +104,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [54, "maintenance_plan_missing_cursor"],
   [55, "tools_list"],
   [56, "query_concepts"],
+  [57, "analyze_repo_structure"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -333,6 +334,7 @@ export function buildDogfoodRequests() {
     call(6, "find_backlinks", { slug: "capabilities/mcp-server" }),
     call(7, "find_orphans", {}),
     call(56, "query_concepts", { filter: "kind=capability AND domain=ai-agent-partner", limit: 5 }),
+    call(57, "analyze_repo_structure", { rootPath: ROOT, maxDepth: 2 }),
     call(8, "validate_vault", {}),
     call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
     call(10, "query_ontology", { operation: "health" }),
@@ -617,6 +619,8 @@ export function evaluateDogfoodGate({
   orphStructured,
   queryConcepts,
   queryConceptsStructured,
+  analyzedRepo,
+  analyzedRepoStructured,
   validation,
   validationStructured,
   brief,
@@ -678,6 +682,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "find_backlinks", bl);
   recordResult(failures, "find_orphans", orph);
   recordResult(failures, "query_concepts", queryConcepts);
+  recordResult(failures, "analyze_repo_structure", analyzedRepo);
   recordResult(failures, "validate_vault", validation);
   recordResult(failures, "workspace_brief", brief);
   recordResult(failures, "workspace_brief_tuned", tunedBrief);
@@ -807,6 +812,13 @@ export function evaluateDogfoodGate({
     if (queryConceptsFailure) failures.push(queryConceptsFailure);
     else if (queryConceptsStructured !== undefined && JSON.stringify(queryConceptsStructured) !== JSON.stringify(queryConcepts)) {
       failures.push("query_concepts structuredContent mismatch");
+    }
+  }
+  if (analyzedRepo) {
+    const analyzedRepoFailure = analyzeRepoStructureFailure(analyzedRepo);
+    if (analyzedRepoFailure) failures.push(analyzedRepoFailure);
+    else if (analyzedRepoStructured !== undefined && JSON.stringify(analyzedRepoStructured) !== JSON.stringify(analyzedRepo)) {
+      failures.push("analyze_repo_structure structuredContent mismatch");
     }
   }
   if (validation) {
@@ -3724,6 +3736,58 @@ function orphansShapeFailure(result) {
   return matchRowsFailure("find_orphans", result.orphans);
 }
 
+function analyzeRepoStructureFailure(result) {
+  if (typeof result.rootPath !== "string" || result.rootPath.length === 0) {
+    return "analyze_repo_structure response missing rootPath";
+  }
+  if (!["fsd", "next", "generic"].includes(result.framework)) {
+    return `analyze_repo_structure response unknown framework: ${result.framework}`;
+  }
+  for (const propertyName of ["domains", "capabilities", "elements", "suggestedRelations", "skipped"]) {
+    if (!Array.isArray(result[propertyName])) {
+      return `analyze_repo_structure response missing ${propertyName} array`;
+    }
+  }
+  for (const propertyName of ["domains", "capabilities", "elements"]) {
+    for (const [index, candidate] of result[propertyName].entries()) {
+      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+        return `analyze_repo_structure response malformed ${propertyName} row at index ${index}`;
+      }
+      if (typeof candidate.slug !== "string" || candidate.slug.length === 0) {
+        return `analyze_repo_structure response missing ${propertyName} slug at index ${index}`;
+      }
+      if (typeof candidate.title !== "string" || candidate.title.length === 0) {
+        return `analyze_repo_structure response missing ${propertyName} title: ${candidate.slug}`;
+      }
+      if (!candidate.evidence || typeof candidate.evidence.source !== "string" || candidate.evidence.source.length === 0) {
+        return `analyze_repo_structure response missing ${propertyName} evidence source: ${candidate.slug}`;
+      }
+    }
+  }
+  for (const [index, relation] of result.suggestedRelations.entries()) {
+    if (!relation || typeof relation !== "object" || Array.isArray(relation)) {
+      return `analyze_repo_structure response malformed suggestedRelations row at index ${index}`;
+    }
+    for (const propertyName of ["from", "to", "type"]) {
+      if (typeof relation[propertyName] !== "string" || relation[propertyName].length === 0) {
+        return `analyze_repo_structure response missing suggestedRelations ${propertyName} at index ${index}`;
+      }
+    }
+  }
+  for (const [index, skipped] of result.skipped.entries()) {
+    if (!skipped || typeof skipped !== "object" || Array.isArray(skipped)) {
+      return `analyze_repo_structure response malformed skipped row at index ${index}`;
+    }
+    if (typeof skipped.path !== "string" || skipped.path.length === 0) {
+      return `analyze_repo_structure response missing skipped path at index ${index}`;
+    }
+    if (typeof skipped.reason !== "string" || skipped.reason.length === 0) {
+      return `analyze_repo_structure response missing skipped reason: ${skipped.path}`;
+    }
+  }
+  return null;
+}
+
 function matchRowsFailure(label, rows) {
   for (const [index, row] of rows.entries()) {
     if (!row || typeof row !== "object" || Array.isArray(row)) {
@@ -4182,6 +4246,17 @@ async function main() {
     for (const m of (queryConcepts.matches || []).slice(0, 5)) {
       console.log(`  ${m.kind?.padEnd(13) || ""} ${m.slug.padEnd(40)} ${m.title || ""}`);
     }
+  }
+
+  // 7c. analyze_repo_structure
+  header(`analyze_repo_structure(repo bootstrap candidates)`);
+  const analyzedRepo = getResult(responses, 57);
+  const analyzedRepoStructured = getRpcResult(responses, 57)?.structuredContent ?? null;
+  if (analyzedRepo) {
+    console.log(`  structuredContent: ${JSON.stringify(analyzedRepoStructured) === JSON.stringify(analyzedRepo) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
+    console.log(
+      `  framework ${analyzedRepo.framework || "n/a"} · domains ${analyzedRepo.domains?.length ?? "n/a"} · capabilities ${analyzedRepo.capabilities?.length ?? "n/a"} · elements ${analyzedRepo.elements?.length ?? "n/a"} · relations ${analyzedRepo.suggestedRelations?.length ?? "n/a"}`,
+    );
   }
 
   // 8. validate_vault
@@ -4727,6 +4802,8 @@ async function main() {
     orphStructured,
     queryConcepts,
     queryConceptsStructured,
+    analyzedRepo,
+    analyzedRepoStructured,
     validation,
     brief,
     tunedBrief,
@@ -4798,6 +4875,7 @@ async function main() {
   console.log(`  project_probe: ${projectProbe ? formatCount(projectProbe.total ?? 0, "project node") : "n/a"}`);
   console.log(`  get_concepts: ${(batch?.concepts || []).filter((row) => row?.ok === true).length} ok · ${(batch?.concepts || []).filter((row) => row?.ok === false).length} partial`);
   console.log(`  query_concepts: ${queryConcepts ? `${queryConcepts.matches?.length ?? 0} matches · limited ${queryConcepts.limited === true}` : "n/a"}`);
+  console.log(`  analyze_repo_structure: ${analyzedRepo ? `${analyzedRepo.framework} · ${analyzedRepo.capabilities?.length ?? 0} capabilities · ${analyzedRepo.elements?.length ?? 0} elements` : "n/a"}`);
   console.log(
     `  validate_vault: ${validation ? formatCount(validation.summary?.problemFiles ?? 0, "problem file") : "n/a"}`,
   );

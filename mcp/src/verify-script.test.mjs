@@ -440,6 +440,76 @@ describe('verify.mjs first-contact gates', () => {
         },
       },
       {
+        name: 'analyze_repo_structure',
+        inputSchema: {
+          additionalProperties: false,
+          properties: {
+            rootPath: { type: 'string' },
+            maxDepth: { type: 'integer', minimum: 0, maximum: 10 },
+          },
+        },
+        outputSchema: {
+          type: 'object',
+          required: ['rootPath', 'framework', 'domains', 'capabilities', 'elements', 'suggestedRelations', 'skipped'],
+          properties: {
+            rootPath: { type: 'string' },
+            framework: { enum: ['fsd', 'next', 'generic'] },
+            domains: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'title', 'evidence'],
+                properties: {
+                  slug: { type: 'string' },
+                  title: { type: 'string' },
+                  evidence: { type: 'object', required: ['source'] },
+                },
+              },
+            },
+            capabilities: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'title', 'evidence'],
+                properties: {
+                  slug: { type: 'string' },
+                  title: { type: 'string' },
+                  evidence: { type: 'object', required: ['source'] },
+                },
+              },
+            },
+            elements: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'title', 'evidence'],
+                properties: {
+                  slug: { type: 'string' },
+                  title: { type: 'string' },
+                  evidence: { type: 'object', required: ['source'] },
+                },
+              },
+            },
+            suggestedRelations: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['from', 'to', 'type'],
+                properties: {},
+              },
+            },
+            skipped: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['path', 'reason'],
+                properties: {},
+              },
+            },
+          },
+        },
+      },
+      {
         name: 'add_concept',
         description:
           'Successful writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
@@ -1040,6 +1110,44 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'compile_ontology outputSchema byKind drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'analyze_repo_structure'),
+        {
+          ...tools.find((tool) => tool.name === 'analyze_repo_structure'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema.properties,
+              framework: { enum: ['fsd', 'generic'] },
+            },
+          },
+        },
+      ]),
+      'analyze_repo_structure outputSchema framework drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'analyze_repo_structure'),
+        {
+          ...tools.find((tool) => tool.name === 'analyze_repo_structure'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema.properties,
+              capabilities: {
+                ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema.properties.capabilities,
+                items: {
+                  ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema.properties.capabilities.items,
+                  required: ['slug', 'title'],
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'analyze_repo_structure outputSchema capabilities rows drift',
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool(

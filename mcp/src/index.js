@@ -1498,6 +1498,112 @@ const TOOLS = [
         },
       },
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        rootPath: NON_BLANK_STRING_SCHEMA,
+        framework: {
+          type: 'string',
+          enum: ['fsd', 'next', 'generic'],
+        },
+        project: {
+          type: 'object',
+          properties: {
+            slug: NON_BLANK_STRING_SCHEMA,
+            title: NON_BLANK_STRING_SCHEMA,
+          },
+          required: ['slug', 'title'],
+        },
+        domains: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              evidence: {
+                type: 'object',
+                properties: {
+                  source: NON_BLANK_STRING_SCHEMA,
+                  line: { type: 'integer', minimum: 1 },
+                },
+                required: ['source'],
+              },
+            },
+            required: ['slug', 'title', 'evidence'],
+          },
+        },
+        capabilities: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              domain: { type: 'string' },
+              evidence: {
+                type: 'object',
+                properties: {
+                  source: NON_BLANK_STRING_SCHEMA,
+                },
+                required: ['source'],
+              },
+            },
+            required: ['slug', 'title', 'evidence'],
+          },
+        },
+        elements: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              evidence: {
+                type: 'object',
+                properties: {
+                  source: NON_BLANK_STRING_SCHEMA,
+                },
+                required: ['source'],
+              },
+            },
+            required: ['slug', 'title', 'evidence'],
+          },
+        },
+        suggestedRelations: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              from: NON_BLANK_STRING_SCHEMA,
+              to: NON_BLANK_STRING_SCHEMA,
+              type: NON_BLANK_STRING_SCHEMA,
+            },
+            required: ['from', 'to', 'type'],
+          },
+        },
+        skipped: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              path: NON_BLANK_STRING_SCHEMA,
+              reason: NON_BLANK_STRING_SCHEMA,
+            },
+            required: ['path', 'reason'],
+          },
+        },
+      },
+      required: [
+        'rootPath',
+        'framework',
+        'domains',
+        'capabilities',
+        'elements',
+        'suggestedRelations',
+        'skipped',
+      ],
+    },
   },
   {
     name: 'rename_concept',

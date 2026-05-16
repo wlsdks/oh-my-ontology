@@ -544,6 +544,55 @@ export function toolsListSchemaFailure(tools) {
     }
   }
 
+  const analyzeTool = tools.find((tool) => tool?.name === 'analyze_repo_structure');
+  if (!analyzeTool) return 'tools/list response missing analyze_repo_structure tool';
+  if (analyzeTool.outputSchema?.type !== 'object') {
+    return 'analyze_repo_structure outputSchema root drift';
+  }
+  if (!sameArray(analyzeTool.outputSchema?.required, ['rootPath', 'framework', 'domains', 'capabilities', 'elements', 'suggestedRelations', 'skipped'])) {
+    return 'analyze_repo_structure outputSchema required drift';
+  }
+  if (outputPropertyAt(analyzeTool, ['properties', 'rootPath'])?.type !== 'string') {
+    return 'analyze_repo_structure outputSchema rootPath drift';
+  }
+  if (!sameArray(outputPropertyAt(analyzeTool, ['properties', 'framework'])?.enum, ['fsd', 'next', 'generic'])) {
+    return 'analyze_repo_structure outputSchema framework drift';
+  }
+  for (const propertyName of ['domains', 'capabilities', 'elements']) {
+    const rowsSchema = outputPropertyAt(analyzeTool, ['properties', propertyName]);
+    if (
+      rowsSchema?.type !== 'array' ||
+      rowsSchema.items?.type !== 'object' ||
+      !sameArray(rowsSchema.items?.required, ['slug', 'title', 'evidence'])
+    ) {
+      return `analyze_repo_structure outputSchema ${propertyName} rows drift`;
+    }
+    for (const rowPropertyName of ['slug', 'title']) {
+      if (rowsSchema.items?.properties?.[rowPropertyName]?.type !== 'string') {
+        return `analyze_repo_structure outputSchema ${propertyName} ${rowPropertyName} drift`;
+      }
+    }
+    if (rowsSchema.items?.properties?.evidence?.type !== 'object' || !sameArray(rowsSchema.items?.properties?.evidence?.required, ['source'])) {
+      return `analyze_repo_structure outputSchema ${propertyName} evidence drift`;
+    }
+  }
+  const suggestedRelationsSchema = outputPropertyAt(analyzeTool, ['properties', 'suggestedRelations']);
+  if (
+    suggestedRelationsSchema?.type !== 'array' ||
+    suggestedRelationsSchema.items?.type !== 'object' ||
+    !sameArray(suggestedRelationsSchema.items?.required, ['from', 'to', 'type'])
+  ) {
+    return 'analyze_repo_structure outputSchema suggestedRelations drift';
+  }
+  const skippedSchema = outputPropertyAt(analyzeTool, ['properties', 'skipped']);
+  if (
+    skippedSchema?.type !== 'array' ||
+    skippedSchema.items?.type !== 'object' ||
+    !sameArray(skippedSchema.items?.required, ['path', 'reason'])
+  ) {
+    return 'analyze_repo_structure outputSchema skipped drift';
+  }
+
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
 

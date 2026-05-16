@@ -320,6 +320,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`find_orphans`\s+`outputSchema` and matching `structuredContent` orphan-list payload/);
     assert.match(verifySection, /`query_concepts`\s+`outputSchema` and matching `structuredContent` typed-filter payload/);
     assert.match(verifySection, /`compile_ontology`\s+`outputSchema` and matching `structuredContent` graph-summary payload/);
+    assert.match(verifySection, /`analyze_repo_structure`\s+`outputSchema` and matching `structuredContent` bootstrap-candidate payload/);
     assert.match(verifySection, /same 50-row cap used by `get_concepts`, `add_concepts`,\s+and `add_relations`/);
     assert.match(verifySection, /`find_orphans\.excludeKinds` string-array\s+schema and root\/sentinel default description/);
     assert.match(verifySection, /write-safety schemas for\s+`expected_mtime`/);
@@ -690,6 +691,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`find_orphans` 도 `outputSchema` 와 동일한 `structuredContent` orphan-list payload/);
     assert.match(doc, /`query_concepts` 도 `outputSchema` 와 동일한 `structuredContent` typed-filter payload/);
     assert.match(doc, /`compile_ontology` 도 `outputSchema` 와 동일한 `structuredContent` graph-summary payload/);
+    assert.match(doc, /`analyze_repo_structure` 도 `outputSchema` 와 동일한 `structuredContent` bootstrap-candidate payload/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /15 read \/ 8 write split/);
     assert.match(doc, /annotation drift/);
