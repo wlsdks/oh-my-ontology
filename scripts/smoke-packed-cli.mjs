@@ -17,6 +17,7 @@ import {
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { checkMcpLeanTarballFiles } from './check-package-contracts.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const MCP_DIR = join(ROOT, 'mcp');
@@ -63,6 +64,7 @@ function packSummary(packageDir) {
     size: summary.size,
     unpackedSize: summary.unpackedSize,
     entryCount: summary.entryCount,
+    files: summary.files.map((file) => file.path),
   };
 }
 
@@ -163,6 +165,7 @@ try {
   assert.match(compile.stdout, /issues.*0/);
 
   const mcpSummary = packSummary(MCP_DIR);
+  checkMcpLeanTarballFiles(mcpSummary.files);
   const cliSummary = packSummary(CLI_DIR);
   console.log(
     `packed CLI smoke passed: ${temp}\n` +
