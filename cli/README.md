@@ -62,6 +62,9 @@ Write-safety schema for `expected_mtime` conflict guards and destructive
 `confirm` dry-run switches is checked as part of the same installed verify.
 It also checks `get_concepts` with discovered vault slugs plus one missing slug,
 so installed CLI users catch batch-reader success and partial-row contract drift.
+Node census totals are cross-checked across `list_kinds`, `list_concepts`,
+`compile_ontology`, and `overview`; `validate_vault.scanned` remains file-level
+health so a file-count issue is not mistaken for graph node-count drift.
 It blocks parser/server/tool inventory failures, vault validation problems,
 failing health checks, and fail-severity `workspace_brief.nextActions`; warn
 diagnostics still print so a fresh starter vault can verify before cleanup.
