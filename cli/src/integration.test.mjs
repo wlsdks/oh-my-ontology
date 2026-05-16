@@ -357,6 +357,25 @@ await test('compile — rejects ambiguous vault arguments before compile/fix', a
   assert.match(stripAnsi(tooMany.stderr), /too many arguments: two/);
 });
 
+await test('compile --json — unresolved graph references exit non-zero', async () => {
+  const root = withVault([
+    {
+      slug: 'capabilities/a',
+      content:
+        '---\nkind: capability\nslug: capabilities/a\ntitle: A\ndependencies: [capabilities/missing]\n---\n\n# A\n',
+    },
+  ]);
+  try {
+    const r = await run(['compile', root, '--json']);
+    assert.equal(r.code, 1, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const data = JSON.parse(r.stdout);
+    assert.equal(data.summary.issues, 1);
+    assert.equal(data.summary.unresolvedEdges, 1);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('list — kind 있는 노드만 카운트', async () => {
   const root = withVault([
     { slug: 'a', content: '---\nkind: capability\ntitle: A\n---\n' },

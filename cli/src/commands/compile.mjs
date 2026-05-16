@@ -80,12 +80,12 @@ export async function runCompile(args) {
     process.stdout.write(
       JSON.stringify(fixResult ? { artifact, fix: fixResult } : artifact, null, 2) + '\n',
     );
-    return 0;
+    return compileExitCode(artifact);
   }
 
   renderArtifact(artifact);
   if (fixResult) renderFixResult(fixResult);
-  return 0;
+  return compileExitCode(artifact);
 }
 
 async function applyCanonicalizationActions(vaultRoot, actions) {
@@ -151,6 +151,14 @@ function renderArtifact(artifact) {
       `\n${COLORS.yellow}reorder available${COLORS.reset} — run with ${COLORS.bold}--fix${COLORS.reset} to canonicalize relation arrays.\n`,
     );
   }
+}
+
+function compileExitCode(artifact) {
+  const summary = artifact?.summary ?? artifact ?? {};
+  const issues = summary.issues ?? summary.issueCount ?? artifact?.issueCount ?? 0;
+  const unresolved =
+    summary.unresolvedEdges ?? summary.unresolvedEdgeCount ?? artifact?.unresolvedEdgeCount ?? 0;
+  return issues > 0 || unresolved > 0 ? 1 : 0;
 }
 
 function renderPagination(label, meta) {
