@@ -55,6 +55,24 @@ const okShape = {
     byKind: { project: 1 },
     byDomain: {},
   },
+  overview: {
+    operation: "overview",
+    graph: {
+      nodes: 1,
+      edges: 2,
+      resolvedEdges: 1,
+      externalEdges: 1,
+      unresolvedEdges: 0,
+      aliases: 1,
+      ambiguousAliases: 0,
+      issues: 0,
+      graphHash: "abc123",
+      maxMtime: 1,
+    },
+    byKind: { project: 1 },
+    byRelation: {},
+    hubs: [],
+  },
   patternWalk: {
     operation: "pattern_walk",
     start: "project",
@@ -557,9 +575,16 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, nodeCount: 2, byKind: { project: 2 } } }),
       ["dogfood count mismatch — list_kinds.total 1, compile_ontology.nodeCount 2", "dogfood byKind mismatch — project: list_kinds 1, compile_ontology 2"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        overview: { ...okShape.overview, graph: { ...okShape.overview.graph, nodes: 2 }, byKind: { project: 2 } },
+      }),
+      ["dogfood count mismatch — list_kinds.total 1, overview.graph.nodes 2", "dogfood byKind mismatch — project: list_kinds 1, overview 2"],
+    );
   });
 
-  it("fails when list_kinds and compile_ontology disagree by kind", () => {
+  it("fails when list_kinds and graph summaries disagree by kind", () => {
     assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
@@ -569,6 +594,19 @@ describe("evaluateDogfoodGate", () => {
       [
         "dogfood byKind mismatch — capability: list_kinds 1, compile_ontology 0",
         "dogfood byKind mismatch — project: list_kinds 0, compile_ontology 1",
+        "dogfood byKind mismatch — capability: list_kinds 1, overview 0",
+        "dogfood byKind mismatch — project: list_kinds 0, overview 1",
+      ],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        kinds: { total: 1, byKind: { capability: 1 } },
+        compiled: { ...okShape.compiled, byKind: { capability: 1 } },
+      }),
+      [
+        "dogfood byKind mismatch — capability: list_kinds 1, overview 0",
+        "dogfood byKind mismatch — project: list_kinds 0, overview 1",
       ],
     );
   });

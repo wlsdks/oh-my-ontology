@@ -94,8 +94,9 @@ capabilities 경로로, `query_ontology(all_paths)` 와
 경로로 호출해 agent 가 단계형 graph traversal, 다중 path enumeration, 실행 전
 plan contract 를 받을 수 있는지 확인한다.
 이후 `list_kinds.total`, `list_concepts.total`, `validate_vault.scanned`,
-`compile_ontology.nodeCount` 를 서로 비교하고 `list_kinds.byKind` 와
-`compile_ontology.byKind` 가 같은 census 를 말하는지도 확인한다.
+`compile_ontology.nodeCount`, `overview.graph.nodes` 를 서로 비교하고
+`list_kinds.byKind` / `compile_ontology.byKind` / `overview.byKind` 가 같은 census 를
+말하는지도 확인한다.
 `validate_vault` 응답은 `scanned`, `summary.problemFiles`,
 `summary.errorFiles`, `summary.warningFiles` count 와 `summary.byCode`
 aggregate shape 까지 검증해, malformed validation payload 가 clean vault 로
@@ -174,7 +175,8 @@ path 가 있을 때만 true 다.
 
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
-`workspace_brief`, `health`, `pattern_walk`, `all_paths`, `all_paths query_plan` 을
+`workspace_brief`, `health`, `compile_ontology`, `overview`, `pattern_walk`,
+`all_paths`, `all_paths query_plan` 을
 함께 출력해, AI agent 가 첫 접촉에서 받는 graph diagnosis 와 traversal 품질을
 계속 확인한다.
 dogfood 의 `list_concepts.vaultWarnings` / `validate_vault` 판정은

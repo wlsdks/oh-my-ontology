@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology query_plan / all_paths / pattern_walk / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,7 @@ import {
   compileSummaryFailure,
   listConceptsFailure,
   listKindsFailure,
+  overviewFailure,
   validateVaultFailure,
 } from "../mcp/scripts/verify.mjs";
 
@@ -47,6 +48,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [12, "pattern_walk"],
   [13, "all_paths"],
   [14, "all_paths_query_plan"],
+  [15, "overview"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -180,6 +182,7 @@ export function evaluateDogfoodGate({
   brief,
   health,
   compiled,
+  overview,
   patternWalk,
   allPaths,
   allPathsPlan,
@@ -195,6 +198,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "workspace_brief", brief);
   recordResult(failures, "health", health);
   recordResult(failures, "compile_ontology", compiled);
+  recordResult(failures, "overview", overview);
   recordResult(failures, "pattern_walk", patternWalk);
   recordResult(failures, "all_paths", allPaths);
   recordResult(failures, "all_paths_query_plan", allPathsPlan);
@@ -242,6 +246,10 @@ export function evaluateDogfoodGate({
     const compileFailure = compileSummaryFailure(compiled);
     if (compileFailure) failures.push(compileFailure);
   }
+  if (overview) {
+    const overviewShapeFailure = overviewFailure(overview);
+    if (overviewShapeFailure) failures.push(overviewShapeFailure);
+  }
   if (patternWalk) {
     const patternWalkFailure = patternWalkShapeFailure(patternWalk);
     if (patternWalkFailure) failures.push(patternWalkFailure);
@@ -262,7 +270,7 @@ export function evaluateDogfoodGate({
       failures.push(`all_paths query_plan limit below returned rows — rows ${allPaths.paths.length}, planned ${plannedLimit}`);
     }
   }
-  const consistencyFailures = crossToolConsistencyFailures({ kinds, list, validation, compiled });
+  const consistencyFailures = crossToolConsistencyFailures({ kinds, list, validation, compiled, overview });
   failures.push(...consistencyFailures);
   if (brief && !briefShapeFailure && brief.status !== "healthy") {
     failures.push(`workspace_brief: status ${brief.status}`);
@@ -532,12 +540,13 @@ function healthShapeFailureForDogfood(result) {
   return checksShapeFailure("health", result.checks, { requireNonEmpty: true });
 }
 
-function crossToolConsistencyFailures({ kinds, list, validation, compiled }) {
+function crossToolConsistencyFailures({ kinds, list, validation, compiled, overview }) {
   if (
     (kinds && listKindsFailure(kinds)) ||
     (list && listConceptsFailure(list)) ||
     (validation && validateVaultFailure(validation)) ||
-    (compiled && compileSummaryFailure(compiled))
+    (compiled && compileSummaryFailure(compiled)) ||
+    (overview && overviewFailure(overview))
   ) {
     return [];
   }
@@ -548,6 +557,7 @@ function crossToolConsistencyFailures({ kinds, list, validation, compiled }) {
     ["list_concepts.total", list?.total],
     ["validate_vault.scanned", validation?.scanned],
     ["compile_ontology.nodeCount", compiled?.nodeCount],
+    ["overview.graph.nodes", overview?.graph?.nodes],
   ].filter(([, value]) => Number.isInteger(value));
 
   if (totals.length > 1) {
@@ -566,6 +576,16 @@ function crossToolConsistencyFailures({ kinds, list, validation, compiled }) {
       const compiledCount = compiled.byKind[kind] ?? 0;
       if (kindsCount !== compiledCount) {
         failures.push(`dogfood byKind mismatch — ${kind}: list_kinds ${kindsCount}, compile_ontology ${compiledCount}`);
+      }
+    }
+  }
+  if (kinds?.byKind && overview?.byKind) {
+    const allKinds = new Set([...Object.keys(kinds.byKind), ...Object.keys(overview.byKind)]);
+    for (const kind of [...allKinds].sort()) {
+      const kindsCount = kinds.byKind[kind] ?? 0;
+      const overviewCount = overview.byKind[kind] ?? 0;
+      if (kindsCount !== overviewCount) {
+        failures.push(`dogfood byKind mismatch — ${kind}: list_kinds ${kindsCount}, overview ${overviewCount}`);
       }
     }
   }
@@ -683,6 +703,7 @@ async function main() {
       to: "domains/vault-local-first",
       maxHops: 4,
     }),
+    call(15, "query_ontology", { operation: "overview" }),
   ];
 
   const { responses, stderr, timedOut } = await rpc(requests, timeoutMs);
@@ -815,7 +836,16 @@ async function main() {
     );
   }
 
-  // 11. pattern_walk
+  // 11. overview
+  header(`query_ontology(overview)`);
+  const overview = getResult(responses, 15);
+  if (overview) {
+    console.log(
+      `  graph ${overview.graph?.graphHash?.slice(0, 12) ?? "n/a"} · nodes ${overview.graph?.nodes ?? "n/a"} · edges ${overview.graph?.edges ?? "n/a"} · hubs ${(overview.hubs || []).length}`,
+    );
+  }
+
+  // 12. pattern_walk
   header(`query_ontology(pattern_walk project → domains → capabilities)`);
   const patternWalk = getResult(responses, 12);
   if (patternWalk) {
@@ -827,7 +857,7 @@ async function main() {
     }
   }
 
-  // 12. all_paths
+  // 13. all_paths
   header(`query_ontology(all_paths mcp-server → vault-local-first)`);
   const allPaths = getResult(responses, 13);
   if (allPaths) {
@@ -840,7 +870,7 @@ async function main() {
     }
   }
 
-  // 13. all_paths query_plan
+  // 14. all_paths query_plan
   header(`query_ontology(query_plan all_paths mcp-server → vault-local-first)`);
   const allPathsPlan = getResult(responses, 14);
   if (allPathsPlan) {
@@ -863,6 +893,7 @@ async function main() {
     brief,
     health,
     compiled,
+    overview,
     patternWalk,
     allPaths,
     allPathsPlan,
@@ -889,6 +920,7 @@ async function main() {
   console.log(`  workspace_brief: ${brief?.status ?? "n/a"} (${(brief?.nextActions || []).length} next actions)`);
   console.log(`  health: ${health?.status ?? "n/a"} (${(health?.checks || []).length} checks)`);
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
+  console.log(`  overview: ${overview?.graph?.nodes ?? "n/a"} nodes · ${overview?.graph?.edges ?? "n/a"} edges · ${(overview?.hubs || []).length} hubs`);
   console.log(`  pattern_walk: ${patternWalk?.paths?.rows?.length ?? "n/a"} paths (${patternWalk?.paths?.limited ? "limited" : "complete"})`);
   console.log(`  all_paths: ${allPaths?.paths?.length ?? "n/a"} paths (${allPaths?.limited ? "limited" : "complete"})`);
   console.log(`  all_paths query_plan: ${allPathsPlan?.estimate?.costClass ?? "n/a"} · limit ${allPathsPlan?.normalized?.limit ?? "n/a"}`);
