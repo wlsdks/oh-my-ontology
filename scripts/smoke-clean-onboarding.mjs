@@ -16,9 +16,13 @@ const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const CLI = join(ROOT, 'cli', 'src', 'index.mjs');
 const VERIFY = join(ROOT, 'mcp', 'scripts', 'verify.mjs');
 const MCP_PKG = JSON.parse(readFileSync(join(ROOT, 'mcp', 'package.json'), 'utf-8'));
-const expectedToolCount = MCP_PKG.description.match(/(\d+) tools/)?.[1];
+const mcpToolMetadata = MCP_PKG.description.match(/(\d+) tools \((\d+) read \+ (\d+) write\)/);
+const expectedToolCount = mcpToolMetadata?.[1];
+const expectedToolSplitRe = new RegExp(
+  `\\(${mcpToolMetadata?.[2]} read \\+ ${mcpToolMetadata?.[3]} write\\)`,
+);
 
-assert.ok(expectedToolCount, 'mcp/package.json description must include the current tool count');
+assert.ok(mcpToolMetadata, 'mcp/package.json description must include the current tool count and split');
 
 function run(cmd, args, options = {}) {
   const result = spawnSync(cmd, args, {
@@ -60,6 +64,7 @@ writeFileSync(
 const init = run('node', [CLI, 'init', 'ontology'], { cwd: project });
 assert.match(init.stdout, /codex mcp add oh-my-ontology/);
 assert.match(init.stdout, new RegExp(`${expectedToolCount} tools`));
+assert.match(init.stdout, expectedToolSplitRe);
 assert.match(init.stdout, /oh-my-ontology analyze \. --vault \.\/ontology/);
 assert.match(init.stdout, /oh-my-ontology bootstrap \. --vault \.\/ontology/);
 assert.doesNotMatch(init.stdout, /\/path\/to\/your\/repo/);

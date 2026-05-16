@@ -19,9 +19,13 @@ import { tmpdir } from 'node:os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, 'index.mjs');
 const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', '..', 'mcp', 'package.json'), 'utf-8'));
-const EXPECTED_TOOL_COUNT = MCP_PKG.description.match(/(\d+) tools/)?.[1];
+const MCP_TOOL_METADATA = MCP_PKG.description.match(/(\d+) tools \((\d+) read \+ (\d+) write\)/);
+const EXPECTED_TOOL_COUNT = MCP_TOOL_METADATA?.[1];
+const EXPECTED_TOOL_SPLIT_RE = new RegExp(
+  `\\(${MCP_TOOL_METADATA?.[2]} read \\+ ${MCP_TOOL_METADATA?.[3]} write\\)`,
+);
 
-assert.ok(EXPECTED_TOOL_COUNT, 'mcp/package.json description must include the current tool count');
+assert.ok(MCP_TOOL_METADATA, 'mcp/package.json description must include the current tool count and split');
 
 function run(args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -100,6 +104,7 @@ await test('init — generated MCP config points at a runnable local server in s
     assert.equal(r.code, 0);
     const clean = stripAnsi(r.stdout);
     assert.match(clean, new RegExp(`${EXPECTED_TOOL_COUNT} tools`));
+    assert.match(clean, EXPECTED_TOOL_SPLIT_RE);
     assert.doesNotMatch(clean, /16 MCP tools|16 tools/);
     assert.doesNotMatch(clean, /bootstrap .*--apply/);
     assert.match(clean, /Codex/);
