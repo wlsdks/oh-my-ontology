@@ -556,6 +556,26 @@ const okShape = {
       ],
     },
   },
+  relationRecommendations: {
+    operation: "recommend_relations",
+    mode: "domain_containment",
+    totalRecommendations: 1,
+    limited: false,
+    recommendations: [
+      {
+        kind: "missing_domain_containment",
+        score: 1,
+        from: "domains/ai-agent-partner",
+        to: "capabilities/mcp-server",
+        relation: "capabilities",
+        reason: "Missing containment relation.",
+        proposedAction: {
+          tool: "add_relation",
+          args: { from: "domains/ai-agent-partner", to: "capabilities/mcp-server", type: "capabilities" },
+        },
+      },
+    ],
+  },
 };
 
 describe("recordResult", () => {
@@ -635,6 +655,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(22), "relation_check");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(23), "maintenance_plan");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(24), "growth_plan");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(25), "recommend_relations");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1509,6 +1530,50 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["growth_plan.unassignedNodes row missing score: unassigned_node"],
+    );
+  });
+
+  it("fails on malformed recommend_relations payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationRecommendations: { ...okShape.relationRecommendations, operation: "growth_plan" },
+      }),
+      ["recommend_relations operation mismatch — growth_plan"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationRecommendations: { ...okShape.relationRecommendations, totalRecommendations: 2 },
+      }),
+      ["recommend_relations row count mismatch — rows 1, total 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationRecommendations: { ...okShape.relationRecommendations, recommendations: [] },
+      }),
+      ["recommend_relations row count mismatch — rows 0, total 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationRecommendations: {
+          ...okShape.relationRecommendations,
+          recommendations: [{ ...okShape.relationRecommendations.recommendations[0], proposedAction: null }],
+        },
+      }),
+      ["recommend_relations row missing proposedAction: missing_domain_containment"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationRecommendations: {
+          ...okShape.relationRecommendations,
+          recommendations: [{ ...okShape.relationRecommendations.recommendations[0], score: -1 }],
+        },
+      }),
+      ["recommend_relations row missing score: missing_domain_containment"],
     );
   });
 

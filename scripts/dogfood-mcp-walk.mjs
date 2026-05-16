@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / relation_check / components / growth_plan / maintenance_plan / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -59,6 +59,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [22, "relation_check"],
   [23, "maintenance_plan"],
   [24, "growth_plan"],
+  [25, "recommend_relations"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -221,6 +222,10 @@ export function buildDogfoodRequests() {
       operation: "growth_plan",
       limit: 5,
     }),
+    call(25, "query_ontology", {
+      operation: "recommend_relations",
+      limit: 5,
+    }),
   ];
 }
 
@@ -286,6 +291,7 @@ export function evaluateDogfoodGate({
   relationCheck,
   maintenancePlan,
   growthPlan,
+  relationRecommendations,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -311,6 +317,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "relation_check", relationCheck);
   recordResult(failures, "maintenance_plan", maintenancePlan);
   recordResult(failures, "growth_plan", growthPlan);
+  recordResult(failures, "recommend_relations", relationRecommendations);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -408,6 +415,10 @@ export function evaluateDogfoodGate({
   if (growthPlan) {
     const growthPlanFailure = growthPlanShapeFailure(growthPlan);
     if (growthPlanFailure) failures.push(growthPlanFailure);
+  }
+  if (relationRecommendations) {
+    const relationRecommendationsFailure = recommendRelationsShapeFailure(relationRecommendations);
+    if (relationRecommendationsFailure) failures.push(relationRecommendationsFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -1137,6 +1148,14 @@ function relationRecommendationsShapeFailure(group, expectedTotal) {
   return null;
 }
 
+function recommendRelationsShapeFailure(result) {
+  const failure = relationRecommendationsShapeFailure(result, result?.totalRecommendations);
+  if (failure) {
+    return failure.replace(/^growth_plan relationRecommendations/, "recommend_relations");
+  }
+  return null;
+}
+
 function candidateGroupShapeFailure(label, group, expectedTotal) {
   if (!group || typeof group !== "object" || Array.isArray(group)) {
     return `${label} missing group`;
@@ -1783,6 +1802,18 @@ async function main() {
     );
   }
 
+  // 24. recommend_relations
+  header(`query_ontology(recommend_relations)`);
+  const relationRecommendations = getResult(responses, 25);
+  if (relationRecommendations) {
+    console.log(
+      `  recommendations ${relationRecommendations.recommendations?.length ?? "n/a"} / total ${relationRecommendations.totalRecommendations ?? "n/a"} · limited ${relationRecommendations.limited ?? "n/a"}`,
+    );
+    for (const row of (relationRecommendations.recommendations || []).slice(0, 5)) {
+      console.log(`  ${row.from} -[${row.relation}]-> ${row.to}`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -1807,6 +1838,7 @@ async function main() {
     relationCheck,
     maintenancePlan,
     growthPlan,
+    relationRecommendations,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1845,6 +1877,7 @@ async function main() {
   console.log(`  relation_check: ${relationCheck?.verdict ?? "n/a"} · exists ${relationCheck?.exists ?? "n/a"}`);
   console.log(`  maintenance_plan: ${maintenancePlan?.summary?.remainingActions ?? "n/a"} remaining · ${maintenancePlan?.summary?.executableActions ?? "n/a"} executable`);
   console.log(`  growth_plan: ${growthPlan?.summary?.totalActions ?? "n/a"} actions · ${growthPlan?.summary?.externalElementRefsIgnored ?? "n/a"} ignored external refs`);
+  console.log(`  recommend_relations: ${relationRecommendations?.totalRecommendations ?? "n/a"} recommendations`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {
