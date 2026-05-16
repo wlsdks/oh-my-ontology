@@ -37,6 +37,8 @@ R+ follow-up: `add_relation` / `add_relations` 와 `rename_concept` / `merge_con
 backlink redirect 는 relation 배열을 canonical set 으로 저장한다. 같은 edge 집합은
 항상 같은 frontmatter 순서로 직렬화되어 agent 반복 실행 시 diff noise 를 줄이고,
 file-backed graph 를 graph database 처럼 더 예측 가능하게 다룰 수 있다.
+relation filter / pattern / maintenance filter 같은 string-array 입력은
+non-string item 을 조용히 버리지 않고 MCP 경계에서 명시적으로 reject 한다.
 Batch 도구의 `slugs` / `concepts` / `relations` 배열도 `tools/list`
 `inputSchema` 에 `maxItems: 50` 을 노출해 런타임 cap 과 client-side
 validation 힌트가 드리프트하지 않게 한다.

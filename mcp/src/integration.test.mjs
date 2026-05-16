@@ -1350,8 +1350,24 @@ await test("MCP read/query tools — invalid numeric and direction options are r
       }),
       callTool(11, "query_ontology", { operation: "centrality", iterations: 101 }),
       callTool(12, "query_ontology", { operation: "cycles", depth: -1 }),
+      callTool(13, "find_neighbors", { slug: "a", types: ["depends_on", 123] }),
+      callTool(14, "find_orphans", { excludeKinds: ["vault-readme", false] }),
+      callTool(15, "query_ontology", {
+        operation: "neighbors",
+        slug: "a",
+        types: ["depends_on", 123],
+      }),
+      callTool(16, "query_ontology", {
+        operation: "pattern_walk",
+        slug: "a",
+        pattern: ["dependencies", null],
+      }),
+      callTool(17, "query_ontology", {
+        operation: "maintenance_plan",
+        phases: ["repair", 7],
+      }),
     ]);
-    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
     assert.match(responses.find((r) => r.id === 2).result.content[0].text, /limit must be a positive integer/i);
@@ -1365,6 +1381,11 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 10).result.content[0].text, /direction must be one of/i);
     assert.match(responses.find((r) => r.id === 11).result.content[0].text, /iterations must be <= 100/i);
     assert.match(responses.find((r) => r.id === 12).result.content[0].text, /depth must be a non-negative integer/i);
+    assert.match(responses.find((r) => r.id === 13).result.content[0].text, /types must be an array of strings/i);
+    assert.match(responses.find((r) => r.id === 14).result.content[0].text, /excludeKinds must be an array of strings/i);
+    assert.match(responses.find((r) => r.id === 15).result.content[0].text, /types must be an array of strings/i);
+    assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
+    assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

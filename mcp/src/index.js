@@ -1745,6 +1745,7 @@ function findNeighborsTool({ slug, direction = 'both', types, includeNodes = tru
     throw new Error('slug is required.');
   }
   requireOptionalDirection(direction, 'direction', ['outgoing', 'incoming', 'both']);
+  requireOptionalStringArray(types, 'types');
   requireOptionalPositiveInteger(limit, 'limit', { max: 500 });
   const docs = loadVaultDocs(VAULT_ROOT);
   const center = resolveExistingVaultSlug(slug, docs);
@@ -1869,6 +1870,7 @@ function listKindsTool() {
 }
 
 function findOrphansTool({ kind, excludeKinds } = {}) {
+  requireOptionalStringArray(excludeKinds, 'excludeKinds');
   return findOrphans(VAULT_ROOT, {
     kind: typeof kind === 'string' ? kind : undefined,
     excludeKinds: Array.isArray(excludeKinds) ? excludeKinds : undefined,
@@ -1983,6 +1985,17 @@ function validateQueryOntologyArgs(args = {}) {
   requireOptionalNonNegativeInteger(args.maxHops, 'maxHops');
   requireOptionalNonNegativeInteger(args.depth, 'depth');
   requireOptionalDirection(args.direction, 'direction', ['incoming', 'outgoing', 'both', 'undirected']);
+  for (const key of [
+    'types',
+    'pattern',
+    'phases',
+    'severities',
+    'kinds',
+    'dependencyTypes',
+    'componentTypes',
+  ]) {
+    requireOptionalStringArray(args[key], key);
+  }
 }
 
 function compactPostWriteMaintenance(limit = 5) {
