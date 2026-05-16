@@ -207,9 +207,10 @@ When both are present, an explicit positional vault or `--vault` argument takes
 precedence over `OMOT_VAULT`.
 `npm run verify -- --help` prints the same first-contact scope, including
 strict unknown-argument / invalid-enum rejection, enum-validated
-`maintenance_plan` filters, and missing `maintenance_plan.afterActionId` cursor
-handling (`cursor.found=false`, reason, empty page), without starting the MCP
-server.
+`maintenance_plan` filters, and maintenance_plan cursor handling (ready page +
+missing `afterActionId`): the ready page must keep `cursor.found=true`,
+`cursor.reason=null`, and the missing cursor still reports `cursor.found=false`,
+reason, empty page. This help path does not start the MCP server.
 
 A successful run looks like this:
 
