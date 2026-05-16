@@ -17,6 +17,7 @@
 - `package.json#files` now ships only the `src/parser.test.mjs` smoke fixture needed by installed `npm run verify`; full test files stay source-checkout-only so the published tarball remains lean.
 - `npm run verify` now exercises `query_ontology` first-contact diagnosis (`workspace_brief` + `health`), not just server boot, tool inventory, and `list_concepts`.
 - `npm run verify` now fails on blocking first-contact diagnosis problems: `list_concepts` vault warnings, `fail` health checks, or fail-severity `workspace_brief.nextActions` return exit 1, while advisory `needs_attention` states still print for starter vaults.
+- `npm run verify` prints non-blocking `workspace_brief.nextActions` as a compact advisory list, so starter vault users see what to clean up after MCP wiring is confirmed.
 - `npm run verify` uses an 8s server wait window by default and supports `OMOT_VERIFY_TIMEOUT_MS` for larger/slower vaults.
 - `OMOT_VERIFY_TIMEOUT_MS` is validated as a strict positive integer, so partial values like `1000ms` fail instead of being silently truncated.
 - `npm run verify` now exits as soon as all first-contact JSON-RPC responses arrive, while true timeout failures name the missing response groups and suggest increasing `OMOT_VERIFY_TIMEOUT_MS`.

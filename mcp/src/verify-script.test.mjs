@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  advisoryNextActionsSummary,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
   EXPECTED_TOOLS,
@@ -134,6 +135,28 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(diagnosisIssueCount({ summary: { issues: 3 } }), 3);
     assert.equal(diagnosisIssueCount({ summary: { compileIssues: 2 } }), 2);
     assert.equal(diagnosisIssueCount({ summary: {} }), 0);
+  });
+
+  it('formats non-blocking workspace brief next actions for verify output', () => {
+    assert.equal(advisoryNextActionsSummary(null), null);
+    assert.equal(
+      advisoryNextActionsSummary([
+        { id: 'compile_issues', severity: 'warn' },
+        { kind: 'add_missing_relations', severity: 'warn' },
+        { kind: 'materialize_external_elements', severity: 'info' },
+        { kind: 'resolve_dangling_references', severity: 'fail' },
+      ]),
+      'compile_issues:warn, add_missing_relations:warn, materialize_external_elements:info',
+    );
+    assert.equal(
+      advisoryNextActionsSummary([
+        { kind: 'a', severity: 'info' },
+        { kind: 'b', severity: 'warn' },
+        { kind: 'c', severity: 'info' },
+        { kind: 'd', severity: 'warn' },
+      ], 2),
+      'a:info, b:warn, +2 more',
+    );
   });
 
   it('fails unexpected diagnosis operations', () => {

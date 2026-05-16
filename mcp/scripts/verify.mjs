@@ -162,6 +162,17 @@ export function diagnosisIssueCount(parsed) {
   return parsed?.summary?.issues ?? parsed?.summary?.compileIssues ?? 0;
 }
 
+export function advisoryNextActionsSummary(actions, limit = 3) {
+  if (!Array.isArray(actions)) return null;
+  const advisory = actions
+    .filter((action) => action?.severity !== 'fail')
+    .map((action) => `${action.id || action.kind || 'unknown'}:${action.severity || 'unknown'}`);
+  if (advisory.length === 0) return null;
+  const shown = advisory.slice(0, limit);
+  const suffix = advisory.length > shown.length ? `, +${advisory.length - shown.length} more` : '';
+  return `${shown.join(', ')}${suffix}`;
+}
+
 async function step1ParserSmoke() {
   log('info', 'step 1 — parser smoke test');
   return new Promise((res) => {
@@ -366,6 +377,8 @@ async function step2BootAndCall() {
           return res(false);
         }
         log('ok', `workspace_brief — ${parsed.status} (${parsed.summary?.nodes ?? 0} nodes, nextActions ${(parsed.nextActions || []).length})`);
+        const advisory = advisoryNextActionsSummary(parsed.nextActions);
+        if (advisory) log('info', `workspace_brief advisory nextActions — ${advisory}`);
       } catch (err) {
         log('fail', `failed to parse workspace_brief response: ${err.message}`);
         return res(false);

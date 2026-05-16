@@ -52,6 +52,8 @@ commands do, then delegates to `oh-my-ontology-mcp/scripts/verify.mjs`.
 It blocks parser/server/tool inventory failures, vault validation problems,
 failing health checks, and fail-severity `workspace_brief.nextActions`; warn
 diagnostics still print so a fresh starter vault can verify before cleanup.
+The delegated verify output includes a compact advisory nextActions list when
+cleanup is recommended but not blocking.
 Use `--timeout-ms 15000` when a large vault or slow filesystem needs a longer
 server wait window.
 
