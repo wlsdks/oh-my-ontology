@@ -144,6 +144,9 @@ server. It also creates a dependency-cycle vault and checks installed
 For local CLI gates, `compile --json` exits 1 on unresolved graph references,
 `cycles --json` exits 1 on dependency cycles, and `path --json` exits 1 when
 `found:false` so scripts can use these commands as hard ontology checks.
+The graph diagnostic exit contract is fail-closed: malformed `cycles`,
+`path`, `health`, or `workspace-brief` payloads are treated as command
+failures instead of clean vaults.
 `dogfood:walk` runs that diagnosis plus graph lookup tasks against this
 repo's own `docs/ontology` vault and exits non-zero if the core MCP
 responses, `get_concepts` success/partial rows, path check, vault warnings, `validate_vault` problem files,

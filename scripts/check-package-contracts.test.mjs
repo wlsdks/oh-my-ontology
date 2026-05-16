@@ -129,7 +129,19 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /dependency cycles/);
     assert.match(releaseChecks, /path --json` exits 1/);
     assert.match(releaseChecks, /found:false/);
+    assert.match(releaseChecks, /fail-closed/);
+    assert.match(releaseChecks, /malformed `cycles`/);
+    assert.match(releaseChecks, /`path`, `health`, or `workspace-brief` payloads/);
     assert.match(releaseChecks, /validate_vault` problem files/);
+  });
+
+  it('keeps dogfood CLI docs explicit about fail-closed graph diagnostics', () => {
+    const doc = readFileSync('docs/ontology/capabilities/cli-developer-entry.md', 'utf-8');
+    const implementationSection = doc.split('## 구현 단일 진실원')[1]?.split('## 회귀 차단')[0] ?? '';
+
+    assert.match(implementationSection, /query-result-contract\.mjs/);
+    assert.match(implementationSection, /malformed `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
+    assert.match(implementationSection, /fail-closed/);
   });
 
   it('keeps packed CLI smoke aligned with installed hard gates', () => {
