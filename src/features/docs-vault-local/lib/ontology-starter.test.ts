@@ -1,12 +1,19 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { parseMcpToolMetadataFromDescription } from "../../../../cli/src/lib/mcp-metadata.mjs";
 import {
   ONTOLOGY_STARTER_FILES,
   buildMcpConfigJson,
 } from "./ontology-starter";
 
 const ROOT = path.resolve(__dirname, "../../../..");
+const MCP_PKG = JSON.parse(
+  readFileSync(path.join(ROOT, "mcp", "package.json"), "utf8"),
+);
+const MCP_TOOL_METADATA = parseMcpToolMetadataFromDescription(
+  MCP_PKG.description,
+);
 
 describe("ONTOLOGY_STARTER_FILES", () => {
   it("5 시드 파일 제공 — README + project + 3 example (domain/capability/element)", () => {
@@ -56,14 +63,15 @@ describe("ONTOLOGY_STARTER_FILES", () => {
     expect(readme).toContain("OMOT_VAULT");
   });
 
-  it("starter README 는 현재 MCP tool inventory 를 안내", () => {
+  it("starter README 는 현재 MCP package tool inventory 를 안내", () => {
     const readme = ONTOLOGY_STARTER_FILES.find(
       (f) => f.relPath === "README.md",
     )?.content;
 
-    expect(readme).toContain("agent gets 23");
-    expect(readme).toContain("**read 15**");
-    expect(readme).toContain("**write 8**");
+    expect(MCP_TOOL_METADATA).toBeTruthy();
+    expect(readme).toContain(`agent gets ${MCP_TOOL_METADATA?.toolCount}`);
+    expect(readme).toContain(`**read ${MCP_TOOL_METADATA?.readCount}**`);
+    expect(readme).toContain(`**write ${MCP_TOOL_METADATA?.writeCount}**`);
     expect(readme).toContain("find_neighbors");
     expect(readme).toContain("compile_ontology");
     expect(readme).toContain("query_ontology");
