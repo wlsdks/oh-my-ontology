@@ -177,7 +177,7 @@ A successful run looks like this:
 [oh-my-ontology-mcp verify]
 · step 1 — parser smoke test
 ✓ result: 7 passed, 0 failed
-· step 2 — server boot + tools/list + list_concepts/get_concepts/list_kinds (vault=../docs/ontology, timeout=8000ms)
+· step 2 — server boot + tools/list + list_concepts/project probe/get_concepts/list_kinds (vault=../docs/ontology, timeout=8000ms)
 ✓ initialize OK — server oh-my-ontology-mcp@0.12.0
 ✓ tools/list 23/23 (15 read + 8 write) — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
 ✓ tools/list schema contract — strict arguments + graph-query enums
@@ -187,6 +187,7 @@ A successful run looks like this:
 ✓ get_concepts — 2 ok rows, 1 partial row
 ✓ list_kinds — 28 nodes (capability:16, domain:6, element:4, project:1, vault-readme:1)
 ✓ validate_vault — 28 files, 0 problem files
+✓ project probe — 1 project node
 ✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks)
 ✓ health — healthy (5 checks: compile_issues:pass, unresolved_edges:pass, dependency_cycles:pass, relation_recommendations:pass, components:pass, issues 0)
 ✓ compile_ontology — graph 192c6e615658 (28 nodes, 202 edges, issues 0)
@@ -202,7 +203,8 @@ All passed — register .mcp.json with Claude Code and restart to use the 23 too
 
 On failure, it tells you which step blocked progress and prints a diagnostic message. The
 verify path exercises and gates the same first-contact graph diagnosis an agent should run:
-`tools/list`, `list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`,
+`tools/list`, `list_concepts`, a project-node `list_concepts` probe,
+`get_concepts`, `list_kinds`, `validate_vault`,
 `query_ontology({operation:"workspace_brief"})`, and
 `query_ontology({operation:"health"})`, plus `compile_ontology({summary:true})`,
 `query_ontology({operation:"overview"})`, and
@@ -221,11 +223,14 @@ conflict guards and destructive-tool `confirm` dry-run switches.
 The verify path also makes runtime negative calls with `list_concepts.lmit`
 and `query_ontology.operation="overveiw"`, and fails unless the server rejects
 them with the closest argument/value hint.
-`project_scope` is a hard gate when the vault has a `kind: project` node; valid
-project-less vaults skip that one containment-specific check while still
-gating `neighbors` and `path`. Empty vaults skip node-targeted graph smoke until
-there is at least one node, but still gate boot, inventory, validation,
-diagnosis, compile, overview, and query planning.
+`project_scope` is a hard gate when the vault has a `kind: project` node. The
+verify path probes `kind: project` directly before graph smoke, so containment
+checks are not skipped just because the project node was outside the first
+`list_concepts` sample. Valid project-less vaults skip that one
+containment-specific check while still gating `neighbors` and `path`. Empty
+vaults skip node-targeted graph smoke until there is at least one node, but
+still gate boot, inventory, validation, diagnosis, compile, overview, and query
+planning.
 `get_concepts` reuses up to two slugs from `list_concepts` plus one missing slug
 so batch success rows and partial rows are verified during installation checks. `list_concepts` vault warnings,
 `list_kinds` / `compile_ontology` / `overview`

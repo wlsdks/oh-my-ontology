@@ -218,6 +218,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [15, 'project_scope'],
   [16, 'strict_args'],
   [17, 'strict_enum'],
+  [18, 'project_probe'],
 ]);
 
 function log(level, msg) {
@@ -300,6 +301,12 @@ export function buildFirstContactRequests() {
     },
     {
       jsonrpc: '2.0',
+      id: 18,
+      method: 'tools/call',
+      params: { name: 'list_concepts', arguments: { kind: 'project', limit: 1 } },
+    },
+    {
+      jsonrpc: '2.0',
       id: 6,
       method: 'tools/call',
       params: { name: 'query_ontology', arguments: { operation: 'workspace_brief', limit: 3 } },
@@ -349,25 +356,29 @@ export function buildFirstContactRequests() {
   ];
 }
 
-export function buildGraphQuerySmokeArgs(listPayload) {
+export function buildGraphQuerySmokeArgs(listPayload, projectPayload = null) {
   const nodes = Array.isArray(listPayload?.nodes) ? listPayload.nodes : [];
+  const projectNodes = Array.isArray(projectPayload?.nodes) ? projectPayload.nodes : [];
+  const candidateNodes = [...nodes, ...projectNodes];
   const projectSlug = nodes.find((node) => node?.kind === 'project' && typeof node.slug === 'string' && node.slug.length > 0)?.slug;
-  const nonRootSlug = nodes.find(
+  const probedProjectSlug = projectNodes.find((node) => node?.kind === 'project' && typeof node.slug === 'string' && node.slug.length > 0)?.slug;
+  const nonRootSlug = candidateNodes.find(
     (node) => (
       !['project', 'vault-readme'].includes(node?.kind)
       && typeof node?.slug === 'string'
       && node.slug.length > 0
     ),
   )?.slug;
-  const fallbackSlug = nodes.find((node) => typeof node?.slug === 'string' && node.slug.length > 0)?.slug || null;
-  const smokeSlug = nonRootSlug || projectSlug || fallbackSlug;
-  const pathTarget = projectSlug && projectSlug !== smokeSlug ? projectSlug : smokeSlug;
+  const resolvedProjectSlug = projectSlug || probedProjectSlug;
+  const fallbackSlug = candidateNodes.find((node) => typeof node?.slug === 'string' && node.slug.length > 0)?.slug || null;
+  const smokeSlug = nonRootSlug || resolvedProjectSlug || fallbackSlug;
+  const pathTarget = resolvedProjectSlug && resolvedProjectSlug !== smokeSlug ? resolvedProjectSlug : smokeSlug;
   return {
     slug: smokeSlug,
     pathTarget,
-    project: projectSlug || null,
+    project: resolvedProjectSlug || null,
     hasNode: Boolean(smokeSlug),
-    hasProject: Boolean(projectSlug),
+    hasProject: Boolean(resolvedProjectSlug),
   };
 }
 
@@ -1091,7 +1102,7 @@ async function step2BootAndCall() {
     log('fail', 'OMOT_VERIFY_TIMEOUT_MS must be a positive integer');
     return false;
   }
-  log('info', `step 2 — server boot + tools/list + list_concepts/get_concepts/list_kinds (vault=${VAULT}, timeout=${timeoutMs}ms)`);
+  log('info', `step 2 — server boot + tools/list + list_concepts/project probe/get_concepts/list_kinds (vault=${VAULT}, timeout=${timeoutMs}ms)`);
 
   const lines = buildFirstContactRequests().map((request) => JSON.stringify(request));
 
@@ -1112,12 +1123,21 @@ async function step2BootAndCall() {
       stdout += b.toString();
       if (!sentGetConceptsSmoke || !sentGraphQuerySmoke) {
         const listResponse = parseJsonRpcResponses(stdout).find((response) => response?.id === 3 && response?.result);
+        const projectResponse = parseJsonRpcResponses(stdout).find((response) => response?.id === 18 && response?.result);
         if (listResponse) {
           let listPayload = null;
+          let projectPayload = null;
           try {
             listPayload = JSON.parse(listResponse.result.content?.[0]?.text || '{}');
           } catch {
             listPayload = null;
+          }
+          if (projectResponse) {
+            try {
+              projectPayload = JSON.parse(projectResponse.result.content?.[0]?.text || '{}');
+            } catch {
+              projectPayload = null;
+            }
           }
           if (!sentGetConceptsSmoke) {
             sentGetConceptsSmoke = true;
@@ -1131,9 +1151,9 @@ async function step2BootAndCall() {
               },
             }) + '\n');
           }
-          if (!sentGraphQuerySmoke) {
+          if (!sentGraphQuerySmoke && projectResponse) {
             sentGraphQuerySmoke = true;
-            const graphSmoke = buildGraphQuerySmokeArgs(listPayload);
+            const graphSmoke = buildGraphQuerySmokeArgs(listPayload, projectPayload);
             const graphSmokePlan = buildGraphQuerySmokeRequests(graphSmoke);
             for (const id of [13, 14, 15]) {
               if (!graphSmokePlan.expectedResponseIds.includes(id)) expectedFirstContactIds.delete(id);
@@ -1327,6 +1347,25 @@ async function step2BootAndCall() {
         );
       } catch (err) {
         log('fail', `failed to parse validate_vault response: ${err.message}`);
+        return res(false);
+      }
+
+      const projectProbeRes = responses.find((r) => r.id === 18);
+      if (!projectProbeRes || !projectProbeRes.result) {
+        log('fail', 'no project probe response');
+        return res(false);
+      }
+      try {
+        const text = projectProbeRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = listConceptsFailure(parsed);
+        if (failure) {
+          log('fail', `project probe ${failure}`);
+          return res(false);
+        }
+        log('ok', `project probe — ${formatCount(parsed.total, 'project node')}`);
+      } catch (err) {
+        log('fail', `failed to parse project probe response: ${err.message}`);
         return res(false);
       }
 

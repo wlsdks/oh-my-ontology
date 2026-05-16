@@ -60,6 +60,9 @@ Batch tool caps for `get_concepts`, `add_concepts`, and `add_relations` are
 checked against the runtime 50-row contract too.
 Write-safety schema for `expected_mtime` conflict guards and destructive
 `confirm` dry-run switches is checked as part of the same installed verify.
+It also probes `kind: project` directly before graph smoke, so `project_scope`
+does not get skipped just because the project node was outside the first
+`list_concepts` sample.
 It also checks `get_concepts` with discovered vault slugs plus one missing slug,
 so installed CLI users catch batch-reader success and partial-row contract drift.
 Node census totals are cross-checked across `list_kinds`, `list_concepts`,

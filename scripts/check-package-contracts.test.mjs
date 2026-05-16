@@ -90,11 +90,12 @@ describe('package contract helpers', () => {
     ].join(', ');
     const scopedNodes = census.total - census.byKind['vault-readme'];
 
-    assert.match(verifySection, /list_concepts\/get_concepts\/list_kinds/);
+    assert.match(verifySection, /list_concepts\/project probe\/get_concepts\/list_kinds/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial row/);
+    assert.match(verifySection, /✓ project probe — 1 project node/);
     assert.match(verifySection, new RegExp(`✓ list_concepts — vault total ${census.total} nodes`));
     assert.match(verifySection, new RegExp(`✓ list_kinds — ${census.total} nodes \\(${kindSummary}\\)`));
     assert.match(verifySection, new RegExp(`✓ validate_vault — ${census.files} files, 0 problem files`));
@@ -104,11 +105,12 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
     assert.match(verifySection, new RegExp(`✓ project_scope — project \\(${scopedNodes} nodes, internalEdges`));
-    assert.match(verifySection, /`list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /`list_concepts`, a project-node `list_concepts` probe,\s+`get_concepts`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
     assert.match(verifySection, /`query_ontology\(\{operation:"neighbors"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"path"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"project_scope"\}\)`/);
+    assert.match(verifySection, /project-node `list_concepts` probe/);
     assert.match(verifySection, /`additionalProperties:false`/);
     assert.match(verifySection, /required `query_ontology\.operation`/);
     assert.match(verifySection, /`query_ontology\.operation` \/[\s\S]*`query_ontology\.targetOperation` enums/);
@@ -118,7 +120,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /runtime negative calls with `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"`/);
     assert.match(verifySection, /project-less vaults skip/);
-    assert.match(verifySection, /Empty vaults skip node-targeted graph smoke/);
+    assert.match(verifySection, /Empty\s+vaults skip node-targeted graph smoke/);
     assert.match(verifySection, /`list_kinds` \/ `compile_ontology` \/ `overview`\s+census shape\/count mismatches/);
     assert.match(verifySection, /Missing or malformed first-contact diagnosis payloads/);
     assert.match(verifySection, /`workspace_brief\.nextActions`/);
@@ -134,6 +136,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /success-row \/ partial-row contract drift/);
     assert.match(verifySection, /`compile_ontology`, `overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);
     assert.match(verifySection, /core graph-query execution with `neighbors`, node→project `path`, and `project_scope`/);
+    assert.match(verifySection, /dedicated `list_concepts` call before graph smoke/);
     assert.match(verifySection, /skips only the containment-specific `project_scope` smoke/);
     assert.match(verifySection, /accepts empty vault folders by skipping node-targeted graph smoke/);
     assert.match(verifySection, /cross-checks node census totals across `list_kinds`, `list_concepts`, `compile_ontology`, and `overview`/);
@@ -166,6 +169,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /Write-safety schema/);
     assert.match(verifySection, /get_concepts/);
     assert.match(verifySection, /partial-row contract drift/);
+    assert.match(verifySection, /probes `kind: project` directly before graph smoke/);
     assert.match(verifySection, /Node census totals are cross-checked across `list_kinds`, `list_concepts`,\s+`compile_ontology`, and `overview`/);
     assert.match(verifySection, /`validate_vault\.scanned` remains file-level\s+health/);
     assert.match(verifySection, /stdout/);
@@ -186,6 +190,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /file-level `validate_vault\.scanned` health/);
     assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);
     assert.match(verifySection, /core graph-query smoke for `neighbors`, node→project `path`, and `project_scope`/);
+    assert.match(verifySection, /project-node probe before graph smoke/);
     assert.match(verifySection, /accepts valid project-less vaults/);
     assert.match(verifySection, /accepts empty vault folders/);
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
