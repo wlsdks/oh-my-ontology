@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / reachability / impact / blast_radius / subgraph / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -64,6 +64,10 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [27, "topological_order"],
   [28, "lineage"],
   [29, "containment_tree"],
+  [30, "reachability"],
+  [31, "impact"],
+  [32, "blast_radius"],
+  [33, "subgraph"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -250,6 +254,34 @@ export function buildDogfoodRequests() {
       depth: 3,
       limit: 30,
     }),
+    call(30, "query_ontology", {
+      operation: "reachability",
+      slug: "capabilities/mcp-server",
+      direction: "outgoing",
+      depth: 2,
+      limit: 10,
+    }),
+    call(31, "query_ontology", {
+      operation: "impact",
+      slug: "capabilities/mcp-server",
+      direction: "incoming",
+      depth: 2,
+      limit: 10,
+    }),
+    call(32, "query_ontology", {
+      operation: "blast_radius",
+      slug: "capabilities/mcp-server",
+      direction: "incoming",
+      depth: 2,
+      limit: 10,
+    }),
+    call(33, "query_ontology", {
+      operation: "subgraph",
+      slug: "capabilities/mcp-server",
+      direction: "both",
+      depth: 1,
+      limit: 12,
+    }),
   ];
 }
 
@@ -320,6 +352,10 @@ export function evaluateDogfoodGate({
   topologicalOrder,
   lineage,
   containmentTree,
+  reachability,
+  impact,
+  blastRadius,
+  subgraph,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -350,6 +386,10 @@ export function evaluateDogfoodGate({
   recordResult(failures, "topological_order", topologicalOrder);
   recordResult(failures, "lineage", lineage);
   recordResult(failures, "containment_tree", containmentTree);
+  recordResult(failures, "reachability", reachability);
+  recordResult(failures, "impact", impact);
+  recordResult(failures, "blast_radius", blastRadius);
+  recordResult(failures, "subgraph", subgraph);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -467,6 +507,22 @@ export function evaluateDogfoodGate({
   if (containmentTree) {
     const containmentTreeFailure = containmentTreeShapeFailure(containmentTree);
     if (containmentTreeFailure) failures.push(containmentTreeFailure);
+  }
+  if (reachability) {
+    const reachabilityFailure = reachabilityShapeFailure(reachability);
+    if (reachabilityFailure) failures.push(reachabilityFailure);
+  }
+  if (impact) {
+    const impactFailure = impactShapeFailure(impact);
+    if (impactFailure) failures.push(impactFailure);
+  }
+  if (blastRadius) {
+    const blastRadiusFailure = blastRadiusShapeFailure(blastRadius);
+    if (blastRadiusFailure) failures.push(blastRadiusFailure);
+  }
+  if (subgraph) {
+    const subgraphFailure = subgraphShapeFailure(subgraph);
+    if (subgraphFailure) failures.push(subgraphFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -1541,6 +1597,357 @@ function graphEdgeFailure(label, edge, index) {
   return null;
 }
 
+function reachabilityShapeFailure(result) {
+  if (result.operation !== "reachability") {
+    return `reachability response operation mismatch — ${result.operation}`;
+  }
+  if (result.start !== "capabilities/mcp-server") {
+    return `reachability response start mismatch — ${result.start}`;
+  }
+  if (!result.node || result.node.slug !== result.start) {
+    return "reachability response missing start node";
+  }
+  if (result.direction !== "outgoing") {
+    return `reachability response direction mismatch — ${result.direction}`;
+  }
+  if (!Number.isInteger(result.depth) || result.depth < 0) {
+    return "reachability response missing depth";
+  }
+  const summaryFailure = numericSummaryFailure("reachability", result.summary, [
+    "reachableNodes",
+    "traversedEdges",
+    "layers",
+    "terminalNodes",
+  ]);
+  if (summaryFailure) return summaryFailure;
+  if (!result.byKind || typeof result.byKind !== "object" || Array.isArray(result.byKind)) {
+    return "reachability response missing byKind";
+  }
+  if (!result.byRelation || typeof result.byRelation !== "object" || Array.isArray(result.byRelation)) {
+    return "reachability response missing byRelation";
+  }
+  if (!Array.isArray(result.layers)) {
+    return "reachability response missing layers";
+  }
+  if (result.layers.length !== result.summary.layers) {
+    return `reachability layer count mismatch — layers ${result.layers.length}, summary ${result.summary.layers}`;
+  }
+  for (const [index, layer] of result.layers.entries()) {
+    if (!layer || typeof layer !== "object" || Array.isArray(layer)) {
+      return `reachability malformed layer at index ${index}`;
+    }
+    if (!Number.isInteger(layer.distance) || layer.distance <= 0) {
+      return `reachability layer missing distance at index ${index}`;
+    }
+    if (!Number.isInteger(layer.total) || layer.total < 0) {
+      return `reachability layer missing total at distance ${layer.distance}`;
+    }
+    if (!Array.isArray(layer.nodes)) {
+      return `reachability layer missing nodes at distance ${layer.distance}`;
+    }
+    if (layer.nodes.length !== layer.total) {
+      return `reachability layer node count mismatch — distance ${layer.distance}`;
+    }
+    const layerRowsFailure = matchRowsFailure(`reachability layer ${layer.distance}`, layer.nodes);
+    if (layerRowsFailure) return layerRowsFailure;
+  }
+  const pathsFailure = reachablePathsFailure("reachability paths", result.paths, result.summary.reachableNodes);
+  if (pathsFailure) return pathsFailure;
+  if (!Array.isArray(result.terminalNodes)) {
+    return "reachability response missing terminalNodes";
+  }
+  if (result.terminalNodes.length !== result.summary.terminalNodes) {
+    return `reachability terminal count mismatch — terminals ${result.terminalNodes.length}, summary ${result.summary.terminalNodes}`;
+  }
+  const terminalFailure = matchRowsFailure("reachability terminalNodes", result.terminalNodes);
+  if (terminalFailure) return terminalFailure;
+  const edgesFailure = graphEdgeBucketFailure("reachability edges", result.edges, result.summary.traversedEdges);
+  if (edgesFailure) return edgesFailure;
+  return null;
+}
+
+function reachablePathsFailure(label, paths, expectedTotal) {
+  if (!paths || typeof paths !== "object" || Array.isArray(paths)) {
+    return `${label} missing bucket`;
+  }
+  if (!Number.isInteger(paths.total) || paths.total < 0) {
+    return `${label} missing total`;
+  }
+  if (paths.total !== expectedTotal) {
+    return `${label} total mismatch — summary ${expectedTotal}, paths ${paths.total}`;
+  }
+  if (typeof paths.limited !== "boolean") {
+    return `${label} missing limited flag`;
+  }
+  if (!Array.isArray(paths.rows)) {
+    return `${label} missing rows`;
+  }
+  if (paths.rows.length > paths.total) {
+    return `${label} rows exceed total — rows ${paths.rows.length}, total ${paths.total}`;
+  }
+  if (!paths.limited && paths.rows.length !== paths.total) {
+    return `${label} row count mismatch — rows ${paths.rows.length}, total ${paths.total}`;
+  }
+  for (const [index, row] of paths.rows.entries()) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) {
+      return `${label} malformed row at index ${index}`;
+    }
+    if (typeof row.slug !== "string" || row.slug.length === 0) {
+      return `${label} row missing slug at index ${index}`;
+    }
+    if (!Number.isInteger(row.distance) || row.distance <= 0) {
+      return `${label} row missing distance: ${row.slug}`;
+    }
+    if (!Array.isArray(row.path) || row.path[0] !== "capabilities/mcp-server" || row.path[row.path.length - 1] !== row.slug) {
+      return `${label} row path mismatch: ${row.slug}`;
+    }
+    if (!Array.isArray(row.edges)) {
+      return `${label} row missing edges: ${row.slug}`;
+    }
+    if (!row.node || row.node.slug !== row.slug) {
+      return `${label} row missing node summary: ${row.slug}`;
+    }
+  }
+  return null;
+}
+
+function graphEdgeBucketFailure(label, bucket, expectedTotal = null) {
+  if (!bucket || typeof bucket !== "object" || Array.isArray(bucket)) {
+    return `${label} missing bucket`;
+  }
+  if (!Number.isInteger(bucket.total) || bucket.total < 0) {
+    return `${label} missing total`;
+  }
+  if (expectedTotal != null && bucket.total !== expectedTotal) {
+    return `${label} total mismatch — summary ${expectedTotal}, bucket ${bucket.total}`;
+  }
+  if (typeof bucket.limited !== "boolean") {
+    return `${label} missing limited flag`;
+  }
+  if (!Array.isArray(bucket.rows)) {
+    return `${label} missing rows`;
+  }
+  if (bucket.rows.length > bucket.total) {
+    return `${label} rows exceed total — rows ${bucket.rows.length}, total ${bucket.total}`;
+  }
+  if (!bucket.limited && bucket.rows.length !== bucket.total) {
+    return `${label} row count mismatch — rows ${bucket.rows.length}, total ${bucket.total}`;
+  }
+  for (const [index, edge] of bucket.rows.entries()) {
+    const edgeFailure = graphEdgeFailure(label, edge, index);
+    if (edgeFailure) return edgeFailure;
+  }
+  return null;
+}
+
+function impactShapeFailure(result) {
+  if (result.operation !== "impact") {
+    return `impact response operation mismatch — ${result.operation}`;
+  }
+  if (result.center !== "capabilities/mcp-server") {
+    return `impact response center mismatch — ${result.center}`;
+  }
+  if (result.direction !== "incoming") {
+    return `impact response direction mismatch — ${result.direction}`;
+  }
+  if (!Number.isInteger(result.depth) || result.depth < 0) {
+    return "impact response missing depth";
+  }
+  if (!Number.isInteger(result.total) || result.total < 0) {
+    return "impact response missing total";
+  }
+  if (typeof result.limited !== "boolean") {
+    return "impact response missing limited flag";
+  }
+  if (!Array.isArray(result.nodes)) {
+    return "impact response missing nodes";
+  }
+  if (result.nodes.length > result.total) {
+    return `impact nodes exceed total — nodes ${result.nodes.length}, total ${result.total}`;
+  }
+  if (!result.limited && result.nodes.length !== result.total) {
+    return `impact node count mismatch — nodes ${result.nodes.length}, total ${result.total}`;
+  }
+  for (const [index, row] of result.nodes.entries()) {
+    const rowFailure = impactedNodeFailure("impact", row, index);
+    if (rowFailure) return rowFailure;
+  }
+  if (!Array.isArray(result.edges)) {
+    return "impact response missing edges";
+  }
+  for (const [index, edge] of result.edges.entries()) {
+    const edgeFailure = graphEdgeFailure("impact edge", edge, index);
+    if (edgeFailure) return edgeFailure;
+  }
+  return null;
+}
+
+function impactedNodeFailure(label, row, index) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    return `${label} malformed node at index ${index}`;
+  }
+  if (typeof row.slug !== "string" || row.slug.length === 0) {
+    return `${label} node missing slug at index ${index}`;
+  }
+  if (!Number.isInteger(row.distance) || row.distance <= 0) {
+    return `${label} node missing distance: ${row.slug}`;
+  }
+  if (!row.node || row.node.slug !== row.slug) {
+    return `${label} node summary mismatch: ${row.slug}`;
+  }
+  return null;
+}
+
+function blastRadiusShapeFailure(result) {
+  if (result.operation !== "blast_radius") {
+    return `blast_radius response operation mismatch — ${result.operation}`;
+  }
+  if (result.center !== "capabilities/mcp-server") {
+    return `blast_radius response center mismatch — ${result.center}`;
+  }
+  if (!result.node || result.node.slug !== result.center) {
+    return "blast_radius response missing center node";
+  }
+  if (result.direction !== "incoming") {
+    return `blast_radius response direction mismatch — ${result.direction}`;
+  }
+  if (!Number.isInteger(result.depth) || result.depth < 0) {
+    return "blast_radius response missing depth";
+  }
+  if (!["low", "medium", "high"].includes(result.risk)) {
+    return `blast_radius response unknown risk — ${result.risk}`;
+  }
+  const summaryFailure = numericSummaryFailure("blast_radius", result.summary, [
+    "affectedNodes",
+    "affectedEdges",
+    "affectedKinds",
+    "affectedDomains",
+    "crossDomainEdges",
+  ]);
+  if (summaryFailure) return summaryFailure;
+  if (!result.byKind || typeof result.byKind !== "object" || Array.isArray(result.byKind)) {
+    return "blast_radius response missing byKind";
+  }
+  if (!result.byDomain || typeof result.byDomain !== "object" || Array.isArray(result.byDomain)) {
+    return "blast_radius response missing byDomain";
+  }
+  const nodesFailure = blastRadiusNodeBucketFailure(result.nodes, result.summary.affectedNodes);
+  if (nodesFailure) return nodesFailure;
+  const edgesFailure = blastRadiusEdgeBucketFailure(result.edges, result.summary.affectedEdges);
+  if (edgesFailure) return edgesFailure;
+  const crossDomainRows = result.edges.rows.filter((edge) => edge.crossDomain).length;
+  if (crossDomainRows > result.summary.crossDomainEdges) {
+    return `blast_radius cross-domain edge mismatch — rows ${crossDomainRows}, summary ${result.summary.crossDomainEdges}`;
+  }
+  return null;
+}
+
+function blastRadiusNodeBucketFailure(bucket, expectedTotal) {
+  if (!bucket || typeof bucket !== "object" || Array.isArray(bucket)) {
+    return "blast_radius nodes missing bucket";
+  }
+  if (!Number.isInteger(bucket.total) || bucket.total < 0) {
+    return "blast_radius nodes missing total";
+  }
+  if (bucket.total !== expectedTotal) {
+    return `blast_radius nodes total mismatch — summary ${expectedTotal}, bucket ${bucket.total}`;
+  }
+  if (typeof bucket.limited !== "boolean") {
+    return "blast_radius nodes missing limited flag";
+  }
+  if (!Array.isArray(bucket.rows)) {
+    return "blast_radius nodes missing rows";
+  }
+  if (bucket.rows.length > bucket.total) {
+    return `blast_radius nodes rows exceed total — rows ${bucket.rows.length}, total ${bucket.total}`;
+  }
+  if (!bucket.limited && bucket.rows.length !== bucket.total) {
+    return `blast_radius nodes row count mismatch — rows ${bucket.rows.length}, total ${bucket.total}`;
+  }
+  for (const [index, row] of bucket.rows.entries()) {
+    const rowFailure = impactedNodeFailure("blast_radius", row, index);
+    if (rowFailure) return rowFailure;
+    if (row.domain !== null && typeof row.domain !== "string") {
+      return `blast_radius node missing domain: ${row.slug}`;
+    }
+  }
+  return null;
+}
+
+function blastRadiusEdgeBucketFailure(bucket, expectedTotal) {
+  const bucketFailure = graphEdgeBucketFailure("blast_radius edges", bucket, expectedTotal);
+  if (bucketFailure) return bucketFailure;
+  for (const [index, edge] of bucket.rows.entries()) {
+    if (edge.fromDomain !== null && typeof edge.fromDomain !== "string") {
+      return `blast_radius edge missing fromDomain at index ${index}`;
+    }
+    if (edge.toDomain !== null && typeof edge.toDomain !== "string") {
+      return `blast_radius edge missing toDomain at index ${index}`;
+    }
+    if (typeof edge.crossDomain !== "boolean") {
+      return `blast_radius edge missing crossDomain at index ${index}`;
+    }
+  }
+  return null;
+}
+
+function subgraphShapeFailure(result) {
+  if (result.operation !== "subgraph") {
+    return `subgraph response operation mismatch — ${result.operation}`;
+  }
+  if (result.seed !== "capabilities/mcp-server") {
+    return `subgraph response seed mismatch — ${result.seed}`;
+  }
+  if (result.direction !== "both") {
+    return `subgraph response direction mismatch — ${result.direction}`;
+  }
+  for (const key of ["depth", "totalNodes", "totalEdges"]) {
+    if (!Number.isInteger(result[key]) || result[key] < 0) {
+      return `subgraph response missing ${key}`;
+    }
+  }
+  if (typeof result.limited !== "boolean") {
+    return "subgraph response missing limited flag";
+  }
+  if (!Array.isArray(result.nodes)) {
+    return "subgraph response missing nodes";
+  }
+  if (result.nodes.length > result.totalNodes) {
+    return `subgraph nodes exceed total — nodes ${result.nodes.length}, total ${result.totalNodes}`;
+  }
+  if (!result.limited && result.nodes.length !== result.totalNodes) {
+    return `subgraph node count mismatch — nodes ${result.nodes.length}, total ${result.totalNodes}`;
+  }
+  if (!result.nodes.some((row) => row.slug === result.seed && row.distance === 0)) {
+    return "subgraph response missing seed node";
+  }
+  for (const [index, row] of result.nodes.entries()) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) {
+      return `subgraph malformed node at index ${index}`;
+    }
+    if (typeof row.slug !== "string" || row.slug.length === 0) {
+      return `subgraph node missing slug at index ${index}`;
+    }
+    if (!Number.isInteger(row.distance) || row.distance < 0) {
+      return `subgraph node missing distance: ${row.slug}`;
+    }
+    if (!row.node || row.node.slug !== row.slug) {
+      return `subgraph node summary mismatch: ${row.slug}`;
+    }
+  }
+  if (!Array.isArray(result.edges)) {
+    return "subgraph response missing edges";
+  }
+  if (result.edges.length !== result.totalEdges) {
+    return `subgraph edge count mismatch — edges ${result.edges.length}, total ${result.totalEdges}`;
+  }
+  for (const [index, edge] of result.edges.entries()) {
+    const edgeFailure = graphEdgeFailure("subgraph edge", edge, index);
+    if (edgeFailure) return edgeFailure;
+  }
+  return null;
+}
+
 function candidateGroupShapeFailure(label, group, expectedTotal) {
   if (!group || typeof group !== "object" || Array.isArray(group)) {
     return `${label} missing group`;
@@ -2247,6 +2654,54 @@ async function main() {
     }
   }
 
+  // 29. reachability
+  header(`query_ontology(reachability mcp-server)`);
+  const reachability = getResult(responses, 30);
+  if (reachability) {
+    console.log(
+      `  start ${reachability.start ?? "n/a"} · reachable ${reachability.summary?.reachableNodes ?? "n/a"} · layers ${reachability.summary?.layers ?? "n/a"} · terminal ${reachability.summary?.terminalNodes ?? "n/a"}`,
+    );
+    for (const layer of (reachability.layers || []).slice(0, 5)) {
+      console.log(`  distance ${layer.distance}: ${(layer.nodes || []).map((node) => node.slug).join(", ")}`);
+    }
+  }
+
+  // 30. impact
+  header(`query_ontology(impact mcp-server)`);
+  const impact = getResult(responses, 31);
+  if (impact) {
+    console.log(
+      `  center ${impact.center ?? "n/a"} · impacted ${impact.nodes?.length ?? "n/a"} / total ${impact.total ?? "n/a"} · limited ${impact.limited ?? "n/a"}`,
+    );
+    for (const row of (impact.nodes || []).slice(0, 5)) {
+      console.log(`  d${row.distance}: ${row.slug}`);
+    }
+  }
+
+  // 31. blast_radius
+  header(`query_ontology(blast_radius mcp-server)`);
+  const blastRadius = getResult(responses, 32);
+  if (blastRadius) {
+    console.log(
+      `  center ${blastRadius.center ?? "n/a"} · risk ${blastRadius.risk ?? "n/a"} · affected ${blastRadius.summary?.affectedNodes ?? "n/a"} nodes · crossDomain ${blastRadius.summary?.crossDomainEdges ?? "n/a"}`,
+    );
+    for (const row of (blastRadius.nodes?.rows || []).slice(0, 5)) {
+      console.log(`  ${row.slug}: ${row.domain ?? "no-domain"}`);
+    }
+  }
+
+  // 32. subgraph
+  header(`query_ontology(subgraph mcp-server)`);
+  const subgraph = getResult(responses, 33);
+  if (subgraph) {
+    console.log(
+      `  seed ${subgraph.seed ?? "n/a"} · nodes ${subgraph.nodes?.length ?? "n/a"} / total ${subgraph.totalNodes ?? "n/a"} · edges ${subgraph.edges?.length ?? "n/a"} · limited ${subgraph.limited ?? "n/a"}`,
+    );
+    for (const row of (subgraph.nodes || []).slice(0, 5)) {
+      console.log(`  d${row.distance}: ${row.slug}`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -2276,6 +2731,10 @@ async function main() {
     topologicalOrder,
     lineage,
     containmentTree,
+    reachability,
+    impact,
+    blastRadius,
+    subgraph,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -2319,6 +2778,10 @@ async function main() {
   console.log(`  topological_order: ${topologicalOrder?.orderedCount ?? "n/a"} ordered · acyclic ${topologicalOrder?.acyclic ?? "n/a"}`);
   console.log(`  lineage: ${lineage?.ancestors?.total ?? "n/a"} ancestors · ${lineage?.descendants?.total ?? "n/a"} descendants`);
   console.log(`  containment_tree: ${containmentTree?.emittedNodes ?? "n/a"} emitted · limited ${containmentTree?.limited ?? "n/a"}`);
+  console.log(`  reachability: ${reachability?.summary?.reachableNodes ?? "n/a"} reachable · ${reachability?.summary?.layers ?? "n/a"} layers`);
+  console.log(`  impact: ${impact?.total ?? "n/a"} impacted · limited ${impact?.limited ?? "n/a"}`);
+  console.log(`  blast_radius: ${blastRadius?.risk ?? "n/a"} risk · ${blastRadius?.summary?.affectedNodes ?? "n/a"} affected`);
+  console.log(`  subgraph: ${subgraph?.totalNodes ?? "n/a"} nodes · ${subgraph?.totalEdges ?? "n/a"} edges`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

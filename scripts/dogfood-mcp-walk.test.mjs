@@ -684,6 +684,132 @@ const okShape = {
     ],
     cycles: [],
   },
+  reachability: {
+    operation: "reachability",
+    start: "capabilities/mcp-server",
+    node: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+    direction: "outgoing",
+    depth: 2,
+    summary: {
+      reachableNodes: 2,
+      traversedEdges: 2,
+      layers: 2,
+      terminalNodes: 1,
+    },
+    byKind: { domain: 1, element: 1 },
+    byRelation: { domain: 1, elements: 1 },
+    layers: [
+      {
+        distance: 1,
+        total: 1,
+        nodes: [{ slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" }],
+      },
+      {
+        distance: 2,
+        total: 1,
+        nodes: [{ slug: "elements/mcp-sdk", kind: "element", title: "MCP SDK" }],
+      },
+    ],
+    paths: {
+      total: 2,
+      limited: false,
+      rows: [
+        {
+          slug: "domains/ai-agent-partner",
+          distance: 1,
+          path: ["capabilities/mcp-server", "domains/ai-agent-partner"],
+          edges: [{ from: "capabilities/mcp-server", to: "domains/ai-agent-partner", via: "domain" }],
+          node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" },
+        },
+        {
+          slug: "elements/mcp-sdk",
+          distance: 2,
+          path: ["capabilities/mcp-server", "domains/ai-agent-partner", "elements/mcp-sdk"],
+          edges: [
+            { from: "capabilities/mcp-server", to: "domains/ai-agent-partner", via: "domain" },
+            { from: "domains/ai-agent-partner", to: "elements/mcp-sdk", via: "elements" },
+          ],
+          node: { slug: "elements/mcp-sdk", kind: "element", title: "MCP SDK" },
+        },
+      ],
+    },
+    terminalNodes: [{ slug: "elements/mcp-sdk", kind: "element", title: "MCP SDK" }],
+    edges: {
+      total: 2,
+      limited: false,
+      rows: [
+        { from: "capabilities/mcp-server", to: "domains/ai-agent-partner", via: "domain" },
+        { from: "domains/ai-agent-partner", to: "elements/mcp-sdk", via: "elements" },
+      ],
+    },
+  },
+  impact: {
+    operation: "impact",
+    center: "capabilities/mcp-server",
+    direction: "incoming",
+    depth: 2,
+    total: 2,
+    limited: false,
+    nodes: [
+      { slug: "domains/ai-agent-partner", distance: 1, node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" } },
+      { slug: "capabilities/ontology-sync-skill", distance: 1, node: { slug: "capabilities/ontology-sync-skill", kind: "capability", title: "Ontology Sync Skill" } },
+    ],
+    edges: [
+      { from: "domains/ai-agent-partner", to: "capabilities/mcp-server", via: "capabilities" },
+      { from: "capabilities/ontology-sync-skill", to: "capabilities/mcp-server", via: "dependencies" },
+    ],
+  },
+  blastRadius: {
+    operation: "blast_radius",
+    center: "capabilities/mcp-server",
+    node: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+    direction: "incoming",
+    depth: 2,
+    risk: "medium",
+    summary: {
+      affectedNodes: 2,
+      affectedEdges: 2,
+      affectedKinds: 2,
+      affectedDomains: 1,
+      crossDomainEdges: 0,
+    },
+    byKind: { capability: 1, domain: 1 },
+    byDomain: { "domains/ai-agent-partner": 2 },
+    nodes: {
+      total: 2,
+      limited: false,
+      rows: [
+        { slug: "domains/ai-agent-partner", distance: 1, domain: "domains/ai-agent-partner", node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" } },
+        { slug: "capabilities/ontology-sync-skill", distance: 1, domain: "domains/ai-agent-partner", node: { slug: "capabilities/ontology-sync-skill", kind: "capability", title: "Ontology Sync Skill" } },
+      ],
+    },
+    edges: {
+      total: 2,
+      limited: false,
+      rows: [
+        { from: "domains/ai-agent-partner", to: "capabilities/mcp-server", via: "capabilities", fromDomain: "domains/ai-agent-partner", toDomain: "domains/ai-agent-partner", crossDomain: false },
+        { from: "capabilities/ontology-sync-skill", to: "capabilities/mcp-server", via: "dependencies", fromDomain: "domains/ai-agent-partner", toDomain: "domains/ai-agent-partner", crossDomain: false },
+      ],
+    },
+  },
+  subgraph: {
+    operation: "subgraph",
+    seed: "capabilities/mcp-server",
+    direction: "both",
+    depth: 1,
+    totalNodes: 3,
+    totalEdges: 2,
+    limited: false,
+    nodes: [
+      { slug: "capabilities/mcp-server", distance: 0, node: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" } },
+      { slug: "domains/ai-agent-partner", distance: 1, node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" } },
+      { slug: "elements/mcp-sdk", distance: 1, node: { slug: "elements/mcp-sdk", kind: "element", title: "MCP SDK" } },
+    ],
+    edges: [
+      { from: "capabilities/mcp-server", to: "domains/ai-agent-partner", via: "domain" },
+      { from: "capabilities/mcp-server", to: "elements/mcp-sdk", via: "elements" },
+    ],
+  },
 };
 
 describe("recordResult", () => {
@@ -768,6 +894,10 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(27), "topological_order");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(28), "lineage");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(29), "containment_tree");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(30), "reachability");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(31), "impact");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(32), "blast_radius");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(33), "subgraph");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1897,6 +2027,148 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["containment_tree node summary mismatch: domains/ai-agent-partner"],
+    );
+  });
+
+  it("fails on malformed reachability payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, reachability: { ...okShape.reachability, operation: "impact" } }),
+      ["reachability response operation mismatch — impact"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, reachability: { ...okShape.reachability, start: "capabilities/other" } }),
+      ["reachability response start mismatch — capabilities/other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        reachability: { ...okShape.reachability, summary: { ...okShape.reachability.summary, layers: 3 } },
+      }),
+      ["reachability layer count mismatch — layers 2, summary 3"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        reachability: {
+          ...okShape.reachability,
+          layers: [{ ...okShape.reachability.layers[0], total: 2 }, okShape.reachability.layers[1]],
+        },
+      }),
+      ["reachability layer node count mismatch — distance 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        reachability: {
+          ...okShape.reachability,
+          paths: { ...okShape.reachability.paths, rows: [{ ...okShape.reachability.paths.rows[0], path: ["wrong", "domains/ai-agent-partner"] }, okShape.reachability.paths.rows[1]] },
+        },
+      }),
+      ["reachability paths row path mismatch: domains/ai-agent-partner"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        reachability: { ...okShape.reachability, terminalNodes: [] },
+      }),
+      ["reachability terminal count mismatch — terminals 0, summary 1"],
+    );
+  });
+
+  it("fails on malformed impact payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, impact: { ...okShape.impact, operation: "blast_radius" } }),
+      ["impact response operation mismatch — blast_radius"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, impact: { ...okShape.impact, center: "capabilities/other" } }),
+      ["impact response center mismatch — capabilities/other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, impact: { ...okShape.impact, total: 3 } }),
+      ["impact node count mismatch — nodes 2, total 3"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        impact: { ...okShape.impact, nodes: [{ ...okShape.impact.nodes[0], distance: 0 }, okShape.impact.nodes[1]] },
+      }),
+      ["impact node missing distance: domains/ai-agent-partner"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        impact: { ...okShape.impact, edges: [{ ...okShape.impact.edges[0], via: "" }] },
+      }),
+      ["impact edge missing via at index 0"],
+    );
+  });
+
+  it("fails on malformed blast_radius payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, blastRadius: { ...okShape.blastRadius, operation: "impact" } }),
+      ["blast_radius response operation mismatch — impact"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, blastRadius: { ...okShape.blastRadius, risk: "extreme" } }),
+      ["blast_radius response unknown risk — extreme"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        blastRadius: { ...okShape.blastRadius, nodes: { ...okShape.blastRadius.nodes, total: 1 } },
+      }),
+      ["blast_radius nodes total mismatch — summary 2, bucket 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        blastRadius: { ...okShape.blastRadius, edges: { ...okShape.blastRadius.edges, rows: [{ ...okShape.blastRadius.edges.rows[0], crossDomain: "no" }, okShape.blastRadius.edges.rows[1]] } },
+      }),
+      ["blast_radius edge missing crossDomain at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        blastRadius: {
+          ...okShape.blastRadius,
+          summary: { ...okShape.blastRadius.summary, crossDomainEdges: 0 },
+          edges: { ...okShape.blastRadius.edges, rows: [{ ...okShape.blastRadius.edges.rows[0], crossDomain: true }, okShape.blastRadius.edges.rows[1]] },
+        },
+      }),
+      ["blast_radius cross-domain edge mismatch — rows 1, summary 0"],
+    );
+  });
+
+  it("fails on malformed subgraph payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, subgraph: { ...okShape.subgraph, operation: "reachability" } }),
+      ["subgraph response operation mismatch — reachability"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, subgraph: { ...okShape.subgraph, seed: "capabilities/other" } }),
+      ["subgraph response seed mismatch — capabilities/other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        subgraph: { ...okShape.subgraph, totalNodes: 2, nodes: okShape.subgraph.nodes.slice(1) },
+      }),
+      ["subgraph response missing seed node"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        subgraph: { ...okShape.subgraph, totalEdges: 3 },
+      }),
+      ["subgraph edge count mismatch — edges 2, total 3"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        subgraph: { ...okShape.subgraph, nodes: [{ ...okShape.subgraph.nodes[0], node: { slug: "capabilities/other" } }, okShape.subgraph.nodes[1], okShape.subgraph.nodes[2]] },
+      }),
+      ["subgraph node summary mismatch: capabilities/mcp-server"],
     );
   });
 
