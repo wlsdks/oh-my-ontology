@@ -592,6 +592,9 @@ function pathShapeFailure(result) {
 }
 
 function workspaceBriefShapeFailure(result) {
+  if (result.operation !== "workspace_brief") {
+    return `workspace_brief response operation mismatch — ${result.operation}`;
+  }
   if (typeof result.status !== "string" || result.status.length === 0) {
     return "workspace_brief response missing status";
   }
@@ -622,6 +625,9 @@ function workspaceBriefShapeFailure(result) {
 }
 
 function healthShapeFailureForDogfood(result) {
+  if (result.operation !== "health") {
+    return `health response operation mismatch — ${result.operation}`;
+  }
   if (typeof result.status !== "string" || result.status.length === 0) {
     return "health response missing status";
   }
