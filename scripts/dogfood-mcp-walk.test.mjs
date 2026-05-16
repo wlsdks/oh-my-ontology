@@ -23,7 +23,7 @@ const okShape = {
   validation: {
     scanned: 1,
     problems: [],
-    summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0 },
+    summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: {} },
   },
   brief: { status: "healthy", summary: { nodes: 1, edges: 0, issues: 0 }, nextActions: [] },
   health: { status: "healthy", summary: { issues: 0 }, checks: [] },
@@ -116,7 +116,7 @@ describe("evaluateDogfoodGate", () => {
       validation: {
         scanned: 2,
         problems: [{ slug: "broken", issues: [{ code: "missing-kind", severity: "error" }] }],
-        summary: { problemFiles: 1, errorFiles: 1, warningFiles: 0 },
+        summary: { problemFiles: 1, errorFiles: 1, warningFiles: 0, byCode: {} },
       },
     });
     assert.deepEqual(failures, [
@@ -135,7 +135,7 @@ describe("evaluateDogfoodGate", () => {
   it("fails when validate_vault omits the scanned count", () => {
     const failures = evaluateDogfoodGate({
       ...okShape,
-      validation: { problems: [], summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0 } },
+      validation: { problems: [], summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: {} } },
     });
     assert.deepEqual(failures, ["validate_vault: response missing scanned count"]);
   });
@@ -143,7 +143,7 @@ describe("evaluateDogfoodGate", () => {
   it("fails when validate_vault omits the problemFiles count", () => {
     const failures = evaluateDogfoodGate({
       ...okShape,
-      validation: { scanned: 2, problems: [], summary: { errorFiles: 0, warningFiles: 0 } },
+      validation: { scanned: 2, problems: [], summary: { errorFiles: 0, warningFiles: 0, byCode: {} } },
     });
     assert.deepEqual(failures, ["validate_vault: response missing problemFiles count"]);
   });
@@ -152,16 +152,41 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
-        validation: { scanned: 2, problems: [], summary: { problemFiles: 0, warningFiles: 0 } },
+        validation: { scanned: 2, problems: [], summary: { problemFiles: 0, warningFiles: 0, byCode: {} } },
       }),
       ["validate_vault: response missing errorFiles count"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
-        validation: { scanned: 2, problems: [], summary: { problemFiles: 0, errorFiles: 0 } },
+        validation: { scanned: 2, problems: [], summary: { problemFiles: 0, errorFiles: 0, byCode: {} } },
       }),
       ["validate_vault: response missing warningFiles count"],
+    );
+  });
+
+  it("fails when validate_vault omits byCode aggregate", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        validation: {
+          scanned: 2,
+          problems: [],
+          summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0 },
+        },
+      }),
+      ["validate_vault: response missing byCode aggregate"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        validation: {
+          scanned: 2,
+          problems: [],
+          summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: [] },
+        },
+      }),
+      ["validate_vault: response missing byCode aggregate"],
     );
   });
 

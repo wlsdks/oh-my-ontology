@@ -179,6 +179,14 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
   if (validation?.summary && (!Number.isInteger(validation.summary.warningFiles) || validation.summary.warningFiles < 0)) {
     failures.push("validate_vault: response missing warningFiles count");
   }
+  if (
+    validation?.summary &&
+    (!validation.summary.byCode ||
+      typeof validation.summary.byCode !== "object" ||
+      Array.isArray(validation.summary.byCode))
+  ) {
+    failures.push("validate_vault: response missing byCode aggregate");
+  }
   if (validation?.summary && (validation.summary.problemFiles || 0) > 0) {
     failures.push(
       `validate_vault: problemFiles ${validation.summary.problemFiles} (errors ${validation.summary.errorFiles}, warnings ${validation.summary.warningFiles})`,

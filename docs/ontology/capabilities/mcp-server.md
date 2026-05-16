@@ -68,8 +68,9 @@ diagnosis 경로까지 확인한다. vault warning / validate problem / `fail` h
 fail severity `workspace_brief.nextActions` 는 exit 1 로 처리하되, starter vault 의
 권고 수준 `needs_attention` 은 출력만 하고 설치 검증은 통과시킨다.
 `validate_vault` 응답은 `scanned`, `summary.problemFiles`,
-`summary.errorFiles`, `summary.warningFiles` count shape 까지 검증해,
-malformed validation payload 가 clean vault 로 오인되지 않게 한다.
+`summary.errorFiles`, `summary.warningFiles` count 와 `summary.byCode`
+aggregate shape 까지 검증해, malformed validation payload 가 clean vault 로
+오인되지 않게 한다.
 non-blocking `workspace_brief.nextActions` 는 짧은 advisory 목록으로 출력해
 MCP wiring 확인 직후 정리할 항목을 바로 보여준다.
 기본 server wait 는 8초이며 큰 vault / 느린 파일시스템에서는

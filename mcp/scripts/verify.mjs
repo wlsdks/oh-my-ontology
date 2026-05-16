@@ -147,6 +147,9 @@ export function validateVaultFailure(parsed) {
   if (!Number.isInteger(summary.warningFiles) || summary.warningFiles < 0) {
     return 'validate_vault response missing warningFiles count';
   }
+  if (!summary.byCode || typeof summary.byCode !== 'object' || Array.isArray(summary.byCode)) {
+    return 'validate_vault response missing byCode aggregate';
+  }
   const problemFiles = summary.problemFiles;
   if (problemFiles === 0) return null;
   return `validate_vault found ${problemFiles} problem file(s) — errors ${summary.errorFiles}, warnings ${summary.warningFiles}`;
