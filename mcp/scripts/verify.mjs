@@ -57,6 +57,15 @@ const EXPECTED_TOOLS = [
   'merge_concepts',
 ];
 
+const FIRST_CONTACT_RESPONSE_LABELS = new Map([
+  [1, 'initialize'],
+  [2, 'tools/list'],
+  [3, 'list_concepts'],
+  [4, 'validate_vault'],
+  [5, 'workspace_brief'],
+  [6, 'health'],
+]);
+
 function log(level, msg) {
   const tag =
     level === 'ok' ? '\x1b[32m✓\x1b[0m' :
@@ -81,22 +90,39 @@ export function serverStartupFailure(stderr) {
   return detail ? `server failed before initialize. stderr: ${detail}` : 'no initialize response';
 }
 
+export function parseJsonRpcResponses(stdout) {
+  return stdout
+    .split('\n')
+    .filter(Boolean)
+    .map((s) => {
+      try {
+        return JSON.parse(s);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
 export function hasAllFirstContactResponses(stdout) {
   const ids = new Set(
-    stdout
-      .split('\n')
-      .filter(Boolean)
-      .map((s) => {
-        try {
-          return JSON.parse(s);
-        } catch {
-          return null;
-        }
-      })
+    parseJsonRpcResponses(stdout)
       .filter((response) => response?.result)
       .map((response) => response.id),
   );
-  return [1, 2, 3, 4, 5, 6].every((id) => ids.has(id));
+  return [...FIRST_CONTACT_RESPONSE_LABELS.keys()].every((id) => ids.has(id));
+}
+
+export function hasFirstContactErrorResponse(stdout) {
+  return parseJsonRpcResponses(stdout).some((response) => (
+    FIRST_CONTACT_RESPONSE_LABELS.has(response?.id) && response?.error
+  ));
+}
+
+export function firstContactErrorFailure(response) {
+  const label = FIRST_CONTACT_RESPONSE_LABELS.get(response?.id) || `id ${response?.id}`;
+  const message = response?.error?.message || JSON.stringify(response?.error || {});
+  return `${label} returned JSON-RPC error: ${message}`;
 }
 
 function verifyTimeoutMs() {
@@ -217,7 +243,7 @@ async function step2BootAndCall() {
     let timer = null;
     proc.stdout.on('data', (b) => {
       stdout += b.toString();
-      if (!completed && hasAllFirstContactResponses(stdout)) {
+      if (!completed && (hasAllFirstContactResponses(stdout) || hasFirstContactErrorResponse(stdout))) {
         completed = true;
         if (timer) clearTimeout(timer);
         proc.kill('SIGTERM');
@@ -233,17 +259,7 @@ async function step2BootAndCall() {
 
     proc.on('close', () => {
       if (timer) clearTimeout(timer);
-      const responses = stdout
-        .split('\n')
-        .filter(Boolean)
-        .map((s) => {
-          try {
-            return JSON.parse(s);
-          } catch {
-            return null;
-          }
-        })
-        .filter(Boolean);
+      const responses = parseJsonRpcResponses(stdout);
 
       const initRes = responses.find((r) => r.id === 1);
       const listRes = responses.find((r) => r.id === 2);
@@ -259,6 +275,14 @@ async function step2BootAndCall() {
         ['workspace_brief', briefRes],
         ['health', healthRes],
       ].filter(([, response]) => !response?.result);
+      const errorRes = responses.find((response) => (
+        FIRST_CONTACT_RESPONSE_LABELS.has(response?.id) && response?.error
+      ));
+
+      if (errorRes) {
+        log('fail', firstContactErrorFailure(errorRes));
+        return res(false);
+      }
 
       if (timedOut && missingResponses.length > 0) {
         log('fail', `${verifyTimeoutFailure(timeoutMs)} Missing responses: ${missingResponses.map(([label]) => label).join(', ')}`);

@@ -54,6 +54,8 @@ exit 1 로 처리하되, starter vault 의
 first-contact 응답 6개가 모두 도착하면 timeout 까지 기다리지 않고 즉시 종료하며,
 진짜 timeout 은 누락된 응답 그룹을 함께 출력한다.
 `initialize` 전 서버 시작 실패는 timeout 과 구분해 stderr 의 vault 설정 진단을 보존한다.
+first-contact JSON-RPC error 응답도 timeout 까지 기다리지 않고 실패한 step 이름과
+error message 를 바로 출력한다.
 
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `workspace_brief` 와 `health`

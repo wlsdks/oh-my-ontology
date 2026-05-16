@@ -3,7 +3,9 @@ import { describe, it } from 'node:test';
 
 import {
   diagnosisBlockingFailure,
+  firstContactErrorFailure,
   hasAllFirstContactResponses,
+  hasFirstContactErrorResponse,
   parseVerifyTimeoutMs,
   serverStartupFailure,
   validateVaultFailure,
@@ -51,6 +53,18 @@ describe('verify.mjs first-contact gates', () => {
         [1, 2, 3, 4, 5].map((id) => JSON.stringify({ jsonrpc: '2.0', id, result: {} })).join('\n'),
       ),
       false,
+    );
+  });
+
+  it('detects first-contact JSON-RPC error responses before timeout', () => {
+    const stdout = [
+      JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }),
+      JSON.stringify({ jsonrpc: '2.0', id: 3, error: { code: -32603, message: 'vault failed' } }),
+    ].join('\n');
+    assert.equal(hasFirstContactErrorResponse(stdout), true);
+    assert.equal(
+      firstContactErrorFailure({ id: 3, error: { message: 'vault failed' } }),
+      'list_concepts returned JSON-RPC error: vault failed',
     );
   });
 
