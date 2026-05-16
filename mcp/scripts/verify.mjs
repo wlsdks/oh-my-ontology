@@ -464,6 +464,39 @@ export function toolsListSchemaFailure(tools) {
     }
   }
 
+  const queryConceptsTool = tools.find((tool) => tool?.name === 'query_concepts');
+  if (!queryConceptsTool) return 'tools/list response missing query_concepts tool';
+  if (queryConceptsTool.outputSchema?.type !== 'object') {
+    return 'query_concepts outputSchema root drift';
+  }
+  if (!sameArray(queryConceptsTool.outputSchema?.required, ['filter', 'parsedAs', 'total', 'matches', 'limited'])) {
+    return 'query_concepts outputSchema required drift';
+  }
+  const queryConceptsTotalSchema = outputPropertyAt(queryConceptsTool, ['properties', 'total']);
+  if (queryConceptsTotalSchema?.type !== 'integer' || queryConceptsTotalSchema.minimum !== 0) {
+    return 'query_concepts outputSchema total drift';
+  }
+  const queryConceptsLimitedSchema = outputPropertyAt(queryConceptsTool, ['properties', 'limited']);
+  if (queryConceptsLimitedSchema?.type !== 'boolean') {
+    return 'query_concepts outputSchema limited drift';
+  }
+  const queryConceptsRowsSchema = outputPropertyAt(queryConceptsTool, ['properties', 'matches']);
+  if (
+    queryConceptsRowsSchema?.type !== 'array' ||
+    queryConceptsRowsSchema.items?.type !== 'object' ||
+    !sameArray(queryConceptsRowsSchema.items?.required, ['slug', 'kind', 'title', 'mtime'])
+  ) {
+    return 'query_concepts outputSchema rows drift';
+  }
+  for (const propertyName of ['slug', 'kind', 'title']) {
+    if (queryConceptsRowsSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `query_concepts outputSchema row ${propertyName} drift`;
+    }
+  }
+  if (queryConceptsRowsSchema.items?.properties?.mtime?.type !== 'number' || queryConceptsRowsSchema.items?.properties?.mtime?.minimum !== 0) {
+    return 'query_concepts outputSchema row mtime drift';
+  }
+
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
 

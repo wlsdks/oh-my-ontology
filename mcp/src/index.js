@@ -978,6 +978,38 @@ const TOOLS = [
       },
       required: ['filter'],
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        filter: NON_BLANK_STRING_SCHEMA,
+        parsedAs: NON_BLANK_STRING_SCHEMA,
+        total: { type: 'integer', minimum: 0 },
+        matches: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              kind: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              domain: { type: 'string' },
+              capabilities: {
+                type: 'array',
+                items: NON_BLANK_STRING_SCHEMA,
+              },
+              elements: {
+                type: 'array',
+                items: NON_BLANK_STRING_SCHEMA,
+              },
+              mtime: { type: 'number', minimum: 0 },
+            },
+            required: ['slug', 'kind', 'title', 'mtime'],
+          },
+        },
+        limited: { type: 'boolean' },
+      },
+      required: ['filter', 'parsedAs', 'total', 'matches', 'limited'],
+    },
   },
   {
     name: 'compile_ontology',

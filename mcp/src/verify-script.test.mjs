@@ -356,6 +356,40 @@ describe('verify.mjs first-contact gates', () => {
         },
       },
       {
+        name: 'query_concepts',
+        inputSchema: {
+          additionalProperties: false,
+          required: ['filter'],
+          properties: {
+            filter: { type: 'string' },
+            limit: { type: 'integer', minimum: 1, maximum: 500 },
+          },
+        },
+        outputSchema: {
+          type: 'object',
+          required: ['filter', 'parsedAs', 'total', 'matches', 'limited'],
+          properties: {
+            filter: { type: 'string' },
+            parsedAs: { type: 'string' },
+            total: { type: 'integer', minimum: 0 },
+            matches: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'kind', 'title', 'mtime'],
+                properties: {
+                  slug: { type: 'string' },
+                  kind: { type: 'string' },
+                  title: { type: 'string' },
+                  mtime: { type: 'number', minimum: 0 },
+                },
+              },
+            },
+            limited: { type: 'boolean' },
+          },
+        },
+      },
+      {
         name: 'add_concept',
         description:
           'Successful writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
@@ -886,6 +920,44 @@ describe('verify.mjs first-contact gates', () => {
         },
       )),
       'query_ontology required schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'query_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'query_concepts'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'query_concepts').outputSchema,
+            required: ['filter', 'parsedAs', 'matches', 'total', 'limited'],
+          },
+        },
+      ]),
+      'query_concepts outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'query_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'query_concepts'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'query_concepts').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'query_concepts').outputSchema.properties,
+              matches: {
+                ...tools.find((tool) => tool.name === 'query_concepts').outputSchema.properties.matches,
+                items: {
+                  ...tools.find((tool) => tool.name === 'query_concepts').outputSchema.properties.matches.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'query_concepts').outputSchema.properties.matches.items.properties,
+                    mtime: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'query_concepts outputSchema row mtime drift',
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool(

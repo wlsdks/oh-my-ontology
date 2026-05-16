@@ -379,6 +379,13 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(findOrphans?.outputSchema?.properties?.total?.type, "integer");
     assert.deepEqual(findOrphans?.outputSchema?.properties?.orphans?.items?.required, ["slug", "kind", "title", "mtime"]);
     assert.equal(findOrphans?.outputSchema?.properties?.orphans?.items?.properties?.mtime?.type, "number");
+    const queryConcepts = findTool("query_concepts");
+    assert.equal(queryConcepts?.outputSchema?.type, "object");
+    assert.deepEqual(queryConcepts?.outputSchema?.required, ["filter", "parsedAs", "total", "matches", "limited"]);
+    assert.equal(queryConcepts?.outputSchema?.properties?.total?.type, "integer");
+    assert.equal(queryConcepts?.outputSchema?.properties?.limited?.type, "boolean");
+    assert.deepEqual(queryConcepts?.outputSchema?.properties?.matches?.items?.required, ["slug", "kind", "title", "mtime"]);
+    assert.equal(queryConcepts?.outputSchema?.properties?.matches?.items?.properties?.mtime?.type, "number");
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -1867,6 +1874,7 @@ await test("list_concepts — 각 노드에 mtime 포함 (R+)", async () => {
       callTool(2, "list_concepts"),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.total, 2);
     for (const node of result.nodes) {
       assert.equal(typeof node.mtime, "number", `${node.slug}.mtime 은 number`);
@@ -2392,6 +2400,7 @@ await test("query_concepts — 매치 row 에 mtime 포함 (R+)", async () => {
       callTool(2, "query_concepts", { filter: "kind=capability" }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.total, 2);
     for (const m of result.matches) {
       assert.equal(typeof m.mtime, "number", `${m.slug}.mtime number`);

@@ -367,6 +367,31 @@ function makeDogfoodToolsList() {
           },
         };
       }
+      if (name === "query_concepts") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["filter", "parsedAs", "total", "matches", "limited"],
+          properties: {
+            filter: { type: "string" },
+            parsedAs: { type: "string" },
+            total: { type: "integer", minimum: 0 },
+            matches: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "kind", "title", "mtime"],
+                properties: {
+                  slug: { type: "string" },
+                  kind: { type: "string" },
+                  title: { type: "string" },
+                  mtime: { type: "number", minimum: 0 },
+                },
+              },
+            },
+            limited: { type: "boolean" },
+          },
+        };
+      }
       if (name === "get_concepts") {
         tool.inputSchema.required = ["slugs"];
         tool.inputSchema.properties.slugs = { type: "array", maxItems: 50 };
@@ -477,6 +502,20 @@ const okShape = {
   },
   orph: { total: 0, orphans: [] },
   orphStructured: { total: 0, orphans: [] },
+  queryConcepts: {
+    filter: "kind=capability",
+    parsedAs: "kind=capability",
+    total: 1,
+    matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server", mtime: 1 }],
+    limited: false,
+  },
+  queryConceptsStructured: {
+    filter: "kind=capability",
+    parsedAs: "kind=capability",
+    total: 1,
+    matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server", mtime: 1 }],
+    limited: false,
+  },
   validation: {
     scanned: 1,
     problems: [],
@@ -1986,6 +2025,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(53), "strict_maintenance_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(54), "maintenance_plan_missing_cursor");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(55), "tools_list");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(56), "query_concepts");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -2134,6 +2174,12 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: orphansOutputSchemaDrifted }),
       ["tools/list: find_orphans outputSchema row mtime drift"],
+    );
+    const queryConceptsOutputSchemaDrifted = makeDogfoodToolsList();
+    queryConceptsOutputSchemaDrifted.tools.find((tool) => tool.name === "query_concepts").outputSchema.properties.matches.items.properties.mtime.type = "string";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: queryConceptsOutputSchemaDrifted }),
+      ["tools/list: query_concepts outputSchema row mtime drift"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),
@@ -2436,6 +2482,10 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, orphStructured: { total: 1, orphans: [] } }),
       ["find_orphans structuredContent mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, queryConceptsStructured: { ...okShape.queryConcepts, total: 2 } }),
+      ["query_concepts structuredContent mismatch"],
     );
   });
 

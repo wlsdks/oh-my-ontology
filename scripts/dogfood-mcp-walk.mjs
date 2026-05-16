@@ -103,6 +103,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [53, "strict_maintenance_kind_filter"],
   [54, "maintenance_plan_missing_cursor"],
   [55, "tools_list"],
+  [56, "query_concepts"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -331,6 +332,7 @@ export function buildDogfoodRequests() {
     }),
     call(6, "find_backlinks", { slug: "capabilities/mcp-server" }),
     call(7, "find_orphans", {}),
+    call(56, "query_concepts", { filter: "kind=capability AND domain=ai-agent-partner", limit: 5 }),
     call(8, "validate_vault", {}),
     call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
     call(10, "query_ontology", { operation: "health" }),
@@ -613,6 +615,8 @@ export function evaluateDogfoodGate({
   blStructured,
   orph,
   orphStructured,
+  queryConcepts,
+  queryConceptsStructured,
   validation,
   validationStructured,
   brief,
@@ -672,6 +676,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "find_path", path);
   recordResult(failures, "find_backlinks", bl);
   recordResult(failures, "find_orphans", orph);
+  recordResult(failures, "query_concepts", queryConcepts);
   recordResult(failures, "validate_vault", validation);
   recordResult(failures, "workspace_brief", brief);
   recordResult(failures, "workspace_brief_tuned", tunedBrief);
@@ -794,6 +799,13 @@ export function evaluateDogfoodGate({
     if (orphansFailure) failures.push(orphansFailure);
     else if (orphStructured !== undefined && JSON.stringify(orphStructured) !== JSON.stringify(orph)) {
       failures.push("find_orphans structuredContent mismatch");
+    }
+  }
+  if (queryConcepts) {
+    const queryConceptsFailure = matchesShapeFailure("query_concepts", queryConcepts);
+    if (queryConceptsFailure) failures.push(queryConceptsFailure);
+    else if (queryConceptsStructured !== undefined && JSON.stringify(queryConceptsStructured) !== JSON.stringify(queryConcepts)) {
+      failures.push("query_concepts structuredContent mismatch");
     }
   }
   if (validation) {
@@ -4156,6 +4168,18 @@ async function main() {
     }
   }
 
+  // 7b. query_concepts
+  header(`query_concepts(kind=capability AND domain=ai-agent-partner)`);
+  const queryConcepts = getResult(responses, 56);
+  const queryConceptsStructured = getRpcResult(responses, 56)?.structuredContent ?? null;
+  if (queryConcepts) {
+    console.log(`  structuredContent: ${JSON.stringify(queryConceptsStructured) === JSON.stringify(queryConcepts) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
+    console.log(`  matches: ${queryConcepts.matches?.length ?? 0} / total ${queryConcepts.total}`);
+    for (const m of (queryConcepts.matches || []).slice(0, 5)) {
+      console.log(`  ${m.kind?.padEnd(13) || ""} ${m.slug.padEnd(40)} ${m.title || ""}`);
+    }
+  }
+
   // 8. validate_vault
   header(`validate_vault`);
   const validation = getResult(responses, 8);
@@ -4695,6 +4719,8 @@ async function main() {
     blStructured,
     orph,
     orphStructured,
+    queryConcepts,
+    queryConceptsStructured,
     validation,
     brief,
     tunedBrief,
@@ -4764,6 +4790,7 @@ async function main() {
   );
   console.log(`  project_probe: ${projectProbe ? formatCount(projectProbe.total ?? 0, "project node") : "n/a"}`);
   console.log(`  get_concepts: ${(batch?.concepts || []).filter((row) => row?.ok === true).length} ok · ${(batch?.concepts || []).filter((row) => row?.ok === false).length} partial`);
+  console.log(`  query_concepts: ${queryConcepts ? `${queryConcepts.matches?.length ?? 0} matches · limited ${queryConcepts.limited === true}` : "n/a"}`);
   console.log(
     `  validate_vault: ${validation ? formatCount(validation.summary?.problemFiles ?? 0, "problem file") : "n/a"}`,
   );
