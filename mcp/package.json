@@ -33,6 +33,7 @@
     "src/ontology-engine.mjs",
     "src/*.test.mjs",
     "scripts/verify.mjs",
+    "scripts/json-rpc-lines.mjs",
     "CHANGELOG.md",
     "README.md"
   ],

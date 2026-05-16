@@ -23,6 +23,12 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
+import {
+  hasAnyErrorResponse,
+  hasAllResultResponses,
+  missingResponseLabels,
+  parseJsonRpcResponses,
+} from './json-rpc-lines.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_ROOT = resolve(__dirname, '..');
@@ -90,33 +96,12 @@ export function serverStartupFailure(stderr) {
   return detail ? `server failed before initialize. stderr: ${detail}` : 'no initialize response';
 }
 
-export function parseJsonRpcResponses(stdout) {
-  return stdout
-    .split('\n')
-    .filter(Boolean)
-    .map((s) => {
-      try {
-        return JSON.parse(s);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
-}
-
 export function hasAllFirstContactResponses(stdout) {
-  const ids = new Set(
-    parseJsonRpcResponses(stdout)
-      .filter((response) => response?.result)
-      .map((response) => response.id),
-  );
-  return [...FIRST_CONTACT_RESPONSE_LABELS.keys()].every((id) => ids.has(id));
+  return hasAllResultResponses(stdout, new Set(FIRST_CONTACT_RESPONSE_LABELS.keys()));
 }
 
 export function hasFirstContactErrorResponse(stdout) {
-  return parseJsonRpcResponses(stdout).some((response) => (
-    FIRST_CONTACT_RESPONSE_LABELS.has(response?.id) && response?.error
-  ));
+  return hasAnyErrorResponse(stdout, new Set(FIRST_CONTACT_RESPONSE_LABELS.keys()));
 }
 
 export function firstContactErrorFailure(response) {
@@ -285,7 +270,11 @@ async function step2BootAndCall() {
       }
 
       if (timedOut && missingResponses.length > 0) {
-        log('fail', `${verifyTimeoutFailure(timeoutMs)} Missing responses: ${missingResponses.map(([label]) => label).join(', ')}`);
+        const missingLabels = missingResponseLabels(
+          responses.filter((response) => response?.result),
+          FIRST_CONTACT_RESPONSE_LABELS,
+        );
+        log('fail', `${verifyTimeoutFailure(timeoutMs)} Missing responses: ${missingLabels.join(', ')}`);
         if (stderr) console.error(stderr.slice(0, 300));
         return res(false);
       }

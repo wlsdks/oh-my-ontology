@@ -11,6 +11,13 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join } from "node:path";
+import {
+  expectedResponseIds,
+  hasAllResponses,
+  hasAnyErrorResponse,
+  missingResponseLabels,
+  parseJsonRpcResponses,
+} from "../mcp/scripts/json-rpc-lines.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
@@ -68,40 +75,14 @@ function rpc(requests, timeoutMs = 3000) {
   });
 }
 
-export function expectedResponseIds(requests) {
-  return new Set(
-    requests
-      .map((request) => request.id)
-      .filter((id) => Number.isInteger(id)),
-  );
-}
+export { expectedResponseIds, missingResponseLabels };
 
 export function parseRpcResponses(stdout) {
-  return stdout
-    .split("\n")
-    .filter(Boolean)
-    .map((s) => {
-      try {
-        return JSON.parse(s);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
+  return parseJsonRpcResponses(stdout);
 }
 
 export function shouldFinishRpc(stdout, expectedIds) {
-  const responses = parseRpcResponses(stdout);
-  if (responses.some((response) => response.error)) return true;
-  const receivedIds = new Set(responses.map((response) => response.id));
-  return [...expectedIds].every((id) => receivedIds.has(id));
-}
-
-export function missingResponseLabels(responses, labels = DOGFOOD_RESPONSE_LABELS) {
-  const receivedIds = new Set(responses.map((response) => response.id));
-  return [...labels]
-    .filter(([id]) => !receivedIds.has(id))
-    .map(([, label]) => label);
+  return hasAnyErrorResponse(stdout, expectedIds) || hasAllResponses(stdout, expectedIds);
 }
 
 export function rpcTimeoutFailure(timeoutMs, missingLabels) {
@@ -342,7 +323,7 @@ async function main() {
   }
 
   const failures = evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, brief, health });
-  const missingLabels = missingResponseLabels(responses);
+  const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
     failures.unshift(rpcTimeoutFailure(timeoutMs, missingLabels));
   }
