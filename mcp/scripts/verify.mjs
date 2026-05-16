@@ -192,6 +192,12 @@ export function toolsListSchemaFailure(tools) {
     return 'delete_concept.force destructive safety schema drift';
   }
 
+  const renameTool = tools.find((candidate) => candidate?.name === 'rename_concept');
+  const overwrite = propertyAt(renameTool, ['properties', 'overwrite']);
+  if (overwrite?.type !== 'boolean') {
+    return 'rename_concept.overwrite destructive safety schema drift';
+  }
+
   return null;
 }
 

@@ -149,6 +149,7 @@ describe('verify.mjs first-contact gates', () => {
           additionalProperties: false,
           properties: {
             confirm: { type: 'boolean' },
+            overwrite: { type: 'boolean' },
             expected_mtime: { type: 'number', minimum: 0 },
           },
         },
@@ -332,6 +333,23 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.slice(6),
       ]),
       'add_relation.expected_mtime conflict guard schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.slice(0, 7),
+        {
+          ...tools[7],
+          inputSchema: {
+            ...tools[7].inputSchema,
+            properties: {
+              ...tools[7].inputSchema.properties,
+              overwrite: { type: 'string' },
+            },
+          },
+        },
+        ...tools.slice(8),
+      ]),
+      'rename_concept.overwrite destructive safety schema drift',
     );
     assert.equal(
       toolsListSchemaFailure([
