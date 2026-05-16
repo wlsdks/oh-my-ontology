@@ -242,6 +242,7 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.match(clean, /overview query_plan/);
     assert.match(clean, /project_map query_plan/);
     assert.match(clean, /maintenance cursor — missing afterActionId reported/);
+    assert.match(clean, /maintenance cursor — ready page stable/);
     assert.match(clean, /neighbors — elements\/example/);
     assert.match(clean, /path — elements\/example → project \(1 hop, 1 edge\)/);
     assert.match(clean, /project_scope/);
@@ -271,6 +272,7 @@ await test('mcp-verify — allows valid vaults without a project node', async ()
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /maintenance cursor — missing afterActionId reported/);
+    assert.match(clean, /maintenance cursor — ready page stable/);
     assert.match(clean, /neighbors — domains\/core/);
     assert.match(clean, /path — domains\/core → domains\/core \(0 hops, 0 edges\)/);
     assert.match(clean, /project_scope — skipped \(no project node in vault\)/);
@@ -286,6 +288,7 @@ await test('mcp-verify — allows an empty vault folder before graph smoke targe
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /vault total 0 nodes/);
+    assert.match(clean, /maintenance cursor — ready page stable/);
     assert.match(clean, /neighbors\/path — skipped \(vault has no nodes\)/);
     assert.match(clean, /project_scope — skipped \(no project node in vault\)/);
   } finally {
