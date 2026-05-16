@@ -172,12 +172,34 @@ export function checkPackage({ label, dir }, options = {}) {
   }
 }
 
+export function checkMcpLeanTarballFiles(files) {
+  const allowedTestFiles = new Set(['src/parser.test.mjs']);
+  const broadTestEntries = files.filter((entry) => {
+    const normalized = normalizeRel(entry);
+    return normalized.includes('*') && /\.test\.(mjs|js|cjs)$/.test(normalized);
+  });
+  assert.deepEqual(
+    broadTestEntries,
+    [],
+    `mcp: package.json#files must not use broad test globs: ${broadTestEntries.join(', ')}`,
+  );
+
+  const explicitTestFiles = files.filter((entry) => /\.test\.(mjs|js|cjs)$/.test(normalizeRel(entry)));
+  const disallowedTestFiles = explicitTestFiles.filter((entry) => !allowedTestFiles.has(normalizeRel(entry)));
+  assert.deepEqual(
+    disallowedTestFiles,
+    [],
+    `mcp: only ${[...allowedTestFiles].join(', ')} may ship as a verify smoke fixture`,
+  );
+}
+
 export function checkReleasePackages(packages = DEFAULT_PACKAGES) {
   for (const pkg of packages) {
     checkPackage(pkg);
   }
 
   const mcpPkg = readJson(join(ROOT, 'mcp', 'package.json'));
+  checkMcpLeanTarballFiles(mcpPkg.files ?? []);
   const cliPkg = readJson(join(ROOT, 'cli', 'package.json'));
   assert.equal(
     cliPkg.dependencies?.['oh-my-ontology-mcp'],

@@ -7,6 +7,7 @@ import { describe, it } from 'node:test';
 
 import {
   checkPackage,
+  checkMcpLeanTarballFiles,
   importedSpecifiers,
   isCoveredByFiles,
   isPublishRuntimeScript,
@@ -102,6 +103,22 @@ writeFileSync('fixture.mjs', "import './not-real.mjs';");
     assert.equal(isCoveredByFiles('src/lib/a.mjs', ['src/lib']), true);
     assert.equal(isCoveredByFiles('src/lib/a.test.mjs', ['src/lib/*.test.mjs']), true);
     assert.equal(isCoveredByFiles('src/lib/a.test.mjs', ['src/*.test.mjs']), false);
+  });
+
+  it('allows only the parser smoke fixture in the MCP tarball', () => {
+    assert.doesNotThrow(() =>
+      checkMcpLeanTarballFiles(['src/index.js', 'src/parser.mjs', 'src/parser.test.mjs']),
+    );
+
+    assert.throws(
+      () => checkMcpLeanTarballFiles(['src/index.js', 'src/*.test.mjs']),
+      /must not use broad test globs/,
+    );
+
+    assert.throws(
+      () => checkMcpLeanTarballFiles(['src/index.js', 'src/integration.test.mjs']),
+      /only src\/parser\.test\.mjs may ship/,
+    );
   });
 });
 
