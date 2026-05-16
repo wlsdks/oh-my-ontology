@@ -2,6 +2,10 @@
 
 ## 0.11.0 — 2026-05-16
 
+### Changed — graph write commands
+
+- `oh-my-ontology rename <oldSlug> <newSlug> --confirm --overwrite` now exposes MCP `rename_concept.overwrite`, so the developer CLI can intentionally replace an existing target slug instead of routing that safety switch only through AI-agent MCP calls.
+
 ### Added — `mcp-verify` command
 
 - `oh-my-ontology mcp-verify [vault] [--timeout-ms N]` — installed CLI wrapper around the MCP package verify script. Runs parser smoke, server boot, 23-tool inventory, `list_concepts`, `get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, `health`, `compile_ontology`, `overview`, `overview`/`project_map` query_plan, and actual `neighbors` / `path` / `project_scope` graph-query smoke against the resolved vault.

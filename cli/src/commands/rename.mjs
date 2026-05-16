@@ -18,7 +18,7 @@ const COLORS = {
 };
 
 export async function runRename(args) {
-  const { oldSlug, newSlug, vault, confirm, json, error } = parseArgs(args);
+  const { oldSlug, newSlug, vault, confirm, overwrite, json, error } = parseArgs(args);
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -35,6 +35,7 @@ export async function runRename(args) {
         oldSlug,
         newSlug,
         confirm: false,
+        overwrite,
       });
     } catch (err) {
       process.stderr.write(
@@ -73,6 +74,7 @@ export async function runRename(args) {
       oldSlug,
       newSlug,
       confirm: true,
+      overwrite,
     });
   } catch (err) {
     process.stderr.write(
@@ -93,13 +95,14 @@ export async function runRename(args) {
 }
 
 function parseArgs(args) {
-  const flags = { vault: null, confirm: false, json: false };
+  const flags = { vault: null, confirm: false, overwrite: false, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
     if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
     else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--confirm') flags.confirm = true;
+    else if (a === '--overwrite') flags.overwrite = true;
     else if (a === '--json') flags.json = true;
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
@@ -114,6 +117,7 @@ function parseArgs(args) {
     newSlug: positional[1],
     vault: vaultResult.vault,
     confirm: flags.confirm,
+    overwrite: flags.overwrite,
     json: flags.json,
   };
 }
@@ -121,11 +125,13 @@ function parseArgs(args) {
 function printUsage() {
   process.stderr.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
-      `  oh-my-ontology rename <oldSlug> <newSlug> [vault] [--confirm] [--json]\n\n` +
+      `  oh-my-ontology rename <oldSlug> <newSlug> [vault] [--confirm] [--overwrite] [--json]\n\n` +
       `${COLORS.bold}Default${COLORS.reset} dry-run only — preview the changes.\n` +
       `${COLORS.bold}--confirm${COLORS.reset}  apply: move .md, update slug:, rewrite every backlink.\n\n` +
+      `${COLORS.bold}--overwrite${COLORS.reset} allow replacing an existing target slug.\n\n` +
       `${COLORS.bold}Example:${COLORS.reset}\n` +
       `  oh-my-ontology rename capabilities/foo capabilities/bar\n` +
-      `  oh-my-ontology rename capabilities/foo capabilities/bar --confirm\n`,
+      `  oh-my-ontology rename capabilities/foo capabilities/bar --confirm\n` +
+      `  oh-my-ontology rename capabilities/foo capabilities/bar --confirm --overwrite\n`,
   );
 }

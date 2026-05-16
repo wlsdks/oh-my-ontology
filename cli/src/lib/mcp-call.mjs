@@ -110,6 +110,10 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
           rejectP(new Error('mcp tool response has no text content'));
           return;
         }
+        if (toolResp.result?.isError) {
+          rejectP(new Error(text));
+          return;
+        }
         // Server returns JSON.stringify(result) in text — parse back.
         try {
           resolveP(JSON.parse(text));

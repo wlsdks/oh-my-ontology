@@ -1978,6 +1978,38 @@ await test('rename --confirm — 파일 이동 + backlink redirect', async () =>
   }
 });
 
+await test('rename --confirm --overwrite — existing target slug 대체', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const blocked = await run([
+      'rename',
+      'capabilities/foo',
+      'capabilities/bar',
+      root,
+      '--confirm',
+    ]);
+    assert.equal(blocked.code, 2);
+    assert.match(stripAnsi(blocked.stderr), /Target slug already exists/);
+    assert.match(stripAnsi(blocked.stderr), /overwrite/);
+
+    const r = await run([
+      'rename',
+      'capabilities/foo',
+      'capabilities/bar',
+      root,
+      '--confirm',
+      '--overwrite',
+    ]);
+    assert.equal(r.code, 0, `stderr: ${r.stderr}`);
+    assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
+    const barText = readFileSync(join(root, 'capabilities/bar.md'), 'utf-8');
+    assert.match(barText, /title: Foo/);
+    assert.match(barText, /slug: capabilities\/bar/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('delete — backlinks 있으면 dry-run 에서 경고', async () => {
   const root = await buildGraphFixture();
   try {

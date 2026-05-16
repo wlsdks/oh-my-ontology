@@ -105,7 +105,7 @@ ${COLORS.bold}Graph-level commands${COLORS.reset} ${COLORS.dim}(R15 — wraps th
   npx oh-my-ontology similar "<title>" [vault] vault 에서 비슷한 노드 찾기 (duplicate 회피, /ontology-extract 짝)
        --slug X --kind K --limit N --json    ${COLORS.dim}slug 기반 / kind 필터 / 결과 N / machine${COLORS.reset}
   npx oh-my-ontology rename <old> <new>       Atomic rename — moves .md, redirects every backlink
-       --confirm                              ${COLORS.dim}default dry-run (preview); --confirm to apply${COLORS.reset}
+       --confirm --overwrite                  ${COLORS.dim}default dry-run; --overwrite replaces existing target${COLORS.reset}
   npx oh-my-ontology merge <from> <into>      Atomic merge — redirect backlinks then delete fromSlug
        --confirm                              ${COLORS.dim}default dry-run; --confirm to apply${COLORS.reset}
   npx oh-my-ontology delete <slug>            Permanent delete (refuses if backlinks remain)

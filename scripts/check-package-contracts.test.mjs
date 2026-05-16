@@ -268,6 +268,19 @@ describe('package contract helpers', () => {
     assert.match(section, /Node `--test-name-pattern`/);
   });
 
+  it('keeps the CLI README explicit about graph write safety switches', () => {
+    const readme = readFileSync('cli/README.md', 'utf-8');
+    const renameRow = readme.split('| `oh-my-ontology rename <oldSlug> <newSlug>` |')[1]?.split('\n')[0] ?? '';
+    const deleteRow = readme.split('| `oh-my-ontology delete <slug>` |')[1]?.split('\n')[0] ?? '';
+
+    assert.match(renameRow, /--confirm/);
+    assert.match(renameRow, /--overwrite/);
+    assert.match(renameRow, /existing target slug/);
+    assert.match(deleteRow, /--confirm/);
+    assert.match(deleteRow, /--force/);
+    assert.match(deleteRow, /backlinks/);
+  });
+
   it('keeps the CLI changelog aligned with the mcp-verify census scope', () => {
     const changelog = readFileSync('cli/CHANGELOG.md', 'utf-8');
     const verifySection = changelog.split('### Added — `mcp-verify` command')[1]?.split('### Added — `compile`')[0] ?? '';
