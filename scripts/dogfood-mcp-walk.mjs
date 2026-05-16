@@ -1619,6 +1619,13 @@ function maintenancePlanShapeFailure(result, options = {}) {
   if (!Array.isArray(result.actions)) {
     return "maintenance_plan response missing actions array";
   }
+  if (!result.limited && result.actions.length === result.summary.filteredActions) {
+    const bucketFailure =
+      maintenanceBucketMismatch(result.byPhase, result.actions, "phase", "byPhase") ||
+      maintenanceBucketMismatch(result.bySeverity, result.actions, "severity", "bySeverity") ||
+      maintenanceBucketMismatch(result.byKind, result.actions, "kind", "byKind");
+    if (bucketFailure) return bucketFailure;
+  }
   if (result.actions.length > result.summary.remainingActions) {
     return `maintenance_plan actions exceed remaining — actions ${result.actions.length}, remaining ${result.summary.remainingActions}`;
   }
@@ -1663,6 +1670,25 @@ function maintenancePlanShapeFailure(result, options = {}) {
   for (const [index, action] of result.actions.entries()) {
     const actionFailure = maintenanceActionFailure(action, index);
     if (actionFailure) return actionFailure;
+  }
+  return null;
+}
+
+function maintenanceBucketMismatch(bucket, actions, actionKey, bucketName) {
+  const expected = {};
+  for (const action of actions) {
+    const key = action?.[actionKey];
+    if (typeof key === "string" && key.length > 0) {
+      expected[key] = (expected[key] || 0) + 1;
+    }
+  }
+  const bucketEntries = Object.entries(bucket);
+  const expectedEntries = Object.entries(expected);
+  if (bucketEntries.length !== expectedEntries.length) {
+    return `maintenance_plan ${bucketName} mismatch`;
+  }
+  for (const [key, count] of expectedEntries) {
+    if (bucket[key] !== count) return `maintenance_plan ${bucketName} mismatch`;
   }
   return null;
 }

@@ -2517,6 +2517,36 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         maintenancePlan: {
           ...okShape.maintenancePlan,
+          byPhase: { link: 2, review: 1 },
+        },
+      }),
+      ["maintenance_plan byPhase mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          bySeverity: { warn: 1 },
+        },
+      }),
+      ["maintenance_plan bySeverity mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          byKind: { add_missing_relation: 1, other: 1 },
+        },
+      }),
+      ["maintenance_plan byKind mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
           cursor: { ...okShape.maintenancePlan.cursor, hasMore: "false" },
         },
       }),
