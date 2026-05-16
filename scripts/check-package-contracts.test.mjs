@@ -351,6 +351,16 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /validate_vault` problem files/);
   });
 
+  it('keeps the root README explicit about vault validator help', () => {
+    const readme = readFileSync('README.md', 'utf-8');
+    const vaultTooling = readme.split('### Vault tooling')[1]?.split('### Package / MCP release checks')[0] ?? '';
+
+    assert.match(vaultTooling, /pnpm vault:validate\s+# frontmatter integrity audit/);
+    assert.match(vaultTooling, /pnpm vault:validate \/your\/vault/);
+    assert.match(vaultTooling, /pnpm vault:validate -- --help/);
+    assert.match(vaultTooling, /print validator usage without scanning/);
+  });
+
   it('keeps the root README dogfood snapshot aligned with the vault census', () => {
     const readme = readFileSync('README.md', 'utf-8');
     const dogfoodRow = readme.split('| **Dogfooding** |')[1]?.split('\n')[0] ?? '';

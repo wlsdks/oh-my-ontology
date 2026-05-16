@@ -4,6 +4,7 @@ kind: capability
 title: Vault Validator (Silent Corruption 가시화)
 domain: vault-local-first
 elements:
+  - scripts/validate-vault-script.test.mjs
   - scripts/validate-vault.mjs
   - src/shared/lib/validate-vault-document.ts
   - tests/contract/frontmatter-writer.contract.test.ts
@@ -23,6 +24,7 @@ R11 에서 이 silent corruption 을 가시화.
 1. **CLI** — `pnpm vault:validate [vaultPath]`
    - `validateVaultDocument(raw)` — frontmatter corruption + graph array canonicality issue codes
    - error 1+ 시 exit 1 (CI 게이트 가능)
+   - `--help` / `-h` 는 vault path 로 오인하지 않고 usage 만 출력한다
    - dogfood vault 는 매 PR 마다 `.github/workflows/ci.yml` 의 step 으로 자동 검증
 
 2. **UI chip** — LocalVaultPicker 안의 ✗ N / ⚠ N
@@ -49,3 +51,4 @@ UI 측은 fast path 라 raw 의존 issue 와 whole-vault reference issue 는 det
 
 - `tests/contract/parse-frontmatter.contract.test.ts` — TS runtime / MCP package / scripts / CLI parser 4-way parity.
 - `tests/contract/frontmatter-writer.contract.test.ts` — MCP `buildMarkdown` / `serializeFrontmatter` 와 CLI writer 의 byte-for-byte markdown shape parity.
+- `scripts/validate-vault-script.test.mjs` — script-level argument parsing, `--help`, unknown option regression.

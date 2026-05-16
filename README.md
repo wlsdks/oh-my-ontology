@@ -109,6 +109,7 @@ No `.env`, no Firebase, no auth provider, no cloud account needed.
 ```bash
 pnpm vault:validate              # frontmatter integrity audit (CI gate)
 pnpm vault:validate /your/vault  # validate any folder, not just dogfood
+pnpm vault:validate -- --help    # print validator usage without scanning
 pnpm vault:audit                 # dogfood ontology paths match real repo files
 pnpm vault:migrate --list        # see registered schema migrations
 pnpm vault:migrate <id>          # dry-run a migration (default — no disk writes)

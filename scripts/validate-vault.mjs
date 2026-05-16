@@ -3,6 +3,7 @@
 //
 // 사용법:
 //   node scripts/validate-vault.mjs [vaultDir]
+//   node scripts/validate-vault.mjs --help
 //   pnpm vault:validate
 //
 // 기본 vaultDir = docs/ontology (이 프로젝트의 dogfood vault).
@@ -44,6 +45,50 @@ const KIND_EXPECTED_EXTRAS = {
   document: [],
   "vault-readme": [],
 };
+
+export function validateVaultUsage() {
+  return [
+    "Usage: node scripts/validate-vault.mjs [vaultDir]",
+    "",
+    "Validates markdown frontmatter integrity for an ontology vault.",
+    "",
+    "Arguments:",
+    "  vaultDir     Vault folder to scan. Defaults to docs/ontology.",
+    "",
+    "Options:",
+    "  -h, --help   Show this help text.",
+  ].join("\n");
+}
+
+export function parseValidateVaultArgs({
+  argv = process.argv,
+  cwd = process.cwd(),
+} = {}) {
+  const args = argv.slice(2);
+  if (args[0] === "--") {
+    args.shift();
+  }
+  if (args.includes("--help") || args.includes("-h")) {
+    return { help: true };
+  }
+  if (args.length > 1) {
+    return {
+      error: `Unexpected argument: ${args[1]}`,
+      exitCode: 2,
+    };
+  }
+  if (args[0]?.startsWith("-")) {
+    return {
+      error: `Unknown option: ${args[0]}`,
+      exitCode: 2,
+    };
+  }
+  return {
+    vaultDir: args[0]
+      ? path.resolve(cwd, args[0])
+      : path.join(ROOT, "docs", "ontology"),
+  };
+}
 
 async function walk(dir) {
   const out = [];
@@ -164,11 +209,18 @@ function pushNonCanonicalGraphArrayIssues(frontmatter, issues) {
   }
 }
 
-async function main() {
-  const arg = process.argv[2];
-  const vaultDir = arg
-    ? path.resolve(process.cwd(), arg)
-    : path.join(ROOT, "docs", "ontology");
+export async function main({ argv = process.argv, cwd = process.cwd() } = {}) {
+  const parsed = parseValidateVaultArgs({ argv, cwd });
+  if (parsed.help) {
+    console.log(validateVaultUsage());
+    return 0;
+  }
+  if (parsed.error) {
+    console.error(parsed.error);
+    console.error(validateVaultUsage());
+    return parsed.exitCode;
+  }
+  const vaultDir = parsed.vaultDir;
 
   const files = await walk(vaultDir);
   const entries = [];
@@ -206,7 +258,7 @@ async function main() {
     console.log(
       `[validate-vault] ${files.length} 파일 스캔 — issue 0. vault clean ✓`,
     );
-    process.exit(0);
+    return 0;
   }
 
   for (const { file, report } of reports) {
@@ -221,7 +273,7 @@ async function main() {
     `\n[validate-vault] ${files.length} 파일 / ${reports.length} 문제 (error ${errorFiles} · warning ${warningFiles})`,
   );
 
-  process.exit(errorFiles > 0 ? 1 : 0);
+  return errorFiles > 0 ? 1 : 0;
 }
 
 function collectGraphRefs(frontmatter) {
@@ -294,7 +346,11 @@ function isPathLikeGraphRef(ref) {
   );
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(2);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().then((code) => {
+    process.exit(code);
+  }).catch((err) => {
+    console.error(err);
+    process.exit(2);
+  });
+}
