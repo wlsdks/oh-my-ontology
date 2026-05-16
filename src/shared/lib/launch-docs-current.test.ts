@@ -17,15 +17,27 @@ const CURRENT_SURFACE_DOCS = [
 const STALE_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   {
     pattern: /\b12 tools\b/i,
-    message: 'MCP launch copy must use the current 20-tool surface.',
+    message: 'MCP launch copy must use the current 23-tool surface.',
+  },
+  {
+    pattern: /\b20 tools\b/i,
+    message: 'MCP launch copy must use the current 23-tool surface.',
   },
   {
     pattern: /\bread 8 \+ write 4\b/i,
-    message: 'MCP launch copy must use read 12 + write 8.',
+    message: 'MCP launch copy must use read 15 + write 8.',
+  },
+  {
+    pattern: /\bread 12 \+ write 8\b/i,
+    message: 'MCP launch copy must use read 15 + write 8.',
   },
   {
     pattern: /\b8 read \+ 4 write\b/i,
-    message: 'MCP launch copy must use 12 read + 8 write.',
+    message: 'MCP launch copy must use 15 read + 8 write.',
+  },
+  {
+    pattern: /\b12 read \+ 8 write\b/i,
+    message: 'MCP launch copy must use 15 read + 8 write.',
   },
   {
     pattern: /~?130 (?:nodes|노드)/i,
@@ -37,7 +49,7 @@ const STALE_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   },
   {
     pattern: /10 others/i,
-    message: 'MCP verification copy must mention the 20-tool namespace, not an old count.',
+    message: 'MCP verification copy must mention the 23-tool namespace, not an old count.',
   },
   {
     pattern: /\d+ (?:unit )?test files?\s*\/\s*\d+ (?:unit )?tests?/i,
