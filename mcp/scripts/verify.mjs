@@ -326,6 +326,39 @@ export function maintenanceReadyCursorFailure(parsed) {
   if (!Object.hasOwn(parsed, 'nextExecutableAction') || !Object.hasOwn(parsed, 'nextReviewAction')) {
     return 'maintenance ready-cursor smoke missing next action pointers';
   }
+  const nextExecutableFailure = maintenanceNextActionFailure(
+    parsed.actions.find((action) => action?.executable === true) ?? null,
+    parsed.nextExecutableAction,
+    'nextExecutableAction',
+    true,
+  );
+  if (nextExecutableFailure) return nextExecutableFailure;
+  const nextReviewFailure = maintenanceNextActionFailure(
+    parsed.actions.find((action) => action?.executable === false) ?? null,
+    parsed.nextReviewAction,
+    'nextReviewAction',
+    false,
+  );
+  if (nextReviewFailure) return nextReviewFailure;
+  return null;
+}
+
+function maintenanceNextActionFailure(expectedAction, pointer, label, executable) {
+  if (!expectedAction) {
+    if (pointer !== null) {
+      return `maintenance ready-cursor smoke unexpected ${label}`;
+    }
+    return null;
+  }
+  if (!pointer || typeof pointer !== 'object' || Array.isArray(pointer)) {
+    return `maintenance ready-cursor smoke missing ${label}`;
+  }
+  if (pointer.id !== expectedAction.id) {
+    return `maintenance ready-cursor smoke ${label} did not match first page action`;
+  }
+  if (pointer.executable !== executable) {
+    return `maintenance ready-cursor smoke ${label} executable flag mismatch`;
+  }
   return null;
 }
 

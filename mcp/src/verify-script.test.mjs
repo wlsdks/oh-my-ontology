@@ -750,6 +750,32 @@ describe('verify.mjs first-contact gates', () => {
       maintenanceReadyCursorFailure(withoutNextExecutable),
       'maintenance ready-cursor smoke missing next action pointers',
     );
+    const withActions = {
+      ...clean,
+      actions: [
+        { id: 'maint_link', executable: true },
+        { id: 'maint_review', executable: false },
+      ],
+      nextExecutableAction: { id: 'maint_link', executable: true },
+      nextReviewAction: { id: 'maint_review', executable: false },
+    };
+    assert.equal(maintenanceReadyCursorFailure(withActions), null);
+    assert.equal(
+      maintenanceReadyCursorFailure({ ...withActions, nextExecutableAction: { id: 'maint_later', executable: true } }),
+      'maintenance ready-cursor smoke nextExecutableAction did not match first page action',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({ ...withActions, nextReviewAction: null }),
+      'maintenance ready-cursor smoke missing nextReviewAction',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({ ...withActions, actions: [], nextExecutableAction: { id: 'maint_link', executable: true } }),
+      'maintenance ready-cursor smoke unexpected nextExecutableAction',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({ ...withActions, nextReviewAction: { id: 'maint_review', executable: true } }),
+      'maintenance ready-cursor smoke nextReviewAction executable flag mismatch',
+    );
   });
 
   it('fails initialize instructions missing first-contact safety guidance', () => {
