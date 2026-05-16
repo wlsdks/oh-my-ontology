@@ -244,6 +244,35 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       "query_ontology exposes bounded iterations schema",
     );
     assert.deepEqual(
+      findTool("query_ontology")?.inputSchema?.properties?.targetOperation?.enum,
+      [
+        "neighbors",
+        "path",
+        "all_paths",
+        "centrality",
+        "communities",
+        "similar_nodes",
+        "explain_relation",
+        "reachability",
+        "impact",
+        "blast_radius",
+        "subgraph",
+        "overview",
+        "schema",
+        "facets",
+        "match_nodes",
+        "match_edges",
+        "components",
+        "cycles",
+        "topological_order",
+        "growth_plan",
+        "maintenance_plan",
+        "workspace_brief",
+        "health",
+      ],
+      "query_ontology exposes query_plan targetOperation enum",
+    );
+    assert.deepEqual(
       {
         type: findTool("get_concepts")?.inputSchema?.properties?.slugs?.type,
         maxItems: findTool("get_concepts")?.inputSchema?.properties?.slugs?.maxItems,

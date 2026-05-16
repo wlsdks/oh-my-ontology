@@ -93,6 +93,9 @@ arguments before the tool call instead of relying on silent fallback.
 Batch arrays expose the same runtime cap as schema too: `get_concepts.slugs`,
 `add_concepts.concepts`, and `add_relations.relations` all advertise
 `maxItems: 50`.
+`query_ontology.targetOperation` also exposes the supported `query_plan`
+targets as an enum so clients can offer valid choices instead of discovering
+the subset through failed calls.
 
 ## Frontmatter shape per kind (R14)
 

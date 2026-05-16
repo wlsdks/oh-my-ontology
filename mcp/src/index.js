@@ -90,6 +90,31 @@ const VAULT_ROOT = resolve(process.env.OMOT_VAULT || process.cwd());
 const SERVER_VERSION = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
 ).version;
+const QUERY_PLAN_TARGET_OPERATIONS = [
+  'neighbors',
+  'path',
+  'all_paths',
+  'centrality',
+  'communities',
+  'similar_nodes',
+  'explain_relation',
+  'reachability',
+  'impact',
+  'blast_radius',
+  'subgraph',
+  'overview',
+  'schema',
+  'facets',
+  'match_nodes',
+  'match_edges',
+  'components',
+  'cycles',
+  'topological_order',
+  'growth_plan',
+  'maintenance_plan',
+  'workspace_brief',
+  'health',
+];
 // import-time throw 면 stdio transport 가 붙기 전 stack trace 가 stderr 로
 // 새고 클라이언트 (Claude Code 등) 에선 silent crash 로 보인다. 친절한 한
 // 줄 메시지 + non-zero exit 로 server log 에 명확히 노출.
@@ -712,6 +737,7 @@ const TOOLS = [
         },
         targetOperation: {
           type: 'string',
+          enum: QUERY_PLAN_TARGET_OPERATIONS,
           description:
             'query_plan only: operation to explain before execution, e.g. path, all_paths, reachability, impact, subgraph, match_nodes, or match_edges.',
         },
