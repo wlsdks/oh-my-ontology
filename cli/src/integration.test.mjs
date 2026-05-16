@@ -806,7 +806,39 @@ await test('add — title 빈 문자열 거부', async () => {
   try {
     const r = await run(['add', 'capability', 'foo', '--title', '', '--vault', root]);
     assert.equal(r.code, 1);
-    assert.match(r.stderr, /--title requires a value|title.*required/i);
+    assert.match(r.stderr, /--title requires a value|--title must be a non-empty string|title.*required/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('add — slug/title/domain padded 값은 쓰기 전에 거부', async () => {
+  const root = withVault([]);
+  try {
+    const cases = [
+      {
+        args: ['add', 'capability', ' foo', '--title', 'Foo', '--vault', root],
+        stderr: /slug must not have leading or trailing whitespace/,
+      },
+      {
+        args: ['add', 'capability', 'foo', '--title', ' Foo ', '--vault', root],
+        stderr: /--title must not have leading or trailing whitespace/,
+      },
+      {
+        args: ['add', 'capability', 'foo', '--title', 'Foo', '--domain', ' identity ', '--vault', root],
+        stderr: /--domain must not have leading or trailing whitespace/,
+      },
+      {
+        args: ['add', 'capability', 'foo', '--title', 'Foo', '--domain=', '--vault', root],
+        stderr: /--domain must be a non-empty string/,
+      },
+    ];
+    for (const c of cases) {
+      const r = await run(c.args);
+      assert.equal(r.code, 1, `${c.args.join(' ')}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+      assert.match(stripAnsi(r.stderr), c.stderr);
+    }
+    assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

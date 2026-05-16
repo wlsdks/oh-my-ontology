@@ -7,7 +7,7 @@ import {
   folderForKind,
   missingExpectedFields,
 } from '../lib/schema.mjs';
-import { parseRequiredFlagValue, parseVaultFlag } from '../lib/cli-args.mjs';
+import { parseVaultFlag } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -97,10 +97,10 @@ function parseArgs(args) {
     const a = args[i];
     if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
     else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
-    else if (a === '--title') flags.title = parseRequiredFlagValue('--title', args[++i]);
-    else if (a.startsWith('--title=')) flags.title = parseRequiredFlagValue('--title', a.slice('--title='.length));
-    else if (a === '--domain') flags.domain = parseRequiredFlagValue('--domain', args[++i]);
-    else if (a.startsWith('--domain=')) flags.domain = parseRequiredFlagValue('--domain', a.slice('--domain='.length));
+    else if (a === '--title') flags.title = parseRawFlagValue('--title', args[++i]);
+    else if (a.startsWith('--title=')) flags.title = parseRawFlagValue('--title', a.slice('--title='.length));
+    else if (a === '--domain') flags.domain = parseRawFlagValue('--domain', args[++i]);
+    else if (a.startsWith('--domain=')) flags.domain = parseRawFlagValue('--domain', a.slice('--domain='.length));
     else if (a === '--body') flags.body = parseBodyFlagValue('--body', args[++i]);
     else if (a.startsWith('--body=')) flags.body = parseBodyFlagValue('--body', a.slice('--body='.length));
     else if (a === '--auto-prefix') flags.autoPrefix = true;
@@ -127,8 +127,13 @@ function parseArgs(args) {
       error: `unknown kind: ${kind}. one of ${VAULT_KINDS.join(' / ')}`,
     };
   }
-  if (!flags.title || flags.title.trim() === '') {
-    return { error: '--title is required (non-empty)' };
+  const titleError = validateCleanString(flags.title, '--title');
+  if (titleError) return { error: titleError };
+  const slugError = validateCleanString(slug, 'slug');
+  if (slugError) return { error: slugError };
+  if (flags.domain !== undefined) {
+    const domainError = validateCleanString(flags.domain, '--domain');
+    if (domainError) return { error: domainError };
   }
   return {
     kind,
@@ -141,11 +146,31 @@ function parseArgs(args) {
   };
 }
 
+function parseRawFlagValue(flag, value) {
+  if (value === undefined) return new Error(`${flag} requires a value`);
+  const text = String(value);
+  if (text.startsWith('--')) return new Error(`${flag} requires a value`);
+  return text;
+}
+
 function parseBodyFlagValue(flag, value) {
   if (value === undefined) return new Error(`${flag} requires a value`);
   const text = String(value);
   if (text.startsWith('--')) return new Error(`${flag} requires a value`);
   return text;
+}
+
+function validateCleanString(value, name) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    return `${name} must be a non-empty string`;
+  }
+  if (value !== value.trim()) {
+    return `${name} must not have leading or trailing whitespace`;
+  }
+  if (value.includes('\0')) {
+    return `${name} must not contain a null byte`;
+  }
+  return null;
 }
 
 function printAddUsage() {
