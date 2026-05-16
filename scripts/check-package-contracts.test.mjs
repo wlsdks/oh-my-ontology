@@ -347,6 +347,9 @@ describe('package contract helpers', () => {
     assert.match(smoke, /\['path', 'capabilities\/a', 'capabilities\/b', disconnectedVault, '--json'\]/);
     assert.match(smoke, /assert\.equal\(missingPath\.status, 1\)/);
     assert.match(smoke, /workspace_brief — \.\*next actions, \.\*health checks/);
+    assert.match(smoke, /directMcpVerify/);
+    assert.match(smoke, /npm run verify -- \\\[vault\\\] \\\[--timeout-ms N\\\]/);
+    assert.match(smoke, /verify timeout must be a positive integer/);
     assert.match(smoke, /health — \.\*compile_issues:\(pass\|warn\)/);
     assert.match(smoke, /health — \.\*checks/);
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);

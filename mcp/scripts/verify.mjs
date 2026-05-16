@@ -577,6 +577,10 @@ export function listConceptsFailure(parsed) {
 export function projectProbeFailure(parsed, kinds) {
   const shapeFailure = listConceptsFailure(parsed);
   if (shapeFailure) return `project probe ${shapeFailure}`;
+  const kindProjectCount = Number.isInteger(kinds?.byKind?.project) ? kinds.byKind.project : 0;
+  if (kindProjectCount === 0 && parsed.total === 0) {
+    return null;
+  }
   if (parsed.total < 1) {
     return 'project probe response missing project node';
   }
@@ -584,7 +588,6 @@ export function projectProbeFailure(parsed, kinds) {
   if (nonProject) {
     return `project probe returned non-project node: ${nonProject.slug || '(unknown)'}`;
   }
-  const kindProjectCount = kinds?.byKind?.project;
   if (Number.isInteger(kindProjectCount) && parsed.total >= 1 && parsed.total !== kindProjectCount) {
     return `project probe count mismatch — list_kinds project ${kindProjectCount}, probe ${parsed.total}`;
   }

@@ -299,6 +299,32 @@ try {
   assert.match(mcpVerify.stdout, /path — elements\/example → project \(1 hop\)/);
   assert.match(mcpVerify.stdout, /project_scope/);
 
+  const directMcpVerify = run(
+    'npm',
+    [
+      '--prefix',
+      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      'run',
+      'verify',
+      '--',
+      join(projectDir, 'ontology'),
+      '--timeout-ms',
+      '1000',
+    ],
+    { cwd: projectDir },
+  );
+  assert.match(directMcpVerify.stdout, /timeout=1000ms/);
+  assert.match(directMcpVerify.stdout, /project probe — 1 project node/);
+  assert.match(directMcpVerify.stdout, /workspace_brief — .*next actions, .*health checks/);
+
+  const directMcpVerifyHelp = run(
+    'npm',
+    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), 'run', 'verify', '--', '--help'],
+    { cwd: projectDir },
+  );
+  assert.match(directMcpVerifyHelp.stdout, /npm run verify -- \[vault\] \[--timeout-ms N\]/);
+  assert.match(directMcpVerifyHelp.stdout, /project probe/);
+
   const mcpEmptyVerify = run(
     'npm',
     ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), 'run', 'verify'],
@@ -325,7 +351,27 @@ try {
   assert.equal(invalidMcpVerifyTimeout.status, 1);
   assert.match(
     `${invalidMcpVerifyTimeout.stdout}\n${invalidMcpVerifyTimeout.stderr}`,
-    /OMOT_VERIFY_TIMEOUT_MS must be a positive integer/,
+    /verify timeout must be a positive integer/,
+  );
+
+  const invalidDirectMcpVerifyTimeout = runRaw(
+    'npm',
+    [
+      '--prefix',
+      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      'run',
+      'verify',
+      '--',
+      join(projectDir, 'ontology'),
+      '--timeout-ms',
+      '1000ms',
+    ],
+    { cwd: projectDir },
+  );
+  assert.equal(invalidDirectMcpVerifyTimeout.status, 1);
+  assert.match(
+    `${invalidDirectMcpVerifyTimeout.stdout}\n${invalidDirectMcpVerifyTimeout.stderr}`,
+    /verify timeout must be a positive integer/,
   );
 
   const compile = runRaw(cliBin, ['compile', 'ontology', '--summary'], { cwd: projectDir });
