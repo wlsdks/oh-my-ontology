@@ -466,7 +466,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /empty vault/);
     assert.match(mcpVerifyRow, /node-targeted graph smoke/);
     assert.match(implementationSection, /query-result-contract\.mjs/);
-    assert.match(implementationSection, /malformed `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
+    assert.match(implementationSection, /malformed `compile` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
     assert.match(implementationSection, /fail-closed/);
   });
 
