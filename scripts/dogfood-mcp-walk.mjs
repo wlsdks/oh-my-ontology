@@ -105,6 +105,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [55, "tools_list"],
   [56, "query_concepts"],
   [57, "analyze_repo_structure"],
+  [58, "infer_imports"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -335,6 +336,7 @@ export function buildDogfoodRequests() {
     call(7, "find_orphans", {}),
     call(56, "query_concepts", { filter: "kind=capability AND domain=ai-agent-partner", limit: 5 }),
     call(57, "analyze_repo_structure", { rootPath: ROOT, maxDepth: 2 }),
+    call(58, "infer_imports", { rootPath: ROOT, maxFiles: 5000 }),
     call(8, "validate_vault", {}),
     call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
     call(10, "query_ontology", { operation: "health" }),
@@ -621,6 +623,8 @@ export function evaluateDogfoodGate({
   queryConceptsStructured,
   analyzedRepo,
   analyzedRepoStructured,
+  inferredImports,
+  inferredImportsStructured,
   validation,
   validationStructured,
   brief,
@@ -683,6 +687,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "find_orphans", orph);
   recordResult(failures, "query_concepts", queryConcepts);
   recordResult(failures, "analyze_repo_structure", analyzedRepo);
+  recordResult(failures, "infer_imports", inferredImports);
   recordResult(failures, "validate_vault", validation);
   recordResult(failures, "workspace_brief", brief);
   recordResult(failures, "workspace_brief_tuned", tunedBrief);
@@ -819,6 +824,13 @@ export function evaluateDogfoodGate({
     if (analyzedRepoFailure) failures.push(analyzedRepoFailure);
     else if (analyzedRepoStructured !== undefined && JSON.stringify(analyzedRepoStructured) !== JSON.stringify(analyzedRepo)) {
       failures.push("analyze_repo_structure structuredContent mismatch");
+    }
+  }
+  if (inferredImports) {
+    const inferredImportsFailure = inferImportsFailure(inferredImports);
+    if (inferredImportsFailure) failures.push(inferredImportsFailure);
+    else if (inferredImportsStructured !== undefined && JSON.stringify(inferredImportsStructured) !== JSON.stringify(inferredImports)) {
+      failures.push("infer_imports structuredContent mismatch");
     }
   }
   if (validation) {
@@ -3788,6 +3800,72 @@ function analyzeRepoStructureFailure(result) {
   return null;
 }
 
+function inferImportsFailure(result) {
+  if (typeof result.rootPath !== "string" || result.rootPath.length === 0) {
+    return "infer_imports response missing rootPath";
+  }
+  if (!Number.isInteger(result.filesScanned) || result.filesScanned < 0) {
+    return "infer_imports response missing filesScanned count";
+  }
+  for (const propertyName of ["edges", "externalImports", "unresolved", "moduleEdges"]) {
+    if (!Array.isArray(result[propertyName])) {
+      return `infer_imports response missing ${propertyName} array`;
+    }
+  }
+  const edgeKinds = new Set(["static", "dynamic", "require", "reexport", "side"]);
+  for (const [index, edge] of result.edges.entries()) {
+    if (!edge || typeof edge !== "object" || Array.isArray(edge)) {
+      return `infer_imports response malformed edge at index ${index}`;
+    }
+    for (const propertyName of ["from", "to"]) {
+      if (typeof edge[propertyName] !== "string" || edge[propertyName].length === 0) {
+        return `infer_imports response missing edge ${propertyName} at index ${index}`;
+      }
+    }
+    if (!edgeKinds.has(edge.kind)) {
+      return `infer_imports response unknown edge kind: ${edge.kind}`;
+    }
+  }
+  for (const [index, externalImport] of result.externalImports.entries()) {
+    if (!externalImport || typeof externalImport !== "object" || Array.isArray(externalImport)) {
+      return `infer_imports response malformed external import at index ${index}`;
+    }
+    for (const propertyName of ["from", "spec"]) {
+      if (typeof externalImport[propertyName] !== "string" || externalImport[propertyName].length === 0) {
+        return `infer_imports response missing external import ${propertyName} at index ${index}`;
+      }
+    }
+  }
+  for (const [index, unresolved] of result.unresolved.entries()) {
+    if (!unresolved || typeof unresolved !== "object" || Array.isArray(unresolved)) {
+      return `infer_imports response malformed unresolved import at index ${index}`;
+    }
+    if (typeof unresolved.from !== "string" || unresolved.from.length === 0) {
+      return `infer_imports response missing unresolved from at index ${index}`;
+    }
+    if (typeof unresolved.spec !== "string") {
+      return `infer_imports response missing unresolved spec at index ${index}`;
+    }
+    if (typeof unresolved.reason !== "string" || unresolved.reason.length === 0) {
+      return `infer_imports response missing unresolved reason at index ${index}`;
+    }
+  }
+  for (const [index, moduleEdge] of result.moduleEdges.entries()) {
+    if (!moduleEdge || typeof moduleEdge !== "object" || Array.isArray(moduleEdge)) {
+      return `infer_imports response malformed module edge at index ${index}`;
+    }
+    for (const propertyName of ["from", "to"]) {
+      if (typeof moduleEdge[propertyName] !== "string" || moduleEdge[propertyName].length === 0) {
+        return `infer_imports response missing module edge ${propertyName} at index ${index}`;
+      }
+    }
+    if (!Number.isInteger(moduleEdge.count) || moduleEdge.count < 1) {
+      return `infer_imports response missing module edge count at index ${index}`;
+    }
+  }
+  return null;
+}
+
 function matchRowsFailure(label, rows) {
   for (const [index, row] of rows.entries()) {
     if (!row || typeof row !== "object" || Array.isArray(row)) {
@@ -4256,6 +4334,17 @@ async function main() {
     console.log(`  structuredContent: ${JSON.stringify(analyzedRepoStructured) === JSON.stringify(analyzedRepo) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     console.log(
       `  framework ${analyzedRepo.framework || "n/a"} · domains ${analyzedRepo.domains?.length ?? "n/a"} · capabilities ${analyzedRepo.capabilities?.length ?? "n/a"} · elements ${analyzedRepo.elements?.length ?? "n/a"} · relations ${analyzedRepo.suggestedRelations?.length ?? "n/a"}`,
+    );
+  }
+
+  // 7d. infer_imports
+  header(`infer_imports(repo dependency candidates)`);
+  const inferredImports = getResult(responses, 58);
+  const inferredImportsStructured = getRpcResult(responses, 58)?.structuredContent ?? null;
+  if (inferredImports) {
+    console.log(`  structuredContent: ${JSON.stringify(inferredImportsStructured) === JSON.stringify(inferredImports) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
+    console.log(
+      `  files ${inferredImports.filesScanned ?? "n/a"} · file edges ${inferredImports.edges?.length ?? "n/a"} · module edges ${inferredImports.moduleEdges?.length ?? "n/a"} · external ${inferredImports.externalImports?.length ?? "n/a"} · unresolved ${inferredImports.unresolved?.length ?? "n/a"}`,
     );
   }
 
@@ -4804,6 +4893,8 @@ async function main() {
     queryConceptsStructured,
     analyzedRepo,
     analyzedRepoStructured,
+    inferredImports,
+    inferredImportsStructured,
     validation,
     brief,
     tunedBrief,
@@ -4876,6 +4967,7 @@ async function main() {
   console.log(`  get_concepts: ${(batch?.concepts || []).filter((row) => row?.ok === true).length} ok · ${(batch?.concepts || []).filter((row) => row?.ok === false).length} partial`);
   console.log(`  query_concepts: ${queryConcepts ? `${queryConcepts.matches?.length ?? 0} matches · limited ${queryConcepts.limited === true}` : "n/a"}`);
   console.log(`  analyze_repo_structure: ${analyzedRepo ? `${analyzedRepo.framework} · ${analyzedRepo.capabilities?.length ?? 0} capabilities · ${analyzedRepo.elements?.length ?? 0} elements` : "n/a"}`);
+  console.log(`  infer_imports: ${inferredImports ? `${inferredImports.filesScanned ?? 0} files · ${inferredImports.moduleEdges?.length ?? 0} module edges` : "n/a"}`);
   console.log(
     `  validate_vault: ${validation ? formatCount(validation.summary?.problemFiles ?? 0, "problem file") : "n/a"}`,
   );

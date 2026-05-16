@@ -510,6 +510,64 @@ describe('verify.mjs first-contact gates', () => {
         },
       },
       {
+        name: 'infer_imports',
+        inputSchema: {
+          additionalProperties: false,
+          properties: {
+            rootPath: { type: 'string' },
+            sourceFolders: { type: 'array', items: { type: 'string' } },
+            ignore: { type: 'array', items: { type: 'string' } },
+            maxFiles: { type: 'integer', minimum: 1, maximum: 50000 },
+          },
+        },
+        outputSchema: {
+          type: 'object',
+          required: ['rootPath', 'filesScanned', 'edges', 'externalImports', 'unresolved', 'moduleEdges'],
+          properties: {
+            rootPath: { type: 'string' },
+            filesScanned: { type: 'integer', minimum: 0 },
+            edges: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['from', 'to', 'kind'],
+                properties: {
+                  from: { type: 'string' },
+                  to: { type: 'string' },
+                  kind: { enum: ['static', 'dynamic', 'require', 'reexport', 'side'] },
+                },
+              },
+            },
+            externalImports: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['from', 'spec'],
+                properties: {},
+              },
+            },
+            unresolved: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['from', 'spec', 'reason'],
+                properties: {},
+              },
+            },
+            moduleEdges: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['from', 'to', 'count'],
+                properties: {
+                  count: { type: 'integer', minimum: 1 },
+                },
+              },
+            },
+          },
+        },
+      },
+      {
         name: 'add_concept',
         description:
           'Successful writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
@@ -1148,6 +1206,56 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'analyze_repo_structure outputSchema capabilities rows drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'infer_imports'),
+        {
+          ...tools.find((tool) => tool.name === 'infer_imports'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'infer_imports').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties,
+              edges: {
+                ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.edges,
+                items: {
+                  ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.edges.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.edges.items.properties,
+                    kind: { enum: ['static', 'side'] },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'infer_imports outputSchema edge kind drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'infer_imports'),
+        {
+          ...tools.find((tool) => tool.name === 'infer_imports'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'infer_imports').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties,
+              moduleEdges: {
+                ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.moduleEdges,
+                items: {
+                  ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.moduleEdges.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.moduleEdges.items.properties,
+                    count: { type: 'number', minimum: 1 },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'infer_imports outputSchema moduleEdges count drift',
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool(

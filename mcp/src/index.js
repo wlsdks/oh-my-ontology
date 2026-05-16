@@ -1461,6 +1461,64 @@ const TOOLS = [
         },
       },
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        rootPath: NON_BLANK_STRING_SCHEMA,
+        filesScanned: { type: 'integer', minimum: 0 },
+        edges: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              from: NON_BLANK_STRING_SCHEMA,
+              to: NON_BLANK_STRING_SCHEMA,
+              kind: {
+                type: 'string',
+                enum: ['static', 'dynamic', 'require', 'reexport', 'side'],
+              },
+            },
+            required: ['from', 'to', 'kind'],
+          },
+        },
+        externalImports: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              from: NON_BLANK_STRING_SCHEMA,
+              spec: NON_BLANK_STRING_SCHEMA,
+            },
+            required: ['from', 'spec'],
+          },
+        },
+        unresolved: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              from: NON_BLANK_STRING_SCHEMA,
+              spec: { type: 'string' },
+              reason: NON_BLANK_STRING_SCHEMA,
+            },
+            required: ['from', 'spec', 'reason'],
+          },
+        },
+        moduleEdges: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              from: NON_BLANK_STRING_SCHEMA,
+              to: NON_BLANK_STRING_SCHEMA,
+              count: { type: 'integer', minimum: 1 },
+            },
+            required: ['from', 'to', 'count'],
+          },
+        },
+      },
+      required: ['rootPath', 'filesScanned', 'edges', 'externalImports', 'unresolved', 'moduleEdges'],
+    },
   },
   {
     name: 'analyze_repo_structure',

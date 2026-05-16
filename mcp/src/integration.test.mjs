@@ -413,6 +413,14 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.deepEqual(analyzeRepo?.outputSchema?.properties?.framework?.enum, ["fsd", "next", "generic"]);
     assert.deepEqual(analyzeRepo?.outputSchema?.properties?.capabilities?.items?.required, ["slug", "title", "evidence"]);
     assert.deepEqual(analyzeRepo?.outputSchema?.properties?.suggestedRelations?.items?.required, ["from", "to", "type"]);
+    const inferImports = findTool("infer_imports");
+    assert.equal(inferImports?.outputSchema?.type, "object");
+    assert.deepEqual(inferImports?.outputSchema?.required, ["rootPath", "filesScanned", "edges", "externalImports", "unresolved", "moduleEdges"]);
+    assert.equal(inferImports?.outputSchema?.properties?.filesScanned?.type, "integer");
+    assert.deepEqual(inferImports?.outputSchema?.properties?.edges?.items?.required, ["from", "to", "kind"]);
+    assert.deepEqual(inferImports?.outputSchema?.properties?.edges?.items?.properties?.kind?.enum, ["static", "dynamic", "require", "reexport", "side"]);
+    assert.deepEqual(inferImports?.outputSchema?.properties?.moduleEdges?.items?.required, ["from", "to", "count"]);
+    assert.equal(inferImports?.outputSchema?.properties?.moduleEdges?.items?.properties?.count?.minimum, 1);
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -1211,6 +1219,46 @@ await test("analyze_repo_structure — bootstrap candidates expose structuredCon
     assert.ok(result.domains.some((domain) => domain.slug === "domains/auth"));
     assert.ok(result.capabilities.some((capability) => capability.slug === "capabilities/auth"));
     assert.ok(result.suggestedRelations.some((relation) => relation.from === "sample-app" && relation.to === "capabilities/auth" && relation.type === "contains"));
+  } finally {
+    rmSync(vaultRoot, { recursive: true, force: true });
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
+await test("infer_imports — import graph exposes structuredContent", async () => {
+  const vaultRoot = makeVault();
+  const repoRoot = mkdtempSync(join(tmpdir(), "omot-infer-"));
+  try {
+    mkdirSync(join(repoRoot, "src", "features", "auth"), { recursive: true });
+    mkdirSync(join(repoRoot, "src", "entities", "user"), { recursive: true });
+    mkdirSync(join(repoRoot, "src", "shared", "api"), { recursive: true });
+    writeFileSync(
+      join(repoRoot, "src", "features", "auth", "index.ts"),
+      [
+        'import { user } from "../../entities/user";',
+        'import "@/shared/api/client";',
+        'import "zod";',
+        'export const auth = user;',
+        "",
+      ].join("\n"),
+      "utf-8",
+    );
+    writeFileSync(join(repoRoot, "src", "entities", "user", "index.ts"), "export const user = true;\n", "utf-8");
+    writeFileSync(join(repoRoot, "src", "shared", "api", "client.ts"), "export const client = true;\n", "utf-8");
+
+    const { responses } = await rpc(vaultRoot, [
+      ...INIT_REQUESTS,
+      callTool(2, "infer_imports", { rootPath: repoRoot }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
+    assert.equal(result.rootPath, repoRoot);
+    assert.equal(result.filesScanned, 3);
+    assert.ok(result.edges.some((edge) => edge.from === "src/features/auth/index.ts" && edge.to === "src/entities/user/index.ts" && edge.kind === "static"));
+    assert.ok(result.edges.some((edge) => edge.from === "src/features/auth/index.ts" && edge.to === "src/shared/api/client.ts"));
+    assert.ok(result.externalImports.some((entry) => entry.from === "src/features/auth/index.ts" && entry.spec === "zod"));
+    assert.ok(result.moduleEdges.some((edge) => edge.from === "capabilities/auth" && edge.to === "capabilities/user" && edge.count >= 1));
+    assert.ok(result.moduleEdges.some((edge) => edge.from === "capabilities/auth" && edge.to === "elements/src/shared/api/client" && edge.count >= 1));
   } finally {
     rmSync(vaultRoot, { recursive: true, force: true });
     rmSync(repoRoot, { recursive: true, force: true });

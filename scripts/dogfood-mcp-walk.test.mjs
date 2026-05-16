@@ -483,6 +483,46 @@ function makeDogfoodToolsList() {
           },
         };
       }
+      if (name === "infer_imports") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["rootPath", "filesScanned", "edges", "externalImports", "unresolved", "moduleEdges"],
+          properties: {
+            rootPath: { type: "string" },
+            filesScanned: { type: "integer", minimum: 0 },
+            edges: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["from", "to", "kind"],
+                properties: {
+                  from: { type: "string" },
+                  to: { type: "string" },
+                  kind: { enum: ["static", "dynamic", "require", "reexport", "side"] },
+                },
+              },
+            },
+            externalImports: {
+              type: "array",
+              items: { type: "object", required: ["from", "spec"] },
+            },
+            unresolved: {
+              type: "array",
+              items: { type: "object", required: ["from", "spec", "reason"] },
+            },
+            moduleEdges: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["from", "to", "count"],
+                properties: {
+                  count: { type: "integer", minimum: 1 },
+                },
+              },
+            },
+          },
+        };
+      }
       if (name === "get_concepts") {
         tool.inputSchema.required = ["slugs"];
         tool.inputSchema.properties.slugs = { type: "array", maxItems: 50 };
@@ -626,6 +666,22 @@ const okShape = {
     elements: [{ slug: "elements/src/views/home", title: "Home", evidence: { source: "src/views/home" } }],
     suggestedRelations: [{ from: "sample", to: "capabilities/auth", type: "contains" }],
     skipped: [{ path: "src/.cache", reason: "dotfile/ignore" }],
+  },
+  inferredImports: {
+    rootPath: "/repo",
+    filesScanned: 2,
+    edges: [{ from: "src/features/auth/index.ts", to: "src/entities/user/index.ts", kind: "static" }],
+    externalImports: [{ from: "src/features/auth/index.ts", spec: "zod" }],
+    unresolved: [{ from: "src/features/auth/index.ts", spec: "@/missing", reason: "alias-not-found" }],
+    moduleEdges: [{ from: "capabilities/auth", to: "capabilities/user", count: 1 }],
+  },
+  inferredImportsStructured: {
+    rootPath: "/repo",
+    filesScanned: 2,
+    edges: [{ from: "src/features/auth/index.ts", to: "src/entities/user/index.ts", kind: "static" }],
+    externalImports: [{ from: "src/features/auth/index.ts", spec: "zod" }],
+    unresolved: [{ from: "src/features/auth/index.ts", spec: "@/missing", reason: "alias-not-found" }],
+    moduleEdges: [{ from: "capabilities/auth", to: "capabilities/user", count: 1 }],
   },
   validation: {
     scanned: 1,
@@ -2154,6 +2210,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(55), "tools_list");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(56), "query_concepts");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(57), "analyze_repo_structure");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(58), "infer_imports");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -2320,6 +2377,12 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: analyzeOutputSchemaDrifted }),
       ["tools/list: analyze_repo_structure outputSchema framework drift"],
+    );
+    const inferOutputSchemaDrifted = makeDogfoodToolsList();
+    inferOutputSchemaDrifted.tools.find((tool) => tool.name === "infer_imports").outputSchema.properties.edges.items.properties.kind.enum = ["static"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: inferOutputSchemaDrifted }),
+      ["tools/list: infer_imports outputSchema edge kind drift"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),
@@ -2638,6 +2701,22 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, analyzedRepoStructured: { ...okShape.analyzedRepo, framework: "generic" } }),
       ["analyze_repo_structure structuredContent mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, inferredImports: { ...okShape.inferredImports, filesScanned: -1 } }),
+      ["infer_imports response missing filesScanned count"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, inferredImports: { ...okShape.inferredImports, edges: [{ from: "a", to: "b", kind: "unknown" }] } }),
+      ["infer_imports response unknown edge kind: unknown"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, inferredImports: { ...okShape.inferredImports, moduleEdges: [{ from: "a", to: "b", count: 0 }] } }),
+      ["infer_imports response missing module edge count at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, inferredImportsStructured: { ...okShape.inferredImports, filesScanned: 3 } }),
+      ["infer_imports structuredContent mismatch"],
     );
   });
 

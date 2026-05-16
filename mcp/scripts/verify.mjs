@@ -593,6 +593,60 @@ export function toolsListSchemaFailure(tools) {
     return 'analyze_repo_structure outputSchema skipped drift';
   }
 
+  const inferImportsTool = tools.find((tool) => tool?.name === 'infer_imports');
+  if (!inferImportsTool) return 'tools/list response missing infer_imports tool';
+  if (inferImportsTool.outputSchema?.type !== 'object') {
+    return 'infer_imports outputSchema root drift';
+  }
+  if (!sameArray(inferImportsTool.outputSchema?.required, ['rootPath', 'filesScanned', 'edges', 'externalImports', 'unresolved', 'moduleEdges'])) {
+    return 'infer_imports outputSchema required drift';
+  }
+  if (outputPropertyAt(inferImportsTool, ['properties', 'rootPath'])?.type !== 'string') {
+    return 'infer_imports outputSchema rootPath drift';
+  }
+  const filesScannedSchema = outputPropertyAt(inferImportsTool, ['properties', 'filesScanned']);
+  if (filesScannedSchema?.type !== 'integer' || filesScannedSchema.minimum !== 0) {
+    return 'infer_imports outputSchema filesScanned drift';
+  }
+  const importEdgeSchema = outputPropertyAt(inferImportsTool, ['properties', 'edges']);
+  if (
+    importEdgeSchema?.type !== 'array' ||
+    importEdgeSchema.items?.type !== 'object' ||
+    !sameArray(importEdgeSchema.items?.required, ['from', 'to', 'kind'])
+  ) {
+    return 'infer_imports outputSchema edges drift';
+  }
+  if (!sameArray(importEdgeSchema.items?.properties?.kind?.enum, ['static', 'dynamic', 'require', 'reexport', 'side'])) {
+    return 'infer_imports outputSchema edge kind drift';
+  }
+  const externalImportsSchema = outputPropertyAt(inferImportsTool, ['properties', 'externalImports']);
+  if (
+    externalImportsSchema?.type !== 'array' ||
+    externalImportsSchema.items?.type !== 'object' ||
+    !sameArray(externalImportsSchema.items?.required, ['from', 'spec'])
+  ) {
+    return 'infer_imports outputSchema externalImports drift';
+  }
+  const unresolvedSchema = outputPropertyAt(inferImportsTool, ['properties', 'unresolved']);
+  if (
+    unresolvedSchema?.type !== 'array' ||
+    unresolvedSchema.items?.type !== 'object' ||
+    !sameArray(unresolvedSchema.items?.required, ['from', 'spec', 'reason'])
+  ) {
+    return 'infer_imports outputSchema unresolved drift';
+  }
+  const moduleEdgesSchema = outputPropertyAt(inferImportsTool, ['properties', 'moduleEdges']);
+  if (
+    moduleEdgesSchema?.type !== 'array' ||
+    moduleEdgesSchema.items?.type !== 'object' ||
+    !sameArray(moduleEdgesSchema.items?.required, ['from', 'to', 'count'])
+  ) {
+    return 'infer_imports outputSchema moduleEdges drift';
+  }
+  if (moduleEdgesSchema.items?.properties?.count?.type !== 'integer' || moduleEdgesSchema.items?.properties?.count?.minimum !== 1) {
+    return 'infer_imports outputSchema moduleEdges count drift';
+  }
+
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
 
