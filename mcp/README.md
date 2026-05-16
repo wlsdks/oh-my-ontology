@@ -177,7 +177,7 @@ A successful run looks like this:
 ✓ tools/list 23/23 — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
 ✓ list_concepts — vault total 28 nodes (vaultRoot /path/to/docs/ontology)
 ✓ validate_vault — 28 files, problemFiles 0
-✓ workspace_brief — healthy (28 nodes, nextActions 1)
+✓ workspace_brief — healthy (28 nodes, nextActions 0)
 ✓ health — healthy (5 checks, issues 0)
 
 All passed — register .mcp.json with Claude Code and restart to use the 23 tools.
