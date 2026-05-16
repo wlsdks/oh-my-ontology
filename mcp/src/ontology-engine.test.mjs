@@ -661,6 +661,28 @@ describe('queryCompiledOntology', () => {
         { slug: 'capabilities/session', distance: 2 },
       ],
     );
+
+    const exactLimit = queryCompiledOntology(artifact(), {
+      operation: 'impact',
+      slug: 'domains/auth',
+      depth: 2,
+      limit: 2,
+    });
+    assert.equal(exactLimit.total, 2);
+    assert.equal(exactLimit.limited, false);
+
+    const truncated = queryCompiledOntology(artifact(), {
+      operation: 'impact',
+      slug: 'domains/auth',
+      depth: 2,
+      limit: 1,
+    });
+    assert.equal(truncated.total, 2);
+    assert.equal(truncated.limited, true);
+    assert.deepEqual(
+      truncated.nodes.map((row) => row.slug),
+      ['capabilities/login'],
+    );
   });
 
   it('summarizes blast radius by kind, domain, and cross-domain edges', () => {
@@ -717,6 +739,30 @@ describe('queryCompiledOntology', () => {
         { slug: 'capabilities/login', distance: 1, domain: 'domains/auth' },
         { slug: 'capabilities/session', distance: 2, domain: 'domains/auth' },
       ],
+    );
+
+    const exactLimit = queryCompiledOntology(graph, {
+      operation: 'blast_radius',
+      slug: 'capabilities/invoice',
+      direction: 'incoming',
+      depth: 2,
+      limit: 2,
+    });
+    assert.equal(exactLimit.nodes.total, 2);
+    assert.equal(exactLimit.nodes.limited, false);
+
+    const truncated = queryCompiledOntology(graph, {
+      operation: 'blast_radius',
+      slug: 'capabilities/invoice',
+      direction: 'incoming',
+      depth: 2,
+      limit: 1,
+    });
+    assert.equal(truncated.nodes.total, 2);
+    assert.equal(truncated.nodes.limited, true);
+    assert.deepEqual(
+      truncated.nodes.rows.map((row) => row.slug),
+      ['capabilities/login'],
     );
     assert.deepEqual(
       result.edges.rows.map((edge) => ({

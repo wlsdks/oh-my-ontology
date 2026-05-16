@@ -748,7 +748,7 @@ export function createOntologyEngine(artifact, options = {}) {
     const collectedEdges = [];
     const queue = [{ slug: center, distance: 0 }];
 
-    while (queue.length > 0 && discovered.size < limit + 1) {
+    while (queue.length > 0 && discovered.size < limit + 2) {
       const current = queue.shift();
       if (current.distance >= depth) continue;
       for (const { next, edge } of traversalEdges(current.slug, direction, typeSet)) {
@@ -757,7 +757,7 @@ export function createOntologyEngine(artifact, options = {}) {
         const item = { slug: next, distance: current.distance + 1 };
         discovered.set(next, item);
         queue.push(item);
-        if (discovered.size >= limit + 1) break;
+        if (discovered.size >= limit + 2) break;
       }
     }
 
@@ -771,7 +771,7 @@ export function createOntologyEngine(artifact, options = {}) {
       direction,
       depth,
       total: nodeRows.length,
-      limited: nodeRows.length >= limit,
+      limited: nodeRows.length > limit,
       nodes: nodeRows.slice(0, limit).map((row) => ({
         ...row,
         node: nodeBySlug.get(row.slug),
@@ -791,7 +791,7 @@ export function createOntologyEngine(artifact, options = {}) {
     const collectedEdges = [];
     const queue = [{ slug: center, distance: 0 }];
 
-    while (queue.length > 0 && discovered.size < limit + 1) {
+    while (queue.length > 0 && discovered.size < limit + 2) {
       const current = queue.shift();
       if (current.distance >= depth) continue;
       for (const { next, edge } of traversalEdges(current.slug, direction, typeSet)) {
@@ -800,7 +800,7 @@ export function createOntologyEngine(artifact, options = {}) {
         const item = { slug: next, distance: current.distance + 1 };
         discovered.set(next, item);
         queue.push(item);
-        if (discovered.size >= limit + 1) break;
+        if (discovered.size >= limit + 2) break;
       }
     }
 
@@ -854,7 +854,7 @@ export function createOntologyEngine(artifact, options = {}) {
       byDomain,
       nodes: {
         total: enrichedNodes.length,
-        limited: enrichedNodes.length >= limit,
+        limited: enrichedNodes.length > limit,
         rows: enrichedNodes.slice(0, limit),
       },
       edges: {

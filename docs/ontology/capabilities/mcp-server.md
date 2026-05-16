@@ -143,6 +143,9 @@ agent 가 호출 전 잘못된 인자를 스스로 고칠 수 있게 한다.
 limit 과 정확히 같은 정상 page 를 잘린 결과로 오인하지 않는다.
 `query_ontology(neighbors)` 도 같은 contract 를 따른다. `total` 은 limit 전
 edge 수이고 `limited` 는 반환되지 않은 edge 가 있을 때만 true 다.
+`query_ontology(impact)` / `query_ontology(blast_radius)` 도 반환 node limit 과
+숨은 영향 node 를 구분해, 영향 범위가 limit 과 정확히 같은 정상 결과를 잘린
+결과로 오인하지 않는다.
 `compile_ontology` pagination 은 cursor safety 를 위해 limit 과 offset 계약을
 분리한다. `nodesLimit` / `edgesLimit` 은 1 이상 양수만 허용하고,
 `nodesOffset` / `edgesOffset` 만 0 이상을 허용한다. 따라서 page size 0 으로
