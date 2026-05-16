@@ -576,6 +576,24 @@ const okShape = {
       },
     ],
   },
+  cycles: {
+    operation: "cycles",
+    relationTypes: ["dependencies"],
+    maxDepth: 8,
+    totalCycles: 1,
+    limited: false,
+    cycles: [
+      {
+        id: "capabilities/a>capabilities/b>capabilities/a",
+        length: 2,
+        nodes: ["capabilities/a", "capabilities/b", "capabilities/a"],
+        edges: [
+          { from: "capabilities/a", to: "capabilities/b", via: "dependencies" },
+          { from: "capabilities/b", to: "capabilities/a", via: "dependencies" },
+        ],
+      },
+    ],
+  },
 };
 
 describe("recordResult", () => {
@@ -656,6 +674,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(23), "maintenance_plan");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(24), "growth_plan");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(25), "recommend_relations");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(26), "cycles");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1574,6 +1593,51 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["recommend_relations row missing score: missing_domain_containment"],
+    );
+  });
+
+  it("fails on malformed cycles payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, cycles: { ...okShape.cycles, operation: "health" } }),
+      ["cycles response operation mismatch — health"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, cycles: { ...okShape.cycles, relationTypes: ["dependencies", ""] } }),
+      ["cycles response missing relationTypes"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, cycles: { ...okShape.cycles, cycles: [] } }),
+      ["cycles row count mismatch — rows 0, total 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        cycles: {
+          ...okShape.cycles,
+          cycles: [{ ...okShape.cycles.cycles[0], nodes: ["capabilities/a", "capabilities/b"] }],
+        },
+      }),
+      ["cycles cycle node count mismatch: capabilities/a>capabilities/b>capabilities/a"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        cycles: {
+          ...okShape.cycles,
+          cycles: [{ ...okShape.cycles.cycles[0], nodes: ["capabilities/a", "capabilities/b", "capabilities/c"] }],
+        },
+      }),
+      ["cycles cycle does not close: capabilities/a>capabilities/b>capabilities/a"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        cycles: {
+          ...okShape.cycles,
+          cycles: [{ ...okShape.cycles.cycles[0], edges: [{ ...okShape.cycles.cycles[0].edges[0], via: "" }, okShape.cycles.cycles[0].edges[1]] }],
+        },
+      }),
+      ["cycles edge missing via: capabilities/a>capabilities/b>capabilities/a/0"],
     );
   });
 

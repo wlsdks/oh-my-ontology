@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / cycles / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -60,6 +60,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [23, "maintenance_plan"],
   [24, "growth_plan"],
   [25, "recommend_relations"],
+  [26, "cycles"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -226,6 +227,10 @@ export function buildDogfoodRequests() {
       operation: "recommend_relations",
       limit: 5,
     }),
+    call(26, "query_ontology", {
+      operation: "cycles",
+      limit: 5,
+    }),
   ];
 }
 
@@ -292,6 +297,7 @@ export function evaluateDogfoodGate({
   maintenancePlan,
   growthPlan,
   relationRecommendations,
+  cycles,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -318,6 +324,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "maintenance_plan", maintenancePlan);
   recordResult(failures, "growth_plan", growthPlan);
   recordResult(failures, "recommend_relations", relationRecommendations);
+  recordResult(failures, "cycles", cycles);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -419,6 +426,10 @@ export function evaluateDogfoodGate({
   if (relationRecommendations) {
     const relationRecommendationsFailure = recommendRelationsShapeFailure(relationRecommendations);
     if (relationRecommendationsFailure) failures.push(relationRecommendationsFailure);
+  }
+  if (cycles) {
+    const cyclesFailure = cyclesShapeFailure(cycles);
+    if (cyclesFailure) failures.push(cyclesFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -1156,6 +1167,64 @@ function recommendRelationsShapeFailure(result) {
   return null;
 }
 
+function cyclesShapeFailure(result) {
+  if (result.operation !== "cycles") {
+    return `cycles response operation mismatch — ${result.operation}`;
+  }
+  if (!Array.isArray(result.relationTypes) || result.relationTypes.some((type) => typeof type !== "string" || type.length === 0)) {
+    return "cycles response missing relationTypes";
+  }
+  if (!Number.isInteger(result.maxDepth) || result.maxDepth < 0) {
+    return "cycles response missing maxDepth";
+  }
+  if (!Number.isInteger(result.totalCycles) || result.totalCycles < 0) {
+    return "cycles response missing totalCycles";
+  }
+  if (typeof result.limited !== "boolean") {
+    return "cycles response missing limited flag";
+  }
+  if (!Array.isArray(result.cycles)) {
+    return "cycles response missing cycles array";
+  }
+  if (result.cycles.length > result.totalCycles) {
+    return `cycles rows exceed total — rows ${result.cycles.length}, total ${result.totalCycles}`;
+  }
+  if (!result.limited && result.cycles.length !== result.totalCycles) {
+    return `cycles row count mismatch — rows ${result.cycles.length}, total ${result.totalCycles}`;
+  }
+  for (const [index, cycle] of result.cycles.entries()) {
+    if (!cycle || typeof cycle !== "object" || Array.isArray(cycle)) {
+      return `cycles malformed cycle at index ${index}`;
+    }
+    if (typeof cycle.id !== "string" || cycle.id.length === 0) {
+      return `cycles cycle missing id at index ${index}`;
+    }
+    if (!Number.isInteger(cycle.length) || cycle.length <= 0) {
+      return `cycles cycle missing length: ${cycle.id}`;
+    }
+    if (!Array.isArray(cycle.nodes) || cycle.nodes.length !== cycle.length + 1) {
+      return `cycles cycle node count mismatch: ${cycle.id}`;
+    }
+    if (cycle.nodes[0] !== cycle.nodes[cycle.nodes.length - 1]) {
+      return `cycles cycle does not close: ${cycle.id}`;
+    }
+    if (!Array.isArray(cycle.edges) || cycle.edges.length !== cycle.length) {
+      return `cycles cycle edge count mismatch: ${cycle.id}`;
+    }
+    for (const [edgeIndex, edge] of cycle.edges.entries()) {
+      if (!edge || typeof edge !== "object" || Array.isArray(edge)) {
+        return `cycles malformed edge: ${cycle.id}/${edgeIndex}`;
+      }
+      for (const key of ["from", "to", "via"]) {
+        if (typeof edge[key] !== "string" || edge[key].length === 0) {
+          return `cycles edge missing ${key}: ${cycle.id}/${edgeIndex}`;
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function candidateGroupShapeFailure(label, group, expectedTotal) {
   if (!group || typeof group !== "object" || Array.isArray(group)) {
     return `${label} missing group`;
@@ -1814,6 +1883,18 @@ async function main() {
     }
   }
 
+  // 25. cycles
+  header(`query_ontology(cycles)`);
+  const cycles = getResult(responses, 26);
+  if (cycles) {
+    console.log(
+      `  cycles ${cycles.cycles?.length ?? "n/a"} / total ${cycles.totalCycles ?? "n/a"} · types ${(cycles.relationTypes || []).join(", ") || "n/a"} · maxDepth ${cycles.maxDepth ?? "n/a"}`,
+    );
+    for (const cycle of (cycles.cycles || []).slice(0, 5)) {
+      console.log(`  ${cycle.id}: ${cycle.nodes.join(" → ")}`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -1839,6 +1920,7 @@ async function main() {
     maintenancePlan,
     growthPlan,
     relationRecommendations,
+    cycles,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1878,6 +1960,7 @@ async function main() {
   console.log(`  maintenance_plan: ${maintenancePlan?.summary?.remainingActions ?? "n/a"} remaining · ${maintenancePlan?.summary?.executableActions ?? "n/a"} executable`);
   console.log(`  growth_plan: ${growthPlan?.summary?.totalActions ?? "n/a"} actions · ${growthPlan?.summary?.externalElementRefsIgnored ?? "n/a"} ignored external refs`);
   console.log(`  recommend_relations: ${relationRecommendations?.totalRecommendations ?? "n/a"} recommendations`);
+  console.log(`  cycles: ${cycles?.totalCycles ?? "n/a"} total`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {
