@@ -604,6 +604,7 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /workspace_brief/);
     assert.match(instructions, /operation:'overview'/);
     assert.match(instructions, /targetOperation:'overview'/);
+    assert.match(instructions, /targetOperation:'project_map'/);
     assert.match(instructions, /health/);
     assert.match(instructions, /unknown arguments are rejected/i);
     assert.match(instructions, /Unknown argument "lmit" for list_concepts/);
