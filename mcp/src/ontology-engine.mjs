@@ -206,8 +206,8 @@ export function createOntologyEngine(artifact, options = {}) {
   function filteredEdges(center, options = {}) {
     const direction = normalizeDirection(options.direction, 'both');
     const typeSet = normalizeTypes(options.types);
-    const includeExternal = options.includeExternal === true;
-    const includeUnresolved = options.includeUnresolved === true;
+    const includeExternal = normalizeOptionalBoolean(options.includeExternal, 'includeExternal', false);
+    const includeUnresolved = normalizeOptionalBoolean(options.includeUnresolved, 'includeUnresolved', false);
     const rows = [];
 
     if (direction === 'outgoing' || direction === 'both') {
@@ -1031,8 +1031,8 @@ export function createOntologyEngine(artifact, options = {}) {
     const maxDegree = normalizeNonNegativeInteger(options.maxDegree, 'maxDegree');
     const minInDegree = normalizeNonNegativeInteger(options.minInDegree, 'minInDegree');
     const minOutDegree = normalizeNonNegativeInteger(options.minOutDegree, 'minOutDegree');
-    const hasIncoming = typeof options.hasIncoming === 'boolean' ? options.hasIncoming : null;
-    const hasOutgoing = typeof options.hasOutgoing === 'boolean' ? options.hasOutgoing : null;
+    const hasIncoming = normalizeOptionalBoolean(options.hasIncoming, 'hasIncoming', null);
+    const hasOutgoing = normalizeOptionalBoolean(options.hasOutgoing, 'hasOutgoing', null);
     const sort = normalizeNodeSort(options.sort);
     const rows = [];
 
@@ -1090,8 +1090,8 @@ export function createOntologyEngine(artifact, options = {}) {
     const to = toInput ? resolve(toInput, 'to') : null;
     const fromKind = normalizeOptionalString(options.fromKind, 'fromKind');
     const toKind = normalizeOptionalString(options.toKind, 'toKind');
-    const includeExternal = options.includeExternal === true;
-    const includeUnresolved = options.includeUnresolved === true;
+    const includeExternal = normalizeOptionalBoolean(options.includeExternal, 'includeExternal', false);
+    const includeUnresolved = normalizeOptionalBoolean(options.includeUnresolved, 'includeUnresolved', false);
     const matches = [];
 
     for (const edge of [...edges].sort(compareEdges)) {
@@ -1180,8 +1180,8 @@ export function createOntologyEngine(artifact, options = {}) {
     const center = resolve(slugOrAlias, 'slug');
     const limit = normalizeLimit(options.limit ?? 20);
     const depth = normalizeDepth(options.depth, 3);
-    const includeExternal = options.includeExternal !== false;
-    const includeUnresolved = options.includeUnresolved !== false;
+    const includeExternal = normalizeOptionalBoolean(options.includeExternal, 'includeExternal', true);
+    const includeUnresolved = normalizeOptionalBoolean(options.includeUnresolved, 'includeUnresolved', true);
     const typeSet = normalizeTypes(options.types);
     const node = nodeBySlug.get(center);
     const outgoingRows = (outgoing.get(center) || [])
@@ -1753,7 +1753,7 @@ export function createOntologyEngine(artifact, options = {}) {
     const root = normalizeOptionalString(slugOrAlias, 'slug');
     const depth = normalizeDepth(options.depth, 20);
     const limit = normalizeLimit(options.limit ?? 200);
-    const includeOrphans = options.includeOrphans === true;
+    const includeOrphans = normalizeOptionalBoolean(options.includeOrphans, 'includeOrphans', false);
     const rootSlugs = root
       ? [resolve(root, 'slug')]
       : defaultContainmentRoots(includeOrphans);
@@ -2164,7 +2164,7 @@ export function createOntologyEngine(artifact, options = {}) {
   function topologicalOrder(options = {}) {
     const limit = normalizeLimit(options.limit ?? 100);
     const typeSet = normalizeTypes(options.types ?? ['dependencies']);
-    const includeIsolated = options.includeIsolated === true;
+    const includeIsolated = normalizeOptionalBoolean(options.includeIsolated, 'includeIsolated', false);
     const selectedEdges = edges.filter((edge) => edge.resolved && typeAllowed(edge.via, typeSet));
     const slugs = new Set();
     const adjacency = new Map();
@@ -2428,8 +2428,9 @@ export function createOntologyEngine(artifact, options = {}) {
 
     actions.sort(compareMaintenanceActions);
     const annotatedActions = actions.map(annotateMaintenanceAction);
+    const executableOnly = normalizeOptionalBoolean(options.executableOnly, 'executableOnly', false);
     const filteredActions = annotatedActions.filter((action) => {
-      if (options.executableOnly === true && !action.executable) return false;
+      if (executableOnly && !action.executable) return false;
       if (phaseFilter && !phaseFilter.has(action.phase)) return false;
       if (severityFilter && !severityFilter.has(action.severity)) return false;
       if (kindFilter && !kindFilter.has(action.kind)) return false;
@@ -2468,7 +2469,7 @@ export function createOntologyEngine(artifact, options = {}) {
         emptyDomains: emptyDomains.total,
       },
       filters: {
-        executableOnly: options.executableOnly === true,
+        executableOnly,
         phases: phaseFilter ? [...phaseFilter].sort() : [],
         severities: severityFilter ? [...severityFilter].sort() : [],
         kinds: kindFilter ? [...kindFilter].sort() : [],
@@ -3327,6 +3328,14 @@ function normalizeNonNegativeInteger(value, name) {
   if (value === undefined || value === null) return null;
   if (!Number.isInteger(value) || value < 0) {
     throw new Error(`${name} must be a non-negative integer`);
+  }
+  return value;
+}
+
+function normalizeOptionalBoolean(value, name, defaultValue) {
+  if (value === undefined) return defaultValue;
+  if (typeof value !== 'boolean') {
+    throw new Error(`${name} must be a boolean.`);
   }
   return value;
 }

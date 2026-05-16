@@ -1344,6 +1344,25 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('rejects invalid boolean query flags instead of defaulting them', () => {
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', hasIncoming: 'false' }),
+      /hasIncoming must be a boolean/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_edges', includeExternal: 'true' }),
+      /includeExternal must be a boolean/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'topological_order', includeIsolated: 1 }),
+      /includeIsolated must be a boolean/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'maintenance_plan', executableOnly: null }),
+      /executableOnly must be a boolean/,
+    );
+  });
+
   it('matches compiled edges by graph pattern filters', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'match_edges',

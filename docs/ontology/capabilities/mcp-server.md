@@ -51,7 +51,8 @@ reject 한다. `tools/list` 도 scalar string 과 string-array item 에 같은
 `match_nodes.sort` 도 schema enum 과 runtime/core validation 이 같이 움직여
 잘못된 정렬 키를 degree 기본값으로 조용히 흡수하지 않는다.
 read/query flag 와 destructive write safety switch 의 boolean 입력도 명시적으로
-검증해 문자열 `"true"` 같은 값을 조용히 false처럼 처리하지 않는다.
+검증해 문자열 `"true"` 같은 값을 조용히 false처럼 처리하지 않는다. core graph
+engine 직접 호출도 boolean query flag 를 같은 방식으로 fail-closed 처리한다.
 `query_ontology` 의 rows/group limit 은 500 초과, traversal depth/maxHops 는
 20 초과 입력을 graph engine 의 silent clamp 전에 MCP 경계에서 reject 한다.
 Batch 도구의 `slugs` / `concepts` / `relations` 배열도 `tools/list`
