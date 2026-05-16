@@ -895,6 +895,7 @@ describe('verify.mjs first-contact gates', () => {
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
       'maintenance_plan phases, severities, and kinds filters are enum-validated.',
+      'health and workspace_brief tune probes with componentLimit, cycleLimit, recommendationLimit, orderLimit, nodeLimit, dependencyTypes, and componentTypes.',
       'maintenance_plan ready pages return cursor.found=true with cursor.reason=null.',
       'maintenance_plan nextExecutableAction and nextReviewAction point only at the first executable/review action in the current returned page.',
       'maintenance_plan afterActionId cursor misses return cursor.found=false and cursor.reason.',
@@ -929,6 +930,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('phases, severities, and kinds', 'filters') } }),
       'initialize instructions missing maintenance filter enum guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('componentLimit, cycleLimit, recommendationLimit, orderLimit, nodeLimit, dependencyTypes, and componentTypes', 'tuning options') } }),
+      'initialize instructions missing health tuning guidance',
     );
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('cursor.found=true with cursor.reason=null', 'ready cursor') } }),

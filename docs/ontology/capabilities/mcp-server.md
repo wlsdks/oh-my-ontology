@@ -221,6 +221,9 @@ read-only first-contact diagnosis, `expected_mtime`, existing `newSlug` /
 설치된 패키지의 agent-facing startup guidance 가 write 전에도 증명되도록 한다.
 strict-input typo recovery 안내도 같은 gate 에 포함되어 `Did you mean "limit"?`,
 `Did you mean "overview"?` 같은 nearest hint 가 first-contact 에서 사라지지 않게 한다.
+`health` / `workspace_brief` probe tuning 도 first-contact 안내에 포함해
+`componentLimit`, `cycleLimit`, `recommendationLimit`, `orderLimit`, `nodeLimit`,
+`dependencyTypes`, `componentTypes` 를 대형 vault 또는 focused diagnosis 에 바로 쓸 수 있게 한다.
 `maintenance_plan` work-queue 안내도 first-contact 에 포함해 `phases` / `severities` /
 `kinds` filter enum, ready cursor 의 `cursor.found=true` / `cursor.reason=null`,
 unknown `afterActionId` cursor 의 `cursor.found=false` / `cursor.reason` 계약을

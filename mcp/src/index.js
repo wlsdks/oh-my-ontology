@@ -186,6 +186,8 @@ All read-tool match rows share the same shape \`{slug, kind, title, domain, mtim
 
 All tool input schemas are strict: unknown arguments are rejected instead of being ignored, and invalid enum values are rejected too. If you see an error like \`Unknown argument "lmit" for list_concepts. Did you mean "limit"?\` or \`operation must be one of: ... Did you mean "overview"?\`, fix the value before retrying; do not assume the server fell back to a default.
 
+\`health\` and \`workspace_brief\` can tune their internal graph probes with \`componentLimit\`, \`cycleLimit\`, \`recommendationLimit\`, \`orderLimit\`, \`nodeLimit\`, \`dependencyTypes\`, and \`componentTypes\`. Use these controls for large vaults or focused diagnostics instead of pulling the full compile artifact.
+
 \`maintenance_plan\` is an agent work queue. Its \`phases\`, \`severities\`, and \`kinds\` filters are enum-validated, so typoed filters fail instead of returning an empty plan. A ready page reports \`cursor.found=true\` with \`cursor.reason=null\`; \`nextExecutableAction\` and \`nextReviewAction\` point only at the first executable/review action in the current returned page. When resuming with \`afterActionId\`, an unknown cursor returns an empty page with \`cursor.found=false\`, \`cursor.reason\`, zero remaining actions, and no next actions — surface that to the user instead of silently restarting the queue.
 
 ### B. Vault is empty / cold-start — bootstrap from code (R16 / R17 / R+)

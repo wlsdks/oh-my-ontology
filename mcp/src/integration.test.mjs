@@ -727,6 +727,13 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
       "instructions expose the runtime query_plan targetOperation enum",
     );
     assert.match(instructions, /health/);
+    assert.match(instructions, /componentLimit/);
+    assert.match(instructions, /cycleLimit/);
+    assert.match(instructions, /recommendationLimit/);
+    assert.match(instructions, /orderLimit/);
+    assert.match(instructions, /nodeLimit/);
+    assert.match(instructions, /dependencyTypes/);
+    assert.match(instructions, /componentTypes/);
     assert.match(instructions, /unknown arguments are rejected/i);
     assert.match(instructions, /Unknown argument "lmit" for list_concepts/);
     assert.match(instructions, /Did you mean "limit"\?/);
