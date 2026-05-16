@@ -215,12 +215,12 @@ export function buildFirstContactRequests() {
 export function buildGraphQuerySmokeArgs(listPayload) {
   const nodes = Array.isArray(listPayload?.nodes) ? listPayload.nodes : [];
   const projectSlug = nodes.find((node) => node?.kind === 'project' && typeof node.slug === 'string' && node.slug.length > 0)?.slug;
-  const smokeSlug = projectSlug
-    || nodes.find((node) => typeof node?.slug === 'string' && node.slug.length > 0)?.slug
-    || 'project';
+  const fallbackSlug = nodes.find((node) => typeof node?.slug === 'string' && node.slug.length > 0)?.slug || null;
+  const smokeSlug = projectSlug || fallbackSlug;
   return {
     slug: smokeSlug,
     project: projectSlug || null,
+    hasNode: Boolean(smokeSlug),
     hasProject: Boolean(projectSlug),
   };
 }
@@ -939,21 +939,28 @@ async function step2BootAndCall() {
           if (!sentGraphQuerySmoke) {
             sentGraphQuerySmoke = true;
             const graphSmoke = buildGraphQuerySmokeArgs(listPayload);
+            const graphQueryRequests = [];
+            if (!graphSmoke.hasNode) {
+              expectedFirstContactIds.delete(13);
+              expectedFirstContactIds.delete(14);
+              expectedFirstContactIds.delete(15);
+            } else {
+              graphQueryRequests.push(
+                {
+                  jsonrpc: '2.0',
+                  id: 13,
+                  method: 'tools/call',
+                  params: { name: 'query_ontology', arguments: { operation: 'neighbors', slug: graphSmoke.slug, limit: 5 } },
+                },
+                {
+                  jsonrpc: '2.0',
+                  id: 14,
+                  method: 'tools/call',
+                  params: { name: 'query_ontology', arguments: { operation: 'path', from: graphSmoke.slug, to: graphSmoke.slug } },
+                },
+              );
+            }
             if (!graphSmoke.hasProject) expectedFirstContactIds.delete(15);
-            const graphQueryRequests = [
-              {
-                jsonrpc: '2.0',
-                id: 13,
-                method: 'tools/call',
-                params: { name: 'query_ontology', arguments: { operation: 'neighbors', slug: graphSmoke.slug, limit: 5 } },
-              },
-              {
-                jsonrpc: '2.0',
-                id: 14,
-                method: 'tools/call',
-                params: { name: 'query_ontology', arguments: { operation: 'path', from: graphSmoke.slug, to: graphSmoke.slug } },
-              },
-            ];
             if (graphSmoke.hasProject) {
               graphQueryRequests.push({
                 jsonrpc: '2.0',
@@ -962,7 +969,9 @@ async function step2BootAndCall() {
                 params: { name: 'query_ontology', arguments: { operation: 'project_scope', project: graphSmoke.project, limit: 5 } },
               });
             }
-            proc.stdin.write(graphQueryRequests.map((request) => JSON.stringify(request)).join('\n') + '\n');
+            if (graphQueryRequests.length > 0) {
+              proc.stdin.write(graphQueryRequests.map((request) => JSON.stringify(request)).join('\n') + '\n');
+            }
           }
         }
       }
@@ -1249,42 +1258,46 @@ async function step2BootAndCall() {
         return res(false);
       }
 
-      if (!neighborsRes || !neighborsRes.result) {
-        log('fail', 'no query_ontology neighbors response');
-        return res(false);
-      }
-      try {
-        const text = neighborsRes.result.content?.[0]?.text || '';
-        const parsed = JSON.parse(text);
-        const expectedSlug = graphSmokeArgs?.slug || buildGraphQuerySmokeArgs(listPayload).slug;
-        const failure = neighborsFailure(parsed, expectedSlug);
-        if (failure) {
-          log('fail', failure);
+      if (graphSmokeArgs?.hasNode) {
+        if (!neighborsRes || !neighborsRes.result) {
+          log('fail', 'no query_ontology neighbors response');
           return res(false);
         }
-        log('ok', `neighbors — ${parsed.center} (${parsed.edges.length}/${parsed.total} edges, limited ${parsed.limited})`);
-      } catch (err) {
-        log('fail', `failed to parse neighbors response: ${err.message}`);
-        return res(false);
-      }
+        try {
+          const text = neighborsRes.result.content?.[0]?.text || '';
+          const parsed = JSON.parse(text);
+          const expectedSlug = graphSmokeArgs.slug;
+          const failure = neighborsFailure(parsed, expectedSlug);
+          if (failure) {
+            log('fail', failure);
+            return res(false);
+          }
+          log('ok', `neighbors — ${parsed.center} (${parsed.edges.length}/${parsed.total} edges, limited ${parsed.limited})`);
+        } catch (err) {
+          log('fail', `failed to parse neighbors response: ${err.message}`);
+          return res(false);
+        }
 
-      if (!pathRes || !pathRes.result) {
-        log('fail', 'no query_ontology path response');
-        return res(false);
-      }
-      try {
-        const text = pathRes.result.content?.[0]?.text || '';
-        const parsed = JSON.parse(text);
-        const expectedSlug = graphSmokeArgs?.slug || buildGraphQuerySmokeArgs(listPayload).slug;
-        const failure = pathQueryFailure(parsed, expectedSlug);
-        if (failure) {
-          log('fail', failure);
+        if (!pathRes || !pathRes.result) {
+          log('fail', 'no query_ontology path response');
           return res(false);
         }
-        log('ok', `path — ${parsed.from} → ${parsed.to} (${parsed.hopCount} hops)`);
-      } catch (err) {
-        log('fail', `failed to parse path response: ${err.message}`);
-        return res(false);
+        try {
+          const text = pathRes.result.content?.[0]?.text || '';
+          const parsed = JSON.parse(text);
+          const expectedSlug = graphSmokeArgs.slug;
+          const failure = pathQueryFailure(parsed, expectedSlug);
+          if (failure) {
+            log('fail', failure);
+            return res(false);
+          }
+          log('ok', `path — ${parsed.from} → ${parsed.to} (${parsed.hopCount} hops)`);
+        } catch (err) {
+          log('fail', `failed to parse path response: ${err.message}`);
+          return res(false);
+        }
+      } else {
+        log('info', 'neighbors/path — skipped (vault has no nodes)');
       }
 
       if (graphSmokeArgs?.hasProject) {

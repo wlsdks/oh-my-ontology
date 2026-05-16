@@ -212,13 +212,13 @@ describe('verify.mjs first-contact gates', () => {
           { slug: 'capabilities/mcp-server', kind: 'capability' },
         ],
       }),
-      { slug: 'project', project: 'project', hasProject: true },
+      { slug: 'project', project: 'project', hasNode: true, hasProject: true },
     );
     assert.deepEqual(
       buildGraphQuerySmokeArgs({ nodes: [{ slug: 'capabilities/a', kind: 'capability' }] }),
-      { slug: 'capabilities/a', project: null, hasProject: false },
+      { slug: 'capabilities/a', project: null, hasNode: true, hasProject: false },
     );
-    assert.deepEqual(buildGraphQuerySmokeArgs({ nodes: [] }), { slug: 'project', project: null, hasProject: false });
+    assert.deepEqual(buildGraphQuerySmokeArgs({ nodes: [] }), { slug: null, project: null, hasNode: false, hasProject: false });
   });
 
   it('fails malformed get_concepts batch payloads', () => {

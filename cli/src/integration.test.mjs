@@ -261,6 +261,20 @@ await test('mcp-verify — allows valid vaults without a project node', async ()
   }
 });
 
+await test('mcp-verify — allows an empty vault folder before graph smoke targets exist', async () => {
+  const root = withVault([]);
+  try {
+    const r = await run(['mcp-verify', root, '--timeout-ms', '1000']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /vault total 0 nodes/);
+    assert.match(clean, /neighbors\/path — skipped \(vault has no nodes\)/);
+    assert.match(clean, /project_scope — skipped \(no project node in vault\)/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('mcp-verify --help — describes the full graph-query smoke contract', async () => {
   const r = await run(['mcp-verify', '--help']);
   assert.equal(r.code, 0);
