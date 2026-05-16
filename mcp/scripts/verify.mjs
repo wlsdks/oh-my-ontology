@@ -1484,6 +1484,8 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
     if (malformedAction) {
       return `${label} response malformed nextAction`;
     }
+    const growthFailure = workspaceBriefGrowthConsistencyFailure(label, parsed);
+    if (growthFailure) return growthFailure;
   }
   const checks = diagnosisChecks(parsed, expectedOperation);
   if (!checks) {
@@ -1508,6 +1510,37 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   const blockingActions = blockingNextActions(parsed?.nextActions);
   if (blockingActions.length > 0) {
     return `${label} has actionable nextActions: ${blockingActions.join(', ')}. Inspect workspace_brief.nextActions before writing.`;
+  }
+  return null;
+}
+
+function workspaceBriefGrowthConsistencyFailure(label, parsed) {
+  if (parsed.growth == null) return null;
+  if (!parsed.growth || typeof parsed.growth !== 'object' || Array.isArray(parsed.growth)) {
+    return `${label} response malformed growth summary`;
+  }
+  const requiredGrowthCounts = [
+    'relationRecommendations',
+    'externalElementRefs',
+    'danglingReferences',
+    'totalActions',
+  ];
+  if (requiredGrowthCounts.some((key) => !hasOptionalNonNegativeInteger(parsed.growth[key]) || parsed.growth[key] == null)) {
+    return `${label} response malformed growth summary`;
+  }
+  if (parsed.summary?.growthActions != null && parsed.summary.growthActions !== parsed.growth.totalActions) {
+    return `${label} growthActions mismatch`;
+  }
+  for (const action of parsed.nextActions) {
+    if (action.kind === 'add_missing_relations' && action.count !== parsed.growth.relationRecommendations) {
+      return `${label} add_missing_relations count mismatch`;
+    }
+    if (action.kind === 'materialize_external_elements' && action.count !== parsed.growth.externalElementRefs) {
+      return `${label} materialize_external_elements count mismatch`;
+    }
+    if (action.kind === 'resolve_dangling_references' && action.count !== parsed.growth.danglingReferences) {
+      return `${label} resolve_dangling_references count mismatch`;
+    }
   }
   return null;
 }

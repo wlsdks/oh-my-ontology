@@ -2296,6 +2296,13 @@ describe('verify.mjs first-contact gates', () => {
         {
           operation: 'workspace_brief',
           status: 'needs_attention',
+          summary: { growthActions: 2 },
+          growth: {
+            relationRecommendations: 2,
+            externalElementRefs: 0,
+            danglingReferences: 0,
+            totalActions: 2,
+          },
           health: { checks: [] },
           nextActions: [
             { kind: 'health_check', severity: 'warn', id: 'compile_issues' },
@@ -2305,6 +2312,49 @@ describe('verify.mjs first-contact gates', () => {
         'workspace_brief',
       ),
       null,
+    );
+  });
+
+  it('fails workspace_brief growth count drift', () => {
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          summary: { growthActions: 2 },
+          growth: {
+            relationRecommendations: 0,
+            externalElementRefs: 0,
+            danglingReferences: 0,
+            totalActions: 1,
+          },
+          health: { checks: [] },
+          nextActions: [],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief growthActions mismatch',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          summary: { growthActions: 2 },
+          growth: {
+            relationRecommendations: 2,
+            externalElementRefs: 0,
+            danglingReferences: 0,
+            totalActions: 2,
+          },
+          health: { checks: [] },
+          nextActions: [{ kind: 'add_missing_relations', severity: 'warn', count: 1 }],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief add_missing_relations count mismatch',
     );
   });
 

@@ -186,6 +186,8 @@ action tool/slug/kind 계약을 검사해 agent 작업 큐가 실제 graph targe
 검증해 first-contact 응답의 예시 액션이 agent 실행 계약에서 벗어나지 않게 한다.
 `workspace_brief.summary.growthActions` 와 `growth.totalActions`, nextAction count 와
 growth breakdown 도 맞물려 검증해 first-contact action count drift 를 막는다.
+installed verify 도 같은 `workspace_brief` growth count drift 를 fail-fast 로 확인해
+repo dogfood 와 외부 MCP 설치 smoke 의 first-contact 계약이 갈라지지 않게 한다.
 `maintenance_plan.phases` 는 `validate` / `repair` / `link` / `materialize` / `review`,
 `maintenance_plan.severities` 는 `fail` / `warn` / `info`, `maintenance_plan.kinds` 는
 `inspect_compile_issue` / `break_dependency_cycle` / `canonicalize_graph_arrays` /
