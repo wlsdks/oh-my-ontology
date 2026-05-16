@@ -71,6 +71,55 @@ function packSummary(packageDir) {
   };
 }
 
+function writeCycleVault(root) {
+  mkdirSync(join(root, 'capabilities'), { recursive: true });
+  mkdirSync(join(root, 'domains'), { recursive: true });
+  writeFileSync(
+    join(root, 'capabilities', 'a.md'),
+    [
+      '---',
+      'kind: capability',
+      'slug: capabilities/a',
+      'title: A',
+      'domain: domains/auth',
+      'dependencies: [capabilities/b]',
+      '---',
+      '',
+      '# A',
+      '',
+    ].join('\n'),
+  );
+  writeFileSync(
+    join(root, 'capabilities', 'b.md'),
+    [
+      '---',
+      'kind: capability',
+      'slug: capabilities/b',
+      'title: B',
+      'domain: domains/auth',
+      'dependencies: [capabilities/a]',
+      '---',
+      '',
+      '# B',
+      '',
+    ].join('\n'),
+  );
+  writeFileSync(
+    join(root, 'domains', 'auth.md'),
+    [
+      '---',
+      'kind: domain',
+      'slug: domains/auth',
+      'title: Auth',
+      'capabilities: [capabilities/a, capabilities/b]',
+      '---',
+      '',
+      '# Auth',
+      '',
+    ].join('\n'),
+  );
+}
+
 const temp = mkdtempSync(join(tmpdir(), 'omot-packed-cli-'));
 try {
   const packDir = join(temp, 'packs');
@@ -185,6 +234,19 @@ try {
   assert.match(compile.stdout, /compiled ontology/);
   assert.match(compile.stdout, /5 nodes/);
   assert.match(compile.stdout, /issues.*0/);
+
+  const cycleVault = join(projectDir, 'cycle-vault');
+  writeCycleVault(cycleVault);
+  const blockingBrief = runRaw(cliBin, ['workspace-brief', cycleVault, '--json'], { cwd: projectDir });
+  assert.equal(blockingBrief.status, 1);
+  const blockingBriefPayload = JSON.parse(blockingBrief.stdout);
+  assert.equal(blockingBriefPayload.status, 'needs_attention');
+  assert.equal(
+    blockingBriefPayload.nextActions.some((action) => (
+      action.severity === 'fail' && action.id === 'dependency_cycles'
+    )),
+    true,
+  );
 
   const mcpSummary = packSummary(MCP_DIR);
   checkMcpLeanTarballFiles(mcpSummary.files);
