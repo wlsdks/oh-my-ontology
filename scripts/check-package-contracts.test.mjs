@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, it } from 'node:test';
@@ -14,6 +14,7 @@ import {
   packageEntrypoints,
   parseScriptFileRefs,
 } from './check-package-contracts.mjs';
+import { dogfoodVaultCensus } from './lib/vault-census.mjs';
 
 function withPackage(pkg, files, fn) {
   const root = mkdtempSync(join(tmpdir(), 'omot-package-contract-'));
@@ -28,19 +29,6 @@ function withPackage(pkg, files, fn) {
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
-}
-
-function countMarkdownFiles(root) {
-  let count = 0;
-  for (const entry of readdirSync(root, { withFileTypes: true })) {
-    const full = join(root, entry.name);
-    if (entry.isDirectory()) {
-      count += countMarkdownFiles(full);
-    } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      count += 1;
-    }
-  }
-  return count;
 }
 
 describe('package contract helpers', () => {
@@ -140,15 +128,12 @@ describe('package contract helpers', () => {
 
   it('keeps the self-ontology README census aligned with the vault files', () => {
     const readme = readFileSync('docs/ontology/README.md', 'utf-8');
-    const nodeCount = countMarkdownFiles('docs/ontology');
-    const domainCount = countMarkdownFiles('docs/ontology/domains');
-    const capabilityCount = countMarkdownFiles('docs/ontology/capabilities');
-    const elementCount = countMarkdownFiles('docs/ontology/elements');
+    const census = dogfoodVaultCensus(process.cwd());
 
-    assert.match(readme, new RegExp(`총 ${nodeCount} 노드`));
-    assert.match(readme, new RegExp(`도메인 ${domainCount}개`));
-    assert.match(readme, new RegExp(`capability ${capabilityCount}개`));
-    assert.match(readme, new RegExp(`element ${elementCount}개`));
+    assert.match(readme, new RegExp(`총 ${census.total} 노드`));
+    assert.match(readme, new RegExp(`도메인 ${census.byKind.domains}개`));
+    assert.match(readme, new RegExp(`capability ${census.byKind.capabilities}개`));
+    assert.match(readme, new RegExp(`element ${census.byKind.elements}개`));
   });
 
   it('parses package script file references', () => {

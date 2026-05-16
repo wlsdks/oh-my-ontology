@@ -1,7 +1,7 @@
-import { existsSync, readdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { dogfoodVaultCensus } from '../../../scripts/lib/vault-census.mjs';
 
 const ROOT = path.resolve(__dirname, '../../..');
 
@@ -68,29 +68,6 @@ const STALE_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   },
 ];
 
-function countMarkdownFiles(root: string): number {
-  let count = 0;
-  for (const entry of readdirSync(root, { withFileTypes: true })) {
-    const full = path.join(root, entry.name);
-    if (entry.isDirectory()) {
-      count += countMarkdownFiles(full);
-    } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      count += 1;
-    }
-  }
-  return count;
-}
-
-function dogfoodKindCounts() {
-  return {
-    capabilities: countMarkdownFiles(path.join(ROOT, 'docs/ontology/capabilities')),
-    domains: countMarkdownFiles(path.join(ROOT, 'docs/ontology/domains')),
-    elements: countMarkdownFiles(path.join(ROOT, 'docs/ontology/elements')),
-    project: existsSync(path.join(ROOT, 'docs/ontology/project.md')) ? 1 : 0,
-    'vault-readme': existsSync(path.join(ROOT, 'docs/ontology/README.md')) ? 1 : 0,
-  };
-}
-
 describe('current-surface launch docs', () => {
   it('do not advertise stale MCP, dogfood, or test counts', async () => {
     const findings: string[] = [];
@@ -108,7 +85,7 @@ describe('current-surface launch docs', () => {
   });
 
   it('keeps dogfood node-count claims aligned with the ontology vault', async () => {
-    const nodeCount = countMarkdownFiles(path.join(ROOT, 'docs/ontology'));
+    const nodeCount = dogfoodVaultCensus(ROOT).total;
     const findings: string[] = [];
 
     for (const relPath of DOGFOOD_COUNT_DOCS) {
@@ -123,7 +100,7 @@ describe('current-surface launch docs', () => {
 
   it('keeps the README dogfood kind breakdown aligned with the ontology vault', async () => {
     const readme = await readFile(path.join(ROOT, 'README.md'), 'utf8');
-    const counts = dogfoodKindCounts();
+    const counts = dogfoodVaultCensus(ROOT).byKind;
 
     expect(readme).toContain(`capabilities ${counts.capabilities}`);
     expect(readme).toContain(`domains ${counts.domains}`);
