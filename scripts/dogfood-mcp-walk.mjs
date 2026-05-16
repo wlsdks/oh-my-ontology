@@ -172,6 +172,10 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, brief, he
   if (briefFailedChecks.length > 0) {
     failures.push(`workspace_brief: failing health checks ${briefFailedChecks.join(", ")}`);
   }
+  const blockingActions = blockingNextActions(brief?.nextActions);
+  if (blockingActions.length > 0) {
+    failures.push(`workspace_brief: actionable nextActions ${blockingActions.join(", ")}`);
+  }
   if (health && health.status !== "healthy") {
     failures.push(`health: status ${health.status}`);
   }
@@ -187,6 +191,13 @@ function failedHealthChecks(checks) {
   return Array.isArray(checks)
     ? checks.filter((check) => check?.status === "fail").map((check) => check.id || "unknown")
     : [];
+}
+
+function blockingNextActions(actions) {
+  if (!Array.isArray(actions)) return [];
+  return actions
+    .filter((action) => action?.severity === "warn" || action?.severity === "fail")
+    .map((action) => action.id || action.kind || "unknown");
 }
 
 const COLORS = {

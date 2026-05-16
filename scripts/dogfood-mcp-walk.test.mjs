@@ -142,4 +142,21 @@ describe("evaluateDogfoodGate", () => {
       "health: failing health checks compile_issues",
     ]);
   });
+
+  it("fails when workspace brief leaves warn/fail next actions", () => {
+    const failures = evaluateDogfoodGate({
+      ...okShape,
+      brief: {
+        ...okShape.brief,
+        nextActions: [
+          { kind: "health_check", severity: "info", id: "components" },
+          { kind: "materialize_external_elements", severity: "warn", count: 2 },
+          { kind: "resolve_dangling_references", severity: "fail", count: 1 },
+        ],
+      },
+    });
+    assert.deepEqual(failures, [
+      "workspace_brief: actionable nextActions materialize_external_elements, resolve_dangling_references",
+    ]);
+  });
 });
