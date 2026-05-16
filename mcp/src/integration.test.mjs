@@ -2611,6 +2611,42 @@ await test("add_relations — object 가 아닌 row 는 row-level error 로 격�
   }
 });
 
+await test("add_relations — blank/padded scalar row 는 row-level error 로 격리", async () => {
+  const root = makeVault([
+    { slug: "a", content: "---\nkind: capability\ntitle: A\n---\n" },
+    { slug: "b", content: "---\nkind: capability\ntitle: B\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "add_relations", {
+        relations: [
+          { from: "a", to: "b", type: "relates" },
+          { from: " a", to: "b", type: "relates" },
+          { from: "a", to: " b", type: "relates" },
+          { from: "a", to: "b", type: " relates" },
+          { from: "", to: "b", type: "relates" },
+        ],
+      }),
+      callTool(3, "get_concept", { slug: "a" }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.equal(result.relations[0].ok, true, "valid row still lands");
+    assert.equal(result.relations[1].ok, false);
+    assert.match(result.relations[1].error, /from must not have leading or trailing whitespace/i);
+    assert.equal(result.relations[2].ok, false);
+    assert.match(result.relations[2].error, /to must not have leading or trailing whitespace/i);
+    assert.equal(result.relations[3].ok, false);
+    assert.match(result.relations[3].error, /type must not have leading or trailing whitespace/i);
+    assert.equal(result.relations[4].ok, false);
+    assert.match(result.relations[4].error, /from must be a non-empty string/i);
+    const concept = getCallParsed(responses, 3);
+    assert.deepEqual(concept.frontmatter.relates, ["b"]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 // R+ — cycle 46: validate_vault tool. agent 가 vault 전체 health 한 호출에.
 await test("validate_vault — clean vault: scanned/problems[]/summary 시그너처", async () => {
   const root = makeVault([
