@@ -7,6 +7,7 @@
  * 사용법:
  *   node mcp/scripts/verify.mjs                    # vault = cwd
  *   node mcp/scripts/verify.mjs ./docs/ontology    # vault = positional arg
+ *   node mcp/scripts/verify.mjs --vault ./docs/ontology
  *   node mcp/scripts/verify.mjs ./docs/ontology --timeout-ms 15000
  *   OMOT_VAULT=./docs/ontology node mcp/scripts/verify.mjs
  *   OMOT_VERIFY_TIMEOUT_MS=15000 npm run verify    # larger/slower vaults
@@ -281,6 +282,29 @@ export function parseVerifyArgs({
         break;
       }
       timeoutMsRaw = value;
+    } else if (arg === '--vault') {
+      const value = args[index + 1];
+      if (typeof value !== 'string' || value.length === 0 || value.startsWith('-')) {
+        error = '--vault requires a path value';
+        break;
+      }
+      if (positionalVault) {
+        error = `Unexpected extra vault argument: ${value}`;
+        break;
+      }
+      positionalVault = value;
+      index += 1;
+    } else if (arg.startsWith('--vault=')) {
+      const value = arg.slice('--vault='.length);
+      if (value.length === 0) {
+        error = '--vault requires a path value';
+        break;
+      }
+      if (positionalVault) {
+        error = `Unexpected extra vault argument: ${value}`;
+        break;
+      }
+      positionalVault = value;
     } else if (arg.startsWith('-')) {
       error = `Unknown option: ${arg}`;
       break;
@@ -309,6 +333,7 @@ export function verifyUsage() {
   return (
     '\nUsage:\n' +
     '  node mcp/scripts/verify.mjs [vault] [--timeout-ms N]\n' +
+    '  node mcp/scripts/verify.mjs --vault path --timeout-ms 15000\n' +
     '  npm run verify -- [vault] [--timeout-ms N]\n\n' +
     'Runs the MCP server first-contact verification against the resolved vault.\n' +
     'Checks parser smoke, server boot, tool inventory, project probe, batch reads, node census,\n' +

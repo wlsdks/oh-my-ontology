@@ -317,11 +317,29 @@ try {
   assert.match(directMcpVerify.stdout, /project probe — 1 project node/);
   assert.match(directMcpVerify.stdout, /workspace_brief — .*next actions, .*health checks/);
 
+  const directMcpVerifyVaultFlag = run(
+    'npm',
+    [
+      '--prefix',
+      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      'run',
+      'verify',
+      '--',
+      '--vault',
+      join(projectDir, 'ontology'),
+      '--timeout-ms=1000',
+    ],
+    { cwd: projectDir },
+  );
+  assert.match(directMcpVerifyVaultFlag.stdout, /timeout=1000ms/);
+  assert.match(directMcpVerifyVaultFlag.stdout, /project probe — 1 project node/);
+
   const directMcpVerifyHelp = run(
     'npm',
     ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), 'run', 'verify', '--', '--help'],
     { cwd: projectDir },
   );
+  assert.match(directMcpVerifyHelp.stdout, /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);
   assert.match(directMcpVerifyHelp.stdout, /npm run verify -- \[vault\] \[--timeout-ms N\]/);
   assert.match(directMcpVerifyHelp.stdout, /project probe/);
 
@@ -372,6 +390,26 @@ try {
   assert.match(
     `${invalidDirectMcpVerifyTimeout.stdout}\n${invalidDirectMcpVerifyTimeout.stderr}`,
     /verify timeout must be a positive integer/,
+  );
+
+  const invalidDirectMcpVerifyVault = runRaw(
+    'npm',
+    [
+      '--prefix',
+      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      'run',
+      'verify',
+      '--',
+      '--vault',
+      '--timeout-ms',
+      '1000',
+    ],
+    { cwd: projectDir },
+  );
+  assert.equal(invalidDirectMcpVerifyVault.status, 1);
+  assert.match(
+    `${invalidDirectMcpVerifyVault.stdout}\n${invalidDirectMcpVerifyVault.stderr}`,
+    /--vault requires a path value/,
   );
 
   const compile = runRaw(cliBin, ['compile', 'ontology', '--summary'], { cwd: projectDir });

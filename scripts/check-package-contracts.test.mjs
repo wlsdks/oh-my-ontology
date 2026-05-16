@@ -91,6 +91,7 @@ describe('package contract helpers', () => {
     const scopedNodes = census.total - census.byKind['vault-readme'];
 
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology/);
+    assert.match(verifySection, /npm run verify -- --vault \.\.\/docs\/ontology/);
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology --timeout-ms 15000/);
     assert.match(verifySection, /list_concepts\/project probe\/get_concepts\/list_kinds/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums/);
@@ -348,6 +349,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /assert\.equal\(missingPath\.status, 1\)/);
     assert.match(smoke, /workspace_brief — \.\*next actions, \.\*health checks/);
     assert.match(smoke, /directMcpVerify/);
+    assert.match(smoke, /directMcpVerifyVaultFlag/);
+    assert.match(smoke, /--vault requires a path value/);
     assert.match(smoke, /npm run verify -- \\\[vault\\\] \\\[--timeout-ms N\\\]/);
     assert.match(smoke, /verify timeout must be a positive integer/);
     assert.match(smoke, /health — \.\*compile_issues:\(pass\|warn\)/);
