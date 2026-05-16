@@ -102,17 +102,19 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('accepts clean validate_vault payloads', () => {
-    assert.equal(validateVaultFailure({ summary: { problemFiles: 0 } }), null);
+    assert.equal(validateVaultFailure({ scanned: 1, summary: { problemFiles: 0 } }), null);
   });
 
   it('fails when validate_vault reports problem files', () => {
     assert.equal(
-      validateVaultFailure({ summary: { problemFiles: 2, errorFiles: 1, warningFiles: 1 } }),
+      validateVaultFailure({ scanned: 3, summary: { problemFiles: 2, errorFiles: 1, warningFiles: 1 } }),
       'validate_vault found 2 problem file(s) — errors 1, warnings 1',
     );
   });
 
   it('fails malformed validate_vault payloads', () => {
+    assert.equal(validateVaultFailure({ summary: { problemFiles: 0 } }), 'validate_vault response missing scanned count');
+    assert.equal(validateVaultFailure({ scanned: -1, summary: { problemFiles: 0 } }), 'validate_vault response missing scanned count');
     assert.equal(validateVaultFailure({}), 'validate_vault response missing summary');
   });
 

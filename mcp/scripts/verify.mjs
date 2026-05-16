@@ -135,6 +135,9 @@ export function vaultWarningsFailure(parsed) {
 export function validateVaultFailure(parsed) {
   const summary = parsed?.summary;
   if (!summary) return 'validate_vault response missing summary';
+  if (!Number.isInteger(parsed?.scanned) || parsed.scanned < 0) {
+    return 'validate_vault response missing scanned count';
+  }
   const problemFiles = summary.problemFiles || 0;
   if (problemFiles === 0) return null;
   return `validate_vault found ${problemFiles} problem file(s) — errors ${summary.errorFiles || 0}, warnings ${summary.warningFiles || 0}`;
