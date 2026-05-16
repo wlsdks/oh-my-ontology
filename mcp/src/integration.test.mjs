@@ -187,6 +187,9 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /kind hierarchy/i);
     assert.match(instructions, /dry-run|confirm/i);
     assert.match(instructions, /expected_mtime/i);
+    for (const toolName of EXPECTED_TOOLS) {
+      assert.match(instructions, new RegExp(`\\b${toolName}\\b`), `instructions mention ${toolName}`);
+    }
     // R+ — cycle 36: batch tools 가 기본 path 임을 instructions 가 안내해야.
     // agent 가 per-row K-round-trip 패턴 대신 batch 1-call 을 default 로
     // 사용하도록 stale 안내 회귀 차단.
