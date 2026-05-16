@@ -613,6 +613,10 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /kind hierarchy/i);
     assert.match(instructions, /dry-run|confirm/i);
     assert.match(instructions, /expected_mtime/i);
+    assert.match(instructions, /overwrite: true/);
+    assert.match(instructions, /existing `newSlug`/);
+    assert.match(instructions, /force: true/);
+    assert.match(instructions, /dangling referrers/);
     for (const toolName of EXPECTED_TOOLS) {
       assert.match(instructions, new RegExp(`\\b${toolName}\\b`), `instructions mention ${toolName}`);
     }
