@@ -3650,11 +3650,60 @@ function workspaceBriefShapeFailure(result, label = "workspace_brief") {
     if (!hasOptionalNonNegativeInteger(action.count)) {
       return `${label} response malformed nextAction count at index ${index}`;
     }
+    const sampleFailure = workspaceNextActionSampleFailure(label, action, index);
+    if (sampleFailure) return sampleFailure;
   }
   if (!result.health || typeof result.health !== "object" || Array.isArray(result.health)) {
     return `${label} response missing health block`;
   }
   return checksShapeFailure(label, result.health.checks, { requireNonEmpty: true });
+}
+
+function workspaceNextActionSampleFailure(label, action, index) {
+  if (action.sample == null) return null;
+  if (!Array.isArray(action.sample)) {
+    return `${label} response malformed nextAction sample at index ${index}`;
+  }
+  if (action.count != null && action.sample.length > action.count) {
+    return `${label} response nextAction sample exceeds count at index ${index}`;
+  }
+  for (const [sampleIndex, sample] of action.sample.entries()) {
+    if (!sample || typeof sample !== "object" || Array.isArray(sample)) {
+      return `${label} response malformed nextAction sample row at index ${index}.${sampleIndex}`;
+    }
+    if (action.kind === "add_missing_relations") {
+      const actionFailure = workspaceProposedActionSampleFailure(label, action, sample, index, sampleIndex, "add_relation");
+      if (actionFailure) return actionFailure;
+      if (typeof sample.args.from !== "string" || typeof sample.args.to !== "string" || typeof sample.args.type !== "string") {
+        return `${label} response malformed add_missing_relations sample args at index ${index}.${sampleIndex}`;
+      }
+    }
+    if (action.kind === "materialize_external_elements") {
+      const actionFailure = workspaceProposedActionSampleFailure(label, action, sample, index, sampleIndex, "add_concept");
+      if (actionFailure) return actionFailure;
+      if (typeof sample.args.slug !== "string" || sample.args.kind !== "element") {
+        return `${label} response malformed materialize_external_elements sample args at index ${index}.${sampleIndex}`;
+      }
+    }
+    if (action.kind === "resolve_dangling_references") {
+      const rowFailure = growthCandidateRowFailure(`${label} nextAction resolve_dangling_references sample`, sample, sampleIndex);
+      if (rowFailure) return rowFailure;
+      if (sample.kind !== "resolve_dangling_reference") {
+        return `${label} response malformed resolve_dangling_references sample kind at index ${index}.${sampleIndex}`;
+      }
+    }
+  }
+  return null;
+}
+
+function workspaceProposedActionSampleFailure(label, action, sample, index, sampleIndex, expectedTool) {
+  if (sample.tool !== expectedTool) {
+    return `${label} response nextAction ${action.kind} sample tool mismatch at index ${index}.${sampleIndex}`;
+  }
+  if (!sample.args || typeof sample.args !== "object" || Array.isArray(sample.args)) {
+    return `${label} response nextAction ${action.kind} sample missing args at index ${index}.${sampleIndex}`;
+  }
+  return null;
 }
 
 function healthShapeFailureForDogfood(result, label = "health") {

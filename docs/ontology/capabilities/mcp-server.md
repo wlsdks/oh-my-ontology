@@ -182,6 +182,8 @@ project/domain map 과 특정 domain drill-down 출력까지 이어지는지 본
 args 가 일치하는지도 dogfood 해 agent 가 drift 난 실행 액션을 그대로 따라가지 않게 한다.
 `maintenance_plan` 의 실행 action 도 `add_missing_relation` endpoints 와 executable
 action tool/slug/kind 계약을 검사해 agent 작업 큐가 실제 graph target 과 분리되지 않게 한다.
+`workspace_brief.nextActions[].sample` 도 add_relation / add_concept / dangling row 최소 shape 를
+검증해 first-contact 응답의 예시 액션이 agent 실행 계약에서 벗어나지 않게 한다.
 `maintenance_plan.phases` 는 `validate` / `repair` / `link` / `materialize` / `review`,
 `maintenance_plan.severities` 는 `fail` / `warn` / `info`, `maintenance_plan.kinds` 는
 `inspect_compile_issue` / `break_dependency_cycle` / `canonicalize_graph_arrays` /

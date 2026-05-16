@@ -1912,6 +1912,57 @@ describe("evaluateDogfoodGate", () => {
       }),
       ["workspace_brief_tuned response malformed nextAction count at index 0"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
+          ...okShape.brief,
+          nextActions: [
+            {
+              kind: "add_missing_relations",
+              severity: "info",
+              count: 1,
+              sample: [{ tool: "add_concept", args: { from: "domains/a", to: "capabilities/b", type: "capabilities" } }],
+            },
+          ],
+        },
+      }),
+      ["workspace_brief response nextAction add_missing_relations sample tool mismatch at index 0.0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
+          ...okShape.brief,
+          nextActions: [
+            {
+              kind: "materialize_external_elements",
+              severity: "info",
+              count: 1,
+              sample: [{ tool: "add_concept", args: { slug: "elements/file", kind: "capability" } }],
+            },
+          ],
+        },
+      }),
+      ["workspace_brief response malformed materialize_external_elements sample args at index 0.0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
+          ...okShape.brief,
+          nextActions: [
+            {
+              kind: "resolve_dangling_references",
+              severity: "info",
+              count: 1,
+              sample: [{ kind: "materialize_external_element", score: 0.7, reason: "Resolve dangling reference." }],
+            },
+          ],
+        },
+      }),
+      ["workspace_brief response malformed resolve_dangling_references sample kind at index 0.0"],
+    );
   });
 
   it("fails on malformed health payloads", () => {
