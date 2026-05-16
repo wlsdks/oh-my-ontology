@@ -2204,12 +2204,16 @@ function compactPostWriteMaintenance(limit = 5) {
     limit,
   }, { omotIgnorePatterns });
   return {
+    operation: result.operation,
+    sideEffect: result.sideEffect,
     graphHash: result.graphHash,
     summary: result.summary,
+    filters: result.filters,
     cursor: result.cursor,
     byPhase: result.byPhase,
     bySeverity: result.bySeverity,
     byKind: result.byKind,
+    limited: result.limited,
     nextExecutableAction: compactMaintenanceAction(result.nextExecutableAction),
     nextReviewAction: compactMaintenanceAction(result.nextReviewAction),
     actions: result.actions.map(compactMaintenanceAction),

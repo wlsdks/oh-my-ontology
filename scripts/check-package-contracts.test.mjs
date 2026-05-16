@@ -121,12 +121,18 @@ describe('package contract helpers', () => {
     const readme = readFileSync('mcp/README.md', 'utf-8');
     const features = readFileSync('docs/FEATURES.md', 'utf-8');
     const row = readme.split('| `query_ontology` |')[1]?.split('\n')[0] ?? '';
+    const addConceptRow = readme.split('| `add_concept` |')[1]?.split('\n')[0] ?? '';
     const featureRow = features.split('12. **query_ontology**')[1]?.split('\n')[0] ?? '';
     const strictInputSection = readme.split('String-array options are strict too:')[1]?.split('Scalar string options')[0] ?? '';
 
     assert.match(row, /`health` \/ `workspace_brief` can tune their internal probes/);
     assert.match(row, /`phases`, `severities`, and `kinds` are enum-validated/);
     assert.match(row, /`cursor\.reason` when a cursor is not found/);
+    assert.match(addConceptRow, /`operation:"maintenance_plan"`/);
+    assert.match(addConceptRow, /`sideEffect:false`/);
+    assert.match(addConceptRow, /`filters`/);
+    assert.match(addConceptRow, /`limited`/);
+    assert.match(addConceptRow, /next action pointers/);
     assert.match(featureRow, /`cursor\.reason` when a cursor is not found/);
     assert.match(featureRow, /unknown cursors return an empty page with `cursor\.found=false`/);
     assert.match(featureRow, /zero remaining actions, and no next actions/);
@@ -572,6 +578,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`maintenance_plan` work-queue 안내도 first-contact 에 포함/);
     assert.match(doc, /unknown `afterActionId` cursor 의 `cursor\.found=false`/);
     assert.match(doc, /`cursor\.reason` 계약/);
+    assert.match(doc, /compact `postWriteMaintenance` 반환 \(`operation` \/ `sideEffect:false` \/ `filters` \/ `limited` \/ cursor 포함\)/);
     assert.match(dogfoodSection, /`project_map` query_plan/);
     assert.match(dogfoodSection, /실제\s+`project_map` 실행/);
     assert.match(dogfoodSection, /`neighbors`/);

@@ -3546,6 +3546,14 @@ await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (i
     assert.equal(first.alreadyExists, undefined);
     assert.equal(first.changed, true);
     assert.ok(first.postWriteMaintenance, "single write returns post-write maintenance summary");
+    assert.equal(first.postWriteMaintenance.operation, "maintenance_plan");
+    assert.equal(first.postWriteMaintenance.sideEffect, false);
+    assert.ok(first.postWriteMaintenance.filters, "postWriteMaintenance exposes maintenance filters");
+    assert.equal(first.postWriteMaintenance.filters.executableOnly, false);
+    assert.deepEqual(first.postWriteMaintenance.filters.phases, []);
+    assert.deepEqual(first.postWriteMaintenance.filters.severities, []);
+    assert.deepEqual(first.postWriteMaintenance.filters.kinds, []);
+    assert.equal(typeof first.postWriteMaintenance.limited, "boolean");
     assert.ok(Array.isArray(first.postWriteMaintenance.actions));
     assert.ok(
       Object.hasOwn(first.postWriteMaintenance, "nextExecutableAction"),
