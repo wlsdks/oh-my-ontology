@@ -120,6 +120,12 @@ try {
   assert.match(cliMcpVerify.stdout, /overview/);
   assert.match(cliMcpVerify.stdout, /overview query_plan/);
 
+  const cliMcpVerifyHelp = run(cliBin, ['mcp-verify', '--help'], { cwd: projectDir });
+  assert.equal(cliMcpVerifyHelp.stderr, '');
+  assert.match(cliMcpVerifyHelp.stdout, /Usage:/);
+  assert.match(cliMcpVerifyHelp.stdout, /compile_ontology/);
+  assert.match(cliMcpVerifyHelp.stdout, /overview query_plan graph-query smoke/);
+
   const missingVerifyOverride = runRaw(cliBin, ['mcp-verify', 'ontology'], {
     cwd: projectDir,
     env: { OMOT_MCP_VERIFY_PATH: join(temp, 'missing-verify.mjs') },
