@@ -8,7 +8,9 @@ import {
   advisoryNextActionsSummary,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
+  EXPECTED_READ_TOOLS,
   EXPECTED_TOOLS,
+  EXPECTED_WRITE_TOOLS,
   firstContactErrorFailure,
   hasAllFirstContactResponses,
   hasFirstContactErrorResponse,
@@ -24,8 +26,11 @@ const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), '
 
 describe('verify.mjs first-contact gates', () => {
   it('keeps package metadata tool count aligned with verify inventory', () => {
-    const describedCount = MCP_PKG.description.match(/(\d+) tools/)?.[1];
-    assert.equal(describedCount, String(EXPECTED_TOOLS.length));
+    const described = MCP_PKG.description.match(/(\d+) tools \((\d+) read \+ (\d+) write\)/);
+    assert.ok(described, 'package description must include tool count and read/write split');
+    assert.equal(described[1], String(EXPECTED_TOOLS.length));
+    assert.equal(described[2], String(EXPECTED_READ_TOOLS.length));
+    assert.equal(described[3], String(EXPECTED_WRITE_TOOLS.length));
   });
 
   it('parses verify timeout env as a strict positive integer', () => {

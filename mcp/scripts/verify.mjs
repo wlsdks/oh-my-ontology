@@ -37,7 +37,7 @@ const SERVER_ENTRY = join(MCP_ROOT, 'src', 'index.js');
 const VAULT = process.env.OMOT_VAULT || process.cwd();
 const VERIFY_TIMEOUT_MS_RAW = process.env.OMOT_VERIFY_TIMEOUT_MS;
 
-export const EXPECTED_TOOLS = [
+export const EXPECTED_READ_TOOLS = [
   'list_concepts',
   'get_concept',
   'get_concepts',
@@ -53,6 +53,9 @@ export const EXPECTED_TOOLS = [
   'validate_vault',
   'analyze_repo_structure',
   'infer_imports',
+];
+
+export const EXPECTED_WRITE_TOOLS = [
   'add_concept',
   'add_concepts',
   'add_relation',
@@ -62,6 +65,8 @@ export const EXPECTED_TOOLS = [
   'rename_concept',
   'merge_concepts',
 ];
+
+export const EXPECTED_TOOLS = [...EXPECTED_READ_TOOLS, ...EXPECTED_WRITE_TOOLS];
 
 const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [1, 'initialize'],
