@@ -31,7 +31,7 @@
     "src/omot-ignore.mjs",
     "src/ontology-compiler.mjs",
     "src/ontology-engine.mjs",
-    "src/*.test.mjs",
+    "src/parser.test.mjs",
     "scripts/verify.mjs",
     "scripts/json-rpc-lines.mjs",
     "CHANGELOG.md",

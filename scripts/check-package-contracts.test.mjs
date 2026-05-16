@@ -9,6 +9,8 @@ import {
   checkPackage,
   importedSpecifiers,
   isCoveredByFiles,
+  isPublishRuntimeScript,
+  packageEntrypoints,
   parseScriptFileRefs,
 } from './check-package-contracts.mjs';
 
@@ -33,6 +35,47 @@ describe('package contract helpers', () => {
       'src/a.test.mjs',
       'scripts/check.mjs',
     ]);
+  });
+
+  it('ignores test scripts when deriving publish runtime entrypoints', () => {
+    assert.equal(isPublishRuntimeScript('start'), true);
+    assert.equal(isPublishRuntimeScript('verify'), true);
+    assert.equal(isPublishRuntimeScript('test'), false);
+    assert.equal(isPublishRuntimeScript('test:smoke'), false);
+
+    withPackage(
+      {
+        name: 'scripts',
+        main: 'src/index.mjs',
+        scripts: {
+          verify: 'node scripts/verify.mjs',
+          test: 'node src/integration.test.mjs',
+          'test:smoke': 'node src/parser.test.mjs',
+        },
+        files: ['src/index.mjs', 'scripts/verify.mjs'],
+      },
+      {
+        'src/index.mjs': 'export const ok = true;\n',
+        'scripts/verify.mjs': 'export const verify = true;\n',
+        'src/integration.test.mjs': 'throw new Error("not runtime");\n',
+        'src/parser.test.mjs': 'throw new Error("not runtime");\n',
+      },
+      (dir) => {
+        const entrypoints = packageEntrypoints(
+          {
+            main: 'src/index.mjs',
+            scripts: {
+              verify: 'node scripts/verify.mjs',
+              test: 'node src/integration.test.mjs',
+              'test:smoke': 'node src/parser.test.mjs',
+            },
+          },
+          dir,
+        ).map((entry) => entry.replace(`${dir}/`, ''));
+
+        assert.deepEqual(entrypoints.sort(), ['scripts/verify.mjs', 'src/index.mjs']);
+      },
+    );
   });
 
   it('parses static side-effect, re-export, multiline, and dynamic imports', () => {

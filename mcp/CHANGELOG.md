@@ -14,7 +14,7 @@
 
 - `package.json#files` now includes runtime-only imports `src/schema.mjs` and `src/omot-ignore.mjs`. Packed installs can boot `src/index.js` and run `compile_ontology` / `query_ontology` without source-checkout-only files.
 - `package.json#files` now includes `scripts/json-rpc-lines.mjs`, the shared JSON-RPC line parser used by the installed `npm run verify` path.
-- `package.json#files` now ships `src/*.test.mjs`, matching the package `npm test` script; `omot-ignore.test.mjs` is included in that script so the new ignore matcher stays covered.
+- `package.json#files` now ships only the `src/parser.test.mjs` smoke fixture needed by installed `npm run verify`; full test files stay source-checkout-only so the published tarball remains lean.
 - `npm run verify` now exercises `query_ontology` first-contact diagnosis (`workspace_brief` + `health`), not just server boot, tool inventory, and `list_concepts`.
 - `npm run verify` now fails on blocking first-contact diagnosis problems: `list_concepts` vault warnings or `fail` health checks return exit 1, while advisory `needs_attention` states still print for starter vaults.
 - `npm run verify` uses an 8s server wait window by default and supports `OMOT_VERIFY_TIMEOUT_MS` for larger/slower vaults.

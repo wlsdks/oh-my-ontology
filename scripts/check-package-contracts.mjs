@@ -79,6 +79,10 @@ export function parseScriptFileRefs(command) {
   return refs;
 }
 
+export function isPublishRuntimeScript(name) {
+  return name !== 'test' && !name.startsWith('test:');
+}
+
 function resolveImport(fromFile, specifier) {
   if (!specifier.startsWith('.')) return null;
   const base = resolve(dirname(fromFile), specifier);
@@ -129,7 +133,8 @@ export function packageEntrypoints(pkg, dir) {
   const refs = new Set();
   if (pkg.main) refs.add(pkg.main);
   for (const bin of Object.values(pkg.bin ?? {})) refs.add(bin);
-  for (const script of Object.values(pkg.scripts ?? {})) {
+  for (const [name, script] of Object.entries(pkg.scripts ?? {})) {
+    if (!isPublishRuntimeScript(name)) continue;
     for (const ref of parseScriptFileRefs(script)) refs.add(ref);
   }
   return [...refs].map((ref) => resolve(dir, ref));

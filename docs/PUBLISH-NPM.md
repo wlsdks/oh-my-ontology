@@ -29,7 +29,8 @@ node --version
 ```bash
 cd mcp
 npm pack --dry-run
-# Tarball Contents — README.md, package.json, src/*, scripts/verify.mjs
+# Tarball Contents — README.md, package.json, runtime src/*.mjs/js,
+# parser smoke fixture, scripts/verify.mjs
 # Current package: oh-my-ontology-mcp@0.12.0
 
 cd ../cli
@@ -40,8 +41,8 @@ npm pack --dry-run
 
 We've audited: 0 secrets, 0 PII, 0 absolute paths.
 
-Check that each package manifest ships the files its bin / npm scripts can
-actually reach, and run the package-contract self-test:
+Check that each package manifest ships the files its bin / publish-runtime npm
+scripts can actually reach, and run the package-contract self-test:
 
 ```bash
 pnpm package:check
