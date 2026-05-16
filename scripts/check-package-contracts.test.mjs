@@ -54,6 +54,16 @@ describe('package contract helpers', () => {
     assert.match(validateVaultRow, /first-contact before writes/);
   });
 
+  it('keeps the CLI README explicit about mcp-verify help scope', () => {
+    const readme = readFileSync('cli/README.md', 'utf-8');
+    const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
+
+    assert.match(verifySection, /mcp-verify --help/);
+    assert.match(verifySection, /graph-query smoke contract/);
+    assert.match(verifySection, /stdout/);
+    assert.match(verifySection, /overview query_plan/);
+  });
+
   it('documents dogfood validation as a release gate', () => {
     const readme = readFileSync('README.md', 'utf-8');
     const releaseChecks = readme.split('### Package / MCP release checks')[1]?.split('## Verifiable promises')[0] ?? '';

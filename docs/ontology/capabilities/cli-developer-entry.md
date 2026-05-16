@@ -81,4 +81,6 @@ import 로 바뀌어도 `runner('*.mjs', 'runX')` registry 항목을 command mod
 로 추적해 packaged CLI 에서 특정 명령 파일이 빠지는 회귀를 잡는다. source checkout 에서는
 통과하지만 npm tarball 에서만 깨지는 release drift 를 차단한다. paired self-test 는 누락된
 reachable import, 죽은 `files` glob, multiline/dynamic import parsing, command registry
-reachability, test script 제외 규칙을 fixture 로 고정한다.
+reachability, test script 제외 규칙을 fixture 로 고정한다. CLI README 의
+`mcp-verify --help` graph-query smoke scope 도 문서 계약으로 고정해 release smoke 와
+사용자-facing 문서가 갈라지지 않게 한다.
