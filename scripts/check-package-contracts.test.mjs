@@ -64,6 +64,16 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /list_kinds` census shape\/count mismatches/);
   });
 
+  it('keeps the MCP changelog aligned with the verify census gates', () => {
+    const changelog = readFileSync('mcp/CHANGELOG.md', 'utf-8');
+    const verifySection = changelog.split('### Fixed — package tarball runtime files')[1]?.split('## 0.11.0')[0] ?? '';
+
+    assert.match(verifySection, /`list_concepts`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /`compile_ontology`, `overview`, and `overview query_plan`/);
+    assert.match(verifySection, /cross-checks `list_kinds` census totals/);
+    assert.match(verifySection, /`list_concepts`, `validate_vault`, and `compile_ontology`/);
+  });
+
   it('keeps the CLI README explicit about mcp-verify help scope', () => {
     const readme = readFileSync('cli/README.md', 'utf-8');
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
