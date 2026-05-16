@@ -173,9 +173,11 @@ describe('package contract helpers', () => {
     assert.match(smoke, /assert\.equal\(blockingCompile\.status, 1\)/);
     assert.match(smoke, /\['path', 'capabilities\/a', 'capabilities\/b', disconnectedVault, '--json'\]/);
     assert.match(smoke, /assert\.equal\(missingPath\.status, 1\)/);
+    assert.match(smoke, /health — \.\*checks/);
     assert.match(smokeSection, /cycles --json/);
     assert.match(smokeSection, /compile --json/);
     assert.match(smokeSection, /path --json/);
+    assert.match(smokeSection, /health check count/);
   });
 
   it('keeps the self-ontology README census aligned with the vault files', () => {
