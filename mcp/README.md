@@ -219,6 +219,7 @@ A successful run looks like this:
 ✓ strict arguments — unknown tool argument rejected at runtime
 ✓ strict enums — invalid query operation rejected with closest-value hint
 ✓ strict maintenance filters — invalid phase/severity/kind rejected at runtime
+✓ maintenance cursor — missing afterActionId reported (afterActionId not found in filtered maintenance actions)
 ✓ list_concepts — vault total 28 nodes (vaultRoot /path/to/docs/ontology)
 ✓ get_concepts — 2 ok rows, 1 partial row
 ✓ find_orphans — 0 orphans (root/sentinel defaults excluded)
@@ -274,7 +275,10 @@ The verify path also makes runtime negative calls with `list_concepts.lmit`,
 `query_ontology.operation="overveiw"`, typoed `maintenance_plan.phases`, and
 typoed `maintenance_plan.severities` / `maintenance_plan.kinds`,
 and fails unless the server rejects them with the closest argument/value hint or
-the allowed maintenance filter enum.
+the allowed maintenance filter enum. It also calls
+`maintenance_plan.afterActionId="maint_missing"` and fails unless the response
+reports `cursor.found=false`, the cursor miss reason, zero remaining actions,
+and no next actions.
 `project_scope` is a hard gate when the vault has a `kind: project` node. The
 verify path probes `kind: project` directly before graph smoke, so containment
 checks are not skipped just because the project node was outside the first

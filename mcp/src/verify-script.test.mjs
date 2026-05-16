@@ -37,6 +37,7 @@ import {
   initializeInstructionsFailure,
   listConceptsFailure,
   listKindsFailure,
+  maintenanceMissingCursorFailure,
   overviewFailure,
   overviewQueryPlanFailure,
   parseVerifyArgs,
@@ -636,6 +637,49 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed maintenance missing-cursor smoke responses', () => {
+    const clean = {
+      operation: 'maintenance_plan',
+      sideEffect: false,
+      summary: { remainingActions: 0 },
+      cursor: {
+        afterActionId: 'maint_missing',
+        found: false,
+        reason: 'afterActionId not found in filtered maintenance actions',
+        startIndex: null,
+      },
+      actions: [],
+      nextExecutableAction: null,
+      nextReviewAction: null,
+    };
+
+    assert.equal(maintenanceMissingCursorFailure(clean), null);
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, operation: 'growth_plan' }),
+      'maintenance missing-cursor smoke returned unexpected operation: growth_plan',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, sideEffect: true }),
+      'maintenance missing-cursor smoke must be side-effect-free',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, cursor: { ...clean.cursor, found: true } }),
+      'maintenance missing-cursor smoke did not report cursor.found=false',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, cursor: { ...clean.cursor, reason: null } }),
+      'maintenance missing-cursor smoke did not report the cursor miss reason',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, actions: [{ id: 'maint_link' }] }),
+      'maintenance missing-cursor smoke returned actions',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, summary: { remainingActions: 1 } }),
+      'maintenance missing-cursor smoke should have zero remaining actions',
+    );
+  });
+
   it('fails initialize instructions missing first-contact safety guidance', () => {
     const safeInstructions = [
       'Use read-only first-contact diagnosis before write tools.',
@@ -698,7 +742,7 @@ describe('verify.mjs first-contact gates', () => {
   it('detects when all first-contact JSON-RPC responses arrived', () => {
     assert.equal(
       hasAllFirstContactResponses(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
           .map((id) => JSON.stringify({ jsonrpc: '2.0', id, result: {} }))
           .join('\n'),
       ),
@@ -735,6 +779,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(22), 'strict_maintenance_phase_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(23), 'strict_maintenance_severity_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(24), 'strict_maintenance_kind_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(25), 'maintenance_missing_cursor');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

@@ -215,6 +215,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
+    assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported/);
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial row/);
     assert.match(verifySection, /✓ find_orphans — 0 orphans \(root\/sentinel defaults excluded\)/);
     assert.match(verifySection, /✓ project probe — 1 project node/);
@@ -256,6 +257,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`Did you mean "overview"\?`/);
     assert.match(verifySection, /runtime negative calls with `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"`/);
+    assert.match(verifySection, /`maintenance_plan\.afterActionId="maint_missing"`/);
+    assert.match(verifySection, /`cursor\.found=false`/);
     assert.match(verifySection, /project-less vaults skip/);
     assert.match(verifySection, /Empty\s+vaults skip node-targeted graph smoke/);
     assert.match(verifySection, /`list_kinds` \/ `compile_ontology` \/ `overview`\s+census shape\/count mismatches/);
