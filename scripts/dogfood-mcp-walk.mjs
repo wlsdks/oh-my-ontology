@@ -241,6 +241,19 @@ export function maintenanceBucketSummary(bucket, limit = 5) {
   return `${shown.join(", ")}${suffix}`;
 }
 
+export function maintenanceNextActionSummary(action) {
+  if (action === null) return "none";
+  if (!action || typeof action !== "object" || Array.isArray(action)) return "n/a";
+  const id = typeof action.id === "string" && action.id.length > 0 ? action.id : "unknown";
+  const phase = typeof action.phase === "string" && action.phase.length > 0 ? action.phase : "unknown";
+  const kind = typeof action.kind === "string" && action.kind.length > 0 ? action.kind : "unknown";
+  const severity = typeof action.severity === "string" && action.severity.length > 0 ? action.severity : "unknown";
+  const tool = typeof action.proposedAction?.tool === "string" && action.proposedAction.tool.length > 0
+    ? ` -> ${action.proposedAction.tool}`
+    : "";
+  return `${id} ${phase}/${kind}:${severity}${tool}`;
+}
+
 export function parseDogfoodTimeoutMs(value, fallback = 5000) {
   if (value == null || value === "") return fallback;
   if (!/^[1-9]\d*$/.test(String(value))) return false;
@@ -4224,6 +4237,9 @@ async function main() {
     console.log(
       `  buckets phase ${maintenanceBucketSummary(maintenancePlan.byPhase)} · severity ${maintenanceBucketSummary(maintenancePlan.bySeverity)} · kind ${maintenanceBucketSummary(maintenancePlan.byKind)}`,
     );
+    console.log(
+      `  next executable ${maintenanceNextActionSummary(maintenancePlan.nextExecutableAction)} · next review ${maintenanceNextActionSummary(maintenancePlan.nextReviewAction)}`,
+    );
     for (const action of (maintenancePlan.actions || []).slice(0, 5)) {
       console.log(`  ${action.id}: ${action.phase}/${action.kind} · ${action.severity} · executable ${action.executable}`);
     }
@@ -4640,6 +4656,7 @@ async function main() {
   console.log(`  relation_check: ${relationCheck?.verdict ?? "n/a"} · exists ${relationCheck?.exists ?? "n/a"}`);
   console.log(`  maintenance_plan: found ${maintenancePlan?.cursor?.found ?? "n/a"} · reason ${maintenancePlan?.cursor?.reason ?? "null"} · ${maintenancePlan?.summary?.remainingActions ?? "n/a"} remaining · ${maintenancePlan?.summary?.executableActions ?? "n/a"} executable`);
   console.log(`  maintenance buckets: phase ${maintenanceBucketSummary(maintenancePlan?.byPhase)} · severity ${maintenanceBucketSummary(maintenancePlan?.bySeverity)} · kind ${maintenanceBucketSummary(maintenancePlan?.byKind)}`);
+  console.log(`  maintenance next actions: executable ${maintenanceNextActionSummary(maintenancePlan?.nextExecutableAction)} · review ${maintenanceNextActionSummary(maintenancePlan?.nextReviewAction)}`);
   console.log(`  maintenance_plan_missing_cursor: found ${maintenancePlanMissingCursor?.cursor?.found ?? "n/a"} · reason ${maintenancePlanMissingCursor?.cursor?.reason ?? "n/a"}`);
   console.log(`  growth_plan: ${growthPlan?.summary?.totalActions ?? "n/a"} actions · ${growthPlan?.summary?.externalElementRefsIgnored ?? "n/a"} ignored external refs`);
   console.log(`  recommend_relations: ${relationRecommendations?.totalRecommendations ?? "n/a"} recommendations`);

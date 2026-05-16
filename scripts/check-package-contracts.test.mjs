@@ -661,6 +661,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /post-write work queue summary 가 drift 나도 설치 경로에서 fail-fast/);
     assert.match(doc, /같은 smoke 는\s+`byPhase` \/ `bySeverity` \/ `byKind` bucket 합계와 `remainingActions` 관계도 확인/);
     assert.match(doc, /dogfood walk 출력도 같은 bucket 을 phase \/ severity \/ kind 요약으로 보여줘/);
+    assert.match(doc, /현재 page 의 `nextExecutableAction` \/ `nextReviewAction`/);
+    assert.match(doc, /id phase\/kind:severity 와 executable tool 요약/);
     assert.match(dogfoodSection, /`project_map` query_plan/);
     assert.match(dogfoodSection, /실제\s+`project_map` 실행/);
     assert.match(dogfoodSection, /`neighbors`/);

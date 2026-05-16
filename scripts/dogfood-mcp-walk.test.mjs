@@ -11,6 +11,7 @@ import {
   formatWorkspaceNextActionRows,
   healthCheckStatusSummary,
   maintenanceBucketSummary,
+  maintenanceNextActionSummary,
   missingResponseLabels,
   parseDogfoodTimeoutMs,
   parseRpcResponses,
@@ -1610,6 +1611,21 @@ describe("maintenanceBucketSummary", () => {
         beta: 1,
       }, 2),
       "alpha:1, beta:1, +1 more",
+    );
+  });
+});
+
+describe("maintenanceNextActionSummary", () => {
+  it("formats current-page maintenance next actions for dogfood output", () => {
+    assert.equal(maintenanceNextActionSummary(null), "none");
+    assert.equal(maintenanceNextActionSummary(undefined), "n/a");
+    assert.equal(
+      maintenanceNextActionSummary(okShape.maintenancePlan.nextExecutableAction),
+      "maint_link link/add_missing_relation:warn -> add_relation",
+    );
+    assert.equal(
+      maintenanceNextActionSummary(okShape.maintenancePlan.nextReviewAction),
+      "maint_review review/unassigned_node:info",
     );
   });
 });
