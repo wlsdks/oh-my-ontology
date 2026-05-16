@@ -21,6 +21,7 @@ import {
 } from "../mcp/scripts/json-rpc-lines.mjs";
 import {
   compileSummaryFailure,
+  formatCount,
   listConceptsFailure,
   listKindsFailure,
   overviewFailure,
@@ -28,6 +29,7 @@ import {
   strictArgsFailure,
   strictEnumFailure,
   validateVaultFailure,
+  workspaceBriefSummary,
 } from "../mcp/scripts/verify.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -3436,9 +3438,8 @@ async function main() {
   header(`validate_vault`);
   const validation = getResult(responses, 8);
   if (validation) {
-    console.log(`  scanned: ${validation.scanned ?? "n/a"}`);
     console.log(
-      `  problemFiles: ${validation.summary?.problemFiles ?? "n/a"} · errors ${validation.summary?.errorFiles ?? "n/a"} · warnings ${validation.summary?.warningFiles ?? "n/a"}`,
+      `  ${formatCount(validation.scanned ?? 0, "file")} · ${formatCount(validation.summary?.problemFiles ?? 0, "problem file")} · errors ${validation.summary?.errorFiles ?? "n/a"} · warnings ${validation.summary?.warningFiles ?? "n/a"}`,
     );
     for (const problem of (validation.problems || []).slice(0, 5)) {
       const codes = (problem.issues || []).map((issue) => issue.code).join(",");
@@ -3454,8 +3455,7 @@ async function main() {
     console.log(
       `  summary: nodes ${brief.summary?.nodes ?? "n/a"} · edges ${brief.summary?.edges ?? "n/a"} · issues ${brief.summary?.issues ?? "n/a"}`,
     );
-    console.log(`  nextActions: ${(brief.nextActions || []).length}`);
-    console.log(`  healthChecks: ${(brief.health?.checks || []).length}`);
+    console.log(`  ${workspaceBriefSummary(brief)}`);
     for (const action of (brief.nextActions || []).slice(0, 5)) {
       console.log(`  ${action.kind?.padEnd(18) || ""} ${action.id || ""}`);
     }
@@ -3961,7 +3961,7 @@ async function main() {
     `  list_concepts vaultWarnings: ${list?.vaultWarnings ? "있음 (vault 정합성 회귀!)" : "0 (clean)"}`,
   );
   console.log(`  get_concepts: ${(batch?.concepts || []).filter((row) => row?.ok === true).length} ok · ${(batch?.concepts || []).filter((row) => row?.ok === false).length} partial`);
-  console.log(`  validate_vault: ${validation?.summary?.problemFiles ?? "n/a"} problem files`);
+  console.log(`  validate_vault: ${formatCount(validation?.summary?.problemFiles ?? 0, "problem file")}`);
   console.log(`  find_path hop: ${path?.hopCount ?? "n/a"}`);
   console.log(`  find_backlinks: ${bl?.total ?? "n/a"} (mcp-server 가 얼마나 popular)`);
   console.log(

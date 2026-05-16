@@ -3146,7 +3146,7 @@ describe("evaluateDogfoodGate", () => {
       },
     });
     assert.deepEqual(failures, [
-      "validate_vault found 1 problem file(s) — errors 1, warnings 0 — codes missing-kind:error:1",
+      "validate_vault found 1 problem file — errors 1, warnings 0 — codes missing-kind:error:1",
     ]);
   });
 
