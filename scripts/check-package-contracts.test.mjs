@@ -132,6 +132,22 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /validate_vault` problem files/);
   });
 
+  it('keeps packed CLI smoke aligned with installed hard gates', () => {
+    const smoke = readFileSync('scripts/smoke-packed-cli.mjs', 'utf-8');
+    const doc = readFileSync('docs/ontology/capabilities/cli-developer-entry.md', 'utf-8');
+    const smokeSection = doc.split('scripts/smoke-packed-cli.mjs —')[1]?.split('scripts/check-package-contracts.mjs')[0] ?? '';
+
+    assert.match(smoke, /runRaw\(cliBin, \['cycles', cycleVault, '--json'\]/);
+    assert.match(smoke, /assert\.equal\(blockingCycles\.status, 1\)/);
+    assert.match(smoke, /runRaw\(cliBin, \['compile', danglingVault, '--json'\]/);
+    assert.match(smoke, /assert\.equal\(blockingCompile\.status, 1\)/);
+    assert.match(smoke, /\['path', 'capabilities\/a', 'capabilities\/b', disconnectedVault, '--json'\]/);
+    assert.match(smoke, /assert\.equal\(missingPath\.status, 1\)/);
+    assert.match(smokeSection, /cycles --json/);
+    assert.match(smokeSection, /compile --json/);
+    assert.match(smokeSection, /path --json/);
+  });
+
   it('keeps the self-ontology README census aligned with the vault files', () => {
     const readme = readFileSync('docs/ontology/README.md', 'utf-8');
     const census = dogfoodVaultCensus(process.cwd());
