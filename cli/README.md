@@ -60,6 +60,11 @@ cleanup is recommended but not blocking, plus graph-query smoke lines for
 Use `--timeout-ms 15000` when a large vault or slow filesystem needs a longer
 server wait window.
 
+`oh-my-ontology workspace-brief [vault]` follows the same blocking distinction:
+warn/advisory next actions render as guidance, but fail-severity next actions
+or failing health checks return exit 1 so shell scripts do not miss broken
+first-contact graph state.
+
 The vault is a plain folder of `.md` files. **Frontmatter is the graph.**
 
 ## How AI agents fit in

@@ -1665,6 +1665,38 @@ await test('overview --limit 3 — 허브 N 만 출력', async () => {
   }
 });
 
+await test('workspace-brief — fail severity nextActions make the CLI fail', async () => {
+  const root = withVault([
+    {
+      slug: 'capabilities/a',
+      content:
+        '---\nkind: capability\nslug: capabilities/a\ntitle: A\ndomain: domains/auth\ndependencies: [capabilities/b]\n---\n\n# A\n',
+    },
+    {
+      slug: 'capabilities/b',
+      content:
+        '---\nkind: capability\nslug: capabilities/b\ntitle: B\ndomain: domains/auth\ndependencies: [capabilities/a]\n---\n\n# B\n',
+    },
+    {
+      slug: 'domains/auth',
+      content:
+        '---\nkind: domain\nslug: domains/auth\ntitle: Auth\ncapabilities: [capabilities/a, capabilities/b]\n---\n\n# Auth\n',
+    },
+  ]);
+  try {
+    const r = await run(['workspace-brief', root, '--json']);
+    assert.equal(r.code, 1, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const data = JSON.parse(r.stdout);
+    assert.equal(data.status, 'needs_attention');
+    assert.equal(
+      data.nextActions.some((action) => action.severity === 'fail' && action.id === 'dependency_cycles'),
+      true,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('node — graph fixture 의 capabilities/foo deep dive', async () => {
   const root = await buildGraphFixture();
   try {

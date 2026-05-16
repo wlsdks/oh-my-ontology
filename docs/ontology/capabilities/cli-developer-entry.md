@@ -46,6 +46,7 @@ post-publish architectural audit 발견 — *위험한-그러나-필수* 작업 
 | `oh-my-ontology delete <slug>` | MCP `delete_concept` — refuses if backlinks remain (`--force` overrides). positional vault 와 `--vault` 중복 / 빈 `--vault` / 초과 positional 을 MCP 호출 전에 거부한다. |
 | `oh-my-ontology path <from> <to>` | **R+** MCP `find_path` — BFS 최단 경로, `edges[via]` 로 *왜* 연결됐는지 표시. positional vault 와 `--vault` 중복 / 빈 `--vault` / 초과 positional 을 MCP 호출 전에 거부한다. |
 | `oh-my-ontology orphans` | **R+** MCP `find_orphans` — 어디서도 link 안 받는 고립 노드 (kind 필터, project/vault-readme 루트 문서는 기본 cleanup 후보에서 제외). positional vault 와 `--vault` 중복 / 빈 `--vault` / 초과 positional 을 MCP 호출 전에 거부한다. |
+| `oh-my-ontology workspace-brief` | MCP `query_ontology(workspace_brief)` — first-contact dashboard. warn/advisory nextAction 은 안내만 하고, fail severity nextAction 또는 failing health check 는 exit 1 로 반환해 shell script 가 깨진 graph state 를 놓치지 않게 한다. |
 
 ## 구현 단일 진실원
 

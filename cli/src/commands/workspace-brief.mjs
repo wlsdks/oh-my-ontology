@@ -49,10 +49,17 @@ export async function runWorkspaceBrief(args) {
   }
   if (json) {
     process.stdout.write(JSON.stringify(result, null, 2) + '\n');
-    return 0;
+    return hasBlockingIssue(result) ? 1 : 0;
   }
   render(result);
-  return 0;
+  return hasBlockingIssue(result) ? 1 : 0;
+}
+
+function hasBlockingIssue(result) {
+  const next = Array.isArray(result?.nextActions) ? result.nextActions : [];
+  if (next.some((action) => action?.severity === 'fail')) return true;
+  const checks = Array.isArray(result?.health?.checks) ? result.health.checks : [];
+  return checks.some((check) => check?.status === 'fail');
 }
 
 function render(result) {
