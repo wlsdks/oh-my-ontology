@@ -54,6 +54,18 @@ function packPackage(packageDir, destination) {
   return join(destination, filename);
 }
 
+function packSummary(packageDir) {
+  const result = run('npm', ['pack', '--dry-run', '--json'], { cwd: packageDir });
+  const [summary] = JSON.parse(result.stdout);
+  return {
+    name: summary.name,
+    version: summary.version,
+    size: summary.size,
+    unpackedSize: summary.unpackedSize,
+    entryCount: summary.entryCount,
+  };
+}
+
 const temp = mkdtempSync(join(tmpdir(), 'omot-packed-cli-'));
 try {
   const packDir = join(temp, 'packs');
@@ -150,7 +162,13 @@ try {
   assert.match(compile.stdout, /5 nodes/);
   assert.match(compile.stdout, /issues.*0/);
 
-  console.log(`packed CLI smoke passed: ${temp}`);
+  const mcpSummary = packSummary(MCP_DIR);
+  const cliSummary = packSummary(CLI_DIR);
+  console.log(
+    `packed CLI smoke passed: ${temp}\n` +
+      `  ${mcpSummary.name}@${mcpSummary.version}: ${mcpSummary.entryCount} files, ${mcpSummary.size}B tarball, ${mcpSummary.unpackedSize}B unpacked\n` +
+      `  ${cliSummary.name}@${cliSummary.version}: ${cliSummary.entryCount} files, ${cliSummary.size}B tarball, ${cliSummary.unpackedSize}B unpacked`,
+  );
 } finally {
   if (process.env.OMOT_KEEP_SMOKE_TMP !== '1') {
     rmSync(temp, { recursive: true, force: true });

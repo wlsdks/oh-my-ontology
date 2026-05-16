@@ -123,7 +123,7 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 
 ```bash
 pnpm package:check              # MCP/CLI package files contract + self-test
-pnpm smoke:packed-cli           # pack/install MCP+CLI, init+compile, installed MCP verify
+pnpm smoke:packed-cli           # pack/install MCP+CLI, verify installed flow + tarball summary
 pnpm dogfood:walk               # actual MCP stdio walk over this repo's ontology
 cd mcp && OMOT_VAULT=../docs/ontology npm run verify
 ```
