@@ -226,6 +226,18 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
   }
 });
 
+await test('mcp-verify --help — describes the full graph-query smoke contract', async () => {
+  const r = await run(['mcp-verify', '--help']);
+  assert.equal(r.code, 0);
+  assert.equal(r.stderr, '');
+  const clean = stripAnsi(r.stdout);
+  assert.match(clean, /Usage:/);
+  assert.match(clean, /server boot/);
+  assert.match(clean, /tool inventory/);
+  assert.match(clean, /compile_ontology/);
+  assert.match(clean, /overview query_plan graph-query smoke/);
+});
+
 await test('mcp-verify — rejects invalid timeout values', async () => {
   const r = await run(['mcp-verify', '--timeout-ms', 'nope']);
   assert.equal(r.code, 1);

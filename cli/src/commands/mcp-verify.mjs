@@ -20,10 +20,14 @@ const COLORS = {
 };
 
 export async function runMcpVerify(args) {
-  const { vault, timeoutMs, error } = parseArgs(args);
+  const { vault, timeoutMs, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
-    printUsage();
+    printUsage(process.stderr);
     return 1;
   }
 
@@ -90,6 +94,7 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, timeoutMs: null };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -113,11 +118,13 @@ function parseTimeout(value) {
   return Number.isFinite(parsed) && parsed > 0 ? String(parsed) : false;
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(output = process.stderr) {
+  output.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology mcp-verify [vault] [--timeout-ms N]\n` +
       `  oh-my-ontology mcp-verify --vault path --timeout-ms 15000\n\n` +
-      `Runs the MCP package verify CLI against the resolved vault.\n`,
+      `Runs the MCP package verify CLI against the resolved vault.\n` +
+      `Checks parser smoke, server boot, tool inventory, list/validate, workspace health,\n` +
+      `compile_ontology, overview, and overview query_plan graph-query smoke.\n`,
   );
 }
