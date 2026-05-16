@@ -612,6 +612,7 @@ export function evaluateDogfoodGate({
   bl,
   blStructured,
   orph,
+  orphStructured,
   validation,
   validationStructured,
   brief,
@@ -791,6 +792,9 @@ export function evaluateDogfoodGate({
   if (orph) {
     const orphansFailure = orphansShapeFailure(orph);
     if (orphansFailure) failures.push(orphansFailure);
+    else if (orphStructured !== undefined && JSON.stringify(orphStructured) !== JSON.stringify(orph)) {
+      failures.push("find_orphans structuredContent mismatch");
+    }
   }
   if (validation) {
     const validationFailure = validateVaultFailure(validation);
@@ -4143,7 +4147,9 @@ async function main() {
   // 7. find_orphans
   header(`find_orphans (어떤 backlink 도 없는 고립 노드)`);
   const orph = getResult(responses, 7);
+  const orphStructured = getRpcResult(responses, 7)?.structuredContent ?? null;
   if (orph) {
+    console.log(`  structuredContent: ${JSON.stringify(orphStructured) === JSON.stringify(orph) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     console.log(`  total: ${orph.total}`);
     for (const m of (orph.orphans || []).slice(0, 8)) {
       console.log(`  ${m.kind?.padEnd(13) || ""} ${m.slug.padEnd(40)} ${m.title || ""}`);
@@ -4688,6 +4694,7 @@ async function main() {
     bl,
     blStructured,
     orph,
+    orphStructured,
     validation,
     brief,
     tunedBrief,

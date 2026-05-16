@@ -582,6 +582,32 @@ export function toolsListSchemaFailure(tools) {
 
   const findOrphansTool = tools.find((candidate) => candidate?.name === 'find_orphans');
   if (!findOrphansTool) return 'tools/list response missing find_orphans tool';
+  if (findOrphansTool.outputSchema?.type !== 'object') {
+    return 'find_orphans outputSchema root drift';
+  }
+  if (!sameArray(findOrphansTool.outputSchema?.required, ['total', 'orphans'])) {
+    return 'find_orphans outputSchema required drift';
+  }
+  const orphansTotalSchema = outputPropertyAt(findOrphansTool, ['properties', 'total']);
+  if (orphansTotalSchema?.type !== 'integer' || orphansTotalSchema.minimum !== 0) {
+    return 'find_orphans outputSchema total drift';
+  }
+  const orphansRowsSchema = outputPropertyAt(findOrphansTool, ['properties', 'orphans']);
+  if (
+    orphansRowsSchema?.type !== 'array' ||
+    orphansRowsSchema.items?.type !== 'object' ||
+    !sameArray(orphansRowsSchema.items?.required, ['slug', 'kind', 'title', 'mtime'])
+  ) {
+    return 'find_orphans outputSchema rows drift';
+  }
+  for (const propertyName of ['slug', 'kind', 'title']) {
+    if (orphansRowsSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `find_orphans outputSchema row ${propertyName} drift`;
+    }
+  }
+  if (orphansRowsSchema.items?.properties?.mtime?.type !== 'number' || orphansRowsSchema.items?.properties?.mtime?.minimum !== 0) {
+    return 'find_orphans outputSchema row mtime drift';
+  }
   const excludeKinds = propertyAt(findOrphansTool, ['properties', 'excludeKinds']);
   if (excludeKinds?.type !== 'array' || excludeKinds?.items?.type !== 'string') {
     return 'find_orphans.excludeKinds schema drift';

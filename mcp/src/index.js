@@ -926,6 +926,27 @@ const TOOLS = [
         },
       },
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        total: { type: 'integer', minimum: 0 },
+        orphans: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              kind: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              domain: { type: 'string' },
+              mtime: { type: 'number', minimum: 0 },
+            },
+            required: ['slug', 'kind', 'title', 'mtime'],
+          },
+        },
+      },
+      required: ['total', 'orphans'],
+    },
   },
   {
     name: 'query_concepts',

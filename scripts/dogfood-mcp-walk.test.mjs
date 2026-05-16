@@ -346,6 +346,26 @@ function makeDogfoodToolsList() {
           items: { type: "string" },
           description: "Defaults exclude project and vault-readme.",
         };
+        tool.outputSchema = {
+          type: "object",
+          required: ["total", "orphans"],
+          properties: {
+            total: { type: "integer", minimum: 0 },
+            orphans: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "kind", "title", "mtime"],
+                properties: {
+                  slug: { type: "string" },
+                  kind: { type: "string" },
+                  title: { type: "string" },
+                  mtime: { type: "number", minimum: 0 },
+                },
+              },
+            },
+          },
+        };
       }
       if (name === "get_concepts") {
         tool.inputSchema.required = ["slugs"];
@@ -456,6 +476,7 @@ const okShape = {
     matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" }],
   },
   orph: { total: 0, orphans: [] },
+  orphStructured: { total: 0, orphans: [] },
   validation: {
     scanned: 1,
     problems: [],
@@ -2108,6 +2129,12 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, toolsList: pathOutputSchemaDrifted }),
       ["tools/list: find_path outputSchema edge via drift"],
     );
+    const orphansOutputSchemaDrifted = makeDogfoodToolsList();
+    orphansOutputSchemaDrifted.tools.find((tool) => tool.name === "find_orphans").outputSchema.properties.orphans.items.properties.mtime.type = "string";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: orphansOutputSchemaDrifted }),
+      ["tools/list: find_orphans outputSchema row mtime drift"],
+    );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),
       ["list_concepts structuredContent mismatch"],
@@ -2405,6 +2432,10 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, orph: { total: 0, orphans: [{}] } }),
       ["find_orphans response orphan count exceeds total — orphans 1, total 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, orphStructured: { total: 1, orphans: [] } }),
+      ["find_orphans structuredContent mismatch"],
     );
   });
 

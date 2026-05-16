@@ -169,6 +169,26 @@ describe('verify.mjs first-contact gates', () => {
             },
           },
         },
+        outputSchema: {
+          type: 'object',
+          required: ['total', 'orphans'],
+          properties: {
+            total: { type: 'integer', minimum: 0 },
+            orphans: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'kind', 'title', 'mtime'],
+                properties: {
+                  slug: { type: 'string' },
+                  kind: { type: 'string' },
+                  title: { type: 'string' },
+                  mtime: { type: 'number', minimum: 0 },
+                },
+              },
+            },
+          },
+        },
       },
       {
         name: 'add_concepts',
@@ -1187,6 +1207,41 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'find_path outputSchema edge via drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_orphans'),
+        {
+          ...tools.find((tool) => tool.name === 'find_orphans'),
+          outputSchema: { ...tools.find((tool) => tool.name === 'find_orphans').outputSchema, required: ['orphans', 'total'] },
+        },
+      ]),
+      'find_orphans outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_orphans'),
+        {
+          ...tools.find((tool) => tool.name === 'find_orphans'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'find_orphans').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'find_orphans').outputSchema.properties,
+              orphans: {
+                ...tools.find((tool) => tool.name === 'find_orphans').outputSchema.properties.orphans,
+                items: {
+                  ...tools.find((tool) => tool.name === 'find_orphans').outputSchema.properties.orphans.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'find_orphans').outputSchema.properties.orphans.items.properties,
+                    mtime: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'find_orphans outputSchema row mtime drift',
     );
     assert.equal(
       toolsListSchemaFailure([

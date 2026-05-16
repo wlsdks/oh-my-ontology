@@ -373,6 +373,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(findPath?.outputSchema?.properties?.hopCount?.type, "integer");
     assert.equal(findPath?.outputSchema?.properties?.hops?.items?.type, "string");
     assert.deepEqual(findPath?.outputSchema?.properties?.edges?.items?.required, ["from", "to", "via"]);
+    const findOrphans = findTool("find_orphans");
+    assert.equal(findOrphans?.outputSchema?.type, "object");
+    assert.deepEqual(findOrphans?.outputSchema?.required, ["total", "orphans"]);
+    assert.equal(findOrphans?.outputSchema?.properties?.total?.type, "integer");
+    assert.deepEqual(findOrphans?.outputSchema?.properties?.orphans?.items?.required, ["slug", "kind", "title", "mtime"]);
+    assert.equal(findOrphans?.outputSchema?.properties?.orphans?.items?.properties?.mtime?.type, "number");
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -2551,6 +2557,7 @@ await test("find_orphans — orphan row 에 domain + mtime 포함 (R+)", async (
       callTool(2, "find_orphans"),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     // domains/auth + used-cap (어느 곳도 used-cap 을 reference 안 함) — 둘 다 orphan
     assert.ok(result.total >= 1);
     for (const o of result.orphans) {
