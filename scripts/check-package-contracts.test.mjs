@@ -271,7 +271,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /Successful\s+verify logs print the same bucket summary and current-page executable\/review\s+next-action summary/);
     assert.match(verifySection, /list_concepts\/project probe\/get_concepts\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety guidance present/);
-    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums \+ health tuning \+ post-write guidance/);
+    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ read\/write hints \+ graph-query enums \+ health tuning \+ post-write guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported .*phase none; severity none; kind none; executable none; review none/);
@@ -301,6 +301,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`kind: project`/);
     assert.match(verifySection, /`list_kinds\.byKind\.project`/);
     assert.match(verifySection, /`additionalProperties:false`/);
+    assert.match(verifySection, /`annotations\.readOnlyHint` read\/write split/);
     assert.match(verifySection, /required `query_ontology\.operation`/);
     assert.match(verifySection, /`query_ontology\.operation` \/[\s\S]*`query_ontology\.targetOperation` enums/);
     assert.match(verifySection, /same 50-row cap used by `get_concepts`, `add_concepts`,\s+and `add_relations`/);
@@ -657,6 +658,9 @@ describe('package contract helpers', () => {
     assert.match(doc, /dogfood walk 도 `tools\/list` 를 직접 호출/);
     assert.match(doc, /installed verify 의 `toolsListSchemaFailure`/);
     assert.match(doc, /maintenance next pointer description drift/);
+    assert.match(doc, /`tools\/list` 의 `annotations\.readOnlyHint`/);
+    assert.match(doc, /15 read \/ 8 write split/);
+    assert.match(doc, /annotation drift/);
     assert.match(doc, /MCP `initialize\.instructions` 의 `query_ontology\.operation`\s+안내와 `query_plan\.targetOperation` 안내도 같은 allow-list 에서 생성/);
     assert.match(doc, /`maintenance_plan` work-queue 안내도 first-contact 에 포함/);
     assert.match(doc, /ready cursor 의 `cursor\.found=true` \/ `cursor\.reason=null`/);

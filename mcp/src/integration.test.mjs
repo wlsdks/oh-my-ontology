@@ -12,7 +12,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EXPECTED_TOOLS } from "../scripts/verify.mjs";
+import { EXPECTED_READ_TOOLS, EXPECTED_TOOLS } from "../scripts/verify.mjs";
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -284,6 +284,13 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       [...EXPECTED_TOOLS].sort(),
       "tools/list registry must match verify inventory",
     );
+    for (const tool of tools) {
+      assert.equal(
+        tool.annotations?.readOnlyHint,
+        EXPECTED_READ_TOOLS.includes(tool.name),
+        `${tool.name} exposes correct readOnlyHint annotation`,
+      );
+    }
     const findTool = (name) => tools.find((t) => t.name === name);
     const findDesc = (name) => findTool(name)?.description;
     const getC = findDesc("get_concept");
@@ -519,7 +526,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         severitiesEnum: MAINTENANCE_SEVERITY_VALUES,
         maintenanceKindsEnum: MAINTENANCE_KIND_VALUES,
         afterActionIdDescription:
-          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null; nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page. Bucket totals (byPhase, bySeverity, byKind) match remainingActions for the returned cursor. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
+          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null; nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity. Bucket totals (byPhase, bySeverity, byKind) match remainingActions for the returned cursor. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
         componentTypesDescription:
           "health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.",
       },

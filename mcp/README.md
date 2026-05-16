@@ -226,7 +226,7 @@ A successful run looks like this:
 ✓ initialize OK — server oh-my-ontology-mcp@0.12.0
 ✓ initialize instructions — first-contact safety guidance present
 ✓ tools/list 23/23 (15 read + 8 write) — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
-✓ tools/list schema contract — strict arguments + graph-query enums + health tuning + post-write guidance
+✓ tools/list schema contract — strict arguments + read/write hints + graph-query enums + health tuning + post-write guidance
 ✓ strict arguments — unknown tool argument rejected at runtime
 ✓ strict enums — invalid query operation rejected with closest-value hint
 ✓ strict maintenance filters — invalid phase/severity/kind rejected at runtime (phases=validate/repair/link/materialize/review; severities=fail/warn/info; kinds=inspect_compile_issue/break_dependency_cycle/canonicalize_graph_arrays/resolve_dangling_reference/add_missing_relation/materialize_external_element/unassigned_node/empty_domain)
@@ -269,7 +269,8 @@ plus actual `query_ontology({operation:"neighbors"})`,
 `query_ontology({operation:"path"})`, and
 `query_ontology({operation:"project_scope"})` smoke calls.
 The `tools/list` gate also checks that every tool rejects unknown arguments via
-`additionalProperties:false`, and that required `query_ontology.operation` plus
+`additionalProperties:false`, that every tool exposes the expected
+`annotations.readOnlyHint` read/write split, and that required `query_ontology.operation` plus
 the `query_ontology.operation` / `query_ontology.targetOperation` enums match
 the graph engine's runtime allow-lists. It also checks the installed batch
 tool schemas for the same 50-row cap used by `get_concepts`, `add_concepts`,

@@ -142,6 +142,11 @@ export function toolsListSchemaFailure(tools) {
   if (schemaDriftTool) {
     return `tools/list schema missing additionalProperties:false: ${schemaDriftTool.name || '(unknown)'}`;
   }
+  const expectedReadTools = new Set(EXPECTED_READ_TOOLS);
+  const annotationDriftTool = tools.find((tool) => tool?.annotations?.readOnlyHint !== expectedReadTools.has(tool?.name));
+  if (annotationDriftTool) {
+    return `tools/list readOnlyHint annotation drift: ${annotationDriftTool.name || '(unknown)'}`;
+  }
 
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
@@ -1960,7 +1965,7 @@ async function step2BootAndCall() {
         log('fail', schemaFailure);
         return res(false);
       }
-      log('ok', 'tools/list schema contract — strict arguments + graph-query enums + health tuning + post-write guidance');
+      log('ok', 'tools/list schema contract — strict arguments + read/write hints + graph-query enums + health tuning + post-write guidance');
       const strictFailure = strictArgsFailure(strictArgsRes);
       if (strictFailure) {
         log('fail', strictFailure);

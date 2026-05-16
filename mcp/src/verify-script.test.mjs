@@ -269,7 +269,10 @@ describe('verify.mjs first-contact gates', () => {
           'Successful writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
         inputSchema: { additionalProperties: false, properties: {} },
       },
-    ];
+    ].map((tool) => ({
+      ...tool,
+      annotations: { readOnlyHint: EXPECTED_READ_TOOLS.includes(tool.name) },
+    }));
     const withQueryTool = (queryTool) => [
       ...tools.slice(0, 10),
       queryTool,
@@ -304,6 +307,22 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure([{ name: 'list_concepts', inputSchema: { properties: {} } }]),
       'tools/list schema missing additionalProperties:false: list_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'list_concepts'
+          ? { ...tool, annotations: { readOnlyHint: false } }
+          : tool
+      ))),
+      'tools/list readOnlyHint annotation drift: list_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'add_concept'
+          ? { ...tool, annotations: { readOnlyHint: true } }
+          : tool
+      ))),
+      'tools/list readOnlyHint annotation drift: add_concept',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'query_ontology')),

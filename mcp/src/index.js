@@ -1150,8 +1150,30 @@ const TOOLS = [
   },
 ];
 
+const READ_TOOL_NAMES = new Set([
+  'list_concepts',
+  'get_concept',
+  'get_concepts',
+  'find_evidence',
+  'find_backlinks',
+  'find_neighbors',
+  'find_path',
+  'list_kinds',
+  'find_orphans',
+  'query_concepts',
+  'compile_ontology',
+  'query_ontology',
+  'validate_vault',
+  'analyze_repo_structure',
+  'infer_imports',
+]);
+
 const TOOLS_FOR_LIST = TOOLS.map((tool) => ({
   ...tool,
+  annotations: {
+    ...(tool.annotations || {}),
+    readOnlyHint: READ_TOOL_NAMES.has(tool.name),
+  },
   inputSchema: {
     ...tool.inputSchema,
     additionalProperties: false,

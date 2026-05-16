@@ -21,7 +21,8 @@ import {
 } from "../mcp/scripts/json-rpc-lines.mjs";
 import {
   compileSummaryFailure,
-  expectedToolSplitLabel,
+  EXPECTED_READ_TOOLS,
+  EXPECTED_WRITE_TOOLS,
   formatCount,
   listConceptsFailure,
   listKindsFailure,
@@ -3973,7 +3974,10 @@ async function main() {
   if (toolsList) {
     const tools = Array.isArray(toolsList.tools) ? toolsList.tools : [];
     const schemaFailure = toolsListSchemaFailure(tools);
-    console.log(`  tools: ${tools.length} (${expectedToolSplitLabel()})`);
+    const readCount = tools.filter((tool) => tool?.annotations?.readOnlyHint === true).length;
+    const writeCount = tools.filter((tool) => tool?.annotations?.readOnlyHint === false).length;
+    const expectedSplit = `${EXPECTED_READ_TOOLS.length} read + ${EXPECTED_WRITE_TOOLS.length} write`;
+    console.log(`  tools: ${tools.length} (${readCount} read + ${writeCount} write; expected ${expectedSplit})`);
     console.log(`  schema: ${schemaFailure ? `${COLORS.yellow}${schemaFailure}${COLORS.reset}` : `${COLORS.green}pass${COLORS.reset}`}`);
   }
 
