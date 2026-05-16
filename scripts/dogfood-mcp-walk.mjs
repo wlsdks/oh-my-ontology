@@ -18,7 +18,7 @@ import {
   missingResponseLabels,
   parseJsonRpcResponses,
 } from "../mcp/scripts/json-rpc-lines.mjs";
-import { validateVaultFailure } from "../mcp/scripts/verify.mjs";
+import { validateVaultFailure, vaultWarningsFailure } from "../mcp/scripts/verify.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
@@ -162,8 +162,9 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
   recordResult(failures, "workspace_brief", brief);
   recordResult(failures, "health", health);
 
-  if (list?.vaultWarnings && ((list.vaultWarnings.errorCount || 0) > 0 || (list.vaultWarnings.warningCount || 0) > 0)) {
-    failures.push("list_concepts: vaultWarnings present");
+  if (list) {
+    const warningsFailure = vaultWarningsFailure(list);
+    if (warningsFailure) failures.push(warningsFailure);
   }
   if (validation) {
     const validationFailure = validateVaultFailure(validation);

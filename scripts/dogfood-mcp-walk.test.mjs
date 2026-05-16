@@ -107,7 +107,7 @@ describe("evaluateDogfoodGate", () => {
       ...okShape,
       list: { ...okShape.list, vaultWarnings: { errorCount: 0, warningCount: 1 } },
     });
-    assert.deepEqual(failures, ["list_concepts: vaultWarnings present"]);
+    assert.deepEqual(failures, ["list_concepts vaultWarnings present — errors 0, warnings 1"]);
   });
 
   it("fails on validate_vault problem files", () => {
