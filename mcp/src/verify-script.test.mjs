@@ -199,6 +199,25 @@ describe('verify.mjs first-contact gates', () => {
           required: ['concepts'],
           properties: { concepts: { type: 'array', maxItems: 50 } },
         },
+        outputSchema: {
+          type: 'object',
+          required: ['concepts'],
+          properties: {
+            concepts: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'ok'],
+                properties: {
+                  slug: { type: 'string' },
+                  ok: { type: 'boolean' },
+                  warnings: { type: 'array', items: { type: 'string' } },
+                },
+              },
+            },
+            postWriteMaintenance: { type: 'object' },
+          },
+        },
       },
       {
         name: 'add_relations',
@@ -217,6 +236,27 @@ describe('verify.mjs first-contact gates', () => {
                 },
               },
             },
+          },
+        },
+        outputSchema: {
+          type: 'object',
+          required: ['relations'],
+          properties: {
+            relations: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['ok', 'from', 'to', 'type'],
+                properties: {
+                  ok: { type: 'boolean' },
+                  from: { type: 'string' },
+                  to: { type: 'string' },
+                  type: { type: 'string' },
+                  alreadyExists: { type: 'boolean' },
+                },
+              },
+            },
+            postWriteMaintenance: { type: 'object' },
           },
         },
       },
@@ -1626,6 +1666,53 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.slice(4),
       ]),
       'add_concepts.concepts batch cap schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'add_concepts'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'add_concepts').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties,
+              concepts: {
+                ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties.concepts,
+                items: {
+                  ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties.concepts.items,
+                  required: ['slug'],
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'add_concepts outputSchema rows drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relations'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relations'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'add_relations').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties,
+              relations: {
+                ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations,
+                items: {
+                  ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations.items.properties,
+                    alreadyExists: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'add_relations outputSchema row alreadyExists drift',
     );
     assert.equal(
       toolsListSchemaFailure([

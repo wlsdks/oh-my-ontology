@@ -571,6 +571,28 @@ const TOOLS = [
       },
       required: ['concepts'],
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        concepts: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: { type: 'string' },
+              ok: { type: 'boolean' },
+              filePath: { type: 'string' },
+              changed: { type: 'boolean' },
+              warnings: { type: 'array', items: { type: 'string' } },
+              error: { type: 'string' },
+            },
+            required: ['slug', 'ok'],
+          },
+        },
+        postWriteMaintenance: { type: 'object' },
+      },
+      required: ['concepts'],
+    },
   },
   {
     name: 'add_relation',
@@ -654,6 +676,30 @@ const TOOLS = [
           },
           description: 'Array of relation specs (max 50). Each row uses the same shape as `add_relation` input.',
         },
+      },
+      required: ['relations'],
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        relations: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              ok: { type: 'boolean' },
+              from: { type: 'string' },
+              to: { type: 'string' },
+              type: { type: 'string' },
+              key: { type: 'string' },
+              changed: { type: 'boolean' },
+              alreadyExists: { type: 'boolean' },
+              error: { type: 'string' },
+            },
+            required: ['ok', 'from', 'to', 'type'],
+          },
+        },
+        postWriteMaintenance: { type: 'object' },
       },
       required: ['relations'],
     },

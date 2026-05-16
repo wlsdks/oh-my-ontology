@@ -815,6 +815,64 @@ export function toolsListSchemaFailure(tools) {
     }
   }
 
+  const addConceptsTool = tools.find((candidate) => candidate?.name === 'add_concepts');
+  if (addConceptsTool.outputSchema?.type !== 'object') {
+    return 'add_concepts outputSchema root drift';
+  }
+  if (!sameArray(addConceptsTool.outputSchema?.required, ['concepts'])) {
+    return 'add_concepts outputSchema required drift';
+  }
+  const addConceptRowsSchema = outputPropertyAt(addConceptsTool, ['properties', 'concepts']);
+  if (
+    addConceptRowsSchema?.type !== 'array' ||
+    addConceptRowsSchema.items?.type !== 'object' ||
+    !sameArray(addConceptRowsSchema.items?.required, ['slug', 'ok'])
+  ) {
+    return 'add_concepts outputSchema rows drift';
+  }
+  if (addConceptRowsSchema.items?.properties?.slug?.type !== 'string') {
+    return 'add_concepts outputSchema row slug drift';
+  }
+  if (addConceptRowsSchema.items?.properties?.ok?.type !== 'boolean') {
+    return 'add_concepts outputSchema row ok drift';
+  }
+  if (addConceptRowsSchema.items?.properties?.warnings?.type !== 'array' || addConceptRowsSchema.items?.properties?.warnings?.items?.type !== 'string') {
+    return 'add_concepts outputSchema row warnings drift';
+  }
+  if (outputPropertyAt(addConceptsTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
+    return 'add_concepts outputSchema postWriteMaintenance drift';
+  }
+
+  const addRelationsTool = tools.find((candidate) => candidate?.name === 'add_relations');
+  if (addRelationsTool.outputSchema?.type !== 'object') {
+    return 'add_relations outputSchema root drift';
+  }
+  if (!sameArray(addRelationsTool.outputSchema?.required, ['relations'])) {
+    return 'add_relations outputSchema required drift';
+  }
+  const addRelationRowsSchema = outputPropertyAt(addRelationsTool, ['properties', 'relations']);
+  if (
+    addRelationRowsSchema?.type !== 'array' ||
+    addRelationRowsSchema.items?.type !== 'object' ||
+    !sameArray(addRelationRowsSchema.items?.required, ['ok', 'from', 'to', 'type'])
+  ) {
+    return 'add_relations outputSchema rows drift';
+  }
+  for (const propertyName of ['from', 'to', 'type']) {
+    if (addRelationRowsSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `add_relations outputSchema row ${propertyName} drift`;
+    }
+  }
+  if (addRelationRowsSchema.items?.properties?.ok?.type !== 'boolean') {
+    return 'add_relations outputSchema row ok drift';
+  }
+  if (addRelationRowsSchema.items?.properties?.alreadyExists?.type !== 'boolean') {
+    return 'add_relations outputSchema row alreadyExists drift';
+  }
+  if (outputPropertyAt(addRelationsTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
+    return 'add_relations outputSchema postWriteMaintenance drift';
+  }
+
   for (const toolName of [
     'add_relation',
     'patch_concept',

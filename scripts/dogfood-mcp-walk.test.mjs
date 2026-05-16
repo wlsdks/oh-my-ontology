@@ -530,6 +530,25 @@ function makeDogfoodToolsList() {
       if (name === "add_concepts") {
         tool.inputSchema.required = ["concepts"];
         tool.inputSchema.properties.concepts = { type: "array", maxItems: 50 };
+        tool.outputSchema = {
+          type: "object",
+          required: ["concepts"],
+          properties: {
+            concepts: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "ok"],
+                properties: {
+                  slug: { type: "string" },
+                  ok: { type: "boolean" },
+                  warnings: { type: "array", items: { type: "string" } },
+                },
+              },
+            },
+            postWriteMaintenance: { type: "object" },
+          },
+        };
       }
       if (name === "add_relations") {
         tool.inputSchema.required = ["relations"];
@@ -537,6 +556,27 @@ function makeDogfoodToolsList() {
           type: "array",
           maxItems: 50,
           items: { properties: { expected_mtime: { type: "number", minimum: 0 } } },
+        };
+        tool.outputSchema = {
+          type: "object",
+          required: ["relations"],
+          properties: {
+            relations: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["ok", "from", "to", "type"],
+                properties: {
+                  ok: { type: "boolean" },
+                  from: { type: "string" },
+                  to: { type: "string" },
+                  type: { type: "string" },
+                  alreadyExists: { type: "boolean" },
+                },
+              },
+            },
+            postWriteMaintenance: { type: "object" },
+          },
         };
       }
       if (["add_relation", "patch_concept", "rename_concept", "merge_concepts", "delete_concept"].includes(name)) {
@@ -2383,6 +2423,18 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: inferOutputSchemaDrifted }),
       ["tools/list: infer_imports outputSchema edge kind drift"],
+    );
+    const addConceptsOutputSchemaDrifted = makeDogfoodToolsList();
+    addConceptsOutputSchemaDrifted.tools.find((tool) => tool.name === "add_concepts").outputSchema.properties.concepts.items.required = ["slug"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: addConceptsOutputSchemaDrifted }),
+      ["tools/list: add_concepts outputSchema rows drift"],
+    );
+    const addRelationsOutputSchemaDrifted = makeDogfoodToolsList();
+    addRelationsOutputSchemaDrifted.tools.find((tool) => tool.name === "add_relations").outputSchema.properties.relations.items.properties.alreadyExists.type = "string";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: addRelationsOutputSchemaDrifted }),
+      ["tools/list: add_relations outputSchema row alreadyExists drift"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),

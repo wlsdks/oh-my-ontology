@@ -435,6 +435,20 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(validateVault?.outputSchema?.properties?.scanned?.type, "integer");
     assert.equal(validateVault?.outputSchema?.properties?.problems?.type, "array");
     assert.equal(validateVault?.outputSchema?.properties?.summary?.properties?.byCode?.additionalProperties?.properties?.files?.items?.type, "string");
+    const addConcepts = findTool("add_concepts");
+    assert.equal(addConcepts?.outputSchema?.type, "object");
+    assert.deepEqual(addConcepts?.outputSchema?.required, ["concepts"]);
+    assert.deepEqual(addConcepts?.outputSchema?.properties?.concepts?.items?.required, ["slug", "ok"]);
+    assert.equal(addConcepts?.outputSchema?.properties?.concepts?.items?.properties?.ok?.type, "boolean");
+    assert.equal(addConcepts?.outputSchema?.properties?.concepts?.items?.properties?.warnings?.items?.type, "string");
+    assert.equal(addConcepts?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
+    const addRelations = findTool("add_relations");
+    assert.equal(addRelations?.outputSchema?.type, "object");
+    assert.deepEqual(addRelations?.outputSchema?.required, ["relations"]);
+    assert.deepEqual(addRelations?.outputSchema?.properties?.relations?.items?.required, ["ok", "from", "to", "type"]);
+    assert.equal(addRelations?.outputSchema?.properties?.relations?.items?.properties?.ok?.type, "boolean");
+    assert.equal(addRelations?.outputSchema?.properties?.relations?.items?.properties?.alreadyExists?.type, "boolean");
+    assert.equal(addRelations?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const findDesc = (name) => findTool(name)?.description;
     const getC = findDesc("get_concept");
     const getCs = findDesc("get_concepts");
@@ -2927,6 +2941,7 @@ await test("add_concepts — 배치 write, 순서 보존 + partial result", asyn
       callTool(3, "list_concepts"),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.concepts.length, 4, "concepts row 수 = 입력 길이");
     // 순서 보존: alpha → exist (fail) → beta → gamma (fail)
     assert.equal(result.concepts[0].slug, "alpha");
@@ -3327,6 +3342,7 @@ await test("add_relations — 배치 write, row 순서 보존 + canonical sort +
       callTool(3, "get_concept", { slug: "p" }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.relations.length, 5, "relations row 수 = 입력 길이");
     // 순서 보존
     assert.equal(result.relations[0].ok, true);
