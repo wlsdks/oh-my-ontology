@@ -95,6 +95,17 @@ describe('package contract helpers', () => {
     assert.match(row, /later valid slugs still resolve/);
   });
 
+  it('keeps the MCP README explicit about focused source-checkout verification', () => {
+    const readme = readFileSync('mcp/README.md', 'utf-8');
+    const section = readme.split('### Source-checkout verification')[1]?.split('### 2. Restart Claude Code')[0] ?? '';
+
+    assert.match(section, /pnpm integration:mcp:readme/);
+    assert.match(section, /pnpm test:mcp:suggestions/);
+    assert.match(section, /first-contact read-only MCP flow/);
+    assert.match(section, /OMOT_TEST_NAME_PATTERN/);
+    assert.match(section, /Node `--test-name-pattern`/);
+  });
+
   it('keeps the MCP verify README aligned with first-contact census gates', () => {
     const readme = readFileSync('mcp/README.md', 'utf-8');
     const verifySection = readme.split('### One-line verify CLI')[1]?.split('### Manual verification')[0] ?? '';
@@ -211,6 +222,17 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`path` \/ `project_scope` calls/);
     assert.match(verifySection, /Vaults without a `kind: project`\s+node skip/);
     assert.match(verifySection, /empty vault\s+folders skip\s+node-targeted graph smoke/);
+  });
+
+  it('keeps the CLI README explicit about focused source-checkout verification', () => {
+    const readme = readFileSync('cli/README.md', 'utf-8');
+    const section = readme.split('### Source-checkout verification')[1]?.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[0] ?? '';
+
+    assert.match(section, /pnpm integration:cli:mcp-verify/);
+    assert.match(section, /pnpm test:mcp:package/);
+    assert.match(section, /installed MCP verification wrapper/);
+    assert.match(section, /OMOT_TEST_NAME_PATTERN/);
+    assert.match(section, /Node `--test-name-pattern`/);
   });
 
   it('keeps the CLI changelog aligned with the mcp-verify census scope', () => {

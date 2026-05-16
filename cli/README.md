@@ -46,6 +46,23 @@ These wrap the MCP server (`oh-my-ontology-mcp`) so the developer has the same a
 
 These commands require `oh-my-ontology-mcp` (declared in `dependencies` — `npm install` pulls it in automatically).
 
+### Source-checkout verification
+
+When editing the CLI package from the monorepo, start with the focused root
+checks that match the touched surface:
+
+```bash
+pnpm integration:cli:mcp-verify
+pnpm test:mcp:package
+```
+
+`integration:cli:mcp-verify` runs only the installed MCP verification wrapper
+subset inside the spawn-heavy CLI integration file. `test:mcp:package` checks
+package-script and tarball contract drift without running unrelated UI or E2E
+gates. Use `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
+`pnpm integration:cli` when the touched CLI integration case has a different
+name.
+
 `oh-my-ontology mcp-verify [vault]` is the fastest installed-package sanity
 check for the agent-facing surface. It resolves the vault the same way graph
 commands do, then delegates to `oh-my-ontology-mcp/scripts/verify.mjs`.

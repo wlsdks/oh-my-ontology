@@ -42,6 +42,22 @@ Or, once published to npm, via `npx`:
 
 If `OMOT_VAULT` is not set, the current working directory is used as the vault root.
 
+### Source-checkout verification
+
+When editing this MCP package from the monorepo, prefer the focused root checks
+before escalating to the full integration suite:
+
+```bash
+pnpm integration:mcp:readme
+pnpm test:mcp:suggestions
+```
+
+`integration:mcp:readme` runs the documented first-contact read-only MCP flow
+only. `test:mcp:suggestions` covers strict enum / argument suggestion behavior.
+Use `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
+`pnpm integration:mcp` when the touched MCP integration case has a different
+name.
+
 ### 2. Restart Claude Code
 
 The server connects over stdio. You should now see 23 tools under the `oh-my-ontology` namespace.
