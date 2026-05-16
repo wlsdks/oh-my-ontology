@@ -312,6 +312,8 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /tools\/list schema strictness/);
   assert.match(clean, /runtime unknown-argument \/ invalid-enum rejection/);
   assert.match(clean, /missing maintenance_plan\.afterActionId cursor smoke/);
+  assert.match(clean, /Maintenance filters are enum-validated for phases\/severities\/kinds/);
+  assert.match(clean, /cursor miss smoke requires cursor\.found=false, cursor\.reason, zero remaining actions, and no next actions/);
 });
 
 await test('mcp-verify — rejects invalid timeout values', async () => {

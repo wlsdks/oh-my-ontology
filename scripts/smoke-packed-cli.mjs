@@ -261,6 +261,8 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /tools\/list schema strictness/);
   assert.match(cliMcpVerifyHelp.stdout, /runtime unknown-argument \/ invalid-enum rejection/);
   assert.match(cliMcpVerifyHelp.stdout, /missing maintenance_plan\.afterActionId cursor smoke/);
+  assert.match(cliMcpVerifyHelp.stdout, /Maintenance filters are enum-validated for phases\/severities\/kinds/);
+  assert.match(cliMcpVerifyHelp.stdout, /cursor miss smoke requires cursor\.found=false, cursor\.reason, zero remaining actions, and no next actions/);
 
   const missingVerifyOverride = runRaw(cliBin, ['mcp-verify', 'ontology'], {
     cwd: projectDir,

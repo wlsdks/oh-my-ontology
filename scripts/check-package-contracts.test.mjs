@@ -328,6 +328,7 @@ describe('package contract helpers', () => {
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
 
     assert.match(tableRow, /project-node `list_concepts` probe/);
+    assert.match(tableRow, /enum-validated `maintenance_plan` filters/);
     assert.match(tableRow, /missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(tableRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
@@ -338,6 +339,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`query_ontology\.operation="overveiw"` inputs/);
     assert.match(verifySection, /missing `maintenance_plan\.afterActionId` cursor contract/);
     assert.match(verifySection, /`cursor\.found=false`/);
+    assert.match(verifySection, /enum-validated\s+`maintenance_plan\.phases` \/ `maintenance_plan\.severities` \/\s+`maintenance_plan\.kinds` filters/);
+    assert.match(verifySection, /strict work-queue\s+checks before starting the MCP server/);
     assert.match(verifySection, /Batch tool caps/);
     assert.match(verifySection, /Write-safety schema/);
     assert.match(verifySection, /get_concepts/);
@@ -521,7 +524,9 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(mcpVerifyRow, /project-node `list_concepts` probe/);
     assert.match(mcpVerifyRow, /missing `maintenance_plan\.afterActionId` cursor smoke/);
+    assert.match(mcpVerifyRow, /`maintenance_plan\.phases` \/ `maintenance_plan\.severities` \/ `maintenance_plan\.kinds` enum filter/);
     assert.match(mcpVerifyRow, /`cursor\.found=false`/);
+    assert.match(mcpVerifyRow, /zero remaining actions 계약/);
     assert.match(mcpVerifyRow, /`project_scope` hard gate 를 놓치지 않는다/);
     assert.match(mcpVerifyRow, /project-less vault/);
     assert.match(mcpVerifyRow, /empty vault/);
@@ -655,6 +660,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /runtime unknown-argument/);
     assert.match(smoke, /invalid-enum rejection/);
     assert.ok(smoke.includes('missing maintenance_plan\\.afterActionId cursor smoke'));
+    assert.match(smoke, /Maintenance filters are enum-validated for phases\\\/severities\\\/kinds/);
+    assert.match(smoke, /cursor miss smoke requires cursor\\\.found=false, cursor\\\.reason, zero remaining actions, and no next actions/);
     assert.match(smoke, /maintenance cursor — missing afterActionId reported/);
     assert.ok(smoke.includes('directMcpVerify.stdout, /maintenance cursor'));
     assert.ok(smoke.includes('directMcpVerifyVaultFlag.stdout, /maintenance cursor'));
@@ -702,6 +709,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /Node `--test-name-pattern`/);
     assert.match(regressionSection, /`pnpm integration:cli:mcp-verify`/);
     assert.match(regressionSection, /missing `maintenance_plan\.afterActionId` cursor smoke/);
+    assert.match(regressionSection, /maintenance filter enum/);
     assert.match(regressionSection, /missing cursor smoke 범위/);
   });
 
