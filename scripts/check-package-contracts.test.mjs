@@ -111,6 +111,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`query_ontology\(\{operation:"path"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"project_scope"\}\)`/);
     assert.match(verifySection, /project-node `list_concepts` probe/);
+    assert.match(verifySection, /`kind: project`/);
+    assert.match(verifySection, /`list_kinds\.byKind\.project`/);
     assert.match(verifySection, /`additionalProperties:false`/);
     assert.match(verifySection, /required `query_ontology\.operation`/);
     assert.match(verifySection, /`query_ontology\.operation` \/[\s\S]*`query_ontology\.targetOperation` enums/);
@@ -173,6 +175,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /get_concepts/);
     assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /probes `kind: project` directly before graph smoke/);
+    assert.match(verifySection, /`list_kinds\.byKind\.project`/);
     assert.match(verifySection, /Node census totals are cross-checked across `list_kinds`, `list_concepts`,\s+`compile_ontology`, and `overview`/);
     assert.match(verifySection, /`validate_vault\.scanned` remains file-level\s+health/);
     assert.match(verifySection, /stdout/);

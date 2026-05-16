@@ -109,7 +109,7 @@ node-count consistency 는 `list_kinds.total`, `list_concepts.total`,
 말하는지도 확인해 compiler path, overview path, vault listing path 가 서로 다른
 snapshot 을 보고 있는 회귀를 잡는다.
 `list_concepts` 응답은 `total`, `vaultRoot`, `nodes[]` 와 각 node 의
-`slug`/`kind`/`title`/`mtime` 기본 shape 를 검증하고, dogfood walk 는
+`slug`/`kind`/`title`/`mtime` 기본 shape 를 검증하고, verify / dogfood walk 는
 `list_kinds.byKind` 합계가 `total` 과 맞는지도 확인해 첫 접속 census 가 깨진
 상태를 조기에 잡는다.
 dogfood walk 는 `find_evidence.matches`, `find_path.hops/hopCount`,
@@ -117,7 +117,7 @@ dogfood walk 는 `find_evidence.matches`, `find_path.hops/hopCount`,
 agent 가 받는 탐색 결과가 실제로 사용할 수 있는 구조인지 확인한다.
 또한 `get_concepts` 를 실제 project / mcp-server slug 와 missing slug 를 섞어
 호출해 batch reader 의 성공 row 와 partial row 가 동시에 유지되는지 확인한다.
-project-node `list_concepts` probe 도 fail-closed 로 확인해 dogfood vault 에서
+project-node `list_concepts` probe 도 fail-closed 로 확인해 verify / dogfood vault 에서
 `project_scope` smoke 가 하드코딩된 slug 에만 기대지 않고 실제 project-node
 discovery 계약을 검증한다. 이 probe 는 반환 row 가 `kind: project` 인지와
 `list_kinds.byKind.project` census 가 probe total 과 일치하는지도 같이 본다.

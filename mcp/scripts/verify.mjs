@@ -499,6 +499,23 @@ export function listConceptsFailure(parsed) {
   return vaultWarningsFailure(parsed);
 }
 
+export function projectProbeFailure(parsed, kinds) {
+  const shapeFailure = listConceptsFailure(parsed);
+  if (shapeFailure) return `project probe ${shapeFailure}`;
+  if (parsed.total < 1) {
+    return 'project probe response missing project node';
+  }
+  const nonProject = parsed.nodes.find((node) => node?.kind !== 'project');
+  if (nonProject) {
+    return `project probe returned non-project node: ${nonProject.slug || '(unknown)'}`;
+  }
+  const kindProjectCount = kinds?.byKind?.project;
+  if (Number.isInteger(kindProjectCount) && parsed.total >= 1 && parsed.total !== kindProjectCount) {
+    return `project probe count mismatch — list_kinds project ${kindProjectCount}, probe ${parsed.total}`;
+  }
+  return null;
+}
+
 export function getConceptsFailure(parsed) {
   if (!Array.isArray(parsed?.concepts)) {
     return 'get_concepts response missing concepts array';
@@ -1359,9 +1376,9 @@ async function step2BootAndCall() {
       try {
         const text = projectProbeRes.result.content?.[0]?.text || '';
         const parsed = JSON.parse(text);
-        const failure = listConceptsFailure(parsed);
+        const failure = projectProbeFailure(parsed, kindsPayload);
         if (failure) {
-          log('fail', `project probe ${failure}`);
+          log('fail', failure);
           return res(false);
         }
         log('ok', `project probe — ${formatCount(parsed.total, 'project node')}`);

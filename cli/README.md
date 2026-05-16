@@ -63,6 +63,8 @@ Write-safety schema for `expected_mtime` conflict guards and destructive
 It also probes `kind: project` directly before graph smoke, so `project_scope`
 does not get skipped just because the project node was outside the first
 `list_concepts` sample.
+The project probe also verifies returned rows are `kind: project` and that its
+total matches `list_kinds.byKind.project`.
 It also checks `get_concepts` with discovered vault slugs plus one missing slug,
 so installed CLI users catch batch-reader success and partial-row contract drift.
 Node census totals are cross-checked across `list_kinds`, `list_concepts`,

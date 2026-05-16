@@ -226,7 +226,8 @@ them with the closest argument/value hint.
 `project_scope` is a hard gate when the vault has a `kind: project` node. The
 verify path probes `kind: project` directly before graph smoke, so containment
 checks are not skipped just because the project node was outside the first
-`list_concepts` sample. Valid project-less vaults skip that one
+`list_concepts` sample. The probe also verifies that returned rows are
+`kind: project` and that its total matches `list_kinds.byKind.project`. Valid project-less vaults skip that one
 containment-specific check while still gating `neighbors` and `path`. Empty
 vaults skip node-targeted graph smoke until there is at least one node, but
 still gate boot, inventory, validation, diagnosis, compile, overview, and query

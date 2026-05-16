@@ -37,6 +37,7 @@ import {
   parseVerifyTimeoutMs,
   neighborsFailure,
   pathQueryFailure,
+  projectProbeFailure,
   projectMapQueryPlanFailure,
   projectScopeFailure,
   serverStartupFailure,
@@ -643,6 +644,41 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(listConceptsFailure({ total: 1, vaultRoot: '/tmp/vault', nodes: [{ slug: 'project' }] }), 'list_concepts response missing node kind: project');
     assert.equal(listConceptsFailure({ total: 1, vaultRoot: '/tmp/vault', nodes: [{ slug: 'project', kind: 'project' }] }), 'list_concepts response missing node title: project');
     assert.equal(listConceptsFailure({ total: 1, vaultRoot: '/tmp/vault', nodes: [{ slug: 'project', kind: 'project', title: 'Project' }] }), 'list_concepts response missing node mtime: project');
+  });
+
+  it('fails malformed project probe payloads', () => {
+    assert.equal(
+      projectProbeFailure({ total: 0, vaultRoot: '/tmp/vault', nodes: [] }, { byKind: { project: 1 } }),
+      'project probe response missing project node',
+    );
+    assert.equal(
+      projectProbeFailure({ total: 1, nodes: [{ slug: 'project', kind: 'project', title: 'Project', mtime: 1 }] }, { byKind: { project: 1 } }),
+      'project probe list_concepts response missing vaultRoot',
+    );
+    assert.equal(
+      projectProbeFailure({
+        total: 1,
+        vaultRoot: '/tmp/vault',
+        nodes: [{ slug: 'capabilities/not-project', kind: 'capability', title: 'Wrong', mtime: 1 }],
+      }, { byKind: { project: 1 } }),
+      'project probe returned non-project node: capabilities/not-project',
+    );
+    assert.equal(
+      projectProbeFailure({
+        total: 2,
+        vaultRoot: '/tmp/vault',
+        nodes: [{ slug: 'project', kind: 'project', title: 'Project', mtime: 1 }],
+      }, { byKind: { project: 1 } }),
+      'project probe count mismatch — list_kinds project 1, probe 2',
+    );
+    assert.equal(
+      projectProbeFailure({
+        total: 1,
+        vaultRoot: '/tmp/vault',
+        nodes: [{ slug: 'project', kind: 'project', title: 'Project', mtime: 1 }],
+      }, { byKind: { project: 1 } }),
+      null,
+    );
   });
 
   it('fails malformed list_concepts vaultWarnings payloads', () => {
