@@ -854,6 +854,16 @@ export function buildGraphQuerySmokeRequests(graphSmoke) {
   return { requests, expectedResponseIds };
 }
 
+function allGraphQuerySmokeResponseIds() {
+  return buildGraphQuerySmokeRequests({
+    slug: 'verify-smoke-node',
+    pathTarget: 'verify-smoke-project',
+    project: 'verify-smoke-project',
+    hasNode: true,
+    hasProject: true,
+  }).expectedResponseIds;
+}
+
 export function firstContactErrorFailure(response) {
   const label = FIRST_CONTACT_RESPONSE_LABELS.get(response?.id) || `id ${response?.id}`;
   const message = response?.error?.message || JSON.stringify(response?.error || {});
@@ -1665,7 +1675,7 @@ async function step2BootAndCall() {
             sentGraphQuerySmoke = true;
             const graphSmoke = buildGraphQuerySmokeArgs(listPayload, projectPayload);
             const graphSmokePlan = buildGraphQuerySmokeRequests(graphSmoke);
-            for (const id of [13, 14, 15]) {
+            for (const id of allGraphQuerySmokeResponseIds()) {
               if (!graphSmokePlan.expectedResponseIds.includes(id)) expectedFirstContactIds.delete(id);
             }
             if (graphSmokePlan.requests.length > 0) {
