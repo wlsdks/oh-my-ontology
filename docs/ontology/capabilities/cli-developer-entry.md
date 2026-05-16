@@ -66,7 +66,9 @@ scripts/smoke-clean-onboarding.mjs — fresh user smoke. 임시 `HOME` / `CODEX_
 
 scripts/smoke-packed-cli.mjs — packed install smoke. local MCP + CLI tarball 을 임시
 프로젝트에 설치한 뒤 `init`, installed `mcp-verify`, MCP package `npm run verify`,
-`compile --summary` 를 실행해 source checkout 에서는 안 보이는 bin/package/files drift 를 잡는다.
+`compile --summary` 를 실행해 source checkout 에서는 안 보이는 bin/package/files drift 를
+잡는다. 통과 시 MCP/CLI tarball 의 파일 수와 압축/해제 크기 요약도 출력해 release
+검토자가 publish 전 패키징 비대를 즉시 볼 수 있게 한다.
 
 scripts/check-package-contracts.mjs — publish 전 package manifest gate. `mcp/` 와
 `cli/` 의 bin / main / npm scripts 에서 도달 가능한 local import와 실행 파일이
