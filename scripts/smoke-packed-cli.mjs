@@ -97,6 +97,20 @@ try {
   assert.match(cliMcpVerify.stdout, /workspace_brief/);
   assert.match(cliMcpVerify.stdout, /health/);
 
+  const missingVerifyOverride = runRaw(cliBin, ['mcp-verify', 'ontology'], {
+    cwd: projectDir,
+    env: { OMOT_MCP_VERIFY_PATH: join(temp, 'missing-verify.mjs') },
+  });
+  assert.equal(missingVerifyOverride.status, 2);
+  assert.match(missingVerifyOverride.stderr, /OMOT_MCP_VERIFY_PATH does not exist/);
+
+  const directoryVerifyOverride = runRaw(cliBin, ['mcp-verify', 'ontology'], {
+    cwd: projectDir,
+    env: { OMOT_MCP_VERIFY_PATH: temp },
+  });
+  assert.equal(directoryVerifyOverride.status, 2);
+  assert.match(directoryVerifyOverride.stderr, /OMOT_MCP_VERIFY_PATH is not a file/);
+
   const installedMcpPkg = JSON.parse(
     readFileSync(join(installDir, 'node_modules', 'oh-my-ontology-mcp', 'package.json'), 'utf-8'),
   );
