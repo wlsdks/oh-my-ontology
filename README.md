@@ -123,6 +123,8 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 
 ```bash
 pnpm package:check              # MCP/CLI package files contract + self-test
+pnpm test:mcp:package           # focused package-script/tarball contract checks
+pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
 pnpm smoke:packed-cli           # pack/install MCP+CLI, verify installed flow/help/failure + tarball summary
@@ -131,7 +133,9 @@ cd mcp && OMOT_VAULT=../docs/ontology npm run verify
 ```
 
 Use these when changing `mcp/`, `cli/`, package manifests, or release
-scripts. `integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`
+scripts. Prefer the focused `test:mcp:*` scripts for small package or enum
+diagnostic changes before escalating to the broader release checks.
+`integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`
 so you can run only the spawn-heavy integration cases touched by a small
 change. `npm run verify` calls `get_concepts` with discovered slugs plus one
 missing slug, then runs `workspace_brief` and `health`, so the same batch-read
