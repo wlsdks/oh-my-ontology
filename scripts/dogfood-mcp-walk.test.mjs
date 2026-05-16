@@ -300,6 +300,35 @@ describe("evaluateDogfoodGate", () => {
     );
   });
 
+  it("fails when dogfood read surfaces disagree on counts", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, list: { ...okShape.list, total: 2 } }),
+      ["dogfood count mismatch — list_kinds.total 1, list_concepts.total 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, validation: { ...okShape.validation, scanned: 2 } }),
+      ["dogfood count mismatch — list_kinds.total 1, validate_vault.scanned 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, nodeCount: 2, byKind: { project: 2 } } }),
+      ["dogfood count mismatch — list_kinds.total 1, compile_ontology.nodeCount 2", "dogfood byKind mismatch — project: list_kinds 1, compile_ontology 2"],
+    );
+  });
+
+  it("fails when list_kinds and compile_ontology disagree by kind", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        kinds: { total: 1, byKind: { capability: 1 } },
+        compiled: { ...okShape.compiled, byKind: { project: 1 } },
+      }),
+      [
+        "dogfood byKind mismatch — capability: list_kinds 1, compile_ontology 0",
+        "dogfood byKind mismatch — project: list_kinds 0, compile_ontology 1",
+      ],
+    );
+  });
+
   it("fails on vault warnings", () => {
     const failures = evaluateDogfoodGate({
       ...okShape,

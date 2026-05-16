@@ -81,6 +81,9 @@ dogfood walk 는 `compile_ontology({ summary: true })` 도 직접 호출해
 `graphHash`, `maxMtime`, node/edge/alias/issue count, `byKind` / `byDomain`
 aggregate 가 유효한지 확인한다. `byKind` 합계가 `nodeCount` 와 다르거나
 edge breakdown 이 `edgeCount` 를 설명하지 못하면 gate 실패로 본다.
+이후 `list_kinds.total`, `list_concepts.total`, `validate_vault.scanned`,
+`compile_ontology.nodeCount` 를 서로 비교하고 `list_kinds.byKind` 와
+`compile_ontology.byKind` 가 같은 census 를 말하는지도 확인한다.
 `validate_vault` 응답은 `scanned`, `summary.problemFiles`,
 `summary.errorFiles`, `summary.warningFiles` count 와 `summary.byCode`
 aggregate shape 까지 검증해, malformed validation payload 가 clean vault 로

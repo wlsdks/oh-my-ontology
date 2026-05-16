@@ -212,6 +212,8 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
     const compileFailure = compileSummaryShapeFailure(compiled);
     if (compileFailure) failures.push(compileFailure);
   }
+  const consistencyFailures = crossToolConsistencyFailures({ kinds, list, validation, compiled });
+  failures.push(...consistencyFailures);
   if (brief && !briefShapeFailure && brief.status !== "healthy") {
     failures.push(`workspace_brief: status ${brief.status}`);
   }
@@ -378,6 +380,47 @@ function compileSummaryShapeFailure(result) {
     return "compile_ontology response edge counts do not cover edgeCount";
   }
   return null;
+}
+
+function crossToolConsistencyFailures({ kinds, list, validation, compiled }) {
+  if (
+    (kinds && listKindsFailure(kinds)) ||
+    (list && listConceptsFailure(list)) ||
+    (validation && validateVaultFailure(validation)) ||
+    (compiled && compileSummaryShapeFailure(compiled))
+  ) {
+    return [];
+  }
+
+  const failures = [];
+  const totals = [
+    ["list_kinds.total", kinds?.total],
+    ["list_concepts.total", list?.total],
+    ["validate_vault.scanned", validation?.scanned],
+    ["compile_ontology.nodeCount", compiled?.nodeCount],
+  ].filter(([, value]) => Number.isInteger(value));
+
+  if (totals.length > 1) {
+    const [, expected] = totals[0];
+    for (const [label, value] of totals.slice(1)) {
+      if (value !== expected) {
+        failures.push(`dogfood count mismatch — ${totals[0][0]} ${expected}, ${label} ${value}`);
+      }
+    }
+  }
+
+  if (kinds?.byKind && compiled?.byKind) {
+    const allKinds = new Set([...Object.keys(kinds.byKind), ...Object.keys(compiled.byKind)]);
+    for (const kind of [...allKinds].sort()) {
+      const kindsCount = kinds.byKind[kind] ?? 0;
+      const compiledCount = compiled.byKind[kind] ?? 0;
+      if (kindsCount !== compiledCount) {
+        failures.push(`dogfood byKind mismatch — ${kind}: list_kinds ${kindsCount}, compile_ontology ${compiledCount}`);
+      }
+    }
+  }
+
+  return failures;
 }
 
 function numericSummaryFailure(label, summary, keys) {
