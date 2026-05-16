@@ -879,6 +879,7 @@ async function main() {
       `  summary: nodes ${brief.summary?.nodes ?? "n/a"} · edges ${brief.summary?.edges ?? "n/a"} · issues ${brief.summary?.issues ?? "n/a"}`,
     );
     console.log(`  nextActions: ${(brief.nextActions || []).length}`);
+    console.log(`  healthChecks: ${(brief.health?.checks || []).length}`);
     for (const action of (brief.nextActions || []).slice(0, 5)) {
       console.log(`  ${action.kind?.padEnd(18) || ""} ${action.id || ""}`);
     }
@@ -990,7 +991,9 @@ async function main() {
   console.log(`  validate_vault: ${validation?.summary?.problemFiles ?? "n/a"} problem files`);
   console.log(`  find_path hop: ${path?.hopCount ?? "n/a"}`);
   console.log(`  find_backlinks: ${bl?.total ?? "n/a"} (mcp-server 가 얼마나 popular)`);
-  console.log(`  workspace_brief: ${brief?.status ?? "n/a"} (${(brief?.nextActions || []).length} next actions)`);
+  console.log(
+    `  workspace_brief: ${brief?.status ?? "n/a"} (${(brief?.nextActions || []).length} next actions · ${(brief?.health?.checks || []).length} health checks)`,
+  );
   console.log(`  health: ${health?.status ?? "n/a"} (${(health?.checks || []).length} checks)`);
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
   console.log(`  overview: ${overview?.graph?.nodes ?? "n/a"} nodes · ${overview?.graph?.edges ?? "n/a"} edges · ${(overview?.hubs || []).length} hubs`);
