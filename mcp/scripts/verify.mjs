@@ -341,6 +341,8 @@ export function maintenanceMissingCursorFailure(parsed) {
   if (parsed.actions.length !== 0) {
     return 'maintenance missing-cursor smoke returned actions';
   }
+  const summaryFailure = maintenanceSummaryFailure(parsed.summary, 'maintenance missing-cursor smoke');
+  if (summaryFailure) return summaryFailure;
   if (parsed.summary?.remainingActions !== 0) {
     return 'maintenance missing-cursor smoke should have zero remaining actions';
   }
@@ -372,9 +374,8 @@ export function maintenanceReadyCursorFailure(parsed) {
   if (!Array.isArray(parsed.actions)) {
     return 'maintenance ready-cursor smoke response missing actions array';
   }
-  if (typeof parsed.summary?.remainingActions !== 'number') {
-    return 'maintenance ready-cursor smoke missing remainingActions summary';
-  }
+  const summaryFailure = maintenanceSummaryFailure(parsed.summary, 'maintenance ready-cursor smoke');
+  if (summaryFailure) return summaryFailure;
   if (!Object.hasOwn(parsed, 'nextExecutableAction') || !Object.hasOwn(parsed, 'nextReviewAction')) {
     return 'maintenance ready-cursor smoke missing next action pointers';
   }
@@ -392,6 +393,42 @@ export function maintenanceReadyCursorFailure(parsed) {
     false,
   );
   if (nextReviewFailure) return nextReviewFailure;
+  return null;
+}
+
+function maintenanceSummaryFailure(summary, label) {
+  if (!summary || typeof summary !== 'object' || Array.isArray(summary)) {
+    return `${label} missing summary`;
+  }
+  for (const key of [
+    'totalActions',
+    'filteredActions',
+    'remainingActions',
+    'executableActions',
+    'reviewActions',
+    'compileIssues',
+    'dependencyCycles',
+    'canonicalizationActions',
+    'danglingReferences',
+    'relationRecommendations',
+    'externalElementRefs',
+    'externalElementRefsIgnored',
+    'unassignedNodes',
+    'emptyDomains',
+  ]) {
+    if (!Number.isInteger(summary[key]) || summary[key] < 0) {
+      return `${label} summary missing non-negative integer ${key}`;
+    }
+  }
+  if (summary.executableActions + summary.reviewActions !== summary.totalActions) {
+    return `${label} summary executable/review counts do not add up`;
+  }
+  if (summary.filteredActions > summary.totalActions) {
+    return `${label} summary filteredActions exceeds totalActions`;
+  }
+  if (summary.remainingActions > summary.filteredActions) {
+    return `${label} summary remainingActions exceeds filteredActions`;
+  }
   return null;
 }
 

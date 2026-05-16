@@ -803,10 +803,26 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('fails malformed maintenance missing-cursor smoke responses', () => {
+    const summary = {
+      totalActions: 3,
+      filteredActions: 3,
+      remainingActions: 0,
+      executableActions: 2,
+      reviewActions: 1,
+      compileIssues: 0,
+      dependencyCycles: 0,
+      canonicalizationActions: 0,
+      danglingReferences: 0,
+      relationRecommendations: 1,
+      externalElementRefs: 1,
+      externalElementRefsIgnored: 0,
+      unassignedNodes: 1,
+      emptyDomains: 0,
+    };
     const clean = {
       operation: 'maintenance_plan',
       sideEffect: false,
-      summary: { remainingActions: 0 },
+      summary,
       cursor: {
         afterActionId: 'maint_missing',
         found: false,
@@ -840,16 +856,36 @@ describe('verify.mjs first-contact gates', () => {
       'maintenance missing-cursor smoke returned actions',
     );
     assert.equal(
-      maintenanceMissingCursorFailure({ ...clean, summary: { remainingActions: 1 } }),
+      maintenanceMissingCursorFailure({ ...clean, summary: { ...summary, remainingActions: 1 } }),
       'maintenance missing-cursor smoke should have zero remaining actions',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, summary: { ...summary, totalActions: 2 } }),
+      'maintenance missing-cursor smoke summary executable/review counts do not add up',
     );
   });
 
   it('fails malformed maintenance ready-cursor smoke responses', () => {
+    const summary = {
+      totalActions: 3,
+      filteredActions: 3,
+      remainingActions: 0,
+      executableActions: 2,
+      reviewActions: 1,
+      compileIssues: 0,
+      dependencyCycles: 0,
+      canonicalizationActions: 0,
+      danglingReferences: 0,
+      relationRecommendations: 1,
+      externalElementRefs: 1,
+      externalElementRefsIgnored: 0,
+      unassignedNodes: 1,
+      emptyDomains: 0,
+    };
     const clean = {
       operation: 'maintenance_plan',
       sideEffect: false,
-      summary: { remainingActions: 0 },
+      summary,
       cursor: {
         afterActionId: null,
         found: true,
@@ -892,7 +928,11 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       maintenanceReadyCursorFailure({ ...clean, summary: {} }),
-      'maintenance ready-cursor smoke missing remainingActions summary',
+      'maintenance ready-cursor smoke summary missing non-negative integer totalActions',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({ ...clean, summary: { ...summary, remainingActions: 4 } }),
+      'maintenance ready-cursor smoke summary remainingActions exceeds filteredActions',
     );
     const withoutNextExecutable = { ...clean };
     delete withoutNextExecutable.nextExecutableAction;
