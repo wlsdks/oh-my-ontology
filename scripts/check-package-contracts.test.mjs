@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, it } from 'node:test';
@@ -31,6 +31,16 @@ function withPackage(pkg, files, fn) {
 }
 
 describe('package contract helpers', () => {
+  it('keeps filtered integration scripts discoverable from the root README', () => {
+    const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
+    const readme = readFileSync('README.md', 'utf-8');
+
+    assert.equal(pkg.scripts?.['integration:cli'], 'node --test cli/src/integration.test.mjs');
+    assert.equal(pkg.scripts?.['integration:mcp'], 'node --test mcp/src/integration.test.mjs');
+    assert.match(readme, /OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli/);
+    assert.match(readme, /OMOT_TEST_NAME_PATTERN="tools\/list\|initialize" pnpm integration:mcp/);
+  });
+
   it('parses package script file references', () => {
     assert.deepEqual(parseScriptFileRefs('node --test src/a.test.mjs scripts/check.mjs'), [
       'src/a.test.mjs',

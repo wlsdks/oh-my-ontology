@@ -123,13 +123,17 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 
 ```bash
 pnpm package:check              # MCP/CLI package files contract + self-test
+OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
+OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
 pnpm smoke:packed-cli           # pack/install MCP+CLI, verify installed flow + tarball summary
 pnpm dogfood:walk               # actual MCP stdio walk over this repo's ontology
 cd mcp && OMOT_VAULT=../docs/ontology npm run verify
 ```
 
 Use these when changing `mcp/`, `cli/`, package manifests, or release
-scripts. `npm run verify` calls `workspace_brief` and `health`, so the
+scripts. `integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`
+so you can run only the spawn-heavy integration cases touched by a small
+change. `npm run verify` calls `workspace_brief` and `health`, so the
 same first-contact diagnosis an AI agent should run is exercised locally.
 `dogfood:walk` runs that diagnosis plus graph lookup tasks against this
 repo's own `docs/ontology` vault and exits non-zero if the core MCP
