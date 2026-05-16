@@ -155,6 +155,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology --timeout-ms 15000/);
     assert.match(verifySection, /explicit positional vault or `--vault` argument takes\s+precedence over `OMOT_VAULT`/);
     assert.match(verifySection, /list_concepts\/project probe\/get_concepts\/find_orphans\/list_kinds/);
+    assert.match(verifySection, /✓ initialize instructions — first-contact safety guidance present/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
@@ -187,6 +188,10 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /destructive-tool `confirm` dry-run switches/);
     assert.match(verifySection, /`rename_concept\.overwrite`/);
     assert.match(verifySection, /`delete_concept\.force`/);
+    assert.match(verifySection, /`initialize\.instructions` gate fails/);
+    assert.match(verifySection, /read-only diagnosis flow/);
+    assert.match(verifySection, /`newSlug` \/ `overwrite: true` safety/);
+    assert.match(verifySection, /`delete_concept\.force` \/ dangling\s+referrers safety/);
     assert.match(verifySection, /runtime negative calls with `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"`/);
     assert.match(verifySection, /project-less vaults skip/);
@@ -231,6 +236,10 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`initialize\.instructions` now names the destructive-write safety boundaries directly/);
     assert.match(verifySection, /`overwrite: true`/);
     assert.match(verifySection, /dangling referrers/);
+    assert.match(verifySection, /`npm run verify` now fails when `initialize\.instructions` loses first-contact safety guidance/);
+    assert.match(verifySection, /read-only diagnosis/);
+    assert.match(verifySection, /`expected_mtime`/);
+    assert.match(verifySection, /`force: true`/);
     assert.match(verifySection, /runtime negative smoke calls with invalid `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"` inputs/);
   });

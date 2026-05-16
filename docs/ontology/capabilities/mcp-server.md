@@ -187,7 +187,10 @@ dispatch 가 갈라지지 않도록 한다. `get_concepts` / `add_concepts` /
 계약을 보게 한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
 실제로 보내고 unknown argument 거절 응답을 기대한다. write safety 도 같은 경로에서 `expected_mtime`
 conflict guard, destructive tool 의 `confirm` dry-run switch, `rename_concept.overwrite`, `delete_concept.force`
-schema 를 검사한다.
+schema 를 검사한다. 또한 installed verify 는 `initialize.instructions` 가
+read-only first-contact diagnosis, `expected_mtime`, existing `newSlug` /
+`overwrite: true`, `force: true`, dangling referrers 안내를 잃으면 실패해,
+설치된 패키지의 agent-facing startup guidance 가 write 전에도 증명되도록 한다.
 `initialize.instructions` 는 agent 가 write 도구부터 시도하지 않도록
 `validate_vault`, `workspace_brief`, `overview`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`

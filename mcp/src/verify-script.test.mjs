@@ -31,6 +31,7 @@ import {
   hasAllFirstContactResponses,
   hasFirstContactErrorResponse,
   healthChecksSummary,
+  initializeInstructionsFailure,
   listConceptsFailure,
   listKindsFailure,
   overviewFailure,
@@ -526,6 +527,35 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictEnumFailure({ result: { isError: true, content: [{ text: 'operation must be one of: overview. invalid value overveiw' }] } }),
       'strict enum response did not suggest the closest query_ontology operation',
+    );
+  });
+
+  it('fails initialize instructions missing first-contact safety guidance', () => {
+    const safeInstructions = [
+      'Use read-only first-contact diagnosis before write tools.',
+      'rename_concept refuses an existing `newSlug` unless overwrite: true is explicit.',
+      'delete_concept force: true means accepting dangling referrers.',
+      'Use expected_mtime when patching a previously-read concept.',
+      'Tool schemas reject unknown arguments with nearest hints.',
+      'This filler keeps the instructions representative of a real initialize response.',
+    ].join('\n');
+
+    assert.equal(initializeInstructionsFailure({ result: { instructions: safeInstructions } }), null);
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: '' } }),
+      'initialize instructions missing or too short',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('overwrite: true', '') } }),
+      'initialize instructions missing overwrite safety',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('dangling referrers', '') } }),
+      'initialize instructions missing dangling referrers safety',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('expected_mtime', '') } }),
+      'initialize instructions missing expected_mtime conflict guard',
     );
   });
 

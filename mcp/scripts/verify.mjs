@@ -229,6 +229,28 @@ export function strictEnumFailure(response) {
   return null;
 }
 
+export function initializeInstructionsFailure(response) {
+  const instructions = response?.result?.instructions;
+  if (typeof instructions !== 'string' || instructions.length < 200) {
+    return 'initialize instructions missing or too short';
+  }
+
+  const required = [
+    ['read-only first-contact diagnosis', /read-only first-contact diagnosis/i],
+    ['overwrite safety', /overwrite: true/],
+    ['existing newSlug safety', /existing `newSlug`|existing newSlug/i],
+    ['force safety', /force: true/],
+    ['dangling referrers safety', /dangling referrers/i],
+    ['expected_mtime conflict guard', /expected_mtime/],
+  ];
+  for (const [label, pattern] of required) {
+    if (!pattern.test(instructions)) {
+      return `initialize instructions missing ${label}`;
+    }
+  }
+  return null;
+}
+
 export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [1, 'initialize'],
   [2, 'tools/list'],
@@ -1433,6 +1455,13 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', `initialize OK — server ${initRes.result.serverInfo?.name}@${initRes.result.serverInfo?.version}`);
+
+      const instructionFailure = initializeInstructionsFailure(initRes);
+      if (instructionFailure) {
+        log('fail', instructionFailure);
+        return res(false);
+      }
+      log('ok', 'initialize instructions — first-contact safety guidance present');
 
       if (!listRes || !listRes.result?.tools) {
         log('fail', 'no tools/list response');

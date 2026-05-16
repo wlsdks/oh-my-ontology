@@ -206,6 +206,7 @@ A successful run looks like this:
 ✓ result: 7 passed, 0 failed
 · step 2 — server boot + tools/list + list_concepts/project probe/get_concepts/find_orphans/list_kinds (vault=../docs/ontology, timeout=8000ms)
 ✓ initialize OK — server oh-my-ontology-mcp@0.12.0
+✓ initialize instructions — first-contact safety guidance present
 ✓ tools/list 23/23 (15 read + 8 write) — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
 ✓ tools/list schema contract — strict arguments + graph-query enums
 ✓ strict arguments — unknown tool argument rejected at runtime
@@ -250,6 +251,10 @@ and `add_relations` at runtime, the `find_orphans.excludeKinds` string-array
 schema and root/sentinel default description, plus write-safety schemas for
 `expected_mtime` conflict guards, destructive-tool `confirm` dry-run switches,
 `rename_concept.overwrite`, and `delete_concept.force`.
+The `initialize.instructions` gate fails if first-contact guidance loses the
+read-only diagnosis flow, `expected_mtime`, `rename_concept` existing
+`newSlug` / `overwrite: true` safety, or `delete_concept.force` / dangling
+referrers safety.
 The verify path also makes runtime negative calls with `list_concepts.lmit`
 and `query_ontology.operation="overveiw"`, and fails unless the server rejects
 them with the closest argument/value hint.
