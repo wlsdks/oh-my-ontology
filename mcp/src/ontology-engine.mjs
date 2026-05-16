@@ -3629,8 +3629,14 @@ function normalizeTraversalDirection(direction, fallback) {
 }
 
 function normalizeDepth(value, fallback) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
-  return Math.max(0, Math.min(20, Math.trunc(value)));
+  if (value === undefined || value === null) return fallback;
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error('depth/maxHops must be a non-negative integer.');
+  }
+  if (value > 20) {
+    throw new Error('depth/maxHops must be <= 20.');
+  }
+  return value;
 }
 
 function normalizeLimit(value) {

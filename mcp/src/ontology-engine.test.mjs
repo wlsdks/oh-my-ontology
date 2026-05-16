@@ -123,6 +123,34 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.edges.map((edge) => edge.via), ['dependencies', 'dependencies']);
   });
 
+  it('rejects invalid traversal depths instead of clamping them', () => {
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'path',
+        from: 'capabilities/session',
+        to: 'auth-domain',
+        maxHops: 1.5,
+      }),
+      /depth\/maxHops must be a non-negative integer/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'reachability',
+        slug: 'capabilities/login',
+        depth: -1,
+      }),
+      /depth\/maxHops must be a non-negative integer/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'subgraph',
+        slug: 'capabilities/login',
+        depth: 21,
+      }),
+      /depth\/maxHops must be <= 20/,
+    );
+  });
+
   it('returns all bounded simple paths between two nodes', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'all_paths',
