@@ -35,9 +35,10 @@ describe('package contract helpers', () => {
     ]);
   });
 
-  it('parses static side-effect, multiline, and dynamic imports', () => {
+  it('parses static side-effect, re-export, multiline, and dynamic imports', () => {
     const source = `
 import './side-effect.mjs';
+export { value as reexported } from './re-export.mjs';
 import {
   value,
 } from './multi-line.mjs';
@@ -45,11 +46,12 @@ const mod = await import('./dynamic.mjs');
 writeFileSync('fixture.mjs', "import './not-real.mjs';");
 `;
 
-    assert.deepEqual(importedSpecifiers(source), [
+    assert.deepEqual(importedSpecifiers(source).sort(), [
       './side-effect.mjs',
+      './re-export.mjs',
       './multi-line.mjs',
       './dynamic.mjs',
-    ]);
+    ].sort());
   });
 
   it('matches files entries by exact file, directory, and glob', () => {

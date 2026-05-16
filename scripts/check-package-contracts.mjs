@@ -94,6 +94,9 @@ export function importedSpecifiers(source) {
   for (const match of source.matchAll(/^\s*import\b[^;]*?\bfrom\s+['"]([^'"]+)['"][^;]*;?/gm)) {
     imports.push(match[1]);
   }
+  for (const match of source.matchAll(/^\s*export\b[^;]*?\bfrom\s+['"]([^'"]+)['"][^;]*;?/gm)) {
+    imports.push(match[1]);
+  }
   for (const match of source.matchAll(
     /^\s*(?:const|let|var)?\s*[\w{}[\],\s]*=?\s*(?:await\s+)?import\(\s*['"]([^'"]+)['"]\s*\)/gm,
   )) {
