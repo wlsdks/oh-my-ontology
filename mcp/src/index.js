@@ -550,7 +550,7 @@ const TOOLS = [
       '`via` is the frontmatter key (`domains` / `domain` / `capabilities` / `elements` / `dependencies` / ' +
       '`relates` / `contains` / `describes`) that linked the two slugs — so the ' +
       'agent sees not just *that* A and B are connected but *why*. ' +
-      'Returns `{ found: false }` when no path is found within maxHops. maxHops defaults to 5.',
+      'Returns `{ found: false }` when no path is found within maxHops. maxHops defaults to 5 and is capped at 20.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -559,7 +559,8 @@ const TOOLS = [
         maxHops: {
           type: 'integer',
           minimum: 0,
-          description: 'Non-negative integer maximum hop count (default 5).',
+          maximum: 20,
+          description: 'Non-negative integer maximum hop count (default 5, max 20).',
         },
       },
       required: ['from', 'to'],
@@ -1919,7 +1920,7 @@ function resolveGraphRef(ref, docs) {
 function findPathTool({ from, to, maxHops }) {
   requireNonBlankString(from, 'from');
   requireNonBlankString(to, 'to');
-  requireOptionalNonNegativeInteger(maxHops, 'maxHops');
+  requireOptionalNonNegativeInteger(maxHops, 'maxHops', { max: 20 });
   const result = findPath(VAULT_ROOT, from, to, maxHops ?? 5);
   if (!result) {
     return { from, to, found: false, reason: '경로 없음 (또는 maxHops 초과)' };

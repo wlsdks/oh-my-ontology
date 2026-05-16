@@ -139,6 +139,21 @@ describe('findPath — edge metadata (R+)', () => {
       via: 'domain',
     });
   });
+
+  it('maxHops 는 core 에서도 non-negative integer, max 20 으로 검증', () => {
+    assert.throws(
+      () => findPath(pathRoot, 'project', 'elements/token', -1),
+      /maxHops must be a non-negative integer/,
+    );
+    assert.throws(
+      () => findPath(pathRoot, 'project', 'elements/token', 1.5),
+      /maxHops must be a non-negative integer/,
+    );
+    assert.throws(
+      () => findPath(pathRoot, 'project', 'elements/token', 21),
+      /maxHops must be <= 20/,
+    );
+  });
 });
 
 describe('findOrphans — graph frontmatter keys', () => {

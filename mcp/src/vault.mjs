@@ -77,6 +77,15 @@ function assertOptionalPlainObject(value, name) {
   assertPlainObject(value, name);
 }
 
+function assertBoundedNonNegativeInteger(value, name, { max }) {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative integer.`);
+  }
+  if (value > max) {
+    throw new Error(`${name} must be <= ${max}.`);
+  }
+}
+
 /**
  * frontmatter 의 array 키 중 *그래프 엣지로 해석되는* 키. 새 edge 타입을
  * 추가하면 (e.g. 'aggregates', 'implements') 여기만 갱신하면 findOrphans /
@@ -626,6 +635,7 @@ export function findOrphans(rootPath, options = {}) {
  * 경로 못 찾으면 null. maxHops (기본 5) 초과면 cutoff.
  */
 export function findPath(rootPath, fromSlug, toSlug, maxHops = 5) {
+  assertBoundedNonNegativeInteger(maxHops, 'maxHops', { max: 20 });
   const docs = loadVaultDocs(rootPath);
   const slugs = new Set(docs.map((d) => d.slug));
   // 마지막 segment 와 frontmatter slug 는 alias 로. project.md 가
