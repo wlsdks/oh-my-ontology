@@ -477,6 +477,10 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /find_neighbors/);
     assert.match(instructions, /compile_ontology/);
     assert.match(instructions, /query_ontology/);
+    assert.match(instructions, /validate_vault/);
+    assert.match(instructions, /read-only first-contact diagnosis/);
+    assert.match(instructions, /workspace_brief/);
+    assert.match(instructions, /health/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
