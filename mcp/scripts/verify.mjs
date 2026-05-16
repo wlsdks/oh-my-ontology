@@ -20,7 +20,7 @@
  *   8. tools/call query_ontology workspace_brief + health — agent first-contact graph diagnosis
  *   9. tools/call compile_ontology(summary) — compiler graph summary contract
  *   10. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
- *   11. tools/call query_ontology neighbors/path/project_scope — core graph query smoke contract
+ *   11. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */

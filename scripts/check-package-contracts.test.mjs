@@ -157,9 +157,10 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /stdout/);
     assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors`/);
+    assert.match(verifySection, /node-to-project `path`/);
     assert.match(verifySection, /`path` \/ `project_scope` calls/);
-    assert.match(verifySection, /Vaults without a `kind: project` node skip/);
-    assert.match(verifySection, /empty vault folders skip\s+node-targeted graph smoke/);
+    assert.match(verifySection, /Vaults without a `kind: project`\s+node skip/);
+    assert.match(verifySection, /empty vault\s+folders skip\s+node-targeted graph smoke/);
   });
 
   it('keeps the CLI changelog aligned with the mcp-verify census scope', () => {
@@ -266,6 +267,7 @@ describe('package contract helpers', () => {
 
     const verifySection = doc.split('환경변수 `OMOT_VAULT`')[1]?.split('`get_concepts` 는')[0] ?? '';
     assert.match(verifySection, /실제 `neighbors` \/[\s\S]*node→project `path` \/ `project_scope`/);
+    assert.match(readFileSync('mcp/scripts/verify.mjs', 'utf-8'), /neighbors\/node-to-project path\/project_scope/);
     assert.match(verifySection, /project\s+노드가 있을 때만 containment hard gate/);
     assert.match(verifySection, /빈 vault 는 node-targeted graph\s+smoke 를 skip/);
     assert.match(verifySection, /strict schema\/runtime unknown-argument and invalid-enum rejection/);
@@ -285,7 +287,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /workspace_brief — \.\*healthChecks/);
     assert.match(smoke, /health — \.\*compile_issues:\(pass\|warn\)/);
     assert.match(smoke, /health — \.\*checks/);
-    assert.match(smoke, /neighbors\\\/path\\\/project_scope graph-query smoke/);
+    assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
     assert.match(smoke, /invalid-enum rejection smoke/);
     assert.match(smoke, /project_scope — skipped \\\(no project node in vault\\\)/);
     assert.match(smoke, /neighbors\\\/path — skipped \\\(vault has no nodes\\\)/);

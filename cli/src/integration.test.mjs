@@ -286,7 +286,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /get_concepts/);
   assert.match(clean, /kind census/);
   assert.match(clean, /compile_ontology/);
-  assert.match(clean, /neighbors\/path\/project_scope graph-query smoke/);
+  assert.match(clean, /neighbors\/node-to-project path\/project_scope graph-query smoke/);
   assert.match(clean, /tools\/list schema strictness/);
   assert.match(clean, /runtime unknown-argument \/ invalid-enum rejection smoke/);
 });

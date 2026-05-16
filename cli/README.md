@@ -68,9 +68,9 @@ diagnostics still print so a fresh starter vault can verify before cleanup.
 The delegated verify output includes a compact advisory nextActions list when
 cleanup is recommended but not blocking, plus graph-query smoke lines for
 `overview`, `overview`/`project_map` query_plan, and actual `neighbors` /
-`path` / `project_scope` calls. Vaults without a `kind: project` node skip only
-the containment-specific `project_scope` smoke; empty vault folders skip
-node-targeted graph smoke until a first node exists.
+node-to-project `path` / `project_scope` calls. Vaults without a `kind: project`
+node skip only the containment-specific `project_scope` smoke; empty vault
+folders skip node-targeted graph smoke until a first node exists.
 Use `--timeout-ms 15000` when a large vault or slow filesystem needs a longer
 server wait window.
 

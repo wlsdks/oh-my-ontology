@@ -125,7 +125,7 @@ function printUsage(output = process.stderr) {
       `  oh-my-ontology mcp-verify --vault path --timeout-ms 15000\n\n` +
       `Runs the MCP package verify CLI against the resolved vault.\n` +
       `Checks parser smoke, server boot, tool inventory, list/get_concepts/kind census/validate, workspace health,\n` +
-      `compile_ontology, overview, overview/project_map query_plan, and neighbors/path/project_scope graph-query smoke.\n` +
+      `compile_ontology, overview, overview/project_map query_plan, and neighbors/node-to-project path/project_scope graph-query smoke.\n` +
       `Also checks tools/list schema strictness and runtime unknown-argument / invalid-enum rejection smoke.\n`,
   );
 }
