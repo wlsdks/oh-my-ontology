@@ -624,6 +624,7 @@ export function evaluateDogfoodGate({
   health,
   tunedHealth,
   compiled,
+  compiledStructured,
   overview,
   patternWalk,
   allPaths,
@@ -838,6 +839,9 @@ export function evaluateDogfoodGate({
   if (compiled) {
     const compileFailure = compileSummaryFailure(compiled);
     if (compileFailure) failures.push(compileFailure);
+    else if (compiledStructured !== undefined && JSON.stringify(compiledStructured) !== JSON.stringify(compiled)) {
+      failures.push("compile_ontology structuredContent mismatch");
+    }
   }
   if (overview) {
     const overviewShapeFailure = overviewFailure(overview);
@@ -4252,7 +4256,9 @@ async function main() {
   // 11. compile_ontology(summary)
   header(`compile_ontology(summary)`);
   const compiled = getResult(responses, 11);
+  const compiledStructured = getRpcResult(responses, 11)?.structuredContent ?? null;
   if (compiled) {
+    console.log(`  structuredContent: ${JSON.stringify(compiledStructured) === JSON.stringify(compiled) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     console.log(`  graphHash: ${compiled.graphHash || "n/a"}`);
     console.log(
       `  nodes ${compiled.nodeCount ?? "n/a"} · edges ${compiled.edgeCount ?? "n/a"} · issues ${compiled.issueCount ?? "n/a"} · canonicalization ${compiled.canonicalizationActionCount ?? "n/a"}`,
@@ -4727,6 +4733,7 @@ async function main() {
     health,
     tunedHealth,
     compiled,
+    compiledStructured,
     overview,
     patternWalk,
     allPaths,

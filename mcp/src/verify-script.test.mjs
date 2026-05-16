@@ -390,6 +390,56 @@ describe('verify.mjs first-contact gates', () => {
         },
       },
       {
+        name: 'compile_ontology',
+        inputSchema: {
+          additionalProperties: false,
+          properties: {
+            summary: { type: 'boolean' },
+          },
+        },
+        outputSchema: {
+          type: 'object',
+          required: [
+            'version',
+            'graphHash',
+            'maxMtime',
+            'nodeCount',
+            'edgeCount',
+            'resolvedEdgeCount',
+            'externalEdgeCount',
+            'unresolvedEdgeCount',
+            'aliasCount',
+            'ambiguousAliasCount',
+            'issueCount',
+            'canonicalizationActionCount',
+            'byKind',
+            'byDomain',
+          ],
+          properties: {
+            version: { type: 'integer', minimum: 1 },
+            graphHash: { type: 'string' },
+            maxMtime: { type: 'number', minimum: 0 },
+            nodeCount: { type: 'integer', minimum: 0 },
+            edgeCount: { type: 'integer', minimum: 0 },
+            resolvedEdgeCount: { type: 'integer', minimum: 0 },
+            externalEdgeCount: { type: 'integer', minimum: 0 },
+            unresolvedEdgeCount: { type: 'integer', minimum: 0 },
+            aliasCount: { type: 'integer', minimum: 0 },
+            ambiguousAliasCount: { type: 'integer', minimum: 0 },
+            issueCount: { type: 'integer', minimum: 0 },
+            canonicalizationActionCount: { type: 'integer', minimum: 0 },
+            byKind: {
+              type: 'object',
+              additionalProperties: { type: 'integer', minimum: 0 },
+            },
+            byDomain: {
+              type: 'object',
+              additionalProperties: { type: 'integer', minimum: 0 },
+            },
+          },
+        },
+      },
+      {
         name: 'add_concept',
         description:
           'Successful writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
@@ -958,6 +1008,38 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'query_concepts outputSchema row mtime drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'compile_ontology'),
+        {
+          ...tools.find((tool) => tool.name === 'compile_ontology'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'compile_ontology').outputSchema,
+            required: tools.find((tool) => tool.name === 'compile_ontology').outputSchema.required.filter((name) => name !== 'graphHash'),
+          },
+        },
+      ]),
+      'compile_ontology outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'compile_ontology'),
+        {
+          ...tools.find((tool) => tool.name === 'compile_ontology'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'compile_ontology').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'compile_ontology').outputSchema.properties,
+              byKind: {
+                type: 'object',
+                additionalProperties: { type: 'number', minimum: 0 },
+              },
+            },
+          },
+        },
+      ]),
+      'compile_ontology outputSchema byKind drift',
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool(

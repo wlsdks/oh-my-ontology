@@ -386,6 +386,27 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(queryConcepts?.outputSchema?.properties?.limited?.type, "boolean");
     assert.deepEqual(queryConcepts?.outputSchema?.properties?.matches?.items?.required, ["slug", "kind", "title", "mtime"]);
     assert.equal(queryConcepts?.outputSchema?.properties?.matches?.items?.properties?.mtime?.type, "number");
+    const compileOntology = findTool("compile_ontology");
+    assert.equal(compileOntology?.outputSchema?.type, "object");
+    assert.deepEqual(compileOntology?.outputSchema?.required, [
+      "version",
+      "graphHash",
+      "maxMtime",
+      "nodeCount",
+      "edgeCount",
+      "resolvedEdgeCount",
+      "externalEdgeCount",
+      "unresolvedEdgeCount",
+      "aliasCount",
+      "ambiguousAliasCount",
+      "issueCount",
+      "canonicalizationActionCount",
+      "byKind",
+      "byDomain",
+    ]);
+    assert.equal(compileOntology?.outputSchema?.properties?.graphHash?.type, "string");
+    assert.equal(compileOntology?.outputSchema?.properties?.nodeCount?.type, "integer");
+    assert.equal(compileOntology?.outputSchema?.properties?.byKind?.additionalProperties?.type, "integer");
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -1111,6 +1132,7 @@ await test("compile_ontology — deterministic graph artifact + indexes", async 
       callTool(2, "compile_ontology", { includeIndexes: true }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.version, 1);
     assert.equal(result.summary.nodes, 2);
     assert.equal(result.summary.edges, 2);

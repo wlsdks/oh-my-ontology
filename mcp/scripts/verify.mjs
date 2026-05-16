@@ -497,6 +497,53 @@ export function toolsListSchemaFailure(tools) {
     return 'query_concepts outputSchema row mtime drift';
   }
 
+  const compileTool = tools.find((tool) => tool?.name === 'compile_ontology');
+  if (!compileTool) return 'tools/list response missing compile_ontology tool';
+  const compileRequired = [
+    'version',
+    'graphHash',
+    'maxMtime',
+    'nodeCount',
+    'edgeCount',
+    'resolvedEdgeCount',
+    'externalEdgeCount',
+    'unresolvedEdgeCount',
+    'aliasCount',
+    'ambiguousAliasCount',
+    'issueCount',
+    'canonicalizationActionCount',
+    'byKind',
+    'byDomain',
+  ];
+  if (compileTool.outputSchema?.type !== 'object') {
+    return 'compile_ontology outputSchema root drift';
+  }
+  if (!sameArray(compileTool.outputSchema?.required, compileRequired)) {
+    return 'compile_ontology outputSchema required drift';
+  }
+  if (outputPropertyAt(compileTool, ['properties', 'version'])?.type !== 'integer' || outputPropertyAt(compileTool, ['properties', 'version'])?.minimum !== 1) {
+    return 'compile_ontology outputSchema version drift';
+  }
+  if (outputPropertyAt(compileTool, ['properties', 'graphHash'])?.type !== 'string') {
+    return 'compile_ontology outputSchema graphHash drift';
+  }
+  for (const propertyName of compileRequired.filter((name) => name.endsWith('Count'))) {
+    const propertySchema = outputPropertyAt(compileTool, ['properties', propertyName]);
+    if (propertySchema?.type !== 'integer' || propertySchema.minimum !== 0) {
+      return `compile_ontology outputSchema ${propertyName} drift`;
+    }
+  }
+  const maxMtimeSchema = outputPropertyAt(compileTool, ['properties', 'maxMtime']);
+  if (maxMtimeSchema?.type !== 'number' || maxMtimeSchema.minimum !== 0) {
+    return 'compile_ontology outputSchema maxMtime drift';
+  }
+  for (const propertyName of ['byKind', 'byDomain']) {
+    const countMapSchema = outputPropertyAt(compileTool, ['properties', propertyName]);
+    if (countMapSchema?.type !== 'object' || countMapSchema.additionalProperties?.type !== 'integer' || countMapSchema.additionalProperties?.minimum !== 0) {
+      return `compile_ontology outputSchema ${propertyName} drift`;
+    }
+  }
+
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
 
@@ -2714,6 +2761,10 @@ async function step2BootAndCall() {
         const failure = compileSummaryFailure(parsed);
         if (failure) {
           log('fail', failure);
+          return res(false);
+        }
+        if (JSON.stringify(compileRes.result.structuredContent) !== JSON.stringify(parsed)) {
+          log('fail', 'compile_ontology structuredContent mismatch');
           return res(false);
         }
         compilePayload = parsed;
