@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / components / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -55,6 +55,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [18, "project_map"],
   [19, "domain_profile"],
   [20, "domain_matrix"],
+  [21, "components"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -198,6 +199,11 @@ export function buildDogfoodRequests() {
       project: "project",
       limit: 10,
     }),
+    call(21, "query_ontology", {
+      operation: "components",
+      limit: 5,
+      nodeLimit: 5,
+    }),
   ];
 }
 
@@ -259,6 +265,7 @@ export function evaluateDogfoodGate({
   projectMap,
   domainProfile,
   domainMatrix,
+  components,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -280,6 +287,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "project_map", projectMap);
   recordResult(failures, "domain_profile", domainProfile);
   recordResult(failures, "domain_matrix", domainMatrix);
+  recordResult(failures, "components", components);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -361,6 +369,10 @@ export function evaluateDogfoodGate({
   if (domainMatrix) {
     const domainMatrixFailure = domainMatrixShapeFailure(domainMatrix);
     if (domainMatrixFailure) failures.push(domainMatrixFailure);
+  }
+  if (components) {
+    const componentsFailure = componentsShapeFailure(components);
+    if (componentsFailure) failures.push(componentsFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -770,6 +782,75 @@ function domainMatrixShapeFailure(result) {
     }
     if (!Array.isArray(row.examples)) {
       return `domain_matrix connection missing examples: ${row.from}->${row.to}`;
+    }
+  }
+  return null;
+}
+
+function componentsShapeFailure(result) {
+  if (result.operation !== "components") {
+    return `components response operation mismatch — ${result.operation}`;
+  }
+  for (const key of ["totalComponents", "largestSize", "singletonCount"]) {
+    if (!Number.isInteger(result[key]) || result[key] < 0) {
+      return `components response missing ${key}`;
+    }
+  }
+  if (typeof result.limited !== "boolean") {
+    return "components response missing limited flag";
+  }
+  if (!Array.isArray(result.components)) {
+    return "components response missing components array";
+  }
+  if (result.components.length > result.totalComponents) {
+    return `components rows exceed total — rows ${result.components.length}, total ${result.totalComponents}`;
+  }
+  if (!result.limited && result.components.length !== result.totalComponents) {
+    return `components row count mismatch — rows ${result.components.length}, total ${result.totalComponents}`;
+  }
+  const largestObserved = result.components.reduce((max, component) => Math.max(max, Number.isInteger(component?.size) ? component.size : 0), 0);
+  if (result.components.length > 0 && result.largestSize < largestObserved) {
+    return `components largestSize below returned component — largest ${result.largestSize}, observed ${largestObserved}`;
+  }
+  for (const [index, component] of result.components.entries()) {
+    if (!component || typeof component !== "object" || Array.isArray(component)) {
+      return `components malformed component at index ${index}`;
+    }
+    if (!Number.isInteger(component.id) || component.id <= 0) {
+      return `components component missing id at index ${index}`;
+    }
+    if (!Number.isInteger(component.size) || component.size <= 0) {
+      return `components component missing size at index ${index}`;
+    }
+    if (!component.kinds || typeof component.kinds !== "object" || Array.isArray(component.kinds)) {
+      return `components component missing kinds: ${component.id}`;
+    }
+    if (typeof component.nodeLimited !== "boolean") {
+      return `components component missing nodeLimited flag: ${component.id}`;
+    }
+    if (!Array.isArray(component.nodes)) {
+      return `components component missing nodes: ${component.id}`;
+    }
+    if (component.nodes.length > component.size) {
+      return `components component nodes exceed size: ${component.id}`;
+    }
+    if (!component.nodeLimited && component.nodes.length !== component.size) {
+      return `components component node count mismatch: ${component.id}`;
+    }
+    const kindTotal = Object.values(component.kinds).reduce((sum, count) => sum + (Number.isInteger(count) ? count : 0), 0);
+    if (kindTotal !== component.size) {
+      return `components component kind count mismatch: ${component.id}`;
+    }
+    for (const [nodeIndex, node] of component.nodes.entries()) {
+      if (!node || typeof node !== "object" || Array.isArray(node)) {
+        return `components component malformed node: ${component.id}`;
+      }
+      if (typeof node.slug !== "string" || node.slug.length === 0) {
+        return `components component missing node slug: ${component.id}/${nodeIndex}`;
+      }
+      if (typeof node.kind !== "string" || node.kind.length === 0) {
+        return `components component missing node kind: ${component.id}/${node.slug}`;
+      }
     }
   }
   return null;
@@ -1310,6 +1391,19 @@ async function main() {
     }
   }
 
+  // 20. components
+  header(`query_ontology(components)`);
+  const components = getResult(responses, 21);
+  if (components) {
+    console.log(
+      `  components ${components.components?.length ?? "n/a"} / total ${components.totalComponents ?? "n/a"} · largest ${components.largestSize ?? "n/a"} · singletons ${components.singletonCount ?? "n/a"}`,
+    );
+    for (const component of (components.components || []).slice(0, 5)) {
+      const first = component.nodes?.[0]?.slug ?? "n/a";
+      console.log(`  #${component.id}: ${component.size} nodes · first ${first}`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -1330,6 +1424,7 @@ async function main() {
     projectMap,
     domainProfile,
     domainMatrix,
+    components,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1364,6 +1459,7 @@ async function main() {
   console.log(`  project_map: ${projectMap?.domains?.length ?? "n/a"} domains · ${projectMap?.summary?.capabilities ?? "n/a"} capabilities`);
   console.log(`  domain_profile: ${domainProfile?.capabilities?.total ?? "n/a"} capabilities · ${domainProfile?.elements?.total ?? "n/a"} elements`);
   console.log(`  domain_matrix: ${domainMatrix?.summary?.crossDomainEdges ?? "n/a"} cross-domain edges · ${domainMatrix?.connections?.total ?? "n/a"} connections`);
+  console.log(`  components: ${components?.totalComponents ?? "n/a"} total · largest ${components?.largestSize ?? "n/a"}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

@@ -329,6 +329,34 @@ const okShape = {
       ],
     },
   },
+  components: {
+    operation: "components",
+    totalComponents: 2,
+    largestSize: 4,
+    singletonCount: 1,
+    limited: false,
+    components: [
+      {
+        id: 1,
+        size: 4,
+        kinds: { project: 1, domain: 1, capability: 2 },
+        nodeLimited: false,
+        nodes: [
+          { slug: "project", kind: "project", title: "Project" },
+          { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" },
+          { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+          { slug: "capabilities/ontology-sync-skill", kind: "capability", title: "Ontology Sync Skill" },
+        ],
+      },
+      {
+        id: 2,
+        size: 1,
+        kinds: { capability: 1 },
+        nodeLimited: false,
+        nodes: [{ slug: "capabilities/orphan", kind: "capability", title: "Orphan" }],
+      },
+    ],
+  },
 };
 
 describe("recordResult", () => {
@@ -404,6 +432,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(18), "project_map");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(19), "domain_profile");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(20), "domain_matrix");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(21), "components");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1039,6 +1068,58 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["domain_matrix connection missing count: domains/ai-agent-partner->domains/vault-local-first"],
+    );
+  });
+
+  it("fails on malformed components payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, components: { ...okShape.components, operation: "health" } }),
+      ["components response operation mismatch — health"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, components: { ...okShape.components, components: okShape.components.components.slice(0, 1) } }),
+      ["components row count mismatch — rows 1, total 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, components: { ...okShape.components, largestSize: 2 } }),
+      ["components largestSize below returned component — largest 2, observed 4"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        components: {
+          ...okShape.components,
+          components: [{ ...okShape.components.components[0], kinds: { project: 1 } }, okShape.components.components[1]],
+        },
+      }),
+      ["components component kind count mismatch: 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        components: {
+          ...okShape.components,
+          components: [{ ...okShape.components.components[0], nodes: okShape.components.components[0].nodes.slice(0, 1) }, okShape.components.components[1]],
+        },
+      }),
+      ["components component node count mismatch: 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        components: {
+          ...okShape.components,
+          components: [
+            {
+              ...okShape.components.components[0],
+              nodeLimited: true,
+              nodes: [{ ...okShape.components.components[0].nodes[0], slug: "" }],
+            },
+            okShape.components.components[1],
+          ],
+        },
+      }),
+      ["components component missing node slug: 1/0"],
     );
   });
 
