@@ -55,17 +55,17 @@ describe("vault-census", () => {
     });
   });
 
-  it("derives the dogfood vault census from the expected folder layout", () => {
+  it("derives the dogfood vault census from frontmatter kinds", () => {
     withTempDir((root) => {
       const ontology = join(root, "docs", "ontology");
       mkdirSync(join(ontology, "domains"), { recursive: true });
       mkdirSync(join(ontology, "capabilities"), { recursive: true });
       mkdirSync(join(ontology, "elements"), { recursive: true });
-      writeFileSync(join(ontology, "README.md"), "# Vault\n");
-      writeFileSync(join(ontology, "project.md"), "# Project\n");
-      writeFileSync(join(ontology, "domains", "auth.md"), "# Auth\n");
-      writeFileSync(join(ontology, "capabilities", "login.md"), "# Login\n");
-      writeFileSync(join(ontology, "elements", "token.md"), "# Token\n");
+      writeFileSync(join(ontology, "README.md"), "---\nkind: vault-readme\n---\n# Vault\n");
+      writeFileSync(join(ontology, "project.md"), "---\nkind: project\n---\n# Project\n");
+      writeFileSync(join(ontology, "domains", "auth.md"), "---\nkind: domain\n---\n# Auth\n");
+      writeFileSync(join(ontology, "capabilities", "login.md"), "---\nkind: capability\n---\n# Login\n");
+      writeFileSync(join(ontology, "elements", "token.md"), "---\nkind: element\n---\n# Token\n");
 
       assert.deepEqual(dogfoodVaultCensus(root), {
         total: 5,
@@ -75,6 +75,26 @@ describe("vault-census", () => {
           elements: 1,
           project: 1,
           "vault-readme": 1,
+        },
+      });
+    });
+  });
+
+  it("counts frontmatter kind rather than folder placement", () => {
+    withTempDir((root) => {
+      const ontology = join(root, "docs", "ontology");
+      mkdirSync(join(ontology, "capabilities"), { recursive: true });
+      writeFileSync(join(ontology, "capabilities", "misplaced-domain.md"), "---\nkind: domain\n---\n# Misplaced\n");
+      writeFileSync(join(ontology, "capabilities", "no-kind.md"), "# No kind\n");
+
+      assert.deepEqual(dogfoodVaultCensus(root), {
+        total: 2,
+        byKind: {
+          capabilities: 0,
+          domains: 1,
+          elements: 0,
+          project: 0,
+          "vault-readme": 0,
         },
       });
     });
