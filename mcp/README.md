@@ -225,6 +225,8 @@ After you add `.mcp.json` and restart Claude Code, try the following with your L
 > 3. Call `find_neighbors({ slug: "capabilities/mcp-server" })` to inspect the local graph around that capability.
 > 4. Call `validate_vault({})` to check frontmatter and graph-reference integrity before writing.
 > 5. Call `query_ontology({ operation: "workspace_brief" })` for the first-contact graph diagnosis.
+> 6. Call `query_ontology({ operation: "overview", limit: 5 })` to confirm graph-query summaries work without fetching the full compile artifact.
+> 7. Call `query_ontology({ operation: "query_plan", targetOperation: "overview" })` before heavier graph exploration so the agent sees the cost/index contract.
 
 If those read-only calls respond cleanly, the agent can see the vault and its graph health. Once an agent starts *committing* its analysis of your codebase to the ontology through these 23 tools (15 read + 8 write), the human + AI co-authoring loop is officially open.
 
