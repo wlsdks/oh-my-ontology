@@ -168,11 +168,25 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, brief, he
   if (brief && brief.status !== "healthy") {
     failures.push(`workspace_brief: status ${brief.status}`);
   }
+  const briefFailedChecks = failedHealthChecks(brief?.health?.checks);
+  if (briefFailedChecks.length > 0) {
+    failures.push(`workspace_brief: failing health checks ${briefFailedChecks.join(", ")}`);
+  }
   if (health && health.status !== "healthy") {
     failures.push(`health: status ${health.status}`);
   }
+  const healthFailedChecks = failedHealthChecks(health?.checks);
+  if (healthFailedChecks.length > 0) {
+    failures.push(`health: failing health checks ${healthFailedChecks.join(", ")}`);
+  }
 
   return failures;
+}
+
+function failedHealthChecks(checks) {
+  return Array.isArray(checks)
+    ? checks.filter((check) => check?.status === "fail").map((check) => check.id || "unknown")
+    : [];
 }
 
 const COLORS = {

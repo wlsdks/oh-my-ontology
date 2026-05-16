@@ -124,4 +124,22 @@ describe("evaluateDogfoodGate", () => {
       "health: status needs_attention",
     ]);
   });
+
+  it("fails on failing health checks even when top-level status is healthy", () => {
+    const failures = evaluateDogfoodGate({
+      ...okShape,
+      brief: {
+        ...okShape.brief,
+        health: { checks: [{ id: "dependency_cycles", status: "fail" }] },
+      },
+      health: {
+        ...okShape.health,
+        checks: [{ id: "compile_issues", status: "fail" }],
+      },
+    });
+    assert.deepEqual(failures, [
+      "workspace_brief: failing health checks dependency_cycles",
+      "health: failing health checks compile_issues",
+    ]);
+  });
 });
