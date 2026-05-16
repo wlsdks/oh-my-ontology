@@ -1711,11 +1711,12 @@ await test("MCP read/query tools — invalid numeric and direction options are r
       callTool(42, "query_ontology", { operation: "match_nodes", minDegree: -1 }),
       callTool(43, "query_ontology", { operation: "match_nodes", maxDegree: 1.5 }),
       callTool(44, "query_ontology", { operation: "match_nodes", sort: "mtime" }),
+      callTool(45, "query_ontology", { operation: "recommend_relations", kind: "domain" }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
       21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
-      38, 39, 40, 41, 42, 43, 44,
+      38, 39, 40, 41, 42, 43, 44, 45,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -1737,6 +1738,7 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 15).result.content[0].text, /types must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 41).result.content[0].text, /nodesLimit must be a positive integer/i);
     assert.match(responses.find((r) => r.id === 44).result.content[0].text, /sort must be one of/i);
+    assert.match(responses.find((r) => r.id === 45).result.content[0].text, /kind must be one of: capability, element/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);

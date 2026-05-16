@@ -2242,9 +2242,7 @@ export function createOntologyEngine(artifact, options = {}) {
 
   function recommendRelations(options = {}) {
     const limit = normalizeLimit(options.limit ?? 50);
-    const kindFilter = typeof options.kind === 'string' && options.kind.trim()
-      ? options.kind.trim()
-      : null;
+    const kindFilter = normalizeRecommendRelationKind(options.kind);
     const recommendations = [];
 
     for (const node of [...nodes].sort((a, b) => a.slug.localeCompare(b.slug))) {
@@ -3338,6 +3336,15 @@ function normalizeOptionalBoolean(value, name, defaultValue) {
     throw new Error(`${name} must be a boolean.`);
   }
   return value;
+}
+
+function normalizeRecommendRelationKind(value) {
+  const kind = normalizeOptionalString(value, 'kind');
+  if (kind === null) return null;
+  if (kind !== 'capability' && kind !== 'element') {
+    throw new Error('kind must be one of: capability, element.');
+  }
+  return kind;
 }
 
 function normalizeNodeSort(value) {

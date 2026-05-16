@@ -50,6 +50,8 @@ reject 한다. `tools/list` 도 scalar string 과 string-array item 에 같은
 같은 blank/padded/null-byte contract 로 검증한다.
 `match_nodes.sort` 도 schema enum 과 runtime/core validation 이 같이 움직여
 잘못된 정렬 키를 degree 기본값으로 조용히 흡수하지 않는다.
+`recommend_relations.kind` 도 `capability` / `element` 로 좁혀 잘못된 kind 가
+빈 추천 결과로 숨지 않게 한다.
 read/query flag 와 destructive write safety switch 의 boolean 입력도 명시적으로
 검증해 문자열 `"true"` 같은 값을 조용히 false처럼 처리하지 않는다. core graph
 engine 직접 호출도 boolean query flag 를 같은 방식으로 fail-closed 처리한다.

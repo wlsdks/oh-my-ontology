@@ -2285,6 +2285,13 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(onlyCapabilities.recommendations.map((row) => row.to), [
       'capabilities/login',
     ]);
+    assert.throws(
+      () => queryCompiledOntology(graph, {
+        operation: 'recommend_relations',
+        kind: 'domain',
+      }),
+      /kind must be one of: capability, element/,
+    );
   });
 
   it('returns a side-effect-free ontology growth plan', () => {

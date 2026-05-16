@@ -2076,6 +2076,9 @@ function validateQueryOntologyArgs(args = {}) {
   }
   requireOptionalDirection(args.direction, 'direction', ['incoming', 'outgoing', 'both', 'undirected']);
   requireOptionalEnum(args.sort, 'sort', ['degree', 'inDegree', 'outDegree', 'slug']);
+  if (args.operation === 'recommend_relations') {
+    requireOptionalEnum(args.kind, 'kind', ['capability', 'element']);
+  }
   for (const key of [
     'includeExternal',
     'includeUnresolved',
