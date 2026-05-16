@@ -44,12 +44,22 @@ describe('package contract helpers', () => {
   it('keeps the MCP first-call prompt read-only', () => {
     const readme = readFileSync('mcp/README.md', 'utf-8');
     const firstCallSection = readme.split('## First call after registering with Claude Code')[1]?.split('## Design principles')[0] ?? '';
+    const validateVaultRow = readme.split('| `validate_vault` |')[1]?.split('\n')[0] ?? '';
 
     assert.match(firstCallSection, /validate_vault\(\{\}\)/);
     assert.match(firstCallSection, /query_ontology\(\{ operation: "workspace_brief" \}\)/);
     assert.match(firstCallSection, /read-only calls respond cleanly/);
     assert.doesNotMatch(firstCallSection, /add_concept/);
     assert.doesNotMatch(firstCallSection, /those four tools/);
+    assert.match(validateVaultRow, /first-contact before writes/);
+  });
+
+  it('documents dogfood validation as a release gate', () => {
+    const readme = readFileSync('README.md', 'utf-8');
+    const releaseChecks = readme.split('### Package / MCP release checks')[1]?.split('## Verifiable promises')[0] ?? '';
+
+    assert.match(releaseChecks, /pnpm dogfood:walk/);
+    assert.match(releaseChecks, /validate_vault` problem files/);
   });
 
   it('parses package script file references', () => {
