@@ -3251,8 +3251,29 @@ function typeAllowed(via, typeSet) {
 }
 
 function normalizeTypes(types) {
-  if (!Array.isArray(types) || types.length === 0) return null;
-  return new Set(types.filter((type) => typeof type === 'string').map(normalizeRelationType));
+  if (types === undefined || types === null) return null;
+  if (!Array.isArray(types)) {
+    throw new Error('types must be an array of strings.');
+  }
+  if (types.length === 0) return null;
+  const normalized = [];
+  for (const type of types) {
+    if (typeof type !== 'string') {
+      throw new Error('types must be an array of strings.');
+    }
+    const trimmed = type.trim();
+    if (!trimmed) {
+      throw new Error('types items must be non-empty strings.');
+    }
+    if (trimmed !== type) {
+      throw new Error('types items must not have leading or trailing whitespace.');
+    }
+    if (trimmed.includes('\0')) {
+      throw new Error('types items must not contain a null byte.');
+    }
+    normalized.push(normalizeRelationType(trimmed));
+  }
+  return new Set(normalized);
 }
 
 function normalizePattern(pattern) {

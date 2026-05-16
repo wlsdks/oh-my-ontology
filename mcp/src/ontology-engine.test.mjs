@@ -806,6 +806,41 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('rejects invalid relation type filters instead of dropping them', () => {
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'neighbors',
+        slug: 'capabilities/login',
+        types: ['dependencies', null],
+      }),
+      /types must be an array of strings/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'neighbors',
+        slug: 'capabilities/login',
+        types: ['dependencies', ' '],
+      }),
+      /types items must be non-empty strings/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'neighbors',
+        slug: 'capabilities/login',
+        types: [' dependencies'],
+      }),
+      /types items must not have leading or trailing whitespace/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'neighbors',
+        slug: 'capabilities/login',
+        types: ['dependencies\0'],
+      }),
+      /types items must not contain a null byte/,
+    );
+  });
+
   it('returns incoming change impact by default', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'impact',
