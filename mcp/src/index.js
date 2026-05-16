@@ -1521,7 +1521,7 @@ function addConcept({ slug, kind, title, domain, capabilities, elements, body },
   });
   const filePath = writeDoc(VAULT_ROOT, slug, {
     frontmatter: fm,
-    body: body || defaultBody(kind, title),
+    body: body === undefined ? defaultBody(kind, title) : body,
   });
   // schema 의 requiredExtras 누락 검사 → 응답에 advisory 로 포함.
   // throw 하지 않음 — agent 흐름 자연스럽게, 사용자가 후속 patch_concept 로

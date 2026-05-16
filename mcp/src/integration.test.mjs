@@ -1967,6 +1967,48 @@ await test("add_concepts — 배치 write, 순서 보존 + partial result", asyn
   }
 });
 
+await test("add_concept/add_concepts — 명시한 빈 body 는 기본 본문으로 대체하지 않음", async () => {
+  const root = makeVault([]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "add_concept", {
+        slug: "single-empty-body",
+        kind: "document",
+        title: "Single Empty Body",
+        body: "",
+      }),
+      callTool(3, "add_concepts", {
+        concepts: [
+          {
+            slug: "batch-empty-body",
+            kind: "document",
+            title: "Batch Empty Body",
+            body: "",
+          },
+          {
+            slug: "batch-default-body",
+            kind: "document",
+            title: "Batch Default Body",
+          },
+        ],
+      }),
+      callTool(4, "get_concept", { slug: "single-empty-body" }),
+      callTool(5, "get_concept", { slug: "batch-empty-body" }),
+      callTool(6, "get_concept", { slug: "batch-default-body" }),
+    ]);
+    assert.equal(isErrorResponse(responses, 2), false);
+    const batch = getCallParsed(responses, 3);
+    assert.equal(batch.concepts[0].ok, true);
+    assert.equal(batch.concepts[1].ok, true);
+    assert.equal(getCallParsed(responses, 4).excerpt, "");
+    assert.equal(getCallParsed(responses, 5).excerpt, "");
+    assert.notEqual(getCallParsed(responses, 6).excerpt, "");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 // R+ — add_concepts 빈 배열 / cap (50) 가드. get_concepts/add_relations 와
 // 같은 batch 계약을 writer 쪽에도 명시 고정한다.
 await test("add_concepts — 빈 concepts[] → 빈 results, 51개 → error", async () => {
