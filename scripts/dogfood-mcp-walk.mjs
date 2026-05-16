@@ -6,7 +6,7 @@
 //
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / project probe / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
-// strict unknown-argument and invalid-enum rejection / validate_vault / compile_ontology(summary) /
+// tools/list schema contract / strict unknown-argument and invalid-enum rejection / validate_vault / compile_ontology(summary) /
 // query_ontology overview / query_plan / neighbors / path / all_paths / pattern_walk / project_scope / centrality / communities / similar_nodes / explain_relation / reachability / impact / blast_radius / subgraph / schema / facets / match_nodes / match_edges / node_profile / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health / health tuned.
 
 import { spawn } from "node:child_process";
@@ -21,6 +21,7 @@ import {
 } from "../mcp/scripts/json-rpc-lines.mjs";
 import {
   compileSummaryFailure,
+  expectedToolSplitLabel,
   formatCount,
   listConceptsFailure,
   listKindsFailure,
@@ -29,6 +30,7 @@ import {
   strictArgsFailure,
   strictEnumFailure,
   strictMaintenanceFilterFailure,
+  toolsListSchemaFailure,
   validateVaultFailure,
   workspaceBriefSummary,
 } from "../mcp/scripts/verify.mjs";
@@ -94,6 +96,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [52, "strict_maintenance_severity_filter"],
   [53, "strict_maintenance_kind_filter"],
   [54, "maintenance_plan_missing_cursor"],
+  [55, "tools_list"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -287,6 +290,7 @@ function call(id, name, args = {}) {
 export function buildDogfoodRequests() {
   return [
     ...init,
+    { jsonrpc: "2.0", id: 55, method: "tools/list", params: {} },
     call(2, "list_kinds"),
     call(3, "list_concepts", { limit: 30 }),
     call(48, "list_concepts", { kind: "project", limit: 1 }),
@@ -536,6 +540,13 @@ function getResult(responses, id) {
   }
 }
 
+function getRpcResult(responses, id) {
+  const res = responses.find((r) => r.id === id);
+  if (!res) return null;
+  if (res.error) return { error: res.error };
+  return res.result ?? null;
+}
+
 export function recordResult(failures, label, result) {
   if (!result) {
     failures.push(`${label}: missing response`);
@@ -615,8 +626,10 @@ export function evaluateDogfoodGate({
   strictMaintenancePhaseFilter,
   strictMaintenanceSeverityFilter,
   strictMaintenanceKindFilter,
+  toolsList,
 }) {
   const failures = [];
+  recordResult(failures, "tools/list", toolsList);
   recordResult(failures, "list_kinds", kinds);
   recordResult(failures, "list_concepts", list);
   recordResult(failures, "get_concepts", batch);
@@ -676,6 +689,10 @@ export function evaluateDogfoodGate({
   if (strictMaintenanceSeverityFilterError) failures.push(`strict_maintenance_severity_filter: ${strictMaintenanceSeverityFilterError}`);
   const strictMaintenanceKindFilterError = strictMaintenanceFilterFailure(strictMaintenanceKindFilter, "kinds");
   if (strictMaintenanceKindFilterError) failures.push(`strict_maintenance_kind_filter: ${strictMaintenanceKindFilterError}`);
+  if (toolsList) {
+    const toolsListFailure = toolsListSchemaFailure(toolsList.tools);
+    if (toolsListFailure) failures.push(`tools/list: ${toolsListFailure}`);
+  }
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -3951,6 +3968,15 @@ async function main() {
 
   const { responses, stderr, timedOut } = await rpc(requests, timeoutMs);
 
+  header("tools/list — schema contract");
+  const toolsList = getRpcResult(responses, 55);
+  if (toolsList) {
+    const tools = Array.isArray(toolsList.tools) ? toolsList.tools : [];
+    const schemaFailure = toolsListSchemaFailure(tools);
+    console.log(`  tools: ${tools.length} (${expectedToolSplitLabel()})`);
+    console.log(`  schema: ${schemaFailure ? `${COLORS.yellow}${schemaFailure}${COLORS.reset}` : `${COLORS.green}pass${COLORS.reset}`}`);
+  }
+
   // 1. list_kinds
   header("list_kinds — vault census");
   const kinds = getResult(responses, 2);
@@ -4628,6 +4654,7 @@ async function main() {
     strictMaintenancePhaseFilter,
     strictMaintenanceSeverityFilter,
     strictMaintenanceKindFilter,
+    toolsList,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -4641,6 +4668,7 @@ async function main() {
   const orphCount = orph?.total || 0;
   const orphRatio = total > 0 ? ((orphCount / total) * 100).toFixed(0) : 0;
   console.log(`  vault size: ${total} 노드`);
+  console.log(`  tools/list schema: ${toolsListSchemaFailure(toolsList?.tools) || "pass"}`);
   console.log(`  orphans: ${orphCount} (${orphRatio}%)`);
   console.log(
     `  list_concepts vaultWarnings: ${list?.vaultWarnings ? "있음 (vault 정합성 회귀!)" : "0 (clean)"}`,

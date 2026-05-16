@@ -654,6 +654,9 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /project-node `list_concepts` probe 도 fail-closed/);
     assert.match(dogfoodSection, /`kind: project`/);
     assert.match(dogfoodSection, /`list_kinds\.byKind\.project`/);
+    assert.match(doc, /dogfood walk 도 `tools\/list` 를 직접 호출/);
+    assert.match(doc, /installed verify 의 `toolsListSchemaFailure`/);
+    assert.match(doc, /maintenance next pointer description drift/);
     assert.match(doc, /MCP `initialize\.instructions` 의 `query_ontology\.operation`\s+안내와 `query_plan\.targetOperation` 안내도 같은 allow-list 에서 생성/);
     assert.match(doc, /`maintenance_plan` work-queue 안내도 first-contact 에 포함/);
     assert.match(doc, /ready cursor 의 `cursor\.found=true` \/ `cursor\.reason=null`/);

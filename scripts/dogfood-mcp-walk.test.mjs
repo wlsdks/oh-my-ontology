@@ -21,8 +21,105 @@ import {
   stderrWarningFailures,
   workspaceNextActionSummary,
 } from "./dogfood-mcp-walk.mjs";
+import { EXPECTED_TOOLS } from "../mcp/scripts/verify.mjs";
+import {
+  MAINTENANCE_KIND_VALUES,
+  MAINTENANCE_PHASE_VALUES,
+  MAINTENANCE_SEVERITY_VALUES,
+  QUERY_ONTOLOGY_OPERATIONS,
+  QUERY_PLAN_TARGET_OPERATIONS,
+} from "../mcp/src/ontology-engine.mjs";
+
+const WRITE_TOOL_NAMES = new Set([
+  "add_concept",
+  "add_concepts",
+  "add_relation",
+  "add_relations",
+  "patch_concept",
+  "delete_concept",
+  "rename_concept",
+  "merge_concepts",
+]);
+
+function makeDogfoodToolsList() {
+  return {
+    tools: EXPECTED_TOOLS.map((name) => {
+      const tool = {
+        name,
+        description: WRITE_TOOL_NAMES.has(name)
+          ? "Write tool returns postWriteMaintenance with action score, executable proposedAction, and nextExecutableAction next action pointers."
+          : `${name} read tool.`,
+        annotations: { readOnlyHint: !WRITE_TOOL_NAMES.has(name) },
+        inputSchema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {},
+        },
+      };
+      if (name === "query_ontology") {
+        tool.description = "Graph query tool with current-page `nextExecutableAction` / `nextReviewAction` pointers.";
+        tool.inputSchema.required = ["operation"];
+        tool.inputSchema.properties = {
+          operation: { enum: QUERY_ONTOLOGY_OPERATIONS },
+          targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
+          phases: { items: { enum: MAINTENANCE_PHASE_VALUES } },
+          severities: { items: { enum: MAINTENANCE_SEVERITY_VALUES } },
+          kinds: { items: { enum: MAINTENANCE_KIND_VALUES } },
+          afterActionId: {
+            description:
+              "nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.",
+          },
+          componentLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
+          cycleLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
+          recommendationLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
+          orderLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
+          nodeLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
+          dependencyTypes: { type: "array", items: { type: "string" }, description: "health/workspace_brief tuning" },
+          componentTypes: { type: "array", items: { type: "string" }, description: "health/workspace_brief tuning" },
+        };
+      }
+      if (name === "find_orphans") {
+        tool.inputSchema.properties.excludeKinds = {
+          type: "array",
+          items: { type: "string" },
+          description: "Defaults exclude project and vault-readme.",
+        };
+      }
+      if (name === "get_concepts") {
+        tool.inputSchema.required = ["slugs"];
+        tool.inputSchema.properties.slugs = { type: "array", maxItems: 50 };
+      }
+      if (name === "add_concepts") {
+        tool.inputSchema.required = ["concepts"];
+        tool.inputSchema.properties.concepts = { type: "array", maxItems: 50 };
+      }
+      if (name === "add_relations") {
+        tool.inputSchema.required = ["relations"];
+        tool.inputSchema.properties.relations = {
+          type: "array",
+          maxItems: 50,
+          items: { properties: { expected_mtime: { type: "number", minimum: 0 } } },
+        };
+      }
+      if (["add_relation", "patch_concept", "rename_concept", "merge_concepts", "delete_concept"].includes(name)) {
+        tool.inputSchema.properties.expected_mtime = { type: "number", minimum: 0 };
+      }
+      if (["rename_concept", "merge_concepts", "delete_concept"].includes(name)) {
+        tool.inputSchema.properties.confirm = { type: "boolean" };
+      }
+      if (name === "rename_concept") {
+        tool.inputSchema.properties.overwrite = { type: "boolean" };
+      }
+      if (name === "delete_concept") {
+        tool.inputSchema.properties.force = { type: "boolean" };
+      }
+      return tool;
+    }),
+  };
+}
 
 const okShape = {
+  toolsList: makeDogfoodToolsList(),
   kinds: { total: 1, byKind: { project: 1 } },
   list: {
     total: 1,
@@ -1555,6 +1652,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(52), "strict_maintenance_severity_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(53), "strict_maintenance_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(54), "maintenance_plan_missing_cursor");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(55), "tools_list");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1633,6 +1731,24 @@ describe("maintenanceNextActionSummary", () => {
 describe("evaluateDogfoodGate", () => {
   it("passes the healthy dogfood shape", () => {
     assert.deepEqual(evaluateDogfoodGate(okShape), []);
+  });
+
+  it("fails malformed tools/list dogfood schema responses", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: null }),
+      ["tools/list: missing response"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: { tools: null } }),
+      ["tools/list: tools/list response missing tools array"],
+    );
+    const drifted = makeDogfoodToolsList();
+    drifted.tools.find((tool) => tool.name === "query_ontology").inputSchema.properties.afterActionId.description =
+      "nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page.";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: drifted }),
+      ["tools/list: query_ontology afterActionId description missing current-page next pointer detail fields"],
+    );
   });
 
   it("fails malformed strict argument dogfood responses", () => {

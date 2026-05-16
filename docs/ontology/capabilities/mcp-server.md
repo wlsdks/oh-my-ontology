@@ -426,6 +426,10 @@ missing `maintenance_plan.afterActionId` cursor handling 범위를 서버 시작
 dogfood 의 `list_concepts.vaultWarnings` / `validate_vault` 판정은
 `mcp/scripts/verify.mjs` 의 helper 를 재사용해 installed verify 와 dogfood gate 가
 서로 다른 first-contact payload 계약으로 갈라지지 않게 한다.
+dogfood walk 도 `tools/list` 를 직접 호출하고 installed verify 의 `toolsListSchemaFailure`
+helper 를 재사용해 `additionalProperties:false`, graph-query enum, health tuning option,
+write safety schema, post-write guidance, maintenance next pointer description drift 를
+source checkout 에서도 fail-closed 로 잡는다.
 project probe 도 fail-closed 로 확인해 dogfood vault 에서 `project_scope` smoke 가
 하드코딩된 slug 에만 기대지 않고 실제 project-node discovery 계약을 검증한다.
 반환 row 의 `kind: project` 와 `list_kinds.byKind.project` count 도 같이 검증한다.
