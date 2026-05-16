@@ -13,6 +13,7 @@ import {
   EXPECTED_READ_TOOLS,
   EXPECTED_TOOLS,
   EXPECTED_WRITE_TOOLS,
+  FIRST_CONTACT_RESPONSE_LABELS,
   expectedToolSplitLabel,
   firstContactErrorFailure,
   getConceptsFailure,
@@ -30,6 +31,7 @@ import {
   verifyTimeoutFailure,
   vaultWarningsFailure,
 } from '../scripts/verify.mjs';
+import { missingResponseLabels } from '../scripts/json-rpc-lines.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
@@ -83,6 +85,17 @@ describe('verify.mjs first-contact gates', () => {
         [1, 2, 3, 4, 5].map((id) => JSON.stringify({ jsonrpc: '2.0', id, result: {} })).join('\n'),
       ),
       false,
+    );
+  });
+
+  it('keeps first-contact response labels aligned with the get_concepts smoke', () => {
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(11), 'get_concepts');
+    const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]
+      .filter((id) => id !== 11)
+      .map((id) => ({ id, result: {} }));
+    assert.deepEqual(
+      missingResponseLabels(responsesWithoutGetConcepts, FIRST_CONTACT_RESPONSE_LABELS),
+      ['get_concepts'],
     );
   });
 

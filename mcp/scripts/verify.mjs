@@ -76,7 +76,7 @@ export function expectedToolSplitLabel() {
   return `${EXPECTED_READ_TOOLS.length} read + ${EXPECTED_WRITE_TOOLS.length} write`;
 }
 
-const FIRST_CONTACT_RESPONSE_LABELS = new Map([
+export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [1, 'initialize'],
   [2, 'tools/list'],
   [3, 'list_concepts'],
