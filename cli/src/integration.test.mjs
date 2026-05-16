@@ -139,6 +139,7 @@ await test('help — current setup contract and default slug layout are not stal
   assert.match(clean, /Codex 'mcp add'/);
   assert.match(clean, /Recommends 'bootstrap'/);
   assert.match(clean, /mcp-verify/);
+  assert.match(clean, /graph-query smoke/);
 });
 
 await test('list — empty vault: 0 노드 메시지', async () => {
@@ -164,6 +165,7 @@ await test('init — generated MCP config points at a runnable local server in s
     assert.doesNotMatch(clean, /bootstrap .*--apply/);
     assert.match(clean, /Codex/);
     assert.match(clean, /codex mcp add oh-my-ontology/);
+    assert.match(clean, /graph smoke/);
     assert.match(clean, /oh-my-ontology analyze \. --vault \.\/ontology/);
     assert.match(clean, /oh-my-ontology bootstrap \. --vault \.\/ontology/);
     assert.doesNotMatch(clean, /\/path\/to\/your\/repo/);
