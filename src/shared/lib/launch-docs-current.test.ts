@@ -1,3 +1,4 @@
+import { readdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -11,6 +12,12 @@ const CURRENT_SURFACE_DOCS = [
   'docs/launch/HN-POST.md',
   'docs/launch/REDDIT-POSTS.md',
   'docs/launch/X-THREAD.md',
+  'docs/launch/DEMO-GIF-STORYBOARD.md',
+] as const;
+
+const DOGFOOD_COUNT_DOCS = [
+  'README.md',
+  'docs/launch/HN-POST.md',
   'docs/launch/DEMO-GIF-STORYBOARD.md',
 ] as const;
 
@@ -61,6 +68,19 @@ const STALE_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   },
 ];
 
+function countMarkdownFiles(root: string): number {
+  let count = 0;
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const full = path.join(root, entry.name);
+    if (entry.isDirectory()) {
+      count += countMarkdownFiles(full);
+    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
 describe('current-surface launch docs', () => {
   it('do not advertise stale MCP, dogfood, or test counts', async () => {
     const findings: string[] = [];
@@ -71,6 +91,20 @@ describe('current-surface launch docs', () => {
         if (pattern.test(text)) {
           findings.push(`${relPath}: ${message}`);
         }
+      }
+    }
+
+    expect(findings).toEqual([]);
+  });
+
+  it('keeps dogfood node-count claims aligned with the ontology vault', async () => {
+    const nodeCount = countMarkdownFiles(path.join(ROOT, 'docs/ontology'));
+    const findings: string[] = [];
+
+    for (const relPath of DOGFOOD_COUNT_DOCS) {
+      const text = await readFile(path.join(ROOT, relPath), 'utf8');
+      if (!new RegExp(`\\b${nodeCount} nodes\\b|${nodeCount} 노드`).test(text)) {
+        findings.push(`${relPath}: expected ${nodeCount} dogfood nodes`);
       }
     }
 
