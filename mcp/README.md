@@ -203,7 +203,8 @@ census shape/count mismatches, `validate_vault` problem files, failing health ch
 verify before cleanup. Missing or malformed first-contact diagnosis payloads
 such as `workspace_brief.nextActions`, `workspace_brief.health.checks`, and
 `health.checks` also fail the command instead of being treated as clean; every
-health check row must include both `id` and `status`.
+`workspace_brief.nextActions` row must include an `id` or `kind` plus `severity`,
+and every health check row must include both `id` and `status`.
 Non-blocking `workspace_brief.nextActions` are printed as a short
 advisory list, the `workspace_brief` success line includes the
 `workspace_brief.health.checks` count, and the `health` line includes the

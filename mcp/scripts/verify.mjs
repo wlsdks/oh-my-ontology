@@ -529,6 +529,20 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   if (expectedOperation === 'workspace_brief' && !Array.isArray(parsed?.nextActions)) {
     return `${label} response missing nextActions array`;
   }
+  if (expectedOperation === 'workspace_brief') {
+    const malformedAction = parsed.nextActions.find(
+      (action) => (
+        !action
+        || typeof action !== 'object'
+        || Array.isArray(action)
+        || (typeof action.id !== 'string' && typeof action.kind !== 'string')
+        || typeof action.severity !== 'string'
+      ),
+    );
+    if (malformedAction) {
+      return `${label} response malformed nextAction`;
+    }
+  }
   const checks = diagnosisChecks(parsed, expectedOperation);
   if (!checks) {
     return `${label} response missing health checks`;

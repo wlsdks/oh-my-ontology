@@ -741,6 +741,32 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          health: { checks: [] },
+          nextActions: [{ severity: 'warn' }],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response malformed nextAction',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          health: { checks: [] },
+          nextActions: [{ kind: 'health_check' }],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response malformed nextAction',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
         'health',
         {
           operation: 'health',
