@@ -38,6 +38,22 @@ const okShape = {
     summary: { issues: 0, unresolvedEdges: 0, dependencyCycles: 0 },
     checks: [{ id: "compile_issues", status: "pass", count: 0 }],
   },
+  compiled: {
+    version: 1,
+    graphHash: "abc123",
+    maxMtime: 1,
+    nodeCount: 1,
+    edgeCount: 2,
+    resolvedEdgeCount: 1,
+    externalEdgeCount: 1,
+    unresolvedEdgeCount: 0,
+    aliasCount: 1,
+    ambiguousAliasCount: 0,
+    issueCount: 0,
+    canonicalizationActionCount: 0,
+    byKind: { project: 1 },
+    byDomain: {},
+  },
 };
 
 describe("recordResult", () => {
@@ -243,6 +259,44 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, health: { status: "healthy", summary: okShape.health.summary, checks: [{ id: "compile_issues", status: "pass" }] } }),
       ["health response missing check count: compile_issues"],
+    );
+  });
+
+  it("fails on malformed compile_ontology summary payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, version: 0 } }),
+      ["compile_ontology response missing version"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, graphHash: "" } }),
+      ["compile_ontology response missing graphHash"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, maxMtime: -1 } }),
+      ["compile_ontology response missing maxMtime"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, nodeCount: undefined } }),
+      ["compile_ontology response missing nodeCount"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, byKind: null } }),
+      ["compile_ontology response missing byKind aggregate"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, byDomain: { "": 1 } } }),
+      ["compile_ontology response has empty byDomain key"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, byKind: { project: 2 } } }),
+      ["compile_ontology response byKind mismatch — nodeCount 1, byKind 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        compiled: { ...okShape.compiled, edgeCount: 3, resolvedEdgeCount: 1, externalEdgeCount: 1 },
+      }),
+      ["compile_ontology response edge counts do not cover edgeCount"],
     );
   });
 

@@ -6,7 +6,8 @@
 //
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
-// validate_vault / query_ontology workspace_brief / health 만.
+// validate_vault / compile_ontology(summary) /
+// query_ontology workspace_brief / health 만.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -41,6 +42,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [8, "validate_vault"],
   [9, "workspace_brief"],
   [10, "health"],
+  [11, "compile_ontology"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -154,7 +156,7 @@ export function recordResult(failures, label, result) {
   return true;
 }
 
-export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validation, brief, health }) {
+export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validation, brief, health, compiled }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
   recordResult(failures, "list_concepts", list);
@@ -165,6 +167,7 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
   recordResult(failures, "validate_vault", validation);
   recordResult(failures, "workspace_brief", brief);
   recordResult(failures, "health", health);
+  recordResult(failures, "compile_ontology", compiled);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -204,6 +207,10 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
   if (health) {
     healthShapeFailure = healthShapeFailureForDogfood(health);
     if (healthShapeFailure) failures.push(healthShapeFailure);
+  }
+  if (compiled) {
+    const compileFailure = compileSummaryShapeFailure(compiled);
+    if (compileFailure) failures.push(compileFailure);
   }
   if (brief && !briefShapeFailure && brief.status !== "healthy") {
     failures.push(`workspace_brief: status ${brief.status}`);
@@ -337,6 +344,42 @@ function healthShapeFailureForDogfood(result) {
   return checksShapeFailure("health", result.checks, { requireNonEmpty: true });
 }
 
+function compileSummaryShapeFailure(result) {
+  if (!Number.isInteger(result.version) || result.version < 1) {
+    return "compile_ontology response missing version";
+  }
+  if (typeof result.graphHash !== "string" || result.graphHash.length === 0) {
+    return "compile_ontology response missing graphHash";
+  }
+  if (!Number.isFinite(result.maxMtime) || result.maxMtime < 0) {
+    return "compile_ontology response missing maxMtime";
+  }
+  const countFailure = numericFieldsFailure("compile_ontology", result, [
+    "nodeCount",
+    "edgeCount",
+    "resolvedEdgeCount",
+    "externalEdgeCount",
+    "unresolvedEdgeCount",
+    "aliasCount",
+    "ambiguousAliasCount",
+    "issueCount",
+    "canonicalizationActionCount",
+  ]);
+  if (countFailure) return countFailure;
+  const byKindFailure = countMapFailure("compile_ontology", "byKind", result.byKind);
+  if (byKindFailure) return byKindFailure;
+  const byDomainFailure = countMapFailure("compile_ontology", "byDomain", result.byDomain);
+  if (byDomainFailure) return byDomainFailure;
+  const byKindTotal = Object.values(result.byKind).reduce((sum, count) => sum + count, 0);
+  if (byKindTotal !== result.nodeCount) {
+    return `compile_ontology response byKind mismatch — nodeCount ${result.nodeCount}, byKind ${byKindTotal}`;
+  }
+  if (result.resolvedEdgeCount + result.externalEdgeCount < result.edgeCount) {
+    return "compile_ontology response edge counts do not cover edgeCount";
+  }
+  return null;
+}
+
 function numericSummaryFailure(label, summary, keys) {
   if (!summary || typeof summary !== "object" || Array.isArray(summary)) {
     return `${label} response missing summary`;
@@ -344,6 +387,33 @@ function numericSummaryFailure(label, summary, keys) {
   for (const key of keys) {
     if (!Number.isInteger(summary[key]) || summary[key] < 0) {
       return `${label} response missing summary.${key}`;
+    }
+  }
+  return null;
+}
+
+function numericFieldsFailure(label, value, keys) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return `${label} response missing numeric fields`;
+  }
+  for (const key of keys) {
+    if (!Number.isInteger(value[key]) || value[key] < 0) {
+      return `${label} response missing ${key}`;
+    }
+  }
+  return null;
+}
+
+function countMapFailure(label, key, value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return `${label} response missing ${key} aggregate`;
+  }
+  for (const [entryKey, count] of Object.entries(value)) {
+    if (entryKey.length === 0) {
+      return `${label} response has empty ${key} key`;
+    }
+    if (!Number.isInteger(count) || count < 0) {
+      return `${label} response missing ${key} count: ${entryKey || "unknown"}`;
     }
   }
   return null;
@@ -426,6 +496,7 @@ async function main() {
     call(8, "validate_vault", {}),
     call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
     call(10, "query_ontology", { operation: "health" }),
+    call(11, "compile_ontology", { summary: true }),
   ];
 
   const { responses, stderr, timedOut } = await rpc(requests, timeoutMs);
@@ -548,7 +619,17 @@ async function main() {
     }
   }
 
-  const failures = evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validation, brief, health });
+  // 10. compile_ontology(summary)
+  header(`compile_ontology(summary)`);
+  const compiled = getResult(responses, 11);
+  if (compiled) {
+    console.log(`  graphHash: ${compiled.graphHash || "n/a"}`);
+    console.log(
+      `  nodes ${compiled.nodeCount ?? "n/a"} · edges ${compiled.edgeCount ?? "n/a"} · issues ${compiled.issueCount ?? "n/a"} · canonicalization ${compiled.canonicalizationActionCount ?? "n/a"}`,
+    );
+  }
+
+  const failures = evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validation, brief, health, compiled });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
     failures.unshift(rpcTimeoutFailure(timeoutMs, missingLabels));
@@ -569,6 +650,7 @@ async function main() {
   console.log(`  find_backlinks: ${bl?.total ?? "n/a"} (mcp-server 가 얼마나 popular)`);
   console.log(`  workspace_brief: ${brief?.status ?? "n/a"} (${(brief?.nextActions || []).length} next actions)`);
   console.log(`  health: ${health?.status ?? "n/a"} (${(health?.checks || []).length} checks)`);
+  console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {
