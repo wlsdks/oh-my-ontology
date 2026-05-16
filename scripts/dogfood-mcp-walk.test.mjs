@@ -418,6 +418,25 @@ describe("evaluateDogfoodGate", () => {
     );
   });
 
+  it("fails on malformed overview payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, overview: { ...okShape.overview, operation: "health" } }),
+      ["overview returned unexpected operation: health"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, overview: { ...okShape.overview, graph: { ...okShape.overview.graph, graphHash: "" } } }),
+      ["overview response missing graphHash"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, overview: { ...okShape.overview, graph: { ...okShape.overview.graph, edges: 3 } } }),
+      ["overview response edge count mismatch — edges 3, resolved+external+unresolved 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, overview: { ...okShape.overview, hubs: null } }),
+      ["overview response missing hubs array"],
+    );
+  });
+
   it("fails on malformed pattern_walk payloads", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, patternWalk: { ...okShape.patternWalk, operation: "path" } }),
