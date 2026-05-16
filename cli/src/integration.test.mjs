@@ -213,6 +213,8 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /timeout=1000ms/);
     assert.match(clean, new RegExp(`tools/list ${EXPECTED_TOOL_COUNT}/${EXPECTED_TOOL_COUNT}`));
+    assert.match(clean, /get_concepts/);
+    assert.match(clean, /2 ok rows, 1 partial rows/);
     assert.match(clean, /list_kinds/);
     assert.match(clean, /validate_vault/);
     assert.match(clean, /workspace_brief/);
@@ -235,6 +237,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /Usage:/);
   assert.match(clean, /server boot/);
   assert.match(clean, /tool inventory/);
+  assert.match(clean, /get_concepts/);
   assert.match(clean, /kind census/);
   assert.match(clean, /compile_ontology/);
   assert.match(clean, /overview query_plan graph-query smoke/);

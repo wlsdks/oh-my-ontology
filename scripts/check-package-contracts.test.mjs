@@ -92,6 +92,8 @@ describe('package contract helpers', () => {
 
     assert.match(verifySection, /mcp-verify --help/);
     assert.match(verifySection, /graph-query smoke contract/);
+    assert.match(verifySection, /get_concepts/);
+    assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /stdout/);
     assert.match(verifySection, /overview query_plan/);
   });
@@ -100,7 +102,8 @@ describe('package contract helpers', () => {
     const changelog = readFileSync('cli/CHANGELOG.md', 'utf-8');
     const verifySection = changelog.split('### Added — `mcp-verify` command')[1]?.split('### Added — `compile`')[0] ?? '';
 
-    assert.match(verifySection, /`list_concepts`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /`list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /`overview`, and `overview query_plan`/);
   });
 
