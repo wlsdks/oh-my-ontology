@@ -60,8 +60,12 @@ describe('package contract helpers', () => {
     const firstCallSection = readme.split('## First call after registering with Claude Code')[1]?.split('## Design principles')[0] ?? '';
     const validateVaultRow = readme.split('| `validate_vault` |')[1]?.split('\n')[0] ?? '';
 
+    assert.match(firstCallSection, /mcp__oh-my-ontology__list_kinds/);
+    assert.match(firstCallSection, /mcp__oh-my-ontology__list_concepts/);
     assert.match(firstCallSection, /validate_vault\(\{\}\)/);
     assert.match(firstCallSection, /query_ontology\(\{ operation: "workspace_brief" \}\)/);
+    assert.match(firstCallSection, /targetOperation: "overview"/);
+    assert.match(firstCallSection, /targetOperation: "project_map"/);
     assert.match(firstCallSection, /read-only calls respond cleanly/);
     assert.doesNotMatch(firstCallSection, /add_concept/);
     assert.doesNotMatch(firstCallSection, /those four tools/);

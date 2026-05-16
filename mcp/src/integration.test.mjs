@@ -631,47 +631,61 @@ await test("README first exploration — documented read-only MCP calls stay val
   try {
     const { responses } = await rpc(root, [
       ...INIT_REQUESTS,
-      callTool(2, "list_concepts", {}),
-      callTool(3, "get_concept", { slug: "project" }),
-      callTool(4, "find_neighbors", { slug: "capabilities/mcp-server" }),
-      callTool(5, "validate_vault", {}),
-      callTool(6, "query_ontology", { operation: "workspace_brief" }),
-      callTool(7, "query_ontology", { operation: "overview", limit: 5 }),
-      callTool(8, "query_ontology", { operation: "query_plan", targetOperation: "overview" }),
+      callTool(2, "list_kinds", {}),
+      callTool(3, "list_concepts", {}),
+      callTool(4, "get_concept", { slug: "project" }),
+      callTool(5, "find_neighbors", { slug: "capabilities/mcp-server" }),
+      callTool(6, "validate_vault", {}),
+      callTool(7, "query_ontology", { operation: "workspace_brief" }),
+      callTool(8, "query_ontology", { operation: "overview", limit: 5 }),
+      callTool(9, "query_ontology", { operation: "query_plan", targetOperation: "overview" }),
+      callTool(10, "query_ontology", { operation: "query_plan", targetOperation: "project_map" }),
     ]);
 
-    const list = getCallParsed(responses, 2);
+    const kinds = getCallParsed(responses, 2);
+    assert.equal(kinds.total, 3);
+    assert.equal(kinds.byKind.project, 1);
+    assert.equal(kinds.byKind.domain, 1);
+    assert.equal(kinds.byKind.capability, 1);
+
+    const list = getCallParsed(responses, 3);
     assert.equal(list.total, 3);
     assert.equal(list.nodes.length, 3);
 
-    const project = getCallParsed(responses, 3);
+    const project = getCallParsed(responses, 4);
     assert.equal(project.slug, "project");
     assert.equal(project.frontmatter.kind, "project");
 
-    const neighbors = getCallParsed(responses, 4);
+    const neighbors = getCallParsed(responses, 5);
     assert.equal(neighbors.center, "capabilities/mcp-server");
     assert.equal(neighbors.requested, "capabilities/mcp-server");
     assert.ok(neighbors.totalEdges > 0);
     assert.ok(Array.isArray(neighbors.edges));
 
-    const validation = getCallParsed(responses, 5);
+    const validation = getCallParsed(responses, 6);
     assert.equal(validation.scanned, 3);
     assert.equal(validation.summary.problemFiles, 0);
 
-    const brief = getCallParsed(responses, 6);
+    const brief = getCallParsed(responses, 7);
     assert.equal(brief.operation, "workspace_brief");
     assert.equal(brief.summary.nodes, 3);
 
-    const overview = getCallParsed(responses, 7);
+    const overview = getCallParsed(responses, 8);
     assert.equal(overview.operation, "overview");
     assert.equal(overview.graph.nodes, 3);
     assert.ok(Array.isArray(overview.hubs));
 
-    const plan = getCallParsed(responses, 8);
-    assert.equal(plan.operation, "query_plan");
-    assert.equal(plan.targetOperation, "overview");
-    assert.equal(plan.sideEffect, false);
-    assert.equal(plan.estimate.strategy, "aggregate_scan");
+    const overviewPlan = getCallParsed(responses, 9);
+    assert.equal(overviewPlan.operation, "query_plan");
+    assert.equal(overviewPlan.targetOperation, "overview");
+    assert.equal(overviewPlan.sideEffect, false);
+    assert.equal(overviewPlan.estimate.strategy, "aggregate_scan");
+
+    const projectMapPlan = getCallParsed(responses, 10);
+    assert.equal(projectMapPlan.operation, "query_plan");
+    assert.equal(projectMapPlan.targetOperation, "project_map");
+    assert.equal(projectMapPlan.sideEffect, false);
+    assert.equal(projectMapPlan.estimate.strategy, "aggregate_scan");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
