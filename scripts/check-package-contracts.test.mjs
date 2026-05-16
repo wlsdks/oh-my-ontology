@@ -132,6 +132,8 @@ describe('package contract helpers', () => {
     assert.match(row, /ready pages with `cursor\.found=true` \/ `cursor\.reason=null`/);
     assert.match(row, /cursor miss `reason`/);
     assert.match(row, /current-page `nextExecutableAction` \/ `nextReviewAction`/);
+    assert.match(row, /count-safe summary fields/);
+    assert.match(row, /`byPhase` \/ `bySeverity` \/ `byKind` remaining-queue buckets/);
     assert.match(addConceptRow, /`operation:"maintenance_plan"`/);
     assert.match(addConceptRow, /`sideEffect:false`/);
     assert.match(addConceptRow, /`filters`/);

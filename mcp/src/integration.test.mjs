@@ -519,7 +519,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         severitiesEnum: MAINTENANCE_SEVERITY_VALUES,
         maintenanceKindsEnum: MAINTENANCE_KIND_VALUES,
         afterActionIdDescription:
-          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null; nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
+          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null; nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page. Bucket totals (byPhase, bySeverity, byKind) match remainingActions for the returned cursor. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
         componentTypesDescription:
           "health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.",
       },
@@ -835,6 +835,15 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /Did you mean "limit"\?/);
     assert.match(instructions, /maintenance_plan/);
     assert.match(instructions, /phases.*severities.*kinds/);
+    assert.match(instructions, /totalActions/);
+    assert.match(instructions, /filteredActions/);
+    assert.match(instructions, /remainingActions/);
+    assert.match(instructions, /executableActions/);
+    assert.match(instructions, /reviewActions/);
+    assert.match(instructions, /byPhase/);
+    assert.match(instructions, /bySeverity/);
+    assert.match(instructions, /byKind/);
+    assert.match(instructions, /bucket totals.*remainingActions/);
     assert.match(instructions, /cursor\.found=true/);
     assert.match(instructions, /cursor\.reason=null/);
     assert.match(instructions, /afterActionId/);
