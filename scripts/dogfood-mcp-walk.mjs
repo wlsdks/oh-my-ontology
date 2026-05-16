@@ -20,6 +20,7 @@ import {
   parseJsonRpcResponses,
 } from "../mcp/scripts/json-rpc-lines.mjs";
 import {
+  compileSummaryFailure,
   listConceptsFailure,
   listKindsFailure,
   validateVaultFailure,
@@ -209,7 +210,7 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
     if (healthShapeFailure) failures.push(healthShapeFailure);
   }
   if (compiled) {
-    const compileFailure = compileSummaryShapeFailure(compiled);
+    const compileFailure = compileSummaryFailure(compiled);
     if (compileFailure) failures.push(compileFailure);
   }
   const consistencyFailures = crossToolConsistencyFailures({ kinds, list, validation, compiled });
@@ -346,48 +347,12 @@ function healthShapeFailureForDogfood(result) {
   return checksShapeFailure("health", result.checks, { requireNonEmpty: true });
 }
 
-function compileSummaryShapeFailure(result) {
-  if (!Number.isInteger(result.version) || result.version < 1) {
-    return "compile_ontology response missing version";
-  }
-  if (typeof result.graphHash !== "string" || result.graphHash.length === 0) {
-    return "compile_ontology response missing graphHash";
-  }
-  if (!Number.isFinite(result.maxMtime) || result.maxMtime < 0) {
-    return "compile_ontology response missing maxMtime";
-  }
-  const countFailure = numericFieldsFailure("compile_ontology", result, [
-    "nodeCount",
-    "edgeCount",
-    "resolvedEdgeCount",
-    "externalEdgeCount",
-    "unresolvedEdgeCount",
-    "aliasCount",
-    "ambiguousAliasCount",
-    "issueCount",
-    "canonicalizationActionCount",
-  ]);
-  if (countFailure) return countFailure;
-  const byKindFailure = countMapFailure("compile_ontology", "byKind", result.byKind);
-  if (byKindFailure) return byKindFailure;
-  const byDomainFailure = countMapFailure("compile_ontology", "byDomain", result.byDomain);
-  if (byDomainFailure) return byDomainFailure;
-  const byKindTotal = Object.values(result.byKind).reduce((sum, count) => sum + count, 0);
-  if (byKindTotal !== result.nodeCount) {
-    return `compile_ontology response byKind mismatch — nodeCount ${result.nodeCount}, byKind ${byKindTotal}`;
-  }
-  if (result.resolvedEdgeCount + result.externalEdgeCount < result.edgeCount) {
-    return "compile_ontology response edge counts do not cover edgeCount";
-  }
-  return null;
-}
-
 function crossToolConsistencyFailures({ kinds, list, validation, compiled }) {
   if (
     (kinds && listKindsFailure(kinds)) ||
     (list && listConceptsFailure(list)) ||
     (validation && validateVaultFailure(validation)) ||
-    (compiled && compileSummaryShapeFailure(compiled))
+    (compiled && compileSummaryFailure(compiled))
   ) {
     return [];
   }
@@ -430,33 +395,6 @@ function numericSummaryFailure(label, summary, keys) {
   for (const key of keys) {
     if (!Number.isInteger(summary[key]) || summary[key] < 0) {
       return `${label} response missing summary.${key}`;
-    }
-  }
-  return null;
-}
-
-function numericFieldsFailure(label, value, keys) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return `${label} response missing numeric fields`;
-  }
-  for (const key of keys) {
-    if (!Number.isInteger(value[key]) || value[key] < 0) {
-      return `${label} response missing ${key}`;
-    }
-  }
-  return null;
-}
-
-function countMapFailure(label, key, value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return `${label} response missing ${key} aggregate`;
-  }
-  for (const [entryKey, count] of Object.entries(value)) {
-    if (entryKey.length === 0) {
-      return `${label} response has empty ${key} key`;
-    }
-    if (!Number.isInteger(count) || count < 0) {
-      return `${label} response missing ${key} count: ${entryKey || "unknown"}`;
     }
   }
   return null;
