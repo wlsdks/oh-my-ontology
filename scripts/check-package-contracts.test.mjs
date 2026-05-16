@@ -261,7 +261,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /missing cursor still reports `cursor\.found=false`,\s+reason, empty page/);
     assert.match(verifySection, /`nextExecutableAction` \/\s+`nextReviewAction` point only at the first executable\/review action in the\s+current returned page/);
     assert.match(verifySection, /maintenance summary counts \(`totalActions`,\s+`filteredActions`, `remainingActions`, `executableActions`, `reviewActions`\)/);
-    assert.match(verifySection, /catches work-queue drift/);
+    assert.match(verifySection, /`byPhase` \/ `bySeverity` \/ `byKind`\s+bucket totals against `remainingActions`/);
+    assert.match(verifySection, /catches\s+work-queue drift/);
     assert.match(verifySection, /list_concepts\/project probe\/get_concepts\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety guidance present/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums \+ health tuning \+ post-write guidance/);
@@ -362,7 +363,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /batch tools must keep their 50-row caps/);
     assert.match(verifySection, /validates the installed `find_orphans\.excludeKinds` schema and default description/);
     assert.match(verifySection, /write tools must keep their `expected_mtime` \/ `confirm` \/ `rename_concept\.overwrite` \/ `delete_concept\.force` safety schemas/);
-    assert.match(verifySection, /validates `maintenance_plan\.summary` count fields and relationships/);
+    assert.match(verifySection, /validates `maintenance_plan\.summary` count fields and relationships plus `byPhase` \/ `bySeverity` \/ `byKind` bucket totals/);
     assert.match(verifySection, /write tool descriptions keep compact `postWriteMaintenance` action `score`/);
     assert.match(verifySection, /executable `proposedAction`/);
     assert.match(verifySection, /current-page next action pointer guidance/);
@@ -652,6 +653,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /source checkout MCP work\s+queue count drift 를 fail-fast/);
     assert.match(doc, /installed verify 의 `maintenance_plan` cursor smoke 도 `totalActions` \/ `filteredActions` \//);
     assert.match(doc, /post-write work queue summary 가 drift 나도 설치 경로에서 fail-fast/);
+    assert.match(doc, /같은 smoke 는\s+`byPhase` \/ `bySeverity` \/ `byKind` bucket 합계와 `remainingActions` 관계도 확인/);
     assert.match(dogfoodSection, /`project_map` query_plan/);
     assert.match(dogfoodSection, /실제\s+`project_map` 실행/);
     assert.match(dogfoodSection, /`neighbors`/);

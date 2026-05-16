@@ -830,6 +830,9 @@ describe('verify.mjs first-contact gates', () => {
         startIndex: null,
       },
       actions: [],
+      byPhase: {},
+      bySeverity: {},
+      byKind: {},
       nextExecutableAction: null,
       nextReviewAction: null,
     };
@@ -857,6 +860,24 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       maintenanceMissingCursorFailure({ ...clean, summary: { ...summary, remainingActions: 1 } }),
+      'maintenance missing-cursor smoke byPhase total does not match remainingActions',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, byPhase: null }),
+      'maintenance missing-cursor smoke missing byPhase',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({ ...clean, bySeverity: { warn: -1 } }),
+      'maintenance missing-cursor smoke bySeverity missing non-negative integer count: warn',
+    );
+    assert.equal(
+      maintenanceMissingCursorFailure({
+        ...clean,
+        summary: { ...summary, remainingActions: 1 },
+        byPhase: { link: 1 },
+        bySeverity: { warn: 1 },
+        byKind: { add_missing_relation: 1 },
+      }),
       'maintenance missing-cursor smoke should have zero remaining actions',
     );
     assert.equal(
@@ -893,6 +914,9 @@ describe('verify.mjs first-contact gates', () => {
         startIndex: 0,
       },
       actions: [],
+      byPhase: {},
+      bySeverity: {},
+      byKind: {},
       nextExecutableAction: null,
       nextReviewAction: null,
     };
@@ -934,6 +958,18 @@ describe('verify.mjs first-contact gates', () => {
       maintenanceReadyCursorFailure({ ...clean, summary: { ...summary, remainingActions: 4 } }),
       'maintenance ready-cursor smoke summary remainingActions exceeds filteredActions',
     );
+    assert.equal(
+      maintenanceReadyCursorFailure({ ...clean, byPhase: null }),
+      'maintenance ready-cursor smoke missing byPhase',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({ ...clean, bySeverity: { warn: 1.5 } }),
+      'maintenance ready-cursor smoke bySeverity missing non-negative integer count: warn',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({ ...clean, summary: { ...summary, remainingActions: 1 }, byPhase: {} }),
+      'maintenance ready-cursor smoke byPhase total does not match remainingActions',
+    );
     const withoutNextExecutable = { ...clean };
     delete withoutNextExecutable.nextExecutableAction;
     assert.equal(
@@ -942,14 +978,25 @@ describe('verify.mjs first-contact gates', () => {
     );
     const withActions = {
       ...clean,
+      summary: { ...summary, remainingActions: 2 },
       actions: [
         { id: 'maint_link', executable: true },
         { id: 'maint_review', executable: false },
       ],
+      byPhase: { link: 1, review: 1 },
+      bySeverity: { warn: 1, info: 1 },
+      byKind: { add_missing_relation: 1, unassigned_node: 1 },
       nextExecutableAction: { id: 'maint_link', executable: true },
       nextReviewAction: { id: 'maint_review', executable: false },
     };
     assert.equal(maintenanceReadyCursorFailure(withActions), null);
+    assert.equal(
+      maintenanceReadyCursorFailure({
+        ...withActions,
+        actions: [...withActions.actions, { id: 'maint_extra', executable: true }],
+      }),
+      'maintenance ready-cursor smoke actions exceed remainingActions',
+    );
     assert.equal(
       maintenanceReadyCursorFailure({ ...withActions, nextExecutableAction: { id: 'maint_later', executable: true } }),
       'maintenance ready-cursor smoke nextExecutableAction did not match first page action',

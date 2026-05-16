@@ -343,6 +343,8 @@ export function maintenanceMissingCursorFailure(parsed) {
   }
   const summaryFailure = maintenanceSummaryFailure(parsed.summary, 'maintenance missing-cursor smoke');
   if (summaryFailure) return summaryFailure;
+  const bucketFailure = maintenanceBucketSummaryFailure(parsed, 'maintenance missing-cursor smoke');
+  if (bucketFailure) return bucketFailure;
   if (parsed.summary?.remainingActions !== 0) {
     return 'maintenance missing-cursor smoke should have zero remaining actions';
   }
@@ -376,6 +378,11 @@ export function maintenanceReadyCursorFailure(parsed) {
   }
   const summaryFailure = maintenanceSummaryFailure(parsed.summary, 'maintenance ready-cursor smoke');
   if (summaryFailure) return summaryFailure;
+  const bucketFailure = maintenanceBucketSummaryFailure(parsed, 'maintenance ready-cursor smoke');
+  if (bucketFailure) return bucketFailure;
+  if (parsed.actions.length > parsed.summary.remainingActions) {
+    return 'maintenance ready-cursor smoke actions exceed remainingActions';
+  }
   if (!Object.hasOwn(parsed, 'nextExecutableAction') || !Object.hasOwn(parsed, 'nextReviewAction')) {
     return 'maintenance ready-cursor smoke missing next action pointers';
   }
@@ -428,6 +435,26 @@ function maintenanceSummaryFailure(summary, label) {
   }
   if (summary.remainingActions > summary.filteredActions) {
     return `${label} summary remainingActions exceeds filteredActions`;
+  }
+  return null;
+}
+
+function maintenanceBucketSummaryFailure(parsed, label) {
+  for (const key of ['byPhase', 'bySeverity', 'byKind']) {
+    const bucket = parsed?.[key];
+    if (!bucket || typeof bucket !== 'object' || Array.isArray(bucket)) {
+      return `${label} missing ${key}`;
+    }
+    let total = 0;
+    for (const [bucketKey, count] of Object.entries(bucket)) {
+      if (!Number.isInteger(count) || count < 0) {
+        return `${label} ${key} missing non-negative integer count: ${bucketKey}`;
+      }
+      total += count;
+    }
+    if (total !== parsed.summary.remainingActions) {
+      return `${label} ${key} total does not match remainingActions`;
+    }
   }
   return null;
 }
