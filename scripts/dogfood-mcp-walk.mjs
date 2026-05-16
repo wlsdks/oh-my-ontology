@@ -614,14 +614,10 @@ function workspaceBriefShapeFailure(result) {
       return `workspace_brief response missing nextAction identifier at index ${index}`;
     }
   }
-  if (result.health !== undefined) {
-    if (!result.health || typeof result.health !== "object" || Array.isArray(result.health)) {
-      return "workspace_brief response malformed health block";
-    }
-    const checksFailure = checksShapeFailure("workspace_brief", result.health.checks);
-    if (checksFailure) return checksFailure;
+  if (!result.health || typeof result.health !== "object" || Array.isArray(result.health)) {
+    return "workspace_brief response missing health block";
   }
-  return null;
+  return checksShapeFailure("workspace_brief", result.health.checks, { requireNonEmpty: true });
 }
 
 function healthShapeFailureForDogfood(result) {

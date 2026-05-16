@@ -56,7 +56,13 @@ const okShape = {
     problems: [],
     summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: {} },
   },
-  brief: { operation: "workspace_brief", status: "healthy", summary: { nodes: 1, edges: 0, issues: 0 }, nextActions: [] },
+  brief: {
+    operation: "workspace_brief",
+    status: "healthy",
+    summary: { nodes: 1, edges: 0, issues: 0 },
+    nextActions: [],
+    health: { checks: [{ id: "compile_issues", status: "pass", count: 0 }] },
+  },
   health: {
     operation: "health",
     status: "healthy",
@@ -397,6 +403,14 @@ describe("evaluateDogfoodGate", () => {
       ["workspace_brief response missing nextActions array"],
     );
     assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, brief: { operation: "workspace_brief", status: "healthy", summary: { nodes: 1, edges: 0, issues: 0 }, nextActions: [] } }),
+      ["workspace_brief response missing health block"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, brief: { operation: "workspace_brief", status: "healthy", summary: { nodes: 1, edges: 0, issues: 0 }, nextActions: [], health: { checks: [] } } }),
+      ["workspace_brief response missing health checks"],
+    );
+    assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
         brief: {
@@ -404,6 +418,7 @@ describe("evaluateDogfoodGate", () => {
           status: "healthy",
           summary: { nodes: 1, edges: 0, issues: 0 },
           nextActions: [{ id: "compile_issues" }],
+          health: okShape.brief.health,
         },
       }),
       ["workspace_brief response missing nextAction severity at index 0"],

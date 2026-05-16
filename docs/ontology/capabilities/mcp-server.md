@@ -88,9 +88,10 @@ dogfood walk 는 `find_evidence.matches`, `find_path.hops/hopCount`,
 agent 가 받는 탐색 결과가 실제로 사용할 수 있는 구조인지 확인한다.
 또한 `get_concepts` 를 실제 project / mcp-server slug 와 missing slug 를 섞어
 호출해 batch reader 의 성공 row 와 partial row 가 동시에 유지되는지 확인한다.
-또한 `workspace_brief.summary` / `nextActions` 와 `health.summary` /
-`checks` 의 numeric contract 를 검증해 first-contact 진단 결과가 status 문자열만
-맞고 실제 분석 필드가 비어 있는 회귀를 막는다.
+또한 `workspace_brief.summary` / `nextActions` /
+`workspace_brief.health.checks` 와 `health.summary` / `checks` 의 numeric
+contract 를 검증해 first-contact 진단 결과가 status 문자열만 맞고 실제 분석
+필드가 비어 있는 회귀를 막는다.
 dogfood walk 는 `compile_ontology({ summary: true })` 도 직접 호출해
 `graphHash`, `maxMtime`, node/edge/alias/issue count, `byKind` / `byDomain`
 aggregate 가 유효한지 확인한다. `byKind` 합계가 `nodeCount` 와 다르거나
