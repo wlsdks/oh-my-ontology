@@ -151,9 +151,7 @@ export function queryCompiledOntology(artifact, query = {}, options = {}) {
     return engine.health(query);
   }
 
-  throw new Error(
-    `operation must be one of: ${QUERY_ONTOLOGY_OPERATIONS.join(', ')}.`,
-  );
+  throw new Error(formatAllowedValueError('operation', operation, QUERY_ONTOLOGY_OPERATIONS));
 }
 
 export function createOntologyEngine(artifact, options = {}) {
@@ -3344,7 +3342,7 @@ function normalizeRecommendRelationKind(value) {
   const kind = normalizeOptionalString(value, 'kind');
   if (kind === null) return null;
   if (kind !== 'capability' && kind !== 'element') {
-    throw new Error('kind must be one of: capability, element.');
+    throw new Error(formatAllowedValueError('kind', kind, ['capability', 'element']));
   }
   return kind;
 }
@@ -3359,7 +3357,7 @@ function normalizeNodeSort(value) {
   ) {
     return value;
   }
-  throw new Error('sort must be one of: degree, inDegree, outDegree, slug.');
+  throw new Error(formatAllowedValueError('sort', value, ['degree', 'inDegree', 'outDegree', 'slug']));
 }
 
 function compareNodeRows(left, right, sort) {
@@ -3491,7 +3489,10 @@ function roundScore(value) {
 function normalizePlanTargetOperation(value) {
   const allowed = new Set(QUERY_PLAN_TARGET_OPERATIONS);
   if (typeof value === 'string' && allowed.has(value)) return value;
-  throw new Error('targetOperation is required for query_plan and must name a supported query.');
+  if (value === undefined || value === null || value === '') {
+    throw new Error('targetOperation is required for query_plan and must name a supported query.');
+  }
+  throw new Error(formatAllowedValueError('targetOperation', value, QUERY_PLAN_TARGET_OPERATIONS));
 }
 
 function adjacencyIndexesForDirection(direction) {
@@ -3584,6 +3585,56 @@ function normalizeStringSet(value, name) {
   return items.length > 0 ? new Set(items) : null;
 }
 
+function formatAllowedValueError(name, value, allowed) {
+  const suggestion = typeof value === 'string'
+    ? closestAllowedValue(value, allowed)
+    : null;
+  const receivedText = ` Received: ${formatErrorValue(value)}.`;
+  const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
+  return `${name} must be one of: ${allowed.join(', ')}.${receivedText}${suggestionText}`;
+}
+
+function closestAllowedValue(input, allowed) {
+  if (!input || !Array.isArray(allowed) || allowed.length === 0) return null;
+  let best = null;
+  for (const candidate of allowed) {
+    const distance = levenshteinDistance(input, candidate);
+    if (!best || distance < best.distance) {
+      best = { candidate, distance };
+    }
+  }
+  if (!best) return null;
+  const threshold = Math.max(2, Math.floor(best.candidate.length / 3));
+  return best.distance <= threshold ? best.candidate : null;
+}
+
+function levenshteinDistance(a, b) {
+  const prev = Array.from({ length: b.length + 1 }, (_, index) => index);
+  const curr = Array.from({ length: b.length + 1 }, () => 0);
+  for (let i = 1; i <= a.length; i += 1) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const substitutionCost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(
+        prev[j] + 1,
+        curr[j - 1] + 1,
+        prev[j - 1] + substitutionCost,
+      );
+    }
+    for (let j = 0; j <= b.length; j += 1) {
+      prev[j] = curr[j];
+    }
+  }
+  return prev[b.length];
+}
+
+function formatErrorValue(value) {
+  if (typeof value === 'string') return `"${value}"`;
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  return typeof value;
+}
+
 function hashString(value) {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -3612,14 +3663,14 @@ function normalizeDirection(direction, fallback) {
   if (direction === undefined) return fallback;
   if (direction === 'incoming' || direction === 'outgoing' || direction === 'both') return direction;
   if (direction === 'undirected') return 'both';
-  throw new Error('direction must be one of: incoming, outgoing, both, undirected.');
+  throw new Error(formatAllowedValueError('direction', direction, ['incoming', 'outgoing', 'both', 'undirected']));
 }
 
 function normalizePathDirection(direction) {
   if (direction === undefined) return 'undirected';
   if (direction === 'incoming' || direction === 'outgoing') return direction;
   if (direction === 'both' || direction === 'undirected') return 'undirected';
-  throw new Error('direction must be one of: incoming, outgoing, both, undirected.');
+  throw new Error(formatAllowedValueError('direction', direction, ['incoming', 'outgoing', 'both', 'undirected']));
 }
 
 function normalizeTraversalDirection(direction, fallback) {
@@ -3632,7 +3683,7 @@ function normalizeTraversalDirection(direction, fallback) {
   ) {
     return direction;
   }
-  throw new Error('direction must be one of: incoming, outgoing, both, undirected.');
+  throw new Error(formatAllowedValueError('direction', direction, ['incoming', 'outgoing', 'both', 'undirected']));
 }
 
 function normalizeDepth(value, fallback) {

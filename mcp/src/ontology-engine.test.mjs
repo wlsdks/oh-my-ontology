@@ -35,6 +35,36 @@ function artifact() {
 }
 
 describe('queryCompiledOntology', () => {
+  it('suggests close enum values for direct graph-engine callers', () => {
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'overveiw' }),
+      /operation must be one of:[\s\S]*Received: "overveiw"\.[\s\S]*Did you mean "overview"\?/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'query_plan',
+        targetOperation: 'overveiw',
+      }),
+      /targetOperation must be one of:[\s\S]*Received: "overveiw"\.[\s\S]*Did you mean "overview"\?/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'neighbors',
+        slug: 'capabilities/login',
+        direction: 'incomng',
+      }),
+      /direction must be one of:[\s\S]*Received: "incomng"\.[\s\S]*Did you mean "incoming"\?/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', sort: 'outDegre' }),
+      /sort must be one of:[\s\S]*Received: "outDegre"\.[\s\S]*Did you mean "outDegree"\?/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'recommend_relations', kind: 'capabilty' }),
+      /kind must be one of:[\s\S]*Received: "capabilty"\.[\s\S]*Did you mean "capability"\?/,
+    );
+  });
+
   it('returns deterministic neighbors with alias resolution', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'neighbors',
