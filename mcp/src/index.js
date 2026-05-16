@@ -266,6 +266,56 @@ const TOOLS = [
         },
       },
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        total: {
+          type: 'integer',
+          minimum: 0,
+          description: 'Total number of matching ontology nodes before the limit is applied.',
+        },
+        vaultRoot: {
+          type: 'string',
+          minLength: 1,
+          description: 'Resolved vault root path used for the listing.',
+        },
+        nodes: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              kind: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              domain: { type: 'string' },
+              capabilities: {
+                type: 'array',
+                items: NON_BLANK_STRING_SCHEMA,
+              },
+              elements: {
+                type: 'array',
+                items: NON_BLANK_STRING_SCHEMA,
+              },
+              mtime: {
+                type: 'number',
+                minimum: 0,
+              },
+              summary: { type: 'string' },
+            },
+            required: ['slug', 'kind', 'title', 'mtime'],
+          },
+        },
+        vaultWarnings: {
+          type: 'object',
+          properties: {
+            errorCount: { type: 'integer', minimum: 0 },
+            warningCount: { type: 'integer', minimum: 0 },
+          },
+          required: ['errorCount', 'warningCount'],
+        },
+      },
+      required: ['total', 'vaultRoot', 'nodes'],
+    },
   },
   {
     name: 'get_concept',

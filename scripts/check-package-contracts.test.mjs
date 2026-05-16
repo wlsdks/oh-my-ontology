@@ -310,6 +310,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`query_ontology\.operation` \/[\s\S]*`query_ontology\.targetOperation` enums/);
     assert.match(verifySection, /`list_kinds`\s+`outputSchema` and matching `structuredContent` census payload/);
     assert.match(verifySection, /`validate_vault`\s+`outputSchema` and matching `structuredContent` health payload/);
+    assert.match(verifySection, /`list_concepts`\s+`outputSchema` and matching `structuredContent` node table payload/);
     assert.match(verifySection, /same 50-row cap used by `get_concepts`, `add_concepts`,\s+and `add_relations`/);
     assert.match(verifySection, /`find_orphans\.excludeKinds` string-array\s+schema and root\/sentinel default description/);
     assert.match(verifySection, /write-safety schemas for\s+`expected_mtime`/);
@@ -670,6 +671,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`annotations\.openWorldHint:false`/);
     assert.match(doc, /`annotations\.idempotentHint`/);
     assert.match(doc, /`list_kinds` 는 `outputSchema` 와 동일한 `structuredContent` census payload/);
+    assert.match(doc, /`list_concepts` 도 `outputSchema` 와 동일한 `structuredContent` node table payload/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /15 read \/ 8 write split/);
     assert.match(doc, /annotation drift/);

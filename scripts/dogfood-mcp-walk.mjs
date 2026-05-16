@@ -580,6 +580,7 @@ export function stderrWarningFailures(stderr) {
 export function evaluateDogfoodGate({
   kinds,
   list,
+  listStructured,
   batch,
   ev,
   path,
@@ -711,6 +712,9 @@ export function evaluateDogfoodGate({
   if (list) {
     const listFailure = listConceptsFailure(list);
     if (listFailure) failures.push(listFailure);
+    else if (listStructured !== undefined && JSON.stringify(listStructured) !== JSON.stringify(list)) {
+      failures.push("list_concepts structuredContent mismatch");
+    }
   }
   if (projectProbe) {
     const projectProbeFailure = listConceptsFailure(projectProbe);
@@ -4012,8 +4016,10 @@ async function main() {
   // 2. list_concepts (preview)
   header("list_concepts — preview (top 8)");
   const list = getResult(responses, 3);
+  const listStructured = getRpcResult(responses, 3)?.structuredContent ?? null;
   if (list) {
     console.log(`  total: ${list.total}`);
+    console.log(`  structuredContent: ${JSON.stringify(listStructured) === JSON.stringify(list) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     for (const node of (list.nodes || []).slice(0, 8)) {
       console.log(
         `  ${node.kind?.padEnd(13) || ""} ${(node.slug || "").padEnd(40)} ${node.title || ""}`,
@@ -4626,6 +4632,7 @@ async function main() {
   const failures = evaluateDogfoodGate({
     kinds,
     list,
+    listStructured,
     batch,
     ev,
     path,

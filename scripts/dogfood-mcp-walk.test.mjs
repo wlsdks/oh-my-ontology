@@ -89,6 +89,37 @@ function makeDogfoodToolsList() {
           componentTypes: { type: "array", items: { type: "string" }, description: "health/workspace_brief tuning" },
         };
       }
+      if (name === "list_concepts") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["total", "vaultRoot", "nodes"],
+          properties: {
+            total: { type: "integer", minimum: 0 },
+            vaultRoot: { type: "string", minLength: 1 },
+            nodes: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "kind", "title", "mtime"],
+                properties: {
+                  slug: { type: "string" },
+                  kind: { type: "string" },
+                  title: { type: "string" },
+                  mtime: { type: "number", minimum: 0 },
+                },
+              },
+            },
+            vaultWarnings: {
+              type: "object",
+              required: ["errorCount", "warningCount"],
+              properties: {
+                errorCount: { type: "integer", minimum: 0 },
+                warningCount: { type: "integer", minimum: 0 },
+              },
+            },
+          },
+        };
+      }
       if (name === "list_kinds") {
         tool.outputSchema = {
           type: "object",
@@ -181,6 +212,11 @@ const okShape = {
   kinds: { total: 1, byKind: { project: 1 } },
   kindsStructured: { total: 1, byKind: { project: 1 } },
   list: {
+    total: 1,
+    vaultRoot: "/tmp/vault",
+    nodes: [{ slug: "project", kind: "project", title: "Project", mtime: 1 }],
+  },
+  listStructured: {
     total: 1,
     vaultRoot: "/tmp/vault",
     nodes: [{ slug: "project", kind: "project", title: "Project", mtime: 1 }],
@@ -1812,6 +1848,16 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: outputSchemaDrifted }),
       ["tools/list: list_kinds outputSchema total drift"],
+    );
+    const listOutputSchemaDrifted = makeDogfoodToolsList();
+    listOutputSchemaDrifted.tools.find((tool) => tool.name === "list_concepts").outputSchema.properties.nodes.items.properties.mtime.type = "integer";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: listOutputSchemaDrifted }),
+      ["tools/list: list_concepts outputSchema node mtime drift"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),
+      ["list_concepts structuredContent mismatch"],
     );
     const validateOutputSchemaDrifted = makeDogfoodToolsList();
     validateOutputSchemaDrifted.tools.find((tool) => tool.name === "validate_vault").outputSchema.properties.summary.properties.byCode.additionalProperties.properties.files.items.type = "number";

@@ -94,6 +94,35 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'list_concepts',
         inputSchema: { additionalProperties: false, properties: {} },
+        outputSchema: {
+          type: 'object',
+          required: ['total', 'vaultRoot', 'nodes'],
+          properties: {
+            total: { type: 'integer', minimum: 0 },
+            vaultRoot: { type: 'string', minLength: 1 },
+            nodes: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'kind', 'title', 'mtime'],
+                properties: {
+                  slug: { type: 'string' },
+                  kind: { type: 'string' },
+                  title: { type: 'string' },
+                  mtime: { type: 'number', minimum: 0 },
+                },
+              },
+            },
+            vaultWarnings: {
+              type: 'object',
+              required: ['errorCount', 'warningCount'],
+              properties: {
+                errorCount: { type: 'integer', minimum: 0 },
+                warningCount: { type: 'integer', minimum: 0 },
+              },
+            },
+          },
+        },
       },
       {
         name: 'get_concepts',
@@ -379,6 +408,40 @@ describe('verify.mjs first-contact gates', () => {
           : tool
       ))),
       'tools/list title annotation drift: list_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'list_concepts'
+          ? { ...tool, outputSchema: { ...tool.outputSchema, required: ['nodes', 'total', 'vaultRoot'] } }
+          : tool
+      ))),
+      'list_concepts outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'list_concepts'
+          ? {
+            ...tool,
+            outputSchema: {
+              ...tool.outputSchema,
+              properties: {
+                ...tool.outputSchema.properties,
+                nodes: {
+                  ...tool.outputSchema.properties.nodes,
+                  items: {
+                    ...tool.outputSchema.properties.nodes.items,
+                    properties: {
+                      ...tool.outputSchema.properties.nodes.items.properties,
+                      mtime: { type: 'integer', minimum: 0 },
+                    },
+                  },
+                },
+              },
+            },
+          }
+          : tool
+      ))),
+      'list_concepts outputSchema node mtime drift',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (

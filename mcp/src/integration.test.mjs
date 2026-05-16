@@ -321,6 +321,13 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       );
     }
     const findTool = (name) => tools.find((t) => t.name === name);
+    const listConcepts = findTool("list_concepts");
+    assert.equal(listConcepts?.outputSchema?.type, "object");
+    assert.deepEqual(listConcepts?.outputSchema?.required, ["total", "vaultRoot", "nodes"]);
+    assert.equal(listConcepts?.outputSchema?.properties?.total?.type, "integer");
+    assert.equal(listConcepts?.outputSchema?.properties?.vaultRoot?.type, "string");
+    assert.equal(listConcepts?.outputSchema?.properties?.nodes?.items?.properties?.mtime?.type, "number");
+    assert.deepEqual(listConcepts?.outputSchema?.properties?.vaultWarnings?.required, ["errorCount", "warningCount"]);
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -944,6 +951,7 @@ await test("README first exploration — documented read-only MCP calls stay val
     const list = getCallParsed(responses, 3);
     assert.equal(list.total, 3);
     assert.equal(list.nodes.length, 3);
+    assert.deepEqual(getCallStructured(responses, 3), list);
 
     const project = getCallParsed(responses, 4);
     assert.equal(project.slug, "project");

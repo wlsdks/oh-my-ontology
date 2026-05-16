@@ -277,7 +277,8 @@ for retry-safe relation writers (`add_relation` / `add_relations`), and that req
 the `query_ontology.operation` / `query_ontology.targetOperation` enums match
 the graph engine's runtime allow-lists. It also checks the `list_kinds`
 `outputSchema` and matching `structuredContent` census payload, the `validate_vault`
-`outputSchema` and matching `structuredContent` health payload, the installed batch
+`outputSchema` and matching `structuredContent` health payload, the `list_concepts`
+`outputSchema` and matching `structuredContent` node table payload, the installed batch
 tool schemas for the same 50-row cap used by `get_concepts`, `add_concepts`,
 and `add_relations` at runtime, the `find_orphans.excludeKinds` string-array
 schema and root/sentinel default description, plus write-safety schemas for

@@ -187,6 +187,46 @@ export function toolsListSchemaFailure(tools) {
     return `tools/list idempotentHint annotation drift: ${idempotentDriftTool.name || '(unknown)'}`;
   }
 
+  const listConceptsTool = tools.find((tool) => tool?.name === 'list_concepts');
+  if (!listConceptsTool) return 'tools/list response missing list_concepts tool';
+  if (listConceptsTool.outputSchema?.type !== 'object') {
+    return 'list_concepts outputSchema root drift';
+  }
+  if (!sameArray(listConceptsTool.outputSchema?.required, ['total', 'vaultRoot', 'nodes'])) {
+    return 'list_concepts outputSchema required drift';
+  }
+  const listTotalSchema = outputPropertyAt(listConceptsTool, ['properties', 'total']);
+  if (listTotalSchema?.type !== 'integer' || listTotalSchema.minimum !== 0) {
+    return 'list_concepts outputSchema total drift';
+  }
+  const listVaultRootSchema = outputPropertyAt(listConceptsTool, ['properties', 'vaultRoot']);
+  if (listVaultRootSchema?.type !== 'string' || listVaultRootSchema.minLength !== 1) {
+    return 'list_concepts outputSchema vaultRoot drift';
+  }
+  const listNodesSchema = outputPropertyAt(listConceptsTool, ['properties', 'nodes']);
+  if (listNodesSchema?.type !== 'array' || listNodesSchema.items?.type !== 'object' || !sameArray(listNodesSchema.items?.required, ['slug', 'kind', 'title', 'mtime'])) {
+    return 'list_concepts outputSchema nodes drift';
+  }
+  for (const propertyName of ['slug', 'kind', 'title']) {
+    if (listNodesSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `list_concepts outputSchema node ${propertyName} drift`;
+    }
+  }
+  const nodeMtimeSchema = listNodesSchema.items?.properties?.mtime;
+  if (nodeMtimeSchema?.type !== 'number' || nodeMtimeSchema.minimum !== 0) {
+    return 'list_concepts outputSchema node mtime drift';
+  }
+  const vaultWarningsSchema = outputPropertyAt(listConceptsTool, ['properties', 'vaultWarnings']);
+  if (vaultWarningsSchema?.type !== 'object' || !sameArray(vaultWarningsSchema.required, ['errorCount', 'warningCount'])) {
+    return 'list_concepts outputSchema vaultWarnings drift';
+  }
+  for (const propertyName of ['errorCount', 'warningCount']) {
+    const countSchema = vaultWarningsSchema.properties?.[propertyName];
+    if (countSchema?.type !== 'integer' || countSchema.minimum !== 0) {
+      return `list_concepts outputSchema vaultWarnings ${propertyName} drift`;
+    }
+  }
+
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
 
@@ -2140,6 +2180,10 @@ async function step2BootAndCall() {
         const failure = listConceptsFailure(parsed);
         if (failure) {
           log('fail', failure);
+          return res(false);
+        }
+        if (JSON.stringify(callRes.result.structuredContent) !== JSON.stringify(parsed)) {
+          log('fail', 'list_concepts structuredContent mismatch');
           return res(false);
         }
         listPayload = parsed;
