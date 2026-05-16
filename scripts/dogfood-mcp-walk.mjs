@@ -3127,6 +3127,13 @@ function shortestRelationPathFailure(path, from, to) {
   for (const [index, edge] of path.edges.entries()) {
     const edgeFailure = graphEdgeFailure("explain_relation shortestPath", edge, index);
     if (edgeFailure) return edgeFailure;
+    const left = path.hops[index];
+    const right = path.hops[index + 1];
+    const connectsForward = edge.from === left && edge.to === right;
+    const connectsBackward = edge.from === right && edge.to === left;
+    if (!connectsForward && !connectsBackward) {
+      return `explain_relation shortestPath edge endpoint mismatch at index ${index}`;
+    }
   }
   return null;
 }

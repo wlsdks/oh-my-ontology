@@ -3513,6 +3513,22 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         explainRelation: {
           ...okShape.explainRelation,
+          shortestPath: {
+            ...okShape.explainRelation.shortestPath,
+            edges: [
+              { ...okShape.explainRelation.shortestPath.edges[0], to: "domains/other" },
+              okShape.explainRelation.shortestPath.edges[1],
+            ],
+          },
+        },
+      }),
+      ["explain_relation shortestPath edge endpoint mismatch at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        explainRelation: {
+          ...okShape.explainRelation,
           commonNeighbors: { ...okShape.explainRelation.commonNeighbors, rows: [{}] },
         },
       }),
