@@ -1,9 +1,13 @@
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { parseMcpToolMetadataFromDescription } from '../../../cli/src/lib/mcp-metadata.mjs';
 import { dogfoodVaultCensus } from '../../../scripts/lib/vault-census.mjs';
 
 const ROOT = path.resolve(__dirname, '../../..');
+const MCP_PKG = JSON.parse(readFileSync(path.join(ROOT, 'mcp/package.json'), 'utf8'));
+const MCP_TOOL_METADATA = parseMcpToolMetadataFromDescription(MCP_PKG.description);
 
 const CURRENT_SURFACE_DOCS = [
   'README.md',
@@ -21,30 +25,45 @@ const DOGFOOD_COUNT_DOCS = [
   'docs/launch/DEMO-GIF-STORYBOARD.md',
 ] as const;
 
+const MCP_TOOL_COUNT_DOCS = [
+  'README.md',
+  'docs/PUBLISH-NPM.md',
+  'docs/launch/README.md',
+  'docs/launch/HN-POST.md',
+  'docs/launch/REDDIT-POSTS.md',
+  'docs/launch/X-THREAD.md',
+] as const;
+
+const MCP_TOOL_SPLIT_DOCS = [
+  'README.md',
+  'docs/launch/README.md',
+  'docs/launch/REDDIT-POSTS.md',
+] as const;
+
 const STALE_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   {
     pattern: /\b12 tools\b/i,
-    message: 'MCP launch copy must use the current 23-tool surface.',
+    message: `MCP launch copy must use the current ${MCP_TOOL_METADATA?.toolCount}-tool surface.`,
   },
   {
     pattern: /\b20 tools\b/i,
-    message: 'MCP launch copy must use the current 23-tool surface.',
+    message: `MCP launch copy must use the current ${MCP_TOOL_METADATA?.toolCount}-tool surface.`,
   },
   {
     pattern: /\bread 8 \+ write 4\b/i,
-    message: 'MCP launch copy must use read 15 + write 8.',
+    message: `MCP launch copy must use read ${MCP_TOOL_METADATA?.readCount} + write ${MCP_TOOL_METADATA?.writeCount}.`,
   },
   {
     pattern: /\bread 12 \+ write 8\b/i,
-    message: 'MCP launch copy must use read 15 + write 8.',
+    message: `MCP launch copy must use read ${MCP_TOOL_METADATA?.readCount} + write ${MCP_TOOL_METADATA?.writeCount}.`,
   },
   {
     pattern: /\b8 read \+ 4 write\b/i,
-    message: 'MCP launch copy must use 15 read + 8 write.',
+    message: `MCP launch copy must use ${MCP_TOOL_METADATA?.readCount} read + ${MCP_TOOL_METADATA?.writeCount} write.`,
   },
   {
     pattern: /\b12 read \+ 8 write\b/i,
-    message: 'MCP launch copy must use 15 read + 8 write.',
+    message: `MCP launch copy must use ${MCP_TOOL_METADATA?.readCount} read + ${MCP_TOOL_METADATA?.writeCount} write.`,
   },
   {
     pattern: /~?130 (?:nodes|노드)/i,
@@ -60,7 +79,7 @@ const STALE_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   },
   {
     pattern: /10 others/i,
-    message: 'MCP verification copy must mention the 23-tool namespace, not an old count.',
+    message: `MCP verification copy must mention the ${MCP_TOOL_METADATA?.toolCount}-tool namespace, not an old count.`,
   },
   {
     pattern: /\d+ (?:unit )?test files?\s*\/\s*\d+ (?:unit )?tests?/i,
@@ -92,6 +111,39 @@ describe('current-surface launch docs', () => {
       const text = await readFile(path.join(ROOT, relPath), 'utf8');
       if (!new RegExp(`\\b${nodeCount} nodes\\b|${nodeCount} 노드`).test(text)) {
         findings.push(`${relPath}: expected ${nodeCount} dogfood nodes`);
+      }
+    }
+
+    expect(findings).toEqual([]);
+  });
+
+  it('keeps MCP tool-count claims aligned with the package metadata', async () => {
+    expect(MCP_TOOL_METADATA).toBeTruthy();
+    const findings: string[] = [];
+    const toolCountPattern = new RegExp(`\\b${MCP_TOOL_METADATA?.toolCount} tools\\b|\\b${MCP_TOOL_METADATA?.toolCount}-tool\\b`);
+
+    for (const relPath of MCP_TOOL_COUNT_DOCS) {
+      const text = await readFile(path.join(ROOT, relPath), 'utf8');
+      if (!toolCountPattern.test(text)) {
+        findings.push(`${relPath}: expected ${MCP_TOOL_METADATA?.toolCount} MCP tools`);
+      }
+    }
+
+    expect(findings).toEqual([]);
+  });
+
+  it('keeps MCP read/write split claims aligned with the package metadata', async () => {
+    expect(MCP_TOOL_METADATA).toBeTruthy();
+    const findings: string[] = [];
+    const splitPattern = new RegExp(
+      `${MCP_TOOL_METADATA?.readCount} read\\s*\\+\\s*${MCP_TOOL_METADATA?.writeCount} write|read ${MCP_TOOL_METADATA?.readCount}\\s*\\+\\s*write ${MCP_TOOL_METADATA?.writeCount}`,
+      'i',
+    );
+
+    for (const relPath of MCP_TOOL_SPLIT_DOCS) {
+      const text = await readFile(path.join(ROOT, relPath), 'utf8');
+      if (!splitPattern.test(text)) {
+        findings.push(`${relPath}: expected ${MCP_TOOL_METADATA?.splitText}`);
       }
     }
 
