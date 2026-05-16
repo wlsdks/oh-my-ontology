@@ -18,17 +18,16 @@ import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { checkMcpLeanTarballFiles } from './check-package-contracts.mjs';
+import { parseMcpToolMetadataFromDescription } from '../cli/src/lib/mcp-metadata.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const MCP_DIR = join(ROOT, 'mcp');
 const CLI_DIR = join(ROOT, 'cli');
 const MCP_PKG = JSON.parse(readFileSync(join(MCP_DIR, 'package.json'), 'utf-8'));
 const CLI_PKG = JSON.parse(readFileSync(join(CLI_DIR, 'package.json'), 'utf-8'));
-const mcpToolMetadata = MCP_PKG.description.match(/(\d+) tools \((\d+) read \+ (\d+) write\)/);
-const expectedToolCount = mcpToolMetadata?.[1];
-const expectedToolSplitRe = new RegExp(
-  `\\(${mcpToolMetadata?.[2]} read \\+ ${mcpToolMetadata?.[3]} write\\)`,
-);
+const mcpToolMetadata = parseMcpToolMetadataFromDescription(MCP_PKG.description);
+const expectedToolCount = mcpToolMetadata?.toolCount;
+const expectedToolSplitRe = mcpToolMetadata?.splitPattern;
 
 assert.ok(mcpToolMetadata, 'mcp/package.json description must include the current tool count and split');
 

@@ -15,15 +15,14 @@ import {
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
+import { parseMcpToolMetadataFromDescription } from './lib/mcp-metadata.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, 'index.mjs');
 const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', '..', 'mcp', 'package.json'), 'utf-8'));
-const MCP_TOOL_METADATA = MCP_PKG.description.match(/(\d+) tools \((\d+) read \+ (\d+) write\)/);
-const EXPECTED_TOOL_COUNT = MCP_TOOL_METADATA?.[1];
-const EXPECTED_TOOL_SPLIT_RE = new RegExp(
-  `\\(${MCP_TOOL_METADATA?.[2]} read \\+ ${MCP_TOOL_METADATA?.[3]} write\\)`,
-);
+const MCP_TOOL_METADATA = parseMcpToolMetadataFromDescription(MCP_PKG.description);
+const EXPECTED_TOOL_COUNT = MCP_TOOL_METADATA?.toolCount;
+const EXPECTED_TOOL_SPLIT_RE = MCP_TOOL_METADATA?.splitPattern;
 
 assert.ok(MCP_TOOL_METADATA, 'mcp/package.json description must include the current tool count and split');
 

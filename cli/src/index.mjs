@@ -18,6 +18,7 @@ import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { stdout, stderr, argv, exit, cwd } from 'node:process';
+import { readMcpPackageMetadata } from './lib/mcp-metadata.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_ROOT = resolve(__dirname, '..', 'templates', 'vault');
@@ -25,34 +26,9 @@ const PKG_ROOT = resolve(__dirname, '..');
 const PKG = JSON.parse(readFileSync(join(PKG_ROOT, 'package.json'), 'utf-8'));
 const require_ = createRequire(import.meta.url);
 
-function readMcpPackageMetadata() {
-  const candidates = [];
-  try {
-    candidates.push(require_.resolve('oh-my-ontology-mcp/package.json'));
-  } catch {
-    // Source checkout fallback below.
-  }
-  candidates.push(resolve(PKG_ROOT, '..', 'mcp', 'package.json'));
-
-  for (const candidate of candidates) {
-    if (!existsSync(candidate)) continue;
-    const pkg = JSON.parse(readFileSync(candidate, 'utf-8'));
-    const match = pkg.description?.match(/(\d+) tools \((\d+) read \+ (\d+) write\)/);
-    return {
-      toolCount: match?.[1],
-      readCount: match?.[2],
-      writeCount: match?.[3],
-    };
-  }
-
-  return {};
-}
-
 const MCP_METADATA = readMcpPackageMetadata();
 const MCP_TOOL_COUNT = MCP_METADATA.toolCount ?? 'current';
-const MCP_TOOL_SPLIT = MCP_METADATA.readCount && MCP_METADATA.writeCount
-  ? `${MCP_METADATA.readCount} read + ${MCP_METADATA.writeCount} write`
-  : 'read/write';
+const MCP_TOOL_SPLIT = MCP_METADATA.splitText ?? 'read/write';
 
 const COLORS = {
   reset: '\x1b[0m',
