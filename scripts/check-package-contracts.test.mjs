@@ -330,6 +330,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /split between node census checks/);
     assert.match(verifySection, /file-level `validate_vault\.scanned` health/);
+    assert.match(verifySection, /`workspace_brief`, `health`, tuned `health`/);
     assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);
     assert.match(verifySection, /core graph-query smoke for `neighbors`, node→project `path`, and `project_scope`/);
     assert.match(verifySection, /project-node probe before graph smoke/);
@@ -450,6 +451,7 @@ describe('package contract helpers', () => {
     const implementationSection = doc.split('## 구현 단일 진실원')[1]?.split('## 회귀 차단')[0] ?? '';
 
     assert.match(mcpVerifyRow, /실제 `neighbors` \/ node→project `path` \/ `project_scope` graph smoke/);
+    assert.match(mcpVerifyRow, /`workspace_brief`, `health`, tuned `health`/);
     assert.match(mcpVerifyRow, /project-node `list_concepts` probe/);
     assert.match(mcpVerifyRow, /`project_scope` hard gate 를 놓치지 않는다/);
     assert.match(mcpVerifyRow, /project-less vault/);
