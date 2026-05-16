@@ -237,9 +237,10 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       {
         type: findTool("list_concepts")?.inputSchema?.properties?.limit?.type,
         minimum: findTool("list_concepts")?.inputSchema?.properties?.limit?.minimum,
+        maximum: findTool("list_concepts")?.inputSchema?.properties?.limit?.maximum,
       },
-      { type: "integer", minimum: 1 },
-      "list_concepts exposes positive integer limit schema",
+      { type: "integer", minimum: 1, maximum: 500 },
+      "list_concepts exposes bounded integer limit schema",
     );
     assert.equal(
       findTool("list_concepts")?.inputSchema?.properties?.since?.minimum,
@@ -268,24 +269,37 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       {
         nodesLimitType: findTool("compile_ontology")?.inputSchema?.properties?.nodesLimit?.type,
         nodesLimitMinimum: findTool("compile_ontology")?.inputSchema?.properties?.nodesLimit?.minimum,
+        nodesLimitMaximum: findTool("compile_ontology")?.inputSchema?.properties?.nodesLimit?.maximum,
         type: findTool("compile_ontology")?.inputSchema?.properties?.nodesOffset?.type,
         minimum: findTool("compile_ontology")?.inputSchema?.properties?.nodesOffset?.minimum,
         edgesLimitType: findTool("compile_ontology")?.inputSchema?.properties?.edgesLimit?.type,
         edgesLimitMinimum: findTool("compile_ontology")?.inputSchema?.properties?.edgesLimit?.minimum,
+        edgesLimitMaximum: findTool("compile_ontology")?.inputSchema?.properties?.edgesLimit?.maximum,
         edgesOffsetType: findTool("compile_ontology")?.inputSchema?.properties?.edgesOffset?.type,
         edgesOffsetMinimum: findTool("compile_ontology")?.inputSchema?.properties?.edgesOffset?.minimum,
       },
       {
         nodesLimitType: "integer",
         nodesLimitMinimum: 1,
+        nodesLimitMaximum: 500,
         type: "integer",
         minimum: 0,
         edgesLimitType: "integer",
         edgesLimitMinimum: 1,
+        edgesLimitMaximum: 500,
         edgesOffsetType: "integer",
         edgesOffsetMinimum: 0,
       },
       "compile_ontology exposes advancing pagination schema",
+    );
+    assert.deepEqual(
+      {
+        type: findTool("query_concepts")?.inputSchema?.properties?.limit?.type,
+        minimum: findTool("query_concepts")?.inputSchema?.properties?.limit?.minimum,
+        maximum: findTool("query_concepts")?.inputSchema?.properties?.limit?.maximum,
+      },
+      { type: "integer", minimum: 1, maximum: 500 },
+      "query_concepts exposes bounded integer limit schema",
     );
     assert.deepEqual(
       {
@@ -1714,11 +1728,15 @@ await test("MCP read/query tools — invalid numeric and direction options are r
       callTool(44, "query_ontology", { operation: "match_nodes", sort: "mtime" }),
       callTool(45, "query_ontology", { operation: "recommend_relations", kind: "domain" }),
       callTool(46, "find_path", { from: "a", to: "b", maxHops: 21 }),
+      callTool(47, "list_concepts", { limit: 501 }),
+      callTool(48, "query_concepts", { filter: "kind=capability", limit: 501 }),
+      callTool(49, "compile_ontology", { nodesLimit: 501 }),
+      callTool(50, "compile_ontology", { edgesLimit: 501 }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
       21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
-      38, 39, 40, 41, 42, 43, 44, 45, 46,
+      38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -1742,6 +1760,10 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 44).result.content[0].text, /sort must be one of/i);
     assert.match(responses.find((r) => r.id === 45).result.content[0].text, /kind must be one of: capability, element/i);
     assert.match(responses.find((r) => r.id === 46).result.content[0].text, /maxHops must be <= 20/i);
+    assert.match(responses.find((r) => r.id === 47).result.content[0].text, /limit must be <= 500/i);
+    assert.match(responses.find((r) => r.id === 48).result.content[0].text, /limit must be <= 500/i);
+    assert.match(responses.find((r) => r.id === 49).result.content[0].text, /nodesLimit must be <= 500/i);
+    assert.match(responses.find((r) => r.id === 50).result.content[0].text, /edgesLimit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);

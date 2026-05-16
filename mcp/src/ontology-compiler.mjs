@@ -16,9 +16,9 @@ const COMPILER_VERSION = 1;
 export function compileOntology(docs, options = {}) {
   const includeIndexes = optionalBoolean(options.includeIndexes, 'includeIndexes') ?? false;
   const summary = optionalBoolean(options.summary, 'summary') ?? false;
-  const nodesLimit = optionalPositiveInt(options.nodesLimit, 'nodesLimit');
+  const nodesLimit = optionalPositiveInt(options.nodesLimit, 'nodesLimit', { max: 500 });
   const nodesOffset = optionalNonNegativeInt(options.nodesOffset, 'nodesOffset') ?? 0;
-  const edgesLimit = optionalPositiveInt(options.edgesLimit, 'edgesLimit');
+  const edgesLimit = optionalPositiveInt(options.edgesLimit, 'edgesLimit', { max: 500 });
   const edgesOffset = optionalNonNegativeInt(options.edgesOffset, 'edgesOffset') ?? 0;
   const nodeMap = new Map();
   const aliasEntries = new Map();
@@ -230,10 +230,13 @@ function optionalNonNegativeInt(value, name) {
   return value;
 }
 
-function optionalPositiveInt(value, name) {
+function optionalPositiveInt(value, name, options = {}) {
   if (value === undefined) return null;
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer`);
+  }
+  if (options.max !== undefined && value > options.max) {
+    throw new Error(`${name} must be <= ${options.max}`);
   }
   return value;
 }

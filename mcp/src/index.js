@@ -239,7 +239,8 @@ const TOOLS = [
         limit: {
           type: 'integer',
           minimum: 1,
-          description: 'Positive integer max rows to return. Defaults to 100.',
+          maximum: 500,
+          description: 'Positive integer max rows to return. Defaults to 100, max 500.',
         },
       },
     },
@@ -623,7 +624,8 @@ const TOOLS = [
         limit: {
           type: 'integer',
           minimum: 1,
-          description: 'Positive integer max rows to return. Defaults to 100.',
+          maximum: 500,
+          description: 'Positive integer max rows to return. Defaults to 100, max 500.',
         },
       },
       required: ['filter'],
@@ -651,7 +653,8 @@ const TOOLS = [
         nodesLimit: {
           type: 'integer',
           minimum: 1,
-          description: 'Positive integer max nodes to return. Pair with `nodesOffset` to paginate. Omit for unlimited (backward compat).',
+          maximum: 500,
+          description: 'Positive integer max nodes to return. Pair with `nodesOffset` to paginate. Omit for unlimited (backward compat), max 500 when provided.',
         },
         nodesOffset: {
           type: 'integer',
@@ -661,7 +664,8 @@ const TOOLS = [
         edgesLimit: {
           type: 'integer',
           minimum: 1,
-          description: 'Positive integer max edges to return. Pair with `edgesOffset` to paginate.',
+          maximum: 500,
+          description: 'Positive integer max edges to return. Pair with `edgesOffset` to paginate. Max 500.',
         },
         edgesOffset: {
           type: 'integer',
@@ -1242,7 +1246,7 @@ function listConcepts({ kind, domain, since, summary, limit = 100 }) {
   requireOptionalNonBlankString(domain, 'domain');
   requireOptionalNonNegativeNumber(since, 'since');
   requireOptionalBoolean(summary, 'summary');
-  requireOptionalPositiveInteger(limit, 'limit');
+  requireOptionalPositiveInteger(limit, 'limit', { max: 500 });
   const docs = loadVaultDocs(VAULT_ROOT);
 
   // R11 #23 — vault-wide validation 카운트. raw 모두 검증해 silent corruption
@@ -1943,7 +1947,7 @@ function findOrphansTool({ kind, excludeKinds } = {}) {
 
 function queryConceptsTool({ filter, limit }) {
   requireNonBlankString(filter, 'filter');
-  requireOptionalPositiveInteger(limit, 'limit');
+  requireOptionalPositiveInteger(limit, 'limit', { max: 500 });
   const parsed = parseFilter(filter);
   const cap = limit ?? 100;
   const docs = loadVaultDocs(VAULT_ROOT).filter((d) => Boolean(d.frontmatter?.kind));

@@ -285,6 +285,14 @@ describe('compileOntology', () => {
       /nodesLimit must be a positive integer/,
     );
     assert.throws(
+      () => compileOntology(docs, { nodesLimit: 501 }),
+      /nodesLimit must be <= 500/,
+    );
+    assert.throws(
+      () => compileOntology(docs, { edgesLimit: 501 }),
+      /edgesLimit must be <= 500/,
+    );
+    assert.throws(
       () => compileOntology(docs, { edgesOffset: null }),
       /edgesOffset must be a non-negative integer/,
     );

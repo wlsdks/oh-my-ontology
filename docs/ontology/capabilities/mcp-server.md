@@ -13,7 +13,7 @@ relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 
 | 도구 | 동작 |
 |---|---|
-| `list_concepts` | vault 의 모든 노드 (kind 필터) |
+| `list_concepts` | vault 의 모든 노드 (kind 필터, limit default 100 / max 500) |
 | `get_concept` | 단일 slug 의 frontmatter + body excerpt + graph neighbors + `outgoingEdges[]` |
 | `get_concepts` | **R+** 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing/invalid slug row 는 partial result 로 격리) |
 | `find_evidence` | title 부분매칭으로 vault 문서 검색 |
@@ -22,8 +22,8 @@ relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 | `find_path` | 두 slug 사이 그래프 최단 경로 (BFS, 무방향, `domains` / `domain` containment 포함, default maxHops 5, max 20) |
 | `list_kinds` | kind 분포 census (`{ total, byKind: { capability: N, ... } }`) |
 | `find_orphans` | 어디서도 graph frontmatter link 안 받는 고립 노드 (`domains` / `domain` containment 포함, kind 필터, project/vault-readme 루트 문서 기본 제외) |
-| `query_concepts` | DSL 기반 ad-hoc 쿼리 (frontmatter 키 = / contains / exists 조합) |
-| `compile_ontology` | vault 전체를 deterministic graph artifact 로 compile (nodes / canonical edges / aliases / issues / graph-array canonicalization actions / stable `graphHash` / `maxMtime` / optional query indexes) |
+| `query_concepts` | DSL 기반 ad-hoc 쿼리 (frontmatter 키 = / contains / exists 조합, limit default 100 / max 500) |
+| `compile_ontology` | vault 전체를 deterministic graph artifact 로 compile (nodes / canonical edges / aliases / issues / graph-array canonicalization actions / stable `graphHash` / `maxMtime` / optional query indexes, pagination limit max 500) |
 | `query_ontology` | compiled artifact 위 graph engine 질의 (`neighbors` / `path` / `all_paths` / `query_plan` / `centrality` / `communities` / `similar_nodes` / `explain_relation` / `reachability` / `pattern_walk` / `impact` / `blast_radius` / `subgraph` / `overview` / `schema` / `facets` / `match_nodes` / `match_edges` / `node_profile` / `domain_profile` / `domain_matrix` / `project_scope` / `project_map` / `relation_check` / `components` / `lineage` / `containment_tree` / `cycles` / `topological_order` / `recommend_relations` / `growth_plan` / `maintenance_plan` / `workspace_brief` / `health`) — graph DB 같은 답변을 full artifact 없이 반환. `maintenance_plan` action 은 stable `id` + `afterActionId` cursor + executable graph-array canonicalization + `byKind` action breakdown + `executable` 포함, `nextExecutableAction` / `nextReviewAction` 와 `executableOnly` / `phases` / `severities` / `kinds` 필터 지원. `health` / `workspace_brief` 는 raw components 를 유지하되 vault README 단독 component 는 actionable nextAction 에서 제외한다. |
 | `validate_vault` | **R+** vault 전체 health 한 호출 (per-doc + byCode aggregate) — first-contact before writes 와 batch write 전후 점검에 사용, `list_concepts → K×get_concept` K-roundtrip 대체 |
 | `analyze_repo_structure` | **R16** code repo (default cwd) 분석 → ontology 노드 후보 제안. **side effect 0** — vault 변경 안 함. AI agent 가 빈 vault bootstrap 시 사용 (사용자 한 줄 *"이 codebase 분석해줘"*). FSD vs generic detect. 후보 slug 는 `domains/*`, `capabilities/*`, `elements/src/...` 로 starter layout 과 일치. |
@@ -237,7 +237,7 @@ path 가 있을 때만 true 다.
 갈라지지 않는다.
 `compile_ontology` pagination 은 MCP handler 와 core compiler 양쪽에서 cursor
 safety 를 위해 limit 과 offset 계약을 분리한다. `nodesLimit` / `edgesLimit` 은
-1 이상 양수만 허용하고, `nodesOffset` / `edgesOffset` 만 0 이상을 허용한다.
+1 이상 양수이면서 500 이하만 허용하고, `nodesOffset` / `edgesOffset` 만 0 이상을 허용한다.
 따라서 page size 0 이나 소수 값을 조용히 보정해 `hasMore: true` 인데
 `nextOffset` 이 전진하지 않는 agent loop 를 만들지 않는다.
 
