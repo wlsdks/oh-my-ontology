@@ -272,8 +272,16 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(compileSummaryFailure({ ...clean, byDomain: { '': 1 } }), 'compile_ontology response has empty byDomain key');
     assert.equal(compileSummaryFailure({ ...clean, byKind: { project: 2 } }), 'compile_ontology response byKind mismatch — nodeCount 1, byKind 2');
     assert.equal(
+      compileSummaryFailure({ ...clean, edgeCount: 2, resolvedEdgeCount: 1, externalEdgeCount: 0, unresolvedEdgeCount: 1 }),
+      null,
+    );
+    assert.equal(
       compileSummaryFailure({ ...clean, edgeCount: 3, resolvedEdgeCount: 1, externalEdgeCount: 1 }),
-      'compile_ontology response edge counts do not cover edgeCount',
+      'compile_ontology response edge count mismatch — edgeCount 3, resolved+external+unresolved 2',
+    );
+    assert.equal(
+      compileSummaryFailure({ ...clean, edgeCount: 1, resolvedEdgeCount: 1, externalEdgeCount: 1 }),
+      'compile_ontology response edge count mismatch — edgeCount 1, resolved+external+unresolved 2',
     );
   });
 

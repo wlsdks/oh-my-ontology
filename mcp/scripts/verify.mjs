@@ -259,8 +259,10 @@ export function compileSummaryFailure(parsed) {
   if (byKindTotal !== parsed.nodeCount) {
     return `compile_ontology response byKind mismatch — nodeCount ${parsed.nodeCount}, byKind ${byKindTotal}`;
   }
-  if (parsed.resolvedEdgeCount + parsed.externalEdgeCount < parsed.edgeCount) {
-    return 'compile_ontology response edge counts do not cover edgeCount';
+  const edgeTotal =
+    parsed.resolvedEdgeCount + parsed.externalEdgeCount + parsed.unresolvedEdgeCount;
+  if (edgeTotal !== parsed.edgeCount) {
+    return `compile_ontology response edge count mismatch — edgeCount ${parsed.edgeCount}, resolved+external+unresolved ${edgeTotal}`;
   }
   return null;
 }

@@ -294,9 +294,23 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
+        compiled: { ...okShape.compiled, edgeCount: 2, resolvedEdgeCount: 1, externalEdgeCount: 0, unresolvedEdgeCount: 1 },
+      }),
+      [],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
         compiled: { ...okShape.compiled, edgeCount: 3, resolvedEdgeCount: 1, externalEdgeCount: 1 },
       }),
-      ["compile_ontology response edge counts do not cover edgeCount"],
+      ["compile_ontology response edge count mismatch — edgeCount 3, resolved+external+unresolved 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        compiled: { ...okShape.compiled, edgeCount: 1, resolvedEdgeCount: 1, externalEdgeCount: 1 },
+      }),
+      ["compile_ontology response edge count mismatch — edgeCount 1, resolved+external+unresolved 2"],
     );
   });
 
