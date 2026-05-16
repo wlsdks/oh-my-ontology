@@ -169,8 +169,8 @@ and without assuming every valid vault already has containment roots. It also cr
 For local CLI gates, `compile --json` exits 1 on unresolved graph references,
 `cycles --json` exits 1 on dependency cycles, and `path --json` exits 1 when
 `found:false` so scripts can use these commands as hard ontology checks.
-The graph diagnostic exit contract is fail-closed: malformed `cycles`,
-`path`, `health`, or `workspace-brief` payloads are treated as command
+The graph diagnostic exit contract is fail-closed: malformed `compile`,
+`cycles`, `path`, `health`, or `workspace-brief` payloads are treated as command
 failures instead of clean vaults.
 `dogfood:walk` runs that diagnosis plus graph lookup tasks against this
 repo's own `docs/ontology` vault and exits non-zero if the core MCP

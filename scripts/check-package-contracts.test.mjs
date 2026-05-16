@@ -371,7 +371,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /path --json` exits 1/);
     assert.match(releaseChecks, /found:false/);
     assert.match(releaseChecks, /fail-closed/);
-    assert.match(releaseChecks, /malformed `cycles`/);
+    assert.match(releaseChecks, /malformed `compile`,\s+`cycles`/);
     assert.match(releaseChecks, /`path`, `health`, or `workspace-brief` payloads/);
     assert.match(releaseChecks, /workspace_brief\.nextActions/);
     assert.match(releaseChecks, /workspace_brief\.health\.checks/);
