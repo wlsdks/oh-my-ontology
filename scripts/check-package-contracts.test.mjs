@@ -6,6 +6,11 @@ import { tmpdir } from 'node:os';
 import { describe, it } from 'node:test';
 
 import {
+  MAINTENANCE_KIND_VALUES,
+  MAINTENANCE_PHASE_VALUES,
+  MAINTENANCE_SEVERITY_VALUES,
+} from '../mcp/src/ontology-engine.mjs';
+import {
   checkPackage,
   checkMcpLeanTarballFiles,
   importedSpecifiers,
@@ -29,6 +34,10 @@ function withPackage(pkg, files, fn) {
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+}
+
+function markdownEnumList(values) {
+  return values.map((value) => `\`${value}\``).join(' / ');
 }
 
 describe('package contract helpers', () => {
@@ -110,7 +119,7 @@ describe('package contract helpers', () => {
     const strictInputSection = readme.split('String-array options are strict too:')[1]?.split('Scalar string options')[0] ?? '';
 
     assert.match(row, /`health` \/ `workspace_brief` can tune their internal probes/);
-    assert.match(row, /`phases` and `severities` are enum-validated/);
+    assert.match(row, /`phases`, `severities`, and `kinds` are enum-validated/);
     for (const option of [
       'componentLimit',
       'cycleLimit',
@@ -122,9 +131,25 @@ describe('package contract helpers', () => {
     ]) {
       assert.match(row, new RegExp(`\`${option}\``));
     }
-    assert.match(strictInputSection, /`maintenance_plan\.phases` is additionally\s+limited to `validate` \/ `repair` \/ `link` \/ `materialize` \/ `review`/);
-    assert.match(strictInputSection, /`maintenance_plan\.severities` is limited to `fail` \/ `warn` \/ `info`/);
-    assert.match(strictInputSection, /`maintenance_plan\.kinds`\s+is limited to `inspect_compile_issue` \/ `break_dependency_cycle`/);
+    const normalizedStrictInputSection = strictInputSection.replace(/\s+/g, ' ');
+    assert.ok(
+      normalizedStrictInputSection.includes(
+        `\`maintenance_plan.phases\` is additionally limited to ${markdownEnumList(MAINTENANCE_PHASE_VALUES)}`,
+      ),
+      'MCP README must document every maintenance_plan.phases enum value',
+    );
+    assert.ok(
+      normalizedStrictInputSection.includes(
+        `\`maintenance_plan.severities\` is limited to ${markdownEnumList(MAINTENANCE_SEVERITY_VALUES)}`,
+      ),
+      'MCP README must document every maintenance_plan.severities enum value',
+    );
+    assert.ok(
+      normalizedStrictInputSection.includes(
+        `\`maintenance_plan.kinds\` is limited to ${markdownEnumList(MAINTENANCE_KIND_VALUES)}`,
+      ),
+      'MCP README must document every maintenance_plan.kinds enum value',
+    );
   });
 
   it('keeps the MCP README explicit about destructive write safety switches', () => {
