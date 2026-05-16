@@ -107,6 +107,7 @@ describe('package contract helpers', () => {
     const readme = readFileSync('mcp/README.md', 'utf-8');
     const deleteRow = readme.split('| `delete_concept` |')[1]?.split('\n')[0] ?? '';
     const renameRow = readme.split('| `rename_concept` |')[1]?.split('\n')[0] ?? '';
+    const statusSection = readme.split('## Status')[1]?.split('## Troubleshooting')[0] ?? '';
 
     assert.match(deleteRow, /confirm:true/);
     assert.match(deleteRow, /force:true/);
@@ -115,6 +116,10 @@ describe('package contract helpers', () => {
     assert.match(renameRow, /newSlug/);
     assert.match(renameRow, /overwrite:true/);
     assert.match(renameRow, /already exists/);
+    assert.match(statusSection, /initialize instructions/);
+    assert.match(statusSection, /overwrite: true/);
+    assert.match(statusSection, /force: true/);
+    assert.match(statusSection, /dangling referrers/);
   });
 
   it('keeps the MCP README explicit about focused source-checkout verification', () => {
@@ -223,6 +228,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /batch tools must keep their 50-row caps/);
     assert.match(verifySection, /validates the installed `find_orphans\.excludeKinds` schema and default description/);
     assert.match(verifySection, /write tools must keep their `expected_mtime` \/ `confirm` \/ `rename_concept\.overwrite` \/ `delete_concept\.force` safety schemas/);
+    assert.match(verifySection, /`initialize\.instructions` now names the destructive-write safety boundaries directly/);
+    assert.match(verifySection, /`overwrite: true`/);
+    assert.match(verifySection, /dangling referrers/);
     assert.match(verifySection, /runtime negative smoke calls with invalid `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"` inputs/);
   });

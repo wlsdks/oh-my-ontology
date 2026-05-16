@@ -192,6 +192,10 @@ schema 를 검사한다.
 `validate_vault`, `workspace_brief`, `overview`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`
 기반 read-only first-contact diagnosis 와 graph-query smoke 를 기본 진입 순서로 안내한다.
+destructive write 안내도 first-contact 에 포함한다. `rename_concept` 는 existing
+`newSlug` 를 기본 거부하고 `overwrite: true` 일 때만 대체하며,
+`delete_concept` 의 `force: true` 는 dangling referrers 를 감수할 때만 쓰도록
+명시한다.
 또한 모든 tool input schema 가 strict 하며 `Unknown argument "lmit" for list_concepts.
 Did you mean "limit"?` 또는 `operation must be one of: ... Received: "overveiw".
 Did you mean "overview"?` 같은 오류가 기본값 fallback 이 아니라 즉시 고쳐야 하는
