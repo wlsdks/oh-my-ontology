@@ -164,6 +164,9 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
   if (list?.vaultWarnings && ((list.vaultWarnings.errorCount || 0) > 0 || (list.vaultWarnings.warningCount || 0) > 0)) {
     failures.push("list_concepts: vaultWarnings present");
   }
+  if (validation && !validation.summary) {
+    failures.push("validate_vault: response missing summary");
+  }
   if (validation?.summary && (validation.summary.problemFiles || 0) > 0) {
     failures.push(
       `validate_vault: problemFiles ${validation.summary.problemFiles} (errors ${validation.summary.errorFiles || 0}, warnings ${validation.summary.warningFiles || 0})`,

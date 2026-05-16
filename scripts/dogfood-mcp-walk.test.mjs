@@ -124,6 +124,14 @@ describe("evaluateDogfoodGate", () => {
     ]);
   });
 
+  it("fails on malformed validate_vault responses", () => {
+    const failures = evaluateDogfoodGate({
+      ...okShape,
+      validation: { scanned: 2, problems: [] },
+    });
+    assert.deepEqual(failures, ["validate_vault: response missing summary"]);
+  });
+
   it("fails on missing graph path", () => {
     const failures = evaluateDogfoodGate({
       ...okShape,
