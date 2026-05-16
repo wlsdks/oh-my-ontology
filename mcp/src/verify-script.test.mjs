@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   advisoryNextActionsSummary,
+  buildFirstContactRequests,
   buildGetConceptsSmokeSlugs,
   compileSummaryFailure,
   diagnosisBlockingFailure,
@@ -31,7 +32,7 @@ import {
   verifyTimeoutFailure,
   vaultWarningsFailure,
 } from '../scripts/verify.mjs';
-import { missingResponseLabels } from '../scripts/json-rpc-lines.mjs';
+import { expectedResponseIds, missingResponseLabels } from '../scripts/json-rpc-lines.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
@@ -90,6 +91,10 @@ describe('verify.mjs first-contact gates', () => {
 
   it('keeps first-contact response labels aligned with the get_concepts smoke', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(11), 'get_concepts');
+    assert.deepEqual(
+      [...expectedResponseIds(buildFirstContactRequests()), 11].sort((a, b) => a - b),
+      [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
+    );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]
       .filter((id) => id !== 11)
       .map((id) => ({ id, result: {} }));

@@ -134,6 +134,49 @@ function call(id, name, args = {}) {
   };
 }
 
+export function buildDogfoodRequests() {
+  return [
+    ...init,
+    call(2, "list_kinds"),
+    call(3, "list_concepts", { limit: 30 }),
+    call(16, "get_concepts", {
+      slugs: ["project", "capabilities/mcp-server", "missing-dogfood-slug"],
+    }),
+    call(4, "find_evidence", { title: "vault" }),
+    call(5, "find_path", {
+      from: "capabilities/mcp-server",
+      to: "domains/vault-local-first",
+    }),
+    call(6, "find_backlinks", { slug: "capabilities/mcp-server" }),
+    call(7, "find_orphans", {}),
+    call(8, "validate_vault", {}),
+    call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
+    call(10, "query_ontology", { operation: "health" }),
+    call(11, "compile_ontology", { summary: true }),
+    call(12, "query_ontology", {
+      operation: "pattern_walk",
+      slug: "project",
+      pattern: ["domains", "capabilities"],
+      limit: 5,
+    }),
+    call(13, "query_ontology", {
+      operation: "all_paths",
+      from: "capabilities/mcp-server",
+      to: "domains/vault-local-first",
+      maxHops: 4,
+      limit: 3,
+    }),
+    call(14, "query_ontology", {
+      operation: "query_plan",
+      targetOperation: "all_paths",
+      from: "capabilities/mcp-server",
+      to: "domains/vault-local-first",
+      maxHops: 4,
+    }),
+    call(15, "query_ontology", { operation: "overview" }),
+  ];
+}
+
 function getResult(responses, id) {
   const res = responses.find((r) => r.id === id);
   if (!res) return null;
@@ -715,46 +758,7 @@ async function main() {
     `${COLORS.bold}AI agent dogfood walk${COLORS.reset} ${COLORS.dim}(vault=${VAULT})${COLORS.reset}`,
   );
 
-  const requests = [
-    ...init,
-    call(2, "list_kinds"),
-    call(3, "list_concepts", { limit: 30 }),
-    call(16, "get_concepts", {
-      slugs: ["project", "capabilities/mcp-server", "missing-dogfood-slug"],
-    }),
-    call(4, "find_evidence", { title: "vault" }),
-    call(5, "find_path", {
-      from: "capabilities/mcp-server",
-      to: "domains/vault-local-first",
-    }),
-    call(6, "find_backlinks", { slug: "capabilities/mcp-server" }),
-    call(7, "find_orphans", {}),
-    call(8, "validate_vault", {}),
-    call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
-    call(10, "query_ontology", { operation: "health" }),
-    call(11, "compile_ontology", { summary: true }),
-    call(12, "query_ontology", {
-      operation: "pattern_walk",
-      slug: "project",
-      pattern: ["domains", "capabilities"],
-      limit: 5,
-    }),
-    call(13, "query_ontology", {
-      operation: "all_paths",
-      from: "capabilities/mcp-server",
-      to: "domains/vault-local-first",
-      maxHops: 4,
-      limit: 3,
-    }),
-    call(14, "query_ontology", {
-      operation: "query_plan",
-      targetOperation: "all_paths",
-      from: "capabilities/mcp-server",
-      to: "domains/vault-local-first",
-      maxHops: 4,
-    }),
-    call(15, "query_ontology", { operation: "overview" }),
-  ];
+  const requests = buildDogfoodRequests();
 
   const { responses, stderr, timedOut } = await rpc(requests, timeoutMs);
 

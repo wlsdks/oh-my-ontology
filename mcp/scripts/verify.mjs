@@ -122,6 +122,71 @@ export function hasFirstContactErrorResponse(stdout) {
   return hasAnyErrorResponse(stdout, new Set(FIRST_CONTACT_RESPONSE_LABELS.keys()));
 }
 
+export function buildFirstContactRequests() {
+  return [
+    {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'initialize',
+      params: {
+        protocolVersion: '2024-11-05',
+        capabilities: {},
+        clientInfo: { name: 'verify-cli', version: '0' },
+      },
+    },
+    { jsonrpc: '2.0', method: 'notifications/initialized' },
+    { jsonrpc: '2.0', id: 2, method: 'tools/list' },
+    {
+      jsonrpc: '2.0',
+      id: 3,
+      method: 'tools/call',
+      params: { name: 'list_concepts', arguments: { limit: 5 } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 4,
+      method: 'tools/call',
+      params: { name: 'list_kinds', arguments: {} },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 5,
+      method: 'tools/call',
+      params: { name: 'validate_vault', arguments: {} },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 6,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'workspace_brief', limit: 3 } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 7,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'health' } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 8,
+      method: 'tools/call',
+      params: { name: 'compile_ontology', arguments: { summary: true } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 9,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'overview', limit: 5 } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 10,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'query_plan', targetOperation: 'overview' } },
+    },
+  ];
+}
+
 export function firstContactErrorFailure(response) {
   const label = FIRST_CONTACT_RESPONSE_LABELS.get(response?.id) || `id ${response?.id}`;
   const message = response?.error?.message || JSON.stringify(response?.error || {});
@@ -577,68 +642,7 @@ async function step2BootAndCall() {
   }
   log('info', `step 2 — server boot + tools/list + list_concepts/get_concepts/list_kinds (vault=${VAULT}, timeout=${timeoutMs}ms)`);
 
-  const lines = [
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'initialize',
-      params: {
-        protocolVersion: '2024-11-05',
-        capabilities: {},
-        clientInfo: { name: 'verify-cli', version: '0' },
-      },
-    }),
-    JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }),
-    JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }),
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 3,
-      method: 'tools/call',
-      params: { name: 'list_concepts', arguments: { limit: 5 } },
-    }),
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 4,
-      method: 'tools/call',
-      params: { name: 'list_kinds', arguments: {} },
-    }),
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 5,
-      method: 'tools/call',
-      params: { name: 'validate_vault', arguments: {} },
-    }),
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 6,
-      method: 'tools/call',
-      params: { name: 'query_ontology', arguments: { operation: 'workspace_brief', limit: 3 } },
-    }),
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 7,
-      method: 'tools/call',
-      params: { name: 'query_ontology', arguments: { operation: 'health' } },
-    }),
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 8,
-      method: 'tools/call',
-      params: { name: 'compile_ontology', arguments: { summary: true } },
-    }),
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 9,
-      method: 'tools/call',
-      params: { name: 'query_ontology', arguments: { operation: 'overview', limit: 5 } },
-    }),
-    JSON.stringify({
-      jsonrpc: '2.0',
-      id: 10,
-      method: 'tools/call',
-      params: { name: 'query_ontology', arguments: { operation: 'query_plan', targetOperation: 'overview' } },
-    }),
-  ];
+  const lines = buildFirstContactRequests().map((request) => JSON.stringify(request));
 
   return new Promise((res) => {
     const proc = spawn('node', [SERVER_ENTRY], {

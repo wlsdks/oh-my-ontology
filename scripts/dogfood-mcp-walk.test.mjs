@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  buildDogfoodRequests,
   DOGFOOD_RESPONSE_LABELS,
   evaluateDogfoodGate,
   expectedResponseIds,
@@ -241,6 +242,10 @@ describe("rpc response completion helpers", () => {
 
   it("keeps dogfood response labels aligned with the get_concepts smoke", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(16), "get_concepts");
+    assert.deepEqual(
+      [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
+      [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
+    );
     const responsesWithoutGetConcepts = [...DOGFOOD_RESPONSE_LABELS.keys()]
       .filter((id) => id !== 16)
       .map((id) => ({ id, result: {} }));
