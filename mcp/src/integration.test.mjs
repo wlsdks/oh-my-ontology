@@ -2338,7 +2338,7 @@ await test("patch_concept — graph 배열 patch 는 canonical set 으로 저장
       callTool(2, "patch_concept", {
         slug: "foo",
         frontmatter: {
-          domains: ["domains/z", " domains/a ", "domains/z", ""],
+          domains: ["domains/z", "domains/a", "domains/z"],
           dependencies: ["b", "a", "b"],
         },
       }),
@@ -2358,6 +2358,63 @@ await test("patch_concept — graph 배열 patch 는 canonical set 으로 저장
       { to: "a", via: "dependencies" },
       { to: "b", via: "dependencies" },
     ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("patch_concept — graph 배열 patch 는 배열 string item 만 허용", async () => {
+  const root = makeVault([
+    { slug: "foo", content: "---\nkind: project\ntitle: Foo\ndomains: [domains/a]\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "patch_concept", {
+        slug: "foo",
+        frontmatter: { domains: "domains/b" },
+      }),
+      callTool(3, "patch_concept", {
+        slug: "foo",
+        frontmatter: { dependencies: ["ok", 7] },
+      }),
+      callTool(4, "patch_concept", {
+        slug: "foo",
+        frontmatter: { relates: [" "] },
+      }),
+      callTool(5, "patch_concept", {
+        slug: "foo",
+        frontmatter: { elements: [" element"] },
+      }),
+      callTool(6, "patch_concept", {
+        slug: "foo",
+        frontmatter: { domains: null },
+      }),
+      callTool(7, "get_concept", { slug: "foo" }),
+    ]);
+    assert.equal(isErrorResponse(responses, 2), true);
+    assert.match(
+      responses.find((r) => r.id === 2).result.content[0].text,
+      /frontmatter\.domains must be an array of strings/i,
+    );
+    assert.equal(isErrorResponse(responses, 3), true);
+    assert.match(
+      responses.find((r) => r.id === 3).result.content[0].text,
+      /frontmatter\.dependencies must be an array of strings/i,
+    );
+    assert.equal(isErrorResponse(responses, 4), true);
+    assert.match(
+      responses.find((r) => r.id === 4).result.content[0].text,
+      /frontmatter\.relates items must be non-empty strings/i,
+    );
+    assert.equal(isErrorResponse(responses, 5), true);
+    assert.match(
+      responses.find((r) => r.id === 5).result.content[0].text,
+      /frontmatter\.elements items must not have leading or trailing whitespace/i,
+    );
+    assert.equal(isErrorResponse(responses, 6), false, "null still deletes a graph array key");
+    const result = getCallParsed(responses, 7);
+    assert.equal(Object.hasOwn(result.frontmatter, "domains"), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

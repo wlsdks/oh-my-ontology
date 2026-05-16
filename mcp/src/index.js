@@ -49,6 +49,7 @@ import { resolve } from 'node:path';
 
 import { existsSync, readFileSync } from 'node:fs';
 import {
+  GRAPH_ARRAY_KEYS,
   VaultConflictError,
   collectNeighborRefs,
   deleteDoc,
@@ -1397,6 +1398,7 @@ function findEvidence({ title }) {
 }
 
 const ADD_CONCEPT_KINDS = new Set(['project', 'domain', 'capability', 'element', 'document']);
+const GRAPH_ARRAY_KEY_SET = new Set(GRAPH_ARRAY_KEYS);
 
 function requireNonBlankString(value, name) {
   if (typeof value !== 'string' || value.trim() === '') {
@@ -1441,6 +1443,16 @@ function requireOptionalPlainObject(value, name) {
   if (value === undefined) return;
   if (value === null || Array.isArray(value) || typeof value !== 'object') {
     throw new Error(`${name} must be an object.`);
+  }
+}
+
+function requireValidFrontmatterPatch(frontmatter) {
+  if (frontmatter === undefined) return;
+  for (const [key, value] of Object.entries(frontmatter)) {
+    if (!GRAPH_ARRAY_KEY_SET.has(key) || value === null || value === undefined) {
+      continue;
+    }
+    requireOptionalStringArray(value, `frontmatter.${key}`);
   }
 }
 
@@ -1699,6 +1711,7 @@ function patchConcept({ slug, frontmatter, body, expected_mtime }) {
     throw new Error('At least one of `frontmatter` or `body` is required.');
   }
   requireOptionalPlainObject(frontmatter, 'frontmatter');
+  requireValidFrontmatterPatch(frontmatter);
   if (body !== undefined && body !== null && typeof body !== 'string') {
     throw new Error('body must be a string.');
   }
