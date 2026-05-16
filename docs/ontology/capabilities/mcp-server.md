@@ -188,7 +188,10 @@ agent 가 실패 직후 어떤 frontmatter 문제부터 볼지 바로 판단할 
 검증한다.
 non-blocking `workspace_brief.nextActions` 는 기본/tuned brief 모두에서
 severity/kind/id/count/message 를 담은 짧은 advisory 목록으로 출력해 MCP
-wiring 확인 직후 정리할 항목을 바로 보여준다.
+wiring 확인 직후 정리할 항목을 바로 보여준다. 마지막 Analysis 요약도
+`workspace_brief nextActions` / `workspace_brief_tuned nextActions` 를
+label:severity:count 형태로 다시 출력해 긴 dogfood 로그의 끝만 봐도 후속
+조치의 종류와 규모를 알 수 있게 한다.
 dogfood walk 도 `workspace_brief.nextActions` row 의 identifier/severity 와
 `health.checks` row 의 id/status/count 를 fail-closed 로 검증하고 severity/status enum 오타도 거부해, 실제 MCP 응답이
 advisory/coverage 출력에서 `unknown` 으로 숨지 않게 한다.
