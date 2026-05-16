@@ -201,6 +201,8 @@ function assertCompactMaintenanceActionShape(action, label) {
   assert.equal(typeof action.phase, "string", `${label} action exposes phase`);
   assert.equal(typeof action.kind, "string", `${label} action exposes kind`);
   assert.equal(typeof action.severity, "string", `${label} action exposes severity`);
+  assert.equal(typeof action.score, "number", `${label} action exposes score`);
+  assert.ok(Number.isFinite(action.score), `${label} action score is finite`);
   assert.equal(typeof action.executable, "boolean", `${label} action exposes executable flag`);
   assert.equal(typeof action.reason, "string", `${label} action exposes reason`);
 }

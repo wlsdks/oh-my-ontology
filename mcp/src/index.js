@@ -2229,6 +2229,7 @@ function compactMaintenanceAction(action) {
     phase: action.phase,
     kind: action.kind,
     severity: action.severity,
+    score: action.score,
     executable: action.executable,
     reason: action.reason,
     proposedAction: action.proposedAction,
