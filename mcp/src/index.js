@@ -169,7 +169,7 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 
 All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
 
-All tool input schemas are strict: unknown arguments are rejected instead of being ignored. If you see an error like \`Unknown argument "lmit" for list_concepts. Did you mean "limit"?\`, fix the argument name before retrying; do not assume the server fell back to a default.
+All tool input schemas are strict: unknown arguments are rejected instead of being ignored, and invalid enum values are rejected too. If you see an error like \`Unknown argument "lmit" for list_concepts. Did you mean "limit"?\` or \`operation must be one of: ... Did you mean "overview"?\`, fix the value before retrying; do not assume the server fell back to a default.
 
 ### B. Vault is empty / cold-start — bootstrap from code (R16 / R17 / R+)
 
@@ -1250,15 +1250,23 @@ function requireOptionalPositiveInteger(value, name, options = {}) {
 function requireOptionalDirection(value, name, allowed) {
   if (value === undefined) return;
   if (!allowed.includes(value)) {
-    throw new Error(`${name} must be one of: ${allowed.join(', ')}.`);
+    throw new Error(formatAllowedValueError(name, value, allowed));
   }
 }
 
 function requireOptionalEnum(value, name, allowed) {
   if (value === undefined) return;
   if (!allowed.includes(value)) {
-    throw new Error(`${name} must be one of: ${allowed.join(', ')}.`);
+    throw new Error(formatAllowedValueError(name, value, allowed));
   }
+}
+
+function formatAllowedValueError(name, value, allowed) {
+  const suggestion = typeof value === 'string'
+    ? closestAllowedArgument(value, allowed)
+    : null;
+  const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
+  return `${name} must be one of: ${allowed.join(', ')}.${suggestionText}`;
 }
 
 function requireOptionalBoolean(value, name) {

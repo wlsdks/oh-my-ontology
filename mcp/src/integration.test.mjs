@@ -1802,11 +1802,18 @@ await test("MCP read/query tools — invalid numeric and direction options are r
         operation: "query_plan",
         targetOperation: "not_real",
       }),
+      callTool(54, "query_ontology", { operation: "overveiw" }),
+      callTool(55, "query_ontology", {
+        operation: "query_plan",
+        targetOperation: "overveiw",
+      }),
+      callTool(56, "find_neighbors", { slug: "a", direction: "incomng" }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
       21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
-      38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+      38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
+      55, 56,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -1837,6 +1844,9 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 51).result.content[0].text, /operation must be a non-empty string/i);
     assert.match(responses.find((r) => r.id === 52).result.content[0].text, /operation must be one of/i);
     assert.match(responses.find((r) => r.id === 53).result.content[0].text, /targetOperation must be one of/i);
+    assert.match(responses.find((r) => r.id === 54).result.content[0].text, /Did you mean "overview"\?/i);
+    assert.match(responses.find((r) => r.id === 55).result.content[0].text, /Did you mean "overview"\?/i);
+    assert.match(responses.find((r) => r.id === 56).result.content[0].text, /Did you mean "incoming"\?/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);
