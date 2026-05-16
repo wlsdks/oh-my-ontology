@@ -20,6 +20,7 @@
  *   8. tools/call query_ontology workspace_brief + health — agent first-contact graph diagnosis
  *   9. tools/call compile_ontology(summary) — compiler graph summary contract
  *   10. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
+ *   11. tools/call query_ontology neighbors/path/project_scope — core graph query smoke contract
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */
@@ -89,6 +90,9 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [10, 'overview_query_plan'],
   [11, 'get_concepts'],
   [12, 'project_map_query_plan'],
+  [13, 'neighbors'],
+  [14, 'path'],
+  [15, 'project_scope'],
 ]);
 
 function log(level, msg) {
@@ -199,6 +203,18 @@ export function buildFirstContactRequests() {
       params: { name: 'query_ontology', arguments: { operation: 'query_plan', targetOperation: 'project_map' } },
     },
   ];
+}
+
+export function buildGraphQuerySmokeArgs(listPayload) {
+  const nodes = Array.isArray(listPayload?.nodes) ? listPayload.nodes : [];
+  const projectSlug = nodes.find((node) => node?.kind === 'project' && typeof node.slug === 'string' && node.slug.length > 0)?.slug;
+  const smokeSlug = projectSlug
+    || nodes.find((node) => typeof node?.slug === 'string' && node.slug.length > 0)?.slug
+    || 'project';
+  return {
+    slug: smokeSlug,
+    project: projectSlug || 'project',
+  };
 }
 
 export function firstContactErrorFailure(response) {
@@ -487,6 +503,169 @@ export function projectMapQueryPlanFailure(parsed) {
   return aggregateQueryPlanFailure(parsed, 'project_map', 'project_map query_plan');
 }
 
+export function neighborsFailure(parsed, expectedSlug) {
+  if (parsed?.operation !== 'neighbors') {
+    return `neighbors returned unexpected operation: ${parsed?.operation}`;
+  }
+  if (parsed.center !== expectedSlug) {
+    return `neighbors center mismatch — expected ${expectedSlug}, got ${parsed.center}`;
+  }
+  if (!parsed.node || parsed.node.slug !== parsed.center) {
+    return 'neighbors response missing center node';
+  }
+  if (!Number.isInteger(parsed.total) || parsed.total < 0) {
+    return 'neighbors response missing total';
+  }
+  if (typeof parsed.limited !== 'boolean') {
+    return 'neighbors response missing limited flag';
+  }
+  if (!Array.isArray(parsed.edges)) {
+    return 'neighbors response missing edges array';
+  }
+  if (parsed.edges.length > parsed.total) {
+    return `neighbors response edge count exceeds total — edges ${parsed.edges.length}, total ${parsed.total}`;
+  }
+  if (!parsed.limited && parsed.edges.length !== parsed.total) {
+    return `neighbors response edge count mismatch — edges ${parsed.edges.length}, total ${parsed.total}`;
+  }
+  if (!Array.isArray(parsed.nodes)) {
+    return 'neighbors response missing nodes array';
+  }
+  for (const [index, edge] of parsed.edges.entries()) {
+    const edgeFailure = graphEdgeFailure('neighbors edge', edge, index);
+    if (edgeFailure) return edgeFailure;
+    if (!['incoming', 'outgoing'].includes(edge.direction)) {
+      return `neighbors edge missing direction at index ${index}`;
+    }
+  }
+  return null;
+}
+
+export function pathQueryFailure(parsed, expectedSlug) {
+  if (parsed?.operation !== 'path') {
+    return `path returned unexpected operation: ${parsed?.operation}`;
+  }
+  if (parsed.from !== expectedSlug || parsed.to !== expectedSlug) {
+    return `path endpoint mismatch — expected ${expectedSlug}, got ${parsed.from}->${parsed.to}`;
+  }
+  if (parsed.found !== true) {
+    return 'path response expected found:true';
+  }
+  if (parsed.hopCount !== 0) {
+    return `path response expected self-hop count 0, got ${parsed.hopCount}`;
+  }
+  if (!Array.isArray(parsed.hops) || parsed.hops.length !== 1 || parsed.hops[0] !== expectedSlug) {
+    return 'path response missing self hop';
+  }
+  if (!Array.isArray(parsed.edges) || parsed.edges.length !== 0) {
+    return 'path response expected empty self-path edges';
+  }
+  return null;
+}
+
+export function projectScopeFailure(parsed, expectedProject) {
+  if (parsed?.operation !== 'project_scope') {
+    return `project_scope returned unexpected operation: ${parsed?.operation}`;
+  }
+  if (parsed.project !== expectedProject) {
+    return `project_scope project mismatch — expected ${expectedProject}, got ${parsed.project}`;
+  }
+  if (!parsed.node || parsed.node.slug !== parsed.project) {
+    return 'project_scope response missing project node';
+  }
+  const summaryFailure = numericFieldsFailure('project_scope.summary', parsed.summary, [
+    'nodes',
+    'internalEdges',
+    'boundaryEdges',
+    'externalEdges',
+    'unresolvedEdges',
+  ]);
+  if (summaryFailure) return summaryFailure;
+  const byKindFailure = countMapFailure('project_scope', 'byKind', parsed.byKind);
+  if (byKindFailure) return byKindFailure;
+  if (!parsed.nodes || typeof parsed.nodes !== 'object' || Array.isArray(parsed.nodes)) {
+    return 'project_scope response missing nodes bucket';
+  }
+  if (!Number.isInteger(parsed.nodes.total) || parsed.nodes.total < 0) {
+    return 'project_scope nodes missing total';
+  }
+  if (parsed.nodes.total !== parsed.summary.nodes) {
+    return `project_scope node total mismatch — summary ${parsed.summary.nodes}, bucket ${parsed.nodes.total}`;
+  }
+  if (typeof parsed.nodes.limited !== 'boolean') {
+    return 'project_scope nodes missing limited flag';
+  }
+  if (!Array.isArray(parsed.nodes.rows)) {
+    return 'project_scope nodes missing rows';
+  }
+  if (parsed.nodes.rows.length > parsed.nodes.total) {
+    return `project_scope nodes exceed total — rows ${parsed.nodes.rows.length}, total ${parsed.nodes.total}`;
+  }
+  if (!parsed.nodes.limited && parsed.nodes.rows.length !== parsed.nodes.total) {
+    return `project_scope node count mismatch — rows ${parsed.nodes.rows.length}, total ${parsed.nodes.total}`;
+  }
+  const byKindTotal = Object.values(parsed.byKind).reduce((sum, count) => sum + count, 0);
+  if (byKindTotal !== parsed.summary.nodes) {
+    return `project_scope byKind mismatch — nodes ${parsed.summary.nodes}, byKind ${byKindTotal}`;
+  }
+  if (!parsed.edges || typeof parsed.edges !== 'object' || Array.isArray(parsed.edges)) {
+    return 'project_scope response missing edges';
+  }
+  const expectedTotals = {
+    internal: parsed.summary.internalEdges,
+    boundary: parsed.summary.boundaryEdges,
+    external: parsed.summary.externalEdges,
+    unresolved: parsed.summary.unresolvedEdges,
+  };
+  for (const [key, expectedTotal] of Object.entries(expectedTotals)) {
+    const bucket = parsed.edges[key];
+    const bucketFailure = scopeEdgeBucketFailure(`project_scope ${key}`, bucket);
+    if (bucketFailure) return bucketFailure;
+    if (bucket.total !== expectedTotal) {
+      return `project_scope ${key} edge total mismatch — summary ${expectedTotal}, bucket ${bucket.total}`;
+    }
+  }
+  return null;
+}
+
+function graphEdgeFailure(label, edge, index) {
+  if (!edge || typeof edge !== 'object' || Array.isArray(edge)) {
+    return `${label} malformed edge at index ${index}`;
+  }
+  for (const key of ['from', 'to', 'via']) {
+    if (typeof edge[key] !== 'string' || edge[key].length === 0) {
+      return `${label} missing ${key} at index ${index}`;
+    }
+  }
+  return null;
+}
+
+function scopeEdgeBucketFailure(label, bucket) {
+  if (!bucket || typeof bucket !== 'object' || Array.isArray(bucket)) {
+    return `${label} missing edge bucket`;
+  }
+  if (!Number.isInteger(bucket.total) || bucket.total < 0) {
+    return `${label} missing total`;
+  }
+  if (typeof bucket.limited !== 'boolean') {
+    return `${label} missing limited flag`;
+  }
+  if (!Array.isArray(bucket.edges)) {
+    return `${label} missing edges array`;
+  }
+  if (bucket.edges.length > bucket.total) {
+    return `${label} edges exceed total — edges ${bucket.edges.length}, total ${bucket.total}`;
+  }
+  if (!bucket.limited && bucket.edges.length !== bucket.total) {
+    return `${label} edge count mismatch — edges ${bucket.edges.length}, total ${bucket.total}`;
+  }
+  for (const [index, edge] of bucket.edges.entries()) {
+    const edgeFailure = graphEdgeFailure(label, edge, index);
+    if (edgeFailure) return edgeFailure;
+  }
+  return null;
+}
+
 export function verifyCountConsistencyFailure({ kinds, list, validation, compiled, overview }) {
   if (
     (kinds && listKindsFailure(kinds)) ||
@@ -723,28 +902,55 @@ async function step2BootAndCall() {
     let timedOut = false;
     let completed = false;
     let sentGetConceptsSmoke = false;
+    let sentGraphQuerySmoke = false;
     let timer = null;
     proc.stdout.on('data', (b) => {
       stdout += b.toString();
-      if (!sentGetConceptsSmoke) {
+      if (!sentGetConceptsSmoke || !sentGraphQuerySmoke) {
         const listResponse = parseJsonRpcResponses(stdout).find((response) => response?.id === 3 && response?.result);
         if (listResponse) {
-          sentGetConceptsSmoke = true;
           let listPayload = null;
           try {
             listPayload = JSON.parse(listResponse.result.content?.[0]?.text || '{}');
           } catch {
             listPayload = null;
           }
-          proc.stdin.write(JSON.stringify({
-            jsonrpc: '2.0',
-            id: 11,
-            method: 'tools/call',
-            params: {
-              name: 'get_concepts',
-              arguments: { slugs: buildGetConceptsSmokeSlugs(listPayload) },
-            },
-          }) + '\n');
+          if (!sentGetConceptsSmoke) {
+            sentGetConceptsSmoke = true;
+            proc.stdin.write(JSON.stringify({
+              jsonrpc: '2.0',
+              id: 11,
+              method: 'tools/call',
+              params: {
+                name: 'get_concepts',
+                arguments: { slugs: buildGetConceptsSmokeSlugs(listPayload) },
+              },
+            }) + '\n');
+          }
+          if (!sentGraphQuerySmoke) {
+            sentGraphQuerySmoke = true;
+            const graphSmoke = buildGraphQuerySmokeArgs(listPayload);
+            proc.stdin.write([
+              {
+                jsonrpc: '2.0',
+                id: 13,
+                method: 'tools/call',
+                params: { name: 'query_ontology', arguments: { operation: 'neighbors', slug: graphSmoke.slug, limit: 5 } },
+              },
+              {
+                jsonrpc: '2.0',
+                id: 14,
+                method: 'tools/call',
+                params: { name: 'query_ontology', arguments: { operation: 'path', from: graphSmoke.slug, to: graphSmoke.slug } },
+              },
+              {
+                jsonrpc: '2.0',
+                id: 15,
+                method: 'tools/call',
+                params: { name: 'query_ontology', arguments: { operation: 'project_scope', project: graphSmoke.project, limit: 5 } },
+              },
+            ].map((request) => JSON.stringify(request)).join('\n') + '\n');
+          }
         }
       }
       if (!completed && (hasAllFirstContactResponses(stdout) || hasFirstContactErrorResponse(stdout))) {
@@ -777,11 +983,15 @@ async function step2BootAndCall() {
       const overviewPlanRes = responses.find((r) => r.id === 10);
       const getConceptsRes = responses.find((r) => r.id === 11);
       const projectMapPlanRes = responses.find((r) => r.id === 12);
+      const neighborsRes = responses.find((r) => r.id === 13);
+      const pathRes = responses.find((r) => r.id === 14);
+      const projectScopeRes = responses.find((r) => r.id === 15);
       let kindsPayload = null;
       let listPayload = null;
       let validationPayload = null;
       let compilePayload = null;
       let overviewPayload = null;
+      let graphSmokeArgs = null;
       const missingLabels = firstContactMissingResponseLabels(responses);
       const errorRes = responses.find((response) => (
         FIRST_CONTACT_RESPONSE_LABELS.has(response?.id) && response?.error
@@ -831,6 +1041,7 @@ async function step2BootAndCall() {
           return res(false);
         }
         listPayload = parsed;
+        graphSmokeArgs = buildGraphQuerySmokeArgs(parsed);
         log('ok', `list_concepts — vault total ${parsed.total} nodes (vaultRoot ${parsed.vaultRoot})`);
         if (parsed.total === 0) {
           log('info', 'Warning: vault is empty. Make sure OMOT_VAULT points to the right folder (e.g. ./docs/ontology)');
@@ -1022,6 +1233,63 @@ async function step2BootAndCall() {
         log('ok', `project_map query_plan — ${parsed.estimate.strategy} (${parsed.estimate.costClass}, nodes ${parsed.estimate.nodeScans}, edges ${parsed.estimate.edgeScans})`);
       } catch (err) {
         log('fail', `failed to parse project_map query_plan response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!neighborsRes || !neighborsRes.result) {
+        log('fail', 'no query_ontology neighbors response');
+        return res(false);
+      }
+      try {
+        const text = neighborsRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const expectedSlug = graphSmokeArgs?.slug || buildGraphQuerySmokeArgs(listPayload).slug;
+        const failure = neighborsFailure(parsed, expectedSlug);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        log('ok', `neighbors — ${parsed.center} (${parsed.edges.length}/${parsed.total} edges, limited ${parsed.limited})`);
+      } catch (err) {
+        log('fail', `failed to parse neighbors response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!pathRes || !pathRes.result) {
+        log('fail', 'no query_ontology path response');
+        return res(false);
+      }
+      try {
+        const text = pathRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const expectedSlug = graphSmokeArgs?.slug || buildGraphQuerySmokeArgs(listPayload).slug;
+        const failure = pathQueryFailure(parsed, expectedSlug);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        log('ok', `path — ${parsed.from} → ${parsed.to} (${parsed.hopCount} hops)`);
+      } catch (err) {
+        log('fail', `failed to parse path response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!projectScopeRes || !projectScopeRes.result) {
+        log('fail', 'no query_ontology project_scope response');
+        return res(false);
+      }
+      try {
+        const text = projectScopeRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const expectedProject = graphSmokeArgs?.project || buildGraphQuerySmokeArgs(listPayload).project;
+        const failure = projectScopeFailure(parsed, expectedProject);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        log('ok', `project_scope — ${parsed.project} (${parsed.summary.nodes} nodes, internalEdges ${parsed.summary.internalEdges})`);
+      } catch (err) {
+        log('fail', `failed to parse project_scope response: ${err.message}`);
         return res(false);
       }
 

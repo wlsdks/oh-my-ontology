@@ -8,6 +8,7 @@ import {
   advisoryNextActionsSummary,
   buildFirstContactRequests,
   buildGetConceptsSmokeSlugs,
+  buildGraphQuerySmokeArgs,
   compileSummaryFailure,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
@@ -27,7 +28,10 @@ import {
   overviewFailure,
   overviewQueryPlanFailure,
   parseVerifyTimeoutMs,
+  neighborsFailure,
+  pathQueryFailure,
   projectMapQueryPlanFailure,
+  projectScopeFailure,
   serverStartupFailure,
   validationCodeSummary,
   validateVaultFailure,
@@ -78,7 +82,7 @@ describe('verify.mjs first-contact gates', () => {
   it('detects when all first-contact JSON-RPC responses arrived', () => {
     assert.equal(
       hasAllFirstContactResponses(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
           .map((id) => JSON.stringify({ jsonrpc: '2.0', id, result: {} }))
           .join('\n'),
       ),
@@ -95,8 +99,11 @@ describe('verify.mjs first-contact gates', () => {
   it('keeps first-contact response labels aligned with the get_concepts smoke', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(11), 'get_concepts');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(12), 'project_map_query_plan');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(13), 'neighbors');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(14), 'path');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(15), 'project_scope');
     assert.deepEqual(
-      [...expectedResponseIds(buildFirstContactRequests()), 11].sort((a, b) => a - b),
+      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
     );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]
@@ -185,6 +192,24 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.deepEqual(buildGetConceptsSmokeSlugs({ nodes: [] }), ['missing-verify-slug']);
     assert.deepEqual(buildGetConceptsSmokeSlugs({}), ['missing-verify-slug']);
+  });
+
+  it('builds graph-query smoke args from the current list response', () => {
+    assert.deepEqual(
+      buildGraphQuerySmokeArgs({
+        nodes: [
+          { slug: 'README', kind: 'vault-readme' },
+          { slug: 'project', kind: 'project' },
+          { slug: 'capabilities/mcp-server', kind: 'capability' },
+        ],
+      }),
+      { slug: 'project', project: 'project' },
+    );
+    assert.deepEqual(
+      buildGraphQuerySmokeArgs({ nodes: [{ slug: 'capabilities/a', kind: 'capability' }] }),
+      { slug: 'capabilities/a', project: 'project' },
+    );
+    assert.deepEqual(buildGraphQuerySmokeArgs({ nodes: [] }), { slug: 'project', project: 'project' });
   });
 
   it('fails malformed get_concepts batch payloads', () => {
@@ -460,6 +485,75 @@ describe('verify.mjs first-contact gates', () => {
       }),
       null,
     );
+    assert.equal(
+      neighborsFailure({
+        operation: 'neighbors',
+        center: 'project',
+        node: { slug: 'project', kind: 'project', title: 'Project' },
+        total: 1,
+        limited: false,
+        edges: [
+          {
+            direction: 'outgoing',
+            from: 'project',
+            to: 'domains/auth',
+            via: 'domains',
+            resolved: true,
+            external: false,
+          },
+        ],
+        nodes: [{ slug: 'domains/auth', kind: 'domain', title: 'Auth' }],
+      }, 'project'),
+      null,
+    );
+    assert.equal(
+      pathQueryFailure({
+        operation: 'path',
+        from: 'project',
+        to: 'project',
+        found: true,
+        hopCount: 0,
+        hops: ['project'],
+        edges: [],
+      }, 'project'),
+      null,
+    );
+    assert.equal(
+      projectScopeFailure({
+        operation: 'project_scope',
+        project: 'project',
+        node: { slug: 'project', kind: 'project', title: 'Project' },
+        summary: {
+          nodes: 2,
+          internalEdges: 1,
+          boundaryEdges: 0,
+          externalEdges: 0,
+          unresolvedEdges: 0,
+        },
+        byKind: { project: 1, domain: 1 },
+        byDomain: {},
+        nodes: {
+          total: 2,
+          limited: false,
+          rows: [
+            { slug: 'project', kind: 'project', title: 'Project' },
+            { slug: 'domains/auth', kind: 'domain', title: 'Auth' },
+          ],
+        },
+        edges: {
+          internal: {
+            total: 1,
+            byRelation: { domains: 1 },
+            limited: false,
+            edges: [{ from: 'project', to: 'domains/auth', via: 'domains' }],
+          },
+          boundary: { total: 0, byRelation: {}, limited: false, edges: [] },
+          external: { total: 0, byRelation: {}, limited: false, edges: [] },
+          unresolved: { total: 0, byRelation: {}, limited: false, edges: [] },
+        },
+      }, 'project'),
+      null,
+    );
   });
 
   it('fails malformed graph-query verify smoke payloads', () => {
@@ -518,6 +612,72 @@ describe('verify.mjs first-contact gates', () => {
         normalized: { targetOperation: 'overview' },
       }),
       'project_map query_plan returned unexpected targetOperation: overview',
+    );
+    assert.equal(
+      neighborsFailure({ operation: 'path', center: 'project' }, 'project'),
+      'neighbors returned unexpected operation: path',
+    );
+    assert.equal(
+      neighborsFailure({
+        operation: 'neighbors',
+        center: 'other',
+        node: { slug: 'other' },
+        total: 0,
+        limited: false,
+        edges: [],
+        nodes: [],
+      }, 'project'),
+      'neighbors center mismatch — expected project, got other',
+    );
+    assert.equal(
+      neighborsFailure({
+        operation: 'neighbors',
+        center: 'project',
+        node: { slug: 'project' },
+        total: 2,
+        limited: false,
+        edges: [{ from: 'project', to: 'domains/auth', via: 'domains', direction: 'outgoing' }],
+        nodes: [],
+      }, 'project'),
+      'neighbors response edge count mismatch — edges 1, total 2',
+    );
+    assert.equal(pathQueryFailure({ operation: 'neighbors' }, 'project'), 'path returned unexpected operation: neighbors');
+    assert.equal(
+      pathQueryFailure({
+        operation: 'path',
+        from: 'project',
+        to: 'project',
+        found: true,
+        hopCount: 1,
+        hops: ['project'],
+        edges: [],
+      }, 'project'),
+      'path response expected self-hop count 0, got 1',
+    );
+    assert.equal(projectScopeFailure({ operation: 'project_map' }, 'project'), 'project_scope returned unexpected operation: project_map');
+    assert.equal(
+      projectScopeFailure({
+        operation: 'project_scope',
+        project: 'project',
+        node: { slug: 'project' },
+        summary: {
+          nodes: 2,
+          internalEdges: 1,
+          boundaryEdges: 0,
+          externalEdges: 0,
+          unresolvedEdges: 0,
+        },
+        byKind: { project: 1 },
+        byDomain: {},
+        nodes: { total: 2, limited: false, rows: [] },
+        edges: {
+          internal: { total: 1, limited: false, edges: [] },
+          boundary: { total: 0, limited: false, edges: [] },
+          external: { total: 0, limited: false, edges: [] },
+          unresolved: { total: 0, limited: false, edges: [] },
+        },
+      }, 'project'),
+      'project_scope node count mismatch — rows 0, total 2',
     );
   });
 

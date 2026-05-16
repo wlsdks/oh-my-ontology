@@ -185,6 +185,9 @@ A successful run looks like this:
 ✓ overview — graph 01dcdf26c195 (28 nodes, 200 edges, hubs 5)
 ✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 200)
 ✓ project_map query_plan — aggregate_scan (medium, nodes 28, edges 200)
+✓ neighbors — project (5/6 edges, limited true)
+✓ path — project → project (0 hops)
+✓ project_scope — project (27 nodes, internalEdges 92)
 
 All passed — register .mcp.json with Claude Code and restart to use the 23 tools.
 ```
@@ -196,7 +199,10 @@ verify path exercises and gates the same first-contact graph diagnosis an agent 
 `query_ontology({operation:"health"})`, plus `compile_ontology({summary:true})`,
 `query_ontology({operation:"overview"})`, and
 `query_ontology({operation:"query_plan", targetOperation:"overview"})` /
-`query_ontology({operation:"query_plan", targetOperation:"project_map"})`.
+`query_ontology({operation:"query_plan", targetOperation:"project_map"})`,
+plus actual `query_ontology({operation:"neighbors"})`,
+`query_ontology({operation:"path"})`, and
+`query_ontology({operation:"project_scope"})` smoke calls.
 `get_concepts` reuses up to two slugs from `list_concepts` plus one missing slug
 so batch success rows and partial rows are verified during installation checks. `list_concepts` vault warnings,
 `list_kinds` / `compile_ontology` / `overview`

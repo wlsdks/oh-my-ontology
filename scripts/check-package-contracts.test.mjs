@@ -73,8 +73,14 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ list_kinds/);
     assert.match(verifySection, /✓ workspace_brief — healthy \(28 nodes, nextActions 0, healthChecks 5\)/);
     assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass/);
+    assert.match(verifySection, /✓ neighbors — project/);
+    assert.match(verifySection, /✓ path — project/);
+    assert.match(verifySection, /✓ project_scope — project/);
     assert.match(verifySection, /`list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
+    assert.match(verifySection, /`query_ontology\(\{operation:"neighbors"\}\)`/);
+    assert.match(verifySection, /`query_ontology\(\{operation:"path"\}\)`/);
+    assert.match(verifySection, /`query_ontology\(\{operation:"project_scope"\}\)`/);
     assert.match(verifySection, /`list_kinds` \/ `compile_ontology` \/ `overview`\s+census shape\/count mismatches/);
     assert.match(verifySection, /Missing or malformed first-contact diagnosis payloads/);
     assert.match(verifySection, /`workspace_brief\.nextActions`/);
@@ -88,7 +94,8 @@ describe('package contract helpers', () => {
 
     assert.match(verifySection, /`list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /success-row \/ partial-row contract drift/);
-    assert.match(verifySection, /`compile_ontology`, `overview`, and `overview`\/`project_map` query_plan/);
+    assert.match(verifySection, /`compile_ontology`, `overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);
+    assert.match(verifySection, /core graph-query execution with `neighbors`, self-`path`, and `project_scope`/);
     assert.match(verifySection, /cross-checks `list_kinds` census totals/);
     assert.match(verifySection, /`list_concepts`, `validate_vault`, `compile_ontology`, and `overview`/);
     assert.match(verifySection, /missing or malformed first-contact diagnosis payloads/);
@@ -108,7 +115,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /get_concepts/);
     assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /stdout/);
-    assert.match(verifySection, /`overview` and `overview`\/`project_map` query_plan/);
+    assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors`/);
+    assert.match(verifySection, /`path` \/ `project_scope` calls/);
   });
 
   it('keeps the CLI changelog aligned with the mcp-verify census scope', () => {
@@ -117,7 +125,8 @@ describe('package contract helpers', () => {
 
     assert.match(verifySection, /`list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /partial-row contract drift/);
-    assert.match(verifySection, /`overview`, and `overview`\/`project_map` query_plan/);
+    assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);
+    assert.match(verifySection, /core graph-query smoke for `neighbors`, self-`path`, and `project_scope`/);
   });
 
   it('documents dogfood validation as a release gate', () => {
@@ -130,6 +139,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /batch-read\s+partial-row contract/);
     assert.match(releaseChecks, /mcp-verify --help/);
     assert.match(releaseChecks, /graph-query smoke scope/);
+    assert.match(releaseChecks, /actual `neighbors`, self-`path`, and\s+`project_scope` calls/);
     assert.match(releaseChecks, /flow\/help\/failure/);
     assert.match(releaseChecks, /dependency-cycle vault/);
     assert.match(releaseChecks, /get_concepts` success\/partial rows/);

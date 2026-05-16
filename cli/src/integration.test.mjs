@@ -225,6 +225,9 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.match(clean, /overview/);
     assert.match(clean, /overview query_plan/);
     assert.match(clean, /project_map query_plan/);
+    assert.match(clean, /neighbors/);
+    assert.match(clean, /path/);
+    assert.match(clean, /project_scope/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -241,7 +244,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /get_concepts/);
   assert.match(clean, /kind census/);
   assert.match(clean, /compile_ontology/);
-  assert.match(clean, /overview\/project_map query_plan graph-query smoke/);
+  assert.match(clean, /neighbors\/path\/project_scope graph-query smoke/);
 });
 
 await test('mcp-verify — rejects invalid timeout values', async () => {
