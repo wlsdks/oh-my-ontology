@@ -53,6 +53,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [16, "get_concepts"],
   [17, "project_map_query_plan"],
   [18, "project_map"],
+  [19, "domain_profile"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -185,6 +186,12 @@ export function buildDogfoodRequests() {
       operation: "project_map",
       itemLimit: 5,
     }),
+    call(19, "query_ontology", {
+      operation: "domain_profile",
+      slug: "domains/ai-agent-partner",
+      itemLimit: 5,
+      limit: 5,
+    }),
   ];
 }
 
@@ -244,6 +251,7 @@ export function evaluateDogfoodGate({
   allPathsPlan,
   projectMapPlan,
   projectMap,
+  domainProfile,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -263,6 +271,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "all_paths_query_plan", allPathsPlan);
   recordResult(failures, "project_map_query_plan", projectMapPlan);
   recordResult(failures, "project_map", projectMap);
+  recordResult(failures, "domain_profile", domainProfile);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -336,6 +345,10 @@ export function evaluateDogfoodGate({
   if (projectMap) {
     const projectMapFailure = projectMapShapeFailure(projectMap);
     if (projectMapFailure) failures.push(projectMapFailure);
+  }
+  if (domainProfile) {
+    const domainProfileFailure = domainProfileShapeFailure(domainProfile);
+    if (domainProfileFailure) failures.push(domainProfileFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -618,6 +631,93 @@ function projectMapShapeFailure(result) {
     return "project_map response missing hotspots array";
   }
   return matchRowsFailure("project_map hotspots", result.hotspots);
+}
+
+function domainProfileShapeFailure(result) {
+  if (result.operation !== "domain_profile") {
+    return `domain_profile response operation mismatch — ${result.operation}`;
+  }
+  if (result.domain !== "domains/ai-agent-partner") {
+    return `domain_profile response domain mismatch — ${result.domain}`;
+  }
+  if (!result.node || result.node.slug !== result.domain) {
+    return "domain_profile response missing domain node";
+  }
+  if (!result.parents || !Array.isArray(result.parents.projects)) {
+    return "domain_profile response missing parent projects";
+  }
+  const summaryFailure = numericSummaryFailure("domain_profile", result.summary, [
+    "nodes",
+    "capabilities",
+    "elements",
+    "internalEdges",
+    "boundaryEdges",
+    "externalEdges",
+    "unresolvedEdges",
+  ]);
+  if (summaryFailure) return summaryFailure;
+  const capabilitiesFailure = summarizedNodeBucketFailure("domain_profile capabilities", result.capabilities);
+  if (capabilitiesFailure) return capabilitiesFailure;
+  const elementsFailure = summarizedNodeBucketFailure("domain_profile elements", result.elements);
+  if (elementsFailure) return elementsFailure;
+  if (result.capabilities.total !== result.summary.capabilities) {
+    return `domain_profile capabilities total mismatch — summary ${result.summary.capabilities}, bucket ${result.capabilities.total}`;
+  }
+  if (result.elements.total !== result.summary.elements) {
+    return `domain_profile elements total mismatch — summary ${result.summary.elements}, bucket ${result.elements.total}`;
+  }
+  if (!Array.isArray(result.hotspots)) {
+    return "domain_profile response missing hotspots array";
+  }
+  const hotspotsFailure = matchRowsFailure("domain_profile hotspots", result.hotspots);
+  if (hotspotsFailure) return hotspotsFailure;
+  if (!result.edges || typeof result.edges !== "object" || Array.isArray(result.edges)) {
+    return "domain_profile response missing edges block";
+  }
+  for (const key of ["boundary", "external", "unresolved"]) {
+    const failure = scopeEdgeBucketFailure(`domain_profile ${key} edges`, result.edges[key]);
+    if (failure) return failure;
+  }
+  return null;
+}
+
+function scopeEdgeBucketFailure(label, bucket) {
+  if (!bucket || typeof bucket !== "object" || Array.isArray(bucket)) {
+    return `${label} missing bucket`;
+  }
+  if (!Number.isInteger(bucket.total) || bucket.total < 0) {
+    return `${label} missing total`;
+  }
+  if (typeof bucket.limited !== "boolean") {
+    return `${label} missing limited flag`;
+  }
+  if (!bucket.byRelation || typeof bucket.byRelation !== "object" || Array.isArray(bucket.byRelation)) {
+    return `${label} missing byRelation`;
+  }
+  if (!Array.isArray(bucket.edges)) {
+    return `${label} missing edges array`;
+  }
+  if (bucket.edges.length > bucket.total) {
+    return `${label} edges exceed total — edges ${bucket.edges.length}, total ${bucket.total}`;
+  }
+  if (!bucket.limited && bucket.edges.length !== bucket.total) {
+    return `${label} edge count mismatch — edges ${bucket.edges.length}, total ${bucket.total}`;
+  }
+  for (const [index, edge] of bucket.edges.entries()) {
+    if (!edge || typeof edge !== "object" || Array.isArray(edge)) {
+      return `${label} malformed edge at index ${index}`;
+    }
+    if (typeof edge.from !== "string" || edge.from.length === 0) {
+      return `${label} missing edge from at index ${index}`;
+    }
+    if (typeof edge.to !== "string" || edge.to.length === 0) {
+      return `${label} missing edge to at index ${index}`;
+    }
+    if (typeof edge.via !== "string" || edge.via.length === 0) {
+      return `${label} missing edge relation at index ${index}`;
+    }
+  }
+  return null;
 }
 
 function summarizedNodeBucketFailure(label, bucket) {
@@ -1092,6 +1192,18 @@ async function main() {
     }
   }
 
+  // 18. domain_profile
+  header(`query_ontology(domain_profile ai-agent-partner)`);
+  const domainProfile = getResult(responses, 19);
+  if (domainProfile) {
+    console.log(
+      `  domain ${domainProfile.domain ?? "n/a"} · capabilities ${domainProfile.capabilities?.total ?? "n/a"} · elements ${domainProfile.elements?.total ?? "n/a"} · boundary ${domainProfile.edges?.boundary?.total ?? "n/a"} · external ${domainProfile.edges?.external?.total ?? "n/a"}`,
+    );
+    for (const capability of (domainProfile.capabilities?.nodes || []).slice(0, 5)) {
+      console.log(`  ${capability.slug}`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -1110,6 +1222,7 @@ async function main() {
     allPathsPlan,
     projectMapPlan,
     projectMap,
+    domainProfile,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1142,6 +1255,7 @@ async function main() {
   console.log(`  all_paths query_plan: ${allPathsPlan?.estimate?.costClass ?? "n/a"} · limit ${allPathsPlan?.normalized?.limit ?? "n/a"}`);
   console.log(`  project_map query_plan: ${projectMapPlan?.estimate?.costClass ?? "n/a"} · ${projectMapPlan?.estimate?.strategy ?? "n/a"}`);
   console.log(`  project_map: ${projectMap?.domains?.length ?? "n/a"} domains · ${projectMap?.summary?.capabilities ?? "n/a"} capabilities`);
+  console.log(`  domain_profile: ${domainProfile?.capabilities?.total ?? "n/a"} capabilities · ${domainProfile?.elements?.total ?? "n/a"} elements`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

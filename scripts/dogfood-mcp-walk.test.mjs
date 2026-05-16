@@ -237,6 +237,49 @@ const okShape = {
     unassigned: { total: 0, limited: false, nodes: [] },
     hotspots: [],
   },
+  domainProfile: {
+    operation: "domain_profile",
+    domain: "domains/ai-agent-partner",
+    node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" },
+    parents: {
+      projects: [{ slug: "project", via: "domains", node: { slug: "project", kind: "project", title: "Project" } }],
+    },
+    summary: {
+      nodes: 3,
+      capabilities: 1,
+      elements: 1,
+      internalEdges: 2,
+      boundaryEdges: 1,
+      externalEdges: 1,
+      unresolvedEdges: 0,
+    },
+    capabilities: {
+      total: 1,
+      limited: false,
+      nodes: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" }],
+    },
+    elements: {
+      total: 1,
+      limited: false,
+      nodes: [{ slug: "elements/mcp-sdk", kind: "element", title: "MCP SDK" }],
+    },
+    hotspots: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" }],
+    edges: {
+      boundary: {
+        total: 1,
+        limited: false,
+        byRelation: { relates: 1 },
+        edges: [{ from: "capabilities/mcp-server", to: "domains/vault-local-first", via: "relates" }],
+      },
+      external: {
+        total: 1,
+        limited: false,
+        byRelation: { elements: 1 },
+        edges: [{ from: "capabilities/mcp-server", to: "mcp/src/index.js", via: "elements" }],
+      },
+      unresolved: { total: 0, limited: false, byRelation: {}, edges: [] },
+    },
+  },
 };
 
 describe("recordResult", () => {
@@ -310,6 +353,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(16), "get_concepts");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(17), "project_map_query_plan");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(18), "project_map");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(19), "domain_profile");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -843,6 +887,54 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, projectMap: { ...okShape.projectMap, hotspots: [{}] } }),
       ["project_map hotspots response missing row slug at index 0"],
+    );
+  });
+
+  it("fails on malformed domain_profile payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, domainProfile: { ...okShape.domainProfile, operation: "project_map" } }),
+      ["domain_profile response operation mismatch — project_map"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, domainProfile: { ...okShape.domainProfile, domain: "domains/other" } }),
+      ["domain_profile response domain mismatch — domains/other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        domainProfile: {
+          ...okShape.domainProfile,
+          capabilities: { total: 0, limited: false, nodes: okShape.domainProfile.capabilities.nodes },
+        },
+      }),
+      ["domain_profile capabilities nodes exceed total — nodes 1, total 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        domainProfile: {
+          ...okShape.domainProfile,
+          summary: { ...okShape.domainProfile.summary, elements: 2 },
+        },
+      }),
+      ["domain_profile elements total mismatch — summary 2, bucket 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        domainProfile: {
+          ...okShape.domainProfile,
+          edges: {
+            ...okShape.domainProfile.edges,
+            boundary: { total: 1, limited: false, byRelation: {}, edges: [] },
+          },
+        },
+      }),
+      ["domain_profile boundary edges edge count mismatch — edges 0, total 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, domainProfile: { ...okShape.domainProfile, hotspots: [{}] } }),
+      ["domain_profile hotspots response missing row slug at index 0"],
     );
   });
 
