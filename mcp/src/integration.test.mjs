@@ -17,6 +17,7 @@ import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
+  QUERY_ONTOLOGY_OPERATIONS,
 } from "./ontology-engine.mjs";
 import {
   formatNoTestMatchMessage,
@@ -680,6 +681,13 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /read-only first-contact diagnosis/);
     assert.match(instructions, /workspace_brief/);
     assert.match(instructions, /operation:'overview'/);
+    assert.match(
+      instructions,
+      new RegExp(
+        `operation:${QUERY_ONTOLOGY_OPERATIONS.map((operation) => `'${operation}'`).join("\\|")}`,
+      ),
+      "instructions expose the runtime query_ontology operation enum",
+    );
     assert.match(instructions, /targetOperation:'overview'/);
     assert.match(instructions, /targetOperation:'project_map'/);
     assert.match(instructions, /health/);

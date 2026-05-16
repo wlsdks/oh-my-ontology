@@ -536,6 +536,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /project-node `list_concepts` probe 도 fail-closed/);
     assert.match(dogfoodSection, /`kind: project`/);
     assert.match(dogfoodSection, /`list_kinds\.byKind\.project`/);
+    assert.match(doc, /MCP `initialize\.instructions` 의 `query_ontology\.operation`\s+안내도 같은 allow-list 에서 생성/);
     assert.match(dogfoodSection, /`project_map` query_plan/);
     assert.match(dogfoodSection, /실제\s+`project_map` 실행/);
     assert.match(dogfoodSection, /`neighbors`/);
