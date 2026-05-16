@@ -1079,11 +1079,11 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   }
   const failedChecks = checks.filter((check) => check.status === 'fail');
   if (failedChecks.length > 0) {
-    return `${label} has failing health checks: ${failedChecks.map((check) => check.id).join(', ')}`;
+    return `${label} has failing health checks: ${failedChecks.map((check) => check.id).join(', ')}. Inspect query_ontology({operation:"health"}) before writing.`;
   }
   const blockingActions = blockingNextActions(parsed?.nextActions);
   if (blockingActions.length > 0) {
-    return `${label} has actionable nextActions: ${blockingActions.join(', ')}`;
+    return `${label} has actionable nextActions: ${blockingActions.join(', ')}. Inspect workspace_brief.nextActions before writing.`;
   }
   return null;
 }

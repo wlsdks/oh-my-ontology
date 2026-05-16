@@ -1366,7 +1366,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief has failing health checks: dependency_cycles',
+      'workspace_brief has failing health checks: dependency_cycles. Inspect query_ontology({operation:"health"}) before writing.',
     );
   });
 
@@ -1542,7 +1542,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief has actionable nextActions: resolve_dangling_references',
+      'workspace_brief has actionable nextActions: resolve_dangling_references. Inspect workspace_brief.nextActions before writing.',
     );
   });
 });
