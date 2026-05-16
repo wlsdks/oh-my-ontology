@@ -18,6 +18,7 @@ import {
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
+  QUERY_PLAN_TARGET_OPERATIONS,
 } from "./ontology-engine.mjs";
 import {
   formatNoTestMatchMessage,
@@ -690,6 +691,12 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     );
     assert.match(instructions, /targetOperation:'overview'/);
     assert.match(instructions, /targetOperation:'project_map'/);
+    assert.ok(
+      instructions.includes(
+        `\`targetOperation\` accepts ${QUERY_PLAN_TARGET_OPERATIONS.map((operation) => `'${operation}'`).join("|")}`,
+      ),
+      "instructions expose the runtime query_plan targetOperation enum",
+    );
     assert.match(instructions, /health/);
     assert.match(instructions, /unknown arguments are rejected/i);
     assert.match(instructions, /Unknown argument "lmit" for list_concepts/);

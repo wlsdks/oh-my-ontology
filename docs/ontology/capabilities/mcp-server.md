@@ -69,8 +69,8 @@ agent 가 실패 호출로 subset 을 학습하지 않고, `project_map` / `patt
 `relation_check` 같은 실제 operation 도 실행 전 계획할 수 있게 한다. 이 enum 은
 graph engine 의 runtime allow-list 에서 직접 가져와 schema 와 실행 계약이 따로
 드리프트하지 않게 한다. MCP `initialize.instructions` 의 `query_ontology.operation`
-안내도 같은 allow-list 에서 생성해 agent 첫 접촉 문서와 runtime enum 이 따로
-드리프트하지 않게 한다. `npm run verify` 는 `overview` 에 더해 `project_map`
+안내와 `query_plan.targetOperation` 안내도 같은 allow-list 에서 생성해 agent
+첫 접촉 문서와 runtime enum 이 따로 드리프트하지 않게 한다. `npm run verify` 는 `overview` 에 더해 `project_map`
 query_plan 도 실행하고, 실제 `neighbors` / node→project `path` / `project_scope` graph smoke
 까지 호출해 설치된 MCP package 가 widened target enum 과 core traversal 계약을
 runtime 에서 받아들이는지 dogfood한다. verify 는 graph smoke 전에 `kind: project`
