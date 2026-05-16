@@ -120,7 +120,7 @@ describe("evaluateDogfoodGate", () => {
       },
     });
     assert.deepEqual(failures, [
-      "validate_vault: problemFiles 1 (errors 1, warnings 0)",
+      "validate_vault found 1 problem file(s) — errors 1, warnings 0",
     ]);
   });
 
@@ -129,7 +129,7 @@ describe("evaluateDogfoodGate", () => {
       ...okShape,
       validation: { scanned: 2, problems: [] },
     });
-    assert.deepEqual(failures, ["validate_vault: response missing summary"]);
+    assert.deepEqual(failures, ["validate_vault response missing summary"]);
   });
 
   it("fails when validate_vault omits the scanned count", () => {
@@ -137,7 +137,7 @@ describe("evaluateDogfoodGate", () => {
       ...okShape,
       validation: { problems: [], summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: {} } },
     });
-    assert.deepEqual(failures, ["validate_vault: response missing scanned count"]);
+    assert.deepEqual(failures, ["validate_vault response missing scanned count"]);
   });
 
   it("fails when validate_vault omits the problemFiles count", () => {
@@ -145,7 +145,7 @@ describe("evaluateDogfoodGate", () => {
       ...okShape,
       validation: { scanned: 2, problems: [], summary: { errorFiles: 0, warningFiles: 0, byCode: {} } },
     });
-    assert.deepEqual(failures, ["validate_vault: response missing problemFiles count"]);
+    assert.deepEqual(failures, ["validate_vault response missing problemFiles count"]);
   });
 
   it("fails when validate_vault omits error/warning counts", () => {
@@ -154,14 +154,14 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         validation: { scanned: 2, problems: [], summary: { problemFiles: 0, warningFiles: 0, byCode: {} } },
       }),
-      ["validate_vault: response missing errorFiles count"],
+      ["validate_vault response missing errorFiles count"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
         validation: { scanned: 2, problems: [], summary: { problemFiles: 0, errorFiles: 0, byCode: {} } },
       }),
-      ["validate_vault: response missing warningFiles count"],
+      ["validate_vault response missing warningFiles count"],
     );
   });
 
@@ -175,7 +175,7 @@ describe("evaluateDogfoodGate", () => {
           summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0 },
         },
       }),
-      ["validate_vault: response missing byCode aggregate"],
+      ["validate_vault response missing byCode aggregate"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -186,7 +186,7 @@ describe("evaluateDogfoodGate", () => {
           summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: [] },
         },
       }),
-      ["validate_vault: response missing byCode aggregate"],
+      ["validate_vault response missing byCode aggregate"],
     );
   });
 

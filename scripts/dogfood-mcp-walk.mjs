@@ -18,6 +18,7 @@ import {
   missingResponseLabels,
   parseJsonRpcResponses,
 } from "../mcp/scripts/json-rpc-lines.mjs";
+import { validateVaultFailure } from "../mcp/scripts/verify.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
@@ -164,33 +165,9 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
   if (list?.vaultWarnings && ((list.vaultWarnings.errorCount || 0) > 0 || (list.vaultWarnings.warningCount || 0) > 0)) {
     failures.push("list_concepts: vaultWarnings present");
   }
-  if (validation && !validation.summary) {
-    failures.push("validate_vault: response missing summary");
-  }
-  if (validation?.summary && (!Number.isInteger(validation.scanned) || validation.scanned < 0)) {
-    failures.push("validate_vault: response missing scanned count");
-  }
-  if (validation?.summary && (!Number.isInteger(validation.summary.problemFiles) || validation.summary.problemFiles < 0)) {
-    failures.push("validate_vault: response missing problemFiles count");
-  }
-  if (validation?.summary && (!Number.isInteger(validation.summary.errorFiles) || validation.summary.errorFiles < 0)) {
-    failures.push("validate_vault: response missing errorFiles count");
-  }
-  if (validation?.summary && (!Number.isInteger(validation.summary.warningFiles) || validation.summary.warningFiles < 0)) {
-    failures.push("validate_vault: response missing warningFiles count");
-  }
-  if (
-    validation?.summary &&
-    (!validation.summary.byCode ||
-      typeof validation.summary.byCode !== "object" ||
-      Array.isArray(validation.summary.byCode))
-  ) {
-    failures.push("validate_vault: response missing byCode aggregate");
-  }
-  if (validation?.summary && (validation.summary.problemFiles || 0) > 0) {
-    failures.push(
-      `validate_vault: problemFiles ${validation.summary.problemFiles} (errors ${validation.summary.errorFiles}, warnings ${validation.summary.warningFiles})`,
-    );
+  if (validation) {
+    const validationFailure = validateVaultFailure(validation);
+    if (validationFailure) failures.push(validationFailure);
   }
   if (path && !path.found) {
     failures.push("find_path: expected mcp-server → vault-local-first path");
