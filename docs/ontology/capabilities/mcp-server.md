@@ -209,7 +209,8 @@ agent 가 maintenance queue 구성을 눈으로 확인하면서 다음 cleanup a
 id phase/kind:severity 와 executable tool 요약으로 보여줘 agent 가 다음 MCP write
 또는 review action 을 로그 끝에서 바로 고를 수 있게 한다.
 verify / dogfood 는 이 pointer 가 현재 page action 의 `id`, `executable`, `phase`, `kind`,
-`severity` 와 같은지도 확인해 다음 action 안내가 다른 queue row 로 drift 나지 않게 한다.
+`severity` 와 같은지도 확인하고, tools/list schema description 도 같은 detail field 계약을
+설명하게 해 다음 action 안내가 다른 queue row 로 drift 나지 않게 한다.
 post-write compact `postWriteMaintenance` 도 executable action 의 `proposedAction` 과
 `add_missing_relation` endpoint args 를 통합 테스트에서 확인해 write 직후 후속 action 이 drift 나지 않게 한다.
 `maintenance_plan.phases` 는 `validate` / `repair` / `link` / `materialize` / `review`,

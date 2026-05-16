@@ -211,7 +211,7 @@ describe('verify.mjs first-contact gates', () => {
             targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
             afterActionId: {
               description:
-                'maintenance_plan only: nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page.',
+                'maintenance_plan only: nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.',
             },
             componentLimit: {
               type: 'integer',
@@ -328,6 +328,22 @@ describe('verify.mjs first-contact gates', () => {
         },
       })),
       'query_ontology afterActionId description missing current-page next pointers',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool({
+        ...tools[10],
+        inputSchema: {
+          ...tools[10].inputSchema,
+          properties: {
+            ...tools[10].inputSchema.properties,
+            afterActionId: {
+              description:
+                'maintenance_plan only: nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page.',
+            },
+          },
+        },
+      })),
+      'query_ontology afterActionId description missing current-page next pointer detail fields',
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool({

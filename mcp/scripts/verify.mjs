@@ -177,6 +177,9 @@ export function toolsListSchemaFailure(tools) {
   if (!/nextExecutableAction\/nextReviewAction point only at the first executable\/review action in the returned page/.test(afterActionId?.description || '')) {
     return 'query_ontology afterActionId description missing current-page next pointers';
   }
+  if (!/action id, executable flag, phase, kind, and severity/.test(afterActionId?.description || '')) {
+    return 'query_ontology afterActionId description missing current-page next pointer detail fields';
+  }
   for (const propertyName of ['componentLimit', 'cycleLimit', 'recommendationLimit', 'orderLimit', 'nodeLimit']) {
     const option = propertyAt(queryTool, ['properties', propertyName]);
     if (option?.type !== 'integer' || option.minimum !== 1 || option.maximum !== 500) {

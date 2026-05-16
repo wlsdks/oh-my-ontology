@@ -212,7 +212,8 @@ missing `afterActionId`): the ready page must keep `cursor.found=true`,
 `cursor.reason=null`, and the missing cursor still reports `cursor.found=false`,
 reason, empty page. Ready pages also verify `nextExecutableAction` /
 `nextReviewAction` point only at the first executable/review action in the
-current returned page, including the action `phase`, `kind`, and `severity`.
+current returned page, including the action id, executable flag, `phase`, `kind`,
+and `severity`.
 This help path does not start the MCP server.
 
 A successful run looks like this:
