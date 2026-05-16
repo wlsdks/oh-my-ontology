@@ -53,11 +53,13 @@ checks that match the touched surface:
 
 ```bash
 pnpm integration:cli:mcp-verify
+pnpm test:mcp:docs
 pnpm test:mcp:package
 ```
 
 `integration:cli:mcp-verify` runs only the installed MCP verification wrapper
-subset inside the spawn-heavy CLI integration file. `test:mcp:package` checks
+subset inside the spawn-heavy CLI integration file. `test:mcp:docs` checks
+README and dogfood ontology documentation drift. `test:mcp:package` checks
 package-script and tarball contract drift without running unrelated UI or E2E
 gates. Use `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
 `pnpm integration:cli` when the touched CLI integration case has a different

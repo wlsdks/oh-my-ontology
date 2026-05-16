@@ -123,6 +123,7 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 
 ```bash
 pnpm package:check              # MCP/CLI package files contract + self-test
+pnpm test:mcp:docs              # focused README + dogfood ontology docs contract
 pnpm test:mcp:package           # focused package-script/tarball contract checks
 pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
@@ -139,8 +140,8 @@ cd mcp && npm run verify -- ../docs/ontology --timeout-ms 15000
 ```
 
 Use these when changing `mcp/`, `cli/`, package manifests, or release
-scripts. Prefer the focused `test:mcp:*` scripts for small package or enum
-diagnostic changes before escalating to the broader release checks.
+scripts. Prefer the focused `test:mcp:*` scripts for small docs, package, or
+enum diagnostic changes before escalating to the broader release checks.
 `integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`, and
 their custom runners also honor Node's `--test-name-pattern`, so you can run
 only the spawn-heavy integration cases touched by a small change. The

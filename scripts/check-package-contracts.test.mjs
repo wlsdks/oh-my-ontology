@@ -47,8 +47,13 @@ describe('package contract helpers', () => {
       'node --test --test-name-pattern "README first exploration" mcp/src/integration.test.mjs',
     );
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /check-package-contracts\.test\.mjs/);
+    assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /check-package-contracts\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/suggestions\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/ontology-engine\.test\.mjs/);
+    assert.match(
+      pkg.scripts?.['test:mcp:docs'] ?? '',
+      /^node --test --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
+    );
     assert.match(
       pkg.scripts?.['test:mcp:package'] ?? '',
       /^node --test --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
@@ -57,6 +62,7 @@ describe('package contract helpers', () => {
       pkg.scripts?.['test:mcp:suggestions'] ?? '',
       /^node --test --test-name-pattern "[^"]+" mcp\/src\/suggestions\.test\.mjs mcp\/src\/ontology-engine\.test\.mjs$/,
     );
+    assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:package/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli/);
@@ -100,8 +106,10 @@ describe('package contract helpers', () => {
     const section = readme.split('### Source-checkout verification')[1]?.split('### 2. Restart Claude Code')[0] ?? '';
 
     assert.match(section, /pnpm integration:mcp:readme/);
+    assert.match(section, /pnpm test:mcp:docs/);
     assert.match(section, /pnpm test:mcp:suggestions/);
     assert.match(section, /first-contact read-only MCP flow/);
+    assert.match(section, /documentation drift/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
   });
@@ -229,8 +237,10 @@ describe('package contract helpers', () => {
     const section = readme.split('### Source-checkout verification')[1]?.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[0] ?? '';
 
     assert.match(section, /pnpm integration:cli:mcp-verify/);
+    assert.match(section, /pnpm test:mcp:docs/);
     assert.match(section, /pnpm test:mcp:package/);
     assert.match(section, /installed MCP verification wrapper/);
+    assert.match(section, /documentation drift/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
   });

@@ -49,11 +49,13 @@ before escalating to the full integration suite:
 
 ```bash
 pnpm integration:mcp:readme
+pnpm test:mcp:docs
 pnpm test:mcp:suggestions
 ```
 
 `integration:mcp:readme` runs the documented first-contact read-only MCP flow
-only. `test:mcp:suggestions` covers strict enum / argument suggestion behavior.
+only. `test:mcp:docs` checks README and dogfood ontology documentation drift.
+`test:mcp:suggestions` covers strict enum / argument suggestion behavior.
 Use `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
 `pnpm integration:mcp` when the touched MCP integration case has a different
 name.
