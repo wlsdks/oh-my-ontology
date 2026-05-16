@@ -79,6 +79,7 @@ validation / diagnosis / compile / overview / query planning 은 계속 hard gat
 환경변수 `OMOT_VAULT` 로 vault 위치 지정. 등록 가이드: `mcp/README.md`. 1줄 verify:
 `npm run verify` (mcp/) — parser smoke, server boot, 23-tool inventory
 (`15 read + 8 write` split 포함), strict argument schema 와 graph-query enum schema,
+strict schema/runtime unknown-argument rejection,
 `list_concepts`,
 `get_concepts`, `list_kinds`, `validate_vault`, `workspace_brief`, `health`, `compile_ontology({ summary: true })`,
 `query_ontology(overview)`, `query_plan(targetOperation:"overview")`,

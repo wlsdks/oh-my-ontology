@@ -154,6 +154,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /core graph-query smoke for `neighbors`, self-`path`, and `project_scope`/);
     assert.match(verifySection, /accepts valid project-less vaults/);
     assert.match(verifySection, /accepts empty vault folders/);
+    assert.match(verifySection, /runtime unknown-argument rejection smoke/);
   });
 
   it('documents dogfood validation as a release gate', () => {
@@ -165,7 +166,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /get_concepts` with discovered slugs plus one\s+missing slug/);
     assert.match(releaseChecks, /batch-read\s+partial-row contract/);
     assert.match(releaseChecks, /mcp-verify --help/);
-    assert.match(releaseChecks, /graph-query smoke scope/);
+    assert.match(releaseChecks, /graph-query and strict-argument smoke scope/);
     assert.match(releaseChecks, /actual `neighbors`, self-`path`, and\s+`project_scope` calls/);
     assert.match(releaseChecks, /project-less and empty-vault verify paths/);
     assert.match(releaseChecks, /flow\/help\/failure/);
@@ -247,6 +248,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /실제 `neighbors` \/[\s\S]*self-`path` \/ `project_scope`/);
     assert.match(verifySection, /project\s+노드가 있을 때만 containment hard gate/);
     assert.match(verifySection, /빈 vault 는 node-targeted graph\s+smoke 를 skip/);
+    assert.match(verifySection, /strict schema\/runtime unknown-argument rejection/);
   });
 
   it('keeps packed CLI smoke aligned with installed hard gates', () => {
@@ -264,6 +266,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /health — \.\*compile_issues:\(pass\|warn\)/);
     assert.match(smoke, /health — \.\*checks/);
     assert.match(smoke, /neighbors\\\/path\\\/project_scope graph-query smoke/);
+    assert.match(smoke, /runtime unknown-argument rejection smoke/);
     assert.match(smoke, /project_scope — skipped \\\(no project node in vault\\\)/);
     assert.match(smoke, /neighbors\\\/path — skipped \\\(vault has no nodes\\\)/);
     assert.match(smokeSection, /cycles --json/);
@@ -272,6 +275,7 @@ describe('package contract helpers', () => {
     assert.match(smokeSection, /health check count/);
     assert.match(smokeSection, /`overview`\/`project_map` query_plan \/ `neighbors` \/ `path` \//);
     assert.match(smokeSection, /`project_scope` smoke/);
+    assert.match(smokeSection, /strict argument smoke/);
     assert.match(smokeSection, /project-less vault/);
     assert.match(smokeSection, /empty vault/);
   });
