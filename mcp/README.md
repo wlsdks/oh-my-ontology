@@ -93,16 +93,17 @@ arguments before the tool call instead of relying on silent fallback. Query
 limits above 500 and traversal caps above 20 are rejected instead of silently
 clamped by the graph engine.
 String-array options are strict too: relation filters such as
-`find_neighbors.types` / `query_ontology.types`, `query_ontology.pattern`, and
-`maintenance_plan` filters reject non-string array items instead of silently
-dropping them; blank, whitespace-padded, and null-byte items are rejected at the
-MCP boundary as well.
+`find_neighbors.types` / `query_ontology.types`, `query_ontology.pattern`,
+`maintenance_plan` filters, and analysis scan lists such as
+`infer_imports.sourceFolders` / `ignore` reject non-string array items instead
+of silently dropping them; blank, whitespace-padded, and null-byte items are
+rejected at the MCP boundary as well.
 Scalar string options follow the same boundary across read and write tools:
-slugs, filters, titles, relation types, query targets, and cursor ids reject
-blank, whitespace-padded, or null-byte values before graph resolution or disk
-writes. `tools/list` exposes the same `minLength` and pattern hints for those
-scalar strings and strict string-array items so MCP clients can catch bad calls
-before sending them.
+slugs, repo paths, filters, titles, relation types, query targets, and cursor
+ids reject blank, whitespace-padded, or null-byte values before graph
+resolution, repo walking, or disk writes. `tools/list` exposes the same
+`minLength` and pattern hints for those scalar strings and strict string-array
+items so MCP clients can catch bad calls before sending them.
 Boolean options are also validated explicitly, including read/query flags and
 destructive write safety switches such as `confirm`, `overwrite`, and `force`.
 Batch arrays expose the same runtime cap as schema too: `get_concepts.slugs`,

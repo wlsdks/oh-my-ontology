@@ -917,26 +917,28 @@ const TOOLS = [
       type: 'object',
       properties: {
         rootPath: {
-          type: 'string',
+          ...NON_BLANK_STRING_SCHEMA,
           description: 'Repository root to analyze. Defaults to MCP server cwd.',
         },
         sourceFolders: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             "Source folders to walk (default: ['src','lib','app','packages']). " +
             'If none exist, falls back to rootPath.',
         },
         ignore: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             "Extra folder names to skip (added to defaults: node_modules, dist, build, …).",
         },
         maxFiles: {
-          type: 'number',
+          type: 'integer',
+          minimum: 1,
+          maximum: 50000,
           description:
-            'Cap on files walked (default 5000). Hard stop to avoid pathological monorepos.',
+            'Positive integer cap on files walked (default 5000, max 50000). Hard stop to avoid pathological monorepos.',
         },
       },
     },
@@ -959,17 +961,19 @@ const TOOLS = [
       type: 'object',
       properties: {
         rootPath: {
-          type: 'string',
+          ...NON_BLANK_STRING_SCHEMA,
           description:
             'Repository root to analyze. Defaults to the MCP server cwd.',
         },
         maxDepth: {
-          type: 'number',
-          description: 'Folder walk depth (default 2). Higher → more elements.',
+          type: 'integer',
+          minimum: 0,
+          maximum: 10,
+          description: 'Non-negative integer folder walk depth (default 2, max 10). Higher → more elements.',
         },
         ignore: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             "Extra folder names to skip (added to defaults: node_modules, .git, dist, build, …).",
         },
@@ -2217,23 +2221,30 @@ function isPathLikeGraphRef(ref) {
 // frontmatter 절대 안 건드림. 사용자 검토 후 별도 add_concept 호출이 진실
 // 진입.
 function analyzeRepoStructureTool({ rootPath, maxDepth, ignore } = {}) {
+  requireOptionalNonBlankString(rootPath, 'rootPath');
+  requireOptionalNonNegativeInteger(maxDepth, 'maxDepth', { max: 10 });
+  requireOptionalStringArray(ignore, 'ignore');
   const target = rootPath
     ? resolve(rootPath)
     : process.cwd();
   return analyzeRepoStructure(target, {
-    maxDepth: typeof maxDepth === 'number' ? maxDepth : undefined,
-    ignore: Array.isArray(ignore) ? ignore : undefined,
+    maxDepth,
+    ignore,
   });
 }
 
 // R17 — infer_imports thin wrapper. side effect 0. 결과 moduleEdges 가
 // agent 의 add_relation depends_on 후보.
 function inferImportsTool({ rootPath, sourceFolders, ignore, maxFiles } = {}) {
+  requireOptionalNonBlankString(rootPath, 'rootPath');
+  requireOptionalStringArray(sourceFolders, 'sourceFolders');
+  requireOptionalStringArray(ignore, 'ignore');
+  requireOptionalPositiveInteger(maxFiles, 'maxFiles', { max: 50000 });
   const target = rootPath ? resolve(rootPath) : process.cwd();
   return inferImports(target, {
-    sourceFolders: Array.isArray(sourceFolders) ? sourceFolders : undefined,
-    ignore: Array.isArray(ignore) ? ignore : undefined,
-    maxFiles: typeof maxFiles === 'number' ? maxFiles : undefined,
+    sourceFolders,
+    ignore,
+    maxFiles,
   });
 }
 

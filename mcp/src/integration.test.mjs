@@ -261,6 +261,27 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       "query_ontology exposes runtime numeric caps in schema",
     );
     assert.deepEqual(
+      {
+        maxDepthType: findTool("analyze_repo_structure")?.inputSchema?.properties?.maxDepth?.type,
+        maxDepthMinimum:
+          findTool("analyze_repo_structure")?.inputSchema?.properties?.maxDepth?.minimum,
+        maxDepthMaximum:
+          findTool("analyze_repo_structure")?.inputSchema?.properties?.maxDepth?.maximum,
+        maxFilesType: findTool("infer_imports")?.inputSchema?.properties?.maxFiles?.type,
+        maxFilesMinimum: findTool("infer_imports")?.inputSchema?.properties?.maxFiles?.minimum,
+        maxFilesMaximum: findTool("infer_imports")?.inputSchema?.properties?.maxFiles?.maximum,
+      },
+      {
+        maxDepthType: "integer",
+        maxDepthMinimum: 0,
+        maxDepthMaximum: 10,
+        maxFilesType: "integer",
+        maxFilesMinimum: 1,
+        maxFilesMaximum: 50000,
+      },
+      "analysis tools expose bounded numeric scan controls",
+    );
+    assert.deepEqual(
       findTool("query_ontology")?.inputSchema?.properties?.targetOperation?.enum,
       [
         "neighbors",
@@ -316,6 +337,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       ["query_ontology", "slug"],
       ["query_ontology", "targetOperation"],
       ["query_ontology", "afterActionId"],
+      ["analyze_repo_structure", "rootPath"],
+      ["infer_imports", "rootPath"],
     ]) {
       const property = findTool(toolName)?.inputSchema?.properties?.[propertyName];
       assert.equal(property?.type, "string", `${toolName}.${propertyName} exposes string schema`);
@@ -352,6 +375,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
           findTool("add_relations")?.inputSchema?.properties?.relations?.items?.properties?.to?.minLength,
         relationTypeMinLength:
           findTool("add_relations")?.inputSchema?.properties?.relations?.items?.properties?.type?.minLength,
+        analyzeIgnoreItemMinLength:
+          findTool("analyze_repo_structure")?.inputSchema?.properties?.ignore?.items?.minLength,
+        inferSourceItemMinLength:
+          findTool("infer_imports")?.inputSchema?.properties?.sourceFolders?.items?.minLength,
+        inferIgnoreItemMinLength:
+          findTool("infer_imports")?.inputSchema?.properties?.ignore?.items?.minLength,
       },
       {
         slugMinLength: 1,
@@ -361,8 +390,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         relationFromMinLength: 1,
         relationToMinLength: 1,
         relationTypeMinLength: 1,
+        analyzeIgnoreItemMinLength: 1,
+        inferSourceItemMinLength: 1,
+        inferIgnoreItemMinLength: 1,
       },
-      "batch write row schemas expose strict string hints",
+      "batch write and analysis array schemas expose strict string hints",
     );
     assert.deepEqual(
       {
@@ -1482,10 +1514,19 @@ await test("MCP read/query tools — invalid numeric and direction options are r
       callTool(30, "query_ontology", { operation: "project_map", itemLimit: 501 }),
       callTool(31, "query_ontology", { operation: "reachability", slug: "a", depth: 21 }),
       callTool(32, "query_ontology", { operation: "path", from: "a", to: "b", maxHops: 21 }),
+      callTool(33, "analyze_repo_structure", { rootPath: " ." }),
+      callTool(34, "analyze_repo_structure", { maxDepth: 11 }),
+      callTool(35, "analyze_repo_structure", { ignore: ["dist", " "] }),
+      callTool(36, "infer_imports", { rootPath: ".\0" }),
+      callTool(37, "infer_imports", { sourceFolders: ["src", " lib"] }),
+      callTool(38, "infer_imports", { ignore: ["dist", 7] }),
+      callTool(39, "infer_imports", { maxFiles: 0 }),
+      callTool(40, "infer_imports", { maxFiles: 50001 }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
+      38, 39, 40,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -1520,6 +1561,14 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 30).result.content[0].text, /itemLimit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 31).result.content[0].text, /depth must be <= 20/i);
     assert.match(responses.find((r) => r.id === 32).result.content[0].text, /maxHops must be <= 20/i);
+    assert.match(responses.find((r) => r.id === 33).result.content[0].text, /rootPath must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 34).result.content[0].text, /maxDepth must be <= 10/i);
+    assert.match(responses.find((r) => r.id === 35).result.content[0].text, /ignore items must be non-empty strings/i);
+    assert.match(responses.find((r) => r.id === 36).result.content[0].text, /rootPath must not contain a null byte/i);
+    assert.match(responses.find((r) => r.id === 37).result.content[0].text, /sourceFolders items must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 38).result.content[0].text, /ignore must be an array of strings/i);
+    assert.match(responses.find((r) => r.id === 39).result.content[0].text, /maxFiles must be a positive integer/i);
+    assert.match(responses.find((r) => r.id === 40).result.content[0].text, /maxFiles must be <= 50000/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
