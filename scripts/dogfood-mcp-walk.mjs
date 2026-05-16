@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / reachability / impact / blast_radius / subgraph / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / reachability / impact / blast_radius / subgraph / schema / facets / match_nodes / match_edges / node_profile / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -68,6 +68,11 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [31, "impact"],
   [32, "blast_radius"],
   [33, "subgraph"],
+  [34, "schema"],
+  [35, "facets"],
+  [36, "match_nodes"],
+  [37, "match_edges"],
+  [38, "node_profile"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -282,6 +287,32 @@ export function buildDogfoodRequests() {
       depth: 1,
       limit: 12,
     }),
+    call(34, "query_ontology", {
+      operation: "schema",
+      limit: 12,
+    }),
+    call(35, "query_ontology", {
+      operation: "facets",
+      limit: 8,
+    }),
+    call(36, "query_ontology", {
+      operation: "match_nodes",
+      kind: "capability",
+      slugContains: "mcp",
+      sort: "degree",
+      limit: 8,
+    }),
+    call(37, "query_ontology", {
+      operation: "match_edges",
+      from: "capabilities/mcp-server",
+      includeExternal: true,
+      limit: 8,
+    }),
+    call(38, "query_ontology", {
+      operation: "node_profile",
+      slug: "capabilities/mcp-server",
+      limit: 8,
+    }),
   ];
 }
 
@@ -356,6 +387,11 @@ export function evaluateDogfoodGate({
   impact,
   blastRadius,
   subgraph,
+  schema,
+  facets,
+  matchNodes,
+  matchEdges,
+  nodeProfile,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -390,6 +426,11 @@ export function evaluateDogfoodGate({
   recordResult(failures, "impact", impact);
   recordResult(failures, "blast_radius", blastRadius);
   recordResult(failures, "subgraph", subgraph);
+  recordResult(failures, "schema", schema);
+  recordResult(failures, "facets", facets);
+  recordResult(failures, "match_nodes", matchNodes);
+  recordResult(failures, "match_edges", matchEdges);
+  recordResult(failures, "node_profile", nodeProfile);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -523,6 +564,26 @@ export function evaluateDogfoodGate({
   if (subgraph) {
     const subgraphFailure = subgraphShapeFailure(subgraph);
     if (subgraphFailure) failures.push(subgraphFailure);
+  }
+  if (schema) {
+    const schemaFailure = schemaShapeFailure(schema);
+    if (schemaFailure) failures.push(schemaFailure);
+  }
+  if (facets) {
+    const facetsFailure = facetsShapeFailure(facets);
+    if (facetsFailure) failures.push(facetsFailure);
+  }
+  if (matchNodes) {
+    const matchNodesFailure = matchNodesShapeFailure(matchNodes);
+    if (matchNodesFailure) failures.push(matchNodesFailure);
+  }
+  if (matchEdges) {
+    const matchEdgesFailure = matchEdgesShapeFailure(matchEdges);
+    if (matchEdgesFailure) failures.push(matchEdgesFailure);
+  }
+  if (nodeProfile) {
+    const nodeProfileFailure = nodeProfileShapeFailure(nodeProfile);
+    if (nodeProfileFailure) failures.push(nodeProfileFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -1948,6 +2009,312 @@ function subgraphShapeFailure(result) {
   return null;
 }
 
+function schemaShapeFailure(result) {
+  if (result.operation !== "schema") {
+    return `schema response operation mismatch — ${result.operation}`;
+  }
+  if (!Number.isInteger(result.totalPatterns) || result.totalPatterns < 0) {
+    return "schema response missing totalPatterns";
+  }
+  if (typeof result.limited !== "boolean") {
+    return "schema response missing limited flag";
+  }
+  if (!Array.isArray(result.patterns)) {
+    return "schema response missing patterns";
+  }
+  if (result.patterns.length > result.totalPatterns) {
+    return `schema patterns exceed total — patterns ${result.patterns.length}, total ${result.totalPatterns}`;
+  }
+  if (!result.limited && result.patterns.length !== result.totalPatterns) {
+    return `schema pattern count mismatch — patterns ${result.patterns.length}, total ${result.totalPatterns}`;
+  }
+  if (result.patterns.length === 0) {
+    return "schema response returned no patterns";
+  }
+  for (const [index, pattern] of result.patterns.entries()) {
+    const patternFailure = schemaPatternFailure("schema", pattern, index);
+    if (patternFailure) return patternFailure;
+  }
+  return null;
+}
+
+function schemaPatternFailure(label, pattern, index) {
+  if (!pattern || typeof pattern !== "object" || Array.isArray(pattern)) {
+    return `${label} malformed pattern at index ${index}`;
+  }
+  for (const key of ["fromKind", "relation", "toKind"]) {
+    if (typeof pattern[key] !== "string" || pattern[key].length === 0) {
+      return `${label} pattern missing ${key} at index ${index}`;
+    }
+  }
+  for (const key of ["count", "resolved", "external"]) {
+    if (!Number.isInteger(pattern[key]) || pattern[key] < 0) {
+      return `${label} pattern missing ${key}: ${pattern.fromKind}-${pattern.relation}-${pattern.toKind}`;
+    }
+  }
+  if (pattern.resolved + pattern.external > pattern.count) {
+    return `${label} pattern resolution exceeds count: ${pattern.fromKind}-${pattern.relation}-${pattern.toKind}`;
+  }
+  return null;
+}
+
+function facetsShapeFailure(result) {
+  if (result.operation !== "facets") {
+    return `facets response operation mismatch — ${result.operation}`;
+  }
+  const graphFailure = numericSummaryFailure("facets graph", result.graph, [
+    "nodes",
+    "edges",
+    "resolvedEdges",
+    "externalEdges",
+    "unresolvedEdges",
+  ]);
+  if (graphFailure) return graphFailure;
+  if (result.graph.edges !== result.graph.resolvedEdges + result.graph.externalEdges + result.graph.unresolvedEdges) {
+    return `facets graph edge count mismatch — edges ${result.graph.edges}, parts ${result.graph.resolvedEdges + result.graph.externalEdges + result.graph.unresolvedEdges}`;
+  }
+  if (!result.nodes || typeof result.nodes !== "object" || Array.isArray(result.nodes)) {
+    return "facets response missing nodes block";
+  }
+  for (const key of ["byKind", "byDomain", "byDegreeBucket"]) {
+    if (!result.nodes[key] || typeof result.nodes[key] !== "object" || Array.isArray(result.nodes[key])) {
+      return `facets nodes missing ${key}`;
+    }
+  }
+  if (!Array.isArray(result.nodes.topByDegree)) {
+    return "facets nodes missing topByDegree";
+  }
+  const topFailure = matchRowsFailure("facets topByDegree", result.nodes.topByDegree);
+  if (topFailure) return topFailure;
+  if (!result.edges || typeof result.edges !== "object" || Array.isArray(result.edges)) {
+    return "facets response missing edges block";
+  }
+  if (!result.edges.byRelation || typeof result.edges.byRelation !== "object" || Array.isArray(result.edges.byRelation)) {
+    return "facets edges missing byRelation";
+  }
+  const resolutionFailure = numericSummaryFailure("facets edges.byResolution", result.edges.byResolution, [
+    "resolved",
+    "external",
+    "unresolved",
+  ]);
+  if (resolutionFailure) return resolutionFailure;
+  if (result.edges.byResolution.resolved !== result.graph.resolvedEdges || result.edges.byResolution.external !== result.graph.externalEdges || result.edges.byResolution.unresolved !== result.graph.unresolvedEdges) {
+    return "facets edge resolution mismatch with graph summary";
+  }
+  if (!Array.isArray(result.edges.topPatterns)) {
+    return "facets edges missing topPatterns";
+  }
+  for (const [index, pattern] of result.edges.topPatterns.entries()) {
+    const patternFailure = schemaPatternFailure("facets topPatterns", pattern, index);
+    if (patternFailure) return patternFailure;
+  }
+  return null;
+}
+
+function matchNodesShapeFailure(result) {
+  if (result.operation !== "match_nodes") {
+    return `match_nodes response operation mismatch — ${result.operation}`;
+  }
+  if (!result.filters || typeof result.filters !== "object" || Array.isArray(result.filters)) {
+    return "match_nodes response missing filters";
+  }
+  if (result.filters.kind !== "capability") {
+    return `match_nodes filter kind mismatch — ${result.filters.kind}`;
+  }
+  if (result.filters.slugContains !== "mcp") {
+    return `match_nodes filter slugContains mismatch — ${result.filters.slugContains}`;
+  }
+  if (result.filters.sort !== "degree") {
+    return `match_nodes filter sort mismatch — ${result.filters.sort}`;
+  }
+  if (!Number.isInteger(result.totalMatches) || result.totalMatches < 0) {
+    return "match_nodes response missing totalMatches";
+  }
+  if (typeof result.limited !== "boolean") {
+    return "match_nodes response missing limited flag";
+  }
+  if (!Array.isArray(result.nodes)) {
+    return "match_nodes response missing nodes";
+  }
+  if (result.nodes.length > result.totalMatches) {
+    return `match_nodes rows exceed total — rows ${result.nodes.length}, total ${result.totalMatches}`;
+  }
+  if (!result.limited && result.nodes.length !== result.totalMatches) {
+    return `match_nodes row count mismatch — rows ${result.nodes.length}, total ${result.totalMatches}`;
+  }
+  if (result.nodes.length === 0) {
+    return "match_nodes response returned no nodes";
+  }
+  for (const [index, node] of result.nodes.entries()) {
+    const rowFailure = matchRowsFailure("match_nodes", [node]);
+    if (rowFailure) return rowFailure.replace("at index 0", `at index ${index}`);
+    if (!Number.isInteger(node.degree) || node.degree < 0) {
+      return `match_nodes row missing degree: ${node.slug}`;
+    }
+    if (node.kind !== "capability") {
+      return `match_nodes row kind mismatch: ${node.slug}`;
+    }
+    if (!node.slug.toLowerCase().includes("mcp")) {
+      return `match_nodes row slug filter mismatch: ${node.slug}`;
+    }
+  }
+  return null;
+}
+
+function matchEdgesShapeFailure(result) {
+  if (result.operation !== "match_edges") {
+    return `match_edges response operation mismatch — ${result.operation}`;
+  }
+  if (!result.filters || typeof result.filters !== "object" || Array.isArray(result.filters)) {
+    return "match_edges response missing filters";
+  }
+  if (result.filters.from !== "capabilities/mcp-server") {
+    return `match_edges filter from mismatch — ${result.filters.from}`;
+  }
+  if (result.filters.includeExternal !== true) {
+    return "match_edges filter includeExternal mismatch";
+  }
+  if (!Number.isInteger(result.totalMatches) || result.totalMatches < 0) {
+    return "match_edges response missing totalMatches";
+  }
+  if (typeof result.limited !== "boolean") {
+    return "match_edges response missing limited flag";
+  }
+  if (!Array.isArray(result.edges)) {
+    return "match_edges response missing edges";
+  }
+  if (result.edges.length > result.totalMatches) {
+    return `match_edges rows exceed total — rows ${result.edges.length}, total ${result.totalMatches}`;
+  }
+  if (!result.limited && result.edges.length !== result.totalMatches) {
+    return `match_edges row count mismatch — rows ${result.edges.length}, total ${result.totalMatches}`;
+  }
+  if (result.edges.length === 0) {
+    return "match_edges response returned no edges";
+  }
+  for (const [index, edge] of result.edges.entries()) {
+    const edgeFailure = graphEdgeFailure("match_edges edge", edge, index);
+    if (edgeFailure) return edgeFailure;
+    if (edge.from !== "capabilities/mcp-server") {
+      return `match_edges row from mismatch at index ${index}`;
+    }
+    if (!edge.fromNode || edge.fromNode.slug !== edge.from) {
+      return `match_edges row missing fromNode at index ${index}`;
+    }
+    if (typeof edge.toKind !== "string" || edge.toKind.length === 0) {
+      return `match_edges row missing toKind at index ${index}`;
+    }
+    if (edge.resolved && (!edge.toNode || edge.toNode.slug !== edge.to)) {
+      return `match_edges row missing toNode at index ${index}`;
+    }
+  }
+  return null;
+}
+
+function nodeProfileShapeFailure(result) {
+  if (result.operation !== "node_profile") {
+    return `node_profile response operation mismatch — ${result.operation}`;
+  }
+  if (result.center !== "capabilities/mcp-server") {
+    return `node_profile response center mismatch — ${result.center}`;
+  }
+  if (!result.node || result.node.slug !== result.center) {
+    return "node_profile response missing center node";
+  }
+  const degreeFailure = numericSummaryFailure("node_profile degree", result.degree, ["in", "out", "total"]);
+  if (degreeFailure) return degreeFailure;
+  if (result.degree.total !== result.degree.in + result.degree.out) {
+    return `node_profile degree mismatch — total ${result.degree.total}, in+out ${result.degree.in + result.degree.out}`;
+  }
+  if (!Array.isArray(result.aliases)) {
+    return "node_profile response missing aliases";
+  }
+  if (!result.edges || typeof result.edges !== "object" || Array.isArray(result.edges)) {
+    return "node_profile response missing edges";
+  }
+  for (const key of ["incoming", "outgoing"]) {
+    const edgeGroupFailure = profileEdgeGroupFailure(`node_profile ${key}`, result.edges[key]);
+    if (edgeGroupFailure) return edgeGroupFailure;
+  }
+  if (!result.containment || typeof result.containment !== "object" || Array.isArray(result.containment)) {
+    return "node_profile response missing containment";
+  }
+  for (const key of ["parents", "children"]) {
+    if (!Array.isArray(result.containment[key])) {
+      return `node_profile containment missing ${key}`;
+    }
+    for (const [index, row] of result.containment[key].entries()) {
+      const rowFailure = containmentSummaryRowFailure(`node_profile containment ${key}`, row, index);
+      if (rowFailure) return rowFailure;
+    }
+  }
+  if (typeof result.containment.parentLimited !== "boolean" || typeof result.containment.childLimited !== "boolean") {
+    return "node_profile containment missing limited flags";
+  }
+  if (!result.lineage || typeof result.lineage !== "object" || Array.isArray(result.lineage)) {
+    return "node_profile response missing lineage";
+  }
+  if (!Number.isInteger(result.lineage.depth) || result.lineage.depth < 0) {
+    return "node_profile lineage missing depth";
+  }
+  for (const key of ["ancestors", "descendants"]) {
+    const bucketFailure = lineageBucketFailure(`node_profile lineage ${key}`, result.lineage[key]);
+    if (bucketFailure) return bucketFailure;
+  }
+  return null;
+}
+
+function profileEdgeGroupFailure(label, group) {
+  if (!group || typeof group !== "object" || Array.isArray(group)) {
+    return `${label} missing group`;
+  }
+  if (!Number.isInteger(group.total) || group.total < 0) {
+    return `${label} missing total`;
+  }
+  if (typeof group.limited !== "boolean") {
+    return `${label} missing limited flag`;
+  }
+  if (!group.byRelation || typeof group.byRelation !== "object" || Array.isArray(group.byRelation)) {
+    return `${label} missing byRelation`;
+  }
+  if (!Array.isArray(group.edges)) {
+    return `${label} missing edges`;
+  }
+  if (group.edges.length > group.total) {
+    return `${label} edges exceed total — edges ${group.edges.length}, total ${group.total}`;
+  }
+  if (!group.limited && group.edges.length !== group.total) {
+    return `${label} edge count mismatch — edges ${group.edges.length}, total ${group.total}`;
+  }
+  for (const [index, edge] of group.edges.entries()) {
+    const edgeFailure = graphEdgeFailure(label, edge, index);
+    if (edgeFailure) return edgeFailure;
+    if (typeof edge.otherKind !== "string" || edge.otherKind.length === 0) {
+      return `${label} edge missing otherKind at index ${index}`;
+    }
+    if (edge.resolved && (!edge.otherNode || typeof edge.otherNode.slug !== "string")) {
+      return `${label} edge missing otherNode at index ${index}`;
+    }
+  }
+  return null;
+}
+
+function containmentSummaryRowFailure(label, row, index) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    return `${label} malformed row at index ${index}`;
+  }
+  if (typeof row.slug !== "string" || row.slug.length === 0) {
+    return `${label} row missing slug at index ${index}`;
+  }
+  if (typeof row.via !== "string" || row.via.length === 0) {
+    return `${label} row missing via: ${row.slug}`;
+  }
+  if (!row.node || row.node.slug !== row.slug) {
+    return `${label} row missing node summary: ${row.slug}`;
+  }
+  return null;
+}
+
 function candidateGroupShapeFailure(label, group, expectedTotal) {
   if (!group || typeof group !== "object" || Array.isArray(group)) {
     return `${label} missing group`;
@@ -2702,6 +3069,63 @@ async function main() {
     }
   }
 
+  // 33. schema
+  header(`query_ontology(schema)`);
+  const schema = getResult(responses, 34);
+  if (schema) {
+    console.log(
+      `  patterns ${schema.patterns?.length ?? "n/a"} / total ${schema.totalPatterns ?? "n/a"} · limited ${schema.limited ?? "n/a"}`,
+    );
+    for (const pattern of (schema.patterns || []).slice(0, 5)) {
+      console.log(`  (${pattern.fromKind}) -[${pattern.relation}]-> (${pattern.toKind}) x${pattern.count}`);
+    }
+  }
+
+  // 34. facets
+  header(`query_ontology(facets)`);
+  const facets = getResult(responses, 35);
+  if (facets) {
+    console.log(
+      `  graph nodes ${facets.graph?.nodes ?? "n/a"} · edges ${facets.graph?.edges ?? "n/a"} · topDegree ${facets.nodes?.topByDegree?.length ?? "n/a"} · topPatterns ${facets.edges?.topPatterns?.length ?? "n/a"}`,
+    );
+  }
+
+  // 35. match_nodes
+  header(`query_ontology(match_nodes capability slugContains=mcp)`);
+  const matchNodes = getResult(responses, 36);
+  if (matchNodes) {
+    console.log(
+      `  nodes ${matchNodes.nodes?.length ?? "n/a"} / total ${matchNodes.totalMatches ?? "n/a"} · limited ${matchNodes.limited ?? "n/a"}`,
+    );
+    for (const node of (matchNodes.nodes || []).slice(0, 5)) {
+      console.log(`  ${node.slug}: degree ${node.degree ?? "n/a"}`);
+    }
+  }
+
+  // 36. match_edges
+  header(`query_ontology(match_edges from=mcp-server)`);
+  const matchEdges = getResult(responses, 37);
+  if (matchEdges) {
+    console.log(
+      `  edges ${matchEdges.edges?.length ?? "n/a"} / total ${matchEdges.totalMatches ?? "n/a"} · limited ${matchEdges.limited ?? "n/a"}`,
+    );
+    for (const edge of (matchEdges.edges || []).slice(0, 5)) {
+      console.log(`  ${edge.from} -[${edge.via}]-> ${edge.to} (${edge.toKind})`);
+    }
+  }
+
+  // 37. node_profile
+  header(`query_ontology(node_profile mcp-server)`);
+  const nodeProfile = getResult(responses, 38);
+  if (nodeProfile) {
+    console.log(
+      `  center ${nodeProfile.center ?? "n/a"} · degree ${nodeProfile.degree?.total ?? "n/a"} · incoming ${nodeProfile.edges?.incoming?.total ?? "n/a"} · outgoing ${nodeProfile.edges?.outgoing?.total ?? "n/a"}`,
+    );
+    console.log(
+      `  containment parents ${nodeProfile.containment?.parents?.length ?? "n/a"} · children ${nodeProfile.containment?.children?.length ?? "n/a"} · aliases ${(nodeProfile.aliases || []).length}`,
+    );
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -2735,6 +3159,11 @@ async function main() {
     impact,
     blastRadius,
     subgraph,
+    schema,
+    facets,
+    matchNodes,
+    matchEdges,
+    nodeProfile,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -2782,6 +3211,11 @@ async function main() {
   console.log(`  impact: ${impact?.total ?? "n/a"} impacted · limited ${impact?.limited ?? "n/a"}`);
   console.log(`  blast_radius: ${blastRadius?.risk ?? "n/a"} risk · ${blastRadius?.summary?.affectedNodes ?? "n/a"} affected`);
   console.log(`  subgraph: ${subgraph?.totalNodes ?? "n/a"} nodes · ${subgraph?.totalEdges ?? "n/a"} edges`);
+  console.log(`  schema: ${schema?.totalPatterns ?? "n/a"} patterns`);
+  console.log(`  facets: ${facets?.graph?.nodes ?? "n/a"} nodes · ${facets?.graph?.edges ?? "n/a"} edges`);
+  console.log(`  match_nodes: ${matchNodes?.totalMatches ?? "n/a"} matches`);
+  console.log(`  match_edges: ${matchEdges?.totalMatches ?? "n/a"} matches`);
+  console.log(`  node_profile: degree ${nodeProfile?.degree?.total ?? "n/a"} · aliases ${(nodeProfile?.aliases || []).length}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

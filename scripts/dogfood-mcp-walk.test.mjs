@@ -810,6 +810,159 @@ const okShape = {
       { from: "capabilities/mcp-server", to: "elements/mcp-sdk", via: "elements" },
     ],
   },
+  schema: {
+    operation: "schema",
+    totalPatterns: 2,
+    limited: false,
+    patterns: [
+      { fromKind: "capability", relation: "domain", toKind: "domain", count: 1, resolved: 1, external: 0 },
+      { fromKind: "capability", relation: "elements", toKind: "external", count: 1, resolved: 0, external: 1 },
+    ],
+  },
+  facets: {
+    operation: "facets",
+    graph: {
+      nodes: 3,
+      edges: 2,
+      resolvedEdges: 1,
+      externalEdges: 1,
+      unresolvedEdges: 0,
+    },
+    nodes: {
+      byKind: { capability: 1, domain: 1, element: 1 },
+      byDomain: { "domains/ai-agent-partner": 2 },
+      byDegreeBucket: { "0": 0, "1": 2, "2-4": 1, "5-9": 0, "10+": 0 },
+      topByDegree: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" }],
+    },
+    edges: {
+      byRelation: { domain: 1, elements: 1 },
+      byResolution: { resolved: 1, external: 1, unresolved: 0 },
+      topPatterns: [
+        { fromKind: "capability", relation: "domain", toKind: "domain", count: 1, resolved: 1, external: 0 },
+      ],
+    },
+  },
+  matchNodes: {
+    operation: "match_nodes",
+    filters: {
+      kind: "capability",
+      domain: null,
+      slugContains: "mcp",
+      minDegree: null,
+      maxDegree: null,
+      minInDegree: null,
+      minOutDegree: null,
+      hasIncoming: null,
+      hasOutgoing: null,
+      sort: "degree",
+    },
+    totalMatches: 1,
+    limited: false,
+    nodes: [
+      {
+        slug: "capabilities/mcp-server",
+        kind: "capability",
+        title: "MCP Server",
+        degree: 7,
+      },
+    ],
+  },
+  matchEdges: {
+    operation: "match_edges",
+    filters: {
+      from: "capabilities/mcp-server",
+      to: null,
+      fromKind: null,
+      toKind: null,
+      types: null,
+      includeExternal: true,
+      includeUnresolved: false,
+    },
+    totalMatches: 2,
+    limited: false,
+    edges: [
+      {
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        via: "domain",
+        resolved: true,
+        external: false,
+        fromNode: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+        toNode: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" },
+        toKind: "domain",
+      },
+      {
+        from: "capabilities/mcp-server",
+        to: "mcp/src/index.js",
+        via: "elements",
+        resolved: false,
+        external: true,
+        fromNode: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+        toNode: null,
+        toKind: "external",
+      },
+    ],
+  },
+  nodeProfile: {
+    operation: "node_profile",
+    center: "capabilities/mcp-server",
+    node: { slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" },
+    aliases: ["mcp-server"],
+    degree: { in: 2, out: 3, total: 5 },
+    edges: {
+      incoming: {
+        total: 1,
+        byRelation: { dependencies: 1 },
+        limited: false,
+        edges: [
+          {
+            from: "capabilities/ontology-sync-skill",
+            to: "capabilities/mcp-server",
+            via: "dependencies",
+            resolved: true,
+            external: false,
+            otherNode: { slug: "capabilities/ontology-sync-skill", kind: "capability", title: "Ontology Sync Skill" },
+            otherKind: "capability",
+          },
+        ],
+      },
+      outgoing: {
+        total: 1,
+        byRelation: { domain: 1 },
+        limited: false,
+        edges: [
+          {
+            from: "capabilities/mcp-server",
+            to: "domains/ai-agent-partner",
+            via: "domain",
+            resolved: true,
+            external: false,
+            otherNode: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" },
+            otherKind: "domain",
+          },
+        ],
+      },
+    },
+    containment: {
+      parents: [
+        { slug: "domains/ai-agent-partner", via: "domain", node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" } },
+      ],
+      parentLimited: false,
+      children: [],
+      childLimited: false,
+    },
+    lineage: {
+      depth: 3,
+      ancestors: {
+        total: 1,
+        limited: false,
+        nodes: [
+          { slug: "domains/ai-agent-partner", distance: 1, via: "domain", node: { slug: "domains/ai-agent-partner", kind: "domain", title: "AI Agent Partner" } },
+        ],
+      },
+      descendants: { total: 0, limited: false, nodes: [] },
+    },
+  },
 };
 
 describe("recordResult", () => {
@@ -898,6 +1051,11 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(31), "impact");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(32), "blast_radius");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(33), "subgraph");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(34), "schema");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(35), "facets");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(36), "match_nodes");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(37), "match_edges");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(38), "node_profile");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -2169,6 +2327,140 @@ describe("evaluateDogfoodGate", () => {
         subgraph: { ...okShape.subgraph, nodes: [{ ...okShape.subgraph.nodes[0], node: { slug: "capabilities/other" } }, okShape.subgraph.nodes[1], okShape.subgraph.nodes[2]] },
       }),
       ["subgraph node summary mismatch: capabilities/mcp-server"],
+    );
+  });
+
+  it("fails on malformed schema payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, schema: { ...okShape.schema, operation: "facets" } }),
+      ["schema response operation mismatch — facets"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, schema: { ...okShape.schema, patterns: [] } }),
+      ["schema pattern count mismatch — patterns 0, total 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        schema: { ...okShape.schema, patterns: [{ ...okShape.schema.patterns[0], relation: "" }, okShape.schema.patterns[1]] },
+      }),
+      ["schema pattern missing relation at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        schema: { ...okShape.schema, patterns: [{ ...okShape.schema.patterns[0], resolved: 2 }, okShape.schema.patterns[1]] },
+      }),
+      ["schema pattern resolution exceeds count: capability-domain-domain"],
+    );
+  });
+
+  it("fails on malformed facets payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, facets: { ...okShape.facets, operation: "schema" } }),
+      ["facets response operation mismatch — schema"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        facets: { ...okShape.facets, graph: { ...okShape.facets.graph, edges: 3 } },
+      }),
+      ["facets graph edge count mismatch — edges 3, parts 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        facets: { ...okShape.facets, nodes: { ...okShape.facets.nodes, topByDegree: [{}] } },
+      }),
+      ["facets topByDegree response missing row slug at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        facets: { ...okShape.facets, edges: { ...okShape.facets.edges, byResolution: { resolved: 0, external: 1, unresolved: 0 } } },
+      }),
+      ["facets edge resolution mismatch with graph summary"],
+    );
+  });
+
+  it("fails on malformed match_nodes payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, operation: "match_edges" } }),
+      ["match_nodes response operation mismatch — match_edges"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, filters: { ...okShape.matchNodes.filters, slugContains: "cli" } } }),
+      ["match_nodes filter slugContains mismatch — cli"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, totalMatches: 2 } }),
+      ["match_nodes row count mismatch — rows 1, total 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, nodes: [{ ...okShape.matchNodes.nodes[0], degree: -1 }] } }),
+      ["match_nodes row missing degree: capabilities/mcp-server"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchNodes: { ...okShape.matchNodes, nodes: [{ ...okShape.matchNodes.nodes[0], slug: "capabilities/cli" }] } }),
+      ["match_nodes row slug filter mismatch: capabilities/cli"],
+    );
+  });
+
+  it("fails on malformed match_edges payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchEdges: { ...okShape.matchEdges, operation: "match_nodes" } }),
+      ["match_edges response operation mismatch — match_nodes"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchEdges: { ...okShape.matchEdges, filters: { ...okShape.matchEdges.filters, includeExternal: false } } }),
+      ["match_edges filter includeExternal mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchEdges: { ...okShape.matchEdges, totalMatches: 3 } }),
+      ["match_edges row count mismatch — rows 2, total 3"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchEdges: { ...okShape.matchEdges, edges: [{ ...okShape.matchEdges.edges[0], from: "capabilities/other" }, okShape.matchEdges.edges[1]] } }),
+      ["match_edges row from mismatch at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, matchEdges: { ...okShape.matchEdges, edges: [{ ...okShape.matchEdges.edges[0], toKind: "" }, okShape.matchEdges.edges[1]] } }),
+      ["match_edges row missing toKind at index 0"],
+    );
+  });
+
+  it("fails on malformed node_profile payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, nodeProfile: { ...okShape.nodeProfile, operation: "node_profile_old" } }),
+      ["node_profile response operation mismatch — node_profile_old"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, nodeProfile: { ...okShape.nodeProfile, center: "capabilities/other" } }),
+      ["node_profile response center mismatch — capabilities/other"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, nodeProfile: { ...okShape.nodeProfile, degree: { in: 2, out: 3, total: 6 } } }),
+      ["node_profile degree mismatch — total 6, in+out 5"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        nodeProfile: {
+          ...okShape.nodeProfile,
+          edges: { ...okShape.nodeProfile.edges, incoming: { ...okShape.nodeProfile.edges.incoming, edges: [] } },
+        },
+      }),
+      ["node_profile incoming edge count mismatch — edges 0, total 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        nodeProfile: {
+          ...okShape.nodeProfile,
+          containment: { ...okShape.nodeProfile.containment, parents: [{ ...okShape.nodeProfile.containment.parents[0], via: "" }] },
+        },
+      }),
+      ["node_profile containment parents row missing via: domains/ai-agent-partner"],
     );
   });
 

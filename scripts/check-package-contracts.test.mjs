@@ -179,6 +179,11 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /`impact`/);
     assert.match(dogfoodSection, /`blast_radius`/);
     assert.match(dogfoodSection, /`subgraph`/);
+    assert.match(dogfoodSection, /`schema`/);
+    assert.match(dogfoodSection, /`facets`/);
+    assert.match(dogfoodSection, /`match_nodes`/);
+    assert.match(dogfoodSection, /`match_edges`/);
+    assert.match(dogfoodSection, /`node_profile`/);
     assert.match(dogfoodSection, /`lineage`/);
     assert.match(dogfoodSection, /`containment_tree`/);
     assert.match(dogfoodSection, /`cycles`/);
