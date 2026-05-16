@@ -2473,6 +2473,29 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         maintenancePlan: {
           ...okShape.maintenancePlan,
+          nextExecutableAction: {
+            ...okShape.maintenancePlan.nextExecutableAction,
+            id: "maint_later",
+          },
+        },
+      }),
+      ["maintenance_plan nextExecutableAction does not match first executable page action"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          nextReviewAction: null,
+        },
+      }),
+      ["maintenance_plan nextReviewAction does not match first review page action"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
           actions: [{ ...okShape.maintenancePlan.actions[0], proposedAction: null }, okShape.maintenancePlan.actions[1]],
         },
       }),
