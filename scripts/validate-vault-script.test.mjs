@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -59,5 +61,34 @@ describe("validate-vault script arguments", () => {
     assert.match(result.stdout, /Usage: node scripts\/validate-vault\.mjs \[vaultDir\]/);
     assert.match(result.stdout, /-h, --help/);
     assert.equal(result.stderr, "");
+  });
+
+  it("reports missing or non-directory vault paths without a stack trace", () => {
+    const missing = spawnSync(process.execPath, [SCRIPT, "./not-a-vault"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+
+    assert.equal(missing.status, 2);
+    assert.equal(missing.stdout, "");
+    assert.match(missing.stderr, /Vault path does not exist:/);
+    assert.doesNotMatch(missing.stderr, /at async/);
+
+    const dir = mkdtempSync(join(tmpdir(), "omot-validate-vault-"));
+    const file = join(dir, "not-a-dir.md");
+    try {
+      writeFileSync(file, "---\nkind: project\n---\n");
+      const notDirectory = spawnSync(process.execPath, [SCRIPT, file], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+
+      assert.equal(notDirectory.status, 2);
+      assert.equal(notDirectory.stdout, "");
+      assert.match(notDirectory.stderr, /Vault path is not a directory:/);
+      assert.doesNotMatch(notDirectory.stderr, /at async/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

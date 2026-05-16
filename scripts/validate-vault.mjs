@@ -9,7 +9,7 @@
 // 기본 vaultDir = docs/ontology (이 프로젝트의 dogfood vault).
 // error 가 한 건이라도 있으면 exit 1, warning 만 있으면 exit 0.
 
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseFrontmatter } from "./lib/parse-frontmatter.mjs";
@@ -88,6 +88,21 @@ export function parseValidateVaultArgs({
       ? path.resolve(cwd, args[0])
       : path.join(ROOT, "docs", "ontology"),
   };
+}
+
+async function validateVaultDir(vaultDir) {
+  try {
+    const info = await stat(vaultDir);
+    if (!info.isDirectory()) {
+      return `Vault path is not a directory: ${vaultDir}`;
+    }
+    return null;
+  } catch (err) {
+    if (err?.code === "ENOENT") {
+      return `Vault path does not exist: ${vaultDir}`;
+    }
+    throw err;
+  }
 }
 
 async function walk(dir) {
@@ -221,6 +236,11 @@ export async function main({ argv = process.argv, cwd = process.cwd() } = {}) {
     return parsed.exitCode;
   }
   const vaultDir = parsed.vaultDir;
+  const vaultDirFailure = await validateVaultDir(vaultDir);
+  if (vaultDirFailure) {
+    console.error(vaultDirFailure);
+    return 2;
+  }
 
   const files = await walk(vaultDir);
   const entries = [];
