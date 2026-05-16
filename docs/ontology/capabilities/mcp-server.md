@@ -103,7 +103,8 @@ top-level `status`, `workspace_brief.nextActions`, `workspace_brief.health.check
 clean vault 로 오인하지 않고 verify 를 실패시킨다. top-level diagnosis `status` 는 `healthy` 또는
 `needs_attention` 이어야 하며, 각 nextAction row 는
 비어있지 않은 `id` 또는 `kind` 와 `info` / `warn` / `fail` severity, 각 health check row 는
-비어있지 않은 `id` 와 `pass` / `warn` / `fail` / `info` status 를 가져야 해서
+비어있지 않은 `id` 와 `pass` / `warn` / `fail` / `info` status 를 가져야 하고,
+출력에 쓰이는 optional `count` 는 non-negative integer 여야 해서
 malformed row 가 `unknown` advisory/coverage 로 숨지 않는다.
 성공 출력도 `workspace_brief` / `workspace_brief_tuned` 라인에 validated health check count 를, `health` /
 tuned `health` 라인에 check `id:status:count` coverage 를 드러내 agent 가 nextActions 와 실제 검증 축을
@@ -198,8 +199,9 @@ label:severity:count 형태로 다시 출력해 긴 dogfood 로그의 끝만 봐
 다시 출력하고, node-limited row 는 size 뒤에 `+` 를 붙여 disconnected
 component 의 첫 노드와 truncated 여부를 긴 로그 끝에서도 바로 확인하게 한다.
 dogfood walk 도 `workspace_brief.nextActions` row 의 identifier/severity 와
-`health.checks` row 의 id/status/count 를 fail-closed 로 검증하고 severity/status enum 오타도 거부해, 실제 MCP 응답이
-advisory/coverage 출력에서 `unknown` 으로 숨지 않게 한다.
+`health.checks` row 의 id/status/count 를 fail-closed 로 검증하고 severity/status enum 오타도 거부한다.
+출력에 쓰이는 optional `count` 는 non-negative integer 여야 해서 실제 MCP 응답이
+advisory/coverage 출력에서 `unknown` 이나 잘못된 count 로 숨지 않게 한다.
 기본 server wait 는 8초이며 큰 vault / 느린 파일시스템에서는
 양의 정수 millisecond 값인 `OMOT_VERIFY_TIMEOUT_MS` 로 늘릴 수 있다.
 `1000ms` 같은 부분 숫자 값은 조용히 truncate 하지 않고 실패한다.

@@ -320,6 +320,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /top-level diagnosis `status` must be `healthy` or `needs_attention`/);
     assert.match(verifySection, /requires every `workspace_brief\.nextActions` row to include a non-empty `id` or `kind` plus `severity` in `info` \/ `warn` \/ `fail`/);
     assert.match(verifySection, /requires every health check row to include non-empty `id` plus `status` in `pass` \/ `warn` \/ `fail` \/ `info`/);
+    assert.match(verifySection, /optional `count` fields must be non-negative integers/);
     assert.match(verifySection, /prints the validated `workspace_brief\.health\.checks` count/);
     assert.match(verifySection, /compact advisory list with label\/severity\/count\/message detail/);
     assert.match(verifySection, /health check `id:status:count` coverage/);
@@ -587,6 +588,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /health checks/);
     assert.match(dogfoodSection, /health_tuned checks/);
     assert.match(dogfoodSection, /id:status:count/);
+    assert.match(dogfoodSection, /optional `count` 는 non-negative integer/);
     assert.match(dogfoodSection, /component rows/);
     assert.match(dogfoodSection, /componentId:size:firstSlug/);
     assert.match(dogfoodSection, /node-limited row/);

@@ -2168,6 +2168,32 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          health: { checks: [] },
+          nextActions: [{ kind: 'health_check', severity: 'warn', count: -1 }],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response malformed nextAction',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          health: { checks: [] },
+          nextActions: [{ kind: 'health_check', severity: 'warn', count: 1.5 }],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response malformed nextAction',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
         'health',
         {
           operation: 'health',
@@ -2232,6 +2258,30 @@ describe('verify.mjs first-contact gates', () => {
           operation: 'health',
           status: 'healthy',
           checks: [{ id: 'compile_issues', status: '' }],
+        },
+        'health',
+      ),
+      'health response malformed health check',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'health',
+        {
+          operation: 'health',
+          status: 'healthy',
+          checks: [{ id: 'compile_issues', status: 'pass', count: -1 }],
+        },
+        'health',
+      ),
+      'health response malformed health check',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'health',
+        {
+          operation: 'health',
+          status: 'healthy',
+          checks: [{ id: 'compile_issues', status: 'pass', count: 1.5 }],
         },
         'health',
       ),

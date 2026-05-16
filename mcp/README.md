@@ -322,7 +322,8 @@ such as top-level `status`, `workspace_brief.nextActions`,
 `workspace_brief.health.checks`, `health.checks`, tuned `workspace_brief.health.checks`, and tuned `health.checks` also fail the command instead of being treated as clean; top-level diagnosis `status` must be `healthy` or `needs_attention`, every
 `workspace_brief.nextActions` row must include a non-empty `id` or `kind` plus
 `severity` in `info` / `warn` / `fail`, and every health check row must include
-non-empty `id` plus `status` in `pass` / `warn` / `fail` / `info`.
+non-empty `id` plus `status` in `pass` / `warn` / `fail` / `info`; optional
+`count` fields must be non-negative integers before they are printed.
 Non-blocking `workspace_brief.nextActions` are printed as a short
 advisory list with action label, severity, optional count, and message, the
 `workspace_brief` / `workspace_brief_tuned` success lines include the

@@ -1478,6 +1478,7 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
         || Array.isArray(action)
         || !hasNonEmptyString(action.id, action.kind)
         || !NEXT_ACTION_SEVERITIES.has(action.severity)
+        || !hasOptionalNonNegativeInteger(action.count)
       ),
     );
     if (malformedAction) {
@@ -1494,6 +1495,7 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
       || typeof check !== 'object'
       || !hasNonEmptyString(check.id)
       || !HEALTH_CHECK_STATUSES.has(check.status)
+      || !hasOptionalNonNegativeInteger(check.count)
     ),
   );
   if (malformedCheck) {
@@ -1512,6 +1514,10 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
 
 function hasNonEmptyString(...values) {
   return values.some((value) => typeof value === 'string' && value.length > 0);
+}
+
+function hasOptionalNonNegativeInteger(value) {
+  return value == null || (Number.isInteger(value) && value >= 0);
 }
 
 function diagnosisChecks(parsed, expectedOperation) {
