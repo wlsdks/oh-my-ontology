@@ -379,6 +379,18 @@ describe('package contract helpers', () => {
     assert.match(prTemplate, /If `scripts\/validate-vault\.mjs`, vault validation docs, or CI validation gates changed: `pnpm test:vault:validate`/);
   });
 
+  it('keeps the benchmark script-list task unfrozen', () => {
+    const tasks = readFileSync('docs/benchmark/tasks.md', 'utf-8');
+    const section = tasks.split('### C2 — package.json scripts')[1]?.split('---')[0] ?? '';
+
+    assert.match(section, /Read `package\.json`, list all keys in `scripts`/);
+    assert.match(section, /derive the count at measurement time/);
+    assert.match(section, /`test:vault:validate`/);
+    assert.match(section, /focused `test:mcp:\*` scripts/);
+    assert.doesNotMatch(section, /All \d+ scripts/);
+    assert.doesNotMatch(section, /\b12 scripts\b/);
+  });
+
   it('keeps the root README dogfood snapshot aligned with the vault census', () => {
     const readme = readFileSync('README.md', 'utf-8');
     const dogfoodRow = readme.split('| **Dogfooding** |')[1]?.split('\n')[0] ?? '';
