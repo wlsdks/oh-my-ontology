@@ -52,6 +52,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [15, "overview"],
   [16, "get_concepts"],
   [17, "project_map_query_plan"],
+  [18, "project_map"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -180,6 +181,10 @@ export function buildDogfoodRequests() {
       operation: "query_plan",
       targetOperation: "project_map",
     }),
+    call(18, "query_ontology", {
+      operation: "project_map",
+      itemLimit: 5,
+    }),
   ];
 }
 
@@ -238,6 +243,7 @@ export function evaluateDogfoodGate({
   allPaths,
   allPathsPlan,
   projectMapPlan,
+  projectMap,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -256,6 +262,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "all_paths", allPaths);
   recordResult(failures, "all_paths_query_plan", allPathsPlan);
   recordResult(failures, "project_map_query_plan", projectMapPlan);
+  recordResult(failures, "project_map", projectMap);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -325,6 +332,10 @@ export function evaluateDogfoodGate({
   if (projectMapPlan) {
     const projectMapPlanFailure = projectMapQueryPlanFailure(projectMapPlan);
     if (projectMapPlanFailure) failures.push(projectMapPlanFailure);
+  }
+  if (projectMap) {
+    const projectMapFailure = projectMapShapeFailure(projectMap);
+    if (projectMapFailure) failures.push(projectMapFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -537,6 +548,89 @@ function allPathsPlanShapeFailure(result) {
     return "all_paths query_plan missing warnings array";
   }
   return null;
+}
+
+function projectMapShapeFailure(result) {
+  if (result.operation !== "project_map") {
+    return `project_map response operation mismatch — ${result.operation}`;
+  }
+  if (typeof result.project !== "string" || result.project.length === 0) {
+    return "project_map response missing project";
+  }
+  const summaryFailure = numericSummaryFailure("project_map", result.summary, [
+    "nodes",
+    "domains",
+    "capabilities",
+    "elements",
+    "unassignedNodes",
+    "internalEdges",
+    "boundaryEdges",
+    "externalEdges",
+    "unresolvedEdges",
+  ]);
+  if (summaryFailure) return summaryFailure;
+  if (typeof result.limited !== "boolean") {
+    return "project_map response missing limited flag";
+  }
+  if (!Array.isArray(result.domains)) {
+    return "project_map response missing domains array";
+  }
+  if (result.domains.length === 0) {
+    return "project_map response returned no domains";
+  }
+  if (result.domains.length > result.summary.domains) {
+    return `project_map response domains exceed summary — domains ${result.domains.length}, summary ${result.summary.domains}`;
+  }
+  if (!result.limited && result.domains.length !== result.summary.domains) {
+    return `project_map response domain count mismatch — domains ${result.domains.length}, summary ${result.summary.domains}`;
+  }
+  for (const [index, domain] of result.domains.entries()) {
+    if (!domain || typeof domain !== "object" || Array.isArray(domain)) {
+      return `project_map response malformed domain at index ${index}`;
+    }
+    if (typeof domain.slug !== "string" || domain.slug.length === 0) {
+      return `project_map response missing domain slug at index ${index}`;
+    }
+    const domainSummaryFailure = numericSummaryFailure("project_map domain", domain.summary, [
+      "nodes",
+      "capabilities",
+      "elements",
+      "internalEdges",
+      "boundaryEdges",
+      "externalEdges",
+      "unresolvedEdges",
+    ]);
+    if (domainSummaryFailure) return `${domainSummaryFailure}: ${domain.slug}`;
+    const capabilitiesFailure = summarizedNodeBucketFailure(`project_map capabilities: ${domain.slug}`, domain.capabilities);
+    if (capabilitiesFailure) return capabilitiesFailure;
+    const elementsFailure = summarizedNodeBucketFailure(`project_map elements: ${domain.slug}`, domain.elements);
+    if (elementsFailure) return elementsFailure;
+  }
+  const unassignedFailure = summarizedNodeBucketFailure("project_map unassigned", result.unassigned);
+  if (unassignedFailure) return unassignedFailure;
+  if (!Array.isArray(result.hotspots)) {
+    return "project_map response missing hotspots array";
+  }
+  return null;
+}
+
+function summarizedNodeBucketFailure(label, bucket) {
+  if (!bucket || typeof bucket !== "object" || Array.isArray(bucket)) {
+    return `${label} missing bucket`;
+  }
+  if (!Number.isInteger(bucket.total) || bucket.total < 0) {
+    return `${label} missing total`;
+  }
+  if (typeof bucket.limited !== "boolean") {
+    return `${label} missing limited flag`;
+  }
+  if (!Array.isArray(bucket.nodes)) {
+    return `${label} missing nodes array`;
+  }
+  if (bucket.nodes.length > bucket.total) {
+    return `${label} nodes exceed total — nodes ${bucket.nodes.length}, total ${bucket.total}`;
+  }
+  return matchRowsFailure(label, bucket.nodes);
 }
 
 function matchesShapeFailure(label, result) {
@@ -975,6 +1069,20 @@ async function main() {
     );
   }
 
+  // 17. project_map
+  header(`query_ontology(project_map)`);
+  const projectMap = getResult(responses, 18);
+  if (projectMap) {
+    console.log(
+      `  project ${projectMap.project ?? "n/a"} · domains ${projectMap.domains?.length ?? "n/a"} / total ${projectMap.summary?.domains ?? "n/a"} · capabilities ${projectMap.summary?.capabilities ?? "n/a"} · elements ${projectMap.summary?.elements ?? "n/a"}`,
+    );
+    for (const domain of (projectMap.domains || []).slice(0, 5)) {
+      console.log(
+        `  ${domain.slug}: ${domain.capabilities?.total ?? "n/a"} capabilities · ${domain.elements?.total ?? "n/a"} elements`,
+      );
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -992,6 +1100,7 @@ async function main() {
     allPaths,
     allPathsPlan,
     projectMapPlan,
+    projectMap,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1023,6 +1132,7 @@ async function main() {
   console.log(`  all_paths: ${allPaths?.paths?.length ?? "n/a"} paths (${allPaths?.limited ? "limited" : "complete"})`);
   console.log(`  all_paths query_plan: ${allPathsPlan?.estimate?.costClass ?? "n/a"} · limit ${allPathsPlan?.normalized?.limit ?? "n/a"}`);
   console.log(`  project_map query_plan: ${projectMapPlan?.estimate?.costClass ?? "n/a"} · ${projectMapPlan?.estimate?.strategy ?? "n/a"}`);
+  console.log(`  project_map: ${projectMap?.domains?.length ?? "n/a"} domains · ${projectMap?.summary?.capabilities ?? "n/a"} capabilities`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

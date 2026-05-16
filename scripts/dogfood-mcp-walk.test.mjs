@@ -196,6 +196,47 @@ const okShape = {
     },
     warnings: [],
   },
+  projectMap: {
+    operation: "project_map",
+    project: "project",
+    node: { slug: "project", kind: "project", title: "Project" },
+    summary: {
+      nodes: 3,
+      domains: 1,
+      capabilities: 1,
+      elements: 0,
+      unassignedNodes: 0,
+      internalEdges: 2,
+      boundaryEdges: 0,
+      externalEdges: 0,
+      unresolvedEdges: 0,
+    },
+    limited: false,
+    domains: [
+      {
+        slug: "domains/auth",
+        kind: "domain",
+        title: "Auth",
+        summary: {
+          nodes: 2,
+          capabilities: 1,
+          elements: 0,
+          internalEdges: 1,
+          boundaryEdges: 0,
+          externalEdges: 0,
+          unresolvedEdges: 0,
+        },
+        capabilities: {
+          total: 1,
+          limited: false,
+          nodes: [{ slug: "capabilities/login", kind: "capability", title: "Login" }],
+        },
+        elements: { total: 0, limited: false, nodes: [] },
+      },
+    ],
+    unassigned: { total: 0, limited: false, nodes: [] },
+    hotspots: [],
+  },
 };
 
 describe("recordResult", () => {
@@ -268,6 +309,7 @@ describe("rpc response completion helpers", () => {
   it("keeps dogfood response labels aligned with the get_concepts smoke", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(16), "get_concepts");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(17), "project_map_query_plan");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(18), "project_map");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -742,6 +784,36 @@ describe("evaluateDogfoodGate", () => {
         projectMapPlan: { ...okShape.projectMapPlan, indexesUsed: [] },
       }),
       ["project_map query_plan missing compiled_artifact index hint"],
+    );
+  });
+
+  it("fails on malformed project_map payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, projectMap: { ...okShape.projectMap, operation: "overview" } }),
+      ["project_map response operation mismatch — overview"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, projectMap: { ...okShape.projectMap, domains: [] } }),
+      ["project_map response returned no domains"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectMap: {
+          ...okShape.projectMap,
+          domains: [
+            {
+              ...okShape.projectMap.domains[0],
+              capabilities: { total: 0, limited: false, nodes: okShape.projectMap.domains[0].capabilities.nodes },
+            },
+          ],
+        },
+      }),
+      ["project_map capabilities: domains/auth nodes exceed total — nodes 1, total 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, projectMap: { ...okShape.projectMap, hotspots: null } }),
+      ["project_map response missing hotspots array"],
     );
   });
 
