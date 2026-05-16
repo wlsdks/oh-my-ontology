@@ -391,6 +391,7 @@ const TOOLS = [
         },
         expected_mtime: {
           type: 'number',
+          minimum: 0,
           description:
             'Optional conflict guard for the source slug. If the source mtimeMs differs at write time, the call throws.',
         },
@@ -434,7 +435,7 @@ const TOOLS = [
                   'domain',
                 ],
               },
-              expected_mtime: { type: 'number' },
+              expected_mtime: { type: 'number', minimum: 0 },
             },
             required: ['from', 'to', 'type'],
           },
@@ -470,6 +471,7 @@ const TOOLS = [
         },
         expected_mtime: {
           type: 'number',
+          minimum: 0,
           description:
             'Optional conflict guard. If the file mtimeMs differs at write time, the call throws so the caller can re-read and retry. Pass the `mtime` field from the most recent get_concept response.',
         },
@@ -1014,6 +1016,7 @@ const TOOLS = [
         },
         expected_mtime: {
           type: 'number',
+          minimum: 0,
           description:
             'Optional conflict guard for oldSlug. Pass the `mtime` from get_concept; throws VaultConflictError if the source has been modified externally since you read it.',
         },
@@ -1045,6 +1048,7 @@ const TOOLS = [
         },
         expected_mtime: {
           type: 'number',
+          minimum: 0,
           description:
             'Optional conflict guard for fromSlug. Throws if the source has been modified externally.',
         },
@@ -1079,6 +1083,7 @@ const TOOLS = [
         },
         expected_mtime: {
           type: 'number',
+          minimum: 0,
           description:
             'Optional conflict guard — file mtimeMs at read time. If it differs at delete time, the call throws.',
         },
@@ -1549,6 +1554,7 @@ function addRelation({ from, to, type, expected_mtime }, options = {}) {
   requireNonBlankString(from, 'from');
   requireNonBlankString(to, 'to');
   requireNonBlankString(type, 'type');
+  requireOptionalNonNegativeNumber(expected_mtime, 'expected_mtime');
   const key = RELATION_KEY[type];
   if (!key) {
     throw new Error(`Unknown relation type: ${type}`);
@@ -1688,6 +1694,7 @@ function addRelationsBatch({ relations }) {
 
 function patchConcept({ slug, frontmatter, body, expected_mtime }) {
   requireNonBlankString(slug, 'slug');
+  requireOptionalNonNegativeNumber(expected_mtime, 'expected_mtime');
   if (frontmatter === undefined && body === undefined) {
     throw new Error('At least one of `frontmatter` or `body` is required.');
   }
@@ -2253,6 +2260,7 @@ function renameConcept({ oldSlug, newSlug, confirm = false, overwrite = false, e
   requireNonBlankString(newSlug, 'newSlug');
   requireOptionalBoolean(confirm, 'confirm');
   requireOptionalBoolean(overwrite, 'overwrite');
+  requireOptionalNonNegativeNumber(expected_mtime, 'expected_mtime');
   if (oldSlug === newSlug) {
     throw new Error('oldSlug and newSlug are identical.');
   }
@@ -2325,6 +2333,7 @@ function mergeConcepts({ fromSlug, intoSlug, confirm = false, expected_mtime }) 
   requireNonBlankString(fromSlug, 'fromSlug');
   requireNonBlankString(intoSlug, 'intoSlug');
   requireOptionalBoolean(confirm, 'confirm');
+  requireOptionalNonNegativeNumber(expected_mtime, 'expected_mtime');
   if (fromSlug === intoSlug) {
     throw new Error('fromSlug and intoSlug are identical.');
   }
@@ -2385,6 +2394,7 @@ function deleteConcept({ slug, confirm = false, force = false, expected_mtime })
   requireNonBlankString(slug, 'slug');
   requireOptionalBoolean(confirm, 'confirm');
   requireOptionalBoolean(force, 'force');
+  requireOptionalNonNegativeNumber(expected_mtime, 'expected_mtime');
   // 존재 검사 — dry-run 이 \"삭제 가능\" 이라고 거짓 안내 안 하도록.
   // (실제 삭제 단계의 deleteDoc 도 다시 throw 하지만, dry-run path 는
   // deleteDoc 까지 가지 않으므로 별도 확인.)

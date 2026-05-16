@@ -106,6 +106,9 @@ resolution, repo walking, or disk writes. `tools/list` exposes the same
 items so MCP clients can catch bad calls before sending them.
 Boolean options are also validated explicitly, including read/query flags and
 destructive write safety switches such as `confirm`, `overwrite`, and `force`.
+Write conflict guards are strict as well: every `expected_mtime` field must be
+a non-negative finite number, so malformed values cannot silently disable the
+concurrent-edit check.
 Batch arrays expose the same runtime cap as schema too: `get_concepts.slugs`,
 `add_concepts.concepts`, and `add_relations.relations` all advertise
 `maxItems: 50`.

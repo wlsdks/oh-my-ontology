@@ -81,7 +81,8 @@ tool count metadata, 그리고 `initialize.instructions` 의 agent-facing invent
 또한 write tool schema 가 `expected_mtime` conflict guard 와 destructive
 tool 의 `confirm` dry-run safety switch 를 계속 노출하는지 `tools/list`
 응답에서 직접 검증해, agent-facing MCP schema 가 실제 동시 편집 보호
-계약을 잃지 않게 막는다.
+계약을 잃지 않게 막는다. `expected_mtime` 은 non-negative finite number 로
+검증해 malformed 값이 conflict guard 를 조용히 비활성화하지 못하게 한다.
 MCP write handler 는 schema 우회 또는 agent 실수로 들어오는 blank/padded string
 입력을 디스크 쓰기 전에 거부한다. `add_concept` / `add_relation` / `patch_concept`
 및 destructive write (`rename_concept` / `merge_concepts` / `delete_concept`), batch

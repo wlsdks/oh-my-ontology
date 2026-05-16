@@ -175,6 +175,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     for (const toolName of expectedMtimeTools) {
       const property = findTool(toolName)?.inputSchema?.properties?.expected_mtime;
       assert.equal(property?.type, "number", `${toolName} exposes expected_mtime as a numeric conflict guard`);
+      assert.equal(property?.minimum, 0, `${toolName} exposes expected_mtime as non-negative`);
       assert.match(
         property?.description ?? "",
         /conflict|mtime|modified externally|read time/i,
@@ -188,6 +189,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       relationItemSchema?.properties?.expected_mtime?.type,
       "number",
       "add_relations row schema exposes expected_mtime",
+    );
+    assert.equal(
+      relationItemSchema?.properties?.expected_mtime?.minimum,
+      0,
+      "add_relations row schema exposes expected_mtime as non-negative",
     );
 
     for (const toolName of ["rename_concept", "merge_concepts", "delete_concept"]) {
@@ -2063,8 +2069,40 @@ await test("MCP write tools — blank/padded string inputs are rejected before d
         slug: "a",
         force: "true",
       }),
+      callTool(18, "add_relation", {
+        from: "a",
+        to: "b",
+        type: "relates",
+        expected_mtime: "123",
+      }),
+      callTool(19, "patch_concept", {
+        slug: "a",
+        frontmatter: { title: "A2" },
+        expected_mtime: -1,
+      }),
+      callTool(20, "rename_concept", {
+        oldSlug: "a",
+        newSlug: "renamed-a",
+        expected_mtime: Number.NaN,
+      }),
+      callTool(21, "merge_concepts", {
+        fromSlug: "a",
+        intoSlug: "b",
+        expected_mtime: "123",
+      }),
+      callTool(22, "delete_concept", {
+        slug: "a",
+        expected_mtime: -1,
+      }),
+      callTool(23, "add_relations", {
+        relations: [
+          { from: "a", to: "b", type: "relates", expected_mtime: "123" },
+        ],
+      }),
     ]);
-    for (const id of [2, 3, 4, 5, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17]) {
+    for (const id of [
+      2, 3, 4, 5, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+    ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
     assert.match(responses.find((r) => r.id === 2).result.content[0].text, /slug must be a non-empty string/i);
@@ -2087,6 +2125,14 @@ await test("MCP write tools — blank/padded string inputs are rejected before d
     assert.match(responses.find((r) => r.id === 15).result.content[0].text, /confirm must be a boolean/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /confirm must be a boolean/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /force must be a boolean/i);
+    assert.match(responses.find((r) => r.id === 18).result.content[0].text, /expected_mtime must be a non-negative finite number/i);
+    assert.match(responses.find((r) => r.id === 19).result.content[0].text, /expected_mtime must be a non-negative finite number/i);
+    assert.match(responses.find((r) => r.id === 20).result.content[0].text, /expected_mtime must be a non-negative finite number/i);
+    assert.match(responses.find((r) => r.id === 21).result.content[0].text, /expected_mtime must be a non-negative finite number/i);
+    assert.match(responses.find((r) => r.id === 22).result.content[0].text, /expected_mtime must be a non-negative finite number/i);
+    const relationBatch = getCallParsed(responses, 23);
+    assert.equal(relationBatch.relations[0].ok, false);
+    assert.match(relationBatch.relations[0].error, /expected_mtime must be a non-negative finite number/i);
 
     const list = getCallParsed(responses, 10);
     const slugs = list.nodes.map((node) => node.slug);
