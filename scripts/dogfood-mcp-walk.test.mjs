@@ -2622,6 +2622,26 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         maintenancePlan: {
           ...okShape.maintenancePlan,
+          summary: { ...okShape.maintenancePlan.summary, filteredActions: 3 },
+        },
+      }),
+      ["maintenance_plan filteredActions exceeds totalActions — filtered 3, total 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          summary: { ...okShape.maintenancePlan.summary, remainingActions: 3 },
+        },
+      }),
+      ["maintenance_plan remainingActions exceeds filteredActions — remaining 3, filtered 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
           byPhase: { link: 2, review: 1 },
         },
       }),

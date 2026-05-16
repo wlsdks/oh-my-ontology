@@ -1587,6 +1587,12 @@ function maintenancePlanShapeFailure(result, options = {}) {
   if (result.summary.executableActions + result.summary.reviewActions !== result.summary.totalActions) {
     return `maintenance_plan action count mismatch — executable ${result.summary.executableActions}, review ${result.summary.reviewActions}, total ${result.summary.totalActions}`;
   }
+  if (result.summary.filteredActions > result.summary.totalActions) {
+    return `maintenance_plan filteredActions exceeds totalActions — filtered ${result.summary.filteredActions}, total ${result.summary.totalActions}`;
+  }
+  if (result.summary.remainingActions > result.summary.filteredActions) {
+    return `maintenance_plan remainingActions exceeds filteredActions — remaining ${result.summary.remainingActions}, filtered ${result.summary.filteredActions}`;
+  }
   if (!result.filters || typeof result.filters !== "object" || Array.isArray(result.filters)) {
     return "maintenance_plan response missing filters";
   }

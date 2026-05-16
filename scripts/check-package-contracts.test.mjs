@@ -647,6 +647,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /unknown `afterActionId` cursor 의 `cursor\.found=false`/);
     assert.match(doc, /`cursor\.reason` 계약/);
     assert.match(doc, /compact `postWriteMaintenance` 반환 \(`operation` \/ `sideEffect:false` \/ `filters` \/ `limited` \/ cursor \/ action `score` \/ executable `proposedAction` 포함\)/);
+    assert.match(doc, /dogfood walk 는\s+`totalActions` \/ `filteredActions` \/ `remainingActions` summary 관계도 검증/);
+    assert.match(doc, /source checkout MCP work queue count drift 를 fail-fast/);
     assert.match(doc, /installed verify 의 `maintenance_plan` cursor smoke 도 `totalActions` \/ `filteredActions` \//);
     assert.match(doc, /post-write work queue summary 가 drift 나도 설치 경로에서 fail-fast/);
     assert.match(dogfoodSection, /`project_map` query_plan/);
