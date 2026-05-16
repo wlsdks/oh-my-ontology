@@ -12,7 +12,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EXPECTED_READ_TOOLS, EXPECTED_TOOLS } from "../scripts/verify.mjs";
+import { EXPECTED_DESTRUCTIVE_TOOLS, EXPECTED_READ_TOOLS, EXPECTED_TOOLS } from "../scripts/verify.mjs";
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -289,6 +289,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         tool.annotations?.readOnlyHint,
         EXPECTED_READ_TOOLS.includes(tool.name),
         `${tool.name} exposes correct readOnlyHint annotation`,
+      );
+      assert.equal(tool.annotations?.openWorldHint, false, `${tool.name} exposes local-only openWorldHint`);
+      assert.equal(
+        tool.annotations?.destructiveHint,
+        EXPECTED_DESTRUCTIVE_TOOLS.includes(tool.name),
+        `${tool.name} exposes correct destructiveHint annotation`,
       );
     }
     const findTool = (name) => tools.find((t) => t.name === name);

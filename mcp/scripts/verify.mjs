@@ -89,6 +89,11 @@ export const EXPECTED_WRITE_TOOLS = [
 ];
 
 export const EXPECTED_TOOLS = [...EXPECTED_READ_TOOLS, ...EXPECTED_WRITE_TOOLS];
+export const EXPECTED_DESTRUCTIVE_TOOLS = [
+  'delete_concept',
+  'merge_concepts',
+  'rename_concept',
+];
 
 export function expectedToolSplitLabel() {
   return `${EXPECTED_READ_TOOLS.length} read + ${EXPECTED_WRITE_TOOLS.length} write`;
@@ -146,6 +151,15 @@ export function toolsListSchemaFailure(tools) {
   const annotationDriftTool = tools.find((tool) => tool?.annotations?.readOnlyHint !== expectedReadTools.has(tool?.name));
   if (annotationDriftTool) {
     return `tools/list readOnlyHint annotation drift: ${annotationDriftTool.name || '(unknown)'}`;
+  }
+  const openWorldDriftTool = tools.find((tool) => tool?.annotations?.openWorldHint !== false);
+  if (openWorldDriftTool) {
+    return `tools/list openWorldHint annotation drift: ${openWorldDriftTool.name || '(unknown)'}`;
+  }
+  const expectedDestructiveTools = new Set(EXPECTED_DESTRUCTIVE_TOOLS);
+  const destructiveDriftTool = tools.find((tool) => tool?.annotations?.destructiveHint !== expectedDestructiveTools.has(tool?.name));
+  if (destructiveDriftTool) {
+    return `tools/list destructiveHint annotation drift: ${destructiveDriftTool.name || '(unknown)'}`;
   }
 
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');

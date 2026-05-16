@@ -21,7 +21,7 @@ import {
   stderrWarningFailures,
   workspaceNextActionSummary,
 } from "./dogfood-mcp-walk.mjs";
-import { EXPECTED_TOOLS } from "../mcp/scripts/verify.mjs";
+import { EXPECTED_DESTRUCTIVE_TOOLS, EXPECTED_TOOLS } from "../mcp/scripts/verify.mjs";
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -49,7 +49,11 @@ function makeDogfoodToolsList() {
         description: WRITE_TOOL_NAMES.has(name)
           ? "Write tool returns postWriteMaintenance with action score, executable proposedAction, and nextExecutableAction next action pointers."
           : `${name} read tool.`,
-        annotations: { readOnlyHint: !WRITE_TOOL_NAMES.has(name) },
+        annotations: {
+          readOnlyHint: !WRITE_TOOL_NAMES.has(name),
+          destructiveHint: EXPECTED_DESTRUCTIVE_TOOLS.includes(name),
+          openWorldHint: false,
+        },
         inputSchema: {
           type: "object",
           additionalProperties: false,
@@ -1741,6 +1745,18 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: { tools: null } }),
       ["tools/list: tools/list response missing tools array"],
+    );
+    const openWorldDrifted = makeDogfoodToolsList();
+    openWorldDrifted.tools.find((tool) => tool.name === "list_concepts").annotations.openWorldHint = true;
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: openWorldDrifted }),
+      ["tools/list: tools/list openWorldHint annotation drift: list_concepts"],
+    );
+    const destructiveDrifted = makeDogfoodToolsList();
+    destructiveDrifted.tools.find((tool) => tool.name === "delete_concept").annotations.destructiveHint = false;
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: destructiveDrifted }),
+      ["tools/list: tools/list destructiveHint annotation drift: delete_concept"],
     );
     const drifted = makeDogfoodToolsList();
     drifted.tools.find((tool) => tool.name === "query_ontology").inputSchema.properties.afterActionId.description =

@@ -1168,11 +1168,19 @@ const READ_TOOL_NAMES = new Set([
   'infer_imports',
 ]);
 
+const DESTRUCTIVE_TOOL_NAMES = new Set([
+  'delete_concept',
+  'merge_concepts',
+  'rename_concept',
+]);
+
 const TOOLS_FOR_LIST = TOOLS.map((tool) => ({
   ...tool,
   annotations: {
     ...(tool.annotations || {}),
     readOnlyHint: READ_TOOL_NAMES.has(tool.name),
+    destructiveHint: DESTRUCTIVE_TOOL_NAMES.has(tool.name),
+    openWorldHint: false,
   },
   inputSchema: {
     ...tool.inputSchema,

@@ -270,7 +270,9 @@ plus actual `query_ontology({operation:"neighbors"})`,
 `query_ontology({operation:"project_scope"})` smoke calls.
 The `tools/list` gate also checks that every tool rejects unknown arguments via
 `additionalProperties:false`, that every tool exposes the expected
-`annotations.readOnlyHint` read/write split, and that required `query_ontology.operation` plus
+`annotations.readOnlyHint` read/write split, `annotations.destructiveHint`
+for destructive multi-file/delete tools, and `annotations.openWorldHint:false`
+for the local vault-only boundary, and that required `query_ontology.operation` plus
 the `query_ontology.operation` / `query_ontology.targetOperation` enums match
 the graph engine's runtime allow-lists. It also checks the installed batch
 tool schemas for the same 50-row cap used by `get_concepts`, `add_concepts`,

@@ -20,6 +20,7 @@ import {
   compileSummaryFailure,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
+  EXPECTED_DESTRUCTIVE_TOOLS,
   EXPECTED_READ_TOOLS,
   EXPECTED_TOOLS,
   EXPECTED_WRITE_TOOLS,
@@ -271,7 +272,11 @@ describe('verify.mjs first-contact gates', () => {
       },
     ].map((tool) => ({
       ...tool,
-      annotations: { readOnlyHint: EXPECTED_READ_TOOLS.includes(tool.name) },
+      annotations: {
+        readOnlyHint: EXPECTED_READ_TOOLS.includes(tool.name),
+        destructiveHint: EXPECTED_DESTRUCTIVE_TOOLS.includes(tool.name),
+        openWorldHint: false,
+      },
     }));
     const withQueryTool = (queryTool) => [
       ...tools.slice(0, 10),
@@ -311,7 +316,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
         tool.name === 'list_concepts'
-          ? { ...tool, annotations: { readOnlyHint: false } }
+          ? { ...tool, annotations: { ...tool.annotations, readOnlyHint: false } }
           : tool
       ))),
       'tools/list readOnlyHint annotation drift: list_concepts',
@@ -319,10 +324,26 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
         tool.name === 'add_concept'
-          ? { ...tool, annotations: { readOnlyHint: true } }
+          ? { ...tool, annotations: { ...tool.annotations, readOnlyHint: true } }
           : tool
       ))),
       'tools/list readOnlyHint annotation drift: add_concept',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'list_concepts'
+          ? { ...tool, annotations: { ...tool.annotations, openWorldHint: true } }
+          : tool
+      ))),
+      'tools/list openWorldHint annotation drift: list_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'merge_concepts'
+          ? { ...tool, annotations: { ...tool.annotations, destructiveHint: false } }
+          : tool
+      ))),
+      'tools/list destructiveHint annotation drift: merge_concepts',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'query_ontology')),
