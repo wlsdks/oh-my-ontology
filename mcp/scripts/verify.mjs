@@ -1805,7 +1805,7 @@ async function step2BootAndCall() {
         log('fail', schemaFailure);
         return res(false);
       }
-      log('ok', 'tools/list schema contract — strict arguments + graph-query enums + health tuning schema');
+      log('ok', 'tools/list schema contract — strict arguments + graph-query enums + health tuning + post-write guidance');
       const strictFailure = strictArgsFailure(strictArgsRes);
       if (strictFailure) {
         log('fail', strictFailure);
