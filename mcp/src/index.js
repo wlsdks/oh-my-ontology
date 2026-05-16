@@ -1314,6 +1314,7 @@ function listConcepts({ kind, domain, since, summary, limit = 100 }) {
 }
 
 function getConcept({ slug }, context = {}) {
+  requireNonBlankString(slug, 'slug');
   const canonicalSlug = resolveExistingVaultSlug(slug, context.docs);
   if (!canonicalSlug) {
     throw new Error(`Doc not found: ${slug}`);
@@ -1384,10 +1385,8 @@ function getConceptsBatch({ slugs }) {
   const docs = loadVaultDocs(VAULT_ROOT);
   const danglingIssuesBySlug = groupDanglingIssuesBySlug(docs);
   const concepts = slugs.map((slug) => {
-    if (typeof slug !== 'string' || !slug) {
-      return { slug: String(slug), ok: false, error: 'invalid-slug' };
-    }
     try {
+      requireNonBlankString(slug, 'slug');
       const result = getConcept({ slug }, { docs, danglingIssuesBySlug });
       return { ok: true, ...result };
     } catch (err) {
@@ -1400,6 +1399,7 @@ function getConceptsBatch({ slugs }) {
 }
 
 function findEvidence({ title }) {
+  requireNonBlankString(title, 'title');
   const docs = loadVaultDocs(VAULT_ROOT);
   const needle = title.toLowerCase();
   const matches = [];
@@ -1444,6 +1444,11 @@ function requireNonBlankString(value, name) {
     throw new Error(`${name} must not contain a null byte.`);
   }
   return value;
+}
+
+function requireOptionalNonBlankString(value, name) {
+  if (value === undefined) return;
+  requireNonBlankString(value, name);
 }
 
 function requireOptionalStringArray(value, name) {
@@ -1758,17 +1763,13 @@ function patchConcept({ slug, frontmatter, body, expected_mtime }) {
 }
 
 function findBacklinksTool({ slug }) {
-  if (!slug) {
-    throw new Error('slug is required.');
-  }
+  requireNonBlankString(slug, 'slug');
   const matches = findBacklinks(VAULT_ROOT, slug);
   return { target: slug, total: matches.length, matches };
 }
 
 function findNeighborsTool({ slug, direction = 'both', types, includeNodes = true, limit = 100 }) {
-  if (!slug) {
-    throw new Error('slug is required.');
-  }
+  requireNonBlankString(slug, 'slug');
   requireOptionalDirection(direction, 'direction', ['outgoing', 'incoming', 'both']);
   requireOptionalStringArray(types, 'types');
   requireOptionalBoolean(includeNodes, 'includeNodes');
@@ -1880,9 +1881,8 @@ function resolveGraphRef(ref, docs) {
 }
 
 function findPathTool({ from, to, maxHops }) {
-  if (!from || !to) {
-    throw new Error('from and to are both required.');
-  }
+  requireNonBlankString(from, 'from');
+  requireNonBlankString(to, 'to');
   requireOptionalNonNegativeInteger(maxHops, 'maxHops');
   const result = findPath(VAULT_ROOT, from, to, maxHops ?? 5);
   if (!result) {
@@ -1896,6 +1896,7 @@ function listKindsTool() {
 }
 
 function findOrphansTool({ kind, excludeKinds } = {}) {
+  requireOptionalNonBlankString(kind, 'kind');
   requireOptionalStringArray(excludeKinds, 'excludeKinds');
   return findOrphans(VAULT_ROOT, {
     kind: typeof kind === 'string' ? kind : undefined,
@@ -1904,9 +1905,7 @@ function findOrphansTool({ kind, excludeKinds } = {}) {
 }
 
 function queryConceptsTool({ filter, limit }) {
-  if (typeof filter !== 'string' || !filter.trim()) {
-    throw new Error('filter (string) 가 필요합니다.');
-  }
+  requireNonBlankString(filter, 'filter');
   requireOptionalPositiveInteger(limit, 'limit');
   const parsed = parseFilter(filter);
   const cap = limit ?? 100;
@@ -1998,6 +1997,27 @@ function queryOntologyTool(args = {}) {
 }
 
 function validateQueryOntologyArgs(args = {}) {
+  for (const key of [
+    'operation',
+    'targetOperation',
+    'slug',
+    'seed',
+    'candidateSlug',
+    'title',
+    'from',
+    'project',
+    'to',
+    'type',
+    'kind',
+    'domain',
+    'slugContains',
+    'fromKind',
+    'toKind',
+    'relation',
+    'afterActionId',
+  ]) {
+    requireOptionalNonBlankString(args[key], key);
+  }
   for (const key of [
     'limit',
     'itemLimit',

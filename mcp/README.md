@@ -97,6 +97,9 @@ String-array options are strict too: relation filters such as
 `maintenance_plan` filters reject non-string array items instead of silently
 dropping them; blank, whitespace-padded, and null-byte items are rejected at the
 MCP boundary as well.
+Scalar string options follow the same boundary: slugs, filters, titles, query
+targets, and cursor ids reject blank, whitespace-padded, or null-byte values
+before graph resolution.
 Boolean options are also validated explicitly, including read/query flags and
 destructive write safety switches such as `confirm`, `overwrite`, and `force`.
 Batch arrays expose the same runtime cap as schema too: `get_concepts.slugs`,

@@ -1459,6 +1459,58 @@ await test("MCP read/query tools — invalid numeric and direction options are r
   }
 });
 
+await test("MCP read/query tools — blank/padded scalar string inputs are rejected", async () => {
+  const root = makeVault([
+    { slug: "a", content: "---\nkind: capability\ntitle: A\ndependencies: [b]\n---\n" },
+    { slug: "b", content: "---\nkind: capability\ntitle: B\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "get_concept", { slug: " a" }),
+      callTool(3, "find_evidence", { title: " " }),
+      callTool(4, "find_backlinks", { slug: "a\0" }),
+      callTool(5, "find_neighbors", { slug: " a" }),
+      callTool(6, "find_path", { from: " a", to: "b" }),
+      callTool(7, "find_path", { from: "a", to: " " }),
+      callTool(8, "find_orphans", { kind: " capability" }),
+      callTool(9, "query_concepts", { filter: " kind=capability" }),
+      callTool(10, "query_ontology", { operation: "neighbors", slug: " a" }),
+      callTool(11, "query_ontology", {
+        operation: "query_plan",
+        targetOperation: " path",
+        from: "a",
+        to: "b",
+      }),
+      callTool(12, "query_ontology", { operation: "similar_nodes", title: " " }),
+      callTool(13, "get_concepts", { slugs: ["a", " b", ""] }),
+    ]);
+    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+      assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
+    }
+    assert.match(responses.find((r) => r.id === 2).result.content[0].text, /slug must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 3).result.content[0].text, /title must be a non-empty string/i);
+    assert.match(responses.find((r) => r.id === 4).result.content[0].text, /slug must not contain a null byte/i);
+    assert.match(responses.find((r) => r.id === 5).result.content[0].text, /slug must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 6).result.content[0].text, /from must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 7).result.content[0].text, /to must be a non-empty string/i);
+    assert.match(responses.find((r) => r.id === 8).result.content[0].text, /kind must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 9).result.content[0].text, /filter must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 10).result.content[0].text, /slug must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 11).result.content[0].text, /targetOperation must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 12).result.content[0].text, /title must be a non-empty string/i);
+
+    const batch = getCallParsed(responses, 13);
+    assert.equal(batch.concepts[0].ok, true);
+    assert.equal(batch.concepts[1].ok, false);
+    assert.match(batch.concepts[1].error, /slug must not have leading or trailing whitespace/i);
+    assert.equal(batch.concepts[2].ok, false);
+    assert.match(batch.concepts[2].error, /slug must be a non-empty string/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("query_concepts — 매치 row 에 mtime 포함 (R+)", async () => {
   // list_concepts / find_backlinks / find_orphans 와 동일 shape — read tool
   // 응답 일관성. agent 가 DSL query 결과를 sort/filter 추가 호출 없이 처리.
