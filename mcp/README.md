@@ -248,7 +248,8 @@ the graph engine's runtime allow-lists. It also checks the installed batch
 tool schemas for the same 50-row cap used by `get_concepts`, `add_concepts`,
 and `add_relations` at runtime, the `find_orphans.excludeKinds` string-array
 schema and root/sentinel default description, plus write-safety schemas for
-`expected_mtime` conflict guards and destructive-tool `confirm` dry-run switches.
+`expected_mtime` conflict guards, destructive-tool `confirm` dry-run switches,
+and `delete_concept.force`.
 The verify path also makes runtime negative calls with `list_concepts.lmit`
 and `query_ontology.operation="overveiw"`, and fails unless the server rejects
 them with the closest argument/value hint.

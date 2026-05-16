@@ -186,6 +186,12 @@ export function toolsListSchemaFailure(tools) {
     }
   }
 
+  const deleteTool = tools.find((candidate) => candidate?.name === 'delete_concept');
+  const force = propertyAt(deleteTool, ['properties', 'force']);
+  if (force?.type !== 'boolean') {
+    return 'delete_concept.force destructive safety schema drift';
+  }
+
   return null;
 }
 

@@ -186,7 +186,8 @@ dispatch 가 갈라지지 않도록 한다. `get_concepts` / `add_concepts` /
 제외 설명도 설치 verify 에서 확인해 MCP client 가 runtime cleanup 의미와 같은
 계약을 보게 한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
 실제로 보내고 unknown argument 거절 응답을 기대한다. write safety 도 같은 경로에서 `expected_mtime`
-conflict guard 와 destructive tool 의 `confirm` dry-run switch schema 를 검사한다.
+conflict guard, destructive tool 의 `confirm` dry-run switch, `delete_concept.force`
+schema 를 검사한다.
 `initialize.instructions` 는 agent 가 write 도구부터 시도하지 않도록
 `validate_vault`, `workspace_brief`, `overview`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`
@@ -207,7 +208,7 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 돌려 반복 dogfood 비용을 낮춘다. verify helper 자체를 만질 때는
 `pnpm test:mcp:verify` 로 `mcp/src/verify-script.test.mjs` 만 바로 실행한다.
 또한 write tool schema 가 `expected_mtime` conflict guard 와 destructive
-tool 의 `confirm` dry-run safety switch 를 계속 노출하는지 `tools/list`
+tool 의 `confirm` dry-run safety switch, `delete_concept.force` 를 계속 노출하는지 `tools/list`
 응답에서 직접 검증해, agent-facing MCP schema 가 실제 동시 편집 보호
 계약을 잃지 않게 막는다. `expected_mtime` 은 non-negative finite number 로
 검증해 malformed 값이 conflict guard 를 조용히 비활성화하지 못하게 한다.

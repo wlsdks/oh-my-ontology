@@ -169,6 +169,7 @@ describe('verify.mjs first-contact gates', () => {
           additionalProperties: false,
           properties: {
             confirm: { type: 'boolean' },
+            force: { type: 'boolean' },
             expected_mtime: { type: 'number', minimum: 0 },
           },
         },
@@ -348,6 +349,23 @@ describe('verify.mjs first-contact gates', () => {
         tools[10],
       ]),
       'delete_concept.confirm dry-run safety schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.slice(0, 9),
+        {
+          ...tools[9],
+          inputSchema: {
+            ...tools[9].inputSchema,
+            properties: {
+              ...tools[9].inputSchema.properties,
+              force: { type: 'string' },
+            },
+          },
+        },
+        tools[10],
+      ]),
+      'delete_concept.force destructive safety schema drift',
     );
   });
 
