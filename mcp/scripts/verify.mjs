@@ -1876,7 +1876,7 @@ async function step2BootAndCall() {
             log('fail', failure);
             return res(false);
           }
-          log('ok', `path — ${parsed.from} → ${parsed.to} (${formatHopCount(parsed.hopCount)}, ${parsed.edges.length} edges)`);
+          log('ok', `path — ${parsed.from} → ${parsed.to} (${formatHopCount(parsed.hopCount)}, ${formatCount(parsed.edges.length, 'edge')})`);
         } catch (err) {
           log('fail', `failed to parse path response: ${err.message}`);
           return res(false);

@@ -567,7 +567,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
     assert.match(smoke, /invalid-enum rejection smoke/);
     assert.match(smoke, /project_scope — skipped \\\(no project node in vault\\\)/);
-    assert.match(smoke, /path — elements\\\/example → project \\\(1 hop, 1 edges\\\)/);
+    assert.match(smoke, /path — elements\\\/example → project \\\(1 hop, 1 edge\\\)/);
     assert.match(smoke, /path — domains\\\/core → domains\\\/core \\\(0 hops, 0 edges\\\)/);
     assert.match(smoke, /neighbors\\\/path — skipped \\\(vault has no nodes\\\)/);
     assert.match(smokeSection, /cycles --json/);
