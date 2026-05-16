@@ -80,20 +80,30 @@ describe('package contract helpers', () => {
   it('keeps the MCP verify README aligned with first-contact census gates', () => {
     const readme = readFileSync('mcp/README.md', 'utf-8');
     const verifySection = readme.split('### One-line verify CLI')[1]?.split('### Manual verification')[0] ?? '';
+    const census = dogfoodVaultCensus(process.cwd());
+    const kindSummary = [
+      `capability:${census.byKind.capabilities}`,
+      `domain:${census.byKind.domains}`,
+      `element:${census.byKind.elements}`,
+      `project:${census.byKind.project}`,
+      `vault-readme:${census.byKind['vault-readme']}`,
+    ].join(', ');
+    const scopedNodes = census.total - census.byKind['vault-readme'];
 
     assert.match(verifySection, /list_concepts\/get_concepts\/list_kinds/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial row/);
-    assert.match(verifySection, /✓ list_kinds/);
-    assert.match(verifySection, /✓ validate_vault — 28 files, 0 problem files/);
-    assert.match(verifySection, /✓ workspace_brief — healthy \(28 nodes, 0 next actions, 5 health checks\)/);
+    assert.match(verifySection, new RegExp(`✓ list_concepts — vault total ${census.total} nodes`));
+    assert.match(verifySection, new RegExp(`✓ list_kinds — ${census.total} nodes \\(${kindSummary}\\)`));
+    assert.match(verifySection, new RegExp(`✓ validate_vault — ${census.total} files, 0 problem files`));
+    assert.match(verifySection, new RegExp(`✓ workspace_brief — healthy \\(${census.total} nodes, 0 next actions, 5 health checks\\)`));
     assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass/);
     assert.match(verifySection, /✓ neighbors — elements\/file-system-access-api/);
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
-    assert.match(verifySection, /✓ project_scope — project/);
+    assert.match(verifySection, new RegExp(`✓ project_scope — project \\(${scopedNodes} nodes, internalEdges`));
     assert.match(verifySection, /`list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
     assert.match(verifySection, /`query_ontology\(\{operation:"neighbors"\}\)`/);
