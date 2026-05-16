@@ -1740,6 +1740,32 @@ await test("query_concepts — 매치 row 에 mtime 포함 (R+)", async () => {
   }
 });
 
+await test("query_concepts — limited reflects hidden rows, not exact page fill", async () => {
+  const root = makeVault([
+    { slug: "a", content: "---\nkind: capability\ntitle: A\ndomain: x\n---\n" },
+    { slug: "b", content: "---\nkind: capability\ntitle: B\ndomain: x\n---\n" },
+    { slug: "c", content: "---\nkind: domain\ntitle: C\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "query_concepts", { filter: "kind=capability", limit: 2 }),
+      callTool(3, "query_concepts", { filter: "kind=capability", limit: 1 }),
+    ]);
+    const exact = getCallParsed(responses, 2);
+    assert.equal(exact.total, 2);
+    assert.equal(exact.matches.length, 2);
+    assert.equal(exact.limited, false);
+
+    const truncated = getCallParsed(responses, 3);
+    assert.equal(truncated.total, 2);
+    assert.equal(truncated.matches.length, 1);
+    assert.equal(truncated.limited, true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("find_orphans — orphan row 에 domain + mtime 포함 (R+)", async () => {
   // list_concepts / find_backlinks 와 동일 shape. agent 가 orphans 받자마자
   // sort/filter 가능 — 후속 get_concept 없이.

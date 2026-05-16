@@ -1930,27 +1930,30 @@ function queryConceptsTool({ filter, limit }) {
   const cap = limit ?? 100;
   const docs = loadVaultDocs(VAULT_ROOT).filter((d) => Boolean(d.frontmatter?.kind));
   const matches = [];
+  let total = 0;
   for (const doc of docs) {
-    if (matches.length >= cap) break;
     if (!parsed.match(doc)) continue;
-    matches.push({
-      slug: doc.slug,
-      kind: doc.frontmatter.kind,
-      title: doc.frontmatter.title || doc.frontmatter.name || doc.slug,
-      domain: doc.frontmatter.domain,
-      capabilities: doc.frontmatter.capabilities,
-      elements: doc.frontmatter.elements,
-      // R+ — list_concepts / find_backlinks / find_orphans 와 동일 shape.
-      // agent 가 query 결과에서 staleness sort/filter 가능, 후속 호출 없이.
-      mtime: doc.mtime,
-    });
+    total += 1;
+    if (matches.length < cap) {
+      matches.push({
+        slug: doc.slug,
+        kind: doc.frontmatter.kind,
+        title: doc.frontmatter.title || doc.frontmatter.name || doc.slug,
+        domain: doc.frontmatter.domain,
+        capabilities: doc.frontmatter.capabilities,
+        elements: doc.frontmatter.elements,
+        // R+ — list_concepts / find_backlinks / find_orphans 와 동일 shape.
+        // agent 가 query 결과에서 staleness sort/filter 가능, 후속 호출 없이.
+        mtime: doc.mtime,
+      });
+    }
   }
   return {
     filter,
     parsedAs: parsed.repr,
-    total: matches.length,
+    total,
     matches,
-    limited: matches.length >= cap,
+    limited: total > matches.length,
   };
 }
 
