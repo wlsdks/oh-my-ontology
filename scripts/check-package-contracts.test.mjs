@@ -141,10 +141,14 @@ describe('package contract helpers', () => {
   it('keeps the self-ontology README census aligned with the vault files', () => {
     const readme = readFileSync('docs/ontology/README.md', 'utf-8');
     const nodeCount = countMarkdownFiles('docs/ontology');
+    const domainCount = countMarkdownFiles('docs/ontology/domains');
     const capabilityCount = countMarkdownFiles('docs/ontology/capabilities');
+    const elementCount = countMarkdownFiles('docs/ontology/elements');
 
     assert.match(readme, new RegExp(`총 ${nodeCount} 노드`));
+    assert.match(readme, new RegExp(`도메인 ${domainCount}개`));
     assert.match(readme, new RegExp(`capability ${capabilityCount}개`));
+    assert.match(readme, new RegExp(`element ${elementCount}개`));
   });
 
   it('parses package script file references', () => {
