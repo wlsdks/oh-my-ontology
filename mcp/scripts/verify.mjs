@@ -1594,7 +1594,10 @@ export function healthChecksSummary(checks, limit = 5) {
   if (!Array.isArray(checks)) return null;
   const entries = checks
     .filter((check) => check && typeof check === 'object')
-    .map((check) => `${check.id || 'unknown'}:${check.status || 'unknown'}`);
+    .map((check) => {
+      const count = Number.isInteger(check.count) ? `:${check.count}` : '';
+      return `${check.id || 'unknown'}:${check.status || 'unknown'}${count}`;
+    });
   if (entries.length === 0) return null;
   const shown = entries.slice(0, limit);
   const suffix = entries.length > shown.length ? `, +${entries.length - shown.length} more` : '';

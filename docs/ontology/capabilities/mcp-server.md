@@ -106,7 +106,7 @@ clean vault 로 오인하지 않고 verify 를 실패시킨다. top-level diagno
 비어있지 않은 `id` 와 `pass` / `warn` / `fail` / `info` status 를 가져야 해서
 malformed row 가 `unknown` advisory/coverage 로 숨지 않는다.
 성공 출력도 `workspace_brief` / `workspace_brief_tuned` 라인에 validated health check count 를, `health` /
-tuned `health` 라인에 check `id:status` coverage 를 드러내 agent 가 nextActions 와 실제 검증 축을
+tuned `health` 라인에 check `id:status:count` coverage 를 드러내 agent 가 nextActions 와 실제 검증 축을
 한 화면에서 확인하게 한다.
 `get_concepts` 는 `list_concepts` 에서 얻은 실제 slug 최대 2개와 missing slug 를 섞어
 설치 검증에서도 batch reader 의 성공 row 와 partial row 계약을 확인한다.

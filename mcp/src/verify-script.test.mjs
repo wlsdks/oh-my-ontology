@@ -1965,19 +1965,19 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(healthChecksSummary([]), null);
     assert.equal(
       healthChecksSummary([
-        { id: 'compile_issues', status: 'pass' },
-        { id: 'unresolved_edges', status: 'pass' },
-        { id: 'dependency_cycles', status: 'warn' },
+        { id: 'compile_issues', status: 'pass', count: 0 },
+        { id: 'unresolved_edges', status: 'pass', count: 0 },
+        { id: 'dependency_cycles', status: 'warn', count: 2 },
       ]),
-      'compile_issues:pass, unresolved_edges:pass, dependency_cycles:warn',
+      'compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:warn:2',
     );
     assert.equal(
       healthChecksSummary([
-        { id: 'a', status: 'pass' },
+        { id: 'a', status: 'pass', count: 0 },
         { id: 'b', status: 'pass' },
-        { id: 'c', status: 'pass' },
+        { id: 'c', status: 'pass', count: 1 },
       ], 2),
-      'a:pass, b:pass, +1 more',
+      'a:pass:0, b:pass, +1 more',
     );
   });
 
