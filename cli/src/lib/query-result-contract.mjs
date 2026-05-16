@@ -7,3 +7,44 @@ export function assertQueryOperation(result, expectedOperation) {
   }
   return result;
 }
+
+export function compileResultExitCode(artifact) {
+  const counts = compileBlockingCounts(artifact);
+  return counts.issues > 0 || counts.unresolvedEdges > 0 ? 1 : 0;
+}
+
+export function compileBlockingCounts(artifact) {
+  const summary = artifact?.summary ?? artifact ?? {};
+  return {
+    issues: numberValue(summary.issues ?? summary.issueCount ?? artifact?.issueCount),
+    unresolvedEdges: numberValue(
+      summary.unresolvedEdges ?? summary.unresolvedEdgeCount ?? artifact?.unresolvedEdgeCount,
+    ),
+  };
+}
+
+export function cyclesResultExitCode(result) {
+  const cycles = Array.isArray(result?.cycles) ? result.cycles : [];
+  const total = numberValue(result?.totalCycles, cycles.length);
+  return total === 0 ? 0 : 1;
+}
+
+export function pathResultExitCode(result) {
+  return result?.found === false ? 1 : 0;
+}
+
+export function healthResultExitCode(result) {
+  const status = result?.status ?? 'unknown';
+  return status === 'healthy' || status === 'pass' ? 0 : 1;
+}
+
+export function workspaceBriefExitCode(result) {
+  const next = Array.isArray(result?.nextActions) ? result.nextActions : [];
+  if (next.some((action) => action?.severity === 'fail')) return 1;
+  const checks = Array.isArray(result?.health?.checks) ? result.health.checks : [];
+  return checks.some((check) => check?.status === 'fail') ? 1 : 0;
+}
+
+function numberValue(value, fallback = 0) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}

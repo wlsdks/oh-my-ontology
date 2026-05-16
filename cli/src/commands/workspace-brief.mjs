@@ -2,7 +2,7 @@
 // MCP `query_ontology({operation: 'workspace_brief'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
-import { assertQueryOperation } from '../lib/query-result-contract.mjs';
+import { assertQueryOperation, workspaceBriefExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
@@ -51,17 +51,10 @@ export async function runWorkspaceBrief(args) {
   }
   if (json) {
     process.stdout.write(JSON.stringify(result, null, 2) + '\n');
-    return hasBlockingIssue(result) ? 1 : 0;
+    return workspaceBriefExitCode(result);
   }
   render(result);
-  return hasBlockingIssue(result) ? 1 : 0;
-}
-
-function hasBlockingIssue(result) {
-  const next = Array.isArray(result?.nextActions) ? result.nextActions : [];
-  if (next.some((action) => action?.severity === 'fail')) return true;
-  const checks = Array.isArray(result?.health?.checks) ? result.health.checks : [];
-  return checks.some((check) => check?.status === 'fail');
+  return workspaceBriefExitCode(result);
 }
 
 function render(result) {

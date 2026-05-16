@@ -5,6 +5,7 @@
 // 한 줄로 본다.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { pathResultExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   parsePositiveIntegerFlag,
@@ -47,7 +48,7 @@ export async function runPath(args) {
 
   if (json) {
     process.stdout.write(JSON.stringify(result, null, 2) + '\n');
-    return pathExitCode(result);
+    return pathResultExitCode(result);
   }
 
   if (!result || result.found === false || !Array.isArray(result.hops) || result.hops.length === 0) {
@@ -85,10 +86,6 @@ export async function runPath(args) {
     }
   }
   return 0;
-}
-
-function pathExitCode(result) {
-  return result?.found === false ? 1 : 0;
 }
 
 function parseArgs(args) {

@@ -2,7 +2,7 @@
 // MCP `query_ontology({operation: 'cycles'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
-import { assertQueryOperation } from '../lib/query-result-contract.mjs';
+import { assertQueryOperation, cyclesResultExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   parsePositiveIntegerFlag,
@@ -43,7 +43,7 @@ export async function runCycles(args) {
   }
   if (json) {
     process.stdout.write(JSON.stringify(result, null, 2) + '\n');
-    return cyclesExitCode(result);
+    return cyclesResultExitCode(result);
   }
   const cycles = Array.isArray(result?.cycles) ? result.cycles : [];
   const total = result?.totalCycles ?? cycles.length;
@@ -65,13 +65,7 @@ export async function runCycles(args) {
     }
     if (slugs.length > 0) process.stdout.write(`    ${COLORS.dim}↩ back to ${slugs[0]}${COLORS.reset}\n\n`);
   }
-  return cyclesExitCode(result);
-}
-
-function cyclesExitCode(result) {
-  const cycles = Array.isArray(result?.cycles) ? result.cycles : [];
-  const total = result?.totalCycles ?? cycles.length;
-  return total === 0 ? 0 : 1;
+  return cyclesResultExitCode(result);
 }
 
 function parseArgs(args) {

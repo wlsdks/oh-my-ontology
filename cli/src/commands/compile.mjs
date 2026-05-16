@@ -3,6 +3,7 @@
 // canonicalizationActions 만 patch_concept 로 적용해 relation 배열을 재정렬한다.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { compileResultExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
@@ -80,12 +81,12 @@ export async function runCompile(args) {
     process.stdout.write(
       JSON.stringify(fixResult ? { artifact, fix: fixResult } : artifact, null, 2) + '\n',
     );
-    return compileExitCode(artifact);
+    return compileResultExitCode(artifact);
   }
 
   renderArtifact(artifact);
   if (fixResult) renderFixResult(fixResult);
-  return compileExitCode(artifact);
+  return compileResultExitCode(artifact);
 }
 
 async function applyCanonicalizationActions(vaultRoot, actions) {
@@ -151,14 +152,6 @@ function renderArtifact(artifact) {
       `\n${COLORS.yellow}reorder available${COLORS.reset} — run with ${COLORS.bold}--fix${COLORS.reset} to canonicalize relation arrays.\n`,
     );
   }
-}
-
-function compileExitCode(artifact) {
-  const summary = artifact?.summary ?? artifact ?? {};
-  const issues = summary.issues ?? summary.issueCount ?? artifact?.issueCount ?? 0;
-  const unresolved =
-    summary.unresolvedEdges ?? summary.unresolvedEdgeCount ?? artifact?.unresolvedEdgeCount ?? 0;
-  return issues > 0 || unresolved > 0 ? 1 : 0;
 }
 
 function renderPagination(label, meta) {
