@@ -1571,6 +1571,20 @@ function maintenancePlanShapeFailure(result, options = {}) {
       return `maintenance_plan malformed ${key}`;
     }
   }
+  if (result.nextExecutableAction !== null) {
+    const actionFailure = maintenanceActionFailure(result.nextExecutableAction, "nextExecutableAction");
+    if (actionFailure) return actionFailure;
+    if (result.nextExecutableAction.executable !== true) {
+      return "maintenance_plan nextExecutableAction must be executable";
+    }
+  }
+  if (result.nextReviewAction !== null) {
+    const actionFailure = maintenanceActionFailure(result.nextReviewAction, "nextReviewAction");
+    if (actionFailure) return actionFailure;
+    if (result.nextReviewAction.executable !== false) {
+      return "maintenance_plan nextReviewAction must be non-executable";
+    }
+  }
   for (const [index, action] of result.actions.entries()) {
     const actionFailure = maintenanceActionFailure(action, index);
     if (actionFailure) return actionFailure;

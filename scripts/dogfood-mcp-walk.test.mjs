@@ -2439,6 +2439,40 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         maintenancePlan: {
           ...okShape.maintenancePlan,
+          nextExecutableAction: { ...okShape.maintenancePlan.nextExecutableAction, executable: false },
+        },
+      }),
+      ["maintenance_plan nextExecutableAction must be executable"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          nextReviewAction: { ...okShape.maintenancePlan.nextReviewAction, executable: true },
+        },
+      }),
+      ["maintenance_plan executable action missing proposedAction: maint_review"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          nextReviewAction: {
+            ...okShape.maintenancePlan.nextExecutableAction,
+            id: "maint_review",
+            executable: true,
+          },
+        },
+      }),
+      ["maintenance_plan nextReviewAction must be non-executable"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
           actions: [{ ...okShape.maintenancePlan.actions[0], proposedAction: null }, okShape.maintenancePlan.actions[1]],
         },
       }),
