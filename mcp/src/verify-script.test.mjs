@@ -136,6 +136,16 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails when validate_vault reports problems without byCode entries', () => {
+    assert.equal(
+      validateVaultFailure({
+        scanned: 3,
+        summary: { problemFiles: 1, errorFiles: 1, warningFiles: 0, byCode: {} },
+      }),
+      'validate_vault response missing byCode entries for problem files',
+    );
+  });
+
   it('fails malformed validate_vault payloads', () => {
     assert.equal(validateVaultFailure({ summary: { problemFiles: 0 } }), 'validate_vault response missing scanned count');
     assert.equal(validateVaultFailure({ scanned: -1, summary: { problemFiles: 0 } }), 'validate_vault response missing scanned count');

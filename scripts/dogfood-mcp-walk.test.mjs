@@ -139,6 +139,20 @@ describe("evaluateDogfoodGate", () => {
     ]);
   });
 
+  it("fails when validate_vault reports problems without byCode entries", () => {
+    const failures = evaluateDogfoodGate({
+      ...okShape,
+      validation: {
+        scanned: 2,
+        problems: [{ slug: "broken", issues: [{ code: "missing-kind", severity: "error" }] }],
+        summary: { problemFiles: 1, errorFiles: 1, warningFiles: 0, byCode: {} },
+      },
+    });
+    assert.deepEqual(failures, [
+      "validate_vault response missing byCode entries for problem files",
+    ]);
+  });
+
   it("fails on malformed validate_vault responses", () => {
     const failures = evaluateDogfoodGate({
       ...okShape,

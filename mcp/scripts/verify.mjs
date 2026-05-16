@@ -163,6 +163,9 @@ export function validateVaultFailure(parsed) {
   if (byCodeFailure) return byCodeFailure;
   const problemFiles = summary.problemFiles;
   if (problemFiles === 0) return null;
+  if (Object.keys(summary.byCode).length === 0) {
+    return 'validate_vault response missing byCode entries for problem files';
+  }
   const codeSummary = validationCodeSummary(summary.byCode);
   const suffix = codeSummary ? ` — codes ${codeSummary}` : '';
   return `validate_vault found ${problemFiles} problem file(s) — errors ${summary.errorFiles}, warnings ${summary.warningFiles}${suffix}`;
