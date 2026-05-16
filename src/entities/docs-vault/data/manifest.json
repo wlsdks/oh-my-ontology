@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-13T03:26:44.527Z",
+  "generatedAt": "2026-05-16T07:39:15.192Z",
   "docs": [
     {
       "slug": "ARCHITECTURE",
@@ -77,8 +77,8 @@
         }
       ],
       "excerpt": "202605 update — Round 10 permanently removed all auth + cloud surface. This doc reflects the postR10 state. Earlier cloudmode design notes are in docs/archive/. There is no backend, no database, no auth provider. The user's markdown folder is the single source of truth. Both the MCP server (AI agent) and the CLI (devel",
-      "wordCount": 957,
-      "updatedAt": "2026-05-12T15:56:32.523Z",
+      "wordCount": 934,
+      "updatedAt": "2026-05-15T23:34:29.073Z",
       "linksOut": [
         "../AGENTS",
         "PRODUCT-DIRECTION",
@@ -1673,9 +1673,9 @@
           "slug": "참조-문서"
         }
       ],
-      "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260509): localfirst 3 surface (CLI · MCP · Web) 기준으로 재정렬. dogfood 26 노드, clean onboarding + Codex MCP setup smoke + current web E2E 복구 완료. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | ",
-      "wordCount": 1334,
-      "updatedAt": "2026-05-12T22:29:55.144Z",
+      "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260516): localfirst 3 surface (CLI · MCP · Web) 기준으로 재정렬. dogfood 28 노드, CLI 26 commands, MCP 23 tools, installed MCP health path 반영. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | 156 |",
+      "wordCount": 1332,
+      "updatedAt": "2026-05-15T23:34:29.073Z",
       "linksOut": []
     },
     {
@@ -4225,9 +4225,9 @@
           "slug": "8-source-of-truth-files"
         }
       ],
-      "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260509 (postcleanonboarding — CLI · MCP · Web 3 surface, 20 MCP tools, clean Codex setup smoke, current web E2E restored). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아",
-      "wordCount": 4897,
-      "updatedAt": "2026-05-13T03:22:58.372Z",
+      "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260516 (CLI mcpverify command — CLI · MCP · Web 3 surface, 23 MCP tools, installed MCP health + graphquery smoke path). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아 별도",
+      "wordCount": 5075,
+      "updatedAt": "2026-05-16T06:17:15.421Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -4289,7 +4289,7 @@
       ],
       "excerpt": "README 첫 화면에 박을 30초 GIF / mp4 의 스토리보드. claim → proof 5 컷 시퀀스. 각 컷 ~6초. screen: 좌측 vscode (또는 Obsidian) 가 domains/auth.md 를 열어 frontmatter 보임. 우측 Claude Code terminal 에서 ohmyontology 도구 호출 결과 표시. action: 사람이 markdown 의 capabilities: 키에 capabilities/login 추가 → 저장. AI 가 같은 vault 의 capabilities/login.md 를 addconcept 로 생성. ",
       "wordCount": 414,
-      "updatedAt": "2026-05-09T12:10:44.411Z",
+      "updatedAt": "2026-05-16T07:37:12.353Z",
       "linksOut": []
     },
     {
@@ -4326,8 +4326,8 @@
         }
       ],
       "excerpt": "Submission type: Show HN Category: open source / dev tool (80 chars exactly — under HN's 80 char limit. If too long, fallback: Show HN: ohmyontology – frontmatter is the graph; AI agents read it via MCP) https://github.com/wlsdks/ohmyontology (Word count: ~280. HN expects substantive Show HN posts, not oneliners.) Best",
-      "wordCount": 447,
-      "updatedAt": "2026-05-09T12:10:44.411Z",
+      "wordCount": 446,
+      "updatedAt": "2026-05-16T07:37:08.789Z",
       "linksOut": []
     },
     {
@@ -4385,7 +4385,7 @@
       ],
       "excerpt": "오픈소스 launch 단계의 publication 초안 모음. 메인테이너가 시점에 맞춰 직접 publish. 1. 사전 준비 [ ] CLI npm 배포 — cli/ 와 mcp/ 둘 다 npm publish [ ] 정적 호스팅 (GitHub Pages / Vercel / Netlify / Cloudflare Pages 등) 배포 — pnpm build → out/ 업로드. 자세한 가이드는 docs/DEPLOYMENT.md. [ ] hosted demo URL 이 README + CLI 안내 문구와 일치하는지 재확인 [ ] 30s demo gif 녹화 + docs/lau",
       "wordCount": 548,
-      "updatedAt": "2026-05-09T12:10:44.411Z",
+      "updatedAt": "2026-05-15T22:45:33.395Z",
       "linksOut": []
     },
     {
@@ -4432,8 +4432,8 @@
         }
       ],
       "excerpt": "Reddit responds best to honest, problemfirst framing. Each subreddit has its own norms; copy below tuned per audience. Title: ohmyontology — frontmatter as a codebase ontology, AI agents read it via MCP Body (400~500 words, Reddit allows longform better than HN): myproject/ ├── project.md ├── domains/ │ ├── auth.md │ └",
-      "wordCount": 921,
-      "updatedAt": "2026-05-09T12:15:15.565Z",
+      "wordCount": 919,
+      "updatedAt": "2026-05-15T22:45:45.380Z",
       "linksOut": []
     },
     {
@@ -4490,9 +4490,55 @@
         }
       ],
       "excerpt": "X 의 언어는 짧고 시각적. 5–7 트윗 짜리 thread 가 sweet spot. 각 트윗 280 chars 안. 1 트윗 = 1 idea. yaml kind: capability domain: domains/auth dependson: [capabilities/signup] Post the thread in one go (drafts feature) Pin tweet 1 to profile Quotetweet your HN submission link in a separate post a few hours later Tag relevant accounts only",
-      "wordCount": 443,
-      "updatedAt": "2026-05-09T12:10:44.413Z",
+      "wordCount": 442,
+      "updatedAt": "2026-05-15T22:45:29.044Z",
       "linksOut": []
+    },
+    {
+      "slug": "ontology/capabilities/builder-canvas-polish",
+      "path": "docs/ontology/capabilities/builder-canvas-polish.md",
+      "title": "Builder Canvas Polish (n8n routing + 도메인 tint + 정렬 toolbar)",
+      "tags": [],
+      "frontmatter": {
+        "slug": "capabilities/builder-canvas-polish",
+        "kind": "capability",
+        "title": "Builder Canvas Polish (n8n routing + 도메인 tint + 정렬 toolbar)",
+        "domain": "views",
+        "elements": [
+          "src/shared/lib/domain-color.ts",
+          "src/views/ontology-edit/lib/align-nodes.ts",
+          "src/views/ontology-edit/lib/use-vault-graph-flow.ts",
+          "src/views/ontology-edit/ui/AlignToolbar.tsx",
+          "src/views/ontology-edit/ui/AtlasNode.tsx",
+          "src/views/ontology-edit/ui/OntologyEditCanvas.tsx"
+        ],
+        "relates": [
+          "capabilities/builder-vault-write"
+        ]
+      },
+      "headings": [
+        {
+          "depth": 2,
+          "text": "다루는 surface",
+          "slug": "다루는-surface"
+        },
+        {
+          "depth": 2,
+          "text": "관련",
+          "slug": "관련"
+        },
+        {
+          "depth": 2,
+          "text": "단위 테스트",
+          "slug": "단위-테스트"
+        }
+      ],
+      "excerpt": "빌더 (/ontology/edit) 캔버스의 시각 정리 + 손 정렬 도구. PR 261 (20260514) 로 7 commit 단위 도입. 선 꼬임 해소 — useVaultGraphFlow 가 containment 엣지 (domains / capabilities / elements / contains) 만 dagre rank 계산에 투입. relates / dependencies / describes 는 overlay 로만 그려져 rank 에 영향 0 n8n 스타일 엣지 — containment 는 smoothstep + 둥근 모서리 (borderRadius 12) ",
+      "wordCount": 330,
+      "updatedAt": "2026-05-14T14:16:24.459Z",
+      "linksOut": [
+        "capabilities/builder-vault-write"
+      ]
     },
     {
       "slug": "ontology/capabilities/builder-vault-write",
@@ -4524,31 +4570,49 @@
     {
       "slug": "ontology/capabilities/cli-developer-entry",
       "path": "docs/ontology/capabilities/cli-developer-entry.md",
-      "title": "CLI Developer Entry (16 commands incl. bootstrap)",
+      "title": "CLI Developer Entry (26 commands — vault + MCP verify + graph deep dive)",
       "tags": [],
       "frontmatter": {
         "slug": "capabilities/cli-developer-entry",
         "kind": "capability",
-        "title": "CLI Developer Entry (16 commands incl. bootstrap)",
+        "title": "CLI Developer Entry (26 commands — vault + MCP verify + graph deep dive)",
         "domain": "onboarding-ux",
         "elements": [
           "cli/src/commands/add.mjs",
           "cli/src/commands/analyze.mjs",
           "cli/src/commands/backlinks.mjs",
+          "cli/src/commands/blast-radius.mjs",
           "cli/src/commands/bootstrap.mjs",
+          "cli/src/commands/compile.mjs",
+          "cli/src/commands/cycles.mjs",
           "cli/src/commands/delete.mjs",
           "cli/src/commands/find.mjs",
+          "cli/src/commands/health.mjs",
+          "cli/src/commands/hubs.mjs",
           "cli/src/commands/import.mjs",
           "cli/src/commands/infer-imports.mjs",
           "cli/src/commands/list.mjs",
+          "cli/src/commands/mcp-verify.mjs",
           "cli/src/commands/merge.mjs",
+          "cli/src/commands/node-profile.mjs",
           "cli/src/commands/orphans.mjs",
+          "cli/src/commands/overview.mjs",
           "cli/src/commands/path.mjs",
           "cli/src/commands/query.mjs",
           "cli/src/commands/rename.mjs",
+          "cli/src/commands/similar.mjs",
           "cli/src/commands/validate.mjs",
+          "cli/src/commands/workspace-brief.mjs",
           "cli/src/index.mjs",
-          "cli/src/lib/mcp-call.mjs"
+          "cli/src/lib/cli-args.mjs",
+          "cli/src/lib/cli-commands.mjs",
+          "cli/src/lib/mcp-call.mjs",
+          "cli/src/lib/mcp-metadata.mjs",
+          "cli/src/lib/resolve-vault.mjs",
+          "scripts/check-package-contracts.mjs",
+          "scripts/check-package-contracts.test.mjs",
+          "scripts/smoke-clean-onboarding.mjs",
+          "scripts/smoke-packed-cli.mjs"
         ],
         "relates": [
           "capabilities/mcp-server",
@@ -4588,9 +4652,9 @@
           "slug": "회귀-차단"
         }
       ],
-      "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령 추가 — 총 16 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | What it does | ||| | ohmyontology init [folder] | S",
-      "wordCount": 804,
-      "updatedAt": "2026-05-12T15:58:45.724Z",
+      "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령, compile, 그리고 설치된 MCP surface 를 확인하는 mcpverify 명령 추가 — 총 26 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | W",
+      "wordCount": 1803,
+      "updatedAt": "2026-05-16T07:16:03.937Z",
       "linksOut": []
     },
     {
@@ -4684,13 +4748,20 @@
         "title": "MCP Server (23 tools)",
         "domain": "ai-agent-partner",
         "elements": [
+          "mcp/scripts/json-rpc-lines.mjs",
+          "mcp/scripts/verify.mjs",
           "mcp/src/analyze.mjs",
           "mcp/src/index.js",
           "mcp/src/infer-imports.mjs",
+          "mcp/src/integration.test.mjs",
+          "mcp/src/json-rpc-lines.test.mjs",
           "mcp/src/ontology-compiler.mjs",
           "mcp/src/ontology-engine.mjs",
           "mcp/src/parser.mjs",
-          "mcp/src/vault.mjs"
+          "mcp/src/vault.mjs",
+          "mcp/src/verify-script.test.mjs",
+          "scripts/dogfood-mcp-walk.mjs",
+          "scripts/dogfood-mcp-walk.test.mjs"
         ],
         "relates": [
           "capabilities/frontmatter-to-ontology",
@@ -4704,9 +4775,9 @@
           "slug": "mcp-server-23-tools"
         }
       ],
-      "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing 은 partial result) | | ",
-      "wordCount": 775,
-      "updatedAt": "2026-05-13T03:23:15.486Z",
+      "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing/invalid slug row 는 par",
+      "wordCount": 2229,
+      "updatedAt": "2026-05-16T07:16:09.907Z",
       "linksOut": []
     },
     {
@@ -4782,6 +4853,46 @@
       "wordCount": 258,
       "updatedAt": "2026-05-09T07:33:36.812Z",
       "linksOut": []
+    },
+    {
+      "slug": "ontology/capabilities/ontology-extract-skill",
+      "path": "docs/ontology/capabilities/ontology-extract-skill.md",
+      "title": "Ontology-Extract Skill (.claude/skills/ontology-extract)",
+      "tags": [],
+      "frontmatter": {
+        "slug": "capabilities/ontology-extract-skill",
+        "kind": "capability",
+        "title": "Ontology-Extract Skill (.claude/skills/ontology-extract)",
+        "domain": "ai-agent-partner",
+        "elements": [
+          ".claude/skills/ontology-extract/SKILL.md"
+        ]
+      },
+      "headings": [
+        {
+          "depth": 2,
+          "text": "다른 두 skill 과의 관계",
+          "slug": "다른-두-skill-과의-관계"
+        },
+        {
+          "depth": 2,
+          "text": "Workflow 핵심",
+          "slug": "workflow-핵심"
+        },
+        {
+          "depth": 2,
+          "text": "가치 지점",
+          "slug": "가치-지점"
+        }
+      ],
+      "excerpt": "prose (회의록 · PR 본문 · RFC 초안 · 채팅 로그 · Notion 한 단락) 에서 ontology 가 자라는 흐름. Obsidian 처럼 [[link]] 만 자라는 게 아니라 typed ontology 노드 (capability / element / domain) 가 자란다 — LLM 이 매개라서 가능한 path. | Skill | 입력 | 출력 | |||| | [[capabilities/ontologybootstrapskill]] | 빈 vault + 코드 (analyzerepostructure) | 첫 5–15 노드 | | [[capabilities",
+      "wordCount": 281,
+      "updatedAt": "2026-05-14T14:16:24.460Z",
+      "linksOut": [
+        "link",
+        "capabilities/ontology-bootstrap-skill",
+        "capabilities/ontology-sync-skill"
+      ]
     },
     {
       "slug": "ontology/capabilities/ontology-hub-mode-aware",
@@ -5040,7 +5151,8 @@
         "domain": "vault-local-first",
         "elements": [
           "scripts/validate-vault.mjs",
-          "src/shared/lib/validate-vault-document.ts"
+          "src/shared/lib/validate-vault-document.ts",
+          "tests/contract/frontmatter-writer.contract.test.ts"
         ],
         "relates": [
           "capabilities/frontmatter-to-ontology",
@@ -5062,11 +5174,16 @@
           "depth": 2,
           "text": "issue codes",
           "slug": "issue-codes"
+        },
+        {
+          "depth": 2,
+          "text": "Drift contracts",
+          "slug": "drift-contracts"
         }
       ],
       "excerpt": "frontmatter parser 가 lenient bydesign — 닫힘 빠짐 / 빈 키 / 잘못된 들여쓰기에서 조용히 빈 frontmatter 반환. 사용자가 .md 잘못 작성하면 노드가 graph 에서 조용히 사라짐. R11 에서 이 silent corruption 을 가시화. 1. CLI — pnpm vault:validate [vaultPath] validateVaultDocument(raw) — frontmatter corruption + graph array canonicality issue codes error 1+ 시 exit 1 (CI 게이트 가능",
-      "wordCount": 223,
-      "updatedAt": "2026-05-12T16:08:26.043Z",
+      "wordCount": 256,
+      "updatedAt": "2026-05-16T01:03:05.994Z",
       "linksOut": []
     },
     {
@@ -5082,6 +5199,7 @@
           "mcp-conflict-guard",
           "mcp-server",
           "ontology-bootstrap-skill",
+          "ontology-extract-skill",
           "ontology-sync-skill",
           "session-start-ontology-context"
         ],
@@ -5106,7 +5224,7 @@
       ],
       "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 23 도구 (read 15 + write 8) 를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출.",
       "wordCount": 49,
-      "updatedAt": "2026-05-12T22:30:18.750Z",
+      "updatedAt": "2026-05-14T14:16:24.461Z",
       "linksOut": []
     },
     {
@@ -5260,6 +5378,7 @@
         "kind": "domain",
         "title": "Views (Topology · Browse · Builder)",
         "capabilities": [
+          "builder-canvas-polish",
           "builder-vault-write",
           "ontology-hub-mode-aware",
           "topology-sigma-render"
@@ -5287,7 +5406,7 @@
       ],
       "excerpt": "같은 ontology 그래프의 세 출구. 토폴로지 (Sigma + ForceAtlas2 spatial network), 둘러보기 (/ontology 트리 계층 + ego graph + 노드 detail), 빌더 (xyflow ERD canvas + md 내보내기). 검색 — ⌘K 프로젝트 / ⇧⌘K 노드+프로젝트 통합.",
       "wordCount": 38,
-      "updatedAt": "2026-05-12T15:58:45.730Z",
+      "updatedAt": "2026-05-14T14:16:24.461Z",
       "linksOut": []
     },
     {
@@ -5476,9 +5595,9 @@
           "slug": "갱신"
         }
       ],
-      "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 총 26 노드. 정확한 census 는 ohmyontology list 또는 mcp listkinds 호출. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 23 도구 (read 15 + write 8): read — listcon",
+      "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 총 28 노드. 정확한 census 는 ohmyontology list 또는 mcp listkinds 호출. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 23 도구 (read 15 + write 8): read — listcon",
       "wordCount": 270,
-      "updatedAt": "2026-05-12T22:30:07.207Z",
+      "updatedAt": "2026-05-16T07:38:39.881Z",
       "linksOut": []
     },
     {
@@ -5650,8 +5769,8 @@
         }
       ],
       "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. One codebase, one ontology, tha",
-      "wordCount": 1799,
-      "updatedAt": "2026-05-12T22:29:48.702Z",
+      "wordCount": 1804,
+      "updatedAt": "2026-05-15T23:34:29.074Z",
       "linksOut": []
     },
     {
@@ -5742,9 +5861,9 @@
           "slug": "one-line-summary"
         }
       ],
-      "excerpt": "This project publishes two npm packages: | Package | Path | What | Required? | ||||| | ohmyontologymcp | mcp/ | MCP server (AI agents read/write the vault) | Required — the core of the AI agent integration | | ohmyontology | cli/ | init CLI (vault scaffold) | Optional — the web workbench's scaffold button does the same",
-      "wordCount": 962,
-      "updatedAt": "2026-05-12T22:29:52.167Z",
+      "excerpt": "This project publishes two npm packages: | Package | Path | What | Required? | ||||| | ohmyontologymcp | mcp/ | MCP server (AI agents read/write the vault) | Required — the core of the AI agent integration | | ohmyontology | cli/ | 25command developer CLI (vault scaffold, bootstrap, compile, graph CRUD/deep dive) | Rec",
+      "wordCount": 1143,
+      "updatedAt": "2026-05-16T00:24:02.577Z",
       "linksOut": []
     },
     {
@@ -6064,6 +6183,34 @@
         "context": "# Benchmark run — 2026-05-04 — Codex CLI > Companion to **[`2026-05-04-claude-code.md`]**. > Same 7 tasks, same rubric, different agent stack. ## Setup - **Repo HEAD**: post PR #130–#133 merge - **Vault**: 2",
         "linkText": "`2026-05-04-claude-code.md`"
       }
+    ],
+    "capabilities/builder-vault-write": [
+      {
+        "fromSlug": "ontology/capabilities/builder-canvas-polish",
+        "context": "-out-quint 으로 슬라이드 - **항상 visible port** — 연결 핸들 10px indigo ring 항상 노출, hover 시 단계적 enlarge + crosshair cursor ## 관련 **[capabilities/builder-vault-write]** — 빌더 캔버스의 vault 진실원 갱신 surface (이 polish 가 *시각/도구* 라면 builder-vault-write 는 *데이터 쓰기*). 같은 코드 베이스 안. ## 단위 테스트 - `alig",
+        "linkText": "capabilities/builder-vault-write"
+      }
+    ],
+    "link": [
+      {
+        "fromSlug": "ontology/capabilities/ontology-extract-skill",
+        "context": "prose (회의록 · PR 본문 · RFC 초안 · 채팅 로그 · Notion 한 단락) 에서 ontology 가 자라는 흐름. Obsidian 처럼 `**[link]**` 만 자라는 게 아니라 *typed ontology 노드* (capability / element / domain) 가 자란다 — LLM 이 매개라서 가능한 path. ## 다른 두 skill 과의 관계 | S",
+        "linkText": "link"
+      }
+    ],
+    "capabilities/ontology-bootstrap-skill": [
+      {
+        "fromSlug": "ontology/capabilities/ontology-extract-skill",
+        "context": "(capability / element / domain) 가 자란다 — LLM 이 매개라서 가능한 path. ## 다른 두 skill 과의 관계 | Skill | 입력 | 출력 | |---|---|---| | **[capabilities/ontology-bootstrap-skill]** | 빈 vault + 코드 (analyze_repo_structure) | 첫 5–15 노드 | | [[capabilities/ontology-sync-skill]] | code change (git diff) |",
+        "linkText": "capabilities/ontology-bootstrap-skill"
+      }
+    ],
+    "capabilities/ontology-sync-skill": [
+      {
+        "fromSlug": "ontology/capabilities/ontology-extract-skill",
+        "context": "출력 | |---|---|---| | [[capabilities/ontology-bootstrap-skill]] | 빈 vault + 코드 (analyze_repo_structure) | 첫 5–15 노드 | | **[capabilities/ontology-sync-skill]** | code change (git diff) | 코드↔vault drift 0 | | **이 skill** | **사용자 prose** | **prose 안 개념 → vault 노드** | bootstrap 은",
+        "linkText": "capabilities/ontology-sync-skill"
+      }
     ]
   },
   "tags": {
@@ -6308,6 +6455,13 @@
             "type": "dir",
             "children": [
               {
+                "name": "builder-canvas-polish",
+                "path": "ontology/capabilities/builder-canvas-polish",
+                "type": "doc",
+                "slug": "ontology/capabilities/builder-canvas-polish",
+                "title": "Builder Canvas Polish (n8n routing + 도메인 tint + 정렬 toolbar)"
+              },
+              {
                 "name": "builder-vault-write",
                 "path": "ontology/capabilities/builder-vault-write",
                 "type": "doc",
@@ -6319,7 +6473,7 @@
                 "path": "ontology/capabilities/cli-developer-entry",
                 "type": "doc",
                 "slug": "ontology/capabilities/cli-developer-entry",
-                "title": "CLI Developer Entry (16 commands incl. bootstrap)"
+                "title": "CLI Developer Entry (26 commands — vault + MCP verify + graph deep dive)"
               },
               {
                 "name": "frontmatter-to-ontology",
@@ -6355,6 +6509,13 @@
                 "type": "doc",
                 "slug": "ontology/capabilities/ontology-bootstrap-skill",
                 "title": "Ontology-Bootstrap Skill (.claude/skills/ontology-bootstrap)"
+              },
+              {
+                "name": "ontology-extract-skill",
+                "path": "ontology/capabilities/ontology-extract-skill",
+                "type": "doc",
+                "slug": "ontology/capabilities/ontology-extract-skill",
+                "title": "Ontology-Extract Skill (.claude/skills/ontology-extract)"
               },
               {
                 "name": "ontology-hub-mode-aware",

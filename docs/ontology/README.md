@@ -15,11 +15,11 @@ title: oh-my-ontology — 자기 ontology vault
 docs/ontology/
 ├── project.md            — root project 노드 (oh-my-ontology)
 ├── domains/              — 도메인 6개 (vault, ontology-core, views, ai-agent-partner, mode-aware-adapters, onboarding-ux)
-├── capabilities/         — capability 14개 (frontmatter → ontology, mode-aware adapter, mcp-server, cli-developer-entry …)
+├── capabilities/         — capability 16개 (frontmatter → ontology, mode-aware adapter, mcp-server, cli-developer-entry …)
 └── elements/             — element 4개 (코드 디렉토리 / 라이브러리)
 ```
 
-총 26 노드. 정확한 census 는 `oh-my-ontology list` 또는 mcp `list_kinds` 호출.
+총 28 노드. 정확한 census 는 `oh-my-ontology list` 또는 mcp `list_kinds` 호출.
 
 ## 사용
 
