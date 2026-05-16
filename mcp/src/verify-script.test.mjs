@@ -38,6 +38,7 @@ import {
   projectMapQueryPlanFailure,
   projectScopeFailure,
   serverStartupFailure,
+  strictArgsFailure,
   toolsListSchemaFailure,
   validationCodeSummary,
   validateVaultFailure,
@@ -284,6 +285,26 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(parseVerifyTimeoutMs('15000'), 15000);
   });
 
+  it('fails malformed strict argument smoke responses', () => {
+    assert.equal(
+      strictArgsFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"?' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictArgsFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict arguments response was not rejected',
+    );
+    assert.equal(
+      strictArgsFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict arguments response did not report the unknown list_concepts argument',
+    );
+  });
+
   it('rejects partial or non-positive verify timeout env values', () => {
     assert.equal(parseVerifyTimeoutMs('1000ms'), false);
     assert.equal(parseVerifyTimeoutMs('0'), false);
@@ -306,7 +327,7 @@ describe('verify.mjs first-contact gates', () => {
   it('detects when all first-contact JSON-RPC responses arrived', () => {
     assert.equal(
       hasAllFirstContactResponses(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
           .map((id) => JSON.stringify({ jsonrpc: '2.0', id, result: {} }))
           .join('\n'),
       ),
@@ -335,6 +356,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(13), 'neighbors');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(14), 'path');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(15), 'project_scope');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(16), 'strict_args');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

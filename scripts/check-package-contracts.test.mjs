@@ -70,6 +70,7 @@ describe('package contract helpers', () => {
 
     assert.match(verifySection, /list_concepts\/get_concepts\/list_kinds/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ graph-query enums/);
+    assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial rows/);
     assert.match(verifySection, /✓ list_kinds/);
     assert.match(verifySection, /✓ workspace_brief — healthy \(28 nodes, nextActions 0, healthChecks 5\)/);
@@ -88,6 +89,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /same 50-row cap used by `get_concepts`, `add_concepts`,\s+and `add_relations`/);
     assert.match(verifySection, /write-safety schemas for `expected_mtime`/);
     assert.match(verifySection, /destructive-tool `confirm` dry-run switches/);
+    assert.match(verifySection, /runtime negative call with `list_concepts\.lmit`/);
     assert.match(verifySection, /project-less vaults skip/);
     assert.match(verifySection, /Empty vaults skip node-targeted graph smoke/);
     assert.match(verifySection, /`list_kinds` \/ `compile_ontology` \/ `overview`\s+census shape\/count mismatches/);
@@ -120,6 +122,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /graph engine runtime allow-lists/);
     assert.match(verifySection, /batch tools must keep their 50-row caps/);
     assert.match(verifySection, /write tools must keep their `expected_mtime` \/ `confirm` safety schemas/);
+    assert.match(verifySection, /runtime negative smoke call with invalid `list_concepts\.lmit` arguments/);
   });
 
   it('keeps the CLI README explicit about mcp-verify help scope', () => {
@@ -129,6 +132,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /mcp-verify --help/);
     assert.match(verifySection, /graph-query smoke contract/);
     assert.match(verifySection, /`tools\/list` schema contract/);
+    assert.match(verifySection, /runtime negative smoke with an invalid `list_concepts\.lmit`/);
     assert.match(verifySection, /Batch tool caps/);
     assert.match(verifySection, /Write-safety schema/);
     assert.match(verifySection, /get_concepts/);

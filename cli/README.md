@@ -53,6 +53,9 @@ commands do, then delegates to `oh-my-ontology-mcp/scripts/verify.mjs`.
 to stdout, so CLI users can inspect the verify scope without starting a server.
 The delegated verifier also checks the installed `tools/list` schema contract,
 including strict unknown-argument rejection and graph-query operation enums.
+It also performs a runtime negative smoke with an invalid `list_concepts.lmit`
+argument, so CLI users catch schema/runtime strictness drift in the installed
+MCP package.
 Batch tool caps for `get_concepts`, `add_concepts`, and `add_relations` are
 checked against the runtime 50-row contract too.
 Write-safety schema for `expected_mtime` conflict guards and destructive

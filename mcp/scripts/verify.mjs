@@ -12,7 +12,7 @@
  * 검증 항목:
  *   1. parser smoke test (parser.test.mjs) 통과
  *   2. server boot — initialize JSON-RPC 응답
- *   3. tools/list — 23 도구 모두 노출 + graph-query enum schema contract
+ *   3. tools/list — 23 도구 모두 노출 + graph-query enum schema contract + strict argument runtime smoke
  *   4. tools/call list_concepts — vault 노드 수 출력
  *   5. tools/call get_concepts — batch reader success + partial-row contract
  *   6. tools/call list_kinds — kind census aggregate
@@ -168,6 +168,17 @@ export function toolsListSchemaFailure(tools) {
   return null;
 }
 
+export function strictArgsFailure(response) {
+  if (response?.result?.isError !== true) {
+    return 'strict arguments response was not rejected';
+  }
+  const text = response.result.content?.[0]?.text || '';
+  if (!/Unknown argument "lmit" for list_concepts/i.test(text)) {
+    return 'strict arguments response did not report the unknown list_concepts argument';
+  }
+  return null;
+}
+
 export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [1, 'initialize'],
   [2, 'tools/list'],
@@ -184,6 +195,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [13, 'neighbors'],
   [14, 'path'],
   [15, 'project_scope'],
+  [16, 'strict_args'],
 ]);
 
 function log(level, msg) {
@@ -299,6 +311,12 @@ export function buildFirstContactRequests() {
       id: 12,
       method: 'tools/call',
       params: { name: 'query_ontology', arguments: { operation: 'query_plan', targetOperation: 'project_map' } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 16,
+      method: 'tools/call',
+      params: { name: 'list_concepts', arguments: { lmit: 1 } },
     },
   ];
 }
@@ -1105,6 +1123,7 @@ async function step2BootAndCall() {
       const neighborsRes = responses.find((r) => r.id === 13);
       const pathRes = responses.find((r) => r.id === 14);
       const projectScopeRes = responses.find((r) => r.id === 15);
+      const strictArgsRes = responses.find((r) => r.id === 16);
       let kindsPayload = null;
       let listPayload = null;
       let validationPayload = null;
@@ -1152,6 +1171,12 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', 'tools/list schema contract — strict arguments + graph-query enums');
+      const strictFailure = strictArgsFailure(strictArgsRes);
+      if (strictFailure) {
+        log('fail', strictFailure);
+        return res(false);
+      }
+      log('ok', 'strict arguments — unknown tool argument rejected at runtime');
 
       if (!callRes || !callRes.result) {
         log('fail', 'no list_concepts response');
