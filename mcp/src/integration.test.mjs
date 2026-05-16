@@ -244,6 +244,23 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       "query_ontology exposes bounded iterations schema",
     );
     assert.deepEqual(
+      {
+        type: findTool("query_ontology")?.inputSchema?.properties?.limit?.type,
+        minimum: findTool("query_ontology")?.inputSchema?.properties?.limit?.minimum,
+        maximum: findTool("query_ontology")?.inputSchema?.properties?.limit?.maximum,
+        depthMaximum: findTool("query_ontology")?.inputSchema?.properties?.depth?.maximum,
+        maxHopsMaximum: findTool("query_ontology")?.inputSchema?.properties?.maxHops?.maximum,
+      },
+      {
+        type: "integer",
+        minimum: 1,
+        maximum: 500,
+        depthMaximum: 20,
+        maxHopsMaximum: 20,
+      },
+      "query_ontology exposes runtime numeric caps in schema",
+    );
+    assert.deepEqual(
       findTool("query_ontology")?.inputSchema?.properties?.targetOperation?.enum,
       [
         "neighbors",
@@ -1394,10 +1411,15 @@ await test("MCP read/query tools — invalid numeric and direction options are r
         operation: "match_nodes",
         hasIncoming: "false",
       }),
+      callTool(28, "query_ontology", { operation: "overview", limit: 501 }),
+      callTool(29, "query_ontology", { operation: "components", nodeLimit: 501 }),
+      callTool(30, "query_ontology", { operation: "project_map", itemLimit: 501 }),
+      callTool(31, "query_ontology", { operation: "reachability", slug: "a", depth: 21 }),
+      callTool(32, "query_ontology", { operation: "path", from: "a", to: "b", maxHops: 21 }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-      21, 22, 23, 24, 25, 26, 27,
+      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -1427,6 +1449,11 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 25).result.content[0].text, /includeExternal must be a boolean/i);
     assert.match(responses.find((r) => r.id === 26).result.content[0].text, /executableOnly must be a boolean/i);
     assert.match(responses.find((r) => r.id === 27).result.content[0].text, /hasIncoming must be a boolean/i);
+    assert.match(responses.find((r) => r.id === 28).result.content[0].text, /limit must be <= 500/i);
+    assert.match(responses.find((r) => r.id === 29).result.content[0].text, /nodeLimit must be <= 500/i);
+    assert.match(responses.find((r) => r.id === 30).result.content[0].text, /itemLimit must be <= 500/i);
+    assert.match(responses.find((r) => r.id === 31).result.content[0].text, /depth must be <= 20/i);
+    assert.match(responses.find((r) => r.id === 32).result.content[0].text, /maxHops must be <= 20/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

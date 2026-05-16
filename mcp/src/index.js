@@ -840,11 +840,13 @@ const TOOLS = [
         depth: {
           type: 'integer',
           minimum: 0,
+          maximum: 20,
           description: 'reachability/impact/blast_radius/subgraph/lineage/containment_tree traversal depth. Defaults to 3 for reachability, 2 for impact/blast_radius/subgraph, and 20 for lineage/containment_tree; capped at 20.',
         },
         maxHops: {
           type: 'integer',
           minimum: 0,
+          maximum: 20,
           description: 'path/all_paths/explain_relation traversal hop cap or cycles max depth. Defaults to 5 for path/all_paths/explain_relation and 8 for cycles; capped at 20.',
         },
         includeExternal: {
@@ -898,16 +900,19 @@ const TOOLS = [
         limit: {
           type: 'integer',
           minimum: 1,
+          maximum: 500,
           description: 'Positive integer max rows/components/order entries to return. Defaults to 100, capped at 500.',
         },
         nodeLimit: {
           type: 'integer',
           minimum: 1,
+          maximum: 500,
           description: 'components/communities only: positive integer max node summaries per group. Defaults to 25, capped at 500.',
         },
         itemLimit: {
           type: 'integer',
           minimum: 1,
+          maximum: 500,
           description:
             'project_map only: positive integer max capability/element/hotspot summaries per domain. Defaults to 20, capped at 500.',
         },
@@ -1205,10 +1210,13 @@ function requireOptionalNonNegativeNumber(value, name) {
   }
 }
 
-function requireOptionalNonNegativeInteger(value, name) {
+function requireOptionalNonNegativeInteger(value, name, options = {}) {
   if (value === undefined) return;
   if (!Number.isInteger(value) || value < 0) {
     throw new Error(`${name} must be a non-negative integer.`);
+  }
+  if (options.max !== undefined && value > options.max) {
+    throw new Error(`${name} must be <= ${options.max}.`);
   }
 }
 
@@ -1998,12 +2006,12 @@ function validateQueryOntologyArgs(args = {}) {
     'cycleLimit',
     'recommendationLimit',
     'orderLimit',
-    'iterations',
   ]) {
-    requireOptionalPositiveInteger(args[key], key, key === 'iterations' ? { max: 100 } : {});
+    requireOptionalPositiveInteger(args[key], key, { max: 500 });
   }
-  requireOptionalNonNegativeInteger(args.maxHops, 'maxHops');
-  requireOptionalNonNegativeInteger(args.depth, 'depth');
+  requireOptionalPositiveInteger(args.iterations, 'iterations', { max: 100 });
+  requireOptionalNonNegativeInteger(args.maxHops, 'maxHops', { max: 20 });
+  requireOptionalNonNegativeInteger(args.depth, 'depth', { max: 20 });
   requireOptionalDirection(args.direction, 'direction', ['incoming', 'outgoing', 'both', 'undirected']);
   for (const key of [
     'includeExternal',
