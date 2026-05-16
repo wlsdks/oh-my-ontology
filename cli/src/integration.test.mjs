@@ -216,6 +216,9 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.match(clean, /workspace_brief advisory nextActions/);
     assert.match(clean, /compile_issues:warn/);
     assert.match(clean, /health/);
+    assert.match(clean, /compile_ontology/);
+    assert.match(clean, /overview/);
+    assert.match(clean, /overview query_plan/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
