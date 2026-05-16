@@ -54,6 +54,15 @@ describe('package contract helpers', () => {
     assert.match(validateVaultRow, /first-contact before writes/);
   });
 
+  it('keeps the MCP README explicit about get_concepts partial rows', () => {
+    const readme = readFileSync('mcp/README.md', 'utf-8');
+    const row = readme.split('| `get_concepts` |')[1]?.split('\n')[0] ?? '';
+
+    assert.match(row, /Missing or invalid slug rows return/);
+    assert.match(row, /rather than aborting the batch/);
+    assert.match(row, /later valid slugs still resolve/);
+  });
+
   it('keeps the MCP verify README aligned with first-contact census gates', () => {
     const readme = readFileSync('mcp/README.md', 'utf-8');
     const verifySection = readme.split('### One-line verify CLI')[1]?.split('### Manual verification')[0] ?? '';

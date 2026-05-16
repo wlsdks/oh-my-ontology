@@ -15,7 +15,7 @@ relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 |---|---|
 | `list_concepts` | vault 의 모든 노드 (kind 필터) |
 | `get_concept` | 단일 slug 의 frontmatter + body excerpt + graph neighbors + `outgoingEdges[]` |
-| `get_concepts` | **R+** 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing 은 partial result) |
+| `get_concepts` | **R+** 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, missing/invalid slug row 는 partial result 로 격리) |
 | `find_evidence` | title 부분매칭으로 vault 문서 검색 |
 | `find_backlinks` | 특정 slug 를 가리키는 다른 노드들 (frontmatter array 키 + body wikilink/mdlink) |
 | `find_neighbors` | 특정 slug 주변 one-hop graph subgraph 조회 (incoming/outgoing/both, relation filter, neighbor summary) |
