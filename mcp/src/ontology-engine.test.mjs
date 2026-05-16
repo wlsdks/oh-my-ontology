@@ -228,6 +228,16 @@ describe('queryCompiledOntology', () => {
       maxHops: 3,
     });
     assert.equal(allPathsPlan.normalized.limit, 25);
+
+    const projectMapPlan = queryCompiledOntology(artifact(), {
+      operation: 'query_plan',
+      targetOperation: 'project_map',
+      limit: 5,
+    });
+    assert.equal(projectMapPlan.operation, 'query_plan');
+    assert.equal(projectMapPlan.targetOperation, 'project_map');
+    assert.equal(projectMapPlan.estimate.strategy, 'aggregate_scan');
+    assert.deepEqual(projectMapPlan.indexesUsed, ['compiled_artifact']);
   });
 
   it('ranks graph centrality for core nodes and bridges', () => {

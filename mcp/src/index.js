@@ -722,7 +722,7 @@ const TOOLS = [
           ...NON_BLANK_STRING_SCHEMA,
           enum: QUERY_PLAN_TARGET_OPERATIONS,
           description:
-            'query_plan only: operation to explain before execution, e.g. path, all_paths, reachability, impact, subgraph, match_nodes, or match_edges.',
+            'query_plan only: read-only graph operation to explain before execution. Supports every query_ontology operation except query_plan itself.',
         },
         iterations: {
           type: 'integer',
