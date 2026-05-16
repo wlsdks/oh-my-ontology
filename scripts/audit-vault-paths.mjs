@@ -14,7 +14,7 @@
 //
 // exit 1 if drift, 0 if clean — CI gateable.
 
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { parseFrontmatter } from "./lib/parse-frontmatter.mjs";
 
@@ -69,8 +69,16 @@ if (!existsSync(VAULT)) {
   process.stderr.write(`Vault path does not exist: ${VAULT}\n`);
   process.exit(2);
 }
+if (!statSync(VAULT).isDirectory()) {
+  process.stderr.write(`Vault path is not a directory: ${VAULT}\n`);
+  process.exit(2);
+}
 if (!existsSync(REPO)) {
   process.stderr.write(`Repo path does not exist: ${REPO}\n`);
+  process.exit(2);
+}
+if (!statSync(REPO).isDirectory()) {
+  process.stderr.write(`Repo path is not a directory: ${REPO}\n`);
   process.exit(2);
 }
 

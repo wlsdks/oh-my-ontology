@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -46,7 +48,37 @@ describe("audit-vault-paths script arguments", () => {
       encoding: "utf8",
     });
     assert.equal(missing.status, 2);
+    assert.equal(missing.stdout, "");
     assert.match(missing.stderr, /Vault path does not exist:/);
     assert.doesNotMatch(missing.stderr, /at async|at Object/);
+  });
+
+  it("rejects non-directory vault and repo paths before scanning", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omot-audit-vault-"));
+    const file = join(dir, "not-a-dir.md");
+
+    try {
+      writeFileSync(file, "not a directory\n");
+
+      const vaultFile = spawnSync(process.execPath, [SCRIPT, file, "."], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+      assert.equal(vaultFile.status, 2);
+      assert.equal(vaultFile.stdout, "");
+      assert.match(vaultFile.stderr, /Vault path is not a directory:/);
+      assert.doesNotMatch(vaultFile.stderr, /at async|at Object|drift/);
+
+      const repoFile = spawnSync(process.execPath, [SCRIPT, "docs/ontology", file], {
+        cwd: ROOT,
+        encoding: "utf8",
+      });
+      assert.equal(repoFile.status, 2);
+      assert.equal(repoFile.stdout, "");
+      assert.match(repoFile.stderr, /Repo path is not a directory:/);
+      assert.doesNotMatch(repoFile.stderr, /at async|at Object|drift/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
