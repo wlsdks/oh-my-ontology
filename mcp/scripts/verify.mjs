@@ -265,6 +265,32 @@ export function compileSummaryFailure(parsed) {
   return null;
 }
 
+export function verifyCountConsistencyFailure({ list, validation, compiled }) {
+  if (
+    (list && listConceptsFailure(list)) ||
+    (validation && validateVaultFailure(validation)) ||
+    (compiled && compileSummaryFailure(compiled))
+  ) {
+    return null;
+  }
+
+  const counts = [
+    ['list_concepts.total', list?.total],
+    ['validate_vault.scanned', validation?.scanned],
+    ['compile_ontology.nodeCount', compiled?.nodeCount],
+  ].filter(([, value]) => Number.isInteger(value));
+
+  if (counts.length <= 1) return null;
+
+  const [baseLabel, baseValue] = counts[0];
+  for (const [label, value] of counts.slice(1)) {
+    if (value !== baseValue) {
+      return `verify count mismatch — ${baseLabel} ${baseValue}, ${label} ${value}`;
+    }
+  }
+  return null;
+}
+
 export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   if (parsed?.operation !== expectedOperation) {
     return `${label} returned unexpected operation: ${parsed?.operation}`;
@@ -474,6 +500,9 @@ async function step2BootAndCall() {
       const briefRes = responses.find((r) => r.id === 5);
       const healthRes = responses.find((r) => r.id === 6);
       const compileRes = responses.find((r) => r.id === 7);
+      let listPayload = null;
+      let validationPayload = null;
+      let compilePayload = null;
       const missingResponses = [
         ['initialize', initRes],
         ['tools/list', listRes],
@@ -534,6 +563,7 @@ async function step2BootAndCall() {
           log('fail', failure);
           return res(false);
         }
+        listPayload = parsed;
         log('ok', `list_concepts — vault total ${parsed.total} nodes (vaultRoot ${parsed.vaultRoot})`);
         if (parsed.total === 0) {
           log('info', 'Warning: vault is empty. Make sure OMOT_VAULT points to the right folder (e.g. ./docs/ontology)');
@@ -555,6 +585,7 @@ async function step2BootAndCall() {
           log('fail', failure);
           return res(false);
         }
+        validationPayload = parsed;
         log('ok', `validate_vault — ${parsed.scanned ?? 0} files, problemFiles ${parsed.summary?.problemFiles ?? 0}`);
       } catch (err) {
         log('fail', `failed to parse validate_vault response: ${err.message}`);
@@ -611,7 +642,17 @@ async function step2BootAndCall() {
           log('fail', failure);
           return res(false);
         }
+        compilePayload = parsed;
         log('ok', `compile_ontology — graph ${parsed.graphHash.slice(0, 12)} (${parsed.nodeCount} nodes, ${parsed.edgeCount} edges, issues ${parsed.issueCount})`);
+        const countFailure = verifyCountConsistencyFailure({
+          list: listPayload,
+          validation: validationPayload,
+          compiled: compilePayload,
+        });
+        if (countFailure) {
+          log('fail', countFailure);
+          return res(false);
+        }
         res(true);
       } catch (err) {
         log('fail', `failed to parse compile_ontology response: ${err.message}`);

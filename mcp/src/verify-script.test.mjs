@@ -22,6 +22,7 @@ import {
   serverStartupFailure,
   validationCodeSummary,
   validateVaultFailure,
+  verifyCountConsistencyFailure,
   verifyTimeoutFailure,
   vaultWarningsFailure,
 } from '../scripts/verify.mjs';
@@ -273,6 +274,80 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       compileSummaryFailure({ ...clean, edgeCount: 3, resolvedEdgeCount: 1, externalEdgeCount: 1 }),
       'compile_ontology response edge counts do not cover edgeCount',
+    );
+  });
+
+  it('fails when verify read surfaces disagree on node counts', () => {
+    const list = {
+      total: 1,
+      vaultRoot: '/tmp/vault',
+      nodes: [{ slug: 'project', kind: 'project', title: 'Project', mtime: 1 }],
+    };
+    const validation = {
+      scanned: 1,
+      summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: {} },
+    };
+    const compiled = {
+      version: 1,
+      graphHash: 'abc123',
+      maxMtime: 1,
+      nodeCount: 1,
+      edgeCount: 2,
+      resolvedEdgeCount: 1,
+      externalEdgeCount: 1,
+      unresolvedEdgeCount: 0,
+      aliasCount: 1,
+      ambiguousAliasCount: 0,
+      issueCount: 0,
+      canonicalizationActionCount: 0,
+      byKind: { project: 1 },
+      byDomain: {},
+    };
+
+    assert.equal(verifyCountConsistencyFailure({ list, validation, compiled }), null);
+    assert.equal(
+      verifyCountConsistencyFailure({ list: { ...list, total: 2 }, validation, compiled }),
+      'verify count mismatch — list_concepts.total 2, validate_vault.scanned 1',
+    );
+    assert.equal(
+      verifyCountConsistencyFailure({ list, validation: { ...validation, scanned: 2 }, compiled }),
+      'verify count mismatch — list_concepts.total 1, validate_vault.scanned 2',
+    );
+    assert.equal(
+      verifyCountConsistencyFailure({ list, validation, compiled: { ...compiled, nodeCount: 2, byKind: { project: 2 } } }),
+      'verify count mismatch — list_concepts.total 1, compile_ontology.nodeCount 2',
+    );
+  });
+
+  it('skips verify count comparison when a source payload is malformed', () => {
+    const validation = {
+      scanned: 1,
+      summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: {} },
+    };
+    const compiled = {
+      version: 1,
+      graphHash: 'abc123',
+      maxMtime: 1,
+      nodeCount: 1,
+      edgeCount: 2,
+      resolvedEdgeCount: 1,
+      externalEdgeCount: 1,
+      unresolvedEdgeCount: 0,
+      aliasCount: 1,
+      ambiguousAliasCount: 0,
+      issueCount: 0,
+      canonicalizationActionCount: 0,
+      byKind: { project: 1 },
+      byDomain: {},
+    };
+
+    assert.equal(
+      verifyCountConsistencyFailure({
+        list: { total: 2, nodes: [] },
+        validation,
+        compiled,
+      }),
+      null,
     );
   });
 
