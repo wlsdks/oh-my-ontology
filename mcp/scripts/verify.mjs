@@ -52,6 +52,7 @@ const IS_MAIN = fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? ''
 const VERIFY_ARGS = parseVerifyArgs({ isMain: IS_MAIN });
 const VAULT = VERIFY_ARGS.vault;
 const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
+const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
 
@@ -1206,6 +1207,9 @@ export function verifyCountConsistencyFailure({ kinds, list, validation, compile
 export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   if (parsed?.operation !== expectedOperation) {
     return `${label} returned unexpected operation: ${parsed?.operation}`;
+  }
+  if (!DIAGNOSIS_STATUSES.has(parsed?.status)) {
+    return `${label} response malformed status`;
   }
   if (expectedOperation === 'workspace_brief' && !Array.isArray(parsed?.nextActions)) {
     return `${label} response missing nextActions array`;

@@ -243,7 +243,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /cross-checks node census totals across `list_kinds`, `list_concepts`, `compile_ontology`, and `overview`/);
     assert.match(verifySection, /keeping `validate_vault\.scanned` as file-level health/);
     assert.match(verifySection, /missing or malformed first-contact diagnosis payloads/);
-    assert.match(verifySection, /`workspace_brief\.nextActions`, `workspace_brief\.health\.checks`, `health\.checks`, tuned `workspace_brief\.health\.checks`, tuned `health\.checks`/);
+    assert.match(verifySection, /top-level `status`, `workspace_brief\.nextActions`,\s+`workspace_brief\.health\.checks`, `health\.checks`, tuned `workspace_brief\.health\.checks`, and tuned `health\.checks`/);
+    assert.match(verifySection, /top-level diagnosis `status` must be `healthy` or `needs_attention`/);
     assert.match(verifySection, /requires every `workspace_brief\.nextActions` row to include a non-empty `id` or `kind` plus `severity` in `info` \/ `warn` \/ `fail`/);
     assert.match(verifySection, /requires every health check row to include non-empty `id` plus `status` in `pass` \/ `warn` \/ `fail` \/ `info`/);
     assert.match(verifySection, /prints the validated `workspace_brief\.health\.checks` count/);

@@ -1636,6 +1636,31 @@ describe('verify.mjs first-contact gates', () => {
         'workspace_brief',
         {
           operation: 'workspace_brief',
+          health: { checks: [] },
+          nextActions: [],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response malformed status',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'ok',
+          health: { checks: [] },
+          nextActions: [],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response malformed status',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
           status: 'healthy',
           health: { checks: [] },
         },

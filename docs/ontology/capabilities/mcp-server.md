@@ -92,9 +92,10 @@ compiler summary, graph-query smoke 경로까지 확인한다. project probe 덕
 smoke 를 skip 해 첫 설치 확인이 seed 작성 전에 막히지 않게 한다. vault warning / validate problem / `fail` health check /
 fail severity `workspace_brief.nextActions` 는 exit 1 로 처리하되, starter vault 의
 권고 수준 `needs_attention` 은 출력만 하고 설치 검증은 통과시킨다.
-`workspace_brief.nextActions`, `workspace_brief.health.checks`, `health.checks`, tuned `workspace_brief.health.checks`, tuned `health.checks`
+top-level `status`, `workspace_brief.nextActions`, `workspace_brief.health.checks`, `health.checks`, tuned `workspace_brief.health.checks`, tuned `health.checks`
 같은 first-contact diagnosis payload 의 핵심 배열이 빠지거나 malformed 이면
-clean vault 로 오인하지 않고 verify 를 실패시킨다. 각 nextAction row 는
+clean vault 로 오인하지 않고 verify 를 실패시킨다. top-level diagnosis `status` 는 `healthy` 또는
+`needs_attention` 이어야 하며, 각 nextAction row 는
 비어있지 않은 `id` 또는 `kind` 와 `info` / `warn` / `fail` severity, 각 health check row 는
 비어있지 않은 `id` 와 `pass` / `warn` / `fail` / `info` status 를 가져야 해서
 malformed row 가 `unknown` advisory/coverage 로 숨지 않는다.

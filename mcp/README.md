@@ -282,8 +282,8 @@ so batch success rows and partial rows are verified during installation checks. 
 census shape/count mismatches, `validate_vault` problem files, failing health checks, or fail-severity
 `workspace_brief.nextActions` fail the command; advisory `needs_attention` states still print so starter vaults can
 verify before cleanup. Missing or malformed first-contact diagnosis payloads
-such as `workspace_brief.nextActions`, `workspace_brief.health.checks`,
-`health.checks`, tuned `workspace_brief.health.checks`, and tuned `health.checks` also fail the command instead of being treated as clean; every
+such as top-level `status`, `workspace_brief.nextActions`,
+`workspace_brief.health.checks`, `health.checks`, tuned `workspace_brief.health.checks`, and tuned `health.checks` also fail the command instead of being treated as clean; top-level diagnosis `status` must be `healthy` or `needs_attention`, every
 `workspace_brief.nextActions` row must include a non-empty `id` or `kind` plus
 `severity` in `info` / `warn` / `fail`, and every health check row must include
 non-empty `id` plus `status` in `pass` / `warn` / `fail` / `info`.
