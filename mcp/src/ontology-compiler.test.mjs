@@ -280,6 +280,28 @@ describe('compileOntology', () => {
       () => compileOntology(docs, { edgesOffset: 1.5 }),
       /edgesOffset must be a non-negative integer/,
     );
+    assert.throws(
+      () => compileOntology(docs, { nodesLimit: null }),
+      /nodesLimit must be a positive integer/,
+    );
+    assert.throws(
+      () => compileOntology(docs, { edgesOffset: null }),
+      /edgesOffset must be a non-negative integer/,
+    );
+  });
+
+  it('rejects invalid boolean options instead of treating them as false', () => {
+    const docs = ['a', 'b', 'c'].map((s) =>
+      doc(`capabilities/${s}`, { kind: 'capability' }),
+    );
+    assert.throws(
+      () => compileOntology(docs, { summary: 'true' }),
+      /summary must be a boolean/,
+    );
+    assert.throws(
+      () => compileOntology(docs, { includeIndexes: null }),
+      /includeIndexes must be a boolean/,
+    );
   });
 
   it('edgesLimit / edgesOffset slice edges independently of nodes', () => {

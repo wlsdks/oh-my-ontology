@@ -14,8 +14,8 @@ const COMPILER_VERSION = 1;
  * nextOffset }` 메타와 함께 반환. summary 가 우선 (둘 다 주면 summary 만).
  */
 export function compileOntology(docs, options = {}) {
-  const includeIndexes = options.includeIndexes === true;
-  const summary = options.summary === true;
+  const includeIndexes = optionalBoolean(options.includeIndexes, 'includeIndexes') ?? false;
+  const summary = optionalBoolean(options.summary, 'summary') ?? false;
   const nodesLimit = optionalPositiveInt(options.nodesLimit, 'nodesLimit');
   const nodesOffset = optionalNonNegativeInt(options.nodesOffset, 'nodesOffset') ?? 0;
   const edgesLimit = optionalPositiveInt(options.edgesLimit, 'edgesLimit');
@@ -223,7 +223,7 @@ export function compileOntology(docs, options = {}) {
 }
 
 function optionalNonNegativeInt(value, name) {
-  if (value === undefined || value === null) return null;
+  if (value === undefined) return null;
   if (!Number.isInteger(value) || value < 0) {
     throw new Error(`${name} must be a non-negative integer`);
   }
@@ -231,9 +231,17 @@ function optionalNonNegativeInt(value, name) {
 }
 
 function optionalPositiveInt(value, name) {
-  if (value === undefined || value === null) return null;
+  if (value === undefined) return null;
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer`);
+  }
+  return value;
+}
+
+function optionalBoolean(value, name) {
+  if (value === undefined) return null;
+  if (typeof value !== 'boolean') {
+    throw new Error(`${name} must be a boolean`);
   }
   return value;
 }
