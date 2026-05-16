@@ -17,6 +17,18 @@ const ROOT = resolve(__dirname, "..");
 const SERVER = join(ROOT, "mcp", "src", "index.js");
 const VAULT = join(ROOT, "docs", "ontology");
 
+const DOGFOOD_RESPONSE_LABELS = new Map([
+  [1, "initialize"],
+  [2, "list_kinds"],
+  [3, "list_concepts"],
+  [4, "find_evidence"],
+  [5, "find_path"],
+  [6, "find_backlinks"],
+  [7, "find_orphans"],
+  [8, "workspace_brief"],
+  [9, "health"],
+]);
+
 function rpc(requests, timeoutMs = 3000) {
   return new Promise((resolveP, rejectP) => {
     const expectedIds = expectedResponseIds(requests);
@@ -27,6 +39,7 @@ function rpc(requests, timeoutMs = 3000) {
     let stdout = "";
     let stderr = "";
     let completed = false;
+    let timedOut = false;
     let timer = null;
     proc.stdout.on("data", (b) => {
       stdout += b.toString();
@@ -40,12 +53,15 @@ function rpc(requests, timeoutMs = 3000) {
 
     const lines = requests.map((r) => JSON.stringify(r)).join("\n") + "\n";
     proc.stdin.write(lines);
-    timer = setTimeout(() => proc.kill("SIGTERM"), timeoutMs);
+    timer = setTimeout(() => {
+      timedOut = true;
+      proc.kill("SIGTERM");
+    }, timeoutMs);
 
     proc.on("close", () => {
       if (timer) clearTimeout(timer);
       const responses = parseRpcResponses(stdout);
-      resolveP({ responses, stderr });
+      resolveP({ responses, stderr, timedOut });
     });
     proc.on("error", rejectP);
   });
@@ -78,6 +94,17 @@ export function shouldFinishRpc(stdout, expectedIds) {
   if (responses.some((response) => response.error)) return true;
   const receivedIds = new Set(responses.map((response) => response.id));
   return [...expectedIds].every((id) => receivedIds.has(id));
+}
+
+export function missingResponseLabels(responses, labels = DOGFOOD_RESPONSE_LABELS) {
+  const receivedIds = new Set(responses.map((response) => response.id));
+  return [...labels]
+    .filter(([id]) => !receivedIds.has(id))
+    .map(([, label]) => label);
+}
+
+export function rpcTimeoutFailure(timeoutMs, missingLabels) {
+  return `rpc: timed out after ${timeoutMs}ms waiting for ${missingLabels.join(", ")}`;
 }
 
 const init = [
@@ -194,7 +221,8 @@ async function main() {
     call(9, "query_ontology", { operation: "health" }),
   ];
 
-  const { responses, stderr } = await rpc(requests, 5000);
+  const timeoutMs = 5000;
+  const { responses, stderr, timedOut } = await rpc(requests, timeoutMs);
 
   // 1. list_kinds
   header("list_kinds — vault census");
@@ -301,6 +329,10 @@ async function main() {
   }
 
   const failures = evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, brief, health });
+  const missingLabels = missingResponseLabels(responses);
+  if (timedOut && missingLabels.length > 0) {
+    failures.unshift(rpcTimeoutFailure(timeoutMs, missingLabels));
+  }
 
   // 분석
   header("Analysis — AI agent quality assessment");

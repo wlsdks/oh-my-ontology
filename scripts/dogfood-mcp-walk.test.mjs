@@ -5,8 +5,10 @@ import { describe, it } from "node:test";
 import {
   evaluateDogfoodGate,
   expectedResponseIds,
+  missingResponseLabels,
   parseRpcResponses,
   recordResult,
+  rpcTimeoutFailure,
   shouldFinishRpc,
 } from "./dogfood-mcp-walk.mjs";
 
@@ -64,6 +66,20 @@ describe("rpc response completion helpers", () => {
     assert.equal(shouldFinishRpc('{"id":1,"result":{}}\n', expectedIds), false);
     assert.equal(shouldFinishRpc('{"id":1,"result":{}}\n{"id":2,"result":{}}\n', expectedIds), true);
     assert.equal(shouldFinishRpc('{"id":1,"error":{"message":"bad"}}\n', expectedIds), true);
+  });
+
+  it("formats timeout failures with missing response labels", () => {
+    const labels = new Map([
+      [1, "initialize"],
+      [2, "list_kinds"],
+      [3, "list_concepts"],
+    ]);
+    const missing = missingResponseLabels([{ id: 1, result: {} }], labels);
+    assert.deepEqual(missing, ["list_kinds", "list_concepts"]);
+    assert.equal(
+      rpcTimeoutFailure(5000, missing),
+      "rpc: timed out after 5000ms waiting for list_kinds, list_concepts",
+    );
   });
 });
 
