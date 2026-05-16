@@ -114,7 +114,7 @@ MCP wiring 확인 직후 정리할 항목을 바로 보여준다.
 기본 server wait 는 8초이며 큰 vault / 느린 파일시스템에서는
 양의 정수 millisecond 값인 `OMOT_VERIFY_TIMEOUT_MS` 로 늘릴 수 있다.
 `1000ms` 같은 부분 숫자 값은 조용히 truncate 하지 않고 실패한다.
-first-contact 응답 6개가 모두 도착하면 timeout 까지 기다리지 않고 즉시 종료하며,
+first-contact 응답들이 모두 도착하면 timeout 까지 기다리지 않고 즉시 종료하며,
 진짜 timeout 은 누락된 응답 그룹을 함께 출력한다.
 `initialize` 전 서버 시작 실패는 timeout 과 구분해 stderr 의 vault 설정 진단을 보존한다.
 first-contact JSON-RPC error 응답도 timeout 까지 기다리지 않고 실패한 step 이름과
