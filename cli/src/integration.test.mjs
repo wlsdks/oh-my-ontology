@@ -241,8 +241,9 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.match(clean, /overview/);
     assert.match(clean, /overview query_plan/);
     assert.match(clean, /project_map query_plan/);
+    assert.match(clean, /maintenance cursor — missing afterActionId reported/);
     assert.match(clean, /neighbors — elements\/example/);
-    assert.match(clean, /path — elements\/example → project \(1 hop\)/);
+    assert.match(clean, /path — elements\/example → project \(1 hop, 1 edge\)/);
     assert.match(clean, /project_scope/);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -269,8 +270,9 @@ await test('mcp-verify — allows valid vaults without a project node', async ()
     const r = await run(['mcp-verify', root, '--timeout-ms', '1000']);
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
+    assert.match(clean, /maintenance cursor — missing afterActionId reported/);
     assert.match(clean, /neighbors — domains\/core/);
-    assert.match(clean, /path — domains\/core → domains\/core \(0 hops\)/);
+    assert.match(clean, /path — domains\/core → domains\/core \(0 hops, 0 edges\)/);
     assert.match(clean, /project_scope — skipped \(no project node in vault\)/);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -308,7 +310,8 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /compile_ontology/);
   assert.match(clean, /neighbors\/node-to-project path\/project_scope graph-query smoke/);
   assert.match(clean, /tools\/list schema strictness/);
-  assert.match(clean, /runtime unknown-argument \/ invalid-enum rejection smoke/);
+  assert.match(clean, /runtime unknown-argument \/ invalid-enum rejection/);
+  assert.match(clean, /missing maintenance_plan\.afterActionId cursor smoke/);
 });
 
 await test('mcp-verify — rejects invalid timeout values', async () => {

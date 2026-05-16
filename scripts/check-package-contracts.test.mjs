@@ -319,6 +319,7 @@ describe('package contract helpers', () => {
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
 
     assert.match(tableRow, /project-node `list_concepts` probe/);
+    assert.match(tableRow, /missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(tableRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
     assert.match(verifySection, /mcp-verify --help/);
@@ -326,6 +327,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`tools\/list` schema contract/);
     assert.match(verifySection, /runtime negative smokes with invalid `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"` inputs/);
+    assert.match(verifySection, /missing `maintenance_plan\.afterActionId` cursor contract/);
+    assert.match(verifySection, /`cursor\.found=false`/);
     assert.match(verifySection, /Batch tool caps/);
     assert.match(verifySection, /Write-safety schema/);
     assert.match(verifySection, /get_concepts/);
@@ -387,6 +390,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /accepts valid project-less vaults/);
     assert.match(verifySection, /accepts empty vault folders/);
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
+    assert.match(verifySection, /missing `maintenance_plan\.afterActionId` cursor smoke/);
+    assert.match(verifySection, /`cursor\.found=false`/);
   });
 
   it('documents dogfood validation as a release gate', () => {
@@ -506,6 +511,8 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /실제 `neighbors` \/ node→project `path` \/ `project_scope` graph smoke/);
     assert.match(mcpVerifyRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(mcpVerifyRow, /project-node `list_concepts` probe/);
+    assert.match(mcpVerifyRow, /missing `maintenance_plan\.afterActionId` cursor smoke/);
+    assert.match(mcpVerifyRow, /`cursor\.found=false`/);
     assert.match(mcpVerifyRow, /`project_scope` hard gate 를 놓치지 않는다/);
     assert.match(mcpVerifyRow, /project-less vault/);
     assert.match(mcpVerifyRow, /empty vault/);
@@ -677,6 +684,8 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /spawn-based integration suite/);
     assert.match(regressionSection, /Node `--test-name-pattern`/);
     assert.match(regressionSection, /`pnpm integration:cli:mcp-verify`/);
+    assert.match(regressionSection, /missing `maintenance_plan\.afterActionId` cursor smoke/);
+    assert.match(regressionSection, /missing cursor smoke 범위/);
   });
 
   it('keeps dogfood MCP capability docs aligned with focused integration shortcuts', () => {

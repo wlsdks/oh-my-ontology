@@ -123,6 +123,6 @@ function printUsage(output = process.stderr) {
       `Checks parser smoke, server boot, tool inventory, list/project probe/get_concepts/find_orphans/node census/file validation, workspace health,\n` +
       `compile_ontology, overview, overview/project_map query_plan, and neighbors/node-to-project path/project_scope graph-query smoke.\n` +
       `Node census is cross-checked across list_kinds/list_concepts/compile_ontology/overview; validate_vault.scanned stays file-level health.\n` +
-      `Also checks tools/list schema strictness and runtime unknown-argument / invalid-enum rejection smoke.\n`,
+      `Also checks tools/list schema strictness, runtime unknown-argument / invalid-enum rejection, and missing maintenance_plan.afterActionId cursor smoke.\n`,
   );
 }
