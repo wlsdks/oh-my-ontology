@@ -374,6 +374,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /`path`, `health`, or `workspace-brief` payloads/);
     assert.match(releaseChecks, /workspace_brief\.nextActions/);
     assert.match(releaseChecks, /workspace_brief\.health\.checks/);
+    assert.match(releaseChecks, /tuned `workspace_brief` \/ tuned `health` gates regress/);
     assert.match(releaseChecks, /validate_vault` problem files/);
   });
 
