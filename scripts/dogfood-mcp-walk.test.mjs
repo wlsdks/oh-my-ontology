@@ -74,6 +74,12 @@ const okShape = {
     summary: { issues: 0, unresolvedEdges: 0, dependencyCycles: 0 },
     checks: [{ id: "compile_issues", status: "pass", count: 0 }],
   },
+  tunedHealth: {
+    operation: "health",
+    status: "healthy",
+    summary: { issues: 0, unresolvedEdges: 0, dependencyCycles: 0 },
+    checks: [{ id: "compile_issues", status: "pass", count: 0 }],
+  },
   compiled: {
     version: 1,
     graphHash: "abc123",
@@ -1375,6 +1381,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(46), "strict_args");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(47), "strict_enum");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(48), "project_probe");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(49), "health_tuned");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1669,6 +1676,17 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, health: { operation: "health", status: "healthy", summary: okShape.health.summary, checks: [{ id: "compile_issues", status: "pass" }] } }),
       ["health response missing check count: compile_issues"],
+    );
+  });
+
+  it("fails on malformed tuned health payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, tunedHealth: { operation: "workspace_brief", status: "healthy", summary: okShape.tunedHealth.summary, checks: okShape.tunedHealth.checks } }),
+      ["health_tuned response operation mismatch — workspace_brief"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, tunedHealth: { operation: "health", status: "healthy", summary: okShape.tunedHealth.summary, checks: [] } }),
+      ["health_tuned response missing health checks"],
     );
   });
 
@@ -3160,7 +3178,9 @@ describe("evaluateDogfoodGate", () => {
       ...okShape,
       list: { ...okShape.list, vaultWarnings: { errorCount: 0, warningCount: 1 } },
     });
-    assert.deepEqual(failures, ["list_concepts vaultWarnings present — errors 0, warnings 1"]);
+    assert.deepEqual(failures, [
+      "list_concepts vaultWarnings present — errors 0, warnings 1. Run validate_vault for file-level diagnostics before writing.",
+    ]);
   });
 
   it("fails on malformed vault warnings", () => {
@@ -3303,10 +3323,15 @@ describe("evaluateDogfoodGate", () => {
         ...okShape.health,
         checks: [{ id: "compile_issues", status: "fail", count: 1 }],
       },
+      tunedHealth: {
+        ...okShape.tunedHealth,
+        checks: [{ id: "components", status: "fail", count: 1 }],
+      },
     });
     assert.deepEqual(failures, [
       "workspace_brief: failing health checks dependency_cycles",
       "health: failing health checks compile_issues",
+      "health_tuned: failing health checks components",
     ]);
   });
 

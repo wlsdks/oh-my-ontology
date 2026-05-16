@@ -300,7 +300,7 @@ MCP schema 에서 노출한다. `componentLimit`, `cycleLimit`, `recommendationL
 
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
-`workspace_brief`, `health`, `compile_ontology`, `overview`, `pattern_walk`,
+`workspace_brief`, `health`, tuned `health`, `compile_ontology`, `overview`, `pattern_walk`,
 project-node `list_concepts` probe, `all_paths`, `all_paths query_plan`, `neighbors`, `path`, `project_map query_plan`, `project_scope`, `project_map`,
 `domain_profile`, `domain_matrix`, `components`, `reachability`, `impact`,
 `blast_radius`, `subgraph`, `schema`, `facets`, `match_nodes`, `match_edges`,

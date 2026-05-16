@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / project probe / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // strict unknown-argument and invalid-enum rejection / validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / neighbors / path / all_paths / pattern_walk / project_scope / centrality / communities / similar_nodes / explain_relation / reachability / impact / blast_radius / subgraph / schema / facets / match_nodes / match_edges / node_profile / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health.
+// query_ontology overview / query_plan / neighbors / path / all_paths / pattern_walk / project_scope / centrality / communities / similar_nodes / explain_relation / reachability / impact / blast_radius / subgraph / schema / facets / match_nodes / match_edges / node_profile / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health / health tuned.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -87,6 +87,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [46, "strict_args"],
   [47, "strict_enum"],
   [48, "project_probe"],
+  [49, "health_tuned"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -190,6 +191,15 @@ export function buildDogfoodRequests() {
     call(8, "validate_vault", {}),
     call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
     call(10, "query_ontology", { operation: "health" }),
+    call(49, "query_ontology", {
+      operation: "health",
+      componentLimit: 3,
+      cycleLimit: 3,
+      recommendationLimit: 3,
+      orderLimit: 3,
+      dependencyTypes: ["dependencies"],
+      componentTypes: ["domain", "capabilities"],
+    }),
     call(11, "compile_ontology", { summary: true }),
     call(12, "query_ontology", {
       operation: "pattern_walk",
@@ -422,6 +432,7 @@ export function evaluateDogfoodGate({
   validation,
   brief,
   health,
+  tunedHealth,
   compiled,
   overview,
   patternWalk,
@@ -471,6 +482,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "validate_vault", validation);
   recordResult(failures, "workspace_brief", brief);
   recordResult(failures, "health", health);
+  recordResult(failures, "health_tuned", tunedHealth);
   recordResult(failures, "compile_ontology", compiled);
   recordResult(failures, "overview", overview);
   recordResult(failures, "pattern_walk", patternWalk);
@@ -571,6 +583,11 @@ export function evaluateDogfoodGate({
   if (health) {
     healthShapeFailure = healthShapeFailureForDogfood(health);
     if (healthShapeFailure) failures.push(healthShapeFailure);
+  }
+  let tunedHealthShapeFailure = null;
+  if (tunedHealth) {
+    tunedHealthShapeFailure = healthShapeFailureForDogfood(tunedHealth, "health_tuned");
+    if (tunedHealthShapeFailure) failures.push(tunedHealthShapeFailure);
   }
   if (compiled) {
     const compileFailure = compileSummaryFailure(compiled);
@@ -735,6 +752,13 @@ export function evaluateDogfoodGate({
   const healthFailedChecks = failedHealthChecks(health?.checks);
   if (healthFailedChecks.length > 0) {
     failures.push(`health: failing health checks ${healthFailedChecks.join(", ")}`);
+  }
+  if (tunedHealth && !tunedHealthShapeFailure && tunedHealth.status !== "healthy") {
+    failures.push(`health_tuned: status ${tunedHealth.status}`);
+  }
+  const tunedHealthFailedChecks = failedHealthChecks(tunedHealth?.checks);
+  if (tunedHealthFailedChecks.length > 0) {
+    failures.push(`health_tuned: failing health checks ${tunedHealthFailedChecks.join(", ")}`);
   }
 
   return failures;
@@ -3219,16 +3243,16 @@ function workspaceBriefShapeFailure(result) {
   return checksShapeFailure("workspace_brief", result.health.checks, { requireNonEmpty: true });
 }
 
-function healthShapeFailureForDogfood(result) {
+function healthShapeFailureForDogfood(result, label = "health") {
   if (result.operation !== "health") {
-    return `health response operation mismatch — ${result.operation}`;
+    return `${label} response operation mismatch — ${result.operation}`;
   }
   if (typeof result.status !== "string" || result.status.length === 0) {
-    return "health response missing status";
+    return `${label} response missing status`;
   }
-  const summaryFailure = numericSummaryFailure("health", result.summary, ["issues", "unresolvedEdges", "dependencyCycles"]);
+  const summaryFailure = numericSummaryFailure(label, result.summary, ["issues", "unresolvedEdges", "dependencyCycles"]);
   if (summaryFailure) return summaryFailure;
-  return checksShapeFailure("health", result.checks, { requireNonEmpty: true });
+  return checksShapeFailure(label, result.checks, { requireNonEmpty: true });
 }
 
 function crossToolConsistencyFailures({ kinds, list, validation, compiled, overview }) {
@@ -3498,6 +3522,19 @@ async function main() {
       `  summary: issues ${health.summary?.issues ?? "n/a"} · unresolved ${health.summary?.unresolvedEdges ?? "n/a"} · cycles ${health.summary?.dependencyCycles ?? "n/a"}`,
     );
     for (const check of health.checks || []) {
+      console.log(`  ${check.status?.padEnd(6) || ""} ${check.id.padEnd(26)} ${check.count}`);
+    }
+  }
+
+  // 10b. health tuned
+  header(`query_ontology(health tuned)`);
+  const tunedHealth = getResult(responses, 49);
+  if (tunedHealth) {
+    console.log(`  status: ${tunedHealth.status}`);
+    console.log(
+      `  summary: issues ${tunedHealth.summary?.issues ?? "n/a"} · unresolved ${tunedHealth.summary?.unresolvedEdges ?? "n/a"} · cycles ${tunedHealth.summary?.dependencyCycles ?? "n/a"}`,
+    );
+    for (const check of tunedHealth.checks || []) {
       console.log(`  ${check.status?.padEnd(6) || ""} ${check.id.padEnd(26)} ${check.count}`);
     }
   }
@@ -3935,6 +3972,7 @@ async function main() {
     validation,
     brief,
     health,
+    tunedHealth,
     compiled,
     overview,
     patternWalk,
@@ -4000,6 +4038,7 @@ async function main() {
     `  workspace_brief: ${brief?.status ?? "n/a"} (${(brief?.nextActions || []).length} next actions · ${(brief?.health?.checks || []).length} health checks)`,
   );
   console.log(`  health: ${health?.status ?? "n/a"} (${(health?.checks || []).length} checks)`);
+  console.log(`  health_tuned: ${tunedHealth?.status ?? "n/a"} (${(tunedHealth?.checks || []).length} checks)`);
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
   console.log(`  overview: ${overview?.graph?.nodes ?? "n/a"} nodes · ${overview?.graph?.edges ?? "n/a"} edges · ${(overview?.hubs || []).length} hubs`);
   console.log(`  pattern_walk: ${patternWalk?.paths?.rows?.length ?? "n/a"} paths (${patternWalk?.paths?.limited ? "limited" : "complete"})`);
