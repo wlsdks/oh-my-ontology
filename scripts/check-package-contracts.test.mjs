@@ -356,6 +356,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /directMcpVerifyVaultFlag/);
     assert.match(smoke, /--vault requires a path value/);
     assert.match(smoke, /npm run verify -- \\\[vault\\\] \\\[--timeout-ms N\\\]/);
+    assert.match(smoke, /npm run verify -- --vault path --timeout-ms 15000/);
     assert.match(smoke, /verify timeout must be a positive integer/);
     assert.match(smoke, /health — \.\*compile_issues:\(pass\|warn\)/);
     assert.match(smoke, /health — \.\*checks/);

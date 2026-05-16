@@ -334,7 +334,8 @@ export function verifyUsage() {
     '\nUsage:\n' +
     '  node mcp/scripts/verify.mjs [vault] [--timeout-ms N]\n' +
     '  node mcp/scripts/verify.mjs --vault path --timeout-ms 15000\n' +
-    '  npm run verify -- [vault] [--timeout-ms N]\n\n' +
+    '  npm run verify -- [vault] [--timeout-ms N]\n' +
+    '  npm run verify -- --vault path --timeout-ms 15000\n\n' +
     'Runs the MCP server first-contact verification against the resolved vault.\n' +
     'Checks parser smoke, server boot, tool inventory, project probe, batch reads, node census,\n' +
     'vault validation, workspace health, compile/overview, query plans, and graph-query smoke.\n'

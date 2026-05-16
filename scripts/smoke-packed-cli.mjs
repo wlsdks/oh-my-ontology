@@ -341,6 +341,7 @@ try {
   );
   assert.match(directMcpVerifyHelp.stdout, /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);
   assert.match(directMcpVerifyHelp.stdout, /npm run verify -- \[vault\] \[--timeout-ms N\]/);
+  assert.match(directMcpVerifyHelp.stdout, /npm run verify -- --vault path --timeout-ms 15000/);
   assert.match(directMcpVerifyHelp.stdout, /project probe/);
 
   const mcpEmptyVerify = run(
