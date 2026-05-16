@@ -30,7 +30,7 @@
 - `npm run verify` now prints the validated `workspace_brief.health.checks` count in the `workspace_brief` success line, so first-contact output shows both next actions and health coverage.
 - `npm run verify` now prints health check `id:status` coverage in the `health` success line, so a green install shows which graph-integrity checks actually ran.
 - `npm run verify` prints non-blocking `workspace_brief.nextActions` as a compact advisory list, so starter vault users see what to clean up after MCP wiring is confirmed.
-- `npm run verify` accepts direct vault arguments (`npm run verify -- ../vault`, `npm run verify -- --vault ../vault`) in addition to `OMOT_VAULT`, so package users can run the same first-contact check without exporting environment variables.
+- `npm run verify` accepts direct vault arguments (`npm run verify -- ../vault`, `npm run verify -- --vault ../vault`) in addition to `OMOT_VAULT`, and explicit direct arguments take precedence over the environment variable, so package users can run the same first-contact check without exporting environment variables or silently verifying the wrong vault.
 - `npm run verify` uses an 8s server wait window by default and supports `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS` for larger/slower vaults.
 - `OMOT_VERIFY_TIMEOUT_MS` is validated as a strict positive integer, so partial values like `1000ms` fail instead of being silently truncated.
 - `npm run verify` now exits as soon as all first-contact JSON-RPC responses arrive, while true timeout failures name the missing response groups and suggest increasing `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS`.

@@ -153,6 +153,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /prints the validated `workspace_brief\.health\.checks` count/);
     assert.match(verifySection, /health check `id:status` coverage/);
     assert.match(verifySection, /accepts direct vault arguments/);
+    assert.match(verifySection, /explicit direct arguments take precedence over the environment variable/);
     assert.match(verifySection, /`npm run verify -- --vault \.\.\/vault`/);
     assert.match(verifySection, /supports `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS`/);
     assert.match(verifySection, /suggest increasing `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS`/);

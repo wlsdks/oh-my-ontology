@@ -299,14 +299,18 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(parseVerifyTimeoutMs('15000'), 15000);
   });
 
-  it('resolves verify vault from env, positional arg, or cwd', () => {
+  it('resolves verify vault from explicit arg, env, or cwd', () => {
     assert.equal(
       resolveVerifyVault({ env: { OMOT_VAULT: '/tmp/env-vault' }, argv: ['node', 'verify.mjs', '/tmp/arg-vault'], cwd: '/tmp/cwd', isMain: true }),
-      '/tmp/env-vault',
+      '/tmp/arg-vault',
     );
     assert.equal(
       resolveVerifyVault({ env: {}, argv: ['node', 'verify.mjs', '/tmp/arg-vault'], cwd: '/tmp/cwd', isMain: true }),
       '/tmp/arg-vault',
+    );
+    assert.equal(
+      resolveVerifyVault({ env: { OMOT_VAULT: '/tmp/env-vault' }, argv: ['node', 'verify.mjs'], cwd: '/tmp/cwd', isMain: true }),
+      '/tmp/env-vault',
     );
     assert.equal(
       resolveVerifyVault({ env: {}, argv: ['node', 'verify.mjs', '/tmp/arg-vault'], cwd: '/tmp/cwd', isMain: false }),
@@ -322,7 +326,11 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.deepEqual(
       parseVerifyArgs({ env: { OMOT_VAULT: '/tmp/env-vault', OMOT_VERIFY_TIMEOUT_MS: '9000' }, argv: ['node', 'verify.mjs', '/tmp/arg-vault', '--timeout-ms=15000'], cwd: '/tmp/cwd', isMain: true }),
-      { error: null, help: false, timeoutMsRaw: '15000', vault: '/tmp/env-vault' },
+      { error: null, help: false, timeoutMsRaw: '15000', vault: '/tmp/arg-vault' },
+    );
+    assert.deepEqual(
+      parseVerifyArgs({ env: { OMOT_VAULT: '/tmp/env-vault', OMOT_VERIFY_TIMEOUT_MS: '9000' }, argv: ['node', 'verify.mjs'], cwd: '/tmp/cwd', isMain: true }),
+      { error: null, help: false, timeoutMsRaw: '9000', vault: '/tmp/env-vault' },
     );
     assert.deepEqual(
       parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--vault', '/tmp/vault', '--timeout-ms=15000'], cwd: '/tmp/cwd', isMain: true }),

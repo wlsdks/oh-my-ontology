@@ -321,7 +321,7 @@ export function parseVerifyArgs({
     error,
     help,
     timeoutMsRaw: timeoutMsRaw ?? env.OMOT_VERIFY_TIMEOUT_MS,
-    vault: envVault ?? positionalVault ?? cwd,
+    vault: positionalVault ?? envVault ?? cwd,
   };
 }
 
