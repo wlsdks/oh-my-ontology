@@ -626,6 +626,7 @@ export function evaluateDogfoodGate({
   queryPath,
   projectScope,
   projectProbe,
+  kindsStructured,
   strictArgs,
   strictEnum,
   strictMaintenancePhaseFilter,
@@ -702,6 +703,9 @@ export function evaluateDogfoodGate({
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
     if (kindsFailure) failures.push(kindsFailure);
+  }
+  if (kinds && JSON.stringify(kindsStructured) !== JSON.stringify(kinds)) {
+    failures.push("list_kinds structuredContent mismatch");
   }
   if (list) {
     const listFailure = listConceptsFailure(list);
@@ -3991,8 +3995,10 @@ async function main() {
   // 1. list_kinds
   header("list_kinds — vault census");
   const kinds = getResult(responses, 2);
+  const kindsStructured = getRpcResult(responses, 2)?.structuredContent ?? null;
   if (kinds) {
     console.log(`  total: ${kinds.total}`);
+    console.log(`  structuredContent: ${JSON.stringify(kindsStructured) === JSON.stringify(kinds) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     console.log(`  byKind:`);
     for (const [k, n] of Object.entries(kinds.byKind || {})) {
       console.log(`    ${k.padEnd(15)} ${n}`);
@@ -4660,6 +4666,7 @@ async function main() {
     queryPath,
     projectScope,
     projectProbe,
+    kindsStructured,
     strictArgs,
     strictEnum,
     strictMaintenancePhaseFilter,

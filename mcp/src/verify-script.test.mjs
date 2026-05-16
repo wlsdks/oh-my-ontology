@@ -267,6 +267,21 @@ describe('verify.mjs first-contact gates', () => {
         },
       },
       {
+        name: 'list_kinds',
+        inputSchema: { additionalProperties: false, properties: {} },
+        outputSchema: {
+          type: 'object',
+          required: ['total', 'byKind'],
+          properties: {
+            total: { type: 'integer', minimum: 0 },
+            byKind: {
+              type: 'object',
+              additionalProperties: { type: 'integer', minimum: 0 },
+            },
+          },
+        },
+      },
+      {
         name: 'add_concept',
         description:
           'Successful writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
@@ -283,7 +298,7 @@ describe('verify.mjs first-contact gates', () => {
       },
     }));
     const withQueryTool = (queryTool) => [
-      ...tools.slice(0, 10),
+      ...tools.filter((tool) => tool.name !== 'query_ontology'),
       queryTool,
     ];
 
@@ -324,6 +339,31 @@ describe('verify.mjs first-contact gates', () => {
           : tool
       ))),
       'tools/list title annotation drift: list_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'list_kinds'
+          ? { ...tool, outputSchema: { ...tool.outputSchema, required: ['byKind', 'total'] } }
+          : tool
+      ))),
+      'list_kinds outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'list_kinds'
+          ? {
+            ...tool,
+            outputSchema: {
+              ...tool.outputSchema,
+              properties: {
+                ...tool.outputSchema.properties,
+                byKind: { type: 'object', additionalProperties: { type: 'number', minimum: 0 } },
+              },
+            },
+          }
+          : tool
+      ))),
+      'list_kinds outputSchema byKind drift',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
@@ -652,6 +692,7 @@ describe('verify.mjs first-contact gates', () => {
           },
         },
         tools[10],
+        tools[11],
       ]),
       'delete_concept.confirm dry-run safety schema drift',
     );
@@ -669,6 +710,7 @@ describe('verify.mjs first-contact gates', () => {
           },
         },
         tools[10],
+        tools[11],
       ]),
       'delete_concept.force destructive safety schema drift',
     );

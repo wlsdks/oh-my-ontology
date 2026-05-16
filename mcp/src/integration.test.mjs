@@ -162,6 +162,13 @@ function getCallParsed(responses, id) {
   return JSON.parse(getCallText(responses, id));
 }
 
+function getCallStructured(responses, id) {
+  const res = responses.find((r) => r.id === id);
+  if (!res) throw new Error(`no response for id ${id}`);
+  if (res.error) throw new Error(`error response: ${JSON.stringify(res.error)}`);
+  return res.result?.structuredContent;
+}
+
 function isErrorResponse(responses, id) {
   const res = responses.find((r) => r.id === id);
   if (!res) return false;
@@ -314,6 +321,14 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       );
     }
     const findTool = (name) => tools.find((t) => t.name === name);
+    const listKinds = findTool("list_kinds");
+    assert.equal(listKinds?.outputSchema?.type, "object");
+    assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
+    assert.equal(listKinds?.outputSchema?.properties?.total?.type, "integer");
+    assert.equal(listKinds?.outputSchema?.properties?.total?.minimum, 0);
+    assert.equal(listKinds?.outputSchema?.properties?.byKind?.type, "object");
+    assert.equal(listKinds?.outputSchema?.properties?.byKind?.additionalProperties?.type, "integer");
+    assert.equal(listKinds?.outputSchema?.properties?.byKind?.additionalProperties?.minimum, 0);
     const findDesc = (name) => findTool(name)?.description;
     const getC = findDesc("get_concept");
     const getCs = findDesc("get_concepts");
@@ -918,6 +933,7 @@ await test("README first exploration — documented read-only MCP calls stay val
     assert.equal(kinds.byKind.project, 1);
     assert.equal(kinds.byKind.domain, 1);
     assert.equal(kinds.byKind.capability, 1);
+    assert.deepEqual(getCallStructured(responses, 2), kinds);
 
     const list = getCallParsed(responses, 3);
     assert.equal(list.total, 3);

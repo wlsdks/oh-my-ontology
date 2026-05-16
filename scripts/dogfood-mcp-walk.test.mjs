@@ -89,6 +89,19 @@ function makeDogfoodToolsList() {
           componentTypes: { type: "array", items: { type: "string" }, description: "health/workspace_brief tuning" },
         };
       }
+      if (name === "list_kinds") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["total", "byKind"],
+          properties: {
+            total: { type: "integer", minimum: 0 },
+            byKind: {
+              type: "object",
+              additionalProperties: { type: "integer", minimum: 0 },
+            },
+          },
+        };
+      }
       if (name === "find_orphans") {
         tool.inputSchema.properties.excludeKinds = {
           type: "array",
@@ -132,6 +145,7 @@ function makeDogfoodToolsList() {
 const okShape = {
   toolsList: makeDogfoodToolsList(),
   kinds: { total: 1, byKind: { project: 1 } },
+  kindsStructured: { total: 1, byKind: { project: 1 } },
   list: {
     total: 1,
     vaultRoot: "/tmp/vault",
@@ -1758,6 +1772,16 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: titleDrifted }),
       ["tools/list: tools/list title annotation drift: list_concepts"],
+    );
+    const outputSchemaDrifted = makeDogfoodToolsList();
+    outputSchemaDrifted.tools.find((tool) => tool.name === "list_kinds").outputSchema.properties.total.type = "number";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: outputSchemaDrifted }),
+      ["tools/list: list_kinds outputSchema total drift"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, kindsStructured: { total: 1, byKind: { project: 2 } } }),
+      ["list_kinds structuredContent mismatch"],
     );
     const openWorldDrifted = makeDogfoodToolsList();
     openWorldDrifted.tools.find((tool) => tool.name === "list_concepts").annotations.openWorldHint = true;

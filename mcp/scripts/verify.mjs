@@ -153,6 +153,10 @@ function propertyAt(tool, path) {
   return path.reduce((value, key) => value?.[key], tool?.inputSchema);
 }
 
+function outputPropertyAt(tool, path) {
+  return path.reduce((value, key) => value?.[key], tool?.outputSchema);
+}
+
 export function toolsListSchemaFailure(tools) {
   if (!Array.isArray(tools)) return 'tools/list response missing tools array';
   const schemaDriftTool = tools.find((tool) => tool?.inputSchema?.additionalProperties !== false);
@@ -185,6 +189,23 @@ export function toolsListSchemaFailure(tools) {
 
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
+
+  const listKindsTool = tools.find((tool) => tool?.name === 'list_kinds');
+  if (!listKindsTool) return 'tools/list response missing list_kinds tool';
+  if (listKindsTool.outputSchema?.type !== 'object') {
+    return 'list_kinds outputSchema root drift';
+  }
+  if (!sameArray(listKindsTool.outputSchema?.required, ['total', 'byKind'])) {
+    return 'list_kinds outputSchema required drift';
+  }
+  const totalSchema = outputPropertyAt(listKindsTool, ['properties', 'total']);
+  if (totalSchema?.type !== 'integer' || totalSchema.minimum !== 0) {
+    return 'list_kinds outputSchema total drift';
+  }
+  const byKindSchema = outputPropertyAt(listKindsTool, ['properties', 'byKind']);
+  if (byKindSchema?.type !== 'object' || byKindSchema.additionalProperties?.type !== 'integer' || byKindSchema.additionalProperties?.minimum !== 0) {
+    return 'list_kinds outputSchema byKind drift';
+  }
 
   if (!sameArray(queryTool.inputSchema?.required, ['operation'])) {
     return 'query_ontology required schema drift';
@@ -2137,6 +2158,10 @@ async function step2BootAndCall() {
         const failure = listKindsFailure(parsed);
         if (failure) {
           log('fail', failure);
+          return res(false);
+        }
+        if (JSON.stringify(kindsRes.result.structuredContent) !== JSON.stringify(parsed)) {
+          log('fail', 'list_kinds structuredContent mismatch');
           return res(false);
         }
         kindsPayload = parsed;

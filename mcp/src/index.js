@@ -601,6 +601,25 @@ const TOOLS = [
       type: 'object',
       properties: {},
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        total: {
+          type: 'integer',
+          minimum: 0,
+          description: 'Total number of vault docs that declare a kind.',
+        },
+        byKind: {
+          type: 'object',
+          additionalProperties: {
+            type: 'integer',
+            minimum: 0,
+          },
+          description: 'Node counts keyed by frontmatter kind.',
+        },
+      },
+      required: ['total', 'byKind'],
+    },
   },
   {
     name: 'find_orphans',
@@ -1271,9 +1290,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 function ok(result) {
-  return {
+  const response = {
     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
   };
+  if (result && typeof result === 'object' && !Array.isArray(result)) {
+    response.structuredContent = result;
+  }
+  return response;
 }
 
 // ── 도구 구현 ─────────────────────────────────────────────────────────────
