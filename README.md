@@ -130,6 +130,7 @@ OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
 pnpm smoke:packed-cli           # pack/install MCP+CLI, verify installed flow/help/failure + tarball summary
 pnpm dogfood:walk               # actual MCP stdio walk over this repo's ontology
 cd mcp && OMOT_VAULT=../docs/ontology npm run verify
+cd mcp && npm run verify -- ../docs/ontology
 ```
 
 Use these when changing `mcp/`, `cli/`, package manifests, or release

@@ -6,6 +6,7 @@
  *
  * 사용법:
  *   node mcp/scripts/verify.mjs                    # vault = cwd
+ *   node mcp/scripts/verify.mjs ./docs/ontology    # vault = positional arg
  *   OMOT_VAULT=./docs/ontology node mcp/scripts/verify.mjs
  *   OMOT_VERIFY_TIMEOUT_MS=15000 npm run verify    # larger/slower vaults
  *
@@ -44,7 +45,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_ROOT = resolve(__dirname, '..');
 const PARSER_TEST = join(MCP_ROOT, 'src', 'parser.test.mjs');
 const SERVER_ENTRY = join(MCP_ROOT, 'src', 'index.js');
-const VAULT = process.env.OMOT_VAULT || process.cwd();
+const IS_MAIN = fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '');
+const VAULT = resolveVerifyVault({ isMain: IS_MAIN });
 const VERIFY_TIMEOUT_MS_RAW = process.env.OMOT_VERIFY_TIMEOUT_MS;
 
 export const EXPECTED_READ_TOOLS = [
@@ -235,6 +237,22 @@ export function parseVerifyTimeoutMs(value, fallback = 8000) {
   if (!/^[1-9]\d*$/.test(String(value))) return false;
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : false;
+}
+
+export function resolveVerifyVault({
+  env = process.env,
+  argv = process.argv,
+  cwd = process.cwd(),
+  isMain = false,
+} = {}) {
+  if (typeof env.OMOT_VAULT === 'string' && env.OMOT_VAULT.length > 0) {
+    return env.OMOT_VAULT;
+  }
+  const positionalVault = isMain ? argv[2] : null;
+  if (typeof positionalVault === 'string' && positionalVault.length > 0) {
+    return positionalVault;
+  }
+  return cwd;
 }
 
 export function verifyTimeoutFailure(timeoutMs) {
@@ -1608,6 +1626,6 @@ async function main() {
   process.exit(0);
 }
 
-if (fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '')) {
+if (IS_MAIN) {
   main();
 }

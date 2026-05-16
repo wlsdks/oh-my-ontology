@@ -35,6 +35,7 @@ import {
   overviewFailure,
   overviewQueryPlanFailure,
   parseVerifyTimeoutMs,
+  resolveVerifyVault,
   neighborsFailure,
   pathQueryFailure,
   projectProbeFailure,
@@ -294,6 +295,22 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(parseVerifyTimeoutMs(undefined), 8000);
     assert.equal(parseVerifyTimeoutMs(''), 8000);
     assert.equal(parseVerifyTimeoutMs('15000'), 15000);
+  });
+
+  it('resolves verify vault from env, positional arg, or cwd', () => {
+    assert.equal(
+      resolveVerifyVault({ env: { OMOT_VAULT: '/tmp/env-vault' }, argv: ['node', 'verify.mjs', '/tmp/arg-vault'], cwd: '/tmp/cwd', isMain: true }),
+      '/tmp/env-vault',
+    );
+    assert.equal(
+      resolveVerifyVault({ env: {}, argv: ['node', 'verify.mjs', '/tmp/arg-vault'], cwd: '/tmp/cwd', isMain: true }),
+      '/tmp/arg-vault',
+    );
+    assert.equal(
+      resolveVerifyVault({ env: {}, argv: ['node', 'verify.mjs', '/tmp/arg-vault'], cwd: '/tmp/cwd', isMain: false }),
+      '/tmp/cwd',
+    );
+    assert.equal(resolveVerifyVault({ env: {}, argv: ['node', 'verify.mjs'], cwd: '/tmp/cwd', isMain: true }), '/tmp/cwd');
   });
 
   it('fails malformed strict argument smoke responses', () => {

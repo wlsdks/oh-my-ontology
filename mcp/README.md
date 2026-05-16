@@ -167,6 +167,7 @@ if you change one, mirror the other.
 ```bash
 cd mcp && npm install
 OMOT_VAULT=../docs/ontology npm run verify
+npm run verify -- ../docs/ontology
 # Larger/slower vaults can raise the child-process wait window:
 OMOT_VERIFY_TIMEOUT_MS=15000 OMOT_VAULT=../docs/ontology npm run verify
 ```
