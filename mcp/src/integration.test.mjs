@@ -461,6 +461,39 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
   }
 });
 
+await test("tools/call — arguments 생략은 빈 object, non-object 는 명시적으로 거부", async () => {
+  const root = makeVault([
+    { slug: "project", content: "---\nkind: project\ntitle: Demo\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: { name: "list_kinds" },
+      },
+      callTool(3, "list_concepts", null),
+      callTool(4, "list_concepts", []),
+      callTool(5, "get_concept", "project"),
+    ]);
+    assert.equal(isErrorResponse(responses, 2), false, "omitted arguments defaults to {}");
+    const kinds = getCallParsed(responses, 2);
+    assert.equal(kinds.total, 1);
+    for (const id of [3, 4, 5]) {
+      const text = JSON.stringify(responses.find((r) => r.id === id));
+      assert.match(
+        text,
+        /expected record|tool arguments must be an object/i,
+        `request ${id} should reject non-object arguments`,
+      );
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("compile_ontology — deterministic graph artifact + indexes", async () => {
   const root = makeVault([
     {

@@ -89,9 +89,11 @@ integer / minimum / maximum constraints that the runtime enforces for
 `list_concepts.limit`, `find_neighbors.limit`, `find_path.maxHops`,
 `query_concepts.limit`, `compile_ontology` pagination, and `query_ontology`
 limit/depth/iteration controls, so MCP clients and agents can correct invalid
-arguments before the tool call instead of relying on silent fallback. Query
-limits above 500 and traversal caps above 20 are rejected instead of silently
-clamped by the graph engine.
+arguments before the tool call instead of relying on silent fallback. The
+top-level `tools/call.arguments` value defaults to `{}` when omitted; null,
+arrays, and scalar values are rejected by the MCP SDK or the server before tool
+dispatch. Query limits above 500 and traversal caps above 20 are rejected
+instead of silently clamped by the graph engine.
 String-array options are strict too: relation filters such as
 `find_neighbors.types` / `query_ontology.types`, `query_ontology.pattern`,
 `maintenance_plan` filters, and analysis scan lists such as

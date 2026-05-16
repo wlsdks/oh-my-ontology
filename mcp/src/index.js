@@ -1099,8 +1099,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }))
 // ── 도구 핸들러 ───────────────────────────────────────────────────────────
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args = {} } = request.params;
+  const { name } = request.params;
   try {
+    const args = normalizeToolArguments(request.params.arguments);
     switch (name) {
       case 'list_concepts':
         return ok(listConcepts(args));
@@ -1166,6 +1167,14 @@ function ok(result) {
 }
 
 // ── 도구 구현 ─────────────────────────────────────────────────────────────
+
+function normalizeToolArguments(args) {
+  if (args === undefined) return {};
+  if (args === null || Array.isArray(args) || typeof args !== 'object') {
+    throw new Error('tool arguments must be an object.');
+  }
+  return args;
+}
 
 function requireOptionalNonNegativeNumber(value, name) {
   if (value === undefined) return;
