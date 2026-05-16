@@ -781,20 +781,24 @@ const TOOLS = [
           'match_nodes only: optional case-insensitive substring filter on canonical slug.',
         ),
         minDegree: {
-          type: 'number',
-          description: 'match_nodes only: minimum total graph degree.',
+          type: 'integer',
+          minimum: 0,
+          description: 'match_nodes only: non-negative integer minimum total graph degree.',
         },
         maxDegree: {
-          type: 'number',
-          description: 'match_nodes only: maximum total graph degree.',
+          type: 'integer',
+          minimum: 0,
+          description: 'match_nodes only: non-negative integer maximum total graph degree.',
         },
         minInDegree: {
-          type: 'number',
-          description: 'match_nodes only: minimum incoming graph degree.',
+          type: 'integer',
+          minimum: 0,
+          description: 'match_nodes only: non-negative integer minimum incoming graph degree.',
         },
         minOutDegree: {
-          type: 'number',
-          description: 'match_nodes only: minimum outgoing graph degree.',
+          type: 'integer',
+          minimum: 0,
+          description: 'match_nodes only: non-negative integer minimum outgoing graph degree.',
         },
         hasIncoming: {
           type: 'boolean',
@@ -2060,6 +2064,9 @@ function validateQueryOntologyArgs(args = {}) {
   requireOptionalPositiveInteger(args.iterations, 'iterations', { max: 100 });
   requireOptionalNonNegativeInteger(args.maxHops, 'maxHops', { max: 20 });
   requireOptionalNonNegativeInteger(args.depth, 'depth', { max: 20 });
+  for (const key of ['minDegree', 'maxDegree', 'minInDegree', 'minOutDegree']) {
+    requireOptionalNonNegativeInteger(args[key], key);
+  }
   requireOptionalDirection(args.direction, 'direction', ['incoming', 'outgoing', 'both', 'undirected']);
   for (const key of [
     'includeExternal',

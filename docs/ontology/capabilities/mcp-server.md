@@ -182,6 +182,9 @@ Read/query handler 도 numeric pagination / traversal 옵션을 조용히 기본
 depth / iterations / direction 값이 범위를 벗어나면 MCP error 로 노출된다.
 `tools/list` inputSchema 도 같은 integer / minimum / maximum 제약을 노출해
 agent 가 호출 전 잘못된 인자를 스스로 고칠 수 있게 한다.
+`match_nodes` 의 degree 필터 (`minDegree`, `maxDegree`, `minInDegree`,
+`minOutDegree`) 도 non-negative integer 로 고정해 소수 값을 조용히 truncate 하지
+않는다.
 `query_concepts` 는 `total` 을 전체 match 수로, `matches` 를 limit 이 적용된
 반환 row 로 구분한다. `limited` 는 숨은 row 가 있을 때만 true 라서, match 수가
 limit 과 정확히 같은 정상 page 를 잘린 결과로 오인하지 않는다.

@@ -314,6 +314,25 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     );
     assert.deepEqual(
       {
+        minDegreeType: findTool("query_ontology")?.inputSchema?.properties?.minDegree?.type,
+        minDegreeMinimum: findTool("query_ontology")?.inputSchema?.properties?.minDegree?.minimum,
+        maxDegreeType: findTool("query_ontology")?.inputSchema?.properties?.maxDegree?.type,
+        maxDegreeMinimum: findTool("query_ontology")?.inputSchema?.properties?.maxDegree?.minimum,
+        minInDegreeType: findTool("query_ontology")?.inputSchema?.properties?.minInDegree?.type,
+        minOutDegreeType: findTool("query_ontology")?.inputSchema?.properties?.minOutDegree?.type,
+      },
+      {
+        minDegreeType: "integer",
+        minDegreeMinimum: 0,
+        maxDegreeType: "integer",
+        maxDegreeMinimum: 0,
+        minInDegreeType: "integer",
+        minOutDegreeType: "integer",
+      },
+      "query_ontology exposes integer match_nodes degree filters",
+    );
+    assert.deepEqual(
+      {
         maxDepthType: findTool("analyze_repo_structure")?.inputSchema?.properties?.maxDepth?.type,
         maxDepthMinimum:
           findTool("analyze_repo_structure")?.inputSchema?.properties?.maxDepth?.minimum,
@@ -1689,11 +1708,13 @@ await test("MCP read/query tools — invalid numeric and direction options are r
       callTool(39, "infer_imports", { maxFiles: 0 }),
       callTool(40, "infer_imports", { maxFiles: 50001 }),
       callTool(41, "compile_ontology", { nodesLimit: 0 }),
+      callTool(42, "query_ontology", { operation: "match_nodes", minDegree: -1 }),
+      callTool(43, "query_ontology", { operation: "match_nodes", maxDegree: 1.5 }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
       21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
-      38, 39, 40, 41,
+      38, 39, 40, 41, 42, 43,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -1705,6 +1726,8 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 7).result.content[0].text, /limit must be a positive integer/i);
     assert.match(responses.find((r) => r.id === 8).result.content[0].text, /nodesOffset must be a non-negative integer/i);
     assert.match(responses.find((r) => r.id === 9).result.content[0].text, /edgesLimit must be a positive integer/i);
+    assert.match(responses.find((r) => r.id === 42).result.content[0].text, /minDegree must be a non-negative integer/i);
+    assert.match(responses.find((r) => r.id === 43).result.content[0].text, /maxDegree must be a non-negative integer/i);
     assert.match(responses.find((r) => r.id === 10).result.content[0].text, /direction must be one of/i);
     assert.match(responses.find((r) => r.id === 11).result.content[0].text, /iterations must be <= 100/i);
     assert.match(responses.find((r) => r.id === 12).result.content[0].text, /depth must be a non-negative integer/i);

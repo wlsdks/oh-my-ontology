@@ -1026,10 +1026,10 @@ export function createOntologyEngine(artifact, options = {}) {
     const kind = normalizeOptionalString(options.kind);
     const domain = normalizeOptionalString(options.domain);
     const slugContains = normalizeOptionalString(options.slugContains)?.toLowerCase() || null;
-    const minDegree = normalizeNonNegativeInteger(options.minDegree);
-    const maxDegree = normalizeNonNegativeInteger(options.maxDegree);
-    const minInDegree = normalizeNonNegativeInteger(options.minInDegree);
-    const minOutDegree = normalizeNonNegativeInteger(options.minOutDegree);
+    const minDegree = normalizeNonNegativeInteger(options.minDegree, 'minDegree');
+    const maxDegree = normalizeNonNegativeInteger(options.maxDegree, 'maxDegree');
+    const minInDegree = normalizeNonNegativeInteger(options.minInDegree, 'minInDegree');
+    const minOutDegree = normalizeNonNegativeInteger(options.minOutDegree, 'minOutDegree');
     const hasIncoming = typeof options.hasIncoming === 'boolean' ? options.hasIncoming : null;
     const hasOutgoing = typeof options.hasOutgoing === 'boolean' ? options.hasOutgoing : null;
     const sort = normalizeNodeSort(options.sort);
@@ -3272,9 +3272,12 @@ function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function normalizeNonNegativeInteger(value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-  return Math.max(0, Math.trunc(value));
+function normalizeNonNegativeInteger(value, name) {
+  if (value === undefined || value === null) return null;
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative integer`);
+  }
+  return value;
 }
 
 function normalizeNodeSort(value) {

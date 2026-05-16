@@ -1194,6 +1194,25 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(slugSearch.nodes.map((node) => node.slug), ['domains/auth']);
   });
 
+  it('rejects invalid match_nodes degree filters instead of coercing them', () => {
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', minDegree: -1 }),
+      /minDegree must be a non-negative integer/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', maxDegree: 1.5 }),
+      /maxDegree must be a non-negative integer/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', minInDegree: '1' }),
+      /minInDegree must be a non-negative integer/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_nodes', minOutDegree: 1.5 }),
+      /minOutDegree must be a non-negative integer/,
+    );
+  });
+
   it('matches compiled edges by graph pattern filters', () => {
     const result = queryCompiledOntology(artifact(), {
       operation: 'match_edges',
