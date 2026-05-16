@@ -526,11 +526,17 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   if (parsed?.operation !== expectedOperation) {
     return `${label} returned unexpected operation: ${parsed?.operation}`;
   }
-  const checks = Array.isArray(parsed?.checks)
-    ? parsed.checks
-    : Array.isArray(parsed?.health?.checks)
-      ? parsed.health.checks
-      : [];
+  if (expectedOperation === 'workspace_brief' && !Array.isArray(parsed?.nextActions)) {
+    return `${label} response missing nextActions array`;
+  }
+  const checks = diagnosisChecks(parsed, expectedOperation);
+  if (!checks) {
+    return `${label} response missing health checks`;
+  }
+  const malformedCheck = checks.find((check) => !check || typeof check !== 'object' || typeof check.status !== 'string');
+  if (malformedCheck) {
+    return `${label} response malformed health check`;
+  }
   const failedChecks = checks.filter((check) => check.status === 'fail');
   if (failedChecks.length > 0) {
     return `${label} has failing health checks: ${failedChecks.map((check) => check.id).join(', ')}`;
@@ -540,6 +546,16 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
     return `${label} has actionable nextActions: ${blockingActions.join(', ')}`;
   }
   return null;
+}
+
+function diagnosisChecks(parsed, expectedOperation) {
+  if (expectedOperation === 'workspace_brief') {
+    return Array.isArray(parsed?.health?.checks) ? parsed.health.checks : null;
+  }
+  if (expectedOperation === 'health') {
+    return Array.isArray(parsed?.checks) ? parsed.checks : null;
+  }
+  return Array.isArray(parsed?.checks) ? parsed.checks : [];
 }
 
 function validateByCodeAggregate(byCode) {

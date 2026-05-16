@@ -617,7 +617,11 @@ describe('verify.mjs first-contact gates', () => {
 
   it('accepts healthy first-contact diagnosis responses', () => {
     assert.equal(
-      diagnosisBlockingFailure('health', { operation: 'health', status: 'healthy' }, 'health'),
+      diagnosisBlockingFailure(
+        'health',
+        { operation: 'health', status: 'healthy', checks: [{ id: 'compile_issues', status: 'pass' }] },
+        'health',
+      ),
       null,
     );
   });
@@ -679,11 +683,62 @@ describe('verify.mjs first-contact gates', () => {
         {
           operation: 'workspace_brief',
           status: 'needs_attention',
+          nextActions: [],
           health: { checks: [{ id: 'dependency_cycles', status: 'fail' }] },
         },
         'workspace_brief',
       ),
       'workspace_brief has failing health checks: dependency_cycles',
+    );
+  });
+
+  it('fails malformed diagnosis responses instead of treating them as clean', () => {
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          health: { checks: [] },
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response missing nextActions array',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          nextActions: [],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response missing health checks',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'health',
+        {
+          operation: 'health',
+          status: 'healthy',
+        },
+        'health',
+      ),
+      'health response missing health checks',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'health',
+        {
+          operation: 'health',
+          status: 'healthy',
+          checks: [{ id: 'compile_issues' }],
+        },
+        'health',
+      ),
+      'health response malformed health check',
     );
   });
 
@@ -694,6 +749,7 @@ describe('verify.mjs first-contact gates', () => {
         {
           operation: 'workspace_brief',
           status: 'needs_attention',
+          health: { checks: [] },
           nextActions: [
             { kind: 'health_check', severity: 'warn', id: 'compile_issues' },
             { kind: 'add_missing_relations', severity: 'warn', count: 2 },
@@ -712,6 +768,7 @@ describe('verify.mjs first-contact gates', () => {
         {
           operation: 'workspace_brief',
           status: 'healthy',
+          health: { checks: [] },
           nextActions: [
             { kind: 'health_check', severity: 'info', id: 'components' },
             { kind: 'resolve_dangling_references', severity: 'fail', count: 1 },
