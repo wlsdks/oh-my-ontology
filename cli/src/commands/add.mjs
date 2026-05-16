@@ -7,6 +7,7 @@ import {
   folderForKind,
   missingExpectedFields,
 } from '../lib/schema.mjs';
+import { parseRequiredFlagValue, parseVaultFlag } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -91,17 +92,17 @@ function parseArgs(args) {
   const positional = [];
   // R15 — autoPrefix default on. starter 와 일관된 layout (kind→folder).
   // 명시 opt-out: --raw-slug (or --no-auto-prefix).
-  const flags = { vault: '.', autoPrefix: true };
+  const flags = { vault: null, autoPrefix: true };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
-    else if (a === '--title') flags.title = args[++i] || '';
-    else if (a.startsWith('--title=')) flags.title = a.slice('--title='.length);
-    else if (a === '--domain') flags.domain = args[++i] || '';
-    else if (a.startsWith('--domain=')) flags.domain = a.slice('--domain='.length);
-    else if (a === '--body') flags.body = args[++i] || '';
-    else if (a.startsWith('--body=')) flags.body = a.slice('--body='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
+    else if (a === '--title') flags.title = parseRequiredFlagValue('--title', args[++i]);
+    else if (a.startsWith('--title=')) flags.title = parseRequiredFlagValue('--title', a.slice('--title='.length));
+    else if (a === '--domain') flags.domain = parseRequiredFlagValue('--domain', args[++i]);
+    else if (a.startsWith('--domain=')) flags.domain = parseRequiredFlagValue('--domain', a.slice('--domain='.length));
+    else if (a === '--body') flags.body = parseRequiredFlagValue('--body', args[++i]);
+    else if (a.startsWith('--body=')) flags.body = parseRequiredFlagValue('--body', a.slice('--body='.length));
     else if (a === '--auto-prefix') flags.autoPrefix = true;
     else if (a === '--raw-slug' || a === '--no-auto-prefix') flags.autoPrefix = false;
     else if (a.startsWith('--')) {
@@ -112,6 +113,13 @@ function parseArgs(args) {
   }
   if (positional.length < 2) {
     return { error: 'kind and slug are required' };
+  }
+  if (positional.length > 2) {
+    return { error: `too many arguments: ${positional.slice(2).join(' ')}` };
+  }
+  if (flags.vault === false) return { error: '--vault requires a path' };
+  for (const value of Object.values(flags)) {
+    if (value instanceof Error) return { error: value.message };
   }
   const [kind, slug] = positional;
   if (!VAULT_KINDS.includes(kind)) {
@@ -128,7 +136,7 @@ function parseArgs(args) {
     title: flags.title,
     domain: flags.domain,
     body: flags.body,
-    vault: flags.vault,
+    vault: flags.vault || '.',
     autoPrefix: flags.autoPrefix,
   };
 }

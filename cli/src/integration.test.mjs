@@ -304,6 +304,87 @@ await test('list --json — JSON 머신 가독', async () => {
   }
 });
 
+await test('local/frontmatter commands — reject invalid vault and value arguments before file work', async () => {
+  const cases = [
+    {
+      args: ['list', '--kind', 'capability'],
+      expectedCode: 0,
+    },
+    {
+      args: ['list', '--vault', '--json'],
+      expectedCode: 1,
+      stderr: /--vault requires a path/,
+    },
+    {
+      args: ['list', 'one', 'two'],
+      expectedCode: 1,
+      stderr: /too many arguments: two/,
+    },
+    {
+      args: ['validate', '--vault', '--json'],
+      expectedCode: 1,
+      stderr: /--vault requires a path/,
+    },
+    {
+      args: ['validate', 'one', 'two'],
+      expectedCode: 1,
+      stderr: /too many arguments: two/,
+    },
+    {
+      args: ['validate', '--fail-on'],
+      expectedCode: 1,
+      stderr: /--fail-on requires a value/,
+    },
+    {
+      args: ['find', 'auth', 'ontology', '--vault', 'docs/ontology'],
+      expectedCode: 1,
+      stderr: /either positional argument or --vault/,
+    },
+    {
+      args: ['find', 'auth', 'one', 'two'],
+      expectedCode: 1,
+      stderr: /too many arguments: two/,
+    },
+    {
+      args: ['find', 'auth', '--kind'],
+      expectedCode: 1,
+      stderr: /--kind requires a value/,
+    },
+    {
+      args: ['add', 'capability', 'foo', '--title', 'Foo', '--vault'],
+      expectedCode: 1,
+      stderr: /--vault requires a path/,
+    },
+    {
+      args: ['add', 'capability', 'foo', '--title', '--vault'],
+      expectedCode: 1,
+      stderr: /--title requires a value/,
+    },
+    {
+      args: ['add', 'capability', 'foo', 'extra', '--title', 'Foo'],
+      expectedCode: 1,
+      stderr: /too many arguments: extra/,
+    },
+    {
+      args: ['import', 'input.md', '--vault'],
+      expectedCode: 1,
+      stderr: /--vault requires a path/,
+    },
+    {
+      args: ['import', 'input.md', '--kind'],
+      expectedCode: 1,
+      stderr: /--kind requires a value/,
+    },
+  ];
+
+  for (const c of cases) {
+    const r = await run(c.args);
+    assert.equal(r.code, c.expectedCode, `${c.args.join(' ')}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    if (c.stdout) assert.match(stripAnsi(r.stdout), c.stdout);
+    if (c.stderr) assert.match(stripAnsi(r.stderr), c.stderr);
+  }
+});
+
 await test('validate — clean vault: exit 0', async () => {
   // R14 — capability/element 는 domain 까지 박아야 missing-expected-field
   // warning 없이 clean. canonical kind 인식 자체를 보는 fixture 라 domain 추가.
@@ -653,7 +734,7 @@ await test('add — title 빈 문자열 거부', async () => {
   try {
     const r = await run(['add', 'capability', 'foo', '--title', '', '--vault', root]);
     assert.equal(r.code, 1);
-    assert.match(r.stderr, /title.*required/i);
+    assert.match(r.stderr, /--title requires a value|title.*required/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

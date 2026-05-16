@@ -4,6 +4,11 @@ import { walkMd } from '../lib/walk-vault.mjs';
 import { parseFrontmatter } from '../lib/parse-frontmatter.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { validateVaultDocument } from '../lib/validate.mjs';
+import {
+  parseRequiredFlagValue,
+  parseVaultFlag,
+  resolveExclusiveVaultArg,
+} from '../lib/cli-args.mjs';
 
 const COLORS = {
   red: '\x1b[31m',
@@ -82,14 +87,18 @@ export const KNOWN_CODES = [
  * 나머지는 무시. CI 가 점진적으로 특정 violation 만 hard-gate 하려 할 때.
  */
 export function runValidate(args) {
-  // --list-codes 는 vault 안 보고 즉시 출력. 다른 옵션이 같이 와도 무시.
-  if (args.includes('--list-codes')) {
-    return printKnownCodes(args.includes('--json'));
+  const parsed = parseArgs(args);
+  if (parsed.error) {
+    process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${parsed.error}\n`);
+    return 1;
   }
 
-  const json = args.includes('--json');
-  const strict = args.includes('--strict');
-  const failOn = parseFailOn(args);
+  // --list-codes 는 vault 안 보고 즉시 출력. 다른 옵션이 같이 와도 무시.
+  if (parsed.listCodes) {
+    return printKnownCodes(parsed.json);
+  }
+
+  const { json, strict, failOn } = parsed;
   // R+ — cycle 44: --fail-on 에 unknown code 가 들어오면 stderr 경고.
   // 실행은 진행 (silently no-match 로 빠지는 것보다 *명시 경고* 가 나음).
   if (failOn) {
@@ -102,7 +111,7 @@ export function runValidate(args) {
       );
     }
   }
-  const vaultPath = resolveVaultRoot(args.find((a) => !a.startsWith('--')));
+  const vaultPath = resolveVaultRoot(parsed.vault);
   const files = walkMd(vaultPath);
   const entries = [];
   const reportByFile = new Map();
@@ -250,15 +259,34 @@ function decideExit(errorFiles, warningFiles, strict, failOn, groups) {
   return 0;
 }
 
-function parseFailOn(args) {
-  // \`--fail-on=code1,code2\` 또는 \`--fail-on code1,code2\`. 비어 있거나
-  // 지정 안 됐으면 null.
+function parseArgs(args) {
+  const flags = { vault: null, json: false, strict: false, listCodes: false, failOn: null };
+  const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--fail-on') return splitCsv(args[i + 1]);
-    if (a.startsWith('--fail-on=')) return splitCsv(a.slice('--fail-on='.length));
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
+    else if (a === '--json') flags.json = true;
+    else if (a === '--strict') flags.strict = true;
+    else if (a === '--list-codes') flags.listCodes = true;
+    else if (a === '--fail-on') flags.failOn = parseRequiredFlagValue('--fail-on', args[++i]);
+    else if (a.startsWith('--fail-on=')) flags.failOn = parseRequiredFlagValue('--fail-on', a.slice('--fail-on='.length));
+    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else positional.push(a);
   }
-  return null;
+  if (flags.vault === false) return { error: '--vault requires a path' };
+  for (const value of Object.values(flags)) {
+    if (value instanceof Error) return { error: value.message };
+  }
+  const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
+  if (vaultResult.error) return vaultResult;
+  return {
+    vault: vaultResult.vault,
+    json: flags.json,
+    strict: flags.strict,
+    listCodes: flags.listCodes,
+    failOn: splitCsv(flags.failOn),
+  };
 }
 
 function splitCsv(value) {

@@ -8,6 +8,7 @@ import {
   defaultBody,
   folderForKind,
 } from '../lib/schema.mjs';
+import { parseRequiredFlagValue, parseVaultFlag } from '../lib/cli-args.mjs';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -266,7 +267,7 @@ function parseArgs(args) {
   // R15 — autoPrefix default on. starter 와 일관된 layout (kind→folder).
   // 명시 opt-out: --raw-slug (or --no-auto-prefix).
   const flags = {
-    vault: '.',
+    vault: null,
     kind: null,
     autoPrefix: true,
     rename: false,
@@ -274,10 +275,10 @@ function parseArgs(args) {
   };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--vault') flags.vault = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vault = a.slice('--vault='.length);
-    else if (a === '--kind') flags.kind = args[++i] || null;
-    else if (a.startsWith('--kind=')) flags.kind = a.slice('--kind='.length);
+    if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
+    else if (a === '--kind') flags.kind = parseRequiredFlagValue('--kind', args[++i]);
+    else if (a.startsWith('--kind=')) flags.kind = parseRequiredFlagValue('--kind', a.slice('--kind='.length));
     else if (a === '--auto-prefix') flags.autoPrefix = true;
     else if (a === '--raw-slug' || a === '--no-auto-prefix') flags.autoPrefix = false;
     else if (a === '--rename') flags.rename = true;
@@ -291,6 +292,10 @@ function parseArgs(args) {
   if (positional.length === 0) {
     return { error: '필수 인자: import 할 .md 파일 또는 디렉토리 1 개 이상' };
   }
+  if (flags.vault === false) return { error: '--vault requires a path' };
+  for (const value of Object.values(flags)) {
+    if (value instanceof Error) return { error: value.message };
+  }
   if (flags.kind && !VAULT_KINDS.includes(flags.kind)) {
     return {
       error: `unknown --kind: ${flags.kind}. one of ${VAULT_KINDS.join(' / ')}`,
@@ -298,7 +303,7 @@ function parseArgs(args) {
   }
   return {
     paths: positional,
-    vault: flags.vault,
+    vault: flags.vault || '.',
     kind: flags.kind,
     autoPrefix: flags.autoPrefix,
     rename: flags.rename,

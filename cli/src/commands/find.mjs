@@ -2,6 +2,11 @@ import { readFileSync } from 'node:fs';
 import { parseFrontmatter } from '../lib/parse-frontmatter.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { walkMd, pathToSlug } from '../lib/walk-vault.mjs';
+import {
+  parseRequiredFlagValue,
+  parseVaultFlag,
+  resolveTrailingVaultArg,
+} from '../lib/cli-args.mjs';
 
 const COLORS = {
   dim: '\x1b[2m',
@@ -9,6 +14,7 @@ const COLORS = {
   cyan: '\x1b[36m',
   bold: '\x1b[1m',
   yellow: '\x1b[33m',
+  red: '\x1b[31m',
 };
 
 const KIND_COLORS = {
@@ -108,14 +114,14 @@ function highlight(text, needle) {
 
 function parseArgs(args) {
   const positional = [];
-  const flags = { vaultPath: '.', kindFilter: null, asJson: false };
+  const flags = { vaultPath: null, kindFilter: null, asJson: false };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--kind') flags.kindFilter = args[++i] || null;
-    else if (a.startsWith('--kind=')) flags.kindFilter = a.slice('--kind='.length);
+    if (a === '--kind') flags.kindFilter = parseRequiredFlagValue('--kind', args[++i]);
+    else if (a.startsWith('--kind=')) flags.kindFilter = parseRequiredFlagValue('--kind', a.slice('--kind='.length));
     else if (a === '--json') flags.asJson = true;
-    else if (a === '--vault') flags.vaultPath = args[++i] || '.';
-    else if (a.startsWith('--vault=')) flags.vaultPath = a.slice('--vault='.length);
+    else if (a === '--vault') flags.vaultPath = parseVaultFlag(args[++i]);
+    else if (a.startsWith('--vault=')) flags.vaultPath = parseVaultFlag(a.slice('--vault='.length));
     else if (a.startsWith('--')) {
       return { error: `unknown flag: ${a}` };
     } else {
@@ -125,11 +131,19 @@ function parseArgs(args) {
   if (positional.length === 0) {
     return { error: 'query is required (e.g. `find auth`)' };
   }
-  // first positional = query, second = vault (optional)
-  const [query, vault] = positional;
+  if (flags.vaultPath === false) return { error: '--vault requires a path' };
+  for (const value of Object.values(flags)) {
+    if (value instanceof Error) return { error: value.message };
+  }
+  const vaultResult = resolveTrailingVaultArg({
+    vault: flags.vaultPath,
+    positional,
+    vaultIndex: 1,
+  });
+  if (vaultResult.error) return vaultResult;
   return {
-    query,
-    vaultPath: resolveVaultRoot(vault || flags.vaultPath),
+    query: positional[0],
+    vaultPath: resolveVaultRoot(vaultResult.vault),
     kindFilter: flags.kindFilter,
     asJson: flags.asJson,
   };
