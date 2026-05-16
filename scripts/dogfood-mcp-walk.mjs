@@ -4091,7 +4091,7 @@ async function main() {
   console.log(
     `  validate_vault: ${validation ? formatCount(validation.summary?.problemFiles ?? 0, "problem file") : "n/a"}`,
   );
-  console.log(`  find_path hop: ${path?.hopCount ?? "n/a"}`);
+  console.log(`  find_path: hops ${path?.hopCount ?? "n/a"} · edges ${path?.edges?.length ?? "n/a"}`);
   console.log(`  find_backlinks: ${bl?.total ?? "n/a"} (mcp-server 가 얼마나 popular)`);
   console.log(
     `  workspace_brief: ${brief?.status ?? "n/a"} (${(brief?.nextActions || []).length} next actions · ${(brief?.health?.checks || []).length} health checks)`,
@@ -4133,7 +4133,7 @@ async function main() {
   console.log(`  similar_nodes: ${similarNodes?.totalMatches ?? "n/a"} matches`);
   console.log(`  explain_relation: ${explainRelation?.verdict ?? "n/a"} · path ${explainRelation?.shortestPath?.found ?? "n/a"}`);
   console.log(`  neighbors: ${neighbors?.total ?? "n/a"} edges · limited ${neighbors?.limited ?? "n/a"}`);
-  console.log(`  path: ${queryPath?.found ?? "n/a"} · hops ${queryPath?.hopCount ?? "n/a"}`);
+  console.log(`  path: ${queryPath?.found ?? "n/a"} · hops ${queryPath?.hopCount ?? "n/a"} · edges ${queryPath?.edges?.length ?? "n/a"}`);
   console.log(`  project_scope: ${projectScope?.summary?.nodes ?? "n/a"} nodes · ${projectScope?.summary?.internalEdges ?? "n/a"} internal edges`);
   console.log(`  strict_args: rejected ${strictArgs?.result?.isError === true}`);
   console.log(`  strict_enum: rejected ${strictEnum?.result?.isError === true}`);
