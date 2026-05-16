@@ -30,7 +30,7 @@ R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import
 | `oh-my-ontology bootstrap [rootPath]` | **R+** 1줄 full bootstrap 적용 명령. analyze --apply (노드 + suggested relations) + infer-imports --apply (depends_on edges) 합본. fresh `init` vault 에서는 untouched starter 예시를 실제 후보 land 직전에 prune, 사용자가 편집한 starter 는 보존. 단일 파일 feature 구조처럼 analyze 가 capability 후보를 못 만든 경우에도 import graph endpoint 를 먼저 생성하고 project→domain→capability containment 로 붙인 뒤 depends_on 을 land 한다. R+ follow-up: `src/features/*.js` 는 capability 로 유지하되 `src/domain`, `src/storage`, `src/integrations`, `src/reports`, `src/shared`, `src/app` 같은 support layer 파일은 element 로 land 해서 `capabilities/domain` 같은 폴더명 잡음 노드를 만들지 않는다. `--threshold N` (약한 import 차단), `--skip-imports` (1단계만), `--json`. agent-less 흐름의 가장 짧은 path. |
 | `oh-my-ontology analyze [rootPath]` | **R16** Walk `package.json` / `README.md` H2 / `src/` → ontology 노드 후보. side effect 0 (default). 후보 slug 는 starter/CLI add 와 같은 `domains/*`, `capabilities/*`, `elements/src/...` shape. **R+ `--apply`**: 후보를 `add_concepts` + `add_relations` 배치로 land 하며 untouched starter 예시를 prune. |
 | `oh-my-ontology infer-imports [rootPath]` | **R17** TS/JS import graph → moduleEdges. side effect 0 (default). moduleEdges 역시 folder-prefixed slug 로 analyze 후보와 바로 매치. Single-file layered repo 에서는 `features/*` 만 capability 로 접고 support layer 파일은 `elements/src/...` 로 보존한다. **R+ `--apply`**: moduleEdges 를 `depends_on` 관계로 batch land (50-row chunk). **R+ `--threshold N`**: count < N 약한 edge 필터. |
-| `oh-my-ontology compile [vault]` | **R+** MCP `compile_ontology` wrapper. deterministic graphHash / node-edge counts / unresolved issue counts 를 터미널에서 확인하고, `--fix` 로 compiler 의 `canonicalizationActions` 를 `patch_concept` 경로로 적용해 relation 배열을 trim/dedupe/sort 한다. bootstrap 이후 ontology 구축 결과를 재정렬하는 agent-less path. |
+| `oh-my-ontology compile [vault]` | **R+** MCP `compile_ontology` wrapper. deterministic graphHash / node-edge counts / unresolved issue counts 를 터미널에서 확인하고, `--fix` 로 compiler 의 `canonicalizationActions` 를 `patch_concept` 경로로 적용해 relation 배열을 trim/dedupe/sort 한다. `--vault` 와 positional vault 를 동시에 받지 않고 빈 `--vault` 도 거부해 재정렬 대상 vault 를 모호하게 선택하지 않는다. bootstrap 이후 ontology 구축 결과를 재정렬하는 agent-less path. |
 
 ## Graph-level commands (R15 follow-up — Concern 4 fix + R+ extras)
 
@@ -55,7 +55,7 @@ cli 가 별도 npm package — `oh-my-ontology` binary. cli/package.json 의 `de
 
 ## 회귀 차단
 
-cli/src/integration.test.mjs — **99 spawn-based** integration test. 매 PR 마다 command inventory 와 package command count metadata, help 출력의 setup contract, init MCP config + copy-paste bootstrap 명령, MCP tool count metadata 기반 출력, compile `--fix` canonicalization 경로, graph-level 명령의 dry-run/confirm 경로, backlink redirect, analyze/infer-imports/bootstrap apply 경로, fresh init starter prune/preserve/replace 경로, single-file layered repo 의 bootstrap endpoint 자동 생성 경로를 검증.
+cli/src/integration.test.mjs — **100 spawn-based** integration test. 매 PR 마다 command inventory 와 package command count metadata, help 출력의 setup contract, init MCP config + copy-paste bootstrap 명령, MCP tool count metadata 기반 출력, compile `--fix` canonicalization 경로와 vault 인자 ambiguity 거부, graph-level 명령의 dry-run/confirm 경로, backlink redirect, analyze/infer-imports/bootstrap apply 경로, fresh init starter prune/preserve/replace 경로, single-file layered repo 의 bootstrap endpoint 자동 생성 경로를 검증.
 
 src/features/docs-vault-local/lib/ontology-starter.test.ts — web workbench starter 의 5개
 파일이 `cli/templates/vault/` 와 byte-for-byte 동일한지 검증. starter README 안에

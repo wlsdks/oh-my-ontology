@@ -251,6 +251,28 @@ await test('compile --fix — applies compiler relation-array canonicalization',
   }
 });
 
+await test('compile — rejects ambiguous vault arguments before compile/fix', async () => {
+  const missing = await run(['compile', '--vault']);
+  assert.equal(missing.code, 1);
+  assert.match(stripAnsi(missing.stderr), /--vault requires a path/);
+
+  const flagValue = await run(['compile', '--vault', '--fix']);
+  assert.equal(flagValue.code, 1);
+  assert.match(stripAnsi(flagValue.stderr), /--vault requires a path/);
+
+  const empty = await run(['compile', '--vault=']);
+  assert.equal(empty.code, 1);
+  assert.match(stripAnsi(empty.stderr), /--vault requires a path/);
+
+  const duplicate = await run(['compile', 'ontology', '--vault', 'docs/ontology']);
+  assert.equal(duplicate.code, 1);
+  assert.match(stripAnsi(duplicate.stderr), /either positional argument or --vault/);
+
+  const tooMany = await run(['compile', 'one', 'two']);
+  assert.equal(tooMany.code, 1);
+  assert.match(stripAnsi(tooMany.stderr), /too many arguments: two/);
+});
+
 await test('list — kind 있는 노드만 카운트', async () => {
   const root = withVault([
     { slug: 'a', content: '---\nkind: capability\ntitle: A\n---\n' },
