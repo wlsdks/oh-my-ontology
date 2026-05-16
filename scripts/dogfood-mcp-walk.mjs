@@ -3241,6 +3241,23 @@ function pathShapeFailure(result) {
   if (result.hops.some((hop) => typeof hop !== "string" || hop.length === 0)) {
     return "find_path response contains empty hop";
   }
+  if (!Array.isArray(result.edges)) {
+    return "find_path response missing edges array";
+  }
+  if (result.edges.length !== result.hopCount) {
+    return `find_path response edge mismatch — hopCount ${result.hopCount}, edges ${result.edges.length}`;
+  }
+  for (const [index, edge] of result.edges.entries()) {
+    if (!edge || typeof edge !== "object" || Array.isArray(edge)) {
+      return `find_path response malformed edge at index ${index}`;
+    }
+    if (edge.from !== result.hops[index] || edge.to !== result.hops[index + 1]) {
+      return `find_path response edge/hop mismatch at index ${index}`;
+    }
+    if (typeof edge.via !== "string" || edge.via.length === 0) {
+      return `find_path response missing edge via at index ${index}`;
+    }
+  }
   return null;
 }
 

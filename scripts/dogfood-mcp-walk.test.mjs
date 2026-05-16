@@ -50,7 +50,7 @@ const okShape = {
     ],
   },
   ev: { matches: [] },
-  path: { found: true, hopCount: 1, hops: ["a", "b"] },
+  path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b", via: "relates" }] },
   bl: {
     total: 1,
     matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" }],
@@ -1558,6 +1558,25 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, path: { found: true, hopCount: 2, hops: ["a", "b"] } }),
       ["find_path response hop mismatch — hopCount 2, hops 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, path: { found: true, hopCount: 1, hops: ["a", "b"] } }),
+      ["find_path response missing edges array"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [] } }),
+      ["find_path response edge mismatch — hopCount 1, edges 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{}] } }),
+      ["find_path response edge/hop mismatch at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b" }] },
+      }),
+      ["find_path response missing edge via at index 0"],
     );
   });
 

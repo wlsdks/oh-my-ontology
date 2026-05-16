@@ -375,6 +375,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /`path`, `health`, or `workspace-brief` payloads/);
     assert.match(releaseChecks, /workspace_brief\.nextActions/);
     assert.match(releaseChecks, /workspace_brief\.health\.checks/);
+    assert.match(releaseChecks, /path edge check/);
     assert.match(releaseChecks, /tuned `workspace_brief` \/ tuned `health` gates regress/);
     assert.match(releaseChecks, /validate_vault` problem files/);
   });
@@ -484,6 +485,9 @@ describe('package contract helpers', () => {
     assert.match(doc, /`orderLimit`, `nodeLimit`, `dependencyTypes`, `componentTypes`/);
     assert.match(dogfoodSection, /identifier\/severity/);
     assert.match(dogfoodSection, /id\/status\/count/);
+    assert.match(dogfoodSection, /`edges\[\]\.from`/);
+    assert.match(dogfoodSection, /`edges\[\]\.to`/);
+    assert.match(dogfoodSection, /`edges\[\]\.via`/);
     assert.match(dogfoodSection, /project-node `list_concepts` probe/);
     assert.match(dogfoodSection, /project-node `list_concepts` probe 도 fail-closed/);
     assert.match(dogfoodSection, /`kind: project`/);

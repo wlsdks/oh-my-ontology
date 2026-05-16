@@ -174,7 +174,7 @@ The graph diagnostic exit contract is fail-closed: malformed `compile`,
 failures instead of clean vaults.
 `dogfood:walk` runs that diagnosis plus graph lookup tasks against this
 repo's own `docs/ontology` vault and exits non-zero if the core MCP
-responses, strict unknown-argument and invalid-enum rejection, `get_concepts` success/partial rows, path check, vault warnings, `validate_vault` problem files,
+responses, strict unknown-argument and invalid-enum rejection, `get_concepts` success/partial rows, path edge check, vault warnings, `validate_vault` problem files,
 `workspace_brief.nextActions`, `workspace_brief.health.checks`, `health`, or
 tuned `workspace_brief` / tuned `health` gates regress. Set `OMOT_DOGFOOD_TIMEOUT_MS=10000` for slower local
 filesystems; the value must be a positive integer in milliseconds.
