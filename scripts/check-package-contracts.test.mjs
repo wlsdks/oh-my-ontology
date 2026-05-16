@@ -170,6 +170,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /health\.checks/);
     assert.match(dogfoodSection, /identifier\/severity/);
     assert.match(dogfoodSection, /id\/status\/count/);
+    assert.match(dogfoodSection, /`project_map` query_plan/);
   });
 
   it('keeps packed CLI smoke aligned with installed hard gates', () => {

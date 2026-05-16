@@ -178,6 +178,24 @@ const okShape = {
     },
     warnings: ["all_paths may be truncated by limit; reduce maxHops or add relation types."],
   },
+  projectMapPlan: {
+    operation: "query_plan",
+    targetOperation: "project_map",
+    sideEffect: false,
+    normalized: {
+      targetOperation: "project_map",
+      types: null,
+      limit: 100,
+    },
+    indexesUsed: ["compiled_artifact"],
+    estimate: {
+      strategy: "aggregate_scan",
+      nodeScans: 1,
+      edgeScans: 2,
+      costClass: "low",
+    },
+    warnings: [],
+  },
 };
 
 describe("recordResult", () => {
@@ -249,6 +267,7 @@ describe("rpc response completion helpers", () => {
 
   it("keeps dogfood response labels aligned with the get_concepts smoke", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(16), "get_concepts");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(17), "project_map_query_plan");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -689,6 +708,40 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["all_paths query_plan missing warnings array"],
+    );
+  });
+
+  it("fails on malformed project_map query_plan payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectMapPlan: { ...okShape.projectMapPlan, operation: "project_map" },
+      }),
+      ["project_map query_plan returned unexpected operation: project_map"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectMapPlan: { ...okShape.projectMapPlan, targetOperation: "overview" },
+      }),
+      ["project_map query_plan returned unexpected targetOperation: overview"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectMapPlan: {
+          ...okShape.projectMapPlan,
+          estimate: { ...okShape.projectMapPlan.estimate, strategy: "bounded_bfs" },
+        },
+      }),
+      ["project_map query_plan missing aggregate_scan estimate"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        projectMapPlan: { ...okShape.projectMapPlan, indexesUsed: [] },
+      }),
+      ["project_map query_plan missing compiled_artifact index hint"],
     );
   });
 

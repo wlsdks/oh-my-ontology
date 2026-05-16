@@ -24,6 +24,7 @@ import {
   listConceptsFailure,
   listKindsFailure,
   overviewFailure,
+  projectMapQueryPlanFailure,
   validateVaultFailure,
 } from "../mcp/scripts/verify.mjs";
 
@@ -50,6 +51,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [14, "all_paths_query_plan"],
   [15, "overview"],
   [16, "get_concepts"],
+  [17, "project_map_query_plan"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -174,6 +176,10 @@ export function buildDogfoodRequests() {
       maxHops: 4,
     }),
     call(15, "query_ontology", { operation: "overview" }),
+    call(17, "query_ontology", {
+      operation: "query_plan",
+      targetOperation: "project_map",
+    }),
   ];
 }
 
@@ -231,6 +237,7 @@ export function evaluateDogfoodGate({
   patternWalk,
   allPaths,
   allPathsPlan,
+  projectMapPlan,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -248,6 +255,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "pattern_walk", patternWalk);
   recordResult(failures, "all_paths", allPaths);
   recordResult(failures, "all_paths_query_plan", allPathsPlan);
+  recordResult(failures, "project_map_query_plan", projectMapPlan);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -313,6 +321,10 @@ export function evaluateDogfoodGate({
   if (allPathsPlan) {
     allPathsPlanFailure = allPathsPlanShapeFailure(allPathsPlan);
     if (allPathsPlanFailure) failures.push(allPathsPlanFailure);
+  }
+  if (projectMapPlan) {
+    const projectMapPlanFailure = projectMapQueryPlanFailure(projectMapPlan);
+    if (projectMapPlanFailure) failures.push(projectMapPlanFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -954,6 +966,15 @@ async function main() {
     }
   }
 
+  // 16. project_map query_plan
+  header(`query_ontology(query_plan project_map)`);
+  const projectMapPlan = getResult(responses, 17);
+  if (projectMapPlan) {
+    console.log(
+      `  strategy: ${projectMapPlan.estimate?.strategy ?? "n/a"} · cost ${projectMapPlan.estimate?.costClass ?? "n/a"} · nodes ${projectMapPlan.estimate?.nodeScans ?? "n/a"} · edges ${projectMapPlan.estimate?.edgeScans ?? "n/a"}`,
+    );
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -970,6 +991,7 @@ async function main() {
     patternWalk,
     allPaths,
     allPathsPlan,
+    projectMapPlan,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1000,6 +1022,7 @@ async function main() {
   console.log(`  pattern_walk: ${patternWalk?.paths?.rows?.length ?? "n/a"} paths (${patternWalk?.paths?.limited ? "limited" : "complete"})`);
   console.log(`  all_paths: ${allPaths?.paths?.length ?? "n/a"} paths (${allPaths?.limited ? "limited" : "complete"})`);
   console.log(`  all_paths query_plan: ${allPathsPlan?.estimate?.costClass ?? "n/a"} · limit ${allPathsPlan?.normalized?.limit ?? "n/a"}`);
+  console.log(`  project_map query_plan: ${projectMapPlan?.estimate?.costClass ?? "n/a"} · ${projectMapPlan?.estimate?.strategy ?? "n/a"}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {
