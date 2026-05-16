@@ -47,6 +47,9 @@ jobs:
       - name: Vault validate (dogfood frontmatter integrity)
         run: pnpm vault:validate
 
+      - name: Vault validator CLI contract
+        run: pnpm test:vault:validate
+
       - name: Vault paths audit (capability/element 의 path 가 실 코드 일치)
         run: pnpm vault:audit
 

@@ -353,12 +353,17 @@ describe('package contract helpers', () => {
 
   it('keeps the root README explicit about vault validator help', () => {
     const readme = readFileSync('README.md', 'utf-8');
+    const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
     const vaultTooling = readme.split('### Vault tooling')[1]?.split('### Package / MCP release checks')[0] ?? '';
 
+    assert.equal(pkg.scripts['test:vault:validate'], 'node --test scripts/validate-vault-script.test.mjs');
     assert.match(vaultTooling, /pnpm vault:validate\s+# frontmatter integrity audit/);
     assert.match(vaultTooling, /pnpm vault:validate \/your\/vault/);
     assert.match(vaultTooling, /pnpm vault:validate -- --help/);
     assert.match(vaultTooling, /print validator usage without scanning/);
+    assert.match(vaultTooling, /pnpm test:vault:validate/);
+    assert.match(vaultTooling, /focused validator CLI argument contract/);
+    assert.match(readme, /CI runs `pnpm vault:validate`, `pnpm test:vault:validate`,\s+`pnpm vault:audit`, and `pnpm package:check`/);
   });
 
   it('keeps the root README dogfood snapshot aligned with the vault census', () => {
