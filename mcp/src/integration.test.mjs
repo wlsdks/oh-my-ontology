@@ -162,6 +162,29 @@ function isErrorResponse(responses, id) {
   return res.result?.isError === true;
 }
 
+function assertPostWriteMaintenanceShape(value, label = "postWriteMaintenance") {
+  assert.ok(value, `${label} exists`);
+  assert.equal(value.operation, "maintenance_plan", `${label} preserves operation`);
+  assert.equal(value.sideEffect, false, `${label} stays side-effect free`);
+  assert.equal(typeof value.graphHash, "string", `${label} exposes graphHash`);
+  assert.equal(typeof value.summary?.compileIssues, "number", `${label} exposes summary`);
+  assert.ok(value.filters, `${label} exposes maintenance filters`);
+  assert.equal(value.filters.executableOnly, false, `${label} exposes default executableOnly filter`);
+  assert.deepEqual(value.filters.phases, [], `${label} exposes phase filters`);
+  assert.deepEqual(value.filters.severities, [], `${label} exposes severity filters`);
+  assert.deepEqual(value.filters.kinds, [], `${label} exposes kind filters`);
+  assert.ok(value.cursor, `${label} exposes cursor metadata`);
+  assert.ok(Object.hasOwn(value.cursor, "reason"), `${label} cursor exposes miss reason metadata`);
+  assert.equal(typeof value.limited, "boolean", `${label} exposes limited flag`);
+  assert.ok(Array.isArray(value.actions), `${label} exposes compact actions`);
+  assert.ok(Object.hasOwn(value, "nextExecutableAction"), `${label} exposes next executable action pointer`);
+  assert.ok(Object.hasOwn(value, "nextReviewAction"), `${label} exposes next review action pointer`);
+  if (value.actions.length > 0) {
+    assert.match(value.actions[0].id, /^maint_[a-f0-9]{8}$/, `${label} action has stable id`);
+    assert.equal(typeof value.actions[0].executable, "boolean", `${label} action exposes executable flag`);
+  }
+}
+
 // R+ — cycle 39: 단일 도구 (get_concept · add_concept · add_relation) 의
 // description 이 batch 짝 (get_concepts · add_concepts · add_relations) 을
 // 명시 cross-reference. agent 가 tool list 만 보고도 K-round-trip 대안을
@@ -2519,9 +2542,7 @@ await test("add_concepts — 배치 write, 순서 보존 + partial result", asyn
     assert.equal(result.concepts[3].slug, "gamma");
     assert.equal(result.concepts[3].ok, false);
     assert.match(result.concepts[3].error, /required|title/i);
-    assert.ok(result.postWriteMaintenance, "batch write returns post-write maintenance summary");
-    assert.equal(typeof result.postWriteMaintenance.summary.compileIssues, "number");
-    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
+    assertPostWriteMaintenanceShape(result.postWriteMaintenance, "batch concept postWriteMaintenance");
     assert.equal(result.concepts[0].postWriteMaintenance, undefined);
     // list 응답에 alpha + beta 가 추가됨, gamma 는 안 됨.
     const list = getCallParsed(responses, 3);
@@ -2924,9 +2945,7 @@ await test("add_relations — 배치 write, row 순서 보존 + canonical sort +
     // unknown type
     assert.equal(result.relations[4].ok, false);
     assert.match(result.relations[4].error, /Unknown relation type|weird-type/i);
-    assert.ok(result.postWriteMaintenance, "batch relation write returns post-write maintenance summary");
-    assert.equal(typeof result.postWriteMaintenance.summary.compileIssues, "number");
-    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
+    assertPostWriteMaintenanceShape(result.postWriteMaintenance, "batch relation postWriteMaintenance");
     assert.equal(result.relations[0].postWriteMaintenance, undefined);
     // p.contains 는 edge set 기준으로 중복 제거 + 정렬되어 land
     const p = getCallParsed(responses, 3);
@@ -3180,8 +3199,7 @@ await test("patch_concept — graph 배열 patch 는 canonical set 으로 저장
     assert.equal(isErrorResponse(responses, 2), false);
     const patched = getCallParsed(responses, 2);
     assert.equal(patched.changed, true);
-    assert.ok(patched.postWriteMaintenance, "patch_concept returns post-write maintenance summary");
-    assert.ok(Array.isArray(patched.postWriteMaintenance.actions));
+    assertPostWriteMaintenanceShape(patched.postWriteMaintenance, "patch_concept postWriteMaintenance");
     const result = getCallParsed(responses, 3);
     assert.deepEqual(result.frontmatter.domains, ["domains/a", "domains/z"]);
     assert.deepEqual(result.frontmatter.dependencies, ["a", "b"]);
@@ -3372,8 +3390,7 @@ await test("rename_concept confirm:true — 파일 이동 + backlink redirect", 
     assert.equal(result.moved, true);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
     assert.equal(result.changed, true);
-    assert.ok(result.postWriteMaintenance, "rename_concept confirm returns post-write maintenance summary");
-    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
+    assertPostWriteMaintenanceShape(result.postWriteMaintenance, "rename_concept postWriteMaintenance");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -3402,8 +3419,7 @@ await test("merge_concepts confirm:true — fromSlug 삭제 + backlink redirect"
     assert.equal(result.deleted, true);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
     assert.equal(result.changed, true);
-    assert.ok(result.postWriteMaintenance, "merge_concepts confirm returns post-write maintenance summary");
-    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
+    assertPostWriteMaintenanceShape(result.postWriteMaintenance, "merge_concepts postWriteMaintenance");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -3424,8 +3440,7 @@ await test("delete_concept confirm:true — 삭제 후 post-write maintenance su
     const result = getCallParsed(responses, 2);
     assert.equal(result.ok, true);
     assert.equal(result.changed, true);
-    assert.ok(result.postWriteMaintenance, "delete_concept confirm returns post-write maintenance summary");
-    assert.ok(Array.isArray(result.postWriteMaintenance.actions));
+    assertPostWriteMaintenanceShape(result.postWriteMaintenance, "delete_concept postWriteMaintenance");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -3545,36 +3560,7 @@ await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (i
     assert.equal(first.ok, true);
     assert.equal(first.alreadyExists, undefined);
     assert.equal(first.changed, true);
-    assert.ok(first.postWriteMaintenance, "single write returns post-write maintenance summary");
-    assert.equal(first.postWriteMaintenance.operation, "maintenance_plan");
-    assert.equal(first.postWriteMaintenance.sideEffect, false);
-    assert.ok(first.postWriteMaintenance.filters, "postWriteMaintenance exposes maintenance filters");
-    assert.equal(first.postWriteMaintenance.filters.executableOnly, false);
-    assert.deepEqual(first.postWriteMaintenance.filters.phases, []);
-    assert.deepEqual(first.postWriteMaintenance.filters.severities, []);
-    assert.deepEqual(first.postWriteMaintenance.filters.kinds, []);
-    assert.equal(typeof first.postWriteMaintenance.limited, "boolean");
-    assert.ok(Array.isArray(first.postWriteMaintenance.actions));
-    assert.ok(
-      Object.hasOwn(first.postWriteMaintenance, "nextExecutableAction"),
-      "postWriteMaintenance exposes the next executable action pointer",
-    );
-    assert.ok(
-      Object.hasOwn(first.postWriteMaintenance, "nextReviewAction"),
-      "postWriteMaintenance exposes the next review action pointer",
-    );
-    assert.ok(
-      Object.hasOwn(first.postWriteMaintenance, "cursor"),
-      "postWriteMaintenance exposes maintenance cursor metadata",
-    );
-    assert.ok(
-      Object.hasOwn(first.postWriteMaintenance.cursor, "reason"),
-      "postWriteMaintenance cursor exposes miss reason metadata",
-    );
-    if (first.postWriteMaintenance.actions.length > 0) {
-      assert.match(first.postWriteMaintenance.actions[0].id, /^maint_[a-f0-9]{8}$/);
-      assert.equal(typeof first.postWriteMaintenance.actions[0].executable, "boolean");
-    }
+    assertPostWriteMaintenanceShape(first.postWriteMaintenance, "single relation postWriteMaintenance");
     assert.equal(second.ok, true);
     assert.equal(second.alreadyExists, true);
     assert.equal(second.changed, false);
