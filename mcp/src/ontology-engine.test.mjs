@@ -155,10 +155,11 @@ describe('queryCompiledOntology', () => {
 
     const branchingGraph = compileOntology(
       [
-        doc('a', { kind: 'capability', title: 'A', relates: ['b', 'c', 'e'] }),
+        doc('a', { kind: 'capability', title: 'A', relates: ['b', 'c', 'e', 'f'] }),
         doc('b', { kind: 'capability', title: 'B', relates: ['d'] }),
         doc('c', { kind: 'capability', title: 'C', relates: ['d'] }),
         doc('e', { kind: 'capability', title: 'E', relates: ['d'] }),
+        doc('f', { kind: 'capability', title: 'F', relates: ['d'] }),
         doc('d', { kind: 'capability', title: 'D' }),
       ],
       { includeIndexes: true },
@@ -168,11 +169,11 @@ describe('queryCompiledOntology', () => {
       from: 'a',
       to: 'd',
       maxHops: 2,
-      limit: 3,
+      limit: 4,
     });
-    assert.equal(exactLimit.totalPaths, 3);
+    assert.equal(exactLimit.totalPaths, 4);
     assert.equal(exactLimit.limited, false);
-    assert.equal(exactLimit.paths.length, 3);
+    assert.equal(exactLimit.paths.length, 4);
 
     const truncated = queryCompiledOntology(branchingGraph, {
       operation: 'all_paths',
@@ -181,7 +182,7 @@ describe('queryCompiledOntology', () => {
       maxHops: 2,
       limit: 2,
     });
-    assert.equal(truncated.totalPaths, 3);
+    assert.equal(truncated.totalPaths, 4);
     assert.equal(truncated.limited, true);
     assert.equal(truncated.paths.length, 2);
   });

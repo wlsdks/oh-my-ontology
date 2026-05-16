@@ -1831,10 +1831,11 @@ await test("query_ontology pattern_walk — exact branch limit keeps all MCP pat
 
 await test("query_ontology all_paths — limited exposes hidden MCP paths", async () => {
   const root = makeVault([
-    { slug: "a", content: "---\nkind: capability\ntitle: A\nrelates: [b, c, e]\n---\n" },
+    { slug: "a", content: "---\nkind: capability\ntitle: A\nrelates: [b, c, e, f]\n---\n" },
     { slug: "b", content: "---\nkind: capability\ntitle: B\nrelates: [d]\n---\n" },
     { slug: "c", content: "---\nkind: capability\ntitle: C\nrelates: [d]\n---\n" },
     { slug: "e", content: "---\nkind: capability\ntitle: E\nrelates: [d]\n---\n" },
+    { slug: "f", content: "---\nkind: capability\ntitle: F\nrelates: [d]\n---\n" },
     { slug: "d", content: "---\nkind: capability\ntitle: D\n---\n" },
   ]);
   try {
@@ -1845,7 +1846,7 @@ await test("query_ontology all_paths — limited exposes hidden MCP paths", asyn
         from: "a",
         to: "d",
         maxHops: 2,
-        limit: 3,
+        limit: 4,
       }),
       callTool(3, "query_ontology", {
         operation: "all_paths",
@@ -1856,12 +1857,12 @@ await test("query_ontology all_paths — limited exposes hidden MCP paths", asyn
       }),
     ]);
     const exact = getCallParsed(responses, 2);
-    assert.equal(exact.totalPaths, 3);
+    assert.equal(exact.totalPaths, 4);
     assert.equal(exact.limited, false);
-    assert.equal(exact.paths.length, 3);
+    assert.equal(exact.paths.length, 4);
 
     const truncated = getCallParsed(responses, 3);
-    assert.equal(truncated.totalPaths, 3);
+    assert.equal(truncated.totalPaths, 4);
     assert.equal(truncated.limited, true);
     assert.equal(truncated.paths.length, 2);
   } finally {

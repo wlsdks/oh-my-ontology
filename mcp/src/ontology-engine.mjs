@@ -292,7 +292,6 @@ export function createOntologyEngine(artifact, options = {}) {
     const limit = normalizeLimit(options.limit ?? 25);
     const typeSet = normalizeTypes(options.types);
     const matches = [];
-    let limited = false;
 
     const stack = [{ slug: from, hops: [from], edges: [] }];
     while (stack.length > 0) {
@@ -300,10 +299,6 @@ export function createOntologyEngine(artifact, options = {}) {
       const hopCount = current.hops.length - 1;
       if (current.slug === to) {
         matches.push(current);
-        if (matches.length > limit) {
-          limited = true;
-          break;
-        }
         continue;
       }
       if (hopCount >= maxHops) continue;
@@ -343,7 +338,7 @@ export function createOntologyEngine(artifact, options = {}) {
       direction,
       maxHops,
       totalPaths: rows.length,
-      limited,
+      limited: rows.length > limit,
       shortestHopCount: visibleRows[0]?.hopCount ?? null,
       byLength: sortedCountObject(lengthCounts),
       paths: visibleRows,
