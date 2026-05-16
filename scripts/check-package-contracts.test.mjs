@@ -354,9 +354,13 @@ describe('package contract helpers', () => {
   it('keeps the root README explicit about vault validator help', () => {
     const readme = readFileSync('README.md', 'utf-8');
     const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
+    const workflow = readFileSync('.github/workflows/ci.yml', 'utf-8');
     const vaultTooling = readme.split('### Vault tooling')[1]?.split('### Package / MCP release checks')[0] ?? '';
 
     assert.equal(pkg.scripts['test:vault:validate'], 'node --test scripts/validate-vault-script.test.mjs');
+    assert.match(workflow, /name: Vault validate \(dogfood frontmatter integrity\)\s+run: pnpm vault:validate/);
+    assert.match(workflow, /name: Vault validator CLI contract\s+run: pnpm test:vault:validate/);
+    assert.match(workflow, /name: Vault paths audit/);
     assert.match(vaultTooling, /pnpm vault:validate\s+# frontmatter integrity audit/);
     assert.match(vaultTooling, /pnpm vault:validate \/your\/vault/);
     assert.match(vaultTooling, /pnpm vault:validate -- --help/);
