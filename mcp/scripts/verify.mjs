@@ -535,8 +535,8 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
         !action
         || typeof action !== 'object'
         || Array.isArray(action)
-        || (typeof action.id !== 'string' && typeof action.kind !== 'string')
-        || typeof action.severity !== 'string'
+        || !hasNonEmptyString(action.id, action.kind)
+        || !hasNonEmptyString(action.severity)
       ),
     );
     if (malformedAction) {
@@ -548,7 +548,7 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
     return `${label} response missing health checks`;
   }
   const malformedCheck = checks.find(
-    (check) => !check || typeof check !== 'object' || typeof check.id !== 'string' || typeof check.status !== 'string',
+    (check) => !check || typeof check !== 'object' || !hasNonEmptyString(check.id) || !hasNonEmptyString(check.status),
   );
   if (malformedCheck) {
     return `${label} response malformed health check`;
@@ -562,6 +562,10 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
     return `${label} has actionable nextActions: ${blockingActions.join(', ')}`;
   }
   return null;
+}
+
+function hasNonEmptyString(...values) {
+  return values.some((value) => typeof value === 'string' && value.length > 0);
 }
 
 function diagnosisChecks(parsed, expectedOperation) {
