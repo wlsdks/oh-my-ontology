@@ -464,6 +464,98 @@ const okShape = {
       },
     ],
   },
+  growthPlan: {
+    operation: "growth_plan",
+    summary: {
+      relationRecommendations: 1,
+      externalElementRefs: 1,
+      externalElementRefsIgnored: 0,
+      danglingReferences: 1,
+      unassignedNodes: 1,
+      emptyDomains: 1,
+      totalActions: 3,
+    },
+    relationRecommendations: {
+      operation: "recommend_relations",
+      mode: "domain_containment",
+      totalRecommendations: 1,
+      limited: false,
+      recommendations: [
+        {
+          kind: "missing_domain_containment",
+          score: 1,
+          from: "domains/ai-agent-partner",
+          to: "capabilities/mcp-server",
+          relation: "capabilities",
+          reason: "Missing containment relation.",
+          proposedAction: {
+            tool: "add_relation",
+            args: { from: "domains/ai-agent-partner", to: "capabilities/mcp-server", type: "capabilities" },
+          },
+        },
+      ],
+    },
+    externalElementRefs: {
+      total: 1,
+      limited: false,
+      rows: [
+        {
+          kind: "materialize_external_element",
+          score: 0.8,
+          from: "capabilities/mcp-server",
+          ref: "mcp/src/index.js",
+          suggestedSlug: "elements/mcp-src-index",
+          reason: "Materialize external element.",
+          proposedAction: {
+            tool: "add_concept",
+            args: { slug: "elements/mcp-src-index", kind: "element", title: "Index" },
+          },
+        },
+      ],
+    },
+    danglingReferences: {
+      total: 1,
+      limited: false,
+      rows: [
+        {
+          kind: "resolve_dangling_reference",
+          score: 0.7,
+          from: "capabilities/mcp-server",
+          ref: "capabilities/missing",
+          relation: "dependencies",
+          reason: "Resolve dangling reference.",
+          proposedAction: {
+            tool: "add_concept",
+            args: { slug: "capabilities/missing", kind: "capability", title: "Missing" },
+          },
+        },
+      ],
+    },
+    unassignedNodes: {
+      total: 1,
+      limited: false,
+      rows: [
+        {
+          kind: "unassigned_node",
+          score: 0.5,
+          slug: "capabilities/orphan",
+          reason: "Assign it to a domain.",
+        },
+      ],
+    },
+    emptyDomains: {
+      total: 1,
+      limited: false,
+      rows: [
+        {
+          kind: "empty_domain",
+          score: 0.4,
+          slug: "domains/empty",
+          reason: "Domain has no contained capability or element nodes yet.",
+        },
+      ],
+    },
+  },
 };
 
 describe("recordResult", () => {
@@ -542,6 +634,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(21), "components");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(22), "relation_check");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(23), "maintenance_plan");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(24), "growth_plan");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1343,6 +1436,79 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["maintenance_plan action missing score: maint_link"],
+    );
+  });
+
+  it("fails on malformed growth_plan payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, growthPlan: { ...okShape.growthPlan, operation: "maintenance_plan" } }),
+      ["growth_plan response operation mismatch — maintenance_plan"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        growthPlan: {
+          ...okShape.growthPlan,
+          summary: { ...okShape.growthPlan.summary, totalActions: 2 },
+        },
+      }),
+      ["growth_plan totalActions mismatch — summary 2, computed 3"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        growthPlan: {
+          ...okShape.growthPlan,
+          relationRecommendations: { ...okShape.growthPlan.relationRecommendations, totalRecommendations: 2 },
+        },
+      }),
+      ["growth_plan relationRecommendations total mismatch — summary 1, group 2"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        growthPlan: {
+          ...okShape.growthPlan,
+          externalElementRefs: { ...okShape.growthPlan.externalElementRefs, rows: [] },
+        },
+      }),
+      ["growth_plan.externalElementRefs row count mismatch — rows 0, total 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        growthPlan: {
+          ...okShape.growthPlan,
+          externalElementRefs: { ...okShape.growthPlan.externalElementRefs, ignored: 1 },
+        },
+      }),
+      ["growth_plan ignored external refs mismatch — summary 0, group 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        growthPlan: {
+          ...okShape.growthPlan,
+          danglingReferences: {
+            ...okShape.growthPlan.danglingReferences,
+            rows: [{ ...okShape.growthPlan.danglingReferences.rows[0], proposedAction: { tool: "", args: {} } }],
+          },
+        },
+      }),
+      ["growth_plan.danglingReferences proposedAction missing tool: resolve_dangling_reference"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        growthPlan: {
+          ...okShape.growthPlan,
+          unassignedNodes: {
+            ...okShape.growthPlan.unassignedNodes,
+            rows: [{ ...okShape.growthPlan.unassignedNodes.rows[0], score: -1 }],
+          },
+        },
+      }),
+      ["growth_plan.unassignedNodes row missing score: unassigned_node"],
     );
   });
 

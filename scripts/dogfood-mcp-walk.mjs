@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / relation_check / components / maintenance_plan / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / relation_check / components / growth_plan / maintenance_plan / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -58,6 +58,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [21, "components"],
   [22, "relation_check"],
   [23, "maintenance_plan"],
+  [24, "growth_plan"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -216,6 +217,10 @@ export function buildDogfoodRequests() {
       operation: "maintenance_plan",
       limit: 5,
     }),
+    call(24, "query_ontology", {
+      operation: "growth_plan",
+      limit: 5,
+    }),
   ];
 }
 
@@ -280,6 +285,7 @@ export function evaluateDogfoodGate({
   components,
   relationCheck,
   maintenancePlan,
+  growthPlan,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -304,6 +310,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "components", components);
   recordResult(failures, "relation_check", relationCheck);
   recordResult(failures, "maintenance_plan", maintenancePlan);
+  recordResult(failures, "growth_plan", growthPlan);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -397,6 +404,10 @@ export function evaluateDogfoodGate({
   if (maintenancePlan) {
     const maintenancePlanFailure = maintenancePlanShapeFailure(maintenancePlan);
     if (maintenancePlanFailure) failures.push(maintenancePlanFailure);
+  }
+  if (growthPlan) {
+    const growthPlanFailure = growthPlanShapeFailure(growthPlan);
+    if (growthPlanFailure) failures.push(growthPlanFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -1056,6 +1067,135 @@ function maintenanceActionFailure(action, index) {
   return null;
 }
 
+function growthPlanShapeFailure(result) {
+  if (result.operation !== "growth_plan") {
+    return `growth_plan response operation mismatch — ${result.operation}`;
+  }
+  const summaryFailure = numericSummaryFailure("growth_plan", result.summary, [
+    "relationRecommendations",
+    "externalElementRefs",
+    "externalElementRefsIgnored",
+    "danglingReferences",
+    "unassignedNodes",
+    "emptyDomains",
+    "totalActions",
+  ]);
+  if (summaryFailure) return summaryFailure;
+  const totalActions = result.summary.relationRecommendations + result.summary.externalElementRefs + result.summary.danglingReferences;
+  if (result.summary.totalActions !== totalActions) {
+    return `growth_plan totalActions mismatch — summary ${result.summary.totalActions}, computed ${totalActions}`;
+  }
+  const recommendationsFailure = relationRecommendationsShapeFailure(result.relationRecommendations, result.summary.relationRecommendations);
+  if (recommendationsFailure) return recommendationsFailure;
+  for (const [key, total] of [
+    ["externalElementRefs", result.summary.externalElementRefs],
+    ["danglingReferences", result.summary.danglingReferences],
+    ["unassignedNodes", result.summary.unassignedNodes],
+    ["emptyDomains", result.summary.emptyDomains],
+  ]) {
+    const groupFailure = candidateGroupShapeFailure(`growth_plan.${key}`, result[key], total);
+    if (groupFailure) return groupFailure;
+  }
+  if ((result.externalElementRefs.ignored ?? 0) !== result.summary.externalElementRefsIgnored) {
+    return `growth_plan ignored external refs mismatch — summary ${result.summary.externalElementRefsIgnored}, group ${result.externalElementRefs.ignored ?? 0}`;
+  }
+  return null;
+}
+
+function relationRecommendationsShapeFailure(group, expectedTotal) {
+  if (!group || typeof group !== "object" || Array.isArray(group)) {
+    return "growth_plan response missing relationRecommendations";
+  }
+  if (group.operation !== "recommend_relations") {
+    return `growth_plan relationRecommendations operation mismatch — ${group.operation}`;
+  }
+  if (group.mode !== "domain_containment") {
+    return `growth_plan relationRecommendations mode mismatch — ${group.mode}`;
+  }
+  if (!Number.isInteger(group.totalRecommendations) || group.totalRecommendations < 0) {
+    return "growth_plan relationRecommendations missing totalRecommendations";
+  }
+  if (group.totalRecommendations !== expectedTotal) {
+    return `growth_plan relationRecommendations total mismatch — summary ${expectedTotal}, group ${group.totalRecommendations}`;
+  }
+  if (typeof group.limited !== "boolean") {
+    return "growth_plan relationRecommendations missing limited flag";
+  }
+  if (!Array.isArray(group.recommendations)) {
+    return "growth_plan relationRecommendations missing recommendations";
+  }
+  if (group.recommendations.length > group.totalRecommendations) {
+    return `growth_plan relationRecommendations rows exceed total — rows ${group.recommendations.length}, total ${group.totalRecommendations}`;
+  }
+  if (!group.limited && group.recommendations.length !== group.totalRecommendations) {
+    return `growth_plan relationRecommendations row count mismatch — rows ${group.recommendations.length}, total ${group.totalRecommendations}`;
+  }
+  for (const [index, row] of group.recommendations.entries()) {
+    const rowFailure = growthCandidateRowFailure("growth_plan relationRecommendations", row, index, { requireProposedAction: true });
+    if (rowFailure) return rowFailure;
+  }
+  return null;
+}
+
+function candidateGroupShapeFailure(label, group, expectedTotal) {
+  if (!group || typeof group !== "object" || Array.isArray(group)) {
+    return `${label} missing group`;
+  }
+  if (!Number.isInteger(group.total) || group.total < 0) {
+    return `${label} missing total`;
+  }
+  if (group.total !== expectedTotal) {
+    return `${label} total mismatch — summary ${expectedTotal}, group ${group.total}`;
+  }
+  if (typeof group.limited !== "boolean") {
+    return `${label} missing limited flag`;
+  }
+  if (!Array.isArray(group.rows)) {
+    return `${label} missing rows`;
+  }
+  if (group.rows.length > group.total) {
+    return `${label} rows exceed total — rows ${group.rows.length}, total ${group.total}`;
+  }
+  if (!group.limited && group.rows.length !== group.total) {
+    return `${label} row count mismatch — rows ${group.rows.length}, total ${group.total}`;
+  }
+  if (group.ignored != null && (!Number.isInteger(group.ignored) || group.ignored < 0)) {
+    return `${label} malformed ignored count`;
+  }
+  for (const [index, row] of group.rows.entries()) {
+    const rowFailure = growthCandidateRowFailure(label, row, index);
+    if (rowFailure) return rowFailure;
+  }
+  return null;
+}
+
+function growthCandidateRowFailure(label, row, index, { requireProposedAction = false } = {}) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    return `${label} malformed row at index ${index}`;
+  }
+  if (typeof row.kind !== "string" || row.kind.length === 0) {
+    return `${label} row missing kind at index ${index}`;
+  }
+  if (typeof row.score !== "number" || !Number.isFinite(row.score) || row.score < 0) {
+    return `${label} row missing score: ${row.kind}`;
+  }
+  if (typeof row.reason !== "string" || row.reason.length === 0) {
+    return `${label} row missing reason: ${row.kind}`;
+  }
+  if (requireProposedAction && (!row.proposedAction || typeof row.proposedAction !== "object" || Array.isArray(row.proposedAction))) {
+    return `${label} row missing proposedAction: ${row.kind}`;
+  }
+  if (row.proposedAction) {
+    if (typeof row.proposedAction.tool !== "string" || row.proposedAction.tool.length === 0) {
+      return `${label} proposedAction missing tool: ${row.kind}`;
+    }
+    if (!row.proposedAction.args || typeof row.proposedAction.args !== "object" || Array.isArray(row.proposedAction.args)) {
+      return `${label} proposedAction missing args: ${row.kind}`;
+    }
+  }
+  return null;
+}
+
 function scopeEdgeBucketFailure(label, bucket) {
   if (!bucket || typeof bucket !== "object" || Array.isArray(bucket)) {
     return `${label} missing bucket`;
@@ -1631,6 +1771,18 @@ async function main() {
     }
   }
 
+  // 23. growth_plan
+  header(`query_ontology(growth_plan)`);
+  const growthPlan = getResult(responses, 24);
+  if (growthPlan) {
+    console.log(
+      `  actions ${growthPlan.summary?.totalActions ?? "n/a"} · relations ${growthPlan.summary?.relationRecommendations ?? "n/a"} · external ${growthPlan.summary?.externalElementRefs ?? "n/a"} · dangling ${growthPlan.summary?.danglingReferences ?? "n/a"}`,
+    );
+    console.log(
+      `  unassigned ${growthPlan.summary?.unassignedNodes ?? "n/a"} · emptyDomains ${growthPlan.summary?.emptyDomains ?? "n/a"} · ignoredExternal ${growthPlan.summary?.externalElementRefsIgnored ?? "n/a"}`,
+    );
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -1654,6 +1806,7 @@ async function main() {
     components,
     relationCheck,
     maintenancePlan,
+    growthPlan,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1691,6 +1844,7 @@ async function main() {
   console.log(`  components: ${components?.totalComponents ?? "n/a"} total · largest ${components?.largestSize ?? "n/a"}`);
   console.log(`  relation_check: ${relationCheck?.verdict ?? "n/a"} · exists ${relationCheck?.exists ?? "n/a"}`);
   console.log(`  maintenance_plan: ${maintenancePlan?.summary?.remainingActions ?? "n/a"} remaining · ${maintenancePlan?.summary?.executableActions ?? "n/a"} executable`);
+  console.log(`  growth_plan: ${growthPlan?.summary?.totalActions ?? "n/a"} actions · ${growthPlan?.summary?.externalElementRefsIgnored ?? "n/a"} ignored external refs`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {
