@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -81,6 +81,16 @@ function countMarkdownFiles(root: string): number {
   return count;
 }
 
+function dogfoodKindCounts() {
+  return {
+    capabilities: countMarkdownFiles(path.join(ROOT, 'docs/ontology/capabilities')),
+    domains: countMarkdownFiles(path.join(ROOT, 'docs/ontology/domains')),
+    elements: countMarkdownFiles(path.join(ROOT, 'docs/ontology/elements')),
+    project: existsSync(path.join(ROOT, 'docs/ontology/project.md')) ? 1 : 0,
+    'vault-readme': existsSync(path.join(ROOT, 'docs/ontology/README.md')) ? 1 : 0,
+  };
+}
+
 describe('current-surface launch docs', () => {
   it('do not advertise stale MCP, dogfood, or test counts', async () => {
     const findings: string[] = [];
@@ -109,5 +119,16 @@ describe('current-surface launch docs', () => {
     }
 
     expect(findings).toEqual([]);
+  });
+
+  it('keeps the README dogfood kind breakdown aligned with the ontology vault', async () => {
+    const readme = await readFile(path.join(ROOT, 'README.md'), 'utf8');
+    const counts = dogfoodKindCounts();
+
+    expect(readme).toContain(`capabilities ${counts.capabilities}`);
+    expect(readme).toContain(`domains ${counts.domains}`);
+    expect(readme).toContain(`elements ${counts.elements}`);
+    expect(readme).toContain(`project ${counts.project}`);
+    expect(readme).toContain(`vault-readme ${counts['vault-readme']}`);
   });
 });
