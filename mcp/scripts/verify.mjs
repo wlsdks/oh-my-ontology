@@ -14,13 +14,14 @@
  *   2. server boot — initialize JSON-RPC 응답
  *   3. tools/list — 23 도구 모두 노출 + graph-query enum schema contract + strict argument/enum runtime smoke
  *   4. tools/call list_concepts — vault 노드 수 출력
- *   5. tools/call get_concepts — batch reader success + partial-row contract
- *   6. tools/call list_kinds — kind census aggregate
- *   7. tools/call validate_vault — whole-vault frontmatter / graph-reference health
- *   8. tools/call query_ontology workspace_brief + health — agent first-contact graph diagnosis
- *   9. tools/call compile_ontology(summary) — compiler graph summary contract
- *   10. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
- *   11. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
+ *   5. tools/call list_concepts(kind=project) — project_scope gate probe
+ *   6. tools/call get_concepts — batch reader success + partial-row contract
+ *   7. tools/call list_kinds — kind census aggregate
+ *   8. tools/call validate_vault — whole-vault frontmatter / graph-reference health
+ *   9. tools/call query_ontology workspace_brief + health — agent first-contact graph diagnosis
+ *   10. tools/call compile_ontology(summary) — compiler graph summary contract
+ *   11. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
+ *   12. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */

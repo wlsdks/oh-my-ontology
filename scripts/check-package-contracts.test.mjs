@@ -158,8 +158,11 @@ describe('package contract helpers', () => {
 
   it('keeps the CLI README explicit about mcp-verify help scope', () => {
     const readme = readFileSync('cli/README.md', 'utf-8');
+    const tableRow = readme.split('| `oh-my-ontology mcp-verify [vault]` |')[1]?.split('\n')[0] ?? '';
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
 
+    assert.match(tableRow, /project-node `list_concepts` probe/);
+    assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
     assert.match(verifySection, /mcp-verify --help/);
     assert.match(verifySection, /graph-query smoke contract/);
     assert.match(verifySection, /`tools\/list` schema contract/);
@@ -260,6 +263,8 @@ describe('package contract helpers', () => {
     const implementationSection = doc.split('## 구현 단일 진실원')[1]?.split('## 회귀 차단')[0] ?? '';
 
     assert.match(mcpVerifyRow, /실제 `neighbors` \/ node→project `path` \/ `project_scope` graph smoke/);
+    assert.match(mcpVerifyRow, /project-node `list_concepts` probe/);
+    assert.match(mcpVerifyRow, /`project_scope` hard gate 를 놓치지 않는다/);
     assert.match(mcpVerifyRow, /project-less vault/);
     assert.match(mcpVerifyRow, /empty vault/);
     assert.match(mcpVerifyRow, /node-targeted graph smoke/);
@@ -314,7 +319,9 @@ describe('package contract helpers', () => {
     const verifySection = doc.split('환경변수 `OMOT_VAULT`')[1]?.split('`get_concepts` 는')[0] ?? '';
     assert.match(verifySection, /실제 `neighbors` \/[\s\S]*node→project `path` \/ `project_scope`/);
     assert.match(readFileSync('mcp/scripts/verify.mjs', 'utf-8'), /neighbors\/node-to-project path\/project_scope/);
-    assert.match(verifySection, /project\s+노드가 있을 때만 containment hard gate/);
+    assert.match(verifySection, /project probe 덕분에 `project_scope` 는 project\s+노드가 있을 때 containment hard gate/);
+    assert.match(verifySection, /project-node `list_concepts` probe/);
+    assert.match(verifySection, /project probe 덕분에 `project_scope`/);
     assert.match(verifySection, /빈 vault 는 node-targeted graph\s+smoke 를 skip/);
     assert.match(verifySection, /strict schema\/runtime unknown-argument and invalid-enum rejection/);
   });
