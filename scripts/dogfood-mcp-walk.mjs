@@ -174,12 +174,26 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
     const listFailure = listConceptsFailure(list);
     if (listFailure) failures.push(listFailure);
   }
+  if (ev) {
+    const evidenceFailure = evidenceShapeFailure(ev);
+    if (evidenceFailure) failures.push(evidenceFailure);
+  }
+  if (path) {
+    const pathFailure = pathShapeFailure(path);
+    if (pathFailure) failures.push(pathFailure);
+    else if (!path.found) failures.push("find_path: expected mcp-server → vault-local-first path");
+  }
+  if (bl) {
+    const backlinksFailure = matchesShapeFailure("find_backlinks", bl);
+    if (backlinksFailure) failures.push(backlinksFailure);
+  }
+  if (orph) {
+    const orphansFailure = orphansShapeFailure(orph);
+    if (orphansFailure) failures.push(orphansFailure);
+  }
   if (validation) {
     const validationFailure = validateVaultFailure(validation);
     if (validationFailure) failures.push(validationFailure);
-  }
-  if (path && !path.found) {
-    failures.push("find_path: expected mcp-server → vault-local-first path");
   }
   if (brief && brief.status !== "healthy") {
     failures.push(`workspace_brief: status ${brief.status}`);
@@ -201,6 +215,77 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
   }
 
   return failures;
+}
+
+function evidenceShapeFailure(result) {
+  if (!Array.isArray(result.matches)) {
+    return "find_evidence response missing matches array";
+  }
+  return matchRowsFailure("find_evidence", result.matches);
+}
+
+function matchesShapeFailure(label, result) {
+  if (!Number.isInteger(result.total) || result.total < 0) {
+    return `${label} response missing total count`;
+  }
+  if (!Array.isArray(result.matches)) {
+    return `${label} response missing matches array`;
+  }
+  if (result.matches.length > result.total) {
+    return `${label} response match count exceeds total — matches ${result.matches.length}, total ${result.total}`;
+  }
+  return matchRowsFailure(label, result.matches);
+}
+
+function orphansShapeFailure(result) {
+  if (!Number.isInteger(result.total) || result.total < 0) {
+    return "find_orphans response missing total count";
+  }
+  if (!Array.isArray(result.orphans)) {
+    return "find_orphans response missing orphans array";
+  }
+  if (result.orphans.length > result.total) {
+    return `find_orphans response orphan count exceeds total — orphans ${result.orphans.length}, total ${result.total}`;
+  }
+  return matchRowsFailure("find_orphans", result.orphans);
+}
+
+function matchRowsFailure(label, rows) {
+  for (const [index, row] of rows.entries()) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) {
+      return `${label} response malformed row at index ${index}`;
+    }
+    if (typeof row.slug !== "string" || row.slug.length === 0) {
+      return `${label} response missing row slug at index ${index}`;
+    }
+    if (typeof row.kind !== "string" || row.kind.length === 0) {
+      return `${label} response missing row kind: ${row.slug}`;
+    }
+    if (typeof row.title !== "string" || row.title.length === 0) {
+      return `${label} response missing row title: ${row.slug}`;
+    }
+  }
+  return null;
+}
+
+function pathShapeFailure(result) {
+  if (typeof result.found !== "boolean") {
+    return "find_path response missing found flag";
+  }
+  if (!result.found) return null;
+  if (!Number.isInteger(result.hopCount) || result.hopCount < 0) {
+    return "find_path response missing hopCount";
+  }
+  if (!Array.isArray(result.hops)) {
+    return "find_path response missing hops array";
+  }
+  if (result.hops.length !== result.hopCount + 1) {
+    return `find_path response hop mismatch — hopCount ${result.hopCount}, hops ${result.hops.length}`;
+  }
+  if (result.hops.some((hop) => typeof hop !== "string" || hop.length === 0)) {
+    return "find_path response contains empty hop";
+  }
+  return null;
 }
 
 function failedHealthChecks(checks) {

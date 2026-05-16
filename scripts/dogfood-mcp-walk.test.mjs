@@ -22,7 +22,10 @@ const okShape = {
   },
   ev: { matches: [] },
   path: { found: true, hopCount: 1, hops: ["a", "b"] },
-  bl: { total: 1, matches: [] },
+  bl: {
+    total: 1,
+    matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" }],
+  },
   orph: { total: 0, orphans: [] },
   validation: {
     scanned: 1,
@@ -120,6 +123,66 @@ describe("evaluateDogfoodGate", () => {
       list: { total: 1, nodes: [] },
     });
     assert.deepEqual(failures, ["list_concepts response missing vaultRoot"]);
+  });
+
+  it("fails on malformed find_evidence payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, ev: {} }),
+      ["find_evidence response missing matches array"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, ev: { matches: [{}] } }),
+      ["find_evidence response missing row slug at index 0"],
+    );
+  });
+
+  it("fails on malformed find_path payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, path: { hopCount: 1, hops: ["a", "b"] } }),
+      ["find_path response missing found flag"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, path: { found: true, hops: ["a", "b"] } }),
+      ["find_path response missing hopCount"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, path: { found: true, hopCount: 1 } }),
+      ["find_path response missing hops array"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, path: { found: true, hopCount: 2, hops: ["a", "b"] } }),
+      ["find_path response hop mismatch — hopCount 2, hops 2"],
+    );
+  });
+
+  it("fails on malformed find_backlinks payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, bl: { matches: [] } }),
+      ["find_backlinks response missing total count"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, bl: { total: 0, matches: [{}] } }),
+      ["find_backlinks response match count exceeds total — matches 1, total 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, bl: { total: 1, matches: [{}] } }),
+      ["find_backlinks response missing row slug at index 0"],
+    );
+  });
+
+  it("fails on malformed find_orphans payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, orph: { orphans: [] } }),
+      ["find_orphans response missing total count"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, orph: { total: 0 } }),
+      ["find_orphans response missing orphans array"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, orph: { total: 0, orphans: [{}] } }),
+      ["find_orphans response orphan count exceeds total — orphans 1, total 0"],
+    );
   });
 
   it("fails on vault warnings", () => {

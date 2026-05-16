@@ -71,6 +71,9 @@ fail severity `workspace_brief.nextActions` 는 exit 1 로 처리하되, starter
 `slug`/`kind`/`title`/`mtime` 기본 shape 를 검증하고, dogfood walk 는
 `list_kinds.byKind` 합계가 `total` 과 맞는지도 확인해 첫 접속 census 가 깨진
 상태를 조기에 잡는다.
+dogfood walk 는 `find_evidence.matches`, `find_path.hops/hopCount`,
+`find_backlinks.matches`, `find_orphans.orphans` 의 기본 row shape 도 검증해
+agent 가 받는 탐색 결과가 실제로 사용할 수 있는 구조인지 확인한다.
 `validate_vault` 응답은 `scanned`, `summary.problemFiles`,
 `summary.errorFiles`, `summary.warningFiles` count 와 `summary.byCode`
 aggregate shape 까지 검증해, malformed validation payload 가 clean vault 로
