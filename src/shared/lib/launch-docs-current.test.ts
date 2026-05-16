@@ -44,6 +44,10 @@ const STALE_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
     message: 'Hosted demo copy must not advertise the old 130-node dogfood vault.',
   },
   {
+    pattern: /\b26 (?:nodes|노드)\b/i,
+    message: 'Hosted demo copy must use the current 28-node dogfood vault.',
+  },
+  {
     pattern: /165 (?:relations|관계)/i,
     message: 'Hosted demo copy must not advertise the old 165-relation dogfood vault.',
   },
