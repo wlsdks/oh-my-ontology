@@ -166,6 +166,10 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.ok(list, "tools/list 응답");
     const tools = list.result?.tools;
     assert.ok(Array.isArray(tools));
+    assert.ok(
+      tools.every((tool) => tool.inputSchema?.additionalProperties === false),
+      "tools/list schemas reject unknown top-level arguments",
+    );
     assert.deepEqual(
       tools.map((tool) => tool.name).sort(),
       [...EXPECTED_TOOLS].sort(),
@@ -637,6 +641,8 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
       callTool(3, "list_concepts", null),
       callTool(4, "list_concepts", []),
       callTool(5, "get_concept", "project"),
+      callTool(6, "list_concepts", { lmit: 1 }),
+      callTool(7, "list_kinds", { limit: 1 }),
     ]);
     assert.equal(isErrorResponse(responses, 2), false, "omitted arguments defaults to {}");
     const kinds = getCallParsed(responses, 2);
@@ -649,6 +655,10 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
         `request ${id} should reject non-object arguments`,
       );
     }
+    assert.equal(isErrorResponse(responses, 6), true);
+    assert.match(getCallText(responses, 6), /Unknown argument "lmit" for list_concepts/i);
+    assert.equal(isErrorResponse(responses, 7), true);
+    assert.match(getCallText(responses, 7), /Unknown argument "limit" for list_kinds/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

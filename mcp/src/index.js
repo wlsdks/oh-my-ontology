@@ -1111,14 +1111,23 @@ const TOOLS = [
   },
 ];
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+const TOOLS_FOR_LIST = TOOLS.map((tool) => ({
+  ...tool,
+  inputSchema: {
+    ...tool.inputSchema,
+    additionalProperties: false,
+  },
+}));
+const TOOL_BY_NAME = new Map(TOOLS_FOR_LIST.map((tool) => [tool.name, tool]));
+
+server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS_FOR_LIST }));
 
 // ── 도구 핸들러 ───────────────────────────────────────────────────────────
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name } = request.params;
   try {
-    const args = normalizeToolArguments(request.params.arguments);
+    const args = normalizeToolArguments(request.params.arguments, name);
     switch (name) {
       case 'list_concepts':
         return ok(listConcepts(args));
@@ -1185,10 +1194,21 @@ function ok(result) {
 
 // ── 도구 구현 ─────────────────────────────────────────────────────────────
 
-function normalizeToolArguments(args) {
+function normalizeToolArguments(args, toolName) {
   if (args === undefined) return {};
   if (args === null || Array.isArray(args) || typeof args !== 'object') {
     throw new Error('tool arguments must be an object.');
+  }
+  const tool = TOOL_BY_NAME.get(toolName);
+  if (tool) {
+    const allowed = new Set(Object.keys(tool.inputSchema?.properties ?? {}));
+    for (const key of Object.keys(args)) {
+      if (allowed.has(key)) continue;
+      const allowedText = allowed.size > 0 ? [...allowed].sort().join(', ') : 'no arguments';
+      throw new Error(
+        `Unknown argument "${key}" for ${toolName}. Allowed arguments: ${allowedText}.`,
+      );
+    }
   }
   return args;
 }

@@ -186,7 +186,9 @@ row partial-failure 경로까지 `mcp/src/integration.test.mjs` 의 spawn 기반
 land 한다.
 `tools/call.arguments` 자체도 생략은 빈 object 로 처리하되, null / 배열 /
 문자열처럼 object 가 아닌 값은 SDK 또는 server 경계에서 명확한 MCP error 로
-거부한다.
+거부한다. 알 수 없는 top-level argument key 도 reject 하고 `tools/list` schema 는
+각 도구에 `additionalProperties:false` 를 노출해 `lmit` 같은 오타가 기본값 실행으로
+숨지 않게 한다.
 Read/query handler 도 numeric pagination / traversal 옵션을 조용히 기본값으로
 흡수하지 않는다. `list_concepts.limit`, `find_neighbors.limit`, `find_path.maxHops`,
 `query_concepts.limit`, `compile_ontology` pagination, `query_ontology` 의 limit /
