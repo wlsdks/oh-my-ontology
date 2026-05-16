@@ -27,6 +27,22 @@ describe("vault-census", () => {
     });
   });
 
+  it("treats missing folders as empty", () => {
+    withTempDir((root) => {
+      assert.equal(countMarkdownFiles(join(root, "missing")), 0);
+      assert.deepEqual(dogfoodVaultCensus(root), {
+        total: 0,
+        byKind: {
+          capabilities: 0,
+          domains: 0,
+          elements: 0,
+          project: 0,
+          "vault-readme": 0,
+        },
+      });
+    });
+  });
+
   it("derives the dogfood vault census from the expected folder layout", () => {
     withTempDir((root) => {
       const ontology = join(root, "docs", "ontology");
