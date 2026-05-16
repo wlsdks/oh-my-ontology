@@ -142,6 +142,8 @@ describe('package contract helpers', () => {
     assert.match(addConceptRow, /`score`/);
     assert.match(addConceptRow, /executable `proposedAction`/);
     assert.match(featureRow, /explicit `cursor\.reason` metadata/);
+    assert.match(featureRow, /count-safe summary fields/);
+    assert.match(featureRow, /`byPhase` \/ `bySeverity` \/ `byKind` remaining-queue buckets/);
     assert.match(featureRow, /current-page `nextExecutableAction`/);
     assert.match(featureRow, /current-page `nextReviewAction`/);
     assert.match(featureRow, /ready pages report `cursor\.found=true` with `cursor\.reason=null`/);
