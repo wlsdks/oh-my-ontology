@@ -3467,6 +3467,16 @@ describe("evaluateDogfoodGate", () => {
       }),
       ["similar_nodes match missing signal title: capabilities/mcp-server"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        similarNodes: {
+          ...okShape.similarNodes,
+          matches: [{ ...okShape.similarNodes.matches[0], score: 0.8 }],
+        },
+      }),
+      ["similar_nodes match score mismatch: capabilities/mcp-server"],
+    );
   });
 
   it("fails on malformed explain_relation payloads", () => {

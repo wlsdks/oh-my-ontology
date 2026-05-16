@@ -3041,6 +3041,10 @@ function similarMatchFailure(match, index) {
       return `similar_nodes match missing signal ${key}: ${match.node.slug}`;
     }
   }
+  const signalTotal = Object.values(match.signals).reduce((sum, value) => sum + value, 0);
+  if (Math.abs(match.score - signalTotal) > 0.00001) {
+    return `similar_nodes match score mismatch: ${match.node.slug}`;
+  }
   if (!Array.isArray(match.sharedNeighbors)) {
     return `similar_nodes match missing sharedNeighbors: ${match.node.slug}`;
   }
