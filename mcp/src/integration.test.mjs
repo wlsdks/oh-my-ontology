@@ -12,7 +12,13 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EXPECTED_DESTRUCTIVE_TOOLS, EXPECTED_IDEMPOTENT_TOOLS, EXPECTED_READ_TOOLS, EXPECTED_TOOLS } from "../scripts/verify.mjs";
+import {
+  EXPECTED_DESTRUCTIVE_TOOLS,
+  EXPECTED_IDEMPOTENT_TOOLS,
+  EXPECTED_READ_TOOLS,
+  EXPECTED_TOOLS,
+  expectedToolTitle,
+} from "../scripts/verify.mjs";
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -285,6 +291,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       "tools/list registry must match verify inventory",
     );
     for (const tool of tools) {
+      assert.equal(
+        tool.annotations?.title,
+        expectedToolTitle(tool.name),
+        `${tool.name} exposes stable title annotation`,
+      );
       assert.equal(
         tool.annotations?.readOnlyHint,
         EXPECTED_READ_TOOLS.includes(tool.name),

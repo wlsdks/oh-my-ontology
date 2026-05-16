@@ -270,9 +270,9 @@ plus actual `query_ontology({operation:"neighbors"})`,
 `query_ontology({operation:"project_scope"})` smoke calls.
 The `tools/list` gate also checks that every tool rejects unknown arguments via
 `additionalProperties:false`, that every tool exposes the expected
-`annotations.readOnlyHint` read/write split, `annotations.destructiveHint`
-for destructive multi-file/delete tools, and `annotations.openWorldHint:false`
-for the local vault-only boundary. It also checks `annotations.idempotentHint`
+`annotations.title` display name, `annotations.readOnlyHint` read/write split,
+`annotations.destructiveHint` for destructive multi-file/delete tools, and
+`annotations.openWorldHint:false` for the local vault-only boundary. It also checks `annotations.idempotentHint`
 for retry-safe relation writers (`add_relation` / `add_relations`), and that required `query_ontology.operation` plus
 the `query_ontology.operation` / `query_ontology.targetOperation` enums match
 the graph engine's runtime allow-lists. It also checks the installed batch

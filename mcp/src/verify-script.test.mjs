@@ -26,6 +26,7 @@ import {
   EXPECTED_TOOLS,
   EXPECTED_WRITE_TOOLS,
   FIRST_CONTACT_RESPONSE_LABELS,
+  expectedToolTitle,
   expectedToolSplitLabel,
   firstContactMissingResponseLabels,
   firstContactErrorFailure,
@@ -274,6 +275,7 @@ describe('verify.mjs first-contact gates', () => {
     ].map((tool) => ({
       ...tool,
       annotations: {
+        title: expectedToolTitle(tool.name),
         readOnlyHint: EXPECTED_READ_TOOLS.includes(tool.name),
         destructiveHint: EXPECTED_DESTRUCTIVE_TOOLS.includes(tool.name),
         idempotentHint: EXPECTED_IDEMPOTENT_TOOLS.includes(tool.name),
@@ -314,6 +316,14 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure([{ name: 'list_concepts', inputSchema: { properties: {} } }]),
       'tools/list schema missing additionalProperties:false: list_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(tools.map((tool) => (
+        tool.name === 'list_concepts'
+          ? { ...tool, annotations: { ...tool.annotations, title: 'List concept rows' } }
+          : tool
+      ))),
+      'tools/list title annotation drift: list_concepts',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (

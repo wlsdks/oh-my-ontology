@@ -21,7 +21,12 @@ import {
   stderrWarningFailures,
   workspaceNextActionSummary,
 } from "./dogfood-mcp-walk.mjs";
-import { EXPECTED_DESTRUCTIVE_TOOLS, EXPECTED_IDEMPOTENT_TOOLS, EXPECTED_TOOLS } from "../mcp/scripts/verify.mjs";
+import {
+  EXPECTED_DESTRUCTIVE_TOOLS,
+  EXPECTED_IDEMPOTENT_TOOLS,
+  EXPECTED_TOOLS,
+  expectedToolTitle,
+} from "../mcp/scripts/verify.mjs";
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -50,6 +55,7 @@ function makeDogfoodToolsList() {
           ? "Write tool returns postWriteMaintenance with action score, executable proposedAction, and nextExecutableAction next action pointers."
           : `${name} read tool.`,
         annotations: {
+          title: expectedToolTitle(name),
           readOnlyHint: !WRITE_TOOL_NAMES.has(name),
           destructiveHint: EXPECTED_DESTRUCTIVE_TOOLS.includes(name),
           idempotentHint: EXPECTED_IDEMPOTENT_TOOLS.includes(name),
@@ -1746,6 +1752,12 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: { tools: null } }),
       ["tools/list: tools/list response missing tools array"],
+    );
+    const titleDrifted = makeDogfoodToolsList();
+    titleDrifted.tools.find((tool) => tool.name === "list_concepts").annotations.title = "List concept rows";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: titleDrifted }),
+      ["tools/list: tools/list title annotation drift: list_concepts"],
     );
     const openWorldDrifted = makeDogfoodToolsList();
     openWorldDrifted.tools.find((tool) => tool.name === "list_concepts").annotations.openWorldHint = true;

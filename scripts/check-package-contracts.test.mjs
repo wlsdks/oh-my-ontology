@@ -301,6 +301,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`kind: project`/);
     assert.match(verifySection, /`list_kinds\.byKind\.project`/);
     assert.match(verifySection, /`additionalProperties:false`/);
+    assert.match(verifySection, /`annotations\.title` display name/);
     assert.match(verifySection, /`annotations\.readOnlyHint` read\/write split/);
     assert.match(verifySection, /`annotations\.destructiveHint`/);
     assert.match(verifySection, /`annotations\.openWorldHint:false`/);
@@ -661,7 +662,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /dogfood walk 도 `tools\/list` 를 직접 호출/);
     assert.match(doc, /installed verify 의 `toolsListSchemaFailure`/);
     assert.match(doc, /maintenance next pointer description drift/);
-    assert.match(doc, /`tools\/list` 의 `annotations\.readOnlyHint`/);
+    assert.match(doc, /`tools\/list` 의 `annotations\.title`/);
+    assert.match(doc, /`annotations\.readOnlyHint`/);
     assert.match(doc, /`annotations\.destructiveHint`/);
     assert.match(doc, /`annotations\.openWorldHint:false`/);
     assert.match(doc, /`annotations\.idempotentHint`/);

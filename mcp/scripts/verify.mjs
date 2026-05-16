@@ -103,6 +103,14 @@ export function expectedToolSplitLabel() {
   return `${EXPECTED_READ_TOOLS.length} read + ${EXPECTED_WRITE_TOOLS.length} write`;
 }
 
+export function expectedToolTitle(name) {
+  return String(name || '')
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export function formatCount(count, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
@@ -150,6 +158,10 @@ export function toolsListSchemaFailure(tools) {
   const schemaDriftTool = tools.find((tool) => tool?.inputSchema?.additionalProperties !== false);
   if (schemaDriftTool) {
     return `tools/list schema missing additionalProperties:false: ${schemaDriftTool.name || '(unknown)'}`;
+  }
+  const titleDriftTool = tools.find((tool) => tool?.annotations?.title !== expectedToolTitle(tool?.name));
+  if (titleDriftTool) {
+    return `tools/list title annotation drift: ${titleDriftTool.name || '(unknown)'}`;
   }
   const expectedReadTools = new Set(EXPECTED_READ_TOOLS);
   const annotationDriftTool = tools.find((tool) => tool?.annotations?.readOnlyHint !== expectedReadTools.has(tool?.name));

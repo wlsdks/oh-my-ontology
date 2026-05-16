@@ -430,12 +430,12 @@ dogfood walk 도 `tools/list` 를 직접 호출하고 installed verify 의 `tool
 helper 를 재사용해 `additionalProperties:false`, graph-query enum, health tuning option,
 write safety schema, post-write guidance, maintenance next pointer description drift 를
 source checkout 에서도 fail-closed 로 잡는다.
-`tools/list` 의 `annotations.readOnlyHint` 도 15 read / 8 write split 과 일치하게
-노출하고, destructive multi-file/delete 도구는 `annotations.destructiveHint`,
+`tools/list` 의 `annotations.title` 표시명과 `annotations.readOnlyHint` 도 15 read / 8 write split 과
+일치하게 노출하고, destructive multi-file/delete 도구는 `annotations.destructiveHint`,
 retry-safe relation writer 는 `annotations.idempotentHint`, 모든 도구는 local
 vault-only 경계인 `annotations.openWorldHint:false` 를 노출한다.
 verify / dogfood 가 같은 helper 로 annotation drift 를 막아 agent 가
-읽기 전용 탐색 / 위험한 쓰기 / 안전한 재시도 / 외부-world 접근 여부를
+사람이 읽는 표시명 / 읽기 전용 탐색 / 위험한 쓰기 / 안전한 재시도 / 외부-world 접근 여부를
 tool metadata 만으로 구분할 수 있게 한다.
 project probe 도 fail-closed 로 확인해 dogfood vault 에서 `project_scope` smoke 가
 하드코딩된 slug 에만 기대지 않고 실제 project-node discovery 계약을 검증한다.

@@ -1179,10 +1179,19 @@ const IDEMPOTENT_TOOL_NAMES = new Set([
   'add_relations',
 ]);
 
+function toolTitle(name) {
+  return String(name || '')
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 const TOOLS_FOR_LIST = TOOLS.map((tool) => ({
   ...tool,
   annotations: {
     ...(tool.annotations || {}),
+    title: toolTitle(tool.name),
     readOnlyHint: READ_TOOL_NAMES.has(tool.name),
     destructiveHint: DESTRUCTIVE_TOOL_NAMES.has(tool.name),
     idempotentHint: IDEMPOTENT_TOOL_NAMES.has(tool.name),

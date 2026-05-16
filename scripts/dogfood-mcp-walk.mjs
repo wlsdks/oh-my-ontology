@@ -24,7 +24,9 @@ import {
   EXPECTED_DESTRUCTIVE_TOOLS,
   EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_READ_TOOLS,
+  EXPECTED_TOOLS,
   EXPECTED_WRITE_TOOLS,
+  expectedToolTitle,
   formatCount,
   listConceptsFailure,
   listKindsFailure,
@@ -3980,8 +3982,9 @@ async function main() {
     const writeCount = tools.filter((tool) => tool?.annotations?.readOnlyHint === false).length;
     const destructiveCount = tools.filter((tool) => tool?.annotations?.destructiveHint === true).length;
     const idempotentCount = tools.filter((tool) => tool?.annotations?.idempotentHint === true).length;
+    const titleCount = tools.filter((tool) => tool?.annotations?.title === expectedToolTitle(tool?.name)).length;
     const expectedSplit = `${EXPECTED_READ_TOOLS.length} read + ${EXPECTED_WRITE_TOOLS.length} write`;
-    console.log(`  tools: ${tools.length} (${readCount} read + ${writeCount} write; ${destructiveCount} destructive; ${idempotentCount} idempotent; expected ${expectedSplit}, ${EXPECTED_DESTRUCTIVE_TOOLS.length} destructive, ${EXPECTED_IDEMPOTENT_TOOLS.length} idempotent)`);
+    console.log(`  tools: ${tools.length} (${titleCount} titled; ${readCount} read + ${writeCount} write; ${destructiveCount} destructive; ${idempotentCount} idempotent; expected ${EXPECTED_TOOLS.length} titled, ${expectedSplit}, ${EXPECTED_DESTRUCTIVE_TOOLS.length} destructive, ${EXPECTED_IDEMPOTENT_TOOLS.length} idempotent)`);
     console.log(`  schema: ${schemaFailure ? `${COLORS.yellow}${schemaFailure}${COLORS.reset}` : `${COLORS.green}pass${COLORS.reset}`}`);
   }
 
