@@ -10,6 +10,7 @@
 // query_ontology overview / query_plan / neighbors / path / all_paths / pattern_walk / project_scope / centrality / communities / similar_nodes / explain_relation / reachability / impact / blast_radius / subgraph / schema / facets / match_nodes / match_edges / node_profile / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health / health tuned.
 
 import { spawn } from "node:child_process";
+import { StringDecoder } from "node:string_decoder";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join } from "node:path";
 import {
@@ -118,6 +119,8 @@ function rpc(requests, timeoutMs = 3000) {
       env: { ...process.env, OMOT_VAULT: VAULT },
       stdio: ["pipe", "pipe", "pipe"],
     });
+    const stdoutDecoder = createUtf8Accumulator();
+    const stderrDecoder = createUtf8Accumulator();
     let stdout = "";
     let stderr = "";
     let completed = false;
@@ -133,7 +136,7 @@ function rpc(requests, timeoutMs = 3000) {
       proc.stdin.write(chunk.map((r) => JSON.stringify(r)).join("\n") + "\n");
     };
     proc.stdout.on("data", (b) => {
-      stdout += b.toString();
+      stdout = stdoutDecoder.write(b);
       if (completed) return;
       if (hasAnyErrorResponse(stdout, expectedIds)) {
         completed = true;
@@ -150,7 +153,9 @@ function rpc(requests, timeoutMs = 3000) {
         proc.kill("SIGTERM");
       }
     });
-    proc.stderr.on("data", (b) => (stderr += b.toString()));
+    proc.stderr.on("data", (b) => {
+      stderr = stderrDecoder.write(b);
+    });
 
     writeNextChunk();
     timer = setTimeout(() => {
@@ -160,6 +165,8 @@ function rpc(requests, timeoutMs = 3000) {
 
     proc.on("close", () => {
       if (timer) clearTimeout(timer);
+      stdout = stdoutDecoder.end();
+      stderr = stderrDecoder.end();
       const responses = parseRpcResponses(stdout);
       resolveP({ responses, stderr, timedOut });
     });
@@ -179,6 +186,21 @@ export { DOGFOOD_RESPONSE_LABELS, expectedResponseIds, missingResponseLabels };
 
 export function parseRpcResponses(stdout) {
   return parseJsonRpcResponses(stdout);
+}
+
+export function createUtf8Accumulator() {
+  const decoder = new StringDecoder("utf8");
+  let text = "";
+  return {
+    write(chunk) {
+      text += decoder.write(chunk);
+      return text;
+    },
+    end() {
+      text += decoder.end();
+      return text;
+    },
+  };
 }
 
 export function shouldFinishRpc(stdout, expectedIds) {
@@ -587,6 +609,7 @@ export function evaluateDogfoodGate({
   evStructured,
   path,
   bl,
+  blStructured,
   orph,
   validation,
   validationStructured,
@@ -757,6 +780,9 @@ export function evaluateDogfoodGate({
   if (bl) {
     const backlinksFailure = matchesShapeFailure("find_backlinks", bl);
     if (backlinksFailure) failures.push(backlinksFailure);
+    else if (blStructured !== undefined && JSON.stringify(blStructured) !== JSON.stringify(bl)) {
+      failures.push("find_backlinks structuredContent mismatch");
+    }
   }
   if (orph) {
     const orphansFailure = orphansShapeFailure(orph);
@@ -4097,7 +4123,9 @@ async function main() {
   // 6. find_backlinks
   header(`find_backlinks(capabilities/mcp-server)`);
   const bl = getResult(responses, 6);
+  const blStructured = getRpcResult(responses, 6)?.structuredContent ?? null;
   if (bl) {
+    console.log(`  structuredContent: ${JSON.stringify(blStructured) === JSON.stringify(bl) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     console.log(`  matches: ${bl.total}`);
     for (const m of (bl.matches || []).slice(0, 5)) {
       console.log(
@@ -4651,6 +4679,7 @@ async function main() {
     evStructured,
     path,
     bl,
+    blStructured,
     orph,
     validation,
     brief,

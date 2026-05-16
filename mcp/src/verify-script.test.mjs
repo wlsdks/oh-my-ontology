@@ -441,6 +441,33 @@ describe('verify.mjs first-contact gates', () => {
           },
         },
       },
+      {
+        name: 'find_backlinks',
+        inputSchema: { additionalProperties: false, required: ['slug'], properties: {} },
+        outputSchema: {
+          type: 'object',
+          required: ['target', 'total', 'matches'],
+          properties: {
+            target: { type: 'string' },
+            total: { type: 'integer', minimum: 0 },
+            matches: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'kind', 'title', 'mtime'],
+                properties: {
+                  slug: { type: 'string' },
+                  kind: { type: 'string' },
+                  title: { type: 'string' },
+                  mtime: { type: 'number', minimum: 0 },
+                  matchedKeys: { type: 'array', items: { type: 'string' } },
+                  matchedInBody: { type: 'boolean' },
+                },
+              },
+            },
+          },
+        },
+      },
     ].map((tool) => ({
       ...tool,
       annotations: {
@@ -971,6 +998,41 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'find_evidence outputSchema match matchedIn drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_backlinks'),
+        {
+          ...tools.find((tool) => tool.name === 'find_backlinks'),
+          outputSchema: { ...tools.find((tool) => tool.name === 'find_backlinks').outputSchema, required: ['matches', 'target', 'total'] },
+        },
+      ]),
+      'find_backlinks outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_backlinks'),
+        {
+          ...tools.find((tool) => tool.name === 'find_backlinks'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'find_backlinks').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'find_backlinks').outputSchema.properties,
+              matches: {
+                ...tools.find((tool) => tool.name === 'find_backlinks').outputSchema.properties.matches,
+                items: {
+                  ...tools.find((tool) => tool.name === 'find_backlinks').outputSchema.properties.matches.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'find_backlinks').outputSchema.properties.matches.items.properties,
+                    matchedKeys: { type: 'array', items: { type: 'number' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'find_backlinks outputSchema match matchedKeys drift',
     );
     assert.equal(
       toolsListSchemaFailure([

@@ -11,6 +11,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
+import { StringDecoder } from "node:string_decoder";
 import { fileURLToPath } from "node:url";
 import {
   EXPECTED_DESTRUCTIVE_TOOLS,
@@ -96,10 +97,12 @@ function rpc(vaultRoot, requests, timeoutMs = 1500) {
       env: { ...process.env, OMOT_VAULT: vaultRoot },
       stdio: ["pipe", "pipe", "pipe"],
     });
+    const stdoutDecoder = new StringDecoder("utf8");
+    const stderrDecoder = new StringDecoder("utf8");
     let stdout = "";
     let stderr = "";
-    proc.stdout.on("data", (b) => (stdout += b.toString()));
-    proc.stderr.on("data", (b) => (stderr += b.toString()));
+    proc.stdout.on("data", (b) => (stdout += stdoutDecoder.write(b)));
+    proc.stderr.on("data", (b) => (stderr += stderrDecoder.write(b)));
 
     const lines = requests.map((r) => JSON.stringify(r)).join("\n") + "\n";
     proc.stdin.write(lines);
@@ -108,6 +111,8 @@ function rpc(vaultRoot, requests, timeoutMs = 1500) {
 
     proc.on("close", () => {
       clearTimeout(timer);
+      stdout += stdoutDecoder.end();
+      stderr += stderrDecoder.end();
       const responses = stdout
         .split("\n")
         .filter(Boolean)
@@ -348,6 +353,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(findEvidence?.outputSchema?.properties?.matches?.type, "array");
     assert.deepEqual(findEvidence?.outputSchema?.properties?.matches?.items?.required, ["slug", "kind", "title", "mtime", "matchedIn", "excerpt"]);
     assert.deepEqual(findEvidence?.outputSchema?.properties?.matches?.items?.properties?.matchedIn?.enum, ["frontmatter", "body"]);
+    const findBacklinks = findTool("find_backlinks");
+    assert.equal(findBacklinks?.outputSchema?.type, "object");
+    assert.deepEqual(findBacklinks?.outputSchema?.required, ["target", "total", "matches"]);
+    assert.equal(findBacklinks?.outputSchema?.properties?.total?.type, "integer");
+    assert.deepEqual(findBacklinks?.outputSchema?.properties?.matches?.items?.required, ["slug", "kind", "title", "mtime"]);
+    assert.equal(findBacklinks?.outputSchema?.properties?.matches?.items?.properties?.matchedKeys?.items?.type, "string");
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
@@ -1866,6 +1877,7 @@ await test("find_backlinks — 매치 row 에 domain + mtime 포함 (R+)", async
       callTool(2, "find_backlinks", { slug: "capabilities/auth" }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.total, 1);
     const m = result.matches[0];
     assert.equal(m.slug, "capabilities/login");

@@ -706,6 +706,33 @@ const TOOLS = [
       },
       required: ['slug'],
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        target: NON_BLANK_STRING_SCHEMA,
+        total: { type: 'integer', minimum: 0 },
+        matches: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              kind: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              domain: { type: 'string' },
+              mtime: { type: 'number', minimum: 0 },
+              matchedKeys: {
+                type: 'array',
+                items: NON_BLANK_STRING_SCHEMA,
+              },
+              matchedInBody: { type: 'boolean' },
+            },
+            required: ['slug', 'kind', 'title', 'mtime'],
+          },
+        },
+      },
+      required: ['target', 'total', 'matches'],
+    },
   },
   {
     name: 'find_neighbors',

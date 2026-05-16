@@ -5,6 +5,7 @@ import { describe, it } from "node:test";
 import {
   buildDogfoodRequests,
   componentSummary,
+  createUtf8Accumulator,
   DOGFOOD_RESPONSE_LABELS,
   evaluateDogfoodGate,
   expectedResponseIds,
@@ -199,6 +200,31 @@ function makeDogfoodToolsList() {
           },
         };
       }
+      if (name === "find_backlinks") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["target", "total", "matches"],
+          properties: {
+            target: { type: "string" },
+            total: { type: "integer", minimum: 0 },
+            matches: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "kind", "title", "mtime"],
+                properties: {
+                  slug: { type: "string" },
+                  kind: { type: "string" },
+                  title: { type: "string" },
+                  mtime: { type: "number", minimum: 0 },
+                  matchedKeys: { type: "array", items: { type: "string" } },
+                  matchedInBody: { type: "boolean" },
+                },
+              },
+            },
+          },
+        };
+      }
       if (name === "list_kinds") {
         tool.outputSchema = {
           type: "object",
@@ -351,6 +377,12 @@ const okShape = {
   evStructured: { matches: [] },
   path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b", via: "relates" }] },
   bl: {
+    target: "capabilities/mcp-server",
+    total: 1,
+    matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" }],
+  },
+  blStructured: {
+    target: "capabilities/mcp-server",
     total: 1,
     matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server" }],
   },
@@ -1787,6 +1819,21 @@ describe("rpc response completion helpers", () => {
     );
   });
 
+  it("keeps UTF-8 characters intact across stream chunk boundaries", () => {
+    const wire = Buffer.from('{"id":1,"result":{"text":"채팅 로그"}}\n', "utf8");
+    const splitAt = wire.indexOf(Buffer.from("팅", "utf8")) + 1;
+    const accumulator = createUtf8Accumulator();
+
+    accumulator.write(wire.subarray(0, splitAt));
+    const stdout = accumulator.write(wire.subarray(splitAt));
+
+    assert.equal(accumulator.end(), stdout);
+    assert.deepEqual(parseRpcResponses(stdout), [
+      { id: 1, result: { text: "채팅 로그" } },
+    ]);
+    assert.equal(stdout.includes("�"), false);
+  });
+
   it("finishes after all expected responses or any error response", () => {
     const expectedIds = new Set([1, 2]);
     assert.equal(shouldFinishRpc('{"id":1,"result":{}}\n', expectedIds), false);
@@ -1973,6 +2020,12 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: evidenceOutputSchemaDrifted }),
       ["tools/list: find_evidence outputSchema match matchedIn drift"],
+    );
+    const backlinksOutputSchemaDrifted = makeDogfoodToolsList();
+    backlinksOutputSchemaDrifted.tools.find((tool) => tool.name === "find_backlinks").outputSchema.properties.matches.items.properties.matchedKeys.items.type = "number";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: backlinksOutputSchemaDrifted }),
+      ["tools/list: find_backlinks outputSchema match matchedKeys drift"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),
@@ -2245,6 +2298,10 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, bl: { total: 1, matches: [{}] } }),
       ["find_backlinks response missing row slug at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, blStructured: { total: 1, matches: [] } }),
+      ["find_backlinks structuredContent mismatch"],
     );
   });
 

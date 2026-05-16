@@ -327,6 +327,44 @@ export function toolsListSchemaFailure(tools) {
     return 'find_evidence outputSchema match matchedIn drift';
   }
 
+  const findBacklinksTool = tools.find((tool) => tool?.name === 'find_backlinks');
+  if (!findBacklinksTool) return 'tools/list response missing find_backlinks tool';
+  if (findBacklinksTool.outputSchema?.type !== 'object') {
+    return 'find_backlinks outputSchema root drift';
+  }
+  if (!sameArray(findBacklinksTool.outputSchema?.required, ['target', 'total', 'matches'])) {
+    return 'find_backlinks outputSchema required drift';
+  }
+  if (outputPropertyAt(findBacklinksTool, ['properties', 'target'])?.type !== 'string') {
+    return 'find_backlinks outputSchema target drift';
+  }
+  const backlinksTotalSchema = outputPropertyAt(findBacklinksTool, ['properties', 'total']);
+  if (backlinksTotalSchema?.type !== 'integer' || backlinksTotalSchema.minimum !== 0) {
+    return 'find_backlinks outputSchema total drift';
+  }
+  const backlinksMatchesSchema = outputPropertyAt(findBacklinksTool, ['properties', 'matches']);
+  if (
+    backlinksMatchesSchema?.type !== 'array' ||
+    backlinksMatchesSchema.items?.type !== 'object' ||
+    !sameArray(backlinksMatchesSchema.items?.required, ['slug', 'kind', 'title', 'mtime'])
+  ) {
+    return 'find_backlinks outputSchema matches drift';
+  }
+  for (const propertyName of ['slug', 'kind', 'title']) {
+    if (backlinksMatchesSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `find_backlinks outputSchema match ${propertyName} drift`;
+    }
+  }
+  if (backlinksMatchesSchema.items?.properties?.mtime?.type !== 'number' || backlinksMatchesSchema.items?.properties?.mtime?.minimum !== 0) {
+    return 'find_backlinks outputSchema match mtime drift';
+  }
+  if (backlinksMatchesSchema.items?.properties?.matchedKeys?.type !== 'array' || backlinksMatchesSchema.items?.properties?.matchedKeys?.items?.type !== 'string') {
+    return 'find_backlinks outputSchema match matchedKeys drift';
+  }
+  if (backlinksMatchesSchema.items?.properties?.matchedInBody?.type !== 'boolean') {
+    return 'find_backlinks outputSchema match matchedInBody drift';
+  }
+
   const queryTool = tools.find((tool) => tool?.name === 'query_ontology');
   if (!queryTool) return 'tools/list response missing query_ontology tool';
 
