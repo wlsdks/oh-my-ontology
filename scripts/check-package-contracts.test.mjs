@@ -376,6 +376,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /fail-closed/);
     assert.match(releaseChecks, /malformed `compile`,\s+`cycles`/);
     assert.match(releaseChecks, /`path`, `health`, or `workspace-brief` payloads/);
+    assert.match(releaseChecks, /top-level diagnosis `status` must be `healthy` or `needs_attention`/);
     assert.match(releaseChecks, /workspace_brief\.nextActions/);
     assert.match(releaseChecks, /workspace_brief\.health\.checks/);
     assert.match(releaseChecks, /path edge check/);
@@ -471,6 +472,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /node-targeted graph smoke/);
     assert.match(implementationSection, /query-result-contract\.mjs/);
     assert.match(implementationSection, /`path` found:false 와 hop\/edge alignment/);
+    assert.match(implementationSection, /`health` \/ `workspace-brief` top-level diagnosis status/);
     assert.match(implementationSection, /malformed `compile` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
     assert.match(implementationSection, /fail-closed/);
   });

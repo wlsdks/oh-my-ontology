@@ -73,7 +73,7 @@ describe('query-result-contract', () => {
     assert.equal(pathResultExitCode({ found: true, hops: ['a', 'b'], edges: [{ from: 'a', to: 'b' }] }), 1);
 
     assert.equal(healthResultExitCode({ status: 'healthy', checks: [] }), 0);
-    assert.equal(healthResultExitCode({ status: 'pass', checks: [] }), 0);
+    assert.equal(healthResultExitCode({ status: 'pass', checks: [] }), 1);
     assert.equal(healthResultExitCode({ status: 'needs_attention' }), 1);
     assert.equal(healthResultExitCode({ status: 'healthy' }), 1);
     assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ status: 'fail' }] }), 1);
@@ -82,11 +82,15 @@ describe('query-result-contract', () => {
     assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ id: 'compile_issues', status: 'fial' }] }), 1);
 
     assert.equal(
-      workspaceBriefExitCode({ nextActions: [{ kind: 'cleanup', severity: 'warn' }], health: { checks: [] } }),
+      workspaceBriefExitCode({ status: 'needs_attention', nextActions: [{ kind: 'cleanup', severity: 'warn' }], health: { checks: [] } }),
       0,
     );
     assert.equal(
-      workspaceBriefExitCode({ nextActions: [{ kind: 'cleanup', severity: 'fail' }], health: { checks: [] } }),
+      workspaceBriefExitCode({ status: 'ok', nextActions: [], health: { checks: [] } }),
+      1,
+    );
+    assert.equal(
+      workspaceBriefExitCode({ status: 'healthy', nextActions: [{ kind: 'cleanup', severity: 'fail' }], health: { checks: [] } }),
       1,
     );
     assert.equal(workspaceBriefExitCode({ health: { checks: [{ id: 'compile_issues', status: 'fail' }] } }), 1);

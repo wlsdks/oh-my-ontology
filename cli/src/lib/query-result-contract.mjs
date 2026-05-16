@@ -1,3 +1,4 @@
+const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
 
@@ -53,14 +54,16 @@ export function pathResultExitCode(result) {
 
 export function healthResultExitCode(result) {
   const status = result?.status ?? 'unknown';
+  if (!DIAGNOSIS_STATUSES.has(status)) return 1;
   if (!Array.isArray(result?.checks)) return 1;
   const checks = result.checks;
   if (checks.some((check) => !validHealthCheck(check))) return 1;
   if (checks.some((check) => check?.status === 'fail')) return 1;
-  return status === 'healthy' || status === 'pass' ? 0 : 1;
+  return status === 'healthy' ? 0 : 1;
 }
 
 export function workspaceBriefExitCode(result) {
+  if (!DIAGNOSIS_STATUSES.has(result?.status)) return 1;
   if (!Array.isArray(result?.nextActions)) return 1;
   if (!Array.isArray(result?.health?.checks)) return 1;
   const next = result.nextActions;

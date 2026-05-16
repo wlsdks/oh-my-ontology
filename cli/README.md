@@ -107,7 +107,10 @@ server wait window.
 `oh-my-ontology workspace-brief [vault]` follows the same blocking distinction:
 warn/advisory next actions render as guidance, but fail-severity next actions
 or failing health checks return exit 1 so shell scripts do not miss broken
-first-contact graph state.
+first-contact graph state. `health --json` and `workspace-brief --json` also
+require top-level diagnosis `status` to be `healthy` or `needs_attention`, so
+unknown status strings are treated as malformed payloads rather than clean
+vaults.
 
 The vault is a plain folder of `.md` files. **Frontmatter is the graph.**
 
