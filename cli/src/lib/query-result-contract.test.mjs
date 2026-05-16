@@ -45,6 +45,10 @@ describe('query-result-contract', () => {
     assert.equal(compileResultExitCode({ summary: { issues: 1, unresolvedEdges: 0 } }), 1);
     assert.equal(compileResultExitCode({ summary: { issues: 0, unresolvedEdges: 1 } }), 1);
     assert.equal(compileResultExitCode({ issueCount: 1, unresolvedEdgeCount: 1 }), 1);
+    assert.equal(compileResultExitCode({}), 1);
+    assert.equal(compileResultExitCode({ summary: { issues: 0 } }), 1);
+    assert.equal(compileResultExitCode({ summary: { issues: -1, unresolvedEdges: 0 } }), 1);
+    assert.equal(Number.isNaN(compileBlockingCounts({}).issues), true);
   });
 
   it('blocks graph query results that represent broken gates', () => {

@@ -10,16 +10,20 @@ export function assertQueryOperation(result, expectedOperation) {
 
 export function compileResultExitCode(artifact) {
   const counts = compileBlockingCounts(artifact);
+  if (!validCount(counts.issues) || !validCount(counts.unresolvedEdges)) return 1;
   return counts.issues > 0 || counts.unresolvedEdges > 0 ? 1 : 0;
 }
 
 export function compileBlockingCounts(artifact) {
-  const summary = artifact?.summary ?? artifact ?? {};
+  if (!artifact || typeof artifact !== 'object' || Array.isArray(artifact)) {
+    return { issues: Number.NaN, unresolvedEdges: Number.NaN };
+  }
+  const summary = artifact.summary && typeof artifact.summary === 'object' && !Array.isArray(artifact.summary)
+    ? artifact.summary
+    : artifact;
   return {
-    issues: numberValue(summary.issues ?? summary.issueCount ?? artifact?.issueCount),
-    unresolvedEdges: numberValue(
-      summary.unresolvedEdges ?? summary.unresolvedEdgeCount ?? artifact?.unresolvedEdgeCount,
-    ),
+    issues: countValue(summary.issues ?? summary.issueCount ?? artifact.issueCount),
+    unresolvedEdges: countValue(summary.unresolvedEdges ?? summary.unresolvedEdgeCount ?? artifact.unresolvedEdgeCount),
   };
 }
 
@@ -92,4 +96,12 @@ function hasNonEmptyString(...values) {
 
 function numberValue(value, fallback = 0) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function countValue(value) {
+  return validCount(value) ? value : Number.NaN;
+}
+
+function validCount(value) {
+  return Number.isInteger(value) && value >= 0;
 }
