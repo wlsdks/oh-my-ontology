@@ -4,10 +4,11 @@ const DEFAULT_LIMIT = 100;
 const DOWNWARD_CONTAINMENT_TYPES = new Set(['domains', 'capabilities', 'elements', 'contains']);
 const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
 const HEALTH_IGNORED_COMPONENT_KINDS = new Set(['vault-readme']);
-export const QUERY_PLAN_TARGET_OPERATIONS = Object.freeze([
+export const QUERY_ONTOLOGY_OPERATIONS = Object.freeze([
   'neighbors',
   'path',
   'all_paths',
+  'query_plan',
   'centrality',
   'communities',
   'similar_nodes',
@@ -39,6 +40,9 @@ export const QUERY_PLAN_TARGET_OPERATIONS = Object.freeze([
   'workspace_brief',
   'health',
 ]);
+export const QUERY_PLAN_TARGET_OPERATIONS = Object.freeze(
+  QUERY_ONTOLOGY_OPERATIONS.filter((operation) => operation !== 'query_plan'),
+);
 
 export function queryCompiledOntology(artifact, query = {}, options = {}) {
   const operation = query.operation;
@@ -148,7 +152,7 @@ export function queryCompiledOntology(artifact, query = {}, options = {}) {
   }
 
   throw new Error(
-    'operation must be one of: neighbors, path, all_paths, query_plan, centrality, communities, similar_nodes, explain_relation, reachability, pattern_walk, impact, blast_radius, subgraph, overview, schema, facets, match_nodes, match_edges, node_profile, domain_profile, domain_matrix, project_scope, project_map, relation_check, components, lineage, containment_tree, cycles, topological_order, recommend_relations, growth_plan, maintenance_plan, workspace_brief, health.',
+    `operation must be one of: ${QUERY_ONTOLOGY_OPERATIONS.join(', ')}.`,
   );
 }
 

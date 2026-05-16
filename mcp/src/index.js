@@ -78,6 +78,7 @@ import { analyzeRepoStructure } from './analyze.mjs';
 import { inferImports } from './infer-imports.mjs';
 import { compileOntology } from './ontology-compiler.mjs';
 import {
+  QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   queryCompiledOntology,
 } from './ontology-engine.mjs';
@@ -687,42 +688,7 @@ const TOOLS = [
       properties: {
         operation: {
           ...NON_BLANK_STRING_SCHEMA,
-          enum: [
-            'neighbors',
-            'path',
-            'all_paths',
-            'query_plan',
-            'centrality',
-            'communities',
-            'similar_nodes',
-            'explain_relation',
-            'reachability',
-            'pattern_walk',
-            'impact',
-            'blast_radius',
-            'subgraph',
-            'overview',
-            'schema',
-            'facets',
-            'match_nodes',
-            'match_edges',
-            'node_profile',
-            'domain_profile',
-            'domain_matrix',
-            'project_scope',
-            'project_map',
-            'relation_check',
-            'components',
-            'lineage',
-            'containment_tree',
-            'cycles',
-            'topological_order',
-            'recommend_relations',
-            'growth_plan',
-            'maintenance_plan',
-            'workspace_brief',
-            'health',
-          ],
+          enum: QUERY_ONTOLOGY_OPERATIONS,
           description: 'Query operation to run.',
         },
         targetOperation: {
@@ -2088,9 +2054,12 @@ function queryOntologyTool(args = {}) {
 }
 
 function validateQueryOntologyArgs(args = {}) {
+  requireNonBlankString(args.operation, 'operation');
+  requireOptionalEnum(args.operation, 'operation', QUERY_ONTOLOGY_OPERATIONS);
+  requireOptionalNonBlankString(args.targetOperation, 'targetOperation');
+  requireOptionalEnum(args.targetOperation, 'targetOperation', QUERY_PLAN_TARGET_OPERATIONS);
+
   for (const key of [
-    'operation',
-    'targetOperation',
     'slug',
     'seed',
     'candidateSlug',

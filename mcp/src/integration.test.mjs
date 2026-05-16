@@ -1746,11 +1746,17 @@ await test("MCP read/query tools — invalid numeric and direction options are r
       callTool(48, "query_concepts", { filter: "kind=capability", limit: 501 }),
       callTool(49, "compile_ontology", { nodesLimit: 501 }),
       callTool(50, "compile_ontology", { edgesLimit: 501 }),
+      callTool(51, "query_ontology", {}),
+      callTool(52, "query_ontology", { operation: "not_real" }),
+      callTool(53, "query_ontology", {
+        operation: "query_plan",
+        targetOperation: "not_real",
+      }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
       21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
-      38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+      38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -1778,6 +1784,9 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 48).result.content[0].text, /limit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 49).result.content[0].text, /nodesLimit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 50).result.content[0].text, /edgesLimit must be <= 500/i);
+    assert.match(responses.find((r) => r.id === 51).result.content[0].text, /operation must be a non-empty string/i);
+    assert.match(responses.find((r) => r.id === 52).result.content[0].text, /operation must be one of/i);
+    assert.match(responses.find((r) => r.id === 53).result.content[0].text, /targetOperation must be one of/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);

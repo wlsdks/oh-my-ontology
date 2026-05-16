@@ -202,6 +202,10 @@ wrapper 와 core `findPath` 양쪽에서 같은 max 20 계약을 적용한다.
 positive integer, max 500 contract 로 검증해 page 크기를 silent clamp 하지 않는다.
 `direction` 도 core 에서 `incoming` / `outgoing` / `both` / `undirected`
 enum contract 로 검증해 잘못된 방향을 기본 traversal 로 흡수하지 않는다.
+`query_ontology.operation` 과 `query_plan.targetOperation` 도 graph engine 의
+runtime allow-list 를 공유하는 enum 으로 tools/list schema 와 MCP boundary 검증을
+정렬해, 누락되거나 알 수 없는 operation 이 generic dispatch failure 로 흘러가지
+않게 한다.
 `analyze_repo_structure` / `infer_imports` 도 wrapper 밖 core 함수에서
 rootPath / ignore / sourceFolders / maxDepth / maxFiles contract 를 검증해
 잘못된 cold-start 분석 입력을 문자열화하거나 기본값으로 흡수하지 않는다.
