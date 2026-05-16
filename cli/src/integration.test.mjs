@@ -133,6 +133,15 @@ await test('command inventory — help and command modules stay aligned', async 
   assert.deepEqual(commandFiles, Object.values(CLI_COMMAND_MODULES).sort());
 });
 
+await test('subcommand --help — every command exits cleanly without touching runtime state', async () => {
+  for (const command of CLI_COMMANDS) {
+    const r = await run([command, '--help']);
+    assert.equal(r.code, 0, `${command} --help should exit 0\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.equal(r.stderr, '', `${command} --help should not write to stderr`);
+    assert.match(stripAnsi(r.stdout), /Usage:/, `${command} --help should print usage`);
+  }
+});
+
 await test('help — current setup contract and default slug layout are not stale', async () => {
   const r = await run(['--help']);
   assert.equal(r.code, 0);
@@ -199,7 +208,8 @@ await test('init — rejects unknown flags and extra positional args before writ
 
     const help = await run(['init', '--help'], { cwd: root });
     assert.equal(help.code, 0);
-    assert.match(stripAnsi(help.stderr), /Usage:/);
+    assert.equal(help.stderr, '');
+    assert.match(stripAnsi(help.stdout), /Usage:/);
     assert.equal(existsSyncTest(join(root, '--help')), false);
   } finally {
     rmSync(root, { recursive: true, force: true });

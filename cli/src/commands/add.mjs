@@ -27,6 +27,10 @@ const COLORS = {
  */
 export function runAdd(args) {
   const opts = parseArgs(args);
+  if (opts.help) {
+    printAddUsage(process.stdout);
+    return 0;
+  }
   if (opts.error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${opts.error}\n`);
     printAddUsage();
@@ -89,6 +93,7 @@ export function runAdd(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const positional = [];
   // R15 — autoPrefix default on. starter 와 일관된 layout (kind→folder).
   // 명시 opt-out: --raw-slug (or --no-auto-prefix).
@@ -173,8 +178,8 @@ function validateCleanString(value, name) {
   return null;
 }
 
-function printAddUsage() {
-  process.stderr.write(
+function printAddUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology add <kind> <slug> --title="..." [--domain X] [--body "..."] [--vault path] [--raw-slug]\n` +
       `\n${COLORS.bold}kind:${COLORS.reset} ${VAULT_KINDS.join(' / ')}\n` +

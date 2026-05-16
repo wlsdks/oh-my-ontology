@@ -32,7 +32,11 @@ const SEVERITY_COLORS = {
 };
 
 export async function runWorkspaceBrief(args) {
-  const { vault, json, error } = parseArgs(args);
+  const { vault, json, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -115,6 +119,7 @@ function render(result) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -130,8 +135,8 @@ function parseArgs(args) {
   return { vault: vaultResult.vault, json: flags.json };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology workspace-brief [vault] [--json]\n\n` +
       `first-contact dashboard: status + hotspots + project 요약 + next actions.\n`,

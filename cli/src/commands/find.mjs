@@ -34,6 +34,10 @@ const KIND_COLORS = {
  */
 export function runFind(args) {
   const opts = parseArgs(args);
+  if (opts.help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (opts.error) {
     process.stderr.write(`error  ${opts.error}\n`);
     return 1;
@@ -113,6 +117,7 @@ function highlight(text, needle) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const positional = [];
   const flags = { vaultPath: null, kindFilter: null, asJson: false };
   for (let i = 0; i < args.length; i += 1) {
@@ -147,4 +152,12 @@ function parseArgs(args) {
     kindFilter: flags.kindFilter,
     asJson: flags.asJson,
   };
+}
+
+function printUsage(stream = process.stderr) {
+  stream.write(
+    `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
+      `  oh-my-ontology find <query> [vault] [--kind K] [--json]\n\n` +
+      `Search ontology node slugs and titles case-insensitively.\n`,
+  );
 }

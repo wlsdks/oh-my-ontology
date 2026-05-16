@@ -29,7 +29,11 @@ const KIND_COLORS = {
 };
 
 export async function runOrphans(args) {
-  const { vault, json, kind, excludeKinds, error } = parseArgs(args);
+  const { vault, json, kind, excludeKinds, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -84,6 +88,7 @@ export async function runOrphans(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, kind: null, excludeKinds: [] };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -123,8 +128,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology orphans [vault] [--kind X] [--exclude-kinds A,B] [--vault path] [--json]\n\n` +
       `${COLORS.bold}Examples:${COLORS.reset}\n` +

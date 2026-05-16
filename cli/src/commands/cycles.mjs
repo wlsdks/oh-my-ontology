@@ -21,7 +21,11 @@ const COLORS = {
 };
 
 export async function runCycles(args) {
-  const { vault, json, maxHops, error } = parseArgs(args);
+  const { vault, json, maxHops, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -69,6 +73,7 @@ export async function runCycles(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, maxHops: undefined };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -90,8 +95,8 @@ function parseArgs(args) {
   return { vault: vaultResult.vault, json: flags.json, maxHops: flags.maxHops };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology cycles [vault] [--max-hops N] [--json]\n\n` +
       `directed depends_on cycle detection (default maxDepth 8). exit 0 only when no cycles are found.\n`,

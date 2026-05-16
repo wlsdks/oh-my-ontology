@@ -22,8 +22,12 @@ const COLORS = {
 };
 
 export async function runInferImports(args) {
-  const { rootPath, vault, json, maxFiles, apply, threshold, error } =
+  const { rootPath, vault, json, maxFiles, apply, threshold, error, help } =
     parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -111,6 +115,7 @@ export async function runInferImports(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, apply: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -242,8 +247,8 @@ function summarizeRelations(rows) {
   return { landed, existing, errors };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology infer-imports [rootPath] [--vault path] [--apply] [--json]\n` +
       `                              [--max-files N] [--threshold N]\n\n` +

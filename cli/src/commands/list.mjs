@@ -33,6 +33,10 @@ const KIND_COLORS = {
  */
 export function runList(args) {
   const parsed = parseArgs(args);
+  if (parsed.help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (parsed.error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${parsed.error}\n`);
     return 1;
@@ -96,6 +100,7 @@ export function runList(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, kindFilter: null, asJson: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -114,4 +119,12 @@ function parseArgs(args) {
   const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
   if (vaultResult.error) return vaultResult;
   return { vault: vaultResult.vault, kindFilter: flags.kindFilter, asJson: flags.asJson };
+}
+
+function printUsage(stream = process.stderr) {
+  stream.write(
+    `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
+      `  oh-my-ontology list [vault] [--kind K] [--json]\n\n` +
+      `List ontology nodes with frontmatter kind values.\n`,
+  );
 }

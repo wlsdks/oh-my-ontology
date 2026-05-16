@@ -33,7 +33,11 @@ const KIND_COLORS = {
 };
 
 export async function runOverview(args) {
-  const { vault, json, hubsLimit, error } = parseArgs(args);
+  const { vault, json, hubsLimit, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -140,6 +144,7 @@ function sortByCount(obj) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, hubsLimit: 10 };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -165,8 +170,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology overview [vault] [--vault path] [--limit N] [--json]\n\n` +
       `${COLORS.bold}Examples:${COLORS.reset}\n` +

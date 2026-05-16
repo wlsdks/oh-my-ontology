@@ -28,7 +28,11 @@ const STATUS_ICONS = {
 };
 
 export async function runHealth(args) {
-  const { vault, json, error } = parseArgs(args);
+  const { vault, json, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -73,6 +77,7 @@ export async function runHealth(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -88,8 +93,8 @@ function parseArgs(args) {
   return { vault: vaultResult.vault, json: flags.json };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology health [vault] [--json]\n\n` +
       `pass=healthy / warn=info-only / fail=blocking. exit 0 만 healthy.\n`,

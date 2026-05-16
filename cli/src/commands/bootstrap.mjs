@@ -45,6 +45,10 @@ const COLORS = {
 
 export async function runBootstrap(args) {
   const parsed = parseArgs(args);
+  if (parsed.help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (parsed.error) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${parsed.error}\n`,
@@ -550,6 +554,7 @@ function countRelations(rows) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = {
     vault: null,
     json: false,
@@ -598,8 +603,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology bootstrap [rootPath] [--vault path] [--threshold N]\n` +
       `                           [--skip-imports] [--json]\n` +

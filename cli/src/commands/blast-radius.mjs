@@ -38,7 +38,11 @@ const RISK_COLORS = {
 };
 
 export async function runBlastRadius(args) {
-  const { slug, vault, json, depth, direction, error } = parseArgs(args);
+  const { slug, vault, json, depth, direction, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -109,6 +113,7 @@ function render(result, requestedSlug) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = {
     vault: null,
     json: false,
@@ -149,8 +154,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology blast-radius <slug> [vault] [--depth N] [--direction incoming|outgoing|both] [--json]\n\n` +
       `default depth 2, direction incoming (이 노드를 의존하는 무엇).\n`,

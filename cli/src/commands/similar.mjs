@@ -33,7 +33,11 @@ const KIND_COLORS = {
 };
 
 export async function runSimilar(args) {
-  const { title, slug, vault, json, limit, kind, error } = parseArgs(args);
+  const { title, slug, vault, json, limit, kind, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -116,6 +120,7 @@ function render(result, query) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, limit: 10, kind: null, slug: null };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -151,8 +156,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology similar "<title>" [vault] [--slug X] [--kind K] [--limit N] [--json]\n\n` +
       `${COLORS.bold}Examples:${COLORS.reset}\n` +

@@ -18,7 +18,11 @@ const COLORS = {
 };
 
 export async function runRename(args) {
-  const { oldSlug, newSlug, vault, confirm, overwrite, json, error } = parseArgs(args);
+  const { oldSlug, newSlug, vault, confirm, overwrite, json, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -95,6 +99,7 @@ export async function runRename(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, confirm: false, overwrite: false, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -122,8 +127,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology rename <oldSlug> <newSlug> [vault] [--confirm] [--overwrite] [--json]\n\n` +
       `${COLORS.bold}Default${COLORS.reset} dry-run only — preview the changes.\n` +

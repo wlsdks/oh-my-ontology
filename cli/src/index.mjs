@@ -157,8 +157,8 @@ function parseInitArgs(args) {
   return { target: positional[0] };
 }
 
-function printInitUsage() {
-  stderr.write(
+function printInitUsage(stream = stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology init [folder]\n\n` +
       `Scaffold a local ontology vault. Default folder: ./vault\n`,
@@ -371,7 +371,7 @@ if (SUBCOMMAND === '--version' || SUBCOMMAND === '-v') {
 if (SUBCOMMAND === 'init') {
   const parsed = parseInitArgs(ARGS.slice(1));
   if (parsed.help) {
-    printInitUsage();
+    printInitUsage(stdout);
     exit(0);
   }
   if (parsed.error) {

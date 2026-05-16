@@ -42,6 +42,10 @@ const COLORS = {
  */
 export function runImport(args) {
   const opts = parseArgs(args);
+  if (opts.help) {
+    printImportUsage(process.stdout);
+    return 0;
+  }
   if (opts.error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${opts.error}\n`);
     printImportUsage();
@@ -263,6 +267,7 @@ function walkMarkdown(dir, out) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const positional = [];
   // R15 — autoPrefix default on. starter 와 일관된 layout (kind→folder).
   // 명시 opt-out: --raw-slug (or --no-auto-prefix).
@@ -311,8 +316,8 @@ function parseArgs(args) {
   };
 }
 
-function printImportUsage() {
-  process.stderr.write(
+function printImportUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology import <path...> [--vault path] [--kind K] [--raw-slug] [--rename] [--dry-run]\n` +
       `\n` +

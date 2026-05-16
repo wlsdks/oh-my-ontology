@@ -30,7 +30,11 @@ const KIND_COLORS = {
 };
 
 export async function runQuery(args) {
-  const { filter, vault, json, limit, error } = parseArgs(args);
+  const { filter, vault, json, limit, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -71,6 +75,7 @@ export async function runQuery(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, limit: 100 };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -100,8 +105,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology query "<filter>" [vault] [--vault path] [--json] [--limit N]\n\n` +
       `${COLORS.bold}Filter DSL${COLORS.reset} (AND / OR / NOT, parens supported):\n` +

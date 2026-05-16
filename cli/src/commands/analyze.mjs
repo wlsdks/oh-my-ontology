@@ -37,7 +37,11 @@ const KIND_COLOR = {
 };
 
 export async function runAnalyze(args) {
-  const { rootPath, vault, json, maxDepth, apply, error } = parseArgs(args);
+  const { rootPath, vault, json, maxDepth, apply, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -142,6 +146,7 @@ function printSection(label, items, colors, kindColor) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, apply: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -346,8 +351,8 @@ async function callBatch(vaultRoot, name, args) {
   return callMcpTool(vaultRoot, name, args);
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology analyze [rootPath] [--vault path] [--apply] [--json] [--max-depth N]\n\n` +
       `${COLORS.bold}What it does:${COLORS.reset}\n` +

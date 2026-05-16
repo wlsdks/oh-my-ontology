@@ -29,7 +29,11 @@ const KIND_COLORS = {
 };
 
 export async function runNodeProfile(args) {
-  const { slug, vault, json, error } = parseArgs(args);
+  const { slug, vault, json, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -146,6 +150,7 @@ function renderEdgesByRelation(edges, peerField) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -164,8 +169,8 @@ function parseArgs(args) {
   return { slug: positional[0], vault: vaultResult.vault, json: flags.json };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology node <slug> [vault] [--json]\n\n` +
       `한 노드의 전체 deep dive — header · 도메인 · lineage · incoming/outgoing edges (relation 별 그룹).\n`,

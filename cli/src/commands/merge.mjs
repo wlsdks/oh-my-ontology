@@ -19,7 +19,11 @@ const COLORS = {
 };
 
 export async function runMerge(args) {
-  const { fromSlug, intoSlug, vault, confirm, json, error } = parseArgs(args);
+  const { fromSlug, intoSlug, vault, confirm, json, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -92,6 +96,7 @@ export async function runMerge(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, confirm: false, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -117,8 +122,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology merge <fromSlug> <intoSlug> [vault] [--confirm] [--json]\n\n` +
       `${COLORS.bold}Default${COLORS.reset} dry-run — preview the redirects.\n` +

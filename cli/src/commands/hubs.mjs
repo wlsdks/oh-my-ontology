@@ -31,7 +31,11 @@ const KIND_COLORS = {
 };
 
 export async function runHubs(args) {
-  const { vault, json, limit, error } = parseArgs(args);
+  const { vault, json, limit, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -85,6 +89,7 @@ function render(result) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, limit: 10 };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -105,8 +110,8 @@ function parseArgs(args) {
   return { vault: vaultResult.vault, json: flags.json, limit: flags.limit };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology hubs [vault] [--limit N] [--json]\n\n` +
       `4 rankings: PageRank (영향력) · Bridges (도메인 잇는) · Authorities (referenced) · Hubs (referencing).\n`,

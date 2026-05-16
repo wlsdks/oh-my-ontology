@@ -18,7 +18,11 @@ const COLORS = {
 };
 
 export async function runDelete(args) {
-  const { slug, vault, confirm, force, json, error } = parseArgs(args);
+  const { slug, vault, confirm, force, json, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -91,6 +95,7 @@ export async function runDelete(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, confirm: false, force: false, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -117,8 +122,8 @@ function parseArgs(args) {
   };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology delete <slug> [vault] [--confirm] [--force] [--json]\n\n` +
       `${COLORS.bold}Default${COLORS.reset} dry-run — preview backlinks.\n` +

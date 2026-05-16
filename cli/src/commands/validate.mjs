@@ -88,6 +88,10 @@ export const KNOWN_CODES = [
  */
 export function runValidate(args) {
   const parsed = parseArgs(args);
+  if (parsed.help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (parsed.error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${parsed.error}\n`);
     return 1;
@@ -260,6 +264,7 @@ function decideExit(errorFiles, warningFiles, strict, failOn, groups) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false, strict: false, listCodes: false, failOn: null };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -287,6 +292,16 @@ function parseArgs(args) {
     listCodes: flags.listCodes,
     failOn: splitCsv(flags.failOn),
   };
+}
+
+function printUsage(stream = process.stderr) {
+  stream.write(
+    `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
+      `  oh-my-ontology validate [vault] [--json] [--strict]\n` +
+      `  oh-my-ontology validate [vault] [--fail-on code,...]\n` +
+      `  oh-my-ontology validate --list-codes [--json]\n\n` +
+      `Validate ontology vault frontmatter integrity.\n`,
+  );
 }
 
 function splitCsv(value) {

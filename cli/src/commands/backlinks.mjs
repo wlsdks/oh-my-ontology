@@ -15,7 +15,11 @@ const COLORS = {
 };
 
 export async function runBacklinks(args) {
-  const { slug, vault, json, error } = parseArgs(args);
+  const { slug, vault, json, error, help } = parseArgs(args);
+  if (help) {
+    printUsage(process.stdout);
+    return 0;
+  }
   if (error) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${error}\n`);
     printUsage();
@@ -62,6 +66,7 @@ export async function runBacklinks(args) {
 }
 
 function parseArgs(args) {
+  if (args.includes('--help') || args.includes('-h')) return { help: true };
   const flags = { vault: null, json: false };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
@@ -80,8 +85,8 @@ function parseArgs(args) {
   return { slug: positional[0], vault: vaultResult.vault, json: flags.json };
 }
 
-function printUsage() {
-  process.stderr.write(
+function printUsage(stream = process.stderr) {
+  stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology backlinks <slug> [vault] [--vault path] [--json]\n\n` +
       `${COLORS.bold}Example:${COLORS.reset}\n` +
