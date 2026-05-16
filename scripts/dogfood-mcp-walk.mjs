@@ -195,7 +195,17 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
     const validationFailure = validateVaultFailure(validation);
     if (validationFailure) failures.push(validationFailure);
   }
-  if (brief && brief.status !== "healthy") {
+  let briefShapeFailure = null;
+  if (brief) {
+    briefShapeFailure = workspaceBriefShapeFailure(brief);
+    if (briefShapeFailure) failures.push(briefShapeFailure);
+  }
+  let healthShapeFailure = null;
+  if (health) {
+    healthShapeFailure = healthShapeFailureForDogfood(health);
+    if (healthShapeFailure) failures.push(healthShapeFailure);
+  }
+  if (brief && !briefShapeFailure && brief.status !== "healthy") {
     failures.push(`workspace_brief: status ${brief.status}`);
   }
   const briefFailedChecks = failedHealthChecks(brief?.health?.checks);
@@ -206,7 +216,7 @@ export function evaluateDogfoodGate({ kinds, list, ev, path, bl, orph, validatio
   if (blockingActions.length > 0) {
     failures.push(`workspace_brief: actionable nextActions ${blockingActions.join(", ")}`);
   }
-  if (health && health.status !== "healthy") {
+  if (health && !healthShapeFailure && health.status !== "healthy") {
     failures.push(`health: status ${health.status}`);
   }
   const healthFailedChecks = failedHealthChecks(health?.checks);
@@ -284,6 +294,81 @@ function pathShapeFailure(result) {
   }
   if (result.hops.some((hop) => typeof hop !== "string" || hop.length === 0)) {
     return "find_path response contains empty hop";
+  }
+  return null;
+}
+
+function workspaceBriefShapeFailure(result) {
+  if (typeof result.status !== "string" || result.status.length === 0) {
+    return "workspace_brief response missing status";
+  }
+  const summaryFailure = numericSummaryFailure("workspace_brief", result.summary, ["nodes", "edges", "issues"]);
+  if (summaryFailure) return summaryFailure;
+  if (!Array.isArray(result.nextActions)) {
+    return "workspace_brief response missing nextActions array";
+  }
+  for (const [index, action] of result.nextActions.entries()) {
+    if (!action || typeof action !== "object" || Array.isArray(action)) {
+      return `workspace_brief response malformed nextAction at index ${index}`;
+    }
+    if (typeof action.severity !== "string" || action.severity.length === 0) {
+      return `workspace_brief response missing nextAction severity at index ${index}`;
+    }
+    if (typeof action.id !== "string" && typeof action.kind !== "string") {
+      return `workspace_brief response missing nextAction identifier at index ${index}`;
+    }
+  }
+  if (result.health !== undefined) {
+    if (!result.health || typeof result.health !== "object" || Array.isArray(result.health)) {
+      return "workspace_brief response malformed health block";
+    }
+    const checksFailure = checksShapeFailure("workspace_brief", result.health.checks);
+    if (checksFailure) return checksFailure;
+  }
+  return null;
+}
+
+function healthShapeFailureForDogfood(result) {
+  if (typeof result.status !== "string" || result.status.length === 0) {
+    return "health response missing status";
+  }
+  const summaryFailure = numericSummaryFailure("health", result.summary, ["issues", "unresolvedEdges", "dependencyCycles"]);
+  if (summaryFailure) return summaryFailure;
+  return checksShapeFailure("health", result.checks, { requireNonEmpty: true });
+}
+
+function numericSummaryFailure(label, summary, keys) {
+  if (!summary || typeof summary !== "object" || Array.isArray(summary)) {
+    return `${label} response missing summary`;
+  }
+  for (const key of keys) {
+    if (!Number.isInteger(summary[key]) || summary[key] < 0) {
+      return `${label} response missing summary.${key}`;
+    }
+  }
+  return null;
+}
+
+function checksShapeFailure(label, checks, { requireNonEmpty = false } = {}) {
+  if (!Array.isArray(checks)) {
+    return `${label} response missing checks array`;
+  }
+  if (requireNonEmpty && checks.length === 0) {
+    return `${label} response missing health checks`;
+  }
+  for (const [index, check] of checks.entries()) {
+    if (!check || typeof check !== "object" || Array.isArray(check)) {
+      return `${label} response malformed check at index ${index}`;
+    }
+    if (typeof check.id !== "string" || check.id.length === 0) {
+      return `${label} response missing check id at index ${index}`;
+    }
+    if (typeof check.status !== "string" || check.status.length === 0) {
+      return `${label} response missing check status: ${check.id}`;
+    }
+    if (!Number.isInteger(check.count) || check.count < 0) {
+      return `${label} response missing check count: ${check.id}`;
+    }
   }
   return null;
 }

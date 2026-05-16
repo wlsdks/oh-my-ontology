@@ -74,6 +74,9 @@ fail severity `workspace_brief.nextActions` 는 exit 1 로 처리하되, starter
 dogfood walk 는 `find_evidence.matches`, `find_path.hops/hopCount`,
 `find_backlinks.matches`, `find_orphans.orphans` 의 기본 row shape 도 검증해
 agent 가 받는 탐색 결과가 실제로 사용할 수 있는 구조인지 확인한다.
+또한 `workspace_brief.summary` / `nextActions` 와 `health.summary` /
+`checks` 의 numeric contract 를 검증해 first-contact 진단 결과가 status 문자열만
+맞고 실제 분석 필드가 비어 있는 회귀를 막는다.
 `validate_vault` 응답은 `scanned`, `summary.problemFiles`,
 `summary.errorFiles`, `summary.warningFiles` count 와 `summary.byCode`
 aggregate shape 까지 검증해, malformed validation payload 가 clean vault 로

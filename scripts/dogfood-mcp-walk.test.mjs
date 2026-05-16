@@ -33,7 +33,11 @@ const okShape = {
     summary: { problemFiles: 0, errorFiles: 0, warningFiles: 0, byCode: {} },
   },
   brief: { status: "healthy", summary: { nodes: 1, edges: 0, issues: 0 }, nextActions: [] },
-  health: { status: "healthy", summary: { issues: 0 }, checks: [] },
+  health: {
+    status: "healthy",
+    summary: { issues: 0, unresolvedEdges: 0, dependencyCycles: 0 },
+    checks: [{ id: "compile_issues", status: "pass", count: 0 }],
+  },
 };
 
 describe("recordResult", () => {
@@ -185,6 +189,63 @@ describe("evaluateDogfoodGate", () => {
     );
   });
 
+  it("fails on malformed workspace_brief payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, brief: { summary: { nodes: 1, edges: 0, issues: 0 }, nextActions: [] } }),
+      ["workspace_brief response missing status"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, brief: { status: "healthy", nextActions: [] } }),
+      ["workspace_brief response missing summary"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, brief: { status: "healthy", summary: { nodes: 1, issues: 0 }, nextActions: [] } }),
+      ["workspace_brief response missing summary.edges"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, brief: { status: "healthy", summary: { nodes: 1, edges: 0, issues: 0 } } }),
+      ["workspace_brief response missing nextActions array"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
+          status: "healthy",
+          summary: { nodes: 1, edges: 0, issues: 0 },
+          nextActions: [{ id: "compile_issues" }],
+        },
+      }),
+      ["workspace_brief response missing nextAction severity at index 0"],
+    );
+  });
+
+  it("fails on malformed health payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, health: { summary: { issues: 0, unresolvedEdges: 0, dependencyCycles: 0 }, checks: okShape.health.checks } }),
+      ["health response missing status"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, health: { status: "healthy", checks: okShape.health.checks } }),
+      ["health response missing summary"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, health: { status: "healthy", summary: { issues: 0, dependencyCycles: 0 }, checks: okShape.health.checks } }),
+      ["health response missing summary.unresolvedEdges"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, health: { status: "healthy", summary: okShape.health.summary } }),
+      ["health response missing checks array"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, health: { status: "healthy", summary: okShape.health.summary, checks: [] } }),
+      ["health response missing health checks"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, health: { status: "healthy", summary: okShape.health.summary, checks: [{ id: "compile_issues", status: "pass" }] } }),
+      ["health response missing check count: compile_issues"],
+    );
+  });
+
   it("fails on vault warnings", () => {
     const failures = evaluateDogfoodGate({
       ...okShape,
@@ -327,11 +388,11 @@ describe("evaluateDogfoodGate", () => {
       ...okShape,
       brief: {
         ...okShape.brief,
-        health: { checks: [{ id: "dependency_cycles", status: "fail" }] },
+        health: { checks: [{ id: "dependency_cycles", status: "fail", count: 1 }] },
       },
       health: {
         ...okShape.health,
-        checks: [{ id: "compile_issues", status: "fail" }],
+        checks: [{ id: "compile_issues", status: "fail", count: 1 }],
       },
     });
     assert.deepEqual(failures, [
