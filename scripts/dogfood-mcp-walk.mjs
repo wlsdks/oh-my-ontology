@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology overview / query_plan / all_paths / pattern_walk / components / workspace_brief / health.
+// query_ontology overview / query_plan / all_paths / pattern_walk / relation_check / components / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -56,6 +56,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [19, "domain_profile"],
   [20, "domain_matrix"],
   [21, "components"],
+  [22, "relation_check"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -204,6 +205,12 @@ export function buildDogfoodRequests() {
       limit: 5,
       nodeLimit: 5,
     }),
+    call(22, "query_ontology", {
+      operation: "relation_check",
+      from: "capabilities/mcp-server",
+      to: "domains/ai-agent-partner",
+      type: "domain",
+    }),
   ];
 }
 
@@ -266,6 +273,7 @@ export function evaluateDogfoodGate({
   domainProfile,
   domainMatrix,
   components,
+  relationCheck,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -288,6 +296,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "domain_profile", domainProfile);
   recordResult(failures, "domain_matrix", domainMatrix);
   recordResult(failures, "components", components);
+  recordResult(failures, "relation_check", relationCheck);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -373,6 +382,10 @@ export function evaluateDogfoodGate({
   if (components) {
     const componentsFailure = componentsShapeFailure(components);
     if (componentsFailure) failures.push(componentsFailure);
+  }
+  if (relationCheck) {
+    const relationCheckFailure = relationCheckShapeFailure(relationCheck);
+    if (relationCheckFailure) failures.push(relationCheckFailure);
   }
   if (allPaths && allPathsPlan && !allPathsFailure && !allPathsPlanFailure) {
     const plannedLimit = allPathsPlan.normalized.limit;
@@ -850,6 +863,59 @@ function componentsShapeFailure(result) {
       }
       if (typeof node.kind !== "string" || node.kind.length === 0) {
         return `components component missing node kind: ${component.id}/${node.slug}`;
+      }
+    }
+  }
+  return null;
+}
+
+function relationCheckShapeFailure(result) {
+  if (result.operation !== "relation_check") {
+    return `relation_check response operation mismatch — ${result.operation}`;
+  }
+  for (const key of ["from", "to", "relation", "fromKind", "toKind", "verdict"]) {
+    if (typeof result[key] !== "string" || result[key].length === 0) {
+      return `relation_check response missing ${key}`;
+    }
+  }
+  if (typeof result.exists !== "boolean") {
+    return "relation_check response missing exists flag";
+  }
+  if (!["already_exists", "matches_existing_schema", "new_schema_pattern"].includes(result.verdict)) {
+    return `relation_check response unknown verdict — ${result.verdict}`;
+  }
+  if (!Array.isArray(result.matchingEdges)) {
+    return "relation_check response missing matchingEdges array";
+  }
+  if (result.exists && result.matchingEdges.length === 0) {
+    return "relation_check exists without matchingEdges";
+  }
+  if (!result.exists && result.verdict === "already_exists") {
+    return "relation_check already_exists verdict without exists flag";
+  }
+  if (result.verdict === "new_schema_pattern" && result.schemaPattern !== null) {
+    return "relation_check new_schema_pattern should not include schemaPattern";
+  }
+  if (result.verdict !== "new_schema_pattern") {
+    if (!result.schemaPattern || typeof result.schemaPattern !== "object" || Array.isArray(result.schemaPattern)) {
+      return "relation_check response missing schemaPattern";
+    }
+    for (const key of ["fromKind", "relation", "toKind"]) {
+      if (typeof result.schemaPattern[key] !== "string" || result.schemaPattern[key].length === 0) {
+        return `relation_check schemaPattern missing ${key}`;
+      }
+    }
+    if (!Number.isInteger(result.schemaPattern.count) || result.schemaPattern.count <= 0) {
+      return "relation_check schemaPattern missing count";
+    }
+  }
+  for (const [index, edge] of result.matchingEdges.entries()) {
+    if (!edge || typeof edge !== "object" || Array.isArray(edge)) {
+      return `relation_check malformed matching edge at index ${index}`;
+    }
+    for (const key of ["from", "to", "via"]) {
+      if (typeof edge[key] !== "string" || edge[key].length === 0) {
+        return `relation_check matching edge missing ${key} at index ${index}`;
       }
     }
   }
@@ -1404,6 +1470,18 @@ async function main() {
     }
   }
 
+  // 21. relation_check
+  header(`query_ontology(relation_check mcp-server → ai-agent-partner)`);
+  const relationCheck = getResult(responses, 22);
+  if (relationCheck) {
+    console.log(
+      `  ${relationCheck.from} -[${relationCheck.relation}]-> ${relationCheck.to}`,
+    );
+    console.log(
+      `  verdict ${relationCheck.verdict ?? "n/a"} · exists ${relationCheck.exists ?? "n/a"} · schema ${relationCheck.schemaPattern ? "matched" : "new"}`,
+    );
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -1425,6 +1503,7 @@ async function main() {
     domainProfile,
     domainMatrix,
     components,
+    relationCheck,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
@@ -1460,6 +1539,7 @@ async function main() {
   console.log(`  domain_profile: ${domainProfile?.capabilities?.total ?? "n/a"} capabilities · ${domainProfile?.elements?.total ?? "n/a"} elements`);
   console.log(`  domain_matrix: ${domainMatrix?.summary?.crossDomainEdges ?? "n/a"} cross-domain edges · ${domainMatrix?.connections?.total ?? "n/a"} connections`);
   console.log(`  components: ${components?.totalComponents ?? "n/a"} total · largest ${components?.largestSize ?? "n/a"}`);
+  console.log(`  relation_check: ${relationCheck?.verdict ?? "n/a"} · exists ${relationCheck?.exists ?? "n/a"}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {

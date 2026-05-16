@@ -357,6 +357,29 @@ const okShape = {
       },
     ],
   },
+  relationCheck: {
+    operation: "relation_check",
+    from: "capabilities/mcp-server",
+    to: "domains/ai-agent-partner",
+    relation: "domain",
+    fromKind: "capability",
+    toKind: "domain",
+    exists: true,
+    verdict: "already_exists",
+    matchingEdges: [
+      {
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        via: "domain",
+      },
+    ],
+    schemaPattern: {
+      fromKind: "capability",
+      relation: "domain",
+      toKind: "domain",
+      count: 1,
+    },
+  },
 };
 
 describe("recordResult", () => {
@@ -433,6 +456,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(19), "domain_profile");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(20), "domain_matrix");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(21), "components");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(22), "relation_check");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -1120,6 +1144,59 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["components component missing node slug: 1/0"],
+    );
+  });
+
+  it("fails on malformed relation_check payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, relationCheck: { ...okShape.relationCheck, operation: "components" } }),
+      ["relation_check response operation mismatch — components"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, relationCheck: { ...okShape.relationCheck, exists: "yes" } }),
+      ["relation_check response missing exists flag"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, relationCheck: { ...okShape.relationCheck, verdict: "maybe" } }),
+      ["relation_check response unknown verdict — maybe"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, relationCheck: { ...okShape.relationCheck, matchingEdges: [] } }),
+      ["relation_check exists without matchingEdges"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationCheck: {
+          ...okShape.relationCheck,
+          exists: false,
+          verdict: "new_schema_pattern",
+        },
+      }),
+      ["relation_check new_schema_pattern should not include schemaPattern"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationCheck: {
+          ...okShape.relationCheck,
+          exists: false,
+          verdict: "matches_existing_schema",
+          matchingEdges: [],
+          schemaPattern: { ...okShape.relationCheck.schemaPattern, count: 0 },
+        },
+      }),
+      ["relation_check schemaPattern missing count"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        relationCheck: {
+          ...okShape.relationCheck,
+          matchingEdges: [{ ...okShape.relationCheck.matchingEdges[0], via: "" }],
+        },
+      }),
+      ["relation_check matching edge missing via at index 0"],
     );
   });
 
