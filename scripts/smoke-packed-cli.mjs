@@ -222,6 +222,8 @@ try {
   assert.match(cliMcpVerify.stdout, /compile_issues:warn/);
   assert.match(cliMcpVerify.stdout, /health — .*checks/);
   assert.match(cliMcpVerify.stdout, /health — .*compile_issues:(pass|warn)/);
+  assert.match(cliMcpVerify.stdout, /health_tuned — .*checks/);
+  assert.match(cliMcpVerify.stdout, /health_tuned — .*compile_issues:(pass|warn)/);
   assert.match(cliMcpVerify.stdout, /compile_ontology/);
   assert.match(cliMcpVerify.stdout, /overview/);
   assert.match(cliMcpVerify.stdout, /overview query_plan/);
@@ -317,6 +319,8 @@ try {
   assert.match(mcpVerify.stdout, /compile_issues:warn/);
   assert.match(mcpVerify.stdout, /health — .*checks/);
   assert.match(mcpVerify.stdout, /health — .*compile_issues:(pass|warn)/);
+  assert.match(mcpVerify.stdout, /health_tuned — .*checks/);
+  assert.match(mcpVerify.stdout, /health_tuned — .*compile_issues:(pass|warn)/);
   assert.match(mcpVerify.stdout, /compile_ontology/);
   assert.match(mcpVerify.stdout, /overview/);
   assert.match(mcpVerify.stdout, /overview query_plan/);
@@ -342,6 +346,7 @@ try {
   assert.match(directMcpVerify.stdout, /timeout=1000ms/);
   assert.match(directMcpVerify.stdout, /project probe — 1 project node/);
   assert.match(directMcpVerify.stdout, /workspace_brief — .*next actions, .*health checks/);
+  assert.match(directMcpVerify.stdout, /health_tuned — .*checks/);
 
   const directMcpVerifyVaultFlag = run(
     'npm',

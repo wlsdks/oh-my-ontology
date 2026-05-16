@@ -83,7 +83,7 @@ validation / diagnosis / compile / overview / query planning 은 계속 hard gat
 (`15 read + 8 write` split 포함), strict argument schema 와 graph-query enum schema,
 strict schema/runtime unknown-argument and invalid-enum rejection,
 `list_concepts`, project-node `list_concepts` probe,
-`get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, `health`, `compile_ontology({ summary: true })`,
+`get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, `health`, tuned `health`, `compile_ontology({ summary: true })`,
 `query_ontology(overview)`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`, 그리고 실제 `neighbors` /
 node→project `path` / `project_scope` 를 한 번에 호출해 agent first-contact graph diagnosis,
@@ -92,13 +92,13 @@ compiler summary, graph-query smoke 경로까지 확인한다. project probe 덕
 smoke 를 skip 해 첫 설치 확인이 seed 작성 전에 막히지 않게 한다. vault warning / validate problem / `fail` health check /
 fail severity `workspace_brief.nextActions` 는 exit 1 로 처리하되, starter vault 의
 권고 수준 `needs_attention` 은 출력만 하고 설치 검증은 통과시킨다.
-`workspace_brief.nextActions`, `workspace_brief.health.checks`, `health.checks`
+`workspace_brief.nextActions`, `workspace_brief.health.checks`, `health.checks`, tuned `health.checks`
 같은 first-contact diagnosis payload 의 핵심 배열이 빠지거나 malformed 이면
 clean vault 로 오인하지 않고 verify 를 실패시킨다. 각 nextAction row 는
 비어있지 않은 `id` 또는 `kind` 와 `severity`, 각 health check row 는 비어있지 않은 `id` / `status` 를 가져야 해서
 malformed row 가 `unknown` advisory/coverage 로 숨지 않는다.
-성공 출력도 `workspace_brief` 라인에 validated health check count 를, `health`
-라인에 check `id:status` coverage 를 드러내 agent 가 nextActions 와 실제 검증 축을
+성공 출력도 `workspace_brief` 라인에 validated health check count 를, `health` /
+tuned `health` 라인에 check `id:status` coverage 를 드러내 agent 가 nextActions 와 실제 검증 축을
 한 화면에서 확인하게 한다.
 `get_concepts` 는 `list_concepts` 에서 얻은 실제 slug 최대 2개와 missing slug 를 섞어
 설치 검증에서도 batch reader 의 성공 row 와 partial row 계약을 확인한다.

@@ -167,6 +167,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, new RegExp(`✓ validate_vault — ${census.files} files, 0 problem files`));
     assert.match(verifySection, new RegExp(`✓ workspace_brief — healthy \\(${census.total} nodes, 0 next actions, 5 health checks\\)`));
     assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass/);
+    assert.match(verifySection, /✓ health_tuned — healthy \(5 checks: compile_issues:pass/);
     assert.match(verifySection, /✓ neighbors — elements\/file-system-access-api/);
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
@@ -220,7 +221,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /cross-checks node census totals across `list_kinds`, `list_concepts`, `compile_ontology`, and `overview`/);
     assert.match(verifySection, /keeping `validate_vault\.scanned` as file-level health/);
     assert.match(verifySection, /missing or malformed first-contact diagnosis payloads/);
-    assert.match(verifySection, /`workspace_brief\.nextActions`, `workspace_brief\.health\.checks`, `health\.checks`/);
+    assert.match(verifySection, /`workspace_brief\.nextActions`, `workspace_brief\.health\.checks`, `health\.checks`, tuned `health\.checks`/);
     assert.match(verifySection, /requires every `workspace_brief\.nextActions` row to include a non-empty `id` or `kind` plus non-empty `severity`/);
     assert.match(verifySection, /requires every health check row to include non-empty `id` and `status`/);
     assert.match(verifySection, /prints the validated `workspace_brief\.health\.checks` count/);
@@ -521,6 +522,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /verify timeout must be a positive integer/);
     assert.match(smoke, /health — \.\*compile_issues:\(pass\|warn\)/);
     assert.match(smoke, /health — \.\*checks/);
+    assert.match(smoke, /health_tuned — \.\*compile_issues:\(pass\|warn\)/);
+    assert.match(smoke, /health_tuned — \.\*checks/);
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
     assert.match(smoke, /invalid-enum rejection smoke/);
     assert.match(smoke, /project_scope — skipped \\\(no project node in vault\\\)/);

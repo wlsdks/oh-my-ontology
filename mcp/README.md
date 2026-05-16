@@ -219,6 +219,7 @@ A successful run looks like this:
 ✓ project probe — 1 project node
 ✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks)
 ✓ health — healthy (5 checks: compile_issues:pass, unresolved_edges:pass, dependency_cycles:pass, relation_recommendations:pass, components:pass, issues 0)
+✓ health_tuned — healthy (5 checks: compile_issues:pass, unresolved_edges:pass, dependency_cycles:pass, relation_recommendations:pass, components:info, issues 0)
 ✓ compile_ontology — graph 192c6e615658 (28 nodes, 202 edges, issues 0)
 ✓ overview — graph 192c6e615658 (28 nodes, 202 edges, hubs 5)
 ✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 202)
@@ -275,14 +276,14 @@ so batch success rows and partial rows are verified during installation checks. 
 census shape/count mismatches, `validate_vault` problem files, failing health checks, or fail-severity
 `workspace_brief.nextActions` fail the command; advisory `needs_attention` states still print so starter vaults can
 verify before cleanup. Missing or malformed first-contact diagnosis payloads
-such as `workspace_brief.nextActions`, `workspace_brief.health.checks`, and
-`health.checks` also fail the command instead of being treated as clean; every
+such as `workspace_brief.nextActions`, `workspace_brief.health.checks`,
+`health.checks`, and tuned `health.checks` also fail the command instead of being treated as clean; every
 `workspace_brief.nextActions` row must include a non-empty `id` or `kind` plus
 non-empty `severity`, and every health check row must include non-empty `id`
 and `status`.
 Non-blocking `workspace_brief.nextActions` are printed as a short
 advisory list, the `workspace_brief` success line includes the
-`workspace_brief.health.checks` count, and the `health` line includes the
+`workspace_brief.health.checks` count, and the `health` / `health_tuned` lines include the
 check `id:status` coverage that the verify gate validated. The default wait window is 8 seconds; set
 `OMOT_VERIFY_TIMEOUT_MS` to a positive integer millisecond value if your vault
 is large or on a slow filesystem.

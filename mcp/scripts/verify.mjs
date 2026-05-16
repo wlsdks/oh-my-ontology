@@ -22,7 +22,7 @@
  *   7. tools/call find_orphans — row shape + root/sentinel default-exclusion contract
  *   8. tools/call list_kinds — kind census aggregate
  *   9. tools/call validate_vault — whole-vault frontmatter / graph-reference health
- *   10. tools/call query_ontology workspace_brief + health — agent first-contact graph diagnosis
+ *   10. tools/call query_ontology workspace_brief + health + tuned health — agent first-contact graph diagnosis
  *   11. tools/call compile_ontology(summary) — compiler graph summary contract
  *   12. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
  *   13. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
@@ -274,6 +274,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [17, 'strict_enum'],
   [18, 'project_probe'],
   [19, 'find_orphans'],
+  [20, 'health_tuned'],
 ]);
 
 function log(level, msg) {
@@ -494,6 +495,23 @@ export function buildFirstContactRequests() {
       id: 7,
       method: 'tools/call',
       params: { name: 'query_ontology', arguments: { operation: 'health' } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 20,
+      method: 'tools/call',
+      params: {
+        name: 'query_ontology',
+        arguments: {
+          operation: 'health',
+          componentLimit: 3,
+          cycleLimit: 3,
+          recommendationLimit: 3,
+          orderLimit: 3,
+          dependencyTypes: ['dependencies'],
+          componentTypes: ['domain', 'capabilities'],
+        },
+      },
     },
     {
       jsonrpc: '2.0',
@@ -1420,6 +1438,7 @@ async function step2BootAndCall() {
       const validateRes = responses.find((r) => r.id === 5);
       const briefRes = responses.find((r) => r.id === 6);
       const healthRes = responses.find((r) => r.id === 7);
+      const tunedHealthRes = responses.find((r) => r.id === 20);
       const compileRes = responses.find((r) => r.id === 8);
       const overviewRes = responses.find((r) => r.id === 9);
       const overviewPlanRes = responses.find((r) => r.id === 10);
@@ -1670,6 +1689,30 @@ async function step2BootAndCall() {
         );
       } catch (err) {
         log('fail', `failed to parse health response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!tunedHealthRes || !tunedHealthRes.result) {
+        log('fail', 'no query_ontology tuned health response');
+        return res(false);
+      }
+      try {
+        const text = tunedHealthRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = diagnosisBlockingFailure('health_tuned', parsed, 'health');
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        const checksSummary = healthChecksSummary(parsed.checks);
+        log(
+          'ok',
+          `health_tuned — ${parsed.status} (${(parsed.checks || []).length} checks${
+            checksSummary ? `: ${checksSummary}` : ''
+          }, issues ${diagnosisIssueCount(parsed)})`,
+        );
+      } catch (err) {
+        log('fail', `failed to parse tuned health response: ${err.message}`);
         return res(false);
       }
 
