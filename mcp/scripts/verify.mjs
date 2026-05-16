@@ -130,6 +130,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(queryTool.inputSchema?.properties?.targetOperation?.enum, QUERY_PLAN_TARGET_OPERATIONS)) {
     return 'query_ontology targetOperation enum schema drift';
   }
+  if (!/current-page `nextExecutableAction` \/ `nextReviewAction` pointers/.test(queryTool.description || '')) {
+    return 'query_ontology description missing current-page maintenance next pointers';
+  }
 
   const phases = propertyAt(queryTool, ['properties', 'phases']);
   if (!sameArray(phases?.items?.enum, MAINTENANCE_PHASE_VALUES)) {
@@ -142,6 +145,10 @@ export function toolsListSchemaFailure(tools) {
   const kinds = propertyAt(queryTool, ['properties', 'kinds']);
   if (!sameArray(kinds?.items?.enum, MAINTENANCE_KIND_VALUES)) {
     return 'query_ontology maintenance kinds enum schema drift';
+  }
+  const afterActionId = propertyAt(queryTool, ['properties', 'afterActionId']);
+  if (!/nextExecutableAction\/nextReviewAction point only at the first executable\/review action in the returned page/.test(afterActionId?.description || '')) {
+    return 'query_ontology afterActionId description missing current-page next pointers';
   }
 
   const findOrphansTool = tools.find((candidate) => candidate?.name === 'find_orphans');
@@ -388,6 +395,7 @@ export function initializeInstructionsFailure(response) {
     ['nearest enum hint guidance', /Did you mean "overview"\?/],
     ['maintenance filter enum guidance', /phases.*severities.*kinds/],
     ['maintenance ready cursor guidance', /cursor\.found=true[\s\S]*cursor\.reason=null/],
+    ['maintenance current-page pointer guidance', /nextExecutableAction[\s\S]*nextReviewAction[\s\S]*current returned page/],
     ['maintenance cursor miss guidance', /afterActionId[\s\S]*cursor\.found=false[\s\S]*cursor\.reason/],
   ];
   for (const [label, pattern] of required) {

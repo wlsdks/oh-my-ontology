@@ -129,12 +129,15 @@ describe('package contract helpers', () => {
     assert.match(row, /`phases`, `severities`, and `kinds` are enum-validated/);
     assert.match(row, /ready pages with `cursor\.found=true` \/ `cursor\.reason=null`/);
     assert.match(row, /cursor miss `reason`/);
+    assert.match(row, /current-page `nextExecutableAction` \/ `nextReviewAction`/);
     assert.match(addConceptRow, /`operation:"maintenance_plan"`/);
     assert.match(addConceptRow, /`sideEffect:false`/);
     assert.match(addConceptRow, /`filters`/);
     assert.match(addConceptRow, /`limited`/);
     assert.match(addConceptRow, /next action pointers/);
     assert.match(featureRow, /explicit `cursor\.reason` metadata/);
+    assert.match(featureRow, /current-page `nextExecutableAction`/);
+    assert.match(featureRow, /current-page `nextReviewAction`/);
     assert.match(featureRow, /ready pages report `cursor\.found=true` with `cursor\.reason=null`/);
     assert.match(featureRow, /unknown cursors return an empty page with `cursor\.found=false`/);
     assert.match(featureRow, /zero remaining actions, and no next actions/);
@@ -576,6 +579,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`orderLimit`, `nodeLimit`, `dependencyTypes`, `componentTypes`/);
     assert.match(doc, /cursor miss `reason`/);
     assert.match(queryOntologyRow, /ready page 의 `cursor\.found=true` \/ `cursor\.reason=null`/);
+    assert.match(queryOntologyRow, /현재 page 안의 첫 executable\/review action/);
     assert.match(queryOntologyRow, /unknown cursor 의 `cursor\.found=false` \/ cursor miss `reason`/);
     assert.match(dogfoodSection, /identifier\/severity/);
     assert.match(dogfoodSection, /id\/status\/count/);

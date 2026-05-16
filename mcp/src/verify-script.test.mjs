@@ -185,12 +185,18 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'query_ontology',
+        description:
+          'Run graph queries including `maintenance_plan` with current-page `nextExecutableAction` / `nextReviewAction` pointers.',
         inputSchema: {
           additionalProperties: false,
           required: ['operation'],
           properties: {
             operation: { enum: QUERY_ONTOLOGY_OPERATIONS },
             targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
+            afterActionId: {
+              description:
+                'maintenance_plan only: nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page.',
+            },
             phases: { items: { enum: MAINTENANCE_PHASE_VALUES } },
             severities: { items: { enum: MAINTENANCE_SEVERITY_VALUES } },
             kinds: {
@@ -216,6 +222,26 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'query_ontology')),
       'tools/list response missing query_ontology tool',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool({
+        ...tools[10],
+        description: 'Run graph queries including maintenance_plan.',
+      })),
+      'query_ontology description missing current-page maintenance next pointers',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool({
+        ...tools[10],
+        inputSchema: {
+          ...tools[10].inputSchema,
+          properties: {
+            ...tools[10].inputSchema.properties,
+            afterActionId: { description: 'maintenance_plan only: cursor id.' },
+          },
+        },
+      })),
+      'query_ontology afterActionId description missing current-page next pointers',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'find_orphans')),
@@ -791,6 +817,7 @@ describe('verify.mjs first-contact gates', () => {
       'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
       'maintenance_plan phases, severities, and kinds filters are enum-validated.',
       'maintenance_plan ready pages return cursor.found=true with cursor.reason=null.',
+      'maintenance_plan nextExecutableAction and nextReviewAction point only at the first executable/review action in the current returned page.',
       'maintenance_plan afterActionId cursor misses return cursor.found=false and cursor.reason.',
       'This filler keeps the instructions representative of a real initialize response.',
     ].join('\n');
@@ -827,6 +854,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('cursor.found=true with cursor.reason=null', 'ready cursor') } }),
       'initialize instructions missing maintenance ready cursor guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('current returned page', 'remaining queue') } }),
+      'initialize instructions missing maintenance current-page pointer guidance',
     );
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('cursor.found=false and cursor.reason', 'empty page') } }),
