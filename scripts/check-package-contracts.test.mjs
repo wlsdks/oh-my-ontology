@@ -569,6 +569,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /strict unknown-argument and invalid-enum rejection smoke/);
     assert.match(dogfoodSection, /`growth_plan`/);
     assert.match(dogfoodSection, /`maintenance_plan`/);
+    assert.match(dogfoodSection, /missing `maintenance_plan\.afterActionId` cursor/);
     assert.ok(
       normalizedMarkdownIncludes(
         dogfoodSection,

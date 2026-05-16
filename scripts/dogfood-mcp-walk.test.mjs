@@ -483,6 +483,48 @@ const okShape = {
       },
     ],
   },
+  maintenancePlanMissingCursor: {
+    operation: "maintenance_plan",
+    sideEffect: false,
+    graphHash: "abc123",
+    summary: {
+      totalActions: 2,
+      filteredActions: 2,
+      remainingActions: 0,
+      executableActions: 1,
+      reviewActions: 1,
+      compileIssues: 0,
+      dependencyCycles: 0,
+      canonicalizationActions: 0,
+      danglingReferences: 0,
+      relationRecommendations: 1,
+      externalElementRefs: 0,
+      externalElementRefsIgnored: 0,
+      unassignedNodes: 1,
+      emptyDomains: 0,
+    },
+    filters: {
+      executableOnly: false,
+      phases: [],
+      severities: [],
+      kinds: [],
+    },
+    cursor: {
+      afterActionId: "maint_missing",
+      found: false,
+      reason: "afterActionId not found in filtered maintenance actions",
+      startIndex: null,
+      nextAfterActionId: null,
+      hasMore: false,
+    },
+    byPhase: {},
+    bySeverity: {},
+    byKind: {},
+    limited: false,
+    nextExecutableAction: null,
+    nextReviewAction: null,
+    actions: [],
+  },
   growthPlan: {
     operation: "growth_plan",
     summary: {
@@ -1412,6 +1454,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(51), "strict_maintenance_phase_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(52), "strict_maintenance_severity_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(53), "strict_maintenance_kind_filter");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(54), "maintenance_plan_missing_cursor");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -2390,6 +2433,38 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["maintenance_plan action missing score: maint_link"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlanMissingCursor: {
+          ...okShape.maintenancePlanMissingCursor,
+          cursor: { ...okShape.maintenancePlanMissingCursor.cursor, found: true },
+        },
+      }),
+      ["maintenance_plan missing-cursor smoke did not report cursor.found=false"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlanMissingCursor: {
+          ...okShape.maintenancePlanMissingCursor,
+          cursor: { ...okShape.maintenancePlanMissingCursor.cursor, reason: null },
+        },
+      }),
+      ["missing-cursor smoke: maintenance_plan cursor not found without reason"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlanMissingCursor: {
+          ...okShape.maintenancePlanMissingCursor,
+          summary: { ...okShape.maintenancePlanMissingCursor.summary, remainingActions: 1 },
+          cursor: { ...okShape.maintenancePlanMissingCursor.cursor, nextAfterActionId: "maint_link" },
+          actions: okShape.maintenancePlan.actions.slice(0, 1),
+        },
+      }),
+      ["maintenance_plan missing-cursor smoke returned actions"],
     );
   });
 

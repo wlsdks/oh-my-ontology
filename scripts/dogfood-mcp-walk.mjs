@@ -93,6 +93,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [51, "strict_maintenance_phase_filter"],
   [52, "strict_maintenance_severity_filter"],
   [53, "strict_maintenance_kind_filter"],
+  [54, "maintenance_plan_missing_cursor"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -305,6 +306,11 @@ export function buildDogfoodRequests() {
       operation: "maintenance_plan",
       limit: 5,
     }),
+    call(54, "query_ontology", {
+      operation: "maintenance_plan",
+      afterActionId: "maint_missing",
+      limit: 5,
+    }),
     call(51, "query_ontology", {
       operation: "maintenance_plan",
       phases: ["repiar"],
@@ -507,6 +513,7 @@ export function evaluateDogfoodGate({
   components,
   relationCheck,
   maintenancePlan,
+  maintenancePlanMissingCursor,
   growthPlan,
   relationRecommendations,
   cycles,
@@ -561,6 +568,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "components", components);
   recordResult(failures, "relation_check", relationCheck);
   recordResult(failures, "maintenance_plan", maintenancePlan);
+  recordResult(failures, "maintenance_plan_missing_cursor", maintenancePlanMissingCursor);
   recordResult(failures, "growth_plan", growthPlan);
   recordResult(failures, "recommend_relations", relationRecommendations);
   recordResult(failures, "cycles", cycles);
@@ -715,6 +723,10 @@ export function evaluateDogfoodGate({
   if (maintenancePlan) {
     const maintenancePlanFailure = maintenancePlanShapeFailure(maintenancePlan);
     if (maintenancePlanFailure) failures.push(maintenancePlanFailure);
+  }
+  if (maintenancePlanMissingCursor) {
+    const maintenancePlanMissingCursorFailure = maintenancePlanMissingCursorShapeFailure(maintenancePlanMissingCursor);
+    if (maintenancePlanMissingCursorFailure) failures.push(maintenancePlanMissingCursorFailure);
   }
   if (growthPlan) {
     const growthPlanFailure = growthPlanShapeFailure(growthPlan);
@@ -1554,6 +1566,30 @@ function maintenancePlanShapeFailure(result) {
   for (const [index, action] of result.actions.entries()) {
     const actionFailure = maintenanceActionFailure(action, index);
     if (actionFailure) return actionFailure;
+  }
+  return null;
+}
+
+function maintenancePlanMissingCursorShapeFailure(result) {
+  const shapeFailure = maintenancePlanShapeFailure(result);
+  if (shapeFailure) return `missing-cursor smoke: ${shapeFailure}`;
+  if (result.cursor?.found !== false) {
+    return "maintenance_plan missing-cursor smoke did not report cursor.found=false";
+  }
+  if (result.cursor?.reason !== "afterActionId not found in filtered maintenance actions") {
+    return "maintenance_plan missing-cursor smoke did not report the cursor miss reason";
+  }
+  if (result.cursor?.startIndex !== null) {
+    return "maintenance_plan missing-cursor smoke should not expose a startIndex";
+  }
+  if ((result.actions || []).length !== 0) {
+    return "maintenance_plan missing-cursor smoke returned actions";
+  }
+  if (result.summary?.remainingActions !== 0) {
+    return "maintenance_plan missing-cursor smoke should have zero remaining actions";
+  }
+  if (result.nextExecutableAction !== null || result.nextReviewAction !== null) {
+    return "maintenance_plan missing-cursor smoke should not expose next actions";
   }
   return null;
 }
@@ -3809,6 +3845,13 @@ async function main() {
       console.log(`  ${action.id}: ${action.phase}/${action.kind} · ${action.severity} · executable ${action.executable}`);
     }
   }
+  header(`query_ontology(maintenance_plan missing cursor)`);
+  const maintenancePlanMissingCursor = getResult(responses, 54);
+  if (maintenancePlanMissingCursor) {
+    console.log(
+      `  found ${maintenancePlanMissingCursor.cursor?.found ?? "n/a"} · reason ${maintenancePlanMissingCursor.cursor?.reason ?? "none"} · remaining ${maintenancePlanMissingCursor.summary?.remainingActions ?? "n/a"}`,
+    );
+  }
 
   // 23. growth_plan
   header(`query_ontology(growth_plan)`);
@@ -4135,6 +4178,7 @@ async function main() {
     components,
     relationCheck,
     maintenancePlan,
+    maintenancePlanMissingCursor,
     growthPlan,
     relationRecommendations,
     cycles,
@@ -4207,6 +4251,7 @@ async function main() {
   console.log(`  components: ${components?.totalComponents ?? "n/a"} total · largest ${components?.largestSize ?? "n/a"}`);
   console.log(`  relation_check: ${relationCheck?.verdict ?? "n/a"} · exists ${relationCheck?.exists ?? "n/a"}`);
   console.log(`  maintenance_plan: ${maintenancePlan?.summary?.remainingActions ?? "n/a"} remaining · ${maintenancePlan?.summary?.executableActions ?? "n/a"} executable`);
+  console.log(`  maintenance_plan_missing_cursor: found ${maintenancePlanMissingCursor?.cursor?.found ?? "n/a"} · reason ${maintenancePlanMissingCursor?.cursor?.reason ?? "n/a"}`);
   console.log(`  growth_plan: ${growthPlan?.summary?.totalActions ?? "n/a"} actions · ${growthPlan?.summary?.externalElementRefsIgnored ?? "n/a"} ignored external refs`);
   console.log(`  recommend_relations: ${relationRecommendations?.totalRecommendations ?? "n/a"} recommendations`);
   console.log(`  cycles: ${cycles?.totalCycles ?? "n/a"} total`);
