@@ -3,6 +3,7 @@ import { refMatchesOmotIgnore } from './omot-ignore.mjs';
 const DEFAULT_LIMIT = 100;
 const DOWNWARD_CONTAINMENT_TYPES = new Set(['domains', 'capabilities', 'elements', 'contains']);
 const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
+const HEALTH_IGNORED_COMPONENT_KINDS = new Set(['vault-readme']);
 export const QUERY_PLAN_TARGET_OPERATIONS = Object.freeze([
   'neighbors',
   'path',
@@ -1466,10 +1467,7 @@ export function createOntologyEngine(artifact, options = {}) {
     };
   }
 
-  function components(options = {}) {
-    const limit = normalizeLimit(options.limit ?? 20);
-    const nodeLimit = normalizeLimit(options.nodeLimit ?? 25);
-    const typeSet = normalizeTypes(options.types);
+  function connectedComponentGroups(typeSet) {
     const visited = new Set();
     const groups = [];
 
@@ -1497,6 +1495,14 @@ export function createOntologyEngine(artifact, options = {}) {
     groups.sort(
       (a, b) => b.size - a.size || (a.slugs[0] || '').localeCompare(b.slugs[0] || ''),
     );
+    return groups;
+  }
+
+  function components(options = {}) {
+    const limit = normalizeLimit(options.limit ?? 20);
+    const nodeLimit = normalizeLimit(options.nodeLimit ?? 25);
+    const typeSet = normalizeTypes(options.types);
+    const groups = connectedComponentGroups(typeSet);
 
     return {
       operation: 'components',
@@ -1512,6 +1518,14 @@ export function createOntologyEngine(artifact, options = {}) {
         nodes: group.slugs.slice(0, nodeLimit).map((slug) => summarizeNode(nodeBySlug.get(slug))),
       })),
     };
+  }
+
+  function componentGroupOnlyHasKinds(group, ignoredKinds) {
+    if (!group || !Array.isArray(group.slugs) || group.slugs.length === 0) return false;
+    return group.slugs.every((slug) => {
+      const node = nodeBySlug.get(slug);
+      return node && ignoredKinds.has(node.kind);
+    });
   }
 
   function communities(options = {}) {
@@ -2518,11 +2532,18 @@ export function createOntologyEngine(artifact, options = {}) {
   function health(options = {}) {
     const limit = normalizeLimit(options.limit ?? 10);
     const overviewResult = overview({ limit });
+    const componentTypeSet = normalizeTypes(options.componentTypes ?? options.types);
     const componentResult = components({
       limit: normalizeLimit(options.componentLimit ?? 5),
       nodeLimit: normalizeLimit(options.nodeLimit ?? 10),
       types: options.componentTypes ?? options.types,
     });
+    const allComponentGroups = connectedComponentGroups(componentTypeSet);
+    const actionableComponentGroups = allComponentGroups.filter(
+      (group) => !componentGroupOnlyHasKinds(group, HEALTH_IGNORED_COMPONENT_KINDS),
+    );
+    const actionableComponentCount = actionableComponentGroups.length;
+    const ignoredComponentCount = allComponentGroups.length - actionableComponentCount;
     const cycleResult = cycles({
       limit: normalizeLimit(options.cycleLimit ?? 5),
       maxHops: options.maxHops ?? options.depth,
@@ -2576,12 +2597,14 @@ export function createOntologyEngine(artifact, options = {}) {
       }),
       healthCheck({
         id: 'components',
-        status: componentResult.totalComponents <= 1 ? 'pass' : 'info',
-        count: componentResult.totalComponents,
+        status: actionableComponentCount <= 1 ? 'pass' : 'info',
+        count: actionableComponentCount,
         message:
-          componentResult.totalComponents <= 1
-            ? 'The resolved ontology graph is connected.'
-            : 'The resolved ontology graph has disconnected islands; this can be intentional for README or reference nodes.',
+          actionableComponentCount <= 1
+            ? ignoredComponentCount > 0
+              ? `The actionable ontology graph is connected; ${ignoredComponentCount} root/reference component(s) were ignored.`
+              : 'The resolved ontology graph is connected.'
+            : 'The resolved ontology graph has disconnected actionable islands.',
       }),
     ];
     const status = checks.some((check) => check.status === 'fail' || check.status === 'warn')
@@ -2602,6 +2625,8 @@ export function createOntologyEngine(artifact, options = {}) {
         issues: graph.issues,
         ambiguousAliases: graph.ambiguousAliases,
         components: componentResult.totalComponents,
+        actionableComponents: actionableComponentCount,
+        ignoredComponents: ignoredComponentCount,
         largestComponentSize: componentResult.largestSize,
         singletonComponents: componentResult.singletonCount,
         dependencyCycles: cycleResult.totalCycles,
@@ -2611,6 +2636,8 @@ export function createOntologyEngine(artifact, options = {}) {
       checks,
       components: {
         totalComponents: componentResult.totalComponents,
+        actionableComponents: actionableComponentCount,
+        ignoredComponents: ignoredComponentCount,
         largestSize: componentResult.largestSize,
         singletonCount: componentResult.singletonCount,
         limited: componentResult.limited,

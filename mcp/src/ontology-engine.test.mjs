@@ -2098,6 +2098,57 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('does not surface vault README singleton components as health next actions', () => {
+    const withReadme = compileOntology(
+      [
+        doc('README', {
+          kind: 'vault-readme',
+          title: 'README',
+        }),
+        doc('domains/auth', {
+          kind: 'domain',
+          title: 'Auth',
+          capabilities: ['capabilities/login'],
+        }),
+        doc('capabilities/login', {
+          kind: 'capability',
+          title: 'Login',
+          domain: 'domains/auth',
+        }),
+      ],
+      { includeIndexes: true },
+    );
+
+    const health = queryCompiledOntology(withReadme, {
+      operation: 'health',
+    });
+    assert.equal(health.status, 'healthy');
+    assert.equal(health.summary.components, 2);
+    assert.equal(health.summary.actionableComponents, 1);
+    assert.equal(health.summary.ignoredComponents, 1);
+    assert.deepEqual(
+      health.checks.find((check) => check.id === 'components'),
+      {
+        id: 'components',
+        status: 'pass',
+        count: 1,
+        message: 'The actionable ontology graph is connected; 1 root/reference component(s) were ignored.',
+      },
+    );
+
+    const brief = queryCompiledOntology(withReadme, {
+      operation: 'workspace_brief',
+      limit: 5,
+    });
+    assert.equal(brief.status, 'healthy');
+    assert.equal(
+      brief.nextActions.some(
+        (action) => action.kind === 'health_check' && action.id === 'components',
+      ),
+      false,
+    );
+  });
+
   it('marks graph health as needing attention when integrity checks fail', () => {
     const degraded = compileOntology(
       [
