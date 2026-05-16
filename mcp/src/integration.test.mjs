@@ -231,7 +231,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       [...EXPECTED_TOOLS].sort(),
       "tools/list registry must match verify inventory",
     );
-    const findDesc = (name) => tools.find((t) => t.name === name)?.description;
+    const findTool = (name) => tools.find((t) => t.name === name);
+    const findDesc = (name) => findTool(name)?.description;
     const getC = findDesc("get_concept");
     const getCs = findDesc("get_concepts");
     const findN = findDesc("find_neighbors");
@@ -256,8 +257,21 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     );
     assert.ok(addC && /add_concepts/.test(addC), "add_concept → add_concepts hint");
     assert.ok(addR && /add_relations/.test(addR), "add_relation → add_relations hint");
-
-    const findTool = (name) => tools.find((t) => t.name === name);
+    for (const toolName of [
+      "add_concept",
+      "add_concepts",
+      "add_relation",
+      "add_relations",
+      "patch_concept",
+      "rename_concept",
+      "merge_concepts",
+      "delete_concept",
+    ]) {
+      const description = findTool(toolName)?.description ?? "";
+      assert.match(description, /postWriteMaintenance/, `${toolName} describes post-write maintenance`);
+      assert.match(description, /score/, `${toolName} describes maintenance action score`);
+      assert.match(description, /next action pointers|nextExecutableAction/, `${toolName} describes next action pointers`);
+    }
     const expectedMtimeTools = [
       "add_relation",
       "patch_concept",
@@ -451,7 +465,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         severitiesEnum: MAINTENANCE_SEVERITY_VALUES,
         maintenanceKindsEnum: MAINTENANCE_KIND_VALUES,
         afterActionIdDescription:
-          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
+          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null; nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
         componentTypesDescription:
           "health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.",
       },

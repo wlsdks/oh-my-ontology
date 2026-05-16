@@ -212,7 +212,10 @@ dispatch 가 갈라지지 않도록 한다. `get_concepts` / `add_concepts` /
 `add_relations` 의 batch 배열도 runtime 과 같은 50-row cap 을 schema 에 노출하는지
 설치 verify 에서 확인한다. `find_orphans.excludeKinds` schema 와 root/sentinel 기본
 제외 설명도 설치 verify 에서 확인해 MCP client 가 runtime cleanup 의미와 같은
-계약을 보게 한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
+계약을 보게 한다. `tools/list` description 은 write 후 compact
+`postWriteMaintenance` 의 action `score` 와 current-page next action pointer 를
+안내하고, integration contract 가 이 설명을 고정해 MCP client 가 tool 목록만으로도
+write 직후 cleanup 우선순위를 알 수 있게 한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
 실제로 보내고 unknown argument 거절 응답을 기대한다. write safety 도 같은 경로에서 `expected_mtime`
 conflict guard, destructive tool 의 `confirm` dry-run switch, `rename_concept.overwrite`, `delete_concept.force`
 schema 를 검사한다. 또한 installed verify 는 `initialize.instructions` 가

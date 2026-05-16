@@ -136,6 +136,7 @@ describe('package contract helpers', () => {
     assert.match(addConceptRow, /`filters`/);
     assert.match(addConceptRow, /`limited`/);
     assert.match(addConceptRow, /next action pointers/);
+    assert.match(addConceptRow, /`score`/);
     assert.match(featureRow, /explicit `cursor\.reason` metadata/);
     assert.match(featureRow, /current-page `nextExecutableAction`/);
     assert.match(featureRow, /current-page `nextReviewAction`/);
