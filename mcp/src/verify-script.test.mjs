@@ -94,6 +94,15 @@ describe('verify.mjs first-contact gates', () => {
       ),
       false,
     );
+    assert.equal(
+      hasAllFirstContactResponses(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+          .map((id) => JSON.stringify({ jsonrpc: '2.0', id, result: {} }))
+          .join('\n'),
+        new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]),
+      ),
+      true,
+    );
   });
 
   it('keeps first-contact response labels aligned with the get_concepts smoke', () => {
@@ -203,13 +212,13 @@ describe('verify.mjs first-contact gates', () => {
           { slug: 'capabilities/mcp-server', kind: 'capability' },
         ],
       }),
-      { slug: 'project', project: 'project' },
+      { slug: 'project', project: 'project', hasProject: true },
     );
     assert.deepEqual(
       buildGraphQuerySmokeArgs({ nodes: [{ slug: 'capabilities/a', kind: 'capability' }] }),
-      { slug: 'capabilities/a', project: 'project' },
+      { slug: 'capabilities/a', project: null, hasProject: false },
     );
-    assert.deepEqual(buildGraphQuerySmokeArgs({ nodes: [] }), { slug: 'project', project: 'project' });
+    assert.deepEqual(buildGraphQuerySmokeArgs({ nodes: [] }), { slug: 'project', project: null, hasProject: false });
   });
 
   it('fails malformed get_concepts batch payloads', () => {

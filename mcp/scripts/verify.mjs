@@ -119,18 +119,25 @@ export function serverStartupFailure(stderr) {
   return detail ? `server failed before initialize. stderr: ${detail}` : 'no initialize response';
 }
 
-export function hasAllFirstContactResponses(stdout) {
-  return hasAllResultResponses(stdout, new Set(FIRST_CONTACT_RESPONSE_LABELS.keys()));
+function firstContactLabelsForIds(ids) {
+  const expectedIds = ids || FIRST_CONTACT_RESPONSE_LABELS.keys();
+  return new Map(
+    [...expectedIds].map((id) => [id, FIRST_CONTACT_RESPONSE_LABELS.get(id)]).filter(([, label]) => label),
+  );
 }
 
-export function hasFirstContactErrorResponse(stdout) {
-  return hasAnyErrorResponse(stdout, new Set(FIRST_CONTACT_RESPONSE_LABELS.keys()));
+export function hasAllFirstContactResponses(stdout, expectedIds) {
+  return hasAllResultResponses(stdout, new Set(firstContactLabelsForIds(expectedIds).keys()));
 }
 
-export function firstContactMissingResponseLabels(responses) {
+export function hasFirstContactErrorResponse(stdout, expectedIds) {
+  return hasAnyErrorResponse(stdout, new Set(firstContactLabelsForIds(expectedIds).keys()));
+}
+
+export function firstContactMissingResponseLabels(responses, expectedIds) {
   return missingResponseLabels(
     responses.filter((response) => response?.result),
-    FIRST_CONTACT_RESPONSE_LABELS,
+    firstContactLabelsForIds(expectedIds),
   );
 }
 
@@ -213,7 +220,8 @@ export function buildGraphQuerySmokeArgs(listPayload) {
     || 'project';
   return {
     slug: smokeSlug,
-    project: projectSlug || 'project',
+    project: projectSlug || null,
+    hasProject: Boolean(projectSlug),
   };
 }
 
@@ -903,6 +911,7 @@ async function step2BootAndCall() {
     let completed = false;
     let sentGetConceptsSmoke = false;
     let sentGraphQuerySmoke = false;
+    const expectedFirstContactIds = new Set(FIRST_CONTACT_RESPONSE_LABELS.keys());
     let timer = null;
     proc.stdout.on('data', (b) => {
       stdout += b.toString();
@@ -930,7 +939,8 @@ async function step2BootAndCall() {
           if (!sentGraphQuerySmoke) {
             sentGraphQuerySmoke = true;
             const graphSmoke = buildGraphQuerySmokeArgs(listPayload);
-            proc.stdin.write([
+            if (!graphSmoke.hasProject) expectedFirstContactIds.delete(15);
+            const graphQueryRequests = [
               {
                 jsonrpc: '2.0',
                 id: 13,
@@ -943,17 +953,20 @@ async function step2BootAndCall() {
                 method: 'tools/call',
                 params: { name: 'query_ontology', arguments: { operation: 'path', from: graphSmoke.slug, to: graphSmoke.slug } },
               },
-              {
+            ];
+            if (graphSmoke.hasProject) {
+              graphQueryRequests.push({
                 jsonrpc: '2.0',
                 id: 15,
                 method: 'tools/call',
                 params: { name: 'query_ontology', arguments: { operation: 'project_scope', project: graphSmoke.project, limit: 5 } },
-              },
-            ].map((request) => JSON.stringify(request)).join('\n') + '\n');
+              });
+            }
+            proc.stdin.write(graphQueryRequests.map((request) => JSON.stringify(request)).join('\n') + '\n');
           }
         }
       }
-      if (!completed && (hasAllFirstContactResponses(stdout) || hasFirstContactErrorResponse(stdout))) {
+      if (!completed && (hasAllFirstContactResponses(stdout, expectedFirstContactIds) || hasFirstContactErrorResponse(stdout, expectedFirstContactIds))) {
         completed = true;
         if (timer) clearTimeout(timer);
         proc.kill('SIGTERM');
@@ -992,9 +1005,9 @@ async function step2BootAndCall() {
       let compilePayload = null;
       let overviewPayload = null;
       let graphSmokeArgs = null;
-      const missingLabels = firstContactMissingResponseLabels(responses);
+      const missingLabels = firstContactMissingResponseLabels(responses, expectedFirstContactIds);
       const errorRes = responses.find((response) => (
-        FIRST_CONTACT_RESPONSE_LABELS.has(response?.id) && response?.error
+        expectedFirstContactIds.has(response?.id) && response?.error
       ));
 
       if (errorRes) {
@@ -1274,23 +1287,27 @@ async function step2BootAndCall() {
         return res(false);
       }
 
-      if (!projectScopeRes || !projectScopeRes.result) {
-        log('fail', 'no query_ontology project_scope response');
-        return res(false);
-      }
-      try {
-        const text = projectScopeRes.result.content?.[0]?.text || '';
-        const parsed = JSON.parse(text);
-        const expectedProject = graphSmokeArgs?.project || buildGraphQuerySmokeArgs(listPayload).project;
-        const failure = projectScopeFailure(parsed, expectedProject);
-        if (failure) {
-          log('fail', failure);
+      if (graphSmokeArgs?.hasProject) {
+        if (!projectScopeRes || !projectScopeRes.result) {
+          log('fail', 'no query_ontology project_scope response');
           return res(false);
         }
-        log('ok', `project_scope — ${parsed.project} (${parsed.summary.nodes} nodes, internalEdges ${parsed.summary.internalEdges})`);
-      } catch (err) {
-        log('fail', `failed to parse project_scope response: ${err.message}`);
-        return res(false);
+        try {
+          const text = projectScopeRes.result.content?.[0]?.text || '';
+          const parsed = JSON.parse(text);
+          const expectedProject = graphSmokeArgs.project;
+          const failure = projectScopeFailure(parsed, expectedProject);
+          if (failure) {
+            log('fail', failure);
+            return res(false);
+          }
+          log('ok', `project_scope — ${parsed.project} (${parsed.summary.nodes} nodes, internalEdges ${parsed.summary.internalEdges})`);
+        } catch (err) {
+          log('fail', `failed to parse project_scope response: ${err.message}`);
+          return res(false);
+        }
+      } else {
+        log('info', 'project_scope — skipped (no project node in vault)');
       }
 
       const countFailure = verifyCountConsistencyFailure({

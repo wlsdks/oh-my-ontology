@@ -139,7 +139,8 @@ partial-row contract and first-contact diagnosis an AI agent should run are
 exercised locally. It also checks both `overview` and `project_map`
 `query_plan` targets plus actual `neighbors`, self-`path`, and
 `project_scope` calls, so the installed MCP path proves more than the original
-single aggregate query.
+single aggregate query. Project-less vaults skip only the containment-specific
+`project_scope` smoke.
 `smoke:packed-cli` also checks the installed `mcp-verify --help` output, so
 release tarballs keep exposing the graph-query smoke scope without starting a
 server. It also creates a dependency-cycle vault and checks installed

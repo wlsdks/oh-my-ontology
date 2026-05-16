@@ -203,6 +203,9 @@ verify path exercises and gates the same first-contact graph diagnosis an agent 
 plus actual `query_ontology({operation:"neighbors"})`,
 `query_ontology({operation:"path"})`, and
 `query_ontology({operation:"project_scope"})` smoke calls.
+`project_scope` is a hard gate when the vault has a `kind: project` node; valid
+project-less vaults skip that one containment-specific check while still
+gating `neighbors` and `path`.
 `get_concepts` reuses up to two slugs from `list_concepts` plus one missing slug
 so batch success rows and partial rows are verified during installation checks. `list_concepts` vault warnings,
 `list_kinds` / `compile_ontology` / `overview`

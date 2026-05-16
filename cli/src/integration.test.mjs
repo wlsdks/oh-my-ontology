@@ -233,6 +233,34 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
   }
 });
 
+await test('mcp-verify — allows valid vaults without a project node', async () => {
+  const root = withVault([
+    {
+      slug: 'domains/core',
+      content: [
+        '---',
+        'kind: domain',
+        'slug: domains/core',
+        'title: Core',
+        '---',
+        '',
+        '# Core',
+        '',
+      ].join('\n'),
+    },
+  ]);
+  try {
+    const r = await run(['mcp-verify', root, '--timeout-ms', '1000']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /neighbors/);
+    assert.match(clean, /path/);
+    assert.match(clean, /project_scope — skipped \(no project node in vault\)/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('mcp-verify --help — describes the full graph-query smoke contract', async () => {
   const r = await run(['mcp-verify', '--help']);
   assert.equal(r.code, 0);
