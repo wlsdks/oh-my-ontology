@@ -41,7 +41,8 @@ relation filter / pattern / maintenance filter 같은 string-array 입력은
 non-string item 을 조용히 버리지 않고 MCP 경계에서 명시적으로 reject 한다.
 빈 값, 앞뒤 공백, null byte 가 포함된 배열 item 도 같은 경계에서 reject 한다.
 slug/filter/title/query target 같은 scalar string 입력도 빈 값, 앞뒤 공백,
-null byte 를 MCP 경계에서 reject 한다.
+null byte 를 MCP 경계에서 reject 한다. `tools/list` 도 scalar string 과
+string-array item 에 같은 `minLength` / pattern hint 를 노출한다.
 read/query flag 와 destructive write safety switch 의 boolean 입력도 명시적으로
 검증해 문자열 `"true"` 같은 값을 조용히 false처럼 처리하지 않는다.
 `query_ontology` 의 rows/group limit 은 500 초과, traversal depth/maxHops 는

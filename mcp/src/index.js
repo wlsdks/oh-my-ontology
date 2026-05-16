@@ -93,6 +93,19 @@ const VAULT_ROOT = resolve(process.env.OMOT_VAULT || process.cwd());
 const SERVER_VERSION = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
 ).version;
+const NON_BLANK_STRING_SCHEMA = Object.freeze({
+  type: 'string',
+  minLength: 1,
+  pattern: '^(?!\\s)(?!.*\\s$)(?!.*\\u0000).+$',
+});
+
+function nonBlankStringSchema(description, extra = {}) {
+  return {
+    ...NON_BLANK_STRING_SCHEMA,
+    ...extra,
+    description,
+  };
+}
 // import-time throw 면 stdio transport 가 붙기 전 stack trace 가 stderr 로
 // 새고 클라이언트 (Claude Code 등) 에선 silent crash 로 보인다. 친절한 한
 // 줄 메시지 + non-zero exit 로 server log 에 명확히 노출.
@@ -197,16 +210,12 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        kind: {
-          type: 'string',
-          description:
-            'Filter to one kind (e.g. project, domain, capability, element). Omit to return all.',
-        },
-        domain: {
-          type: 'string',
-          description:
-            'Filter to nodes whose frontmatter `domain:` matches this slug (e.g. "auth"). Combine with `kind` for "all capabilities under auth" in one call. Use the domain *slug*, not the title.',
-        },
+        kind: nonBlankStringSchema(
+          'Filter to one kind (e.g. project, domain, capability, element). Omit to return all.',
+        ),
+        domain: nonBlankStringSchema(
+          'Filter to nodes whose frontmatter `domain:` matches this slug (e.g. "auth"). Combine with `kind` for "all capabilities under auth" in one call. Use the domain *slug*, not the title.',
+        ),
         since: {
           type: 'number',
           minimum: 0,
@@ -233,10 +242,9 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        slug: {
-          type: 'string',
-          description: 'Vault-relative slug (e.g. projects/auth-platform), unique tail slug, or frontmatter `slug` alias. Omit the .md extension.',
-        },
+        slug: nonBlankStringSchema(
+          'Vault-relative slug (e.g. projects/auth-platform), unique tail slug, or frontmatter `slug` alias. Omit the .md extension.',
+        ),
       },
       required: ['slug'],
     },
@@ -251,7 +259,7 @@ const TOOLS = [
         slugs: {
           type: 'array',
           maxItems: 50,
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description: 'Vault-relative slugs, unique tail slugs, or frontmatter `slug` aliases (e.g. ["capabilities/x", "elements/y"]). Omit the .md extension. Max 50 per call.',
         },
       },
@@ -265,10 +273,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        title: {
-          type: 'string',
-          description: 'Concept title to search for (case-insensitive substring match).',
-        },
+        title: nonBlankStringSchema('Concept title to search for (case-insensitive substring match).'),
       },
       required: ['title'],
     },
@@ -502,11 +507,9 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        slug: {
-          type: 'string',
-          description:
-            'Center node slug, unique tail slug, or frontmatter `slug` alias.',
-        },
+        slug: nonBlankStringSchema(
+          'Center node slug, unique tail slug, or frontmatter `slug` alias.',
+        ),
         direction: {
           type: 'string',
           enum: ['outgoing', 'incoming', 'both'],
@@ -514,7 +517,7 @@ const TOOLS = [
         },
         types: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             'Optional relation types/frontmatter keys to include, e.g. ["domain", "depends_on", "contains"]. Public add_relation types are normalized to stored graph keys.',
         },
@@ -545,8 +548,8 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        from: { type: 'string', description: 'Source slug.' },
-        to: { type: 'string', description: 'Target slug.' },
+        from: nonBlankStringSchema('Source slug.'),
+        to: nonBlankStringSchema('Target slug.'),
         maxHops: {
           type: 'integer',
           minimum: 0,
@@ -577,14 +580,12 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        kind: {
-          type: 'string',
-          description:
-            'Restrict to one kind (e.g. capability). Omit for all kinds.',
-        },
+        kind: nonBlankStringSchema(
+          'Restrict to one kind (e.g. capability). Omit for all kinds.',
+        ),
         excludeKinds: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             "Kinds to exclude from results. Defaults to ['vault-readme'].",
         },
@@ -608,12 +609,10 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        filter: {
-          type: 'string',
-          description:
-            'Filter expression. Example: kind=capability AND has(elements). Supports NOT / AND / OR. ' +
+        filter: nonBlankStringSchema(
+          'Filter expression. Example: kind=capability AND has(elements). Supports NOT / AND / OR. ' +
             "Wrap values containing whitespace or special characters with \"...\" or '...'.",
-        },
+        ),
         limit: {
           type: 'integer',
           minimum: 1,
@@ -674,7 +673,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         operation: {
-          type: 'string',
+          ...NON_BLANK_STRING_SCHEMA,
           enum: [
             'neighbors',
             'path',
@@ -714,7 +713,7 @@ const TOOLS = [
           description: 'Query operation to run.',
         },
         targetOperation: {
-          type: 'string',
+          ...NON_BLANK_STRING_SCHEMA,
           enum: QUERY_PLAN_TARGET_OPERATIONS,
           description:
             'query_plan only: operation to explain before execution, e.g. path, all_paths, reachability, impact, subgraph, match_nodes, or match_edges.',
@@ -726,37 +725,25 @@ const TOOLS = [
           description:
             'centrality/communities only: positive integer PageRank or label-propagation iteration count. Defaults to 20, max 100.',
         },
-        slug: {
-          type: 'string',
-          description: 'Center/root node slug or unique alias. Required for neighbors, reachability, pattern_walk, impact, blast_radius, subgraph, lineage, node_profile, and domain_profile; optional root for containment_tree.',
-        },
-        seed: {
-          type: 'string',
-          description: 'Alias for slug when operation is subgraph.',
-        },
-        candidateSlug: {
-          type: 'string',
-          description:
-            'similar_nodes only: proposed slug for a not-yet-written concept candidate.',
-        },
-        title: {
-          type: 'string',
-          description:
-            'similar_nodes only: proposed title for a not-yet-written concept candidate.',
-        },
-        from: {
-          type: 'string',
-          description: 'Source node slug or unique alias. Required for path, all_paths, and explain_relation.',
-        },
-        project: {
-          type: 'string',
-          description:
-            'domain_matrix/project_scope/project_map only: project root slug or unique alias. Optional for domain_matrix; optional for project_scope/project_map when exactly one kind: project node exists.',
-        },
-        to: {
-          type: 'string',
-          description: 'Target node slug or unique alias. Required for path, all_paths, and explain_relation.',
-        },
+        slug: nonBlankStringSchema(
+          'Center/root node slug or unique alias. Required for neighbors, reachability, pattern_walk, impact, blast_radius, subgraph, lineage, node_profile, and domain_profile; optional root for containment_tree.',
+        ),
+        seed: nonBlankStringSchema('Alias for slug when operation is subgraph.'),
+        candidateSlug: nonBlankStringSchema(
+          'similar_nodes only: proposed slug for a not-yet-written concept candidate.',
+        ),
+        title: nonBlankStringSchema(
+          'similar_nodes only: proposed title for a not-yet-written concept candidate.',
+        ),
+        from: nonBlankStringSchema(
+          'Source node slug or unique alias. Required for path, all_paths, and explain_relation.',
+        ),
+        project: nonBlankStringSchema(
+          'domain_matrix/project_scope/project_map only: project root slug or unique alias. Optional for domain_matrix; optional for project_scope/project_map when exactly one kind: project node exists.',
+        ),
+        to: nonBlankStringSchema(
+          'Target node slug or unique alias. Required for path, all_paths, and explain_relation.',
+        ),
         direction: {
           type: 'string',
           enum: ['incoming', 'outgoing', 'both', 'undirected'],
@@ -765,34 +752,28 @@ const TOOLS = [
         },
         types: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             'Optional relation types to include, e.g. ["dependencies"] or ["depends_on"].',
         },
         pattern: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             'pattern_walk only: required relation sequence to follow, e.g. ["domains", "capabilities", "elements"]. depends_on is normalized to dependencies.',
         },
-        type: {
-          type: 'string',
-          description:
-            'Relation type for relation_check, e.g. depends_on, relates, contains, describes, domains, capabilities, elements, or domain.',
-        },
-        kind: {
-          type: 'string',
-          description:
-            'match_nodes/recommend_relations: optional node kind filter. recommend_relations currently supports capability or element.',
-        },
-        domain: {
-          type: 'string',
-          description: 'match_nodes: optional exact domain filter. domain_profile: domain root slug or unique alias.',
-        },
-        slugContains: {
-          type: 'string',
-          description: 'match_nodes only: optional case-insensitive substring filter on canonical slug.',
-        },
+        type: nonBlankStringSchema(
+          'Relation type for relation_check, e.g. depends_on, relates, contains, describes, domains, capabilities, elements, or domain.',
+        ),
+        kind: nonBlankStringSchema(
+          'match_nodes/recommend_relations: optional node kind filter. recommend_relations currently supports capability or element.',
+        ),
+        domain: nonBlankStringSchema(
+          'match_nodes: optional exact domain filter. domain_profile: domain root slug or unique alias.',
+        ),
+        slugContains: nonBlankStringSchema(
+          'match_nodes only: optional case-insensitive substring filter on canonical slug.',
+        ),
         minDegree: {
           type: 'number',
           description: 'match_nodes only: minimum total graph degree.',
@@ -823,20 +804,13 @@ const TOOLS = [
           description:
             'match_nodes only: sort rows by degree, inDegree, outDegree, or slug. Defaults to degree.',
         },
-        fromKind: {
-          type: 'string',
-          description:
-            'match_edges only: optional source node kind filter, e.g. capability, domain, project, element.',
-        },
-        toKind: {
-          type: 'string',
-          description:
-            'match_edges only: optional target kind filter. Use external or unresolved for non-node refs.',
-        },
-        relation: {
-          type: 'string',
-          description: 'Alias for type when operation is relation_check.',
-        },
+        fromKind: nonBlankStringSchema(
+          'match_edges only: optional source node kind filter, e.g. capability, domain, project, element.',
+        ),
+        toKind: nonBlankStringSchema(
+          'match_edges only: optional target kind filter. Use external or unresolved for non-node refs.',
+        ),
+        relation: nonBlankStringSchema('Alias for type when operation is relation_check.'),
         depth: {
           type: 'integer',
           minimum: 0,
@@ -876,27 +850,25 @@ const TOOLS = [
         },
         phases: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             'maintenance_plan only: optional phase filter, e.g. ["repair", "link", "materialize"].',
         },
         severities: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             'maintenance_plan only: optional severity filter, e.g. ["fail", "warn"].',
         },
         kinds: {
           type: 'array',
-          items: { type: 'string' },
+          items: NON_BLANK_STRING_SCHEMA,
           description:
             'maintenance_plan only: optional action-kind filter, e.g. ["add_missing_relation", "canonicalize_graph_arrays"].',
         },
-        afterActionId: {
-          type: 'string',
-          description:
-            'maintenance_plan only: stable action id cursor; return actions after this id. Unknown cursors return an empty page with cursor.found=false.',
-        },
+        afterActionId: nonBlankStringSchema(
+          'maintenance_plan only: stable action id cursor; return actions after this id. Unknown cursors return an empty page with cursor.found=false.',
+        ),
         limit: {
           type: 'integer',
           minimum: 1,
@@ -1245,6 +1217,8 @@ function requireOptionalBoolean(value, name) {
 }
 
 function listConcepts({ kind, domain, since, summary, limit = 100 }) {
+  requireOptionalNonBlankString(kind, 'kind');
+  requireOptionalNonBlankString(domain, 'domain');
   requireOptionalNonNegativeNumber(since, 'since');
   requireOptionalBoolean(summary, 'summary');
   requireOptionalPositiveInteger(limit, 'limit');

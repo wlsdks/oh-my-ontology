@@ -289,13 +289,37 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       ],
       "query_ontology exposes query_plan targetOperation enum",
     );
+    for (const [toolName, propertyName] of [
+      ["list_concepts", "kind"],
+      ["list_concepts", "domain"],
+      ["get_concept", "slug"],
+      ["find_evidence", "title"],
+      ["find_neighbors", "slug"],
+      ["find_path", "from"],
+      ["find_path", "to"],
+      ["find_orphans", "kind"],
+      ["query_concepts", "filter"],
+      ["query_ontology", "slug"],
+      ["query_ontology", "targetOperation"],
+      ["query_ontology", "afterActionId"],
+    ]) {
+      const property = findTool(toolName)?.inputSchema?.properties?.[propertyName];
+      assert.equal(property?.type, "string", `${toolName}.${propertyName} exposes string schema`);
+      assert.equal(property?.minLength, 1, `${toolName}.${propertyName} exposes minLength`);
+      assert.match(
+        property?.pattern ?? "",
+        /\\s/,
+        `${toolName}.${propertyName} exposes whitespace guard pattern`,
+      );
+    }
     assert.deepEqual(
       {
         type: findTool("get_concepts")?.inputSchema?.properties?.slugs?.type,
         maxItems: findTool("get_concepts")?.inputSchema?.properties?.slugs?.maxItems,
         itemType: findTool("get_concepts")?.inputSchema?.properties?.slugs?.items?.type,
+        itemMinLength: findTool("get_concepts")?.inputSchema?.properties?.slugs?.items?.minLength,
       },
-      { type: "array", maxItems: 50, itemType: "string" },
+      { type: "array", maxItems: 50, itemType: "string", itemMinLength: 1 },
       "get_concepts exposes batch maxItems schema",
     );
     assert.deepEqual(
@@ -1467,6 +1491,8 @@ await test("MCP read/query tools — blank/padded scalar string inputs are rejec
   try {
     const { responses } = await rpc(root, [
       ...INIT_REQUESTS,
+      callTool(21, "list_concepts", { kind: " capability" }),
+      callTool(22, "list_concepts", { domain: "auth\0" }),
       callTool(2, "get_concept", { slug: " a" }),
       callTool(3, "find_evidence", { title: " " }),
       callTool(4, "find_backlinks", { slug: "a\0" }),
@@ -1485,9 +1511,10 @@ await test("MCP read/query tools — blank/padded scalar string inputs are rejec
       callTool(12, "query_ontology", { operation: "similar_nodes", title: " " }),
       callTool(13, "get_concepts", { slugs: ["a", " b", ""] }),
     ]);
-    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 21, 22]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
+    assert.match(responses.find((r) => r.id === 21).result.content[0].text, /kind must not have leading or trailing whitespace/i);
     assert.match(responses.find((r) => r.id === 2).result.content[0].text, /slug must not have leading or trailing whitespace/i);
     assert.match(responses.find((r) => r.id === 3).result.content[0].text, /title must be a non-empty string/i);
     assert.match(responses.find((r) => r.id === 4).result.content[0].text, /slug must not contain a null byte/i);
@@ -1499,6 +1526,7 @@ await test("MCP read/query tools — blank/padded scalar string inputs are rejec
     assert.match(responses.find((r) => r.id === 10).result.content[0].text, /slug must not have leading or trailing whitespace/i);
     assert.match(responses.find((r) => r.id === 11).result.content[0].text, /targetOperation must not have leading or trailing whitespace/i);
     assert.match(responses.find((r) => r.id === 12).result.content[0].text, /title must be a non-empty string/i);
+    assert.match(responses.find((r) => r.id === 22).result.content[0].text, /domain must not contain a null byte/i);
 
     const batch = getCallParsed(responses, 13);
     assert.equal(batch.concepts[0].ok, true);
