@@ -226,8 +226,8 @@ try {
   assert.match(cliMcpVerify.stdout, /overview/);
   assert.match(cliMcpVerify.stdout, /overview query_plan/);
   assert.match(cliMcpVerify.stdout, /project_map query_plan/);
-  assert.match(cliMcpVerify.stdout, /neighbors/);
-  assert.match(cliMcpVerify.stdout, /path/);
+  assert.match(cliMcpVerify.stdout, /neighbors — elements\/example/);
+  assert.match(cliMcpVerify.stdout, /path — elements\/example → project \(1 hops\)/);
   assert.match(cliMcpVerify.stdout, /project_scope/);
 
   const projectlessVault = join(projectDir, 'projectless-vault');
@@ -235,8 +235,8 @@ try {
   const cliProjectlessMcpVerify = run(cliBin, ['mcp-verify', projectlessVault, '--timeout-ms', '1000'], {
     cwd: projectDir,
   });
-  assert.match(cliProjectlessMcpVerify.stdout, /neighbors/);
-  assert.match(cliProjectlessMcpVerify.stdout, /path/);
+  assert.match(cliProjectlessMcpVerify.stdout, /neighbors — domains\/core/);
+  assert.match(cliProjectlessMcpVerify.stdout, /path — domains\/core → domains\/core \(0 hops\)/);
   assert.match(cliProjectlessMcpVerify.stdout, /project_scope — skipped \(no project node in vault\)/);
 
   const emptyVault = join(projectDir, 'empty-vault');
@@ -295,8 +295,8 @@ try {
   assert.match(mcpVerify.stdout, /overview/);
   assert.match(mcpVerify.stdout, /overview query_plan/);
   assert.match(mcpVerify.stdout, /project_map query_plan/);
-  assert.match(mcpVerify.stdout, /neighbors/);
-  assert.match(mcpVerify.stdout, /path/);
+  assert.match(mcpVerify.stdout, /neighbors — elements\/example/);
+  assert.match(mcpVerify.stdout, /path — elements\/example → project \(1 hops\)/);
   assert.match(mcpVerify.stdout, /project_scope/);
 
   const mcpEmptyVerify = run(

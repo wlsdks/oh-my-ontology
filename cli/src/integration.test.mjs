@@ -225,8 +225,8 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.match(clean, /overview/);
     assert.match(clean, /overview query_plan/);
     assert.match(clean, /project_map query_plan/);
-    assert.match(clean, /neighbors/);
-    assert.match(clean, /path/);
+    assert.match(clean, /neighbors — elements\/example/);
+    assert.match(clean, /path — elements\/example → project \(1 hops\)/);
     assert.match(clean, /project_scope/);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -253,8 +253,8 @@ await test('mcp-verify — allows valid vaults without a project node', async ()
     const r = await run(['mcp-verify', root, '--timeout-ms', '1000']);
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
-    assert.match(clean, /neighbors/);
-    assert.match(clean, /path/);
+    assert.match(clean, /neighbors — domains\/core/);
+    assert.match(clean, /path — domains\/core → domains\/core \(0 hops\)/);
     assert.match(clean, /project_scope — skipped \(no project node in vault\)/);
   } finally {
     rmSync(root, { recursive: true, force: true });
