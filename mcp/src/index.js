@@ -169,6 +169,8 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 
 All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
 
+All tool input schemas are strict: unknown arguments are rejected instead of being ignored. If you see an error like \`Unknown argument "lmit" for list_concepts\`, fix the argument name before retrying; do not assume the server fell back to a default.
+
 ### B. Vault is empty / cold-start — bootstrap from code (R16 / R17 / R+)
 
 When the user says "이 codebase 분석해줘" or you find only the 5 starter nodes. **Modern path is 3 round-trips total — analyze + add_concepts + add_relations** (down from per-row K calls):
