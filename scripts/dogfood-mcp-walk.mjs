@@ -217,6 +217,19 @@ export function healthCheckStatusSummary(checks, limit = 5) {
   return `${shown.join(", ")}${suffix}`;
 }
 
+export function componentSummary(result, limit = 3) {
+  if (!result || !Array.isArray(result.components) || result.components.length === 0) return "none";
+  const shown = result.components.slice(0, limit).map((component) => {
+    const id = component?.id || "unknown";
+    const size = Number.isInteger(component?.size) ? component.size : "n/a";
+    const limited = component?.nodeLimited === true ? "+" : "";
+    const first = component?.nodes?.[0]?.slug || "unknown";
+    return `${id}:${size}${limited}:${first}`;
+  });
+  const suffix = result.components.length > shown.length ? `, +${result.components.length - shown.length} more` : "";
+  return `${shown.join(", ")}${suffix}`;
+}
+
 export function parseDogfoodTimeoutMs(value, fallback = 5000) {
   if (value == null || value === "") return fallback;
   if (!/^[1-9]\d*$/.test(String(value))) return false;
@@ -4330,6 +4343,7 @@ async function main() {
   console.log(`  domain_profile: ${domainProfile?.capabilities?.total ?? "n/a"} capabilities · ${domainProfile?.elements?.total ?? "n/a"} elements`);
   console.log(`  domain_matrix: ${domainMatrix?.summary?.crossDomainEdges ?? "n/a"} cross-domain edges · ${domainMatrix?.connections?.total ?? "n/a"} connections`);
   console.log(`  components: ${components?.totalComponents ?? "n/a"} total · largest ${components?.largestSize ?? "n/a"}`);
+  console.log(`  component rows: ${componentSummary(components)}`);
   console.log(`  relation_check: ${relationCheck?.verdict ?? "n/a"} · exists ${relationCheck?.exists ?? "n/a"}`);
   console.log(`  maintenance_plan: found ${maintenancePlan?.cursor?.found ?? "n/a"} · reason ${maintenancePlan?.cursor?.reason ?? "null"} · ${maintenancePlan?.summary?.remainingActions ?? "n/a"} remaining · ${maintenancePlan?.summary?.executableActions ?? "n/a"} executable`);
   console.log(`  maintenance_plan_missing_cursor: found ${maintenancePlanMissingCursor?.cursor?.found ?? "n/a"} · reason ${maintenancePlanMissingCursor?.cursor?.reason ?? "n/a"}`);

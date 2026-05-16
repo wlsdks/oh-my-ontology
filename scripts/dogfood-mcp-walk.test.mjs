@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 
 import {
   buildDogfoodRequests,
+  componentSummary,
   DOGFOOD_RESPONSE_LABELS,
   evaluateDogfoodGate,
   expectedResponseIds,
@@ -1419,6 +1420,22 @@ describe("rpc response completion helpers", () => {
         { id: "dependency_cycles", status: "fail", count: 1 },
       ], 2),
       "compile_issues:pass:0, components:info:6, +1 more",
+    );
+  });
+
+  it("summarizes component rows for the final dogfood analysis", () => {
+    assert.equal(componentSummary(null), "none");
+    assert.equal(componentSummary({ components: [] }), "none");
+    assert.equal(
+      componentSummary({
+        components: [
+          { id: 1, size: 27, nodes: [{ slug: "project" }] },
+          { id: 2, size: 1, nodeLimited: true, nodes: [{ slug: "external/foo" }] },
+          { id: 3, size: 1, nodes: [] },
+          { id: 4, size: 1, nodes: [{ slug: "orphan" }] },
+        ],
+      }),
+      "1:27:project, 2:1+:external/foo, 3:1:unknown, +1 more",
     );
   });
 
