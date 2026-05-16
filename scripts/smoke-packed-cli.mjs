@@ -204,6 +204,7 @@ try {
   assert.match(cliMcpVerify.stdout, /workspace_brief advisory nextActions/);
   assert.match(cliMcpVerify.stdout, /compile_issues:warn/);
   assert.match(cliMcpVerify.stdout, /health — .*checks/);
+  assert.match(cliMcpVerify.stdout, /health — .*compile_issues:(pass|warn)/);
   assert.match(cliMcpVerify.stdout, /compile_ontology/);
   assert.match(cliMcpVerify.stdout, /overview/);
   assert.match(cliMcpVerify.stdout, /overview query_plan/);
@@ -248,6 +249,7 @@ try {
   assert.match(mcpVerify.stdout, /workspace_brief advisory nextActions/);
   assert.match(mcpVerify.stdout, /compile_issues:warn/);
   assert.match(mcpVerify.stdout, /health — .*checks/);
+  assert.match(mcpVerify.stdout, /health — .*compile_issues:(pass|warn)/);
   assert.match(mcpVerify.stdout, /compile_ontology/);
   assert.match(mcpVerify.stdout, /overview/);
   assert.match(mcpVerify.stdout, /overview query_plan/);

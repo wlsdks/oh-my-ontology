@@ -624,6 +624,17 @@ export function diagnosisIssueCount(parsed) {
   return parsed?.summary?.issues ?? parsed?.summary?.compileIssues ?? 0;
 }
 
+export function healthChecksSummary(checks, limit = 5) {
+  if (!Array.isArray(checks)) return null;
+  const entries = checks
+    .filter((check) => check && typeof check === 'object')
+    .map((check) => `${check.id || 'unknown'}:${check.status || 'unknown'}`);
+  if (entries.length === 0) return null;
+  const shown = entries.slice(0, limit);
+  const suffix = entries.length > shown.length ? `, +${entries.length - shown.length} more` : '';
+  return `${shown.join(', ')}${suffix}`;
+}
+
 export function advisoryNextActionsSummary(actions, limit = 3) {
   if (!Array.isArray(actions)) return null;
   const advisory = actions
@@ -892,7 +903,13 @@ async function step2BootAndCall() {
           log('fail', failure);
           return res(false);
         }
-        log('ok', `health — ${parsed.status} (${(parsed.checks || []).length} checks, issues ${diagnosisIssueCount(parsed)})`);
+        const checksSummary = healthChecksSummary(parsed.checks);
+        log(
+          'ok',
+          `health — ${parsed.status} (${(parsed.checks || []).length} checks${
+            checksSummary ? `: ${checksSummary}` : ''
+          }, issues ${diagnosisIssueCount(parsed)})`,
+        );
       } catch (err) {
         log('fail', `failed to parse health response: ${err.message}`);
         return res(false);

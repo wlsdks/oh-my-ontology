@@ -21,6 +21,7 @@ import {
   getConceptsFailure,
   hasAllFirstContactResponses,
   hasFirstContactErrorResponse,
+  healthChecksSummary,
   listConceptsFailure,
   listKindsFailure,
   overviewFailure,
@@ -645,6 +646,27 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(diagnosisIssueCount({ summary: { issues: 3 } }), 3);
     assert.equal(diagnosisIssueCount({ summary: { compileIssues: 2 } }), 2);
     assert.equal(diagnosisIssueCount({ summary: {} }), 0);
+  });
+
+  it('formats health check coverage for verify output', () => {
+    assert.equal(healthChecksSummary(null), null);
+    assert.equal(healthChecksSummary([]), null);
+    assert.equal(
+      healthChecksSummary([
+        { id: 'compile_issues', status: 'pass' },
+        { id: 'unresolved_edges', status: 'pass' },
+        { id: 'dependency_cycles', status: 'warn' },
+      ]),
+      'compile_issues:pass, unresolved_edges:pass, dependency_cycles:warn',
+    );
+    assert.equal(
+      healthChecksSummary([
+        { id: 'a', status: 'pass' },
+        { id: 'b', status: 'pass' },
+        { id: 'c', status: 'pass' },
+      ], 2),
+      'a:pass, b:pass, +1 more',
+    );
   });
 
   it('formats non-blocking workspace brief next actions for verify output', () => {

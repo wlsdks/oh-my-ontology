@@ -72,6 +72,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial rows/);
     assert.match(verifySection, /✓ list_kinds/);
     assert.match(verifySection, /✓ workspace_brief — healthy \(28 nodes, nextActions 0, healthChecks 5\)/);
+    assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass/);
     assert.match(verifySection, /`list_concepts`, `get_concepts`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
     assert.match(verifySection, /`list_kinds` \/ `compile_ontology` \/ `overview`\s+census shape\/count mismatches/);
@@ -93,6 +94,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /missing or malformed first-contact diagnosis payloads/);
     assert.match(verifySection, /`workspace_brief\.nextActions`, `workspace_brief\.health\.checks`, `health\.checks`/);
     assert.match(verifySection, /prints the validated `workspace_brief\.health\.checks` count/);
+    assert.match(verifySection, /health check `id:status` coverage/);
   });
 
   it('keeps the CLI README explicit about mcp-verify help scope', () => {
@@ -176,6 +178,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /\['path', 'capabilities\/a', 'capabilities\/b', disconnectedVault, '--json'\]/);
     assert.match(smoke, /assert\.equal\(missingPath\.status, 1\)/);
     assert.match(smoke, /workspace_brief — \.\*healthChecks/);
+    assert.match(smoke, /health — \.\*compile_issues:\(pass\|warn\)/);
     assert.match(smoke, /health — \.\*checks/);
     assert.match(smokeSection, /cycles --json/);
     assert.match(smokeSection, /compile --json/);

@@ -180,7 +180,7 @@ A successful run looks like this:
 ✓ list_kinds — 28 nodes (capability:16, domain:6, element:4, project:1, vault-readme:1)
 ✓ validate_vault — 28 files, problemFiles 0
 ✓ workspace_brief — healthy (28 nodes, nextActions 0, healthChecks 5)
-✓ health — healthy (5 checks, issues 0)
+✓ health — healthy (5 checks: compile_issues:pass, unresolved_edges:pass, dependency_cycles:pass, relation_recommendations:pass, components:pass, issues 0)
 ✓ compile_ontology — graph 01dcdf26c195 (28 nodes, 200 edges, issues 0)
 ✓ overview — graph 01dcdf26c195 (28 nodes, 200 edges, hubs 5)
 ✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 200)
@@ -204,8 +204,9 @@ verify before cleanup. Missing or malformed first-contact diagnosis payloads
 such as `workspace_brief.nextActions`, `workspace_brief.health.checks`, and
 `health.checks` also fail the command instead of being treated as clean.
 Non-blocking `workspace_brief.nextActions` are printed as a short
-advisory list, and the success line includes the `workspace_brief.health.checks`
-count that the verify gate validated. The default wait window is 8 seconds; set
+advisory list, the `workspace_brief` success line includes the
+`workspace_brief.health.checks` count, and the `health` line includes the
+check `id:status` coverage that the verify gate validated. The default wait window is 8 seconds; set
 `OMOT_VERIFY_TIMEOUT_MS` to a positive integer millisecond value if your vault
 is large or on a slow filesystem.
 
