@@ -69,6 +69,10 @@ MCP write handler 는 schema 우회 또는 agent 실수로 들어오는 blank/pa
 및 destructive write (`rename_concept` / `merge_concepts` / `delete_concept`), batch
 row partial-failure 경로까지 `mcp/src/integration.test.mjs` 의 spawn 기반 통합
 테스트가 검증한다.
+Read/query handler 도 numeric pagination / traversal 옵션을 조용히 기본값으로
+흡수하지 않는다. `list_concepts.limit`, `find_neighbors.limit`, `find_path.maxHops`,
+`query_concepts.limit`, `compile_ontology` pagination, `query_ontology` 의 limit /
+depth / iterations / direction 값이 범위를 벗어나면 MCP error 로 노출된다.
 
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `workspace_brief` 와 `health`

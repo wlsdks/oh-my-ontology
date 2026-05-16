@@ -1223,6 +1223,49 @@ await test("find_neighbors/get_concept — legacy depends_on frontmatter 를 dep
   }
 });
 
+await test("MCP read/query tools — invalid numeric and direction options are rejected", async () => {
+  const root = makeVault([
+    { slug: "a", content: "---\nkind: capability\ntitle: A\ndependencies: [b]\n---\n" },
+    { slug: "b", content: "---\nkind: capability\ntitle: B\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "list_concepts", { limit: 0 }),
+      callTool(3, "list_concepts", { since: -1 }),
+      callTool(4, "find_neighbors", { slug: "a", limit: 501 }),
+      callTool(5, "find_neighbors", { slug: "a", direction: "sideways" }),
+      callTool(6, "find_path", { from: "a", to: "b", maxHops: -1 }),
+      callTool(7, "query_concepts", { filter: "kind=capability", limit: "10" }),
+      callTool(8, "compile_ontology", { nodesOffset: -1 }),
+      callTool(9, "compile_ontology", { edgesLimit: 1.5 }),
+      callTool(10, "query_ontology", {
+        operation: "neighbors",
+        slug: "a",
+        direction: "sideways",
+      }),
+      callTool(11, "query_ontology", { operation: "centrality", iterations: 101 }),
+      callTool(12, "query_ontology", { operation: "cycles", depth: -1 }),
+    ]);
+    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+      assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
+    }
+    assert.match(responses.find((r) => r.id === 2).result.content[0].text, /limit must be a positive integer/i);
+    assert.match(responses.find((r) => r.id === 3).result.content[0].text, /since must be a non-negative finite number/i);
+    assert.match(responses.find((r) => r.id === 4).result.content[0].text, /limit must be <= 500/i);
+    assert.match(responses.find((r) => r.id === 5).result.content[0].text, /direction must be one of/i);
+    assert.match(responses.find((r) => r.id === 6).result.content[0].text, /maxHops must be a non-negative integer/i);
+    assert.match(responses.find((r) => r.id === 7).result.content[0].text, /limit must be a positive integer/i);
+    assert.match(responses.find((r) => r.id === 8).result.content[0].text, /nodesOffset must be a non-negative integer/i);
+    assert.match(responses.find((r) => r.id === 9).result.content[0].text, /edgesLimit must be a non-negative integer/i);
+    assert.match(responses.find((r) => r.id === 10).result.content[0].text, /direction must be one of/i);
+    assert.match(responses.find((r) => r.id === 11).result.content[0].text, /iterations must be <= 100/i);
+    assert.match(responses.find((r) => r.id === 12).result.content[0].text, /depth must be a non-negative integer/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("query_concepts — 매치 row 에 mtime 포함 (R+)", async () => {
   // list_concepts / find_backlinks / find_orphans 와 동일 shape — read tool
   // 응답 일관성. agent 가 DSL query 결과를 sort/filter 추가 호출 없이 처리.

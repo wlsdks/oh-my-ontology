@@ -1174,7 +1174,40 @@ function ok(result) {
 
 // ── 도구 구현 ─────────────────────────────────────────────────────────────
 
+function requireOptionalNonNegativeNumber(value, name) {
+  if (value === undefined) return;
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative finite number.`);
+  }
+}
+
+function requireOptionalNonNegativeInteger(value, name) {
+  if (value === undefined) return;
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative integer.`);
+  }
+}
+
+function requireOptionalPositiveInteger(value, name, options = {}) {
+  if (value === undefined) return;
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${name} must be a positive integer.`);
+  }
+  if (options.max !== undefined && value > options.max) {
+    throw new Error(`${name} must be <= ${options.max}.`);
+  }
+}
+
+function requireOptionalDirection(value, name, allowed) {
+  if (value === undefined) return;
+  if (!allowed.includes(value)) {
+    throw new Error(`${name} must be one of: ${allowed.join(', ')}.`);
+  }
+}
+
 function listConcepts({ kind, domain, since, summary, limit = 100 }) {
+  requireOptionalNonNegativeNumber(since, 'since');
+  requireOptionalPositiveInteger(limit, 'limit');
   const docs = loadVaultDocs(VAULT_ROOT);
 
   // R11 #23 — vault-wide validation 카운트. raw 모두 검증해 silent corruption
@@ -1687,9 +1720,8 @@ function findNeighborsTool({ slug, direction = 'both', types, includeNodes = tru
   if (!slug) {
     throw new Error('slug is required.');
   }
-  if (!['outgoing', 'incoming', 'both'].includes(direction)) {
-    throw new Error('direction must be one of: outgoing, incoming, both.');
-  }
+  requireOptionalDirection(direction, 'direction', ['outgoing', 'incoming', 'both']);
+  requireOptionalPositiveInteger(limit, 'limit', { max: 500 });
   const docs = loadVaultDocs(VAULT_ROOT);
   const center = resolveExistingVaultSlug(slug, docs);
   if (!center) {
@@ -1700,7 +1732,7 @@ function findNeighborsTool({ slug, direction = 'both', types, includeNodes = tru
   const typeSet = Array.isArray(types) && types.length > 0
     ? new Set(types.map(normalizeGraphRelationKey).filter(Boolean))
     : null;
-  const edgeLimit = typeof limit === 'number' && limit > 0 ? Math.min(limit, 500) : 100;
+  const edgeLimit = limit;
   const edges = [];
   const seen = new Set();
   const pushEdge = (edge) => {
@@ -1800,7 +1832,8 @@ function findPathTool({ from, to, maxHops }) {
   if (!from || !to) {
     throw new Error('from and to are both required.');
   }
-  const result = findPath(VAULT_ROOT, from, to, typeof maxHops === 'number' ? maxHops : 5);
+  requireOptionalNonNegativeInteger(maxHops, 'maxHops');
+  const result = findPath(VAULT_ROOT, from, to, maxHops ?? 5);
   if (!result) {
     return { from, to, found: false, reason: '경로 없음 (또는 maxHops 초과)' };
   }
@@ -1822,8 +1855,9 @@ function queryConceptsTool({ filter, limit }) {
   if (typeof filter !== 'string' || !filter.trim()) {
     throw new Error('filter (string) 가 필요합니다.');
   }
+  requireOptionalPositiveInteger(limit, 'limit');
   const parsed = parseFilter(filter);
-  const cap = typeof limit === 'number' && limit > 0 ? limit : 100;
+  const cap = limit ?? 100;
   const docs = loadVaultDocs(VAULT_ROOT).filter((d) => Boolean(d.frontmatter?.kind));
   const matches = [];
   for (const doc of docs) {
@@ -1858,6 +1892,10 @@ function compileOntologyTool({
   edgesLimit,
   edgesOffset,
 } = {}) {
+  requireOptionalNonNegativeInteger(nodesLimit, 'nodesLimit');
+  requireOptionalNonNegativeInteger(nodesOffset, 'nodesOffset');
+  requireOptionalNonNegativeInteger(edgesLimit, 'edgesLimit');
+  requireOptionalNonNegativeInteger(edgesOffset, 'edgesOffset');
   const artifact = compileOntology(loadVaultDocs(VAULT_ROOT), {
     includeIndexes: includeIndexes === true,
     summary: summary === true,
@@ -1887,6 +1925,7 @@ function compileOntologyTool({
 }
 
 function queryOntologyTool(args = {}) {
+  validateQueryOntologyArgs(args);
   const artifact = compileOntology(loadVaultDocs(VAULT_ROOT), { includeIndexes: true });
   const omotIgnorePatterns = loadOmotIgnore(VAULT_ROOT);
   return {
@@ -1902,6 +1941,24 @@ function queryOntologyTool(args = {}) {
       issues: artifact.issues.length,
     },
   };
+}
+
+function validateQueryOntologyArgs(args = {}) {
+  for (const key of [
+    'limit',
+    'itemLimit',
+    'nodeLimit',
+    'componentLimit',
+    'cycleLimit',
+    'recommendationLimit',
+    'orderLimit',
+    'iterations',
+  ]) {
+    requireOptionalPositiveInteger(args[key], key, key === 'iterations' ? { max: 100 } : {});
+  }
+  requireOptionalNonNegativeInteger(args.maxHops, 'maxHops');
+  requireOptionalNonNegativeInteger(args.depth, 'depth');
+  requireOptionalDirection(args.direction, 'direction', ['incoming', 'outgoing', 'both', 'undirected']);
 }
 
 function compactPostWriteMaintenance(limit = 5) {
