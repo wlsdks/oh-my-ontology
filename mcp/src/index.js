@@ -90,6 +90,10 @@ import {
   missingExpectedFields,
 } from './schema.mjs';
 
+const STDIO_MAX_LISTENERS = 50;
+process.stdout.setMaxListeners(Math.max(process.stdout.getMaxListeners(), STDIO_MAX_LISTENERS));
+process.stderr.setMaxListeners(Math.max(process.stderr.getMaxListeners(), STDIO_MAX_LISTENERS));
+
 const VAULT_ROOT = resolve(process.env.OMOT_VAULT || process.cwd());
 const SERVER_VERSION = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8'),

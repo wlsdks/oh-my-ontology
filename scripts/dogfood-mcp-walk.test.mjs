@@ -11,6 +11,7 @@ import {
   recordResult,
   rpcTimeoutFailure,
   shouldFinishRpc,
+  stderrWarningFailures,
 } from "./dogfood-mcp-walk.mjs";
 
 const okShape = {
@@ -80,6 +81,30 @@ const okShape = {
       ],
     },
   },
+  allPaths: {
+    operation: "all_paths",
+    from: "capabilities/mcp-server",
+    to: "domains/vault-local-first",
+    found: true,
+    direction: "undirected",
+    maxHops: 4,
+    totalPaths: 2,
+    limited: false,
+    shortestHopCount: 2,
+    byLength: { 2: 2 },
+    paths: [
+      {
+        hopCount: 2,
+        hops: ["capabilities/mcp-server", "domains/ai-agent-partner", "domains/vault-local-first"],
+        edges: [],
+      },
+      {
+        hopCount: 2,
+        hops: ["capabilities/mcp-server", "capabilities/vault-validator", "domains/vault-local-first"],
+        edges: [],
+      },
+    ],
+  },
 };
 
 describe("recordResult", () => {
@@ -146,6 +171,16 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       rpcTimeoutFailure(5000, missing),
       "rpc: timed out after 5000ms waiting for list_kinds, list_concepts",
+    );
+  });
+
+  it("flags stderr warnings without failing on normal connection logs", () => {
+    assert.deepEqual(stderrWarningFailures("[oh-my-ontology-mcp] connected. vault=/tmp/x"), []);
+    assert.deepEqual(
+      stderrWarningFailures(
+        "[oh-my-ontology-mcp] connected. vault=/tmp/x\n(node:1) MaxListenersExceededWarning: Possible EventEmitter memory leak detected",
+      ),
+      ["stderr warning: (node:1) MaxListenersExceededWarning: Possible EventEmitter memory leak detected"],
     );
   });
 });
@@ -396,6 +431,54 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["pattern_walk response total mismatch — rows 1, total 2"],
+    );
+  });
+
+  it("fails on malformed all_paths payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, allPaths: { ...okShape.allPaths, operation: "path" } }),
+      ["all_paths response operation mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, allPaths: { ...okShape.allPaths, paths: null } }),
+      ["all_paths response missing paths array"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, allPaths: { ...okShape.allPaths, totalPaths: 1, limited: true, paths: [okShape.allPaths.paths[0]] } }),
+      ["all_paths response limited without hidden path — rows 1, total 1"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, allPaths: { ...okShape.allPaths, totalPaths: 3, limited: false, paths: [okShape.allPaths.paths[0]] } }),
+      ["all_paths response total mismatch — rows 1, total 3"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        allPaths: {
+          ...okShape.allPaths,
+          totalPaths: 1,
+          paths: [{ edges: [] }],
+        },
+      }),
+      ["all_paths response missing hops at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        allPaths: {
+          ...okShape.allPaths,
+          totalPaths: 3,
+          paths: [
+            ...okShape.allPaths.paths,
+            {
+              ...okShape.allPaths.paths[0],
+              hops: [...okShape.allPaths.paths[0].hops],
+              edges: [...okShape.allPaths.paths[0].edges],
+            },
+          ],
+        },
+      }),
+      ["all_paths response duplicate path signature at index 2"],
     );
   });
 

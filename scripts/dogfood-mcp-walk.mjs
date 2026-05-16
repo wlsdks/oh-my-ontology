@@ -7,7 +7,7 @@
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // validate_vault / compile_ontology(summary) /
-// query_ontology pattern_walk / workspace_brief / health.
+// query_ontology all_paths / pattern_walk / workspace_brief / health.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -45,6 +45,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [10, "health"],
   [11, "compile_ontology"],
   [12, "pattern_walk"],
+  [13, "all_paths"],
 ]);
 
 function rpc(requests, timeoutMs = 3000) {
@@ -158,6 +159,15 @@ export function recordResult(failures, label, result) {
   return true;
 }
 
+export function stderrWarningFailures(stderr) {
+  if (!stderr) return [];
+  return stderr
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /Warning:/.test(line))
+    .map((line) => `stderr warning: ${line}`);
+}
+
 export function evaluateDogfoodGate({
   kinds,
   list,
@@ -170,6 +180,7 @@ export function evaluateDogfoodGate({
   health,
   compiled,
   patternWalk,
+  allPaths,
 }) {
   const failures = [];
   recordResult(failures, "list_kinds", kinds);
@@ -183,6 +194,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "health", health);
   recordResult(failures, "compile_ontology", compiled);
   recordResult(failures, "pattern_walk", patternWalk);
+  recordResult(failures, "all_paths", allPaths);
 
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
@@ -230,6 +242,10 @@ export function evaluateDogfoodGate({
   if (patternWalk) {
     const patternWalkFailure = patternWalkShapeFailure(patternWalk);
     if (patternWalkFailure) failures.push(patternWalkFailure);
+  }
+  if (allPaths) {
+    const allPathsFailure = allPathsShapeFailure(allPaths);
+    if (allPathsFailure) failures.push(allPathsFailure);
   }
   const consistencyFailures = crossToolConsistencyFailures({ kinds, list, validation, compiled });
   failures.push(...consistencyFailures);
@@ -304,6 +320,56 @@ function patternWalkShapeFailure(result) {
     if (!row.end) {
       return `pattern_walk response missing end at index ${i}`;
     }
+  }
+  return null;
+}
+
+function allPathsShapeFailure(result) {
+  if (result.operation !== "all_paths") {
+    return "all_paths response operation mismatch";
+  }
+  if (typeof result.found !== "boolean") {
+    return "all_paths response missing found flag";
+  }
+  if (!Number.isInteger(result.totalPaths) || result.totalPaths < 0) {
+    return "all_paths response missing totalPaths";
+  }
+  if (typeof result.limited !== "boolean") {
+    return "all_paths response missing limited flag";
+  }
+  if (!Array.isArray(result.paths)) {
+    return "all_paths response missing paths array";
+  }
+  if (result.paths.length === 0) {
+    return "all_paths response returned no paths";
+  }
+  if (result.paths.length > result.totalPaths) {
+    return `all_paths response row count exceeds total — rows ${result.paths.length}, total ${result.totalPaths}`;
+  }
+  if (result.limited && result.totalPaths <= result.paths.length) {
+    return `all_paths response limited without hidden path — rows ${result.paths.length}, total ${result.totalPaths}`;
+  }
+  if (!result.limited && result.totalPaths !== result.paths.length) {
+    return `all_paths response total mismatch — rows ${result.paths.length}, total ${result.totalPaths}`;
+  }
+  for (let i = 0; i < result.paths.length; i += 1) {
+    const row = result.paths[i];
+    if (!Array.isArray(row.hops) || row.hops.length < 2) {
+      return `all_paths response missing hops at index ${i}`;
+    }
+    if (!Array.isArray(row.edges)) {
+      return `all_paths response missing edges at index ${i}`;
+    }
+  }
+  const seen = new Set();
+  for (let i = 0; i < result.paths.length; i += 1) {
+    const row = result.paths[i];
+    const relationChain = row.edges.map((edge) => edge?.via ?? "").join(">");
+    const signature = `${row.hops.join(">")}|${relationChain}`;
+    if (seen.has(signature)) {
+      return `all_paths response duplicate path signature at index ${i}`;
+    }
+    seen.add(signature);
   }
   return null;
 }
@@ -548,6 +614,13 @@ async function main() {
       pattern: ["domains", "capabilities"],
       limit: 5,
     }),
+    call(13, "query_ontology", {
+      operation: "all_paths",
+      from: "capabilities/mcp-server",
+      to: "domains/vault-local-first",
+      maxHops: 4,
+      limit: 3,
+    }),
   ];
 
   const { responses, stderr, timedOut } = await rpc(requests, timeoutMs);
@@ -692,6 +765,19 @@ async function main() {
     }
   }
 
+  // 12. all_paths
+  header(`query_ontology(all_paths mcp-server → vault-local-first)`);
+  const allPaths = getResult(responses, 13);
+  if (allPaths) {
+    console.log(
+      `  paths: ${allPaths.paths?.length ?? "n/a"} / total ${allPaths.totalPaths ?? "n/a"} · limited ${allPaths.limited ?? "n/a"} · shortest ${allPaths.shortestHopCount ?? "n/a"}`,
+    );
+    for (const row of (allPaths.paths || []).slice(0, 3)) {
+      const relationChain = row.edges?.map((edge) => edge.via).join(" → ") || "unknown";
+      console.log(`  ${row.hops?.join(" → ") || "unknown"} (${relationChain})`);
+    }
+  }
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -704,11 +790,13 @@ async function main() {
     health,
     compiled,
     patternWalk,
+    allPaths,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
   if (timedOut && missingLabels.length > 0) {
     failures.unshift(rpcTimeoutFailure(timeoutMs, missingLabels));
   }
+  failures.push(...stderrWarningFailures(stderr));
 
   // 분석
   header("Analysis — AI agent quality assessment");
@@ -727,6 +815,7 @@ async function main() {
   console.log(`  health: ${health?.status ?? "n/a"} (${(health?.checks || []).length} checks)`);
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
   console.log(`  pattern_walk: ${patternWalk?.paths?.rows?.length ?? "n/a"} paths (${patternWalk?.paths?.limited ? "limited" : "complete"})`);
+  console.log(`  all_paths: ${allPaths?.paths?.length ?? "n/a"} paths (${allPaths?.limited ? "limited" : "complete"})`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   if (stderr.trim()) {
