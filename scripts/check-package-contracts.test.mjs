@@ -720,10 +720,14 @@ describe('package contract helpers', () => {
     const pkg = JSON.parse(readFileSync('mcp/package.json', 'utf-8'));
 
     assert.equal(pkg.scripts?.test, 'node --test src/parser.test.mjs');
+    assert.equal(pkg.scripts?.verify, 'node scripts/verify.mjs');
     assert.match(pkg.scripts?.['test:all'] ?? '', /src\/ontology-engine\.test\.mjs/);
     assert.match(pkg.scripts?.['test:all'] ?? '', /src\/suggestions\.test\.mjs/);
     assert.equal(isCoveredByFiles('src/parser.test.mjs', pkg.files), true);
+    assert.equal(isCoveredByFiles('scripts/verify.mjs', pkg.files), true);
+    assert.equal(isCoveredByFiles('scripts/json-rpc-lines.mjs', pkg.files), true);
     assert.equal(isCoveredByFiles('src/suggestions.test.mjs', pkg.files), false);
+    assert.equal(isCoveredByFiles('src/verify-script.test.mjs', pkg.files), false);
   });
 
   it('keeps the self-ontology README census aligned with the vault files', () => {
