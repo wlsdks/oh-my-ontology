@@ -107,8 +107,10 @@ describe('package contract helpers', () => {
   it('keeps the MCP README aligned with health tuning controls', () => {
     const readme = readFileSync('mcp/README.md', 'utf-8');
     const row = readme.split('| `query_ontology` |')[1]?.split('\n')[0] ?? '';
+    const strictInputSection = readme.split('String-array options are strict too:')[1]?.split('Scalar string options')[0] ?? '';
 
     assert.match(row, /`health` \/ `workspace_brief` can tune their internal probes/);
+    assert.match(row, /`phases` and `severities` are enum-validated/);
     for (const option of [
       'componentLimit',
       'cycleLimit',
@@ -120,6 +122,8 @@ describe('package contract helpers', () => {
     ]) {
       assert.match(row, new RegExp(`\`${option}\``));
     }
+    assert.match(strictInputSection, /`maintenance_plan\.phases` is additionally\s+limited to `validate` \/ `repair` \/ `link` \/ `materialize` \/ `review`/);
+    assert.match(strictInputSection, /`maintenance_plan\.severities` is limited to `fail` \/ `warn` \/ `info`/);
   });
 
   it('keeps the MCP README explicit about destructive write safety switches', () => {
@@ -530,6 +534,8 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /strict unknown-argument and invalid-enum rejection smoke/);
     assert.match(dogfoodSection, /`growth_plan`/);
     assert.match(dogfoodSection, /`maintenance_plan`/);
+    assert.match(dogfoodSection, /`maintenance_plan\.phases` 는 `validate` \/ `repair`/);
+    assert.match(dogfoodSection, /`maintenance_plan\.severities` 는 `fail` \/ `warn` \/ `info`/);
 
     const verifySection = doc.split('환경변수 `OMOT_VAULT`')[1]?.split('`get_concepts` 는')[0] ?? '';
     assert.match(verifySection, /실제 `neighbors` \/[\s\S]*node→project `path` \/ `project_scope`/);

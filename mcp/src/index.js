@@ -839,13 +839,19 @@ const TOOLS = [
         },
         phases: {
           type: 'array',
-          items: NON_BLANK_STRING_SCHEMA,
+          items: {
+            ...NON_BLANK_STRING_SCHEMA,
+            enum: ['validate', 'repair', 'link', 'materialize', 'review'],
+          },
           description:
             'maintenance_plan only: optional phase filter, e.g. ["repair", "link", "materialize"].',
         },
         severities: {
           type: 'array',
-          items: NON_BLANK_STRING_SCHEMA,
+          items: {
+            ...NON_BLANK_STRING_SCHEMA,
+            enum: ['fail', 'warn', 'info'],
+          },
           description:
             'maintenance_plan only: optional severity filter, e.g. ["fail", "warn"].',
         },

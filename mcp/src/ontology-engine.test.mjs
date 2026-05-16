@@ -616,9 +616,23 @@ describe('queryCompiledOntology', () => {
     assert.throws(
       () => queryCompiledOntology(artifact(), {
         operation: 'maintenance_plan',
+        phases: ['repiar'],
+      }),
+      /phases items must be one of: validate, repair, link, materialize, review/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'maintenance_plan',
         severities: ['warn', ' '],
       }),
       /severities items must be non-empty strings/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'maintenance_plan',
+        severities: ['fatal'],
+      }),
+      /severities items must be one of: fail, warn, info/,
     );
     assert.throws(
       () => queryCompiledOntology(artifact(), {

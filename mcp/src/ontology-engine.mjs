@@ -5,6 +5,8 @@ const DEFAULT_LIMIT = 100;
 const DOWNWARD_CONTAINMENT_TYPES = new Set(['domains', 'capabilities', 'elements', 'contains']);
 const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
 const HEALTH_IGNORED_COMPONENT_KINDS = new Set(['vault-readme']);
+const MAINTENANCE_PHASES = new Set(['validate', 'repair', 'link', 'materialize', 'review']);
+const MAINTENANCE_SEVERITIES = new Set(['fail', 'warn', 'info']);
 export const QUERY_ONTOLOGY_OPERATIONS = Object.freeze([
   'neighbors',
   'path',
@@ -2319,8 +2321,8 @@ export function createOntologyEngine(artifact, options = {}) {
 
   function maintenancePlan(options = {}) {
     const limit = normalizeLimit(options.limit, 25);
-    const phaseFilter = normalizeStringSet(options.phases, 'phases');
-    const severityFilter = normalizeStringSet(options.severities, 'severities');
+    const phaseFilter = normalizeStringSet(options.phases, 'phases', MAINTENANCE_PHASES);
+    const severityFilter = normalizeStringSet(options.severities, 'severities', MAINTENANCE_SEVERITIES);
     const kindFilter = normalizeStringSet(options.kinds, 'kinds');
     const cycleResult = cycles({ limit, types: options.dependencyTypes ?? ['dependencies'] });
     const relationRecommendations = recommendRelations({ limit });
@@ -3563,7 +3565,7 @@ function normalizeMaintenanceActionNodes(nodesValue) {
   return nodesValue;
 }
 
-function normalizeStringSet(value, name) {
+function normalizeStringSet(value, name, allowedValues = null) {
   if (value === undefined || value === null) return null;
   if (!Array.isArray(value)) {
     throw new Error(`${name} must be an array of strings.`);
@@ -3582,6 +3584,9 @@ function normalizeStringSet(value, name) {
     }
     if (trimmed.includes('\0')) {
       throw new Error(`${name} items must not contain a null byte.`);
+    }
+    if (allowedValues && !allowedValues.has(trimmed)) {
+      throw new Error(`${name} items must be one of: ${[...allowedValues].join(', ')}.`);
     }
     items.push(trimmed);
   }

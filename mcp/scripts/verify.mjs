@@ -128,6 +128,15 @@ export function toolsListSchemaFailure(tools) {
     return 'query_ontology targetOperation enum schema drift';
   }
 
+  const phases = propertyAt(queryTool, ['properties', 'phases']);
+  if (!sameArray(phases?.items?.enum, ['validate', 'repair', 'link', 'materialize', 'review'])) {
+    return 'query_ontology phases enum schema drift';
+  }
+  const severities = propertyAt(queryTool, ['properties', 'severities']);
+  if (!sameArray(severities?.items?.enum, ['fail', 'warn', 'info'])) {
+    return 'query_ontology severities enum schema drift';
+  }
+
   const findOrphansTool = tools.find((candidate) => candidate?.name === 'find_orphans');
   if (!findOrphansTool) return 'tools/list response missing find_orphans tool';
   const excludeKinds = propertyAt(findOrphansTool, ['properties', 'excludeKinds']);

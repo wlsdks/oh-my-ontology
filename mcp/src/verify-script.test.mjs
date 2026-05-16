@@ -184,6 +184,8 @@ describe('verify.mjs first-contact gates', () => {
           properties: {
             operation: { enum: QUERY_ONTOLOGY_OPERATIONS },
             targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
+            phases: { items: { enum: ['validate', 'repair', 'link', 'materialize', 'review'] } },
+            severities: { items: { enum: ['fail', 'warn', 'info'] } },
           },
         },
       },
@@ -288,6 +290,36 @@ describe('verify.mjs first-contact gates', () => {
         },
       )),
       'query_ontology targetOperation enum schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...tools[10],
+          inputSchema: {
+            ...tools[10].inputSchema,
+            properties: {
+              ...tools[10].inputSchema.properties,
+              phases: { items: { enum: ['repair', 'link'] } },
+            },
+          },
+        },
+      )),
+      'query_ontology phases enum schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...tools[10],
+          inputSchema: {
+            ...tools[10].inputSchema,
+            properties: {
+              ...tools[10].inputSchema.properties,
+              severities: { items: { enum: ['warn'] } },
+            },
+          },
+        },
+      )),
+      'query_ontology severities enum schema drift',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'get_concepts')),
