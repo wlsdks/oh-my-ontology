@@ -1016,14 +1016,14 @@ describe('verify.mjs first-contact gates', () => {
       ...clean,
       summary: { ...summary, remainingActions: 2 },
       actions: [
-        { id: 'maint_link', executable: true },
-        { id: 'maint_review', executable: false },
+        { id: 'maint_link', executable: true, phase: 'link', kind: 'add_missing_relation', severity: 'warn' },
+        { id: 'maint_review', executable: false, phase: 'review', kind: 'unassigned_node', severity: 'info' },
       ],
       byPhase: { link: 1, review: 1 },
       bySeverity: { warn: 1, info: 1 },
       byKind: { add_missing_relation: 1, unassigned_node: 1 },
-      nextExecutableAction: { id: 'maint_link', executable: true },
-      nextReviewAction: { id: 'maint_review', executable: false },
+      nextExecutableAction: { id: 'maint_link', executable: true, phase: 'link', kind: 'add_missing_relation', severity: 'warn' },
+      nextReviewAction: { id: 'maint_review', executable: false, phase: 'review', kind: 'unassigned_node', severity: 'info' },
     };
     assert.equal(maintenanceReadyCursorFailure(withActions), null);
     assert.equal(
@@ -1048,6 +1048,27 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       maintenanceReadyCursorFailure({ ...withActions, nextReviewAction: { id: 'maint_review', executable: true } }),
       'maintenance ready-cursor smoke nextReviewAction executable flag mismatch',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({
+        ...withActions,
+        nextExecutableAction: { ...withActions.nextExecutableAction, phase: 'repair' },
+      }),
+      'maintenance ready-cursor smoke nextExecutableAction phase mismatch',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({
+        ...withActions,
+        nextExecutableAction: { ...withActions.nextExecutableAction, kind: 'canonicalize_graph_arrays' },
+      }),
+      'maintenance ready-cursor smoke nextExecutableAction kind mismatch',
+    );
+    assert.equal(
+      maintenanceReadyCursorFailure({
+        ...withActions,
+        nextExecutableAction: { ...withActions.nextExecutableAction, severity: 'info' },
+      }),
+      'maintenance ready-cursor smoke nextExecutableAction severity mismatch',
     );
   });
 

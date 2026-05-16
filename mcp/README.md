@@ -212,7 +212,8 @@ missing `afterActionId`): the ready page must keep `cursor.found=true`,
 `cursor.reason=null`, and the missing cursor still reports `cursor.found=false`,
 reason, empty page. Ready pages also verify `nextExecutableAction` /
 `nextReviewAction` point only at the first executable/review action in the
-current returned page. This help path does not start the MCP server.
+current returned page, including the action `phase`, `kind`, and `severity`.
+This help path does not start the MCP server.
 
 A successful run looks like this:
 
@@ -301,7 +302,9 @@ reports `cursor.found=false`, the cursor miss reason, zero remaining actions,
 and no next actions. A companion ready-page smoke calls `maintenance_plan`
 without `afterActionId` and fails unless the response keeps the stable cursor
 shape, including `cursor.found=true`, explicit `cursor.reason=null`,
-`startIndex=0`, `remainingActions`, and next-action pointers. Both cursor
+`startIndex=0`, `remainingActions`, and next-action pointers. Those pointers
+must match the current page action `id`, `executable`, `phase`, `kind`, and
+`severity`. Both cursor
 smokes also validate the maintenance summary counts (`totalActions`,
 `filteredActions`, `remainingActions`, `executableActions`, `reviewActions`)
 and their count relationships, plus the `byPhase` / `bySeverity` / `byKind`

@@ -502,6 +502,15 @@ function maintenanceNextActionFailure(expectedAction, pointer, label, executable
   if (pointer.executable !== executable) {
     return `maintenance ready-cursor smoke ${label} executable flag mismatch`;
   }
+  for (const key of ['phase', 'kind', 'severity']) {
+    if (
+      typeof expectedAction[key] === 'string' &&
+      expectedAction[key].length > 0 &&
+      pointer[key] !== expectedAction[key]
+    ) {
+      return `maintenance ready-cursor smoke ${label} ${key} mismatch`;
+    }
+  }
   return null;
 }
 
