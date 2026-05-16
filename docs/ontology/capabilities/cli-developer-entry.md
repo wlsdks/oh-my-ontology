@@ -74,7 +74,8 @@ health check count 출력과 `overview`/`project_map` query_plan / `neighbors` /
 `project_scope` smoke 출력, project-less vault 의 `project_scope` skip, empty vault 의
 node-targeted graph smoke skip, typoed `maintenance_plan.phases` / `maintenance_plan.severities` /
 `maintenance_plan.kinds` runtime rejection, ready `maintenance_plan` cursor + missing `maintenance_plan.afterActionId` cursor smoke,
-installed help 의 strict argument/enum smoke 와 maintenance work-queue filter/cursor 계약 설명을 확인해 source checkout 에서는 안 보이는 bin/package/files drift 를
+installed help 의 strict argument/enum smoke 와 maintenance work-queue filter/cursor 계약,
+bucket / current-page next-action summary 설명을 확인해 source checkout 에서는 안 보이는 bin/package/files drift 를
 잡는다. 통과 시 MCP/CLI tarball 의 파일 수와 압축/해제 크기 요약도 출력해 release
 검토자가 publish 전 패키징 비대를 즉시 볼 수 있게 한다.
 
@@ -90,7 +91,7 @@ version 을 추적하는지 본다. CLI runtime dispatcher 가 command registry 
 import 로 바뀌어도 `runner('*.mjs', 'runX')` registry 항목을 command module reachability
 로 추적해 packaged CLI 에서 특정 명령 파일이 빠지는 회귀를 잡는다. source checkout 에서는
 통과하지만 npm tarball 에서만 깨지는 release drift 를 차단한다. packed smoke 는
-installed `mcp-verify --help` 가 graph-query smoke, strict argument/enum smoke, write-tool post-write guidance, maintenance filter enum, ready cursor / missing cursor 계약을
+installed `mcp-verify --help` 가 graph-query smoke, strict argument/enum smoke, write-tool post-write guidance, maintenance filter enum, ready cursor / missing cursor 계약과 bucket / current-page next-action summary scope 를
 계속 설명하는지도 확인한다. paired self-test 는 누락된
 reachable import, 죽은 `files` glob, multiline/dynamic import parsing, command registry
 reachability, test script 제외 규칙을 fixture 로 고정한다. CLI README 의

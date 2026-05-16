@@ -770,6 +770,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /cursor smoke checks both cursor\\\.found=true with cursor\\\.reason=null and cursor\\\.found=false/);
     assert.match(smoke, /zero remaining actions, and no next actions/);
     assert.match(smoke, /nextExecutableAction \\\/ nextReviewAction point only at the first executable\\\/review action in the current returned page/);
+    assert.match(smoke, /Successful maintenance cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
+    assert.match(smoke, /Successful cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
     assert.match(smoke, /maintenance cursor — missing afterActionId reported/);
     assert.match(smoke, /maintenance cursor — ready page stable/);
     assert.ok(smoke.includes('directMcpVerify.stdout, /maintenance cursor'));
@@ -785,6 +787,7 @@ describe('package contract helpers', () => {
     assert.match(smokeSection, /`overview`\/`project_map` query_plan \/ `neighbors` \/ `path` \//);
     assert.match(smokeSection, /`project_scope` smoke/);
     assert.match(smokeSection, /strict argument\/enum smoke/);
+    assert.match(smokeSection, /bucket \/ current-page next-action summary/);
     assert.match(smokeSection, /project-less vault/);
     assert.match(smokeSection, /empty vault/);
   });
