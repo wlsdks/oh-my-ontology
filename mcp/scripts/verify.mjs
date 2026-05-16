@@ -1057,6 +1057,13 @@ export function advisoryNextActionsSummary(actions, limit = 3) {
   return `${shown.join(', ')}${suffix}`;
 }
 
+export function workspaceBriefSummary(parsed) {
+  return `${formatCount(parsed?.summary?.nodes ?? 0, 'node')}, ${formatCount(
+    (parsed?.nextActions || []).length,
+    'next action',
+  )}, ${formatCount((parsed?.health?.checks || []).length, 'health check')}`;
+}
+
 async function step1ParserSmoke() {
   log('info', 'step 1 — parser smoke test');
   return new Promise((res) => {
@@ -1338,9 +1345,7 @@ async function step2BootAndCall() {
         }
         log(
           'ok',
-          `workspace_brief — ${parsed.status} (${parsed.summary?.nodes ?? 0} nodes, nextActions ${
-            (parsed.nextActions || []).length
-          }, healthChecks ${(parsed.health?.checks || []).length})`,
+          `workspace_brief — ${parsed.status} (${workspaceBriefSummary(parsed)})`,
         );
         const advisory = advisoryNextActionsSummary(parsed.nextActions);
         if (advisory) log('info', `workspace_brief advisory nextActions — ${advisory}`);

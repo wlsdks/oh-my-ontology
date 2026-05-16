@@ -48,6 +48,7 @@ import {
   verifyCountConsistencyFailure,
   verifyTimeoutFailure,
   vaultWarningsFailure,
+  workspaceBriefSummary,
 } from '../scripts/verify.mjs';
 import { expectedResponseIds, missingResponseLabels } from '../scripts/json-rpc-lines.mjs';
 
@@ -1225,6 +1226,18 @@ describe('verify.mjs first-contact gates', () => {
       ], 2),
       'a:info, b:warn, +2 more',
     );
+  });
+
+  it('formats workspace brief counts for human-facing verify output', () => {
+    assert.equal(
+      workspaceBriefSummary({
+        summary: { nodes: 1 },
+        nextActions: [{ id: 'cleanup', severity: 'warn' }],
+        health: { checks: [{ id: 'compile_issues', status: 'warn' }, { id: 'components', status: 'pass' }] },
+      }),
+      '1 node, 1 next action, 2 health checks',
+    );
+    assert.equal(workspaceBriefSummary({ summary: { nodes: 0 }, nextActions: [], health: { checks: [] } }), '0 nodes, 0 next actions, 0 health checks');
   });
 
   it('fails unexpected diagnosis operations', () => {
