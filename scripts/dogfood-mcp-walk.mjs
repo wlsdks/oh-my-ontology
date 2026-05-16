@@ -721,7 +721,7 @@ export function evaluateDogfoodGate({
     if (relationCheckFailure) failures.push(relationCheckFailure);
   }
   if (maintenancePlan) {
-    const maintenancePlanFailure = maintenancePlanShapeFailure(maintenancePlan);
+    const maintenancePlanFailure = maintenancePlanShapeFailure(maintenancePlan, { expectReadyCursor: true });
     if (maintenancePlanFailure) failures.push(maintenancePlanFailure);
   }
   if (maintenancePlanMissingCursor) {
@@ -1498,7 +1498,7 @@ function relationCheckShapeFailure(result) {
   return null;
 }
 
-function maintenancePlanShapeFailure(result) {
+function maintenancePlanShapeFailure(result, options = {}) {
   if (result.operation !== "maintenance_plan") {
     return `maintenance_plan response operation mismatch — ${result.operation}`;
   }
@@ -1541,6 +1541,14 @@ function maintenancePlanShapeFailure(result) {
   }
   const cursorFailure = maintenanceCursorFailure(result.cursor);
   if (cursorFailure) return cursorFailure;
+  if (options.expectReadyCursor) {
+    if (result.cursor.found !== true) {
+      return "maintenance_plan ready cursor did not report cursor.found=true";
+    }
+    if (result.cursor.reason !== null) {
+      return "maintenance_plan ready cursor did not expose cursor.reason=null";
+    }
+  }
   for (const key of ["byPhase", "bySeverity", "byKind"]) {
     if (!result[key] || typeof result[key] !== "object" || Array.isArray(result[key])) {
       return `maintenance_plan response missing ${key}`;

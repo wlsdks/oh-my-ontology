@@ -2409,6 +2409,26 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         maintenancePlan: {
           ...okShape.maintenancePlan,
+          cursor: { ...okShape.maintenancePlan.cursor, found: false, reason: "afterActionId not found in filtered maintenance actions" },
+        },
+      }),
+      ["maintenance_plan ready cursor did not report cursor.found=true"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
+          cursor: { ...okShape.maintenancePlan.cursor, reason: "afterActionId not found in filtered maintenance actions" },
+        },
+      }),
+      ["maintenance_plan ready cursor did not expose cursor.reason=null"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        maintenancePlan: {
+          ...okShape.maintenancePlan,
           cursor: { ...okShape.maintenancePlan.cursor, nextAfterActionId: "maint_other" },
         },
       }),
