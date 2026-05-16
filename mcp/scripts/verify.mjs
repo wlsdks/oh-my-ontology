@@ -17,6 +17,7 @@
  *   5. tools/call validate_vault — whole-vault frontmatter / graph-reference health
  *   6. tools/call query_ontology workspace_brief + health — agent first-contact graph diagnosis
  *   7. tools/call compile_ontology(summary) — compiler graph summary contract
+ *   8. tools/call query_ontology overview + query_plan(overview) — graph-query smoke contract
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */
@@ -81,6 +82,8 @@ const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [5, 'workspace_brief'],
   [6, 'health'],
   [7, 'compile_ontology'],
+  [8, 'overview'],
+  [9, 'overview_query_plan'],
 ]);
 
 function log(level, msg) {
@@ -263,6 +266,81 @@ export function compileSummaryFailure(parsed) {
     parsed.resolvedEdgeCount + parsed.externalEdgeCount + parsed.unresolvedEdgeCount;
   if (edgeTotal !== parsed.edgeCount) {
     return `compile_ontology response edge count mismatch — edgeCount ${parsed.edgeCount}, resolved+external+unresolved ${edgeTotal}`;
+  }
+  return null;
+}
+
+export function overviewFailure(parsed) {
+  if (parsed?.operation !== 'overview') {
+    return `overview returned unexpected operation: ${parsed?.operation}`;
+  }
+  const graph = parsed.graph;
+  if (!graph || typeof graph !== 'object' || Array.isArray(graph)) {
+    return 'overview response missing graph summary';
+  }
+  const graphFailure = numericFieldsFailure('overview.graph', graph, [
+    'nodes',
+    'edges',
+    'resolvedEdges',
+    'externalEdges',
+    'unresolvedEdges',
+    'aliases',
+    'ambiguousAliases',
+    'issues',
+  ]);
+  if (graphFailure) return graphFailure;
+  if (typeof graph.graphHash !== 'string' || graph.graphHash.length === 0) {
+    return 'overview response missing graphHash';
+  }
+  if (!Number.isFinite(graph.maxMtime) || graph.maxMtime < 0) {
+    return 'overview response missing maxMtime';
+  }
+  const edgeTotal = graph.resolvedEdges + graph.externalEdges + graph.unresolvedEdges;
+  if (edgeTotal !== graph.edges) {
+    return `overview response edge count mismatch — edges ${graph.edges}, resolved+external+unresolved ${edgeTotal}`;
+  }
+  const byKindFailure = countMapFailure('overview', 'byKind', parsed.byKind);
+  if (byKindFailure) return byKindFailure;
+  const byKindTotal = Object.values(parsed.byKind).reduce((sum, count) => sum + count, 0);
+  if (byKindTotal !== graph.nodes) {
+    return `overview response byKind mismatch — nodes ${graph.nodes}, byKind ${byKindTotal}`;
+  }
+  if (!Array.isArray(parsed.hubs)) {
+    return 'overview response missing hubs array';
+  }
+  return null;
+}
+
+export function overviewQueryPlanFailure(parsed) {
+  if (parsed?.operation !== 'query_plan') {
+    return `overview query_plan returned unexpected operation: ${parsed?.operation}`;
+  }
+  if (parsed.targetOperation !== 'overview') {
+    return `overview query_plan returned unexpected targetOperation: ${parsed.targetOperation}`;
+  }
+  if (parsed.sideEffect !== false) {
+    return 'overview query_plan must be side-effect-free';
+  }
+  if (!parsed.normalized || parsed.normalized.targetOperation !== 'overview') {
+    return 'overview query_plan missing normalized targetOperation';
+  }
+  if (!parsed.estimate || parsed.estimate.strategy !== 'aggregate_scan') {
+    return 'overview query_plan missing aggregate_scan estimate';
+  }
+  if (!Number.isInteger(parsed.estimate.nodeScans) || parsed.estimate.nodeScans < 0) {
+    return 'overview query_plan missing nodeScans';
+  }
+  if (!Number.isInteger(parsed.estimate.edgeScans) || parsed.estimate.edgeScans < 0) {
+    return 'overview query_plan missing edgeScans';
+  }
+  if (!['low', 'medium', 'high'].includes(parsed.estimate.costClass)) {
+    return 'overview query_plan missing costClass';
+  }
+  if (!Array.isArray(parsed.indexesUsed) || !parsed.indexesUsed.includes('compiled_artifact')) {
+    return 'overview query_plan missing compiled_artifact index hint';
+  }
+  if (!Array.isArray(parsed.warnings)) {
+    return 'overview query_plan missing warnings array';
   }
   return null;
 }
@@ -463,6 +541,18 @@ async function step2BootAndCall() {
       method: 'tools/call',
       params: { name: 'compile_ontology', arguments: { summary: true } },
     }),
+    JSON.stringify({
+      jsonrpc: '2.0',
+      id: 8,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'overview', limit: 5 } },
+    }),
+    JSON.stringify({
+      jsonrpc: '2.0',
+      id: 9,
+      method: 'tools/call',
+      params: { name: 'query_ontology', arguments: { operation: 'query_plan', targetOperation: 'overview' } },
+    }),
   ];
 
   return new Promise((res) => {
@@ -502,6 +592,8 @@ async function step2BootAndCall() {
       const briefRes = responses.find((r) => r.id === 5);
       const healthRes = responses.find((r) => r.id === 6);
       const compileRes = responses.find((r) => r.id === 7);
+      const overviewRes = responses.find((r) => r.id === 8);
+      const overviewPlanRes = responses.find((r) => r.id === 9);
       let listPayload = null;
       let validationPayload = null;
       let compilePayload = null;
@@ -513,6 +605,8 @@ async function step2BootAndCall() {
         ['workspace_brief', briefRes],
         ['health', healthRes],
         ['compile_ontology', compileRes],
+        ['overview', overviewRes],
+        ['overview_query_plan', overviewPlanRes],
       ].filter(([, response]) => !response?.result);
       const errorRes = responses.find((response) => (
         FIRST_CONTACT_RESPONSE_LABELS.has(response?.id) && response?.error
@@ -646,6 +740,42 @@ async function step2BootAndCall() {
         }
         compilePayload = parsed;
         log('ok', `compile_ontology — graph ${parsed.graphHash.slice(0, 12)} (${parsed.nodeCount} nodes, ${parsed.edgeCount} edges, issues ${parsed.issueCount})`);
+      } catch (err) {
+        log('fail', `failed to parse compile_ontology response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!overviewRes || !overviewRes.result) {
+        log('fail', 'no query_ontology overview response');
+        return res(false);
+      }
+      try {
+        const text = overviewRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = overviewFailure(parsed);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        log('ok', `overview — graph ${parsed.graph.graphHash.slice(0, 12)} (${parsed.graph.nodes} nodes, ${parsed.graph.edges} edges, hubs ${(parsed.hubs || []).length})`);
+      } catch (err) {
+        log('fail', `failed to parse overview response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!overviewPlanRes || !overviewPlanRes.result) {
+        log('fail', 'no query_ontology overview query_plan response');
+        return res(false);
+      }
+      try {
+        const text = overviewPlanRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = overviewQueryPlanFailure(parsed);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        log('ok', `overview query_plan — ${parsed.estimate.strategy} (${parsed.estimate.costClass}, nodes ${parsed.estimate.nodeScans}, edges ${parsed.estimate.edgeScans})`);
         const countFailure = verifyCountConsistencyFailure({
           list: listPayload,
           validation: validationPayload,
@@ -657,7 +787,7 @@ async function step2BootAndCall() {
         }
         res(true);
       } catch (err) {
-        log('fail', `failed to parse compile_ontology response: ${err.message}`);
+        log('fail', `failed to parse overview query_plan response: ${err.message}`);
         res(false);
       }
     });

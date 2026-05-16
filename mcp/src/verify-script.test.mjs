@@ -18,6 +18,8 @@ import {
   hasFirstContactErrorResponse,
   listConceptsFailure,
   listKindsFailure,
+  overviewFailure,
+  overviewQueryPlanFailure,
   parseVerifyTimeoutMs,
   serverStartupFailure,
   validationCodeSummary,
@@ -68,7 +70,7 @@ describe('verify.mjs first-contact gates', () => {
   it('detects when all first-contact JSON-RPC responses arrived', () => {
     assert.equal(
       hasAllFirstContactResponses(
-        [1, 2, 3, 4, 5, 6, 7]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9]
           .map((id) => JSON.stringify({ jsonrpc: '2.0', id, result: {} }))
           .join('\n'),
       ),
@@ -283,6 +285,99 @@ describe('verify.mjs first-contact gates', () => {
       compileSummaryFailure({ ...clean, edgeCount: 1, resolvedEdgeCount: 1, externalEdgeCount: 1 }),
       'compile_ontology response edge count mismatch — edgeCount 1, resolved+external+unresolved 2',
     );
+  });
+
+  it('accepts clean graph-query verify smoke payloads', () => {
+    assert.equal(
+      overviewFailure({
+        operation: 'overview',
+        graph: {
+          nodes: 1,
+          edges: 2,
+          resolvedEdges: 1,
+          externalEdges: 1,
+          unresolvedEdges: 0,
+          aliases: 1,
+          ambiguousAliases: 0,
+          issues: 0,
+          graphHash: 'abc123',
+          maxMtime: 1,
+        },
+        byKind: { project: 1 },
+        byDomain: {},
+        byRelation: {},
+        hubs: [],
+      }),
+      null,
+    );
+    assert.equal(
+      overviewQueryPlanFailure({
+        operation: 'query_plan',
+        targetOperation: 'overview',
+        sideEffect: false,
+        normalized: { targetOperation: 'overview', types: null, limit: 100 },
+        indexesUsed: ['compiled_artifact'],
+        estimate: {
+          strategy: 'aggregate_scan',
+          nodeScans: 1,
+          edgeScans: 2,
+          costClass: 'low',
+        },
+        warnings: [],
+      }),
+      null,
+    );
+  });
+
+  it('fails malformed graph-query verify smoke payloads', () => {
+    const cleanOverview = {
+      operation: 'overview',
+      graph: {
+        nodes: 1,
+        edges: 2,
+        resolvedEdges: 1,
+        externalEdges: 1,
+        unresolvedEdges: 0,
+        aliases: 1,
+        ambiguousAliases: 0,
+        issues: 0,
+        graphHash: 'abc123',
+        maxMtime: 1,
+      },
+      byKind: { project: 1 },
+      hubs: [],
+    };
+    assert.equal(overviewFailure({ ...cleanOverview, operation: 'health' }), 'overview returned unexpected operation: health');
+    assert.equal(overviewFailure({ ...cleanOverview, graph: { ...cleanOverview.graph, graphHash: '' } }), 'overview response missing graphHash');
+    assert.equal(
+      overviewFailure({ ...cleanOverview, graph: { ...cleanOverview.graph, edges: 3 } }),
+      'overview response edge count mismatch — edges 3, resolved+external+unresolved 2',
+    );
+    assert.equal(
+      overviewFailure({ ...cleanOverview, byKind: { project: 2 } }),
+      'overview response byKind mismatch — nodes 1, byKind 2',
+    );
+    assert.equal(overviewFailure({ ...cleanOverview, hubs: null }), 'overview response missing hubs array');
+
+    const cleanPlan = {
+      operation: 'query_plan',
+      targetOperation: 'overview',
+      sideEffect: false,
+      normalized: { targetOperation: 'overview', types: null, limit: 100 },
+      indexesUsed: ['compiled_artifact'],
+      estimate: {
+        strategy: 'aggregate_scan',
+        nodeScans: 1,
+        edgeScans: 2,
+        costClass: 'low',
+      },
+      warnings: [],
+    };
+    assert.equal(overviewQueryPlanFailure({ ...cleanPlan, targetOperation: 'health' }), 'overview query_plan returned unexpected targetOperation: health');
+    assert.equal(overviewQueryPlanFailure({ ...cleanPlan, sideEffect: true }), 'overview query_plan must be side-effect-free');
+    assert.equal(overviewQueryPlanFailure({ ...cleanPlan, estimate: { ...cleanPlan.estimate, strategy: 'node_scan' } }), 'overview query_plan missing aggregate_scan estimate');
+    assert.equal(overviewQueryPlanFailure({ ...cleanPlan, indexesUsed: [] }), 'overview query_plan missing compiled_artifact index hint');
+    assert.equal(overviewQueryPlanFailure({ ...cleanPlan, warnings: null }), 'overview query_plan missing warnings array');
   });
 
   it('fails when verify read surfaces disagree on node counts', () => {

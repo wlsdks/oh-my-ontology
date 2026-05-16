@@ -179,6 +179,9 @@ A successful run looks like this:
 ✓ validate_vault — 28 files, problemFiles 0
 ✓ workspace_brief — healthy (28 nodes, nextActions 0)
 ✓ health — healthy (5 checks, issues 0)
+✓ compile_ontology — graph cc3174c08d48 (28 nodes, 199 edges, issues 0)
+✓ overview — graph cc3174c08d48 (28 nodes, 199 edges, hubs 5)
+✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 199)
 
 All passed — register .mcp.json with Claude Code and restart to use the 23 tools.
 ```
@@ -187,7 +190,10 @@ On failure, it tells you which step blocked progress and prints a diagnostic mes
 verify path exercises and gates the same first-contact graph diagnosis an agent should run:
 `tools/list`, `list_concepts`, `validate_vault`,
 `query_ontology({operation:"workspace_brief"})`, and
-`query_ontology({operation:"health"})`. `list_concepts` vault warnings,
+`query_ontology({operation:"health"})`, plus `compile_ontology({summary:true})`,
+`query_ontology({operation:"overview"})`, and
+`query_ontology({operation:"query_plan", targetOperation:"overview"})`.
+`list_concepts` vault warnings,
 `validate_vault` problem files, failing health checks, or fail-severity
 `workspace_brief.nextActions` fail the command; advisory `needs_attention` states still print so starter vaults can
 verify before cleanup. Non-blocking `workspace_brief.nextActions` are printed as a short
