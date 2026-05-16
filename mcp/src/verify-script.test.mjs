@@ -333,6 +333,14 @@ describe('verify.mjs first-contact gates', () => {
       { error: null, help: false, timeoutMsRaw: '9000', vault: '/tmp/env-vault' },
     );
     assert.deepEqual(
+      parseVerifyArgs({ env: { OMOT_VAULT: ' /tmp/env-vault ' }, argv: ['node', 'verify.mjs'], cwd: '/tmp/cwd', isMain: true }),
+      { error: null, help: false, timeoutMsRaw: undefined, vault: '/tmp/env-vault' },
+    );
+    assert.deepEqual(
+      parseVerifyArgs({ env: { OMOT_VAULT: '   ' }, argv: ['node', 'verify.mjs'], cwd: '/tmp/cwd', isMain: true }),
+      { error: 'OMOT_VAULT requires a path value', help: false, timeoutMsRaw: undefined, vault: '/tmp/cwd' },
+    );
+    assert.deepEqual(
       parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--vault', '/tmp/vault', '--timeout-ms=15000'], cwd: '/tmp/cwd', isMain: true }),
       { error: null, help: false, timeoutMsRaw: '15000', vault: '/tmp/vault' },
     );
@@ -350,6 +358,7 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--timeout-ms'], cwd: '/tmp/cwd', isMain: true }).error, /requires/);
     assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--vault'], cwd: '/tmp/cwd', isMain: true }).error, /requires/);
+    assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '   '], cwd: '/tmp/cwd', isMain: true }).error, /requires/);
     assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--vault', '   '], cwd: '/tmp/cwd', isMain: true }).error, /requires/);
     assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--vault= --bad'], cwd: '/tmp/cwd', isMain: true }).error, /requires/);
     assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '/one', '--vault', '/two'], cwd: '/tmp/cwd', isMain: true }).error, /Unexpected extra vault argument/);

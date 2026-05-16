@@ -312,17 +312,29 @@ export function parseVerifyArgs({
       error = `Unexpected extra vault argument: ${arg}`;
       break;
     } else {
-      positionalVault = arg;
+      const value = parseVerifyVaultArg(arg);
+      if (value === false) {
+        error = 'vault argument requires a path value';
+        break;
+      }
+      positionalVault = value;
     }
   }
 
-  const envVault = typeof env.OMOT_VAULT === 'string' && env.OMOT_VAULT.length > 0 ? env.OMOT_VAULT : null;
+  const envVault = parseOptionalVerifyVaultEnv(env.OMOT_VAULT);
   return {
-    error,
+    error: error ?? envVault.error,
     help,
     timeoutMsRaw: timeoutMsRaw ?? env.OMOT_VERIFY_TIMEOUT_MS,
-    vault: positionalVault ?? envVault ?? cwd,
+    vault: positionalVault ?? envVault.vault ?? cwd,
   };
+}
+
+function parseOptionalVerifyVaultEnv(value) {
+  if (typeof value !== 'string' || value.length === 0) return { error: null, vault: null };
+  const vault = parseVerifyVaultArg(value);
+  if (vault === false) return { error: 'OMOT_VAULT requires a path value', vault: null };
+  return { error: null, vault };
 }
 
 function parseVerifyVaultArg(value) {
