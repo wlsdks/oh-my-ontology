@@ -8,7 +8,7 @@ import { existsSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
-import { parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
+import { parsePositiveIntegerFlag, parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require_ = createRequire(import.meta.url);
@@ -79,7 +79,7 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs) {
       env: {
         ...process.env,
         OMOT_VAULT: vaultRoot,
-        ...(timeoutMs ? { OMOT_VERIFY_TIMEOUT_MS: timeoutMs } : {}),
+        ...(timeoutMs ? { OMOT_VERIFY_TIMEOUT_MS: String(timeoutMs) } : {}),
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -101,21 +101,17 @@ function parseArgs(args) {
     const a = args[i];
     if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
     else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
-    else if (a === '--timeout-ms') flags.timeoutMs = parseTimeout(args[++i]);
-    else if (a.startsWith('--timeout-ms=')) flags.timeoutMs = parseTimeout(a.slice('--timeout-ms='.length));
+    else if (a === '--timeout-ms') flags.timeoutMs = parsePositiveIntegerFlag('--timeout-ms', args[++i]);
+    else if (a.startsWith('--timeout-ms=')) {
+      flags.timeoutMs = parsePositiveIntegerFlag('--timeout-ms', a.slice('--timeout-ms='.length));
+    }
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
-  if (flags.timeoutMs === false) return { error: '--timeout-ms must be a positive integer' };
+  if (flags.timeoutMs instanceof Error) return { error: flags.timeoutMs.message };
   const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
   if (vaultResult.error) return vaultResult;
   return { vault: vaultResult.vault, timeoutMs: flags.timeoutMs };
-}
-
-function parseTimeout(value) {
-  if (!/^[1-9]\d*$/.test(String(value ?? ''))) return false;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? String(parsed) : false;
 }
 
 function printUsage(output = process.stderr) {
