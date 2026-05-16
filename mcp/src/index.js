@@ -1360,9 +1360,47 @@ function findEvidence({ title }) {
 
 const ADD_CONCEPT_KINDS = new Set(['project', 'domain', 'capability', 'element', 'document']);
 
+function requireNonBlankString(value, name) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`${name} must be a non-empty string.`);
+  }
+  if (value !== value.trim()) {
+    throw new Error(`${name} must not have leading or trailing whitespace.`);
+  }
+  if (value.includes('\0')) {
+    throw new Error(`${name} must not contain a null byte.`);
+  }
+  return value;
+}
+
+function requireOptionalStringArray(value, name) {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    throw new Error(`${name} must be an array of strings.`);
+  }
+  for (const item of value) {
+    if (typeof item !== 'string') {
+      throw new Error(`${name} must be an array of strings.`);
+    }
+  }
+}
+
+function requireOptionalPlainObject(value, name) {
+  if (value === undefined) return;
+  if (value === null || Array.isArray(value) || typeof value !== 'object') {
+    throw new Error(`${name} must be an object.`);
+  }
+}
+
 function addConcept({ slug, kind, title, domain, capabilities, elements, body }, options = {}) {
-  if (!slug || !kind || !title) {
-    throw new Error('slug, kind, and title are all required.');
+  requireNonBlankString(slug, 'slug');
+  requireNonBlankString(kind, 'kind');
+  requireNonBlankString(title, 'title');
+  if (domain !== undefined) requireNonBlankString(domain, 'domain');
+  requireOptionalStringArray(capabilities, 'capabilities');
+  requireOptionalStringArray(elements, 'elements');
+  if (body !== undefined && typeof body !== 'string') {
+    throw new Error('body must be a string.');
   }
   // 공백-only title 도 silent pollution 위험. UI 의 isUntitledTitle 가
   // 같은 가드를 한다 — MCP 도 parity 유지.
@@ -1461,9 +1499,9 @@ const RELATION_KEY = {
 };
 
 function addRelation({ from, to, type, expected_mtime }, options = {}) {
-  if (!from || !to || !type) {
-    throw new Error('from, to, and type are all required.');
-  }
+  requireNonBlankString(from, 'from');
+  requireNonBlankString(to, 'to');
+  requireNonBlankString(type, 'type');
   const key = RELATION_KEY[type];
   if (!key) {
     throw new Error(`Unknown relation type: ${type}`);
@@ -1602,11 +1640,13 @@ function addRelationsBatch({ relations }) {
 }
 
 function patchConcept({ slug, frontmatter, body, expected_mtime }) {
-  if (!slug) {
-    throw new Error('slug is required.');
-  }
+  requireNonBlankString(slug, 'slug');
   if (frontmatter === undefined && body === undefined) {
     throw new Error('At least one of `frontmatter` or `body` is required.');
+  }
+  requireOptionalPlainObject(frontmatter, 'frontmatter');
+  if (body !== undefined && body !== null && typeof body !== 'string') {
+    throw new Error('body must be a string.');
   }
   // title 을 포함한 patch 라면 비-빈 문자열 강제. UI 의 renameVaultDoc 은
   // blank reject 하는데 MCP 가 무방비면 AI agent 실수로 vault 에 untitled
@@ -2089,9 +2129,8 @@ function inferImportsTool({ rootPath, sourceFolders, ignore, maxFiles } = {}) {
 }
 
 function renameConcept({ oldSlug, newSlug, confirm = false, overwrite = false, expected_mtime }) {
-  if (!oldSlug || !newSlug) {
-    throw new Error('oldSlug and newSlug are both required.');
-  }
+  requireNonBlankString(oldSlug, 'oldSlug');
+  requireNonBlankString(newSlug, 'newSlug');
   if (oldSlug === newSlug) {
     throw new Error('oldSlug and newSlug are identical.');
   }
@@ -2161,9 +2200,8 @@ function renameConcept({ oldSlug, newSlug, confirm = false, overwrite = false, e
 }
 
 function mergeConcepts({ fromSlug, intoSlug, confirm = false, expected_mtime }) {
-  if (!fromSlug || !intoSlug) {
-    throw new Error('fromSlug and intoSlug are both required.');
-  }
+  requireNonBlankString(fromSlug, 'fromSlug');
+  requireNonBlankString(intoSlug, 'intoSlug');
   if (fromSlug === intoSlug) {
     throw new Error('fromSlug and intoSlug are identical.');
   }
@@ -2221,9 +2259,7 @@ function mergeConcepts({ fromSlug, intoSlug, confirm = false, expected_mtime }) 
 }
 
 function deleteConcept({ slug, confirm = false, force = false, expected_mtime }) {
-  if (!slug) {
-    throw new Error('slug is required.');
-  }
+  requireNonBlankString(slug, 'slug');
   // 존재 검사 — dry-run 이 \"삭제 가능\" 이라고 거짓 안내 안 하도록.
   // (실제 삭제 단계의 deleteDoc 도 다시 throw 하지만, dry-run path 는
   // deleteDoc 까지 가지 않으므로 별도 확인.)

@@ -1544,6 +1544,82 @@ await test("add_concepts — 입력 내 중복 slug 두번째는 ok:false", asyn
   }
 });
 
+await test("MCP write tools — blank/padded string inputs are rejected before disk writes", async () => {
+  const root = makeVault([
+    { slug: "a", content: "---\nkind: capability\ntitle: A\n---\n" },
+    { slug: "b", content: "---\nkind: capability\ntitle: B\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "add_concept", {
+        slug: "   ",
+        kind: "capability",
+        title: "Blank Slug",
+      }),
+      callTool(3, "add_concept", {
+        slug: " padded",
+        kind: "capability",
+        title: "Padded Slug",
+      }),
+      callTool(4, "add_relation", {
+        from: "a",
+        to: " b ",
+        type: "relates",
+      }),
+      callTool(5, "patch_concept", {
+        slug: "a",
+        frontmatter: ["not", "object"],
+      }),
+      callTool(6, "add_concepts", {
+        concepts: [
+          { slug: "ok", kind: "capability", title: "OK" },
+          { slug: "   ", kind: "capability", title: "Bad" },
+        ],
+      }),
+      callTool(7, "rename_concept", {
+        oldSlug: " a ",
+        newSlug: "renamed-a",
+        confirm: true,
+      }),
+      callTool(8, "merge_concepts", {
+        fromSlug: "a",
+        intoSlug: " b ",
+        confirm: true,
+      }),
+      callTool(9, "delete_concept", {
+        slug: " b ",
+        confirm: true,
+      }),
+      callTool(10, "list_concepts"),
+    ]);
+    for (const id of [2, 3, 4, 5, 7, 8, 9]) {
+      assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
+    }
+    assert.match(responses.find((r) => r.id === 2).result.content[0].text, /slug must be a non-empty string/i);
+    assert.match(responses.find((r) => r.id === 3).result.content[0].text, /slug must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 4).result.content[0].text, /to must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 5).result.content[0].text, /frontmatter must be an object/i);
+
+    const batch = getCallParsed(responses, 6);
+    assert.equal(batch.concepts[0].ok, true, "valid batch row still lands");
+    assert.equal(batch.concepts[1].ok, false, "invalid batch row is isolated");
+    assert.match(batch.concepts[1].error, /slug must be a non-empty string/i);
+
+    assert.match(responses.find((r) => r.id === 7).result.content[0].text, /oldSlug must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 8).result.content[0].text, /intoSlug must not have leading or trailing whitespace/i);
+    assert.match(responses.find((r) => r.id === 9).result.content[0].text, /slug must not have leading or trailing whitespace/i);
+
+    const list = getCallParsed(responses, 10);
+    const slugs = list.nodes.map((node) => node.slug);
+    assert.ok(slugs.includes("ok"));
+    assert.ok(!slugs.includes("   "));
+    assert.ok(!slugs.includes(" padded"));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 // R+ — add_relations 배치 writer. analyze_repo_structure (suggestedRelations)
 // / infer_imports (moduleEdges) 출력을 한 호출에 land. 결과 row 는 입력 순서 보존,
 // frontmatter relation 배열은 canonical sort, idempotent (같은 edge 두번 →

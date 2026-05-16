@@ -28,9 +28,9 @@ relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 | `validate_vault` | **R+** vault 전체 health 한 호출 (per-doc + byCode aggregate) — `list_concepts → K×get_concept` K-roundtrip 대체 |
 | `analyze_repo_structure` | **R16** code repo (default cwd) 분석 → ontology 노드 후보 제안. **side effect 0** — vault 변경 안 함. AI agent 가 빈 vault bootstrap 시 사용 (사용자 한 줄 *"이 codebase 분석해줘"*). FSD vs generic detect. 후보 slug 는 `domains/*`, `capabilities/*`, `elements/src/...` 로 starter layout 과 일치. |
 | `infer_imports` | **R17** TS/JS import graph 추출 → file/module-level edge + external (npm) imports 분리. **side effect 0**. moduleEdges 도 analyze 와 같은 folder-prefixed slug 를 사용해 add_relation endpoint mismatch 를 피함. |
-| `add_concept` | 새 노드 (.md) 작성 — graph 배열은 trim + dedup + sort, 기존 slug 면 throw, changed write 는 compact `postWriteMaintenance` 반환 |
-| `add_concepts` | **R+** 배치 writer — 여러 노드 한 호출에 (max 50, 입력 순서 보존, partial result, 입력 내 중복 slug 사전 감지). `/ontology-bootstrap` 흐름이 5~15 노드를 한 번에 land. changed batch 는 최종 graph 기준 compact `postWriteMaintenance` 반환. |
-| `add_relation` | depends_on / relates / contains / describes edge 추가, changed write 는 compact `postWriteMaintenance` 반환 |
+| `add_concept` | 새 노드 (.md) 작성 — slug/kind/title/domain 은 blank 또는 앞뒤 공백이면 쓰기 전 reject, graph 배열은 trim + dedup + sort, 기존 slug 면 throw, changed write 는 compact `postWriteMaintenance` 반환 |
+| `add_concepts` | **R+** 배치 writer — 여러 노드 한 호출에 (max 50, 입력 순서 보존, partial result, 입력 내 중복 slug 사전 감지). row-level blank/padded 입력은 해당 row 만 실패한다. `/ontology-bootstrap` 흐름이 5~15 노드를 한 번에 land. changed batch 는 최종 graph 기준 compact `postWriteMaintenance` 반환. |
+| `add_relation` | depends_on / relates / contains / describes edge 추가. from/to/type 은 blank 또는 앞뒤 공백이면 쓰기 전 reject, changed write 는 compact `postWriteMaintenance` 반환 |
 | `add_relations` | **R+** 배치 edge writer — 여러 edge 한 호출에 (max 50, 응답 row 순서 보존, 저장 배열은 dedup + sort, idempotent, partial result). analyze_repo_structure suggestedRelations · infer_imports moduleEdges 수신 직후 적합. changed batch 는 최종 graph 기준 compact `postWriteMaintenance` 반환. |
 
 R+ follow-up: `add_relation` / `add_relations` 와 `rename_concept` / `merge_concepts`
@@ -64,6 +64,11 @@ tool count metadata, 그리고 `initialize.instructions` 의 agent-facing invent
 tool 의 `confirm` dry-run safety switch 를 계속 노출하는지 `tools/list`
 응답에서 직접 검증해, agent-facing MCP schema 가 실제 동시 편집 보호
 계약을 잃지 않게 막는다.
+MCP write handler 는 schema 우회 또는 agent 실수로 들어오는 blank/padded string
+입력을 디스크 쓰기 전에 거부한다. `add_concept` / `add_relation` / `patch_concept`
+및 destructive write (`rename_concept` / `merge_concepts` / `delete_concept`), batch
+row partial-failure 경로까지 `mcp/src/integration.test.mjs` 의 spawn 기반 통합
+테스트가 검증한다.
 
 `pnpm dogfood:walk` 는 이 repo 의 `docs/ontology` 를 대상으로 실제 MCP stdio 호출을
 연속 실행한다. 기본 census / backlink / path 질의에 더해 `workspace_brief` 와 `health`
