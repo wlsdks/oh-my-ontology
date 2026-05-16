@@ -276,6 +276,7 @@ describe('package contract helpers', () => {
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
 
     assert.match(tableRow, /project-node `list_concepts` probe/);
+    assert.match(tableRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
     assert.match(verifySection, /mcp-verify --help/);
     assert.match(verifySection, /graph-query smoke contract/);
@@ -290,6 +291,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`list_kinds\.byKind\.project`/);
     assert.match(verifySection, /Node census totals are cross-checked across `list_kinds`, `list_concepts`,\s+`compile_ontology`, and `overview`/);
     assert.match(verifySection, /`validate_vault\.scanned` remains file-level\s+health/);
+    assert.match(verifySection, /validates both default and tuned\s+`workspace_brief\.health\.checks`/);
+    assert.match(verifySection, /prints tuned `workspace_brief` output\s+beside `health` \/ tuned `health`/);
     assert.match(verifySection, /stdout/);
     assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors`/);
     assert.match(verifySection, /node-to-project `path`/);
