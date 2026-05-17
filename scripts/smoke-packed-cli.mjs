@@ -469,6 +469,7 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /Focused checks:/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm integration:cli:mcp-verify/);
   assert.match(cliMcpVerifyHelp.stdout, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:mcp:verify\s+MCP verify helper contract without the full integration suite/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact health-summary\/read\/sample-shape helper gates/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:mcp:verify:timeout/);
