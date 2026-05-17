@@ -137,7 +137,7 @@ export function inferImports(rootPath, options = {}) {
 
     for (const match of content.matchAll(IMPORT_RE)) {
       const spec = match[1];
-      classify(spec, file, dir, rootPath, edges, externalImports, unresolved);
+      classify(spec, file, dir, rootPath, edges, externalImports, unresolved, importKindOf(match[0]));
     }
     for (const match of content.matchAll(SIDE_IMPORT_RE)) {
       // SIDE_IMPORT_RE matches a superset of IMPORT_RE in some cases —
@@ -212,8 +212,16 @@ function walk(dir, ignore, out, maxFiles) {
   }
 }
 
+function importKindOf(rawMatch) {
+  const trimmed = rawMatch.trimStart();
+  if (trimmed.startsWith('import(') || trimmed.startsWith('import (')) return 'dynamic';
+  if (trimmed.startsWith('require')) return 'require';
+  if (trimmed.startsWith('export')) return 'reexport';
+  return 'static';
+}
+
 function classify(spec, file, dir, rootPath, edges, external, unresolved, kindOverride) {
-  const kind = kindOverride ?? (spec.match(/^import\s*\(/) ? 'dynamic' : 'static');
+  const kind = kindOverride ?? 'static';
   if (!spec) {
     unresolved.push({ from: relative(rootPath, file), spec, reason: 'empty' });
     return;

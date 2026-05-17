@@ -95,7 +95,10 @@ test('dynamic import + require + reexport detected', () => {
   try {
     const r = inferImports(root);
     const toX = r.edges.filter((e) => e.to === 'src/b/x.ts');
-    assert.ok(toX.length >= 1, `expected edges to b/x.ts, got: ${JSON.stringify(r.edges)}`);
+    assert.deepEqual(
+      toX.map((edge) => edge.kind).sort(),
+      ['dynamic', 'reexport', 'require'],
+    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
