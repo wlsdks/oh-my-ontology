@@ -290,8 +290,8 @@ A successful run looks like this:
 ✓ list_kinds — 28 nodes (capability:16, domain:6, element:4, project:1, vault-readme:1)
 ✓ validate_vault — 28 files, 0 problem files
 ✓ project probe — 1 project node
-✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks)
-✓ workspace_brief_tuned — healthy (28 nodes, 1 next action, 5 health checks; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3)
+✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks, growth 0/0/120)
+✓ workspace_brief_tuned — healthy (28 nodes, 1 next action, 5 health checks, growth 0/0/120; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3)
 · workspace_brief_tuned advisory nextActions — components:info:6 - The resolved ontology graph has disconnected actionable islands.
 ✓ health — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1, issues 0)
 ✓ health_tuned — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6, issues 0; dependencyTypes=dependencies; componentTypes=domain/capabilities)
@@ -450,7 +450,8 @@ samples must keep the `resolve_dangling_reference` row shape with score and reas
 Non-blocking `workspace_brief.nextActions` are printed as a short
 advisory list with action label, severity, optional count, and message, the
 `workspace_brief` / `workspace_brief_tuned` success lines include the
-`workspace_brief.health.checks` count. Tuned diagnosis lines also print
+`workspace_brief.health.checks` count plus `growth total/external/ignoredExternal`
+counts. Tuned diagnosis lines also print
 `dependencyTypes=dependencies; componentTypes=domain/capabilities` so scoped
 component warnings are not confused with the full-graph component count. The
 `health` / `health_tuned` lines include the check `id:status:count` coverage that the verify gate validated. The default wait window is 8 seconds; set

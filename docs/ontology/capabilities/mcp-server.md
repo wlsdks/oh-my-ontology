@@ -108,7 +108,8 @@ clean vault 로 오인하지 않고 verify 를 실패시킨다. top-level diagno
 비어있지 않은 `id` 와 `pass` / `warn` / `fail` / `info` status 를 가져야 하고,
 출력에 쓰이는 optional `count` 는 non-negative integer 여야 해서
 malformed row 가 `unknown` advisory/coverage 로 숨지 않는다.
-성공 출력도 `workspace_brief` / `workspace_brief_tuned` 라인에 validated health check count 를, `health` /
+성공 출력도 `workspace_brief` / `workspace_brief_tuned` 라인에 validated health check count 와
+growth total/external/ignoredExternal count 를, `health` /
 tuned `health` 라인에 check `id:status:count` coverage 를 드러내 agent 가 nextActions 와 실제 검증 축을
 한 화면에서 확인하게 한다. 설치 verify 의 tuned diagnosis 라인도
 `dependencyTypes=dependencies`, `componentTypes=domain/capabilities` scope 를 같이 출력해

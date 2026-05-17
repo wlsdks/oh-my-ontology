@@ -5893,10 +5893,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       workspaceBriefSummary({
         summary: { nodes: 1 },
+        growth: { totalActions: 4, externalElementRefs: 2, externalElementRefsIgnored: 7 },
         nextActions: [{ id: 'cleanup', severity: 'warn' }],
         health: { checks: [{ id: 'compile_issues', status: 'warn' }, { id: 'components', status: 'pass' }] },
       }),
-      '1 node, 1 next action, 2 health checks',
+      '1 node, 1 next action, 2 health checks, growth 4/2/7',
     );
     assert.equal(workspaceBriefSummary({ summary: { nodes: 0 }, nextActions: [], health: { checks: [] } }), '0 nodes, 0 next actions, 0 health checks');
   });
