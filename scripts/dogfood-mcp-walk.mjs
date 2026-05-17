@@ -408,6 +408,15 @@ export function parseDogfoodTimeoutMs(value, fallback = 5000) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : false;
 }
 
+export function dogfoodTimeoutErrorMessage(value) {
+  const received = value == null ? "undefined" : JSON.stringify(String(value));
+  return [
+    "OMOT_DOGFOOD_TIMEOUT_MS must be a positive integer wait window in milliseconds.",
+    `Received: ${received}.`,
+    "Example: OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk",
+  ].join("\n");
+}
+
 const init = [
   {
     jsonrpc: "2.0",
@@ -4304,7 +4313,7 @@ async function main() {
 
   const timeoutMs = parseDogfoodTimeoutMs(DOGFOOD_TIMEOUT_MS_RAW);
   if (timeoutMs === false) {
-    console.error("OMOT_DOGFOOD_TIMEOUT_MS must be a positive integer");
+    console.error(dogfoodTimeoutErrorMessage(DOGFOOD_TIMEOUT_MS_RAW));
     process.exit(1);
   }
 

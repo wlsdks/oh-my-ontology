@@ -7,6 +7,7 @@ import {
   componentSummary,
   createUtf8Accumulator,
   DOGFOOD_RESPONSE_LABELS,
+  dogfoodTimeoutErrorMessage,
   dogfoodUsage,
   evaluateDogfoodGate,
   expectedResponseIds,
@@ -2717,6 +2718,8 @@ describe("rpc response completion helpers", () => {
     assert.equal(parseDogfoodTimeoutMs("12000"), 12000);
     assert.equal(parseDogfoodTimeoutMs("1000ms"), false);
     assert.equal(parseDogfoodTimeoutMs("0"), false);
+    assert.match(dogfoodTimeoutErrorMessage("1000ms"), /Received: "1000ms"/);
+    assert.match(dogfoodTimeoutErrorMessage("1000ms"), /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
   });
 
   it("prints dogfood help without requiring an MCP server", () => {
