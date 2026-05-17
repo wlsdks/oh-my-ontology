@@ -212,9 +212,9 @@ export function shouldFinishRpc(stdout, expectedIds) {
 
 export function graphStructuredContentSummary(rows) {
   const expected = rows.filter(([, parsed]) => Boolean(parsed));
-  const missing = expected.filter(([, , structured]) => structured === undefined);
+  const missing = expected.filter(([, , structured]) => structured == null);
   const mismatched = expected.filter(([, parsed, structured]) => (
-    structured !== undefined && JSON.stringify(structured) !== JSON.stringify(parsed)
+    structured != null && JSON.stringify(structured) !== JSON.stringify(parsed)
   ));
   const passed = expected.length - missing.length - mismatched.length;
   if (expected.length === 0) return "n/a";
@@ -5025,6 +5025,20 @@ async function main() {
     ["path", queryPath, structuredContent(44)],
     ["project_scope", projectScope, structuredContent(45)],
   ];
+  const directStructuredContentRows = [
+    ["list_kinds", kinds, kindsStructured],
+    ["list_concepts", list, listStructured],
+    ["get_concepts", batch, batchStructured],
+    ["find_evidence", ev, evStructured],
+    ["find_path", path, pathStructured],
+    ["find_backlinks", bl, blStructured],
+    ["find_orphans", orph, orphStructured],
+    ["query_concepts", queryConcepts, queryConceptsStructured],
+    ["analyze_repo_structure", analyzedRepo, analyzedRepoStructured],
+    ["infer_imports", inferredImports, inferredImportsStructured],
+    ["validate_vault", validation, validationStructured],
+    ["compile_ontology", compiled, compiledStructured],
+  ];
 
   const failures = evaluateDogfoodGate({
     kinds,
@@ -5175,6 +5189,7 @@ async function main() {
   console.log(`  health_tuned: ${tunedHealth?.status ?? "n/a"} (${(tunedHealth?.checks || []).length} checks)`);
   console.log(`  health_tuned checks: ${healthCheckStatusSummary(tunedHealth?.checks)}`);
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
+  console.log(`  direct tool structuredContent: ${graphStructuredContentSummary(directStructuredContentRows)}`);
   console.log(`  graph query structuredContent: ${graphStructuredContentSummary(graphStructuredContentRows)}`);
   console.log(`  overview: ${overview?.graph?.nodes ?? "n/a"} nodes · ${overview?.graph?.edges ?? "n/a"} edges · ${(overview?.hubs || []).length} hubs`);
   console.log(`  pattern_walk: ${patternWalk?.paths?.rows?.length ?? "n/a"} paths (${patternWalk?.paths?.limited ? "limited" : "complete"})`);

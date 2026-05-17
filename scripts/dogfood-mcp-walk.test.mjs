@@ -2315,9 +2315,10 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       graphStructuredContentSummary([
         ["overview", { ok: true }, undefined],
-        ["health", { status: "healthy" }, { status: "stale" }],
+        ["health", { status: "healthy" }, null],
+        ["path", { found: true }, { found: false }],
       ]),
-      "fail 0/2 (missing 1: overview; mismatch 1: health)",
+      "fail 0/3 (missing 2: overview, health; mismatch 1: path)",
     );
   });
 
