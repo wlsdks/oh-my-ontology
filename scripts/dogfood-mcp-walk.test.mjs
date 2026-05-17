@@ -54,6 +54,31 @@ const WRITE_TOOL_NAMES = new Set([
   "merge_concepts",
 ]);
 
+function paginationSchemaFixture() {
+  return {
+    type: "object",
+    required: ["offset", "limit", "total", "returned", "hasMore", "nextOffset"],
+    properties: {
+      offset: { type: "integer", minimum: 0 },
+      limit: { type: "integer", minimum: 0 },
+      total: { type: "integer", minimum: 0 },
+      returned: { type: "integer", minimum: 0 },
+      hasMore: { type: "boolean" },
+      nextOffset: { anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }] },
+    },
+  };
+}
+
+function stringArrayMapSchemaFixture() {
+  return {
+    type: "object",
+    additionalProperties: {
+      type: "array",
+      items: { type: "string" },
+    },
+  };
+}
+
 function makeDogfoodToolsList() {
   return {
     tools: EXPECTED_TOOLS.map((name) => {
@@ -557,6 +582,94 @@ function makeDogfoodToolsList() {
             canonicalizationActionCount: { type: "integer", minimum: 0 },
             byKind: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
             byDomain: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
+            nodes: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "kind", "title", "mtime", "outDegree", "inDegree"],
+                properties: {
+                  slug: { type: "string" },
+                  kind: { type: "string" },
+                  title: { type: "string" },
+                  mtime: { type: "number", minimum: 0 },
+                  outDegree: { type: "integer", minimum: 0 },
+                  inDegree: { type: "integer", minimum: 0 },
+                },
+              },
+            },
+            edges: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["id", "from", "to", "via", "ref", "resolved", "external"],
+                properties: {
+                  id: { type: "string" },
+                  from: { type: "string" },
+                  to: { type: "string" },
+                  via: { type: "string" },
+                  ref: { type: "string" },
+                  resolved: { type: "boolean" },
+                  external: { type: "boolean" },
+                },
+              },
+            },
+            nodesPagination: paginationSchemaFixture(),
+            edgesPagination: paginationSchemaFixture(),
+            canonicalizationActions: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["slug", "keys", "frontmatter", "expected_mtime"],
+                properties: {
+                  slug: { type: "string" },
+                  keys: { type: "array", items: { type: "string" } },
+                  frontmatter: { type: "object" },
+                  expected_mtime: { type: "number", minimum: 0 },
+                },
+              },
+            },
+            indexes: {
+              type: "object",
+              properties: {
+                out: stringArrayMapSchemaFixture(),
+                in: stringArrayMapSchemaFixture(),
+                byKind: stringArrayMapSchemaFixture(),
+                byDomain: stringArrayMapSchemaFixture(),
+                edgeById: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "object",
+                    required: ["id", "from", "to", "via", "ref", "resolved", "external"],
+                    properties: {
+                      id: { type: "string" },
+                      from: { type: "string" },
+                      to: { type: "string" },
+                      via: { type: "string" },
+                      ref: { type: "string" },
+                      resolved: { type: "boolean" },
+                      external: { type: "boolean" },
+                    },
+                  },
+                },
+                aliasToSlug: { type: "object", additionalProperties: { type: "string" } },
+              },
+            },
+            summary: {
+              type: "object",
+              required: ["nodes", "edges", "graphHash", "maxMtime", "resolvedEdges", "externalEdges", "unresolvedEdges", "aliases", "ambiguousAliases", "issues"],
+              properties: {
+                nodes: { type: "integer", minimum: 0 },
+                edges: { type: "integer", minimum: 0 },
+                graphHash: { type: "string" },
+                maxMtime: { type: "number", minimum: 0 },
+                resolvedEdges: { type: "integer", minimum: 0 },
+                externalEdges: { type: "integer", minimum: 0 },
+                unresolvedEdges: { type: "integer", minimum: 0 },
+                aliases: { type: "integer", minimum: 0 },
+                ambiguousAliases: { type: "integer", minimum: 0 },
+                issues: { type: "integer", minimum: 0 },
+              },
+            },
           },
         };
       }
@@ -1078,6 +1191,53 @@ const okShape = {
     byKind: { project: 1 },
     byDomain: {},
   },
+  compiledIndexes: {
+    version: 1,
+    graphHash: "abc123",
+    maxMtime: 1,
+    nodeCount: 1,
+    edgeCount: 2,
+    resolvedEdgeCount: 1,
+    externalEdgeCount: 1,
+    unresolvedEdgeCount: 0,
+    aliasCount: 1,
+    ambiguousAliasCount: 0,
+    issueCount: 0,
+    canonicalizationActionCount: 0,
+    byKind: { project: 1 },
+    byDomain: {},
+    nodes: [{ slug: "project", kind: "project", title: "Project", mtime: 1, outDegree: 2, inDegree: 0 }],
+    edges: [{ id: "e1", from: "project", to: "domains/core", via: "domains", ref: "domains/core", resolved: true, external: false }],
+    aliases: [{ alias: "project", slug: "project" }],
+    ambiguousAliases: [],
+    issues: [],
+    canonicalizationActions: [],
+    summary: {
+      graphHash: "abc123",
+      nodes: 1,
+      edges: 2,
+      resolvedEdges: 1,
+      externalEdges: 1,
+      unresolvedEdges: 0,
+      aliases: 1,
+      ambiguousAliases: 0,
+      issues: 0,
+    },
+    nodesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+    edgesPagination: { offset: 0, limit: 1, total: 2, returned: 1, hasMore: true, nextOffset: 1 },
+    indexes: {
+      out: { project: ["e1", "e2"] },
+      in: { "domains/core": ["e1"] },
+      byKind: { project: ["project"] },
+      byDomain: {},
+      edgeById: {
+        e1: { id: "e1", from: "project", to: "domains/core", via: "domains", ref: "domains/core", resolved: true, external: false },
+        e2: { id: "e2", from: "project", to: "external/npm", via: "dependencies", ref: "external/npm", resolved: false, external: true },
+      },
+      aliasToSlug: { project: "project" },
+    },
+  },
+  compiledIndexesStructured: null,
   overview: {
     operation: "overview",
     graph: {
@@ -2370,6 +2530,7 @@ for (const [resultField, structuredField] of [
   ["tunedBrief", "tunedBriefStructured"],
   ["health", "healthStructured"],
   ["tunedHealth", "tunedHealthStructured"],
+  ["compiledIndexes", "compiledIndexesStructured"],
   ["patternWalk", "patternWalkStructured"],
   ["allPaths", "allPathsStructured"],
   ["allPathsPlan", "allPathsPlanStructured"],
@@ -2691,6 +2852,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(58), "infer_imports");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(59), "strict_multi_args");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(61), "strict_relation_filter");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(62), "compile_ontology_indexes");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -3608,6 +3770,27 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate(withCompiled({ ...okShape.compiled, edgeCount: 1, resolvedEdgeCount: 1, externalEdgeCount: 1 })),
       ["compile_ontology response edge count mismatch — edgeCount 1, resolved+external+unresolved 2"],
+    );
+  });
+
+  it("fails on malformed compile_ontology indexed payloads", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiledIndexes: { ...okShape.compiledIndexes, indexes: undefined } }),
+      ["compile_ontology indexes response missing indexes"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        compiledIndexes: {
+          ...okShape.compiledIndexes,
+          indexes: { ...okShape.compiledIndexes.indexes, out: { project: ["missing-edge"] } },
+        },
+      }),
+      ["compile_ontology.indexes.out references unknown edge id"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, compiledIndexesStructured: { ...okShape.compiledIndexes, edgeCount: 3 } }),
+      ["compile_ontology_indexes structuredContent mismatch"],
     );
   });
 

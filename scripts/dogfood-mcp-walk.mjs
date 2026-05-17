@@ -6,7 +6,7 @@
 //
 // write 안 함 (dogfood vault 보존). list_kinds / list_concepts / project probe / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
-// tools/list schema contract / strict unknown-argument, invalid-enum, and invalid-filter rejection / validate_vault / compile_ontology(summary) /
+// tools/list schema contract / strict unknown-argument, invalid-enum, and invalid-filter rejection / validate_vault / compile_ontology(summary + indexed full artifact) /
 // query_ontology overview / query_plan / neighbors / path / all_paths / pattern_walk / project_scope / centrality / communities / similar_nodes / explain_relation / reachability / impact / blast_radius / subgraph / schema / facets / match_nodes / match_edges / node_profile / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health / health tuned.
 
 import { spawn } from "node:child_process";
@@ -22,6 +22,8 @@ import {
 } from "../mcp/scripts/json-rpc-lines.mjs";
 import {
   compileSummaryFailure,
+  compileIndexesFailure,
+  compileIndexesSummary,
   EXPECTED_DESTRUCTIVE_TOOLS,
   EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_READ_TOOLS,
@@ -155,6 +157,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [59, "strict_multi_args"],
   [60, "query_concepts_limited"],
   [61, "strict_relation_filter"],
+  [62, "compile_ontology_indexes"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -473,6 +476,7 @@ export function buildDogfoodRequests() {
       componentTypes: ["domain", "capabilities"],
     }),
     call(11, "compile_ontology", { summary: true }),
+    call(62, "compile_ontology", { nodesLimit: 1, edgesLimit: 1, includeIndexes: true }),
     call(12, "query_ontology", {
       operation: "pattern_walk",
       slug: "project",
@@ -760,6 +764,8 @@ export function evaluateDogfoodGate({
   tunedHealthStructured,
   compiled,
   compiledStructured,
+  compiledIndexes,
+  compiledIndexesStructured,
   overview,
   overviewStructured,
   patternWalk,
@@ -859,6 +865,7 @@ export function evaluateDogfoodGate({
   recordResult(failures, "health", health);
   recordResult(failures, "health_tuned", tunedHealth);
   recordResult(failures, "compile_ontology", compiled);
+  recordResult(failures, "compile_ontology_indexes", compiledIndexes);
   recordResult(failures, "overview", overview);
   recordResult(failures, "pattern_walk", patternWalk);
   recordResult(failures, "all_paths", allPaths);
@@ -1031,6 +1038,11 @@ export function evaluateDogfoodGate({
     const compileFailure = compileSummaryFailure(compiled);
     if (compileFailure) failures.push(compileFailure);
     else recordStructuredContentFailure(failures, "compile_ontology", compiled, compiledStructured);
+  }
+  if (compiledIndexes) {
+    const compileIndexesError = compileIndexesFailure(compiledIndexes);
+    if (compileIndexesError) failures.push(compileIndexesError);
+    else recordStructuredContentFailure(failures, "compile_ontology_indexes", compiledIndexes, compiledIndexesStructured);
   }
   if (overview) {
     const overviewShapeFailure = overviewFailure(overview);
@@ -4571,6 +4583,14 @@ async function main() {
     );
   }
 
+  header(`compile_ontology(indexed full artifact)`);
+  const compiledIndexes = getResult(responses, 62);
+  const compiledIndexesStructured = getRpcResult(responses, 62)?.structuredContent ?? null;
+  if (compiledIndexes) {
+    console.log(`  structuredContent: ${structuredContentStatus(compiledIndexes, compiledIndexesStructured)}`);
+    console.log(`  indexes: ${compileIndexesSummary(compiledIndexes)}`);
+  }
+
   // 12. overview
   header(`query_ontology(overview)`);
   const overview = getResult(responses, 15);
@@ -5158,6 +5178,7 @@ async function main() {
     ["infer_imports", inferredImports, inferredImportsStructured],
     ["validate_vault", validation, validationStructured],
     ["compile_ontology", compiled, compiledStructured],
+    ["compile_ontology_indexes", compiledIndexes, compiledIndexesStructured],
   ];
 
   const failures = evaluateDogfoodGate({
@@ -5193,6 +5214,8 @@ async function main() {
     tunedHealthStructured,
     compiled,
     compiledStructured,
+    compiledIndexes,
+    compiledIndexesStructured,
     overview,
     overviewStructured,
     patternWalk,
