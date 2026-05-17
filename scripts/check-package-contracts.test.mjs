@@ -647,6 +647,8 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /실제 `neighbors` \/ node→project `path` \/ `project_scope` graph smoke/);
     assert.match(mcpVerifyRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(mcpVerifyRow, /project-node `list_concepts` probe/);
+    assert.match(mcpVerifyRow, /`add_concepts` \/ `add_relations` row-isolation runtime smoke/);
+    assert.match(mcpVerifyRow, /top-level tool error 가 아니라 row-level `ok:false`/);
     assert.match(mcpVerifyRow, /write-tool `postWriteMaintenance` `score` \/ executable `proposedAction` \/ current-page next-action guidance/);
     assert.match(mcpVerifyRow, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(mcpVerifyRow, /maintenance bucket \/ current-page next-action summaries/);
@@ -707,7 +709,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /project probe 도 화면 출력과 최종\s+direct-tool `structuredContent` summary 에 포함/);
     assert.match(doc, /섹션별 structuredContent 상태는 `pass` \/ `missing` \/\s+`mismatch` 로 구분/);
     assert.match(doc, /null payload 도 missing 으로 판정/);
-    assert.match(doc, /설치 verify 도 first-contact direct read \/ `query_ontology` smoke \/\s+maintenance cursor 응답의 `structuredContent` 누락과 text JSON drift 를 같은\s+fail-closed 계약으로 검증/);
+    assert.match(doc, /설치 verify 도 first-contact direct read \/ write row-isolation smoke \/\s+`query_ontology` smoke \/ maintenance cursor 응답의 `structuredContent` 누락과 text JSON drift 를 같은\s+fail-closed 계약으로 검증/);
+    assert.match(doc, /direct read \/ maintenance cursor \/\s+write \/ graph-query `structuredContent` coverage 요약/);
     assert.match(dogfoodSection, /project-node `list_concepts` probe/);
     assert.match(dogfoodSection, /project-node `list_concepts` probe 도 fail-closed/);
     assert.match(dogfoodSection, /`kind: project`/);
@@ -737,6 +740,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`add_concepts` \/ `add_relations` 도 batch writer `outputSchema` row 계약/);
     assert.match(doc, /row-level non-object \/ blank \/ padded \/ unknown-field 입력은 해당 row 만 실패/);
     assert.match(doc, /row-level non-object \/ unknown-field 입력도 해당 row 만 실패/);
+    assert.match(doc, /`add_concepts` \/ `add_relations` 는 non-object row 와 unknown row field 를 넣어\s+top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서\s+실제 호출로 확인/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /15 read \/ 8 write split/);
@@ -855,6 +859,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated at row level/);
     assert.match(smoke, /add_relations — non-object and unknown-field rows isolated at row level/);
     assert.match(smoke, /structuredContent — direct 7\\\/7, write 2\\\/2, maintenance 2\\\/2, graph 10\\\/10/);
+    assert.match(doc, /batch writer row-isolation smoke/);
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
     assert.match(smoke, /runtime unknown-argument/);
     assert.match(smoke, /invalid-enum rejection/);
