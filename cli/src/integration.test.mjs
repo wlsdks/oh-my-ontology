@@ -181,7 +181,8 @@ await test('top-level command typos include closest command hints', async () => 
     const r = await run(c.args);
     assert.equal(r.code, 1);
     assert.match(stripAnsi(r.stderr), c.stderr);
-    assert.match(stripAnsi(r.stdout), /Usage:/);
+    assert.match(stripAnsi(r.stderr), /Usage:/);
+    assert.equal(r.stdout, '');
   }
 });
 

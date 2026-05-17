@@ -47,8 +47,8 @@ const COLORS = {
 const ARGS = argv.slice(2);
 const SUBCOMMAND = ARGS[0];
 
-function printHelp() {
-  stdout.write(`${COLORS.bold}oh-my-ontology${COLORS.reset} ${COLORS.dim}v${PKG.version}${COLORS.reset}
+function printHelp(stream = stdout) {
+  stream.write(`${COLORS.bold}oh-my-ontology${COLORS.reset} ${COLORS.dim}v${PKG.version}${COLORS.reset}
 
 AI-native codebase ontology workbench — ${CLI_COMMAND_COUNT} commands + MCP setup.
 
@@ -412,5 +412,5 @@ fail(
   `unknown command: ${SUBCOMMAND}.` +
     (commandSuggestion ? ` Did you mean ${commandSuggestion}?` : ''),
 );
-printHelp();
+printHelp(stderr);
 exit(1);
