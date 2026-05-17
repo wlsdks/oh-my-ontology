@@ -4376,6 +4376,15 @@ export function diagnosisIssueCount(parsed) {
   return parsed?.summary?.issues ?? parsed?.summary?.compileIssues ?? 0;
 }
 
+export function healthSummary(parsed) {
+  return [
+    `issues:${diagnosisIssueCount(parsed)}`,
+    `unresolved:${parsed?.summary?.unresolvedEdges ?? 0}`,
+    `cycles:${parsed?.summary?.dependencyCycles ?? 0}`,
+    `${formatCount((parsed?.checks || []).length, 'check')}`,
+  ].join(', ');
+}
+
 export function healthChecksSummary(checks, limit = 5) {
   if (!Array.isArray(checks)) return null;
   const entries = checks
@@ -5357,9 +5366,9 @@ async function step2BootAndCall() {
         const checksSummary = healthChecksSummary(parsed.checks);
         log(
           'ok',
-          `health — ${parsed.status} (${(parsed.checks || []).length} checks${
+          `health — ${parsed.status} (${healthSummary(parsed)}${
             checksSummary ? `: ${checksSummary}` : ''
-          }, issues ${diagnosisIssueCount(parsed)})`,
+          })`,
         );
       } catch (err) {
         log('fail', `failed to parse health response: ${err.message}`);
@@ -5386,9 +5395,9 @@ async function step2BootAndCall() {
         const checksSummary = healthChecksSummary(parsed.checks);
         log(
           'ok',
-          `health_tuned — ${parsed.status} (${(parsed.checks || []).length} checks${
+          `health_tuned — ${parsed.status} (${healthSummary(parsed)}${
             checksSummary ? `: ${checksSummary}` : ''
-          }, issues ${diagnosisIssueCount(parsed)}; ${tunedHealthScopeOutputSummary()})`,
+          }; ${tunedHealthScopeOutputSummary()})`,
         );
       } catch (err) {
         log('fail', `failed to parse tuned health response: ${err.message}`);

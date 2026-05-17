@@ -55,6 +55,7 @@ import {
   hasAllFirstContactResponses,
   hasFirstContactErrorResponse,
   healthChecksSummary,
+  healthSummary,
   inferImportsFailure,
   importModuleEdgeKindOutputSummary,
   initializeInstructionsFailure,
@@ -5794,6 +5795,17 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(diagnosisIssueCount({ summary: { issues: 3 } }), 3);
     assert.equal(diagnosisIssueCount({ summary: { compileIssues: 2 } }), 2);
     assert.equal(diagnosisIssueCount({ summary: {} }), 0);
+  });
+
+  it('formats health summary for verify output', () => {
+    assert.equal(
+      healthSummary({
+        summary: { issues: 2, unresolvedEdges: 3, dependencyCycles: 1 },
+        checks: [{ id: 'compile_issues' }, { id: 'components' }],
+      }),
+      'issues:2, unresolved:3, cycles:1, 2 checks',
+    );
+    assert.equal(healthSummary({ summary: { compileIssues: 4 }, checks: [] }), 'issues:4, unresolved:0, cycles:0, 0 checks');
   });
 
   it('formats health check coverage for verify output', () => {
