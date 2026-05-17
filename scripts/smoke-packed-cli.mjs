@@ -637,6 +637,18 @@ try {
   assert.match(mcpEmptyVerify.stdout, /neighbors\/path — skipped \(vault has no nodes\)/);
   assert.match(mcpEmptyVerify.stdout, /project_scope — skipped \(no project node in vault\)/);
 
+  const invalidEnvDirectMcpVerifyVault = runRaw(
+    'npm',
+    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), '--silent', 'run', 'verify'],
+    {
+      cwd: projectDir,
+      env: { OMOT_VAULT: '   ' },
+    },
+  );
+  assert.equal(invalidEnvDirectMcpVerifyVault.status, 1);
+  assert.equal(invalidEnvDirectMcpVerifyVault.stdout, '');
+  assert.match(invalidEnvDirectMcpVerifyVault.stderr, /OMOT_VAULT requires a path value/);
+
   const invalidMcpVerifyTimeout = runRaw(
     'npm',
     ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), '--silent', 'run', 'verify'],

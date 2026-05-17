@@ -1030,6 +1030,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /typoDirectMcpVerifyVault/);
     assert.match(smoke, /duplicateFlagDirectMcpVerifyVault/);
     assert.match(smoke, /duplicatePositionalDirectMcpVerifyVault/);
+    assert.match(smoke, /invalidEnvDirectMcpVerifyVault/);
     assert.match(smoke, /'--silent', 'run', 'verify'/);
     assert.match(smoke, /assert\.equal\(invalidMcpVerifyTimeout\.stdout, ''\)/);
     assert.match(smoke, /assert\.equal\(invalidDirectMcpVerifyVault\.stdout, ''\)/);
@@ -1041,6 +1042,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /Unknown option: --timout-ms=1000\\\. Did you mean --timeout-ms\\\?/);
     assert.match(smoke, /Unknown option: --vualt\\\. Did you mean --vault\\\?/);
     assert.match(smoke, /Unexpected extra vault argument:/);
+    assert.match(smoke, /OMOT_VAULT requires a path value/);
     assert.match(smoke, /--timeout-ms N/);
     assert.match(smoke, /OMOT_VERIFY_TIMEOUT_MS=N/);
     assert.match(smoke, /oh-my-ontology mcp-verify --timeout-ms 15000/);
