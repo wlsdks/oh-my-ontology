@@ -2357,6 +2357,7 @@ describe("rpc response completion helpers", () => {
 
   it("formats per-section structuredContent status distinctly", () => {
     assert.match(structuredContentStatus({ ok: true }, { ok: true }), /pass/);
+    assert.match(structuredContentStatus({ operation: "overview", graph: { nodes: 1 } }, { graph: { nodes: 1 }, operation: "overview" }), /pass/);
     assert.match(structuredContentStatus({ ok: true }, null), /missing/);
     assert.match(structuredContentStatus({ ok: true }, undefined), /missing/);
     assert.match(structuredContentStatus({ ok: true }, { ok: false }), /mismatch/);

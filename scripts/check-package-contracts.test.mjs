@@ -744,8 +744,9 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /`edges\[\]\.via`/);
     assert.match(dogfoodSection, /설치 verify 의 `query_ontology\(path\)` smoke/);
     assert.match(dogfoodSection, /hop\/edge alignment/);
-    assert.match(doc, /`query_ontology` graph-query 응답은 `structuredContent`\s+누락을 실패로 처리하고 text JSON payload 와 `structuredContent` payload 의\s+일치 여부도 비교/);
-    assert.match(doc, /dogfood 의 direct read \/ analysis tool 응답도 `structuredContent` 누락과\s+text JSON drift 를 같은 fail-closed 계약으로 검증/);
+    assert.match(doc, /`query_ontology` graph-query 응답은 `structuredContent`\s+누락을 실패로 처리하고 text JSON payload 와 `structuredContent` payload 의\s+구조적 일치 여부도 비교/);
+    assert.match(doc, /key 순서 차이를 false mismatch 로 보지 않으며/);
+    assert.match(doc, /dogfood 의 direct read \/ analysis tool 응답도 `structuredContent` 누락과\s+text JSON 구조 drift 를 같은 fail-closed 계약으로 검증/);
     assert.match(doc, /project probe 도 화면 출력과 최종\s+direct-tool `structuredContent` summary 에 포함/);
     assert.match(doc, /섹션별 structuredContent 상태는 `pass` \/ `missing` \/\s+`mismatch` 로 구분/);
     assert.match(doc, /null payload 도 missing 으로 판정/);

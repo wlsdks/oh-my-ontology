@@ -4141,6 +4141,10 @@ describe('verify.mjs first-contact gates', () => {
       'overview structuredContent mismatch',
     );
     assert.equal(
+      structuredContentFailure({ result: { structuredContent: { graph: { nodes: 1 }, operation: 'overview' } } }, parsed, 'overview'),
+      null,
+    );
+    assert.equal(
       structuredContentFailure({ result: { structuredContent: parsed } }, parsed, 'overview'),
       null,
     );

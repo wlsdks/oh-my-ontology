@@ -13,6 +13,7 @@ import { spawn } from "node:child_process";
 import { StringDecoder } from "node:string_decoder";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join } from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import {
   expectedResponseIds,
   hasAllResponses,
@@ -217,7 +218,7 @@ export function graphStructuredContentSummary(rows) {
   const expected = rows.filter(([, parsed]) => Boolean(parsed));
   const missing = expected.filter(([, , structured]) => structured == null);
   const mismatched = expected.filter(([, parsed, structured]) => (
-    structured != null && JSON.stringify(structured) !== JSON.stringify(parsed)
+    structured != null && !isDeepStrictEqual(structured, parsed)
   ));
   const passed = expected.length - missing.length - mismatched.length;
   if (expected.length === 0) return "n/a";
@@ -238,7 +239,7 @@ export function structuredContentStatus(parsed, structured) {
   if (structured == null) {
     return `${COLORS.yellow}missing${COLORS.reset}`;
   }
-  if (JSON.stringify(structured) !== JSON.stringify(parsed)) {
+  if (!isDeepStrictEqual(structured, parsed)) {
     return `${COLORS.yellow}mismatch${COLORS.reset}`;
   }
   return `${COLORS.green}pass${COLORS.reset}`;
@@ -1171,7 +1172,7 @@ export function evaluateDogfoodGate({
     if (!alreadyFailed && parsed) {
       if (structured == null) {
         failures.push(`${label} structuredContent missing`);
-      } else if (JSON.stringify(structured) !== JSON.stringify(parsed)) {
+      } else if (!isDeepStrictEqual(structured, parsed)) {
         failures.push(`${label} structuredContent mismatch`);
       }
     }
@@ -1185,7 +1186,7 @@ function recordStructuredContentFailure(failures, label, parsed, structured) {
     failures.push(`${label} structuredContent missing`);
     return;
   }
-  if (JSON.stringify(structured) !== JSON.stringify(parsed)) {
+  if (!isDeepStrictEqual(structured, parsed)) {
     failures.push(`${label} structuredContent mismatch`);
   }
 }

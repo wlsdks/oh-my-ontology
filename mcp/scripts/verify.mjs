@@ -37,6 +37,7 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import {
   hasAnyErrorResponse,
   hasAllResultResponses,
@@ -1484,7 +1485,7 @@ export function structuredContentFailure(response, parsed, label) {
   if (structured == null) {
     return `${label} structuredContent missing`;
   }
-  if (JSON.stringify(structured) !== JSON.stringify(parsed)) {
+  if (!isDeepStrictEqual(structured, parsed)) {
     return `${label} structuredContent mismatch`;
   }
   return null;
