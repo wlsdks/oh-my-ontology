@@ -4071,7 +4071,7 @@ function pathShapeFailure(result) {
   if (result.hops.length !== result.hopCount + 1) {
     return `find_path response hop mismatch — hopCount ${result.hopCount}, hops ${result.hops.length}`;
   }
-  if (result.hops.some((hop) => typeof hop !== "string" || hop.length === 0)) {
+  if (result.hops.some((hop) => !isNonBlankString(hop))) {
     return "find_path response contains empty hop";
   }
   if (!Array.isArray(result.edges)) {
@@ -4087,7 +4087,7 @@ function pathShapeFailure(result) {
     if (edge.from !== result.hops[index] || edge.to !== result.hops[index + 1]) {
       return `find_path response edge/hop mismatch at index ${index}`;
     }
-    if (typeof edge.via !== "string" || edge.via.length === 0) {
+    if (!isNonBlankString(edge.via)) {
       return `find_path response missing edge via at index ${index}`;
     }
   }
@@ -4098,7 +4098,7 @@ function workspaceBriefShapeFailure(result, label = "workspace_brief") {
   if (result.operation !== "workspace_brief") {
     return `${label} response operation mismatch — ${result.operation}`;
   }
-  if (typeof result.status !== "string" || result.status.length === 0) {
+  if (!isNonBlankString(result.status)) {
     return `${label} response missing status`;
   }
   const summaryFailure = numericSummaryFailure(label, result.summary, ["nodes", "edges", "issues"]);
@@ -4112,13 +4112,13 @@ function workspaceBriefShapeFailure(result, label = "workspace_brief") {
     if (!action || typeof action !== "object" || Array.isArray(action)) {
       return `${label} response malformed nextAction at index ${index}`;
     }
-    if (typeof action.severity !== "string" || action.severity.length === 0) {
+    if (!isNonBlankString(action.severity)) {
       return `${label} response missing nextAction severity at index ${index}`;
     }
     if (!NEXT_ACTION_SEVERITIES.has(action.severity)) {
       return `${label} response unknown nextAction severity at index ${index}: ${action.severity}`;
     }
-    if (typeof action.id !== "string" && typeof action.kind !== "string") {
+    if (!isNonBlankString(action.id) && !isNonBlankString(action.kind)) {
       return `${label} response missing nextAction identifier at index ${index}`;
     }
     if (!hasOptionalNonNegativeInteger(action.count)) {
@@ -4212,7 +4212,7 @@ function healthShapeFailureForDogfood(result, label = "health") {
   if (result.operation !== "health") {
     return `${label} response operation mismatch — ${result.operation}`;
   }
-  if (typeof result.status !== "string" || result.status.length === 0) {
+  if (!isNonBlankString(result.status)) {
     return `${label} response missing status`;
   }
   const summaryFailure = numericSummaryFailure(label, result.summary, ["issues", "unresolvedEdges", "dependencyCycles"]);
@@ -4288,6 +4288,10 @@ function hasOptionalNonNegativeInteger(value) {
   return value == null || (Number.isInteger(value) && value >= 0);
 }
 
+function isNonBlankString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 function checksShapeFailure(label, checks, { requireNonEmpty = false } = {}) {
   if (!Array.isArray(checks)) {
     return `${label} response missing checks array`;
@@ -4299,10 +4303,10 @@ function checksShapeFailure(label, checks, { requireNonEmpty = false } = {}) {
     if (!check || typeof check !== "object" || Array.isArray(check)) {
       return `${label} response malformed check at index ${index}`;
     }
-    if (typeof check.id !== "string" || check.id.length === 0) {
+    if (!isNonBlankString(check.id)) {
       return `${label} response missing check id at index ${index}`;
     }
-    if (typeof check.status !== "string" || check.status.length === 0) {
+    if (!isNonBlankString(check.status)) {
       return `${label} response missing check status: ${check.id}`;
     }
     if (!HEALTH_CHECK_STATUSES.has(check.status)) {

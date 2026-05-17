@@ -3543,6 +3543,10 @@ describe("evaluateDogfoodGate", () => {
       ["find_path response hop mismatch — hopCount 2, hops 2"],
     );
     assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, path: { found: true, hopCount: 1, hops: ["a", "  "], edges: [{ from: "a", to: "  ", via: "relates" }] } }),
+      ["find_path response contains empty hop"],
+    );
+    assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, path: { found: true, hopCount: 1, hops: ["a", "b"] } }),
       ["find_path response missing edges array"],
     );
@@ -3558,6 +3562,13 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({
         ...okShape,
         path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b" }] },
+      }),
+      ["find_path response missing edge via at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        path: { found: true, hopCount: 1, hops: ["a", "b"], edges: [{ from: "a", to: "b", via: "  " }] },
       }),
       ["find_path response missing edge via at index 0"],
     );
@@ -3779,6 +3790,19 @@ describe("evaluateDogfoodGate", () => {
           operation: "workspace_brief",
           status: "healthy",
           summary: { nodes: 1, edges: 0, issues: 0 },
+          nextActions: [{ id: "  ", kind: " ", severity: "info" }],
+          health: okShape.brief.health,
+        },
+      }),
+      ["workspace_brief response missing nextAction identifier at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
+          operation: "workspace_brief",
+          status: "healthy",
+          summary: { nodes: 1, edges: 0, issues: 0 },
           nextActions: [{ id: "components", severity: "info", count: -1 }],
           health: okShape.brief.health,
         },
@@ -3884,6 +3908,10 @@ describe("evaluateDogfoodGate", () => {
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, health: { operation: "health", status: "healthy", summary: okShape.health.summary, checks: [{ status: "pass", count: 0 }] } }),
+      ["health response missing check id at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, health: { operation: "health", status: "healthy", summary: okShape.health.summary, checks: [{ id: "  ", status: "pass", count: 0 }] } }),
       ["health response missing check id at index 0"],
     );
     assert.deepEqual(
