@@ -4132,6 +4132,29 @@ function diagnosisNextActionSampleFailure(label, action, index) {
         return `${label} response malformed materialize_external_elements sample args at index ${index}.${sampleIndex}`;
       }
     }
+    if (action.kind === 'resolve_dangling_references') {
+      const rowFailure = diagnosisGrowthCandidateSampleFailure(`${label} nextAction resolve_dangling_references sample`, sample, sampleIndex);
+      if (rowFailure) return rowFailure;
+      if (sample.kind !== 'resolve_dangling_reference') {
+        return `${label} response malformed resolve_dangling_references sample kind at index ${index}.${sampleIndex}`;
+      }
+    }
+  }
+  return null;
+}
+
+function diagnosisGrowthCandidateSampleFailure(label, row, index) {
+  if (!row || typeof row !== 'object' || Array.isArray(row)) {
+    return `${label} malformed row at index ${index}`;
+  }
+  if (typeof row.kind !== 'string' || row.kind.length === 0) {
+    return `${label} row missing kind at index ${index}`;
+  }
+  if (typeof row.score !== 'number' || !Number.isFinite(row.score) || row.score < 0) {
+    return `${label} row missing score: ${row.kind}`;
+  }
+  if (typeof row.reason !== 'string' || row.reason.length === 0) {
+    return `${label} row missing reason: ${row.kind}`;
   }
   return null;
 }

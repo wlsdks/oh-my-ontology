@@ -732,6 +732,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`workspace_brief\.nextActions\[\]\.sample` includes executable examples/);
     assert.match(verifySection, /`add_missing_relations` samples are `add_relation` calls with\s+`from` \/ `to` \/ `type`/);
     assert.match(verifySection, /`materialize_external_elements` samples are\s+`add_concept` calls for `kind:"element"`/);
+    assert.match(verifySection, /`resolve_dangling_references` samples keep the\s+`resolve_dangling_reference` row shape with score and reason/);
     assert.match(verifySection, /prints the validated `workspace_brief\.health\.checks` count/);
     assert.match(verifySection, /compact advisory list with label\/severity\/count\/message detail/);
     assert.match(verifySection, /health check `id:status:count` coverage/);
@@ -922,6 +923,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /file-level `validate_vault\.scanned` health/);
     assert.match(verifySection, /`workspace_brief\.nextActions\[\]\.sample` shape gate/);
     assert.match(verifySection, /real `add_relation` \/ `add_concept` inputs/);
+    assert.match(verifySection, /`resolve_dangling_reference` rows/);
     assert.match(verifySection, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(verifySection, /`compile_ontology` summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
     assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);

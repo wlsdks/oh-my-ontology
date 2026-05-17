@@ -445,7 +445,8 @@ non-empty `id` plus `status` in `pass` / `warn` / `fail` / `info`; optional
 `workspace_brief.nextActions[].sample` includes executable examples, installed
 verify also checks `add_missing_relations` samples are `add_relation` calls with
 `from` / `to` / `type`, and `materialize_external_elements` samples are
-`add_concept` calls for `kind:"element"`.
+`add_concept` calls for `kind:"element"`, while `resolve_dangling_references`
+samples must keep the `resolve_dangling_reference` row shape with score and reason.
 Non-blocking `workspace_brief.nextActions` are printed as a short
 advisory list with action label, severity, optional count, and message, the
 `workspace_brief` / `workspace_brief_tuned` success lines include the

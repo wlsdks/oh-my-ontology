@@ -6331,6 +6331,33 @@ describe('verify.mjs first-contact gates', () => {
       ),
       'workspace_brief response malformed materialize_external_elements sample args at index 0.0',
     );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'needs_attention',
+          summary: { growthActions: 1 },
+          growth: {
+            relationRecommendations: 0,
+            externalElementRefs: 0,
+            danglingReferences: 1,
+            totalActions: 1,
+          },
+          health: { checks: [] },
+          nextActions: [
+            {
+              kind: 'resolve_dangling_references',
+              severity: 'info',
+              count: 1,
+              sample: [{ kind: 'materialize_external_element', score: 0.7, reason: 'Resolve dangling reference.' }],
+            },
+          ],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response malformed resolve_dangling_references sample kind at index 0.0',
+    );
   });
 
   it('fails workspace_brief responses with fail next actions', () => {
