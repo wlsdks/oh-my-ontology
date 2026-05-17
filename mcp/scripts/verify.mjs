@@ -68,6 +68,14 @@ const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
 const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
+export const VERIFY_TUNED_HEALTH_ARGS = {
+  componentLimit: 3,
+  cycleLimit: 3,
+  recommendationLimit: 3,
+  orderLimit: 3,
+  dependencyTypes: ['dependencies'],
+  componentTypes: ['domain', 'capabilities'],
+};
 
 export const EXPECTED_READ_TOOLS = [
   'list_concepts',
@@ -2313,13 +2321,8 @@ export function buildFirstContactRequests() {
         arguments: {
           operation: 'workspace_brief',
           limit: 3,
-          componentLimit: 3,
-          cycleLimit: 3,
-          recommendationLimit: 3,
-          orderLimit: 3,
+          ...VERIFY_TUNED_HEALTH_ARGS,
           nodeLimit: 3,
-          dependencyTypes: ['dependencies'],
-          componentTypes: ['domain', 'capabilities'],
         },
       },
     },
@@ -2331,12 +2334,7 @@ export function buildFirstContactRequests() {
         name: 'query_ontology',
         arguments: {
           operation: 'health',
-          componentLimit: 3,
-          cycleLimit: 3,
-          recommendationLimit: 3,
-          orderLimit: 3,
-          dependencyTypes: ['dependencies'],
-          componentTypes: ['domain', 'capabilities'],
+          ...VERIFY_TUNED_HEALTH_ARGS,
         },
       },
     },
@@ -4164,6 +4162,16 @@ export function healthChecksSummary(checks, limit = 5) {
   return `${shown.join(', ')}${suffix}`;
 }
 
+export function tunedHealthScopeOutputSummary(args = VERIFY_TUNED_HEALTH_ARGS) {
+  const dependencyTypes = Array.isArray(args.dependencyTypes) && args.dependencyTypes.length > 0
+    ? args.dependencyTypes.join('/')
+    : 'all';
+  const componentTypes = Array.isArray(args.componentTypes) && args.componentTypes.length > 0
+    ? args.componentTypes.join('/')
+    : 'all';
+  return `dependencyTypes=${dependencyTypes}; componentTypes=${componentTypes}`;
+}
+
 export function advisoryNextActionsSummary(actions, limit = 3) {
   if (!Array.isArray(actions)) return null;
   const advisory = actions
@@ -5086,7 +5094,7 @@ async function step2BootAndCall() {
         }
         log(
           'ok',
-          `workspace_brief_tuned — ${parsed.status} (${workspaceBriefSummary(parsed)})`,
+          `workspace_brief_tuned — ${parsed.status} (${workspaceBriefSummary(parsed)}; ${tunedHealthScopeOutputSummary()}; nodeLimit=3)`,
         );
         const advisory = advisoryNextActionsSummary(parsed.nextActions);
         if (advisory) log('info', `workspace_brief_tuned advisory nextActions — ${advisory}`);
@@ -5146,7 +5154,7 @@ async function step2BootAndCall() {
           'ok',
           `health_tuned — ${parsed.status} (${(parsed.checks || []).length} checks${
             checksSummary ? `: ${checksSummary}` : ''
-          }, issues ${diagnosisIssueCount(parsed)})`,
+          }, issues ${diagnosisIssueCount(parsed)}; ${tunedHealthScopeOutputSummary()})`,
         );
       } catch (err) {
         log('fail', `failed to parse tuned health response: ${err.message}`);

@@ -86,9 +86,11 @@ import {
   structuredContentFailure,
   structuredContentParityStatus,
   structuredContentVerifySummary,
+  tunedHealthScopeOutputSummary,
   toolsListSchemaFailure,
   validationCodeSummary,
   validateVaultFailure,
+  VERIFY_TUNED_HEALTH_ARGS,
   verifyCountConsistencyFailure,
   verifyRetryExample,
   verifyTimeoutFailure,
@@ -5585,13 +5587,13 @@ describe('verify.mjs first-contact gates', () => {
     assert.deepEqual(tunedBrief?.params?.arguments, {
       operation: 'workspace_brief',
       limit: 3,
-      componentLimit: 3,
-      cycleLimit: 3,
-      recommendationLimit: 3,
-      orderLimit: 3,
+      ...VERIFY_TUNED_HEALTH_ARGS,
       nodeLimit: 3,
-      dependencyTypes: ['dependencies'],
-      componentTypes: ['domain', 'capabilities'],
+    });
+    const tunedHealth = buildFirstContactRequests().find((request) => request.id === 20);
+    assert.deepEqual(tunedHealth?.params?.arguments, {
+      operation: 'health',
+      ...VERIFY_TUNED_HEALTH_ARGS,
     });
   });
 
@@ -5634,6 +5636,18 @@ describe('verify.mjs first-contact gates', () => {
         { id: 'c', status: 'pass', count: 1 },
       ], 2),
       'a:pass:0, b:pass, +1 more',
+    );
+  });
+
+  it('formats tuned health scope for verify output', () => {
+    assert.deepEqual(VERIFY_TUNED_HEALTH_ARGS.componentTypes, ['domain', 'capabilities']);
+    assert.equal(
+      tunedHealthScopeOutputSummary(),
+      'dependencyTypes=dependencies; componentTypes=domain/capabilities',
+    );
+    assert.equal(
+      tunedHealthScopeOutputSummary({ dependencyTypes: [], componentTypes: null }),
+      'dependencyTypes=all; componentTypes=all',
     );
   });
 

@@ -402,10 +402,11 @@ describe('package contract helpers', () => {
     assert.match(verifySection, new RegExp(`✓ list_kinds — ${census.total} nodes \\(${kindSummary}\\)`));
     assert.match(verifySection, new RegExp(`✓ validate_vault — ${census.files} files, 0 problem files`));
     assert.match(verifySection, new RegExp(`✓ workspace_brief — healthy \\(${census.total} nodes, 0 next actions, 5 health checks\\)`));
-    assert.match(verifySection, new RegExp(`✓ workspace_brief_tuned — healthy \\(${census.total} nodes, 1 next action, 5 health checks\\)`));
+    assert.match(verifySection, new RegExp(`✓ workspace_brief_tuned — healthy \\(${census.total} nodes, 1 next action, 5 health checks; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3\\)`));
     assert.match(verifySection, /workspace_brief_tuned advisory nextActions — components:info:6 - The resolved ontology graph has disconnected actionable islands\./);
     assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass:0/);
     assert.match(verifySection, /✓ health_tuned — healthy \(5 checks: compile_issues:pass:0/);
+    assert.match(verifySection, /health_tuned — healthy \([\s\S]*issues 0; dependencyTypes=dependencies; componentTypes=domain\/capabilities\)/);
     assert.match(verifySection, /✓ neighbors — elements\/file-system-access-api/);
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
@@ -1236,6 +1237,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /first-contact README read-only/);
     assert.match(doc, /직접 verify help 는\s+`mcp\/` package directory 의 `npm run verify -- --help` 또는 repo root 의\s+`node mcp\/scripts\/verify\.mjs --help`/);
     assert.match(doc, /직접 verify help\(`mcp\/` 에서 `npm run verify -- --help`, repo root 에서\s+`node mcp\/scripts\/verify\.mjs --help`\)/);
+    assert.match(doc, /설치 verify 의 tuned diagnosis 라인도\s+`dependencyTypes=dependencies`,\s+`componentTypes=domain\/capabilities` scope 를 같이 출력/);
     assert.match(doc, /`list_concepts` project probe \/ `get_concept` \/ `get_concepts` \//);
     assert.match(doc, /`query_concepts` \/ limited\s+`query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
     assert.match(doc, /별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`/);

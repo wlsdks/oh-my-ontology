@@ -275,10 +275,10 @@ A successful run looks like this:
 ✓ validate_vault — 28 files, 0 problem files
 ✓ project probe — 1 project node
 ✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks)
-✓ workspace_brief_tuned — healthy (28 nodes, 1 next action, 5 health checks)
+✓ workspace_brief_tuned — healthy (28 nodes, 1 next action, 5 health checks; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3)
 · workspace_brief_tuned advisory nextActions — components:info:6 - The resolved ontology graph has disconnected actionable islands.
 ✓ health — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1, issues 0)
-✓ health_tuned — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6, issues 0)
+✓ health_tuned — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6, issues 0; dependencyTypes=dependencies; componentTypes=domain/capabilities)
 ✓ compile_ontology — graph 6bd0c936c858 (28 nodes, 210 edges, issues 0)
 ✓ compile_ontology page — 1/28 nodes, 1/210 edges
 ✓ compile_ontology indexes — out 27, in 26, edgeById 210, aliases 55, edges 92/118/0
@@ -424,8 +424,10 @@ non-empty `id` plus `status` in `pass` / `warn` / `fail` / `info`; optional
 Non-blocking `workspace_brief.nextActions` are printed as a short
 advisory list with action label, severity, optional count, and message, the
 `workspace_brief` / `workspace_brief_tuned` success lines include the
-`workspace_brief.health.checks` count, and the `health` / `health_tuned` lines include the
-check `id:status:count` coverage that the verify gate validated. The default wait window is 8 seconds; set
+`workspace_brief.health.checks` count. Tuned diagnosis lines also print
+`dependencyTypes=dependencies; componentTypes=domain/capabilities` so scoped
+component warnings are not confused with the full-graph component count. The
+`health` / `health_tuned` lines include the check `id:status:count` coverage that the verify gate validated. The default wait window is 8 seconds; set
 `OMOT_VERIFY_TIMEOUT_MS` to a positive integer millisecond value if your vault
 is large or on a slow filesystem. Real timeout failures suggest the same
 retry shape, and invalid timeout values fail before the server starts and print
