@@ -631,7 +631,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ add_relations — non-object and unknown-field rows isolated with input indexes/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint/);
-    assert.match(verifySection, /✓ strict relation_check — invalid type rejected with closest-value hint/);
+    assert.match(verifySection, /✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint/);
     assert.match(verifySection, /✓ strict graph kind filters — invalid match_nodes\.kind rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict graph edge kind filters — invalid match_edges\.fromKind\/toKind rejected with closest-value hints/);
     assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported .*phase none; severity none; kind none; executable none; review none/);
@@ -771,8 +771,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /destructive-tool `confirm` dry-run switches/);
     assert.match(verifySection, /`rename_concept\.overwrite`/);
     assert.match(verifySection, /`delete_concept\.force`/);
-    assert.match(verifySection, /batch row isolation for non-object row shape and\s+unknown row field inputs/);
-    assert.match(verifySection, /`concepts\[n\]` \/ `relations\[n\]` error labels/);
+    assert.match(verifySection, /batch row isolation for non-object row shape,\s+unknown row field inputs/);
+    assert.match(verifySection, /`concepts\[n\]` \/\s+`relations\[n\]` error labels/);
     assert.match(verifySection, /Destructive dry-run smoke calls `rename_concept`, `merge_concepts`, and\s+`delete_concept` against live vault slugs without writing/);
     assert.match(verifySection, /preview is missing or includes `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /row-level `ok:false`\s+results[\s\S]*instead of a top-level\s+tool error/);

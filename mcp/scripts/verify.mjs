@@ -5126,7 +5126,7 @@ async function step2BootAndCall() {
         log('fail', strictRelationCheck);
         return res(false);
       }
-      log('ok', 'strict relation_check — invalid type rejected with closest-value hint');
+      log('ok', 'strict relation_check — invalid type rejected before endpoint resolution with closest-value hint');
       const strictGraphKindFilter = strictGraphKindFilterFailure(strictGraphKindFilterRes);
       if (strictGraphKindFilter) {
         log('fail', strictGraphKindFilter);

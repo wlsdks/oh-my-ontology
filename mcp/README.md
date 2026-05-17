@@ -291,7 +291,7 @@ A successful run looks like this:
 ✓ strict enums — invalid query operation rejected with closest-value hint
 ✓ strict maintenance filters — invalid phase/severity/kind rejected at runtime (phases=validate/repair/link/materialize/review; severities=fail/warn/info; kinds=inspect_compile_issue/break_dependency_cycle/canonicalize_graph_arrays/resolve_dangling_reference/add_missing_relation/materialize_external_element/unassigned_node/empty_domain)
 ✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint
-✓ strict relation_check — invalid type rejected with closest-value hint
+✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint
 ✓ strict graph kind filters — invalid match_nodes.kind rejected with closest-value hint
 ✓ strict graph edge kind filters — invalid match_edges.fromKind/toKind rejected with closest-value hints
 ✓ maintenance cursor — missing afterActionId reported (afterActionId not found in filtered maintenance actions; phase none; severity none; kind none; executable none; review none)
