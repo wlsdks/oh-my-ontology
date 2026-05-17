@@ -92,6 +92,7 @@ function makeDogfoodInitialize() {
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
       "Batch add_concepts and add_relations isolate each non-object row and unknown row field as ok:false.",
+      'Batch add_relations unknown type row errors include a closest-value hint such as Did you mean "depends_on"?',
       "Duplicate add_concepts input slugs report concepts[n] duplicate slug in input batch; first seen at concepts[m].",
       'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
       "maintenance_plan phases, severities, and kinds filters are enum-validated.",
@@ -3390,6 +3391,16 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, initialize: null }),
       ["initialize: missing response", "initialize: initialize instructions missing or too short"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        initialize: {
+          ...okShape.initialize,
+          instructions: okShape.initialize.instructions.replace('unknown type row errors include a closest-value hint such as Did you mean "depends_on"?', "unknown type row errors fail"),
+        },
+      }),
+      ["initialize: initialize instructions missing batch relation type hint guidance"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
