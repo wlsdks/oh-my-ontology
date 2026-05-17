@@ -532,6 +532,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /write tool descriptions keep compact `postWriteMaintenance` action `score`/);
     assert.match(verifySection, /executable `proposedAction`/);
     assert.match(verifySection, /current-page next action pointer guidance/);
+    assert.match(verifySection, /calls destructive dry-runs for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
+    assert.match(verifySection, /previews stay non-writing and do not include `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /`initialize\.instructions` now names the destructive-write safety boundaries directly/);
     assert.match(verifySection, /`overwrite: true`/);
     assert.match(verifySection, /dangling referrers/);
