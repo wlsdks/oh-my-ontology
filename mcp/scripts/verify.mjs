@@ -2116,7 +2116,11 @@ function levenshteinDistance(a, b) {
 }
 
 export function verifyTimeoutFailure(timeoutMs) {
-  return `server verify timed out after ${timeoutMs}ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults.`;
+  return [
+    `server verify timed out after ${timeoutMs}ms.`,
+    'Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults.',
+    'Example: npm run verify -- --timeout-ms 15000',
+  ].join(' ');
 }
 
 export function verifyTimeoutValueErrorMessage(value) {

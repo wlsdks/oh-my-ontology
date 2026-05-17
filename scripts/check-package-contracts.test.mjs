@@ -514,6 +514,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`npm run verify -- --vault \.\.\/vault`/);
     assert.match(verifySection, /supports `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS`/);
     assert.match(verifySection, /suggest increasing `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS`/);
+    assert.match(verifySection, /Real timeout failures suggest the same\s+retry shape/);
     assert.match(verifySection, /Invalid timeout values fail before the server\s+starts and print the received value plus a concrete retry example/);
     assert.match(verifySection, /`npm run verify -- --timeout-ms 15000`/);
     assert.match(verifySection, /validates the installed `tools\/list` schema contract/);
@@ -873,6 +874,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
     assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset 을 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
+    assert.match(doc, /진짜 timeout 실패도 `npm run verify -- --timeout-ms 15000` 재시도 예시를\s+같이 보여준다/);
     assert.match(doc, /오류 출력은\s+`Received: "1000ms"` 와 `npm run verify -- --timeout-ms 15000` 같은 재시도 예시/);
     assert.match(doc, /key 순서 차이를 false mismatch 로 보지 않으며/);
     assert.match(doc, /dogfood 의 direct read \/ analysis tool 응답도 `structuredContent` 누락과\s+text JSON 구조 drift 를 같은 fail-closed 계약으로 검증/);

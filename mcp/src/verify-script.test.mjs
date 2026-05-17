@@ -3889,7 +3889,7 @@ describe('verify.mjs first-contact gates', () => {
   it('formats actionable timeout failures', () => {
     assert.equal(
       verifyTimeoutFailure(1),
-      'server verify timed out after 1ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults.',
+      'server verify timed out after 1ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults. Example: npm run verify -- --timeout-ms 15000',
     );
   });
 

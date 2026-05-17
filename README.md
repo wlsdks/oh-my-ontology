@@ -188,7 +188,7 @@ tuned `workspace_brief` / tuned `health` gates regress. Set
 the value must be a positive integer in milliseconds, and `--help` / timeout
 failures print the same retry shape.
 For `npm run verify` / `mcp-verify` timeout mistakes, the error reports the
-received value and a concrete retry example such as
+received value or the true timeout, plus a concrete retry example such as
 `npm run verify -- --timeout-ms 15000`, so agents can self-correct without
 guessing the accepted format.
 
