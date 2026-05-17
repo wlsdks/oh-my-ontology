@@ -421,6 +421,7 @@ describe('package contract helpers', () => {
       operation: 'project_scope',
       slug: 'project',
     });
+    const overview = queryCompiledOntology(compiled, { operation: 'overview', limit: 5 });
     const diagnosisOptions = { omotIgnorePatterns: loadOmotIgnore(ontologyRoot) };
     const workspaceBrief = queryCompiledOntology(compiled, { operation: 'workspace_brief' }, diagnosisOptions);
     const tunedDiagnosisArgs = {
@@ -548,7 +549,7 @@ describe('package contract helpers', () => {
         `✓ compile_ontology indexes — out ${indexOutCount}, in ${indexInCount}, edgeById ${indexEdgeCount}, aliases ${compiled.aliasCount}, edges ${compiled.resolvedEdgeCount}/${compiled.externalEdgeCount}/${compiled.unresolvedEdgeCount}`,
       ),
     );
-    assert.match(verifySection, new RegExp(`✓ overview — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, hubs \\d+\\)`));
+    assert.match(verifySection, new RegExp(`✓ overview — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, hubs ${overview.hubs.length}\\)`));
     assert.match(verifySection, new RegExp(`✓ overview query_plan — aggregate_scan \\(medium, nodes ${compiled.nodeCount}, edges ${compiled.edgeCount}\\)`));
     assert.match(verifySection, new RegExp(`✓ project_map query_plan — aggregate_scan \\(medium, nodes ${compiled.nodeCount}, edges ${compiled.edgeCount}\\)`));
     assert.match(verifySection, new RegExp(`✓ neighbors — ${neighborSmokeLine}`));
