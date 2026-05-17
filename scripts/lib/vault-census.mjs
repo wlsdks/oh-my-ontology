@@ -39,6 +39,13 @@ function markdownFiles(root) {
 
 export function dogfoodVaultCensus(root) {
   const ontologyRoot = join(root, "docs", "ontology");
+  const files = markdownFiles(ontologyRoot);
+  const docs = files.map((file) => parseFrontmatter(readFileSync(file, "utf-8")));
+
+  return dogfoodVaultCensusFromDocs(docs, files.length);
+}
+
+export function dogfoodVaultCensusFromDocs(docs, fileCount = docs.length) {
   const byKind = {
     capabilities: 0,
     domains: 0,
@@ -46,19 +53,17 @@ export function dogfoodVaultCensus(root) {
     project: 0,
     "vault-readme": 0,
   };
-  const files = markdownFiles(ontologyRoot);
-  for (const file of files) {
-    const { frontmatter } = parseFrontmatter(readFileSync(file, "utf-8"));
-    if (frontmatter.kind === "capability") byKind.capabilities += 1;
-    if (frontmatter.kind === "domain") byKind.domains += 1;
-    if (frontmatter.kind === "element") byKind.elements += 1;
-    if (frontmatter.kind === "project") byKind.project += 1;
-    if (frontmatter.kind === "vault-readme") byKind["vault-readme"] += 1;
+  for (const doc of docs) {
+    if (doc.frontmatter.kind === "capability") byKind.capabilities += 1;
+    if (doc.frontmatter.kind === "domain") byKind.domains += 1;
+    if (doc.frontmatter.kind === "element") byKind.elements += 1;
+    if (doc.frontmatter.kind === "project") byKind.project += 1;
+    if (doc.frontmatter.kind === "vault-readme") byKind["vault-readme"] += 1;
   }
   const total = Object.values(byKind).reduce((sum, count) => sum + count, 0);
 
   return {
-    files: files.length,
+    files: fileCount,
     total,
     byKind,
   };

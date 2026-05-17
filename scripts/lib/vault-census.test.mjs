@@ -4,7 +4,11 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, it } from "node:test";
 
-import { countMarkdownFiles, dogfoodVaultCensus } from "./vault-census.mjs";
+import {
+  countMarkdownFiles,
+  dogfoodVaultCensus,
+  dogfoodVaultCensusFromDocs,
+} from "./vault-census.mjs";
 
 function withTempDir(fn) {
   const root = mkdtempSync(join(tmpdir(), "omot-vault-census-"));
@@ -100,6 +104,29 @@ describe("vault-census", () => {
           "vault-readme": 0,
         },
       });
+    });
+  });
+
+  it("derives the dogfood vault census from already loaded docs", () => {
+    const docs = [
+      { frontmatter: { kind: "capability" } },
+      { frontmatter: { kind: "domain" } },
+      { frontmatter: { kind: "element" } },
+      { frontmatter: { kind: "project" } },
+      { frontmatter: { kind: "vault-readme" } },
+      { frontmatter: { kind: "note" } },
+    ];
+
+    assert.deepEqual(dogfoodVaultCensusFromDocs(docs), {
+      files: 6,
+      total: 5,
+      byKind: {
+        capabilities: 1,
+        domains: 1,
+        elements: 1,
+        project: 1,
+        "vault-readme": 1,
+      },
     });
   });
 });

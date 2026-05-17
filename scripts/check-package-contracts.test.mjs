@@ -25,7 +25,7 @@ import {
   packageEntrypoints,
   parseScriptFileRefs,
 } from './check-package-contracts.mjs';
-import { dogfoodVaultCensus } from './lib/vault-census.mjs';
+import { dogfoodVaultCensus, dogfoodVaultCensusFromDocs } from './lib/vault-census.mjs';
 
 function withPackage(pkg, files, fn) {
   const root = mkdtempSync(join(tmpdir(), 'omot-package-contract-'));
@@ -84,28 +84,6 @@ function importKindSummary(kindCounts) {
 
 function healthCheckSummary(checks) {
   return checks.map((check) => `${check.id}:${check.status}:${check.count}`).join(', ');
-}
-
-function dogfoodVaultCensusFromDocs(docs) {
-  const byKind = {
-    capabilities: 0,
-    domains: 0,
-    elements: 0,
-    project: 0,
-    'vault-readme': 0,
-  };
-  for (const doc of docs) {
-    if (doc.frontmatter.kind === 'capability') byKind.capabilities += 1;
-    if (doc.frontmatter.kind === 'domain') byKind.domains += 1;
-    if (doc.frontmatter.kind === 'element') byKind.elements += 1;
-    if (doc.frontmatter.kind === 'project') byKind.project += 1;
-    if (doc.frontmatter.kind === 'vault-readme') byKind['vault-readme'] += 1;
-  }
-  return {
-    files: docs.length,
-    total: Object.values(byKind).reduce((sum, count) => sum + count, 0),
-    byKind,
-  };
 }
 
 describe('package contract helpers', () => {
