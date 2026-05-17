@@ -87,6 +87,9 @@ matching the last returned action, and `hasMore` matching the remaining page
 state, while a missing `afterActionId` must report `cursor.found=false`, include
 the cursor miss reason, return zero remaining actions, expose
 `nextAfterActionId=null` / `hasMore=false`, and expose no next action.
+When the ready page has actions, verify resumes from the first returned action
+id and fails if the resumed page repeats that cursor action or leaves
+`remainingActions` unadvanced.
 For ready pages it also verifies `nextExecutableAction` / `nextReviewAction`
 point only at the first executable/review action in the current returned page.
 Successful maintenance cursor lines also print bucket summaries and

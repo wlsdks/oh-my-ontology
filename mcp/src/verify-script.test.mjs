@@ -46,6 +46,7 @@ import {
   maintenanceMissingCursorFailure,
   maintenanceNextActionOutputSummary,
   maintenanceReadyCursorFailure,
+  maintenanceResumeCursorFailure,
   overviewFailure,
   overviewQueryPlanFailure,
   parseVerifyArgs,
@@ -2143,6 +2144,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /cursor\.found=true, cursor\.reason=null/);
     assert.match(verifyUsage(), /missing afterActionId/);
     assert.match(verifyUsage(), /cursor\.found=false, reason, empty page/);
+    assert.match(verifyUsage(), /ready cursor has actions, verify resumes from the first returned action id/);
     assert.match(verifyUsage(), /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
     assert.match(verifyUsage(), /Successful cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
   });
@@ -2649,6 +2651,97 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed maintenance resume-cursor smoke responses', () => {
+    const previousSummary = {
+      totalActions: 3,
+      filteredActions: 3,
+      remainingActions: 3,
+      executableActions: 2,
+      reviewActions: 1,
+      compileIssues: 0,
+      dependencyCycles: 0,
+      canonicalizationActions: 0,
+      danglingReferences: 0,
+      relationRecommendations: 1,
+      externalElementRefs: 1,
+      externalElementRefsIgnored: 0,
+      unassignedNodes: 1,
+      emptyDomains: 0,
+    };
+    const summary = { ...previousSummary, remainingActions: 2 };
+    const previousPage = {
+      summary: previousSummary,
+      actions: [
+        { id: 'maint_seen', executable: true, phase: 'link', kind: 'add_missing_relation', severity: 'warn' },
+        { id: 'maint_review', executable: false, phase: 'review', kind: 'unassigned_node', severity: 'info' },
+      ],
+    };
+    const clean = {
+      operation: 'maintenance_plan',
+      sideEffect: false,
+      summary,
+      cursor: {
+        afterActionId: 'maint_seen',
+        found: true,
+        reason: null,
+        startIndex: 1,
+        nextAfterActionId: 'maint_repair',
+        hasMore: false,
+      },
+      actions: [
+        { id: 'maint_review', executable: false, phase: 'review', kind: 'unassigned_node', severity: 'info' },
+        { id: 'maint_repair', executable: true, phase: 'repair', kind: 'canonicalize_graph_arrays', severity: 'warn' },
+      ],
+      byPhase: { review: 1, repair: 1 },
+      bySeverity: { info: 1, warn: 1 },
+      byKind: { unassigned_node: 1, canonicalize_graph_arrays: 1 },
+      nextExecutableAction: { id: 'maint_repair', executable: true, phase: 'repair', kind: 'canonicalize_graph_arrays', severity: 'warn' },
+      nextReviewAction: { id: 'maint_review', executable: false, phase: 'review', kind: 'unassigned_node', severity: 'info' },
+    };
+
+    assert.equal(maintenanceResumeCursorFailure(previousPage, clean, 'maint_seen'), null);
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, operation: 'growth_plan' }, 'maint_seen'),
+      'maintenance resume-cursor smoke returned unexpected operation: growth_plan',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, cursor: { ...clean.cursor, afterActionId: 'maint_other' } }, 'maint_seen'),
+      'maintenance resume-cursor smoke did not preserve afterActionId',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, cursor: { ...clean.cursor, found: false } }, 'maint_seen'),
+      'maintenance resume-cursor smoke did not report cursor.found=true',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, cursor: { ...clean.cursor, reason: 'miss' } }, 'maint_seen'),
+      'maintenance resume-cursor smoke did not expose cursor.reason=null',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, cursor: { ...clean.cursor, startIndex: 0 } }, 'maint_seen'),
+      'maintenance resume-cursor smoke should start after the resumed action',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, summary: { ...summary, remainingActions: 3 } }, 'maint_seen'),
+      'maintenance resume-cursor smoke remainingActions did not advance past afterActionId',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, actions: [{ id: 'maint_seen' }] }, 'maint_seen'),
+      'maintenance resume-cursor smoke repeated the afterActionId action',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, cursor: { ...clean.cursor, nextAfterActionId: 'maint_review' } }, 'maint_seen'),
+      'maintenance resume-cursor smoke cursor.nextAfterActionId did not match last page action',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, cursor: { ...clean.cursor, hasMore: true } }, 'maint_seen'),
+      'maintenance resume-cursor smoke cursor.hasMore did not match remaining page state',
+    );
+    assert.equal(
+      maintenanceResumeCursorFailure(previousPage, { ...clean, nextExecutableAction: null }, 'maint_seen'),
+      'maintenance resume-cursor smoke missing nextExecutableAction',
+    );
+  });
+
   it('fails initialize instructions missing first-contact safety guidance', () => {
     const safeInstructions = [
       'Use read-only first-contact diagnosis before write tools.',
@@ -2797,8 +2890,9 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(25), 'maintenance_missing_cursor');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(26), 'maintenance_ready_cursor');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(27), 'strict_multi_args');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(30), 'maintenance_resume_cursor');
     assert.deepEqual(
-      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15].sort((a, b) => a - b),
+      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
     );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]
@@ -3763,6 +3857,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       structuredContentVerifySummary({ hasNode: true, hasProject: true }),
       'direct 7/7, write 2/2, maintenance 2/2, graph 10/10',
+    );
+    assert.equal(
+      structuredContentVerifySummary({ hasNode: true, hasProject: true, hasMaintenanceResume: true }),
+      'direct 7/7, write 2/2, maintenance 3/3, graph 10/10',
     );
   });
 

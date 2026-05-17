@@ -275,6 +275,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /ready page must keep `cursor\.found=true`,\s+`cursor\.reason=null`/);
     assert.match(verifySection, /missing cursor still reports `cursor\.found=false`,\s+reason, empty page, `cursor\.nextAfterActionId=null`, and `cursor\.hasMore=false`/);
     assert.match(verifySection, /`nextAfterActionId` must match the last\s+returned action, and `hasMore` must match the remaining page state/);
+    assert.match(verifySection, /valid\s+`afterActionId` resume request from the first returned action id/);
+    assert.match(verifySection, /resumed page repeats that cursor action or `remainingActions` does not\s+advance/);
     assert.match(verifySection, /`nextExecutableAction` \/\s+`nextReviewAction` point only at the first executable\/review action in the\s+current returned page/);
     assert.match(verifySection, /including the action id, executable flag, `phase`, `kind`,\s+and `severity`/);
     assert.match(verifySection, /maintenance summary counts \(`totalActions`,\s+`filteredActions`, `remainingActions`, `executableActions`, `reviewActions`\)/);
@@ -759,6 +761,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /ready cursor 의 `cursor\.found=true` \/ `cursor\.reason=null`/);
     assert.match(doc, /ready cursor 의 `cursor\.nextAfterActionId` \/ `cursor\.hasMore`/);
     assert.match(doc, /ready cursor 의 `nextAfterActionId` 가 마지막\s+page action 과 맞고 `hasMore` 가 remaining page state 와 맞는지/);
+    assert.match(doc, /첫 action id 로 유효한 `afterActionId`\s+resume 요청/);
+    assert.match(doc, /resumed page 가 그 cursor action 을 반복하거나\s+`remainingActions` 를 전진시키지 못하면 실패/);
     assert.match(doc, /`nextAfterActionId=null` \/ `hasMore=false`/);
     assert.match(doc, /unknown `afterActionId`\s+cursor 의 `cursor\.found=false`/);
     assert.match(doc, /`cursor\.reason`[\s\S]*계약/);
@@ -879,6 +883,7 @@ describe('package contract helpers', () => {
     assert.ok(smoke.includes('maintenance_plan cursor smoke'));
     assert.match(smoke, /Maintenance filters are enum-validated for phases\\\/severities\\\/kinds/);
     assert.match(smoke, /cursor smoke checks both cursor\\\.found=true with cursor\\\.reason=null and cursor\\\.found=false/);
+    assert.match(smoke, /ready cursor has actions, verify resumes from the first returned action id/);
     assert.match(smoke, /zero remaining actions, and no next actions/);
     assert.match(smoke, /nextExecutableAction \\\/ nextReviewAction point only at the first executable\\\/review action in the current returned page/);
     assert.match(smoke, /Successful maintenance cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);

@@ -271,6 +271,7 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /maintenance_plan cursor smoke/);
   assert.match(cliMcpVerifyHelp.stdout, /Maintenance filters are enum-validated for phases\/severities\/kinds/);
   assert.match(cliMcpVerifyHelp.stdout, /cursor smoke checks both cursor\.found=true with cursor\.reason=null and cursor\.found=false/);
+  assert.match(cliMcpVerifyHelp.stdout, /ready cursor has actions, verify resumes from the first returned action id/);
   assert.match(cliMcpVerifyHelp.stdout, /zero remaining actions, and no next actions/);
   assert.match(cliMcpVerifyHelp.stdout, /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   assert.match(cliMcpVerifyHelp.stdout, /Successful maintenance cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);

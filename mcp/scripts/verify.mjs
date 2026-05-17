@@ -1272,6 +1272,7 @@ export function maintenanceReadyCursorFailure(parsed) {
     parsed.nextExecutableAction,
     'nextExecutableAction',
     true,
+    'maintenance ready-cursor smoke',
   );
   if (nextExecutableFailure) return nextExecutableFailure;
   const nextReviewFailure = maintenanceNextActionFailure(
@@ -1279,6 +1280,71 @@ export function maintenanceReadyCursorFailure(parsed) {
     parsed.nextReviewAction,
     'nextReviewAction',
     false,
+    'maintenance ready-cursor smoke',
+  );
+  if (nextReviewFailure) return nextReviewFailure;
+  return null;
+}
+
+export function maintenanceResumeCursorFailure(previousPage, parsed, afterActionId) {
+  if (parsed?.operation !== 'maintenance_plan') {
+    return `maintenance resume-cursor smoke returned unexpected operation: ${parsed?.operation}`;
+  }
+  if (parsed.sideEffect !== false) {
+    return 'maintenance resume-cursor smoke must be side-effect-free';
+  }
+  if (parsed.cursor?.afterActionId !== afterActionId) {
+    return 'maintenance resume-cursor smoke did not preserve afterActionId';
+  }
+  if (parsed.cursor?.found !== true) {
+    return 'maintenance resume-cursor smoke did not report cursor.found=true';
+  }
+  if (!Object.hasOwn(parsed.cursor || {}, 'reason') || parsed.cursor.reason !== null) {
+    return 'maintenance resume-cursor smoke did not expose cursor.reason=null';
+  }
+  if (parsed.cursor?.startIndex !== 1) {
+    return 'maintenance resume-cursor smoke should start after the resumed action';
+  }
+  if (!Array.isArray(parsed.actions)) {
+    return 'maintenance resume-cursor smoke response missing actions array';
+  }
+  const summaryFailure = maintenanceSummaryFailure(parsed.summary, 'maintenance resume-cursor smoke');
+  if (summaryFailure) return summaryFailure;
+  const expectedRemaining = Math.max(0, (previousPage?.summary?.remainingActions ?? 0) - 1);
+  if (parsed.summary.remainingActions !== expectedRemaining) {
+    return 'maintenance resume-cursor smoke remainingActions did not advance past afterActionId';
+  }
+  const bucketFailure = maintenanceBucketSummaryFailure(parsed, 'maintenance resume-cursor smoke');
+  if (bucketFailure) return bucketFailure;
+  if (parsed.actions.some((action) => action?.id === afterActionId)) {
+    return 'maintenance resume-cursor smoke repeated the afterActionId action';
+  }
+  if (parsed.actions.length > parsed.summary.remainingActions) {
+    return 'maintenance resume-cursor smoke actions exceed remainingActions';
+  }
+  const expectedNextAfterActionId = parsed.actions.length > 0
+    ? parsed.actions[parsed.actions.length - 1]?.id
+    : null;
+  if (parsed.cursor?.nextAfterActionId !== expectedNextAfterActionId) {
+    return 'maintenance resume-cursor smoke cursor.nextAfterActionId did not match last page action';
+  }
+  if (parsed.cursor?.hasMore !== (parsed.summary.remainingActions > parsed.actions.length)) {
+    return 'maintenance resume-cursor smoke cursor.hasMore did not match remaining page state';
+  }
+  const nextExecutableFailure = maintenanceNextActionFailure(
+    parsed.actions.find((action) => action?.executable === true) ?? null,
+    parsed.nextExecutableAction,
+    'nextExecutableAction',
+    true,
+    'maintenance resume-cursor smoke',
+  );
+  if (nextExecutableFailure) return nextExecutableFailure;
+  const nextReviewFailure = maintenanceNextActionFailure(
+    parsed.actions.find((action) => action?.executable === false) ?? null,
+    parsed.nextReviewAction,
+    'nextReviewAction',
+    false,
+    'maintenance resume-cursor smoke',
   );
   if (nextReviewFailure) return nextReviewFailure;
   return null;
@@ -1340,21 +1406,21 @@ function maintenanceBucketSummaryFailure(parsed, label) {
   return null;
 }
 
-function maintenanceNextActionFailure(expectedAction, pointer, label, executable) {
+function maintenanceNextActionFailure(expectedAction, pointer, label, executable, context = 'maintenance ready-cursor smoke') {
   if (!expectedAction) {
     if (pointer !== null) {
-      return `maintenance ready-cursor smoke unexpected ${label}`;
+      return `${context} unexpected ${label}`;
     }
     return null;
   }
   if (!pointer || typeof pointer !== 'object' || Array.isArray(pointer)) {
-    return `maintenance ready-cursor smoke missing ${label}`;
+    return `${context} missing ${label}`;
   }
   if (pointer.id !== expectedAction.id) {
-    return `maintenance ready-cursor smoke ${label} did not match first page action`;
+    return `${context} ${label} did not match first page action`;
   }
   if (pointer.executable !== executable) {
-    return `maintenance ready-cursor smoke ${label} executable flag mismatch`;
+    return `${context} ${label} executable flag mismatch`;
   }
   for (const key of ['phase', 'kind', 'severity']) {
     if (
@@ -1362,7 +1428,7 @@ function maintenanceNextActionFailure(expectedAction, pointer, label, executable
       expectedAction[key].length > 0 &&
       pointer[key] !== expectedAction[key]
     ) {
-      return `maintenance ready-cursor smoke ${label} ${key} mismatch`;
+      return `${context} ${label} ${key} mismatch`;
     }
   }
   return null;
@@ -1421,10 +1487,10 @@ export function structuredContentFailure(response, parsed, label) {
   return null;
 }
 
-export function structuredContentVerifySummary({ hasNode = false, hasProject = false } = {}) {
+export function structuredContentVerifySummary({ hasNode = false, hasProject = false, hasMaintenanceResume = false } = {}) {
   const direct = 7;
   const write = 2;
-  const maintenance = 2;
+  const maintenance = 2 + (hasMaintenanceResume ? 1 : 0);
   const graph = 7 + (hasNode ? 2 : 0) + (hasProject ? 1 : 0);
   return `direct ${direct}/${direct}, write ${write}/${write}, maintenance ${maintenance}/${maintenance}, graph ${graph}/${graph}`;
 }
@@ -1459,6 +1525,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [27, 'strict_multi_args'],
   [28, 'add_concepts_row_isolation'],
   [29, 'add_relations_row_isolation'],
+  [30, 'maintenance_resume_cursor'],
 ]);
 
 function log(level, msg) {
@@ -1598,6 +1665,7 @@ export function verifyUsage() {
     'batch writer row isolation for non-object rows and unknown row fields,\n' +
     'and maintenance_plan cursor handling: ready page (cursor.found=true, cursor.reason=null)\n' +
     'plus missing afterActionId (cursor.found=false, reason, empty page, nextAfterActionId=null, hasMore=false).\n' +
+    'When the ready cursor has actions, verify resumes from the first returned action id and confirms the resumed page does not repeat it.\n' +
     'Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point only at the first executable/review action in the current returned page.\n' +
     'Ready cursor metadata verifies nextAfterActionId matches the last returned action and hasMore matches the remaining page state.\n' +
     'Successful cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n'
@@ -2754,7 +2822,9 @@ async function step2BootAndCall() {
     let completed = false;
     let sentGetConceptsSmoke = false;
     let sentGraphQuerySmoke = false;
+    let sentMaintenanceResumeSmoke = false;
     const expectedFirstContactIds = new Set(FIRST_CONTACT_RESPONSE_LABELS.keys());
+    expectedFirstContactIds.delete(30);
     let timer = null;
     proc.stdout.on('data', (b) => {
       stdout += b.toString();
@@ -2798,6 +2868,31 @@ async function step2BootAndCall() {
             if (graphSmokePlan.requests.length > 0) {
               proc.stdin.write(graphSmokePlan.requests.map((request) => JSON.stringify(request)).join('\n') + '\n');
             }
+          }
+        }
+      }
+      if (!sentMaintenanceResumeSmoke) {
+        const maintenanceReadyResponse = parseJsonRpcResponses(stdout).find((response) => response?.id === 26 && response?.result);
+        if (maintenanceReadyResponse) {
+          sentMaintenanceResumeSmoke = true;
+          let maintenanceReadyPayload = null;
+          try {
+            maintenanceReadyPayload = JSON.parse(maintenanceReadyResponse.result.content?.[0]?.text || '{}');
+          } catch {
+            maintenanceReadyPayload = null;
+          }
+          const afterActionId = maintenanceReadyPayload?.actions?.[0]?.id;
+          if (typeof afterActionId === 'string' && afterActionId.length > 0) {
+            expectedFirstContactIds.add(30);
+            proc.stdin.write(JSON.stringify({
+              jsonrpc: '2.0',
+              id: 30,
+              method: 'tools/call',
+              params: {
+                name: 'query_ontology',
+                arguments: { operation: 'maintenance_plan', afterActionId, limit: 5 },
+              },
+            }) + '\n');
           }
         }
       }
@@ -2845,6 +2940,7 @@ async function step2BootAndCall() {
       const strictMaintenanceKindFilterRes = responses.find((r) => r.id === 24);
       const maintenanceMissingCursorRes = responses.find((r) => r.id === 25);
       const maintenanceReadyCursorRes = responses.find((r) => r.id === 26);
+      const maintenanceResumeCursorRes = responses.find((r) => r.id === 30);
       const addConceptsRowIsolationRes = responses.find((r) => r.id === 28);
       const addRelationsRowIsolationRes = responses.find((r) => r.id === 29);
       let kindsPayload = null;
@@ -2853,6 +2949,7 @@ async function step2BootAndCall() {
       let compilePayload = null;
       let overviewPayload = null;
       let graphSmokeArgs = null;
+      let maintenanceResumeVerified = false;
       const missingLabels = firstContactMissingResponseLabels(responses, expectedFirstContactIds);
       const errorRes = responses.find((response) => (
         expectedFirstContactIds.has(response?.id) && response?.error
@@ -2975,6 +3072,7 @@ async function step2BootAndCall() {
         log('fail', 'no query_ontology maintenance ready-cursor response');
         return res(false);
       }
+      let maintenanceReadyCursorPayload = null;
       try {
         const text = maintenanceReadyCursorRes.result.content?.[0]?.text || '';
         const parsed = JSON.parse(text);
@@ -2988,10 +3086,38 @@ async function step2BootAndCall() {
           log('fail', structuredFailure);
           return res(false);
         }
+        maintenanceReadyCursorPayload = parsed;
         log('ok', `maintenance cursor — ready page stable (${formatCount(parsed.summary.remainingActions, 'remaining action')}; ${maintenanceBucketOutputSummary(parsed)}; ${maintenanceNextActionOutputSummary(parsed)})`);
       } catch (err) {
         log('fail', `failed to parse maintenance ready-cursor response: ${err.message}`);
         return res(false);
+      }
+
+      const resumeAfterActionId = maintenanceReadyCursorPayload?.actions?.[0]?.id;
+      if (typeof resumeAfterActionId === 'string' && resumeAfterActionId.length > 0) {
+        if (!maintenanceResumeCursorRes || !maintenanceResumeCursorRes.result) {
+          log('fail', 'no query_ontology maintenance resume-cursor response');
+          return res(false);
+        }
+        try {
+          const text = maintenanceResumeCursorRes.result.content?.[0]?.text || '';
+          const parsed = JSON.parse(text);
+          const failure = maintenanceResumeCursorFailure(maintenanceReadyCursorPayload, parsed, resumeAfterActionId);
+          if (failure) {
+            log('fail', failure);
+            return res(false);
+          }
+          const structuredFailure = structuredContentFailure(maintenanceResumeCursorRes, parsed, 'maintenance cursor');
+          if (structuredFailure) {
+            log('fail', structuredFailure);
+            return res(false);
+          }
+          maintenanceResumeVerified = true;
+          log('ok', `maintenance cursor — resume afterActionId advanced (${resumeAfterActionId}; ${formatCount(parsed.summary.remainingActions, 'remaining action')}; ${maintenanceBucketOutputSummary(parsed)}; ${maintenanceNextActionOutputSummary(parsed)})`);
+        } catch (err) {
+          log('fail', `failed to parse maintenance resume-cursor response: ${err.message}`);
+          return res(false);
+        }
       }
 
       if (!callRes || !callRes.result) {
@@ -3456,6 +3582,7 @@ async function step2BootAndCall() {
         `structuredContent — ${structuredContentVerifySummary({
           hasNode: Boolean(graphSmokeArgs?.hasNode),
           hasProject: Boolean(graphSmokeArgs?.hasProject),
+          hasMaintenanceResume: maintenanceResumeVerified,
         })}`,
       );
       res(true);

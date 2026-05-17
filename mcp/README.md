@@ -217,6 +217,10 @@ missing `afterActionId`): the ready page must keep `cursor.found=true`,
 reason, empty page, `cursor.nextAfterActionId=null`, and `cursor.hasMore=false`.
 Ready pages also verify cursor metadata: `nextAfterActionId` must match the last
 returned action, and `hasMore` must match the remaining page state.
+When the ready page has at least one action, verify sends a valid
+`afterActionId` resume request from the first returned action id and fails if
+the resumed page repeats that cursor action or `remainingActions` does not
+advance.
 Ready pages also verify `nextExecutableAction` /
 `nextReviewAction` point only at the first executable/review action in the
 current returned page, including the action id, executable flag, `phase`, `kind`,
