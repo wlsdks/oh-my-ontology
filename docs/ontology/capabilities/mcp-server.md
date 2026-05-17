@@ -366,7 +366,8 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 `pnpm test:mcp:package` / `pnpm test:mcp:suggestions` 로 파일 단위 검증을 먼저
 돌려 반복 dogfood 비용을 낮춘다. dogfood helper / structuredContent 출력 계약이나
 stderr warning filtering 을 만질 때는 `pnpm test:mcp:dogfood` 로 dogfood helper 와
-관련 문서 계약만 먼저 확인한다. 직접 verify help(`npm run verify -- --help`) 는 `list_concepts` project probe / `get_concept` / `get_concepts` /
+관련 문서 계약만 먼저 확인한다. dogfood timeout / retry help 만 만질 때는
+`pnpm test:mcp:dogfood:timeout` 으로 더 좁게 확인한다. 직접 verify help(`npm run verify -- --help`) 는 `list_concepts` project probe / `get_concept` / `get_concepts` /
 `query_concepts` / limited `query_concepts` / `analyze_repo_structure` / `infer_imports` / `find_neighbors`
 를 포함한 focused direct read smoke set 도 설명한다. 별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`
 semantics 를 확인해 typed-filter pagination 계약을 빠르게 점검한다.

@@ -318,6 +318,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm integration:mcp:readme/);
     assert.match(section, /pnpm test:mcp:docs/);
     assert.match(section, /pnpm test:mcp:dogfood/);
+    assert.match(section, /pnpm test:mcp:dogfood:timeout/);
     assert.match(section, /pnpm test:mcp:suggestions/);
     assert.match(section, /pnpm test:mcp:verify/);
     assert.match(section, /pnpm test:mcp:verify:timeout/);
@@ -326,6 +327,7 @@ describe('package contract helpers', () => {
     assert.match(section, /first-contact read-only MCP flow/);
     assert.match(section, /documentation drift/);
     assert.match(section, /help output/);
+    assert.match(section, /dogfood timeout parsing, missing\s+response labels, and retry help/);
     assert.match(section, /unsupported-argument rejection/);
     assert.match(section, /stderr warning filtering/);
     assert.match(section, /verify helper contract/);
@@ -1186,6 +1188,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /Node `--test-name-pattern`/);
     assert.match(doc, /`pnpm integration:mcp:readme`/);
     assert.match(doc, /`pnpm test:mcp:dogfood`/);
+    assert.match(doc, /`pnpm test:mcp:dogfood:timeout`/);
     assert.match(doc, /`pnpm test:mcp:verify`/);
     assert.match(doc, /`pnpm test:mcp:verify:timeout`/);
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);
