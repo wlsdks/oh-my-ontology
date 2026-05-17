@@ -5,6 +5,7 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import { assertQueryOperation, workspaceBriefExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { formatUnknownFlagError, parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
+import { diagnosisStatusColor } from '../lib/diagnosis-colors.mjs';
 
 const ALLOWED_FLAGS = ['--vault', '--json'];
 
@@ -32,11 +33,6 @@ const SEVERITY_COLORS = {
   warn: COLORS.yellow,
   info: COLORS.dim,
 };
-const DIAGNOSIS_COLORS = {
-  healthy: COLORS.green,
-  needs_attention: COLORS.yellow,
-};
-
 export async function runWorkspaceBrief(args) {
   const { vault, json, error, help } = parseArgs(args);
   if (help) {
@@ -70,7 +66,7 @@ export async function runWorkspaceBrief(args) {
 function render(result) {
   const status = result?.status ?? 'unknown';
   const sum = result?.summary ?? {};
-  const sc = DIAGNOSIS_COLORS[status] || COLORS.dim;
+  const sc = diagnosisStatusColor(status, COLORS);
   process.stdout.write(
     `${COLORS.bold}workspace brief${COLORS.reset} ${sc}${status}${COLORS.reset}` +
       ` ${COLORS.dim}— ${sum.nodes ?? 0} 노드 · ${sum.edges ?? 0} 관계` +

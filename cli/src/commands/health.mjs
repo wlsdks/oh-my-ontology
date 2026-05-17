@@ -5,6 +5,7 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import { assertQueryOperation, healthResultExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { formatUnknownFlagError, parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
+import { diagnosisStatusColor, healthCheckStatusColor } from '../lib/diagnosis-colors.mjs';
 
 const ALLOWED_FLAGS = ['--vault', '--json'];
 
@@ -15,14 +16,6 @@ const COLORS = {
   dim: '\x1b[2m',
   bold: '\x1b[1m',
   reset: '\x1b[0m',
-};
-const STATUS_COLORS = {
-  healthy: COLORS.green,
-  needs_attention: COLORS.yellow,
-  pass: COLORS.green,
-  fail: COLORS.red,
-  warn: COLORS.yellow,
-  info: COLORS.dim,
 };
 const STATUS_ICONS = {
   pass: '✓',
@@ -58,7 +51,7 @@ export async function runHealth(args) {
     return healthResultExitCode(result);
   }
   const status = result?.status ?? 'unknown';
-  const sc = STATUS_COLORS[status] || COLORS.dim;
+  const sc = diagnosisStatusColor(status, COLORS);
   const sum = result?.summary ?? {};
   process.stdout.write(
     `${COLORS.bold}vault health${COLORS.reset} ${sc}${status}${COLORS.reset}` +
@@ -66,7 +59,7 @@ export async function runHealth(args) {
   );
   const checks = Array.isArray(result?.checks) ? result.checks : [];
   for (const c of checks) {
-    const cc = STATUS_COLORS[c.status] || COLORS.dim;
+    const cc = healthCheckStatusColor(c.status, COLORS);
     const icon = STATUS_ICONS[c.status] || '·';
     process.stdout.write(
       `  ${cc}${icon}${COLORS.reset} ${cc}${(c.id || '').padEnd(28)}${COLORS.reset}` +
