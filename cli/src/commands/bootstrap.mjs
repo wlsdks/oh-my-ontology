@@ -25,6 +25,7 @@ import {
   assertConceptBatchResult,
   assertRelationBatchResult,
 } from '../lib/batch-results.mjs';
+import { assertAnalyzeRepoStructureResult } from '../lib/repo-analysis-results.mjs';
 import {
   pruneUntouchedStarterNodes,
   restorePrunedStarterNodes,
@@ -78,6 +79,7 @@ export async function runBootstrap(args) {
       rootPath: target,
       maxDepth: parsed.maxDepth,
     });
+    assertAnalyzeRepoStructureResult(analyzeResult);
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  analyze: ${err instanceof Error ? err.message : String(err)}\n`,

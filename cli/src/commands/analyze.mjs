@@ -9,6 +9,7 @@ import {
   assertConceptBatchResult,
   assertRelationBatchResult,
 } from '../lib/batch-results.mjs';
+import { assertAnalyzeRepoStructureResult } from '../lib/repo-analysis-results.mjs';
 import {
   pruneUntouchedStarterNodes,
   restorePrunedStarterNodes,
@@ -68,9 +69,10 @@ export async function runAnalyze(args) {
       rootPath: target,
       maxDepth,
     });
+    assertAnalyzeRepoStructureResult(result);
   } catch (err) {
     process.stderr.write(
-      `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,
+      `${COLORS.red}error${COLORS.reset}  analyze_repo_structure: ${err instanceof Error ? err.message : String(err)}\n`,
     );
     return 2;
   }

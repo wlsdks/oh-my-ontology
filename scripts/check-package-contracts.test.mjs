@@ -1583,6 +1583,8 @@ describe('package contract helpers', () => {
     assert.equal(isCoveredByFiles('src/lib/cli-args.test.mjs', pkg.files), true);
     assert.equal(isCoveredByFiles('src/lib/batch-results.mjs', pkg.files), true);
     assert.equal(isCoveredByFiles('src/lib/batch-results.test.mjs', pkg.files), true);
+    assert.equal(isCoveredByFiles('src/lib/repo-analysis-results.mjs', pkg.files), true);
+    assert.equal(isCoveredByFiles('src/lib/repo-analysis-results.test.mjs', pkg.files), true);
     assert.equal(isCoveredByFiles('src/lib/cli-commands.test.mjs', pkg.files), true);
     assert.equal(isCoveredByFiles('src/lib/mcp-call.test.mjs', pkg.files), true);
     assert.equal(isCoveredByFiles('src/index.mjs', pkg.files), true);
@@ -1629,6 +1631,8 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /full verify \/ dogfood suite 를 돌리지 않아도 된다/);
     assert.match(regressionSection, /`pnpm package:check` 도 이 gate 를 포함/);
     assert.match(regressionSection, /`cli\/src\/lib\/cli-args\.test\.mjs`/);
+    assert.match(regressionSection, /`cli\/src\/lib\/repo-analysis-results\.test\.mjs`/);
+    assert.match(regressionSection, /`analyze_repo_structure` 후보 배열 shape fail-closed 계약/);
     assert.match(regressionSection, /`cli\/src\/lib\/batch-results\.test\.mjs`/);
     assert.match(regressionSection, /batch writer 응답 row count \/ row shape fail-closed 계약/);
     assert.match(regressionSection, /`cli\/src\/lib\/cli-commands\.test\.mjs`/);
