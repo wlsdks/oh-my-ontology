@@ -1000,11 +1000,11 @@ describe('package contract helpers', () => {
     const smokeSection = doc.split('scripts/smoke-packed-cli.mjs —')[1]?.split('scripts/check-package-contracts.mjs')[0] ?? '';
 
     assert.match(smoke, /runRaw\(cliBin, \['cycles', cycleVault, '--json'\]/);
-    assert.match(smoke, /assert\.equal\(blockingCycles\.status, 1\)/);
+    assert.match(smoke, /installed CLI cycles fail gate/);
     assert.match(smoke, /runRaw\(cliBin, \['compile', danglingVault, '--json'\]/);
-    assert.match(smoke, /assert\.equal\(blockingCompile\.status, 1\)/);
+    assert.match(smoke, /installed CLI compile dangling json/);
     assert.match(smoke, /\['path', 'capabilities\/a', 'capabilities\/b', disconnectedVault, '--json'\]/);
-    assert.match(smoke, /assert\.equal\(missingPath\.status, 1\)/);
+    assert.match(smoke, /installed CLI path disconnected graph/);
     assert.match(smoke, /workspace_brief — \.\*next actions, \.\*health checks/);
     assert.match(smoke, /directMcpVerify/);
     assert.match(smoke, /directMcpVerifyVaultFlag/);
@@ -1030,6 +1030,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /installed CLI mcp-verify primary/);
     assert.match(smoke, /function assertStatus/);
     assert.match(smoke, /installed CLI mcp-verify invalid timeout flag/);
+    assert.match(smoke, /installed CLI missing MCP entry override/);
+    assert.match(smoke, /installed CLI workspace-brief cycle gate/);
     assert.match(smoke, /missingDirectMcpVerifyTimeout/);
     assert.match(smoke, /typoDirectMcpVerifyTimeout/);
     assert.match(smoke, /typoDirectMcpVerifyVault/);

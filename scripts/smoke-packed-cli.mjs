@@ -454,7 +454,7 @@ try {
     cwd: projectDir,
     env: { OMOT_MCP_VERIFY_PATH: join(temp, 'missing-verify.mjs') },
   });
-  assert.equal(missingVerifyOverride.status, 2);
+  assertStatus(missingVerifyOverride, 2, 'installed CLI mcp-verify missing verify override');
   assert.equal(missingVerifyOverride.stdout, '');
   assert.match(missingVerifyOverride.stderr, /OMOT_MCP_VERIFY_PATH does not exist/);
 
@@ -462,7 +462,7 @@ try {
     cwd: projectDir,
     env: { OMOT_MCP_VERIFY_PATH: temp },
   });
-  assert.equal(directoryVerifyOverride.status, 2);
+  assertStatus(directoryVerifyOverride, 2, 'installed CLI mcp-verify directory verify override');
   assert.equal(directoryVerifyOverride.stdout, '');
   assert.match(directoryVerifyOverride.stderr, /OMOT_MCP_VERIFY_PATH is not a file/);
 
@@ -470,7 +470,7 @@ try {
     cwd: projectDir,
     env: { OMOT_MCP_PATH: join(temp, 'missing-mcp-entry.js') },
   });
-  assert.equal(missingMcpEntryOverride.status, 2);
+  assertStatus(missingMcpEntryOverride, 2, 'installed CLI missing MCP entry override');
   assert.match(missingMcpEntryOverride.stderr, /OMOT_MCP_PATH does not exist/);
   assert.doesNotMatch(missingMcpEntryOverride.stderr, /MODULE_NOT_FOUND|mcp exited/);
 
@@ -478,17 +478,17 @@ try {
     cwd: projectDir,
     env: { OMOT_MCP_PATH: temp },
   });
-  assert.equal(directoryMcpEntryOverride.status, 2);
+  assertStatus(directoryMcpEntryOverride, 2, 'installed CLI directory MCP entry override');
   assert.match(directoryMcpEntryOverride.stderr, /OMOT_MCP_PATH is not a file/);
   assert.doesNotMatch(directoryMcpEntryOverride.stderr, /MODULE_NOT_FOUND|mcp exited/);
 
   const missingVaultRoot = runRaw(cliBin, ['list', 'not-a-vault'], { cwd: projectDir });
-  assert.equal(missingVaultRoot.status, 2);
+  assertStatus(missingVaultRoot, 2, 'installed CLI missing list vault root');
   assert.match(missingVaultRoot.stderr, /Vault root not found/);
   assert.equal(missingVaultRoot.stdout, '');
 
   const missingMcpVaultRoot = runRaw(cliBin, ['overview', 'not-a-vault'], { cwd: projectDir });
-  assert.equal(missingMcpVaultRoot.status, 2);
+  assertStatus(missingMcpVaultRoot, 2, 'installed CLI missing MCP vault root');
   assert.match(missingMcpVaultRoot.stderr, /Vault root not found/);
   assert.doesNotMatch(missingMcpVaultRoot.stderr, /mcp exited|vault root 검증 실패/);
 
@@ -762,7 +762,7 @@ try {
   assert.match(duplicatePositionalDirectMcpVerifyVault.stderr, /Unexpected extra vault argument:/);
 
   const compile = runRaw(cliBin, ['compile', 'ontology', '--summary'], { cwd: projectDir });
-  assert.equal(compile.status, 1);
+  assertStatus(compile, 1, 'installed CLI compile dangling summary');
   assert.match(compile.stdout, /compiled ontology/);
   assert.match(compile.stdout, /5 nodes/);
   assert.match(compile.stdout, /issues.*1/);
@@ -770,7 +770,7 @@ try {
   const cycleVault = join(projectDir, 'cycle-vault');
   writeCycleVault(cycleVault);
   const blockingBrief = runRaw(cliBin, ['workspace-brief', cycleVault, '--json'], { cwd: projectDir });
-  assert.equal(blockingBrief.status, 1);
+  assertStatus(blockingBrief, 1, 'installed CLI workspace-brief cycle gate');
   const blockingBriefPayload = JSON.parse(blockingBrief.stdout);
   assert.equal(blockingBriefPayload.status, 'needs_attention');
   assert.equal(
@@ -781,7 +781,7 @@ try {
   );
 
   const blockingCycles = runRaw(cliBin, ['cycles', cycleVault, '--json'], { cwd: projectDir });
-  assert.equal(blockingCycles.status, 1);
+  assertStatus(blockingCycles, 1, 'installed CLI cycles fail gate');
   const blockingCyclesPayload = JSON.parse(blockingCycles.stdout);
   assert.equal(blockingCyclesPayload.operation, 'cycles');
   assert.equal(blockingCyclesPayload.totalCycles, 1);
@@ -789,7 +789,7 @@ try {
   const danglingVault = join(projectDir, 'dangling-vault');
   writeDanglingVault(danglingVault);
   const blockingCompile = runRaw(cliBin, ['compile', danglingVault, '--json'], { cwd: projectDir });
-  assert.equal(blockingCompile.status, 1);
+  assertStatus(blockingCompile, 1, 'installed CLI compile dangling json');
   const blockingCompilePayload = JSON.parse(blockingCompile.stdout);
   assert.equal(blockingCompilePayload.summary.issues, 1);
   assert.equal(blockingCompilePayload.summary.unresolvedEdges, 1);
@@ -801,7 +801,7 @@ try {
     ['path', 'capabilities/a', 'capabilities/b', disconnectedVault, '--json'],
     { cwd: projectDir },
   );
-  assert.equal(missingPath.status, 1);
+  assertStatus(missingPath, 1, 'installed CLI path disconnected graph');
   const missingPathPayload = JSON.parse(missingPath.stdout);
   assert.equal(missingPathPayload.found, false);
 
