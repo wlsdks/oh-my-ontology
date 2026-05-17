@@ -30,6 +30,7 @@ import {
   shouldPrintDogfoodHelp,
   stderrWarningLines,
   stderrWarningFailures,
+  strictClosestValueSummary,
   structuredContentStatus,
   toolsListSchemaStatus,
   toolsListAnnotationSummary,
@@ -2902,6 +2903,25 @@ describe("rpc response completion helpers", () => {
     );
     assert.ok(
       toolsListSchemaStatus(null, { color: true }).includes(TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY),
+    );
+  });
+
+  it("summarizes strict closest-value smoke details for final dogfood output", () => {
+    assert.equal(
+      strictClosestValueSummary(okShape.strictRelationFilter),
+      "rejected true (depend_on -> depends_on)",
+    );
+    assert.equal(
+      strictClosestValueSummary({ result: { isError: true, content: [{ text: 'Received: "depend_on".' }] } }),
+      "rejected true (depend_on; no suggestion)",
+    );
+    assert.equal(
+      strictClosestValueSummary({ result: { isError: true, content: [{ text: "different error" }] } }),
+      "rejected true",
+    );
+    assert.equal(
+      strictClosestValueSummary({ result: { isError: false, content: [{ text: "ok" }] } }),
+      "rejected false",
     );
   });
 

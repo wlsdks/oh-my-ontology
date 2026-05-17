@@ -600,6 +600,9 @@ Analysis 가 `strict arguments + annotations + graph-query enums + write relatio
 범위를 함께 출력한다. 그래서
 `schema: pass` 만 보고 어떤 schema 계약을 통과했는지 다시 README 나 verify script 를
 열어보지 않아도 된다.
+최종 Analysis 의 strict relation filter / `relation_check` row 는 closest-value
+smoke 의 핵심 증거인 `depend_on -> depends_on` 까지 표시해, 단순히 rejected 여부만
+통과한 것인지 suggestion 품질까지 검증된 것인지 구분할 수 있게 한다.
 `tools/list` 의 `annotations.title` 표시명과 `annotations.readOnlyHint` 도 15 read / 8 write split 과
 일치하게 노출하고, destructive multi-file/delete 도구는 `annotations.destructiveHint`,
 retry-safe relation writer 는 `annotations.idempotentHint`, 모든 도구는 local

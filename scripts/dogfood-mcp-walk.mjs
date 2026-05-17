@@ -370,6 +370,18 @@ export function toolsListSchemaStatus(schemaFailure, options = {}) {
   return `${pass} (${TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY})`;
 }
 
+export function strictClosestValueSummary(response) {
+  const rejected = response?.result?.isError === true;
+  if (!rejected) return "rejected false";
+
+  const text = response.result.content?.[0]?.text || "";
+  const received = text.match(/Received: "([^"]+)"/i)?.[1] || null;
+  const suggestion = text.match(/Did you mean "([^"]+)"\?/i)?.[1] || null;
+  if (received && suggestion) return `rejected true (${received} -> ${suggestion})`;
+  if (received) return `rejected true (${received}; no suggestion)`;
+  return "rejected true";
+}
+
 export function healthCheckStatusSummary(checks, limit = 5) {
   if (!Array.isArray(checks) || checks.length === 0) return "none";
   const shown = checks.slice(0, limit).map((check) => {
@@ -5575,8 +5587,8 @@ async function main() {
   console.log(`  strict_maintenance_phase_filter: rejected ${strictMaintenancePhaseFilter?.result?.isError === true}`);
   console.log(`  strict_maintenance_severity_filter: rejected ${strictMaintenanceSeverityFilter?.result?.isError === true}`);
   console.log(`  strict_maintenance_kind_filter: rejected ${strictMaintenanceKindFilter?.result?.isError === true}`);
-  console.log(`  strict_relation_filter: rejected ${strictRelationFilter?.result?.isError === true}`);
-  console.log(`  strict_relation_check: rejected ${strictRelationCheck?.result?.isError === true}`);
+  console.log(`  strict_relation_filter: ${strictClosestValueSummary(strictRelationFilter)}`);
+  console.log(`  strict_relation_check: ${strictClosestValueSummary(strictRelationCheck)}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   const stderrWarnings = stderrWarningLines(stderr);
