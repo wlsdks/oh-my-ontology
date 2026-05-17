@@ -192,6 +192,17 @@ const QUERY_PLAN_TARGET_OPERATION_UNION = QUERY_PLAN_TARGET_OPERATIONS
 const RELATION_TYPE_UNION = RELATION_TYPE_VALUES
   .map((type) => `'${type}'`)
   .join('|');
+const ADD_RELATION_TYPE_VALUES = Object.freeze([
+  'depends_on',
+  'relates',
+  'contains',
+  'describes',
+  'domains',
+  'capabilities',
+  'elements',
+  'domain',
+]);
+const ADD_RELATION_TYPE_SCHEMA = { ...NON_BLANK_STRING_SCHEMA, enum: ADD_RELATION_TYPE_VALUES };
 
 // import-time throw 면 stdio transport 가 붙기 전 stack trace 가 stderr 로
 // 새고 클라이언트 (Claude Code 등) 에선 silent crash 로 보인다. 친절한 한
@@ -688,17 +699,7 @@ const TOOLS = [
         from: nonBlankStringSchema('Source slug.'),
         to: nonBlankStringSchema('Target slug.'),
         type: {
-          ...NON_BLANK_STRING_SCHEMA,
-          enum: [
-            'depends_on',
-            'relates',
-            'contains',
-            'describes',
-            'domains',
-            'capabilities',
-            'elements',
-            'domain',
-          ],
+          ...ADD_RELATION_TYPE_SCHEMA,
           description: 'Relation type.',
         },
         expected_mtime: {
@@ -748,19 +749,7 @@ const TOOLS = [
             properties: {
               from: NON_BLANK_STRING_SCHEMA,
               to: NON_BLANK_STRING_SCHEMA,
-              type: {
-                ...NON_BLANK_STRING_SCHEMA,
-                enum: [
-                  'depends_on',
-                  'relates',
-                  'contains',
-                  'describes',
-                  'domains',
-                  'capabilities',
-                  'elements',
-                  'domain',
-                ],
-              },
+              type: ADD_RELATION_TYPE_SCHEMA,
               expected_mtime: { type: 'number', minimum: 0 },
             },
             required: ['from', 'to', 'type'],
@@ -2746,7 +2735,7 @@ const RELATION_KEY = {
   elements: 'elements',
   domain: 'domain',
 };
-const RELATION_TYPES = Object.freeze(Object.keys(RELATION_KEY));
+const RELATION_TYPES = ADD_RELATION_TYPE_VALUES;
 
 function addRelation({ from, to, type, expected_mtime }, options = {}) {
   requireNonBlankString(from, 'from');

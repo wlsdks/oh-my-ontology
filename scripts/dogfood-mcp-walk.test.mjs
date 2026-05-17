@@ -942,7 +942,15 @@ function makeDogfoodToolsList() {
         tool.inputSchema.properties.relations = {
           type: "array",
           maxItems: 50,
-          items: { properties: { expected_mtime: { type: "number", minimum: 0 } } },
+          items: {
+            properties: {
+              type: {
+                type: "string",
+                enum: ["depends_on", "relates", "contains", "describes", "domains", "capabilities", "elements", "domain"],
+              },
+              expected_mtime: { type: "number", minimum: 0 },
+            },
+          },
         };
         tool.outputSchema = {
           type: "object",
@@ -970,6 +978,10 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "add_relation") {
+        tool.inputSchema.properties.type = {
+          type: "string",
+          enum: ["depends_on", "relates", "contains", "describes", "domains", "capabilities", "elements", "domain"],
+        };
         tool.outputSchema = {
           type: "object",
           required: ["ok", "from", "to", "type"],

@@ -1142,6 +1142,10 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
           findTool("add_relations")?.inputSchema?.properties?.relations?.items?.properties?.to?.minLength,
         relationTypeMinLength:
           findTool("add_relations")?.inputSchema?.properties?.relations?.items?.properties?.type?.minLength,
+        relationTypeEnum:
+          findTool("add_relations")?.inputSchema?.properties?.relations?.items?.properties?.type?.enum,
+        addRelationTypeEnum:
+          findTool("add_relation")?.inputSchema?.properties?.type?.enum,
         analyzeIgnoreItemMinLength:
           findTool("analyze_repo_structure")?.inputSchema?.properties?.ignore?.items?.minLength,
         inferSourceItemMinLength:
@@ -1157,6 +1161,26 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         relationFromMinLength: 1,
         relationToMinLength: 1,
         relationTypeMinLength: 1,
+        relationTypeEnum: [
+          "depends_on",
+          "relates",
+          "contains",
+          "describes",
+          "domains",
+          "capabilities",
+          "elements",
+          "domain",
+        ],
+        addRelationTypeEnum: [
+          "depends_on",
+          "relates",
+          "contains",
+          "describes",
+          "domains",
+          "capabilities",
+          "elements",
+          "domain",
+        ],
         analyzeIgnoreItemMinLength: 1,
         inferSourceItemMinLength: 1,
         inferIgnoreItemMinLength: 1,

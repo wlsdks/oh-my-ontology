@@ -422,6 +422,10 @@ describe('verify.mjs first-contact gates', () => {
               maxItems: 50,
               items: {
                 properties: {
+                  type: {
+                    type: 'string',
+                    enum: ['depends_on', 'relates', 'contains', 'describes', 'domains', 'capabilities', 'elements', 'domain'],
+                  },
                   expected_mtime: { type: 'number', minimum: 0 },
                 },
               },
@@ -459,7 +463,13 @@ describe('verify.mjs first-contact gates', () => {
           `Changed writes return ${postWriteDescription}.`,
         inputSchema: {
           additionalProperties: false,
-          properties: { expected_mtime: { type: 'number', minimum: 0 } },
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['depends_on', 'relates', 'contains', 'describes', 'domains', 'capabilities', 'elements', 'domain'],
+            },
+            expected_mtime: { type: 'number', minimum: 0 },
+          },
         },
         outputSchema: {
           type: 'object',
@@ -3180,7 +3190,10 @@ describe('verify.mjs first-contact gates', () => {
           ...tools.find((tool) => tool.name === 'add_relation'),
           inputSchema: {
             ...tools.find((tool) => tool.name === 'add_relation').inputSchema,
-            properties: { expected_mtime: { type: 'number' } },
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_relation').inputSchema.properties,
+              expected_mtime: { type: 'number' },
+            },
           },
         },
       ]),
