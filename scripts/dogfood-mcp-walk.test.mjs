@@ -31,6 +31,7 @@ import {
   stderrWarningLines,
   stderrWarningFailures,
   structuredContentStatus,
+  toolsListSchemaStatus,
   toolsListAnnotationSummary,
   tunedHealthScopeSummary,
   tunedWorkspaceBriefScopeSummary,
@@ -50,6 +51,7 @@ import {
   VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
   expectedToolsListAnnotationSummary,
   expectedToolTitle,
+  TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY,
 } from "../mcp/scripts/verify.mjs";
 import {
   MAINTENANCE_KIND_VALUES,
@@ -2883,6 +2885,24 @@ describe("rpc response completion helpers", () => {
       "23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 22/23 local-only",
     );
     assert.equal(toolsListAnnotationSummary(null), "missing tools/list");
+  });
+
+  it("summarizes tools/list schema coverage for dogfood output", () => {
+    assert.equal(
+      toolsListSchemaStatus(null),
+      `pass (${TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY})`,
+    );
+    assert.equal(
+      toolsListSchemaStatus("add_relation inputSchema type enum drift"),
+      "add_relation inputSchema type enum drift",
+    );
+    assert.match(
+      toolsListSchemaStatus(null, { color: true }),
+      /pass/,
+    );
+    assert.ok(
+      toolsListSchemaStatus(null, { color: true }).includes(TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY),
+    );
   });
 
   it("summarizes health check statuses for the final dogfood analysis", () => {

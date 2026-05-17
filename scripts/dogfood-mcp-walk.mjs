@@ -362,6 +362,14 @@ export function writeRowLabelGuidanceSummary(tools) {
   return missing.length > 0 ? `missing ${missing.join(", ")}` : "pass";
 }
 
+export function toolsListSchemaStatus(schemaFailure, options = {}) {
+  if (schemaFailure) {
+    return options.color ? `${COLORS.yellow}${schemaFailure}${COLORS.reset}` : schemaFailure;
+  }
+  const pass = options.color ? `${COLORS.green}pass${COLORS.reset}` : "pass";
+  return `${pass} (${TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY})`;
+}
+
 export function healthCheckStatusSummary(checks, limit = 5) {
   if (!Array.isArray(checks) || checks.length === 0) return "none";
   const shown = checks.slice(0, limit).map((check) => {
@@ -4465,9 +4473,7 @@ async function main() {
     const tools = Array.isArray(toolsList.tools) ? toolsList.tools : [];
     const schemaFailure = toolsListSchemaFailure(tools);
     console.log(`  tools: ${tools.length} (${toolsListAnnotationSummary(tools)})`);
-    console.log(
-      `  schema: ${schemaFailure ? `${COLORS.yellow}${schemaFailure}${COLORS.reset}` : `${COLORS.green}pass${COLORS.reset}`} (${TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY})`,
-    );
+    console.log(`  schema: ${toolsListSchemaStatus(schemaFailure, { color: true })}`);
     console.log(`  write row labels: ${writeRowLabelGuidanceSummary(tools)}`);
   }
 
@@ -5486,7 +5492,7 @@ async function main() {
   const orphRatio = total > 0 ? ((orphCount / total) * 100).toFixed(0) : 0;
   console.log(`  vault size: ${total} 노드`);
   const schemaFailure = toolsListSchemaFailure(toolsList?.tools);
-  console.log(`  tools/list schema: ${schemaFailure || `pass (${TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY})`}`);
+  console.log(`  tools/list schema: ${toolsListSchemaStatus(schemaFailure)}`);
   console.log(`  tools/list annotations: ${toolsListAnnotationSummary(toolsList?.tools)}`);
   console.log(`  tools/list write row labels: ${writeRowLabelGuidanceSummary(toolsList?.tools)}`);
   console.log(`  orphans: ${orphCount} (${orphRatio}%)`);
