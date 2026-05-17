@@ -2879,7 +2879,7 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
     assert.match(usage, /pnpm test:mcp:dogfood:timeout/);
     assert.match(usage, /Narrow dogfood timeout\/help retry diagnostics/);
-    assert.match(usage, /Dogfood helper, compile gate, row-label guidance, help, structuredContent, stderr warning checks/);
+    assert.match(usage, /Dogfood helper, compile gate, row-label guidance, help, structuredContent, strict relation filters, stderr warning checks/);
     assertPnpmScriptsExist(usage);
   });
 
@@ -3464,6 +3464,41 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["strict_maintenance_kind_filter: strict maintenance filter response did not list allowed maintenance_plan kinds"],
+    );
+  });
+
+  it("fails malformed strict relation filters dogfood responses", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictRelationFilter: { result: { isError: false, content: [{ text: "ok" }] } } }),
+      ["strict_relation_filter: strict relation filter response was not rejected"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictRelationFilter: { result: { isError: true, content: [{ text: "different error" }] } } }),
+      ["strict_relation_filter: strict relation filter response did not report the invalid dependencyTypes filter"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictRelationFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'dependencyTypes items must be one of: domains, domain, capabilities, elements, dependencies.' }],
+          },
+        },
+      }),
+      ["strict_relation_filter: strict relation filter response did not report the invalid dependencyTypes value"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictRelationFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'dependencyTypes items must be one of: domains, domain, capabilities, elements, dependencies. Received: "depend_on".' }],
+          },
+        },
+      }),
+      ["strict_relation_filter: strict relation filter response did not suggest the closest dependencyTypes value"],
     );
   });
 
