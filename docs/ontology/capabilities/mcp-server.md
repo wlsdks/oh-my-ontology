@@ -296,7 +296,11 @@ wiring 확인 직후 정리할 항목을 바로 보여준다. 마지막 Analysis
 `workspace_brief non-blocking nextActions` /
 `workspace_brief_tuned non-blocking nextActions` 를
 label:severity:count 형태로 다시 출력해 긴 dogfood 로그의 끝만 봐도 후속
-조치의 종류와 규모를 알 수 있게 한다. verify / dogfood blocking failure 도
+조치의 종류와 규모를 알 수 있게 한다. 최종 Analysis 의
+`workspace_brief_tuned scope` 도 `dependencyTypes=dependencies`,
+`componentTypes=domains/domain/capabilities/dependencies`, `nodeLimit 3` 를
+같이 출력해 tuned nextActions 가 어떤 graph slice 에서 나온 것인지 로그 끝에서
+확인할 수 있게 한다. verify / dogfood blocking failure 도
 같은 label:severity:count 요약을 써서 실패 직후 우선 조치와 규모가 숨지
 않게 한다. failing health check gate 도 같은 id:status:count 요약을 써서
 실패한 health 축의 상태와 규모를 바로 보이게 한다. dogfood status gate 도

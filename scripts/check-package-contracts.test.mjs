@@ -1230,6 +1230,8 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /severity\/kind\/id\/count\/message/);
     assert.match(dogfoodSection, /workspace_brief non-blocking nextActions/);
     assert.match(dogfoodSection, /workspace_brief_tuned non-blocking nextActions/);
+    assert.match(dogfoodSection, /workspace_brief_tuned scope/);
+    assert.match(dogfoodSection, /`componentTypes=domains\/domain\/capabilities\/dependencies`, `nodeLimit 3`/);
     assert.match(dogfoodSection, /label:severity:count/);
     assert.match(dogfoodSection, /health checks/);
     assert.match(dogfoodSection, /health_tuned checks/);

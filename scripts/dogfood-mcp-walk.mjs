@@ -465,6 +465,10 @@ export function tunedHealthScopeSummary(args = DOGFOOD_TUNED_HEALTH_ARGS) {
   return `dependencyTypes=${dependencyTypes}; componentTypes=${componentTypes}`;
 }
 
+export function tunedWorkspaceBriefScopeSummary(args = DOGFOOD_TUNED_HEALTH_ARGS, nodeLimit = 3) {
+  return `${tunedHealthScopeSummary(args)}; nodeLimit ${nodeLimit}`;
+}
+
 const init = [
   {
     jsonrpc: "2.0",
@@ -4692,7 +4696,7 @@ async function main() {
   const tunedBriefStructured = structuredContent(50);
   if (tunedBrief) {
     console.log(`  structuredContent: ${structuredContentStatus(tunedBrief, tunedBriefStructured)}`);
-    console.log(`  scope: ${tunedHealthScopeSummary()}; nodeLimit 3`);
+    console.log(`  scope: ${tunedWorkspaceBriefScopeSummary()}`);
     console.log(`  status: ${tunedBrief.status}`);
     console.log(
       `  summary: nodes ${tunedBrief.summary?.nodes ?? "n/a"} · edges ${tunedBrief.summary?.edges ?? "n/a"} · issues ${tunedBrief.summary?.issues ?? "n/a"}`,
@@ -5473,6 +5477,7 @@ async function main() {
   console.log(
     `  workspace_brief_tuned: ${tunedBrief?.status ?? "n/a"} (${(tunedBrief?.nextActions || []).length} next actions · ${(tunedBrief?.health?.checks || []).length} health checks)`,
   );
+  console.log(`  workspace_brief_tuned scope: ${tunedWorkspaceBriefScopeSummary()}`);
   console.log(
     `  ${workspaceNextActionAnalysisLabel("workspace_brief_tuned")}: ${workspaceNextActionSummary(tunedBrief?.nextActions)}`,
   );

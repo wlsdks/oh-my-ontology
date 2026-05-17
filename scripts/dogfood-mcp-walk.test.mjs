@@ -32,6 +32,7 @@ import {
   structuredContentStatus,
   toolsListAnnotationSummary,
   tunedHealthScopeSummary,
+  tunedWorkspaceBriefScopeSummary,
   workspaceNextActionAnalysisLabel,
   workspaceNextActionSummary,
   writeRowLabelGuidanceSummary,
@@ -2877,8 +2878,16 @@ describe("rpc response completion helpers", () => {
       "dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies",
     );
     assert.equal(
+      tunedWorkspaceBriefScopeSummary(),
+      "dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit 3",
+    );
+    assert.equal(
       tunedHealthScopeSummary({ dependencyTypes: [], componentTypes: null }),
       "dependencyTypes=all; componentTypes=all",
+    );
+    assert.equal(
+      tunedWorkspaceBriefScopeSummary({ dependencyTypes: [], componentTypes: null }, 1),
+      "dependencyTypes=all; componentTypes=all; nodeLimit 1",
     );
   });
 
