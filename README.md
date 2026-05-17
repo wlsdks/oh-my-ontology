@@ -236,7 +236,7 @@ src/            Feature-Sliced Design layers
   ├── entities/ domain entities (project, ontology-class, knowledge-graph, …)
   └── shared/   ui primitives, lib, config
 mcp/            MCP server (`oh-my-ontology-mcp`, 23 tools) — AI agent surface
-cli/            `npx oh-my-ontology` (26 commands: scaffold, MCP verify, bootstrap, compile, graph deep dive) — developer terminal surface
+cli/            `npx oh-my-ontology` (27 commands: scaffold, MCP verify, bootstrap, compile, maintenance queue, graph deep dive) — developer terminal surface
 docs/           Long-form docs + dogfood vault (docs/ontology/) + benchmark results
 docs/archive/   Historical analysis docs
 scripts/        Build helpers

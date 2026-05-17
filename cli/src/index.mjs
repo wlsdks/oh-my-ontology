@@ -100,6 +100,8 @@ ${COLORS.bold}Graph-level commands${COLORS.reset} ${COLORS.dim}(R15 — wraps th
        --json                                 ${COLORS.dim}exit 0 만 healthy${COLORS.reset}
   npx oh-my-ontology workspace-brief [vault]  Status + hotspots + project 요약 + next actions 한 화면
        --json
+  npx oh-my-ontology maintenance [vault]      Ordered graph cleanup/repair work queue
+       --limit N --after-action-id ID --json  ${COLORS.dim}cursor page · filterable maintenance_plan${COLORS.reset}
   npx oh-my-ontology node <slug> [vault]      한 노드 deep dive — header · lineage · incoming/outgoing edges
        --json                                 ${COLORS.dim}relation 별 그룹 + 노드 title 동봉${COLORS.reset}
   npx oh-my-ontology similar "<title>" [vault] vault 에서 비슷한 노드 찾기 (duplicate 회피, /ontology-extract 짝)

@@ -2262,6 +2262,45 @@ await test('workspace-brief — prints health check coverage', async () => {
   }
 });
 
+await test('maintenance --json — exposes maintenance_plan work queue', async () => {
+  const root = buildCycleFixture();
+  try {
+    const r = await run(['maintenance', root, '--json', '--limit', '2']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const data = JSON.parse(r.stdout);
+    assert.equal(data.operation, 'maintenance_plan');
+    assert.equal(data.sideEffect, false);
+    assert.equal(data.summary.dependencyCycles, 1);
+    assert.equal(data.cursor.found, true);
+    assert.ok(Array.isArray(data.actions));
+    assert.equal(data.actions.some((action) => action.kind === 'break_dependency_cycle'), true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('maintenance — supports cursor and enum filter flags', async () => {
+  const root = buildCycleFixture();
+  try {
+    const filtered = await run(['maintenance', root, '--phases', 'repair', '--severities', 'fail', '--kinds', 'break_dependency_cycle', '--limit=1']);
+    assert.equal(filtered.code, 0, `stdout: ${filtered.stdout}\nstderr: ${filtered.stderr}`);
+    const clean = stripAnsi(filtered.stdout);
+    assert.match(clean, /maintenance plan/);
+    assert.match(clean, /break_dependency_cycle/);
+    assert.match(clean, /filters: phases=repair · severities=fail · kinds=break_dependency_cycle/);
+
+    const missingCursor = await run(['maintenance', root, '--after-action-id', 'missing-action', '--json']);
+    assert.equal(missingCursor.code, 0, `stdout: ${missingCursor.stdout}\nstderr: ${missingCursor.stderr}`);
+    const data = JSON.parse(missingCursor.stdout);
+    assert.equal(data.cursor.found, false);
+    assert.equal(data.cursor.nextAfterActionId, null);
+    assert.equal(data.cursor.hasMore, false);
+    assert.equal(data.actions.length, 0);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('health --json — unhealthy graph exits non-zero', async () => {
   const root = buildCycleFixture();
   try {

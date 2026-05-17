@@ -761,6 +761,7 @@ describe('package contract helpers', () => {
   it('keeps the CLI README explicit about mcp-verify help scope', () => {
     const readme = readFileSync('cli/README.md', 'utf-8');
     const tableRow = readme.split('| `oh-my-ontology mcp-verify [vault]` |')[1]?.split('\n')[0] ?? '';
+    const maintenanceRow = readme.split('| `oh-my-ontology maintenance [vault]` |')[1]?.split('\n')[0] ?? '';
     const inferImportsRow = readme.split('| `oh-my-ontology infer-imports [rootPath]` |')[1]?.split('\n')[0] ?? '';
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
 
@@ -774,6 +775,9 @@ describe('package contract helpers', () => {
     assert.match(tableRow, /`find_orphans`/);
     assert.match(tableRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
+    assert.match(maintenanceRow, /MCP `maintenance_plan` cleanup\/repair work queue/);
+    assert.match(maintenanceRow, /`--after-action-id`/);
+    assert.match(maintenanceRow, /cursor\/filter dogfood/);
     assert.match(inferImportsRow, /file edge kind summary/);
     assert.match(inferImportsRow, /per-module `kindCounts`/);
     assert.match(inferImportsRow, /`tsconfig\.json` paths aliases/);
@@ -1464,7 +1468,13 @@ describe('package contract helpers', () => {
   it('keeps dogfood CLI capability docs from freezing integration test counts', () => {
     const doc = readFileSync('docs/ontology/capabilities/cli-developer-entry.md', 'utf-8');
     const regressionSection = doc.split('## 회귀 차단')[1] ?? '';
+    const maintenanceRow = doc.split('| `oh-my-ontology maintenance` |')[1]?.split('\n')[0] ?? '';
 
+    assert.match(doc, /CLI Developer Entry \(27 commands/);
+    assert.match(doc, /총 27 명령/);
+    assert.match(doc, /cli\/src\/commands\/maintenance\.mjs/);
+    assert.match(maintenanceRow, /MCP `query_ontology\(maintenance_plan\)`/);
+    assert.match(maintenanceRow, /cursor miss 는 빈 page 와 `cursor\.found=false`/);
     assert.doesNotMatch(regressionSection, /\*\*\d+ spawn-based\*\* integration test/);
     assert.match(doc, /`cli\/src\/lib\/mcp-call\.mjs` 의 thin wrapper/);
     assert.match(doc, /MCP `structuredContent` 를 먼저 사용하되/);

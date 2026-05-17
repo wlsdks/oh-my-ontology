@@ -45,12 +45,12 @@ describe('cli command registry metadata', () => {
 
   it('parses command-count descriptions without accepting unrelated text', () => {
     assert.deepEqual(
-      parseCliCommandMetadataFromDescription('Workbench — 26-command CLI'),
-      { commandCount: 26 },
+      parseCliCommandMetadataFromDescription('Workbench — 27-command CLI'),
+      { commandCount: 27 },
     );
     assert.deepEqual(
-      parseCliCommandMetadataFromDescription('Workbench — 26 commands plus MCP'),
-      { commandCount: 26 },
+      parseCliCommandMetadataFromDescription('Workbench — 27 commands plus MCP'),
+      { commandCount: 27 },
     );
     assert.equal(parseCliCommandMetadataFromDescription('Workbench with many commands'), null);
   });
