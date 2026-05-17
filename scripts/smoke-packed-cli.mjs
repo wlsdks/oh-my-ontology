@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { checkMcpLeanTarballFiles } from './check-package-contracts.mjs';
 import { parseMcpToolMetadataFromDescription } from '../cli/src/lib/mcp-metadata.mjs';
 import {
+  expectedToolsListAnnotationSummary,
   structuredContentVerifySummary,
   tunedHealthScopeOutputSummary,
   tunedWorkspaceBriefScopeOutputSummary,
@@ -33,6 +34,7 @@ const CLI_PKG = JSON.parse(readFileSync(join(CLI_DIR, 'package.json'), 'utf-8'))
 const mcpToolMetadata = parseMcpToolMetadataFromDescription(MCP_PKG.description);
 const expectedToolCount = mcpToolMetadata?.toolCount;
 const expectedToolSplitRe = mcpToolMetadata?.splitPattern;
+const expectedToolsListAnnotationRe = new RegExp(regexEscape(expectedToolsListAnnotationSummary()));
 const tunedDiagnosisScopeRe = new RegExp(regexEscape(tunedHealthScopeOutputSummary()));
 const tunedWorkspaceBriefScopeRe = new RegExp(regexEscape(tunedWorkspaceBriefScopeOutputSummary()));
 const installedVerifyStructuredContentRe = new RegExp(regexEscape(`structuredContent — ${structuredContentVerifySummary({
@@ -311,7 +313,7 @@ try {
   });
   assert.match(cliMcpVerify.stdout, /timeout=3000ms/);
   assert.match(cliMcpVerify.stdout, new RegExp(`tools/list ${expectedToolCount}/${expectedToolCount}`));
-  assert.match(cliMcpVerify.stdout, /23\/23 titled; 15\/15 read; 8\/8 write; 3\/3 destructive; 2\/2 idempotent; 23\/23 local-only/);
+  assert.match(cliMcpVerify.stdout, expectedToolsListAnnotationRe);
   assert.match(cliMcpVerify.stdout, /list_kinds/);
   assert.match(cliMcpVerify.stdout, /validate_vault/);
   assert.match(cliMcpVerify.stdout, /workspace_brief/);

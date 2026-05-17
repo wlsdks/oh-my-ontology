@@ -151,6 +151,22 @@ export function toolsListAnnotationSummary(tools) {
   ].join('; ');
 }
 
+export function expectedToolsListAnnotationSummary() {
+  const readTools = new Set(EXPECTED_READ_TOOLS);
+  const destructiveTools = new Set(EXPECTED_DESTRUCTIVE_TOOLS);
+  const idempotentTools = new Set(EXPECTED_IDEMPOTENT_TOOLS);
+  return toolsListAnnotationSummary(EXPECTED_TOOLS.map((name) => ({
+    name,
+    annotations: {
+      title: expectedToolTitle(name),
+      readOnlyHint: readTools.has(name),
+      destructiveHint: destructiveTools.has(name),
+      idempotentHint: idempotentTools.has(name),
+      openWorldHint: false,
+    },
+  })));
+}
+
 export function expectedToolTitle(name) {
   return String(name || '')
     .split('_')

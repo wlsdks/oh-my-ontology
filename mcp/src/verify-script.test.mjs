@@ -93,6 +93,7 @@ import {
   structuredContentMismatchSummary,
   structuredContentParityStatus,
   structuredContentVerifySummary,
+  expectedToolsListAnnotationSummary,
   tunedHealthScopeOutputSummary,
   tunedWorkspaceBriefScopeOutputSummary,
   toolsListAnnotationSummary,
@@ -152,7 +153,7 @@ describe('verify.mjs first-contact gates', () => {
 
     assert.equal(
       toolsListAnnotationSummary(tools),
-      '23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 23/23 local-only',
+      expectedToolsListAnnotationSummary(),
     );
 
     tools.find((tool) => tool.name === 'list_concepts').annotations.openWorldHint = true;
