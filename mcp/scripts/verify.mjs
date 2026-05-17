@@ -2207,6 +2207,7 @@ export function verifyUsage() {
     'Ready cursor metadata verifies nextAfterActionId matches the last returned action and hasMore matches the remaining page state.\n' +
     'Successful cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n\n' +
     'Focused checks:\n' +
+    '  pnpm test:mcp:verify            MCP verify helper contract without the full integration suite.\n' +
     '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/help diagnostics.\n'
   );
 }

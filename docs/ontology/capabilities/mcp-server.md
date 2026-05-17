@@ -385,6 +385,8 @@ semantics 를 확인해 typed-filter pagination 계약을 빠르게 점검한다
 verify helper 자체를 만질 때는 `pnpm test:mcp:verify` 로
 `mcp/src/verify-script.test.mjs` 만 바로 실행한다. verify timeout / usage
 진단만 만질 때는 `pnpm test:mcp:verify:timeout` 으로 더 좁게 확인한다.
+직접 verify help 도 이 두 focused check 를 같이 보여줘 설치 smoke 를 시작하기 전에
+기본 helper 계약과 timeout/help 계약을 분리해 고를 수 있게 한다.
 또한 write tool schema 가 `expected_mtime` conflict guard 와 destructive
 tool 의 `confirm` dry-run safety switch, `rename_concept.overwrite`, `delete_concept.force` 를 계속 노출하는지 `tools/list`
 응답에서 직접 검증해, agent-facing MCP schema 가 실제 동시 편집 보호

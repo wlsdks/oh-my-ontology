@@ -163,6 +163,7 @@ function printUsage(output = process.stderr) {
       `Successful maintenance cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n\n` +
       `Focused checks:\n` +
       `  pnpm integration:cli:mcp-verify    Installed CLI mcp-verify wrapper flow/help/failure checks.\n` +
+      `  pnpm test:mcp:verify              MCP verify helper contract without the full integration suite.\n` +
       `  pnpm test:mcp:verify:timeout       Narrow MCP verify timeout/help diagnostics.\n`,
   );
 }

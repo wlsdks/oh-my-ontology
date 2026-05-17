@@ -55,6 +55,7 @@ checks that match the touched surface:
 pnpm integration:cli:mcp-verify
 pnpm test:mcp:docs
 pnpm test:mcp:package
+pnpm test:mcp:verify
 pnpm test:mcp:verify:timeout
 ```
 
@@ -62,8 +63,9 @@ pnpm test:mcp:verify:timeout
 subset inside the spawn-heavy CLI integration file. `test:mcp:docs` checks
 README and dogfood ontology documentation drift. `test:mcp:package` checks
 package-script and tarball contract drift without running unrelated UI or E2E
-gates. `test:mcp:verify:timeout` checks the shared verify timeout parsing,
-usage, and retry diagnostics that `mcp-verify` exposes through the CLI. Use
+gates. `test:mcp:verify` checks the shared MCP verify helper contract, and
+`test:mcp:verify:timeout` narrows that to timeout parsing, usage, and retry
+diagnostics that `mcp-verify` exposes through the CLI. Use
 `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
 `pnpm integration:cli` when the touched CLI integration case has a different
 name.
