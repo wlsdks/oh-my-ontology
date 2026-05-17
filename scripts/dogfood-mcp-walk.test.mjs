@@ -2739,6 +2739,8 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /No positional vault argument is accepted/);
     assert.match(usage, /OMOT_DOGFOOD_TIMEOUT_MS/);
     assert.match(usage, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
+    assert.match(usage, /pnpm test:mcp:dogfood:timeout/);
+    assert.match(usage, /Narrow dogfood timeout\/help retry diagnostics/);
     assert.match(usage, /Dogfood helper, compile gate, help, structuredContent, stderr warning checks/);
   });
 
