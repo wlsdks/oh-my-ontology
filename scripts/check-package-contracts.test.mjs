@@ -620,7 +620,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ graph kind enums \+ write relation enums \+ health tuning \+ post-write bucket guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);
-    assert.match(verifySection, /✓ add_concepts — non-object and unknown-field rows isolated with input indexes/);
+    assert.match(verifySection, /✓ add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes/);
     assert.match(verifySection, /✓ add_relations — non-object and unknown-field rows isolated with input indexes/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint/);
@@ -995,7 +995,7 @@ describe('package contract helpers', () => {
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('### Node.js API')[0] ?? '';
 
     assert.match(verifySection, /batch writer row isolation guidance for `add_concepts` and\s+`add_relations`/);
-    assert.match(verifySection, /non-object row shape and unknown row field failures\s+surfacing as row-level `ok:false` results/);
+    assert.match(verifySection, /non-object row shape, unknown row field, and\s+duplicate `add_concepts` slug failures surfacing as row-level `ok:false`/);
     assert.match(verifySection, /instead of top-level tool errors/);
     assert.match(verifySection, /with no `postWriteMaintenance`/);
     assert.match(verifySection, /destructive writer dry-runs for `rename_concept`,\s+`merge_concepts`, and `delete_concept`/);
@@ -1050,7 +1050,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /accepts empty vault folders/);
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
-    assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results with `concepts\[n\]` \/ `relations\[n\]` error labels instead of top-level tool errors, with no `postWriteMaintenance`/);
+    assert.match(verifySection, /non-object row shape, unknown row field, and duplicate `add_concepts` slug failures/);
+    assert.match(verifySection, /row-level `ok:false` results with `concepts\[n\]` \/ `relations\[n\]` error labels instead of top-level tool errors, with no `postWriteMaintenance`/);
     assert.match(verifySection, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
     assert.match(verifySection, /every planned preview response is present, stays non-writing, and does not include `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
@@ -1216,6 +1217,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /`slug!=project, limit=1` semantics/);
     assert.match(mcpVerifyRow, /`add_concepts` \/ `add_relations` row-isolation runtime smoke/);
     assert.match(mcpVerifyRow, /`concepts\[n\]` \/ `relations\[n\]` row label/);
+    assert.match(mcpVerifyRow, /`add_concepts` duplicate slug first-seen label/);
     assert.match(mcpVerifyRow, /`Received fields: \.\.\.`/);
     assert.match(mcpVerifyRow, /top-level tool error 가 아니라 row-level `ok:false`/);
     assert.match(mcpVerifyRow, /invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
@@ -1565,7 +1567,7 @@ describe('package contract helpers', () => {
     );
     assert.match(smoke, /strict arguments — unknown tool argument rejected at runtime/);
     assert.match(smoke, /strict arguments — multiple unknown tool arguments reported together/);
-    assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated with input indexes/);
+    assert.match(smoke, /add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes/);
     assert.match(smoke, /add_relations — non-object and unknown-field rows isolated with input indexes/);
     assert.match(smoke, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
     assert.match(smoke, /structuredContentVerifySummary/);

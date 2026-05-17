@@ -384,7 +384,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_concepts',
         description:
-          `Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels and unknown-field rows include Received fields and return ${postWriteDescription}.`,
+          `Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels, unknown-field rows include Received fields, duplicate input slugs report the later \`concepts[n]\` row plus first-seen \`concepts[m]\`, and return ${postWriteDescription}.`,
         inputSchema: {
           additionalProperties: false,
           required: ['concepts'],
@@ -3080,6 +3080,16 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
+          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels, unknown-field rows include Received fields, and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+        },
+      ]),
+      'add_concepts description missing duplicate row guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'add_concepts'),
           inputSchema: {
             ...tools.find((tool) => tool.name === 'add_concepts').inputSchema,
             properties: { concepts: { type: 'array', maxItems: 51 } },
@@ -3604,6 +3614,8 @@ describe('verify.mjs first-contact gates', () => {
 
   it('fails malformed batch row-isolation smoke responses', () => {
     const conceptUnknownError = 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title. Received fields: kind, slug, titel, title.';
+    const conceptDuplicateSeedError = 'concepts[2] kind must be one of: project, domain, capability, element, document. Received: "capabilty". Did you mean "capability"?';
+    const conceptDuplicateError = 'concepts[3] duplicate slug in input batch; first seen at concepts[2]';
     const relationUnknownError = 'Unknown field "relation" in relations[1]. Did you mean "type"? Allowed fields: from, to, type. Received fields: from, relation, to, type.';
     const okResponse = {
       result: {
@@ -3612,6 +3624,8 @@ describe('verify.mjs first-contact gates', () => {
             concepts: [
               { slug: '', ok: false, error: 'concepts[0] must be an object.' },
               { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
             ],
           }),
         }],
@@ -3619,6 +3633,8 @@ describe('verify.mjs first-contact gates', () => {
           concepts: [
             { slug: '', ok: false, error: 'concepts[0] must be an object.' },
             { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+            { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+            { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
           ],
         },
       },
@@ -3630,7 +3646,7 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       batchRowIsolationFailure({ result: { content: [{ text: JSON.stringify({ concepts: [{ ok: false }] }) }] } }, 'concepts', 'add_concepts'),
-      'add_concepts row-isolation response missing 2 result rows',
+      'add_concepts row-isolation response missing 4 result rows',
     );
     assert.equal(
       batchRowIsolationFailure({
@@ -3671,6 +3687,8 @@ describe('verify.mjs first-contact gates', () => {
               concepts: [
                 { slug: '', ok: false, error: 'must be an object.' },
                 { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
               ],
             }),
           }],
@@ -3686,6 +3704,8 @@ describe('verify.mjs first-contact gates', () => {
               concepts: [
                 { slug: '', ok: false, error: 'concepts[0] must be an object.' },
                 { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel". Did you mean "title"? Allowed fields: slug, kind, title.' },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
               ],
             }),
           }],
@@ -3701,6 +3721,8 @@ describe('verify.mjs first-contact gates', () => {
               concepts: [
                 { slug: '', ok: false, error: 'concepts[0] must be an object.' },
                 { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
               ],
             }),
           }],
@@ -3732,6 +3754,42 @@ describe('verify.mjs first-contact gates', () => {
               concepts: [
                 { slug: '', ok: false, error: 'concepts[0] must be an object.' },
                 { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+                { slug: 'verify-duplicate-slug', ok: true },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
+              ],
+            }),
+          }],
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response missing duplicate seed row error',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              concepts: [
+                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+                { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+                { slug: 'verify-duplicate-slug', ok: false, error: 'concepts[3] duplicate slug in input batch' },
+              ],
+            }),
+          }],
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response missing duplicate slug row guidance',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              concepts: [
+                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+                { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
               ],
               postWriteMaintenance: {},
             }),
@@ -3740,6 +3798,8 @@ describe('verify.mjs first-contact gates', () => {
             concepts: [
               { slug: '', ok: false, error: 'concepts[0] must be an object.' },
               { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
             ],
             postWriteMaintenance: {},
           },

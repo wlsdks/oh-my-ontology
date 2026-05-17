@@ -1342,6 +1342,9 @@ export function toolsListSchemaFailure(tools) {
   if (!/Received fields/.test(addConceptsTool?.description || '')) {
     return 'add_concepts description missing received fields guidance';
   }
+  if (!/duplicate input slugs/.test(addConceptsTool?.description || '') || !/first-seen `concepts\[m\]`/.test(addConceptsTool?.description || '')) {
+    return 'add_concepts description missing duplicate row guidance';
+  }
   if (addConceptsTool.outputSchema?.type !== 'object') {
     return 'add_concepts outputSchema root drift';
   }
@@ -2673,7 +2676,14 @@ export function buildFirstContactRequests() {
       method: 'tools/call',
       params: {
         name: 'add_concepts',
-        arguments: { concepts: [null, { slug: 'verify-row-isolation', kind: 'capability', title: 'Verify', titel: 'Typo' }] },
+        arguments: {
+          concepts: [
+            null,
+            { slug: 'verify-row-isolation', kind: 'capability', title: 'Verify', titel: 'Typo' },
+            { slug: 'verify-duplicate-slug', kind: 'capabilty', title: 'Verify Duplicate' },
+            { slug: 'verify-duplicate-slug', kind: 'capability', title: 'Verify Duplicate' },
+          ],
+        },
       },
     },
     {
@@ -3569,14 +3579,14 @@ export function batchRowIsolationFailure(response, key, label) {
     return `failed to parse ${label} row-isolation response: ${err.message}`;
   }
   const rows = parsed?.[key];
-  const expectedRows = key === 'relations' ? 3 : 2;
+  const expectedRows = key === 'relations' ? 3 : 4;
   if (!Array.isArray(rows) || rows.length !== expectedRows) {
     return `${label} row-isolation response missing ${expectedRows} result rows`;
   }
   if (Object.prototype.hasOwnProperty.call(parsed, 'postWriteMaintenance')) {
     return `${label} row-isolation response unexpectedly included postWriteMaintenance`;
   }
-  const [nonObjectRow, unknownFieldRow, invalidTypeRow] = rows;
+  const [nonObjectRow, unknownFieldRow, thirdRow, fourthRow] = rows;
   if (nonObjectRow?.ok !== false || typeof nonObjectRow.error !== 'string' || !/must be an object/i.test(nonObjectRow.error)) {
     return `${label} row-isolation response missing non-object row error`;
   }
@@ -3598,6 +3608,27 @@ export function batchRowIsolationFailure(response, key, label) {
   if (key === 'concepts' && !/Received fields: kind, slug, titel, title/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing concept received fields`;
   }
+  if (
+    key === 'concepts' &&
+    (
+      thirdRow?.ok !== false ||
+      typeof thirdRow.error !== 'string'
+    )
+  ) {
+    return `${label} row-isolation response missing duplicate seed row error`;
+  }
+  if (
+    key === 'concepts' &&
+    (
+      fourthRow?.ok !== false ||
+      typeof fourthRow.error !== 'string' ||
+      !rowErrorMentionsIndex(fourthRow, 3) ||
+      !/duplicate slug in input batch/i.test(fourthRow.error) ||
+      !/first seen at concepts\[2\]/i.test(fourthRow.error)
+    )
+  ) {
+    return `${label} row-isolation response missing duplicate slug row guidance`;
+  }
   if (key === 'relations' && !/Unknown field "relation"/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing relation typo field error`;
   }
@@ -3610,11 +3641,11 @@ export function batchRowIsolationFailure(response, key, label) {
   if (
     key === 'relations' &&
     (
-      invalidTypeRow?.ok !== false ||
-      typeof invalidTypeRow.error !== 'string' ||
-      !rowErrorMentionsIndex(invalidTypeRow, 2) ||
-      !/Received: "depend_on"/i.test(invalidTypeRow.error) ||
-      !/Did you mean "depends_on"\?/i.test(invalidTypeRow.error)
+      thirdRow?.ok !== false ||
+      typeof thirdRow.error !== 'string' ||
+      !rowErrorMentionsIndex(thirdRow, 2) ||
+      !/Received: "depend_on"/i.test(thirdRow.error) ||
+      !/Did you mean "depends_on"\?/i.test(thirdRow.error)
     )
   ) {
     return `${label} row-isolation response missing relation type suggestion`;
@@ -5040,7 +5071,7 @@ async function step2BootAndCall() {
         log('fail', addConceptsRowIsolationFailure);
         return res(false);
       }
-      log('ok', 'add_concepts — non-object and unknown-field rows isolated with input indexes');
+      log('ok', 'add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes');
       const addRelationsRowIsolationFailure = batchRowIsolationFailure(addRelationsRowIsolationRes, 'relations', 'add_relations');
       if (addRelationsRowIsolationFailure) {
         log('fail', addRelationsRowIsolationFailure);

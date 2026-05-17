@@ -250,8 +250,9 @@ direct read smokes for `list_concepts` project probe / `get_concept` /
 limited `query_concepts` / `analyze_repo_structure` / `infer_imports` /
 `find_neighbors` / `find_path` / `find_orphans`,
 strict unknown-argument / invalid-enum rejection, enum-validated
-`maintenance_plan` filters, batch row isolation for non-object row shape and
-unknown row field inputs with `concepts[n]` / `relations[n]` error labels, and maintenance_plan cursor handling (ready page +
+`maintenance_plan` filters, batch row isolation for non-object row shape,
+unknown row field inputs, and duplicate `add_concepts` slugs with `concepts[n]` /
+`relations[n]` error labels, and maintenance_plan cursor handling (ready page +
 missing `afterActionId`): the ready page must keep `cursor.found=true`,
 `cursor.reason=null`, and the missing cursor still reports `cursor.found=false`,
 reason, empty page, `cursor.nextAfterActionId=null`, and `cursor.hasMore=false`.
@@ -280,7 +281,7 @@ A successful run looks like this:
 ✓ tools/list schema contract — strict arguments + annotations + graph-query enums + graph kind enums + write relation enums + health tuning + post-write bucket guidance
 ✓ strict arguments — unknown tool argument rejected at runtime
 ✓ strict arguments — multiple unknown tool arguments reported together
-✓ add_concepts — non-object and unknown-field rows isolated with input indexes
+✓ add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes
 ✓ add_relations — non-object and unknown-field rows isolated with input indexes
 ✓ destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance
 ✓ strict enums — invalid query operation rejected with closest-value hint
@@ -416,10 +417,11 @@ reports multiple unknown tool arguments together, or returns the allowed
 maintenance filter enum. Successful verify output prints the
 accepted `phases` / `severities` / `kinds` enum lists beside the strict-filter
 runtime smoke, so installed logs show which work-queue contract was tested.
-It also calls `add_concepts` and `add_relations` with non-object rows and
-unknown row fields, and fails unless those inputs return row-level `ok:false`
-results whose errors include the failing input index instead of a top-level
-tool error, without `postWriteMaintenance`. It also calls
+It also calls `add_concepts` and `add_relations` with non-object rows,
+unknown row fields, and duplicate `add_concepts` slugs, and fails unless those
+inputs return row-level `ok:false` results whose errors include the failing
+input index instead of a top-level tool error, without `postWriteMaintenance`.
+It also calls
 `maintenance_plan.afterActionId="maint_missing"` and fails unless the response
 reports `cursor.found=false`, the cursor miss reason, zero remaining actions,
 `cursor.nextAfterActionId=null`, `cursor.hasMore=false`, and no next actions. A companion ready-page smoke calls `maintenance_plan`

@@ -118,9 +118,9 @@ current-page next action pointer guidance. The same gate checks write relation
 type enums for `add_relation` / `add_relations`, so installed clients can offer
 valid edge choices instead of discovering typos only after a failed write.
 It also verifies batch writer row isolation guidance for `add_concepts` and
-`add_relations`, including non-object row shape and unknown row field failures
-surfacing as row-level `ok:false` results instead of top-level tool errors,
-with no `postWriteMaintenance`.
+`add_relations`, including non-object row shape, unknown row field, and
+duplicate `add_concepts` slug failures surfacing as row-level `ok:false`
+results instead of top-level tool errors, with no `postWriteMaintenance`.
 It also verifies destructive writer dry-runs for `rename_concept`,
 `merge_concepts`, and `delete_concept` against live vault slugs, requiring every
 planned response to be present and return an `ok:false` / `dryRun:true` preview
