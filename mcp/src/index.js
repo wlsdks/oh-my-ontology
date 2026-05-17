@@ -2822,7 +2822,9 @@ function addRelationsBatch({ relations }) {
       ]);
       return addRelation(spec, { includePostWriteMaintenance: false });
     } catch (err) {
-      const msg = err && err.message ? err.message : String(err);
+      const rawMessage = err && err.message ? err.message : String(err);
+      const rowLabel = `relations[${index}]`;
+      const msg = rawMessage.includes(rowLabel) ? rawMessage : `${rowLabel} ${rawMessage}`;
       return { ok: false, from, to, type, error: msg };
     }
   });

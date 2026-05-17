@@ -3251,21 +3251,51 @@ describe('verify.mjs first-contact gates', () => {
             text: JSON.stringify({
               relations: [
                 { ok: false, error: 'relations[0] must be an object.' },
-                { ok: false, error: 'Unknown field "relation". Did you mean "type"?' },
-                { ok: false, error: 'type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
+                { ok: false, error: 'Unknown field "relation" in relations[1]. Did you mean "type"?' },
+                { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
               ],
             }),
           }],
           structuredContent: {
             relations: [
               { ok: false, error: 'relations[0] must be an object.' },
-              { ok: false, error: 'Unknown field "relation". Did you mean "type"?' },
-              { ok: false, error: 'type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
+              { ok: false, error: 'Unknown field "relation" in relations[1]. Did you mean "type"?' },
+              { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
             ],
           },
         },
       }, 'relations', 'add_relations'),
       null,
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              concepts: [
+                { slug: '', ok: false, error: 'must be an object.' },
+                { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
+              ],
+            }),
+          }],
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response missing non-object row index',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              concepts: [
+                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+                { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel". Did you mean "title"? Allowed fields: slug, kind, title.' },
+              ],
+            }),
+          }],
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response missing unknown-field row index',
     );
     assert.equal(
       batchRowIsolationFailure({

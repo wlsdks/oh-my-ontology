@@ -3238,8 +3238,14 @@ export function batchRowIsolationFailure(response, key, label) {
   if (nonObjectRow?.ok !== false || typeof nonObjectRow.error !== 'string' || !/must be an object/i.test(nonObjectRow.error)) {
     return `${label} row-isolation response missing non-object row error`;
   }
+  if (!rowErrorMentionsIndex(nonObjectRow, 0)) {
+    return `${label} row-isolation response missing non-object row index`;
+  }
   if (unknownFieldRow?.ok !== false || typeof unknownFieldRow.error !== 'string' || !/Unknown field/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing unknown-field row error`;
+  }
+  if (!rowErrorMentionsIndex(unknownFieldRow, 1)) {
+    return `${label} row-isolation response missing unknown-field row index`;
   }
   if (key === 'concepts' && !/Unknown field "titel"/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing concept typo field error`;
@@ -3258,6 +3264,7 @@ export function batchRowIsolationFailure(response, key, label) {
     (
       invalidTypeRow?.ok !== false ||
       typeof invalidTypeRow.error !== 'string' ||
+      !rowErrorMentionsIndex(invalidTypeRow, 2) ||
       !/Received: "depend_on"/i.test(invalidTypeRow.error) ||
       !/Did you mean "depends_on"\?/i.test(invalidTypeRow.error)
     )
@@ -3269,6 +3276,10 @@ export function batchRowIsolationFailure(response, key, label) {
     return structuredFailure;
   }
   return null;
+}
+
+function rowErrorMentionsIndex(row, index) {
+  return typeof row?.error === 'string' && new RegExp(`\\[${index}\\]`).test(row.error);
 }
 
 export function findOrphansFailure(parsed) {
