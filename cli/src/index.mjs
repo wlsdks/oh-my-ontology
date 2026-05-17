@@ -18,8 +18,8 @@ import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { stdout, stderr, argv, exit, cwd } from 'node:process';
-import { CLI_COMMAND_COUNT, CLI_COMMAND_RUNNERS } from './lib/cli-commands.mjs';
-import { formatUnknownFlagError } from './lib/cli-args.mjs';
+import { CLI_COMMAND_COUNT, CLI_COMMAND_RUNNERS, CLI_COMMANDS } from './lib/cli-commands.mjs';
+import { closestAllowedValue, formatUnknownFlagError } from './lib/cli-args.mjs';
 import { readMcpPackageMetadata } from './lib/mcp-metadata.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -406,6 +406,10 @@ if (runner) {
   }
 }
 
-fail(`unknown command: ${SUBCOMMAND}`);
+const commandSuggestion = closestAllowedValue(SUBCOMMAND, CLI_COMMANDS);
+fail(
+  `unknown command: ${SUBCOMMAND}.` +
+    (commandSuggestion ? ` Did you mean ${commandSuggestion}?` : ''),
+);
 printHelp();
 exit(1);

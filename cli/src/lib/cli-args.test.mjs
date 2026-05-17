@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   closestAllowedFlag,
+  closestAllowedValue,
   formatUnknownFlagError,
   parseBoundedNonNegativeIntegerFlag,
   parseBoundedPositiveIntegerFlag,
@@ -58,6 +59,8 @@ describe('cli integer argument parsers', () => {
     assert.equal(closestAllowedFlag('--lmit', ['--json', '--limit', '--vault']), '--limit');
     assert.equal(closestAllowedFlag('--lmit=1', ['--json', '--limit', '--vault']), '--limit');
     assert.equal(closestAllowedFlag('--zzzz', ['--json', '--limit', '--vault']), null);
+    assert.equal(closestAllowedValue('complie', ['compile', 'cycles']), 'compile');
+    assert.equal(closestAllowedValue('workspce-brief', ['workspace-brief', 'maintenance']), 'workspace-brief');
     assert.equal(
       formatUnknownFlagError('--lmit', ['--json', '--limit', '--vault']),
       'unknown flag: --lmit. Did you mean --limit?',

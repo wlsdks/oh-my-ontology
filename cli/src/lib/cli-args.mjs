@@ -116,9 +116,15 @@ export function formatUnknownFlagError(flag, allowedFlags = []) {
 export function closestAllowedFlag(flag, allowedFlags = []) {
   if (!flag || !Array.isArray(allowedFlags) || allowedFlags.length === 0) return null;
   const comparableFlag = String(flag).split('=')[0];
+  return closestAllowedValue(comparableFlag, allowedFlags);
+}
+
+export function closestAllowedValue(value, allowedValues = []) {
+  if (!value || !Array.isArray(allowedValues) || allowedValues.length === 0) return null;
+  const comparableValue = String(value);
   let best = null;
-  for (const candidate of allowedFlags) {
-    const distance = levenshteinDistance(comparableFlag, candidate);
+  for (const candidate of allowedValues) {
+    const distance = levenshteinDistance(comparableValue, candidate);
     if (!best || distance < best.distance) {
       best = { candidate, distance };
     }

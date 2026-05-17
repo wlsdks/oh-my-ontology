@@ -171,6 +171,13 @@ await test('help — current setup contract and default slug layout are not stal
   assert.match(clean, /graph-query smoke/);
 });
 
+await test('top-level command typos include closest command hints', async () => {
+  const r = await run(['complie', 'docs/ontology', '--summary']);
+  assert.equal(r.code, 1);
+  assert.match(stripAnsi(r.stderr), /unknown command: complie\. Did you mean compile\?/);
+  assert.match(stripAnsi(r.stdout), /Usage:/);
+});
+
 await test('list — empty vault: 0 노드 메시지', async () => {
   const root = withVault([]);
   try {
