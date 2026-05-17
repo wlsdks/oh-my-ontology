@@ -292,6 +292,19 @@ try {
   assert.match(cliMcpVerify.stdout, /project_scope/);
   assert.match(cliMcpVerify.stdout, /structuredContent — direct 16\/16, write 2\/2, maintenance 3\/3, graph 11\/11/);
 
+  const invalidCliMcpVerifyTimeout = runRaw(
+    cliBin,
+    ['mcp-verify', '--timeout-ms=1000ms'],
+    { cwd: projectDir },
+  );
+  assert.equal(invalidCliMcpVerifyTimeout.status, 1);
+  assert.equal(invalidCliMcpVerifyTimeout.stdout, '');
+  assert.match(invalidCliMcpVerifyTimeout.stderr, /--timeout-ms must be a positive integer/);
+  assert.match(invalidCliMcpVerifyTimeout.stderr, /Received: "1000ms"/);
+  assert.match(invalidCliMcpVerifyTimeout.stderr, /--timeout-ms N/);
+  assert.match(invalidCliMcpVerifyTimeout.stderr, /OMOT_VERIFY_TIMEOUT_MS=N/);
+  assert.match(invalidCliMcpVerifyTimeout.stderr, /oh-my-ontology mcp-verify --timeout-ms 15000/);
+
   const maintenanceResumeVault = join(projectDir, 'maintenance-resume-vault');
   writeMaintenanceResumeVault(maintenanceResumeVault);
   const cliMaintenanceResumeMcpVerify = run(
