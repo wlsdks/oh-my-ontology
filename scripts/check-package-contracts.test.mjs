@@ -581,13 +581,13 @@ describe('package contract helpers', () => {
     assert.match(
       verifySection,
       new RegExp(
-        `✓ workspace_brief — ${workspaceBrief.status} \\(${census.total} nodes, ${countLabel(workspaceBrief.nextActions.length, 'next action')}, ${countLabel(workspaceBrief.health.checks.length, 'health check')}, growth ${workspaceBrief.growth.totalActions}/${workspaceBrief.growth.externalElementRefs}/${workspaceBrief.growth.externalElementRefsIgnored}\\)`,
+        `✓ workspace_brief — ${workspaceBrief.status} \\(${census.total} nodes, ${countLabel(workspaceBrief.nextActions.length, 'next action')}, ${countLabel(workspaceBrief.health.checks.length, 'health check')}, growth actions:${workspaceBrief.growth.totalActions} external:${workspaceBrief.growth.externalElementRefs} ignoredExternal:${workspaceBrief.growth.externalElementRefsIgnored}\\)`,
       ),
     );
     assert.match(
       verifySection,
       new RegExp(
-        `✓ workspace_brief_tuned — ${tunedWorkspaceBrief.status} \\(${census.total} nodes, ${countLabel(tunedWorkspaceBrief.nextActions.length, 'next action')}, ${countLabel(tunedWorkspaceBrief.health.checks.length, 'health check')}, growth ${tunedWorkspaceBrief.growth.totalActions}/${tunedWorkspaceBrief.growth.externalElementRefs}/${tunedWorkspaceBrief.growth.externalElementRefsIgnored}; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3\\)`,
+        `✓ workspace_brief_tuned — ${tunedWorkspaceBrief.status} \\(${census.total} nodes, ${countLabel(tunedWorkspaceBrief.nextActions.length, 'next action')}, ${countLabel(tunedWorkspaceBrief.health.checks.length, 'health check')}, growth actions:${tunedWorkspaceBrief.growth.totalActions} external:${tunedWorkspaceBrief.growth.externalElementRefs} ignoredExternal:${tunedWorkspaceBrief.growth.externalElementRefsIgnored}; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3\\)`,
       ),
     );
     const tunedBriefAction = tunedWorkspaceBrief.nextActions[0];

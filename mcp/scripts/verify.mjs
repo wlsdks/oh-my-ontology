@@ -4347,7 +4347,7 @@ export function advisoryNextActionsSummary(actions, limit = 3) {
 export function workspaceBriefSummary(parsed) {
   const growth = parsed?.growth;
   const growthText = growth && typeof growth === 'object' && !Array.isArray(growth)
-    ? `, growth ${growth.totalActions ?? 0}/${growth.externalElementRefs ?? 0}/${growth.externalElementRefsIgnored ?? 0}`
+    ? `, growth actions:${growth.totalActions ?? 0} external:${growth.externalElementRefs ?? 0} ignoredExternal:${growth.externalElementRefsIgnored ?? 0}`
     : '';
   return `${formatCount(parsed?.summary?.nodes ?? 0, 'node')}, ${formatCount(
     (parsed?.nextActions || []).length,
