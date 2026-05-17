@@ -64,6 +64,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /scripts\/dogfood-mcp-walk\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /scripts\/check-package-contracts\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /structuredContent/);
+    assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /compile_ontology/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /stderr warnings/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /dogfood help/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /dogfood arguments/);
@@ -86,7 +87,7 @@ describe('package contract helpers', () => {
     );
     assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:dogfood/);
-    assert.match(readme, /structuredContent\/help\/argument\/stderr checks/);
+    assert.match(readme, /structuredContent\/compile\/help\/argument\/stderr checks/);
     assert.match(readme, /pnpm test:mcp:package\s+# focused package-script\/dependency\/tarball contract checks/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /pnpm test:mcp:verify/);
