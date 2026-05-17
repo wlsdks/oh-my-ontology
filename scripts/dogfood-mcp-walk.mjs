@@ -4346,8 +4346,10 @@ async function main() {
   // 2b. project probe
   header("project probe — list_concepts(kind=project)");
   const projectProbe = getResult(responses, 48);
+  const projectProbeStructured = getRpcResult(responses, 48)?.structuredContent ?? null;
   if (projectProbe) {
     const projectSlugs = (projectProbe.nodes || []).map((node) => node.slug).join(", ") || "none";
+    console.log(`  structuredContent: ${JSON.stringify(projectProbeStructured) === JSON.stringify(projectProbe) ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}mismatch${COLORS.reset}`}`);
     console.log(`  ${formatCount(projectProbe.total ?? 0, "project node")} · ${projectSlugs}`);
   }
 
@@ -5024,6 +5026,7 @@ async function main() {
   const directStructuredContentRows = [
     ["list_kinds", kinds, kindsStructured],
     ["list_concepts", list, listStructured],
+    ["project_probe", projectProbe, projectProbeStructured],
     ["get_concepts", batch, batchStructured],
     ["find_evidence", ev, evStructured],
     ["find_path", path, pathStructured],
@@ -5136,7 +5139,7 @@ async function main() {
     projectScope,
     projectScopeStructured: structuredContent(45),
     projectProbe,
-    projectProbeStructured: structuredContent(48),
+    projectProbeStructured,
     kindsStructured,
     validationStructured,
     strictArgs,

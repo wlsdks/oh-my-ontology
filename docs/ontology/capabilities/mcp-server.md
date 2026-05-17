@@ -425,7 +425,9 @@ dogfood 에서 실행한 `query_ontology` graph-query 응답은 `structuredConte
 결과로 소비할 수 있는지 검증한다.
 dogfood 의 direct read / analysis tool 응답도 `structuredContent` 누락과
 text JSON drift 를 같은 fail-closed 계약으로 검증해 graph-query 와 direct-tool
-구조화 결과 계약이 갈라지지 않게 한다.
+구조화 결과 계약이 갈라지지 않게 한다. project probe 도 화면 출력과 최종
+direct-tool `structuredContent` summary 에 포함해 gate 가 확인한 계약을 로그에서
+바로 볼 수 있게 한다.
 설치 verify 도 first-contact direct read / `query_ontology` smoke /
 maintenance cursor 응답의 `structuredContent` 누락과 text JSON drift 를 같은
 fail-closed 계약으로 검증한다.
