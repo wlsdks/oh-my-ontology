@@ -916,6 +916,24 @@ const okShape = {
     byRelation: {},
     hubs: [],
   },
+  overviewStructured: {
+    operation: "overview",
+    graph: {
+      nodes: 1,
+      edges: 2,
+      resolvedEdges: 1,
+      externalEdges: 1,
+      unresolvedEdges: 0,
+      aliases: 1,
+      ambiguousAliases: 0,
+      issues: 0,
+      graphHash: "abc123",
+      maxMtime: 1,
+    },
+    byKind: { project: 1 },
+    byRelation: {},
+    hubs: [],
+  },
   patternWalk: {
     operation: "pattern_walk",
     start: "project",
@@ -2901,6 +2919,10 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, inferredImportsStructured: { ...okShape.inferredImports, filesScanned: 3 } }),
       ["infer_imports structuredContent mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, overviewStructured: { ...okShape.overview, graph: { ...okShape.overview.graph, nodes: 2 } } }),
+      ["overview structuredContent mismatch"],
     );
   });
 
