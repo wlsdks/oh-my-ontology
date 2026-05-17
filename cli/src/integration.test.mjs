@@ -259,7 +259,7 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.match(clean, /neighbors — elements\/example/);
     assert.match(clean, /path — elements\/example → project \(1 hop, 1 edge\)/);
     assert.match(clean, /project_scope/);
-    assert.match(clean, /structuredContent — direct 16\/16, write 2\/2, maintenance 3\/3, graph 10\/10/);
+    assert.match(clean, /structuredContent — direct 16\/16, write 2\/2, maintenance 3\/3, graph 11\/11/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -319,7 +319,7 @@ await test('mcp-verify — verifies maintenance cursor resume when actions exist
     assert.match(clean, /kind add_missing_relation:1/);
     assert.match(clean, /maintenance cursor — resume afterActionId advanced \(maint_[a-f0-9]{8}; 0 remaining actions/);
     assert.match(clean, /query_concepts limited — 1 query result \/ 2 total query results \(limited true\)/);
-    assert.match(clean, /structuredContent — direct 16\/16, write 2\/2, maintenance 3\/3, graph 10\/10/);
+    assert.match(clean, /structuredContent — direct 16\/16, write 2\/2, maintenance 3\/3, graph 11\/11/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

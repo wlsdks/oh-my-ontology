@@ -271,13 +271,15 @@ A successful run looks like this:
 ✓ health — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1, issues 0)
 ✓ health_tuned — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6, issues 0)
 ✓ compile_ontology — graph 6bd0c936c858 (28 nodes, 210 edges, issues 0)
+✓ compile_ontology page — 1/28 nodes, 1/210 edges
+✓ compile_ontology indexes — out 27, edgeById 210, aliases 55
 ✓ overview — graph 6bd0c936c858 (28 nodes, 210 edges, hubs 5)
 ✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 210)
 ✓ project_map query_plan — aggregate_scan (medium, nodes 28, edges 210)
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
 ✓ project_scope — project (27 nodes, internalEdges 92)
-✓ structuredContent — direct 16/16, write 2/2, maintenance 2/2, graph 10/10
+✓ structuredContent — direct 16/16, write 2/2, maintenance 2/2, graph 11/11
 
 All passed — register .mcp.json with Claude Code and restart to use the 23 tools.
 ```
@@ -294,6 +296,7 @@ verify path exercises and gates the same first-contact graph diagnosis an agent 
 `query_ontology({operation:"health"})`, and tuned
 `query_ontology({operation:"health"})`, plus `compile_ontology({summary:true})`
 and paginated `compile_ontology({nodesLimit:1, edgesLimit:1})`,
+`compile_ontology({nodesLimit:1, edgesLimit:1, includeIndexes:true})`,
 `query_ontology({operation:"overview"})`, and
 `query_ontology({operation:"query_plan", targetOperation:"overview"})` /
 `query_ontology({operation:"query_plan", targetOperation:"project_map"})`,

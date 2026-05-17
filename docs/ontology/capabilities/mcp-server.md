@@ -90,7 +90,7 @@ validation / diagnosis / compile / overview / query planning 은 계속 hard gat
 strict schema/runtime unknown-argument and invalid-enum rejection,
 `add_concepts` / `add_relations` row-isolation runtime smoke,
 `list_concepts`, project-node `list_concepts` probe,
-`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology({ summary: true })`, paginated `compile_ontology({ nodesLimit: 1, edgesLimit: 1 })`,
+`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology({ summary: true })`, paginated `compile_ontology({ nodesLimit: 1, edgesLimit: 1 })`, indexed `compile_ontology({ nodesLimit: 1, edgesLimit: 1, includeIndexes: true })`,
 `analyze_repo_structure`, `infer_imports`, `query_ontology(overview)`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`, 그리고 실제 `neighbors` /
 node→project `path` / `project_scope` 를 한 번에 호출해 agent first-contact graph diagnosis,
@@ -182,10 +182,11 @@ contract 를 검증해 first-contact 진단 결과가 status 문자열만 맞고
 check 계약으로 실행해 first-contact brief 의 튜닝 옵션이 실제 dogfood walk 에서
 계속 검증되게 한다.
 dogfood walk / installed verify 는 `compile_ontology({ summary: true })` 와
-paginated `compile_ontology({ nodesLimit: 1, edgesLimit: 1 })` 를 직접 호출해
+paginated `compile_ontology({ nodesLimit: 1, edgesLimit: 1 })`, indexed
+`compile_ontology({ nodesLimit: 1, edgesLimit: 1, includeIndexes: true })` 를 직접 호출해
 `graphHash`, `maxMtime`, node/edge/alias/issue count, `byKind` / `byDomain`
 aggregate, full artifact `nodes` / `edges` row shape, pagination meta,
-`canonicalizationActions`, full-response `summary` 와 array/count alignment 가 유효한지 확인한다. `byKind`
+`canonicalizationActions`, full-response `summary` 와 array/count alignment, `indexes.out` / `indexes.in` / `indexes.byKind` / `indexes.byDomain` / `indexes.edgeById` / `indexes.aliasToSlug` shape 과 count alignment 가 유효한지 확인한다. `byKind`
 합계가 `nodeCount` 와 다르거나 edge breakdown 이 `edgeCount` 를 설명하지 못하면
 gate 실패로 본다.
 또한 `query_ontology(pattern_walk)` 를 실제 repo ontology 의 project → domains →
@@ -538,6 +539,7 @@ dogfood walk 는 `slug!=project, limit=1` 도 직접 호출해 `limited:true` qu
 direct-tool `structuredContent` summary 를 함께 검증한다.
 `compile_ontology` 도 `outputSchema` 와 동일한 `structuredContent` graph-summary / full-artifact payload 를
 노출해, compiler artifact 의 cache / graph-size 핵심 필드와 full graph arrays / pagination / canonicalization action 을 구조화된 결과로 바로 처리할 수 있게 한다.
+`includeIndexes:true` full artifact 는 query index payload 까지 구조화된 결과로 바로 처리할 수 있게 한다.
 `analyze_repo_structure` 도 `outputSchema` 와 동일한 `structuredContent` bootstrap-candidate payload 를
 노출해, fresh repo 의 project/domain/capability/element 후보를 구조화된 결과로 바로 처리할 수 있게 한다.
 `infer_imports` 도 `outputSchema` 와 동일한 `structuredContent` import-graph payload 를

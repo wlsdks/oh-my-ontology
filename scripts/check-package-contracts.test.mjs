@@ -383,7 +383,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
     assert.match(verifySection, new RegExp(`✓ project_scope — project \\(${scopedNodes} nodes, internalEdges`));
-    assert.match(verifySection, /✓ structuredContent — direct 16\/16, write 2\/2, maintenance 2\/2, graph 10\/10/);
+    assert.match(verifySection, /✓ structuredContent — direct 16\/16, write 2\/2, maintenance 2\/2, graph 11\/11/);
     assert.match(verifySection, /`list_concepts`, a project-node `list_concepts` probe,\s+`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`,\s+`query_concepts`, limited `query_concepts`, `analyze_repo_structure`,\s+`infer_imports`, `find_neighbors`, `find_path`, `find_orphans`,\s+`list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
     assert.match(verifySection, /`query_ontology\(\{operation:"neighbors"\}\)`/);
@@ -1013,7 +1013,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /strict arguments — multiple unknown tool arguments reported together/);
     assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated at row level/);
     assert.match(smoke, /add_relations — non-object and unknown-field rows isolated at row level/);
-    assert.match(smoke, /structuredContent — direct 16\\\/16, write 2\\\/2, maintenance 3\\\/3, graph 10\\\/10/);
+    assert.match(smoke, /structuredContent — direct 16\\\/16, write 2\\\/2, maintenance 3\\\/3, graph 11\\\/11/);
     assert.match(smoke, /writeMaintenanceResumeVault/);
     assert.match(smoke, /cliMaintenanceResumeMcpVerify/);
     assert.match(smoke, /directMcpMaintenanceResumeVerify/);

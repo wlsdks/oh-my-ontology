@@ -24,6 +24,7 @@ import {
   buildGraphQuerySmokeArgs,
   buildGraphQuerySmokeRequests,
   compileFullArtifactFailure,
+  compileIndexesFailure,
   compileSummaryFailure,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
@@ -3933,6 +3934,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(39), 'infer_imports');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(40), 'strict_relation_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(41), 'compile_ontology_page');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(42), 'compile_ontology_indexes');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -3950,6 +3952,7 @@ describe('verify.mjs first-contact gates', () => {
     const analyze = buildFirstContactRequests().find((request) => request.id === 38);
     const infer = buildFirstContactRequests().find((request) => request.id === 39);
     const compilePage = buildFirstContactRequests().find((request) => request.id === 41);
+    const compileIndexes = buildFirstContactRequests().find((request) => request.id === 42);
     assert.equal(analyze?.params?.name, 'analyze_repo_structure');
     assert.equal(analyze?.params?.arguments?.maxDepth, 2);
     assert.match(analyze?.params?.arguments?.rootPath ?? '', /oh-my-ontology$/);
@@ -3958,6 +3961,8 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(infer?.params?.arguments?.rootPath ?? '', /oh-my-ontology$/);
     assert.equal(compilePage?.params?.name, 'compile_ontology');
     assert.deepEqual(compilePage?.params?.arguments, { nodesLimit: 1, edgesLimit: 1 });
+    assert.equal(compileIndexes?.params?.name, 'compile_ontology');
+    assert.deepEqual(compileIndexes?.params?.arguments, { nodesLimit: 1, edgesLimit: 1, includeIndexes: true });
   });
 
   it('builds direct graph-read smoke requests only when a node exists', () => {
@@ -4843,6 +4848,92 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(compileFullArtifactFailure({ ...clean, summary: { ...clean.summary, nodes: 2 } }), 'compile_ontology full response summary mismatch — summary 2/1, counts 1/1');
   });
 
+  it('accepts clean compile_ontology includeIndexes payloads', () => {
+    const edgeId = 'project->domains/core:domains:domains/core';
+    assert.equal(
+      compileIndexesFailure({
+        version: 1,
+        graphHash: 'abc123',
+        maxMtime: 1,
+        nodeCount: 1,
+        edgeCount: 1,
+        resolvedEdgeCount: 1,
+        externalEdgeCount: 0,
+        unresolvedEdgeCount: 0,
+        aliasCount: 1,
+        ambiguousAliasCount: 0,
+        issueCount: 0,
+        canonicalizationActionCount: 0,
+        byKind: { project: 1 },
+        byDomain: {},
+        nodes: [{ slug: 'project', kind: 'project', title: 'Project', mtime: 1, outDegree: 1, inDegree: 0 }],
+        edges: [{ id: edgeId, from: 'project', to: 'domains/core', via: 'domains', ref: 'domains/core', resolved: true, external: false }],
+        nodesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+        edgesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+        aliases: [{ alias: 'project', slug: 'project' }],
+        ambiguousAliases: [],
+        issues: [],
+        canonicalizationActions: [],
+        summary: { nodes: 1, edges: 1, graphHash: 'abc123', maxMtime: 1, resolvedEdges: 1, externalEdges: 0, unresolvedEdges: 0, aliases: 1, ambiguousAliases: 0, issues: 0 },
+        indexes: {
+          out: { project: [edgeId] },
+          in: { 'domains/core': [edgeId] },
+          byKind: { project: ['project'] },
+          byDomain: {},
+          edgeById: {
+            [edgeId]: { id: edgeId, from: 'project', to: 'domains/core', via: 'domains', ref: 'domains/core', resolved: true, external: false },
+          },
+          aliasToSlug: { project: 'project' },
+        },
+      }),
+      null,
+    );
+  });
+
+  it('fails malformed compile_ontology includeIndexes payloads', () => {
+    const edgeId = 'project->domains/core:domains:domains/core';
+    const clean = {
+      version: 1,
+      graphHash: 'abc123',
+      maxMtime: 1,
+      nodeCount: 1,
+      edgeCount: 1,
+      resolvedEdgeCount: 1,
+      externalEdgeCount: 0,
+      unresolvedEdgeCount: 0,
+      aliasCount: 1,
+      ambiguousAliasCount: 0,
+      issueCount: 0,
+      canonicalizationActionCount: 0,
+      byKind: { project: 1 },
+      byDomain: {},
+      nodes: [{ slug: 'project', kind: 'project', title: 'Project', mtime: 1, outDegree: 1, inDegree: 0 }],
+      edges: [{ id: edgeId, from: 'project', to: 'domains/core', via: 'domains', ref: 'domains/core', resolved: true, external: false }],
+      nodesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+      edgesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+      aliases: [{ alias: 'project', slug: 'project' }],
+      ambiguousAliases: [],
+      issues: [],
+      canonicalizationActions: [],
+      summary: { nodes: 1, edges: 1, graphHash: 'abc123', maxMtime: 1, resolvedEdges: 1, externalEdges: 0, unresolvedEdges: 0, aliases: 1, ambiguousAliases: 0, issues: 0 },
+      indexes: {
+        out: { project: [edgeId] },
+        in: { 'domains/core': [edgeId] },
+        byKind: { project: ['project'] },
+        byDomain: {},
+        edgeById: {
+          [edgeId]: { id: edgeId, from: 'project', to: 'domains/core', via: 'domains', ref: 'domains/core', resolved: true, external: false },
+        },
+        aliasToSlug: { project: 'project' },
+      },
+    };
+
+    assert.equal(compileIndexesFailure({ ...clean, indexes: undefined }), 'compile_ontology indexes response missing indexes');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, out: { project: edgeId } } }), 'compile_ontology.indexes.out malformed row');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, edgeById: {} } }), 'compile_ontology.indexes.edgeById count mismatch — index 0, edgeCount 1');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, aliasToSlug: {} } }), 'compile_ontology.indexes.aliasToSlug count mismatch — index 0, aliasCount 1');
+  });
+
   it('accepts clean graph-query verify smoke payloads', () => {
     assert.equal(
       overviewFailure({
@@ -5356,15 +5447,8 @@ describe('verify.mjs first-contact gates', () => {
       'direct 11/11, write 2/2, maintenance 2/2, graph 9/9',
     );
     assert.equal(
-      structuredContentVerifySummary({
-        hasNode: true,
-        hasProject: true,
-        hasGetConcept: true,
-        hasFindBacklinks: true,
-        hasDirectGraphReads: true,
-        hasLimitedQueryConcepts: true,
-      }),
-      'direct 16/16, write 2/2, maintenance 2/2, graph 10/10',
+      structuredContentVerifySummary({ hasCompileIndexes: true }),
+      'direct 11/11, write 2/2, maintenance 2/2, graph 8/8',
     );
     assert.equal(
       structuredContentVerifySummary({
@@ -5374,9 +5458,22 @@ describe('verify.mjs first-contact gates', () => {
         hasFindBacklinks: true,
         hasDirectGraphReads: true,
         hasLimitedQueryConcepts: true,
+        hasCompileIndexes: true,
+      }),
+      'direct 16/16, write 2/2, maintenance 2/2, graph 11/11',
+    );
+    assert.equal(
+      structuredContentVerifySummary({
+        hasNode: true,
+        hasProject: true,
+        hasGetConcept: true,
+        hasFindBacklinks: true,
+        hasDirectGraphReads: true,
+        hasLimitedQueryConcepts: true,
+        hasCompileIndexes: true,
         hasMaintenanceResume: true,
       }),
-      'direct 16/16, write 2/2, maintenance 3/3, graph 10/10',
+      'direct 16/16, write 2/2, maintenance 3/3, graph 11/11',
     );
   });
 

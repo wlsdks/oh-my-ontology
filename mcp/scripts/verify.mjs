@@ -1897,6 +1897,7 @@ export function structuredContentVerifySummary({
   hasFindBacklinks = false,
   hasDirectGraphReads = false,
   hasLimitedQueryConcepts = false,
+  hasCompileIndexes = false,
   hasMaintenanceResume = false,
 } = {}) {
   const direct = 11
@@ -1906,7 +1907,7 @@ export function structuredContentVerifySummary({
     + (hasLimitedQueryConcepts ? 1 : 0);
   const write = 2;
   const maintenance = 2 + (hasMaintenanceResume ? 1 : 0);
-  const graph = 7 + (hasNode ? 2 : 0) + (hasProject ? 1 : 0);
+  const graph = 7 + (hasNode ? 2 : 0) + (hasProject ? 1 : 0) + (hasCompileIndexes ? 1 : 0);
   return `direct ${direct}/${direct}, write ${write}/${write}, maintenance ${maintenance}/${maintenance}, graph ${graph}/${graph}`;
 }
 
@@ -1952,6 +1953,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [39, 'infer_imports'],
   [40, 'strict_relation_filter'],
   [41, 'compile_ontology_page'],
+  [42, 'compile_ontology_indexes'],
 ]);
 
 function log(level, msg) {
@@ -2294,6 +2296,12 @@ export function buildFirstContactRequests() {
       id: 41,
       method: 'tools/call',
       params: { name: 'compile_ontology', arguments: { nodesLimit: 1, edgesLimit: 1 } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 42,
+      method: 'tools/call',
+      params: { name: 'compile_ontology', arguments: { nodesLimit: 1, edgesLimit: 1, includeIndexes: true } },
     },
     {
       jsonrpc: '2.0',
@@ -3342,6 +3350,64 @@ function paginationMetaFailure(label, meta, total, returned) {
   return null;
 }
 
+function stringArrayMapFailure(label, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return `${label} missing`;
+  }
+  for (const [key, row] of Object.entries(value)) {
+    if (!key || !Array.isArray(row) || row.some((entry) => typeof entry !== 'string' || !entry)) {
+      return `${label} malformed row`;
+    }
+  }
+  return null;
+}
+
+export function compileIndexesFailure(parsed) {
+  const fullFailure = compileFullArtifactFailure(parsed);
+  if (fullFailure) return fullFailure;
+  const indexes = parsed.indexes;
+  if (!indexes || typeof indexes !== 'object' || Array.isArray(indexes)) {
+    return 'compile_ontology indexes response missing indexes';
+  }
+  for (const name of ['out', 'in', 'byKind', 'byDomain']) {
+    const failure = stringArrayMapFailure(`compile_ontology.indexes.${name}`, indexes[name]);
+    if (failure) return failure;
+  }
+  if (!indexes.edgeById || typeof indexes.edgeById !== 'object' || Array.isArray(indexes.edgeById)) {
+    return 'compile_ontology.indexes.edgeById missing';
+  }
+  const edgeIds = Object.keys(indexes.edgeById);
+  if (edgeIds.length !== parsed.edgeCount) {
+    return `compile_ontology.indexes.edgeById count mismatch — index ${edgeIds.length}, edgeCount ${parsed.edgeCount}`;
+  }
+  for (const [id, edge] of Object.entries(indexes.edgeById)) {
+    if (
+      edge?.id !== id ||
+      typeof edge.from !== 'string' ||
+      typeof edge.to !== 'string' ||
+      typeof edge.via !== 'string' ||
+      typeof edge.ref !== 'string' ||
+      typeof edge.resolved !== 'boolean' ||
+      typeof edge.external !== 'boolean'
+    ) {
+      return 'compile_ontology.indexes.edgeById malformed edge row';
+    }
+  }
+  if (!indexes.aliasToSlug || typeof indexes.aliasToSlug !== 'object' || Array.isArray(indexes.aliasToSlug)) {
+    return 'compile_ontology.indexes.aliasToSlug missing';
+  }
+  const aliasKeys = Object.keys(indexes.aliasToSlug);
+  if (aliasKeys.length !== parsed.aliasCount) {
+    return `compile_ontology.indexes.aliasToSlug count mismatch — index ${aliasKeys.length}, aliasCount ${parsed.aliasCount}`;
+  }
+  for (const [alias, slug] of Object.entries(indexes.aliasToSlug)) {
+    if (!alias || typeof slug !== 'string' || !slug) {
+      return 'compile_ontology.indexes.aliasToSlug malformed row';
+    }
+  }
+  return null;
+}
+
 export function overviewFailure(parsed) {
   if (parsed?.operation !== 'overview') {
     return `overview returned unexpected operation: ${parsed?.operation}`;
@@ -4076,6 +4142,7 @@ async function step2BootAndCall() {
       const tunedBriefRes = responses.find((r) => r.id === 21);
       const compileRes = responses.find((r) => r.id === 8);
       const compilePageRes = responses.find((r) => r.id === 41);
+      const compileIndexesRes = responses.find((r) => r.id === 42);
       const overviewRes = responses.find((r) => r.id === 9);
       const overviewPlanRes = responses.find((r) => r.id === 10);
       const getConceptsRes = responses.find((r) => r.id === 11);
@@ -4844,6 +4911,32 @@ async function step2BootAndCall() {
         return res(false);
       }
 
+      if (!compileIndexesRes || !compileIndexesRes.result) {
+        log('fail', 'no compile_ontology indexes response');
+        return res(false);
+      }
+      try {
+        const text = compileIndexesRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = compileIndexesFailure(parsed);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        const structuredFailure = structuredContentFailure(compileIndexesRes, parsed, 'compile_ontology_indexes');
+        if (structuredFailure) {
+          log('fail', structuredFailure);
+          return res(false);
+        }
+        log(
+          'ok',
+          `compile_ontology indexes — out ${Object.keys(parsed.indexes.out).length}, edgeById ${Object.keys(parsed.indexes.edgeById).length}, aliases ${Object.keys(parsed.indexes.aliasToSlug).length}`,
+        );
+      } catch (err) {
+        log('fail', `failed to parse compile_ontology indexes response: ${err.message}`);
+        return res(false);
+      }
+
       if (!overviewRes || !overviewRes.result) {
         log('fail', 'no query_ontology overview response');
         return res(false);
@@ -5014,6 +5107,7 @@ async function step2BootAndCall() {
           hasFindBacklinks: findBacklinksVerified,
           hasDirectGraphReads: directGraphReadsVerified,
           hasLimitedQueryConcepts: limitedQueryConceptsVerified,
+          hasCompileIndexes: true,
           hasMaintenanceResume: maintenanceResumeVerified,
         })}`,
       );
