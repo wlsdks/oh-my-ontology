@@ -64,7 +64,8 @@ only. `test:mcp:docs` checks README and dogfood ontology documentation drift.
 `test:mcp:dogfood` covers the dogfood helper's structuredContent output,
 indexed `compile_ontology` gate, batch writer row-label guidance summary,
 vault warning / `validate_vault` problem gates, first-contact health / next
-action gates, initialize guidance gate, destructive dry-run request/gate
+action gates, `workspace_brief.nextActions[].sample` shape drift,
+initialize guidance gate, destructive dry-run request/gate
 contract, help output, unsupported-argument rejection, strict relation filter
 rejection, stderr warning filtering, and gate contract without running the live
 MCP walk.

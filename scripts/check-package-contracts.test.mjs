@@ -437,6 +437,7 @@ describe('package contract helpers', () => {
     assert.match(section, /documentation drift/);
     assert.match(section, /help output/);
     assert.match(section, /row-label guidance summary/);
+    assert.match(section, /workspace_brief\.nextActions\[\]\.sample` shape drift/);
     assert.match(section, /dogfood timeout parsing, missing\s+response labels, and retry help/);
     assert.match(section, /maintenance_plan filter enums, ready\/missing\s+cursor handling, resume-cursor behavior, and dogfood work-queue shape gates/);
     assert.match(section, /unsupported-argument\s+rejection/);
