@@ -1014,6 +1014,9 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     // 사용하도록 stale 안내 회귀 차단.
     assert.match(instructions, /add_concepts/);
     assert.match(instructions, /add_relations/);
+    assert.match(instructions, /non-object row/);
+    assert.match(instructions, /unknown row field/);
+    assert.match(instructions, /ok: false/);
     assert.match(instructions, /get_concepts/);
     assert.match(instructions, /find_neighbors/);
     assert.match(instructions, /compile_ontology/);

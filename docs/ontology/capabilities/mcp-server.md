@@ -341,7 +341,8 @@ row partial-failure 경로까지 `mcp/src/integration.test.mjs` 의 spawn 기반
 전에 reject 해 generic TypeError 나 YAML coercion 으로 숨지 않게 한다.
 `add_concepts` / `add_relations` 의 batch row 도 object shape 와 허용 field set 을
 먼저 검증해, 잘못된 row 는 index 가 포함된 row-level error 로 격리하고 나머지 유효
-row 는 계속 land 한다.
+row 는 계속 land 한다. first-contact instructions 도 non-object row 와 unknown row field 가
+batch 전체 실패가 아니라 `{ok:false, error}` row 로 돌아온다는 점을 안내한다.
 `tools/call.arguments` 자체도 생략은 빈 object 로 처리하되, null / 배열 /
 문자열처럼 object 가 아닌 값은 SDK 또는 server 경계에서 명확한 MCP error 로
 거부한다. 알 수 없는 top-level argument key 도 reject 하고 `tools/list` schema 는
