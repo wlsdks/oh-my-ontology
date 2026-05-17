@@ -159,7 +159,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
     assert.equal(
       pkg.scripts?.['test:mcp:verify:first-contact'],
-      'node --test --test-name-pattern "initialize instructions|first-contact response labels|bootstrap and import-analysis|first-contact verify|list_concepts reports vault warnings|validate_vault reports problem files|malformed validate_vault|first-contact diagnosis|failing health checks|workspace_brief growth count drift|fail next actions" mcp/src/verify-script.test.mjs',
+      'node --test --test-name-pattern "initialize instructions|first-contact response labels|bootstrap and import-analysis|first-contact verify|list_concepts reports vault warnings|validate_vault reports problem files|malformed validate_vault|first-contact diagnosis|failing health checks|workspace_brief growth count drift|workspace_brief next action sample drift|fail next actions" mcp/src/verify-script.test.mjs',
     );
     assert.equal(
       pkg.scripts?.['test:mcp:verify:timeout'],
@@ -191,7 +191,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /pnpm test:mcp:package\s+# focused MCP\/CLI package-script\/dependency\/tarball contract checks/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /pnpm test:mcp:verify/);
-    assert.match(readme, /pnpm test:mcp:verify:first-contact\s+# narrow MCP verify first-contact health\/read smoke gates/);
+    assert.match(readme, /pnpm test:mcp:verify:first-contact\s+# narrow MCP verify first-contact health\/read\/sample gates/);
     assert.match(readme, /pnpm test:mcp:verify:timeout\s+# narrow MCP verify timeout\/help diagnostics/);
     assert.match(readme, /timeout mistakes, the error reports the\s+received value/);
     assert.match(readme, /`npm run verify -- --timeout-ms 15000`/);
