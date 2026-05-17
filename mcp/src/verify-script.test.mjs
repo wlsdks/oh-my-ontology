@@ -103,6 +103,7 @@ import {
   tunedHealthScopeOutputSummary,
   tunedWorkspaceBriefScopeOutputSummary,
   toolsListAnnotationSummary,
+  toolsListInventoryFailure,
   toolsListSchemaFailure,
   VAULT_ISSUE_CODE_VALUES,
   validationCodeSummary,
@@ -168,6 +169,38 @@ describe('verify.mjs first-contact gates', () => {
       '23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 22/23 local-only',
     );
     assert.equal(toolsListAnnotationSummary(null), 'missing tools/list');
+  });
+
+  it('fails ambiguous tools/list inventory before schema checks', () => {
+    const tools = EXPECTED_TOOLS.map((name) => ({ name }));
+    assert.equal(toolsListInventoryFailure(tools), null);
+    assert.equal(toolsListInventoryFailure(null), 'no tools/list response');
+    assert.equal(
+      toolsListInventoryFailure([
+        ...tools,
+        { name: 'list_concepts' },
+      ]),
+      'tools mismatch — missing: (none), extra: (none), duplicates: list_concepts, invalidNames: 0',
+    );
+    assert.equal(
+      toolsListInventoryFailure(tools.filter((tool) => tool.name !== 'get_concept')),
+      'tools mismatch — missing: get_concept, extra: (none), duplicates: (none), invalidNames: 0',
+    );
+    assert.equal(
+      toolsListInventoryFailure([
+        ...tools,
+        { name: 'unknown_tool' },
+      ]),
+      'tools mismatch — missing: (none), extra: unknown_tool, duplicates: (none), invalidNames: 0',
+    );
+    assert.equal(
+      toolsListInventoryFailure([
+        ...tools,
+        { name: '' },
+        {},
+      ]),
+      'tools mismatch — missing: (none), extra: (none), duplicates: (none), invalidNames: 2',
+    );
   });
 
   it('formats row counts for human-facing verify output', () => {

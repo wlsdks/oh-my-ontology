@@ -646,6 +646,8 @@ installed verify 의 `tools/list` 성공 라인도 같은 annotation summary hel
 `23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 23/23 local-only`
 coverage 를 직접 출력한다. source dogfood 와 설치 verify 가 같은 사람이 읽는 증거를
 공유하므로 annotation gate 가 통과했지만 로그에서는 숨는 상태를 줄인다.
+verify 는 `tools/list` duplicate tool name 도 별도 실패로 처리해, agent 첫 접촉에서
+같은 이름의 도구가 두 번 노출되는 ambiguous inventory 를 성공으로 넘기지 않는다.
 annotation drift 실패 메시지는 이제 해당 tool name 과 함께 expected / got 값을
 출력해, `readOnlyHint` 나 `openWorldHint` 같은 MCP metadata 회귀를 agent 가 바로
 수정할 수 있게 한다.

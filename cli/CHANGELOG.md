@@ -34,6 +34,7 @@
 - Delegated verify output now includes a compact non-blocking advisory nextActions line when cleanup is recommended, plus `issues/unresolved/cycles/checks` health summaries and check `id:status:count` coverage.
 - `mcp-verify --help` now labels the narrow first-contact helper gate as `initialize-safety-recovery`, matching the MCP verify safety/recovery guidance gate exposed to agents.
 - `mcp-verify` now inherits the MCP package invalid-type `add_relation` non-write metadata gate, so installed CLI checks fail if a preflight rejection includes `changed` or `postWriteMaintenance`.
+- `mcp-verify` now inherits the MCP package duplicate `tools/list` name gate, so installed CLI checks fail before MCP clients accept an ambiguous first-contact tool inventory.
 - 신규 integration test 2건 (`mcp-verify` runs against a fresh `init` vault with a short verify timeout and graph-query smoke output, invalid timeout rejected).
 
 ### Added — `maintenance` 명령 (27th, maintenance_plan work queue)

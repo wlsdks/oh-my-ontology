@@ -172,6 +172,23 @@ export function expectedToolsListAnnotationSummary() {
   })));
 }
 
+export function toolsListInventoryFailure(tools) {
+  if (!Array.isArray(tools)) return 'no tools/list response';
+  const invalidNameCount = tools.filter((tool) => typeof tool?.name !== 'string' || tool.name.length === 0).length;
+  const toolNames = tools
+    .map((tool) => tool?.name)
+    .filter((name) => typeof name === 'string' && name.length > 0)
+    .sort();
+  const expectedSorted = [...EXPECTED_TOOLS].sort();
+  const missing = expectedSorted.filter((name) => !toolNames.includes(name));
+  const extra = toolNames.filter((name) => !expectedSorted.includes(name));
+  const duplicates = [...new Set(toolNames.filter((name, index, names) => (
+    typeof name === 'string' && names.indexOf(name) !== index
+  )))];
+  if (missing.length === 0 && extra.length === 0 && duplicates.length === 0 && invalidNameCount === 0) return null;
+  return `tools mismatch — missing: ${missing.join(',') || '(none)'}, extra: ${extra.join(',') || '(none)'}, duplicates: ${duplicates.join(',') || '(none)'}, invalidNames: ${invalidNameCount}`;
+}
+
 export function expectedToolTitle(name) {
   return String(name || '')
     .split('_')
@@ -5083,14 +5100,12 @@ async function step2BootAndCall() {
         log('fail', 'no tools/list response');
         return res(false);
       }
-      const toolNames = listRes.result.tools.map((t) => t.name).sort();
-      const expectedSorted = [...EXPECTED_TOOLS].sort();
-      const missing = expectedSorted.filter((n) => !toolNames.includes(n));
-      const extra = toolNames.filter((n) => !expectedSorted.includes(n));
-      if (missing.length > 0 || extra.length > 0) {
-        log('fail', `tools mismatch — missing: ${missing.join(',') || '(none)'}, extra: ${extra.join(',') || '(none)'}`);
+      const inventoryFailure = toolsListInventoryFailure(listRes.result.tools);
+      if (inventoryFailure) {
+        log('fail', inventoryFailure);
         return res(false);
       }
+      const toolNames = listRes.result.tools.map((t) => t.name).sort();
       log('ok', `tools/list ${toolNames.length}/${EXPECTED_TOOLS.length} (${toolsListAnnotationSummary(listRes.result.tools)}) — ${toolNames.join(' · ')}`);
       const schemaFailure = toolsListSchemaFailure(listRes.result.tools);
       if (schemaFailure) {
