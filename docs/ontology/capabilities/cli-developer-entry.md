@@ -75,7 +75,8 @@ scripts/smoke-clean-onboarding.mjs — fresh user smoke. 임시 `HOME` / `CODEX_
 
 scripts/smoke-packed-cli.mjs — packed install smoke. local MCP + CLI tarball 을 임시
 프로젝트에 설치한 뒤 CLI package `npm test`, `init`, installed `mcp-verify`, MCP package `npm run verify`,
-installed `mcp-verify --help`, invalid installed `OMOT_MCP_PATH` / vault root failures, `compile --summary`, blocking `workspace-brief --json`,
+installed `mcp-verify --help`, invalid installed `OMOT_MCP_PATH` / vault root failures, `compile --summary`, installed `maintenance --json`,
+blocking `workspace-brief --json`,
 blocking `workspace-brief` non-json 의 `HEALTH CHECKS` / `dependency_cycles:fail:1` coverage, blocking `health` non-json 의 `dependency_cycles fail:1` coverage,
 `cycles --json`, `compile --json`, `path --json` exit 를 실행하고 installed verify 의
 health check count 출력, paginated `compile_ontology` full-artifact smoke 와

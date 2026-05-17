@@ -1342,6 +1342,9 @@ describe('package contract helpers', () => {
     assert.match(smoke, /function assertStatus/);
     assert.match(smoke, /installed CLI mcp-verify invalid timeout flag/);
     assert.match(smoke, /installed CLI missing MCP entry override/);
+    assert.match(smoke, /installed CLI maintenance work queue/);
+    assert.match(smoke, /installedMaintenancePayload\.operation, 'maintenance_plan'/);
+    assert.match(smoke, /installedMaintenancePayload\.summary\.dependencyCycles, 1/);
     assert.match(smoke, /installed CLI workspace-brief cycle gate/);
     assert.match(smoke, /missingDirectMcpVerifyTimeout/);
     assert.match(smoke, /typoDirectMcpVerifyTimeout/);

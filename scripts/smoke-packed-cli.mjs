@@ -802,6 +802,15 @@ try {
 
   const cycleVault = join(projectDir, 'cycle-vault');
   writeCycleVault(cycleVault);
+  const installedMaintenance = runRaw(cliBin, ['maintenance', cycleVault, '--json', '--limit=1'], { cwd: projectDir });
+  assertStatus(installedMaintenance, 0, 'installed CLI maintenance work queue');
+  const installedMaintenancePayload = JSON.parse(installedMaintenance.stdout);
+  assert.equal(installedMaintenancePayload.operation, 'maintenance_plan');
+  assert.equal(installedMaintenancePayload.sideEffect, false);
+  assert.equal(installedMaintenancePayload.summary.dependencyCycles, 1);
+  assert.equal(installedMaintenancePayload.cursor.found, true);
+  assert.equal(installedMaintenancePayload.actions.some((action) => action.kind === 'break_dependency_cycle'), true);
+
   const blockingBrief = runRaw(cliBin, ['workspace-brief', cycleVault, '--json'], { cwd: projectDir });
   assertStatus(blockingBrief, 1, 'installed CLI workspace-brief cycle gate');
   const blockingBriefPayload = JSON.parse(blockingBrief.stdout);
