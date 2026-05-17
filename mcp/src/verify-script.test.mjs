@@ -2938,7 +2938,7 @@ describe('verify.mjs first-contact gates', () => {
       strictMaintenanceFilterFailure({
         result: {
           isError: true,
-          content: [{ text: 'phases items must be one of: validate, repair, link, materialize, review.' }],
+          content: [{ text: 'phases items must be one of: validate, repair, link, materialize, review. Received: "repiar". Did you mean "repair"?' }],
         },
       }, 'phases'),
       null,
@@ -2947,7 +2947,7 @@ describe('verify.mjs first-contact gates', () => {
       strictMaintenanceFilterFailure({
         result: {
           isError: true,
-          content: [{ text: 'severities items must be one of: fail, warn, info.' }],
+          content: [{ text: 'severities items must be one of: fail, warn, info. Received: "fatal". Did you mean "fail"?' }],
         },
       }, 'severities'),
       null,
@@ -2956,7 +2956,7 @@ describe('verify.mjs first-contact gates', () => {
       strictMaintenanceFilterFailure({
         result: {
           isError: true,
-          content: [{ text: `kinds items must be one of: ${MAINTENANCE_KIND_VALUES.join(', ')}.` }],
+          content: [{ text: `kinds items must be one of: ${MAINTENANCE_KIND_VALUES.join(', ')}. Received: "add_mising_relation". Did you mean "add_missing_relation"?` }],
         },
       }, 'kinds'),
       null,
@@ -2972,6 +2972,14 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictMaintenanceFilterFailure({ result: { isError: true, content: [{ text: 'phases items must be one of: validate, repair. Received: "repiar".' }] } }),
       'strict maintenance filter response did not list allowed maintenance_plan phases',
+    );
+    assert.equal(
+      strictMaintenanceFilterFailure({ result: { isError: true, content: [{ text: 'phases items must be one of: validate, repair, link, materialize, review. Did you mean "repair"?' }] } }),
+      'strict maintenance filter response did not report the invalid maintenance_plan phases value',
+    );
+    assert.equal(
+      strictMaintenanceFilterFailure({ result: { isError: true, content: [{ text: 'phases items must be one of: validate, repair, link, materialize, review. Received: "repiar".' }] } }),
+      'strict maintenance filter response did not suggest the closest maintenance_plan phases value',
     );
     assert.equal(
       strictMaintenanceFilterFailure({ result: { isError: true, content: [{ text: 'severities items must be one of: fail, warn.' }] } }, 'severities'),

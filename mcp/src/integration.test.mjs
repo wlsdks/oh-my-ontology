@@ -2626,8 +2626,14 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 58).result.content[0].text, /dependencyTypes items must not have leading or trailing whitespace/i);
     assert.match(responses.find((r) => r.id === 59).result.content[0].text, /componentLimit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 60).result.content[0].text, /phases items must be one of: validate, repair, link, materialize, review/i);
+    assert.match(responses.find((r) => r.id === 60).result.content[0].text, /Received: "repiar"/i);
+    assert.match(responses.find((r) => r.id === 60).result.content[0].text, /Did you mean "repair"\?/i);
     assert.match(responses.find((r) => r.id === 61).result.content[0].text, /severities items must be one of: fail, warn, info/i);
+    assert.match(responses.find((r) => r.id === 61).result.content[0].text, /Received: "fatal"/i);
+    assert.match(responses.find((r) => r.id === 61).result.content[0].text, /Did you mean "fail"\?/i);
     assert.match(responses.find((r) => r.id === 62).result.content[0].text, /kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain/i);
+    assert.match(responses.find((r) => r.id === 62).result.content[0].text, /Received: "add_mising_relation"/i);
+    assert.match(responses.find((r) => r.id === 62).result.content[0].text, /Did you mean "add_missing_relation"\?/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);

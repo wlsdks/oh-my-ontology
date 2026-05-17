@@ -3600,7 +3600,7 @@ function normalizeStringSet(value, name, allowedValues = null) {
       throw new Error(`${name} items must not contain a null byte.`);
     }
     if (allowedValues && !allowedValues.has(trimmed)) {
-      throw new Error(`${name} items must be one of: ${[...allowedValues].join(', ')}.`);
+      throw new Error(formatAllowedValueError(`${name} items`, trimmed, [...allowedValues]));
     }
     items.push(trimmed);
   }

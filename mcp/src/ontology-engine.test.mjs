@@ -619,7 +619,7 @@ describe('queryCompiledOntology', () => {
         operation: 'maintenance_plan',
         phases: ['repiar'],
       }),
-      /phases items must be one of: validate, repair, link, materialize, review/,
+      /phases items must be one of:[\s\S]*Received: "repiar"\.[\s\S]*Did you mean "repair"\?/,
     );
     assert.throws(
       () => queryCompiledOntology(artifact(), {
@@ -633,7 +633,7 @@ describe('queryCompiledOntology', () => {
         operation: 'maintenance_plan',
         severities: ['fatal'],
       }),
-      /severities items must be one of: fail, warn, info/,
+      /severities items must be one of:[\s\S]*Received: "fatal"\.[\s\S]*Did you mean "fail"\?/,
     );
     assert.throws(
       () => queryCompiledOntology(artifact(), {
@@ -647,7 +647,7 @@ describe('queryCompiledOntology', () => {
         operation: 'maintenance_plan',
         kinds: ['add_mising_relation'],
       }),
-      /kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain/,
+      /kinds items must be one of:[\s\S]*Received: "add_mising_relation"\.[\s\S]*Did you mean "add_missing_relation"\?/,
     );
     assert.throws(
       () => queryCompiledOntology(artifact(), {

@@ -1422,16 +1422,23 @@ export function strictMaintenanceFilterFailure(response, field = 'phases') {
     return 'strict maintenance filter response was not rejected';
   }
   const text = response.result.content?.[0]?.text || '';
-  const allowedPattern = field === 'severities'
-    ? new RegExp(MAINTENANCE_SEVERITY_VALUES.join(', '), 'i')
+  const expected = field === 'severities'
+    ? { allowed: MAINTENANCE_SEVERITY_VALUES, received: 'fatal', suggestion: 'fail' }
     : field === 'kinds'
-      ? new RegExp(MAINTENANCE_KIND_VALUES.join(', '), 'i')
-      : new RegExp(MAINTENANCE_PHASE_VALUES.join(', '), 'i');
+      ? { allowed: MAINTENANCE_KIND_VALUES, received: 'add_mising_relation', suggestion: 'add_missing_relation' }
+      : { allowed: MAINTENANCE_PHASE_VALUES, received: 'repiar', suggestion: 'repair' };
+  const allowedPattern = new RegExp(expected.allowed.join(', '), 'i');
   if (!new RegExp(`${field} items must be one of`, 'i').test(text)) {
     return `strict maintenance filter response did not report the invalid maintenance_plan ${field} filter`;
   }
   if (!allowedPattern.test(text)) {
     return `strict maintenance filter response did not list allowed maintenance_plan ${field}`;
+  }
+  if (!new RegExp(`Received: "${expected.received}"`, 'i').test(text)) {
+    return `strict maintenance filter response did not report the invalid maintenance_plan ${field} value`;
+  }
+  if (!new RegExp(`Did you mean "${expected.suggestion}"\\?`, 'i').test(text)) {
+    return `strict maintenance filter response did not suggest the closest maintenance_plan ${field} value`;
   }
   return null;
 }
