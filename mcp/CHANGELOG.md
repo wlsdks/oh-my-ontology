@@ -60,6 +60,7 @@
 - `npm run verify` now fails when `initialize.instructions` loses first-contact safety and recovery guidance for read-only diagnosis, `expected_mtime`, `overwrite: true`, `force: true`, dangling referrers, batch relation type recovery (`Did you mean "depends_on"?`), or strict-input typo recovery (`Did you mean "limit"?` / `Did you mean "overview"?`), so installed packages prove agent-facing startup guidance before writes.
 - Successful `npm run verify` output now names `initialize.instructions` coverage as first-contact safety and recovery guidance, so the installed-package log matches the full gate it enforces instead of only calling out batch relation type hints.
 - `npm run verify -- --help` now labels the narrow first-contact helper gate as `initialize-safety-recovery`, so the focused-check hint matches the full guidance gate instead of the older `initialize-hint` wording.
+- `npm run verify` now fails if the invalid-type `add_relation` strict smoke includes `changed` or `postWriteMaintenance` in the result or `structuredContent`, so the preflight rejection stays visibly non-writing.
 - `npm run verify` now makes runtime negative smoke calls with invalid `list_concepts.lmit` and `query_ontology.operation="overveiw"` inputs, so installed packages prove unknown-argument and invalid-enum rejection before agents rely on the MCP surface.
 
 ## 0.11.0 — 2026-05-14

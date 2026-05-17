@@ -1809,6 +1809,12 @@ export function strictAddRelationFailure(response) {
   if (response?.result?.isError !== true) {
     return 'strict add_relation response was not rejected';
   }
+  if ('changed' in (response.result || {}) || 'postWriteMaintenance' in (response.result || {})) {
+    return 'strict add_relation response included write metadata';
+  }
+  if ('changed' in (response.result?.structuredContent || {}) || 'postWriteMaintenance' in (response.result?.structuredContent || {})) {
+    return 'strict add_relation structuredContent included write metadata';
+  }
   const text = response.result.content?.[0]?.text || '';
   if (!/type must be one of/i.test(text)) {
     return 'strict add_relation response did not report the invalid type filter';

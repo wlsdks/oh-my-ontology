@@ -33,6 +33,7 @@
 - `mcp-verify` now inherits the MCP package `workspace_brief.nextActions[].sample` shape gate, so executable cleanup examples for missing relations, external elements, and dangling references must stay aligned with real `add_relation` / `add_concept` inputs or `resolve_dangling_reference` rows.
 - Delegated verify output now includes a compact non-blocking advisory nextActions line when cleanup is recommended, plus `issues/unresolved/cycles/checks` health summaries and check `id:status:count` coverage.
 - `mcp-verify --help` now labels the narrow first-contact helper gate as `initialize-safety-recovery`, matching the MCP verify safety/recovery guidance gate exposed to agents.
+- `mcp-verify` now inherits the MCP package invalid-type `add_relation` non-write metadata gate, so installed CLI checks fail if a preflight rejection includes `changed` or `postWriteMaintenance`.
 - 신규 integration test 2건 (`mcp-verify` runs against a fresh `init` vault with a short verify timeout and graph-query smoke output, invalid timeout rejected).
 
 ### Added — `maintenance` 명령 (27th, maintenance_plan work queue)

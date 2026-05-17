@@ -422,7 +422,9 @@ allowed value hint 가 함께 유지되는지 검증한다.
 health/workspace_brief relation filter 도 `dependencyTypes: ["depend_on"]` 같은
 오타값을 실제로 보내 relation-type closest hint 가 유지되는지 first-contact 에서
 검증하고, dogfood walk 도 같은 MCP 호출을 포함해 실제 agent 시뮬레이션에서
-회귀를 잡는다. `dependencyTypes` / `componentTypes` 도 relation type enum 을 MCP
+회귀를 잡는다. strict `add_relation` type-preflight smoke 는 error 응답에
+`changed` / `postWriteMaintenance` write metadata 가 섞이면 실패해 invalid type
+거절이 write 결과처럼 보이지 않게 한다. `dependencyTypes` / `componentTypes` 도 relation type enum 을 MCP
 schema 로 노출해 client 가 `depend_on` 같은 오타를 호출 전에 잡을 수 있다.
 여러 unknown argument 를 한 번에 보낸 경우에도 첫 번째 오타만 보고하지 않고
 각 unknown key 와 가까운 allowed argument hint 를 한 응답에 모아 보여줘 agent 의

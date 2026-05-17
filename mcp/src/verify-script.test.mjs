@@ -4180,6 +4180,26 @@ describe('verify.mjs first-contact gates', () => {
       strictAddRelationFailure({ result: { isError: true, content: [{ text: 'type must be one of: depends_on, relates. Received: "depend_on".' }] } }),
       'strict add_relation response did not suggest the closest type value',
     );
+    assert.equal(
+      strictAddRelationFailure({
+        result: {
+          isError: true,
+          changed: false,
+          content: [{ text: 'type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' }],
+        },
+      }),
+      'strict add_relation response included write metadata',
+    );
+    assert.equal(
+      strictAddRelationFailure({
+        result: {
+          isError: true,
+          structuredContent: { postWriteMaintenance: { summary: { totalActions: 0 } } },
+          content: [{ text: 'type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' }],
+        },
+      }),
+      'strict add_relation structuredContent included write metadata',
+    );
   });
 
   it('summarizes strict maintenance filter enum values in verify output', () => {
