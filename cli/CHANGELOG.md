@@ -31,7 +31,7 @@
 - `mcp-verify` now inherits the MCP package split between node census checks (`list_kinds`, `list_concepts`, `compile_ontology`, `overview`) and file-level `validate_vault.scanned` health, so installed CLI checks do not conflate files with graph nodes.
 - `mcp-verify` blocks fail-severity first-contact problems while still allowing warn-level starter-vault diagnostics to print, so fresh `init` users can confirm MCP wiring before graph cleanup.
 - `mcp-verify` now inherits the MCP package `workspace_brief.nextActions[].sample` shape gate, so executable cleanup examples for missing relations, external elements, and dangling references must stay aligned with real `add_relation` / `add_concept` inputs or `resolve_dangling_reference` rows.
-- Delegated verify output now includes a compact advisory nextActions line when cleanup is recommended but not blocking.
+- Delegated verify output now includes a compact non-blocking advisory nextActions line when cleanup is recommended, plus `issues/unresolved/cycles/checks` health summaries and check `id:status:count` coverage.
 - 신규 integration test 2건 (`mcp-verify` runs against a fresh `init` vault with a short verify timeout and graph-query smoke output, invalid timeout rejected).
 
 ### Added — `maintenance` 명령 (27th, maintenance_plan work queue)

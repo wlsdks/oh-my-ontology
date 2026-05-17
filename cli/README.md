@@ -155,10 +155,13 @@ not only the cheap summary path.
 It blocks parser/server/tool inventory failures, vault validation problems,
 failing health checks, and fail-severity `workspace_brief.nextActions`; warn
 diagnostics still print so a fresh starter vault can verify before cleanup.
-The delegated verify output includes a compact advisory nextActions list when
-cleanup is recommended but not blocking, validates both default and tuned
+The delegated verify output includes a compact non-blocking advisory
+nextActions list when cleanup is recommended, validates both default and tuned
 `workspace_brief.health.checks`, and prints tuned `workspace_brief` output
-beside `health` / tuned `health`. It also prints graph-query smoke lines for
+beside `health` / tuned `health`. The health lines include
+`issues/unresolved/cycles/checks` plus check `id:status:count` coverage, so CLI
+users can read the verified health scope without opening the raw MCP payload.
+It also prints graph-query smoke lines for
 `overview`, `overview`/`project_map` query_plan, and actual `neighbors` /
 node-to-project `path` / `project_scope` calls, with `path` hop/edge alignment
 validated before the path is treated as usable. Vaults without a `kind: project`

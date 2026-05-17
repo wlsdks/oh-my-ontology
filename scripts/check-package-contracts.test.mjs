@@ -841,6 +841,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`validate_vault\.scanned` remains file-level\s+health/);
     assert.match(verifySection, /validates both default and tuned\s+`workspace_brief\.health\.checks`/);
     assert.match(verifySection, /prints tuned `workspace_brief` output\s+beside `health` \/ tuned `health`/);
+    assert.match(verifySection, /`issues\/unresolved\/cycles\/checks` plus check `id:status:count` coverage/);
+    assert.match(verifySection, /verified health scope without opening the raw MCP payload/);
     assert.match(verifySection, /stdout/);
     assert.match(verifySection, /paginated `compile_ontology\(\{nodesLimit:1, edgesLimit:1\}\)`/);
     assert.match(verifySection, /graph index payloads, index membership, and edge breakdown counts/);
@@ -931,6 +933,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`workspace_brief\.nextActions\[\]\.sample` shape gate/);
     assert.match(verifySection, /real `add_relation` \/ `add_concept` inputs/);
     assert.match(verifySection, /`resolve_dangling_reference` rows/);
+    assert.match(verifySection, /compact non-blocking advisory nextActions/);
+    assert.match(verifySection, /issues\/unresolved\/cycles\/checks` health summaries/);
+    assert.match(verifySection, /check `id:status:count` coverage/);
     assert.match(verifySection, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(verifySection, /`compile_ontology` summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
     assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);
@@ -1586,6 +1591,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm test:mcp:maintenance`/);
     assert.match(doc, /`pnpm test:mcp:verify`/);
     assert.match(doc, /`pnpm test:mcp:verify:first-contact`/);
+    assert.match(doc, /CLI `mcp-verify` 문서도 delegated verify output 의 non-blocking advisory/);
+    assert.match(doc, /issues\/unresolved\/cycles\/checks health summary/);
     assert.match(doc, /`pnpm test:mcp:verify:timeout`/);
     assert.match(doc, /`nextActions\[\]\.sample` 실행 액션 shape/);
     assert.match(doc, /직접 verify help 도 이 focused check 들을 같이 보여줘/);
