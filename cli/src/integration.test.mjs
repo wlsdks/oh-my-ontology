@@ -2301,6 +2301,25 @@ await test('maintenance — supports cursor and enum filter flags', async () => 
   }
 });
 
+await test('maintenance — rejects malformed CLI flags before runtime work', async () => {
+  const missingPhases = await run(['maintenance', '--phases']);
+  assert.equal(missingPhases.code, 1);
+  assert.match(stripAnsi(missingPhases.stderr), /--phases requires a value/);
+  assert.match(stripAnsi(missingPhases.stderr), /oh-my-ontology maintenance/);
+
+  const missingCursor = await run(['maintenance', '--after-action-id']);
+  assert.equal(missingCursor.code, 1);
+  assert.match(stripAnsi(missingCursor.stderr), /--after-action-id requires a value/);
+
+  const highLimit = await run(['maintenance', '--limit=501']);
+  assert.equal(highLimit.code, 1);
+  assert.match(stripAnsi(highLimit.stderr), /--limit must be <= 500/);
+
+  const typo = await run(['maintenance', '--lmit=1']);
+  assert.equal(typo.code, 1);
+  assert.match(stripAnsi(typo.stderr), /unknown flag: --lmit=1\. Did you mean --limit\?/);
+});
+
 await test('health --json — unhealthy graph exits non-zero', async () => {
   const root = buildCycleFixture();
   try {
