@@ -78,6 +78,60 @@ test('tsconfig path alias (@/) — resolves to src/ when target exists, else unr
   }
 });
 
+test('tsconfig paths aliases are resolved before fallback @/ guesses', () => {
+  const root = withRepo((r) => {
+    mkdirSync(join(r, 'app/page'), { recursive: true });
+    mkdirSync(join(r, 'src/app/providers'), { recursive: true });
+    mkdirSync(join(r, 'messages'), { recursive: true });
+    writeFileSync(
+      join(r, 'tsconfig.json'),
+      JSON.stringify(
+        {
+          compilerOptions: {
+            paths: {
+              '@/*': ['./*'],
+              '@/app-providers/*': ['./src/app/*'],
+            },
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    writeFileSync(
+      join(r, 'app/page/index.ts'),
+      [
+        'import { Provider } from "@/app-providers/providers";',
+        'import ko from "@/messages/ko.json";',
+      ].join('\n'),
+    );
+    writeFileSync(join(r, 'src/app/providers/index.ts'), 'export const Provider = 1;');
+    writeFileSync(join(r, 'messages/ko.json'), '{"hello":"안녕"}');
+  });
+  try {
+    const r = inferImports(root);
+    assert.ok(
+      r.edges.some(
+        (edge) =>
+          edge.from === 'app/page/index.ts' &&
+          edge.to === 'src/app/providers/index.ts',
+      ),
+      `expected tsconfig alias edge to src/app/providers/index.ts, got: ${JSON.stringify(r.edges)}`,
+    );
+    assert.ok(
+      r.edges.some(
+        (edge) =>
+          edge.from === 'app/page/index.ts' &&
+          edge.to === 'messages/ko.json',
+      ),
+      `expected root alias edge to messages/ko.json, got: ${JSON.stringify(r.edges)}`,
+    );
+    assert.deepEqual(r.unresolved, []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('dynamic import + require + reexport detected', () => {
   const root = withRepo((r) => {
     mkdirSync(join(r, 'src/a'), { recursive: true });

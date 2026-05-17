@@ -125,6 +125,7 @@ export function inferImports(rootPath, options = {}) {
   const edges = [];
   const externalImports = [];
   const unresolved = [];
+  const pathAliases = readTsconfigPathAliases(rootPath);
 
   for (const file of files) {
     let content;
@@ -137,7 +138,7 @@ export function inferImports(rootPath, options = {}) {
 
     for (const match of content.matchAll(IMPORT_RE)) {
       const spec = match[1];
-      classify(spec, file, dir, rootPath, edges, externalImports, unresolved, importKindOf(match[0]));
+      classify(spec, file, dir, rootPath, edges, externalImports, unresolved, importKindOf(match[0]), pathAliases);
     }
     for (const match of content.matchAll(SIDE_IMPORT_RE)) {
       // SIDE_IMPORT_RE matches a superset of IMPORT_RE in some cases —
@@ -149,7 +150,7 @@ export function inferImports(rootPath, options = {}) {
       const window = content.slice(Math.max(0, idx - 10), idx + 2);
       if (/from\s*$/.test(window.replace(/\s+$/, ''))) continue;
       const spec = match[1];
-      classify(spec, file, dir, rootPath, edges, externalImports, unresolved, 'side');
+      classify(spec, file, dir, rootPath, edges, externalImports, unresolved, 'side', pathAliases);
     }
   }
 
@@ -233,7 +234,7 @@ function importKindOf(rawMatch) {
   return 'static';
 }
 
-function classify(spec, file, dir, rootPath, edges, external, unresolved, kindOverride) {
+function classify(spec, file, dir, rootPath, edges, external, unresolved, kindOverride, pathAliases = []) {
   const kind = kindOverride ?? 'static';
   if (!spec) {
     unresolved.push({ from: relative(rootPath, file), spec, reason: 'empty' });
@@ -260,7 +261,7 @@ function classify(spec, file, dir, rootPath, edges, external, unresolved, kindOv
   // for `src/X`. Resolve it *as internal* so feature→entity/shared edges
   // appear in moduleEdges instead of being lost in externalImports.
   if (spec.startsWith('@/')) {
-    const aliasResolved = resolveAliasImport(spec, rootPath);
+    const aliasResolved = resolveAliasImport(spec, rootPath, pathAliases);
     if (aliasResolved) {
       edges.push({
         from: relative(rootPath, file),
@@ -281,12 +282,16 @@ function classify(spec, file, dir, rootPath, edges, external, unresolved, kindOv
   external.push({ from: relative(rootPath, file), spec });
 }
 
-function resolveAliasImport(spec, rootPath) {
+function resolveAliasImport(spec, rootPath, pathAliases = []) {
+  for (const alias of pathAliases) {
+    const mapped = resolveTsconfigPathAlias(spec, rootPath, alias);
+    if (mapped) return mapped;
+  }
+
   // Strip the `@/` prefix.
   const subPath = spec.slice(2);
-  // Try common src-root mappings in order. (We don't read tsconfig.json
-  // — most projects use `@/*` → `src/*`. If a project uses something
-  // exotic, the user can still see edges via direct relative imports.)
+  // Fallback for repos without tsconfig paths. Most Next.js/FSD projects use
+  // `@/*` with one of these roots.
   for (const root of ['src', 'lib', 'app']) {
     const base = join(rootPath, root, subPath);
     if (existsSync(base) && statSync(base).isFile()) return base;
@@ -302,6 +307,90 @@ function resolveAliasImport(spec, rootPath) {
     }
   }
   return null;
+}
+
+function readTsconfigPathAliases(rootPath) {
+  const tsconfigPath = join(rootPath, 'tsconfig.json');
+  if (!existsSync(tsconfigPath)) return [];
+  let parsed;
+  try {
+    parsed = parseTsconfigJson(readFileSync(tsconfigPath, 'utf-8'));
+  } catch {
+    return [];
+  }
+  const baseUrl = optionalTsconfigBaseUrl(parsed?.compilerOptions?.baseUrl);
+  const paths = parsed?.compilerOptions?.paths;
+  if (!paths || typeof paths !== 'object' || Array.isArray(paths)) return [];
+
+  const aliases = [];
+  for (const [pattern, targets] of Object.entries(paths)) {
+    if (typeof pattern !== 'string' || !Array.isArray(targets)) continue;
+    const starIndex = pattern.indexOf('*');
+    aliases.push({
+      pattern,
+      prefix: starIndex >= 0 ? pattern.slice(0, starIndex) : pattern,
+      suffix: starIndex >= 0 ? pattern.slice(starIndex + 1) : '',
+      wildcard: starIndex >= 0,
+      targets: targets.filter((target) => typeof target === 'string'),
+      baseUrl,
+    });
+  }
+  aliases.sort(
+    (a, b) => b.prefix.length - a.prefix.length || a.pattern.localeCompare(b.pattern),
+  );
+  return aliases;
+}
+
+function resolveTsconfigPathAlias(spec, rootPath, alias) {
+  if (!alias.wildcard && spec !== alias.pattern) return null;
+  if (alias.wildcard && (!spec.startsWith(alias.prefix) || !spec.endsWith(alias.suffix))) return null;
+
+  const wildcardValue = alias.wildcard
+    ? spec.slice(
+        alias.prefix.length,
+        alias.suffix ? spec.length - alias.suffix.length : undefined,
+      )
+    : '';
+  for (const target of alias.targets) {
+    const mapped = target.includes('*') ? target.replace('*', wildcardValue) : target;
+    const base = resolve(rootPath, alias.baseUrl, mapped);
+    const resolved = resolveImportCandidate(base);
+    if (resolved) return resolved;
+  }
+  return null;
+}
+
+function resolveImportCandidate(base) {
+  if (existsSync(base) && statSync(base).isFile()) return base;
+  for (const ext of RESOLVE_EXT_ORDER) {
+    const cand = base + ext;
+    if (existsSync(cand) && statSync(cand).isFile()) return cand;
+  }
+  if (existsSync(base) && statSync(base).isDirectory()) {
+    for (const ext of RESOLVE_EXT_ORDER) {
+      const cand = join(base, 'index' + ext);
+      if (existsSync(cand) && statSync(cand).isFile()) return cand;
+    }
+  }
+  return null;
+}
+
+function optionalTsconfigBaseUrl(value) {
+  return typeof value === 'string' && value.trim() === value ? value : '.';
+}
+
+function stripJsonComments(text) {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+}
+
+function parseTsconfigJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return JSON.parse(stripJsonComments(text));
+  }
 }
 
 function resolveRelativeImport(spec, fromDir) {
