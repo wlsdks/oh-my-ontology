@@ -551,6 +551,7 @@ describe('package contract helpers', () => {
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
 
     assert.match(tableRow, /project-node `list_concepts` probe/);
+    assert.match(tableRow, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
     assert.match(tableRow, /write-tool `postWriteMaintenance` `score`\/`proposedAction`\/next-action guidance/);
     assert.match(tableRow, /enum-validated `maintenance_plan` filters/);
     assert.match(tableRow, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
@@ -632,6 +633,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /non-object row shape and unknown row field failures\s+surfacing as row-level `ok:false` results/);
     assert.match(verifySection, /instead of top-level tool errors/);
     assert.match(verifySection, /with no `postWriteMaintenance`/);
+    assert.match(verifySection, /destructive writer dry-runs for `rename_concept`,\s+`merge_concepts`, and `delete_concept`/);
+    assert.match(verifySection, /`ok:false` \/ `dryRun:true` previews with no `changed` or `postWriteMaintenance`/);
   });
 
   it('keeps the CLI README explicit about graph write safety switches', () => {
@@ -673,6 +676,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
     assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results instead of top-level tool errors, with no `postWriteMaintenance`/);
+    assert.match(verifySection, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
+    assert.match(verifySection, /previews stay non-writing and do not include `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(verifySection, /valid `maintenance_plan\.afterActionId` resume smoke/);
     assert.match(verifySection, /repeated cursor actions or non-advancing `remainingActions`/);
@@ -804,6 +809,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /실제 `neighbors` \/ node→project `path` \/ `project_scope` graph smoke/);
     assert.match(mcpVerifyRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(mcpVerifyRow, /project-node `list_concepts` probe/);
+    assert.match(mcpVerifyRow, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
     assert.match(mcpVerifyRow, /`query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`/);
     assert.match(mcpVerifyRow, /`find_orphans`/);
     assert.match(mcpVerifyRow, /별도 limited `query_concepts` smoke/);
@@ -1188,7 +1194,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /direct read smoke set\(`get_concept` \/ `get_concepts` \/ `find_evidence`/);
     assert.match(regressionSection, /limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
     assert.match(regressionSection, /paginated `compile_ontology` full-artifact smoke/);
-    assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함\)/);
+    assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함\) \/ strict argument\/enum smoke \/ batch writer row-isolation smoke \/ destructive dry-run smoke/);
     assert.match(regressionSection, /write-tool post-write guidance/);
     assert.match(regressionSection, /maintenance filter enum/);
     assert.match(regressionSection, /ready cursor \/ missing cursor 계약/);
