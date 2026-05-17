@@ -1443,6 +1443,23 @@ export function strictMaintenanceFilterFailure(response, field = 'phases') {
   return null;
 }
 
+export function strictRelationFilterFailure(response) {
+  if (response?.result?.isError !== true) {
+    return 'strict relation filter response was not rejected';
+  }
+  const text = response.result.content?.[0]?.text || '';
+  if (!/dependencyTypes items must be one of/i.test(text)) {
+    return 'strict relation filter response did not report the invalid dependencyTypes filter';
+  }
+  if (!/Received: "depend_on"/i.test(text)) {
+    return 'strict relation filter response did not report the invalid dependencyTypes value';
+  }
+  if (!/Did you mean "depends_on"\?/i.test(text)) {
+    return 'strict relation filter response did not suggest the closest dependencyTypes value';
+  }
+  return null;
+}
+
 export function maintenanceMissingCursorFailure(parsed) {
   if (parsed?.operation !== 'maintenance_plan') {
     return `maintenance missing-cursor smoke returned unexpected operation: ${parsed?.operation}`;
@@ -1814,6 +1831,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [37, 'query_concepts_limited'],
   [38, 'analyze_repo_structure'],
   [39, 'infer_imports'],
+  [40, 'strict_relation_filter'],
 ]);
 
 function log(level, msg) {
@@ -2195,6 +2213,15 @@ export function buildFirstContactRequests() {
       params: {
         name: 'query_ontology',
         arguments: { operation: 'maintenance_plan', kinds: ['add_mising_relation'] },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 40,
+      method: 'tools/call',
+      params: {
+        name: 'query_ontology',
+        arguments: { operation: 'health', dependencyTypes: ['depend_on'] },
       },
     },
     {
@@ -3771,6 +3798,7 @@ async function step2BootAndCall() {
       const strictMaintenancePhaseFilterRes = responses.find((r) => r.id === 22);
       const strictMaintenanceSeverityFilterRes = responses.find((r) => r.id === 23);
       const strictMaintenanceKindFilterRes = responses.find((r) => r.id === 24);
+      const strictRelationFilterRes = responses.find((r) => r.id === 40);
       const maintenanceMissingCursorRes = responses.find((r) => r.id === 25);
       const maintenanceReadyCursorRes = responses.find((r) => r.id === 26);
       const maintenanceResumeCursorRes = responses.find((r) => r.id === 30);
@@ -3880,6 +3908,12 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', `strict maintenance filters — invalid phase/severity/kind rejected at runtime (${maintenanceFilterEnumSummary()})`);
+      const strictRelationFilter = strictRelationFilterFailure(strictRelationFilterRes);
+      if (strictRelationFilter) {
+        log('fail', strictRelationFilter);
+        return res(false);
+      }
+      log('ok', 'strict relation filters — invalid dependencyTypes rejected with closest-value hint');
 
       if (!maintenanceMissingCursorRes || !maintenanceMissingCursorRes.result) {
         log('fail', 'no query_ontology maintenance missing-cursor response');

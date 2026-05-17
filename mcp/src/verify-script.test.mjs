@@ -74,6 +74,7 @@ import {
   strictMultiArgsFailure,
   strictEnumFailure,
   strictMaintenanceFilterFailure,
+  strictRelationFilterFailure,
   structuredContentFailure,
   structuredContentParityStatus,
   structuredContentVerifySummary,
@@ -2991,6 +2992,34 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed strict relation filter smoke responses', () => {
+    assert.equal(
+      strictRelationFilterFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'dependencyTypes items must be one of: domains, domain, capabilities, elements, dependencies, depends_on, relates, contains, describes. Received: "depend_on". Did you mean "depends_on"?' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictRelationFilterFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict relation filter response was not rejected',
+    );
+    assert.equal(
+      strictRelationFilterFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict relation filter response did not report the invalid dependencyTypes filter',
+    );
+    assert.equal(
+      strictRelationFilterFailure({ result: { isError: true, content: [{ text: 'dependencyTypes items must be one of: dependencies, depends_on. Did you mean "depends_on"?' }] } }),
+      'strict relation filter response did not report the invalid dependencyTypes value',
+    );
+    assert.equal(
+      strictRelationFilterFailure({ result: { isError: true, content: [{ text: 'dependencyTypes items must be one of: dependencies, depends_on. Received: "depend_on".' }] } }),
+      'strict relation filter response did not suggest the closest dependencyTypes value',
+    );
+  });
+
   it('summarizes strict maintenance filter enum values in verify output', () => {
     assert.equal(
       maintenanceFilterEnumSummary(),
@@ -3559,6 +3588,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(37), 'query_concepts_limited');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(38), 'analyze_repo_structure');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(39), 'infer_imports');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(40), 'strict_relation_filter');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

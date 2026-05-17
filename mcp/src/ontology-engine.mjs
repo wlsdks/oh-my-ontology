@@ -5,6 +5,18 @@ const DEFAULT_LIMIT = 100;
 const DOWNWARD_CONTAINMENT_TYPES = new Set(['domains', 'capabilities', 'elements', 'contains']);
 const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
 const HEALTH_IGNORED_COMPONENT_KINDS = new Set(['vault-readme']);
+const RELATION_TYPE_VALUES = Object.freeze([
+  'domains',
+  'domain',
+  'capabilities',
+  'elements',
+  'dependencies',
+  'depends_on',
+  'relates',
+  'contains',
+  'describes',
+]);
+const RELATION_TYPES = new Set(RELATION_TYPE_VALUES);
 export const MAINTENANCE_PHASE_VALUES = Object.freeze(['validate', 'repair', 'link', 'materialize', 'review']);
 export const MAINTENANCE_SEVERITY_VALUES = Object.freeze(['fail', 'warn', 'info']);
 export const MAINTENANCE_KIND_VALUES = Object.freeze([
@@ -2130,7 +2142,7 @@ export function createOntologyEngine(artifact, options = {}) {
   function cycles(options = {}) {
     const limit = normalizeLimit(options.limit, 20);
     const maxDepth = normalizeDepth(options.maxHops ?? options.depth, 8);
-    const typeSet = normalizeTypes(options.types ?? ['dependencies']);
+    const typeSet = normalizeTypes(options.types ?? ['dependencies'], options.typeName || 'types');
     const cycleMap = new Map();
     const sortedNodes = [...nodes].sort((a, b) => a.slug.localeCompare(b.slug));
 
@@ -2179,7 +2191,7 @@ export function createOntologyEngine(artifact, options = {}) {
 
   function topologicalOrder(options = {}) {
     const limit = normalizeLimit(options.limit, 100);
-    const typeSet = normalizeTypes(options.types ?? ['dependencies']);
+    const typeSet = normalizeTypes(options.types ?? ['dependencies'], options.typeName || 'types');
     const includeIsolated = normalizeOptionalBoolean(options.includeIsolated, 'includeIsolated', false);
     const selectedEdges = edges.filter((edge) => edge.resolved && typeAllowed(edge.via, typeSet));
     const slugs = new Set();
@@ -2572,7 +2584,7 @@ export function createOntologyEngine(artifact, options = {}) {
   function health(options = {}) {
     const limit = normalizeLimit(options.limit, 10);
     const overviewResult = overview({ limit });
-    const componentTypeSet = normalizeTypes(options.componentTypes ?? options.types);
+    const componentTypeSet = normalizeTypes(options.componentTypes ?? options.types, options.componentTypes !== undefined ? 'componentTypes' : 'types');
     const componentResult = components({
       limit: normalizeLimit(options.componentLimit, 5, 'componentLimit'),
       nodeLimit: normalizeLimit(options.nodeLimit, 10, 'nodeLimit'),
@@ -2588,6 +2600,7 @@ export function createOntologyEngine(artifact, options = {}) {
       limit: normalizeLimit(options.cycleLimit, 5, 'cycleLimit'),
       maxHops: options.maxHops ?? options.depth,
       types: options.dependencyTypes ?? ['dependencies'],
+      typeName: options.dependencyTypes !== undefined ? 'dependencyTypes' : 'types',
     });
     const recommendationResult = recommendRelations({
       limit: normalizeLimit(options.recommendationLimit, 20, 'recommendationLimit'),
@@ -2595,6 +2608,7 @@ export function createOntologyEngine(artifact, options = {}) {
     const orderResult = topologicalOrder({
       limit: normalizeLimit(options.orderLimit, 20, 'orderLimit'),
       types: options.dependencyTypes ?? ['dependencies'],
+      typeName: options.dependencyTypes !== undefined ? 'dependencyTypes' : 'types',
     });
     const issueCount = Array.isArray(artifact?.issues) ? artifact.issues.length : 0;
     const graph = overviewResult.graph;
@@ -3273,27 +3287,28 @@ function typeAllowed(via, typeSet) {
   return !typeSet || typeSet.has(normalizeRelationType(via));
 }
 
-function normalizeTypes(types) {
+function normalizeTypes(types, name = 'types') {
   if (types === undefined || types === null) return null;
   if (!Array.isArray(types)) {
-    throw new Error('types must be an array of strings.');
+    throw new Error(`${name} must be an array of strings.`);
   }
   if (types.length === 0) return null;
   const normalized = [];
   for (const type of types) {
     if (typeof type !== 'string') {
-      throw new Error('types must be an array of strings.');
+      throw new Error(`${name} must be an array of strings.`);
     }
     const trimmed = type.trim();
     if (!trimmed) {
-      throw new Error('types items must be non-empty strings.');
+      throw new Error(`${name} items must be non-empty strings.`);
     }
     if (trimmed !== type) {
-      throw new Error('types items must not have leading or trailing whitespace.');
+      throw new Error(`${name} items must not have leading or trailing whitespace.`);
     }
     if (trimmed.includes('\0')) {
-      throw new Error('types items must not contain a null byte.');
+      throw new Error(`${name} items must not contain a null byte.`);
     }
+    requireRelationType(trimmed, `${name} items`);
     normalized.push(normalizeRelationType(trimmed));
   }
   return new Set(normalized);
@@ -3318,6 +3333,7 @@ function normalizePattern(pattern) {
     if (trimmed.includes('\0')) {
       throw new Error('pattern items must not contain a null byte.');
     }
+    requireRelationType(trimmed, 'pattern items');
     normalized.push(normalizeRelationType(trimmed));
   }
   return normalized.slice(0, 20);
@@ -3629,6 +3645,12 @@ function normalizeIterations(value) {
 
 function normalizeRelationType(type) {
   return type === 'depends_on' ? 'dependencies' : type;
+}
+
+function requireRelationType(type, name) {
+  if (!RELATION_TYPES.has(type)) {
+    throw new Error(formatAllowedValueError(name, type, RELATION_TYPE_VALUES));
+  }
 }
 
 function normalizeDirection(direction, fallback) {

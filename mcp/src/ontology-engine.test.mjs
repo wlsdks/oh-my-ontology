@@ -1003,6 +1003,14 @@ describe('queryCompiledOntology', () => {
       }),
       /pattern items must not contain a null byte/,
     );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'pattern_walk',
+        slug: 'capabilities/login',
+        pattern: ['depend_on'],
+      }),
+      /pattern items must be one of:[\s\S]*Received: "depend_on"\.[\s\S]*Did you mean "depends_on"\?/,
+    );
   });
 
   it('rejects invalid relation type filters instead of dropping them', () => {
@@ -1037,6 +1045,28 @@ describe('queryCompiledOntology', () => {
         types: ['dependencies\0'],
       }),
       /types items must not contain a null byte/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'neighbors',
+        slug: 'capabilities/login',
+        types: ['depend_on'],
+      }),
+      /types items must be one of:[\s\S]*Received: "depend_on"\.[\s\S]*Did you mean "depends_on"\?/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'health',
+        dependencyTypes: ['depend_on'],
+      }),
+      /dependencyTypes items must be one of:[\s\S]*Received: "depend_on"\.[\s\S]*Did you mean "depends_on"\?/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), {
+        operation: 'workspace_brief',
+        componentTypes: ['capabilties'],
+      }),
+      /componentTypes items must be one of:[\s\S]*Received: "capabilties"\.[\s\S]*Did you mean "capabilities"\?/,
     );
   });
 

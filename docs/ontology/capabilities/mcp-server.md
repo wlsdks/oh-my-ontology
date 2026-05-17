@@ -309,7 +309,8 @@ read-only first-contact diagnosis, `expected_mtime`, existing `newSlug` /
 `overwrite: true`, `force: true`, dangling referrers 안내를 잃으면 실패해,
 설치된 패키지의 agent-facing startup guidance 가 write 전에도 증명되도록 한다.
 strict-input typo recovery 안내도 같은 gate 에 포함되어 `Did you mean "limit"?`,
-`Did you mean "overview"?`, `Did you mean "depends_on"?`, `Did you mean "repair"?`
+`Did you mean "overview"?`, `Did you mean "depends_on"?`, `Did you mean "repair"?`,
+`Did you mean "capabilities"?`
 같은 nearest hint 가 first-contact 에서 사라지지 않게 한다.
 `health` / `workspace_brief` probe tuning 도 first-contact 안내에 포함해
 `componentLimit`, `cycleLimit`, `recommendationLimit`, `orderLimit`, `nodeLimit`,
@@ -338,6 +339,9 @@ relation type typo row 를 함께 보내 row-level 격리와 relation type neare
 `maintenance_plan` filter smoke 도 `phases: ["repiar"]`, `severities: ["fatal"]`,
 `kinds: ["add_mising_relation"]` 오타값을 실제로 보내 `Received: ...` 와 closest
 allowed value hint 가 함께 유지되는지 검증한다.
+health/workspace_brief relation filter 도 `dependencyTypes: ["depend_on"]` 같은
+오타값을 실제로 보내 relation-type closest hint 가 유지되는지 first-contact 에서
+검증한다.
 여러 unknown argument 를 한 번에 보낸 경우에도 첫 번째 오타만 보고하지 않고
 각 unknown key 와 가까운 allowed argument hint 를 한 응답에 모아 보여줘 agent 의
 반복 retry 비용을 낮춘다.
