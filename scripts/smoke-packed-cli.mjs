@@ -354,6 +354,15 @@ try {
   assert.equal(duplicateCliMcpVerifyVault.stdout, '');
   assert.match(duplicateCliMcpVerifyVault.stderr, /pass vault as either positional argument or --vault, not both/);
 
+  const typoCliMcpVerifyTimeout = runRaw(
+    cliBin,
+    ['mcp-verify', '--timout-ms=1000'],
+    { cwd: projectDir },
+  );
+  assert.equal(typoCliMcpVerifyTimeout.status, 1);
+  assert.equal(typoCliMcpVerifyTimeout.stdout, '');
+  assert.match(typoCliMcpVerifyTimeout.stderr, /unknown flag: --timout-ms=1000\. Did you mean --timeout-ms\?/);
+
   const invalidCliMcpVerifyEnvTimeout = runRaw(
     cliBin,
     ['mcp-verify', 'ontology'],
