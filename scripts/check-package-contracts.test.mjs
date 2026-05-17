@@ -293,14 +293,20 @@ describe('package contract helpers', () => {
 
   it('keeps docs aligned with repo analysis MCP argument names', () => {
     const features = readFileSync('docs/FEATURES.md', 'utf-8');
+    const mcpReadme = readFileSync('mcp/README.md', 'utf-8');
     const analyzeLine = features.split('14. **analyze_repo_structure**')[1]?.split('\n')[0] ?? '';
     const inferLine = features.split('15. **infer_imports**')[1]?.split('\n')[0] ?? '';
+    const mcpInferRow = mcpReadme.split('| `infer_imports` |')[1]?.split('\n')[0] ?? '';
 
     assert.match(analyzeLine, /`?\{ rootPath\?, maxDepth\?, ignore\? \}`?/);
     assert.match(inferLine, /`?\{ rootPath\?, sourceFolders\?, ignore\?, maxFiles\? \}`?/);
     assert.match(inferLine, /`kindCounts`/);
     assert.match(inferLine, /`tsconfig\.json` paths/);
     assert.match(inferLine, /fallback common `@\/\*` aliases/);
+    assert.match(mcpInferRow, /relative imports/);
+    assert.match(mcpInferRow, /`tsconfig\.json` `compilerOptions\.paths` aliases/);
+    assert.match(mcpInferRow, /fallback common `@\/\*` aliases/);
+    assert.match(mcpInferRow, /`alias-not-found`/);
     assert.doesNotMatch(analyzeLine + inferLine, /repoRoot/);
   });
 
