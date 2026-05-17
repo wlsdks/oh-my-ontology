@@ -782,6 +782,17 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     );
     assert.deepEqual(
       {
+        kindEnum: findTool("find_orphans")?.inputSchema?.properties?.kind?.enum,
+        excludeKindsEnum: findTool("find_orphans")?.inputSchema?.properties?.excludeKinds?.items?.enum,
+      },
+      {
+        kindEnum: NODE_KIND_VALUES,
+        excludeKindsEnum: NODE_KIND_VALUES,
+      },
+      "find_orphans exposes node kind enums for direct filters",
+    );
+    assert.deepEqual(
+      {
         type: findTool("find_path")?.inputSchema?.properties?.maxHops?.type,
         minimum: findTool("find_path")?.inputSchema?.properties?.maxHops?.minimum,
         maximum: findTool("find_path")?.inputSchema?.properties?.maxHops?.maximum,
@@ -2697,12 +2708,14 @@ await test("MCP read/query tools — invalid numeric and direction options are r
       callTool(67, "query_ontology", { operation: "match_edges", fromKind: "capabilty" }),
       callTool(68, "query_ontology", { operation: "match_edges", toKind: "externl" }),
       callTool(69, "find_neighbors", { slug: "a", types: ["depend_on"] }),
+      callTool(70, "find_orphans", { kind: "capabilty" }),
+      callTool(71, "find_orphans", { excludeKinds: ["capabilty"] }),
     ]);
     for (const id of [
       2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
       21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
       38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
-      55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+      55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
     ]) {
       assert.equal(isErrorResponse(responses, id), true, `request ${id} should be rejected`);
     }
@@ -2769,6 +2782,12 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 69).result.content[0].text, /types items must be one of/i);
     assert.match(responses.find((r) => r.id === 69).result.content[0].text, /Received: "depend_on"/i);
     assert.match(responses.find((r) => r.id === 69).result.content[0].text, /Did you mean "depends_on"\?/i);
+    assert.match(responses.find((r) => r.id === 70).result.content[0].text, /kind must be one of/i);
+    assert.match(responses.find((r) => r.id === 70).result.content[0].text, /Received: "capabilty"/i);
+    assert.match(responses.find((r) => r.id === 70).result.content[0].text, /Did you mean "capability"\?/i);
+    assert.match(responses.find((r) => r.id === 71).result.content[0].text, /excludeKinds items must be one of/i);
+    assert.match(responses.find((r) => r.id === 71).result.content[0].text, /Received: "capabilty"/i);
+    assert.match(responses.find((r) => r.id === 71).result.content[0].text, /Did you mean "capability"\?/i);
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);

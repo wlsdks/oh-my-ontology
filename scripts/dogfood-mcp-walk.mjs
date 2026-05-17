@@ -42,6 +42,7 @@ import {
   strictMatchNodesSortFailure,
   strictMatchEdgesTypeFailure,
   strictFindNeighborsTypeFailure,
+  strictFindOrphansKindFailure,
   strictMaintenanceFilterFailure,
   strictAddRelationFailure,
   strictRelationFilterFailure,
@@ -188,6 +189,8 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [73, "strict_match_nodes_sort_filter"],
   [74, "strict_match_edges_type_filter"],
   [75, "strict_find_neighbors_type_filter"],
+  [76, "strict_find_orphans_kind_filter"],
+  [77, "strict_find_orphans_exclude_kind_filter"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -701,6 +704,12 @@ export function buildDogfoodRequests() {
       slug: "missing-find-neighbors-type-source",
       types: ["depend_on"],
     }),
+    call(76, "find_orphans", {
+      kind: "capabilty",
+    }),
+    call(77, "find_orphans", {
+      excludeKinds: ["capabilty"],
+    }),
     call(68, "query_ontology", {
       operation: "match_edges",
       fromKind: "capabilty",
@@ -1026,6 +1035,8 @@ export function evaluateDogfoodGate({
   strictMaintenanceKindFilter,
   strictRelationFilter,
   strictFindNeighborsTypeFilter,
+  strictFindOrphansKindFilter,
+  strictFindOrphansExcludeKindFilter,
   strictRelationCheck,
   strictAddRelation,
   strictGraphKindFilter,
@@ -1110,6 +1121,10 @@ export function evaluateDogfoodGate({
   if (strictRelationFilterError) failures.push(`strict_relation_filter: ${strictRelationFilterError}`);
   const strictFindNeighborsTypeFilterError = strictFindNeighborsTypeFailure(strictFindNeighborsTypeFilter);
   if (strictFindNeighborsTypeFilterError) failures.push(`strict_find_neighbors_type_filter: ${strictFindNeighborsTypeFilterError}`);
+  const strictFindOrphansKindFilterError = strictFindOrphansKindFailure(strictFindOrphansKindFilter);
+  if (strictFindOrphansKindFilterError) failures.push(`strict_find_orphans_kind_filter: ${strictFindOrphansKindFilterError}`);
+  const strictFindOrphansExcludeKindFilterError = strictFindOrphansKindFailure(strictFindOrphansExcludeKindFilter, { field: "excludeKinds items" });
+  if (strictFindOrphansExcludeKindFilterError) failures.push(`strict_find_orphans_exclude_kind_filter: ${strictFindOrphansExcludeKindFilterError}`);
   const strictRelationCheckError = strictRelationCheckFailure(strictRelationCheck);
   if (strictRelationCheckError) failures.push(`strict_relation_check: ${strictRelationCheckError}`);
   const strictAddRelationError = strictAddRelationFailure(strictAddRelation);
@@ -5428,6 +5443,18 @@ async function main() {
   if (strictFindNeighborsTypeFilterText) {
     console.log(`  ${strictFindNeighborsTypeFilterText}`);
   }
+  const strictFindOrphansKindFilter = responses.find((response) => response.id === 76);
+  const strictFindOrphansKindFilterText = strictFindOrphansKindFilter?.result?.content?.[0]?.text || "";
+  console.log(`  find_orphans.kind rejected: ${strictFindOrphansKindFilter?.result?.isError === true}`);
+  if (strictFindOrphansKindFilterText) {
+    console.log(`  ${strictFindOrphansKindFilterText}`);
+  }
+  const strictFindOrphansExcludeKindFilter = responses.find((response) => response.id === 77);
+  const strictFindOrphansExcludeKindFilterText = strictFindOrphansExcludeKindFilter?.result?.content?.[0]?.text || "";
+  console.log(`  find_orphans.excludeKinds rejected: ${strictFindOrphansExcludeKindFilter?.result?.isError === true}`);
+  if (strictFindOrphansExcludeKindFilterText) {
+    console.log(`  ${strictFindOrphansExcludeKindFilterText}`);
+  }
 
   // 50. strict relation_check rejection
   header("strict relation_check — invalid type rejection");
@@ -5670,6 +5697,8 @@ async function main() {
     strictMaintenanceKindFilter,
     strictRelationFilter,
     strictFindNeighborsTypeFilter,
+    strictFindOrphansKindFilter,
+    strictFindOrphansExcludeKindFilter,
     strictRelationCheck,
     strictAddRelation,
     strictGraphKindFilter,
@@ -5781,6 +5810,8 @@ async function main() {
   console.log(`  strict_maintenance_kind_filter: rejected ${strictMaintenanceKindFilter?.result?.isError === true}`);
   console.log(`  strict_relation_filter: ${strictClosestValueSummary(strictRelationFilter)}`);
   console.log(`  strict_find_neighbors_type_filter: ${strictClosestValueSummary(strictFindNeighborsTypeFilter)}`);
+  console.log(`  strict_find_orphans_kind_filter: ${strictClosestValueSummary(strictFindOrphansKindFilter)}`);
+  console.log(`  strict_find_orphans_exclude_kind_filter: ${strictClosestValueSummary(strictFindOrphansExcludeKindFilter)}`);
   console.log(`  strict_relation_check: ${strictClosestValueSummary(strictRelationCheck)}`);
   console.log(`  strict_add_relation: ${strictClosestValueSummary(strictAddRelation)}`);
   console.log(`  strict_graph_kind_filter: ${strictClosestValueSummary(strictGraphKindFilter)}`);

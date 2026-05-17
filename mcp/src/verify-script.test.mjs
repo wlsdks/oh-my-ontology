@@ -97,6 +97,7 @@ import {
   strictMaintenanceFilterFailure,
   strictRelationFilterFailure,
   strictFindNeighborsTypeFailure,
+  strictFindOrphansKindFailure,
   strictRelationCheckFailure,
   strictAddRelationFailure,
   structuredContentFailure,
@@ -368,12 +369,13 @@ describe('verify.mjs first-contact gates', () => {
             kind: {
               type: 'string',
               minLength: 1,
+              enum: NODE_KIND_VALUES,
               description: 'Restrict to one kind (e.g. capability). Omit for all kinds.',
             },
             excludeKinds: {
               type: 'array',
-              items: { type: 'string' },
-              description: "Defaults to ['project', 'vault-readme']. Pass [] to include every kind.",
+              items: { type: 'string', enum: NODE_KIND_VALUES },
+              description: "Defaults to ['project', 'vault-readme']. Pass [] to include every kind. Typos fail with nearest-value hints.",
             },
           },
         },
@@ -1998,6 +2000,7 @@ describe('verify.mjs first-contact gates', () => {
             kind: {
               type: 'string',
               minLength: 1,
+              enum: NODE_KIND_VALUES,
               description: 'Kind filter.',
             },
           },
@@ -2031,7 +2034,7 @@ describe('verify.mjs first-contact gates', () => {
             ...findOrphansTool.inputSchema.properties,
             excludeKinds: {
               type: 'array',
-              items: { type: 'string' },
+              items: { type: 'string', enum: NODE_KIND_VALUES },
               description: 'Pass [] to include every kind.',
             },
           },
@@ -3649,7 +3652,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /compile_ontology summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
     assert.match(verifyUsage(), /Successful output prints read census consistency after cross-checking list_kinds\/list_concepts\/compile_ontology\/overview/);
     assert.match(verifyUsage(), /strict unknown-argument \/ invalid-enum rejection/);
-    assert.match(verifyUsage(), /find_neighbors\.types, match_nodes\.kind\/sort, recommend_relations\.kind, and match_edges\.type\/fromKind\/toKind typo and unsupported-kind rejection/);
+    assert.match(verifyUsage(), /find_neighbors\.types, find_orphans\.kind\/excludeKinds, match_nodes\.kind\/sort, recommend_relations\.kind, and match_edges\.type\/fromKind\/toKind typo and unsupported-kind rejection/);
     assert.match(verifyUsage(), /tools\/list inventory names, schema strictness, and annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
     assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels, plus invalid add_relations type closest-value hints/);
     assert.match(verifyUsage(), /structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries/);
@@ -4195,6 +4198,43 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictFindNeighborsTypeFailure({ result: { isError: true, content: [{ text: 'types items must be one of: dependencies, depends_on. Received: "depend_on".' }] } }),
       'strict find_neighbors types response did not suggest the closest types value',
+    );
+  });
+
+  it('fails malformed strict find_orphans kind smoke responses', () => {
+    assert.equal(
+      strictFindOrphansKindFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'kind must be one of: project, domain, capability, element, document, vault-readme. Received: "capabilty". Did you mean "capability"?' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictFindOrphansKindFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'excludeKinds items must be one of: project, domain, capability, element, document, vault-readme. Received: "capabilty". Did you mean "capability"?' }],
+        },
+      }, { field: 'excludeKinds items' }),
+      null,
+    );
+    assert.equal(
+      strictFindOrphansKindFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict find_orphans kind response was not rejected',
+    );
+    assert.equal(
+      strictFindOrphansKindFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict find_orphans kind response did not report the invalid kind filter',
+    );
+    assert.equal(
+      strictFindOrphansKindFailure({ result: { isError: true, content: [{ text: 'kind must be one of: project, domain, capability. Did you mean "capability"?' }] } }),
+      'strict find_orphans kind response did not report the invalid kind value',
+    );
+    assert.equal(
+      strictFindOrphansKindFailure({ result: { isError: true, content: [{ text: 'kind must be one of: project, domain, capability. Received: "capabilty".' }] } }),
+      'strict find_orphans kind response did not suggest the closest kind value',
     );
   });
 
@@ -5069,6 +5109,8 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(53), 'strict_match_nodes_sort_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(54), 'strict_match_edges_type_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(55), 'strict_find_neighbors_type_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(56), 'strict_find_orphans_kind_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(57), 'strict_find_orphans_exclude_kind_filter');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

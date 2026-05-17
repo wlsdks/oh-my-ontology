@@ -641,6 +641,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict find_neighbors filters — invalid relation types rejected before slug resolution with closest-value hint/);
+    assert.match(verifySection, /✓ strict find_orphans filters — invalid kind\/excludeKinds rejected with closest-value hints/);
     assert.match(verifySection, /✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint/);
     assert.match(verifySection, /✓ strict add_relation — invalid type rejected before endpoint resolution without writing/);
     assert.match(verifySection, /✓ strict graph filters — invalid match_nodes\.kind\/sort, match_edges\.type, and recommend_relations\.kind rejected with narrowed diagnostics/);
@@ -782,7 +783,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`add_concepts`\s+and `add_relations` batch writer `outputSchema` row contracts/);
     assert.match(verifySection, /`rename_concept`,\s+`merge_concepts`, and `delete_concept` destructive writer dry-run\/confirm `outputSchema`\s+contracts/);
     assert.match(verifySection, /same 50-row cap used by `get_concepts`, `add_concepts`,\s+and `add_relations`/);
-    assert.match(verifySection, /`find_orphans\.excludeKinds` string-array\s+schema and root\/sentinel default description/);
+    assert.match(verifySection, /`find_orphans\.kind` \/ `find_orphans\.excludeKinds`\s+node-kind enum schemas and root\/sentinel default description/);
     assert.match(verifySection, /write-safety schemas for\s+`expected_mtime`/);
     assert.match(verifySection, /destructive-tool `confirm` dry-run switches/);
     assert.match(verifySection, /`rename_concept\.overwrite`/);
@@ -875,7 +876,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /graph engine runtime allow-lists/);
     assert.match(verifySection, /write relation\s+type enums for `add_relation` \/ `add_relations`/);
     assert.match(verifySection, /batch tools must keep their 50-row caps/);
-    assert.match(verifySection, /validates the installed `find_orphans\.excludeKinds` schema and default description/);
+    assert.match(verifySection, /validates the installed `find_orphans\.kind` \/ `find_orphans\.excludeKinds` node-kind enum schema and default description/);
     assert.match(verifySection, /write tools must keep their `expected_mtime` \/ `confirm` \/ `rename_concept\.overwrite` \/ `delete_concept\.force` safety schemas/);
     assert.match(verifySection, /validates `maintenance_plan\.summary` count fields and relationships plus `byPhase` \/ `bySeverity` \/ `byKind` bucket totals/);
     assert.match(verifySection, /validates `maintenance_plan\.cursor\.nextAfterActionId` and `cursor\.hasMore`/);
@@ -948,6 +949,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /runtime negative smokes with invalid `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"` inputs/);
     assert.match(verifySection, /`find_neighbors\.types`/);
+    assert.match(verifySection, /`find_orphans\.kind` \/ `find_orphans\.excludeKinds`/);
     assert.match(verifySection, /`match_nodes\.kind`/);
     assert.match(verifySection, /`match_nodes\.sort`/);
     assert.match(verifySection, /`recommend_relations\.kind`/);
@@ -1851,7 +1853,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /initialize safety\/recovery guidance gate/);
     assert.match(doc, /tools\/list inventory name \/ annotation coverage/);
     assert.match(doc, /strict `find_neighbors\.types` row/);
-    assert.match(doc, /direct verify help 와 CLI wrapper help 도 이 `find_neighbors\.types`/);
+    assert.match(doc, /strict `find_orphans\.kind` \/ `find_orphans\.excludeKinds` row/);
+    assert.match(doc, /direct verify help 와 CLI wrapper help 도 이 `find_neighbors\.types` \/ `find_orphans\.kind`/);
     assert.match(doc, /`match_nodes\.sort=outDegre`/);
     assert.match(doc, /`match_edges\.type=depend_on`/);
     assert.match(doc, /`recommend_relations\.kind` \/ `match_edges\.type` \/ `match_edges\.fromKind`/);

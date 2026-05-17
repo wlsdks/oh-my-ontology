@@ -1050,12 +1050,13 @@ const TOOLS = [
       properties: {
         kind: nonBlankStringSchema(
           'Restrict to one kind (e.g. capability). Omit for all kinds.',
+          { enum: NODE_KIND_VALUES },
         ),
         excludeKinds: {
           type: 'array',
-          items: NON_BLANK_STRING_SCHEMA,
+          items: { ...NON_BLANK_STRING_SCHEMA, enum: NODE_KIND_VALUES },
           description:
-            "Kinds to exclude from results. Defaults to ['project', 'vault-readme']. Pass [] to include every kind.",
+            "Kinds to exclude from results. Defaults to ['project', 'vault-readme']. Pass [] to include every kind. Typos fail with nearest-value hints.",
         },
       },
     },
@@ -2579,6 +2580,16 @@ function requireOptionalRelationTypeArray(value, name) {
   }
 }
 
+function requireOptionalNodeKindArray(value, name) {
+  requireOptionalStringArray(value, name);
+  if (value === undefined) return;
+  for (const item of value) {
+    if (!NODE_KIND_VALUES.includes(item)) {
+      throw new Error(formatAllowedValueError(`${name} items`, item, NODE_KIND_VALUES));
+    }
+  }
+}
+
 function requireOptionalPlainObject(value, name) {
   if (value === undefined) return;
   requirePlainObject(value, name);
@@ -3086,7 +3097,8 @@ function listKindsTool() {
 
 function findOrphansTool({ kind, excludeKinds } = {}) {
   requireOptionalNonBlankString(kind, 'kind');
-  requireOptionalStringArray(excludeKinds, 'excludeKinds');
+  requireOptionalEnum(kind, 'kind', NODE_KIND_VALUES);
+  requireOptionalNodeKindArray(excludeKinds, 'excludeKinds');
   return findOrphans(VAULT_ROOT, {
     kind: typeof kind === 'string' ? kind : undefined,
     excludeKinds: Array.isArray(excludeKinds) ? excludeKinds : undefined,

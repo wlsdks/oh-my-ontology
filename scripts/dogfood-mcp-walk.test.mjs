@@ -581,12 +581,13 @@ function makeDogfoodToolsList() {
         tool.inputSchema.properties.kind = {
           type: "string",
           minLength: 1,
+          enum: NODE_KIND_VALUES,
           description: "Restrict to one kind. Omit for all kinds.",
         };
         tool.inputSchema.properties.excludeKinds = {
           type: "array",
-          items: { type: "string" },
-          description: "Defaults exclude project and vault-readme.",
+          items: { type: "string", enum: NODE_KIND_VALUES },
+          description: "Defaults exclude project and vault-readme. Typos fail with nearest-value hints.",
         };
         tool.outputSchema = {
           type: "object",
@@ -2764,6 +2765,18 @@ const okShape = {
       content: [{ text: 'types items must be one of: domains, domain, capabilities, elements, dependencies, depends_on, relates, contains, describes. Received: "depend_on". Did you mean "depends_on"?' }],
     },
   },
+  strictFindOrphansKindFilter: {
+    result: {
+      isError: true,
+      content: [{ text: 'kind must be one of: project, domain, capability, element, document, vault-readme. Received: "capabilty". Did you mean "capability"?' }],
+    },
+  },
+  strictFindOrphansExcludeKindFilter: {
+    result: {
+      isError: true,
+      content: [{ text: 'excludeKinds items must be one of: project, domain, capability, element, document, vault-readme. Received: "capabilty". Did you mean "capability"?' }],
+    },
+  },
   strictRelationCheck: {
     result: {
       isError: true,
@@ -3019,6 +3032,14 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       strictClosestValueSummary(okShape.strictFindNeighborsTypeFilter),
       "rejected true (depend_on -> depends_on)",
+    );
+    assert.equal(
+      strictClosestValueSummary(okShape.strictFindOrphansKindFilter),
+      "rejected true (capabilty -> capability)",
+    );
+    assert.equal(
+      strictClosestValueSummary(okShape.strictFindOrphansExcludeKindFilter),
+      "rejected true (capabilty -> capability)",
     );
     assert.equal(
       strictClosestValueSummary(okShape.strictRecommendRelationsKindFilter),
@@ -3319,6 +3340,8 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(73), "strict_match_nodes_sort_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(74), "strict_match_edges_type_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(75), "strict_find_neighbors_type_filter");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(76), "strict_find_orphans_kind_filter");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(77), "strict_find_orphans_exclude_kind_filter");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -3375,6 +3398,22 @@ describe("rpc response completion helpers", () => {
       arguments: {
         slug: "missing-find-neighbors-type-source",
         types: ["depend_on"],
+      },
+    });
+  });
+
+  it("keeps strict find_orphans kind dogfood requests endpoint-independent", () => {
+    const requests = buildDogfoodRequests();
+    assert.deepEqual(requests.find((request) => request.id === 76)?.params, {
+      name: "find_orphans",
+      arguments: {
+        kind: "capabilty",
+      },
+    });
+    assert.deepEqual(requests.find((request) => request.id === 77)?.params, {
+      name: "find_orphans",
+      arguments: {
+        excludeKinds: ["capabilty"],
       },
     });
   });
@@ -3988,6 +4027,45 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["strict_find_neighbors_type_filter: strict find_neighbors types response did not suggest the closest types value"],
+    );
+  });
+
+  it("fails malformed strict find_orphans kind dogfood responses", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictFindOrphansKindFilter: { result: { isError: false, content: [{ text: "ok" }] } } }),
+      ["strict_find_orphans_kind_filter: strict find_orphans kind response was not rejected"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictFindOrphansKindFilter: { result: { isError: true, content: [{ text: "different error" }] } } }),
+      ["strict_find_orphans_kind_filter: strict find_orphans kind response did not report the invalid kind filter"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictFindOrphansKindFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'kind must be one of: project, domain, capability.' }],
+          },
+        },
+      }),
+      ["strict_find_orphans_kind_filter: strict find_orphans kind response did not report the invalid kind value"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictFindOrphansKindFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'kind must be one of: project, domain, capability. Received: "capabilty".' }],
+          },
+        },
+      }),
+      ["strict_find_orphans_kind_filter: strict find_orphans kind response did not suggest the closest kind value"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictFindOrphansExcludeKindFilter: { result: { isError: true, content: [{ text: "different error" }] } } }),
+      ["strict_find_orphans_exclude_kind_filter: strict find_orphans kind response did not report the invalid excludeKinds items filter"],
     );
   });
 
