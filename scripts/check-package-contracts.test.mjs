@@ -1613,6 +1613,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /kind add_missing_relation:1/);
     assert.match(smoke, /maintenance cursor — resume afterActionId advanced/);
     assert.match(doc, /batch writer row-isolation smoke/);
+    assert.match(doc, /invalid `add_relations` type closest-value hint/);
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
     assert.match(smoke, /runtime unknown-argument/);
     assert.match(smoke, /invalid-enum rejection/);
