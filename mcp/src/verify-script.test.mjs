@@ -6,9 +6,11 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  EDGE_TARGET_KIND_VALUES,
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
+  NODE_KIND_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
@@ -644,6 +646,9 @@ describe('verify.mjs first-contact gates', () => {
             pattern: { type: 'array', items: { type: 'string', enum: RELATION_TYPE_VALUES } },
             type: { type: 'string', enum: RELATION_TYPE_VALUES },
             relation: { type: 'string', enum: RELATION_TYPE_VALUES },
+            kind: { type: 'string', enum: NODE_KIND_VALUES },
+            fromKind: { type: 'string', enum: NODE_KIND_VALUES },
+            toKind: { type: 'string', enum: EDGE_TARGET_KIND_VALUES },
             dependencyTypes: {
               type: 'array',
               items: { type: 'string', enum: RELATION_TYPE_VALUES },
@@ -2526,6 +2531,51 @@ describe('verify.mjs first-contact gates', () => {
         },
       )),
       'query_ontology maintenance kinds enum schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...queryOntologyTool,
+          inputSchema: {
+            ...queryOntologyTool.inputSchema,
+            properties: {
+              ...queryOntologyTool.inputSchema.properties,
+              kind: { type: 'string', enum: NODE_KIND_VALUES.filter((kind) => kind !== 'document') },
+            },
+          },
+        },
+      )),
+      'query_ontology kind graph kind enum schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...queryOntologyTool,
+          inputSchema: {
+            ...queryOntologyTool.inputSchema,
+            properties: {
+              ...queryOntologyTool.inputSchema.properties,
+              fromKind: { type: 'string', enum: NODE_KIND_VALUES.filter((kind) => kind !== 'domain') },
+            },
+          },
+        },
+      )),
+      'query_ontology fromKind graph kind enum schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...queryOntologyTool,
+          inputSchema: {
+            ...queryOntologyTool.inputSchema,
+            properties: {
+              ...queryOntologyTool.inputSchema.properties,
+              toKind: { type: 'string', enum: EDGE_TARGET_KIND_VALUES.filter((kind) => kind !== 'external') },
+            },
+          },
+        },
+      )),
+      'query_ontology toKind graph kind enum schema drift',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'get_concepts')),

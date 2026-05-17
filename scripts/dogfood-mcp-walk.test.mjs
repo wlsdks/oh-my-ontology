@@ -55,9 +55,11 @@ import {
   TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY,
 } from "../mcp/scripts/verify.mjs";
 import {
+  EDGE_TARGET_KIND_VALUES,
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
+  NODE_KIND_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
@@ -189,6 +191,9 @@ function makeDogfoodToolsList() {
           pattern: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES } },
           type: { type: "string", enum: RELATION_TYPE_VALUES },
           relation: { type: "string", enum: RELATION_TYPE_VALUES },
+          kind: { type: "string", enum: NODE_KIND_VALUES },
+          fromKind: { type: "string", enum: NODE_KIND_VALUES },
+          toKind: { type: "string", enum: EDGE_TARGET_KIND_VALUES },
           dependencyTypes: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
           componentTypes: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
         };

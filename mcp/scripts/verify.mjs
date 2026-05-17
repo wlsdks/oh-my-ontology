@@ -48,9 +48,11 @@ import {
   parseJsonRpcResponses,
 } from './json-rpc-lines.mjs';
 import {
+  EDGE_TARGET_KIND_VALUES,
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
+  NODE_KIND_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
@@ -81,7 +83,7 @@ const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
 const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
-export const TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY = 'strict arguments + annotations + graph-query enums + write relation enums + health tuning + post-write bucket guidance';
+export const TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY = 'strict arguments + annotations + graph-query enums + graph kind enums + write relation enums + health tuning + post-write bucket guidance';
 export const VERIFY_TUNED_HEALTH_ARGS = {
   componentLimit: 3,
   cycleLimit: 3,
@@ -1196,6 +1198,16 @@ export function toolsListSchemaFailure(tools) {
     if (option?.type !== 'string' || !sameArray(option.enum, RELATION_TYPE_VALUES)) {
       return `query_ontology ${propertyName} relation enum schema drift`;
     }
+  }
+  for (const propertyName of ['kind', 'fromKind']) {
+    const option = propertyAt(queryTool, ['properties', propertyName]);
+    if (option?.type !== 'string' || !sameArray(option.enum, NODE_KIND_VALUES)) {
+      return `query_ontology ${propertyName} graph kind enum schema drift`;
+    }
+  }
+  const toKind = propertyAt(queryTool, ['properties', 'toKind']);
+  if (toKind?.type !== 'string' || !sameArray(toKind.enum, EDGE_TARGET_KIND_VALUES)) {
+    return 'query_ontology toKind graph kind enum schema drift';
   }
   if (!/current-page `nextExecutableAction` \/ `nextReviewAction` pointers/.test(queryTool.description || '')) {
     return 'query_ontology description missing current-page maintenance next pointers';

@@ -611,7 +611,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /Successful\s+verify logs print the same bucket summary and current-page executable\/review\s+next-action summary/);
     assert.match(verifySection, /list_concepts\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports\/find_neighbors\/find_path\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety guidance present/);
-    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ write relation enums \+ health tuning \+ post-write bucket guidance/);
+    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ graph kind enums \+ write relation enums \+ health tuning \+ post-write bucket guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);
     assert.match(verifySection, /✓ add_concepts — non-object and unknown-field rows isolated with input indexes/);
@@ -1318,7 +1318,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /row-label guidance/);
     assert.match(doc, /write row labels: pass/);
     assert.match(doc, /schema gate 도 같은 summary helper 를 공유/);
-    assert.match(doc, /strict arguments \+ annotations \+ graph-query enums \+ write relation enums\s+\+ health tuning \+ post-write bucket guidance/);
+    assert.match(doc, /strict arguments \+ annotations \+ graph-query enums \+ graph kind enums \+ write relation enums\s+\+ health tuning \+ post-write bucket guidance/);
     assert.match(doc, /strict relation filter \/ `relation_check` row/);
     assert.match(doc, /`depend_on -> depends_on`/);
     assert.match(doc, /`tools\/list` 의 `annotations\.title`/);
