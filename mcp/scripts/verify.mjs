@@ -832,6 +832,13 @@ export function toolsListSchemaFailure(tools) {
 
   const listKindsTool = tools.find((tool) => tool?.name === 'list_kinds');
   if (!listKindsTool) return 'tools/list response missing list_kinds tool';
+  if (
+    !/Vault kind distribution/i.test(listKindsTool.description || '') ||
+    !/quick census/i.test(listKindsTool.description || '') ||
+    !/size up the vault without paging through list_concepts/i.test(listKindsTool.description || '')
+  ) {
+    return 'list_kinds description missing census guidance';
+  }
   if (listKindsTool.outputSchema?.type !== 'object') {
     return 'list_kinds outputSchema root drift';
   }

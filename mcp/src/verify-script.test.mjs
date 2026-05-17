@@ -538,6 +538,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'list_kinds',
+        description:
+          'Vault kind distribution — { total, byKind: { capability: N, ... } }. A quick census so AI agents can size up the vault without paging through list_concepts.',
         inputSchema: { additionalProperties: false, properties: {} },
         outputSchema: {
           type: 'object',
@@ -1078,6 +1080,11 @@ describe('verify.mjs first-contact gates', () => {
       queryTool,
     ];
     const queryOntologyTool = tools.find((tool) => tool.name === 'query_ontology');
+    const listKindsTool = tools.find((tool) => tool.name === 'list_kinds');
+    const withListKindsTool = (tool) => [
+      ...tools.filter((candidate) => candidate.name !== 'list_kinds'),
+      tool,
+    ];
     const validateVaultTool = tools.find((tool) => tool.name === 'validate_vault');
     const withValidateVaultTool = (tool) => [
       ...tools.filter((candidate) => candidate.name !== 'validate_vault'),
@@ -1255,6 +1262,13 @@ describe('verify.mjs first-contact gates', () => {
           : tool
       ))),
       'list_kinds outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withListKindsTool({
+        ...listKindsTool,
+        description: 'Kind counts.',
+      })),
+      'list_kinds description missing census guidance',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (

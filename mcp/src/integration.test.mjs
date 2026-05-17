@@ -456,6 +456,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.match(inferImports?.description ?? "", /alias-not-found/);
     assert.doesNotMatch(inferImports?.description ?? "", /aliases \(@\/\) → external \(not resolved\)/);
     const listKinds = findTool("list_kinds");
+    assert.match(
+      listKinds?.description ?? "",
+      /Vault kind distribution[\s\S]*quick census[\s\S]*size up the vault without paging through list_concepts/i,
+      "list_kinds description documents census workflow",
+    );
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
     assert.equal(listKinds?.outputSchema?.properties?.total?.type, "integer");
