@@ -289,6 +289,7 @@ try {
   });
   assert.match(cliMcpVerify.stdout, /timeout=3000ms/);
   assert.match(cliMcpVerify.stdout, new RegExp(`tools/list ${expectedToolCount}/${expectedToolCount}`));
+  assert.match(cliMcpVerify.stdout, /23\/23 titled; 15\/15 read; 8\/8 write; 3\/3 destructive; 2\/2 idempotent; 23\/23 local-only/);
   assert.match(cliMcpVerify.stdout, /list_kinds/);
   assert.match(cliMcpVerify.stdout, /validate_vault/);
   assert.match(cliMcpVerify.stdout, /workspace_brief/);

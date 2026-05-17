@@ -243,6 +243,7 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /timeout=1000ms/);
     assert.match(clean, new RegExp(`tools/list ${EXPECTED_TOOL_COUNT}/${EXPECTED_TOOL_COUNT}`));
+    assert.match(clean, /23\/23 titled; 15\/15 read; 8\/8 write; 3\/3 destructive; 2\/2 idempotent; 23\/23 local-only/);
     assert.match(clean, /get_concepts/);
     assert.match(clean, /2 ok rows, 1 partial row/);
     assert.match(clean, /query_concepts limited — 1 query result \/ 4 total query results \(limited true\)/);

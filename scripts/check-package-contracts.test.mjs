@@ -1351,6 +1351,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /assert\.equal\(missingVerifyOverride\.stdout, ''\)/);
     assert.match(smoke, /assert\.equal\(directoryVerifyOverride\.stdout, ''\)/);
     assert.match(smoke, /vault total 5 nodes/);
+    assert.match(smoke, /23\\\/23 titled; 15\\\/15 read; 8\\\/8 write; 3\\\/3 destructive; 2\\\/2 idempotent; 23\\\/23 local-only/);
     assert.match(smoke, /--vault requires a path value/);
     assert.match(smoke, /npm run verify -- \\\[vault\\\] \\\[--timeout-ms N\\\]/);
     assert.match(smoke, /npm run verify -- --vault path --timeout-ms 15000/);
