@@ -59,6 +59,8 @@ export function dogfoodUsage() {
     "Runs the source-checkout MCP dogfood walk against this repo's docs/ontology vault.",
     "The walk starts the local MCP stdio server, exercises read/diagnosis/graph-query",
     "surfaces, and exits non-zero when the first-contact or dogfood gate regresses.",
+    "No positional vault argument is accepted; this script intentionally dogfoods the",
+    "repo's own ontology vault.",
     "",
     "Options:",
     "  -h, --help                 Print this help without starting the MCP server.",
@@ -72,7 +74,21 @@ export function dogfoodUsage() {
 }
 
 export function shouldPrintDogfoodHelp(argv = process.argv.slice(2)) {
-  return argv.includes("--help") || argv.includes("-h");
+  return parseDogfoodArgs(argv).help;
+}
+
+export function parseDogfoodArgs(argv = process.argv.slice(2)) {
+  const args = Array.isArray(argv) ? argv : [];
+  const help = args.includes("--help") || args.includes("-h");
+  const unsupported = args.filter((arg) => arg !== "--help" && arg !== "-h");
+  if (help) return { help: true, error: null };
+  if (unsupported.length > 0) {
+    return {
+      help: false,
+      error: `dogfood:walk does not accept arguments: ${unsupported.join(", ")}`,
+    };
+  }
+  return { help: false, error: null };
 }
 
 const DOGFOOD_RESPONSE_LABELS = new Map([
@@ -4262,9 +4278,14 @@ function header(title) {
 }
 
 async function main() {
-  if (shouldPrintDogfoodHelp()) {
+  const args = parseDogfoodArgs();
+  if (args.help) {
     console.log(dogfoodUsage());
     return;
+  }
+  if (args.error) {
+    console.error(`${args.error}\n\n${dogfoodUsage()}`);
+    process.exit(2);
   }
 
   const timeoutMs = parseDogfoodTimeoutMs(DOGFOOD_TIMEOUT_MS_RAW);

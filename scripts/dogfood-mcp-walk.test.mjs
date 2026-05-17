@@ -17,6 +17,7 @@ import {
   maintenanceBucketSummary,
   maintenanceNextActionSummary,
   missingResponseLabels,
+  parseDogfoodArgs,
   parseDogfoodTimeoutMs,
   parseRpcResponses,
   recordResult,
@@ -2561,11 +2562,26 @@ describe("rpc response completion helpers", () => {
     assert.equal(shouldPrintDogfoodHelp(["--help"]), true);
     assert.equal(shouldPrintDogfoodHelp(["-h"]), true);
     assert.equal(shouldPrintDogfoodHelp([]), false);
+    assert.deepEqual(parseDogfoodArgs([]), { help: false, error: null });
+    assert.deepEqual(parseDogfoodArgs(["--help"]), { help: true, error: null });
+    assert.deepEqual(parseDogfoodArgs(["-h"]), { help: true, error: null });
     const usage = dogfoodUsage();
     assert.match(usage, /Usage: pnpm dogfood:walk \[--help\]/);
     assert.match(usage, /Print this help without starting the MCP server/);
+    assert.match(usage, /No positional vault argument is accepted/);
     assert.match(usage, /OMOT_DOGFOOD_TIMEOUT_MS/);
     assert.match(usage, /Dogfood helper, help, structuredContent, stderr warning checks/);
+  });
+
+  it("rejects unsupported dogfood arguments before starting MCP", () => {
+    assert.deepEqual(parseDogfoodArgs(["docs/ontology"]), {
+      help: false,
+      error: "dogfood:walk does not accept arguments: docs/ontology",
+    });
+    assert.deepEqual(parseDogfoodArgs(["--vault", "docs/ontology"]), {
+      help: false,
+      error: "dogfood:walk does not accept arguments: --vault, docs/ontology",
+    });
   });
 
   it("derives response ids from requests with JSON-RPC ids", () => {
