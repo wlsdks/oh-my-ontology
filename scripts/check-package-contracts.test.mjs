@@ -609,7 +609,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /Successful\s+verify logs print the same bucket summary and current-page executable\/review\s+next-action summary/);
     assert.match(verifySection, /list_concepts\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports\/find_neighbors\/find_path\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety guidance present/);
-    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ health tuning \+ post-write bucket guidance/);
+    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ write relation enums \+ health tuning \+ post-write bucket guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);
     assert.match(verifySection, /✓ add_concepts — non-object and unknown-field rows isolated with input indexes/);
@@ -830,6 +830,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /validates the installed `tools\/list` schema contract/);
     assert.match(verifySection, /`query_ontology\.operation` must stay required/);
     assert.match(verifySection, /graph engine runtime allow-lists/);
+    assert.match(verifySection, /write relation\s+type enums for `add_relation` \/ `add_relations`/);
     assert.match(verifySection, /batch tools must keep their 50-row caps/);
     assert.match(verifySection, /validates the installed `find_orphans\.excludeKinds` schema and default description/);
     assert.match(verifySection, /write tools must keep their `expected_mtime` \/ `confirm` \/ `rename_concept\.overwrite` \/ `delete_concept\.force` safety schemas/);

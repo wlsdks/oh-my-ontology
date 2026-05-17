@@ -114,7 +114,9 @@ and annotation coverage (`title` / `read` / `write` / `destructive` /
 `idempotent` / `local-only`), including strict unknown-argument / invalid-enum
 rejection, graph-query operation enums, and write-tool `postWriteMaintenance` `byPhase` / `bySeverity` /
 `byKind` bucket summaries plus `score` / executable `proposedAction` /
-current-page next action pointer guidance.
+current-page next action pointer guidance. The same gate checks write relation
+type enums for `add_relation` / `add_relations`, so installed clients can offer
+valid edge choices instead of discovering typos only after a failed write.
 It also verifies batch writer row isolation guidance for `add_concepts` and
 `add_relations`, including non-object row shape and unknown row field failures
 surfacing as row-level `ok:false` results instead of top-level tool errors,

@@ -15,7 +15,7 @@
  * 검증 항목:
  *   1. parser smoke test (parser.test.mjs) 통과
  *   2. server boot — initialize JSON-RPC 응답
- *   3. tools/list — 23 도구 모두 노출 + graph-query enum schema contract + strict argument/enum runtime smoke
+ *   3. tools/list — 23 도구 모두 노출 + graph-query/write-relation enum schema contract + strict argument/enum runtime smoke
  *   4. tools/call list_concepts — vault 노드 수 출력
  *   5. tools/call list_concepts(kind=project) — project_scope gate probe
  *   6. tools/call get_concept — single-node detail + structuredContent contract
@@ -4929,7 +4929,7 @@ async function step2BootAndCall() {
         log('fail', schemaFailure);
         return res(false);
       }
-      log('ok', 'tools/list schema contract — strict arguments + annotations + graph-query enums + health tuning + post-write bucket guidance');
+      log('ok', 'tools/list schema contract — strict arguments + annotations + graph-query enums + write relation enums + health tuning + post-write bucket guidance');
       const strictFailure = strictArgsFailure(strictArgsRes);
       if (strictFailure) {
         log('fail', strictFailure);
