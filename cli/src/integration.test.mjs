@@ -2220,6 +2220,10 @@ await test('overview --limit 3 — 허브 N 만 출력', async () => {
 await test('workspace-brief — fail severity nextActions make the CLI fail', async () => {
   const root = buildCycleFixture();
   try {
+    const text = await run(['workspace-brief', root]);
+    assert.equal(text.code, 1, `stdout: ${text.stdout}\nstderr: ${text.stderr}`);
+    assert.match(text.stdout, /\x1b\[33mneeds_attention\x1b\[0m/);
+
     const r = await run(['workspace-brief', root, '--json']);
     assert.equal(r.code, 1, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const data = JSON.parse(r.stdout);
@@ -2239,6 +2243,7 @@ await test('workspace-brief — prints health check coverage', async () => {
     const r = await run(['workspace-brief', root]);
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
+    assert.match(r.stdout, /\x1b\[32mhealthy\x1b\[0m/);
     assert.match(clean, /HEALTH CHECKS/);
     assert.match(clean, /compile_issues:pass:0/);
     assert.match(clean, /components:pass:1/);

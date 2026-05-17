@@ -32,6 +32,10 @@ const SEVERITY_COLORS = {
   warn: COLORS.yellow,
   info: COLORS.dim,
 };
+const DIAGNOSIS_COLORS = {
+  healthy: COLORS.green,
+  needs_attention: COLORS.yellow,
+};
 
 export async function runWorkspaceBrief(args) {
   const { vault, json, error, help } = parseArgs(args);
@@ -66,7 +70,7 @@ export async function runWorkspaceBrief(args) {
 function render(result) {
   const status = result?.status ?? 'unknown';
   const sum = result?.summary ?? {};
-  const sc = status === 'healthy' ? COLORS.green : status === 'unhealthy' ? COLORS.red : COLORS.yellow;
+  const sc = DIAGNOSIS_COLORS[status] || COLORS.dim;
   process.stdout.write(
     `${COLORS.bold}workspace brief${COLORS.reset} ${sc}${status}${COLORS.reset}` +
       ` ${COLORS.dim}— ${sum.nodes ?? 0} 노드 · ${sum.edges ?? 0} 관계` +
