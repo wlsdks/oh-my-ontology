@@ -1246,8 +1246,9 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /`concepts\[n\]` \/ `relations\[n\]` row label/);
     assert.match(mcpVerifyRow, /`add_concepts` duplicate slug first-seen label/);
     assert.match(mcpVerifyRow, /`Received fields: \.\.\.`/);
+    assert.match(mcpVerifyRow, /invalid `add_relations` type closest-value hint/);
     assert.match(mcpVerifyRow, /top-level tool error 가 아니라 row-level `ok:false`/);
-    assert.match(mcpVerifyRow, /invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
+    assert.match(mcpVerifyRow, /invalid relation type row 에 closest-value hint 가 남는지와 invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(mcpVerifyRow, /write-tool `postWriteMaintenance` `byPhase` \/ `bySeverity` \/ `byKind` bucket \+ `score` \/ executable `proposedAction` \/ current-page next-action guidance/);
     assert.match(mcpVerifyRow, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(mcpVerifyRow, /`nextAfterActionId`\/`hasMore` page-state alignment/);
