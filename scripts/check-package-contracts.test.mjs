@@ -50,6 +50,18 @@ function countLabel(count, noun) {
   return `${count} ${noun}${count === 1 ? '' : 's'}`;
 }
 
+function findEvidenceCount(docs, query) {
+  const needle = query.toLowerCase();
+  return docs.filter((doc) => {
+    const docTitle = String(doc.frontmatter.title || doc.frontmatter.name || '').toLowerCase();
+    const inFrontmatter =
+      docTitle.includes(needle) ||
+      String(doc.frontmatter.capabilities || '').toLowerCase().includes(needle) ||
+      String(doc.frontmatter.elements || '').toLowerCase().includes(needle);
+    return inFrontmatter || doc.body.toLowerCase().includes(needle);
+  }).length;
+}
+
 describe('package contract helpers', () => {
   it('keeps filtered integration scripts discoverable from the root README', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
@@ -368,6 +380,7 @@ describe('package contract helpers', () => {
     });
     const projectBacklinkCount = findBacklinks(join(process.cwd(), 'docs', 'ontology'), 'project').length;
     const projectBacklinkLabel = projectBacklinkCount === 1 ? 'backlink' : 'backlinks';
+    const projectEvidenceCount = findEvidenceCount(dogfoodDocs, 'project');
     const projectQueryCount = census.byKind.project;
     const limitedQueryTotal = census.total - 1;
     const graphHashPrefix = compiled.graphHash.slice(0, 12);
@@ -410,7 +423,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ maintenance cursor — ready page stable/);
     assert.match(verifySection, new RegExp(`✓ get_concept — project \\(${projectOutgoingEdgeCount} outgoing ${projectOutgoingEdgeLabel}\\)`));
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial row/);
-    assert.match(verifySection, /✓ find_evidence — \d+ evidence results for "project"/);
+    assert.match(verifySection, new RegExp(`✓ find_evidence — ${countLabel(projectEvidenceCount, 'evidence result')} for "project"`));
     assert.match(verifySection, new RegExp(`✓ find_backlinks — project \\(${projectBacklinkCount} ${projectBacklinkLabel}\\)`));
     assert.match(
       verifySection,
