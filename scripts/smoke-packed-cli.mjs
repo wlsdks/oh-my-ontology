@@ -636,6 +636,8 @@ try {
   assert.match(directMcpVerifyHelp.stdout, /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);
   assert.match(directMcpVerifyHelp.stdout, /npm run verify -- \[vault\] \[--timeout-ms N\]/);
   assert.match(directMcpVerifyHelp.stdout, /npm run verify -- --vault path --timeout-ms 15000/);
+  assert.match(directMcpVerifyHelp.stdout, /Run npm run verify from the mcp\/ package directory/);
+  assert.match(directMcpVerifyHelp.stdout, /from the repo root, use the node mcp\/scripts\/verify\.mjs form/);
   assert.match(directMcpVerifyHelp.stdout, /Explicit \[vault\] or --vault arguments take precedence over OMOT_VAULT/);
   assert.match(directMcpVerifyHelp.stdout, /project probe/);
   assert.match(directMcpVerifyHelp.stdout, /strict unknown-argument \/ invalid-enum rejection/);
@@ -647,6 +649,9 @@ try {
   assert.match(directMcpVerifyHelp.stdout, /cursor\.found=false, reason, empty page/);
   assert.match(directMcpVerifyHelp.stdout, /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   assert.match(directMcpVerifyHelp.stdout, /Successful cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
+  assert.match(directMcpVerifyHelp.stdout, /Focused checks:/);
+  assert.match(directMcpVerifyHelp.stdout, /pnpm test:mcp:verify:timeout/);
+  assert.match(directMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/help diagnostics/);
 
   const mcpEmptyVerify = run(
     'npm',

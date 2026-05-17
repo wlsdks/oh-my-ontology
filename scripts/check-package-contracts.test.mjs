@@ -1040,7 +1040,11 @@ describe('package contract helpers', () => {
     assert.match(smoke, /--vault requires a path value/);
     assert.match(smoke, /npm run verify -- \\\[vault\\\] \\\[--timeout-ms N\\\]/);
     assert.match(smoke, /npm run verify -- --vault path --timeout-ms 15000/);
+    assert.match(smoke, /Run npm run verify from the mcp\\\/ package directory/);
+    assert.match(smoke, /from the repo root, use the node mcp\\\/scripts\\\/verify\\\.mjs form/);
     assert.match(smoke, /Explicit \\\[vault\\\] or --vault arguments take precedence over OMOT_VAULT/);
+    assert.match(smoke, /pnpm test:mcp:verify:timeout/);
+    assert.match(smoke, /Narrow MCP verify timeout\\\/help diagnostics/);
     assert.match(smoke, /verify timeout must be a positive integer/);
     assert.match(smoke, /invalidCliMcpVerifyTimeout/);
     assert.match(smoke, /missingCliMcpVerifyTimeout/);
