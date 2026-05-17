@@ -120,6 +120,9 @@ so installed CLI users catch batch-reader success, partial-row contract drift, s
 Node census totals are cross-checked across `list_kinds`, `list_concepts`,
 `compile_ontology`, and `overview`; `validate_vault.scanned` remains file-level
 health so a file-count issue is not mistaken for graph node-count drift.
+It also calls paginated `compile_ontology({nodesLimit:1, edgesLimit:1})` so the
+installed package proves the full-artifact node/edge row shape and pagination
+metadata, not only the cheap summary path.
 It blocks parser/server/tool inventory failures, vault validation problems,
 failing health checks, and fail-severity `workspace_brief.nextActions`; warn
 diagnostics still print so a fresh starter vault can verify before cleanup.

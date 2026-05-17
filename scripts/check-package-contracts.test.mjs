@@ -567,6 +567,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /validates both default and tuned\s+`workspace_brief\.health\.checks`/);
     assert.match(verifySection, /prints tuned `workspace_brief` output\s+beside `health` \/ tuned `health`/);
     assert.match(verifySection, /stdout/);
+    assert.match(verifySection, /paginated `compile_ontology\(\{nodesLimit:1, edgesLimit:1\}\)`/);
     assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors`/);
     assert.match(verifySection, /node-to-project `path`/);
     assert.match(verifySection, /`path` hop\/edge alignment/);
