@@ -404,10 +404,14 @@ await test('mcp-verify — rejects invalid timeout values', async () => {
   const r = await run(['mcp-verify', '--timeout-ms', 'nope']);
   assert.equal(r.code, 1);
   assert.match(stripAnsi(r.stderr), /--timeout-ms must be a positive integer/);
+  assert.match(stripAnsi(r.stderr), /--timeout-ms N/);
+  assert.match(stripAnsi(r.stderr), /OMOT_VERIFY_TIMEOUT_MS=N/);
 
   const partial = await run(['mcp-verify', '--timeout-ms=1000ms']);
   assert.equal(partial.code, 1);
   assert.match(stripAnsi(partial.stderr), /--timeout-ms must be a positive integer/);
+  assert.match(stripAnsi(partial.stderr), /--timeout-ms N/);
+  assert.match(stripAnsi(partial.stderr), /OMOT_VERIFY_TIMEOUT_MS=N/);
 
   const typo = await run(['mcp-verify', '--timout-ms=1000']);
   assert.equal(typo.code, 1);

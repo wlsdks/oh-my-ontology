@@ -109,7 +109,11 @@ function parseArgs(args) {
     else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
-  if (flags.timeoutMs instanceof Error) return { error: flags.timeoutMs.message };
+  if (flags.timeoutMs instanceof Error) {
+    return {
+      error: `${flags.timeoutMs.message}. Set --timeout-ms N or OMOT_VERIFY_TIMEOUT_MS=N.`,
+    };
+  }
   const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
   if (vaultResult.error) return vaultResult;
   return { vault: vaultResult.vault, timeoutMs: flags.timeoutMs };
