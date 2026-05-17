@@ -946,6 +946,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /write-tool `postWriteMaintenance` `byPhase` \/ `bySeverity` \/\s+`byKind` bucket summaries plus `score` \/ executable `proposedAction` \/\s+current-page next action pointer guidance/);
     assert.match(verifySection, /runtime negative smokes with invalid `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"` inputs/);
+    assert.match(verifySection, /`match_nodes\.kind`/);
+    assert.match(verifySection, /`match_edges\.fromKind` \/ `match_edges\.toKind` typo rejection/);
+    assert.match(verifySection, /nearest-value hints instead of silently returning empty/);
     assert.match(verifySection, /`maintenance_plan` cursor contract/);
     assert.match(verifySection, /`cursor\.found=true` with `cursor\.reason=null`/);
     assert.match(verifySection, /`nextAfterActionId`\s+matching the last returned action, and `hasMore` matching the remaining page\s+state/);
@@ -1839,6 +1842,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);
     assert.match(doc, /initialize safety\/recovery guidance gate/);
     assert.match(doc, /tools\/list inventory name \/ annotation coverage/);
+    assert.match(doc, /direct verify help 와 CLI wrapper help 도 이 `match_nodes\.kind`/);
+    assert.match(doc, /graph filter typo 가 빈 결과로 숨지 않는다는 계약/);
     assert.match(doc, /row-label guidance summary/);
     assert.match(doc, /focused subset, workspace_brief sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, tools\/list inventory name \/ annotation coverage, row-label guidance summary, strict closest-value summary, strict add_relation type-preflight 를 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);

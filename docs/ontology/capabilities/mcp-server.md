@@ -645,6 +645,9 @@ schema 에 enum 이 있어도 실제 `query_ontology` 경계가 typo 를 빈 결
 않는지 dogfood / installed verify 양쪽에서 잡는다. 같은 gate 는
 `match_edges.fromKind=capabilty` 와 `match_edges.toKind=externl` 도 호출해 edge kind
 필터가 schema 와 런타임에서 같이 fail-closed 인지 확인한다.
+direct verify help 와 CLI wrapper help 도 이 `match_nodes.kind` /
+`match_edges.fromKind` / `match_edges.toKind` typo rejection 을 명시해, 서버를
+띄우기 전에도 graph filter typo 가 빈 결과로 숨지 않는다는 계약을 볼 수 있게 한다.
 `tools/list` 의 `annotations.title` 표시명과 `annotations.readOnlyHint` 도 15 read / 8 write split 과
 일치하게 노출하고, destructive multi-file/delete 도구는 `annotations.destructiveHint`,
 retry-safe relation writer 는 `annotations.idempotentHint`, 모든 도구는 local
