@@ -32,6 +32,8 @@ import {
   expectedToolSplitLabel,
   firstContactMissingResponseLabels,
   firstContactErrorFailure,
+  findBacklinksFailure,
+  findEvidenceFailure,
   findOrphansFailure,
   formatCount,
   formatHopCount,
@@ -59,6 +61,7 @@ import {
   projectProbeFailure,
   projectMapQueryPlanFailure,
   projectScopeFailure,
+  queryConceptsFailure,
   serverStartupFailure,
   strictArgsFailure,
   strictMultiArgsFailure,
@@ -2875,7 +2878,7 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
-  it('keeps first-contact response labels aligned with the get_concept/get_concepts smoke', () => {
+  it('keeps first-contact response labels aligned with the read-tool smoke', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(11), 'get_concepts');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(12), 'project_map_query_plan');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(13), 'neighbors');
@@ -2894,8 +2897,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(27), 'strict_multi_args');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(30), 'maintenance_resume_cursor');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(31), 'get_concept');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(32), 'find_evidence');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(33), 'find_backlinks');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(34), 'query_concepts');
     assert.deepEqual(
-      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31].sort((a, b) => a - b),
+      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
     );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]
@@ -2904,6 +2910,40 @@ describe('verify.mjs first-contact gates', () => {
     assert.deepEqual(
       missingResponseLabels(responsesWithoutGetConcepts, FIRST_CONTACT_RESPONSE_LABELS),
       ['get_concepts'],
+    );
+  });
+
+  it('accepts clean find_evidence, find_backlinks, and query_concepts payloads', () => {
+    const match = {
+      slug: 'project',
+      kind: 'project',
+      title: 'Project',
+      mtime: 1,
+    };
+    assert.equal(
+      findEvidenceFailure({
+        query: 'project',
+        matches: [{ ...match, matchedIn: 'frontmatter', excerpt: 'Project overview.' }],
+      }),
+      null,
+    );
+    assert.equal(
+      findBacklinksFailure({
+        target: 'project',
+        total: 1,
+        matches: [{ ...match, slug: 'domains/core', kind: 'domain', matchedKeys: ['domains'] }],
+      }, 'project'),
+      null,
+    );
+    assert.equal(
+      queryConceptsFailure({
+        filter: 'kind=project',
+        parsedAs: 'kind = project',
+        total: 1,
+        matches: [match],
+        limited: false,
+      }),
+      null,
     );
   });
 
@@ -3201,6 +3241,33 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       getConceptFailure({ ...okConcept, mtime: -1 }, 'capabilities/mcp-server'),
       'get_concept response missing mtime: capabilities/mcp-server',
+    );
+  });
+
+  it('fails malformed find_evidence, find_backlinks, and query_concepts payloads', () => {
+    const match = {
+      slug: 'project',
+      kind: 'project',
+      title: 'Project',
+      mtime: 1,
+    };
+    assert.equal(findEvidenceFailure({ matches: [] }), 'find_evidence response missing query');
+    assert.equal(
+      findEvidenceFailure({ query: 'project', matches: [{ ...match, matchedIn: 'unknown', excerpt: '' }] }),
+      'find_evidence response missing matchedIn: project',
+    );
+    assert.equal(
+      findBacklinksFailure({ target: 'other', total: 0, matches: [] }, 'project'),
+      'find_backlinks response target mismatch — expected project, got other',
+    );
+    assert.equal(
+      findBacklinksFailure({ target: 'project', total: 1, matches: [match] }, 'project'),
+      'find_backlinks response match has no backlink evidence: project',
+    );
+    assert.equal(queryConceptsFailure({ matches: [] }), 'query_concepts response missing filter');
+    assert.equal(
+      queryConceptsFailure({ filter: 'kind=project', parsedAs: 'kind = project', total: 0, matches: [match], limited: false }),
+      'query_concepts response match count exceeds total — matches 1, total 0',
     );
   });
 
@@ -3931,24 +3998,30 @@ describe('verify.mjs first-contact gates', () => {
   it('summarizes structuredContent coverage for verify output', () => {
     assert.equal(
       structuredContentVerifySummary(),
-      'direct 7/7, write 2/2, maintenance 2/2, graph 7/7',
+      'direct 9/9, write 2/2, maintenance 2/2, graph 7/7',
     );
     assert.equal(
       structuredContentVerifySummary({ hasNode: true }),
-      'direct 7/7, write 2/2, maintenance 2/2, graph 9/9',
-    );
-    assert.equal(
-      structuredContentVerifySummary({ hasNode: true, hasProject: true, hasGetConcept: true }),
-      'direct 8/8, write 2/2, maintenance 2/2, graph 10/10',
+      'direct 9/9, write 2/2, maintenance 2/2, graph 9/9',
     );
     assert.equal(
       structuredContentVerifySummary({
         hasNode: true,
         hasProject: true,
         hasGetConcept: true,
+        hasFindBacklinks: true,
+      }),
+      'direct 11/11, write 2/2, maintenance 2/2, graph 10/10',
+    );
+    assert.equal(
+      structuredContentVerifySummary({
+        hasNode: true,
+        hasProject: true,
+        hasGetConcept: true,
+        hasFindBacklinks: true,
         hasMaintenanceResume: true,
       }),
-      'direct 8/8, write 2/2, maintenance 3/3, graph 10/10',
+      'direct 11/11, write 2/2, maintenance 3/3, graph 10/10',
     );
   });
 

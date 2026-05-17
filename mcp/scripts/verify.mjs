@@ -20,14 +20,15 @@
  *   5. tools/call list_concepts(kind=project) — project_scope gate probe
  *   6. tools/call get_concept — single-node detail + structuredContent contract
  *   7. tools/call get_concepts — batch reader success + partial-row contract
- *   7. tools/call add_concepts/add_relations — invalid batch rows remain row-level, not top-level errors
- *   8. tools/call find_orphans — row shape + root/sentinel default-exclusion contract
- *   9. tools/call list_kinds — kind census aggregate
- *   10. tools/call validate_vault — whole-vault frontmatter / graph-reference health
- *   11. tools/call query_ontology workspace_brief + tuned workspace_brief + health + tuned health — agent first-contact graph diagnosis
- *   12. tools/call compile_ontology(summary) — compiler graph summary contract
- *   13. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
- *   14. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
+ *   8. tools/call find_evidence/find_backlinks/query_concepts — search, backlink, and typed-filter read smoke
+ *   9. tools/call add_concepts/add_relations — invalid batch rows remain row-level, not top-level errors
+ *   10. tools/call find_orphans — row shape + root/sentinel default-exclusion contract
+ *   11. tools/call list_kinds — kind census aggregate
+ *   12. tools/call validate_vault — whole-vault frontmatter / graph-reference health
+ *   13. tools/call query_ontology workspace_brief + tuned workspace_brief + health + tuned health — agent first-contact graph diagnosis
+ *   14. tools/call compile_ontology(summary) — compiler graph summary contract
+ *   15. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
+ *   16. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */
@@ -1492,9 +1493,10 @@ export function structuredContentVerifySummary({
   hasNode = false,
   hasProject = false,
   hasGetConcept = false,
+  hasFindBacklinks = false,
   hasMaintenanceResume = false,
 } = {}) {
-  const direct = 7 + (hasGetConcept ? 1 : 0);
+  const direct = 9 + (hasGetConcept ? 1 : 0) + (hasFindBacklinks ? 1 : 0);
   const write = 2;
   const maintenance = 2 + (hasMaintenanceResume ? 1 : 0);
   const graph = 7 + (hasNode ? 2 : 0) + (hasProject ? 1 : 0);
@@ -1533,6 +1535,9 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [29, 'add_relations_row_isolation'],
   [30, 'maintenance_resume_cursor'],
   [31, 'get_concept'],
+  [32, 'find_evidence'],
+  [33, 'find_backlinks'],
+  [34, 'query_concepts'],
 ]);
 
 function log(level, msg) {
@@ -1749,6 +1754,18 @@ export function buildFirstContactRequests() {
       id: 19,
       method: 'tools/call',
       params: { name: 'find_orphans', arguments: {} },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 32,
+      method: 'tools/call',
+      params: { name: 'find_evidence', arguments: { title: 'project' } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 34,
+      method: 'tools/call',
+      params: { name: 'query_concepts', arguments: { filter: 'kind=project', limit: 5 } },
     },
     {
       jsonrpc: '2.0',
@@ -2162,6 +2179,107 @@ export function getConceptFailure(parsed, expectedSlug) {
   }
   if (parsed.warnings != null && !Array.isArray(parsed.warnings)) {
     return `get_concept response malformed warnings: ${expectedSlug}`;
+  }
+  return null;
+}
+
+function readMatchRowFailure(label, row, index, { evidence = false, backlinks = false } = {}) {
+  if (!row || typeof row !== 'object' || Array.isArray(row)) {
+    return `${label} response malformed match at index ${index}`;
+  }
+  if (typeof row.slug !== 'string' || row.slug.length === 0) {
+    return `${label} response missing match slug at index ${index}`;
+  }
+  if (typeof row.kind !== 'string' || row.kind.length === 0) {
+    return `${label} response missing match kind: ${row.slug}`;
+  }
+  if (typeof row.title !== 'string' || row.title.length === 0) {
+    return `${label} response missing match title: ${row.slug}`;
+  }
+  if (!Number.isFinite(row.mtime) || row.mtime < 0) {
+    return `${label} response missing match mtime: ${row.slug}`;
+  }
+  if (evidence) {
+    if (!['frontmatter', 'body'].includes(row.matchedIn)) {
+      return `${label} response missing matchedIn: ${row.slug}`;
+    }
+    if (typeof row.excerpt !== 'string') {
+      return `${label} response missing excerpt: ${row.slug}`;
+    }
+  }
+  if (backlinks) {
+    if (row.matchedKeys != null && !Array.isArray(row.matchedKeys)) {
+      return `${label} response malformed matchedKeys: ${row.slug}`;
+    }
+    if (row.matchedInBody != null && typeof row.matchedInBody !== 'boolean') {
+      return `${label} response malformed matchedInBody: ${row.slug}`;
+    }
+    if ((row.matchedKeys == null || row.matchedKeys.length === 0) && row.matchedInBody !== true) {
+      return `${label} response match has no backlink evidence: ${row.slug}`;
+    }
+  }
+  return null;
+}
+
+export function findEvidenceFailure(parsed) {
+  if (typeof parsed?.query !== 'string' || parsed.query.length === 0) {
+    return 'find_evidence response missing query';
+  }
+  if (!Array.isArray(parsed.matches)) {
+    return 'find_evidence response missing matches array';
+  }
+  for (const [index, row] of parsed.matches.entries()) {
+    const failure = readMatchRowFailure('find_evidence', row, index, { evidence: true });
+    if (failure) return failure;
+  }
+  return null;
+}
+
+export function findBacklinksFailure(parsed, expectedTarget) {
+  if (parsed?.target !== expectedTarget) {
+    return `find_backlinks response target mismatch — expected ${expectedTarget}, got ${parsed?.target}`;
+  }
+  if (!Number.isInteger(parsed.total) || parsed.total < 0) {
+    return 'find_backlinks response missing total count';
+  }
+  if (!Array.isArray(parsed.matches)) {
+    return 'find_backlinks response missing matches array';
+  }
+  if (parsed.matches.length > parsed.total) {
+    return `find_backlinks response match count exceeds total — matches ${parsed.matches.length}, total ${parsed.total}`;
+  }
+  for (const [index, row] of parsed.matches.entries()) {
+    const failure = readMatchRowFailure('find_backlinks', row, index, { backlinks: true });
+    if (failure) return failure;
+  }
+  return null;
+}
+
+export function queryConceptsFailure(parsed) {
+  if (typeof parsed?.filter !== 'string' || parsed.filter.length === 0) {
+    return 'query_concepts response missing filter';
+  }
+  if (typeof parsed.parsedAs !== 'string' || parsed.parsedAs.length === 0) {
+    return 'query_concepts response missing parsedAs';
+  }
+  if (!Number.isInteger(parsed.total) || parsed.total < 0) {
+    return 'query_concepts response missing total count';
+  }
+  if (typeof parsed.limited !== 'boolean') {
+    return 'query_concepts response missing limited flag';
+  }
+  if (!Array.isArray(parsed.matches)) {
+    return 'query_concepts response missing matches array';
+  }
+  if (parsed.matches.length > parsed.total) {
+    return `query_concepts response match count exceeds total — matches ${parsed.matches.length}, total ${parsed.total}`;
+  }
+  if (!parsed.limited && parsed.matches.length !== parsed.total) {
+    return `query_concepts response match count mismatch — matches ${parsed.matches.length}, total ${parsed.total}`;
+  }
+  for (const [index, row] of parsed.matches.entries()) {
+    const failure = readMatchRowFailure('query_concepts', row, index);
+    if (failure) return failure;
   }
   return null;
 }
@@ -2871,7 +2989,7 @@ async function step2BootAndCall() {
     log('fail', 'verify timeout must be a positive integer');
     return false;
   }
-  log('info', `step 2 — server boot + tools/list + list_concepts/project probe/get_concept/get_concepts/find_orphans/list_kinds (vault=${VAULT}, timeout=${timeoutMs}ms)`);
+  log('info', `step 2 — server boot + tools/list + list_concepts/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/find_orphans/list_kinds (vault=${VAULT}, timeout=${timeoutMs}ms)`);
 
   const lines = buildFirstContactRequests().map((request) => JSON.stringify(request));
 
@@ -2886,15 +3004,17 @@ async function step2BootAndCall() {
     let completed = false;
     let sentGetConceptSmoke = false;
     let sentGetConceptsSmoke = false;
+    let sentFindBacklinksSmoke = false;
     let sentGraphQuerySmoke = false;
     let sentMaintenanceResumeSmoke = false;
     const expectedFirstContactIds = new Set(FIRST_CONTACT_RESPONSE_LABELS.keys());
     expectedFirstContactIds.delete(30);
     expectedFirstContactIds.delete(31);
+    expectedFirstContactIds.delete(33);
     let timer = null;
     proc.stdout.on('data', (b) => {
       stdout += b.toString();
-      if (!sentGetConceptsSmoke || !sentGraphQuerySmoke) {
+      if (!sentGetConceptsSmoke || !sentFindBacklinksSmoke || !sentGraphQuerySmoke) {
         const listResponse = parseJsonRpcResponses(stdout).find((response) => response?.id === 3 && response?.result);
         const projectResponse = parseJsonRpcResponses(stdout).find((response) => response?.id === 18 && response?.result);
         if (listResponse) {
@@ -2935,6 +3055,22 @@ async function step2BootAndCall() {
                 method: 'tools/call',
                 params: {
                   name: 'get_concept',
+                  arguments: { slug },
+                },
+              }) + '\n');
+            }
+          }
+          if (!sentFindBacklinksSmoke) {
+            sentFindBacklinksSmoke = true;
+            const slug = buildGetConceptSmokeSlug(listPayload);
+            if (slug) {
+              expectedFirstContactIds.add(33);
+              proc.stdin.write(JSON.stringify({
+                jsonrpc: '2.0',
+                id: 33,
+                method: 'tools/call',
+                params: {
+                  name: 'find_backlinks',
                   arguments: { slug },
                 },
               }) + '\n');
@@ -3010,6 +3146,9 @@ async function step2BootAndCall() {
       const overviewPlanRes = responses.find((r) => r.id === 10);
       const getConceptsRes = responses.find((r) => r.id === 11);
       const getConceptRes = responses.find((r) => r.id === 31);
+      const findEvidenceRes = responses.find((r) => r.id === 32);
+      const findBacklinksRes = responses.find((r) => r.id === 33);
+      const queryConceptsRes = responses.find((r) => r.id === 34);
       const projectMapPlanRes = responses.find((r) => r.id === 12);
       const neighborsRes = responses.find((r) => r.id === 13);
       const pathRes = responses.find((r) => r.id === 14);
@@ -3033,6 +3172,7 @@ async function step2BootAndCall() {
       let overviewPayload = null;
       let graphSmokeArgs = null;
       let getConceptVerified = false;
+      let findBacklinksVerified = false;
       let maintenanceResumeVerified = false;
       const missingLabels = firstContactMissingResponseLabels(responses, expectedFirstContactIds);
       const errorRes = responses.find((response) => (
@@ -3280,6 +3420,79 @@ async function step2BootAndCall() {
         log('ok', `get_concepts — ${formatCount(okRows, 'ok row')}, ${formatCount(partialRows, 'partial row')}`);
       } catch (err) {
         log('fail', `failed to parse get_concepts response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!findEvidenceRes || !findEvidenceRes.result) {
+        log('fail', 'no find_evidence response');
+        return res(false);
+      }
+      try {
+        const text = findEvidenceRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = findEvidenceFailure(parsed);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        const structuredFailure = structuredContentFailure(findEvidenceRes, parsed, 'find_evidence');
+        if (structuredFailure) {
+          log('fail', structuredFailure);
+          return res(false);
+        }
+        log('ok', `find_evidence — ${formatCount(parsed.matches.length, 'evidence result')} for "${parsed.query}"`);
+      } catch (err) {
+        log('fail', `failed to parse find_evidence response: ${err.message}`);
+        return res(false);
+      }
+
+      if (findBacklinksRes) {
+        const expectedSlug = buildGetConceptSmokeSlug(listPayload);
+        if (!expectedSlug) {
+          log('fail', 'unexpected find_backlinks response without a list_concepts slug');
+          return res(false);
+        }
+        try {
+          const text = findBacklinksRes.result?.content?.[0]?.text || '';
+          const parsed = JSON.parse(text);
+          const failure = findBacklinksFailure(parsed, expectedSlug);
+          if (failure) {
+            log('fail', failure);
+            return res(false);
+          }
+          const structuredFailure = structuredContentFailure(findBacklinksRes, parsed, 'find_backlinks');
+          if (structuredFailure) {
+            log('fail', structuredFailure);
+            return res(false);
+          }
+          findBacklinksVerified = true;
+          log('ok', `find_backlinks — ${parsed.target} (${formatCount(parsed.total, 'backlink')})`);
+        } catch (err) {
+          log('fail', `failed to parse find_backlinks response: ${err.message}`);
+          return res(false);
+        }
+      }
+
+      if (!queryConceptsRes || !queryConceptsRes.result) {
+        log('fail', 'no query_concepts response');
+        return res(false);
+      }
+      try {
+        const text = queryConceptsRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = queryConceptsFailure(parsed);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        const structuredFailure = structuredContentFailure(queryConceptsRes, parsed, 'query_concepts');
+        if (structuredFailure) {
+          log('fail', structuredFailure);
+          return res(false);
+        }
+        log('ok', `query_concepts — ${formatCount(parsed.matches.length, 'query result')} / ${formatCount(parsed.total, 'total query result')}`);
+      } catch (err) {
+        log('fail', `failed to parse query_concepts response: ${err.message}`);
         return res(false);
       }
 
@@ -3693,6 +3906,7 @@ async function step2BootAndCall() {
           hasNode: Boolean(graphSmokeArgs?.hasNode),
           hasProject: Boolean(graphSmokeArgs?.hasProject),
           hasGetConcept: getConceptVerified,
+          hasFindBacklinks: findBacklinksVerified,
           hasMaintenanceResume: maintenanceResumeVerified,
         })}`,
       );

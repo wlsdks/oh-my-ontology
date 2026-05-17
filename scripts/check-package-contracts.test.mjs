@@ -283,7 +283,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`byPhase` \/ `bySeverity` \/ `byKind`\s+bucket totals against `remainingActions`/);
     assert.match(verifySection, /catches\s+work-queue drift/);
     assert.match(verifySection, /Successful\s+verify logs print the same bucket summary and current-page executable\/review\s+next-action summary/);
-    assert.match(verifySection, /list_concepts\/project probe\/get_concept\/get_concepts\/find_orphans\/list_kinds/);
+    assert.match(verifySection, /list_concepts\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety guidance present/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ read\/write hints \+ graph-query enums \+ health tuning \+ post-write guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
@@ -296,6 +296,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ maintenance cursor — ready page stable/);
     assert.match(verifySection, /✓ get_concept — project \(\d+ outgoing edges\)/);
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial row/);
+    assert.match(verifySection, /✓ find_evidence — \d+ evidence results for "project"/);
+    assert.match(verifySection, /✓ find_backlinks — project \(\d+ backlinks\)/);
+    assert.match(verifySection, /✓ query_concepts — \d+ query results? \/ \d+ total query results?/);
     assert.match(verifySection, /✓ find_orphans — 0 orphans \(root\/sentinel defaults excluded\)/);
     assert.match(verifySection, /✓ project probe — 1 project node/);
     assert.match(verifySection, new RegExp(`✓ list_concepts — vault total ${census.total} nodes`));
@@ -310,8 +313,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
     assert.match(verifySection, new RegExp(`✓ project_scope — project \\(${scopedNodes} nodes, internalEdges`));
-    assert.match(verifySection, /✓ structuredContent — direct 8\/8, write 2\/2, maintenance 2\/2, graph 10\/10/);
-    assert.match(verifySection, /`list_concepts`, a project-node `list_concepts` probe,\s+`get_concept`, `get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /✓ structuredContent — direct 11\/11, write 2\/2, maintenance 2\/2, graph 10\/10/);
+    assert.match(verifySection, /`list_concepts`, a project-node `list_concepts` probe,\s+`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`,\s+`query_concepts`, `find_orphans`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
     assert.match(verifySection, /`query_ontology\(\{operation:"neighbors"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"path"\}\)`/);
@@ -385,10 +388,12 @@ describe('package contract helpers', () => {
     const changelog = readFileSync('mcp/CHANGELOG.md', 'utf-8');
     const verifySection = changelog.split('### Fixed — package tarball runtime files')[1]?.split('## 0.11.0')[0] ?? '';
 
-    assert.match(verifySection, /`list_concepts`, `get_concept`, `get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /`list_concepts`, `get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, `find_orphans`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /`get_concept`/);
     assert.match(verifySection, /single-node detail payload drift/);
     assert.match(verifySection, /success-row \/ partial-row contract drift/);
+    assert.match(verifySection, /`find_evidence`, `find_backlinks`, and `query_concepts`/);
+    assert.match(verifySection, /search, backlink-impact, and typed-filter row-shape drift/);
     assert.match(verifySection, /`compile_ontology`, `overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);
     assert.match(verifySection, /core graph-query execution with `neighbors`, node→project `path`, and `project_scope`/);
     assert.match(verifySection, /validates `path` hop\/edge alignment/);
@@ -524,9 +529,11 @@ describe('package contract helpers', () => {
     const verifySection = changelog.split('### Added — `mcp-verify` command')[1]?.split('### Added — `compile`')[0] ?? '';
 
     assert.match(changelog, /malformed `compile`, `cycles`, `path` hop\/edge payloads, `health\.checks`, `workspace_brief\.health\.checks`, and `workspace_brief\.nextActions` rows/);
-    assert.match(verifySection, /`list_concepts`, `get_concept`, `get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /`list_concepts`, `get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, `find_orphans`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /`get_concept` smoke/);
     assert.match(verifySection, /partial-row contract drift/);
+    assert.match(verifySection, /runtime smokes for `find_evidence`, `find_backlinks`, and `query_concepts`/);
+    assert.match(verifySection, /search, backlink-impact, and typed-filter row shapes plus `structuredContent`/);
     assert.match(verifySection, /split between node census checks/);
     assert.match(verifySection, /file-level `validate_vault\.scanned` health/);
     assert.match(verifySection, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
@@ -882,7 +889,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /strict arguments — multiple unknown tool arguments reported together/);
     assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated at row level/);
     assert.match(smoke, /add_relations — non-object and unknown-field rows isolated at row level/);
-    assert.match(smoke, /structuredContent — direct 8\\\/8, write 2\\\/2, maintenance 3\\\/3, graph 10\\\/10/);
+    assert.match(smoke, /structuredContent — direct 11\\\/11, write 2\\\/2, maintenance 3\\\/3, graph 10\\\/10/);
     assert.match(smoke, /writeMaintenanceResumeVault/);
     assert.match(smoke, /cliMaintenanceResumeMcpVerify/);
     assert.match(smoke, /directMcpMaintenanceResumeVerify/);
