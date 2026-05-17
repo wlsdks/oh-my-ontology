@@ -2346,13 +2346,14 @@ export function verifyUsage() {
     '  pnpm test:mcp:verify            MCP verify helper contract without the full integration suite.\n' +
     '  pnpm test:mcp:verify:first-contact\n' +
     '                                  Narrow first-contact health-summary/read/sample-shape helper gates.\n' +
-    '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/help diagnostics.\n'
+    '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/startup/help diagnostics.\n'
   );
 }
 
-export function serverStartupFailure(stderr) {
+export function serverStartupFailure(stderr, env = process.env) {
   const detail = String(stderr || '').trim().slice(0, 300);
-  return detail ? `server failed before initialize. stderr: ${detail}` : 'no initialize response';
+  const retry = `Example: ${verifyRetryExample(env)}`;
+  return detail ? `server failed before initialize. stderr: ${detail} ${retry}` : `no initialize response. ${retry}`;
 }
 
 function firstContactLabelsForIds(ids) {
@@ -4761,7 +4762,7 @@ async function step2BootAndCall() {
       }
 
       if (!initRes || !initRes.result) {
-        log('fail', serverStartupFailure(stderr));
+        log('fail', serverStartupFailure(stderr, verifyRetryEnvForVault(VAULT)));
         return res(false);
       }
       log('ok', `initialize OK — server ${initRes.result.serverInfo?.name}@${initRes.result.serverInfo?.version}`);

@@ -136,7 +136,7 @@ pnpm test:mcp:package           # focused MCP/CLI package-script/dependency/tarb
 pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
 pnpm test:mcp:verify            # focused MCP verify helper checks
 pnpm test:mcp:verify:first-contact # narrow MCP verify first-contact health-summary/read/sample gates
-pnpm test:mcp:verify:timeout    # narrow MCP verify timeout/help diagnostics
+pnpm test:mcp:verify:timeout    # narrow MCP verify timeout/startup/help diagnostics
 pnpm dogfood:verify             # root checkout installed-style verify over docs/ontology
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000 # root checkout dogfood verify
 pnpm cli:mcp-verify -- --help   # root checkout shortcut for installed mcp-verify help scope
@@ -210,7 +210,9 @@ received value or the true timeout, plus a concrete retry example such as
 guessing the accepted format. Direct verifier and CLI wrapper retry hints
 preserve an explicit vault, for example
 `npm run verify -- --vault <path> --timeout-ms 15000` or
-`oh-my-ontology mcp-verify --vault <path> --timeout-ms 15000`.
+`oh-my-ontology mcp-verify --vault <path> --timeout-ms 15000`. Startup failures
+before MCP `initialize` preserve stderr diagnostics and print the same
+vault-aware retry shape.
 
 ## Verifiable promises
 

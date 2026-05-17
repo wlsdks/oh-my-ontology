@@ -177,7 +177,7 @@ describe('package contract helpers', () => {
     );
     assert.equal(
       pkg.scripts?.['test:mcp:verify:timeout'],
-      'node --test --test-name-pattern "verify timeout|timeout failures|direct verify usage|direct verify timeout|direct verify CLI args" mcp/src/verify-script.test.mjs',
+      'node --test --test-name-pattern "verify timeout|timeout failures|startup failures|direct verify usage|direct verify timeout|direct verify CLI args" mcp/src/verify-script.test.mjs',
     );
     assert.match(
       pkg.scripts?.['test:mcp:docs'] ?? '',
@@ -206,7 +206,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /pnpm test:mcp:verify/);
     assert.match(readme, /pnpm test:mcp:verify:first-contact\s+# narrow MCP verify first-contact health-summary\/read\/sample gates/);
-    assert.match(readme, /pnpm test:mcp:verify:timeout\s+# narrow MCP verify timeout\/help diagnostics/);
+    assert.match(readme, /pnpm test:mcp:verify:timeout\s+# narrow MCP verify timeout\/startup\/help diagnostics/);
     assert.match(readme, /pnpm dogfood:verify\s+# root checkout installed-style verify over docs\/ontology/);
     assert.match(readme, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+# root checkout dogfood verify/);
     assert.match(readme, /pnpm cli:mcp-verify -- --help\s+# root checkout shortcut for installed mcp-verify help scope/);
@@ -493,7 +493,7 @@ describe('package contract helpers', () => {
     assert.match(section, /stderr warning filtering/);
     assert.match(section, /verify helper contract/);
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample` shape drift/);
-    assert.match(section, /timeout parsing, usage, and retry\s+diagnostics/);
+    assert.match(section, /timeout parsing, startup failure\s+retry guidance, usage, and retry diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
   });
@@ -930,7 +930,7 @@ describe('package contract helpers', () => {
     assert.match(section, /vault warning \/ `validate_vault`/);
     assert.match(section, /health summary \/ next-action gates/);
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample` shape drift/);
-    assert.match(section, /timeout parsing, usage, and retry\s+diagnostics/);
+    assert.match(section, /timeout parsing, startup failure retry\s+guidance, usage, and retry diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
     assert.match(section, /`dogfood:verify` is the shortest root-checkout dogfood vault gate/);
@@ -1422,7 +1422,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);
     assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact health-summary\\\/read\\\/sample-shape helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
-    assert.match(smoke, /Narrow MCP verify timeout\\\/help diagnostics/);
+    assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help diagnostics/);
     assert.match(smoke, /verify timeout must be a positive integer/);
     assert.match(smoke, /invalidCliMcpVerifyTimeout/);
     assert.match(smoke, /missingCliMcpVerifyTimeout/);
@@ -1516,7 +1516,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);
     assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact health-summary\\\/read\\\/sample-shape helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
-    assert.match(smoke, /Narrow MCP verify timeout\\\/help diagnostics/);
+    assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help diagnostics/);
     assert.match(smoke, /Successful cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
     assert.match(smoke, /maintenance cursor — missing afterActionId reported/);
     assert.match(smoke, /maintenance cursor — ready page stable/);

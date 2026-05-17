@@ -83,8 +83,8 @@ verify or dogfood suites.
 `test:mcp:verify:first-contact` narrows that to first-contact read smoke,
 vault warning / `validate_vault`, health summary / next-action gates, and
 `workspace_brief.nextActions[].sample` shape drift.
-`test:mcp:verify:timeout` narrows timeout parsing, usage, and retry
-diagnostics that `mcp-verify` exposes through the CLI. Use
+`test:mcp:verify:timeout` narrows timeout parsing, startup failure retry
+guidance, usage, and retry diagnostics that `mcp-verify` exposes through the CLI. Use
 `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
 `pnpm integration:cli` when the touched CLI integration case has a different
 name. `dogfood:verify` is the shortest root-checkout dogfood vault gate, and

@@ -84,8 +84,8 @@ full integration suite. `test:mcp:verify:first-contact` narrows that to
 initialize guidance, read-smoke request inventory, vault warning /
 `validate_vault`, first-contact health summary / next-action gates, and
 `workspace_brief.nextActions[].sample` shape drift.
-`test:mcp:verify:timeout` narrows verify timeout parsing, usage, and retry
-diagnostics.
+`test:mcp:verify:timeout` narrows verify timeout parsing, startup failure
+retry guidance, usage, and retry diagnostics.
 Use `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
 `pnpm integration:mcp` when the touched MCP integration case has a different
 name. From the repo root, `pnpm dogfood:verify` is the shortest dogfood vault
@@ -477,7 +477,8 @@ the received value plus a concrete retry example, for example
 explicit vault, timeout retry hints preserve that vault, for example
 `npm run verify -- --vault <path> --timeout-ms 15000`; the repo-root CLI wrapper
 uses the same pattern with `oh-my-ontology mcp-verify --vault <path>
---timeout-ms 15000`.
+--timeout-ms 15000`. Server startup failures before `initialize` keep stderr
+diagnostics and include the same vault-preserving retry example.
 
 ### Manual verification (reference)
 

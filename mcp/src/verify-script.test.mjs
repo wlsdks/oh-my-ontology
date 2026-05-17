@@ -3318,7 +3318,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /pnpm test:mcp:verify:first-contact/);
     assert.match(verifyUsage(), /Narrow first-contact health-summary\/read\/sample-shape helper gates/);
     assert.match(verifyUsage(), /pnpm test:mcp:verify:timeout/);
-    assert.match(verifyUsage(), /Narrow MCP verify timeout\/help diagnostics/);
+    assert.match(verifyUsage(), /Narrow MCP verify timeout\/startup\/help diagnostics/);
     assertPnpmScriptsExist(verifyUsage());
   });
 
@@ -4242,8 +4242,14 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('formats startup failures before initialize separately from timeouts', () => {
-    assert.equal(serverStartupFailure('Vault root not found'), 'server failed before initialize. stderr: Vault root not found');
-    assert.equal(serverStartupFailure(''), 'no initialize response');
+    assert.equal(
+      serverStartupFailure('Vault root not found'),
+      'server failed before initialize. stderr: Vault root not found Example: npm run verify -- --timeout-ms 15000',
+    );
+    assert.equal(
+      serverStartupFailure('', verifyRetryEnvForVault('../docs/ontology', {}, '/tmp/cwd')),
+      'no initialize response. Example: npm run verify -- --vault ../docs/ontology --timeout-ms 15000',
+    );
   });
 
   it('detects when all first-contact JSON-RPC responses arrived', () => {

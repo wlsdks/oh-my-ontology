@@ -326,7 +326,8 @@ agent 가 다른 vault 로 재시도하지 않게 한다.
 잘못된 shell 환경에서도 usage 확인이나 직접 지정한 vault 검증이 막히지 않는다.
 first-contact 응답들이 모두 도착하면 timeout 까지 기다리지 않고 즉시 종료하며,
 진짜 timeout 은 누락된 응답 그룹을 함께 출력한다.
-`initialize` 전 서버 시작 실패는 timeout 과 구분해 stderr 의 vault 설정 진단을 보존한다.
+`initialize` 전 서버 시작 실패는 timeout 과 구분해 stderr 의 vault 설정 진단을 보존하고,
+명시 vault 로 실행했다면 같은 vault 를 담은 retry 예시도 함께 출력한다.
 first-contact JSON-RPC error 응답도 timeout 까지 기다리지 않고 실패한 step 이름과
 error message 를 바로 출력한다.
 `mcp/src/integration.test.mjs` 와 `mcp/src/verify-script.test.mjs` 는 실제
