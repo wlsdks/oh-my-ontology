@@ -279,6 +279,8 @@ dogfood walk 도 `workspace_brief.nextActions` row 의 identifier/severity 와
 `health.checks` row 의 id/status/count 를 fail-closed 로 검증하고 severity/status enum 오타도 거부한다.
 출력에 쓰이는 optional `count` 는 non-negative integer 여야 해서 실제 MCP 응답이
 advisory/coverage 출력에서 `unknown` 이나 잘못된 count 로 숨지 않게 한다.
+dogfood timeout 출력은 `OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk`
+재시도 예시를 같이 노출한다.
 기본 server wait 는 8초이며 큰 vault / 느린 파일시스템에서는
 양의 정수 millisecond 값인 `OMOT_VERIFY_TIMEOUT_MS` 로 늘릴 수 있다.
 `1000ms` 같은 부분 숫자 값은 조용히 truncate 하지 않고 실패하며, 오류 출력은
@@ -566,6 +568,8 @@ project probe 도 fail-closed 로 확인해 dogfood vault 에서 `project_scope`
 즉시 종료해 반복 dogfood 비용을 낮춘다. timeout 으로 끝나면 누락된 응답 label 을
 gate failure 에 함께 출력한다. 느린 환경에서는 양의 정수 millisecond 값인
 `OMOT_DOGFOOD_TIMEOUT_MS` 로 dogfood wait 를 늘릴 수 있다.
+timeout 출력도 같은 env 이름과 `OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk`
+재시도 예시를 같이 노출한다.
 정상 MCP connection stderr 는 성공 로그에서 숨기고, `Warning:` stderr 만
 별도 `[stderr warnings]` 섹션에 출력해 실제 경고와 정상 연결 로그를 분리한다.
 핵심 응답 누락, vault warning, `validate_vault` problemFiles, 예상 graph path 부재,

@@ -297,7 +297,11 @@ export function structuredContentStatus(parsed, structured) {
 }
 
 export function rpcTimeoutFailure(timeoutMs, missingLabels) {
-  return `rpc: timed out after ${timeoutMs}ms waiting for ${missingLabels.join(", ")}`;
+  return [
+    `rpc: timed out after ${timeoutMs}ms waiting for ${missingLabels.join(", ")}.`,
+    "Increase OMOT_DOGFOOD_TIMEOUT_MS for slow dogfood runs.",
+    "Example: OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk",
+  ].join(" ");
 }
 
 export function formatWorkspaceNextActionRows(actions, limit = 5) {

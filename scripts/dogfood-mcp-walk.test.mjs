@@ -2803,10 +2803,10 @@ describe("rpc response completion helpers", () => {
     ]);
     const missing = missingResponseLabels([{ id: 1, result: {} }], labels);
     assert.deepEqual(missing, ["list_kinds", "list_concepts"]);
-    assert.equal(
-      rpcTimeoutFailure(5000, missing),
-      "rpc: timed out after 5000ms waiting for list_kinds, list_concepts",
-    );
+    const failure = rpcTimeoutFailure(5000, missing);
+    assert.match(failure, /rpc: timed out after 5000ms waiting for list_kinds, list_concepts\./);
+    assert.match(failure, /Increase OMOT_DOGFOOD_TIMEOUT_MS for slow dogfood runs\./);
+    assert.match(failure, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
   });
 
   it("keeps dogfood response labels aligned with the get_concepts smoke", () => {
@@ -2865,10 +2865,9 @@ describe("rpc response completion helpers", () => {
       .map((id) => ({ id, result: {} }));
     const missing = missingResponseLabels(responsesWithoutGetConcepts, DOGFOOD_RESPONSE_LABELS);
     assert.deepEqual(missing, ["get_concepts"]);
-    assert.equal(
-      rpcTimeoutFailure(5000, missing),
-      "rpc: timed out after 5000ms waiting for get_concepts",
-    );
+    const failure = rpcTimeoutFailure(5000, missing);
+    assert.match(failure, /rpc: timed out after 5000ms waiting for get_concepts\./);
+    assert.match(failure, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
   });
 
   it("keeps dogfood request ids unique", () => {
