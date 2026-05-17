@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
@@ -92,6 +93,7 @@ import { expectedResponseIds, missingResponseLabels } from '../scripts/json-rpc-
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+const VERIFY_SCRIPT = join(__dirname, '..', 'scripts', 'verify.mjs');
 
 describe('verify.mjs first-contact gates', () => {
   it('keeps package metadata tool count aligned with verify inventory', () => {
@@ -2826,6 +2828,20 @@ describe('verify.mjs first-contact gates', () => {
       parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--vualt'], cwd: '/tmp/cwd', isMain: true }).error,
       /Unknown option: --vualt\. Did you mean --vault\?/,
     );
+  });
+
+  it('prints direct verify argument errors to stderr only', () => {
+    const result = spawnSync(
+      process.execPath,
+      [VERIFY_SCRIPT, '--timout-ms=1000'],
+      { cwd: join(__dirname, '..'), encoding: 'utf8' },
+    );
+
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /\[oh-my-ontology-mcp verify\]/);
+    assert.match(result.stderr, /Unknown option: --timout-ms=1000\. Did you mean --timeout-ms\?/);
+    assert.match(result.stderr, /Usage:/);
   });
 
   it('describes direct verify usage', () => {

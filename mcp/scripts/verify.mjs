@@ -4796,12 +4796,12 @@ async function main() {
     process.stdout.write(verifyUsage());
     process.exit(0);
   }
-  console.log('\n[oh-my-ontology-mcp verify]\n');
   if (VERIFY_ARGS.error) {
-    log('fail', VERIFY_ARGS.error);
+    process.stderr.write(`\n[oh-my-ontology-mcp verify]\n\n\x1b[31m✗\x1b[0m ${VERIFY_ARGS.error}\n`);
     process.stderr.write(verifyUsage());
     process.exit(1);
   }
+  console.log('\n[oh-my-ontology-mcp verify]\n');
   if (verifyTimeoutMs() === false) {
     log('fail', 'verify timeout must be a positive integer');
     process.exit(1);
