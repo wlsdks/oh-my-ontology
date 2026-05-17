@@ -531,7 +531,7 @@ try {
 
   const invalidMcpVerifyTimeout = runRaw(
     'npm',
-    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), 'run', 'verify'],
+    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), '--silent', 'run', 'verify'],
     {
       cwd: projectDir,
       env: {
@@ -551,6 +551,7 @@ try {
     [
       '--prefix',
       join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      '--silent',
       'run',
       'verify',
       '--',
@@ -571,6 +572,7 @@ try {
     [
       '--prefix',
       join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      '--silent',
       'run',
       'verify',
       '--',
@@ -581,10 +583,8 @@ try {
     { cwd: projectDir },
   );
   assert.equal(invalidDirectMcpVerifyVault.status, 1);
-  assert.match(
-    `${invalidDirectMcpVerifyVault.stdout}\n${invalidDirectMcpVerifyVault.stderr}`,
-    /--vault requires a path value/,
-  );
+  assert.equal(invalidDirectMcpVerifyVault.stdout, '');
+  assert.match(invalidDirectMcpVerifyVault.stderr, /--vault requires a path value/);
 
   const compile = runRaw(cliBin, ['compile', 'ontology', '--summary'], { cwd: projectDir });
   assert.equal(compile.status, 1);
