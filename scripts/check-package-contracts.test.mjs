@@ -215,6 +215,17 @@ describe('package contract helpers', () => {
     );
   });
 
+  it('keeps docs aligned with repo analysis MCP argument names', () => {
+    const features = readFileSync('docs/FEATURES.md', 'utf-8');
+    const analyzeLine = features.split('14. **analyze_repo_structure**')[1]?.split('\n')[0] ?? '';
+    const inferLine = features.split('15. **infer_imports**')[1]?.split('\n')[0] ?? '';
+
+    assert.match(analyzeLine, /`?\{ rootPath\?, maxDepth\?, ignore\? \}`?/);
+    assert.match(inferLine, /`?\{ rootPath\?, sourceFolders\?, ignore\?, maxFiles\? \}`?/);
+    assert.match(inferLine, /common `@\/\*` aliases/);
+    assert.doesNotMatch(analyzeLine + inferLine, /repoRoot/);
+  });
+
   it('keeps the MCP README explicit about destructive write safety switches', () => {
     const readme = readFileSync('mcp/README.md', 'utf-8');
     const deleteRow = readme.split('| `delete_concept` |')[1]?.split('\n')[0] ?? '';
@@ -721,6 +732,7 @@ describe('package contract helpers', () => {
     const releaseChecks = readme.split('### Package / MCP release checks')[1]?.split('## Verifiable promises')[0] ?? '';
     const dogfoodSection = doc.split('dogfood walk 는 `find_evidence.matches`')[1]?.split('기본 server wait')[0] ?? '';
     const queryOntologyRow = doc.split('| `query_ontology` |')[1]?.split('\n')[0] ?? '';
+    const inferImportsRow = doc.split('| `infer_imports` |')[1]?.split('\n')[0] ?? '';
 
     assert.match(releaseChecks, /workspace_brief\.health\.checks/);
     assert.match(dogfoodSection, /workspace_brief\.health\.checks/);
@@ -787,6 +799,9 @@ describe('package contract helpers', () => {
     assert.match(doc, /`compile_ontology` 도 `outputSchema` 와 동일한 `structuredContent` graph-summary payload/);
     assert.match(doc, /`analyze_repo_structure` 도 `outputSchema` 와 동일한 `structuredContent` bootstrap-candidate payload/);
     assert.match(doc, /`infer_imports` 도 `outputSchema` 와 동일한 `structuredContent` import-graph payload/);
+    assert.match(inferImportsRow, /common `@\/\*` alias/);
+    assert.match(inferImportsRow, /내부 edge 로 resolve/);
+    assert.match(inferImportsRow, /`alias-not-found` unresolved/);
     assert.match(doc, /`analyze_repo_structure` \/ `infer_imports` 도 실제 repo root 를 대상으로 호출해\s+bootstrap 후보와 import graph payload 의 shape \/ `structuredContent` 계약이\s+dogfood walk 뿐 아니라 설치 verify 에서도 깨지지 않게 한다/);
     assert.match(doc, /`add_concept` \/ `add_relation` \/ `patch_concept` 도 single writer `outputSchema`/);
     assert.match(doc, /`add_concepts` \/ `add_relations` 도 batch writer `outputSchema` row 계약/);

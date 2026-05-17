@@ -421,6 +421,10 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.deepEqual(inferImports?.outputSchema?.properties?.edges?.items?.properties?.kind?.enum, ["static", "dynamic", "require", "reexport", "side"]);
     assert.deepEqual(inferImports?.outputSchema?.properties?.moduleEdges?.items?.required, ["from", "to", "count"]);
     assert.equal(inferImports?.outputSchema?.properties?.moduleEdges?.items?.properties?.count?.minimum, 1);
+    assert.match(inferImports?.description ?? "", /common @\/\* aliases/);
+    assert.match(inferImports?.description ?? "", /resolved to src\/ · lib\/ · app\//);
+    assert.match(inferImports?.description ?? "", /alias-not-found/);
+    assert.doesNotMatch(inferImports?.description ?? "", /aliases \(@\/\) → external \(not resolved\)/);
     const listKinds = findTool("list_kinds");
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);

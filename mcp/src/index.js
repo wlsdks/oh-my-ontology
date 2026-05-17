@@ -1512,7 +1512,7 @@ const TOOLS = [
       '  - dynamic import() / require() / export ... from\n' +
       '  - bare side-effect imports (import "X")\n' +
       '  - external (npm) imports listed separately\n' +
-      '  - tsconfig path aliases (@/) → external (not resolved)\n\n' +
+      '  - common @/* aliases → resolved to src/ · lib/ · app/ when the target exists; otherwise unresolved as alias-not-found\n\n' +
       'Use after analyze_repo_structure to pull *real* dependency edges from the code, not just suggestedRelations heuristics. ' +
       'Single source of truth preserved — only the user (via your subsequent add_relation calls) writes to the vault.',
     inputSchema: {
