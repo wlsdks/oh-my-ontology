@@ -4933,8 +4933,12 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, edgeById: {} } }), 'compile_ontology.indexes.edgeById count mismatch — index 0, edgeCount 1');
     assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, aliasToSlug: {} } }), 'compile_ontology.indexes.aliasToSlug count mismatch — index 0, aliasCount 1');
     assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, out: { project: ['missing-edge'] } } }), 'compile_ontology.indexes.out references unknown edge id');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, out: {} } }), 'compile_ontology.indexes.out missing edgeById edge');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, in: {} } }), 'compile_ontology.indexes.in missing resolved edge');
     assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, byKind: { project: ['missing-node'] } } }), 'compile_ontology.indexes.byKind references unknown node slug');
     assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, aliasToSlug: { project: 'missing-node' } } }), 'compile_ontology.indexes.aliasToSlug references unknown slug: project');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, byKind: { project: ['project', 'project'] } } }), 'compile_ontology.indexes.byKind count mismatch: project');
+    assert.equal(compileIndexesFailure({ ...clean, byDomain: { core: 1 } }), 'compile_ontology.indexes.byDomain count mismatch: core');
   });
 
   it('accepts clean graph-query verify smoke payloads', () => {

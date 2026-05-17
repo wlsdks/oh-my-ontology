@@ -3373,6 +3373,18 @@ function stringArrayMapReferenceFailure(label, value, knownValues, noun) {
   return null;
 }
 
+function groupedIndexCountFailure(label, value, counts) {
+  const keys = new Set([...Object.keys(value), ...Object.keys(counts || {})]);
+  for (const key of keys) {
+    const actual = value[key]?.length ?? 0;
+    const expected = counts?.[key] ?? 0;
+    if (actual !== expected) {
+      return `${label} count mismatch: ${key}`;
+    }
+  }
+  return null;
+}
+
 export function compileIndexesFailure(parsed) {
   const fullFailure = compileFullArtifactFailure(parsed);
   if (fullFailure) return fullFailure;
@@ -3409,6 +3421,14 @@ export function compileIndexesFailure(parsed) {
     const failure = stringArrayMapReferenceFailure(`compile_ontology.indexes.${name}`, indexes[name], edgeIdSet, 'edge id');
     if (failure) return failure;
   }
+  for (const [id, edge] of Object.entries(indexes.edgeById)) {
+    if (!indexes.out[edge.from]?.includes(id)) {
+      return 'compile_ontology.indexes.out missing edgeById edge';
+    }
+    if (edge.resolved && !indexes.in[edge.to]?.includes(id)) {
+      return 'compile_ontology.indexes.in missing resolved edge';
+    }
+  }
   if (!indexes.aliasToSlug || typeof indexes.aliasToSlug !== 'object' || Array.isArray(indexes.aliasToSlug)) {
     return 'compile_ontology.indexes.aliasToSlug missing';
   }
@@ -3434,6 +3454,10 @@ export function compileIndexesFailure(parsed) {
     const failure = stringArrayMapReferenceFailure(`compile_ontology.indexes.${name}`, indexes[name], knownSlugs, 'node slug');
     if (failure) return failure;
   }
+  const byKindCountFailure = groupedIndexCountFailure('compile_ontology.indexes.byKind', indexes.byKind, parsed.byKind);
+  if (byKindCountFailure) return byKindCountFailure;
+  const byDomainCountFailure = groupedIndexCountFailure('compile_ontology.indexes.byDomain', indexes.byDomain, parsed.byDomain);
+  if (byDomainCountFailure) return byDomainCountFailure;
   return null;
 }
 
