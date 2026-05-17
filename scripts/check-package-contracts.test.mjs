@@ -10,6 +10,12 @@ import { analyzeRepoStructure } from '../mcp/src/analyze.mjs';
 import { inferImports } from '../mcp/src/infer-imports.mjs';
 import { loadOmotIgnore } from '../mcp/src/omot-ignore.mjs';
 import {
+  tunedHealthScopeOutputSummary,
+  tunedWorkspaceBriefScopeOutputSummary,
+  VERIFY_TUNED_HEALTH_ARGS,
+  VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
+} from '../mcp/scripts/verify.mjs';
+import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
@@ -549,24 +555,16 @@ describe('package contract helpers', () => {
     const overview = queryCompiledOntology(compiled, { operation: 'overview', limit: 5 });
     const diagnosisOptions = { omotIgnorePatterns: loadOmotIgnore(ontologyRoot) };
     const workspaceBrief = queryCompiledOntology(compiled, { operation: 'workspace_brief' }, diagnosisOptions);
-    const tunedDiagnosisArgs = {
-      componentLimit: 3,
-      cycleLimit: 3,
-      recommendationLimit: 3,
-      orderLimit: 3,
-      dependencyTypes: ['dependencies'],
-      componentTypes: ['domains', 'domain', 'capabilities', 'dependencies'],
-    };
     const tunedWorkspaceBrief = queryCompiledOntology(compiled, {
       operation: 'workspace_brief',
       limit: 3,
-      ...tunedDiagnosisArgs,
-      nodeLimit: 3,
+      ...VERIFY_TUNED_HEALTH_ARGS,
+      nodeLimit: VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
     }, diagnosisOptions);
     const health = queryCompiledOntology(compiled, { operation: 'health' }, diagnosisOptions);
     const tunedHealth = queryCompiledOntology(compiled, {
       operation: 'health',
-      ...tunedDiagnosisArgs,
+      ...VERIFY_TUNED_HEALTH_ARGS,
     }, diagnosisOptions);
     const analyzedRepo = analyzeRepoStructure(process.cwd(), { maxDepth: 2 });
     const inferredImports = inferImports(process.cwd());
@@ -645,7 +643,7 @@ describe('package contract helpers', () => {
     assert.match(
       verifySection,
       new RegExp(
-        `✓ workspace_brief_tuned — ${tunedWorkspaceBrief.status} \\(${census.total} nodes, ${countLabel(tunedWorkspaceBrief.nextActions.length, 'next action')}, ${countLabel(tunedWorkspaceBrief.health.checks.length, 'health check')}, growth actions:${tunedWorkspaceBrief.growth.totalActions} external:${tunedWorkspaceBrief.growth.externalElementRefs} ignoredExternal:${tunedWorkspaceBrief.growth.externalElementRefsIgnored}; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3\\)`,
+        `✓ workspace_brief_tuned — ${tunedWorkspaceBrief.status} \\(${census.total} nodes, ${countLabel(tunedWorkspaceBrief.nextActions.length, 'next action')}, ${countLabel(tunedWorkspaceBrief.health.checks.length, 'health check')}, growth actions:${tunedWorkspaceBrief.growth.totalActions} external:${tunedWorkspaceBrief.growth.externalElementRefs} ignoredExternal:${tunedWorkspaceBrief.growth.externalElementRefsIgnored}; ${regexEscape(tunedWorkspaceBriefScopeOutputSummary())}\\)`,
       ),
     );
     const tunedBriefAction = tunedWorkspaceBrief.nextActions[0];
@@ -668,7 +666,7 @@ describe('package contract helpers', () => {
     assert.match(
       verifySection,
       new RegExp(
-        `✓ health_tuned — ${tunedHealth.status} \\(issues:${tunedHealth.summary.issues}, unresolved:${tunedHealth.summary.unresolvedEdges}, cycles:${tunedHealth.summary.dependencyCycles}, ${countLabel(tunedHealth.checks.length, 'check')}: ${healthCheckSummary(tunedHealth.checks)}; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies\\)`,
+        `✓ health_tuned — ${tunedHealth.status} \\(issues:${tunedHealth.summary.issues}, unresolved:${tunedHealth.summary.unresolvedEdges}, cycles:${tunedHealth.summary.dependencyCycles}, ${countLabel(tunedHealth.checks.length, 'check')}: ${healthCheckSummary(tunedHealth.checks)}; ${regexEscape(tunedHealthScopeOutputSummary())}\\)`,
       ),
     );
     assert.match(verifySection, new RegExp(`✓ compile_ontology — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, issues ${compiled.issueCount}\\)`));
