@@ -357,7 +357,11 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 `pnpm test:mcp:package` / `pnpm test:mcp:suggestions` 로 파일 단위 검증을 먼저
 돌려 반복 dogfood 비용을 낮춘다. dogfood helper / structuredContent 출력 계약을
 만질 때는 `pnpm test:mcp:dogfood` 로 dogfood helper 와 관련 문서 계약만 먼저
-확인한다. verify helper 자체를 만질 때는 `pnpm test:mcp:verify` 로
+확인한다. 직접 verify help(`npm run verify -- --help`) 는 `list_concepts` project probe / `get_concept` / `get_concepts` /
+`query_concepts` / limited `query_concepts` / `analyze_repo_structure` / `infer_imports` / `find_neighbors`
+를 포함한 focused direct read smoke set 도 설명한다. 별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`
+semantics 를 확인해 typed-filter pagination 계약을 빠르게 점검한다.
+verify helper 자체를 만질 때는 `pnpm test:mcp:verify` 로
 `mcp/src/verify-script.test.mjs` 만 바로 실행한다.
 또한 write tool schema 가 `expected_mtime` conflict guard 와 destructive
 tool 의 `confirm` dry-run safety switch, `rename_concept.overwrite`, `delete_concept.force` 를 계속 노출하는지 `tools/list`
@@ -373,7 +377,8 @@ row partial-failure 경로까지 `mcp/src/integration.test.mjs` 의 spawn 기반
 전에 reject 해 generic TypeError 나 YAML coercion 으로 숨지 않게 한다.
 `add_concepts` / `add_relations` 의 batch row 도 object shape 와 허용 field set 을
 먼저 검증해, 잘못된 row 는 index 가 포함된 row-level error 로 격리하고 나머지 유효
-row 는 계속 land 한다. first-contact instructions 도 non-object row 와 unknown row field 가
+row 는 계속 land 한다. row-level non-object / unknown-field 입력도 해당 row 만 실패한다.
+first-contact instructions 도 non-object row 와 unknown row field 가
 batch 전체 실패가 아니라 `{ok:false, error}` row 로 돌아온다는 점을 안내한다.
 `tools/call.arguments` 자체도 생략은 빈 object 로 처리하되, null / 배열 /
 문자열처럼 object 가 아닌 값은 SDK 또는 server 경계에서 명확한 MCP error 로
