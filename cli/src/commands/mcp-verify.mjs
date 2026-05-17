@@ -31,7 +31,7 @@ export async function runMcpVerify(args) {
     printUsage(process.stderr);
     return 1;
   }
-  const envTimeoutError = mcpVerifyEnvTimeoutError(timeoutMs, process.env.OMOT_VERIFY_TIMEOUT_MS);
+  const envTimeoutError = mcpVerifyEnvTimeoutError(timeoutMs, process.env.OMOT_VERIFY_TIMEOUT_MS, vault);
   if (envTimeoutError) {
     process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${envTimeoutError}\n`);
     printUsage(process.stderr);
@@ -102,7 +102,7 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs, vaultArg) {
 }
 
 function mcpVerifyRetryExample(vaultArg) {
-  const vaultPart = vaultArg ? ` --vault ${shellArg(vaultArg)}` : '';
+  const vaultPart = vaultArg && vaultArg !== '.' ? ` --vault ${shellArg(vaultArg)}` : '';
   return `oh-my-ontology mcp-verify${vaultPart} --timeout-ms 15000`;
 }
 
@@ -132,8 +132,15 @@ function parseArgs(args) {
     else positional.push(a);
   }
   if (flags.timeoutMs instanceof Error) {
+    const vaultResult = String(flags.timeoutMsRaw ?? '').startsWith('--')
+      ? { vault: null, error: null }
+      : resolveExclusiveVaultArg({ vault: flags.vault, positional });
     return {
-      error: mcpVerifyTimeoutValueErrorMessage(flags.timeoutMs.message, flags.timeoutMsRaw),
+      error: mcpVerifyTimeoutValueErrorMessage(
+        flags.timeoutMs.message,
+        flags.timeoutMsRaw,
+        vaultResult.error ? null : vaultResult.vault,
+      ),
     };
   }
   const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
@@ -141,21 +148,21 @@ function parseArgs(args) {
   return { vault: vaultResult.vault, timeoutMs: flags.timeoutMs };
 }
 
-function mcpVerifyTimeoutValueErrorMessage(reason, value) {
+function mcpVerifyTimeoutValueErrorMessage(reason, value, vaultArg = null) {
   const received = value == null ? 'undefined' : JSON.stringify(String(value));
   return [
     `${reason}.`,
     `Received: ${received}.`,
     'Set --timeout-ms N or OMOT_VERIFY_TIMEOUT_MS=N.',
-    'Example: oh-my-ontology mcp-verify --timeout-ms 15000',
+    `Example: ${mcpVerifyRetryExample(vaultArg)}`,
   ].join(' ');
 }
 
-function mcpVerifyEnvTimeoutError(timeoutMs, rawValue) {
+function mcpVerifyEnvTimeoutError(timeoutMs, rawValue, vaultArg = null) {
   if (timeoutMs != null || rawValue == null || rawValue === '') return null;
   const parsed = parsePositiveIntegerFlag('OMOT_VERIFY_TIMEOUT_MS', rawValue);
   if (!(parsed instanceof Error)) return null;
-  return mcpVerifyTimeoutValueErrorMessage(parsed.message, rawValue);
+  return mcpVerifyTimeoutValueErrorMessage(parsed.message, rawValue, vaultArg);
 }
 
 function printUsage(output = process.stderr) {

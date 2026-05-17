@@ -443,6 +443,16 @@ await test('mcp-verify — rejects invalid timeout values', async () => {
   assert.match(stripAnsi(partial.stderr), /OMOT_VERIFY_TIMEOUT_MS=N/);
   assert.match(stripAnsi(partial.stderr), /oh-my-ontology mcp-verify --timeout-ms 15000/);
 
+  const explicitVault = await run(['mcp-verify', 'ontology', '--timeout-ms=1000ms']);
+  assert.equal(explicitVault.code, 1);
+  assert.match(stripAnsi(explicitVault.stderr), /--timeout-ms must be a positive integer/);
+  assert.match(stripAnsi(explicitVault.stderr), /Received: "1000ms"/);
+  assert.match(stripAnsi(explicitVault.stderr), /oh-my-ontology mcp-verify --vault ontology --timeout-ms 15000/);
+
+  const explicitVaultFlag = await run(['mcp-verify', '--vault', 'ontology', '--timeout-ms=1000ms']);
+  assert.equal(explicitVaultFlag.code, 1);
+  assert.match(stripAnsi(explicitVaultFlag.stderr), /oh-my-ontology mcp-verify --vault ontology --timeout-ms 15000/);
+
   const missing = await run(['mcp-verify', '--timeout-ms']);
   assert.equal(missing.code, 1);
   assert.match(stripAnsi(missing.stderr), /--timeout-ms requires a value/);
@@ -461,7 +471,7 @@ await test('mcp-verify — rejects invalid timeout values', async () => {
   assert.equal(envTimeout.code, 1);
   assert.match(stripAnsi(envTimeout.stderr), /OMOT_VERIFY_TIMEOUT_MS must be a positive integer/);
   assert.match(stripAnsi(envTimeout.stderr), /Received: "1000ms"/);
-  assert.match(stripAnsi(envTimeout.stderr), /oh-my-ontology mcp-verify --timeout-ms 15000/);
+  assert.match(stripAnsi(envTimeout.stderr), /oh-my-ontology mcp-verify --vault ontology --timeout-ms 15000/);
   assert.doesNotMatch(stripAnsi(envTimeout.stderr), /npm run verify -- --timeout-ms 15000/);
 
   const envTimeoutOverridden = await run(['mcp-verify', 'ontology', '--timeout-ms', '1000'], {

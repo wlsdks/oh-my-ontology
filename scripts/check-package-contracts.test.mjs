@@ -474,7 +474,7 @@ describe('package contract helpers', () => {
     assert.match(section, /`pnpm dogfood:verify` is the shortest dogfood vault\s+gate/);
     assert.match(readme, /invalid timeout values fail before the server\s+starts and print\s+the received value plus a concrete retry example/i);
     assert.match(readme, /`npm run verify -- --timeout-ms 15000`/);
-    assert.match(readme, /CLI wrapper starts\s+this verifier with an explicit vault, true verify timeout retry hints preserve\s+that vault as `oh-my-ontology mcp-verify --vault <path> --timeout-ms 15000`/);
+    assert.match(readme, /CLI wrapper starts\s+this verifier with an explicit vault, timeout retry hints preserve\s+that vault as `oh-my-ontology mcp-verify --vault <path> --timeout-ms 15000`/);
     assert.match(readme, /From the repo root, prefer the CLI wrapper for the dogfood vault/);
     assert.match(readme, /pnpm dogfood:verify/);
     assert.match(readme, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000/);
@@ -892,7 +892,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`overview`, `overview`\/`project_map` query_plan, and actual `neighbors`/);
     assert.match(verifySection, /Invalid timeout values print the received value/);
     assert.match(verifySection, /`oh-my-ontology mcp-verify --timeout-ms 15000`/);
-    assert.match(verifySection, /explicit vault, true verify timeouts preserve that\s+vault in the retry command as `--vault <path>`/);
+    assert.match(verifySection, /explicit vault, timeout retry hints preserve that\s+vault in the retry command as `--vault <path>`/);
     assert.match(verifySection, /node-to-project `path`/);
     assert.match(verifySection, /`path` hop\/edge alignment/);
     assert.match(verifySection, /`path` \/ `project_scope` calls/);
@@ -1634,7 +1634,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`/);
     assert.match(regressionSection, /`pnpm cli:mcp-verify -- --help`/);
     assert.match(regressionSection, /vault 인자는 추가 `--` 없이 넘기고 help flag 에만 `-- --help`/);
-    assert.match(regressionSection, /실제 timeout retry hint 는 `--vault <path>` 를 보존/);
+    assert.match(regressionSection, /timeout retry hint 는 `--vault <path>` 를 보존/);
     assert.match(regressionSection, /write-tool post-write bucket guidance/);
     assert.match(regressionSection, /maintenance filter enum/);
     assert.match(regressionSection, /ready cursor \/ missing cursor 계약/);
@@ -1777,12 +1777,14 @@ export const CLI_COMMAND_RUNNERS = Object.freeze({
     assert.match(wrapper, /OMOT_VERIFY_RETRY_EXAMPLE: mcpVerifyRetryExample\(vaultArg\)/);
     assert.match(wrapper, /oh-my-ontology mcp-verify\$\{vaultPart\} --timeout-ms 15000/);
     assert.match(wrapper, /--vault \$\{shellArg\(vaultArg\)\}/);
+    assert.match(wrapper, /String\(flags\.timeoutMsRaw \?\? ''\)\.startsWith\('--'\)/);
     assert.match(wrapper, /replaceAll\("'", "'\\\\''"\)/);
     assert.match(verify, /OMOT_VERIFY_RETRY_EXAMPLE/);
     assert.match(verify, /DEFAULT_VERIFY_RETRY_EXAMPLE = 'npm run verify -- --timeout-ms 15000'/);
     assert.match(integration, /passes CLI retry hint to the verify script/);
     assert.match(integration, /retry=\$\{process\.env\.OMOT_VERIFY_RETRY_EXAMPLE\}/);
     assert.match(integration, /oh-my-ontology mcp-verify --vault '.\+vault with space' --timeout-ms 15000/);
+    assert.match(integration, /oh-my-ontology mcp-verify --vault ontology --timeout-ms 15000/);
     assert.match(integration, /doesNotMatch\(stripAnsi\(r\.stderr\), \/npm run verify -- --timeout-ms 15000\/\)/);
   });
 

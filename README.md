@@ -208,7 +208,7 @@ For `npm run verify` / `mcp-verify` timeout mistakes, the error reports the
 received value or the true timeout, plus a concrete retry example such as
 `npm run verify -- --timeout-ms 15000`, so agents can self-correct without
 guessing the accepted format. The CLI wrapper preserves an explicit vault in
-true verify timeout retry hints, for example
+timeout retry hints, for example
 `oh-my-ontology mcp-verify --vault <path> --timeout-ms 15000`.
 
 ## Verifiable promises
