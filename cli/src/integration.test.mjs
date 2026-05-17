@@ -2810,6 +2810,29 @@ function makeImportRepo() {
   return repo;
 }
 
+function makeImportKindRepo() {
+  const repo = mkdtempSync(join(tmpdir(), 'cli-imp-kind-'));
+  mkdirSync(join(repo, 'src', 'a'), { recursive: true });
+  mkdirSync(join(repo, 'src', 'b'), { recursive: true });
+  writeFileSync(
+    join(repo, 'src', 'a', 'index.ts'),
+    [
+      "import { x } from '../b/static';",
+      "const y = await import('../b/dynamic');",
+      "const z = require('../b/required');",
+      "export { r } from '../b/reexported';",
+      'export const value = x + y + z;',
+      '',
+    ].join('\n'),
+    'utf-8',
+  );
+  writeFileSync(join(repo, 'src', 'b', 'static.ts'), 'export const x = 1;\n', 'utf-8');
+  writeFileSync(join(repo, 'src', 'b', 'dynamic.ts'), 'export const y = 1;\n', 'utf-8');
+  writeFileSync(join(repo, 'src', 'b', 'required.ts'), 'export const z = 1;\n', 'utf-8');
+  writeFileSync(join(repo, 'src', 'b', 'reexported.ts'), 'export const r = 1;\n', 'utf-8');
+  return repo;
+}
+
 await test('infer-imports --apply — depends_on 관계 land (endpoints 존재 시)', async () => {
   const vault = withVault([
     {
@@ -2837,6 +2860,24 @@ await test('infer-imports --apply — depends_on 관계 land (endpoints 존재 �
     // a.md 의 frontmatter 에 dependencies (inline 또는 list) 에 b 포함.
     const aDoc = readFileSync(join(vault, 'capabilities', 'a.md'), 'utf-8');
     assert.match(aDoc, /dependencies:.*\bb\b/s);
+  } finally {
+    rmSync(vault, { recursive: true, force: true });
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+await test('infer-imports preview — file edge kind summary exposed', async () => {
+  const vault = withVault([]);
+  const repo = makeImportKindRepo();
+  try {
+    const r = await run(['infer-imports', repo, '--vault', vault]);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /edge kinds/);
+    assert.match(clean, /static=1/);
+    assert.match(clean, /dynamic=1/);
+    assert.match(clean, /require=1/);
+    assert.match(clean, /reexport=1/);
   } finally {
     rmSync(vault, { recursive: true, force: true });
     rmSync(repo, { recursive: true, force: true });

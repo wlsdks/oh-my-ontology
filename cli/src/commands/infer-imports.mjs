@@ -83,11 +83,18 @@ export async function runInferImports(args) {
   const ext = result.externalImports?.length ?? 0;
   const unres = result.unresolved?.length ?? 0;
   const modEdges = result.moduleEdges ?? [];
+  const edgeKindSummary = formatEdgeKindSummary(result.edges ?? []);
 
   process.stdout.write(
     `${COLORS.bold}infer-imports${COLORS.reset} ${COLORS.dim}${target}${COLORS.reset} ` +
       `${COLORS.dim}— ${result.filesScanned} files / ${fileEdges} edges / ${ext} external / ${unres} unresolved${COLORS.reset}\n\n`,
   );
+
+  if (edgeKindSummary) {
+    process.stdout.write(
+      `  ${COLORS.bold}edge kinds${COLORS.reset} ${COLORS.dim}${edgeKindSummary}${COLORS.reset}\n\n`,
+    );
+  }
 
   if (filteredOut > 0) {
     process.stdout.write(
@@ -250,6 +257,20 @@ function summarizeRelations(rows) {
     else errors += 1;
   }
   return { landed, existing, errors };
+}
+
+function formatEdgeKindSummary(edges) {
+  const counts = new Map();
+  for (const edge of edges) {
+    const kind = typeof edge.kind === 'string' && edge.kind.trim()
+      ? edge.kind.trim()
+      : 'unknown';
+    counts.set(kind, (counts.get(kind) ?? 0) + 1);
+  }
+  return ['static', 'dynamic', 'require', 'reexport', 'side', 'unknown']
+    .filter((kind) => counts.has(kind))
+    .map((kind) => `${kind}=${counts.get(kind)}`)
+    .join(' · ');
 }
 
 function printUsage(stream = process.stderr) {
