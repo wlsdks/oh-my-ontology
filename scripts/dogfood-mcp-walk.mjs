@@ -4,7 +4,7 @@
 // *진짜 AI agent 입장* 에서
 // 받는 정보 quality 측정.
 //
-// write 안 함 (dogfood vault 보존). list_kinds / list_concepts / project probe / get_concepts /
+// write 안 함 (dogfood vault 보존). destructive tools are dry-run only. list_kinds / list_concepts / project probe / get_concepts /
 // find_evidence / find_path / find_backlinks / find_orphans /
 // tools/list schema contract / strict unknown-argument, invalid-enum, and invalid-filter rejection / validate_vault / compile_ontology(summary + indexed full artifact) /
 // query_ontology overview / query_plan / neighbors / path / all_paths / pattern_walk / project_scope / centrality / communities / similar_nodes / explain_relation / reachability / impact / blast_radius / subgraph / schema / facets / match_nodes / match_edges / node_profile / lineage / containment_tree / cycles / topological_order / relation_check / components / recommend_relations / growth_plan / maintenance_plan / workspace_brief / health / health tuned.
@@ -24,6 +24,7 @@ import {
   compileSummaryFailure,
   compileIndexesFailure,
   compileIndexesSummary,
+  destructiveDryRunFailure,
   EXPECTED_DESTRUCTIVE_TOOLS,
   EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_READ_TOOLS,
@@ -160,6 +161,9 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [60, "query_concepts_limited"],
   [61, "strict_relation_filter"],
   [62, "compile_ontology_indexes"],
+  [63, "rename_concept_dry_run"],
+  [64, "merge_concepts_dry_run"],
+  [65, "delete_concept_dry_run"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -467,6 +471,15 @@ export function buildDogfoodRequests() {
     call(60, "query_concepts", { filter: "slug!=project", limit: 1 }),
     call(57, "analyze_repo_structure", { rootPath: ROOT, maxDepth: 2 }),
     call(58, "infer_imports", { rootPath: ROOT, maxFiles: 5000 }),
+    call(63, "rename_concept", {
+      oldSlug: "capabilities/mcp-server",
+      newSlug: "capabilities/mcp-server-dogfood-dry-run",
+    }),
+    call(64, "merge_concepts", {
+      fromSlug: "capabilities/mcp-server",
+      intoSlug: "domains/ai-agent-partner",
+    }),
+    call(65, "delete_concept", { slug: "capabilities/mcp-server" }),
     call(8, "validate_vault", {}),
     call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
     call(10, "query_ontology", { operation: "health" }),
@@ -716,6 +729,10 @@ function getRpcResult(responses, id) {
   return res.result ?? null;
 }
 
+function getRpcResponse(responses, id) {
+  return responses.find((r) => r.id === id) ?? null;
+}
+
 export function recordResult(failures, label, result) {
   if (!result) {
     failures.push(`${label}: missing response`);
@@ -767,6 +784,9 @@ export function evaluateDogfoodGate({
   analyzedRepoStructured,
   inferredImports,
   inferredImportsStructured,
+  renameDryRunRes,
+  mergeDryRunRes,
+  deleteDryRunRes,
   validation,
   validationStructured,
   brief,
@@ -931,6 +951,15 @@ export function evaluateDogfoodGate({
   if (strictMaintenanceKindFilterError) failures.push(`strict_maintenance_kind_filter: ${strictMaintenanceKindFilterError}`);
   const strictRelationFilterError = strictRelationFilterFailure(strictRelationFilter);
   if (strictRelationFilterError) failures.push(`strict_relation_filter: ${strictRelationFilterError}`);
+
+  for (const [toolName, response] of [
+    ["rename_concept", renameDryRunRes],
+    ["merge_concepts", mergeDryRunRes],
+    ["delete_concept", deleteDryRunRes],
+  ]) {
+    const failure = destructiveDryRunFailure(response, toolName);
+    if (failure) failures.push(`${toolName}_dry_run: ${failure}`);
+  }
   if (toolsList) {
     const toolsListFailure = toolsListSchemaFailure(toolsList.tools);
     if (toolsListFailure) failures.push(`tools/list: ${toolsListFailure}`);
@@ -4509,6 +4538,26 @@ async function main() {
     console.log(`  top module edge kinds: ${importModuleEdgeKindSummary(inferredImports.moduleEdges)}`);
   }
 
+  // 7e. destructive write previews
+  header(`destructive dry-runs — preview only`);
+  const renameDryRunRes = getRpcResponse(responses, 63);
+  const mergeDryRunRes = getRpcResponse(responses, 64);
+  const deleteDryRunRes = getRpcResponse(responses, 65);
+  for (const [toolName, response] of [
+    ["rename_concept", renameDryRunRes],
+    ["merge_concepts", mergeDryRunRes],
+    ["delete_concept", deleteDryRunRes],
+  ]) {
+    const failure = destructiveDryRunFailure(response, toolName);
+    console.log(
+      `  ${toolName}: ${
+        failure
+          ? `${COLORS.yellow}${failure}${COLORS.reset}`
+          : `${COLORS.green}ok:false dryRun:true; no changed/postWriteMaintenance${COLORS.reset}`
+      }`,
+    );
+  }
+
   // 8. validate_vault
   header(`validate_vault`);
   const validation = getResult(responses, 8);
@@ -5218,7 +5267,11 @@ async function main() {
     analyzedRepoStructured,
     inferredImports,
     inferredImportsStructured,
+    renameDryRunRes,
+    mergeDryRunRes,
+    deleteDryRunRes,
     validation,
+    validationStructured,
     brief,
     briefStructured,
     tunedBrief,

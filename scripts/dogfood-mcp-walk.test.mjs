@@ -199,11 +199,14 @@ function makeDogfoodToolsList() {
                   ok: { type: "boolean" },
                   slug: { type: "string" },
                   frontmatter: { type: "object" },
+                  excerpt: { type: "string" },
+                  neighbors: { type: "object" },
                   outgoingEdges: {
                     type: "array",
                     items: { required: ["to", "via"] },
                   },
                   mtime: { type: "number", minimum: 0 },
+                  warnings: { type: "array", items: { type: "object" } },
                 },
               },
             },
@@ -811,7 +814,10 @@ function makeDogfoodToolsList() {
                 properties: {
                   slug: { type: "string" },
                   ok: { type: "boolean" },
+                  filePath: { type: "string" },
+                  changed: { type: "boolean" },
                   warnings: { type: "array", items: { type: "string" } },
+                  error: { type: "string" },
                 },
               },
             },
@@ -856,6 +862,9 @@ function makeDogfoodToolsList() {
                   to: { type: "string" },
                   type: { type: "string" },
                   alreadyExists: { type: "boolean" },
+                  key: { type: "string" },
+                  changed: { type: "boolean" },
+                  error: { type: "string" },
                 },
               },
             },
@@ -992,12 +1001,14 @@ const okShape = {
         ok: true,
         slug: "project",
         frontmatter: { kind: "project", title: "Project" },
+        excerpt: "Project excerpt",
         mtime: 1,
       },
       {
         ok: true,
         slug: "capabilities/mcp-server",
         frontmatter: { kind: "capability", title: "MCP Server" },
+        excerpt: "MCP Server excerpt",
         mtime: 1,
       },
       {
@@ -1013,12 +1024,14 @@ const okShape = {
         ok: true,
         slug: "project",
         frontmatter: { kind: "project", title: "Project" },
+        excerpt: "Project excerpt",
         mtime: 1,
       },
       {
         ok: true,
         slug: "capabilities/mcp-server",
         frontmatter: { kind: "capability", title: "MCP Server" },
+        excerpt: "MCP Server excerpt",
         mtime: 1,
       },
       {
@@ -1107,6 +1120,90 @@ const okShape = {
     externalImports: [{ from: "src/features/auth/index.ts", spec: "zod" }],
     unresolved: [{ from: "src/features/auth/index.ts", spec: "@/missing", reason: "alias-not-found" }],
     moduleEdges: [{ from: "capabilities/auth", to: "capabilities/user", count: 1, kindCounts: { static: 1 } }],
+  },
+  renameDryRunRes: {
+    result: {
+      content: [
+        {
+          text: JSON.stringify({
+            ok: false,
+            dryRun: true,
+            oldSlug: "capabilities/mcp-server",
+            newSlug: "capabilities/mcp-server-dogfood-dry-run",
+            sourcePath: "/tmp/vault/capabilities/mcp-server.md",
+            targetPath: "/tmp/vault/capabilities/mcp-server-dogfood-dry-run.md",
+            moved: false,
+            backlinkUpdates: {},
+            message: "dry-run — confirm:true to apply",
+          }),
+        },
+      ],
+      structuredContent: {
+        ok: false,
+        dryRun: true,
+        oldSlug: "capabilities/mcp-server",
+        newSlug: "capabilities/mcp-server-dogfood-dry-run",
+        sourcePath: "/tmp/vault/capabilities/mcp-server.md",
+        targetPath: "/tmp/vault/capabilities/mcp-server-dogfood-dry-run.md",
+        moved: false,
+        backlinkUpdates: {},
+        message: "dry-run — confirm:true to apply",
+      },
+    },
+  },
+  mergeDryRunRes: {
+    result: {
+      content: [
+        {
+          text: JSON.stringify({
+            ok: false,
+            dryRun: true,
+            fromSlug: "capabilities/mcp-server",
+            intoSlug: "domains/ai-agent-partner",
+            fromPath: "/tmp/vault/capabilities/mcp-server.md",
+            deleted: false,
+            backlinkUpdates: {},
+            capturedFrom: {},
+            message: "dry-run — confirm:true to apply",
+          }),
+        },
+      ],
+      structuredContent: {
+        ok: false,
+        dryRun: true,
+        fromSlug: "capabilities/mcp-server",
+        intoSlug: "domains/ai-agent-partner",
+        fromPath: "/tmp/vault/capabilities/mcp-server.md",
+        deleted: false,
+        backlinkUpdates: {},
+        capturedFrom: {},
+        message: "dry-run — confirm:true to apply",
+      },
+    },
+  },
+  deleteDryRunRes: {
+    result: {
+      content: [
+        {
+          text: JSON.stringify({
+            ok: false,
+            dryRun: true,
+            slug: "capabilities/mcp-server",
+            filePath: "/tmp/vault/capabilities/mcp-server.md",
+            backlinks: [],
+            message: "dry-run — force:true to apply",
+          }),
+        },
+      ],
+      structuredContent: {
+        ok: false,
+        dryRun: true,
+        slug: "capabilities/mcp-server",
+        filePath: "/tmp/vault/capabilities/mcp-server.md",
+        backlinks: [],
+        message: "dry-run — force:true to apply",
+      },
+    },
   },
   validation: {
     scanned: 1,
@@ -2859,6 +2956,9 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(59), "strict_multi_args");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(61), "strict_relation_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(62), "compile_ontology_indexes");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(63), "rename_concept_dry_run");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(64), "merge_concepts_dry_run");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(65), "delete_concept_dry_run");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -2871,6 +2971,28 @@ describe("rpc response completion helpers", () => {
     const failure = rpcTimeoutFailure(5000, missing);
     assert.match(failure, /rpc: timed out after 5000ms waiting for get_concepts\./);
     assert.match(failure, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
+  });
+
+  it("keeps destructive dogfood dry-run requests non-writing", () => {
+    const requests = buildDogfoodRequests();
+    assert.deepEqual(requests.find((request) => request.id === 63)?.params, {
+      name: "rename_concept",
+      arguments: {
+        oldSlug: "capabilities/mcp-server",
+        newSlug: "capabilities/mcp-server-dogfood-dry-run",
+      },
+    });
+    assert.deepEqual(requests.find((request) => request.id === 64)?.params, {
+      name: "merge_concepts",
+      arguments: {
+        fromSlug: "capabilities/mcp-server",
+        intoSlug: "domains/ai-agent-partner",
+      },
+    });
+    assert.deepEqual(requests.find((request) => request.id === 65)?.params, {
+      name: "delete_concept",
+      arguments: { slug: "capabilities/mcp-server" },
+    });
   });
 
   it("keeps dogfood request ids unique", () => {
@@ -2943,6 +3065,36 @@ describe("maintenanceNextActionSummary", () => {
 describe("evaluateDogfoodGate", () => {
   it("passes the healthy dogfood shape", () => {
     assert.deepEqual(evaluateDogfoodGate(okShape), []);
+  });
+
+  it("fails malformed destructive dry-run dogfood responses", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, renameDryRunRes: null }),
+      ["rename_concept_dry_run: no rename_concept dry-run response"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        deleteDryRunRes: {
+          result: {
+            ...okShape.deleteDryRunRes.result,
+            content: [
+              {
+                text: JSON.stringify({
+                  ...okShape.deleteDryRunRes.result.structuredContent,
+                  changed: false,
+                }),
+              },
+            ],
+            structuredContent: {
+              ...okShape.deleteDryRunRes.result.structuredContent,
+              changed: false,
+            },
+          },
+        },
+      }),
+      ["delete_concept_dry_run: delete_concept dry-run response unexpectedly included changed"],
+    );
   });
 
   it("fails malformed tools/list dogfood schema responses", () => {
