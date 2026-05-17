@@ -176,7 +176,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /malformed initialize/);
     assert.equal(
       pkg.scripts?.['test:mcp:dogfood:timeout'],
-      'node --test --test-name-pattern "dogfood timeout|timeout failures|dogfood response labels|dogfood help" scripts/dogfood-mcp-walk.test.mjs',
+      'node --test --test-name-pattern "dogfood timeout|timeout failures|dogfood response labels|dogfood help|dogfood arguments" scripts/dogfood-mcp-walk.test.mjs',
     );
     assert.equal(
       pkg.scripts?.['test:mcp:maintenance'],
@@ -215,7 +215,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:dogfood/);
     assert.match(readme, /structuredContent\/compile\/tools-list\/row-label\/vault-warning\/health\/sample-shape\/maintenance work-queue\+formatter\/initialize\+batch-relation\/destructive dry-run\/help\/argument\/timeout\/strict relation\/closest-value\/stderr checks/);
-    assert.match(readme, /pnpm test:mcp:dogfood:timeout\s+# narrow dogfood timeout\/help retry diagnostics/);
+    assert.match(readme, /pnpm test:mcp:dogfood:timeout\s+# narrow dogfood argument\/timeout\/help retry diagnostics/);
     assert.match(readme, /pnpm test:mcp:maintenance\s+# narrow maintenance_plan filter\/cursor\/work-queue\+formatter gates/);
     assert.match(readme, /pnpm test:mcp:package\s+# focused MCP\/CLI package-script\/dependency\/tarball contract checks/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
@@ -536,7 +536,7 @@ describe('package contract helpers', () => {
     assert.match(section, /row-label guidance summary/);
     assert.match(section, /initialize safety\/recovery guidance gate/);
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample`\s+shape drift/);
-    assert.match(section, /dogfood timeout parsing, missing\s+response labels, and retry help/);
+    assert.match(section, /dogfood argument rejection,\s+timeout parsing, missing response labels, and retry help/);
     assert.match(section, /maintenance_plan filter enums, ready\/missing\s+cursor handling, resume-cursor behavior, dogfood work-queue shape gates, and\s+bucket \/ next-action formatter checks/);
     assert.match(section, /unsupported-argument\s+rejection/);
     assert.match(section, /strict relation filter\s+rejection/);

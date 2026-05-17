@@ -75,8 +75,8 @@ contract, help output, unsupported-argument rejection, strict relation filter
 rejection, strict add_relation type-preflight rejection, strict closest-value
 summary, stderr warning filtering, and gate
 contract without running the live MCP walk.
-`test:mcp:dogfood:timeout` narrows that to dogfood timeout parsing, missing
-response labels, and retry help.
+`test:mcp:dogfood:timeout` narrows that to dogfood argument rejection,
+timeout parsing, missing response labels, and retry help.
 `test:mcp:maintenance` narrows maintenance_plan filter enums, ready/missing
 cursor handling, resume-cursor behavior, dogfood work-queue shape gates, and
 bucket / next-action formatter checks.

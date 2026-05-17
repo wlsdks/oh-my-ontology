@@ -459,7 +459,7 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 vault warning / `validate_vault` problem gate, first-contact health gate,
 workspace_brief sample-shape gate, maintenance work-queue shape / formatter gate, initialize safety/recovery guidance gate,
 destructive dry-run gate, tools/list inventory name / annotation coverage, strict relation filter, stderr warning filtering 을 만질 때는 `pnpm test:mcp:dogfood` 로 dogfood helper 와
-관련 문서 계약만 먼저 확인한다. dogfood timeout / retry help 만 만질 때는
+관련 문서 계약만 먼저 확인한다. dogfood argument / timeout / retry help 만 만질 때는
 `pnpm test:mcp:dogfood:timeout` 으로 더 좁게 확인한다. 직접 verify help 는
 `mcp/` package directory 의 `npm run verify -- --help` 또는 repo root 의
 `node mcp/scripts/verify.mjs --help` 로 확인하며, `list_concepts` project probe / `get_concept` / `get_concepts` /
