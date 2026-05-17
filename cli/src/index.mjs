@@ -32,6 +32,7 @@ const MCP_METADATA = readMcpPackageMetadata();
 const MCP_TOOL_COUNT = MCP_METADATA.toolCount ?? 'current';
 const MCP_TOOL_SPLIT = MCP_METADATA.splitText ?? 'read/write';
 const INIT_ALLOWED_FLAGS = ['--help'];
+const TOP_LEVEL_COMMAND_VALUES = ['--help', '-h', 'help', '--version', '-v', ...CLI_COMMANDS];
 
 const COLORS = {
   reset: '\x1b[0m',
@@ -406,7 +407,7 @@ if (runner) {
   }
 }
 
-const commandSuggestion = closestAllowedValue(SUBCOMMAND, CLI_COMMANDS);
+const commandSuggestion = closestAllowedValue(SUBCOMMAND, TOP_LEVEL_COMMAND_VALUES);
 fail(
   `unknown command: ${SUBCOMMAND}.` +
     (commandSuggestion ? ` Did you mean ${commandSuggestion}?` : ''),

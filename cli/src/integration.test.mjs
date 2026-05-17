@@ -172,10 +172,17 @@ await test('help — current setup contract and default slug layout are not stal
 });
 
 await test('top-level command typos include closest command hints', async () => {
-  const r = await run(['complie', 'docs/ontology', '--summary']);
-  assert.equal(r.code, 1);
-  assert.match(stripAnsi(r.stderr), /unknown command: complie\. Did you mean compile\?/);
-  assert.match(stripAnsi(r.stdout), /Usage:/);
+  const cases = [
+    { args: ['complie', 'docs/ontology', '--summary'], stderr: /unknown command: complie\. Did you mean compile\?/ },
+    { args: ['hlep'], stderr: /unknown command: hlep\. Did you mean help\?/ },
+    { args: ['--versoin'], stderr: /unknown command: --versoin\. Did you mean --version\?/ },
+  ];
+  for (const c of cases) {
+    const r = await run(c.args);
+    assert.equal(r.code, 1);
+    assert.match(stripAnsi(r.stderr), c.stderr);
+    assert.match(stripAnsi(r.stdout), /Usage:/);
+  }
 });
 
 await test('list — empty vault: 0 노드 메시지', async () => {

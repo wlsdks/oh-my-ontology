@@ -1343,7 +1343,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /잘못된 timeout 값은 `Received: "1000ms"`/);
     assert.match(mcpVerifyRow, /`oh-my-ontology mcp-verify --timeout-ms 15000`/);
     assert.match(implementationSection, /query-result-contract\.mjs/);
-    assert.match(implementationSection, /`complie` → `compile` 같은 closest-value hint/);
+    assert.match(implementationSection, /`complie` → `compile`, `hlep` → `help`, `--versoin` → `--version` 같은 closest-value hint/);
     assert.match(implementationSection, /CSV list 의 빈 항목 거부/);
     assert.match(implementationSection, /`--fail-on=empty-kind,` \/ `--component-types=dependencies,` \/ `--phases=repair,` \/ `--exclude-kinds=project,`/);
     assert.match(implementationSection, /`blast-radius --direction=incomng` 같은 enum typo 는 MCP 호출 전에 closest-value hint/);
