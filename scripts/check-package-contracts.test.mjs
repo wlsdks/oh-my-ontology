@@ -1025,6 +1025,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /duplicateCliMcpVerifyVault/);
     assert.match(smoke, /typoCliMcpVerifyTimeout/);
     assert.match(smoke, /invalidCliMcpVerifyEnvTimeout/);
+    assert.match(smoke, /const cliMcpVerifyArgs =/);
     assert.match(smoke, /missingDirectMcpVerifyTimeout/);
     assert.match(smoke, /typoDirectMcpVerifyTimeout/);
     assert.match(smoke, /typoDirectMcpVerifyVault/);

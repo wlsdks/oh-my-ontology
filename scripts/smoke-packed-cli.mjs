@@ -241,6 +241,7 @@ try {
 
   const cliBin = join(installDir, 'node_modules', '.bin', 'oh-my-ontology');
   assert.equal(existsSync(cliBin), true, 'installed CLI bin is missing');
+  const cliMcpVerifyArgs = (args = []) => ['mcp-verify', ...args];
 
   const version = run(cliBin, ['--version'], { cwd: projectDir });
   assert.equal(version.stdout.trim(), CLI_PKG.version);
@@ -256,7 +257,7 @@ try {
   assert.match(server.args[0], /node_modules\/oh-my-ontology-mcp\/src\/index\.js$/);
   assert.equal(server.env.OMOT_VAULT, './ontology');
 
-  const cliMcpVerify = run(cliBin, ['mcp-verify', 'ontology', '--timeout-ms', '3000'], {
+  const cliMcpVerify = run(cliBin, cliMcpVerifyArgs(['ontology', '--timeout-ms', '3000']), {
     cwd: projectDir,
   });
   assert.match(cliMcpVerify.stdout, /timeout=3000ms/);
@@ -294,7 +295,7 @@ try {
 
   const invalidCliMcpVerifyTimeout = runRaw(
     cliBin,
-    ['mcp-verify', '--timeout-ms=1000ms'],
+    cliMcpVerifyArgs(['--timeout-ms=1000ms']),
     { cwd: projectDir },
   );
   assert.equal(invalidCliMcpVerifyTimeout.status, 1);
@@ -307,7 +308,7 @@ try {
 
   const missingCliMcpVerifyTimeout = runRaw(
     cliBin,
-    ['mcp-verify', '--timeout-ms'],
+    cliMcpVerifyArgs(['--timeout-ms']),
     { cwd: projectDir },
   );
   assert.equal(missingCliMcpVerifyTimeout.status, 1);
@@ -318,7 +319,7 @@ try {
 
   const nextFlagCliMcpVerifyTimeout = runRaw(
     cliBin,
-    ['mcp-verify', '--timeout-ms', '--vault', 'ontology'],
+    cliMcpVerifyArgs(['--timeout-ms', '--vault', 'ontology']),
     { cwd: projectDir },
   );
   assert.equal(nextFlagCliMcpVerifyTimeout.status, 1);
@@ -329,7 +330,7 @@ try {
 
   const missingCliMcpVerifyVault = runRaw(
     cliBin,
-    ['mcp-verify', '--vault'],
+    cliMcpVerifyArgs(['--vault']),
     { cwd: projectDir },
   );
   assert.equal(missingCliMcpVerifyVault.status, 1);
@@ -338,7 +339,7 @@ try {
 
   const nextFlagCliMcpVerifyVault = runRaw(
     cliBin,
-    ['mcp-verify', '--vault', '--timeout-ms', '1000'],
+    cliMcpVerifyArgs(['--vault', '--timeout-ms', '1000']),
     { cwd: projectDir },
   );
   assert.equal(nextFlagCliMcpVerifyVault.status, 1);
@@ -347,7 +348,7 @@ try {
 
   const duplicateCliMcpVerifyVault = runRaw(
     cliBin,
-    ['mcp-verify', 'ontology', '--vault', 'docs/ontology'],
+    cliMcpVerifyArgs(['ontology', '--vault', 'docs/ontology']),
     { cwd: projectDir },
   );
   assert.equal(duplicateCliMcpVerifyVault.status, 1);
@@ -356,7 +357,7 @@ try {
 
   const typoCliMcpVerifyTimeout = runRaw(
     cliBin,
-    ['mcp-verify', '--timout-ms=1000'],
+    cliMcpVerifyArgs(['--timout-ms=1000']),
     { cwd: projectDir },
   );
   assert.equal(typoCliMcpVerifyTimeout.status, 1);
@@ -365,7 +366,7 @@ try {
 
   const invalidCliMcpVerifyEnvTimeout = runRaw(
     cliBin,
-    ['mcp-verify', 'ontology'],
+    cliMcpVerifyArgs(['ontology']),
     {
       cwd: projectDir,
       env: { OMOT_VERIFY_TIMEOUT_MS: '1000ms' },
@@ -382,7 +383,7 @@ try {
   writeMaintenanceResumeVault(maintenanceResumeVault);
   const cliMaintenanceResumeMcpVerify = run(
     cliBin,
-    ['mcp-verify', maintenanceResumeVault, '--timeout-ms', '3000'],
+    cliMcpVerifyArgs([maintenanceResumeVault, '--timeout-ms', '3000']),
     { cwd: projectDir },
   );
   assert.match(cliMaintenanceResumeMcpVerify.stdout, /maintenance cursor — ready page stable \(1 remaining action/);
@@ -398,7 +399,7 @@ try {
 
   const projectlessVault = join(projectDir, 'projectless-vault');
   writeProjectlessVault(projectlessVault);
-  const cliProjectlessMcpVerify = run(cliBin, ['mcp-verify', projectlessVault, '--timeout-ms', '3000'], {
+  const cliProjectlessMcpVerify = run(cliBin, cliMcpVerifyArgs([projectlessVault, '--timeout-ms', '3000']), {
     cwd: projectDir,
   });
   assert.match(cliProjectlessMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
@@ -409,14 +410,14 @@ try {
 
   const emptyVault = join(projectDir, 'empty-vault');
   mkdirSync(emptyVault, { recursive: true });
-  const cliEmptyMcpVerify = run(cliBin, ['mcp-verify', emptyVault, '--timeout-ms', '3000'], {
+  const cliEmptyMcpVerify = run(cliBin, cliMcpVerifyArgs([emptyVault, '--timeout-ms', '3000']), {
     cwd: projectDir,
   });
   assert.match(cliEmptyMcpVerify.stdout, /vault total 0 nodes/);
   assert.match(cliEmptyMcpVerify.stdout, /neighbors\/path — skipped \(vault has no nodes\)/);
   assert.match(cliEmptyMcpVerify.stdout, /project_scope — skipped \(no project node in vault\)/);
 
-  const cliMcpVerifyHelp = run(cliBin, ['mcp-verify', '--help'], { cwd: projectDir });
+  const cliMcpVerifyHelp = run(cliBin, cliMcpVerifyArgs(['--help']), { cwd: projectDir });
   assert.equal(cliMcpVerifyHelp.stderr, '');
   assert.match(cliMcpVerifyHelp.stdout, /Usage:/);
   assert.match(cliMcpVerifyHelp.stdout, /compile_ontology/);
@@ -432,7 +433,7 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   assert.match(cliMcpVerifyHelp.stdout, /Successful maintenance cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
 
-  const missingVerifyOverride = runRaw(cliBin, ['mcp-verify', 'ontology'], {
+  const missingVerifyOverride = runRaw(cliBin, cliMcpVerifyArgs(['ontology']), {
     cwd: projectDir,
     env: { OMOT_MCP_VERIFY_PATH: join(temp, 'missing-verify.mjs') },
   });
@@ -440,7 +441,7 @@ try {
   assert.equal(missingVerifyOverride.stdout, '');
   assert.match(missingVerifyOverride.stderr, /OMOT_MCP_VERIFY_PATH does not exist/);
 
-  const directoryVerifyOverride = runRaw(cliBin, ['mcp-verify', 'ontology'], {
+  const directoryVerifyOverride = runRaw(cliBin, cliMcpVerifyArgs(['ontology']), {
     cwd: projectDir,
     env: { OMOT_MCP_VERIFY_PATH: temp },
   });
