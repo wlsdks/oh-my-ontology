@@ -11,7 +11,7 @@ import {
   MAINTENANCE_SEVERITY_VALUES,
 } from '../mcp/src/ontology-engine.mjs';
 import { compileOntology } from '../mcp/src/ontology-compiler.mjs';
-import { loadVaultDocs } from '../mcp/src/vault.mjs';
+import { findBacklinks, loadVaultDocs } from '../mcp/src/vault.mjs';
 import {
   checkPackage,
   checkMcpLeanTarballFiles,
@@ -357,6 +357,8 @@ describe('package contract helpers', () => {
     const compiled = compileOntology(loadVaultDocs(join(process.cwd(), 'docs', 'ontology')), {
       includeIndexes: true,
     });
+    const projectBacklinkCount = findBacklinks(join(process.cwd(), 'docs', 'ontology'), 'project').length;
+    const projectBacklinkLabel = projectBacklinkCount === 1 ? 'backlink' : 'backlinks';
     const graphHashPrefix = compiled.graphHash.slice(0, 12);
     const indexOutCount = Object.keys(compiled.indexes.out).length;
     const indexInCount = Object.keys(compiled.indexes.in).length;
@@ -398,7 +400,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ get_concept — project \(\d+ outgoing edges\)/);
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial row/);
     assert.match(verifySection, /✓ find_evidence — \d+ evidence results for "project"/);
-    assert.match(verifySection, /✓ find_backlinks — project \(\d+ backlinks\)/);
+    assert.match(verifySection, new RegExp(`✓ find_backlinks — project \\(${projectBacklinkCount} ${projectBacklinkLabel}\\)`));
     assert.match(verifySection, /✓ query_concepts — \d+ query results? \/ \d+ total query results?/);
     assert.match(verifySection, /✓ query_concepts limited — \d+ query results? \/ \d+ total query results? \(limited true\)/);
     assert.match(verifySection, /✓ analyze_repo_structure — (fsd|next|generic) \(\d+ domain candidates?, \d+ capability candidates?, \d+ element candidates?\)/);

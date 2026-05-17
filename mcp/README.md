@@ -263,7 +263,7 @@ A successful run looks like this:
 ✓ get_concept — project (6 outgoing edges)
 ✓ get_concepts — 2 ok rows, 1 partial row
 ✓ find_evidence — 13 evidence results for "project"
-✓ find_backlinks — project (0 backlinks)
+✓ find_backlinks — project (1 backlink)
 ✓ query_concepts — 1 query result / 1 total query result
 ✓ query_concepts limited — 1 query result / 27 total query results (limited true)
 ✓ analyze_repo_structure — fsd (7 domain candidates, 19 capability candidates, 28 element candidates)
