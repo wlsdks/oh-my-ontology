@@ -5910,6 +5910,13 @@ describe('verify.mjs first-contact gates', () => {
       structuredContentMismatchSummary({ total: 1 }, { total: 1, extra: true }),
       '$.extra: parsed undefined, structuredContent true',
     );
+    assert.equal(
+      structuredContentMismatchSummary(
+        { slug: 'capabilities/mcp-server', kind: 'capability' },
+        { kind: 'capability', slug: 'capabilities/other' },
+      ),
+      '$.slug: parsed "capabilities/mcp-server", structuredContent "capabilities/other"',
+    );
   });
 
   it('formats non-blocking workspace brief next actions for verify output', () => {

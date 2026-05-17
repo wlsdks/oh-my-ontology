@@ -2007,7 +2007,9 @@ function firstMismatch(expected, actual, path = '$') {
     }
     return { path, expected, actual };
   }
-  const keys = [...new Set([...Object.keys(expected), ...Object.keys(actual)])].sort();
+  const expectedKeys = Object.keys(expected);
+  const actualExtraKeys = Object.keys(actual).filter((key) => !(key in expected));
+  const keys = [...expectedKeys, ...actualExtraKeys];
   for (const key of keys) {
     if (!(key in expected) || !(key in actual)) {
       return { path: `${path}.${key}`, expected: expected[key], actual: actual[key] };
