@@ -68,9 +68,13 @@ export async function runCompile(args) {
 
   let fixResult = null;
   if (parsed.fix) {
-    const actions = Array.isArray(artifact.canonicalizationActions)
-      ? artifact.canonicalizationActions
-      : [];
+    if (!Array.isArray(artifact.canonicalizationActions)) {
+      process.stderr.write(
+        `${COLORS.red}error${COLORS.reset}  compile_ontology response missing canonicalizationActions array; cannot apply --fix safely\n`,
+      );
+      return 2;
+    }
+    const actions = artifact.canonicalizationActions;
     fixResult = await applyCanonicalizationActions(vaultRoot, actions);
     if (fixResult.failed > 0) {
       if (parsed.json) {
