@@ -1296,6 +1296,20 @@ export const CLI_COMMAND_RUNNERS = Object.freeze({
     assert.equal(isCoveredByFiles('src/lib/a.test.mjs', ['src/*.test.mjs']), false);
   });
 
+  it('keeps the CLI mcp-verify wrapper forwarding CLI retry hints', () => {
+    const wrapper = readFileSync('cli/src/commands/mcp-verify.mjs', 'utf-8');
+    const integration = readFileSync('cli/src/integration.test.mjs', 'utf-8');
+    const verify = readFileSync('mcp/scripts/verify.mjs', 'utf-8');
+
+    assert.match(wrapper, /OMOT_VERIFY_RETRY_EXAMPLE:\s*'oh-my-ontology mcp-verify --timeout-ms 15000'/);
+    assert.match(verify, /OMOT_VERIFY_RETRY_EXAMPLE/);
+    assert.match(verify, /DEFAULT_VERIFY_RETRY_EXAMPLE = 'npm run verify -- --timeout-ms 15000'/);
+    assert.match(integration, /passes CLI retry hint to the verify script/);
+    assert.match(integration, /retry=\$\{process\.env\.OMOT_VERIFY_RETRY_EXAMPLE\}/);
+    assert.match(integration, /oh-my-ontology mcp-verify --timeout-ms 15000/);
+    assert.match(integration, /doesNotMatch\(stripAnsi\(r\.stderr\), \/npm run verify -- --timeout-ms 15000\/\)/);
+  });
+
   it('allows only the parser smoke fixture in the MCP tarball', () => {
     assert.doesNotThrow(() =>
       checkMcpLeanTarballFiles(['src/index.js', 'src/parser.mjs', 'src/parser.test.mjs']),
