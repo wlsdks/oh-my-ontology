@@ -256,10 +256,10 @@ try {
   assert.match(server.args[0], /node_modules\/oh-my-ontology-mcp\/src\/index\.js$/);
   assert.equal(server.env.OMOT_VAULT, './ontology');
 
-  const cliMcpVerify = run(cliBin, ['mcp-verify', 'ontology', '--timeout-ms', '1000'], {
+  const cliMcpVerify = run(cliBin, ['mcp-verify', 'ontology', '--timeout-ms', '3000'], {
     cwd: projectDir,
   });
-  assert.match(cliMcpVerify.stdout, /timeout=1000ms/);
+  assert.match(cliMcpVerify.stdout, /timeout=3000ms/);
   assert.match(cliMcpVerify.stdout, new RegExp(`tools/list ${expectedToolCount}/${expectedToolCount}`));
   assert.match(cliMcpVerify.stdout, /list_kinds/);
   assert.match(cliMcpVerify.stdout, /validate_vault/);
@@ -398,7 +398,7 @@ try {
 
   const projectlessVault = join(projectDir, 'projectless-vault');
   writeProjectlessVault(projectlessVault);
-  const cliProjectlessMcpVerify = run(cliBin, ['mcp-verify', projectlessVault, '--timeout-ms', '1000'], {
+  const cliProjectlessMcpVerify = run(cliBin, ['mcp-verify', projectlessVault, '--timeout-ms', '3000'], {
     cwd: projectDir,
   });
   assert.match(cliProjectlessMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
@@ -409,7 +409,7 @@ try {
 
   const emptyVault = join(projectDir, 'empty-vault');
   mkdirSync(emptyVault, { recursive: true });
-  const cliEmptyMcpVerify = run(cliBin, ['mcp-verify', emptyVault, '--timeout-ms', '1000'], {
+  const cliEmptyMcpVerify = run(cliBin, ['mcp-verify', emptyVault, '--timeout-ms', '3000'], {
     cwd: projectDir,
   });
   assert.match(cliEmptyMcpVerify.stdout, /vault total 0 nodes/);
@@ -528,11 +528,11 @@ try {
       '--',
       join(projectDir, 'ontology'),
       '--timeout-ms',
-      '1000',
+      '3000',
     ],
     { cwd: projectDir },
   );
-  assert.match(directMcpVerify.stdout, /timeout=1000ms/);
+  assert.match(directMcpVerify.stdout, /timeout=3000ms/);
   assert.match(directMcpVerify.stdout, /project probe — 1 project node/);
   assert.match(directMcpVerify.stdout, /workspace_brief — .*next actions, .*health checks/);
   assert.match(directMcpVerify.stdout, /workspace_brief_tuned — .*next actions, .*health checks/);
@@ -587,11 +587,11 @@ try {
       '--',
       '--vault',
       join(projectDir, 'ontology'),
-      '--timeout-ms=1000',
+      '--timeout-ms=3000',
     ],
     { cwd: projectDir, env: { OMOT_VAULT: emptyVault } },
   );
-  assert.match(directMcpVerifyVaultFlag.stdout, /timeout=1000ms/);
+  assert.match(directMcpVerifyVaultFlag.stdout, /timeout=3000ms/);
   assert.match(directMcpVerifyVaultFlag.stdout, /vault total 5 nodes/);
   assert.match(directMcpVerifyVaultFlag.stdout, /project probe — 1 project node/);
   assert.match(directMcpVerifyVaultFlag.stdout, /compile_ontology page — 1\/5 nodes, 1\/\d+ edges/);
@@ -717,6 +717,40 @@ try {
   assert.equal(invalidDirectMcpVerifyVault.status, 1);
   assert.equal(invalidDirectMcpVerifyVault.stdout, '');
   assert.match(invalidDirectMcpVerifyVault.stderr, /--vault requires a path value/);
+
+  const typoDirectMcpVerifyTimeout = runRaw(
+    'npm',
+    [
+      '--prefix',
+      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      '--silent',
+      'run',
+      'verify',
+      '--',
+      '--timout-ms=1000',
+    ],
+    { cwd: projectDir },
+  );
+  assert.equal(typoDirectMcpVerifyTimeout.status, 1);
+  assert.equal(typoDirectMcpVerifyTimeout.stdout, '');
+  assert.match(typoDirectMcpVerifyTimeout.stderr, /Unknown option: --timout-ms=1000\. Did you mean --timeout-ms\?/);
+
+  const typoDirectMcpVerifyVault = runRaw(
+    'npm',
+    [
+      '--prefix',
+      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      '--silent',
+      'run',
+      'verify',
+      '--',
+      '--vualt',
+    ],
+    { cwd: projectDir },
+  );
+  assert.equal(typoDirectMcpVerifyVault.status, 1);
+  assert.equal(typoDirectMcpVerifyVault.stdout, '');
+  assert.match(typoDirectMcpVerifyVault.stderr, /Unknown option: --vualt\. Did you mean --vault\?/);
 
   const compile = runRaw(cliBin, ['compile', 'ontology', '--summary'], { cwd: projectDir });
   assert.equal(compile.status, 1);

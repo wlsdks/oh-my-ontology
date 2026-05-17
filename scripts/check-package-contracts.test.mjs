@@ -1026,6 +1026,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /typoCliMcpVerifyTimeout/);
     assert.match(smoke, /invalidCliMcpVerifyEnvTimeout/);
     assert.match(smoke, /missingDirectMcpVerifyTimeout/);
+    assert.match(smoke, /typoDirectMcpVerifyTimeout/);
+    assert.match(smoke, /typoDirectMcpVerifyVault/);
     assert.match(smoke, /'--silent', 'run', 'verify'/);
     assert.match(smoke, /assert\.equal\(invalidMcpVerifyTimeout\.stdout, ''\)/);
     assert.match(smoke, /assert\.equal\(invalidDirectMcpVerifyVault\.stdout, ''\)/);
@@ -1034,6 +1036,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /Received: "--vault"/);
     assert.match(smoke, /pass vault as either positional argument or --vault, not both/);
     assert.match(smoke, /unknown flag: --timout-ms=1000\\\. Did you mean --timeout-ms\\\?/);
+    assert.match(smoke, /Unknown option: --timout-ms=1000\\\. Did you mean --timeout-ms\\\?/);
+    assert.match(smoke, /Unknown option: --vualt\\\. Did you mean --vault\\\?/);
     assert.match(smoke, /--timeout-ms N/);
     assert.match(smoke, /OMOT_VERIFY_TIMEOUT_MS=N/);
     assert.match(smoke, /oh-my-ontology mcp-verify --timeout-ms 15000/);
