@@ -2674,6 +2674,10 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, listStructured: undefined }),
       ["list_concepts structuredContent missing"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, listStructured: null }),
+      ["list_concepts structuredContent missing"],
+    );
     const validateOutputSchemaDrifted = makeDogfoodToolsList();
     validateOutputSchemaDrifted.tools.find((tool) => tool.name === "validate_vault").outputSchema.properties.summary.properties.byCode.additionalProperties.properties.files.items.type = "number";
     assert.deepEqual(
@@ -3018,6 +3022,10 @@ describe("evaluateDogfoodGate", () => {
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, overviewStructured: undefined }),
+      ["overview structuredContent missing"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, overviewStructured: null }),
       ["overview structuredContent missing"],
     );
   });

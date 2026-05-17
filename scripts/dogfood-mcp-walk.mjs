@@ -1147,7 +1147,7 @@ export function evaluateDogfoodGate({
   ]) {
     const alreadyFailed = failures.some((failure) => failure.startsWith(`${label}:`) || failure.startsWith(`${label} `));
     if (!alreadyFailed && parsed) {
-      if (structured === undefined) {
+      if (structured == null) {
         failures.push(`${label} structuredContent missing`);
       } else if (JSON.stringify(structured) !== JSON.stringify(parsed)) {
         failures.push(`${label} structuredContent mismatch`);
@@ -1159,7 +1159,7 @@ export function evaluateDogfoodGate({
 }
 
 function recordStructuredContentFailure(failures, label, parsed, structured) {
-  if (structured === undefined) {
+  if (structured == null) {
     failures.push(`${label} structuredContent missing`);
     return;
   }

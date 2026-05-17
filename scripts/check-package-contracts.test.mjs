@@ -677,6 +677,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /dogfood 의 direct read \/ analysis tool 응답도 `structuredContent` 누락과\s+text JSON drift 를 같은 fail-closed 계약으로 검증/);
     assert.match(doc, /project probe 도 화면 출력과 최종\s+direct-tool `structuredContent` summary 에 포함/);
     assert.match(doc, /섹션별 structuredContent 상태는 `pass` \/ `missing` \/\s+`mismatch` 로 구분/);
+    assert.match(doc, /null payload 도 missing 으로 판정/);
     assert.match(doc, /설치 verify 도 first-contact direct read \/ `query_ontology` smoke \/\s+maintenance cursor 응답의 `structuredContent` 누락과 text JSON drift 를 같은\s+fail-closed 계약으로 검증/);
     assert.match(dogfoodSection, /project-node `list_concepts` probe/);
     assert.match(dogfoodSection, /project-node `list_concepts` probe 도 fail-closed/);
