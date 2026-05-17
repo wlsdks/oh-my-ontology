@@ -74,6 +74,9 @@ The delegated verifier also checks the installed `tools/list` schema contract,
 including strict unknown-argument / invalid-enum rejection, graph-query operation
 enums, and write-tool `postWriteMaintenance` `score` / executable
 `proposedAction` / current-page next action pointer guidance.
+It also verifies batch writer row isolation guidance for `add_concepts` and
+`add_relations`, including non-object row shape and unknown row field failures
+surfacing as row-level `ok:false` results while valid sibling rows continue.
 It also performs runtime negative smokes with invalid `list_concepts.lmit` and
 `query_ontology.operation="overveiw"` inputs, so CLI users catch schema/runtime
 strictness drift in the installed MCP package.

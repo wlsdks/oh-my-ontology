@@ -483,6 +483,15 @@ describe('package contract helpers', () => {
     assert.match(section, /Node `--test-name-pattern`/);
   });
 
+  it('keeps the CLI README explicit about installed batch row isolation gates', () => {
+    const readme = readFileSync('cli/README.md', 'utf-8');
+    const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('### Node.js API')[0] ?? '';
+
+    assert.match(verifySection, /batch writer row isolation guidance for `add_concepts` and\s+`add_relations`/);
+    assert.match(verifySection, /non-object row shape and unknown row field failures\s+surfacing as row-level `ok:false` results/);
+    assert.match(verifySection, /valid sibling rows continue/);
+  });
+
   it('keeps the CLI README explicit about graph write safety switches', () => {
     const readme = readFileSync('cli/README.md', 'utf-8');
     const renameRow = readme.split('| `oh-my-ontology rename <oldSlug> <newSlug>` |')[1]?.split('\n')[0] ?? '';
@@ -512,6 +521,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /accepts valid project-less vaults/);
     assert.match(verifySection, /accepts empty vault folders/);
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
+    assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
+    assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results/);
     assert.match(verifySection, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(verifySection, /`cursor\.found=false`/);
     assert.match(verifySection, /`cursor\.found=true` \/ `cursor\.reason=null`/);
