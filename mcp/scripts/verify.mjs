@@ -4813,6 +4813,8 @@ async function step2BootAndCall() {
           log('fail', `failed to parse maintenance resume-cursor response: ${err.message}`);
           return res(false);
         }
+      } else {
+        log('info', 'maintenance cursor — resume skipped (ready page has no actions)');
       }
 
       if (!callRes || !callRes.result) {
