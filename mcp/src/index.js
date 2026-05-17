@@ -314,7 +314,8 @@ const TOOLS = [
       type: 'object',
       properties: {
         kind: nonBlankStringSchema(
-          'Filter to one kind (e.g. project, domain, capability, element). Omit to return all.',
+          `Filter to one canonical ontology kind (${NODE_KIND_DESCRIPTION}). Omit to return all. Invalid kind typos fail closed with nearest-value hints instead of returning an empty list.`,
+          { enum: NODE_KIND_VALUES },
         ),
         domain: nonBlankStringSchema(
           'Filter to nodes whose frontmatter `domain:` matches this slug (e.g. "auth"). Combine with `kind` for "all capabilities under auth" in one call. Use the domain *slug*, not the title.',
@@ -2341,6 +2342,7 @@ function requireOptionalBoolean(value, name) {
 
 function listConcepts({ kind, domain, since, summary, limit = 100 }) {
   requireOptionalNonBlankString(kind, 'kind');
+  requireOptionalEnum(kind, 'kind', NODE_KIND_VALUES);
   requireOptionalNonBlankString(domain, 'domain');
   requireOptionalNonNegativeNumber(since, 'since');
   requireOptionalBoolean(summary, 'summary');

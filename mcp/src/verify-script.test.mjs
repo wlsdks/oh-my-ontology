@@ -99,6 +99,7 @@ import {
   strictFindNeighborsTypeFailure,
   strictFindOrphansKindFailure,
   strictQueryConceptsFilterFailure,
+  strictListConceptsKindFailure,
   strictRelationCheckFailure,
   strictAddRelationFailure,
   structuredContentFailure,
@@ -263,7 +264,13 @@ describe('verify.mjs first-contact gates', () => {
         inputSchema: {
           additionalProperties: false,
           properties: {
-            kind: { type: 'string' },
+            kind: {
+              type: 'string',
+              minLength: 1,
+              enum: NODE_KIND_VALUES,
+              description:
+                'Filter to one canonical ontology kind (project, domain, capability, element, document, vault-readme). Omit to return all. Invalid kind typos fail closed with nearest-value hints instead of returning an empty list.',
+            },
             domain: { type: 'string' },
             since: {
               type: 'number',
@@ -1565,6 +1572,25 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure([{ name: 'list_concepts', inputSchema: { properties: {} } }]),
       'tools/list schema missing additionalProperties:false: list_concepts',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withListConceptsTool(
+        {
+          ...listConceptsTool,
+          inputSchema: {
+            ...listConceptsTool.inputSchema,
+            properties: {
+              ...listConceptsTool.inputSchema.properties,
+              kind: {
+                type: 'string',
+                minLength: 1,
+                description: 'Filter to one kind.',
+              },
+            },
+          },
+        },
+      )),
+      'list_concepts.kind schema guidance drift',
     );
     assert.equal(
       toolsListSchemaFailure(withListConceptsTool(
@@ -4276,6 +4302,34 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed strict list_concepts kind smoke responses', () => {
+    assert.equal(
+      strictListConceptsKindFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'kind must be one of: project, domain, capability, element, document, vault-readme. Received: "capabilty". Did you mean "capability"?' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictListConceptsKindFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict list_concepts kind response was not rejected',
+    );
+    assert.equal(
+      strictListConceptsKindFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict list_concepts kind response did not report the invalid kind filter',
+    );
+    assert.equal(
+      strictListConceptsKindFailure({ result: { isError: true, content: [{ text: 'kind must be one of: project, domain, capability. Did you mean "capability"?' }] } }),
+      'strict list_concepts kind response did not report the invalid kind value',
+    );
+    assert.equal(
+      strictListConceptsKindFailure({ result: { isError: true, content: [{ text: 'kind must be one of: project, domain, capability. Received: "capabilty".' }] } }),
+      'strict list_concepts kind response did not suggest the closest kind value',
+    );
+  });
+
   it('fails malformed strict graph kind filter smoke responses', () => {
     assert.equal(
       strictGraphKindFilterFailure({
@@ -5151,6 +5205,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(57), 'strict_find_orphans_exclude_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(58), 'strict_query_concepts_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(59), 'strict_query_concepts_has_key_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(60), 'strict_list_concepts_kind_filter');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

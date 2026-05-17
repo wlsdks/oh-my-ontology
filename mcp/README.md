@@ -114,7 +114,7 @@ The server connects over stdio. You should now see 23 tools under the `oh-my-ont
 
 | Tool | What it does |
 |---|---|
-| `list_concepts` | Lists every node in the vault (any `.md` with a `kind:` frontmatter). Options: `kind`, `domain` (filter by frontmatter `domain:` slug — combine with `kind` for "all capabilities under auth" in one call), `since` (mtime-based incremental sync — only nodes with `mtime > since` ms; pair with the `mtime` returned in earlier responses for "what changed since I last looked"; strict `>` so re-passing the prior max does not double-fetch), `summary` (opt-in — when true, each row includes a prose `summary` (max 200 chars, heading/표/코드/리스트/인용 skip — same `extractSummaryExcerpt` helper as `get_concept` / `find_evidence`) so agents get list + previews in one call instead of N follow-up `get_concept` calls; default off to keep payload small), `limit` (default 100, max 500). Each node row includes `mtime` (ms) — agents can sort/filter "what changed recently" without a follow-up `get_concept` call. **R11+**: when the vault has frontmatter corruption or whole-vault graph-reference drift, response includes `vaultWarnings: { errorCount, warningCount }` so AI agents can flag it to the user. |
+| `list_concepts` | Lists every node in the vault (any `.md` with a `kind:` frontmatter). Options: enum-validated `kind` (project/domain/capability/element/document/vault-readme; typos fail with nearest-value hints instead of empty lists), `domain` (filter by frontmatter `domain:` slug — combine with `kind` for "all capabilities under auth" in one call), `since` (mtime-based incremental sync — only nodes with `mtime > since` ms; pair with the `mtime` returned in earlier responses for "what changed since I last looked"; strict `>` so re-passing the prior max does not double-fetch), `summary` (opt-in — when true, each row includes a prose `summary` (max 200 chars, heading/표/코드/리스트/인용 skip — same `extractSummaryExcerpt` helper as `get_concept` / `find_evidence`) so agents get list + previews in one call instead of N follow-up `get_concept` calls; default off to keep payload small), `limit` (default 100, max 500). Each node row includes `mtime` (ms) — agents can sort/filter "what changed recently" without a follow-up `get_concept` call. **R11+**: when the vault has frontmatter corruption or whole-vault graph-reference drift, response includes `vaultWarnings: { errorCount, warningCount }` so AI agents can flag it to the user. |
 | `get_concept` | Fetches a single node by `slug` (no extension): frontmatter + body excerpt (R+ — *prose-only*: heading / 표 / 코드블록 / 리스트 / 인용 skip 후 첫 단락만 — agent 가 markdown table syntax 대신 사람이 의도한 설명문을 받음, max 800 chars) + graph `neighbors` (`domains` / `domain` / `capabilities` / `elements` / `dependencies` / `relates` / `contains` / `describes`) + `outgoingEdges[]` (`{to, via}`) + `mtime` (ms — pass to subsequent `patch_concept` / `delete_concept` as `expected_mtime` to detect concurrent external edits). **R11+**: response includes `warnings: [...]` when this doc has frontmatter issues, graph-array canonicality drift, or dangling outgoing graph references. |
 | `get_concepts` | **R+** Batch reader — accepts an array of slugs (max 50), returns `concepts[]` with the same per-row shape as `get_concept` (frontmatter + excerpt + neighbors + mtime + warnings?). Order of `concepts[]` matches input `slugs[]`. Missing or invalid slug rows return `{ slug, ok: false, error }` rather than aborting the batch, so later valid slugs still resolve. Replaces N×`get_concept` round-trips when an agent already has K specific slugs (e.g. from `list_concepts` / `find_path` / `find_orphans`) and needs full bodies for all of them. |
 | `find_evidence` | Partial-match search by `title` — scans frontmatter title/capabilities/elements as well as body content. Each match row includes `slug, kind, title, domain, mtime, matchedIn, excerpt` (same shape as `list_concepts` / `find_backlinks` / `find_orphans` / `query_concepts` plus the `excerpt` is a prose preview, max 200 chars, heading/표/코드/리스트/인용 skip — same `extractSummaryExcerpt` helper as `get_concept`) so agents see *what the matching doc says* without a follow-up get_concept call. |
@@ -156,10 +156,11 @@ String-array options are strict too: relation filters such as
 `maintenance_plan` filters, and analysis scan lists such as
 `infer_imports.sourceFolders` / `ignore` reject non-string array items instead
 of silently dropping them; blank, whitespace-padded, and null-byte items are
-rejected at the MCP boundary as well. `query_concepts` validates `kind` values
-and `has(...)` graph keys before scanning the vault, so `kind=capabilty` and
-`has(capabilties)` fail with `capability` / `capabilities` hints instead of
-returning empty result sets. `find_neighbors.types` is relation-type
+rejected at the MCP boundary as well. `list_concepts.kind` and `query_concepts`
+validate `kind` values before scanning the vault, so `kind:"capabilty"` and
+`kind=capabilty` fail with `capability` hints instead of returning empty result
+sets. `query_concepts` also validates `has(...)` graph keys before scanning, so
+`has(capabilties)` fails with a `capabilities` hint. `find_neighbors.types` is relation-type
 enum validated before slug resolution, so `types:["depend_on"]` fails with a
 `depends_on` hint instead of returning an empty neighborhood. `find_orphans.kind`
 and `find_orphans.excludeKinds` are node-kind enum validated too, so
@@ -303,6 +304,7 @@ A successful run looks like this:
 ✓ strict enums — invalid query operation rejected with closest-value hint
 ✓ strict maintenance filters — invalid phase/severity/kind rejected at runtime (phases=validate/repair/link/materialize/review; severities=fail/warn/info; kinds=inspect_compile_issue/break_dependency_cycle/canonicalize_graph_arrays/resolve_dangling_reference/add_missing_relation/materialize_external_element/unassigned_node/empty_domain)
 ✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint
+✓ strict list_concepts filters — invalid kind rejected with closest-value hint
 ✓ strict query_concepts filters — invalid kind/has-key rejected with closest-value hints
 ✓ strict find_neighbors filters — invalid relation types rejected before slug resolution with closest-value hint
 ✓ strict find_orphans filters — invalid kind/excludeKinds rejected with closest-value hints

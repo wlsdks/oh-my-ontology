@@ -130,7 +130,7 @@ with no `changed` or `postWriteMaintenance`.
 It also performs runtime negative smokes with invalid `list_concepts.lmit` and
 `query_ontology.operation="overveiw"` inputs, so CLI users catch schema/runtime
 strictness drift in the installed MCP package.
-The same help and verifier name `query_concepts.kind` / `query_concepts.has-key`, `find_neighbors.types`,
+The same help and verifier name `list_concepts.kind`, `query_concepts.kind` / `query_concepts.has-key`, `find_neighbors.types`,
 `find_orphans.kind` / `find_orphans.excludeKinds`, `match_nodes.kind` /
 `match_nodes.sort`, `recommend_relations.kind`, and `match_edges.type` /
 `match_edges.fromKind` / `match_edges.toKind`

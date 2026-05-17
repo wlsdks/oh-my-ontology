@@ -218,7 +218,13 @@ function makeDogfoodToolsList() {
       }
       if (name === "list_concepts") {
         tool.inputSchema.properties = {
-          kind: { type: "string", minLength: 1 },
+          kind: {
+            type: "string",
+            minLength: 1,
+            enum: NODE_KIND_VALUES,
+            description:
+              "Filter to one canonical ontology kind (project, domain, capability, element, document, vault-readme). Invalid kind typos fail closed.",
+          },
           domain: { type: "string", minLength: 1 },
           since: {
             type: "number",
@@ -2789,6 +2795,12 @@ const okShape = {
       content: [{ text: 'has key must be one of: domains, capabilities, elements, dependencies, relates, contains, describes, depends_on. Received: "capabilties". Did you mean "capabilities"?' }],
     },
   },
+  strictListConceptsKindFilter: {
+    result: {
+      isError: true,
+      content: [{ text: 'kind must be one of: project, domain, capability, element, document, vault-readme. Received: "capabilty". Did you mean "capability"?' }],
+    },
+  },
   strictRelationCheck: {
     result: {
       isError: true,
@@ -3060,6 +3072,10 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       strictClosestValueSummary(okShape.strictQueryConceptsHasKeyFilter),
       "rejected true (capabilties -> capabilities)",
+    );
+    assert.equal(
+      strictClosestValueSummary(okShape.strictListConceptsKindFilter),
+      "rejected true (capabilty -> capability)",
     );
     assert.equal(
       strictClosestValueSummary(okShape.strictRecommendRelationsKindFilter),
@@ -3364,6 +3380,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(77), "strict_find_orphans_exclude_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(78), "strict_query_concepts_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(79), "strict_query_concepts_has_key_filter");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(80), "strict_list_concepts_kind_filter");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -3452,6 +3469,16 @@ describe("rpc response completion helpers", () => {
       name: "query_concepts",
       arguments: {
         filter: "has(capabilties)",
+      },
+    });
+  });
+
+  it("keeps strict list_concepts kind dogfood request endpoint-independent", () => {
+    const requests = buildDogfoodRequests();
+    assert.deepEqual(requests.find((request) => request.id === 80)?.params, {
+      name: "list_concepts",
+      arguments: {
+        kind: "capabilty",
       },
     });
   });
@@ -4143,6 +4170,41 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, strictQueryConceptsHasKeyFilter: { result: { isError: true, content: [{ text: "different error" }] } } }),
       ["strict_query_concepts_has_key_filter: strict query_concepts filter response did not report the invalid has key"],
+    );
+  });
+
+  it("fails malformed strict list_concepts kind dogfood responses", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictListConceptsKindFilter: { result: { isError: false, content: [{ text: "ok" }] } } }),
+      ["strict_list_concepts_kind_filter: strict list_concepts kind response was not rejected"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictListConceptsKindFilter: { result: { isError: true, content: [{ text: "different error" }] } } }),
+      ["strict_list_concepts_kind_filter: strict list_concepts kind response did not report the invalid kind filter"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictListConceptsKindFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'kind must be one of: project, domain, capability.' }],
+          },
+        },
+      }),
+      ["strict_list_concepts_kind_filter: strict list_concepts kind response did not report the invalid kind value"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictListConceptsKindFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'kind must be one of: project, domain, capability. Received: "capabilty".' }],
+          },
+        },
+      }),
+      ["strict_list_concepts_kind_filter: strict list_concepts kind response did not suggest the closest kind value"],
     );
   });
 
