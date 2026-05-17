@@ -171,6 +171,31 @@ await test('help — current setup contract and default slug layout are not stal
   assert.match(clean, /graph-query smoke/);
 });
 
+await test('help <command> — delegates to focused subcommand usage and fails unknown topics on stderr', async () => {
+  const compile = await run(['help', 'compile']);
+  assert.equal(compile.code, 0);
+  assert.equal(compile.stderr, '');
+  assert.match(stripAnsi(compile.stdout), /Usage:\s+oh-my-ontology compile/);
+  assert.doesNotMatch(stripAnsi(compile.stdout), /AI-native codebase ontology workbench/);
+
+  const init = await run(['help', 'init']);
+  assert.equal(init.code, 0);
+  assert.equal(init.stderr, '');
+  assert.match(stripAnsi(init.stdout), /Usage:\s+oh-my-ontology init \[folder\]/);
+
+  const typo = await run(['help', 'complie']);
+  assert.equal(typo.code, 1);
+  assert.equal(typo.stdout, '');
+  assert.match(stripAnsi(typo.stderr), /unknown help topic: complie\. Did you mean compile\?/);
+  assert.match(stripAnsi(typo.stderr), /Usage:/);
+
+  const extra = await run(['help', '--help', 'compile']);
+  assert.equal(extra.code, 1);
+  assert.equal(extra.stdout, '');
+  assert.match(stripAnsi(extra.stderr), /too many arguments: compile/);
+  assert.match(stripAnsi(extra.stderr), /Usage:/);
+});
+
 await test('top-level command typos include closest command hints', async () => {
   const cases = [
     { args: ['complie', 'docs/ontology', '--summary'], stderr: /unknown command: complie\. Did you mean compile\?/ },

@@ -363,9 +363,54 @@ ${COLORS.dim}AI agents and humans now share the same vault. Have fun.${COLORS.re
 `);
 }
 
-if (!SUBCOMMAND || SUBCOMMAND === '--help' || SUBCOMMAND === '-h' || SUBCOMMAND === 'help') {
+async function runCommandHelp(command) {
+  if (command === 'init') {
+    printInitUsage(stdout);
+    return 0;
+  }
+  const runner = CLI_COMMAND_RUNNERS[command];
+  if (!runner) return null;
+  const mod = await import(runner.modulePath);
+  const run = mod[runner.exportName];
+  if (typeof run !== 'function') {
+    fail(`command ${command} is misconfigured: missing ${runner.exportName}`);
+    return 1;
+  }
+  return run(['--help']);
+}
+
+if (!SUBCOMMAND || SUBCOMMAND === '--help' || SUBCOMMAND === '-h') {
   printHelp();
   exit(0);
+}
+
+if (SUBCOMMAND === 'help') {
+  const helpArgs = ARGS.slice(1);
+  if (helpArgs.length === 0) {
+    printHelp();
+    exit(0);
+  }
+  if (helpArgs.length > 1) {
+    fail(`too many arguments: ${helpArgs.slice(1).join(' ')}`);
+    printHelp(stderr);
+    exit(1);
+  }
+  if (helpArgs[0] === '--help' || helpArgs[0] === '-h') {
+    printHelp();
+    exit(0);
+  }
+  const helpCommand = helpArgs[0];
+  const helpExitCode = await runCommandHelp(helpCommand);
+  if (helpExitCode !== null) {
+    exit(helpExitCode);
+  }
+  const helpSuggestion = closestAllowedValue(helpCommand, CLI_COMMANDS);
+  fail(
+    `unknown help topic: ${helpCommand}.` +
+      (helpSuggestion ? ` Did you mean ${helpSuggestion}?` : ''),
+  );
+  printHelp(stderr);
+  exit(1);
 }
 
 if (SUBCOMMAND === '--version' || SUBCOMMAND === '-v') {

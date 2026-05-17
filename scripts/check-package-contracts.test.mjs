@@ -1345,6 +1345,8 @@ describe('package contract helpers', () => {
     assert.match(implementationSection, /query-result-contract\.mjs/);
     assert.match(implementationSection, /`complie` → `compile`, `hlep` → `help`, `--versoin` → `--version` 같은 closest-value hint/);
     assert.match(implementationSection, /실패 usage 는 stderr 로만 출력해 stdout 을 비워두므로/);
+    assert.match(implementationSection, /`help <command>` 도 같은 registry 를 통해 해당 subcommand `--help` 로 위임/);
+    assert.match(implementationSection, /unknown help topic 은 closest-value hint 와 stderr usage 로 실패/);
     assert.match(implementationSection, /CSV list 의 빈 항목 거부/);
     assert.match(implementationSection, /`--fail-on=empty-kind,` \/ `--component-types=dependencies,` \/ `--phases=repair,` \/ `--exclude-kinds=project,`/);
     assert.match(implementationSection, /`blast-radius --direction=incomng` 같은 enum typo 는 MCP 호출 전에 closest-value hint/);
