@@ -131,7 +131,7 @@ function parseArgs(args) {
     else if (a === '--json') flags.asJson = true;
     else if (a === '--vault') flags.vaultPath = parseVaultFlag(args[++i]);
     else if (a.startsWith('--vault=')) flags.vaultPath = parseVaultFlag(a.slice('--vault='.length));
-    else if (a.startsWith('--')) {
+    else if (a.startsWith('-')) {
       return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     } else {
       positional.push(a);

@@ -111,7 +111,7 @@ function parseArgs(args) {
     else if (a === '--confirm') flags.confirm = true;
     else if (a === '--overwrite') flags.overwrite = true;
     else if (a === '--json') flags.json = true;
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (positional.length < 2) {

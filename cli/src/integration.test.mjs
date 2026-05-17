@@ -813,6 +813,10 @@ await test('compile — rejects ambiguous vault arguments before compile/fix', a
   assert.equal(typo.code, 1);
   assert.match(stripAnsi(typo.stderr), /unknown flag: --nodes-lmit=1\. Did you mean --nodes-limit\?/);
 
+  const singleDashTypo = await run(['compile', '-summary']);
+  assert.equal(singleDashTypo.code, 1);
+  assert.match(stripAnsi(singleDashTypo.stderr), /unknown flag: -summary\. Did you mean --summary\?/);
+
   const flagValue = await run(['compile', '--vault', '--fix']);
   assert.equal(flagValue.code, 1);
   assert.match(stripAnsi(flagValue.stderr), /--vault requires a path/);
@@ -897,6 +901,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       stderr: /unknown flag: --jsson\. Did you mean --json\?/,
     },
     {
+      args: ['list', '-json'],
+      expectedCode: 1,
+      stderr: /unknown flag: -json\. Did you mean --json\?/,
+    },
+    {
       args: ['list', '--kind=capabilty'],
       expectedCode: 1,
       stderr: /--kind must be one of: project, domain, capability, element, document, vault-readme\. Received: "capabilty"\. Did you mean "capability"\?/,
@@ -940,6 +949,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       args: ['validate', '--failon=empty-kind'],
       expectedCode: 1,
       stderr: /unknown flag: --failon=empty-kind\. Did you mean --fail-on\?/,
+    },
+    {
+      args: ['validate', '-strict'],
+      expectedCode: 1,
+      stderr: /unknown flag: -strict\. Did you mean --strict\?/,
     },
     {
       args: ['find', 'auth', 'ontology', '--vault', 'docs/ontology'],
@@ -2072,6 +2086,10 @@ await test('read-only graph commands — reject ambiguous vault arguments before
       pattern: /unknown flag: --jsson\. Did you mean --json\?/,
     },
     {
+      args: ['node', 'capabilities/foo', '-json'],
+      pattern: /unknown flag: -json\. Did you mean --json\?/,
+    },
+    {
       args: ['overview', 'ontology', '--vault', 'docs/ontology'],
       pattern: /either positional argument or --vault/,
     },
@@ -2088,6 +2106,10 @@ await test('read-only graph commands — reject ambiguous vault arguments before
       pattern: /unknown flag: --jsson\. Did you mean --json\?/,
     },
     {
+      args: ['health', '-json'],
+      pattern: /unknown flag: -json\. Did you mean --json\?/,
+    },
+    {
       args: ['cycles', '--vault', '--json'],
       pattern: /--vault requires a path/,
     },
@@ -2102,6 +2124,10 @@ await test('read-only graph commands — reject ambiguous vault arguments before
     {
       args: ['workspace-brief', '--jsson'],
       pattern: /unknown flag: --jsson\. Did you mean --json\?/,
+    },
+    {
+      args: ['workspace-brief', '-json'],
+      pattern: /unknown flag: -json\. Did you mean --json\?/,
     },
   ];
 
@@ -2213,6 +2239,10 @@ await test('graph diagnostic commands — reject invalid option values before MC
       pattern: /unknown flag: --lmit\. Did you mean --limit\?/,
     },
     {
+      args: ['query', 'kind=capability', '-limit=1'],
+      pattern: /unknown flag: -limit=1\. Did you mean --limit\?/,
+    },
+    {
       args: ['backlinks', 'capabilities/foo', '--jsson'],
       pattern: /unknown flag: --jsson\. Did you mean --json\?/,
     },
@@ -2251,6 +2281,10 @@ await test('graph diagnostic commands — reject invalid option values before MC
     {
       args: ['path', 'capabilities/foo', 'capabilities/bar', '--max-hop=2'],
       pattern: /unknown flag: --max-hop=2\. Did you mean --max-hops\?/,
+    },
+    {
+      args: ['path', 'capabilities/foo', 'capabilities/bar', '-max-hops=2'],
+      pattern: /unknown flag: -max-hops=2\. Did you mean --max-hops\?/,
     },
     {
       args: ['cycles', '--max-hops', '--json'],

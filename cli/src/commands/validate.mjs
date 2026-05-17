@@ -279,7 +279,7 @@ function parseArgs(args) {
     else if (a === '--list-codes') flags.listCodes = true;
     else if (a === '--fail-on') flags.failOn = parseCsvListFlag('--fail-on', args[++i], { itemName: 'issue code' });
     else if (a.startsWith('--fail-on=')) flags.failOn = parseCsvListFlag('--fail-on', a.slice('--fail-on='.length), { itemName: 'issue code' });
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (flags.vault === false) return { error: '--vault requires a path' };

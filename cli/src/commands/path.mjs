@@ -113,7 +113,7 @@ function parseArgs(args) {
       flags.maxHops = parseBoundedNonNegativeIntegerFlag('--max-hops', args[++i], { max: MAX_HOPS_CAP });
     } else if (a.startsWith('--max-hops=')) {
       flags.maxHops = parseBoundedNonNegativeIntegerFlag('--max-hops', a.slice('--max-hops='.length), { max: MAX_HOPS_CAP });
-    } else if (a.startsWith('--')) {
+    } else if (a.startsWith('-')) {
       return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     } else {
       positional.push(a);

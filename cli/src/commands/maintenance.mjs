@@ -191,7 +191,7 @@ function parseArgs(args) {
       flags.severities = parseCsvFlag('--severities', a.slice('--severities='.length));
     else if (a === '--kinds') flags.kinds = parseCsvFlag('--kinds', args[++i]);
     else if (a.startsWith('--kinds=')) flags.kinds = parseCsvFlag('--kinds', a.slice('--kinds='.length));
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

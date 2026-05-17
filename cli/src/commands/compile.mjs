@@ -282,7 +282,7 @@ function parseArgs(args) {
     else if (a.startsWith('--edges-limit=')) flags.edgesLimit = parseBoundedPositiveIntegerFlag('--edges-limit', a.slice('--edges-limit='.length), { max: PAGE_LIMIT_CAP });
     else if (a === '--edges-offset') flags.edgesOffset = parseNonNegativeIntegerFlag(a, args[++i]);
     else if (a.startsWith('--edges-offset=')) flags.edgesOffset = parseNonNegativeIntegerFlag('--edges-offset', a.slice('--edges-offset='.length));
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

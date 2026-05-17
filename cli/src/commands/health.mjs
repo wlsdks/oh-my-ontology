@@ -92,7 +92,7 @@ function parseArgs(args) {
     } else if (DIAGNOSIS_OPTION_FLAGS.includes(maybeFlag)) {
       const error = parseDiagnosisOption(options, maybeFlag, maybeValue);
       if (error) return { error: error.message };
-    } else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    } else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });

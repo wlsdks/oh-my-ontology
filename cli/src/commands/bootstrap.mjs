@@ -605,7 +605,7 @@ function parseArgs(args) {
       const v = parsePositiveIntegerFlag('--threshold', a.slice('--threshold='.length));
       if (v instanceof Error) return { error: v.message };
       flags.threshold = v;
-    } else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    } else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

@@ -159,7 +159,7 @@ function parseArgs(args) {
     else if (a === '--limit') flags.hubsLimit = parseBoundedPositiveIntegerFlag('--limit', args[++i], { max: LIMIT_CAP });
     else if (a.startsWith('--limit='))
       flags.hubsLimit = parseBoundedPositiveIntegerFlag('--limit', a.slice('--limit='.length), { max: LIMIT_CAP });
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

@@ -114,7 +114,7 @@ function parseArgs(args) {
     else if (a === '--kind') flags.kindFilter = parseRequiredFlagValue('--kind', args[++i]);
     else if (a.startsWith('--kind=')) flags.kindFilter = parseRequiredFlagValue('--kind', a.slice('--kind='.length));
     else if (a === '--json') flags.asJson = true;
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

@@ -128,7 +128,7 @@ function parseArgs(args) {
       flags.timeoutMsRaw = a.slice('--timeout-ms='.length);
       flags.timeoutMs = parsePositiveIntegerFlag('--timeout-ms', flags.timeoutMsRaw);
     }
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (flags.timeoutMs instanceof Error) {

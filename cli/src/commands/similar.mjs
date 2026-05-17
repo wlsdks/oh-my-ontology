@@ -140,7 +140,7 @@ function parseArgs(args) {
     else if (a.startsWith('--kind=')) flags.kind = parseRequiredFlagValue('--kind', a.slice('--kind='.length));
     else if (a === '--slug') flags.slug = parseRequiredFlagValue('--slug', args[++i]);
     else if (a.startsWith('--slug=')) flags.slug = parseRequiredFlagValue('--slug', a.slice('--slug='.length));
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (positional.length === 0 && !flags.slug) {

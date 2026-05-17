@@ -113,7 +113,7 @@ function parseArgs(args) {
     else if (a.startsWith('--body=')) flags.body = parseRawRequiredFlagValue('--body', a.slice('--body='.length));
     else if (a === '--auto-prefix') flags.autoPrefix = true;
     else if (a === '--raw-slug' || a === '--no-auto-prefix') flags.autoPrefix = false;
-    else if (a.startsWith('--')) {
+    else if (a.startsWith('-')) {
       return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     } else {
       positional.push(a);

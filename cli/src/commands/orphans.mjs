@@ -111,7 +111,7 @@ function parseArgs(args) {
       const next = parseCsvListFlag('--exclude-kinds', a.slice('--exclude-kinds='.length), { itemName: 'kind' });
       if (next instanceof Error) return { error: next.message };
       flags.excludeKinds = next;
-    } else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    } else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

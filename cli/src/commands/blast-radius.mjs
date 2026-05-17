@@ -137,7 +137,7 @@ function parseArgs(args) {
     else if (a === '--direction') flags.direction = parseRequiredFlagValue('--direction', args[++i]);
     else if (a.startsWith('--direction='))
       flags.direction = parseRequiredFlagValue('--direction', a.slice('--direction='.length));
-    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (positional.length === 0) {

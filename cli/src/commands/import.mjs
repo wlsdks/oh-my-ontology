@@ -291,7 +291,7 @@ function parseArgs(args) {
     else if (a === '--raw-slug' || a === '--no-auto-prefix') flags.autoPrefix = false;
     else if (a === '--rename') flags.rename = true;
     else if (a === '--dry-run') flags.dryRun = true;
-    else if (a.startsWith('--')) {
+    else if (a.startsWith('-')) {
       return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     } else {
       positional.push(a);
