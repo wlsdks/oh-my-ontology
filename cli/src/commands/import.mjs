@@ -8,6 +8,7 @@ import {
   defaultBody,
   folderForKind,
 } from '../lib/schema.mjs';
+import { formatAllowedValueError } from '../lib/suggestions.mjs';
 import { formatUnknownFlagError, parseRequiredFlagValue, parseVaultFlag } from '../lib/cli-args.mjs';
 
 const ALLOWED_FLAGS = ['--vault', '--kind', '--auto-prefix', '--raw-slug', '--no-auto-prefix', '--rename', '--dry-run'];
@@ -146,7 +147,7 @@ function importOne(srcPath, vaultPath, opts, claimedSlugs) {
   if (!VAULT_KINDS.includes(kind)) {
     return {
       status: 'error',
-      error: `unknown kind: ${kind}. one of ${VAULT_KINDS.join(' / ')}`,
+      error: formatAllowedValueError('kind', kind, VAULT_KINDS),
     };
   }
 
@@ -305,7 +306,7 @@ function parseArgs(args) {
   }
   if (flags.kind && !VAULT_KINDS.includes(flags.kind)) {
     return {
-      error: `unknown --kind: ${flags.kind}. one of ${VAULT_KINDS.join(' / ')}`,
+      error: formatAllowedValueError('--kind', flags.kind, VAULT_KINDS),
     };
   }
   return {

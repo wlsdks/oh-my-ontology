@@ -7,6 +7,7 @@ import {
   folderForKind,
   missingExpectedFields,
 } from '../lib/schema.mjs';
+import { formatAllowedValueError } from '../lib/suggestions.mjs';
 import { formatUnknownFlagError, parseRawRequiredFlagValue, parseVaultFlag } from '../lib/cli-args.mjs';
 
 const ALLOWED_FLAGS = ['--vault', '--title', '--domain', '--body', '--auto-prefix', '--raw-slug', '--no-auto-prefix'];
@@ -131,7 +132,7 @@ function parseArgs(args) {
   const [kind, slug] = positional;
   if (!VAULT_KINDS.includes(kind)) {
     return {
-      error: `unknown kind: ${kind}. one of ${VAULT_KINDS.join(' / ')}`,
+      error: formatAllowedValueError('kind', kind, VAULT_KINDS),
     };
   }
   const titleError = validateCleanString(flags.title, '--title');

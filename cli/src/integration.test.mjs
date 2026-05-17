@@ -901,6 +901,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       stderr: /unknown flag: --tite=Foo\. Did you mean --title\?/,
     },
     {
+      args: ['add', 'capabilty', 'foo', '--title', 'Foo'],
+      expectedCode: 1,
+      stderr: /kind must be one of: project, domain, capability, element, document\. Received: "capabilty"\. Did you mean "capability"\?/,
+    },
+    {
       args: ['add', 'capability', 'foo', '--title', '--vault'],
       expectedCode: 1,
       stderr: /--title requires a value/,
@@ -919,6 +924,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       args: ['import', 'input.md', '--kind'],
       expectedCode: 1,
       stderr: /--kind requires a value/,
+    },
+    {
+      args: ['import', 'input.md', '--kind=capabilty'],
+      expectedCode: 1,
+      stderr: /--kind must be one of: project, domain, capability, element, document\. Received: "capabilty"\. Did you mean "capability"\?/,
     },
     {
       args: ['import', 'input.md', '--dryrun'],
@@ -1372,12 +1382,12 @@ await test('add — slug/title/domain padded 값은 쓰기 전에 거부', async
   }
 });
 
-await test('add — unknown kind 거부', async () => {
+await test('add — unknown kind closest-value hint before writing', async () => {
   const root = withVault([]);
   try {
     const r = await run([
       'add',
-      'bogus',
+      'capabilty',
       'foo',
       '--title',
       'Foo',
@@ -1385,7 +1395,8 @@ await test('add — unknown kind 거부', async () => {
       root,
     ]);
     assert.equal(r.code, 1);
-    assert.match(r.stderr, /unknown kind/i);
+    assert.match(stripAnsi(r.stderr), /kind must be one of: project, domain, capability, element, document\. Received: "capabilty"\. Did you mean "capability"\?/);
+    assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -1646,6 +1657,22 @@ await test('import — kindless skip (kind 도 --kind 도 없음)', async () => 
     assert.equal(r.code, 1);
     const clean = stripAnsi(r.stderr + r.stdout);
     assert.match(clean, /kindless|no kind/);
+  } finally {
+    rmSync(vault, { recursive: true, force: true });
+    rmSync(src, { recursive: true, force: true });
+  }
+});
+
+await test('import — invalid frontmatter kind reports closest-value hint', async () => {
+  const vault = withVault([]);
+  const src = withTmpDir();
+  try {
+    const file = join(src, 'typo.md');
+    writeFileSync(file, '---\nkind: capabilty\ntitle: Typo\n---\n\n# Typo\n', 'utf-8');
+    const r = await run(['import', file, '--vault', vault]);
+    assert.equal(r.code, 1);
+    assert.match(stripAnsi(r.stderr), /kind must be one of: project, domain, capability, element, document\. Received: "capabilty"\. Did you mean "capability"\?/);
+    assert.equal(existsSyncTest(join(vault, 'capabilities/typo.md')), false);
   } finally {
     rmSync(vault, { recursive: true, force: true });
     rmSync(src, { recursive: true, force: true });
