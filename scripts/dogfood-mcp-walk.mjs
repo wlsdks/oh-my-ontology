@@ -43,6 +43,8 @@ import {
   structuredContentParityStatus,
   toolsListAnnotationSummary,
   toolsListSchemaFailure,
+  tunedHealthScopeOutputSummary,
+  tunedWorkspaceBriefScopeOutputSummary,
   validateVaultFailure,
   VERIFY_TUNED_HEALTH_ARGS,
   VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
@@ -452,20 +454,14 @@ export function dogfoodTimeoutErrorMessage(value) {
 }
 
 export function tunedHealthScopeSummary(args = DOGFOOD_TUNED_HEALTH_ARGS) {
-  const dependencyTypes = Array.isArray(args.dependencyTypes) && args.dependencyTypes.length > 0
-    ? args.dependencyTypes.join("/")
-    : "all";
-  const componentTypes = Array.isArray(args.componentTypes) && args.componentTypes.length > 0
-    ? args.componentTypes.join("/")
-    : "all";
-  return `dependencyTypes=${dependencyTypes}; componentTypes=${componentTypes}`;
+  return tunedHealthScopeOutputSummary(args);
 }
 
 export function tunedWorkspaceBriefScopeSummary(
   args = DOGFOOD_TUNED_HEALTH_ARGS,
   nodeLimit = DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
 ) {
-  return `${tunedHealthScopeSummary(args)}; nodeLimit ${nodeLimit}`;
+  return tunedWorkspaceBriefScopeOutputSummary(args, nodeLimit);
 }
 
 const init = [

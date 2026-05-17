@@ -2884,7 +2884,7 @@ describe("rpc response completion helpers", () => {
     );
     assert.equal(
       tunedWorkspaceBriefScopeSummary(),
-      "dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit 3",
+      "dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3",
     );
     assert.equal(
       tunedHealthScopeSummary({ dependencyTypes: [], componentTypes: null }),
@@ -2892,7 +2892,7 @@ describe("rpc response completion helpers", () => {
     );
     assert.equal(
       tunedWorkspaceBriefScopeSummary({ dependencyTypes: [], componentTypes: null }, 1),
-      "dependencyTypes=all; componentTypes=all; nodeLimit 1",
+      "dependencyTypes=all; componentTypes=all; nodeLimit=1",
     );
   });
 
