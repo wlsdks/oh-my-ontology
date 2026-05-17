@@ -62,6 +62,7 @@ export const DOGFOOD_TUNED_HEALTH_ARGS = {
   dependencyTypes: ["dependencies"],
   componentTypes: ["domains", "domain", "capabilities", "dependencies"],
 };
+export const DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT = 3;
 
 export function dogfoodUsage() {
   return [
@@ -465,7 +466,10 @@ export function tunedHealthScopeSummary(args = DOGFOOD_TUNED_HEALTH_ARGS) {
   return `dependencyTypes=${dependencyTypes}; componentTypes=${componentTypes}`;
 }
 
-export function tunedWorkspaceBriefScopeSummary(args = DOGFOOD_TUNED_HEALTH_ARGS, nodeLimit = 3) {
+export function tunedWorkspaceBriefScopeSummary(
+  args = DOGFOOD_TUNED_HEALTH_ARGS,
+  nodeLimit = DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
+) {
   return `${tunedHealthScopeSummary(args)}; nodeLimit ${nodeLimit}`;
 }
 
@@ -533,7 +537,7 @@ export function buildDogfoodRequests() {
       operation: "workspace_brief",
       limit: 5,
       ...DOGFOOD_TUNED_HEALTH_ARGS,
-      nodeLimit: 3,
+      nodeLimit: DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
     }),
     call(11, "compile_ontology", { summary: true }),
     call(62, "compile_ontology", { nodesLimit: 1, edgesLimit: 1, includeIndexes: true }),

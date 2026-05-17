@@ -8,6 +8,7 @@ import {
   componentSummary,
   createUtf8Accumulator,
   DOGFOOD_TUNED_HEALTH_ARGS,
+  DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
   DOGFOOD_RESPONSE_LABELS,
   dogfoodTimeoutErrorMessage,
   dogfoodUsage,
@@ -3161,7 +3162,7 @@ describe("rpc response completion helpers", () => {
       operation: "workspace_brief",
       limit: 5,
       ...DOGFOOD_TUNED_HEALTH_ARGS,
-      nodeLimit: 3,
+      nodeLimit: DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
     });
   });
 
