@@ -305,7 +305,7 @@ A successful run looks like this:
 ✓ project probe — 1 project node
 ✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:120)
 ✓ workspace_brief_tuned — healthy (28 nodes, 1 next action, 5 health checks, growth actions:0 external:0 ignoredExternal:120; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3)
-· workspace_brief_tuned non-blocking advisory nextActions — components:info:6 - The resolved ontology graph has disconnected actionable islands.
+· workspace_brief_tuned non-blocking advisory nextActions — components:info:6 - The scoped ontology graph has disconnected actionable islands.
 ✓ health — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1)
 ✓ health_tuned — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6; dependencyTypes=dependencies; componentTypes=domain/capabilities)
 ✓ compile_ontology — graph 9c329481eae2 (28 nodes, 213 edges, issues 0)

@@ -2656,9 +2656,9 @@ export function createOntologyEngine(artifact, options = {}) {
         message:
           actionableComponentCount <= 1
             ? ignoredComponentCount > 0
-              ? `The actionable ontology graph is connected; ${ignoredComponentCount} root/reference component(s) were ignored.`
-              : 'The resolved ontology graph is connected.'
-            : 'The resolved ontology graph has disconnected actionable islands.',
+              ? `${componentHealthConnectedSubject(options, true)} is connected; ${ignoredComponentCount} root/reference component(s) were ignored.`
+              : `${componentHealthSubject(options)} is connected.`
+            : `${componentHealthSubject(options)} has disconnected actionable islands.`,
       }),
     ];
     const status = checks.some((check) => check.status === 'fail' || check.status === 'warn')
@@ -2714,6 +2714,17 @@ export function createOntologyEngine(artifact, options = {}) {
         blocked: orderResult.blocked,
       },
     };
+  }
+
+  function componentHealthSubject(options = {}) {
+    return options.componentTypes !== undefined || options.types !== undefined
+      ? 'The scoped ontology graph'
+      : 'The resolved ontology graph';
+  }
+
+  function componentHealthConnectedSubject(options = {}, ignored = false) {
+    if (options.componentTypes !== undefined || options.types !== undefined) return 'The scoped ontology graph';
+    return ignored ? 'The actionable ontology graph' : 'The resolved ontology graph';
   }
 
   function schemaPatterns() {

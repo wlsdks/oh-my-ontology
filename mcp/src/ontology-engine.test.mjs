@@ -2743,7 +2743,7 @@ describe('queryCompiledOntology', () => {
         id: 'components',
         status: 'info',
         count: 2,
-        message: 'The resolved ontology graph has disconnected actionable islands.',
+        message: 'The scoped ontology graph has disconnected actionable islands.',
       },
     );
     assert.ok(

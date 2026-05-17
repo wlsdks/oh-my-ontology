@@ -538,7 +538,9 @@ read-only first-contact flow, strict input hints, relation filter enum 안내가
 실제 agent 시뮬레이션에서 빠지면 실패한다.
 `health tuned` / `workspace_brief tuned` 섹션은 dogfood 출력에 `dependencyTypes=dependencies`,
 `componentTypes=domain/capabilities` scope 를 같이 찍어, 전체 graph components 와
-scoped health component count 를 agent 가 혼동하지 않게 한다.
+scoped health component count 를 agent 가 혼동하지 않게 한다. scoped component
+advisory message 도 `The scoped ontology graph...` 로 시작해 전체 graph health 와
+분리된다.
 dogfood 에서 실행한 `query_ontology` graph-query 응답은 `structuredContent`
 누락을 실패로 처리하고 text JSON payload 와 `structuredContent` payload 의
 구조적 일치 여부도 비교해 key 순서 차이를 false mismatch 로 보지 않으며,
