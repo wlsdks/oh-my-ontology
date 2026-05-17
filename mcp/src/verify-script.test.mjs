@@ -167,10 +167,20 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'get_concepts',
+        description:
+          'Fetch multiple nodes in one call — same per-row shape as get_concept. Use when you have K specific slugs and need their full details — saves K-1 round-trips. Order of `concepts[]` matches input `slugs[]`; successful rows return canonical `slug`. Missing or invalid slug rows return `{ slug, ok: false, error }` rather than aborting the batch, so later valid slugs still resolve.',
         inputSchema: {
           additionalProperties: false,
           required: ['slugs'],
-          properties: { slugs: { type: 'array', maxItems: 50 } },
+          properties: {
+            slugs: {
+              type: 'array',
+              maxItems: 50,
+              items: { type: 'string' },
+              description:
+                'Vault-relative slugs, unique tail slugs, or frontmatter `slug` aliases (e.g. ["capabilities/x", "elements/y"]). Omit the .md extension. Max 50 per call.',
+            },
+          },
         },
         outputSchema: {
           type: 'object',
@@ -1678,6 +1688,39 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'get_concepts')),
       'tools/list response missing get_concepts tool',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        tools[0],
+        {
+          ...tools[1],
+          description: 'Fetch multiple nodes in one call.',
+        },
+        ...tools.slice(2),
+      ]),
+      'get_concepts description missing batch partial-result guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        tools[0],
+        {
+          ...tools[1],
+          inputSchema: {
+            ...tools[1].inputSchema,
+            properties: {
+              ...tools[1].inputSchema.properties,
+              slugs: {
+                type: 'array',
+                maxItems: 50,
+                items: { type: 'string' },
+                description: 'Vault-relative slugs. Max 50 per call.',
+              },
+            },
+          },
+        },
+        ...tools.slice(2),
+      ]),
+      'get_concepts inputSchema slugs alias and cap guidance drift',
     );
     assert.equal(
       toolsListSchemaFailure([

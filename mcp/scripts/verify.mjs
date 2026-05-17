@@ -303,6 +303,25 @@ export function toolsListSchemaFailure(tools) {
 
   const getConceptsTool = tools.find((tool) => tool?.name === 'get_concepts');
   if (!getConceptsTool) return 'tools/list response missing get_concepts tool';
+  if (
+    !/saves K-1 round-trips/i.test(getConceptsTool.description || '') ||
+    !/Order of `concepts\[\]` matches input `slugs\[\]`/i.test(getConceptsTool.description || '') ||
+    !/Missing or invalid slug rows return/i.test(getConceptsTool.description || '') ||
+    !/later valid slugs still resolve/i.test(getConceptsTool.description || '')
+  ) {
+    return 'get_concepts description missing batch partial-result guidance';
+  }
+  const getConceptsSlugsSchema = propertyAt(getConceptsTool, ['properties', 'slugs']);
+  if (
+    getConceptsSlugsSchema?.type !== 'array' ||
+    getConceptsSlugsSchema.maxItems !== 50 ||
+    getConceptsSlugsSchema.items?.type !== 'string' ||
+    !/unique tail slugs/i.test(getConceptsSlugsSchema.description || '') ||
+    !/frontmatter `slug` aliases/i.test(getConceptsSlugsSchema.description || '') ||
+    !/Max 50 per call/i.test(getConceptsSlugsSchema.description || '')
+  ) {
+    return 'get_concepts inputSchema slugs alias and cap guidance drift';
+  }
   if (getConceptsTool.outputSchema?.type !== 'object') {
     return 'get_concepts outputSchema root drift';
   }

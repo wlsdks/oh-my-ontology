@@ -965,6 +965,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       { type: "array", maxItems: 50, itemType: "string", itemMinLength: 1 },
       "get_concepts exposes batch maxItems schema",
     );
+    assert.match(
+      findTool("get_concepts")?.inputSchema?.properties?.slugs?.description ?? "",
+      /unique tail slugs[\s\S]*frontmatter `slug` aliases[\s\S]*Max 50 per call/i,
+      "get_concepts slugs schema documents alias forms and cap",
+    );
     assert.deepEqual(
       {
         slugMinLength:
