@@ -610,8 +610,10 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm integration:cli:mcp-verify/);
     assert.match(section, /pnpm test:mcp:docs/);
     assert.match(section, /pnpm test:mcp:package/);
+    assert.match(section, /pnpm test:mcp:verify:timeout/);
     assert.match(section, /installed MCP verification wrapper/);
     assert.match(section, /documentation drift/);
+    assert.match(section, /shared verify timeout parsing,\s+usage, and retry diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
   });
