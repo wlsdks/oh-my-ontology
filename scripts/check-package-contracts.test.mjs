@@ -1375,6 +1375,17 @@ describe('package contract helpers', () => {
     assert.equal(isCoveredByFiles('src/verify-script.test.mjs', pkg.files), false);
   });
 
+  it('keeps CLI npm test runnable from the published tarball', () => {
+    const pkg = JSON.parse(readFileSync('cli/package.json', 'utf-8'));
+
+    assert.equal(pkg.scripts?.test, 'node src/integration.test.mjs');
+    assert.equal(isCoveredByFiles('src/integration.test.mjs', pkg.files), true);
+    assert.equal(isCoveredByFiles('src/index.mjs', pkg.files), true);
+    assert.equal(isCoveredByFiles('src/commands/mcp-verify.mjs', pkg.files), true);
+    assert.equal(isCoveredByFiles('src/lib/cli-commands.mjs', pkg.files), true);
+    assert.equal(isCoveredByFiles('templates/vault/project.md', pkg.files), true);
+  });
+
   it('keeps the self-ontology README census aligned with the vault files', () => {
     const readme = readFileSync('docs/ontology/README.md', 'utf-8');
     const census = dogfoodVaultCensus(process.cwd());
