@@ -814,6 +814,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:docs/);
     assert.match(section, /pnpm test:mcp:package/);
     assert.match(section, /pnpm test:mcp:verify/);
+    assert.match(section, /pnpm test:mcp:verify:first-contact/);
     assert.match(section, /pnpm test:mcp:verify:timeout/);
     assert.match(section, /shared CLI helper contracts/);
     assert.match(section, /argument parsing/);
@@ -822,6 +823,9 @@ describe('package contract helpers', () => {
     assert.match(section, /installed MCP verification wrapper/);
     assert.match(section, /documentation drift/);
     assert.match(section, /shared MCP verify helper contract/);
+    assert.match(section, /first-contact read smoke/);
+    assert.match(section, /vault warning \/ `validate_vault`/);
+    assert.match(section, /health \/ next-action gates/);
     assert.match(section, /timeout parsing, usage, and retry\s+diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
@@ -1273,6 +1277,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /from the repo root, use the node mcp\\\/scripts\\\/verify\\\.mjs form/);
     assert.match(smoke, /Explicit \\\[vault\\\] or --vault arguments take precedence over OMOT_VAULT/);
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);
+    assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact health\\\/read-smoke helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
     assert.match(smoke, /Narrow MCP verify timeout\\\/help diagnostics/);
     assert.match(smoke, /verify timeout must be a positive integer/);
@@ -1357,6 +1362,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm integration:cli:mcp-verify/);
     assert.match(smoke, /Installed CLI mcp-verify wrapper flow\\\/help\\\/failure checks/);
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);
+    assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact health\\\/read-smoke helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
     assert.match(smoke, /Narrow MCP verify timeout\\\/help diagnostics/);
     assert.match(smoke, /Successful cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
