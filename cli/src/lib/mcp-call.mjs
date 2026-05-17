@@ -60,7 +60,8 @@ function isFile(path) {
 /**
  * One-shot MCP tool call. Spawns the server, sends initialize +
  * notifications/initialized + tools/call, parses the JSON-RPC response,
- * resolves with `structuredContent` first, then the JSON in `content[0].text`.
+ * resolves with `structuredContent` after checking it matches text JSON when
+ * both payloads are present, then falls back to the JSON in `content[0].text`.
  *
  * @param {string} vaultRoot — passed as OMOT_VAULT env
  * @param {string} toolName — e.g. 'find_backlinks'
@@ -161,14 +162,27 @@ export function parseMcpToolResponse(toolResp) {
     }
     throw new Error(text);
   }
+  const result = toolResp?.result;
+  const text = result?.content?.[0]?.text;
   if (
-    toolResp.result &&
-    Object.prototype.hasOwnProperty.call(toolResp.result, 'structuredContent') &&
-    toolResp.result.structuredContent != null
+    result &&
+    Object.prototype.hasOwnProperty.call(result, 'structuredContent') &&
+    result.structuredContent != null
   ) {
-    return toolResp.result.structuredContent;
+    if (typeof text !== 'string') {
+      return result.structuredContent;
+    }
+    let textPayload;
+    try {
+      textPayload = JSON.parse(text);
+    } catch {
+      throw new Error('mcp tool structuredContent text is not JSON');
+    }
+    if (!sameJsonValue(textPayload, result.structuredContent)) {
+      throw new Error('mcp tool structuredContent mismatch');
+    }
+    return result.structuredContent;
   }
-  const text = toolResp?.result?.content?.[0]?.text;
   if (typeof text !== 'string') {
     throw new Error('mcp tool response has no text content');
   }
@@ -177,4 +191,21 @@ export function parseMcpToolResponse(toolResp) {
   } catch {
     return { text };
   }
+}
+
+function sameJsonValue(left, right) {
+  return stableJsonStringify(left) === stableJsonStringify(right);
+}
+
+function stableJsonStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableJsonStringify(item)).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJsonStringify(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
 }

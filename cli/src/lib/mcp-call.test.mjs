@@ -4,15 +4,41 @@ import { describe, it } from 'node:test';
 import { parseMcpToolResponse } from './mcp-call.mjs';
 
 describe('mcp-call response parsing', () => {
-  it('prefers structuredContent over text JSON for successful tool calls', () => {
+  it('returns structuredContent when text JSON matches with different key order', () => {
     assert.deepEqual(
       parseMcpToolResponse({
         result: {
-          content: [{ text: JSON.stringify({ ok: true, source: 'text' }) }],
+          content: [{ text: JSON.stringify({ source: 'structured', ok: true }) }],
           structuredContent: { ok: true, source: 'structured' },
         },
       }),
       { ok: true, source: 'structured' },
+    );
+  });
+
+  it('rejects successful responses when structuredContent drifts from text JSON', () => {
+    assert.throws(
+      () =>
+        parseMcpToolResponse({
+          result: {
+            content: [{ text: JSON.stringify({ ok: true, source: 'text' }) }],
+            structuredContent: { ok: true, source: 'structured' },
+          },
+        }),
+      /mcp tool structuredContent mismatch/,
+    );
+  });
+
+  it('rejects successful structuredContent responses with non-JSON text content', () => {
+    assert.throws(
+      () =>
+        parseMcpToolResponse({
+          result: {
+            content: [{ text: 'plain response' }],
+            structuredContent: { ok: true, source: 'structured' },
+          },
+        }),
+      /mcp tool structuredContent text is not JSON/,
     );
   });
 
