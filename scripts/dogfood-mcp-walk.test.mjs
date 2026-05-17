@@ -41,6 +41,7 @@ import {
   EXPECTED_DESTRUCTIVE_TOOLS,
   EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_TOOLS,
+  VAULT_ISSUE_CODE_VALUES,
   expectedToolTitle,
 } from "../mcp/scripts/verify.mjs";
 import {
@@ -62,16 +63,6 @@ const WRITE_TOOL_NAMES = new Set([
   "rename_concept",
   "merge_concepts",
 ]);
-const VAULT_ISSUE_CODE_VALUES = [
-  "unclosed-frontmatter",
-  "parse-zero-keys",
-  "missing-kind",
-  "empty-kind",
-  "unknown-kind",
-  "missing-expected-field",
-  "non-canonical-graph-array",
-  "dangling-graph-reference",
-];
 const ROOT_PKG = JSON.parse(readFileSync("package.json", "utf-8"));
 
 function makeDogfoodInitialize() {

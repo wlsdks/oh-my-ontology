@@ -94,6 +94,7 @@ import {
   tunedHealthScopeOutputSummary,
   toolsListAnnotationSummary,
   toolsListSchemaFailure,
+  VAULT_ISSUE_CODE_VALUES,
   validationCodeSummary,
   validateVaultFailure,
   VERIFY_TUNED_HEALTH_ARGS,
@@ -109,16 +110,6 @@ import {
 } from '../scripts/verify.mjs';
 import { expectedResponseIds, missingResponseLabels } from '../scripts/json-rpc-lines.mjs';
 
-const VAULT_ISSUE_CODE_VALUES = [
-  'unclosed-frontmatter',
-  'parse-zero-keys',
-  'missing-kind',
-  'empty-kind',
-  'unknown-kind',
-  'missing-expected-field',
-  'non-canonical-graph-array',
-  'dangling-graph-reference',
-];
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
 const ROOT_PKG = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8'));

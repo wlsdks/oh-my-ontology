@@ -88,7 +88,11 @@ import {
 } from './ontology-engine.mjs';
 import { loadOmotIgnore } from './omot-ignore.mjs';
 import { parseFilter } from './query.mjs';
-import { isValidVaultTitle, validateVaultDocument } from './validate.mjs';
+import {
+  VAULT_ISSUE_CODE_VALUES,
+  isValidVaultTitle,
+  validateVaultDocument,
+} from './validate.mjs';
 import {
   buildFrontmatter,
   defaultBody,
@@ -112,16 +116,7 @@ const NON_BLANK_STRING_SCHEMA = Object.freeze({
   minLength: 1,
   pattern: '^(?!\\s)(?!.*\\s$)(?!.*\\u0000).+$',
 });
-const VAULT_ISSUE_CODE_VALUES = Object.freeze([
-  'unclosed-frontmatter',
-  'parse-zero-keys',
-  'missing-kind',
-  'empty-kind',
-  'unknown-kind',
-  'missing-expected-field',
-  'non-canonical-graph-array',
-  'dangling-graph-reference',
-]);
+const VAULT_ISSUE_CODE_DESCRIPTION = VAULT_ISSUE_CODE_VALUES.map((code) => `\`${code}\``).join(', ');
 const POST_WRITE_MAINTENANCE_GUIDANCE =
   'compact `postWriteMaintenance` (maintenance_plan) with count-safe `byPhase` / `bySeverity` / `byKind` queue buckets, action `score`, executable `proposedAction`, and current-page next action pointers';
 const POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA = Object.freeze({
@@ -1627,7 +1622,7 @@ const TOOLS = [
     description:
       'R+ (cycle 46) — validate every doc in the vault, return per-doc + per-code aggregate. ' +
       'Replaces the K-round-trip pattern of `list_concepts` then per-doc `get_concept` (whose `warnings: [...]` is per-file). ' +
-      '8 issue codes — `unclosed-frontmatter`, `parse-zero-keys`, `missing-kind`, `empty-kind`, `unknown-kind`, `missing-expected-field`, `non-canonical-graph-array`, `dangling-graph-reference`. ' +
+      `8 issue codes — ${VAULT_ISSUE_CODE_DESCRIPTION}. ` +
       'Returns `{ scanned, problems: [{slug, issues: [{code, severity, message}]}], summary: { problemFiles, errorFiles, warningFiles, byCode: { code: { severity, count, files } } } }`. ' +
       'side effect 0. Use when an agent needs the *whole-vault* health view: first-contact before writes, before / after a batch write, or surfacing issues to the user.',
     inputSchema: {

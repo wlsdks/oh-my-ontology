@@ -18,6 +18,7 @@ import {
   EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_READ_TOOLS,
   EXPECTED_TOOLS,
+  VAULT_ISSUE_CODE_VALUES,
   expectedToolTitle,
 } from "../scripts/verify.mjs";
 import {
@@ -517,26 +518,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.deepEqual(validateVault?.outputSchema?.required, ["scanned", "problems", "summary"]);
     assert.equal(validateVault?.outputSchema?.properties?.scanned?.type, "integer");
     assert.equal(validateVault?.outputSchema?.properties?.problems?.type, "array");
-    assert.deepEqual(validateVault?.outputSchema?.properties?.problems?.items?.properties?.issues?.items?.properties?.code?.enum, [
-      "unclosed-frontmatter",
-      "parse-zero-keys",
-      "missing-kind",
-      "empty-kind",
-      "unknown-kind",
-      "missing-expected-field",
-      "non-canonical-graph-array",
-      "dangling-graph-reference",
-    ]);
-    assert.deepEqual(validateVault?.outputSchema?.properties?.summary?.properties?.byCode?.propertyNames?.enum, [
-      "unclosed-frontmatter",
-      "parse-zero-keys",
-      "missing-kind",
-      "empty-kind",
-      "unknown-kind",
-      "missing-expected-field",
-      "non-canonical-graph-array",
-      "dangling-graph-reference",
-    ]);
+    assert.deepEqual(validateVault?.outputSchema?.properties?.problems?.items?.properties?.issues?.items?.properties?.code?.enum, VAULT_ISSUE_CODE_VALUES);
+    assert.deepEqual(validateVault?.outputSchema?.properties?.summary?.properties?.byCode?.propertyNames?.enum, VAULT_ISSUE_CODE_VALUES);
     assert.equal(validateVault?.outputSchema?.properties?.summary?.properties?.byCode?.additionalProperties?.properties?.files?.items?.type, "string");
     const addConcepts = findTool("add_concepts");
     assert.equal(addConcepts?.outputSchema?.type, "object");

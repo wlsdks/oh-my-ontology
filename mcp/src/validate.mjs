@@ -35,10 +35,22 @@ import { missingExpectedFields } from './schema.mjs';
  *  - missing-expected-field (warning) — R14
  *  - non-canonical-graph-array (warning)
  *  - parse-zero-keys (warning)
+ *  - dangling-graph-reference (warning) — whole-vault graph validation
  *
  * @param {string} raw
  * @returns {{ ok: boolean, issues: Array<{code: string, severity: 'error'|'warning', message: string}> }}
  */
+export const VAULT_ISSUE_CODE_VALUES = Object.freeze([
+  'unclosed-frontmatter',
+  'parse-zero-keys',
+  'missing-kind',
+  'empty-kind',
+  'unknown-kind',
+  'missing-expected-field',
+  'non-canonical-graph-array',
+  'dangling-graph-reference',
+]);
+
 export const KNOWN_VAULT_KINDS = [
   'project',
   'domain',

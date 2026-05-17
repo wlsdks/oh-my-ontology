@@ -54,6 +54,8 @@ import {
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
 } from '../src/ontology-engine.mjs';
+import { VAULT_ISSUE_CODE_VALUES } from '../src/validate.mjs';
+export { VAULT_ISSUE_CODE_VALUES } from '../src/validate.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_ROOT = resolve(__dirname, '..');
@@ -112,16 +114,6 @@ export const EXPECTED_DESTRUCTIVE_TOOLS = [
   'delete_concept',
   'merge_concepts',
   'rename_concept',
-];
-const VAULT_ISSUE_CODE_VALUES = [
-  'unclosed-frontmatter',
-  'parse-zero-keys',
-  'missing-kind',
-  'empty-kind',
-  'unknown-kind',
-  'missing-expected-field',
-  'non-canonical-graph-array',
-  'dangling-graph-reference',
 ];
 export const EXPECTED_IDEMPOTENT_TOOLS = [
   'add_relation',
