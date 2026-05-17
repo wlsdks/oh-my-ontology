@@ -16,6 +16,8 @@ describe('cli integer argument parsers', () => {
   it('parses positive integers without accepting zero, decimals, or unsafe values', () => {
     assert.equal(parsePositiveIntegerFlag('--limit', '1'), 1);
     assert.equal(parsePositiveIntegerFlag('--limit', '500'), 500);
+    assert.equal(errorMessage(parsePositiveIntegerFlag('--limit', undefined)), '--limit requires a value');
+    assert.equal(errorMessage(parsePositiveIntegerFlag('--limit', '--json')), '--limit requires a value');
     assert.equal(errorMessage(parsePositiveIntegerFlag('--limit', '0')), '--limit must be a positive integer');
     assert.equal(errorMessage(parsePositiveIntegerFlag('--limit', '1.5')), '--limit must be a positive integer');
     assert.equal(errorMessage(parsePositiveIntegerFlag('--limit', '9007199254740992')), '--limit must be a positive integer');
@@ -24,6 +26,8 @@ describe('cli integer argument parsers', () => {
   it('parses non-negative integers and preserves zero as a valid value', () => {
     assert.equal(parseNonNegativeIntegerFlag('--depth', '0'), 0);
     assert.equal(parseNonNegativeIntegerFlag('--depth', '20'), 20);
+    assert.equal(errorMessage(parseNonNegativeIntegerFlag('--depth', undefined)), '--depth requires a value');
+    assert.equal(errorMessage(parseNonNegativeIntegerFlag('--depth', '--json')), '--depth requires a value');
     assert.equal(errorMessage(parseNonNegativeIntegerFlag('--depth', '-1')), '--depth must be a non-negative integer');
     assert.equal(errorMessage(parseNonNegativeIntegerFlag('--depth', '2x')), '--depth must be a non-negative integer');
   });

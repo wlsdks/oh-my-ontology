@@ -1796,7 +1796,7 @@ await test('graph diagnostic commands — reject invalid option values before MC
   const cases = [
     {
       args: ['query', 'kind=capability', '--limit', '--json'],
-      pattern: /--limit must be a positive integer/,
+      pattern: /--limit requires a value/,
     },
     {
       args: ['query', 'kind=capability', '--limit=501'],
@@ -1828,7 +1828,7 @@ await test('graph diagnostic commands — reject invalid option values before MC
     },
     {
       args: ['cycles', '--max-hops', '--json'],
-      pattern: /--max-hops must be a non-negative integer/,
+      pattern: /--max-hops requires a value/,
     },
     {
       args: ['cycles', '--max-hops=21'],
@@ -2387,7 +2387,7 @@ await test('repo analysis commands — reject invalid numeric option values befo
   const cases = [
     {
       args: ['analyze', '--max-depth'],
-      pattern: /--max-depth must be a non-negative integer/,
+      pattern: /--max-depth requires a value/,
     },
     {
       args: ['analyze', '--max-depth=abc'],
@@ -2399,7 +2399,7 @@ await test('repo analysis commands — reject invalid numeric option values befo
     },
     {
       args: ['infer-imports', '--max-files', '--json'],
-      pattern: /--max-files must be a positive integer/,
+      pattern: /--max-files requires a value/,
     },
     {
       args: ['infer-imports', '--max-files=0'],
@@ -2411,11 +2411,11 @@ await test('repo analysis commands — reject invalid numeric option values befo
     },
     {
       args: ['infer-imports', '--threshold', '--json'],
-      pattern: /--threshold must be a positive integer/,
+      pattern: /--threshold requires a value/,
     },
     {
       args: ['bootstrap', '--max-depth', '--skip-imports'],
-      pattern: /--max-depth must be a non-negative integer/,
+      pattern: /--max-depth requires a value/,
     },
     {
       args: ['bootstrap', '--max-depth=11'],

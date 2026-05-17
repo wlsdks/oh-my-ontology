@@ -39,10 +39,14 @@ export function resolveSingleRootPathArg({ positional, defaultRootPath = '.' }) 
 }
 
 export function parsePositiveIntegerFlag(flag, value) {
-  if (!/^[1-9]\d*$/.test(String(value ?? ''))) {
+  const text = String(value ?? '');
+  if (!text || text.startsWith('--')) {
+    return new Error(`${flag} requires a value`);
+  }
+  if (!/^[1-9]\d*$/.test(text)) {
     return new Error(`${flag} must be a positive integer`);
   }
-  const parsed = Number.parseInt(value, 10);
+  const parsed = Number.parseInt(text, 10);
   return Number.isSafeInteger(parsed) ? parsed : new Error(`${flag} must be a positive integer`);
 }
 
@@ -56,10 +60,14 @@ export function parseBoundedPositiveIntegerFlag(flag, value, { max } = {}) {
 }
 
 export function parseNonNegativeIntegerFlag(flag, value) {
-  if (!/^(0|[1-9]\d*)$/.test(String(value ?? ''))) {
+  const text = String(value ?? '');
+  if (!text || text.startsWith('--')) {
+    return new Error(`${flag} requires a value`);
+  }
+  if (!/^(0|[1-9]\d*)$/.test(text)) {
     return new Error(`${flag} must be a non-negative integer`);
   }
-  const parsed = Number.parseInt(value, 10);
+  const parsed = Number.parseInt(text, 10);
   return Number.isSafeInteger(parsed) ? parsed : new Error(`${flag} must be a non-negative integer`);
 }
 
