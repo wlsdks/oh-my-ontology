@@ -400,6 +400,11 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /zero remaining actions, and no next actions/);
   assert.match(clean, /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   assert.match(clean, /Successful maintenance cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
+  assert.match(clean, /Focused checks:/);
+  assert.match(clean, /pnpm integration:cli:mcp-verify/);
+  assert.match(clean, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);
+  assert.match(clean, /pnpm test:mcp:verify:timeout/);
+  assert.match(clean, /Narrow MCP verify timeout\/help diagnostics/);
 });
 
 await test('mcp-verify — rejects invalid timeout values', async () => {

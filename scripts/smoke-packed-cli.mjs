@@ -449,6 +449,11 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /zero remaining actions, and no next actions/);
   assert.match(cliMcpVerifyHelp.stdout, /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   assert.match(cliMcpVerifyHelp.stdout, /Successful maintenance cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
+  assert.match(cliMcpVerifyHelp.stdout, /Focused checks:/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm integration:cli:mcp-verify/);
+  assert.match(cliMcpVerifyHelp.stdout, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm test:mcp:verify:timeout/);
+  assert.match(cliMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/help diagnostics/);
 
   const missingVerifyOverride = runRaw(cliBin, cliMcpVerifyArgs(['ontology']), {
     cwd: projectDir,

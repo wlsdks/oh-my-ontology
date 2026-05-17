@@ -1121,6 +1121,10 @@ describe('package contract helpers', () => {
     assert.match(smoke, /zero remaining actions, and no next actions/);
     assert.match(smoke, /nextExecutableAction \\\/ nextReviewAction point only at the first executable\\\/review action in the current returned page/);
     assert.match(smoke, /Successful maintenance cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
+    assert.match(smoke, /pnpm integration:cli:mcp-verify/);
+    assert.match(smoke, /Installed CLI mcp-verify wrapper flow\\\/help\\\/failure checks/);
+    assert.match(smoke, /pnpm test:mcp:verify:timeout/);
+    assert.match(smoke, /Narrow MCP verify timeout\\\/help diagnostics/);
     assert.match(smoke, /Successful cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
     assert.match(smoke, /maintenance cursor — missing afterActionId reported/);
     assert.match(smoke, /maintenance cursor — ready page stable/);

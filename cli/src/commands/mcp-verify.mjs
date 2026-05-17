@@ -160,6 +160,9 @@ function printUsage(output = process.stderr) {
       `Maintenance filters are enum-validated for phases/severities/kinds; cursor smoke checks both cursor.found=true with cursor.reason=null and cursor.found=false with the miss reason, zero remaining actions, and no next actions.\n` +
       `When the ready cursor has actions, verify resumes from the first returned action id and confirms the resumed page does not repeat it.\n` +
       `Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point only at the first executable/review action in the current returned page.\n` +
-      `Successful maintenance cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n`,
+      `Successful maintenance cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n\n` +
+      `Focused checks:\n` +
+      `  pnpm integration:cli:mcp-verify    Installed CLI mcp-verify wrapper flow/help/failure checks.\n` +
+      `  pnpm test:mcp:verify:timeout       Narrow MCP verify timeout/help diagnostics.\n`,
   );
 }
