@@ -111,6 +111,7 @@ import {
   VERIFY_TUNED_HEALTH_ARGS,
   VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
   verifyCountConsistencyFailure,
+  verifyCountConsistencySummary,
   verifyRetryEnvForVault,
   verifyRetryExample,
   verifySuccessMessage,
@@ -6357,6 +6358,25 @@ describe('verify.mjs first-contact gates', () => {
       }),
       'verify byKind mismatch — capability: list_kinds 1, overview 0',
     );
+  });
+
+  it('summarizes verify read census consistency for human-facing output', () => {
+    assert.equal(
+      verifyCountConsistencySummary({
+        kinds: { total: 2, byKind: { project: 1, capability: 1 } },
+        list: { total: 2 },
+        compiled: { nodeCount: 2, byKind: { project: 1, capability: 1 } },
+        overview: { graph: { nodes: 2 }, byKind: { project: 1, capability: 1 } },
+      }),
+      '2 nodes across list_kinds/list_concepts/compile_ontology/overview, 2 kinds',
+    );
+    assert.equal(
+      verifyCountConsistencySummary({
+        kinds: { total: 1, byKind: { project: 1 } },
+      }),
+      '1 node across list_kinds, 1 kind',
+    );
+    assert.equal(verifyCountConsistencySummary({}), null);
   });
 
   it('skips verify count comparison when a source payload is malformed', () => {

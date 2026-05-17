@@ -727,6 +727,10 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
     assert.match(verifySection, new RegExp(`✓ project_scope — project \\(${scopedNodes} nodes, internalEdges ${projectScope.summary.internalEdges}\\)`));
+    assert.match(
+      verifySection,
+      new RegExp(`✓ read census consistency — ${compiled.nodeCount} nodes across list_kinds/list_concepts/compile_ontology/overview, ${Object.keys(compiled.byKind).length} kinds`),
+    );
     assert.match(verifySection, /✓ destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
     assert.match(verifySection, new RegExp(regexEscape(`✓ structuredContent — ${structuredContentVerifySummary({
       hasNode: true,
@@ -839,6 +843,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /accepts empty vault folders by skipping node-targeted graph smoke/);
     assert.match(verifySection, /cross-checks node census totals across `list_kinds`, `list_concepts`, `compile_ontology`, and `overview`/);
     assert.match(verifySection, /keeping `validate_vault\.scanned` as file-level health/);
+    assert.match(verifySection, /dedicated `read census consistency` pass line/);
+    assert.match(verifySection, /read surfaces agree/);
     assert.match(verifySection, /missing or malformed first-contact diagnosis payloads/);
     assert.match(verifySection, /top-level `status`, `workspace_brief\.nextActions`,\s+`workspace_brief\.health\.checks`, `health\.checks`, tuned `workspace_brief\.health\.checks`, and tuned `health\.checks`/);
     assert.match(verifySection, /top-level diagnosis `status` must be `healthy` or `needs_attention`/);
@@ -1814,6 +1820,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /직접 verify help 도 이 focused check 들을 같이 보여줘/);
     assert.match(doc, /`tools\/list inventory names — missing\/extra\/duplicate\/invalid checks passed`/);
     assert.match(doc, /schema \/ annotation 검증에 묻히지 않게 한다/);
+    assert.match(doc, /`read census consistency — \.\.\. across list_kinds\/list_concepts\/compile_ontology\/overview`/);
+    assert.match(doc, /여러 read surface 가 같은 node census 를 본다는 증거/);
     assert.match(doc, /verify helper 와\s+dogfood gate 의 maintenance 관련 subset 만 실행/);
     assert.match(doc, /`pnpm dogfood:verify` 가 repo root 의 짧은 gate/);
     assert.match(doc, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000` 로 풀어 쓴다/);

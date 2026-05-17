@@ -4439,6 +4439,25 @@ export function verifyCountConsistencyFailure({ kinds, list, validation, compile
   return null;
 }
 
+export function verifyCountConsistencySummary({ kinds, list, compiled, overview }) {
+  const sources = [
+    ['list_kinds', kinds?.total],
+    ['list_concepts', list?.total],
+    ['compile_ontology', compiled?.nodeCount],
+    ['overview', overview?.graph?.nodes],
+  ].filter(([, value]) => Number.isInteger(value));
+  if (!sources.length) return null;
+  const nodeCount = sources[0][1];
+  const sourceNames = sources.map(([name]) => name).join('/');
+  const kindCount = new Set([
+    ...Object.keys(kinds?.byKind ?? {}),
+    ...Object.keys(compiled?.byKind ?? {}),
+    ...Object.keys(overview?.byKind ?? {}),
+  ]).size;
+  const kindSuffix = kindCount ? `, ${formatCount(kindCount, 'kind')}` : '';
+  return `${formatCount(nodeCount, 'node')} across ${sourceNames}${kindSuffix}`;
+}
+
 export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   if (parsed?.operation !== expectedOperation) {
     return `${label} returned unexpected operation: ${parsed?.operation}`;
@@ -6032,6 +6051,15 @@ async function step2BootAndCall() {
       if (countFailure) {
         log('fail', countFailure);
         return res(false);
+      }
+      const countSummary = verifyCountConsistencySummary({
+        kinds: kindsPayload,
+        list: listPayload,
+        compiled: compilePayload,
+        overview: overviewPayload,
+      });
+      if (countSummary) {
+        log('ok', `read census consistency — ${countSummary}`);
       }
       log(
         'ok',

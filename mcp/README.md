@@ -330,6 +330,7 @@ A successful run looks like this:
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
 ✓ project_scope — project (27 nodes, internalEdges 98)
+✓ read census consistency — 28 nodes across list_kinds/list_concepts/compile_ontology/overview, 5 kinds
 ✓ structuredContent — direct 16/16, write 5/5 (batch row-isolation 2/2, destructive dry-run 3/3), maintenance 2/2, graph 11/11
 
 All passed — register .mcp.json with your MCP client and restart to use the 23 tools.

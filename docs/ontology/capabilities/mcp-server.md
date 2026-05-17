@@ -166,6 +166,9 @@ node-count consistency 는 `list_kinds.total`, `list_concepts.total`,
 `list_kinds.byKind` / `compile_ontology.byKind` / `overview.byKind` 가 같은 census 를
 말하는지도 확인해 compiler path, overview path, vault listing path 가 서로 다른
 snapshot 을 보고 있는 회귀를 잡는다.
+성공 로그도 `read census consistency — ... across list_kinds/list_concepts/compile_ontology/overview`
+를 별도 pass line 으로 출력해, 여러 read surface 가 같은 node census 를 본다는 증거가
+`structuredContent` 요약에 묻히지 않게 한다.
 `list_concepts` 응답은 `total`, `vaultRoot`, `nodes[]` 와 각 node 의
 `slug`/`kind`/`title`/`mtime` 기본 shape 를 검증하고, verify / dogfood walk 는
 `list_kinds.byKind` 합계가 `total` 과 맞는지도 확인해 첫 접속 census 가 깨진
@@ -292,6 +295,8 @@ node-count consistency 는 `list_kinds.total`, `list_concepts.total`,
 `compile_ontology.nodeCount`, `overview.graph.nodes` 끼리 비교하고
 `list_kinds.byKind` / `compile_ontology.byKind` / `overview.byKind` 가 같은 census 를
 말하는지도 확인한다.
+성공 출력도 read census consistency pass line 을 별도로 보여줘, 설치 verify 로그만 보고도
+listing / compiler / overview read surface 가 같은 snapshot 을 본다는 증거를 확인할 수 있다.
 설치 verify 의 `query_ontology(path)` smoke 도 hop/edge alignment 를 검증해,
 `path` 가 성공처럼 보이지만 edge payload 가 hop sequence 를 설명하지 못하는
 packed MCP 회귀를 차단한다.
