@@ -1,6 +1,7 @@
-export function assertConceptBatchResult(payload, context = 'add_concepts') {
+export function assertConceptBatchResult(payload, context = 'add_concepts', options = {}) {
   assertObject(payload, context);
   assertArray(payload.concepts, `${context}.concepts`);
+  assertExpectedCount(payload.concepts, `${context}.concepts`, options.expectedCount);
   payload.concepts.forEach((row, index) => {
     const rowPath = `${context}.concepts[${index}]`;
     assertObject(row, rowPath);
@@ -17,9 +18,10 @@ export function assertConceptBatchResult(payload, context = 'add_concepts') {
   });
 }
 
-export function assertRelationBatchResult(payload, context = 'add_relations') {
+export function assertRelationBatchResult(payload, context = 'add_relations', options = {}) {
   assertObject(payload, context);
   assertArray(payload.relations, `${context}.relations`);
+  assertExpectedCount(payload.relations, `${context}.relations`, options.expectedCount);
   payload.relations.forEach((row, index) => {
     const rowPath = `${context}.relations[${index}]`;
     assertObject(row, rowPath);
@@ -66,5 +68,15 @@ function assertNonEmptyString(value, path) {
 function assertStringArray(value, path) {
   if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
     throw new Error(`${path} must be a string array`);
+  }
+}
+
+function assertExpectedCount(rows, path, expectedCount) {
+  if (expectedCount === undefined) return;
+  if (!Number.isSafeInteger(expectedCount) || expectedCount < 0) {
+    throw new Error(`${path} expectedCount must be a non-negative safe integer`);
+  }
+  if (rows.length !== expectedCount) {
+    throw new Error(`${path} row count mismatch: expected ${expectedCount}, got ${rows.length}`);
   }
 }

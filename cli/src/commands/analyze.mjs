@@ -227,7 +227,7 @@ async function runApply(vaultRoot, result, json) {
   let conceptsResult;
   try {
     conceptsResult = await callBatch(vaultRoot, 'add_concepts', { concepts });
-    assertConceptBatchResult(conceptsResult);
+    assertConceptBatchResult(conceptsResult, 'add_concepts', { expectedCount: concepts.length });
   } catch (err) {
     restorePrunedStarterNodes(vaultRoot, prunedStarters);
     process.stderr.write(
@@ -243,7 +243,7 @@ async function runApply(vaultRoot, result, json) {
       relationsResult = await callBatch(vaultRoot, 'add_relations', {
         relations,
       });
-      assertRelationBatchResult(relationsResult);
+      assertRelationBatchResult(relationsResult, 'add_relations', { expectedCount: relations.length });
     } catch (err) {
       process.stderr.write(
         `${COLORS.red}error${COLORS.reset}  add_relations: ${err instanceof Error ? err.message : String(err)}\n`,

@@ -187,7 +187,7 @@ async function runApply(vaultRoot, result, json) {
     let res;
     try {
       res = await callMcpTool(vaultRoot, 'add_relations', { relations: chunk });
-      assertRelationBatchResult(res, `add_relations chunk @${i}`);
+      assertRelationBatchResult(res, `add_relations chunk @${i}`, { expectedCount: chunk.length });
     } catch (err) {
       process.stderr.write(
         `${COLORS.red}error${COLORS.reset}  add_relations chunk @${i}: ` +

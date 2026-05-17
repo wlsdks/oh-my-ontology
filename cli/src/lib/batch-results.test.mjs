@@ -26,6 +26,7 @@ describe('batch-results', () => {
     };
 
     assert.doesNotThrow(() => assertConceptBatchResult(payload));
+    assert.doesNotThrow(() => assertConceptBatchResult(payload, 'add_concepts', { expectedCount: 2 }));
   });
 
   it('rejects malformed add_concepts response rows before summaries trust them', () => {
@@ -40,6 +41,10 @@ describe('batch-results', () => {
     assert.throws(
       () => assertConceptBatchResult({ concepts: [{ ok: true, slug: '   ' }] }),
       /add_concepts\.concepts\[0\]\.slug must be a non-empty string/,
+    );
+    assert.throws(
+      () => assertConceptBatchResult({ concepts: [{ ok: true, slug: 'capabilities/a' }] }, 'add_concepts', { expectedCount: 2 }),
+      /add_concepts\.concepts row count mismatch: expected 2, got 1/,
     );
   });
 
@@ -65,6 +70,7 @@ describe('batch-results', () => {
     };
 
     assert.doesNotThrow(() => assertRelationBatchResult(payload));
+    assert.doesNotThrow(() => assertRelationBatchResult(payload, 'add_relations chunk @0', { expectedCount: 2 }));
   });
 
   it('rejects malformed add_relations response rows with caller context', () => {
@@ -79,6 +85,10 @@ describe('batch-results', () => {
     assert.throws(
       () => assertRelationBatchResult({ relations: [{ ok: false, from: 'project', to: 'missing', type: 'contains' }] }),
       /add_relations\.relations\[0\]\.error must be a non-empty string/,
+    );
+    assert.throws(
+      () => assertRelationBatchResult({ relations: [] }, 'add_relations chunk @50', { expectedCount: 1 }),
+      /add_relations chunk @50\.relations row count mismatch: expected 1, got 0/,
     );
   });
 });

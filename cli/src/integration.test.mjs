@@ -3258,6 +3258,52 @@ await test('analyze --apply — fails closed when add_concepts response rows dri
   }
 });
 
+await test('analyze --apply — fails closed when add_relations response row count drifts', async () => {
+  const vault = withVault([]);
+  const repo = makeRepoFixture();
+  const fakeMcp = join(vault, 'fake-mcp-analyze-relation-count-drift.mjs');
+  writeFileSync(
+    fakeMcp,
+    [
+      "import readline from 'node:readline';",
+      "const rl = readline.createInterface({ input: process.stdin });",
+      "rl.on('line', (line) => {",
+      "  const msg = JSON.parse(line);",
+      "  if (msg.method === 'initialize') {",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: msg.id, result: {} }));",
+      "    return;",
+      "  }",
+      "  if (msg.params?.name === 'analyze_repo_structure') {",
+      "    const payload = { rootPath: '/repo', framework: 'generic', project: { slug: 'demo', title: 'Demo' }, domains: [{ slug: 'domains/core', title: 'Core' }], capabilities: [], elements: [], suggestedRelations: [{ from: 'demo', to: 'domains/core', type: 'contains' }] };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: msg.id, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "    return;",
+      "  }",
+      "  if (msg.params?.name === 'add_concepts') {",
+      "    const payload = { concepts: msg.params.arguments.concepts.map((concept) => ({ slug: concept.slug, ok: true, filePath: `/tmp/${concept.slug}.md`, changed: true })) };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: msg.id, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "    return;",
+      "  }",
+      "  if (msg.params?.name === 'add_relations') {",
+      "    const payload = { relations: [] };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: msg.id, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "  }",
+      "});",
+    ].join('\n'),
+    'utf-8',
+  );
+  try {
+    const r = await run(['analyze', repo, '--vault', vault, '--apply'], {
+      env: { OMOT_MCP_PATH: fakeMcp },
+    });
+    assert.equal(r.code, 2, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.equal(r.stdout, '');
+    assert.match(stripAnsi(r.stderr), /add_relations\.relations row count mismatch: expected 1, got 0/);
+  } finally {
+    rmSync(vault, { recursive: true, force: true });
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
 // ── infer-imports --apply (R+ — agent-less depends_on landing) ──────────
 //
 // analyze --apply 의 짝. moduleEdges 를 depends_on 관계로 batch land.

@@ -1630,7 +1630,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /`pnpm package:check` 도 이 gate 를 포함/);
     assert.match(regressionSection, /`cli\/src\/lib\/cli-args\.test\.mjs`/);
     assert.match(regressionSection, /`cli\/src\/lib\/batch-results\.test\.mjs`/);
-    assert.match(regressionSection, /batch writer 응답 row shape fail-closed 계약/);
+    assert.match(regressionSection, /batch writer 응답 row count \/ row shape fail-closed 계약/);
     assert.match(regressionSection, /`cli\/src\/lib\/cli-commands\.test\.mjs`/);
     assert.match(regressionSection, /command registry \/ package description command count/);
     assert.match(regressionSection, /MCP `structuredContent` 와 text JSON parity/);

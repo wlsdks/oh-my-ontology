@@ -92,7 +92,7 @@ export async function runBootstrap(args) {
   if (concepts.length > 0) {
     try {
       const r = await callMcpTool(vaultRoot, 'add_concepts', { concepts });
-      assertConceptBatchResult(r);
+      assertConceptBatchResult(r, 'add_concepts', { expectedCount: concepts.length });
       conceptsRows = r.concepts ?? [];
     } catch (err) {
       restorePrunedStarterNodes(vaultRoot, prunedStarters);
@@ -152,7 +152,9 @@ export async function runBootstrap(args) {
         const r = await callMcpTool(vaultRoot, 'add_concepts', {
           concepts: importEndpointConcepts,
         });
-        assertConceptBatchResult(r, 'add_concepts(import endpoints)');
+        assertConceptBatchResult(r, 'add_concepts(import endpoints)', {
+          expectedCount: importEndpointConcepts.length,
+        });
         importEndpointRows = r.concepts ?? [];
       } catch (err) {
         process.stderr.write(
@@ -494,7 +496,7 @@ async function applyRelations(vaultRoot, relations) {
     let res;
     try {
       res = await callMcpTool(vaultRoot, 'add_relations', { relations: chunk });
-      assertRelationBatchResult(res, `add_relations chunk @${i}`);
+      assertRelationBatchResult(res, `add_relations chunk @${i}`, { expectedCount: chunk.length });
     } catch (err) {
       process.stderr.write(
         `${COLORS.red}error${COLORS.reset}  add_relations chunk @${i}: ${err instanceof Error ? err.message : String(err)}\n`,
