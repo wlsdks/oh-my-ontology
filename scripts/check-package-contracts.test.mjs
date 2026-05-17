@@ -726,6 +726,8 @@ describe('package contract helpers', () => {
     assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
     assert.match(inferImportsRow, /file edge kind summary/);
     assert.match(inferImportsRow, /per-module `kindCounts`/);
+    assert.match(inferImportsRow, /`tsconfig\.json` paths aliases/);
+    assert.match(inferImportsRow, /fallback common `@\/\*` aliases/);
     assert.match(inferImportsRow, /`static` \/ `dynamic` \/ `require` \/ `reexport` \/ `side`/);
     assert.match(inferImportsRow, /static-heavy dependencies/);
     assert.match(inferImportsRow, /`--threshold N`/);
@@ -972,6 +974,8 @@ describe('package contract helpers', () => {
 
     assert.match(inferImportsRow, /file edge kind summary/);
     assert.match(inferImportsRow, /module edge 별 `kindCounts`/);
+    assert.match(inferImportsRow, /`tsconfig\.json` paths alias/);
+    assert.match(inferImportsRow, /fallback common `@\/\*` alias/);
     assert.match(inferImportsRow, /`static` \/ `dynamic` \/ `require` \/ `reexport` \/ `side`/);
     assert.match(mcpVerifyRow, /실제 `neighbors` \/ node→project `path` \/ `project_scope` graph smoke/);
     assert.match(mcpVerifyRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);

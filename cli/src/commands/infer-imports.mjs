@@ -293,7 +293,8 @@ function printUsage(stream = process.stderr) {
       `${COLORS.bold}What it does:${COLORS.reset}\n` +
       `  Walk TS/JS files (default: src,lib,app,packages → fallback rootPath),\n` +
       `  parse imports (static / dynamic / require / re-export / side-effect),\n` +
-      `  resolve relative paths, classify external (npm) vs internal (relative),\n` +
+      `  resolve relative imports, tsconfig paths, and fallback @/* aliases,\n` +
+      `  classify external (npm) separately and unresolved aliases explicitly,\n` +
       `  collapse to module edges (capability A → B with import count).\n\n` +
       `  Default: ${COLORS.bold}side effect 0${COLORS.reset} — vault 변경 안 함, moduleEdges 만 출력.\n` +
       `  ${COLORS.bold}--apply${COLORS.reset}: moduleEdges 를 depends_on 관계로 batch land\n` +

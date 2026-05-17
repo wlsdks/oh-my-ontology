@@ -132,6 +132,64 @@ test('tsconfig paths aliases are resolved before fallback @/ guesses', () => {
   }
 });
 
+test('tsconfig paths resolve non-@ aliases before classifying npm imports', () => {
+  const root = withRepo((r) => {
+    mkdirSync(join(r, 'src/shared'), { recursive: true });
+    mkdirSync(join(r, 'src/features/search'), { recursive: true });
+    writeFileSync(
+      join(r, 'tsconfig.json'),
+      JSON.stringify(
+        {
+          compilerOptions: {
+            paths: {
+              '#shared/*': ['./src/shared/*'],
+            },
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    writeFileSync(
+      join(r, 'src/features/search/index.ts'),
+      [
+        'import { normalize } from "#shared/normalize";',
+        'import { missing } from "#shared/missing";',
+        'import scoped from "@scope/pkg";',
+      ].join('\n'),
+    );
+    writeFileSync(join(r, 'src/shared/normalize.ts'), 'export const normalize = 1;');
+  });
+  try {
+    const r = inferImports(root);
+    assert.ok(
+      r.edges.some(
+        (edge) =>
+          edge.from === 'src/features/search/index.ts' &&
+          edge.to === 'src/shared/normalize.ts',
+      ),
+      `expected #shared alias edge, got: ${JSON.stringify(r.edges)}`,
+    );
+    assert.ok(
+      r.unresolved.some(
+        (entry) => entry.spec === '#shared/missing' && entry.reason === 'alias-not-found',
+      ),
+      `expected missing #shared alias to stay unresolved, got: ${JSON.stringify(r.unresolved)}`,
+    );
+    assert.ok(
+      r.externalImports.some((entry) => entry.spec === '@scope/pkg'),
+      `expected unmatched scoped package to stay external, got: ${JSON.stringify(r.externalImports)}`,
+    );
+    assert.equal(
+      r.externalImports.some((entry) => entry.spec === '#shared/missing'),
+      false,
+      `did not expect unresolved alias as external import: ${JSON.stringify(r.externalImports)}`,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('dynamic import + require + reexport detected', () => {
   const root = withRepo((r) => {
     mkdirSync(join(r, 'src/a'), { recursive: true });

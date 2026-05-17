@@ -12,8 +12,9 @@
 // 한계 (의도적 minimal):
 //   - regex 기반 — TypeScript / JS 의 95% case (top-level static import)
 //     cover. dynamic import / re-export / type-only 도 같은 regex 로 잡힘
-//   - resolves relative imports, tsconfig paths, and common @/* aliases → real files.
-//     unresolved aliases surface as alias-not-found instead of external npm.
+//   - resolves relative imports, tsconfig paths, and fallback common @/* aliases
+//     → real files. unresolved aliases surface as alias-not-found instead of
+//     external npm.
 //     외부 npm import 는 externalImports 로 별도 분류.
 //   - 더 정교한 AST parsing 은 후속
 
@@ -257,21 +258,16 @@ function classify(spec, file, dir, rootPath, edges, external, unresolved, kindOv
     }
     return;
   }
-  // R17 follow-up — `@/X` alias is the de-facto Next.js / FSD convention
-  // for `src/X`. Resolve it *as internal* so feature→entity/shared edges
-  // appear in moduleEdges instead of being lost in externalImports.
-  if (spec.startsWith('@/')) {
-    const aliasResolved = resolveAliasImport(spec, rootPath, pathAliases);
-    if (aliasResolved) {
+  const aliasResolved = resolveAliasImport(spec, rootPath, pathAliases);
+  if (aliasResolved.matched) {
+    if (aliasResolved.path) {
       edges.push({
         from: relative(rootPath, file),
-        to: relative(rootPath, aliasResolved),
+        to: relative(rootPath, aliasResolved.path),
         kind,
       });
       return;
     }
-    // alias detected but not resolvable — track separately so the user
-    // sees what their tsconfig path is missing.
     unresolved.push({
       from: relative(rootPath, file),
       spec,
@@ -285,7 +281,16 @@ function classify(spec, file, dir, rootPath, edges, external, unresolved, kindOv
 function resolveAliasImport(spec, rootPath, pathAliases = []) {
   for (const alias of pathAliases) {
     const mapped = resolveTsconfigPathAlias(spec, rootPath, alias);
-    if (mapped) return mapped;
+    if (!mapped.matched) continue;
+    if (mapped.path) return mapped;
+    return { matched: true, path: null };
+  }
+
+  // R17 follow-up — `@/X` alias is the de-facto Next.js / FSD convention
+  // for `src/X`. Resolve it *as internal* so feature→entity/shared edges
+  // appear in moduleEdges instead of being lost in externalImports.
+  if (!spec.startsWith('@/')) {
+    return { matched: false, path: null };
   }
 
   // Strip the `@/` prefix.
@@ -294,19 +299,10 @@ function resolveAliasImport(spec, rootPath, pathAliases = []) {
   // `@/*` with one of these roots.
   for (const root of ['src', 'lib', 'app']) {
     const base = join(rootPath, root, subPath);
-    if (existsSync(base) && statSync(base).isFile()) return base;
-    for (const ext of RESOLVE_EXT_ORDER) {
-      const cand = base + ext;
-      if (existsSync(cand) && statSync(cand).isFile()) return cand;
-    }
-    if (existsSync(base) && statSync(base).isDirectory()) {
-      for (const ext of RESOLVE_EXT_ORDER) {
-        const cand = join(base, 'index' + ext);
-        if (existsSync(cand) && statSync(cand).isFile()) return cand;
-      }
-    }
+    const resolved = resolveImportCandidate(base);
+    if (resolved) return { matched: true, path: resolved };
   }
-  return null;
+  return { matched: true, path: null };
 }
 
 function readTsconfigPathAliases(rootPath) {
@@ -342,8 +338,10 @@ function readTsconfigPathAliases(rootPath) {
 }
 
 function resolveTsconfigPathAlias(spec, rootPath, alias) {
-  if (!alias.wildcard && spec !== alias.pattern) return null;
-  if (alias.wildcard && (!spec.startsWith(alias.prefix) || !spec.endsWith(alias.suffix))) return null;
+  if (!alias.wildcard && spec !== alias.pattern) return { matched: false, path: null };
+  if (alias.wildcard && (!spec.startsWith(alias.prefix) || !spec.endsWith(alias.suffix))) {
+    return { matched: false, path: null };
+  }
 
   const wildcardValue = alias.wildcard
     ? spec.slice(
@@ -355,9 +353,9 @@ function resolveTsconfigPathAlias(spec, rootPath, alias) {
     const mapped = target.includes('*') ? target.replace('*', wildcardValue) : target;
     const base = resolve(rootPath, alias.baseUrl, mapped);
     const resolved = resolveImportCandidate(base);
-    if (resolved) return resolved;
+    if (resolved) return { matched: true, path: resolved };
   }
-  return null;
+  return { matched: true, path: null };
 }
 
 function resolveImportCandidate(base) {
