@@ -530,6 +530,7 @@ function makeDogfoodToolsList() {
         tool.inputSchema.properties.slugs = { type: "array", maxItems: 50 };
       }
       if (name === "add_concepts") {
+        tool.description += " Batch rows isolate non-object row shape and unknown row field as ok:false rows.";
         tool.inputSchema.required = ["concepts"];
         tool.inputSchema.properties.concepts = { type: "array", maxItems: 50 };
         tool.outputSchema = {
@@ -567,6 +568,7 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "add_relations") {
+        tool.description += " Batch rows isolate non-object row shape and unknown row field as ok:false rows.";
         tool.inputSchema.required = ["relations"];
         tool.inputSchema.properties.relations = {
           type: "array",

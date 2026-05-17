@@ -551,7 +551,7 @@ const TOOLS = [
       'Use after `analyze_repo_structure` / `infer_imports` (or any bootstrap flow) ' +
       'when the agent has K accepted candidates from the user — replaces K×`add_concept` ' +
       'round-trips. Each row is processed independently: existing-slug / invalid-kind / ' +
-      'missing-required-fields surface as `{ slug, ok: false, error }` rows; the rest ' +
+      'missing-required-fields / non-object row shape / unknown row field surface as `{ slug, ok: false, error }` rows; the rest ' +
       'still land. `concepts[]` order in the response matches the input. Cap = 50 per ' +
       'call (split into multiple batches for larger sets). NO atomic rollback — if you ' +
       'need all-or-nothing semantics use single `add_concept` calls. When at least one row changes the vault, the response includes one compact `postWriteMaintenance` summary for the final graph with action `score`, executable `proposedAction`, and current-page next action pointers.',
@@ -666,7 +666,7 @@ const TOOLS = [
       'Use after `analyze_repo_structure` (suggestedRelations) / `infer_imports` (moduleEdges) ' +
       'when the agent has K accepted edges from the user — replaces K×`add_relation` round-trips. ' +
       'Each row is processed independently and idempotently: existing edges return `{ok: true, alreadyExists: true}`; ' +
-      'missing source/target slugs / unknown type surface as `{ok: false, error}`. ' +
+      'missing source/target slugs / unknown type / non-object row shape / unknown row field surface as `{ok: false, error}`. ' +
       '`relations[]` order in the response matches the input. Cap = 50 per call. ' +
       'NO atomic rollback — for all-or-nothing semantics use single `add_relation` calls. ' +
       'Tip: avoid `expected_mtime` in batch when multiple rows share the same `from` slug — ' +

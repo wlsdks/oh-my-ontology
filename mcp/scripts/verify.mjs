@@ -816,6 +816,9 @@ export function toolsListSchemaFailure(tools) {
   }
 
   const addConceptsTool = tools.find((candidate) => candidate?.name === 'add_concepts');
+  if (!/non-object row shape/.test(addConceptsTool?.description || '') || !/unknown row field/.test(addConceptsTool?.description || '')) {
+    return 'add_concepts description missing row isolation guidance';
+  }
   if (addConceptsTool.outputSchema?.type !== 'object') {
     return 'add_concepts outputSchema root drift';
   }
@@ -871,6 +874,9 @@ export function toolsListSchemaFailure(tools) {
   }
 
   const addRelationsTool = tools.find((candidate) => candidate?.name === 'add_relations');
+  if (!/non-object row shape/.test(addRelationsTool?.description || '') || !/unknown row field/.test(addRelationsTool?.description || '')) {
+    return 'add_relations description missing row isolation guidance';
+  }
   if (addRelationsTool.outputSchema?.type !== 'object') {
     return 'add_relations outputSchema root drift';
   }

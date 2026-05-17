@@ -218,7 +218,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_concepts',
         description:
-          'Batch writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
+          'Batch writes isolate non-object row shape and unknown row field as ok:false rows and return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           required: ['concepts'],
@@ -247,7 +247,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_relations',
         description:
-          'Batch writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
+          'Batch writes isolate non-object row shape and unknown row field as ok:false rows and return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
         inputSchema: {
           additionalProperties: false,
           required: ['relations'],
@@ -1760,6 +1760,16 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
+          description: 'Batch writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
+        },
+      ]),
+      'add_concepts description missing row isolation guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'add_concepts'),
           inputSchema: {
             ...tools.find((tool) => tool.name === 'add_concepts').inputSchema,
             properties: { concepts: { type: 'array', maxItems: 51 } },
@@ -1789,6 +1799,16 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'add_concepts outputSchema rows drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relations'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relations'),
+          description: 'Batch writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
+        },
+      ]),
+      'add_relations description missing row isolation guidance',
     );
     assert.equal(
       toolsListSchemaFailure([
