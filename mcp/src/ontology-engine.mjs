@@ -16,6 +16,16 @@ export const RELATION_TYPE_VALUES = Object.freeze([
   'contains',
   'describes',
 ]);
+export const WRITE_RELATION_TYPE_VALUES = Object.freeze([
+  'depends_on',
+  'relates',
+  'contains',
+  'describes',
+  'domains',
+  'capabilities',
+  'elements',
+  'domain',
+]);
 const RELATION_TYPES = new Set(RELATION_TYPE_VALUES);
 export const MAINTENANCE_PHASE_VALUES = Object.freeze(['validate', 'repair', 'link', 'materialize', 'review']);
 export const MAINTENANCE_SEVERITY_VALUES = Object.freeze(['fail', 'warn', 'info']);

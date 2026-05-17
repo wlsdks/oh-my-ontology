@@ -23,6 +23,7 @@ import {
   MAINTENANCE_SEVERITY_VALUES,
   queryCompiledOntology,
   RELATION_TYPE_VALUES,
+  WRITE_RELATION_TYPE_VALUES,
 } from '../mcp/src/ontology-engine.mjs';
 import { compileOntology } from '../mcp/src/ontology-compiler.mjs';
 import { collectNeighborRefs, findBacklinks, loadVaultDocs } from '../mcp/src/vault.mjs';
@@ -350,8 +351,19 @@ describe('package contract helpers', () => {
     }
     const addConceptsFeature = features.split('2. **add_concepts**')[1]?.split('\n')[0] ?? '';
     const addRelationsFeature = features.split('5. **add_relations**')[1]?.split('\n')[0] ?? '';
+    const addRelationFeature = features.split('4. **add_relation**')[1]?.split('\n').slice(0, 3).join('\n') ?? '';
+    const addRelationRow = readme.split('| `add_relation` |')[1]?.split('\n')[0] ?? '';
+    const addRelationsRow = readme.split('| `add_relations` |')[1]?.split('\n')[0] ?? '';
     assert.match(addConceptsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows/);
     assert.match(addRelationsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows/);
+    assert.match(addRelationFeature, /type enum:/, 'FEATURES must label add_relation write relation enum values');
+    assert.match(addRelationRow, /`type`:/, 'MCP README must label add_relation write relation enum values');
+    assert.match(addRelationsRow, /`type`:/, 'MCP README must label add_relations write relation enum values');
+    for (const value of WRITE_RELATION_TYPE_VALUES) {
+      assert.match(addRelationFeature, new RegExp(`\`${value}\``), `FEATURES documents add_relation type ${value}`);
+      assert.match(addRelationRow, new RegExp(`\`${value}\``), `MCP README documents add_relation type ${value}`);
+      assert.match(addRelationsRow, new RegExp(`\`${value}\``), `MCP README documents add_relations type ${value}`);
+    }
     for (const option of [
       'componentLimit',
       'cycleLimit',

@@ -58,6 +58,7 @@ import {
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
+  WRITE_RELATION_TYPE_VALUES,
 } from "../mcp/src/ontology-engine.mjs";
 
 const WRITE_TOOL_NAMES = new Set([
@@ -946,7 +947,7 @@ function makeDogfoodToolsList() {
             properties: {
               type: {
                 type: "string",
-                enum: ["depends_on", "relates", "contains", "describes", "domains", "capabilities", "elements", "domain"],
+                enum: WRITE_RELATION_TYPE_VALUES,
               },
               expected_mtime: { type: "number", minimum: 0 },
             },
@@ -980,7 +981,7 @@ function makeDogfoodToolsList() {
       if (name === "add_relation") {
         tool.inputSchema.properties.type = {
           type: "string",
-          enum: ["depends_on", "relates", "contains", "describes", "domains", "capabilities", "elements", "domain"],
+          enum: WRITE_RELATION_TYPE_VALUES,
         };
         tool.outputSchema = {
           type: "object",

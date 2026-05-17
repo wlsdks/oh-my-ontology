@@ -12,6 +12,7 @@ import {
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
+  WRITE_RELATION_TYPE_VALUES,
 } from './ontology-engine.mjs';
 
 import {
@@ -424,7 +425,7 @@ describe('verify.mjs first-contact gates', () => {
                 properties: {
                   type: {
                     type: 'string',
-                    enum: ['depends_on', 'relates', 'contains', 'describes', 'domains', 'capabilities', 'elements', 'domain'],
+                    enum: WRITE_RELATION_TYPE_VALUES,
                   },
                   expected_mtime: { type: 'number', minimum: 0 },
                 },
@@ -466,7 +467,7 @@ describe('verify.mjs first-contact gates', () => {
           properties: {
             type: {
               type: 'string',
-              enum: ['depends_on', 'relates', 'contains', 'describes', 'domains', 'capabilities', 'elements', 'domain'],
+              enum: WRITE_RELATION_TYPE_VALUES,
             },
             expected_mtime: { type: 'number', minimum: 0 },
           },

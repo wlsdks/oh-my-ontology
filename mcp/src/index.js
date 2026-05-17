@@ -88,6 +88,7 @@ import {
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
+  WRITE_RELATION_TYPE_VALUES,
   queryCompiledOntology,
 } from './ontology-engine.mjs';
 import { loadOmotIgnore } from './omot-ignore.mjs';
@@ -192,17 +193,7 @@ const QUERY_PLAN_TARGET_OPERATION_UNION = QUERY_PLAN_TARGET_OPERATIONS
 const RELATION_TYPE_UNION = RELATION_TYPE_VALUES
   .map((type) => `'${type}'`)
   .join('|');
-const ADD_RELATION_TYPE_VALUES = Object.freeze([
-  'depends_on',
-  'relates',
-  'contains',
-  'describes',
-  'domains',
-  'capabilities',
-  'elements',
-  'domain',
-]);
-const ADD_RELATION_TYPE_SCHEMA = { ...NON_BLANK_STRING_SCHEMA, enum: ADD_RELATION_TYPE_VALUES };
+const ADD_RELATION_TYPE_SCHEMA = { ...NON_BLANK_STRING_SCHEMA, enum: WRITE_RELATION_TYPE_VALUES };
 
 // import-time throw 면 stdio transport 가 붙기 전 stack trace 가 stderr 로
 // 새고 클라이언트 (Claude Code 등) 에선 silent crash 로 보인다. 친절한 한
@@ -2735,7 +2726,7 @@ const RELATION_KEY = {
   elements: 'elements',
   domain: 'domain',
 };
-const RELATION_TYPES = ADD_RELATION_TYPE_VALUES;
+const RELATION_TYPES = WRITE_RELATION_TYPE_VALUES;
 
 function addRelation({ from, to, type, expected_mtime }, options = {}) {
   requireNonBlankString(from, 'from');

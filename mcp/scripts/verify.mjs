@@ -54,6 +54,7 @@ import {
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
+  WRITE_RELATION_TYPE_VALUES,
 } from '../src/ontology-engine.mjs';
 import {
   IMPORT_EDGE_KIND_VALUES,
@@ -69,16 +70,6 @@ export { VAULT_ISSUE_CODE_VALUES } from '../src/validate.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_ROOT = resolve(__dirname, '..');
 const REPO_ROOT = resolve(MCP_ROOT, '..');
-const ADD_RELATION_TYPE_VALUES = Object.freeze([
-  'depends_on',
-  'relates',
-  'contains',
-  'describes',
-  'domains',
-  'capabilities',
-  'elements',
-  'domain',
-]);
 const PARSER_TEST = join(MCP_ROOT, 'src', 'parser.test.mjs');
 const SERVER_ENTRY = join(MCP_ROOT, 'src', 'index.js');
 const IS_MAIN = fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '');
@@ -1400,7 +1391,7 @@ export function toolsListSchemaFailure(tools) {
 
   const addRelationsTool = tools.find((candidate) => candidate?.name === 'add_relations');
   const addRelationInputType = propertyAt(addRelationsTool, ['properties', 'relations', 'items', 'properties', 'type']);
-  if (!sameArray(addRelationInputType?.enum, ADD_RELATION_TYPE_VALUES)) {
+  if (!sameArray(addRelationInputType?.enum, WRITE_RELATION_TYPE_VALUES)) {
     return 'add_relations inputSchema type enum drift';
   }
   if (!/non-object row shape/.test(addRelationsTool?.description || '') || !/unknown row field/.test(addRelationsTool?.description || '')) {
@@ -1450,7 +1441,7 @@ export function toolsListSchemaFailure(tools) {
   const addRelationTool = tools.find((candidate) => candidate?.name === 'add_relation');
   if (!addRelationTool) return 'tools/list response missing add_relation tool';
   const singleAddRelationInputType = propertyAt(addRelationTool, ['properties', 'type']);
-  if (!sameArray(singleAddRelationInputType?.enum, ADD_RELATION_TYPE_VALUES)) {
+  if (!sameArray(singleAddRelationInputType?.enum, WRITE_RELATION_TYPE_VALUES)) {
     return 'add_relation inputSchema type enum drift';
   }
   if (addRelationTool.outputSchema?.type !== 'object') {
