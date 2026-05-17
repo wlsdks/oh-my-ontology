@@ -71,7 +71,7 @@ function makeDogfoodToolsList() {
         },
       };
       if (name === "query_ontology") {
-        tool.description = "Graph query tool with current-page `nextExecutableAction` / `nextReviewAction` pointers.";
+        tool.description = "Graph query tool with current-page `nextExecutableAction` / `nextReviewAction` pointers and cursor `nextAfterActionId`/`hasMore` pagination metadata.";
         tool.inputSchema.required = ["operation"];
         tool.inputSchema.properties = {
           operation: { enum: QUERY_ONTOLOGY_OPERATIONS },
@@ -81,7 +81,7 @@ function makeDogfoodToolsList() {
           kinds: { items: { enum: MAINTENANCE_KIND_VALUES } },
           afterActionId: {
             description:
-              "nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.",
+              "nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity. cursor.nextAfterActionId matches the last returned action id, cursor.hasMore matches whether more remaining actions exist after this page, and unknown cursors return cursor.nextAfterActionId=null, cursor.hasMore=false.",
           },
           componentLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
           cycleLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
@@ -791,6 +791,20 @@ const okShape = {
     total: 1,
     matches: [{ slug: "capabilities/mcp-server", kind: "capability", title: "MCP Server", mtime: 1 }],
     limited: false,
+  },
+  queryConceptsLimited: {
+    filter: "slug!=project",
+    parsedAs: "slug!=project",
+    total: 1,
+    matches: [{ slug: "README", kind: "vault-readme", title: "README", mtime: 1 }],
+    limited: true,
+  },
+  queryConceptsLimitedStructured: {
+    filter: "slug!=project",
+    parsedAs: "slug!=project",
+    total: 1,
+    matches: [{ slug: "README", kind: "vault-readme", title: "README", mtime: 1 }],
+    limited: true,
   },
   analyzedRepo: {
     rootPath: "/repo",
@@ -3013,6 +3027,24 @@ describe("evaluateDogfoodGate", () => {
       ["query_concepts structuredContent mismatch"],
     );
     assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, queryConceptsLimited: { ...okShape.queryConceptsLimited, limited: false } }),
+      ["query_concepts_limited: expected limited=true", "query_concepts_limited structuredContent mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        queryConceptsLimited: {
+          ...okShape.queryConceptsLimited,
+          matches: [{ slug: "project", kind: "project", title: "Project", mtime: 1 }],
+        },
+      }),
+      ["query_concepts_limited: excluded project slug was returned", "query_concepts_limited structuredContent mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, queryConceptsLimitedStructured: { ...okShape.queryConceptsLimited, total: 2 } }),
+      ["query_concepts_limited structuredContent mismatch"],
+    );
+    assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, analyzedRepo: { ...okShape.analyzedRepo, framework: "unknown" } }),
       ["analyze_repo_structure response unknown framework: unknown"],
     );
@@ -3464,7 +3496,7 @@ describe("evaluateDogfoodGate", () => {
   it("fails on malformed all_paths query_plan payloads", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, allPathsPlan: { ...okShape.allPathsPlan, operation: "all_paths" } }),
-      ["all_paths query_plan response operation mismatch"],
+      ["all_paths query_plan response operation mismatch", "all_paths_query_plan structuredContent mismatch"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -3474,7 +3506,7 @@ describe("evaluateDogfoodGate", () => {
           normalized: { ...okShape.allPathsPlan.normalized, limit: 100 },
         },
       }),
-      ["all_paths query_plan default limit mismatch — expected 25, got 100"],
+      ["all_paths query_plan default limit mismatch — expected 25, got 100", "all_paths_query_plan structuredContent mismatch"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -3484,7 +3516,10 @@ describe("evaluateDogfoodGate", () => {
           estimate: { ...okShape.allPathsPlan.estimate, resultUpperBound: 26 },
         },
       }),
-      ["all_paths query_plan resultUpperBound exceeds limit — upper 26, limit 25"],
+      [
+        "all_paths query_plan resultUpperBound exceeds limit — upper 26, limit 25",
+        "all_paths_query_plan structuredContent mismatch",
+      ],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -3494,7 +3529,7 @@ describe("evaluateDogfoodGate", () => {
           warnings: null,
         },
       }),
-      ["all_paths query_plan missing warnings array"],
+      ["all_paths query_plan missing warnings array", "all_paths_query_plan structuredContent mismatch"],
     );
   });
 
@@ -3504,14 +3539,14 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         projectMapPlan: { ...okShape.projectMapPlan, operation: "project_map" },
       }),
-      ["project_map query_plan returned unexpected operation: project_map"],
+      ["project_map query_plan returned unexpected operation: project_map", "project_map_query_plan structuredContent mismatch"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
         projectMapPlan: { ...okShape.projectMapPlan, targetOperation: "overview" },
       }),
-      ["project_map query_plan returned unexpected targetOperation: overview"],
+      ["project_map query_plan returned unexpected targetOperation: overview", "project_map_query_plan structuredContent mismatch"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -3521,14 +3556,14 @@ describe("evaluateDogfoodGate", () => {
           estimate: { ...okShape.projectMapPlan.estimate, strategy: "bounded_bfs" },
         },
       }),
-      ["project_map query_plan missing aggregate_scan estimate"],
+      ["project_map query_plan missing aggregate_scan estimate", "project_map_query_plan structuredContent mismatch"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
         projectMapPlan: { ...okShape.projectMapPlan, indexesUsed: [] },
       }),
-      ["project_map query_plan missing compiled_artifact index hint"],
+      ["project_map query_plan missing compiled_artifact index hint", "project_map_query_plan structuredContent mismatch"],
     );
   });
 
@@ -4116,7 +4151,10 @@ describe("evaluateDogfoodGate", () => {
           cursor: { ...okShape.maintenancePlanMissingCursor.cursor, found: true },
         },
       }),
-      ["maintenance_plan missing-cursor smoke did not report cursor.found=false"],
+      [
+        "maintenance_plan missing-cursor smoke did not report cursor.found=false",
+        "maintenance_plan_missing_cursor structuredContent mismatch",
+      ],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -4126,7 +4164,10 @@ describe("evaluateDogfoodGate", () => {
           cursor: { ...okShape.maintenancePlanMissingCursor.cursor, reason: null },
         },
       }),
-      ["missing-cursor smoke: maintenance_plan cursor not found without reason"],
+      [
+        "missing-cursor smoke: maintenance_plan cursor not found without reason",
+        "maintenance_plan_missing_cursor structuredContent mismatch",
+      ],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -4141,7 +4182,10 @@ describe("evaluateDogfoodGate", () => {
           actions: okShape.maintenancePlan.actions.slice(0, 1),
         },
       }),
-      ["maintenance_plan missing-cursor smoke returned actions"],
+      [
+        "maintenance_plan missing-cursor smoke returned actions",
+        "maintenance_plan_missing_cursor structuredContent mismatch",
+      ],
     );
   });
 
@@ -4178,7 +4222,7 @@ describe("evaluateDogfoodGate", () => {
           externalElementRefs: { ...okShape.growthPlan.externalElementRefs, rows: [] },
         },
       }),
-      ["growth_plan.externalElementRefs row count mismatch — rows 0, total 1"],
+      ["growth_plan.externalElementRefs row count mismatch — rows 0, total 1", "growth_plan structuredContent mismatch"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -4209,7 +4253,10 @@ describe("evaluateDogfoodGate", () => {
           },
         },
       }),
-      ["growth_plan.externalElementRefs proposedAction slug mismatch: materialize_external_element"],
+      [
+        "growth_plan.externalElementRefs proposedAction slug mismatch: materialize_external_element",
+        "growth_plan structuredContent mismatch",
+      ],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -4222,7 +4269,10 @@ describe("evaluateDogfoodGate", () => {
           },
         },
       }),
-      ["growth_plan.danglingReferences proposedAction missing tool: resolve_dangling_reference"],
+      [
+        "growth_plan.danglingReferences proposedAction missing tool: resolve_dangling_reference",
+        "growth_plan structuredContent mismatch",
+      ],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -4243,7 +4293,10 @@ describe("evaluateDogfoodGate", () => {
           },
         },
       }),
-      ["growth_plan.danglingReferences proposedAction kind mismatch: resolve_dangling_reference"],
+      [
+        "growth_plan.danglingReferences proposedAction kind mismatch: resolve_dangling_reference",
+        "growth_plan structuredContent mismatch",
+      ],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -4256,7 +4309,7 @@ describe("evaluateDogfoodGate", () => {
           },
         },
       }),
-      ["growth_plan.unassignedNodes row missing score: unassigned_node"],
+      ["growth_plan.unassignedNodes row missing score: unassigned_node", "growth_plan structuredContent mismatch"],
     );
   });
 
@@ -5213,19 +5266,29 @@ describe("evaluateDogfoodGate", () => {
   it("fails when dogfood read surfaces disagree on counts", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, list: { ...okShape.list, total: 2 } }),
-      ["dogfood count mismatch — list_kinds.total 1, list_concepts.total 2"],
+      ["list_concepts structuredContent mismatch", "dogfood count mismatch — list_kinds.total 1, list_concepts.total 2"],
     );
-    assert.deepEqual(evaluateDogfoodGate({ ...okShape, validation: { ...okShape.validation, scanned: 2 } }), []);
+    assert.deepEqual(evaluateDogfoodGate({ ...okShape, validation: { ...okShape.validation, scanned: 2 } }), [
+      "validate_vault structuredContent mismatch",
+    ]);
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, compiled: { ...okShape.compiled, nodeCount: 2, byKind: { project: 2 } } }),
-      ["dogfood count mismatch — list_kinds.total 1, compile_ontology.nodeCount 2", "dogfood byKind mismatch — project: list_kinds 1, compile_ontology 2"],
+      [
+        "compile_ontology structuredContent mismatch",
+        "dogfood count mismatch — list_kinds.total 1, compile_ontology.nodeCount 2",
+        "dogfood byKind mismatch — project: list_kinds 1, compile_ontology 2",
+      ],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
         ...okShape,
         overview: { ...okShape.overview, graph: { ...okShape.overview.graph, nodes: 2 }, byKind: { project: 2 } },
       }),
-      ["dogfood count mismatch — list_kinds.total 1, overview.graph.nodes 2", "dogfood byKind mismatch — project: list_kinds 1, overview 2"],
+      [
+        "dogfood count mismatch — list_kinds.total 1, overview.graph.nodes 2",
+        "dogfood byKind mismatch — project: list_kinds 1, overview 2",
+        "overview structuredContent mismatch",
+      ],
     );
   });
 
@@ -5237,6 +5300,7 @@ describe("evaluateDogfoodGate", () => {
         compiled: { ...okShape.compiled, byKind: { project: 1 } },
       }),
       [
+        "list_kinds structuredContent mismatch",
         "dogfood byKind mismatch — capability: list_kinds 1, compile_ontology 0",
         "dogfood byKind mismatch — project: list_kinds 0, compile_ontology 1",
         "dogfood byKind mismatch — capability: list_kinds 1, overview 0",
@@ -5250,6 +5314,8 @@ describe("evaluateDogfoodGate", () => {
         compiled: { ...okShape.compiled, byKind: { capability: 1 } },
       }),
       [
+        "list_kinds structuredContent mismatch",
+        "compile_ontology structuredContent mismatch",
         "dogfood byKind mismatch — capability: list_kinds 1, overview 0",
         "dogfood byKind mismatch — project: list_kinds 0, overview 1",
       ],
@@ -5380,7 +5446,7 @@ describe("evaluateDogfoodGate", () => {
       ...okShape,
       path: { found: false, reason: "not connected" },
     });
-    assert.deepEqual(failures, ["find_path: expected mcp-server → vault-local-first path"]);
+    assert.deepEqual(failures, ["find_path structuredContent mismatch", "find_path: expected mcp-server → vault-local-first path"]);
   });
 
   it("fails on unhealthy first-contact diagnosis", () => {
