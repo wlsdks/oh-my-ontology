@@ -6,6 +6,7 @@ import {
   buildDogfoodRequests,
   componentSummary,
   createUtf8Accumulator,
+  DOGFOOD_TUNED_HEALTH_ARGS,
   DOGFOOD_RESPONSE_LABELS,
   dogfoodTimeoutErrorMessage,
   dogfoodUsage,
@@ -28,6 +29,7 @@ import {
   stderrWarningLines,
   stderrWarningFailures,
   structuredContentStatus,
+  tunedHealthScopeSummary,
   workspaceNextActionSummary,
 } from "./dogfood-mcp-walk.mjs";
 import {
@@ -2738,6 +2740,18 @@ describe("rpc response completion helpers", () => {
     );
   });
 
+  it("summarizes tuned health scope so dogfood output explains scoped component checks", () => {
+    assert.deepEqual(DOGFOOD_TUNED_HEALTH_ARGS.componentTypes, ["domain", "capabilities"]);
+    assert.equal(
+      tunedHealthScopeSummary(),
+      "dependencyTypes=dependencies; componentTypes=domain/capabilities",
+    );
+    assert.equal(
+      tunedHealthScopeSummary({ dependencyTypes: [], componentTypes: null }),
+      "dependencyTypes=all; componentTypes=all",
+    );
+  });
+
   it("summarizes infer_imports module edge kind evidence", () => {
     assert.equal(
       importModuleEdgeKindSummary([
@@ -2993,6 +3007,20 @@ describe("rpc response completion helpers", () => {
     assert.deepEqual(requests.find((request) => request.id === 65)?.params, {
       name: "delete_concept",
       arguments: { slug: "capabilities/mcp-server" },
+    });
+  });
+
+  it("keeps tuned health dogfood requests aligned with the printed scope", () => {
+    const requests = buildDogfoodRequests();
+    assert.deepEqual(requests.find((request) => request.id === 49)?.params.arguments, {
+      operation: "health",
+      ...DOGFOOD_TUNED_HEALTH_ARGS,
+    });
+    assert.deepEqual(requests.find((request) => request.id === 50)?.params.arguments, {
+      operation: "workspace_brief",
+      limit: 5,
+      ...DOGFOOD_TUNED_HEALTH_ARGS,
+      nodeLimit: 3,
     });
   });
 

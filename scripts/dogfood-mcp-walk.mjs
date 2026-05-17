@@ -54,6 +54,14 @@ const ROOT = resolve(__dirname, "..");
 const SERVER = join(ROOT, "mcp", "src", "index.js");
 const VAULT = join(ROOT, "docs", "ontology");
 const DOGFOOD_TIMEOUT_MS_RAW = process.env.OMOT_DOGFOOD_TIMEOUT_MS;
+export const DOGFOOD_TUNED_HEALTH_ARGS = {
+  componentLimit: 3,
+  cycleLimit: 3,
+  recommendationLimit: 3,
+  orderLimit: 3,
+  dependencyTypes: ["dependencies"],
+  componentTypes: ["domain", "capabilities"],
+};
 
 export function dogfoodUsage() {
   return [
@@ -427,6 +435,16 @@ export function dogfoodTimeoutErrorMessage(value) {
   ].join("\n");
 }
 
+export function tunedHealthScopeSummary(args = DOGFOOD_TUNED_HEALTH_ARGS) {
+  const dependencyTypes = Array.isArray(args.dependencyTypes) && args.dependencyTypes.length > 0
+    ? args.dependencyTypes.join("/")
+    : "all";
+  const componentTypes = Array.isArray(args.componentTypes) && args.componentTypes.length > 0
+    ? args.componentTypes.join("/")
+    : "all";
+  return `dependencyTypes=${dependencyTypes}; componentTypes=${componentTypes}`;
+}
+
 const init = [
   {
     jsonrpc: "2.0",
@@ -485,23 +503,13 @@ export function buildDogfoodRequests() {
     call(10, "query_ontology", { operation: "health" }),
     call(49, "query_ontology", {
       operation: "health",
-      componentLimit: 3,
-      cycleLimit: 3,
-      recommendationLimit: 3,
-      orderLimit: 3,
-      dependencyTypes: ["dependencies"],
-      componentTypes: ["domain", "capabilities"],
+      ...DOGFOOD_TUNED_HEALTH_ARGS,
     }),
     call(50, "query_ontology", {
       operation: "workspace_brief",
       limit: 5,
-      componentLimit: 3,
-      cycleLimit: 3,
-      recommendationLimit: 3,
-      orderLimit: 3,
+      ...DOGFOOD_TUNED_HEALTH_ARGS,
       nodeLimit: 3,
-      dependencyTypes: ["dependencies"],
-      componentTypes: ["domain", "capabilities"],
     }),
     call(11, "compile_ontology", { summary: true }),
     call(62, "compile_ontology", { nodesLimit: 1, edgesLimit: 1, includeIndexes: true }),
@@ -4610,6 +4618,7 @@ async function main() {
   const tunedHealthStructured = structuredContent(49);
   if (tunedHealth) {
     console.log(`  structuredContent: ${structuredContentStatus(tunedHealth, tunedHealthStructured)}`);
+    console.log(`  scope: ${tunedHealthScopeSummary()}`);
     console.log(`  status: ${tunedHealth.status}`);
     console.log(
       `  summary: issues ${tunedHealth.summary?.issues ?? "n/a"} · unresolved ${tunedHealth.summary?.unresolvedEdges ?? "n/a"} · cycles ${tunedHealth.summary?.dependencyCycles ?? "n/a"}`,
@@ -4625,6 +4634,7 @@ async function main() {
   const tunedBriefStructured = structuredContent(50);
   if (tunedBrief) {
     console.log(`  structuredContent: ${structuredContentStatus(tunedBrief, tunedBriefStructured)}`);
+    console.log(`  scope: ${tunedHealthScopeSummary()}; nodeLimit 3`);
     console.log(`  status: ${tunedBrief.status}`);
     console.log(
       `  summary: nodes ${tunedBrief.summary?.nodes ?? "n/a"} · edges ${tunedBrief.summary?.edges ?? "n/a"} · issues ${tunedBrief.summary?.issues ?? "n/a"}`,
@@ -5404,6 +5414,7 @@ async function main() {
   console.log(`  health: ${health?.status ?? "n/a"} (${(health?.checks || []).length} checks)`);
   console.log(`  health checks: ${healthCheckStatusSummary(health?.checks)}`);
   console.log(`  health_tuned: ${tunedHealth?.status ?? "n/a"} (${(tunedHealth?.checks || []).length} checks)`);
+  console.log(`  health_tuned scope: ${tunedHealthScopeSummary()}`);
   console.log(`  health_tuned checks: ${healthCheckStatusSummary(tunedHealth?.checks)}`);
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
   console.log(`  compile_ontology indexes: ${compiledIndexes ? compileIndexesSummary(compiledIndexes) : "n/a"}`);
