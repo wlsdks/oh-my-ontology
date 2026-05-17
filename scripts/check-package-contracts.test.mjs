@@ -268,7 +268,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /npm run verify -- --help/);
     assert.match(verifySection, /explicit positional vault or `--vault` argument takes\s+precedence over `OMOT_VAULT`/);
     assert.match(verifySection, /`npm run verify -- --help` prints the same first-contact scope/);
-    assert.match(verifySection, /direct read smokes for `find_evidence` \/ `find_backlinks` \/ `query_concepts` \/\s+limited `query_concepts` \/ `find_neighbors` \/ `find_path` \/ `find_orphans`/);
+    assert.match(verifySection, /direct read smokes for `list_concepts` project probe \/ `get_concept` \/\s+`get_concepts` \/ `find_evidence` \/ `find_backlinks` \/ `query_concepts` \/\s+limited `query_concepts` \/ `find_neighbors` \/ `find_path` \/ `find_orphans`/);
     assert.match(verifySection, /strict unknown-argument \/ invalid-enum rejection/);
     assert.match(verifySection, /`list_concepts\.lmit` plus `list_concepts\.summry`/);
     assert.match(verifySection, /reports multiple unknown tool arguments together/);
@@ -996,7 +996,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);
     assert.match(doc, /first-contact README read-only/);
     assert.match(doc, /직접 verify help\(`npm run verify -- --help`\)/);
-    assert.match(doc, /`query_concepts`, limited `query_concepts`, `find_neighbors`/);
+    assert.match(doc, /`list_concepts` project probe \/ `get_concept` \/ `get_concepts` \//);
+    assert.match(doc, /`query_concepts` \/ limited\s+`query_concepts` \/ `find_neighbors`/);
     assert.match(doc, /별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`/);
     assert.match(doc, /ready `maintenance_plan` cursor 와\s+missing `maintenance_plan\.afterActionId` cursor handling 범위/);
   });

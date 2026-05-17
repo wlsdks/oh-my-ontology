@@ -1681,8 +1681,8 @@ export function verifyUsage() {
     '  npm run verify -- --vault path --timeout-ms 15000\n\n' +
     'Runs the MCP server first-contact verification against the resolved vault.\n' +
     'Explicit [vault] or --vault arguments take precedence over OMOT_VAULT.\n' +
-    'Checks parser smoke, server boot, tool inventory, project probe, batch reads, direct read smokes,\n' +
-    'including find_evidence/find_backlinks/query_concepts/limited query_concepts/find_neighbors/find_path/find_orphans.\n' +
+    'Checks parser smoke, server boot, tool inventory, and direct read smokes,\n' +
+    'including list/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/find_neighbors/find_path/find_orphans.\n' +
     'It also checks node census, vault validation, workspace health, compile/overview, query plans, and graph-query smoke.\n' +
     'Also checks strict unknown-argument / invalid-enum rejection, maintenance_plan filter enums,\n' +
     'batch writer row isolation for non-object rows and unknown row fields,\n' +
