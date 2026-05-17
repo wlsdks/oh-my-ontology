@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, it } from 'node:test';
 
+import { analyzeRepoStructure } from '../mcp/src/analyze.mjs';
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -397,6 +398,7 @@ describe('package contract helpers', () => {
       operation: 'project_scope',
       slug: 'project',
     });
+    const analyzedRepo = analyzeRepoStructure(process.cwd(), { maxDepth: 2 });
 
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology/);
     assert.match(verifySection, /npm run verify -- --vault \.\.\/docs\/ontology/);
@@ -443,7 +445,12 @@ describe('package contract helpers', () => {
       verifySection,
       new RegExp(`✓ query_concepts limited — ${countLabel(1, 'query result')} / ${countLabel(limitedQueryTotal, 'total query result')} \\(limited true\\)`),
     );
-    assert.match(verifySection, /✓ analyze_repo_structure — (fsd|next|generic) \(\d+ domain candidates?, \d+ capability candidates?, \d+ element candidates?\)/);
+    assert.match(
+      verifySection,
+      new RegExp(
+        `✓ analyze_repo_structure — ${analyzedRepo.framework} \\(${countLabel(analyzedRepo.domains.length, 'domain candidate')}, ${countLabel(analyzedRepo.capabilities.length, 'capability candidate')}, ${countLabel(analyzedRepo.elements.length, 'element candidate')}\\)`,
+      ),
+    );
     assert.match(verifySection, /✓ infer_imports — \d+ files? scanned, \d+ module edges? \(.+->.+ x\d+ \((static|dynamic|require|reexport|side):\d+/);
     assert.match(verifySection, new RegExp(`✓ find_neighbors — ${neighborSmokeLine}`));
     assert.match(verifySection, /✓ find_path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
