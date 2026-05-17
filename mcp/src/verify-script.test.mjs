@@ -3807,6 +3807,30 @@ describe('verify.mjs first-contact gates', () => {
       }, 'concepts', 'add_concepts'),
       'add_concepts row-isolation response unexpectedly included postWriteMaintenance',
     );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: okResponse.result.content,
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row isolation structuredContent missing',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: okResponse.result.content,
+          structuredContent: {
+            concepts: [
+              { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+              { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
+              { slug: 'verify-duplicate-slug', ok: false, error: 'concepts[3] duplicate slug in input batch; first seen at concepts[1]' },
+            ],
+          },
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row isolation structuredContent mismatch — $.concepts[3].error: parsed "concepts[3] duplicate slug in input batch; first seen at concepts[2]", structuredContent "concepts[3] duplicate slug in input batch; first seen at concepts[1]"',
+    );
   });
 
   it('fails malformed destructive dry-run smoke responses', () => {
