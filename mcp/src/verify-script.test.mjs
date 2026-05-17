@@ -6217,7 +6217,14 @@ describe('verify.mjs first-contact gates', () => {
           health: { checks: [] },
           nextActions: [
             { kind: 'health_check', severity: 'warn', id: 'compile_issues' },
-            { kind: 'add_missing_relations', severity: 'warn', count: 2 },
+            {
+              kind: 'add_missing_relations',
+              severity: 'warn',
+              count: 2,
+              sample: [
+                { tool: 'add_relation', args: { from: 'capabilities/auth', to: 'domains/auth', type: 'domain' } },
+              ],
+            },
           ],
         },
         'workspace_brief',
@@ -6266,6 +6273,63 @@ describe('verify.mjs first-contact gates', () => {
         'workspace_brief',
       ),
       'workspace_brief add_missing_relations count mismatch',
+    );
+  });
+
+  it('fails workspace_brief next action sample drift', () => {
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'needs_attention',
+          summary: { growthActions: 1 },
+          growth: {
+            relationRecommendations: 1,
+            externalElementRefs: 0,
+            danglingReferences: 0,
+            totalActions: 1,
+          },
+          health: { checks: [] },
+          nextActions: [
+            {
+              kind: 'add_missing_relations',
+              severity: 'warn',
+              count: 1,
+              sample: [{ tool: 'patch_concept', args: { from: 'capabilities/auth', to: 'domains/auth', type: 'domain' } }],
+            },
+          ],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response nextAction add_missing_relations sample tool mismatch at index 0.0',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'needs_attention',
+          summary: { growthActions: 1 },
+          growth: {
+            relationRecommendations: 0,
+            externalElementRefs: 1,
+            danglingReferences: 0,
+            totalActions: 1,
+          },
+          health: { checks: [] },
+          nextActions: [
+            {
+              kind: 'materialize_external_elements',
+              severity: 'info',
+              count: 1,
+              sample: [{ tool: 'add_concept', args: { slug: 'src/auth.ts', kind: 'capability' } }],
+            },
+          ],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response malformed materialize_external_elements sample args at index 0.0',
     );
   });
 

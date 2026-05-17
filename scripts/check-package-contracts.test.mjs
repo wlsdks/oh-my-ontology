@@ -726,6 +726,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /requires every `workspace_brief\.nextActions` row to include a non-empty `id` or `kind` plus `severity` in `info` \/ `warn` \/ `fail`/);
     assert.match(verifySection, /requires every health check row to include non-empty `id` plus `status` in `pass` \/ `warn` \/ `fail` \/ `info`/);
     assert.match(verifySection, /optional `count` fields must be non-negative integers/);
+    assert.match(verifySection, /`workspace_brief\.nextActions\[\]\.sample` includes executable examples/);
+    assert.match(verifySection, /`add_missing_relations` samples are `add_relation` calls with\s+`from` \/ `to` \/ `type`/);
+    assert.match(verifySection, /`materialize_external_elements` samples are\s+`add_concept` calls for `kind:"element"`/);
     assert.match(verifySection, /prints the validated `workspace_brief\.health\.checks` count/);
     assert.match(verifySection, /compact advisory list with label\/severity\/count\/message detail/);
     assert.match(verifySection, /health check `id:status:count` coverage/);
@@ -1118,6 +1121,8 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /workspace_brief\.health\.checks/);
     assert.match(dogfoodSection, /tuned `workspace_brief`/);
     assert.match(dogfoodSection, /workspace_brief\.nextActions/);
+    assert.match(dogfoodSection, /nextActions\[\]\.sample/);
+    assert.match(dogfoodSection, /실행 액션 shape drift/);
     assert.match(dogfoodSection, /severity\/kind\/id\/count\/message/);
     assert.match(dogfoodSection, /workspace_brief nextActions/);
     assert.match(dogfoodSection, /workspace_brief_tuned nextActions/);
