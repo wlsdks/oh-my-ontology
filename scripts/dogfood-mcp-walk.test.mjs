@@ -6354,10 +6354,10 @@ describe("evaluateDogfoodGate", () => {
       },
     });
     assert.deepEqual(failures, [
-      "workspace_brief: failing health checks dependency_cycles",
-      "workspace_brief_tuned: failing health checks components",
-      "health: failing health checks compile_issues",
-      "health_tuned: failing health checks components",
+      "workspace_brief: failing health checks dependency_cycles:fail:1",
+      "workspace_brief_tuned: failing health checks components:fail:1",
+      "health: failing health checks compile_issues:fail:1",
+      "health_tuned: failing health checks components:fail:1",
     ]);
   });
 

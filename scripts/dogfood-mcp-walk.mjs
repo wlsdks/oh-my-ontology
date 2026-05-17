@@ -4349,8 +4349,15 @@ function checksShapeFailure(label, checks, { requireNonEmpty = false } = {}) {
 
 function failedHealthChecks(checks) {
   return Array.isArray(checks)
-    ? checks.filter((check) => check?.status === "fail").map((check) => check.id || "unknown")
+    ? checks.filter((check) => check?.status === "fail").map(healthCheckDiagnosticLabel)
     : [];
+}
+
+function healthCheckDiagnosticLabel(check) {
+  const id = check?.id || "unknown";
+  const status = check?.status || "unknown";
+  const count = Number.isInteger(check?.count) ? `:${check.count}` : "";
+  return `${id}:${status}${count}`;
 }
 
 function blockingNextActions(actions) {

@@ -5969,11 +5969,11 @@ describe('verify.mjs first-contact gates', () => {
           operation: 'workspace_brief',
           status: 'needs_attention',
           nextActions: [],
-          health: { checks: [{ id: 'dependency_cycles', status: 'fail' }] },
+          health: { checks: [{ id: 'dependency_cycles', status: 'fail', count: 1 }] },
         },
         'workspace_brief',
       ),
-      'workspace_brief has failing health checks: dependency_cycles. Inspect query_ontology({operation:"health"}) before writing.',
+      'workspace_brief has failing health checks: dependency_cycles:fail:1. Inspect query_ontology({operation:"health"}) before writing.',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5982,11 +5982,11 @@ describe('verify.mjs first-contact gates', () => {
           operation: 'workspace_brief',
           status: 'needs_attention',
           nextActions: [],
-          health: { checks: [{ id: 'components', status: 'fail' }] },
+          health: { checks: [{ id: 'components', status: 'fail', count: 6 }] },
         },
         'workspace_brief',
       ),
-      'workspace_brief_tuned has failing health checks: components. Inspect query_ontology({operation:"health"}) before writing.',
+      'workspace_brief_tuned has failing health checks: components:fail:6. Inspect query_ontology({operation:"health"}) before writing.',
     );
   });
 

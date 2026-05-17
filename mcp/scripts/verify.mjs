@@ -4142,7 +4142,7 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   }
   const failedChecks = checks.filter((check) => check.status === 'fail');
   if (failedChecks.length > 0) {
-    return `${label} has failing health checks: ${failedChecks.map((check) => check.id).join(', ')}. Inspect query_ontology({operation:"health"}) before writing.`;
+    return `${label} has failing health checks: ${healthChecksSummary(failedChecks)}. Inspect query_ontology({operation:"health"}) before writing.`;
   }
   const blockingActions = blockingNextActions(parsed?.nextActions);
   if (blockingActions.length > 0) {
