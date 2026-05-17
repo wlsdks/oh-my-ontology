@@ -187,7 +187,7 @@ read tool 5종 (`list_concepts` · `find_backlinks` · `find_orphans` · `query_
 ### MCP — 배치 도구 3개 + vault health 신규 (R+, 16→20 tools, #197 #198 #199 #220)
 
 - **`get_concepts`** (read 11번째) — 입력 `{slugs: string[]}` (max 50), 출력 `{concepts: [...]}`. K round-trip → 1, partial result (missing slug 은 row-level `ok: false`).
-- **`add_concepts`** (write 7번째) — 배치 노드 작성. 입력 *내* 중복 slug 사전 감지로 명료한 에러 ("duplicate slug in input batch"), atomic rollback 없음 (partial 시맨틱).
+- **`add_concepts`** (write 7번째) — 배치 노드 작성. 입력 *내* 중복 slug 사전 감지로 명료한 에러 (`concepts[n] duplicate slug in input batch; first seen at concepts[m]`), atomic rollback 없음 (partial 시맨틱).
 - **`add_relations`** (write 8번째) — 배치 edge 작성. idempotent (동일 edge → `alreadyExists: true`), 50-row chunk 분할 가능.
 - **`validate_vault`** (read 12번째) — vault 전체 health 를 한 호출에 반환. agent 가 `list_concepts` 후 K개의 `get_concept` 경고를 모으는 패턴을 1 round-trip 으로 대체.
 

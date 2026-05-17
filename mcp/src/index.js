@@ -2697,7 +2697,7 @@ function addConceptsBatch({ concepts }) {
   // 입력 내 중복 slug 사전 감지 — 두번째 row 가 "이미 존재" 로 fail 하는
   // 혼동을 줄임. 같은 slug 의 첫 row 만 land 시도, 후속 동일 slug 는 input
   // 단계에서 ok:false.
-  const seenInBatch = new Set();
+  const seenInBatch = new Map();
   const results = concepts.map((spec, index) => {
     let slug = '';
     try {
@@ -2713,9 +2713,13 @@ function addConceptsBatch({ concepts }) {
         'body',
       ]);
       if (slug && seenInBatch.has(slug)) {
-        return { slug, ok: false, error: 'duplicate slug in input batch' };
+        return {
+          slug,
+          ok: false,
+          error: `concepts[${index}] duplicate slug in input batch; first seen at concepts[${seenInBatch.get(slug)}]`,
+        };
       }
-      if (slug) seenInBatch.add(slug);
+      if (slug) seenInBatch.set(slug, index);
       const result = addConcept(spec, { includePostWriteMaintenance: false });
       return result;
     } catch (err) {

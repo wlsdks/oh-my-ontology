@@ -3374,7 +3374,7 @@ await test("add_concepts — 빈 concepts[] → 빈 results, 51개 → error", a
 });
 
 // R+ — add_concepts 입력 내 중복 slug 사전 감지. 두번째 동일 slug row 는
-// "이미 존재" 가 아닌 "duplicate slug in input batch" 로 더 명확한 에러.
+// "이미 존재" 가 아닌 row label + first-seen index 로 더 명확한 에러.
 await test("add_concepts — 입력 내 중복 slug 두번째는 ok:false", async () => {
   const root = makeVault([]);
   try {
@@ -3390,7 +3390,8 @@ await test("add_concepts — 입력 내 중복 slug 두번째는 ok:false", asyn
     const result = getCallParsed(responses, 2);
     assert.equal(result.concepts[0].ok, true, "첫 row land");
     assert.equal(result.concepts[1].ok, false, "두번째 동일 slug 는 fail");
-    assert.match(result.concepts[1].error, /duplicate slug in input batch/i);
+    assert.match(result.concepts[1].error, /concepts\[1\] duplicate slug in input batch/i);
+    assert.match(result.concepts[1].error, /first seen at concepts\[0\]/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
