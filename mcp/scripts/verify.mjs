@@ -54,7 +54,15 @@ import {
   QUERY_PLAN_TARGET_OPERATIONS,
   RELATION_TYPE_VALUES,
 } from '../src/ontology-engine.mjs';
+import {
+  IMPORT_EDGE_KIND_VALUES,
+  IMPORT_UNRESOLVED_REASON_VALUES,
+} from '../src/infer-imports.mjs';
 import { VAULT_ISSUE_CODE_VALUES } from '../src/validate.mjs';
+export {
+  IMPORT_EDGE_KIND_VALUES,
+  IMPORT_UNRESOLVED_REASON_VALUES,
+} from '../src/infer-imports.mjs';
 export { VAULT_ISSUE_CODE_VALUES } from '../src/validate.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -197,7 +205,7 @@ export function importModuleEdgeKindOutputSummary(moduleEdges, limit = 2) {
 
 function importKindCountOutputSummary(kindCounts) {
   if (!kindCounts || typeof kindCounts !== 'object' || Array.isArray(kindCounts)) return 'none';
-  const ordered = ['static', 'dynamic', 'require', 'reexport', 'side'];
+  const ordered = IMPORT_EDGE_KIND_VALUES;
   const known = ordered
     .filter((kind) => Number.isInteger(kindCounts[kind]) && kindCounts[kind] > 0)
     .map((kind) => `${kind}:${kindCounts[kind]}`);
@@ -1008,7 +1016,7 @@ export function toolsListSchemaFailure(tools) {
   ) {
     return 'infer_imports outputSchema edges drift';
   }
-  if (!sameArray(importEdgeSchema.items?.properties?.kind?.enum, ['static', 'dynamic', 'require', 'reexport', 'side'])) {
+  if (!sameArray(importEdgeSchema.items?.properties?.kind?.enum, IMPORT_EDGE_KIND_VALUES)) {
     return 'infer_imports outputSchema edge kind drift';
   }
   const externalImportsSchema = outputPropertyAt(inferImportsTool, ['properties', 'externalImports']);
@@ -1027,7 +1035,7 @@ export function toolsListSchemaFailure(tools) {
   ) {
     return 'infer_imports outputSchema unresolved drift';
   }
-  if (!sameArray(unresolvedSchema.items?.properties?.reason?.enum, ['empty', 'relative-not-found', 'alias-not-found'])) {
+  if (!sameArray(unresolvedSchema.items?.properties?.reason?.enum, IMPORT_UNRESOLVED_REASON_VALUES)) {
     return 'infer_imports outputSchema unresolved reason drift';
   }
   const moduleEdgesSchema = outputPropertyAt(inferImportsTool, ['properties', 'moduleEdges']);
@@ -1042,7 +1050,7 @@ export function toolsListSchemaFailure(tools) {
     return 'infer_imports outputSchema moduleEdges count drift';
   }
   const moduleKindCountsSchema = moduleEdgesSchema.items?.properties?.kindCounts;
-  const moduleKindCountKeys = ['static', 'dynamic', 'require', 'reexport', 'side'];
+  const moduleKindCountKeys = IMPORT_EDGE_KIND_VALUES;
   if (
     moduleKindCountsSchema?.type !== 'object' ||
     moduleKindCountsSchema.additionalProperties !== false ||
@@ -3230,8 +3238,8 @@ export function inferImportsFailure(parsed) {
       return `infer_imports response missing ${propertyName} array`;
     }
   }
-  const edgeKinds = new Set(['static', 'dynamic', 'require', 'reexport', 'side']);
-  const unresolvedReasons = new Set(['empty', 'relative-not-found', 'alias-not-found']);
+  const edgeKinds = new Set(IMPORT_EDGE_KIND_VALUES);
+  const unresolvedReasons = new Set(IMPORT_UNRESOLVED_REASON_VALUES);
   for (const [index, edge] of parsed.edges.entries()) {
     if (!edge || typeof edge !== 'object' || Array.isArray(edge)) {
       return `infer_imports response malformed edge at index ${index}`;

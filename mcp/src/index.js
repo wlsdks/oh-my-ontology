@@ -75,7 +75,11 @@ import { dirname } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { buildMarkdown } from './parser.mjs';
 import { analyzeRepoStructure } from './analyze.mjs';
-import { inferImports } from './infer-imports.mjs';
+import {
+  IMPORT_EDGE_KIND_VALUES,
+  IMPORT_UNRESOLVED_REASON_VALUES,
+  inferImports,
+} from './infer-imports.mjs';
 import { compileOntology } from './ontology-compiler.mjs';
 import {
   MAINTENANCE_KIND_VALUES,
@@ -117,6 +121,7 @@ const NON_BLANK_STRING_SCHEMA = Object.freeze({
   pattern: '^(?!\\s)(?!.*\\s$)(?!.*\\u0000).+$',
 });
 const VAULT_ISSUE_CODE_DESCRIPTION = VAULT_ISSUE_CODE_VALUES.map((code) => `\`${code}\``).join(', ');
+const IMPORT_EDGE_KIND_DESCRIPTION = IMPORT_EDGE_KIND_VALUES.join(', ');
 const POST_WRITE_MAINTENANCE_GUIDANCE =
   'compact `postWriteMaintenance` (maintenance_plan) with count-safe `byPhase` / `bySeverity` / `byKind` queue buckets, action `score`, executable `proposedAction`, and current-page next action pointers';
 const POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA = Object.freeze({
@@ -1751,7 +1756,7 @@ const TOOLS = [
               to: NON_BLANK_STRING_SCHEMA,
               kind: {
                 type: 'string',
-                enum: ['static', 'dynamic', 'require', 'reexport', 'side'],
+                enum: IMPORT_EDGE_KIND_VALUES,
               },
             },
             required: ['from', 'to', 'kind'],
@@ -1777,7 +1782,7 @@ const TOOLS = [
               spec: { type: 'string' },
               reason: {
                 type: 'string',
-                enum: ['empty', 'relative-not-found', 'alias-not-found'],
+                enum: IMPORT_UNRESOLVED_REASON_VALUES,
                 description:
                   'Why the import could not resolve. `empty` may have an empty spec; other reasons preserve the original import spec.',
               },
@@ -1796,16 +1801,14 @@ const TOOLS = [
               kindCounts: {
                 type: 'object',
                 properties: {
-                  static: { type: 'integer', minimum: 1 },
-                  dynamic: { type: 'integer', minimum: 1 },
-                  require: { type: 'integer', minimum: 1 },
-                  reexport: { type: 'integer', minimum: 1 },
-                  side: { type: 'integer', minimum: 1 },
+                  ...Object.fromEntries(
+                    IMPORT_EDGE_KIND_VALUES.map((kind) => [kind, { type: 'integer', minimum: 1 }]),
+                  ),
                 },
                 additionalProperties: false,
                 minProperties: 1,
                 description:
-                  'Import kind histogram for this collapsed module edge. Allowed keys: static, dynamic, require, reexport, side.',
+                  `Import kind histogram for this collapsed module edge. Allowed keys: ${IMPORT_EDGE_KIND_DESCRIPTION}.`,
               },
             },
             required: ['from', 'to', 'count', 'kindCounts'],

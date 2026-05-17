@@ -41,6 +41,8 @@ import {
   EXPECTED_DESTRUCTIVE_TOOLS,
   EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_TOOLS,
+  IMPORT_EDGE_KIND_VALUES,
+  IMPORT_UNRESOLVED_REASON_VALUES,
   VAULT_ISSUE_CODE_VALUES,
   expectedToolTitle,
 } from "../mcp/scripts/verify.mjs";
@@ -835,7 +837,7 @@ function makeDogfoodToolsList() {
                 properties: {
                   from: { type: "string" },
                   to: { type: "string" },
-                  kind: { enum: ["static", "dynamic", "require", "reexport", "side"] },
+                  kind: { enum: IMPORT_EDGE_KIND_VALUES },
                 },
               },
             },
@@ -849,7 +851,7 @@ function makeDogfoodToolsList() {
                 type: "object",
                 required: ["from", "spec", "reason"],
                 properties: {
-                  reason: { enum: ["empty", "relative-not-found", "alias-not-found"] },
+                  reason: { enum: IMPORT_UNRESOLVED_REASON_VALUES },
                 },
               },
             },
@@ -863,11 +865,9 @@ function makeDogfoodToolsList() {
                   kindCounts: {
                     type: "object",
                     properties: {
-                      static: { type: "integer", minimum: 1 },
-                      dynamic: { type: "integer", minimum: 1 },
-                      require: { type: "integer", minimum: 1 },
-                      reexport: { type: "integer", minimum: 1 },
-                      side: { type: "integer", minimum: 1 },
+                      ...Object.fromEntries(
+                        IMPORT_EDGE_KIND_VALUES.map((kind) => [kind, { type: "integer", minimum: 1 }]),
+                      ),
                     },
                     additionalProperties: false,
                     minProperties: 1,

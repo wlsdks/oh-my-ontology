@@ -56,6 +56,20 @@ const RESOLVE_EXT_ORDER = [
   '.cts',
 ];
 
+export const IMPORT_EDGE_KIND_VALUES = Object.freeze([
+  'static',
+  'dynamic',
+  'require',
+  'reexport',
+  'side',
+]);
+
+export const IMPORT_UNRESOLVED_REASON_VALUES = Object.freeze([
+  'empty',
+  'relative-not-found',
+  'alias-not-found',
+]);
+
 const SUPPORT_ELEMENT_BUCKETS = new Set([
   'app',
   'apps',

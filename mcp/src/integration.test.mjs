@@ -18,6 +18,8 @@ import {
   EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_READ_TOOLS,
   EXPECTED_TOOLS,
+  IMPORT_EDGE_KIND_VALUES,
+  IMPORT_UNRESOLVED_REASON_VALUES,
   VAULT_ISSUE_CODE_VALUES,
   expectedToolTitle,
 } from "../scripts/verify.mjs";
@@ -470,14 +472,14 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.deepEqual(inferImports?.outputSchema?.required, ["rootPath", "filesScanned", "edges", "externalImports", "unresolved", "moduleEdges"]);
     assert.equal(inferImports?.outputSchema?.properties?.filesScanned?.type, "integer");
     assert.deepEqual(inferImports?.outputSchema?.properties?.edges?.items?.required, ["from", "to", "kind"]);
-    assert.deepEqual(inferImports?.outputSchema?.properties?.edges?.items?.properties?.kind?.enum, ["static", "dynamic", "require", "reexport", "side"]);
-    assert.deepEqual(inferImports?.outputSchema?.properties?.unresolved?.items?.properties?.reason?.enum, ["empty", "relative-not-found", "alias-not-found"]);
+    assert.deepEqual(inferImports?.outputSchema?.properties?.edges?.items?.properties?.kind?.enum, IMPORT_EDGE_KIND_VALUES);
+    assert.deepEqual(inferImports?.outputSchema?.properties?.unresolved?.items?.properties?.reason?.enum, IMPORT_UNRESOLVED_REASON_VALUES);
     assert.deepEqual(inferImports?.outputSchema?.properties?.moduleEdges?.items?.required, ["from", "to", "count", "kindCounts"]);
     assert.equal(inferImports?.outputSchema?.properties?.moduleEdges?.items?.properties?.count?.minimum, 1);
     const kindCountsSchema = inferImports?.outputSchema?.properties?.moduleEdges?.items?.properties?.kindCounts;
     assert.equal(kindCountsSchema?.additionalProperties, false);
     assert.equal(kindCountsSchema?.minProperties, 1);
-    assert.deepEqual(Object.keys(kindCountsSchema?.properties ?? {}), ["static", "dynamic", "require", "reexport", "side"]);
+    assert.deepEqual(Object.keys(kindCountsSchema?.properties ?? {}), IMPORT_EDGE_KIND_VALUES);
     assert.equal(kindCountsSchema?.properties?.static?.type, "integer");
     assert.equal(kindCountsSchema?.properties?.static?.minimum, 1);
     assert.match(
