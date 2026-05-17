@@ -2147,6 +2147,7 @@ export function verifyUsage() {
     '  npm run verify -- [vault] [--timeout-ms N]\n' +
     '  npm run verify -- --vault path --timeout-ms 15000\n\n' +
     'Runs the MCP server first-contact verification against the resolved vault.\n' +
+    'Run npm run verify from the mcp/ package directory; from the repo root, use the node mcp/scripts/verify.mjs form.\n' +
     'Explicit [vault] or --vault arguments take precedence over OMOT_VAULT.\n' +
     'Checks parser smoke, server boot, tool inventory, and direct read smokes,\n' +
     'including list/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans.\n' +
@@ -2158,7 +2159,9 @@ export function verifyUsage() {
     'When the ready cursor has actions, verify resumes from the first returned action id and confirms the resumed page does not repeat it.\n' +
     'Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point only at the first executable/review action in the current returned page.\n' +
     'Ready cursor metadata verifies nextAfterActionId matches the last returned action and hasMore matches the remaining page state.\n' +
-    'Successful cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n'
+    'Successful cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n\n' +
+    'Focused checks:\n' +
+    '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/help diagnostics.\n'
   );
 }
 

@@ -3125,6 +3125,8 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);
     assert.match(verifyUsage(), /npm run verify -- \[vault\] \[--timeout-ms N\]/);
     assert.match(verifyUsage(), /npm run verify -- --vault path --timeout-ms 15000/);
+    assert.match(verifyUsage(), /Run npm run verify from the mcp\/ package directory/);
+    assert.match(verifyUsage(), /from the repo root, use the node mcp\/scripts\/verify\.mjs form/);
     assert.match(verifyUsage(), /Explicit \[vault\] or --vault arguments take precedence over OMOT_VAULT/);
     assert.match(verifyUsage(), /project probe/);
     assert.match(verifyUsage(), /list\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports\/find_neighbors\/find_path\/find_orphans/);
@@ -3139,6 +3141,9 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /ready cursor has actions, verify resumes from the first returned action id/);
     assert.match(verifyUsage(), /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
     assert.match(verifyUsage(), /Successful cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
+    assert.match(verifyUsage(), /Focused checks:/);
+    assert.match(verifyUsage(), /pnpm test:mcp:verify:timeout/);
+    assert.match(verifyUsage(), /Narrow MCP verify timeout\/help diagnostics/);
   });
 
   it('fails malformed strict argument smoke responses', () => {
