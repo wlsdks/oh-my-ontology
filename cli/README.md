@@ -88,8 +88,9 @@ It also verifies batch writer row isolation guidance for `add_concepts` and
 surfacing as row-level `ok:false` results instead of top-level tool errors,
 with no `postWriteMaintenance`.
 It also verifies destructive writer dry-runs for `rename_concept`,
-`merge_concepts`, and `delete_concept` against live vault slugs, requiring
-`ok:false` / `dryRun:true` previews with no `changed` or `postWriteMaintenance`.
+`merge_concepts`, and `delete_concept` against live vault slugs, requiring every
+planned response to be present and return an `ok:false` / `dryRun:true` preview
+with no `changed` or `postWriteMaintenance`.
 It also performs runtime negative smokes with invalid `list_concepts.lmit` and
 `query_ontology.operation="overveiw"` inputs, so CLI users catch schema/runtime
 strictness drift in the installed MCP package.

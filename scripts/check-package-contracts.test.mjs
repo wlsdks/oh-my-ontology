@@ -534,7 +534,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /executable `proposedAction`/);
     assert.match(verifySection, /current-page next action pointer guidance/);
     assert.match(verifySection, /calls destructive dry-runs for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
-    assert.match(verifySection, /previews stay non-writing and do not include `changed` or `postWriteMaintenance`/);
+    assert.match(verifySection, /preview is missing or includes `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /`initialize\.instructions` now names the destructive-write safety boundaries directly/);
     assert.match(verifySection, /`overwrite: true`/);
     assert.match(verifySection, /dangling referrers/);
@@ -638,7 +638,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /instead of top-level tool errors/);
     assert.match(verifySection, /with no `postWriteMaintenance`/);
     assert.match(verifySection, /destructive writer dry-runs for `rename_concept`,\s+`merge_concepts`, and `delete_concept`/);
-    assert.match(verifySection, /`ok:false` \/ `dryRun:true` previews with no `changed` or `postWriteMaintenance`/);
+    assert.match(verifySection, /every\s+planned response to be present/);
+    assert.match(verifySection, /`ok:false` \/ `dryRun:true` preview\s+with no `changed` or `postWriteMaintenance`/);
   });
 
   it('keeps the CLI README explicit about graph write safety switches', () => {
@@ -681,7 +682,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
     assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results instead of top-level tool errors, with no `postWriteMaintenance`/);
     assert.match(verifySection, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
-    assert.match(verifySection, /previews stay non-writing and do not include `changed` or `postWriteMaintenance`/);
+    assert.match(verifySection, /every planned preview response is present, stays non-writing, and does not include `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(verifySection, /valid `maintenance_plan\.afterActionId` resume smoke/);
     assert.match(verifySection, /repeated cursor actions or non-advancing `remainingActions`/);
@@ -1127,7 +1128,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
     assert.match(smoke, /runtime unknown-argument/);
     assert.match(smoke, /invalid-enum rejection/);
-    assert.match(smoke, /destructive writer dry-runs with no changed\\\/postWriteMaintenance/);
+    assert.match(smoke, /destructive writer dry-runs with every planned response present and no changed\\\/postWriteMaintenance/);
     assert.match(smoke, /destructive writer dry-runs for rename_concept\\\/merge_concepts\\\/delete_concept/);
     assert.match(smoke, /write-tool postWriteMaintenance score\\\/proposedAction\\\/next-action guidance/);
     assert.ok(smoke.includes('maintenance_plan cursor smoke'));
