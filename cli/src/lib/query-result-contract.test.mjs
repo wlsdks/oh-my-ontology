@@ -72,35 +72,50 @@ describe('query-result-contract', () => {
     assert.equal(pathResultExitCode({ found: true, hops: ['a', 'b'], edges: [{ from: 'b', to: 'a', via: 'relates' }] }), 1);
     assert.equal(pathResultExitCode({ found: true, hops: ['a', 'b'], edges: [{ from: 'a', to: 'b' }] }), 1);
 
-    assert.equal(healthResultExitCode({ status: 'healthy', checks: [] }), 0);
+    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] }), 0);
+    assert.equal(healthResultExitCode({ status: 'healthy', checks: [] }), 1);
     assert.equal(healthResultExitCode({ status: 'pass', checks: [] }), 1);
     assert.equal(healthResultExitCode({ status: 'needs_attention' }), 1);
     assert.equal(healthResultExitCode({ status: 'healthy' }), 1);
-    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ status: 'fail' }] }), 1);
+    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ id: 'compile_issues', status: 'fail', count: 1 }] }), 1);
     assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ id: 'compile_issues' }] }), 1);
-    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ status: 'pass' }] }), 1);
-    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ id: 'compile_issues', status: 'fial' }] }), 1);
+    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ id: 'compile_issues', status: 'pass' }] }), 1);
+    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ id: 'compile_issues', status: 'pass', count: -1 }] }), 1);
+    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ status: 'pass', count: 0 }] }), 1);
+    assert.equal(healthResultExitCode({ status: 'healthy', checks: [{ id: 'compile_issues', status: 'fial', count: 0 }] }), 1);
 
     assert.equal(
-      workspaceBriefExitCode({ status: 'needs_attention', nextActions: [{ kind: 'cleanup', severity: 'warn' }], health: { checks: [] } }),
+      workspaceBriefExitCode({
+        status: 'needs_attention',
+        nextActions: [{ kind: 'cleanup', severity: 'warn' }],
+        health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] },
+      }),
       0,
     );
     assert.equal(
-      workspaceBriefExitCode({ status: 'ok', nextActions: [], health: { checks: [] } }),
+      workspaceBriefExitCode({ status: 'ok', nextActions: [], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } }),
       1,
     );
     assert.equal(
-      workspaceBriefExitCode({ status: 'healthy', nextActions: [{ kind: 'cleanup', severity: 'fail' }], health: { checks: [] } }),
+      workspaceBriefExitCode({
+        status: 'healthy',
+        nextActions: [{ kind: 'cleanup', severity: 'fail' }],
+        health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] },
+      }),
       1,
     );
-    assert.equal(workspaceBriefExitCode({ health: { checks: [{ id: 'compile_issues', status: 'fail' }] } }), 1);
+    assert.equal(workspaceBriefExitCode({ health: { checks: [{ id: 'compile_issues', status: 'fail', count: 1 }] } }), 1);
     assert.equal(workspaceBriefExitCode({ nextActions: [] }), 1);
     assert.equal(
-      workspaceBriefExitCode({ nextActions: [{ kind: 'cleanup', severity: 'fatal' }], health: { checks: [] } }),
+      workspaceBriefExitCode({
+        nextActions: [{ kind: 'cleanup', severity: 'fatal' }],
+        health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] },
+      }),
       1,
     );
-    assert.equal(workspaceBriefExitCode({ nextActions: [{ severity: 'warn' }], health: { checks: [] } }), 1);
-    assert.equal(workspaceBriefExitCode({ nextActions: [{ kind: 'cleanup' }], health: { checks: [] } }), 1);
+    assert.equal(workspaceBriefExitCode({ nextActions: [{ severity: 'warn' }], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } }), 1);
+    assert.equal(workspaceBriefExitCode({ nextActions: [{ kind: 'cleanup' }], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } }), 1);
+    assert.equal(workspaceBriefExitCode({ status: 'healthy', nextActions: [], health: { checks: [] } }), 1);
     assert.equal(
       workspaceBriefExitCode({ nextActions: [], health: { checks: [{ id: 'compile_issues' }] } }),
       1,

@@ -57,6 +57,7 @@ export function healthResultExitCode(result) {
   if (!DIAGNOSIS_STATUSES.has(status)) return 1;
   if (!Array.isArray(result?.checks)) return 1;
   const checks = result.checks;
+  if (checks.length === 0) return 1;
   if (checks.some((check) => !validHealthCheck(check))) return 1;
   if (checks.some((check) => check?.status === 'fail')) return 1;
   return status === 'healthy' ? 0 : 1;
@@ -67,10 +68,12 @@ export function workspaceBriefExitCode(result) {
   if (!Array.isArray(result?.nextActions)) return 1;
   if (!Array.isArray(result?.health?.checks)) return 1;
   const next = result.nextActions;
+  const checks = result.health.checks;
+  if (checks.length === 0) return 1;
   if (next.some((action) => !validNextAction(action))) return 1;
-  if (result.health.checks.some((check) => !validHealthCheck(check))) return 1;
+  if (checks.some((check) => !validHealthCheck(check))) return 1;
   if (next.some((action) => action?.severity === 'fail')) return 1;
-  return result.health.checks.some((check) => check?.status === 'fail') ? 1 : 0;
+  return checks.some((check) => check?.status === 'fail') ? 1 : 0;
 }
 
 function validNextAction(action) {
@@ -90,6 +93,7 @@ function validHealthCheck(check) {
     && !Array.isArray(check)
     && hasNonEmptyString(check.id)
     && HEALTH_CHECK_STATUSES.has(check.status)
+    && validCount(check.count)
   );
 }
 
