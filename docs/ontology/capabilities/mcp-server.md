@@ -54,8 +54,9 @@ reject 한다. `tools/list` 도 scalar string 과 string-array item 에 같은
 `materialize_external_element` / `unassigned_node` / `empty_domain` 만
 허용해 잘못된 relation / maintenance filter 를 조용히 drop 하지 않는다. match/search 계열 optional scalar filter 도 core 에서
 같은 blank/padded/null-byte contract 로 검증한다.
-`match_nodes.sort` 도 schema enum 과 runtime/core validation 이 같이 움직여
-잘못된 정렬 키를 degree 기본값으로 조용히 흡수하지 않는다.
+`match_nodes.sort` 도 schema enum 과 runtime/core validation 이 같이 움직이며
+installed verify / dogfood walk 가 `sort=outDegre` 를 직접 호출해 잘못된 정렬
+키를 degree 기본값으로 조용히 흡수하지 않는다.
 `match_nodes.kind` / `match_edges.fromKind` 는 표준 ontology kind enum 을,
 `match_edges.toKind` 는 여기에 `external` / `unresolved` target kind 까지 포함한
 edge target enum 을 tools/list schema 와 runtime/core validation 에 같이 노출해
@@ -642,14 +643,14 @@ smoke 의 핵심 증거인 `depend_on -> depends_on` 까지 표시해, 단순히
 strict `add_relation` row 도 존재하지 않는 endpoint 와 `depend_on` typo 를 함께
 사용해 단일 writer 가 write 전 type enum 을 먼저 거절하는지 dogfood walk 에서
 보여준다.
-strict graph kind filter 도 `match_nodes.kind=capabilty`,
+strict graph filter 도 `match_nodes.kind=capabilty`, `match_nodes.sort=outDegre`,
 `recommend_relations.kind=capabilty`, `recommend_relations.kind=domain`
 런타임 smoke 로 확인해 schema 에 enum 이 있어도 실제 `query_ontology` 경계가
-typo 나 operation-specific mismatch 를 빈 결과로 삼키지 않는지 dogfood /
+typo, invalid sort, operation-specific mismatch 를 빈 결과로 삼키지 않는지 dogfood /
 installed verify 양쪽에서 잡는다. 같은 gate 는
 `match_edges.fromKind=capabilty` 와 `match_edges.toKind=externl` 도 호출해 edge kind
 필터가 schema 와 런타임에서 같이 fail-closed 인지 확인한다.
-direct verify help 와 CLI wrapper help 도 이 `match_nodes.kind` /
+direct verify help 와 CLI wrapper help 도 이 `match_nodes.kind` / `match_nodes.sort` /
 `recommend_relations.kind` / `match_edges.fromKind` / `match_edges.toKind` typo and unsupported-kind rejection 을 명시해, 서버를
 띄우기 전에도 graph filter typo 가 빈 결과로 숨지 않는다는 계약을 볼 수 있게 한다.
 `tools/list` 의 `annotations.title` 표시명과 `annotations.readOnlyHint` 도 15 read / 8 write split 과

@@ -92,6 +92,7 @@ import {
   strictEnumFailure,
   strictGraphKindFilterFailure,
   strictRecommendRelationsKindFilterFailure,
+  strictMatchNodesSortFailure,
   strictMaintenanceFilterFailure,
   strictRelationFilterFailure,
   strictRelationCheckFailure,
@@ -3646,7 +3647,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /compile_ontology summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
     assert.match(verifyUsage(), /Successful output prints read census consistency after cross-checking list_kinds\/list_concepts\/compile_ontology\/overview/);
     assert.match(verifyUsage(), /strict unknown-argument \/ invalid-enum rejection/);
-    assert.match(verifyUsage(), /match_nodes\.kind \/ recommend_relations\.kind \/ match_edges\.fromKind\/toKind typo and unsupported-kind rejection/);
+    assert.match(verifyUsage(), /match_nodes\.kind\/sort, recommend_relations\.kind, and match_edges\.fromKind\/toKind typo and unsupported-kind rejection/);
     assert.match(verifyUsage(), /tools\/list inventory names, schema strictness, and annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
     assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels, plus invalid add_relations type closest-value hints/);
     assert.match(verifyUsage(), /structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries/);
@@ -4274,6 +4275,38 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictRecommendRelationsKindFilterFailure({ result: { isError: true, content: [{ text: 'kind must be one of: capability, element. Received: "capabilty".' }] } }),
       'strict recommend_relations kind filter response did not suggest the closest kind value',
+    );
+  });
+
+  it('fails malformed strict match_nodes sort smoke responses', () => {
+    assert.equal(
+      strictMatchNodesSortFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'sort must be one of: degree, inDegree, outDegree, slug. Received: "outDegre". Did you mean "outDegree"?' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictMatchNodesSortFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict match_nodes sort response was not rejected',
+    );
+    assert.equal(
+      strictMatchNodesSortFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict match_nodes sort response did not report the invalid sort filter',
+    );
+    assert.equal(
+      strictMatchNodesSortFailure({ result: { isError: true, content: [{ text: 'sort must be one of: degree, slug. Received: "outDegre". Did you mean "outDegree"?' }] } }),
+      'strict match_nodes sort response did not list allowed sort values',
+    );
+    assert.equal(
+      strictMatchNodesSortFailure({ result: { isError: true, content: [{ text: 'sort must be one of: degree, inDegree, outDegree, slug. Did you mean "outDegree"?' }] } }),
+      'strict match_nodes sort response did not report the invalid sort value',
+    );
+    assert.equal(
+      strictMatchNodesSortFailure({ result: { isError: true, content: [{ text: 'sort must be one of: degree, inDegree, outDegree, slug. Received: "outDegre".' }] } }),
+      'strict match_nodes sort response did not suggest the closest sort value',
     );
   });
 
@@ -4975,6 +5008,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(50), 'strict_add_relation');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(51), 'strict_recommend_relations_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(52), 'strict_recommend_relations_unsupported_kind_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(53), 'strict_match_nodes_sort_filter');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

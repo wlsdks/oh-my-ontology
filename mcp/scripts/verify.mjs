@@ -1846,6 +1846,26 @@ export function strictRecommendRelationsKindFilterFailure(
   return null;
 }
 
+export function strictMatchNodesSortFailure(response) {
+  if (response?.result?.isError !== true) {
+    return 'strict match_nodes sort response was not rejected';
+  }
+  const text = response.result.content?.[0]?.text || '';
+  if (!/sort must be one of/i.test(text)) {
+    return 'strict match_nodes sort response did not report the invalid sort filter';
+  }
+  if (!/degree, inDegree, outDegree, slug/i.test(text)) {
+    return 'strict match_nodes sort response did not list allowed sort values';
+  }
+  if (!/Received: "outDegre"/i.test(text)) {
+    return 'strict match_nodes sort response did not report the invalid sort value';
+  }
+  if (!/Did you mean "outDegree"\?/i.test(text)) {
+    return 'strict match_nodes sort response did not suggest the closest sort value';
+  }
+  return null;
+}
+
 export function strictRelationCheckFailure(response) {
   if (response?.result?.isError !== true) {
     return 'strict relation_check response was not rejected';
@@ -2324,6 +2344,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [50, 'strict_add_relation'],
   [51, 'strict_recommend_relations_kind_filter'],
   [52, 'strict_recommend_relations_unsupported_kind_filter'],
+  [53, 'strict_match_nodes_sort_filter'],
 ]);
 
 function log(level, msg) {
@@ -2562,7 +2583,7 @@ export function verifyUsage() {
     'including list/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans.\n' +
     'It also checks node census, vault validation, workspace health, compile_ontology summary + paginated full-artifact + indexed full-artifact smoke, overview, query plans, and graph-query smoke.\n' +
     'Successful output prints read census consistency after cross-checking list_kinds/list_concepts/compile_ontology/overview.\n' +
-    'Also checks strict unknown-argument / invalid-enum rejection, match_nodes.kind / recommend_relations.kind / match_edges.fromKind/toKind typo and unsupported-kind rejection, maintenance_plan filter enums,\n' +
+    'Also checks strict unknown-argument / invalid-enum rejection, match_nodes.kind/sort, recommend_relations.kind, and match_edges.fromKind/toKind typo and unsupported-kind rejection, maintenance_plan filter enums,\n' +
     'tools/list inventory names, schema strictness, and annotation coverage (title/read/write/destructive/idempotent/local-only),\n' +
     'batch writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels, plus invalid add_relations type closest-value hints,\n' +
     'destructive writer dry-runs for rename_concept/merge_concepts/delete_concept with every planned response present and no changed/postWriteMaintenance,\n' +
@@ -2896,6 +2917,18 @@ export function buildFirstContactRequests() {
         arguments: {
           operation: 'recommend_relations',
           kind: 'domain',
+        },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 53,
+      method: 'tools/call',
+      params: {
+        name: 'query_ontology',
+        arguments: {
+          operation: 'match_nodes',
+          sort: 'outDegre',
         },
       },
     },
@@ -5140,6 +5173,7 @@ async function step2BootAndCall() {
       const strictGraphKindFilterRes = responses.find((r) => r.id === 47);
       const strictRecommendRelationsKindFilterRes = responses.find((r) => r.id === 51);
       const strictRecommendRelationsUnsupportedKindFilterRes = responses.find((r) => r.id === 52);
+      const strictMatchNodesSortFilterRes = responses.find((r) => r.id === 53);
       const strictGraphFromKindFilterRes = responses.find((r) => r.id === 48);
       const strictGraphToKindFilterRes = responses.find((r) => r.id === 49);
       const maintenanceMissingCursorRes = responses.find((r) => r.id === 25);
@@ -5300,7 +5334,12 @@ async function step2BootAndCall() {
         log('fail', strictRecommendRelationsUnsupportedKindFilter);
         return res(false);
       }
-      log('ok', 'strict graph kind filters — invalid match_nodes.kind and recommend_relations.kind rejected with narrowed-kind diagnostics');
+      const strictMatchNodesSortFilter = strictMatchNodesSortFailure(strictMatchNodesSortFilterRes);
+      if (strictMatchNodesSortFilter) {
+        log('fail', strictMatchNodesSortFilter);
+        return res(false);
+      }
+      log('ok', 'strict graph filters — invalid match_nodes.kind/sort and recommend_relations.kind rejected with narrowed diagnostics');
       const strictGraphFromKindFilter = strictGraphKindFilterFailure(strictGraphFromKindFilterRes, { field: 'fromKind' });
       if (strictGraphFromKindFilter) {
         log('fail', strictGraphFromKindFilter);

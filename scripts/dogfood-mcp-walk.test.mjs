@@ -2788,6 +2788,12 @@ const okShape = {
       content: [{ text: 'kind must be one of: capability, element. Received: "domain".' }],
     },
   },
+  strictMatchNodesSortFilter: {
+    result: {
+      isError: true,
+      content: [{ text: 'sort must be one of: degree, inDegree, outDegree, slug. Received: "outDegre". Did you mean "outDegree"?' }],
+    },
+  },
   strictGraphFromKindFilter: {
     result: {
       isError: true,
@@ -3005,6 +3011,10 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       strictClosestValueSummary(okShape.strictRecommendRelationsUnsupportedKindFilter),
       "rejected true (domain; no suggestion)",
+    );
+    assert.equal(
+      strictClosestValueSummary(okShape.strictMatchNodesSortFilter),
+      "rejected true (outDegre -> outDegree)",
     );
     assert.equal(
       strictClosestValueSummary({ result: { isError: true, content: [{ text: 'Received: "depend_on".' }] } }),
@@ -3286,6 +3296,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(70), "strict_add_relation");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(71), "strict_recommend_relations_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(72), "strict_recommend_relations_unsupported_kind_filter");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(73), "strict_match_nodes_sort_filter");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -4063,6 +4074,30 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["strict_recommend_relations_unsupported_kind_filter: strict recommend_relations kind filter response did not list the narrowed kind set"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictMatchNodesSortFilter: {
+          result: {
+            isError: false,
+            content: [{ text: "ok" }],
+          },
+        },
+      }),
+      ["strict_match_nodes_sort_filter: strict match_nodes sort response was not rejected"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictMatchNodesSortFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'sort must be one of: degree, slug. Received: "outDegre". Did you mean "outDegree"?' }],
+          },
+        },
+      }),
+      ["strict_match_nodes_sort_filter: strict match_nodes sort response did not list allowed sort values"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({

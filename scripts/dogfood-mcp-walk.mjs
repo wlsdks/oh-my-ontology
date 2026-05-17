@@ -39,6 +39,7 @@ import {
   strictEnumFailure,
   strictGraphKindFilterFailure,
   strictRecommendRelationsKindFilterFailure,
+  strictMatchNodesSortFailure,
   strictMaintenanceFilterFailure,
   strictAddRelationFailure,
   strictRelationFilterFailure,
@@ -182,6 +183,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [70, "strict_add_relation"],
   [71, "strict_recommend_relations_kind_filter"],
   [72, "strict_recommend_relations_unsupported_kind_filter"],
+  [73, "strict_match_nodes_sort_filter"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -683,6 +685,10 @@ export function buildDogfoodRequests() {
       operation: "recommend_relations",
       kind: "domain",
     }),
+    call(73, "query_ontology", {
+      operation: "match_nodes",
+      sort: "outDegre",
+    }),
     call(68, "query_ontology", {
       operation: "match_edges",
       fromKind: "capabilty",
@@ -1012,6 +1018,7 @@ export function evaluateDogfoodGate({
   strictGraphKindFilter,
   strictRecommendRelationsKindFilter,
   strictRecommendRelationsUnsupportedKindFilter,
+  strictMatchNodesSortFilter,
   strictGraphFromKindFilter,
   strictGraphToKindFilter,
   toolsList,
@@ -1103,6 +1110,10 @@ export function evaluateDogfoodGate({
   );
   if (strictRecommendRelationsUnsupportedKindFilterError) {
     failures.push(`strict_recommend_relations_unsupported_kind_filter: ${strictRecommendRelationsUnsupportedKindFilterError}`);
+  }
+  const strictMatchNodesSortFilterError = strictMatchNodesSortFailure(strictMatchNodesSortFilter);
+  if (strictMatchNodesSortFilterError) {
+    failures.push(`strict_match_nodes_sort_filter: ${strictMatchNodesSortFilterError}`);
   }
   const strictGraphFromKindFilterError = strictGraphKindFilterFailure(strictGraphFromKindFilter, { field: "fromKind" });
   if (strictGraphFromKindFilterError) failures.push(`strict_graph_from_kind_filter: ${strictGraphFromKindFilterError}`);
@@ -5430,6 +5441,12 @@ async function main() {
   if (strictRecommendRelationsUnsupportedKindFilterText) {
     console.log(`  ${strictRecommendRelationsUnsupportedKindFilterText}`);
   }
+  const strictMatchNodesSortFilter = responses.find((response) => response.id === 73);
+  const strictMatchNodesSortFilterText = strictMatchNodesSortFilter?.result?.content?.[0]?.text || "";
+  console.log(`  match_nodes.sort rejected: ${strictMatchNodesSortFilter?.result?.isError === true}`);
+  if (strictMatchNodesSortFilterText) {
+    console.log(`  ${strictMatchNodesSortFilterText}`);
+  }
   const strictGraphFromKindFilter = responses.find((response) => response.id === 68);
   const strictGraphFromKindFilterText = strictGraphFromKindFilter?.result?.content?.[0]?.text || "";
   console.log(`  match_edges.fromKind rejected: ${strictGraphFromKindFilter?.result?.isError === true}`);
@@ -5625,6 +5642,7 @@ async function main() {
     strictGraphKindFilter,
     strictRecommendRelationsKindFilter,
     strictRecommendRelationsUnsupportedKindFilter,
+    strictMatchNodesSortFilter,
     strictGraphFromKindFilter,
     strictGraphToKindFilter,
     toolsList,
@@ -5733,6 +5751,7 @@ async function main() {
   console.log(`  strict_graph_kind_filter: ${strictClosestValueSummary(strictGraphKindFilter)}`);
   console.log(`  strict_recommend_relations_kind_filter: ${strictClosestValueSummary(strictRecommendRelationsKindFilter)}`);
   console.log(`  strict_recommend_relations_unsupported_kind_filter: ${strictClosestValueSummary(strictRecommendRelationsUnsupportedKindFilter)}`);
+  console.log(`  strict_match_nodes_sort_filter: ${strictClosestValueSummary(strictMatchNodesSortFilter)}`);
   console.log(`  strict_graph_from_kind_filter: ${strictClosestValueSummary(strictGraphFromKindFilter)}`);
   console.log(`  strict_graph_to_kind_filter: ${strictClosestValueSummary(strictGraphToKindFilter)}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
