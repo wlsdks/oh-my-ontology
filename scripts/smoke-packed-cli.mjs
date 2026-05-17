@@ -242,6 +242,12 @@ try {
   const cliBin = join(installDir, 'node_modules', '.bin', 'oh-my-ontology');
   assert.equal(existsSync(cliBin), true, 'installed CLI bin is missing');
   const cliMcpVerifyArgs = (args = []) => ['mcp-verify', ...args];
+  assert.deepEqual(cliMcpVerifyArgs(['ontology', '--timeout-ms', '3000']), [
+    'mcp-verify',
+    'ontology',
+    '--timeout-ms',
+    '3000',
+  ]);
 
   const version = run(cliBin, ['--version'], { cwd: projectDir });
   assert.equal(version.stdout.trim(), CLI_PKG.version);
@@ -484,6 +490,23 @@ try {
     'verify',
     ...(args.length > 0 ? ['--', ...args] : []),
   ];
+  assert.deepEqual(mcpVerifyArgs(['--help']), [
+    '--prefix',
+    installedMcpDir,
+    'run',
+    'verify',
+    '--',
+    '--help',
+  ]);
+  assert.deepEqual(mcpVerifyArgs(['--vualt'], { silent: true }), [
+    '--prefix',
+    installedMcpDir,
+    '--silent',
+    'run',
+    'verify',
+    '--',
+    '--vualt',
+  ]);
 
   const installedMcpPkg = JSON.parse(
     readFileSync(join(installedMcpDir, 'package.json'), 'utf-8'),
