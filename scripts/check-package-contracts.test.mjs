@@ -877,7 +877,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`initialize\.instructions` now names the destructive-write safety boundaries directly/);
     assert.match(verifySection, /`overwrite: true`/);
     assert.match(verifySection, /dangling referrers/);
-    assert.match(verifySection, /`npm run verify` now fails when `initialize\.instructions` loses first-contact safety guidance/);
+    assert.match(verifySection, /`npm run verify` now fails when `initialize\.instructions` loses first-contact safety and recovery guidance/);
     assert.match(verifySection, /read-only diagnosis/);
     assert.match(verifySection, /`expected_mtime`/);
     assert.match(verifySection, /`force: true`/);

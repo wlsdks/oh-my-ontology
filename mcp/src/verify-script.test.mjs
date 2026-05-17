@@ -4592,7 +4592,7 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
-  it('fails initialize instructions missing first-contact safety guidance', () => {
+  it('fails initialize instructions missing first-contact safety and recovery guidance', () => {
     const safeInstructions = [
       'Use read-only first-contact diagnosis before write tools.',
       'rename_concept refuses an existing `newSlug` unless overwrite: true is explicit.',
