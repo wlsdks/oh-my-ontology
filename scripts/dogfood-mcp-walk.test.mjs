@@ -194,9 +194,24 @@ function makeDogfoodToolsList() {
           pattern: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES } },
           type: { type: "string", enum: RELATION_TYPE_VALUES },
           relation: { type: "string", enum: RELATION_TYPE_VALUES },
-          kind: { type: "string", enum: NODE_KIND_VALUES },
-          fromKind: { type: "string", enum: NODE_KIND_VALUES },
-          toKind: { type: "string", enum: EDGE_TARGET_KIND_VALUES },
+          kind: {
+            type: "string",
+            enum: NODE_KIND_VALUES,
+            description:
+              "match_nodes: optional node kind filter (project, domain, capability, element, document, vault-readme). recommend_relations currently supports capability or element.",
+          },
+          fromKind: {
+            type: "string",
+            enum: NODE_KIND_VALUES,
+            description:
+              "match_edges only: optional source node kind filter (project, domain, capability, element, document, vault-readme). Source must be a real ontology node, not external/unresolved.",
+          },
+          toKind: {
+            type: "string",
+            enum: EDGE_TARGET_KIND_VALUES,
+            description:
+              "match_edges only: optional target kind filter (project, domain, capability, element, document, vault-readme, external, unresolved). Use external or unresolved for non-node refs.",
+          },
           dependencyTypes: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
           componentTypes: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
         };
@@ -2761,6 +2776,12 @@ const okShape = {
       content: [{ text: 'kind must be one of: project, domain, capability, element, document, vault-readme. Received: "capabilty". Did you mean "capability"?' }],
     },
   },
+  strictRecommendRelationsKindFilter: {
+    result: {
+      isError: true,
+      content: [{ text: 'kind must be one of: capability, element. Received: "capabilty". Did you mean "capability"?' }],
+    },
+  },
   strictGraphFromKindFilter: {
     result: {
       isError: true,
@@ -2970,6 +2991,10 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       strictClosestValueSummary(okShape.strictRelationFilter),
       "rejected true (depend_on -> depends_on)",
+    );
+    assert.equal(
+      strictClosestValueSummary(okShape.strictRecommendRelationsKindFilter),
+      "rejected true (capabilty -> capability)",
     );
     assert.equal(
       strictClosestValueSummary({ result: { isError: true, content: [{ text: 'Received: "depend_on".' }] } }),
@@ -3249,6 +3274,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(68), "strict_graph_from_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(69), "strict_graph_to_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(70), "strict_add_relation");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(71), "strict_recommend_relations_kind_filter");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -3966,6 +3992,42 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["strict_graph_kind_filter: strict graph kind filter response did not suggest the closest kind value"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictRecommendRelationsKindFilter: {
+          result: {
+            isError: false,
+            content: [{ text: "ok" }],
+          },
+        },
+      }),
+      ["strict_recommend_relations_kind_filter: strict recommend_relations kind filter response was not rejected"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictRecommendRelationsKindFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'kind must be one of: project, domain, capability. Received: "capabilty". Did you mean "capability"?' }],
+          },
+        },
+      }),
+      ["strict_recommend_relations_kind_filter: strict recommend_relations kind filter response did not list the narrowed kind set"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictRecommendRelationsKindFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'kind must be one of: capability, element. Received: "capabilty".' }],
+          },
+        },
+      }),
+      ["strict_recommend_relations_kind_filter: strict recommend_relations kind filter response did not suggest the closest kind value"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({

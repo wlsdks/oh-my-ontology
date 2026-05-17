@@ -38,6 +38,7 @@ import {
   strictMultiArgsFailure,
   strictEnumFailure,
   strictGraphKindFilterFailure,
+  strictRecommendRelationsKindFilterFailure,
   strictMaintenanceFilterFailure,
   strictAddRelationFailure,
   strictRelationFilterFailure,
@@ -179,6 +180,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [68, "strict_graph_from_kind_filter"],
   [69, "strict_graph_to_kind_filter"],
   [70, "strict_add_relation"],
+  [71, "strict_recommend_relations_kind_filter"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -672,6 +674,10 @@ export function buildDogfoodRequests() {
       operation: "match_nodes",
       kind: "capabilty",
     }),
+    call(71, "query_ontology", {
+      operation: "recommend_relations",
+      kind: "capabilty",
+    }),
     call(68, "query_ontology", {
       operation: "match_edges",
       fromKind: "capabilty",
@@ -999,6 +1005,7 @@ export function evaluateDogfoodGate({
   strictRelationCheck,
   strictAddRelation,
   strictGraphKindFilter,
+  strictRecommendRelationsKindFilter,
   strictGraphFromKindFilter,
   strictGraphToKindFilter,
   toolsList,
@@ -1080,6 +1087,10 @@ export function evaluateDogfoodGate({
   if (strictAddRelationError) failures.push(`strict_add_relation: ${strictAddRelationError}`);
   const strictGraphKindFilterError = strictGraphKindFilterFailure(strictGraphKindFilter);
   if (strictGraphKindFilterError) failures.push(`strict_graph_kind_filter: ${strictGraphKindFilterError}`);
+  const strictRecommendRelationsKindFilterError = strictRecommendRelationsKindFilterFailure(strictRecommendRelationsKindFilter);
+  if (strictRecommendRelationsKindFilterError) {
+    failures.push(`strict_recommend_relations_kind_filter: ${strictRecommendRelationsKindFilterError}`);
+  }
   const strictGraphFromKindFilterError = strictGraphKindFilterFailure(strictGraphFromKindFilter, { field: "fromKind" });
   if (strictGraphFromKindFilterError) failures.push(`strict_graph_from_kind_filter: ${strictGraphFromKindFilterError}`);
   const strictGraphToKindFilterError = strictGraphKindFilterFailure(strictGraphToKindFilter, {
@@ -5387,12 +5398,18 @@ async function main() {
   }
 
   // 52. strict graph kind filter rejection
-  header("strict graph kind filters — invalid match_nodes.kind rejection");
+  header("strict graph kind filters — invalid match_nodes.kind and recommend_relations.kind rejection");
   const strictGraphKindFilter = responses.find((response) => response.id === 67);
   const strictGraphKindFilterText = strictGraphKindFilter?.result?.content?.[0]?.text || "";
   console.log(`  match_nodes.kind rejected: ${strictGraphKindFilter?.result?.isError === true}`);
   if (strictGraphKindFilterText) {
     console.log(`  ${strictGraphKindFilterText}`);
+  }
+  const strictRecommendRelationsKindFilter = responses.find((response) => response.id === 71);
+  const strictRecommendRelationsKindFilterText = strictRecommendRelationsKindFilter?.result?.content?.[0]?.text || "";
+  console.log(`  recommend_relations.kind rejected: ${strictRecommendRelationsKindFilter?.result?.isError === true}`);
+  if (strictRecommendRelationsKindFilterText) {
+    console.log(`  ${strictRecommendRelationsKindFilterText}`);
   }
   const strictGraphFromKindFilter = responses.find((response) => response.id === 68);
   const strictGraphFromKindFilterText = strictGraphFromKindFilter?.result?.content?.[0]?.text || "";
@@ -5587,6 +5604,7 @@ async function main() {
     strictRelationCheck,
     strictAddRelation,
     strictGraphKindFilter,
+    strictRecommendRelationsKindFilter,
     strictGraphFromKindFilter,
     strictGraphToKindFilter,
     toolsList,
@@ -5693,6 +5711,7 @@ async function main() {
   console.log(`  strict_relation_check: ${strictClosestValueSummary(strictRelationCheck)}`);
   console.log(`  strict_add_relation: ${strictClosestValueSummary(strictAddRelation)}`);
   console.log(`  strict_graph_kind_filter: ${strictClosestValueSummary(strictGraphKindFilter)}`);
+  console.log(`  strict_recommend_relations_kind_filter: ${strictClosestValueSummary(strictRecommendRelationsKindFilter)}`);
   console.log(`  strict_graph_from_kind_filter: ${strictClosestValueSummary(strictGraphFromKindFilter)}`);
   console.log(`  strict_graph_to_kind_filter: ${strictClosestValueSummary(strictGraphToKindFilter)}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
