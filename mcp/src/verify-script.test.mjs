@@ -210,9 +210,16 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'find_orphans',
+        description:
+          'List orphan nodes — docs that no other node references via any frontmatter array key. Useful as a cleanup starting point or to answer "which nodes are unused?". Same matching policy as find_backlinks (full slug or final segment). Root/sentinel kinds like project and vault-readme are excluded by default.',
         inputSchema: {
           additionalProperties: false,
           properties: {
+            kind: {
+              type: 'string',
+              minLength: 1,
+              description: 'Restrict to one kind (e.g. capability). Omit for all kinds.',
+            },
             excludeKinds: {
               type: 'array',
               items: { type: 'string' },
@@ -1057,6 +1064,11 @@ describe('verify.mjs first-contact gates', () => {
       queryTool,
     ];
     const queryOntologyTool = tools.find((tool) => tool.name === 'query_ontology');
+    const findOrphansTool = tools.find((tool) => tool.name === 'find_orphans');
+    const withFindOrphansTool = (tool) => [
+      ...tools.filter((candidate) => candidate.name !== 'find_orphans'),
+      tool,
+    ];
     const queryConceptsTool = tools.find((tool) => tool.name === 'query_concepts');
     const withQueryConceptsTool = (tool) => [
       ...tools.filter((candidate) => candidate.name !== 'query_concepts'),
@@ -1456,43 +1468,61 @@ describe('verify.mjs first-contact gates', () => {
       'tools/list response missing find_orphans tool',
     );
     assert.equal(
-      toolsListSchemaFailure([
-        ...tools.slice(0, 2),
-        {
-          ...tools[2],
-          inputSchema: {
-            ...tools[2].inputSchema,
-            properties: {
-              excludeKinds: {
-                type: 'array',
-                items: { type: 'number' },
-                description: "Defaults to ['project', 'vault-readme'].",
-              },
+      toolsListSchemaFailure(withFindOrphansTool({
+        ...findOrphansTool,
+        description: 'List orphan nodes.',
+      })),
+      'find_orphans description missing cleanup guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withFindOrphansTool({
+        ...findOrphansTool,
+        inputSchema: {
+          ...findOrphansTool.inputSchema,
+          properties: {
+            ...findOrphansTool.inputSchema.properties,
+            kind: {
+              type: 'string',
+              minLength: 1,
+              description: 'Kind filter.',
             },
           },
         },
-        ...tools.slice(3),
-      ]),
+      })),
+      'find_orphans.kind schema guidance drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withFindOrphansTool({
+        ...findOrphansTool,
+        inputSchema: {
+          ...findOrphansTool.inputSchema,
+          properties: {
+            ...findOrphansTool.inputSchema.properties,
+            excludeKinds: {
+              type: 'array',
+              items: { type: 'number' },
+              description: "Defaults to ['project', 'vault-readme'].",
+            },
+          },
+        },
+      })),
       'find_orphans.excludeKinds schema drift',
     );
     assert.equal(
-      toolsListSchemaFailure([
-        ...tools.slice(0, 2),
-        {
-          ...tools[2],
-          inputSchema: {
-            ...tools[2].inputSchema,
-            properties: {
-              excludeKinds: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Pass [] to include every kind.',
-              },
+      toolsListSchemaFailure(withFindOrphansTool({
+        ...findOrphansTool,
+        inputSchema: {
+          ...findOrphansTool.inputSchema,
+          properties: {
+            ...findOrphansTool.inputSchema.properties,
+            excludeKinds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Pass [] to include every kind.',
             },
           },
         },
-        ...tools.slice(3),
-      ]),
+      })),
       'find_orphans.excludeKinds default description drift',
     );
     assert.equal(

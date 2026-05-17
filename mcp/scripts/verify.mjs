@@ -929,6 +929,23 @@ export function toolsListSchemaFailure(tools) {
 
   const findOrphansTool = tools.find((candidate) => candidate?.name === 'find_orphans');
   if (!findOrphansTool) return 'tools/list response missing find_orphans tool';
+  if (
+    !/List orphan nodes/i.test(findOrphansTool.description || '') ||
+    !/docs that no other node references via any frontmatter array key/i.test(findOrphansTool.description || '') ||
+    !/cleanup starting point/i.test(findOrphansTool.description || '') ||
+    !/Root\/sentinel kinds like project and vault-readme are excluded by default/i.test(findOrphansTool.description || '')
+  ) {
+    return 'find_orphans description missing cleanup guidance';
+  }
+  const orphanKindSchema = propertyAt(findOrphansTool, ['properties', 'kind']);
+  if (
+    orphanKindSchema?.type !== 'string' ||
+    orphanKindSchema.minLength !== 1 ||
+    !/Restrict to one kind/i.test(orphanKindSchema.description || '') ||
+    !/Omit for all kinds/i.test(orphanKindSchema.description || '')
+  ) {
+    return 'find_orphans.kind schema guidance drift';
+  }
   if (findOrphansTool.outputSchema?.type !== 'object') {
     return 'find_orphans outputSchema root drift';
   }

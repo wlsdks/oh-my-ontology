@@ -394,6 +394,16 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(findPath?.outputSchema?.properties?.hops?.items?.type, "string");
     assert.deepEqual(findPath?.outputSchema?.properties?.edges?.items?.required, ["from", "to", "via"]);
     const findOrphans = findTool("find_orphans");
+    assert.match(
+      findOrphans?.description ?? "",
+      /List orphan nodes[\s\S]*docs that no other node references via any frontmatter array key[\s\S]*cleanup starting point[\s\S]*Root\/sentinel kinds like project and vault-readme are excluded by default/i,
+      "find_orphans description documents cleanup and default exclusions",
+    );
+    assert.match(
+      findOrphans?.inputSchema?.properties?.kind?.description ?? "",
+      /Restrict to one kind[\s\S]*Omit for all kinds/i,
+      "find_orphans kind schema documents optional kind filter",
+    );
     assert.equal(findOrphans?.outputSchema?.type, "object");
     assert.deepEqual(findOrphans?.outputSchema?.required, ["total", "orphans"]);
     assert.equal(findOrphans?.outputSchema?.properties?.total?.type, "integer");
