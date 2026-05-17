@@ -4484,7 +4484,9 @@ async function main() {
   // 9. workspace_brief
   header(`query_ontology(workspace_brief)`);
   const brief = getResult(responses, 9);
+  const briefStructured = structuredContent(9);
   if (brief) {
+    console.log(`  structuredContent: ${structuredContentStatus(brief, briefStructured)}`);
     console.log(`  status: ${brief.status}`);
     console.log(
       `  summary: nodes ${brief.summary?.nodes ?? "n/a"} · edges ${brief.summary?.edges ?? "n/a"} · issues ${brief.summary?.issues ?? "n/a"}`,
@@ -4498,7 +4500,9 @@ async function main() {
   // 10. health
   header(`query_ontology(health)`);
   const health = getResult(responses, 10);
+  const healthStructured = structuredContent(10);
   if (health) {
+    console.log(`  structuredContent: ${structuredContentStatus(health, healthStructured)}`);
     console.log(`  status: ${health.status}`);
     console.log(
       `  summary: issues ${health.summary?.issues ?? "n/a"} · unresolved ${health.summary?.unresolvedEdges ?? "n/a"} · cycles ${health.summary?.dependencyCycles ?? "n/a"}`,
@@ -4511,7 +4515,9 @@ async function main() {
   // 10b. health tuned
   header(`query_ontology(health tuned)`);
   const tunedHealth = getResult(responses, 49);
+  const tunedHealthStructured = structuredContent(49);
   if (tunedHealth) {
+    console.log(`  structuredContent: ${structuredContentStatus(tunedHealth, tunedHealthStructured)}`);
     console.log(`  status: ${tunedHealth.status}`);
     console.log(
       `  summary: issues ${tunedHealth.summary?.issues ?? "n/a"} · unresolved ${tunedHealth.summary?.unresolvedEdges ?? "n/a"} · cycles ${tunedHealth.summary?.dependencyCycles ?? "n/a"}`,
@@ -4524,7 +4530,9 @@ async function main() {
   // 10c. workspace_brief tuned
   header(`query_ontology(workspace_brief tuned)`);
   const tunedBrief = getResult(responses, 50);
+  const tunedBriefStructured = structuredContent(50);
   if (tunedBrief) {
+    console.log(`  structuredContent: ${structuredContentStatus(tunedBrief, tunedBriefStructured)}`);
     console.log(`  status: ${tunedBrief.status}`);
     console.log(
       `  summary: nodes ${tunedBrief.summary?.nodes ?? "n/a"} · edges ${tunedBrief.summary?.edges ?? "n/a"} · issues ${tunedBrief.summary?.issues ?? "n/a"}`,
@@ -4550,7 +4558,9 @@ async function main() {
   // 12. overview
   header(`query_ontology(overview)`);
   const overview = getResult(responses, 15);
+  const overviewStructured = structuredContent(15);
   if (overview) {
+    console.log(`  structuredContent: ${structuredContentStatus(overview, overviewStructured)}`);
     console.log(
       `  graph ${overview.graph?.graphHash?.slice(0, 12) ?? "n/a"} · nodes ${overview.graph?.nodes ?? "n/a"} · edges ${overview.graph?.edges ?? "n/a"} · hubs ${(overview.hubs || []).length}`,
     );
@@ -4559,7 +4569,9 @@ async function main() {
   // 13. pattern_walk
   header(`query_ontology(pattern_walk project → domains → capabilities)`);
   const patternWalk = getResult(responses, 12);
+  const patternWalkStructured = structuredContent(12);
   if (patternWalk) {
+    console.log(`  structuredContent: ${structuredContentStatus(patternWalk, patternWalkStructured)}`);
     console.log(
       `  paths: ${patternWalk.paths?.rows?.length ?? "n/a"} / total ${patternWalk.paths?.total ?? "n/a"} · limited ${patternWalk.paths?.limited ?? "n/a"}`,
     );
@@ -4571,7 +4583,9 @@ async function main() {
   // 14. all_paths
   header(`query_ontology(all_paths mcp-server → vault-local-first)`);
   const allPaths = getResult(responses, 13);
+  const allPathsStructured = structuredContent(13);
   if (allPaths) {
+    console.log(`  structuredContent: ${structuredContentStatus(allPaths, allPathsStructured)}`);
     console.log(
       `  paths: ${allPaths.paths?.length ?? "n/a"} / total ${allPaths.totalPaths ?? "n/a"} · limited ${allPaths.limited ?? "n/a"} · shortest ${allPaths.shortestHopCount ?? "n/a"}`,
     );
@@ -4584,7 +4598,9 @@ async function main() {
   // 15. all_paths query_plan
   header(`query_ontology(query_plan all_paths mcp-server → vault-local-first)`);
   const allPathsPlan = getResult(responses, 14);
+  const allPathsPlanStructured = structuredContent(14);
   if (allPathsPlan) {
+    console.log(`  structuredContent: ${structuredContentStatus(allPathsPlan, allPathsPlanStructured)}`);
     console.log(
       `  strategy: ${allPathsPlan.estimate?.strategy ?? "n/a"} · limit ${allPathsPlan.normalized?.limit ?? "n/a"} · upper ${allPathsPlan.estimate?.resultUpperBound ?? "n/a"} · cost ${allPathsPlan.estimate?.costClass ?? "n/a"}`,
     );
@@ -4596,7 +4612,9 @@ async function main() {
   // 16. project_map query_plan
   header(`query_ontology(query_plan project_map)`);
   const projectMapPlan = getResult(responses, 17);
+  const projectMapPlanStructured = structuredContent(17);
   if (projectMapPlan) {
+    console.log(`  structuredContent: ${structuredContentStatus(projectMapPlan, projectMapPlanStructured)}`);
     console.log(
       `  strategy: ${projectMapPlan.estimate?.strategy ?? "n/a"} · cost ${projectMapPlan.estimate?.costClass ?? "n/a"} · nodes ${projectMapPlan.estimate?.nodeScans ?? "n/a"} · edges ${projectMapPlan.estimate?.edgeScans ?? "n/a"}`,
     );
@@ -4605,7 +4623,9 @@ async function main() {
   // 17. project_map
   header(`query_ontology(project_map)`);
   const projectMap = getResult(responses, 18);
+  const projectMapStructured = structuredContent(18);
   if (projectMap) {
+    console.log(`  structuredContent: ${structuredContentStatus(projectMap, projectMapStructured)}`);
     console.log(
       `  project ${projectMap.project ?? "n/a"} · domains ${projectMap.domains?.length ?? "n/a"} / total ${projectMap.summary?.domains ?? "n/a"} · capabilities ${projectMap.summary?.capabilities ?? "n/a"} · elements ${projectMap.summary?.elements ?? "n/a"}`,
     );
@@ -4619,7 +4639,9 @@ async function main() {
   // 18. domain_profile
   header(`query_ontology(domain_profile ai-agent-partner)`);
   const domainProfile = getResult(responses, 19);
+  const domainProfileStructured = structuredContent(19);
   if (domainProfile) {
+    console.log(`  structuredContent: ${structuredContentStatus(domainProfile, domainProfileStructured)}`);
     console.log(
       `  domain ${domainProfile.domain ?? "n/a"} · capabilities ${domainProfile.capabilities?.total ?? "n/a"} · elements ${domainProfile.elements?.total ?? "n/a"} · boundary ${domainProfile.edges?.boundary?.total ?? "n/a"} · external ${domainProfile.edges?.external?.total ?? "n/a"}`,
     );
@@ -4631,7 +4653,9 @@ async function main() {
   // 19. domain_matrix
   header(`query_ontology(domain_matrix)`);
   const domainMatrix = getResult(responses, 20);
+  const domainMatrixStructured = structuredContent(20);
   if (domainMatrix) {
+    console.log(`  structuredContent: ${structuredContentStatus(domainMatrix, domainMatrixStructured)}`);
     console.log(
       `  domains ${domainMatrix.summary?.domains ?? "n/a"} · cross ${domainMatrix.summary?.crossDomainEdges ?? "n/a"} · self ${domainMatrix.summary?.selfDomainEdges ?? "n/a"} · connections ${domainMatrix.connections?.rows?.length ?? "n/a"} / total ${domainMatrix.connections?.total ?? "n/a"}`,
     );
@@ -4643,7 +4667,9 @@ async function main() {
   // 20. components
   header(`query_ontology(components)`);
   const components = getResult(responses, 21);
+  const componentsStructured = structuredContent(21);
   if (components) {
+    console.log(`  structuredContent: ${structuredContentStatus(components, componentsStructured)}`);
     console.log(
       `  components ${components.components?.length ?? "n/a"} / total ${components.totalComponents ?? "n/a"} · largest ${components.largestSize ?? "n/a"} · singletons ${components.singletonCount ?? "n/a"}`,
     );
@@ -4656,7 +4682,9 @@ async function main() {
   // 21. relation_check
   header(`query_ontology(relation_check mcp-server → ai-agent-partner)`);
   const relationCheck = getResult(responses, 22);
+  const relationCheckStructured = structuredContent(22);
   if (relationCheck) {
+    console.log(`  structuredContent: ${structuredContentStatus(relationCheck, relationCheckStructured)}`);
     console.log(
       `  ${relationCheck.from} -[${relationCheck.relation}]-> ${relationCheck.to}`,
     );
@@ -4668,7 +4696,9 @@ async function main() {
   // 22. maintenance_plan
   header(`query_ontology(maintenance_plan)`);
   const maintenancePlan = getResult(responses, 23);
+  const maintenancePlanStructured = structuredContent(23);
   if (maintenancePlan) {
+    console.log(`  structuredContent: ${structuredContentStatus(maintenancePlan, maintenancePlanStructured)}`);
     console.log(
       `  actions ${maintenancePlan.actions?.length ?? "n/a"} / remaining ${maintenancePlan.summary?.remainingActions ?? "n/a"} · executable ${maintenancePlan.summary?.executableActions ?? "n/a"} · review ${maintenancePlan.summary?.reviewActions ?? "n/a"}`,
     );
@@ -4687,7 +4717,9 @@ async function main() {
   }
   header(`query_ontology(maintenance_plan missing cursor)`);
   const maintenancePlanMissingCursor = getResult(responses, 54);
+  const maintenancePlanMissingCursorStructured = structuredContent(54);
   if (maintenancePlanMissingCursor) {
+    console.log(`  structuredContent: ${structuredContentStatus(maintenancePlanMissingCursor, maintenancePlanMissingCursorStructured)}`);
     console.log(
       `  found ${maintenancePlanMissingCursor.cursor?.found ?? "n/a"} · reason ${maintenancePlanMissingCursor.cursor?.reason ?? "none"} · remaining ${maintenancePlanMissingCursor.summary?.remainingActions ?? "n/a"}`,
     );
@@ -4696,7 +4728,9 @@ async function main() {
   // 23. growth_plan
   header(`query_ontology(growth_plan)`);
   const growthPlan = getResult(responses, 24);
+  const growthPlanStructured = structuredContent(24);
   if (growthPlan) {
+    console.log(`  structuredContent: ${structuredContentStatus(growthPlan, growthPlanStructured)}`);
     console.log(
       `  actions ${growthPlan.summary?.totalActions ?? "n/a"} · relations ${growthPlan.summary?.relationRecommendations ?? "n/a"} · external ${growthPlan.summary?.externalElementRefs ?? "n/a"} · dangling ${growthPlan.summary?.danglingReferences ?? "n/a"}`,
     );
@@ -4708,7 +4742,9 @@ async function main() {
   // 24. recommend_relations
   header(`query_ontology(recommend_relations)`);
   const relationRecommendations = getResult(responses, 25);
+  const relationRecommendationsStructured = structuredContent(25);
   if (relationRecommendations) {
+    console.log(`  structuredContent: ${structuredContentStatus(relationRecommendations, relationRecommendationsStructured)}`);
     console.log(
       `  recommendations ${relationRecommendations.recommendations?.length ?? "n/a"} / total ${relationRecommendations.totalRecommendations ?? "n/a"} · limited ${relationRecommendations.limited ?? "n/a"}`,
     );
@@ -4720,7 +4756,9 @@ async function main() {
   // 25. cycles
   header(`query_ontology(cycles)`);
   const cycles = getResult(responses, 26);
+  const cyclesStructured = structuredContent(26);
   if (cycles) {
+    console.log(`  structuredContent: ${structuredContentStatus(cycles, cyclesStructured)}`);
     console.log(
       `  cycles ${cycles.cycles?.length ?? "n/a"} / total ${cycles.totalCycles ?? "n/a"} · types ${(cycles.relationTypes || []).join(", ") || "n/a"} · maxDepth ${cycles.maxDepth ?? "n/a"}`,
     );
@@ -4732,7 +4770,9 @@ async function main() {
   // 26. topological_order
   header(`query_ontology(topological_order)`);
   const topologicalOrder = getResult(responses, 27);
+  const topologicalOrderStructured = structuredContent(27);
   if (topologicalOrder) {
+    console.log(`  structuredContent: ${structuredContentStatus(topologicalOrder, topologicalOrderStructured)}`);
     console.log(
       `  acyclic ${topologicalOrder.acyclic ?? "n/a"} · ordered ${topologicalOrder.order?.length ?? "n/a"} / ${topologicalOrder.orderedCount ?? "n/a"} · total ${topologicalOrder.totalNodes ?? "n/a"} · edges ${topologicalOrder.selectedEdges ?? "n/a"}`,
     );
@@ -4744,7 +4784,9 @@ async function main() {
   // 27. lineage
   header(`query_ontology(lineage mcp-server)`);
   const lineage = getResult(responses, 28);
+  const lineageStructured = structuredContent(28);
   if (lineage) {
+    console.log(`  structuredContent: ${structuredContentStatus(lineage, lineageStructured)}`);
     console.log(
       `  center ${lineage.center ?? "n/a"} · ancestors ${lineage.ancestors?.total ?? "n/a"} · descendants ${lineage.descendants?.total ?? "n/a"} · edges ${lineage.edges?.length ?? "n/a"}`,
     );
@@ -4756,7 +4798,9 @@ async function main() {
   // 28. containment_tree
   header(`query_ontology(containment_tree project)`);
   const containmentTree = getResult(responses, 29);
+  const containmentTreeStructured = structuredContent(29);
   if (containmentTree) {
+    console.log(`  structuredContent: ${structuredContentStatus(containmentTree, containmentTreeStructured)}`);
     console.log(
       `  root ${containmentTree.root ?? "n/a"} · roots ${containmentTree.roots?.length ?? "n/a"} / total ${containmentTree.totalRoots ?? "n/a"} · emitted ${containmentTree.emittedNodes ?? "n/a"} · limited ${containmentTree.limited ?? "n/a"}`,
     );
@@ -4768,7 +4812,9 @@ async function main() {
   // 29. reachability
   header(`query_ontology(reachability mcp-server)`);
   const reachability = getResult(responses, 30);
+  const reachabilityStructured = structuredContent(30);
   if (reachability) {
+    console.log(`  structuredContent: ${structuredContentStatus(reachability, reachabilityStructured)}`);
     console.log(
       `  start ${reachability.start ?? "n/a"} · reachable ${reachability.summary?.reachableNodes ?? "n/a"} · layers ${reachability.summary?.layers ?? "n/a"} · terminal ${reachability.summary?.terminalNodes ?? "n/a"}`,
     );
@@ -4780,7 +4826,9 @@ async function main() {
   // 30. impact
   header(`query_ontology(impact mcp-server)`);
   const impact = getResult(responses, 31);
+  const impactStructured = structuredContent(31);
   if (impact) {
+    console.log(`  structuredContent: ${structuredContentStatus(impact, impactStructured)}`);
     console.log(
       `  center ${impact.center ?? "n/a"} · impacted ${impact.nodes?.length ?? "n/a"} / total ${impact.total ?? "n/a"} · limited ${impact.limited ?? "n/a"}`,
     );
@@ -4792,7 +4840,9 @@ async function main() {
   // 31. blast_radius
   header(`query_ontology(blast_radius mcp-server)`);
   const blastRadius = getResult(responses, 32);
+  const blastRadiusStructured = structuredContent(32);
   if (blastRadius) {
+    console.log(`  structuredContent: ${structuredContentStatus(blastRadius, blastRadiusStructured)}`);
     console.log(
       `  center ${blastRadius.center ?? "n/a"} · risk ${blastRadius.risk ?? "n/a"} · affected ${blastRadius.summary?.affectedNodes ?? "n/a"} nodes · crossDomain ${blastRadius.summary?.crossDomainEdges ?? "n/a"}`,
     );
@@ -4804,7 +4854,9 @@ async function main() {
   // 32. subgraph
   header(`query_ontology(subgraph mcp-server)`);
   const subgraph = getResult(responses, 33);
+  const subgraphStructured = structuredContent(33);
   if (subgraph) {
+    console.log(`  structuredContent: ${structuredContentStatus(subgraph, subgraphStructured)}`);
     console.log(
       `  seed ${subgraph.seed ?? "n/a"} · nodes ${subgraph.nodes?.length ?? "n/a"} / total ${subgraph.totalNodes ?? "n/a"} · edges ${subgraph.edges?.length ?? "n/a"} · limited ${subgraph.limited ?? "n/a"}`,
     );
@@ -4816,7 +4868,9 @@ async function main() {
   // 33. schema
   header(`query_ontology(schema)`);
   const schema = getResult(responses, 34);
+  const schemaStructured = structuredContent(34);
   if (schema) {
+    console.log(`  structuredContent: ${structuredContentStatus(schema, schemaStructured)}`);
     console.log(
       `  patterns ${schema.patterns?.length ?? "n/a"} / total ${schema.totalPatterns ?? "n/a"} · limited ${schema.limited ?? "n/a"}`,
     );
@@ -4828,7 +4882,9 @@ async function main() {
   // 34. facets
   header(`query_ontology(facets)`);
   const facets = getResult(responses, 35);
+  const facetsStructured = structuredContent(35);
   if (facets) {
+    console.log(`  structuredContent: ${structuredContentStatus(facets, facetsStructured)}`);
     console.log(
       `  graph nodes ${facets.graph?.nodes ?? "n/a"} · edges ${facets.graph?.edges ?? "n/a"} · topDegree ${facets.nodes?.topByDegree?.length ?? "n/a"} · topPatterns ${facets.edges?.topPatterns?.length ?? "n/a"}`,
     );
@@ -4837,7 +4893,9 @@ async function main() {
   // 35. match_nodes
   header(`query_ontology(match_nodes capability slugContains=mcp)`);
   const matchNodes = getResult(responses, 36);
+  const matchNodesStructured = structuredContent(36);
   if (matchNodes) {
+    console.log(`  structuredContent: ${structuredContentStatus(matchNodes, matchNodesStructured)}`);
     console.log(
       `  nodes ${matchNodes.nodes?.length ?? "n/a"} / total ${matchNodes.totalMatches ?? "n/a"} · limited ${matchNodes.limited ?? "n/a"}`,
     );
@@ -4849,7 +4907,9 @@ async function main() {
   // 36. match_edges
   header(`query_ontology(match_edges from=mcp-server)`);
   const matchEdges = getResult(responses, 37);
+  const matchEdgesStructured = structuredContent(37);
   if (matchEdges) {
+    console.log(`  structuredContent: ${structuredContentStatus(matchEdges, matchEdgesStructured)}`);
     console.log(
       `  edges ${matchEdges.edges?.length ?? "n/a"} / total ${matchEdges.totalMatches ?? "n/a"} · limited ${matchEdges.limited ?? "n/a"}`,
     );
@@ -4861,7 +4921,9 @@ async function main() {
   // 37. node_profile
   header(`query_ontology(node_profile mcp-server)`);
   const nodeProfile = getResult(responses, 38);
+  const nodeProfileStructured = structuredContent(38);
   if (nodeProfile) {
+    console.log(`  structuredContent: ${structuredContentStatus(nodeProfile, nodeProfileStructured)}`);
     console.log(
       `  center ${nodeProfile.center ?? "n/a"} · degree ${nodeProfile.degree?.total ?? "n/a"} · incoming ${nodeProfile.edges?.incoming?.total ?? "n/a"} · outgoing ${nodeProfile.edges?.outgoing?.total ?? "n/a"}`,
     );
@@ -4873,7 +4935,9 @@ async function main() {
   // 38. centrality
   header(`query_ontology(centrality)`);
   const centrality = getResult(responses, 39);
+  const centralityStructured = structuredContent(39);
   if (centrality) {
+    console.log(`  structuredContent: ${structuredContentStatus(centrality, centralityStructured)}`);
     console.log(
       `  graph ${centrality.graph?.nodes ?? "n/a"} nodes · pageRank ${centrality.rankings?.pageRank?.length ?? "n/a"} · bridges ${centrality.rankings?.bridges?.length ?? "n/a"}`,
     );
@@ -4885,7 +4949,9 @@ async function main() {
   // 39. communities
   header(`query_ontology(communities)`);
   const communities = getResult(responses, 40);
+  const communitiesStructured = structuredContent(40);
   if (communities) {
+    console.log(`  structuredContent: ${structuredContentStatus(communities, communitiesStructured)}`);
     console.log(
       `  communities ${communities.communities?.length ?? "n/a"} / total ${communities.summary?.communities ?? "n/a"} · largest ${communities.summary?.largestSize ?? "n/a"} · cross ${communities.summary?.crossCommunityEdges ?? "n/a"}`,
     );
@@ -4897,7 +4963,9 @@ async function main() {
   // 40. similar_nodes
   header(`query_ontology(similar_nodes candidate=mcp-server-v2)`);
   const similarNodes = getResult(responses, 41);
+  const similarNodesStructured = structuredContent(41);
   if (similarNodes) {
+    console.log(`  structuredContent: ${structuredContentStatus(similarNodes, similarNodesStructured)}`);
     console.log(
       `  matches ${similarNodes.matches?.length ?? "n/a"} / total ${similarNodes.totalMatches ?? "n/a"} · limited ${similarNodes.limited ?? "n/a"}`,
     );
@@ -4909,7 +4977,9 @@ async function main() {
   // 41. explain_relation
   header(`query_ontology(explain_relation mcp-server → vault-local-first)`);
   const explainRelation = getResult(responses, 42);
+  const explainRelationStructured = structuredContent(42);
   if (explainRelation) {
+    console.log(`  structuredContent: ${structuredContentStatus(explainRelation, explainRelationStructured)}`);
     console.log(
       `  verdict ${explainRelation.verdict ?? "n/a"} · sameDomain ${explainRelation.domains?.sameDomain ?? "n/a"} · path ${explainRelation.shortestPath?.found ?? "n/a"} · hops ${explainRelation.shortestPath?.hopCount ?? "n/a"}`,
     );
@@ -4921,7 +4991,9 @@ async function main() {
   // 42. neighbors
   header(`query_ontology(neighbors mcp-server)`);
   const neighbors = getResult(responses, 43);
+  const neighborsStructured = structuredContent(43);
   if (neighbors) {
+    console.log(`  structuredContent: ${structuredContentStatus(neighbors, neighborsStructured)}`);
     console.log(
       `  center ${neighbors.center ?? "n/a"} · edges ${neighbors.edges?.length ?? "n/a"} / total ${neighbors.total ?? "n/a"} · nodes ${neighbors.nodes?.length ?? "n/a"} · limited ${neighbors.limited ?? "n/a"}`,
     );
@@ -4933,7 +5005,9 @@ async function main() {
   // 43. path
   header(`query_ontology(path mcp-server → vault-local-first)`);
   const queryPath = getResult(responses, 44);
+  const queryPathStructured = structuredContent(44);
   if (queryPath) {
+    console.log(`  structuredContent: ${structuredContentStatus(queryPath, queryPathStructured)}`);
     console.log(
       `  found ${queryPath.found ?? "n/a"} · hops ${queryPath.hopCount ?? "n/a"} · edges ${queryPath.edges?.length ?? "n/a"}`,
     );
@@ -4945,7 +5019,9 @@ async function main() {
   // 44. project_scope
   header(`query_ontology(project_scope project)`);
   const projectScope = getResult(responses, 45);
+  const projectScopeStructured = structuredContent(45);
   if (projectScope) {
+    console.log(`  structuredContent: ${structuredContentStatus(projectScope, projectScopeStructured)}`);
     console.log(
       `  project ${projectScope.project ?? "n/a"} · nodes ${projectScope.nodes?.rows?.length ?? "n/a"} / total ${projectScope.summary?.nodes ?? "n/a"} · internal ${projectScope.summary?.internalEdges ?? "n/a"} · external ${projectScope.summary?.externalEdges ?? "n/a"}`,
     );
@@ -4994,44 +5070,44 @@ async function main() {
   }
 
   const graphStructuredContentRows = [
-    ["workspace_brief", brief, structuredContent(9)],
-    ["workspace_brief_tuned", tunedBrief, structuredContent(50)],
-    ["health", health, structuredContent(10)],
-    ["health_tuned", tunedHealth, structuredContent(49)],
-    ["overview", overview, structuredContent(15)],
-    ["pattern_walk", patternWalk, structuredContent(12)],
-    ["all_paths", allPaths, structuredContent(13)],
-    ["all_paths_query_plan", allPathsPlan, structuredContent(14)],
-    ["project_map_query_plan", projectMapPlan, structuredContent(17)],
-    ["project_map", projectMap, structuredContent(18)],
-    ["domain_profile", domainProfile, structuredContent(19)],
-    ["domain_matrix", domainMatrix, structuredContent(20)],
-    ["components", components, structuredContent(21)],
-    ["relation_check", relationCheck, structuredContent(22)],
-    ["maintenance_plan", maintenancePlan, structuredContent(23)],
-    ["maintenance_plan_missing_cursor", maintenancePlanMissingCursor, structuredContent(54)],
-    ["growth_plan", growthPlan, structuredContent(24)],
-    ["recommend_relations", relationRecommendations, structuredContent(25)],
-    ["cycles", cycles, structuredContent(26)],
-    ["topological_order", topologicalOrder, structuredContent(27)],
-    ["lineage", lineage, structuredContent(28)],
-    ["containment_tree", containmentTree, structuredContent(29)],
-    ["reachability", reachability, structuredContent(30)],
-    ["impact", impact, structuredContent(31)],
-    ["blast_radius", blastRadius, structuredContent(32)],
-    ["subgraph", subgraph, structuredContent(33)],
-    ["schema", schema, structuredContent(34)],
-    ["facets", facets, structuredContent(35)],
-    ["match_nodes", matchNodes, structuredContent(36)],
-    ["match_edges", matchEdges, structuredContent(37)],
-    ["node_profile", nodeProfile, structuredContent(38)],
-    ["centrality", centrality, structuredContent(39)],
-    ["communities", communities, structuredContent(40)],
-    ["similar_nodes", similarNodes, structuredContent(41)],
-    ["explain_relation", explainRelation, structuredContent(42)],
-    ["neighbors", neighbors, structuredContent(43)],
-    ["path", queryPath, structuredContent(44)],
-    ["project_scope", projectScope, structuredContent(45)],
+    ["workspace_brief", brief, briefStructured],
+    ["workspace_brief_tuned", tunedBrief, tunedBriefStructured],
+    ["health", health, healthStructured],
+    ["health_tuned", tunedHealth, tunedHealthStructured],
+    ["overview", overview, overviewStructured],
+    ["pattern_walk", patternWalk, patternWalkStructured],
+    ["all_paths", allPaths, allPathsStructured],
+    ["all_paths_query_plan", allPathsPlan, allPathsPlanStructured],
+    ["project_map_query_plan", projectMapPlan, projectMapPlanStructured],
+    ["project_map", projectMap, projectMapStructured],
+    ["domain_profile", domainProfile, domainProfileStructured],
+    ["domain_matrix", domainMatrix, domainMatrixStructured],
+    ["components", components, componentsStructured],
+    ["relation_check", relationCheck, relationCheckStructured],
+    ["maintenance_plan", maintenancePlan, maintenancePlanStructured],
+    ["maintenance_plan_missing_cursor", maintenancePlanMissingCursor, maintenancePlanMissingCursorStructured],
+    ["growth_plan", growthPlan, growthPlanStructured],
+    ["recommend_relations", relationRecommendations, relationRecommendationsStructured],
+    ["cycles", cycles, cyclesStructured],
+    ["topological_order", topologicalOrder, topologicalOrderStructured],
+    ["lineage", lineage, lineageStructured],
+    ["containment_tree", containmentTree, containmentTreeStructured],
+    ["reachability", reachability, reachabilityStructured],
+    ["impact", impact, impactStructured],
+    ["blast_radius", blastRadius, blastRadiusStructured],
+    ["subgraph", subgraph, subgraphStructured],
+    ["schema", schema, schemaStructured],
+    ["facets", facets, facetsStructured],
+    ["match_nodes", matchNodes, matchNodesStructured],
+    ["match_edges", matchEdges, matchEdgesStructured],
+    ["node_profile", nodeProfile, nodeProfileStructured],
+    ["centrality", centrality, centralityStructured],
+    ["communities", communities, communitiesStructured],
+    ["similar_nodes", similarNodes, similarNodesStructured],
+    ["explain_relation", explainRelation, explainRelationStructured],
+    ["neighbors", neighbors, neighborsStructured],
+    ["path", queryPath, queryPathStructured],
+    ["project_scope", projectScope, projectScopeStructured],
   ];
   const directStructuredContentRows = [
     ["list_kinds", kinds, kindsStructured],
@@ -5071,83 +5147,83 @@ async function main() {
     inferredImportsStructured,
     validation,
     brief,
-    briefStructured: structuredContent(9),
+    briefStructured,
     tunedBrief,
-    tunedBriefStructured: structuredContent(50),
+    tunedBriefStructured,
     health,
-    healthStructured: structuredContent(10),
+    healthStructured,
     tunedHealth,
-    tunedHealthStructured: structuredContent(49),
+    tunedHealthStructured,
     compiled,
     compiledStructured,
     overview,
-    overviewStructured: structuredContent(15),
+    overviewStructured,
     patternWalk,
-    patternWalkStructured: structuredContent(12),
+    patternWalkStructured,
     allPaths,
-    allPathsStructured: structuredContent(13),
+    allPathsStructured,
     allPathsPlan,
-    allPathsPlanStructured: structuredContent(14),
+    allPathsPlanStructured,
     projectMapPlan,
-    projectMapPlanStructured: structuredContent(17),
+    projectMapPlanStructured,
     projectMap,
-    projectMapStructured: structuredContent(18),
+    projectMapStructured,
     domainProfile,
-    domainProfileStructured: structuredContent(19),
+    domainProfileStructured,
     domainMatrix,
-    domainMatrixStructured: structuredContent(20),
+    domainMatrixStructured,
     components,
-    componentsStructured: structuredContent(21),
+    componentsStructured,
     relationCheck,
-    relationCheckStructured: structuredContent(22),
+    relationCheckStructured,
     maintenancePlan,
-    maintenancePlanStructured: structuredContent(23),
+    maintenancePlanStructured,
     maintenancePlanMissingCursor,
-    maintenancePlanMissingCursorStructured: structuredContent(54),
+    maintenancePlanMissingCursorStructured,
     growthPlan,
-    growthPlanStructured: structuredContent(24),
+    growthPlanStructured,
     relationRecommendations,
-    relationRecommendationsStructured: structuredContent(25),
+    relationRecommendationsStructured,
     cycles,
-    cyclesStructured: structuredContent(26),
+    cyclesStructured,
     topologicalOrder,
-    topologicalOrderStructured: structuredContent(27),
+    topologicalOrderStructured,
     lineage,
-    lineageStructured: structuredContent(28),
+    lineageStructured,
     containmentTree,
-    containmentTreeStructured: structuredContent(29),
+    containmentTreeStructured,
     reachability,
-    reachabilityStructured: structuredContent(30),
+    reachabilityStructured,
     impact,
-    impactStructured: structuredContent(31),
+    impactStructured,
     blastRadius,
-    blastRadiusStructured: structuredContent(32),
+    blastRadiusStructured,
     subgraph,
-    subgraphStructured: structuredContent(33),
+    subgraphStructured,
     schema,
-    schemaStructured: structuredContent(34),
+    schemaStructured,
     facets,
-    facetsStructured: structuredContent(35),
+    facetsStructured,
     matchNodes,
-    matchNodesStructured: structuredContent(36),
+    matchNodesStructured,
     matchEdges,
-    matchEdgesStructured: structuredContent(37),
+    matchEdgesStructured,
     nodeProfile,
-    nodeProfileStructured: structuredContent(38),
+    nodeProfileStructured,
     centrality,
-    centralityStructured: structuredContent(39),
+    centralityStructured,
     communities,
-    communitiesStructured: structuredContent(40),
+    communitiesStructured,
     similarNodes,
-    similarNodesStructured: structuredContent(41),
+    similarNodesStructured,
     explainRelation,
-    explainRelationStructured: structuredContent(42),
+    explainRelationStructured,
     neighbors,
-    neighborsStructured: structuredContent(43),
+    neighborsStructured,
     queryPath,
-    queryPathStructured: structuredContent(44),
+    queryPathStructured,
     projectScope,
-    projectScopeStructured: structuredContent(45),
+    projectScopeStructured,
     projectProbe,
     projectProbeStructured,
     kindsStructured,

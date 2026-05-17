@@ -429,7 +429,9 @@ text JSON drift 를 같은 fail-closed 계약으로 검증해 graph-query 와 di
 direct-tool `structuredContent` summary 에 포함해 gate 가 확인한 계약을 로그에서
 바로 볼 수 있게 한다. 섹션별 structuredContent 상태는 `pass` / `missing` /
 `mismatch` 로 구분하고 null payload 도 missing 으로 판정해 누락과 drift 원인을
-로그에서 바로 분리한다.
+로그에서 바로 분리한다. graph-query dogfood 섹션도 같은 structuredContent 상태
+라인을 출력해 최종 요약까지 기다리지 않고 어떤 graph operation 이 구조화 응답
+계약에서 drift 났는지 찾을 수 있게 한다.
 설치 verify 도 first-contact direct read / `query_ontology` smoke /
 maintenance cursor 응답의 `structuredContent` 누락과 text JSON drift 를 같은
 fail-closed 계약으로 검증한다. 성공 로그도 direct read / maintenance cursor /
