@@ -900,7 +900,7 @@ describe('package contract helpers', () => {
 
     assert.match(tableRow, /project-node `list_concepts` probe/);
     assert.match(tableRow, /23-tool inventory with missing\/extra\/duplicate\/invalid name checks/);
-    assert.match(tableRow, /23-tool inventory with missing\/extra\/duplicate\/invalid name checks plus tools\/list annotation coverage/);
+    assert.match(tableRow, /23-tool inventory with missing\/extra\/duplicate\/invalid name checks plus tools\/list schema strictness and annotation coverage/);
     assert.match(tableRow, /relation filter \/ `relation_check` closest-value rejection/);
     assert.match(tableRow, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
     assert.match(tableRow, /write-tool `postWriteMaintenance` `byPhase`\/`bySeverity`\/`byKind` buckets \+ `score`\/`proposedAction`\/next-action guidance/);
@@ -1782,7 +1782,7 @@ describe('package contract helpers', () => {
       /`canonicalizationActions` 배열이 빠졌거나 `canonicalizationActionCount` 와 배열 길이가 갈라지거나 action row shape 이 malformed 인 compile 응답은 안전한 재정렬이 불가능하므로 patch 전 exit 2 로 실패/,
     );
     assert.match(regressionSection, /paginated `compile_ontology` full-artifact smoke/);
-    assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함\) \/ tools\/list inventory name \/ annotation coverage \/ strict argument\/enum smoke \/ relation filter \/ `relation_check` closest-value rejection \/ batch writer row-isolation smoke \/ destructive dry-run smoke/);
+    assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함\) \/ tools\/list inventory name \/ schema strictness \/ annotation coverage \/ strict argument\/enum smoke \/ relation filter \/ `relation_check` closest-value rejection \/ batch writer row-isolation smoke \/ destructive dry-run smoke/);
     assert.match(regressionSection, /root source-checkout shortcut `pnpm dogfood:verify`/);
     assert.match(regressionSection, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`/);
     assert.match(regressionSection, /`pnpm cli:mcp-verify -- --help`/);
