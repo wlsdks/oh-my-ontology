@@ -46,6 +46,8 @@ import {
   IMPORT_EDGE_KIND_VALUES,
   IMPORT_UNRESOLVED_REASON_VALUES,
   VAULT_ISSUE_CODE_VALUES,
+  VERIFY_TUNED_HEALTH_ARGS,
+  VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
   expectedToolTitle,
 } from "../mcp/scripts/verify.mjs";
 import {
@@ -2873,6 +2875,8 @@ describe("rpc response completion helpers", () => {
   });
 
   it("summarizes tuned health scope so dogfood output explains scoped component checks", () => {
+    assert.equal(DOGFOOD_TUNED_HEALTH_ARGS, VERIFY_TUNED_HEALTH_ARGS);
+    assert.equal(DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT, VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT);
     assert.deepEqual(DOGFOOD_TUNED_HEALTH_ARGS.componentTypes, ["domains", "domain", "capabilities", "dependencies"]);
     assert.equal(
       tunedHealthScopeSummary(),

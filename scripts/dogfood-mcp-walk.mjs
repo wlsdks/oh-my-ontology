@@ -44,6 +44,8 @@ import {
   toolsListAnnotationSummary,
   toolsListSchemaFailure,
   validateVaultFailure,
+  VERIFY_TUNED_HEALTH_ARGS,
+  VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
   workspaceBriefSummary,
 } from "../mcp/scripts/verify.mjs";
 
@@ -54,15 +56,8 @@ const ROOT = resolve(__dirname, "..");
 const SERVER = join(ROOT, "mcp", "src", "index.js");
 const VAULT = join(ROOT, "docs", "ontology");
 const DOGFOOD_TIMEOUT_MS_RAW = process.env.OMOT_DOGFOOD_TIMEOUT_MS;
-export const DOGFOOD_TUNED_HEALTH_ARGS = {
-  componentLimit: 3,
-  cycleLimit: 3,
-  recommendationLimit: 3,
-  orderLimit: 3,
-  dependencyTypes: ["dependencies"],
-  componentTypes: ["domains", "domain", "capabilities", "dependencies"],
-};
-export const DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT = 3;
+export const DOGFOOD_TUNED_HEALTH_ARGS = VERIFY_TUNED_HEALTH_ARGS;
+export const DOGFOOD_TUNED_WORKSPACE_BRIEF_NODE_LIMIT = VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT;
 
 export function dogfoodUsage() {
   return [
