@@ -1,9 +1,20 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { parseMcpToolResponse } from './mcp-call.mjs';
+import { formatMcpSpawnError, parseMcpToolResponse } from './mcp-call.mjs';
 
 describe('mcp-call response parsing', () => {
+  it('formats MCP spawn errors with tool, vault, and entry context', () => {
+    assert.equal(
+      formatMcpSpawnError(new Error('spawn node ENOENT'), {
+        entry: '/tmp/mcp/src/index.js',
+        toolName: 'query_ontology',
+        vaultRoot: '/tmp/vault',
+      }).message,
+      'failed to spawn MCP server while calling query_ontology (vault /tmp/vault, entry /tmp/mcp/src/index.js): spawn node ENOENT',
+    );
+  });
+
   it('returns structuredContent when text JSON matches with different key order', () => {
     assert.deepEqual(
       parseMcpToolResponse({

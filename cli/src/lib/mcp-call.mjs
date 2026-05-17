@@ -86,7 +86,9 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
       stderrChunks.push(chunk);
     });
 
-    proc.on('error', (err) => rejectP(err));
+    proc.on('error', (err) => {
+      rejectP(formatMcpSpawnError(err, { entry, toolName, vaultRoot }));
+    });
     proc.on('exit', (code) => {
       const stdoutBuf = Buffer.concat(stdoutChunks).toString('utf8');
       const stderrBuf = Buffer.concat(stderrChunks).toString('utf8');
@@ -152,6 +154,14 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
     }
     proc.stdin.end();
   });
+}
+
+export function formatMcpSpawnError(err, { entry, toolName, vaultRoot } = {}) {
+  const tool = toolName || '(unknown tool)';
+  const vault = vaultRoot || '(unknown vault)';
+  const entryLabel = entry || '(unknown entry)';
+  const cause = err instanceof Error ? err.message : String(err);
+  return new Error(`failed to spawn MCP server while calling ${tool} (vault ${vault}, entry ${entryLabel}): ${cause}`);
 }
 
 export function parseMcpToolResponse(toolResp, { toolName } = {}) {
