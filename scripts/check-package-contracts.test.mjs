@@ -615,6 +615,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ add_concepts — non-object and unknown-field rows isolated with input indexes/);
     assert.match(verifySection, /✓ add_relations — non-object and unknown-field rows isolated with input indexes/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
+    assert.match(verifySection, /✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint/);
+    assert.match(verifySection, /✓ strict relation_check — invalid type rejected with closest-value hint/);
     assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported .*phase none; severity none; kind none; executable none; review none/);
     assert.match(verifySection, /✓ maintenance cursor — ready page stable .*phase none; severity none; kind none; executable none; review none/);
     assert.match(verifySection, /✓ maintenance cursor — ready page stable/);
