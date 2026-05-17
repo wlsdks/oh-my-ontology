@@ -101,6 +101,10 @@ describe('package contract helpers', () => {
       pkg.scripts?.['integration:mcp:readme'],
       'node --test --test-name-pattern "README first exploration" mcp/src/integration.test.mjs',
     );
+    assert.equal(
+      pkg.scripts?.['package:check'],
+      'node scripts/check-package-contracts.mjs && pnpm test:cli:lib && node --test scripts/check-package-contracts.test.mjs',
+    );
     assert.equal(pkg.scripts?.['test:cli:lib'], 'node --test cli/src/lib/*.test.mjs');
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /check-package-contracts\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /check-package-contracts\.test\.mjs/);
@@ -141,6 +145,7 @@ describe('package contract helpers', () => {
       pkg.scripts?.['test:mcp:suggestions'] ?? '',
       /^node --test --test-name-pattern "[^"]+" mcp\/src\/suggestions\.test\.mjs mcp\/src\/ontology-engine\.test\.mjs$/,
     );
+    assert.match(readme, /pnpm package:check\s+# MCP\/CLI package files contract \+ CLI lib \+ docs self-test/);
     assert.match(readme, /pnpm test:cli:lib\s+# focused CLI shared helper unit contracts/);
     assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:dogfood/);
@@ -1389,6 +1394,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /cli\/src\/lib\/mcp-call\.test\.mjs/);
     assert.match(regressionSection, /`pnpm test:cli:lib`/);
     assert.match(regressionSection, /focused CLI shared helper unit contracts/);
+    assert.match(regressionSection, /`pnpm package:check` 도 이 gate 를 포함/);
     assert.match(regressionSection, /`cli\/src\/lib\/cli-args\.test\.mjs`/);
     assert.match(regressionSection, /`cli\/src\/lib\/cli-commands\.test\.mjs`/);
     assert.match(regressionSection, /command registry \/ package description command count/);
