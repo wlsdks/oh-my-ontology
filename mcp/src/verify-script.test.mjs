@@ -19,6 +19,7 @@ import {
   buildFirstContactRequests,
   buildGetConceptSmokeSlug,
   buildGetConceptsSmokeSlugs,
+  buildDestructiveDryRunSmokeRequests,
   buildDirectGraphReadSmokeRequests,
   buildLimitedQueryConceptsSmokeRequest,
   buildGraphQuerySmokeArgs,
@@ -29,6 +30,7 @@ import {
   compileSummaryFailure,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
+  destructiveDryRunFailure,
   EXPECTED_DESTRUCTIVE_TOOLS,
   EXPECTED_IDEMPOTENT_TOOLS,
   EXPECTED_READ_TOOLS,
@@ -3287,6 +3289,72 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed destructive dry-run smoke responses', () => {
+    const renamePayload = {
+      ok: false,
+      dryRun: true,
+      oldSlug: 'old',
+      newSlug: 'new',
+      moved: false,
+      backlinkUpdates: { totalUpdated: 0 },
+      message: 'dry-run — confirm:true to apply',
+    };
+    assert.equal(
+      destructiveDryRunFailure({
+        result: {
+          content: [{ text: JSON.stringify(renamePayload) }],
+          structuredContent: renamePayload,
+        },
+      }, 'rename_concept'),
+      null,
+    );
+    assert.equal(
+      destructiveDryRunFailure({
+        result: {
+          content: [{ text: JSON.stringify({ ...renamePayload, postWriteMaintenance: {} }) }],
+          structuredContent: { ...renamePayload, postWriteMaintenance: {} },
+        },
+      }, 'rename_concept'),
+      'rename_concept dry-run response unexpectedly included postWriteMaintenance',
+    );
+    assert.equal(
+      destructiveDryRunFailure({
+        result: {
+          content: [{ text: JSON.stringify({ ...renamePayload, changed: true }) }],
+          structuredContent: { ...renamePayload, changed: true },
+        },
+      }, 'rename_concept'),
+      'rename_concept dry-run response unexpectedly included changed',
+    );
+    assert.equal(
+      destructiveDryRunFailure({
+        result: {
+          content: [{ text: JSON.stringify({ ...renamePayload, dryRun: false }) }],
+          structuredContent: { ...renamePayload, dryRun: false },
+        },
+      }, 'rename_concept'),
+      'rename_concept dry-run response must be ok:false with dryRun:true',
+    );
+    assert.equal(
+      destructiveDryRunFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'bad' }],
+        },
+      }, 'delete_concept'),
+      'delete_concept dry-run returned top-level tool error',
+    );
+    assert.equal(
+      destructiveDryRunFailure({
+        result: {
+          content: [{ text: JSON.stringify({ ok: false, dryRun: true, slug: 'gone', backlinks: [], message: 'dry-run — force:true to apply' }) }],
+          structuredContent: { ok: false, dryRun: true, slug: 'gone', backlinks: [], message: 'dry-run — force:true to apply' },
+        },
+      }, 'delete_concept'),
+      null,
+    );
+  });
+
   it('fails malformed strict enum smoke responses', () => {
     assert.equal(
       strictEnumFailure({
@@ -3979,8 +4047,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(40), 'strict_relation_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(41), 'compile_ontology_page');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(42), 'compile_ontology_indexes');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(43), 'rename_concept_dry_run');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(44), 'merge_concepts_dry_run');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(45), 'delete_concept_dry_run');
     assert.deepEqual(
-      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37].sort((a, b) => a - b),
+      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
     );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]
@@ -4058,6 +4129,33 @@ describe('verify.mjs first-contact gates', () => {
         expectedTotal: 2,
       },
     );
+  });
+
+  it('builds destructive writer dry-run smoke requests from listed nodes', () => {
+    assert.deepEqual(buildDestructiveDryRunSmokeRequests({ nodes: [] }), {
+      requests: [],
+      expectedResponseIds: [],
+    });
+
+    const single = buildDestructiveDryRunSmokeRequests({
+      nodes: [{ slug: 'project', kind: 'project' }],
+    });
+    assert.deepEqual(single.expectedResponseIds, [43, 45]);
+    assert.equal(single.requests[0].params.name, 'rename_concept');
+    assert.equal(single.requests[0].params.arguments.oldSlug, 'project');
+    assert.match(single.requests[0].params.arguments.newSlug, /^__omot_verify_dry_run_target_/);
+    assert.equal(single.requests[1].params.name, 'delete_concept');
+    assert.deepEqual(single.requests[1].params.arguments, { slug: 'project' });
+
+    const multi = buildDestructiveDryRunSmokeRequests({
+      nodes: [{ slug: 'project' }, { slug: 'capabilities/mcp-server' }],
+    });
+    assert.deepEqual(multi.expectedResponseIds, [43, 44, 45]);
+    assert.equal(multi.requests[1].params.name, 'merge_concepts');
+    assert.deepEqual(multi.requests[1].params.arguments, {
+      fromSlug: 'project',
+      intoSlug: 'capabilities/mcp-server',
+    });
   });
 
   it('accepts clean find_evidence, find_backlinks, and query_concepts payloads', () => {
@@ -5548,8 +5646,9 @@ describe('verify.mjs first-contact gates', () => {
         hasDirectGraphReads: true,
         hasLimitedQueryConcepts: true,
         hasCompileIndexes: true,
+        destructiveDryRunCount: 3,
       }),
-      'direct 16/16, write 2/2, maintenance 2/2, graph 11/11',
+      'direct 16/16, write 5/5, maintenance 2/2, graph 11/11',
     );
     assert.equal(
       structuredContentVerifySummary({
@@ -5561,8 +5660,9 @@ describe('verify.mjs first-contact gates', () => {
         hasLimitedQueryConcepts: true,
         hasCompileIndexes: true,
         hasMaintenanceResume: true,
+        destructiveDryRunCount: 3,
       }),
-      'direct 16/16, write 2/2, maintenance 3/3, graph 11/11',
+      'direct 16/16, write 5/5, maintenance 3/3, graph 11/11',
     );
   });
 

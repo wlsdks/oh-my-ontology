@@ -406,14 +406,14 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
     assert.match(verifySection, new RegExp(`✓ project_scope — project \\(${scopedNodes} nodes, internalEdges`));
-    assert.match(verifySection, /✓ structuredContent — direct 16\/16, write 2\/2, maintenance 2\/2, graph 11\/11/);
+    assert.match(verifySection, /✓ structuredContent — direct 16\/16, write 5\/5, maintenance 2\/2, graph 11\/11/);
     assert.match(verifySection, /`list_concepts`, a project-node `list_concepts` probe,\s+`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`,\s+`query_concepts`, limited `query_concepts`, `analyze_repo_structure`,\s+`infer_imports`, `find_neighbors`, `find_path`, `find_orphans`,\s+`list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
     assert.match(verifySection, /`query_ontology\(\{operation:"neighbors"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"path"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"project_scope"\}\)`/);
     assert.match(verifySection, /indexed compile smoke verifies index shape, count alignment, edge membership,\s+known-slug references, and resolved\/external\/unresolved edge breakdowns/);
-    assert.match(verifySection, /requires every exercised direct read, write row-isolation smoke,\s+maintenance cursor, and\s+`query_ontology` graph-query response to include `structuredContent`, and\s+compares that payload with the text JSON payload/);
+    assert.match(verifySection, /requires every exercised direct read, write row-isolation smoke,\s+destructive dry-run smoke, maintenance cursor, and\s+`query_ontology` graph-query response to include `structuredContent`, and\s+compares that payload with the text JSON payload/);
     assert.match(verifySection, /summarizes the\s+direct-read, write, maintenance-cursor, and graph-query `structuredContent` coverage/);
     assert.match(verifySection, /project-node `list_concepts` probe/);
     assert.match(verifySection, /`kind: project`/);
@@ -450,6 +450,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`rename_concept\.overwrite`/);
     assert.match(verifySection, /`delete_concept\.force`/);
     assert.match(verifySection, /batch row isolation for non-object row shape and\s+unknown row field inputs/);
+    assert.match(verifySection, /destructive dry-runs verify `rename_concept` \/ `merge_concepts` \/ `delete_concept` previews with no `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /row-level `ok:false`\s+results instead of a top-level tool error/);
     assert.match(verifySection, /`initialize\.instructions` gate fails/);
     assert.match(verifySection, /read-only diagnosis flow/);
@@ -884,7 +885,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /null payload 도 missing 으로 판정/);
     assert.match(doc, /정상 MCP connection stderr 는 성공 로그에서 숨기고/);
     assert.match(doc, /\[stderr warnings\]/);
-    assert.match(doc, /설치 verify 도 first-contact direct read \/ write row-isolation smoke \/\s+`query_ontology` smoke \/ maintenance cursor 응답의 `structuredContent` 누락과 text JSON drift 를 같은\s+fail-closed 계약으로 검증/);
+    assert.match(doc, /설치 verify 도 first-contact direct read \/ write row-isolation smoke \/ destructive dry-run smoke \/\s+`query_ontology` smoke \/ maintenance cursor 응답의 `structuredContent` 누락과 text JSON drift 를 같은\s+fail-closed 계약으로 검증/);
     assert.match(doc, /direct read \/ maintenance cursor \/\s+write \/ graph-query `structuredContent` coverage 요약/);
     assert.match(dogfoodSection, /project-node `list_concepts` probe/);
     assert.match(dogfoodSection, /project-node `list_concepts` probe 도 fail-closed/);
@@ -1102,7 +1103,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /strict arguments — multiple unknown tool arguments reported together/);
     assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated at row level/);
     assert.match(smoke, /add_relations — non-object and unknown-field rows isolated at row level/);
-    assert.match(smoke, /structuredContent — direct 16\\\/16, write 2\\\/2, maintenance 3\\\/3, graph 11\\\/11/);
+    assert.match(smoke, /structuredContent — direct 16\\\/16, write 5\\\/5, maintenance 3\\\/3, graph 11\\\/11/);
     assert.match(smoke, /writeMaintenanceResumeVault/);
     assert.match(smoke, /cliMaintenanceResumeMcpVerify/);
     assert.match(smoke, /directMcpMaintenanceResumeVerify/);

@@ -1927,13 +1927,14 @@ export function structuredContentVerifySummary({
   hasLimitedQueryConcepts = false,
   hasCompileIndexes = false,
   hasMaintenanceResume = false,
+  destructiveDryRunCount = 0,
 } = {}) {
   const direct = 11
     + (hasGetConcept ? 1 : 0)
     + (hasFindBacklinks ? 1 : 0)
     + (hasDirectGraphReads ? 2 : 0)
     + (hasLimitedQueryConcepts ? 1 : 0);
-  const write = 2;
+  const write = 2 + destructiveDryRunCount;
   const maintenance = 2 + (hasMaintenanceResume ? 1 : 0);
   const graph = 7 + (hasNode ? 2 : 0) + (hasProject ? 1 : 0) + (hasCompileIndexes ? 1 : 0);
   return `direct ${direct}/${direct}, write ${write}/${write}, maintenance ${maintenance}/${maintenance}, graph ${graph}/${graph}`;
@@ -1982,6 +1983,9 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [40, 'strict_relation_filter'],
   [41, 'compile_ontology_page'],
   [42, 'compile_ontology_indexes'],
+  [43, 'rename_concept_dry_run'],
+  [44, 'merge_concepts_dry_run'],
+  [45, 'delete_concept_dry_run'],
 ]);
 
 function log(level, msg) {
@@ -2181,6 +2185,7 @@ export function verifyUsage() {
     'It also checks node census, vault validation, workspace health, compile_ontology summary + paginated full-artifact + indexed full-artifact smoke, overview, query plans, and graph-query smoke.\n' +
     'Also checks strict unknown-argument / invalid-enum rejection, maintenance_plan filter enums,\n' +
     'batch writer row isolation for non-object rows and unknown row fields,\n' +
+    'destructive writer dry-runs for rename_concept/merge_concepts/delete_concept with no changed/postWriteMaintenance,\n' +
     'and maintenance_plan cursor handling: ready page (cursor.found=true, cursor.reason=null)\n' +
     'plus missing afterActionId (cursor.found=false, reason, empty page, nextAfterActionId=null, hasMore=false).\n' +
     'When the ready cursor has actions, verify resumes from the first returned action id and confirms the resumed page does not repeat it.\n' +
@@ -2566,6 +2571,94 @@ export function buildLimitedQueryConceptsSmokeRequest(listPayload) {
     excludedSlug: slug,
     expectedTotal: total - 1,
   };
+}
+
+export function buildDestructiveDryRunSmokeRequests(listPayload) {
+  const nodes = Array.isArray(listPayload?.nodes) ? listPayload.nodes : [];
+  const slugs = nodes
+    .map((node) => node?.slug)
+    .filter((slug) => typeof slug === 'string' && slug.length > 0);
+  const sourceSlug = slugs.find((slug) => slug !== 'README') ?? slugs[0];
+  if (!sourceSlug) return { requests: [], expectedResponseIds: [] };
+
+  const uniqueTargetSlug = `__omot_verify_dry_run_target_${process.pid}_${Date.now()}`;
+  const requests = [
+    {
+      jsonrpc: '2.0',
+      id: 43,
+      method: 'tools/call',
+      params: {
+        name: 'rename_concept',
+        arguments: { oldSlug: sourceSlug, newSlug: uniqueTargetSlug },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 45,
+      method: 'tools/call',
+      params: { name: 'delete_concept', arguments: { slug: sourceSlug } },
+    },
+  ];
+  const expectedResponseIds = [43, 45];
+  const mergeTargetSlug = slugs.find((slug) => slug !== sourceSlug);
+  if (mergeTargetSlug) {
+    requests.splice(1, 0, {
+      jsonrpc: '2.0',
+      id: 44,
+      method: 'tools/call',
+      params: {
+        name: 'merge_concepts',
+        arguments: { fromSlug: sourceSlug, intoSlug: mergeTargetSlug },
+      },
+    });
+    expectedResponseIds.splice(1, 0, 44);
+  }
+  return { requests, expectedResponseIds };
+}
+
+export function destructiveDryRunFailure(response, toolName) {
+  if (!response || !response.result) {
+    return `no ${toolName} dry-run response`;
+  }
+  if (response.result.isError === true) {
+    return `${toolName} dry-run returned top-level tool error`;
+  }
+  let parsed = null;
+  try {
+    parsed = JSON.parse(response.result.content?.[0]?.text || '{}');
+  } catch (err) {
+    return `failed to parse ${toolName} dry-run response: ${err.message}`;
+  }
+  const structuredFailure = structuredContentFailure(response, parsed, `${toolName} dry-run`);
+  if (structuredFailure) return structuredFailure;
+  if (parsed.ok !== false || parsed.dryRun !== true) {
+    return `${toolName} dry-run response must be ok:false with dryRun:true`;
+  }
+  if (Object.prototype.hasOwnProperty.call(parsed, 'changed')) {
+    return `${toolName} dry-run response unexpectedly included changed`;
+  }
+  if (Object.prototype.hasOwnProperty.call(parsed, 'postWriteMaintenance')) {
+    return `${toolName} dry-run response unexpectedly included postWriteMaintenance`;
+  }
+  if (typeof parsed.message !== 'string' || !/confirm:true|force:true/.test(parsed.message)) {
+    return `${toolName} dry-run response missing follow-up safety hint`;
+  }
+  if (toolName === 'rename_concept') {
+    if (parsed.moved !== false || typeof parsed.oldSlug !== 'string' || typeof parsed.newSlug !== 'string') {
+      return 'rename_concept dry-run response missing rename preview fields';
+    }
+  }
+  if (toolName === 'merge_concepts') {
+    if (parsed.deleted !== false || typeof parsed.fromSlug !== 'string' || typeof parsed.intoSlug !== 'string') {
+      return 'merge_concepts dry-run response missing merge preview fields';
+    }
+  }
+  if (toolName === 'delete_concept') {
+    if (typeof parsed.slug !== 'string' || !Array.isArray(parsed.backlinks)) {
+      return 'delete_concept dry-run response missing delete preview fields';
+    }
+  }
+  return null;
 }
 
 function allGraphQuerySmokeResponseIds() {
@@ -4118,6 +4211,7 @@ async function step2BootAndCall() {
     let sentDirectGraphReadSmoke = false;
     let sentLimitedQueryConceptsSmoke = false;
     let sentGraphQuerySmoke = false;
+    let sentDestructiveDryRunSmoke = false;
     let sentMaintenanceResumeSmoke = false;
     const expectedFirstContactIds = new Set(FIRST_CONTACT_RESPONSE_LABELS.keys());
     expectedFirstContactIds.delete(30);
@@ -4126,11 +4220,14 @@ async function step2BootAndCall() {
     expectedFirstContactIds.delete(35);
     expectedFirstContactIds.delete(36);
     expectedFirstContactIds.delete(37);
+    expectedFirstContactIds.delete(43);
+    expectedFirstContactIds.delete(44);
+    expectedFirstContactIds.delete(45);
     let limitedQueryConceptsSmoke = null;
     let timer = null;
     proc.stdout.on('data', (b) => {
       stdout += stdoutDecoder.write(b);
-      if (!sentGetConceptsSmoke || !sentFindBacklinksSmoke || !sentDirectGraphReadSmoke || !sentLimitedQueryConceptsSmoke || !sentGraphQuerySmoke) {
+      if (!sentGetConceptsSmoke || !sentFindBacklinksSmoke || !sentDirectGraphReadSmoke || !sentLimitedQueryConceptsSmoke || !sentGraphQuerySmoke || !sentDestructiveDryRunSmoke) {
         const listResponse = parseJsonRpcResponses(stdout).find((response) => response?.id === 3 && response?.result);
         const projectResponse = parseJsonRpcResponses(stdout).find((response) => response?.id === 18 && response?.result);
         if (listResponse) {
@@ -4198,6 +4295,14 @@ async function step2BootAndCall() {
             if (limitedQueryConceptsSmoke?.request) {
               expectedFirstContactIds.add(37);
               proc.stdin.write(JSON.stringify(limitedQueryConceptsSmoke.request) + '\n');
+            }
+          }
+          if (!sentDestructiveDryRunSmoke) {
+            sentDestructiveDryRunSmoke = true;
+            const destructiveDryRunPlan = buildDestructiveDryRunSmokeRequests(listPayload);
+            for (const id of destructiveDryRunPlan.expectedResponseIds) expectedFirstContactIds.add(id);
+            if (destructiveDryRunPlan.requests.length > 0) {
+              proc.stdin.write(destructiveDryRunPlan.requests.map((request) => JSON.stringify(request)).join('\n') + '\n');
             }
           }
           if (!sentGraphQuerySmoke && projectResponse) {
@@ -4308,6 +4413,9 @@ async function step2BootAndCall() {
       const maintenanceResumeCursorRes = responses.find((r) => r.id === 30);
       const addConceptsRowIsolationRes = responses.find((r) => r.id === 28);
       const addRelationsRowIsolationRes = responses.find((r) => r.id === 29);
+      const renameDryRunRes = responses.find((r) => r.id === 43);
+      const mergeDryRunRes = responses.find((r) => r.id === 44);
+      const deleteDryRunRes = responses.find((r) => r.id === 45);
       let kindsPayload = null;
       let listPayload = null;
       let validationPayload = null;
@@ -4318,6 +4426,7 @@ async function step2BootAndCall() {
       let findBacklinksVerified = false;
       let directGraphReadsVerified = false;
       let maintenanceResumeVerified = false;
+      let destructiveDryRunCount = 0;
       const missingLabels = firstContactMissingResponseLabels(responses, expectedFirstContactIds);
       const errorRes = responses.find((response) => (
         expectedFirstContactIds.has(response?.id) && response?.error
@@ -4390,6 +4499,22 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', 'add_relations — non-object and unknown-field rows isolated at row level');
+      const destructiveDryRunResponses = [
+        ['rename_concept', renameDryRunRes],
+        ['merge_concepts', mergeDryRunRes],
+        ['delete_concept', deleteDryRunRes],
+      ].filter(([, response]) => response);
+      if (destructiveDryRunResponses.length > 0) {
+        for (const [toolName, response] of destructiveDryRunResponses) {
+          const failure = destructiveDryRunFailure(response, toolName);
+          if (failure) {
+            log('fail', failure);
+            return res(false);
+          }
+        }
+        destructiveDryRunCount = destructiveDryRunResponses.length;
+        log('ok', `destructive dry-runs — ${destructiveDryRunResponses.map(([toolName]) => toolName).join(' · ')} preview without write-maintenance`);
+      }
       const strictEnum = strictEnumFailure(strictEnumRes);
       if (strictEnum) {
         log('fail', strictEnum);
@@ -5244,6 +5369,7 @@ async function step2BootAndCall() {
           hasLimitedQueryConcepts: limitedQueryConceptsVerified,
           hasCompileIndexes: true,
           hasMaintenanceResume: maintenanceResumeVerified,
+          destructiveDryRunCount,
         })}`,
       );
       res(true);
