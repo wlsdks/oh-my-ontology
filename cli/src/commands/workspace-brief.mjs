@@ -104,6 +104,12 @@ function render(result) {
     process.stdout.write('\n');
   }
 
+  const checks = Array.isArray(result?.health?.checks) ? result.health.checks : [];
+  if (checks.length > 0) {
+    const summary = checks.map((check) => `${check.id}:${check.status}:${check.count}`).join(', ');
+    process.stdout.write(`${COLORS.dim}HEALTH CHECKS${COLORS.reset} ${COLORS.dim}${summary}${COLORS.reset}\n\n`);
+  }
+
   // Next actions
   const next = Array.isArray(result?.nextActions) ? result.nextActions : [];
   if (next.length > 0) {

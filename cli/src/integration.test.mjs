@@ -2233,6 +2233,20 @@ await test('workspace-brief — fail severity nextActions make the CLI fail', as
   }
 });
 
+await test('workspace-brief — prints health check coverage', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['workspace-brief', root]);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /HEALTH CHECKS/);
+    assert.match(clean, /compile_issues:pass:0/);
+    assert.match(clean, /components:pass:1/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('health --json — unhealthy graph exits non-zero', async () => {
   const root = buildCycleFixture();
   try {
