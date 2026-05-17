@@ -19,13 +19,14 @@
  *   4. tools/call list_concepts — vault 노드 수 출력
  *   5. tools/call list_concepts(kind=project) — project_scope gate probe
  *   6. tools/call get_concepts — batch reader success + partial-row contract
- *   7. tools/call find_orphans — row shape + root/sentinel default-exclusion contract
- *   8. tools/call list_kinds — kind census aggregate
- *   9. tools/call validate_vault — whole-vault frontmatter / graph-reference health
- *   10. tools/call query_ontology workspace_brief + tuned workspace_brief + health + tuned health — agent first-contact graph diagnosis
- *   11. tools/call compile_ontology(summary) — compiler graph summary contract
- *   12. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
- *   13. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
+ *   7. tools/call add_concepts/add_relations — invalid batch rows remain row-level, not top-level errors
+ *   8. tools/call find_orphans — row shape + root/sentinel default-exclusion contract
+ *   9. tools/call list_kinds — kind census aggregate
+ *   10. tools/call validate_vault — whole-vault frontmatter / graph-reference health
+ *   11. tools/call query_ontology workspace_brief + tuned workspace_brief + health + tuned health — agent first-contact graph diagnosis
+ *   12. tools/call compile_ontology(summary) — compiler graph summary contract
+ *   13. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
+ *   14. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */
@@ -1390,9 +1391,10 @@ export function structuredContentFailure(response, parsed, label) {
 
 export function structuredContentVerifySummary({ hasNode = false, hasProject = false } = {}) {
   const direct = 7;
+  const write = 2;
   const maintenance = 2;
   const graph = 7 + (hasNode ? 2 : 0) + (hasProject ? 1 : 0);
-  return `direct ${direct}/${direct}, maintenance ${maintenance}/${maintenance}, graph ${graph}/${graph}`;
+  return `direct ${direct}/${direct}, write ${write}/${write}, maintenance ${maintenance}/${maintenance}, graph ${graph}/${graph}`;
 }
 
 export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
@@ -1423,6 +1425,8 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [25, 'maintenance_missing_cursor'],
   [26, 'maintenance_ready_cursor'],
   [27, 'strict_multi_args'],
+  [28, 'add_concepts_row_isolation'],
+  [29, 'add_relations_row_isolation'],
 ]);
 
 function log(level, msg) {
@@ -1559,6 +1563,7 @@ export function verifyUsage() {
     'Checks parser smoke, server boot, tool inventory, project probe, batch reads, node census,\n' +
     'vault validation, workspace health, compile/overview, query plans, and graph-query smoke.\n' +
     'Also checks strict unknown-argument / invalid-enum rejection, maintenance_plan filter enums,\n' +
+    'batch writer row isolation for non-object rows and unknown row fields,\n' +
     'and maintenance_plan cursor handling: ready page (cursor.found=true, cursor.reason=null)\n' +
     'plus missing afterActionId (cursor.found=false, reason, empty page).\n' +
     'Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point only at the first executable/review action in the current returned page.\n' +
@@ -1720,6 +1725,24 @@ export function buildFirstContactRequests() {
       id: 27,
       method: 'tools/call',
       params: { name: 'list_concepts', arguments: { lmit: 1, summry: true } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 28,
+      method: 'tools/call',
+      params: {
+        name: 'add_concepts',
+        arguments: { concepts: [null, { slug: 'verify-row-isolation', kind: 'capability', title: 'Verify', mystery: true }] },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 29,
+      method: 'tools/call',
+      params: {
+        name: 'add_relations',
+        arguments: { relations: [null, { from: 'verify-row-isolation', to: 'verify-target', type: 'relates', mystery: true }] },
+      },
     },
     {
       jsonrpc: '2.0',
@@ -1984,6 +2007,37 @@ export function getConceptsFailure(parsed) {
   }
   if (typeof missing.error !== 'string' || !/not found/i.test(missing.error)) {
     return 'get_concepts response missing partial row error';
+  }
+  return null;
+}
+
+export function batchRowIsolationFailure(response, key, label) {
+  if (!response || !response.result) {
+    return `no ${label} row-isolation response`;
+  }
+  if (response.result.isError === true) {
+    return `${label} row-isolation smoke returned top-level tool error`;
+  }
+  let parsed = null;
+  try {
+    parsed = JSON.parse(response.result.content?.[0]?.text || '{}');
+  } catch (err) {
+    return `failed to parse ${label} row-isolation response: ${err.message}`;
+  }
+  const rows = parsed?.[key];
+  if (!Array.isArray(rows) || rows.length !== 2) {
+    return `${label} row-isolation response missing two result rows`;
+  }
+  const [nonObjectRow, unknownFieldRow] = rows;
+  if (nonObjectRow?.ok !== false || typeof nonObjectRow.error !== 'string' || !/must be an object/i.test(nonObjectRow.error)) {
+    return `${label} row-isolation response missing non-object row error`;
+  }
+  if (unknownFieldRow?.ok !== false || typeof unknownFieldRow.error !== 'string' || !/Unknown field "mystery"/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing unknown-field row error`;
+  }
+  const structuredFailure = structuredContentFailure(response, parsed, `${label} row isolation`);
+  if (structuredFailure) {
+    return structuredFailure;
   }
   return null;
 }
@@ -2755,6 +2809,8 @@ async function step2BootAndCall() {
       const strictMaintenanceKindFilterRes = responses.find((r) => r.id === 24);
       const maintenanceMissingCursorRes = responses.find((r) => r.id === 25);
       const maintenanceReadyCursorRes = responses.find((r) => r.id === 26);
+      const addConceptsRowIsolationRes = responses.find((r) => r.id === 28);
+      const addRelationsRowIsolationRes = responses.find((r) => r.id === 29);
       let kindsPayload = null;
       let listPayload = null;
       let validationPayload = null;
@@ -2821,6 +2877,18 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', 'strict arguments — multiple unknown tool arguments reported together');
+      const addConceptsRowIsolationFailure = batchRowIsolationFailure(addConceptsRowIsolationRes, 'concepts', 'add_concepts');
+      if (addConceptsRowIsolationFailure) {
+        log('fail', addConceptsRowIsolationFailure);
+        return res(false);
+      }
+      log('ok', 'add_concepts — non-object and unknown-field rows isolated at row level');
+      const addRelationsRowIsolationFailure = batchRowIsolationFailure(addRelationsRowIsolationRes, 'relations', 'add_relations');
+      if (addRelationsRowIsolationFailure) {
+        log('fail', addRelationsRowIsolationFailure);
+        return res(false);
+      }
+      log('ok', 'add_relations — non-object and unknown-field rows isolated at row level');
       const strictEnum = strictEnumFailure(strictEnumRes);
       if (strictEnum) {
         log('fail', strictEnum);

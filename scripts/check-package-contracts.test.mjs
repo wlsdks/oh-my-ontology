@@ -285,6 +285,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ read\/write hints \+ graph-query enums \+ health tuning \+ post-write guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);
+    assert.match(verifySection, /✓ add_concepts — non-object and unknown-field rows isolated at row level/);
+    assert.match(verifySection, /✓ add_relations — non-object and unknown-field rows isolated at row level/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported .*phase none; severity none; kind none; executable none; review none/);
     assert.match(verifySection, /✓ maintenance cursor — ready page stable .*phase none; severity none; kind none; executable none; review none/);
@@ -304,14 +306,14 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
     assert.match(verifySection, new RegExp(`✓ project_scope — project \\(${scopedNodes} nodes, internalEdges`));
-    assert.match(verifySection, /✓ structuredContent — direct 7\/7, maintenance 2\/2, graph 10\/10/);
+    assert.match(verifySection, /✓ structuredContent — direct 7\/7, write 2\/2, maintenance 2\/2, graph 10\/10/);
     assert.match(verifySection, /`list_concepts`, a project-node `list_concepts` probe,\s+`get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /batch success rows\s+and partial rows are verified during installation checks/);
     assert.match(verifySection, /`query_ontology\(\{operation:"neighbors"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"path"\}\)`/);
     assert.match(verifySection, /`query_ontology\(\{operation:"project_scope"\}\)`/);
-    assert.match(verifySection, /requires every exercised direct read, maintenance cursor, and\s+`query_ontology` graph-query response to include `structuredContent`, and\s+compares that payload with the text JSON payload/);
-    assert.match(verifySection, /summarizes the\s+direct-read, maintenance-cursor, and graph-query `structuredContent` coverage/);
+    assert.match(verifySection, /requires every exercised direct read, write row-isolation smoke,\s+maintenance cursor, and\s+`query_ontology` graph-query response to include `structuredContent`, and\s+compares that payload with the text JSON payload/);
+    assert.match(verifySection, /summarizes the\s+direct-read, write, maintenance-cursor, and graph-query `structuredContent` coverage/);
     assert.match(verifySection, /project-node `list_concepts` probe/);
     assert.match(verifySection, /`kind: project`/);
     assert.match(verifySection, /`list_kinds\.byKind\.project`/);
@@ -346,8 +348,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /destructive-tool `confirm` dry-run switches/);
     assert.match(verifySection, /`rename_concept\.overwrite`/);
     assert.match(verifySection, /`delete_concept\.force`/);
-    assert.match(verifySection, /batch row isolation for non-object row shape and unknown row field inputs/);
-    assert.match(verifySection, /row-level `ok:false` results while valid sibling rows continue/);
+    assert.match(verifySection, /batch row isolation for non-object row shape and\s+unknown row field inputs/);
+    assert.match(verifySection, /row-level `ok:false`\s+results instead of a top-level tool error/);
     assert.match(verifySection, /`initialize\.instructions` gate fails/);
     assert.match(verifySection, /read-only diagnosis flow/);
     assert.match(verifySection, /`newSlug` \/ `overwrite: true` safety/);
@@ -489,7 +491,7 @@ describe('package contract helpers', () => {
 
     assert.match(verifySection, /batch writer row isolation guidance for `add_concepts` and\s+`add_relations`/);
     assert.match(verifySection, /non-object row shape and unknown row field failures\s+surfacing as row-level `ok:false` results/);
-    assert.match(verifySection, /valid sibling rows continue/);
+    assert.match(verifySection, /instead of top-level tool errors/);
   });
 
   it('keeps the CLI README explicit about graph write safety switches', () => {
@@ -522,7 +524,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /accepts empty vault folders/);
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
-    assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results/);
+    assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results instead of top-level tool errors/);
     assert.match(verifySection, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(verifySection, /`cursor\.found=false`/);
     assert.match(verifySection, /`cursor\.found=true` \/ `cursor\.reason=null`/);

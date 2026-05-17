@@ -13,6 +13,7 @@ import {
 } from './ontology-engine.mjs';
 import {
   advisoryNextActionsSummary,
+  batchRowIsolationFailure,
   buildFirstContactRequests,
   buildGetConceptsSmokeSlugs,
   buildGraphQuerySmokeArgs,
@@ -2081,6 +2082,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /Explicit \[vault\] or --vault arguments take precedence over OMOT_VAULT/);
     assert.match(verifyUsage(), /project probe/);
     assert.match(verifyUsage(), /strict unknown-argument \/ invalid-enum rejection/);
+    assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields/);
     assert.match(verifyUsage(), /maintenance_plan filter enums/);
     assert.match(verifyUsage(), /maintenance_plan cursor handling/);
     assert.match(verifyUsage(), /cursor\.found=true, cursor\.reason=null/);
@@ -2135,6 +2137,44 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictMultiArgsFailure({ result: { isError: true, content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry".' }] } }),
       'strict multi-argument response did not suggest the closest summary argument',
+    );
+  });
+
+  it('fails malformed batch row-isolation smoke responses', () => {
+    const okResponse = {
+      result: {
+        content: [{
+          text: JSON.stringify({
+            concepts: [
+              { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+              { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "mystery" in concepts[1]. Allowed fields: slug, kind, title.' },
+            ],
+          }),
+        }],
+        structuredContent: {
+          concepts: [
+            { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+            { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "mystery" in concepts[1]. Allowed fields: slug, kind, title.' },
+          ],
+        },
+      },
+    };
+    assert.equal(batchRowIsolationFailure(okResponse, 'concepts', 'add_concepts'), null);
+    assert.equal(
+      batchRowIsolationFailure({ result: { isError: true, content: [{ text: 'bad' }] } }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation smoke returned top-level tool error',
+    );
+    assert.equal(
+      batchRowIsolationFailure({ result: { content: [{ text: JSON.stringify({ concepts: [{ ok: false }] }) }] } }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response missing two result rows',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{ text: JSON.stringify({ relations: [{ ok: true }, { ok: false, error: 'Unknown field "mystery"' }] }) }],
+        },
+      }, 'relations', 'add_relations'),
+      'add_relations row-isolation response missing non-object row error',
     );
   });
 
@@ -3581,15 +3621,15 @@ describe('verify.mjs first-contact gates', () => {
   it('summarizes structuredContent coverage for verify output', () => {
     assert.equal(
       structuredContentVerifySummary(),
-      'direct 7/7, maintenance 2/2, graph 7/7',
+      'direct 7/7, write 2/2, maintenance 2/2, graph 7/7',
     );
     assert.equal(
       structuredContentVerifySummary({ hasNode: true }),
-      'direct 7/7, maintenance 2/2, graph 9/9',
+      'direct 7/7, write 2/2, maintenance 2/2, graph 9/9',
     );
     assert.equal(
       structuredContentVerifySummary({ hasNode: true, hasProject: true }),
-      'direct 7/7, maintenance 2/2, graph 10/10',
+      'direct 7/7, write 2/2, maintenance 2/2, graph 10/10',
     );
   });
 

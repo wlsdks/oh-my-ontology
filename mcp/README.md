@@ -210,7 +210,8 @@ When both are present, an explicit positional vault or `--vault` argument takes
 precedence over `OMOT_VAULT`.
 `npm run verify -- --help` prints the same first-contact scope, including
 strict unknown-argument / invalid-enum rejection, enum-validated
-`maintenance_plan` filters, and maintenance_plan cursor handling (ready page +
+`maintenance_plan` filters, batch row isolation for non-object row shape and
+unknown row field inputs, and maintenance_plan cursor handling (ready page +
 missing `afterActionId`): the ready page must keep `cursor.found=true`,
 `cursor.reason=null`, and the missing cursor still reports `cursor.found=false`,
 reason, empty page. Ready pages also verify `nextExecutableAction` /
@@ -232,6 +233,8 @@ A successful run looks like this:
 ✓ tools/list schema contract — strict arguments + read/write hints + graph-query enums + health tuning + post-write guidance
 ✓ strict arguments — unknown tool argument rejected at runtime
 ✓ strict arguments — multiple unknown tool arguments reported together
+✓ add_concepts — non-object and unknown-field rows isolated at row level
+✓ add_relations — non-object and unknown-field rows isolated at row level
 ✓ strict enums — invalid query operation rejected with closest-value hint
 ✓ strict maintenance filters — invalid phase/severity/kind rejected at runtime (phases=validate/repair/link/materialize/review; severities=fail/warn/info; kinds=inspect_compile_issue/break_dependency_cycle/canonicalize_graph_arrays/resolve_dangling_reference/add_missing_relation/materialize_external_element/unassigned_node/empty_domain)
 ✓ maintenance cursor — missing afterActionId reported (afterActionId not found in filtered maintenance actions; phase none; severity none; kind none; executable none; review none)
@@ -254,7 +257,7 @@ A successful run looks like this:
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
 ✓ project_scope — project (27 nodes, internalEdges 92)
-✓ structuredContent — direct 7/7, maintenance 2/2, graph 10/10
+✓ structuredContent — direct 7/7, write 2/2, maintenance 2/2, graph 10/10
 
 All passed — register .mcp.json with Claude Code and restart to use the 23 tools.
 ```
@@ -273,11 +276,12 @@ verify path exercises and gates the same first-contact graph diagnosis an agent 
 plus actual `query_ontology({operation:"neighbors"})`,
 `query_ontology({operation:"path"})`, and
 `query_ontology({operation:"project_scope"})` smoke calls.
-It also requires every exercised direct read, maintenance cursor, and
+It also requires every exercised direct read, write row-isolation smoke,
+maintenance cursor, and
 `query_ontology` graph-query response to include `structuredContent`, and
 compares that payload with the text JSON payload, so agents can consume MCP
 results without reparsing text. Successful verify output summarizes the
-direct-read, maintenance-cursor, and graph-query `structuredContent` coverage
+direct-read, write, maintenance-cursor, and graph-query `structuredContent` coverage
 that was enforced in the run.
 The `tools/list` gate also checks that every tool rejects unknown arguments via
 `additionalProperties:false`, that every tool exposes the expected
@@ -332,7 +336,10 @@ and fails unless the server rejects them with the closest argument/value hint,
 reports multiple unknown tool arguments together, or returns the allowed
 maintenance filter enum. Successful verify output prints the
 accepted `phases` / `severities` / `kinds` enum lists beside the strict-filter
-runtime smoke, so installed logs show which work-queue contract was tested. It also calls
+runtime smoke, so installed logs show which work-queue contract was tested.
+It also calls `add_concepts` and `add_relations` with non-object rows and
+unknown row fields, and fails unless those inputs return row-level `ok:false`
+results instead of a top-level tool error. It also calls
 `maintenance_plan.afterActionId="maint_missing"` and fails unless the response
 reports `cursor.found=false`, the cursor miss reason, zero remaining actions,
 and no next actions. A companion ready-page smoke calls `maintenance_plan`
