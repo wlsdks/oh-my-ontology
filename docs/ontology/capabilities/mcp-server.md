@@ -531,6 +531,9 @@ dogfood walk 도 `tools/list` 를 직접 호출하고 installed verify 의 `tool
 helper 를 재사용해 `additionalProperties:false`, graph-query enum, health tuning option,
 write safety schema, post-write guidance, maintenance next pointer description drift 를
 source checkout 에서도 fail-closed 로 잡는다.
+dogfood 출력 상단과 최종 Analysis 는 `add_concepts` / `add_relations` description 의
+`concepts[n]` / `relations[n]` row-label guidance 도 `write row labels: pass` 로
+요약해, 긴 로그의 끝만 봐도 batch writer 오류 위치 안내가 살아 있는지 확인할 수 있다.
 `tools/list` 의 `annotations.title` 표시명과 `annotations.readOnlyHint` 도 15 read / 8 write split 과
 일치하게 노출하고, destructive multi-file/delete 도구는 `annotations.destructiveHint`,
 retry-safe relation writer 는 `annotations.idempotentHint`, 모든 도구는 local
@@ -597,6 +600,6 @@ timeout 출력도 같은 env 이름과 `OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfo
 핵심 응답 누락, vault warning, `validate_vault` problemFiles, 예상 graph path 부재,
 `workspace_brief` / `health` 비정상 상태, top-level status 와 별개로 내부 health
 check 의 `fail` 상태, warn·fail `workspace_brief.nextActions` 는 exit 1 로 처리한다.
-`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset 을 fixture 로 검증해
+`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset 과 row-label guidance summary 를 fixture 로 검증해
 dogfood walk 의 실패 조건이 조용히 약해지지 않게 막고, 전체 helper 회귀가 필요할 때만
 `pnpm dogfood:test` 로 넓힌다.

@@ -108,6 +108,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /scripts\/check-package-contracts\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /structuredContent/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /compile_ontology/);
+    assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /row-label guidance/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /stderr warnings/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /dogfood help/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /dogfood arguments/);
@@ -143,7 +144,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /pnpm test:cli:lib\s+# focused CLI shared helper unit contracts/);
     assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:dogfood/);
-    assert.match(readme, /structuredContent\/compile\/destructive dry-run\/help\/argument\/timeout\/stderr checks/);
+    assert.match(readme, /structuredContent\/compile\/row-label\/destructive dry-run\/help\/argument\/timeout\/stderr checks/);
     assert.match(readme, /pnpm test:mcp:dogfood:timeout\s+# narrow dogfood timeout\/help retry diagnostics/);
     assert.match(readme, /pnpm test:mcp:package\s+# focused package-script\/dependency\/tarball contract checks/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
@@ -373,8 +374,9 @@ describe('package contract helpers', () => {
     assert.match(section, /first-contact read-only MCP flow/);
     assert.match(section, /documentation drift/);
     assert.match(section, /help output/);
+    assert.match(section, /row-label guidance summary/);
     assert.match(section, /dogfood timeout parsing, missing\s+response labels, and retry help/);
-    assert.match(section, /unsupported-argument rejection/);
+    assert.match(section, /unsupported-argument\s+rejection/);
     assert.match(section, /stderr warning filtering/);
     assert.match(section, /verify helper contract/);
     assert.match(section, /timeout parsing, usage, and retry diagnostics/);
@@ -604,7 +606,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`concepts\[n\]` \/ `relations\[n\]` error labels/);
     assert.match(verifySection, /Destructive dry-run smoke calls `rename_concept`, `merge_concepts`, and\s+`delete_concept` against live vault slugs without writing/);
     assert.match(verifySection, /preview is missing or includes `changed` or `postWriteMaintenance`/);
-    assert.match(verifySection, /row-level `ok:false`\s+results instead of a top-level tool error/);
+    assert.match(verifySection, /row-level `ok:false`\s+results[\s\S]*instead of a top-level\s+tool error/);
     assert.match(verifySection, /`initialize\.instructions` gate fails/);
     assert.match(verifySection, /read-only diagnosis flow/);
     assert.match(verifySection, /`newSlug` \/ `overwrite: true` safety/);
@@ -1041,7 +1043,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /positional vault argument 는 받지 않고 이 repo 의 dogfood vault 만\s+검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패/);
     assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage 와\s+focused check 경로를 출력/);
     assert.match(dogfoodSection, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
-    assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset 을 fixture 로 검증/);
+    assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset 과 row-label guidance summary 를 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
     assert.match(doc, /진짜 timeout 실패도 `npm run verify -- --timeout-ms 15000` 재시도 예시를\s+같이 보여준다/);
     assert.match(doc, /오류 출력은\s+`Received: "1000ms"` 와 `npm run verify -- --timeout-ms 15000` 같은 재시도 예시/);
@@ -1062,6 +1064,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /dogfood walk 도 `tools\/list` 를 직접 호출/);
     assert.match(doc, /installed verify 의 `toolsListSchemaFailure`/);
     assert.match(doc, /maintenance next pointer description drift/);
+    assert.match(doc, /row-label guidance/);
+    assert.match(doc, /write row labels: pass/);
     assert.match(doc, /`tools\/list` 의 `annotations\.title`/);
     assert.match(doc, /`annotations\.readOnlyHint`/);
     assert.match(doc, /`annotations\.destructiveHint`/);
@@ -1390,7 +1394,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm test:mcp:verify`/);
     assert.match(doc, /`pnpm test:mcp:verify:timeout`/);
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);
-    assert.match(doc, /focused subset 을 fixture 로 검증/);
+    assert.match(doc, /row-label guidance summary/);
+    assert.match(doc, /focused subset 과 row-label guidance summary 를 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
     assert.match(doc, /stderr warning filtering/);
     assert.match(doc, /first-contact README read-only/);
