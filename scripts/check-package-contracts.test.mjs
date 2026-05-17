@@ -61,6 +61,9 @@ describe('package contract helpers', () => {
     );
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /check-package-contracts\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /check-package-contracts\.test\.mjs/);
+    assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /scripts\/dogfood-mcp-walk\.test\.mjs/);
+    assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /scripts\/check-package-contracts\.test\.mjs/);
+    assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /structuredContent/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/suggestions\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/ontology-engine\.test\.mjs/);
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
@@ -78,6 +81,7 @@ describe('package contract helpers', () => {
       /^node --test --test-name-pattern "[^"]+" mcp\/src\/suggestions\.test\.mjs mcp\/src\/ontology-engine\.test\.mjs$/,
     );
     assert.match(readme, /pnpm test:mcp:docs/);
+    assert.match(readme, /pnpm test:mcp:dogfood/);
     assert.match(readme, /pnpm test:mcp:package/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /pnpm test:mcp:verify/);
@@ -86,6 +90,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /OMOT_TEST_NAME_PATTERN="tools\/list\|initialize" pnpm integration:mcp/);
     assert.match(readme, /pnpm integration:mcp:readme/);
     assert.match(readme, /pnpm exec node --test --test-name-pattern "README first exploration" mcp\/src\/integration\.test\.mjs/);
+    assert.match(readme, /dogfood-helper/);
     assert.match(readme, /custom runners also honor Node's `--test-name-pattern`/);
     assert.match(readme, /integration:cli:mcp-verify/);
     assert.match(readme, /integration:mcp:readme/);
@@ -895,7 +900,9 @@ describe('package contract helpers', () => {
 
     assert.match(doc, /Node `--test-name-pattern`/);
     assert.match(doc, /`pnpm integration:mcp:readme`/);
+    assert.match(doc, /`pnpm test:mcp:dogfood`/);
     assert.match(doc, /`pnpm test:mcp:verify`/);
+    assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);
     assert.match(doc, /first-contact README read-only/);
     assert.match(doc, /직접 verify help\(`npm run verify -- --help`\)/);
     assert.match(doc, /ready `maintenance_plan` cursor 와\s+missing `maintenance_plan\.afterActionId` cursor handling 범위/);

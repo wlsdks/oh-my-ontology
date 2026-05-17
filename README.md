@@ -128,6 +128,7 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 ```bash
 pnpm package:check              # MCP/CLI package files contract + self-test
 pnpm test:mcp:docs              # focused README + dogfood ontology docs contract
+pnpm test:mcp:dogfood           # focused dogfood helper + structuredContent contract checks
 pnpm test:mcp:package           # focused package-script/tarball contract checks
 pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
 pnpm test:mcp:verify            # focused MCP verify helper checks
@@ -146,8 +147,8 @@ cd mcp && npm run verify -- ../docs/ontology --timeout-ms 15000
 
 Use these when changing `mcp/`, `cli/`, package manifests, or release
 scripts. Prefer the focused `test:mcp:*` scripts for small docs, package,
-verify-helper, or enum diagnostic changes before escalating to the broader
-release checks.
+dogfood-helper, verify-helper, or enum diagnostic changes before escalating to
+the broader release checks.
 `integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`, and
 their custom runners also honor Node's `--test-name-pattern`, so you can run
 only the spawn-heavy integration cases touched by a small change. The
@@ -163,8 +164,10 @@ single aggregate query. Project-less vaults skip only the containment-specific
 first node exists.
 `smoke:packed-cli` also checks the installed `mcp-verify --help` output plus
 project-less and empty-vault verify paths, so release tarballs keep exposing the
-graph-query, post-write guidance, and strict argument/enum smoke scope without starting a server for help
-and without assuming every valid vault already has containment roots. It also creates a dependency-cycle vault and checks installed
+graph-query, post-write guidance, and strict argument/enum smoke scope. That
+keeps the graph-query and strict argument/enum smoke scope visible without
+starting a server for help and without assuming every valid vault already has
+containment roots. It also creates a dependency-cycle vault and checks installed
 `workspace-brief --json` exits 1 on fail-severity nextActions.
 For local CLI gates, `compile --json` exits 1 on unresolved graph references,
 `cycles --json` exits 1 on dependency cycles, and `path --json` exits 1 when
