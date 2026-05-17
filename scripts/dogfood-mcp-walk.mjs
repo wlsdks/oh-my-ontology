@@ -73,7 +73,7 @@ export function dogfoodUsage() {
     "  OMOT_DOGFOOD_TIMEOUT_MS   Positive integer wait window in milliseconds.",
     "",
     "Focused checks:",
-    "  pnpm test:mcp:dogfood     Dogfood helper, help, structuredContent, stderr warning checks.",
+    "  pnpm test:mcp:dogfood     Dogfood helper, compile gate, help, structuredContent, stderr warning checks.",
   ].join("\n");
 }
 
@@ -5338,6 +5338,7 @@ async function main() {
   console.log(`  health_tuned: ${tunedHealth?.status ?? "n/a"} (${(tunedHealth?.checks || []).length} checks)`);
   console.log(`  health_tuned checks: ${healthCheckStatusSummary(tunedHealth?.checks)}`);
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
+  console.log(`  compile_ontology indexes: ${compiledIndexes ? compileIndexesSummary(compiledIndexes) : "n/a"}`);
   console.log(`  direct tool structuredContent: ${graphStructuredContentSummary(directStructuredContentRows)}`);
   console.log(`  graph query structuredContent: ${graphStructuredContentSummary(graphStructuredContentRows)}`);
   console.log(`  overview: ${overview?.graph?.nodes ?? "n/a"} nodes · ${overview?.graph?.edges ?? "n/a"} edges · ${(overview?.hubs || []).length} hubs`);

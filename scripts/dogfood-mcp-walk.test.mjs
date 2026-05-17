@@ -2735,7 +2735,7 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /Print this help without starting the MCP server/);
     assert.match(usage, /No positional vault argument is accepted/);
     assert.match(usage, /OMOT_DOGFOOD_TIMEOUT_MS/);
-    assert.match(usage, /Dogfood helper, help, structuredContent, stderr warning checks/);
+    assert.match(usage, /Dogfood helper, compile gate, help, structuredContent, stderr warning checks/);
   });
 
   it("rejects unsupported dogfood arguments before starting MCP", () => {
