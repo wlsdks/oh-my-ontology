@@ -2247,6 +2247,19 @@ await test('health --json — unhealthy graph exits non-zero', async () => {
   }
 });
 
+await test('health — prints check status and count coverage', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['health', root]);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /compile_issues\s+pass:0/);
+    assert.match(clean, /components\s+pass:1/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('cycles --json — dependency cycles exit non-zero', async () => {
   const root = buildCycleFixture();
   try {

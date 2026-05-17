@@ -68,6 +68,7 @@ export async function runHealth(args) {
     const icon = STATUS_ICONS[c.status] || '·';
     process.stdout.write(
       `  ${cc}${icon}${COLORS.reset} ${cc}${(c.id || '').padEnd(28)}${COLORS.reset}` +
+        ` ${COLORS.dim}${c.status}:${c.count}${COLORS.reset}` +
         ` ${COLORS.dim}${c.message ?? ''}${COLORS.reset}\n`,
     );
   }
