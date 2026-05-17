@@ -2202,7 +2202,11 @@ await test('graph diagnostic commands — reject invalid option values before MC
     },
     {
       args: ['blast-radius', 'capabilities/foo', '--direction=sideways'],
-      pattern: /--direction must be one of incoming \/ outgoing \/ both/,
+      pattern: /--direction must be one of: incoming, outgoing, both\. Received: "sideways"\./,
+    },
+    {
+      args: ['blast-radius', 'capabilities/foo', '--direction=incomng'],
+      pattern: /--direction must be one of: incoming, outgoing, both\. Received: "incomng"\. Did you mean "incoming"\?/,
     },
     {
       args: ['blast-radius', 'capabilities/foo', '--directon=incoming'],

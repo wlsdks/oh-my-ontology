@@ -5,6 +5,7 @@
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { assertQueryOperation } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
+import { formatAllowedValueError } from '../lib/suggestions.mjs';
 import {
   formatUnknownFlagError,
   parseBoundedNonNegativeIntegerFlag,
@@ -15,6 +16,7 @@ import {
 
 const DEPTH_CAP = 20;
 const ALLOWED_FLAGS = ['--vault', '--json', '--depth', '--direction'];
+const DIRECTION_VALUES = Object.freeze(['incoming', 'outgoing', 'both']);
 
 const COLORS = {
   green: '\x1b[32m',
@@ -144,8 +146,8 @@ function parseArgs(args) {
   for (const value of Object.values(flags)) {
     if (value instanceof Error) return { error: value.message };
   }
-  if (!['incoming', 'outgoing', 'both'].includes(flags.direction)) {
-    return { error: '--direction must be one of incoming / outgoing / both' };
+  if (!DIRECTION_VALUES.includes(flags.direction)) {
+    return { error: formatAllowedValueError('--direction', flags.direction, DIRECTION_VALUES) };
   }
   const vaultResult = resolveTrailingVaultArg({ vault: flags.vault, positional, vaultIndex: 1 });
   if (vaultResult.error) return vaultResult;
