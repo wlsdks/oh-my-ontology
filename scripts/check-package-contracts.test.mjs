@@ -346,6 +346,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /destructive-tool `confirm` dry-run switches/);
     assert.match(verifySection, /`rename_concept\.overwrite`/);
     assert.match(verifySection, /`delete_concept\.force`/);
+    assert.match(verifySection, /batch row isolation for non-object row shape and unknown row field inputs/);
+    assert.match(verifySection, /row-level `ok:false` results while valid sibling rows continue/);
     assert.match(verifySection, /`initialize\.instructions` gate fails/);
     assert.match(verifySection, /read-only diagnosis flow/);
     assert.match(verifySection, /`newSlug` \/ `overwrite: true` safety/);
