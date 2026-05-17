@@ -464,6 +464,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(listKinds?.outputSchema?.properties?.byKind?.additionalProperties?.type, "integer");
     assert.equal(listKinds?.outputSchema?.properties?.byKind?.additionalProperties?.minimum, 0);
     const validateVault = findTool("validate_vault");
+    assert.match(
+      validateVault?.description ?? "",
+      /validate every doc in the vault[\s\S]*per-doc \+ per-code aggregate[\s\S]*side effect 0[\s\S]*first-contact before writes[\s\S]*before \/ after a batch write/i,
+      "validate_vault description documents first-contact health workflow",
+    );
     assert.equal(validateVault?.outputSchema?.type, "object");
     assert.deepEqual(validateVault?.outputSchema?.required, ["scanned", "problems", "summary"]);
     assert.equal(validateVault?.outputSchema?.properties?.scanned?.type, "integer");

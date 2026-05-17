@@ -821,6 +821,15 @@ export function toolsListSchemaFailure(tools) {
 
   const validateTool = tools.find((tool) => tool?.name === 'validate_vault');
   if (!validateTool) return 'tools/list response missing validate_vault tool';
+  if (
+    !/validate every doc in the vault/i.test(validateTool.description || '') ||
+    !/per-doc \+ per-code aggregate/i.test(validateTool.description || '') ||
+    !/side effect 0/i.test(validateTool.description || '') ||
+    !/first-contact before writes/i.test(validateTool.description || '') ||
+    !/before \/ after a batch write/i.test(validateTool.description || '')
+  ) {
+    return 'validate_vault description missing first-contact health guidance';
+  }
   if (validateTool.outputSchema?.type !== 'object') {
     return 'validate_vault outputSchema root drift';
   }

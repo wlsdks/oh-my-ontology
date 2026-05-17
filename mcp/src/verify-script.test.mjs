@@ -787,6 +787,8 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'validate_vault',
+        description:
+          'R+ (cycle 46) — validate every doc in the vault, return per-doc + per-code aggregate. side effect 0. Use when an agent needs the whole-vault health view: first-contact before writes, before / after a batch write, or surfacing issues to the user.',
         inputSchema: { additionalProperties: false, properties: {} },
         outputSchema: {
           type: 'object',
@@ -1064,6 +1066,11 @@ describe('verify.mjs first-contact gates', () => {
       queryTool,
     ];
     const queryOntologyTool = tools.find((tool) => tool.name === 'query_ontology');
+    const validateVaultTool = tools.find((tool) => tool.name === 'validate_vault');
+    const withValidateVaultTool = (tool) => [
+      ...tools.filter((candidate) => candidate.name !== 'validate_vault'),
+      tool,
+    ];
     const findOrphansTool = tools.find((tool) => tool.name === 'find_orphans');
     const withFindOrphansTool = (tool) => [
       ...tools.filter((candidate) => candidate.name !== 'find_orphans'),
@@ -1256,6 +1263,13 @@ describe('verify.mjs first-contact gates', () => {
           : tool
       ))),
       'validate_vault outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withValidateVaultTool({
+        ...validateVaultTool,
+        description: 'Validate vault.',
+      })),
+      'validate_vault description missing first-contact health guidance',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
