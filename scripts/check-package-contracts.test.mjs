@@ -299,7 +299,8 @@ describe('package contract helpers', () => {
     assert.match(analyzeLine, /`?\{ rootPath\?, maxDepth\?, ignore\? \}`?/);
     assert.match(inferLine, /`?\{ rootPath\?, sourceFolders\?, ignore\?, maxFiles\? \}`?/);
     assert.match(inferLine, /`kindCounts`/);
-    assert.match(inferLine, /common `@\/\*` aliases/);
+    assert.match(inferLine, /`tsconfig\.json` paths/);
+    assert.match(inferLine, /fallback common `@\/\*` aliases/);
     assert.doesNotMatch(analyzeLine + inferLine, /repoRoot/);
   });
 
@@ -1093,7 +1094,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`analyze_repo_structure` 도 `outputSchema` 와 동일한 `structuredContent` bootstrap-candidate payload/);
     assert.match(doc, /`infer_imports` 도 `outputSchema` 와 동일한 `structuredContent` import-graph payload/);
     assert.match(doc, /verify \/ dogfood walk 는 상위 module edge 의 `kindCounts` 도 출력/);
-    assert.match(inferImportsRow, /common `@\/\*` alias/);
+    assert.match(inferImportsRow, /`tsconfig\.json` `compilerOptions\.paths`/);
+    assert.match(inferImportsRow, /fallback common `@\/\*` alias/);
     assert.match(inferImportsRow, /내부 edge 로 resolve/);
     assert.match(inferImportsRow, /`alias-not-found` unresolved/);
     assert.match(doc, /`analyze_repo_structure` \/ `infer_imports` 도 실제 repo root 를 대상으로 호출해\s+bootstrap 후보와 import graph payload 의 shape \/ `structuredContent` 계약이\s+dogfood walk 뿐 아니라 설치 verify 에서도 깨지지 않게 한다/);

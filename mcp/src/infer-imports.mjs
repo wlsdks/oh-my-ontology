@@ -12,7 +12,7 @@
 // 한계 (의도적 minimal):
 //   - regex 기반 — TypeScript / JS 의 95% case (top-level static import)
 //     cover. dynamic import / re-export / type-only 도 같은 regex 로 잡힘
-//   - resolves relative imports (./ ../) and common @/* aliases → real files.
+//   - resolves relative imports, tsconfig paths, and common @/* aliases → real files.
 //     unresolved aliases surface as alias-not-found instead of external npm.
 //     외부 npm import 는 externalImports 로 별도 분류.
 //   - 더 정교한 AST parsing 은 후속

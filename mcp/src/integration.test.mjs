@@ -482,8 +482,9 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       /default 5000[\s\S]*max 50000[\s\S]*avoid pathological monorepos/i,
       "infer_imports maxFiles schema documents hard stop",
     );
-    assert.match(inferImports?.description ?? "", /common @\/\* aliases/);
-    assert.match(inferImports?.description ?? "", /resolved to src\/ · lib\/ · app\//);
+    assert.match(inferImports?.description ?? "", /tsconfig\.json compilerOptions\.paths aliases first/);
+    assert.match(inferImports?.description ?? "", /fallback common @\/\* aliases/);
+    assert.match(inferImports?.description ?? "", /resolved to internal files/);
     assert.match(inferImports?.description ?? "", /alias-not-found/);
     assert.doesNotMatch(inferImports?.description ?? "", /aliases \(@\/\) → external \(not resolved\)/);
     const listKinds = findTool("list_kinds");
