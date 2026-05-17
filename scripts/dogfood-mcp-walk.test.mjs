@@ -2871,7 +2871,7 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
     assert.match(usage, /pnpm test:mcp:dogfood:timeout/);
     assert.match(usage, /Narrow dogfood timeout\/help retry diagnostics/);
-    assert.match(usage, /Dogfood helper, compile gate, help, structuredContent, stderr warning checks/);
+    assert.match(usage, /Dogfood helper, compile gate, row-label guidance, help, structuredContent, stderr warning checks/);
   });
 
   it("rejects unsupported dogfood arguments before starting MCP", () => {
