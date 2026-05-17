@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { describe, it } from 'node:test';
 
 import { analyzeRepoStructure } from '../mcp/src/analyze.mjs';
+import { inferImports } from '../mcp/src/infer-imports.mjs';
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -62,6 +63,18 @@ function findEvidenceCount(docs, query) {
       String(doc.frontmatter.elements || '').toLowerCase().includes(needle);
     return inFrontmatter || doc.body.toLowerCase().includes(needle);
   }).length;
+}
+
+function importKindSummary(kindCounts) {
+  const ordered = ['static', 'dynamic', 'require', 'reexport', 'side'];
+  const known = ordered
+    .filter((kind) => Number.isInteger(kindCounts?.[kind]) && kindCounts[kind] > 0)
+    .map((kind) => `${kind}:${kindCounts[kind]}`);
+  const extra = Object.entries(kindCounts ?? {})
+    .filter(([kind, count]) => !ordered.includes(kind) && Number.isInteger(count) && count > 0)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([kind, count]) => `${kind}:${count}`);
+  return [...known, ...extra].join('/');
 }
 
 describe('package contract helpers', () => {
@@ -399,6 +412,9 @@ describe('package contract helpers', () => {
       slug: 'project',
     });
     const analyzedRepo = analyzeRepoStructure(process.cwd(), { maxDepth: 2 });
+    const inferredImports = inferImports(process.cwd());
+    const topModuleEdge = inferredImports.moduleEdges[0];
+    const topModuleEdgeSummary = `${topModuleEdge.from}->${topModuleEdge.to} x${topModuleEdge.count} \\(${importKindSummary(topModuleEdge.kindCounts)}\\)`;
 
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology/);
     assert.match(verifySection, /npm run verify -- --vault \.\.\/docs\/ontology/);
@@ -451,7 +467,10 @@ describe('package contract helpers', () => {
         `✓ analyze_repo_structure — ${analyzedRepo.framework} \\(${countLabel(analyzedRepo.domains.length, 'domain candidate')}, ${countLabel(analyzedRepo.capabilities.length, 'capability candidate')}, ${countLabel(analyzedRepo.elements.length, 'element candidate')}\\)`,
       ),
     );
-    assert.match(verifySection, /✓ infer_imports — \d+ files? scanned, \d+ module edges? \(.+->.+ x\d+ \((static|dynamic|require|reexport|side):\d+/);
+    assert.match(
+      verifySection,
+      new RegExp(`✓ infer_imports — ${countLabel(inferredImports.filesScanned, 'file')} scanned, ${countLabel(inferredImports.moduleEdges.length, 'module edge')} \\(${topModuleEdgeSummary}`),
+    );
     assert.match(verifySection, new RegExp(`✓ find_neighbors — ${neighborSmokeLine}`));
     assert.match(verifySection, /✓ find_path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.match(verifySection, /✓ find_orphans — 0 orphans \(root\/sentinel defaults excluded\)/);
