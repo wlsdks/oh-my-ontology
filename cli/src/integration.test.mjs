@@ -1808,15 +1808,27 @@ await test('graph diagnostic commands — reject invalid option values before MC
     },
     {
       args: ['path', 'capabilities/foo', 'capabilities/bar', '--max-hops=2x'],
-      pattern: /--max-hops must be a positive integer/,
+      pattern: /--max-hops must be a non-negative integer/,
+    },
+    {
+      args: ['path', 'capabilities/foo', 'capabilities/bar', '--max-hops=21'],
+      pattern: /--max-hops must be <= 20/,
     },
     {
       args: ['cycles', '--max-hops', '--json'],
-      pattern: /--max-hops must be a positive integer/,
+      pattern: /--max-hops must be a non-negative integer/,
     },
     {
-      args: ['blast-radius', 'capabilities/foo', '--depth=0'],
-      pattern: /--depth must be a positive integer/,
+      args: ['cycles', '--max-hops=21'],
+      pattern: /--max-hops must be <= 20/,
+    },
+    {
+      args: ['blast-radius', 'capabilities/foo', '--depth=2x'],
+      pattern: /--depth must be a non-negative integer/,
+    },
+    {
+      args: ['blast-radius', 'capabilities/foo', '--depth=21'],
+      pattern: /--depth must be <= 20/,
     },
     {
       args: ['blast-radius', 'capabilities/foo', '--direction', '--json'],

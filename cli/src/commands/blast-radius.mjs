@@ -6,11 +6,13 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import { assertQueryOperation } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
-  parsePositiveIntegerFlag,
+  parseBoundedNonNegativeIntegerFlag,
   parseRequiredFlagValue,
   parseVaultFlag,
   resolveTrailingVaultArg,
 } from '../lib/cli-args.mjs';
+
+const DEPTH_CAP = 20;
 
 const COLORS = {
   green: '\x1b[32m',
@@ -126,8 +128,8 @@ function parseArgs(args) {
     if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
     else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
-    else if (a === '--depth') flags.depth = parsePositiveIntegerFlag('--depth', args[++i]);
-    else if (a.startsWith('--depth=')) flags.depth = parsePositiveIntegerFlag('--depth', a.slice('--depth='.length));
+    else if (a === '--depth') flags.depth = parseBoundedNonNegativeIntegerFlag('--depth', args[++i], { max: DEPTH_CAP });
+    else if (a.startsWith('--depth=')) flags.depth = parseBoundedNonNegativeIntegerFlag('--depth', a.slice('--depth='.length), { max: DEPTH_CAP });
     else if (a === '--direction') flags.direction = parseRequiredFlagValue('--direction', args[++i]);
     else if (a.startsWith('--direction='))
       flags.direction = parseRequiredFlagValue('--direction', a.slice('--direction='.length));
@@ -158,6 +160,6 @@ function printUsage(stream = process.stderr) {
   stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology blast-radius <slug> [vault] [--depth N] [--direction incoming|outgoing|both] [--json]\n\n` +
-      `default depth 2, direction incoming (이 노드를 의존하는 무엇).\n`,
+      `default depth 2, --depth range 0-${DEPTH_CAP}, direction incoming (이 노드를 의존하는 무엇).\n`,
   );
 }

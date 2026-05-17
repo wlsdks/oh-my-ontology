@@ -5,10 +5,12 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import { assertQueryOperation, cyclesResultExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
-  parsePositiveIntegerFlag,
+  parseBoundedNonNegativeIntegerFlag,
   parseVaultFlag,
   resolveExclusiveVaultArg,
 } from '../lib/cli-args.mjs';
+
+const MAX_HOPS_CAP = 20;
 
 const COLORS = {
   green: '\x1b[32m',
@@ -81,9 +83,9 @@ function parseArgs(args) {
     if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
     else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
-    else if (a === '--max-hops') flags.maxHops = parsePositiveIntegerFlag('--max-hops', args[++i]);
+    else if (a === '--max-hops') flags.maxHops = parseBoundedNonNegativeIntegerFlag('--max-hops', args[++i], { max: MAX_HOPS_CAP });
     else if (a.startsWith('--max-hops='))
-      flags.maxHops = parsePositiveIntegerFlag('--max-hops', a.slice('--max-hops='.length));
+      flags.maxHops = parseBoundedNonNegativeIntegerFlag('--max-hops', a.slice('--max-hops='.length), { max: MAX_HOPS_CAP });
     else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
     else positional.push(a);
   }
@@ -99,6 +101,6 @@ function printUsage(stream = process.stderr) {
   stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology cycles [vault] [--max-hops N] [--json]\n\n` +
-      `directed depends_on cycle detection (default maxDepth 8). exit 0 only when no cycles are found.\n`,
+      `directed depends_on cycle detection (default maxDepth 8, --max-hops range 0-${MAX_HOPS_CAP}). exit 0 only when no cycles are found.\n`,
   );
 }

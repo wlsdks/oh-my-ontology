@@ -8,10 +8,12 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import { pathResultExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
-  parsePositiveIntegerFlag,
+  parseBoundedNonNegativeIntegerFlag,
   parseVaultFlag,
   resolveTrailingVaultArg,
 } from '../lib/cli-args.mjs';
+
+const MAX_HOPS_CAP = 20;
 
 const COLORS = {
   green: '\x1b[32m',
@@ -106,9 +108,9 @@ function parseArgs(args) {
     else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
     else if (a === '--json') flags.json = true;
     else if (a === '--max-hops') {
-      flags.maxHops = parsePositiveIntegerFlag('--max-hops', args[++i]);
+      flags.maxHops = parseBoundedNonNegativeIntegerFlag('--max-hops', args[++i], { max: MAX_HOPS_CAP });
     } else if (a.startsWith('--max-hops=')) {
-      flags.maxHops = parsePositiveIntegerFlag('--max-hops', a.slice('--max-hops='.length));
+      flags.maxHops = parseBoundedNonNegativeIntegerFlag('--max-hops', a.slice('--max-hops='.length), { max: MAX_HOPS_CAP });
     } else if (a.startsWith('--')) {
       return { error: `unknown flag: ${a}` };
     } else {
@@ -131,7 +133,7 @@ function printUsage(stream = process.stderr) {
   stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology path <from> <to> [vault] [--max-hops N] [--vault path] [--json]\n\n` +
-      `found=false exits 1 so scripts can use this as a relation gate.\n\n` +
+      `found=false exits 1 so scripts can use this as a relation gate. --max-hops range 0-${MAX_HOPS_CAP}.\n\n` +
       `${COLORS.bold}Example:${COLORS.reset}\n` +
       `  oh-my-ontology path capabilities/cli-developer-entry capabilities/mcp-server\n` +
       `  oh-my-ontology path project elements/sigma-graphology --max-hops 8 --json\n`,
