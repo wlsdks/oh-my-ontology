@@ -1482,13 +1482,19 @@ export function initializeInstructionsFailure(response) {
 
 export function structuredContentFailure(response, parsed, label) {
   const structured = response?.result?.structuredContent;
-  if (structured == null) {
+  const status = structuredContentParityStatus(parsed, structured);
+  if (status === 'missing') {
     return `${label} structuredContent missing`;
   }
-  if (!isDeepStrictEqual(structured, parsed)) {
+  if (status === 'mismatch') {
     return `${label} structuredContent mismatch`;
   }
   return null;
+}
+
+export function structuredContentParityStatus(parsed, structured) {
+  if (structured == null) return 'missing';
+  return isDeepStrictEqual(structured, parsed) ? 'pass' : 'mismatch';
 }
 
 export function structuredContentVerifySummary({

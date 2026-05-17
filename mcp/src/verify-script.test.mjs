@@ -73,6 +73,7 @@ import {
   strictEnumFailure,
   strictMaintenanceFilterFailure,
   structuredContentFailure,
+  structuredContentParityStatus,
   structuredContentVerifySummary,
   toolsListSchemaFailure,
   validationCodeSummary,
@@ -4148,6 +4149,9 @@ describe('verify.mjs first-contact gates', () => {
       structuredContentFailure({ result: { structuredContent: parsed } }, parsed, 'overview'),
       null,
     );
+    assert.equal(structuredContentParityStatus(parsed, undefined), 'missing');
+    assert.equal(structuredContentParityStatus(parsed, { operation: 'overview', graph: { nodes: 2 } }), 'mismatch');
+    assert.equal(structuredContentParityStatus(parsed, { graph: { nodes: 1 }, operation: 'overview' }), 'pass');
   });
 
   it('summarizes structuredContent coverage for verify output', () => {
