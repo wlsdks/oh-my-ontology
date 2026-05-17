@@ -9,6 +9,7 @@ import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
+  queryCompiledOntology,
 } from '../mcp/src/ontology-engine.mjs';
 import { compileOntology } from '../mcp/src/ontology-compiler.mjs';
 import { collectNeighborRefs, findBacklinks, loadVaultDocs } from '../mcp/src/vault.mjs';
@@ -387,6 +388,11 @@ describe('package contract helpers', () => {
     const indexOutCount = Object.keys(compiled.indexes.out).length;
     const indexInCount = Object.keys(compiled.indexes.in).length;
     const indexEdgeCount = Object.keys(compiled.indexes.edgeById).length;
+    const neighborSmoke = queryCompiledOntology(compiled, {
+      operation: 'neighbors',
+      slug: 'elements/file-system-access-api',
+    });
+    const neighborSmokeLine = `elements/file-system-access-api \\(${neighborSmoke.edges.length}/${neighborSmoke.total} edges, limited ${neighborSmoke.limited}\\)`;
 
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology/);
     assert.match(verifySection, /npm run verify -- --vault \.\.\/docs\/ontology/);
@@ -435,7 +441,7 @@ describe('package contract helpers', () => {
     );
     assert.match(verifySection, /✓ analyze_repo_structure — (fsd|next|generic) \(\d+ domain candidates?, \d+ capability candidates?, \d+ element candidates?\)/);
     assert.match(verifySection, /✓ infer_imports — \d+ files? scanned, \d+ module edges? \(.+->.+ x\d+ \((static|dynamic|require|reexport|side):\d+/);
-    assert.match(verifySection, /✓ find_neighbors — elements\/file-system-access-api/);
+    assert.match(verifySection, new RegExp(`✓ find_neighbors — ${neighborSmokeLine}`));
     assert.match(verifySection, /✓ find_path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.match(verifySection, /✓ find_orphans — 0 orphans \(root\/sentinel defaults excluded\)/);
     assert.match(verifySection, /✓ project probe — 1 project node/);
@@ -459,7 +465,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, new RegExp(`✓ overview — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, hubs \\d+\\)`));
     assert.match(verifySection, new RegExp(`✓ overview query_plan — aggregate_scan \\(medium, nodes ${compiled.nodeCount}, edges ${compiled.edgeCount}\\)`));
     assert.match(verifySection, new RegExp(`✓ project_map query_plan — aggregate_scan \\(medium, nodes ${compiled.nodeCount}, edges ${compiled.edgeCount}\\)`));
-    assert.match(verifySection, /✓ neighbors — elements\/file-system-access-api/);
+    assert.match(verifySection, new RegExp(`✓ neighbors — ${neighborSmokeLine}`));
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);
     assert.match(verifySection, new RegExp(`✓ project_scope — project \\(${scopedNodes} nodes, internalEdges`));
