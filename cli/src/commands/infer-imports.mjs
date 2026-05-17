@@ -4,6 +4,7 @@
 
 import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { assertRelationBatchResult } from '../lib/batch-results.mjs';
 import { getVaultCensus, writeVaultCensus } from '../lib/vault-census.mjs';
 import {
   formatUnknownFlagError,
@@ -186,6 +187,7 @@ async function runApply(vaultRoot, result, json) {
     let res;
     try {
       res = await callMcpTool(vaultRoot, 'add_relations', { relations: chunk });
+      assertRelationBatchResult(res, `add_relations chunk @${i}`);
     } catch (err) {
       process.stderr.write(
         `${COLORS.red}error${COLORS.reset}  add_relations chunk @${i}: ` +

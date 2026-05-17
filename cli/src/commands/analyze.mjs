@@ -6,6 +6,10 @@
 import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import {
+  assertConceptBatchResult,
+  assertRelationBatchResult,
+} from '../lib/batch-results.mjs';
+import {
   pruneUntouchedStarterNodes,
   restorePrunedStarterNodes,
   summarizePrunedStarterNodes,
@@ -223,6 +227,7 @@ async function runApply(vaultRoot, result, json) {
   let conceptsResult;
   try {
     conceptsResult = await callBatch(vaultRoot, 'add_concepts', { concepts });
+    assertConceptBatchResult(conceptsResult);
   } catch (err) {
     restorePrunedStarterNodes(vaultRoot, prunedStarters);
     process.stderr.write(
@@ -232,12 +237,13 @@ async function runApply(vaultRoot, result, json) {
   }
 
   const relations = result.suggestedRelations ?? [];
-  let relationsResult = { concepts: [] };
+  let relationsResult = { relations: [] };
   if (relations.length > 0) {
     try {
       relationsResult = await callBatch(vaultRoot, 'add_relations', {
         relations,
       });
+      assertRelationBatchResult(relationsResult);
     } catch (err) {
       process.stderr.write(
         `${COLORS.red}error${COLORS.reset}  add_relations: ${err instanceof Error ? err.message : String(err)}\n`,
