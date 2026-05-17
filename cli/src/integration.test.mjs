@@ -2258,6 +2258,10 @@ await test('workspace-brief — prints health check coverage', async () => {
     assert.match(clean, /HEALTH CHECKS/);
     assert.match(clean, /compile_issues:pass:0/);
     assert.match(clean, /components:pass:1/);
+    assert.match(clean, /GROWTH/);
+    assert.match(clean, /actions:1/);
+    assert.match(clean, /external:1/);
+    assert.match(clean, /ignoredExternal:0/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

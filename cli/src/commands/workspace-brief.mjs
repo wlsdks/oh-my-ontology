@@ -110,6 +110,18 @@ function render(result) {
     process.stdout.write(`${COLORS.dim}HEALTH CHECKS${COLORS.reset} ${COLORS.dim}${summary}${COLORS.reset}\n\n`);
   }
 
+  const growth = result?.growth;
+  if (growth && typeof growth === 'object' && !Array.isArray(growth)) {
+    const parts = [
+      `actions:${growth.totalActions ?? 0}`,
+      `relations:${growth.relationRecommendations ?? 0}`,
+      `dangling:${growth.danglingReferences ?? 0}`,
+      `external:${growth.externalElementRefs ?? 0}`,
+      `ignoredExternal:${growth.externalElementRefsIgnored ?? 0}`,
+    ];
+    process.stdout.write(`${COLORS.dim}GROWTH${COLORS.reset} ${COLORS.dim}${parts.join(', ')}${COLORS.reset}\n\n`);
+  }
+
   // Next actions
   const next = Array.isArray(result?.nextActions) ? result.nextActions : [];
   if (next.length > 0) {
