@@ -2048,14 +2048,26 @@ function normalizeToolArguments(args, toolName) {
   const tool = TOOL_BY_NAME.get(toolName);
   if (tool) {
     const allowed = new Set(Object.keys(tool.inputSchema?.properties ?? {}));
-    for (const key of Object.keys(args)) {
-      if (allowed.has(key)) continue;
+    const unknown = Object.keys(args).filter((key) => !allowed.has(key));
+    if (unknown.length > 0) {
       const allowedNames = [...allowed].sort();
       const allowedText = allowedNames.length > 0 ? allowedNames.join(', ') : 'no arguments';
-      const suggestion = closestAllowedValue(key, allowedNames);
-      const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
+      if (unknown.length === 1) {
+        const [key] = unknown;
+        const suggestion = closestAllowedValue(key, allowedNames);
+        const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
+        throw new Error(
+          `Unknown argument "${key}" for ${toolName}.${suggestionText} Allowed arguments: ${allowedText}.`,
+        );
+      }
+      const unknownText = unknown
+        .map((key) => {
+          const suggestion = closestAllowedValue(key, allowedNames);
+          return suggestion ? `"${key}" (did you mean "${suggestion}"?)` : `"${key}"`;
+        })
+        .join(', ');
       throw new Error(
-        `Unknown argument "${key}" for ${toolName}.${suggestionText} Allowed arguments: ${allowedText}.`,
+        `Unknown arguments for ${toolName}: ${unknownText}. Allowed arguments: ${allowedText}.`,
       );
     }
   }

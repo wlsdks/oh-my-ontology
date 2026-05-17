@@ -310,6 +310,9 @@ destructive write 안내도 first-contact 에 포함한다. `rename_concept` 는
 Did you mean "limit"?` 또는 `operation must be one of: ... Received: "overveiw".
 Did you mean "overview"?` 같은 오류가 기본값 fallback 이 아니라 즉시 고쳐야 하는
 인자명/값 오류임을 agent-facing instructions 와 verify/dogfood smoke 에서 직접 안내한다.
+여러 unknown argument 를 한 번에 보낸 경우에도 첫 번째 오타만 보고하지 않고
+각 unknown key 와 가까운 allowed argument hint 를 한 응답에 모아 보여줘 agent 의
+반복 retry 비용을 낮춘다.
 같은 nearest-value hint 는 MCP boundary 뿐 아니라 `ontology-engine` 직접 호출 경로에도
 적용되어 CLI thin wrapper / 내부 graph smoke 가 동일한 진단 품질을 유지한다.
 spawn-heavy integration 은 `pnpm integration:mcp` 로 실행하고

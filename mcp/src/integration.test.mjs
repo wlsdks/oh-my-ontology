@@ -1170,6 +1170,7 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
       callTool(5, "get_concept", "project"),
       callTool(6, "list_concepts", { lmit: 1 }),
       callTool(7, "list_kinds", { limit: 1 }),
+      callTool(8, "list_concepts", { lmit: 1, summry: true }),
     ]);
     assert.equal(isErrorResponse(responses, 2), false, "omitted arguments defaults to {}");
     const kinds = getCallParsed(responses, 2);
@@ -1188,6 +1189,11 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
     assert.equal(isErrorResponse(responses, 7), true);
     assert.match(getCallText(responses, 7), /Unknown argument "limit" for list_kinds/i);
     assert.doesNotMatch(getCallText(responses, 7), /Did you mean/i);
+    assert.equal(isErrorResponse(responses, 8), true);
+    assert.match(getCallText(responses, 8), /Unknown arguments for list_concepts/i);
+    assert.match(getCallText(responses, 8), /"lmit" \(did you mean "limit"\?\)/i);
+    assert.match(getCallText(responses, 8), /"summry" \(did you mean "summary"\?\)/i);
+    assert.match(getCallText(responses, 8), /Allowed arguments: domain, kind, limit, since, summary/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
