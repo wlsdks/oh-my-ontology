@@ -80,7 +80,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
     assert.equal(
       pkg.scripts?.['test:mcp:verify:timeout'],
-      'node --test --test-name-pattern "verify timeout|timeout failures|direct verify usage|direct verify timeout" mcp/src/verify-script.test.mjs',
+      'node --test --test-name-pattern "verify timeout|timeout failures|direct verify usage|direct verify timeout|direct verify CLI args" mcp/src/verify-script.test.mjs',
     );
     assert.match(
       pkg.scripts?.['test:mcp:docs'] ?? '',
