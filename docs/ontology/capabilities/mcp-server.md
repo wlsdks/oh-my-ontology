@@ -90,7 +90,7 @@ validation / diagnosis / compile / overview / query planning 은 계속 hard gat
 strict schema/runtime unknown-argument and invalid-enum rejection,
 `add_concepts` / `add_relations` row-isolation runtime smoke,
 `list_concepts`, project-node `list_concepts` probe,
-`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology({ summary: true })`,
+`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology({ summary: true })`,
 `query_ontology(overview)`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`, 그리고 실제 `neighbors` /
 node→project `path` / `project_scope` 를 한 번에 호출해 agent first-contact graph diagnosis,
@@ -118,6 +118,8 @@ frontmatter / excerpt / neighbors / outgoingEdges / mtime 과 `structuredContent
 설치 검증에서도 batch reader 의 성공 row 와 partial row 계약을 확인한다.
 `find_evidence` / `find_backlinks` / `query_concepts` 는 resolved vault 에 실제 호출해
 search, backlink 영향 범위, typed-filter row shape 와 `structuredContent` 계약을 확인한다.
+direct `find_neighbors` / `find_path` 도 resolved vault 에 실제 호출해 local-neighborhood 와
+shortest-path read tool 계약을 `query_ontology` graph operation 과 별도로 확인한다.
 `add_concepts` / `add_relations` 는 non-object row 와 unknown row field 를 넣어
 top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서
 실제 호출로 확인하고, invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인한다.

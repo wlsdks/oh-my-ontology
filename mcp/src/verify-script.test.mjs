@@ -17,6 +17,7 @@ import {
   buildFirstContactRequests,
   buildGetConceptSmokeSlug,
   buildGetConceptsSmokeSlugs,
+  buildDirectGraphReadSmokeRequests,
   buildGraphQuerySmokeArgs,
   buildGraphQuerySmokeRequests,
   compileSummaryFailure,
@@ -34,7 +35,9 @@ import {
   firstContactErrorFailure,
   findBacklinksFailure,
   findEvidenceFailure,
+  findNeighborsFailure,
   findOrphansFailure,
+  findPathFailure,
   formatCount,
   formatHopCount,
   getConceptFailure,
@@ -2900,8 +2903,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(32), 'find_evidence');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(33), 'find_backlinks');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(34), 'query_concepts');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(35), 'find_neighbors');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(36), 'find_path');
     assert.deepEqual(
-      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33].sort((a, b) => a - b),
+      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
     );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]
@@ -2910,6 +2915,37 @@ describe('verify.mjs first-contact gates', () => {
     assert.deepEqual(
       missingResponseLabels(responsesWithoutGetConcepts, FIRST_CONTACT_RESPONSE_LABELS),
       ['get_concepts'],
+    );
+  });
+
+  it('builds direct graph-read smoke requests only when a node exists', () => {
+    assert.deepEqual(buildDirectGraphReadSmokeRequests({ hasNode: false }), {
+      requests: [],
+      expectedResponseIds: [],
+    });
+    assert.deepEqual(
+      buildDirectGraphReadSmokeRequests({
+        slug: 'capabilities/mcp-server',
+        pathTarget: 'project',
+        hasNode: true,
+      }),
+      {
+        requests: [
+          {
+            jsonrpc: '2.0',
+            id: 35,
+            method: 'tools/call',
+            params: { name: 'find_neighbors', arguments: { slug: 'capabilities/mcp-server', limit: 5 } },
+          },
+          {
+            jsonrpc: '2.0',
+            id: 36,
+            method: 'tools/call',
+            params: { name: 'find_path', arguments: { from: 'capabilities/mcp-server', to: 'project' } },
+          },
+        ],
+        expectedResponseIds: [35, 36],
+      },
     );
   });
 
@@ -2943,6 +2979,39 @@ describe('verify.mjs first-contact gates', () => {
         matches: [match],
         limited: false,
       }),
+      null,
+    );
+  });
+
+  it('accepts clean find_neighbors and find_path payloads', () => {
+    const node = {
+      slug: 'project',
+      kind: 'project',
+      title: 'Project',
+      mtime: 1,
+    };
+    assert.equal(
+      findNeighborsFailure({
+        requested: 'project',
+        center: 'project',
+        direction: 'both',
+        types: [],
+        totalEdges: 1,
+        limited: false,
+        edges: [{ direction: 'outgoing', from: 'project', to: 'domains/core', via: 'domains', ref: 'domains/core', resolved: true }],
+        nodes: [{ ...node, slug: 'domains/core', kind: 'domain' }],
+      }, 'project'),
+      null,
+    );
+    assert.equal(
+      findPathFailure({
+        from: 'project',
+        to: 'domains/core',
+        found: true,
+        hopCount: 1,
+        hops: ['project', 'domains/core'],
+        edges: [{ from: 'project', to: 'domains/core', via: 'domains' }],
+      }, 'project', 'domains/core'),
       null,
     );
   });
@@ -3268,6 +3337,46 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       queryConceptsFailure({ filter: 'kind=project', parsedAs: 'kind = project', total: 0, matches: [match], limited: false }),
       'query_concepts response match count exceeds total — matches 1, total 0',
+    );
+  });
+
+  it('fails malformed find_neighbors and find_path payloads', () => {
+    assert.equal(
+      findNeighborsFailure({
+        requested: 'project',
+        center: 'other',
+        direction: 'both',
+        types: [],
+        totalEdges: 0,
+        limited: false,
+        edges: [],
+        nodes: [],
+      }, 'project'),
+      'find_neighbors center mismatch — expected project, got other',
+    );
+    assert.equal(
+      findNeighborsFailure({
+        requested: 'project',
+        center: 'project',
+        direction: 'both',
+        types: [],
+        totalEdges: 1,
+        limited: false,
+        edges: [{ direction: 'sideways', from: 'project', to: 'domains/core', via: 'domains' }],
+        nodes: [],
+      }, 'project'),
+      'find_neighbors edge missing direction at index 0',
+    );
+    assert.equal(
+      findPathFailure({
+        from: 'project',
+        to: 'domains/core',
+        found: true,
+        hopCount: 1,
+        hops: ['project', 'domains/core'],
+        edges: [],
+      }, 'project', 'domains/core'),
+      'find_path response edge count mismatch',
     );
   });
 
@@ -4010,8 +4119,9 @@ describe('verify.mjs first-contact gates', () => {
         hasProject: true,
         hasGetConcept: true,
         hasFindBacklinks: true,
+        hasDirectGraphReads: true,
       }),
-      'direct 11/11, write 2/2, maintenance 2/2, graph 10/10',
+      'direct 13/13, write 2/2, maintenance 2/2, graph 10/10',
     );
     assert.equal(
       structuredContentVerifySummary({
@@ -4019,9 +4129,10 @@ describe('verify.mjs first-contact gates', () => {
         hasProject: true,
         hasGetConcept: true,
         hasFindBacklinks: true,
+        hasDirectGraphReads: true,
         hasMaintenanceResume: true,
       }),
-      'direct 11/11, write 2/2, maintenance 3/3, graph 10/10',
+      'direct 13/13, write 2/2, maintenance 3/3, graph 10/10',
     );
   });
 
