@@ -304,21 +304,19 @@ A successful run looks like this:
 ✓ list_kinds — 28 nodes (capability:16, domain:6, element:4, project:1, vault-readme:1)
 ✓ validate_vault — 28 files, 0 problem files
 ✓ project probe — 1 project node
-✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:120)
-✓ workspace_brief_tuned — healthy (28 nodes, 1 next action, 5 health checks, growth actions:0 external:0 ignoredExternal:120; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3)
-· workspace_brief_tuned non-blocking advisory nextActions — components:info:6 - The scoped ontology graph has disconnected actionable islands.
+✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:132)
+✓ workspace_brief_tuned — healthy (28 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:132; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3)
 ✓ health — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1)
-✓ health_tuned — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6; dependencyTypes=dependencies; componentTypes=domain/capabilities)
-· health_tuned non-blocking advisory checks — components:info:6 - The scoped ontology graph has disconnected actionable islands.
-✓ compile_ontology — graph 9c329481eae2 (28 nodes, 213 edges, issues 0)
-✓ compile_ontology page — 1/28 nodes, 1/213 edges
-✓ compile_ontology indexes — out 28, in 27, edgeById 213, aliases 55, edges 93/120/0
-✓ overview — graph 9c329481eae2 (28 nodes, 213 edges, hubs 5)
-✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 213)
-✓ project_map query_plan — aggregate_scan (medium, nodes 28, edges 213)
+✓ health_tuned — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies)
+✓ compile_ontology — graph 5529b2730bac (28 nodes, 231 edges, issues 0)
+✓ compile_ontology page — 1/28 nodes, 1/231 edges
+✓ compile_ontology indexes — out 28, in 27, edgeById 231, aliases 55, edges 99/132/0
+✓ overview — graph 5529b2730bac (28 nodes, 231 edges, hubs 5)
+✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 231)
+✓ project_map query_plan — aggregate_scan (medium, nodes 28, edges 231)
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
-✓ project_scope — project (27 nodes, internalEdges 92)
+✓ project_scope — project (27 nodes, internalEdges 98)
 ✓ structuredContent — direct 16/16, write 5/5, maintenance 2/2, graph 11/11
 
 All passed — register .mcp.json with your MCP client and restart to use the 23 tools.
@@ -467,8 +465,9 @@ advisory list with action label, severity, optional count, and message. The
 `workspace_brief` / `workspace_brief_tuned` success lines include the
 `workspace_brief.health.checks` count plus `growth actions/external/ignoredExternal`
 counts. Tuned diagnosis lines also print
-`dependencyTypes=dependencies; componentTypes=domain/capabilities` so scoped
-component warnings are not confused with the full-graph component count. The
+`dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies`
+so scoped dependency and project/domain/capability connectivity warnings are
+not confused with the full-graph component count. The
 `health` / `health_tuned` lines include the `issues/unresolved/cycles/checks`
 summary plus check `id:status:count` coverage that the verify gate validated. The default wait window is 8 seconds; set
 `OMOT_VERIFY_TIMEOUT_MS` to a positive integer millisecond value if your vault

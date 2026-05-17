@@ -555,7 +555,7 @@ describe('package contract helpers', () => {
       recommendationLimit: 3,
       orderLimit: 3,
       dependencyTypes: ['dependencies'],
-      componentTypes: ['domain', 'capabilities'],
+      componentTypes: ['domains', 'domain', 'capabilities', 'dependencies'],
     };
     const tunedWorkspaceBrief = queryCompiledOntology(compiled, {
       operation: 'workspace_brief',
@@ -645,16 +645,20 @@ describe('package contract helpers', () => {
     assert.match(
       verifySection,
       new RegExp(
-        `✓ workspace_brief_tuned — ${tunedWorkspaceBrief.status} \\(${census.total} nodes, ${countLabel(tunedWorkspaceBrief.nextActions.length, 'next action')}, ${countLabel(tunedWorkspaceBrief.health.checks.length, 'health check')}, growth actions:${tunedWorkspaceBrief.growth.totalActions} external:${tunedWorkspaceBrief.growth.externalElementRefs} ignoredExternal:${tunedWorkspaceBrief.growth.externalElementRefsIgnored}; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3\\)`,
+        `✓ workspace_brief_tuned — ${tunedWorkspaceBrief.status} \\(${census.total} nodes, ${countLabel(tunedWorkspaceBrief.nextActions.length, 'next action')}, ${countLabel(tunedWorkspaceBrief.health.checks.length, 'health check')}, growth actions:${tunedWorkspaceBrief.growth.totalActions} external:${tunedWorkspaceBrief.growth.externalElementRefs} ignoredExternal:${tunedWorkspaceBrief.growth.externalElementRefsIgnored}; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3\\)`,
       ),
     );
     const tunedBriefAction = tunedWorkspaceBrief.nextActions[0];
-    assert.match(
-      verifySection,
-      new RegExp(
-        `workspace_brief_tuned non-blocking advisory nextActions — ${tunedBriefAction.id}:${tunedBriefAction.severity}:${tunedBriefAction.count} - ${regexEscape(tunedBriefAction.message)}`,
-      ),
-    );
+    if (tunedBriefAction) {
+      assert.match(
+        verifySection,
+        new RegExp(
+          `workspace_brief_tuned non-blocking advisory nextActions — ${tunedBriefAction.id}:${tunedBriefAction.severity}:${tunedBriefAction.count} - ${regexEscape(tunedBriefAction.message)}`,
+        ),
+      );
+    } else {
+      assert.doesNotMatch(verifySection, /workspace_brief_tuned non-blocking advisory nextActions/);
+    }
     assert.match(
       verifySection,
       new RegExp(
@@ -664,7 +668,7 @@ describe('package contract helpers', () => {
     assert.match(
       verifySection,
       new RegExp(
-        `✓ health_tuned — ${tunedHealth.status} \\(issues:${tunedHealth.summary.issues}, unresolved:${tunedHealth.summary.unresolvedEdges}, cycles:${tunedHealth.summary.dependencyCycles}, ${countLabel(tunedHealth.checks.length, 'check')}: ${healthCheckSummary(tunedHealth.checks)}; dependencyTypes=dependencies; componentTypes=domain/capabilities\\)`,
+        `✓ health_tuned — ${tunedHealth.status} \\(issues:${tunedHealth.summary.issues}, unresolved:${tunedHealth.summary.unresolvedEdges}, cycles:${tunedHealth.summary.dependencyCycles}, ${countLabel(tunedHealth.checks.length, 'check')}: ${healthCheckSummary(tunedHealth.checks)}; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies\\)`,
       ),
     );
     assert.match(verifySection, new RegExp(`✓ compile_ontology — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, issues ${compiled.issueCount}\\)`));
@@ -1708,7 +1712,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /first-contact README read-only/);
     assert.match(doc, /직접 verify help 는\s+`mcp\/` package directory 의 `npm run verify -- --help` 또는 repo root 의\s+`node mcp\/scripts\/verify\.mjs --help`/);
     assert.match(doc, /직접 verify help\(`mcp\/` 에서 `npm run verify -- --help`, repo root 에서\s+`node mcp\/scripts\/verify\.mjs --help`\)/);
-    assert.match(doc, /설치 verify 의 tuned diagnosis 라인도\s+`dependencyTypes=dependencies`,\s+`componentTypes=domain\/capabilities` scope 를 같이 출력/);
+    assert.match(doc, /설치 verify 의 tuned diagnosis 라인도\s+`dependencyTypes=dependencies`,\s+`componentTypes=domains\/domain\/capabilities\/dependencies` scope 를 같이 출력/);
     assert.match(doc, /`list_concepts` project probe \/ `get_concept` \/ `get_concepts` \//);
     assert.match(doc, /`query_concepts` \/ limited\s+`query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
     assert.match(doc, /별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`/);

@@ -6058,10 +6058,10 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('formats tuned health scope for verify output', () => {
-    assert.deepEqual(VERIFY_TUNED_HEALTH_ARGS.componentTypes, ['domain', 'capabilities']);
+    assert.deepEqual(VERIFY_TUNED_HEALTH_ARGS.componentTypes, ['domains', 'domain', 'capabilities', 'dependencies']);
     assert.equal(
       tunedHealthScopeOutputSummary(),
-      'dependencyTypes=dependencies; componentTypes=domain/capabilities',
+      'dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies',
     );
     assert.equal(
       tunedHealthScopeOutputSummary({ dependencyTypes: [], componentTypes: null }),

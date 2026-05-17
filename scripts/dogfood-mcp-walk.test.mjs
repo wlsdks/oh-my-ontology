@@ -2871,10 +2871,10 @@ describe("rpc response completion helpers", () => {
   });
 
   it("summarizes tuned health scope so dogfood output explains scoped component checks", () => {
-    assert.deepEqual(DOGFOOD_TUNED_HEALTH_ARGS.componentTypes, ["domain", "capabilities"]);
+    assert.deepEqual(DOGFOOD_TUNED_HEALTH_ARGS.componentTypes, ["domains", "domain", "capabilities", "dependencies"]);
     assert.equal(
       tunedHealthScopeSummary(),
-      "dependencyTypes=dependencies; componentTypes=domain/capabilities",
+      "dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies",
     );
     assert.equal(
       tunedHealthScopeSummary({ dependencyTypes: [], componentTypes: null }),

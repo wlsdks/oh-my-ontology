@@ -60,7 +60,7 @@ export const DOGFOOD_TUNED_HEALTH_ARGS = {
   recommendationLimit: 3,
   orderLimit: 3,
   dependencyTypes: ["dependencies"],
-  componentTypes: ["domain", "capabilities"],
+  componentTypes: ["domains", "domain", "capabilities", "dependencies"],
 };
 
 export function dogfoodUsage() {

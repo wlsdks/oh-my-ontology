@@ -3,6 +3,9 @@ slug: capabilities/cli-developer-entry
 kind: capability
 title: CLI Developer Entry (27 commands — vault + MCP verify + maintenance queue + graph deep dive)
 domain: onboarding-ux
+dependencies:
+  - capabilities/mcp-server
+  - capabilities/vault-validator
 elements: [cli/src/commands/add.mjs, cli/src/commands/analyze.mjs, cli/src/commands/backlinks.mjs, cli/src/commands/blast-radius.mjs, cli/src/commands/bootstrap.mjs, cli/src/commands/compile.mjs, cli/src/commands/cycles.mjs, cli/src/commands/delete.mjs, cli/src/commands/find.mjs, cli/src/commands/health.mjs, cli/src/commands/hubs.mjs, cli/src/commands/import.mjs, cli/src/commands/infer-imports.mjs, cli/src/commands/list.mjs, cli/src/commands/maintenance.mjs, cli/src/commands/mcp-verify.mjs, cli/src/commands/merge.mjs, cli/src/commands/node-profile.mjs, cli/src/commands/orphans.mjs, cli/src/commands/overview.mjs, cli/src/commands/path.mjs, cli/src/commands/query.mjs, cli/src/commands/rename.mjs, cli/src/commands/similar.mjs, cli/src/commands/validate.mjs, cli/src/commands/workspace-brief.mjs, cli/src/index.mjs, cli/src/lib/batch-results.mjs, cli/src/lib/batch-results.test.mjs, cli/src/lib/cli-args.mjs, cli/src/lib/cli-args.test.mjs, cli/src/lib/cli-commands.mjs, cli/src/lib/diagnosis-options.mjs, cli/src/lib/diagnosis-options.test.mjs, cli/src/lib/import-analysis-results.mjs, cli/src/lib/import-analysis-results.test.mjs, cli/src/lib/mcp-call.mjs, cli/src/lib/mcp-call.test.mjs, cli/src/lib/mcp-metadata.mjs, cli/src/lib/query-result-contract.mjs, cli/src/lib/repo-analysis-results.mjs, cli/src/lib/repo-analysis-results.test.mjs, cli/src/lib/resolve-vault.mjs, scripts/check-package-contracts.mjs, scripts/check-package-contracts.test.mjs, scripts/lib/test-name-pattern.mjs, scripts/lib/test-name-pattern.test.mjs, scripts/smoke-clean-onboarding.mjs, scripts/smoke-packed-cli.mjs]
 relates: [capabilities/mcp-server, capabilities/vault-validator, domains/onboarding-ux]
 ---

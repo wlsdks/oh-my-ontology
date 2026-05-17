@@ -3,6 +3,8 @@ slug: capabilities/vault-validator
 kind: capability
 title: Vault Validator (Silent Corruption 가시화)
 domain: vault-local-first
+dependencies:
+  - capabilities/frontmatter-to-ontology
 elements:
   - scripts/audit-vault-paths.mjs
   - scripts/audit-vault-paths.test.mjs
