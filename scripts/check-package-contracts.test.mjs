@@ -219,7 +219,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /pnpm test:mcp:package\s+# focused MCP\/CLI package-script\/dependency\/tarball contract checks/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /pnpm test:mcp:verify/);
-    assert.match(readme, /pnpm test:mcp:verify:first-contact\s+# narrow MCP verify first-contact initialize-hint\/health-summary\/advisory\/read\/sample gates/);
+    assert.match(readme, /pnpm test:mcp:verify:first-contact\s+# narrow MCP verify first-contact initialize-safety-recovery\/health-summary\/advisory\/read\/sample gates/);
     assert.match(readme, /pnpm test:mcp:verify:timeout\s+# narrow MCP verify timeout\/startup\/help diagnostics/);
     assert.match(readme, /pnpm dogfood:verify\s+# root checkout installed-style verify over docs\/ontology/);
     assert.match(readme, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+# root checkout dogfood verify/);
@@ -261,7 +261,7 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
     assert.match(result.stdout, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+Source-checkout dogfood verify with explicit args/);
     assert.match(result.stdout, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);
-    assert.match(result.stdout, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-hint\/health-summary\/advisory\/read\/sample-shape helper gates/);
+    assert.match(result.stdout, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-safety-recovery\/health-summary\/advisory\/read\/sample-shape helper gates/);
     assert.equal(result.stderr, '');
   });
 
@@ -1544,7 +1544,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /from the repo root, use the node mcp\\\/scripts\\\/verify\\\.mjs form/);
     assert.match(smoke, /Explicit \\\[vault\\\] or --vault arguments take precedence over OMOT_VAULT/);
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);
-    assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact initialize-hint\\\/health-summary\\\/advisory\\\/read\\\/sample-shape helper gates/);
+    assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact initialize-safety-recovery\\\/health-summary\\\/advisory\\\/read\\\/sample-shape helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
     assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help diagnostics/);
     assert.match(smoke, /verify timeout must be a positive integer/);
@@ -1647,7 +1647,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm cli:mcp-verify -- --help\\s\+Source-checkout shortcut for this help from the repo root/);
     assert.match(smoke, /Installed CLI mcp-verify wrapper flow\\\/help\\\/failure checks/);
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);
-    assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact initialize-hint\\\/health-summary\\\/advisory\\\/read\\\/sample-shape helper gates/);
+    assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact initialize-safety-recovery\\\/health-summary\\\/advisory\\\/read\\\/sample-shape helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
     assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help diagnostics/);
     assert.match(smoke, /Successful cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
