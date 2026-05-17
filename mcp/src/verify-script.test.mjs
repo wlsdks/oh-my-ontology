@@ -233,6 +233,8 @@ describe('verify.mjs first-contact gates', () => {
                   ok: { type: 'boolean' },
                   slug: { type: 'string' },
                   frontmatter: { type: 'object' },
+                  excerpt: { type: 'string' },
+                  neighbors: { type: 'object' },
                   outgoingEdges: {
                     type: 'array',
                     items: {
@@ -240,6 +242,7 @@ describe('verify.mjs first-contact gates', () => {
                     },
                   },
                   mtime: { type: 'number', minimum: 0 },
+                  warnings: { type: 'array' },
                 },
               },
             },
@@ -4200,21 +4203,29 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('accepts clean get_concepts batch payloads with partial rows', () => {
+    const row = (slug, frontmatter) => ({
+      ok: true,
+      slug,
+      frontmatter,
+      excerpt: `${frontmatter.title} body`,
+      neighbors: {
+        domains: [],
+        domain: null,
+        capabilities: [],
+        elements: [],
+        dependencies: [],
+        relates: [],
+        contains: [],
+        describes: [],
+      },
+      outgoingEdges: [],
+      mtime: 1,
+    });
     assert.equal(
       getConceptsFailure({
         concepts: [
-          {
-            ok: true,
-            slug: 'project',
-            frontmatter: { kind: 'project', title: 'Project' },
-            mtime: 1,
-          },
-          {
-            ok: true,
-            slug: 'capabilities/mcp-server',
-            frontmatter: { kind: 'capability', title: 'MCP Server' },
-            mtime: 1,
-          },
+          row('project', { kind: 'project', title: 'Project' }),
+          row('capabilities/mcp-server', { kind: 'capability', title: 'MCP Server' }),
           {
             ok: false,
             slug: 'missing-verify-slug',
@@ -4386,9 +4397,27 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('fails malformed get_concepts batch payloads', () => {
+    const row = (slug, frontmatter) => ({
+      ok: true,
+      slug,
+      frontmatter,
+      excerpt: `${frontmatter.title} body`,
+      neighbors: {
+        domains: [],
+        domain: null,
+        capabilities: [],
+        elements: [],
+        dependencies: [],
+        relates: [],
+        contains: [],
+        describes: [],
+      },
+      outgoingEdges: [],
+      mtime: 1,
+    });
     const okConcepts = [
-      { ok: true, slug: 'project', frontmatter: { kind: 'project', title: 'Project' }, mtime: 1 },
-      { ok: true, slug: 'capabilities/mcp-server', frontmatter: { kind: 'capability', title: 'MCP Server' }, mtime: 1 },
+      row('project', { kind: 'project', title: 'Project' }),
+      row('capabilities/mcp-server', { kind: 'capability', title: 'MCP Server' }),
       { ok: false, slug: 'missing-verify-slug', error: 'Doc not found: missing-verify-slug' },
     ];
     assert.equal(getConceptsFailure({}), 'get_concepts response missing concepts array');
@@ -4403,6 +4432,14 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       getConceptsFailure({ concepts: [okConcepts[0], { ...okConcepts[1], frontmatter: null }, okConcepts[2]] }),
       'get_concepts response missing frontmatter: capabilities/mcp-server',
+    );
+    assert.equal(
+      getConceptsFailure({ concepts: [okConcepts[0], { ...okConcepts[1], excerpt: null }, okConcepts[2]] }),
+      'get_concepts response missing excerpt: capabilities/mcp-server',
+    );
+    assert.equal(
+      getConceptsFailure({ concepts: [okConcepts[0], { ...okConcepts[1], neighbors: null }, okConcepts[2]] }),
+      'get_concepts response missing neighbors: capabilities/mcp-server',
     );
     assert.equal(
       getConceptsFailure({ concepts: [okConcepts[0], okConcepts[1], { slug: 'missing-verify-slug', ok: true }] }),

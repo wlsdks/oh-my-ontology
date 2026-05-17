@@ -378,8 +378,17 @@ export function toolsListSchemaFailure(tools) {
   if (getConceptsItemsSchema.properties?.frontmatter?.type !== 'object') {
     return 'get_concepts outputSchema row frontmatter drift';
   }
+  if (getConceptsItemsSchema.properties?.excerpt?.type !== 'string') {
+    return 'get_concepts outputSchema row excerpt drift';
+  }
+  if (getConceptsItemsSchema.properties?.neighbors?.type !== 'object') {
+    return 'get_concepts outputSchema row neighbors drift';
+  }
   if (getConceptsItemsSchema.properties?.outgoingEdges?.type !== 'array' || !sameArray(getConceptsItemsSchema.properties?.outgoingEdges?.items?.required, ['to', 'via'])) {
     return 'get_concepts outputSchema row outgoingEdges drift';
+  }
+  if (getConceptsItemsSchema.properties?.warnings?.type !== 'array') {
+    return 'get_concepts outputSchema row warnings drift';
   }
 
   const findEvidenceTool = tools.find((tool) => tool?.name === 'find_evidence');
@@ -2676,6 +2685,12 @@ export function getConceptsFailure(parsed) {
     }
     if (!row.frontmatter || typeof row.frontmatter !== 'object' || Array.isArray(row.frontmatter)) {
       return `get_concepts response missing frontmatter: ${row.slug}`;
+    }
+    if (typeof row.excerpt !== 'string') {
+      return `get_concepts response missing excerpt: ${row.slug}`;
+    }
+    if (!row.neighbors || typeof row.neighbors !== 'object' || Array.isArray(row.neighbors)) {
+      return `get_concepts response missing neighbors: ${row.slug}`;
     }
     if (!Number.isFinite(row.mtime) || row.mtime < 0) {
       return `get_concepts response missing mtime: ${row.slug}`;

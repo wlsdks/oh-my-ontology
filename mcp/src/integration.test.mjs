@@ -346,7 +346,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.type, "array");
     assert.deepEqual(getConceptsTool?.outputSchema?.properties?.concepts?.items?.required, ["ok", "slug"]);
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.ok?.type, "boolean");
+    assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.frontmatter?.type, "object");
+    assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.excerpt?.type, "string");
+    assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.neighbors?.type, "object");
+    assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.outgoingEdges?.type, "array");
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.mtime?.type, "number");
+    assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.warnings?.type, "array");
     const findEvidence = findTool("find_evidence");
     assert.match(
       findEvidence?.description ?? "",
@@ -3071,6 +3076,9 @@ await test("get_concepts — 배치 read, 입력 순서 보존 + partial result"
     assert.equal(result.concepts[0].slug, "beta");
     assert.equal(result.concepts[0].ok, true);
     assert.equal(result.concepts[0].frontmatter.title, "Beta");
+    assert.match(result.concepts[0].excerpt, /body B/);
+    assert.equal(typeof result.concepts[0].neighbors, "object");
+    assert.deepEqual(result.concepts[0].outgoingEdges, []);
     assert.equal(typeof result.concepts[0].mtime, "number");
     assert.ok(result.concepts[0].mtime > 0);
     // missing slug → ok:false, error message, batch 살아남음.

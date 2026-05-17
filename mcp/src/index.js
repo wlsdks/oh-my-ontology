@@ -5,7 +5,7 @@
  * AI agent (Claude Code 등) 가 vault 의 ontology 를 읽고 쓸 수 있게.
  *
  * read 15:
- *   - list_concepts          — vault 의 노드 목록 (kind / project_filter)
+ *   - list_concepts          — vault 의 노드 목록 (kind / domain / since / summary)
  *   - get_concept            — 단일 노드 + graph 이웃 + mtime
  *   - get_concepts           — 배치 read (slugs[] → concepts[], partial 허용)
  *   - find_evidence          — title / capabilities / elements / body 부분매칭
