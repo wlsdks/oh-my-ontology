@@ -459,14 +459,15 @@ describe('package contract helpers', () => {
     assert.match(tableRow, /enum-validated `maintenance_plan` filters/);
     assert.match(tableRow, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(tableRow, /maintenance bucket \/ current-page next-action summaries/);
-    assert.match(tableRow, /`query_concepts`, limited `query_concepts`, `find_neighbors`/);
+    assert.match(tableRow, /`query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`/);
+    assert.match(tableRow, /`find_orphans`/);
     assert.match(tableRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
     assert.match(verifySection, /mcp-verify --help/);
     assert.match(verifySection, /graph-query smoke contract/);
     assert.match(verifySection, /direct read smoke set/);
-    assert.match(verifySection, /`get_concept`,\s+`get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited\s+`query_concepts`, `find_neighbors`, `find_path`, and `find_orphans`/);
-    assert.match(verifySection, /single-node, batch, search\/backlink, limit-semantics, neighborhood, shortest-path,\s+and orphan coverage/);
+    assert.match(verifySection, /`get_concept`,\s+`get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited\s+`query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`,\s+`find_path`, and `find_orphans`/);
+    assert.match(verifySection, /single-node, batch, search\/backlink,\s+limit-semantics, bootstrap\/import analysis, neighborhood, shortest-path, and\s+orphan coverage/);
     assert.match(verifySection, /`tools\/list` schema contract/);
     assert.match(verifySection, /write-tool `postWriteMaintenance` `score` \/ executable\s+`proposedAction` \/ current-page next action pointer guidance/);
     assert.match(verifySection, /runtime negative smokes with invalid `list_concepts\.lmit`/);
@@ -486,6 +487,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /Write-safety schema/);
     assert.match(verifySection, /get_concepts/);
     assert.match(verifySection, /partial-row contract drift/);
+    assert.match(verifySection, /bootstrap\/import analysis payload drift/);
+    assert.match(verifySection, /orphan-cleanup drift/);
     assert.match(verifySection, /probes `kind: project` directly before graph smoke/);
     assert.match(verifySection, /`list_kinds\.byKind\.project`/);
     assert.match(verifySection, /Node census totals are cross-checked across `list_kinds`, `list_concepts`,\s+`compile_ontology`, and `overview`/);
@@ -542,11 +545,13 @@ describe('package contract helpers', () => {
     const verifySection = changelog.split('### Added — `mcp-verify` command')[1]?.split('### Added — `compile`')[0] ?? '';
 
     assert.match(changelog, /malformed `compile`, `cycles`, `path` hop\/edge payloads, `health\.checks`, `workspace_brief\.health\.checks`, and `workspace_brief\.nextActions` rows/);
-    assert.match(verifySection, /`list_concepts`, `get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`/);
+    assert.match(verifySection, /`list_concepts`, `get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`/);
     assert.match(verifySection, /`get_concept` smoke/);
     assert.match(verifySection, /partial-row contract drift/);
     assert.match(verifySection, /runtime smokes for `find_evidence`, `find_backlinks`, and `query_concepts`/);
     assert.match(verifySection, /search, backlink-impact, typed-filter row shapes, limit semantics, and `structuredContent`/);
+    assert.match(verifySection, /runtime smokes for `analyze_repo_structure` and `infer_imports`/);
+    assert.match(verifySection, /bootstrap-candidate and import-graph payloads plus `structuredContent`/);
     assert.match(verifySection, /runtime smokes for direct `find_neighbors` and `find_path`/);
     assert.match(verifySection, /daily local-neighborhood and shortest-path read tools/);
     assert.match(verifySection, /split between node census checks/);
@@ -684,7 +689,8 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /실제 `neighbors` \/ node→project `path` \/ `project_scope` graph smoke/);
     assert.match(mcpVerifyRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(mcpVerifyRow, /project-node `list_concepts` probe/);
-    assert.match(mcpVerifyRow, /`query_concepts`, limited `query_concepts`, `find_neighbors`/);
+    assert.match(mcpVerifyRow, /`query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`/);
+    assert.match(mcpVerifyRow, /`find_orphans`/);
     assert.match(mcpVerifyRow, /별도 limited `query_concepts` smoke/);
     assert.match(mcpVerifyRow, /`slug!=project, limit=1` semantics/);
     assert.match(mcpVerifyRow, /`add_concepts` \/ `add_relations` row-isolation runtime smoke/);
@@ -984,7 +990,8 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /Node `--test-name-pattern`/);
     assert.match(regressionSection, /`pnpm integration:cli:mcp-verify`/);
     assert.match(regressionSection, /direct read smoke set\(`get_concept` \/ `get_concepts` \/ `find_evidence`/);
-    assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `find_neighbors`, `find_path` 포함\)/);
+    assert.match(regressionSection, /limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
+    assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함\)/);
     assert.match(regressionSection, /write-tool post-write guidance/);
     assert.match(regressionSection, /maintenance filter enum/);
     assert.match(regressionSection, /ready cursor \/ missing cursor 계약/);
@@ -1002,7 +1009,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /first-contact README read-only/);
     assert.match(doc, /직접 verify help\(`npm run verify -- --help`\)/);
     assert.match(doc, /`list_concepts` project probe \/ `get_concept` \/ `get_concepts` \//);
-    assert.match(doc, /`query_concepts` \/ limited\s+`query_concepts` \/ `find_neighbors`/);
+    assert.match(doc, /`query_concepts` \/ limited\s+`query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
     assert.match(doc, /별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`/);
     assert.match(doc, /ready `maintenance_plan` cursor 와\s+missing `maintenance_plan\.afterActionId` cursor handling 범위/);
   });

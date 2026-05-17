@@ -230,6 +230,8 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.match(clean, /get_concepts/);
     assert.match(clean, /2 ok rows, 1 partial row/);
     assert.match(clean, /query_concepts limited — 1 query result \/ 4 total query results \(limited true\)/);
+    assert.match(clean, /analyze_repo_structure/);
+    assert.match(clean, /infer_imports/);
     assert.match(clean, /find_orphans/);
     assert.match(clean, /root\/sentinel defaults excluded/);
     assert.match(clean, /list_kinds/);
@@ -248,7 +250,7 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     assert.match(clean, /neighbors — elements\/example/);
     assert.match(clean, /path — elements\/example → project \(1 hop, 1 edge\)/);
     assert.match(clean, /project_scope/);
-    assert.match(clean, /structuredContent — direct 14\/14, write 2\/2, maintenance 3\/3, graph 10\/10/);
+    assert.match(clean, /structuredContent — direct 16\/16, write 2\/2, maintenance 3\/3, graph 10\/10/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -308,7 +310,7 @@ await test('mcp-verify — verifies maintenance cursor resume when actions exist
     assert.match(clean, /kind add_missing_relation:1/);
     assert.match(clean, /maintenance cursor — resume afterActionId advanced \(maint_[a-f0-9]{8}; 0 remaining actions/);
     assert.match(clean, /query_concepts limited — 1 query result \/ 2 total query results \(limited true\)/);
-    assert.match(clean, /structuredContent — direct 14\/14, write 2\/2, maintenance 3\/3, graph 10\/10/);
+    assert.match(clean, /structuredContent — direct 16\/16, write 2\/2, maintenance 3\/3, graph 10\/10/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -369,7 +371,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /tool inventory/);
   assert.match(clean, /get_concept/);
   assert.match(clean, /get_concepts/);
-  assert.match(clean, /find_evidence\/find_backlinks\/query_concepts\/limited query_concepts/);
+  assert.match(clean, /find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports/);
   assert.match(clean, /find_neighbors\/find_path/);
   assert.match(clean, /find_orphans/);
   assert.match(clean, /project probe/);

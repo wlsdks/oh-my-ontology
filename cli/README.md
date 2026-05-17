@@ -21,7 +21,7 @@ uses the same Node floor.
 | `oh-my-ontology init [folder]` | Scaffold a new vault (project / domain / capability / element starter .md). **R15+**: also drops a wired `.mcp.json` in *both* cwd (codebase root, `OMOT_VAULT='./<vault>'`) and the vault folder (`OMOT_VAULT='.'`) — open either in an AI agent and the 23 MCP tools auto-register. Existing `.mcp.json` is preserved (`.mcp.json.example` falls back instead). |
 | `oh-my-ontology list [vault]` | List ontology nodes (color table; `--kind X` filter, `--json`) |
 | `oh-my-ontology validate [vault]` | Frontmatter integrity (includes `missing-expected-field`, `non-canonical-graph-array`, and `dangling-graph-reference`; `exit 1` on errors — usable as a CI gate). Same code 가 2+ file 에서 등장하면 끝에 *grouped by code* 요약 섹션이 자동으로 붙어 *어느 종류 경고가 얼마나 많은지* 한눈에 파악. |
-| `oh-my-ontology mcp-verify [vault]` | Runs the installed MCP package verify CLI against the resolved vault: parser smoke, server boot, 23-tool inventory, strict schema/runtime unknown-argument and invalid-enum checks, write-tool `postWriteMaintenance` `score`/`proposedAction`/next-action guidance, enum-validated `maintenance_plan` filters, ready `maintenance_plan` cursor + missing `maintenance_plan.afterActionId` cursor smoke, maintenance bucket / current-page next-action summaries, `list_concepts`, project-node `list_concepts` probe, `get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `find_neighbors`, `find_path`, `list_kinds`, `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology`, `overview`, `overview`/`project_map` query_plan, and `neighbors`/`path`/`project_scope` graph-query smoke. Use `--timeout-ms N` for large/slow vaults. |
+| `oh-my-ontology mcp-verify [vault]` | Runs the installed MCP package verify CLI against the resolved vault: parser smoke, server boot, 23-tool inventory, strict schema/runtime unknown-argument and invalid-enum checks, write-tool `postWriteMaintenance` `score`/`proposedAction`/next-action guidance, enum-validated `maintenance_plan` filters, ready `maintenance_plan` cursor + missing `maintenance_plan.afterActionId` cursor smoke, maintenance bucket / current-page next-action summaries, `list_concepts`, project-node `list_concepts` probe, `get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology`, `overview`, `overview`/`project_map` query_plan, and `neighbors`/`path`/`project_scope` graph-query smoke. Use `--timeout-ms N` for large/slow vaults. |
 | `oh-my-ontology add <kind> <slug> --title="..."` | Scaffold a new node (`--domain X --body "..." --vault path`); throws on duplicate slug. `slug`, `--title`, and `--domain` must be non-empty strings without leading/trailing whitespace, so bad scalar input fails before writing. Body defaults to a starter only when `--body` is omitted, so `--body=` intentionally writes an empty body. **R15**: `--auto-prefix` is now **default on** (kind→folder, e.g. `add capability foo` → `capabilities/foo.md`) for consistency with the `init` starter layout. Use `--raw-slug` (or `--no-auto-prefix`) to opt out. |
 | `oh-my-ontology find <query> [vault]` | Search slug + title (case-insensitive, `--kind X --json`) |
 | `oh-my-ontology import <path...>` | **R14** Import external `.md` into the vault. Reads each file's frontmatter, falls back to `--kind` when missing, derives `slug` from the filename and `title` from the first H1, then writes through the same schema as `add`. Options: `--vault path`, `--kind K`, `--auto-prefix` (R15 **default on**, kind→folder), `--raw-slug` (opt out), `--rename` (auto `-2`/`-3` on slug clash), `--dry-run` (preview only). Accepts files or directories (recursive, `.git`/`node_modules` skipped). |
@@ -72,9 +72,10 @@ commands do, then delegates to `oh-my-ontology-mcp/scripts/verify.mjs`.
 to stdout, so CLI users can inspect the verify scope without starting a server.
 That help also names the direct read smoke set, including `get_concept`,
 `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited
-`query_concepts`, `find_neighbors`, `find_path`, and `find_orphans`, so
-single-node, batch, search/backlink, limit-semantics, neighborhood, shortest-path,
-and orphan coverage is visible before the server starts.
+`query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`,
+`find_path`, and `find_orphans`, so single-node, batch, search/backlink,
+limit-semantics, bootstrap/import analysis, neighborhood, shortest-path, and
+orphan coverage is visible before the server starts.
 The delegated verifier also checks the installed `tools/list` schema contract,
 including strict unknown-argument / invalid-enum rejection, graph-query operation
 enums, and write-tool `postWriteMaintenance` `score` / executable
@@ -114,8 +115,8 @@ does not get skipped just because the project node was outside the first
 The project probe also verifies returned rows are `kind: project` and that its
 total matches `list_kinds.byKind.project`.
 It also checks `get_concept` for one discovered node, `get_concepts` with discovered vault slugs plus one missing slug,
-and `find_evidence` / `find_backlinks` / `query_concepts` / limited `query_concepts` / `find_neighbors` / `find_path` with live vault results,
-so installed CLI users catch batch-reader success, partial-row contract drift, search/backlink/filter/local-graph read-tool drift, and `limited:true` query semantics.
+and `find_evidence` / `find_backlinks` / `query_concepts` / limited `query_concepts` / `analyze_repo_structure` / `infer_imports` / `find_neighbors` / `find_path` / `find_orphans` with live vault results,
+so installed CLI users catch batch-reader success, partial-row contract drift, search/backlink/filter/local-graph read-tool drift, bootstrap/import analysis payload drift, orphan-cleanup drift, and `limited:true` query semantics.
 Node census totals are cross-checked across `list_kinds`, `list_concepts`,
 `compile_ontology`, and `overview`; `validate_vault.scanned` remains file-level
 health so a file-count issue is not mistaken for graph node-count drift.
