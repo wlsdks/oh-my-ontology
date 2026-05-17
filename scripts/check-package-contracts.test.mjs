@@ -88,17 +88,18 @@ function healthCheckSummary(checks) {
 }
 
 describe('package contract helpers', () => {
-  it('keeps the root README honest about the four shared vault surfaces', () => {
+  it('keeps the root README honest about the three visual views plus MCP', () => {
     const readme = readFileSync('README.md', 'utf-8');
-    const section = readme.split('## Four surfaces, one vault')[1]?.split('## Quick start')[0] ?? '';
+    const section = readme.split('## Three views plus MCP, one vault')[1]?.split('## Quick start')[0] ?? '';
 
-    assert.match(section, /rendered or exposed four ways/);
+    assert.match(section, /rendered three ways and exposed to agents through MCP/);
     assert.match(section, /\*\*Topology\*\*/);
     assert.match(section, /\*\*Tree\*\*/);
     assert.match(section, /\*\*ERD builder\*\*/);
     assert.match(section, /\*\*MCP\*\*/);
     assert.match(section, /All four read and write the same `\.md` files/);
     assert.doesNotMatch(readme, /## Three views, one vault/);
+    assert.doesNotMatch(readme, /## Four surfaces, one vault/);
   });
 
   it('keeps filtered integration scripts discoverable from the root README', () => {
