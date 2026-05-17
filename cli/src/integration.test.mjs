@@ -319,6 +319,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /maintenance_plan cursor smoke/);
   assert.match(clean, /Maintenance filters are enum-validated for phases\/severities\/kinds/);
   assert.match(clean, /cursor smoke checks both cursor\.found=true with cursor\.reason=null and cursor\.found=false/);
+  assert.match(clean, /ready cursor has actions, verify resumes from the first returned action id/);
   assert.match(clean, /zero remaining actions, and no next actions/);
   assert.match(clean, /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   assert.match(clean, /Successful maintenance cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);

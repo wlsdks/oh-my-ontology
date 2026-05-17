@@ -453,6 +453,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`maintenance_plan` cursor contract/);
     assert.match(verifySection, /`cursor\.found=true` with `cursor\.reason=null`/);
     assert.match(verifySection, /`nextAfterActionId`\s+matching the last returned action, and `hasMore` matching the remaining page\s+state/);
+    assert.match(verifySection, /ready page has actions, verify resumes from the first returned action\s+id/);
+    assert.match(verifySection, /resumed page repeats that cursor action or leaves\s+`remainingActions` unadvanced/);
     assert.match(verifySection, /`cursor\.found=false`/);
     assert.match(verifySection, /`nextAfterActionId=null` \/ `hasMore=false`/);
     assert.match(verifySection, /`nextExecutableAction` \/ `nextReviewAction`\s+point only at the first executable\/review action in the current returned page/);
@@ -533,6 +535,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
     assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results instead of top-level tool errors, with no `postWriteMaintenance`/);
     assert.match(verifySection, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
+    assert.match(verifySection, /valid `maintenance_plan\.afterActionId` resume smoke/);
+    assert.match(verifySection, /repeated cursor actions or non-advancing `remainingActions`/);
     assert.match(verifySection, /`cursor\.found=false`/);
     assert.match(verifySection, /`cursor\.found=true` \/ `cursor\.reason=null`/);
   });
