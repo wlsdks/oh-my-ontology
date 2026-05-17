@@ -2215,6 +2215,7 @@ export function structuredContentVerifySummary({
   hasLimitedQueryConcepts = false,
   hasCompileIndexes = false,
   hasMaintenanceResume = false,
+  hasMaintenanceResumeSkipped = false,
   destructiveDryRunCount = 0,
 } = {}) {
   const direct = 11
@@ -2224,8 +2225,9 @@ export function structuredContentVerifySummary({
     + (hasLimitedQueryConcepts ? 1 : 0);
   const write = 2 + destructiveDryRunCount;
   const maintenance = 2 + (hasMaintenanceResume ? 1 : 0);
+  const maintenanceSuffix = hasMaintenanceResumeSkipped ? ' (resume skipped: no actions)' : '';
   const graph = 7 + (hasNode ? 2 : 0) + (hasProject ? 1 : 0) + (hasCompileIndexes ? 1 : 0);
-  return `direct ${direct}/${direct}, write ${write}/${write} (batch row-isolation 2/2, destructive dry-run ${destructiveDryRunCount}/${destructiveDryRunCount}), maintenance ${maintenance}/${maintenance}, graph ${graph}/${graph}`;
+  return `direct ${direct}/${direct}, write ${write}/${write} (batch row-isolation 2/2, destructive dry-run ${destructiveDryRunCount}/${destructiveDryRunCount}), maintenance ${maintenance}/${maintenance}${maintenanceSuffix}, graph ${graph}/${graph}`;
 }
 
 export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
@@ -5282,6 +5284,7 @@ async function step2BootAndCall() {
       }
 
       const resumeAfterActionId = maintenanceReadyCursorPayload?.actions?.[0]?.id;
+      let maintenanceResumeSkipped = false;
       if (typeof resumeAfterActionId === 'string' && resumeAfterActionId.length > 0) {
         if (!maintenanceResumeCursorRes || !maintenanceResumeCursorRes.result) {
           log('fail', 'no query_ontology maintenance resume-cursor response');
@@ -5307,6 +5310,7 @@ async function step2BootAndCall() {
           return res(false);
         }
       } else {
+        maintenanceResumeSkipped = true;
         log('info', 'maintenance cursor — resume skipped (ready page has no actions)');
       }
 
@@ -6073,6 +6077,7 @@ async function step2BootAndCall() {
           hasLimitedQueryConcepts: limitedQueryConceptsVerified,
           hasCompileIndexes: true,
           hasMaintenanceResume: maintenanceResumeVerified,
+          hasMaintenanceResumeSkipped: maintenanceResumeSkipped,
           destructiveDryRunCount,
         })}`,
       );

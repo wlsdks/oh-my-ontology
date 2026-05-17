@@ -740,6 +740,7 @@ describe('package contract helpers', () => {
       hasDirectGraphReads: true,
       hasLimitedQueryConcepts: true,
       hasCompileIndexes: true,
+      hasMaintenanceResumeSkipped: true,
       destructiveDryRunCount: 3,
     })}`)));
     assert.match(verifySection, /All passed — register \.mcp\.json with your MCP client and restart to use the 23 tools/);
@@ -845,6 +846,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /keeping `validate_vault\.scanned` as file-level health/);
     assert.match(verifySection, /dedicated `read census consistency` pass line/);
     assert.match(verifySection, /read surfaces agree/);
+    assert.match(verifySection, /`maintenance 2\/2 \(resume skipped: no actions\)`/);
+    assert.match(verifySection, /intentionally skipped resume-cursor smoke/);
     assert.match(verifySection, /missing or malformed first-contact diagnosis payloads/);
     assert.match(verifySection, /top-level `status`, `workspace_brief\.nextActions`,\s+`workspace_brief\.health\.checks`, `health\.checks`, tuned `workspace_brief\.health\.checks`, and tuned `health\.checks`/);
     assert.match(verifySection, /top-level diagnosis `status` must be `healthy` or `needs_attention`/);
@@ -1829,6 +1832,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /여러 read surface 가 같은 node census 를 본다는 증거/);
     assert.match(doc, /성공 출력도 read census consistency pass line 을 별도로 보여줘/);
     assert.match(doc, /verify helper 와\s+dogfood gate 의 maintenance 관련 subset 만 실행/);
+    assert.match(doc, /`maintenance 2\/2 \(resume skipped: no actions\)`/);
+    assert.match(doc, /마지막 줄만 봐도 skip 사유를 확인/);
     assert.match(doc, /`pnpm dogfood:verify` 가 repo root 의 짧은 gate/);
     assert.match(doc, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000` 로 풀어 쓴다/);
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);

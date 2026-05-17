@@ -6579,6 +6579,10 @@ describe('verify.mjs first-contact gates', () => {
       'direct 11/11, write 2/2 (batch row-isolation 2/2, destructive dry-run 0/0), maintenance 2/2, graph 8/8',
     );
     assert.equal(
+      structuredContentVerifySummary({ hasMaintenanceResumeSkipped: true }),
+      'direct 11/11, write 2/2 (batch row-isolation 2/2, destructive dry-run 0/0), maintenance 2/2 (resume skipped: no actions), graph 7/7',
+    );
+    assert.equal(
       structuredContentVerifySummary({
         hasNode: true,
         hasProject: true,
