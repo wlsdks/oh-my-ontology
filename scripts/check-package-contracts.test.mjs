@@ -163,7 +163,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
     assert.equal(
       pkg.scripts?.['test:mcp:verify:first-contact'],
-      'node --test --test-name-pattern "initialize instructions|first-contact response labels|bootstrap and import-analysis|first-contact verify|list_concepts reports vault warnings|validate_vault reports problem files|malformed validate_vault|first-contact diagnosis|failing health checks|workspace_brief growth count drift|workspace_brief next action sample drift|fail next actions" mcp/src/verify-script.test.mjs',
+      'node --test --test-name-pattern "initialize instructions|first-contact response labels|bootstrap and import-analysis|first-contact verify|list_concepts reports vault warnings|validate_vault reports problem files|malformed validate_vault|first-contact diagnosis|health summary|failing health checks|workspace_brief growth count drift|workspace_brief next action sample drift|fail next actions" mcp/src/verify-script.test.mjs',
     );
     assert.equal(
       pkg.scripts?.['test:mcp:verify:timeout'],
@@ -598,19 +598,19 @@ describe('package contract helpers', () => {
     assert.match(
       verifySection,
       new RegExp(
-        `workspace_brief_tuned advisory nextActions — ${tunedBriefAction.id}:${tunedBriefAction.severity}:${tunedBriefAction.count} - ${regexEscape(tunedBriefAction.message)}`,
+        `workspace_brief_tuned non-blocking advisory nextActions — ${tunedBriefAction.id}:${tunedBriefAction.severity}:${tunedBriefAction.count} - ${regexEscape(tunedBriefAction.message)}`,
       ),
     );
     assert.match(
       verifySection,
       new RegExp(
-        `✓ health — ${health.status} \\(${countLabel(health.checks.length, 'check')}: ${healthCheckSummary(health.checks)}, issues ${health.summary.issues}\\)`,
+        `✓ health — ${health.status} \\(issues:${health.summary.issues}, unresolved:${health.summary.unresolvedEdges}, cycles:${health.summary.dependencyCycles}, ${countLabel(health.checks.length, 'check')}: ${healthCheckSummary(health.checks)}\\)`,
       ),
     );
     assert.match(
       verifySection,
       new RegExp(
-        `✓ health_tuned — ${tunedHealth.status} \\(${countLabel(tunedHealth.checks.length, 'check')}: ${healthCheckSummary(tunedHealth.checks)}, issues ${tunedHealth.summary.issues}; dependencyTypes=dependencies; componentTypes=domain/capabilities\\)`,
+        `✓ health_tuned — ${tunedHealth.status} \\(issues:${tunedHealth.summary.issues}, unresolved:${tunedHealth.summary.unresolvedEdges}, cycles:${tunedHealth.summary.dependencyCycles}, ${countLabel(tunedHealth.checks.length, 'check')}: ${healthCheckSummary(tunedHealth.checks)}; dependencyTypes=dependencies; componentTypes=domain/capabilities\\)`,
       ),
     );
     assert.match(verifySection, new RegExp(`✓ compile_ontology — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, issues ${compiled.issueCount}\\)`));
@@ -1145,8 +1145,8 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /nextActions\[\]\.sample/);
     assert.match(dogfoodSection, /실행 액션 shape drift/);
     assert.match(dogfoodSection, /severity\/kind\/id\/count\/message/);
-    assert.match(dogfoodSection, /workspace_brief nextActions/);
-    assert.match(dogfoodSection, /workspace_brief_tuned nextActions/);
+    assert.match(dogfoodSection, /workspace_brief non-blocking nextActions/);
+    assert.match(dogfoodSection, /workspace_brief_tuned non-blocking nextActions/);
     assert.match(dogfoodSection, /label:severity:count/);
     assert.match(dogfoodSection, /health checks/);
     assert.match(dogfoodSection, /health_tuned checks/);

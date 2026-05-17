@@ -295,9 +295,9 @@ A successful run looks like this:
 ✓ project probe — 1 project node
 ✓ workspace_brief — healthy (28 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:120)
 ✓ workspace_brief_tuned — healthy (28 nodes, 1 next action, 5 health checks, growth actions:0 external:0 ignoredExternal:120; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3)
-· workspace_brief_tuned advisory nextActions — components:info:6 - The resolved ontology graph has disconnected actionable islands.
-✓ health — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1, issues 0)
-✓ health_tuned — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6, issues 0; dependencyTypes=dependencies; componentTypes=domain/capabilities)
+· workspace_brief_tuned non-blocking advisory nextActions — components:info:6 - The resolved ontology graph has disconnected actionable islands.
+✓ health — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1)
+✓ health_tuned — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6; dependencyTypes=dependencies; componentTypes=domain/capabilities)
 ✓ compile_ontology — graph 9c329481eae2 (28 nodes, 213 edges, issues 0)
 ✓ compile_ontology page — 1/28 nodes, 1/213 edges
 ✓ compile_ontology indexes — out 28, in 27, edgeById 213, aliases 55, edges 93/120/0
@@ -451,13 +451,14 @@ verify also checks `add_missing_relations` samples are `add_relation` calls with
 `add_concept` calls for `kind:"element"`, while `resolve_dangling_references`
 samples must keep the `resolve_dangling_reference` row shape with score and reason.
 Non-blocking `workspace_brief.nextActions` are printed as a short
-advisory list with action label, severity, optional count, and message, the
+advisory list with action label, severity, optional count, and message. The
 `workspace_brief` / `workspace_brief_tuned` success lines include the
 `workspace_brief.health.checks` count plus `growth actions/external/ignoredExternal`
 counts. Tuned diagnosis lines also print
 `dependencyTypes=dependencies; componentTypes=domain/capabilities` so scoped
 component warnings are not confused with the full-graph component count. The
-`health` / `health_tuned` lines include the check `id:status:count` coverage that the verify gate validated. The default wait window is 8 seconds; set
+`health` / `health_tuned` lines include the `issues/unresolved/cycles/checks`
+summary plus check `id:status:count` coverage that the verify gate validated. The default wait window is 8 seconds; set
 `OMOT_VERIFY_TIMEOUT_MS` to a positive integer millisecond value if your vault
 is large or on a slow filesystem. Real timeout failures suggest the same
 retry shape, and invalid timeout values fail before the server starts and print

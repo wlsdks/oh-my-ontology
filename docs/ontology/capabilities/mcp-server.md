@@ -650,6 +650,8 @@ timeout 출력도 같은 env 이름과 `OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfo
 핵심 응답 누락, vault warning, `validate_vault` problemFiles, 예상 graph path 부재,
 `workspace_brief` / `health` 비정상 상태, top-level status 와 별개로 내부 health
 check 의 `fail` 상태, warn·fail `workspace_brief.nextActions` 는 exit 1 로 처리한다.
+`pnpm test:mcp:verify:first-contact` 는 first-contact response label, diagnosis, health summary,
+failing health check, workspace_brief growth/sample/action gate 를 focused 로 확인한다.
 `pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, maintenance work-queue shape / formatter, initialize guidance, tools/list annotation coverage, row-label guidance summary 를 fixture 로 검증해
 dogfood walk 의 실패 조건이 조용히 약해지지 않게 막고, 전체 helper 회귀가 필요할 때만
 `pnpm dogfood:test` 로 넓힌다.
