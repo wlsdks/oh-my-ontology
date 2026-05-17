@@ -618,7 +618,7 @@ function makeDogfoodToolsList() {
       }
       if (name === "infer_imports") {
         tool.description =
-          "Walk TS/JS files in a code repo and infer file-level + module-level import edges; side effect 0 (vault frontmatter NOT modified). Agent reviews moduleEdges and selectively passes accepted edges to add_relation as `depends_on`. Use after analyze_repo_structure, not just suggestedRelations heuristics. Single source of truth preserved.";
+          "Walk TS/JS files in a code repo and infer file-level + module-level import edges; side effect 0 (vault frontmatter NOT modified). Agent reviews moduleEdges with kindCounts and selectively passes accepted edges to add_relation as `depends_on`. Use after analyze_repo_structure, not just suggestedRelations heuristics. Single source of truth preserved.";
         tool.inputSchema.properties.maxFiles = {
           type: "integer",
           minimum: 1,
@@ -655,9 +655,13 @@ function makeDogfoodToolsList() {
               type: "array",
               items: {
                 type: "object",
-                required: ["from", "to", "count"],
+                required: ["from", "to", "count", "kindCounts"],
                 properties: {
                   count: { type: "integer", minimum: 1 },
+                  kindCounts: {
+                    type: "object",
+                    additionalProperties: { type: "integer", minimum: 1 },
+                  },
                 },
               },
             },
@@ -975,7 +979,7 @@ const okShape = {
     edges: [{ from: "src/features/auth/index.ts", to: "src/entities/user/index.ts", kind: "static" }],
     externalImports: [{ from: "src/features/auth/index.ts", spec: "zod" }],
     unresolved: [{ from: "src/features/auth/index.ts", spec: "@/missing", reason: "alias-not-found" }],
-    moduleEdges: [{ from: "capabilities/auth", to: "capabilities/user", count: 1 }],
+    moduleEdges: [{ from: "capabilities/auth", to: "capabilities/user", count: 1, kindCounts: { static: 1 } }],
   },
   inferredImportsStructured: {
     rootPath: "/repo",
@@ -983,7 +987,7 @@ const okShape = {
     edges: [{ from: "src/features/auth/index.ts", to: "src/entities/user/index.ts", kind: "static" }],
     externalImports: [{ from: "src/features/auth/index.ts", spec: "zod" }],
     unresolved: [{ from: "src/features/auth/index.ts", spec: "@/missing", reason: "alias-not-found" }],
-    moduleEdges: [{ from: "capabilities/auth", to: "capabilities/user", count: 1 }],
+    moduleEdges: [{ from: "capabilities/auth", to: "capabilities/user", count: 1, kindCounts: { static: 1 } }],
   },
   validation: {
     scanned: 1,
@@ -2792,6 +2796,12 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, toolsList: inferOutputSchemaDrifted }),
       ["tools/list: infer_imports outputSchema edge kind drift"],
     );
+    const inferModuleKindCountsDrifted = makeDogfoodToolsList();
+    inferModuleKindCountsDrifted.tools.find((tool) => tool.name === "infer_imports").outputSchema.properties.moduleEdges.items.properties.kindCounts.additionalProperties.type = "number";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: inferModuleKindCountsDrifted }),
+      ["tools/list: infer_imports outputSchema moduleEdges kindCounts drift"],
+    );
     const addConceptsOutputSchemaDrifted = makeDogfoodToolsList();
     addConceptsOutputSchemaDrifted.tools.find((tool) => tool.name === "add_concepts").outputSchema.properties.concepts.items.required = ["slug"];
     assert.deepEqual(
@@ -3218,6 +3228,14 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, inferredImports: { ...okShape.inferredImports, moduleEdges: [{ from: "a", to: "b", count: 0 }] } }),
       ["infer_imports response missing module edge count at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, inferredImports: { ...okShape.inferredImports, moduleEdges: [{ from: "a", to: "b", count: 1 }] } }),
+      ["infer_imports response missing module edge kindCounts at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, inferredImports: { ...okShape.inferredImports, moduleEdges: [{ from: "a", to: "b", count: 2, kindCounts: { static: 1 } }] } }),
+      ["infer_imports response module edge kindCounts mismatch at index 0"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, inferredImportsStructured: { ...okShape.inferredImports, filesScanned: 3 } }),

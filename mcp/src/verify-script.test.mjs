@@ -745,7 +745,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'infer_imports',
         description:
-          'R17 (autonomous ingest deeper) — walk TS/JS files in a code repo and infer file-level + module-level import edges. side effect 0 (vault frontmatter NOT modified). The agent reviews moduleEdges and selectively passes accepted edges to add_relation as `depends_on`. Use after analyze_repo_structure to pull real dependency edges from the code, not just suggestedRelations heuristics. Single source of truth preserved — only the user writes to the vault.',
+          'R17 (autonomous ingest deeper) — walk TS/JS files in a code repo and infer file-level + module-level import edges. side effect 0 (vault frontmatter NOT modified). The agent reviews moduleEdges with kindCounts and selectively passes accepted edges to add_relation as `depends_on`. Use after analyze_repo_structure to pull real dependency edges from the code, not just suggestedRelations heuristics. Single source of truth preserved — only the user writes to the vault.',
         inputSchema: {
           additionalProperties: false,
           properties: {
@@ -798,9 +798,13 @@ describe('verify.mjs first-contact gates', () => {
               type: 'array',
               items: {
                 type: 'object',
-                required: ['from', 'to', 'count'],
+                required: ['from', 'to', 'count', 'kindCounts'],
                 properties: {
                   count: { type: 'integer', minimum: 1 },
+                  kindCounts: {
+                    type: 'object',
+                    additionalProperties: { type: 'integer', minimum: 1 },
+                  },
                 },
               },
             },
@@ -1897,6 +1901,34 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'infer_imports outputSchema moduleEdges count drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'infer_imports'),
+        {
+          ...tools.find((tool) => tool.name === 'infer_imports'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'infer_imports').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties,
+              moduleEdges: {
+                ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.moduleEdges,
+                items: {
+                  ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.moduleEdges.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'infer_imports').outputSchema.properties.moduleEdges.items.properties,
+                    kindCounts: {
+                      type: 'object',
+                      additionalProperties: { type: 'number', minimum: 1 },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'infer_imports outputSchema moduleEdges kindCounts drift',
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
@@ -3761,7 +3793,7 @@ describe('verify.mjs first-contact gates', () => {
         edges: [{ from: 'src/a.ts', to: 'src/b.ts', kind: 'static' }],
         externalImports: [{ from: 'src/a.ts', spec: 'react' }],
         unresolved: [{ from: 'src/a.ts', spec: '@/missing', reason: 'unresolved-alias' }],
-        moduleEdges: [{ from: 'capabilities/a', to: 'capabilities/b', count: 1 }],
+        moduleEdges: [{ from: 'capabilities/a', to: 'capabilities/b', count: 1, kindCounts: { static: 1 } }],
       }),
       null,
     );
@@ -4163,6 +4195,14 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       inferImportsFailure({ rootPath: '/repo', filesScanned: 1, edges: [], externalImports: [], unresolved: [], moduleEdges: [{ from: 'capabilities/a', to: 'capabilities/b', count: 0 }] }),
       'infer_imports response missing module edge count at index 0',
+    );
+    assert.equal(
+      inferImportsFailure({ rootPath: '/repo', filesScanned: 1, edges: [], externalImports: [], unresolved: [], moduleEdges: [{ from: 'capabilities/a', to: 'capabilities/b', count: 1 }] }),
+      'infer_imports response missing module edge kindCounts at index 0',
+    );
+    assert.equal(
+      inferImportsFailure({ rootPath: '/repo', filesScanned: 1, edges: [], externalImports: [], unresolved: [], moduleEdges: [{ from: 'capabilities/a', to: 'capabilities/b', count: 2, kindCounts: { static: 1 } }] }),
+      'infer_imports response module edge kindCounts mismatch at index 0',
     );
   });
 
