@@ -8,7 +8,7 @@
 
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { StringDecoder } from "node:string_decoder";
@@ -4093,6 +4093,40 @@ await test("merge_concepts confirm:true — fromSlug 삭제 + backlink redirect"
   }
 });
 
+await test("merge_concepts dry-run — preview 만, 디스크 변경 0", async () => {
+  const root = makeVault([
+    { slug: "from", content: "---\nkind: capability\ntitle: From\n---\n" },
+    { slug: "into", content: "---\nkind: capability\ntitle: Into\n---\n" },
+    {
+      slug: "ref",
+      content: "---\nkind: project\ntitle: Ref\ndependencies: [from]\n---\n",
+    },
+  ]);
+  try {
+    const beforeFrom = readFileSync(join(root, "from.md"), "utf-8");
+    const beforeRef = readFileSync(join(root, "ref.md"), "utf-8");
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "merge_concepts", {
+        fromSlug: "from",
+        intoSlug: "into",
+      }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
+    assert.equal(result.ok, false);
+    assert.equal(result.dryRun, true);
+    assert.equal(result.deleted, false);
+    assert.equal(result.backlinkUpdates.totalUpdated, 1);
+    assert.equal(result.capturedFrom.frontmatter.title, "From");
+    assert.match(result.message, /confirm:true/);
+    assert.equal(readFileSync(join(root, "from.md"), "utf-8"), beforeFrom);
+    assert.equal(readFileSync(join(root, "ref.md"), "utf-8"), beforeRef);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("delete_concept confirm:true — 삭제 후 post-write maintenance summary 반환", async () => {
   const root = makeVault([
     { slug: "gone", content: "---\nkind: capability\ntitle: Gone\n---\n" },
@@ -4110,6 +4144,32 @@ await test("delete_concept confirm:true — 삭제 후 post-write maintenance su
     assert.equal(result.ok, true);
     assert.equal(result.changed, true);
     assertPostWriteMaintenanceShape(result.postWriteMaintenance, "delete_concept postWriteMaintenance");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test("delete_concept dry-run — backlink preview 만, 디스크 변경 0", async () => {
+  const root = makeVault([
+    { slug: "gone", content: "---\nkind: capability\ntitle: Gone\n---\n" },
+    { slug: "ref", content: "---\nkind: project\ntitle: Ref\ndependencies: [gone]\n---\n" },
+  ]);
+  try {
+    const beforeGone = readFileSync(join(root, "gone.md"), "utf-8");
+    const beforeRef = readFileSync(join(root, "ref.md"), "utf-8");
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "delete_concept", { slug: "gone" }),
+    ]);
+    const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
+    assert.equal(result.ok, false);
+    assert.equal(result.dryRun, true);
+    assert.equal(result.slug, "gone");
+    assert.equal(result.backlinks.length, 1);
+    assert.match(result.message, /force:true/);
+    assert.equal(readFileSync(join(root, "gone.md"), "utf-8"), beforeGone);
+    assert.equal(readFileSync(join(root, "ref.md"), "utf-8"), beforeRef);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
