@@ -212,10 +212,15 @@ await test('init — generated MCP config points at a runnable local server in s
 await test('init — rejects unknown flags and extra positional args before writing', async () => {
   const root = mkdtempSync(join(tmpdir(), 'cli-init-args-'));
   try {
-    const flag = await run(['init', '--bogus'], { cwd: root });
+    const flag = await run(['init', '--hlep'], { cwd: root });
     assert.equal(flag.code, 1);
-    assert.match(stripAnsi(flag.stderr), /unknown init flag: --bogus/);
-    assert.equal(existsSyncTest(join(root, '--bogus')), false);
+    assert.match(stripAnsi(flag.stderr), /unknown flag: --hlep\. Did you mean --help\?/);
+    assert.equal(existsSyncTest(join(root, '--hlep')), false);
+
+    const shortTypo = await run(['init', '-help'], { cwd: root });
+    assert.equal(shortTypo.code, 1);
+    assert.match(stripAnsi(shortTypo.stderr), /unknown flag: -help\. Did you mean --help\?/);
+    assert.equal(existsSyncTest(join(root, '-help')), false);
 
     const extra = await run(['init', 'one', 'two'], { cwd: root });
     assert.equal(extra.code, 1);

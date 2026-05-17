@@ -1267,6 +1267,7 @@ describe('package contract helpers', () => {
   it('keeps dogfood CLI docs explicit about fail-closed graph diagnostics', () => {
     const doc = readFileSync('docs/ontology/capabilities/cli-developer-entry.md', 'utf-8');
     const readme = readFileSync('cli/README.md', 'utf-8');
+    const initRow = doc.split('| `oh-my-ontology init [folder]` |')[1]?.split('\n')[0] ?? '';
     const listRow = doc.split('| `oh-my-ontology list [vault]` |')[1]?.split('\n')[0] ?? '';
     const addRow = doc.split('| `oh-my-ontology add <kind> <slug> --title="..."` |')[1]?.split('\n')[0] ?? '';
     const findRow = doc.split('| `oh-my-ontology find <query> [vault]` |')[1]?.split('\n')[0] ?? '';
@@ -1283,6 +1284,8 @@ describe('package contract helpers', () => {
     const inferImportsRow = doc.split('| `oh-my-ontology infer-imports [rootPath]` |')[1]?.split('\n')[0] ?? '';
     const implementationSection = doc.split('## 구현 단일 진실원')[1]?.split('## 회귀 차단')[0] ?? '';
 
+    assert.match(initRow, /`--hlep` \/ `-help`/);
+    assert.match(initRow, /closest-value hint/);
     assert.match(listRow, /enum-validated `--kind X` filter/);
     assert.match(listRow, /`--kind=capabilty`/);
     assert.match(listRow, /closest-value hint/);

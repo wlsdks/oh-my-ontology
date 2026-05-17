@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { stdout, stderr, argv, exit, cwd } from 'node:process';
 import { CLI_COMMAND_COUNT, CLI_COMMAND_RUNNERS } from './lib/cli-commands.mjs';
+import { formatUnknownFlagError } from './lib/cli-args.mjs';
 import { readMcpPackageMetadata } from './lib/mcp-metadata.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -30,6 +31,7 @@ const require_ = createRequire(import.meta.url);
 const MCP_METADATA = readMcpPackageMetadata();
 const MCP_TOOL_COUNT = MCP_METADATA.toolCount ?? 'current';
 const MCP_TOOL_SPLIT = MCP_METADATA.splitText ?? 'read/write';
+const INIT_ALLOWED_FLAGS = ['--help'];
 
 const COLORS = {
   reset: '\x1b[0m',
@@ -150,7 +152,7 @@ function parseInitArgs(args) {
   }
   const positional = [];
   for (const arg of args) {
-    if (arg.startsWith('--')) return { error: `unknown init flag: ${arg}` };
+    if (arg.startsWith('-')) return { error: formatUnknownFlagError(arg, INIT_ALLOWED_FLAGS) };
     positional.push(arg);
   }
   if (positional.length > 1) {
