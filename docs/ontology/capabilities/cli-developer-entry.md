@@ -23,6 +23,8 @@ R12 (2026-05-04) 에 도입된 *developer-primary* 진입점. R14 에서 `import
 | `oh-my-ontology find <query> [vault]` | Search slug + title with yellow highlight (`--kind --json`). positional vault 와 `--vault` 중복 / 빈 `--vault` / 초과 positional 을 scan 전에 거부한다. |
 | `oh-my-ontology import <path...>` | **R14** Import external `.md` (frontmatter normalize + `--auto-prefix` / `--rename` / `--dry-run`). `--vault` / `--kind` 값 누락을 디스크 쓰기 전에 거부한다. |
 
+`mcp-verify` 의 batch row-isolation smoke 는 실패 row 를 단순히 `ok:false` 로 격리하는 것에서 끝나지 않고, error 문자열에 `concepts[n]` / `relations[n]` row label 이 남는지도 확인한다. agent 가 batch partial failure 를 자동 복구할 때 어떤 입력 row 를 고칠지 잃지 않게 하기 위한 계약이다.
+
 ## Repo analysis commands (R16-R17 + R+ — codebase → ontology)
 
 | Command | What it does |

@@ -601,6 +601,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`rename_concept\.overwrite`/);
     assert.match(verifySection, /`delete_concept\.force`/);
     assert.match(verifySection, /batch row isolation for non-object row shape and\s+unknown row field inputs/);
+    assert.match(verifySection, /`concepts\[n\]` \/ `relations\[n\]` error labels/);
     assert.match(verifySection, /Destructive dry-run smoke calls `rename_concept`, `merge_concepts`, and\s+`delete_concept` against live vault slugs without writing/);
     assert.match(verifySection, /preview is missing or includes `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /row-level `ok:false`\s+results instead of a top-level tool error/);
@@ -681,8 +682,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /write tool descriptions keep compact `postWriteMaintenance` action `score`/);
     assert.match(verifySection, /executable `proposedAction`/);
     assert.match(verifySection, /current-page next action pointer guidance/);
+    assert.match(verifySection, /`concepts\[n\]` \/ `relations\[n\]` error labels/);
     assert.match(verifySection, /calls destructive dry-runs for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
-    assert.match(verifySection, /preview is missing or includes `changed` or `postWriteMaintenance`/);
+    assert.match(verifySection, /previews stay non-writing and do not include `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /`initialize\.instructions` now names the destructive-write safety boundaries directly/);
     assert.match(verifySection, /`overwrite: true`/);
     assert.match(verifySection, /dangling referrers/);
@@ -828,7 +830,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /accepts empty vault folders/);
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
-    assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results instead of top-level tool errors, with no `postWriteMaintenance`/);
+    assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results with `concepts\[n\]` \/ `relations\[n\]` error labels instead of top-level tool errors, with no `postWriteMaintenance`/);
     assert.match(verifySection, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
     assert.match(verifySection, /every planned preview response is present, stays non-writing, and does not include `changed` or `postWriteMaintenance`/);
     assert.match(verifySection, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
@@ -1090,6 +1092,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`add_concepts` \/ `add_relations` 도 batch writer `outputSchema` row 계약/);
     assert.match(doc, /row-level non-object \/ blank \/ padded \/ unknown-field 입력은 해당 row 만 실패/);
     assert.match(doc, /row-level non-object \/ unknown-field 입력도 해당 row 만 실패/);
+    assert.match(doc, /`concepts\[n\]` \/ `relations\[n\]` row label/);
     assert.match(doc, /`add_concepts` \/ `add_relations` 는 non-object row 와 unknown row field 를 넣어\s+top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서\s+실제 호출로 확인/);
     assert.match(doc, /invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
