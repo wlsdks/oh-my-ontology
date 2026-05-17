@@ -174,6 +174,53 @@ function writeProjectlessVault(root) {
   );
 }
 
+function writeMaintenanceResumeVault(root) {
+  mkdirSync(root, { recursive: true });
+  writeFileSync(
+    join(root, 'project.md'),
+    [
+      '---',
+      'kind: project',
+      'slug: project',
+      'title: Project',
+      'domains:',
+      '  - core',
+      '---',
+      '',
+      '# Project',
+      '',
+    ].join('\n'),
+  );
+  writeFileSync(
+    join(root, 'core.md'),
+    [
+      '---',
+      'kind: domain',
+      'slug: core',
+      'title: Core',
+      '---',
+      '',
+      '# Core',
+      '',
+    ].join('\n'),
+  );
+  writeFileSync(
+    join(root, 'feature.md'),
+    [
+      '---',
+      'kind: capability',
+      'slug: feature',
+      'title: Feature',
+      'domain: core',
+      'elements: []',
+      '---',
+      '',
+      '# Feature',
+      '',
+    ].join('\n'),
+  );
+}
+
 const temp = mkdtempSync(join(tmpdir(), 'omot-packed-cli-'));
 try {
   const packDir = join(temp, 'packs');
@@ -238,7 +285,25 @@ try {
   assert.match(cliMcpVerify.stdout, /neighbors — elements\/example/);
   assert.match(cliMcpVerify.stdout, /path — elements\/example → project \(1 hop, 1 edge\)/);
   assert.match(cliMcpVerify.stdout, /project_scope/);
-  assert.match(cliMcpVerify.stdout, /structuredContent — direct 7\/7, write 2\/2, maintenance 2\/2, graph 10\/10/);
+  assert.match(cliMcpVerify.stdout, /structuredContent — direct 7\/7, write 2\/2, maintenance 3\/3, graph 10\/10/);
+
+  const maintenanceResumeVault = join(projectDir, 'maintenance-resume-vault');
+  writeMaintenanceResumeVault(maintenanceResumeVault);
+  const cliMaintenanceResumeMcpVerify = run(
+    cliBin,
+    ['mcp-verify', maintenanceResumeVault, '--timeout-ms', '3000'],
+    { cwd: projectDir },
+  );
+  assert.match(cliMaintenanceResumeMcpVerify.stdout, /maintenance cursor — ready page stable \(1 remaining action/);
+  assert.match(cliMaintenanceResumeMcpVerify.stdout, /kind add_missing_relation:1/);
+  assert.match(
+    cliMaintenanceResumeMcpVerify.stdout,
+    /maintenance cursor — resume afterActionId advanced \(maint_[a-f0-9]{8}; 0 remaining actions/,
+  );
+  assert.match(
+    cliMaintenanceResumeMcpVerify.stdout,
+    /structuredContent — direct 7\/7, write 2\/2, maintenance 3\/3, graph 10\/10/,
+  );
 
   const projectlessVault = join(projectDir, 'projectless-vault');
   writeProjectlessVault(projectlessVault);
@@ -353,7 +418,7 @@ try {
   assert.match(mcpVerify.stdout, /neighbors — elements\/example/);
   assert.match(mcpVerify.stdout, /path — elements\/example → project \(1 hop, 1 edge\)/);
   assert.match(mcpVerify.stdout, /project_scope/);
-  assert.match(mcpVerify.stdout, /structuredContent — direct 7\/7, write 2\/2, maintenance 2\/2, graph 10\/10/);
+  assert.match(mcpVerify.stdout, /structuredContent — direct 7\/7, write 2\/2, maintenance 3\/3, graph 10\/10/);
 
   const directMcpVerify = run(
     'npm',
@@ -379,7 +444,35 @@ try {
   assert.match(directMcpVerify.stdout, /add_relations — non-object and unknown-field rows isolated at row level/);
   assert.match(directMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(directMcpVerify.stdout, /maintenance cursor — ready page stable/);
-  assert.match(directMcpVerify.stdout, /structuredContent — direct 7\/7, write 2\/2, maintenance 2\/2, graph 10\/10/);
+  assert.match(directMcpVerify.stdout, /structuredContent — direct 7\/7, write 2\/2, maintenance 3\/3, graph 10\/10/);
+
+  const directMcpMaintenanceResumeVerify = run(
+    'npm',
+    [
+      '--prefix',
+      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      'run',
+      'verify',
+      '--',
+      maintenanceResumeVault,
+      '--timeout-ms',
+      '3000',
+    ],
+    { cwd: projectDir },
+  );
+  assert.match(
+    directMcpMaintenanceResumeVerify.stdout,
+    /maintenance cursor — ready page stable \(1 remaining action/,
+  );
+  assert.match(directMcpMaintenanceResumeVerify.stdout, /kind add_missing_relation:1/);
+  assert.match(
+    directMcpMaintenanceResumeVerify.stdout,
+    /maintenance cursor — resume afterActionId advanced \(maint_[a-f0-9]{8}; 0 remaining actions/,
+  );
+  assert.match(
+    directMcpMaintenanceResumeVerify.stdout,
+    /structuredContent — direct 7\/7, write 2\/2, maintenance 3\/3, graph 10\/10/,
+  );
 
   const directMcpVerifyVaultFlag = run(
     'npm',
@@ -402,7 +495,7 @@ try {
   assert.match(directMcpVerifyVaultFlag.stdout, /add_relations — non-object and unknown-field rows isolated at row level/);
   assert.match(directMcpVerifyVaultFlag.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(directMcpVerifyVaultFlag.stdout, /maintenance cursor — ready page stable/);
-  assert.match(directMcpVerifyVaultFlag.stdout, /structuredContent — direct 7\/7, write 2\/2, maintenance 2\/2, graph 10\/10/);
+  assert.match(directMcpVerifyVaultFlag.stdout, /structuredContent — direct 7\/7, write 2\/2, maintenance 3\/3, graph 10\/10/);
 
   const directMcpVerifyHelp = run(
     'npm',

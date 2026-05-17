@@ -878,7 +878,13 @@ describe('package contract helpers', () => {
     assert.match(smoke, /strict arguments — multiple unknown tool arguments reported together/);
     assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated at row level/);
     assert.match(smoke, /add_relations — non-object and unknown-field rows isolated at row level/);
-    assert.match(smoke, /structuredContent — direct 7\\\/7, write 2\\\/2, maintenance 2\\\/2, graph 10\\\/10/);
+    assert.match(smoke, /structuredContent — direct 7\\\/7, write 2\\\/2, maintenance 3\\\/3, graph 10\\\/10/);
+    assert.match(smoke, /writeMaintenanceResumeVault/);
+    assert.match(smoke, /cliMaintenanceResumeMcpVerify/);
+    assert.match(smoke, /directMcpMaintenanceResumeVerify/);
+    assert.match(smoke, /maintenance cursor — ready page stable \\\(1 remaining action/);
+    assert.match(smoke, /kind add_missing_relation:1/);
+    assert.match(smoke, /maintenance cursor — resume afterActionId advanced/);
     assert.match(doc, /batch writer row-isolation smoke/);
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
     assert.match(smoke, /runtime unknown-argument/);

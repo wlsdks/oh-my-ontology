@@ -75,6 +75,7 @@ health check count 출력과 `overview`/`project_map` query_plan / `neighbors` /
 node-targeted graph smoke skip, single and multi unknown-argument runtime rejection,
 typoed `maintenance_plan.phases` / `maintenance_plan.severities` /
 `maintenance_plan.kinds` runtime rejection, ready `maintenance_plan` cursor + missing `maintenance_plan.afterActionId` cursor smoke,
+action-present `maintenance_plan` fixture 의 installed CLI wrapper / direct MCP package resume 검증,
 installed help 의 strict argument/enum smoke 와 maintenance work-queue filter/cursor 계약,
 batch writer row-isolation smoke, bucket / current-page next-action summary 설명을 확인해 source checkout 에서는 안 보이는 bin/package/files drift 를
 잡는다. 통과 시 MCP/CLI tarball 의 파일 수와 압축/해제 크기 요약도 출력해 release
