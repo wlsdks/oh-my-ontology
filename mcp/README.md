@@ -291,7 +291,9 @@ the graph engine's runtime allow-lists. It also checks the `list_kinds`
 `outputSchema` and matching `structuredContent` bootstrap-candidate payload, the `infer_imports`
 `outputSchema` and matching `structuredContent` import-graph payload, the `add_concept`,
 `add_relation`, and `patch_concept` single writer `outputSchema` contracts, the `add_concepts`
-and `add_relations` batch writer `outputSchema` row contracts, the installed batch
+and `add_relations` batch writer `outputSchema` row contracts, the `rename_concept`,
+`merge_concepts`, and `delete_concept` destructive writer dry-run/confirm `outputSchema`
+contracts, the installed batch
 input schemas for the same 50-row cap used by `get_concepts`, `add_concepts`,
 and `add_relations` at runtime, the `find_orphans.excludeKinds` string-array
 schema and root/sentinel default description, plus write-safety schemas for

@@ -630,9 +630,62 @@ function makeDogfoodToolsList() {
       }
       if (name === "rename_concept") {
         tool.inputSchema.properties.overwrite = { type: "boolean" };
+        tool.outputSchema = {
+          type: "object",
+          required: ["ok", "oldSlug", "newSlug", "sourcePath", "targetPath", "moved", "backlinkUpdates"],
+          properties: {
+            ok: { type: "boolean" },
+            dryRun: { type: "boolean" },
+            oldSlug: { type: "string" },
+            newSlug: { type: "string" },
+            sourcePath: { type: "string" },
+            targetPath: { type: "string" },
+            moved: { type: "boolean" },
+            backlinkUpdates: { type: "object" },
+            message: { type: "string" },
+            changed: { type: "boolean" },
+            postWriteMaintenance: { type: "object" },
+          },
+        };
+      }
+      if (name === "merge_concepts") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["ok", "fromSlug", "intoSlug", "fromPath", "deleted", "backlinkUpdates", "capturedFrom"],
+          properties: {
+            ok: { type: "boolean" },
+            dryRun: { type: "boolean" },
+            fromSlug: { type: "string" },
+            intoSlug: { type: "string" },
+            fromPath: { type: "string" },
+            deleted: { type: "boolean" },
+            backlinkUpdates: { type: "object" },
+            capturedFrom: { type: "object" },
+            message: { type: "string" },
+            changed: { type: "boolean" },
+            postWriteMaintenance: { type: "object" },
+          },
+        };
       }
       if (name === "delete_concept") {
         tool.inputSchema.properties.force = { type: "boolean" };
+        tool.outputSchema = {
+          type: "object",
+          required: ["ok", "slug", "filePath"],
+          properties: {
+            ok: { type: "boolean" },
+            dryRun: { type: "boolean" },
+            slug: { type: "string" },
+            filePath: { type: "string" },
+            backlinks: { type: "array", items: { type: "object" } },
+            message: { type: "string" },
+            forced: { type: "boolean" },
+            backlinksAtDelete: { type: "array", items: { type: "object" } },
+            changed: { type: "boolean" },
+            captured: { type: "object" },
+            postWriteMaintenance: { type: "object" },
+          },
+        };
       }
       return tool;
     }),
@@ -2496,6 +2549,24 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: patchConceptOutputSchemaDrifted }),
       ["tools/list: patch_concept outputSchema required drift"],
+    );
+    const renameConceptOutputSchemaDrifted = makeDogfoodToolsList();
+    renameConceptOutputSchemaDrifted.tools.find((tool) => tool.name === "rename_concept").outputSchema.properties.backlinkUpdates.type = "array";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: renameConceptOutputSchemaDrifted }),
+      ["tools/list: rename_concept outputSchema backlinkUpdates drift"],
+    );
+    const mergeConceptsOutputSchemaDrifted = makeDogfoodToolsList();
+    mergeConceptsOutputSchemaDrifted.tools.find((tool) => tool.name === "merge_concepts").outputSchema.required = ["ok", "fromSlug", "intoSlug", "fromPath", "deleted", "backlinkUpdates"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: mergeConceptsOutputSchemaDrifted }),
+      ["tools/list: merge_concepts outputSchema required drift"],
+    );
+    const deleteConceptOutputSchemaDrifted = makeDogfoodToolsList();
+    deleteConceptOutputSchemaDrifted.tools.find((tool) => tool.name === "delete_concept").outputSchema.properties.backlinksAtDelete.items.type = "string";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: deleteConceptOutputSchemaDrifted }),
+      ["tools/list: delete_concept outputSchema backlinksAtDelete drift"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),

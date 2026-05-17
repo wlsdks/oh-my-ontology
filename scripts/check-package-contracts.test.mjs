@@ -324,6 +324,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`infer_imports`\s+`outputSchema` and matching `structuredContent` import-graph payload/);
     assert.match(verifySection, /`add_concept`,\s+`add_relation`, and `patch_concept` single writer `outputSchema` contracts/);
     assert.match(verifySection, /`add_concepts`\s+and `add_relations` batch writer `outputSchema` row contracts/);
+    assert.match(verifySection, /`rename_concept`,\s+`merge_concepts`, and `delete_concept` destructive writer dry-run\/confirm `outputSchema`\s+contracts/);
     assert.match(verifySection, /same 50-row cap used by `get_concepts`, `add_concepts`,\s+and `add_relations`/);
     assert.match(verifySection, /`find_orphans\.excludeKinds` string-array\s+schema and root\/sentinel default description/);
     assert.match(verifySection, /write-safety schemas for\s+`expected_mtime`/);
@@ -698,6 +699,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`infer_imports` 도 `outputSchema` 와 동일한 `structuredContent` import-graph payload/);
     assert.match(doc, /`add_concept` \/ `add_relation` \/ `patch_concept` 도 single writer `outputSchema`/);
     assert.match(doc, /`add_concepts` \/ `add_relations` 도 batch writer `outputSchema` row 계약/);
+    assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /15 read \/ 8 write split/);
     assert.match(doc, /annotation drift/);

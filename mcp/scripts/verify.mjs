@@ -944,6 +944,84 @@ export function toolsListSchemaFailure(tools) {
     return 'patch_concept outputSchema postWriteMaintenance drift';
   }
 
+  const renameConceptTool = tools.find((candidate) => candidate?.name === 'rename_concept');
+  if (!renameConceptTool) return 'tools/list response missing rename_concept tool';
+  if (renameConceptTool.outputSchema?.type !== 'object') {
+    return 'rename_concept outputSchema root drift';
+  }
+  if (!sameArray(renameConceptTool.outputSchema?.required, ['ok', 'oldSlug', 'newSlug', 'sourcePath', 'targetPath', 'moved', 'backlinkUpdates'])) {
+    return 'rename_concept outputSchema required drift';
+  }
+  for (const propertyName of ['oldSlug', 'newSlug', 'sourcePath', 'targetPath', 'message']) {
+    if (outputPropertyAt(renameConceptTool, ['properties', propertyName])?.type !== 'string') {
+      return `rename_concept outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['ok', 'dryRun', 'moved', 'changed']) {
+    if (outputPropertyAt(renameConceptTool, ['properties', propertyName])?.type !== 'boolean') {
+      return `rename_concept outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['backlinkUpdates', 'postWriteMaintenance']) {
+    if (outputPropertyAt(renameConceptTool, ['properties', propertyName])?.type !== 'object') {
+      return `rename_concept outputSchema ${propertyName} drift`;
+    }
+  }
+
+  const mergeConceptsTool = tools.find((candidate) => candidate?.name === 'merge_concepts');
+  if (!mergeConceptsTool) return 'tools/list response missing merge_concepts tool';
+  if (mergeConceptsTool.outputSchema?.type !== 'object') {
+    return 'merge_concepts outputSchema root drift';
+  }
+  if (!sameArray(mergeConceptsTool.outputSchema?.required, ['ok', 'fromSlug', 'intoSlug', 'fromPath', 'deleted', 'backlinkUpdates', 'capturedFrom'])) {
+    return 'merge_concepts outputSchema required drift';
+  }
+  for (const propertyName of ['fromSlug', 'intoSlug', 'fromPath', 'message']) {
+    if (outputPropertyAt(mergeConceptsTool, ['properties', propertyName])?.type !== 'string') {
+      return `merge_concepts outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['ok', 'dryRun', 'deleted', 'changed']) {
+    if (outputPropertyAt(mergeConceptsTool, ['properties', propertyName])?.type !== 'boolean') {
+      return `merge_concepts outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['backlinkUpdates', 'capturedFrom', 'postWriteMaintenance']) {
+    if (outputPropertyAt(mergeConceptsTool, ['properties', propertyName])?.type !== 'object') {
+      return `merge_concepts outputSchema ${propertyName} drift`;
+    }
+  }
+
+  const deleteConceptTool = tools.find((candidate) => candidate?.name === 'delete_concept');
+  if (!deleteConceptTool) return 'tools/list response missing delete_concept tool';
+  if (deleteConceptTool.outputSchema?.type !== 'object') {
+    return 'delete_concept outputSchema root drift';
+  }
+  if (!sameArray(deleteConceptTool.outputSchema?.required, ['ok', 'slug', 'filePath'])) {
+    return 'delete_concept outputSchema required drift';
+  }
+  for (const propertyName of ['slug', 'filePath', 'message']) {
+    if (outputPropertyAt(deleteConceptTool, ['properties', propertyName])?.type !== 'string') {
+      return `delete_concept outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['ok', 'dryRun', 'forced', 'changed']) {
+    if (outputPropertyAt(deleteConceptTool, ['properties', propertyName])?.type !== 'boolean') {
+      return `delete_concept outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['backlinks', 'backlinksAtDelete']) {
+    const schema = outputPropertyAt(deleteConceptTool, ['properties', propertyName]);
+    if (schema?.type !== 'array' || schema.items?.type !== 'object') {
+      return `delete_concept outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['captured', 'postWriteMaintenance']) {
+    if (outputPropertyAt(deleteConceptTool, ['properties', propertyName])?.type !== 'object') {
+      return `delete_concept outputSchema ${propertyName} drift`;
+    }
+  }
+
   for (const toolName of [
     'add_relation',
     'patch_concept',

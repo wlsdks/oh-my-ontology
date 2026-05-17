@@ -337,6 +337,23 @@ describe('verify.mjs first-contact gates', () => {
             expected_mtime: { type: 'number', minimum: 0 },
           },
         },
+        outputSchema: {
+          type: 'object',
+          required: ['ok', 'oldSlug', 'newSlug', 'sourcePath', 'targetPath', 'moved', 'backlinkUpdates'],
+          properties: {
+            ok: { type: 'boolean' },
+            dryRun: { type: 'boolean' },
+            oldSlug: { type: 'string' },
+            newSlug: { type: 'string' },
+            sourcePath: { type: 'string' },
+            targetPath: { type: 'string' },
+            moved: { type: 'boolean' },
+            backlinkUpdates: { type: 'object' },
+            message: { type: 'string' },
+            changed: { type: 'boolean' },
+            postWriteMaintenance: { type: 'object' },
+          },
+        },
       },
       {
         name: 'merge_concepts',
@@ -347,6 +364,23 @@ describe('verify.mjs first-contact gates', () => {
           properties: {
             confirm: { type: 'boolean' },
             expected_mtime: { type: 'number', minimum: 0 },
+          },
+        },
+        outputSchema: {
+          type: 'object',
+          required: ['ok', 'fromSlug', 'intoSlug', 'fromPath', 'deleted', 'backlinkUpdates', 'capturedFrom'],
+          properties: {
+            ok: { type: 'boolean' },
+            dryRun: { type: 'boolean' },
+            fromSlug: { type: 'string' },
+            intoSlug: { type: 'string' },
+            fromPath: { type: 'string' },
+            deleted: { type: 'boolean' },
+            backlinkUpdates: { type: 'object' },
+            capturedFrom: { type: 'object' },
+            message: { type: 'string' },
+            changed: { type: 'boolean' },
+            postWriteMaintenance: { type: 'object' },
           },
         },
       },
@@ -360,6 +394,23 @@ describe('verify.mjs first-contact gates', () => {
             confirm: { type: 'boolean' },
             force: { type: 'boolean' },
             expected_mtime: { type: 'number', minimum: 0 },
+          },
+        },
+        outputSchema: {
+          type: 'object',
+          required: ['ok', 'slug', 'filePath'],
+          properties: {
+            ok: { type: 'boolean' },
+            dryRun: { type: 'boolean' },
+            slug: { type: 'string' },
+            filePath: { type: 'string' },
+            backlinks: { type: 'array', items: { type: 'object' } },
+            message: { type: 'string' },
+            forced: { type: 'boolean' },
+            backlinksAtDelete: { type: 'array', items: { type: 'object' } },
+            changed: { type: 'boolean' },
+            captured: { type: 'object' },
+            postWriteMaintenance: { type: 'object' },
           },
         },
       },
@@ -1805,6 +1856,51 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'patch_concept outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'rename_concept'),
+        {
+          ...tools.find((tool) => tool.name === 'rename_concept'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'rename_concept').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'rename_concept').outputSchema.properties,
+              backlinkUpdates: { type: 'array' },
+            },
+          },
+        },
+      ]),
+      'rename_concept outputSchema backlinkUpdates drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'merge_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'merge_concepts'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'merge_concepts').outputSchema,
+            required: ['ok', 'fromSlug', 'intoSlug', 'fromPath', 'deleted', 'backlinkUpdates'],
+          },
+        },
+      ]),
+      'merge_concepts outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'delete_concept'),
+        {
+          ...tools.find((tool) => tool.name === 'delete_concept'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'delete_concept').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'delete_concept').outputSchema.properties,
+              backlinksAtDelete: { type: 'array', items: { type: 'string' } },
+            },
+          },
+        },
+      ]),
+      'delete_concept outputSchema backlinksAtDelete drift',
     );
     assert.equal(
       toolsListSchemaFailure([

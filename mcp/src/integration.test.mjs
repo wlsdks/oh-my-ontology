@@ -475,6 +475,31 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(patchConcept?.outputSchema?.properties?.filePath?.type, "string");
     assert.equal(patchConcept?.outputSchema?.properties?.changed?.type, "boolean");
     assert.equal(patchConcept?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
+    const renameConcept = findTool("rename_concept");
+    assert.equal(renameConcept?.outputSchema?.type, "object");
+    assert.deepEqual(renameConcept?.outputSchema?.required, ["ok", "oldSlug", "newSlug", "sourcePath", "targetPath", "moved", "backlinkUpdates"]);
+    assert.equal(renameConcept?.outputSchema?.properties?.oldSlug?.type, "string");
+    assert.equal(renameConcept?.outputSchema?.properties?.newSlug?.type, "string");
+    assert.equal(renameConcept?.outputSchema?.properties?.moved?.type, "boolean");
+    assert.equal(renameConcept?.outputSchema?.properties?.backlinkUpdates?.type, "object");
+    assert.equal(renameConcept?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
+    const mergeConcepts = findTool("merge_concepts");
+    assert.equal(mergeConcepts?.outputSchema?.type, "object");
+    assert.deepEqual(mergeConcepts?.outputSchema?.required, ["ok", "fromSlug", "intoSlug", "fromPath", "deleted", "backlinkUpdates", "capturedFrom"]);
+    assert.equal(mergeConcepts?.outputSchema?.properties?.fromSlug?.type, "string");
+    assert.equal(mergeConcepts?.outputSchema?.properties?.intoSlug?.type, "string");
+    assert.equal(mergeConcepts?.outputSchema?.properties?.deleted?.type, "boolean");
+    assert.equal(mergeConcepts?.outputSchema?.properties?.capturedFrom?.type, "object");
+    assert.equal(mergeConcepts?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
+    const deleteConcept = findTool("delete_concept");
+    assert.equal(deleteConcept?.outputSchema?.type, "object");
+    assert.deepEqual(deleteConcept?.outputSchema?.required, ["ok", "slug", "filePath"]);
+    assert.equal(deleteConcept?.outputSchema?.properties?.slug?.type, "string");
+    assert.equal(deleteConcept?.outputSchema?.properties?.filePath?.type, "string");
+    assert.equal(deleteConcept?.outputSchema?.properties?.backlinks?.items?.type, "object");
+    assert.equal(deleteConcept?.outputSchema?.properties?.backlinksAtDelete?.items?.type, "object");
+    assert.equal(deleteConcept?.outputSchema?.properties?.captured?.type, "object");
+    assert.equal(deleteConcept?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const findDesc = (name) => findTool(name)?.description;
     const getC = findDesc("get_concept");
     const getCs = findDesc("get_concepts");
@@ -3800,6 +3825,7 @@ await test("rename_concept dry-run — preview 만, 디스크 변경 0", async (
       }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.dryRun, true);
     assert.equal(result.moved, false);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
@@ -3827,6 +3853,7 @@ await test("rename_concept confirm:true — 파일 이동 + backlink redirect", 
       }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.ok, true);
     assert.equal(result.moved, true);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
@@ -3856,6 +3883,7 @@ await test("merge_concepts confirm:true — fromSlug 삭제 + backlink redirect"
       }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.ok, true);
     assert.equal(result.deleted, true);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
@@ -3879,6 +3907,7 @@ await test("delete_concept confirm:true — 삭제 후 post-write maintenance su
       }),
     ]);
     const result = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.ok, true);
     assert.equal(result.changed, true);
     assertPostWriteMaintenanceShape(result.postWriteMaintenance, "delete_concept postWriteMaintenance");
