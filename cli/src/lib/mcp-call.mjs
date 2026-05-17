@@ -122,7 +122,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
           );
           return;
         }
-        resolveP(parseMcpToolResponse(toolResp));
+        resolveP(parseMcpToolResponse(toolResp, { toolName }));
       } catch (err) {
         rejectP(err);
       }
@@ -154,14 +154,15 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
   });
 }
 
-export function parseMcpToolResponse(toolResp) {
+export function parseMcpToolResponse(toolResp, { toolName } = {}) {
+  const toolLabel = toolName ? ` (${toolName})` : '';
   if (toolResp?.error) {
-    throw new Error(`mcp tool error: ${toolResp.error.message}`);
+    throw new Error(`mcp tool error${toolLabel}: ${toolResp.error.message}`);
   }
   if (toolResp.result?.isError) {
     const text = toolResp.result?.content?.[0]?.text;
     if (typeof text !== 'string') {
-      throw new Error('mcp tool response has no text content');
+      throw new Error(`mcp tool response has no text content${toolLabel}`);
     }
     throw new Error(text);
   }
@@ -179,15 +180,15 @@ export function parseMcpToolResponse(toolResp) {
     try {
       textPayload = JSON.parse(text);
     } catch {
-      throw new Error('mcp tool structuredContent text is not JSON');
+      throw new Error(`mcp tool structuredContent text is not JSON${toolLabel}: ${previewValue(text)}`);
     }
     if (!isDeepStrictEqual(textPayload, result.structuredContent)) {
-      throw new Error(`mcp tool structuredContent mismatch — ${structuredContentMismatchSummary(textPayload, result.structuredContent)}`);
+      throw new Error(`mcp tool structuredContent mismatch${toolLabel} — ${structuredContentMismatchSummary(textPayload, result.structuredContent)}`);
     }
     return result.structuredContent;
   }
   if (typeof text !== 'string') {
-    throw new Error('mcp tool response has no text content');
+    throw new Error(`mcp tool response has no text content${toolLabel}`);
   }
   try {
     return JSON.parse(text);

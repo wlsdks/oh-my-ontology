@@ -53,6 +53,41 @@ describe('mcp-call response parsing', () => {
     );
   });
 
+  it('includes the MCP tool name in wrapper-level parse failures', () => {
+    assert.throws(
+      () =>
+        parseMcpToolResponse(
+          {
+            result: {
+              content: [{ text: JSON.stringify({ ok: true }) }],
+              structuredContent: { ok: false },
+            },
+          },
+          { toolName: 'query_ontology' },
+        ),
+      /mcp tool structuredContent mismatch \(query_ontology\) — \$\.ok: parsed true, structuredContent false/,
+    );
+
+    assert.throws(
+      () =>
+        parseMcpToolResponse(
+          {
+            result: {
+              content: [{ text: 'plain response' }],
+              structuredContent: { ok: true },
+            },
+          },
+          { toolName: 'query_ontology' },
+        ),
+      /mcp tool structuredContent text is not JSON \(query_ontology\): "plain response"/,
+    );
+
+    assert.throws(
+      () => parseMcpToolResponse({ error: { message: 'tool exploded' } }, { toolName: 'query_ontology' }),
+      /mcp tool error \(query_ontology\): tool exploded/,
+    );
+  });
+
   it('rejects successful structuredContent responses with non-JSON text content', () => {
     assert.throws(
       () =>

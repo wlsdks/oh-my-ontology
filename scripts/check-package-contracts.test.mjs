@@ -1184,7 +1184,7 @@ describe('package contract helpers', () => {
     assert.match(implementationSection, /`path` found:false 와 hop\/edge alignment/);
     assert.match(implementationSection, /`health` \/ `workspace-brief` top-level diagnosis status/);
     assert.match(implementationSection, /`health\.checks` \/ `workspace-brief\.health\.checks` 의 non-empty id\/status\/count coverage/);
-    assert.match(implementationSection, /첫 mismatch path \/ parsed value \/ structuredContent value/);
+    assert.match(implementationSection, /MCP tool name, 첫 mismatch path, parsed value, structuredContent value/);
     assert.match(implementationSection, /malformed `compile` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
     assert.match(implementationSection, /fail-closed/);
     assert.match(doc, /`workspace-brief` non-json 의 `HEALTH CHECKS` id:status:count coverage 와 `GROWTH` action/);
