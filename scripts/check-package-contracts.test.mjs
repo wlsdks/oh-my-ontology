@@ -1812,6 +1812,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm test:mcp:verify:timeout`/);
     assert.match(doc, /`nextActions\[\]\.sample` 실행 액션 shape/);
     assert.match(doc, /직접 verify help 도 이 focused check 들을 같이 보여줘/);
+    assert.match(doc, /`tools\/list inventory names — missing\/extra\/duplicate\/invalid checks passed`/);
+    assert.match(doc, /schema \/ annotation 검증에 묻히지 않게 한다/);
     assert.match(doc, /verify helper 와\s+dogfood gate 의 maintenance 관련 subset 만 실행/);
     assert.match(doc, /`pnpm dogfood:verify` 가 repo root 의 짧은 gate/);
     assert.match(doc, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000` 로 풀어 쓴다/);
