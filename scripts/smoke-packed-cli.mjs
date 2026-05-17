@@ -19,6 +19,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { checkMcpLeanTarballFiles } from './check-package-contracts.mjs';
 import { parseMcpToolMetadataFromDescription } from '../cli/src/lib/mcp-metadata.mjs';
+import { tunedHealthScopeOutputSummary } from '../mcp/scripts/verify.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const MCP_DIR = join(ROOT, 'mcp');
@@ -28,9 +29,13 @@ const CLI_PKG = JSON.parse(readFileSync(join(CLI_DIR, 'package.json'), 'utf-8'))
 const mcpToolMetadata = parseMcpToolMetadataFromDescription(MCP_PKG.description);
 const expectedToolCount = mcpToolMetadata?.toolCount;
 const expectedToolSplitRe = mcpToolMetadata?.splitPattern;
-const tunedDiagnosisScopeRe = /dependencyTypes=dependencies; componentTypes=domains\/domain\/capabilities\/dependencies/;
+const tunedDiagnosisScopeRe = new RegExp(regexEscape(tunedHealthScopeOutputSummary()));
 
 assert.ok(mcpToolMetadata, 'mcp/package.json description must include the current tool count and split');
+
+function regexEscape(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 function run(cmd, args, options = {}) {
   const result = runRaw(cmd, args, options);
