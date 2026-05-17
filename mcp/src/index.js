@@ -120,6 +120,21 @@ function nonBlankStringSchema(description, extra = {}) {
   };
 }
 
+function paginationOutputSchema() {
+  return {
+    type: 'object',
+    properties: {
+      offset: { type: 'integer', minimum: 0 },
+      limit: { type: 'integer', minimum: 0 },
+      total: { type: 'integer', minimum: 0 },
+      returned: { type: 'integer', minimum: 0 },
+      hasMore: { type: 'boolean' },
+      nextOffset: { type: ['integer', 'null'], minimum: 0 },
+    },
+    required: ['offset', 'limit', 'total', 'returned', 'hasMore', 'nextOffset'],
+  };
+}
+
 const QUERY_ONTOLOGY_OPERATION_UNION = QUERY_ONTOLOGY_OPERATIONS
   .map((operation) => `'${operation}'`)
   .join('|');
@@ -1159,6 +1174,96 @@ const TOOLS = [
         byDomain: {
           type: 'object',
           additionalProperties: { type: 'integer', minimum: 0 },
+        },
+        nodes: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              kind: { type: 'string' },
+              title: { type: 'string' },
+              domain: { type: 'string' },
+              mtime: { type: 'number' },
+              outDegree: { type: 'integer', minimum: 0 },
+              inDegree: { type: 'integer', minimum: 0 },
+            },
+            required: ['slug', 'kind', 'title', 'mtime', 'outDegree', 'inDegree'],
+          },
+        },
+        edges: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: NON_BLANK_STRING_SCHEMA,
+              from: NON_BLANK_STRING_SCHEMA,
+              to: NON_BLANK_STRING_SCHEMA,
+              via: NON_BLANK_STRING_SCHEMA,
+              ref: NON_BLANK_STRING_SCHEMA,
+              resolved: { type: 'boolean' },
+              external: { type: 'boolean' },
+            },
+            required: ['id', 'from', 'to', 'via', 'ref', 'resolved', 'external'],
+          },
+        },
+        nodesPagination: paginationOutputSchema(),
+        edgesPagination: paginationOutputSchema(),
+        aliases: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              alias: NON_BLANK_STRING_SCHEMA,
+              slug: NON_BLANK_STRING_SCHEMA,
+            },
+            required: ['alias', 'slug'],
+          },
+        },
+        ambiguousAliases: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              alias: NON_BLANK_STRING_SCHEMA,
+              slugs: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+            },
+            required: ['alias', 'slugs'],
+          },
+        },
+        issues: {
+          type: 'array',
+          items: { type: 'object' },
+        },
+        canonicalizationActions: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              keys: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+              frontmatter: { type: 'object' },
+              expected_mtime: { type: 'number' },
+            },
+            required: ['slug', 'keys', 'frontmatter', 'expected_mtime'],
+          },
+        },
+        indexes: { type: 'object' },
+        summary: {
+          type: 'object',
+          properties: {
+            nodes: { type: 'integer', minimum: 0 },
+            edges: { type: 'integer', minimum: 0 },
+            graphHash: NON_BLANK_STRING_SCHEMA,
+            maxMtime: { type: 'number', minimum: 0 },
+            resolvedEdges: { type: 'integer', minimum: 0 },
+            externalEdges: { type: 'integer', minimum: 0 },
+            unresolvedEdges: { type: 'integer', minimum: 0 },
+            aliases: { type: 'integer', minimum: 0 },
+            ambiguousAliases: { type: 'integer', minimum: 0 },
+            issues: { type: 'integer', minimum: 0 },
+          },
+          required: ['nodes', 'edges', 'graphHash', 'maxMtime', 'resolvedEdges', 'externalEdges', 'unresolvedEdges', 'aliases', 'ambiguousAliases', 'issues'],
         },
       },
       required: [

@@ -695,6 +695,90 @@ describe('verify.mjs first-contact gates', () => {
               type: 'object',
               additionalProperties: { type: 'integer', minimum: 0 },
             },
+            nodes: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'kind', 'title', 'mtime', 'outDegree', 'inDegree'],
+                properties: {
+                  slug: { type: 'string' },
+                  kind: { type: 'string' },
+                  title: { type: 'string' },
+                  mtime: { type: 'number' },
+                  outDegree: { type: 'integer', minimum: 0 },
+                  inDegree: { type: 'integer', minimum: 0 },
+                },
+              },
+            },
+            edges: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['id', 'from', 'to', 'via', 'ref', 'resolved', 'external'],
+                properties: {
+                  id: { type: 'string' },
+                  from: { type: 'string' },
+                  to: { type: 'string' },
+                  via: { type: 'string' },
+                  ref: { type: 'string' },
+                  resolved: { type: 'boolean' },
+                  external: { type: 'boolean' },
+                },
+              },
+            },
+            nodesPagination: {
+              type: 'object',
+              required: ['offset', 'limit', 'total', 'returned', 'hasMore', 'nextOffset'],
+              properties: {
+                offset: { type: 'integer', minimum: 0 },
+                limit: { type: 'integer', minimum: 0 },
+                total: { type: 'integer', minimum: 0 },
+                returned: { type: 'integer', minimum: 0 },
+                hasMore: { type: 'boolean' },
+                nextOffset: { type: ['integer', 'null'], minimum: 0 },
+              },
+            },
+            edgesPagination: {
+              type: 'object',
+              required: ['offset', 'limit', 'total', 'returned', 'hasMore', 'nextOffset'],
+              properties: {
+                offset: { type: 'integer', minimum: 0 },
+                limit: { type: 'integer', minimum: 0 },
+                total: { type: 'integer', minimum: 0 },
+                returned: { type: 'integer', minimum: 0 },
+                hasMore: { type: 'boolean' },
+                nextOffset: { type: ['integer', 'null'], minimum: 0 },
+              },
+            },
+            canonicalizationActions: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'keys', 'frontmatter', 'expected_mtime'],
+                properties: {
+                  slug: { type: 'string' },
+                  keys: { type: 'array', items: { type: 'string' } },
+                  frontmatter: { type: 'object' },
+                  expected_mtime: { type: 'number' },
+                },
+              },
+            },
+            summary: {
+              type: 'object',
+              required: ['nodes', 'edges', 'graphHash', 'maxMtime', 'resolvedEdges', 'externalEdges', 'unresolvedEdges', 'aliases', 'ambiguousAliases', 'issues'],
+              properties: {
+                nodes: { type: 'integer', minimum: 0 },
+                edges: { type: 'integer', minimum: 0 },
+                graphHash: { type: 'string' },
+                maxMtime: { type: 'number', minimum: 0 },
+                resolvedEdges: { type: 'integer', minimum: 0 },
+                externalEdges: { type: 'integer', minimum: 0 },
+                unresolvedEdges: { type: 'integer', minimum: 0 },
+                aliases: { type: 'integer', minimum: 0 },
+                ambiguousAliases: { type: 'integer', minimum: 0 },
+                issues: { type: 'integer', minimum: 0 },
+              },
+            },
           },
         },
       },
@@ -1796,6 +1880,92 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'compile_ontology outputSchema byKind drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withCompileOntologyTool({
+        ...compileOntologyTool,
+        outputSchema: {
+          ...compileOntologyTool.outputSchema,
+          properties: {
+            ...compileOntologyTool.outputSchema.properties,
+            nodes: undefined,
+          },
+        },
+      })),
+      'compile_ontology outputSchema nodes drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withCompileOntologyTool({
+        ...compileOntologyTool,
+        outputSchema: {
+          ...compileOntologyTool.outputSchema,
+          properties: {
+            ...compileOntologyTool.outputSchema.properties,
+            edges: {
+              ...compileOntologyTool.outputSchema.properties.edges,
+              items: {
+                ...compileOntologyTool.outputSchema.properties.edges.items,
+                required: ['id', 'from', 'to', 'via', 'ref', 'resolved'],
+              },
+            },
+          },
+        },
+      })),
+      'compile_ontology outputSchema edges drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withCompileOntologyTool({
+        ...compileOntologyTool,
+        outputSchema: {
+          ...compileOntologyTool.outputSchema,
+          properties: {
+            ...compileOntologyTool.outputSchema.properties,
+            nodesPagination: {
+              ...compileOntologyTool.outputSchema.properties.nodesPagination,
+              properties: {
+                ...compileOntologyTool.outputSchema.properties.nodesPagination.properties,
+                returned: { type: 'number', minimum: 0 },
+              },
+            },
+          },
+        },
+      })),
+      'compile_ontology outputSchema nodesPagination drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withCompileOntologyTool({
+        ...compileOntologyTool,
+        outputSchema: {
+          ...compileOntologyTool.outputSchema,
+          properties: {
+            ...compileOntologyTool.outputSchema.properties,
+            canonicalizationActions: {
+              ...compileOntologyTool.outputSchema.properties.canonicalizationActions,
+              items: {
+                ...compileOntologyTool.outputSchema.properties.canonicalizationActions.items,
+                required: ['slug', 'keys', 'frontmatter'],
+              },
+            },
+          },
+        },
+      })),
+      'compile_ontology outputSchema canonicalizationActions drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withCompileOntologyTool({
+        ...compileOntologyTool,
+        outputSchema: {
+          ...compileOntologyTool.outputSchema,
+          properties: {
+            ...compileOntologyTool.outputSchema.properties,
+            summary: {
+              ...compileOntologyTool.outputSchema.properties.summary,
+              required: ['nodes', 'edges', 'graphHash'],
+            },
+          },
+        },
+      })),
+      'compile_ontology outputSchema summary drift',
     );
     assert.equal(
       toolsListSchemaFailure([

@@ -753,6 +753,56 @@ export function toolsListSchemaFailure(tools) {
       return `compile_ontology outputSchema ${propertyName} drift`;
     }
   }
+  const compileNodeSchema = outputPropertyAt(compileTool, ['properties', 'nodes', 'items']);
+  if (
+    compileNodeSchema?.type !== 'object' ||
+    !sameArray(compileNodeSchema.required, ['slug', 'kind', 'title', 'mtime', 'outDegree', 'inDegree']) ||
+    compileNodeSchema.properties?.slug?.type !== 'string' ||
+    compileNodeSchema.properties?.outDegree?.type !== 'integer' ||
+    compileNodeSchema.properties?.inDegree?.minimum !== 0
+  ) {
+    return 'compile_ontology outputSchema nodes drift';
+  }
+  const compileEdgeSchema = outputPropertyAt(compileTool, ['properties', 'edges', 'items']);
+  if (
+    compileEdgeSchema?.type !== 'object' ||
+    !sameArray(compileEdgeSchema.required, ['id', 'from', 'to', 'via', 'ref', 'resolved', 'external']) ||
+    compileEdgeSchema.properties?.via?.type !== 'string' ||
+    compileEdgeSchema.properties?.resolved?.type !== 'boolean' ||
+    compileEdgeSchema.properties?.external?.type !== 'boolean'
+  ) {
+    return 'compile_ontology outputSchema edges drift';
+  }
+  for (const propertyName of ['nodesPagination', 'edgesPagination']) {
+    const paginationSchema = outputPropertyAt(compileTool, ['properties', propertyName]);
+    if (
+      paginationSchema?.type !== 'object' ||
+      !sameArray(paginationSchema.required, ['offset', 'limit', 'total', 'returned', 'hasMore', 'nextOffset']) ||
+      paginationSchema.properties?.returned?.type !== 'integer' ||
+      paginationSchema.properties?.hasMore?.type !== 'boolean'
+    ) {
+      return `compile_ontology outputSchema ${propertyName} drift`;
+    }
+  }
+  const canonicalizationActionSchema = outputPropertyAt(compileTool, ['properties', 'canonicalizationActions', 'items']);
+  if (
+    canonicalizationActionSchema?.type !== 'object' ||
+    !sameArray(canonicalizationActionSchema.required, ['slug', 'keys', 'frontmatter', 'expected_mtime']) ||
+    canonicalizationActionSchema.properties?.keys?.items?.type !== 'string' ||
+    canonicalizationActionSchema.properties?.frontmatter?.type !== 'object'
+  ) {
+    return 'compile_ontology outputSchema canonicalizationActions drift';
+  }
+  const compileOutputSummarySchema = outputPropertyAt(compileTool, ['properties', 'summary']);
+  if (
+    compileOutputSummarySchema?.type !== 'object' ||
+    !sameArray(compileOutputSummarySchema.required, ['nodes', 'edges', 'graphHash', 'maxMtime', 'resolvedEdges', 'externalEdges', 'unresolvedEdges', 'aliases', 'ambiguousAliases', 'issues']) ||
+    compileOutputSummarySchema.properties?.nodes?.type !== 'integer' ||
+    compileOutputSummarySchema.properties?.graphHash?.type !== 'string' ||
+    compileOutputSummarySchema.properties?.issues?.minimum !== 0
+  ) {
+    return 'compile_ontology outputSchema summary drift';
+  }
 
   const analyzeTool = tools.find((tool) => tool?.name === 'analyze_repo_structure');
   if (!analyzeTool) return 'tools/list response missing analyze_repo_structure tool';

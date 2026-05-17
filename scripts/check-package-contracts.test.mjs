@@ -865,7 +865,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`find_orphans` 도 `outputSchema` 와 동일한 `structuredContent` orphan-list payload/);
     assert.match(doc, /`query_concepts` 도 `outputSchema` 와 동일한 `structuredContent` typed-filter payload/);
     assert.match(doc, /dogfood walk 는 `slug!=project, limit=1` 도 직접 호출해 `limited:true` query semantics/);
-    assert.match(doc, /`compile_ontology` 도 `outputSchema` 와 동일한 `structuredContent` graph-summary payload/);
+    assert.match(doc, /`compile_ontology` 도 `outputSchema` 와 동일한 `structuredContent` graph-summary \/ full-artifact payload/);
+    assert.match(doc, /full graph arrays \/ pagination \/ canonicalization action/);
     assert.match(doc, /`analyze_repo_structure` 도 `outputSchema` 와 동일한 `structuredContent` bootstrap-candidate payload/);
     assert.match(doc, /`infer_imports` 도 `outputSchema` 와 동일한 `structuredContent` import-graph payload/);
     assert.match(doc, /verify \/ dogfood walk 는 상위 module edge 의 `kindCounts` 도 출력/);

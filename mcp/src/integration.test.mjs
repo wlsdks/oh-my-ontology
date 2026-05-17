@@ -437,6 +437,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(compileOntology?.outputSchema?.properties?.graphHash?.type, "string");
     assert.equal(compileOntology?.outputSchema?.properties?.nodeCount?.type, "integer");
     assert.equal(compileOntology?.outputSchema?.properties?.byKind?.additionalProperties?.type, "integer");
+    assert.deepEqual(compileOntology?.outputSchema?.properties?.nodes?.items?.required, ["slug", "kind", "title", "mtime", "outDegree", "inDegree"]);
+    assert.deepEqual(compileOntology?.outputSchema?.properties?.edges?.items?.required, ["id", "from", "to", "via", "ref", "resolved", "external"]);
+    assert.deepEqual(compileOntology?.outputSchema?.properties?.nodesPagination?.required, ["offset", "limit", "total", "returned", "hasMore", "nextOffset"]);
+    assert.deepEqual(compileOntology?.outputSchema?.properties?.canonicalizationActions?.items?.required, ["slug", "keys", "frontmatter", "expected_mtime"]);
+    assert.deepEqual(compileOntology?.outputSchema?.properties?.summary?.required, ["nodes", "edges", "graphHash", "maxMtime", "resolvedEdges", "externalEdges", "unresolvedEdges", "aliases", "ambiguousAliases", "issues"]);
     const analyzeRepo = findTool("analyze_repo_structure");
     assert.match(
       analyzeRepo?.description ?? "",
@@ -459,8 +464,9 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(inferImports?.outputSchema?.properties?.filesScanned?.type, "integer");
     assert.deepEqual(inferImports?.outputSchema?.properties?.edges?.items?.required, ["from", "to", "kind"]);
     assert.deepEqual(inferImports?.outputSchema?.properties?.edges?.items?.properties?.kind?.enum, ["static", "dynamic", "require", "reexport", "side"]);
-    assert.deepEqual(inferImports?.outputSchema?.properties?.moduleEdges?.items?.required, ["from", "to", "count"]);
+    assert.deepEqual(inferImports?.outputSchema?.properties?.moduleEdges?.items?.required, ["from", "to", "count", "kindCounts"]);
     assert.equal(inferImports?.outputSchema?.properties?.moduleEdges?.items?.properties?.count?.minimum, 1);
+    assert.equal(inferImports?.outputSchema?.properties?.moduleEdges?.items?.properties?.kindCounts?.additionalProperties?.type, "integer");
     assert.match(
       inferImports?.description ?? "",
       /walk TS\/JS files in a code repo and infer file-level \+ module-level import edges[\s\S]*side effect 0 \(vault frontmatter NOT modified\)[\s\S]*reviews moduleEdges[\s\S]*accepted edges to add_relation as `depends_on`[\s\S]*Use after analyze_repo_structure[\s\S]*not just suggestedRelations heuristics[\s\S]*Single source of truth preserved/i,
