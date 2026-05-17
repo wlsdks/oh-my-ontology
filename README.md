@@ -134,6 +134,7 @@ pnpm test:mcp:dogfood:timeout   # narrow dogfood timeout/help retry diagnostics
 pnpm test:mcp:package           # focused MCP/CLI package-script/dependency/tarball contract checks
 pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
 pnpm test:mcp:verify            # focused MCP verify helper checks
+pnpm test:mcp:verify:first-contact # narrow MCP verify first-contact health/read smoke gates
 pnpm test:mcp:verify:timeout    # narrow MCP verify timeout/help diagnostics
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
 pnpm integration:cli:mcp-verify

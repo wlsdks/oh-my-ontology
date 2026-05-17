@@ -54,6 +54,7 @@ pnpm test:mcp:dogfood
 pnpm test:mcp:dogfood:timeout
 pnpm test:mcp:suggestions
 pnpm test:mcp:verify
+pnpm test:mcp:verify:first-contact
 pnpm test:mcp:verify:timeout
 ```
 
@@ -70,8 +71,11 @@ MCP walk.
 response labels, and retry help.
 `test:mcp:suggestions` covers strict enum / argument suggestion behavior.
 `test:mcp:verify` covers the MCP verify helper contract without spawning the
-full integration suite. `test:mcp:verify:timeout` narrows that to verify
-timeout parsing, usage, and retry diagnostics.
+full integration suite. `test:mcp:verify:first-contact` narrows that to
+initialize guidance, read-smoke request inventory, vault warning /
+`validate_vault`, and first-contact health / next-action gates.
+`test:mcp:verify:timeout` narrows verify timeout parsing, usage, and retry
+diagnostics.
 Use `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
 `pnpm integration:mcp` when the touched MCP integration case has a different
 name.

@@ -3186,6 +3186,8 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /Successful cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
     assert.match(verifyUsage(), /Focused checks:/);
     assert.match(verifyUsage(), /pnpm test:mcp:verify\s+MCP verify helper contract without the full integration suite/);
+    assert.match(verifyUsage(), /pnpm test:mcp:verify:first-contact/);
+    assert.match(verifyUsage(), /Narrow first-contact health\/read-smoke helper gates/);
     assert.match(verifyUsage(), /pnpm test:mcp:verify:timeout/);
     assert.match(verifyUsage(), /Narrow MCP verify timeout\/help diagnostics/);
     assertPnpmScriptsExist(verifyUsage());

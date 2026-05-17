@@ -2214,6 +2214,8 @@ export function verifyUsage() {
     'Successful cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n\n' +
     'Focused checks:\n' +
     '  pnpm test:mcp:verify            MCP verify helper contract without the full integration suite.\n' +
+    '  pnpm test:mcp:verify:first-contact\n' +
+    '                                  Narrow first-contact health/read-smoke helper gates.\n' +
     '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/help diagnostics.\n'
   );
 }
