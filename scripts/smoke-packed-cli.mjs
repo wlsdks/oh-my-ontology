@@ -621,6 +621,26 @@ try {
   assert.match(invalidDirectMcpVerifyTimeout.stderr, /OMOT_VERIFY_TIMEOUT_MS=N/);
   assert.match(invalidDirectMcpVerifyTimeout.stderr, /npm run verify -- --timeout-ms 15000/);
 
+  const missingDirectMcpVerifyTimeout = runRaw(
+    'npm',
+    [
+      '--prefix',
+      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
+      '--silent',
+      'run',
+      'verify',
+      '--',
+      join(projectDir, 'ontology'),
+      '--timeout-ms',
+    ],
+    { cwd: projectDir },
+  );
+  assert.equal(missingDirectMcpVerifyTimeout.status, 1);
+  assert.equal(missingDirectMcpVerifyTimeout.stdout, '');
+  assert.match(missingDirectMcpVerifyTimeout.stderr, /verify timeout must be a positive integer/);
+  assert.match(missingDirectMcpVerifyTimeout.stderr, /Received: undefined/);
+  assert.match(missingDirectMcpVerifyTimeout.stderr, /npm run verify -- --timeout-ms 15000/);
+
   const invalidDirectMcpVerifyVault = runRaw(
     'npm',
     [
