@@ -83,7 +83,9 @@ const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
 const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
-export const TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY = 'strict arguments + annotations + graph-query enums + graph kind enums + write relation enums + health tuning + post-write bucket guidance';
+export const TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY = 'strict arguments + annotations + graph-query enums + graph kind enums/descriptions + write relation enums + health tuning + post-write bucket guidance';
+const NODE_KIND_DESCRIPTION = NODE_KIND_VALUES.join(', ');
+const EDGE_TARGET_KIND_DESCRIPTION = EDGE_TARGET_KIND_VALUES.join(', ');
 export const VERIFY_TUNED_HEALTH_ARGS = {
   componentLimit: 3,
   cycleLimit: 3,
@@ -1222,9 +1224,21 @@ export function toolsListSchemaFailure(tools) {
       return `query_ontology ${propertyName} graph kind enum schema drift`;
     }
   }
+  const kindDescription = propertyAt(queryTool, ['properties', 'kind'])?.description ?? '';
+  if (!kindDescription.includes(`(${NODE_KIND_DESCRIPTION})`) || !/recommend_relations currently supports capability or element/.test(kindDescription)) {
+    return 'query_ontology kind graph kind description drift';
+  }
+  const fromKindDescription = propertyAt(queryTool, ['properties', 'fromKind'])?.description ?? '';
+  if (!fromKindDescription.includes(`(${NODE_KIND_DESCRIPTION})`) || !/Source must be a real ontology node, not external\/unresolved/.test(fromKindDescription)) {
+    return 'query_ontology fromKind graph kind description drift';
+  }
   const toKind = propertyAt(queryTool, ['properties', 'toKind']);
   if (toKind?.type !== 'string' || !sameArray(toKind.enum, EDGE_TARGET_KIND_VALUES)) {
     return 'query_ontology toKind graph kind enum schema drift';
+  }
+  const toKindDescription = toKind?.description ?? '';
+  if (!toKindDescription.includes(`(${EDGE_TARGET_KIND_DESCRIPTION})`) || !/Use external or unresolved for non-node refs/.test(toKindDescription)) {
+    return 'query_ontology toKind graph kind description drift';
   }
   if (!/current-page `nextExecutableAction` \/ `nextReviewAction` pointers/.test(queryTool.description || '')) {
     return 'query_ontology description missing current-page maintenance next pointers';

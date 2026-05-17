@@ -682,9 +682,24 @@ describe('verify.mjs first-contact gates', () => {
             pattern: { type: 'array', items: { type: 'string', enum: RELATION_TYPE_VALUES } },
             type: { type: 'string', enum: RELATION_TYPE_VALUES },
             relation: { type: 'string', enum: RELATION_TYPE_VALUES },
-            kind: { type: 'string', enum: NODE_KIND_VALUES },
-            fromKind: { type: 'string', enum: NODE_KIND_VALUES },
-            toKind: { type: 'string', enum: EDGE_TARGET_KIND_VALUES },
+            kind: {
+              type: 'string',
+              enum: NODE_KIND_VALUES,
+              description:
+                'match_nodes: optional node kind filter (project, domain, capability, element, document, vault-readme). recommend_relations currently supports capability or element.',
+            },
+            fromKind: {
+              type: 'string',
+              enum: NODE_KIND_VALUES,
+              description:
+                'match_edges only: optional source node kind filter (project, domain, capability, element, document, vault-readme). Source must be a real ontology node, not external/unresolved.',
+            },
+            toKind: {
+              type: 'string',
+              enum: EDGE_TARGET_KIND_VALUES,
+              description:
+                'match_edges only: optional target kind filter (project, domain, capability, element, document, vault-readme, external, unresolved). Use external or unresolved for non-node refs.',
+            },
             dependencyTypes: {
               type: 'array',
               items: { type: 'string', enum: RELATION_TYPE_VALUES },
@@ -2591,6 +2606,24 @@ describe('verify.mjs first-contact gates', () => {
             ...queryOntologyTool.inputSchema,
             properties: {
               ...queryOntologyTool.inputSchema.properties,
+              kind: {
+                ...queryOntologyTool.inputSchema.properties.kind,
+                description: 'match_nodes: optional node kind filter.',
+              },
+            },
+          },
+        },
+      )),
+      'query_ontology kind graph kind description drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...queryOntologyTool,
+          inputSchema: {
+            ...queryOntologyTool.inputSchema,
+            properties: {
+              ...queryOntologyTool.inputSchema.properties,
               fromKind: { type: 'string', enum: NODE_KIND_VALUES.filter((kind) => kind !== 'domain') },
             },
           },
@@ -2606,12 +2639,48 @@ describe('verify.mjs first-contact gates', () => {
             ...queryOntologyTool.inputSchema,
             properties: {
               ...queryOntologyTool.inputSchema.properties,
+              fromKind: {
+                ...queryOntologyTool.inputSchema.properties.fromKind,
+                description: 'match_edges only: optional source node kind filter.',
+              },
+            },
+          },
+        },
+      )),
+      'query_ontology fromKind graph kind description drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...queryOntologyTool,
+          inputSchema: {
+            ...queryOntologyTool.inputSchema,
+            properties: {
+              ...queryOntologyTool.inputSchema.properties,
               toKind: { type: 'string', enum: EDGE_TARGET_KIND_VALUES.filter((kind) => kind !== 'external') },
             },
           },
         },
       )),
       'query_ontology toKind graph kind enum schema drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool(
+        {
+          ...queryOntologyTool,
+          inputSchema: {
+            ...queryOntologyTool.inputSchema,
+            properties: {
+              ...queryOntologyTool.inputSchema.properties,
+              toKind: {
+                ...queryOntologyTool.inputSchema.properties.toKind,
+                description: 'match_edges only: optional target kind filter.',
+              },
+            },
+          },
+        },
+      )),
+      'query_ontology toKind graph kind description drift',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'get_concepts')),

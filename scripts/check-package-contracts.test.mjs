@@ -633,7 +633,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /list_concepts\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports\/find_neighbors\/find_path\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety and recovery guidance present/);
     assert.match(verifySection, /✓ tools\/list inventory names — missing\/extra\/duplicate\/invalid checks passed/);
-    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ graph kind enums \+ write relation enums \+ health tuning \+ post-write bucket guidance/);
+    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ graph kind enums\/descriptions \+ write relation enums \+ health tuning \+ post-write bucket guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);
     assert.match(verifySection, /✓ add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes/);
@@ -1397,7 +1397,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`add_concepts` duplicate\s+slug first-seen 안내/);
     assert.match(doc, /write row labels: pass/);
     assert.match(doc, /schema gate 도 같은 summary helper 를 공유/);
-    assert.match(doc, /strict arguments \+ annotations \+ graph-query enums \+ graph kind enums \+ write relation enums\s+\+ health tuning \+ post-write bucket guidance/);
+    assert.match(doc, /strict arguments \+ annotations \+ graph-query enums \+ graph kind enums\/descriptions \+ write relation enums\s+\+ health tuning \+ post-write bucket guidance/);
     assert.match(doc, /batch repair 안내도\s+같은 gate 에 포함/);
     assert.match(doc, /`concepts\[n\] duplicate slug in input batch; first seen at concepts\[m\]`/);
     assert.match(doc, /strict relation filter \/ `relation_check` row/);
