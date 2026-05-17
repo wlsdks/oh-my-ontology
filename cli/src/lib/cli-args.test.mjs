@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  closestAllowedFlag,
+  formatUnknownFlagError,
   parseBoundedNonNegativeIntegerFlag,
   parseBoundedPositiveIntegerFlag,
   parseNonNegativeIntegerFlag,
@@ -43,5 +45,20 @@ describe('cli integer argument parsers', () => {
     assert.equal(parseBoundedNonNegativeIntegerFlag('--max-hops', '20', { max: 20 }), 20);
     assert.equal(errorMessage(parseBoundedNonNegativeIntegerFlag('--max-hops', '21', { max: 20 })), '--max-hops must be <= 20');
     assert.equal(errorMessage(parseBoundedNonNegativeIntegerFlag('--max-hops', '2x', { max: 20 })), '--max-hops must be a non-negative integer');
+  });
+
+  it('suggests the closest known flag for recoverable typos', () => {
+    assert.equal(closestAllowedFlag('--lmit', ['--json', '--limit', '--vault']), '--limit');
+    assert.equal(closestAllowedFlag('--lmit=1', ['--json', '--limit', '--vault']), '--limit');
+    assert.equal(closestAllowedFlag('--zzzz', ['--json', '--limit', '--vault']), null);
+    assert.equal(
+      formatUnknownFlagError('--lmit', ['--json', '--limit', '--vault']),
+      'unknown flag: --lmit. Did you mean --limit?',
+    );
+    assert.equal(
+      formatUnknownFlagError('--lmit=1', ['--json', '--limit', '--vault']),
+      'unknown flag: --lmit=1. Did you mean --limit?',
+    );
+    assert.equal(formatUnknownFlagError('--zzzz', ['--json', '--limit', '--vault']), 'unknown flag: --zzzz.');
   });
 });

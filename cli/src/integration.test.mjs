@@ -1803,6 +1803,14 @@ await test('graph diagnostic commands — reject invalid option values before MC
       pattern: /--limit must be <= 500/,
     },
     {
+      args: ['query', 'kind=capability', '--lmit=1'],
+      pattern: /unknown flag: --lmit=1\. Did you mean --limit\?/,
+    },
+    {
+      args: ['query', 'kind=capability', '--lmit'],
+      pattern: /unknown flag: --lmit\. Did you mean --limit\?/,
+    },
+    {
       args: ['overview', '--limit=0'],
       pattern: /--limit must be a positive integer/,
     },

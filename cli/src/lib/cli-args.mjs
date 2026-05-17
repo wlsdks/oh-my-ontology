@@ -85,3 +85,45 @@ export function parseRequiredFlagValue(flag, value) {
   if (!text || text.startsWith('--')) return new Error(`${flag} requires a value`);
   return text;
 }
+
+export function formatUnknownFlagError(flag, allowedFlags = []) {
+  const suggestion = closestAllowedFlag(flag, allowedFlags);
+  const suggestionText = suggestion ? ` Did you mean ${suggestion}?` : '';
+  return `unknown flag: ${flag}.${suggestionText}`;
+}
+
+export function closestAllowedFlag(flag, allowedFlags = []) {
+  if (!flag || !Array.isArray(allowedFlags) || allowedFlags.length === 0) return null;
+  const comparableFlag = String(flag).split('=')[0];
+  let best = null;
+  for (const candidate of allowedFlags) {
+    const distance = levenshteinDistance(comparableFlag, candidate);
+    if (!best || distance < best.distance) {
+      best = { candidate, distance };
+    }
+  }
+  if (!best) return null;
+  const normalizedLength = best.candidate.replace(/^--/, '').length;
+  const threshold = Math.max(2, Math.ceil(normalizedLength / 2));
+  return best.distance <= threshold ? best.candidate : null;
+}
+
+function levenshteinDistance(a, b) {
+  const prev = Array.from({ length: b.length + 1 }, (_, index) => index);
+  const curr = Array.from({ length: b.length + 1 }, () => 0);
+  for (let i = 1; i <= a.length; i += 1) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const substitutionCost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(
+        prev[j] + 1,
+        curr[j - 1] + 1,
+        prev[j - 1] + substitutionCost,
+      );
+    }
+    for (let j = 0; j <= b.length; j += 1) {
+      prev[j] = curr[j];
+    }
+  }
+  return prev[b.length];
+}

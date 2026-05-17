@@ -5,12 +5,14 @@
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
+  formatUnknownFlagError,
   parseBoundedPositiveIntegerFlag,
   parseVaultFlag,
   resolveTrailingVaultArg,
 } from '../lib/cli-args.mjs';
 
 const LIMIT_CAP = 500;
+const ALLOWED_FLAGS = ['--vault', '--json', '--limit'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -88,7 +90,7 @@ function parseArgs(args) {
     else if (a === '--limit') flags.limit = parseBoundedPositiveIntegerFlag('--limit', args[++i], { max: LIMIT_CAP });
     else if (a.startsWith('--limit='))
       flags.limit = parseBoundedPositiveIntegerFlag('--limit', a.slice('--limit='.length), { max: LIMIT_CAP });
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (positional.length === 0) {
