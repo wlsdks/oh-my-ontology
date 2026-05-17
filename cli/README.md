@@ -154,7 +154,10 @@ or failing health checks return exit 1 so shell scripts do not miss broken
 first-contact graph state. `health --json` and `workspace-brief --json` also
 require top-level diagnosis `status` to be `healthy` or `needs_attention`, so
 unknown status strings are treated as malformed payloads rather than clean
-vaults.
+vaults. Non-JSON `health` and `workspace-brief` output prints health-check
+coverage as `id:status:count` rows (`compile_issues:pass:0`,
+`components:pass:1`) so agents can see which probes actually ran without
+parsing JSON.
 
 The vault is a plain folder of `.md` files. **Frontmatter is the graph.**
 

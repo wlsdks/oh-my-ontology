@@ -987,8 +987,12 @@ describe('package contract helpers', () => {
     assert.match(implementationSection, /query-result-contract\.mjs/);
     assert.match(implementationSection, /`path` found:false 와 hop\/edge alignment/);
     assert.match(implementationSection, /`health` \/ `workspace-brief` top-level diagnosis status/);
+    assert.match(implementationSection, /`health\.checks` \/ `workspace-brief\.health\.checks` 의 non-empty id\/status\/count coverage/);
     assert.match(implementationSection, /malformed `compile` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
     assert.match(implementationSection, /fail-closed/);
+    assert.match(doc, /`workspace-brief` non-json 의 `HEALTH CHECKS` id:status:count coverage 출력 계약/);
+    assert.match(doc, /`health` non-json 의 `pass:count` 출력/);
+    assert.match(doc, /`HEALTH CHECKS` 라인에 `compile_issues:pass:0` 같은 id:status:count coverage/);
   });
 
   it('keeps dogfood MCP docs explicit about workspace brief health checks', () => {
