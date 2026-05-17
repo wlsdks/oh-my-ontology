@@ -93,7 +93,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
       if (code !== 0 && code !== null) {
         rejectP(
           new Error(
-            `mcp exited code ${code}. stderr:\n${stderrBuf.trim() || '(empty)'}`,
+            `mcp exited code ${code} while calling ${toolName} (vault ${vaultRoot}). stderr:\n${stderrBuf.trim() || '(empty)'}`,
           ),
         );
         return;
@@ -117,7 +117,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
         if (!toolResp) {
           rejectP(
             new Error(
-              `mcp response missing tools/call result. stdout lines:\n${lines.slice(0, 5).join('\n')}`,
+              `mcp response missing tools/call result for ${toolName} (vault ${vaultRoot}). stdout lines:\n${lines.slice(0, 5).join('\n') || '(empty)'}\nstderr:\n${stderrBuf.trim() || '(empty)'}`,
             ),
           );
           return;
