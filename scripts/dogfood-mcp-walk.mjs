@@ -342,6 +342,10 @@ export function workspaceNextActionSummary(actions, limit = 3) {
   return `${shown.join(", ")}${suffix}`;
 }
 
+export function workspaceNextActionAnalysisLabel(label) {
+  return `${label} non-blocking nextActions`;
+}
+
 export function writeRowLabelGuidanceSummary(tools) {
   if (!Array.isArray(tools)) return "missing tools/list";
   const missing = [];
@@ -5440,11 +5444,15 @@ async function main() {
   console.log(
     `  workspace_brief: ${brief?.status ?? "n/a"} (${(brief?.nextActions || []).length} next actions · ${(brief?.health?.checks || []).length} health checks)`,
   );
-  console.log(`  workspace_brief nextActions: ${workspaceNextActionSummary(brief?.nextActions)}`);
+  console.log(
+    `  ${workspaceNextActionAnalysisLabel("workspace_brief")}: ${workspaceNextActionSummary(brief?.nextActions)}`,
+  );
   console.log(
     `  workspace_brief_tuned: ${tunedBrief?.status ?? "n/a"} (${(tunedBrief?.nextActions || []).length} next actions · ${(tunedBrief?.health?.checks || []).length} health checks)`,
   );
-  console.log(`  workspace_brief_tuned nextActions: ${workspaceNextActionSummary(tunedBrief?.nextActions)}`);
+  console.log(
+    `  ${workspaceNextActionAnalysisLabel("workspace_brief_tuned")}: ${workspaceNextActionSummary(tunedBrief?.nextActions)}`,
+  );
   console.log(`  health: ${health?.status ?? "n/a"} (${(health?.checks || []).length} checks)`);
   console.log(`  health checks: ${healthCheckStatusSummary(health?.checks)}`);
   console.log(`  health_tuned: ${tunedHealth?.status ?? "n/a"} (${(tunedHealth?.checks || []).length} checks)`);

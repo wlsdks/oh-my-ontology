@@ -289,7 +289,8 @@ agent 가 실패 직후 어떤 frontmatter 문제부터 볼지 바로 판단할 
 non-blocking `workspace_brief.nextActions` 는 기본/tuned brief 모두에서
 severity/kind/id/count/message 를 담은 짧은 advisory 목록으로 출력해 MCP
 wiring 확인 직후 정리할 항목을 바로 보여준다. 마지막 Analysis 요약도
-`workspace_brief nextActions` / `workspace_brief_tuned nextActions` 를
+`workspace_brief non-blocking nextActions` /
+`workspace_brief_tuned non-blocking nextActions` 를
 label:severity:count 형태로 다시 출력해 긴 dogfood 로그의 끝만 봐도 후속
 조치의 종류와 규모를 알 수 있게 한다. 같은 요약에서 `health checks` /
 `health_tuned checks` 도 id:status:count 형태로 출력해 tuned probe 가 info

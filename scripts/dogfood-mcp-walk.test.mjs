@@ -32,6 +32,7 @@ import {
   structuredContentStatus,
   toolsListAnnotationSummary,
   tunedHealthScopeSummary,
+  workspaceNextActionAnalysisLabel,
   workspaceNextActionSummary,
   writeRowLabelGuidanceSummary,
 } from "./dogfood-mcp-walk.mjs";
@@ -2775,6 +2776,17 @@ describe("rpc response completion helpers", () => {
         { kind: "add_missing_relations", severity: "warn", count: 4 },
       ]),
       "components:info:6, materialize_external_elements:warn:2, resolve_dangling_references:fail, +1 more",
+    );
+  });
+
+  it("labels final workspace next actions as non-blocking dogfood output", () => {
+    assert.equal(
+      workspaceNextActionAnalysisLabel("workspace_brief"),
+      "workspace_brief non-blocking nextActions",
+    );
+    assert.equal(
+      workspaceNextActionAnalysisLabel("workspace_brief_tuned"),
+      "workspace_brief_tuned non-blocking nextActions",
     );
   });
 
