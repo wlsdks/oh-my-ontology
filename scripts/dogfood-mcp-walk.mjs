@@ -34,6 +34,7 @@ import {
   overviewFailure,
   projectMapQueryPlanFailure,
   strictArgsFailure,
+  strictMultiArgsFailure,
   strictEnumFailure,
   strictMaintenanceFilterFailure,
   toolsListSchemaFailure,
@@ -106,6 +107,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [56, "query_concepts"],
   [57, "analyze_repo_structure"],
   [58, "infer_imports"],
+  [59, "strict_multi_args"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -587,6 +589,7 @@ export function buildDogfoodRequests() {
       limit: 12,
     }),
     call(46, "list_concepts", { lmit: 1 }),
+    call(59, "list_concepts", { lmit: 1, summry: true }),
     call(47, "query_ontology", { operation: "overveiw" }),
   ];
 }
@@ -740,6 +743,7 @@ export function evaluateDogfoodGate({
   projectProbeStructured,
   kindsStructured,
   strictArgs,
+  strictMultiArgs,
   strictEnum,
   strictMaintenancePhaseFilter,
   strictMaintenanceSeverityFilter,
@@ -802,6 +806,8 @@ export function evaluateDogfoodGate({
 
   const strictFailure = strictArgsFailure(strictArgs);
   if (strictFailure) failures.push(`strict_args: ${strictFailure}`);
+  const strictMultiFailure = strictMultiArgsFailure(strictMultiArgs);
+  if (strictMultiFailure) failures.push(`strict_multi_args: ${strictMultiFailure}`);
   const strictEnumError = strictEnumFailure(strictEnum);
   if (strictEnumError) failures.push(`strict_enum: ${strictEnumError}`);
   const strictMaintenancePhaseFilterError = strictMaintenanceFilterFailure(strictMaintenancePhaseFilter, "phases");
@@ -5039,7 +5045,16 @@ async function main() {
     console.log(`  ${strictArgsText}`);
   }
 
-  // 46. strict enum rejection
+  // 46. strict multi-argument rejection
+  header("strict arguments — multiple unknown tool argument rejection");
+  const strictMultiArgs = responses.find((response) => response.id === 59);
+  const strictMultiArgsText = strictMultiArgs?.result?.content?.[0]?.text || "";
+  console.log(`  rejected: ${strictMultiArgs?.result?.isError === true}`);
+  if (strictMultiArgsText) {
+    console.log(`  ${strictMultiArgsText}`);
+  }
+
+  // 47. strict enum rejection
   header("strict enums — invalid query operation rejection");
   const strictEnum = responses.find((response) => response.id === 47);
   const strictEnumText = strictEnum?.result?.content?.[0]?.text || "";
@@ -5048,7 +5063,7 @@ async function main() {
     console.log(`  ${strictEnumText}`);
   }
 
-  // 47. strict maintenance filter rejection
+  // 48. strict maintenance filter rejection
   header("strict maintenance filters — invalid phase/severity/kind rejection");
   const strictMaintenancePhaseFilter = responses.find((response) => response.id === 51);
   const strictMaintenancePhaseFilterText = strictMaintenancePhaseFilter?.result?.content?.[0]?.text || "";
@@ -5229,6 +5244,7 @@ async function main() {
     kindsStructured,
     validationStructured,
     strictArgs,
+    strictMultiArgs,
     strictEnum,
     strictMaintenancePhaseFilter,
     strictMaintenanceSeverityFilter,
@@ -5315,6 +5331,7 @@ async function main() {
   console.log(`  path: ${queryPath?.found ?? "n/a"} · hops ${queryPath?.hopCount ?? "n/a"} · edges ${queryPath?.edges?.length ?? "n/a"}`);
   console.log(`  project_scope: ${projectScope?.summary?.nodes ?? "n/a"} nodes · ${projectScope?.summary?.internalEdges ?? "n/a"} internal edges`);
   console.log(`  strict_args: rejected ${strictArgs?.result?.isError === true}`);
+  console.log(`  strict_multi_args: rejected ${strictMultiArgs?.result?.isError === true}`);
   console.log(`  strict_enum: rejected ${strictEnum?.result?.isError === true}`);
   console.log(`  strict_maintenance_phase_filter: rejected ${strictMaintenancePhaseFilter?.result?.isError === true}`);
   console.log(`  strict_maintenance_severity_filter: rejected ${strictMaintenanceSeverityFilter?.result?.isError === true}`);

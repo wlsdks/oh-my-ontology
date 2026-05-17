@@ -1113,6 +1113,23 @@ export function strictArgsFailure(response) {
   return null;
 }
 
+export function strictMultiArgsFailure(response) {
+  if (response?.result?.isError !== true) {
+    return 'strict multi-argument response was not rejected';
+  }
+  const text = response.result.content?.[0]?.text || '';
+  if (!/Unknown arguments for list_concepts/i.test(text)) {
+    return 'strict multi-argument response did not report all unknown list_concepts arguments';
+  }
+  if (!/"lmit" \(did you mean "limit"\?\)/i.test(text)) {
+    return 'strict multi-argument response did not suggest the closest limit argument';
+  }
+  if (!/"summry" \(did you mean "summary"\?\)/i.test(text)) {
+    return 'strict multi-argument response did not suggest the closest summary argument';
+  }
+  return null;
+}
+
 export function strictEnumFailure(response) {
   if (response?.result?.isError !== true) {
     return 'strict enum response was not rejected';
@@ -1397,6 +1414,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [24, 'strict_maintenance_kind_filter'],
   [25, 'maintenance_missing_cursor'],
   [26, 'maintenance_ready_cursor'],
+  [27, 'strict_multi_args'],
 ]);
 
 function log(level, msg) {
@@ -1688,6 +1706,12 @@ export function buildFirstContactRequests() {
       id: 16,
       method: 'tools/call',
       params: { name: 'list_concepts', arguments: { lmit: 1 } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 27,
+      method: 'tools/call',
+      params: { name: 'list_concepts', arguments: { lmit: 1, summry: true } },
     },
     {
       jsonrpc: '2.0',
@@ -2715,6 +2739,7 @@ async function step2BootAndCall() {
       const pathRes = responses.find((r) => r.id === 14);
       const projectScopeRes = responses.find((r) => r.id === 15);
       const strictArgsRes = responses.find((r) => r.id === 16);
+      const strictMultiArgsRes = responses.find((r) => r.id === 27);
       const strictEnumRes = responses.find((r) => r.id === 17);
       const orphansRes = responses.find((r) => r.id === 19);
       const strictMaintenancePhaseFilterRes = responses.find((r) => r.id === 22);
@@ -2782,6 +2807,12 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', 'strict arguments — unknown tool argument rejected at runtime');
+      const strictMultiFailure = strictMultiArgsFailure(strictMultiArgsRes);
+      if (strictMultiFailure) {
+        log('fail', strictMultiFailure);
+        return res(false);
+      }
+      log('ok', 'strict arguments — multiple unknown tool arguments reported together');
       const strictEnum = strictEnumFailure(strictEnumRes);
       if (strictEnum) {
         log('fail', strictEnum);

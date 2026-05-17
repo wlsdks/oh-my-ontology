@@ -57,6 +57,7 @@ import {
   projectScopeFailure,
   serverStartupFailure,
   strictArgsFailure,
+  strictMultiArgsFailure,
   strictEnumFailure,
   strictMaintenanceFilterFailure,
   structuredContentFailure,
@@ -2093,6 +2094,30 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed strict multi-argument smoke responses', () => {
+    assert.equal(
+      strictMultiArgsFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary.' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictMultiArgsFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict multi-argument response was not rejected',
+    );
+    assert.equal(
+      strictMultiArgsFailure({ result: { isError: true, content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"?' }] } }),
+      'strict multi-argument response did not report all unknown list_concepts arguments',
+    );
+    assert.equal(
+      strictMultiArgsFailure({ result: { isError: true, content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry".' }] } }),
+      'strict multi-argument response did not suggest the closest summary argument',
+    );
+  });
+
   it('fails malformed strict enum smoke responses', () => {
     assert.equal(
       strictEnumFailure({
@@ -2568,6 +2593,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(24), 'strict_maintenance_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(25), 'maintenance_missing_cursor');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(26), 'maintenance_ready_cursor');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(27), 'strict_multi_args');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

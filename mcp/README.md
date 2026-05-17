@@ -231,6 +231,7 @@ A successful run looks like this:
 ✓ tools/list 23/23 (15 read + 8 write) — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
 ✓ tools/list schema contract — strict arguments + read/write hints + graph-query enums + health tuning + post-write guidance
 ✓ strict arguments — unknown tool argument rejected at runtime
+✓ strict arguments — multiple unknown tool arguments reported together
 ✓ strict enums — invalid query operation rejected with closest-value hint
 ✓ strict maintenance filters — invalid phase/severity/kind rejected at runtime (phases=validate/repair/link/materialize/review; severities=fail/warn/info; kinds=inspect_compile_issue/break_dependency_cycle/canonicalize_graph_arrays/resolve_dangling_reference/add_missing_relation/materialize_external_element/unassigned_node/empty_domain)
 ✓ maintenance cursor — missing afterActionId reported (afterActionId not found in filtered maintenance actions; phase none; severity none; kind none; executable none; review none)
@@ -324,10 +325,12 @@ guidance is gated too: `initialize.instructions` must mention enum-validated
 `cursor.reason=null`, and unknown `afterActionId` cursor misses with
 `cursor.found=false` plus `cursor.reason`.
 The verify path also makes runtime negative calls with `list_concepts.lmit`,
+`list_concepts.lmit` plus `list_concepts.summry`,
 `query_ontology.operation="overveiw"`, typoed `maintenance_plan.phases`, and
 typoed `maintenance_plan.severities` / `maintenance_plan.kinds`,
-and fails unless the server rejects them with the closest argument/value hint or
-the allowed maintenance filter enum. Successful verify output prints the
+and fails unless the server rejects them with the closest argument/value hint,
+reports multiple unknown tool arguments together, or returns the allowed
+maintenance filter enum. Successful verify output prints the
 accepted `phases` / `severities` / `kinds` enum lists beside the strict-filter
 runtime smoke, so installed logs show which work-queue contract was tested. It also calls
 `maintenance_plan.afterActionId="maint_missing"` and fails unless the response
