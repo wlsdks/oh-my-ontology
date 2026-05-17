@@ -139,6 +139,7 @@ pnpm test:mcp:verify:first-contact # narrow MCP verify first-contact health/read
 pnpm test:mcp:verify:timeout    # narrow MCP verify timeout/help diagnostics
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
 pnpm integration:cli:mcp-verify
+pnpm integration:cli:maintenance # narrow CLI maintenance command integration gates
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
 pnpm integration:mcp:readme
 pnpm exec node --test --test-name-pattern "README first exploration" mcp/src/integration.test.mjs
@@ -158,8 +159,9 @@ the broader release checks.
 `integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`, and
 their custom runners also honor Node's `--test-name-pattern`, so you can run
 only the spawn-heavy integration cases touched by a small change. The
-`integration:cli:mcp-verify` and `integration:mcp:readme` shortcuts cover the
-common install-verification and first-contact read-only checks. `npm run verify` calls `get_concepts` with discovered slugs plus one
+`integration:cli:mcp-verify`, `integration:cli:maintenance`, and
+`integration:mcp:readme` shortcuts cover the common install-verification,
+CLI maintenance work-queue, and first-contact read-only checks. `npm run verify` calls `get_concepts` with discovered slugs plus one
 missing slug, then runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`, so the same batch-read
 partial-row contract and first-contact diagnosis an AI agent should run are
 exercised locally. It also checks both `overview` and `project_map`

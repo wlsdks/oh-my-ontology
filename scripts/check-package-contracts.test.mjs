@@ -111,6 +111,10 @@ describe('package contract helpers', () => {
       pkg.scripts?.['integration:cli:mcp-verify'],
       'node --test --test-name-pattern "mcp-verify" cli/src/integration.test.mjs',
     );
+    assert.equal(
+      pkg.scripts?.['integration:cli:maintenance'],
+      'node --test --test-name-pattern "maintenance" cli/src/integration.test.mjs',
+    );
     assert.equal(pkg.scripts?.['integration:mcp'], 'node --test mcp/src/integration.test.mjs');
     assert.equal(
       pkg.scripts?.['integration:mcp:readme'],
@@ -194,12 +198,14 @@ describe('package contract helpers', () => {
     assert.match(readme, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
     assert.match(readme, /OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli/);
     assert.match(readme, /pnpm integration:cli:mcp-verify/);
+    assert.match(readme, /pnpm integration:cli:maintenance\s+# narrow CLI maintenance command integration gates/);
     assert.match(readme, /OMOT_TEST_NAME_PATTERN="tools\/list\|initialize" pnpm integration:mcp/);
     assert.match(readme, /pnpm integration:mcp:readme/);
     assert.match(readme, /pnpm exec node --test --test-name-pattern "README first exploration" mcp\/src\/integration\.test\.mjs/);
     assert.match(readme, /dogfood-helper/);
     assert.match(readme, /custom runners also honor Node's `--test-name-pattern`/);
     assert.match(readme, /integration:cli:mcp-verify/);
+    assert.match(readme, /integration:cli:maintenance/);
     assert.match(readme, /integration:mcp:readme/);
     assert.match(readme, /runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`/);
     assert.match(readme, /graph-query, destructive\s+dry-run, post-write guidance, and strict argument\/enum\s+smoke scope/);
@@ -1485,8 +1491,10 @@ describe('package contract helpers', () => {
     assert.match(doc, /cli\/src\/lib\/mcp-call\.test\.mjs/);
     assert.match(regressionSection, /`pnpm test:cli:lib`/);
     assert.match(regressionSection, /`pnpm test:mcp:maintenance`/);
+    assert.match(regressionSection, /`pnpm integration:cli:maintenance`/);
     assert.match(regressionSection, /focused CLI shared helper unit contracts/);
     assert.match(regressionSection, /focused MCP maintenance queue contract/);
+    assert.match(regressionSection, /CLI maintenance command 와 maintenance 관련 installed verify subset/);
     assert.match(regressionSection, /full verify \/ dogfood suite 를 돌리지 않아도 된다/);
     assert.match(regressionSection, /`pnpm package:check` 도 이 gate 를 포함/);
     assert.match(regressionSection, /`cli\/src\/lib\/cli-args\.test\.mjs`/);

@@ -55,6 +55,7 @@ checks that match the touched surface:
 ```bash
 pnpm test:cli:lib
 pnpm integration:cli:mcp-verify
+pnpm integration:cli:maintenance
 pnpm test:mcp:docs
 pnpm test:mcp:maintenance
 pnpm test:mcp:package
@@ -67,7 +68,9 @@ pnpm test:mcp:verify:timeout
 command registry metadata, MCP response unwrapping, package metadata, and
 graph result fail-closed handling without spawning the full CLI.
 `integration:cli:mcp-verify` runs only the installed MCP verification wrapper
-subset inside the spawn-heavy CLI integration file. `test:mcp:docs` checks
+subset inside the spawn-heavy CLI integration file.
+`integration:cli:maintenance` runs only the CLI maintenance command and
+maintenance-related installed verify integration cases. `test:mcp:docs` checks
 README and dogfood ontology documentation drift. `test:mcp:package` checks
 package-script and tarball contract drift without running unrelated UI or E2E
 gates. `test:mcp:maintenance` checks maintenance_plan filter, cursor, resume,
