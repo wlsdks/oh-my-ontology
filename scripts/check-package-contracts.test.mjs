@@ -7,6 +7,7 @@ import { describe, it } from 'node:test';
 
 import { analyzeRepoStructure } from '../mcp/src/analyze.mjs';
 import { inferImports } from '../mcp/src/infer-imports.mjs';
+import { loadOmotIgnore } from '../mcp/src/omot-ignore.mjs';
 import {
   MAINTENANCE_KIND_VALUES,
   MAINTENANCE_PHASE_VALUES,
@@ -53,6 +54,10 @@ function countLabel(count, noun) {
   return `${count} ${noun}${count === 1 ? '' : 's'}`;
 }
 
+function regexEscape(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function findEvidenceCount(docs, query) {
   const needle = query.toLowerCase();
   return docs.filter((doc) => {
@@ -75,6 +80,10 @@ function importKindSummary(kindCounts) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([kind, count]) => `${kind}:${count}`);
   return [...known, ...extra].join('/');
+}
+
+function healthCheckSummary(checks) {
+  return checks.map((check) => `${check.id}:${check.status}:${check.count}`).join(', ');
 }
 
 describe('package contract helpers', () => {
@@ -385,7 +394,8 @@ describe('package contract helpers', () => {
       `vault-readme:${census.byKind['vault-readme']}`,
     ].join(', ');
     const scopedNodes = census.total - census.byKind['vault-readme'];
-    const dogfoodDocs = loadVaultDocs(join(process.cwd(), 'docs', 'ontology'));
+    const ontologyRoot = join(process.cwd(), 'docs', 'ontology');
+    const dogfoodDocs = loadVaultDocs(ontologyRoot);
     const projectDoc = dogfoodDocs.find((doc) => doc.slug === 'project');
     assert.ok(projectDoc, 'dogfood vault has a project node');
     const projectOutgoingEdgeCount = collectNeighborRefs(projectDoc).length;
@@ -411,6 +421,27 @@ describe('package contract helpers', () => {
       operation: 'project_scope',
       slug: 'project',
     });
+    const diagnosisOptions = { omotIgnorePatterns: loadOmotIgnore(ontologyRoot) };
+    const workspaceBrief = queryCompiledOntology(compiled, { operation: 'workspace_brief' }, diagnosisOptions);
+    const tunedDiagnosisArgs = {
+      componentLimit: 3,
+      cycleLimit: 3,
+      recommendationLimit: 3,
+      orderLimit: 3,
+      dependencyTypes: ['dependencies'],
+      componentTypes: ['domain', 'capabilities'],
+    };
+    const tunedWorkspaceBrief = queryCompiledOntology(compiled, {
+      operation: 'workspace_brief',
+      limit: 3,
+      ...tunedDiagnosisArgs,
+      nodeLimit: 3,
+    }, diagnosisOptions);
+    const health = queryCompiledOntology(compiled, { operation: 'health' }, diagnosisOptions);
+    const tunedHealth = queryCompiledOntology(compiled, {
+      operation: 'health',
+      ...tunedDiagnosisArgs,
+    }, diagnosisOptions);
     const analyzedRepo = analyzeRepoStructure(process.cwd(), { maxDepth: 2 });
     const inferredImports = inferImports(process.cwd());
     const topModuleEdge = inferredImports.moduleEdges[0];
@@ -478,12 +509,37 @@ describe('package contract helpers', () => {
     assert.match(verifySection, new RegExp(`✓ list_concepts — vault total ${census.total} nodes`));
     assert.match(verifySection, new RegExp(`✓ list_kinds — ${census.total} nodes \\(${kindSummary}\\)`));
     assert.match(verifySection, new RegExp(`✓ validate_vault — ${census.files} files, 0 problem files`));
-    assert.match(verifySection, new RegExp(`✓ workspace_brief — healthy \\(${census.total} nodes, 0 next actions, 5 health checks\\)`));
-    assert.match(verifySection, new RegExp(`✓ workspace_brief_tuned — healthy \\(${census.total} nodes, 1 next action, 5 health checks; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3\\)`));
-    assert.match(verifySection, /workspace_brief_tuned advisory nextActions — components:info:6 - The resolved ontology graph has disconnected actionable islands\./);
-    assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass:0/);
-    assert.match(verifySection, /✓ health_tuned — healthy \(5 checks: compile_issues:pass:0/);
-    assert.match(verifySection, /health_tuned — healthy \([\s\S]*issues 0; dependencyTypes=dependencies; componentTypes=domain\/capabilities\)/);
+    assert.match(
+      verifySection,
+      new RegExp(
+        `✓ workspace_brief — ${workspaceBrief.status} \\(${census.total} nodes, ${countLabel(workspaceBrief.nextActions.length, 'next action')}, ${countLabel(workspaceBrief.health.checks.length, 'health check')}\\)`,
+      ),
+    );
+    assert.match(
+      verifySection,
+      new RegExp(
+        `✓ workspace_brief_tuned — ${tunedWorkspaceBrief.status} \\(${census.total} nodes, ${countLabel(tunedWorkspaceBrief.nextActions.length, 'next action')}, ${countLabel(tunedWorkspaceBrief.health.checks.length, 'health check')}; dependencyTypes=dependencies; componentTypes=domain/capabilities; nodeLimit=3\\)`,
+      ),
+    );
+    const tunedBriefAction = tunedWorkspaceBrief.nextActions[0];
+    assert.match(
+      verifySection,
+      new RegExp(
+        `workspace_brief_tuned advisory nextActions — ${tunedBriefAction.id}:${tunedBriefAction.severity}:${tunedBriefAction.count} - ${regexEscape(tunedBriefAction.message)}`,
+      ),
+    );
+    assert.match(
+      verifySection,
+      new RegExp(
+        `✓ health — ${health.status} \\(${countLabel(health.checks.length, 'check')}: ${healthCheckSummary(health.checks)}, issues ${health.summary.issues}\\)`,
+      ),
+    );
+    assert.match(
+      verifySection,
+      new RegExp(
+        `✓ health_tuned — ${tunedHealth.status} \\(${countLabel(tunedHealth.checks.length, 'check')}: ${healthCheckSummary(tunedHealth.checks)}, issues ${tunedHealth.summary.issues}; dependencyTypes=dependencies; componentTypes=domain/capabilities\\)`,
+      ),
+    );
     assert.match(verifySection, new RegExp(`✓ compile_ontology — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, issues ${compiled.issueCount}\\)`));
     assert.match(verifySection, new RegExp(`✓ compile_ontology page — 1/${compiled.nodeCount} nodes, 1/${compiled.edgeCount} edges`));
     assert.match(
