@@ -313,6 +313,7 @@ try {
   });
   assert.match(cliMcpVerify.stdout, /timeout=3000ms/);
   assert.match(cliMcpVerify.stdout, new RegExp(`tools/list ${expectedToolCount}/${expectedToolCount}`));
+  assert.match(cliMcpVerify.stdout, /tools\/list inventory names — missing\/extra\/duplicate\/invalid checks passed/);
   assert.match(cliMcpVerify.stdout, expectedToolsListAnnotationRe);
   assert.match(cliMcpVerify.stdout, /list_kinds/);
   assert.match(cliMcpVerify.stdout, /validate_vault/);

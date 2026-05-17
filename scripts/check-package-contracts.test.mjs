@@ -632,6 +632,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /Successful\s+verify logs print the same bucket summary and current-page executable\/review\s+next-action summary/);
     assert.match(verifySection, /list_concepts\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports\/find_neighbors\/find_path\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety and recovery guidance present/);
+    assert.match(verifySection, /✓ tools\/list inventory names — missing\/extra\/duplicate\/invalid checks passed/);
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ graph kind enums \+ write relation enums \+ health tuning \+ post-write bucket guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);

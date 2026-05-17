@@ -5107,6 +5107,7 @@ async function step2BootAndCall() {
       }
       const toolNames = listRes.result.tools.map((t) => t.name).sort();
       log('ok', `tools/list ${toolNames.length}/${EXPECTED_TOOLS.length} (${toolsListAnnotationSummary(listRes.result.tools)}) — ${toolNames.join(' · ')}`);
+      log('ok', 'tools/list inventory names — missing/extra/duplicate/invalid checks passed');
       const schemaFailure = toolsListSchemaFailure(listRes.result.tools);
       if (schemaFailure) {
         log('fail', schemaFailure);
