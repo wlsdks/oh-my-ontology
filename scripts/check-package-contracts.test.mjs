@@ -137,6 +137,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /unhealthy first-contact/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /failing health checks/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /warn\/fail next actions/);
+    assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /malformed workspace_brief/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /stderr warnings/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /dogfood help/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /dogfood arguments/);
@@ -185,7 +186,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /pnpm test:cli:lib\s+# focused CLI shared helper unit contracts/);
     assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:dogfood/);
-    assert.match(readme, /structuredContent\/compile\/row-label\/vault-warning\/health\/initialize\/destructive dry-run\/help\/argument\/timeout\/strict relation\/stderr checks/);
+    assert.match(readme, /structuredContent\/compile\/row-label\/vault-warning\/health\/sample-shape\/initialize\/destructive dry-run\/help\/argument\/timeout\/strict relation\/stderr checks/);
     assert.match(readme, /pnpm test:mcp:dogfood:timeout\s+# narrow dogfood timeout\/help retry diagnostics/);
     assert.match(readme, /pnpm test:mcp:maintenance\s+# narrow maintenance_plan filter\/cursor\/work-queue gates/);
     assert.match(readme, /pnpm test:mcp:package\s+# focused MCP\/CLI package-script\/dependency\/tarball contract checks/);
@@ -969,9 +970,9 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /get_concepts` with discovered slugs plus one\s+missing slug/);
     assert.match(releaseChecks, /batch-read\s+partial-row contract/);
     assert.match(releaseChecks, /mcp-verify --help/);
-    assert.match(releaseChecks, /graph-query, destructive dry-run, and strict\s+argument\/enum smoke scope/);
+    assert.match(releaseChecks, /graph-query, destructive\s+dry-run, post-write bucket guidance, and strict argument\/enum\s+smoke scope/);
     assert.match(releaseChecks, /actual `neighbors`, node→project `path`, and\s+`project_scope` calls/);
-    assert.match(releaseChecks, /project-less and empty-vault verify paths/);
+    assert.match(releaseChecks, /project-less and empty-vault\s+verify paths/);
     assert.match(releaseChecks, /flow\/help\/failure/);
     assert.match(releaseChecks, /dependency-cycle vault/);
     assert.match(releaseChecks, /get_concepts` success\/partial rows/);
@@ -988,6 +989,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /`path`, `health`, or `workspace-brief` payloads/);
     assert.match(releaseChecks, /top-level diagnosis `status` must be `healthy` or `needs_attention`/);
     assert.match(releaseChecks, /workspace_brief\.nextActions/);
+    assert.match(releaseChecks, /workspace_brief\.nextActions\[\]\.sample` executable shapes/);
     assert.match(releaseChecks, /workspace_brief\.health\.checks/);
     assert.match(releaseChecks, /path edge check/);
     assert.match(releaseChecks, /tuned `workspace_brief` \/ tuned `health` gates regress/);
@@ -1161,9 +1163,9 @@ describe('package contract helpers', () => {
     assert.match(doc, /`query_ontology` graph-query 응답은 `structuredContent`\s+누락을 실패로 처리하고 text JSON payload 와 `structuredContent` payload 의\s+구조적 일치 여부도 비교/);
     assert.match(doc, /positional vault argument 는 받지 않고 이 repo 의 dogfood vault 만\s+검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패/);
     assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage 와\s+focused check 경로를 출력/);
-    assert.match(doc, /도움말의 `pnpm test:mcp:dogfood` 설명도 compile gate, row-label guidance,\s+vault warning gate, health gate, initialize guidance, structuredContent, strict relation filter, stderr warning 범위/);
+    assert.match(doc, /도움말의 `pnpm test:mcp:dogfood` 설명도 compile gate, row-label guidance,\s+vault warning gate, health gate, sample-shape gate, initialize guidance, structuredContent, strict relation filter, stderr warning 범위/);
     assert.match(dogfoodSection, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
-    assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, initialize guidance, row-label guidance summary 를 fixture 로 검증/);
+    assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, initialize guidance, row-label guidance summary 를 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
     assert.match(doc, /진짜 timeout 실패도 `npm run verify -- --timeout-ms 15000` 재시도 예시를\s+같이 보여준다/);
     assert.match(doc, /오류 출력은\s+`Received: "1000ms"` 와 `npm run verify -- --timeout-ms 15000` 같은 재시도 예시/);

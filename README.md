@@ -129,7 +129,7 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 pnpm package:check              # MCP/CLI package files contract + CLI lib + docs self-test
 pnpm test:cli:lib               # focused CLI shared helper unit contracts
 pnpm test:mcp:docs              # focused README + dogfood ontology docs contract
-pnpm test:mcp:dogfood           # focused dogfood helper + structuredContent/compile/row-label/vault-warning/health/initialize/destructive dry-run/help/argument/timeout/strict relation/stderr checks
+pnpm test:mcp:dogfood           # focused dogfood helper + structuredContent/compile/row-label/vault-warning/health/sample-shape/initialize/destructive dry-run/help/argument/timeout/strict relation/stderr checks
 pnpm test:mcp:dogfood:timeout   # narrow dogfood timeout/help retry diagnostics
 pnpm test:mcp:maintenance       # narrow maintenance_plan filter/cursor/work-queue gates
 pnpm test:mcp:package           # focused MCP/CLI package-script/dependency/tarball contract checks
@@ -189,7 +189,8 @@ top-level diagnosis `status` must be `healthy` or `needs_attention`.
 `dogfood:walk` runs that diagnosis plus graph lookup tasks against this
 repo's own `docs/ontology` vault and exits non-zero if the core MCP
 responses, strict unknown-argument and invalid-enum rejection, `get_concepts` success/partial rows, path edge check, vault warnings, `validate_vault` problem files,
-`workspace_brief.nextActions`, `workspace_brief.health.checks`, `health`, or
+`workspace_brief.nextActions`, `workspace_brief.nextActions[].sample` executable shapes,
+`workspace_brief.health.checks`, `health`, or
 tuned `workspace_brief` / tuned `health` gates regress. Set
 `OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk` for slower local filesystems;
 the value must be a positive integer in milliseconds, and `--help` / timeout
