@@ -854,7 +854,19 @@ describe('verify.mjs first-contact gates', () => {
       },
       {
         name: 'find_evidence',
-        inputSchema: { additionalProperties: false, required: ['title'], properties: {} },
+        description:
+          'Find vault docs that mention a given concept by title. Useful when an AI agent asks where a capability is realized in code or docs. Each match includes a prose `excerpt` (max 200 chars, heading/표/코드 skip) so agents see *what the matching doc says* without an extra get_concept call.',
+        inputSchema: {
+          additionalProperties: false,
+          required: ['title'],
+          properties: {
+            title: {
+              type: 'string',
+              minLength: 1,
+              description: 'Concept title to search for (case-insensitive substring match).',
+            },
+          },
+        },
         outputSchema: {
           type: 'object',
           required: ['query', 'matches'],
@@ -1036,6 +1048,11 @@ describe('verify.mjs first-contact gates', () => {
     const queryConceptsTool = tools.find((tool) => tool.name === 'query_concepts');
     const withQueryConceptsTool = (tool) => [
       ...tools.filter((candidate) => candidate.name !== 'query_concepts'),
+      tool,
+    ];
+    const findEvidenceTool = tools.find((tool) => tool.name === 'find_evidence');
+    const withFindEvidenceTool = (tool) => [
+      ...tools.filter((candidate) => candidate.name !== 'find_evidence'),
       tool,
     ];
     const listConceptsTool = tools.find((tool) => tool.name === 'list_concepts');
@@ -1889,6 +1906,34 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'find_evidence outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withFindEvidenceTool(
+        {
+          ...findEvidenceTool,
+          description: 'Find vault docs.',
+        },
+      )),
+      'find_evidence description missing excerpt guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withFindEvidenceTool(
+        {
+          ...findEvidenceTool,
+          inputSchema: {
+            ...findEvidenceTool.inputSchema,
+            properties: {
+              ...findEvidenceTool.inputSchema.properties,
+              title: {
+                type: 'string',
+                minLength: 1,
+                description: 'Concept title to search for.',
+              },
+            },
+          },
+        },
+      )),
+      'find_evidence inputSchema title guidance drift',
     );
     assert.equal(
       toolsListSchemaFailure([

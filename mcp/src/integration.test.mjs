@@ -348,6 +348,16 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.ok?.type, "boolean");
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.mtime?.type, "number");
     const findEvidence = findTool("find_evidence");
+    assert.match(
+      findEvidence?.description ?? "",
+      /Find vault docs that mention a given concept by title[\s\S]*Each match includes a prose `?excerpt`?[\s\S]*without an extra get_concept call/i,
+      "find_evidence description documents excerpt-first usage",
+    );
+    assert.match(
+      findEvidence?.inputSchema?.properties?.title?.description ?? "",
+      /case-insensitive substring match/i,
+      "find_evidence title schema documents matching behavior",
+    );
     assert.equal(findEvidence?.outputSchema?.type, "object");
     assert.deepEqual(findEvidence?.outputSchema?.required, ["query", "matches"]);
     assert.equal(findEvidence?.outputSchema?.properties?.matches?.type, "array");

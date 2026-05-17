@@ -353,6 +353,21 @@ export function toolsListSchemaFailure(tools) {
 
   const findEvidenceTool = tools.find((tool) => tool?.name === 'find_evidence');
   if (!findEvidenceTool) return 'tools/list response missing find_evidence tool';
+  if (
+    !/Find vault docs that mention a given concept by title/i.test(findEvidenceTool.description || '') ||
+    !/Each match includes a prose `?excerpt`?/i.test(findEvidenceTool.description || '') ||
+    !/without an extra get_concept call/i.test(findEvidenceTool.description || '')
+  ) {
+    return 'find_evidence description missing excerpt guidance';
+  }
+  const findEvidenceTitleSchema = propertyAt(findEvidenceTool, ['properties', 'title']);
+  if (
+    findEvidenceTitleSchema?.type !== 'string' ||
+    findEvidenceTitleSchema.minLength !== 1 ||
+    !/case-insensitive substring match/i.test(findEvidenceTitleSchema.description || '')
+  ) {
+    return 'find_evidence inputSchema title guidance drift';
+  }
   if (findEvidenceTool.outputSchema?.type !== 'object') {
     return 'find_evidence outputSchema root drift';
   }
