@@ -170,7 +170,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /integration:cli:mcp-verify/);
     assert.match(readme, /integration:mcp:readme/);
     assert.match(readme, /runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`/);
-    assert.match(readme, /graph-query, destructive dry-run, post-write guidance, and strict argument\/enum\s+smoke scope/);
+    assert.match(readme, /graph-query, destructive\s+dry-run, post-write guidance, and strict argument\/enum\s+smoke scope/);
     assert.match(readme, /graph-query, destructive dry-run, and strict\s+argument\/enum smoke scope/);
   });
 
@@ -1232,6 +1232,10 @@ describe('package contract helpers', () => {
     assert.match(smoke, /installed CLI compile dangling json/);
     assert.match(smoke, /\['path', 'capabilities\/a', 'capabilities\/b', disconnectedVault, '--json'\]/);
     assert.match(smoke, /installed CLI path disconnected graph/);
+    assert.match(smoke, /const installedCliDir =/);
+    assert.match(smoke, /installed CLI package npm test/);
+    assert.match(smoke, /node --test src\\\/lib\\\/\\\*\\\.test\\\.mjs/);
+    assert.match(smoke, /# pass 36/);
     assert.match(smoke, /workspace_brief — \.\*next actions, \.\*health checks/);
     assert.match(smoke, /directMcpVerify/);
     assert.match(smoke, /directMcpVerifyVaultFlag/);
@@ -1346,6 +1350,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /path — domains\\\/core → domains\\\/core \\\(0 hops, 0 edges\\\)/);
     assert.match(smoke, /neighbors\\\/path — skipped \\\(vault has no nodes\\\)/);
     assert.match(smokeSection, /cycles --json/);
+    assert.match(smokeSection, /CLI package `npm test`/);
     assert.match(smokeSection, /compile --json/);
     assert.match(smokeSection, /path --json/);
     assert.match(smokeSection, /blocking `workspace-brief` non-json 의 `HEALTH CHECKS`/);

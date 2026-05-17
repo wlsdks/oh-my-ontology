@@ -251,8 +251,16 @@ try {
   );
   run('npm', ['install', '--ignore-scripts', mcpTgz, cliTgz], { cwd: installDir });
 
+  const installedCliDir = join(installDir, 'node_modules', 'oh-my-ontology');
   const cliBin = join(installDir, 'node_modules', '.bin', 'oh-my-ontology');
+  assert.equal(existsSync(installedCliDir), true, 'installed CLI package directory is missing');
   assert.equal(existsSync(cliBin), true, 'installed CLI bin is missing');
+  const installedCliPackageTest = run('npm', ['--prefix', installedCliDir, 'test'], {
+    cwd: projectDir,
+    label: 'installed CLI package npm test',
+  });
+  assert.match(installedCliPackageTest.stdout, /node --test src\/lib\/\*\.test\.mjs/);
+  assert.match(installedCliPackageTest.stdout, /# pass 36/);
   const cliMcpVerifyArgs = (args = []) => ['mcp-verify', ...args];
   assert.deepEqual(cliMcpVerifyArgs(['ontology', '--timeout-ms', '3000']), [
     'mcp-verify',

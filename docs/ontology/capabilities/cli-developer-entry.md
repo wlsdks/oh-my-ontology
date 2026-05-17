@@ -71,7 +71,7 @@ Claude Code/Cursor `.mcp.json` 경로와 Codex `codex mcp add ...` 경로가 모
 scripts/smoke-clean-onboarding.mjs — fresh user smoke. 임시 `HOME` / `CODEX_HOME` 과 새 프로젝트를 만들고 `init → bootstrap → validate` 부터 Claude project `.mcp.json` health, Codex `mcp add` 등록까지 clean-room 으로 검증.
 
 scripts/smoke-packed-cli.mjs — packed install smoke. local MCP + CLI tarball 을 임시
-프로젝트에 설치한 뒤 `init`, installed `mcp-verify`, MCP package `npm run verify`,
+프로젝트에 설치한 뒤 CLI package `npm test`, `init`, installed `mcp-verify`, MCP package `npm run verify`,
 installed `mcp-verify --help`, invalid installed `OMOT_MCP_PATH` / vault root failures, `compile --summary`, blocking `workspace-brief --json`,
 blocking `workspace-brief` non-json 의 `HEALTH CHECKS` / `dependency_cycles:fail:1` coverage, blocking `health` non-json 의 `dependency_cycles fail:1` coverage,
 `cycles --json`, `compile --json`, `path --json` exit 를 실행하고 installed verify 의
