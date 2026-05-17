@@ -89,6 +89,7 @@ import {
   strictEnumFailure,
   strictMaintenanceFilterFailure,
   strictRelationFilterFailure,
+  strictRelationCheckFailure,
   structuredContentFailure,
   structuredContentMismatchSummary,
   structuredContentParityStatus,
@@ -3833,6 +3834,34 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed strict relation_check smoke responses', () => {
+    assert.equal(
+      strictRelationCheckFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'type must be one of: domains, domain, capabilities, elements, dependencies, depends_on, relates, contains, describes. Received: "depend_on". Did you mean "depends_on"?' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictRelationCheckFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict relation_check response was not rejected',
+    );
+    assert.equal(
+      strictRelationCheckFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict relation_check response did not report the invalid type filter',
+    );
+    assert.equal(
+      strictRelationCheckFailure({ result: { isError: true, content: [{ text: 'type must be one of: dependencies, depends_on. Did you mean "depends_on"?' }] } }),
+      'strict relation_check response did not report the invalid type value',
+    );
+    assert.equal(
+      strictRelationCheckFailure({ result: { isError: true, content: [{ text: 'type must be one of: dependencies, depends_on. Received: "depend_on".' }] } }),
+      'strict relation_check response did not suggest the closest type value',
+    );
+  });
+
   it('summarizes strict maintenance filter enum values in verify output', () => {
     assert.equal(
       maintenanceFilterEnumSummary(),
@@ -4438,6 +4467,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(43), 'rename_concept_dry_run');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(44), 'merge_concepts_dry_run');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(45), 'delete_concept_dry_run');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(46), 'strict_relation_check');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

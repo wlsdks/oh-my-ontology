@@ -31,6 +31,7 @@
  *   16. tools/call compile_ontology(summary + paginated full artifact) — compiler graph contract
  *   17. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
  *   18. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
+ *   19. tools/call query_ontology relation_check typo rejection — write preflight fail-closed smoke
  *
  * 모두 PASS → exit 0, 실패 → exit 1 + 진단 메시지.
  */
@@ -1715,6 +1716,23 @@ export function strictRelationFilterFailure(response) {
   return null;
 }
 
+export function strictRelationCheckFailure(response) {
+  if (response?.result?.isError !== true) {
+    return 'strict relation_check response was not rejected';
+  }
+  const text = response.result.content?.[0]?.text || '';
+  if (!/type must be one of/i.test(text)) {
+    return 'strict relation_check response did not report the invalid type filter';
+  }
+  if (!/Received: "depend_on"/i.test(text)) {
+    return 'strict relation_check response did not report the invalid type value';
+  }
+  if (!/Did you mean "depends_on"\?/i.test(text)) {
+    return 'strict relation_check response did not suggest the closest type value';
+  }
+  return null;
+}
+
 export function maintenanceMissingCursorFailure(parsed) {
   if (parsed?.operation !== 'maintenance_plan') {
     return `maintenance missing-cursor smoke returned unexpected operation: ${parsed?.operation}`;
@@ -2142,6 +2160,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [43, 'rename_concept_dry_run'],
   [44, 'merge_concepts_dry_run'],
   [45, 'delete_concept_dry_run'],
+  [46, 'strict_relation_check'],
 ]);
 
 function log(level, msg) {
@@ -2643,6 +2662,20 @@ export function buildFirstContactRequests() {
       params: {
         name: 'query_ontology',
         arguments: { operation: 'health', dependencyTypes: ['depend_on'] },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 46,
+      method: 'tools/call',
+      params: {
+        name: 'query_ontology',
+        arguments: {
+          operation: 'relation_check',
+          from: 'project',
+          to: 'project',
+          type: 'depend_on',
+        },
       },
     },
     {
@@ -4811,6 +4844,7 @@ async function step2BootAndCall() {
       const strictMaintenanceSeverityFilterRes = responses.find((r) => r.id === 23);
       const strictMaintenanceKindFilterRes = responses.find((r) => r.id === 24);
       const strictRelationFilterRes = responses.find((r) => r.id === 40);
+      const strictRelationCheckRes = responses.find((r) => r.id === 46);
       const maintenanceMissingCursorRes = responses.find((r) => r.id === 25);
       const maintenanceReadyCursorRes = responses.find((r) => r.id === 26);
       const maintenanceResumeCursorRes = responses.find((r) => r.id === 30);
@@ -4940,6 +4974,12 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', 'strict relation filters — invalid dependencyTypes rejected with closest-value hint');
+      const strictRelationCheck = strictRelationCheckFailure(strictRelationCheckRes);
+      if (strictRelationCheck) {
+        log('fail', strictRelationCheck);
+        return res(false);
+      }
+      log('ok', 'strict relation_check — invalid type rejected with closest-value hint');
 
       if (!maintenanceMissingCursorRes || !maintenanceMissingCursorRes.result) {
         log('fail', 'no query_ontology maintenance missing-cursor response');
