@@ -160,9 +160,10 @@ Use these when changing `mcp/`, `cli/`, package manifests, or release
 scripts. Prefer the focused `test:mcp:*` scripts for small docs, package,
 dogfood-helper, verify-helper, or enum diagnostic changes before escalating to
 the broader release checks.
-`integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`, and
-their custom runners also honor Node's `--test-name-pattern`, so you can run
-only the spawn-heavy integration cases touched by a small change. The
+`integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`, so you can run
+only the spawn-heavy integration cases touched by a small change. When you need
+Node's `--test-name-pattern`, call `pnpm exec node --test --test-name-pattern ... <file>`;
+do not append it after `pnpm integration:* --`, because pnpm forwards `--` as a test file. The
 `integration:cli:mcp-verify`, `integration:cli:maintenance`, and
 `integration:mcp:readme` shortcuts cover the common install-verification,
 CLI maintenance work-queue, and first-contact read-only checks. `cli:mcp-verify`

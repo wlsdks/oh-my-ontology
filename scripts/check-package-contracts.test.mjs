@@ -235,7 +235,8 @@ describe('package contract helpers', () => {
     assert.match(readme, /pnpm integration:mcp:readme/);
     assert.match(readme, /pnpm exec node --test --test-name-pattern "README first exploration" mcp\/src\/integration\.test\.mjs/);
     assert.match(readme, /dogfood-helper/);
-    assert.match(readme, /custom runners also honor Node's `--test-name-pattern`/);
+    assert.match(readme, /call `pnpm exec node --test --test-name-pattern \.\.\. <file>`/);
+    assert.match(readme, /do not append it after `pnpm integration:\* --`/);
     assert.match(readme, /integration:cli:mcp-verify/);
     assert.match(readme, /integration:cli:maintenance/);
     assert.match(readme, /integration:mcp:readme/);
@@ -546,7 +547,8 @@ describe('package contract helpers', () => {
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample`\s+shape drift/);
     assert.match(section, /timeout parsing, startup failure\s+retry guidance, usage, and retry diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
-    assert.match(section, /Node `--test-name-pattern`/);
+    assert.match(section, /pnpm exec node --test --test-name-pattern/);
+    assert.match(section, /instead of appending the flag after `pnpm integration:mcp --`/);
   });
 
   it('keeps the MCP verify README aligned with first-contact census gates', () => {
@@ -1029,7 +1031,8 @@ describe('package contract helpers', () => {
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample`\s+shape drift/);
     assert.match(section, /timeout parsing, startup failure retry\s+guidance, usage, and retry diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
-    assert.match(section, /Node `--test-name-pattern`/);
+    assert.match(section, /pnpm exec node --test --test-name-pattern/);
+    assert.match(section, /instead of appending the flag after `pnpm integration:cli --`/);
     assert.match(section, /`dogfood:verify` is the shortest root-checkout dogfood vault gate/);
     assert.match(section, /`cli:mcp-verify` is the root-checkout shortcut for the CLI wrapper/);
     assert.match(section, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000` when you need to pass\s+explicit verify args/);
@@ -1852,7 +1855,8 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /command registry \/ package description command count/);
     assert.match(regressionSection, /MCP `structuredContent` 와 text JSON parity/);
     assert.match(regressionSection, /spawn-based integration suite/);
-    assert.match(regressionSection, /Node `--test-name-pattern`/);
+    assert.match(regressionSection, /pnpm exec node --test --test-name-pattern/);
+    assert.match(regressionSection, /pnpm integration:cli -- --test-name-pattern/);
     assert.match(regressionSection, /`pnpm integration:cli:mcp-verify`/);
     assert.match(regressionSection, /direct read smoke set\(`get_concept` \/ `get_concepts` \/ `find_evidence`/);
     assert.match(regressionSection, /limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
@@ -1879,6 +1883,8 @@ describe('package contract helpers', () => {
     const doc = readFileSync('docs/ontology/capabilities/mcp-server.md', 'utf-8');
 
     assert.match(doc, /Node `--test-name-pattern`/);
+    assert.match(doc, /pnpm exec node --test --test-name-pattern/);
+    assert.match(doc, /pnpm integration:mcp -- --test-name-pattern/);
     assert.match(doc, /`pnpm integration:mcp:readme`/);
     assert.match(doc, /`pnpm test:mcp:dogfood`/);
     assert.match(doc, /`pnpm test:mcp:dogfood:timeout`/);

@@ -89,9 +89,10 @@ initialize safety/recovery guidance, read-smoke request inventory, vault warning
 `workspace_brief.nextActions[].sample` shape drift.
 `test:mcp:verify:timeout` narrows verify timeout parsing, startup failure
 retry guidance, usage, and retry diagnostics.
-Use `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
-`pnpm integration:mcp` when the touched MCP integration case has a different
-name. From the repo root, `pnpm dogfood:verify` is the shortest dogfood vault
+Use `OMOT_TEST_NAME_PATTERN` with `pnpm integration:mcp` when the touched MCP
+integration case has a different name. For Node's `--test-name-pattern`, use
+`pnpm exec node --test --test-name-pattern "..." mcp/src/integration.test.mjs`
+instead of appending the flag after `pnpm integration:mcp --`. From the repo root, `pnpm dogfood:verify` is the shortest dogfood vault
 gate. Use `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` when you need
 the explicit CLI wrapper arguments without changing into `mcp/`; use
 `pnpm cli:mcp-verify -- --help` only for the help flag.

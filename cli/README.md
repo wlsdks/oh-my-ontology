@@ -90,9 +90,10 @@ health summary / advisory / next-action gates, and `workspace_brief.nextActions[
 shape drift.
 `test:mcp:verify:timeout` narrows timeout parsing, startup failure retry
 guidance, usage, and retry diagnostics that `mcp-verify` exposes through the CLI. Use
-`OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
-`pnpm integration:cli` when the touched CLI integration case has a different
-name. `dogfood:verify` is the shortest root-checkout dogfood vault gate, and
+`OMOT_TEST_NAME_PATTERN` with `pnpm integration:cli` when the touched CLI
+integration case has a different name. For Node's `--test-name-pattern`, use
+`pnpm exec node --test --test-name-pattern "..." cli/src/integration.test.mjs`
+instead of appending the flag after `pnpm integration:cli --`. `dogfood:verify` is the shortest root-checkout dogfood vault gate, and
 `cli:mcp-verify` is the root-checkout shortcut for the CLI wrapper; use
 `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` when you need to pass
 explicit verify args, or `pnpm cli:mcp-verify -- --help` to inspect the
