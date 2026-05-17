@@ -15,7 +15,7 @@
 //   3. node:require.resolve('oh-my-ontology-mcp/src/index.js')
 
 import { spawn } from 'node:child_process';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -23,6 +23,12 @@ import { createRequire } from 'node:module';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const require_ = createRequire(import.meta.url);
+const CLI_PKG = JSON.parse(readFileSync(resolve(__dirname, '../../package.json'), 'utf-8'));
+
+export const CLI_CLIENT_INFO = Object.freeze({
+  name: 'oh-my-ontology-cli',
+  version: CLI_PKG.version,
+});
 
 function resolveMcpEntry() {
   if (process.env.OMOT_MCP_PATH) {
@@ -145,7 +151,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
         params: {
           protocolVersion: '2024-11-05',
           capabilities: {},
-          clientInfo: { name: 'oh-my-ontology-cli', version: '0.2.0' },
+          clientInfo: CLI_CLIENT_INFO,
         },
       },
       { jsonrpc: '2.0', method: 'notifications/initialized' },

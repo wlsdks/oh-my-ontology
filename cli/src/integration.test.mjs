@@ -29,6 +29,7 @@ import {
   formatTestFilterSuffix,
   resolveTestNamePattern,
 } from '../../scripts/lib/test-name-pattern.mjs';
+import { CLI_CLIENT_INFO } from './lib/mcp-call.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, 'index.mjs');
@@ -111,6 +112,13 @@ console.log(
 
 await test('metadata — package command count matches executable command inventory', async () => {
   assert.equal(CLI_COMMAND_METADATA.commandCount, CLI_COMMAND_COUNT);
+});
+
+await test('metadata — MCP clientInfo version matches CLI package version', async () => {
+  assert.deepEqual(CLI_CLIENT_INFO, {
+    name: 'oh-my-ontology-cli',
+    version: CLI_PKG.version,
+  });
 });
 
 await test('command inventory — help and command modules stay aligned', async () => {
