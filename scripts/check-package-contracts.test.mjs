@@ -156,7 +156,7 @@ describe('package contract helpers', () => {
     );
     assert.equal(
       pkg.scripts?.['test:mcp:maintenance'],
-      'node --test --test-name-pattern "maintenance filter|maintenance cursor|maintenance missing-cursor|maintenance ready-cursor|maintenance resume-cursor|malformed maintenance_plan payloads" mcp/src/verify-script.test.mjs scripts/dogfood-mcp-walk.test.mjs',
+      'node --test --test-name-pattern "maintenance filter|maintenance cursor|maintenance missing-cursor|maintenance ready-cursor|maintenance resume-cursor|malformed maintenance_plan payloads|remaining maintenance buckets|current-page maintenance next actions" mcp/src/verify-script.test.mjs scripts/dogfood-mcp-walk.test.mjs',
     );
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/suggestions\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/ontology-engine\.test\.mjs/);
@@ -442,7 +442,7 @@ describe('package contract helpers', () => {
     assert.match(section, /row-label guidance summary/);
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample` shape drift/);
     assert.match(section, /dogfood timeout parsing, missing\s+response labels, and retry help/);
-    assert.match(section, /maintenance_plan filter enums, ready\/missing\s+cursor handling, resume-cursor behavior, and dogfood work-queue shape gates/);
+    assert.match(section, /maintenance_plan filter enums, ready\/missing\s+cursor handling, resume-cursor behavior, dogfood work-queue shape gates, and\s+bucket \/ next-action formatter checks/);
     assert.match(section, /unsupported-argument\s+rejection/);
     assert.match(section, /strict relation filter\s+rejection/);
     assert.match(section, /stderr warning filtering/);
@@ -870,7 +870,7 @@ describe('package contract helpers', () => {
     assert.match(section, /MCP response unwrapping/);
     assert.match(section, /installed MCP verification wrapper/);
     assert.match(section, /documentation drift/);
-    assert.match(section, /maintenance_plan filter, cursor, resume,\s+and work-queue shape contracts/);
+    assert.match(section, /maintenance_plan filter, cursor, resume,\s+work-queue shape, and bucket \/ next-action formatter contracts/);
     assert.match(section, /shared MCP verify helper contract/);
     assert.match(section, /first-contact read smoke/);
     assert.match(section, /vault warning \/ `validate_vault`/);
@@ -1175,7 +1175,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage 와\s+focused check 경로를 출력/);
     assert.match(doc, /도움말의 `pnpm test:mcp:dogfood` 설명도 compile\/index gate, row-label guidance,\s+vault warning \/ `validate_vault` problem gate, first-contact health\/growth\/sample-shape gate, maintenance work-queue shape, initialize guidance, destructive dry-run, structuredContent, strict relation filter, stderr warning 범위/);
     assert.match(dogfoodSection, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
-    assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, initialize guidance, row-label guidance summary 를 fixture 로 검증/);
+    assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, maintenance work-queue shape, initialize guidance, row-label guidance summary 를 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
     assert.match(doc, /진짜 timeout 실패도 `npm run verify -- --timeout-ms 15000` 재시도 예시를\s+같이 보여준다/);
     assert.match(doc, /오류 출력은\s+`Received: "1000ms"` 와 `npm run verify -- --timeout-ms 15000` 같은 재시도 예시/);
