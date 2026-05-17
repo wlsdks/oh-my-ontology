@@ -86,7 +86,7 @@ scripts/check-package-contracts.mjs — publish 전 package manifest gate. `mcp/
 실행 파일이 `package.json#files` 에 포함되는지 검사한다. MCP package 의 `npm test` 는
 tarball 에 포함되는 parser smoke 만 실행하고, source checkout 용 전체 suite 는
 `test:all` 로 분리해 lean tarball 에서 빠진 test 파일을 참조하지 않게 한다. root
-workspace 의 `pnpm test:mcp:package` 는 이 package-script/tarball 계약만 빠르게
+workspace 의 `pnpm test:mcp:package` 는 이 package-script/dependency/tarball 계약만 빠르게
 재검증한다. 반대로 `files` 항목이 실제 package 파일/디렉토리/glob 과
 매치되는지도 확인하고, CLI 의 `oh-my-ontology-mcp` dependency 가 현재 MCP package
 version 을 추적하는지 본다. CLI runtime dispatcher 가 command registry 기반 dynamic

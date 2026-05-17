@@ -76,6 +76,7 @@ describe('package contract helpers', () => {
       pkg.scripts?.['test:mcp:package'] ?? '',
       /^node --test --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
     );
+    assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /CLI MCP dependency/);
     assert.match(
       pkg.scripts?.['test:mcp:suggestions'] ?? '',
       /^node --test --test-name-pattern "[^"]+" mcp\/src\/suggestions\.test\.mjs mcp\/src\/ontology-engine\.test\.mjs$/,
@@ -96,6 +97,13 @@ describe('package contract helpers', () => {
     assert.match(readme, /integration:mcp:readme/);
     assert.match(readme, /runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`/);
     assert.match(readme, /graph-query, post-write guidance, and strict argument\/enum smoke scope/);
+  });
+
+  it('keeps the CLI MCP dependency aligned with the local MCP package version', () => {
+    const cliPkg = JSON.parse(readFileSync('cli/package.json', 'utf-8'));
+    const mcpPkg = JSON.parse(readFileSync('mcp/package.json', 'utf-8'));
+
+    assert.equal(cliPkg.dependencies?.['oh-my-ontology-mcp'], `^${mcpPkg.version}`);
   });
 
   it('keeps the MCP first-call prompt read-only', () => {
