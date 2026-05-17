@@ -1013,6 +1013,10 @@ describe('package contract helpers', () => {
     assert.match(smoke, /health_tuned — \.\*compile_issues:\(pass\|warn\)/);
     assert.match(smoke, /health_tuned — \.\*checks/);
     assert.match(smoke, /compile_ontology page — 1\\\/5 nodes, 1\\\/\\d\+ edges/);
+    assert.match(
+      smoke,
+      /compile_ontology indexes — out \\d\+, in \\d\+, edgeById \\d\+, aliases \\d\+, edges \\d\+\\\/\\d\+\\\/\\d\+/,
+    );
     assert.match(smoke, /strict arguments — unknown tool argument rejected at runtime/);
     assert.match(smoke, /strict arguments — multiple unknown tool arguments reported together/);
     assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated at row level/);
@@ -1045,6 +1049,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /path — elements\\\/example → project \\\(1 hop, 1 edge\\\)/);
     assert.ok(smoke.includes('directMcpVerify.stdout, /compile_ontology page'));
     assert.ok(smoke.includes('directMcpVerifyVaultFlag.stdout, /compile_ontology page'));
+    assert.match(smoke, /directMcpVerify\.stdout,\s*\/compile_ontology indexes/);
+    assert.match(smoke, /directMcpVerifyVaultFlag\.stdout,\s*\/compile_ontology indexes/);
     assert.match(smoke, /path — domains\\\/core → domains\\\/core \\\(0 hops, 0 edges\\\)/);
     assert.match(smoke, /neighbors\\\/path — skipped \\\(vault has no nodes\\\)/);
     assert.match(smokeSection, /cycles --json/);
