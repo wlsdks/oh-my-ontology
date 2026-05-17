@@ -866,6 +866,7 @@ describe('package contract helpers', () => {
     assert.match(section, /first-contact read smoke/);
     assert.match(section, /vault warning \/ `validate_vault`/);
     assert.match(section, /health \/ next-action gates/);
+    assert.match(section, /workspace_brief\.nextActions\[\]\.sample` shape drift/);
     assert.match(section, /timeout parsing, usage, and retry\s+diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
@@ -1559,6 +1560,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm test:mcp:verify`/);
     assert.match(doc, /`pnpm test:mcp:verify:first-contact`/);
     assert.match(doc, /`pnpm test:mcp:verify:timeout`/);
+    assert.match(doc, /`nextActions\[\]\.sample` 실행 액션 shape/);
     assert.match(doc, /직접 verify help 도 이 focused check 들을 같이 보여줘/);
     assert.match(doc, /verify helper 와\s+dogfood gate 의 maintenance 관련 subset 만 실행/);
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);

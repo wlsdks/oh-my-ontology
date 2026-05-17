@@ -399,7 +399,7 @@ destructive dry-run gate, strict relation filter, stderr warning filtering 을 �
 semantics 를 확인해 typed-filter pagination 계약을 빠르게 점검한다.
 verify helper 자체를 만질 때는 `pnpm test:mcp:verify` 로
 `mcp/src/verify-script.test.mjs` 만 바로 실행한다. 설치 first-contact read smoke /
-vault warning / `validate_vault` / health gate 만 만질 때는
+vault warning / `validate_vault` / health gate / `nextActions[].sample` 실행 액션 shape 만 만질 때는
 `pnpm test:mcp:verify:first-contact` 로 좁게 확인하고, verify timeout / usage
 진단만 만질 때는 `pnpm test:mcp:verify:timeout` 으로 더 좁게 확인한다.
 `maintenance_plan` filter enum / ready·missing cursor / resume cursor / dogfood
