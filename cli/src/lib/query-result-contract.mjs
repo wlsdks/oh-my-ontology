@@ -115,7 +115,7 @@ function validPathEdge(edge, from, to) {
 }
 
 function hasNonEmptyString(...values) {
-  return values.some((value) => typeof value === 'string' && value.length > 0);
+  return values.some((value) => typeof value === 'string' && value.trim().length > 0);
 }
 
 function numberValue(value, fallback = 0) {
