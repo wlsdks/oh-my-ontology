@@ -8,6 +8,8 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import {
   assertConceptBatchResult,
   assertRelationBatchResult,
+  formatConceptBatchFailureLabel,
+  formatRelationBatchFailureLabel,
 } from '../lib/batch-results.mjs';
 import { assertAnalyzeRepoStructureResult } from '../lib/repo-analysis-results.mjs';
 import {
@@ -296,20 +298,20 @@ async function runApply(vaultRoot, result, json) {
       `${summary.relationsErrors > 0 ? COLORS.red : COLORS.dim}${summary.relationsErrors}${COLORS.reset} errors\n\n`,
   );
   // 에러 행만 사용자에게 노출 (성공/idempotent 는 noise).
-  for (const row of conceptRows) {
+  conceptRows.forEach((row, index) => {
     if (row.ok === false) {
       process.stdout.write(
-        `  ${COLORS.red}✗${COLORS.reset} ${row.slug} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
+        `  ${COLORS.red}✗${COLORS.reset} ${formatConceptBatchFailureLabel(row, index)} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
       );
     }
-  }
-  for (const row of relationRows) {
+  });
+  relationRows.forEach((row, index) => {
     if (row.ok === false) {
       process.stdout.write(
-        `  ${COLORS.red}✗${COLORS.reset} ${row.from} —${row.type}→ ${row.to} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
+        `  ${COLORS.red}✗${COLORS.reset} ${formatRelationBatchFailureLabel(row, index)} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
       );
     }
-  }
+  });
   writeVaultCensus(vaultCensus);
   return summary.errors === 0 ? 0 : 1;
 }

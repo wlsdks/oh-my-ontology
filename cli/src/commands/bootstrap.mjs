@@ -24,6 +24,8 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import {
   assertConceptBatchResult,
   assertRelationBatchResult,
+  formatConceptBatchFailureLabel,
+  formatRelationBatchFailureLabel,
 } from '../lib/batch-results.mjs';
 import { assertInferImportsResult } from '../lib/import-analysis-results.mjs';
 import { assertAnalyzeRepoStructureResult } from '../lib/repo-analysis-results.mjs';
@@ -272,56 +274,56 @@ export async function runBootstrap(args) {
 
   // 에러 행만 노출 — first 12 + summary.
   let errCount = 0;
-  for (const row of conceptsRows) {
+  conceptsRows.forEach((row, index) => {
     if (row.ok === false) {
       if (errCount < 12) {
         process.stdout.write(
-          `  ${COLORS.red}✗${COLORS.reset} concept ${row.slug} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
+          `  ${COLORS.red}✗${COLORS.reset} ${formatConceptBatchFailureLabel(row, index, 'concept')} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
         );
       }
       errCount += 1;
     }
-  }
-  for (const row of analyzeRelationsRows) {
+  });
+  analyzeRelationsRows.forEach((row, index) => {
     if (row.ok === false) {
       if (errCount < 12) {
         process.stdout.write(
-          `  ${COLORS.red}✗${COLORS.reset} suggested ${row.from} —${row.type}→ ${row.to} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
+          `  ${COLORS.red}✗${COLORS.reset} ${formatRelationBatchFailureLabel(row, index, 'suggested')} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
         );
       }
       errCount += 1;
     }
-  }
-  for (const row of importEndpointRows) {
+  });
+  importEndpointRows.forEach((row, index) => {
     if (row.ok === false) {
       if (errCount < 12) {
         process.stdout.write(
-          `  ${COLORS.red}✗${COLORS.reset} import endpoint ${row.slug} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
+          `  ${COLORS.red}✗${COLORS.reset} ${formatConceptBatchFailureLabel(row, index, 'import endpoint')} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
         );
       }
       errCount += 1;
     }
-  }
-  for (const row of importContainmentRows) {
+  });
+  importContainmentRows.forEach((row, index) => {
     if (row.ok === false) {
       if (errCount < 12) {
         process.stdout.write(
-          `  ${COLORS.red}✗${COLORS.reset} import containment ${row.from} —${row.type}→ ${row.to} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
+          `  ${COLORS.red}✗${COLORS.reset} ${formatRelationBatchFailureLabel(row, index, 'import containment')} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
         );
       }
       errCount += 1;
     }
-  }
-  for (const row of importsRows) {
+  });
+  importsRows.forEach((row, index) => {
     if (row.ok === false) {
       if (errCount < 12) {
         process.stdout.write(
-          `  ${COLORS.red}✗${COLORS.reset} import ${row.from} —${row.type}→ ${row.to} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
+          `  ${COLORS.red}✗${COLORS.reset} ${formatRelationBatchFailureLabel(row, index, 'import')} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
         );
       }
       errCount += 1;
     }
-  }
+  });
   if (errCount > 12) {
     process.stdout.write(
       `  ${COLORS.dim}… ${errCount - 12} more errors${COLORS.reset}\n`,

@@ -18,6 +18,13 @@ export function assertConceptBatchResult(payload, context = 'add_concepts', opti
   });
 }
 
+export function formatConceptBatchFailureLabel(row, index, prefix = '') {
+  const label = row && typeof row.slug === 'string' && row.slug.trim().length > 0
+    ? row.slug
+    : `concepts[${index}]`;
+  return prefix ? `${prefix} ${label}` : label;
+}
+
 export function assertRelationBatchResult(payload, context = 'add_relations', options = {}) {
   assertObject(payload, context);
   assertArray(payload.relations, `${context}.relations`);
@@ -39,6 +46,19 @@ export function assertRelationBatchResult(payload, context = 'add_relations', op
       assertNonEmptyString(row.error, `${rowPath}.error`);
     }
   });
+}
+
+export function formatRelationBatchFailureLabel(row, index, prefix = '') {
+  const hasShape =
+    row &&
+    typeof row.from === 'string' &&
+    row.from.trim().length > 0 &&
+    typeof row.to === 'string' &&
+    row.to.trim().length > 0 &&
+    typeof row.type === 'string' &&
+    row.type.trim().length > 0;
+  const label = hasShape ? `${row.from} —${row.type}→ ${row.to}` : `relations[${index}]`;
+  return prefix ? `${prefix} ${label}` : label;
 }
 
 function assertObject(value, path) {

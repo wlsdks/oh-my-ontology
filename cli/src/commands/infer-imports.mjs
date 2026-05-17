@@ -4,7 +4,10 @@
 
 import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
-import { assertRelationBatchResult } from '../lib/batch-results.mjs';
+import {
+  assertRelationBatchResult,
+  formatRelationBatchFailureLabel,
+} from '../lib/batch-results.mjs';
 import { assertInferImportsResult } from '../lib/import-analysis-results.mjs';
 import { getVaultCensus, writeVaultCensus } from '../lib/vault-census.mjs';
 import {
@@ -234,16 +237,16 @@ async function runApply(vaultRoot, result, json) {
   // 에러 행만 노출 (성공/idempotent 는 noise). 큰 codebase 면 모두 missing
   // slug 일 수 있어 first 12 만 표시.
   let errCount = 0;
-  for (const row of allRows) {
+  allRows.forEach((row, index) => {
     if (row.ok === false) {
       if (errCount < 12) {
         process.stdout.write(
-          `  ${COLORS.red}✗${COLORS.reset} ${row.from} —${row.type}→ ${row.to} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
+          `  ${COLORS.red}✗${COLORS.reset} ${formatRelationBatchFailureLabel(row, index)} ${COLORS.dim}— ${row.error}${COLORS.reset}\n`,
         );
       }
       errCount += 1;
     }
-  }
+  });
   if (errCount > 12) {
     process.stdout.write(
       `  ${COLORS.dim}… ${errCount - 12} more errors${COLORS.reset}\n`,
