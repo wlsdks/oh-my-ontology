@@ -5296,7 +5296,7 @@ async function step2BootAndCall() {
           `workspace_brief — ${parsed.status} (${workspaceBriefSummary(parsed)})`,
         );
         const advisory = advisoryNextActionsSummary(parsed.nextActions);
-        if (advisory) log('info', `workspace_brief advisory nextActions — ${advisory}`);
+        if (advisory) log('info', `workspace_brief non-blocking advisory nextActions — ${advisory}`);
       } catch (err) {
         log('fail', `failed to parse workspace_brief response: ${err.message}`);
         return res(false);
@@ -5324,7 +5324,7 @@ async function step2BootAndCall() {
           `workspace_brief_tuned — ${parsed.status} (${workspaceBriefSummary(parsed)}; ${tunedHealthScopeOutputSummary()}; nodeLimit=3)`,
         );
         const advisory = advisoryNextActionsSummary(parsed.nextActions);
-        if (advisory) log('info', `workspace_brief_tuned advisory nextActions — ${advisory}`);
+        if (advisory) log('info', `workspace_brief_tuned non-blocking advisory nextActions — ${advisory}`);
       } catch (err) {
         log('fail', `failed to parse tuned workspace_brief response: ${err.message}`);
         return res(false);
