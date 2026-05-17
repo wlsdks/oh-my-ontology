@@ -292,6 +292,7 @@ A successful run looks like this:
 ✓ strict maintenance filters — invalid phase/severity/kind rejected at runtime (phases=validate/repair/link/materialize/review; severities=fail/warn/info; kinds=inspect_compile_issue/break_dependency_cycle/canonicalize_graph_arrays/resolve_dangling_reference/add_missing_relation/materialize_external_element/unassigned_node/empty_domain)
 ✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint
 ✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint
+✓ strict add_relation — invalid type rejected before endpoint resolution without writing
 ✓ strict graph kind filters — invalid match_nodes.kind rejected with closest-value hint
 ✓ strict graph edge kind filters — invalid match_edges.fromKind/toKind rejected with closest-value hints
 ✓ maintenance cursor — missing afterActionId reported (afterActionId not found in filtered maintenance actions; phase none; severity none; kind none; executable none; review none)
@@ -429,6 +430,9 @@ It also calls `add_concepts` and `add_relations` with non-object rows,
 unknown row fields, and duplicate `add_concepts` slugs, and fails unless those
 inputs return row-level `ok:false` results whose errors include the failing
 input index instead of a top-level tool error, without `postWriteMaintenance`.
+The single-row `add_relation` negative smoke uses missing endpoints plus a
+typoed relation type and must fail on the type enum before slug resolution, so
+installed logs prove the failed write stayed preflight-only.
 It also calls
 `maintenance_plan.afterActionId="maint_missing"` and fails unless the response
 reports `cursor.found=false`, the cursor miss reason, zero remaining actions,

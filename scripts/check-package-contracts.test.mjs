@@ -610,6 +610,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /strict unknown-argument \/ invalid-enum rejection/);
     assert.match(verifySection, /`list_concepts\.lmit` plus `list_concepts\.summry`/);
     assert.match(verifySection, /reports multiple unknown tool arguments together/);
+    assert.match(verifySection, /single-row `add_relation` negative smoke uses missing endpoints plus a\s+typoed relation type/);
     assert.match(verifySection, /maintenance_plan cursor handling \(ready page \+\s+missing `afterActionId`\)/);
     assert.match(verifySection, /ready page must keep `cursor\.found=true`,\s+`cursor\.reason=null`/);
     assert.match(verifySection, /missing cursor still reports `cursor\.found=false`,\s+reason, empty page, `cursor\.nextAfterActionId=null`, and `cursor\.hasMore=false`/);
@@ -632,6 +633,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint/);
+    assert.match(verifySection, /✓ strict add_relation — invalid type rejected before endpoint resolution without writing/);
     assert.match(verifySection, /✓ strict graph kind filters — invalid match_nodes\.kind rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict graph edge kind filters — invalid match_edges\.fromKind\/toKind rejected with closest-value hints/);
     assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported .*phase none; severity none; kind none; executable none; review none/);

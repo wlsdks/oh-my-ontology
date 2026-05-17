@@ -94,6 +94,7 @@ import {
   strictMaintenanceFilterFailure,
   strictRelationFilterFailure,
   strictRelationCheckFailure,
+  strictAddRelationFailure,
   structuredContentFailure,
   structuredContentMismatchSummary,
   structuredContentParityStatus,
@@ -4143,6 +4144,34 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed strict add_relation smoke responses', () => {
+    assert.equal(
+      strictAddRelationFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'type must be one of: depends_on, relates, contains, describes. Received: "depend_on". Did you mean "depends_on"?' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictAddRelationFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict add_relation response was not rejected',
+    );
+    assert.equal(
+      strictAddRelationFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict add_relation response did not report the invalid type filter',
+    );
+    assert.equal(
+      strictAddRelationFailure({ result: { isError: true, content: [{ text: 'type must be one of: depends_on, relates. Did you mean "depends_on"?' }] } }),
+      'strict add_relation response did not report the invalid type value',
+    );
+    assert.equal(
+      strictAddRelationFailure({ result: { isError: true, content: [{ text: 'type must be one of: depends_on, relates. Received: "depend_on".' }] } }),
+      'strict add_relation response did not suggest the closest type value',
+    );
+  });
+
   it('summarizes strict maintenance filter enum values in verify output', () => {
     assert.equal(
       maintenanceFilterEnumSummary(),
@@ -4757,6 +4786,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(47), 'strict_graph_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(48), 'strict_graph_from_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(49), 'strict_graph_to_kind_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(50), 'strict_add_relation');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -4776,6 +4806,7 @@ describe('verify.mjs first-contact gates', () => {
     const compilePage = buildFirstContactRequests().find((request) => request.id === 41);
     const compileIndexes = buildFirstContactRequests().find((request) => request.id === 42);
     const strictRelationCheck = buildFirstContactRequests().find((request) => request.id === 46);
+    const strictAddRelation = buildFirstContactRequests().find((request) => request.id === 50);
     assert.equal(analyze?.params?.name, 'analyze_repo_structure');
     assert.equal(analyze?.params?.arguments?.maxDepth, 2);
     assert.match(analyze?.params?.arguments?.rootPath ?? '', /oh-my-ontology$/);
@@ -4792,6 +4823,14 @@ describe('verify.mjs first-contact gates', () => {
         operation: 'relation_check',
         from: 'missing-relation-check-source',
         to: 'missing-relation-check-target',
+        type: 'depend_on',
+      },
+    });
+    assert.deepEqual(strictAddRelation?.params, {
+      name: 'add_relation',
+      arguments: {
+        from: 'missing-add-relation-source',
+        to: 'missing-add-relation-target',
         type: 'depend_on',
       },
     });

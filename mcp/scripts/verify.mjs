@@ -1802,6 +1802,23 @@ export function strictRelationCheckFailure(response) {
   return null;
 }
 
+export function strictAddRelationFailure(response) {
+  if (response?.result?.isError !== true) {
+    return 'strict add_relation response was not rejected';
+  }
+  const text = response.result.content?.[0]?.text || '';
+  if (!/type must be one of/i.test(text)) {
+    return 'strict add_relation response did not report the invalid type filter';
+  }
+  if (!/Received: "depend_on"/i.test(text)) {
+    return 'strict add_relation response did not report the invalid type value';
+  }
+  if (!/Did you mean "depends_on"\?/i.test(text)) {
+    return 'strict add_relation response did not suggest the closest type value';
+  }
+  return null;
+}
+
 export function maintenanceMissingCursorFailure(parsed) {
   if (parsed?.operation !== 'maintenance_plan') {
     return `maintenance missing-cursor smoke returned unexpected operation: ${parsed?.operation}`;
@@ -2234,6 +2251,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [47, 'strict_graph_kind_filter'],
   [48, 'strict_graph_from_kind_filter'],
   [49, 'strict_graph_to_kind_filter'],
+  [50, 'strict_add_relation'],
 ]);
 
 function log(level, msg) {
@@ -2755,6 +2773,19 @@ export function buildFirstContactRequests() {
           operation: 'relation_check',
           from: 'missing-relation-check-source',
           to: 'missing-relation-check-target',
+          type: 'depend_on',
+        },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 50,
+      method: 'tools/call',
+      params: {
+        name: 'add_relation',
+        arguments: {
+          from: 'missing-add-relation-source',
+          to: 'missing-add-relation-target',
           type: 'depend_on',
         },
       },
@@ -4989,6 +5020,7 @@ async function step2BootAndCall() {
       const strictMaintenanceKindFilterRes = responses.find((r) => r.id === 24);
       const strictRelationFilterRes = responses.find((r) => r.id === 40);
       const strictRelationCheckRes = responses.find((r) => r.id === 46);
+      const strictAddRelationRes = responses.find((r) => r.id === 50);
       const strictGraphKindFilterRes = responses.find((r) => r.id === 47);
       const strictGraphFromKindFilterRes = responses.find((r) => r.id === 48);
       const strictGraphToKindFilterRes = responses.find((r) => r.id === 49);
@@ -5127,6 +5159,12 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', 'strict relation_check — invalid type rejected before endpoint resolution with closest-value hint');
+      const strictAddRelation = strictAddRelationFailure(strictAddRelationRes);
+      if (strictAddRelation) {
+        log('fail', strictAddRelation);
+        return res(false);
+      }
+      log('ok', 'strict add_relation — invalid type rejected before endpoint resolution without writing');
       const strictGraphKindFilter = strictGraphKindFilterFailure(strictGraphKindFilterRes);
       if (strictGraphKindFilter) {
         log('fail', strictGraphKindFilter);

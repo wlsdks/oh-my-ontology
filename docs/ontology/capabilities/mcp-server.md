@@ -194,6 +194,9 @@ from/to kind + relation 과 일치하고, `matchingEdges` 가 요청한 from/to/
 설치 verify 와 dogfood walk 의 strict `relation_check` smoke 는 의도적으로 존재하지
 않는 endpoint 를 사용해, 어떤 vault 상태에서도 type-first 검증 순서가 endpoint
 존재 여부에 의존하지 않음을 증명한다.
+설치 verify 의 strict `add_relation` smoke 도 존재하지 않는 endpoint 와 typoed
+relation type 을 함께 보내 단일 writer 가 쓰기 전에 type enum 을 먼저 거절하는지
+증명한다.
 `query_ontology(maintenance_plan)` 은 현재 page 가 제한되지 않은 경우
 `byPhase` / `bySeverity` / `byKind` bucket 이 action 목록과 일치하는지도 확인해
 agent 작업 큐 요약이 실제 action row 와 갈라지지 않게 한다. dogfood walk 는
