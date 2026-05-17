@@ -616,6 +616,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       stderr: /--vault requires a path/,
     },
     {
+      args: ['list', '--jsson'],
+      expectedCode: 1,
+      stderr: /unknown flag: --jsson\. Did you mean --json\?/,
+    },
+    {
       args: ['list', 'one', 'two'],
       expectedCode: 1,
       stderr: /too many arguments: two/,
@@ -646,6 +651,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       stderr: /--fail-on requires a value/,
     },
     {
+      args: ['validate', '--failon=empty-kind'],
+      expectedCode: 1,
+      stderr: /unknown flag: --failon=empty-kind\. Did you mean --fail-on\?/,
+    },
+    {
       args: ['find', 'auth', 'ontology', '--vault', 'docs/ontology'],
       expectedCode: 1,
       stderr: /either positional argument or --vault/,
@@ -659,6 +669,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       args: ['find', 'auth', '--kind'],
       expectedCode: 1,
       stderr: /--kind requires a value/,
+    },
+    {
+      args: ['find', 'auth', '--knd=capability'],
+      expectedCode: 1,
+      stderr: /unknown flag: --knd=capability\. Did you mean --kind\?/,
     },
     {
       args: ['find', 'auth', './not-a-vault'],
@@ -1809,6 +1824,10 @@ await test('graph diagnostic commands — reject invalid option values before MC
     {
       args: ['query', 'kind=capability', '--lmit'],
       pattern: /unknown flag: --lmit\. Did you mean --limit\?/,
+    },
+    {
+      args: ['backlinks', 'capabilities/foo', '--jsson'],
+      pattern: /unknown flag: --jsson\. Did you mean --json\?/,
     },
     {
       args: ['overview', '--limit=0'],

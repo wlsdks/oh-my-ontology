@@ -3,10 +3,13 @@ import { parseFrontmatter } from '../lib/parse-frontmatter.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { walkMd, pathToSlug } from '../lib/walk-vault.mjs';
 import {
+  formatUnknownFlagError,
   parseRequiredFlagValue,
   parseVaultFlag,
   resolveExclusiveVaultArg,
 } from '../lib/cli-args.mjs';
+
+const ALLOWED_FLAGS = ['--vault', '--kind', '--json'];
 
 const COLORS = {
   dim: '\x1b[2m',
@@ -110,7 +113,7 @@ function parseArgs(args) {
     else if (a === '--kind') flags.kindFilter = parseRequiredFlagValue('--kind', args[++i]);
     else if (a.startsWith('--kind=')) flags.kindFilter = parseRequiredFlagValue('--kind', a.slice('--kind='.length));
     else if (a === '--json') flags.asJson = true;
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

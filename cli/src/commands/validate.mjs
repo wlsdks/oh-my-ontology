@@ -5,10 +5,13 @@ import { parseFrontmatter } from '../lib/parse-frontmatter.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { validateVaultDocument } from '../lib/validate.mjs';
 import {
+  formatUnknownFlagError,
   parseRequiredFlagValue,
   parseVaultFlag,
   resolveExclusiveVaultArg,
 } from '../lib/cli-args.mjs';
+
+const ALLOWED_FLAGS = ['--vault', '--json', '--strict', '--list-codes', '--fail-on'];
 
 const COLORS = {
   red: '\x1b[31m',
@@ -276,7 +279,7 @@ function parseArgs(args) {
     else if (a === '--list-codes') flags.listCodes = true;
     else if (a === '--fail-on') flags.failOn = parseRequiredFlagValue('--fail-on', args[++i]);
     else if (a.startsWith('--fail-on=')) flags.failOn = parseRequiredFlagValue('--fail-on', a.slice('--fail-on='.length));
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (flags.vault === false) return { error: '--vault requires a path' };

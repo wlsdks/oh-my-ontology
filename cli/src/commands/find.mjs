@@ -3,10 +3,13 @@ import { parseFrontmatter } from '../lib/parse-frontmatter.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { walkMd, pathToSlug } from '../lib/walk-vault.mjs';
 import {
+  formatUnknownFlagError,
   parseRequiredFlagValue,
   parseVaultFlag,
   resolveTrailingVaultArg,
 } from '../lib/cli-args.mjs';
+
+const ALLOWED_FLAGS = ['--kind', '--json', '--vault'];
 
 const COLORS = {
   dim: '\x1b[2m',
@@ -128,7 +131,7 @@ function parseArgs(args) {
     else if (a === '--vault') flags.vaultPath = parseVaultFlag(args[++i]);
     else if (a.startsWith('--vault=')) flags.vaultPath = parseVaultFlag(a.slice('--vault='.length));
     else if (a.startsWith('--')) {
-      return { error: `unknown flag: ${a}` };
+      return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     } else {
       positional.push(a);
     }
