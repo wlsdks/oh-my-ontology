@@ -1018,6 +1018,19 @@ describe('package contract helpers', () => {
     assert.match(deleteRow, /backlinks/);
   });
 
+  it('keeps the CLI README explicit about batch failure fallback labels', () => {
+    const readme = readFileSync('cli/README.md', 'utf-8');
+    const bootstrapRow = readme.split('| `oh-my-ontology bootstrap [rootPath]` |')[1]?.split('\n')[0] ?? '';
+    const analyzeRow = readme.split('| `oh-my-ontology analyze [rootPath]` |')[1]?.split('\n')[0] ?? '';
+    const inferImportsRow = readme.split('| `oh-my-ontology infer-imports [rootPath]` |')[1]?.split('\n')[0] ?? '';
+
+    assert.match(bootstrapRow, /Batch row-level failures without `slug` \/ `from` \/ `to` \/ `type`/);
+    assert.match(bootstrapRow, /`concepts\[n\]` \/ `relations\[n\]` fallback labels instead of `undefined`/);
+    assert.match(analyzeRow, /batch row-level failures without identifying fields/);
+    assert.match(analyzeRow, /`concepts\[n\]` \/ `relations\[n\]` fallback labels instead of `undefined`/);
+    assert.match(inferImportsRow, /prints `relations\[n\]` fallback labels for row-level failures without relation fields/);
+  });
+
   it('keeps the CLI changelog aligned with the mcp-verify census scope', () => {
     const changelog = readFileSync('cli/CHANGELOG.md', 'utf-8');
     const productChangelog = readFileSync('docs/CHANGELOG.md', 'utf-8');
@@ -1243,6 +1256,8 @@ describe('package contract helpers', () => {
     assert.match(implementationSection, /`health\.checks` \/ `workspace-brief\.health\.checks` 의 non-empty id\/status\/count coverage/);
     assert.match(implementationSection, /MCP tool name, 첫 mismatch path, parsed value, structuredContent value/);
     assert.match(implementationSection, /MCP spawn error \/ child process exit \/ missing `tools\/call` response 도 tool name \/ vault root \/ entry path/);
+    assert.match(implementationSection, /`concepts\[n\]` \/ `relations\[n\]` fallback label/);
+    assert.match(implementationSection, /`undefined` 를 노출하지 않고/);
     assert.match(implementationSection, /malformed `compile` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
     assert.match(implementationSection, /fail-closed/);
     assert.match(doc, /`workspace-brief` non-json 의 `HEALTH CHECKS` id:status:count coverage 와 `GROWTH` action/);
