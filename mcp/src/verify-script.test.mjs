@@ -2832,14 +2832,14 @@ describe('verify.mjs first-contact gates', () => {
           text: JSON.stringify({
             concepts: [
               { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-              { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "mystery" in concepts[1]. Allowed fields: slug, kind, title.' },
+              { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
             ],
           }),
         }],
         structuredContent: {
           concepts: [
             { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-            { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "mystery" in concepts[1]. Allowed fields: slug, kind, title.' },
+            { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
           ],
         },
       },
@@ -2856,7 +2856,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       batchRowIsolationFailure({
         result: {
-          content: [{ text: JSON.stringify({ relations: [{ ok: true }, { ok: false, error: 'Unknown field "mystery"' }] }) }],
+          content: [{ text: JSON.stringify({ relations: [{ ok: true }, { ok: false, error: 'Unknown field "relation". Did you mean "type"?' }] }) }],
         },
       }, 'relations', 'add_relations'),
       'add_relations row-isolation response missing non-object row error',
@@ -2868,7 +2868,7 @@ describe('verify.mjs first-contact gates', () => {
             text: JSON.stringify({
               concepts: [
                 { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "mystery" in concepts[1]. Allowed fields: slug, kind, title.' },
+                { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
               ],
               postWriteMaintenance: {},
             }),
@@ -2876,7 +2876,7 @@ describe('verify.mjs first-contact gates', () => {
           structuredContent: {
             concepts: [
               { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-              { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "mystery" in concepts[1]. Allowed fields: slug, kind, title.' },
+              { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
             ],
             postWriteMaintenance: {},
           },

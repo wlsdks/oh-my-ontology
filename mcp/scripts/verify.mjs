@@ -2138,7 +2138,7 @@ export function buildFirstContactRequests() {
       method: 'tools/call',
       params: {
         name: 'add_concepts',
-        arguments: { concepts: [null, { slug: 'verify-row-isolation', kind: 'capability', title: 'Verify', mystery: true }] },
+        arguments: { concepts: [null, { slug: 'verify-row-isolation', kind: 'capability', title: 'Verify', titel: 'Typo' }] },
       },
     },
     {
@@ -2147,7 +2147,7 @@ export function buildFirstContactRequests() {
       method: 'tools/call',
       params: {
         name: 'add_relations',
-        arguments: { relations: [null, { from: 'verify-row-isolation', to: 'verify-target', type: 'relates', mystery: true }] },
+        arguments: { relations: [null, { from: 'verify-row-isolation', to: 'verify-target', type: 'relates', relation: 'relates' }] },
       },
     },
     {
@@ -2855,8 +2855,20 @@ export function batchRowIsolationFailure(response, key, label) {
   if (nonObjectRow?.ok !== false || typeof nonObjectRow.error !== 'string' || !/must be an object/i.test(nonObjectRow.error)) {
     return `${label} row-isolation response missing non-object row error`;
   }
-  if (unknownFieldRow?.ok !== false || typeof unknownFieldRow.error !== 'string' || !/Unknown field "mystery"/i.test(unknownFieldRow.error)) {
+  if (unknownFieldRow?.ok !== false || typeof unknownFieldRow.error !== 'string' || !/Unknown field/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing unknown-field row error`;
+  }
+  if (key === 'concepts' && !/Unknown field "titel"/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing concept typo field error`;
+  }
+  if (key === 'concepts' && !/Did you mean "title"\?/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing concept field suggestion`;
+  }
+  if (key === 'relations' && !/Unknown field "relation"/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing relation typo field error`;
+  }
+  if (key === 'relations' && !/Did you mean "type"\?/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing relation field suggestion`;
   }
   const structuredFailure = structuredContentFailure(response, parsed, `${label} row isolation`);
   if (structuredFailure) {
