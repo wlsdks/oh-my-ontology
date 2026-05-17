@@ -88,6 +88,7 @@ import {
   structuredContentParityStatus,
   structuredContentVerifySummary,
   tunedHealthScopeOutputSummary,
+  toolsListAnnotationSummary,
   toolsListSchemaFailure,
   validationCodeSummary,
   validateVaultFailure,
@@ -122,6 +123,34 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(described[2], String(EXPECTED_READ_TOOLS.length));
     assert.equal(described[3], String(EXPECTED_WRITE_TOOLS.length));
     assert.equal(expectedToolSplitLabel(), `${described[2]} read + ${described[3]} write`);
+  });
+
+  it('summarizes tools/list annotation coverage for verify output', () => {
+    const readTools = new Set(EXPECTED_READ_TOOLS);
+    const destructiveTools = new Set(EXPECTED_DESTRUCTIVE_TOOLS);
+    const idempotentTools = new Set(EXPECTED_IDEMPOTENT_TOOLS);
+    const tools = EXPECTED_TOOLS.map((name) => ({
+      name,
+      annotations: {
+        title: expectedToolTitle(name),
+        readOnlyHint: readTools.has(name),
+        destructiveHint: destructiveTools.has(name),
+        idempotentHint: idempotentTools.has(name),
+        openWorldHint: false,
+      },
+    }));
+
+    assert.equal(
+      toolsListAnnotationSummary(tools),
+      '23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 23/23 local-only',
+    );
+
+    tools.find((tool) => tool.name === 'list_concepts').annotations.openWorldHint = true;
+    assert.equal(
+      toolsListAnnotationSummary(tools),
+      '23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 22/23 local-only',
+    );
+    assert.equal(toolsListAnnotationSummary(null), 'missing tools/list');
   });
 
   it('formats row counts for human-facing verify output', () => {

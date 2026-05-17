@@ -122,6 +122,24 @@ export function expectedToolSplitLabel() {
   return `${EXPECTED_READ_TOOLS.length} read + ${EXPECTED_WRITE_TOOLS.length} write`;
 }
 
+export function toolsListAnnotationSummary(tools) {
+  if (!Array.isArray(tools)) return 'missing tools/list';
+  const titleCount = tools.filter((tool) => tool?.annotations?.title === expectedToolTitle(tool?.name)).length;
+  const readCount = tools.filter((tool) => tool?.annotations?.readOnlyHint === true).length;
+  const writeCount = tools.filter((tool) => tool?.annotations?.readOnlyHint === false).length;
+  const destructiveCount = tools.filter((tool) => tool?.annotations?.destructiveHint === true).length;
+  const idempotentCount = tools.filter((tool) => tool?.annotations?.idempotentHint === true).length;
+  const localOnlyCount = tools.filter((tool) => tool?.annotations?.openWorldHint === false).length;
+  return [
+    `${titleCount}/${EXPECTED_TOOLS.length} titled`,
+    `${readCount}/${EXPECTED_READ_TOOLS.length} read`,
+    `${writeCount}/${EXPECTED_WRITE_TOOLS.length} write`,
+    `${destructiveCount}/${EXPECTED_DESTRUCTIVE_TOOLS.length} destructive`,
+    `${idempotentCount}/${EXPECTED_IDEMPOTENT_TOOLS.length} idempotent`,
+    `${localOnlyCount}/${EXPECTED_TOOLS.length} local-only`,
+  ].join('; ');
+}
+
 export function expectedToolTitle(name) {
   return String(name || '')
     .split('_')
@@ -4667,7 +4685,7 @@ async function step2BootAndCall() {
         log('fail', `tools mismatch — missing: ${missing.join(',') || '(none)'}, extra: ${extra.join(',') || '(none)'}`);
         return res(false);
       }
-      log('ok', `tools/list ${toolNames.length}/${EXPECTED_TOOLS.length} (${expectedToolSplitLabel()}) — ${toolNames.join(' · ')}`);
+      log('ok', `tools/list ${toolNames.length}/${EXPECTED_TOOLS.length} (${toolsListAnnotationSummary(listRes.result.tools)}) — ${toolNames.join(' · ')}`);
       const schemaFailure = toolsListSchemaFailure(listRes.result.tools);
       if (schemaFailure) {
         log('fail', schemaFailure);

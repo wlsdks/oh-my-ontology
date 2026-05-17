@@ -572,6 +572,10 @@ vault-only 경계인 `annotations.openWorldHint:false` 를 노출한다.
 verify / dogfood 가 같은 helper 로 annotation drift 를 막아 agent 가
 사람이 읽는 표시명 / 읽기 전용 탐색 / 위험한 쓰기 / 안전한 재시도 / 외부-world 접근 여부를
 tool metadata 만으로 구분할 수 있게 한다.
+installed verify 의 `tools/list` 성공 라인도 같은 annotation summary helper 를 사용해
+`23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 23/23 local-only`
+coverage 를 직접 출력한다. source dogfood 와 설치 verify 가 같은 사람이 읽는 증거를
+공유하므로 annotation gate 가 통과했지만 로그에서는 숨는 상태를 줄인다.
 `list_kinds` 는 `outputSchema` 와 동일한 `structuredContent` census payload 도
 노출해, client 가 text JSON 을 다시 파싱하지 않고 kind 분포를 검증할 수 있게 한다.
 `list_concepts` 도 `outputSchema` 와 동일한 `structuredContent` node table payload 를

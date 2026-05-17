@@ -25,13 +25,8 @@ import {
   compileIndexesFailure,
   compileIndexesSummary,
   destructiveDryRunFailure,
-  EXPECTED_DESTRUCTIVE_TOOLS,
-  EXPECTED_IDEMPOTENT_TOOLS,
-  EXPECTED_READ_TOOLS,
   EXPECTED_TOOLS,
-  EXPECTED_WRITE_TOOLS,
   analyzeRepoStructureFailure,
-  expectedToolTitle,
   formatCount,
   inferImportsFailure,
   initializeInstructionsFailure,
@@ -45,10 +40,13 @@ import {
   strictMaintenanceFilterFailure,
   strictRelationFilterFailure,
   structuredContentParityStatus,
+  toolsListAnnotationSummary,
   toolsListSchemaFailure,
   validateVaultFailure,
   workspaceBriefSummary,
 } from "../mcp/scripts/verify.mjs";
+
+export { toolsListAnnotationSummary } from "../mcp/scripts/verify.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
@@ -357,24 +355,6 @@ export function writeRowLabelGuidanceSummary(tools) {
   }
 
   return missing.length > 0 ? `missing ${missing.join(", ")}` : "pass";
-}
-
-export function toolsListAnnotationSummary(tools) {
-  if (!Array.isArray(tools)) return "missing tools/list";
-  const titleCount = tools.filter((tool) => tool?.annotations?.title === expectedToolTitle(tool?.name)).length;
-  const readCount = tools.filter((tool) => tool?.annotations?.readOnlyHint === true).length;
-  const writeCount = tools.filter((tool) => tool?.annotations?.readOnlyHint === false).length;
-  const destructiveCount = tools.filter((tool) => tool?.annotations?.destructiveHint === true).length;
-  const idempotentCount = tools.filter((tool) => tool?.annotations?.idempotentHint === true).length;
-  const localOnlyCount = tools.filter((tool) => tool?.annotations?.openWorldHint === false).length;
-  return [
-    `${titleCount}/${EXPECTED_TOOLS.length} titled`,
-    `${readCount}/${EXPECTED_READ_TOOLS.length} read`,
-    `${writeCount}/${EXPECTED_WRITE_TOOLS.length} write`,
-    `${destructiveCount}/${EXPECTED_DESTRUCTIVE_TOOLS.length} destructive`,
-    `${idempotentCount}/${EXPECTED_IDEMPOTENT_TOOLS.length} idempotent`,
-    `${localOnlyCount}/${EXPECTED_TOOLS.length} local-only`,
-  ].join("; ");
 }
 
 export function healthCheckStatusSummary(checks, limit = 5) {
