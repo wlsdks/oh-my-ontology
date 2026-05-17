@@ -226,6 +226,15 @@ describe('package contract helpers', () => {
     assert.doesNotMatch(analyzeLine + inferLine, /repoRoot/);
   });
 
+  it('keeps docs aligned with find_orphans root defaults', () => {
+    const features = readFileSync('docs/FEATURES.md', 'utf-8');
+    const line = features.split('9. **find_orphans**')[1]?.split('\n')[0] ?? '';
+
+    assert.match(line, /defaults exclude `project` and `vault-readme`/);
+    assert.match(line, /excludeKinds: \[\]/);
+    assert.doesNotMatch(line, /defaults exclude `vault-readme`\)/);
+  });
+
   it('keeps docs aligned with compile_ontology large-vault options', () => {
     const features = readFileSync('docs/FEATURES.md', 'utf-8');
     const dogfoodMcpDoc = readFileSync('docs/ontology/capabilities/mcp-server.md', 'utf-8');
