@@ -431,6 +431,21 @@ await test('mcp-verify — rejects invalid timeout values', async () => {
   assert.match(stripAnsi(nextFlag.stderr), /Received: "--vault"/);
   assert.match(stripAnsi(nextFlag.stderr), /oh-my-ontology mcp-verify --timeout-ms 15000/);
 
+  const envTimeout = await run(['mcp-verify', 'ontology'], {
+    env: { OMOT_VERIFY_TIMEOUT_MS: '1000ms' },
+  });
+  assert.equal(envTimeout.code, 1);
+  assert.match(stripAnsi(envTimeout.stderr), /OMOT_VERIFY_TIMEOUT_MS must be a positive integer/);
+  assert.match(stripAnsi(envTimeout.stderr), /Received: "1000ms"/);
+  assert.match(stripAnsi(envTimeout.stderr), /oh-my-ontology mcp-verify --timeout-ms 15000/);
+  assert.doesNotMatch(stripAnsi(envTimeout.stderr), /npm run verify -- --timeout-ms 15000/);
+
+  const envTimeoutOverridden = await run(['mcp-verify', 'ontology', '--timeout-ms', '1000'], {
+    env: { OMOT_VERIFY_TIMEOUT_MS: '1000ms' },
+  });
+  assert.notEqual(envTimeoutOverridden.code, 1);
+  assert.doesNotMatch(stripAnsi(envTimeoutOverridden.stderr), /OMOT_VERIFY_TIMEOUT_MS must be a positive integer/);
+
   const typo = await run(['mcp-verify', '--timout-ms=1000']);
   assert.equal(typo.code, 1);
   assert.match(stripAnsi(typo.stderr), /unknown flag: --timout-ms=1000\. Did you mean --timeout-ms\?/);

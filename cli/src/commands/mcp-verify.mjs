@@ -31,6 +31,12 @@ export async function runMcpVerify(args) {
     printUsage(process.stderr);
     return 1;
   }
+  const envTimeoutError = mcpVerifyEnvTimeoutError(timeoutMs, process.env.OMOT_VERIFY_TIMEOUT_MS);
+  if (envTimeoutError) {
+    process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${envTimeoutError}\n`);
+    printUsage(process.stderr);
+    return 1;
+  }
 
   const vaultRoot = resolveVaultRoot(vault);
   let verifyScript;
@@ -131,6 +137,13 @@ function mcpVerifyTimeoutValueErrorMessage(reason, value) {
     'Set --timeout-ms N or OMOT_VERIFY_TIMEOUT_MS=N.',
     'Example: oh-my-ontology mcp-verify --timeout-ms 15000',
   ].join(' ');
+}
+
+function mcpVerifyEnvTimeoutError(timeoutMs, rawValue) {
+  if (timeoutMs != null || rawValue == null || rawValue === '') return null;
+  const parsed = parsePositiveIntegerFlag('OMOT_VERIFY_TIMEOUT_MS', rawValue);
+  if (!(parsed instanceof Error)) return null;
+  return mcpVerifyTimeoutValueErrorMessage(parsed.message, rawValue);
 }
 
 function printUsage(output = process.stderr) {
