@@ -81,6 +81,7 @@ const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
 const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
+export const TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY = 'strict arguments + annotations + graph-query enums + write relation enums + health tuning + post-write bucket guidance';
 export const VERIFY_TUNED_HEALTH_ARGS = {
   componentLimit: 3,
   cycleLimit: 3,
@@ -4929,7 +4930,7 @@ async function step2BootAndCall() {
         log('fail', schemaFailure);
         return res(false);
       }
-      log('ok', 'tools/list schema contract — strict arguments + annotations + graph-query enums + write relation enums + health tuning + post-write bucket guidance');
+      log('ok', `tools/list schema contract — ${TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY}`);
       const strictFailure = strictArgsFailure(strictArgsRes);
       if (strictFailure) {
         log('fail', strictFailure);

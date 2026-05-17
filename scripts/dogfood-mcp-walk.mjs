@@ -43,6 +43,7 @@ import {
   structuredContentParityStatus,
   toolsListAnnotationSummary,
   toolsListSchemaFailure,
+  TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY,
   tunedHealthScopeOutputSummary,
   tunedWorkspaceBriefScopeOutputSummary,
   validateVaultFailure,
@@ -4464,7 +4465,9 @@ async function main() {
     const tools = Array.isArray(toolsList.tools) ? toolsList.tools : [];
     const schemaFailure = toolsListSchemaFailure(tools);
     console.log(`  tools: ${tools.length} (${toolsListAnnotationSummary(tools)})`);
-    console.log(`  schema: ${schemaFailure ? `${COLORS.yellow}${schemaFailure}${COLORS.reset}` : `${COLORS.green}pass${COLORS.reset}`}`);
+    console.log(
+      `  schema: ${schemaFailure ? `${COLORS.yellow}${schemaFailure}${COLORS.reset}` : `${COLORS.green}pass${COLORS.reset}`} (${TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY})`,
+    );
     console.log(`  write row labels: ${writeRowLabelGuidanceSummary(tools)}`);
   }
 
@@ -5482,7 +5485,8 @@ async function main() {
   const orphCount = orph?.total || 0;
   const orphRatio = total > 0 ? ((orphCount / total) * 100).toFixed(0) : 0;
   console.log(`  vault size: ${total} 노드`);
-  console.log(`  tools/list schema: ${toolsListSchemaFailure(toolsList?.tools) || "pass"}`);
+  const schemaFailure = toolsListSchemaFailure(toolsList?.tools);
+  console.log(`  tools/list schema: ${schemaFailure || `pass (${TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY})`}`);
   console.log(`  tools/list annotations: ${toolsListAnnotationSummary(toolsList?.tools)}`);
   console.log(`  tools/list write row labels: ${writeRowLabelGuidanceSummary(toolsList?.tools)}`);
   console.log(`  orphans: ${orphCount} (${orphRatio}%)`);
