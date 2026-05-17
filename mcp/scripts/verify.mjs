@@ -2753,8 +2753,8 @@ export function buildFirstContactRequests() {
         name: 'query_ontology',
         arguments: {
           operation: 'relation_check',
-          from: 'project',
-          to: 'project',
+          from: 'missing-relation-check-source',
+          to: 'missing-relation-check-target',
           type: 'depend_on',
         },
       },

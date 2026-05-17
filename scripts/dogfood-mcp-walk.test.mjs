@@ -92,6 +92,7 @@ function makeDogfoodInitialize() {
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
       "Batch add_concepts and add_relations isolate each non-object row and unknown row field as ok:false.",
+      "Duplicate add_concepts input slugs report concepts[n] duplicate slug in input batch; first seen at concepts[m].",
       'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
       "maintenance_plan phases, severities, and kinds filters are enum-validated.",
       "health and workspace_brief tune probes with componentLimit, cycleLimit, recommendationLimit, orderLimit, nodeLimit, dependencyTypes, and componentTypes.",
@@ -3259,6 +3260,19 @@ describe("rpc response completion helpers", () => {
     assert.deepEqual(requests.find((request) => request.id === 65)?.params, {
       name: "delete_concept",
       arguments: { slug: "capabilities/mcp-server" },
+    });
+  });
+
+  it("keeps strict relation_check dogfood request endpoint-independent", () => {
+    const requests = buildDogfoodRequests();
+    assert.deepEqual(requests.find((request) => request.id === 66)?.params, {
+      name: "query_ontology",
+      arguments: {
+        operation: "relation_check",
+        from: "missing-relation-check-source",
+        to: "missing-relation-check-target",
+        type: "depend_on",
+      },
     });
   });
 

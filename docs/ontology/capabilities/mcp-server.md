@@ -191,6 +191,9 @@ from/to kind + relation 과 일치하고, `matchingEdges` 가 요청한 from/to/
 `relation_check` 의 relation type 은 endpoint slug 해석보다 먼저 검증해, 빈 vault
 나 project-less vault 에서도 `depend_on` 같은 typo 가 missing-node 오류에 가려지지
 않고 nearest-value hint 로 실패한다.
+설치 verify 와 dogfood walk 의 strict `relation_check` smoke 는 의도적으로 존재하지
+않는 endpoint 를 사용해, 어떤 vault 상태에서도 type-first 검증 순서가 endpoint
+존재 여부에 의존하지 않음을 증명한다.
 `query_ontology(maintenance_plan)` 은 현재 page 가 제한되지 않은 경우
 `byPhase` / `bySeverity` / `byKind` bucket 이 action 목록과 일치하는지도 확인해
 agent 작업 큐 요약이 실제 action row 와 갈라지지 않게 한다. dogfood walk 는

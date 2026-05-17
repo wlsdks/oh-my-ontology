@@ -645,8 +645,8 @@ export function buildDogfoodRequests() {
     }),
     call(66, "query_ontology", {
       operation: "relation_check",
-      from: "capabilities/mcp-server",
-      to: "domains/ai-agent-partner",
+      from: "missing-relation-check-source",
+      to: "missing-relation-check-target",
       type: "depend_on",
     }),
     call(67, "query_ontology", {

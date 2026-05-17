@@ -4775,6 +4775,7 @@ describe('verify.mjs first-contact gates', () => {
     const infer = buildFirstContactRequests().find((request) => request.id === 39);
     const compilePage = buildFirstContactRequests().find((request) => request.id === 41);
     const compileIndexes = buildFirstContactRequests().find((request) => request.id === 42);
+    const strictRelationCheck = buildFirstContactRequests().find((request) => request.id === 46);
     assert.equal(analyze?.params?.name, 'analyze_repo_structure');
     assert.equal(analyze?.params?.arguments?.maxDepth, 2);
     assert.match(analyze?.params?.arguments?.rootPath ?? '', /oh-my-ontology$/);
@@ -4785,6 +4786,15 @@ describe('verify.mjs first-contact gates', () => {
     assert.deepEqual(compilePage?.params?.arguments, { nodesLimit: 1, edgesLimit: 1 });
     assert.equal(compileIndexes?.params?.name, 'compile_ontology');
     assert.deepEqual(compileIndexes?.params?.arguments, { nodesLimit: 1, edgesLimit: 1, includeIndexes: true });
+    assert.deepEqual(strictRelationCheck?.params, {
+      name: 'query_ontology',
+      arguments: {
+        operation: 'relation_check',
+        from: 'missing-relation-check-source',
+        to: 'missing-relation-check-target',
+        type: 'depend_on',
+      },
+    });
   });
 
   it('builds direct graph-read smoke requests only when a node exists', () => {
