@@ -33,10 +33,11 @@ assert.ok(mcpToolMetadata, 'mcp/package.json description must include the curren
 
 function run(cmd, args, options = {}) {
   const result = runRaw(cmd, args, options);
+  const label = options.label ? `[${options.label}]\n` : '';
   assert.equal(
     result.status,
     0,
-    `${cmd} ${args.join(' ')} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+    `${label}${cmd} ${args.join(' ')} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
   return result;
 }
@@ -265,6 +266,7 @@ try {
 
   const cliMcpVerify = run(cliBin, cliMcpVerifyArgs(['ontology', '--timeout-ms', '3000']), {
     cwd: projectDir,
+    label: 'installed CLI mcp-verify primary',
   });
   assert.match(cliMcpVerify.stdout, /timeout=3000ms/);
   assert.match(cliMcpVerify.stdout, new RegExp(`tools/list ${expectedToolCount}/${expectedToolCount}`));
@@ -390,7 +392,7 @@ try {
   const cliMaintenanceResumeMcpVerify = run(
     cliBin,
     cliMcpVerifyArgs([maintenanceResumeVault, '--timeout-ms', '3000']),
-    { cwd: projectDir },
+    { cwd: projectDir, label: 'installed CLI mcp-verify maintenance resume' },
   );
   assert.match(cliMaintenanceResumeMcpVerify.stdout, /maintenance cursor — ready page stable \(1 remaining action/);
   assert.match(cliMaintenanceResumeMcpVerify.stdout, /kind add_missing_relation:1/);
@@ -407,6 +409,7 @@ try {
   writeProjectlessVault(projectlessVault);
   const cliProjectlessMcpVerify = run(cliBin, cliMcpVerifyArgs([projectlessVault, '--timeout-ms', '3000']), {
     cwd: projectDir,
+    label: 'installed CLI mcp-verify projectless vault',
   });
   assert.match(cliProjectlessMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(cliProjectlessMcpVerify.stdout, /maintenance cursor — ready page stable/);
@@ -418,6 +421,7 @@ try {
   mkdirSync(emptyVault, { recursive: true });
   const cliEmptyMcpVerify = run(cliBin, cliMcpVerifyArgs([emptyVault, '--timeout-ms', '3000']), {
     cwd: projectDir,
+    label: 'installed CLI mcp-verify empty vault',
   });
   assert.match(cliEmptyMcpVerify.stdout, /vault total 0 nodes/);
   assert.match(cliEmptyMcpVerify.stdout, /neighbors\/path — skipped \(vault has no nodes\)/);
@@ -519,6 +523,7 @@ try {
     {
       cwd: projectDir,
       env: { OMOT_VAULT: join(projectDir, 'ontology') },
+      label: 'installed MCP verify env vault primary',
     },
   );
   assert.match(mcpVerify.stdout, /validate_vault/);
@@ -555,7 +560,7 @@ try {
   const directMcpVerify = run(
     'npm',
     mcpVerifyArgs([join(projectDir, 'ontology'), '--timeout-ms', '3000']),
-    { cwd: projectDir },
+    { cwd: projectDir, label: 'installed MCP verify positional vault primary' },
   );
   assert.match(directMcpVerify.stdout, /timeout=3000ms/);
   assert.match(directMcpVerify.stdout, /project probe — 1 project node/);
@@ -577,7 +582,7 @@ try {
   const directMcpMaintenanceResumeVerify = run(
     'npm',
     mcpVerifyArgs([maintenanceResumeVault, '--timeout-ms', '3000']),
-    { cwd: projectDir },
+    { cwd: projectDir, label: 'installed MCP verify maintenance resume' },
   );
   assert.match(
     directMcpMaintenanceResumeVerify.stdout,
@@ -596,7 +601,11 @@ try {
   const directMcpVerifyVaultFlag = run(
     'npm',
     mcpVerifyArgs(['--vault', join(projectDir, 'ontology'), '--timeout-ms=3000']),
-    { cwd: projectDir, env: { OMOT_VAULT: emptyVault } },
+    {
+      cwd: projectDir,
+      env: { OMOT_VAULT: emptyVault },
+      label: 'installed MCP verify explicit vault overrides env',
+    },
   );
   assert.match(directMcpVerifyVaultFlag.stdout, /timeout=3000ms/);
   assert.match(directMcpVerifyVaultFlag.stdout, /vault total 5 nodes/);
@@ -638,6 +647,7 @@ try {
     {
       cwd: projectDir,
       env: { OMOT_VAULT: emptyVault },
+      label: 'installed MCP verify empty vault',
     },
   );
   assert.match(mcpEmptyVerify.stdout, /vault total 0 nodes/);

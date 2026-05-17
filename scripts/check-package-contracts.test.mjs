@@ -1027,6 +1027,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /invalidCliMcpVerifyEnvTimeout/);
     assert.match(smoke, /const cliMcpVerifyArgs =/);
     assert.match(smoke, /assert\.deepEqual\(cliMcpVerifyArgs/);
+    assert.match(smoke, /installed CLI mcp-verify primary/);
     assert.match(smoke, /missingDirectMcpVerifyTimeout/);
     assert.match(smoke, /typoDirectMcpVerifyTimeout/);
     assert.match(smoke, /typoDirectMcpVerifyVault/);
@@ -1036,6 +1037,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /const mcpVerifyArgs =/);
     assert.match(smoke, /silent: true/);
     assert.match(smoke, /assert\.deepEqual\(mcpVerifyArgs/);
+    assert.match(smoke, /installed MCP verify positional vault primary/);
     assert.match(smoke, /assert\.equal\(invalidMcpVerifyTimeout\.stdout, ''\)/);
     assert.match(smoke, /assert\.equal\(invalidDirectMcpVerifyVault\.stdout, ''\)/);
     assert.match(smoke, /Received: "1000ms"/);
