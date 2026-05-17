@@ -75,6 +75,13 @@ export async function runCompile(args) {
       return 2;
     }
     const actions = artifact.canonicalizationActions;
+    const actionsError = canonicalizationActionsShapeError(actions);
+    if (actionsError) {
+      process.stderr.write(
+        `${COLORS.red}error${COLORS.reset}  compile_ontology ${actionsError}; cannot apply --fix safely\n`,
+      );
+      return 2;
+    }
     if (
       typeof artifact.canonicalizationActionCount === 'number' &&
       artifact.canonicalizationActionCount !== actions.length
@@ -123,6 +130,32 @@ export async function runCompile(args) {
   renderArtifact(artifact);
   if (fixResult) renderFixResult(fixResult);
   return compileResultExitCode(artifact);
+}
+
+function canonicalizationActionsShapeError(actions) {
+  for (let index = 0; index < actions.length; index += 1) {
+    const action = actions[index];
+    const label = `canonicalizationActions[${index}]`;
+    if (!action || typeof action !== 'object' || Array.isArray(action)) {
+      return `${label} must be an object`;
+    }
+    if (typeof action.slug !== 'string' || action.slug.trim() === '') {
+      return `${label}.slug must be a non-empty string`;
+    }
+    if (!action.frontmatter || typeof action.frontmatter !== 'object' || Array.isArray(action.frontmatter)) {
+      return `${label}.frontmatter must be an object`;
+    }
+    if (!Number.isFinite(action.expected_mtime) || action.expected_mtime < 0) {
+      return `${label}.expected_mtime must be a non-negative finite number`;
+    }
+    if (
+      action.keys !== undefined &&
+      (!Array.isArray(action.keys) || action.keys.some((key) => typeof key !== 'string' || key.trim() === ''))
+    ) {
+      return `${label}.keys must be an array of non-empty strings`;
+    }
+  }
+  return null;
 }
 
 async function applyCanonicalizationActions(vaultRoot, actions) {

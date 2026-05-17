@@ -1637,7 +1637,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
     assert.match(
       doc,
-      /`canonicalizationActions` 배열이 빠졌거나 `canonicalizationActionCount` 와 배열 길이가 갈라진 malformed compile 응답은 안전한 재정렬이 불가능하므로 exit 2 로 실패/,
+      /`canonicalizationActions` 배열이 빠졌거나 `canonicalizationActionCount` 와 배열 길이가 갈라지거나 action row shape 이 malformed 인 compile 응답은 안전한 재정렬이 불가능하므로 patch 전 exit 2 로 실패/,
     );
     assert.match(regressionSection, /paginated `compile_ontology` full-artifact smoke/);
     assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함\) \/ tools\/list annotation coverage \/ strict argument\/enum smoke \/ batch writer row-isolation smoke \/ destructive dry-run smoke/);
