@@ -1031,7 +1031,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /duplicateFlagDirectMcpVerifyVault/);
     assert.match(smoke, /duplicatePositionalDirectMcpVerifyVault/);
     assert.match(smoke, /invalidEnvDirectMcpVerifyVault/);
-    assert.match(smoke, /'--silent', 'run', 'verify'/);
+    assert.match(smoke, /const mcpVerifyArgs =/);
+    assert.match(smoke, /silent: true/);
     assert.match(smoke, /assert\.equal\(invalidMcpVerifyTimeout\.stdout, ''\)/);
     assert.match(smoke, /assert\.equal\(invalidDirectMcpVerifyVault\.stdout, ''\)/);
     assert.match(smoke, /Received: "1000ms"/);

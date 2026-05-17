@@ -474,14 +474,24 @@ try {
   assert.match(missingMcpVaultRoot.stderr, /Vault root not found/);
   assert.doesNotMatch(missingMcpVaultRoot.stderr, /mcp exited|vault root 검증 실패/);
 
+  const installedMcpDir = join(installDir, 'node_modules', 'oh-my-ontology-mcp');
+  const mcpVerifyArgs = (args = [], { silent = false } = {}) => [
+    '--prefix',
+    installedMcpDir,
+    ...(silent ? ['--silent'] : []),
+    'run',
+    'verify',
+    ...(args.length > 0 ? ['--', ...args] : []),
+  ];
+
   const installedMcpPkg = JSON.parse(
-    readFileSync(join(installDir, 'node_modules', 'oh-my-ontology-mcp', 'package.json'), 'utf-8'),
+    readFileSync(join(installedMcpDir, 'package.json'), 'utf-8'),
   );
   assert.equal(installedMcpPkg.version, MCP_PKG.version);
 
   const mcpVerify = run(
     'npm',
-    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), 'run', 'verify'],
+    mcpVerifyArgs(),
     {
       cwd: projectDir,
       env: { OMOT_VAULT: join(projectDir, 'ontology') },
@@ -520,16 +530,7 @@ try {
 
   const directMcpVerify = run(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      'run',
-      'verify',
-      '--',
-      join(projectDir, 'ontology'),
-      '--timeout-ms',
-      '3000',
-    ],
+    mcpVerifyArgs([join(projectDir, 'ontology'), '--timeout-ms', '3000']),
     { cwd: projectDir },
   );
   assert.match(directMcpVerify.stdout, /timeout=3000ms/);
@@ -551,16 +552,7 @@ try {
 
   const directMcpMaintenanceResumeVerify = run(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      'run',
-      'verify',
-      '--',
-      maintenanceResumeVault,
-      '--timeout-ms',
-      '3000',
-    ],
+    mcpVerifyArgs([maintenanceResumeVault, '--timeout-ms', '3000']),
     { cwd: projectDir },
   );
   assert.match(
@@ -579,16 +571,7 @@ try {
 
   const directMcpVerifyVaultFlag = run(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      'run',
-      'verify',
-      '--',
-      '--vault',
-      join(projectDir, 'ontology'),
-      '--timeout-ms=3000',
-    ],
+    mcpVerifyArgs(['--vault', join(projectDir, 'ontology'), '--timeout-ms=3000']),
     { cwd: projectDir, env: { OMOT_VAULT: emptyVault } },
   );
   assert.match(directMcpVerifyVaultFlag.stdout, /timeout=3000ms/);
@@ -607,7 +590,7 @@ try {
 
   const directMcpVerifyHelp = run(
     'npm',
-    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), 'run', 'verify', '--', '--help'],
+    mcpVerifyArgs(['--help']),
     { cwd: projectDir },
   );
   assert.match(directMcpVerifyHelp.stdout, /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);
@@ -627,7 +610,7 @@ try {
 
   const mcpEmptyVerify = run(
     'npm',
-    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), 'run', 'verify'],
+    mcpVerifyArgs(),
     {
       cwd: projectDir,
       env: { OMOT_VAULT: emptyVault },
@@ -639,7 +622,7 @@ try {
 
   const invalidEnvDirectMcpVerifyVault = runRaw(
     'npm',
-    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), '--silent', 'run', 'verify'],
+    mcpVerifyArgs([], { silent: true }),
     {
       cwd: projectDir,
       env: { OMOT_VAULT: '   ' },
@@ -651,7 +634,7 @@ try {
 
   const invalidMcpVerifyTimeout = runRaw(
     'npm',
-    ['--prefix', join(installDir, 'node_modules', 'oh-my-ontology-mcp'), '--silent', 'run', 'verify'],
+    mcpVerifyArgs([], { silent: true }),
     {
       cwd: projectDir,
       env: {
@@ -670,17 +653,7 @@ try {
 
   const invalidDirectMcpVerifyTimeout = runRaw(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      '--silent',
-      'run',
-      'verify',
-      '--',
-      join(projectDir, 'ontology'),
-      '--timeout-ms',
-      '1000ms',
-    ],
+    mcpVerifyArgs([join(projectDir, 'ontology'), '--timeout-ms', '1000ms'], { silent: true }),
     { cwd: projectDir },
   );
   assert.equal(invalidDirectMcpVerifyTimeout.status, 1);
@@ -693,16 +666,7 @@ try {
 
   const missingDirectMcpVerifyTimeout = runRaw(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      '--silent',
-      'run',
-      'verify',
-      '--',
-      join(projectDir, 'ontology'),
-      '--timeout-ms',
-    ],
+    mcpVerifyArgs([join(projectDir, 'ontology'), '--timeout-ms'], { silent: true }),
     { cwd: projectDir },
   );
   assert.equal(missingDirectMcpVerifyTimeout.status, 1);
@@ -713,17 +677,7 @@ try {
 
   const invalidDirectMcpVerifyVault = runRaw(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      '--silent',
-      'run',
-      'verify',
-      '--',
-      '--vault',
-      '--timeout-ms',
-      '1000',
-    ],
+    mcpVerifyArgs(['--vault', '--timeout-ms', '1000'], { silent: true }),
     { cwd: projectDir },
   );
   assert.equal(invalidDirectMcpVerifyVault.status, 1);
@@ -732,15 +686,7 @@ try {
 
   const typoDirectMcpVerifyTimeout = runRaw(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      '--silent',
-      'run',
-      'verify',
-      '--',
-      '--timout-ms=1000',
-    ],
+    mcpVerifyArgs(['--timout-ms=1000'], { silent: true }),
     { cwd: projectDir },
   );
   assert.equal(typoDirectMcpVerifyTimeout.status, 1);
@@ -749,15 +695,7 @@ try {
 
   const typoDirectMcpVerifyVault = runRaw(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      '--silent',
-      'run',
-      'verify',
-      '--',
-      '--vualt',
-    ],
+    mcpVerifyArgs(['--vualt'], { silent: true }),
     { cwd: projectDir },
   );
   assert.equal(typoDirectMcpVerifyVault.status, 1);
@@ -766,17 +704,7 @@ try {
 
   const duplicateFlagDirectMcpVerifyVault = runRaw(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      '--silent',
-      'run',
-      'verify',
-      '--',
-      join(projectDir, 'ontology'),
-      '--vault',
-      emptyVault,
-    ],
+    mcpVerifyArgs([join(projectDir, 'ontology'), '--vault', emptyVault], { silent: true }),
     { cwd: projectDir },
   );
   assert.equal(duplicateFlagDirectMcpVerifyVault.status, 1);
@@ -785,16 +713,7 @@ try {
 
   const duplicatePositionalDirectMcpVerifyVault = runRaw(
     'npm',
-    [
-      '--prefix',
-      join(installDir, 'node_modules', 'oh-my-ontology-mcp'),
-      '--silent',
-      'run',
-      'verify',
-      '--',
-      join(projectDir, 'ontology'),
-      emptyVault,
-    ],
+    mcpVerifyArgs([join(projectDir, 'ontology'), emptyVault], { silent: true }),
     { cwd: projectDir },
   );
   assert.equal(duplicatePositionalDirectMcpVerifyVault.status, 1);
