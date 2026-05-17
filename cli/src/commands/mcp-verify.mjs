@@ -96,27 +96,41 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs) {
 
 function parseArgs(args) {
   if (args.includes('--help') || args.includes('-h')) return { help: true };
-  const flags = { vault: null, timeoutMs: null };
+  const flags = { vault: null, timeoutMs: null, timeoutMsRaw: null };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
     if (a === '--vault') flags.vault = parseVaultFlag(args[++i]);
     else if (a.startsWith('--vault=')) flags.vault = parseVaultFlag(a.slice('--vault='.length));
-    else if (a === '--timeout-ms') flags.timeoutMs = parsePositiveIntegerFlag('--timeout-ms', args[++i]);
+    else if (a === '--timeout-ms') {
+      flags.timeoutMsRaw = args[i + 1];
+      flags.timeoutMs = parsePositiveIntegerFlag('--timeout-ms', args[++i]);
+    }
     else if (a.startsWith('--timeout-ms=')) {
-      flags.timeoutMs = parsePositiveIntegerFlag('--timeout-ms', a.slice('--timeout-ms='.length));
+      flags.timeoutMsRaw = a.slice('--timeout-ms='.length);
+      flags.timeoutMs = parsePositiveIntegerFlag('--timeout-ms', flags.timeoutMsRaw);
     }
     else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (flags.timeoutMs instanceof Error) {
     return {
-      error: `${flags.timeoutMs.message}. Set --timeout-ms N or OMOT_VERIFY_TIMEOUT_MS=N.`,
+      error: mcpVerifyTimeoutValueErrorMessage(flags.timeoutMs.message, flags.timeoutMsRaw),
     };
   }
   const vaultResult = resolveExclusiveVaultArg({ vault: flags.vault, positional });
   if (vaultResult.error) return vaultResult;
   return { vault: vaultResult.vault, timeoutMs: flags.timeoutMs };
+}
+
+function mcpVerifyTimeoutValueErrorMessage(reason, value) {
+  const received = value == null ? 'undefined' : JSON.stringify(String(value));
+  return [
+    `${reason}.`,
+    `Received: ${received}.`,
+    'Set --timeout-ms N or OMOT_VERIFY_TIMEOUT_MS=N.',
+    'Example: oh-my-ontology mcp-verify --timeout-ms 15000',
+  ].join(' ');
 }
 
 function printUsage(output = process.stderr) {
