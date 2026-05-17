@@ -4932,6 +4932,9 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, out: { project: edgeId } } }), 'compile_ontology.indexes.out malformed row');
     assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, edgeById: {} } }), 'compile_ontology.indexes.edgeById count mismatch — index 0, edgeCount 1');
     assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, aliasToSlug: {} } }), 'compile_ontology.indexes.aliasToSlug count mismatch — index 0, aliasCount 1');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, out: { project: ['missing-edge'] } } }), 'compile_ontology.indexes.out references unknown edge id');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, byKind: { project: ['missing-node'] } } }), 'compile_ontology.indexes.byKind references unknown node slug');
+    assert.equal(compileIndexesFailure({ ...clean, indexes: { ...clean.indexes, aliasToSlug: { project: 'missing-node' } } }), 'compile_ontology.indexes.aliasToSlug references unknown slug: project');
   });
 
   it('accepts clean graph-query verify smoke payloads', () => {

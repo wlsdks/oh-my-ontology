@@ -3362,6 +3362,17 @@ function stringArrayMapFailure(label, value) {
   return null;
 }
 
+function stringArrayMapReferenceFailure(label, value, knownValues, noun) {
+  for (const row of Object.values(value)) {
+    for (const entry of row) {
+      if (!knownValues.has(entry)) {
+        return `${label} references unknown ${noun}`;
+      }
+    }
+  }
+  return null;
+}
+
 export function compileIndexesFailure(parsed) {
   const fullFailure = compileFullArtifactFailure(parsed);
   if (fullFailure) return fullFailure;
@@ -3393,6 +3404,11 @@ export function compileIndexesFailure(parsed) {
       return 'compile_ontology.indexes.edgeById malformed edge row';
     }
   }
+  const edgeIdSet = new Set(edgeIds);
+  for (const name of ['out', 'in']) {
+    const failure = stringArrayMapReferenceFailure(`compile_ontology.indexes.${name}`, indexes[name], edgeIdSet, 'edge id');
+    if (failure) return failure;
+  }
   if (!indexes.aliasToSlug || typeof indexes.aliasToSlug !== 'object' || Array.isArray(indexes.aliasToSlug)) {
     return 'compile_ontology.indexes.aliasToSlug missing';
   }
@@ -3404,6 +3420,19 @@ export function compileIndexesFailure(parsed) {
     if (!alias || typeof slug !== 'string' || !slug) {
       return 'compile_ontology.indexes.aliasToSlug malformed row';
     }
+  }
+  const knownSlugs = new Set([
+    ...parsed.nodes.map((node) => node.slug),
+    ...parsed.aliases.map((alias) => alias.slug),
+  ]);
+  for (const [alias, slug] of Object.entries(indexes.aliasToSlug)) {
+    if (!knownSlugs.has(slug)) {
+      return `compile_ontology.indexes.aliasToSlug references unknown slug: ${alias}`;
+    }
+  }
+  for (const name of ['byKind', 'byDomain']) {
+    const failure = stringArrayMapReferenceFailure(`compile_ontology.indexes.${name}`, indexes[name], knownSlugs, 'node slug');
+    if (failure) return failure;
   }
   return null;
 }
