@@ -1819,7 +1819,14 @@ export function strictGraphKindFilterFailure(
   return null;
 }
 
-export function strictRecommendRelationsKindFilterFailure(response) {
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function strictRecommendRelationsKindFilterFailure(
+  response,
+  { received = 'capabilty', suggestion = 'capability', requireSuggestion = true } = {},
+) {
   if (response?.result?.isError !== true) {
     return 'strict recommend_relations kind filter response was not rejected';
   }
@@ -1830,10 +1837,10 @@ export function strictRecommendRelationsKindFilterFailure(response) {
   if (!/capability, element/i.test(text)) {
     return 'strict recommend_relations kind filter response did not list the narrowed kind set';
   }
-  if (!/Received: "capabilty"/i.test(text)) {
+  if (!new RegExp(`Received: "${escapeRegExp(received)}"`, 'i').test(text)) {
     return 'strict recommend_relations kind filter response did not report the invalid kind value';
   }
-  if (!/Did you mean "capability"\?/i.test(text)) {
+  if (requireSuggestion && !new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return 'strict recommend_relations kind filter response did not suggest the closest kind value';
   }
   return null;
@@ -2316,6 +2323,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [49, 'strict_graph_to_kind_filter'],
   [50, 'strict_add_relation'],
   [51, 'strict_recommend_relations_kind_filter'],
+  [52, 'strict_recommend_relations_unsupported_kind_filter'],
 ]);
 
 function log(level, msg) {
@@ -2554,7 +2562,7 @@ export function verifyUsage() {
     'including list/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans.\n' +
     'It also checks node census, vault validation, workspace health, compile_ontology summary + paginated full-artifact + indexed full-artifact smoke, overview, query plans, and graph-query smoke.\n' +
     'Successful output prints read census consistency after cross-checking list_kinds/list_concepts/compile_ontology/overview.\n' +
-    'Also checks strict unknown-argument / invalid-enum rejection, match_nodes.kind / recommend_relations.kind / match_edges.fromKind/toKind typo rejection, maintenance_plan filter enums,\n' +
+    'Also checks strict unknown-argument / invalid-enum rejection, match_nodes.kind / recommend_relations.kind / match_edges.fromKind/toKind typo and unsupported-kind rejection, maintenance_plan filter enums,\n' +
     'tools/list inventory names, schema strictness, and annotation coverage (title/read/write/destructive/idempotent/local-only),\n' +
     'batch writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels, plus invalid add_relations type closest-value hints,\n' +
     'destructive writer dry-runs for rename_concept/merge_concepts/delete_concept with every planned response present and no changed/postWriteMaintenance,\n' +
@@ -2876,6 +2884,18 @@ export function buildFirstContactRequests() {
         arguments: {
           operation: 'recommend_relations',
           kind: 'capabilty',
+        },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 52,
+      method: 'tools/call',
+      params: {
+        name: 'query_ontology',
+        arguments: {
+          operation: 'recommend_relations',
+          kind: 'domain',
         },
       },
     },
@@ -5119,6 +5139,7 @@ async function step2BootAndCall() {
       const strictAddRelationRes = responses.find((r) => r.id === 50);
       const strictGraphKindFilterRes = responses.find((r) => r.id === 47);
       const strictRecommendRelationsKindFilterRes = responses.find((r) => r.id === 51);
+      const strictRecommendRelationsUnsupportedKindFilterRes = responses.find((r) => r.id === 52);
       const strictGraphFromKindFilterRes = responses.find((r) => r.id === 48);
       const strictGraphToKindFilterRes = responses.find((r) => r.id === 49);
       const maintenanceMissingCursorRes = responses.find((r) => r.id === 25);
@@ -5271,7 +5292,15 @@ async function step2BootAndCall() {
         log('fail', strictRecommendRelationsKindFilter);
         return res(false);
       }
-      log('ok', 'strict graph kind filters — invalid match_nodes.kind and recommend_relations.kind rejected with closest-value hints');
+      const strictRecommendRelationsUnsupportedKindFilter = strictRecommendRelationsKindFilterFailure(
+        strictRecommendRelationsUnsupportedKindFilterRes,
+        { received: 'domain', requireSuggestion: false },
+      );
+      if (strictRecommendRelationsUnsupportedKindFilter) {
+        log('fail', strictRecommendRelationsUnsupportedKindFilter);
+        return res(false);
+      }
+      log('ok', 'strict graph kind filters — invalid match_nodes.kind and recommend_relations.kind rejected with narrowed-kind diagnostics');
       const strictGraphFromKindFilter = strictGraphKindFilterFailure(strictGraphFromKindFilterRes, { field: 'fromKind' });
       if (strictGraphFromKindFilter) {
         log('fail', strictGraphFromKindFilter);

@@ -3646,7 +3646,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /compile_ontology summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
     assert.match(verifyUsage(), /Successful output prints read census consistency after cross-checking list_kinds\/list_concepts\/compile_ontology\/overview/);
     assert.match(verifyUsage(), /strict unknown-argument \/ invalid-enum rejection/);
-    assert.match(verifyUsage(), /match_nodes\.kind \/ recommend_relations\.kind \/ match_edges\.fromKind\/toKind typo rejection/);
+    assert.match(verifyUsage(), /match_nodes\.kind \/ recommend_relations\.kind \/ match_edges\.fromKind\/toKind typo and unsupported-kind rejection/);
     assert.match(verifyUsage(), /tools\/list inventory names, schema strictness, and annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
     assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels, plus invalid add_relations type closest-value hints/);
     assert.match(verifyUsage(), /structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries/);
@@ -4241,6 +4241,18 @@ describe('verify.mjs first-contact gates', () => {
           content: [{ text: 'kind must be one of: capability, element. Received: "capabilty". Did you mean "capability"?' }],
         },
       }),
+      null,
+    );
+    assert.equal(
+      strictRecommendRelationsKindFilterFailure(
+        {
+          result: {
+            isError: true,
+            content: [{ text: 'kind must be one of: capability, element. Received: "domain".' }],
+          },
+        },
+        { received: 'domain', requireSuggestion: false },
+      ),
       null,
     );
     assert.equal(
@@ -4962,6 +4974,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(49), 'strict_graph_to_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(50), 'strict_add_relation');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(51), 'strict_recommend_relations_kind_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(52), 'strict_recommend_relations_unsupported_kind_filter');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

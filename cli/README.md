@@ -132,8 +132,9 @@ It also performs runtime negative smokes with invalid `list_concepts.lmit` and
 strictness drift in the installed MCP package.
 The same help and verifier name `match_nodes.kind`,
 `recommend_relations.kind`, and `match_edges.fromKind` / `match_edges.toKind`
-typo rejection, so graph filter misspellings fail with nearest-value hints
-instead of silently returning empty node or edge sets.
+typo and unsupported-kind rejection, so graph filter misspellings and
+operation-specific kind mismatches fail with diagnostics instead of silently
+returning empty node or edge sets.
 It also verifies the `maintenance_plan` cursor contract: the ready page must
 report `cursor.found=true` with `cursor.reason=null`, `nextAfterActionId`
 matching the last returned action, and `hasMore` matching the remaining page

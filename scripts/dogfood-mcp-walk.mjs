@@ -181,6 +181,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [69, "strict_graph_to_kind_filter"],
   [70, "strict_add_relation"],
   [71, "strict_recommend_relations_kind_filter"],
+  [72, "strict_recommend_relations_unsupported_kind_filter"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -678,6 +679,10 @@ export function buildDogfoodRequests() {
       operation: "recommend_relations",
       kind: "capabilty",
     }),
+    call(72, "query_ontology", {
+      operation: "recommend_relations",
+      kind: "domain",
+    }),
     call(68, "query_ontology", {
       operation: "match_edges",
       fromKind: "capabilty",
@@ -1006,6 +1011,7 @@ export function evaluateDogfoodGate({
   strictAddRelation,
   strictGraphKindFilter,
   strictRecommendRelationsKindFilter,
+  strictRecommendRelationsUnsupportedKindFilter,
   strictGraphFromKindFilter,
   strictGraphToKindFilter,
   toolsList,
@@ -1090,6 +1096,13 @@ export function evaluateDogfoodGate({
   const strictRecommendRelationsKindFilterError = strictRecommendRelationsKindFilterFailure(strictRecommendRelationsKindFilter);
   if (strictRecommendRelationsKindFilterError) {
     failures.push(`strict_recommend_relations_kind_filter: ${strictRecommendRelationsKindFilterError}`);
+  }
+  const strictRecommendRelationsUnsupportedKindFilterError = strictRecommendRelationsKindFilterFailure(
+    strictRecommendRelationsUnsupportedKindFilter,
+    { received: "domain", requireSuggestion: false },
+  );
+  if (strictRecommendRelationsUnsupportedKindFilterError) {
+    failures.push(`strict_recommend_relations_unsupported_kind_filter: ${strictRecommendRelationsUnsupportedKindFilterError}`);
   }
   const strictGraphFromKindFilterError = strictGraphKindFilterFailure(strictGraphFromKindFilter, { field: "fromKind" });
   if (strictGraphFromKindFilterError) failures.push(`strict_graph_from_kind_filter: ${strictGraphFromKindFilterError}`);
@@ -5407,9 +5420,15 @@ async function main() {
   }
   const strictRecommendRelationsKindFilter = responses.find((response) => response.id === 71);
   const strictRecommendRelationsKindFilterText = strictRecommendRelationsKindFilter?.result?.content?.[0]?.text || "";
-  console.log(`  recommend_relations.kind rejected: ${strictRecommendRelationsKindFilter?.result?.isError === true}`);
+  console.log(`  recommend_relations.kind typo rejected: ${strictRecommendRelationsKindFilter?.result?.isError === true}`);
   if (strictRecommendRelationsKindFilterText) {
     console.log(`  ${strictRecommendRelationsKindFilterText}`);
+  }
+  const strictRecommendRelationsUnsupportedKindFilter = responses.find((response) => response.id === 72);
+  const strictRecommendRelationsUnsupportedKindFilterText = strictRecommendRelationsUnsupportedKindFilter?.result?.content?.[0]?.text || "";
+  console.log(`  recommend_relations.kind unsupported rejected: ${strictRecommendRelationsUnsupportedKindFilter?.result?.isError === true}`);
+  if (strictRecommendRelationsUnsupportedKindFilterText) {
+    console.log(`  ${strictRecommendRelationsUnsupportedKindFilterText}`);
   }
   const strictGraphFromKindFilter = responses.find((response) => response.id === 68);
   const strictGraphFromKindFilterText = strictGraphFromKindFilter?.result?.content?.[0]?.text || "";
@@ -5605,6 +5624,7 @@ async function main() {
     strictAddRelation,
     strictGraphKindFilter,
     strictRecommendRelationsKindFilter,
+    strictRecommendRelationsUnsupportedKindFilter,
     strictGraphFromKindFilter,
     strictGraphToKindFilter,
     toolsList,
@@ -5712,6 +5732,7 @@ async function main() {
   console.log(`  strict_add_relation: ${strictClosestValueSummary(strictAddRelation)}`);
   console.log(`  strict_graph_kind_filter: ${strictClosestValueSummary(strictGraphKindFilter)}`);
   console.log(`  strict_recommend_relations_kind_filter: ${strictClosestValueSummary(strictRecommendRelationsKindFilter)}`);
+  console.log(`  strict_recommend_relations_unsupported_kind_filter: ${strictClosestValueSummary(strictRecommendRelationsUnsupportedKindFilter)}`);
   console.log(`  strict_graph_from_kind_filter: ${strictClosestValueSummary(strictGraphFromKindFilter)}`);
   console.log(`  strict_graph_to_kind_filter: ${strictClosestValueSummary(strictGraphToKindFilter)}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);

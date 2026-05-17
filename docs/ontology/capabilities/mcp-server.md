@@ -61,8 +61,9 @@ reject 한다. `tools/list` 도 scalar string 과 string-array item 에 같은
 edge target enum 을 tools/list schema 와 runtime/core validation 에 같이 노출해
 `capabilty` / `externl` 같은 typo 를 빈 graph 결과로 숨기지 않고 nearest-value
 hint 로 실패시킨다.
-`recommend_relations.kind` 도 `capability` / `element` 로 좁혀 잘못된 kind 가
-빈 추천 결과로 숨지 않게 한다.
+`recommend_relations.kind` 도 `capability` / `element` 로 좁혀 typo 뿐 아니라
+schema 에는 있는 `domain` 같은 operation-specific mismatch 가 빈 추천 결과로
+숨지 않게 한다.
 read/query flag 와 destructive write safety switch 의 boolean 입력도 명시적으로
 검증해 문자열 `"true"` 같은 값을 조용히 false처럼 처리하지 않는다. core graph
 engine 직접 호출도 boolean query flag 를 같은 방식으로 fail-closed 처리한다.
@@ -641,14 +642,15 @@ smoke 의 핵심 증거인 `depend_on -> depends_on` 까지 표시해, 단순히
 strict `add_relation` row 도 존재하지 않는 endpoint 와 `depend_on` typo 를 함께
 사용해 단일 writer 가 write 전 type enum 을 먼저 거절하는지 dogfood walk 에서
 보여준다.
-strict graph kind filter 도 `match_nodes.kind=capabilty` 와
-`recommend_relations.kind=capabilty` 런타임 smoke 로 확인해 schema 에 enum 이
-있어도 실제 `query_ontology` 경계가 typo 를 빈 결과로 삼키지 않는지 dogfood /
+strict graph kind filter 도 `match_nodes.kind=capabilty`,
+`recommend_relations.kind=capabilty`, `recommend_relations.kind=domain`
+런타임 smoke 로 확인해 schema 에 enum 이 있어도 실제 `query_ontology` 경계가
+typo 나 operation-specific mismatch 를 빈 결과로 삼키지 않는지 dogfood /
 installed verify 양쪽에서 잡는다. 같은 gate 는
 `match_edges.fromKind=capabilty` 와 `match_edges.toKind=externl` 도 호출해 edge kind
 필터가 schema 와 런타임에서 같이 fail-closed 인지 확인한다.
 direct verify help 와 CLI wrapper help 도 이 `match_nodes.kind` /
-`recommend_relations.kind` / `match_edges.fromKind` / `match_edges.toKind` typo rejection 을 명시해, 서버를
+`recommend_relations.kind` / `match_edges.fromKind` / `match_edges.toKind` typo and unsupported-kind rejection 을 명시해, 서버를
 띄우기 전에도 graph filter typo 가 빈 결과로 숨지 않는다는 계약을 볼 수 있게 한다.
 `tools/list` 의 `annotations.title` 표시명과 `annotations.readOnlyHint` 도 15 read / 8 write split 과
 일치하게 노출하고, destructive multi-file/delete 도구는 `annotations.destructiveHint`,
