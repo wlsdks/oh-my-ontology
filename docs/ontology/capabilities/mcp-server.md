@@ -569,5 +569,6 @@ gate failure 에 함께 출력한다. 느린 환경에서는 양의 정수 milli
 핵심 응답 누락, vault warning, `validate_vault` problemFiles, 예상 graph path 부재,
 `workspace_brief` / `health` 비정상 상태, top-level status 와 별개로 내부 health
 check 의 `fail` 상태, warn·fail `workspace_brief.nextActions` 는 exit 1 로 처리한다.
-`pnpm dogfood:test` 는 이 gate 판정을 fixture 로 검증해
-dogfood walk 의 실패 조건이 조용히 약해지지 않게 막는다.
+`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset 을 fixture 로 검증해
+dogfood walk 의 실패 조건이 조용히 약해지지 않게 막고, 전체 helper 회귀가 필요할 때만
+`pnpm dogfood:test` 로 넓힌다.
