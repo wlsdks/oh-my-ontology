@@ -5851,7 +5851,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief response malformed nextAction',
+      'workspace_brief response missing nextAction identifier at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5864,7 +5864,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief response malformed nextAction',
+      'workspace_brief response missing nextAction severity at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5877,7 +5877,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief response malformed nextAction',
+      'workspace_brief response missing nextAction identifier at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5890,7 +5890,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief response malformed nextAction',
+      'workspace_brief response missing nextAction identifier at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5903,7 +5903,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief response malformed nextAction',
+      'workspace_brief response missing nextAction severity at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5916,7 +5916,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief response malformed nextAction',
+      'workspace_brief response unknown nextAction severity at index 0: fatal',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5929,7 +5929,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief response malformed nextAction',
+      'workspace_brief response malformed nextAction count at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5942,7 +5942,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief response malformed nextAction',
+      'workspace_brief response malformed nextAction count at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5965,7 +5965,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'health',
       ),
-      'health response malformed health check',
+      'health response missing health check status at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5977,7 +5977,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'health',
       ),
-      'health response malformed health check',
+      'health response unknown health check status at index 0: warning',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -5989,7 +5989,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'health',
       ),
-      'health response malformed health check',
+      'health response missing health check id at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -6001,7 +6001,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'health',
       ),
-      'health response malformed health check',
+      'health response missing health check id at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -6013,7 +6013,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'health',
       ),
-      'health response malformed health check',
+      'health response missing health check id at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -6025,7 +6025,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'health',
       ),
-      'health response malformed health check',
+      'health response missing health check status at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -6037,7 +6037,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'health',
       ),
-      'health response malformed health check',
+      'health response malformed health check count at index 0',
     );
     assert.equal(
       diagnosisBlockingFailure(
@@ -6049,7 +6049,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'health',
       ),
-      'health response malformed health check',
+      'health response malformed health check count at index 0',
     );
   });
 

@@ -3990,18 +3990,11 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
     return `${label} response missing nextActions array`;
   }
   if (expectedOperation === 'workspace_brief') {
-    const malformedAction = parsed.nextActions.find(
-      (action) => (
-        !action
-        || typeof action !== 'object'
-        || Array.isArray(action)
-        || !hasNonEmptyString(action.id, action.kind)
-        || !NEXT_ACTION_SEVERITIES.has(action.severity)
-        || !hasOptionalNonNegativeInteger(action.count)
-      ),
-    );
-    if (malformedAction) {
-      return `${label} response malformed nextAction`;
+    for (const [index, action] of parsed.nextActions.entries()) {
+      const actionFailure = diagnosisNextActionFailure(label, action, index);
+      if (actionFailure) {
+        return actionFailure;
+      }
     }
     const growthFailure = workspaceBriefGrowthConsistencyFailure(label, parsed);
     if (growthFailure) return growthFailure;
@@ -4010,17 +4003,11 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   if (!checks) {
     return `${label} response missing health checks`;
   }
-  const malformedCheck = checks.find(
-    (check) => (
-      !check
-      || typeof check !== 'object'
-      || !hasNonEmptyString(check.id)
-      || !HEALTH_CHECK_STATUSES.has(check.status)
-      || !hasOptionalNonNegativeInteger(check.count)
-    ),
-  );
-  if (malformedCheck) {
-    return `${label} response malformed health check`;
+  for (const [index, check] of checks.entries()) {
+    const checkFailure = diagnosisHealthCheckFailure(label, check, index);
+    if (checkFailure) {
+      return checkFailure;
+    }
   }
   const failedChecks = checks.filter((check) => check.status === 'fail');
   if (failedChecks.length > 0) {
@@ -4029,6 +4016,44 @@ export function diagnosisBlockingFailure(label, parsed, expectedOperation) {
   const blockingActions = blockingNextActions(parsed?.nextActions);
   if (blockingActions.length > 0) {
     return `${label} has actionable nextActions: ${blockingActions.join(', ')}. Inspect workspace_brief.nextActions before writing.`;
+  }
+  return null;
+}
+
+function diagnosisNextActionFailure(label, action, index) {
+  if (!action || typeof action !== 'object' || Array.isArray(action)) {
+    return `${label} response malformed nextAction at index ${index}`;
+  }
+  if (!hasNonEmptyString(action.id, action.kind)) {
+    return `${label} response missing nextAction identifier at index ${index}`;
+  }
+  if (!hasNonEmptyString(action.severity)) {
+    return `${label} response missing nextAction severity at index ${index}`;
+  }
+  if (!NEXT_ACTION_SEVERITIES.has(action.severity)) {
+    return `${label} response unknown nextAction severity at index ${index}: ${action.severity}`;
+  }
+  if (!hasOptionalNonNegativeInteger(action.count)) {
+    return `${label} response malformed nextAction count at index ${index}`;
+  }
+  return null;
+}
+
+function diagnosisHealthCheckFailure(label, check, index) {
+  if (!check || typeof check !== 'object' || Array.isArray(check)) {
+    return `${label} response malformed health check at index ${index}`;
+  }
+  if (!hasNonEmptyString(check.id)) {
+    return `${label} response missing health check id at index ${index}`;
+  }
+  if (!hasNonEmptyString(check.status)) {
+    return `${label} response missing health check status at index ${index}`;
+  }
+  if (!HEALTH_CHECK_STATUSES.has(check.status)) {
+    return `${label} response unknown health check status at index ${index}: ${check.status}`;
+  }
+  if (!hasOptionalNonNegativeInteger(check.count)) {
+    return `${label} response malformed health check count at index ${index}`;
   }
   return null;
 }
