@@ -182,7 +182,7 @@ export function parseMcpToolResponse(toolResp) {
       throw new Error('mcp tool structuredContent text is not JSON');
     }
     if (!isDeepStrictEqual(textPayload, result.structuredContent)) {
-      throw new Error('mcp tool structuredContent mismatch');
+      throw new Error(`mcp tool structuredContent mismatch — ${structuredContentMismatchSummary(textPayload, result.structuredContent)}`);
     }
     return result.structuredContent;
   }
@@ -194,4 +194,54 @@ export function parseMcpToolResponse(toolResp) {
   } catch {
     return { text };
   }
+}
+
+function structuredContentMismatchSummary(parsed, structured) {
+  const mismatch = firstMismatch(parsed, structured);
+  if (!mismatch) return 'values differ';
+  return `${mismatch.path}: parsed ${previewValue(mismatch.parsed)}, structuredContent ${previewValue(mismatch.structured)}`;
+}
+
+function firstMismatch(parsed, structured, path = '$') {
+  if (isDeepStrictEqual(parsed, structured)) return null;
+  if (!parsed || !structured || typeof parsed !== 'object' || typeof structured !== 'object') {
+    return { path, parsed, structured };
+  }
+
+  const parsedIsArray = Array.isArray(parsed);
+  const structuredIsArray = Array.isArray(structured);
+  if (parsedIsArray !== structuredIsArray) {
+    return { path, parsed, structured };
+  }
+
+  if (parsedIsArray) {
+    const maxLength = Math.max(parsed.length, structured.length);
+    for (let index = 0; index < maxLength; index += 1) {
+      if (!(index in parsed) || !(index in structured)) {
+        return { path: `${path}[${index}]`, parsed: parsed[index], structured: structured[index] };
+      }
+      const childMismatch = firstMismatch(parsed[index], structured[index], `${path}[${index}]`);
+      if (childMismatch) return childMismatch;
+    }
+    return { path, parsed, structured };
+  }
+
+  const parsedKeys = Object.keys(parsed);
+  const structuredExtraKeys = Object.keys(structured).filter((key) => !(key in parsed));
+  for (const key of [...parsedKeys, ...structuredExtraKeys]) {
+    if (!(key in parsed) || !(key in structured)) {
+      return { path: `${path}.${key}`, parsed: parsed[key], structured: structured[key] };
+    }
+    const childMismatch = firstMismatch(parsed[key], structured[key], `${path}.${key}`);
+    if (childMismatch) return childMismatch;
+  }
+
+  return { path, parsed, structured };
+}
+
+function previewValue(value) {
+  if (value === undefined) return 'undefined';
+  const preview = JSON.stringify(value);
+  if (preview == null) return String(value);
+  return preview.length > 96 ? `${preview.slice(0, 93)}...` : preview;
 }

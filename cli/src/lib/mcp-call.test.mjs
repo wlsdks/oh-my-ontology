@@ -25,7 +25,31 @@ describe('mcp-call response parsing', () => {
             structuredContent: { ok: true, source: 'structured' },
           },
         }),
-      /mcp tool structuredContent mismatch/,
+      /mcp tool structuredContent mismatch — \$\.source: parsed "text", structuredContent "structured"/,
+    );
+  });
+
+  it('reports nested structuredContent mismatch paths and previews missing values', () => {
+    assert.throws(
+      () =>
+        parseMcpToolResponse({
+          result: {
+            content: [{ text: JSON.stringify({ rows: [{ slug: 'a', count: 1 }] }) }],
+            structuredContent: { rows: [{ slug: 'a', count: 2 }] },
+          },
+        }),
+      /mcp tool structuredContent mismatch — \$\.rows\[0\]\.count: parsed 1, structuredContent 2/,
+    );
+
+    assert.throws(
+      () =>
+        parseMcpToolResponse({
+          result: {
+            content: [{ text: JSON.stringify({ total: 1 }) }],
+            structuredContent: { total: 1, extra: true },
+          },
+        }),
+      /mcp tool structuredContent mismatch — \$\.extra: parsed undefined, structuredContent true/,
     );
   });
 
