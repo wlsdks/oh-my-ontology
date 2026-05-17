@@ -268,6 +268,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /npm run verify -- --help/);
     assert.match(verifySection, /explicit positional vault or `--vault` argument takes\s+precedence over `OMOT_VAULT`/);
     assert.match(verifySection, /`npm run verify -- --help` prints the same first-contact scope/);
+    assert.match(verifySection, /direct read smokes for `find_evidence` \/ `find_backlinks` \/ `query_concepts` \/\s+limited `query_concepts` \/ `find_neighbors` \/ `find_path` \/ `find_orphans`/);
     assert.match(verifySection, /strict unknown-argument \/ invalid-enum rejection/);
     assert.match(verifySection, /`list_concepts\.lmit` plus `list_concepts\.summry`/);
     assert.match(verifySection, /reports multiple unknown tool arguments together/);
@@ -461,6 +462,8 @@ describe('package contract helpers', () => {
     assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
     assert.match(verifySection, /mcp-verify --help/);
     assert.match(verifySection, /graph-query smoke contract/);
+    assert.match(verifySection, /direct read smoke set/);
+    assert.match(verifySection, /`query_concepts` and\s+limited `query_concepts`/);
     assert.match(verifySection, /`tools\/list` schema contract/);
     assert.match(verifySection, /write-tool `postWriteMaintenance` `score` \/ executable\s+`proposedAction` \/ current-page next action pointer guidance/);
     assert.match(verifySection, /runtime negative smokes with invalid `list_concepts\.lmit`/);

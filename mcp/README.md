@@ -209,6 +209,8 @@ OMOT_VERIFY_TIMEOUT_MS=15000 OMOT_VAULT=../docs/ontology npm run verify
 When both are present, an explicit positional vault or `--vault` argument takes
 precedence over `OMOT_VAULT`.
 `npm run verify -- --help` prints the same first-contact scope, including
+direct read smokes for `find_evidence` / `find_backlinks` / `query_concepts` /
+limited `query_concepts` / `find_neighbors` / `find_path` / `find_orphans`,
 strict unknown-argument / invalid-enum rejection, enum-validated
 `maintenance_plan` filters, batch row isolation for non-object row shape and
 unknown row field inputs, and maintenance_plan cursor handling (ready page +

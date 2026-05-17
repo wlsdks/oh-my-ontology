@@ -70,6 +70,9 @@ check for the agent-facing surface. It resolves the vault the same way graph
 commands do, then delegates to `oh-my-ontology-mcp/scripts/verify.mjs`.
 `oh-my-ontology mcp-verify --help` prints the same graph-query smoke contract
 to stdout, so CLI users can inspect the verify scope without starting a server.
+That help also names the direct read smoke set, including `query_concepts` and
+limited `query_concepts`, so limit-semantics coverage is visible before the
+server starts.
 The delegated verifier also checks the installed `tools/list` schema contract,
 including strict unknown-argument / invalid-enum rejection, graph-query operation
 enums, and write-tool `postWriteMaintenance` `score` / executable
