@@ -442,6 +442,15 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(addConcepts?.outputSchema?.properties?.concepts?.items?.properties?.ok?.type, "boolean");
     assert.equal(addConcepts?.outputSchema?.properties?.concepts?.items?.properties?.warnings?.items?.type, "string");
     assert.equal(addConcepts?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
+    const addConcept = findTool("add_concept");
+    assert.equal(addConcept?.outputSchema?.type, "object");
+    assert.deepEqual(addConcept?.outputSchema?.required, ["ok", "slug", "filePath", "changed"]);
+    assert.equal(addConcept?.outputSchema?.properties?.ok?.type, "boolean");
+    assert.equal(addConcept?.outputSchema?.properties?.slug?.type, "string");
+    assert.equal(addConcept?.outputSchema?.properties?.filePath?.type, "string");
+    assert.equal(addConcept?.outputSchema?.properties?.changed?.type, "boolean");
+    assert.equal(addConcept?.outputSchema?.properties?.warnings?.items?.type, "string");
+    assert.equal(addConcept?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const addRelations = findTool("add_relations");
     assert.equal(addRelations?.outputSchema?.type, "object");
     assert.deepEqual(addRelations?.outputSchema?.required, ["relations"]);
@@ -449,6 +458,23 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(addRelations?.outputSchema?.properties?.relations?.items?.properties?.ok?.type, "boolean");
     assert.equal(addRelations?.outputSchema?.properties?.relations?.items?.properties?.alreadyExists?.type, "boolean");
     assert.equal(addRelations?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
+    const addRelation = findTool("add_relation");
+    assert.equal(addRelation?.outputSchema?.type, "object");
+    assert.deepEqual(addRelation?.outputSchema?.required, ["ok", "from", "to", "type"]);
+    assert.equal(addRelation?.outputSchema?.properties?.ok?.type, "boolean");
+    assert.equal(addRelation?.outputSchema?.properties?.from?.type, "string");
+    assert.equal(addRelation?.outputSchema?.properties?.to?.type, "string");
+    assert.equal(addRelation?.outputSchema?.properties?.type?.type, "string");
+    assert.equal(addRelation?.outputSchema?.properties?.alreadyExists?.type, "boolean");
+    assert.equal(addRelation?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
+    const patchConcept = findTool("patch_concept");
+    assert.equal(patchConcept?.outputSchema?.type, "object");
+    assert.deepEqual(patchConcept?.outputSchema?.required, ["ok", "slug", "filePath", "changed", "postWriteMaintenance"]);
+    assert.equal(patchConcept?.outputSchema?.properties?.ok?.type, "boolean");
+    assert.equal(patchConcept?.outputSchema?.properties?.slug?.type, "string");
+    assert.equal(patchConcept?.outputSchema?.properties?.filePath?.type, "string");
+    assert.equal(patchConcept?.outputSchema?.properties?.changed?.type, "boolean");
+    assert.equal(patchConcept?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const findDesc = (name) => findTool(name)?.description;
     const getC = findDesc("get_concept");
     const getCs = findDesc("get_concepts");
@@ -2999,6 +3025,7 @@ await test("add_concept/add_concepts — 명시한 빈 body 는 기본 본문으
       callTool(6, "get_concept", { slug: "batch-default-body" }),
     ]);
     assert.equal(isErrorResponse(responses, 2), false);
+    assert.deepEqual(getCallStructured(responses, 2), getCallParsed(responses, 2));
     const batch = getCallParsed(responses, 3);
     assert.equal(batch.concepts[0].ok, true);
     assert.equal(batch.concepts[1].ok, true);
@@ -3611,6 +3638,7 @@ await test("patch_concept — graph 배열 patch 는 canonical set 으로 저장
     ]);
     assert.equal(isErrorResponse(responses, 2), false);
     const patched = getCallParsed(responses, 2);
+    assert.deepEqual(getCallStructured(responses, 2), patched);
     assert.equal(patched.changed, true);
     assertPostWriteMaintenanceShape(patched.postWriteMaintenance, "patch_concept postWriteMaintenance");
     const result = getCallParsed(responses, 3);
@@ -3970,6 +3998,8 @@ await test("add_relation — 같은 edge 두번 추가 시 alreadyExists:true (i
     ]);
     const first = getCallParsed(responses, 2);
     const second = getCallParsed(responses, 3);
+    assert.deepEqual(getCallStructured(responses, 2), first);
+    assert.deepEqual(getCallStructured(responses, 3), second);
     assert.equal(first.ok, true);
     assert.equal(first.alreadyExists, undefined);
     assert.equal(first.changed, true);

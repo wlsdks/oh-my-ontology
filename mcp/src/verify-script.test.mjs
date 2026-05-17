@@ -191,6 +191,28 @@ describe('verify.mjs first-contact gates', () => {
         },
       },
       {
+        name: 'add_concept',
+        description:
+          'Changed writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
+        inputSchema: {
+          additionalProperties: false,
+          required: ['slug', 'kind', 'title'],
+          properties: {},
+        },
+        outputSchema: {
+          type: 'object',
+          required: ['ok', 'slug', 'filePath', 'changed'],
+          properties: {
+            ok: { type: 'boolean' },
+            slug: { type: 'string' },
+            filePath: { type: 'string' },
+            changed: { type: 'boolean' },
+            warnings: { type: 'array', items: { type: 'string' } },
+            postWriteMaintenance: { type: 'object' },
+          },
+        },
+      },
+      {
         name: 'add_concepts',
         description:
           'Batch writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
@@ -268,6 +290,20 @@ describe('verify.mjs first-contact gates', () => {
           additionalProperties: false,
           properties: { expected_mtime: { type: 'number', minimum: 0 } },
         },
+        outputSchema: {
+          type: 'object',
+          required: ['ok', 'from', 'to', 'type'],
+          properties: {
+            ok: { type: 'boolean' },
+            from: { type: 'string' },
+            to: { type: 'string' },
+            type: { type: 'string' },
+            key: { type: 'string' },
+            changed: { type: 'boolean' },
+            alreadyExists: { type: 'boolean' },
+            postWriteMaintenance: { type: 'object' },
+          },
+        },
       },
       {
         name: 'patch_concept',
@@ -276,6 +312,17 @@ describe('verify.mjs first-contact gates', () => {
         inputSchema: {
           additionalProperties: false,
           properties: { expected_mtime: { type: 'number', minimum: 0 } },
+        },
+        outputSchema: {
+          type: 'object',
+          required: ['ok', 'slug', 'filePath', 'changed', 'postWriteMaintenance'],
+          properties: {
+            ok: { type: 'boolean' },
+            slug: { type: 'string' },
+            filePath: { type: 'string' },
+            changed: { type: 'boolean' },
+            postWriteMaintenance: { type: 'object' },
+          },
         },
       },
       {
@@ -826,6 +873,7 @@ describe('verify.mjs first-contact gates', () => {
       ...tools.filter((tool) => tool.name !== 'query_ontology'),
       queryTool,
     ];
+    const queryOntologyTool = tools.find((tool) => tool.name === 'query_ontology');
 
     assert.equal(toolsListSchemaFailure(tools), null);
     assert.equal(toolsListSchemaFailure(null), 'tools/list response missing tools array');
@@ -1010,18 +1058,18 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool({
-        ...tools[10],
+        ...queryOntologyTool,
         description: 'Run graph queries including maintenance_plan.',
       })),
       'query_ontology description missing current-page maintenance next pointers',
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool({
-        ...tools[10],
+        ...queryOntologyTool,
         inputSchema: {
-          ...tools[10].inputSchema,
+          ...queryOntologyTool.inputSchema,
           properties: {
-            ...tools[10].inputSchema.properties,
+            ...queryOntologyTool.inputSchema.properties,
             afterActionId: { description: 'maintenance_plan only: cursor id.' },
           },
         },
@@ -1030,11 +1078,11 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool({
-        ...tools[10],
+        ...queryOntologyTool,
         inputSchema: {
-          ...tools[10].inputSchema,
+          ...queryOntologyTool.inputSchema,
           properties: {
-            ...tools[10].inputSchema.properties,
+            ...queryOntologyTool.inputSchema.properties,
             afterActionId: {
               description:
                 'maintenance_plan only: nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page.',
@@ -1046,11 +1094,11 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool({
-        ...tools[10],
+        ...queryOntologyTool,
         inputSchema: {
-          ...tools[10].inputSchema,
+          ...queryOntologyTool.inputSchema,
           properties: {
-            ...tools[10].inputSchema.properties,
+            ...queryOntologyTool.inputSchema.properties,
             componentLimit: { type: 'integer', minimum: 0, maximum: 500, description: 'health/workspace_brief only.' },
           },
         },
@@ -1059,11 +1107,11 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool({
-        ...tools[10],
+        ...queryOntologyTool,
         inputSchema: {
-          ...tools[10].inputSchema,
+          ...queryOntologyTool.inputSchema,
           properties: {
-            ...tools[10].inputSchema.properties,
+            ...queryOntologyTool.inputSchema.properties,
             dependencyTypes: { type: 'array', items: { type: 'number' }, description: 'health/workspace_brief only.' },
           },
         },
@@ -1072,11 +1120,11 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool({
-        ...tools[10],
+        ...queryOntologyTool,
         inputSchema: {
-          ...tools[10].inputSchema,
+          ...queryOntologyTool.inputSchema,
           properties: {
-            ...tools[10].inputSchema.properties,
+            ...queryOntologyTool.inputSchema.properties,
             componentTypes: { type: 'array', items: { type: 'string' }, description: 'components only.' },
           },
         },
@@ -1130,9 +1178,9 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[10],
+          ...queryOntologyTool,
           inputSchema: {
-            ...tools[10].inputSchema,
+            ...queryOntologyTool.inputSchema,
             required: [],
           },
         },
@@ -1300,11 +1348,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[10],
+          ...queryOntologyTool,
           inputSchema: {
-            ...tools[10].inputSchema,
+            ...queryOntologyTool.inputSchema,
             properties: {
-              ...tools[10].inputSchema.properties,
+              ...queryOntologyTool.inputSchema.properties,
               operation: { enum: QUERY_ONTOLOGY_OPERATIONS.filter((operation) => operation !== 'health') },
             },
           },
@@ -1315,11 +1363,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[10],
+          ...queryOntologyTool,
           inputSchema: {
-            ...tools[10].inputSchema,
+            ...queryOntologyTool.inputSchema,
             properties: {
-              ...tools[10].inputSchema.properties,
+              ...queryOntologyTool.inputSchema.properties,
               targetOperation: { enum: [...QUERY_PLAN_TARGET_OPERATIONS, 'query_plan'] },
             },
           },
@@ -1330,11 +1378,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[10],
+          ...queryOntologyTool,
           inputSchema: {
-            ...tools[10].inputSchema,
+            ...queryOntologyTool.inputSchema,
             properties: {
-              ...tools[10].inputSchema.properties,
+              ...queryOntologyTool.inputSchema.properties,
               phases: { items: { enum: ['repair', 'link'] } },
             },
           },
@@ -1345,11 +1393,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[10],
+          ...queryOntologyTool,
           inputSchema: {
-            ...tools[10].inputSchema,
+            ...queryOntologyTool.inputSchema,
             properties: {
-              ...tools[10].inputSchema.properties,
+              ...queryOntologyTool.inputSchema.properties,
               severities: { items: { enum: ['warn'] } },
             },
           },
@@ -1360,11 +1408,11 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool(
         {
-          ...tools[10],
+          ...queryOntologyTool,
           inputSchema: {
-            ...tools[10].inputSchema,
+            ...queryOntologyTool.inputSchema,
             properties: {
-              ...tools[10].inputSchema.properties,
+              ...queryOntologyTool.inputSchema.properties,
               kinds: { items: { enum: ['add_missing_relation'] } },
             },
           },
@@ -1655,15 +1703,14 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure([
-        ...tools.slice(0, 3),
+        ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
-          ...tools[3],
+          ...tools.find((tool) => tool.name === 'add_concepts'),
           inputSchema: {
-            ...tools[3].inputSchema,
+            ...tools.find((tool) => tool.name === 'add_concepts').inputSchema,
             properties: { concepts: { type: 'array', maxItems: 51 } },
           },
         },
-        ...tools.slice(4),
       ]),
       'add_concepts.concepts batch cap schema drift',
     );
@@ -1716,66 +1763,107 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure([
-        ...tools.slice(0, 5),
+        ...tools.filter((tool) => tool.name !== 'add_concept'),
         {
-          ...tools[5],
+          ...tools.find((tool) => tool.name === 'add_concept'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'add_concept').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_concept').outputSchema.properties,
+              warnings: { type: 'array', items: { type: 'number' } },
+            },
+          },
+        },
+      ]),
+      'add_concept outputSchema warnings drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relation'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relation'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'add_relation').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_relation').outputSchema.properties,
+              alreadyExists: { type: 'string' },
+            },
+          },
+        },
+      ]),
+      'add_relation outputSchema alreadyExists drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'patch_concept'),
+        {
+          ...tools.find((tool) => tool.name === 'patch_concept'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'patch_concept').outputSchema,
+            required: ['ok', 'slug', 'filePath', 'changed'],
+          },
+        },
+      ]),
+      'patch_concept outputSchema required drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relation'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relation'),
           inputSchema: {
-            ...tools[5].inputSchema,
+            ...tools.find((tool) => tool.name === 'add_relation').inputSchema,
             properties: { expected_mtime: { type: 'number' } },
           },
         },
-        ...tools.slice(6),
       ]),
       'add_relation.expected_mtime conflict guard schema drift',
     );
     assert.equal(
       toolsListSchemaFailure([
-        ...tools.slice(0, 7),
+        ...tools.filter((tool) => tool.name !== 'rename_concept'),
         {
-          ...tools[7],
+          ...tools.find((tool) => tool.name === 'rename_concept'),
           inputSchema: {
-            ...tools[7].inputSchema,
+            ...tools.find((tool) => tool.name === 'rename_concept').inputSchema,
             properties: {
-              ...tools[7].inputSchema.properties,
+              ...tools.find((tool) => tool.name === 'rename_concept').inputSchema.properties,
               overwrite: { type: 'string' },
             },
           },
         },
-        ...tools.slice(8),
       ]),
       'rename_concept.overwrite destructive safety schema drift',
     );
     assert.equal(
       toolsListSchemaFailure([
-        ...tools.slice(0, 9),
+        ...tools.filter((tool) => tool.name !== 'delete_concept'),
         {
-          ...tools[9],
+          ...tools.find((tool) => tool.name === 'delete_concept'),
           inputSchema: {
-            ...tools[9].inputSchema,
+            ...tools.find((tool) => tool.name === 'delete_concept').inputSchema,
             properties: {
-              ...tools[9].inputSchema.properties,
+              ...tools.find((tool) => tool.name === 'delete_concept').inputSchema.properties,
               confirm: { type: 'string' },
             },
           },
         },
-        ...tools.slice(10),
       ]),
       'delete_concept.confirm dry-run safety schema drift',
     );
     assert.equal(
       toolsListSchemaFailure([
-        ...tools.slice(0, 9),
+        ...tools.filter((tool) => tool.name !== 'delete_concept'),
         {
-          ...tools[9],
+          ...tools.find((tool) => tool.name === 'delete_concept'),
           inputSchema: {
-            ...tools[9].inputSchema,
+            ...tools.find((tool) => tool.name === 'delete_concept').inputSchema,
             properties: {
-              ...tools[9].inputSchema.properties,
+              ...tools.find((tool) => tool.name === 'delete_concept').inputSchema.properties,
               force: { type: 'string' },
             },
           },
         },
-        ...tools.slice(10),
       ]),
       'delete_concept.force destructive safety schema drift',
     );

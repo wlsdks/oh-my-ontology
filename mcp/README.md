@@ -289,7 +289,8 @@ the graph engine's runtime allow-lists. It also checks the `list_kinds`
 `outputSchema` and matching `structuredContent` typed-filter payload, the `compile_ontology`
 `outputSchema` and matching `structuredContent` graph-summary payload, the `analyze_repo_structure`
 `outputSchema` and matching `structuredContent` bootstrap-candidate payload, the `infer_imports`
-`outputSchema` and matching `structuredContent` import-graph payload, the `add_concepts`
+`outputSchema` and matching `structuredContent` import-graph payload, the `add_concept`,
+`add_relation`, and `patch_concept` single writer `outputSchema` contracts, the `add_concepts`
 and `add_relations` batch writer `outputSchema` row contracts, the installed batch
 input schemas for the same 50-row cap used by `get_concepts`, `add_concepts`,
 and `add_relations` at runtime, the `find_orphans.excludeKinds` string-array

@@ -550,6 +550,20 @@ function makeDogfoodToolsList() {
           },
         };
       }
+      if (name === "add_concept") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["ok", "slug", "filePath", "changed"],
+          properties: {
+            ok: { type: "boolean" },
+            slug: { type: "string" },
+            filePath: { type: "string" },
+            changed: { type: "boolean" },
+            warnings: { type: "array", items: { type: "string" } },
+            postWriteMaintenance: { type: "object" },
+          },
+        };
+      }
       if (name === "add_relations") {
         tool.inputSchema.required = ["relations"];
         tool.inputSchema.properties.relations = {
@@ -575,6 +589,35 @@ function makeDogfoodToolsList() {
                 },
               },
             },
+            postWriteMaintenance: { type: "object" },
+          },
+        };
+      }
+      if (name === "add_relation") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["ok", "from", "to", "type"],
+          properties: {
+            ok: { type: "boolean" },
+            from: { type: "string" },
+            to: { type: "string" },
+            type: { type: "string" },
+            key: { type: "string" },
+            changed: { type: "boolean" },
+            alreadyExists: { type: "boolean" },
+            postWriteMaintenance: { type: "object" },
+          },
+        };
+      }
+      if (name === "patch_concept") {
+        tool.outputSchema = {
+          type: "object",
+          required: ["ok", "slug", "filePath", "changed", "postWriteMaintenance"],
+          properties: {
+            ok: { type: "boolean" },
+            slug: { type: "string" },
+            filePath: { type: "string" },
+            changed: { type: "boolean" },
             postWriteMaintenance: { type: "object" },
           },
         };
@@ -2435,6 +2478,24 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: addRelationsOutputSchemaDrifted }),
       ["tools/list: add_relations outputSchema row alreadyExists drift"],
+    );
+    const addConceptOutputSchemaDrifted = makeDogfoodToolsList();
+    addConceptOutputSchemaDrifted.tools.find((tool) => tool.name === "add_concept").outputSchema.properties.warnings.items.type = "number";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: addConceptOutputSchemaDrifted }),
+      ["tools/list: add_concept outputSchema warnings drift"],
+    );
+    const addRelationOutputSchemaDrifted = makeDogfoodToolsList();
+    addRelationOutputSchemaDrifted.tools.find((tool) => tool.name === "add_relation").outputSchema.properties.alreadyExists.type = "string";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: addRelationOutputSchemaDrifted }),
+      ["tools/list: add_relation outputSchema alreadyExists drift"],
+    );
+    const patchConceptOutputSchemaDrifted = makeDogfoodToolsList();
+    patchConceptOutputSchemaDrifted.tools.find((tool) => tool.name === "patch_concept").outputSchema.required = ["ok", "slug", "filePath", "changed"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: patchConceptOutputSchemaDrifted }),
+      ["tools/list: patch_concept outputSchema required drift"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, listStructured: { ...okShape.list, total: 2 } }),

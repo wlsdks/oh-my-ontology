@@ -843,6 +843,33 @@ export function toolsListSchemaFailure(tools) {
     return 'add_concepts outputSchema postWriteMaintenance drift';
   }
 
+  const addConceptTool = tools.find((candidate) => candidate?.name === 'add_concept');
+  if (!addConceptTool) return 'tools/list response missing add_concept tool';
+  if (addConceptTool.outputSchema?.type !== 'object') {
+    return 'add_concept outputSchema root drift';
+  }
+  if (!sameArray(addConceptTool.outputSchema?.required, ['ok', 'slug', 'filePath', 'changed'])) {
+    return 'add_concept outputSchema required drift';
+  }
+  for (const propertyName of ['slug', 'filePath']) {
+    if (outputPropertyAt(addConceptTool, ['properties', propertyName])?.type !== 'string') {
+      return `add_concept outputSchema ${propertyName} drift`;
+    }
+  }
+  if (outputPropertyAt(addConceptTool, ['properties', 'ok'])?.type !== 'boolean') {
+    return 'add_concept outputSchema ok drift';
+  }
+  if (outputPropertyAt(addConceptTool, ['properties', 'changed'])?.type !== 'boolean') {
+    return 'add_concept outputSchema changed drift';
+  }
+  const addConceptWarningsSchema = outputPropertyAt(addConceptTool, ['properties', 'warnings']);
+  if (addConceptWarningsSchema?.type !== 'array' || addConceptWarningsSchema.items?.type !== 'string') {
+    return 'add_concept outputSchema warnings drift';
+  }
+  if (outputPropertyAt(addConceptTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
+    return 'add_concept outputSchema postWriteMaintenance drift';
+  }
+
   const addRelationsTool = tools.find((candidate) => candidate?.name === 'add_relations');
   if (addRelationsTool.outputSchema?.type !== 'object') {
     return 'add_relations outputSchema root drift';
@@ -871,6 +898,50 @@ export function toolsListSchemaFailure(tools) {
   }
   if (outputPropertyAt(addRelationsTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
     return 'add_relations outputSchema postWriteMaintenance drift';
+  }
+
+  const addRelationTool = tools.find((candidate) => candidate?.name === 'add_relation');
+  if (!addRelationTool) return 'tools/list response missing add_relation tool';
+  if (addRelationTool.outputSchema?.type !== 'object') {
+    return 'add_relation outputSchema root drift';
+  }
+  if (!sameArray(addRelationTool.outputSchema?.required, ['ok', 'from', 'to', 'type'])) {
+    return 'add_relation outputSchema required drift';
+  }
+  for (const propertyName of ['from', 'to', 'type', 'key']) {
+    if (outputPropertyAt(addRelationTool, ['properties', propertyName])?.type !== 'string') {
+      return `add_relation outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['ok', 'changed', 'alreadyExists']) {
+    if (outputPropertyAt(addRelationTool, ['properties', propertyName])?.type !== 'boolean') {
+      return `add_relation outputSchema ${propertyName} drift`;
+    }
+  }
+  if (outputPropertyAt(addRelationTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
+    return 'add_relation outputSchema postWriteMaintenance drift';
+  }
+
+  const patchConceptTool = tools.find((candidate) => candidate?.name === 'patch_concept');
+  if (!patchConceptTool) return 'tools/list response missing patch_concept tool';
+  if (patchConceptTool.outputSchema?.type !== 'object') {
+    return 'patch_concept outputSchema root drift';
+  }
+  if (!sameArray(patchConceptTool.outputSchema?.required, ['ok', 'slug', 'filePath', 'changed', 'postWriteMaintenance'])) {
+    return 'patch_concept outputSchema required drift';
+  }
+  for (const propertyName of ['slug', 'filePath']) {
+    if (outputPropertyAt(patchConceptTool, ['properties', propertyName])?.type !== 'string') {
+      return `patch_concept outputSchema ${propertyName} drift`;
+    }
+  }
+  for (const propertyName of ['ok', 'changed']) {
+    if (outputPropertyAt(patchConceptTool, ['properties', propertyName])?.type !== 'boolean') {
+      return `patch_concept outputSchema ${propertyName} drift`;
+    }
+  }
+  if (outputPropertyAt(patchConceptTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
+    return 'patch_concept outputSchema postWriteMaintenance drift';
   }
 
   for (const toolName of [

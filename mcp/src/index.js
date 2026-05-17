@@ -531,6 +531,18 @@ const TOOLS = [
       },
       required: ['slug', 'kind', 'title'],
     },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        ok: { type: 'boolean' },
+        slug: { type: 'string' },
+        filePath: { type: 'string' },
+        changed: { type: 'boolean' },
+        warnings: { type: 'array', items: { type: 'string' } },
+        postWriteMaintenance: { type: 'object' },
+      },
+      required: ['ok', 'slug', 'filePath', 'changed'],
+    },
   },
   {
     name: 'add_concepts',
@@ -631,6 +643,20 @@ const TOOLS = [
         },
       },
       required: ['from', 'to', 'type'],
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        ok: { type: 'boolean' },
+        from: { type: 'string' },
+        to: { type: 'string' },
+        type: { type: 'string' },
+        key: { type: 'string' },
+        changed: { type: 'boolean' },
+        alreadyExists: { type: 'boolean' },
+        postWriteMaintenance: { type: 'object' },
+      },
+      required: ['ok', 'from', 'to', 'type'],
     },
   },
   {
@@ -736,6 +762,17 @@ const TOOLS = [
         },
       },
       required: ['slug'],
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        ok: { type: 'boolean' },
+        slug: { type: 'string' },
+        filePath: { type: 'string' },
+        changed: { type: 'boolean' },
+        postWriteMaintenance: { type: 'object' },
+      },
+      required: ['ok', 'slug', 'filePath', 'changed', 'postWriteMaintenance'],
     },
   },
   {
