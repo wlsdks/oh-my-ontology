@@ -65,6 +65,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /scripts\/check-package-contracts\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /structuredContent/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /stderr warnings/);
+    assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /dogfood help/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/suggestions\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/ontology-engine\.test\.mjs/);
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
@@ -84,7 +85,7 @@ describe('package contract helpers', () => {
     );
     assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:dogfood/);
-    assert.match(readme, /structuredContent\/stderr warning checks/);
+    assert.match(readme, /structuredContent\/help\/stderr warning checks/);
     assert.match(readme, /pnpm test:mcp:package\s+# focused package-script\/dependency\/tarball contract checks/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /pnpm test:mcp:verify/);
@@ -303,6 +304,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:verify/);
     assert.match(section, /first-contact read-only MCP flow/);
     assert.match(section, /documentation drift/);
+    assert.match(section, /help output/);
     assert.match(section, /stderr warning filtering/);
     assert.match(section, /verify helper contract/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
@@ -643,6 +645,7 @@ describe('package contract helpers', () => {
     const releaseChecks = readme.split('### Package / MCP release checks')[1]?.split('## Verifiable promises')[0] ?? '';
 
     assert.match(releaseChecks, /pnpm dogfood:walk/);
+    assert.match(releaseChecks, /pnpm dogfood:walk -- --help\s+# print dogfood usage without starting MCP/);
     assert.match(releaseChecks, /strict unknown-argument and invalid-enum rejection/);
     assert.match(releaseChecks, /pnpm smoke:packed-cli/);
     assert.match(releaseChecks, /get_concepts` with discovered slugs plus one\s+missing slug/);
@@ -825,6 +828,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /설치 verify 의 `query_ontology\(path\)` smoke/);
     assert.match(dogfoodSection, /hop\/edge alignment/);
     assert.match(doc, /`query_ontology` graph-query 응답은 `structuredContent`\s+누락을 실패로 처리하고 text JSON payload 와 `structuredContent` payload 의\s+구조적 일치 여부도 비교/);
+    assert.match(doc, /`pnpm dogfood:walk -- --help` 는 MCP server 를 띄우지 않고 usage 와\s+focused check 경로를 출력/);
     assert.match(doc, /key 순서 차이를 false mismatch 로 보지 않으며/);
     assert.match(doc, /dogfood 의 direct read \/ analysis tool 응답도 `structuredContent` 누락과\s+text JSON 구조 drift 를 같은 fail-closed 계약으로 검증/);
     assert.match(doc, /verify helper 와 dogfood helper 는 같은\s+`structuredContentParityStatus` 판정 helper 를 공유/);

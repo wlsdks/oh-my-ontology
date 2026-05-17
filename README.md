@@ -128,7 +128,7 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 ```bash
 pnpm package:check              # MCP/CLI package files contract + self-test
 pnpm test:mcp:docs              # focused README + dogfood ontology docs contract
-pnpm test:mcp:dogfood           # focused dogfood helper + structuredContent/stderr warning checks
+pnpm test:mcp:dogfood           # focused dogfood helper + structuredContent/help/stderr warning checks
 pnpm test:mcp:package           # focused package-script/dependency/tarball contract checks
 pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
 pnpm test:mcp:verify            # focused MCP verify helper checks
@@ -139,6 +139,7 @@ pnpm integration:mcp:readme
 pnpm exec node --test --test-name-pattern "README first exploration" mcp/src/integration.test.mjs
 pnpm smoke:packed-cli           # pack/install MCP+CLI, verify installed flow/help/failure + tarball summary
 pnpm dogfood:walk               # actual MCP stdio walk over this repo's ontology
+pnpm dogfood:walk -- --help     # print dogfood usage without starting MCP
 cd mcp && OMOT_VAULT=../docs/ontology npm run verify
 cd mcp && npm run verify -- ../docs/ontology
 cd mcp && npm run verify -- --vault ../docs/ontology

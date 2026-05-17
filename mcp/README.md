@@ -58,7 +58,7 @@ pnpm test:mcp:verify
 `integration:mcp:readme` runs the documented first-contact read-only MCP flow
 only. `test:mcp:docs` checks README and dogfood ontology documentation drift.
 `test:mcp:dogfood` covers the dogfood helper's structuredContent output,
-stderr warning filtering, and gate contract without running the live MCP walk.
+help output, stderr warning filtering, and gate contract without running the live MCP walk.
 `test:mcp:suggestions` covers strict enum / argument suggestion behavior.
 `test:mcp:verify` covers the MCP verify helper contract without spawning the
 full integration suite.

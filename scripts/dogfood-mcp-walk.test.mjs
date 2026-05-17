@@ -7,6 +7,7 @@ import {
   componentSummary,
   createUtf8Accumulator,
   DOGFOOD_RESPONSE_LABELS,
+  dogfoodUsage,
   evaluateDogfoodGate,
   expectedResponseIds,
   formatWorkspaceNextActionRows,
@@ -21,6 +22,7 @@ import {
   recordResult,
   rpcTimeoutFailure,
   shouldFinishRpc,
+  shouldPrintDogfoodHelp,
   stderrWarningLines,
   stderrWarningFailures,
   structuredContentStatus,
@@ -2553,6 +2555,17 @@ describe("rpc response completion helpers", () => {
     assert.equal(parseDogfoodTimeoutMs("12000"), 12000);
     assert.equal(parseDogfoodTimeoutMs("1000ms"), false);
     assert.equal(parseDogfoodTimeoutMs("0"), false);
+  });
+
+  it("prints dogfood help without requiring an MCP server", () => {
+    assert.equal(shouldPrintDogfoodHelp(["--help"]), true);
+    assert.equal(shouldPrintDogfoodHelp(["-h"]), true);
+    assert.equal(shouldPrintDogfoodHelp([]), false);
+    const usage = dogfoodUsage();
+    assert.match(usage, /Usage: pnpm dogfood:walk \[--help\]/);
+    assert.match(usage, /Print this help without starting the MCP server/);
+    assert.match(usage, /OMOT_DOGFOOD_TIMEOUT_MS/);
+    assert.match(usage, /Dogfood helper, help, structuredContent, stderr warning checks/);
   });
 
   it("derives response ids from requests with JSON-RPC ids", () => {
