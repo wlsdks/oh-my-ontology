@@ -384,7 +384,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_concepts',
         description:
-          `Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels and return ${postWriteDescription}.`,
+          `Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels and unknown-field rows include Received fields and return ${postWriteDescription}.`,
         inputSchema: {
           additionalProperties: false,
           required: ['concepts'],
@@ -416,7 +416,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_relations',
         description:
-          `Batch writes isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels and return ${postWriteDescription}.`,
+          `Batch writes isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields and return ${postWriteDescription}.`,
         inputSchema: {
           additionalProperties: false,
           required: ['relations'],
@@ -3070,6 +3070,16 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
+          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+        },
+      ]),
+      'add_concepts description missing received fields guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'add_concepts'),
           inputSchema: {
             ...tools.find((tool) => tool.name === 'add_concepts').inputSchema,
             properties: { concepts: { type: 'array', maxItems: 51 } },
@@ -3119,6 +3129,16 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'add_relations description missing row label guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relations'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relations'),
+          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+        },
+      ]),
+      'add_relations description missing received fields guidance',
     );
     assert.equal(
       toolsListSchemaFailure([
@@ -3583,20 +3603,22 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('fails malformed batch row-isolation smoke responses', () => {
+    const conceptUnknownError = 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title. Received fields: kind, slug, titel, title.';
+    const relationUnknownError = 'Unknown field "relation" in relations[1]. Did you mean "type"? Allowed fields: from, to, type. Received fields: from, relation, to, type.';
     const okResponse = {
       result: {
         content: [{
           text: JSON.stringify({
             concepts: [
               { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-              { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
+              { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
             ],
           }),
         }],
         structuredContent: {
           concepts: [
             { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-            { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
+            { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
           ],
         },
       },
@@ -3625,7 +3647,7 @@ describe('verify.mjs first-contact gates', () => {
             text: JSON.stringify({
               relations: [
                 { ok: false, error: 'relations[0] must be an object.' },
-                { ok: false, error: 'Unknown field "relation" in relations[1]. Did you mean "type"?' },
+                { ok: false, error: relationUnknownError },
                 { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
               ],
             }),
@@ -3633,7 +3655,7 @@ describe('verify.mjs first-contact gates', () => {
           structuredContent: {
             relations: [
               { ok: false, error: 'relations[0] must be an object.' },
-              { ok: false, error: 'Unknown field "relation" in relations[1]. Did you mean "type"?' },
+              { ok: false, error: relationUnknownError },
               { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
             ],
           },
@@ -3648,7 +3670,7 @@ describe('verify.mjs first-contact gates', () => {
             text: JSON.stringify({
               concepts: [
                 { slug: '', ok: false, error: 'must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
+                { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
               ],
             }),
           }],
@@ -3680,13 +3702,44 @@ describe('verify.mjs first-contact gates', () => {
                 { slug: '', ok: false, error: 'concepts[0] must be an object.' },
                 { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
               ],
+            }),
+          }],
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response missing concept received fields',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              relations: [
+                { ok: false, error: 'relations[0] must be an object.' },
+                { ok: false, error: 'Unknown field "relation" in relations[1]. Did you mean "type"? Allowed fields: from, to, type.' },
+                { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
+              ],
+            }),
+          }],
+        },
+      }, 'relations', 'add_relations'),
+      'add_relations row-isolation response missing relation received fields',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              concepts: [
+                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+                { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+              ],
               postWriteMaintenance: {},
             }),
           }],
           structuredContent: {
             concepts: [
               { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-              { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
+              { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
             ],
             postWriteMaintenance: {},
           },

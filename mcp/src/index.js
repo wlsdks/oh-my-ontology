@@ -265,8 +265,8 @@ All tool input schemas are strict: unknown arguments are rejected instead of bei
 When the user says "이 codebase 분석해줘" or you find only the 5 starter nodes. **Modern path is 3 round-trips total — analyze + add_concepts + add_relations** (down from per-row K calls):
 
 1. \`analyze_repo_structure\` — walk \`package.json\` / \`README.md\` H2 / \`src/\` (FSD vs generic detect). Returns deterministic candidates (project + domains[] + capabilities[] + elements[] + suggestedRelations[]). **side effect 0 — vault NOT modified.** Show the candidates compactly, let the user prune / refine.
-2. \`add_concepts({concepts: [...]})\` — assemble the accepted project + domains + capabilities + elements into one array (max 50) and land them in **one batch call**. Each row processed independently: existing-slug / invalid-kind / missing-required / non-object row / unknown row field surface as \`{ok: false, error}\` with a \`concepts[n]\` row label; the rest still land. Pre-checks duplicate slugs *within input batch*. Use single \`add_concept\` only when you need atomic per-call semantics.
-3. \`add_relations({relations: [...]})\` — convert \`suggestedRelations\` into the same shape and land all edges in **one batch call**. Each row processed independently: missing source/target / unknown type / non-object row / unknown row field surface as \`{ok: false, error}\` with a \`relations[n]\` row label; the rest still land. Idempotent (\`alreadyExists: true\` on second run); 50-row chunk if you have more.
+2. \`add_concepts({concepts: [...]})\` — assemble the accepted project + domains + capabilities + elements into one array (max 50) and land them in **one batch call**. Each row processed independently: existing-slug / invalid-kind / missing-required / non-object row / unknown row field surface as \`{ok: false, error}\` with a \`concepts[n]\` row label; unknown-field row errors also include \`Received fields: ...\`; the rest still land. Pre-checks duplicate slugs *within input batch*. Use single \`add_concept\` only when you need atomic per-call semantics.
+3. \`add_relations({relations: [...]})\` — convert \`suggestedRelations\` into the same shape and land all edges in **one batch call**. Each row processed independently: missing source/target / unknown type / non-object row / unknown row field surface as \`{ok: false, error}\` with a \`relations[n]\` row label; unknown-field row errors also include \`Received fields: ...\`; the rest still land. Idempotent (\`alreadyExists: true\` on second run); 50-row chunk if you have more.
 4. (Optional, R17) \`infer_imports\` for TS/JS \`depends_on\` edges from the actual import graph. Then another \`add_relations\` batch with \`type: 'depends_on'\`. The CLI \`oh-my-ontology bootstrap\` packages all 4 steps into one command.
 
 Throughout: the user (via your add_concepts / add_relations calls) is the single source of truth — never auto-write proposals without their confirmation.
@@ -621,7 +621,7 @@ const TOOLS = [
       'Use after `analyze_repo_structure` / `infer_imports` (or any bootstrap flow) ' +
       'when the agent has K accepted candidates from the user — replaces K×`add_concept` ' +
       'round-trips. Each row is processed independently: existing-slug / invalid-kind / ' +
-      'missing-required-fields / non-object row shape / unknown row field surface as `{ slug, ok: false, error }` rows whose errors include a `concepts[n]` row label; the rest ' +
+      'missing-required-fields / non-object row shape / unknown row field surface as `{ slug, ok: false, error }` rows whose errors include a `concepts[n]` row label and unknown-field rows include `Received fields: ...`; the rest ' +
       'still land. `concepts[]` order in the response matches the input. Cap = 50 per ' +
       'call (split into multiple batches for larger sets). NO atomic rollback — if you ' +
       'need all-or-nothing semantics use single `add_concept` calls. When at least one row changes the vault, the response includes one ' + POST_WRITE_MAINTENANCE_GUIDANCE + ' for the final graph.',
@@ -726,7 +726,7 @@ const TOOLS = [
       'Use after `analyze_repo_structure` (suggestedRelations) / `infer_imports` (moduleEdges) ' +
       'when the agent has K accepted edges from the user — replaces K×`add_relation` round-trips. ' +
       'Each row is processed independently and idempotently: existing edges return `{ok: true, alreadyExists: true}`; ' +
-      'missing source/target slugs / unknown type / non-object row shape / unknown row field surface as `{ok: false, error}` with a `relations[n]` row label. ' +
+      'missing source/target slugs / unknown type / non-object row shape / unknown row field surface as `{ok: false, error}` with a `relations[n]` row label; unknown-field rows include `Received fields: ...`. ' +
       '`relations[]` order in the response matches the input. Cap = 50 per call. ' +
       'NO atomic rollback — for all-or-nothing semantics use single `add_relation` calls. ' +
       'Tip: avoid `expected_mtime` in batch when multiple rows share the same `from` slug — ' +
@@ -2580,12 +2580,14 @@ function requirePlainObject(value, name) {
 
 function requireAllowedObjectKeys(value, name, allowedKeys) {
   const allowed = new Set(allowedKeys);
+  const receivedFields = Object.keys(value).sort();
+  const receivedText = receivedFields.length > 0 ? receivedFields.join(', ') : 'none';
   for (const key of Object.keys(value)) {
     if (allowed.has(key)) continue;
     const suggestion = closestAllowedObjectField(key, allowedKeys);
     const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
     throw new Error(
-      `Unknown field "${key}" in ${name}.${suggestionText} Allowed fields: ${allowedKeys.join(', ')}.`,
+      `Unknown field "${key}" in ${name}.${suggestionText} Allowed fields: ${allowedKeys.join(', ')}. Received fields: ${receivedText}.`,
     );
   }
 }

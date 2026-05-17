@@ -1339,6 +1339,9 @@ export function toolsListSchemaFailure(tools) {
   if (!/concepts\[n\]/.test(addConceptsTool?.description || '')) {
     return 'add_concepts description missing row label guidance';
   }
+  if (!/Received fields/.test(addConceptsTool?.description || '')) {
+    return 'add_concepts description missing received fields guidance';
+  }
   if (addConceptsTool.outputSchema?.type !== 'object') {
     return 'add_concepts outputSchema root drift';
   }
@@ -1412,6 +1415,9 @@ export function toolsListSchemaFailure(tools) {
   }
   if (!/relations\[n\]/.test(addRelationsTool?.description || '')) {
     return 'add_relations description missing row label guidance';
+  }
+  if (!/Received fields/.test(addRelationsTool?.description || '')) {
+    return 'add_relations description missing received fields guidance';
   }
   if (addRelationsTool.outputSchema?.type !== 'object') {
     return 'add_relations outputSchema root drift';
@@ -3589,11 +3595,17 @@ export function batchRowIsolationFailure(response, key, label) {
   if (key === 'concepts' && !/Did you mean "title"\?/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing concept field suggestion`;
   }
+  if (key === 'concepts' && !/Received fields: kind, slug, titel, title/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing concept received fields`;
+  }
   if (key === 'relations' && !/Unknown field "relation"/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing relation typo field error`;
   }
   if (key === 'relations' && !/Did you mean "type"\?/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing relation field suggestion`;
+  }
+  if (key === 'relations' && !/Received fields: from, relation, to, type/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing relation received fields`;
   }
   if (
     key === 'relations' &&

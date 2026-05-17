@@ -354,6 +354,7 @@ describe('package contract helpers', () => {
     const addConceptsFeature = features.split('2. **add_concepts**')[1]?.split('\n')[0] ?? '';
     const addRelationsFeature = features.split('5. **add_relations**')[1]?.split('\n')[0] ?? '';
     const addRelationFeature = features.split('4. **add_relation**')[1]?.split('\n').slice(0, 3).join('\n') ?? '';
+    const addConceptsRow = readme.split('| `add_concepts` |')[1]?.split('\n')[0] ?? '';
     const addRelationRow = readme.split('| `add_relation` |')[1]?.split('\n')[0] ?? '';
     const addRelationsRow = readme.split('| `add_relations` |')[1]?.split('\n')[0] ?? '';
     assert.match(addConceptsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows/);
@@ -361,6 +362,10 @@ describe('package contract helpers', () => {
     assert.match(addRelationFeature, /type enum:/, 'FEATURES must label add_relation write relation enum values');
     assert.match(addRelationRow, /`type`:/, 'MCP README must label add_relation write relation enum values');
     assert.match(addRelationsRow, /`type`:/, 'MCP README must label add_relations write relation enum values');
+    assert.match(addConceptsRow, /`concepts\[n\]` row label/);
+    assert.match(addConceptsRow, /`Received fields: \.\.\.`/);
+    assert.match(addRelationsRow, /`relations\[n\]` row label/);
+    assert.match(addRelationsRow, /`Received fields: \.\.\.`/);
     for (const value of WRITE_RELATION_TYPE_VALUES) {
       assert.match(addRelationFeature, new RegExp(`\`${value}\``), `FEATURES documents add_relation type ${value}`);
       assert.match(addRelationRow, new RegExp(`\`${value}\``), `MCP README documents add_relation type ${value}`);
@@ -1211,6 +1216,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /`slug!=project, limit=1` semantics/);
     assert.match(mcpVerifyRow, /`add_concepts` \/ `add_relations` row-isolation runtime smoke/);
     assert.match(mcpVerifyRow, /`concepts\[n\]` \/ `relations\[n\]` row label/);
+    assert.match(mcpVerifyRow, /`Received fields: \.\.\.`/);
     assert.match(mcpVerifyRow, /top-level tool error 가 아니라 row-level `ok:false`/);
     assert.match(mcpVerifyRow, /invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(mcpVerifyRow, /write-tool `postWriteMaintenance` `byPhase` \/ `bySeverity` \/ `byKind` bucket \+ `score` \/ executable `proposedAction` \/ current-page next-action guidance/);
@@ -1360,6 +1366,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /row-level non-object \/ blank \/ padded \/ unknown-field 입력은 해당 row 만 실패/);
     assert.match(doc, /row-level non-object \/ unknown-field 입력도 해당 row 만 실패/);
     assert.match(doc, /`concepts\[n\]` \/ `relations\[n\]` row label/);
+    assert.match(doc, /`Received fields: \.\.\.`/);
     assert.match(doc, /`add_concepts` \/ `add_relations` 는 non-object row 와 unknown row field 를 넣어\s+top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서\s+실제 호출로 확인/);
     assert.match(doc, /invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);

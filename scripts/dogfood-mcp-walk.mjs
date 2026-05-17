@@ -359,8 +359,14 @@ export function writeRowLabelGuidanceSummary(tools) {
   if (!/concepts\[n\]/.test(addConcepts?.description || "")) {
     missing.push("add_concepts concepts[n]");
   }
+  if (!/Received fields/.test(addConcepts?.description || "")) {
+    missing.push("add_concepts Received fields");
+  }
   if (!/relations\[n\]/.test(addRelations?.description || "")) {
     missing.push("add_relations relations[n]");
+  }
+  if (!/Received fields/.test(addRelations?.description || "")) {
+    missing.push("add_relations Received fields");
   }
 
   return missing.length > 0 ? `missing ${missing.join(", ")}` : "pass";
