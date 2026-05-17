@@ -10,6 +10,8 @@ import {
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
 } from '../mcp/src/ontology-engine.mjs';
+import { compileOntology } from '../mcp/src/ontology-compiler.mjs';
+import { loadVaultDocs } from '../mcp/src/vault.mjs';
 import {
   checkPackage,
   checkMcpLeanTarballFiles,
@@ -352,6 +354,13 @@ describe('package contract helpers', () => {
       `vault-readme:${census.byKind['vault-readme']}`,
     ].join(', ');
     const scopedNodes = census.total - census.byKind['vault-readme'];
+    const compiled = compileOntology(loadVaultDocs(join(process.cwd(), 'docs', 'ontology')), {
+      includeIndexes: true,
+    });
+    const graphHashPrefix = compiled.graphHash.slice(0, 12);
+    const indexOutCount = Object.keys(compiled.indexes.out).length;
+    const indexInCount = Object.keys(compiled.indexes.in).length;
+    const indexEdgeCount = Object.keys(compiled.indexes.edgeById).length;
 
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology/);
     assert.match(verifySection, /npm run verify -- --vault \.\.\/docs\/ontology/);
@@ -407,6 +416,17 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ health — healthy \(5 checks: compile_issues:pass:0/);
     assert.match(verifySection, /✓ health_tuned — healthy \(5 checks: compile_issues:pass:0/);
     assert.match(verifySection, /health_tuned — healthy \([\s\S]*issues 0; dependencyTypes=dependencies; componentTypes=domain\/capabilities\)/);
+    assert.match(verifySection, new RegExp(`✓ compile_ontology — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, issues ${compiled.issueCount}\\)`));
+    assert.match(verifySection, new RegExp(`✓ compile_ontology page — 1/${compiled.nodeCount} nodes, 1/${compiled.edgeCount} edges`));
+    assert.match(
+      verifySection,
+      new RegExp(
+        `✓ compile_ontology indexes — out ${indexOutCount}, in ${indexInCount}, edgeById ${indexEdgeCount}, aliases ${compiled.aliasCount}, edges ${compiled.resolvedEdgeCount}/${compiled.externalEdgeCount}/${compiled.unresolvedEdgeCount}`,
+      ),
+    );
+    assert.match(verifySection, new RegExp(`✓ overview — graph ${graphHashPrefix} \\(${compiled.nodeCount} nodes, ${compiled.edgeCount} edges, hubs \\d+\\)`));
+    assert.match(verifySection, new RegExp(`✓ overview query_plan — aggregate_scan \\(medium, nodes ${compiled.nodeCount}, edges ${compiled.edgeCount}\\)`));
+    assert.match(verifySection, new RegExp(`✓ project_map query_plan — aggregate_scan \\(medium, nodes ${compiled.nodeCount}, edges ${compiled.edgeCount}\\)`));
     assert.match(verifySection, /✓ neighbors — elements\/file-system-access-api/);
     assert.match(verifySection, /✓ path — elements\/file-system-access-api → project \(2 hops, 2 edges\)/);
     assert.doesNotMatch(verifySection, /✓ path — project → project/);

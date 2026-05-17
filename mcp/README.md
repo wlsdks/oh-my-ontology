@@ -279,12 +279,12 @@ A successful run looks like this:
 · workspace_brief_tuned advisory nextActions — components:info:6 - The resolved ontology graph has disconnected actionable islands.
 ✓ health — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1, issues 0)
 ✓ health_tuned — healthy (5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:info:6, issues 0; dependencyTypes=dependencies; componentTypes=domain/capabilities)
-✓ compile_ontology — graph 6bd0c936c858 (28 nodes, 210 edges, issues 0)
-✓ compile_ontology page — 1/28 nodes, 1/210 edges
-✓ compile_ontology indexes — out 27, in 26, edgeById 210, aliases 55, edges 92/118/0
-✓ overview — graph 6bd0c936c858 (28 nodes, 210 edges, hubs 5)
-✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 210)
-✓ project_map query_plan — aggregate_scan (medium, nodes 28, edges 210)
+✓ compile_ontology — graph 80a7a0dd691a (28 nodes, 212 edges, issues 0)
+✓ compile_ontology page — 1/28 nodes, 1/212 edges
+✓ compile_ontology indexes — out 28, in 27, edgeById 212, aliases 55, edges 93/119/0
+✓ overview — graph 80a7a0dd691a (28 nodes, 212 edges, hubs 5)
+✓ overview query_plan — aggregate_scan (medium, nodes 28, edges 212)
+✓ project_map query_plan — aggregate_scan (medium, nodes 28, edges 212)
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
 ✓ project_scope — project (27 nodes, internalEdges 92)
