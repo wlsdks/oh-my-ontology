@@ -235,6 +235,15 @@ describe('package contract helpers', () => {
     assert.doesNotMatch(line, /defaults exclude `vault-readme`\)/);
   });
 
+  it('keeps docs aligned with find_neighbors defaults', () => {
+    const features = readFileSync('docs/FEATURES.md', 'utf-8');
+    const line = features.split('6. **find_neighbors**')[1]?.split('\n')[0] ?? '';
+
+    assert.match(line, /`includeNodes` defaults true/);
+    assert.match(line, /`limit` defaults 100\/max 500/);
+    assert.match(line, /depends_on` are normalized to stored graph keys/);
+  });
+
   it('keeps docs aligned with compile_ontology large-vault options', () => {
     const features = readFileSync('docs/FEATURES.md', 'utf-8');
     const dogfoodMcpDoc = readFileSync('docs/ontology/capabilities/mcp-server.md', 'utf-8');
