@@ -3182,6 +3182,8 @@ await test("add_concepts — 배치 write, 순서 보존 + partial result", asyn
     // 순서 보존: alpha → exist (fail) → beta → gamma (fail)
     assert.equal(result.concepts[0].slug, "alpha");
     assert.equal(result.concepts[0].ok, true);
+    assert.equal(typeof result.concepts[0].filePath, "string");
+    assert.equal(result.concepts[0].changed, true);
     assert.equal(result.concepts[1].slug, "exist");
     assert.equal(result.concepts[1].ok, false);
     assert.match(result.concepts[1].error, /already exists|exist/i);
@@ -3587,6 +3589,8 @@ await test("add_relations — 배치 write, row 순서 보존 + canonical sort +
     // 순서 보존
     assert.equal(result.relations[0].ok, true);
     assert.equal(result.relations[0].to, "c2");
+    assert.equal(result.relations[0].key, "contains");
+    assert.equal(result.relations[0].changed, true);
     assert.equal(result.relations[1].ok, true);
     assert.equal(result.relations[1].to, "c1");
     // idempotent — 두번째는 alreadyExists

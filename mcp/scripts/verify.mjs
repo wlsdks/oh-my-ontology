@@ -1235,8 +1235,17 @@ export function toolsListSchemaFailure(tools) {
   if (addConceptRowsSchema.items?.properties?.ok?.type !== 'boolean') {
     return 'add_concepts outputSchema row ok drift';
   }
+  if (addConceptRowsSchema.items?.properties?.filePath?.type !== 'string') {
+    return 'add_concepts outputSchema row filePath drift';
+  }
+  if (addConceptRowsSchema.items?.properties?.changed?.type !== 'boolean') {
+    return 'add_concepts outputSchema row changed drift';
+  }
   if (addConceptRowsSchema.items?.properties?.warnings?.type !== 'array' || addConceptRowsSchema.items?.properties?.warnings?.items?.type !== 'string') {
     return 'add_concepts outputSchema row warnings drift';
+  }
+  if (addConceptRowsSchema.items?.properties?.error?.type !== 'string') {
+    return 'add_concepts outputSchema row error drift';
   }
   if (outputPropertyAt(addConceptsTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
     return 'add_concepts outputSchema postWriteMaintenance drift';
@@ -1297,6 +1306,15 @@ export function toolsListSchemaFailure(tools) {
   }
   if (addRelationRowsSchema.items?.properties?.alreadyExists?.type !== 'boolean') {
     return 'add_relations outputSchema row alreadyExists drift';
+  }
+  if (addRelationRowsSchema.items?.properties?.key?.type !== 'string') {
+    return 'add_relations outputSchema row key drift';
+  }
+  if (addRelationRowsSchema.items?.properties?.changed?.type !== 'boolean') {
+    return 'add_relations outputSchema row changed drift';
+  }
+  if (addRelationRowsSchema.items?.properties?.error?.type !== 'string') {
+    return 'add_relations outputSchema row error drift';
   }
   if (outputPropertyAt(addRelationsTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
     return 'add_relations outputSchema postWriteMaintenance drift';
