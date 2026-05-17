@@ -1883,6 +1883,23 @@ export function strictRelationCheckFailure(response) {
   return null;
 }
 
+export function strictMatchEdgesTypeFailure(response) {
+  if (response?.result?.isError !== true) {
+    return 'strict match_edges type response was not rejected';
+  }
+  const text = response.result.content?.[0]?.text || '';
+  if (!/type must be one of/i.test(text)) {
+    return 'strict match_edges type response did not report the invalid type filter';
+  }
+  if (!/Received: "depend_on"/i.test(text)) {
+    return 'strict match_edges type response did not report the invalid type value';
+  }
+  if (!/Did you mean "depends_on"\?/i.test(text)) {
+    return 'strict match_edges type response did not suggest the closest type value';
+  }
+  return null;
+}
+
 export function strictAddRelationFailure(response) {
   if (response?.result?.isError !== true) {
     return 'strict add_relation response was not rejected';
@@ -2345,6 +2362,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [51, 'strict_recommend_relations_kind_filter'],
   [52, 'strict_recommend_relations_unsupported_kind_filter'],
   [53, 'strict_match_nodes_sort_filter'],
+  [54, 'strict_match_edges_type_filter'],
 ]);
 
 function log(level, msg) {
@@ -2583,7 +2601,7 @@ export function verifyUsage() {
     'including list/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans.\n' +
     'It also checks node census, vault validation, workspace health, compile_ontology summary + paginated full-artifact + indexed full-artifact smoke, overview, query plans, and graph-query smoke.\n' +
     'Successful output prints read census consistency after cross-checking list_kinds/list_concepts/compile_ontology/overview.\n' +
-    'Also checks strict unknown-argument / invalid-enum rejection, match_nodes.kind/sort, recommend_relations.kind, and match_edges.fromKind/toKind typo and unsupported-kind rejection, maintenance_plan filter enums,\n' +
+    'Also checks strict unknown-argument / invalid-enum rejection, match_nodes.kind/sort, recommend_relations.kind, and match_edges.type/fromKind/toKind typo and unsupported-kind rejection, maintenance_plan filter enums,\n' +
     'tools/list inventory names, schema strictness, and annotation coverage (title/read/write/destructive/idempotent/local-only),\n' +
     'batch writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels, plus invalid add_relations type closest-value hints,\n' +
     'destructive writer dry-runs for rename_concept/merge_concepts/delete_concept with every planned response present and no changed/postWriteMaintenance,\n' +
@@ -2929,6 +2947,18 @@ export function buildFirstContactRequests() {
         arguments: {
           operation: 'match_nodes',
           sort: 'outDegre',
+        },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 54,
+      method: 'tools/call',
+      params: {
+        name: 'query_ontology',
+        arguments: {
+          operation: 'match_edges',
+          type: 'depend_on',
         },
       },
     },
@@ -5174,6 +5204,7 @@ async function step2BootAndCall() {
       const strictRecommendRelationsKindFilterRes = responses.find((r) => r.id === 51);
       const strictRecommendRelationsUnsupportedKindFilterRes = responses.find((r) => r.id === 52);
       const strictMatchNodesSortFilterRes = responses.find((r) => r.id === 53);
+      const strictMatchEdgesTypeFilterRes = responses.find((r) => r.id === 54);
       const strictGraphFromKindFilterRes = responses.find((r) => r.id === 48);
       const strictGraphToKindFilterRes = responses.find((r) => r.id === 49);
       const maintenanceMissingCursorRes = responses.find((r) => r.id === 25);
@@ -5339,7 +5370,12 @@ async function step2BootAndCall() {
         log('fail', strictMatchNodesSortFilter);
         return res(false);
       }
-      log('ok', 'strict graph filters — invalid match_nodes.kind/sort and recommend_relations.kind rejected with narrowed diagnostics');
+      const strictMatchEdgesTypeFilter = strictMatchEdgesTypeFailure(strictMatchEdgesTypeFilterRes);
+      if (strictMatchEdgesTypeFilter) {
+        log('fail', strictMatchEdgesTypeFilter);
+        return res(false);
+      }
+      log('ok', 'strict graph filters — invalid match_nodes.kind/sort, match_edges.type, and recommend_relations.kind rejected with narrowed diagnostics');
       const strictGraphFromKindFilter = strictGraphKindFilterFailure(strictGraphFromKindFilterRes, { field: 'fromKind' });
       if (strictGraphFromKindFilter) {
         log('fail', strictGraphFromKindFilter);

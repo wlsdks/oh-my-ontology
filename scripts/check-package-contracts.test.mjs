@@ -642,7 +642,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint/);
     assert.match(verifySection, /✓ strict add_relation — invalid type rejected before endpoint resolution without writing/);
-    assert.match(verifySection, /✓ strict graph filters — invalid match_nodes\.kind\/sort and recommend_relations\.kind rejected with narrowed diagnostics/);
+    assert.match(verifySection, /✓ strict graph filters — invalid match_nodes\.kind\/sort, match_edges\.type, and recommend_relations\.kind rejected with narrowed diagnostics/);
     assert.match(verifySection, /✓ strict graph edge kind filters — invalid match_edges\.fromKind\/toKind rejected with closest-value hints/);
     assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported .*phase none; severity none; kind none; executable none; review none/);
     assert.match(verifySection, /✓ maintenance cursor — ready page stable .*phase none; severity none; kind none; executable none; review none/);
@@ -949,8 +949,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`match_nodes\.kind`/);
     assert.match(verifySection, /`match_nodes\.sort`/);
     assert.match(verifySection, /`recommend_relations\.kind`/);
-    assert.match(verifySection, /`match_edges\.fromKind` \/ `match_edges\.toKind`\s+typo and unsupported-kind rejection/);
-    assert.match(verifySection, /operation-specific kind mismatches fail with diagnostics\s+instead of\s+silently/);
+    assert.match(verifySection, /`match_edges\.type` \/ `match_edges\.fromKind` \/\s+`match_edges\.toKind`\s+typo and unsupported-kind rejection/);
+    assert.match(verifySection, /relation type typos, and operation-specific kind mismatches fail with\s+diagnostics instead of\s+silently/);
     assert.match(verifySection, /`maintenance_plan` cursor contract/);
     assert.match(verifySection, /`cursor\.found=true` with `cursor\.reason=null`/);
     assert.match(verifySection, /`nextAfterActionId`\s+matching the last returned action, and `hasMore` matching the remaining page\s+state/);
@@ -1350,11 +1350,13 @@ describe('package contract helpers', () => {
     assert.match(doc, /`orderLimit`, `nodeLimit`, `dependencyTypes`, `componentTypes`/);
     assert.match(doc, /`dependencyTypes` \/ `componentTypes` 도 relation type enum 을 MCP\s+schema 로 노출/);
     assert.match(doc, /`match_nodes\.kind` \/ `match_edges\.fromKind` 는 표준 ontology kind enum/);
+    assert.match(doc, /`match_edges\.type` 도 relation type enum/);
     assert.match(doc, /`match_edges\.toKind` 는 여기에 `external` \/ `unresolved` target kind 까지 포함한\s+edge target enum/);
     assert.match(doc, /cursor miss `reason`/);
     assert.match(queryOntologyRow, /ready page 의 `cursor\.found=true` \/ `cursor\.reason=null`/);
     assert.match(queryOntologyRow, /현재 page 안의 첫 executable\/review action/);
     assert.match(queryOntologyRow, /`match_nodes\.kind` and `match_edges\.fromKind` use the ontology node-kind enum/);
+    assert.match(queryOntologyRow, /`match_edges\.type` uses the relation-type enum/);
     assert.match(queryOntologyRow, /`match_edges\.toKind` also accepts `external` and `unresolved` target kinds/);
     assert.match(queryOntologyRow, /unknown cursor 의 `cursor\.found=false` \/ cursor miss `reason`/);
     assert.match(queryOntologyRow, /count-safe summary fields/);
@@ -1848,9 +1850,10 @@ describe('package contract helpers', () => {
     assert.match(doc, /tools\/list inventory name \/ annotation coverage/);
     assert.match(doc, /direct verify help 와 CLI wrapper help 도 이 `match_nodes\.kind`/);
     assert.match(doc, /`match_nodes\.sort=outDegre`/);
-    assert.match(doc, /`recommend_relations\.kind` \/ `match_edges\.fromKind`/);
+    assert.match(doc, /`match_edges\.type=depend_on`/);
+    assert.match(doc, /`recommend_relations\.kind` \/ `match_edges\.type` \/ `match_edges\.fromKind`/);
     assert.match(doc, /`recommend_relations\.kind=domain`/);
-    assert.match(doc, /invalid sort, operation-specific mismatch 를 빈 결과로 삼키지 않는지/);
+    assert.match(doc, /invalid sort, relation type typo, operation-specific mismatch 를 빈 결과로 삼키지 않는지/);
     assert.match(doc, /typo and unsupported-kind rejection/);
     assert.match(doc, /row-label guidance summary/);
     assert.match(doc, /focused subset, workspace_brief sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, tools\/list inventory name \/ annotation coverage, row-label guidance summary, strict closest-value summary, strict add_relation type-preflight 를 fixture 로 검증/);

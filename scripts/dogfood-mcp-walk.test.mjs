@@ -2794,6 +2794,12 @@ const okShape = {
       content: [{ text: 'sort must be one of: degree, inDegree, outDegree, slug. Received: "outDegre". Did you mean "outDegree"?' }],
     },
   },
+  strictMatchEdgesTypeFilter: {
+    result: {
+      isError: true,
+      content: [{ text: 'type must be one of: domains, domain, capabilities, elements, dependencies, depends_on, relates, contains, describes. Received: "depend_on". Did you mean "depends_on"?' }],
+    },
+  },
   strictGraphFromKindFilter: {
     result: {
       isError: true,
@@ -3015,6 +3021,10 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       strictClosestValueSummary(okShape.strictMatchNodesSortFilter),
       "rejected true (outDegre -> outDegree)",
+    );
+    assert.equal(
+      strictClosestValueSummary(okShape.strictMatchEdgesTypeFilter),
+      "rejected true (depend_on -> depends_on)",
     );
     assert.equal(
       strictClosestValueSummary({ result: { isError: true, content: [{ text: 'Received: "depend_on".' }] } }),
@@ -3297,6 +3307,7 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(71), "strict_recommend_relations_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(72), "strict_recommend_relations_unsupported_kind_filter");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(73), "strict_match_nodes_sort_filter");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(74), "strict_match_edges_type_filter");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -3341,6 +3352,17 @@ describe("rpc response completion helpers", () => {
         operation: "relation_check",
         from: "missing-relation-check-source",
         to: "missing-relation-check-target",
+        type: "depend_on",
+      },
+    });
+  });
+
+  it("keeps strict match_edges type dogfood request endpoint-independent", () => {
+    const requests = buildDogfoodRequests();
+    assert.deepEqual(requests.find((request) => request.id === 74)?.params, {
+      name: "query_ontology",
+      arguments: {
+        operation: "match_edges",
         type: "depend_on",
       },
     });
@@ -4098,6 +4120,30 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["strict_match_nodes_sort_filter: strict match_nodes sort response did not list allowed sort values"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictMatchEdgesTypeFilter: {
+          result: {
+            isError: false,
+            content: [{ text: "ok" }],
+          },
+        },
+      }),
+      ["strict_match_edges_type_filter: strict match_edges type response was not rejected"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictMatchEdgesTypeFilter: {
+          result: {
+            isError: true,
+            content: [{ text: 'type must be one of: domains, domain, capabilities, elements, dependencies.' }],
+          },
+        },
+      }),
+      ["strict_match_edges_type_filter: strict match_edges type response did not report the invalid type value"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({

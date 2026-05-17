@@ -93,6 +93,7 @@ import {
   strictGraphKindFilterFailure,
   strictRecommendRelationsKindFilterFailure,
   strictMatchNodesSortFailure,
+  strictMatchEdgesTypeFailure,
   strictMaintenanceFilterFailure,
   strictRelationFilterFailure,
   strictRelationCheckFailure,
@@ -3647,7 +3648,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /compile_ontology summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
     assert.match(verifyUsage(), /Successful output prints read census consistency after cross-checking list_kinds\/list_concepts\/compile_ontology\/overview/);
     assert.match(verifyUsage(), /strict unknown-argument \/ invalid-enum rejection/);
-    assert.match(verifyUsage(), /match_nodes\.kind\/sort, recommend_relations\.kind, and match_edges\.fromKind\/toKind typo and unsupported-kind rejection/);
+    assert.match(verifyUsage(), /match_nodes\.kind\/sort, recommend_relations\.kind, and match_edges\.type\/fromKind\/toKind typo and unsupported-kind rejection/);
     assert.match(verifyUsage(), /tools\/list inventory names, schema strictness, and annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
     assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels, plus invalid add_relations type closest-value hints/);
     assert.match(verifyUsage(), /structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries/);
@@ -4338,6 +4339,34 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
+  it('fails malformed strict match_edges type smoke responses', () => {
+    assert.equal(
+      strictMatchEdgesTypeFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'type must be one of: domains, domain, capabilities, elements, dependencies, depends_on, relates, contains, describes. Received: "depend_on". Did you mean "depends_on"?' }],
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictMatchEdgesTypeFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict match_edges type response was not rejected',
+    );
+    assert.equal(
+      strictMatchEdgesTypeFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict match_edges type response did not report the invalid type filter',
+    );
+    assert.equal(
+      strictMatchEdgesTypeFailure({ result: { isError: true, content: [{ text: 'type must be one of: dependencies, depends_on. Did you mean "depends_on"?' }] } }),
+      'strict match_edges type response did not report the invalid type value',
+    );
+    assert.equal(
+      strictMatchEdgesTypeFailure({ result: { isError: true, content: [{ text: 'type must be one of: dependencies, depends_on. Received: "depend_on".' }] } }),
+      'strict match_edges type response did not suggest the closest type value',
+    );
+  });
+
   it('fails malformed strict add_relation smoke responses', () => {
     assert.equal(
       strictAddRelationFailure({
@@ -5009,6 +5038,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(51), 'strict_recommend_relations_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(52), 'strict_recommend_relations_unsupported_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(53), 'strict_match_nodes_sort_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(54), 'strict_match_edges_type_filter');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),

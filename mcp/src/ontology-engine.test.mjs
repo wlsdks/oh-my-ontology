@@ -1555,6 +1555,17 @@ describe('queryCompiledOntology', () => {
     );
   });
 
+  it('rejects typoed match_edges relation type filters with nearest-value hints', () => {
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_edges', type: 'depend_on' }),
+      /type must be one of:[\s\S]*Received: "depend_on"\.[\s\S]*Did you mean "depends_on"\?/,
+    );
+    assert.throws(
+      () => queryCompiledOntology(artifact(), { operation: 'match_edges', relation: 'depend_on' }),
+      /relation must be one of:[\s\S]*Received: "depend_on"\.[\s\S]*Did you mean "depends_on"\?/,
+    );
+  });
+
   it('rejects invalid optional scalar filters instead of ignoring them', () => {
     assert.throws(
       () => queryCompiledOntology(artifact(), { operation: 'match_nodes', kind: 123 }),

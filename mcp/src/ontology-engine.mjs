@@ -1130,11 +1130,7 @@ export function createOntologyEngine(artifact, options = {}) {
 
   function matchEdges(options = {}) {
     const limit = normalizeLimit(options.limit);
-    const typeSet = normalizeTypes(
-      Array.isArray(options.types) && options.types.length > 0
-        ? options.types
-        : [options.type ?? options.relation].filter(Boolean),
-    );
+    const typeSet = normalizeMatchEdgesTypes(options);
     const fromInput = normalizeOptionalString(options.from, 'from');
     const toInput = normalizeOptionalString(options.to, 'to');
     const from = fromInput ? resolve(fromInput, 'from') : null;
@@ -3348,6 +3344,30 @@ function normalizeTypes(types, name = 'types') {
     normalized.push(normalizeRelationType(trimmed));
   }
   return new Set(normalized);
+}
+
+function normalizeMatchEdgesTypes(options = {}) {
+  if (Array.isArray(options.types) && options.types.length > 0) {
+    return normalizeTypes(options.types, 'types');
+  }
+  const field = options.type === undefined ? 'relation' : 'type';
+  const value = options.type ?? options.relation;
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'string') {
+    throw new Error(`${field} must be a string.`);
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(`${field} must be a non-empty string.`);
+  }
+  if (trimmed !== value) {
+    throw new Error(`${field} must not have leading or trailing whitespace.`);
+  }
+  if (trimmed.includes('\0')) {
+    throw new Error(`${field} must not contain a null byte.`);
+  }
+  requireRelationType(trimmed, field);
+  return new Set([normalizeRelationType(trimmed)]);
 }
 
 function normalizePattern(pattern) {

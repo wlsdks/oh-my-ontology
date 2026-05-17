@@ -40,6 +40,7 @@ import {
   strictGraphKindFilterFailure,
   strictRecommendRelationsKindFilterFailure,
   strictMatchNodesSortFailure,
+  strictMatchEdgesTypeFailure,
   strictMaintenanceFilterFailure,
   strictAddRelationFailure,
   strictRelationFilterFailure,
@@ -184,6 +185,7 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [71, "strict_recommend_relations_kind_filter"],
   [72, "strict_recommend_relations_unsupported_kind_filter"],
   [73, "strict_match_nodes_sort_filter"],
+  [74, "strict_match_edges_type_filter"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -689,6 +691,10 @@ export function buildDogfoodRequests() {
       operation: "match_nodes",
       sort: "outDegre",
     }),
+    call(74, "query_ontology", {
+      operation: "match_edges",
+      type: "depend_on",
+    }),
     call(68, "query_ontology", {
       operation: "match_edges",
       fromKind: "capabilty",
@@ -1019,6 +1025,7 @@ export function evaluateDogfoodGate({
   strictRecommendRelationsKindFilter,
   strictRecommendRelationsUnsupportedKindFilter,
   strictMatchNodesSortFilter,
+  strictMatchEdgesTypeFilter,
   strictGraphFromKindFilter,
   strictGraphToKindFilter,
   toolsList,
@@ -1114,6 +1121,10 @@ export function evaluateDogfoodGate({
   const strictMatchNodesSortFilterError = strictMatchNodesSortFailure(strictMatchNodesSortFilter);
   if (strictMatchNodesSortFilterError) {
     failures.push(`strict_match_nodes_sort_filter: ${strictMatchNodesSortFilterError}`);
+  }
+  const strictMatchEdgesTypeFilterError = strictMatchEdgesTypeFailure(strictMatchEdgesTypeFilter);
+  if (strictMatchEdgesTypeFilterError) {
+    failures.push(`strict_match_edges_type_filter: ${strictMatchEdgesTypeFilterError}`);
   }
   const strictGraphFromKindFilterError = strictGraphKindFilterFailure(strictGraphFromKindFilter, { field: "fromKind" });
   if (strictGraphFromKindFilterError) failures.push(`strict_graph_from_kind_filter: ${strictGraphFromKindFilterError}`);
@@ -5422,7 +5433,7 @@ async function main() {
   }
 
   // 52. strict graph kind filter rejection
-  header("strict graph kind filters — invalid match_nodes.kind and recommend_relations.kind rejection");
+  header("strict graph filters — invalid match_nodes.kind/sort, match_edges.type, and recommend_relations.kind rejection");
   const strictGraphKindFilter = responses.find((response) => response.id === 67);
   const strictGraphKindFilterText = strictGraphKindFilter?.result?.content?.[0]?.text || "";
   console.log(`  match_nodes.kind rejected: ${strictGraphKindFilter?.result?.isError === true}`);
@@ -5446,6 +5457,12 @@ async function main() {
   console.log(`  match_nodes.sort rejected: ${strictMatchNodesSortFilter?.result?.isError === true}`);
   if (strictMatchNodesSortFilterText) {
     console.log(`  ${strictMatchNodesSortFilterText}`);
+  }
+  const strictMatchEdgesTypeFilter = responses.find((response) => response.id === 74);
+  const strictMatchEdgesTypeFilterText = strictMatchEdgesTypeFilter?.result?.content?.[0]?.text || "";
+  console.log(`  match_edges.type rejected: ${strictMatchEdgesTypeFilter?.result?.isError === true}`);
+  if (strictMatchEdgesTypeFilterText) {
+    console.log(`  ${strictMatchEdgesTypeFilterText}`);
   }
   const strictGraphFromKindFilter = responses.find((response) => response.id === 68);
   const strictGraphFromKindFilterText = strictGraphFromKindFilter?.result?.content?.[0]?.text || "";
@@ -5643,6 +5660,7 @@ async function main() {
     strictRecommendRelationsKindFilter,
     strictRecommendRelationsUnsupportedKindFilter,
     strictMatchNodesSortFilter,
+    strictMatchEdgesTypeFilter,
     strictGraphFromKindFilter,
     strictGraphToKindFilter,
     toolsList,
@@ -5752,6 +5770,7 @@ async function main() {
   console.log(`  strict_recommend_relations_kind_filter: ${strictClosestValueSummary(strictRecommendRelationsKindFilter)}`);
   console.log(`  strict_recommend_relations_unsupported_kind_filter: ${strictClosestValueSummary(strictRecommendRelationsUnsupportedKindFilter)}`);
   console.log(`  strict_match_nodes_sort_filter: ${strictClosestValueSummary(strictMatchNodesSortFilter)}`);
+  console.log(`  strict_match_edges_type_filter: ${strictClosestValueSummary(strictMatchEdgesTypeFilter)}`);
   console.log(`  strict_graph_from_kind_filter: ${strictClosestValueSummary(strictGraphFromKindFilter)}`);
   console.log(`  strict_graph_to_kind_filter: ${strictClosestValueSummary(strictGraphToKindFilter)}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
