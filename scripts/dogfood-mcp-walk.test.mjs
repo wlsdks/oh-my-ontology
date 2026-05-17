@@ -93,6 +93,27 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "list_concepts") {
+        tool.inputSchema.properties = {
+          kind: { type: "string", minLength: 1 },
+          domain: { type: "string", minLength: 1 },
+          since: {
+            type: "number",
+            minimum: 0,
+            description:
+              "Non-negative mtime threshold. Filter to nodes with mtime > since for incremental sync and does not double-fetch rows already seen.",
+          },
+          summary: {
+            type: "boolean",
+            description:
+              "When true, each node row includes a summary max 200 chars without N follow-up `get_concept` calls. Default false.",
+          },
+          limit: {
+            type: "integer",
+            minimum: 1,
+            maximum: 500,
+            description: "Positive integer max rows to return. Defaults to 100, max 500.",
+          },
+        };
         tool.outputSchema = {
           type: "object",
           required: ["total", "vaultRoot", "nodes"],
@@ -124,6 +145,16 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "get_concepts") {
+        tool.description =
+          "Fetch multiple nodes in one call and saves K-1 round-trips. Order of `concepts[]` matches input `slugs[]`; Missing or invalid slug rows return errors while later valid slugs still resolve.";
+        tool.inputSchema.required = ["slugs"];
+        tool.inputSchema.properties.slugs = {
+          type: "array",
+          maxItems: 50,
+          items: { type: "string" },
+          description:
+            'Vault-relative slugs, unique tail slugs, or frontmatter `slug` aliases. Max 50 per call.',
+        };
         tool.outputSchema = {
           type: "object",
           required: ["concepts"],
@@ -179,6 +210,14 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "find_evidence") {
+        tool.description =
+          "Find vault docs that mention a given concept by title. Each match includes a prose `excerpt` so agents see the matching doc without an extra get_concept call.";
+        tool.inputSchema.required = ["title"];
+        tool.inputSchema.properties.title = {
+          type: "string",
+          minLength: 1,
+          description: "Concept title to search for (case-insensitive substring match).",
+        };
         tool.outputSchema = {
           type: "object",
           required: ["query", "matches"],
@@ -203,6 +242,14 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "find_backlinks") {
+        tool.description =
+          "Return every node that points to the target slug. Scans both frontmatter keys and wikilinks / markdown links in the body so agents can walk the graph from a node to its dependents.";
+        tool.inputSchema.required = ["slug"];
+        tool.inputSchema.properties.slug = {
+          type: "string",
+          minLength: 1,
+          description: "Target vault-relative slug (omit the .md extension).",
+        };
         tool.outputSchema = {
           type: "object",
           required: ["target", "total", "matches"],
@@ -228,6 +275,31 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "find_neighbors") {
+        tool.inputSchema.required = ["slug"];
+        tool.inputSchema.properties = {
+          slug: { type: "string", minLength: 1 },
+          direction: {
+            type: "string",
+            enum: ["outgoing", "incoming", "both"],
+            description: "Edge direction to include. Defaults to both.",
+          },
+          types: {
+            type: "array",
+            items: { type: "string" },
+            description:
+              'Optional relation types, e.g. ["domain", "depends_on"]. Public add_relation types are normalized to stored graph keys.',
+          },
+          includeNodes: {
+            type: "boolean",
+            description: "When true (default), include neighbor node summaries for resolved edges.",
+          },
+          limit: {
+            type: "integer",
+            minimum: 1,
+            maximum: 500,
+            description: "Positive integer max edges to return. Defaults to 100, max 500.",
+          },
+        };
         tool.outputSchema = {
           type: "object",
           required: ["center", "requested", "direction", "totalEdges", "limited", "edges"],
@@ -270,6 +342,17 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "find_path") {
+        tool.inputSchema.required = ["from", "to"];
+        tool.inputSchema.properties = {
+          from: { type: "string" },
+          to: { type: "string" },
+          maxHops: {
+            type: "integer",
+            minimum: 0,
+            maximum: 20,
+            description: "Non-negative integer maximum hop count (default 5, max 20).",
+          },
+        };
         tool.outputSchema = {
           type: "object",
           required: ["from", "to", "found"],
@@ -296,6 +379,8 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "list_kinds") {
+        tool.description =
+          "Vault kind distribution for quick census; size up the vault without paging through list_concepts.";
         tool.outputSchema = {
           type: "object",
           required: ["total", "byKind"],
@@ -309,6 +394,8 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "validate_vault") {
+        tool.description =
+          "Validate every doc in the vault with per-doc + per-code aggregate, side effect 0. Run first-contact before writes and before / after a batch write.";
         tool.outputSchema = {
           type: "object",
           required: ["scanned", "problems", "summary"],
@@ -343,6 +430,13 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "find_orphans") {
+        tool.description =
+          "List orphan nodes: docs that no other node references via any frontmatter array key. Useful cleanup starting point. Root/sentinel kinds like project and vault-readme are excluded by default.";
+        tool.inputSchema.properties.kind = {
+          type: "string",
+          minLength: 1,
+          description: "Restrict to one kind. Omit for all kinds.",
+        };
         tool.inputSchema.properties.excludeKinds = {
           type: "array",
           items: { type: "string" },
@@ -370,6 +464,22 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "query_concepts") {
+        tool.description =
+          "Typed filter DSL. Grammar: filter := atom (AND|OR atom)*; predicate := key=value | key!=value | has(key). Example: kind=capability AND domain=auth AND NOT has(elements).";
+        tool.inputSchema.required = ["filter"];
+        tool.inputSchema.properties = {
+          filter: {
+            type: "string",
+            description:
+              "Filter expression. Supports NOT / AND / OR. Wrap values containing whitespace or special characters with quotes.",
+          },
+          limit: {
+            type: "integer",
+            minimum: 1,
+            maximum: 500,
+            description: "Positive integer max rows to return. Defaults to 100, max 500.",
+          },
+        };
         tool.outputSchema = {
           type: "object",
           required: ["filter", "parsedAs", "total", "matches", "limited"],
@@ -395,6 +505,20 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "compile_ontology") {
+        tool.description =
+          "Compile a deterministic graph artifact with stable semantic graphHash and maxMtime. Large vaults (100+ nodes) can exceed the MCP token cap; use summary: true or nodesLimit/nodesOffset and edgesLimit/edgesOffset.";
+        tool.inputSchema.properties = {
+          summary: {
+            type: "boolean",
+            description: "When true, omit `nodes` / `edges` / `aliases`. Cheap polling for cache invalidation.",
+          },
+          nodesLimit: {
+            type: "integer",
+            minimum: 1,
+            maximum: 500,
+            description: "Pair with `nodesOffset` to paginate nodes, max 500.",
+          },
+        };
         tool.outputSchema = {
           type: "object",
           required: [
@@ -432,6 +556,13 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "analyze_repo_structure") {
+        tool.description =
+          "Analyze a code repository and propose ontology node candidates; side effect 0 (vault frontmatter NOT modified). Returns deterministic candidates agents should review and selectively pass to add_concept to bootstrap the ontology. Single source of truth preserved.";
+        tool.inputSchema.properties.rootPath = {
+          type: "string",
+          minLength: 1,
+          description: "Repository root to analyze. Defaults to the MCP server cwd.",
+        };
         tool.outputSchema = {
           type: "object",
           required: ["rootPath", "framework", "domains", "capabilities", "elements", "suggestedRelations", "skipped"],
@@ -486,6 +617,14 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "infer_imports") {
+        tool.description =
+          "Walk TS/JS files in a code repo and infer file-level + module-level import edges; side effect 0 (vault frontmatter NOT modified). Agent reviews moduleEdges and selectively passes accepted edges to add_relation as `depends_on`. Use after analyze_repo_structure, not just suggestedRelations heuristics. Single source of truth preserved.";
+        tool.inputSchema.properties.maxFiles = {
+          type: "integer",
+          minimum: 1,
+          maximum: 50000,
+          description: "Hard stop, default 5000, max 50000 to avoid pathological monorepos.",
+        };
         tool.outputSchema = {
           type: "object",
           required: ["rootPath", "filesScanned", "edges", "externalImports", "unresolved", "moduleEdges"],
@@ -527,7 +666,11 @@ function makeDogfoodToolsList() {
       }
       if (name === "get_concepts") {
         tool.inputSchema.required = ["slugs"];
-        tool.inputSchema.properties.slugs = { type: "array", maxItems: 50 };
+        tool.inputSchema.properties.slugs = {
+          ...tool.inputSchema.properties.slugs,
+          type: "array",
+          maxItems: 50,
+        };
       }
       if (name === "add_concepts") {
         tool.description += " Batch rows isolate non-object row shape and unknown row field as ok:false rows.";
@@ -2190,19 +2333,25 @@ const okShape = {
   strictMaintenancePhaseFilter: {
     result: {
       isError: true,
-      content: [{ text: 'phases items must be one of: validate, repair, link, materialize, review.' }],
+      content: [{ text: 'phases items must be one of: validate, repair, link, materialize, review. Received: "repiar". Did you mean "repair"?' }],
     },
   },
   strictMaintenanceSeverityFilter: {
     result: {
       isError: true,
-      content: [{ text: 'severities items must be one of: fail, warn, info.' }],
+      content: [{ text: 'severities items must be one of: fail, warn, info. Received: "fatal". Did you mean "fail"?' }],
     },
   },
   strictMaintenanceKindFilter: {
     result: {
       isError: true,
-      content: [{ text: 'kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain.' }],
+      content: [{ text: 'kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain. Received: "add_mising_relation". Did you mean "add_missing_relation"?' }],
+    },
+  },
+  strictRelationFilter: {
+    result: {
+      isError: true,
+      content: [{ text: 'dependencyTypes items must be one of: domains, domain, capabilities, elements, dependencies, depends_on, relates, contains, describes. Received: "depend_on". Did you mean "depends_on"?' }],
     },
   },
 };
