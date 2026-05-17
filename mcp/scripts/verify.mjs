@@ -87,6 +87,7 @@ export const VERIFY_TUNED_HEALTH_ARGS = {
   dependencyTypes: ['dependencies'],
   componentTypes: ['domains', 'domain', 'capabilities', 'dependencies'],
 };
+export const VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT = 3;
 
 export const EXPECTED_READ_TOOLS = [
   'list_concepts',
@@ -2498,7 +2499,7 @@ export function buildFirstContactRequests() {
           operation: 'workspace_brief',
           limit: 3,
           ...VERIFY_TUNED_HEALTH_ARGS,
-          nodeLimit: 3,
+          nodeLimit: VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
         },
       },
     },
@@ -4504,6 +4505,13 @@ export function tunedHealthScopeOutputSummary(args = VERIFY_TUNED_HEALTH_ARGS) {
   return `dependencyTypes=${dependencyTypes}; componentTypes=${componentTypes}`;
 }
 
+export function tunedWorkspaceBriefScopeOutputSummary(
+  args = VERIFY_TUNED_HEALTH_ARGS,
+  nodeLimit = VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
+) {
+  return `${tunedHealthScopeOutputSummary(args)}; nodeLimit=${nodeLimit}`;
+}
+
 export function advisoryNextActionsSummary(actions, limit = 3) {
   if (!Array.isArray(actions)) return null;
   const advisory = actions
@@ -5432,7 +5440,7 @@ async function step2BootAndCall() {
         }
         log(
           'ok',
-          `workspace_brief_tuned — ${parsed.status} (${workspaceBriefSummary(parsed)}; ${tunedHealthScopeOutputSummary()}; nodeLimit=3)`,
+          `workspace_brief_tuned — ${parsed.status} (${workspaceBriefSummary(parsed)}; ${tunedWorkspaceBriefScopeOutputSummary()})`,
         );
         const advisory = advisoryNextActionsSummary(parsed.nextActions);
         if (advisory) log('info', `workspace_brief_tuned non-blocking advisory nextActions — ${advisory}`);
