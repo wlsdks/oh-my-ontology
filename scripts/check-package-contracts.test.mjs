@@ -1548,6 +1548,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /maintenance filter enum/);
     assert.match(regressionSection, /ready cursor \/ missing cursor 계약/);
     assert.match(regressionSection, /ready cursor \/ missing cursor scope/);
+    assert.match(regressionSection, /focused first-contact sample-shape helper scope/);
   });
 
   it('keeps dogfood MCP capability docs aligned with focused integration shortcuts', () => {

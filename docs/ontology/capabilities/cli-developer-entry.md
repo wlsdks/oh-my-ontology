@@ -108,7 +108,7 @@ installed `mcp-verify --help` 가 graph-query smoke, direct read smoke set(`get_
 계속 설명하는지도 확인한다. paired self-test 는 누락된
 reachable import, 죽은 `files` glob, multiline/dynamic import parsing, command registry
 reachability, test script 제외 규칙을 fixture 로 고정한다. CLI README 의
-`mcp-verify --help` graph-query smoke / direct read smoke set(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함) / strict argument/enum smoke / batch writer row-isolation smoke / destructive dry-run smoke / write-tool post-write bucket guidance / maintenance filter enum / ready cursor / missing cursor scope 도 문서 계약으로 고정해 release smoke 와
+`mcp-verify --help` graph-query smoke / direct read smoke set(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함) / strict argument/enum smoke / batch writer row-isolation smoke / destructive dry-run smoke / write-tool post-write bucket guidance / maintenance filter enum / ready cursor / missing cursor scope / focused first-contact sample-shape helper scope 도 문서 계약으로 고정해 release smoke 와
 사용자-facing 문서가 갈라지지 않게 한다. root README 의 release gate 섹션도
 `smoke:packed-cli` 가 installed `mcp-verify --help` scope 를 검증한다고 명시하고,
 package contract test 가 이를 고정한다.
