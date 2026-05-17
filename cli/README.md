@@ -76,7 +76,8 @@ enums, and write-tool `postWriteMaintenance` `score` / executable
 `proposedAction` / current-page next action pointer guidance.
 It also verifies batch writer row isolation guidance for `add_concepts` and
 `add_relations`, including non-object row shape and unknown row field failures
-surfacing as row-level `ok:false` results instead of top-level tool errors.
+surfacing as row-level `ok:false` results instead of top-level tool errors,
+with no `postWriteMaintenance`.
 It also performs runtime negative smokes with invalid `list_concepts.lmit` and
 `query_ontology.operation="overveiw"` inputs, so CLI users catch schema/runtime
 strictness drift in the installed MCP package.

@@ -2176,6 +2176,29 @@ describe('verify.mjs first-contact gates', () => {
       }, 'relations', 'add_relations'),
       'add_relations row-isolation response missing non-object row error',
     );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              concepts: [
+                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+                { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "mystery" in concepts[1]. Allowed fields: slug, kind, title.' },
+              ],
+              postWriteMaintenance: {},
+            }),
+          }],
+          structuredContent: {
+            concepts: [
+              { slug: '', ok: false, error: 'concepts[0] must be an object.' },
+              { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "mystery" in concepts[1]. Allowed fields: slug, kind, title.' },
+            ],
+            postWriteMaintenance: {},
+          },
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response unexpectedly included postWriteMaintenance',
+    );
   });
 
   it('fails malformed strict enum smoke responses', () => {

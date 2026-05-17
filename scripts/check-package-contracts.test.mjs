@@ -492,6 +492,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /batch writer row isolation guidance for `add_concepts` and\s+`add_relations`/);
     assert.match(verifySection, /non-object row shape and unknown row field failures\s+surfacing as row-level `ok:false` results/);
     assert.match(verifySection, /instead of top-level tool errors/);
+    assert.match(verifySection, /with no `postWriteMaintenance`/);
   });
 
   it('keeps the CLI README explicit about graph write safety switches', () => {
@@ -524,7 +525,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /accepts empty vault folders/);
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
-    assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results instead of top-level tool errors/);
+    assert.match(verifySection, /non-object row shape and unknown row field failures surface as row-level `ok:false` results instead of top-level tool errors, with no `postWriteMaintenance`/);
     assert.match(verifySection, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(verifySection, /`cursor\.found=false`/);
     assert.match(verifySection, /`cursor\.found=true` \/ `cursor\.reason=null`/);
@@ -649,6 +650,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /project-node `list_concepts` probe/);
     assert.match(mcpVerifyRow, /`add_concepts` \/ `add_relations` row-isolation runtime smoke/);
     assert.match(mcpVerifyRow, /top-level tool error 가 아니라 row-level `ok:false`/);
+    assert.match(mcpVerifyRow, /invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(mcpVerifyRow, /write-tool `postWriteMaintenance` `score` \/ executable `proposedAction` \/ current-page next-action guidance/);
     assert.match(mcpVerifyRow, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
     assert.match(mcpVerifyRow, /maintenance bucket \/ current-page next-action summaries/);
@@ -741,6 +743,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /row-level non-object \/ blank \/ padded \/ unknown-field 입력은 해당 row 만 실패/);
     assert.match(doc, /row-level non-object \/ unknown-field 입력도 해당 row 만 실패/);
     assert.match(doc, /`add_concepts` \/ `add_relations` 는 non-object row 와 unknown row field 를 넣어\s+top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서\s+실제 호출로 확인/);
+    assert.match(doc, /invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /15 read \/ 8 write split/);

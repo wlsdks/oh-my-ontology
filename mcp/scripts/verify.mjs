@@ -2028,6 +2028,9 @@ export function batchRowIsolationFailure(response, key, label) {
   if (!Array.isArray(rows) || rows.length !== 2) {
     return `${label} row-isolation response missing two result rows`;
   }
+  if (Object.prototype.hasOwnProperty.call(parsed, 'postWriteMaintenance')) {
+    return `${label} row-isolation response unexpectedly included postWriteMaintenance`;
+  }
   const [nonObjectRow, unknownFieldRow] = rows;
   if (nonObjectRow?.ok !== false || typeof nonObjectRow.error !== 'string' || !/must be an object/i.test(nonObjectRow.error)) {
     return `${label} row-isolation response missing non-object row error`;

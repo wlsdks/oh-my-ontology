@@ -116,7 +116,7 @@ compact `postWriteMaintenance` action `score`, executable `proposedAction`, and 
 설치 검증에서도 batch reader 의 성공 row 와 partial row 계약을 확인한다.
 `add_concepts` / `add_relations` 는 non-object row 와 unknown row field 를 넣어
 top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서
-실제 호출로 확인한다.
+실제 호출로 확인하고, invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인한다.
 `find_orphans` 는 기본 row shape 와 project / vault-readme root-sentinel 기본 제외
 계약을 확인해, agent 가 top-level root 를 accidental cleanup 후보로 오인하지 않게 한다.
 verify 는 `validate_vault.scanned` / `summary.problemFiles` 로 file-level health 를 별도 확인하고,

@@ -339,7 +339,7 @@ accepted `phases` / `severities` / `kinds` enum lists beside the strict-filter
 runtime smoke, so installed logs show which work-queue contract was tested.
 It also calls `add_concepts` and `add_relations` with non-object rows and
 unknown row fields, and fails unless those inputs return row-level `ok:false`
-results instead of a top-level tool error. It also calls
+results instead of a top-level tool error, without `postWriteMaintenance`. It also calls
 `maintenance_plan.afterActionId="maint_missing"` and fails unless the response
 reports `cursor.found=false`, the cursor miss reason, zero remaining actions,
 and no next actions. A companion ready-page smoke calls `maintenance_plan`
