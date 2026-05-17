@@ -1387,6 +1387,12 @@ describe('package contract helpers', () => {
     assert.match(doc, /성공 응답은 text 없이 `structuredContent` 만 있어도 수용/);
     assert.match(doc, /`structuredContent` 가 없는 경우에만 text JSON 으로 fallback/);
     assert.match(doc, /cli\/src\/lib\/mcp-call\.test\.mjs/);
+    assert.match(regressionSection, /`pnpm test:cli:lib`/);
+    assert.match(regressionSection, /focused CLI shared helper unit contracts/);
+    assert.match(regressionSection, /`cli\/src\/lib\/cli-args\.test\.mjs`/);
+    assert.match(regressionSection, /`cli\/src\/lib\/cli-commands\.test\.mjs`/);
+    assert.match(regressionSection, /command registry \/ package description command count/);
+    assert.match(regressionSection, /MCP `structuredContent` 와 text JSON parity/);
     assert.match(regressionSection, /spawn-based integration suite/);
     assert.match(regressionSection, /Node `--test-name-pattern`/);
     assert.match(regressionSection, /`pnpm integration:cli:mcp-verify`/);
