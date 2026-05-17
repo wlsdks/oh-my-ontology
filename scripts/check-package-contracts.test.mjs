@@ -753,13 +753,15 @@ describe('package contract helpers', () => {
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /15 read \/ 8 write split/);
     assert.match(doc, /annotation drift/);
+    assert.match(doc, /`query_ontology` tool 설명과\s+`afterActionId` schema description 도 `maintenance_plan` cursor 의 `nextAfterActionId` \/\s+`hasMore` pagination metadata 를 안내/);
     assert.match(doc, /MCP `initialize\.instructions` 의 `query_ontology\.operation`\s+안내와 `query_plan\.targetOperation` 안내도 같은 allow-list 에서 생성/);
     assert.match(doc, /`maintenance_plan` work-queue 안내도 first-contact 에 포함/);
     assert.match(doc, /ready cursor 의 `cursor\.found=true` \/ `cursor\.reason=null`/);
+    assert.match(doc, /ready cursor 의 `cursor\.nextAfterActionId` \/ `cursor\.hasMore`/);
     assert.match(doc, /ready cursor 의 `nextAfterActionId` 가 마지막\s+page action 과 맞고 `hasMore` 가 remaining page state 와 맞는지/);
     assert.match(doc, /`nextAfterActionId=null` \/ `hasMore=false`/);
-    assert.match(doc, /unknown `afterActionId` cursor 의 `cursor\.found=false`/);
-    assert.match(doc, /`cursor\.reason` 계약/);
+    assert.match(doc, /unknown `afterActionId`\s+cursor 의 `cursor\.found=false`/);
+    assert.match(doc, /`cursor\.reason`[\s\S]*계약/);
     assert.match(doc, /compact `postWriteMaintenance` 반환 \(`operation` \/ `sideEffect:false` \/ `filters` \/ `limited` \/ cursor \/ action `score` \/ executable `proposedAction` 포함\)/);
     assert.match(doc, /dogfood walk 는\s+`totalActions` \/ `filteredActions` \/ `remainingActions` summary 관계와/);
     assert.match(doc, /`byPhase` \/ `bySeverity` \/ `byKind` bucket 합계도 검증/);

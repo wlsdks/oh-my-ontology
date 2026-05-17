@@ -421,7 +421,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'query_ontology',
         description:
-          'Run graph queries including `maintenance_plan` with current-page `nextExecutableAction` / `nextReviewAction` pointers.',
+          'Run graph queries including `maintenance_plan` with cursor `nextAfterActionId`/`hasMore` pagination metadata and current-page `nextExecutableAction` / `nextReviewAction` pointers.',
         inputSchema: {
           additionalProperties: false,
           required: ['operation'],
@@ -430,7 +430,7 @@ describe('verify.mjs first-contact gates', () => {
             targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
             afterActionId: {
               description:
-                'maintenance_plan only: nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.',
+                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity. Unknown cursors return cursor.nextAfterActionId=null, cursor.hasMore=false.',
             },
             componentLimit: {
               type: 'integer',
@@ -1121,6 +1121,13 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(withQueryTool({
         ...queryOntologyTool,
+        description: 'Run graph queries including `maintenance_plan` with current-page `nextExecutableAction` / `nextReviewAction` pointers.',
+      })),
+      'query_ontology description missing maintenance cursor pagination metadata',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool({
+        ...queryOntologyTool,
         inputSchema: {
           ...queryOntologyTool.inputSchema,
           properties: {
@@ -1146,6 +1153,54 @@ describe('verify.mjs first-contact gates', () => {
         },
       })),
       'query_ontology afterActionId description missing current-page next pointer detail fields',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool({
+        ...queryOntologyTool,
+        inputSchema: {
+          ...queryOntologyTool.inputSchema,
+          properties: {
+            ...queryOntologyTool.inputSchema.properties,
+            afterActionId: {
+              description:
+                'maintenance_plan only: cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.',
+            },
+          },
+        },
+      })),
+      'query_ontology afterActionId description missing nextAfterActionId pagination guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool({
+        ...queryOntologyTool,
+        inputSchema: {
+          ...queryOntologyTool.inputSchema,
+          properties: {
+            ...queryOntologyTool.inputSchema.properties,
+            afterActionId: {
+              description:
+                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.',
+            },
+          },
+        },
+      })),
+      'query_ontology afterActionId description missing hasMore pagination guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure(withQueryTool({
+        ...queryOntologyTool,
+        inputSchema: {
+          ...queryOntologyTool.inputSchema,
+          properties: {
+            ...queryOntologyTool.inputSchema.properties,
+            afterActionId: {
+              description:
+                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.',
+            },
+          },
+        },
+      })),
+      'query_ontology afterActionId description missing unknown-cursor pagination guidance',
     );
     assert.equal(
       toolsListSchemaFailure(withQueryTool({
@@ -2609,8 +2664,10 @@ describe('verify.mjs first-contact gates', () => {
       'maintenance_plan phases, severities, and kinds filters are enum-validated.',
       'health and workspace_brief tune probes with componentLimit, cycleLimit, recommendationLimit, orderLimit, nodeLimit, dependencyTypes, and componentTypes.',
       'maintenance_plan ready pages return cursor.found=true with cursor.reason=null.',
+      'maintenance_plan ready pages set cursor.nextAfterActionId to the last returned action id and cursor.hasMore for remaining pages.',
       'maintenance_plan nextExecutableAction and nextReviewAction point only at the first executable/review action in the current returned page.',
       'maintenance_plan afterActionId cursor misses return cursor.found=false and cursor.reason.',
+      'maintenance_plan missing cursors return cursor.nextAfterActionId=null and cursor.hasMore=false.',
       'This filler keeps the instructions representative of a real initialize response.',
     ].join('\n');
 
@@ -2660,12 +2717,20 @@ describe('verify.mjs first-contact gates', () => {
       'initialize instructions missing maintenance ready cursor guidance',
     );
     assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('cursor.nextAfterActionId to the last returned action id', 'cursor marker') } }),
+      'initialize instructions missing maintenance ready cursor pagination guidance',
+    );
+    assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('current returned page', 'remaining queue') } }),
       'initialize instructions missing maintenance current-page pointer guidance',
     );
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('cursor.found=false and cursor.reason', 'empty page') } }),
       'initialize instructions missing maintenance cursor miss guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('cursor.nextAfterActionId=null and cursor.hasMore=false', 'no pagination metadata') } }),
+      'initialize instructions missing maintenance cursor miss pagination guidance',
     );
   });
 

@@ -519,6 +519,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.ok(query && /graph-engine queries/i.test(query), "query_ontology engine hint");
     assert.ok(query && /cursor\.found=true/.test(query), "query_ontology ready cursor found hint");
     assert.ok(query && /cursor\.reason=null/.test(query), "query_ontology ready cursor reason hint");
+    assert.ok(query && /nextAfterActionId/.test(query), "query_ontology cursor nextAfterActionId hint");
+    assert.ok(query && /hasMore/.test(query), "query_ontology cursor hasMore hint");
     assert.ok(
       validate && /first-contact before writes/i.test(validate),
       "validate_vault first-contact before writes hint",
@@ -734,7 +736,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         severitiesEnum: MAINTENANCE_SEVERITY_VALUES,
         maintenanceKindsEnum: MAINTENANCE_KIND_VALUES,
         afterActionIdDescription:
-          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null; nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity. Bucket totals (byPhase, bySeverity, byKind) match remainingActions for the returned cursor. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, and no next actions.",
+          "maintenance_plan only: stable action id cursor; return actions after this id. Without afterActionId the ready page reports cursor.found=true and cursor.reason=null; cursor.nextAfterActionId matches the last returned action id (or null for an empty page), and cursor.hasMore matches whether more remaining actions exist after this page. nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity. Bucket totals (byPhase, bySeverity, byKind) match remainingActions for the returned cursor. Unknown cursors return an empty page with cursor.found=false, cursor.reason, zero remaining actions, cursor.nextAfterActionId=null, cursor.hasMore=false, and no next actions.",
         componentTypesDescription:
           "health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.",
       },
@@ -1066,10 +1068,15 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /bucket totals.*remainingActions/);
     assert.match(instructions, /cursor\.found=true/);
     assert.match(instructions, /cursor\.reason=null/);
+    assert.match(instructions, /cursor\.nextAfterActionId/);
+    assert.match(instructions, /last returned action id/);
+    assert.match(instructions, /cursor\.hasMore/);
     assert.match(instructions, /afterActionId/);
     assert.match(instructions, /cursor\.found=false/);
     assert.match(instructions, /cursor\.reason/);
     assert.match(instructions, /zero remaining actions/);
+    assert.match(instructions, /cursor\.nextAfterActionId=null/);
+    assert.match(instructions, /cursor\.hasMore=false/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

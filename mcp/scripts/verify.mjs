@@ -725,6 +725,9 @@ export function toolsListSchemaFailure(tools) {
   if (!/current-page `nextExecutableAction` \/ `nextReviewAction` pointers/.test(queryTool.description || '')) {
     return 'query_ontology description missing current-page maintenance next pointers';
   }
+  if (!/cursor `nextAfterActionId`\/`hasMore` pagination metadata/.test(queryTool.description || '')) {
+    return 'query_ontology description missing maintenance cursor pagination metadata';
+  }
 
   const phases = propertyAt(queryTool, ['properties', 'phases']);
   if (!sameArray(phases?.items?.enum, MAINTENANCE_PHASE_VALUES)) {
@@ -744,6 +747,15 @@ export function toolsListSchemaFailure(tools) {
   }
   if (!/action id, executable flag, phase, kind, and severity/.test(afterActionId?.description || '')) {
     return 'query_ontology afterActionId description missing current-page next pointer detail fields';
+  }
+  if (!/cursor\.nextAfterActionId matches the last returned action id/.test(afterActionId?.description || '')) {
+    return 'query_ontology afterActionId description missing nextAfterActionId pagination guidance';
+  }
+  if (!/cursor\.hasMore matches whether more remaining actions exist after this page/.test(afterActionId?.description || '')) {
+    return 'query_ontology afterActionId description missing hasMore pagination guidance';
+  }
+  if (!/cursor\.nextAfterActionId=null, cursor\.hasMore=false/.test(afterActionId?.description || '')) {
+    return 'query_ontology afterActionId description missing unknown-cursor pagination guidance';
   }
   for (const propertyName of ['componentLimit', 'cycleLimit', 'recommendationLimit', 'orderLimit', 'nodeLimit']) {
     const option = propertyAt(queryTool, ['properties', propertyName]);
@@ -1385,8 +1397,10 @@ export function initializeInstructionsFailure(response) {
     ['maintenance filter enum guidance', /phases.*severities.*kinds/],
     ['health tuning guidance', /componentLimit[\s\S]*cycleLimit[\s\S]*recommendationLimit[\s\S]*orderLimit[\s\S]*nodeLimit[\s\S]*dependencyTypes[\s\S]*componentTypes/],
     ['maintenance ready cursor guidance', /cursor\.found=true[\s\S]*cursor\.reason=null/],
+    ['maintenance ready cursor pagination guidance', /cursor\.nextAfterActionId[\s\S]*last returned action id[\s\S]*cursor\.hasMore/],
     ['maintenance current-page pointer guidance', /nextExecutableAction[\s\S]*nextReviewAction[\s\S]*current returned page/],
     ['maintenance cursor miss guidance', /afterActionId[\s\S]*cursor\.found=false[\s\S]*cursor\.reason/],
+    ['maintenance cursor miss pagination guidance', /cursor\.nextAfterActionId=null[\s\S]*cursor\.hasMore=false/],
   ];
   for (const [label, pattern] of required) {
     if (!pattern.test(instructions)) {

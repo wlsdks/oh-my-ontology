@@ -288,7 +288,10 @@ dispatch 가 갈라지지 않도록 한다. `get_concepts` / `add_concepts` /
 계약을 보게 한다. `tools/list` description 은 write 후 compact
 `postWriteMaintenance` 의 action `score`, executable `proposedAction`, current-page next action pointer 를
 안내하고, integration contract 와 설치 verify 가 이 설명을 고정해 MCP client 가 tool 목록만으로도
-write 직후 cleanup 우선순위와 실행 의도를 알 수 있게 한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
+write 직후 cleanup 우선순위와 실행 의도를 알 수 있게 한다. `query_ontology` tool 설명과
+`afterActionId` schema description 도 `maintenance_plan` cursor 의 `nextAfterActionId` /
+`hasMore` pagination metadata 를 안내하고, integration contract 와 설치 verify 가 이를 고정해
+agent 가 cleanup queue 를 resume 할 때 stale cursor guidance 를 따르지 않게 한다. 설치 verify 는 잘못된 `list_concepts.lmit` 호출도
 실제로 보내고 unknown argument 거절 응답을 기대한다. write safety 도 같은 경로에서 `expected_mtime`
 conflict guard, destructive tool 의 `confirm` dry-run switch, `rename_concept.overwrite`, `delete_concept.force`
 schema 를 검사한다. 또한 installed verify 는 `initialize.instructions` 가
@@ -302,7 +305,9 @@ strict-input typo recovery 안내도 같은 gate 에 포함되어 `Did you mean 
 `dependencyTypes`, `componentTypes` 를 대형 vault 또는 focused diagnosis 에 바로 쓸 수 있게 한다.
 `maintenance_plan` work-queue 안내도 first-contact 에 포함해 `phases` / `severities` /
 `kinds` filter enum, ready cursor 의 `cursor.found=true` / `cursor.reason=null`,
-unknown `afterActionId` cursor 의 `cursor.found=false` / `cursor.reason` 계약을
+ready cursor 의 `cursor.nextAfterActionId` / `cursor.hasMore`, unknown `afterActionId`
+cursor 의 `cursor.found=false` / `cursor.reason` / `cursor.nextAfterActionId=null` /
+`cursor.hasMore=false` 계약을
 agent 가 연결 즉시 알 수 있게 한다.
 `initialize.instructions` 는 agent 가 write 도구부터 시도하지 않도록
 `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `overview`, `query_plan(targetOperation:"overview")`,
