@@ -912,6 +912,7 @@ describe('package contract helpers', () => {
     const tableRow = readme.split('| `oh-my-ontology mcp-verify [vault]` |')[1]?.split('\n')[0] ?? '';
     const maintenanceRow = readme.split('| `oh-my-ontology maintenance [vault]` |')[1]?.split('\n')[0] ?? '';
     const inferImportsRow = readme.split('| `oh-my-ontology infer-imports [rootPath]` |')[1]?.split('\n')[0] ?? '';
+    const compileRow = readme.split('| `oh-my-ontology compile [vault]` |')[1]?.split('\n')[0] ?? '';
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('The vault is a plain folder')[0] ?? '';
 
     assert.match(tableRow, /project-node `list_concepts` probe/);
@@ -942,6 +943,7 @@ describe('package contract helpers', () => {
     assert.match(inferImportsRow, /`static` \/ `dynamic` \/ `require` \/ `reexport` \/ `side`/);
     assert.match(inferImportsRow, /static-heavy dependencies/);
     assert.match(inferImportsRow, /`--threshold N`/);
+    assert.match(compileRow, /Large `--json` output is safe to consume through stdout pipes/);
     assert.match(verifySection, /mcp-verify --help/);
     assert.match(verifySection, /graph-query smoke contract/);
     assert.match(verifySection, /direct read smoke set/);
@@ -1174,6 +1176,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /fail-severity nextActions/);
     assert.match(releaseChecks, /compile --json` exits 1/);
     assert.match(releaseChecks, /unresolved graph references/);
+    assert.match(releaseChecks, /flushes large raw artifacts safely through stdout pipes/);
     assert.match(releaseChecks, /cycles --json` exits 1/);
     assert.match(releaseChecks, /dependency cycles/);
     assert.match(releaseChecks, /path --json` exits 1/);

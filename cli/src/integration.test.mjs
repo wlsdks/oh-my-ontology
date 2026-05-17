@@ -646,6 +646,34 @@ await test('compile --fix — applies compiler relation-array canonicalization',
   }
 });
 
+await test('compile --json — flushes full machine output through stdout pipes', async () => {
+  const capabilityCount = 720;
+  const seed = [
+    {
+      slug: 'project',
+      content:
+        '---\nkind: project\ntitle: Project\ncapabilities:\n' +
+        Array.from({ length: capabilityCount }, (_, index) => `  - capabilities/cap-${index}`).join('\n') +
+        '\n---\n',
+    },
+    ...Array.from({ length: capabilityCount }, (_, index) => ({
+      slug: `capabilities/cap-${index}`,
+      content: `---\nkind: capability\ntitle: Capability ${index}\n---\n`,
+    })),
+  ];
+  const root = withVault(seed);
+  try {
+    const r = await run(['compile', root, '--json']);
+    assert.equal(r.code, 0, `stdout bytes: ${r.stdout.length}\nstderr: ${r.stderr}`);
+    assert.ok(r.stdout.length > 65_536, `fixture should exceed common pipe buffer size, got ${r.stdout.length}`);
+    const payload = JSON.parse(r.stdout);
+    assert.equal(payload.nodeCount, capabilityCount + 1);
+    assert.equal(payload.unresolvedEdgeCount, 0);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('compile --fix — fails closed when canonicalization actions are missing', async () => {
   const root = withVault();
   const fakeMcp = join(root, 'fake-mcp.mjs');

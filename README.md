@@ -192,8 +192,9 @@ starting a server for help and without assuming every valid vault already has
 containment roots. It also creates a dependency-cycle vault and checks installed
 `workspace-brief --json` exits 1 on fail-severity nextActions.
 For local CLI gates, `compile --json` exits 1 on unresolved graph references,
-`cycles --json` exits 1 on dependency cycles, and `path --json` exits 1 when
-`found:false` so scripts can use these commands as hard ontology checks.
+flushes large raw artifacts safely through stdout pipes, `cycles --json` exits
+1 on dependency cycles, and `path --json` exits 1 when `found:false` so scripts
+can use these commands as hard ontology checks.
 The graph diagnostic exit contract is fail-closed: malformed `compile`,
 `cycles`, `path`, `health`, or `workspace-brief` payloads are treated as command
 failures instead of clean vaults. For `health --json` and `workspace-brief --json`,

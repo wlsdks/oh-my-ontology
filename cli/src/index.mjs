@@ -17,7 +17,7 @@ import {
 import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { stdout, stderr, argv, exit, cwd } from 'node:process';
+import { stdout, stderr, argv, cwd } from 'node:process';
 import { CLI_COMMAND_COUNT, CLI_COMMAND_RUNNERS, CLI_COMMANDS } from './lib/cli-commands.mjs';
 import { closestAllowedValue, formatUnknownFlagError } from './lib/cli-args.mjs';
 import { readMcpPackageMetadata } from './lib/mcp-metadata.mjs';
@@ -399,83 +399,87 @@ async function runCommandHelp(command) {
   return run(['--help']);
 }
 
-if (!SUBCOMMAND || SUBCOMMAND === '--help' || SUBCOMMAND === '-h') {
-  printHelp();
-  exit(0);
-}
+async function main() {
+  if (!SUBCOMMAND || SUBCOMMAND === '--help' || SUBCOMMAND === '-h') {
+    printHelp();
+    return 0;
+  }
 
-if (SUBCOMMAND === 'help') {
-  const helpArgs = ARGS.slice(1);
-  if (helpArgs.length === 0) {
-    printHelp();
-    exit(0);
-  }
-  if (helpArgs.length > 1) {
-    fail(`too many arguments: ${helpArgs.slice(1).join(' ')}`);
+  if (SUBCOMMAND === 'help') {
+    const helpArgs = ARGS.slice(1);
+    if (helpArgs.length === 0) {
+      printHelp();
+      return 0;
+    }
+    if (helpArgs.length > 1) {
+      fail(`too many arguments: ${helpArgs.slice(1).join(' ')}`);
+      printHelp(stderr);
+      return 1;
+    }
+    if (helpArgs[0] === '--help' || helpArgs[0] === '-h') {
+      printHelp();
+      return 0;
+    }
+    const helpCommand = helpArgs[0];
+    const helpExitCode = await runCommandHelp(helpCommand);
+    if (helpExitCode !== null) {
+      return helpExitCode;
+    }
+    const helpSuggestion = closestAllowedValue(helpCommand, CLI_COMMANDS);
+    fail(
+      `unknown help topic: ${helpCommand}.` +
+        (helpSuggestion ? ` Did you mean ${helpSuggestion}?` : ''),
+    );
     printHelp(stderr);
-    exit(1);
+    return 1;
   }
-  if (helpArgs[0] === '--help' || helpArgs[0] === '-h') {
-    printHelp();
-    exit(0);
+
+  if (SUBCOMMAND === '--version' || SUBCOMMAND === '-v') {
+    stdout.write(`${PKG.version}\n`);
+    return 0;
   }
-  const helpCommand = helpArgs[0];
-  const helpExitCode = await runCommandHelp(helpCommand);
-  if (helpExitCode !== null) {
-    exit(helpExitCode);
+
+  if (SUBCOMMAND === 'init') {
+    const parsed = parseInitArgs(ARGS.slice(1));
+    if (parsed.help) {
+      printInitUsage(stdout);
+      return 0;
+    }
+    if (parsed.error) {
+      fail(parsed.error);
+      printInitUsage();
+      return 1;
+    }
+    runInit(parsed.target);
+    return 0;
   }
-  const helpSuggestion = closestAllowedValue(helpCommand, CLI_COMMANDS);
+
+  const runner = CLI_COMMAND_RUNNERS[SUBCOMMAND];
+  if (runner) {
+    const mod = await import(runner.modulePath);
+    const run = mod[runner.exportName];
+    if (typeof run !== 'function') {
+      fail(`command ${SUBCOMMAND} is misconfigured: missing ${runner.exportName}`);
+      return 1;
+    }
+    try {
+      return await run(ARGS.slice(1));
+    } catch (err) {
+      if (err?.name === 'VaultRootError') {
+        fail(err.message);
+        return 2;
+      }
+      throw err;
+    }
+  }
+
+  const commandSuggestion = closestAllowedValue(SUBCOMMAND, TOP_LEVEL_COMMAND_VALUES);
   fail(
-    `unknown help topic: ${helpCommand}.` +
-      (helpSuggestion ? ` Did you mean ${helpSuggestion}?` : ''),
+    `unknown command: ${SUBCOMMAND}.` +
+      (commandSuggestion ? ` Did you mean ${commandSuggestion}?` : ''),
   );
   printHelp(stderr);
-  exit(1);
+  return 1;
 }
 
-if (SUBCOMMAND === '--version' || SUBCOMMAND === '-v') {
-  stdout.write(`${PKG.version}\n`);
-  exit(0);
-}
-
-if (SUBCOMMAND === 'init') {
-  const parsed = parseInitArgs(ARGS.slice(1));
-  if (parsed.help) {
-    printInitUsage(stdout);
-    exit(0);
-  }
-  if (parsed.error) {
-    fail(parsed.error);
-    printInitUsage();
-    exit(1);
-  }
-  runInit(parsed.target);
-  exit(0);
-}
-
-const runner = CLI_COMMAND_RUNNERS[SUBCOMMAND];
-if (runner) {
-  const mod = await import(runner.modulePath);
-  const run = mod[runner.exportName];
-  if (typeof run !== 'function') {
-    fail(`command ${SUBCOMMAND} is misconfigured: missing ${runner.exportName}`);
-    exit(1);
-  }
-  try {
-    exit(await run(ARGS.slice(1)));
-  } catch (err) {
-    if (err?.name === 'VaultRootError') {
-      fail(err.message);
-      exit(2);
-    }
-    throw err;
-  }
-}
-
-const commandSuggestion = closestAllowedValue(SUBCOMMAND, TOP_LEVEL_COMMAND_VALUES);
-fail(
-  `unknown command: ${SUBCOMMAND}.` +
-    (commandSuggestion ? ` Did you mean ${commandSuggestion}?` : ''),
-);
-printHelp(stderr);
-exit(1);
+process.exitCode = await main();
