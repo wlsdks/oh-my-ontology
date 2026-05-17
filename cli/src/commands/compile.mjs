@@ -75,6 +75,15 @@ export async function runCompile(args) {
       return 2;
     }
     const actions = artifact.canonicalizationActions;
+    if (
+      typeof artifact.canonicalizationActionCount === 'number' &&
+      artifact.canonicalizationActionCount !== actions.length
+    ) {
+      process.stderr.write(
+        `${COLORS.red}error${COLORS.reset}  compile_ontology canonicalizationActionCount mismatch: count=${artifact.canonicalizationActionCount}, actions=${actions.length}; cannot apply --fix safely\n`,
+      );
+      return 2;
+    }
     fixResult = await applyCanonicalizationActions(vaultRoot, actions);
     if (fixResult.failed > 0) {
       if (parsed.json) {

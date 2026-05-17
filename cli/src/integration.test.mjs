@@ -571,6 +571,35 @@ await test('compile --fix — fails closed when canonicalization actions are mis
   }
 });
 
+await test('compile --fix — fails closed when canonicalization action count drifts', async () => {
+  const root = withVault();
+  const fakeMcp = join(root, 'fake-mcp-count.mjs');
+  writeFileSync(
+    fakeMcp,
+    [
+      "import readline from 'node:readline';",
+      "const rl = readline.createInterface({ input: process.stdin });",
+      "rl.on('line', (line) => {",
+      "  const msg = JSON.parse(line);",
+      "  if (msg.id === 1) console.log(JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }));",
+      "  if (msg.id === 2) {",
+      "    const payload = { graphHash: 'hash', nodeCount: 1, edgeCount: 0, issueCount: 0, unresolvedEdgeCount: 0, canonicalizationActionCount: 1, canonicalizationActions: [], summary: { nodes: 1, edges: 0, issues: 0, unresolvedEdges: 0, graphHash: 'hash', resolvedEdges: 0, externalEdges: 0 } };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: 2, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "  }",
+      "});",
+    ].join('\n'),
+    'utf-8',
+  );
+  try {
+    const r = await run(['compile', root, '--fix'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(r.code, 2, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.equal(r.stdout, '');
+    assert.match(stripAnsi(r.stderr), /canonicalizationActionCount mismatch: count=1, actions=0/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('compile --help — prints usage without treating help as an error', async () => {
   const longHelp = await run(['compile', '--help']);
   assert.equal(longHelp.code, 0);
