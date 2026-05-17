@@ -5,10 +5,13 @@
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
+  formatUnknownFlagError,
   parseRequiredFlagValue,
   parseVaultFlag,
   resolveExclusiveVaultArg,
 } from '../lib/cli-args.mjs';
+
+const ALLOWED_FLAGS = ['--vault', '--json', '--kind', '--exclude-kinds'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -112,7 +115,7 @@ function parseArgs(args) {
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean);
-    } else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    } else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

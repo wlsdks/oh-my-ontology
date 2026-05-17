@@ -1819,12 +1819,20 @@ await test('graph diagnostic commands — reject invalid option values before MC
       pattern: /--limit must be <= 500/,
     },
     {
+      args: ['overview', '--lmit=1'],
+      pattern: /unknown flag: --lmit=1\. Did you mean --limit\?/,
+    },
+    {
       args: ['hubs', '--limit=abc'],
       pattern: /--limit must be a positive integer/,
     },
     {
       args: ['hubs', '--limit=501'],
       pattern: /--limit must be <= 500/,
+    },
+    {
+      args: ['hubs', '--lmit=1'],
+      pattern: /unknown flag: --lmit=1\. Did you mean --limit\?/,
     },
     {
       args: ['path', 'capabilities/foo', 'capabilities/bar', '--max-hops=2x'],
@@ -1835,12 +1843,20 @@ await test('graph diagnostic commands — reject invalid option values before MC
       pattern: /--max-hops must be <= 20/,
     },
     {
+      args: ['path', 'capabilities/foo', 'capabilities/bar', '--max-hop=2'],
+      pattern: /unknown flag: --max-hop=2\. Did you mean --max-hops\?/,
+    },
+    {
       args: ['cycles', '--max-hops', '--json'],
       pattern: /--max-hops requires a value/,
     },
     {
       args: ['cycles', '--max-hops=21'],
       pattern: /--max-hops must be <= 20/,
+    },
+    {
+      args: ['cycles', '--max-hop=2'],
+      pattern: /unknown flag: --max-hop=2\. Did you mean --max-hops\?/,
     },
     {
       args: ['blast-radius', 'capabilities/foo', '--depth=2x'],
@@ -1859,12 +1875,20 @@ await test('graph diagnostic commands — reject invalid option values before MC
       pattern: /--direction must be one of incoming \/ outgoing \/ both/,
     },
     {
+      args: ['blast-radius', 'capabilities/foo', '--directon=incoming'],
+      pattern: /unknown flag: --directon=incoming\. Did you mean --direction\?/,
+    },
+    {
       args: ['orphans', '--kind'],
       pattern: /--kind requires a value/,
     },
     {
       args: ['orphans', '--exclude-kinds='],
       pattern: /--exclude-kinds requires a value/,
+    },
+    {
+      args: ['orphans', '--exlude-kinds=domain'],
+      pattern: /unknown flag: --exlude-kinds=domain\. Did you mean --exclude-kinds\?/,
     },
     {
       args: ['similar', 'auth', '--limit=0'],
@@ -1881,6 +1905,10 @@ await test('graph diagnostic commands — reject invalid option values before MC
     {
       args: ['similar', '--slug'],
       pattern: /--slug requires a value/,
+    },
+    {
+      args: ['similar', 'auth', '--lmit=1'],
+      pattern: /unknown flag: --lmit=1\. Did you mean --limit\?/,
     },
     {
       args: ['similar', 'auth', 'ontology', '--vault', 'docs/ontology'],

@@ -5,12 +5,14 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import { assertQueryOperation, cyclesResultExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
+  formatUnknownFlagError,
   parseBoundedNonNegativeIntegerFlag,
   parseVaultFlag,
   resolveExclusiveVaultArg,
 } from '../lib/cli-args.mjs';
 
 const MAX_HOPS_CAP = 20;
+const ALLOWED_FLAGS = ['--vault', '--max-hops', '--json'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -86,7 +88,7 @@ function parseArgs(args) {
     else if (a === '--max-hops') flags.maxHops = parseBoundedNonNegativeIntegerFlag('--max-hops', args[++i], { max: MAX_HOPS_CAP });
     else if (a.startsWith('--max-hops='))
       flags.maxHops = parseBoundedNonNegativeIntegerFlag('--max-hops', a.slice('--max-hops='.length), { max: MAX_HOPS_CAP });
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

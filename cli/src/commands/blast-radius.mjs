@@ -6,6 +6,7 @@ import { callMcpTool } from '../lib/mcp-call.mjs';
 import { assertQueryOperation } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
+  formatUnknownFlagError,
   parseBoundedNonNegativeIntegerFlag,
   parseRequiredFlagValue,
   parseVaultFlag,
@@ -13,6 +14,7 @@ import {
 } from '../lib/cli-args.mjs';
 
 const DEPTH_CAP = 20;
+const ALLOWED_FLAGS = ['--vault', '--json', '--depth', '--direction'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -133,7 +135,7 @@ function parseArgs(args) {
     else if (a === '--direction') flags.direction = parseRequiredFlagValue('--direction', args[++i]);
     else if (a.startsWith('--direction='))
       flags.direction = parseRequiredFlagValue('--direction', a.slice('--direction='.length));
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (positional.length === 0) {
