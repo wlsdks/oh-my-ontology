@@ -3267,6 +3267,17 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(explicitVault.stdout, '');
     assert.match(explicitVault.stderr, /Received: "abc"/);
     assert.match(explicitVault.stderr, /npm run verify -- --vault \.\.\/docs\/ontology --timeout-ms 15000/);
+
+    const explicitVaultAfterTimeout = spawnSync(
+      process.execPath,
+      [VERIFY_SCRIPT, '--timeout-ms=abc', '--vault', '../docs/ontology'],
+      { cwd: join(__dirname, '..'), encoding: 'utf8' },
+    );
+
+    assert.equal(explicitVaultAfterTimeout.status, 1);
+    assert.equal(explicitVaultAfterTimeout.stdout, '');
+    assert.match(explicitVaultAfterTimeout.stderr, /Received: "abc"/);
+    assert.match(explicitVaultAfterTimeout.stderr, /npm run verify -- --vault \.\.\/docs\/ontology --timeout-ms 15000/);
   });
 
   it('describes direct verify usage', () => {
