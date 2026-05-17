@@ -797,6 +797,8 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /project-less vault/);
     assert.match(mcpVerifyRow, /empty vault/);
     assert.match(mcpVerifyRow, /node-targeted graph smoke/);
+    assert.match(mcpVerifyRow, /잘못된 timeout 값은 `Received: "1000ms"`/);
+    assert.match(mcpVerifyRow, /`oh-my-ontology mcp-verify --timeout-ms 15000`/);
     assert.match(implementationSection, /query-result-contract\.mjs/);
     assert.match(implementationSection, /`path` found:false 와 hop\/edge alignment/);
     assert.match(implementationSection, /`health` \/ `workspace-brief` top-level diagnosis status/);
@@ -848,6 +850,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage 와\s+focused check 경로를 출력/);
     assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset 을 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
+    assert.match(doc, /오류 출력은\s+`Received: "1000ms"` 와 `npm run verify -- --timeout-ms 15000` 같은 재시도 예시/);
     assert.match(doc, /key 순서 차이를 false mismatch 로 보지 않으며/);
     assert.match(doc, /dogfood 의 direct read \/ analysis tool 응답도 `structuredContent` 누락과\s+text JSON 구조 drift 를 같은 fail-closed 계약으로 검증/);
     assert.match(doc, /verify helper 와 dogfood helper 는 같은\s+`structuredContentParityStatus` 판정 helper 를 공유/);

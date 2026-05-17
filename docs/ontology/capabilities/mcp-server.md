@@ -281,7 +281,9 @@ dogfood walk 도 `workspace_brief.nextActions` row 의 identifier/severity 와
 advisory/coverage 출력에서 `unknown` 이나 잘못된 count 로 숨지 않게 한다.
 기본 server wait 는 8초이며 큰 vault / 느린 파일시스템에서는
 양의 정수 millisecond 값인 `OMOT_VERIFY_TIMEOUT_MS` 로 늘릴 수 있다.
-`1000ms` 같은 부분 숫자 값은 조용히 truncate 하지 않고 실패한다.
+`1000ms` 같은 부분 숫자 값은 조용히 truncate 하지 않고 실패하며, 오류 출력은
+`Received: "1000ms"` 와 `npm run verify -- --timeout-ms 15000` 같은 재시도 예시를
+함께 보여줘 agent 가 허용 형식을 추측하지 않게 한다.
 `--help` 와 명시적 vault argument 는 malformed `OMOT_VAULT` 보다 우선해,
 잘못된 shell 환경에서도 usage 확인이나 직접 지정한 vault 검증이 막히지 않는다.
 first-contact 응답들이 모두 도착하면 timeout 까지 기다리지 않고 즉시 종료하며,
