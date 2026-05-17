@@ -390,6 +390,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /Usage:/);
   assert.match(clean, /server boot/);
   assert.match(clean, /tool inventory \(missing\/extra\/duplicate\/invalid names\)/);
+  assert.match(clean, /tools\/list inventory names, schema strictness, and annotation coverage/);
   assert.match(clean, /get_concept/);
   assert.match(clean, /get_concepts/);
   assert.match(clean, /find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports/);
@@ -401,7 +402,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /validate_vault\.scanned stays file-level health/);
   assert.match(clean, /compile_ontology summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
   assert.match(clean, /neighbors\/node-to-project path\/project_scope graph-query smoke/);
-  assert.match(clean, /tools\/list schema strictness/);
+  assert.match(clean, /tools\/list inventory names, schema strictness/);
   assert.match(clean, /annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
   assert.match(clean, /destructive writer dry-runs with every planned response present and no changed\/postWriteMaintenance/);
   assert.match(clean, /structuredContent coverage split by direct reads \/ batch row-isolation writes \/ destructive dry-runs \/ maintenance cursor checks \/ graph queries/);
