@@ -10,6 +10,7 @@ import {
   evaluateDogfoodGate,
   expectedResponseIds,
   formatWorkspaceNextActionRows,
+  graphStructuredContentSummary,
   healthCheckStatusSummary,
   maintenanceBucketSummary,
   maintenanceNextActionSummary,
@@ -2299,6 +2300,24 @@ describe("rpc response completion helpers", () => {
         ],
       }),
       "1:27:project, 2:1+:external/foo, 3:1:unknown, +1 more",
+    );
+  });
+
+  it("summarizes graph structuredContent coverage for the final dogfood analysis", () => {
+    assert.equal(graphStructuredContentSummary([]), "n/a");
+    assert.equal(
+      graphStructuredContentSummary([
+        ["overview", { ok: true }, { ok: true }],
+        ["health", { status: "healthy" }, { status: "healthy" }],
+      ]),
+      "pass 2/2",
+    );
+    assert.equal(
+      graphStructuredContentSummary([
+        ["overview", { ok: true }, undefined],
+        ["health", { status: "healthy" }, { status: "stale" }],
+      ]),
+      "fail 0/2 (missing 1: overview; mismatch 1: health)",
     );
   });
 

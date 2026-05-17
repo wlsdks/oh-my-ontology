@@ -210,6 +210,27 @@ export function shouldFinishRpc(stdout, expectedIds) {
   return hasAnyErrorResponse(stdout, expectedIds) || hasAllResponses(stdout, expectedIds);
 }
 
+export function graphStructuredContentSummary(rows) {
+  const expected = rows.filter(([, parsed]) => Boolean(parsed));
+  const missing = expected.filter(([, , structured]) => structured === undefined);
+  const mismatched = expected.filter(([, parsed, structured]) => (
+    structured !== undefined && JSON.stringify(structured) !== JSON.stringify(parsed)
+  ));
+  const passed = expected.length - missing.length - mismatched.length;
+  if (expected.length === 0) return "n/a";
+  if (missing.length === 0 && mismatched.length === 0) {
+    return `pass ${passed}/${expected.length}`;
+  }
+  const details = [];
+  if (missing.length > 0) {
+    details.push(`missing ${missing.length}: ${missing.map(([label]) => label).join(", ")}`);
+  }
+  if (mismatched.length > 0) {
+    details.push(`mismatch ${mismatched.length}: ${mismatched.map(([label]) => label).join(", ")}`);
+  }
+  return `fail ${passed}/${expected.length} (${details.join("; ")})`;
+}
+
 export function rpcTimeoutFailure(timeoutMs, missingLabels) {
   return `rpc: timed out after ${timeoutMs}ms waiting for ${missingLabels.join(", ")}`;
 }
@@ -4964,6 +4985,47 @@ async function main() {
     console.log(`  ${strictMaintenanceKindFilterText}`);
   }
 
+  const graphStructuredContentRows = [
+    ["workspace_brief", brief, structuredContent(9)],
+    ["workspace_brief_tuned", tunedBrief, structuredContent(50)],
+    ["health", health, structuredContent(10)],
+    ["health_tuned", tunedHealth, structuredContent(49)],
+    ["overview", overview, structuredContent(15)],
+    ["pattern_walk", patternWalk, structuredContent(12)],
+    ["all_paths", allPaths, structuredContent(13)],
+    ["all_paths_query_plan", allPathsPlan, structuredContent(14)],
+    ["project_map_query_plan", projectMapPlan, structuredContent(17)],
+    ["project_map", projectMap, structuredContent(18)],
+    ["domain_profile", domainProfile, structuredContent(19)],
+    ["domain_matrix", domainMatrix, structuredContent(20)],
+    ["components", components, structuredContent(21)],
+    ["relation_check", relationCheck, structuredContent(22)],
+    ["maintenance_plan", maintenancePlan, structuredContent(23)],
+    ["maintenance_plan_missing_cursor", maintenancePlanMissingCursor, structuredContent(54)],
+    ["growth_plan", growthPlan, structuredContent(24)],
+    ["recommend_relations", relationRecommendations, structuredContent(25)],
+    ["cycles", cycles, structuredContent(26)],
+    ["topological_order", topologicalOrder, structuredContent(27)],
+    ["lineage", lineage, structuredContent(28)],
+    ["containment_tree", containmentTree, structuredContent(29)],
+    ["reachability", reachability, structuredContent(30)],
+    ["impact", impact, structuredContent(31)],
+    ["blast_radius", blastRadius, structuredContent(32)],
+    ["subgraph", subgraph, structuredContent(33)],
+    ["schema", schema, structuredContent(34)],
+    ["facets", facets, structuredContent(35)],
+    ["match_nodes", matchNodes, structuredContent(36)],
+    ["match_edges", matchEdges, structuredContent(37)],
+    ["node_profile", nodeProfile, structuredContent(38)],
+    ["centrality", centrality, structuredContent(39)],
+    ["communities", communities, structuredContent(40)],
+    ["similar_nodes", similarNodes, structuredContent(41)],
+    ["explain_relation", explainRelation, structuredContent(42)],
+    ["neighbors", neighbors, structuredContent(43)],
+    ["path", queryPath, structuredContent(44)],
+    ["project_scope", projectScope, structuredContent(45)],
+  ];
+
   const failures = evaluateDogfoodGate({
     kinds,
     list,
@@ -5113,6 +5175,7 @@ async function main() {
   console.log(`  health_tuned: ${tunedHealth?.status ?? "n/a"} (${(tunedHealth?.checks || []).length} checks)`);
   console.log(`  health_tuned checks: ${healthCheckStatusSummary(tunedHealth?.checks)}`);
   console.log(`  compile_ontology: ${compiled?.nodeCount ?? "n/a"} nodes · ${compiled?.edgeCount ?? "n/a"} edges · ${compiled?.issueCount ?? "n/a"} issues`);
+  console.log(`  graph query structuredContent: ${graphStructuredContentSummary(graphStructuredContentRows)}`);
   console.log(`  overview: ${overview?.graph?.nodes ?? "n/a"} nodes · ${overview?.graph?.edges ?? "n/a"} edges · ${(overview?.hubs || []).length} hubs`);
   console.log(`  pattern_walk: ${patternWalk?.paths?.rows?.length ?? "n/a"} paths (${patternWalk?.paths?.limited ? "limited" : "complete"})`);
   console.log(`  all_paths: ${allPaths?.paths?.length ?? "n/a"} paths (${allPaths?.limited ? "limited" : "complete"})`);
