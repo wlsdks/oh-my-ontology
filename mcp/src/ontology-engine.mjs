@@ -5,7 +5,7 @@ const DEFAULT_LIMIT = 100;
 const DOWNWARD_CONTAINMENT_TYPES = new Set(['domains', 'capabilities', 'elements', 'contains']);
 const UPWARD_CONTAINMENT_TYPES = new Set(['domain']);
 const HEALTH_IGNORED_COMPONENT_KINDS = new Set(['vault-readme']);
-const RELATION_TYPE_VALUES = Object.freeze([
+export const RELATION_TYPE_VALUES = Object.freeze([
   'domains',
   'domain',
   'capabilities',

@@ -52,6 +52,7 @@ import {
   MAINTENANCE_SEVERITY_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
+  RELATION_TYPE_VALUES,
 } from '../src/ontology-engine.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -1142,7 +1143,7 @@ export function toolsListSchemaFailure(tools) {
   }
   for (const propertyName of ['dependencyTypes', 'componentTypes']) {
     const option = propertyAt(queryTool, ['properties', propertyName]);
-    if (option?.type !== 'array' || option.items?.type !== 'string') {
+    if (option?.type !== 'array' || option.items?.type !== 'string' || !sameArray(option.items?.enum, RELATION_TYPE_VALUES)) {
       return `query_ontology ${propertyName} health tuning schema drift`;
     }
     if (!/health\/workspace_brief/.test(option.description || '')) {

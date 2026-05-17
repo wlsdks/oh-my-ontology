@@ -142,6 +142,10 @@ is limited to `inspect_compile_issue` / `break_dependency_cycle` /
 `canonicalize_graph_arrays` / `resolve_dangling_reference` /
 `add_missing_relation` / `materialize_external_element` / `unassigned_node` /
 `empty_domain` for the same reason.
+`health` / `workspace_brief` relation filters expose the same enum schema for
+`dependencyTypes` and `componentTypes` (`domains` / `domain` / `capabilities` /
+`elements` / `dependencies` / `depends_on` / `relates` / `contains` /
+`describes`), so clients can catch typos like `depend_on` before the call.
 Scalar string options follow the same boundary across read and write tools:
 slugs, repo paths, filters, titles, relation types, query targets, and cursor
 ids reject blank, whitespace-padded, or null-byte values before graph

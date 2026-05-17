@@ -13,6 +13,7 @@ import {
   MAINTENANCE_PHASE_VALUES,
   MAINTENANCE_SEVERITY_VALUES,
   queryCompiledOntology,
+  RELATION_TYPE_VALUES,
 } from '../mcp/src/ontology-engine.mjs';
 import { compileOntology } from '../mcp/src/ontology-compiler.mjs';
 import { collectNeighborRefs, findBacklinks, loadVaultDocs } from '../mcp/src/vault.mjs';
@@ -296,6 +297,13 @@ describe('package contract helpers', () => {
         `\`maintenance_plan.kinds\` is limited to ${markdownEnumList(MAINTENANCE_KIND_VALUES)}`,
       ),
       'MCP README must document every maintenance_plan.kinds enum value',
+    );
+    assert.ok(
+      normalizedMarkdownIncludes(
+        strictInputSection,
+        `\`dependencyTypes\` and \`componentTypes\` (${markdownEnumList(RELATION_TYPE_VALUES)})`,
+      ),
+      'MCP README must document every health/workspace_brief relation filter enum value',
     );
   });
 
@@ -1053,6 +1061,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /node-limited row/);
     assert.match(dogfoodSection, /health\.checks/);
     assert.match(doc, /`orderLimit`, `nodeLimit`, `dependencyTypes`, `componentTypes`/);
+    assert.match(doc, /`dependencyTypes` \/ `componentTypes` 도 relation type enum 을 MCP\s+schema 로 노출/);
     assert.match(doc, /cursor miss `reason`/);
     assert.match(queryOntologyRow, /ready page 의 `cursor\.found=true` \/ `cursor\.reason=null`/);
     assert.match(queryOntologyRow, /현재 page 안의 첫 executable\/review action/);

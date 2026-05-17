@@ -83,6 +83,7 @@ import {
   MAINTENANCE_SEVERITY_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
+  RELATION_TYPE_VALUES,
   queryCompiledOntology,
 } from './ontology-engine.mjs';
 import { loadOmotIgnore } from './omot-ignore.mjs';
@@ -1557,13 +1558,13 @@ const TOOLS = [
         },
         dependencyTypes: {
           type: 'array',
-          items: NON_BLANK_STRING_SCHEMA,
+          items: { ...NON_BLANK_STRING_SCHEMA, enum: RELATION_TYPE_VALUES },
           description:
             'health/workspace_brief only: dependency relation types used for cycle and topological-order checks. Defaults to ["dependencies"].',
         },
         componentTypes: {
           type: 'array',
-          items: NON_BLANK_STRING_SCHEMA,
+          items: { ...NON_BLANK_STRING_SCHEMA, enum: RELATION_TYPE_VALUES },
           description:
             'health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.',
         },

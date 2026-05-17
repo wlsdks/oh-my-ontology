@@ -11,6 +11,7 @@ import {
   MAINTENANCE_SEVERITY_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
+  RELATION_TYPE_VALUES,
 } from './ontology-engine.mjs';
 import {
   advisoryNextActionsSummary,
@@ -578,12 +579,12 @@ describe('verify.mjs first-contact gates', () => {
             },
             dependencyTypes: {
               type: 'array',
-              items: { type: 'string' },
+              items: { type: 'string', enum: RELATION_TYPE_VALUES },
               description: 'health/workspace_brief only: dependency relation types.',
             },
             componentTypes: {
               type: 'array',
-              items: { type: 'string' },
+              items: { type: 'string', enum: RELATION_TYPE_VALUES },
               description: 'health/workspace_brief only: relation types used for connected-component checks.',
             },
             phases: { items: { enum: MAINTENANCE_PHASE_VALUES } },
@@ -1714,7 +1715,7 @@ describe('verify.mjs first-contact gates', () => {
           ...queryOntologyTool.inputSchema,
           properties: {
             ...queryOntologyTool.inputSchema.properties,
-            componentTypes: { type: 'array', items: { type: 'string' }, description: 'components only.' },
+            componentTypes: { type: 'array', items: { type: 'string', enum: RELATION_TYPE_VALUES }, description: 'components only.' },
           },
         },
       })),

@@ -47,6 +47,7 @@ import {
   MAINTENANCE_SEVERITY_VALUES,
   QUERY_ONTOLOGY_OPERATIONS,
   QUERY_PLAN_TARGET_OPERATIONS,
+  RELATION_TYPE_VALUES,
 } from "../mcp/src/ontology-engine.mjs";
 
 const WRITE_TOOL_NAMES = new Set([
@@ -131,8 +132,8 @@ function makeDogfoodToolsList() {
           recommendationLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
           orderLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
           nodeLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
-          dependencyTypes: { type: "array", items: { type: "string" }, description: "health/workspace_brief tuning" },
-          componentTypes: { type: "array", items: { type: "string" }, description: "health/workspace_brief tuning" },
+          dependencyTypes: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
+          componentTypes: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
         };
       }
       if (name === "list_concepts") {
