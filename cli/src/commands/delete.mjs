@@ -5,7 +5,9 @@
 
 import { resolve } from 'node:path';
 import { callMcpTool } from '../lib/mcp-call.mjs';
-import { parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
+import { formatUnknownFlagError, parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
+
+const ALLOWED_FLAGS = ['--vault', '--confirm', '--force', '--json'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -105,7 +107,7 @@ function parseArgs(args) {
     else if (a === '--confirm') flags.confirm = true;
     else if (a === '--force') flags.force = true;
     else if (a === '--json') flags.json = true;
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (positional.length === 0) {

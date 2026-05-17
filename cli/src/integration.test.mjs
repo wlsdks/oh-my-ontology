@@ -400,6 +400,10 @@ await test('mcp-verify — rejects invalid timeout values', async () => {
   const partial = await run(['mcp-verify', '--timeout-ms=1000ms']);
   assert.equal(partial.code, 1);
   assert.match(stripAnsi(partial.stderr), /--timeout-ms must be a positive integer/);
+
+  const typo = await run(['mcp-verify', '--timout-ms=1000']);
+  assert.equal(typo.code, 1);
+  assert.match(stripAnsi(typo.stderr), /unknown flag: --timout-ms=1000\. Did you mean --timeout-ms\?/);
 });
 
 await test('mcp-verify — rejects ambiguous vault arguments', async () => {
@@ -536,6 +540,10 @@ await test('compile — rejects ambiguous vault arguments before compile/fix', a
   const missing = await run(['compile', '--vault']);
   assert.equal(missing.code, 1);
   assert.match(stripAnsi(missing.stderr), /--vault requires a path/);
+
+  const typo = await run(['compile', '--nodes-lmit=1']);
+  assert.equal(typo.code, 1);
+  assert.match(stripAnsi(typo.stderr), /unknown flag: --nodes-lmit=1\. Did you mean --nodes-limit\?/);
 
   const flagValue = await run(['compile', '--vault', '--fix']);
   assert.equal(flagValue.code, 1);
@@ -686,6 +694,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       stderr: /--vault requires a path/,
     },
     {
+      args: ['add', 'capability', 'foo', '--tite=Foo'],
+      expectedCode: 1,
+      stderr: /unknown flag: --tite=Foo\. Did you mean --title\?/,
+    },
+    {
       args: ['add', 'capability', 'foo', '--title', '--vault'],
       expectedCode: 1,
       stderr: /--title requires a value/,
@@ -704,6 +717,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       args: ['import', 'input.md', '--kind'],
       expectedCode: 1,
       stderr: /--kind requires a value/,
+    },
+    {
+      args: ['import', 'input.md', '--dryrun'],
+      expectedCode: 1,
+      stderr: /unknown flag: --dryrun\. Did you mean --dry-run\?/,
     },
   ];
 
@@ -1740,6 +1758,10 @@ await test('read-only graph commands — reject ambiguous vault arguments before
       pattern: /either positional argument or --vault/,
     },
     {
+      args: ['node', 'capabilities/foo', '--jsson'],
+      pattern: /unknown flag: --jsson\. Did you mean --json\?/,
+    },
+    {
       args: ['overview', 'ontology', '--vault', 'docs/ontology'],
       pattern: /either positional argument or --vault/,
     },
@@ -1752,6 +1774,10 @@ await test('read-only graph commands — reject ambiguous vault arguments before
       pattern: /--vault requires a path/,
     },
     {
+      args: ['health', '--jsson'],
+      pattern: /unknown flag: --jsson\. Did you mean --json\?/,
+    },
+    {
       args: ['cycles', '--vault', '--json'],
       pattern: /--vault requires a path/,
     },
@@ -1762,6 +1788,10 @@ await test('read-only graph commands — reject ambiguous vault arguments before
     {
       args: ['workspace-brief', 'ontology', '--vault', 'docs/ontology'],
       pattern: /either positional argument or --vault/,
+    },
+    {
+      args: ['workspace-brief', '--jsson'],
+      pattern: /unknown flag: --jsson\. Did you mean --json\?/,
     },
   ];
 
@@ -2355,6 +2385,10 @@ await test('graph write commands — reject ambiguous vault arguments before MCP
       pattern: /--vault requires a path/,
     },
     {
+      args: ['rename', 'capabilities/foo', 'capabilities/bar', '--cnfirm'],
+      pattern: /unknown flag: --cnfirm\. Did you mean --confirm\?/,
+    },
+    {
       args: ['rename', 'capabilities/foo', 'capabilities/bar', 'ontology', '--vault', 'docs/ontology'],
       pattern: /either positional argument or --vault/,
     },
@@ -2367,12 +2401,20 @@ await test('graph write commands — reject ambiguous vault arguments before MCP
       pattern: /--vault requires a path/,
     },
     {
+      args: ['merge', 'capabilities/foo', 'capabilities/bar', '--cnfirm'],
+      pattern: /unknown flag: --cnfirm\. Did you mean --confirm\?/,
+    },
+    {
       args: ['merge', 'capabilities/foo', 'capabilities/bar', 'ontology', '--vault', 'docs/ontology'],
       pattern: /either positional argument or --vault/,
     },
     {
       args: ['delete', 'capabilities/foo', '--vault', '--confirm'],
       pattern: /--vault requires a path/,
+    },
+    {
+      args: ['delete', 'capabilities/foo', '--froce'],
+      pattern: /unknown flag: --froce\. Did you mean --force\?/,
     },
     {
       args: ['delete', 'capabilities/foo', 'ontology', '--vault', 'docs/ontology'],
@@ -2402,6 +2444,10 @@ await test('repo analysis commands — reject invalid vault/root arguments befor
       pattern: /--vault requires a path/,
     },
     {
+      args: ['analyze', '--max-depht=2'],
+      pattern: /unknown flag: --max-depht=2\. Did you mean --max-depth\?/,
+    },
+    {
       args: ['analyze', 'one', 'two'],
       pattern: /too many arguments: two/,
     },
@@ -2414,6 +2460,10 @@ await test('repo analysis commands — reject invalid vault/root arguments befor
       pattern: /--vault requires a path/,
     },
     {
+      args: ['infer-imports', '--max-file=10'],
+      pattern: /unknown flag: --max-file=10\. Did you mean --max-files\?/,
+    },
+    {
       args: ['infer-imports', 'one', 'two'],
       pattern: /too many arguments: two/,
     },
@@ -2424,6 +2474,10 @@ await test('repo analysis commands — reject invalid vault/root arguments befor
     {
       args: ['bootstrap', '--vault='],
       pattern: /--vault requires a path/,
+    },
+    {
+      args: ['bootstrap', '--skip-import'],
+      pattern: /unknown flag: --skip-import\. Did you mean --skip-imports\?/,
     },
     {
       args: ['bootstrap', 'one', 'two'],

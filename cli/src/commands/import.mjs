@@ -8,7 +8,9 @@ import {
   defaultBody,
   folderForKind,
 } from '../lib/schema.mjs';
-import { parseRequiredFlagValue, parseVaultFlag } from '../lib/cli-args.mjs';
+import { formatUnknownFlagError, parseRequiredFlagValue, parseVaultFlag } from '../lib/cli-args.mjs';
+
+const ALLOWED_FLAGS = ['--vault', '--kind', '--auto-prefix', '--raw-slug', '--no-auto-prefix', '--rename', '--dry-run'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -289,7 +291,7 @@ function parseArgs(args) {
     else if (a === '--rename') flags.rename = true;
     else if (a === '--dry-run') flags.dryRun = true;
     else if (a.startsWith('--')) {
-      return { error: `unknown flag: ${a}` };
+      return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     } else {
       positional.push(a);
     }

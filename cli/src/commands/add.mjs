@@ -7,7 +7,9 @@ import {
   folderForKind,
   missingExpectedFields,
 } from '../lib/schema.mjs';
-import { parseVaultFlag } from '../lib/cli-args.mjs';
+import { formatUnknownFlagError, parseVaultFlag } from '../lib/cli-args.mjs';
+
+const ALLOWED_FLAGS = ['--vault', '--title', '--domain', '--body', '--auto-prefix', '--raw-slug', '--no-auto-prefix'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -111,7 +113,7 @@ function parseArgs(args) {
     else if (a === '--auto-prefix') flags.autoPrefix = true;
     else if (a === '--raw-slug' || a === '--no-auto-prefix') flags.autoPrefix = false;
     else if (a.startsWith('--')) {
-      return { error: `unknown flag: ${a}` };
+      return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     } else {
       positional.push(a);
     }

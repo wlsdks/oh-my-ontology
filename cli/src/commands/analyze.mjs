@@ -12,12 +12,14 @@ import {
 } from '../lib/prune-starters.mjs';
 import { getVaultCensus, writeVaultCensus } from '../lib/vault-census.mjs';
 import {
+  formatUnknownFlagError,
   parseBoundedNonNegativeIntegerFlag,
   parseVaultFlag,
   resolveSingleRootPathArg,
 } from '../lib/cli-args.mjs';
 
 const MAX_DEPTH_CAP = 10;
+const ALLOWED_FLAGS = ['--vault', '--json', '--apply', '--max-depth'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -161,7 +163,7 @@ function parseArgs(args) {
       flags.maxDepth = parseBoundedNonNegativeIntegerFlag('--max-depth', args[++i], { max: MAX_DEPTH_CAP });
     else if (a.startsWith('--max-depth='))
       flags.maxDepth = parseBoundedNonNegativeIntegerFlag('--max-depth', a.slice('--max-depth='.length), { max: MAX_DEPTH_CAP });
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

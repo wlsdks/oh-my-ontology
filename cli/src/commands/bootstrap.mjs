@@ -28,6 +28,7 @@ import {
 } from '../lib/prune-starters.mjs';
 import { getVaultCensus, writeVaultCensus } from '../lib/vault-census.mjs';
 import {
+  formatUnknownFlagError,
   parseBoundedNonNegativeIntegerFlag,
   parseBoundedPositiveIntegerFlag,
   parsePositiveIntegerFlag,
@@ -37,6 +38,7 @@ import {
 
 const MAX_DEPTH_CAP = 10;
 const MAX_FILES_CAP = 50000;
+const ALLOWED_FLAGS = ['--vault', '--json', '--skip-imports', '--max-depth', '--max-files', '--threshold'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -588,7 +590,7 @@ function parseArgs(args) {
       const v = parsePositiveIntegerFlag('--threshold', a.slice('--threshold='.length));
       if (v instanceof Error) return { error: v.message };
       flags.threshold = v;
-    } else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    } else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   for (const value of Object.values(flags)) {

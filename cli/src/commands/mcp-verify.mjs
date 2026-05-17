@@ -8,10 +8,11 @@ import { existsSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
-import { parsePositiveIntegerFlag, parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
+import { formatUnknownFlagError, parsePositiveIntegerFlag, parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require_ = createRequire(import.meta.url);
+const ALLOWED_FLAGS = ['--vault', '--timeout-ms'];
 
 const COLORS = {
   red: '\x1b[31m',
@@ -105,7 +106,7 @@ function parseArgs(args) {
     else if (a.startsWith('--timeout-ms=')) {
       flags.timeoutMs = parsePositiveIntegerFlag('--timeout-ms', a.slice('--timeout-ms='.length));
     }
-    else if (a.startsWith('--')) return { error: `unknown flag: ${a}` };
+    else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (flags.timeoutMs instanceof Error) return { error: flags.timeoutMs.message };
