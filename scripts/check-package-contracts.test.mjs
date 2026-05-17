@@ -177,6 +177,10 @@ describe('package contract helpers', () => {
       assert.match(toolText, /executable `proposedAction`/, `${toolName} documents executable proposedAction`);
       assert.match(toolText, /current-page next action pointers/, `${toolName} documents current-page next action pointers`);
     }
+    const addConceptsFeature = features.split('2. **add_concepts**')[1]?.split('\n')[0] ?? '';
+    const addRelationsFeature = features.split('5. **add_relations**')[1]?.split('\n')[0] ?? '';
+    assert.match(addConceptsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows/);
+    assert.match(addRelationsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows/);
     for (const option of [
       'componentLimit',
       'cycleLimit',
@@ -716,6 +720,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`infer_imports` 도 `outputSchema` 와 동일한 `structuredContent` import-graph payload/);
     assert.match(doc, /`add_concept` \/ `add_relation` \/ `patch_concept` 도 single writer `outputSchema`/);
     assert.match(doc, /`add_concepts` \/ `add_relations` 도 batch writer `outputSchema` row 계약/);
+    assert.match(doc, /row-level non-object \/ blank \/ padded \/ unknown-field 입력은 해당 row 만 실패/);
+    assert.match(doc, /row-level non-object \/ unknown-field 입력도 해당 row 만 실패/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /15 read \/ 8 write split/);
