@@ -8,7 +8,7 @@
 
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { StringDecoder } from "node:string_decoder";
@@ -4033,6 +4033,8 @@ await test("rename_concept dry-run — preview 만, 디스크 변경 0", async (
     },
   ]);
   try {
+    const beforeOld = readFileSync(join(root, "old-target.md"), "utf-8");
+    const beforeRef = readFileSync(join(root, "ref.md"), "utf-8");
     const { responses } = await rpc(root, [
       ...INIT_REQUESTS,
       callTool(2, "rename_concept", {
@@ -4045,6 +4047,11 @@ await test("rename_concept dry-run — preview 만, 디스크 변경 0", async (
     assert.equal(result.dryRun, true);
     assert.equal(result.moved, false);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
+    assert.equal(result.changed, undefined);
+    assert.equal(result.postWriteMaintenance, undefined);
+    assert.equal(readFileSync(join(root, "old-target.md"), "utf-8"), beforeOld);
+    assert.equal(existsSync(join(root, "new-target.md")), false);
+    assert.equal(readFileSync(join(root, "ref.md"), "utf-8"), beforeRef);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -4137,6 +4144,8 @@ await test("merge_concepts dry-run — preview 만, 디스크 변경 0", async (
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
     assert.equal(result.capturedFrom.frontmatter.title, "From");
     assert.match(result.message, /confirm:true/);
+    assert.equal(result.changed, undefined);
+    assert.equal(result.postWriteMaintenance, undefined);
     assert.equal(readFileSync(join(root, "from.md"), "utf-8"), beforeFrom);
     assert.equal(readFileSync(join(root, "ref.md"), "utf-8"), beforeRef);
   } finally {
@@ -4185,6 +4194,8 @@ await test("delete_concept dry-run — backlink preview 만, 디스크 변경 0"
     assert.equal(result.slug, "gone");
     assert.equal(result.backlinks.length, 1);
     assert.match(result.message, /force:true/);
+    assert.equal(result.changed, undefined);
+    assert.equal(result.postWriteMaintenance, undefined);
     assert.equal(readFileSync(join(root, "gone.md"), "utf-8"), beforeGone);
     assert.equal(readFileSync(join(root, "ref.md"), "utf-8"), beforeRef);
   } finally {
