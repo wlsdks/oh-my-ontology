@@ -371,7 +371,8 @@ stderr warning filtering 을 만질 때는 `pnpm test:mcp:dogfood` 로 dogfood h
 를 포함한 focused direct read smoke set 도 설명한다. 별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`
 semantics 를 확인해 typed-filter pagination 계약을 빠르게 점검한다.
 verify helper 자체를 만질 때는 `pnpm test:mcp:verify` 로
-`mcp/src/verify-script.test.mjs` 만 바로 실행한다.
+`mcp/src/verify-script.test.mjs` 만 바로 실행한다. verify timeout / usage
+진단만 만질 때는 `pnpm test:mcp:verify:timeout` 으로 더 좁게 확인한다.
 또한 write tool schema 가 `expected_mtime` conflict guard 와 destructive
 tool 의 `confirm` dry-run safety switch, `rename_concept.overwrite`, `delete_concept.force` 를 계속 노출하는지 `tools/list`
 응답에서 직접 검증해, agent-facing MCP schema 가 실제 동시 편집 보호

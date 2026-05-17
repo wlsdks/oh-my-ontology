@@ -53,6 +53,7 @@ pnpm test:mcp:docs
 pnpm test:mcp:dogfood
 pnpm test:mcp:suggestions
 pnpm test:mcp:verify
+pnpm test:mcp:verify:timeout
 ```
 
 `integration:mcp:readme` runs the documented first-contact read-only MCP flow
@@ -62,7 +63,8 @@ indexed `compile_ontology` gate, help output, unsupported-argument rejection,
 stderr warning filtering, and gate contract without running the live MCP walk.
 `test:mcp:suggestions` covers strict enum / argument suggestion behavior.
 `test:mcp:verify` covers the MCP verify helper contract without spawning the
-full integration suite.
+full integration suite. `test:mcp:verify:timeout` narrows that to verify
+timeout parsing, usage, and retry diagnostics.
 Use `OMOT_TEST_NAME_PATTERN` or Node `--test-name-pattern` with
 `pnpm integration:mcp` when the touched MCP integration case has a different
 name.

@@ -78,6 +78,10 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/suggestions\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/ontology-engine\.test\.mjs/);
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
+    assert.equal(
+      pkg.scripts?.['test:mcp:verify:timeout'],
+      'node --test --test-name-pattern "verify timeout|timeout failures|direct verify usage|direct verify timeout" mcp/src/verify-script.test.mjs',
+    );
     assert.match(
       pkg.scripts?.['test:mcp:docs'] ?? '',
       /^node --test --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
@@ -99,6 +103,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /pnpm test:mcp:package\s+# focused package-script\/dependency\/tarball contract checks/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /pnpm test:mcp:verify/);
+    assert.match(readme, /pnpm test:mcp:verify:timeout\s+# narrow MCP verify timeout\/help diagnostics/);
     assert.match(readme, /timeout mistakes, the error reports the\s+received value/);
     assert.match(readme, /`npm run verify -- --timeout-ms 15000`/);
     assert.match(readme, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
@@ -315,6 +320,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:dogfood/);
     assert.match(section, /pnpm test:mcp:suggestions/);
     assert.match(section, /pnpm test:mcp:verify/);
+    assert.match(section, /pnpm test:mcp:verify:timeout/);
     assert.match(readme, /Invalid timeout values fail before the server\s+starts and print the received value plus a concrete retry example/);
     assert.match(readme, /`npm run verify -- --timeout-ms 15000`/);
     assert.match(section, /first-contact read-only MCP flow/);
@@ -323,6 +329,7 @@ describe('package contract helpers', () => {
     assert.match(section, /unsupported-argument rejection/);
     assert.match(section, /stderr warning filtering/);
     assert.match(section, /verify helper contract/);
+    assert.match(section, /timeout parsing, usage, and retry diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
   });
@@ -1178,6 +1185,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm integration:mcp:readme`/);
     assert.match(doc, /`pnpm test:mcp:dogfood`/);
     assert.match(doc, /`pnpm test:mcp:verify`/);
+    assert.match(doc, /`pnpm test:mcp:verify:timeout`/);
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);
     assert.match(doc, /focused subset 을 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
