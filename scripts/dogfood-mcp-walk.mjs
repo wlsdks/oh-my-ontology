@@ -727,6 +727,7 @@ export function evaluateDogfoodGate({
   projectScope,
   projectScopeStructured,
   projectProbe,
+  projectProbeStructured,
   kindsStructured,
   strictArgs,
   strictEnum,
@@ -807,97 +808,84 @@ export function evaluateDogfoodGate({
   if (kinds) {
     const kindsFailure = listKindsFailure(kinds);
     if (kindsFailure) failures.push(kindsFailure);
-  }
-  if (kinds && !listKindsFailure(kinds) && JSON.stringify(kindsStructured) !== JSON.stringify(kinds)) {
-    failures.push("list_kinds structuredContent mismatch");
+    else recordStructuredContentFailure(failures, "list_kinds", kinds, kindsStructured);
   }
   if (list) {
     const listFailure = listConceptsFailure(list);
     if (listFailure) failures.push(listFailure);
-    else if (listStructured !== undefined && JSON.stringify(listStructured) !== JSON.stringify(list)) {
-      failures.push("list_concepts structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "list_concepts", list, listStructured);
   }
   if (projectProbe) {
     const projectProbeFailure = listConceptsFailure(projectProbe);
     if (projectProbeFailure) failures.push(`project_probe: ${projectProbeFailure}`);
+    let projectProbeOk = !projectProbeFailure;
     if (!projectProbeFailure && projectProbe.total < 1) {
       failures.push("project_probe response missing project node");
+      projectProbeOk = false;
     }
     if (!projectProbeFailure) {
       const nonProject = (projectProbe.nodes || []).find((node) => node?.kind !== "project");
       if (nonProject) {
         failures.push(`project_probe returned non-project node: ${nonProject.slug || "(unknown)"}`);
+        projectProbeOk = false;
       }
       const kindProjectCount = kinds?.byKind?.project;
       if (Number.isInteger(kindProjectCount) && projectProbe.total >= 1 && projectProbe.total !== kindProjectCount) {
         failures.push(`project_probe count mismatch — list_kinds project ${kindProjectCount}, probe ${projectProbe.total}`);
+        projectProbeOk = false;
+      }
+      if (projectProbeOk) {
+        recordStructuredContentFailure(failures, "project_probe", projectProbe, projectProbeStructured);
       }
     }
   }
   if (batch) {
     const batchFailure = getConceptsShapeFailure(batch);
     if (batchFailure) failures.push(batchFailure);
-    else if (batchStructured !== undefined && JSON.stringify(batchStructured) !== JSON.stringify(batch)) {
-      failures.push("get_concepts structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "get_concepts", batch, batchStructured);
   }
   if (ev) {
     const evidenceFailure = evidenceShapeFailure(ev);
     if (evidenceFailure) failures.push(evidenceFailure);
-    else if (evStructured !== undefined && JSON.stringify(evStructured) !== JSON.stringify(ev)) {
-      failures.push("find_evidence structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "find_evidence", ev, evStructured);
   }
   if (path) {
     const pathFailure = pathShapeFailure(path);
     if (pathFailure) failures.push(pathFailure);
-    else if (pathStructured !== undefined && JSON.stringify(pathStructured) !== JSON.stringify(path)) {
-      failures.push("find_path structuredContent mismatch");
+    else {
+      recordStructuredContentFailure(failures, "find_path", path, pathStructured);
+      if (!path.found) failures.push("find_path: expected mcp-server → vault-local-first path");
     }
-    else if (!path.found) failures.push("find_path: expected mcp-server → vault-local-first path");
   }
   if (bl) {
     const backlinksFailure = matchesShapeFailure("find_backlinks", bl);
     if (backlinksFailure) failures.push(backlinksFailure);
-    else if (blStructured !== undefined && JSON.stringify(blStructured) !== JSON.stringify(bl)) {
-      failures.push("find_backlinks structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "find_backlinks", bl, blStructured);
   }
   if (orph) {
     const orphansFailure = orphansShapeFailure(orph);
     if (orphansFailure) failures.push(orphansFailure);
-    else if (orphStructured !== undefined && JSON.stringify(orphStructured) !== JSON.stringify(orph)) {
-      failures.push("find_orphans structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "find_orphans", orph, orphStructured);
   }
   if (queryConcepts) {
     const queryConceptsFailure = matchesShapeFailure("query_concepts", queryConcepts);
     if (queryConceptsFailure) failures.push(queryConceptsFailure);
-    else if (queryConceptsStructured !== undefined && JSON.stringify(queryConceptsStructured) !== JSON.stringify(queryConcepts)) {
-      failures.push("query_concepts structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "query_concepts", queryConcepts, queryConceptsStructured);
   }
   if (analyzedRepo) {
     const analyzedRepoFailure = analyzeRepoStructureFailure(analyzedRepo);
     if (analyzedRepoFailure) failures.push(analyzedRepoFailure);
-    else if (analyzedRepoStructured !== undefined && JSON.stringify(analyzedRepoStructured) !== JSON.stringify(analyzedRepo)) {
-      failures.push("analyze_repo_structure structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "analyze_repo_structure", analyzedRepo, analyzedRepoStructured);
   }
   if (inferredImports) {
     const inferredImportsFailure = inferImportsFailure(inferredImports);
     if (inferredImportsFailure) failures.push(inferredImportsFailure);
-    else if (inferredImportsStructured !== undefined && JSON.stringify(inferredImportsStructured) !== JSON.stringify(inferredImports)) {
-      failures.push("infer_imports structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "infer_imports", inferredImports, inferredImportsStructured);
   }
   if (validation) {
     const validationFailure = validateVaultFailure(validation);
     if (validationFailure) failures.push(validationFailure);
-  }
-  if (validation && validationStructured !== undefined && JSON.stringify(validationStructured) !== JSON.stringify(validation)) {
-    failures.push("validate_vault structuredContent mismatch");
+    else recordStructuredContentFailure(failures, "validate_vault", validation, validationStructured);
   }
   let briefShapeFailure = null;
   if (brief) {
@@ -922,9 +910,7 @@ export function evaluateDogfoodGate({
   if (compiled) {
     const compileFailure = compileSummaryFailure(compiled);
     if (compileFailure) failures.push(compileFailure);
-    else if (compiledStructured !== undefined && JSON.stringify(compiledStructured) !== JSON.stringify(compiled)) {
-      failures.push("compile_ontology structuredContent mismatch");
-    }
+    else recordStructuredContentFailure(failures, "compile_ontology", compiled, compiledStructured);
   }
   if (overview) {
     const overviewShapeFailure = overviewFailure(overview);
@@ -1160,6 +1146,16 @@ export function evaluateDogfoodGate({
   }
 
   return failures;
+}
+
+function recordStructuredContentFailure(failures, label, parsed, structured) {
+  if (structured === undefined) {
+    failures.push(`${label} structuredContent missing`);
+    return;
+  }
+  if (JSON.stringify(structured) !== JSON.stringify(parsed)) {
+    failures.push(`${label} structuredContent mismatch`);
+  }
 }
 
 function evidenceShapeFailure(result) {
@@ -5140,6 +5136,7 @@ async function main() {
     projectScope,
     projectScopeStructured: structuredContent(45),
     projectProbe,
+    projectProbeStructured: structuredContent(48),
     kindsStructured,
     validationStructured,
     strictArgs,
