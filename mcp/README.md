@@ -60,8 +60,9 @@ pnpm test:mcp:verify:timeout
 `integration:mcp:readme` runs the documented first-contact read-only MCP flow
 only. `test:mcp:docs` checks README and dogfood ontology documentation drift.
 `test:mcp:dogfood` covers the dogfood helper's structuredContent output,
-indexed `compile_ontology` gate, help output, unsupported-argument rejection,
-stderr warning filtering, and gate contract without running the live MCP walk.
+indexed `compile_ontology` gate, destructive dry-run request/gate contract,
+help output, unsupported-argument rejection, stderr warning filtering, and gate
+contract without running the live MCP walk.
 `test:mcp:dogfood:timeout` narrows that to dogfood timeout parsing, missing
 response labels, and retry help.
 `test:mcp:suggestions` covers strict enum / argument suggestion behavior.
