@@ -861,6 +861,11 @@ await test('local/frontmatter commands — reject invalid vault and value argume
       stderr: /--fail-on requires a value/,
     },
     {
+      args: ['validate', '--fail-on=empty-kind,'],
+      expectedCode: 1,
+      stderr: /--fail-on must not contain empty CSV items/,
+    },
+    {
       args: ['validate', '--failon=empty-kind'],
       expectedCode: 1,
       stderr: /unknown flag: --failon=empty-kind\. Did you mean --fail-on\?/,

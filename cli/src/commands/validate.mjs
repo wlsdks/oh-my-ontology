@@ -6,7 +6,7 @@ import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { validateVaultDocument } from '../lib/validate.mjs';
 import {
   formatUnknownFlagError,
-  parseRequiredFlagValue,
+  parseCsvListFlag,
   parseVaultFlag,
   resolveExclusiveVaultArg,
 } from '../lib/cli-args.mjs';
@@ -277,8 +277,8 @@ function parseArgs(args) {
     else if (a === '--json') flags.json = true;
     else if (a === '--strict') flags.strict = true;
     else if (a === '--list-codes') flags.listCodes = true;
-    else if (a === '--fail-on') flags.failOn = parseRequiredFlagValue('--fail-on', args[++i]);
-    else if (a.startsWith('--fail-on=')) flags.failOn = parseRequiredFlagValue('--fail-on', a.slice('--fail-on='.length));
+    else if (a === '--fail-on') flags.failOn = parseCsvListFlag('--fail-on', args[++i], { itemName: 'issue code' });
+    else if (a.startsWith('--fail-on=')) flags.failOn = parseCsvListFlag('--fail-on', a.slice('--fail-on='.length), { itemName: 'issue code' });
     else if (a.startsWith('--')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
@@ -293,7 +293,7 @@ function parseArgs(args) {
     json: flags.json,
     strict: flags.strict,
     listCodes: flags.listCodes,
-    failOn: splitCsv(flags.failOn),
+    failOn: flags.failOn,
   };
 }
 
@@ -305,15 +305,6 @@ function printUsage(stream = process.stderr) {
       `  oh-my-ontology validate --list-codes [--json]\n\n` +
       `Validate ontology vault frontmatter integrity.\n`,
   );
-}
-
-function splitCsv(value) {
-  if (typeof value !== 'string' || value.trim() === '') return null;
-  const out = value
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return out.length > 0 ? out : null;
 }
 
 // R+ — cycle 44: --list-codes 출력. text 모드는 사람이 읽기 좋은 표,

@@ -1270,11 +1270,13 @@ describe('package contract helpers', () => {
     const listRow = doc.split('| `oh-my-ontology list [vault]` |')[1]?.split('\n')[0] ?? '';
     const addRow = doc.split('| `oh-my-ontology add <kind> <slug> --title="..."` |')[1]?.split('\n')[0] ?? '';
     const findRow = doc.split('| `oh-my-ontology find <query> [vault]` |')[1]?.split('\n')[0] ?? '';
+    const validateRow = doc.split('| `oh-my-ontology validate [vault]` |')[1]?.split('\n')[0] ?? '';
     const importRow = doc.split('| `oh-my-ontology import <path...>` |')[1]?.split('\n')[0] ?? '';
     const orphansRow = doc.split('| `oh-my-ontology orphans` |')[1]?.split('\n')[0] ?? '';
     const cliListRow = readme.split('| `oh-my-ontology list [vault]` |')[1]?.split('\n')[0] ?? '';
     const cliAddRow = readme.split('| `oh-my-ontology add <kind> <slug> --title="..."` |')[1]?.split('\n')[0] ?? '';
     const cliFindRow = readme.split('| `oh-my-ontology find <query> [vault]` |')[1]?.split('\n')[0] ?? '';
+    const cliValidateRow = readme.split('| `oh-my-ontology validate [vault]` |')[1]?.split('\n')[0] ?? '';
     const cliImportRow = readme.split('| `oh-my-ontology import <path...>` |')[1]?.split('\n')[0] ?? '';
     const cliOrphansRow = readme.split('| `oh-my-ontology orphans [vault]` |')[1]?.split('\n')[0] ?? '';
     const mcpVerifyRow = doc.split('| `oh-my-ontology mcp-verify [vault]` |')[1]?.split('\n')[0] ?? '';
@@ -1288,6 +1290,8 @@ describe('package contract helpers', () => {
     assert.match(findRow, /enum-validated `--kind --json`/);
     assert.match(findRow, /`--kind=capabilty`/);
     assert.match(findRow, /closest-value hint/);
+    assert.match(validateRow, /`--fail-on=empty-kind,`/);
+    assert.match(validateRow, /fail-closed/);
     assert.match(importRow, /fallback `--kind` 와 frontmatter `kind` typo 는 closest-value hint/);
     assert.match(orphansRow, /enum-validated kind \/ exclude-kinds 필터/);
     assert.match(orphansRow, /`--exclude-kinds=project,capabilty`/);
@@ -1295,6 +1299,7 @@ describe('package contract helpers', () => {
     assert.match(cliListRow, /enum-validated `--kind X` filter with closest-value hints/);
     assert.match(cliAddRow, /`kind` is enum-validated with closest-value hints before writing/);
     assert.match(cliFindRow, /enum-validated `--kind X` filter with closest-value hints/);
+    assert.match(cliValidateRow, /rejects empty CSV items such as `--fail-on=empty-kind,`/);
     assert.match(cliImportRow, /Frontmatter `kind` typos and fallback `--kind` typos fail with closest-value hints/);
     assert.match(cliOrphansRow, /enum-validated `--kind X`/);
     assert.match(cliOrphansRow, /enum-validated `--exclude-kinds A,B`/);
@@ -1336,7 +1341,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /`oh-my-ontology mcp-verify --timeout-ms 15000`/);
     assert.match(implementationSection, /query-result-contract\.mjs/);
     assert.match(implementationSection, /CSV list 의 빈 항목 거부/);
-    assert.match(implementationSection, /`--component-types=dependencies,` \/ `--phases=repair,` \/ `--exclude-kinds=project,`/);
+    assert.match(implementationSection, /`--fail-on=empty-kind,` \/ `--component-types=dependencies,` \/ `--phases=repair,` \/ `--exclude-kinds=project,`/);
     assert.match(implementationSection, /`blast-radius --direction=incomng` 같은 enum typo 는 MCP 호출 전에 closest-value hint/);
     assert.match(implementationSection, /`path` found:false 와 hop\/edge alignment/);
     assert.match(implementationSection, /`health` \/ `workspace-brief` top-level diagnosis status/);
