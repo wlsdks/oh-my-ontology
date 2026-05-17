@@ -4362,7 +4362,14 @@ function blockingNextActions(actions) {
   if (!Array.isArray(actions)) return [];
   return actions
     .filter((action) => action?.severity === 'fail')
-    .map((action) => action.id || action.kind || 'unknown');
+    .map(nextActionDiagnosticLabel);
+}
+
+function nextActionDiagnosticLabel(action) {
+  const label = action?.id || action?.kind || 'unknown';
+  const severity = action?.severity || 'unknown';
+  const count = Number.isInteger(action?.count) ? `:${action.count}` : '';
+  return `${label}:${severity}${count}`;
 }
 
 export function diagnosisIssueCount(parsed) {

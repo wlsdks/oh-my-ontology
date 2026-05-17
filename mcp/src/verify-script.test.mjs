@@ -6428,7 +6428,7 @@ describe('verify.mjs first-contact gates', () => {
         },
         'workspace_brief',
       ),
-      'workspace_brief has actionable nextActions: resolve_dangling_references. Inspect workspace_brief.nextActions before writing.',
+      'workspace_brief has actionable nextActions: resolve_dangling_references:fail:1. Inspect workspace_brief.nextActions before writing.',
     );
   });
 });

@@ -6376,7 +6376,7 @@ describe("evaluateDogfoodGate", () => {
       },
     });
     assert.deepEqual(failures, [
-      "workspace_brief: actionable nextActions materialize_external_elements, resolve_dangling_references",
+      "workspace_brief: actionable nextActions materialize_external_elements:warn:2, resolve_dangling_references:fail:1",
     ]);
   });
 });
