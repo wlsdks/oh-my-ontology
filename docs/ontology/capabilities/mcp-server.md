@@ -683,6 +683,6 @@ failing health check, workspace_brief growth/sample/action gate 를 focused 로 
 CLI `mcp-verify` 문서도 delegated verify output 의 non-blocking advisory 와
 issues/unresolved/cycles/checks health summary 를 설명해 설치 경로와 source checkout
 검증 경로의 기대 출력이 갈라지지 않게 한다.
-`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, maintenance work-queue shape / formatter, initialize guidance, tools/list annotation coverage, row-label guidance summary 를 fixture 로 검증해
+`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, maintenance work-queue shape / formatter, initialize guidance, tools/list annotation coverage, row-label guidance summary, strict closest-value summary 를 fixture 로 검증해
 dogfood walk 의 실패 조건이 조용히 약해지지 않게 막고, 전체 helper 회귀가 필요할 때만
 `pnpm dogfood:test` 로 넓힌다.
