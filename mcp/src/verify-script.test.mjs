@@ -1516,7 +1516,7 @@ describe('verify.mjs first-contact gates', () => {
           ? { ...tool, annotations: { ...tool.annotations, title: 'List concept rows' } }
           : tool
       ))),
-      'tools/list title annotation drift: list_concepts',
+      'tools/list title annotation drift: list_concepts (expected "List Concepts", got "List concept rows")',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
@@ -1637,7 +1637,7 @@ describe('verify.mjs first-contact gates', () => {
           ? { ...tool, annotations: { ...tool.annotations, readOnlyHint: false } }
           : tool
       ))),
-      'tools/list readOnlyHint annotation drift: list_concepts',
+      'tools/list readOnlyHint annotation drift: list_concepts (expected true, got false)',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
@@ -1645,7 +1645,7 @@ describe('verify.mjs first-contact gates', () => {
           ? { ...tool, annotations: { ...tool.annotations, readOnlyHint: true } }
           : tool
       ))),
-      'tools/list readOnlyHint annotation drift: add_concept',
+      'tools/list readOnlyHint annotation drift: add_concept (expected false, got true)',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
@@ -1653,7 +1653,7 @@ describe('verify.mjs first-contact gates', () => {
           ? { ...tool, annotations: { ...tool.annotations, openWorldHint: true } }
           : tool
       ))),
-      'tools/list openWorldHint annotation drift: list_concepts',
+      'tools/list openWorldHint annotation drift: list_concepts (expected false, got true)',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
@@ -1661,7 +1661,7 @@ describe('verify.mjs first-contact gates', () => {
           ? { ...tool, annotations: { ...tool.annotations, destructiveHint: false } }
           : tool
       ))),
-      'tools/list destructiveHint annotation drift: merge_concepts',
+      'tools/list destructiveHint annotation drift: merge_concepts (expected true, got false)',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
@@ -1669,7 +1669,7 @@ describe('verify.mjs first-contact gates', () => {
           ? { ...tool, annotations: { ...tool.annotations, idempotentHint: false } }
           : tool
       ))),
-      'tools/list idempotentHint annotation drift: add_relations',
+      'tools/list idempotentHint annotation drift: add_relations (expected true, got false)',
     );
     assert.equal(
       toolsListSchemaFailure(tools.filter((tool) => tool.name !== 'query_ontology')),

@@ -250,26 +250,26 @@ export function toolsListSchemaFailure(tools) {
   }
   const titleDriftTool = tools.find((tool) => tool?.annotations?.title !== expectedToolTitle(tool?.name));
   if (titleDriftTool) {
-    return `tools/list title annotation drift: ${titleDriftTool.name || '(unknown)'}`;
+    return `tools/list title annotation drift: ${titleDriftTool.name || '(unknown)'} (expected ${JSON.stringify(expectedToolTitle(titleDriftTool?.name))}, got ${JSON.stringify(titleDriftTool?.annotations?.title)})`;
   }
   const expectedReadTools = new Set(EXPECTED_READ_TOOLS);
   const annotationDriftTool = tools.find((tool) => tool?.annotations?.readOnlyHint !== expectedReadTools.has(tool?.name));
   if (annotationDriftTool) {
-    return `tools/list readOnlyHint annotation drift: ${annotationDriftTool.name || '(unknown)'}`;
+    return `tools/list readOnlyHint annotation drift: ${annotationDriftTool.name || '(unknown)'} (expected ${expectedReadTools.has(annotationDriftTool?.name)}, got ${JSON.stringify(annotationDriftTool?.annotations?.readOnlyHint)})`;
   }
   const openWorldDriftTool = tools.find((tool) => tool?.annotations?.openWorldHint !== false);
   if (openWorldDriftTool) {
-    return `tools/list openWorldHint annotation drift: ${openWorldDriftTool.name || '(unknown)'}`;
+    return `tools/list openWorldHint annotation drift: ${openWorldDriftTool.name || '(unknown)'} (expected false, got ${JSON.stringify(openWorldDriftTool?.annotations?.openWorldHint)})`;
   }
   const expectedDestructiveTools = new Set(EXPECTED_DESTRUCTIVE_TOOLS);
   const destructiveDriftTool = tools.find((tool) => tool?.annotations?.destructiveHint !== expectedDestructiveTools.has(tool?.name));
   if (destructiveDriftTool) {
-    return `tools/list destructiveHint annotation drift: ${destructiveDriftTool.name || '(unknown)'}`;
+    return `tools/list destructiveHint annotation drift: ${destructiveDriftTool.name || '(unknown)'} (expected ${expectedDestructiveTools.has(destructiveDriftTool?.name)}, got ${JSON.stringify(destructiveDriftTool?.annotations?.destructiveHint)})`;
   }
   const expectedIdempotentTools = new Set(EXPECTED_IDEMPOTENT_TOOLS);
   const idempotentDriftTool = tools.find((tool) => tool?.annotations?.idempotentHint !== expectedIdempotentTools.has(tool?.name));
   if (idempotentDriftTool) {
-    return `tools/list idempotentHint annotation drift: ${idempotentDriftTool.name || '(unknown)'}`;
+    return `tools/list idempotentHint annotation drift: ${idempotentDriftTool.name || '(unknown)'} (expected ${expectedIdempotentTools.has(idempotentDriftTool?.name)}, got ${JSON.stringify(idempotentDriftTool?.annotations?.idempotentHint)})`;
   }
 
   const listConceptsTool = tools.find((tool) => tool?.name === 'list_concepts');

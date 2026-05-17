@@ -3241,7 +3241,7 @@ describe("evaluateDogfoodGate", () => {
     titleDrifted.tools.find((tool) => tool.name === "list_concepts").annotations.title = "List concept rows";
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: titleDrifted }),
-      ["tools/list: tools/list title annotation drift: list_concepts"],
+      ['tools/list: tools/list title annotation drift: list_concepts (expected "List Concepts", got "List concept rows")'],
     );
     const outputSchemaDrifted = makeDogfoodToolsList();
     outputSchemaDrifted.tools.find((tool) => tool.name === "list_kinds").outputSchema.properties.total.type = "number";
@@ -3427,19 +3427,19 @@ describe("evaluateDogfoodGate", () => {
     openWorldDrifted.tools.find((tool) => tool.name === "list_concepts").annotations.openWorldHint = true;
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: openWorldDrifted }),
-      ["tools/list: tools/list openWorldHint annotation drift: list_concepts"],
+      ["tools/list: tools/list openWorldHint annotation drift: list_concepts (expected false, got true)"],
     );
     const destructiveDrifted = makeDogfoodToolsList();
     destructiveDrifted.tools.find((tool) => tool.name === "delete_concept").annotations.destructiveHint = false;
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: destructiveDrifted }),
-      ["tools/list: tools/list destructiveHint annotation drift: delete_concept"],
+      ["tools/list: tools/list destructiveHint annotation drift: delete_concept (expected true, got false)"],
     );
     const idempotentDrifted = makeDogfoodToolsList();
     idempotentDrifted.tools.find((tool) => tool.name === "add_relation").annotations.idempotentHint = false;
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: idempotentDrifted }),
-      ["tools/list: tools/list idempotentHint annotation drift: add_relation"],
+      ["tools/list: tools/list idempotentHint annotation drift: add_relation (expected true, got false)"],
     );
     const drifted = makeDogfoodToolsList();
     drifted.tools.find((tool) => tool.name === "query_ontology").inputSchema.properties.afterActionId.description =

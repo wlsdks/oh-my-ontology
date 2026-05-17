@@ -576,6 +576,9 @@ installed verify 의 `tools/list` 성공 라인도 같은 annotation summary hel
 `23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 23/23 local-only`
 coverage 를 직접 출력한다. source dogfood 와 설치 verify 가 같은 사람이 읽는 증거를
 공유하므로 annotation gate 가 통과했지만 로그에서는 숨는 상태를 줄인다.
+annotation drift 실패 메시지는 이제 해당 tool name 과 함께 expected / got 값을
+출력해, `readOnlyHint` 나 `openWorldHint` 같은 MCP metadata 회귀를 agent 가 바로
+수정할 수 있게 한다.
 `list_kinds` 는 `outputSchema` 와 동일한 `structuredContent` census payload 도
 노출해, client 가 text JSON 을 다시 파싱하지 않고 kind 분포를 검증할 수 있게 한다.
 `list_concepts` 도 `outputSchema` 와 동일한 `structuredContent` node table payload 를
