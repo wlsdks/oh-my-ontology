@@ -473,7 +473,9 @@ summary plus check `id:status:count` coverage that the verify gate validated. Th
 is large or on a slow filesystem. Real timeout failures suggest the same
 retry shape, and invalid timeout values fail before the server starts and print
 the received value plus a concrete retry example, for example
-`npm run verify -- --timeout-ms 15000`.
+`npm run verify -- --timeout-ms 15000`. When the repo-root CLI wrapper starts
+this verifier with an explicit vault, true verify timeout retry hints preserve
+that vault as `oh-my-ontology mcp-verify --vault <path> --timeout-ms 15000`.
 
 ### Manual verification (reference)
 

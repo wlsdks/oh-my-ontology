@@ -49,7 +49,7 @@ export async function runMcpVerify(args) {
     return 2;
   }
 
-  return runVerifyScript(verifyScript, vaultRoot, timeoutMs);
+  return runVerifyScript(verifyScript, vaultRoot, timeoutMs, vault);
 }
 
 function resolveVerifyScript() {
@@ -80,13 +80,13 @@ function isFile(path) {
   }
 }
 
-function runVerifyScript(verifyScript, vaultRoot, timeoutMs) {
+function runVerifyScript(verifyScript, vaultRoot, timeoutMs, vaultArg) {
   return new Promise((resolveP) => {
     const proc = spawn('node', [verifyScript], {
       env: {
         ...process.env,
         OMOT_VAULT: vaultRoot,
-        OMOT_VERIFY_RETRY_EXAMPLE: 'oh-my-ontology mcp-verify --timeout-ms 15000',
+        OMOT_VERIFY_RETRY_EXAMPLE: mcpVerifyRetryExample(vaultArg),
         ...(timeoutMs ? { OMOT_VERIFY_TIMEOUT_MS: String(timeoutMs) } : {}),
       },
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -99,6 +99,17 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs) {
       resolveP(2);
     });
   });
+}
+
+function mcpVerifyRetryExample(vaultArg) {
+  const vaultPart = vaultArg ? ` --vault ${shellArg(vaultArg)}` : '';
+  return `oh-my-ontology mcp-verify${vaultPart} --timeout-ms 15000`;
+}
+
+function shellArg(value) {
+  const raw = String(value);
+  if (/^[A-Za-z0-9_./:-]+$/.test(raw)) return raw;
+  return `'${raw.replaceAll("'", "'\\''")}'`;
 }
 
 function parseArgs(args) {
