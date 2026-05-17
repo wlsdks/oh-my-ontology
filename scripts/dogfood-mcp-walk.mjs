@@ -1129,8 +1129,12 @@ export function evaluateDogfoodGate({
     ["project_scope", projectScope, projectScopeStructured],
   ]) {
     const alreadyFailed = failures.some((failure) => failure.startsWith(`${label}:`) || failure.startsWith(`${label} `));
-    if (!alreadyFailed && parsed && structured !== undefined && JSON.stringify(structured) !== JSON.stringify(parsed)) {
-      failures.push(`${label} structuredContent mismatch`);
+    if (!alreadyFailed && parsed) {
+      if (structured === undefined) {
+        failures.push(`${label} structuredContent missing`);
+      } else if (JSON.stringify(structured) !== JSON.stringify(parsed)) {
+        failures.push(`${label} structuredContent mismatch`);
+      }
     }
   }
 

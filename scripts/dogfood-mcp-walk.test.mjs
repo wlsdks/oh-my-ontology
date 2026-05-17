@@ -2173,6 +2173,48 @@ const okShape = {
   },
 };
 
+for (const [resultField, structuredField] of [
+  ["brief", "briefStructured"],
+  ["tunedBrief", "tunedBriefStructured"],
+  ["health", "healthStructured"],
+  ["tunedHealth", "tunedHealthStructured"],
+  ["patternWalk", "patternWalkStructured"],
+  ["allPaths", "allPathsStructured"],
+  ["allPathsPlan", "allPathsPlanStructured"],
+  ["projectMapPlan", "projectMapPlanStructured"],
+  ["projectMap", "projectMapStructured"],
+  ["domainProfile", "domainProfileStructured"],
+  ["domainMatrix", "domainMatrixStructured"],
+  ["components", "componentsStructured"],
+  ["relationCheck", "relationCheckStructured"],
+  ["maintenancePlan", "maintenancePlanStructured"],
+  ["maintenancePlanMissingCursor", "maintenancePlanMissingCursorStructured"],
+  ["growthPlan", "growthPlanStructured"],
+  ["relationRecommendations", "relationRecommendationsStructured"],
+  ["cycles", "cyclesStructured"],
+  ["topologicalOrder", "topologicalOrderStructured"],
+  ["lineage", "lineageStructured"],
+  ["containmentTree", "containmentTreeStructured"],
+  ["reachability", "reachabilityStructured"],
+  ["impact", "impactStructured"],
+  ["blastRadius", "blastRadiusStructured"],
+  ["subgraph", "subgraphStructured"],
+  ["schema", "schemaStructured"],
+  ["facets", "facetsStructured"],
+  ["matchNodes", "matchNodesStructured"],
+  ["matchEdges", "matchEdgesStructured"],
+  ["nodeProfile", "nodeProfileStructured"],
+  ["centrality", "centralityStructured"],
+  ["communities", "communitiesStructured"],
+  ["similarNodes", "similarNodesStructured"],
+  ["explainRelation", "explainRelationStructured"],
+  ["neighbors", "neighborsStructured"],
+  ["queryPath", "queryPathStructured"],
+  ["projectScope", "projectScopeStructured"],
+]) {
+  okShape[structuredField] ??= structuredClone(okShape[resultField]);
+}
+
 describe("recordResult", () => {
   it("records missing, error, and non-JSON responses", () => {
     const failures = [];
@@ -2923,6 +2965,10 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, overviewStructured: { ...okShape.overview, graph: { ...okShape.overview.graph, nodes: 2 } } }),
       ["overview structuredContent mismatch"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, overviewStructured: undefined }),
+      ["overview structuredContent missing"],
     );
   });
 
