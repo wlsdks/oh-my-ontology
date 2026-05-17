@@ -303,8 +303,8 @@ try {
   assert.match(cliMcpVerify.stdout, /project_map query_plan/);
   assert.match(cliMcpVerify.stdout, /strict arguments — unknown tool argument rejected at runtime/);
   assert.match(cliMcpVerify.stdout, /strict arguments — multiple unknown tool arguments reported together/);
-  assert.match(cliMcpVerify.stdout, /add_concepts — non-object and unknown-field rows isolated at row level/);
-  assert.match(cliMcpVerify.stdout, /add_relations — non-object and unknown-field rows isolated at row level/);
+  assert.match(cliMcpVerify.stdout, /add_concepts — non-object and unknown-field rows isolated with input indexes/);
+  assert.match(cliMcpVerify.stdout, /add_relations — non-object and unknown-field rows isolated with input indexes/);
   assert.match(cliMcpVerify.stdout, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
   assert.match(cliMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(cliMcpVerify.stdout, /maintenance cursor — ready page stable/);
@@ -567,8 +567,8 @@ try {
   assert.match(mcpVerify.stdout, /project_map query_plan/);
   assert.match(mcpVerify.stdout, /strict arguments — unknown tool argument rejected at runtime/);
   assert.match(mcpVerify.stdout, /strict arguments — multiple unknown tool arguments reported together/);
-  assert.match(mcpVerify.stdout, /add_concepts — non-object and unknown-field rows isolated at row level/);
-  assert.match(mcpVerify.stdout, /add_relations — non-object and unknown-field rows isolated at row level/);
+  assert.match(mcpVerify.stdout, /add_concepts — non-object and unknown-field rows isolated with input indexes/);
+  assert.match(mcpVerify.stdout, /add_relations — non-object and unknown-field rows isolated with input indexes/);
   assert.match(mcpVerify.stdout, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
   assert.match(mcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(mcpVerify.stdout, /maintenance cursor — ready page stable/);
@@ -593,8 +593,8 @@ try {
     /compile_ontology indexes — out \d+, in \d+, edgeById \d+, aliases \d+, edges \d+\/\d+\/\d+/,
   );
   assert.match(directMcpVerify.stdout, /strict arguments — multiple unknown tool arguments reported together/);
-  assert.match(directMcpVerify.stdout, /add_concepts — non-object and unknown-field rows isolated at row level/);
-  assert.match(directMcpVerify.stdout, /add_relations — non-object and unknown-field rows isolated at row level/);
+  assert.match(directMcpVerify.stdout, /add_concepts — non-object and unknown-field rows isolated with input indexes/);
+  assert.match(directMcpVerify.stdout, /add_relations — non-object and unknown-field rows isolated with input indexes/);
   assert.match(directMcpVerify.stdout, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
   assert.match(directMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(directMcpVerify.stdout, /maintenance cursor — ready page stable/);
@@ -637,8 +637,8 @@ try {
     directMcpVerifyVaultFlag.stdout,
     /compile_ontology indexes — out \d+, in \d+, edgeById \d+, aliases \d+, edges \d+\/\d+\/\d+/,
   );
-  assert.match(directMcpVerifyVaultFlag.stdout, /add_concepts — non-object and unknown-field rows isolated at row level/);
-  assert.match(directMcpVerifyVaultFlag.stdout, /add_relations — non-object and unknown-field rows isolated at row level/);
+  assert.match(directMcpVerifyVaultFlag.stdout, /add_concepts — non-object and unknown-field rows isolated with input indexes/);
+  assert.match(directMcpVerifyVaultFlag.stdout, /add_relations — non-object and unknown-field rows isolated with input indexes/);
   assert.match(directMcpVerifyVaultFlag.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(directMcpVerifyVaultFlag.stdout, /maintenance cursor — ready page stable/);
   assert.match(directMcpVerifyVaultFlag.stdout, /structuredContent — direct 16\/16, write 5\/5, maintenance 3\/3, graph 11\/11/);
@@ -656,7 +656,7 @@ try {
   assert.match(directMcpVerifyHelp.stdout, /Explicit \[vault\] or --vault arguments take precedence over OMOT_VAULT/);
   assert.match(directMcpVerifyHelp.stdout, /project probe/);
   assert.match(directMcpVerifyHelp.stdout, /strict unknown-argument \/ invalid-enum rejection/);
-  assert.match(directMcpVerifyHelp.stdout, /batch writer row isolation for non-object rows and unknown row fields/);
+  assert.match(directMcpVerifyHelp.stdout, /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels/);
   assert.match(directMcpVerifyHelp.stdout, /destructive writer dry-runs for rename_concept\/merge_concepts\/delete_concept/);
   assert.match(directMcpVerifyHelp.stdout, /maintenance_plan filter enums/);
   assert.match(directMcpVerifyHelp.stdout, /maintenance_plan cursor handling/);

@@ -251,8 +251,8 @@ A successful run looks like this:
 ✓ tools/list schema contract — strict arguments + read/write hints + graph-query enums + health tuning + post-write guidance
 ✓ strict arguments — unknown tool argument rejected at runtime
 ✓ strict arguments — multiple unknown tool arguments reported together
-✓ add_concepts — non-object and unknown-field rows isolated at row level
-✓ add_relations — non-object and unknown-field rows isolated at row level
+✓ add_concepts — non-object and unknown-field rows isolated with input indexes
+✓ add_relations — non-object and unknown-field rows isolated with input indexes
 ✓ destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance
 ✓ strict enums — invalid query operation rejected with closest-value hint
 ✓ strict maintenance filters — invalid phase/severity/kind rejected at runtime (phases=validate/repair/link/materialize/review; severities=fail/warn/info; kinds=inspect_compile_issue/break_dependency_cycle/canonicalize_graph_arrays/resolve_dangling_reference/add_missing_relation/materialize_external_element/unassigned_node/empty_domain)

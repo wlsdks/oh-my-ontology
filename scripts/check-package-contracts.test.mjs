@@ -475,8 +475,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ read\/write hints \+ graph-query enums \+ health tuning \+ post-write guidance/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);
-    assert.match(verifySection, /✓ add_concepts — non-object and unknown-field rows isolated at row level/);
-    assert.match(verifySection, /✓ add_relations — non-object and unknown-field rows isolated at row level/);
+    assert.match(verifySection, /✓ add_concepts — non-object and unknown-field rows isolated with input indexes/);
+    assert.match(verifySection, /✓ add_relations — non-object and unknown-field rows isolated with input indexes/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported .*phase none; severity none; kind none; executable none; review none/);
     assert.match(verifySection, /✓ maintenance cursor — ready page stable .*phase none; severity none; kind none; executable none; review none/);
@@ -1269,8 +1269,8 @@ describe('package contract helpers', () => {
     );
     assert.match(smoke, /strict arguments — unknown tool argument rejected at runtime/);
     assert.match(smoke, /strict arguments — multiple unknown tool arguments reported together/);
-    assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated at row level/);
-    assert.match(smoke, /add_relations — non-object and unknown-field rows isolated at row level/);
+    assert.match(smoke, /add_concepts — non-object and unknown-field rows isolated with input indexes/);
+    assert.match(smoke, /add_relations — non-object and unknown-field rows isolated with input indexes/);
     assert.match(smoke, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
     assert.match(smoke, /structuredContent — direct 16\\\/16, write 5\\\/5, maintenance 3\\\/3, graph 11\\\/11/);
     assert.match(smoke, /writeMaintenanceResumeVault/);
