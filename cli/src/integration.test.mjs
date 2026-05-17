@@ -1,7 +1,8 @@
 // R13 #40 — CLI 5 명령 통합 test. mcp 의 integration.test.mjs 패턴 reuse.
 // tmp vault fixture + cli spawn + stdout/exit code 검증.
 //
-// node --test 또는 \`npm test\` 로 실행.
+// Source-checkout only. Run via `pnpm integration:cli` or
+// `node --test cli/src/integration.test.mjs` from the repo root.
 
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';

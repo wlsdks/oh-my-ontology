@@ -1384,8 +1384,12 @@ describe('package contract helpers', () => {
 
   it('keeps CLI npm test runnable from the published tarball', () => {
     const pkg = JSON.parse(readFileSync('cli/package.json', 'utf-8'));
+    const integration = readFileSync('cli/src/integration.test.mjs', 'utf-8');
 
     assert.equal(pkg.scripts?.test, 'node --test src/lib/*.test.mjs');
+    assert.match(integration, /Source-checkout only/);
+    assert.match(integration, /pnpm integration:cli/);
+    assert.doesNotMatch(integration.split('\n').slice(0, 6).join('\n'), /npm test/);
     assert.equal(isCoveredByFiles('src/lib/cli-args.test.mjs', pkg.files), true);
     assert.equal(isCoveredByFiles('src/lib/cli-commands.test.mjs', pkg.files), true);
     assert.equal(isCoveredByFiles('src/lib/mcp-call.test.mjs', pkg.files), true);
