@@ -918,6 +918,8 @@ describe('package contract helpers', () => {
     assert.match(tableRow, /`find_orphans`/);
     assert.match(tableRow, /`workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`/);
     assert.match(tableRow, /`neighbors`\/`path`\/`project_scope` graph-query smoke/);
+    assert.match(readme, /Successful output prints a `read census consistency` line/);
+    assert.match(readme, /listing, compiler, and overview read surfaces agree/);
     assert.match(maintenanceRow, /MCP `maintenance_plan` cleanup\/repair work queue/);
     assert.match(maintenanceRow, /`--after-action-id`/);
     assert.match(maintenanceRow, /compile\/cycle\/canonicalize\/dangling\/relation\/external\/ignored-external summary counts/);
@@ -1078,6 +1080,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /daily local-neighborhood and shortest-path read tools/);
     assert.match(verifySection, /split between node census checks/);
     assert.match(verifySection, /file-level `validate_vault\.scanned` health/);
+    assert.match(verifySection, /`read census consistency` line/);
+    assert.match(verifySection, /listing, compiler, and overview read surfaces agree/);
     assert.match(verifySection, /`workspace_brief\.nextActions\[\]\.sample` shape gate/);
     assert.match(verifySection, /real `add_relation` \/ `add_concept` inputs/);
     assert.match(verifySection, /`resolve_dangling_reference` rows/);
@@ -1263,6 +1267,7 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
     assert.match(mcpVerifyRow, /`query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`/);
     assert.match(mcpVerifyRow, /`find_orphans`/);
+    assert.match(mcpVerifyRow, /성공 출력은 `read census consistency` line 으로 listing \/ compiler \/ overview read surface/);
     assert.match(mcpVerifyRow, /별도 limited `query_concepts` smoke/);
     assert.match(mcpVerifyRow, /`slug!=project, limit=1` semantics/);
     assert.match(mcpVerifyRow, /`add_concepts` \/ `add_relations` row-isolation runtime smoke/);
@@ -1822,6 +1827,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /schema \/ annotation 검증에 묻히지 않게 한다/);
     assert.match(doc, /`read census consistency — \.\.\. across list_kinds\/list_concepts\/compile_ontology\/overview`/);
     assert.match(doc, /여러 read surface 가 같은 node census 를 본다는 증거/);
+    assert.match(doc, /성공 출력도 read census consistency pass line 을 별도로 보여줘/);
     assert.match(doc, /verify helper 와\s+dogfood gate 의 maintenance 관련 subset 만 실행/);
     assert.match(doc, /`pnpm dogfood:verify` 가 repo root 의 짧은 gate/);
     assert.match(doc, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000` 로 풀어 쓴다/);

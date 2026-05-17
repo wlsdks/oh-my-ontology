@@ -163,6 +163,9 @@ so installed CLI users catch batch-reader success, partial-row contract drift, s
 Node census totals are cross-checked across `list_kinds`, `list_concepts`,
 `compile_ontology`, and `overview`; `validate_vault.scanned` remains file-level
 health so a file-count issue is not mistaken for graph node-count drift.
+Successful output prints a `read census consistency` line too, so CLI users can
+see that listing, compiler, and overview read surfaces agree without inferring
+it from silent success.
 It also calls paginated `compile_ontology({nodesLimit:1, edgesLimit:1})` and
 `compile_ontology({nodesLimit:1, edgesLimit:1, includeIndexes:true})` so the
 installed package proves the full-artifact node/edge row shape, pagination
