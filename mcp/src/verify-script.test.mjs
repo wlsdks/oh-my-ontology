@@ -15,6 +15,7 @@ import {
   advisoryNextActionsSummary,
   batchRowIsolationFailure,
   buildFirstContactRequests,
+  buildGetConceptSmokeSlug,
   buildGetConceptsSmokeSlugs,
   buildGraphQuerySmokeArgs,
   buildGraphQuerySmokeRequests,
@@ -34,6 +35,7 @@ import {
   findOrphansFailure,
   formatCount,
   formatHopCount,
+  getConceptFailure,
   getConceptsFailure,
   hasAllFirstContactResponses,
   hasFirstContactErrorResponse,
@@ -2873,7 +2875,7 @@ describe('verify.mjs first-contact gates', () => {
     );
   });
 
-  it('keeps first-contact response labels aligned with the get_concepts smoke', () => {
+  it('keeps first-contact response labels aligned with the get_concept/get_concepts smoke', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(11), 'get_concepts');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(12), 'project_map_query_plan');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(13), 'neighbors');
@@ -2891,8 +2893,9 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(26), 'maintenance_ready_cursor');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(27), 'strict_multi_args');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(30), 'maintenance_resume_cursor');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(31), 'get_concept');
     assert.deepEqual(
-      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30].sort((a, b) => a - b),
+      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
     );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]
@@ -2901,6 +2904,32 @@ describe('verify.mjs first-contact gates', () => {
     assert.deepEqual(
       missingResponseLabels(responsesWithoutGetConcepts, FIRST_CONTACT_RESPONSE_LABELS),
       ['get_concepts'],
+    );
+  });
+
+  it('accepts clean get_concept single-node payloads', () => {
+    assert.equal(
+      getConceptFailure(
+        {
+          slug: 'capabilities/mcp-server',
+          frontmatter: { kind: 'capability', title: 'MCP Server' },
+          excerpt: 'Agent-facing MCP server.',
+          neighbors: {
+            domains: [],
+            domain: 'domains/ai-agent-partner',
+            capabilities: [],
+            elements: ['elements/mcp-sdk'],
+            dependencies: [],
+            relates: [],
+            contains: [],
+            describes: [],
+          },
+          outgoingEdges: [{ to: 'elements/mcp-sdk', via: 'elements' }],
+          mtime: 1,
+        },
+        'capabilities/mcp-server',
+      ),
+      null,
     );
   });
 
@@ -3000,6 +3029,19 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('builds get_concepts smoke slugs from the current list response', () => {
+    assert.equal(
+      buildGetConceptSmokeSlug({
+        nodes: [
+          { slug: 'README', kind: 'vault-readme' },
+          { slug: 'project', kind: 'project' },
+          { slug: 'capabilities/mcp-server' },
+        ],
+      }),
+      'project',
+    );
+    assert.equal(buildGetConceptSmokeSlug({ nodes: [{ slug: '' }, { title: 'No slug' }] }), null);
+    assert.equal(buildGetConceptSmokeSlug({}), null);
+
     assert.deepEqual(
       buildGetConceptsSmokeSlugs({
         nodes: [
@@ -3118,6 +3160,47 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       getConceptsFailure({ concepts: [okConcepts[0], okConcepts[1], { slug: 'missing-verify-slug', ok: true }] }),
       'get_concepts response expected partial row to be ok:false',
+    );
+  });
+
+  it('fails malformed get_concept single-node payloads', () => {
+    const okConcept = {
+      slug: 'capabilities/mcp-server',
+      frontmatter: { kind: 'capability', title: 'MCP Server' },
+      excerpt: 'Agent-facing MCP server.',
+      neighbors: {
+        domains: [],
+        domain: 'domains/ai-agent-partner',
+        capabilities: [],
+        elements: ['elements/mcp-sdk'],
+        dependencies: [],
+        relates: [],
+        contains: [],
+        describes: [],
+      },
+      outgoingEdges: [{ to: 'elements/mcp-sdk', via: 'elements' }],
+      mtime: 1,
+    };
+    assert.equal(getConceptFailure(null, 'capabilities/mcp-server'), 'get_concept response malformed');
+    assert.equal(
+      getConceptFailure({ ...okConcept, slug: 'capabilities/other' }, 'capabilities/mcp-server'),
+      'get_concept response slug mismatch — expected capabilities/mcp-server, got capabilities/other',
+    );
+    assert.equal(
+      getConceptFailure({ ...okConcept, excerpt: null }, 'capabilities/mcp-server'),
+      'get_concept response missing excerpt: capabilities/mcp-server',
+    );
+    assert.equal(
+      getConceptFailure({ ...okConcept, neighbors: { ...okConcept.neighbors, elements: null } }, 'capabilities/mcp-server'),
+      'get_concept response missing neighbors.elements: capabilities/mcp-server',
+    );
+    assert.equal(
+      getConceptFailure({ ...okConcept, outgoingEdges: [{ to: '', via: 'elements' }] }, 'capabilities/mcp-server'),
+      'get_concept response missing outgoing edge target at index 0',
+    );
+    assert.equal(
+      getConceptFailure({ ...okConcept, mtime: -1 }, 'capabilities/mcp-server'),
+      'get_concept response missing mtime: capabilities/mcp-server',
     );
   });
 
@@ -3855,12 +3938,17 @@ describe('verify.mjs first-contact gates', () => {
       'direct 7/7, write 2/2, maintenance 2/2, graph 9/9',
     );
     assert.equal(
-      structuredContentVerifySummary({ hasNode: true, hasProject: true }),
-      'direct 7/7, write 2/2, maintenance 2/2, graph 10/10',
+      structuredContentVerifySummary({ hasNode: true, hasProject: true, hasGetConcept: true }),
+      'direct 8/8, write 2/2, maintenance 2/2, graph 10/10',
     );
     assert.equal(
-      structuredContentVerifySummary({ hasNode: true, hasProject: true, hasMaintenanceResume: true }),
-      'direct 7/7, write 2/2, maintenance 3/3, graph 10/10',
+      structuredContentVerifySummary({
+        hasNode: true,
+        hasProject: true,
+        hasGetConcept: true,
+        hasMaintenanceResume: true,
+      }),
+      'direct 8/8, write 2/2, maintenance 3/3, graph 10/10',
     );
   });
 

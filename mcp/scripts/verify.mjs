@@ -18,7 +18,8 @@
  *   3. tools/list — 23 도구 모두 노출 + graph-query enum schema contract + strict argument/enum runtime smoke
  *   4. tools/call list_concepts — vault 노드 수 출력
  *   5. tools/call list_concepts(kind=project) — project_scope gate probe
- *   6. tools/call get_concepts — batch reader success + partial-row contract
+ *   6. tools/call get_concept — single-node detail + structuredContent contract
+ *   7. tools/call get_concepts — batch reader success + partial-row contract
  *   7. tools/call add_concepts/add_relations — invalid batch rows remain row-level, not top-level errors
  *   8. tools/call find_orphans — row shape + root/sentinel default-exclusion contract
  *   9. tools/call list_kinds — kind census aggregate
@@ -1487,8 +1488,13 @@ export function structuredContentFailure(response, parsed, label) {
   return null;
 }
 
-export function structuredContentVerifySummary({ hasNode = false, hasProject = false, hasMaintenanceResume = false } = {}) {
-  const direct = 7;
+export function structuredContentVerifySummary({
+  hasNode = false,
+  hasProject = false,
+  hasGetConcept = false,
+  hasMaintenanceResume = false,
+} = {}) {
+  const direct = 7 + (hasGetConcept ? 1 : 0);
   const write = 2;
   const maintenance = 2 + (hasMaintenanceResume ? 1 : 0);
   const graph = 7 + (hasNode ? 2 : 0) + (hasProject ? 1 : 0);
@@ -1526,6 +1532,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [28, 'add_concepts_row_isolation'],
   [29, 'add_relations_row_isolation'],
   [30, 'maintenance_resume_cursor'],
+  [31, 'get_concept'],
 ]);
 
 function log(level, msg) {
@@ -2110,6 +2117,63 @@ export function getConceptsFailure(parsed) {
     return 'get_concepts response missing partial row error';
   }
   return null;
+}
+
+export function getConceptFailure(parsed, expectedSlug) {
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return 'get_concept response malformed';
+  }
+  if (parsed.slug !== expectedSlug) {
+    return `get_concept response slug mismatch — expected ${expectedSlug}, got ${parsed.slug}`;
+  }
+  if (!parsed.frontmatter || typeof parsed.frontmatter !== 'object' || Array.isArray(parsed.frontmatter)) {
+    return `get_concept response missing frontmatter: ${expectedSlug}`;
+  }
+  if (typeof parsed.excerpt !== 'string') {
+    return `get_concept response missing excerpt: ${expectedSlug}`;
+  }
+  if (!parsed.neighbors || typeof parsed.neighbors !== 'object' || Array.isArray(parsed.neighbors)) {
+    return `get_concept response missing neighbors: ${expectedSlug}`;
+  }
+  for (const key of ['domains', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes']) {
+    if (!Array.isArray(parsed.neighbors[key])) {
+      return `get_concept response missing neighbors.${key}: ${expectedSlug}`;
+    }
+  }
+  if (!(parsed.neighbors.domain == null || typeof parsed.neighbors.domain === 'string')) {
+    return `get_concept response malformed neighbors.domain: ${expectedSlug}`;
+  }
+  if (!Array.isArray(parsed.outgoingEdges)) {
+    return `get_concept response missing outgoingEdges: ${expectedSlug}`;
+  }
+  for (const [index, edge] of parsed.outgoingEdges.entries()) {
+    if (!edge || typeof edge !== 'object' || Array.isArray(edge)) {
+      return `get_concept response malformed outgoing edge at index ${index}`;
+    }
+    if (typeof edge.to !== 'string' || edge.to.length === 0) {
+      return `get_concept response missing outgoing edge target at index ${index}`;
+    }
+    if (typeof edge.via !== 'string' || edge.via.length === 0) {
+      return `get_concept response missing outgoing edge relation at index ${index}`;
+    }
+  }
+  if (!Number.isFinite(parsed.mtime) || parsed.mtime < 0) {
+    return `get_concept response missing mtime: ${expectedSlug}`;
+  }
+  if (parsed.warnings != null && !Array.isArray(parsed.warnings)) {
+    return `get_concept response malformed warnings: ${expectedSlug}`;
+  }
+  return null;
+}
+
+export function buildGetConceptSmokeSlug(listPayload) {
+  if (!Array.isArray(listPayload?.nodes)) return null;
+  const nodesWithSlug = listPayload.nodes.filter((node) => (
+    typeof node?.slug === 'string' && node.slug.length > 0
+  ));
+  return nodesWithSlug.find((node) => node.kind !== 'vault-readme')?.slug
+    ?? nodesWithSlug[0]?.slug
+    ?? null;
 }
 
 export function batchRowIsolationFailure(response, key, label) {
@@ -2807,7 +2871,7 @@ async function step2BootAndCall() {
     log('fail', 'verify timeout must be a positive integer');
     return false;
   }
-  log('info', `step 2 — server boot + tools/list + list_concepts/project probe/get_concepts/find_orphans/list_kinds (vault=${VAULT}, timeout=${timeoutMs}ms)`);
+  log('info', `step 2 — server boot + tools/list + list_concepts/project probe/get_concept/get_concepts/find_orphans/list_kinds (vault=${VAULT}, timeout=${timeoutMs}ms)`);
 
   const lines = buildFirstContactRequests().map((request) => JSON.stringify(request));
 
@@ -2820,11 +2884,13 @@ async function step2BootAndCall() {
     let stderr = '';
     let timedOut = false;
     let completed = false;
+    let sentGetConceptSmoke = false;
     let sentGetConceptsSmoke = false;
     let sentGraphQuerySmoke = false;
     let sentMaintenanceResumeSmoke = false;
     const expectedFirstContactIds = new Set(FIRST_CONTACT_RESPONSE_LABELS.keys());
     expectedFirstContactIds.delete(30);
+    expectedFirstContactIds.delete(31);
     let timer = null;
     proc.stdout.on('data', (b) => {
       stdout += b.toString();
@@ -2857,6 +2923,22 @@ async function step2BootAndCall() {
                 arguments: { slugs: buildGetConceptsSmokeSlugs(listPayload) },
               },
             }) + '\n');
+          }
+          if (!sentGetConceptSmoke) {
+            sentGetConceptSmoke = true;
+            const slug = buildGetConceptSmokeSlug(listPayload);
+            if (slug) {
+              expectedFirstContactIds.add(31);
+              proc.stdin.write(JSON.stringify({
+                jsonrpc: '2.0',
+                id: 31,
+                method: 'tools/call',
+                params: {
+                  name: 'get_concept',
+                  arguments: { slug },
+                },
+              }) + '\n');
+            }
           }
           if (!sentGraphQuerySmoke && projectResponse) {
             sentGraphQuerySmoke = true;
@@ -2927,6 +3009,7 @@ async function step2BootAndCall() {
       const overviewRes = responses.find((r) => r.id === 9);
       const overviewPlanRes = responses.find((r) => r.id === 10);
       const getConceptsRes = responses.find((r) => r.id === 11);
+      const getConceptRes = responses.find((r) => r.id === 31);
       const projectMapPlanRes = responses.find((r) => r.id === 12);
       const neighborsRes = responses.find((r) => r.id === 13);
       const pathRes = responses.find((r) => r.id === 14);
@@ -2949,6 +3032,7 @@ async function step2BootAndCall() {
       let compilePayload = null;
       let overviewPayload = null;
       let graphSmokeArgs = null;
+      let getConceptVerified = false;
       let maintenanceResumeVerified = false;
       const missingLabels = firstContactMissingResponseLabels(responses, expectedFirstContactIds);
       const errorRes = responses.find((response) => (
@@ -3151,6 +3235,32 @@ async function step2BootAndCall() {
       if (!getConceptsRes || !getConceptsRes.result) {
         log('fail', 'no get_concepts response');
         return res(false);
+      }
+      if (getConceptRes) {
+        const expectedSlug = buildGetConceptSmokeSlug(listPayload);
+        if (!expectedSlug) {
+          log('fail', 'unexpected get_concept response without a list_concepts slug');
+          return res(false);
+        }
+        try {
+          const text = getConceptRes.result?.content?.[0]?.text || '';
+          const parsed = JSON.parse(text);
+          const failure = getConceptFailure(parsed, expectedSlug);
+          if (failure) {
+            log('fail', failure);
+            return res(false);
+          }
+          const structuredFailure = structuredContentFailure(getConceptRes, parsed, 'get_concept');
+          if (structuredFailure) {
+            log('fail', structuredFailure);
+            return res(false);
+          }
+          getConceptVerified = true;
+          log('ok', `get_concept — ${parsed.slug} (${parsed.outgoingEdges.length} outgoing edges)`);
+        } catch (err) {
+          log('fail', `failed to parse get_concept response: ${err.message}`);
+          return res(false);
+        }
       }
       try {
         const text = getConceptsRes.result.content?.[0]?.text || '';
@@ -3582,6 +3692,7 @@ async function step2BootAndCall() {
         `structuredContent — ${structuredContentVerifySummary({
           hasNode: Boolean(graphSmokeArgs?.hasNode),
           hasProject: Boolean(graphSmokeArgs?.hasProject),
+          hasGetConcept: getConceptVerified,
           hasMaintenanceResume: maintenanceResumeVerified,
         })}`,
       );

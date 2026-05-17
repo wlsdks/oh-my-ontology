@@ -233,7 +233,7 @@ A successful run looks like this:
 [oh-my-ontology-mcp verify]
 · step 1 — parser smoke test
 ✓ result: 7 passed, 0 failed
-· step 2 — server boot + tools/list + list_concepts/project probe/get_concepts/find_orphans/list_kinds (vault=../docs/ontology, timeout=8000ms)
+· step 2 — server boot + tools/list + list_concepts/project probe/get_concept/get_concepts/find_orphans/list_kinds (vault=../docs/ontology, timeout=8000ms)
 ✓ initialize OK — server oh-my-ontology-mcp@0.12.0
 ✓ initialize instructions — first-contact safety guidance present
 ✓ tools/list 23/23 (15 read + 8 write) — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
@@ -247,6 +247,7 @@ A successful run looks like this:
 ✓ maintenance cursor — missing afterActionId reported (afterActionId not found in filtered maintenance actions; phase none; severity none; kind none; executable none; review none)
 ✓ maintenance cursor — ready page stable (0 remaining actions; phase none; severity none; kind none; executable none; review none)
 ✓ list_concepts — vault total 28 nodes (vaultRoot /path/to/docs/ontology)
+✓ get_concept — project (6 outgoing edges)
 ✓ get_concepts — 2 ok rows, 1 partial row
 ✓ find_orphans — 0 orphans (root/sentinel defaults excluded)
 ✓ list_kinds — 28 nodes (capability:16, domain:6, element:4, project:1, vault-readme:1)
@@ -264,7 +265,7 @@ A successful run looks like this:
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
 ✓ project_scope — project (27 nodes, internalEdges 92)
-✓ structuredContent — direct 7/7, write 2/2, maintenance 2/2, graph 10/10
+✓ structuredContent — direct 8/8, write 2/2, maintenance 2/2, graph 10/10
 
 All passed — register .mcp.json with Claude Code and restart to use the 23 tools.
 ```
@@ -272,7 +273,7 @@ All passed — register .mcp.json with Claude Code and restart to use the 23 too
 On failure, it tells you which step blocked progress and prints a diagnostic message. The
 verify path exercises and gates the same first-contact graph diagnosis an agent should run:
 `tools/list`, `list_concepts`, a project-node `list_concepts` probe,
-`get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`,
+`get_concept`, `get_concepts`, `find_orphans`, `list_kinds`, `validate_vault`,
 `query_ontology({operation:"workspace_brief"})`, tuned
 `query_ontology({operation:"workspace_brief"})`,
 `query_ontology({operation:"health"})`, and tuned
