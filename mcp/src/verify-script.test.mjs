@@ -4753,21 +4753,21 @@ describe('verify.mjs first-contact gates', () => {
       resolvedEdgeCount: 1,
       externalEdgeCount: 0,
       unresolvedEdgeCount: 0,
-      aliasCount: 0,
-      ambiguousAliasCount: 0,
-      issueCount: 0,
-      canonicalizationActionCount: 0,
+      aliasCount: 1,
+      ambiguousAliasCount: 1,
+      issueCount: 1,
+      canonicalizationActionCount: 1,
       byKind: { project: 1 },
       byDomain: {},
       nodes: [{ slug: 'project', kind: 'project', title: 'Project', mtime: 1, outDegree: 1, inDegree: 0 }],
       edges: [{ id: 'e', from: 'project', to: 'domains/core', via: 'domains', ref: 'domains/core', resolved: true, external: false }],
       nodesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
       edgesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
-      aliases: [],
-      ambiguousAliases: [],
-      issues: [],
-      canonicalizationActions: [],
-      summary: { nodes: 1, edges: 1, graphHash: 'abc123', maxMtime: 1, resolvedEdges: 1, externalEdges: 0, unresolvedEdges: 0, aliases: 0, ambiguousAliases: 0, issues: 0 },
+      aliases: [{ alias: 'Project', slug: 'project' }],
+      ambiguousAliases: [{ alias: 'core', slugs: ['domains/core', 'capabilities/core'] }],
+      issues: [{ code: 'example' }],
+      canonicalizationActions: [{ slug: 'project', keys: ['domains'], frontmatter: {}, expected_mtime: 1 }],
+      summary: { nodes: 1, edges: 1, graphHash: 'abc123', maxMtime: 1, resolvedEdges: 1, externalEdges: 0, unresolvedEdges: 0, aliases: 1, ambiguousAliases: 1, issues: 1 },
     };
 
     assert.equal(compileFullArtifactFailure({ ...clean, nodes: undefined }), 'compile_ontology full response missing nodes array');
@@ -4775,6 +4775,8 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(compileFullArtifactFailure({ ...clean, nodes: [{ ...clean.nodes[0], outDegree: -1 }] }), 'compile_ontology full response malformed node row');
     assert.equal(compileFullArtifactFailure({ ...clean, edges: [{ ...clean.edges[0], resolved: 'true' }] }), 'compile_ontology full response malformed edge row');
     assert.equal(compileFullArtifactFailure({ ...clean, canonicalizationActions: null }), 'compile_ontology full response missing canonicalizationActions array');
+    assert.equal(compileFullArtifactFailure({ ...clean, aliases: [] }), 'compile_ontology full response aliases count mismatch — aliases 0, aliasCount 1');
+    assert.equal(compileFullArtifactFailure({ ...clean, summary: { ...clean.summary, aliases: 0 } }), 'compile_ontology full response summary count mismatch — summary aliases/ambiguous/issues 0/1/1, counts 1/1/1');
     assert.equal(compileFullArtifactFailure({ ...clean, summary: { ...clean.summary, nodes: 2 } }), 'compile_ontology full response summary mismatch — summary 2/1, counts 1/1');
   });
 

@@ -3237,6 +3237,8 @@ export function compileFullArtifactFailure(parsed) {
   if (!Array.isArray(parsed.canonicalizationActions)) {
     return 'compile_ontology full response missing canonicalizationActions array';
   }
+  const arrayCountFailure = fullArtifactArrayCountFailure(parsed);
+  if (arrayCountFailure) return arrayCountFailure;
   if (!parsed.summary || typeof parsed.summary !== 'object' || Array.isArray(parsed.summary)) {
     return 'compile_ontology full response missing summary';
   }
@@ -3254,8 +3256,30 @@ export function compileFullArtifactFailure(parsed) {
   if (parsed.summary.nodes !== parsed.nodeCount || parsed.summary.edges !== parsed.edgeCount) {
     return `compile_ontology full response summary mismatch — summary ${parsed.summary.nodes}/${parsed.summary.edges}, counts ${parsed.nodeCount}/${parsed.edgeCount}`;
   }
+  if (
+    parsed.summary.aliases !== parsed.aliasCount ||
+    parsed.summary.ambiguousAliases !== parsed.ambiguousAliasCount ||
+    parsed.summary.issues !== parsed.issueCount
+  ) {
+    return `compile_ontology full response summary count mismatch — summary aliases/ambiguous/issues ${parsed.summary.aliases}/${parsed.summary.ambiguousAliases}/${parsed.summary.issues}, counts ${parsed.aliasCount}/${parsed.ambiguousAliasCount}/${parsed.issueCount}`;
+  }
   if (parsed.summary.graphHash !== parsed.graphHash) {
     return 'compile_ontology full response summary graphHash mismatch';
+  }
+  return null;
+}
+
+function fullArtifactArrayCountFailure(parsed) {
+  const checks = [
+    ['aliases', 'aliasCount'],
+    ['ambiguousAliases', 'ambiguousAliasCount'],
+    ['issues', 'issueCount'],
+    ['canonicalizationActions', 'canonicalizationActionCount'],
+  ];
+  for (const [arrayName, countName] of checks) {
+    if (parsed[arrayName].length !== parsed[countName]) {
+      return `compile_ontology full response ${arrayName} count mismatch — ${arrayName} ${parsed[arrayName].length}, ${countName} ${parsed[countName]}`;
+    }
   }
   return null;
 }
