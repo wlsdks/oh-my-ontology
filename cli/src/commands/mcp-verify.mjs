@@ -163,6 +163,7 @@ function printUsage(output = process.stderr) {
       `Successful maintenance cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n\n` +
       `Focused checks:\n` +
       `  pnpm integration:cli:mcp-verify    Installed CLI mcp-verify wrapper flow/help/failure checks.\n` +
+      `  pnpm dogfood:verify               Root checkout dogfood vault verify shortcut.\n` +
       `  pnpm cli:mcp-verify -- --help     Source-checkout shortcut for this help from the repo root.\n` +
       `  pnpm test:mcp:verify              MCP verify helper contract without the full integration suite.\n` +
       `  pnpm test:mcp:verify:first-contact Narrow first-contact health-summary/read/sample-shape helper gates.\n` +

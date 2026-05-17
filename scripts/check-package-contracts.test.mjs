@@ -242,6 +242,7 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /oh-my-ontology mcp-verify \[vault\] \[--timeout-ms N\]/);
     assert.match(result.stdout, /Focused checks:/);
     assert.match(result.stdout, /pnpm integration:cli:mcp-verify/);
+    assert.match(result.stdout, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
     assert.match(result.stdout, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);
     assert.match(result.stdout, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact health-summary\/read\/sample-shape helper gates/);
     assert.equal(result.stderr, '');
@@ -1502,6 +1503,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /nextExecutableAction \\\/ nextReviewAction point only at the first executable\\\/review action in the current returned page/);
     assert.match(smoke, /Successful maintenance cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
     assert.match(smoke, /pnpm integration:cli:mcp-verify/);
+    assert.match(smoke, /pnpm dogfood:verify\\s\+Root checkout dogfood vault verify shortcut/);
     assert.match(smoke, /pnpm cli:mcp-verify -- --help\\s\+Source-checkout shortcut for this help from the repo root/);
     assert.match(smoke, /Installed CLI mcp-verify wrapper flow\\\/help\\\/failure checks/);
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);

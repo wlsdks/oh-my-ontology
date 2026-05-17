@@ -416,6 +416,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /Focused checks:/);
   assert.match(clean, /pnpm integration:cli:mcp-verify/);
   assert.match(clean, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);
+  assert.match(clean, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
   assert.match(clean, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);
   assert.match(clean, /pnpm test:mcp:verify\s+MCP verify helper contract without the full integration suite/);
   assert.match(clean, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact health-summary\/read\/sample-shape helper gates/);
