@@ -1202,7 +1202,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
     assert.match(doc, /stderr warning filtering/);
     assert.match(doc, /first-contact README read-only/);
-    assert.match(doc, /직접 verify help\(`npm run verify -- --help`\)/);
+    assert.match(doc, /직접 verify help 는\s+`mcp\/` package directory 의 `npm run verify -- --help` 또는 repo root 의\s+`node mcp\/scripts\/verify\.mjs --help`/);
+    assert.match(doc, /직접 verify help\(`mcp\/` 에서 `npm run verify -- --help`, repo root 에서\s+`node mcp\/scripts\/verify\.mjs --help`\)/);
     assert.match(doc, /`list_concepts` project probe \/ `get_concept` \/ `get_concepts` \//);
     assert.match(doc, /`query_concepts` \/ limited\s+`query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
     assert.match(doc, /별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`/);
