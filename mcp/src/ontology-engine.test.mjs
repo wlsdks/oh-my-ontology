@@ -2616,6 +2616,7 @@ describe('queryCompiledOntology', () => {
           kind: 'capability',
           title: 'Login',
           domain: 'domains/auth',
+          dependencies: ['capabilities/missing'],
           elements: ['src/auth/login.ts'],
         }),
       ],
@@ -2624,7 +2625,7 @@ describe('queryCompiledOntology', () => {
 
     const result = queryCompiledOntology(graph, {
       operation: 'workspace_brief',
-      limit: 5,
+      limit: 10,
     });
 
     assert.equal(result.operation, 'workspace_brief');
@@ -2634,23 +2635,81 @@ describe('queryCompiledOntology', () => {
     assert.equal(result.summary.domains, 1);
     assert.equal(result.summary.capabilities, 1);
     assert.equal(result.summary.externalEdges, 1);
-    assert.equal(result.summary.growthActions, 2);
+    assert.equal(result.summary.growthActions, 3);
     assert.deepEqual(result.projects.maps.map((project) => project.project), ['project']);
     assert.deepEqual(result.projects.maps[0].domains.map((domain) => domain.slug), ['domains/auth']);
     assert.deepEqual(result.growth, {
       relationRecommendations: 1,
       externalElementRefs: 1,
       externalElementRefsIgnored: 0,
-      danglingReferences: 0,
+      danglingReferences: 1,
       unassignedNodes: 0,
       emptyDomains: 0,
-      totalActions: 2,
+      totalActions: 3,
     });
-    assert.deepEqual(result.nextActions.map((action) => action.kind), [
-      'health_check',
+    assert.equal(result.nextActions.some((action) => action.kind === 'health_check'), true);
+    assert.deepEqual(result.nextActions.filter((action) => action.kind !== 'health_check').map((action) => action.kind), [
       'add_missing_relations',
+      'resolve_dangling_references',
       'materialize_external_elements',
     ]);
+    assert.deepEqual(
+      result.nextActions.find((action) => action.kind === 'add_missing_relations')?.sample,
+      [
+        {
+          tool: 'add_relation',
+          args: {
+            from: 'domains/auth',
+            to: 'capabilities/login',
+            type: 'capabilities',
+          },
+        },
+      ],
+    );
+    assert.deepEqual(
+      result.nextActions.find((action) => action.kind === 'resolve_dangling_references')?.sample,
+      [
+        {
+          kind: 'resolve_dangling_reference',
+          score: 0.7,
+          from: 'capabilities/login',
+          ref: 'capabilities/missing',
+          relation: 'dependencies',
+          inferredKind: 'capability',
+          suggestedSlug: 'capabilities/missing',
+          reason: 'Graph reference "capabilities/missing" from "capabilities/login" via "dependencies" does not resolve to a vault node.',
+          proposedAction: {
+            tool: 'add_concept',
+            args: {
+              slug: 'capabilities/missing',
+              kind: 'capability',
+              title: 'Missing',
+            },
+          },
+          node: {
+            slug: 'capabilities/login',
+            kind: 'capability',
+            title: 'Login',
+            domain: 'domains/auth',
+            inDegree: 0,
+            outDegree: 3,
+          },
+        },
+      ],
+    );
+    assert.deepEqual(
+      result.nextActions.find((action) => action.kind === 'materialize_external_elements')?.sample,
+      [
+        {
+          tool: 'add_concept',
+          args: {
+            slug: 'elements/src/auth/login',
+            kind: 'element',
+            title: 'Login',
+          },
+        },
+      ],
+    );
   });
 
   it('applies workspace brief health tuning controls to embedded health checks', () => {
