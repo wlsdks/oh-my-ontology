@@ -64,6 +64,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /scripts\/dogfood-mcp-walk\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /scripts\/check-package-contracts\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /structuredContent/);
+    assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /stderr warnings/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/suggestions\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/ontology-engine\.test\.mjs/);
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
@@ -83,6 +84,7 @@ describe('package contract helpers', () => {
     );
     assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:dogfood/);
+    assert.match(readme, /structuredContent\/stderr warning checks/);
     assert.match(readme, /pnpm test:mcp:package\s+# focused package-script\/dependency\/tarball contract checks/);
     assert.match(readme, /pnpm test:mcp:suggestions/);
     assert.match(readme, /pnpm test:mcp:verify/);
@@ -296,10 +298,12 @@ describe('package contract helpers', () => {
 
     assert.match(section, /pnpm integration:mcp:readme/);
     assert.match(section, /pnpm test:mcp:docs/);
+    assert.match(section, /pnpm test:mcp:dogfood/);
     assert.match(section, /pnpm test:mcp:suggestions/);
     assert.match(section, /pnpm test:mcp:verify/);
     assert.match(section, /first-contact read-only MCP flow/);
     assert.match(section, /documentation drift/);
+    assert.match(section, /stderr warning filtering/);
     assert.match(section, /verify helper contract/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /Node `--test-name-pattern`/);
@@ -1080,6 +1084,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm test:mcp:dogfood`/);
     assert.match(doc, /`pnpm test:mcp:verify`/);
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);
+    assert.match(doc, /stderr warning filtering/);
     assert.match(doc, /first-contact README read-only/);
     assert.match(doc, /직접 verify help\(`npm run verify -- --help`\)/);
     assert.match(doc, /`list_concepts` project probe \/ `get_concept` \/ `get_concepts` \//);
