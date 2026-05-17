@@ -46,6 +46,10 @@ function normalizedMarkdownIncludes(markdown, expected) {
   return markdown.replace(/\s+/g, ' ').includes(expected);
 }
 
+function countLabel(count, noun) {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
+}
+
 describe('package contract helpers', () => {
   it('keeps filtered integration scripts discoverable from the root README', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
@@ -364,6 +368,8 @@ describe('package contract helpers', () => {
     });
     const projectBacklinkCount = findBacklinks(join(process.cwd(), 'docs', 'ontology'), 'project').length;
     const projectBacklinkLabel = projectBacklinkCount === 1 ? 'backlink' : 'backlinks';
+    const projectQueryCount = census.byKind.project;
+    const limitedQueryTotal = census.total - 1;
     const graphHashPrefix = compiled.graphHash.slice(0, 12);
     const indexOutCount = Object.keys(compiled.indexes.out).length;
     const indexInCount = Object.keys(compiled.indexes.in).length;
@@ -406,8 +412,14 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ get_concepts — 2 ok rows, 1 partial row/);
     assert.match(verifySection, /✓ find_evidence — \d+ evidence results for "project"/);
     assert.match(verifySection, new RegExp(`✓ find_backlinks — project \\(${projectBacklinkCount} ${projectBacklinkLabel}\\)`));
-    assert.match(verifySection, /✓ query_concepts — \d+ query results? \/ \d+ total query results?/);
-    assert.match(verifySection, /✓ query_concepts limited — \d+ query results? \/ \d+ total query results? \(limited true\)/);
+    assert.match(
+      verifySection,
+      new RegExp(`✓ query_concepts — ${countLabel(projectQueryCount, 'query result')} / ${countLabel(projectQueryCount, 'total query result')}`),
+    );
+    assert.match(
+      verifySection,
+      new RegExp(`✓ query_concepts limited — ${countLabel(1, 'query result')} / ${countLabel(limitedQueryTotal, 'total query result')} \\(limited true\\)`),
+    );
     assert.match(verifySection, /✓ analyze_repo_structure — (fsd|next|generic) \(\d+ domain candidates?, \d+ capability candidates?, \d+ element candidates?\)/);
     assert.match(verifySection, /✓ infer_imports — \d+ files? scanned, \d+ module edges? \(.+->.+ x\d+ \((static|dynamic|require|reexport|side):\d+/);
     assert.match(verifySection, /✓ find_neighbors — elements\/file-system-access-api/);
