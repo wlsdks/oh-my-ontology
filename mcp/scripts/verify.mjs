@@ -2099,6 +2099,7 @@ export function initializeInstructionsFailure(response) {
     ['nearest argument hint guidance', /Did you mean "limit"\?/],
     ['multiple unknown arguments guidance', /Unknown arguments for list_concepts[\s\S]*"summry"[\s\S]*did you mean "summary"\?/i],
     ['batch row isolation guidance', /non-object row[\s\S]*unknown row field[\s\S]*ok:\s*false/i],
+    ['batch relation type hint guidance', /unknown type[\s\S]*closest-value hint[\s\S]*Did you mean "depends_on"\?/i],
     ['batch duplicate slug guidance', /duplicate[\s\S]*slugs[\s\S]*concepts\[n\] duplicate slug in input batch; first seen at concepts\[m\]/i],
     ['nearest enum hint guidance', /Did you mean "overview"\?/],
     ['maintenance filter enum guidance', /phases.*severities.*kinds/],
@@ -2494,7 +2495,7 @@ export function verifyUsage() {
     'It also checks node census, vault validation, workspace health, compile_ontology summary + paginated full-artifact + indexed full-artifact smoke, overview, query plans, and graph-query smoke.\n' +
     'Also checks strict unknown-argument / invalid-enum rejection, maintenance_plan filter enums,\n' +
     'tools/list annotation coverage (title/read/write/destructive/idempotent/local-only),\n' +
-    'batch writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels,\n' +
+    'batch writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels, plus invalid add_relations type closest-value hints,\n' +
     'destructive writer dry-runs for rename_concept/merge_concepts/delete_concept with every planned response present and no changed/postWriteMaintenance,\n' +
     'structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries,\n' +
     'and maintenance_plan cursor handling: ready page (cursor.found=true, cursor.reason=null)\n' +

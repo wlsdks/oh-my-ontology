@@ -3541,7 +3541,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /compile_ontology summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
     assert.match(verifyUsage(), /strict unknown-argument \/ invalid-enum rejection/);
     assert.match(verifyUsage(), /tools\/list annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
-    assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels/);
+    assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels, plus invalid add_relations type closest-value hints/);
     assert.match(verifyUsage(), /structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries/);
     assert.match(verifyUsage(), /maintenance_plan filter enums/);
     assert.match(verifyUsage(), /maintenance_plan cursor handling/);
@@ -4603,6 +4603,7 @@ describe('verify.mjs first-contact gates', () => {
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
       'Batch add_concepts and add_relations isolate each non-object row and unknown row field as ok:false.',
+      'Batch add_relations unknown type row errors include a closest-value hint such as Did you mean "depends_on"?',
       'Duplicate add_concepts input slugs report concepts[n] duplicate slug in input batch; first seen at concepts[m].',
       'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
       'maintenance_plan phases, severities, and kinds filters are enum-validated.',
@@ -4644,6 +4645,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('non-object row and unknown row field', 'bad rows') } }),
       'initialize instructions missing batch row isolation guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('unknown type row errors include a closest-value hint such as Did you mean "depends_on"?', 'unknown type row errors fail') } }),
+      'initialize instructions missing batch relation type hint guidance',
     );
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('concepts[n] duplicate slug in input batch; first seen at concepts[m]', 'duplicate slug') } }),

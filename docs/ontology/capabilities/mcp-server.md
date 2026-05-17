@@ -154,6 +154,8 @@ shortest-path read tool 계약을 `query_ontology` graph operation 과 별도로
 top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서
 실제 호출로 확인하고, relation type row 에 closest-value hint 가 남는지와
 invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인한다.
+initialize first-contact 안내도 같은 batch relation type closest-value hint 를 설명해야 하며,
+verify helper 가 안내 문구 drift 를 별도 실패로 처리한다.
 `find_orphans` 는 기본 row shape 와 project / vault-readme root-sentinel 기본 제외
 계약을 확인해, agent 가 top-level root 를 accidental cleanup 후보로 오인하지 않게 한다.
 verify 는 `validate_vault.scanned` / `summary.problemFiles` 로 file-level health 를 별도 확인하고,
