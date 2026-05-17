@@ -413,7 +413,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`find_path`\s+`outputSchema` and matching `structuredContent` shortest-path payload/);
     assert.match(verifySection, /`find_orphans`\s+`outputSchema` and matching `structuredContent` orphan-list payload/);
     assert.match(verifySection, /`query_concepts`\s+`outputSchema` and matching `structuredContent` typed-filter payload/);
-    assert.match(verifySection, /`compile_ontology`\s+`outputSchema` and matching `structuredContent` graph-summary payload/);
+    assert.match(verifySection, /`compile_ontology`\s+`outputSchema` and matching `structuredContent` graph-summary \/ full-artifact payload/);
     assert.match(verifySection, /`analyze_repo_structure`\s+`outputSchema` and matching `structuredContent` bootstrap-candidate payload/);
     assert.match(verifySection, /`infer_imports`\s+`outputSchema` and matching `structuredContent` import-graph payload/);
     assert.match(verifySection, /`add_concept`,\s+`add_relation`, and `patch_concept` single writer `outputSchema` contracts/);
@@ -467,6 +467,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /search, backlink-impact, typed-filter row-shape, limit-semantics, and `structuredContent` drift/);
     assert.match(verifySection, /direct `find_neighbors` and `find_path`/);
     assert.match(verifySection, /local-neighborhood and shortest-path read-tool drift/);
+    assert.match(verifySection, /paginated `compile_ontology\(\{nodesLimit:1, edgesLimit:1\}\)`/);
     assert.match(verifySection, /`compile_ontology`, `overview`, `overview`\/`project_map` query_plan, and actual `neighbors` \/ `path` \/ `project_scope` graph-query smoke/);
     assert.match(verifySection, /core graph-query execution with `neighbors`, node→project `path`, and `project_scope`/);
     assert.match(verifySection, /validates `path` hop\/edge alignment/);

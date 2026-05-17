@@ -23,6 +23,7 @@ import {
   buildLimitedQueryConceptsSmokeRequest,
   buildGraphQuerySmokeArgs,
   buildGraphQuerySmokeRequests,
+  compileFullArtifactFailure,
   compileSummaryFailure,
   diagnosisBlockingFailure,
   diagnosisIssueCount,
@@ -3867,6 +3868,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(38), 'analyze_repo_structure');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(39), 'infer_imports');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(40), 'strict_relation_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(41), 'compile_ontology_page');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -3883,12 +3885,15 @@ describe('verify.mjs first-contact gates', () => {
   it('builds bootstrap and import-analysis read smokes into first-contact verify', () => {
     const analyze = buildFirstContactRequests().find((request) => request.id === 38);
     const infer = buildFirstContactRequests().find((request) => request.id === 39);
+    const compilePage = buildFirstContactRequests().find((request) => request.id === 41);
     assert.equal(analyze?.params?.name, 'analyze_repo_structure');
     assert.equal(analyze?.params?.arguments?.maxDepth, 2);
     assert.match(analyze?.params?.arguments?.rootPath ?? '', /oh-my-ontology$/);
     assert.equal(infer?.params?.name, 'infer_imports');
     assert.equal(infer?.params?.arguments?.maxFiles, 5000);
     assert.match(infer?.params?.arguments?.rootPath ?? '', /oh-my-ontology$/);
+    assert.equal(compilePage?.params?.name, 'compile_ontology');
+    assert.deepEqual(compilePage?.params?.arguments, { nodesLimit: 1, edgesLimit: 1 });
   });
 
   it('builds direct graph-read smoke requests only when a node exists', () => {
@@ -4678,6 +4683,98 @@ describe('verify.mjs first-contact gates', () => {
       compileSummaryFailure({ ...clean, edgeCount: 1, resolvedEdgeCount: 1, externalEdgeCount: 1 }),
       'compile_ontology response edge count mismatch — edgeCount 1, resolved+external+unresolved 2',
     );
+  });
+
+  it('accepts clean compile_ontology paginated full-artifact payloads', () => {
+    assert.equal(
+      compileFullArtifactFailure({
+        version: 1,
+        graphHash: 'abc123',
+        maxMtime: 1,
+        nodeCount: 1,
+        edgeCount: 1,
+        resolvedEdgeCount: 1,
+        externalEdgeCount: 0,
+        unresolvedEdgeCount: 0,
+        aliasCount: 1,
+        ambiguousAliasCount: 0,
+        issueCount: 0,
+        canonicalizationActionCount: 0,
+        byKind: { project: 1 },
+        byDomain: {},
+        nodes: [{
+          slug: 'project',
+          kind: 'project',
+          title: 'Project',
+          mtime: 1,
+          outDegree: 1,
+          inDegree: 0,
+        }],
+        edges: [{
+          id: 'project->domains/core:domains:domains/core',
+          from: 'project',
+          to: 'domains/core',
+          via: 'domains',
+          ref: 'domains/core',
+          resolved: true,
+          external: false,
+        }],
+        nodesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+        edgesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+        aliases: [{ alias: 'project', slug: 'project' }],
+        ambiguousAliases: [],
+        issues: [],
+        canonicalizationActions: [],
+        summary: {
+          nodes: 1,
+          edges: 1,
+          graphHash: 'abc123',
+          maxMtime: 1,
+          resolvedEdges: 1,
+          externalEdges: 0,
+          unresolvedEdges: 0,
+          aliases: 1,
+          ambiguousAliases: 0,
+          issues: 0,
+        },
+      }),
+      null,
+    );
+  });
+
+  it('fails malformed compile_ontology paginated full-artifact payloads', () => {
+    const clean = {
+      version: 1,
+      graphHash: 'abc123',
+      maxMtime: 1,
+      nodeCount: 1,
+      edgeCount: 1,
+      resolvedEdgeCount: 1,
+      externalEdgeCount: 0,
+      unresolvedEdgeCount: 0,
+      aliasCount: 0,
+      ambiguousAliasCount: 0,
+      issueCount: 0,
+      canonicalizationActionCount: 0,
+      byKind: { project: 1 },
+      byDomain: {},
+      nodes: [{ slug: 'project', kind: 'project', title: 'Project', mtime: 1, outDegree: 1, inDegree: 0 }],
+      edges: [{ id: 'e', from: 'project', to: 'domains/core', via: 'domains', ref: 'domains/core', resolved: true, external: false }],
+      nodesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+      edgesPagination: { offset: 0, limit: 1, total: 1, returned: 1, hasMore: false, nextOffset: null },
+      aliases: [],
+      ambiguousAliases: [],
+      issues: [],
+      canonicalizationActions: [],
+      summary: { nodes: 1, edges: 1, graphHash: 'abc123', maxMtime: 1, resolvedEdges: 1, externalEdges: 0, unresolvedEdges: 0, aliases: 0, ambiguousAliases: 0, issues: 0 },
+    };
+
+    assert.equal(compileFullArtifactFailure({ ...clean, nodes: undefined }), 'compile_ontology full response missing nodes array');
+    assert.equal(compileFullArtifactFailure({ ...clean, nodesPagination: { ...clean.nodesPagination, returned: 2 } }), 'compile_ontology.nodesPagination returned mismatch — meta 2, array 1');
+    assert.equal(compileFullArtifactFailure({ ...clean, nodes: [{ ...clean.nodes[0], outDegree: -1 }] }), 'compile_ontology full response malformed node row');
+    assert.equal(compileFullArtifactFailure({ ...clean, edges: [{ ...clean.edges[0], resolved: 'true' }] }), 'compile_ontology full response malformed edge row');
+    assert.equal(compileFullArtifactFailure({ ...clean, canonicalizationActions: null }), 'compile_ontology full response missing canonicalizationActions array');
+    assert.equal(compileFullArtifactFailure({ ...clean, summary: { ...clean.summary, nodes: 2 } }), 'compile_ontology full response summary mismatch — summary 2/1, counts 1/1');
   });
 
   it('accepts clean graph-query verify smoke payloads', () => {

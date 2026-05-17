@@ -44,6 +44,15 @@ describe('compileOntology', () => {
     assert.equal(result.resolvedEdgeCount, 1);
     assert.equal(result.externalEdgeCount, 0);
     assert.equal(result.unresolvedEdgeCount, 1);
+    assert.equal(result.aliasCount, result.aliases.length);
+    assert.equal(result.ambiguousAliasCount, result.ambiguousAliases.length);
+    assert.equal(result.issueCount, result.issues.length);
+    assert.equal(result.canonicalizationActionCount, result.canonicalizationActions.length);
+    assert.deepEqual(result.byKind, {
+      capability: 1,
+      domain: 1,
+    });
+    assert.deepEqual(result.byDomain, {});
     assert.deepEqual(
       result.edges.map((edge) => ({
         from: edge.from,
@@ -232,6 +241,12 @@ describe('compileOntology', () => {
     assert.equal(summary.graphHash, full.graphHash);
     assert.equal(summary.nodeCount, full.nodeCount);
     assert.equal(summary.edgeCount, full.edgeCount);
+    assert.equal(summary.aliasCount, full.aliasCount);
+    assert.equal(summary.ambiguousAliasCount, full.ambiguousAliasCount);
+    assert.equal(summary.issueCount, full.issueCount);
+    assert.equal(summary.canonicalizationActionCount, full.canonicalizationActionCount);
+    assert.deepEqual(summary.byKind, full.byKind);
+    assert.deepEqual(summary.byDomain, full.byDomain);
   });
 
   it('nodesLimit / nodesOffset slice nodes with pagination meta', () => {

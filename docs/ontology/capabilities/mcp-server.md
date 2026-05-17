@@ -90,7 +90,7 @@ validation / diagnosis / compile / overview / query planning 은 계속 hard gat
 strict schema/runtime unknown-argument and invalid-enum rejection,
 `add_concepts` / `add_relations` row-isolation runtime smoke,
 `list_concepts`, project-node `list_concepts` probe,
-`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology({ summary: true })`,
+`get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`, `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology({ summary: true })`, paginated `compile_ontology({ nodesLimit: 1, edgesLimit: 1 })`,
 `analyze_repo_structure`, `infer_imports`, `query_ontology(overview)`, `query_plan(targetOperation:"overview")`,
 `query_plan(targetOperation:"project_map")`, 그리고 실제 `neighbors` /
 node→project `path` / `project_scope` 를 한 번에 호출해 agent first-contact graph diagnosis,
@@ -181,10 +181,13 @@ contract 를 검증해 first-contact 진단 결과가 status 문자열만 맞고
 필드가 비어 있는 회귀를 막는다. tuned `workspace_brief` 도 같은 shape 와 health
 check 계약으로 실행해 first-contact brief 의 튜닝 옵션이 실제 dogfood walk 에서
 계속 검증되게 한다.
-dogfood walk 는 `compile_ontology({ summary: true })` 도 직접 호출해
+dogfood walk / installed verify 는 `compile_ontology({ summary: true })` 와
+paginated `compile_ontology({ nodesLimit: 1, edgesLimit: 1 })` 를 직접 호출해
 `graphHash`, `maxMtime`, node/edge/alias/issue count, `byKind` / `byDomain`
-aggregate 가 유효한지 확인한다. `byKind` 합계가 `nodeCount` 와 다르거나
-edge breakdown 이 `edgeCount` 를 설명하지 못하면 gate 실패로 본다.
+aggregate, full artifact `nodes` / `edges` row shape, pagination meta,
+`canonicalizationActions`, full-response `summary` 가 유효한지 확인한다. `byKind`
+합계가 `nodeCount` 와 다르거나 edge breakdown 이 `edgeCount` 를 설명하지 못하면
+gate 실패로 본다.
 또한 `query_ontology(pattern_walk)` 를 실제 repo ontology 의 project → domains →
 capabilities 경로로, `query_ontology(all_paths)` 와
 `query_plan(targetOperation:"all_paths")` 를 mcp-server → vault-local-first

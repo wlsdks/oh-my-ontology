@@ -28,7 +28,7 @@
  *   13. tools/call list_kinds — kind census aggregate
  *   14. tools/call validate_vault — whole-vault frontmatter / graph-reference health
  *   15. tools/call query_ontology workspace_brief + tuned workspace_brief + health + tuned health — agent first-contact graph diagnosis
- *   16. tools/call compile_ontology(summary) — compiler graph summary contract
+ *   16. tools/call compile_ontology(summary + paginated full artifact) — compiler graph contract
  *   17. tools/call query_ontology overview + query_plan(overview/project_map) — graph-query smoke contract
  *   18. tools/call query_ontology neighbors/node-to-project path/project_scope — core graph query smoke contract
  *
@@ -1920,6 +1920,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [38, 'analyze_repo_structure'],
   [39, 'infer_imports'],
   [40, 'strict_relation_filter'],
+  [41, 'compile_ontology_page'],
 ]);
 
 function log(level, msg) {
@@ -2256,6 +2257,12 @@ export function buildFirstContactRequests() {
       id: 8,
       method: 'tools/call',
       params: { name: 'compile_ontology', arguments: { summary: true } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 41,
+      method: 'tools/call',
+      params: { name: 'compile_ontology', arguments: { nodesLimit: 1, edgesLimit: 1 } },
     },
     {
       jsonrpc: '2.0',
@@ -3180,6 +3187,106 @@ export function compileSummaryFailure(parsed) {
   return null;
 }
 
+export function compileFullArtifactFailure(parsed) {
+  const summaryFailure = compileSummaryFailure(parsed);
+  if (summaryFailure) return summaryFailure;
+  if (!Array.isArray(parsed.nodes)) {
+    return 'compile_ontology full response missing nodes array';
+  }
+  if (!Array.isArray(parsed.edges)) {
+    return 'compile_ontology full response missing edges array';
+  }
+  const nodesPaginationFailure = paginationMetaFailure('compile_ontology.nodesPagination', parsed.nodesPagination, parsed.nodeCount, parsed.nodes.length);
+  if (nodesPaginationFailure) return nodesPaginationFailure;
+  const edgesPaginationFailure = paginationMetaFailure('compile_ontology.edgesPagination', parsed.edgesPagination, parsed.edgeCount, parsed.edges.length);
+  if (edgesPaginationFailure) return edgesPaginationFailure;
+  const node = parsed.nodes[0];
+  if (node && (
+    typeof node.slug !== 'string' ||
+    typeof node.kind !== 'string' ||
+    typeof node.title !== 'string' ||
+    !Number.isFinite(node.mtime) ||
+    !Number.isInteger(node.outDegree) ||
+    node.outDegree < 0 ||
+    !Number.isInteger(node.inDegree) ||
+    node.inDegree < 0
+  )) {
+    return 'compile_ontology full response malformed node row';
+  }
+  const edge = parsed.edges[0];
+  if (edge && (
+    typeof edge.id !== 'string' ||
+    typeof edge.from !== 'string' ||
+    typeof edge.to !== 'string' ||
+    typeof edge.via !== 'string' ||
+    typeof edge.ref !== 'string' ||
+    typeof edge.resolved !== 'boolean' ||
+    typeof edge.external !== 'boolean'
+  )) {
+    return 'compile_ontology full response malformed edge row';
+  }
+  if (!Array.isArray(parsed.aliases)) {
+    return 'compile_ontology full response missing aliases array';
+  }
+  if (!Array.isArray(parsed.ambiguousAliases)) {
+    return 'compile_ontology full response missing ambiguousAliases array';
+  }
+  if (!Array.isArray(parsed.issues)) {
+    return 'compile_ontology full response missing issues array';
+  }
+  if (!Array.isArray(parsed.canonicalizationActions)) {
+    return 'compile_ontology full response missing canonicalizationActions array';
+  }
+  if (!parsed.summary || typeof parsed.summary !== 'object' || Array.isArray(parsed.summary)) {
+    return 'compile_ontology full response missing summary';
+  }
+  const fullSummaryFailure = numericFieldsFailure('compile_ontology.summary', parsed.summary, [
+    'nodes',
+    'edges',
+    'resolvedEdges',
+    'externalEdges',
+    'unresolvedEdges',
+    'aliases',
+    'ambiguousAliases',
+    'issues',
+  ]);
+  if (fullSummaryFailure) return fullSummaryFailure;
+  if (parsed.summary.nodes !== parsed.nodeCount || parsed.summary.edges !== parsed.edgeCount) {
+    return `compile_ontology full response summary mismatch — summary ${parsed.summary.nodes}/${parsed.summary.edges}, counts ${parsed.nodeCount}/${parsed.edgeCount}`;
+  }
+  if (parsed.summary.graphHash !== parsed.graphHash) {
+    return 'compile_ontology full response summary graphHash mismatch';
+  }
+  return null;
+}
+
+function paginationMetaFailure(label, meta, total, returned) {
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) {
+    return `${label} missing`;
+  }
+  for (const key of ['offset', 'limit', 'total', 'returned']) {
+    if (!Number.isInteger(meta[key]) || meta[key] < 0) {
+      return `${label} missing ${key}`;
+    }
+  }
+  if (meta.total !== total) {
+    return `${label} total mismatch — meta ${meta.total}, count ${total}`;
+  }
+  if (meta.returned !== returned) {
+    return `${label} returned mismatch — meta ${meta.returned}, array ${returned}`;
+  }
+  if (typeof meta.hasMore !== 'boolean') {
+    return `${label} missing hasMore`;
+  }
+  if (meta.nextOffset !== null && (!Number.isInteger(meta.nextOffset) || meta.nextOffset < 0)) {
+    return `${label} missing nextOffset`;
+  }
+  if (meta.hasMore && meta.nextOffset === null) {
+    return `${label} hasMore without nextOffset`;
+  }
+  return null;
+}
+
 export function overviewFailure(parsed) {
   if (parsed?.operation !== 'overview') {
     return `overview returned unexpected operation: ${parsed?.operation}`;
@@ -3913,6 +4020,7 @@ async function step2BootAndCall() {
       const tunedHealthRes = responses.find((r) => r.id === 20);
       const tunedBriefRes = responses.find((r) => r.id === 21);
       const compileRes = responses.find((r) => r.id === 8);
+      const compilePageRes = responses.find((r) => r.id === 41);
       const overviewRes = responses.find((r) => r.id === 9);
       const overviewPlanRes = responses.find((r) => r.id === 10);
       const getConceptsRes = responses.find((r) => r.id === 11);
@@ -4655,6 +4763,29 @@ async function step2BootAndCall() {
         log('ok', `compile_ontology — graph ${parsed.graphHash.slice(0, 12)} (${parsed.nodeCount} nodes, ${parsed.edgeCount} edges, issues ${parsed.issueCount})`);
       } catch (err) {
         log('fail', `failed to parse compile_ontology response: ${err.message}`);
+        return res(false);
+      }
+
+      if (!compilePageRes || !compilePageRes.result) {
+        log('fail', 'no compile_ontology paginated full-artifact response');
+        return res(false);
+      }
+      try {
+        const text = compilePageRes.result.content?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+        const failure = compileFullArtifactFailure(parsed);
+        if (failure) {
+          log('fail', failure);
+          return res(false);
+        }
+        const structuredFailure = structuredContentFailure(compilePageRes, parsed, 'compile_ontology_page');
+        if (structuredFailure) {
+          log('fail', structuredFailure);
+          return res(false);
+        }
+        log('ok', `compile_ontology page — ${parsed.nodes.length}/${parsed.nodeCount} nodes, ${parsed.edges.length}/${parsed.edgeCount} edges`);
+      } catch (err) {
+        log('fail', `failed to parse compile_ontology paginated response: ${err.message}`);
         return res(false);
       }
 

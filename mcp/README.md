@@ -292,7 +292,8 @@ verify path exercises and gates the same first-contact graph diagnosis an agent 
 `query_ontology({operation:"workspace_brief"})`, tuned
 `query_ontology({operation:"workspace_brief"})`,
 `query_ontology({operation:"health"})`, and tuned
-`query_ontology({operation:"health"})`, plus `compile_ontology({summary:true})`,
+`query_ontology({operation:"health"})`, plus `compile_ontology({summary:true})`
+and paginated `compile_ontology({nodesLimit:1, edgesLimit:1})`,
 `query_ontology({operation:"overview"})`, and
 `query_ontology({operation:"query_plan", targetOperation:"overview"})` /
 `query_ontology({operation:"query_plan", targetOperation:"project_map"})`,
@@ -325,7 +326,7 @@ the graph engine's runtime allow-lists. It also checks the `list_kinds`
 `outputSchema` and matching `structuredContent` shortest-path payload, the `find_orphans`
 `outputSchema` and matching `structuredContent` orphan-list payload, the `query_concepts`
 `outputSchema` and matching `structuredContent` typed-filter payload, the `compile_ontology`
-`outputSchema` and matching `structuredContent` graph-summary payload, the `analyze_repo_structure`
+`outputSchema` and matching `structuredContent` graph-summary / full-artifact payload, the `analyze_repo_structure`
 `outputSchema` and matching `structuredContent` bootstrap-candidate payload, the `infer_imports`
 `outputSchema` and matching `structuredContent` import-graph payload, the `add_concept`,
 `add_relation`, and `patch_concept` single writer `outputSchema` contracts, the `add_concepts`
