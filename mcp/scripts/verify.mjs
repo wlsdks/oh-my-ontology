@@ -60,6 +60,7 @@ const REPO_ROOT = resolve(MCP_ROOT, '..');
 const PARSER_TEST = join(MCP_ROOT, 'src', 'parser.test.mjs');
 const SERVER_ENTRY = join(MCP_ROOT, 'src', 'index.js');
 const IS_MAIN = fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '');
+const VERIFY_ALLOWED_FLAGS = ['--vault', '--timeout-ms', '--help'];
 const VERIFY_ARGS = parseVerifyArgs({ isMain: IS_MAIN });
 const VAULT = VERIFY_ARGS.vault;
 const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
@@ -1950,7 +1951,7 @@ export function parseVerifyArgs({
       }
       positionalVault = value;
     } else if (arg.startsWith('-')) {
-      error = `Unknown option: ${arg}`;
+      error = formatUnknownVerifyOption(arg);
       break;
     } else if (positionalVault) {
       error = `Unexpected extra vault argument: ${arg}`;
@@ -1987,6 +1988,47 @@ function parseVerifyVaultArg(value) {
   const path = String(value ?? '').trim();
   if (!path || path.startsWith('-')) return false;
   return path;
+}
+
+function formatUnknownVerifyOption(arg) {
+  const suggestion = closestVerifyFlag(arg);
+  const suggestionText = suggestion ? ` Did you mean ${suggestion}?` : '';
+  return `Unknown option: ${arg}.${suggestionText}`;
+}
+
+function closestVerifyFlag(arg) {
+  if (!arg) return null;
+  const comparableArg = String(arg).split('=')[0];
+  let best = null;
+  for (const flag of VERIFY_ALLOWED_FLAGS) {
+    const distance = levenshteinDistance(comparableArg, flag);
+    if (!best || distance < best.distance) {
+      best = { flag, distance };
+    }
+  }
+  if (!best) return null;
+  const threshold = Math.max(2, Math.ceil(best.flag.replace(/^--/, '').length / 2));
+  return best.distance <= threshold ? best.flag : null;
+}
+
+function levenshteinDistance(a, b) {
+  const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  const current = Array.from({ length: b.length + 1 }, () => 0);
+  for (let i = 1; i <= a.length; i += 1) {
+    current[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const substitutionCost = a[i - 1] === b[j - 1] ? 0 : 1;
+      current[j] = Math.min(
+        previous[j] + 1,
+        current[j - 1] + 1,
+        previous[j - 1] + substitutionCost,
+      );
+    }
+    for (let j = 0; j <= b.length; j += 1) {
+      previous[j] = current[j];
+    }
+  }
+  return previous[b.length];
 }
 
 export function verifyTimeoutFailure(timeoutMs) {

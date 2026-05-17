@@ -2818,6 +2818,14 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '/one', '--vault', '/two'], cwd: '/tmp/cwd', isMain: true }).error, /Unexpected extra vault argument/);
     assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '/one', '/two'], cwd: '/tmp/cwd', isMain: true }).error, /Unexpected extra vault argument/);
     assert.match(parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--unknown'], cwd: '/tmp/cwd', isMain: true }).error, /Unknown option/);
+    assert.match(
+      parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--timout-ms=1000'], cwd: '/tmp/cwd', isMain: true }).error,
+      /Unknown option: --timout-ms=1000\. Did you mean --timeout-ms\?/,
+    );
+    assert.match(
+      parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--vualt'], cwd: '/tmp/cwd', isMain: true }).error,
+      /Unknown option: --vualt\. Did you mean --vault\?/,
+    );
   });
 
   it('describes direct verify usage', () => {
