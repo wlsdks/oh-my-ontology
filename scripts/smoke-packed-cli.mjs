@@ -454,6 +454,7 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /compile_ontology/);
   assert.match(cliMcpVerifyHelp.stdout, /neighbors\/node-to-project path\/project_scope graph-query smoke/);
   assert.match(cliMcpVerifyHelp.stdout, /tools\/list schema strictness/);
+  assert.match(cliMcpVerifyHelp.stdout, /annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
   assert.match(cliMcpVerifyHelp.stdout, /destructive writer dry-runs with every planned response present and no changed\/postWriteMaintenance/);
   assert.match(cliMcpVerifyHelp.stdout, /write-tool postWriteMaintenance byPhase\/bySeverity\/byKind buckets \+ score\/proposedAction\/next-action guidance/);
   assert.match(cliMcpVerifyHelp.stdout, /runtime unknown-argument \/ invalid-enum rejection/);
