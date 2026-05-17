@@ -87,6 +87,7 @@ import {
   validationCodeSummary,
   validateVaultFailure,
   verifyCountConsistencyFailure,
+  verifyRetryExample,
   verifyTimeoutFailure,
   verifyTimeoutValueErrorMessage,
   verifyUsage,
@@ -3888,9 +3889,18 @@ describe('verify.mjs first-contact gates', () => {
 
   it('formats actionable timeout failures', () => {
     assert.equal(
-      verifyTimeoutFailure(1),
+      verifyTimeoutFailure(1, {}),
       'server verify timed out after 1ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults. Example: npm run verify -- --timeout-ms 15000',
     );
+    assert.equal(
+      verifyTimeoutFailure(1, { OMOT_VERIFY_RETRY_EXAMPLE: 'oh-my-ontology mcp-verify --timeout-ms 15000' }),
+      'server verify timed out after 1ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults. Example: oh-my-ontology mcp-verify --timeout-ms 15000',
+    );
+    assert.equal(
+      verifyRetryExample({ OMOT_VERIFY_RETRY_EXAMPLE: ' oh-my-ontology mcp-verify --timeout-ms 15000 ' }),
+      'oh-my-ontology mcp-verify --timeout-ms 15000',
+    );
+    assert.equal(verifyRetryExample({ OMOT_VERIFY_RETRY_EXAMPLE: '   ' }), 'npm run verify -- --timeout-ms 15000');
   });
 
   it('formats startup failures before initialize separately from timeouts', () => {

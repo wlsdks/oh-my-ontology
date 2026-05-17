@@ -86,6 +86,7 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs) {
       env: {
         ...process.env,
         OMOT_VAULT: vaultRoot,
+        OMOT_VERIFY_RETRY_EXAMPLE: 'oh-my-ontology mcp-verify --timeout-ms 15000',
         ...(timeoutMs ? { OMOT_VERIFY_TIMEOUT_MS: String(timeoutMs) } : {}),
       },
       stdio: ['ignore', 'pipe', 'pipe'],

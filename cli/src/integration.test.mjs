@@ -451,6 +451,24 @@ await test('mcp-verify — rejects invalid timeout values', async () => {
   assert.match(stripAnsi(typo.stderr), /unknown flag: --timout-ms=1000\. Did you mean --timeout-ms\?/);
 });
 
+await test('mcp-verify — passes CLI retry hint to the verify script', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'cli-mcp-verify-retry-'));
+  const verifyScript = join(root, 'verify.mjs');
+  writeFileSync(
+    verifyScript,
+    'process.stderr.write(`retry=${process.env.OMOT_VERIFY_RETRY_EXAMPLE}\\n`); process.exit(1);',
+    'utf-8',
+  );
+
+  const r = await run(['mcp-verify', root], {
+    env: { OMOT_MCP_VERIFY_PATH: verifyScript },
+  });
+
+  assert.equal(r.code, 1);
+  assert.match(stripAnsi(r.stderr), /retry=oh-my-ontology mcp-verify --timeout-ms 15000/);
+  assert.doesNotMatch(stripAnsi(r.stderr), /npm run verify -- --timeout-ms 15000/);
+});
+
 await test('mcp-verify — rejects ambiguous vault arguments', async () => {
   const missing = await run(['mcp-verify', '--vault']);
   assert.equal(missing.code, 1);

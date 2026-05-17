@@ -61,6 +61,7 @@ const PARSER_TEST = join(MCP_ROOT, 'src', 'parser.test.mjs');
 const SERVER_ENTRY = join(MCP_ROOT, 'src', 'index.js');
 const IS_MAIN = fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '');
 const VERIFY_ALLOWED_FLAGS = ['--vault', '--timeout-ms', '--help'];
+const DEFAULT_VERIFY_RETRY_EXAMPLE = 'npm run verify -- --timeout-ms 15000';
 const VERIFY_ARGS = parseVerifyArgs({ isMain: IS_MAIN });
 const VAULT = VERIFY_ARGS.vault;
 const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
@@ -2115,21 +2116,26 @@ function levenshteinDistance(a, b) {
   return previous[b.length];
 }
 
-export function verifyTimeoutFailure(timeoutMs) {
+export function verifyTimeoutFailure(timeoutMs, env = process.env) {
   return [
     `server verify timed out after ${timeoutMs}ms.`,
     'Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults.',
-    'Example: npm run verify -- --timeout-ms 15000',
+    `Example: ${verifyRetryExample(env)}`,
   ].join(' ');
 }
 
-export function verifyTimeoutValueErrorMessage(value) {
+export function verifyRetryExample(env = process.env) {
+  const value = typeof env.OMOT_VERIFY_RETRY_EXAMPLE === 'string' ? env.OMOT_VERIFY_RETRY_EXAMPLE.trim() : '';
+  return value || DEFAULT_VERIFY_RETRY_EXAMPLE;
+}
+
+export function verifyTimeoutValueErrorMessage(value, env = process.env) {
   const received = value == null ? 'undefined' : JSON.stringify(String(value));
   return [
     'verify timeout must be a positive integer wait window in milliseconds.',
     `Received: ${received}.`,
     'Set --timeout-ms N or OMOT_VERIFY_TIMEOUT_MS=N.',
-    'Example: npm run verify -- --timeout-ms 15000',
+    `Example: ${verifyRetryExample(env)}`,
   ].join('\n');
 }
 
