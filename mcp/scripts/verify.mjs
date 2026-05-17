@@ -1673,6 +1673,9 @@ export function strictArgsFailure(response) {
   if (!/Did you mean "limit"\?/i.test(text)) {
     return 'strict arguments response did not suggest the closest list_concepts argument';
   }
+  if (!/Received arguments: lmit/i.test(text)) {
+    return 'strict arguments response did not report the received list_concepts arguments';
+  }
   return null;
 }
 
@@ -1689,6 +1692,9 @@ export function strictMultiArgsFailure(response) {
   }
   if (!/"summry" \(did you mean "summary"\?\)/i.test(text)) {
     return 'strict multi-argument response did not suggest the closest summary argument';
+  }
+  if (!/Received arguments: lmit, summry/i.test(text)) {
+    return 'strict multi-argument response did not report all received list_concepts arguments';
   }
   return null;
 }

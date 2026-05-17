@@ -2264,12 +2264,14 @@ function normalizeToolArguments(args, toolName) {
     if (unknown.length > 0) {
       const allowedNames = [...allowed].sort();
       const allowedText = allowedNames.length > 0 ? allowedNames.join(', ') : 'no arguments';
+      const receivedNames = Object.keys(args).sort();
+      const receivedText = receivedNames.length > 0 ? receivedNames.join(', ') : 'none';
       if (unknown.length === 1) {
         const [key] = unknown;
         const suggestion = closestAllowedValue(key, allowedNames);
         const suggestionText = suggestion ? ` Did you mean "${suggestion}"?` : '';
         throw new Error(
-          `Unknown argument "${key}" for ${toolName}.${suggestionText} Allowed arguments: ${allowedText}.`,
+          `Unknown argument "${key}" for ${toolName}.${suggestionText} Allowed arguments: ${allowedText}. Received arguments: ${receivedText}.`,
         );
       }
       const unknownText = unknown
@@ -2279,7 +2281,7 @@ function normalizeToolArguments(args, toolName) {
         })
         .join(', ');
       throw new Error(
-        `Unknown arguments for ${toolName}: ${unknownText}. Allowed arguments: ${allowedText}.`,
+        `Unknown arguments for ${toolName}: ${unknownText}. Allowed arguments: ${allowedText}. Received arguments: ${receivedText}.`,
       );
     }
   }

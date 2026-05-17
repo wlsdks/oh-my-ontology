@@ -397,7 +397,9 @@ read-only diagnosis flow, `expected_mtime`, `rename_concept` existing
 `newSlug` / `overwrite: true` safety, or `delete_concept.force` / dangling
 referrers safety. It also gates strict-input typo recovery guidance, including
 unknown argument rejection plus nearest argument/value hints such as
-`Did you mean "limit"?` and `Did you mean "overview"?`. Maintenance work-queue
+`Did you mean "limit"?` and `Did you mean "overview"?`. Unknown-argument
+errors also include `Received arguments: ...` so an agent can repair the exact
+submitted key set instead of guessing from allowed fields alone. Maintenance work-queue
 guidance is gated too: `initialize.instructions` must mention enum-validated
 `maintenance_plan` filters, ready cursor pages with `cursor.found=true` plus
 `cursor.reason=null`, and unknown `afterActionId` cursor misses with

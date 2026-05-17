@@ -771,6 +771,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /strict-input typo recovery guidance/);
     assert.match(verifySection, /`Did you mean "limit"\?`/);
     assert.match(verifySection, /`Did you mean "overview"\?`/);
+    assert.match(verifySection, /`Received arguments: \.\.\.`/);
     assert.match(verifySection, /Maintenance work-queue\s+guidance is gated too/);
     assert.match(verifySection, /enum-validated\s+`maintenance_plan` filters/);
     assert.match(verifySection, /ready cursor pages with `cursor\.found=true` plus\s+`cursor\.reason=null`/);
@@ -1324,6 +1325,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /strict arguments \+ annotations \+ graph-query enums \+ graph kind enums \+ write relation enums\s+\+ health tuning \+ post-write bucket guidance/);
     assert.match(doc, /strict relation filter \/ `relation_check` row/);
     assert.match(doc, /`depend_on -> depends_on`/);
+    assert.match(doc, /`Received arguments: \.\.\.`/);
     assert.match(doc, /`tools\/list` 의 `annotations\.title`/);
     assert.match(doc, /`annotations\.readOnlyHint`/);
     assert.match(doc, /`annotations\.destructiveHint`/);

@@ -2701,13 +2701,13 @@ const okShape = {
   strictArgs: {
     result: {
       isError: true,
-      content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: kind, limit.' }],
+      content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: kind, limit. Received arguments: lmit.' }],
     },
   },
   strictMultiArgs: {
     result: {
       isError: true,
-      content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary.' }],
+      content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit, summry.' }],
     },
   },
   strictEnum: {
@@ -3633,6 +3633,10 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, strictArgs: { result: { isError: true, content: [{ text: 'Unknown argument "lmit" for list_concepts.' }] } } }),
       ["strict_args: strict arguments response did not suggest the closest list_concepts argument"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictArgs: { result: { isError: true, content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"?' }] } } }),
+      ["strict_args: strict arguments response did not report the received list_concepts arguments"],
+    );
   });
 
   it("fails malformed strict multi-argument dogfood responses", () => {
@@ -3647,6 +3651,10 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, strictMultiArgs: { result: { isError: true, content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry".' }] } } }),
       ["strict_multi_args: strict multi-argument response did not suggest the closest summary argument"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictMultiArgs: { result: { isError: true, content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)' }] } } }),
+      ["strict_multi_args: strict multi-argument response did not report all received list_concepts arguments"],
     );
   });
 

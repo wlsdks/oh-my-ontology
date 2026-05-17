@@ -3531,7 +3531,7 @@ describe('verify.mjs first-contact gates', () => {
       strictArgsFailure({
         result: {
           isError: true,
-          content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"?' }],
+          content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit.' }],
         },
       }),
       null,
@@ -3548,6 +3548,10 @@ describe('verify.mjs first-contact gates', () => {
       strictArgsFailure({ result: { isError: true, content: [{ text: 'Unknown argument "lmit" for list_concepts.' }] } }),
       'strict arguments response did not suggest the closest list_concepts argument',
     );
+    assert.equal(
+      strictArgsFailure({ result: { isError: true, content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"?' }] } }),
+      'strict arguments response did not report the received list_concepts arguments',
+    );
   });
 
   it('fails malformed strict multi-argument smoke responses', () => {
@@ -3555,7 +3559,7 @@ describe('verify.mjs first-contact gates', () => {
       strictMultiArgsFailure({
         result: {
           isError: true,
-          content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary.' }],
+          content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit, summry.' }],
         },
       }),
       null,
@@ -3571,6 +3575,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictMultiArgsFailure({ result: { isError: true, content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry".' }] } }),
       'strict multi-argument response did not suggest the closest summary argument',
+    );
+    assert.equal(
+      strictMultiArgsFailure({ result: { isError: true, content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)' }] } }),
+      'strict multi-argument response did not report all received list_concepts arguments',
     );
   });
 
