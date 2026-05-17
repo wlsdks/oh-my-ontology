@@ -282,7 +282,7 @@ A successful run looks like this:
 ✓ result: 7 passed, 0 failed
 · step 2 — server boot + tools/list + list_concepts/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans/list_kinds/destructive dry-runs (vault=../docs/ontology, timeout=8000ms)
 ✓ initialize OK — server oh-my-ontology-mcp@0.12.0
-✓ initialize instructions — first-contact safety guidance present
+✓ initialize instructions — first-contact safety and batch relation type guidance present
 ✓ tools/list 23/23 (23/23 titled; 15/15 read; 8/8 write; 3/3 destructive; 2/2 idempotent; 23/23 local-only) — add_concept · add_concepts · add_relation · add_relations · analyze_repo_structure · compile_ontology · delete_concept · find_backlinks · find_evidence · find_neighbors · find_orphans · find_path · get_concept · get_concepts · infer_imports · list_concepts · list_kinds · merge_concepts · patch_concept · query_concepts · query_ontology · rename_concept · validate_vault
 ✓ tools/list schema contract — strict arguments + annotations + graph-query enums + graph kind enums + write relation enums + health tuning + post-write bucket guidance
 ✓ strict arguments — unknown tool argument rejected at runtime
