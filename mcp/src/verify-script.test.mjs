@@ -2844,6 +2844,26 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(result.stderr, /Usage:/);
   });
 
+  it('prints direct verify timeout value errors to stderr only', () => {
+    for (const env of [{}, { OMOT_VERIFY_TIMEOUT_MS: 'abc' }]) {
+      const args = Object.keys(env).length === 0 ? [VERIFY_SCRIPT, '--timeout-ms', 'abc'] : [VERIFY_SCRIPT];
+      const result = spawnSync(
+        process.execPath,
+        args,
+        {
+          cwd: join(__dirname, '..'),
+          encoding: 'utf8',
+          env: { ...process.env, ...env },
+        },
+      );
+
+      assert.equal(result.status, 1);
+      assert.equal(result.stdout, '');
+      assert.match(result.stderr, /\[oh-my-ontology-mcp verify\]/);
+      assert.match(result.stderr, /verify timeout must be a positive integer/);
+    }
+  });
+
   it('describes direct verify usage', () => {
     assert.match(verifyUsage(), /node mcp\/scripts\/verify\.mjs \[vault\] \[--timeout-ms N\]/);
     assert.match(verifyUsage(), /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);

@@ -4801,11 +4801,11 @@ async function main() {
     process.stderr.write(verifyUsage());
     process.exit(1);
   }
-  console.log('\n[oh-my-ontology-mcp verify]\n');
   if (verifyTimeoutMs() === false) {
-    log('fail', 'verify timeout must be a positive integer');
+    process.stderr.write(`\n[oh-my-ontology-mcp verify]\n\n\x1b[31m✗\x1b[0m verify timeout must be a positive integer\n`);
     process.exit(1);
   }
+  console.log('\n[oh-my-ontology-mcp verify]\n');
   const ok1 = await step1ParserSmoke();
   if (!ok1) process.exit(1);
   const ok2 = await step2BootAndCall();
