@@ -947,7 +947,7 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "add_relations") {
-        tool.description += " Batch rows isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields.";
+        tool.description += " Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels; unknown type rows include a closest-value hint and unknown-field rows include Received fields.";
         tool.inputSchema.required = ["relations"];
         tool.inputSchema.properties.relations = {
           type: "array",
@@ -2907,12 +2907,17 @@ describe("rpc response completion helpers", () => {
     const missingRelations = makeDogfoodToolsList().tools;
     missingRelations.find((tool) => tool.name === "add_relations").description =
       "Batch rows isolate non-object row shape and unknown row field as ok:false rows.";
-    assert.equal(writeRowLabelGuidanceSummary(missingRelations), "missing add_relations relations[n], add_relations Received fields");
+    assert.equal(writeRowLabelGuidanceSummary(missingRelations), "missing add_relations relations[n], add_relations Received fields, add_relations closest-value type hint");
 
     const missingRelationsReceivedFields = makeDogfoodToolsList().tools;
     missingRelationsReceivedFields.find((tool) => tool.name === "add_relations").description =
       "Batch rows isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels.";
-    assert.equal(writeRowLabelGuidanceSummary(missingRelationsReceivedFields), "missing add_relations Received fields");
+    assert.equal(writeRowLabelGuidanceSummary(missingRelationsReceivedFields), "missing add_relations Received fields, add_relations closest-value type hint");
+
+    const missingRelationsClosestValue = makeDogfoodToolsList().tools;
+    missingRelationsClosestValue.find((tool) => tool.name === "add_relations").description =
+      "Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields.";
+    assert.equal(writeRowLabelGuidanceSummary(missingRelationsClosestValue), "missing add_relations closest-value type hint");
 
     assert.equal(writeRowLabelGuidanceSummary(null), "missing tools/list");
   });
@@ -3561,17 +3566,24 @@ describe("evaluateDogfoodGate", () => {
     );
     const addRelationsRowLabelGuidanceDrifted = makeDogfoodToolsList();
     addRelationsRowLabelGuidanceDrifted.tools.find((tool) => tool.name === "add_relations").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows.";
+      "Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with closest-value hints.";
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: addRelationsRowLabelGuidanceDrifted }),
       ["tools/list: add_relations description missing row label guidance"],
     );
     const addRelationsReceivedFieldsGuidanceDrifted = makeDogfoodToolsList();
     addRelationsReceivedFieldsGuidanceDrifted.tools.find((tool) => tool.name === "add_relations").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels.";
+      "Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels and closest-value hints.";
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: addRelationsReceivedFieldsGuidanceDrifted }),
       ["tools/list: add_relations description missing received fields guidance"],
+    );
+    const addRelationsClosestValueGuidanceDrifted = makeDogfoodToolsList();
+    addRelationsClosestValueGuidanceDrifted.tools.find((tool) => tool.name === "add_relations").description =
+      "Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields.";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: addRelationsClosestValueGuidanceDrifted }),
+      ["tools/list: add_relations description missing closest-value type guidance"],
     );
     const addConceptOutputSchemaDrifted = makeDogfoodToolsList();
     addConceptOutputSchemaDrifted.tools.find((tool) => tool.name === "add_concept").outputSchema.properties.warnings.items.type = "number";

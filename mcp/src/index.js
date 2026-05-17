@@ -726,7 +726,7 @@ const TOOLS = [
       'Use after `analyze_repo_structure` (suggestedRelations) / `infer_imports` (moduleEdges) ' +
       'when the agent has K accepted edges from the user — replaces K×`add_relation` round-trips. ' +
       'Each row is processed independently and idempotently: existing edges return `{ok: true, alreadyExists: true}`; ' +
-      'missing source/target slugs / unknown type / non-object row shape / unknown row field surface as `{ok: false, error}` with a `relations[n]` row label; unknown-field rows include `Received fields: ...`. ' +
+      'missing source/target slugs / unknown type / non-object row shape / unknown row field surface as `{ok: false, error}` with a `relations[n]` row label; unknown type rows include a closest-value hint; unknown-field rows include `Received fields: ...`. ' +
       '`relations[]` order in the response matches the input. Cap = 50 per call. ' +
       'NO atomic rollback — for all-or-nothing semantics use single `add_relation` calls. ' +
       'Tip: avoid `expected_mtime` in batch when multiple rows share the same `from` slug — ' +

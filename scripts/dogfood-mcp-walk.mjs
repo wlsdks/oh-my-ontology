@@ -373,6 +373,9 @@ export function writeRowLabelGuidanceSummary(tools) {
   if (!/Received fields/.test(addRelations?.description || "")) {
     missing.push("add_relations Received fields");
   }
+  if (!/unknown type/.test(addRelations?.description || "") || !/closest-value hint/.test(addRelations?.description || "")) {
+    missing.push("add_relations closest-value type hint");
+  }
 
   return missing.length > 0 ? `missing ${missing.join(", ")}` : "pass";
 }

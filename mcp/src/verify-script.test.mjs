@@ -417,7 +417,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_relations',
         description:
-          `Batch writes isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields and return ${postWriteDescription}.`,
+          `Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields and return ${postWriteDescription}.`,
         inputSchema: {
           additionalProperties: false,
           required: ['relations'],
@@ -3136,7 +3136,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
         },
       ]),
       'add_relations description missing row label guidance',
@@ -3146,10 +3146,20 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows with relations[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
         },
       ]),
       'add_relations description missing received fields guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relations'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relations'),
+          description: 'Batch writes isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels, and unknown-field rows include Received fields. Return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+        },
+      ]),
+      'add_relations description missing closest-value type guidance',
     );
     assert.equal(
       toolsListSchemaFailure([

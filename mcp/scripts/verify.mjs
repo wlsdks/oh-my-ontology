@@ -1413,7 +1413,7 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(addRelationInputType?.enum, WRITE_RELATION_TYPE_VALUES)) {
     return 'add_relations inputSchema type enum drift';
   }
-  if (!/non-object row shape/.test(addRelationsTool?.description || '') || !/unknown row field/.test(addRelationsTool?.description || '')) {
+  if (!/non-object row shape/.test(addRelationsTool?.description || '') || !/unknown row field/.test(addRelationsTool?.description || '') || !/unknown type/.test(addRelationsTool?.description || '')) {
     return 'add_relations description missing row isolation guidance';
   }
   if (!/relations\[n\]/.test(addRelationsTool?.description || '')) {
@@ -1421,6 +1421,9 @@ export function toolsListSchemaFailure(tools) {
   }
   if (!/Received fields/.test(addRelationsTool?.description || '')) {
     return 'add_relations description missing received fields guidance';
+  }
+  if (!/closest-value hint/.test(addRelationsTool?.description || '')) {
+    return 'add_relations description missing closest-value type guidance';
   }
   if (addRelationsTool.outputSchema?.type !== 'object') {
     return 'add_relations outputSchema root drift';
@@ -5111,7 +5114,7 @@ async function step2BootAndCall() {
         log('fail', addRelationsRowIsolationFailure);
         return res(false);
       }
-      log('ok', 'add_relations — non-object and unknown-field rows isolated with input indexes');
+      log('ok', 'add_relations — non-object, unknown-field, and invalid-type rows isolated with input indexes and closest-value hints');
       const destructiveDryRunResponses = destructiveDryRunExpectedResponses.map(([toolName, id]) => [
         toolName,
         responses.find((response) => response.id === id),
