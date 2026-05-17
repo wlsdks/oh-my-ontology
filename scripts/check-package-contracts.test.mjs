@@ -208,8 +208,8 @@ describe('package contract helpers', () => {
     assert.match(readme, /integration:cli:maintenance/);
     assert.match(readme, /integration:mcp:readme/);
     assert.match(readme, /runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`/);
-    assert.match(readme, /graph-query, destructive\s+dry-run, post-write guidance, and strict argument\/enum\s+smoke scope/);
-    assert.match(readme, /graph-query, destructive dry-run, and strict\s+argument\/enum smoke scope/);
+    assert.match(readme, /graph-query, destructive\s+dry-run, post-write bucket guidance, and strict argument\/enum\s+smoke scope/);
+    assert.match(readme, /graph-query, destructive dry-run, post-write bucket,\s+and strict argument\/enum smoke scope/);
   });
 
   it('keeps the CLI MCP dependency aligned with the local MCP package version', () => {
@@ -1537,7 +1537,7 @@ describe('package contract helpers', () => {
     );
     assert.match(regressionSection, /paginated `compile_ontology` full-artifact smoke/);
     assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함\) \/ strict argument\/enum smoke \/ batch writer row-isolation smoke \/ destructive dry-run smoke/);
-    assert.match(regressionSection, /write-tool post-write guidance/);
+    assert.match(regressionSection, /write-tool post-write bucket guidance/);
     assert.match(regressionSection, /maintenance filter enum/);
     assert.match(regressionSection, /ready cursor \/ missing cursor 계약/);
     assert.match(regressionSection, /ready cursor \/ missing cursor scope/);

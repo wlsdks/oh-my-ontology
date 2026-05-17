@@ -173,10 +173,10 @@ first node exists.
 `smoke:packed-cli` also runs the installed CLI package `npm test`, then checks
 the installed `mcp-verify --help` output plus project-less and empty-vault
 verify paths, so release tarballs keep exposing the graph-query, destructive
-dry-run, post-write guidance, and strict argument/enum
-smoke scope. That keeps the graph-query, destructive dry-run, and strict
-argument/enum smoke scope visible without starting a server for help and without
-assuming every valid vault already has containment roots. It also creates a
+dry-run, post-write bucket guidance, and strict argument/enum
+smoke scope. That keeps the graph-query, destructive dry-run, post-write bucket,
+and strict argument/enum smoke scope visible without starting a server for help
+and without assuming every valid vault already has containment roots. It also creates a
 dependency-cycle vault and checks installed `workspace-brief --json` exits 1 on
 fail-severity nextActions.
 For local CLI gates, `compile --json` exits 1 on unresolved graph references,
