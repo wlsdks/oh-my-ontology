@@ -346,6 +346,7 @@ try {
     env: { OMOT_MCP_VERIFY_PATH: join(temp, 'missing-verify.mjs') },
   });
   assert.equal(missingVerifyOverride.status, 2);
+  assert.equal(missingVerifyOverride.stdout, '');
   assert.match(missingVerifyOverride.stderr, /OMOT_MCP_VERIFY_PATH does not exist/);
 
   const directoryVerifyOverride = runRaw(cliBin, ['mcp-verify', 'ontology'], {
@@ -353,6 +354,7 @@ try {
     env: { OMOT_MCP_VERIFY_PATH: temp },
   });
   assert.equal(directoryVerifyOverride.status, 2);
+  assert.equal(directoryVerifyOverride.stdout, '');
   assert.match(directoryVerifyOverride.stderr, /OMOT_MCP_VERIFY_PATH is not a file/);
 
   const missingMcpEntryOverride = runRaw(cliBin, ['overview', 'ontology'], {

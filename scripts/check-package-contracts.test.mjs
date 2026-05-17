@@ -987,6 +987,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /directMcpVerify/);
     assert.match(smoke, /directMcpVerifyVaultFlag/);
     assert.match(smoke, /env: \{ OMOT_VAULT: emptyVault \}/);
+    assert.match(smoke, /assert\.equal\(missingVerifyOverride\.stdout, ''\)/);
+    assert.match(smoke, /assert\.equal\(directoryVerifyOverride\.stdout, ''\)/);
     assert.match(smoke, /vault total 5 nodes/);
     assert.match(smoke, /--vault requires a path value/);
     assert.match(smoke, /npm run verify -- \\\[vault\\\] \\\[--timeout-ms N\\\]/);
