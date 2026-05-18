@@ -4600,7 +4600,7 @@ function workspaceBriefShapeFailure(result, label = "workspace_brief") {
     if (!NEXT_ACTION_SEVERITIES.has(action.severity)) {
       return `${label} response unknown nextAction severity at index ${index}: ${action.severity}`;
     }
-    if (!isNonBlankString(action.id) && !isNonBlankString(action.kind)) {
+    if (!isNonBlankString(action.id) || !isNonBlankString(action.kind)) {
       return `${label} response missing nextAction identifier at index ${index}`;
     }
     if (!hasOptionalNonNegativeInteger(action.count)) {

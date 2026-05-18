@@ -6135,7 +6135,7 @@ describe("evaluateDogfoodGate", () => {
           ...okShape.brief,
           growth: { ...okShape.brief.growth, relationRecommendations: 2, totalActions: 2 },
           summary: { ...okShape.brief.summary, growthActions: 2 },
-          nextActions: [{ kind: "add_missing_relations", severity: "info", count: 1 }],
+          nextActions: [{ id: "add_missing_relations", kind: "add_missing_relations", severity: "info", count: 1 }],
         },
       }),
       ["workspace_brief add_missing_relations count mismatch — nextAction 1, growth 2"],
@@ -6147,7 +6147,7 @@ describe("evaluateDogfoodGate", () => {
           operation: "workspace_brief",
           status: "healthy",
           summary: { nodes: 1, edges: 0, issues: 0 },
-          nextActions: [{ id: "compile_issues" }],
+          nextActions: [{ id: "compile_issues", kind: "health_check" }],
           health: okShape.brief.health,
         },
       }),
@@ -6160,7 +6160,7 @@ describe("evaluateDogfoodGate", () => {
           operation: "workspace_brief",
           status: "healthy",
           summary: { nodes: 1, edges: 0, issues: 0 },
-          nextActions: [{ id: "compile_issues", severity: "fatal" }],
+          nextActions: [{ id: "compile_issues", kind: "health_check", severity: "fatal" }],
           health: okShape.brief.health,
         },
       }),
@@ -6186,6 +6186,19 @@ describe("evaluateDogfoodGate", () => {
           operation: "workspace_brief",
           status: "healthy",
           summary: { nodes: 1, edges: 0, issues: 0 },
+          nextActions: [{ id: "components", severity: "info" }],
+          health: okShape.brief.health,
+        },
+      }),
+      ["workspace_brief response missing nextAction identifier at index 0"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        brief: {
+          operation: "workspace_brief",
+          status: "healthy",
+          summary: { nodes: 1, edges: 0, issues: 0 },
           nextActions: [{ id: "  ", kind: " ", severity: "info" }],
           health: okShape.brief.health,
         },
@@ -6199,7 +6212,7 @@ describe("evaluateDogfoodGate", () => {
           operation: "workspace_brief",
           status: "healthy",
           summary: { nodes: 1, edges: 0, issues: 0 },
-          nextActions: [{ id: "components", severity: "info", count: -1 }],
+          nextActions: [{ id: "components", kind: "health_check", severity: "info", count: -1 }],
           health: okShape.brief.health,
         },
       }),
@@ -6212,7 +6225,7 @@ describe("evaluateDogfoodGate", () => {
           operation: "workspace_brief",
           status: "healthy",
           summary: { nodes: 1, edges: 0, issues: 0 },
-          nextActions: [{ id: "components", severity: "info", count: 1.5 }],
+          nextActions: [{ id: "components", kind: "health_check", severity: "info", count: 1.5 }],
           health: okShape.tunedBrief.health,
         },
       }),
@@ -6225,6 +6238,7 @@ describe("evaluateDogfoodGate", () => {
           ...okShape.brief,
           nextActions: [
             {
+              id: "add_missing_relations",
               kind: "add_missing_relations",
               severity: "info",
               count: 1,
@@ -6244,6 +6258,7 @@ describe("evaluateDogfoodGate", () => {
           ...okShape.brief,
           nextActions: [
             {
+              id: "materialize_external_elements",
               kind: "materialize_external_elements",
               severity: "info",
               count: 1,
@@ -6263,6 +6278,7 @@ describe("evaluateDogfoodGate", () => {
           ...okShape.brief,
           nextActions: [
             {
+              id: "resolve_dangling_references",
               kind: "resolve_dangling_references",
               severity: "info",
               count: 1,
@@ -8627,8 +8643,8 @@ describe("evaluateDogfoodGate", () => {
         summary: { ...okShape.brief.summary, growthActions: 3 },
         nextActions: [
           { kind: "health_check", severity: "info", id: "components" },
-          { kind: "materialize_external_elements", severity: "warn", count: 2 },
-          { kind: "resolve_dangling_references", severity: "fail", count: 1 },
+          { id: "materialize_external_elements", kind: "materialize_external_elements", severity: "warn", count: 2 },
+          { id: "resolve_dangling_references", kind: "resolve_dangling_references", severity: "fail", count: 1 },
         ],
       },
     });
