@@ -493,6 +493,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   assert.match(clean, /Successful maintenance cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
   assert.match(clean, /Focused checks:/);
+  assert.match(clean, /pnpm test:cli:args\s+CLI argument parser contract checks/);
   assert.match(clean, /pnpm integration:cli:mcp-verify/);
   assert.match(clean, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);
   assert.match(clean, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);

@@ -338,6 +338,7 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /oh-my-ontology mcp-verify \[vault\] \[--timeout-ms N\]/);
     assert.match(result.stdout, /tool inventory \(missing\/extra\/duplicate\/invalid names\)/);
     assert.match(result.stdout, /Focused checks:/);
+    assert.match(result.stdout, /pnpm test:cli:args\s+CLI argument parser contract checks/);
     assert.match(result.stdout, /pnpm test:cli:mcp-call\s+CLI MCP wrapper parser\/spawn\/structuredContent contract checks/);
     assert.match(result.stdout, /pnpm integration:cli:mcp-verify/);
     assert.match(result.stdout, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);
@@ -2079,6 +2080,8 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /`pnpm dogfood:verify` 는 반복 dogfood vault 검증용 full gate/);
     assert.match(regressionSection, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`/);
     assert.match(regressionSection, /`pnpm cli:mcp-verify -- --help`/);
+    assert.match(regressionSection, /Focused checks 에 `pnpm test:cli:args` 를 먼저 보여줘/);
+    assert.match(regressionSection, /argument parsing 변경 시 더 큰 CLI helper suite 로 바로 뛰지 않게 한다/);
     assert.match(regressionSection, /vault 인자는 추가 `--` 없이 넘기고 help flag 에만 `-- --help`/);
     assert.match(regressionSection, /timeout retry hint 는 `--vault <path>` 를 보존/);
     assert.match(regressionSection, /직접 `npm run verify -- --vault <path>` 경로도 같은 vault-preserving retry 계약/);

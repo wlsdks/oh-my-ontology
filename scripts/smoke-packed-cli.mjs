@@ -496,6 +496,7 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /nextExecutableAction \/ nextReviewAction point only at the first executable\/review action in the current returned page/);
   assert.match(cliMcpVerifyHelp.stdout, /Successful maintenance cursor lines print bucket summaries plus current-page executable\/review next-action summaries/);
   assert.match(cliMcpVerifyHelp.stdout, /Focused checks:/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm test:cli:args\s+CLI argument parser contract checks/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:cli:mcp-call\s+CLI MCP wrapper parser\/spawn\/structuredContent contract checks/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm integration:cli:mcp-verify/);
   assert.match(cliMcpVerifyHelp.stdout, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);

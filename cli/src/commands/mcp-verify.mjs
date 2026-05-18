@@ -246,6 +246,7 @@ function printUsage(output = process.stderr) {
       `Ready cursor smoke also verifies nextExecutableAction / nextReviewAction point only at the first executable/review action in the current returned page.\n` +
       `Successful maintenance cursor lines print bucket summaries plus current-page executable/review next-action summaries.\n\n` +
       `Focused checks:\n` +
+      `  pnpm test:cli:args              CLI argument parser contract checks.\n` +
       `  pnpm test:cli:mcp-call          CLI MCP wrapper parser/spawn/structuredContent contract checks.\n` +
       `  pnpm integration:cli:mcp-verify    Installed CLI mcp-verify wrapper flow/help/failure checks.\n` +
       `  pnpm dogfood:compile              Root checkout dogfood vault compile_ontology summary.\n` +
