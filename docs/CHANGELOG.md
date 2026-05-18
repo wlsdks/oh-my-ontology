@@ -63,7 +63,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   print direct sibling `pnpm exec node --test cli/src/lib/<name>.test.mjs`
   commands before `pnpm test:cli:lib`; dogfood helper scripts route to
   `pnpm test:dogfood:args` or `pnpm test:dogfood:compile-fix` before broader
-  dogfood gates.
+  dogfood gates. Changes to the shared package/docs contract test now also
+  route to `pnpm test:mcp:docs`, not only `pnpm test:mcp:package`, so docs
+  assertion edits do not get verified by a package-only subset that skips them.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 

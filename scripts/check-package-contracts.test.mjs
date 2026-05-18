@@ -379,6 +379,8 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /Pass paths after `--` to inspect a\s+planned file set before editing/);
     assert.match(checksDoc, /Vault helper changes route to their narrow\s+checks first: `pnpm test:docs-vault`, `pnpm test:vault:validate`, or\s+`pnpm test:vault:audit`/);
     assert.match(checksDoc, /Parser\/schema\/validator parity changes route to\s+`pnpm test:contracts` before broader package or app checks/);
+    assert.match(checksDoc, /CLI shared helper changes\s+do the same for `cli\/src\/lib\/<name>\.test\.mjs`, so run the printed direct\s+`pnpm exec node --test \.\.\.` command before `pnpm test:cli:lib`/);
+    assert.match(checksDoc, /\| `pnpm test:cli:lib` \| CLI shared helper contracts; use the direct sibling `pnpm exec node --test cli\/src\/lib\/<name>\.test\.mjs` first when `pnpm checks:changed` prints one \|/);
     assert.match(checksDoc, /\| `pnpm integration:cli:growth` \| CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts \|/);
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);
@@ -1462,6 +1464,8 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000/);
     assert.match(section, /pnpm cli:mcp-verify -- --help/);
     assert.match(section, /shared CLI helper contracts/);
+    assert.match(section, /pnpm exec node --test cli\/src\/lib\/<name>\.test\.mjs/);
+    assert.match(section, /run that first before the aggregate lib gate/);
     assert.match(section, /argument parsing/);
     assert.match(section, /command registry metadata/);
     assert.match(section, /MCP response unwrapping/);

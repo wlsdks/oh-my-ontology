@@ -156,6 +156,7 @@ const RULES = [
       /^docs\/ontology\//,
       /^mcp\/README\.md$/,
       /^cli\/README\.md$/,
+      /^scripts\/check-package-contracts\.test\.mjs$/,
       /^firebase\.json$/,
     ],
   },

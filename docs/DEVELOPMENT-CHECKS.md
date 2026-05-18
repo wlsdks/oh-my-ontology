@@ -94,6 +94,9 @@ readme-flow integration or full dogfood verification. CLI shared helper changes
 do the same for `cli/src/lib/<name>.test.mjs`, so run the printed direct
 `pnpm exec node --test ...` command before `pnpm test:cli:lib` when only one
 helper moved.
+Changes to `scripts/check-package-contracts.test.mjs` also route to
+`pnpm test:mcp:docs`, because that mixed contract file owns public docs and
+dogfood docs assertions as well as package/release assertions.
 
 | Command | Use when |
 |---|---|

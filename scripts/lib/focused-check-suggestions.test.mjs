@@ -166,6 +166,15 @@ describe('focused check suggestions', () => {
     assert.deepEqual(result.commands.map((row) => row.command), ['pnpm test:checks:changed']);
   });
 
+  it('suggests docs contracts when the shared package contract test changes', () => {
+    const result = suggestFocusedChecks(['scripts/check-package-contracts.test.mjs']);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:mcp:package',
+      'pnpm test:mcp:docs',
+    ]);
+  });
+
   it('formats no-change and mapped suggestions for terminal use', () => {
     assert.match(formatFocusedCheckSuggestions(suggestFocusedChecks([])), /no changed paths/);
 
