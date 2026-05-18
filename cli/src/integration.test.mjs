@@ -805,6 +805,41 @@ await test('compile --fix — fails closed when canonicalization action count dr
   }
 });
 
+await test('compile --fix — fails closed when canonicalization action count is malformed', async () => {
+  const root = withVault();
+  const fakeMcp = join(root, 'fake-mcp-malformed-count.mjs');
+  const callsLog = join(root, 'calls.log');
+  writeFileSync(
+    fakeMcp,
+    [
+      "import readline from 'node:readline';",
+      "import { appendFileSync } from 'node:fs';",
+      "const rl = readline.createInterface({ input: process.stdin });",
+      "rl.on('line', (line) => {",
+      "  const msg = JSON.parse(line);",
+      "  if (msg.id === 1) console.log(JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }));",
+      "  if (msg.id === 2) {",
+      "    appendFileSync(process.env.OMOT_FAKE_MCP_CALLS, `${msg.params.name}\\n`);",
+      "    const payload = { graphHash: 'hash', nodeCount: 1, edgeCount: 0, issueCount: 0, unresolvedEdgeCount: 0, canonicalizationActionCount: '1', canonicalizationActions: [{ slug: 'project', keys: ['contains'], frontmatter: { contains: ['domains/graph'] }, expected_mtime: 1 }], summary: { nodes: 1, edges: 0, issues: 0, unresolvedEdges: 0, graphHash: 'hash', resolvedEdges: 0, externalEdges: 0 } };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: 2, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "  }",
+      "});",
+    ].join('\n'),
+    'utf-8',
+  );
+  try {
+    const r = await run(['compile', root, '--fix'], {
+      env: { OMOT_MCP_PATH: fakeMcp, OMOT_FAKE_MCP_CALLS: callsLog },
+    });
+    assert.equal(r.code, 2, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.equal(r.stdout, '');
+    assert.match(stripAnsi(r.stderr), /canonicalizationActionCount must be a non-negative integer/);
+    assert.equal(readFileSync(callsLog, 'utf-8'), 'compile_ontology\n');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('compile --fix — fails closed before writes when canonicalization action rows are malformed', async () => {
   const root = withVault();
   const fakeMcp = join(root, 'fake-mcp-malformed-action.mjs');

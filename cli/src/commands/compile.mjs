@@ -94,9 +94,16 @@ export async function runCompile(args) {
       return 2;
     }
     if (
-      typeof artifact.canonicalizationActionCount === 'number' &&
-      artifact.canonicalizationActionCount !== actions.length
+      artifact.canonicalizationActionCount !== undefined &&
+      (!Number.isSafeInteger(artifact.canonicalizationActionCount) ||
+        artifact.canonicalizationActionCount < 0)
     ) {
+      process.stderr.write(
+        `${COLORS.red}error${COLORS.reset}  compile_ontology canonicalizationActionCount must be a non-negative integer; cannot apply --fix safely\n`,
+      );
+      return 2;
+    }
+    if (artifact.canonicalizationActionCount !== undefined && artifact.canonicalizationActionCount !== actions.length) {
       process.stderr.write(
         `${COLORS.red}error${COLORS.reset}  compile_ontology canonicalizationActionCount mismatch: count=${artifact.canonicalizationActionCount}, actions=${actions.length}; cannot apply --fix safely\n`,
       );

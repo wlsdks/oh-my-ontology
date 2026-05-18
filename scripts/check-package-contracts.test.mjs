@@ -1424,7 +1424,7 @@ describe('package contract helpers', () => {
     assert.match(implementationSection, /`health\.checks` \/ `workspace-brief\.health\.checks` 의 non-empty id\/status\/count coverage/);
     assert.match(doc, /health check \/ nextAction shape 이 malformed 인 diagnosis payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(implementationSection, /MCP tool name, 첫 mismatch path, parsed value, structuredContent value/);
-    assert.match(implementationSection, /MCP spawn error \/ child process exit \/ missing `tools\/call` response 도 tool name \/ vault root \/ entry path/);
+    assert.match(implementationSection, /MCP spawn error \/ stdin write error \/ child process exit \/ missing `tools\/call` response 도 tool name \/ vault root \/ entry path/);
     assert.match(implementationSection, /`concepts\[n\]` \/ `relations\[n\]` fallback label/);
     assert.match(implementationSection, /`undefined` 를 노출하지 않고/);
     assert.match(implementationSection, /malformed `compile` \/ `query_concepts` \/ `find_backlinks` \/ `find_orphans` \/ `overview` \/ `node_profile` \/ `similar_nodes` \/ `hubs` \/ `blast-radius` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
@@ -1941,7 +1941,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
     assert.match(
       doc,
-      /`canonicalizationActions` 배열이 빠졌거나 `canonicalizationActionCount` 와 배열 길이가 갈라지거나 action row shape 이 malformed 인 compile 응답은 안전한 재정렬이 불가능하므로 patch 전 exit 2 로 실패/,
+      /`canonicalizationActions` 배열이 빠졌거나 `canonicalizationActionCount` 가 non-negative integer 가 아니거나 배열 길이와 갈라지거나 action row shape 이 malformed 인 compile 응답은 안전한 재정렬이 불가능하므로 patch 전 exit 2 로 실패/,
     );
     assert.match(
       doc,
