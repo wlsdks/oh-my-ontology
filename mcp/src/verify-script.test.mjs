@@ -4250,10 +4250,10 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('fails malformed batch row-isolation smoke responses', () => {
-    const conceptUnknownError = 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title. Received fields: kind, slug, titel, title.';
+    const conceptUnknownError = 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain. Received fields: domian, kind, slug, titel, title.';
     const conceptDuplicateSeedError = 'concepts[2] kind must be one of: project, domain, capability, element, document. Received: "capabilty". Did you mean "capability"?';
     const conceptDuplicateError = 'concepts[3] duplicate slug in input batch; first seen at concepts[2]';
-    const relationUnknownError = 'Unknown field "relation" in relations[1]. Did you mean "type"? Allowed fields: from, to, type. Received fields: from, relation, to, type.';
+    const relationUnknownError = 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type. Received fields: frm, from, relation, to, type.';
     const okResponse = {
       result: {
         content: [{
@@ -4357,7 +4357,7 @@ describe('verify.mjs first-contact gates', () => {
             text: JSON.stringify({
               concepts: [
                 { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel" in concepts[1]. Did you mean "title"? Allowed fields: slug, kind, title.' },
+                { slug: 'verify-row-isolation', ok: false, error: 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain.' },
                 { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
                 { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
               ],
@@ -4374,7 +4374,7 @@ describe('verify.mjs first-contact gates', () => {
             text: JSON.stringify({
               relations: [
                 { ok: false, error: 'relations[0] must be an object.' },
-                { ok: false, error: 'Unknown field "relation" in relations[1]. Did you mean "type"? Allowed fields: from, to, type.' },
+                { ok: false, error: 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type.' },
                 { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
               ],
             }),

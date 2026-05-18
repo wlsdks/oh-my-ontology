@@ -3425,7 +3425,7 @@ export function buildFirstContactRequests() {
         arguments: {
           concepts: [
             null,
-            { slug: 'verify-row-isolation', kind: 'capability', title: 'Verify', titel: 'Typo' },
+            { slug: 'verify-row-isolation', kind: 'capability', title: 'Verify', titel: 'Typo', domian: 'Typo' },
             { slug: 'verify-duplicate-slug', kind: 'capabilty', title: 'Verify Duplicate' },
             { slug: 'verify-duplicate-slug', kind: 'capability', title: 'Verify Duplicate' },
           ],
@@ -3441,7 +3441,7 @@ export function buildFirstContactRequests() {
         arguments: {
           relations: [
             null,
-            { from: 'verify-row-isolation', to: 'verify-target', type: 'relates', relation: 'relates' },
+            { from: 'verify-row-isolation', to: 'verify-target', type: 'relates', relation: 'relates', frm: 'verify-row-isolation' },
             { from: 'verify-row-isolation', to: 'verify-target', type: 'depend_on' },
           ],
         },
@@ -4504,13 +4504,16 @@ export function batchRowIsolationFailure(response, key, label) {
   if (!rowErrorMentionsIndex(unknownFieldRow, 1)) {
     return `${label} row-isolation response missing unknown-field row index`;
   }
-  if (key === 'concepts' && !/Unknown field "titel"/i.test(unknownFieldRow.error)) {
+  if (key === 'concepts' && !/Unknown fields in concepts\[1\]/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing concept multi-field error`;
+  }
+  if (key === 'concepts' && !/"titel" \(did you mean "title"\?\)/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing concept typo field error`;
   }
-  if (key === 'concepts' && !/Did you mean "title"\?/i.test(unknownFieldRow.error)) {
-    return `${label} row-isolation response missing concept field suggestion`;
+  if (key === 'concepts' && !/"domian" \(did you mean "domain"\?\)/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing concept domain field suggestion`;
   }
-  if (key === 'concepts' && !/Received fields: kind, slug, titel, title/i.test(unknownFieldRow.error)) {
+  if (key === 'concepts' && !/Received fields: domian, kind, slug, titel, title/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing concept received fields`;
   }
   if (
@@ -4534,13 +4537,16 @@ export function batchRowIsolationFailure(response, key, label) {
   ) {
     return `${label} row-isolation response missing duplicate slug row guidance`;
   }
-  if (key === 'relations' && !/Unknown field "relation"/i.test(unknownFieldRow.error)) {
+  if (key === 'relations' && !/Unknown fields in relations\[1\]/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing relation multi-field error`;
+  }
+  if (key === 'relations' && !/"relation" \(did you mean "type"\?\)/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing relation typo field error`;
   }
-  if (key === 'relations' && !/Did you mean "type"\?/i.test(unknownFieldRow.error)) {
-    return `${label} row-isolation response missing relation field suggestion`;
+  if (key === 'relations' && !/"frm" \(did you mean "from"\?\)/i.test(unknownFieldRow.error)) {
+    return `${label} row-isolation response missing relation from field suggestion`;
   }
-  if (key === 'relations' && !/Received fields: from, relation, to, type/i.test(unknownFieldRow.error)) {
+  if (key === 'relations' && !/Received fields: frm, from, relation, to, type/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing relation received fields`;
   }
   if (
