@@ -46,6 +46,13 @@ describe("pnpm script reference helpers", () => {
     );
   });
 
+  it("extracts pnpm run script references", () => {
+    assert.deepEqual(
+      pnpmScriptsFromText("pnpm run dogfood:status\npnpm --silent run --if-present test:mcp:docs\npnpm run"),
+      ["dogfood:status", "test:mcp:docs"],
+    );
+  });
+
   it("reports missing package scripts", () => {
     const scripts = { "dogfood:help": "node scripts/dogfood-mcp-walk.mjs --help" };
 

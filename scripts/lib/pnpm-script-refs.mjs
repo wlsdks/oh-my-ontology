@@ -21,9 +21,8 @@ const PNPM_OPTIONS_WITH_VALUE = new Set([
   "--workspace-concurrency",
 ]);
 
-function scriptFromPnpmArgs(argsText) {
-  const args = String(argsText).trim().split(/\s+/).filter(Boolean);
-  for (let index = 0; index < args.length; index += 1) {
+function nextCommandIndex(args, startIndex = 0) {
+  for (let index = startIndex; index < args.length; index += 1) {
     const arg = args[index];
     if (arg.startsWith("--") || /^-[A-Za-z]$/.test(arg)) {
       if (!arg.includes("=") && PNPM_OPTIONS_WITH_VALUE.has(arg)) {
@@ -31,9 +30,22 @@ function scriptFromPnpmArgs(argsText) {
       }
       continue;
     }
-    return arg;
+    return index;
   }
-  return null;
+  return -1;
+}
+
+function scriptFromPnpmArgs(argsText) {
+  const args = String(argsText).trim().split(/\s+/).filter(Boolean);
+  const commandIndex = nextCommandIndex(args);
+  if (commandIndex < 0) {
+    return null;
+  }
+  if (args[commandIndex] !== "run") {
+    return args[commandIndex];
+  }
+  const scriptIndex = nextCommandIndex(args, commandIndex + 1);
+  return scriptIndex < 0 ? null : args[scriptIndex];
 }
 
 function collectPnpmCommandCandidates(text) {
