@@ -85,6 +85,39 @@ describe('mcp-call response parsing', () => {
     }
   });
 
+  it('times out even when the MCP process ignores SIGTERM', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'omot-mcp-call-ignore-term-'));
+    const server = join(root, 'ignore-term-mcp.mjs');
+    const previousPath = process.env.OMOT_MCP_PATH;
+    const previousTimeout = process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+    writeFileSync(
+      server,
+      [
+        "process.stderr.write('ignore term server ready\\n');",
+        "process.on('SIGTERM', () => process.stderr.write('ignored sigterm\\n'));",
+        'process.stdin.resume();',
+        'setInterval(() => {}, 1000);',
+      ].join('\n'),
+      'utf-8',
+    );
+    process.env.OMOT_MCP_PATH = server;
+    process.env.OMOT_CLI_MCP_TIMEOUT_MS = '25';
+    try {
+      const started = Date.now();
+      await assert.rejects(
+        () => callMcpTool(root, 'list_kinds'),
+        /mcp call timed out after 25ms while calling list_kinds[\s\S]*ignore term server ready/,
+      );
+      assert.ok(Date.now() - started < 750, 'timeout rejection should not wait for process exit');
+    } finally {
+      if (previousPath === undefined) delete process.env.OMOT_MCP_PATH;
+      else process.env.OMOT_MCP_PATH = previousPath;
+      if (previousTimeout === undefined) delete process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+      else process.env.OMOT_CLI_MCP_TIMEOUT_MS = previousTimeout;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('returns structuredContent when text JSON matches with different key order', () => {
     assert.deepEqual(
       parseMcpToolResponse({

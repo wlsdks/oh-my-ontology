@@ -83,8 +83,10 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
     const stdoutChunks = [];
     const stderrChunks = [];
     let timedOut = false;
+    let exited = false;
     let settled = false;
     let timer = null;
+    let killTimer = null;
     const finish = (fn) => {
       if (settled) return;
       settled = true;
@@ -93,7 +95,13 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
     };
     timer = setTimeout(() => {
       timedOut = true;
+      const stderrBuf = Buffer.concat(stderrChunks).toString('utf8');
       proc.kill('SIGTERM');
+      killTimer = setTimeout(() => {
+        if (!exited) proc.kill('SIGKILL');
+      }, 1_000);
+      killTimer.unref?.();
+      finish(() => rejectP(formatMcpCallTimeoutError(timeoutMs, { toolName, vaultRoot, stderr: stderrBuf })));
     }, timeoutMs);
 
     proc.stdout.on('data', (chunk) => {
@@ -107,6 +115,9 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
       finish(() => rejectP(formatMcpSpawnError(err, { entry, toolName, vaultRoot })));
     });
     proc.on('exit', (code) => {
+      exited = true;
+      clearTimeout(killTimer);
+      if (settled) return;
       const stdoutBuf = Buffer.concat(stdoutChunks).toString('utf8');
       const stderrBuf = Buffer.concat(stderrChunks).toString('utf8');
       if (timedOut) {
