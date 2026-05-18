@@ -608,7 +608,9 @@ uses the same pattern with `oh-my-ontology mcp-verify --vault <path>
 --timeout-ms 15000`. After timeout the verifier sends `SIGTERM` and then
 `SIGKILL`; set `OMOT_VERIFY_KILL_GRACE_MS=N` only when that post-timeout cleanup
 window needs explicit tuning. Server startup failures before `initialize` keep stderr
-diagnostics and include the same vault-preserving retry example.
+diagnostics and include the same vault-preserving retry example. If the server
+terminates by signal before first-contact completes, verify reports that signal
+separately from timeout and startup failures.
 
 ### Manual verification (reference)
 

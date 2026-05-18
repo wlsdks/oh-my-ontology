@@ -1148,6 +1148,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`SIGTERM` and then\s+`SIGKILL`/);
     assert.match(verifySection, /`OMOT_VERIFY_KILL_GRACE_MS=N`/);
     assert.match(verifySection, /post-timeout cleanup\s+window/);
+    assert.match(verifySection, /terminates by signal before first-contact completes/);
+    assert.match(verifySection, /reports that signal\s+separately from timeout and startup failures/);
     assert.match(verifySection, /invalid timeout values fail before the server\s+starts and print\s+the received value plus a concrete retry example/i);
     assert.match(verifySection, /`npm run verify -- --timeout-ms 15000`/);
     assert.match(verifySection, /validates the installed `tools\/list` schema contract/);
@@ -1791,6 +1793,8 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /severity\/kind\/id\/count\/message/);
     assert.match(dogfoodSection, /workspace_brief non-blocking nextActions/);
     assert.match(dogfoodSection, /workspace_brief_tuned non-blocking nextActions/);
+    assert.match(doc, /first-contact 완료 전 signal 종료는 timeout \/ startup 실패와 구분/);
+    assert.match(doc, /`server terminated by SIGTERM before first-contact completed`/);
     assert.match(dogfoodSection, /workspace_brief_tuned scope/);
     assert.match(dogfoodSection, /`componentTypes=domains\/domain\/capabilities\/dependencies`, `nodeLimit=3`/);
     assert.match(dogfoodSection, /label:severity:count/);

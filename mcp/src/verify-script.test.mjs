@@ -94,6 +94,7 @@ import {
   projectScopeFailure,
   queryConceptsFailure,
   serverStartupFailure,
+  serverSignalFailure,
   strictArgsFailure,
   strictMultiArgsFailure,
   strictUnknownToolFailure,
@@ -6510,6 +6511,17 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       serverStartupFailure('', verifyRetryEnvForVault('../docs/ontology', {}, '/tmp/cwd')),
       'no initialize response. Example: npm run verify -- --vault ../docs/ontology --timeout-ms 15000',
+    );
+  });
+
+  it('formats startup failures for server signal exits before first-contact separately from timeouts', () => {
+    assert.equal(
+      serverSignalFailure('SIGTERM', 'server received signal', verifyRetryEnvForVault('../docs/ontology', {}, '/tmp/cwd')),
+      'server terminated by SIGTERM before first-contact completed. stderr: server received signal Example: npm run verify -- --vault ../docs/ontology --timeout-ms 15000',
+    );
+    assert.equal(
+      serverSignalFailure('', '', {}),
+      'server terminated by unknown signal before first-contact completed. Example: npm run verify -- --timeout-ms 15000',
     );
   });
 

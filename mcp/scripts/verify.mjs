@@ -3506,6 +3506,15 @@ export function serverStartupFailure(stderr, env = process.env) {
   return detail ? `server failed before initialize. stderr: ${detail} ${retry}` : `no initialize response. ${retry}`;
 }
 
+export function serverSignalFailure(signal, stderr, env = process.env) {
+  const signalText = signal || 'unknown signal';
+  const detail = String(stderr || '').trim().slice(0, 300);
+  const retry = `Example: ${verifyRetryExample(env)}`;
+  return detail
+    ? `server terminated by ${signalText} before first-contact completed. stderr: ${detail} ${retry}`
+    : `server terminated by ${signalText} before first-contact completed. ${retry}`;
+}
+
 function firstContactLabelsForIds(ids) {
   const expectedIds = ids || FIRST_CONTACT_RESPONSE_LABELS.keys();
   return new Map(
@@ -6492,7 +6501,7 @@ async function step2BootAndCall() {
       stopServer();
     }, timeoutMs);
 
-    proc.on('close', () => {
+    proc.on('close', (_code, signal) => {
       if (timer) clearTimeout(timer);
       if (killTimer) clearTimeout(killTimer);
       stdout += stdoutDecoder.end();
@@ -6582,6 +6591,11 @@ async function step2BootAndCall() {
       if (timedOut && missingLabels.length > 0) {
         log('fail', `${verifyTimeoutFailure(timeoutMs)} Missing responses: ${missingLabels.join(', ')}`);
         if (stderr) console.error(stderr.slice(0, 300));
+        return res(false);
+      }
+
+      if (signal && !completed && missingLabels.length > 0) {
+        log('fail', serverSignalFailure(signal, stderr, verifyRetryEnvForVault(VAULT)));
         return res(false);
       }
 
