@@ -4196,7 +4196,11 @@ describe('verify.mjs first-contact gates', () => {
       'strict arguments structured error code missing',
     );
     assert.equal(
-      strictArgsFailure({ result: { isError: true, content: [{ text: 'different error' }], structuredContent: { ok: false, errorCode: 'tool_error', error: 'different error' } } }),
+      strictArgsFailure({ result: { isError: true, content: [{ text: `Error: ${error}` }], structuredContent: { ok: false, errorCode: 'invalid_arguments', error } } }),
+      'strict arguments structured error code mismatch — expected unknown_argument, got invalid_arguments',
+    );
+    assert.equal(
+      strictArgsFailure({ result: { isError: true, content: [{ text: 'different error' }], structuredContent: { ok: false, errorCode: 'unknown_argument', error: 'different error' } } }),
       'strict arguments response did not report the unknown list_concepts argument',
     );
     assert.equal(

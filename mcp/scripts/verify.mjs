@@ -2200,7 +2200,7 @@ export function strictArgsFailure(response) {
   if (response?.result?.isError !== true) {
     return 'strict arguments response was not rejected';
   }
-  const structuredFailure = structuredErrorFailure(response, 'strict arguments');
+  const structuredFailure = structuredErrorFailure(response, 'strict arguments', { errorCode: 'unknown_argument' });
   if (structuredFailure) return structuredFailure;
   const text = response.result.content?.[0]?.text || '';
   if (!/Unknown argument "lmit" for list_concepts/i.test(text)) {
@@ -2219,7 +2219,7 @@ export function strictMultiArgsFailure(response) {
   if (response?.result?.isError !== true) {
     return 'strict multi-argument response was not rejected';
   }
-  const structuredFailure = structuredErrorFailure(response, 'strict multi-argument');
+  const structuredFailure = structuredErrorFailure(response, 'strict multi-argument', { errorCode: 'unknown_argument' });
   if (structuredFailure) return structuredFailure;
   const text = response.result.content?.[0]?.text || '';
   if (!/Unknown arguments for list_concepts/i.test(text)) {
@@ -2237,7 +2237,7 @@ export function strictMultiArgsFailure(response) {
   return null;
 }
 
-export function structuredErrorFailure(response, label) {
+export function structuredErrorFailure(response, label, { errorCode } = {}) {
   const structured = response?.result?.structuredContent;
   if (structured?.ok !== false || typeof structured.error !== 'string' || structured.error.trim() === '') {
     return `${label} structured error missing`;
@@ -2248,6 +2248,9 @@ export function structuredErrorFailure(response, label) {
   }
   if (typeof structured.errorCode !== 'string' || structured.errorCode.trim() === '') {
     return `${label} structured error code missing`;
+  }
+  if (errorCode && structured.errorCode !== errorCode) {
+    return `${label} structured error code mismatch — expected ${errorCode}, got ${structured.errorCode}`;
   }
   return null;
 }
@@ -2263,7 +2266,7 @@ export function strictEnumFailure(response) {
   if (!/Did you mean "overview"\?/i.test(text)) {
     return 'strict enum response did not suggest the closest query_ontology operation';
   }
-  return structuredErrorFailure(response, 'strict enum');
+  return structuredErrorFailure(response, 'strict enum', { errorCode: 'invalid_arguments' });
 }
 
 export function strictMaintenanceFilterFailure(response, field = 'phases') {
@@ -2289,7 +2292,7 @@ export function strictMaintenanceFilterFailure(response, field = 'phases') {
   if (!new RegExp(`Did you mean "${expected.suggestion}"\\?`, 'i').test(text)) {
     return `strict maintenance filter response did not suggest the closest maintenance_plan ${field} value`;
   }
-  return structuredErrorFailure(response, 'strict maintenance filter');
+  return structuredErrorFailure(response, 'strict maintenance filter', { errorCode: 'invalid_arguments' });
 }
 
 export function strictRelationFilterFailure(response) {
@@ -2306,7 +2309,7 @@ export function strictRelationFilterFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict relation filter response did not suggest the closest dependencyTypes value';
   }
-  return structuredErrorFailure(response, 'strict relation filter');
+  return structuredErrorFailure(response, 'strict relation filter', { errorCode: 'invalid_arguments' });
 }
 
 export function strictFindNeighborsTypeFailure(response) {
@@ -2323,7 +2326,7 @@ export function strictFindNeighborsTypeFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict find_neighbors types response did not suggest the closest types value';
   }
-  return structuredErrorFailure(response, 'strict find_neighbors types');
+  return structuredErrorFailure(response, 'strict find_neighbors types', { errorCode: 'invalid_arguments' });
 }
 
 export function strictFindOrphansKindFailure(
@@ -2343,7 +2346,7 @@ export function strictFindOrphansKindFailure(
   if (!new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return `strict find_orphans kind response did not suggest the closest ${field} value`;
   }
-  return structuredErrorFailure(response, 'strict find_orphans kind');
+  return structuredErrorFailure(response, 'strict find_orphans kind', { errorCode: 'invalid_arguments' });
 }
 
 export function strictQueryConceptsFilterFailure(
@@ -2363,7 +2366,7 @@ export function strictQueryConceptsFilterFailure(
   if (!new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return `strict query_concepts filter response did not suggest the closest ${field} value`;
   }
-  return structuredErrorFailure(response, 'strict query_concepts filter');
+  return structuredErrorFailure(response, 'strict query_concepts filter', { errorCode: 'invalid_arguments' });
 }
 
 export function strictListConceptsKindFailure(
@@ -2383,7 +2386,7 @@ export function strictListConceptsKindFailure(
   if (!new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return 'strict list_concepts kind response did not suggest the closest kind value';
   }
-  return structuredErrorFailure(response, 'strict list_concepts kind');
+  return structuredErrorFailure(response, 'strict list_concepts kind', { errorCode: 'invalid_arguments' });
 }
 
 export function strictGraphKindFilterFailure(
@@ -2403,7 +2406,7 @@ export function strictGraphKindFilterFailure(
   if (!new RegExp(`Did you mean "${suggestion}"\\?`, 'i').test(text)) {
     return `strict graph kind filter response did not suggest the closest ${field} value`;
   }
-  return structuredErrorFailure(response, 'strict graph kind filter');
+  return structuredErrorFailure(response, 'strict graph kind filter', { errorCode: 'invalid_arguments' });
 }
 
 function escapeRegExp(value) {
@@ -2430,7 +2433,7 @@ export function strictRecommendRelationsKindFilterFailure(
   if (requireSuggestion && !new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return 'strict recommend_relations kind filter response did not suggest the closest kind value';
   }
-  return structuredErrorFailure(response, 'strict recommend_relations kind filter');
+  return structuredErrorFailure(response, 'strict recommend_relations kind filter', { errorCode: 'invalid_arguments' });
 }
 
 export function strictMatchNodesSortFailure(response) {
@@ -2450,7 +2453,7 @@ export function strictMatchNodesSortFailure(response) {
   if (!/Did you mean "outDegree"\?/i.test(text)) {
     return 'strict match_nodes sort response did not suggest the closest sort value';
   }
-  return structuredErrorFailure(response, 'strict match_nodes sort');
+  return structuredErrorFailure(response, 'strict match_nodes sort', { errorCode: 'invalid_arguments' });
 }
 
 export function strictRelationCheckFailure(response) {
@@ -2467,7 +2470,7 @@ export function strictRelationCheckFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict relation_check response did not suggest the closest type value';
   }
-  return structuredErrorFailure(response, 'strict relation_check');
+  return structuredErrorFailure(response, 'strict relation_check', { errorCode: 'invalid_arguments' });
 }
 
 export function strictMatchEdgesTypeFailure(response) {
@@ -2484,7 +2487,7 @@ export function strictMatchEdgesTypeFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict match_edges type response did not suggest the closest type value';
   }
-  return structuredErrorFailure(response, 'strict match_edges type');
+  return structuredErrorFailure(response, 'strict match_edges type', { errorCode: 'invalid_arguments' });
 }
 
 export function strictAddRelationFailure(response) {
@@ -2507,7 +2510,7 @@ export function strictAddRelationFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict add_relation response did not suggest the closest type value';
   }
-  return structuredErrorFailure(response, 'strict add_relation');
+  return structuredErrorFailure(response, 'strict add_relation', { errorCode: 'invalid_arguments' });
 }
 
 export function maintenanceMissingCursorFailure(parsed) {

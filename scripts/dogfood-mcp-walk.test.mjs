@@ -4483,6 +4483,23 @@ describe("evaluateDogfoodGate", () => {
       ["strict_args: strict arguments structured error missing"],
     );
     assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictArgs: {
+          result: {
+            isError: true,
+            content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Received arguments: lmit.' }],
+            structuredContent: {
+              ok: false,
+              errorCode: "invalid_arguments",
+              error: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Received arguments: lmit.',
+            },
+          },
+        },
+      }),
+      ["strict_args: strict arguments structured error code mismatch — expected unknown_argument, got invalid_arguments"],
+    );
+    assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, strictArgs: structuredError('Unknown argument "lmit" for list_concepts.') }),
       ["strict_args: strict arguments response did not suggest the closest list_concepts argument"],
     );
