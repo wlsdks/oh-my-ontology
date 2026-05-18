@@ -1730,11 +1730,13 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
     assert.equal(isErrorResponse(responses, 7), true);
     assert.match(getCallText(responses, 7), /Unknown argument "limit" for list_kinds/i);
     assert.doesNotMatch(getCallText(responses, 7), /Did you mean/i);
+    assert.equal(getCallStructured(responses, 7)?.errorCode, "unknown_argument");
     assert.equal(isErrorResponse(responses, 8), true);
     assert.match(getCallText(responses, 8), /Unknown arguments for list_concepts/i);
     assert.match(getCallText(responses, 8), /"lmit" \(did you mean "limit"\?\)/i);
     assert.match(getCallText(responses, 8), /"summry" \(did you mean "summary"\?\)/i);
     assert.match(getCallText(responses, 8), /Allowed arguments: domain, kind, limit, since, summary/i);
+    assert.equal(getCallStructured(responses, 8)?.errorCode, "unknown_argument");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -4290,6 +4292,8 @@ await test("patch_concept — expected_mtime stale 면 conflict error response",
     );
     const text = responses.find((r) => r.id === 2).result.content[0].text;
     assert.match(text, /conflict|VaultConflictError|modified externally/i);
+    assert.equal(getCallStructured(responses, 2)?.ok, false);
+    assert.equal(getCallStructured(responses, 2)?.errorCode, "vault_conflict");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
