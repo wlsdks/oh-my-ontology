@@ -477,6 +477,42 @@ export function strictClosestValueSummary(response) {
   return "rejected true";
 }
 
+export function strictRepairSummary(response) {
+  const rejected = response?.result?.isError === true;
+  if (!rejected) return "rejected false";
+
+  const structured = response.result.structuredContent;
+  if (structured && typeof structured === "object") {
+    if (typeof structured.receivedTool === "string") {
+      return repairArrowSummary("tool", structured.receivedTool, structured.suggestion, structured.allowedTools);
+    }
+    if (typeof structured.receivedArgument === "string") {
+      return repairArrowSummary("arg", structured.receivedArgument, structured.suggestion, structured.allowedArguments);
+    }
+    if (Array.isArray(structured.unknownArguments) && structured.unknownArguments.length > 0) {
+      const hints = structured.unknownArguments.map((row) => {
+        const name = row?.name ?? "unknown";
+        return typeof row?.suggestion === "string" ? `${name}->${row.suggestion}` : `${name}->?`;
+      });
+      return `rejected true (args ${hints.join(", ")}; allowed ${formatAllowedCount(structured.allowedArguments)})`;
+    }
+    if (typeof structured.receivedValue === "string") {
+      return repairArrowSummary(structured.valueName || "value", structured.receivedValue, structured.suggestion, structured.allowedValues);
+    }
+  }
+
+  return strictClosestValueSummary(response);
+}
+
+function repairArrowSummary(label, received, suggestion, allowed) {
+  const arrow = typeof suggestion === "string" && suggestion.length > 0 ? `${received}->${suggestion}` : `${received}->?`;
+  return `rejected true (${label} ${arrow}; allowed ${formatAllowedCount(allowed)})`;
+}
+
+function formatAllowedCount(values) {
+  return Array.isArray(values) ? values.length : "n/a";
+}
+
 export function healthCheckStatusSummary(checks, limit = 5) {
   if (!Array.isArray(checks) || checks.length === 0) return "none";
   const shown = checks.slice(0, limit).map((check) => {
@@ -5506,6 +5542,7 @@ async function main() {
   const strictArgs = responses.find((response) => response.id === 46);
   const strictArgsText = strictArgs?.result?.content?.[0]?.text || "";
   console.log(`  rejected: ${strictArgs?.result?.isError === true}`);
+  console.log(`  repair: ${strictRepairSummary(strictArgs)}`);
   if (strictArgsText) {
     console.log(`  ${strictArgsText}`);
   }
@@ -5515,6 +5552,7 @@ async function main() {
   const strictMultiArgs = responses.find((response) => response.id === 59);
   const strictMultiArgsText = strictMultiArgs?.result?.content?.[0]?.text || "";
   console.log(`  rejected: ${strictMultiArgs?.result?.isError === true}`);
+  console.log(`  repair: ${strictRepairSummary(strictMultiArgs)}`);
   if (strictMultiArgsText) {
     console.log(`  ${strictMultiArgsText}`);
   }
@@ -5524,6 +5562,7 @@ async function main() {
   const strictEnum = responses.find((response) => response.id === 47);
   const strictEnumText = strictEnum?.result?.content?.[0]?.text || "";
   console.log(`  rejected: ${strictEnum?.result?.isError === true}`);
+  console.log(`  repair: ${strictRepairSummary(strictEnum)}`);
   if (strictEnumText) {
     console.log(`  ${strictEnumText}`);
   }
@@ -5946,9 +5985,9 @@ async function main() {
   console.log(`  neighbors: ${neighbors?.total ?? "n/a"} edges · limited ${neighbors?.limited ?? "n/a"}`);
   console.log(`  path: ${queryPath?.found ?? "n/a"} · hops ${queryPath?.hopCount ?? "n/a"} · edges ${queryPath?.edges?.length ?? "n/a"}`);
   console.log(`  project_scope: ${projectScope?.summary?.nodes ?? "n/a"} nodes · ${projectScope?.summary?.internalEdges ?? "n/a"} internal edges`);
-  console.log(`  strict_args: rejected ${strictArgs?.result?.isError === true}`);
-  console.log(`  strict_multi_args: rejected ${strictMultiArgs?.result?.isError === true}`);
-  console.log(`  strict_enum: rejected ${strictEnum?.result?.isError === true}`);
+  console.log(`  strict_args: ${strictRepairSummary(strictArgs)}`);
+  console.log(`  strict_multi_args: ${strictRepairSummary(strictMultiArgs)}`);
+  console.log(`  strict_enum: ${strictRepairSummary(strictEnum)}`);
   console.log(`  strict_maintenance_phase_filter: rejected ${strictMaintenancePhaseFilter?.result?.isError === true}`);
   console.log(`  strict_maintenance_severity_filter: rejected ${strictMaintenanceSeverityFilter?.result?.isError === true}`);
   console.log(`  strict_maintenance_kind_filter: rejected ${strictMaintenanceKindFilter?.result?.isError === true}`);

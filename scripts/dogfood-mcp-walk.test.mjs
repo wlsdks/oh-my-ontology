@@ -31,6 +31,7 @@ import {
   stderrWarningLines,
   stderrWarningFailures,
   strictClosestValueSummary,
+  strictRepairSummary,
   structuredContentStatus,
   toolsListInventoryStatus,
   toolsListSchemaStatus,
@@ -3529,6 +3530,18 @@ describe("rpc response completion helpers", () => {
 
   it("summarizes strict closest-value smoke details for final dogfood output", () => {
     assert.equal(
+      strictRepairSummary(okShape.strictArgs),
+      "rejected true (arg lmit->limit; allowed 5)",
+    );
+    assert.equal(
+      strictRepairSummary(okShape.strictMultiArgs),
+      "rejected true (args lmit->limit, summry->summary; allowed 5)",
+    );
+    assert.equal(
+      strictRepairSummary(okShape.strictEnum),
+      "rejected true (operation overveiw->overview; allowed 2)",
+    );
+    assert.equal(
       strictClosestValueSummary(okShape.strictRelationFilter),
       "rejected true (depend_on -> depends_on)",
     );
@@ -3583,6 +3596,10 @@ describe("rpc response completion helpers", () => {
     assert.equal(
       strictClosestValueSummary({ result: { isError: false, content: [{ text: "ok" }] } }),
       "rejected false",
+    );
+    assert.equal(
+      strictRepairSummary({ result: { isError: true, content: [{ text: 'Received: "depend_on". Did you mean "depends_on"?' }] } }),
+      "rejected true (depend_on -> depends_on)",
     );
   });
 
