@@ -276,6 +276,19 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests focused CLI repo-analysis integration for code-to-vault commands', () => {
+    const result = suggestFocusedChecks([
+      'cli/src/commands/analyze.mjs',
+      'cli/src/commands/infer-imports.mjs',
+      'cli/src/commands/bootstrap.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm integration:cli:repo-analysis',
+      'pnpm dogfood:status',
+    ]);
+  });
+
   it('suggests the advisor self-test when the focused-check advisor changes', () => {
     const result = suggestFocusedChecks([
       'scripts/lib/focused-check-suggestions.mjs',

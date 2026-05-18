@@ -149,6 +149,11 @@ const RULES = [
     matches: [/^cli\/src\/commands\/(?:rename|delete|merge)\.mjs$/],
   },
   {
+    command: 'pnpm integration:cli:repo-analysis',
+    reason: 'CLI repo analysis or bootstrap command changed',
+    matches: [/^cli\/src\/commands\/(?:analyze|infer-imports|bootstrap)\.mjs$/],
+  },
+  {
     command: 'pnpm integration:cli:growth',
     reason: 'CLI growth command changed',
     matches: [/^cli\/src\/commands\/growth\.mjs$/],

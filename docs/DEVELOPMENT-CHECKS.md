@@ -114,6 +114,7 @@ dogfood docs assertions as well as package/release assertions.
 | `pnpm integration:cli:diagnosis` | CLI `health` / `workspace-brief` diagnosis contracts |
 | `pnpm integration:cli:graph-read` | CLI read-only graph command contracts |
 | `pnpm integration:cli:graph-write` | CLI graph write dry-run/confirm safety contracts |
+| `pnpm integration:cli:repo-analysis` | CLI `analyze` / `infer-imports` / `bootstrap` code-to-vault contracts |
 | `pnpm integration:cli:growth` | CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts |
 | `pnpm test:contracts` | Cross-package schema/parser contracts |
 | `pnpm test:mcp:docs` | Explicit root/MCP/CLI/dogfood docs contracts plus Firebase static-hosting and MCP registration-template guards |
@@ -227,6 +228,7 @@ pnpm integration:cli:mcp-verify
 pnpm integration:cli:diagnosis
 pnpm integration:cli:graph-read
 pnpm integration:cli:graph-write
+pnpm integration:cli:repo-analysis
 pnpm integration:cli:maintenance
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
 pnpm integration:mcp:readme
