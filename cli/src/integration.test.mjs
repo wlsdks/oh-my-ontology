@@ -646,6 +646,43 @@ await test('compile --fix — applies compiler relation-array canonicalization',
   }
 });
 
+await test('compile --fix — applies all canonicalization actions even when output is paginated', async () => {
+  const root = withVault([
+    {
+      slug: 'project',
+      content:
+        '---\nkind: project\ntitle: Project\ncapabilities:\n  - capabilities/z\n  - capabilities/a\n---\n',
+    },
+    {
+      slug: 'domains/core',
+      content:
+        '---\nkind: domain\ntitle: Core\ncapabilities:\n  - capabilities/z\n  - capabilities/a\n---\n',
+    },
+    {
+      slug: 'capabilities/a',
+      content: '---\nkind: capability\ntitle: A\n---\n',
+    },
+    {
+      slug: 'capabilities/z',
+      content: '---\nkind: capability\ntitle: Z\n---\n',
+    },
+  ]);
+  try {
+    const fixed = await run(['compile', root, '--fix', '--nodes-limit=1', '--edges-limit=1']);
+    assert.equal(fixed.code, 0, `stdout: ${fixed.stdout}\nstderr: ${fixed.stderr}`);
+    assert.match(stripAnsi(fixed.stdout), /nodes page offset 0 · returned 1\/4 · next 1/);
+    assert.match(stripAnsi(fixed.stdout), /edges page offset 0 · returned 1\/4 · next 1/);
+    assert.match(stripAnsi(fixed.stdout), /reorder 2\/2 applied/);
+
+    const project = readFileSync(join(root, 'project.md'), 'utf-8');
+    const domain = readFileSync(join(root, 'domains/core.md'), 'utf-8');
+    assert.match(project, /capabilities: \[capabilities\/a, capabilities\/z\]/);
+    assert.match(domain, /capabilities: \[capabilities\/a, capabilities\/z\]/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('compile --json — flushes full machine output through stdout pipes', async () => {
   const capabilityCount = 720;
   const seed = [
