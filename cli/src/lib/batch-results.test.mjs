@@ -9,6 +9,52 @@ import {
 } from './batch-results.mjs';
 
 describe('batch-results', () => {
+  const postWriteMaintenance = {
+    operation: 'maintenance_plan',
+    summary: {
+      totalActions: 1,
+      filteredActions: 1,
+      remainingActions: 1,
+      executableActions: 1,
+      reviewActions: 0,
+    },
+    cursor: {
+      afterActionId: null,
+      found: true,
+      reason: null,
+      startIndex: 0,
+      nextAfterActionId: 'maint_1',
+      hasMore: false,
+    },
+    byPhase: { repair: 1 },
+    bySeverity: { warn: 1 },
+    byKind: { canonicalize_graph_arrays: 1 },
+    nextExecutableAction: {
+      id: 'maint_1',
+      phase: 'repair',
+      kind: 'canonicalize_graph_arrays',
+      severity: 'warn',
+      executable: true,
+    },
+    nextReviewAction: null,
+    actions: [
+      {
+        id: 'maint_1',
+        phase: 'repair',
+        kind: 'canonicalize_graph_arrays',
+        severity: 'warn',
+        executable: true,
+        score: 100,
+        reason: 'Canonicalize graph arrays.',
+        node: { slug: 'capabilities/foo' },
+        proposedAction: {
+          tool: 'patch_concept',
+          args: { slug: 'capabilities/foo', frontmatter: { dependencies: [] } },
+        },
+      },
+    ],
+  };
+
   it('accepts successful and row-level failed add_concepts rows', () => {
     const payload = {
       concepts: [
@@ -29,6 +75,15 @@ describe('batch-results', () => {
 
     assert.doesNotThrow(() => assertConceptBatchResult(payload));
     assert.doesNotThrow(() => assertConceptBatchResult(payload, 'add_concepts', { expectedCount: 2 }));
+  });
+
+  it('accepts valid post-write maintenance metadata on concept batch results', () => {
+    const payload = {
+      concepts: [{ ok: true, slug: 'capabilities/a', changed: true }],
+      postWriteMaintenance,
+    };
+
+    assert.doesNotThrow(() => assertConceptBatchResult(payload));
   });
 
   it('formats concept failure rows without leaking undefined labels', () => {
@@ -70,6 +125,13 @@ describe('batch-results', () => {
       () => assertConceptBatchResult({ concepts: [{ ok: true, slug: 'capabilities/a' }] }, 'add_concepts', { expectedCount: 2 }),
       /add_concepts\.concepts row count mismatch: expected 2, got 1/,
     );
+    assert.throws(
+      () => assertConceptBatchResult({
+        concepts: [{ ok: true, slug: 'capabilities/a' }],
+        postWriteMaintenance: { ...postWriteMaintenance, operation: 'health' },
+      }),
+      /add_concepts\.postWriteMaintenance invalid: maintenance_plan query returned unexpected operation: health/,
+    );
   });
 
   it('accepts successful and row-level failed add_relations rows', () => {
@@ -95,6 +157,15 @@ describe('batch-results', () => {
 
     assert.doesNotThrow(() => assertRelationBatchResult(payload));
     assert.doesNotThrow(() => assertRelationBatchResult(payload, 'add_relations chunk @0', { expectedCount: 2 }));
+  });
+
+  it('accepts valid post-write maintenance metadata on relation batch results', () => {
+    const payload = {
+      relations: [{ ok: true, from: 'project', to: 'domains/core', type: 'contains', changed: true }],
+      postWriteMaintenance,
+    };
+
+    assert.doesNotThrow(() => assertRelationBatchResult(payload));
   });
 
   it('rejects malformed add_relations response rows with caller context', () => {

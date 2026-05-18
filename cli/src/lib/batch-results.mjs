@@ -1,6 +1,9 @@
+import { assertMaintenancePlanShape } from './query-result-contract.mjs';
+
 export function assertConceptBatchResult(payload, context = 'add_concepts', options = {}) {
   assertObject(payload, context);
   assertArray(payload.concepts, `${context}.concepts`);
+  assertOptionalPostWriteMaintenance(payload, context);
   assertExpectedCount(payload.concepts, `${context}.concepts`, options.expectedCount);
   payload.concepts.forEach((row, index) => {
     const rowPath = `${context}.concepts[${index}]`;
@@ -28,6 +31,7 @@ export function formatConceptBatchFailureLabel(row, index, prefix = '') {
 export function assertRelationBatchResult(payload, context = 'add_relations', options = {}) {
   assertObject(payload, context);
   assertArray(payload.relations, `${context}.relations`);
+  assertOptionalPostWriteMaintenance(payload, context);
   assertExpectedCount(payload.relations, `${context}.relations`, options.expectedCount);
   payload.relations.forEach((row, index) => {
     const rowPath = `${context}.relations[${index}]`;
@@ -88,6 +92,16 @@ function assertNonEmptyString(value, path) {
 function assertStringArray(value, path) {
   if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
     throw new Error(`${path} must be a string array`);
+  }
+}
+
+function assertOptionalPostWriteMaintenance(payload, context) {
+  if (!Object.hasOwn(payload, 'postWriteMaintenance')) return;
+  try {
+    assertMaintenancePlanShape(payload.postWriteMaintenance);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${context}.postWriteMaintenance invalid: ${message}`);
   }
 }
 
