@@ -130,11 +130,12 @@ test:dogfood:script-refs` checks that help text and package script body
 `pnpm ...` references still resolve to root package scripts, and that focused
 Node test wrappers fail when a pattern matches 0 tests.
 
-`pnpm dogfood:status` runs the cheap human-readable health + workspace-brief
-gates together. It still prints workspace-brief when health fails, then preserves
-the first failing exit code, ends with `[dogfood:status] health:N ·
-workspace-brief:N`, and prints a `pnpm dogfood:verify` follow-up hint on failure
-so the two child statuses and next escalation path are visible. Use
+`pnpm dogfood:status` runs the cheap human-readable health + workspace-brief +
+maintenance gates together. It still prints workspace-brief and maintenance when
+health fails, then preserves the first failing exit code, ends with
+`[dogfood:status] health:N · workspace-brief:N · maintenance:N`, and prints a
+`pnpm dogfood:verify` follow-up hint on failure so the child statuses and next
+escalation path are visible. Use
 `pnpm dogfood:verify` for the full
 installed-style dogfood vault gate, and `pnpm dogfood:test` only when the dogfood
 helper itself changed or the focused `test:mcp:dogfood` subset is not enough.

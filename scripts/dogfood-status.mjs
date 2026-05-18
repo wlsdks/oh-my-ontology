@@ -8,6 +8,7 @@ import { closestDogfoodOption, stripLeadingPnpmSeparator } from './lib/dogfood-a
 const STATUS_COMMANDS = [
   { label: 'health', args: ['cli/src/index.mjs', 'health', 'docs/ontology'] },
   { label: 'workspace-brief', args: ['cli/src/index.mjs', 'workspace-brief', 'docs/ontology'] },
+  { label: 'maintenance', args: ['cli/src/index.mjs', 'maintenance', 'docs/ontology'] },
 ];
 export function runDogfoodStatus({
   spawn = spawnSync,
@@ -90,8 +91,8 @@ export function dogfoodStatusUsage() {
   pnpm dogfood:status
   pnpm dogfood:status -- --help
 
-Runs the cheap human-readable health + workspace-brief pair over this repo's
-docs/ontology vault, prints a final health/workspace-brief status summary, and
+Runs the cheap human-readable health + workspace-brief + maintenance queue over
+this repo's docs/ontology vault, prints a final child status summary, and
 preserves the first failing exit code.
 On failure it prints:
   ${dogfoodStatusFailureHint()}

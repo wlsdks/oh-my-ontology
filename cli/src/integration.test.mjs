@@ -507,7 +507,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
   assert.match(
     clean,
-    /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief; ends with \[dogfood:status\] health:N · workspace-brief:N and hints pnpm dogfood:verify on failure/,
+    /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief \+ maintenance; ends with \[dogfood:status\] health:N · workspace-brief:N · maintenance:N and hints pnpm dogfood:verify on failure/,
   );
   assert.match(clean, /pnpm test:dogfood:status\s+Narrow dogfood status shortcut runner contract/);
   assert.match(clean, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
@@ -3151,7 +3151,7 @@ await test('workspace-brief --help — documents health and growth output', asyn
   const clean = stripAnsi(r.stdout);
   assert.match(clean, /Use --json for repeatable first-contact snapshots such as pnpm dogfood:brief/);
   assert.match(clean, /Use pnpm dogfood:health first when you only need the fail-closed health gate/);
-  assert.match(clean, /Use pnpm dogfood:status for the cheap human-readable health \+ workspace-brief pair/);
+  assert.match(clean, /Use pnpm dogfood:status for the cheap human-readable health \+ workspace-brief \+ maintenance queue/);
   assert.match(clean, /Fail-severity nextActions or failing health checks exit non-zero for shell gates/);
   assert.match(clean, /project_scope 포함 노드 요약/);
   assert.match(clean, /HEALTH CHECKS id:status:count/);
@@ -3409,7 +3409,7 @@ await test('health --help — documents focused diagnosis tuning flags', async (
   assert.match(clean, /--component-limit N/);
   assert.match(clean, /Use --json for repeatable automation gates such as pnpm dogfood:health/);
   assert.match(clean, /Failing health checks exit non-zero; use workspace-brief when you also need hotspots and next actions/);
-  assert.match(clean, /Use pnpm dogfood:status for the cheap human-readable health \+ workspace-brief pair/);
+  assert.match(clean, /Use pnpm dogfood:status for the cheap human-readable health \+ workspace-brief \+ maintenance queue/);
   assert.match(clean, /Tuning flags forward to query_ontology health/);
 });
 
