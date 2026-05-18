@@ -150,6 +150,8 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['docs-vault:check'], 'node scripts/build-docs-vault.mjs --check');
     assert.equal(pkg.scripts?.['test:docs-vault'], 'node --test scripts/build-docs-vault.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:compile'], 'node cli/src/index.mjs compile docs/ontology --summary --json');
+    assert.equal(pkg.scripts?.['dogfood:compile-fix'], 'node scripts/dogfood-compile-fix.mjs');
+    assert.equal(pkg.scripts?.['test:dogfood:compile-fix'], 'node --test scripts/dogfood-compile-fix.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:health'], 'node cli/src/index.mjs health docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:brief'], 'node cli/src/index.mjs workspace-brief docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:status'], 'node scripts/dogfood-status.mjs');
@@ -270,6 +272,8 @@ describe('package contract helpers', () => {
       'pnpm test:mcp:package',
       'pnpm test:mcp:dogfood',
       'pnpm dogfood:compile',
+      'pnpm dogfood:compile-fix',
+      'pnpm test:dogfood:compile-fix',
       'pnpm dogfood:health',
       'pnpm dogfood:brief',
       'pnpm dogfood:status',
@@ -299,6 +303,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /pnpm docs-vault:build\s+# refresh static dogfood manifest and public md/);
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);
+    assert.match(checksDoc, /`pnpm dogfood:compile-fix` runs `compile --fix` against docs\/ontology and fails\s+if it leaves a git diff/);
     assert.match(checksDoc, /`pnpm dogfood:status` runs the cheap human-readable health \+ workspace-brief\s+gates together/);
     assert.match(checksDoc, /still prints workspace-brief when health fails, then preserves\s+the first failing exit code/);
     assert.match(checksDoc, /Use `pnpm dogfood:verify` for the full\s+installed-style dogfood vault gate/);
@@ -676,6 +681,8 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:verify:timeout/);
     assert.match(section, /pnpm integration:cli:compile/);
     assert.match(section, /pnpm dogfood:compile/);
+    assert.match(section, /pnpm dogfood:compile-fix/);
+    assert.match(section, /pnpm test:dogfood:compile-fix/);
     assert.match(section, /pnpm dogfood:health/);
     assert.match(section, /pnpm dogfood:brief/);
     assert.match(section, /pnpm dogfood:status/);
@@ -685,6 +692,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000/);
     assert.match(section, /pnpm cli:mcp-verify -- --help/);
     assert.match(section, /`dogfood:compile` prints the dogfood vault `compile_ontology` summary JSON\s+snapshot/);
+    assert.match(section, /`pnpm dogfood:compile-fix` runs dogfood `compile --fix` and fails if canonicalization leaves a docs\/ontology diff/);
     assert.match(section, /`dogfood:health` prints the dogfood vault fail-closed `health` JSON gate/);
     assert.match(section, /`dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot/);
     assert.match(section, /`dogfood:status` always runs health \+ workspace-brief and preserves the first failing exit before escalating/);
@@ -1222,6 +1230,8 @@ describe('package contract helpers', () => {
     assert.match(section, /integration:cli:compile/);
     assert.match(section, /CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /pnpm dogfood:compile/);
+    assert.match(section, /pnpm dogfood:compile-fix/);
+    assert.match(section, /pnpm test:dogfood:compile-fix/);
     assert.match(section, /pnpm dogfood:health/);
     assert.match(section, /pnpm dogfood:brief/);
     assert.match(section, /pnpm dogfood:status/);
@@ -1249,6 +1259,8 @@ describe('package contract helpers', () => {
     assert.match(section, /instead of appending the flag after `pnpm integration:cli --`/);
     assert.match(section, /`integration:cli:compile`\s+narrows CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /`dogfood:compile`\s+is the shortest root-checkout compiler summary JSON snapshot/);
+    assert.match(section, /`dogfood:compile-fix`\s+runs root-checkout `compile --fix` and fails if canonicalization leaves a docs\/ontology diff/);
+    assert.match(section, /`test:dogfood:compile-fix`\s+checks that idempotence guard without invoking the full dogfood suite/);
     assert.match(section, /`dogfood:health`\s+is the shortest root-checkout fail-closed health JSON gate/);
     assert.match(section, /`dogfood:brief`\s+is\s+the shortest root-checkout first-contact JSON snapshot/);
     assert.match(section, /`dogfood:status` always\s+runs health \+ workspace-brief and preserves the first failing exit before escalating/);
@@ -1668,7 +1680,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /hop\/edge alignment/);
     assert.match(doc, /`query_ontology` graph-query 응답은 `structuredContent`\s+누락을 실패로 처리하고 text JSON payload 와 `structuredContent` payload 의\s+구조적 일치 여부도 비교/);
     assert.match(doc, /positional vault argument 는 받지 않고 이 repo 의 dogfood vault 만\s+검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패/);
-    assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` \/ `pnpm dogfood:health` \/\s+`pnpm dogfood:brief` \/ `pnpm dogfood:status` \/ `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,\s+focused check 경로를 출력/);
+    assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` \/ `pnpm dogfood:compile-fix` \/\s+`pnpm dogfood:health` \/ `pnpm dogfood:brief` \/ `pnpm dogfood:status` \/ `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,\s+focused check 경로를 출력/);
     assert.match(doc, /도움말의 `pnpm test:mcp:dogfood` 설명도 compile\/index gate, tools\/list inventory name \/ annotation coverage, row-label guidance,\s+batch cap gates, strict closest-value \/ unknown-tool repair summary, vault warning \/ `validate_vault` problem gate, first-contact health\/growth\/sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, destructive dry-run, structuredContent, strict relation filter, strict add_relation type-preflight, strict graph kind filter, stderr warning 범위/);
     assert.match(dogfoodSection, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
     assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, tools\/list inventory name \/ annotation coverage, row-label guidance summary, strict closest-value \/ unknown-tool repair summary, strict add_relation type-preflight 를 fixture 로 검증/);

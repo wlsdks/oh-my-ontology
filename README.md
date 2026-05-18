@@ -208,6 +208,8 @@ Helpful vault commands:
 pnpm vault:validate
 pnpm vault:audit
 pnpm dogfood:compile
+pnpm dogfood:compile-fix
+pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
 pnpm dogfood:status

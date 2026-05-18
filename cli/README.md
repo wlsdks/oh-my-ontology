@@ -72,6 +72,8 @@ pnpm test:mcp:verify
 pnpm test:mcp:verify:first-contact
 pnpm test:mcp:verify:timeout
 pnpm dogfood:compile
+pnpm dogfood:compile-fix
+pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
 pnpm dogfood:status
@@ -116,8 +118,10 @@ integration case has a different name. For Node's `--test-name-pattern`, use
 instead of appending the flag after `pnpm integration:cli --`.
 `integration:cli:compile` narrows CLI compile / `--fix` canonicalization contracts
 without running unrelated CLI routes. `dogfood:compile`
-is the shortest root-checkout compiler summary JSON snapshot, `dogfood:health`
-is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
+is the shortest root-checkout compiler summary JSON snapshot, `dogfood:compile-fix`
+runs root-checkout `compile --fix` and fails if canonicalization leaves a docs/ontology diff,
+`test:dogfood:compile-fix` checks that idempotence guard without invoking the full dogfood suite,
+`dogfood:health` is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
 the shortest root-checkout first-contact JSON snapshot, `dogfood:status` always
 runs health + workspace-brief and preserves the first failing exit before escalating, `test:dogfood:status`
 checks that always-run shortcut contract without the full dogfood suite, `dogfood:verify` is

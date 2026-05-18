@@ -65,6 +65,8 @@ pnpm test:mcp:verify:first-contact
 pnpm test:mcp:verify:timeout
 pnpm integration:cli:compile
 pnpm dogfood:compile
+pnpm dogfood:compile-fix
+pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
 pnpm dogfood:status
@@ -119,6 +121,8 @@ integration case has a different name. For Node's `--test-name-pattern`, use
 `pnpm exec node --test --test-name-pattern "..." mcp/src/integration.test.mjs`
 instead of appending the flag after `pnpm integration:mcp --`. From the repo root,
 `pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot.
+`pnpm dogfood:compile-fix` runs dogfood `compile --fix` and fails if canonicalization leaves a docs/ontology diff.
+`pnpm test:dogfood:compile-fix` checks that idempotence guard without the full dogfood suite.
 `pnpm dogfood:health` is the shortest dogfood vault health gate.
 `pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot. Use
 `pnpm dogfood:status` for the cheap human-readable health + first-contact pair;
@@ -293,6 +297,8 @@ if you change one, mirror the other.
 cd mcp && npm install
 # From the repo root, prefer the CLI wrapper for the dogfood vault:
 pnpm dogfood:compile
+pnpm dogfood:compile-fix
+pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
 pnpm dogfood:status
@@ -385,16 +391,16 @@ A successful run looks like this:
 ✓ list_kinds — 29 nodes (capability:17, domain:6, element:4, project:1, vault-readme:1)
 ✓ validate_vault — 29 files, 0 problem files
 ✓ project probe — 1 project node
-✓ workspace_brief — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:133)
-✓ workspace_brief_tuned — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:133; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3)
+✓ workspace_brief — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:137)
+✓ workspace_brief_tuned — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:137; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3)
 ✓ health — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1)
 ✓ health_tuned — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies)
-✓ compile_ontology — graph 0eb38b69108f (29 nodes, 234 edges, issues 0)
-✓ compile_ontology page — 1/29 nodes, 1/234 edges
-✓ compile_ontology indexes — out 29, in 28, edgeById 234, aliases 57, edges 101/133/0
-✓ overview — graph 0eb38b69108f (29 nodes, 234 edges, hubs 5)
-✓ overview query_plan — aggregate_scan (medium, nodes 29, edges 234)
-✓ project_map query_plan — aggregate_scan (medium, nodes 29, edges 234)
+✓ compile_ontology — graph 65f70ced33fa (29 nodes, 238 edges, issues 0)
+✓ compile_ontology page — 1/29 nodes, 1/238 edges
+✓ compile_ontology indexes — out 29, in 28, edgeById 238, aliases 57, edges 101/137/0
+✓ overview — graph 65f70ced33fa (29 nodes, 238 edges, hubs 5)
+✓ overview query_plan — aggregate_scan (medium, nodes 29, edges 238)
+✓ project_map query_plan — aggregate_scan (medium, nodes 29, edges 238)
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
 ✓ project_scope — project (28 nodes, internalEdges 100)

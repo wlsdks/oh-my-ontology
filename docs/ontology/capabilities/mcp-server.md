@@ -499,6 +499,7 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 `pnpm test:mcp:package` / `pnpm test:mcp:suggestions` 로 파일 단위 검증을 먼저
 돌려 반복 dogfood 비용을 낮춘다. 설치 verify 를 dogfood vault 에 반복 적용할 때는
 `pnpm dogfood:compile` 은 repo root 의 가장 짧은 compiler snapshot 이고,
+`pnpm dogfood:compile-fix` 는 repo root 의 `compile --fix` idempotence gate 로 canonicalization 이 docs/ontology diff 를 남기면 실패하며,
 `pnpm dogfood:health` 는 repo root 의 가장 짧은 fail-closed health gate 이며,
 `pnpm dogfood:brief` 는 repo root 의 가장 짧은 first-contact snapshot 이며,
 `pnpm dogfood:status` 는 health 가 non-zero 여도 workspace-brief 까지 출력한 뒤 첫 실패 exit code 를 보존해 사람이 읽는 health + brief pair 를 실패 상황에서도 보여주며,
@@ -615,8 +616,8 @@ MCP schema 에서 노출한다. `componentLimit`, `cycleLimit`, `recommendationL
 연속 실행한다. positional vault argument 는 받지 않고 이 repo 의 dogfood vault 만
 검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패하고, `--hlep` 같은 help flag 오타는
 nearest hint 로 복구 경로를 보여준다. `pnpm dogfood:walk -- --help`
-는 MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` / `pnpm dogfood:health` /
-`pnpm dogfood:brief` / `pnpm dogfood:status` / `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,
+는 MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` / `pnpm dogfood:compile-fix` /
+`pnpm dogfood:health` / `pnpm dogfood:brief` / `pnpm dogfood:status` / `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,
 focused check 경로를 출력해 dogfood 범위 확인 비용을 낮춘다.
 도움말의 `pnpm test:mcp:dogfood` 설명도 compile/index gate, tools/list inventory name / annotation coverage, row-label guidance,
 batch cap gates, strict closest-value / unknown-tool repair summary, vault warning / `validate_vault` problem gate, first-contact health/growth/sample-shape gate, maintenance work-queue shape / formatter, initialize safety/recovery guidance, destructive dry-run, structuredContent, strict relation filter, strict add_relation type-preflight, strict graph kind filter, stderr warning 범위를 함께 보여줘 실행 전 검증 surface 를 숨기지 않는다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
