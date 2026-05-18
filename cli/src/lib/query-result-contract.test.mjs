@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  assertBlastRadiusShape,
+  assertCentralityShape,
   assertCyclesShape,
   assertHealthShape,
   assertMaintenancePlanShape,
+  assertOverviewShape,
   assertPathShape,
   assertQueryOperation,
   assertWorkspaceBriefShape,
@@ -199,6 +202,70 @@ describe('query-result-contract', () => {
     assert.throws(
       () => assertPathShape({ found: true, hops: ['a', 'b'], edges: [{ from: 'b', to: 'a', via: 'relates' }] }),
       /find_path response edges\[0\] has an invalid path-edge shape/,
+    );
+  });
+
+  it('rejects malformed overview, centrality, and blast_radius payloads before CLI output', () => {
+    const overview = {
+      operation: 'overview',
+      graph: { nodes: 2, edges: 1, resolvedEdges: 1, externalEdges: 0, unresolvedEdges: 0, issues: 0 },
+      byKind: { capability: 1, domain: 1 },
+      byDomain: {},
+      byRelation: { domain: 1 },
+      hubs: [{ slug: 'domains/auth', kind: 'domain', title: 'Auth', inDegree: 1, outDegree: 1, degree: 2 }],
+    };
+    const centrality = {
+      operation: 'centrality',
+      rankings: {
+        pageRank: [{ slug: 'domains/auth', kind: 'domain', title: 'Auth', inDegree: 1, outDegree: 1, degree: 2, pageRank: 0.5, bridgeScore: 1 }],
+        bridges: [],
+        authorities: [],
+        hubs: [],
+      },
+    };
+    const blastRadius = {
+      operation: 'blast_radius',
+      center: 'domains/auth',
+      risk: 'low',
+      summary: {
+        affectedNodes: 1,
+        affectedEdges: 0,
+        affectedKinds: 1,
+        affectedDomains: 1,
+        crossDomainEdges: 0,
+      },
+      byKind: { domain: 1 },
+      byDomain: { auth: 1 },
+      nodes: {
+        total: 1,
+        limited: false,
+        rows: [{ slug: 'domains/auth', distance: 0, node: { slug: 'domains/auth', kind: 'domain', title: 'Auth', inDegree: 1, outDegree: 1 } }],
+      },
+      edges: { total: 0, limited: false, rows: [] },
+    };
+
+    assert.equal(assertOverviewShape(overview), overview);
+    assert.equal(assertCentralityShape(centrality), centrality);
+    assert.equal(assertBlastRadiusShape(blastRadius), blastRadius);
+    assert.throws(
+      () => assertOverviewShape({ ...overview, graph: { ...overview.graph, nodes: '2' } }),
+      /overview graph\.nodes must be a non-negative integer/,
+    );
+    assert.throws(
+      () => assertOverviewShape({ ...overview, hubs: [{ ...overview.hubs[0], degree: -1 }] }),
+      /overview hubs\[0\] has an invalid hub shape/,
+    );
+    assert.throws(
+      () => assertCentralityShape({ ...centrality, rankings: { ...centrality.rankings, pageRank: [{}] } }),
+      /centrality rankings\.pageRank\[0\] has an invalid ranking shape/,
+    );
+    assert.throws(
+      () => assertBlastRadiusShape({ ...blastRadius, risk: 'unknown' }),
+      /blast_radius risk must be one of: low, medium, high/,
+    );
+    assert.throws(
+      () => assertBlastRadiusShape({ ...blastRadius, nodes: { total: 1, limited: false, rows: [{}] } }),
+      /blast_radius nodes must be a page with valid node rows/,
     );
   });
 

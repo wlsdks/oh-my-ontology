@@ -2720,6 +2720,50 @@ await test('overview --json — JSON 응답 graph/byKind/hubs 키 노출', async
   }
 });
 
+await test('overview/hubs/blast-radius --json — fail closed on malformed graph query payloads before output', async () => {
+  const root = withVault();
+  const fakeMcp = join(root, 'fake-mcp-graph-query-malformed.mjs');
+  writeFileSync(
+    fakeMcp,
+    [
+      "import readline from 'node:readline';",
+      "const rl = readline.createInterface({ input: process.stdin });",
+      "rl.on('line', (line) => {",
+      "  const msg = JSON.parse(line);",
+      "  if (msg.id === 1) console.log(JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }));",
+      "  if (msg.id === 2) {",
+      "    const operation = msg.params.arguments.operation;",
+      "    const payload = operation === 'overview'",
+      "      ? { operation: 'overview', graph: { nodes: '2', edges: 1 }, byKind: {}, byDomain: {}, byRelation: {}, hubs: [] }",
+      "      : operation === 'centrality'",
+      "        ? { operation: 'centrality', rankings: { pageRank: [{}], bridges: [], authorities: [], hubs: [] } }",
+      "        : { operation: 'blast_radius', center: 'domains/auth', risk: 'low', summary: { affectedNodes: 1, affectedEdges: '0', affectedKinds: 1, affectedDomains: 1, crossDomainEdges: 0 }, byKind: {}, byDomain: {}, nodes: { total: 0, limited: false, rows: [] }, edges: { total: 0, limited: false, rows: [] } };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: 2, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "  }",
+      "});",
+    ].join('\n'),
+    'utf-8',
+  );
+  try {
+    const overview = await run(['overview', root, '--json'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(overview.code, 2, `stdout: ${overview.stdout}\nstderr: ${overview.stderr}`);
+    assert.equal(overview.stdout, '');
+    assert.match(stripAnsi(overview.stderr), /overview graph\.nodes must be a non-negative integer/);
+
+    const hubs = await run(['hubs', root, '--json'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(hubs.code, 2, `stdout: ${hubs.stdout}\nstderr: ${hubs.stderr}`);
+    assert.equal(hubs.stdout, '');
+    assert.match(stripAnsi(hubs.stderr), /centrality rankings\.pageRank\[0\] has an invalid ranking shape/);
+
+    const blast = await run(['blast-radius', 'domains/auth', root, '--json'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(blast.code, 2, `stdout: ${blast.stdout}\nstderr: ${blast.stderr}`);
+    assert.equal(blast.stdout, '');
+    assert.match(stripAnsi(blast.stderr), /blast_radius summary\.affectedEdges must be a non-negative integer/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('overview --limit 3 — 허브 N 만 출력', async () => {
   const root = await buildGraphFixture();
   try {

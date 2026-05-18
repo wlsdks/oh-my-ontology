@@ -37,6 +37,9 @@ These wrap the MCP server (`oh-my-ontology-mcp`) so the developer has the same a
 | Command | What it does |
 |---|---|
 | `oh-my-ontology backlinks <slug>` | Lists every node referencing the target (`matches[]` from MCP `find_backlinks`, `--json` for raw). |
+| `oh-my-ontology overview [vault]` | First-contact graph dashboard from MCP `query_ontology(overview)`: graph counts, kind/domain/relation buckets, and hub rows. Malformed graph/count/hub payloads fail closed before JSON or human output. (`--limit N --json`) |
+| `oh-my-ontology hubs [vault]` | Centrality rankings from MCP `query_ontology(centrality)`: PageRank, bridges, authorities, and hubs. Malformed ranking payloads fail closed before JSON or human output. (`--limit N --json`) |
+| `oh-my-ontology blast-radius <slug> [vault]` | Refactor-safety impact view from MCP `query_ontology(blast_radius)`: risk, affected count buckets, and node/edge pages. Malformed summary/page payloads fail closed before JSON or human output. (`--depth N --direction incoming|outgoing|both --json`) |
 | `oh-my-ontology orphans [vault]` | Lists isolated nodes — docs no other node references in their frontmatter (MCP `find_orphans`). Options: enum-validated `--kind X` (filter), enum-validated `--exclude-kinds A,B` (skip; MCP default excludes `project,vault-readme`), `--json`. Quick "what should I clean up" surface for vault maintenance. |
 | `oh-my-ontology path <from> <to> [vault]` | Shortest path (BFS, undirected) between two slugs. Each hop is annotated with the frontmatter key (`capabilities` / `elements` / `dependencies` / `relates` / `contains` / `describes`) that linked the pair, so you see *why* A and B are connected. Malformed hop/edge payloads fail closed before JSON output. (`--max-hops N --json`) |
 | `oh-my-ontology query "<filter>"` | Typed filter DSL — `kind=X AND has(Y) AND NOT domain=Z`, parens / OR / NOT supported. `kind` and `has(...)` graph keys fail closed with closest-value hints. (`--limit N --json`) |
@@ -195,7 +198,9 @@ It also prints graph-query smoke lines for
 `overview`, `overview`/`project_map` query_plan, and actual `neighbors` /
 node-to-project `path` / `project_scope` calls, with `path` hop/edge alignment
 validated before the path is treated as usable. Malformed `cycles` and `path`
-payloads fail closed before machine output. Vaults without a `kind: project`
+payloads fail closed before machine output. Standalone `overview`, `hubs`, and
+`blast-radius` commands also validate graph/count/ranking/page payloads before
+machine or human output. Vaults without a `kind: project`
 node skip only the containment-specific `project_scope` smoke; empty vault
 folders skip node-targeted graph smoke until a first node exists.
 Use `--timeout-ms 15000` when a large vault or slow filesystem needs a longer

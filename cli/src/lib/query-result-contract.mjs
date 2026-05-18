@@ -2,6 +2,7 @@ const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
 const MAINTENANCE_ACTION_SEVERITIES = new Set(['fail', 'warn', 'info']);
+const BLAST_RADIUS_RISKS = new Set(['low', 'medium', 'high']);
 
 export function assertQueryOperation(result, expectedOperation) {
   if (!result || typeof result !== 'object' || Array.isArray(result)) {
@@ -162,6 +163,86 @@ export function assertPathShape(result) {
   return result;
 }
 
+export function assertOverviewShape(result) {
+  assertQueryOperation(result, 'overview');
+  if (!isPlainObject(result.graph)) {
+    throw new Error('overview graph must be an object');
+  }
+  for (const field of ['nodes', 'edges']) {
+    if (!validCount(result.graph[field])) {
+      throw new Error(`overview graph.${field} must be a non-negative integer`);
+    }
+  }
+  for (const field of ['resolvedEdges', 'externalEdges', 'unresolvedEdges', 'issues']) {
+    if (result.graph[field] !== undefined && !validCount(result.graph[field])) {
+      throw new Error(`overview graph.${field} must be a non-negative integer when present`);
+    }
+  }
+  for (const field of ['byKind', 'byDomain', 'byRelation']) {
+    if (!validCountBucket(result[field])) {
+      throw new Error(`overview ${field} must be an object of non-negative integer counts`);
+    }
+  }
+  if (!Array.isArray(result.hubs)) {
+    throw new Error('overview hubs must be an array');
+  }
+  for (let index = 0; index < result.hubs.length; index += 1) {
+    if (!validHubRow(result.hubs[index])) {
+      throw new Error(`overview hubs[${index}] has an invalid hub shape`);
+    }
+  }
+  return result;
+}
+
+export function assertCentralityShape(result) {
+  assertQueryOperation(result, 'centrality');
+  if (!isPlainObject(result.rankings)) {
+    throw new Error('centrality rankings must be an object');
+  }
+  for (const section of ['pageRank', 'bridges', 'authorities', 'hubs']) {
+    const rows = result.rankings[section];
+    if (!Array.isArray(rows)) {
+      throw new Error(`centrality rankings.${section} must be an array`);
+    }
+    for (let index = 0; index < rows.length; index += 1) {
+      if (!validCentralityRow(rows[index])) {
+        throw new Error(`centrality rankings.${section}[${index}] has an invalid ranking shape`);
+      }
+    }
+  }
+  return result;
+}
+
+export function assertBlastRadiusShape(result) {
+  assertQueryOperation(result, 'blast_radius');
+  if (!hasNonEmptyString(result.center)) {
+    throw new Error('blast_radius center must be a non-empty string');
+  }
+  if (!BLAST_RADIUS_RISKS.has(result.risk)) {
+    throw new Error(`blast_radius risk must be one of: ${[...BLAST_RADIUS_RISKS].join(', ')}`);
+  }
+  if (!isPlainObject(result.summary)) {
+    throw new Error('blast_radius summary must be an object');
+  }
+  for (const field of ['affectedNodes', 'affectedEdges', 'affectedKinds', 'affectedDomains', 'crossDomainEdges']) {
+    if (!validCount(result.summary[field])) {
+      throw new Error(`blast_radius summary.${field} must be a non-negative integer`);
+    }
+  }
+  for (const field of ['byKind', 'byDomain']) {
+    if (!validCountBucket(result[field])) {
+      throw new Error(`blast_radius ${field} must be an object of non-negative integer counts`);
+    }
+  }
+  if (!validPage(result.nodes, validBlastRadiusNodeRow)) {
+    throw new Error('blast_radius nodes must be a page with valid node rows');
+  }
+  if (!validPage(result.edges, validBlastRadiusEdgeRow)) {
+    throw new Error('blast_radius edges must be a page with valid edge rows');
+  }
+  return result;
+}
+
 export function compileResultExitCode(artifact) {
   const counts = compileBlockingCounts(artifact);
   if (!validCount(counts.issues) || !validCount(counts.unresolvedEdges)) return 1;
@@ -261,6 +342,62 @@ function validMaintenanceAction(action) {
 
 function validMaintenanceActionPointer(action) {
   return Boolean(isPlainObject(action) && hasNonEmptyString(action.id));
+}
+
+function validHubRow(row) {
+  return Boolean(
+    isPlainObject(row)
+    && hasNonEmptyString(row.slug)
+    && hasNonEmptyString(row.kind)
+    && hasNonEmptyString(row.title)
+    && validCount(row.inDegree)
+    && validCount(row.outDegree)
+    && validCount(row.degree)
+  );
+}
+
+function validCentralityRow(row) {
+  return Boolean(
+    validHubRow(row)
+    && Number.isFinite(row.pageRank)
+    && row.pageRank >= 0
+    && validCount(row.bridgeScore)
+  );
+}
+
+function validPage(page, rowPredicate) {
+  if (!isPlainObject(page)) return false;
+  if (!validCount(page.total)) return false;
+  if (typeof page.limited !== 'boolean') return false;
+  if (!Array.isArray(page.rows)) return false;
+  return page.rows.every((row) => rowPredicate(row));
+}
+
+function validBlastRadiusNodeRow(row) {
+  return Boolean(
+    isPlainObject(row)
+    && hasNonEmptyString(row.slug)
+    && validCount(row.distance)
+    && isPlainObject(row.node)
+    && hasNonEmptyString(row.node.slug)
+    && hasNonEmptyString(row.node.kind)
+    && hasNonEmptyString(row.node.title)
+    && (row.node.inDegree === undefined || validCount(row.node.inDegree))
+    && (row.node.outDegree === undefined || validCount(row.node.outDegree))
+  );
+}
+
+function validBlastRadiusEdgeRow(row) {
+  return Boolean(
+    isPlainObject(row)
+    && hasNonEmptyString(row.from)
+    && hasNonEmptyString(row.to)
+    && hasNonEmptyString(row.via)
+    && (row.id === undefined || hasNonEmptyString(row.id))
+    && (row.traversedFrom === undefined || hasNonEmptyString(row.traversedFrom))
+    && (row.traversedTo === undefined || hasNonEmptyString(row.traversedTo))
+    && (row.crossDomain === undefined || typeof row.crossDomain === 'boolean')
+  );
 }
 
 function validCountBucket(value) {

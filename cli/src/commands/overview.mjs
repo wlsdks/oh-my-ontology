@@ -3,7 +3,7 @@
 // MCP `query_ontology({operation: 'overview'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
-import { assertQueryOperation } from '../lib/query-result-contract.mjs';
+import { assertOverviewShape } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   formatUnknownFlagError,
@@ -52,7 +52,7 @@ export async function runOverview(args) {
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_ontology', { operation: 'overview' });
-    assertQueryOperation(result, 'overview');
+    assertOverviewShape(result);
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,
