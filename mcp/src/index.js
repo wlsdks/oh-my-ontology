@@ -909,6 +909,32 @@ const TOOLS = [
               changed: { type: 'boolean' },
               warnings: { type: 'array', items: { type: 'string' } },
               error: { type: 'string' },
+              errorCode: { type: 'string' },
+              valueName: { type: 'string' },
+              receivedValue: {},
+              suggestion: { type: 'string' },
+              allowedValues: { type: 'array', items: { type: 'string' } },
+              rowName: { type: 'string' },
+              receivedField: { type: 'string' },
+              unknownFields: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    suggestion: { type: 'string' },
+                  },
+                  required: ['name'],
+                  additionalProperties: false,
+                },
+              },
+              allowedFields: { type: 'array', items: { type: 'string' } },
+              receivedFields: { type: 'array', items: { type: 'string' } },
+              conflictSubject: { type: 'string' },
+              conflictSlug: { type: 'string' },
+              firstSeenAt: { type: 'string' },
+              recoveryTools: { type: 'array', items: { type: 'string' } },
+              avoidTools: { type: 'array', items: { type: 'string' } },
             },
             required: ['slug', 'ok'],
             additionalProperties: false,
@@ -1014,6 +1040,32 @@ const TOOLS = [
               changed: { type: 'boolean' },
               alreadyExists: { type: 'boolean' },
               error: { type: 'string' },
+              errorCode: { type: 'string' },
+              valueName: { type: 'string' },
+              receivedValue: {},
+              suggestion: { type: 'string' },
+              allowedValues: { type: 'array', items: { type: 'string' } },
+              rowName: { type: 'string' },
+              receivedField: { type: 'string' },
+              unknownFields: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    suggestion: { type: 'string' },
+                  },
+                  required: ['name'],
+                  additionalProperties: false,
+                },
+              },
+              allowedFields: { type: 'array', items: { type: 'string' } },
+              receivedFields: { type: 'array', items: { type: 'string' } },
+              missingSubject: { type: 'string' },
+              missingSlug: { type: 'string' },
+              similarSlugs: { type: 'array', items: { type: 'string' } },
+              recoveryTools: { type: 'array', items: { type: 'string' } },
+              createTool: { type: 'string' },
             },
             required: ['ok', 'from', 'to', 'type'],
             additionalProperties: false,
@@ -2640,6 +2692,33 @@ function structuredErrorDetails(message) {
     };
   }
 
+  const unknownField = message.match(
+    /^Unknown field "([^"]+)" in ([^.]+)\.(?: Did you mean "([^"]+)"\?)? Allowed fields: (.+)\. Received fields: (.+)\.$/i,
+  );
+  if (unknownField) {
+    const [, receivedField, rowName, suggestion, allowedText, receivedText] = unknownField;
+    return omitUndefined({
+      rowName,
+      receivedField,
+      suggestion,
+      allowedFields: splitCommaList(allowedText),
+      receivedFields: splitCommaList(receivedText),
+    });
+  }
+
+  const unknownFields = message.match(
+    /^Unknown fields in ([^:]+): (.+)\. Allowed fields: (.+)\. Received fields: (.+)\.$/i,
+  );
+  if (unknownFields) {
+    const [, rowName, unknownText, allowedText, receivedText] = unknownFields;
+    return {
+      rowName,
+      unknownFields: extractUnknownArgumentHints(unknownText),
+      allowedFields: splitCommaList(allowedText),
+      receivedFields: splitCommaList(receivedText),
+    };
+  }
+
   const allowedValue = message.match(/^(.+?) must be one of: (.+)\. Received: (.+)\.(?: Did you mean "([^"]+)"\?)?$/i);
   if (allowedValue) {
     const [, valueName, allowedText, receivedText, suggestion] = allowedValue;
@@ -2693,6 +2772,13 @@ function structuredErrorDetails(message) {
   return {};
 }
 
+function structuredRowErrorDetails(err, message) {
+  return {
+    errorCode: classifyErrorCode(err, message),
+    ...structuredErrorDetails(message),
+  };
+}
+
 function extractUnknownArgumentHints(text) {
   return [...text.matchAll(/"([^"]+)"(?: \(did you mean "([^"]+)"\?\))?/g)].map((match) => omitUndefined({
     name: match[1],
@@ -2729,6 +2815,9 @@ function classifyErrorCode(err, message) {
   if (/^Unknown tool:/i.test(message)) return 'unknown_tool';
   if (/^Unknown argument /i.test(message) || /^Unknown arguments for /i.test(message)) {
     return 'unknown_argument';
+  }
+  if (/^Unknown field /i.test(message) || /^Unknown fields in /i.test(message)) {
+    return 'invalid_arguments';
   }
   if (/not found|does not exist/i.test(message)) return 'not_found';
   if (/already exists|conflict|identical/i.test(message)) return 'conflict';
@@ -3236,10 +3325,15 @@ function addConceptsBatch({ concepts }) {
         'body',
       ]);
       if (slug && seenInBatch.has(slug)) {
+        const firstSeenAt = `concepts[${seenInBatch.get(slug)}]`;
         return {
           slug,
           ok: false,
-          error: `concepts[${index}] duplicate slug in input batch; first seen at concepts[${seenInBatch.get(slug)}]`,
+          error: `concepts[${index}] duplicate slug in input batch; first seen at ${firstSeenAt}`,
+          errorCode: 'conflict',
+          conflictSubject: 'Duplicate slug in input batch',
+          conflictSlug: slug,
+          firstSeenAt,
         };
       }
       if (slug) seenInBatch.set(slug, index);
@@ -3247,7 +3341,12 @@ function addConceptsBatch({ concepts }) {
       return result;
     } catch (err) {
       const msg = err && err.message ? err.message : String(err);
-      return { slug: slug || String(slug), ok: false, error: msg };
+      return {
+        slug: slug || String(slug),
+        ok: false,
+        error: msg,
+        ...structuredRowErrorDetails(err, msg),
+      };
     }
   });
   return {
@@ -3409,7 +3508,14 @@ function addRelationsBatch({ relations }) {
       const rawMessage = err && err.message ? err.message : String(err);
       const rowLabel = `relations[${index}]`;
       const msg = rawMessage.includes(rowLabel) ? rawMessage : `${rowLabel} ${rawMessage}`;
-      return { ok: false, from, to, type, error: msg };
+      return {
+        ok: false,
+        from,
+        to,
+        type,
+        error: msg,
+        ...structuredRowErrorDetails(err, rawMessage),
+      };
     }
   });
   return {

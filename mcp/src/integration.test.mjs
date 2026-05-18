@@ -3812,6 +3812,10 @@ await test("add_concepts — 배치 write, 순서 보존 + partial result", asyn
     assert.equal(result.concepts[1].slug, "exist");
     assert.equal(result.concepts[1].ok, false);
     assert.match(result.concepts[1].error, /already exists|exist/i);
+    assert.equal(result.concepts[1].errorCode, "conflict");
+    assert.equal(result.concepts[1].conflictSlug, "exist");
+    assert.deepEqual(result.concepts[1].recoveryTools, ["patch_concept", "rename_concept"]);
+    assert.deepEqual(result.concepts[1].avoidTools, ["delete_concept"]);
     assert.equal(result.concepts[2].slug, "beta");
     assert.equal(result.concepts[2].ok, true);
     assert.equal(result.concepts[3].slug, "gamma");
@@ -3923,6 +3927,10 @@ await test("add_concepts — 입력 내 중복 slug 두번째는 ok:false", asyn
     assert.equal(result.concepts[1].ok, false, "두번째 동일 slug 는 fail");
     assert.match(result.concepts[1].error, /concepts\[1\] duplicate slug in input batch/i);
     assert.match(result.concepts[1].error, /first seen at concepts\[0\]/i);
+    assert.equal(result.concepts[1].errorCode, "conflict");
+    assert.equal(result.concepts[1].conflictSubject, "Duplicate slug in input batch");
+    assert.equal(result.concepts[1].conflictSlug, "dup");
+    assert.equal(result.concepts[1].firstSeenAt, "concepts[0]");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -4024,11 +4032,20 @@ await test("add_concepts — unknown row field 는 row-level error 로 격리", 
     assert.match(result.concepts[1].error, /Unknown field "titel" in concepts\[1\]/i);
     assert.match(result.concepts[1].error, /Did you mean "title"\?/i);
     assert.match(result.concepts[1].error, /Received fields: domain, kind, slug, titel, title/i);
+    assert.equal(result.concepts[1].errorCode, "invalid_arguments");
+    assert.equal(result.concepts[1].rowName, "concepts[1]");
+    assert.equal(result.concepts[1].receivedField, "titel");
+    assert.equal(result.concepts[1].suggestion, "title");
+    assert.deepEqual(result.concepts[1].receivedFields, ["domain", "kind", "slug", "titel", "title"]);
     assert.equal(result.concepts[2].ok, false);
     assert.match(result.concepts[2].error, /Unknown fields in concepts\[2\]/i);
     assert.match(result.concepts[2].error, /"titel" \(did you mean "title"\?\)/i);
     assert.match(result.concepts[2].error, /"domian" \(did you mean "domain"\?\)/i);
     assert.match(result.concepts[2].error, /Received fields: domain, domian, kind, slug, titel, title/i);
+    assert.deepEqual(result.concepts[2].unknownFields, [
+      { name: "titel", suggestion: "title" },
+      { name: "domian", suggestion: "domain" },
+    ]);
     const list = getCallParsed(responses, 3);
     assert.deepEqual(list.nodes.map((node) => node.slug), ["ok"]);
   } finally {
@@ -4280,15 +4297,23 @@ await test("add_relations — 배치 write, row 순서 보존 + canonical sort +
     // missing target
     assert.equal(result.relations[3].ok, false);
     assert.match(result.relations[3].error, /does not exist|missing/i);
+    assert.equal(result.relations[3].errorCode, "not_found");
+    assert.equal(result.relations[3].missingSlug, "missing");
+    assert.equal(result.relations[3].createTool, "add_concept");
+    assert.deepEqual(result.relations[3].recoveryTools, ["list_concepts", "find_evidence"]);
     // unknown type
     assert.equal(result.relations[4].ok, false);
     assert.match(result.relations[4].error, /type must be one of/i);
     assert.match(result.relations[4].error, /Received: "weird-type"/i);
+    assert.equal(result.relations[4].errorCode, "invalid_arguments");
+    assert.equal(result.relations[4].valueName, "type");
+    assert.equal(result.relations[4].receivedValue, "weird-type");
     // close type typo
     assert.equal(result.relations[5].ok, false);
     assert.match(result.relations[5].error, /type must be one of/i);
     assert.match(result.relations[5].error, /Received: "depend_on"/i);
     assert.match(result.relations[5].error, /Did you mean "depends_on"\?/i);
+    assert.equal(result.relations[5].suggestion, "depends_on");
     assertPostWriteMaintenanceShape(result.postWriteMaintenance, "batch relation postWriteMaintenance");
     assert.equal(result.relations[0].postWriteMaintenance, undefined);
     // p.contains 는 edge set 기준으로 중복 제거 + 정렬되어 land
@@ -4421,11 +4446,19 @@ await test("add_relations — unknown row field 는 row-level error 로 격리",
     assert.match(result.relations[1].error, /Unknown field "relation" in relations\[1\]/i);
     assert.match(result.relations[1].error, /Did you mean "type"\?/i);
     assert.match(result.relations[1].error, /Received fields: from, relation, to, type/i);
+    assert.equal(result.relations[1].errorCode, "invalid_arguments");
+    assert.equal(result.relations[1].rowName, "relations[1]");
+    assert.equal(result.relations[1].receivedField, "relation");
+    assert.equal(result.relations[1].suggestion, "type");
     assert.equal(result.relations[2].ok, false);
     assert.match(result.relations[2].error, /Unknown fields in relations\[2\]/i);
     assert.match(result.relations[2].error, /"relation" \(did you mean "type"\?\)/i);
     assert.match(result.relations[2].error, /"frm" \(did you mean "from"\?\)/i);
     assert.match(result.relations[2].error, /Received fields: frm, from, relation, to, type/i);
+    assert.deepEqual(result.relations[2].unknownFields, [
+      { name: "relation", suggestion: "type" },
+      { name: "frm", suggestion: "from" },
+    ]);
     const concept = getCallParsed(responses, 3);
     assert.deepEqual(concept.frontmatter.relates, ["b"]);
     assert.equal(concept.frontmatter.contains, undefined);
