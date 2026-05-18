@@ -5,6 +5,7 @@ import {
   captureDogfoodOntologyDiff,
   dogfoodCompileFixDiagnostic,
   dogfoodCompileFixExitCode,
+  dogfoodDiffFileSummary,
   runDogfoodCompileFix,
 } from './dogfood-compile-fix.mjs';
 
@@ -52,13 +53,19 @@ describe('dogfood compile-fix shortcut', () => {
       stderr: { write: (text) => diagnostics.push(text) },
       spawn(_command, args) {
         calls.push(args);
-        return { status: 0, stdout: calls.length === 3 ? 'after' : 'before' };
+        return {
+          status: 0,
+          stdout: calls.length === 3
+            ? 'diff --git a/docs/ontology/a.md b/docs/ontology/a.md\n'
+            : 'before',
+        };
       },
     });
 
     assert.equal(exitCode, 1);
     assert.deepEqual(diagnostics, [
-      '[dogfood:compile-fix] compile --fix changed docs/ontology; review and commit the canonicalized vault files.\n',
+      '[dogfood:compile-fix] compile --fix changed docs/ontology; review and commit the canonicalized vault files.\n' +
+      '[dogfood:compile-fix] changed files: docs/ontology/a.md\n',
     ]);
   });
 
@@ -122,5 +129,19 @@ describe('dogfood compile-fix shortcut', () => {
       dogfoodCompileFixDiagnostic(['git', 'diff'], {}),
       /git diff ended without an exit status/,
     );
+  });
+
+  it('summarizes changed files from git diff output', () => {
+    const diff = [
+      'diff --git a/docs/ontology/a.md b/docs/ontology/a.md',
+      'index 1..2 100644',
+      'diff --git a/docs/ontology/b.md b/docs/ontology/b.md',
+      'index 3..4 100644',
+      'diff --git a/docs/ontology/a.md b/docs/ontology/a.md',
+    ].join('\n');
+
+    assert.equal(dogfoodDiffFileSummary(diff), 'docs/ontology/a.md, docs/ontology/b.md');
+    assert.equal(dogfoodDiffFileSummary(diff, { limit: 1 }), 'docs/ontology/a.md, +1 more');
+    assert.equal(dogfoodDiffFileSummary(''), 'unknown docs/ontology diff');
   });
 });

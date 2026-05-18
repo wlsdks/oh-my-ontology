@@ -25,9 +25,11 @@ export function runDogfoodCompileFix({
   const after = captureDogfoodOntologyDiff({ spawn, cwd, stderr });
   if (!after.ok) return after.exitCode;
   if (after.stdout !== before.stdout) {
+    const files = dogfoodDiffFileSummary(after.stdout);
     stderr.write(
       '[dogfood:compile-fix] compile --fix changed docs/ontology; ' +
-      'review and commit the canonicalized vault files.\n',
+      'review and commit the canonicalized vault files.\n' +
+      `[dogfood:compile-fix] changed files: ${files}\n`,
     );
     return 1;
   }
@@ -66,6 +68,24 @@ export function dogfoodCompileFixDiagnostic(args, result) {
     return `[dogfood:compile-fix] ${command} ended without an exit status`;
   }
   return null;
+}
+
+export function dogfoodDiffFileSummary(diffText, { limit = 8 } = {}) {
+  const files = [];
+  const seen = new Set();
+  const diffHeader = /^diff --git a\/.+? b\/(.+)$/gm;
+  let match;
+  while ((match = diffHeader.exec(String(diffText))) !== null) {
+    const file = match[1];
+    if (!seen.has(file)) {
+      seen.add(file);
+      files.push(file);
+    }
+  }
+  if (files.length === 0) return 'unknown docs/ontology diff';
+  const shown = files.slice(0, limit);
+  const suffix = files.length > limit ? `, +${files.length - limit} more` : '';
+  return `${shown.join(', ')}${suffix}`;
 }
 
 if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
