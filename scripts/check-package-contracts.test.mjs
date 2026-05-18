@@ -1844,6 +1844,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /zero remaining actions, and no next actions/);
     assert.match(smoke, /nextExecutableAction \\\/ nextReviewAction point only at the first executable\\\/review action in the current returned page/);
     assert.match(smoke, /Successful maintenance cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
+    assert.match(smoke, /pnpm test:cli:mcp-call\\s\+CLI MCP wrapper parser\\\/spawn\\\/structuredContent contract checks/);
     assert.match(smoke, /pnpm integration:cli:mcp-verify/);
     assert.match(smoke, /pnpm dogfood:compile\\s\+Root checkout dogfood vault compile_ontology summary/);
     assert.match(smoke, /pnpm dogfood:health\\s\+Root checkout dogfood vault health gate/);
