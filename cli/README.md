@@ -273,7 +273,9 @@ coverage as `id:status:count` rows (`compile_issues:pass:0`,
 parsing JSON. Non-JSON `workspace-brief` also prints a `GROWTH` line with
 `actions`, `relations`, `dangling`, `external`, and `ignoredExternal` counts so
 `.omotignore`-suppressed external refs remain visible even when the vault is
-healthy.
+healthy. It also labels project containment counts as
+`PROJECT별 포함 노드 수 (project_scope)` so the human dashboard cannot be
+mistaken for a loose project summary.
 Both commands forward focused diagnosis tuning flags to MCP `query_ontology`:
 `--dependency-types A,B`, `--component-types A,B`, `--component-limit N`,
 `--cycle-limit N`, `--recommendation-limit N`, `--order-limit N`, and

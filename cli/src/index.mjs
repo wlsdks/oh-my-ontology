@@ -102,7 +102,7 @@ ${COLORS.bold}Graph-level commands${COLORS.reset} ${COLORS.dim}(R15 — wraps th
        --max-hops N --json                    ${COLORS.dim}default maxDepth 8${COLORS.reset}
   npx oh-my-ontology health [vault]           Graph 무결성 dashboard (5 checks)
        --json --component-types A,B          ${COLORS.dim}focused diagnosis tuning 지원${COLORS.reset}
-  npx oh-my-ontology workspace-brief [vault]  Status + hotspots + project 요약 + next actions 한 화면
+  npx oh-my-ontology workspace-brief [vault]  Status + hotspots + project_scope 포함 노드 + next actions 한 화면
        --json --dependency-types A,B         ${COLORS.dim}health/workspace_brief tuning forwarding${COLORS.reset}
   npx oh-my-ontology maintenance [vault]      Ordered graph cleanup/repair work queue
        --limit N --after-action-id ID --json  ${COLORS.dim}cursor page · filterable maintenance_plan${COLORS.reset}
