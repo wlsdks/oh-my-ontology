@@ -3104,6 +3104,19 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [65, 'strict_unknown_tool'],
 ]);
 
+export const OPTIONAL_FIRST_CONTACT_RESPONSE_IDS = [
+  30, // maintenance_resume_cursor — sent only when maintenance has an action to resume after.
+  31, // get_concept — sent only when list_concepts returns a real node.
+  33, // find_backlinks — sent only when list_concepts returns a real node.
+  35, // find_neighbors — sent only when a direct graph-read target exists.
+  36, // find_path — sent only when a direct graph-read target exists.
+  37, // query_concepts_limited — sent only when the vault has a non-trivial excluded slug.
+  43, // rename_concept_dry_run — sent only when a real writable node exists.
+  44, // merge_concepts_dry_run — sent only when two real writable nodes exist.
+  45, // delete_concept_dry_run — sent only when a real writable node exists.
+  61, // patch_concept_conflict_guard — sent only when a real writable node exists.
+];
+
 function log(level, msg) {
   const tag =
     level === 'ok' ? '\x1b[32m✓\x1b[0m' :
@@ -3406,7 +3419,7 @@ export function firstContactMissingResponseLabels(responses, expectedIds) {
 
 export function initialExpectedFirstContactIds() {
   const ids = new Set(FIRST_CONTACT_RESPONSE_LABELS.keys());
-  for (const optionalId of [30, 31, 33, 35, 36, 37, 43, 44, 45, 61]) {
+  for (const optionalId of OPTIONAL_FIRST_CONTACT_RESPONSE_IDS) {
     ids.delete(optionalId);
   }
   return ids;

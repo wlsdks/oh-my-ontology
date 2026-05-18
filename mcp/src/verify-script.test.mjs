@@ -47,6 +47,7 @@ import {
   EXPECTED_TOOLS,
   EXPECTED_WRITE_TOOLS,
   FIRST_CONTACT_RESPONSE_LABELS,
+  OPTIONAL_FIRST_CONTACT_RESPONSE_IDS,
   expectedToolTitle,
   expectedToolSplitLabel,
   firstContactMissingResponseLabels,
@@ -5833,7 +5834,8 @@ describe('verify.mjs first-contact gates', () => {
 
   it('keeps node-dependent first-contact smokes optional until their live target exists', () => {
     const ids = initialExpectedFirstContactIds();
-    for (const optionalId of [30, 31, 33, 35, 36, 37, 43, 44, 45, 61]) {
+    assert.deepEqual(OPTIONAL_FIRST_CONTACT_RESPONSE_IDS, [30, 31, 33, 35, 36, 37, 43, 44, 45, 61]);
+    for (const optionalId of OPTIONAL_FIRST_CONTACT_RESPONSE_IDS) {
       assert.equal(ids.has(optionalId), false, `${FIRST_CONTACT_RESPONSE_LABELS.get(optionalId)} starts optional`);
     }
     for (const requestId of expectedResponseIds(buildFirstContactRequests())) {
