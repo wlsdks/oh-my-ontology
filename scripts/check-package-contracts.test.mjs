@@ -1282,7 +1282,10 @@ describe('package contract helpers', () => {
     assert.match(maintenanceRow, /current-page next action pointers/);
     assert.match(maintenanceRow, /`phase\/kind · severity · exec\|review` detail/);
     assert.match(maintenanceRow, /cursor\/filter dogfood/);
-    assert.match(maintenanceRow, /Malformed work-queue payloads fail closed before JSON or human output/);
+    assert.match(maintenanceRow, /filter echo drift/);
+    assert.match(maintenanceRow, /pagination `limited` drift/);
+    assert.match(maintenanceRow, /compiled-summary drift/);
+    assert.match(maintenanceRow, /fail closed before JSON or human output/);
     assert.match(analyzeRow, /Top-level `rootPath` \/ `framework` \/ `skipped`/);
     assert.match(analyzeRow, /candidate `evidence\.source` payloads are validated before JSON or human output/);
     assert.match(analyzeRow, /MCP outputSchema drift fails closed/);
@@ -2372,6 +2375,9 @@ describe('package contract helpers', () => {
     assert.match(maintenanceRow, /MCP `query_ontology\(maintenance_plan\)`/);
     assert.match(maintenanceRow, /cursor miss 는 빈 page 와 `cursor\.found=false`/);
     assert.match(maintenanceRow, /phase\/severity\/kind bucket summary/);
+    assert.match(maintenanceRow, /filter echo 배열/);
+    assert.match(maintenanceRow, /pagination `limited`/);
+    assert.match(maintenanceRow, /`compiledSummary`/);
     assert.match(maintenanceRow, /malformed 인 work-queue payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(overviewRow, /graph \/ count bucket \/ hub row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(hubsRow, /ranking row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);

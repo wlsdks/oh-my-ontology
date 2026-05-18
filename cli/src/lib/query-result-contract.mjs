@@ -39,6 +39,17 @@ export function assertMaintenancePlanShape(result) {
   if (result.summary.remainingActions > result.summary.filteredActions) {
     throw new Error('maintenance_plan summary.remainingActions must not exceed filteredActions');
   }
+  if (!isPlainObject(result.filters)) {
+    throw new Error('maintenance_plan filters must be an object');
+  }
+  if (typeof result.filters.executableOnly !== 'boolean') {
+    throw new Error('maintenance_plan filters.executableOnly must be a boolean');
+  }
+  for (const field of ['phases', 'severities', 'kinds']) {
+    if (!Array.isArray(result.filters[field]) || !result.filters[field].every((value) => hasNonEmptyString(value))) {
+      throw new Error(`maintenance_plan filters.${field} must be an array of non-empty strings`);
+    }
+  }
   if (!isPlainObject(result.cursor)) {
     throw new Error('maintenance_plan cursor must be an object');
   }
@@ -119,6 +130,10 @@ export function assertMaintenancePlanShape(result) {
   if (!firstReviewAction && result.nextReviewAction !== null) {
     throw new Error('maintenance_plan nextReviewAction must be null when the page has no review actions');
   }
+  if (typeof result.limited !== 'boolean') {
+    throw new Error('maintenance_plan limited must be a boolean');
+  }
+  assertCompiledSummaryShape('maintenance_plan', result.compiledSummary);
   return result;
 }
 
@@ -154,16 +169,7 @@ export function assertGrowthPlanShape(result) {
   assertGrowthRowsGroup('danglingReferences', result.danglingReferences, result.summary.danglingReferences);
   assertGrowthRowsGroup('unassignedNodes', result.unassignedNodes, result.summary.unassignedNodes);
   assertGrowthRowsGroup('emptyDomains', result.emptyDomains, result.summary.emptyDomains);
-  if (result.compiledSummary !== undefined) {
-    if (!isPlainObject(result.compiledSummary)) {
-      throw new Error('growth_plan compiledSummary must be an object when present');
-    }
-    for (const field of ['nodes', 'edges', 'issues']) {
-      if (result.compiledSummary[field] !== undefined && !validCount(result.compiledSummary[field])) {
-        throw new Error(`growth_plan compiledSummary.${field} must be a non-negative integer when present`);
-      }
-    }
-  }
+  assertCompiledSummaryShape('growth_plan', result.compiledSummary);
   return result;
 }
 
@@ -704,6 +710,18 @@ function assertGrowthRowsGroup(name, group, expectedTotal) {
   for (let index = 0; index < group.rows.length; index += 1) {
     const failure = growthCandidateRowFailure(group.rows[index]);
     if (failure) throw new Error(`growth_plan ${name}.rows[${index}] ${failure}`);
+  }
+}
+
+function assertCompiledSummaryShape(operation, compiledSummary) {
+  if (compiledSummary === undefined) return;
+  if (!isPlainObject(compiledSummary)) {
+    throw new Error(`${operation} compiledSummary must be an object when present`);
+  }
+  for (const field of ['nodes', 'edges', 'issues']) {
+    if (compiledSummary[field] !== undefined && !validCount(compiledSummary[field])) {
+      throw new Error(`${operation} compiledSummary.${field} must be a non-negative integer when present`);
+    }
   }
 }
 

@@ -60,6 +60,12 @@ describe('query-result-contract', () => {
         executableActions: 1,
         reviewActions: 0,
       },
+      filters: {
+        executableOnly: false,
+        phases: [],
+        severities: [],
+        kinds: [],
+      },
       cursor: {
         afterActionId: null,
         found: true,
@@ -71,6 +77,7 @@ describe('query-result-contract', () => {
       byPhase: { repair: 1 },
       bySeverity: { warn: 1 },
       byKind: { canonicalize_graph_arrays: 1 },
+      limited: false,
       nextExecutableAction: {
         id: 'maint_1',
         phase: 'repair',
@@ -95,6 +102,11 @@ describe('query-result-contract', () => {
           },
         },
       ],
+      compiledSummary: {
+        nodes: 2,
+        edges: 1,
+        issues: 0,
+      },
     };
     const withReview = {
       ...valid,
@@ -176,6 +188,18 @@ describe('query-result-contract', () => {
     assert.throws(
       () => assertMaintenancePlanShape({ ...valid, summary: { ...valid.summary, remainingActions: 2 } }),
       /summary\.remainingActions must not exceed filteredActions/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, filters: null }),
+      /filters must be an object/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, filters: { ...valid.filters, executableOnly: 'false' } }),
+      /filters\.executableOnly must be a boolean/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, filters: { ...valid.filters, phases: ['repair', ''] } }),
+      /filters\.phases must be an array of non-empty strings/,
     );
     assert.throws(
       () => assertMaintenancePlanShape({ ...valid, cursor: { ...valid.cursor, hasMore: 'no' } }),
@@ -361,6 +385,14 @@ describe('query-result-contract', () => {
         nextReviewAction: { ...withReview.nextReviewAction, executable: true },
       }),
       /nextReviewAction\.executable must match the first page action/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, limited: 'no' }),
+      /limited must be a boolean/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, compiledSummary: { nodes: -1, edges: 1, issues: 0 } }),
+      /compiledSummary\.nodes must be a non-negative integer when present/,
     );
   });
 
