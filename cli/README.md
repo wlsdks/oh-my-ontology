@@ -65,6 +65,7 @@ pnpm test:cli:lib
 pnpm test:cli:mcp-call
 pnpm test:contracts
 pnpm integration:cli:mcp-verify
+pnpm integration:cli:growth
 pnpm integration:cli:maintenance
 pnpm test:mcp:docs
 pnpm test:mcp:maintenance
@@ -79,6 +80,7 @@ pnpm test:dogfood:script-refs
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
+pnpm dogfood:growth
 pnpm dogfood:status
 pnpm test:dogfood:status
 pnpm dogfood:verify
@@ -97,6 +99,7 @@ spawning the full CLI.
 parity without running unrelated UI or E2E gates.
 `integration:cli:mcp-verify` runs only the installed MCP verification wrapper
 subset inside the spawn-heavy CLI integration file.
+`integration:cli:growth` runs only the CLI growth_plan wrapper, candidate rendering, malformed payload, and argument-contract cases.
 `integration:cli:maintenance` runs only the CLI maintenance command and
 maintenance-related installed verify integration cases. `test:mcp:docs` checks
 README and dogfood ontology documentation drift. `test:mcp:package` checks
@@ -129,7 +132,7 @@ intentional full run. Node test option values such as `--test-concurrency 1`
 or `--test-timeout 1000` are not counted as targets, and a missing split option
 value cannot leak the following option value into the target list.
 `integration:cli:compile` narrows CLI compile / `--fix` canonicalization contracts
-without running unrelated CLI routes. `dogfood:compile`
+without running unrelated CLI routes. `integration:cli:growth` narrows the CLI growth_plan wrapper, candidate rendering, malformed payload, and argument contracts. `dogfood:compile`
 is the shortest root-checkout compiler summary JSON snapshot, `dogfood:compile-fix`
 runs root-checkout `compile --fix`, fails if canonicalization leaves a docs/ontology diff,
 and ends successful runs with `[dogfood:compile-fix] docs/ontology unchanged`,
@@ -137,7 +140,8 @@ and ends successful runs with `[dogfood:compile-fix] docs/ontology unchanged`,
 `test:dogfood:script-refs` checks help text and package script body `pnpm ...` references against root package scripts,
 `test:dogfood:compile-fix` checks that idempotence guard without invoking the full dogfood suite,
 `dogfood:health` is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
-the shortest root-checkout first-contact JSON snapshot, `dogfood:status` always
+the shortest root-checkout first-contact JSON snapshot, `dogfood:growth` is the
+shortest root-checkout growth_plan JSON snapshot, `dogfood:status` always
 runs health + workspace-brief, prints `[dogfood:status] health:N · workspace-brief:N`,
 preserves the first failing exit before escalating, and prints a
 `pnpm dogfood:verify` follow-up hint on failure, `test:dogfood:status` checks

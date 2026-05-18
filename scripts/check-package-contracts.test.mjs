@@ -138,6 +138,10 @@ describe('package contract helpers', () => {
       `${focusedNode} --test-name-pattern "mcp-verify" cli/src/integration.test.mjs`,
     );
     assert.equal(
+      pkg.scripts?.['integration:cli:growth'],
+      `${focusedNode} --test-name-pattern "growth" cli/src/integration.test.mjs`,
+    );
+    assert.equal(
       pkg.scripts?.['integration:cli:maintenance'],
       `${focusedNode} --test-name-pattern "maintenance" cli/src/integration.test.mjs`,
     );
@@ -164,6 +168,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['test:dogfood:compile-fix'], 'node --test scripts/dogfood-compile-fix.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:health'], 'node cli/src/index.mjs health docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:brief'], 'node cli/src/index.mjs workspace-brief docs/ontology --json');
+    assert.equal(pkg.scripts?.['dogfood:growth'], 'node cli/src/index.mjs growth docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:status'], 'node scripts/dogfood-status.mjs');
     assert.equal(pkg.scripts?.['test:dogfood:status'], 'node --test scripts/dogfood-status.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:verify'], 'node cli/src/index.mjs mcp-verify docs/ontology --timeout-ms 15000');
@@ -324,6 +329,7 @@ describe('package contract helpers', () => {
       'pnpm test:dogfood:compile-fix',
       'pnpm dogfood:health',
       'pnpm dogfood:brief',
+      'pnpm dogfood:growth',
       'pnpm dogfood:status',
       'pnpm dogfood:status -- --help',
       'pnpm test:dogfood:status',
@@ -334,6 +340,7 @@ describe('package contract helpers', () => {
       'OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk',
       'OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli',
       'pnpm integration:cli:mcp-verify',
+      'pnpm integration:cli:growth',
       'pnpm integration:cli:maintenance',
       'OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp',
       'pnpm integration:mcp:readme',
@@ -349,6 +356,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /pnpm docs-vault:check\s+# static dogfood manifest freshness/);
     assert.match(checksDoc, /pnpm test:docs-vault\s+# focused docs-vault build\/check helper contract/);
     assert.match(checksDoc, /pnpm docs-vault:build\s+# refresh static dogfood manifest and public md/);
+    assert.match(checksDoc, /\| `pnpm integration:cli:growth` \| CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts \|/);
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);
     assert.match(checksDoc, /`pnpm dogfood:compile-fix` runs `compile --fix` against docs\/ontology and fails\s+if it leaves a git diff/);
@@ -1367,6 +1375,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:cli:mcp-call/);
     assert.match(section, /pnpm test:contracts/);
     assert.match(section, /pnpm integration:cli:mcp-verify/);
+    assert.match(section, /pnpm integration:cli:growth/);
     assert.match(section, /pnpm test:mcp:docs/);
     assert.match(section, /pnpm test:mcp:maintenance/);
     assert.match(section, /pnpm test:mcp:package/);
@@ -1399,6 +1408,7 @@ describe('package contract helpers', () => {
     assert.match(section, /spawn failure mapping/);
     assert.match(section, /one-shot MCP call timeout guard/);
     assert.match(section, /installed MCP verification wrapper/);
+    assert.match(section, /CLI growth_plan wrapper/);
     assert.match(section, /documentation drift/);
     assert.match(section, /maintenance_plan filter, cursor, resume,\s+work-queue shape, and bucket \/ next-action formatter contracts/);
     assert.match(section, /shared MCP verify helper contract/);
@@ -1417,6 +1427,7 @@ describe('package contract helpers', () => {
     assert.match(section, /Node test option values such as `--test-concurrency 1`\s+or `--test-timeout 1000` are\s+not counted as targets/);
     assert.match(section, /missing split option\s+value cannot leak the following option value into the target list/);
     assert.match(section, /`integration:cli:compile`\s+narrows CLI compile \/ `--fix` canonicalization contracts/);
+    assert.match(section, /`integration:cli:growth`\s+narrows the CLI growth_plan wrapper, candidate rendering, malformed payload, and argument contracts/);
     assert.match(section, /`dogfood:compile`\s+is the shortest root-checkout compiler summary JSON snapshot/);
     assert.match(section, /`dogfood:compile-fix`\s+runs root-checkout `compile --fix`, fails if canonicalization leaves a docs\/ontology diff,\s+and ends successful runs with `\[dogfood:compile-fix\] docs\/ontology unchanged`/);
     assert.match(section, /`test:dogfood:args`\s+checks shared dogfood shortcut argument helpers without invoking any gate/);
@@ -1424,6 +1435,7 @@ describe('package contract helpers', () => {
     assert.match(section, /`test:dogfood:compile-fix`\s+checks that idempotence guard without invoking the full dogfood suite/);
     assert.match(section, /`dogfood:health`\s+is the shortest root-checkout fail-closed health JSON gate/);
     assert.match(section, /`dogfood:brief`\s+is\s+the shortest root-checkout first-contact JSON snapshot/);
+    assert.match(section, /`dogfood:growth`\s+is the\s+shortest root-checkout growth_plan JSON snapshot/);
     assert.match(section, /`dogfood:status` always\s+runs health \+ workspace-brief, prints `\[dogfood:status\] health:N · workspace-brief:N`,\s+preserves the first failing exit before escalating, and prints a\s+`pnpm dogfood:verify` follow-up hint on failure/);
     assert.match(section, /\[dogfood:status\] health:N · workspace-brief:N/);
     assert.match(section, /`test:dogfood:status`\s+checks\s+that always-run shortcut contract without the full dogfood suite/);
@@ -2390,7 +2402,9 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /narrow CLI argument parser contract/);
     assert.match(regressionSection, /CLI argument parsing 만 바꿀 때는 `pnpm test:cli:lib` 전체보다 이 gate/);
     assert.match(regressionSection, /`pnpm test:mcp:maintenance`/);
+    assert.match(regressionSection, /`pnpm integration:cli:growth`/);
     assert.match(regressionSection, /`pnpm integration:cli:maintenance`/);
+    assert.match(regressionSection, /`pnpm dogfood:growth`/);
     assert.match(regressionSection, /focused CLI shared helper unit contracts/);
     assert.match(regressionSection, /focused MCP maintenance queue contract/);
     assert.match(regressionSection, /CLI maintenance command 와 maintenance 관련 installed verify subset/);

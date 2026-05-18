@@ -74,6 +74,7 @@ verify, or release behavior.
 | `pnpm test:cli:lib` | CLI shared helper contracts |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |
 | `pnpm integration:cli:compile` | CLI compile / `--fix` canonicalization contracts |
+| `pnpm integration:cli:growth` | CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts |
 | `pnpm test:contracts` | Cross-package schema/parser contracts |
 | `pnpm test:mcp:docs` | Explicit root/MCP/CLI/dogfood docs contracts plus Firebase static-hosting guard |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
@@ -111,6 +112,7 @@ pnpm test:dogfood:script-refs
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
+pnpm dogfood:growth
 pnpm dogfood:status
 pnpm test:dogfood:status
 pnpm dogfood:verify
