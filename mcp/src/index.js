@@ -136,6 +136,26 @@ const NODE_KIND_DESCRIPTION = NODE_KIND_VALUES.join(', ');
 const EDGE_TARGET_KIND_DESCRIPTION = EDGE_TARGET_KIND_VALUES.join(', ');
 const POST_WRITE_MAINTENANCE_GUIDANCE =
   'compact `postWriteMaintenance` (maintenance_plan) with count-safe `byPhase` / `bySeverity` / `byKind` queue buckets, action `score`, executable `proposedAction`, and current-page next action pointers';
+const COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    id: NON_BLANK_STRING_SCHEMA,
+    phase: { ...NON_BLANK_STRING_SCHEMA, enum: MAINTENANCE_PHASE_VALUES },
+    kind: { ...NON_BLANK_STRING_SCHEMA, enum: MAINTENANCE_KIND_VALUES },
+    severity: { ...NON_BLANK_STRING_SCHEMA, enum: MAINTENANCE_SEVERITY_VALUES },
+    score: { type: 'number', minimum: 0 },
+    executable: { type: 'boolean' },
+    reason: NON_BLANK_STRING_SCHEMA,
+    proposedAction: { type: ['object', 'null'] },
+    node: { type: 'object' },
+    nodes: { type: 'array', items: { type: 'object' } },
+  },
+  required: ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction'],
+});
+const NULLABLE_COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA = Object.freeze({
+  ...COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA,
+  type: ['object', 'null'],
+});
 const POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA = Object.freeze({
   type: 'object',
   description:
@@ -144,16 +164,43 @@ const POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA = Object.freeze({
     operation: { type: 'string', enum: ['maintenance_plan'] },
     sideEffect: { type: 'boolean' },
     graphHash: { type: 'string' },
-    summary: { type: 'object' },
+    summary: {
+      type: 'object',
+      properties: {
+        totalActions: { type: 'integer', minimum: 0 },
+        filteredActions: { type: 'integer', minimum: 0 },
+        remainingActions: { type: 'integer', minimum: 0 },
+        executableActions: { type: 'integer', minimum: 0 },
+        reviewActions: { type: 'integer', minimum: 0 },
+      },
+      required: ['totalActions', 'filteredActions', 'remainingActions', 'executableActions', 'reviewActions'],
+    },
     filters: { type: 'object' },
-    cursor: { type: 'object' },
+    cursor: {
+      type: 'object',
+      properties: {
+        afterActionId: { type: ['string', 'null'] },
+        found: { type: 'boolean' },
+        reason: { type: ['string', 'null'] },
+        startIndex: { type: ['integer', 'null'], minimum: 0 },
+        nextAfterActionId: { type: ['string', 'null'] },
+        hasMore: { type: 'boolean' },
+      },
+      required: ['afterActionId', 'found', 'reason', 'startIndex', 'nextAfterActionId', 'hasMore'],
+    },
     byPhase: { type: 'object', additionalProperties: { type: 'integer', minimum: 0 } },
     bySeverity: { type: 'object', additionalProperties: { type: 'integer', minimum: 0 } },
     byKind: { type: 'object', additionalProperties: { type: 'integer', minimum: 0 } },
     limited: { type: 'boolean' },
-    nextExecutableAction: { description: 'First executable action in the current compact page, or null.' },
-    nextReviewAction: { description: 'First review action in the current compact page, or null.' },
-    actions: { type: 'array', items: { type: 'object' } },
+    nextExecutableAction: {
+      ...NULLABLE_COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA,
+      description: 'First executable action in the current compact page, or null.',
+    },
+    nextReviewAction: {
+      ...NULLABLE_COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA,
+      description: 'First review action in the current compact page, or null.',
+    },
+    actions: { type: 'array', items: COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA },
   },
   required: [
     'operation',

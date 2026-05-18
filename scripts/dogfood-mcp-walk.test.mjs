@@ -154,10 +154,77 @@ function postWriteMaintenanceSchemaFixture() {
   return {
     type: "object",
     properties: {
+      summary: {
+        type: "object",
+        required: ["totalActions", "filteredActions", "remainingActions", "executableActions", "reviewActions"],
+        properties: {
+          totalActions: { type: "integer", minimum: 0 },
+          filteredActions: { type: "integer", minimum: 0 },
+          remainingActions: { type: "integer", minimum: 0 },
+          executableActions: { type: "integer", minimum: 0 },
+          reviewActions: { type: "integer", minimum: 0 },
+        },
+      },
+      cursor: {
+        type: "object",
+        required: ["afterActionId", "found", "reason", "startIndex", "nextAfterActionId", "hasMore"],
+        properties: {
+          afterActionId: { type: ["string", "null"] },
+          found: { type: "boolean" },
+          reason: { type: ["string", "null"] },
+          startIndex: { type: ["integer", "null"], minimum: 0 },
+          nextAfterActionId: { type: ["string", "null"] },
+          hasMore: { type: "boolean" },
+        },
+      },
       byPhase: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
       bySeverity: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
       byKind: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
-      actions: { type: "array" },
+      actions: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
+          properties: {
+            id: { type: "string" },
+            phase: { type: "string", enum: MAINTENANCE_PHASE_VALUES },
+            kind: { type: "string", enum: MAINTENANCE_KIND_VALUES },
+            severity: { type: "string", enum: MAINTENANCE_SEVERITY_VALUES },
+            score: { type: "number", minimum: 0 },
+            executable: { type: "boolean" },
+            reason: { type: "string" },
+            proposedAction: { type: ["object", "null"] },
+          },
+        },
+      },
+      nextExecutableAction: {
+        type: ["object", "null"],
+        required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
+        properties: {
+          id: { type: "string" },
+          phase: { type: "string", enum: MAINTENANCE_PHASE_VALUES },
+          kind: { type: "string", enum: MAINTENANCE_KIND_VALUES },
+          severity: { type: "string", enum: MAINTENANCE_SEVERITY_VALUES },
+          score: { type: "number", minimum: 0 },
+          executable: { type: "boolean" },
+          reason: { type: "string" },
+          proposedAction: { type: ["object", "null"] },
+        },
+      },
+      nextReviewAction: {
+        type: ["object", "null"],
+        required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
+        properties: {
+          id: { type: "string" },
+          phase: { type: "string", enum: MAINTENANCE_PHASE_VALUES },
+          kind: { type: "string", enum: MAINTENANCE_KIND_VALUES },
+          severity: { type: "string", enum: MAINTENANCE_SEVERITY_VALUES },
+          score: { type: "number", minimum: 0 },
+          executable: { type: "boolean" },
+          reason: { type: "string" },
+          proposedAction: { type: ["object", "null"] },
+        },
+      },
     },
   };
 }
@@ -3871,6 +3938,24 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: patchConceptOutputSchemaDrifted }),
       ["tools/list: patch_concept outputSchema required drift"],
+    );
+    const postWriteSummarySchemaDrifted = makeDogfoodToolsList();
+    delete postWriteSummarySchemaDrifted.tools.find((tool) => tool.name === "patch_concept").outputSchema.properties.postWriteMaintenance.properties.summary.properties.remainingActions.minimum;
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: postWriteSummarySchemaDrifted }),
+      ["tools/list: patch_concept outputSchema postWriteMaintenance summary drift"],
+    );
+    const postWriteCursorSchemaDrifted = makeDogfoodToolsList();
+    postWriteCursorSchemaDrifted.tools.find((tool) => tool.name === "patch_concept").outputSchema.properties.postWriteMaintenance.properties.cursor.properties.hasMore.type = "string";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: postWriteCursorSchemaDrifted }),
+      ["tools/list: patch_concept outputSchema postWriteMaintenance cursor drift"],
+    );
+    const postWriteActionsSchemaDrifted = makeDogfoodToolsList();
+    postWriteActionsSchemaDrifted.tools.find((tool) => tool.name === "patch_concept").outputSchema.properties.postWriteMaintenance.properties.actions.items.properties.executable.type = "string";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: postWriteActionsSchemaDrifted }),
+      ["tools/list: patch_concept outputSchema postWriteMaintenance actions drift"],
     );
     const renameConceptOutputSchemaDrifted = makeDogfoodToolsList();
     renameConceptOutputSchemaDrifted.tools.find((tool) => tool.name === "rename_concept").outputSchema.properties.backlinkUpdates.type = "array";

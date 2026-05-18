@@ -280,6 +280,24 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
   if (schema?.type !== 'object') {
     return `${toolName} outputSchema postWriteMaintenance drift`;
   }
+  const summarySchema = schema.properties?.summary;
+  if (
+    summarySchema?.type !== 'object' ||
+    !sameArray(summarySchema.required, ['totalActions', 'filteredActions', 'remainingActions', 'executableActions', 'reviewActions']) ||
+    summarySchema.properties?.remainingActions?.type !== 'integer' ||
+    summarySchema.properties?.remainingActions?.minimum !== 0
+  ) {
+    return `${toolName} outputSchema postWriteMaintenance summary drift`;
+  }
+  const cursorSchema = schema.properties?.cursor;
+  if (
+    cursorSchema?.type !== 'object' ||
+    !sameArray(cursorSchema.required, ['afterActionId', 'found', 'reason', 'startIndex', 'nextAfterActionId', 'hasMore']) ||
+    cursorSchema.properties?.found?.type !== 'boolean' ||
+    cursorSchema.properties?.hasMore?.type !== 'boolean'
+  ) {
+    return `${toolName} outputSchema postWriteMaintenance cursor drift`;
+  }
   for (const key of ['byPhase', 'bySeverity', 'byKind']) {
     const bucketSchema = schema.properties?.[key];
     if (
@@ -290,7 +308,13 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
       return `${toolName} outputSchema postWriteMaintenance ${key} bucket drift`;
     }
   }
-  if (schema.properties?.actions?.type !== 'array') {
+  if (
+    schema.properties?.actions?.type !== 'array' ||
+    schema.properties.actions.items?.type !== 'object' ||
+    !sameArray(schema.properties.actions.items?.required, ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction']) ||
+    schema.properties.actions.items?.properties?.score?.minimum !== 0 ||
+    schema.properties.actions.items?.properties?.executable?.type !== 'boolean'
+  ) {
     return `${toolName} outputSchema postWriteMaintenance actions drift`;
   }
   return null;

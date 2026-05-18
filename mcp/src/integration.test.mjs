@@ -667,6 +667,27 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       assert.equal(postWriteSchema?.properties?.byPhase?.additionalProperties?.type, "integer", `${toolName} exposes byPhase bucket schema`);
       assert.equal(postWriteSchema?.properties?.bySeverity?.additionalProperties?.type, "integer", `${toolName} exposes bySeverity bucket schema`);
       assert.equal(postWriteSchema?.properties?.byKind?.additionalProperties?.type, "integer", `${toolName} exposes byKind bucket schema`);
+      assert.deepEqual(
+        postWriteSchema?.properties?.summary?.required,
+        ["totalActions", "filteredActions", "remainingActions", "executableActions", "reviewActions"],
+        `${toolName} exposes compact summary schema`,
+      );
+      assert.deepEqual(
+        postWriteSchema?.properties?.cursor?.required,
+        ["afterActionId", "found", "reason", "startIndex", "nextAfterActionId", "hasMore"],
+        `${toolName} exposes maintenance cursor schema`,
+      );
+      assert.deepEqual(
+        postWriteSchema?.properties?.actions?.items?.required,
+        ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
+        `${toolName} exposes compact action row schema`,
+      );
+      assert.equal(postWriteSchema?.properties?.actions?.items?.type, "object", `${toolName} exposes non-null action rows`);
+      assert.deepEqual(
+        postWriteSchema?.properties?.nextExecutableAction?.type,
+        ["object", "null"],
+        `${toolName} exposes nullable next executable action`,
+      );
     }
     const expectedMtimeTools = [
       "add_relation",
