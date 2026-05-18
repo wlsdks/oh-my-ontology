@@ -709,6 +709,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         `${toolName} exposes nullable next executable action`,
       );
       assert.deepEqual(
+        postWriteSchema?.properties?.nextExecutableAction?.required,
+        ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
+        `${toolName} exposes compact next executable action schema`,
+      );
+      assert.deepEqual(
         postWriteSchema?.properties?.nextReviewAction?.type,
         ["object", "null"],
         `${toolName} exposes nullable next review action`,
