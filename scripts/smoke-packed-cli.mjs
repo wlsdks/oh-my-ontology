@@ -501,6 +501,8 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /pnpm integration:cli:mcp-verify/);
   assert.match(cliMcpVerifyHelp.stdout, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief/);

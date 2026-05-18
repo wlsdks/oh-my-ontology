@@ -95,6 +95,7 @@ export function dogfoodUsage() {
     "",
     "Lighter dogfood gates:",
     "  pnpm dogfood:compile       Fast compile_ontology summary over docs/ontology.",
+    "  pnpm dogfood:compile-fix   compile --fix idempotence gate over docs/ontology.",
     "  pnpm dogfood:health        Fail-closed health JSON gate over docs/ontology.",
     "  pnpm dogfood:brief         First-contact workspace_brief JSON snapshot over docs/ontology.",
     "  pnpm dogfood:status        Human-readable health + workspace_brief over docs/ontology.",

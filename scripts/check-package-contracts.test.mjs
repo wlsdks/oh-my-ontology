@@ -384,6 +384,8 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /pnpm test:cli:mcp-call\s+CLI MCP wrapper parser\/spawn\/structuredContent contract checks/);
     assert.match(result.stdout, /pnpm integration:cli:mcp-verify/);
     assert.match(result.stdout, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);
+    assert.match(result.stdout, /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate/);
+    assert.match(result.stdout, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
     assert.match(result.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
     assert.match(result.stdout, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
     assert.match(result.stdout, /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief/);
@@ -1996,6 +1998,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm test:cli:mcp-call\\s\+CLI MCP wrapper parser\\\/spawn\\\/structuredContent contract checks/);
     assert.match(smoke, /pnpm integration:cli:mcp-verify/);
     assert.match(smoke, /pnpm dogfood:compile\\s\+Root checkout dogfood vault compile_ontology summary/);
+    assert.match(smoke, /pnpm dogfood:compile-fix\\s\+Root checkout dogfood vault compile --fix idempotence gate/);
+    assert.match(smoke, /pnpm test:dogfood:compile-fix\\s\+Narrow dogfood compile --fix idempotence runner contract/);
     assert.match(smoke, /pnpm dogfood:health\\s\+Root checkout dogfood vault health gate/);
     assert.match(smoke, /pnpm dogfood:brief\\s\+Root checkout dogfood vault workspace_brief snapshot/);
     assert.match(smoke, /pnpm dogfood:status\\s\+Root checkout dogfood vault human-readable health \\\+ brief/);

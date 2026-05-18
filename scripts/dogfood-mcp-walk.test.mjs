@@ -3700,6 +3700,7 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
     assert.match(usage, /Lighter dogfood gates:/);
     assert.match(usage, /pnpm dogfood:compile\s+Fast compile_ontology summary over docs\/ontology/);
+    assert.match(usage, /pnpm dogfood:compile-fix\s+compile --fix idempotence gate over docs\/ontology/);
     assert.match(usage, /pnpm dogfood:health\s+Fail-closed health JSON gate over docs\/ontology/);
     assert.match(usage, /pnpm dogfood:brief\s+First-contact workspace_brief JSON snapshot over docs\/ontology/);
     assert.match(usage, /pnpm dogfood:status\s+Human-readable health \+ workspace_brief over docs\/ontology/);
