@@ -30,6 +30,10 @@ For user-facing UI changes, add the relevant Playwright route check.
 | Dogfood MCP smoke | `pnpm dogfood:verify` | `pnpm dogfood:walk` |
 | Packed CLI release | `pnpm smoke:packed-cli` | `pnpm test:mcp:package` |
 
+`pnpm test:mcp:docs` also guards Firebase Hosting config as static-only:
+`firebase.json` must stay Hosting-only, point at `out/`, and not add Functions,
+Firestore, Storage, emulators, or rewrites.
+
 ## Vault Checks
 
 ```bash

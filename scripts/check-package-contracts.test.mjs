@@ -204,6 +204,7 @@ describe('package contract helpers', () => {
       pkg.scripts?.['test:mcp:docs'] ?? '',
       /^node --test --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
     );
+    assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /Firebase static hosting/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /dogfood MCP docs/);
     assert.match(
       pkg.scripts?.['test:mcp:package'] ?? '',
@@ -267,8 +268,52 @@ describe('package contract helpers', () => {
     }
 
     assert.match(checksDoc, /Use `pnpm dogfood:test` only when the dogfood helper itself changed/);
+    assert.match(checksDoc, /`pnpm test:mcp:docs` also guards Firebase Hosting config as static-only/);
     assert.match(checksDoc, /Do not append it after `pnpm integration:\* --`/);
     assert.match(checksDoc, /strict argument\/enum handling/);
+  });
+
+  it('keeps Firebase static hosting config local-first', () => {
+    const firebaseConfig = JSON.parse(readFileSync('firebase.json', 'utf-8'));
+    const firebaserc = JSON.parse(readFileSync('.firebaserc', 'utf-8'));
+    const firebaseIgnore = readFileSync('.firebaseignore', 'utf-8');
+    const gitignore = readFileSync('.gitignore', 'utf-8');
+    const deployment = readFileSync('docs/DEPLOYMENT.md', 'utf-8');
+    const skill = readFileSync('.claude/skills/firebase-deploy/SKILL.md', 'utf-8');
+    const capability = readFileSync('docs/ontology/capabilities/firebase-deploy-skill.md', 'utf-8');
+
+    const forbiddenTopLevel = ['functions', 'firestore', 'storage', 'database', 'emulators', 'extensions'];
+    assert.deepEqual(
+      forbiddenTopLevel.filter((key) => Object.hasOwn(firebaseConfig, key)),
+      [],
+      'firebase.json must remain Hosting-only',
+    );
+    assert.equal(Array.isArray(firebaseConfig.hosting), false, 'firebase.json must keep a single Hosting target');
+    assert.deepEqual(
+      Object.keys(firebaseConfig.hosting ?? {}).sort(),
+      ['cleanUrls', 'headers', 'ignore', 'public', 'trailingSlash'].sort(),
+    );
+    assert.equal(firebaseConfig.hosting?.public, 'out');
+    assert.equal(firebaseConfig.hosting?.cleanUrls, true);
+    assert.equal(firebaseConfig.hosting?.trailingSlash, true);
+    assert.equal(Object.hasOwn(firebaseConfig.hosting ?? {}, 'rewrites'), false);
+    assert.equal(Object.hasOwn(firebaseConfig.hosting ?? {}, 'source'), false);
+    assert.equal(Object.hasOwn(firebaseConfig.hosting ?? {}, 'frameworksBackend'), false);
+    assert.equal(firebaserc.projects?.default, 'oh-my-ontology');
+
+    for (const entry of ['node_modules/', '.next/', 'out/', '.git/', '.local-credentials/', '*.log']) {
+      assert.match(firebaseIgnore, new RegExp(`^${regexEscape(entry)}$`, 'm'));
+    }
+    for (const entry of ['.env.prod', '.firebase/', '.local-credentials/']) {
+      assert.match(gitignore, new RegExp(`^${regexEscape(entry)}$`, 'm'));
+    }
+
+    assert.match(deployment, /does not configure rewrites, Functions, Firestore, Storage, or auth/);
+    assert.match(skill, /firebase deploy --only hosting/);
+    assert.match(skill, /no Functions, Firestore, Storage, Auth, emulators, or server runtime/);
+    assert.match(skill, /pnpm test:mcp:docs/);
+    assert.match(capability, /static host only/);
+    assert.match(capability, /Functions, Firestore, Storage, Auth, or committed credentials/);
   });
 
   it('keeps the root README mcp-verify shortcut executable from source checkout', () => {

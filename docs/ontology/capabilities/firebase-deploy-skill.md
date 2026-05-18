@@ -15,3 +15,7 @@ identifiers, runs the docs/type/build/bundle gates, deploys with
 
 The skill explicitly keeps Firebase as a static host only. It blocks accidental
 drift toward Functions, Firestore, Storage, Auth, or committed credentials.
+
+`pnpm test:mcp:docs` now guards that contract by checking `firebase.json`,
+`.firebaserc`, `.firebaseignore`, `.gitignore`, the deploy guide, and this skill
+doc together.

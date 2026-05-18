@@ -42,6 +42,10 @@ firebase deploy --only hosting
 /usr/bin/curl -I -L --max-time 15 "$FIREBASE_HOSTING_URL/sitemap.xml"
 ```
 
+`pnpm test:mcp:docs` is part of this deploy path because it fails if
+`firebase.json` stops being static Hosting-only or if local deploy credentials
+stop being ignored.
+
 If `firebase` is not installed, use `npx firebase-tools` for `use` and
 `deploy`, but keep the same arguments. If Firebase login is missing, run
 `firebase login` interactively only when the user is present; otherwise stop
@@ -54,6 +58,8 @@ Deployment is complete only when all are true:
 - `firebase deploy --only hosting` reports `Deploy complete`.
 - The hosting URL returns `HTTP 200` for `/en/`.
 - `/sitemap.xml` returns `HTTP 200`.
+- `pnpm test:mcp:docs` proves Firebase config is Hosting-only and local deploy
+  credentials remain ignored.
 - `pnpm bundle:check` still reports Firebase SDK chunk `0`.
 
 For UI-sensitive landing changes, also run a short Playwright check against
