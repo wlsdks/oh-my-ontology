@@ -1901,7 +1901,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`concepts\[n\] duplicate slug in input batch; first seen at concepts\[m\]`/);
     assert.match(doc, /strict relation filter \/ `relation_check` row/);
     assert.match(doc, /`dependencyTypes items depend_on->depends_on; allowed 9`/);
-    assert.match(doc, /`type depend_on->depends_on; allowed 9`/);
+    assert.match(doc, /`relation_check` 의 `type depend_on->depends_on; allowed 9`/);
+    assert.match(doc, /single-writer `add_relation` 의 `type depend_on->depends_on; allowed 8`/);
     assert.match(doc, /`Received arguments: \.\.\.`/);
     assert.match(doc, /`tools\/list` 의 `annotations\.title`/);
     assert.match(doc, /`annotations\.readOnlyHint`/);

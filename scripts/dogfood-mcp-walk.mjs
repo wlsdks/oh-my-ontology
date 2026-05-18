@@ -5745,6 +5745,7 @@ async function main() {
   const strictAddRelation = responses.find((response) => response.id === 70);
   const strictAddRelationText = strictAddRelation?.result?.content?.[0]?.text || "";
   console.log(`  add_relation type rejected: ${strictAddRelation?.result?.isError === true}`);
+  console.log(`  repair: ${strictRepairSummary(strictAddRelation)}`);
   if (strictAddRelationText) {
     console.log(`  ${strictAddRelationText}`);
   }
