@@ -136,6 +136,15 @@ const NODE_KIND_DESCRIPTION = NODE_KIND_VALUES.join(', ');
 const EDGE_TARGET_KIND_DESCRIPTION = EDGE_TARGET_KIND_VALUES.join(', ');
 const POST_WRITE_MAINTENANCE_GUIDANCE =
   'compact `postWriteMaintenance` (maintenance_plan) with count-safe `byPhase` / `bySeverity` / `byKind` queue buckets, action `score`, executable `proposedAction`, and current-page `nextExecutableAction` / `nextReviewAction` pointers';
+const COMPACT_MAINTENANCE_NODE_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    slug: NON_BLANK_STRING_SCHEMA,
+    kind: { ...NON_BLANK_STRING_SCHEMA, enum: NODE_KIND_VALUES },
+    title: NON_BLANK_STRING_SCHEMA,
+  },
+  required: ['slug', 'kind', 'title'],
+});
 const COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA = Object.freeze({
   type: 'object',
   properties: {
@@ -147,8 +156,12 @@ const COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA = Object.freeze({
     executable: { type: 'boolean' },
     reason: NON_BLANK_STRING_SCHEMA,
     proposedAction: { type: ['object', 'null'] },
-    node: { type: 'object' },
-    nodes: { type: 'array', items: { type: 'object' } },
+    node: COMPACT_MAINTENANCE_NODE_OUTPUT_SCHEMA,
+    nodes: {
+      type: ['array', 'object'],
+      items: COMPACT_MAINTENANCE_NODE_OUTPUT_SCHEMA,
+      additionalProperties: COMPACT_MAINTENANCE_NODE_OUTPUT_SCHEMA,
+    },
   },
   required: ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction'],
 });

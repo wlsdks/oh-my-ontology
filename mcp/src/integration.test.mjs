@@ -704,6 +704,26 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       );
       assert.equal(postWriteSchema?.properties?.actions?.items?.type, "object", `${toolName} exposes non-null action rows`);
       assert.deepEqual(
+        postWriteSchema?.properties?.actions?.items?.properties?.node?.required,
+        ["slug", "kind", "title"],
+        `${toolName} exposes compact action node schema`,
+      );
+      assert.deepEqual(
+        postWriteSchema?.properties?.actions?.items?.properties?.nodes?.type,
+        ["array", "object"],
+        `${toolName} exposes array or keyed compact action nodes`,
+      );
+      assert.deepEqual(
+        postWriteSchema?.properties?.actions?.items?.properties?.nodes?.items?.required,
+        ["slug", "kind", "title"],
+        `${toolName} exposes array compact action node rows`,
+      );
+      assert.deepEqual(
+        postWriteSchema?.properties?.actions?.items?.properties?.nodes?.additionalProperties?.required,
+        ["slug", "kind", "title"],
+        `${toolName} exposes keyed compact action node rows`,
+      );
+      assert.deepEqual(
         postWriteSchema?.properties?.nextExecutableAction?.type,
         ["object", "null"],
         `${toolName} exposes nullable next executable action`,

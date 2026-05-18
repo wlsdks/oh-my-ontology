@@ -332,7 +332,11 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
     schema.properties.actions.items?.type !== 'object' ||
     !sameArray(schema.properties.actions.items?.required, compactActionRequired) ||
     schema.properties.actions.items?.properties?.score?.minimum !== 0 ||
-    schema.properties.actions.items?.properties?.executable?.type !== 'boolean'
+    schema.properties.actions.items?.properties?.executable?.type !== 'boolean' ||
+    schema.properties.actions.items?.properties?.node?.properties?.slug?.type !== 'string' ||
+    !sameArray(schema.properties.actions.items?.properties?.nodes?.type, ['array', 'object']) ||
+    schema.properties.actions.items?.properties?.nodes?.items?.properties?.slug?.type !== 'string' ||
+    schema.properties.actions.items?.properties?.nodes?.additionalProperties?.properties?.slug?.type !== 'string'
   ) {
     return `${toolName} outputSchema postWriteMaintenance actions drift`;
   }

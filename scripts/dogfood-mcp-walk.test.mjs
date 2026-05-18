@@ -151,6 +151,31 @@ function relationArrayPatchSchemaFixture() {
 }
 
 function postWriteMaintenanceSchemaFixture() {
+  const compactNodeSchema = {
+    type: "object",
+    required: ["slug", "kind", "title"],
+    properties: {
+      slug: { type: "string" },
+      kind: { type: "string", enum: NODE_KIND_VALUES },
+      title: { type: "string" },
+    },
+  };
+  const compactActionProperties = {
+    id: { type: "string" },
+    phase: { type: "string", enum: MAINTENANCE_PHASE_VALUES },
+    kind: { type: "string", enum: MAINTENANCE_KIND_VALUES },
+    severity: { type: "string", enum: MAINTENANCE_SEVERITY_VALUES },
+    score: { type: "number", minimum: 0 },
+    executable: { type: "boolean" },
+    reason: { type: "string" },
+    proposedAction: { type: ["object", "null"] },
+    node: compactNodeSchema,
+    nodes: {
+      type: ["array", "object"],
+      items: compactNodeSchema,
+      additionalProperties: compactNodeSchema,
+    },
+  };
   return {
     type: "object",
     required: [
@@ -200,45 +225,18 @@ function postWriteMaintenanceSchemaFixture() {
         items: {
           type: "object",
           required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
-          properties: {
-            id: { type: "string" },
-            phase: { type: "string", enum: MAINTENANCE_PHASE_VALUES },
-            kind: { type: "string", enum: MAINTENANCE_KIND_VALUES },
-            severity: { type: "string", enum: MAINTENANCE_SEVERITY_VALUES },
-            score: { type: "number", minimum: 0 },
-            executable: { type: "boolean" },
-            reason: { type: "string" },
-            proposedAction: { type: ["object", "null"] },
-          },
+          properties: compactActionProperties,
         },
       },
       nextExecutableAction: {
         type: ["object", "null"],
         required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
-        properties: {
-          id: { type: "string" },
-          phase: { type: "string", enum: MAINTENANCE_PHASE_VALUES },
-          kind: { type: "string", enum: MAINTENANCE_KIND_VALUES },
-          severity: { type: "string", enum: MAINTENANCE_SEVERITY_VALUES },
-          score: { type: "number", minimum: 0 },
-          executable: { type: "boolean" },
-          reason: { type: "string" },
-          proposedAction: { type: ["object", "null"] },
-        },
+        properties: compactActionProperties,
       },
       nextReviewAction: {
         type: ["object", "null"],
         required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
-        properties: {
-          id: { type: "string" },
-          phase: { type: "string", enum: MAINTENANCE_PHASE_VALUES },
-          kind: { type: "string", enum: MAINTENANCE_KIND_VALUES },
-          severity: { type: "string", enum: MAINTENANCE_SEVERITY_VALUES },
-          score: { type: "number", minimum: 0 },
-          executable: { type: "boolean" },
-          reason: { type: "string" },
-          proposedAction: { type: ["object", "null"] },
-        },
+        properties: compactActionProperties,
       },
     },
   };
