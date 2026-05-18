@@ -148,6 +148,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['dogfood:verify'], 'node cli/src/index.mjs mcp-verify docs/ontology --timeout-ms 15000');
     assert.equal(pkg.scripts?.['dogfood:help'], 'node scripts/dogfood-mcp-walk.mjs --help');
     assert.equal(pkg.scripts?.['dogfood:test'], 'node --test scripts/dogfood-mcp-walk.test.mjs');
+    assert.equal(pkg.scripts?.['test:cli:args'], 'node --test cli/src/lib/cli-args.test.mjs');
     assert.equal(pkg.scripts?.['test:cli:lib'], 'node --test cli/src/lib/*.test.mjs');
     assert.equal(pkg.scripts?.['test:cli:mcp-call'], 'node --test cli/src/lib/mcp-call.test.mjs');
     assert.equal(pkg.scripts?.['test:contracts'], 'vitest run tests/contract');
@@ -247,6 +248,7 @@ describe('package contract helpers', () => {
       'pnpm build',
       'pnpm bundle:check',
       'pnpm package:check',
+      'pnpm test:cli:args',
       'pnpm test:cli:lib',
       'pnpm test:cli:mcp-call',
       'pnpm test:contracts',
@@ -2025,6 +2027,9 @@ describe('package contract helpers', () => {
     assert.match(doc, /`structuredContent` 가 없는 경우에만 text JSON 으로 fallback/);
     assert.match(doc, /cli\/src\/lib\/mcp-call\.test\.mjs/);
     assert.match(regressionSection, /`pnpm test:cli:lib`/);
+    assert.match(regressionSection, /`pnpm test:cli:args`/);
+    assert.match(regressionSection, /narrow CLI argument parser contract/);
+    assert.match(regressionSection, /CLI argument parsing 만 바꿀 때는 `pnpm test:cli:lib` 전체보다 이 gate/);
     assert.match(regressionSection, /`pnpm test:mcp:maintenance`/);
     assert.match(regressionSection, /`pnpm integration:cli:maintenance`/);
     assert.match(regressionSection, /focused CLI shared helper unit contracts/);

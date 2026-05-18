@@ -65,6 +65,7 @@ verify, or release behavior.
 | Command | Use when |
 |---|---|
 | `pnpm package:check` | Package files, entrypoints, docs contracts |
+| `pnpm test:cli:args` | CLI argument parser contracts |
 | `pnpm test:cli:lib` | CLI shared helper contracts |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |
 | `pnpm test:contracts` | Cross-package schema/parser contracts |
