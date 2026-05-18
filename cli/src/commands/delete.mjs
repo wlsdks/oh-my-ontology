@@ -57,8 +57,9 @@ export async function runDelete(args) {
         `${COLORS.dim}(${backlinks.length} backlink(s)${backlinks.length > 0 ? ' — would block without --force' : ''})${COLORS.reset}\n`,
     );
     for (const bl of backlinks) {
+      const titleText = bl.title && bl.title !== bl.slug ? ` ${COLORS.dim}— ${bl.title}${COLORS.reset}` : '';
       process.stdout.write(
-        `  ${COLORS.cyan}${bl.slug}${COLORS.reset}` +
+        `  ${COLORS.cyan}${bl.slug}${COLORS.reset}${titleText}` +
           (Array.isArray(bl.matchedKeys)
             ? ` ${COLORS.dim}(${bl.matchedKeys.join(', ')})${COLORS.reset}`
             : '') +

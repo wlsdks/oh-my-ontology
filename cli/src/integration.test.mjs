@@ -3653,6 +3653,8 @@ await test('delete — backlinks 있으면 dry-run 에서 경고', async () => {
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /dry-run/);
     assert.match(clean, /backlink/);
+    assert.match(clean, /capabilities\/bar\s+— Bar/);
+    assert.match(clean, /domains\/auth\s+— Auth/);
     assert.match(clean, /--force/);
   } finally {
     rmSync(root, { recursive: true, force: true });
