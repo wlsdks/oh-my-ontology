@@ -497,19 +497,25 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /pnpm integration:cli:mcp-verify/);
   assert.match(clean, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);
   assert.match(clean, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);
-  assert.match(clean, /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate/);
+  assert.match(
+    clean,
+    /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate; success ends with \[dogfood:compile-fix\] docs\/ontology unchanged/,
+  );
   assert.match(clean, /pnpm test:dogfood:args\s+Narrow dogfood shortcut argument helper contract/);
   assert.match(clean, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference contract/);
   assert.match(clean, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
   assert.match(clean, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
   assert.match(clean, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
-  assert.match(clean, /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief/);
+  assert.match(
+    clean,
+    /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief; ends with \[dogfood:status\] health:N · workspace-brief:N/,
+  );
   assert.match(clean, /pnpm test:dogfood:status\s+Narrow dogfood status shortcut runner contract/);
   assert.match(clean, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
   assert.match(clean, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+Source-checkout dogfood verify with explicit args/);
   assert.match(clean, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);
   assert.match(clean, /pnpm test:mcp:verify\s+MCP verify helper contract without the full integration suite/);
-  assert.match(clean, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
+  assert.match(clean, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-tool-inventory\/initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
   assert.match(clean, /pnpm test:mcp:verify:timeout/);
   assert.match(clean, /Narrow MCP verify timeout\/startup\/help diagnostics/);
   assertPnpmScriptsExist(clean, ROOT_PKG.scripts);

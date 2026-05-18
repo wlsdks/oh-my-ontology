@@ -455,13 +455,19 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /pnpm test:cli:mcp-call\s+CLI MCP wrapper parser\/spawn\/structuredContent contract checks/);
     assert.match(result.stdout, /pnpm integration:cli:mcp-verify/);
     assert.match(result.stdout, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);
-    assert.match(result.stdout, /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate/);
+    assert.match(
+      result.stdout,
+      /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate; success ends with \[dogfood:compile-fix\] docs\/ontology unchanged/,
+    );
     assert.match(result.stdout, /pnpm test:dogfood:args\s+Narrow dogfood shortcut argument helper contract/);
     assert.match(result.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference contract/);
     assert.match(result.stdout, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
     assert.match(result.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
     assert.match(result.stdout, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
-    assert.match(result.stdout, /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief/);
+    assert.match(
+      result.stdout,
+      /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief; ends with \[dogfood:status\] health:N · workspace-brief:N/,
+    );
     assert.match(result.stdout, /pnpm test:dogfood:status\s+Narrow dogfood status shortcut runner contract/);
     assert.match(result.stdout, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
     assert.match(result.stdout, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+Source-checkout dogfood verify with explicit args/);
@@ -2184,12 +2190,12 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm test:cli:mcp-call\\s\+CLI MCP wrapper parser\\\/spawn\\\/structuredContent contract checks/);
     assert.match(smoke, /pnpm integration:cli:mcp-verify/);
     assert.match(smoke, /pnpm dogfood:compile\\s\+Root checkout dogfood vault compile_ontology summary/);
-    assert.match(smoke, /pnpm dogfood:compile-fix\\s\+Root checkout dogfood vault compile --fix idempotence gate/);
+    assert.match(smoke, /pnpm dogfood:compile-fix\\s\+Root checkout dogfood vault compile --fix idempotence gate; success ends with \\\[dogfood:compile-fix\\\] docs\\\/ontology unchanged/);
     assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference contract/);
     assert.match(smoke, /pnpm test:dogfood:compile-fix\\s\+Narrow dogfood compile --fix idempotence runner contract/);
     assert.match(smoke, /pnpm dogfood:health\\s\+Root checkout dogfood vault health gate/);
     assert.match(smoke, /pnpm dogfood:brief\\s\+Root checkout dogfood vault workspace_brief snapshot/);
-    assert.match(smoke, /pnpm dogfood:status\\s\+Root checkout dogfood vault human-readable health \\\+ brief/);
+    assert.match(smoke, /pnpm dogfood:status\\s\+Root checkout dogfood vault human-readable health \\\+ brief; ends with \\\[dogfood:status\\\] health:N · workspace-brief:N/);
     assert.match(smoke, /pnpm test:dogfood:status\\s\+Narrow dogfood status shortcut runner contract/);
     assert.match(smoke, /pnpm dogfood:verify\\s\+Root checkout dogfood vault verify shortcut/);
     assert.match(smoke, /pnpm cli:mcp-verify docs\\\/ontology --timeout-ms 15000\\s\+Source-checkout dogfood verify with explicit args/);
@@ -2365,16 +2371,18 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /`mcp-verify --help` graph-query smoke \/ direct read smoke set\(`get_concept`, `get_concepts`, `query_concepts`, limited `query_concepts`, `analyze_repo_structure`, `infer_imports`, `find_neighbors`, `find_path` 포함\) \/ tools\/list inventory name \/ schema strictness \/ annotation coverage \/ strict argument\/enum smoke \/ relation filter \/ `relation_check` closest-value rejection \/ batch writer row-isolation smoke \/ destructive dry-run smoke/);
     assert.match(regressionSection, /root source-checkout shortcut `pnpm dogfood:compile`/);
     assert.match(regressionSection, /`compile --summary --json` compiler snapshot/);
+    assert.match(regressionSection, /`pnpm dogfood:compile-fix` 는 docs\/ontology 에 `compile --fix` 를 실행한 뒤 canonicalization 이 git diff 를 남기면 실패하고 성공 시 `\[dogfood:compile-fix\] docs\/ontology unchanged` 요약으로 끝나며/);
     assert.match(regressionSection, /`pnpm dogfood:health` 는 docs\/ontology 의 `health --json` fail-closed health gate/);
     assert.match(regressionSection, /`pnpm dogfood:brief` 는 docs\/ontology 의 `workspace-brief --json` first-contact snapshot/);
     assert.match(regressionSection, /`pnpm dogfood:status` 는 health 가 non-zero 여도 workspace-brief 를 계속 실행한 뒤 첫 실패 exit code 를 보존/);
     assert.match(regressionSection, /\[dogfood:status\] health:N · workspace-brief:N/);
+    assert.match(regressionSection, /`pnpm cli:mcp-verify -- --help` 는[\s\S]*`dogfood:compile-fix` \/ `dogfood:status` 의 성공 마지막 줄까지 보여줘/);
     assert.match(regressionSection, /`pnpm test:dogfood:status` 는 그 shortcut 계약만 spawn 없이 검증/);
     assert.match(regressionSection, /`workspace-brief --json` first-contact snapshot/);
     assert.match(regressionSection, /`pnpm dogfood:verify` 는 반복 dogfood vault 검증용 full gate/);
     assert.match(regressionSection, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`/);
     assert.match(regressionSection, /`pnpm cli:mcp-verify -- --help`/);
-    assert.match(regressionSection, /Focused checks 에 `pnpm test:cli:args` 를 먼저 보여줘/);
+    assert.match(regressionSection, /Focused checks 에 `pnpm test:cli:args` 를 먼저 보여주/);
     assert.match(regressionSection, /argument parsing 변경 시 더 큰 CLI helper suite 로 바로 뛰지 않게 한다/);
     assert.match(regressionSection, /vault 인자는 추가 `--` 없이 넘기고 help flag 에만 `-- --help`/);
     assert.match(regressionSection, /timeout retry hint 는 `--vault <path>` 를 보존/);

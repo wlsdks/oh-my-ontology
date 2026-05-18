@@ -256,20 +256,20 @@ function printUsage(output = process.stderr) {
       `  pnpm test:cli:mcp-call          CLI MCP wrapper parser/spawn/structuredContent contract checks.\n` +
       `  pnpm integration:cli:mcp-verify    Installed CLI mcp-verify wrapper flow/help/failure checks.\n` +
       `  pnpm dogfood:compile              Root checkout dogfood vault compile_ontology summary.\n` +
-      `  pnpm dogfood:compile-fix          Root checkout dogfood vault compile --fix idempotence gate.\n` +
+      `  pnpm dogfood:compile-fix          Root checkout dogfood vault compile --fix idempotence gate; success ends with [dogfood:compile-fix] docs/ontology unchanged.\n` +
       `  pnpm test:dogfood:args            Narrow dogfood shortcut argument helper contract.\n` +
       `  pnpm test:dogfood:script-refs     Narrow help/package-script reference contract.\n` +
       `  pnpm test:dogfood:compile-fix     Narrow dogfood compile --fix idempotence runner contract.\n` +
       `  pnpm dogfood:health               Root checkout dogfood vault health gate.\n` +
       `  pnpm dogfood:brief                Root checkout dogfood vault workspace_brief snapshot.\n` +
-      `  pnpm dogfood:status               Root checkout dogfood vault human-readable health + brief.\n` +
+      `  pnpm dogfood:status               Root checkout dogfood vault human-readable health + brief; ends with [dogfood:status] health:N · workspace-brief:N.\n` +
       `  pnpm test:dogfood:status          Narrow dogfood status shortcut runner contract.\n` +
       `  pnpm dogfood:verify               Root checkout dogfood vault verify shortcut.\n` +
       `  pnpm cli:mcp-verify docs/ontology --timeout-ms 15000\n` +
       `                                      Source-checkout dogfood verify with explicit args.\n` +
       `  pnpm cli:mcp-verify -- --help     Source-checkout shortcut for this help from the repo root.\n` +
       `  pnpm test:mcp:verify              MCP verify helper contract without the full integration suite.\n` +
-      `  pnpm test:mcp:verify:first-contact Narrow first-contact initialize-safety-recovery/unknown-tool/write-safety/health-summary/advisory/read/sample-shape helper gates.\n` +
+      `  pnpm test:mcp:verify:first-contact Narrow first-contact initialize-tool-inventory/initialize-safety-recovery/unknown-tool/write-safety/health-summary/advisory/read/sample-shape helper gates.\n` +
       `  pnpm test:mcp:verify:timeout       Narrow MCP verify timeout/startup/help diagnostics.\n`,
   );
 }
