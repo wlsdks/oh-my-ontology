@@ -36,6 +36,7 @@ import {
   packageEntrypoints,
   parseScriptFileRefs,
 } from './check-package-contracts.mjs';
+import { assertPnpmScriptsExist } from './lib/pnpm-script-refs.mjs';
 import { dogfoodVaultCensus, dogfoodVaultCensusFromDocs } from './lib/vault-census.mjs';
 
 function withPackage(pkg, files, fn) {
@@ -325,6 +326,14 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /instead\s+of a broad `README` token/);
     assert.match(checksDoc, /Do not append it after `pnpm integration:\* --`/);
     assert.match(checksDoc, /strict argument\/enum handling/);
+
+    const rootReadme = readFileSync('README.md', 'utf-8');
+    const mcpReadme = readFileSync('mcp/README.md', 'utf-8');
+    const cliReadme = readFileSync('cli/README.md', 'utf-8');
+    assertPnpmScriptsExist(
+      [rootReadme, checksDoc, mcpReadme, cliReadme].join('\n'),
+      JSON.parse(readFileSync('package.json', 'utf-8')).scripts,
+    );
   });
 
   it('keeps Firebase static hosting config local-first', () => {
