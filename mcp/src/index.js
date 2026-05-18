@@ -3253,9 +3253,7 @@ function addConcept({ slug, kind, title, domain, capabilities, elements, body },
     throw new Error('title must be a non-empty string.');
   }
   if (!ADD_CONCEPT_KINDS.has(kind)) {
-    throw new Error(
-      `Unknown kind: ${kind}. project / domain / capability / element / document 중 하나여야 합니다.`,
-    );
+    throw new Error(formatAllowedValueError('kind', kind, [...ADD_CONCEPT_KINDS]));
   }
   // R14 — schema 가 kind 별 양식 (project: domains/capabilities/elements 빈
   // 배열, capability: elements 빈 배열, …) 을 채워 호출자가 부분 정보만 줘도

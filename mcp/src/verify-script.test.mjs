@@ -752,6 +752,32 @@ describe('verify.mjs first-contact gates', () => {
                   changed: { type: 'boolean' },
                   warnings: { type: 'array', items: { type: 'string' } },
                   error: { type: 'string' },
+                  errorCode: { type: 'string' },
+                  valueName: { type: 'string' },
+                  receivedValue: {},
+                  suggestion: { type: 'string' },
+                  allowedValues: { type: 'array', items: { type: 'string' } },
+                  rowName: { type: 'string' },
+                  receivedField: { type: 'string' },
+                  unknownFields: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        suggestion: { type: 'string' },
+                      },
+                      required: ['name'],
+                      additionalProperties: false,
+                    },
+                  },
+                  allowedFields: { type: 'array', items: { type: 'string' } },
+                  receivedFields: { type: 'array', items: { type: 'string' } },
+                  conflictSubject: { type: 'string' },
+                  conflictSlug: { type: 'string' },
+                  firstSeenAt: { type: 'string' },
+                  recoveryTools: { type: 'array', items: { type: 'string' } },
+                  avoidTools: { type: 'array', items: { type: 'string' } },
                 },
                 additionalProperties: false,
               },
@@ -802,6 +828,32 @@ describe('verify.mjs first-contact gates', () => {
                   key: { type: 'string' },
                   changed: { type: 'boolean' },
                   error: { type: 'string' },
+                  errorCode: { type: 'string' },
+                  valueName: { type: 'string' },
+                  receivedValue: {},
+                  suggestion: { type: 'string' },
+                  allowedValues: { type: 'array', items: { type: 'string' } },
+                  rowName: { type: 'string' },
+                  receivedField: { type: 'string' },
+                  unknownFields: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        suggestion: { type: 'string' },
+                      },
+                      required: ['name'],
+                      additionalProperties: false,
+                    },
+                  },
+                  allowedFields: { type: 'array', items: { type: 'string' } },
+                  receivedFields: { type: 'array', items: { type: 'string' } },
+                  missingSubject: { type: 'string' },
+                  missingSlug: { type: 'string' },
+                  similarSlugs: { type: 'array', items: { type: 'string' } },
+                  recoveryTools: { type: 'array', items: { type: 'string' } },
+                  createTool: { type: 'string' },
                 },
                 additionalProperties: false,
               },
@@ -4572,26 +4624,76 @@ describe('verify.mjs first-contact gates', () => {
     const conceptUnknownError = 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain. Received fields: domian, kind, slug, titel, title.';
     const conceptDuplicateSeedError = 'concepts[2] kind must be one of: project, domain, capability, element, document. Received: "capabilty". Did you mean "capability"?';
     const conceptDuplicateError = 'concepts[3] duplicate slug in input batch; first seen at concepts[2]';
-    const relationUnknownError = 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type. Received fields: frm, from, relation, to, type.';
+    const relationUnknownError = 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type, expected_mtime. Received fields: frm, from, relation, to, type.';
+    const relationTypeError = `relations[2] type must be one of: ${WRITE_RELATION_TYPE_VALUES.join(', ')}. Received: "depend_on". Did you mean "depends_on"?`;
+    const conceptRows = [
+      { slug: '', ok: false, error: 'concepts[0] must be an object.', errorCode: 'invalid_arguments' },
+      {
+        slug: 'verify-row-isolation',
+        ok: false,
+        error: conceptUnknownError,
+        errorCode: 'invalid_arguments',
+        rowName: 'concepts[1]',
+        unknownFields: [
+          { name: 'titel', suggestion: 'title' },
+          { name: 'domian', suggestion: 'domain' },
+        ],
+        allowedFields: ['slug', 'kind', 'title', 'domain', 'capabilities', 'elements', 'body'],
+        receivedFields: ['domian', 'kind', 'slug', 'titel', 'title'],
+      },
+      {
+        slug: 'verify-duplicate-slug',
+        ok: false,
+        error: conceptDuplicateSeedError,
+        errorCode: 'invalid_arguments',
+        valueName: 'kind',
+        receivedValue: 'capabilty',
+        suggestion: 'capability',
+        allowedValues: ['project', 'domain', 'capability', 'element', 'document'],
+      },
+      {
+        slug: 'verify-duplicate-slug',
+        ok: false,
+        error: conceptDuplicateError,
+        errorCode: 'conflict',
+        conflictSubject: 'Duplicate slug in input batch',
+        conflictSlug: 'verify-duplicate-slug',
+        firstSeenAt: 'concepts[2]',
+      },
+    ];
+    const relationRows = [
+      { ok: false, error: 'relations[0] must be an object.', errorCode: 'invalid_arguments' },
+      {
+        ok: false,
+        error: relationUnknownError,
+        errorCode: 'invalid_arguments',
+        rowName: 'relations[1]',
+        unknownFields: [
+          { name: 'relation', suggestion: 'type' },
+          { name: 'frm', suggestion: 'from' },
+        ],
+        allowedFields: ['from', 'to', 'type', 'expected_mtime'],
+        receivedFields: ['frm', 'from', 'relation', 'to', 'type'],
+      },
+      {
+        ok: false,
+        error: relationTypeError,
+        errorCode: 'invalid_arguments',
+        valueName: 'type',
+        receivedValue: 'depend_on',
+        suggestion: 'depends_on',
+        allowedValues: WRITE_RELATION_TYPE_VALUES,
+      },
+    ];
     const okResponse = {
       result: {
         content: [{
           text: JSON.stringify({
-            concepts: [
-              { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-              { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
-              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
-            ],
+            concepts: conceptRows,
           }),
         }],
         structuredContent: {
-          concepts: [
-            { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-            { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
-            { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-            { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
-          ],
+          concepts: conceptRows,
         },
       },
     };
@@ -4617,19 +4719,11 @@ describe('verify.mjs first-contact gates', () => {
         result: {
           content: [{
             text: JSON.stringify({
-              relations: [
-                { ok: false, error: 'relations[0] must be an object.' },
-                { ok: false, error: relationUnknownError },
-                { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
-              ],
+              relations: relationRows,
             }),
           }],
           structuredContent: {
-            relations: [
-              { ok: false, error: 'relations[0] must be an object.' },
-              { ok: false, error: relationUnknownError },
-              { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
-            ],
+            relations: relationRows,
           },
         },
       }, 'relations', 'add_relations'),
@@ -4641,10 +4735,10 @@ describe('verify.mjs first-contact gates', () => {
           content: [{
             text: JSON.stringify({
               concepts: [
-                { slug: '', ok: false, error: 'must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
+                { ...conceptRows[0], error: 'must be an object.' },
+                conceptRows[1],
+                conceptRows[2],
+                conceptRows[3],
               ],
             }),
           }],
@@ -4658,10 +4752,10 @@ describe('verify.mjs first-contact gates', () => {
           content: [{
             text: JSON.stringify({
               concepts: [
-                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: 'Unknown field "titel". Did you mean "title"? Allowed fields: slug, kind, title.' },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
+                conceptRows[0],
+                { ...conceptRows[1], error: 'Unknown field "titel". Did you mean "title"? Allowed fields: slug, kind, title.' },
+                conceptRows[2],
+                conceptRows[3],
               ],
             }),
           }],
@@ -4675,10 +4769,10 @@ describe('verify.mjs first-contact gates', () => {
           content: [{
             text: JSON.stringify({
               concepts: [
-                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain.' },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
+                conceptRows[0],
+                { ...conceptRows[1], error: 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain.' },
+                conceptRows[2],
+                conceptRows[3],
               ],
             }),
           }],
@@ -4692,9 +4786,9 @@ describe('verify.mjs first-contact gates', () => {
           content: [{
             text: JSON.stringify({
               relations: [
-                { ok: false, error: 'relations[0] must be an object.' },
-                { ok: false, error: 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type.' },
-                { ok: false, error: 'relations[2] type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' },
+                relationRows[0],
+                { ...relationRows[1], error: 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type.' },
+                relationRows[2],
               ],
             }),
           }],
@@ -4708,10 +4802,10 @@ describe('verify.mjs first-contact gates', () => {
           content: [{
             text: JSON.stringify({
               concepts: [
-                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
+                conceptRows[0],
+                conceptRows[1],
                 { slug: 'verify-duplicate-slug', ok: true },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
+                conceptRows[3],
               ],
             }),
           }],
@@ -4725,10 +4819,10 @@ describe('verify.mjs first-contact gates', () => {
           content: [{
             text: JSON.stringify({
               concepts: [
-                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-                { slug: 'verify-duplicate-slug', ok: false, error: 'concepts[3] duplicate slug in input batch' },
+                conceptRows[0],
+                conceptRows[1],
+                conceptRows[2],
+                { ...conceptRows[3], error: 'concepts[3] duplicate slug in input batch' },
               ],
             }),
           }],
@@ -4741,22 +4835,12 @@ describe('verify.mjs first-contact gates', () => {
         result: {
           content: [{
             text: JSON.stringify({
-              concepts: [
-                { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-                { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-                { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
-              ],
+              concepts: conceptRows,
               postWriteMaintenance: {},
             }),
           }],
           structuredContent: {
-            concepts: [
-              { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-              { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
-              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateError },
-            ],
+            concepts: conceptRows,
             postWriteMaintenance: {},
           },
         },
@@ -4777,10 +4861,10 @@ describe('verify.mjs first-contact gates', () => {
           content: okResponse.result.content,
           structuredContent: {
             concepts: [
-              { slug: '', ok: false, error: 'concepts[0] must be an object.' },
-              { slug: 'verify-row-isolation', ok: false, error: conceptUnknownError },
-              { slug: 'verify-duplicate-slug', ok: false, error: conceptDuplicateSeedError },
-              { slug: 'verify-duplicate-slug', ok: false, error: 'concepts[3] duplicate slug in input batch; first seen at concepts[1]' },
+              conceptRows[0],
+              conceptRows[1],
+              conceptRows[2],
+              { ...conceptRows[3], error: 'concepts[3] duplicate slug in input batch; first seen at concepts[1]' },
             ],
           },
         },

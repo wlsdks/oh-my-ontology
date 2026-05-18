@@ -1901,6 +1901,22 @@ export function toolsListSchemaFailure(tools) {
   if (addConceptRowsSchema.items?.properties?.error?.type !== 'string') {
     return 'add_concepts outputSchema row error drift';
   }
+  for (const propertyName of ['errorCode', 'valueName', 'suggestion', 'rowName', 'receivedField', 'conflictSubject', 'conflictSlug', 'firstSeenAt']) {
+    if (addConceptRowsSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `add_concepts outputSchema row ${propertyName} drift`;
+    }
+  }
+  if (!Object.prototype.hasOwnProperty.call(addConceptRowsSchema.items?.properties || {}, 'receivedValue')) {
+    return 'add_concepts outputSchema row receivedValue drift';
+  }
+  if (addConceptRowsSchema.items?.properties?.unknownFields?.type !== 'array') {
+    return 'add_concepts outputSchema row unknownFields drift';
+  }
+  for (const propertyName of ['allowedValues', 'allowedFields', 'receivedFields', 'recoveryTools', 'avoidTools']) {
+    if (addConceptRowsSchema.items?.properties?.[propertyName]?.type !== 'array') {
+      return `add_concepts outputSchema row ${propertyName} drift`;
+    }
+  }
   if (outputPropertyAt(addConceptsTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
     return 'add_concepts outputSchema postWriteMaintenance drift';
   }
@@ -1991,6 +2007,22 @@ export function toolsListSchemaFailure(tools) {
   }
   if (addRelationRowsSchema.items?.properties?.error?.type !== 'string') {
     return 'add_relations outputSchema row error drift';
+  }
+  for (const propertyName of ['errorCode', 'valueName', 'suggestion', 'rowName', 'receivedField', 'missingSubject', 'missingSlug', 'createTool']) {
+    if (addRelationRowsSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `add_relations outputSchema row ${propertyName} drift`;
+    }
+  }
+  if (!Object.prototype.hasOwnProperty.call(addRelationRowsSchema.items?.properties || {}, 'receivedValue')) {
+    return 'add_relations outputSchema row receivedValue drift';
+  }
+  if (addRelationRowsSchema.items?.properties?.unknownFields?.type !== 'array') {
+    return 'add_relations outputSchema row unknownFields drift';
+  }
+  for (const propertyName of ['allowedValues', 'allowedFields', 'receivedFields', 'similarSlugs', 'recoveryTools']) {
+    if (addRelationRowsSchema.items?.properties?.[propertyName]?.type !== 'array') {
+      return `add_relations outputSchema row ${propertyName} drift`;
+    }
   }
   if (outputPropertyAt(addRelationsTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
     return 'add_relations outputSchema postWriteMaintenance drift';
@@ -4899,6 +4931,9 @@ export function batchRowIsolationFailure(response, key, label) {
   if (!rowErrorMentionsIndex(nonObjectRow, 0)) {
     return `${label} row-isolation response missing non-object row index`;
   }
+  if (nonObjectRow.errorCode !== 'invalid_arguments') {
+    return `${label} row-isolation response missing non-object row errorCode`;
+  }
   if (unknownFieldRow?.ok !== false || typeof unknownFieldRow.error !== 'string' || !/Unknown field/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing unknown-field row error`;
   }
@@ -4917,6 +4952,23 @@ export function batchRowIsolationFailure(response, key, label) {
   if (key === 'concepts' && !/Received fields: domian, kind, slug, titel, title/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing concept received fields`;
   }
+  if (key === 'concepts' && unknownFieldRow.errorCode !== 'invalid_arguments') {
+    return `${label} row-isolation response missing concept unknown-field row errorCode`;
+  }
+  if (
+    key === 'concepts' &&
+    (
+      unknownFieldRow.rowName !== 'concepts[1]' ||
+      !sameUnknownFields(unknownFieldRow.unknownFields, [
+        ['titel', 'title'],
+        ['domian', 'domain'],
+      ]) ||
+      !sameArray(unknownFieldRow.allowedFields, ['slug', 'kind', 'title', 'domain', 'capabilities', 'elements', 'body']) ||
+      !sameArray(unknownFieldRow.receivedFields, ['domian', 'kind', 'slug', 'titel', 'title'])
+    )
+  ) {
+    return `${label} row-isolation response missing concept structured field repair`;
+  }
   if (
     key === 'concepts' &&
     (
@@ -4925,6 +4977,17 @@ export function batchRowIsolationFailure(response, key, label) {
     )
   ) {
     return `${label} row-isolation response missing duplicate seed row error`;
+  }
+  if (
+    key === 'concepts' &&
+    (
+      thirdRow.errorCode !== 'invalid_arguments' ||
+      thirdRow.valueName !== 'kind' ||
+      thirdRow.receivedValue !== 'capabilty' ||
+      thirdRow.suggestion !== 'capability'
+    )
+  ) {
+    return `${label} row-isolation response missing duplicate seed structured repair`;
   }
   if (
     key === 'concepts' &&
@@ -4938,6 +5001,16 @@ export function batchRowIsolationFailure(response, key, label) {
   ) {
     return `${label} row-isolation response missing duplicate slug row guidance`;
   }
+  if (
+    key === 'concepts' &&
+    (
+      fourthRow.errorCode !== 'conflict' ||
+      fourthRow.conflictSlug !== 'verify-duplicate-slug' ||
+      fourthRow.firstSeenAt !== 'concepts[2]'
+    )
+  ) {
+    return `${label} row-isolation response missing duplicate slug structured repair`;
+  }
   if (key === 'relations' && !/Unknown fields in relations\[1\]/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing relation multi-field error`;
   }
@@ -4950,6 +5023,23 @@ export function batchRowIsolationFailure(response, key, label) {
   if (key === 'relations' && !/Received fields: frm, from, relation, to, type/i.test(unknownFieldRow.error)) {
     return `${label} row-isolation response missing relation received fields`;
   }
+  if (key === 'relations' && unknownFieldRow.errorCode !== 'invalid_arguments') {
+    return `${label} row-isolation response missing relation unknown-field row errorCode`;
+  }
+  if (
+    key === 'relations' &&
+    (
+      unknownFieldRow.rowName !== 'relations[1]' ||
+      !sameUnknownFields(unknownFieldRow.unknownFields, [
+        ['relation', 'type'],
+        ['frm', 'from'],
+      ]) ||
+      !sameArray(unknownFieldRow.allowedFields, ['from', 'to', 'type', 'expected_mtime']) ||
+      !sameArray(unknownFieldRow.receivedFields, ['frm', 'from', 'relation', 'to', 'type'])
+    )
+  ) {
+    return `${label} row-isolation response missing relation structured field repair`;
+  }
   if (
     key === 'relations' &&
     (
@@ -4961,6 +5051,18 @@ export function batchRowIsolationFailure(response, key, label) {
     )
   ) {
     return `${label} row-isolation response missing relation type suggestion`;
+  }
+  if (
+    key === 'relations' &&
+    (
+      thirdRow.errorCode !== 'invalid_arguments' ||
+      thirdRow.valueName !== 'type' ||
+      thirdRow.receivedValue !== 'depend_on' ||
+      thirdRow.suggestion !== 'depends_on' ||
+      !sameArray(thirdRow.allowedValues, WRITE_RELATION_TYPE_VALUES)
+    )
+  ) {
+    return `${label} row-isolation response missing relation type structured repair`;
   }
   const structuredFailure = structuredContentFailure(response, parsed, `${label} row isolation`);
   if (structuredFailure) {
@@ -4985,6 +5087,13 @@ export function batchCapFailure(response, label, expectedNoun) {
 
 function rowErrorMentionsIndex(row, index) {
   return typeof row?.error === 'string' && new RegExp(`\\[${index}\\]`).test(row.error);
+}
+
+function sameUnknownFields(actual, expectedPairs) {
+  if (!Array.isArray(actual) || actual.length !== expectedPairs.length) return false;
+  return expectedPairs.every(([name, suggestion], index) => (
+    actual[index]?.name === name && actual[index]?.suggestion === suggestion
+  ));
 }
 
 export function findOrphansFailure(parsed) {

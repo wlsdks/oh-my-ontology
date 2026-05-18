@@ -110,6 +110,7 @@ validation / diagnosis / compile / overview / query planning 은 계속 hard gat
 strict schema/runtime unknown-tool, unknown-argument, and invalid-enum rejection,
 unknown-tool / unknown-argument structured repair fields (`receivedTool`, `receivedArgument`, `unknownArguments`, `suggestion`, `allowedTools`, `allowedArguments`),
 `add_concepts` / `add_relations` row-isolation runtime smoke (`concepts[n]` / `relations[n]` row label, `add_concepts` duplicate slug first-seen label 포함),
+row-level `errorCode` 와 field/value repair payload(`rowName`, `unknownFields`, `allowedFields`, `receivedFields`, `valueName`, `receivedValue`, `suggestion`, `allowedValues`, `conflictSlug`, `firstSeenAt`) 직접 검증,
 `get_concepts` / `add_concepts` / `add_relations` 50-row batch cap rejection smoke,
 `rename_concept` / `merge_concepts` / `delete_concept` destructive dry-run smoke, stale `patch_concept.expected_mtime` conflict guard smoke (`vault_conflict`),
 `list_concepts`, project-node `list_concepts` probe,
