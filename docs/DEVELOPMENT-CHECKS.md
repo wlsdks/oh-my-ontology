@@ -117,7 +117,8 @@ pnpm dogfood:help
 ```
 
 `pnpm dogfood:compile-fix` runs `compile --fix` against docs/ontology and fails
-if it leaves a git diff, so the dogfood vault stays canonicalized. `pnpm
+if it leaves a git diff, so the dogfood vault stays canonicalized, and
+successful runs end with `[dogfood:compile-fix] docs/ontology unchanged`. `pnpm
 test:dogfood:compile-fix` checks that idempotence guard without the full dogfood
 suite. `pnpm test:dogfood:args` checks the shared pnpm separator and nearest
 `--help` hint helper without invoking any dogfood gate. `pnpm

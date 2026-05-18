@@ -351,6 +351,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);
     assert.match(checksDoc, /`pnpm dogfood:compile-fix` runs `compile --fix` against docs\/ontology and fails\s+if it leaves a git diff/);
+    assert.match(checksDoc, /successful runs end with `\[dogfood:compile-fix\] docs\/ontology unchanged`/);
     assert.match(checksDoc, /`pnpm test:dogfood:args` checks the shared pnpm separator and nearest\s+`--help` hint helper without invoking any dogfood gate/);
     assert.match(checksDoc, /`pnpm\s+test:dogfood:script-refs` checks that help text and package script body\s+`pnpm \.\.\.` references still resolve to root package scripts/);
     assert.match(checksDoc, /scripts\/run-focused-node-test\.mjs/);
@@ -785,7 +786,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000/);
     assert.match(section, /pnpm cli:mcp-verify -- --help/);
     assert.match(section, /`dogfood:compile` prints the dogfood vault `compile_ontology` summary JSON\s+snapshot/);
-    assert.match(section, /`pnpm dogfood:compile-fix` runs dogfood `compile --fix` and fails if canonicalization leaves a docs\/ontology diff/);
+    assert.match(section, /`pnpm dogfood:compile-fix` runs dogfood `compile --fix`, fails if canonicalization leaves a docs\/ontology diff,\s+and ends successful runs with `\[dogfood:compile-fix\] docs\/ontology unchanged`/);
     assert.match(section, /`pnpm test:dogfood:script-refs` checks help text and package script body `pnpm \.\.\.` references against root package scripts/);
     assert.match(section, /`dogfood:health` prints the dogfood vault fail-closed `health` JSON gate/);
     assert.match(section, /`dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot/);
@@ -1378,7 +1379,7 @@ describe('package contract helpers', () => {
     assert.match(section, /missing split option\s+value cannot leak the following option value into the target list/);
     assert.match(section, /`integration:cli:compile`\s+narrows CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /`dogfood:compile`\s+is the shortest root-checkout compiler summary JSON snapshot/);
-    assert.match(section, /`dogfood:compile-fix`\s+runs root-checkout `compile --fix` and fails if canonicalization leaves a docs\/ontology diff/);
+    assert.match(section, /`dogfood:compile-fix`\s+runs root-checkout `compile --fix`, fails if canonicalization leaves a docs\/ontology diff,\s+and ends successful runs with `\[dogfood:compile-fix\] docs\/ontology unchanged`/);
     assert.match(section, /`test:dogfood:args`\s+checks shared dogfood shortcut argument helpers without invoking any gate/);
     assert.match(section, /`test:dogfood:script-refs`\s+checks help text and package script body `pnpm \.\.\.` references against root package scripts/);
     assert.match(section, /`test:dogfood:compile-fix`\s+checks that idempotence guard without invoking the full dogfood suite/);

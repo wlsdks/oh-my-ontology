@@ -131,7 +131,7 @@ intentional full run. Node test option values such as `--test-concurrency 1`
 or `--test-timeout 1000` are not counted as targets, and a missing split option
 value cannot leak the following option value into the target list.
 `pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot.
-`pnpm dogfood:compile-fix` runs dogfood `compile --fix` and fails if canonicalization leaves a docs/ontology diff.
+`pnpm dogfood:compile-fix` runs dogfood `compile --fix`, fails if canonicalization leaves a docs/ontology diff, and ends successful runs with `[dogfood:compile-fix] docs/ontology unchanged`.
 `pnpm test:dogfood:args` checks shared dogfood shortcut argument helpers without invoking any gate.
 `pnpm test:dogfood:script-refs` checks help text and package script body `pnpm ...` references against root package scripts.
 `pnpm test:dogfood:compile-fix` checks that idempotence guard without the full dogfood suite.

@@ -534,7 +534,7 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 `pnpm test:mcp:package` / `pnpm test:mcp:suggestions` 로 파일 단위 검증을 먼저
 돌려 반복 dogfood 비용을 낮춘다. 설치 verify 를 dogfood vault 에 반복 적용할 때는
 `pnpm dogfood:compile` 은 repo root 의 가장 짧은 compiler snapshot 이고,
-`pnpm dogfood:compile-fix` 는 repo root 의 `compile --fix` idempotence gate 로 canonicalization 이 docs/ontology diff 를 남기면 실패하며,
+`pnpm dogfood:compile-fix` 는 repo root 의 `compile --fix` idempotence gate 로 canonicalization 이 docs/ontology diff 를 남기면 실패하고 성공 시 `[dogfood:compile-fix] docs/ontology unchanged` 요약으로 끝나며,
 `pnpm dogfood:health` 는 repo root 의 가장 짧은 fail-closed health gate 이며,
 `pnpm dogfood:brief` 는 repo root 의 가장 짧은 first-contact snapshot 이며,
 `pnpm dogfood:status` 는 health 가 non-zero 여도 workspace-brief 까지 출력한 뒤 첫 실패 exit code 를 보존해 사람이 읽는 health + brief pair 를 실패 상황에서도 보여주고 마지막에 `[dogfood:status] health:N · workspace-brief:N` 요약을 남기며,

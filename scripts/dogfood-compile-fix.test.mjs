@@ -6,6 +6,7 @@ import {
   dogfoodCompileFixArgSuggestion,
   dogfoodCompileFixDiagnostic,
   dogfoodCompileFixExitCode,
+  dogfoodCompileFixSummary,
   dogfoodDiffFileSummary,
   handleDogfoodCompileFixArgs,
   normalizeDogfoodCompileFixArgs,
@@ -26,6 +27,7 @@ describe('dogfood compile-fix shortcut', () => {
     assert.equal(exitCode, 0);
     assert.match(output.join(''), /pnpm dogfood:compile-fix/);
     assert.match(output.join(''), /canonicalization leaves a docs\/ontology git diff/);
+    assert.match(output.join(''), /\[dogfood:compile-fix\] docs\/ontology unchanged/);
   });
 
   it('normalizes the pnpm argument separator', () => {
@@ -63,10 +65,11 @@ describe('dogfood compile-fix shortcut', () => {
 
   it('runs compile --fix before checking the dogfood vault is unchanged', () => {
     const calls = [];
+    const output = [];
     const exitCode = runDogfoodCompileFix({
       argv: [],
       cwd: '/repo',
-      stdio: 'pipe',
+      stdout: { write: (text) => output.push(text) },
       spawn(command, args, options) {
         calls.push({ command, args, options });
         return { status: 0, stdout: 'existing diff' };
@@ -81,8 +84,9 @@ describe('dogfood compile-fix shortcut', () => {
     assert.equal(calls[0].options.encoding, 'utf-8');
     assert.equal(calls[1].command, process.execPath);
     assert.deepEqual(calls[1].args, ['cli/src/index.mjs', 'compile', 'docs/ontology', '--fix', '--summary', '--json']);
-    assert.equal(calls[1].options.stdio, 'pipe');
+    assert.equal(calls[1].options.stdio, 'inherit');
     assert.deepEqual(calls[2].args, ['diff', '--', 'docs/ontology']);
+    assert.deepEqual(output, ['[dogfood:compile-fix] docs/ontology unchanged\n']);
   });
 
   it('skips the post-fix diff when compile --fix fails', () => {
@@ -195,5 +199,9 @@ describe('dogfood compile-fix shortcut', () => {
     assert.equal(dogfoodDiffFileSummary(diff), 'docs/ontology/a.md, docs/ontology/b.md');
     assert.equal(dogfoodDiffFileSummary(diff, { limit: 1 }), 'docs/ontology/a.md, +1 more');
     assert.equal(dogfoodDiffFileSummary(''), 'unknown docs/ontology diff');
+  });
+
+  it('formats the successful unchanged summary', () => {
+    assert.equal(dogfoodCompileFixSummary(), '[dogfood:compile-fix] docs/ontology unchanged');
   });
 });

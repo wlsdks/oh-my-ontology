@@ -12,7 +12,8 @@ const DOGFOOD_COMPILE_FIX_USAGE = `Usage:
   pnpm dogfood:compile-fix -- --help
 
 Runs compile --fix against this repo's docs/ontology vault and fails if
-canonicalization leaves a docs/ontology git diff.
+canonicalization leaves a docs/ontology git diff. Successful runs end with
+[dogfood:compile-fix] docs/ontology unchanged.
 `;
 
 export function runDogfoodCompileFix({
@@ -46,6 +47,9 @@ export function runDogfoodCompileFix({
       `[dogfood:compile-fix] changed files: ${files}\n`,
     );
     return 1;
+  }
+  if (stdio === 'inherit') {
+    stdout.write(`${dogfoodCompileFixSummary()}\n`);
   }
   return 0;
 }
@@ -91,6 +95,10 @@ export function dogfoodCompileFixExitCode(result) {
   if (typeof result?.signal === 'string' && result.signal.length > 0) return 1;
   if (result?.error) return 1;
   return 1;
+}
+
+export function dogfoodCompileFixSummary() {
+  return '[dogfood:compile-fix] docs/ontology unchanged';
 }
 
 export function dogfoodCompileFixDiagnostic(args, result) {
