@@ -110,7 +110,7 @@ safety/recovery guidance, unknown-tool recovery, read smoke, destructive dry-run
 summary / advisory / next-action gates, and `workspace_brief.nextActions[].sample`
 shape drift.
 `test:mcp:verify:timeout` narrows timeout parsing, startup failure retry
-guidance, usage, and retry diagnostics that `mcp-verify` exposes through the CLI. Use
+guidance, usage, empty-vault fail-fast, and retry diagnostics that `mcp-verify` exposes through the CLI. Use
 `test:cli:mcp-call` checks MCP response unwrapping, spawn failure mapping, and
 the one-shot MCP call timeout guard used by graph commands without starting the
 full verification suite. Use

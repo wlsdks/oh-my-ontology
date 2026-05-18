@@ -522,7 +522,7 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:mcp:verify\s+MCP verify helper contract without the full integration suite/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-tool-inventory\/initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:mcp:verify:timeout/);
-  assert.match(cliMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/startup\/help diagnostics/);
+  assert.match(cliMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/startup\/help\/empty-vault diagnostics/);
 
   const missingVerifyOverride = runRaw(cliBin, cliMcpVerifyArgs(['ontology']), {
     cwd: projectDir,
@@ -741,7 +741,7 @@ try {
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:mcp:verify\s+MCP verify helper contract without the full integration suite/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-tool-inventory\/initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:mcp:verify:timeout/);
-  assert.match(directMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/startup\/help diagnostics/);
+  assert.match(directMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/startup\/help\/empty-vault diagnostics/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference contract/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:verify\s+Root checkout dogfood vault installed-style verify gate/);
 

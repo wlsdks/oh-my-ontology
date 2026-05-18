@@ -3585,7 +3585,7 @@ export function verifyUsage() {
     '  pnpm test:mcp:verify            MCP verify helper contract without the full integration suite.\n' +
     '  pnpm test:mcp:verify:first-contact\n' +
     '                                  Narrow first-contact initialize-tool-inventory/initialize-safety-recovery/unknown-tool/write-safety/health-summary/advisory/read/sample-shape helper gates.\n' +
-    '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/startup/help diagnostics.\n' +
+    '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/startup/help/empty-vault diagnostics.\n' +
     '  pnpm test:dogfood:script-refs   Narrow help/package-script reference contract.\n' +
     '  pnpm dogfood:verify             Root checkout dogfood vault installed-style verify gate.\n'
   );

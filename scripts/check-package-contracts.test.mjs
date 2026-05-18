@@ -220,7 +220,7 @@ describe('package contract helpers', () => {
     );
     assert.equal(
       pkg.scripts?.['test:mcp:verify:timeout'],
-      `${focusedNode} --test-name-pattern "verify timeout|timeout failures|startup failures|direct verify usage|direct verify timeout|direct verify CLI args" mcp/src/verify-script.test.mjs`,
+      `${focusedNode} --test-name-pattern "verify timeout|timeout failures|startup failures|direct verify usage|direct verify timeout|direct verify CLI args|empty verify vault" mcp/src/verify-script.test.mjs`,
     );
     assert.match(
       pkg.scripts?.['test:mcp:docs'] ?? '',
@@ -779,6 +779,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:verify:first-contact/);
     assert.match(section, /first-contact health summary \/ advisory \/ next-action gates/);
     assert.match(section, /pnpm test:mcp:verify:timeout/);
+    assert.match(section, /empty-vault fail-fast/);
     assert.match(section, /pnpm integration:cli:compile/);
     assert.match(section, /pnpm dogfood:compile/);
     assert.match(section, /pnpm dogfood:compile-fix/);
@@ -837,7 +838,7 @@ describe('package contract helpers', () => {
     assert.match(section, /stderr warning filtering/);
     assert.match(section, /verify helper contract/);
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample`\s+shape drift/);
-    assert.match(section, /timeout parsing, startup failure\s+retry guidance, usage, and retry diagnostics/);
+    assert.match(section, /timeout parsing, startup failure\s+retry guidance, usage, empty-vault fail-fast, and retry diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /pnpm exec node --test --test-name-pattern/);
     assert.match(section, /instead of appending the flag after `pnpm integration:mcp --`/);
@@ -1362,6 +1363,7 @@ describe('package contract helpers', () => {
     assert.match(section, /destructive dry-run \/\s+`patch_concept`\s+conflict guard write-safety smoke/);
     assert.match(section, /health\s+summary \/ advisory \/ next-action gates/);
     assert.match(section, /pnpm test:mcp:verify:timeout/);
+    assert.match(section, /empty-vault fail-fast/);
     assert.match(section, /test:cli:mcp-call/);
     assert.match(section, /integration:cli:compile/);
     assert.match(section, /CLI compile \/ `--fix` canonicalization contracts/);
@@ -1390,7 +1392,7 @@ describe('package contract helpers', () => {
     assert.match(section, /vault warning \/ `validate_vault`/);
     assert.match(section, /health\s+summary \/ advisory \/ next-action gates/);
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample`\s+shape drift/);
-    assert.match(section, /timeout parsing, startup failure retry\s+guidance, usage, and retry diagnostics/);
+    assert.match(section, /timeout parsing, startup failure retry\s+guidance, usage, empty-vault fail-fast, and retry diagnostics/);
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /pnpm exec node --test --test-name-pattern/);
     assert.match(section, /instead of appending the flag after `pnpm integration:cli --`/);
@@ -2107,7 +2109,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);
     assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact initialize-tool-inventory\\\/initialize-safety-recovery\\\/unknown-tool\\\/write-safety\\\/health-summary\\\/advisory\\\/read\\\/sample-shape helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
-    assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help diagnostics/);
+    assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help\\\/empty-vault diagnostics/);
     assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference contract/);
     assert.match(smoke, /pnpm dogfood:verify\\s\+Root checkout dogfood vault installed-style verify gate/);
     assert.match(smoke, /verify timeout must be a positive integer/);
@@ -2226,7 +2228,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm test:mcp:verify\\s\+MCP verify helper contract without the full integration suite/);
     assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact initialize-tool-inventory\\\/initialize-safety-recovery\\\/unknown-tool\\\/write-safety\\\/health-summary\\\/advisory\\\/read\\\/sample-shape helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
-    assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help diagnostics/);
+    assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help\\\/empty-vault diagnostics/);
     assert.match(smoke, /Successful cursor lines print bucket summaries plus current-page executable\\\/review next-action summaries/);
     assert.match(smoke, /maintenance cursor — missing afterActionId reported/);
     assert.match(smoke, /maintenance cursor — ready page stable/);
@@ -2435,6 +2437,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /unknown-tool recovery/);
     assert.match(doc, /CLI `mcp-verify` 문서도 delegated verify output 의 non-blocking advisory/);
     assert.match(doc, /issues\/unresolved\/cycles\/checks health summary/);
+    assert.match(doc, /verify timeout \/ usage \/\s+empty-vault fail-fast 진단/);
     assert.match(doc, /`pnpm test:mcp:verify:timeout`/);
     assert.match(doc, /`nextActions\[\]\.sample` 실행 액션 shape/);
     assert.match(doc, /직접 verify help 도 이 focused check 들을 같이 보여줘/);

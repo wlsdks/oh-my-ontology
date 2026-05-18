@@ -107,7 +107,7 @@ inventory, destructive dry-run / `patch_concept` conflict guard helper gates,
 vault warning / `validate_vault`, first-contact health summary / advisory / next-action gates, and
 `workspace_brief.nextActions[].sample` shape drift.
 `test:mcp:verify:timeout` narrows verify timeout parsing, startup failure
-retry guidance, usage, and retry diagnostics.
+retry guidance, usage, empty-vault fail-fast, and retry diagnostics.
 `integration:cli:compile` narrows CLI compile / `--fix` canonicalization
 contracts without running unrelated CLI routes.
 `dogfood:compile` prints the dogfood vault `compile_ontology` summary JSON

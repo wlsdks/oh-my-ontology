@@ -560,8 +560,8 @@ verify helper 자체를 만질 때는 `pnpm test:mcp:verify` 로
 `mcp/src/verify-script.test.mjs` 만 바로 실행한다. 이 helper gate 는
 missing / extra / duplicate / invalid `tools/list` name 같은 inventory 진단도 포함한다. 설치 first-contact initialize tool-inventory / safety/recovery guidance /
 unknown-tool recovery / read smoke / vault warning / `validate_vault` / health gate / `nextActions[].sample` 실행 액션 shape 만 만질 때는
-`pnpm test:mcp:verify:first-contact` 로 좁게 확인하고, verify timeout / usage
-진단만 만질 때는 `pnpm test:mcp:verify:timeout` 으로 더 좁게 확인한다.
+`pnpm test:mcp:verify:first-contact` 로 좁게 확인하고, verify timeout / usage /
+empty-vault fail-fast 진단만 만질 때는 `pnpm test:mcp:verify:timeout` 으로 더 좁게 확인한다.
 `maintenance_plan` filter enum / ready·missing cursor / resume cursor / dogfood
 work-queue shape / bucket·next-action formatter 만 바꿀 때는 `pnpm test:mcp:maintenance` 로
 verify helper 와 dogfood gate 의 maintenance 관련 subset 만 실행한다.
