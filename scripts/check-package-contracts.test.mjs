@@ -153,7 +153,10 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['dogfood:compile'], 'node cli/src/index.mjs compile docs/ontology --summary --json');
     assert.equal(pkg.scripts?.['dogfood:compile-fix'], 'node scripts/dogfood-compile-fix.mjs');
     assert.equal(pkg.scripts?.['test:dogfood:args'], 'node --test scripts/lib/dogfood-args.test.mjs');
-    assert.equal(pkg.scripts?.['test:dogfood:script-refs'], 'node --test scripts/lib/pnpm-script-refs.test.mjs');
+    assert.equal(
+      pkg.scripts?.['test:dogfood:script-refs'],
+      'node --test scripts/lib/pnpm-script-refs.test.mjs && node --test --test-name-pattern "filtered integration scripts discoverable" scripts/check-package-contracts.test.mjs',
+    );
     assert.equal(pkg.scripts?.['test:dogfood:compile-fix'], 'node --test scripts/dogfood-compile-fix.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:health'], 'node cli/src/index.mjs health docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:brief'], 'node cli/src/index.mjs workspace-brief docs/ontology --json');
