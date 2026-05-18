@@ -71,6 +71,7 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/ontology-compiler.test.mjs',
       'pnpm exec node --test mcp/src/vault.test.mjs',
       'pnpm test:mcp:unit',
+      'pnpm integration:mcp:read',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
@@ -90,6 +91,33 @@ describe('focused check suggestions', () => {
     assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
   });
 
+  it('suggests focused MCP read integration for read/query tool implementation changes', () => {
+    const result = suggestFocusedChecks([
+      'mcp/src/vault.mjs',
+      'mcp/src/query.mjs',
+      'mcp/src/ontology-engine.mjs',
+      'mcp/src/ontology-compiler.mjs',
+      'mcp/src/analyze.mjs',
+      'mcp/src/infer-imports.mjs',
+      'mcp/src/validate.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:contracts',
+      'pnpm exec node --test mcp/src/vault.test.mjs',
+      'pnpm exec node --test mcp/src/query.test.mjs',
+      'pnpm exec node --test mcp/src/ontology-engine.test.mjs',
+      'pnpm exec node --test mcp/src/ontology-compiler.test.mjs',
+      'pnpm exec node --test mcp/src/analyze.test.mjs',
+      'pnpm exec node --test mcp/src/infer-imports.test.mjs',
+      'pnpm exec node --test mcp/src/validate.test.mjs',
+      'pnpm test:mcp:unit',
+      'pnpm integration:mcp:read',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
+  });
+
   it('deduplicates direct MCP unit tests when source and test both changed', () => {
     const result = suggestFocusedChecks([
       'mcp/src/infer-imports.mjs',
@@ -99,6 +127,7 @@ describe('focused check suggestions', () => {
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm exec node --test mcp/src/infer-imports.test.mjs',
       'pnpm test:mcp:unit',
+      'pnpm integration:mcp:read',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.commands[0].paths, [

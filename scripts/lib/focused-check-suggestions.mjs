@@ -52,6 +52,13 @@ const RULES = [
     matches: [/^mcp\/src\/index\.js$/, /^mcp\/src\/integration\.test\.mjs$/],
   },
   {
+    command: 'pnpm integration:mcp:read',
+    reason: 'MCP read/query tool handler surface changed',
+    matches: [
+      /^mcp\/src\/(?:analyze|infer-imports|ontology-compiler|ontology-engine|query|validate|vault)\.mjs$/,
+    ],
+  },
+  {
     command: 'pnpm test:dogfood:script-refs',
     reason: 'help text, package-script references, or focused wrapper behavior changed',
     matches: [

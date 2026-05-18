@@ -123,6 +123,7 @@ dogfood docs assertions as well as package/release assertions.
 | `pnpm test:mcp:registration` | Source-checkout `.mcp.json` / `.mcp.json.example` registration templates |
 | `pnpm test:mcp:unit` | MCP core parser, vault, compiler, query, import-analysis, and JSON-RPC line helpers; use the direct sibling `pnpm exec node --test mcp/src/<name>.test.mjs` first when `pnpm checks:changed` prints one |
 | `pnpm integration:mcp:surface` | MCP JSON-RPC `tools/list`, `initialize`, and `tools/call` surface contracts |
+| `pnpm integration:mcp:read` | MCP read/query tool handler contracts |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
 | `pnpm test:mcp:verify:first-contact` | First-contact MCP safety and unknown-tool recovery guidance |
 | `pnpm test:mcp:verify:timeout` | Timeout/startup retry diagnostics |
@@ -236,6 +237,7 @@ pnpm integration:cli:repo-analysis
 pnpm integration:cli:local-vault
 pnpm integration:cli:maintenance
 pnpm integration:mcp:surface
+pnpm integration:mcp:read
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
 pnpm integration:mcp:readme
 ```
