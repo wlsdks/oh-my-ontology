@@ -516,7 +516,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /pnpm test:mcp:verify\s+MCP verify helper contract without the full integration suite/);
   assert.match(clean, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-tool-inventory\/initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
   assert.match(clean, /pnpm test:mcp:verify:timeout/);
-  assert.match(clean, /Narrow MCP verify timeout\/startup\/help diagnostics/);
+  assert.match(clean, /Narrow MCP verify timeout\/startup\/help\/empty-vault diagnostics/);
   assertPnpmScriptsExist(clean, ROOT_PKG.scripts);
 });
 

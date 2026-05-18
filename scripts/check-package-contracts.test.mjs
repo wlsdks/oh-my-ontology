@@ -476,6 +476,7 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+Source-checkout dogfood verify with explicit args/);
     assert.match(result.stdout, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);
     assert.match(result.stdout, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-tool-inventory\/initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
+    assert.match(result.stdout, /pnpm test:mcp:verify:timeout\s+Narrow MCP verify timeout\/startup\/help\/empty-vault diagnostics/);
     assert.equal(result.stderr, '');
   });
 
