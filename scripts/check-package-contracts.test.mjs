@@ -745,7 +745,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /explicit positional vault or `--vault` argument takes\s+precedence over `OMOT_VAULT`/);
     assert.match(verifySection, /`npm run verify -- --help` prints the same first-contact scope/);
     assert.match(verifySection, /direct read smokes for `list_concepts` project probe \/ `get_concept` \/\s+`get_concepts` \/ `find_evidence` \/ `find_backlinks` \/ `query_concepts` \/\s+limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/\s+`find_neighbors` \/ `find_path` \/ `find_orphans`/);
-    assert.match(verifySection, /strict unknown-argument \/ invalid-enum rejection/);
+    assert.match(verifySection, /strict unknown-tool \/ unknown-argument \/ invalid-enum rejection/);
     assert.match(verifySection, /`list_concepts\.lmit` plus `list_concepts\.summry`/);
     assert.match(verifySection, /reports multiple unknown tool arguments together/);
     assert.match(verifySection, /single-row `add_relation` negative smoke uses missing endpoints plus a\s+typoed relation type/);
@@ -1285,7 +1285,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /project-node probe before graph smoke/);
     assert.match(verifySection, /accepts valid project-less vaults/);
     assert.match(verifySection, /accepts empty vault folders/);
-    assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
+    assert.match(verifySection, /runtime unknown-tool, unknown-argument, and invalid-enum rejection smoke/);
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
     assert.match(verifySection, /non-object row shape, unknown row field inputs with all offending fields reported/);
     assert.match(verifySection, /input index, all offending unknown fields, and closest-value hints for invalid relation types/);
@@ -1741,7 +1741,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /`topological_order`/);
     assert.match(dogfoodSection, /`relation_check`/);
     assert.match(dogfoodSection, /`recommend_relations`/);
-    assert.match(dogfoodSection, /strict unknown-argument and invalid-enum rejection smoke/);
+    assert.match(dogfoodSection, /strict unknown-tool, unknown-argument, and invalid-enum rejection smoke/);
     assert.match(dogfoodSection, /`growth_plan`/);
     assert.match(dogfoodSection, /`maintenance_plan`/);
     assert.match(dogfoodSection, /missing `maintenance_plan\.afterActionId` cursor/);
@@ -1775,7 +1775,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /project-node `list_concepts` probe/);
     assert.match(verifySection, /project probe 덕분에 `project_scope`/);
     assert.match(verifySection, /빈 vault 는 node-targeted graph\s+smoke 를 skip/);
-    assert.match(verifySection, /strict schema\/runtime unknown-argument and invalid-enum rejection/);
+    assert.match(verifySection, /strict schema\/runtime unknown-tool, unknown-argument, and invalid-enum rejection/);
     assert.match(verifySection, /compact `postWriteMaintenance` 의 `byPhase` \/ `bySeverity` \/ `byKind` bucket, action `score`, executable `proposedAction`, and current-page next action pointer guidance/);
     assert.match(dogfoodSection, /설치 verify 성공 로그도 허용된 phases \/\s+severities \/ kinds enum 목록을 함께 출력/);
   });
@@ -1899,7 +1899,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /batch writer row-isolation smoke/);
     assert.match(doc, /invalid `add_relations` type closest-value hint/);
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
-    assert.match(smoke, /runtime unknown-argument/);
+    assert.match(smoke, /runtime unknown-tool/);
+    assert.match(smoke, /unknown-argument/);
     assert.match(smoke, /invalid-enum rejection/);
     assert.match(smoke, /destructive writer dry-runs with every planned response present and no changed\\\/postWriteMaintenance/);
     assert.match(smoke, /destructive writer dry-runs for rename_concept\\\/merge_concepts\\\/delete_concept/);

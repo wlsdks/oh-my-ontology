@@ -93,6 +93,7 @@ import {
   serverStartupFailure,
   strictArgsFailure,
   strictMultiArgsFailure,
+  strictUnknownToolFailure,
   strictEnumFailure,
   strictGraphKindFilterFailure,
   strictRecommendRelationsKindFilterFailure,
@@ -4126,7 +4127,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /list\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports\/find_neighbors\/find_path\/find_orphans/);
     assert.match(verifyUsage(), /compile_ontology summary \+ paginated full-artifact \+ indexed full-artifact smoke/);
     assert.match(verifyUsage(), /Successful output prints read census consistency after cross-checking list_kinds\/list_concepts\/compile_ontology\/overview/);
-    assert.match(verifyUsage(), /strict unknown-argument \/ invalid-enum rejection/);
+    assert.match(verifyUsage(), /strict unknown-tool \/ unknown-argument \/ invalid-enum rejection/);
     assert.match(verifyUsage(), /query_concepts\.kind\/has-key, find_neighbors\.types, find_orphans\.kind\/excludeKinds, match_nodes\.kind\/sort, recommend_relations\.kind, and match_edges\.type\/fromKind\/toKind typo and unsupported-kind rejection/);
     assert.match(verifyUsage(), /tools\/list inventory names, schema strictness, and annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
     assert.match(verifyUsage(), /batch reader\/writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels, invalid add_relations type closest-value hints, and 50-row batch cap rejection/);
@@ -4248,6 +4249,68 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictMultiArgsFailure(strictErrorResponse('Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)', { structuredContent: { ok: false, errorCode: 'unknown_argument', error: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)' } })),
       'strict multi-argument response did not report all received list_concepts arguments',
+    );
+  });
+
+  it('fails malformed strict unknown-tool smoke responses', () => {
+    const error = 'Unknown tool: list_concept. Did you mean "list_concepts"? Allowed tools: add_concept, list_concepts.';
+    assert.equal(
+      strictUnknownToolFailure({
+        result: {
+          isError: true,
+          content: [{ text: `Error: ${error}` }],
+          structuredContent: { ok: false, errorCode: 'unknown_tool', error },
+        },
+      }),
+      null,
+    );
+    assert.equal(
+      strictUnknownToolFailure({ result: { isError: false, content: [{ text: 'ok' }] } }),
+      'strict unknown-tool response was not rejected',
+    );
+    assert.equal(
+      strictUnknownToolFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
+      'strict unknown-tool structured error missing',
+    );
+    assert.equal(
+      strictUnknownToolFailure({
+        result: {
+          isError: true,
+          content: [{ text: `Error: ${error}` }],
+          structuredContent: { ok: false, errorCode: 'unknown_argument', error },
+        },
+      }),
+      'strict unknown-tool structured error code mismatch — expected unknown_tool, got unknown_argument',
+    );
+    assert.equal(
+      strictUnknownToolFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'Error: Unknown tool: missing_tool. Allowed tools: add_concept, list_concepts.' }],
+          structuredContent: { ok: false, errorCode: 'unknown_tool', error: 'Unknown tool: missing_tool. Allowed tools: add_concept, list_concepts.' },
+        },
+      }),
+      'strict unknown-tool response did not report the unknown tool name',
+    );
+    assert.equal(
+      strictUnknownToolFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'Error: Unknown tool: list_concept. Allowed tools: add_concept, list_concepts.' }],
+          structuredContent: { ok: false, errorCode: 'unknown_tool', error: 'Unknown tool: list_concept. Allowed tools: add_concept, list_concepts.' },
+        },
+      }),
+      'strict unknown-tool response did not suggest the closest tool name',
+    );
+    assert.equal(
+      strictUnknownToolFailure({
+        result: {
+          isError: true,
+          content: [{ text: 'Error: Unknown tool: list_concept. Did you mean "list_concepts"?' }],
+          structuredContent: { ok: false, errorCode: 'unknown_tool', error: 'Unknown tool: list_concept. Did you mean "list_concepts"?' },
+        },
+      }),
+      'strict unknown-tool response did not report the allowed tool list',
     );
   });
 
@@ -5473,7 +5536,9 @@ describe('verify.mjs first-contact gates', () => {
       'Use expected_mtime when patching a previously-read concept.',
       'Tool schemas reject unknown arguments with nearest hints.',
       'unknown arguments are rejected instead of being ignored.',
-      'Tool-level errors include structuredContent errorCode values such as unknown_argument for unknown argument names and invalid_arguments for invalid enum/filter/type values.',
+      'unknown tool names are rejected with closest tool-name hints.',
+      'Tool-level errors include structuredContent errorCode values such as unknown_tool for unknown tool names, unknown_argument for unknown argument names and invalid_arguments for invalid enum/filter/type values.',
+      'Unknown tool: list_concept. Did you mean "list_concepts"?',
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
       'Batch add_concepts and add_relations isolate each non-object row and unknown row fields as ok:false.',
@@ -5511,6 +5576,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('unknown arguments are rejected', '') } }),
       'initialize instructions missing strict arguments guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('Unknown tool: list_concept. Did you mean "list_concepts"?', '') } }),
+      'initialize instructions missing unknown tool guidance',
     );
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('unknown_argument', 'argument_error') } }),
@@ -5694,6 +5763,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(62), 'add_concepts_batch_cap');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(63), 'add_relations_batch_cap');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(64), 'get_concepts_batch_cap');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(65), 'strict_unknown_tool');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45, 61].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -5717,6 +5787,7 @@ describe('verify.mjs first-contact gates', () => {
     const compileIndexes = buildFirstContactRequests().find((request) => request.id === 42);
     const strictRelationCheck = buildFirstContactRequests().find((request) => request.id === 46);
     const strictAddRelation = buildFirstContactRequests().find((request) => request.id === 50);
+    const strictUnknownTool = buildFirstContactRequests().find((request) => request.id === 65);
     assert.equal(analyze?.params?.name, 'analyze_repo_structure');
     assert.equal(analyze?.params?.arguments?.maxDepth, 2);
     assert.match(analyze?.params?.arguments?.rootPath ?? '', /oh-my-ontology$/);
@@ -5749,6 +5820,10 @@ describe('verify.mjs first-contact gates', () => {
         to: 'missing-add-relation-target',
         type: 'depend_on',
       },
+    });
+    assert.deepEqual(strictUnknownTool?.params, {
+      name: 'list_concept',
+      arguments: {},
     });
   });
 

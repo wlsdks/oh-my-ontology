@@ -297,8 +297,8 @@ direct read smokes for `list_concepts` project probe / `get_concept` /
 `get_concepts` / `find_evidence` / `find_backlinks` / `query_concepts` /
 limited `query_concepts` / `analyze_repo_structure` / `infer_imports` /
 `find_neighbors` / `find_path` / `find_orphans`,
-strict unknown-argument / invalid-enum rejection with structured
-`errorCode` values (`unknown_argument` / `invalid_arguments`), enum-validated
+strict unknown-tool / unknown-argument / invalid-enum rejection with structured
+`errorCode` values (`unknown_tool` / `unknown_argument` / `invalid_arguments`), enum-validated
 `maintenance_plan` filters, stale `patch_concept.expected_mtime` rejection with
 `vault_conflict`, batch row isolation for non-object row shape,
 unknown row field inputs with all offending fields reported, reader/writer 50-row batch cap

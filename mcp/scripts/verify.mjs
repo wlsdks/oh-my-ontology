@@ -15,7 +15,7 @@
  * 검증 항목:
  *   1. parser smoke test (parser.test.mjs) 통과
  *   2. server boot — initialize JSON-RPC 응답
- *   3. tools/list — 23 도구 모두 노출 + graph-query/write-relation enum schema contract + strict argument/enum runtime smoke
+ *   3. tools/list — 23 도구 모두 노출 + graph-query/write-relation enum schema contract + strict tool-name/argument/enum runtime smoke
  *   4. tools/call list_concepts — vault 노드 수 출력
  *   5. tools/call list_concepts(kind=project) — project_scope gate probe
  *   6. tools/call get_concept — single-node detail + structuredContent contract
@@ -2237,6 +2237,25 @@ export function strictMultiArgsFailure(response) {
   return null;
 }
 
+export function strictUnknownToolFailure(response) {
+  if (response?.result?.isError !== true) {
+    return 'strict unknown-tool response was not rejected';
+  }
+  const structuredFailure = structuredErrorFailure(response, 'strict unknown-tool', { errorCode: 'unknown_tool' });
+  if (structuredFailure) return structuredFailure;
+  const text = response.result.content?.[0]?.text || '';
+  if (!/Unknown tool: list_concept/i.test(text)) {
+    return 'strict unknown-tool response did not report the unknown tool name';
+  }
+  if (!/Did you mean "list_concepts"\?/i.test(text)) {
+    return 'strict unknown-tool response did not suggest the closest tool name';
+  }
+  if (!/Allowed tools: /i.test(text) || !/list_concepts/i.test(text)) {
+    return 'strict unknown-tool response did not report the allowed tool list';
+  }
+  return null;
+}
+
 export function structuredErrorFailure(response, label, { errorCode } = {}) {
   const structured = response?.result?.structuredContent;
   if (structured?.ok !== false || typeof structured.error !== 'string' || structured.error.trim() === '') {
@@ -2787,7 +2806,8 @@ export function initializeInstructionsFailure(response) {
     ['dangling referrers safety', /dangling referrers/i],
     ['expected_mtime conflict guard', /expected_mtime/],
     ['strict arguments guidance', /unknown arguments are rejected/i],
-    ['structured errorCode guidance', /structuredContent[\s\S]*errorCode[\s\S]*unknown_argument[\s\S]*invalid_arguments/i],
+    ['unknown tool guidance', /unknown tool names are rejected[\s\S]*Unknown tool: list_concept[\s\S]*Did you mean "list_concepts"\?/i],
+    ['structured errorCode guidance', /structuredContent[\s\S]*errorCode[\s\S]*unknown_tool[\s\S]*unknown_argument[\s\S]*invalid_arguments/i],
     ['nearest argument hint guidance', /Did you mean "limit"\?/],
     ['multiple unknown arguments guidance', /Unknown arguments for list_concepts[\s\S]*"summry"[\s\S]*did you mean "summary"\?/i],
     ['batch row isolation guidance', /non-object row[\s\S]*unknown row fields[\s\S]*ok:\s*false/i],
@@ -2964,6 +2984,7 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [62, 'add_concepts_batch_cap'],
   [63, 'add_relations_batch_cap'],
   [64, 'get_concepts_batch_cap'],
+  [65, 'strict_unknown_tool'],
 ]);
 
 function log(level, msg) {
@@ -3218,7 +3239,7 @@ export function verifyUsage() {
     'including list/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans.\n' +
     'It also checks node census, vault validation, workspace health, compile_ontology summary + paginated full-artifact + indexed full-artifact smoke, overview, query plans, and graph-query smoke.\n' +
     'Successful output prints read census consistency after cross-checking list_kinds/list_concepts/compile_ontology/overview.\n' +
-    'Also checks strict unknown-argument / invalid-enum rejection, list_concepts.kind, query_concepts.kind/has-key, find_neighbors.types, find_orphans.kind/excludeKinds, match_nodes.kind/sort, recommend_relations.kind, and match_edges.type/fromKind/toKind typo and unsupported-kind rejection, maintenance_plan filter enums,\n' +
+    'Also checks strict unknown-tool / unknown-argument / invalid-enum rejection, list_concepts.kind, query_concepts.kind/has-key, find_neighbors.types, find_orphans.kind/excludeKinds, match_nodes.kind/sort, recommend_relations.kind, and match_edges.type/fromKind/toKind typo and unsupported-kind rejection, maintenance_plan filter enums,\n' +
     'tools/list inventory names, schema strictness, and annotation coverage (title/read/write/destructive/idempotent/local-only),\n' +
     'batch reader/writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels, invalid add_relations type closest-value hints, and 50-row batch cap rejection,\n' +
     'destructive writer dry-runs for rename_concept/merge_concepts/delete_concept with every planned response present and no changed/postWriteMaintenance,\n' +
@@ -3419,6 +3440,12 @@ export function buildFirstContactRequests() {
       id: 27,
       method: 'tools/call',
       params: { name: 'list_concepts', arguments: { lmit: 1, summry: true } },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 65,
+      method: 'tools/call',
+      params: { name: 'list_concept', arguments: {} },
     },
     {
       jsonrpc: '2.0',
@@ -6034,6 +6061,7 @@ async function step2BootAndCall() {
       const projectScopeRes = responses.find((r) => r.id === 15);
       const strictArgsRes = responses.find((r) => r.id === 16);
       const strictMultiArgsRes = responses.find((r) => r.id === 27);
+      const strictUnknownToolRes = responses.find((r) => r.id === 65);
       const strictEnumRes = responses.find((r) => r.id === 17);
       const projectProbeRes = responses.find((r) => r.id === 18);
       const orphansRes = responses.find((r) => r.id === 19);
@@ -6132,6 +6160,12 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', 'strict arguments — multiple unknown tool arguments reported together');
+      const strictUnknownToolFailureMessage = strictUnknownToolFailure(strictUnknownToolRes);
+      if (strictUnknownToolFailureMessage) {
+        log('fail', strictUnknownToolFailureMessage);
+        return res(false);
+      }
+      log('ok', 'strict tool names — unknown tool rejected with closest-name hint');
       const addConceptsRowIsolationFailure = batchRowIsolationFailure(addConceptsRowIsolationRes, 'concepts', 'add_concepts');
       if (addConceptsRowIsolationFailure) {
         log('fail', addConceptsRowIsolationFailure);
