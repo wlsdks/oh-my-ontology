@@ -130,6 +130,10 @@ describe('package contract helpers', () => {
 
     assert.equal(pkg.scripts?.['integration:cli'], 'node --test cli/src/integration.test.mjs');
     assert.equal(
+      pkg.scripts?.['integration:cli:entry'],
+      `${focusedNode} --test-name-pattern "^(metadata|command inventory|subcommand --help|help|top-level command typos|init)" cli/src/integration.test.mjs`,
+    );
+    assert.equal(
       pkg.scripts?.['integration:cli:compile'],
       `${focusedNode} --test-name-pattern "compile" cli/src/integration.test.mjs`,
     );
@@ -377,6 +381,7 @@ describe('package contract helpers', () => {
       'pnpm smoke:packed-cli',
       'OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk',
       'OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli',
+      'pnpm integration:cli:entry',
       'pnpm integration:cli:mcp-verify',
       'pnpm integration:cli:diagnosis',
       'pnpm integration:cli:graph-read',
@@ -406,6 +411,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /Parser\/schema\/validator parity changes route to\s+`pnpm test:contracts` before broader package or app checks/);
     assert.match(checksDoc, /CLI shared helper changes\s+do the same for `cli\/src\/lib\/<name>\.test\.mjs`, so run the printed direct\s+`pnpm exec node --test \.\.\.` command before `pnpm test:cli:lib`/);
     assert.match(checksDoc, /\| `pnpm test:cli:lib` \| CLI shared helper contracts; use the direct sibling `pnpm exec node --test cli\/src\/lib\/<name>\.test\.mjs` first when `pnpm checks:changed` prints one \|/);
+    assert.match(checksDoc, /\| `pnpm integration:cli:entry` \| CLI entrypoint, help, command inventory, and `init` contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:cli:diagnosis` \| CLI `health` \/ `workspace-brief` diagnosis contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:cli:graph-read` \| CLI read-only graph command contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:cli:graph-write` \| CLI graph write dry-run\/confirm safety contracts \|/);
@@ -1482,6 +1488,8 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:verify:timeout/);
     assert.match(section, /empty-vault fail-fast/);
     assert.match(section, /test:cli:mcp-call/);
+    assert.match(section, /integration:cli:entry/);
+    assert.match(section, /CLI entrypoint, help, command inventory, and init contracts/);
     assert.match(section, /integration:cli:compile/);
     assert.match(section, /CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /pnpm dogfood:compile/);
@@ -1527,6 +1535,7 @@ describe('package contract helpers', () => {
     assert.match(section, /missing split option\s+value cannot leak the following option value into the target list/);
     assert.match(section, /Focused runs\s+with TAP summaries end with `matched=N` before file-level `tests=N`, even when a\s+matched test fails/);
     assert.match(section, /File setup\/import failures are reported separately as\s+`setupFailures=N`/);
+    assert.match(section, /`integration:cli:entry`\s+narrows CLI entrypoint, help, command inventory, and init contracts/);
     assert.match(section, /`integration:cli:compile`\s+narrows CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /`integration:cli:diagnosis`\s+narrows CLI health \/ workspace-brief diagnosis contracts/);
     assert.match(section, /`integration:cli:graph-read`\s+narrows read-only graph command contracts/);

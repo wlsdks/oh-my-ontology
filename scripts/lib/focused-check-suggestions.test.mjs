@@ -159,6 +159,21 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests focused CLI entry integration for dispatch and command inventory changes', () => {
+    const result = suggestFocusedChecks([
+      'cli/src/index.mjs',
+      'cli/src/lib/cli-commands.mjs',
+      'cli/src/lib/cli-commands.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test cli/src/lib/cli-commands.test.mjs',
+      'pnpm test:cli:lib',
+      'pnpm integration:cli:entry',
+      'pnpm dogfood:status',
+    ]);
+  });
+
   it('suggests narrow dogfood helper tests before broader dogfood gates', () => {
     const result = suggestFocusedChecks([
       'scripts/lib/dogfood-args.mjs',

@@ -122,6 +122,11 @@ const RULES = [
     matches: [/^cli\/src\/lib\//],
   },
   {
+    command: 'pnpm integration:cli:entry',
+    reason: 'CLI entrypoint, help, or init dispatch changed',
+    matches: [/^cli\/src\/index\.mjs$/, /^cli\/src\/lib\/cli-commands\.mjs$/],
+  },
+  {
     command: 'pnpm integration:cli:compile',
     reason: 'CLI compile command changed',
     matches: [/^cli\/src\/commands\/compile\.mjs$/],

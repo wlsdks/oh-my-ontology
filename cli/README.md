@@ -65,6 +65,7 @@ pnpm test:cli:lib
 pnpm test:cli:mcp-call
 pnpm test:contracts
 pnpm test:mcp:unit
+pnpm integration:cli:entry
 pnpm integration:cli:mcp-verify
 pnpm integration:cli:diagnosis
 pnpm integration:cli:graph-read
@@ -112,6 +113,7 @@ ignore-file, and JSON-RPC line helper unit contracts without spawning the full
 MCP integration suite. If `pnpm checks:changed` prints a direct `pnpm exec node
 --test mcp/src/<name>.test.mjs` command for a touched MCP core file, run that
 first before the aggregate unit gate.
+`integration:cli:entry` narrows CLI entrypoint, help, command inventory, and init contracts.
 `integration:cli:mcp-verify` runs only the installed MCP verification wrapper
 subset inside the spawn-heavy CLI integration file.
 `integration:cli:diagnosis` narrows CLI health / workspace-brief diagnosis contracts.
@@ -158,7 +160,7 @@ with TAP summaries end with `matched=N` before file-level `tests=N`, even when a
 matched test fails, so the exact scoped test count is visible without
 subtracting skipped tests. File setup/import failures are reported separately as
 `setupFailures=N` instead of inflating the matched-test count.
-`integration:cli:compile` narrows CLI compile / `--fix` canonicalization contracts
+`integration:cli:entry` narrows CLI entrypoint, help, command inventory, and init contracts. `integration:cli:compile` narrows CLI compile / `--fix` canonicalization contracts
 without running unrelated CLI routes. `integration:cli:diagnosis` narrows CLI health / workspace-brief diagnosis contracts. `integration:cli:graph-read` narrows read-only graph command contracts. `integration:cli:graph-write` narrows rename/delete/merge safety contracts. `integration:cli:repo-analysis` narrows analyze / infer-imports / bootstrap code-to-vault contracts. `integration:cli:local-vault` narrows local vault add/import/list/find/validate contracts. `integration:cli:growth` narrows the CLI growth_plan wrapper, candidate rendering, malformed payload, and argument contracts. `dogfood:compile`
 is the shortest root-checkout compiler summary JSON snapshot, `dogfood:compile-fix`
 runs root-checkout `compile --fix`, fails if canonicalization leaves a docs/ontology diff,

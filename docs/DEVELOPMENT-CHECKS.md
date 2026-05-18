@@ -110,6 +110,7 @@ dogfood docs assertions as well as package/release assertions.
 | `pnpm test:cli:args` | CLI argument parser contracts |
 | `pnpm test:cli:lib` | CLI shared helper contracts; use the direct sibling `pnpm exec node --test cli/src/lib/<name>.test.mjs` first when `pnpm checks:changed` prints one |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |
+| `pnpm integration:cli:entry` | CLI entrypoint, help, command inventory, and `init` contracts |
 | `pnpm integration:cli:compile` | CLI compile / `--fix` canonicalization contracts |
 | `pnpm integration:cli:diagnosis` | CLI `health` / `workspace-brief` diagnosis contracts |
 | `pnpm integration:cli:graph-read` | CLI read-only graph command contracts |
@@ -224,6 +225,7 @@ Use these when the full integration suite is more than the change needs:
 
 ```bash
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
+pnpm integration:cli:entry
 pnpm integration:cli:compile
 pnpm integration:cli:mcp-verify
 pnpm integration:cli:diagnosis
