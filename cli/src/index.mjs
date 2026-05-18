@@ -247,13 +247,13 @@ function runInit(targetArg) {
     serverCommand = resolveMcpServerCommand();
   } catch (err) {
     fail(err?.message ?? String(err));
-    exit(2);
+    return 2;
   }
   info(`scaffolding ontology vault at ${COLORS.bold}${target}${COLORS.reset}`);
 
   if (!existsSync(TEMPLATE_ROOT)) {
     fail(`template root not found: ${TEMPLATE_ROOT}`);
-    exit(2);
+    return 2;
   }
 
   const { created, skipped } = copyTree(TEMPLATE_ROOT, target);
@@ -381,6 +381,7 @@ ${COLORS.bold}Next steps:${COLORS.reset}
 
 ${COLORS.dim}AI agents and humans now share the same vault. Have fun.${COLORS.reset}
 `);
+  return 0;
 }
 
 async function runCommandHelp(command) {
@@ -450,8 +451,7 @@ async function main() {
       printInitUsage();
       return 1;
     }
-    runInit(parsed.target);
-    return 0;
+    return runInit(parsed.target);
   }
 
   const runner = CLI_COMMAND_RUNNERS[SUBCOMMAND];
