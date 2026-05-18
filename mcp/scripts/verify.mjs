@@ -281,6 +281,7 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
     return `${toolName} outputSchema postWriteMaintenance drift`;
   }
   const compactActionRequired = ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction'];
+  const compactProposedActionTools = ['add_concept', 'add_relation', 'patch_concept'];
   const postWriteRequired = [
     'operation',
     'sideEffect',
@@ -336,6 +337,7 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
     !sameArray(schema.properties.actions.items?.properties?.proposedAction?.type, ['object', 'null']) ||
     !sameArray(schema.properties.actions.items?.properties?.proposedAction?.required, ['tool', 'args']) ||
     schema.properties.actions.items?.properties?.proposedAction?.properties?.tool?.type !== 'string' ||
+    !sameArray(schema.properties.actions.items?.properties?.proposedAction?.properties?.tool?.enum, compactProposedActionTools) ||
     schema.properties.actions.items?.properties?.proposedAction?.properties?.args?.type !== 'object' ||
     schema.properties.actions.items?.properties?.node?.properties?.slug?.type !== 'string' ||
     !sameArray(schema.properties.actions.items?.properties?.nodes?.type, ['array', 'object']) ||
@@ -352,7 +354,8 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
       actionSchema.properties?.score?.minimum !== 0 ||
       actionSchema.properties?.executable?.type !== 'boolean' ||
       !sameArray(actionSchema.properties?.proposedAction?.type, ['object', 'null']) ||
-      !sameArray(actionSchema.properties?.proposedAction?.required, ['tool', 'args'])
+      !sameArray(actionSchema.properties?.proposedAction?.required, ['tool', 'args']) ||
+      !sameArray(actionSchema.properties?.proposedAction?.properties?.tool?.enum, compactProposedActionTools)
     ) {
       return `${toolName} outputSchema postWriteMaintenance ${key} drift`;
     }

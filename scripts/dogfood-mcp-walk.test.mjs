@@ -151,11 +151,12 @@ function relationArrayPatchSchemaFixture() {
 }
 
 function postWriteMaintenanceSchemaFixture() {
+  const compactProposedActionTools = ["add_concept", "add_relation", "patch_concept"];
   const compactProposedActionSchema = {
     type: ["object", "null"],
     required: ["tool", "args"],
     properties: {
-      tool: { type: "string" },
+      tool: { type: "string", enum: compactProposedActionTools },
       args: { type: "object" },
     },
   };
@@ -3997,6 +3998,13 @@ describe("evaluateDogfoodGate", () => {
       ["tool"];
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: postWriteProposedActionSchemaDrifted }),
+      ["tools/list: patch_concept outputSchema postWriteMaintenance actions drift"],
+    );
+    const postWriteProposedActionToolEnumDrifted = makeDogfoodToolsList();
+    postWriteProposedActionToolEnumDrifted.tools.find((tool) => tool.name === "patch_concept").outputSchema.properties.postWriteMaintenance.properties.actions.items.properties.proposedAction.properties.tool.enum =
+      ["add_concept", "add_relation"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: postWriteProposedActionToolEnumDrifted }),
       ["tools/list: patch_concept outputSchema postWriteMaintenance actions drift"],
     );
     const postWriteNextExecutableSchemaDrifted = makeDogfoodToolsList();

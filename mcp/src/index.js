@@ -136,6 +136,7 @@ const NODE_KIND_DESCRIPTION = NODE_KIND_VALUES.join(', ');
 const EDGE_TARGET_KIND_DESCRIPTION = EDGE_TARGET_KIND_VALUES.join(', ');
 const POST_WRITE_MAINTENANCE_GUIDANCE =
   'compact `postWriteMaintenance` (maintenance_plan) with count-safe `byPhase` / `bySeverity` / `byKind` queue buckets, action `score`, executable `proposedAction`, and current-page `nextExecutableAction` / `nextReviewAction` pointers';
+const COMPACT_MAINTENANCE_PROPOSED_ACTION_TOOLS = Object.freeze(['add_concept', 'add_relation', 'patch_concept']);
 const COMPACT_MAINTENANCE_NODE_OUTPUT_SCHEMA = Object.freeze({
   type: 'object',
   properties: {
@@ -148,7 +149,7 @@ const COMPACT_MAINTENANCE_NODE_OUTPUT_SCHEMA = Object.freeze({
 const COMPACT_MAINTENANCE_PROPOSED_ACTION_OUTPUT_SCHEMA = Object.freeze({
   type: ['object', 'null'],
   properties: {
-    tool: NON_BLANK_STRING_SCHEMA,
+    tool: { ...NON_BLANK_STRING_SCHEMA, enum: COMPACT_MAINTENANCE_PROPOSED_ACTION_TOOLS },
     args: { type: 'object' },
   },
   required: ['tool', 'args'],
