@@ -276,6 +276,81 @@ function outputPropertyAt(tool, path) {
   return path.reduce((value, key) => value?.[key], tool?.outputSchema);
 }
 
+function backlinkRewritePlanSchemaFailure(schema, label) {
+  if (
+    schema?.type !== 'object' ||
+    !sameArray(schema.required, ['updates', 'totalUpdated']) ||
+    schema.additionalProperties !== false ||
+    schema.properties?.totalUpdated?.type !== 'integer' ||
+    schema.properties?.totalUpdated?.minimum !== 0
+  ) {
+    return `${label} outputSchema backlinkUpdates drift`;
+  }
+  const updates = schema.properties?.updates;
+  const row = updates?.items;
+  if (
+    updates?.type !== 'array' ||
+    row?.type !== 'object' ||
+    !sameArray(row.required, ['slug', 'beforeKeys', 'afterKeys', 'bodyChanged']) ||
+    row.additionalProperties !== false ||
+    row.properties?.slug?.type !== 'string' ||
+    row.properties?.bodyChanged?.type !== 'boolean'
+  ) {
+    return `${label} outputSchema backlinkUpdates updates drift`;
+  }
+  for (const propertyName of ['beforeKeys', 'afterKeys']) {
+    const keyRows = row.properties?.[propertyName];
+    if (
+      keyRows?.type !== 'array' ||
+      keyRows.items?.type !== 'object' ||
+      !sameArray(keyRows.items?.required, ['key']) ||
+      keyRows.items?.additionalProperties !== false ||
+      keyRows.items?.properties?.key?.type !== 'string' ||
+      !sameArray(keyRows.items?.properties?.before?.type, ['array', 'string']) ||
+      !sameArray(keyRows.items?.properties?.after?.type, ['array', 'string'])
+    ) {
+      return `${label} outputSchema backlinkUpdates ${propertyName} drift`;
+    }
+  }
+  return null;
+}
+
+function capturedDocSchemaFailure(schema, label) {
+  if (
+    schema?.type !== 'object' ||
+    !sameArray(schema.required, ['frontmatter']) ||
+    schema.additionalProperties !== false ||
+    schema.properties?.frontmatter?.type !== 'object' ||
+    schema.properties?.body?.type !== 'string' ||
+    schema.properties?.bodyExcerpt?.type !== 'string'
+  ) {
+    return `${label} outputSchema captured doc drift`;
+  }
+  return null;
+}
+
+function backlinkRowsSchemaFailure(schema, label) {
+  const row = schema?.items;
+  if (
+    schema?.type !== 'array' ||
+    row?.type !== 'object' ||
+    !sameArray(row.required, ['slug', 'kind', 'title', 'mtime']) ||
+    row.additionalProperties !== false ||
+    row.properties?.slug?.type !== 'string' ||
+    row.properties?.kind?.type !== 'string' ||
+    row.properties?.title?.type !== 'string' ||
+    row.properties?.domain?.type !== 'string' ||
+    row.properties?.mtime?.type !== 'number' ||
+    row.properties?.mtime?.minimum !== 0 ||
+    row.properties?.matchedKeys?.type !== 'array' ||
+    row.properties?.matchedKeys?.items?.type !== 'string' ||
+    row.properties?.matchedInBody?.type !== 'boolean'
+  ) {
+    return `${label} drift`;
+  }
+  return null;
+}
+
 function postWriteMaintenanceSchemaFailure(schema, toolName) {
   if (schema?.type !== 'object') {
     return `${toolName} outputSchema postWriteMaintenance drift`;
@@ -1699,10 +1774,13 @@ export function toolsListSchemaFailure(tools) {
       return `rename_concept outputSchema ${propertyName} drift`;
     }
   }
-  for (const propertyName of ['backlinkUpdates', 'postWriteMaintenance']) {
-    if (outputPropertyAt(renameConceptTool, ['properties', propertyName])?.type !== 'object') {
-      return `rename_concept outputSchema ${propertyName} drift`;
-    }
+  const renameBacklinkFailure = backlinkRewritePlanSchemaFailure(
+    outputPropertyAt(renameConceptTool, ['properties', 'backlinkUpdates']),
+    'rename_concept',
+  );
+  if (renameBacklinkFailure) return renameBacklinkFailure;
+  if (outputPropertyAt(renameConceptTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
+    return 'rename_concept outputSchema postWriteMaintenance drift';
   }
 
   const mergeConceptsTool = tools.find((candidate) => candidate?.name === 'merge_concepts');
@@ -1723,10 +1801,18 @@ export function toolsListSchemaFailure(tools) {
       return `merge_concepts outputSchema ${propertyName} drift`;
     }
   }
-  for (const propertyName of ['backlinkUpdates', 'capturedFrom', 'postWriteMaintenance']) {
-    if (outputPropertyAt(mergeConceptsTool, ['properties', propertyName])?.type !== 'object') {
-      return `merge_concepts outputSchema ${propertyName} drift`;
-    }
+  const mergeBacklinkFailure = backlinkRewritePlanSchemaFailure(
+    outputPropertyAt(mergeConceptsTool, ['properties', 'backlinkUpdates']),
+    'merge_concepts',
+  );
+  if (mergeBacklinkFailure) return mergeBacklinkFailure;
+  const mergeCapturedFailure = capturedDocSchemaFailure(
+    outputPropertyAt(mergeConceptsTool, ['properties', 'capturedFrom']),
+    'merge_concepts',
+  );
+  if (mergeCapturedFailure) return mergeCapturedFailure;
+  if (outputPropertyAt(mergeConceptsTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
+    return 'merge_concepts outputSchema postWriteMaintenance drift';
   }
 
   const deleteConceptTool = tools.find((candidate) => candidate?.name === 'delete_concept');
@@ -1749,14 +1835,16 @@ export function toolsListSchemaFailure(tools) {
   }
   for (const propertyName of ['backlinks', 'backlinksAtDelete']) {
     const schema = outputPropertyAt(deleteConceptTool, ['properties', propertyName]);
-    if (schema?.type !== 'array' || schema.items?.type !== 'object') {
-      return `delete_concept outputSchema ${propertyName} drift`;
-    }
+    const backlinkRowsFailure = backlinkRowsSchemaFailure(schema, `delete_concept outputSchema ${propertyName}`);
+    if (backlinkRowsFailure) return backlinkRowsFailure;
   }
-  for (const propertyName of ['captured', 'postWriteMaintenance']) {
-    if (outputPropertyAt(deleteConceptTool, ['properties', propertyName])?.type !== 'object') {
-      return `delete_concept outputSchema ${propertyName} drift`;
-    }
+  const deleteCapturedFailure = capturedDocSchemaFailure(
+    outputPropertyAt(deleteConceptTool, ['properties', 'captured']),
+    'delete_concept',
+  );
+  if (deleteCapturedFailure) return deleteCapturedFailure;
+  if (outputPropertyAt(deleteConceptTool, ['properties', 'postWriteMaintenance'])?.type !== 'object') {
+    return 'delete_concept outputSchema postWriteMaintenance drift';
   }
 
   for (const toolName of [

@@ -140,6 +140,71 @@ function stringArrayMapSchemaFixture() {
   };
 }
 
+function backlinkRewritePlanSchemaFixture() {
+  const keyChange = {
+    type: "object",
+    required: ["key"],
+    properties: {
+      key: { type: "string" },
+      before: { type: ["array", "string"], items: { type: "string" } },
+      after: { type: ["array", "string"], items: { type: "string" } },
+    },
+    additionalProperties: false,
+  };
+  return {
+    type: "object",
+    required: ["updates", "totalUpdated"],
+    properties: {
+      updates: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["slug", "beforeKeys", "afterKeys", "bodyChanged"],
+          properties: {
+            slug: { type: "string" },
+            beforeKeys: { type: "array", items: keyChange },
+            afterKeys: { type: "array", items: keyChange },
+            bodyChanged: { type: "boolean" },
+          },
+          additionalProperties: false,
+        },
+      },
+      totalUpdated: { type: "integer", minimum: 0 },
+    },
+    additionalProperties: false,
+  };
+}
+
+function capturedDocSchemaFixture() {
+  return {
+    type: "object",
+    required: ["frontmatter"],
+    properties: {
+      frontmatter: { type: "object" },
+      body: { type: "string" },
+      bodyExcerpt: { type: "string" },
+    },
+    additionalProperties: false,
+  };
+}
+
+function backlinkRowSchemaFixture() {
+  return {
+    type: "object",
+    required: ["slug", "kind", "title", "mtime"],
+    properties: {
+      slug: { type: "string" },
+      kind: { type: "string" },
+      title: { type: "string" },
+      domain: { type: "string" },
+      mtime: { type: "number", minimum: 0 },
+      matchedKeys: { type: "array", items: { type: "string" } },
+      matchedInBody: { type: "boolean" },
+    },
+    additionalProperties: false,
+  };
+}
+
 function relationArrayPatchSchemaFixture() {
   return {
     type: "object",
@@ -1232,7 +1297,7 @@ function makeDogfoodToolsList() {
             sourcePath: { type: "string" },
             targetPath: { type: "string" },
             moved: { type: "boolean" },
-            backlinkUpdates: { type: "object" },
+            backlinkUpdates: backlinkRewritePlanSchemaFixture(),
             message: { type: "string" },
             changed: { type: "boolean" },
             postWriteMaintenance: postWriteMaintenanceSchemaFixture(),
@@ -1250,8 +1315,8 @@ function makeDogfoodToolsList() {
             intoSlug: { type: "string" },
             fromPath: { type: "string" },
             deleted: { type: "boolean" },
-            backlinkUpdates: { type: "object" },
-            capturedFrom: { type: "object" },
+            backlinkUpdates: backlinkRewritePlanSchemaFixture(),
+            capturedFrom: capturedDocSchemaFixture(),
             message: { type: "string" },
             changed: { type: "boolean" },
             postWriteMaintenance: postWriteMaintenanceSchemaFixture(),
@@ -1268,12 +1333,12 @@ function makeDogfoodToolsList() {
             dryRun: { type: "boolean" },
             slug: { type: "string" },
             filePath: { type: "string" },
-            backlinks: { type: "array", items: { type: "object" } },
+            backlinks: { type: "array", items: backlinkRowSchemaFixture() },
             message: { type: "string" },
             forced: { type: "boolean" },
-            backlinksAtDelete: { type: "array", items: { type: "object" } },
+            backlinksAtDelete: { type: "array", items: backlinkRowSchemaFixture() },
             changed: { type: "boolean" },
-            captured: { type: "object" },
+            captured: capturedDocSchemaFixture(),
             postWriteMaintenance: postWriteMaintenanceSchemaFixture(),
           },
         };

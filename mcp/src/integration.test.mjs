@@ -589,6 +589,10 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(renameConcept?.outputSchema?.properties?.moved?.type, "boolean");
     assert.equal(renameConcept?.outputSchema?.properties?.changed?.type, "boolean");
     assert.equal(renameConcept?.outputSchema?.properties?.backlinkUpdates?.type, "object");
+    assert.deepEqual(renameConcept?.outputSchema?.properties?.backlinkUpdates?.required, ["updates", "totalUpdated"]);
+    assert.equal(renameConcept?.outputSchema?.properties?.backlinkUpdates?.additionalProperties, false);
+    assert.deepEqual(renameConcept?.outputSchema?.properties?.backlinkUpdates?.properties?.updates?.items?.required, ["slug", "beforeKeys", "afterKeys", "bodyChanged"]);
+    assert.equal(renameConcept?.outputSchema?.properties?.backlinkUpdates?.properties?.updates?.items?.additionalProperties, false);
     assert.equal(renameConcept?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const mergeConcepts = findTool("merge_concepts");
     assert.equal(mergeConcepts?.outputSchema?.type, "object");
@@ -603,6 +607,10 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(mergeConcepts?.outputSchema?.properties?.changed?.type, "boolean");
     assert.equal(mergeConcepts?.outputSchema?.properties?.backlinkUpdates?.type, "object");
     assert.equal(mergeConcepts?.outputSchema?.properties?.capturedFrom?.type, "object");
+    assert.deepEqual(mergeConcepts?.outputSchema?.properties?.capturedFrom?.required, ["frontmatter"]);
+    assert.equal(mergeConcepts?.outputSchema?.properties?.capturedFrom?.additionalProperties, false);
+    assert.equal(mergeConcepts?.outputSchema?.properties?.capturedFrom?.properties?.bodyExcerpt?.type, "string");
+    assert.equal(mergeConcepts?.outputSchema?.properties?.capturedFrom?.properties?.body?.type, "string");
     assert.equal(mergeConcepts?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const deleteConcept = findTool("delete_concept");
     assert.equal(deleteConcept?.outputSchema?.type, "object");
@@ -616,7 +624,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(deleteConcept?.outputSchema?.properties?.changed?.type, "boolean");
     assert.equal(deleteConcept?.outputSchema?.properties?.backlinks?.items?.type, "object");
     assert.equal(deleteConcept?.outputSchema?.properties?.backlinksAtDelete?.items?.type, "object");
+    assert.deepEqual(deleteConcept?.outputSchema?.properties?.backlinks?.items?.required, ["slug", "kind", "title", "mtime"]);
+    assert.equal(deleteConcept?.outputSchema?.properties?.backlinks?.items?.additionalProperties, false);
+    assert.equal(deleteConcept?.outputSchema?.properties?.backlinksAtDelete?.items?.properties?.matchedInBody?.type, "boolean");
     assert.equal(deleteConcept?.outputSchema?.properties?.captured?.type, "object");
+    assert.deepEqual(deleteConcept?.outputSchema?.properties?.captured?.required, ["frontmatter"]);
+    assert.equal(deleteConcept?.outputSchema?.properties?.captured?.additionalProperties, false);
     assert.equal(deleteConcept?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const findDesc = (name) => findTool(name)?.description;
     const getC = findDesc("get_concept");

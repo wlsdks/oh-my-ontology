@@ -130,6 +130,60 @@ const RELATION_ARRAY_PATCH_SCHEMA = Object.freeze({
   ),
   additionalProperties: false,
 });
+const BACKLINK_REWRITE_KEY_CHANGE_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    key: NON_BLANK_STRING_SCHEMA,
+    before: { type: ['array', 'string'], items: NON_BLANK_STRING_SCHEMA },
+    after: { type: ['array', 'string'], items: NON_BLANK_STRING_SCHEMA },
+  },
+  required: ['key'],
+  additionalProperties: false,
+});
+const BACKLINK_REWRITE_UPDATE_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    slug: NON_BLANK_STRING_SCHEMA,
+    beforeKeys: { type: 'array', items: BACKLINK_REWRITE_KEY_CHANGE_OUTPUT_SCHEMA },
+    afterKeys: { type: 'array', items: BACKLINK_REWRITE_KEY_CHANGE_OUTPUT_SCHEMA },
+    bodyChanged: { type: 'boolean' },
+  },
+  required: ['slug', 'beforeKeys', 'afterKeys', 'bodyChanged'],
+  additionalProperties: false,
+});
+const BACKLINK_REWRITE_PLAN_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    updates: { type: 'array', items: BACKLINK_REWRITE_UPDATE_OUTPUT_SCHEMA },
+    totalUpdated: { type: 'integer', minimum: 0 },
+  },
+  required: ['updates', 'totalUpdated'],
+  additionalProperties: false,
+});
+const BACKLINK_ROW_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    slug: NON_BLANK_STRING_SCHEMA,
+    kind: NON_BLANK_STRING_SCHEMA,
+    title: NON_BLANK_STRING_SCHEMA,
+    domain: NON_BLANK_STRING_SCHEMA,
+    mtime: { type: 'number', minimum: 0 },
+    matchedKeys: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+    matchedInBody: { type: 'boolean' },
+  },
+  required: ['slug', 'kind', 'title', 'mtime'],
+  additionalProperties: false,
+});
+const CAPTURED_DOC_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    frontmatter: { type: 'object' },
+    body: { type: 'string' },
+    bodyExcerpt: { type: 'string' },
+  },
+  required: ['frontmatter'],
+  additionalProperties: false,
+});
 const VAULT_ISSUE_CODE_DESCRIPTION = VAULT_ISSUE_CODE_VALUES.map((code) => `\`${code}\``).join(', ');
 const IMPORT_EDGE_KIND_DESCRIPTION = IMPORT_EDGE_KIND_VALUES.join(', ');
 const NODE_KIND_DESCRIPTION = NODE_KIND_VALUES.join(', ');
@@ -2163,7 +2217,7 @@ const TOOLS = [
         sourcePath: { type: 'string' },
         targetPath: { type: 'string' },
         moved: { type: 'boolean' },
-        backlinkUpdates: { type: 'object' },
+        backlinkUpdates: BACKLINK_REWRITE_PLAN_OUTPUT_SCHEMA,
         message: { type: 'string' },
         changed: { type: 'boolean' },
         postWriteMaintenance: POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA,
@@ -2211,8 +2265,8 @@ const TOOLS = [
         intoSlug: { type: 'string' },
         fromPath: { type: 'string' },
         deleted: { type: 'boolean' },
-        backlinkUpdates: { type: 'object' },
-        capturedFrom: { type: 'object' },
+        backlinkUpdates: BACKLINK_REWRITE_PLAN_OUTPUT_SCHEMA,
+        capturedFrom: CAPTURED_DOC_OUTPUT_SCHEMA,
         message: { type: 'string' },
         changed: { type: 'boolean' },
         postWriteMaintenance: POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA,
@@ -2261,12 +2315,12 @@ const TOOLS = [
         dryRun: { type: 'boolean' },
         slug: { type: 'string' },
         filePath: { type: 'string' },
-        backlinks: { type: 'array', items: { type: 'object' } },
+        backlinks: { type: 'array', items: BACKLINK_ROW_OUTPUT_SCHEMA },
         message: { type: 'string' },
         forced: { type: 'boolean' },
-        backlinksAtDelete: { type: 'array', items: { type: 'object' } },
+        backlinksAtDelete: { type: 'array', items: BACKLINK_ROW_OUTPUT_SCHEMA },
         changed: { type: 'boolean' },
-        captured: { type: 'object' },
+        captured: CAPTURED_DOC_OUTPUT_SCHEMA,
         postWriteMaintenance: POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA,
       },
       required: ['ok', 'slug', 'filePath'],

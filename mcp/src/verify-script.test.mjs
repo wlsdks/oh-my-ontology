@@ -286,6 +286,62 @@ describe('verify.mjs first-contact gates', () => {
       ),
       additionalProperties: false,
     };
+    const backlinkKeyChangeSchema = {
+      type: 'object',
+      required: ['key'],
+      properties: {
+        key: { type: 'string' },
+        before: { type: ['array', 'string'], items: { type: 'string' } },
+        after: { type: ['array', 'string'], items: { type: 'string' } },
+      },
+      additionalProperties: false,
+    };
+    const backlinkRewritePlanSchema = {
+      type: 'object',
+      required: ['updates', 'totalUpdated'],
+      properties: {
+        updates: {
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['slug', 'beforeKeys', 'afterKeys', 'bodyChanged'],
+            properties: {
+              slug: { type: 'string' },
+              beforeKeys: { type: 'array', items: backlinkKeyChangeSchema },
+              afterKeys: { type: 'array', items: backlinkKeyChangeSchema },
+              bodyChanged: { type: 'boolean' },
+            },
+            additionalProperties: false,
+          },
+        },
+        totalUpdated: { type: 'integer', minimum: 0 },
+      },
+      additionalProperties: false,
+    };
+    const capturedDocSchema = {
+      type: 'object',
+      required: ['frontmatter'],
+      properties: {
+        frontmatter: { type: 'object' },
+        body: { type: 'string' },
+        bodyExcerpt: { type: 'string' },
+      },
+      additionalProperties: false,
+    };
+    const backlinkRowSchema = {
+      type: 'object',
+      required: ['slug', 'kind', 'title', 'mtime'],
+      properties: {
+        slug: { type: 'string' },
+        kind: { type: 'string' },
+        title: { type: 'string' },
+        domain: { type: 'string' },
+        mtime: { type: 'number', minimum: 0 },
+        matchedKeys: { type: 'array', items: { type: 'string' } },
+        matchedInBody: { type: 'boolean' },
+      },
+      additionalProperties: false,
+    };
     const compactProposedActionSchema = {
       type: ['object', 'null'],
       required: ['tool', 'args'],
@@ -737,7 +793,7 @@ describe('verify.mjs first-contact gates', () => {
             sourcePath: { type: 'string' },
             targetPath: { type: 'string' },
             moved: { type: 'boolean' },
-            backlinkUpdates: { type: 'object' },
+            backlinkUpdates: backlinkRewritePlanSchema,
             message: { type: 'string' },
             changed: { type: 'boolean' },
             postWriteMaintenance: postWriteMaintenanceSchema,
@@ -765,8 +821,8 @@ describe('verify.mjs first-contact gates', () => {
             intoSlug: { type: 'string' },
             fromPath: { type: 'string' },
             deleted: { type: 'boolean' },
-            backlinkUpdates: { type: 'object' },
-            capturedFrom: { type: 'object' },
+            backlinkUpdates: backlinkRewritePlanSchema,
+            capturedFrom: capturedDocSchema,
             message: { type: 'string' },
             changed: { type: 'boolean' },
             postWriteMaintenance: postWriteMaintenanceSchema,
@@ -793,12 +849,12 @@ describe('verify.mjs first-contact gates', () => {
             dryRun: { type: 'boolean' },
             slug: { type: 'string' },
             filePath: { type: 'string' },
-            backlinks: { type: 'array', items: { type: 'object' } },
+            backlinks: { type: 'array', items: backlinkRowSchema },
             message: { type: 'string' },
             forced: { type: 'boolean' },
-            backlinksAtDelete: { type: 'array', items: { type: 'object' } },
+            backlinksAtDelete: { type: 'array', items: backlinkRowSchema },
             changed: { type: 'boolean' },
-            captured: { type: 'object' },
+            captured: capturedDocSchema,
             postWriteMaintenance: postWriteMaintenanceSchema,
           },
         },
