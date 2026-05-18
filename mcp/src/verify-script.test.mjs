@@ -4823,8 +4823,10 @@ describe('verify.mjs first-contact gates', () => {
     const conceptUnknownError = 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain. Received fields: domian, kind, slug, titel, title.';
     const conceptDuplicateSeedError = 'concepts[2] kind must be one of: project, domain, capability, element, document. Received: "capabilty". Did you mean "capability"?';
     const conceptDuplicateError = 'concepts[3] duplicate slug in input batch; first seen at concepts[2]';
+    const conceptSingleUnknownError = 'Unknown field "titel" in concepts[4]. Did you mean "title"? Allowed fields: slug, kind, title, domain, capabilities, elements, body. Received fields: kind, slug, titel, title.';
     const relationUnknownError = 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type, expected_mtime. Received fields: frm, from, relation, to, type.';
     const relationTypeError = `relations[2] type must be one of: ${WRITE_RELATION_TYPE_VALUES.join(', ')}. Received: "depend_on". Did you mean "depends_on"?`;
+    const relationSingleUnknownError = 'Unknown field "relation" in relations[3]. Did you mean "type"? Allowed fields: from, to, type, expected_mtime. Received fields: from, relation, to, type.';
     const conceptRows = [
       { slug: '', ok: false, error: 'concepts[0] must be an object.', errorCode: 'invalid_arguments' },
       {
@@ -4859,6 +4861,17 @@ describe('verify.mjs first-contact gates', () => {
         conflictSlug: 'verify-duplicate-slug',
         firstSeenAt: 'concepts[2]',
       },
+      {
+        slug: 'verify-single-field',
+        ok: false,
+        error: conceptSingleUnknownError,
+        errorCode: 'invalid_arguments',
+        rowName: 'concepts[4]',
+        receivedField: 'titel',
+        unknownFields: [{ name: 'titel', suggestion: 'title' }],
+        allowedFields: ['slug', 'kind', 'title', 'domain', 'capabilities', 'elements', 'body'],
+        receivedFields: ['kind', 'slug', 'titel', 'title'],
+      },
     ];
     const relationRows = [
       { ok: false, error: 'relations[0] must be an object.', errorCode: 'invalid_arguments' },
@@ -4883,6 +4896,16 @@ describe('verify.mjs first-contact gates', () => {
         suggestion: 'depends_on',
         allowedValues: WRITE_RELATION_TYPE_VALUES,
       },
+      {
+        ok: false,
+        error: relationSingleUnknownError,
+        errorCode: 'invalid_arguments',
+        rowName: 'relations[3]',
+        receivedField: 'relation',
+        unknownFields: [{ name: 'relation', suggestion: 'type' }],
+        allowedFields: ['from', 'to', 'type', 'expected_mtime'],
+        receivedFields: ['from', 'relation', 'to', 'type'],
+      },
     ];
     const okResponse = {
       result: {
@@ -4903,7 +4926,7 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       batchRowIsolationFailure({ result: { content: [{ text: JSON.stringify({ concepts: [{ ok: false }] }) }] } }, 'concepts', 'add_concepts'),
-      'add_concepts row-isolation response missing 4 result rows',
+      'add_concepts row-isolation response missing 5 result rows',
     );
     assert.equal(
       batchRowIsolationFailure({
@@ -4911,7 +4934,7 @@ describe('verify.mjs first-contact gates', () => {
           content: [{ text: JSON.stringify({ relations: [{ ok: true }, { ok: false, error: 'Unknown field "relation". Did you mean "type"?' }] }) }],
         },
       }, 'relations', 'add_relations'),
-      'add_relations row-isolation response missing 3 result rows',
+      'add_relations row-isolation response missing 4 result rows',
     );
     assert.equal(
       batchRowIsolationFailure({
@@ -4938,6 +4961,7 @@ describe('verify.mjs first-contact gates', () => {
                 conceptRows[1],
                 conceptRows[2],
                 conceptRows[3],
+                conceptRows[4],
               ],
             }),
           }],
@@ -4955,6 +4979,7 @@ describe('verify.mjs first-contact gates', () => {
                 { ...conceptRows[1], error: 'Unknown field "titel". Did you mean "title"? Allowed fields: slug, kind, title.' },
                 conceptRows[2],
                 conceptRows[3],
+                conceptRows[4],
               ],
             }),
           }],
@@ -4972,6 +4997,7 @@ describe('verify.mjs first-contact gates', () => {
                 { ...conceptRows[1], error: 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain.' },
                 conceptRows[2],
                 conceptRows[3],
+                conceptRows[4],
               ],
             }),
           }],
@@ -4988,6 +5014,7 @@ describe('verify.mjs first-contact gates', () => {
                 relationRows[0],
                 { ...relationRows[1], error: 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type.' },
                 relationRows[2],
+                relationRows[3],
               ],
             }),
           }],
@@ -5003,8 +5030,44 @@ describe('verify.mjs first-contact gates', () => {
               concepts: [
                 conceptRows[0],
                 conceptRows[1],
+                conceptRows[2],
+                conceptRows[3],
+                { ...conceptRows[4], unknownFields: undefined },
+              ],
+            }),
+          }],
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response missing concept single-field structured repair',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              relations: [
+                relationRows[0],
+                relationRows[1],
+                relationRows[2],
+                { ...relationRows[3], receivedField: undefined },
+              ],
+            }),
+          }],
+        },
+      }, 'relations', 'add_relations'),
+      'add_relations row-isolation response missing relation single-field structured repair',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              concepts: [
+                conceptRows[0],
+                conceptRows[1],
                 { slug: 'verify-duplicate-slug', ok: true },
                 conceptRows[3],
+                conceptRows[4],
               ],
             }),
           }],
@@ -5022,6 +5085,7 @@ describe('verify.mjs first-contact gates', () => {
                 conceptRows[1],
                 { ...conceptRows[2], allowedValues: ['project', 'domain'] },
                 conceptRows[3],
+                conceptRows[4],
               ],
             }),
           }],
@@ -5039,6 +5103,7 @@ describe('verify.mjs first-contact gates', () => {
                 conceptRows[1],
                 conceptRows[2],
                 { ...conceptRows[3], error: 'concepts[3] duplicate slug in input batch' },
+                conceptRows[4],
               ],
             }),
           }],
@@ -5081,6 +5146,7 @@ describe('verify.mjs first-contact gates', () => {
               conceptRows[1],
               conceptRows[2],
               { ...conceptRows[3], error: 'concepts[3] duplicate slug in input batch; first seen at concepts[1]' },
+              conceptRows[4],
             ],
           },
         },

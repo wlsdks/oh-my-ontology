@@ -206,11 +206,12 @@ graph-engine read tool 이 같은 수준의 경로 맥락을 제공하게 한다
 `add_concepts` / `add_relations` 는 non-object row 와 unknown row fields, invalid relation type row 를 넣어
 top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서
 실제 호출로 확인하고, unknown-field row 에 모든 offending field / nearest field hint /
-`Received fields: ...` 가 남는지, relation type row 에 closest-value hint 가 남는지와
+`Received fields: ...` 가 남는지, 단일 unknown-field row 에 `receivedField` 와 1-row
+`unknownFields` repair payload 가 남는지, relation type row 에 closest-value hint 가 남는지와
 invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인한다. `get_concepts` / `add_concepts` /
 `add_relations` 51-row batch 도 실제 호출해 `invalid_arguments` 로 거절되는지 확인해
 schema maxItems 와 런타임 cap 이 갈라지지 않게 한다.
-성공 로그도 `all-unknown-field + Received fields` 를 그대로 드러내
+성공 로그도 `single/multi unknown-field repair` 를 그대로 드러내
 green check 만 보고도 batch unknown-field 복구 품질과 batch cap 이 검증됐는지 알 수 있게 한다.
 initialize first-contact 안내도 같은 batch relation type closest-value hint 를 설명해야 하며,
 verify helper 가 안내 문구 drift 를 별도 실패로 처리한다.

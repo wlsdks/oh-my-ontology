@@ -357,7 +357,7 @@ strict unknown-tool / unknown-argument / invalid-enum rejection with structured
 `errorCode` values (`unknown_tool` / `unknown_argument` / `invalid_arguments`), enum-validated
 `maintenance_plan` filters, stale `patch_concept.expected_mtime` rejection with
 `vault_conflict`, batch row isolation for non-object row shape,
-unknown row field inputs with all offending fields reported, reader/writer 50-row batch cap
+unknown row field inputs with single-field structured repair plus all offending fields reported, reader/writer 50-row batch cap
 rejection with `invalid_arguments`, invalid `add_relations` type hints, and duplicate
 `add_concepts` slugs with `concepts[n]` / `relations[n]` error labels, and
 maintenance_plan cursor handling (ready page +
@@ -390,8 +390,8 @@ A successful run looks like this:
 ✓ tools/list schema contract — strict arguments + annotations + graph-query enums + graph kind enums/descriptions + write relation enums + health tuning + post-write maintenance schema
 ✓ strict arguments — unknown tool argument rejected at runtime
 ✓ strict arguments — multiple unknown tool arguments reported together
-✓ add_concepts — non-object, all-unknown-field + Received fields, and duplicate-slug rows isolated with input indexes
-✓ add_relations — non-object, all-unknown-field + Received fields, and invalid-type rows isolated with input indexes and closest-value hints
+✓ add_concepts — non-object, single/multi unknown-field repair, Received fields, and duplicate-slug rows isolated with input indexes
+✓ add_relations — non-object, single/multi unknown-field repair, Received fields, and invalid-type rows isolated with input indexes and closest-value hints
 ✓ batch caps — get_concepts/add_concepts/add_relations reject 51 rows with invalid_arguments
 ✓ destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance
 ✓ strict enums — invalid query operation rejected with closest-value hint

@@ -3728,6 +3728,7 @@ export function buildFirstContactRequests() {
             { slug: 'verify-row-isolation', kind: 'capability', title: 'Verify', titel: 'Typo', domian: 'Typo' },
             { slug: 'verify-duplicate-slug', kind: 'capabilty', title: 'Verify Duplicate' },
             { slug: 'verify-duplicate-slug', kind: 'capability', title: 'Verify Duplicate' },
+            { slug: 'verify-single-field', kind: 'capability', title: 'Verify Single', titel: 'Typo' },
           ],
         },
       },
@@ -3743,6 +3744,7 @@ export function buildFirstContactRequests() {
             null,
             { from: 'verify-row-isolation', to: 'verify-target', type: 'relates', relation: 'relates', frm: 'verify-row-isolation' },
             { from: 'verify-row-isolation', to: 'verify-target', type: 'depend_on' },
+            { from: 'verify-row-isolation', to: 'verify-target', type: 'relates', relation: 'relates' },
           ],
         },
       },
@@ -4966,14 +4968,15 @@ export function batchRowIsolationFailure(response, key, label) {
     return `failed to parse ${label} row-isolation response: ${err.message}`;
   }
   const rows = parsed?.[key];
-  const expectedRows = key === 'relations' ? 3 : 4;
+  const expectedRows = key === 'relations' ? 4 : 5;
   if (!Array.isArray(rows) || rows.length !== expectedRows) {
     return `${label} row-isolation response missing ${expectedRows} result rows`;
   }
   if (Object.prototype.hasOwnProperty.call(parsed, 'postWriteMaintenance')) {
     return `${label} row-isolation response unexpectedly included postWriteMaintenance`;
   }
-  const [nonObjectRow, unknownFieldRow, thirdRow, fourthRow] = rows;
+  const [nonObjectRow, unknownFieldRow, thirdRow, fourthRow, fifthRow] = rows;
+  const singleUnknownFieldRow = key === 'relations' ? fourthRow : fifthRow;
   if (nonObjectRow?.ok !== false || typeof nonObjectRow.error !== 'string' || !/must be an object/i.test(nonObjectRow.error)) {
     return `${label} row-isolation response missing non-object row error`;
   }
@@ -5017,6 +5020,22 @@ export function batchRowIsolationFailure(response, key, label) {
     )
   ) {
     return `${label} row-isolation response missing concept structured field repair`;
+  }
+  if (
+    key === 'concepts' &&
+    (
+      singleUnknownFieldRow?.ok !== false ||
+      typeof singleUnknownFieldRow.error !== 'string' ||
+      !/Unknown field "titel" in concepts\[4\]/i.test(singleUnknownFieldRow.error) ||
+      singleUnknownFieldRow.errorCode !== 'invalid_arguments' ||
+      singleUnknownFieldRow.rowName !== 'concepts[4]' ||
+      singleUnknownFieldRow.receivedField !== 'titel' ||
+      !sameUnknownFields(singleUnknownFieldRow.unknownFields, [['titel', 'title']]) ||
+      !sameArray(singleUnknownFieldRow.allowedFields, ['slug', 'kind', 'title', 'domain', 'capabilities', 'elements', 'body']) ||
+      !sameArray(singleUnknownFieldRow.receivedFields, ['kind', 'slug', 'titel', 'title'])
+    )
+  ) {
+    return `${label} row-isolation response missing concept single-field structured repair`;
   }
   if (
     key === 'concepts' &&
@@ -5089,6 +5108,22 @@ export function batchRowIsolationFailure(response, key, label) {
     )
   ) {
     return `${label} row-isolation response missing relation structured field repair`;
+  }
+  if (
+    key === 'relations' &&
+    (
+      singleUnknownFieldRow?.ok !== false ||
+      typeof singleUnknownFieldRow.error !== 'string' ||
+      !/Unknown field "relation" in relations\[3\]/i.test(singleUnknownFieldRow.error) ||
+      singleUnknownFieldRow.errorCode !== 'invalid_arguments' ||
+      singleUnknownFieldRow.rowName !== 'relations[3]' ||
+      singleUnknownFieldRow.receivedField !== 'relation' ||
+      !sameUnknownFields(singleUnknownFieldRow.unknownFields, [['relation', 'type']]) ||
+      !sameArray(singleUnknownFieldRow.allowedFields, ['from', 'to', 'type', 'expected_mtime']) ||
+      !sameArray(singleUnknownFieldRow.receivedFields, ['from', 'relation', 'to', 'type'])
+    )
+  ) {
+    return `${label} row-isolation response missing relation single-field structured repair`;
   }
   if (
     key === 'relations' &&
@@ -6664,13 +6699,13 @@ async function step2BootAndCall() {
         log('fail', addConceptsRowIsolationFailure);
         return res(false);
       }
-      log('ok', 'add_concepts — non-object, all-unknown-field + Received fields, and duplicate-slug rows isolated with input indexes');
+      log('ok', 'add_concepts — non-object, single/multi unknown-field repair, Received fields, and duplicate-slug rows isolated with input indexes');
       const addRelationsRowIsolationFailure = batchRowIsolationFailure(addRelationsRowIsolationRes, 'relations', 'add_relations');
       if (addRelationsRowIsolationFailure) {
         log('fail', addRelationsRowIsolationFailure);
         return res(false);
       }
-      log('ok', 'add_relations — non-object, all-unknown-field + Received fields, and invalid-type rows isolated with input indexes and closest-value hints');
+      log('ok', 'add_relations — non-object, single/multi unknown-field repair, Received fields, and invalid-type rows isolated with input indexes and closest-value hints');
       const getConceptsBatchCapFailure = batchCapFailure(responses.find((r) => r.id === 64), 'get_concepts', 'slugs');
       if (getConceptsBatchCapFailure) {
         log('fail', getConceptsBatchCapFailure);
