@@ -2081,6 +2081,15 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(singleAddRelationInputType?.enum, WRITE_RELATION_TYPE_VALUES)) {
     return 'add_relation inputSchema type enum drift';
   }
+  if (!/rejected before endpoint slug resolution/.test(addRelationTool?.description || '')) {
+    return 'add_relation description missing type-preflight guidance';
+  }
+  if (!/closest-value hint/.test(addRelationTool?.description || '')) {
+    return 'add_relation description missing closest-value type guidance';
+  }
+  if (!/structured `valueName` \/ `receivedValue` \/ `suggestion` \/ `allowedValues`/.test(addRelationTool?.description || '')) {
+    return 'add_relation description missing structured value repair guidance';
+  }
   if (addRelationTool.outputSchema?.type !== 'object') {
     return 'add_relation outputSchema root drift';
   }

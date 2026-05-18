@@ -868,7 +868,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_relation',
         description:
-          `Changed writes return ${postWriteDescription}.`,
+          `Invalid relation \`type\` is rejected before endpoint slug resolution with a closest-value hint and structured \`valueName\` / \`receivedValue\` / \`suggestion\` / \`allowedValues\` repair fields. Changed writes return ${postWriteDescription}.`,
         inputSchema: {
           additionalProperties: false,
           properties: {
@@ -2042,7 +2042,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
         tool.name === 'add_relation'
-          ? { ...tool, description: 'Changed writes return postWriteMaintenance with score and current-page nextExecutableAction / nextReviewAction pointers.' }
+          ? { ...tool, description: 'Invalid relation `type` is rejected before endpoint slug resolution with a closest-value hint and structured `valueName` / `receivedValue` / `suggestion` / `allowedValues` repair fields. Changed writes return postWriteMaintenance with score and current-page nextExecutableAction / nextReviewAction pointers.' }
           : tool
       ))),
       'add_relation description missing executable maintenance proposedAction guidance',
@@ -2050,7 +2050,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
         tool.name === 'add_relation'
-          ? { ...tool, description: 'Changed writes return postWriteMaintenance with score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.' }
+          ? { ...tool, description: 'Invalid relation `type` is rejected before endpoint slug resolution with a closest-value hint and structured `valueName` / `receivedValue` / `suggestion` / `allowedValues` repair fields. Changed writes return postWriteMaintenance with score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.' }
           : tool
       ))),
       'add_relation description missing maintenance bucket guidance',
@@ -4120,6 +4120,36 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'add_concept outputSchema warnings drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relation'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relation'),
+          description: `Invalid relation \`type\` has a closest-value hint and structured \`valueName\` / \`receivedValue\` / \`suggestion\` / \`allowedValues\` repair fields. Changed writes return ${postWriteDescription}.`,
+        },
+      ]),
+      'add_relation description missing type-preflight guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relation'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relation'),
+          description: `Invalid relation \`type\` is rejected before endpoint slug resolution with structured \`valueName\` / \`receivedValue\` / \`suggestion\` / \`allowedValues\` repair fields. Changed writes return ${postWriteDescription}.`,
+        },
+      ]),
+      'add_relation description missing closest-value type guidance',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relation'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relation'),
+          description: `Invalid relation \`type\` is rejected before endpoint slug resolution with a closest-value hint. Changed writes return ${postWriteDescription}.`,
+        },
+      ]),
+      'add_relation description missing structured value repair guidance',
     );
     assert.equal(
       toolsListSchemaFailure([

@@ -595,7 +595,11 @@ describe('package contract helpers', () => {
     assert.match(addRelationsFeature, /structured `rowName` \/ `allowedFields` \/ `receivedFields`/);
     assert.match(addRelationsFeature, /structured `valueName` \/ `receivedValue` \/ `suggestion` \/ `allowedValues`/);
     assert.match(addRelationFeature, /type enum:/, 'FEATURES must label add_relation write relation enum values');
+    assert.match(addRelationFeature, /rejected before endpoint slug resolution/, 'FEATURES must document add_relation type preflight');
+    assert.match(addRelationFeature, /structured `valueName` \/ `receivedValue` \/ `suggestion` \/ `allowedValues`/);
     assert.match(addRelationRow, /`type`:/, 'MCP README must label add_relation write relation enum values');
+    assert.match(addRelationRow, /rejected before endpoint slug resolution/, 'MCP README must document add_relation type preflight');
+    assert.match(addRelationRow, /structured `valueName` \/ `receivedValue` \/ `suggestion` \/ `allowedValues`/);
     assert.match(addRelationsRow, /`type`:/, 'MCP README must label add_relations write relation enum values');
     assert.match(addConceptsRow, /`concepts\[n\]` row label/);
     assert.match(addConceptsRow, /unknown row fields surface/);
@@ -607,7 +611,7 @@ describe('package contract helpers', () => {
     assert.match(addRelationsRow, /unknown row fields surface/);
     assert.match(addRelationsRow, /`rowName`/);
     assert.match(addRelationsRow, /Single unknown-field rows include `receivedField` plus one-row `unknownFields`/);
-    assert.match(addRelationsRow, /multi unknown-field rows report every unknown field with nearest hints and `Received fields: \.\.\.`/);
+    assert.match(addRelationsRow, /multi unknown-field rows report every unknown field with nearest hints, `allowedFields`, `receivedFields`, and `Received fields: \.\.\.`/);
     assert.match(addRelationsRow, /`allowedFields`, `receivedFields`/);
     assert.match(addRelationsRow, /structured `valueName` \/ `receivedValue` \/ `suggestion` \/ `allowedValues`/);
     for (const value of WRITE_RELATION_TYPE_VALUES) {
