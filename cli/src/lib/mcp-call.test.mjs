@@ -10,6 +10,7 @@ import {
   formatMcpJsonRpcError,
   formatMcpMissingResponseError,
   formatMcpProcessExitError,
+  formatMcpProcessSignalError,
   formatMcpSpawnError,
   formatMcpStdinError,
   mcpCallTimeoutMs,
@@ -106,6 +107,17 @@ describe('mcp-call response parsing', () => {
         stderr: 'fake mcp boom',
       }).message,
       'mcp exited code 7 while calling query_ontology (vault /tmp/vault). Check OMOT_MCP_PATH, or set OMOT_CLI_MCP_TIMEOUT_MS=N for large or slow vaults. stderr:\nfake mcp boom',
+    );
+  });
+
+  it('formats MCP process signal errors with actionable retry guidance', () => {
+    assert.equal(
+      formatMcpProcessSignalError('SIGTERM', {
+        toolName: 'query_ontology',
+        vaultRoot: '/tmp/vault',
+        stderr: 'fake mcp signal',
+      }).message,
+      'mcp terminated by SIGTERM while calling query_ontology (vault /tmp/vault). Check OMOT_MCP_PATH, or set OMOT_CLI_MCP_TIMEOUT_MS=N for large or slow vaults. stderr:\nfake mcp signal',
     );
   });
 
@@ -231,6 +243,39 @@ describe('mcp-call response parsing', () => {
       await assert.rejects(
         () => callMcpTool(root, 'query_ontology', { operation: 'overveiw' }),
         /mcp tool error \(query_ontology\): code=-32602 Invalid params data=\{"field":"operation"\}/,
+      );
+    } finally {
+      if (previousPath === undefined) delete process.env.OMOT_MCP_PATH;
+      else process.env.OMOT_MCP_PATH = previousPath;
+      if (previousTimeout === undefined) delete process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+      else process.env.OMOT_CLI_MCP_TIMEOUT_MS = previousTimeout;
+      if (previousKillGrace === undefined) delete process.env.OMOT_CLI_MCP_KILL_GRACE_MS;
+      else process.env.OMOT_CLI_MCP_KILL_GRACE_MS = previousKillGrace;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects MCP signal exits with signal context instead of missing-response fallback', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'omot-mcp-call-signal-'));
+    const server = join(root, 'signal-mcp.mjs');
+    const previousPath = process.env.OMOT_MCP_PATH;
+    const previousTimeout = process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+    const previousKillGrace = process.env.OMOT_CLI_MCP_KILL_GRACE_MS;
+    writeFileSync(
+      server,
+      [
+        "process.stderr.write('signal server exiting\\n');",
+        "process.kill(process.pid, 'SIGTERM');",
+      ].join('\n'),
+      'utf-8',
+    );
+    process.env.OMOT_MCP_PATH = server;
+    process.env.OMOT_CLI_MCP_TIMEOUT_MS = '1000';
+    process.env.OMOT_CLI_MCP_KILL_GRACE_MS = '25';
+    try {
+      await assert.rejects(
+        () => callMcpTool(root, 'list_kinds'),
+        /mcp terminated by SIGTERM while calling list_kinds[\s\S]*signal server exiting/,
       );
     } finally {
       if (previousPath === undefined) delete process.env.OMOT_MCP_PATH;

@@ -124,7 +124,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
     proc.stdin.on('error', (err) => {
       finish(() => rejectP(formatMcpStdinError(err, { entry, toolName, vaultRoot })));
     });
-    proc.on('close', (code) => {
+    proc.on('close', (code, signal) => {
       exited = true;
       clearTimeout(killTimer);
       if (settled) return;
@@ -137,6 +137,12 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
       if (code !== 0 && code !== null) {
         finish(() => rejectP(
           formatMcpProcessExitError(code, { toolName, vaultRoot, stderr: stderrBuf }),
+        ));
+        return;
+      }
+      if (signal) {
+        finish(() => rejectP(
+          formatMcpProcessSignalError(signal, { toolName, vaultRoot, stderr: stderrBuf }),
         ));
         return;
       }
@@ -238,6 +244,17 @@ export function formatMcpProcessExitError(code, { toolName, vaultRoot, stderr } 
   const stderrText = String(stderr || '').trim() || '(empty)';
   return new Error(
     `mcp exited code ${code} while calling ${tool} (vault ${vault}). ` +
+      `Check OMOT_MCP_PATH, or set ${MCP_CALL_TIMEOUT_ENV}=N for large or slow vaults. stderr:\n${stderrText}`,
+  );
+}
+
+export function formatMcpProcessSignalError(signal, { toolName, vaultRoot, stderr } = {}) {
+  const tool = toolName || '(unknown tool)';
+  const vault = vaultRoot || '(unknown vault)';
+  const signalText = signal || '(unknown signal)';
+  const stderrText = String(stderr || '').trim() || '(empty)';
+  return new Error(
+    `mcp terminated by ${signalText} while calling ${tool} (vault ${vault}). ` +
       `Check OMOT_MCP_PATH, or set ${MCP_CALL_TIMEOUT_ENV}=N for large or slow vaults. stderr:\n${stderrText}`,
   );
 }
