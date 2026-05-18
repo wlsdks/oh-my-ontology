@@ -1639,6 +1639,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /schema gate 도 같은 summary helper 를 공유/);
     assert.match(doc, /strict arguments \+ annotations \+ graph-query enums \+ graph kind enums\/descriptions \+ write relation enums\s+\+ health tuning \+ post-write maintenance schema/);
     assert.match(doc, /batch repair 안내도\s+같은 gate 에 포함/);
+    assert.match(doc, /strict enum \/ maintenance filter \/ relation filter \/ graph kind filter \/ sort \/ type smoke/);
+    assert.match(doc, /`structuredContent\.valueName`, `receivedValue`, `suggestion`, `allowedValues`/);
     assert.match(doc, /`concepts\[n\] duplicate slug in input batch; first seen at concepts\[m\]`/);
     assert.match(doc, /strict relation filter \/ `relation_check` row/);
     assert.match(doc, /`dependencyTypes items depend_on->depends_on; allowed 9`/);

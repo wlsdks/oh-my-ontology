@@ -153,9 +153,26 @@ function strictErrorResponse(text, extraResult = {}) {
     result: {
       isError: true,
       content: [{ text }],
-      structuredContent: { ok: false, errorCode: 'invalid_arguments', error: text },
+      structuredContent: {
+        ok: false,
+        errorCode: 'invalid_arguments',
+        error: text,
+        ...structuredValueRepairDetails(text),
+      },
       ...extraResult,
     },
+  };
+}
+
+function structuredValueRepairDetails(text) {
+  const allowedValue = String(text).match(/^(.+?) must be one of: (.+)\. Received: "([^"]+)"\.(?: Did you mean "([^"]+)"\?)?$/i);
+  if (!allowedValue) return {};
+  const [, valueName, allowedText, receivedValue, suggestion] = allowedValue;
+  return {
+    valueName,
+    receivedValue,
+    ...(suggestion ? { suggestion } : {}),
+    allowedValues: allowedText.split(',').map((value) => value.trim()).filter(Boolean),
   };
 }
 
@@ -4799,14 +4816,16 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       strictEnumFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
-      'strict enum structured error missing',
+      'strict enum response did not report the invalid query_ontology operation',
     );
     assert.equal(
       strictEnumFailure({ result: { isError: true, content: [{ text: 'operation must be one of: overview. invalid value overveiw' }] } }),
-      'strict enum structured error missing',
+      'strict enum response did not suggest the closest query_ontology operation',
     );
     assert.equal(
-      strictEnumFailure(strictErrorResponse(error)),
+      strictEnumFailure(strictErrorResponse(error, {
+        structuredContent: { ok: false, errorCode: 'invalid_arguments', error },
+      })),
       'strict enum structured error missing repair hint',
     );
     assert.equal(

@@ -2301,13 +2301,30 @@ export function structuredErrorFailure(response, label, { errorCode } = {}) {
   return null;
 }
 
+function structuredValueRepairFailure(
+  response,
+  label,
+  { valueName, received, suggestion, allowedValues = [], requireSuggestion = true } = {},
+) {
+  const structuredFailure = structuredErrorFailure(response, label, { errorCode: 'invalid_arguments' });
+  if (structuredFailure) return structuredFailure;
+  const structured = response.result.structuredContent;
+  if (structured?.valueName !== valueName || structured?.receivedValue !== received) {
+    return `${label} structured error missing repair hint`;
+  }
+  if (requireSuggestion && structured?.suggestion !== suggestion) {
+    return `${label} structured error missing repair hint`;
+  }
+  if (!Array.isArray(structured?.allowedValues) || allowedValues.some((value) => !structured.allowedValues.includes(value))) {
+    return `${label} structured error missing allowed values`;
+  }
+  return null;
+}
+
 export function strictEnumFailure(response) {
   if (response?.result?.isError !== true) {
     return 'strict enum response was not rejected';
   }
-  const structuredFailure = structuredErrorFailure(response, 'strict enum', { errorCode: 'invalid_arguments' });
-  if (structuredFailure) return structuredFailure;
-  const structured = response.result.structuredContent;
   const text = response.result.content?.[0]?.text || '';
   if (!/operation must be one of/i.test(text) || !/overveiw/i.test(text)) {
     return 'strict enum response did not report the invalid query_ontology operation';
@@ -2315,13 +2332,12 @@ export function strictEnumFailure(response) {
   if (!/Did you mean "overview"\?/i.test(text)) {
     return 'strict enum response did not suggest the closest query_ontology operation';
   }
-  if (structured?.valueName !== 'operation' || structured?.receivedValue !== 'overveiw' || structured?.suggestion !== 'overview') {
-    return 'strict enum structured error missing repair hint';
-  }
-  if (!Array.isArray(structured?.allowedValues) || !structured.allowedValues.includes('overview')) {
-    return 'strict enum structured error missing allowed values';
-  }
-  return null;
+  return structuredValueRepairFailure(response, 'strict enum', {
+    valueName: 'operation',
+    received: 'overveiw',
+    suggestion: 'overview',
+    allowedValues: ['overview'],
+  });
 }
 
 export function strictMaintenanceFilterFailure(response, field = 'phases') {
@@ -2347,7 +2363,12 @@ export function strictMaintenanceFilterFailure(response, field = 'phases') {
   if (!new RegExp(`Did you mean "${expected.suggestion}"\\?`, 'i').test(text)) {
     return `strict maintenance filter response did not suggest the closest maintenance_plan ${field} value`;
   }
-  return structuredErrorFailure(response, 'strict maintenance filter', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict maintenance filter', {
+    valueName: `${field} items`,
+    received: expected.received,
+    suggestion: expected.suggestion,
+    allowedValues: expected.allowed,
+  });
 }
 
 export function strictRelationFilterFailure(response) {
@@ -2364,7 +2385,12 @@ export function strictRelationFilterFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict relation filter response did not suggest the closest dependencyTypes value';
   }
-  return structuredErrorFailure(response, 'strict relation filter', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict relation filter', {
+    valueName: 'dependencyTypes items',
+    received: 'depend_on',
+    suggestion: 'depends_on',
+    allowedValues: ['depends_on'],
+  });
 }
 
 export function strictFindNeighborsTypeFailure(response) {
@@ -2381,7 +2407,12 @@ export function strictFindNeighborsTypeFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict find_neighbors types response did not suggest the closest types value';
   }
-  return structuredErrorFailure(response, 'strict find_neighbors types', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict find_neighbors types', {
+    valueName: 'types items',
+    received: 'depend_on',
+    suggestion: 'depends_on',
+    allowedValues: ['depends_on'],
+  });
 }
 
 export function strictFindOrphansKindFailure(
@@ -2401,7 +2432,12 @@ export function strictFindOrphansKindFailure(
   if (!new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return `strict find_orphans kind response did not suggest the closest ${field} value`;
   }
-  return structuredErrorFailure(response, 'strict find_orphans kind', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict find_orphans kind', {
+    valueName: field,
+    received,
+    suggestion,
+    allowedValues: [suggestion],
+  });
 }
 
 export function strictQueryConceptsFilterFailure(
@@ -2421,7 +2457,12 @@ export function strictQueryConceptsFilterFailure(
   if (!new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return `strict query_concepts filter response did not suggest the closest ${field} value`;
   }
-  return structuredErrorFailure(response, 'strict query_concepts filter', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict query_concepts filter', {
+    valueName: field,
+    received,
+    suggestion,
+    allowedValues: [suggestion],
+  });
 }
 
 export function strictListConceptsKindFailure(
@@ -2441,7 +2482,12 @@ export function strictListConceptsKindFailure(
   if (!new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return 'strict list_concepts kind response did not suggest the closest kind value';
   }
-  return structuredErrorFailure(response, 'strict list_concepts kind', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict list_concepts kind', {
+    valueName: 'kind',
+    received,
+    suggestion,
+    allowedValues: [suggestion],
+  });
 }
 
 export function strictGraphKindFilterFailure(
@@ -2461,7 +2507,12 @@ export function strictGraphKindFilterFailure(
   if (!new RegExp(`Did you mean "${suggestion}"\\?`, 'i').test(text)) {
     return `strict graph kind filter response did not suggest the closest ${field} value`;
   }
-  return structuredErrorFailure(response, 'strict graph kind filter', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict graph kind filter', {
+    valueName: field,
+    received,
+    suggestion,
+    allowedValues: [suggestion],
+  });
 }
 
 function escapeRegExp(value) {
@@ -2488,7 +2539,13 @@ export function strictRecommendRelationsKindFilterFailure(
   if (requireSuggestion && !new RegExp(`Did you mean "${escapeRegExp(suggestion)}"\\?`, 'i').test(text)) {
     return 'strict recommend_relations kind filter response did not suggest the closest kind value';
   }
-  return structuredErrorFailure(response, 'strict recommend_relations kind filter', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict recommend_relations kind filter', {
+    valueName: 'kind',
+    received,
+    suggestion,
+    requireSuggestion,
+    allowedValues: ['capability', 'element'],
+  });
 }
 
 export function strictMatchNodesSortFailure(response) {
@@ -2508,7 +2565,12 @@ export function strictMatchNodesSortFailure(response) {
   if (!/Did you mean "outDegree"\?/i.test(text)) {
     return 'strict match_nodes sort response did not suggest the closest sort value';
   }
-  return structuredErrorFailure(response, 'strict match_nodes sort', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict match_nodes sort', {
+    valueName: 'sort',
+    received: 'outDegre',
+    suggestion: 'outDegree',
+    allowedValues: ['outDegree'],
+  });
 }
 
 export function strictRelationCheckFailure(response) {
@@ -2525,7 +2587,12 @@ export function strictRelationCheckFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict relation_check response did not suggest the closest type value';
   }
-  return structuredErrorFailure(response, 'strict relation_check', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict relation_check', {
+    valueName: 'type',
+    received: 'depend_on',
+    suggestion: 'depends_on',
+    allowedValues: ['depends_on'],
+  });
 }
 
 export function strictMatchEdgesTypeFailure(response) {
@@ -2542,7 +2609,12 @@ export function strictMatchEdgesTypeFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict match_edges type response did not suggest the closest type value';
   }
-  return structuredErrorFailure(response, 'strict match_edges type', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict match_edges type', {
+    valueName: 'type',
+    received: 'depend_on',
+    suggestion: 'depends_on',
+    allowedValues: ['depends_on'],
+  });
 }
 
 export function strictAddRelationFailure(response) {
@@ -2565,7 +2637,12 @@ export function strictAddRelationFailure(response) {
   if (!/Did you mean "depends_on"\?/i.test(text)) {
     return 'strict add_relation response did not suggest the closest type value';
   }
-  return structuredErrorFailure(response, 'strict add_relation', { errorCode: 'invalid_arguments' });
+  return structuredValueRepairFailure(response, 'strict add_relation', {
+    valueName: 'type',
+    received: 'depend_on',
+    suggestion: 'depends_on',
+    allowedValues: ['depends_on'],
+  });
 }
 
 export function maintenanceMissingCursorFailure(parsed) {
