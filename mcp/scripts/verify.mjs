@@ -3064,6 +3064,11 @@ export function initializeInstructionsFailure(response) {
     return 'initialize instructions missing or too short';
   }
 
+  const missingTool = EXPECTED_TOOLS.find((toolName) => !new RegExp(`\\b${toolName}\\b`).test(instructions));
+  if (missingTool) {
+    return `initialize instructions missing tool inventory entry: ${missingTool}`;
+  }
+
   const required = [
     ['read-only first-contact diagnosis', /read-only first-contact diagnosis/i],
     ['overwrite safety', /overwrite: true/],

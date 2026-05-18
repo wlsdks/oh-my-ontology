@@ -6641,6 +6641,7 @@ describe('verify.mjs first-contact gates', () => {
   it('fails initialize instructions missing first-contact safety and recovery guidance', () => {
     const safeInstructions = [
       'Use read-only first-contact diagnosis before write tools.',
+      `Tool inventory includes ${EXPECTED_TOOLS.join(', ')}.`,
       'rename_concept refuses an existing `newSlug` unless overwrite: true is explicit.',
       'delete_concept force: true means accepting dangling referrers.',
       'Use expected_mtime when patching a previously-read concept.',
@@ -6675,6 +6676,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: '' } }),
       'initialize instructions missing or too short',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('infer_imports', 'infer imports') } }),
+      'initialize instructions missing tool inventory entry: infer_imports',
     );
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('overwrite: true', '') } }),

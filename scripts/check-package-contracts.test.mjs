@@ -2445,6 +2445,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`batch no-write metadata: 2\/2 absent`/);
     assert.match(doc, /MCP initialize first-contact instructions 의 bootstrap 절차도 같은 no-write 기준/);
     assert.match(doc, /dry validation evidence/);
+    assert.match(doc, /initialize instruction gate 는 `EXPECTED_TOOLS`/);
+    assert.match(doc, /agent-facing tool inventory/);
     assert.match(doc, /`write metadata: absent` \/ `strict_add_relation_write_metadata: absent`/);
     assert.match(doc, /stderr warning filtering/);
     assert.match(doc, /first-contact README read-only/);
