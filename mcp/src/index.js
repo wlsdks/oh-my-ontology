@@ -123,6 +123,13 @@ const NON_BLANK_STRING_SCHEMA = Object.freeze({
   minLength: 1,
   pattern: '^(?!\\s)(?!.*\\s$)(?!.*\\u0000).+$',
 });
+const RELATION_ARRAY_PATCH_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: Object.fromEntries(
+    GRAPH_ARRAY_KEYS.map((key) => [key, { type: 'array', items: NON_BLANK_STRING_SCHEMA }]),
+  ),
+  additionalProperties: false,
+});
 const VAULT_ISSUE_CODE_DESCRIPTION = VAULT_ISSUE_CODE_VALUES.map((code) => `\`${code}\``).join(', ');
 const IMPORT_EDGE_KIND_DESCRIPTION = IMPORT_EDGE_KIND_VALUES.join(', ');
 const NODE_KIND_DESCRIPTION = NODE_KIND_VALUES.join(', ');
@@ -1278,8 +1285,8 @@ const TOOLS = [
             type: 'object',
             properties: {
               slug: NON_BLANK_STRING_SCHEMA,
-              keys: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-              frontmatter: { type: 'object' },
+              keys: { type: 'array', items: { ...NON_BLANK_STRING_SCHEMA, enum: GRAPH_ARRAY_KEYS } },
+              frontmatter: RELATION_ARRAY_PATCH_SCHEMA,
               expected_mtime: { type: 'number' },
             },
             required: ['slug', 'keys', 'frontmatter', 'expected_mtime'],

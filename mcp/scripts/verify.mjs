@@ -911,7 +911,10 @@ export function toolsListSchemaFailure(tools) {
     canonicalizationActionSchema?.type !== 'object' ||
     !sameArray(canonicalizationActionSchema.required, ['slug', 'keys', 'frontmatter', 'expected_mtime']) ||
     canonicalizationActionSchema.properties?.keys?.items?.type !== 'string' ||
-    canonicalizationActionSchema.properties?.frontmatter?.type !== 'object'
+    !sameArray(canonicalizationActionSchema.properties?.keys?.items?.enum, GRAPH_ARRAY_KEYS) ||
+    canonicalizationActionSchema.properties?.frontmatter?.type !== 'object' ||
+    canonicalizationActionSchema.properties?.frontmatter?.additionalProperties !== false ||
+    !sameArray(Object.keys(canonicalizationActionSchema.properties?.frontmatter?.properties ?? {}).sort(), [...GRAPH_ARRAY_KEYS].sort())
   ) {
     return 'compile_ontology outputSchema canonicalizationActions drift';
   }

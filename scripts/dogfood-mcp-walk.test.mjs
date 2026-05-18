@@ -66,6 +66,7 @@ import {
   RELATION_TYPE_VALUES,
   WRITE_RELATION_TYPE_VALUES,
 } from "../mcp/src/ontology-engine.mjs";
+import { GRAPH_ARRAY_KEYS } from "../mcp/src/vault.mjs";
 
 const WRITE_TOOL_NAMES = new Set([
   "add_concept",
@@ -136,6 +137,16 @@ function stringArrayMapSchemaFixture() {
       type: "array",
       items: { type: "string" },
     },
+  };
+}
+
+function relationArrayPatchSchemaFixture() {
+  return {
+    type: "object",
+    properties: Object.fromEntries(
+      GRAPH_ARRAY_KEYS.map((key) => [key, { type: "array", items: { type: "string" } }]),
+    ),
+    additionalProperties: false,
   };
 }
 
@@ -745,8 +756,8 @@ function makeDogfoodToolsList() {
                 required: ["slug", "keys", "frontmatter", "expected_mtime"],
                 properties: {
                   slug: { type: "string" },
-                  keys: { type: "array", items: { type: "string" } },
-                  frontmatter: { type: "object" },
+                  keys: { type: "array", items: { type: "string", enum: GRAPH_ARRAY_KEYS } },
+                  frontmatter: relationArrayPatchSchemaFixture(),
                   expected_mtime: { type: "number", minimum: 0 },
                 },
               },
@@ -3759,6 +3770,12 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: compileOutputSchemaDrifted }),
       ["tools/list: compile_ontology outputSchema byKind drift"],
+    );
+    const compileActionSchemaDrifted = makeDogfoodToolsList();
+    compileActionSchemaDrifted.tools.find((tool) => tool.name === "compile_ontology").outputSchema.properties.canonicalizationActions.items.properties.keys.items.enum = ["contains"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: compileActionSchemaDrifted }),
+      ["tools/list: compile_ontology outputSchema canonicalizationActions drift"],
     );
     const analyzeOutputSchemaDrifted = makeDogfoodToolsList();
     analyzeOutputSchemaDrifted.tools.find((tool) => tool.name === "analyze_repo_structure").outputSchema.properties.framework.enum = ["fsd", "generic"];

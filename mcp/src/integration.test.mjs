@@ -34,6 +34,7 @@ import {
   RELATION_TYPE_VALUES,
   WRITE_RELATION_TYPE_VALUES,
 } from "./ontology-engine.mjs";
+import { GRAPH_ARRAY_KEYS } from "./vault.mjs";
 import {
   formatNoTestMatchMessage,
   formatTestFilterSuffix,
@@ -452,7 +453,14 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.deepEqual(compileOntology?.outputSchema?.properties?.nodes?.items?.required, ["slug", "kind", "title", "mtime", "outDegree", "inDegree"]);
     assert.deepEqual(compileOntology?.outputSchema?.properties?.edges?.items?.required, ["id", "from", "to", "via", "ref", "resolved", "external"]);
     assert.deepEqual(compileOntology?.outputSchema?.properties?.nodesPagination?.required, ["offset", "limit", "total", "returned", "hasMore", "nextOffset"]);
-    assert.deepEqual(compileOntology?.outputSchema?.properties?.canonicalizationActions?.items?.required, ["slug", "keys", "frontmatter", "expected_mtime"]);
+    const canonicalizationActionSchema = compileOntology?.outputSchema?.properties?.canonicalizationActions?.items;
+    assert.deepEqual(canonicalizationActionSchema?.required, ["slug", "keys", "frontmatter", "expected_mtime"]);
+    assert.deepEqual(canonicalizationActionSchema?.properties?.keys?.items?.enum, GRAPH_ARRAY_KEYS);
+    assert.equal(canonicalizationActionSchema?.properties?.frontmatter?.additionalProperties, false);
+    assert.deepEqual(
+      Object.keys(canonicalizationActionSchema?.properties?.frontmatter?.properties ?? {}).sort(),
+      [...GRAPH_ARRAY_KEYS].sort(),
+    );
     assert.deepEqual(compileOntology?.outputSchema?.properties?.summary?.required, ["nodes", "edges", "graphHash", "maxMtime", "resolvedEdges", "externalEdges", "unresolvedEdges", "aliases", "ambiguousAliases", "issues"]);
     const analyzeRepo = findTool("analyze_repo_structure");
     assert.match(
