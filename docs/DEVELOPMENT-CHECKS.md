@@ -113,8 +113,8 @@ if it leaves a git diff, so the dogfood vault stays canonicalized. `pnpm
 test:dogfood:compile-fix` checks that idempotence guard without the full dogfood
 suite. `pnpm test:dogfood:args` checks the shared pnpm separator and nearest
 `--help` hint helper without invoking any dogfood gate. `pnpm
-test:dogfood:script-refs` checks that help text `pnpm ...` references still
-resolve to root package scripts.
+test:dogfood:script-refs` checks that help text and package script body
+`pnpm ...` references still resolve to root package scripts.
 
 `pnpm dogfood:status` runs the cheap human-readable health + workspace-brief
 gates together. It still prints workspace-brief when health fails, then preserves

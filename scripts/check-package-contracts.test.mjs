@@ -312,7 +312,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /pnpm test:dogfood:status/);
     assert.match(checksDoc, /`pnpm dogfood:compile-fix` runs `compile --fix` against docs\/ontology and fails\s+if it leaves a git diff/);
     assert.match(checksDoc, /`pnpm test:dogfood:args` checks the shared pnpm separator and nearest\s+`--help` hint helper without invoking any dogfood gate/);
-    assert.match(checksDoc, /`pnpm\s+test:dogfood:script-refs` checks that help text `pnpm \.\.\.` references still\s+resolve to root package scripts/);
+    assert.match(checksDoc, /`pnpm\s+test:dogfood:script-refs` checks that help text and package script body\s+`pnpm \.\.\.` references still resolve to root package scripts/);
     assert.match(checksDoc, /`pnpm dogfood:status` runs the cheap human-readable health \+ workspace-brief\s+gates together/);
     assert.match(checksDoc, /still prints workspace-brief when health fails, then preserves\s+the first failing exit code/);
     assert.match(checksDoc, /Use `pnpm dogfood:compile-fix -- --help` \/ `pnpm dogfood:status -- --help`/);
@@ -720,7 +720,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm cli:mcp-verify -- --help/);
     assert.match(section, /`dogfood:compile` prints the dogfood vault `compile_ontology` summary JSON\s+snapshot/);
     assert.match(section, /`pnpm dogfood:compile-fix` runs dogfood `compile --fix` and fails if canonicalization leaves a docs\/ontology diff/);
-    assert.match(section, /`pnpm test:dogfood:script-refs` checks help text `pnpm \.\.\.` references against root package scripts/);
+    assert.match(section, /`pnpm test:dogfood:script-refs` checks help text and package script body `pnpm \.\.\.` references against root package scripts/);
     assert.match(section, /`dogfood:health` prints the dogfood vault fail-closed `health` JSON gate/);
     assert.match(section, /`dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot/);
     assert.match(section, /`dogfood:status` always runs health \+ workspace-brief and preserves the first failing exit before escalating/);
@@ -1294,7 +1294,7 @@ describe('package contract helpers', () => {
     assert.match(section, /`dogfood:compile`\s+is the shortest root-checkout compiler summary JSON snapshot/);
     assert.match(section, /`dogfood:compile-fix`\s+runs root-checkout `compile --fix` and fails if canonicalization leaves a docs\/ontology diff/);
     assert.match(section, /`test:dogfood:args`\s+checks shared dogfood shortcut argument helpers without invoking any gate/);
-    assert.match(section, /`test:dogfood:script-refs`\s+checks help text `pnpm \.\.\.` references against root package scripts/);
+    assert.match(section, /`test:dogfood:script-refs`\s+checks help text and package script body `pnpm \.\.\.` references against root package scripts/);
     assert.match(section, /`test:dogfood:compile-fix`\s+checks that idempotence guard without invoking the full dogfood suite/);
     assert.match(section, /`dogfood:health`\s+is the shortest root-checkout fail-closed health JSON gate/);
     assert.match(section, /`dogfood:brief`\s+is\s+the shortest root-checkout first-contact JSON snapshot/);
