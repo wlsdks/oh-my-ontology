@@ -123,7 +123,8 @@ integration case has a different name. For Node's `--test-name-pattern`, use
 `pnpm exec node --test --test-name-pattern "..." mcp/src/integration.test.mjs`
 instead of appending the flag after `pnpm integration:mcp --`. From the repo root,
 focused `test:mcp:*` shortcuts use `scripts/run-focused-node-test.mjs` so typoed
-patterns fail when they match 0 tests instead of silently passing as all skipped.
+patterns fail when they match 0 tests instead of silently passing as all skipped,
+and signal-killed `node --test` subprocesses report the signal plus target path.
 `pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot.
 `pnpm dogfood:compile-fix` runs dogfood `compile --fix` and fails if canonicalization leaves a docs/ontology diff.
 `pnpm test:dogfood:args` checks shared dogfood shortcut argument helpers without invoking any gate.

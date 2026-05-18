@@ -363,6 +363,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /`pnpm\s+test:dogfood:script-refs` checks that help text and package script body\s+`pnpm \.\.\.` references still resolve to root package scripts/);
     assert.match(checksDoc, /scripts\/run-focused-node-test\.mjs/);
     assert.match(checksDoc, /focused\s+Node test wrappers fail when a pattern matches 0 tests/);
+    assert.match(checksDoc, /signal-killed `node --test`\s+subprocess reports the signal plus target path/);
     assert.match(checksDoc, /`pnpm dogfood:status` runs the cheap human-readable health \+ workspace-brief\s+gates together/);
     assert.match(checksDoc, /still prints workspace-brief when health fails, then preserves\s+the first failing exit code/);
     assert.match(checksDoc, /Use `pnpm dogfood:compile-fix -- --help` \/ `pnpm dogfood:status -- --help`/);
@@ -820,6 +821,7 @@ describe('package contract helpers', () => {
     assert.match(section, /instead of appending the flag after `pnpm integration:mcp --`/);
     assert.match(section, /scripts\/run-focused-node-test\.mjs/);
     assert.match(section, /typoed\s+patterns fail when they match 0 tests instead of silently passing as all skipped/);
+    assert.match(section, /signal-killed `node --test` subprocesses report the signal plus target path/);
   });
 
   it('keeps the MCP verify README aligned with first-contact census gates', () => {
@@ -1352,6 +1354,7 @@ describe('package contract helpers', () => {
     assert.match(section, /instead of appending the flag after `pnpm integration:cli --`/);
     assert.match(section, /scripts\/run-focused-node-test\.mjs/);
     assert.match(section, /typoed\s+patterns fail when they match 0\s+tests instead of silently passing as all skipped/);
+    assert.match(section, /signal-killed `node --test`\s+subprocesses report the signal plus target path/);
     assert.match(section, /`integration:cli:compile`\s+narrows CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /`dogfood:compile`\s+is the shortest root-checkout compiler summary JSON snapshot/);
     assert.match(section, /`dogfood:compile-fix`\s+runs root-checkout `compile --fix` and fails if canonicalization leaves a docs\/ontology diff/);

@@ -120,7 +120,8 @@ integration case has a different name. For Node's `--test-name-pattern`, use
 instead of appending the flag after `pnpm integration:cli --`.
 From the repo root, focused `test:mcp:*` shortcuts use
 `scripts/run-focused-node-test.mjs` so typoed patterns fail when they match 0
-tests instead of silently passing as all skipped.
+tests instead of silently passing as all skipped, and signal-killed `node --test`
+subprocesses report the signal plus target path.
 `integration:cli:compile` narrows CLI compile / `--fix` canonicalization contracts
 without running unrelated CLI routes. `dogfood:compile`
 is the shortest root-checkout compiler summary JSON snapshot, `dogfood:compile-fix`

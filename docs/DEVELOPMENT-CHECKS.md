@@ -90,7 +90,8 @@ of a broad `README` token, so documentation-only changes do not accidentally
 expand into unrelated package contract checks.
 Focused package scripts that call Node's `--test-name-pattern` go through
 `scripts/run-focused-node-test.mjs`, so a typoed pattern that matches 0 tests
-fails instead of passing as all skipped.
+fails instead of passing as all skipped, and a signal-killed `node --test`
+subprocess reports the signal plus target path.
 
 ## Dogfood Shortcuts
 

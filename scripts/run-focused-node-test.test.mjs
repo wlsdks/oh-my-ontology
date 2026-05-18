@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
+import { runFocusedNodeTest } from './run-focused-node-test.mjs';
+
 const SCRIPT = 'scripts/run-focused-node-test.mjs';
 
 function withFixture(body, fn) {
@@ -65,5 +67,39 @@ describe('focused node test wrapper', () => {
       assert.match(result.stdout, /# pass 0/);
       assert.match(result.stderr, new RegExp(`no tests matched --test-name-pattern=missing case in ${file}`));
     });
+  });
+
+  it('reports node --test signal exits with the focused target path', () => {
+    const diagnostics = [];
+    const exitCode = runFocusedNodeTest({
+      argv: ['--test-name-pattern', 'target case', 'fixture.test.mjs'],
+      stderr: { write: (text) => diagnostics.push(text) },
+      stdout: { write() {} },
+      spawn() {
+        return { status: null, signal: 'SIGTERM', stdout: '', stderr: '' };
+      },
+    });
+
+    assert.equal(exitCode, 1);
+    assert.deepEqual(diagnostics, [
+      '[focused-node-test] node --test terminated by SIGTERM in fixture.test.mjs\n',
+    ]);
+  });
+
+  it('reports missing node --test exit status with the focused target path', () => {
+    const diagnostics = [];
+    const exitCode = runFocusedNodeTest({
+      argv: ['--test-name-pattern=target case', 'fixture.test.mjs'],
+      stderr: { write: (text) => diagnostics.push(text) },
+      stdout: { write() {} },
+      spawn() {
+        return { status: null, signal: null, stdout: '', stderr: '' };
+      },
+    });
+
+    assert.equal(exitCode, 1);
+    assert.deepEqual(diagnostics, [
+      '[focused-node-test] node --test ended without an exit status in fixture.test.mjs\n',
+    ]);
   });
 });
