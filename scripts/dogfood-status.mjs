@@ -13,7 +13,7 @@ export function runDogfoodStatus({ spawn = spawnSync, cwd = process.cwd(), stdio
 
   for (const args of STATUS_COMMANDS) {
     const result = spawn(process.execPath, args, { cwd, stdio });
-    const status = typeof result?.status === 'number' ? result.status : 1;
+    const status = dogfoodStatusExitCode(result);
 
     if (exitCode === 0 && status !== 0) {
       exitCode = status;
@@ -21,6 +21,13 @@ export function runDogfoodStatus({ spawn = spawnSync, cwd = process.cwd(), stdio
   }
 
   return exitCode;
+}
+
+export function dogfoodStatusExitCode(result) {
+  if (typeof result?.status === 'number') return result.status;
+  if (typeof result?.signal === 'string' && result.signal.length > 0) return 1;
+  if (result?.error) return 1;
+  return 1;
 }
 
 if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
