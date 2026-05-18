@@ -132,7 +132,6 @@ describe('package contract helpers', () => {
       pkg.scripts?.['integration:cli:maintenance'],
       'node --test --test-name-pattern "maintenance" cli/src/integration.test.mjs',
     );
-    assert.equal(pkg.scripts?.['dogfood:verify'], 'node cli/src/index.mjs mcp-verify docs/ontology --timeout-ms 15000');
     assert.equal(pkg.scripts?.['cli:mcp-verify'], 'node cli/src/index.mjs mcp-verify');
     assert.equal(pkg.scripts?.['integration:mcp'], 'node --test mcp/src/integration.test.mjs');
     assert.equal(
@@ -251,8 +250,9 @@ describe('package contract helpers', () => {
     assert.match(readme, /integration:mcp:readme/);
     assert.match(readme, /CLI MCP wrapper/);
     assert.match(readme, /`cli:mcp-verify`\s+is a source-checkout shortcut for the CLI wrapper/);
-    assert.match(readme, /`dogfood:verify` is the\s+shorter repeatable alias for the same dogfood vault check/);
-    assert.match(readme, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`\s+runs the installed-style\s+verify against this repo's dogfood vault from the repo root/);
+    assert.match(readme, /`dogfood:brief` is the\s+fastest repeatable first-contact snapshot for the dogfood vault/);
+    assert.match(readme, /`dogfood:verify`\s+runs the full installed-style dogfood vault gate/);
+    assert.match(readme, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`\s+runs the same full\s+verify against this repo's dogfood vault from the repo root/);
     assert.match(readme, /`pnpm cli:mcp-verify -- --help` only for help output/);
     assert.match(readme, /vault arguments are passed\s+without the extra `--`/);
     assert.match(readme, /runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`/);

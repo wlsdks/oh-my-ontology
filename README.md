@@ -169,9 +169,10 @@ do not append it after `pnpm integration:* --`, because pnpm forwards `--` as a 
 `test:cli:mcp-call`, `integration:cli:mcp-verify`, `integration:cli:maintenance`, and
 `integration:mcp:readme` shortcuts cover the common install-verification,
 CLI MCP wrapper, CLI maintenance work-queue, and first-contact read-only checks. `cli:mcp-verify`
-is a source-checkout shortcut for the CLI wrapper. `dogfood:verify` is the
-shorter repeatable alias for the same dogfood vault check, while
-`pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` runs the installed-style
+is a source-checkout shortcut for the CLI wrapper. `dogfood:brief` is the
+fastest repeatable first-contact snapshot for the dogfood vault, `dogfood:verify`
+runs the full installed-style dogfood vault gate, and
+`pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` runs the same full
 verify against this repo's dogfood vault from the repo root. Use
 `pnpm cli:mcp-verify -- --help` only for help output; vault arguments are passed
 without the extra `--`. `npm run verify` calls `get_concepts` with discovered slugs plus one
