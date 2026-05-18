@@ -93,9 +93,18 @@ export function runFocusedNodeTest({
   }
 
   if (pattern) {
+    const tests = tapCount(result.stdout, 'tests');
     const pass = tapCount(result.stdout, 'pass');
     const fail = tapCount(result.stdout, 'fail');
     const cancelled = tapCount(result.stdout, 'cancelled');
+    if (tests === null || pass === null || fail === null || cancelled === null) {
+      const targetSuffix = testTargets.length > 0 ? ` in ${testTargets.join(', ')}` : '';
+      stderr.write(
+        `[focused-node-test] could not verify --test-name-pattern=${pattern} matched tests${targetSuffix}; ` +
+        'use the default TAP reporter\n',
+      );
+      return 1;
+    }
     if (pass === 0 && fail === 0 && cancelled === 0) {
       const targetSuffix = testTargets.length > 0 ? ` in ${testTargets.join(', ')}` : '';
       stderr.write(`[focused-node-test] no tests matched --test-name-pattern=${pattern}${targetSuffix}\n`);

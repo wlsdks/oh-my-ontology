@@ -95,7 +95,9 @@ subprocess reports the signal plus target path. The wrapper also requires an
 explicit pattern and at least one test target, so accidental full-suite runs use
 `node --test` directly. Node test option values such as `--test-concurrency 1`
 or `--test-timeout 1000` are not counted as targets, and a missing split option
-value cannot leak the following option value into the target list.
+value cannot leak the following option value into the target list. The wrapper
+also requires the default TAP summary so it can prove at least one focused test
+actually ran; custom reporters that hide `# pass` / `# tests` counts fail closed.
 
 ## Dogfood Shortcuts
 

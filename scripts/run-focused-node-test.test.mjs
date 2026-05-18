@@ -146,6 +146,19 @@ describe('focused node test wrapper', () => {
     });
   });
 
+  it('fails closed when the reporter hides TAP summary counts', () => {
+    withFixture("import test from 'node:test';\ntest('target case', () => {});\n", (file) => {
+      const result = run(['--test-name-pattern', 'target case', '--test-reporter=spec', file]);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /target case/);
+      assert.match(
+        result.stderr,
+        new RegExp(`could not verify --test-name-pattern=target case matched tests in ${file}; use the default TAP reporter`),
+      );
+    });
+  });
+
   it('reports node --test signal exits with the focused target path', () => {
     const diagnostics = [];
     const exitCode = runFocusedNodeTest({
