@@ -3,6 +3,7 @@ const UNRESOLVED_REASONS = new Set(['empty', 'relative-not-found', 'alias-not-fo
 
 export function assertInferImportsResult(payload, context = 'infer_imports') {
   assertObject(payload, context);
+  assertNonEmptyString(payload.rootPath, `${context}.rootPath`);
   assertNonNegativeInteger(payload.filesScanned, `${context}.filesScanned`);
   assertArray(payload.edges, `${context}.edges`);
   assertArray(payload.externalImports, `${context}.externalImports`);

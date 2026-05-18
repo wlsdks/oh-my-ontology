@@ -28,6 +28,19 @@ describe('import-analysis-results', () => {
     assert.throws(
       () =>
         assertInferImportsResult({
+          rootPath: '',
+          filesScanned: 1,
+          edges: [],
+          externalImports: [],
+          unresolved: [],
+          moduleEdges: [],
+        }),
+      /infer_imports\.rootPath must be a non-empty string/,
+    );
+    assert.throws(
+      () =>
+        assertInferImportsResult({
+          rootPath: '/repo',
           filesScanned: 1,
           edges: {},
           externalImports: [],
@@ -39,6 +52,7 @@ describe('import-analysis-results', () => {
     assert.throws(
       () =>
         assertInferImportsResult({
+          rootPath: '/repo',
           filesScanned: -1,
           edges: [],
           externalImports: [],
@@ -53,6 +67,7 @@ describe('import-analysis-results', () => {
     assert.throws(
       () =>
         assertInferImportsResult({
+          rootPath: '/repo',
           filesScanned: 1,
           edges: [],
           externalImports: [],
@@ -67,6 +82,7 @@ describe('import-analysis-results', () => {
     assert.throws(
       () =>
         assertInferImportsResult({
+          rootPath: '/repo',
           filesScanned: 1,
           edges: [],
           externalImports: [],
@@ -78,6 +94,7 @@ describe('import-analysis-results', () => {
     assert.throws(
       () =>
         assertInferImportsResult({
+          rootPath: '/repo',
           filesScanned: 1,
           edges: [],
           externalImports: [],
@@ -89,6 +106,7 @@ describe('import-analysis-results', () => {
     assert.throws(
       () =>
         assertInferImportsResult({
+          rootPath: '/repo',
           filesScanned: 1,
           edges: [],
           externalImports: [],
