@@ -118,7 +118,7 @@ without running unrelated CLI routes. `dogfood:compile`
 is the shortest root-checkout compiler summary JSON snapshot, `dogfood:health`
 is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
 the shortest root-checkout first-contact JSON snapshot, `dogfood:status` runs
-those two cheap status gates together before escalating, `dogfood:verify` is
+their human-readable status output together before escalating, `dogfood:verify` is
 the full root-checkout dogfood vault gate, `dogfood:test` is the full dogfood
 helper regression suite to use only when focused helper checks are not enough, and
 `cli:mcp-verify` is the root-checkout shortcut for the CLI wrapper; use

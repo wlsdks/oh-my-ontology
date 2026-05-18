@@ -103,9 +103,9 @@ pnpm dogfood:walk
 pnpm dogfood:help
 ```
 
-`pnpm dogfood:status` runs the cheap health + workspace-brief JSON gates
-together. Use `pnpm dogfood:verify` for the full installed-style dogfood vault
-gate, and `pnpm dogfood:test` only when the dogfood helper itself changed or the
+`pnpm dogfood:status` runs the cheap human-readable health + workspace-brief
+gates together. Use `pnpm dogfood:verify` for the full installed-style dogfood
+vault gate, and `pnpm dogfood:test` only when the dogfood helper itself changed or the
 focused `test:mcp:dogfood` subset is not enough.
 
 For slower filesystems:

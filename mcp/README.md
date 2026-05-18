@@ -111,7 +111,7 @@ snapshot without running the full installed-style MCP verify walk.
 without running the full installed-style MCP verify walk.
 `dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot
 without running the full installed-style MCP verify walk.
-`dogfood:status` runs those two cheap status gates together before escalating.
+`dogfood:status` runs their human-readable status output together before escalating.
 Use `OMOT_TEST_NAME_PATTERN` with `pnpm integration:mcp` when the touched MCP
 integration case has a different name. For Node's `--test-name-pattern`, use
 `pnpm exec node --test --test-name-pattern "..." mcp/src/integration.test.mjs`
@@ -119,7 +119,7 @@ instead of appending the flag after `pnpm integration:mcp --`. From the repo roo
 `pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot.
 `pnpm dogfood:health` is the shortest dogfood vault health gate.
 `pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot. Use
-`pnpm dogfood:status` for the cheap health + first-contact pair before
+`pnpm dogfood:status` for the cheap human-readable health + first-contact pair before
 escalating. Use
 `pnpm dogfood:verify` for the full installed-style dogfood vault gate, or
 `pnpm dogfood:test` only when the dogfood helper itself needs the full
