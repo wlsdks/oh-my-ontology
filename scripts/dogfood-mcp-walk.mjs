@@ -391,7 +391,7 @@ export function formatWorkspaceNextActionRows(actions, limit = 5) {
 export function workspaceNextActionSummary(actions, limit = 3) {
   if (!Array.isArray(actions) || actions.length === 0) return "none";
   const shown = actions.slice(0, limit).map((action) => {
-    const label = action?.id || action?.kind || "unknown";
+    const label = nextActionLabel(action);
     const severity = action?.severity || "unknown";
     const count = Number.isInteger(action?.count) ? `:${action.count}` : "";
     return `${label}:${severity}${count}`;
@@ -4831,10 +4831,17 @@ function blockingNextActions(actions) {
 }
 
 function nextActionDiagnosticLabel(action) {
-  const label = action?.id || action?.kind || "unknown";
+  const label = nextActionLabel(action);
   const severity = action?.severity || "unknown";
   const count = Number.isInteger(action?.count) ? `:${action.count}` : "";
   return `${label}:${severity}${count}`;
+}
+
+function nextActionLabel(action) {
+  const id = typeof action?.id === "string" && action.id.trim().length > 0 ? action.id : null;
+  const kind = typeof action?.kind === "string" && action.kind.trim().length > 0 ? action.kind : null;
+  if (id && kind && id !== kind) return `${id}/${kind}`;
+  return id || kind || "unknown";
 }
 
 const COLORS = {

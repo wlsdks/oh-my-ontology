@@ -8870,21 +8870,21 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(advisoryNextActionsSummary(null), null);
     assert.equal(
       advisoryNextActionsSummary([
-        { id: 'compile_issues', severity: 'warn', count: 2, message: 'Inspect compile issues.' },
-        { kind: 'add_missing_relations', severity: 'warn', count: 3 },
-        { kind: 'materialize_external_elements', severity: 'info' },
-        { kind: 'resolve_dangling_references', severity: 'fail' },
+        { id: 'compile_issues', kind: 'health_check', severity: 'warn', count: 2, message: 'Inspect compile issues.' },
+        { id: 'add_missing_relations', kind: 'add_missing_relations', severity: 'warn', count: 3 },
+        { id: 'materialize_external_elements', kind: 'materialize_external_elements', severity: 'info' },
+        { id: 'resolve_dangling_references', kind: 'resolve_dangling_references', severity: 'fail' },
       ]),
-      'compile_issues:warn:2 - Inspect compile issues., add_missing_relations:warn:3, materialize_external_elements:info',
+      'compile_issues/health_check:warn:2 - Inspect compile issues., add_missing_relations:warn:3, materialize_external_elements:info',
     );
     assert.equal(
       advisoryNextActionsSummary([
-        { kind: 'a', severity: 'info' },
-        { kind: 'b', severity: 'warn' },
-        { kind: 'c', severity: 'info' },
-        { kind: 'd', severity: 'warn' },
+        { id: 'a', kind: 'health_check', severity: 'info' },
+        { id: 'b', kind: 'b', severity: 'warn' },
+        { id: 'c', kind: 'c', severity: 'info' },
+        { id: 'd', kind: 'd', severity: 'warn' },
       ], 2),
-      'a:info, b:warn, +2 more',
+      'a/health_check:info, b:warn, +2 more',
     );
   });
 

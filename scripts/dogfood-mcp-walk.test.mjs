@@ -3640,12 +3640,12 @@ describe("rpc response completion helpers", () => {
     assert.equal(workspaceNextActionSummary([]), "none");
     assert.equal(
       workspaceNextActionSummary([
-        { id: "components", severity: "info", count: 6 },
-        { kind: "materialize_external_elements", severity: "warn", count: 2 },
-        { kind: "resolve_dangling_references", severity: "fail" },
-        { kind: "add_missing_relations", severity: "warn", count: 4 },
+        { id: "components", kind: "health_check", severity: "info", count: 6 },
+        { id: "materialize_external_elements", kind: "materialize_external_elements", severity: "warn", count: 2 },
+        { id: "resolve_dangling_references", kind: "resolve_dangling_references", severity: "fail" },
+        { id: "add_missing_relations", kind: "add_missing_relations", severity: "warn", count: 4 },
       ]),
-      "components:info:6, materialize_external_elements:warn:2, resolve_dangling_references:fail, +1 more",
+      "components/health_check:info:6, materialize_external_elements:warn:2, resolve_dangling_references:fail, +1 more",
     );
   });
 

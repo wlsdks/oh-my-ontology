@@ -1004,10 +1004,14 @@ describe('package contract helpers', () => {
     );
     const tunedBriefAction = tunedWorkspaceBrief.nextActions[0];
     if (tunedBriefAction) {
+      const tunedBriefActionLabel =
+        tunedBriefAction.id && tunedBriefAction.kind && tunedBriefAction.id !== tunedBriefAction.kind
+          ? `${tunedBriefAction.id}/${tunedBriefAction.kind}`
+          : tunedBriefAction.id || tunedBriefAction.kind;
       assert.match(
         verifySection,
         new RegExp(
-          `workspace_brief_tuned non-blocking advisory nextActions — ${tunedBriefAction.id}:${tunedBriefAction.severity}:${tunedBriefAction.count} - ${regexEscape(tunedBriefAction.message)}`,
+          `workspace_brief_tuned non-blocking advisory nextActions — ${tunedBriefActionLabel}:${tunedBriefAction.severity}:${tunedBriefAction.count} - ${regexEscape(tunedBriefAction.message)}`,
         ),
       );
     } else {
