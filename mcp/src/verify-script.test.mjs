@@ -5639,8 +5639,9 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(58), 'strict_query_concepts_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(59), 'strict_query_concepts_has_key_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(60), 'strict_list_concepts_kind_filter');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(61), 'patch_concept_conflict_guard');
     assert.deepEqual(
-      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45].sort((a, b) => a - b),
+      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45, 61].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
     );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]

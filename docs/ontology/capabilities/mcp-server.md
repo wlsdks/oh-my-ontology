@@ -805,7 +805,8 @@ timeout 출력도 같은 env 이름과 `OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfo
 `workspace_brief` / `health` 비정상 상태, top-level status 와 별개로 내부 health
 check 의 `fail` 상태, warn·fail `workspace_brief.nextActions` 는 exit 1 로 처리한다.
 `pnpm test:mcp:verify:first-contact` 는 first-contact initialize safety/recovery guidance,
-response label, diagnosis, health summary, failing health check, workspace_brief growth/sample/action gate 를 focused 로 확인한다.
+response label, destructive dry-run / `patch_concept` conflict guard helper, diagnosis,
+health summary, failing health check, workspace_brief growth/sample/action gate 를 focused 로 확인한다.
 CLI `mcp-verify` 문서도 delegated verify output 의 non-blocking advisory 와
 issues/unresolved/cycles/checks health summary 를 설명해 설치 경로와 source checkout
 검증 경로의 기대 출력이 갈라지지 않게 한다.

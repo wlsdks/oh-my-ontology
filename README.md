@@ -137,7 +137,7 @@ pnpm test:mcp:maintenance       # narrow maintenance_plan filter/cursor/work-que
 pnpm test:mcp:package           # focused MCP/CLI package-script/entrypoint/dependency/tarball contract checks
 pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
 pnpm test:mcp:verify            # focused MCP verify helper checks, including tool inventory names
-pnpm test:mcp:verify:first-contact # narrow MCP verify first-contact initialize-safety-recovery/health-summary/advisory/read/sample gates
+pnpm test:mcp:verify:first-contact # narrow MCP verify first-contact initialize-safety-recovery/write-safety/health-summary/advisory/read/sample gates
 pnpm test:mcp:verify:timeout    # narrow MCP verify timeout/startup/help diagnostics
 pnpm dogfood:verify             # root checkout installed-style verify over docs/ontology
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000 # root checkout dogfood verify
