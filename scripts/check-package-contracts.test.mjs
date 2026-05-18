@@ -165,6 +165,11 @@ describe('package contract helpers', () => {
       pkg.scripts?.['test:dogfood:script-refs'],
       `${nodeTest} scripts/lib/pnpm-script-refs.test.mjs scripts/run-focused-node-test.test.mjs && ${focusedNode} --test-name-pattern "filtered integration scripts discoverable" scripts/check-package-contracts.test.mjs`,
     );
+    assert.equal(pkg.scripts?.['checks:changed'], 'node scripts/suggest-focused-checks.mjs');
+    assert.equal(
+      pkg.scripts?.['test:checks:changed'],
+      'node --test scripts/lib/focused-check-suggestions.test.mjs scripts/suggest-focused-checks.test.mjs',
+    );
     assert.equal(pkg.scripts?.['test:dogfood:compile-fix'], 'node --test scripts/dogfood-compile-fix.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:health'], 'node cli/src/index.mjs health docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:brief'], 'node cli/src/index.mjs workspace-brief docs/ontology --json');
@@ -319,6 +324,8 @@ describe('package contract helpers', () => {
       'pnpm test:docs-vault',
       'pnpm docs-vault:build',
       'pnpm package:check',
+      'pnpm checks:changed',
+      'pnpm test:checks:changed',
       'pnpm test:cli:args',
       'pnpm test:cli:lib',
       'pnpm test:cli:mcp-call',
@@ -364,6 +371,9 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /pnpm docs-vault:check\s+# static dogfood manifest freshness/);
     assert.match(checksDoc, /pnpm test:docs-vault\s+# focused docs-vault build\/check helper contract/);
     assert.match(checksDoc, /pnpm docs-vault:build\s+# refresh static dogfood manifest and public md/);
+    assert.match(checksDoc, /`pnpm checks:changed`\s+\| Suggest first focused checks from changed paths/);
+    assert.match(checksDoc, /`pnpm checks:changed` reads tracked changes from `git diff --name-only HEAD`/);
+    assert.match(checksDoc, /Pass paths after `--` to inspect a planned file set before editing/);
     assert.match(checksDoc, /\| `pnpm integration:cli:growth` \| CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts \|/);
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);

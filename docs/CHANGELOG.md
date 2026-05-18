@@ -49,6 +49,10 @@ can inspect ontology write candidates without raw JSON-RPC.
   `pnpm test:mcp:registration` shortcut checks only that registration-template
   contract when those files change, and CLI / direct MCP / dogfood help now
   surface the shortcut in their Focused checks lists.
+- **Changed-file focused check advisor** — `pnpm checks:changed` now maps
+  tracked `git diff --name-only HEAD` paths, or explicit paths after `--`, to
+  the first focused checks plus escalation gates so agents can avoid broad test
+  runs when a narrower verification path is enough.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 

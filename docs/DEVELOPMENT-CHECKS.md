@@ -71,9 +71,23 @@ oh-my-ontology workspace-brief ./ontology --component-limit 5 --node-limit 10
 Use focused scripts first. Escalate only when you touched shared package,
 verify, or release behavior.
 
+When in doubt, ask the repo for the narrow starting point:
+
+```bash
+pnpm checks:changed
+pnpm checks:changed -- cli/src/commands/mcp-verify.mjs mcp/scripts/verify.mjs
+```
+
+`pnpm checks:changed` reads tracked changes from `git diff --name-only HEAD`.
+Pass paths after `--` to inspect a planned file set before editing. It prints
+first checks plus explicit escalation gates, and is only an advisor; still add
+runtime/browser checks when the touched behavior needs them.
+
 | Command | Use when |
 |---|---|
 | `pnpm package:check` | Package files, entrypoints, docs contracts |
+| `pnpm checks:changed` | Suggest first focused checks from changed paths |
+| `pnpm test:checks:changed` | Changed-path focused-check suggestion helper |
 | `pnpm test:cli:args` | CLI argument parser contracts |
 | `pnpm test:cli:lib` | CLI shared helper contracts |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |

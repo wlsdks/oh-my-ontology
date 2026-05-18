@@ -554,7 +554,8 @@ destructive dry-run gate, tools/list inventory name / annotation coverage, stric
 `pnpm test:mcp:dogfood:timeout` 으로 더 좁게 확인한다. 직접 verify help 는
 `mcp/` package directory 의 `npm run verify -- --help`, repo root 의
 `node mcp/scripts/verify.mjs --help`, 또는 root `pnpm --filter ./mcp verify -- --help` 로 확인하며,
-Focused checks 에 `pnpm test:dogfood:args` / `pnpm test:dogfood:script-refs` / `pnpm test:dogfood:compile-fix` / `pnpm test:dogfood:status` / `pnpm test:mcp:registration`
+Focused checks 에 `pnpm test:dogfood:args` / `pnpm test:dogfood:script-refs` / `pnpm test:dogfood:compile-fix` / `pnpm test:dogfood:status` / `pnpm test:mcp:maintenance`
+를 먼저 보여주고, source-checkout registration drift 에는 `pnpm test:mcp:registration`
 및 `pnpm dogfood:compile` / `pnpm dogfood:compile-fix` / `pnpm dogfood:health` / `pnpm dogfood:brief` / `pnpm dogfood:growth` / `pnpm dogfood:maintenance` / `pnpm dogfood:status`
 cheap preflight 를 먼저 보여줘 full installed-style verify 전에 더 작은 gate 를 고를 수 있게 하고,
 root 에서 실제 vault 를 검증할 때는 `pnpm --filter ./mcp verify -- [vault] [--timeout-ms N]` 형태를 그대로 쓴다. pnpm separator `--` 는 직접 verify parser 에서 정규화한다. `list_concepts` project probe / `get_concept` / `get_concepts` /
