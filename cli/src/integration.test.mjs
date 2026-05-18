@@ -503,6 +503,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /Installed CLI mcp-verify wrapper flow\/help\/failure checks/);
   assert.match(clean, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);
   assert.match(clean, /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate/);
+  assert.match(clean, /pnpm test:dogfood:args\s+Narrow dogfood shortcut argument helper contract/);
   assert.match(clean, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
   assert.match(clean, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
   assert.match(clean, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);

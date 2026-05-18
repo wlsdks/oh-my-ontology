@@ -3705,6 +3705,7 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /pnpm dogfood:brief\s+First-contact workspace_brief JSON snapshot over docs\/ontology/);
     assert.match(usage, /pnpm dogfood:status\s+Human-readable health \+ workspace_brief over docs\/ontology/);
     assert.match(usage, /pnpm dogfood:verify\s+Installed-style verify gate over docs\/ontology before the full walk/);
+    assert.match(usage, /pnpm test:dogfood:args\s+Shared dogfood shortcut argument helper contract/);
     assert.match(usage, /pnpm test:mcp:dogfood:timeout/);
     assert.match(usage, /Narrow dogfood timeout\/help retry diagnostics/);
     assert.match(usage, /pnpm dogfood:test\s+Full dogfood helper regression suite when focused checks are not enough/);
