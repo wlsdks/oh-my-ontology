@@ -89,8 +89,9 @@ pnpm cli:mcp-verify -- --help
 `test:cli:args` checks only the narrow CLI argument parser contract. Use it
 first when the change is limited to flag, positional, integer, or CSV parsing.
 `test:cli:lib` checks shared CLI helper contracts for argument parsing,
-command registry metadata, MCP response unwrapping, package metadata, and
-graph result fail-closed handling without spawning the full CLI.
+command registry metadata, MCP response unwrapping, package metadata, graph
+result fail-closed handling, and batch post-write maintenance metadata without
+spawning the full CLI.
 `test:contracts` checks cross-package parser, writer, schema, and validator
 parity without running unrelated UI or E2E gates.
 `integration:cli:mcp-verify` runs only the installed MCP verification wrapper

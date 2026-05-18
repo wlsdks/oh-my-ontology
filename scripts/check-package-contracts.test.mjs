@@ -1383,6 +1383,7 @@ describe('package contract helpers', () => {
     assert.match(section, /argument parsing/);
     assert.match(section, /command registry metadata/);
     assert.match(section, /MCP response unwrapping/);
+    assert.match(section, /batch post-write maintenance metadata/);
     assert.match(section, /spawn failure mapping/);
     assert.match(section, /one-shot MCP call timeout guard/);
     assert.match(section, /installed MCP verification wrapper/);
@@ -2370,7 +2371,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /`cli\/src\/lib\/import-analysis-results\.test\.mjs`/);
     assert.match(regressionSection, /`infer_imports` top-level `rootPath` \/ import graph \/ unresolved `reason` enum \/ `moduleEdges` shape fail-closed 계약/);
     assert.match(regressionSection, /`cli\/src\/lib\/batch-results\.test\.mjs`/);
-    assert.match(regressionSection, /batch writer 응답 row count \/ row shape fail-closed 계약/);
+    assert.match(regressionSection, /batch writer 응답 row count \/ row shape \/ top-level `postWriteMaintenance` shape fail-closed 계약/);
     assert.match(regressionSection, /`cli\/src\/lib\/cli-commands\.test\.mjs`/);
     assert.match(regressionSection, /command registry \/ package description command count/);
     assert.match(regressionSection, /MCP `structuredContent` 와 text JSON parity/);
