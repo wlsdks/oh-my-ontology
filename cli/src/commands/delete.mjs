@@ -4,6 +4,7 @@
 // Thin wrapper over MCP delete_concept.
 
 import { resolve } from 'node:path';
+import { formatCapturedSummary } from '../lib/captured-summary.mjs';
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { formatUnknownFlagError, parseVaultFlag, resolveTrailingVaultArg } from '../lib/cli-args.mjs';
 
@@ -99,7 +100,7 @@ export async function runDelete(args) {
         : '') +
       `\n`,
   );
-  writeCapturedSummary(result?.captured, 'deleted node');
+  process.stdout.write(formatCapturedSummary(result?.captured, 'deleted node', COLORS));
   for (const bl of backlinksAtDelete) {
     const titleText = bl.title && bl.title !== bl.slug ? ` ${COLORS.dim}— ${bl.title}${COLORS.reset}` : '';
     process.stdout.write(
@@ -111,18 +112,6 @@ export async function runDelete(args) {
     );
   }
   return 0;
-}
-
-function writeCapturedSummary(captured, label) {
-  const title = captured?.frontmatter?.title;
-  const excerpt = typeof captured?.bodyExcerpt === 'string' ? captured.bodyExcerpt.trim() : '';
-  if (!title && !excerpt) return;
-  process.stdout.write(`  ${COLORS.dim}${label}${COLORS.reset}`);
-  if (title) process.stdout.write(` ${COLORS.cyan}${title}${COLORS.reset}`);
-  process.stdout.write('\n');
-  if (excerpt) {
-    process.stdout.write(`    ${COLORS.dim}${excerpt}${COLORS.reset}\n`);
-  }
 }
 
 function parseArgs(args) {
