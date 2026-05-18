@@ -3293,6 +3293,20 @@ await test('cycles --json — dependency cycles exit non-zero', async () => {
     const data = JSON.parse(r.stdout);
     assert.equal(data.operation, 'cycles');
     assert.equal(data.totalCycles, 1);
+    assert.deepEqual(data.cycles[0].nodeSummaries.map((node) => node.title), ['A', 'B', 'A']);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('cycles — human output includes node titles', async () => {
+  const root = buildCycleFixture();
+  try {
+    const r = await run(['cycles', root]);
+    assert.equal(r.code, 1, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /capabilities\/a\s+— A/);
+    assert.match(clean, /capabilities\/b\s+— B/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

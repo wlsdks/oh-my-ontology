@@ -432,6 +432,10 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 14. **analyze_repo_structure** `{ rootPath?, maxDepth?, ignore? }` — side-effect-free bootstrap candidates from package / README / source layout
 15. **infer_imports** `{ rootPath?, sourceFolders?, ignore?, maxFiles? }` — side-effect-free TS/JS import graph → file/module dependency edge candidates. Use after `analyze_repo_structure` to pull real `depends_on` candidates from code rather than only layout heuristics; the agent reviews `moduleEdges` with `count` + `kindCounts` and lands accepted edges via `add_relation` / `add_relations`, so the vault is not modified by analysis. Unresolved import `reason` is schema-bound to `empty`, `relative-not-found`, or `alias-not-found`; `kindCounts` is schema-bound to positive integer `static`, `dynamic`, `require`, `reexport`, and `side` keys. Resolves relative imports, `tsconfig.json` paths, and fallback common `@/*` aliases when the target exists; `maxFiles` defaults to 5000 and caps at 50000 to stop pathological monorepo walks.
 
+`query_ontology({operation:"cycles"})` returns each cycle as the canonical slug
+path plus aligned `nodeSummaries[]`, so dependency-cycle diagnostics are readable
+without extra node lookups.
+
 #### Write tools (8)
 1. **add_concept** `{ slug, kind, title, domain?, capabilities?, elements?, body? }` — create new `.md`; graph arrays are trimmed, deduped, and sorted on write (throws on existing slug); changed writes return compact `postWriteMaintenance` with `byPhase` / `bySeverity` / `byKind` queue buckets, action `score`, executable `proposedAction`, and current-page next action pointers
    - **R6 validation**: title must be non-empty trimmed string (`isValidVaultTitle`)

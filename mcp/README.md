@@ -186,6 +186,11 @@ The server connects over stdio. You should now see 23 tools under the `oh-my-ont
 | `rename_concept` | **v0.7 ⚠ MULTI-FILE** Atomically renames a slug — moves the .md file, updates the moved file's `slug:` key, and rewrites every backlink (frontmatter array entries, inline string keys like `domain`, body links `[[oldSlug]]` / `(oldSlug.md)`). Tail-only references (`mcp-server` for `capabilities/mcp-server`) are also redirected. Without `confirm:true`, runs as a dry-run with a full update preview. Throws if `newSlug` already exists unless `overwrite:true` is passed. Replaces the manual loop of `find_backlinks` + N `patch_concept` calls. **R11**: optional `expected_mtime` for the source slug. Confirmed renames return compact `postWriteMaintenance` with `byPhase` / `bySeverity` / `byKind` queue buckets, action `score`, executable `proposedAction`, and current-page next action pointers. |
 | `merge_concepts` | **v0.7 ⚠ DESTRUCTIVE MULTI-FILE** Folds `fromSlug` into `intoSlug` — every backlink to `fromSlug` is redirected, then `fromSlug.md` is deleted. The `intoSlug` node is preserved as-is (frontmatter / body are not auto-merged — use `patch_concept` after if you want to combine descriptions). Without `confirm:true`, runs as a dry-run. **R11**: optional `expected_mtime` for `fromSlug`. Confirmed merges return compact `postWriteMaintenance` with `byPhase` / `bySeverity` / `byKind` queue buckets, action `score`, executable `proposedAction`, and current-page next action pointers. |
 
+`query_ontology({operation:"cycles"})` keeps the slug path in each
+`cycles[].nodes` array and also returns aligned `cycles[].nodeSummaries`
+(`slug` / `kind` / `title` / `domain?`) so agents can read a dependency cycle
+without issuing follow-up `get_concept` calls.
+
 Read/query numeric options are intentionally strict. `tools/list` exposes the same
 integer / minimum / maximum constraints that the runtime enforces for
 `list_concepts.limit`, `find_neighbors.limit`, `find_path.maxHops`,

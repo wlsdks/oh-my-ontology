@@ -2353,6 +2353,12 @@ describe('queryCompiledOntology', () => {
       'capabilities/c',
       'capabilities/a',
     ]);
+    assert.deepEqual(result.cycles[0].nodeSummaries.map((node) => node.title), [
+      'A',
+      'B',
+      'C',
+      'A',
+    ]);
     assert.deepEqual(result.cycles[0].edges.map((edge) => edge.via), [
       'dependencies',
       'dependencies',

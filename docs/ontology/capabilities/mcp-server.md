@@ -35,6 +35,11 @@ relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 | `add_relation` | depends_on / relates / contains / describes edge 추가. from/to/type 은 blank 또는 앞뒤 공백이면 쓰기 전 reject 하고, relation type 오타는 closest allowed value hint(`Did you mean "depends_on"?`) 와 함께 reject 한다. changed write 는 compact `postWriteMaintenance` 반환 (`operation` / `filters` / cursor / `byPhase`·`bySeverity`·`byKind` bucket / action `score` / executable `proposedAction` 포함) |
 | `add_relations` | **R+** 배치 edge writer — 여러 edge 한 호출에 (max 50, 응답 row 순서 보존, 저장 배열은 dedup + sort, idempotent, partial result). row-level non-object / unknown-field / relation type typo 입력도 해당 row 만 실패하고, unknown-field 오류는 모든 offending field 와 nearest field hint, `relations[n]` row label, `Received fields: ...` 를, relation type typo 는 nearest relation type hint 를 포함한다. analyze_repo_structure suggestedRelations · infer_imports moduleEdges 수신 직후 적합. changed batch 는 최종 graph 기준 compact `postWriteMaintenance` 반환 (`operation` / `filters` / cursor / `byPhase`·`bySeverity`·`byKind` bucket / action `score` / executable `proposedAction` 포함). |
 
+`query_ontology({operation:"cycles"})` 는 cycle 의 slug path 인 `nodes[]` 를
+유지하면서 같은 순서의 `nodeSummaries[]` 를 반환한다. agent 는 dependency
+cycle 을 받자마자 title/domain 맥락을 읽을 수 있고, 별도 `get_concept`
+round-trip 없이 어떤 capability 가 순환하는지 판단할 수 있다.
+
 R+ follow-up: `add_relation` / `add_relations` 와 `rename_concept` / `merge_concepts`
 backlink redirect 는 relation 배열을 canonical set 으로 저장한다. 같은 edge 집합은
 항상 같은 frontmatter 순서로 직렬화되어 agent 반복 실행 시 diff noise 를 줄이고,

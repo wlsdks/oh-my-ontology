@@ -645,6 +645,12 @@ function validCycle(cycle) {
   const nodes = Array.isArray(cycle.nodes) ? cycle.nodes : cycle.slugs;
   if (!Array.isArray(nodes) || nodes.length < 2) return false;
   if (!nodes.every((slug) => hasNonEmptyString(slug))) return false;
+  if (cycle.nodeSummaries !== undefined) {
+    if (!Array.isArray(cycle.nodeSummaries) || cycle.nodeSummaries.length !== nodes.length) return false;
+    for (let index = 0; index < cycle.nodeSummaries.length; index += 1) {
+      if (!validPathNode(cycle.nodeSummaries[index], nodes[index])) return false;
+    }
+  }
   if (cycle.edges === undefined) return true;
   return Array.isArray(cycle.edges) && cycle.edges.length === nodes.length - 1;
 }

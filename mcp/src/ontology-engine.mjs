@@ -2213,6 +2213,7 @@ export function createOntologyEngine(artifact, options = {}) {
               id: cycle.key,
               length: cycle.nodes.length - 1,
               nodes: cycle.nodes,
+              nodeSummaries: pathNodes(cycle.nodes),
               edges: cycle.edges.map(formatCompiledEdge),
             });
           }

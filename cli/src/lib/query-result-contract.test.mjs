@@ -184,6 +184,22 @@ describe('query-result-contract', () => {
     };
 
     assert.equal(assertCyclesShape(cycles), cycles);
+    assert.equal(
+      assertCyclesShape({
+        operation: 'cycles',
+        cycles: [
+          {
+            nodes: ['a', 'b', 'a'],
+            nodeSummaries: [
+              { slug: 'a', kind: 'capability', title: 'A' },
+              { slug: 'b', kind: 'capability', title: 'B' },
+              { slug: 'a', kind: 'capability', title: 'A' },
+            ],
+          },
+        ],
+      }).cycles[0].nodeSummaries.length,
+      3,
+    );
     assert.equal(assertCyclesShape({ operation: 'cycles', cycles: [] }).totalCycles, undefined);
     assert.equal(assertCyclesShape({ operation: 'cycles', cycles: [{ slugs: ['a', 'b', 'a'] }] }).cycles[0].slugs.length, 3);
     assert.equal(assertPathShape(path), path);
@@ -194,6 +210,29 @@ describe('query-result-contract', () => {
     );
     assert.throws(
       () => assertCyclesShape({ operation: 'cycles', totalCycles: 1, cycles: [{ slugs: ['a'] }] }),
+      /cycles query cycles\[0\] has an invalid cycle shape/,
+    );
+    assert.throws(
+      () => assertCyclesShape({
+        operation: 'cycles',
+        cycles: [{ nodes: ['a', 'b', 'a'], nodeSummaries: [{ slug: 'a', kind: 'capability', title: 'A' }] }],
+      }),
+      /cycles query cycles\[0\] has an invalid cycle shape/,
+    );
+    assert.throws(
+      () => assertCyclesShape({
+        operation: 'cycles',
+        cycles: [
+          {
+            nodes: ['a', 'b', 'a'],
+            nodeSummaries: [
+              { slug: 'a', kind: 'capability', title: 'A' },
+              { slug: 'x', kind: 'capability', title: 'B' },
+              { slug: 'a', kind: 'capability', title: 'A' },
+            ],
+          },
+        ],
+      }),
       /cycles query cycles\[0\] has an invalid cycle shape/,
     );
     assert.throws(

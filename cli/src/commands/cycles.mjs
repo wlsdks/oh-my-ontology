@@ -67,13 +67,19 @@ export async function runCycles(args) {
     const c = cycles[i];
     process.stdout.write(`${COLORS.bold}cycle ${i + 1}${COLORS.reset}\n`);
     const slugs = Array.isArray(c?.nodes) ? c.nodes : Array.isArray(c?.slugs) ? c.slugs : [];
+    const summaries = Array.isArray(c?.nodeSummaries) ? c.nodeSummaries : [];
     for (let j = 0; j < slugs.length; j += 1) {
-      process.stdout.write(`  ${COLORS.yellow}${slugs[j]}${COLORS.reset}\n`);
+      process.stdout.write(`  ${formatCycleNode(slugs[j], summaries[j])}\n`);
       if (j < slugs.length - 1) process.stdout.write(`    ${COLORS.dim}↓ depends_on${COLORS.reset}\n`);
     }
     if (slugs.length > 0) process.stdout.write(`    ${COLORS.dim}↩ back to ${slugs[0]}${COLORS.reset}\n\n`);
   }
   return cyclesResultExitCode(result);
+}
+
+function formatCycleNode(slug, summary) {
+  const title = summary?.title && summary.title !== slug ? ` ${COLORS.dim}— ${summary.title}${COLORS.reset}` : '';
+  return `${COLORS.yellow}${slug}${COLORS.reset}${title}`;
 }
 
 function parseArgs(args) {
