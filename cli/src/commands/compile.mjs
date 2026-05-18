@@ -14,6 +14,17 @@ import {
 } from '../lib/cli-args.mjs';
 
 const PAGE_LIMIT_CAP = 500;
+const CANONICALIZATION_GRAPH_ARRAY_KEYS = Object.freeze([
+  'domains',
+  'capabilities',
+  'elements',
+  'dependencies',
+  'relates',
+  'contains',
+  'describes',
+  'depends_on',
+]);
+const CANONICALIZATION_GRAPH_ARRAY_KEY_SET = new Set(CANONICALIZATION_GRAPH_ARRAY_KEYS);
 const ALLOWED_FLAGS = [
   '--vault',
   '--json',
@@ -153,6 +164,32 @@ function canonicalizationActionsShapeError(actions) {
       (!Array.isArray(action.keys) || action.keys.some((key) => typeof key !== 'string' || key.trim() === ''))
     ) {
       return `${label}.keys must be an array of non-empty strings`;
+    }
+    const frontmatterKeys = Object.keys(action.frontmatter);
+    for (const key of frontmatterKeys) {
+      if (!CANONICALIZATION_GRAPH_ARRAY_KEY_SET.has(key)) {
+        return `${label}.frontmatter.${key} is not a compiler relation-array key`;
+      }
+      const value = action.frontmatter[key];
+      if (!Array.isArray(value) || value.some((ref) => typeof ref !== 'string' || ref.trim() === '')) {
+        return `${label}.frontmatter.${key} must be an array of non-empty strings`;
+      }
+    }
+    if (Array.isArray(action.keys)) {
+      const declaredKeys = new Set(action.keys);
+      for (const key of action.keys) {
+        if (!CANONICALIZATION_GRAPH_ARRAY_KEY_SET.has(key)) {
+          return `${label}.keys contains unsupported relation-array key "${key}"`;
+        }
+        if (!Object.prototype.hasOwnProperty.call(action.frontmatter, key)) {
+          return `${label}.keys declares "${key}" but frontmatter does not include it`;
+        }
+      }
+      for (const key of frontmatterKeys) {
+        if (!declaredKeys.has(key)) {
+          return `${label}.frontmatter.${key} is missing from keys`;
+        }
+      }
     }
   }
   return null;

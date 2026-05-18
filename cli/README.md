@@ -280,7 +280,9 @@ you already edited any starter file, that file stays on disk.
 `compile` gives you the deterministic graph hash/counts after the ontology is
 built. Add `--fix` to apply compiler-produced relation-array canonicalization
 actions, which trims duplicates and reorders graph arrays through the same MCP
-`patch_concept` write path agents use.
+`patch_concept` write path agents use. The wrapper fails closed before writing
+if an action would patch anything outside compiler relation-array keys or if the
+declared action keys do not match the frontmatter patch.
 
 23 tools:
 `list_concepts` / `get_concept` / `get_concepts` / `find_evidence` /
