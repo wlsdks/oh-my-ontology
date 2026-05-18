@@ -1167,7 +1167,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /missing or malformed first-contact diagnosis payloads/);
     assert.match(verifySection, /top-level `status`, `workspace_brief\.nextActions`,\s+`workspace_brief\.health\.checks`, `health\.checks`, tuned `workspace_brief\.health\.checks`, and tuned `health\.checks`/);
     assert.match(verifySection, /top-level diagnosis `status` must be `healthy` or `needs_attention`/);
-    assert.match(verifySection, /every\s+`workspace_brief\.nextActions` row must include non-empty `id` and `kind` plus\s+`severity` in `info` \/ `warn` \/ `fail`/);
+    assert.match(verifySection, /requires every `workspace_brief\.nextActions` row to include non-empty `id` and `kind` plus `severity` in `info` \/ `warn` \/ `fail`/);
+    assert.doesNotMatch(verifySection, /`id`\s+or\s+`kind`/);
     assert.match(verifySection, /requires every health check row to include non-empty `id` plus `status` in `pass` \/ `warn` \/ `fail` \/ `info`/);
     assert.match(verifySection, /optional `count` fields must be non-negative integers/);
     assert.match(verifySection, /`workspace_brief\.nextActions\[\]\.sample` includes executable examples/);
@@ -1843,6 +1844,8 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /workspace_brief\.health\.checks/);
     assert.match(dogfoodSection, /tuned `workspace_brief`/);
     assert.match(dogfoodSection, /workspace_brief\.nextActions/);
+    assert.match(dogfoodSection, /non-empty id \+ kind \+ severity/);
+    assert.doesNotMatch(dogfoodSection, /non-empty id\/kind\/severity/);
     assert.match(dogfoodSection, /nextActions\[\]\.sample/);
     assert.match(dogfoodSection, /실행 액션 shape drift/);
     assert.match(dogfoodSection, /severity\/kind\/id\/count\/message/);

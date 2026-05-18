@@ -129,7 +129,7 @@ top-level `status`, `workspace_brief.nextActions`, `workspace_brief.health.check
 같은 first-contact diagnosis payload 의 핵심 배열이 빠지거나 malformed 이면
 clean vault 로 오인하지 않고 verify 를 실패시킨다. top-level diagnosis `status` 는 `healthy` 또는
 `needs_attention` 이어야 하며, 각 nextAction row 는
-비어있지 않은 `id` 또는 `kind` 와 `info` / `warn` / `fail` severity, 각 health check row 는
+비어있지 않은 `id` 와 `kind`, 그리고 `info` / `warn` / `fail` severity, 각 health check row 는
 비어있지 않은 `id` 와 `pass` / `warn` / `fail` / `info` status 를 가져야 하고,
 출력에 쓰이는 optional `count` 는 non-negative integer 여야 해서
 malformed row 가 `unknown` advisory/coverage 로 숨지 않는다.
@@ -403,7 +403,7 @@ scoped probe 가 왜 advisory 인지 숨기지 않는다. `components` probe 는
 마지막 Analysis 에 `component rows` 를 componentId:size:firstSlug 형태로
 다시 출력하고, node-limited row 는 size 뒤에 `+` 를 붙여 disconnected
 component 의 첫 노드와 truncated 여부를 긴 로그 끝에서도 바로 확인하게 한다.
-dogfood walk 도 `workspace_brief.nextActions` row 의 non-empty id/kind/severity 와
+dogfood walk 도 `workspace_brief.nextActions` row 의 non-empty id + kind + severity 와
 `health.checks` row 의 id/status/count 를 fail-closed 로 검증하고 severity/status enum 오타도 거부한다.
 출력에 쓰이는 optional `count` 는 non-negative integer 여야 해서 실제 MCP 응답이
 advisory/coverage 출력에서 `unknown` 이나 잘못된 count 로 숨지 않게 한다.
