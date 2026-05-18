@@ -2981,6 +2981,7 @@ await test('workspace-brief --help — documents health and growth output', asyn
   const clean = stripAnsi(r.stdout);
   assert.match(clean, /Use --json for repeatable first-contact snapshots such as pnpm dogfood:brief/);
   assert.match(clean, /Use pnpm dogfood:health first when you only need the fail-closed health gate/);
+  assert.match(clean, /Use pnpm dogfood:status for the cheap human-readable health \+ workspace-brief pair/);
   assert.match(clean, /Fail-severity nextActions or failing health checks exit non-zero for shell gates/);
   assert.match(clean, /HEALTH CHECKS id:status:count/);
   assert.match(clean, /GROWTH actions\/relations\/dangling\/external\/ignoredExternal counts/);
@@ -3166,6 +3167,7 @@ await test('health --help — documents focused diagnosis tuning flags', async (
   assert.match(clean, /--component-limit N/);
   assert.match(clean, /Use --json for repeatable automation gates such as pnpm dogfood:health/);
   assert.match(clean, /Failing health checks exit non-zero; use workspace-brief when you also need hotspots and next actions/);
+  assert.match(clean, /Use pnpm dogfood:status for the cheap human-readable health \+ workspace-brief pair/);
   assert.match(clean, /Tuning flags forward to query_ontology health/);
 });
 
