@@ -128,6 +128,7 @@ frontmatter issues so you know which docs aren't becoming graph nodes.
 ```bash
 pnpm package:check              # MCP/CLI package files contract + CLI lib + docs self-test
 pnpm test:cli:lib               # focused CLI shared helper unit contracts
+pnpm test:cli:mcp-call          # narrow CLI MCP wrapper parser/spawn contracts
 pnpm test:contracts             # focused cross-package contract tests
 pnpm test:mcp:docs              # focused README + dogfood ontology docs contract
 pnpm test:mcp:dogfood           # focused dogfood helper + structuredContent/compile/tools-list/row-label/vault-warning/health/sample-shape/maintenance work-queue+formatter/initialize+batch-relation/destructive dry-run/help/argument/timeout/strict relation/closest-value/stderr checks
@@ -164,9 +165,9 @@ the broader release checks.
 only the spawn-heavy integration cases touched by a small change. When you need
 Node's `--test-name-pattern`, call `pnpm exec node --test --test-name-pattern ... <file>`;
 do not append it after `pnpm integration:* --`, because pnpm forwards `--` as a test file. The
-`integration:cli:mcp-verify`, `integration:cli:maintenance`, and
+`test:cli:mcp-call`, `integration:cli:mcp-verify`, `integration:cli:maintenance`, and
 `integration:mcp:readme` shortcuts cover the common install-verification,
-CLI maintenance work-queue, and first-contact read-only checks. `cli:mcp-verify`
+CLI MCP wrapper, CLI maintenance work-queue, and first-contact read-only checks. `cli:mcp-verify`
 is a source-checkout shortcut for the CLI wrapper. `dogfood:verify` is the
 shorter repeatable alias for the same dogfood vault check, while
 `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` runs the installed-style

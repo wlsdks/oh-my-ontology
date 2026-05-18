@@ -144,6 +144,7 @@ describe('package contract helpers', () => {
       'node scripts/check-package-contracts.mjs && pnpm test:cli:lib && node --test scripts/check-package-contracts.test.mjs',
     );
     assert.equal(pkg.scripts?.['test:cli:lib'], 'node --test cli/src/lib/*.test.mjs');
+    assert.equal(pkg.scripts?.['test:cli:mcp-call'], 'node --test cli/src/lib/mcp-call.test.mjs');
     assert.equal(pkg.scripts?.['test:contracts'], 'vitest run tests/contract');
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /check-package-contracts\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /check-package-contracts\.test\.mjs/);
@@ -213,6 +214,7 @@ describe('package contract helpers', () => {
     );
     assert.match(readme, /pnpm package:check\s+# MCP\/CLI package files contract \+ CLI lib \+ docs self-test/);
     assert.match(readme, /pnpm test:cli:lib\s+# focused CLI shared helper unit contracts/);
+    assert.match(readme, /pnpm test:cli:mcp-call\s+# narrow CLI MCP wrapper parser\/spawn contracts/);
     assert.match(readme, /pnpm test:contracts\s+# focused cross-package contract tests/);
     assert.match(readme, /pnpm test:mcp:docs/);
     assert.match(readme, /pnpm test:mcp:dogfood/);
@@ -239,9 +241,11 @@ describe('package contract helpers', () => {
     assert.match(readme, /dogfood-helper/);
     assert.match(readme, /call `pnpm exec node --test --test-name-pattern \.\.\. <file>`/);
     assert.match(readme, /do not append it after `pnpm integration:\* --`/);
+    assert.match(readme, /test:cli:mcp-call/);
     assert.match(readme, /integration:cli:mcp-verify/);
     assert.match(readme, /integration:cli:maintenance/);
     assert.match(readme, /integration:mcp:readme/);
+    assert.match(readme, /CLI MCP wrapper/);
     assert.match(readme, /`cli:mcp-verify`\s+is a source-checkout shortcut for the CLI wrapper/);
     assert.match(readme, /`dogfood:verify` is the\s+shorter repeatable alias for the same dogfood vault check/);
     assert.match(readme, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`\s+runs the installed-style\s+verify against this repo's dogfood vault from the repo root/);
