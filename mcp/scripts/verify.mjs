@@ -2965,6 +2965,7 @@ export function initializeInstructionsFailure(response) {
     ['structured errorCode guidance', /structuredContent[\s\S]*errorCode[\s\S]*unknown_tool[\s\S]*unknown_argument[\s\S]*invalid_arguments/i],
     ['structured repair fields guidance', /structuredContent[\s\S]*receivedTool[\s\S]*receivedArgument[\s\S]*unknownArguments[\s\S]*receivedValue[\s\S]*suggestion[\s\S]*allowedTools[\s\S]*allowedArguments[\s\S]*allowedValues/i],
     ['structured missing slug guidance', /missingSlug[\s\S]*similarSlugs[\s\S]*recoveryTools[\s\S]*createTool/i],
+    ['structured conflict guidance', /conflictSlug[\s\S]*recoveryTools[\s\S]*overwriteOption/i],
     ['nearest argument hint guidance', /Did you mean "limit"\?/],
     ['multiple unknown arguments guidance', /Unknown arguments for list_concepts[\s\S]*"summry"[\s\S]*did you mean "summary"\?/i],
     ['batch row isolation guidance', /non-object row[\s\S]*unknown row fields[\s\S]*ok:\s*false/i],

@@ -4036,6 +4036,46 @@ await test("add_concepts — unknown row field 는 row-level error 로 격리", 
   }
 });
 
+await test("MCP slug conflicts expose structured recovery fields", async () => {
+  const root = makeVault([
+    { slug: "exist", content: "---\nkind: capability\ntitle: Exist\n---\n" },
+    { slug: "target", content: "---\nkind: capability\ntitle: Target\n---\n" },
+  ]);
+  try {
+    const { responses } = await rpc(root, [
+      ...INIT_REQUESTS,
+      callTool(2, "add_concept", {
+        slug: "exist",
+        kind: "capability",
+        title: "Existing",
+      }),
+      callTool(3, "rename_concept", {
+        oldSlug: "exist",
+        newSlug: "target",
+        confirm: true,
+      }),
+    ]);
+
+    assert.equal(isErrorResponse(responses, 2), true);
+    const existingDoc = getCallStructured(responses, 2);
+    assert.equal(existingDoc.errorCode, "conflict");
+    assert.equal(existingDoc.conflictSubject, "Doc already exists");
+    assert.equal(existingDoc.conflictSlug, "exist");
+    assert.deepEqual(existingDoc.recoveryTools, ["patch_concept", "rename_concept"]);
+    assert.deepEqual(existingDoc.avoidTools, ["delete_concept"]);
+
+    assert.equal(isErrorResponse(responses, 3), true);
+    const existingTarget = getCallStructured(responses, 3);
+    assert.equal(existingTarget.errorCode, "conflict");
+    assert.equal(existingTarget.conflictSubject, "Target slug already exists");
+    assert.equal(existingTarget.conflictSlug, "target");
+    assert.deepEqual(existingTarget.recoveryTools, ["rename_concept"]);
+    assert.equal(existingTarget.overwriteOption, "overwrite");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test("MCP write tools — blank/padded string inputs are rejected before disk writes", async () => {
   const root = makeVault([
     { slug: "a", content: "---\nkind: capability\ntitle: A\n---\n" },

@@ -220,6 +220,9 @@ can correct `operation:"overveiw"` without scraping the text form.
 Missing node errors include `missingSlug`, `similarSlugs`, `recoveryTools`, and
 optional `createTool`, so clients can choose between lookup, search, or
 `add_concept` without parsing prose.
+Slug conflict errors include `conflictSlug`, `recoveryTools`, and optional
+`overwriteOption`, so clients can choose `patch_concept`, `rename_concept`, or
+an explicit overwrite retry without scraping prose.
 String-array options are strict too: relation filters such as
 `find_neighbors.types` / `query_ontology.types`, `query_ontology.pattern`,
 `maintenance_plan` filters, and analysis scan lists such as
@@ -507,6 +510,8 @@ submitted key set instead of guessing from allowed fields alone. Invalid enum
 errors expose `valueName`, `receivedValue`, `suggestion`, and `allowedValues`
 in `structuredContent` for the same reason. Missing node errors expose
 `missingSlug`, `similarSlugs`, `recoveryTools`, and optional `createTool`.
+Slug conflict errors expose `conflictSlug`, `recoveryTools`, and optional
+`overwriteOption`.
 Batch repair
 guidance is gated as well: duplicate `add_concepts` input slugs must surface
 `concepts[n] duplicate slug in input batch; first seen at concepts[m]` in
