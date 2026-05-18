@@ -263,6 +263,19 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests focused CLI graph-write integration for destructive graph commands', () => {
+    const result = suggestFocusedChecks([
+      'cli/src/commands/rename.mjs',
+      'cli/src/commands/delete.mjs',
+      'cli/src/commands/merge.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm integration:cli:graph-write',
+      'pnpm dogfood:status',
+    ]);
+  });
+
   it('suggests the advisor self-test when the focused-check advisor changes', () => {
     const result = suggestFocusedChecks([
       'scripts/lib/focused-check-suggestions.mjs',

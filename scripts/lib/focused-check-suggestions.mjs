@@ -144,6 +144,11 @@ const RULES = [
     ],
   },
   {
+    command: 'pnpm integration:cli:graph-write',
+    reason: 'CLI graph write command changed',
+    matches: [/^cli\/src\/commands\/(?:rename|delete|merge)\.mjs$/],
+  },
+  {
     command: 'pnpm integration:cli:growth',
     reason: 'CLI growth command changed',
     matches: [/^cli\/src\/commands\/growth\.mjs$/],
