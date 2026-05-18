@@ -1830,6 +1830,20 @@ describe('verify.mjs first-contact gates', () => {
                 additionalProperties: false,
               },
             },
+            nodes: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['slug', 'kind', 'title'],
+                properties: {
+                  slug: { type: 'string' },
+                  kind: { type: 'string' },
+                  title: { type: 'string' },
+                  domain: { type: 'string' },
+                },
+                additionalProperties: false,
+              },
+            },
           },
           additionalProperties: false,
         },
@@ -3575,6 +3589,31 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'find_path outputSchema edge via drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'find_path'),
+        {
+          ...tools.find((tool) => tool.name === 'find_path'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'find_path').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'find_path').outputSchema.properties,
+              nodes: {
+                ...tools.find((tool) => tool.name === 'find_path').outputSchema.properties.nodes,
+                items: {
+                  ...tools.find((tool) => tool.name === 'find_path').outputSchema.properties.nodes.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'find_path').outputSchema.properties.nodes.items.properties,
+                    title: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'find_path outputSchema node title drift',
     );
     assert.equal(
       toolsListSchemaFailure([
@@ -6568,6 +6607,33 @@ describe('verify.mjs first-contact gates', () => {
         edges: [],
       }, 'project', 'domains/core'),
       'find_path response edge count mismatch',
+    );
+    assert.equal(
+      findPathFailure({
+        from: 'project',
+        to: 'domains/core',
+        found: true,
+        hopCount: 1,
+        hops: ['project', 'domains/core'],
+        edges: [{ from: 'project', to: 'domains/core', via: 'domains' }],
+        nodes: [{ slug: 'project', kind: 'project', title: 'Project' }],
+      }, 'project', 'domains/core'),
+      'find_path response node count mismatch',
+    );
+    assert.equal(
+      findPathFailure({
+        from: 'project',
+        to: 'domains/core',
+        found: true,
+        hopCount: 1,
+        hops: ['project', 'domains/core'],
+        edges: [{ from: 'project', to: 'domains/core', via: 'domains' }],
+        nodes: [
+          { slug: 'project', kind: 'project', title: 'Project' },
+          { slug: 'domains/wrong', kind: 'domain', title: 'Core' },
+        ],
+      }, 'project', 'domains/core'),
+      'find_path node/hop mismatch at index 1',
     );
   });
 

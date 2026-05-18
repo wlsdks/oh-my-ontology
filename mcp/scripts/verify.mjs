@@ -1055,6 +1055,25 @@ export function toolsListSchemaFailure(tools) {
       return `find_path outputSchema edge ${propertyName} drift`;
     }
   }
+  const findPathNodesSchema = outputPropertyAt(findPathTool, ['properties', 'nodes']);
+  if (
+    findPathNodesSchema?.type !== 'array' ||
+    findPathNodesSchema.items?.type !== 'object' ||
+    !sameArray(findPathNodesSchema.items?.required, ['slug', 'kind', 'title'])
+  ) {
+    return 'find_path outputSchema nodes drift';
+  }
+  if (findPathNodesSchema.items?.additionalProperties !== false) {
+    return 'find_path outputSchema node openness drift';
+  }
+  for (const propertyName of ['slug', 'kind', 'title']) {
+    if (findPathNodesSchema.items?.properties?.[propertyName]?.type !== 'string') {
+      return `find_path outputSchema node ${propertyName} drift`;
+    }
+  }
+  if (findPathNodesSchema.items?.properties?.domain?.type !== 'string') {
+    return 'find_path outputSchema node domain drift';
+  }
 
   const queryConceptsTool = tools.find((tool) => tool?.name === 'query_concepts');
   if (!queryConceptsTool) return 'tools/list response missing query_concepts tool';
@@ -4677,6 +4696,37 @@ export function findPathFailure(parsed, expectedFrom, expectedTo) {
     if (edge.from !== parsed.hops[index] || edge.to !== parsed.hops[index + 1]) {
       return `find_path edge/hop mismatch at index ${index}`;
     }
+  }
+  if (parsed.nodes !== undefined) {
+    if (!Array.isArray(parsed.nodes) || parsed.nodes.length !== parsed.hops.length) {
+      return 'find_path response node count mismatch';
+    }
+    for (const [index, row] of parsed.nodes.entries()) {
+      const failure = pathNodeFailure(row, index);
+      if (failure) return failure;
+      if (row.slug !== parsed.hops[index]) {
+        return `find_path node/hop mismatch at index ${index}`;
+      }
+    }
+  }
+  return null;
+}
+
+function pathNodeFailure(row, index) {
+  if (!row || typeof row !== 'object' || Array.isArray(row)) {
+    return `find_path response malformed node at index ${index}`;
+  }
+  if (typeof row.slug !== 'string' || row.slug.length === 0) {
+    return `find_path response missing node slug at index ${index}`;
+  }
+  if (typeof row.kind !== 'string' || row.kind.length === 0) {
+    return `find_path response missing node kind: ${row.slug}`;
+  }
+  if (typeof row.title !== 'string' || row.title.length === 0) {
+    return `find_path response missing node title: ${row.slug}`;
+  }
+  if (row.domain !== undefined && typeof row.domain !== 'string') {
+    return `find_path response malformed node domain: ${row.slug}`;
   }
   return null;
 }

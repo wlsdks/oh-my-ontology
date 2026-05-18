@@ -11,7 +11,7 @@
  *   - find_evidence          — title / capabilities / elements / body 부분매칭
  *   - find_backlinks         — 특정 slug 를 가리키는 다른 노드들
  *   - find_neighbors         — 특정 slug 주변의 incoming/outgoing graph edge
- *   - find_path              — 두 slug 사이 BFS 최단 경로 + edges[via] (R+)
+ *   - find_path              — 두 slug 사이 BFS 최단 경로 + nodes[] + edges[via] (R+)
  *   - list_kinds             — vault kind 분포 census
  *   - find_orphans           — 어느 다른 노드도 frontmatter 에서 가리키지 않는 doc
  *   - query_concepts         — typed filter DSL (kind=X AND has(Y) AND NOT ...)
@@ -493,7 +493,7 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 7. \`get_concept(slug)\` — frontmatter + body excerpt + graph neighbors / outgoingEdges + \`mtime\`. **Capture the \`mtime\`** if you plan to write later. **For K specific slugs use \`get_concepts({slugs: [...]})\` (max 50) to fetch all in one call instead of K round-trips.**
 8. \`find_backlinks(slug)\` — understand how a node is referenced (run *before* rename / merge). Each row already includes \`domain\` + \`mtime\` — no follow-up \`get_concept\` needed for sort/filter.
 9. \`find_neighbors(slug)\` — one-hop graph subgraph around a node; use \`direction\` / \`types\` to inspect incoming, outgoing, or both.
-10. \`find_path(from, to)\` — "how does A relate to B?" (BFS, undirected). Returns \`hops: [slug...]\` **and \`edges: [{from, to, via}]\` where \`via\` is the frontmatter key (\`domains\` / \`domain\` / \`capabilities\` / \`elements\` / \`dependencies\` / \`relates\` / \`contains\` / \`describes\`) that linked the pair** — so you see not just *that* A and B are connected but *why*.
+10. \`find_path(from, to)\` — "how does A relate to B?" (BFS, undirected). Returns \`hops: [slug...]\`, aligned \`nodes: [{slug, kind, title, domain?}]\`, **and \`edges: [{from, to, via}]\` where \`via\` is the frontmatter key (\`domains\` / \`domain\` / \`capabilities\` / \`elements\` / \`dependencies\` / \`relates\` / \`contains\` / \`describes\`) that linked the pair** — so you see not just *that* A and B are connected but *why*.
 11. \`find_orphans\` — spot nodes that no other node points to (cleanup or deletion candidates; project roots and vault README are excluded by default).
 12. \`query_concepts(filter)\` — structured questions like \`kind=capability AND domain=auth AND NOT has(elements)\` (= "unfinished caps under auth").
 13. \`compile_ontology({includeIndexes:true})\` — compiler-style graph artifact: canonical nodes, edges, aliases, issues, stable \`graphHash\`, \`maxMtime\`, and query indexes.
@@ -1206,7 +1206,7 @@ const TOOLS = [
     name: 'find_path',
     description:
       'Shortest path between two nodes (undirected BFS). Returns ' +
-      '`{ from, to, hops: [slug...], edges: [{from, to, via}] }` where each ' +
+      '`{ from, to, hops: [slug...], nodes: [{slug, kind, title, domain?}], edges: [{from, to, via}] }` where each ' +
       '`via` is the frontmatter key (`domains` / `domain` / `capabilities` / `elements` / `dependencies` / ' +
       '`relates` / `contains` / `describes`) that linked the two slugs — so the ' +
       'agent sees not just *that* A and B are connected but *why*. ' +
@@ -1247,6 +1247,20 @@ const TOOLS = [
               via: NON_BLANK_STRING_SCHEMA,
             },
             required: ['from', 'to', 'via'],
+            additionalProperties: false,
+          },
+        },
+        nodes: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slug: NON_BLANK_STRING_SCHEMA,
+              kind: NON_BLANK_STRING_SCHEMA,
+              title: NON_BLANK_STRING_SCHEMA,
+              domain: { type: 'string' },
+            },
+            required: ['slug', 'kind', 'title'],
             additionalProperties: false,
           },
         },
@@ -3524,7 +3538,26 @@ function findPathTool({ from, to, maxHops }) {
   if (!result) {
     return { from, to, found: false, reason: '경로 없음 (또는 maxHops 초과)' };
   }
-  return { ...result, found: true, hopCount: result.hops.length - 1 };
+  const docs = loadVaultDocs(VAULT_ROOT);
+  const docsBySlug = new Map(docs.map((doc) => [doc.slug, doc]));
+  const nodes = result.hops.map((slug) => summarizePathNode(docsBySlug.get(slug), slug));
+  return { ...result, nodes, found: true, hopCount: result.hops.length - 1 };
+}
+
+function summarizePathNode(doc, slug) {
+  if (!doc) {
+    return { slug, kind: 'unknown', title: slug };
+  }
+  const frontmatter = doc.frontmatter || {};
+  const summary = {
+    slug: doc.slug || slug,
+    kind: String(frontmatter.kind || 'document'),
+    title: String(frontmatter.title || frontmatter.name || doc.slug || slug),
+  };
+  if (typeof frontmatter.domain === 'string') {
+    summary.domain = frontmatter.domain;
+  }
+  return summary;
 }
 
 function listKindsTool() {

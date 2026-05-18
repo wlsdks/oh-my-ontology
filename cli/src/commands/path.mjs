@@ -74,12 +74,16 @@ export async function runPath(args) {
 
   const hops = result.hops;
   const edges = Array.isArray(result.edges) ? result.edges : [];
+  const nodesBySlug = new Map(
+    (Array.isArray(result.nodes) ? result.nodes : [])
+      .map((node) => [node.slug, node]),
+  );
   const hopCount = typeof result.hopCount === 'number' ? result.hopCount : hops.length - 1;
 
   // Trivial path (from === to).
   if (hopCount === 0) {
     process.stdout.write(
-      `${COLORS.bold}${hops[0]}${COLORS.reset} ${COLORS.dim}(same slug — 0 hops)${COLORS.reset}\n`,
+      `${formatHop(hops[0], nodesBySlug)} ${COLORS.dim}(same slug — 0 hops)${COLORS.reset}\n`,
     );
     return 0;
   }
@@ -91,7 +95,7 @@ export async function runPath(args) {
 
   // Render: hop i  --(via)-->  hop i+1
   for (let i = 0; i < hops.length; i += 1) {
-    process.stdout.write(`  ${COLORS.cyan}${hops[i]}${COLORS.reset}\n`);
+    process.stdout.write(`  ${formatHop(hops[i], nodesBySlug)}\n`);
     if (i < hops.length - 1) {
       const via = edges[i]?.via;
       const viaLabel = via ? `${COLORS.yellow}${via}${COLORS.reset}` : `${COLORS.dim}(unknown)${COLORS.reset}`;
@@ -99,6 +103,14 @@ export async function runPath(args) {
     }
   }
   return 0;
+}
+
+function formatHop(slug, nodesBySlug) {
+  const node = nodesBySlug.get(slug);
+  if (!node?.title || node.title === slug) {
+    return `${COLORS.cyan}${slug}${COLORS.reset}`;
+  }
+  return `${COLORS.cyan}${slug}${COLORS.reset} ${COLORS.dim}— ${node.title}${COLORS.reset}`;
 }
 
 function parseArgs(args) {

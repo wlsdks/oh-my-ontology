@@ -21,7 +21,7 @@ relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 | `find_evidence` | title 부분매칭으로 vault 문서 검색 |
 | `find_backlinks` | 특정 slug 를 가리키는 다른 노드들 (frontmatter array 키 + body wikilink/mdlink) |
 | `find_neighbors` | 특정 slug 주변 one-hop graph subgraph 조회 (incoming/outgoing/both, enum-validated relation filter, neighbor summary) |
-| `find_path` | 두 slug 사이 그래프 최단 경로 (BFS, 무방향, `domains` / `domain` containment 포함, default maxHops 5, max 20) |
+| `find_path` | 두 slug 사이 그래프 최단 경로 (BFS, 무방향, `domains` / `domain` containment 포함, default maxHops 5, max 20). `hops[]` 와 정렬된 `nodes[]` summary(`slug` / `kind` / `title` / `domain?`) 를 함께 반환해 agent 와 CLI 가 slug-only 경로를 다시 조회하지 않고 읽을 수 있다. |
 | `list_kinds` | kind 분포 census (`{ total, byKind: { capability: N, ... } }`) |
 | `find_orphans` | 어디서도 graph frontmatter link 안 받는 고립 노드 (`domains` / `domain` containment 포함, enum-validated kind 필터, project/vault-readme 루트 문서 기본 제외) |
 | `query_concepts` | DSL 기반 ad-hoc 쿼리 (frontmatter 키 = / contains / exists 조합, enum-validated `kind` / `has(...)`, limit default 100 / max 500) |
@@ -180,6 +180,8 @@ paths(`@/app-providers/*`, root `@/*`) 를 읽어 `app/[locale]/layout.tsx`
 import graph unresolved count 를 3 에서 0 으로 줄였다.
 direct `find_neighbors` / `find_path` 도 resolved vault 에 실제 호출해 local-neighborhood 와
 shortest-path read tool 계약을 `query_ontology` graph operation 과 별도로 확인한다.
+`find_path` smoke 는 hop/edge 정합성뿐 아니라 선택적 `nodes[]` 경로 summary 가 hop 순서와
+맞는지도 검증해, agent-facing 경로 응답이 slug-only payload 로 퇴화하지 않게 한다.
 `add_concepts` / `add_relations` 는 non-object row 와 unknown row fields, invalid relation type row 를 넣어
 top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서
 실제 호출로 확인하고, unknown-field row 에 모든 offending field / nearest field hint /

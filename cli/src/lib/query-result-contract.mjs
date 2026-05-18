@@ -160,6 +160,16 @@ export function assertPathShape(result) {
       throw new Error(`find_path response edges[${index}] has an invalid path-edge shape`);
     }
   }
+  if (result.nodes !== undefined) {
+    if (!Array.isArray(result.nodes) || result.nodes.length !== result.hops.length) {
+      throw new Error('find_path response nodes length must match hops length');
+    }
+    for (let index = 0; index < result.nodes.length; index += 1) {
+      if (!validPathNode(result.nodes[index], result.hops[index])) {
+        throw new Error(`find_path response nodes[${index}] has an invalid path-node shape`);
+      }
+    }
+  }
   return result;
 }
 
@@ -468,6 +478,16 @@ function validNodeSummary(row) {
     && hasNonEmptyString(row.kind)
     && hasNonEmptyString(row.title)
     && (row.mtime === undefined || Number.isFinite(row.mtime))
+  );
+}
+
+function validPathNode(row, expectedSlug) {
+  return Boolean(
+    isPlainObject(row)
+    && row.slug === expectedSlug
+    && hasNonEmptyString(row.kind)
+    && hasNonEmptyString(row.title)
+    && (row.domain === undefined || typeof row.domain === 'string')
   );
 }
 

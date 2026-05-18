@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-18T11:48:49.636Z",
+  "generatedAt": "2026-05-18T12:09:37.703Z",
   "docs": [
     {
       "slug": "AGENT-MEMORY-POSITIONING",
@@ -4362,8 +4362,8 @@
         }
       ],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260518 (reponative AIagent memory framing, R16/R17 bootstrap/import inference, compiler/query/health/workspacebrief positioning). Routes section UI detail remains a maintained product snapshot. When route behavior changes, update this file",
-      "wordCount": 5603,
-      "updatedAt": "2026-05-18T06:48:02.193Z",
+      "wordCount": 5607,
+      "updatedAt": "2026-05-18T12:07:02.038Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -4975,8 +4975,8 @@
         }
       ],
       "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (enumvalidated kind 필터, limit default 100 / max 500) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 5",
-      "wordCount": 10174,
-      "updatedAt": "2026-05-18T11:32:58.460Z",
+      "wordCount": 10224,
+      "updatedAt": "2026-05-18T12:09:29.650Z",
       "linksOut": []
     },
     {
