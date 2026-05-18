@@ -505,6 +505,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
   assert.match(clean, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
   assert.match(clean, /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief/);
+  assert.match(clean, /pnpm test:dogfood:status\s+Narrow dogfood status shortcut runner contract/);
   assert.match(clean, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
   assert.match(clean, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+Source-checkout dogfood verify with explicit args/);
   assert.match(clean, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);

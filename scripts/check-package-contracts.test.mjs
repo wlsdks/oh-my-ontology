@@ -382,6 +382,7 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
     assert.match(result.stdout, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
     assert.match(result.stdout, /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief/);
+    assert.match(result.stdout, /pnpm test:dogfood:status\s+Narrow dogfood status shortcut runner contract/);
     assert.match(result.stdout, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
     assert.match(result.stdout, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+Source-checkout dogfood verify with explicit args/);
     assert.match(result.stdout, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);
@@ -1967,7 +1968,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /batch writer row-isolation smoke/);
     assert.match(doc, /invalid `add_relations` type closest-value hint/);
     assert.match(smoke, /neighbors\\\/node-to-project path\\\/project_scope graph-query smoke/);
-    assert.match(smoke, /runtime unknown-tool/);
+    assert.match(smoke, /strict arguments — unknown tool argument rejected at runtime/);
     assert.match(smoke, /unknown-argument/);
     assert.match(smoke, /invalid-enum rejection/);
     assert.match(smoke, /destructive writer dry-runs with every planned response present and no changed\\\/postWriteMaintenance/);
@@ -1985,7 +1986,8 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm dogfood:compile\\s\+Root checkout dogfood vault compile_ontology summary/);
     assert.match(smoke, /pnpm dogfood:health\\s\+Root checkout dogfood vault health gate/);
     assert.match(smoke, /pnpm dogfood:brief\\s\+Root checkout dogfood vault workspace_brief snapshot/);
-    assert.match(smoke, /pnpm dogfood:status\\s\+Root checkout dogfood vault human-readable health \+ brief/);
+    assert.match(smoke, /pnpm dogfood:status\\s\+Root checkout dogfood vault human-readable health \\\+ brief/);
+    assert.match(smoke, /pnpm test:dogfood:status\\s\+Narrow dogfood status shortcut runner contract/);
     assert.match(smoke, /pnpm dogfood:verify\\s\+Root checkout dogfood vault verify shortcut/);
     assert.match(smoke, /pnpm cli:mcp-verify docs\\\/ontology --timeout-ms 15000\\s\+Source-checkout dogfood verify with explicit args/);
     assert.match(smoke, /pnpm cli:mcp-verify -- --help\\s\+Source-checkout shortcut for this help from the repo root/);
