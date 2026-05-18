@@ -2848,6 +2848,21 @@ await test('query — kind=capability AND has(elements)', async () => {
   }
 });
 
+await test('query — rejects MCP graph operation flags with CLI command guidance', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['query', '--operation', 'growth_plan', root]);
+    assert.equal(r.code, 1);
+    assert.equal(r.stdout, '');
+    const clean = stripAnsi(r.stderr);
+    assert.match(clean, /unknown flag: --operation\./);
+    assert.match(clean, /query is the typed filter DSL/);
+    assert.match(clean, /overview, health, workspace-brief, maintenance, path, blast-radius, cycles, or hubs/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('query --json — fails closed on malformed query_concepts payloads before output', async () => {
   const root = withVault();
   const fakeMcp = join(root, 'fake-mcp-query-concepts-malformed.mjs');

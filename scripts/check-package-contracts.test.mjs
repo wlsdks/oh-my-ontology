@@ -1741,6 +1741,8 @@ describe('package contract helpers', () => {
     assert.match(validateRow, /fail-closed/);
     assert.match(importRow, /fallback `--kind` 와 frontmatter `kind` typo 는 closest-value hint/);
     assert.match(backlinksRow, /backlink-match row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
+    assert.match(queryRow, /`--operation growth_plan`/);
+    assert.match(queryRow, /graph-level CLI command guidance/);
     assert.match(queryRow, /typed-filter result row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(orphansRow, /enum-validated kind \/ exclude-kinds 필터/);
     assert.match(orphansRow, /orphan-list row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
@@ -1752,6 +1754,7 @@ describe('package contract helpers', () => {
     assert.match(cliValidateRow, /rejects empty CSV items such as `--fail-on=empty-kind,`/);
     assert.match(cliImportRow, /Frontmatter `kind` typos and fallback `--kind` typos fail with closest-value hints/);
     assert.match(cliBacklinksRow, /Malformed backlink-match payloads fail closed before JSON or human output/);
+    assert.match(cliQueryRow, /MCP-style `--operation` misuse prints graph-level CLI command guidance/);
     assert.match(cliQueryRow, /Malformed typed-filter result payloads fail closed before JSON or human output/);
     assert.match(cliOrphansRow, /enum-validated `--kind X`/);
     assert.match(cliOrphansRow, /enum-validated `--exclude-kinds A,B`/);

@@ -14,6 +14,8 @@ import {
 
 const LIMIT_CAP = 500;
 const ALLOWED_FLAGS = ['--vault', '--json', '--limit'];
+const GRAPH_OPERATION_HINT =
+  'query is the typed filter DSL; for graph operations use dedicated commands such as overview, health, workspace-brief, maintenance, path, blast-radius, cycles, or hubs.';
 
 const COLORS = {
   green: '\x1b[32m',
@@ -98,7 +100,9 @@ function parseArgs(args) {
     else if (a === '--limit') flags.limit = parseBoundedPositiveIntegerFlag('--limit', args[++i], { max: LIMIT_CAP });
     else if (a.startsWith('--limit='))
       flags.limit = parseBoundedPositiveIntegerFlag('--limit', a.slice('--limit='.length), { max: LIMIT_CAP });
-    else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
+    else if (a === '--operation' || a.startsWith('--operation=')) {
+      return { error: `${formatUnknownFlagError(a, ALLOWED_FLAGS)} ${GRAPH_OPERATION_HINT}` };
+    } else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
   if (positional.length === 0) {
@@ -128,6 +132,7 @@ function printUsage(stream = process.stderr) {
       `  has(elements)\n` +
       `  kind=capability AND has(elements)\n` +
       `  kind=capability AND NOT has(elements)        ${COLORS.dim}# unfinished caps${COLORS.reset}\n` +
-      `  (kind=capability OR kind=element) AND domain=auth\n`,
+      `  (kind=capability OR kind=element) AND domain=auth\n\n` +
+      `${COLORS.dim}${GRAPH_OPERATION_HINT}${COLORS.reset}\n`,
   );
 }
