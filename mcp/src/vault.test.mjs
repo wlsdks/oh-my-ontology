@@ -370,4 +370,10 @@ describe('extractSummaryExcerpt (R+)', () => {
     const r = extractSummaryExcerpt(body);
     assert.equal(r, 'Actual explanatory paragraph.');
   });
+
+  it('이미지와 thematic break 는 설명문 대신 다음 prose 를 사용', () => {
+    const body = '![diagram](./graph.png)\n\n---\n\nActual summary after visual lead.';
+    const r = extractSummaryExcerpt(body);
+    assert.equal(r, 'Actual summary after visual lead.');
+  });
 });

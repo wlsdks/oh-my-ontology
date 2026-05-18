@@ -181,7 +181,7 @@ export function collectNeighborRefs(doc) {
  * 의도해서 쓴 첫 설명문* 으로 받게 한다.
  *
  * 알고리즘 (단순 line-based):
- *   1. 빈 줄 / heading / 코드블록 / 표 / 리스트 / 인용은 skip.
+ *   1. 빈 줄 / heading / 코드블록 / 표 / 이미지 / 구분선 / 리스트 / 인용은 skip.
  *   2. 첫 nonempty line 이 prose 면 (= 위 block 아님) 그 paragraph 끝
  *      (다음 빈 줄 또는 block 시작) 까지 모음.
  *   3. 어떤 prose 도 못 찾으면 fallback — body.slice(0, maxLen).
@@ -199,6 +199,8 @@ export function extractSummaryExcerpt(body, maxLen = 800) {
     if (trimmed.startsWith('```')) return true; // 코드블록
     if (trimmed.startsWith('|')) return true; // 표
     if (trimmed.startsWith('#')) return true; // heading
+    if (trimmed.startsWith('![')) return true; // 이미지
+    if (/^([-*_])(?:\s*\1){2,}$/.test(trimmed)) return true; // thematic break
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) return true; // 리스트
     if (/^\d+[.)]\s+/.test(trimmed)) return true; // ordered list
     if (trimmed.startsWith('> ')) return true; // 인용

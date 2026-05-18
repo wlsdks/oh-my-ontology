@@ -816,7 +816,7 @@ summary 는 실제 payload 의 세부 카운트까지 포함하고, filters 는 
 destructive writer 의 `backlinkUpdates` / `capturedFrom` / `backlinksAtDelete` 도 실제 dry-run·confirm
 payload 구조로 닫아 rename / merge / delete 결과를 agent 가 추측 없이 후속 검토할 수 있게 한다.
 confirmed `merge_concepts` / `delete_concept` 의 capture payload 는 복구용 full `body` 와
-heading / 표 / 코드블록 / 리스트 / 인용을 건너뛴 prose-aware `bodyExcerpt` 를 함께 담아,
+heading / 표 / 코드블록 / 이미지 / 구분선 / 리스트 / 인용을 건너뛴 prose-aware `bodyExcerpt` 를 함께 담아,
 agent 가 긴 문서를 다시 열지 않고도 삭제/병합 대상을 검토할 수 있게 한다.
 read tool 의 핵심 진입점인 `get_concept` / `get_concepts` 도 `neighbors` / `outgoingEdges` /
 `warnings` 구조를 닫아 vault issue 와 graph edge payload 를 안전하게 파싱할 수 있게 한다.

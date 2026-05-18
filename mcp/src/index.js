@@ -581,7 +581,7 @@ const TOOLS = [
         summary: {
           type: 'boolean',
           description:
-            'When true, each node row includes a `summary` (max 200 chars, prose-only — heading / 표 / 코드블록 / 리스트 / 인용 skip 후 첫 단락만, same `extractSummaryExcerpt` helper as `get_concept` / `find_evidence`). Useful for "scan + overview" without N follow-up `get_concept` calls. Default false to keep payload small.',
+            'When true, each node row includes a `summary` (max 200 chars, prose-only — heading / 표 / 코드블록 / 이미지 / 구분선 / 리스트 / 인용 skip 후 첫 단락만, same `extractSummaryExcerpt` helper as `get_concept` / `find_evidence`). Useful for "scan + overview" without N follow-up `get_concept` calls. Default false to keep payload small.',
         },
         limit: {
           type: 'integer',
