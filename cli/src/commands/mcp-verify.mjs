@@ -252,6 +252,7 @@ function printUsage(output = process.stderr) {
       `  pnpm dogfood:compile              Root checkout dogfood vault compile_ontology summary.\n` +
       `  pnpm dogfood:health               Root checkout dogfood vault health gate.\n` +
       `  pnpm dogfood:brief                Root checkout dogfood vault workspace_brief snapshot.\n` +
+      `  pnpm dogfood:status               Root checkout dogfood vault human-readable health + brief.\n` +
       `  pnpm dogfood:verify               Root checkout dogfood vault verify shortcut.\n` +
       `  pnpm cli:mcp-verify docs/ontology --timeout-ms 15000\n` +
       `                                      Source-checkout dogfood verify with explicit args.\n` +

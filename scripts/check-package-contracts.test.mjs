@@ -380,6 +380,7 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);
     assert.match(result.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
     assert.match(result.stdout, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
+    assert.match(result.stdout, /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief/);
     assert.match(result.stdout, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);
     assert.match(result.stdout, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000\s+Source-checkout dogfood verify with explicit args/);
     assert.match(result.stdout, /pnpm cli:mcp-verify -- --help\s+Source-checkout shortcut for this help from the repo root/);
@@ -1657,7 +1658,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /hop\/edge alignment/);
     assert.match(doc, /`query_ontology` graph-query 응답은 `structuredContent`\s+누락을 실패로 처리하고 text JSON payload 와 `structuredContent` payload 의\s+구조적 일치 여부도 비교/);
     assert.match(doc, /positional vault argument 는 받지 않고 이 repo 의 dogfood vault 만\s+검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패/);
-    assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` \/ `pnpm dogfood:health` \/\s+`pnpm dogfood:brief` \/ `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,\s+focused check 경로를 출력/);
+    assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` \/ `pnpm dogfood:health` \/\s+`pnpm dogfood:brief` \/ `pnpm dogfood:status` \/ `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,\s+focused check 경로를 출력/);
     assert.match(doc, /도움말의 `pnpm test:mcp:dogfood` 설명도 compile\/index gate, tools\/list inventory name \/ annotation coverage, row-label guidance,\s+batch cap gates, strict closest-value \/ unknown-tool repair summary, vault warning \/ `validate_vault` problem gate, first-contact health\/growth\/sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, destructive dry-run, structuredContent, strict relation filter, strict add_relation type-preflight, strict graph kind filter, stderr warning 범위/);
     assert.match(dogfoodSection, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
     assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, tools\/list inventory name \/ annotation coverage, row-label guidance summary, strict closest-value \/ unknown-tool repair summary, strict add_relation type-preflight 를 fixture 로 검증/);
@@ -1975,6 +1976,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm dogfood:compile\\s\+Root checkout dogfood vault compile_ontology summary/);
     assert.match(smoke, /pnpm dogfood:health\\s\+Root checkout dogfood vault health gate/);
     assert.match(smoke, /pnpm dogfood:brief\\s\+Root checkout dogfood vault workspace_brief snapshot/);
+    assert.match(smoke, /pnpm dogfood:status\\s\+Root checkout dogfood vault human-readable health \+ brief/);
     assert.match(smoke, /pnpm dogfood:verify\\s\+Root checkout dogfood vault verify shortcut/);
     assert.match(smoke, /pnpm cli:mcp-verify docs\\\/ontology --timeout-ms 15000\\s\+Source-checkout dogfood verify with explicit args/);
     assert.match(smoke, /pnpm cli:mcp-verify -- --help\\s\+Source-checkout shortcut for this help from the repo root/);

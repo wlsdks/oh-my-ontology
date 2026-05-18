@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-18T09:17:53.666Z",
+  "generatedAt": "2026-05-18T09:25:38.722Z",
   "docs": [
     {
       "slug": "AGENT-MEMORY-POSITIONING",
@@ -4963,8 +4963,8 @@
         }
       ],
       "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (enumvalidated kind 필터, limit default 100 / max 500) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 5",
-      "wordCount": 9982,
-      "updatedAt": "2026-05-18T08:35:36.205Z",
+      "wordCount": 10000,
+      "updatedAt": "2026-05-18T09:23:43.492Z",
       "linksOut": []
     },
     {

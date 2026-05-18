@@ -501,6 +501,7 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 `pnpm dogfood:compile` 은 repo root 의 가장 짧은 compiler snapshot 이고,
 `pnpm dogfood:health` 는 repo root 의 가장 짧은 fail-closed health gate 이며,
 `pnpm dogfood:brief` 는 repo root 의 가장 짧은 first-contact snapshot 이며,
+`pnpm dogfood:status` 는 사람이 읽는 health + brief pair 로 반복 dogfood 상태를 빠르게 보여주며,
 full 설치형 검증은 `pnpm dogfood:verify`, 명시 인자가 필요할 때만
 `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` 로 풀어 쓴다. dogfood helper / structuredContent 출력 계약이나
 vault warning / `validate_vault` problem gate, first-contact health gate,
@@ -615,7 +616,7 @@ MCP schema 에서 노출한다. `componentLimit`, `cycleLimit`, `recommendationL
 검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패하고, `--hlep` 같은 help flag 오타는
 nearest hint 로 복구 경로를 보여준다. `pnpm dogfood:walk -- --help`
 는 MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` / `pnpm dogfood:health` /
-`pnpm dogfood:brief` / `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,
+`pnpm dogfood:brief` / `pnpm dogfood:status` / `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,
 focused check 경로를 출력해 dogfood 범위 확인 비용을 낮춘다.
 도움말의 `pnpm test:mcp:dogfood` 설명도 compile/index gate, tools/list inventory name / annotation coverage, row-label guidance,
 batch cap gates, strict closest-value / unknown-tool repair summary, vault warning / `validate_vault` problem gate, first-contact health/growth/sample-shape gate, maintenance work-queue shape / formatter, initialize safety/recovery guidance, destructive dry-run, structuredContent, strict relation filter, strict add_relation type-preflight, strict graph kind filter, stderr warning 범위를 함께 보여줘 실행 전 검증 surface 를 숨기지 않는다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
