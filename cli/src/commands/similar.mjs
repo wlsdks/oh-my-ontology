@@ -4,7 +4,7 @@
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
 import { validateKindValue } from '../lib/kinds.mjs';
-import { assertQueryOperation } from '../lib/query-result-contract.mjs';
+import { assertSimilarNodesShape } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { VAULT_KINDS } from '../lib/schema.mjs';
 import {
@@ -59,7 +59,7 @@ export async function runSimilar(args) {
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_ontology', toolArgs);
-    assertQueryOperation(result, 'similar_nodes');
+    assertSimilarNodesShape(result);
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

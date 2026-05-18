@@ -8,10 +8,12 @@ import {
   assertCyclesShape,
   assertHealthShape,
   assertMaintenancePlanShape,
+  assertNodeProfileShape,
   assertOrphansShape,
   assertOverviewShape,
   assertPathShape,
   assertQueryOperation,
+  assertSimilarNodesShape,
   assertWorkspaceBriefShape,
   compileBlockingCounts,
   compileResultExitCode,
@@ -256,6 +258,84 @@ describe('query-result-contract', () => {
     assert.throws(
       () => assertOrphansShape({ orphans: [{ slug: 'capabilities/foo', kind: 'capability' }] }),
       /find_orphans orphans\[0\] has an invalid orphan shape/,
+    );
+  });
+
+  it('rejects malformed node_profile and similar_nodes payloads before CLI output', () => {
+    const nodeProfile = {
+      operation: 'node_profile',
+      center: 'capabilities/foo',
+      node: { slug: 'capabilities/foo', kind: 'capability', title: 'Foo', inDegree: 1, outDegree: 1 },
+      aliases: ['capabilities/foo', 'foo'],
+      degree: { in: 1, out: 1, total: 2 },
+      edges: {
+        incoming: {
+          total: 1,
+          byRelation: { relates: 1 },
+          limited: false,
+          edges: [
+            {
+              from: 'capabilities/bar',
+              to: 'capabilities/foo',
+              via: 'relates',
+              resolved: true,
+              external: false,
+              otherKind: 'capability',
+              otherNode: { slug: 'capabilities/bar', kind: 'capability', title: 'Bar' },
+            },
+          ],
+        },
+        outgoing: { total: 0, byRelation: {}, limited: false, edges: [] },
+      },
+      lineage: {
+        ancestors: {
+          total: 1,
+          limited: false,
+          nodes: [{ slug: 'domains/auth', distance: 1, via: 'domain', node: { slug: 'domains/auth', kind: 'domain', title: 'Auth' } }],
+        },
+        descendants: { total: 0, limited: false, nodes: [] },
+      },
+    };
+    const similarNodes = {
+      operation: 'similar_nodes',
+      totalMatches: 1,
+      limited: false,
+      matches: [
+        {
+          node: { slug: 'capabilities/foo', kind: 'capability', title: 'Foo' },
+          score: 0.4,
+          signals: { slug: 0.2, title: 0.2 },
+          sharedNeighbors: ['domains/auth'],
+        },
+      ],
+    };
+
+    assert.equal(assertNodeProfileShape(nodeProfile), nodeProfile);
+    assert.equal(assertSimilarNodesShape(similarNodes), similarNodes);
+    assert.equal(assertSimilarNodesShape({ operation: 'similar_nodes', matches: [] }).totalMatches, undefined);
+    assert.throws(
+      () => assertNodeProfileShape({ ...nodeProfile, degree: { in: 1, out: 1 } }),
+      /node_profile degree must contain non-negative in\/out\/total counts/,
+    );
+    assert.throws(
+      () => assertNodeProfileShape({ ...nodeProfile, edges: { ...nodeProfile.edges, incoming: { total: 1, byRelation: {}, limited: false, edges: [{}] } } }),
+      /node_profile edges\.incoming must be a valid edge group/,
+    );
+    assert.throws(
+      () => assertNodeProfileShape({ ...nodeProfile, lineage: { ancestors: { total: 1, limited: false, nodes: [{ slug: 'domains/auth', distance: -1, node: { slug: 'domains/auth', kind: 'domain', title: 'Auth' } }] } } }),
+      /node_profile lineage must contain valid ancestor\/descendant pages when present/,
+    );
+    assert.throws(
+      () => assertSimilarNodesShape({ operation: 'similar_nodes', totalMatches: -1, matches: [] }),
+      /similar_nodes totalMatches must be a non-negative integer/,
+    );
+    assert.throws(
+      () => assertSimilarNodesShape({ operation: 'similar_nodes', matches: [{ node: { slug: 'capabilities/foo', kind: 'capability' }, score: 0.4, signals: {} }] }),
+      /similar_nodes matches\[0\] has an invalid similar-node shape/,
+    );
+    assert.throws(
+      () => assertSimilarNodesShape({ operation: 'similar_nodes', matches: [{ node: { slug: 'capabilities/foo', kind: 'capability', title: 'Foo' }, score: -1, signals: {} }] }),
+      /similar_nodes matches\[0\] has an invalid similar-node shape/,
     );
   });
 

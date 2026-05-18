@@ -1418,7 +1418,7 @@ describe('package contract helpers', () => {
     assert.match(implementationSection, /MCP spawn error \/ child process exit \/ missing `tools\/call` response 도 tool name \/ vault root \/ entry path/);
     assert.match(implementationSection, /`concepts\[n\]` \/ `relations\[n\]` fallback label/);
     assert.match(implementationSection, /`undefined` 를 노출하지 않고/);
-    assert.match(implementationSection, /malformed `compile` \/ `find_backlinks` \/ `find_orphans` \/ `overview` \/ `hubs` \/ `blast-radius` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
+    assert.match(implementationSection, /malformed `compile` \/ `find_backlinks` \/ `find_orphans` \/ `overview` \/ `node_profile` \/ `similar_nodes` \/ `hubs` \/ `blast-radius` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
     assert.match(implementationSection, /fail-closed/);
     assert.match(doc, /`workspace-brief` non-json 의 `HEALTH CHECKS` id:status:count coverage 와 `GROWTH` action/);
     assert.match(doc, /`health` non-json 의 `pass:count` 출력/);
@@ -1879,6 +1879,8 @@ describe('package contract helpers', () => {
     const overviewRow = doc.split('| `oh-my-ontology overview [vault]` |')[1]?.split('\n')[0] ?? '';
     const hubsRow = doc.split('| `oh-my-ontology hubs [vault]` |')[1]?.split('\n')[0] ?? '';
     const blastRadiusRow = doc.split('| `oh-my-ontology blast-radius <slug>` |')[1]?.split('\n')[0] ?? '';
+    const nodeRow = doc.split('| `oh-my-ontology node <slug>` |')[1]?.split('\n')[0] ?? '';
+    const similarRow = doc.split('| `oh-my-ontology similar "<query>"` |')[1]?.split('\n')[0] ?? '';
     const pathRow = doc.split('| `oh-my-ontology path <from> <to>` |')[1]?.split('\n')[0] ?? '';
     const cyclesRow = doc.split('| `oh-my-ontology cycles` |')[1]?.split('\n')[0] ?? '';
 
@@ -1892,6 +1894,8 @@ describe('package contract helpers', () => {
     assert.match(overviewRow, /graph \/ count bucket \/ hub row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(hubsRow, /ranking row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(blastRadiusRow, /summary count \/ affected node page \/ edge page shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
+    assert.match(nodeRow, /node summary \/ degree \/ edge group \/ lineage page shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
+    assert.match(similarRow, /match node \/ score \/ signal \/ shared-neighbor shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(pathRow, /hop \/ edge alignment 가 malformed 인 `find_path` payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(cyclesRow, /malformed cycle row 는 JSON 또는 human output 전 exit 2/);
     assert.doesNotMatch(regressionSection, /\*\*\d+ spawn-based\*\* integration test/);

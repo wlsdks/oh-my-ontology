@@ -235,6 +235,54 @@ export function assertOverviewShape(result) {
   return result;
 }
 
+export function assertNodeProfileShape(result) {
+  assertQueryOperation(result, 'node_profile');
+  if (!hasNonEmptyString(result.center)) {
+    throw new Error('node_profile center must be a non-empty string');
+  }
+  if (!validNodeSummary(result.node)) {
+    throw new Error('node_profile node must be a valid node summary');
+  }
+  if (!validDegree(result.degree)) {
+    throw new Error('node_profile degree must contain non-negative in/out/total counts');
+  }
+  if (result.aliases !== undefined && (!Array.isArray(result.aliases) || result.aliases.some((alias) => !hasNonEmptyString(alias)))) {
+    throw new Error('node_profile aliases must contain non-empty strings when present');
+  }
+  if (!isPlainObject(result.edges)) {
+    throw new Error('node_profile edges must be an object');
+  }
+  for (const direction of ['incoming', 'outgoing']) {
+    if (!validEdgeGroup(result.edges[direction], direction)) {
+      throw new Error(`node_profile edges.${direction} must be a valid edge group`);
+    }
+  }
+  if (result.lineage !== undefined && !validLineage(result.lineage)) {
+    throw new Error('node_profile lineage must contain valid ancestor/descendant pages when present');
+  }
+  return result;
+}
+
+export function assertSimilarNodesShape(result) {
+  assertQueryOperation(result, 'similar_nodes');
+  if (!Array.isArray(result.matches)) {
+    throw new Error('similar_nodes matches must be an array');
+  }
+  const total = result.totalMatches ?? result.matches.length;
+  if (!validCount(total)) {
+    throw new Error('similar_nodes totalMatches must be a non-negative integer when present');
+  }
+  if (result.limited !== undefined && typeof result.limited !== 'boolean') {
+    throw new Error('similar_nodes limited must be a boolean when present');
+  }
+  for (let index = 0; index < result.matches.length; index += 1) {
+    if (!validSimilarMatch(result.matches[index])) {
+      throw new Error(`similar_nodes matches[${index}] has an invalid similar-node shape`);
+    }
+  }
+  return result;
+}
+
 export function assertCentralityShape(result) {
   assertQueryOperation(result, 'centrality');
   if (!isPlainObject(result.rankings)) {
@@ -401,6 +449,86 @@ function validBacklinkRow(row) {
     && Array.isArray(row.matchedKeys)
     && row.matchedKeys.every((key) => hasNonEmptyString(key))
   );
+}
+
+function validDegree(degree) {
+  return Boolean(
+    isPlainObject(degree)
+    && validCount(degree.in)
+    && validCount(degree.out)
+    && validCount(degree.total)
+  );
+}
+
+function validEdgeGroup(group, direction) {
+  return Boolean(
+    isPlainObject(group)
+    && validCount(group.total)
+    && (group.limited === undefined || typeof group.limited === 'boolean')
+    && validCountBucket(group.byRelation ?? {})
+    && Array.isArray(group.edges)
+    && group.edges.every((edge) => validProfileEdge(edge, direction))
+  );
+}
+
+function validProfileEdge(edge, direction) {
+  const peerField = direction === 'incoming' ? 'from' : 'to';
+  return Boolean(
+    isPlainObject(edge)
+    && hasNonEmptyString(edge.from)
+    && hasNonEmptyString(edge.to)
+    && hasNonEmptyString(edge.via)
+    && (edge.id === undefined || hasNonEmptyString(edge.id))
+    && (edge.ref === undefined || hasNonEmptyString(edge.ref))
+    && (edge.resolved === undefined || typeof edge.resolved === 'boolean')
+    && (edge.external === undefined || typeof edge.external === 'boolean')
+    && hasNonEmptyString(edge[peerField])
+    && (edge.otherKind === undefined || hasNonEmptyString(edge.otherKind))
+    && (edge.otherNode === null || edge.otherNode === undefined || validNodeSummary(edge.otherNode))
+  );
+}
+
+function validLineage(lineage) {
+  if (!isPlainObject(lineage)) return false;
+  for (const field of ['ancestors', 'descendants']) {
+    if (lineage[field] !== undefined && !validLineagePage(lineage[field])) return false;
+  }
+  return true;
+}
+
+function validLineagePage(page) {
+  return Boolean(
+    isPlainObject(page)
+    && validCount(page.total)
+    && (page.limited === undefined || typeof page.limited === 'boolean')
+    && Array.isArray(page.nodes)
+    && page.nodes.every((row) => (
+      isPlainObject(row)
+      && hasNonEmptyString(row.slug)
+      && validCount(row.distance)
+      && (row.via === undefined || hasNonEmptyString(row.via))
+      && validNodeSummary(row.node)
+    ))
+  );
+}
+
+function validSimilarMatch(match) {
+  return Boolean(
+    isPlainObject(match)
+    && validNodeSummary(match.node)
+    && Number.isFinite(match.score)
+    && match.score >= 0
+    && validSignalBucket(match.signals ?? {})
+    && (match.sharedNeighbors === undefined || (
+      Array.isArray(match.sharedNeighbors)
+      && match.sharedNeighbors.every((slug) => hasNonEmptyString(slug))
+    ))
+  );
+}
+
+function validSignalBucket(value) {
+  if (!isPlainObject(value)) return false;
+  return Object.values(value).every((score) => Number.isFinite(score) && score >= 0);
 }
 
 function validHubRow(row) {

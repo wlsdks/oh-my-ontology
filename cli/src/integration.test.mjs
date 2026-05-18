@@ -3214,6 +3214,35 @@ await test('node --json — JSON 응답 node/edges/lineage 키 노출', async ()
   }
 });
 
+await test('node --json — fails closed on malformed node_profile payloads before output', async () => {
+  const root = withVault();
+  const fakeMcp = join(root, 'fake-mcp-node-profile-malformed.mjs');
+  writeFileSync(
+    fakeMcp,
+    [
+      "import readline from 'node:readline';",
+      "const rl = readline.createInterface({ input: process.stdin });",
+      "rl.on('line', (line) => {",
+      "  const msg = JSON.parse(line);",
+      "  if (msg.id === 1) console.log(JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }));",
+      "  if (msg.id === 2) {",
+      "    const payload = { operation: 'node_profile', center: 'capabilities/foo', node: { slug: 'capabilities/foo', kind: 'capability', title: 'Foo' }, degree: { in: 1, out: 1 }, edges: { incoming: { total: 0, byRelation: {}, limited: false, edges: [] }, outgoing: { total: 0, byRelation: {}, limited: false, edges: [] } } };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: 2, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "  }",
+      "});",
+    ].join('\n'),
+    'utf-8',
+  );
+  try {
+    const r = await run(['node', 'capabilities/foo', root, '--json'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(r.code, 2, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.equal(r.stdout, '');
+    assert.match(stripAnsi(r.stderr), /node_profile degree must contain non-negative in\/out\/total counts/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('node — slug 누락 시 usage + exit 1', async () => {
   const r = await run(['node']);
   assert.equal(r.code, 1);
@@ -3247,6 +3276,35 @@ await test('similar --json — JSON 응답 matches/score/signals 키 노출', as
       assert.ok(typeof data.matches[0].score === 'number');
       assert.ok(data.matches[0].signals);
     }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('similar --json — fails closed on malformed similar_nodes payloads before output', async () => {
+  const root = withVault();
+  const fakeMcp = join(root, 'fake-mcp-similar-malformed.mjs');
+  writeFileSync(
+    fakeMcp,
+    [
+      "import readline from 'node:readline';",
+      "const rl = readline.createInterface({ input: process.stdin });",
+      "rl.on('line', (line) => {",
+      "  const msg = JSON.parse(line);",
+      "  if (msg.id === 1) console.log(JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }));",
+      "  if (msg.id === 2) {",
+      "    const payload = { operation: 'similar_nodes', totalMatches: 1, limited: false, matches: [{ node: { slug: 'capabilities/foo', kind: 'capability' }, score: 0.4, signals: {} }] };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: 2, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "  }",
+      "});",
+    ].join('\n'),
+    'utf-8',
+  );
+  try {
+    const r = await run(['similar', 'foo', root, '--json'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(r.code, 2, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.equal(r.stdout, '');
+    assert.match(stripAnsi(r.stderr), /similar_nodes matches\[0\] has an invalid similar-node shape/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
