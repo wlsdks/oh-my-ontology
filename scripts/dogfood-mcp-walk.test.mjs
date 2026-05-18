@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 import { assertPnpmScriptsExist } from "./lib/pnpm-script-refs.mjs";
 
 import {
+  batchRowRepairSummary,
   buildDogfoodRequests,
   componentSummary,
   createUtf8Accumulator,
@@ -1710,6 +1711,196 @@ const okShape = {
         ok: false,
         slug: "missing-dogfood-slug",
         error: "Doc not found: missing-dogfood-slug",
+      },
+    ],
+  },
+  addConceptsRowRepair: {
+    concepts: [
+      { slug: "", ok: false, error: "concepts[0] must be an object", errorCode: "invalid_arguments" },
+      {
+        slug: "dogfood-row-repair-multi",
+        ok: false,
+        error: 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain, capabilities, elements, body. Received fields: domian, kind, slug, titel, title.',
+        errorCode: "invalid_arguments",
+        rowName: "concepts[1]",
+        unknownFields: [
+          { name: "titel", suggestion: "title" },
+          { name: "domian", suggestion: "domain" },
+        ],
+        allowedFields: ["slug", "kind", "title", "domain", "capabilities", "elements", "body"],
+        receivedFields: ["domian", "kind", "slug", "titel", "title"],
+      },
+      {
+        slug: "verify-duplicate-slug",
+        ok: false,
+        error: 'kind must be one of: project, domain, capability, element, document. Received: "capabilty". Did you mean "capability"?',
+        errorCode: "invalid_arguments",
+        valueName: "kind",
+        receivedValue: "capabilty",
+        suggestion: "capability",
+        allowedValues: ["project", "domain", "capability", "element", "document"],
+      },
+      {
+        slug: "verify-duplicate-slug",
+        ok: false,
+        error: "concepts[3] duplicate slug in input batch; first seen at concepts[2]",
+        errorCode: "conflict",
+        conflictSubject: "Duplicate slug in input batch",
+        conflictSlug: "verify-duplicate-slug",
+        firstSeenAt: "concepts[2]",
+      },
+      {
+        slug: "dogfood-row-repair-single",
+        ok: false,
+        error: 'Unknown field "titel" in concepts[4]. Did you mean "title"? Allowed fields: slug, kind, title, domain, capabilities, elements, body. Received fields: kind, slug, titel, title.',
+        errorCode: "invalid_arguments",
+        rowName: "concepts[4]",
+        receivedField: "titel",
+        suggestion: "title",
+        unknownFields: [{ name: "titel", suggestion: "title" }],
+        allowedFields: ["slug", "kind", "title", "domain", "capabilities", "elements", "body"],
+        receivedFields: ["kind", "slug", "titel", "title"],
+      },
+    ],
+  },
+  addConceptsRowRepairStructured: {
+    concepts: [
+      { slug: "", ok: false, error: "concepts[0] must be an object", errorCode: "invalid_arguments" },
+      {
+        slug: "dogfood-row-repair-multi",
+        ok: false,
+        error: 'Unknown fields in concepts[1]: "titel" (did you mean "title"?), "domian" (did you mean "domain"?). Allowed fields: slug, kind, title, domain, capabilities, elements, body. Received fields: domian, kind, slug, titel, title.',
+        errorCode: "invalid_arguments",
+        rowName: "concepts[1]",
+        unknownFields: [
+          { name: "titel", suggestion: "title" },
+          { name: "domian", suggestion: "domain" },
+        ],
+        allowedFields: ["slug", "kind", "title", "domain", "capabilities", "elements", "body"],
+        receivedFields: ["domian", "kind", "slug", "titel", "title"],
+      },
+      {
+        slug: "verify-duplicate-slug",
+        ok: false,
+        error: 'kind must be one of: project, domain, capability, element, document. Received: "capabilty". Did you mean "capability"?',
+        errorCode: "invalid_arguments",
+        valueName: "kind",
+        receivedValue: "capabilty",
+        suggestion: "capability",
+        allowedValues: ["project", "domain", "capability", "element", "document"],
+      },
+      {
+        slug: "verify-duplicate-slug",
+        ok: false,
+        error: "concepts[3] duplicate slug in input batch; first seen at concepts[2]",
+        errorCode: "conflict",
+        conflictSubject: "Duplicate slug in input batch",
+        conflictSlug: "verify-duplicate-slug",
+        firstSeenAt: "concepts[2]",
+      },
+      {
+        slug: "dogfood-row-repair-single",
+        ok: false,
+        error: 'Unknown field "titel" in concepts[4]. Did you mean "title"? Allowed fields: slug, kind, title, domain, capabilities, elements, body. Received fields: kind, slug, titel, title.',
+        errorCode: "invalid_arguments",
+        rowName: "concepts[4]",
+        receivedField: "titel",
+        suggestion: "title",
+        unknownFields: [{ name: "titel", suggestion: "title" }],
+        allowedFields: ["slug", "kind", "title", "domain", "capabilities", "elements", "body"],
+        receivedFields: ["kind", "slug", "titel", "title"],
+      },
+    ],
+  },
+  addRelationsRowRepair: {
+    relations: [
+      { ok: false, from: "", to: "", type: "", error: "relations[0] must be an object", errorCode: "invalid_arguments" },
+      {
+        ok: false,
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        type: "relates",
+        error: 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type, expected_mtime. Received fields: frm, from, relation, to, type.',
+        errorCode: "invalid_arguments",
+        rowName: "relations[1]",
+        unknownFields: [
+          { name: "relation", suggestion: "type" },
+          { name: "frm", suggestion: "from" },
+        ],
+        allowedFields: ["from", "to", "type", "expected_mtime"],
+        receivedFields: ["frm", "from", "relation", "to", "type"],
+      },
+      {
+        ok: false,
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        type: "depend_on",
+        error: 'relations[2] type must be one of: depends_on, relates, contains, describes, domains, capabilities, elements, domain. Received: "depend_on". Did you mean "depends_on"?',
+        errorCode: "invalid_arguments",
+        valueName: "type",
+        receivedValue: "depend_on",
+        suggestion: "depends_on",
+        allowedValues: WRITE_RELATION_TYPE_VALUES,
+      },
+      {
+        ok: false,
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        type: "relates",
+        error: 'Unknown field "relation" in relations[3]. Did you mean "type"? Allowed fields: from, to, type, expected_mtime. Received fields: from, relation, to, type.',
+        errorCode: "invalid_arguments",
+        rowName: "relations[3]",
+        receivedField: "relation",
+        suggestion: "type",
+        unknownFields: [{ name: "relation", suggestion: "type" }],
+        allowedFields: ["from", "to", "type", "expected_mtime"],
+        receivedFields: ["from", "relation", "to", "type"],
+      },
+    ],
+  },
+  addRelationsRowRepairStructured: {
+    relations: [
+      { ok: false, from: "", to: "", type: "", error: "relations[0] must be an object", errorCode: "invalid_arguments" },
+      {
+        ok: false,
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        type: "relates",
+        error: 'Unknown fields in relations[1]: "relation" (did you mean "type"?), "frm" (did you mean "from"?). Allowed fields: from, to, type, expected_mtime. Received fields: frm, from, relation, to, type.',
+        errorCode: "invalid_arguments",
+        rowName: "relations[1]",
+        unknownFields: [
+          { name: "relation", suggestion: "type" },
+          { name: "frm", suggestion: "from" },
+        ],
+        allowedFields: ["from", "to", "type", "expected_mtime"],
+        receivedFields: ["frm", "from", "relation", "to", "type"],
+      },
+      {
+        ok: false,
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        type: "depend_on",
+        error: 'relations[2] type must be one of: depends_on, relates, contains, describes, domains, capabilities, elements, domain. Received: "depend_on". Did you mean "depends_on"?',
+        errorCode: "invalid_arguments",
+        valueName: "type",
+        receivedValue: "depend_on",
+        suggestion: "depends_on",
+        allowedValues: WRITE_RELATION_TYPE_VALUES,
+      },
+      {
+        ok: false,
+        from: "capabilities/mcp-server",
+        to: "domains/ai-agent-partner",
+        type: "relates",
+        error: 'Unknown field "relation" in relations[3]. Did you mean "type"? Allowed fields: from, to, type, expected_mtime. Received fields: from, relation, to, type.',
+        errorCode: "invalid_arguments",
+        rowName: "relations[3]",
+        receivedField: "relation",
+        suggestion: "type",
+        unknownFields: [{ name: "relation", suggestion: "type" }],
+        allowedFields: ["from", "to", "type", "expected_mtime"],
+        receivedFields: ["from", "relation", "to", "type"],
       },
     ],
   },
@@ -3592,6 +3783,14 @@ describe("rpc response completion helpers", () => {
       "rejected true (kind domain->?; allowed 2)",
     );
     assert.equal(
+      batchRowRepairSummary(okShape.addConceptsRowRepair.concepts),
+      "5/5 failed (titel->title, domian->domain, titel->title, kind capabilty->capability, verify-duplicate-slug first concepts[2]; rows concepts[1], row3, concepts[4])",
+    );
+    assert.equal(
+      batchRowRepairSummary(okShape.addRelationsRowRepair.relations),
+      "4/4 failed (relation->type, frm->from, relation->type, type depend_on->depends_on; rows relations[1], relations[3])",
+    );
+    assert.equal(
       strictClosestValueSummary(okShape.strictRelationFilter),
       "rejected true (depend_on -> depends_on)",
     );
@@ -3803,7 +4002,7 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /pnpm test:mcp:dogfood:timeout/);
     assert.match(usage, /Narrow dogfood timeout\/help retry diagnostics/);
     assert.match(usage, /pnpm dogfood:test\s+Full dogfood helper regression suite when focused checks are not enough/);
-    assert.match(usage, /Dogfood helper, compile\/index gates, tools\/list inventory names \+ annotation coverage, row-label guidance, batch cap gates, strict closest-value and unknown-tool repair summary, vault warning and validate_vault problem gates, first-contact health\/growth\/sample-shape gates, maintenance work-queue shape \+ formatter checks, initialize safety\/recovery guidance, destructive dry-run, help\/argument\/timeout handling, structuredContent, strict relation filters, strict add_relation type-preflight, strict graph kind filters, stderr warning checks/);
+    assert.match(usage, /Dogfood helper, compile\/index gates, tools\/list inventory names \+ annotation coverage, row-label guidance, batch cap gates, invalid-only batch row repair smoke, strict closest-value and unknown-tool repair summary, vault warning and validate_vault problem gates, first-contact health\/growth\/sample-shape gates, maintenance work-queue shape \+ formatter checks, initialize safety\/recovery guidance, destructive dry-run, help\/argument\/timeout handling, structuredContent, strict relation filters, strict add_relation type-preflight, strict graph kind filters, stderr warning checks/);
     assertPnpmScriptsExist(usage, ROOT_PKG.scripts);
   });
 
@@ -3959,6 +4158,8 @@ describe("rpc response completion helpers", () => {
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(82), "add_concepts_batch_cap");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(83), "add_relations_batch_cap");
     assert.equal(DOGFOOD_RESPONSE_LABELS.get(84), "strict_unknown_tool");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(85), "add_concepts_row_repair");
+    assert.equal(DOGFOOD_RESPONSE_LABELS.get(86), "add_relations_row_repair");
     assert.deepEqual(
       [...expectedResponseIds(buildDogfoodRequests())].sort((a, b) => a - b),
       [...DOGFOOD_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -3978,6 +4179,8 @@ describe("rpc response completion helpers", () => {
     const getConceptsBatchCap = requests.find((request) => request.id === 81);
     const addConceptsBatchCap = requests.find((request) => request.id === 82);
     const addRelationsBatchCap = requests.find((request) => request.id === 83);
+    const addConceptsRowRepair = requests.find((request) => request.id === 85);
+    const addRelationsRowRepair = requests.find((request) => request.id === 86);
 
     assert.equal(getConceptsBatchCap?.params?.name, "get_concepts");
     assert.equal(getConceptsBatchCap?.params?.arguments?.slugs?.length, 51);
@@ -3985,6 +4188,21 @@ describe("rpc response completion helpers", () => {
     assert.equal(addConceptsBatchCap?.params?.arguments?.concepts?.length, 51);
     assert.equal(addRelationsBatchCap?.params?.name, "add_relations");
     assert.equal(addRelationsBatchCap?.params?.arguments?.relations?.length, 51);
+    assert.equal(addConceptsRowRepair?.params?.name, "add_concepts");
+    assert.deepEqual(addConceptsRowRepair?.params?.arguments?.concepts?.map((row) => row?.kind ?? null), [
+      null,
+      "capability",
+      "capabilty",
+      "capability",
+      "capability",
+    ]);
+    assert.equal(addRelationsRowRepair?.params?.name, "add_relations");
+    assert.deepEqual(addRelationsRowRepair?.params?.arguments?.relations?.map((row) => row?.type ?? null), [
+      null,
+      "relates",
+      "depend_on",
+      "relates",
+    ]);
   });
 
   it("keeps destructive dogfood dry-run requests non-writing", () => {
@@ -5312,6 +5530,31 @@ describe("evaluateDogfoodGate", () => {
         },
       }),
       ["add_relations_batch_cap: add_relations batch cap structured error code mismatch — expected invalid_arguments, got unknown_argument"],
+    );
+  });
+
+  it("fails malformed invalid-only batch row repair responses", () => {
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        addConceptsRowRepair: {
+          concepts: okShape.addConceptsRowRepair.concepts.map((row, index) => (
+            index === 4 ? { ...row, receivedField: undefined } : row
+          )),
+        },
+      }),
+      ["add_concepts_row_repair: add_concepts row-isolation response missing concept single-field structured repair"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        addRelationsRowRepair: {
+          relations: okShape.addRelationsRowRepair.relations.map((row, index) => (
+            index === 2 ? { ...row, suggestion: undefined } : row
+          )),
+        },
+      }),
+      ["add_relations_row_repair: add_relations row-isolation response missing relation type structured repair"],
     );
   });
 

@@ -1846,7 +1846,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /positional vault argument 는 받지 않고 이 repo 의 dogfood vault 만\s+검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패/);
     assert.match(doc, /Run pnpm dogfood:walk -- --help for usage/);
     assert.match(doc, /`pnpm dogfood:walk -- --help`[\s\S]*MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` \/ `pnpm dogfood:compile-fix` \/\s+`pnpm dogfood:health` \/ `pnpm dogfood:brief` \/ `pnpm dogfood:status` \/ `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,\s+focused check 경로를 출력/);
-    assert.match(doc, /도움말의 `pnpm test:mcp:dogfood` 설명도 compile\/index gate, tools\/list inventory name \/ annotation coverage, row-label guidance,\s+batch cap gates, strict closest-value \/ unknown-tool repair summary, vault warning \/ `validate_vault` problem gate, first-contact health\/growth\/sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, destructive dry-run, structuredContent, strict relation filter, strict add_relation type-preflight, strict graph kind filter, stderr warning 범위/);
+    assert.match(doc, /도움말의 `pnpm test:mcp:dogfood` 설명도 compile\/index gate, tools\/list inventory name \/ annotation coverage, row-label guidance,\s+batch cap gates, invalid-only batch row repair smoke, strict closest-value \/ unknown-tool repair summary, vault warning \/ `validate_vault` problem gate, first-contact health\/growth\/sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, destructive dry-run, structuredContent, strict relation filter, strict add_relation type-preflight, strict graph kind filter, stderr warning 범위/);
     assert.match(dogfoodSection, /OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk/);
     assert.match(doc, /`pnpm test:mcp:dogfood` 는 이 gate 판정의 focused subset, workspace_brief sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, tools\/list inventory name \/ annotation coverage, row-label guidance summary, strict closest-value \/ unknown-tool repair summary, strict add_relation type-preflight 를 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
@@ -1933,6 +1933,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`get_concepts` \/ `add_concepts` \/\s+`add_relations` 51-row batch 도 실제 호출해 `invalid_arguments` 로 거절되는지 확인/);
     assert.match(doc, /성공 로그도 `single\/multi unknown-field repair` 를 그대로 드러내/);
     assert.match(doc, /row-level unknown-field repair 의\s+`receivedField` \/ `unknownFields` \/ `allowedFields` \/ `receivedFields` 안내와 batch repair 안내/);
+    assert.match(doc, /`dogfood:walk` 도 같은 invalid-only `add_concepts` \/ `add_relations` row-repair smoke 를\s+실제 stdio 호출로 실행/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /issue-code enum\/key set/);

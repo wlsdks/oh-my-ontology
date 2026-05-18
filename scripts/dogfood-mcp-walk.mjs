@@ -28,6 +28,7 @@ import {
   destructiveDryRunFailure,
   analyzeRepoStructureFailure,
   batchCapFailure,
+  batchRowIsolationFailure,
   formatCount,
   inferImportsFailure,
   initializeInstructionsFailure,
@@ -107,7 +108,7 @@ export function dogfoodUsage() {
     "  pnpm test:dogfood:script-refs   Shared help/package-script reference contract.",
     "  pnpm test:dogfood:compile-fix   Narrow dogfood compile --fix idempotence runner contract.",
     "  pnpm test:dogfood:status        Narrow dogfood status shortcut runner contract.",
-    "  pnpm test:mcp:dogfood           Dogfood helper, compile/index gates, tools/list inventory names + annotation coverage, row-label guidance, batch cap gates, strict closest-value and unknown-tool repair summary, vault warning and validate_vault problem gates, first-contact health/growth/sample-shape gates, maintenance work-queue shape + formatter checks, initialize safety/recovery guidance, destructive dry-run, help/argument/timeout handling, structuredContent, strict relation filters, strict add_relation type-preflight, strict graph kind filters, stderr warning checks.",
+    "  pnpm test:mcp:dogfood           Dogfood helper, compile/index gates, tools/list inventory names + annotation coverage, row-label guidance, batch cap gates, invalid-only batch row repair smoke, strict closest-value and unknown-tool repair summary, vault warning and validate_vault problem gates, first-contact health/growth/sample-shape gates, maintenance work-queue shape + formatter checks, initialize safety/recovery guidance, destructive dry-run, help/argument/timeout handling, structuredContent, strict relation filters, strict add_relation type-preflight, strict graph kind filters, stderr warning checks.",
     "  pnpm test:mcp:dogfood:timeout   Narrow dogfood timeout/help retry diagnostics.",
     "  pnpm dogfood:test               Full dogfood helper regression suite when focused checks are not enough.",
   ].join("\n");
@@ -226,6 +227,8 @@ const DOGFOOD_RESPONSE_LABELS = new Map([
   [82, "add_concepts_batch_cap"],
   [83, "add_relations_batch_cap"],
   [84, "strict_unknown_tool"],
+  [85, "add_concepts_row_repair"],
+  [86, "add_relations_row_repair"],
 ]);
 
 const HEALTH_CHECK_STATUSES = new Set(["pass", "warn", "fail", "info"]);
@@ -489,6 +492,26 @@ export function strictRepairSummary(response) {
   return strictClosestValueSummary(response);
 }
 
+export function batchRowRepairSummary(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return "n/a";
+  const failedRows = rows.filter((row) => row?.ok === false).length;
+  const rowNames = rows
+    .map((row, index) => row?.rowName || (typeof row?.firstSeenAt === "string" ? `row${index}` : null))
+    .filter(Boolean);
+  const fieldHints = rows
+    .flatMap((row) => Array.isArray(row?.unknownFields) ? row.unknownFields : [])
+    .map((field) => (typeof field?.suggestion === "string" ? `${field.name}->${field.suggestion}` : `${field?.name || "unknown"}->?`));
+  const valueHints = rows
+    .filter((row) => typeof row?.receivedValue === "string")
+    .map((row) => (typeof row?.suggestion === "string" ? `${row.valueName || "value"} ${row.receivedValue}->${row.suggestion}` : `${row.valueName || "value"} ${row.receivedValue}->?`));
+  const duplicateHints = rows
+    .filter((row) => typeof row?.firstSeenAt === "string")
+    .map((row) => `${row.conflictSlug || "duplicate"} first ${row.firstSeenAt}`);
+  const detail = [...fieldHints, ...valueHints, ...duplicateHints].slice(0, 6).join(", ") || "no structured hints";
+  const rowSummary = rowNames.length > 0 ? `; rows ${rowNames.join(", ")}` : "";
+  return `${failedRows}/${rows.length} failed (${detail}${rowSummary})`;
+}
+
 function repairArrowSummary(label, received, suggestion, allowed) {
   const arrow = typeof suggestion === "string" && suggestion.length > 0 ? `${received}->${suggestion}` : `${received}->?`;
   return `rejected true (${label} ${arrow}; allowed ${formatAllowedCount(allowed)})`;
@@ -672,6 +695,58 @@ export function buildDogfoodRequests() {
         to: `capabilities/dogfood-batch-cap-${index}`,
         type: "relates",
       })),
+    }),
+    call(85, "add_concepts", {
+      concepts: [
+        null,
+        {
+          slug: "dogfood-row-repair-multi",
+          kind: "capability",
+          title: "Dogfood Row Repair Multi",
+          titel: "typo",
+          domian: "ai-agent-partner",
+        },
+        {
+          slug: "verify-duplicate-slug",
+          kind: "capabilty",
+          title: "Dogfood Row Repair Duplicate Seed",
+        },
+        {
+          slug: "verify-duplicate-slug",
+          kind: "capability",
+          title: "Dogfood Row Repair Duplicate Later",
+          domain: "ai-agent-partner",
+        },
+        {
+          slug: "dogfood-row-repair-single",
+          kind: "capability",
+          title: "Dogfood Row Repair Single",
+          titel: "typo",
+        },
+      ],
+    }),
+    call(86, "add_relations", {
+      relations: [
+        null,
+        {
+          from: "capabilities/mcp-server",
+          to: "domains/ai-agent-partner",
+          type: "relates",
+          relation: "relates",
+          frm: "capabilities/mcp-server",
+        },
+        {
+          from: "capabilities/mcp-server",
+          to: "domains/ai-agent-partner",
+          type: "depend_on",
+        },
+        {
+          from: "capabilities/mcp-server",
+          to: "domains/ai-agent-partner",
+          type: "relates",
+          relation: "relates",
+        },
+      ],
     }),
     call(8, "validate_vault", {}),
     call(9, "query_ontology", { operation: "workspace_brief", limit: 5 }),
@@ -1158,6 +1233,10 @@ export function evaluateDogfoodGate({
   getConceptsBatchCap,
   addConceptsBatchCap,
   addRelationsBatchCap,
+  addConceptsRowRepair,
+  addConceptsRowRepairStructured,
+  addRelationsRowRepair,
+  addRelationsRowRepairStructured,
   toolsList,
 }) {
   const failures = [];
@@ -1287,6 +1366,16 @@ export function evaluateDogfoodGate({
   if (addConceptsBatchCapError) failures.push(`add_concepts_batch_cap: ${addConceptsBatchCapError}`);
   const addRelationsBatchCapError = batchCapFailure(addRelationsBatchCap, "add_relations", "relations");
   if (addRelationsBatchCapError) failures.push(`add_relations_batch_cap: ${addRelationsBatchCapError}`);
+  if (addConceptsRowRepair) {
+    const addConceptsRowRepairError = batchRowIsolationFailure({ result: { content: [{ text: JSON.stringify(addConceptsRowRepair) }], structuredContent: addConceptsRowRepairStructured } }, "concepts", "add_concepts");
+    if (addConceptsRowRepairError) failures.push(`add_concepts_row_repair: ${addConceptsRowRepairError}`);
+    else recordStructuredContentFailure(failures, "add_concepts_row_repair", addConceptsRowRepair, addConceptsRowRepairStructured);
+  }
+  if (addRelationsRowRepair) {
+    const addRelationsRowRepairError = batchRowIsolationFailure({ result: { content: [{ text: JSON.stringify(addRelationsRowRepair) }], structuredContent: addRelationsRowRepairStructured } }, "relations", "add_relations");
+    if (addRelationsRowRepairError) failures.push(`add_relations_row_repair: ${addRelationsRowRepairError}`);
+    else recordStructuredContentFailure(failures, "add_relations_row_repair", addRelationsRowRepair, addRelationsRowRepairStructured);
+  }
   const initializeInstructionsError = initializeInstructionsFailure({ result: initialize });
   if (initializeInstructionsError) failures.push(`initialize: ${initializeInstructionsError}`);
 
@@ -4834,6 +4923,19 @@ async function main() {
     }
   }
 
+  header("batch row repair — invalid-only write smokes");
+  const addConceptsRowRepair = getResult(responses, 85);
+  const addConceptsRowRepairStructured = getRpcResult(responses, 85)?.structuredContent ?? null;
+  const addRelationsRowRepair = getResult(responses, 86);
+  const addRelationsRowRepairStructured = getRpcResult(responses, 86)?.structuredContent ?? null;
+  for (const [toolName, payload, structuredPayload, key] of [
+    ["add_concepts", addConceptsRowRepair, addConceptsRowRepairStructured, "concepts"],
+    ["add_relations", addRelationsRowRepair, addRelationsRowRepairStructured, "relations"],
+  ]) {
+    console.log(`  ${toolName}: structuredContent ${structuredContentStatus(payload, structuredPayload)}`);
+    console.log(`  ${toolName}: ${batchRowRepairSummary(payload?.[key])}`);
+  }
+
   // 4. find_evidence
   header(`find_evidence(title="vault")`);
   const ev = getResult(responses, 4);
@@ -5751,6 +5853,8 @@ async function main() {
     ["validate_vault", validation, validationStructured],
     ["compile_ontology", compiled, compiledStructured],
     ["compile_ontology_indexes", compiledIndexes, compiledIndexesStructured],
+    ["add_concepts_row_repair", addConceptsRowRepair, addConceptsRowRepairStructured],
+    ["add_relations_row_repair", addRelationsRowRepair, addRelationsRowRepairStructured],
   ];
 
   const failures = evaluateDogfoodGate({
@@ -5891,6 +5995,10 @@ async function main() {
     getConceptsBatchCap,
     addConceptsBatchCap,
     addRelationsBatchCap,
+    addConceptsRowRepair,
+    addConceptsRowRepairStructured,
+    addRelationsRowRepair,
+    addRelationsRowRepairStructured,
     toolsList,
   });
   const missingLabels = missingResponseLabels(responses, DOGFOOD_RESPONSE_LABELS);
@@ -6009,6 +6117,7 @@ async function main() {
   console.log(`  strict_graph_from_kind_filter: ${strictRepairSummary(strictGraphFromKindFilter)}`);
   console.log(`  strict_graph_to_kind_filter: ${strictRepairSummary(strictGraphToKindFilter)}`);
   console.log(`  batch caps: get_concepts ${getConceptsBatchCap?.result?.isError === true} · add_concepts ${addConceptsBatchCap?.result?.isError === true} · add_relations ${addRelationsBatchCap?.result?.isError === true}`);
+  console.log(`  batch row repair: add_concepts ${batchRowRepairSummary(addConceptsRowRepair?.concepts)} · add_relations ${batchRowRepairSummary(addRelationsRowRepair?.relations)}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   const stderrWarnings = stderrWarningLines(stderr);
