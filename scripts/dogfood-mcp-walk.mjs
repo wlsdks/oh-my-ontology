@@ -104,6 +104,8 @@ export function dogfoodUsage() {
     "",
     "Focused checks:",
     "  pnpm test:dogfood:args          Shared dogfood shortcut argument helper contract.",
+    "  pnpm test:dogfood:compile-fix   Narrow dogfood compile --fix idempotence runner contract.",
+    "  pnpm test:dogfood:status        Narrow dogfood status shortcut runner contract.",
     "  pnpm test:mcp:dogfood           Dogfood helper, compile/index gates, tools/list inventory names + annotation coverage, row-label guidance, batch cap gates, strict closest-value and unknown-tool repair summary, vault warning and validate_vault problem gates, first-contact health/growth/sample-shape gates, maintenance work-queue shape + formatter checks, initialize safety/recovery guidance, destructive dry-run, help/argument/timeout handling, structuredContent, strict relation filters, strict add_relation type-preflight, strict graph kind filters, stderr warning checks.",
     "  pnpm test:mcp:dogfood:timeout   Narrow dogfood timeout/help retry diagnostics.",
     "  pnpm dogfood:test               Full dogfood helper regression suite when focused checks are not enough.",
