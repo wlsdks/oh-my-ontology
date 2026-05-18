@@ -139,6 +139,7 @@ pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
 pnpm test:mcp:verify            # focused MCP verify helper checks, including tool inventory names
 pnpm test:mcp:verify:first-contact # narrow MCP verify first-contact initialize-safety-recovery/write-safety/health-summary/advisory/read/sample gates
 pnpm test:mcp:verify:timeout    # narrow MCP verify timeout/startup/help diagnostics
+pnpm dogfood:brief              # quick workspace_brief health snapshot over docs/ontology
 pnpm dogfood:verify             # root checkout installed-style verify over docs/ontology
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000 # root checkout dogfood verify
 pnpm cli:mcp-verify -- --help   # root checkout shortcut for installed mcp-verify help scope
@@ -182,6 +183,8 @@ exercised locally. It also checks both `overview` and `project_map`
 single aggregate query. Project-less vaults skip only the containment-specific
 `project_scope` smoke, and empty vaults skip node-targeted graph smoke until a
 first node exists.
+Use `pnpm dogfood:brief` when you only need the current dogfood vault
+`workspace_brief` JSON snapshot before choosing the next focused gate.
 `smoke:packed-cli` also runs the installed CLI package `npm test`, then checks
 the installed `mcp-verify --help` output plus project-less and empty-vault
 verify paths, so release tarballs keep exposing the graph-query, destructive
