@@ -91,6 +91,7 @@ function makeDogfoodInitialize() {
       "Use expected_mtime when patching a previously-read concept.",
       "Tool schemas reject unknown arguments with nearest hints.",
       "unknown arguments are rejected instead of being ignored.",
+      "Tool errors include structuredContent.errorCode values such as unknown_argument and invalid_arguments.",
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
       "Batch add_concepts and add_relations isolate each non-object row and unknown row field as ok:false.",
@@ -3681,6 +3682,7 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /pnpm dogfood:verify\s+Installed-style verify gate over docs\/ontology before the full walk/);
     assert.match(usage, /pnpm test:mcp:dogfood:timeout/);
     assert.match(usage, /Narrow dogfood timeout\/help retry diagnostics/);
+    assert.match(usage, /pnpm dogfood:test\s+Full dogfood helper regression suite when focused checks are not enough/);
     assert.match(usage, /Dogfood helper, compile\/index gates, tools\/list inventory names \+ annotation coverage, row-label guidance, strict closest-value summary, vault warning and validate_vault problem gates, first-contact health\/growth\/sample-shape gates, maintenance work-queue shape \+ formatter checks, initialize safety\/recovery guidance, destructive dry-run, help\/argument\/timeout handling, structuredContent, strict relation filters, stderr warning checks/);
     assertPnpmScriptsExist(usage);
   });
@@ -4048,6 +4050,16 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, initialize: null }),
       ["initialize: missing response", "initialize: initialize instructions missing or too short"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        initialize: {
+          ...okShape.initialize,
+          instructions: okShape.initialize.instructions.replace("Tool errors include structuredContent.errorCode values such as unknown_argument and invalid_arguments.", "Tool errors are plain text."),
+        },
+      }),
+      ["initialize: initialize instructions missing structured errorCode guidance"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({

@@ -143,6 +143,7 @@ pnpm dogfood:compile            # quick compile_ontology summary over docs/ontol
 pnpm dogfood:health             # quick health gate over docs/ontology
 pnpm dogfood:brief              # quick workspace_brief health snapshot over docs/ontology
 pnpm dogfood:verify             # root checkout installed-style verify over docs/ontology
+pnpm dogfood:test               # full dogfood helper regression suite when focused checks are not enough
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000 # root checkout dogfood verify
 pnpm cli:mcp-verify -- --help   # root checkout shortcut for installed mcp-verify help scope
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
@@ -164,7 +165,8 @@ cd mcp && npm run verify -- ../docs/ontology --timeout-ms 15000
 Use these when changing `mcp/`, `cli/`, package manifests, or release
 scripts. Prefer the focused `test:mcp:*` scripts for small docs, package,
 dogfood-helper, verify-helper, or enum diagnostic changes before escalating to
-the broader release checks.
+the broader release checks. Use `pnpm dogfood:test` only when the dogfood helper
+itself needs the full regression suite beyond `test:mcp:dogfood`.
 `integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`, so you can run
 only the spawn-heavy integration cases touched by a small change. When you need
 Node's `--test-name-pattern`, call `pnpm exec node --test --test-name-pattern ... <file>`;

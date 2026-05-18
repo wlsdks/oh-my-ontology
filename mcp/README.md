@@ -62,6 +62,7 @@ pnpm dogfood:compile
 pnpm dogfood:health
 pnpm dogfood:brief
 pnpm dogfood:verify
+pnpm dogfood:test
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000
 pnpm cli:mcp-verify -- --help
 ```
@@ -107,6 +108,8 @@ instead of appending the flag after `pnpm integration:mcp --`. From the repo roo
 `pnpm dogfood:health` is the shortest dogfood vault health gate.
 `pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot. Use
 `pnpm dogfood:verify` for the full installed-style dogfood vault gate, or
+`pnpm dogfood:test` only when the dogfood helper itself needs the full
+regression suite beyond the focused `test:mcp:dogfood` gate. Use
 `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` when you need
 the explicit CLI wrapper arguments without changing into `mcp/`; use
 `pnpm cli:mcp-verify -- --help` only for the help flag.
