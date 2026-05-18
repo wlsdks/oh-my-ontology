@@ -4725,7 +4725,7 @@ await test("rename_concept confirm:true — 파일 이동 + backlink redirect", 
 
 await test("merge_concepts confirm:true — fromSlug 삭제 + backlink redirect", async () => {
   const root = makeVault([
-    { slug: "from", content: "---\nkind: capability\ntitle: From\n---\n" },
+    { slug: "from", content: "---\nkind: capability\ntitle: From\n---\nMerge body for captured excerpt." },
     { slug: "into", content: "---\nkind: capability\ntitle: Into\n---\n" },
     {
       slug: "ref",
@@ -4747,6 +4747,9 @@ await test("merge_concepts confirm:true — fromSlug 삭제 + backlink redirect"
     assert.equal(result.deleted, true);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
     assert.equal(result.changed, true);
+    assert.equal(result.capturedFrom.frontmatter.title, "From");
+    assert.equal(result.capturedFrom.body, "Merge body for captured excerpt.");
+    assert.equal(result.capturedFrom.bodyExcerpt, "Merge body for captured excerpt.");
     assertPostWriteMaintenanceShape(result.postWriteMaintenance, "merge_concepts postWriteMaintenance");
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -4793,7 +4796,7 @@ await test("merge_concepts dry-run — preview 만, 디스크 변경 0", async (
 
 await test("delete_concept confirm:true — 삭제 후 post-write maintenance summary 반환", async () => {
   const root = makeVault([
-    { slug: "gone", content: "---\nkind: capability\ntitle: Gone\n---\n" },
+    { slug: "gone", content: "---\nkind: capability\ntitle: Gone\n---\nDelete body for captured excerpt." },
   ]);
   try {
     const { responses } = await rpc(root, [
@@ -4807,6 +4810,9 @@ await test("delete_concept confirm:true — 삭제 후 post-write maintenance su
     assert.deepEqual(getCallStructured(responses, 2), result);
     assert.equal(result.ok, true);
     assert.equal(result.changed, true);
+    assert.equal(result.captured.frontmatter.title, "Gone");
+    assert.equal(result.captured.body, "Delete body for captured excerpt.");
+    assert.equal(result.captured.bodyExcerpt, "Delete body for captured excerpt.");
     assertPostWriteMaintenanceShape(result.postWriteMaintenance, "delete_concept postWriteMaintenance");
   } finally {
     rmSync(root, { recursive: true, force: true });

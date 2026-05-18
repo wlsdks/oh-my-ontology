@@ -4115,6 +4115,7 @@ function mergeConcepts({ fromSlug, intoSlug, confirm = false, expected_mtime }) 
     capturedFrom: {
       frontmatter: fromDoc.frontmatter,
       body: fromDoc.body,
+      bodyExcerpt: fromDoc.body.slice(0, 200),
     },
     postWriteMaintenance: compactPostWriteMaintenance(),
   };
@@ -4169,6 +4170,7 @@ function deleteConcept({ slug, confirm = false, force = false, expected_mtime })
     captured: {
       frontmatter: deleted.frontmatter,
       body: deleted.body,
+      bodyExcerpt: deleted.body.slice(0, 200),
     },
     postWriteMaintenance: compactPostWriteMaintenance(),
   };
