@@ -9007,7 +9007,20 @@ describe('verify.mjs first-contact gates', () => {
           operation: 'workspace_brief',
           status: 'healthy',
           health: { checks: [] },
-          nextActions: [{ kind: 'health_check' }],
+          nextActions: [{ id: 'health_check', severity: 'warn' }],
+        },
+        'workspace_brief',
+      ),
+      'workspace_brief response missing nextAction identifier at index 0',
+    );
+    assert.equal(
+      diagnosisBlockingFailure(
+        'workspace_brief',
+        {
+          operation: 'workspace_brief',
+          status: 'healthy',
+          health: { checks: [] },
+          nextActions: [{ id: 'health_check', kind: 'health_check' }],
         },
         'workspace_brief',
       ),
@@ -9046,7 +9059,7 @@ describe('verify.mjs first-contact gates', () => {
           operation: 'workspace_brief',
           status: 'healthy',
           health: { checks: [] },
-          nextActions: [{ kind: 'health_check', severity: '' }],
+          nextActions: [{ id: 'health_check', kind: 'health_check', severity: '' }],
         },
         'workspace_brief',
       ),
@@ -9059,7 +9072,7 @@ describe('verify.mjs first-contact gates', () => {
           operation: 'workspace_brief',
           status: 'healthy',
           health: { checks: [] },
-          nextActions: [{ kind: 'health_check', severity: 'fatal' }],
+          nextActions: [{ id: 'health_check', kind: 'health_check', severity: 'fatal' }],
         },
         'workspace_brief',
       ),
@@ -9072,7 +9085,7 @@ describe('verify.mjs first-contact gates', () => {
           operation: 'workspace_brief',
           status: 'healthy',
           health: { checks: [] },
-          nextActions: [{ kind: 'health_check', severity: 'warn', count: -1 }],
+          nextActions: [{ id: 'health_check', kind: 'health_check', severity: 'warn', count: -1 }],
         },
         'workspace_brief',
       ),
@@ -9085,7 +9098,7 @@ describe('verify.mjs first-contact gates', () => {
           operation: 'workspace_brief',
           status: 'healthy',
           health: { checks: [] },
-          nextActions: [{ kind: 'health_check', severity: 'warn', count: 1.5 }],
+          nextActions: [{ id: 'health_check', kind: 'health_check', severity: 'warn', count: 1.5 }],
         },
         'workspace_brief',
       ),
@@ -9218,6 +9231,7 @@ describe('verify.mjs first-contact gates', () => {
           nextActions: [
             { kind: 'health_check', severity: 'warn', id: 'compile_issues' },
             {
+              id: 'add_missing_relations',
               kind: 'add_missing_relations',
               severity: 'warn',
               count: 2,
@@ -9268,7 +9282,7 @@ describe('verify.mjs first-contact gates', () => {
             totalActions: 2,
           },
           health: { checks: [] },
-          nextActions: [{ kind: 'add_missing_relations', severity: 'warn', count: 1 }],
+          nextActions: [{ id: 'add_missing_relations', kind: 'add_missing_relations', severity: 'warn', count: 1 }],
         },
         'workspace_brief',
       ),
@@ -9293,6 +9307,7 @@ describe('verify.mjs first-contact gates', () => {
           health: { checks: [] },
           nextActions: [
             {
+              id: 'add_missing_relations',
               kind: 'add_missing_relations',
               severity: 'warn',
               count: 1,
@@ -9320,6 +9335,7 @@ describe('verify.mjs first-contact gates', () => {
           health: { checks: [] },
           nextActions: [
             {
+              id: 'materialize_external_elements',
               kind: 'materialize_external_elements',
               severity: 'info',
               count: 1,
@@ -9347,6 +9363,7 @@ describe('verify.mjs first-contact gates', () => {
           health: { checks: [] },
           nextActions: [
             {
+              id: 'resolve_dangling_references',
               kind: 'resolve_dangling_references',
               severity: 'info',
               count: 1,
@@ -9370,7 +9387,7 @@ describe('verify.mjs first-contact gates', () => {
           health: { checks: [] },
           nextActions: [
             { kind: 'health_check', severity: 'info', id: 'components' },
-            { kind: 'resolve_dangling_references', severity: 'fail', count: 1 },
+            { id: 'resolve_dangling_references', kind: 'resolve_dangling_references', severity: 'fail', count: 1 },
           ],
         },
         'workspace_brief',

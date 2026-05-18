@@ -403,7 +403,7 @@ scoped probe 가 왜 advisory 인지 숨기지 않는다. `components` probe 는
 마지막 Analysis 에 `component rows` 를 componentId:size:firstSlug 형태로
 다시 출력하고, node-limited row 는 size 뒤에 `+` 를 붙여 disconnected
 component 의 첫 노드와 truncated 여부를 긴 로그 끝에서도 바로 확인하게 한다.
-dogfood walk 도 `workspace_brief.nextActions` row 의 identifier/severity 와
+dogfood walk 도 `workspace_brief.nextActions` row 의 non-empty id/kind/severity 와
 `health.checks` row 의 id/status/count 를 fail-closed 로 검증하고 severity/status enum 오타도 거부한다.
 출력에 쓰이는 optional `count` 는 non-negative integer 여야 해서 실제 MCP 응답이
 advisory/coverage 출력에서 `unknown` 이나 잘못된 count 로 숨지 않게 한다.

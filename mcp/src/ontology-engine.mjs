@@ -3102,6 +3102,7 @@ export function createOntologyEngine(artifact, options = {}) {
     }
     if (growthResult.summary.relationRecommendations > 0) {
       actions.push({
+        id: 'add_missing_relations',
         kind: 'add_missing_relations',
         severity: 'warn',
         count: growthResult.summary.relationRecommendations,
@@ -3113,6 +3114,7 @@ export function createOntologyEngine(artifact, options = {}) {
     }
     if (growthResult.summary.danglingReferences > 0) {
       actions.push({
+        id: 'resolve_dangling_references',
         kind: 'resolve_dangling_references',
         severity: 'warn',
         count: growthResult.summary.danglingReferences,
@@ -3122,6 +3124,7 @@ export function createOntologyEngine(artifact, options = {}) {
     }
     if (growthResult.summary.externalElementRefs > 0) {
       actions.push({
+        id: 'materialize_external_elements',
         kind: 'materialize_external_elements',
         severity: 'info',
         count: growthResult.summary.externalElementRefs,

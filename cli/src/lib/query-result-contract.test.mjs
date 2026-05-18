@@ -374,7 +374,7 @@ describe('query-result-contract', () => {
       operation: 'workspace_brief',
       status: 'healthy',
       summary: { nodes: 1, edges: 0 },
-      nextActions: [],
+      nextActions: [{ id: 'cleanup', kind: 'cleanup', severity: 'warn' }],
       health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] },
       growth: { totalActions: 0 },
     };
@@ -391,6 +391,10 @@ describe('query-result-contract', () => {
     );
     assert.throws(
       () => assertWorkspaceBriefShape({ ...workspaceBrief, nextActions: [{ kind: 'cleanup', severity: 'fatal' }] }),
+      /workspace_brief nextActions\[0\] has an invalid next-action shape/,
+    );
+    assert.throws(
+      () => assertWorkspaceBriefShape({ ...workspaceBrief, nextActions: [{ id: 'cleanup', severity: 'warn' }] }),
       /workspace_brief nextActions\[0\] has an invalid next-action shape/,
     );
     assert.throws(
@@ -772,7 +776,7 @@ describe('query-result-contract', () => {
     assert.equal(
       workspaceBriefExitCode({
         status: 'needs_attention',
-        nextActions: [{ kind: 'cleanup', severity: 'warn' }],
+        nextActions: [{ id: 'cleanup', kind: 'cleanup', severity: 'warn' }],
         health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] },
       }),
       0,
@@ -784,7 +788,7 @@ describe('query-result-contract', () => {
     assert.equal(
       workspaceBriefExitCode({
         status: 'healthy',
-        nextActions: [{ kind: 'cleanup', severity: 'fail' }],
+        nextActions: [{ id: 'cleanup', kind: 'cleanup', severity: 'fail' }],
         health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] },
       }),
       1,
@@ -800,7 +804,8 @@ describe('query-result-contract', () => {
     );
     assert.equal(workspaceBriefExitCode({ nextActions: [{ severity: 'warn' }], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } }), 1);
     assert.equal(workspaceBriefExitCode({ nextActions: [{ kind: 'cleanup' }], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } }), 1);
-    assert.equal(workspaceBriefExitCode({ status: 'healthy', nextActions: [{ kind: '  ', severity: 'warn' }], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } }), 1);
+    assert.equal(workspaceBriefExitCode({ status: 'healthy', nextActions: [{ id: 'cleanup', severity: 'warn' }], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } }), 1);
+    assert.equal(workspaceBriefExitCode({ status: 'healthy', nextActions: [{ id: 'cleanup', kind: '  ', severity: 'warn' }], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } }), 1);
     assert.equal(workspaceBriefExitCode({ status: 'healthy', nextActions: [], health: { checks: [] } }), 1);
     assert.equal(
       workspaceBriefExitCode({ nextActions: [], health: { checks: [{ id: 'compile_issues' }] } }),

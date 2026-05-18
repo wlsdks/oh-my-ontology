@@ -2716,6 +2716,14 @@ describe('queryCompiledOntology', () => {
       totalActions: 3,
     });
     assert.equal(result.nextActions.some((action) => action.kind === 'health_check'), true);
+    assert.deepEqual(result.nextActions.map((action) => action.id), [
+      'compile_issues',
+      'unresolved_edges',
+      'relation_recommendations',
+      'add_missing_relations',
+      'resolve_dangling_references',
+      'materialize_external_elements',
+    ]);
     assert.deepEqual(result.nextActions.filter((action) => action.kind !== 'health_check').map((action) => action.kind), [
       'add_missing_relations',
       'resolve_dangling_references',
