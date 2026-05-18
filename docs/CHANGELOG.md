@@ -56,7 +56,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   checks plus escalation gates so agents can avoid broad test runs when a
   narrower verification path is enough. Vault helper scripts now route to
   `pnpm test:docs-vault`, `pnpm test:vault:validate`, or
-  `pnpm test:vault:audit` before broader docs/package gates.
+  `pnpm test:vault:audit` before broader docs/package gates; dogfood helper
+  scripts route to `pnpm test:dogfood:args` or
+  `pnpm test:dogfood:compile-fix` before broader dogfood gates.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 

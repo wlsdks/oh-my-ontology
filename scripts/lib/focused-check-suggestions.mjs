@@ -34,6 +34,16 @@ const RULES = [
     ],
   },
   {
+    command: 'pnpm test:dogfood:args',
+    reason: 'dogfood shortcut argument helper changed',
+    matches: [/^scripts\/lib\/dogfood-args\.(?:mjs|test\.mjs)$/],
+  },
+  {
+    command: 'pnpm test:dogfood:compile-fix',
+    reason: 'dogfood compile-fix idempotence helper changed',
+    matches: [/^scripts\/dogfood-compile-fix\.(?:mjs|test\.mjs)$/],
+  },
+  {
     command: 'pnpm test:checks:changed',
     reason: 'changed-path focused-check advisor changed',
     matches: [

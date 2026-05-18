@@ -44,6 +44,19 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests narrow dogfood helper tests before broader dogfood gates', () => {
+    const result = suggestFocusedChecks([
+      'scripts/lib/dogfood-args.mjs',
+      'scripts/dogfood-compile-fix.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:dogfood:args',
+      'pnpm test:dogfood:compile-fix',
+      'pnpm dogfood:status',
+    ]);
+  });
+
   it('suggests focused CLI and MCP verify gates without jumping straight to full suites', () => {
     const result = suggestFocusedChecks([
       'cli/src/commands/mcp-verify.mjs',
