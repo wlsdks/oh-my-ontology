@@ -3208,29 +3208,29 @@ const okShape = {
   strictEnum: {
     result: {
       isError: true,
-      content: [{ text: 'operation must be one of: overview, health. Received: "overveiw". Did you mean "overview"?' }],
+      content: [{ text: `operation must be one of: ${QUERY_ONTOLOGY_OPERATIONS.join(", ")}. Received: "overveiw". Did you mean "overview"?` }],
       structuredContent: {
         ok: false,
         errorCode: "invalid_arguments",
-        error: 'operation must be one of: overview, health. Received: "overveiw". Did you mean "overview"?',
+        error: `operation must be one of: ${QUERY_ONTOLOGY_OPERATIONS.join(", ")}. Received: "overveiw". Did you mean "overview"?`,
         valueName: "operation",
         receivedValue: "overveiw",
         suggestion: "overview",
-        allowedValues: ["overview", "health"],
+        allowedValues: QUERY_ONTOLOGY_OPERATIONS,
       },
     },
   },
   strictUnknownTool: {
     result: {
       isError: true,
-      content: [{ text: 'Error: Unknown tool: list_concept. Did you mean "list_concepts"? Allowed tools: add_concept, list_concepts.' }],
+      content: [{ text: `Error: Unknown tool: list_concept. Did you mean "list_concepts"? Allowed tools: ${[...EXPECTED_TOOLS].sort().join(", ")}.` }],
       structuredContent: {
         ok: false,
         errorCode: "unknown_tool",
-        error: 'Unknown tool: list_concept. Did you mean "list_concepts"? Allowed tools: add_concept, list_concepts.',
+        error: `Unknown tool: list_concept. Did you mean "list_concepts"? Allowed tools: ${[...EXPECTED_TOOLS].sort().join(", ")}.`,
         receivedTool: "list_concept",
         suggestion: "list_concepts",
-        allowedTools: ["add_concept", "list_concepts"],
+        allowedTools: [...EXPECTED_TOOLS].sort(),
       },
     },
   },
@@ -3478,11 +3478,11 @@ describe("rpc response completion helpers", () => {
     );
     assert.equal(
       strictRepairSummary(okShape.strictEnum),
-      "rejected true (operation overveiw->overview; allowed 2)",
+      `rejected true (operation overveiw->overview; allowed ${QUERY_ONTOLOGY_OPERATIONS.length})`,
     );
     assert.equal(
       strictRepairSummary(okShape.strictUnknownTool),
-      "rejected true (tool list_concept->list_concepts; allowed 2)",
+      `rejected true (tool list_concept->list_concepts; allowed ${EXPECTED_TOOLS.length})`,
     );
     assert.equal(
       strictRepairSummary(okShape.strictMaintenancePhaseFilter),
@@ -4619,11 +4619,11 @@ describe("evaluateDogfoodGate", () => {
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, strictEnum: { result: { isError: true, content: [{ text: "different error" }] } } }),
-      ["strict_enum: strict enum structured error missing"],
+      ["strict_enum: strict enum response did not report the invalid query_ontology operation"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, strictEnum: { result: { isError: true, content: [{ text: 'operation must be one of: overview. Received: "overveiw".' }] } } }),
-      ["strict_enum: strict enum structured error missing"],
+      ["strict_enum: strict enum response did not suggest the closest query_ontology operation"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
