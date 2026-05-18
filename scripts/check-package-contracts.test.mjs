@@ -958,6 +958,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /action `score`/);
     assert.match(verifySection, /executable `proposedAction`/);
     assert.match(verifySection, /current-page next action pointer guidance/);
+    assert.match(verifySection, /unknown-field rows report every offending field with nearest hints and `Received fields: \.\.\.`/);
     assert.match(verifySection, /`concepts\[n\]` \/ `relations\[n\]` error labels/);
     assert.match(verifySection, /calls destructive dry-runs for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
     assert.match(verifySection, /previews stay non-writing and do not include `changed` or `postWriteMaintenance`/);
