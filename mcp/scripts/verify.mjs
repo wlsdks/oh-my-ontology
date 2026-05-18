@@ -1818,8 +1818,8 @@ export function toolsListSchemaFailure(tools) {
   if (!/concepts\[n\]/.test(addConceptsTool?.description || '')) {
     return 'add_concepts description missing row label guidance';
   }
-  if (!/Received fields/.test(addConceptsTool?.description || '')) {
-    return 'add_concepts description missing received fields guidance';
+  if (!/every unknown field/.test(addConceptsTool?.description || '') || !/Received fields/.test(addConceptsTool?.description || '')) {
+    return 'add_concepts description missing multi-field received fields guidance';
   }
   if (!/duplicate input slugs/.test(addConceptsTool?.description || '') || !/first-seen `concepts\[m\]`/.test(addConceptsTool?.description || '')) {
     return 'add_concepts description missing duplicate row guidance';
@@ -1907,8 +1907,8 @@ export function toolsListSchemaFailure(tools) {
   if (!/relations\[n\]/.test(addRelationsTool?.description || '')) {
     return 'add_relations description missing row label guidance';
   }
-  if (!/Received fields/.test(addRelationsTool?.description || '')) {
-    return 'add_relations description missing received fields guidance';
+  if (!/every unknown field/.test(addRelationsTool?.description || '') || !/Received fields/.test(addRelationsTool?.description || '')) {
+    return 'add_relations description missing multi-field received fields guidance';
   }
   if (!/closest-value hint/.test(addRelationsTool?.description || '')) {
     return 'add_relations description missing closest-value type guidance';
@@ -2790,7 +2790,7 @@ export function initializeInstructionsFailure(response) {
     ['structured errorCode guidance', /structuredContent[\s\S]*errorCode[\s\S]*unknown_argument[\s\S]*invalid_arguments/i],
     ['nearest argument hint guidance', /Did you mean "limit"\?/],
     ['multiple unknown arguments guidance', /Unknown arguments for list_concepts[\s\S]*"summry"[\s\S]*did you mean "summary"\?/i],
-    ['batch row isolation guidance', /non-object row[\s\S]*unknown row field[\s\S]*ok:\s*false/i],
+    ['batch row isolation guidance', /non-object row[\s\S]*unknown row fields[\s\S]*ok:\s*false/i],
     ['batch relation type hint guidance', /unknown type[\s\S]*closest-value hint[\s\S]*Did you mean "depends_on"\?/i],
     ['batch duplicate slug guidance', /duplicate[\s\S]*slugs[\s\S]*concepts\[n\] duplicate slug in input batch; first seen at concepts\[m\]/i],
     ['nearest enum hint guidance', /Did you mean "overview"\?/],

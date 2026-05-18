@@ -94,7 +94,7 @@ function makeDogfoodInitialize() {
       "Tool errors include structuredContent.errorCode values such as unknown_argument and invalid_arguments.",
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
-      "Batch add_concepts and add_relations isolate each non-object row and unknown row field as ok:false.",
+      "Batch add_concepts and add_relations isolate each non-object row and unknown row fields as ok:false.",
       'Batch add_relations unknown type row errors include a closest-value hint such as Did you mean "depends_on"?',
       "Duplicate add_concepts input slugs report concepts[n] duplicate slug in input batch; first seen at concepts[m].",
       'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
@@ -1334,7 +1334,7 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "add_concepts") {
-        tool.description += " Batch rows isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels, unknown-field rows include Received fields, and duplicate input slugs report the later concepts[n] row plus first-seen `concepts[m]`.";
+        tool.description += " Batch rows isolate non-object row shape and unknown row fields as ok:false rows with concepts[n] labels, unknown-field rows report every unknown field with nearest hints and Received fields, and duplicate input slugs report the later concepts[n] row plus first-seen `concepts[m]`.";
         tool.inputSchema.required = ["concepts"];
         tool.inputSchema.properties.concepts = { type: "array", maxItems: 50 };
         tool.outputSchema = {
@@ -1378,7 +1378,7 @@ function makeDogfoodToolsList() {
         };
       }
       if (name === "add_relations") {
-        tool.description += " Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels; unknown type rows include a closest-value hint and unknown-field rows include Received fields.";
+        tool.description += " Batch rows isolate non-object row shape, unknown type, and unknown row fields as ok:false rows with relations[n] labels; unknown type rows include a closest-value hint and unknown-field rows report every unknown field with nearest hints and Received fields.";
         tool.inputSchema.required = ["relations"];
         tool.inputSchema.properties.relations = {
           type: "array",
@@ -3407,32 +3407,32 @@ describe("rpc response completion helpers", () => {
 
     const missingConcepts = makeDogfoodToolsList().tools;
     missingConcepts.find((tool) => tool.name === "add_concepts").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows.";
+      "Batch rows isolate non-object row shape and unknown row fields as ok:false rows.";
     assert.equal(writeRowLabelGuidanceSummary(missingConcepts), "missing add_concepts concepts[n], add_concepts Received fields, add_concepts duplicate first-seen");
 
     const missingConceptsReceivedFields = makeDogfoodToolsList().tools;
     missingConceptsReceivedFields.find((tool) => tool.name === "add_concepts").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels.";
+      "Batch rows isolate non-object row shape and unknown row fields as ok:false rows with concepts[n] labels.";
     assert.equal(writeRowLabelGuidanceSummary(missingConceptsReceivedFields), "missing add_concepts Received fields, add_concepts duplicate first-seen");
 
     const missingConceptsDuplicate = makeDogfoodToolsList().tools;
     missingConceptsDuplicate.find((tool) => tool.name === "add_concepts").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels and unknown-field rows include Received fields.";
+      "Batch rows isolate non-object row shape and unknown row fields as ok:false rows with concepts[n] labels and unknown-field rows report every unknown field with nearest hints and Received fields.";
     assert.equal(writeRowLabelGuidanceSummary(missingConceptsDuplicate), "missing add_concepts duplicate first-seen");
 
     const missingRelations = makeDogfoodToolsList().tools;
     missingRelations.find((tool) => tool.name === "add_relations").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows.";
+      "Batch rows isolate non-object row shape and unknown row fields as ok:false rows.";
     assert.equal(writeRowLabelGuidanceSummary(missingRelations), "missing add_relations relations[n], add_relations Received fields, add_relations closest-value type hint");
 
     const missingRelationsReceivedFields = makeDogfoodToolsList().tools;
     missingRelationsReceivedFields.find((tool) => tool.name === "add_relations").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows with relations[n] labels.";
+      "Batch rows isolate non-object row shape and unknown row fields as ok:false rows with relations[n] labels.";
     assert.equal(writeRowLabelGuidanceSummary(missingRelationsReceivedFields), "missing add_relations Received fields, add_relations closest-value type hint");
 
     const missingRelationsClosestValue = makeDogfoodToolsList().tools;
     missingRelationsClosestValue.find((tool) => tool.name === "add_relations").description =
-      "Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields.";
+      "Batch rows isolate non-object row shape, unknown type, and unknown row fields as ok:false rows with relations[n] labels and unknown-field rows report every unknown field with nearest hints and Received fields.";
     assert.equal(writeRowLabelGuidanceSummary(missingRelationsClosestValue), "missing add_relations closest-value type hint");
 
     assert.equal(writeRowLabelGuidanceSummary(null), "missing tools/list");
@@ -4265,17 +4265,17 @@ describe("evaluateDogfoodGate", () => {
     );
     const addConceptsRowLabelGuidanceDrifted = makeDogfoodToolsList();
     addConceptsRowLabelGuidanceDrifted.tools.find((tool) => tool.name === "add_concepts").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows.";
+      "Batch rows isolate non-object row shape and unknown row fields as ok:false rows.";
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: addConceptsRowLabelGuidanceDrifted }),
       ["tools/list: add_concepts description missing row label guidance"],
     );
     const addConceptsReceivedFieldsGuidanceDrifted = makeDogfoodToolsList();
     addConceptsReceivedFieldsGuidanceDrifted.tools.find((tool) => tool.name === "add_concepts").description =
-      "Batch rows isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels.";
+      "Batch rows isolate non-object row shape and unknown row fields as ok:false rows with concepts[n] labels.";
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: addConceptsReceivedFieldsGuidanceDrifted }),
-      ["tools/list: add_concepts description missing received fields guidance"],
+      ["tools/list: add_concepts description missing multi-field received fields guidance"],
     );
     const addRelationsOutputSchemaDrifted = makeDogfoodToolsList();
     addRelationsOutputSchemaDrifted.tools.find((tool) => tool.name === "add_relations").outputSchema.properties.relations.items.properties.alreadyExists.type = "string";
@@ -4291,21 +4291,21 @@ describe("evaluateDogfoodGate", () => {
     );
     const addRelationsRowLabelGuidanceDrifted = makeDogfoodToolsList();
     addRelationsRowLabelGuidanceDrifted.tools.find((tool) => tool.name === "add_relations").description =
-      "Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with closest-value hints.";
+      "Batch rows isolate non-object row shape, unknown type, and unknown row fields as ok:false rows with closest-value hints.";
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: addRelationsRowLabelGuidanceDrifted }),
       ["tools/list: add_relations description missing row label guidance"],
     );
     const addRelationsReceivedFieldsGuidanceDrifted = makeDogfoodToolsList();
     addRelationsReceivedFieldsGuidanceDrifted.tools.find((tool) => tool.name === "add_relations").description =
-      "Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels and closest-value hints.";
+      "Batch rows isolate non-object row shape, unknown type, and unknown row fields as ok:false rows with relations[n] labels and closest-value hints.";
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: addRelationsReceivedFieldsGuidanceDrifted }),
-      ["tools/list: add_relations description missing received fields guidance"],
+      ["tools/list: add_relations description missing multi-field received fields guidance"],
     );
     const addRelationsClosestValueGuidanceDrifted = makeDogfoodToolsList();
     addRelationsClosestValueGuidanceDrifted.tools.find((tool) => tool.name === "add_relations").description =
-      "Batch rows isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields.";
+      "Batch rows isolate non-object row shape, unknown type, and unknown row fields as ok:false rows with relations[n] labels and unknown-field rows report every unknown field with nearest hints and Received fields.";
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: addRelationsClosestValueGuidanceDrifted }),
       ["tools/list: add_relations description missing closest-value type guidance"],

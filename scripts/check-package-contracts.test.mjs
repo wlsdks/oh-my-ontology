@@ -412,16 +412,18 @@ describe('package contract helpers', () => {
     const addConceptsRow = readme.split('| `add_concepts` |')[1]?.split('\n')[0] ?? '';
     const addRelationRow = readme.split('| `add_relation` |')[1]?.split('\n')[0] ?? '';
     const addRelationsRow = readme.split('| `add_relations` |')[1]?.split('\n')[0] ?? '';
-    assert.match(addConceptsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows/);
-    assert.match(addRelationsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows/);
+    assert.match(addConceptsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows, unknown-field rows report every offending field/);
+    assert.match(addRelationsFeature, /non-object row shape \/ unknown row field errors are isolated as `\{ok:false, error\}` rows and unknown-field rows report every offending field/);
     assert.match(addRelationFeature, /type enum:/, 'FEATURES must label add_relation write relation enum values');
     assert.match(addRelationRow, /`type`:/, 'MCP README must label add_relation write relation enum values');
     assert.match(addRelationsRow, /`type`:/, 'MCP README must label add_relations write relation enum values');
     assert.match(addConceptsRow, /`concepts\[n\]` row label/);
-    assert.match(addConceptsRow, /`Received fields: \.\.\.`/);
+    assert.match(addConceptsRow, /unknown row fields surface/);
+    assert.match(addConceptsRow, /report every unknown field with nearest hints and `Received fields: \.\.\.`/);
     assert.match(addRelationsRow, /`relations\[n\]` row label/);
     assert.match(addRelationsRow, /closest-value hint/);
-    assert.match(addRelationsRow, /`Received fields: \.\.\.`/);
+    assert.match(addRelationsRow, /unknown row fields surface/);
+    assert.match(addRelationsRow, /report every unknown field with nearest hints and `Received fields: \.\.\.`/);
     for (const value of WRITE_RELATION_TYPE_VALUES) {
       assert.match(addRelationFeature, new RegExp(`\`${value}\``), `FEATURES documents add_relation type ${value}`);
       assert.match(addRelationRow, new RegExp(`\`${value}\``), `MCP README documents add_relation type ${value}`);
@@ -856,7 +858,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /destructive-tool `confirm` dry-run switches/);
     assert.match(verifySection, /`rename_concept\.overwrite`/);
     assert.match(verifySection, /`delete_concept\.force`/);
-    assert.match(verifySection, /batch row isolation for non-object row shape,\s+unknown row field inputs/);
+    assert.match(verifySection, /batch row isolation for non-object row shape,\s+unknown row field inputs with all offending fields reported/);
     assert.match(verifySection, /invalid `add_relations` type hints/);
     assert.match(verifySection, /`concepts\[n\]` \/\s+`relations\[n\]` error labels/);
     assert.match(verifySection, /Destructive dry-run smoke calls `rename_concept`, `merge_concepts`, and\s+`delete_concept` against live vault slugs without writing/);
@@ -1143,7 +1145,7 @@ describe('package contract helpers', () => {
     const verifySection = readme.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[1]?.split('### Node.js API')[0] ?? '';
 
     assert.match(verifySection, /batch writer row isolation guidance for `add_concepts` and\s+`add_relations`/);
-    assert.match(verifySection, /non-object row shape, unknown row field, and\s+duplicate `add_concepts` slug failures surfacing as row-level `ok:false`/);
+    assert.match(verifySection, /non-object row shape, unknown row field reporting,\s+all offending unknown fields, duplicate `add_concepts` slug failures surfacing as row-level `ok:false`/);
     assert.match(verifySection, /instead of top-level tool errors/);
     assert.match(verifySection, /with no `postWriteMaintenance`/);
     assert.match(verifySection, /structured `errorCode` values \(`unknown_argument` \/ `invalid_arguments`\)/);
@@ -1216,7 +1218,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /accepts empty vault folders/);
     assert.match(verifySection, /runtime unknown-argument and invalid-enum rejection smoke/);
     assert.match(verifySection, /batch writer row-isolation gate for `add_concepts` \/ `add_relations`/);
-    assert.match(verifySection, /non-object row shape, unknown row field, and duplicate `add_concepts` slug failures/);
+    assert.match(verifySection, /non-object row shape, unknown row field inputs with all offending fields reported/);
+    assert.match(verifySection, /input index, all offending unknown fields, and closest-value hints for invalid relation types/);
     assert.match(verifySection, /row-level `ok:false` results with `concepts\[n\]` \/ `relations\[n\]` error labels instead of top-level tool errors, with no `postWriteMaintenance`/);
     assert.match(verifySection, /destructive dry-run smoke for `rename_concept` \/ `merge_concepts` \/ `delete_concept`/);
     assert.match(verifySection, /every planned preview response is present, stays non-writing, and does not include `changed` or `postWriteMaintenance`/);

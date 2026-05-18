@@ -701,7 +701,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_concepts',
         description:
-          `Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels, unknown-field rows include Received fields, duplicate input slugs report the later \`concepts[n]\` row plus first-seen \`concepts[m]\`, and return ${postWriteDescription}.`,
+          `Batch writes isolate non-object row shape and unknown row fields as ok:false rows with concepts[n] labels, unknown-field rows report every unknown field with nearest hints and Received fields, duplicate input slugs report the later \`concepts[n]\` row plus first-seen \`concepts[m]\`, and return ${postWriteDescription}.`,
         inputSchema: {
           additionalProperties: false,
           required: ['concepts'],
@@ -735,7 +735,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_relations',
         description:
-          `Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows with relations[n] labels and unknown-field rows include Received fields and return ${postWriteDescription}.`,
+          `Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row fields as ok:false rows with relations[n] labels and unknown-field rows report every unknown field with nearest hints and Received fields and return ${postWriteDescription}.`,
         inputSchema: {
           additionalProperties: false,
           required: ['relations'],
@@ -3609,7 +3609,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
-          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
+          description: 'Batch writes isolate non-object row shape and unknown row fields as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_concepts description missing row label guidance',
@@ -3619,17 +3619,17 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
-          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
+          description: 'Batch writes isolate non-object row shape and unknown row fields as ok:false rows with concepts[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
-      'add_concepts description missing received fields guidance',
+      'add_concepts description missing multi-field received fields guidance',
     );
     assert.equal(
       toolsListSchemaFailure([
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
-          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels, unknown-field rows include Received fields, and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
+          description: 'Batch writes isolate non-object row shape and unknown row fields as ok:false rows with concepts[n] labels, unknown-field rows report every unknown field with nearest hints and Received fields, and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_concepts description missing duplicate row guidance',
@@ -3684,7 +3684,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
+          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row fields as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_relations description missing row label guidance',
@@ -3694,17 +3694,17 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows with relations[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
+          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row fields as ok:false rows with relations[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
-      'add_relations description missing received fields guidance',
+      'add_relations description missing multi-field received fields guidance',
     );
     assert.equal(
       toolsListSchemaFailure([
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels, and unknown-field rows include Received fields. Return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
+          description: 'Batch writes isolate non-object row shape, unknown type, and unknown row fields as ok:false rows with relations[n] labels, and unknown-field rows report every unknown field with nearest hints and Received fields. Return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_relations description missing closest-value type guidance',
@@ -5425,7 +5425,7 @@ describe('verify.mjs first-contact gates', () => {
       'Tool-level errors include structuredContent errorCode values such as unknown_argument for unknown argument names and invalid_arguments for invalid enum/filter/type values.',
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
-      'Batch add_concepts and add_relations isolate each non-object row and unknown row field as ok:false.',
+      'Batch add_concepts and add_relations isolate each non-object row and unknown row fields as ok:false.',
       'Batch add_relations unknown type row errors include a closest-value hint such as Did you mean "depends_on"?',
       'Duplicate add_concepts input slugs report concepts[n] duplicate slug in input batch; first seen at concepts[m].',
       'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
@@ -5470,7 +5470,7 @@ describe('verify.mjs first-contact gates', () => {
       'initialize instructions missing multiple unknown arguments guidance',
     );
     assert.equal(
-      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('non-object row and unknown row field', 'bad rows') } }),
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('non-object row and unknown row fields', 'bad rows') } }),
       'initialize instructions missing batch row isolation guidance',
     );
     assert.equal(
