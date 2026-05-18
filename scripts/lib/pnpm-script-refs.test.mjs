@@ -20,8 +20,15 @@ describe("pnpm script reference helpers", () => {
 
   it("ignores prose and wildcard examples that are not concrete script refs", () => {
     assert.deepEqual(
-      pnpmScriptsFromText("shared pnpm separator\npnpm integration:* --\npnpm forwards args"),
+      pnpmScriptsFromText("shared pnpm separator and pnpm forwards args\npnpm integration:* --"),
       [],
+    );
+  });
+
+  it("extracts inline-code and environment-prefixed command examples", () => {
+    assert.deepEqual(
+      pnpmScriptsFromText("Use `pnpm dogfood:status`.\nOMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk"),
+      ["dogfood:walk", "dogfood:status"],
     );
   });
 
@@ -31,7 +38,7 @@ describe("pnpm script reference helpers", () => {
     assert.deepEqual(missingPnpmScripts("pnpm dogfood:help\npnpm dogfood:missing", scripts), [
       "dogfood:missing",
     ]);
-    assert.deepEqual(missingPnpmScripts("pnpm missing-simple", scripts), []);
+    assert.deepEqual(missingPnpmScripts("pnpm missing-simple", scripts), ["missing-simple"]);
     assert.throws(
       () => assertPnpmScriptsExist("pnpm dogfood:missing", scripts),
       /Missing package\.json scripts: dogfood:missing/,

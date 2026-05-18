@@ -11,15 +11,23 @@ const DEFAULT_IGNORED_PNPM_COMMANDS = new Set([
   "setup",
 ]);
 
-const DEFAULT_SIMPLE_SCRIPT_NAMES = new Set(["benchmark", "build", "dev", "e2e", "lint", "test"]);
+function collectPnpmCommandCandidates(text) {
+  const source = String(text);
+  const candidates = [];
+  const lineCommandPattern = /(?:^|\n)\s*(?:[A-Z_][A-Z0-9_]*=\S+\s+)*pnpm\s+([\w:*-]+)/g;
+  const inlineCodeCommandPattern = /`pnpm\s+([\w:*-]+)/g;
+  for (const match of source.matchAll(lineCommandPattern)) {
+    candidates.push(match[1]);
+  }
+  for (const match of source.matchAll(inlineCodeCommandPattern)) {
+    candidates.push(match[1]);
+  }
+  return candidates;
+}
 
 export function pnpmScriptsFromText(text) {
-  return [...new Set([...String(text).matchAll(/pnpm ([\w:*-]+)/g)].map((match) => match[1]))].filter(
-    (script) =>
-      !DEFAULT_IGNORED_PNPM_COMMANDS.has(script) &&
-      !script.includes("*") &&
-      !script.endsWith(":") &&
-      (script.includes(":") || DEFAULT_SIMPLE_SCRIPT_NAMES.has(script)),
+  return [...new Set(collectPnpmCommandCandidates(text))].filter(
+    (script) => !DEFAULT_IGNORED_PNPM_COMMANDS.has(script) && !script.includes("*") && !script.endsWith(":"),
   );
 }
 
