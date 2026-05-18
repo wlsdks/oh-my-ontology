@@ -88,6 +88,9 @@ verify, or release behavior.
 `pnpm test:mcp:docs` intentionally lists explicit test-name fragments instead
 of a broad `README` token, so documentation-only changes do not accidentally
 expand into unrelated package contract checks.
+Focused package scripts that call Node's `--test-name-pattern` go through
+`scripts/run-focused-node-test.mjs`, so a typoed pattern that matches 0 tests
+fails instead of passing as all skipped.
 
 ## Dogfood Shortcuts
 
@@ -114,7 +117,8 @@ test:dogfood:compile-fix` checks that idempotence guard without the full dogfood
 suite. `pnpm test:dogfood:args` checks the shared pnpm separator and nearest
 `--help` hint helper without invoking any dogfood gate. `pnpm
 test:dogfood:script-refs` checks that help text and package script body
-`pnpm ...` references still resolve to root package scripts.
+`pnpm ...` references still resolve to root package scripts, and that focused
+Node test wrappers fail when a pattern matches 0 tests.
 
 `pnpm dogfood:status` runs the cheap human-readable health + workspace-brief
 gates together. It still prints workspace-brief when health fails, then preserves
