@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { assertPnpmScriptsExist, missingPnpmScripts, pnpmScriptsFromText } from "./pnpm-script-refs.mjs";
+import {
+  assertPnpmScriptsExist,
+  missingPnpmScripts,
+  pnpmScriptRefsFromText,
+  pnpmScriptsFromText,
+} from "./pnpm-script-refs.mjs";
 
 describe("pnpm script reference helpers", () => {
   it("extracts unique pnpm script references in first-seen order", () => {
@@ -44,6 +49,13 @@ describe("pnpm script reference helpers", () => {
       pnpmScriptsFromText("pnpm --silent dogfood:status\npnpm --filter ./mcp test:mcp:package"),
       ["dogfood:status", "test:mcp:package"],
     );
+    assert.deepEqual(
+      pnpmScriptRefsFromText("pnpm --silent dogfood:status\npnpm --filter ./mcp verify -- --help"),
+      [
+        { script: "dogfood:status", filter: null },
+        { script: "verify", filter: "./mcp" },
+      ],
+    );
   });
 
   it("extracts pnpm run script references", () => {
@@ -65,6 +77,15 @@ describe("pnpm script reference helpers", () => {
 
     assert.deepEqual(missingPnpmScripts("pnpm dogfood:help\npnpm dogfood:missing", scripts), [
       "dogfood:missing",
+    ]);
+    assert.deepEqual(
+      missingPnpmScripts("pnpm --filter ./mcp verify -- --help", scripts, {
+        filteredScripts: { "./mcp": { verify: "node scripts/verify.mjs" } },
+      }),
+      [],
+    );
+    assert.deepEqual(missingPnpmScripts("pnpm --filter ./mcp verify -- --help", scripts), [
+      "./mcp:verify",
     ]);
     assert.deepEqual(missingPnpmScripts("pnpm missing-simple", scripts), ["missing-simple"]);
     assert.throws(

@@ -46,17 +46,27 @@ function stripMatchingQuotes(value) {
   return text;
 }
 
-function scriptFromPnpmArgs(argsText) {
+function scriptRefFromPnpmArgs(argsText) {
   const args = String(argsText).trim().split(/\s+/).filter(Boolean);
+  let filter = null;
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === '--filter' || arg === '-F') {
+      filter = stripMatchingQuotes(args[index + 1] ?? '');
+      index += 1;
+    } else if (arg.startsWith('--filter=')) {
+      filter = stripMatchingQuotes(arg.slice('--filter='.length));
+    }
+  }
   const commandIndex = nextCommandIndex(args);
   if (commandIndex < 0) {
     return null;
   }
   if (args[commandIndex] !== "run") {
-    return stripMatchingQuotes(args[commandIndex]);
+    return { script: stripMatchingQuotes(args[commandIndex]), filter };
   }
   const scriptIndex = nextCommandIndex(args, commandIndex + 1);
-  return scriptIndex < 0 ? null : stripMatchingQuotes(args[scriptIndex]);
+  return scriptIndex < 0 ? null : { script: stripMatchingQuotes(args[scriptIndex]), filter };
 }
 
 function collectPnpmCommandCandidates(text) {
@@ -65,26 +75,48 @@ function collectPnpmCommandCandidates(text) {
   const commandPattern =
     /(?:^|\n|`|&&|\|\||\()\s*(?:[$>]\s*)?(?:[A-Z_][A-Z0-9_]*=\S+\s+)*pnpm\s+([^\n`&|;)]+)/g;
   for (const match of source.matchAll(commandPattern)) {
-    const script = scriptFromPnpmArgs(match[1]);
-    if (script) {
-      candidates.push(script);
+    const ref = scriptRefFromPnpmArgs(match[1]);
+    if (ref?.script) {
+      candidates.push(ref);
     }
   }
   return candidates;
 }
 
+function isConcretePackageScript(script) {
+  return !DEFAULT_IGNORED_PNPM_COMMANDS.has(script) && !script.includes("*") && !script.endsWith(":");
+}
+
+export function pnpmScriptRefsFromText(text) {
+  const seen = new Set();
+  const refs = [];
+  for (const ref of collectPnpmCommandCandidates(text)) {
+    if (!isConcretePackageScript(ref.script)) continue;
+    const key = `${ref.filter ?? ''}\0${ref.script}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    refs.push(ref);
+  }
+  return refs;
+}
+
 export function pnpmScriptsFromText(text) {
-  return [...new Set(collectPnpmCommandCandidates(text))].filter(
-    (script) => !DEFAULT_IGNORED_PNPM_COMMANDS.has(script) && !script.includes("*") && !script.endsWith(":"),
-  );
+  return [...new Set(pnpmScriptRefsFromText(text).map((ref) => ref.script))];
 }
 
-export function missingPnpmScripts(text, scripts = {}) {
-  return pnpmScriptsFromText(text).filter((script) => typeof scripts?.[script] !== "string");
+export function missingPnpmScripts(text, scripts = {}, { filteredScripts = {} } = {}) {
+  return pnpmScriptRefsFromText(text)
+    .filter((ref) => {
+      if (ref.filter && filteredScripts[ref.filter]) {
+        return typeof filteredScripts[ref.filter]?.[ref.script] !== "string";
+      }
+      return typeof scripts?.[ref.script] !== "string";
+    })
+    .map((ref) => (ref.filter ? `${ref.filter}:${ref.script}` : ref.script));
 }
 
-export function assertPnpmScriptsExist(text, scripts = {}) {
-  const missing = missingPnpmScripts(text, scripts);
+export function assertPnpmScriptsExist(text, scripts = {}, options = {}) {
+  const missing = missingPnpmScripts(text, scripts, options);
   if (missing.length > 0) {
     throw new Error(`Missing package.json scripts: ${missing.join(", ")}`);
   }

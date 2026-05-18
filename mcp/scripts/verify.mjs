@@ -3329,7 +3329,7 @@ export function parseVerifyArgs({
   cwd = process.cwd(),
   isMain = false,
 } = {}) {
-  const args = isMain ? argv.slice(2) : [];
+  const args = normalizeVerifyArgs(isMain ? argv.slice(2) : []);
   let help = false;
   let error = null;
   let positionalVault = null;
@@ -3403,6 +3403,10 @@ export function parseVerifyArgs({
     timeoutMsRaw: timeoutMsRaw ?? env.OMOT_VERIFY_TIMEOUT_MS,
     vault: positionalVault ?? envVault.vault ?? cwd,
   };
+}
+
+export function normalizeVerifyArgs(args = []) {
+  return args[0] === '--' ? args.slice(1) : args;
 }
 
 function parseOptionalVerifyVaultEnv(value) {

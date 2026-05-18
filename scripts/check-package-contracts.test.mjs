@@ -123,6 +123,7 @@ describe('package contract helpers', () => {
 
   it('keeps filtered integration scripts discoverable from development checks docs', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
+    const mcpPkg = JSON.parse(readFileSync('mcp/package.json', 'utf-8'));
     const checksDoc = readFileSync('docs/DEVELOPMENT-CHECKS.md', 'utf-8');
     const focusedNode = 'node scripts/run-focused-node-test.mjs';
     const nodeTest = 'node --test';
@@ -383,6 +384,7 @@ describe('package contract helpers', () => {
     assertPnpmScriptsExist(
       [rootReadme, checksDoc, mcpReadme, cliReadme].join('\n'),
       pkg.scripts,
+      { filteredScripts: { './mcp': mcpPkg.scripts } },
     );
     assertPnpmScriptsExist(Object.values(pkg.scripts).join('\n'), pkg.scripts);
   });
@@ -909,8 +911,10 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /npm run verify -- --vault \.\.\/docs\/ontology/);
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology --timeout-ms 15000/);
     assert.match(verifySection, /npm run verify -- --help/);
+    assert.match(verifySection, /pnpm --filter \.\/mcp verify -- --help/);
     assert.match(verifySection, /explicit positional vault or `--vault` argument takes\s+precedence over `OMOT_VAULT`/);
-    assert.match(verifySection, /`npm run verify -- --help` prints the same first-contact scope/);
+    assert.match(verifySection, /`npm run verify -- --help` and `pnpm --filter \.\/mcp verify -- --help` print the same first-contact scope/);
+    assert.match(verifySection, /direct verifier normalizes the leading pnpm separator before parsing flags/);
     assert.match(verifySection, /direct read smokes for `list_concepts` project probe \/ `get_concept` \/\s+`get_concepts` \/ `find_evidence` \/ `find_backlinks` \/ `query_concepts` \/\s+limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/\s+`find_neighbors` \/ `find_path` \/ `find_orphans`/);
     assert.match(verifySection, /strict unknown-tool \/ unknown-argument \/ invalid-enum rejection/);
     assert.match(verifySection, /`list_concepts\.lmit` plus `list_concepts\.summry`/);
@@ -2466,8 +2470,9 @@ describe('package contract helpers', () => {
     assert.match(doc, /`write metadata: absent` \/ `strict_add_relation_write_metadata: absent`/);
     assert.match(doc, /stderr warning filtering/);
     assert.match(doc, /first-contact README read-only/);
-    assert.match(doc, /직접 verify help 는\s+`mcp\/` package directory 의 `npm run verify -- --help` 또는 repo root 의\s+`node mcp\/scripts\/verify\.mjs --help`/);
-    assert.match(doc, /직접 verify help\(`mcp\/` 에서 `npm run verify -- --help`, repo root 에서\s+`node mcp\/scripts\/verify\.mjs --help`\)/);
+    assert.match(doc, /직접 verify help 는\s+`mcp\/` package directory 의 `npm run verify -- --help`, repo root 의\s+`node mcp\/scripts\/verify\.mjs --help`, 또는 root `pnpm --filter \.\/mcp verify -- --help`/);
+    assert.match(doc, /pnpm separator `--` 는 직접 verify parser 에서 정규화한다/);
+    assert.match(doc, /직접 verify help\(`mcp\/` 에서 `npm run verify -- --help`, repo root 에서\s+`node mcp\/scripts\/verify\.mjs --help` 또는 `pnpm --filter \.\/mcp verify -- --help`\)/);
     assert.match(doc, /설치 verify 의 tuned diagnosis 라인도\s+`dependencyTypes=dependencies`,\s+`componentTypes=domains\/domain\/capabilities\/dependencies` scope 를 같이 출력/);
     assert.match(doc, /`list_concepts` project probe \/ `get_concept` \/ `get_concepts` \//);
     assert.match(doc, /`query_concepts` \/ limited\s+`query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);

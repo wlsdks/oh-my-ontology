@@ -87,6 +87,7 @@ import {
   parseVerifyArgs,
   parseVerifyKillGraceMs,
   parseVerifyTimeoutMs,
+  normalizeVerifyArgs,
   resolveVerifyVault,
   neighborsFailure,
   pathQueryFailure,
@@ -4521,6 +4522,11 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.deepEqual(
       parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--help'], cwd: '/tmp/cwd', isMain: true }),
+      { error: null, help: true, timeoutMsRaw: undefined, vault: '/tmp/cwd' },
+    );
+    assert.deepEqual(normalizeVerifyArgs(['--', '--help']), ['--help']);
+    assert.deepEqual(
+      parseVerifyArgs({ env: {}, argv: ['node', 'verify.mjs', '--', '--help'], cwd: '/tmp/cwd', isMain: true }),
       { error: null, help: true, timeoutMsRaw: undefined, vault: '/tmp/cwd' },
     );
     assert.deepEqual(

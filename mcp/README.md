@@ -342,13 +342,15 @@ npm run verify -- ../docs/ontology
 npm run verify -- --vault ../docs/ontology
 npm run verify -- ../docs/ontology --timeout-ms 15000
 npm run verify -- --help
+pnpm --filter ./mcp verify -- --help
 # Larger/slower vaults can raise the child-process wait window:
 OMOT_VERIFY_TIMEOUT_MS=15000 OMOT_VAULT=../docs/ontology npm run verify
 ```
 
 When both are present, an explicit positional vault or `--vault` argument takes
 precedence over `OMOT_VAULT`.
-`npm run verify -- --help` prints the same first-contact scope, including
+`npm run verify -- --help` and `pnpm --filter ./mcp verify -- --help` print the same first-contact scope; the direct verifier normalizes the leading pnpm separator before parsing flags.
+The scope includes
 direct read smokes for `list_concepts` project probe / `get_concept` /
 `get_concepts` / `find_evidence` / `find_backlinks` / `query_concepts` /
 limited `query_concepts` / `analyze_repo_structure` / `infer_imports` /
