@@ -339,8 +339,8 @@ try {
   assert.match(cliMcpVerify.stdout, /project_map query_plan/);
   assert.match(cliMcpVerify.stdout, /strict arguments — unknown tool argument rejected at runtime/);
   assert.match(cliMcpVerify.stdout, /strict arguments — multiple unknown tool arguments reported together/);
-  assert.match(cliMcpVerify.stdout, /add_concepts — non-object, single\/multi unknown-field repair, Received fields, and duplicate-slug rows isolated with input indexes/);
-  assert.match(cliMcpVerify.stdout, /add_relations — non-object, single\/multi unknown-field repair, Received fields, and invalid-type rows isolated with input indexes and closest-value hints/);
+  assert.match(cliMcpVerify.stdout, /add_concepts — non-object, single\/multi unknown-field repair, Received fields, duplicate-slug rows isolated with input indexes, and invalid-only batches return no write metadata/);
+  assert.match(cliMcpVerify.stdout, /add_relations — non-object, single\/multi unknown-field repair, Received fields, invalid-type rows isolated with input indexes and closest-value hints, and invalid-only batches return no write metadata/);
   assert.match(cliMcpVerify.stdout, /batch caps — get_concepts\/add_concepts\/add_relations reject 51 rows with invalid_arguments/);
   assert.match(cliMcpVerify.stdout, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
   assert.match(cliMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
@@ -624,8 +624,8 @@ try {
   assert.match(mcpVerify.stdout, /project_map query_plan/);
   assert.match(mcpVerify.stdout, /strict arguments — unknown tool argument rejected at runtime/);
   assert.match(mcpVerify.stdout, /strict arguments — multiple unknown tool arguments reported together/);
-  assert.match(mcpVerify.stdout, /add_concepts — non-object, single\/multi unknown-field repair, Received fields, and duplicate-slug rows isolated with input indexes/);
-  assert.match(mcpVerify.stdout, /add_relations — non-object, single\/multi unknown-field repair, Received fields, and invalid-type rows isolated with input indexes and closest-value hints/);
+  assert.match(mcpVerify.stdout, /add_concepts — non-object, single\/multi unknown-field repair, Received fields, duplicate-slug rows isolated with input indexes, and invalid-only batches return no write metadata/);
+  assert.match(mcpVerify.stdout, /add_relations — non-object, single\/multi unknown-field repair, Received fields, invalid-type rows isolated with input indexes and closest-value hints, and invalid-only batches return no write metadata/);
   assert.match(mcpVerify.stdout, /batch caps — get_concepts\/add_concepts\/add_relations reject 51 rows with invalid_arguments/);
   assert.match(mcpVerify.stdout, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
   assert.match(mcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
@@ -653,8 +653,8 @@ try {
     /compile_ontology indexes — out \d+, in \d+, edgeById \d+, aliases \d+, edges \d+\/\d+\/\d+/,
   );
   assert.match(directMcpVerify.stdout, /strict arguments — multiple unknown tool arguments reported together/);
-  assert.match(directMcpVerify.stdout, /add_concepts — non-object, single\/multi unknown-field repair, Received fields, and duplicate-slug rows isolated with input indexes/);
-  assert.match(directMcpVerify.stdout, /add_relations — non-object, single\/multi unknown-field repair, Received fields, and invalid-type rows isolated with input indexes and closest-value hints/);
+  assert.match(directMcpVerify.stdout, /add_concepts — non-object, single\/multi unknown-field repair, Received fields, duplicate-slug rows isolated with input indexes, and invalid-only batches return no write metadata/);
+  assert.match(directMcpVerify.stdout, /add_relations — non-object, single\/multi unknown-field repair, Received fields, invalid-type rows isolated with input indexes and closest-value hints, and invalid-only batches return no write metadata/);
   assert.match(directMcpVerify.stdout, /batch caps — get_concepts\/add_concepts\/add_relations reject 51 rows with invalid_arguments/);
   assert.match(directMcpVerify.stdout, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
   assert.match(directMcpVerify.stdout, /maintenance cursor — missing afterActionId reported/);
@@ -698,8 +698,8 @@ try {
     directMcpVerifyVaultFlag.stdout,
     /compile_ontology indexes — out \d+, in \d+, edgeById \d+, aliases \d+, edges \d+\/\d+\/\d+/,
   );
-  assert.match(directMcpVerifyVaultFlag.stdout, /add_concepts — non-object, single\/multi unknown-field repair, Received fields, and duplicate-slug rows isolated with input indexes/);
-  assert.match(directMcpVerifyVaultFlag.stdout, /add_relations — non-object, single\/multi unknown-field repair, Received fields, and invalid-type rows isolated with input indexes and closest-value hints/);
+  assert.match(directMcpVerifyVaultFlag.stdout, /add_concepts — non-object, single\/multi unknown-field repair, Received fields, duplicate-slug rows isolated with input indexes, and invalid-only batches return no write metadata/);
+  assert.match(directMcpVerifyVaultFlag.stdout, /add_relations — non-object, single\/multi unknown-field repair, Received fields, invalid-type rows isolated with input indexes and closest-value hints, and invalid-only batches return no write metadata/);
   assert.match(directMcpVerifyVaultFlag.stdout, /batch caps — get_concepts\/add_concepts\/add_relations reject 51 rows with invalid_arguments/);
   assert.match(directMcpVerifyVaultFlag.stdout, /maintenance cursor — missing afterActionId reported/);
   assert.match(directMcpVerifyVaultFlag.stdout, /maintenance cursor — ready page stable/);

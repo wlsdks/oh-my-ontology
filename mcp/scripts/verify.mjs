@@ -3534,7 +3534,7 @@ export function verifyUsage() {
     'tools/list inventory names, schema strictness, and annotation coverage (title/read/write/destructive/idempotent/local-only),\n' +
     'batch reader/writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels, invalid add_relations type closest-value hints, and 50-row batch cap rejection,\n' +
     'destructive writer dry-runs for rename_concept/merge_concepts/delete_concept with every planned response present and no changed/postWriteMaintenance,\n' +
-    'structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries,\n' +
+    'structuredContent coverage summary splits direct reads, batch row-isolation writes with no write metadata, destructive dry-runs, maintenance cursor checks, and graph queries,\n' +
     'and maintenance_plan cursor handling: ready page (cursor.found=true, cursor.reason=null)\n' +
     'plus missing afterActionId (cursor.found=false, reason, empty page, nextAfterActionId=null, hasMore=false).\n' +
     'When the ready cursor has actions, verify resumes from the first returned action id and confirms the resumed page does not repeat it.\n' +
@@ -6753,13 +6753,13 @@ async function step2BootAndCall() {
         log('fail', addConceptsRowIsolationFailure);
         return res(false);
       }
-      log('ok', 'add_concepts — non-object, single/multi unknown-field repair, Received fields, and duplicate-slug rows isolated with input indexes');
+      log('ok', 'add_concepts — non-object, single/multi unknown-field repair, Received fields, duplicate-slug rows isolated with input indexes, and invalid-only batches return no write metadata');
       const addRelationsRowIsolationFailure = batchRowIsolationFailure(addRelationsRowIsolationRes, 'relations', 'add_relations');
       if (addRelationsRowIsolationFailure) {
         log('fail', addRelationsRowIsolationFailure);
         return res(false);
       }
-      log('ok', 'add_relations — non-object, single/multi unknown-field repair, Received fields, and invalid-type rows isolated with input indexes and closest-value hints');
+      log('ok', 'add_relations — non-object, single/multi unknown-field repair, Received fields, invalid-type rows isolated with input indexes and closest-value hints, and invalid-only batches return no write metadata');
       const getConceptsBatchCapFailure = batchCapFailure(responses.find((r) => r.id === 64), 'get_concepts', 'slugs');
       if (getConceptsBatchCapFailure) {
         log('fail', getConceptsBatchCapFailure);

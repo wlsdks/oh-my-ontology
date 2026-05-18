@@ -390,8 +390,8 @@ A successful run looks like this:
 ✓ tools/list schema contract — strict arguments + annotations + graph-query enums + graph kind enums/descriptions + write relation enums + health tuning + post-write maintenance schema
 ✓ strict arguments — unknown tool argument rejected at runtime
 ✓ strict arguments — multiple unknown tool arguments reported together
-✓ add_concepts — non-object, single/multi unknown-field repair, Received fields, and duplicate-slug rows isolated with input indexes
-✓ add_relations — non-object, single/multi unknown-field repair, Received fields, and invalid-type rows isolated with input indexes and closest-value hints
+✓ add_concepts — non-object, single/multi unknown-field repair, Received fields, duplicate-slug rows isolated with input indexes, and invalid-only batches return no write metadata
+✓ add_relations — non-object, single/multi unknown-field repair, Received fields, invalid-type rows isolated with input indexes and closest-value hints, and invalid-only batches return no write metadata
 ✓ batch caps — get_concepts/add_concepts/add_relations reject 51 rows with invalid_arguments
 ✓ destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance
 ✓ strict enums — invalid query operation rejected with closest-value hint
