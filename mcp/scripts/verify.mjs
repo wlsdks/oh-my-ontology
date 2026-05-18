@@ -37,6 +37,7 @@
  */
 
 import { spawn } from 'node:child_process';
+import { statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
@@ -3321,6 +3322,21 @@ export function resolveVerifyVault({
   isMain = false,
 } = {}) {
   return parseVerifyArgs({ env, argv, cwd, isMain }).vault;
+}
+
+export function verifyVaultPathError(vault, cwd = process.cwd()) {
+  const resolved = resolve(cwd, vault);
+  try {
+    if (!statSync(resolved).isDirectory()) {
+      return `vault path is not a directory: ${vault} (resolved ${resolved})`;
+    }
+    return null;
+  } catch {
+    return (
+      `vault path does not exist: ${vault} (resolved ${resolved}). ` +
+      'If you are running from the repo root with `pnpm --filter ./mcp verify -- ...`, use `../docs/ontology` for the dogfood vault.'
+    );
+  }
 }
 
 export function parseVerifyArgs({
@@ -7804,6 +7820,12 @@ async function main() {
   }
   if (parseVerifyKillGraceMs() === false) {
     process.stderr.write(`\n[oh-my-ontology-mcp verify]\n\n\x1b[31m✗\x1b[0m ${verifyKillGraceValueErrorMessage()}\n`);
+    process.stderr.write(verifyUsage());
+    return 1;
+  }
+  const vaultPathError = verifyVaultPathError(VAULT);
+  if (vaultPathError) {
+    process.stderr.write(`\n[oh-my-ontology-mcp verify]\n\n\x1b[31m✗\x1b[0m ${vaultPathError}\n`);
     process.stderr.write(verifyUsage());
     return 1;
   }

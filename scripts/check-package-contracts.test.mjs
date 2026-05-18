@@ -911,10 +911,13 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /npm run verify -- --vault \.\.\/docs\/ontology/);
     assert.match(verifySection, /npm run verify -- \.\.\/docs\/ontology --timeout-ms 15000/);
     assert.match(verifySection, /npm run verify -- --help/);
+    assert.match(verifySection, /pnpm --filter \.\/mcp verify -- \.\.\/docs\/ontology --timeout-ms 15000/);
     assert.match(verifySection, /pnpm --filter \.\/mcp verify -- --help/);
     assert.match(verifySection, /explicit positional vault or `--vault` argument takes\s+precedence over `OMOT_VAULT`/);
     assert.match(verifySection, /`npm run verify -- --help` and `pnpm --filter \.\/mcp verify -- --help` print the same first-contact scope/);
     assert.match(verifySection, /direct verifier normalizes the leading pnpm separator before parsing flags/);
+    assert.match(verifySection, /Filtered package invocations run from `mcp\/`, so the repo dogfood vault is `\.\.\/docs\/ontology`/);
+    assert.match(verifySection, /missing vault paths fail before server startup/);
     assert.match(verifySection, /direct read smokes for `list_concepts` project probe \/ `get_concept` \/\s+`get_concepts` \/ `find_evidence` \/ `find_backlinks` \/ `query_concepts` \/\s+limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/\s+`find_neighbors` \/ `find_path` \/ `find_orphans`/);
     assert.match(verifySection, /strict unknown-tool \/ unknown-argument \/ invalid-enum rejection/);
     assert.match(verifySection, /`list_concepts\.lmit` plus `list_concepts\.summry`/);
@@ -1178,6 +1181,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`SIGTERM` and then\s+`SIGKILL`/);
     assert.match(verifySection, /`OMOT_VERIFY_KILL_GRACE_MS=N`/);
     assert.match(verifySection, /post-timeout cleanup\s+window/);
+    assert.match(verifySection, /rejects missing vault paths before starting the MCP server/);
+    assert.match(verifySection, /hints `\.\.\/docs\/ontology` for the dogfood vault/);
     assert.match(verifySection, /terminates by signal before first-contact completes/);
     assert.match(verifySection, /reports that signal\s+separately from timeout and startup failures/);
     assert.match(verifySection, /invalid timeout values fail before the server\s+starts and print\s+the received value plus a concrete retry example/i);
@@ -2128,6 +2133,9 @@ describe('package contract helpers', () => {
     assert.match(smoke, /duplicateFlagDirectMcpVerifyVault/);
     assert.match(smoke, /duplicatePositionalDirectMcpVerifyVault/);
     assert.match(smoke, /invalidEnvDirectMcpVerifyVault/);
+    assert.match(smoke, /missingDirectMcpVerifyVaultPath/);
+    assert.match(smoke, /vault path does not exist: docs\\\/ontology/);
+    assert.match(smoke, /use `\\\.\\\.\\\/docs\\\/ontology` for the dogfood vault/);
     assert.match(smoke, /const mcpVerifyArgs =/);
     assert.match(smoke, /silent: true/);
     assert.match(smoke, /assert\.deepEqual\(mcpVerifyArgs/);
@@ -2478,6 +2486,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /직접 verify help 는\s+`mcp\/` package directory 의 `npm run verify -- --help`, repo root 의\s+`node mcp\/scripts\/verify\.mjs --help`, 또는 root `pnpm --filter \.\/mcp verify -- --help`/);
     assert.match(doc, /root 에서 실제 vault 를 검증할 때는 `pnpm --filter \.\/mcp verify -- \[vault\] \[--timeout-ms N\]`/);
     assert.match(doc, /pnpm separator `--` 는 직접 verify parser 에서 정규화한다/);
+    assert.match(doc, /filtered package invocation 은 `mcp\/` package cwd 에서 실행되므로 root dogfood vault 는\s+`\.\.\/docs\/ontology` 로 넘겨야 한다/);
+    assert.match(doc, /missing vault path 는 MCP server 시작 전에 실패하고/);
     assert.match(doc, /직접 verify help\(`mcp\/` 에서 `npm run verify -- --help`, repo root 에서\s+`node mcp\/scripts\/verify\.mjs --help` 또는 `pnpm --filter \.\/mcp verify -- --help`\)/);
     assert.match(doc, /설치 verify 의 tuned diagnosis 라인도\s+`dependencyTypes=dependencies`,\s+`componentTypes=domains\/domain\/capabilities\/dependencies` scope 를 같이 출력/);
     assert.match(doc, /`list_concepts` project probe \/ `get_concept` \/ `get_concepts` \//);

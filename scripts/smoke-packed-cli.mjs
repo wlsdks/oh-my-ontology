@@ -769,6 +769,16 @@ try {
   assert.equal(invalidEnvDirectMcpVerifyVault.stdout, '');
   assert.match(invalidEnvDirectMcpVerifyVault.stderr, /OMOT_VAULT requires a path value/);
 
+  const missingDirectMcpVerifyVaultPath = runRaw(
+    'npm',
+    mcpVerifyArgs(['docs/ontology', '--timeout-ms', '15000'], { silent: true }),
+    { cwd: projectDir },
+  );
+  assertStatus(missingDirectMcpVerifyVaultPath, 1, 'installed MCP verify missing vault path');
+  assert.equal(missingDirectMcpVerifyVaultPath.stdout, '');
+  assert.match(missingDirectMcpVerifyVaultPath.stderr, /vault path does not exist: docs\/ontology/);
+  assert.match(missingDirectMcpVerifyVaultPath.stderr, /use `\.\.\/docs\/ontology` for the dogfood vault/);
+
   const invalidMcpVerifyTimeout = runRaw(
     'npm',
     mcpVerifyArgs([], { silent: true }),

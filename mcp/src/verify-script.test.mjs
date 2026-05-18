@@ -137,6 +137,7 @@ import {
   verifyTimeoutFailure,
   verifyTimeoutValueErrorMessage,
   verifyUsage,
+  verifyVaultPathError,
   vaultWarningsFailure,
   workspaceBriefSummary,
 } from '../scripts/verify.mjs';
@@ -4477,6 +4478,14 @@ describe('verify.mjs first-contact gates', () => {
       '/tmp/cwd',
     );
     assert.equal(resolveVerifyVault({ env: {}, argv: ['node', 'verify.mjs'], cwd: '/tmp/cwd', isMain: true }), '/tmp/cwd');
+  });
+
+  it('fails missing verify vault paths before server startup', () => {
+    const error = verifyVaultPathError('docs/ontology', join(__dirname, '..'));
+    assert.match(error, /vault path does not exist: docs\/ontology/);
+    assert.match(error, /pnpm --filter \.\/mcp verify -- \.\.\.`/);
+    assert.match(error, /use `\.\.\/docs\/ontology` for the dogfood vault/);
+    assert.equal(verifyVaultPathError(join(__dirname, '..')), null);
   });
 
   it('parses direct verify CLI args for vault, timeout, and help', () => {
