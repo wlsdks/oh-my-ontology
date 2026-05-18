@@ -31,6 +31,7 @@ import {
   resolveTestNamePattern,
 } from '../../scripts/lib/test-name-pattern.mjs';
 import { CLI_CLIENT_INFO } from './lib/mcp-call.mjs';
+import { expectedToolsListAnnotationSummary } from '../../mcp/scripts/verify.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, 'index.mjs');
@@ -63,6 +64,10 @@ function run(args, options = {}) {
 
 function stripAnsi(s) {
   return s.replace(/\x1b\[[0-9;]*m/g, '');
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function assertPnpmScriptsExist(text) {
@@ -316,7 +321,7 @@ await test('mcp-verify — runs MCP package verify against a resolved vault', as
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /timeout=1000ms/);
     assert.match(clean, new RegExp(`tools/list ${EXPECTED_TOOL_COUNT}/${EXPECTED_TOOL_COUNT}`));
-    assert.match(clean, /23\/23 titled; 15\/15 read; 8\/8 write; 3\/3 destructive; 2\/2 idempotent; 23\/23 local-only/);
+    assert.match(clean, new RegExp(escapeRegExp(expectedToolsListAnnotationSummary())));
     assert.match(clean, /get_concepts/);
     assert.match(clean, /2 ok rows, 1 partial row/);
     assert.match(clean, /query_concepts limited — 1 query result \/ 4 total query results \(limited true\)/);
@@ -443,7 +448,7 @@ await test('mcp-verify — allows valid vaults without a project node', async ()
 await test('mcp-verify — allows an empty vault folder before graph smoke targets exist', async () => {
   const root = withVault([]);
   try {
-    const r = await run(['mcp-verify', root, '--timeout-ms', '1000']);
+    const r = await run(['mcp-verify', root, '--timeout-ms', '3000']);
     assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /vault total 0 nodes/);

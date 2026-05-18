@@ -4022,6 +4022,7 @@ export function buildDestructiveDryRunSmokeRequests(listPayload) {
 export function buildPatchConflictGuardSmokeRequest(listPayload) {
   const nodes = Array.isArray(listPayload?.nodes) ? listPayload.nodes : [];
   const slug = nodes
+    .filter((node) => node?.kind !== 'vault-readme' && node?.slug !== 'README')
     .map((node) => node?.slug)
     .find((candidate) => typeof candidate === 'string' && candidate.length > 0);
   if (!slug) return null;
@@ -5982,6 +5983,7 @@ async function step2BootAndCall() {
     expectedFirstContactIds.delete(43);
     expectedFirstContactIds.delete(44);
     expectedFirstContactIds.delete(45);
+    expectedFirstContactIds.delete(61);
     let limitedQueryConceptsSmoke = null;
     let timer = null;
     let killTimer = null;

@@ -6026,9 +6026,13 @@ describe('verify.mjs first-contact gates', () => {
 
   it('builds patch_concept conflict guard smoke request from a listed node', () => {
     assert.equal(buildPatchConflictGuardSmokeRequest({ nodes: [] }), null);
+    assert.equal(buildPatchConflictGuardSmokeRequest({ nodes: [{ slug: 'README', kind: 'vault-readme' }] }), null);
 
     const request = buildPatchConflictGuardSmokeRequest({
-      nodes: [{ slug: 'capabilities/mcp-server' }],
+      nodes: [
+        { slug: 'README', kind: 'vault-readme' },
+        { slug: 'capabilities/mcp-server', kind: 'capability' },
+      ],
     });
     assert.equal(request.id, 61);
     assert.equal(request.params.name, 'patch_concept');
