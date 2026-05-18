@@ -2,7 +2,7 @@
 // MCP `query_ontology({operation: 'maintenance_plan'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
-import { assertQueryOperation } from '../lib/query-result-contract.mjs';
+import { assertMaintenancePlanShape } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   formatUnknownFlagError,
@@ -57,7 +57,7 @@ export async function runMaintenance(args) {
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_ontology', parsed.toolArgs);
-    assertQueryOperation(result, 'maintenance_plan');
+    assertMaintenancePlanShape(result);
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

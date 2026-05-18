@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  assertMaintenancePlanShape,
   assertQueryOperation,
   compileBlockingCounts,
   compileResultExitCode,
@@ -33,6 +34,87 @@ describe('query-result-contract', () => {
     assert.throws(
       () => assertQueryOperation({ operation: 'workspace_brief' }, 'health'),
       /health query returned unexpected operation: workspace_brief/,
+    );
+  });
+
+  it('rejects malformed maintenance_plan payloads before CLI output', () => {
+    const valid = {
+      operation: 'maintenance_plan',
+      summary: {
+        totalActions: 1,
+        filteredActions: 1,
+        remainingActions: 1,
+        executableActions: 1,
+        reviewActions: 0,
+      },
+      cursor: {
+        afterActionId: null,
+        found: true,
+        reason: null,
+        startIndex: 0,
+        nextAfterActionId: 'maint_1',
+        hasMore: true,
+      },
+      byPhase: { repair: 1 },
+      bySeverity: { warn: 1 },
+      byKind: { canonicalize_graph_arrays: 1 },
+      nextExecutableAction: { id: 'maint_1' },
+      nextReviewAction: null,
+      actions: [
+        {
+          id: 'maint_1',
+          phase: 'repair',
+          kind: 'canonicalize_graph_arrays',
+          severity: 'warn',
+          executable: true,
+          score: 100,
+        },
+      ],
+    };
+
+    assert.equal(assertMaintenancePlanShape(valid), valid);
+    assert.equal(
+      assertMaintenancePlanShape({
+        ...valid,
+        cursor: {
+          afterActionId: null,
+          found: true,
+          reason: null,
+          nextAfterActionId: null,
+          hasMore: false,
+        },
+      }).cursor.startIndex,
+      undefined,
+    );
+    assert.equal(
+      assertMaintenancePlanShape({
+        ...valid,
+        cursor: {
+          ...valid.cursor,
+          startIndex: null,
+        },
+      }).cursor.startIndex,
+      null,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, summary: { ...valid.summary, remainingActions: -1 } }),
+      /summary\.remainingActions must be a non-negative integer/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, cursor: { ...valid.cursor, hasMore: 'no' } }),
+      /cursor\.hasMore must be a boolean/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, actions: [{ ...valid.actions[0], score: '100' }] }),
+      /actions\[0\] has an invalid action shape/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, byPhase: { repair: -1 } }),
+      /byPhase must be an object of non-negative integer counts/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({ ...valid, nextExecutableAction: {} }),
+      /nextExecutableAction must be null or an action pointer with an id/,
     );
   });
 

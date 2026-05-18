@@ -1,6 +1,7 @@
 const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
+const MAINTENANCE_ACTION_SEVERITIES = new Set(['fail', 'warn', 'info']);
 
 export function assertQueryOperation(result, expectedOperation) {
   if (!result || typeof result !== 'object' || Array.isArray(result)) {
@@ -8,6 +9,61 @@ export function assertQueryOperation(result, expectedOperation) {
   }
   if (result.operation !== expectedOperation) {
     throw new Error(`${expectedOperation} query returned unexpected operation: ${result.operation}`);
+  }
+  return result;
+}
+
+export function assertMaintenancePlanShape(result) {
+  assertQueryOperation(result, 'maintenance_plan');
+  if (!isPlainObject(result.summary)) {
+    throw new Error('maintenance_plan summary must be an object');
+  }
+  for (const field of [
+    'totalActions',
+    'filteredActions',
+    'remainingActions',
+    'executableActions',
+    'reviewActions',
+  ]) {
+    if (!validCount(result.summary[field])) {
+      throw new Error(`maintenance_plan summary.${field} must be a non-negative integer`);
+    }
+  }
+  if (!isPlainObject(result.cursor)) {
+    throw new Error('maintenance_plan cursor must be an object');
+  }
+  if (typeof result.cursor.found !== 'boolean') {
+    throw new Error('maintenance_plan cursor.found must be a boolean');
+  }
+  if (result.cursor.startIndex != null && !validCount(result.cursor.startIndex)) {
+    throw new Error('maintenance_plan cursor.startIndex must be a non-negative integer');
+  }
+  if (typeof result.cursor.hasMore !== 'boolean') {
+    throw new Error('maintenance_plan cursor.hasMore must be a boolean');
+  }
+  for (const field of ['afterActionId', 'nextAfterActionId', 'reason']) {
+    if (!nullableString(result.cursor[field])) {
+      throw new Error(`maintenance_plan cursor.${field} must be null or a string`);
+    }
+  }
+  if (!Array.isArray(result.actions)) {
+    throw new Error('maintenance_plan actions must be an array');
+  }
+  for (let index = 0; index < result.actions.length; index += 1) {
+    const action = result.actions[index];
+    if (!validMaintenanceAction(action)) {
+      throw new Error(`maintenance_plan actions[${index}] has an invalid action shape`);
+    }
+  }
+  for (const field of ['byPhase', 'bySeverity', 'byKind']) {
+    if (!validCountBucket(result[field])) {
+      throw new Error(`maintenance_plan ${field} must be an object of non-negative integer counts`);
+    }
+  }
+  for (const field of ['nextExecutableAction', 'nextReviewAction']) {
+    if (result[field] !== null && !validMaintenanceActionPointer(result[field])) {
+      throw new Error(`maintenance_plan ${field} must be null or an action pointer with an id`);
+    }
   }
   return result;
 }
@@ -97,6 +153,27 @@ function validHealthCheck(check) {
   );
 }
 
+function validMaintenanceAction(action) {
+  return Boolean(
+    isPlainObject(action)
+    && hasNonEmptyString(action.id)
+    && hasNonEmptyString(action.phase)
+    && hasNonEmptyString(action.kind)
+    && MAINTENANCE_ACTION_SEVERITIES.has(action.severity)
+    && typeof action.executable === 'boolean'
+    && Number.isFinite(action.score)
+  );
+}
+
+function validMaintenanceActionPointer(action) {
+  return Boolean(isPlainObject(action) && hasNonEmptyString(action.id));
+}
+
+function validCountBucket(value) {
+  if (!isPlainObject(value)) return false;
+  return Object.values(value).every((count) => validCount(count));
+}
+
 function validCycle(cycle) {
   if (!cycle || typeof cycle !== 'object' || Array.isArray(cycle)) return false;
   if (!Array.isArray(cycle.slugs) || cycle.slugs.length < 2) return false;
@@ -116,6 +193,14 @@ function validPathEdge(edge, from, to) {
 
 function hasNonEmptyString(...values) {
   return values.some((value) => typeof value === 'string' && value.trim().length > 0);
+}
+
+function nullableString(value) {
+  return value === undefined || value === null || typeof value === 'string';
+}
+
+function isPlainObject(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
 function numberValue(value, fallback = 0) {

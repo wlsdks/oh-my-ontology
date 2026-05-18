@@ -964,6 +964,7 @@ describe('package contract helpers', () => {
     assert.match(maintenanceRow, /phase\/severity\/kind bucket summaries/);
     assert.match(maintenanceRow, /current-page next action pointers/);
     assert.match(maintenanceRow, /cursor\/filter dogfood/);
+    assert.match(maintenanceRow, /Malformed work-queue payloads fail closed before JSON or human output/);
     assert.match(inferImportsRow, /file edge kind summary/);
     assert.match(inferImportsRow, /per-module `kindCounts`/);
     assert.match(inferImportsRow, /`tsconfig\.json` paths aliases/);
@@ -1871,6 +1872,7 @@ describe('package contract helpers', () => {
     assert.match(maintenanceRow, /MCP `query_ontology\(maintenance_plan\)`/);
     assert.match(maintenanceRow, /cursor miss 는 빈 page 와 `cursor\.found=false`/);
     assert.match(maintenanceRow, /phase\/severity\/kind bucket summary/);
+    assert.match(maintenanceRow, /malformed 인 work-queue payload 는 JSON 또는 human output 전 exit 2/);
     assert.doesNotMatch(regressionSection, /\*\*\d+ spawn-based\*\* integration test/);
     assert.match(doc, /`cli\/src\/lib\/mcp-call\.mjs` 의 thin wrapper/);
     assert.match(doc, /MCP `structuredContent` 를 먼저 사용하되/);
