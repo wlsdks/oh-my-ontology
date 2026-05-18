@@ -40,7 +40,7 @@ export function resolveSingleRootPathArg({ positional, defaultRootPath = '.' }) 
 
 export function parsePositiveIntegerFlag(flag, value) {
   const text = String(value ?? '');
-  if (!text || text.startsWith('--')) {
+  if (!text || isFlagLikeValue(text)) {
     return new Error(`${flag} requires a value`);
   }
   if (!/^[1-9]\d*$/.test(text)) {
@@ -61,7 +61,7 @@ export function parseBoundedPositiveIntegerFlag(flag, value, { max } = {}) {
 
 export function parseNonNegativeIntegerFlag(flag, value) {
   const text = String(value ?? '');
-  if (!text || text.startsWith('--')) {
+  if (!text || isFlagLikeValue(text)) {
     return new Error(`${flag} requires a value`);
   }
   if (!/^(0|[1-9]\d*)$/.test(text)) {
@@ -92,6 +92,10 @@ export function parseRawRequiredFlagValue(flag, value, { rejectSingleDash = fals
   if (text.startsWith('--')) return new Error(`${flag} requires a value`);
   if (rejectSingleDash && text.startsWith('-')) return new Error(`${flag} requires a value`);
   return text;
+}
+
+function isFlagLikeValue(text) {
+  return text.startsWith('--') || /^-[A-Za-z]/.test(text);
 }
 
 export function parseCsvListFlag(flag, value, { itemName = 'value' } = {}) {
