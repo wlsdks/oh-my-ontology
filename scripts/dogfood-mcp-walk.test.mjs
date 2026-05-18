@@ -5476,9 +5476,36 @@ describe("evaluateDogfoodGate", () => {
         strictAddRelation: {
           result: {
             ...okShape.strictAddRelation.result,
+            alreadyExists: false,
+          },
+        },
+      }),
+      ["strict_add_relation: strict add_relation response included write metadata"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictAddRelation: {
+          result: {
+            ...okShape.strictAddRelation.result,
             structuredContent: {
               ...okShape.strictAddRelation.result.structuredContent,
               postWriteMaintenance: { summary: {} },
+            },
+          },
+        },
+      }),
+      ["strict_add_relation: strict add_relation structuredContent included write metadata"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictAddRelation: {
+          result: {
+            ...okShape.strictAddRelation.result,
+            structuredContent: {
+              ...okShape.strictAddRelation.result.structuredContent,
+              alreadyExists: false,
             },
           },
         },

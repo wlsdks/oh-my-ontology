@@ -6200,7 +6200,27 @@ describe('verify.mjs first-contact gates', () => {
       strictAddRelationFailure({
         result: {
           isError: true,
+          alreadyExists: false,
+          content: [{ text: 'type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' }],
+        },
+      }),
+      'strict add_relation response included write metadata',
+    );
+    assert.equal(
+      strictAddRelationFailure({
+        result: {
+          isError: true,
           structuredContent: { postWriteMaintenance: { summary: { totalActions: 0 } } },
+          content: [{ text: 'type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' }],
+        },
+      }),
+      'strict add_relation structuredContent included write metadata',
+    );
+    assert.equal(
+      strictAddRelationFailure({
+        result: {
+          isError: true,
+          structuredContent: { alreadyExists: false },
           content: [{ text: 'type must be one of: depends_on, relates. Received: "depend_on". Did you mean "depends_on"?' }],
         },
       }),
