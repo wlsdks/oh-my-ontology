@@ -204,6 +204,34 @@ export function assertOrphansShape(result) {
   return result;
 }
 
+export function assertQueryConceptsShape(result) {
+  if (!isPlainObject(result)) {
+    throw new Error('query_concepts response must be an object');
+  }
+  if (!hasNonEmptyString(result.filter)) {
+    throw new Error('query_concepts filter must be a non-empty string');
+  }
+  if (result.parsedAs !== undefined && !hasNonEmptyString(result.parsedAs)) {
+    throw new Error('query_concepts parsedAs must be a non-empty string when present');
+  }
+  if (!Array.isArray(result.matches)) {
+    throw new Error('query_concepts matches must be an array');
+  }
+  const total = result.total ?? result.matches.length;
+  if (!validCount(total)) {
+    throw new Error('query_concepts total must be a non-negative integer when present');
+  }
+  if (result.limited !== undefined && typeof result.limited !== 'boolean') {
+    throw new Error('query_concepts limited must be a boolean when present');
+  }
+  for (let index = 0; index < result.matches.length; index += 1) {
+    if (!validNodeSummary(result.matches[index])) {
+      throw new Error(`query_concepts matches[${index}] has an invalid query-result shape`);
+    }
+  }
+  return result;
+}
+
 export function assertOverviewShape(result) {
   assertQueryOperation(result, 'overview');
   if (!isPlainObject(result.graph)) {

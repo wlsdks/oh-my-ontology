@@ -3,6 +3,7 @@
 // Thin wrapper over MCP query_concepts.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
+import { assertQueryConceptsShape } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   formatUnknownFlagError,
@@ -49,6 +50,7 @@ export async function runQuery(args) {
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_concepts', { filter, limit });
+    assertQueryConceptsShape(result);
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

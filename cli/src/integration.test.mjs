@@ -2739,6 +2739,35 @@ await test('query — kind=capability AND has(elements)', async () => {
   }
 });
 
+await test('query --json — fails closed on malformed query_concepts payloads before output', async () => {
+  const root = withVault();
+  const fakeMcp = join(root, 'fake-mcp-query-concepts-malformed.mjs');
+  writeFileSync(
+    fakeMcp,
+    [
+      "import readline from 'node:readline';",
+      "const rl = readline.createInterface({ input: process.stdin });",
+      "rl.on('line', (line) => {",
+      "  const msg = JSON.parse(line);",
+      "  if (msg.id === 1) console.log(JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }));",
+      "  if (msg.id === 2) {",
+      "    const payload = { filter: 'kind=capability', total: 1, matches: [{ slug: 'capabilities/foo', kind: 'capability' }] };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: 2, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "  }",
+      "});",
+    ].join('\n'),
+    'utf-8',
+  );
+  try {
+    const r = await run(['query', 'kind=capability', root, '--json'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(r.code, 2, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.equal(r.stdout, '');
+    assert.match(stripAnsi(r.stderr), /query_concepts matches\[0\] has an invalid query-result shape/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('overview — graph fixture 의 counts + 허브 정확', async () => {
   // buildGraphFixture: 3 노드 (capabilities/foo, capabilities/bar, domains/auth)
   const root = await buildGraphFixture();

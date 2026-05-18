@@ -12,6 +12,7 @@ import {
   assertOrphansShape,
   assertOverviewShape,
   assertPathShape,
+  assertQueryConceptsShape,
   assertQueryOperation,
   assertSimilarNodesShape,
   assertWorkspaceBriefShape,
@@ -258,6 +259,47 @@ describe('query-result-contract', () => {
     assert.throws(
       () => assertOrphansShape({ orphans: [{ slug: 'capabilities/foo', kind: 'capability' }] }),
       /find_orphans orphans\[0\] has an invalid orphan shape/,
+    );
+  });
+
+  it('rejects malformed query_concepts payloads before CLI output', () => {
+    const result = {
+      filter: 'kind=capability',
+      parsedAs: 'kind = capability',
+      total: 1,
+      limited: false,
+      matches: [
+        {
+          slug: 'capabilities/foo',
+          kind: 'capability',
+          title: 'Foo',
+          domain: 'auth',
+          mtime: 1,
+        },
+      ],
+    };
+
+    assert.equal(assertQueryConceptsShape(result), result);
+    assert.equal(assertQueryConceptsShape({ filter: 'kind=capability', matches: [] }).total, undefined);
+    assert.throws(
+      () => assertQueryConceptsShape({ filter: '', total: 0, matches: [] }),
+      /query_concepts filter must be a non-empty string/,
+    );
+    assert.throws(
+      () => assertQueryConceptsShape({ filter: 'kind=capability', parsedAs: '', total: 0, matches: [] }),
+      /query_concepts parsedAs must be a non-empty string when present/,
+    );
+    assert.throws(
+      () => assertQueryConceptsShape({ filter: 'kind=capability', total: -1, matches: [] }),
+      /query_concepts total must be a non-negative integer/,
+    );
+    assert.throws(
+      () => assertQueryConceptsShape({ filter: 'kind=capability', limited: 'no', matches: [] }),
+      /query_concepts limited must be a boolean when present/,
+    );
+    assert.throws(
+      () => assertQueryConceptsShape({ filter: 'kind=capability', matches: [{ slug: 'capabilities/foo', kind: 'capability' }] }),
+      /query_concepts matches\[0\] has an invalid query-result shape/,
     );
   });
 
