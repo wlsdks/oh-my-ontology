@@ -142,10 +142,11 @@ export function runFocusedNodeTest({
       stderr.write(`[focused-node-test] no tests matched --test-name-pattern=${pattern}${targetSuffix}\n`);
       return 1;
     }
+    const matched = pass + fail + cancelled;
     const skippedText = skipped === null ? '' : ` skipped=${skipped}`;
     stdout.write(
       `[focused-node-test] pattern=${pattern} targets=${testTargets.join(',')} ` +
-      `tests=${tests} pass=${pass} fail=${fail} cancelled=${cancelled}${skippedText}\n`,
+      `matched=${matched} tests=${tests} pass=${pass} fail=${fail} cancelled=${cancelled}${skippedText}\n`,
     );
   }
 

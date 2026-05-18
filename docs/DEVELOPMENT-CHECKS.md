@@ -98,7 +98,10 @@ explicit pattern and at least one test target, so accidental full-suite runs use
 or `--test-timeout 1000` are not counted as targets, and a missing split option
 value cannot leak the following option value into the target list. The wrapper
 also rejects custom reporter options from argv or `NODE_OPTIONS` before spawning
-because it needs the default TAP summary to prove at least one focused test actually ran.
+because it needs the default TAP summary to prove at least one focused test
+actually ran. Successful focused runs end with `matched=N` before the broader
+file-level `tests=N`, so reviewers can see the exact scoped-test count without
+subtracting skipped tests by hand.
 
 ## Dogfood Shortcuts
 
