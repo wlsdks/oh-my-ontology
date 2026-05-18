@@ -5,10 +5,10 @@
  * 이 값을 써야 검색엔진이 일관된 canonical 로 인덱싱. 자기 도메인에
  * 배포하는 OSS 사용자는 이 상수 하나만 바꾸면 전체 SEO 가 따라간다.
  *
- * default 는 dev 환경 기준 \`http://localhost:3000\` — 실배포 시 fork 또는
- * 빌드 단계 치환으로 자기 도메인 주입.
+ * default 는 공식 Firebase Hosting 배포 주소. 로컬 개발 서버에서도 canonical
+ * metadata 는 공개 사이트를 가리키게 유지한다.
  */
-export const SITE_URL = "http://localhost:3000";
+export const SITE_URL = "https://oh-my-ontology.web.app";
 
 /**
  * canonical path helper. `/project/foo/` 같은 상대 경로를 받아 절대 URL 로.

@@ -78,6 +78,18 @@
     "step2Body": "\"이 기능 누가 의존하나?\" \"이거 바꾸면 뭐 깨지나?\" — 파일 전체 검색 대신 클릭 한 번이면 답이 나옵니다.",
     "step3Title": "한 폴더, 세 가지 시각",
     "step3Body": "트리로 둘러보고, 그래프로 탐색하고, 캔버스에서 편집. 분포 차트 · 의존 chain · 허브 노드 모두 한 폴더에서.",
+    "openSource": {
+      "eyebrow": "오픈소스 · local-first · MCP",
+      "title": "AI coding agent 를 쓰는 개발자를 위해 공개적으로 만드는 도구.",
+      "body": "oh-my-ontology 는 wlsdks 가 만드는 MIT 라이선스 오픈소스 workbench 입니다. AI coding agent 가 코드베이스의 장기 구조를 계속 잊는 문제를 줄이기 위해 만들었습니다. 프로젝트의 mental model 을 repo 안 markdown frontmatter 로 남겨 Claude Code, Cursor, Codex 와 사람이 같은 기억을 공유하게 합니다.",
+      "madeByLabel": "만든 사람",
+      "madeByValue": "wlsdks",
+      "licenseLabel": "라이선스",
+      "licenseValue": "MIT 오픈소스",
+      "stackLabel": "스택",
+      "stackValue": "Next.js · TypeScript · Sigma.js · MCP · static hosting",
+      "githubCta": "GitHub 저장소 열기"
+    },
     "exploreCta": "데모 먼저 보기",
     "openVaultCta": "내 마크다운 폴더 열기",
     "privacyNote": "로컬 폴더는 디스크에만 저장되고 외부로 전송되지 않아요. 데이터는 사용자 디스크가 진실원."

@@ -20,10 +20,12 @@ dist/
 # Production
 *.tsbuildinfo
 next-env.d.ts
+.firebase/
 
 # Environment variables
 .env
 .env.local
+.env.prod
 .env.development.local
 .env.test.local
 .env.production.local

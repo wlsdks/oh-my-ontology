@@ -3,7 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowRight, FolderOpen, Orbit } from "lucide-react";
+import { ArrowRight, ExternalLink, FolderOpen, Orbit } from "lucide-react";
 import { cn } from "@/shared/lib/cn";
 import { buttonVariants, StaggeredFadeIn } from "@/shared/ui";
 import { LocaleSwitch } from "@/features/locale-switch";
@@ -78,6 +78,8 @@ export function LandingPage() {
           ]}
         />
 
+        <OpenSourcePanel />
+
         {/* Local-first 활성화 = 이 도구의 핵심 가치 → primary CTA. 데모
             트리 둘러보기는 secondary (위험 0 진입 — 폴더 권한 없이 dogfood
             18 노드 즉시 확인). 이전엔 데모가 primary, 폴더 열기가 secondary
@@ -108,6 +110,65 @@ export function LandingPage() {
         </span>
       </footer>
     </main>
+  );
+}
+
+function OpenSourcePanel() {
+  const t = useTranslations('landing.openSource');
+
+  return (
+    <section
+      aria-labelledby="open-source-heading"
+      className="grid gap-4 border-y border-[color:var(--color-divider)] py-5 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] md:items-center"
+    >
+      <div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
+          {t('eyebrow')}
+        </p>
+        <h2
+          id="open-source-heading"
+          className="mt-2 text-[clamp(1.45rem,2.8vw,2.2rem)] leading-tight font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]"
+        >
+          {t('title')}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--color-text-secondary)]">
+          {t('body')}
+        </p>
+      </div>
+
+      <div className="grid gap-2 text-[12px] text-[color:var(--color-text-tertiary)]">
+        <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border-b border-[color:var(--color-divider)] pb-2">
+          <span className="font-mono uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
+            {t('madeByLabel')}
+          </span>
+          <span>{t('madeByValue')}</span>
+        </div>
+        <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border-b border-[color:var(--color-divider)] pb-2">
+          <span className="font-mono uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
+            {t('licenseLabel')}
+          </span>
+          <span>{t('licenseValue')}</span>
+        </div>
+        <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border-b border-[color:var(--color-divider)] pb-2">
+          <span className="font-mono uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
+            {t('stackLabel')}
+          </span>
+          <span>{t('stackValue')}</span>
+        </div>
+        <a
+          href="https://github.com/wlsdks/oh-my-ontology"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "mt-2 w-fit rounded-full",
+          )}
+        >
+          <ExternalLink size={14} />
+          {t('githubCta')}
+        </a>
+      </div>
+    </section>
   );
 }
 

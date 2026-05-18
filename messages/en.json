@@ -78,6 +78,18 @@
     "step2Body": "\"Who depends on this feature?\" \"What breaks if I change it?\" — the answer is one click away instead of a search across files.",
     "step3Title": "One folder, three views",
     "step3Body": "Browse as a tree, navigate as a graph, edit on a canvas. Distribution charts, dependency chains, hub nodes — all from the same folder.",
+    "openSource": {
+      "eyebrow": "open source · local-first · MCP",
+      "title": "Built in public for developers who use AI coding agents.",
+      "body": "oh-my-ontology is an MIT-licensed workbench by wlsdks. It exists because AI coding agents keep forgetting the long-term shape of a codebase. The project keeps that shape in markdown frontmatter, inside your repo, so Claude Code, Cursor, Codex, and humans can share one memory.",
+      "madeByLabel": "Made by",
+      "madeByValue": "wlsdks",
+      "licenseLabel": "License",
+      "licenseValue": "MIT open source",
+      "stackLabel": "Stack",
+      "stackValue": "Next.js · TypeScript · Sigma.js · MCP · static hosting",
+      "githubCta": "Open the GitHub repo"
+    },
     "exploreCta": "See the demo first",
     "openVaultCta": "Open my markdown folder",
     "privacyNote": "Local folders stay on your disk and are never sent anywhere. Your data, your truth source."

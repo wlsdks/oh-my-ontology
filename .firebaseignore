@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+.git/
+.local-credentials/
+.claude/cache/
+.claude/local/
+coverage/
+.playwright-mcp/
+*.log

@@ -18,15 +18,26 @@ Any static host works. Pick one:
 ### Firebase Hosting
 
 ```bash
+pnpm build
 npm install -g firebase-tools  # or use npx
 firebase login
-firebase init hosting          # public dir = out, single-page app = no
+firebase projects:create oh-my-ontology
+firebase use oh-my-ontology
 firebase deploy --only hosting
 ```
 
-`firebase.json` should point to `out/`. Cloud Functions / Firestore /
-Storage are no longer used — you can ignore those sections of the
-firebase init prompt.
+This repo already includes `firebase.json`, `.firebaserc`, and
+`.firebaseignore` for static Hosting. `firebase.json` points to `out/` and
+does not configure rewrites, Functions, Firestore, Storage, or auth.
+
+Expected public URLs after deploy:
+
+- `https://oh-my-ontology.web.app`
+- `https://oh-my-ontology.firebaseapp.com`
+
+If the URL returns Firebase's "Site Not Found" page, the project/Hosting site
+does not exist yet, the local `.firebaserc` points at the wrong project, or the
+site has not been deployed after the project was created.
 
 ### Vercel
 
