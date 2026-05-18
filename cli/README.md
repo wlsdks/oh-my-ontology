@@ -145,8 +145,10 @@ the shortest root-checkout first-contact JSON snapshot, `dogfood:growth` is the
 shortest root-checkout growth_plan JSON snapshot, `dogfood:maintenance` is the
 shortest root-checkout maintenance_plan JSON snapshot, `dogfood:status` always
 runs health + workspace-brief + maintenance, prints `[dogfood:status] health:N · workspace-brief:N · maintenance:N`,
-preserves the first failing exit before escalating, and prints a
-`pnpm dogfood:verify` follow-up hint on failure, `test:dogfood:status` checks
+preserves the first failing exit before escalating, and prints failed-child focused
+follow-ups (`pnpm dogfood:health`, `pnpm dogfood:brief`, or `pnpm dogfood:maintenance`
++ `pnpm test:mcp:maintenance`) before the `pnpm dogfood:verify` follow-up hint
+on failure, `test:dogfood:status` checks
 that always-run shortcut contract without the full dogfood suite, `dogfood:verify` is
 the full root-checkout dogfood vault gate. `pnpm dogfood:compile-fix -- --help`
 and `pnpm dogfood:status -- --help` print shortcut usage without running those

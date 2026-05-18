@@ -509,7 +509,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /pnpm dogfood:maintenance\s+Root checkout dogfood vault maintenance_plan JSON snapshot/);
   assert.match(
     clean,
-    /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief \+ maintenance; ends with \[dogfood:status\] health:N · workspace-brief:N · maintenance:N and hints pnpm dogfood:verify on failure/,
+    /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief \+ maintenance; ends with \[dogfood:status\] health:N · workspace-brief:N · maintenance:N and focused hints before pnpm dogfood:verify on failure/,
   );
   assert.match(clean, /pnpm test:dogfood:status\s+Narrow dogfood status shortcut runner contract/);
   assert.match(clean, /pnpm dogfood:verify\s+Root checkout dogfood vault verify shortcut/);

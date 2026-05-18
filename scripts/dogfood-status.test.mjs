@@ -5,6 +5,7 @@ import {
   dogfoodStatusArgSuggestion,
   dogfoodStatusDiagnostic,
   dogfoodStatusExitCode,
+  dogfoodStatusFocusedFailureHint,
   dogfoodStatusFailureHint,
   dogfoodStatusSummary,
   dogfoodStatusUsage,
@@ -29,6 +30,7 @@ describe('dogfood status shortcut', () => {
     assert.match(output.join(''), /health \+ workspace-brief \+ maintenance queue/);
     assert.match(output.join(''), /final child status summary/);
     assert.match(output.join(''), /On failure it prints:/);
+    assert.match(output.join(''), /\[dogfood:status\] focused follow-up: <failed child gate shortcuts>/);
     assert.match(output.join(''), new RegExp(dogfoodStatusFailureHint().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     assert.equal(output.join(''), dogfoodStatusUsage());
   });
@@ -92,6 +94,7 @@ describe('dogfood status shortcut', () => {
     assert.equal(calls[0].options.stdio, 'inherit');
     assert.deepEqual(output, ['[dogfood:status] health:1 · workspace-brief:0 · maintenance:0\n']);
     assert.deepEqual(diagnostics, [
+      '[dogfood:status] focused follow-up: pnpm dogfood:health\n',
       '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate\n',
     ]);
   });
@@ -131,6 +134,7 @@ describe('dogfood status shortcut', () => {
     assert.equal(calls.length, 3);
     assert.deepEqual(output, ['[dogfood:status] health:0 · workspace-brief:2 · maintenance:0\n']);
     assert.deepEqual(diagnostics, [
+      '[dogfood:status] focused follow-up: pnpm dogfood:brief\n',
       '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate\n',
     ]);
   });
@@ -152,6 +156,7 @@ describe('dogfood status shortcut', () => {
     assert.equal(calls.length, 3);
     assert.deepEqual(output, ['[dogfood:status] health:0 · workspace-brief:2 · maintenance:0\n']);
     assert.deepEqual(diagnostics, [
+      '[dogfood:status] focused follow-up: pnpm dogfood:brief\n',
       '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate\n',
     ]);
   });
@@ -178,6 +183,7 @@ describe('dogfood status shortcut', () => {
     assert.deepEqual(diagnostics, [
       '[dogfood:status] node cli/src/index.mjs health docs/ontology terminated by SIGTERM\n',
       '[dogfood:status] node cli/src/index.mjs workspace-brief docs/ontology failed to start: spawn failed\n',
+      '[dogfood:status] focused follow-up: pnpm dogfood:health · pnpm dogfood:brief\n',
       '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate\n',
     ]);
   });
@@ -202,6 +208,22 @@ describe('dogfood status shortcut', () => {
     assert.equal(
       dogfoodStatusFailureHint(),
       '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate',
+    );
+    assert.equal(
+      dogfoodStatusFocusedFailureHint([
+        { label: 'health', status: 0 },
+        { label: 'workspace-brief', status: 0 },
+        { label: 'maintenance', status: 2 },
+      ]),
+      '[dogfood:status] focused follow-up: pnpm dogfood:maintenance · pnpm test:mcp:maintenance',
+    );
+    assert.equal(
+      dogfoodStatusFocusedFailureHint([
+        { label: 'health', status: 0 },
+        { label: 'workspace-brief', status: 0 },
+        { label: 'maintenance', status: 0 },
+      ]),
+      '',
     );
   });
 

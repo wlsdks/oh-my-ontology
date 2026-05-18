@@ -122,7 +122,7 @@ without running the full installed-style MCP verify walk.
 without running the full installed-style MCP verify walk.
 `dogfood:maintenance` prints the dogfood vault `maintenance_plan` JSON snapshot
 without running the full installed-style MCP verify walk.
-`dogfood:status` always runs health + workspace-brief + maintenance, prints `[dogfood:status] health:N · workspace-brief:N · maintenance:N`, preserves the first failing exit before escalating, and prints a `pnpm dogfood:verify` follow-up hint on failure.
+`dogfood:status` always runs health + workspace-brief + maintenance, prints `[dogfood:status] health:N · workspace-brief:N · maintenance:N`, preserves the first failing exit before escalating, and prints failed-child focused follow-ups (`pnpm dogfood:health`, `pnpm dogfood:brief`, or `pnpm dogfood:maintenance` + `pnpm test:mcp:maintenance`) before the `pnpm dogfood:verify` follow-up hint on failure.
 `test:dogfood:status` checks that always-run shortcut contract without the full dogfood suite.
 Use `OMOT_TEST_NAME_PATTERN` with `pnpm integration:mcp` when the touched MCP
 integration case has a different name. For Node's `--test-name-pattern`, use
@@ -147,7 +147,8 @@ value cannot leak the following option value into the target list.
 `pnpm dogfood:maintenance` is the shortest dogfood vault maintenance queue snapshot. Use
 `pnpm dogfood:status` for the cheap human-readable health + first-contact + maintenance queue;
 it still prints the brief after health fails, preserves the first failing exit,
-and prints a `pnpm dogfood:verify` follow-up hint on failure. Use
+and prints failed-child focused follow-ups before the `pnpm dogfood:verify`
+follow-up hint on failure. Use
 `pnpm dogfood:compile-fix -- --help` / `pnpm dogfood:status -- --help`
 for shortcut usage without running those gates; unsupported shortcut arguments fail
 with exit 2 before starting the underlying checks, and close `--help` typos include

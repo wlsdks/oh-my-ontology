@@ -137,8 +137,10 @@ cheap human-readable health + workspace-brief + maintenance gates together. It
 still prints workspace-brief and maintenance when
 health fails, then preserves the first failing exit code, ends with
 `[dogfood:status] health:N · workspace-brief:N · maintenance:N`, and prints a
+focused follow-up line (`pnpm dogfood:health`, `pnpm dogfood:brief`, or
+`pnpm dogfood:maintenance` + `pnpm test:mcp:maintenance`) plus a
 `pnpm dogfood:verify` follow-up hint on failure so the child statuses and next
-escalation path are visible. Use
+escalation paths are visible. Use
 `pnpm dogfood:verify` for the full
 installed-style dogfood vault gate, and `pnpm dogfood:test` only when the dogfood
 helper itself changed or the focused `test:mcp:dogfood` subset is not enough.

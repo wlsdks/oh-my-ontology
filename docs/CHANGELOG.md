@@ -31,6 +31,9 @@ can inspect ontology write candidates without raw JSON-RPC.
 - **Dogfood help gate discovery** — `pnpm dogfood:help` now also surfaces
   `pnpm test:mcp:maintenance`, so dogfood users can jump to the maintenance-only
   focused gate without reading the broader MCP docs.
+- **Dogfood status failure hints** — failing `pnpm dogfood:status` runs now print
+  child-specific focused follow-ups (`dogfood:health`, `dogfood:brief`, or the
+  maintenance JSON/test gates) before escalating to full `dogfood:verify`.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 
