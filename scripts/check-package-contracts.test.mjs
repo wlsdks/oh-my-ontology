@@ -1131,6 +1131,7 @@ describe('package contract helpers', () => {
 
   it('keeps the MCP changelog aligned with the verify census gates', () => {
     const changelog = readFileSync('mcp/CHANGELOG.md', 'utf-8');
+    const readme = readFileSync('mcp/README.md', 'utf-8');
     const verifySection = changelog.split('### Fixed — package tarball runtime files')[1]?.split('## 0.11.0')[0] ?? '';
 
     assert.match(verifySection, /`list_concepts`, `get_concept`, `get_concepts`, `find_evidence`, `find_backlinks`, `query_concepts`, limited `query_concepts`, `find_neighbors`, `find_path`, `find_orphans`, `list_kinds`, `validate_vault`/);
@@ -1181,6 +1182,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /reports that signal\s+separately from timeout and startup failures/);
     assert.match(verifySection, /invalid timeout values fail before the server\s+starts and print\s+the received value plus a concrete retry example/i);
     assert.match(verifySection, /`npm run verify -- --timeout-ms 15000`/);
+    assert.match(verifySection, /normalizes a leading pnpm separator/);
+    assert.match(verifySection, /`pnpm --filter \.\/mcp verify -- --help` prints verify usage instead of failing with `Unknown option: --`/);
     assert.match(verifySection, /validates the installed `tools\/list` schema contract/);
     assert.match(verifySection, /`query_ontology\.operation` must stay required/);
     assert.match(verifySection, /graph engine runtime allow-lists/);

@@ -49,6 +49,7 @@
 - `npm run verify` now exits as soon as all first-contact JSON-RPC responses arrive, while true timeout failures name the missing response groups and suggest increasing `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS`.
 - Real timeout failures suggest the same retry shape as timeout argument validation, so agents see `npm run verify -- --timeout-ms 15000` instead of guessing the accepted format.
 - Timeout cleanup sends `SIGTERM` and then `SIGKILL`; `OMOT_VERIFY_KILL_GRACE_MS=N` tunes only that post-timeout cleanup window.
+- `npm run verify` now reports when the MCP server terminates by signal before first-contact completes and reports that signal separately from timeout and startup failures.
 - `npm run verify` now distinguishes server startup failures before `initialize` from timeout failures, preserving stderr such as invalid `OMOT_VAULT` diagnostics.
 - `npm run verify` now detects first-contact JSON-RPC error responses immediately and reports the failing step instead of waiting for timeout.
 - `npm run verify` now validates `maintenance_plan.summary` count fields and relationships plus `byPhase` / `bySeverity` / `byKind` bucket totals during ready/missing cursor smokes, so installed packages catch work-queue summary drift before agents rely on post-write cleanup guidance.
@@ -62,6 +63,7 @@
 - `npm run verify` now also fails when `initialize.instructions` omits any expected MCP tool name, so the agent-facing startup inventory cannot drift from `tools/list`.
 - Successful `npm run verify` output now names `initialize.instructions` coverage as first-contact safety and recovery guidance, so the installed-package log matches the full gate it enforces instead of only calling out batch relation type hints.
 - `npm run verify -- --help` now labels the narrow first-contact helper gate as `initialize-tool-inventory/initialize-safety-recovery`, so the focused-check hint matches the full guidance gate instead of the older `initialize-hint` wording.
+- `npm run verify` now normalizes a leading pnpm separator, so root-level `pnpm --filter ./mcp verify -- --help` prints verify usage instead of failing with `Unknown option: --`.
 - `npm run verify` now fails if the invalid-type `add_relation` strict smoke includes `changed` or `postWriteMaintenance` in the result or `structuredContent`, so the preflight rejection stays visibly non-writing.
 - `npm run verify` now fails if `tools/list` exposes duplicate tool names, so MCP clients never accept an ambiguous first-contact inventory.
 - Successful `npm run verify` output now prints a dedicated `tools/list inventory names` pass line, so agents can distinguish inventory-name coverage from schema and annotation coverage in first-contact logs.
