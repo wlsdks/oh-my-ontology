@@ -6502,6 +6502,11 @@ async function main() {
     process.stderr.write(`\n[oh-my-ontology-mcp verify]\n\n\x1b[31m✗\x1b[0m ${verifyTimeoutValueErrorMessage(VERIFY_TIMEOUT_MS_RAW, verifyRetryEnvForVault(VAULT))}\n`);
     return 1;
   }
+  if (parseVerifyKillGraceMs() === false) {
+    process.stderr.write(`\n[oh-my-ontology-mcp verify]\n\n\x1b[31m✗\x1b[0m ${verifyKillGraceValueErrorMessage()}\n`);
+    process.stderr.write(verifyUsage());
+    return 1;
+  }
   console.log('\n[oh-my-ontology-mcp verify]\n');
   const ok1 = await step1ParserSmoke();
   if (!ok1) return 1;

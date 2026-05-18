@@ -37,6 +37,12 @@ export async function runMcpVerify(args) {
     printUsage(process.stderr);
     return 1;
   }
+  const envKillGraceError = mcpVerifyEnvKillGraceError(process.env.OMOT_VERIFY_KILL_GRACE_MS);
+  if (envKillGraceError) {
+    process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${envKillGraceError}\n`);
+    printUsage(process.stderr);
+    return 1;
+  }
 
   const vaultRoot = resolveVaultRoot(vault);
   let verifyScript;
@@ -165,12 +171,25 @@ function mcpVerifyEnvTimeoutError(timeoutMs, rawValue, vaultArg = null) {
   return mcpVerifyTimeoutValueErrorMessage(parsed.message, rawValue, vaultArg);
 }
 
+function mcpVerifyEnvKillGraceError(rawValue) {
+  if (rawValue == null || rawValue === '') return null;
+  const parsed = parsePositiveIntegerFlag('OMOT_VERIFY_KILL_GRACE_MS', rawValue);
+  if (!(parsed instanceof Error)) return null;
+  const received = JSON.stringify(String(rawValue));
+  return [
+    `${parsed.message}.`,
+    `Received: ${received}.`,
+    'Set OMOT_VERIFY_KILL_GRACE_MS=N.',
+  ].join(' ');
+}
+
 function printUsage(output = process.stderr) {
   output.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
       `  oh-my-ontology mcp-verify [vault] [--timeout-ms N]\n` +
       `  oh-my-ontology mcp-verify --vault path --timeout-ms 15000\n\n` +
       `Runs the MCP package verify CLI against the resolved vault.\n` +
+      `Timeout cleanup sends SIGTERM and then SIGKILL; set OMOT_VERIFY_KILL_GRACE_MS=N only when the post-timeout cleanup window needs explicit tuning.\n` +
       `Checks parser smoke, server boot, tool inventory (missing/extra/duplicate/invalid names), list/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans/node census/file validation, workspace health,\n` +
       `compile_ontology summary + paginated full-artifact + indexed full-artifact smoke, overview, overview/project_map query_plan, and neighbors/node-to-project path/project_scope graph-query smoke.\n` +
       `Node census is cross-checked across list_kinds/list_concepts/compile_ontology/overview; validate_vault.scanned stays file-level health.\n` +

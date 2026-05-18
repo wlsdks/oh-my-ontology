@@ -552,6 +552,14 @@ await test('mcp-verify — rejects invalid timeout values', async () => {
   assert.match(stripAnsi(envTimeout.stderr), /oh-my-ontology mcp-verify --vault ontology --timeout-ms 15000/);
   assert.doesNotMatch(stripAnsi(envTimeout.stderr), /npm run verify -- --timeout-ms 15000/);
 
+  const envKillGrace = await run(['mcp-verify', 'ontology'], {
+    env: { OMOT_VERIFY_KILL_GRACE_MS: '1000ms' },
+  });
+  assert.equal(envKillGrace.code, 1);
+  assert.match(stripAnsi(envKillGrace.stderr), /OMOT_VERIFY_KILL_GRACE_MS must be a positive integer/);
+  assert.match(stripAnsi(envKillGrace.stderr), /Received: "1000ms"/);
+  assert.match(stripAnsi(envKillGrace.stderr), /Set OMOT_VERIFY_KILL_GRACE_MS=N/);
+
   const envTimeoutOverridden = await run(['mcp-verify', 'ontology', '--timeout-ms', '1000'], {
     env: { OMOT_VERIFY_TIMEOUT_MS: '1000ms' },
   });

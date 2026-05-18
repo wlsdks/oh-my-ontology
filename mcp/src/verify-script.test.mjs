@@ -3681,6 +3681,24 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(explicitVaultAfterTimeout.stdout, '');
     assert.match(explicitVaultAfterTimeout.stderr, /Received: "abc"/);
     assert.match(explicitVaultAfterTimeout.stderr, /npm run verify -- --vault \.\.\/docs\/ontology --timeout-ms 15000/);
+
+    const invalidKillGrace = spawnSync(
+      process.execPath,
+      [VERIFY_SCRIPT, '--timeout-ms', '1000'],
+      {
+        cwd: join(__dirname, '..'),
+        encoding: 'utf8',
+        env: { ...process.env, OMOT_VERIFY_KILL_GRACE_MS: '1000ms' },
+      },
+    );
+
+    assert.equal(invalidKillGrace.status, 1);
+    assert.equal(invalidKillGrace.stdout, '');
+    assert.match(invalidKillGrace.stderr, /\[oh-my-ontology-mcp verify\]/);
+    assert.match(invalidKillGrace.stderr, /verify kill grace must be a positive integer/);
+    assert.match(invalidKillGrace.stderr, /Received: "1000ms"/);
+    assert.match(invalidKillGrace.stderr, /OMOT_VERIFY_KILL_GRACE_MS=N/);
+    assert.match(invalidKillGrace.stderr, /Usage:/);
   });
 
   it('describes direct verify usage', () => {
