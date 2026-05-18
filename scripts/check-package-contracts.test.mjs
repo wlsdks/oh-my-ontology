@@ -195,7 +195,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
     assert.equal(
       pkg.scripts?.['test:mcp:verify:first-contact'],
-      'node --test --test-name-pattern "initialize instructions|strict unknown-tool|first-contact response labels|bootstrap and import-analysis|first-contact verify|destructive writer dry-run|patch_concept conflict guard|list_concepts reports vault warnings|validate_vault reports problem files|malformed validate_vault|first-contact diagnosis|health summary|health check advisories|failing health checks|workspace_brief growth count drift|workspace_brief next action sample drift|fail next actions" mcp/src/verify-script.test.mjs',
+      'node --test --test-name-pattern "initialize instructions|strict unknown-tool|node-dependent first-contact|first-contact response labels|bootstrap and import-analysis|first-contact verify|destructive writer dry-run|patch_concept conflict guard|list_concepts reports vault warnings|validate_vault reports problem files|malformed validate_vault|first-contact diagnosis|health summary|health check advisories|failing health checks|workspace_brief growth count drift|workspace_brief next action sample drift|fail next actions" mcp/src/verify-script.test.mjs',
     );
     assert.equal(
       pkg.scripts?.['test:mcp:verify:timeout'],
