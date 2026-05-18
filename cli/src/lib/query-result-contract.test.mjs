@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  assertHealthShape,
   assertMaintenancePlanShape,
   assertQueryOperation,
+  assertWorkspaceBriefShape,
   compileBlockingCounts,
   compileResultExitCode,
   cyclesResultExitCode,
@@ -115,6 +117,46 @@ describe('query-result-contract', () => {
     assert.throws(
       () => assertMaintenancePlanShape({ ...valid, nextExecutableAction: {} }),
       /nextExecutableAction must be null or an action pointer with an id/,
+    );
+  });
+
+  it('rejects malformed health and workspace_brief payloads before CLI output', () => {
+    const health = {
+      operation: 'health',
+      status: 'healthy',
+      summary: { nodes: 1, edges: 0 },
+      checks: [{ id: 'compile_issues', status: 'pass', count: 0 }],
+    };
+    const workspaceBrief = {
+      operation: 'workspace_brief',
+      status: 'healthy',
+      summary: { nodes: 1, edges: 0 },
+      nextActions: [],
+      health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] },
+      growth: { totalActions: 0 },
+    };
+
+    assert.equal(assertHealthShape(health), health);
+    assert.equal(assertWorkspaceBriefShape(workspaceBrief), workspaceBrief);
+    assert.throws(
+      () => assertHealthShape({ ...health, checks: [{ id: 'compile_issues', status: 'pass' }] }),
+      /health checks\[0\] has an invalid health-check shape/,
+    );
+    assert.throws(
+      () => assertHealthShape({ ...health, summary: null }),
+      /health summary must be an object/,
+    );
+    assert.throws(
+      () => assertWorkspaceBriefShape({ ...workspaceBrief, nextActions: [{ kind: 'cleanup', severity: 'fatal' }] }),
+      /workspace_brief nextActions\[0\] has an invalid next-action shape/,
+    );
+    assert.throws(
+      () => assertWorkspaceBriefShape({ ...workspaceBrief, health: { checks: [] } }),
+      /workspace_brief health\.checks must be a non-empty array/,
+    );
+    assert.throws(
+      () => assertWorkspaceBriefShape({ ...workspaceBrief, growth: [] }),
+      /workspace_brief growth must be an object when present/,
     );
   });
 

@@ -2,7 +2,7 @@
 // MCP `query_ontology({operation: 'workspace_brief'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
-import { assertQueryOperation, workspaceBriefExitCode } from '../lib/query-result-contract.mjs';
+import { assertWorkspaceBriefShape, workspaceBriefExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { formatUnknownFlagError, parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 import { DIAGNOSIS_OPTION_FLAGS, parseDiagnosisOption } from '../lib/diagnosis-options.mjs';
@@ -49,7 +49,7 @@ export async function runWorkspaceBrief(args) {
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_ontology', { operation: 'workspace_brief', ...options });
-    assertQueryOperation(result, 'workspace_brief');
+    assertWorkspaceBriefShape(result);
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

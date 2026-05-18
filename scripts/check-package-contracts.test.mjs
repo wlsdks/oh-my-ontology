@@ -1405,6 +1405,7 @@ describe('package contract helpers', () => {
     assert.match(implementationSection, /`path` found:false 와 hop\/edge alignment/);
     assert.match(implementationSection, /`health` \/ `workspace-brief` top-level diagnosis status/);
     assert.match(implementationSection, /`health\.checks` \/ `workspace-brief\.health\.checks` 의 non-empty id\/status\/count coverage/);
+    assert.match(doc, /health check \/ nextAction shape 이 malformed 인 diagnosis payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(implementationSection, /MCP tool name, 첫 mismatch path, parsed value, structuredContent value/);
     assert.match(implementationSection, /MCP spawn error \/ child process exit \/ missing `tools\/call` response 도 tool name \/ vault root \/ entry path/);
     assert.match(implementationSection, /`concepts\[n\]` \/ `relations\[n\]` fallback label/);
@@ -1415,6 +1416,8 @@ describe('package contract helpers', () => {
     assert.match(doc, /`health` non-json 의 `pass:count` 출력/);
     assert.match(doc, /`HEALTH CHECKS` 라인에 `compile_issues:pass:0` 같은 id:status:count coverage/);
     assert.match(doc, /mismatch path diagnostics/);
+    assert.match(readme, /diagnosis payload shape before writing machine output/);
+    assert.match(readme, /workspace next actions need a valid severity/);
     assert.match(readme, /Non-JSON `workspace-brief` also prints a `GROWTH` line/);
     assert.match(readme, /`actions`, `relations`, `dangling`, `external`, and `ignoredExternal` counts/);
     assert.match(readme, /Both commands forward focused diagnosis tuning flags to MCP `query_ontology`/);

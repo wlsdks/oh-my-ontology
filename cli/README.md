@@ -215,10 +215,12 @@ only when that post-timeout cleanup window needs explicit tuning.
 `oh-my-ontology workspace-brief [vault]` follows the same blocking distinction:
 warn/advisory next actions render as guidance, but fail-severity next actions
 or failing health checks return exit 1 so shell scripts do not miss broken
-first-contact graph state. `health --json` and `workspace-brief --json` also
-require top-level diagnosis `status` to be `healthy` or `needs_attention`, so
-unknown status strings are treated as malformed payloads rather than clean
-vaults. Non-JSON `health` and `workspace-brief` output prints health-check
+first-contact graph state. `health --json` and `workspace-brief --json` validate
+diagnosis payload shape before writing machine output: top-level `status` must
+be `healthy` or `needs_attention`, health checks need `id`/`status`/`count`, and
+workspace next actions need a valid severity. Unknown or malformed diagnosis
+payloads are treated as errors rather than clean vaults. Non-JSON `health` and
+`workspace-brief` output prints health-check
 coverage as `id:status:count` rows (`compile_issues:pass:0`,
 `components:pass:1`) so agents can see which probes actually ran without
 parsing JSON. Non-JSON `workspace-brief` also prints a `GROWTH` line with

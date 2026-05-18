@@ -68,6 +68,55 @@ export function assertMaintenancePlanShape(result) {
   return result;
 }
 
+export function assertHealthShape(result) {
+  assertQueryOperation(result, 'health');
+  if (!DIAGNOSIS_STATUSES.has(result.status)) {
+    throw new Error(`health status must be one of: ${[...DIAGNOSIS_STATUSES].join(', ')}`);
+  }
+  if (!isPlainObject(result.summary)) {
+    throw new Error('health summary must be an object');
+  }
+  if (!Array.isArray(result.checks) || result.checks.length === 0) {
+    throw new Error('health checks must be a non-empty array');
+  }
+  for (let index = 0; index < result.checks.length; index += 1) {
+    if (!validHealthCheck(result.checks[index])) {
+      throw new Error(`health checks[${index}] has an invalid health-check shape`);
+    }
+  }
+  return result;
+}
+
+export function assertWorkspaceBriefShape(result) {
+  assertQueryOperation(result, 'workspace_brief');
+  if (!DIAGNOSIS_STATUSES.has(result.status)) {
+    throw new Error(`workspace_brief status must be one of: ${[...DIAGNOSIS_STATUSES].join(', ')}`);
+  }
+  if (!isPlainObject(result.summary)) {
+    throw new Error('workspace_brief summary must be an object');
+  }
+  if (!Array.isArray(result.nextActions)) {
+    throw new Error('workspace_brief nextActions must be an array');
+  }
+  for (let index = 0; index < result.nextActions.length; index += 1) {
+    if (!validNextAction(result.nextActions[index])) {
+      throw new Error(`workspace_brief nextActions[${index}] has an invalid next-action shape`);
+    }
+  }
+  if (!isPlainObject(result.health) || !Array.isArray(result.health.checks) || result.health.checks.length === 0) {
+    throw new Error('workspace_brief health.checks must be a non-empty array');
+  }
+  for (let index = 0; index < result.health.checks.length; index += 1) {
+    if (!validHealthCheck(result.health.checks[index])) {
+      throw new Error(`workspace_brief health.checks[${index}] has an invalid health-check shape`);
+    }
+  }
+  if (result.growth !== undefined && !isPlainObject(result.growth)) {
+    throw new Error('workspace_brief growth must be an object when present');
+  }
+  return result;
+}
+
 export function compileResultExitCode(artifact) {
   const counts = compileBlockingCounts(artifact);
   if (!validCount(counts.issues) || !validCount(counts.unresolvedEdges)) return 1;

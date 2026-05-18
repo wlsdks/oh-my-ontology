@@ -2,7 +2,7 @@
 // MCP `query_ontology({operation: 'health'})` thin wrapper.
 
 import { callMcpTool } from '../lib/mcp-call.mjs';
-import { assertQueryOperation, healthResultExitCode } from '../lib/query-result-contract.mjs';
+import { assertHealthShape, healthResultExitCode } from '../lib/query-result-contract.mjs';
 import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import { formatUnknownFlagError, parseVaultFlag, resolveExclusiveVaultArg } from '../lib/cli-args.mjs';
 import { DIAGNOSIS_OPTION_FLAGS, parseDiagnosisOption } from '../lib/diagnosis-options.mjs';
@@ -40,7 +40,7 @@ export async function runHealth(args) {
   let result;
   try {
     result = await callMcpTool(vaultRoot, 'query_ontology', { operation: 'health', ...options });
-    assertQueryOperation(result, 'health');
+    assertHealthShape(result);
   } catch (err) {
     process.stderr.write(
       `${COLORS.red}error${COLORS.reset}  ${err instanceof Error ? err.message : String(err)}\n`,

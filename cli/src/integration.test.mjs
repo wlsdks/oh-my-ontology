@@ -2897,6 +2897,43 @@ await test('health --json — unhealthy graph exits non-zero', async () => {
   }
 });
 
+await test('health/workspace-brief --json — fail closed on malformed diagnosis payloads', async () => {
+  const root = withVault();
+  const fakeMcp = join(root, 'fake-mcp-diagnosis-malformed.mjs');
+  writeFileSync(
+    fakeMcp,
+    [
+      "import readline from 'node:readline';",
+      "const rl = readline.createInterface({ input: process.stdin });",
+      "rl.on('line', (line) => {",
+      "  const msg = JSON.parse(line);",
+      "  if (msg.id === 1) console.log(JSON.stringify({ jsonrpc: '2.0', id: 1, result: {} }));",
+      "  if (msg.id === 2) {",
+      "    const operation = msg.params.arguments.operation;",
+      "    const payload = operation === 'health'",
+      "      ? { operation: 'health', status: 'healthy', summary: { nodes: 1, edges: 0 }, checks: [{ id: 'compile_issues', status: 'pass' }] }",
+      "      : { operation: 'workspace_brief', status: 'healthy', summary: { nodes: 1, edges: 0 }, nextActions: [{ kind: 'cleanup', severity: 'fatal' }], health: { checks: [{ id: 'compile_issues', status: 'pass', count: 0 }] } };",
+      "    console.log(JSON.stringify({ jsonrpc: '2.0', id: 2, result: { content: [{ text: JSON.stringify(payload) }], structuredContent: payload } }));",
+      "  }",
+      "});",
+    ].join('\n'),
+    'utf-8',
+  );
+  try {
+    const health = await run(['health', root, '--json'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(health.code, 2, `stdout: ${health.stdout}\nstderr: ${health.stderr}`);
+    assert.equal(health.stdout, '');
+    assert.match(stripAnsi(health.stderr), /health checks\[0\] has an invalid health-check shape/);
+
+    const brief = await run(['workspace-brief', root, '--json'], { env: { OMOT_MCP_PATH: fakeMcp } });
+    assert.equal(brief.code, 2, `stdout: ${brief.stdout}\nstderr: ${brief.stderr}`);
+    assert.equal(brief.stdout, '');
+    assert.match(stripAnsi(brief.stderr), /workspace_brief nextActions\[0\] has an invalid next-action shape/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('health — prints check status and count coverage', async () => {
   const root = await buildGraphFixture();
   try {
