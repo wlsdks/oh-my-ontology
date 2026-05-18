@@ -912,6 +912,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(findNeighborsTool.outputSchema?.required, ['center', 'requested', 'direction', 'totalEdges', 'limited', 'edges'])) {
     return 'find_neighbors outputSchema required drift';
   }
+  if (findNeighborsTool.outputSchema?.additionalProperties !== false) {
+    return 'find_neighbors outputSchema root openness drift';
+  }
   for (const propertyName of ['center', 'requested']) {
     if (outputPropertyAt(findNeighborsTool, ['properties', propertyName])?.type !== 'string') {
       return `find_neighbors outputSchema ${propertyName} drift`;
@@ -938,6 +941,9 @@ export function toolsListSchemaFailure(tools) {
   ) {
     return 'find_neighbors outputSchema edges drift';
   }
+  if (neighborsEdgesSchema.items?.additionalProperties !== false) {
+    return 'find_neighbors outputSchema edge openness drift';
+  }
   if (!sameArray(neighborsEdgesSchema.items?.properties?.direction?.enum, ['outgoing', 'incoming'])) {
     return 'find_neighbors outputSchema edge direction drift';
   }
@@ -956,6 +962,9 @@ export function toolsListSchemaFailure(tools) {
     !sameArray(neighborsNodesSchema.items?.required, ['slug', 'kind', 'title', 'mtime'])
   ) {
     return 'find_neighbors outputSchema nodes drift';
+  }
+  if (neighborsNodesSchema.items?.additionalProperties !== false) {
+    return 'find_neighbors outputSchema node openness drift';
   }
   for (const propertyName of ['slug', 'kind', 'title']) {
     if (neighborsNodesSchema.items?.properties?.[propertyName]?.type !== 'string') {
@@ -984,6 +993,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(findPathTool.outputSchema?.required, ['from', 'to', 'found'])) {
     return 'find_path outputSchema required drift';
   }
+  if (findPathTool.outputSchema?.additionalProperties !== false) {
+    return 'find_path outputSchema root openness drift';
+  }
   for (const propertyName of ['from', 'to']) {
     if (outputPropertyAt(findPathTool, ['properties', propertyName])?.type !== 'string') {
       return `find_path outputSchema ${propertyName} drift`;
@@ -1006,6 +1018,9 @@ export function toolsListSchemaFailure(tools) {
     !sameArray(findPathEdgesSchema.items?.required, ['from', 'to', 'via'])
   ) {
     return 'find_path outputSchema edges drift';
+  }
+  if (findPathEdgesSchema.items?.additionalProperties !== false) {
+    return 'find_path outputSchema edge openness drift';
   }
   for (const propertyName of ['from', 'to', 'via']) {
     if (findPathEdgesSchema.items?.properties?.[propertyName]?.type !== 'string') {
@@ -1047,6 +1062,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(queryConceptsTool.outputSchema?.required, ['filter', 'parsedAs', 'total', 'matches', 'limited'])) {
     return 'query_concepts outputSchema required drift';
   }
+  if (queryConceptsTool.outputSchema?.additionalProperties !== false) {
+    return 'query_concepts outputSchema root openness drift';
+  }
   const queryConceptsTotalSchema = outputPropertyAt(queryConceptsTool, ['properties', 'total']);
   if (queryConceptsTotalSchema?.type !== 'integer' || queryConceptsTotalSchema.minimum !== 0) {
     return 'query_concepts outputSchema total drift';
@@ -1062,6 +1080,9 @@ export function toolsListSchemaFailure(tools) {
     !sameArray(queryConceptsRowsSchema.items?.required, ['slug', 'kind', 'title', 'mtime'])
   ) {
     return 'query_concepts outputSchema rows drift';
+  }
+  if (queryConceptsRowsSchema.items?.additionalProperties !== false) {
+    return 'query_concepts outputSchema row openness drift';
   }
   for (const propertyName of ['slug', 'kind', 'title']) {
     if (queryConceptsRowsSchema.items?.properties?.[propertyName]?.type !== 'string') {
@@ -1414,6 +1435,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(listKindsTool.outputSchema?.required, ['total', 'byKind'])) {
     return 'list_kinds outputSchema required drift';
   }
+  if (listKindsTool.outputSchema?.additionalProperties !== false) {
+    return 'list_kinds outputSchema root openness drift';
+  }
   const totalSchema = outputPropertyAt(listKindsTool, ['properties', 'total']);
   if (totalSchema?.type !== 'integer' || totalSchema.minimum !== 0) {
     return 'list_kinds outputSchema total drift';
@@ -1611,6 +1635,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(findOrphansTool.outputSchema?.required, ['total', 'orphans'])) {
     return 'find_orphans outputSchema required drift';
   }
+  if (findOrphansTool.outputSchema?.additionalProperties !== false) {
+    return 'find_orphans outputSchema root openness drift';
+  }
   const orphansTotalSchema = outputPropertyAt(findOrphansTool, ['properties', 'total']);
   if (orphansTotalSchema?.type !== 'integer' || orphansTotalSchema.minimum !== 0) {
     return 'find_orphans outputSchema total drift';
@@ -1622,6 +1649,9 @@ export function toolsListSchemaFailure(tools) {
     !sameArray(orphansRowsSchema.items?.required, ['slug', 'kind', 'title', 'mtime'])
   ) {
     return 'find_orphans outputSchema rows drift';
+  }
+  if (orphansRowsSchema.items?.additionalProperties !== false) {
+    return 'find_orphans outputSchema row openness drift';
   }
   for (const propertyName of ['slug', 'kind', 'title']) {
     if (orphansRowsSchema.items?.properties?.[propertyName]?.type !== 'string') {

@@ -731,6 +731,7 @@ function makeDogfoodToolsList() {
                   ref: { type: "string" },
                   resolved: { type: "boolean" },
                 },
+                additionalProperties: false,
               },
             },
             nodes: {
@@ -744,9 +745,11 @@ function makeDogfoodToolsList() {
                   title: { type: "string" },
                   mtime: { type: "number", minimum: 0 },
                 },
+                additionalProperties: false,
               },
             },
           },
+          additionalProperties: false,
         };
       }
       if (name === "find_path") {
@@ -781,9 +784,11 @@ function makeDogfoodToolsList() {
                   to: { type: "string" },
                   via: { type: "string" },
                 },
+                additionalProperties: false,
               },
             },
           },
+          additionalProperties: false,
         };
       }
       if (name === "list_kinds") {
@@ -799,6 +804,7 @@ function makeDogfoodToolsList() {
               additionalProperties: { type: "integer", minimum: 0 },
             },
           },
+          additionalProperties: false,
         };
       }
       if (name === "validate_vault") {
@@ -886,9 +892,11 @@ function makeDogfoodToolsList() {
                   title: { type: "string" },
                   mtime: { type: "number", minimum: 0 },
                 },
+                additionalProperties: false,
               },
             },
           },
+          additionalProperties: false,
         };
       }
       if (name === "query_concepts") {
@@ -926,10 +934,12 @@ function makeDogfoodToolsList() {
                   title: { type: "string" },
                   mtime: { type: "number", minimum: 0 },
                 },
+                additionalProperties: false,
               },
             },
             limited: { type: "boolean" },
           },
+          additionalProperties: false,
         };
       }
       if (name === "compile_ontology") {

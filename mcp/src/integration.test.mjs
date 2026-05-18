@@ -412,17 +412,22 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     const findNeighbors = findTool("find_neighbors");
     assert.equal(findNeighbors?.outputSchema?.type, "object");
     assert.deepEqual(findNeighbors?.outputSchema?.required, ["center", "requested", "direction", "totalEdges", "limited", "edges"]);
+    assert.equal(findNeighbors?.outputSchema?.additionalProperties, false);
     assert.deepEqual(findNeighbors?.outputSchema?.properties?.direction?.enum, ["outgoing", "incoming", "both"]);
     assert.equal(findNeighbors?.outputSchema?.properties?.totalEdges?.type, "integer");
     assert.deepEqual(findNeighbors?.outputSchema?.properties?.edges?.items?.required, ["direction", "from", "to", "via", "ref", "resolved"]);
+    assert.equal(findNeighbors?.outputSchema?.properties?.edges?.items?.additionalProperties, false);
     assert.deepEqual(findNeighbors?.outputSchema?.properties?.nodes?.items?.required, ["slug", "kind", "title", "mtime"]);
+    assert.equal(findNeighbors?.outputSchema?.properties?.nodes?.items?.additionalProperties, false);
     const findPath = findTool("find_path");
     assert.equal(findPath?.outputSchema?.type, "object");
     assert.deepEqual(findPath?.outputSchema?.required, ["from", "to", "found"]);
+    assert.equal(findPath?.outputSchema?.additionalProperties, false);
     assert.equal(findPath?.outputSchema?.properties?.found?.type, "boolean");
     assert.equal(findPath?.outputSchema?.properties?.hopCount?.type, "integer");
     assert.equal(findPath?.outputSchema?.properties?.hops?.items?.type, "string");
     assert.deepEqual(findPath?.outputSchema?.properties?.edges?.items?.required, ["from", "to", "via"]);
+    assert.equal(findPath?.outputSchema?.properties?.edges?.items?.additionalProperties, false);
     const findOrphans = findTool("find_orphans");
     assert.match(
       findOrphans?.description ?? "",
@@ -436,15 +441,19 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     );
     assert.equal(findOrphans?.outputSchema?.type, "object");
     assert.deepEqual(findOrphans?.outputSchema?.required, ["total", "orphans"]);
+    assert.equal(findOrphans?.outputSchema?.additionalProperties, false);
     assert.equal(findOrphans?.outputSchema?.properties?.total?.type, "integer");
     assert.deepEqual(findOrphans?.outputSchema?.properties?.orphans?.items?.required, ["slug", "kind", "title", "mtime"]);
+    assert.equal(findOrphans?.outputSchema?.properties?.orphans?.items?.additionalProperties, false);
     assert.equal(findOrphans?.outputSchema?.properties?.orphans?.items?.properties?.mtime?.type, "number");
     const queryConcepts = findTool("query_concepts");
     assert.equal(queryConcepts?.outputSchema?.type, "object");
     assert.deepEqual(queryConcepts?.outputSchema?.required, ["filter", "parsedAs", "total", "matches", "limited"]);
+    assert.equal(queryConcepts?.outputSchema?.additionalProperties, false);
     assert.equal(queryConcepts?.outputSchema?.properties?.total?.type, "integer");
     assert.equal(queryConcepts?.outputSchema?.properties?.limited?.type, "boolean");
     assert.deepEqual(queryConcepts?.outputSchema?.properties?.matches?.items?.required, ["slug", "kind", "title", "mtime"]);
+    assert.equal(queryConcepts?.outputSchema?.properties?.matches?.items?.additionalProperties, false);
     assert.equal(queryConcepts?.outputSchema?.properties?.matches?.items?.properties?.mtime?.type, "number");
     const compileOntology = findTool("compile_ontology");
     assert.equal(compileOntology?.outputSchema?.type, "object");
@@ -535,6 +544,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     );
     assert.equal(listKinds?.outputSchema?.type, "object");
     assert.deepEqual(listKinds?.outputSchema?.required, ["total", "byKind"]);
+    assert.equal(listKinds?.outputSchema?.additionalProperties, false);
     assert.equal(listKinds?.outputSchema?.properties?.total?.type, "integer");
     assert.equal(listKinds?.outputSchema?.properties?.total?.minimum, 0);
     assert.equal(listKinds?.outputSchema?.properties?.byKind?.type, "object");

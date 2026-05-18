@@ -769,6 +769,8 @@ project probe 도 fail-closed 로 확인해 dogfood vault 에서 `project_scope`
 검증해, malformed warning payload 가 clean list response 로 오인되지 않게 한다.
 `list_concepts` / `find_evidence` / `find_backlinks` 의 root 와 row object 도 닫혀
 discovery 단계에서 agent 가 응답 계약 밖의 필드를 상태로 착각하지 않게 한다.
+`find_neighbors` / `find_path` / `list_kinds` / `find_orphans` / `query_concepts` 도
+root 와 graph-row object 를 닫아 graph navigation 단계의 임의 필드 가정을 막는다.
 요청한 JSON-RPC 응답이 모두 도착하거나 error 응답이 오면 timeout 까지 기다리지 않고
 즉시 종료해 반복 dogfood 비용을 낮춘다. timeout 으로 끝나면 누락된 응답 label 을
 gate failure 에 함께 출력한다. 느린 환경에서는 양의 정수 millisecond 값인
