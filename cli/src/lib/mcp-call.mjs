@@ -118,6 +118,9 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
     proc.on('error', (err) => {
       finish(() => rejectP(formatMcpSpawnError(err, { entry, toolName, vaultRoot })));
     });
+    proc.stdin.on('error', (err) => {
+      finish(() => rejectP(formatMcpStdinError(err, { entry, toolName, vaultRoot })));
+    });
     proc.on('exit', (code) => {
       exited = true;
       clearTimeout(killTimer);
@@ -186,10 +189,14 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
         params: { name: toolName, arguments: args },
       },
     ];
-    for (const req of requests) {
-      proc.stdin.write(JSON.stringify(req) + '\n');
+    try {
+      for (const req of requests) {
+        proc.stdin.write(JSON.stringify(req) + '\n');
+      }
+      proc.stdin.end();
+    } catch (err) {
+      finish(() => rejectP(formatMcpStdinError(err, { entry, toolName, vaultRoot })));
     }
-    proc.stdin.end();
   });
 }
 
@@ -241,6 +248,14 @@ export function formatMcpSpawnError(err, { entry, toolName, vaultRoot } = {}) {
   const entryLabel = entry || '(unknown entry)';
   const cause = err instanceof Error ? err.message : String(err);
   return new Error(`failed to spawn MCP server while calling ${tool} (vault ${vault}, entry ${entryLabel}): ${cause}`);
+}
+
+export function formatMcpStdinError(err, { entry, toolName, vaultRoot } = {}) {
+  const tool = toolName || '(unknown tool)';
+  const vault = vaultRoot || '(unknown vault)';
+  const entryLabel = entry || '(unknown entry)';
+  const cause = err instanceof Error ? err.message : String(err);
+  return new Error(`failed to write MCP request while calling ${tool} (vault ${vault}, entry ${entryLabel}): ${cause}`);
 }
 
 export function formatMcpJsonRpcError(error, { toolName } = {}) {

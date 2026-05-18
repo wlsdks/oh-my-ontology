@@ -11,6 +11,7 @@ import {
   formatMcpMissingResponseError,
   formatMcpProcessExitError,
   formatMcpSpawnError,
+  formatMcpStdinError,
   mcpCallTimeoutMs,
   parseMcpToolResponse,
 } from './mcp-call.mjs';
@@ -23,6 +24,13 @@ describe('mcp-call response parsing', () => {
     assert.doesNotMatch(source, /spawn\('node', \[entry\]/);
   });
 
+  it('handles MCP stdin write errors with an explicit stream listener', () => {
+    const source = readFileSync('cli/src/lib/mcp-call.mjs', 'utf-8');
+
+    assert.match(source, /proc\.stdin\.on\('error'/);
+    assert.match(source, /formatMcpStdinError/);
+  });
+
   it('formats MCP spawn errors with tool, vault, and entry context', () => {
     assert.equal(
       formatMcpSpawnError(new Error('spawn node ENOENT'), {
@@ -31,6 +39,17 @@ describe('mcp-call response parsing', () => {
         vaultRoot: '/tmp/vault',
       }).message,
       'failed to spawn MCP server while calling query_ontology (vault /tmp/vault, entry /tmp/mcp/src/index.js): spawn node ENOENT',
+    );
+  });
+
+  it('formats MCP stdin errors with tool, vault, and entry context', () => {
+    assert.equal(
+      formatMcpStdinError(new Error('write EPIPE'), {
+        entry: '/tmp/mcp/src/index.js',
+        toolName: 'query_ontology',
+        vaultRoot: '/tmp/vault',
+      }).message,
+      'failed to write MCP request while calling query_ontology (vault /tmp/vault, entry /tmp/mcp/src/index.js): write EPIPE',
     );
   });
 
