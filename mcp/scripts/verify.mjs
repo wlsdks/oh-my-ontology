@@ -3081,6 +3081,8 @@ export function initializeInstructionsFailure(response) {
     ['nearest argument hint guidance', /Did you mean "limit"\?/],
     ['multiple unknown arguments guidance', /Unknown arguments for list_concepts[\s\S]*"summry"[\s\S]*did you mean "summary"\?/i],
     ['batch row isolation guidance', /non-object row[\s\S]*unknown row fields[\s\S]*ok:\s*false/i],
+    ['batch no-write metadata guidance', /Invalid-only batches return no row-level write metadata[\s\S]*no top-level `postWriteMaintenance`[\s\S]*dry validation evidence/i],
+    ['batch relation no-write metadata guidance', /Invalid-only batches return no row-level `changed`[\s\S]*`alreadyExists`[\s\S]*no top-level `postWriteMaintenance`[\s\S]*dry validation evidence/i],
     ['batch relation type hint guidance', /unknown type[\s\S]*closest-value hint[\s\S]*Did you mean "depends_on"\?/i],
     ['batch duplicate slug guidance', /duplicate[\s\S]*slugs[\s\S]*concepts\[n\] duplicate slug in input batch; first seen at concepts\[m\]/i],
     ['nearest enum hint guidance', /Did you mean "overview"\?/],

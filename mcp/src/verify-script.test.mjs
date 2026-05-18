@@ -6655,6 +6655,8 @@ describe('verify.mjs first-contact gates', () => {
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
       'Batch add_concepts and add_relations isolate each non-object row and unknown row fields as ok:false.',
+      'Invalid-only batches return no row-level write metadata and no top-level `postWriteMaintenance`; if every row failed, treat the call as dry validation evidence and retry corrected rows.',
+      'Invalid-only batches return no row-level `changed` / `alreadyExists` write metadata and no top-level `postWriteMaintenance`; if every row failed, treat the call as dry validation evidence and retry corrected rows.',
       'Batch add_relations unknown type row errors include a closest-value hint such as Did you mean "depends_on"?',
       'Duplicate add_concepts input slugs report concepts[n] duplicate slug in input batch; first seen at concepts[m].',
       'operation must be one of: ... Invalid value: overveiw. Did you mean "overview"?',
@@ -6717,6 +6719,14 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('non-object row and unknown row fields', 'bad rows') } }),
       'initialize instructions missing batch row isolation guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('no row-level write metadata and no top-level `postWriteMaintenance`', 'write result metadata maybe present') } }),
+      'initialize instructions missing batch no-write metadata guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('no row-level `changed` / `alreadyExists` write metadata and no top-level `postWriteMaintenance`', 'relation metadata maybe present') } }),
+      'initialize instructions missing batch relation no-write metadata guidance',
     );
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('unknown type row errors include a closest-value hint such as Did you mean "depends_on"?', 'unknown type row errors fail') } }),

@@ -1596,6 +1596,9 @@ await test("initialize — instructions 필드 (#45) AI agent 안내 노출", as
     assert.match(instructions, /non-object row/);
     assert.match(instructions, /unknown row field/);
     assert.match(instructions, /ok: false/);
+    assert.match(instructions, /Invalid-only batches return no row-level write metadata/);
+    assert.match(instructions, /Invalid-only batches return no row-level `changed` \/ `alreadyExists` write metadata/);
+    assert.match(instructions, /dry validation evidence/);
     assert.match(instructions, /get_concepts/);
     assert.match(instructions, /find_neighbors/);
     assert.match(instructions, /compile_ontology/);

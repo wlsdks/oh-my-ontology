@@ -749,6 +749,9 @@ no-write metadata gate 를 확인한다는 점을 드러낸다.
 dogfood walk 의 최종 Analysis 도 `batch no-write metadata: 2/2 absent` 를 별도 row 로
 반복 출력해 긴 로그의 마지막만 봐도 `add_concepts` / `add_relations` 두 invalid-only
 batch write smoke 가 모두 dry 한 응답으로 남았는지 판독할 수 있다.
+MCP initialize first-contact instructions 의 bootstrap 절차도 같은 no-write 기준을
+명시해, agent 가 batch bootstrap 중 모든 row 가 실패한 응답을 write 결과로 오해하지 않고
+dry validation evidence 로 해석한 뒤 수정된 row 만 재시도하게 한다.
 strict `list_concepts.kind` row 는 `kind:"capabilty"` typo 를 사용해 첫 목록 필터가
 빈 결과로 숨지 않고 node-kind enum 에서 먼저 거절되는지 보여준다.
 strict `query_concepts.kind` / `query_concepts.has-key` row 는 `kind=capabilty` 와
