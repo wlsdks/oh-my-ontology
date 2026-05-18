@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
-import { runFocusedNodeTest } from './run-focused-node-test.mjs';
+import { focusedTestTargets, runFocusedNodeTest } from './run-focused-node-test.mjs';
 
 const SCRIPT = 'scripts/run-focused-node-test.mjs';
 
@@ -35,6 +35,22 @@ function run(args) {
 }
 
 describe('focused node test wrapper', () => {
+  it('ignores node test option values when deriving focused targets', () => {
+    assert.deepEqual(
+      focusedTestTargets([
+        '--test-name-pattern',
+        'target case',
+        '--test-timeout',
+        '1000',
+        '--test-reporter=spec',
+        '--test-shard',
+        '1/2',
+        'fixture.test.mjs',
+      ]),
+      ['fixture.test.mjs'],
+    );
+  });
+
   it('fails before spawning when no test-name pattern is provided', () => {
     const diagnostics = [];
     const exitCode = runFocusedNodeTest({
@@ -55,7 +71,7 @@ describe('focused node test wrapper', () => {
   it('fails before spawning when no test target is provided', () => {
     const diagnostics = [];
     const exitCode = runFocusedNodeTest({
-      argv: ['--test-name-pattern', 'target case'],
+      argv: ['--test-name-pattern', 'target case', '--test-timeout', '1000'],
       stderr: { write: (text) => diagnostics.push(text) },
       stdout: { write() {} },
       spawn() {

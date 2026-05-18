@@ -5,6 +5,21 @@ import { fileURLToPath } from 'node:url';
 
 import { readNodeTestNamePattern } from './lib/test-name-pattern.mjs';
 
+const NODE_TEST_OPTIONS_WITH_VALUE = new Set([
+  '--test-name-pattern',
+  '--test-reporter',
+  '--test-reporter-destination',
+  '--test-shard',
+  '--test-timeout',
+]);
+
+function isNodeTestOptionWithInlineValue(arg) {
+  for (const option of NODE_TEST_OPTIONS_WITH_VALUE) {
+    if (arg.startsWith(`${option}=`)) return true;
+  }
+  return false;
+}
+
 export function tapCount(output, label) {
   const match = String(output).match(new RegExp(`^# ${label} (\\d+)$`, 'm'));
   return match ? Number.parseInt(match[1], 10) : null;
@@ -14,11 +29,11 @@ export function focusedTestTargets(argv) {
   const targets = [];
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === '--test-name-pattern') {
+    if (NODE_TEST_OPTIONS_WITH_VALUE.has(arg)) {
       index += 1;
       continue;
     }
-    if (arg.startsWith('--test-name-pattern=')) continue;
+    if (isNodeTestOptionWithInlineValue(arg)) continue;
     if (arg.startsWith('-')) continue;
     targets.push(arg);
   }
