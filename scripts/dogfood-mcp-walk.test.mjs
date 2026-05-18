@@ -5074,6 +5074,28 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, compiledIndexesStructured: { ...okShape.compiledIndexes, edgeCount: 3 } }),
       ["compile_ontology_indexes structuredContent mismatch — $.edgeCount: parsed 2, structuredContent 3"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        compiledIndexes: {
+          ...okShape.compiledIndexes,
+          canonicalizationActionCount: 1,
+          canonicalizationActions: [{ slug: "", keys: ["contains"], frontmatter: { contains: ["domains/core"] }, expected_mtime: 1 }],
+        },
+      }),
+      ["compile_ontology canonicalizationActions[0].slug must be a non-empty string"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        compiledIndexes: {
+          ...okShape.compiledIndexes,
+          canonicalizationActionCount: 1,
+          canonicalizationActions: [{ slug: "project", keys: ["contains"], frontmatter: { title: ["Changed"] }, expected_mtime: 1 }],
+        },
+      }),
+      ["compile_ontology canonicalizationActions[0].keys declares \"contains\" but frontmatter does not include it"],
+    );
   });
 
   it("fails on malformed overview payloads", () => {

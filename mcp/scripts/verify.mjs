@@ -63,6 +63,7 @@ import {
   IMPORT_UNRESOLVED_REASON_VALUES,
 } from '../src/infer-imports.mjs';
 import { VAULT_ISSUE_CODE_VALUES } from '../src/validate.mjs';
+import { GRAPH_ARRAY_KEYS } from '../src/vault.mjs';
 export {
   IMPORT_EDGE_KIND_VALUES,
   IMPORT_UNRESOLVED_REASON_VALUES,
@@ -78,6 +79,7 @@ const IS_MAIN = fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? ''
 const VERIFY_ALLOWED_FLAGS = ['--vault', '--timeout-ms', '--help'];
 const DEFAULT_VERIFY_RETRY_EXAMPLE = 'npm run verify -- --timeout-ms 15000';
 const DEFAULT_VERIFY_KILL_GRACE_MS = 1_000;
+const GRAPH_ARRAY_KEY_SET = new Set(GRAPH_ARRAY_KEYS);
 const VERIFY_ARGS = parseVerifyArgs({ isMain: IS_MAIN });
 const VAULT = VERIFY_ARGS.vault;
 const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
@@ -4210,6 +4212,8 @@ export function compileFullArtifactFailure(parsed) {
   }
   const arrayCountFailure = fullArtifactArrayCountFailure(parsed);
   if (arrayCountFailure) return arrayCountFailure;
+  const canonicalizationFailure = canonicalizationActionsFailure(parsed.canonicalizationActions);
+  if (canonicalizationFailure) return canonicalizationFailure;
   if (!parsed.summary || typeof parsed.summary !== 'object' || Array.isArray(parsed.summary)) {
     return 'compile_ontology full response missing summary';
   }
@@ -4236,6 +4240,50 @@ export function compileFullArtifactFailure(parsed) {
   }
   if (parsed.summary.graphHash !== parsed.graphHash) {
     return 'compile_ontology full response summary graphHash mismatch';
+  }
+  return null;
+}
+
+function canonicalizationActionsFailure(actions) {
+  for (const [index, action] of actions.entries()) {
+    const label = `compile_ontology canonicalizationActions[${index}]`;
+    if (!action || typeof action !== 'object' || Array.isArray(action)) {
+      return `${label} must be an object`;
+    }
+    if (typeof action.slug !== 'string' || action.slug.trim() === '') {
+      return `${label}.slug must be a non-empty string`;
+    }
+    if (!Array.isArray(action.keys) || action.keys.some((key) => typeof key !== 'string' || key.trim() === '')) {
+      return `${label}.keys must be an array of non-empty strings`;
+    }
+    if (!action.frontmatter || typeof action.frontmatter !== 'object' || Array.isArray(action.frontmatter)) {
+      return `${label}.frontmatter must be an object`;
+    }
+    if (!Number.isFinite(action.expected_mtime) || action.expected_mtime < 0) {
+      return `${label}.expected_mtime must be a non-negative finite number`;
+    }
+    const frontmatterKeys = Object.keys(action.frontmatter);
+    const declaredKeys = new Set(action.keys);
+    for (const key of action.keys) {
+      if (!GRAPH_ARRAY_KEY_SET.has(key)) {
+        return `${label}.keys contains unsupported relation-array key "${key}"`;
+      }
+      if (!Object.prototype.hasOwnProperty.call(action.frontmatter, key)) {
+        return `${label}.keys declares "${key}" but frontmatter does not include it`;
+      }
+    }
+    for (const key of frontmatterKeys) {
+      if (!GRAPH_ARRAY_KEY_SET.has(key)) {
+        return `${label}.frontmatter.${key} is not a compiler relation-array key`;
+      }
+      if (!declaredKeys.has(key)) {
+        return `${label}.frontmatter.${key} is missing from keys`;
+      }
+      const value = action.frontmatter[key];
+      if (!Array.isArray(value) || value.some((ref) => typeof ref !== 'string' || ref.trim() === '')) {
+        return `${label}.frontmatter.${key} must be an array of non-empty strings`;
+      }
+    }
   }
   return null;
 }
