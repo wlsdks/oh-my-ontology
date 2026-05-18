@@ -97,7 +97,7 @@ function makeDogfoodInitialize() {
       "unknown arguments are rejected instead of being ignored.",
       'unknown tool names are rejected with closest tool-name hints such as Unknown tool: list_concept. Did you mean "list_concepts"?',
       "Tool errors include structuredContent.errorCode values such as unknown_tool, unknown_argument, and invalid_arguments.",
-      "Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedField, unknownFields, allowedFields, receivedFields, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.",
+      "Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, rowName, receivedField, unknownFields, allowedFields, receivedFields, firstSeenAt, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.",
       "Missing node errors include structuredContent repair fields such as missingSlug, similarSlugs, recoveryTools, and createTool.",
       "Slug conflict errors include structuredContent repair fields such as conflictSlug, recoveryTools, and overwriteOption.",
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
@@ -1745,6 +1745,7 @@ const okShape = {
         ok: false,
         error: "concepts[3] duplicate slug in input batch; first seen at concepts[2]",
         errorCode: "conflict",
+        rowName: "concepts[3]",
         conflictSubject: "Duplicate slug in input batch",
         conflictSlug: "verify-duplicate-slug",
         firstSeenAt: "concepts[2]",
@@ -1794,6 +1795,7 @@ const okShape = {
         ok: false,
         error: "concepts[3] duplicate slug in input batch; first seen at concepts[2]",
         errorCode: "conflict",
+        rowName: "concepts[3]",
         conflictSubject: "Duplicate slug in input batch",
         conflictSlug: "verify-duplicate-slug",
         firstSeenAt: "concepts[2]",
@@ -3784,7 +3786,7 @@ describe("rpc response completion helpers", () => {
     );
     assert.equal(
       batchRowRepairSummary(okShape.addConceptsRowRepair.concepts),
-      "5/5 failed (titel->title, domian->domain, titel->title, kind capabilty->capability, verify-duplicate-slug first concepts[2]; rows concepts[1], row3, concepts[4])",
+      "5/5 failed (titel->title, domian->domain, titel->title, kind capabilty->capability, verify-duplicate-slug first concepts[2]; rows concepts[1], concepts[3], concepts[4])",
     );
     assert.equal(
       batchRowRepairSummary(okShape.addRelationsRowRepair.relations),
@@ -4422,7 +4424,7 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         initialize: {
           ...okShape.initialize,
-          instructions: okShape.initialize.instructions.replace("Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedField, unknownFields, allowedFields, receivedFields, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.", "Tool errors are plain text."),
+          instructions: okShape.initialize.instructions.replace("Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, rowName, receivedField, unknownFields, allowedFields, receivedFields, firstSeenAt, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.", "Tool errors are plain text."),
         },
       }),
       ["initialize: initialize instructions missing structured repair fields guidance"],
@@ -4432,7 +4434,7 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         initialize: {
           ...okShape.initialize,
-          instructions: okShape.initialize.instructions.replace("receivedField, unknownFields, allowedFields, receivedFields, ", ""),
+          instructions: okShape.initialize.instructions.replace("rowName, receivedField, unknownFields, allowedFields, receivedFields, firstSeenAt, ", ""),
         },
       }),
       ["initialize: initialize instructions missing structured row field repair guidance"],

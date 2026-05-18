@@ -4897,6 +4897,7 @@ describe('verify.mjs first-contact gates', () => {
         ok: false,
         error: conceptDuplicateError,
         errorCode: 'conflict',
+        rowName: 'concepts[3]',
         conflictSubject: 'Duplicate slug in input batch',
         conflictSlug: 'verify-duplicate-slug',
         firstSeenAt: 'concepts[2]',
@@ -6492,7 +6493,7 @@ describe('verify.mjs first-contact gates', () => {
       'unknown arguments are rejected instead of being ignored.',
       'unknown tool names are rejected with closest tool-name hints.',
       'Tool-level errors include structuredContent errorCode values such as unknown_tool for unknown tool names, unknown_argument for unknown argument names and invalid_arguments for invalid enum/filter/type values.',
-      'Tool-level errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedField, unknownFields, allowedFields, receivedFields, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.',
+      'Tool-level errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, rowName, receivedField, unknownFields, allowedFields, receivedFields, firstSeenAt, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.',
       'Missing node errors include structuredContent repair fields such as missingSlug, similarSlugs, recoveryTools, and createTool.',
       'Slug conflict errors include structuredContent repair fields such as conflictSlug, recoveryTools, and overwriteOption.',
       'Unknown tool: list_concept. Did you mean "list_concepts"?',
@@ -6543,7 +6544,7 @@ describe('verify.mjs first-contact gates', () => {
       'initialize instructions missing structured errorCode guidance',
     );
     assert.equal(
-      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('receivedField, unknownFields, allowedFields, receivedFields, ', '') } }),
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('rowName, receivedField, unknownFields, allowedFields, receivedFields, firstSeenAt, ', '') } }),
       'initialize instructions missing structured row field repair guidance',
     );
     assert.equal(

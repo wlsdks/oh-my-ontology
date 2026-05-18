@@ -3930,6 +3930,7 @@ await test("add_concepts — 입력 내 중복 slug 두번째는 ok:false", asyn
     assert.match(result.concepts[1].error, /concepts\[1\] duplicate slug in input batch/i);
     assert.match(result.concepts[1].error, /first seen at concepts\[0\]/i);
     assert.equal(result.concepts[1].errorCode, "conflict");
+    assert.equal(result.concepts[1].rowName, "concepts[1]");
     assert.equal(result.concepts[1].conflictSubject, "Duplicate slug in input batch");
     assert.equal(result.concepts[1].conflictSlug, "dup");
     assert.equal(result.concepts[1].firstSeenAt, "concepts[0]");
