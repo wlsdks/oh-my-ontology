@@ -3586,11 +3586,17 @@ export function verifyUsage() {
     '  pnpm test:mcp:verify:first-contact\n' +
     '                                  Narrow first-contact initialize-tool-inventory/initialize-safety-recovery/unknown-tool/write-safety/health-summary/advisory/read/sample-shape helper gates.\n' +
     '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/startup/help/empty-vault diagnostics.\n' +
+    '  pnpm test:dogfood:args          Narrow dogfood shortcut argument helper contract.\n' +
     '  pnpm test:dogfood:script-refs   Narrow help/package-script reference contract.\n' +
     '  pnpm dogfood:compile            Cheap root checkout compile_ontology summary snapshot.\n' +
+    '  pnpm dogfood:compile-fix        Cheap root checkout compile --fix idempotence gate; success ends with [dogfood:compile-fix] docs/ontology unchanged.\n' +
+    '  pnpm test:dogfood:compile-fix   Narrow dogfood compile --fix idempotence runner contract.\n' +
+    '  pnpm dogfood:health             Cheap root checkout health gate.\n' +
+    '  pnpm dogfood:brief              Cheap root checkout workspace_brief snapshot.\n' +
     '  pnpm dogfood:growth             Cheap root checkout growth_plan snapshot.\n' +
     '  pnpm dogfood:maintenance        Cheap root checkout maintenance_plan snapshot.\n' +
     '  pnpm dogfood:status             Cheap root checkout health + workspace-brief + maintenance preflight before full verify.\n' +
+    '  pnpm test:dogfood:status        Narrow dogfood status shortcut runner contract.\n' +
     '  pnpm dogfood:verify             Root checkout dogfood vault installed-style verify gate.\n'
   );
 }

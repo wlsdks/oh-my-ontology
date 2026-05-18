@@ -22,6 +22,9 @@ can inspect ontology write candidates without raw JSON-RPC.
 - **Maintenance dogfood shortcut** — `pnpm dogfood:maintenance` snapshots the
   project ontology's `maintenance_plan` queue as a focused check without running
   the full human-readable status preflight.
+- **Direct MCP verify help** — `npm run verify -- --help` now lists the same
+  narrow dogfood shortcuts for arguments, compile-fix idempotence, health,
+  brief, growth, maintenance, and status before the full installed-style gate.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 

@@ -2161,11 +2161,17 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm test:mcp:verify:first-contact\\s\+Narrow first-contact initialize-tool-inventory\\\/initialize-safety-recovery\\\/unknown-tool\\\/write-safety\\\/health-summary\\\/advisory\\\/read\\\/sample-shape helper gates/);
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
     assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help\\\/empty-vault diagnostics/);
+    assert.match(smoke, /pnpm test:dogfood:args\\s\+Narrow dogfood shortcut argument helper contract/);
     assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference contract/);
     assert.match(smoke, /pnpm dogfood:compile\\s\+Cheap root checkout compile_ontology summary snapshot/);
+    assert.match(smoke, /pnpm dogfood:compile-fix\\s\+Cheap root checkout compile --fix idempotence gate; success ends with \\\[dogfood:compile-fix\\\] docs\\\/ontology unchanged/);
+    assert.match(smoke, /pnpm test:dogfood:compile-fix\\s\+Narrow dogfood compile --fix idempotence runner contract/);
+    assert.match(smoke, /pnpm dogfood:health\\s\+Cheap root checkout health gate/);
+    assert.match(smoke, /pnpm dogfood:brief\\s\+Cheap root checkout workspace_brief snapshot/);
     assert.match(smoke, /pnpm dogfood:growth\\s\+Cheap root checkout growth_plan snapshot/);
     assert.match(smoke, /pnpm dogfood:maintenance\\s\+Cheap root checkout maintenance_plan snapshot/);
     assert.match(smoke, /pnpm dogfood:status\\s\+Cheap root checkout health \\\+ workspace-brief \\\+ maintenance preflight before full verify/);
+    assert.match(smoke, /pnpm test:dogfood:status\\s\+Narrow dogfood status shortcut runner contract/);
     assert.match(smoke, /pnpm dogfood:verify\\s\+Root checkout dogfood vault installed-style verify gate/);
     assert.match(smoke, /verify timeout must be a positive integer/);
     assert.match(smoke, /invalidCliMcpVerifyTimeout/);
