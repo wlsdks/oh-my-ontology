@@ -233,6 +233,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /root README honest/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /MCP README explicit/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /CLI README explicit/);
+    assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /CLAUDE\.md a thin AGENTS wrapper/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /Firebase static hosting/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /docs-vault freshness check/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /dogfood MCP docs/);
@@ -1550,6 +1551,23 @@ describe('package contract helpers', () => {
     assert.match(prTemplate, /If `scripts\/validate-vault\.mjs`, vault validation docs, or CI validation gates changed: `pnpm test:vault:validate`/);
     assert.match(prTemplate, /If `scripts\/audit-vault-paths\.mjs`, dogfood path audit docs, or CI audit gates changed: `pnpm test:vault:audit`/);
     assert.match(prTemplate, /If `docs\/`, `public\/docs-vault\/`, or static dogfood manifest behavior changed: `pnpm docs-vault:check`/);
+  });
+
+  it('keeps CLAUDE.md a thin AGENTS wrapper', () => {
+    const claude = readFileSync('CLAUDE.md', 'utf-8');
+    const agentImports = [...claude.matchAll(/^@AGENTS\.md$/gm)];
+
+    assert.equal(agentImports.length, 1);
+    assert.match(claude, /AGENTS\.md[\s\S]*canonical/);
+    assert.match(claude, /AGENTS\.md 가 single source of truth/);
+    assert.match(claude, /thin wrapper/);
+    assert.match(claude, /\.claude\/rules\/\*\.md/);
+    assert.match(claude, /\.claude\/settings\.json/);
+    assert.match(claude, /\.claude\/skills\/\*/);
+    assert.doesNotMatch(claude, /## Project overview/);
+    assert.doesNotMatch(claude, /## 프로젝트 개요/);
+    assert.doesNotMatch(claude, /docs\/ontology\/\s+this project's own ontology vault/);
+    assert.ok(claude.split('\n').length <= 25, 'CLAUDE.md should stay a small wrapper around AGENTS.md');
   });
 
   it('keeps the benchmark script-list task unfrozen', () => {
