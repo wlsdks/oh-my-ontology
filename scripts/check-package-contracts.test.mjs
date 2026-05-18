@@ -1287,6 +1287,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /post-timeout cleanup window/);
     assert.match(verifySection, /outer timeout for `OMOT_MCP_VERIFY_PATH` overrides/);
     assert.match(verifySection, /custom verify script that stalls cannot hang/);
+    assert.match(verifySection, /delegated verify script terminates by signal/);
+    assert.match(verifySection, /reports the signal instead of returning a silent exit 1/);
     assert.match(verifySection, /node-to-project `path`/);
     assert.match(verifySection, /`path` hop\/edge alignment/);
     assert.match(verifySection, /Malformed `cycles` and `path`\s+payloads fail closed before machine output/);
@@ -2282,6 +2284,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /signal 종료는 missing-response fallback 이 아니라 `mcp terminated by SIGTERM` 같은 signal context/);
     assert.match(doc, /성공 응답은 text 없이 `structuredContent` 만 있어도 수용/);
     assert.match(doc, /`structuredContent` 가 없는 경우에만 text JSON 으로 fallback/);
+    assert.match(doc, /delegated verify script 가 wrapper timeout 전 signal 로 종료되면 silent exit 1 이 아니라 `MCP verify script terminated by SIGTERM`/);
     assert.match(doc, /cli\/src\/lib\/mcp-call\.test\.mjs/);
     assert.match(regressionSection, /`pnpm test:cli:lib`/);
     assert.match(regressionSection, /`pnpm test:cli:args`/);
@@ -2512,6 +2515,7 @@ export const CLI_COMMAND_RUNNERS = Object.freeze({
     assert.match(wrapper, /spawn\(process\.execPath, \[verifyScript\]/);
     assert.doesNotMatch(wrapper, /spawn\('node', \[verifyScript\]/);
     assert.match(wrapper, /MCP verify wrapper timed out after \$\{wrapperTimeoutMs\}ms/);
+    assert.match(wrapper, /MCP verify script terminated by \$\{signal\}/);
     assert.match(wrapper, /Check OMOT_MCP_VERIFY_PATH/);
     assert.match(wrapper, /proc\.kill\('SIGTERM'\)/);
     assert.match(wrapper, /proc\.kill\('SIGKILL'\)/);
@@ -2523,8 +2527,10 @@ export const CLI_COMMAND_RUNNERS = Object.freeze({
     assert.match(verify, /DEFAULT_VERIFY_RETRY_EXAMPLE = 'npm run verify -- --timeout-ms 15000'/);
     assert.match(integration, /passes CLI retry hint to the verify script/);
     assert.match(integration, /times out a stalled verify script override/);
+    assert.match(integration, /reports verify script signal exits/);
     assert.match(integration, /OMOT_MCP_VERIFY_PATH: verifyScript/);
     assert.match(integration, /MCP verify wrapper timed out after 50ms/);
+    assert.match(integration, /MCP verify script terminated by SIGTERM/);
     assert.match(integration, /retry=\$\{process\.env\.OMOT_VERIFY_RETRY_EXAMPLE\}/);
     assert.match(integration, /oh-my-ontology mcp-verify --vault '.\+vault with space' --timeout-ms 15000/);
     assert.match(integration, /oh-my-ontology mcp-verify --vault ontology --timeout-ms 15000/);

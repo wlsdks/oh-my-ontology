@@ -628,6 +628,27 @@ await test('mcp-verify — times out a stalled verify script override', async ()
   assert.match(stripAnsi(r.stderr), /increase --timeout-ms \/ OMOT_VERIFY_TIMEOUT_MS/);
 });
 
+await test('mcp-verify — reports verify script signal exits', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'cli-mcp-verify-signal-'));
+  const vault = join(root, 'ontology');
+  mkdirSync(vault);
+  const verifyScript = join(root, 'signal-verify.mjs');
+  writeFileSync(
+    verifyScript,
+    "process.stderr.write('verify script signal\\n'); process.kill(process.pid, 'SIGTERM');",
+    'utf-8',
+  );
+
+  const r = await run(['mcp-verify', vault], {
+    env: { OMOT_MCP_VERIFY_PATH: verifyScript },
+  });
+
+  assert.equal(r.code, 1);
+  assert.match(stripAnsi(r.stderr), /verify script signal/);
+  assert.match(stripAnsi(r.stderr), /MCP verify script terminated by SIGTERM/);
+  assert.match(stripAnsi(r.stderr), /Check OMOT_MCP_VERIFY_PATH/);
+});
+
 await test('mcp-verify — rejects ambiguous vault arguments', async () => {
   const missing = await run(['mcp-verify', '--vault']);
   assert.equal(missing.code, 1);

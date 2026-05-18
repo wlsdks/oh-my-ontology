@@ -95,6 +95,7 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs, vaultArg) {
     const wrapperTimeoutMs = verifyWaitMs + killGraceMs;
     let settled = false;
     let exited = false;
+    let wrapperTimedOut = false;
     let killTimer = null;
     let timeoutTimer = null;
     const finish = (code) => {
@@ -116,6 +117,7 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs, vaultArg) {
     proc.stdout.on('data', (b) => process.stdout.write(b));
     proc.stderr.on('data', (b) => process.stderr.write(b));
     timeoutTimer = setTimeout(() => {
+      wrapperTimedOut = true;
       process.stderr.write(
         `${COLORS.red}error${COLORS.reset}  MCP verify wrapper timed out after ${wrapperTimeoutMs}ms. ` +
         'Check OMOT_MCP_VERIFY_PATH or increase --timeout-ms / OMOT_VERIFY_TIMEOUT_MS.\n',
@@ -127,8 +129,14 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs, vaultArg) {
       killTimer.unref?.();
     }, wrapperTimeoutMs);
     timeoutTimer.unref?.();
-    proc.on('close', (code) => {
+    proc.on('close', (code, signal) => {
       exited = true;
+      if (!wrapperTimedOut && signal) {
+        process.stderr.write(
+          `${COLORS.red}error${COLORS.reset}  MCP verify script terminated by ${signal}. ` +
+          'Check OMOT_MCP_VERIFY_PATH or rerun with --timeout-ms 15000 for slower vaults.\n',
+        );
+      }
       finish(code ?? 1);
     });
     proc.on('error', (err) => {
