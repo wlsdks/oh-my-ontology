@@ -4667,6 +4667,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);
     assert.match(verifyUsage(), /npm run verify -- \[vault\] \[--timeout-ms N\]/);
     assert.match(verifyUsage(), /npm run verify -- --vault path --timeout-ms 15000/);
+    assert.match(verifyUsage(), /pnpm --filter \.\/mcp verify -- \[vault\] \[--timeout-ms N\]/);
     assert.match(verifyUsage(), /pnpm --filter \.\/mcp verify -- --help/);
     assert.match(verifyUsage(), /Run npm run verify from the mcp\/ package directory/);
     assert.match(verifyUsage(), /from the repo root, use node mcp\/scripts\/verify\.mjs or pnpm --filter \.\/mcp verify -- \.\.\./);

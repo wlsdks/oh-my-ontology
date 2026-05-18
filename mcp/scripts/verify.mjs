@@ -3533,6 +3533,7 @@ export function verifyUsage() {
     '  node mcp/scripts/verify.mjs --vault path --timeout-ms 15000\n' +
     '  npm run verify -- [vault] [--timeout-ms N]\n' +
     '  npm run verify -- --vault path --timeout-ms 15000\n' +
+    '  pnpm --filter ./mcp verify -- [vault] [--timeout-ms N]\n' +
     '  pnpm --filter ./mcp verify -- --help\n\n' +
     'Runs the MCP server first-contact verification against the resolved vault.\n' +
     'Run npm run verify from the mcp/ package directory; from the repo root, use node mcp/scripts/verify.mjs or pnpm --filter ./mcp verify -- ...\n' +

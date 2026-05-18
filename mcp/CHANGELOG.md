@@ -65,6 +65,7 @@
 - `npm run verify -- --help` now labels the narrow first-contact helper gate as `initialize-tool-inventory/initialize-safety-recovery`, so the focused-check hint matches the full guidance gate instead of the older `initialize-hint` wording.
 - `npm run verify` now normalizes a leading pnpm separator, so root-level `pnpm --filter ./mcp verify -- --help` prints verify usage instead of failing with `Unknown option: --`.
 - `npm run verify -- --help` now lists the root-level `pnpm --filter ./mcp verify -- --help` path directly, so package help matches the separator normalization it already supports.
+- `npm run verify -- --help` now also lists the root-level `pnpm --filter ./mcp verify -- [vault] [--timeout-ms N]` execution form, so agents can copy the filtered package invocation for real vault checks without translating from `npm run`.
 - `npm run verify` now fails if the invalid-type `add_relation` strict smoke includes `changed` or `postWriteMaintenance` in the result or `structuredContent`, so the preflight rejection stays visibly non-writing.
 - `npm run verify` now fails if `tools/list` exposes duplicate tool names, so MCP clients never accept an ambiguous first-contact inventory.
 - Successful `npm run verify` output now prints a dedicated `tools/list inventory names` pass line, so agents can distinguish inventory-name coverage from schema and annotation coverage in first-contact logs.

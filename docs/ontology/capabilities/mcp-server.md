@@ -547,7 +547,8 @@ destructive dry-run gate, tools/list inventory name / annotation coverage, stric
 관련 문서 계약만 먼저 확인한다. dogfood argument / timeout / retry help 만 만질 때는
 `pnpm test:mcp:dogfood:timeout` 으로 더 좁게 확인한다. 직접 verify help 는
 `mcp/` package directory 의 `npm run verify -- --help`, repo root 의
-`node mcp/scripts/verify.mjs --help`, 또는 root `pnpm --filter ./mcp verify -- --help` 로 확인하며, pnpm separator `--` 는 직접 verify parser 에서 정규화한다. `list_concepts` project probe / `get_concept` / `get_concepts` /
+`node mcp/scripts/verify.mjs --help`, 또는 root `pnpm --filter ./mcp verify -- --help` 로 확인하며,
+root 에서 실제 vault 를 검증할 때는 `pnpm --filter ./mcp verify -- [vault] [--timeout-ms N]` 형태를 그대로 쓴다. pnpm separator `--` 는 직접 verify parser 에서 정규화한다. `list_concepts` project probe / `get_concept` / `get_concepts` /
 `query_concepts` / limited `query_concepts` / `analyze_repo_structure` / `infer_imports` / `find_neighbors`
 를 포함한 focused direct read smoke set 도 설명한다. 별도 limited `query_concepts` smoke 로 `slug!=project, limit=1`
 semantics 를 확인해 typed-filter pagination 계약을 빠르게 점검한다.

@@ -2089,6 +2089,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /--vault requires a path value/);
     assert.match(smoke, /npm run verify -- \\\[vault\\\] \\\[--timeout-ms N\\\]/);
     assert.match(smoke, /npm run verify -- --vault path --timeout-ms 15000/);
+    assert.match(smoke, /pnpm --filter .*mcp verify -- \\\[vault\\\] \\\[--timeout-ms N\\\]/);
     assert.match(smoke, /pnpm --filter .*mcp verify -- --help/);
     assert.match(smoke, /Run npm run verify from the mcp\\\/ package directory/);
     assert.match(smoke, /from the repo root, use node mcp\\\/scripts\\\/verify\\\.mjs or pnpm --filter .*mcp verify --/);
@@ -2475,6 +2476,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /stderr warning filtering/);
     assert.match(doc, /first-contact README read-only/);
     assert.match(doc, /직접 verify help 는\s+`mcp\/` package directory 의 `npm run verify -- --help`, repo root 의\s+`node mcp\/scripts\/verify\.mjs --help`, 또는 root `pnpm --filter \.\/mcp verify -- --help`/);
+    assert.match(doc, /root 에서 실제 vault 를 검증할 때는 `pnpm --filter \.\/mcp verify -- \[vault\] \[--timeout-ms N\]`/);
     assert.match(doc, /pnpm separator `--` 는 직접 verify parser 에서 정규화한다/);
     assert.match(doc, /직접 verify help\(`mcp\/` 에서 `npm run verify -- --help`, repo root 에서\s+`node mcp\/scripts\/verify\.mjs --help` 또는 `pnpm --filter \.\/mcp verify -- --help`\)/);
     assert.match(doc, /설치 verify 의 tuned diagnosis 라인도\s+`dependencyTypes=dependencies`,\s+`componentTypes=domains\/domain\/capabilities\/dependencies` scope 를 같이 출력/);
