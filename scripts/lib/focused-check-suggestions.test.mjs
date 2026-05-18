@@ -44,6 +44,21 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests cross-package contracts for parser schema and validator drift', () => {
+    const result = suggestFocusedChecks([
+      'mcp/src/schema.mjs',
+      'cli/src/lib/parse-frontmatter.mjs',
+      'src/shared/lib/validate-vault-document.ts',
+      'tests/fixtures/validate-vault-cases.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:contracts',
+      'pnpm test:cli:lib',
+      'pnpm dogfood:status',
+    ]);
+  });
+
   it('suggests narrow dogfood helper tests before broader dogfood gates', () => {
     const result = suggestFocusedChecks([
       'scripts/lib/dogfood-args.mjs',

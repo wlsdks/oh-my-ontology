@@ -25,6 +25,20 @@ const RULES = [
     matches: [/^scripts\/audit-vault-paths\.(?:mjs|test\.mjs)$/],
   },
   {
+    command: 'pnpm test:contracts',
+    reason: 'cross-package parser/schema/validator contract changed',
+    matches: [
+      /^tests\/contract\//,
+      /^tests\/fixtures\/(?:frontmatter|frontmatter-writer|validate-vault)-cases\.mjs$/,
+      /^mcp\/src\/(?:parser|schema|validate)\.mjs$/,
+      /^cli\/src\/lib\/(?:parse-frontmatter|schema|validate)\.mjs$/,
+      /^cli\/src\/commands\/validate\.mjs$/,
+      /^scripts\/lib\/parse-frontmatter\.mjs$/,
+      /^scripts\/migrations\/2026-05-04-trim-frontmatter-values\.mjs$/,
+      /^src\/shared\/lib\/(?:parse-frontmatter|validate-vault-document)\.ts$/,
+    ],
+  },
+  {
     command: 'pnpm test:dogfood:script-refs',
     reason: 'help text, package-script references, or focused wrapper behavior changed',
     matches: [
