@@ -87,12 +87,20 @@ export function assertMaintenancePlanShape(result) {
   }
   for (const field of ['nextExecutableAction', 'nextReviewAction']) {
     if (result[field] !== null && !validMaintenanceActionPointer(result[field])) {
-      throw new Error(`maintenance_plan ${field} must be null or an action pointer with an id`);
+      throw new Error(`maintenance_plan ${field} must be null or an action pointer with id, executable, phase, kind, and severity`);
     }
   }
   const firstExecutableAction = result.actions.find((action) => action.executable === true) ?? null;
   if (firstExecutableAction && result.nextExecutableAction?.id !== firstExecutableAction.id) {
     throw new Error('maintenance_plan nextExecutableAction must match the first executable action on the page');
+  }
+  if (firstExecutableAction) {
+    const pointerMismatch = maintenanceActionPointerMismatch(
+      firstExecutableAction,
+      result.nextExecutableAction,
+      'nextExecutableAction',
+    );
+    if (pointerMismatch) throw new Error(pointerMismatch);
   }
   if (!firstExecutableAction && result.nextExecutableAction !== null) {
     throw new Error('maintenance_plan nextExecutableAction must be null when the page has no executable actions');
@@ -100,6 +108,14 @@ export function assertMaintenancePlanShape(result) {
   const firstReviewAction = result.actions.find((action) => action.executable === false) ?? null;
   if (firstReviewAction && result.nextReviewAction?.id !== firstReviewAction.id) {
     throw new Error('maintenance_plan nextReviewAction must match the first review action on the page');
+  }
+  if (firstReviewAction) {
+    const pointerMismatch = maintenanceActionPointerMismatch(
+      firstReviewAction,
+      result.nextReviewAction,
+      'nextReviewAction',
+    );
+    if (pointerMismatch) throw new Error(pointerMismatch);
   }
   if (!firstReviewAction && result.nextReviewAction !== null) {
     throw new Error('maintenance_plan nextReviewAction must be null when the page has no review actions');
@@ -506,7 +522,23 @@ function validMaintenanceAction(action) {
 }
 
 function validMaintenanceActionPointer(action) {
-  return Boolean(isPlainObject(action) && hasNonEmptyString(action.id));
+  return Boolean(
+    isPlainObject(action)
+    && hasNonEmptyString(action.id)
+    && hasNonEmptyString(action.phase)
+    && hasNonEmptyString(action.kind)
+    && MAINTENANCE_ACTION_SEVERITIES.has(action.severity)
+    && typeof action.executable === 'boolean'
+  );
+}
+
+function maintenanceActionPointerMismatch(expectedAction, pointer, label) {
+  for (const field of ['executable', 'phase', 'kind', 'severity']) {
+    if (pointer[field] !== expectedAction[field]) {
+      return `maintenance_plan ${label}.${field} must match the first page action`;
+    }
+  }
+  return null;
 }
 
 function validNodeSummary(row) {

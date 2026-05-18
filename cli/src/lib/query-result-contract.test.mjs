@@ -70,7 +70,13 @@ describe('query-result-contract', () => {
       byPhase: { repair: 1 },
       bySeverity: { warn: 1 },
       byKind: { canonicalize_graph_arrays: 1 },
-      nextExecutableAction: { id: 'maint_1' },
+      nextExecutableAction: {
+        id: 'maint_1',
+        phase: 'repair',
+        kind: 'canonicalize_graph_arrays',
+        severity: 'warn',
+        executable: true,
+      },
       nextReviewAction: null,
       actions: [
         {
@@ -83,8 +89,41 @@ describe('query-result-contract', () => {
         },
       ],
     };
+    const withReview = {
+      ...valid,
+      summary: {
+        totalActions: 2,
+        filteredActions: 2,
+        remainingActions: 2,
+        executableActions: 1,
+        reviewActions: 1,
+      },
+      cursor: { ...valid.cursor, nextAfterActionId: 'maint_review' },
+      byPhase: { repair: 1, review: 1 },
+      bySeverity: { warn: 1, info: 1 },
+      byKind: { canonicalize_graph_arrays: 1, unassigned_node: 1 },
+      nextReviewAction: {
+        id: 'maint_review',
+        phase: 'review',
+        kind: 'unassigned_node',
+        severity: 'info',
+        executable: false,
+      },
+      actions: [
+        valid.actions[0],
+        {
+          id: 'maint_review',
+          phase: 'review',
+          kind: 'unassigned_node',
+          severity: 'info',
+          executable: false,
+          score: 10,
+        },
+      ],
+    };
 
     assert.equal(assertMaintenancePlanShape(valid), valid);
+    assert.equal(assertMaintenancePlanShape(withReview), withReview);
     assert.equal(
       assertMaintenancePlanShape({
         ...valid,
@@ -160,15 +199,73 @@ describe('query-result-contract', () => {
     );
     assert.throws(
       () => assertMaintenancePlanShape({ ...valid, nextExecutableAction: {} }),
-      /nextExecutableAction must be null or an action pointer with an id/,
+      /nextExecutableAction must be null or an action pointer with id, executable, phase, kind, and severity/,
     );
     assert.throws(
-      () => assertMaintenancePlanShape({ ...valid, nextExecutableAction: { id: 'maint_other' } }),
+      () => assertMaintenancePlanShape({ ...valid, nextExecutableAction: { id: 'maint_1' } }),
+      /nextExecutableAction must be null or an action pointer with id, executable, phase, kind, and severity/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({
+        ...valid,
+        nextExecutableAction: { ...valid.nextExecutableAction, id: 'maint_other' },
+      }),
       /nextExecutableAction must match the first executable action on the page/,
     );
     assert.throws(
-      () => assertMaintenancePlanShape({ ...valid, nextReviewAction: { id: 'maint_review' } }),
+      () => assertMaintenancePlanShape({
+        ...valid,
+        nextExecutableAction: { ...valid.nextExecutableAction, phase: 'link' },
+      }),
+      /nextExecutableAction\.phase must match the first page action/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({
+        ...valid,
+        nextExecutableAction: { ...valid.nextExecutableAction, kind: 'add_missing_relation' },
+      }),
+      /nextExecutableAction\.kind must match the first page action/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({
+        ...valid,
+        nextExecutableAction: { ...valid.nextExecutableAction, severity: 'info' },
+      }),
+      /nextExecutableAction\.severity must match the first page action/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({
+        ...valid,
+        nextExecutableAction: { ...valid.nextExecutableAction, executable: false },
+      }),
+      /nextExecutableAction\.executable must match the first page action/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({
+        ...valid,
+        nextReviewAction: {
+          id: 'maint_review',
+          phase: 'review',
+          kind: 'unassigned_node',
+          severity: 'info',
+          executable: false,
+        },
+      }),
       /nextReviewAction must be null when the page has no review actions/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({
+        ...withReview,
+        nextReviewAction: { ...withReview.nextReviewAction, kind: 'empty_domain' },
+      }),
+      /nextReviewAction\.kind must match the first page action/,
+    );
+    assert.throws(
+      () => assertMaintenancePlanShape({
+        ...withReview,
+        nextReviewAction: { ...withReview.nextReviewAction, executable: true },
+      }),
+      /nextReviewAction\.executable must match the first page action/,
     );
   });
 
