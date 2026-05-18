@@ -139,17 +139,12 @@ import {
 } from '../scripts/verify.mjs';
 import { expectedResponseIds, missingResponseLabels } from '../scripts/json-rpc-lines.mjs';
 import { GRAPH_ARRAY_KEYS } from './vault.mjs';
+import { assertPnpmScriptsExist } from '../../scripts/lib/pnpm-script-refs.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
 const ROOT_PKG = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8'));
 const VERIFY_SCRIPT = join(__dirname, '..', 'scripts', 'verify.mjs');
-
-function assertPnpmScriptsExist(text) {
-  for (const [, script] of text.matchAll(/pnpm ([\w:-]+)/g)) {
-    assert.equal(typeof ROOT_PKG.scripts?.[script], 'string', `${script} exists in package.json`);
-  }
-}
 
 function strictErrorResponse(text, extraResult = {}) {
   return {
@@ -4163,11 +4158,12 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /Focused checks:/);
     assert.match(verifyUsage(), /pnpm test:mcp:verify\s+MCP verify helper contract without the full integration suite/);
     assert.match(verifyUsage(), /pnpm test:mcp:verify:first-contact/);
-    assert.match(verifyUsage(), /Narrow first-contact initialize-safety-recovery\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
+    assert.match(verifyUsage(), /Narrow first-contact initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
     assert.match(verifyUsage(), /pnpm test:mcp:verify:timeout/);
     assert.match(verifyUsage(), /Narrow MCP verify timeout\/startup\/help diagnostics/);
+    assert.match(verifyUsage(), /pnpm test:dogfood:script-refs\s+Narrow documented pnpm script reference contract/);
     assert.match(verifyUsage(), /pnpm dogfood:verify\s+Root checkout dogfood vault installed-style verify gate/);
-    assertPnpmScriptsExist(verifyUsage());
+    assertPnpmScriptsExist(verifyUsage(), ROOT_PKG.scripts);
   });
 
   it('direct verify usage keeps entrypoint on natural exit so verbose output can flush', () => {
