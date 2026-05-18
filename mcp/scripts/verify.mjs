@@ -291,6 +291,10 @@ function unknownFieldsItemSchemaFailure(schema, toolName) {
   return null;
 }
 
+function stringArraySchemaFailure(schema) {
+  return !(schema?.type === 'array' && schema.items?.type === 'string');
+}
+
 const NON_BLANK_STRING_PATTERN = '^(?!\\s)(?!.*\\s$)(?!.*\\u0000).+$';
 
 function nonBlankStringSchemaFailure(schema) {
@@ -1933,7 +1937,7 @@ export function toolsListSchemaFailure(tools) {
   );
   if (addConceptsUnknownFieldsFailure) return addConceptsUnknownFieldsFailure;
   for (const propertyName of ['allowedValues', 'allowedFields', 'receivedFields', 'recoveryTools', 'avoidTools']) {
-    if (addConceptRowsSchema.items?.properties?.[propertyName]?.type !== 'array') {
+    if (stringArraySchemaFailure(addConceptRowsSchema.items?.properties?.[propertyName])) {
       return `add_concepts outputSchema row ${propertyName} drift`;
     }
   }
@@ -2045,7 +2049,7 @@ export function toolsListSchemaFailure(tools) {
   );
   if (addRelationsUnknownFieldsFailure) return addRelationsUnknownFieldsFailure;
   for (const propertyName of ['allowedValues', 'allowedFields', 'receivedFields', 'similarSlugs', 'recoveryTools']) {
-    if (addRelationRowsSchema.items?.properties?.[propertyName]?.type !== 'array') {
+    if (stringArraySchemaFailure(addRelationRowsSchema.items?.properties?.[propertyName])) {
       return `add_relations outputSchema row ${propertyName} drift`;
     }
   }

@@ -3826,6 +3826,31 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'add_concepts'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'add_concepts').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties,
+              concepts: {
+                ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties.concepts,
+                items: {
+                  ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties.concepts.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties.concepts.items.properties,
+                    allowedValues: { type: 'array', items: { type: 'number' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'add_concepts outputSchema row allowedValues drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
@@ -3922,6 +3947,31 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'add_relations outputSchema row unknownFields item drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relations'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relations'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'add_relations').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties,
+              relations: {
+                ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations,
+                items: {
+                  ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations.items.properties,
+                    similarSlugs: { type: 'array', items: { type: 'number' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'add_relations outputSchema row similarSlugs drift',
     );
     assert.equal(
       toolsListSchemaFailure([
