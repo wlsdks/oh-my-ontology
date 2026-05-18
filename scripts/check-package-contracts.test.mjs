@@ -2215,6 +2215,7 @@ describe('package contract helpers', () => {
     assert.match(hubsRow, /ranking row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(blastRadiusRow, /summary count \/ affected node page \/ edge page shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(nodeRow, /`--types A,B` 로 relation group 을 먼저 좁힌 뒤 `--limit N` 으로 hotspot 노드의 incoming\/outgoing edge, lineage, containment rows 를 1\.\.500 범위에서 조절/);
+    assert.match(nodeRow, /`--no-external` \/ `--no-unresolved` 로 외부 파일 ref 나 dangling ref 를 edge 목록에서 숨긴다/);
     assert.match(nodeRow, /use --limit N for more/);
     assert.match(nodeRow, /node summary \/ degree \/ edge group \/ lineage page shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(similarRow, /match node \/ score \/ signal \/ shared-neighbor shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);

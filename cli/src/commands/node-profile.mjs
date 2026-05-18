@@ -14,7 +14,7 @@ import {
 } from '../lib/cli-args.mjs';
 import { validateRelationTypeList } from '../lib/relation-types.mjs';
 
-const ALLOWED_FLAGS = ['--vault', '--json', '--limit', '--types'];
+const ALLOWED_FLAGS = ['--vault', '--json', '--limit', '--types', '--no-external', '--no-unresolved'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -38,7 +38,17 @@ const KIND_COLORS = {
 };
 
 export async function runNodeProfile(args) {
-  const { slug, vault, json, limit, types, error, help } = parseArgs(args);
+  const {
+    slug,
+    vault,
+    json,
+    limit,
+    types,
+    includeExternal,
+    includeUnresolved,
+    error,
+    help,
+  } = parseArgs(args);
   if (help) {
     printUsage(process.stdout);
     return 0;
@@ -56,6 +66,8 @@ export async function runNodeProfile(args) {
       slug,
       limit,
       types,
+      includeExternal,
+      includeUnresolved,
     });
     assertNodeProfileShape(result);
   } catch (err) {
@@ -172,7 +184,14 @@ function renderLimitedHint(group, label) {
 
 function parseArgs(args) {
   if (args.includes('--help') || args.includes('-h')) return { help: true };
-  const flags = { vault: null, json: false, limit: undefined, types: undefined };
+  const flags = {
+    vault: null,
+    json: false,
+    limit: undefined,
+    types: undefined,
+    includeExternal: undefined,
+    includeUnresolved: undefined,
+  };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
@@ -195,6 +214,10 @@ function parseArgs(args) {
       const types = parseRelationTypes(a.slice('--types='.length));
       if (types instanceof Error) return { error: types.message };
       flags.types = types;
+    } else if (a === '--no-external') {
+      flags.includeExternal = false;
+    } else if (a === '--no-unresolved') {
+      flags.includeUnresolved = false;
     } else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
@@ -203,7 +226,15 @@ function parseArgs(args) {
   }
   const vaultResult = resolveTrailingVaultArg({ vault: flags.vault, positional, vaultIndex: 1 });
   if (vaultResult.error) return vaultResult;
-  return { slug: positional[0], vault: vaultResult.vault, json: flags.json, limit: flags.limit, types: flags.types };
+  return {
+    slug: positional[0],
+    vault: vaultResult.vault,
+    json: flags.json,
+    limit: flags.limit,
+    types: flags.types,
+    includeExternal: flags.includeExternal,
+    includeUnresolved: flags.includeUnresolved,
+  };
 }
 
 function parseRelationTypes(value) {
@@ -216,9 +247,10 @@ function parseRelationTypes(value) {
 function printUsage(stream = process.stderr) {
   stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
-      `  oh-my-ontology node <slug> [vault] [--limit N] [--types A,B] [--json]\n\n` +
+      `  oh-my-ontology node <slug> [vault] [--limit N] [--types A,B] [--no-external] [--no-unresolved] [--json]\n\n` +
       `한 노드의 전체 deep dive — header · 도메인 · lineage · incoming/outgoing edges (relation 별 그룹).\n` +
       `--limit N 은 incoming/outgoing edge, lineage, containment rows 를 1..500 범위로 조절합니다.\n` +
-      `--types A,B 는 관계 타입을 먼저 필터링합니다. 예: --types dependencies,relates\n`,
+      `--types A,B 는 관계 타입을 먼저 필터링합니다. 예: --types dependencies,relates\n` +
+      `--no-external / --no-unresolved 는 외부 파일 ref 또는 미해결 ref 를 edge 목록에서 숨깁니다.\n`,
   );
 }

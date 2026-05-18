@@ -2384,6 +2384,10 @@ await test('read-only graph commands — reject ambiguous vault arguments before
       pattern: /--types items must be one of:[\s\S]*Received: "depend_on"\.[\s\S]*Did you mean "depends_on"\?/,
     },
     {
+      args: ['node', 'capabilities/foo', '--no-extenal'],
+      pattern: /unknown flag: --no-extenal\. Did you mean --no-external\?/,
+    },
+    {
       args: ['node', 'capabilities/foo', '-json'],
       pattern: /unknown flag: -json\. Did you mean --json\?/,
     },
@@ -3357,6 +3361,37 @@ await test('node --types — relation filters are forwarded before edge limits',
     assert.match(clean, /relates/);
     assert.match(clean, /capabilities\/bar/);
     assert.doesNotMatch(clean, /\n\s+domains\/auth/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('node --no-external/--no-unresolved — noisy refs can be hidden from edge lists', async () => {
+  const root = withVault([
+    {
+      slug: 'capabilities/foo',
+      content:
+        '---\nkind: capability\nslug: capabilities/foo\ntitle: Foo\ndomain: domains/auth\nelements: [src/foo.ts]\ndependencies: [capabilities/missing]\n---\n\n# Foo\n',
+    },
+    {
+      slug: 'domains/auth',
+      content:
+        '---\nkind: domain\nslug: domains/auth\ntitle: Auth\ncapabilities: [capabilities/foo]\n---\n\n# Auth\n',
+    },
+  ]);
+  try {
+    const all = await run(['node', 'capabilities/foo', root, '--json']);
+    assert.equal(all.code, 0, `stdout: ${all.stdout}\nstderr: ${all.stderr}`);
+    const allData = JSON.parse(all.stdout);
+    assert.equal(allData.edges.outgoing.total, 3);
+    assert.ok(allData.edges.outgoing.edges.some((edge) => edge.external && edge.to === 'src/foo.ts'));
+    assert.ok(allData.edges.outgoing.edges.some((edge) => !edge.resolved && !edge.external && edge.to === 'capabilities/missing'));
+
+    const filtered = await run(['node', 'capabilities/foo', root, '--no-external', '--no-unresolved', '--json']);
+    assert.equal(filtered.code, 0, `stdout: ${filtered.stdout}\nstderr: ${filtered.stderr}`);
+    const filteredData = JSON.parse(filtered.stdout);
+    assert.equal(filteredData.edges.outgoing.total, 1);
+    assert.deepEqual(filteredData.edges.outgoing.edges.map((edge) => edge.via), ['domain']);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
