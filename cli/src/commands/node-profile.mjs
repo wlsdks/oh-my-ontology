@@ -8,11 +8,13 @@ import { resolveVaultRoot } from '../lib/resolve-vault.mjs';
 import {
   formatUnknownFlagError,
   parseBoundedPositiveIntegerFlag,
+  parseCsvListFlag,
   parseVaultFlag,
   resolveTrailingVaultArg,
 } from '../lib/cli-args.mjs';
+import { validateRelationTypeList } from '../lib/relation-types.mjs';
 
-const ALLOWED_FLAGS = ['--vault', '--json', '--limit'];
+const ALLOWED_FLAGS = ['--vault', '--json', '--limit', '--types'];
 
 const COLORS = {
   green: '\x1b[32m',
@@ -36,7 +38,7 @@ const KIND_COLORS = {
 };
 
 export async function runNodeProfile(args) {
-  const { slug, vault, json, limit, error, help } = parseArgs(args);
+  const { slug, vault, json, limit, types, error, help } = parseArgs(args);
   if (help) {
     printUsage(process.stdout);
     return 0;
@@ -53,6 +55,7 @@ export async function runNodeProfile(args) {
       operation: 'node_profile',
       slug,
       limit,
+      types,
     });
     assertNodeProfileShape(result);
   } catch (err) {
@@ -169,7 +172,7 @@ function renderLimitedHint(group, label) {
 
 function parseArgs(args) {
   if (args.includes('--help') || args.includes('-h')) return { help: true };
-  const flags = { vault: null, json: false, limit: undefined };
+  const flags = { vault: null, json: false, limit: undefined, types: undefined };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
@@ -184,6 +187,14 @@ function parseArgs(args) {
       const limit = parseBoundedPositiveIntegerFlag('--limit', a.slice('--limit='.length), { max: 500 });
       if (limit instanceof Error) return { error: limit.message };
       flags.limit = limit;
+    } else if (a === '--types') {
+      const types = parseRelationTypes(args[++i]);
+      if (types instanceof Error) return { error: types.message };
+      flags.types = types;
+    } else if (a.startsWith('--types=')) {
+      const types = parseRelationTypes(a.slice('--types='.length));
+      if (types instanceof Error) return { error: types.message };
+      flags.types = types;
     } else if (a.startsWith('-')) return { error: formatUnknownFlagError(a, ALLOWED_FLAGS) };
     else positional.push(a);
   }
@@ -192,14 +203,22 @@ function parseArgs(args) {
   }
   const vaultResult = resolveTrailingVaultArg({ vault: flags.vault, positional, vaultIndex: 1 });
   if (vaultResult.error) return vaultResult;
-  return { slug: positional[0], vault: vaultResult.vault, json: flags.json, limit: flags.limit };
+  return { slug: positional[0], vault: vaultResult.vault, json: flags.json, limit: flags.limit, types: flags.types };
+}
+
+function parseRelationTypes(value) {
+  const types = parseCsvListFlag('--types', value, { itemName: 'relation type' });
+  if (types instanceof Error) return types;
+  const invalid = validateRelationTypeList(types, '--types items');
+  return invalid || types;
 }
 
 function printUsage(stream = process.stderr) {
   stream.write(
     `\n${COLORS.bold}Usage:${COLORS.reset}\n` +
-      `  oh-my-ontology node <slug> [vault] [--limit N] [--json]\n\n` +
+      `  oh-my-ontology node <slug> [vault] [--limit N] [--types A,B] [--json]\n\n` +
       `한 노드의 전체 deep dive — header · 도메인 · lineage · incoming/outgoing edges (relation 별 그룹).\n` +
-      `--limit N 은 incoming/outgoing edge, lineage, containment rows 를 1..500 범위로 조절합니다.\n`,
+      `--limit N 은 incoming/outgoing edge, lineage, containment rows 를 1..500 범위로 조절합니다.\n` +
+      `--types A,B 는 관계 타입을 먼저 필터링합니다. 예: --types dependencies,relates\n`,
   );
 }

@@ -2372,6 +2372,18 @@ await test('read-only graph commands — reject ambiguous vault arguments before
       pattern: /--limit must be <= 500/,
     },
     {
+      args: ['node', 'capabilities/foo', '--types'],
+      pattern: /--types requires a value/,
+    },
+    {
+      args: ['node', 'capabilities/foo', '--types=dependencies,'],
+      pattern: /--types must not contain empty CSV items/,
+    },
+    {
+      args: ['node', 'capabilities/foo', '--types=depend_on'],
+      pattern: /--types items must be one of:[\s\S]*Received: "depend_on"\.[\s\S]*Did you mean "depends_on"\?/,
+    },
+    {
       args: ['node', 'capabilities/foo', '-json'],
       pattern: /unknown flag: -json\. Did you mean --json\?/,
     },
@@ -3322,6 +3334,29 @@ await test('node --limit — high-degree edge groups are tunable', async () => {
     const human = await run(['node', 'capabilities/foo', root, '--limit=1']);
     assert.equal(human.code, 0, `stdout: ${human.stdout}\nstderr: ${human.stderr}`);
     assert.match(stripAnsi(human.stdout), /incoming edges limited: showing 1\/2; use --limit N for more/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('node --types — relation filters are forwarded before edge limits', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['node', 'capabilities/foo', root, '--types=relates', '--json']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const data = JSON.parse(r.stdout);
+    assert.equal(data.operation, 'node_profile');
+    assert.equal(data.edges.incoming.total, 1);
+    assert.equal(data.edges.incoming.edges[0]?.via, 'relates');
+    assert.equal(data.edges.incoming.edges[0]?.from, 'capabilities/bar');
+    assert.equal(data.edges.outgoing.total, 0);
+
+    const human = await run(['node', 'capabilities/foo', root, '--types=relates']);
+    assert.equal(human.code, 0, `stdout: ${human.stdout}\nstderr: ${human.stderr}`);
+    const clean = stripAnsi(human.stdout);
+    assert.match(clean, /relates/);
+    assert.match(clean, /capabilities\/bar/);
+    assert.doesNotMatch(clean, /\n\s+domains\/auth/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

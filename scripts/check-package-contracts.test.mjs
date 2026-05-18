@@ -25,6 +25,7 @@ import {
   RELATION_TYPE_VALUES,
   WRITE_RELATION_TYPE_VALUES,
 } from '../mcp/src/ontology-engine.mjs';
+import { RELATION_TYPE_VALUES as CLI_RELATION_TYPE_VALUES } from '../cli/src/lib/relation-types.mjs';
 import { compileOntology } from '../mcp/src/ontology-compiler.mjs';
 import { collectNeighborRefs, findBacklinks, loadVaultDocs } from '../mcp/src/vault.mjs';
 import {
@@ -648,6 +649,10 @@ describe('package contract helpers', () => {
     assert.match(scalarInputSection, /`query_ontology\(\{ operation: "relation_check" \}\)`/);
     assert.match(scalarInputSection, /relation `type` is\s+validated before endpoint slug resolution/);
     assert.match(scalarInputSection, /empty or project-less\s+vaults where the requested endpoints do not exist/);
+  });
+
+  it('keeps CLI relation type validation aligned with MCP query filters', () => {
+    assert.deepEqual(CLI_RELATION_TYPE_VALUES, RELATION_TYPE_VALUES);
   });
 
   it('keeps docs aligned with repo analysis MCP argument names', () => {
@@ -2209,7 +2214,7 @@ describe('package contract helpers', () => {
     assert.match(overviewRow, /graph \/ count bucket \/ hub row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(hubsRow, /ranking row shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(blastRadiusRow, /summary count \/ affected node page \/ edge page shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
-    assert.match(nodeRow, /`--limit N` 으로 hotspot 노드의 incoming\/outgoing edge, lineage, containment rows 를 1\.\.500 범위에서 조절/);
+    assert.match(nodeRow, /`--types A,B` 로 relation group 을 먼저 좁힌 뒤 `--limit N` 으로 hotspot 노드의 incoming\/outgoing edge, lineage, containment rows 를 1\.\.500 범위에서 조절/);
     assert.match(nodeRow, /use --limit N for more/);
     assert.match(nodeRow, /node summary \/ degree \/ edge group \/ lineage page shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(similarRow, /match node \/ score \/ signal \/ shared-neighbor shape 이 malformed 인 payload 는 JSON 또는 human output 전 exit 2/);
