@@ -95,6 +95,12 @@ export async function runRename(args) {
     `${COLORS.green}ok${COLORS.reset}    ${COLORS.bold}${oldSlug}${COLORS.reset} → ${COLORS.bold}${newSlug}${COLORS.reset} ` +
       `${COLORS.dim}(${updates.length} file(s) updated)${COLORS.reset}\n`,
   );
+  for (const u of updates) {
+    process.stdout.write(`  ${COLORS.cyan}${u.slug}${COLORS.reset}\n`);
+    for (const c of graphUpdateChanges(u)) {
+      process.stdout.write(`    ${COLORS.dim}${c}${COLORS.reset}\n`);
+    }
+  }
   return 0;
 }
 

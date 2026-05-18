@@ -92,6 +92,12 @@ export async function runMerge(args) {
     `${COLORS.green}ok${COLORS.reset}    ${COLORS.bold}${fromSlug}${COLORS.reset} → ${COLORS.bold}${intoSlug}${COLORS.reset} ` +
       `${COLORS.dim}(${updates.length} file(s) updated, ${fromSlug}.md deleted)${COLORS.reset}\n`,
   );
+  for (const u of updates) {
+    process.stdout.write(`  ${COLORS.cyan}${u.slug}${COLORS.reset}\n`);
+    for (const c of graphUpdateChanges(u)) {
+      process.stdout.write(`    ${COLORS.dim}${c}${COLORS.reset}\n`);
+    }
+  }
   return 0;
 }
 

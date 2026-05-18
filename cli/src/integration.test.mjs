@@ -3599,6 +3599,10 @@ await test('rename --confirm — 파일 이동 + backlink redirect', async () =>
       '--confirm',
     ]);
     assert.equal(r.code, 0, `stderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /[1-9]\d* file\(s\) updated/);
+    assert.match(clean, /capabilities\/bar/);
+    assert.match(clean, /relates changed/);
     assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
     assert.equal(
       existsSyncTest(join(root, 'capabilities/foo-renamed.md')),
@@ -3750,6 +3754,31 @@ await test('merge — dry-run preview', async () => {
     assert.match(clean, /capabilities changed/);
     // foo.md 그대로 존재 (dry-run)
     assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+await test('merge --confirm — 적용 출력에 변경 파일과 key 를 보여준다', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run([
+      'merge',
+      'capabilities/foo',
+      'capabilities/bar',
+      root,
+      '--confirm',
+    ]);
+    assert.equal(r.code, 0, `stderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /[1-9]\d* file\(s\) updated/);
+    assert.match(clean, /capabilities\/foo\.md deleted/);
+    assert.match(clean, /domains\/auth/);
+    assert.match(clean, /capabilities changed/);
+    assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
+    const authText = readFileSync(join(root, 'domains/auth.md'), 'utf-8');
+    assert.doesNotMatch(authText, /capabilities\/foo/);
+    assert.match(authText, /capabilities\/bar/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
