@@ -34,7 +34,10 @@ For user-facing UI changes, add the relevant Playwright route check.
 
 `pnpm test:mcp:docs` also guards Firebase Hosting config as static-only:
 `firebase.json` must stay Hosting-only, point at `out/`, and not add Functions,
-Firestore, Storage, emulators, or rewrites.
+Firestore, Storage, emulators, or rewrites. `pnpm test:mcp:docs` also guards
+the tracked `.mcp.json` and `.mcp.json.example` source-checkout templates so
+local agent registration keeps pointing at `node ./mcp/src/index.js` with
+`OMOT_VAULT=./docs/ontology`.
 
 ## Vault Checks
 
@@ -76,7 +79,7 @@ verify, or release behavior.
 | `pnpm integration:cli:compile` | CLI compile / `--fix` canonicalization contracts |
 | `pnpm integration:cli:growth` | CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts |
 | `pnpm test:contracts` | Cross-package schema/parser contracts |
-| `pnpm test:mcp:docs` | Explicit root/MCP/CLI/dogfood docs contracts plus Firebase static-hosting guard |
+| `pnpm test:mcp:docs` | Explicit root/MCP/CLI/dogfood docs contracts plus Firebase static-hosting and MCP registration-template guards |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
 | `pnpm test:mcp:verify:first-contact` | First-contact MCP safety and unknown-tool recovery guidance |
 | `pnpm test:mcp:verify:timeout` | Timeout/startup retry diagnostics |

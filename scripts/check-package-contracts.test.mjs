@@ -238,6 +238,7 @@ describe('package contract helpers', () => {
       'test:mcp:docs must list focused documentation contracts instead of a broad README token',
     );
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /root README honest/);
+    assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /MCP registration templates/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /MCP README explicit/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /CLI README explicit/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /CLAUDE\.md a thin AGENTS wrapper/);
@@ -387,7 +388,8 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /`pnpm dogfood:test` only when the dogfood\s+helper itself changed/);
     assert.match(checksDoc, /Use `pnpm test:mcp:maintenance` when only `maintenance_plan` filter, cursor,\s+resume, or formatter behavior changed/);
     assert.match(checksDoc, /`pnpm test:mcp:docs` also guards Firebase Hosting config as static-only/);
-    assert.match(checksDoc, /Explicit root\/MCP\/CLI\/dogfood docs contracts plus Firebase static-hosting guard/);
+    assert.match(checksDoc, /`pnpm test:mcp:docs` also guards\s+the tracked `.mcp.json` and `.mcp.json.example` source-checkout templates/);
+    assert.match(checksDoc, /Explicit root\/MCP\/CLI\/dogfood docs contracts plus Firebase static-hosting and MCP registration-template guards/);
     assert.match(checksDoc, /intentionally lists explicit test-name fragments/);
     assert.match(checksDoc, /instead\s+of a broad `README` token/);
     assert.match(checksDoc, /Do not append it after `pnpm integration:\* --`/);
@@ -459,6 +461,18 @@ describe('package contract helpers', () => {
     assert.equal(check.status, 0, check.stderr);
     assert.match(check.stdout, /\[docs-vault\] current · \d+ docs/);
     assert.equal(check.stderr, '');
+  });
+
+  it('keeps source-checkout MCP registration templates wired to the dogfood vault', () => {
+    for (const file of ['.mcp.json', '.mcp.json.example']) {
+      const config = JSON.parse(readFileSync(file, 'utf-8'));
+      const server = config.mcpServers?.['oh-my-ontology'];
+
+      assert.ok(server, `${file} must register the oh-my-ontology MCP server`);
+      assert.equal(server.command, 'node');
+      assert.deepEqual(server.args, ['./mcp/src/index.js']);
+      assert.equal(server.env?.OMOT_VAULT, './docs/ontology');
+    }
   });
 
   it('keeps the root README mcp-verify shortcut executable from source checkout', () => {

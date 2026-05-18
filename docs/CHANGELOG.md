@@ -42,6 +42,10 @@ can inspect ontology write candidates without raw JSON-RPC.
 - **Focused wrapper discovery** — dogfood and MCP verify help now describe
   `pnpm test:dogfood:script-refs` as the focused wrapper summary contract too,
   not only the help/package-script reference check.
+- **MCP registration template guard** — `pnpm test:mcp:docs` now locks the
+  tracked `.mcp.json` and `.mcp.json.example` source-checkout templates to
+  `node ./mcp/src/index.js` with `OMOT_VAULT=./docs/ontology`, so local agent
+  registration drift is caught by the focused docs gate.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 
