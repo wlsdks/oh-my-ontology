@@ -2926,6 +2926,20 @@ await test('overview/hubs/blast-radius --json — fail closed on malformed graph
   }
 });
 
+await test('blast-radius — affected node rows include node titles for scanability', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['blast-radius', 'capabilities/foo', root, '--depth=1']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /affected nodes/);
+    assert.match(clean, /capabilities\/bar\s+— Bar/);
+    assert.match(clean, /domains\/auth\s+— Auth/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('overview --limit 3 — 허브 N 만 출력', async () => {
   const root = await buildGraphFixture();
   try {

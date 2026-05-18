@@ -113,7 +113,8 @@ function render(result, requestedSlug) {
       const kind = r.node?.kind ?? '?';
       const kc = KIND_COLORS[kind] || COLORS.dim;
       const dist = `${COLORS.dim}d${r.distance}${COLORS.reset}`;
-      process.stdout.write(`  ${dist} ${kc}${r.slug}${COLORS.reset}\n`);
+      const titleText = r.node?.title && r.node.title !== r.slug ? ` ${COLORS.dim}— ${r.node.title}${COLORS.reset}` : '';
+      process.stdout.write(`  ${dist} ${kc}${r.slug}${COLORS.reset}${titleText}\n`);
     }
   }
 }
