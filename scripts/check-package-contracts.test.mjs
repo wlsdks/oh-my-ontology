@@ -206,6 +206,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /CLI npm test/);
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /CLI MCP dependency/);
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /CLI entrypoint/);
+    assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /CLI mcp-verify wrapper/);
     assert.match(
       pkg.scripts?.['test:mcp:suggestions'] ?? '',
       /^node --test --test-name-pattern "[^"]+" mcp\/src\/suggestions\.test\.mjs mcp\/src\/ontology-engine\.test\.mjs$/,
@@ -2056,6 +2057,8 @@ export const CLI_COMMAND_RUNNERS = Object.freeze({
     const verify = readFileSync('mcp/scripts/verify.mjs', 'utf-8');
 
     assert.match(wrapper, /OMOT_VERIFY_RETRY_EXAMPLE: mcpVerifyRetryExample\(vaultArg\)/);
+    assert.match(wrapper, /spawn\(process\.execPath, \[verifyScript\]/);
+    assert.doesNotMatch(wrapper, /spawn\('node', \[verifyScript\]/);
     assert.match(wrapper, /oh-my-ontology mcp-verify\$\{vaultPart\} --timeout-ms 15000/);
     assert.match(wrapper, /--vault \$\{shellArg\(vaultArg\)\}/);
     assert.match(wrapper, /String\(flags\.timeoutMsRaw \?\? ''\)\.startsWith\('--'\)/);

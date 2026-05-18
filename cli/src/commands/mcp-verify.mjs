@@ -82,7 +82,7 @@ function isFile(path) {
 
 function runVerifyScript(verifyScript, vaultRoot, timeoutMs, vaultArg) {
   return new Promise((resolveP) => {
-    const proc = spawn('node', [verifyScript], {
+    const proc = spawn(process.execPath, [verifyScript], {
       env: {
         ...process.env,
         OMOT_VAULT: vaultRoot,
