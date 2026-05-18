@@ -1146,6 +1146,9 @@ describe('package contract helpers', () => {
     const readme = readFileSync('cli/README.md', 'utf-8');
     const section = readme.split('### Source-checkout verification')[1]?.split('`oh-my-ontology mcp-verify [vault]` is the fastest')[0] ?? '';
 
+    assert.match(section, /pnpm test:cli:args/);
+    assert.match(section, /narrow CLI argument parser contract/);
+    assert.match(section, /flag, positional, integer, or CSV parsing/);
     assert.match(section, /pnpm test:cli:lib/);
     assert.match(section, /pnpm test:cli:mcp-call/);
     assert.match(section, /pnpm test:contracts/);

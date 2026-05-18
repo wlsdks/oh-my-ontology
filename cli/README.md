@@ -59,6 +59,7 @@ When editing the CLI package from the monorepo, start with the focused root
 checks that match the touched surface:
 
 ```bash
+pnpm test:cli:args
 pnpm test:cli:lib
 pnpm test:cli:mcp-call
 pnpm test:contracts
@@ -79,6 +80,8 @@ pnpm cli:mcp-verify docs/ontology --timeout-ms 15000
 pnpm cli:mcp-verify -- --help
 ```
 
+`test:cli:args` checks only the narrow CLI argument parser contract. Use it
+first when the change is limited to flag, positional, integer, or CSV parsing.
 `test:cli:lib` checks shared CLI helper contracts for argument parsing,
 command registry metadata, MCP response unwrapping, package metadata, and
 graph result fail-closed handling without spawning the full CLI.
