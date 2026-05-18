@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-18T07:02:38.500Z",
+  "generatedAt": "2026-05-18T07:04:53.260Z",
   "docs": [
     {
       "slug": "AGENT-MEMORY-POSITIONING",
@@ -3823,8 +3823,8 @@
         }
       ],
       "excerpt": "Maintaineronly checks live here so the public README stays readable. Use this page when you touch mcp/, cli/, package manifests, release scripts, or the dogfood ontology. Run this before pushing broad docs, package, MCP, or web changes: For userfacing UI changes, add the relevant Playwright route check. | Area | First ",
-      "wordCount": 676,
-      "updatedAt": "2026-05-18T06:52:49.589Z",
+      "wordCount": 701,
+      "updatedAt": "2026-05-18T07:03:59.624Z",
       "linksOut": []
     },
     {
@@ -4833,8 +4833,8 @@
         }
       ],
       "excerpt": ".claude/skills/firebasedeploy/SKILL.md is the agentrunbook for publishing the static web workbench to Firebase Hosting. It reads local .env.prod identifiers, runs the docs/type/build/bundle gates, deploys with firebase deploy only hosting, and verifies the live web.app URL. The skill explicitly keeps Firebase as a stat",
-      "wordCount": 60,
-      "updatedAt": "2026-05-18T06:48:02.168Z",
+      "wordCount": 80,
+      "updatedAt": "2026-05-18T07:03:59.625Z",
       "linksOut": []
     },
     {
