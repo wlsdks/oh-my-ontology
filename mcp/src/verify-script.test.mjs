@@ -64,6 +64,7 @@ import {
   hasFirstContactErrorResponse,
   healthChecksSummary,
   healthSummary,
+  initialExpectedFirstContactIds,
   inferImportsFailure,
   importModuleEdgeKindOutputSummary,
   IMPORT_EDGE_KIND_VALUES,
@@ -5828,6 +5829,16 @@ describe('verify.mjs first-contact gates', () => {
       ),
       true,
     );
+  });
+
+  it('keeps node-dependent first-contact smokes optional until their live target exists', () => {
+    const ids = initialExpectedFirstContactIds();
+    for (const optionalId of [30, 31, 33, 35, 36, 37, 43, 44, 45, 61]) {
+      assert.equal(ids.has(optionalId), false, `${FIRST_CONTACT_RESPONSE_LABELS.get(optionalId)} starts optional`);
+    }
+    for (const requestId of expectedResponseIds(buildFirstContactRequests())) {
+      assert.equal(ids.has(requestId), true, `${FIRST_CONTACT_RESPONSE_LABELS.get(requestId)} starts required`);
+    }
   });
 
   it('keeps first-contact response labels aligned with the read-tool smoke', () => {

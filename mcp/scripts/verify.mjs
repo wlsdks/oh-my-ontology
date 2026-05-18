@@ -3404,6 +3404,14 @@ export function firstContactMissingResponseLabels(responses, expectedIds) {
   );
 }
 
+export function initialExpectedFirstContactIds() {
+  const ids = new Set(FIRST_CONTACT_RESPONSE_LABELS.keys());
+  for (const optionalId of [30, 31, 33, 35, 36, 37, 43, 44, 45, 61]) {
+    ids.delete(optionalId);
+  }
+  return ids;
+}
+
 export function buildFirstContactRequests() {
   return [
     {
@@ -5973,17 +5981,7 @@ async function step2BootAndCall() {
     let sentDestructiveDryRunSmoke = false;
     let sentMaintenanceResumeSmoke = false;
     let destructiveDryRunExpectedResponses = [];
-    const expectedFirstContactIds = new Set(FIRST_CONTACT_RESPONSE_LABELS.keys());
-    expectedFirstContactIds.delete(30);
-    expectedFirstContactIds.delete(31);
-    expectedFirstContactIds.delete(33);
-    expectedFirstContactIds.delete(35);
-    expectedFirstContactIds.delete(36);
-    expectedFirstContactIds.delete(37);
-    expectedFirstContactIds.delete(43);
-    expectedFirstContactIds.delete(44);
-    expectedFirstContactIds.delete(45);
-    expectedFirstContactIds.delete(61);
+    const expectedFirstContactIds = initialExpectedFirstContactIds();
     let limitedQueryConceptsSmoke = null;
     let timer = null;
     let killTimer = null;
