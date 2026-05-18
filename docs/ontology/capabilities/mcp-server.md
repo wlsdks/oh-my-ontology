@@ -589,7 +589,7 @@ nearest hint 로 복구 경로를 보여준다. `pnpm dogfood:walk -- --help`
 `pnpm dogfood:brief` / `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,
 focused check 경로를 출력해 dogfood 범위 확인 비용을 낮춘다.
 도움말의 `pnpm test:mcp:dogfood` 설명도 compile/index gate, tools/list inventory name / annotation coverage, row-label guidance,
-strict closest-value summary, vault warning / `validate_vault` problem gate, first-contact health/growth/sample-shape gate, maintenance work-queue shape / formatter, initialize safety/recovery guidance, destructive dry-run, structuredContent, strict relation filter, stderr warning 범위를 함께 보여줘 실행 전 검증 surface 를 숨기지 않는다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
+strict closest-value summary, vault warning / `validate_vault` problem gate, first-contact health/growth/sample-shape gate, maintenance work-queue shape / formatter, initialize safety/recovery guidance, destructive dry-run, structuredContent, strict relation filter, strict add_relation type-preflight, strict graph kind filter, stderr warning 범위를 함께 보여줘 실행 전 검증 surface 를 숨기지 않는다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
 `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology`, `overview`, `pattern_walk`,
 project-node `list_concepts` probe, `all_paths`, `all_paths query_plan`, `neighbors`, `path`, `project_map query_plan`, `project_scope`, `project_map`,
 `domain_profile`, `domain_matrix`, `components`, `reachability`, `impact`,
