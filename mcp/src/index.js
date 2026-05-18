@@ -2582,7 +2582,7 @@ function classifyErrorCode(err, message) {
   }
   if (/not found|does not exist/i.test(message)) return 'not_found';
   if (/already exists|conflict|identical/i.test(message)) return 'conflict';
-  if (/must be|must not|cannot be|At least one|Invalid value|Received:|points outside/i.test(message)) {
+  if (/must be|must not|cannot be|At least one|Invalid value|Received:|points outside|Too many/i.test(message)) {
     return 'invalid_arguments';
   }
   return 'tool_error';

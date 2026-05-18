@@ -21,6 +21,7 @@ import {
   advisoryHealthChecksSummary,
   advisoryNextActionsSummary,
   analyzeRepoStructureFailure,
+  batchCapFailure,
   batchRowIsolationFailure,
   buildFirstContactRequests,
   buildGetConceptSmokeSlug,
@@ -4128,7 +4129,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /strict unknown-argument \/ invalid-enum rejection/);
     assert.match(verifyUsage(), /query_concepts\.kind\/has-key, find_neighbors\.types, find_orphans\.kind\/excludeKinds, match_nodes\.kind\/sort, recommend_relations\.kind, and match_edges\.type\/fromKind\/toKind typo and unsupported-kind rejection/);
     assert.match(verifyUsage(), /tools\/list inventory names, schema strictness, and annotation coverage \(title\/read\/write\/destructive\/idempotent\/local-only\)/);
-    assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels, plus invalid add_relations type closest-value hints/);
+    assert.match(verifyUsage(), /batch writer row isolation for non-object rows and unknown row fields with concepts\[n\]\/relations\[n\] error labels, invalid add_relations type closest-value hints, and 50-row batch cap rejection/);
     assert.match(verifyUsage(), /structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries/);
     assert.match(verifyUsage(), /maintenance_plan filter enums/);
     assert.match(verifyUsage(), /maintenance_plan cursor handling/);
@@ -4467,6 +4468,55 @@ describe('verify.mjs first-contact gates', () => {
         },
       }, 'concepts', 'add_concepts'),
       'add_concepts row isolation structuredContent mismatch — $.concepts[3].error: parsed "concepts[3] duplicate slug in input batch; first seen at concepts[2]", structuredContent "concepts[3] duplicate slug in input batch; first seen at concepts[1]"',
+    );
+  });
+
+  it('fails malformed batch cap smoke responses', () => {
+    assert.equal(
+      batchCapFailure(
+        strictErrorResponse('Too many concepts: 51. Max 50 per call — split into multiple add_concepts batches.', {
+          structuredContent: {
+            ok: false,
+            errorCode: 'invalid_arguments',
+            error: 'Too many concepts: 51. Max 50 per call — split into multiple add_concepts batches.',
+          },
+        }),
+        'add_concepts',
+        'concepts',
+      ),
+      null,
+    );
+    assert.equal(
+      batchCapFailure(null, 'add_concepts', 'concepts'),
+      'no add_concepts batch-cap response',
+    );
+    assert.equal(
+      batchCapFailure({ result: { isError: false, content: [{ text: '{}' }] } }, 'add_concepts', 'concepts'),
+      'add_concepts batch-cap smoke did not reject over-cap batch',
+    );
+    assert.equal(
+      batchCapFailure(
+        strictErrorResponse('Too many concepts: 51.', {
+          structuredContent: { ok: false, errorCode: 'invalid_arguments', error: 'Too many concepts: 51.' },
+        }),
+        'add_concepts',
+        'concepts',
+      ),
+      'add_concepts batch-cap response missing max-50 guidance',
+    );
+    assert.equal(
+      batchCapFailure(
+        strictErrorResponse('Too many relations: 51. Max 50 per call — split into multiple add_relations batches.', {
+          structuredContent: {
+            ok: false,
+            errorCode: 'tool_error',
+            error: 'Too many relations: 51. Max 50 per call — split into multiple add_relations batches.',
+          },
+        }),
+        'add_relations',
+        'relations',
+      ),
+      'add_relations batch cap structured error code mismatch — expected invalid_arguments, got tool_error',
     );
   });
 
@@ -5640,6 +5690,8 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(59), 'strict_query_concepts_has_key_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(60), 'strict_list_concepts_kind_filter');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(61), 'patch_concept_conflict_guard');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(62), 'add_concepts_batch_cap');
+    assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(63), 'add_relations_batch_cap');
     assert.deepEqual(
       [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45, 61].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
@@ -5656,6 +5708,8 @@ describe('verify.mjs first-contact gates', () => {
   it('builds bootstrap and import-analysis read smokes into first-contact verify', () => {
     const analyze = buildFirstContactRequests().find((request) => request.id === 38);
     const infer = buildFirstContactRequests().find((request) => request.id === 39);
+    const conceptBatchCap = buildFirstContactRequests().find((request) => request.id === 62);
+    const relationBatchCap = buildFirstContactRequests().find((request) => request.id === 63);
     const compilePage = buildFirstContactRequests().find((request) => request.id === 41);
     const compileIndexes = buildFirstContactRequests().find((request) => request.id === 42);
     const strictRelationCheck = buildFirstContactRequests().find((request) => request.id === 46);
@@ -5666,6 +5720,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(infer?.params?.name, 'infer_imports');
     assert.equal(infer?.params?.arguments?.maxFiles, 5000);
     assert.match(infer?.params?.arguments?.rootPath ?? '', /oh-my-ontology$/);
+    assert.equal(conceptBatchCap?.params?.name, 'add_concepts');
+    assert.equal(conceptBatchCap?.params?.arguments?.concepts?.length, 51);
+    assert.equal(relationBatchCap?.params?.name, 'add_relations');
+    assert.equal(relationBatchCap?.params?.arguments?.relations?.length, 51);
     assert.equal(compilePage?.params?.name, 'compile_ontology');
     assert.deepEqual(compilePage?.params?.arguments, { nodesLimit: 1, edgesLimit: 1 });
     assert.equal(compileIndexes?.params?.name, 'compile_ontology');

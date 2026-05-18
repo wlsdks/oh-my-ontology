@@ -3723,6 +3723,7 @@ await test("add_concepts — 빈 concepts[] → 빈 results, 51개 → error", a
     ]);
     const text = JSON.stringify(r2.find((r) => r.id === 2));
     assert.match(text, /Too many concepts|50/i);
+    assert.equal(getCallStructured(r2, 2)?.errorCode, "invalid_arguments");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -4107,6 +4108,7 @@ await test("add_relations — 빈 relations[] → 빈 results, 51개 → error",
     ]);
     const text = JSON.stringify(r2.find((r) => r.id === 2));
     assert.match(text, /Too many relations|50/i);
+    assert.equal(getCallStructured(r2, 2)?.errorCode, "invalid_arguments");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

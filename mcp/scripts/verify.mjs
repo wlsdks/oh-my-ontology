@@ -2961,6 +2961,8 @@ export const FIRST_CONTACT_RESPONSE_LABELS = new Map([
   [59, 'strict_query_concepts_has_key_filter'],
   [60, 'strict_list_concepts_kind_filter'],
   [61, 'patch_concept_conflict_guard'],
+  [62, 'add_concepts_batch_cap'],
+  [63, 'add_relations_batch_cap'],
 ]);
 
 function log(level, msg) {
@@ -3217,7 +3219,7 @@ export function verifyUsage() {
     'Successful output prints read census consistency after cross-checking list_kinds/list_concepts/compile_ontology/overview.\n' +
     'Also checks strict unknown-argument / invalid-enum rejection, list_concepts.kind, query_concepts.kind/has-key, find_neighbors.types, find_orphans.kind/excludeKinds, match_nodes.kind/sort, recommend_relations.kind, and match_edges.type/fromKind/toKind typo and unsupported-kind rejection, maintenance_plan filter enums,\n' +
     'tools/list inventory names, schema strictness, and annotation coverage (title/read/write/destructive/idempotent/local-only),\n' +
-    'batch writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels, plus invalid add_relations type closest-value hints,\n' +
+    'batch writer row isolation for non-object rows and unknown row fields with concepts[n]/relations[n] error labels, invalid add_relations type closest-value hints, and 50-row batch cap rejection,\n' +
     'destructive writer dry-runs for rename_concept/merge_concepts/delete_concept with every planned response present and no changed/postWriteMaintenance,\n' +
     'structuredContent coverage summary splits direct reads, batch row-isolation writes, destructive dry-runs, maintenance cursor checks, and graph queries,\n' +
     'and maintenance_plan cursor handling: ready page (cursor.found=true, cursor.reason=null)\n' +
@@ -3444,6 +3446,37 @@ export function buildFirstContactRequests() {
             { from: 'verify-row-isolation', to: 'verify-target', type: 'relates', relation: 'relates', frm: 'verify-row-isolation' },
             { from: 'verify-row-isolation', to: 'verify-target', type: 'depend_on' },
           ],
+        },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 62,
+      method: 'tools/call',
+      params: {
+        name: 'add_concepts',
+        arguments: {
+          concepts: Array.from({ length: 51 }, (_, index) => ({
+            slug: `verify-cap-${index}`,
+            kind: 'capability',
+            title: `Verify Cap ${index}`,
+            domain: 'verify',
+          })),
+        },
+      },
+    },
+    {
+      jsonrpc: '2.0',
+      id: 63,
+      method: 'tools/call',
+      params: {
+        name: 'add_relations',
+        arguments: {
+          relations: Array.from({ length: 51 }, () => ({
+            from: 'verify-row-isolation',
+            to: 'verify-target',
+            type: 'relates',
+          })),
         },
       },
     },
@@ -4566,6 +4599,20 @@ export function batchRowIsolationFailure(response, key, label) {
     return structuredFailure;
   }
   return null;
+}
+
+export function batchCapFailure(response, label, expectedNoun) {
+  if (!response || !response.result) {
+    return `no ${label} batch-cap response`;
+  }
+  if (response.result.isError !== true) {
+    return `${label} batch-cap smoke did not reject over-cap batch`;
+  }
+  const text = response.result.content?.[0]?.text || '';
+  if (!new RegExp(`Too many ${expectedNoun}: 51`, 'i').test(text) || !/Max 50 per call/i.test(text)) {
+    return `${label} batch-cap response missing max-50 guidance`;
+  }
+  return structuredErrorFailure(response, `${label} batch cap`, { errorCode: 'invalid_arguments' });
 }
 
 function rowErrorMentionsIndex(row, index) {
@@ -6084,6 +6131,17 @@ async function step2BootAndCall() {
         return res(false);
       }
       log('ok', 'add_relations — non-object, all-unknown-field + Received fields, and invalid-type rows isolated with input indexes and closest-value hints');
+      const addConceptsBatchCapFailure = batchCapFailure(responses.find((r) => r.id === 62), 'add_concepts', 'concepts');
+      if (addConceptsBatchCapFailure) {
+        log('fail', addConceptsBatchCapFailure);
+        return res(false);
+      }
+      const addRelationsBatchCapFailure = batchCapFailure(responses.find((r) => r.id === 63), 'add_relations', 'relations');
+      if (addRelationsBatchCapFailure) {
+        log('fail', addRelationsBatchCapFailure);
+        return res(false);
+      }
+      log('ok', 'batch caps — add_concepts/add_relations reject 51 rows with invalid_arguments');
       const destructiveDryRunResponses = destructiveDryRunExpectedResponses.map(([toolName, id]) => [
         toolName,
         responses.find((response) => response.id === id),
