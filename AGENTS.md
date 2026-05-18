@@ -72,7 +72,7 @@ cli/                       CLI binary (developer's daily entry point) — npm pk
                            overview / hubs / blast-radius / cycles / health
                            workspace-brief / node / similar
 docs/                      long-form docs
-docs/ontology/             this project's own ontology vault (dogfood — 28 nodes)
+docs/ontology/             this project's own ontology vault (dogfood — 29 nodes)
                            `.omotignore` (gitignore-style) suppresses external
                            element ref noise in growth_plan / maintenance_plan
 tests/                     Vitest unit + Playwright E2E
@@ -143,7 +143,7 @@ Long-form docs:
 This project describes its own mental model in `docs/ontology/` as frontmatter markdown (dogfooding — we describe ourselves in our own data format).
 
 - Entry points: `docs/ontology/README.md` · `docs/ontology/project.md`
-- 28 nodes (capability 16 · domain 6 · element 4 · project 1 · vault-readme 1)
+- 29 nodes (capability 17 · domain 6 · element 4 · project 1 · vault-readme 1)
 - AI agents query it via the `mcp/` MCP server — registration guide in `mcp/README.md`, example in `.mcp.json.example`
 - When you discover a new domain / capability / element, add it to the same directory (with the MCP `add_concept` tool, or by hand)
 
