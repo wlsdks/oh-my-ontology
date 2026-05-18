@@ -204,6 +204,14 @@ describe('package contract helpers', () => {
       pkg.scripts?.['test:mcp:docs'] ?? '',
       /^node --test --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
     );
+    assert.doesNotMatch(
+      pkg.scripts?.['test:mcp:docs'] ?? '',
+      /--test-name-pattern "README\|/,
+      'test:mcp:docs must list focused documentation contracts instead of a broad README token',
+    );
+    assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /root README honest/);
+    assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /MCP README explicit/);
+    assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /CLI README explicit/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /Firebase static hosting/);
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /dogfood MCP docs/);
     assert.match(
@@ -2036,6 +2044,8 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /`pnpm integration:cli:mcp-verify`/);
     assert.match(regressionSection, /direct read smoke set\(`get_concept` \/ `get_concepts` \/ `find_evidence`/);
     assert.match(regressionSection, /limited `query_concepts` \/ `analyze_repo_structure` \/ `infer_imports` \/ `find_neighbors`/);
+    assert.match(regressionSection, /`pnpm test:mcp:docs` 는 bare `README` token 이 아니라/);
+    assert.match(regressionSection, /명시적 test-name fragments 만 나열/);
     assert.match(
       doc,
       /`canonicalizationActions` 배열이 빠졌거나 `canonicalizationActionCount` 가 non-negative integer 가 아니거나 배열 길이와 갈라지거나 action row shape 이 malformed 인 compile 응답은 안전한 재정렬이 불가능하므로 patch 전 exit 2 로 실패/,
