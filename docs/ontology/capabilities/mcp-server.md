@@ -149,6 +149,8 @@ dogfood walk 뿐 아니라 설치 verify 에서도 깨지지 않게 한다.
 `relative-not-found` / `alias-not-found` 로 제한하고, module edge `kindCounts`
 키도 static / dynamic / require / reexport / side 근거 집합으로 제한해
 잘못된 import graph 근거가 조용히 `depends_on` 후보로 넘어가지 않게 한다.
+`analyze_repo_structure` 의 `project` 후보 object 도 `slug` / `title` 만 허용하는 닫힌
+`outputSchema` 로 고정해 bootstrap 승인 단서가 schema 밖 필드에 섞이지 않게 한다.
 2026-05-17 dogfood 에서 `infer_imports` 는 이 repo 의 `tsconfig.json`
 paths(`@/app-providers/*`, root `@/*`) 를 읽어 `app/[locale]/layout.tsx`
 와 `app/not-found.tsx` 의 정상 alias import 를 내부 edge 로 resolve 하고,

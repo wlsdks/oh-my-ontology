@@ -516,6 +516,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(analyzeRepo?.outputSchema?.type, "object");
     assert.deepEqual(analyzeRepo?.outputSchema?.required, ["rootPath", "framework", "domains", "capabilities", "elements", "suggestedRelations", "skipped"]);
     assert.equal(analyzeRepo?.outputSchema?.additionalProperties, false);
+    assert.deepEqual(analyzeRepo?.outputSchema?.properties?.project?.required, ["slug", "title"]);
+    assert.equal(analyzeRepo?.outputSchema?.properties?.project?.additionalProperties, false);
     assert.deepEqual(analyzeRepo?.outputSchema?.properties?.framework?.enum, ["fsd", "next", "generic"]);
     assert.deepEqual(analyzeRepo?.outputSchema?.properties?.capabilities?.items?.required, ["slug", "title", "evidence"]);
     assert.equal(analyzeRepo?.outputSchema?.properties?.capabilities?.items?.additionalProperties, false);

@@ -1331,6 +1331,15 @@ describe('verify.mjs first-contact gates', () => {
           required: ['rootPath', 'framework', 'domains', 'capabilities', 'elements', 'suggestedRelations', 'skipped'],
           properties: {
             rootPath: { type: 'string' },
+            project: {
+              type: 'object',
+              required: ['slug', 'title'],
+              properties: {
+                slug: { type: 'string' },
+                title: { type: 'string' },
+              },
+              additionalProperties: false,
+            },
             framework: { enum: ['fsd', 'next', 'generic'] },
             domains: {
               type: 'array',
@@ -2720,6 +2729,25 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'analyze_repo_structure outputSchema framework drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'analyze_repo_structure'),
+        {
+          ...tools.find((tool) => tool.name === 'analyze_repo_structure'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema.properties,
+              project: {
+                ...tools.find((tool) => tool.name === 'analyze_repo_structure').outputSchema.properties.project,
+                additionalProperties: true,
+              },
+            },
+          },
+        },
+      ]),
+      'analyze_repo_structure outputSchema project drift',
     );
     assert.equal(
       toolsListSchemaFailure(withAnalyzeRepoTool({

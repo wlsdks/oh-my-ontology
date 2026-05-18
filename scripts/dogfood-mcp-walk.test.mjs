@@ -1149,6 +1149,15 @@ function makeDogfoodToolsList() {
           required: ["rootPath", "framework", "domains", "capabilities", "elements", "suggestedRelations", "skipped"],
           properties: {
             rootPath: { type: "string" },
+            project: {
+              type: "object",
+              required: ["slug", "title"],
+              properties: {
+                slug: { type: "string" },
+                title: { type: "string" },
+              },
+              additionalProperties: false,
+            },
             framework: { enum: ["fsd", "next", "generic"] },
             domains: {
               type: "array",
@@ -4179,6 +4188,12 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: analyzeOutputSchemaDrifted }),
       ["tools/list: analyze_repo_structure outputSchema framework drift"],
+    );
+    const analyzeProjectSchemaDrifted = makeDogfoodToolsList();
+    delete analyzeProjectSchemaDrifted.tools.find((tool) => tool.name === "analyze_repo_structure").outputSchema.properties.project.additionalProperties;
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: analyzeProjectSchemaDrifted }),
+      ["tools/list: analyze_repo_structure outputSchema project drift"],
     );
     const inferOutputSchemaDrifted = makeDogfoodToolsList();
     inferOutputSchemaDrifted.tools.find((tool) => tool.name === "infer_imports").outputSchema.properties.edges.items.properties.kind.enum = ["static"];

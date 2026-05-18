@@ -2145,6 +2145,7 @@ const TOOLS = [
             title: NON_BLANK_STRING_SCHEMA,
           },
           required: ['slug', 'title'],
+          additionalProperties: false,
         },
         domains: {
           type: 'array',

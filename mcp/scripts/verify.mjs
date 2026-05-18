@@ -1331,6 +1331,16 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(outputPropertyAt(analyzeTool, ['properties', 'framework'])?.enum, ['fsd', 'next', 'generic'])) {
     return 'analyze_repo_structure outputSchema framework drift';
   }
+  const projectSchema = outputPropertyAt(analyzeTool, ['properties', 'project']);
+  if (
+    projectSchema?.type !== 'object' ||
+    !sameArray(projectSchema.required, ['slug', 'title']) ||
+    projectSchema.properties?.slug?.type !== 'string' ||
+    projectSchema.properties?.title?.type !== 'string' ||
+    projectSchema.additionalProperties !== false
+  ) {
+    return 'analyze_repo_structure outputSchema project drift';
+  }
   for (const propertyName of ['domains', 'capabilities', 'elements']) {
     const rowsSchema = outputPropertyAt(analyzeTool, ['properties', propertyName]);
     if (
