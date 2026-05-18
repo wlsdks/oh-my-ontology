@@ -71,6 +71,7 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/ontology-compiler.test.mjs',
       'pnpm exec node --test mcp/src/vault.test.mjs',
       'pnpm test:mcp:unit',
+      'pnpm integration:mcp:repo-analysis',
       'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
       'pnpm dogfood:status',
@@ -114,8 +115,26 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/infer-imports.test.mjs',
       'pnpm exec node --test mcp/src/validate.test.mjs',
       'pnpm test:mcp:unit',
+      'pnpm integration:mcp:repo-analysis',
       'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
+  });
+
+  it('suggests focused MCP repo-analysis integration for code-to-vault handlers', () => {
+    const result = suggestFocusedChecks([
+      'mcp/src/analyze.mjs',
+      'mcp/src/infer-imports.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test mcp/src/analyze.test.mjs',
+      'pnpm exec node --test mcp/src/infer-imports.test.mjs',
+      'pnpm test:mcp:unit',
+      'pnpm integration:mcp:repo-analysis',
+      'pnpm integration:mcp:read',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
@@ -151,6 +170,7 @@ describe('focused check suggestions', () => {
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm exec node --test mcp/src/infer-imports.test.mjs',
       'pnpm test:mcp:unit',
+      'pnpm integration:mcp:repo-analysis',
       'pnpm integration:mcp:read',
       'pnpm dogfood:status',
     ]);

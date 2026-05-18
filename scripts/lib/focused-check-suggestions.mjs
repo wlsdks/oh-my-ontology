@@ -52,6 +52,11 @@ const RULES = [
     matches: [/^mcp\/src\/index\.js$/, /^mcp\/src\/integration\.test\.mjs$/],
   },
   {
+    command: 'pnpm integration:mcp:repo-analysis',
+    reason: 'MCP code-to-vault analysis handler surface changed',
+    matches: [/^mcp\/src\/(?:analyze|infer-imports)\.mjs$/],
+  },
+  {
     command: 'pnpm integration:mcp:read',
     reason: 'MCP read/query tool handler surface changed',
     matches: [
