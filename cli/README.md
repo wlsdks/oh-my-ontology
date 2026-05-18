@@ -1,6 +1,7 @@
 # oh-my-ontology
 
-> **AI-native codebase ontology workbench** — vault scaffold + MCP setup CLI.
+> **Repo-native memory layer CLI** — scaffold, validate, compile, query, and
+> maintain the markdown ontology vault your AI coding agent reads through MCP.
 
 ```bash
 npx oh-my-ontology init my-vault
@@ -8,8 +9,8 @@ cd my-vault
 $EDITOR project.md
 ```
 
-That's it. You now have a frontmatter-based ontology vault that humans
-and AI agents (Claude Code, Cursor, etc.) can read and write together.
+That's it. You now have a frontmatter-based memory vault that humans and AI
+agents (Claude Code, Cursor, Codex, etc.) can read and write together.
 
 Requires Node 20+. The CLI installs and spawns `oh-my-ontology-mcp`, which
 uses the same Node floor.

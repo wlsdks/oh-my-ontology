@@ -119,9 +119,9 @@ describe('package contract helpers', () => {
     assert.doesNotMatch(readme, /## Four surfaces, one vault/);
   });
 
-  it('keeps filtered integration scripts discoverable from the root README', () => {
+  it('keeps filtered integration scripts discoverable from development checks docs', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
-    const readme = readFileSync('README.md', 'utf-8');
+    const readme = readFileSync('docs/DEVELOPMENT-CHECKS.md', 'utf-8');
 
     assert.equal(pkg.scripts?.['integration:cli'], 'node --test cli/src/integration.test.mjs');
     assert.equal(
@@ -260,20 +260,20 @@ describe('package contract helpers', () => {
     assert.match(readme, /integration:cli:maintenance/);
     assert.match(readme, /integration:mcp:readme/);
     assert.match(readme, /CLI MCP wrapper/);
-    assert.match(readme, /`cli:mcp-verify`\s+is a source-checkout shortcut for the CLI wrapper/);
-    assert.match(readme, /`dogfood:compile` is the\s+fastest repeatable compiler summary for the dogfood vault/);
-    assert.match(readme, /`dogfood:health` is\s+the fastest repeatable fail-closed health gate for the dogfood vault/);
-    assert.match(readme, /`dogfood:brief` is\s+the fastest repeatable first-contact snapshot for the\s+dogfood vault/);
-    assert.match(readme, /`dogfood:verify`\s+runs the full installed-style dogfood vault gate/);
-    assert.match(readme, /`dogfood:test` is the full dogfood helper regression suite to reserve for helper-level\s+changes that outgrow `test:mcp:dogfood`/);
-    assert.match(readme, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`\s+runs the same full\s+verify against this repo's dogfood vault from the repo root/);
+    assert.equal(normalizedMarkdownIncludes(readme, '`cli:mcp-verify` is a source-checkout shortcut for the CLI wrapper'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, '`dogfood:compile` is the fastest repeatable compiler summary for the dogfood vault'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, '`dogfood:health` is the fastest repeatable fail-closed health gate for the dogfood vault'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, '`dogfood:brief` is the fastest repeatable first-contact snapshot for the dogfood vault'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, '`dogfood:verify` runs the full installed-style dogfood vault gate'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, '`dogfood:test` is the full dogfood helper regression suite to reserve for helper-level changes that outgrow `test:mcp:dogfood`'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, "`pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` runs the same full verify against this repo's dogfood vault from the repo root"), true);
     assert.match(readme, /`pnpm cli:mcp-verify -- --help` only for help output/);
-    assert.match(readme, /vault arguments are passed\s+without the extra `--`/);
-    assert.match(readme, /runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`/);
-    assert.match(readme, /`health` and `workspace-brief` also accept focused diagnosis tuning flags/);
-    assert.match(readme, /`--dependency-types A,B`, `--component-types A,B`, `--component-limit N`/);
-    assert.match(readme, /graph-query, destructive\s+dry-run, post-write maintenance schema, strict argument \/ enum rejection,\s+annotations, write relation enums, and health tuning schema scope/);
-    assert.match(readme, /graph-query, destructive dry-run, post-write maintenance schema, strict argument \/ enum,\s+annotation, write relation enum, and health tuning smoke scope/);
+    assert.equal(normalizedMarkdownIncludes(readme, 'vault arguments are passed without the extra `--`'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, 'runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, '`health` and `workspace-brief` also accept focused diagnosis tuning flags'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, '`--dependency-types A,B`, `--component-types A,B`, `--component-limit N`'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, 'graph-query, destructive dry-run, post-write maintenance schema, strict argument / enum rejection, annotations, write relation enums, and health tuning schema scope'), true);
+    assert.equal(normalizedMarkdownIncludes(readme, 'graph-query, destructive dry-run, post-write maintenance schema, strict argument / enum, annotation, write relation enum, and health tuning smoke scope'), true);
   });
 
   it('keeps the root README mcp-verify shortcut executable from source checkout', () => {
@@ -1260,8 +1260,8 @@ describe('package contract helpers', () => {
   });
 
   it('documents dogfood validation as a release gate', () => {
-    const readme = readFileSync('README.md', 'utf-8');
-    const releaseChecks = readme.split('### Package / MCP release checks')[1]?.split('## Verifiable promises')[0] ?? '';
+    const readme = readFileSync('docs/DEVELOPMENT-CHECKS.md', 'utf-8');
+    const releaseChecks = readme.split('## Package / MCP Release Checks')[1] ?? '';
 
     assert.match(releaseChecks, /pnpm dogfood:walk/);
     assert.match(releaseChecks, /pnpm dogfood:help\s+# print dogfood usage without starting MCP/);
@@ -1300,14 +1300,15 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /validate_vault` problem files/);
   });
 
-  it('keeps the root README explicit about vault validator help', () => {
+  it('keeps development docs explicit about vault validator help', () => {
     const agents = readFileSync('AGENTS.md', 'utf-8');
     const readme = readFileSync('README.md', 'utf-8');
+    const checksDoc = readFileSync('docs/DEVELOPMENT-CHECKS.md', 'utf-8');
     const architecture = readFileSync('docs/ARCHITECTURE.md', 'utf-8');
     const prTemplate = readFileSync('.github/PULL_REQUEST_TEMPLATE.md', 'utf-8');
     const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
     const workflow = readFileSync('.github/workflows/ci.yml', 'utf-8');
-    const vaultTooling = readme.split('### Vault tooling')[1]?.split('### Package / MCP release checks')[0] ?? '';
+    const vaultTooling = checksDoc.split('## Vault Checks')[1]?.split('## Package / MCP Release Checks')[0] ?? '';
 
     assert.equal(pkg.scripts['test:vault:validate'], 'node --test scripts/validate-vault-script.test.mjs');
     assert.equal(pkg.scripts['test:vault:audit'], 'node --test scripts/audit-vault-paths.test.mjs');
@@ -1497,18 +1498,18 @@ describe('package contract helpers', () => {
     assert.match(doc, /`workspace-brief --help` 의 `pnpm dogfood:health` 선행 안내/);
     assert.match(doc, /`HEALTH CHECKS` 라인에 `compile_issues:pass:0` 같은 id:status:count coverage/);
     assert.match(doc, /mismatch path diagnostics/);
-    assert.match(readme, /diagnosis payload shape before writing machine output/);
-    assert.match(readme, /workspace next actions need a valid severity/);
-    assert.match(readme, /Non-JSON `workspace-brief` also prints a `GROWTH` line/);
-    assert.match(readme, /`actions`, `relations`, `dangling`, `external`, and `ignoredExternal` counts/);
-    assert.match(readme, /Both commands forward focused diagnosis tuning flags to MCP `query_ontology`/);
-    assert.match(readme, /`--dependency-types A,B`, `--component-types A,B`, `--component-limit N`/);
+    assert.match(checksDoc, /diagnosis payload shape before writing machine output/);
+    assert.match(checksDoc, /Workspace next actions need a valid severity/);
+    assert.match(checksDoc, /Non-JSON `workspace-brief` also prints a `GROWTH` line/);
+    assert.match(checksDoc, /`actions`, `relations`, `dangling`, `external`, and `ignoredExternal` counts/);
+    assert.match(checksDoc, /Both commands forward focused diagnosis tuning flags to MCP `query_ontology`/);
+    assert.match(checksDoc, /`--dependency-types A,B`, `--component-types A,B`,\s+`--component-limit N`/);
   });
 
   it('keeps dogfood MCP docs explicit about workspace brief health checks', () => {
-    const readme = readFileSync('README.md', 'utf-8');
+    const readme = readFileSync('docs/DEVELOPMENT-CHECKS.md', 'utf-8');
     const doc = readFileSync('docs/ontology/capabilities/mcp-server.md', 'utf-8');
-    const releaseChecks = readme.split('### Package / MCP release checks')[1]?.split('## Verifiable promises')[0] ?? '';
+    const releaseChecks = readme.split('## Package / MCP Release Checks')[1] ?? '';
     const dogfoodSection = doc.split('dogfood walk 는 `find_evidence.matches`')[1]?.split('기본 server wait')[0] ?? '';
     const queryOntologyRow = doc.split('| `query_ontology` |')[1]?.split('\n')[0] ?? '';
     const inferImportsRow = doc.split('| `infer_imports` |')[1]?.split('\n')[0] ?? '';

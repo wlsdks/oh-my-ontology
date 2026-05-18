@@ -5,7 +5,11 @@ tags: [architecture, infra, overview]
 
 # Architecture
 
-> 2026-05 update — Round 10 permanently removed all auth + cloud surface. This doc reflects the post-R10 state. Earlier cloud-mode design notes are in `docs/archive/`.
+> 2026-05-18 update — the current architecture is a local-first, git-backed
+> memory layer for AI coding agents. Round 10 permanently removed all auth +
+> cloud surface; later rounds added deterministic graph compilation,
+> graph-engine queries, health/workspace briefs, bootstrap analysis, and import
+> inference. Earlier cloud-mode design notes are in `docs/archive/`.
 
 ## High-level shape
 
@@ -49,6 +53,9 @@ tags: [architecture, infra, overview]
 │                                                         │
 │ AI agent (Claude Code, Cursor, …) reads/writes the     │
 │ same vault directory the user picked in /docs.         │
+│ compile_ontology builds the deterministic artifact;     │
+│ query_ontology answers graph-database-like questions    │
+│ over that artifact without introducing a server DB.     │
 └────────────────────────────────────────────────────────┘
 
        ↑ stdio JSON-RPC (separate process)
@@ -63,9 +70,14 @@ tags: [architecture, infra, overview]
 └────────────────────────────────────────────────────────┘
 ```
 
-There is no backend, no database, no auth provider. The user's markdown
-folder is the single source of truth. Both the MCP server (AI agent) and
-the CLI (developer) read/write that single source.
+There is no backend, no server database, no auth provider. The user's markdown
+folder is the single source of truth. Both the MCP server (AI agent) and the
+CLI (developer) read/write that single source.
+
+The graph-database behavior is runtime computation, not a separate persistence
+layer. `compile_ontology` turns markdown frontmatter into a deterministic graph
+artifact; `query_ontology` runs graph operations over that artifact; confirmed
+write tools persist changes back to markdown.
 
 ## FSD layers
 
@@ -84,6 +96,20 @@ src/
 The directory layout is enforced by `eslint-plugin-boundaries` in `eslint.config.ts`.
 
 ## Data flow
+
+### Vault graph lifecycle
+
+1. Markdown files are loaded from the vault folder.
+2. Frontmatter is parsed into typed nodes and graph relations.
+3. `compile_ontology` canonicalizes nodes/edges, aliases, issues,
+   graph-array canonicalization actions, stable `graphHash`, and optional
+   query indexes.
+4. `query_ontology` serves graph operations such as `neighbors`, `path`,
+   `project_scope`, `blast_radius`, `cycles`, `maintenance_plan`,
+   `workspace_brief`, and `health`.
+5. Write tools mutate markdown only after explicit add/patch/relation/rename/
+   merge/delete calls. Analysis tools such as `analyze_repo_structure` and
+   `infer_imports` are side-effect-free candidate generators.
 
 ### Vault mode (user picked a markdown folder)
 

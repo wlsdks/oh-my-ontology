@@ -10,6 +10,13 @@
 
 > **One codebase, one ontology, that the developer and their AI agent grow together.**
 
+Launch framing (v4, 2026-05-18):
+
+> **A repo-native memory layer for Claude Code, Cursor, and Codex.**
+>
+> Your AI coding agent forgets your codebase. Give it a local, git-backed
+> mental model it can read, query, and maintain through MCP.
+
 - Primary audience: **developer + their AI agent**. Developer creates / refines nodes (CLI · web UI); AI agent (Claude Code, Codex, Cursor) reads/writes the same vault via MCP to give better codebase answers.
 - Spine = `.md` documents → a growing ontology. Topology / tree / builder are *views* of that spine.
 - PM / designer / ops are **bonus, not target**. If the surface happens to be friendly to them — good. We don't optimize for them.
@@ -19,6 +26,37 @@
 - Developer already lives in the codebase — the *cost* of authoring frontmatter (slug / kind / domain / dependencies) is small for them.
 - Developer's AI agent (the *real* daily user of `mcp/` 23 tools) needs ground-truth structure to give better answers. Without a developer maintaining it, the ontology rots.
 - The *differentiator* vs Protégé / Notion / OWL editors = "ontology that lives next to the code, in the same git repo, that the developer + AI agent grow together."
+
+### Market framing guardrail (v4)
+
+Do not lead with "ontology editor" in launch copy. Developers do not want a new
+knowledge base they must manually maintain.
+
+Lead with the daily AI-coding pain:
+
+> Your AI coding agent forgets your codebase. Give it a local, git-backed memory
+> it can read and maintain.
+
+The ontology graph is the substrate. The product promise is cheaper, durable
+agent memory.
+
+Canonical internal note:
+[`docs/AGENT-MEMORY-POSITIONING.md`](AGENT-MEMORY-POSITIONING.md).
+
+### Required product loop
+
+This loop must work before the project is treated as launch-ready:
+
+```text
+init -> bootstrap -> agent answers better through MCP -> agent proposes sync
+-> developer reviews diff -> next task benefits
+```
+
+Target: first visible value in a fresh repo within 10 minutes.
+
+Failure mode: if the user feels they must "write an ontology" before seeing
+value, the product becomes a niche ontology tool instead of an AI-agent memory
+layer.
 
 ---
 
@@ -236,7 +274,7 @@ When an agent enters the codebase, it sees this on the first page and picks up t
 2. ✅ 23 tools (read 15 + write 8): `list_concepts` / `get_concept` / `get_concepts` / `find_evidence` / `find_backlinks` / `find_neighbors` / `find_path` / `list_kinds` / `find_orphans` / `query_concepts` (typed filter DSL) / `compile_ontology` / `query_ontology` / `validate_vault` / `analyze_repo_structure` (R16) / `infer_imports` (R17) / `add_concept` / `add_concepts` / `add_relation` / `add_relations` / `patch_concept` / `delete_concept` / `rename_concept` / `merge_concepts` (R11 — atomic graph-level write)
 3. ✅ CLI command (`oh-my-ontology`) — `npx oh-my-ontology init <folder>` scaffolds the vault. The web `/docs` "Create starter seed" button is the no-terminal alternative.
 4. ⏸ Auto-generated AGENTS.md — DEFERRED (manual updates + dogfood vault cover this)
-5. ✅ `docs/ontology/` dogfood vault — 28 nodes describing our own mental model
+5. ✅ `docs/ontology/` dogfood vault — 29 nodes describing our own mental model
 
 ### 🚫 Phase 4 — Polish for non-developers — **dropped (R11 fire #25)**
 
@@ -246,7 +284,8 @@ PM-primary 결정 reverted. v3 mission: developer + their AI agent only. T33-T36
 
 1. ✅ CLI 명령 확장 — 27 commands across vault scaffold, MCP verify, import, repo bootstrap, deterministic compile, maintenance queue, graph CRUD, and graph deep dive
 2. ✅ AI agent dogfood 사이클 — Claude Code 가 mcp 로 codebase 분석 + add_concept 워크플로 검증 (R12 + R14 메타 검증)
-3. ~~VSCode plugin~~ — R15 에서 제거. 이유: daily driver 가 Claude Code / Codex 같은 AI-agent 터미널로 전환되며 VSCode 자체 점유율 감소. 코드↔ontology 점프 / backlinks / write 는 mcp + cli 로 같은 가치 cover.
+3. ⏳ 10-minute memory loop proof — fresh repo 에서 `init → bootstrap → MCP 기반 답변 개선 → agent sync 제안 → git diff 리뷰 → 다음 task 개선` 이 10분 안에 보이는지 검증. 이게 안 되면 아직 제품이 아니라 좋은 엔진.
+4. ~~VSCode plugin~~ — R15 에서 제거. 이유: daily driver 가 Claude Code / Codex 같은 AI-agent 터미널로 전환되며 VSCode 자체 점유율 감소. 코드↔ontology 점프 / backlinks / write 는 mcp + cli 로 같은 가치 cover.
 
 ---
 
@@ -258,18 +297,19 @@ PM-primary 결정 reverted. v3 mission: developer + their AI agent only. T33-T36
 
 ### New mission (proposed in this doc)
 
-> **An ontology of one codebase, co-authored by humans and AI agents.**
+> **A repo-native memory layer for AI coding agents, backed by an ontology of one codebase.**
 >
-> - Humans: add nodes/edges directly from the vault frontmatter or the builder canvas.
-> - AI agents (Claude Code, …): commit code-exploration findings to the ontology via MCP or CLI.
-> - All inputs share one vault graph. All views (tree hub / topology sub-view / ERD).
+> - Humans: review and refine the repo-local memory as normal markdown/git diffs.
+> - AI agents (Claude Code, Cursor, Codex): read, query, and propose updates via MCP or CLI.
+> - Bootstrap and sync reduce manual ontology authoring; the graph is maintained as a side effect of real code work.
+> - All inputs share one vault graph. All views (tree hub / topology sub-view / ERD) are optional workbench surfaces.
 > - Distributed as a package — `npx oh-my-ontology` from any codebase.
 
 What changed:
 
 - Cloud-extraction promise ("AI extracts") → collaboration promise ("AI agent partners").
 - Cost model — the cloud LLM cost disappears (Claude Code already covers user's LLM cost).
-- Identity sharpened — not a generic ontology tool, but **the workbench where codebases meet AI agents**.
+- Identity sharpened — not a generic ontology tool, but **a local-first memory layer for AI coding agents**.
 
 ---
 

@@ -1,7 +1,65 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-16T13:25:57.497Z",
+  "generatedAt": "2026-05-18T06:46:47.965Z",
   "docs": [
+    {
+      "slug": "AGENT-MEMORY-POSITIONING",
+      "path": "docs/AGENT-MEMORY-POSITIONING.md",
+      "title": "Agent Memory Positioning",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Agent Memory Positioning",
+          "slug": "agent-memory-positioning"
+        },
+        {
+          "depth": 2,
+          "text": "One-line Position",
+          "slug": "one-line-position"
+        },
+        {
+          "depth": 2,
+          "text": "The User Problem",
+          "slug": "the-user-problem"
+        },
+        {
+          "depth": 2,
+          "text": "Product Bet",
+          "slug": "product-bet"
+        },
+        {
+          "depth": 2,
+          "text": "Why This Can Matter",
+          "slug": "why-this-can-matter"
+        },
+        {
+          "depth": 2,
+          "text": "Success Conditions",
+          "slug": "success-conditions"
+        },
+        {
+          "depth": 2,
+          "text": "Failure Conditions",
+          "slug": "failure-conditions"
+        },
+        {
+          "depth": 2,
+          "text": "What The Recent Engine Work Enables",
+          "slug": "what-the-recent-engine-work-enables"
+        },
+        {
+          "depth": 2,
+          "text": "Positioning Guardrail",
+          "slug": "positioning-guardrail"
+        }
+      ],
+      "excerpt": "Current product framing for launch, README copy, and prioritization. Last updated: 20260518. A reponative memory layer for Claude Code, Cursor, and Codex. ohmyontology keeps a local, gitbacked mental model of a codebase that AI coding agents can read, query, and maintain through MCP. AI coding agents are useful, but th",
+      "wordCount": 591,
+      "updatedAt": "2026-05-18T06:46:12.562Z",
+      "linksOut": []
+    },
     {
       "slug": "ARCHITECTURE",
       "path": "docs/ARCHITECTURE.md",
@@ -42,6 +100,11 @@
         },
         {
           "depth": 3,
+          "text": "Vault graph lifecycle",
+          "slug": "vault-graph-lifecycle"
+        },
+        {
+          "depth": 3,
           "text": "Vault mode (user picked a markdown folder)",
           "slug": "vault-mode-user-picked-a-markdown-folder"
         },
@@ -76,9 +139,9 @@
           "slug": "source-of-truth-files"
         }
       ],
-      "excerpt": "202605 update — Round 10 permanently removed all auth + cloud surface. This doc reflects the postR10 state. Earlier cloudmode design notes are in docs/archive/. There is no backend, no database, no auth provider. The user's markdown folder is the single source of truth. Both the MCP server (AI agent) and the CLI (devel",
-      "wordCount": 934,
-      "updatedAt": "2026-05-15T23:34:29.073Z",
+      "excerpt": "20260518 update — the current architecture is a localfirst, gitbacked memory layer for AI coding agents. Round 10 permanently removed all auth + cloud surface; later rounds added deterministic graph compilation, graphengine queries, health/workspace briefs, bootstrap analysis, and import inference. Earlier cloudmode de",
+      "wordCount": 1125,
+      "updatedAt": "2026-05-18T06:46:12.562Z",
       "linksOut": [
         "../AGENTS",
         "PRODUCT-DIRECTION",
@@ -408,7 +471,7 @@
       ],
       "excerpt": "Date: 20260501 (mission v2 cleanup 10 PR 머지 후) Method: 12 도메인을 Haiku 병렬 subagent 로 분석. 1원리 게이트 — \"X 가 없어도 사용자/AI agent 가 mission v2 를 수행할 수 있는가?\" Mission v2: \"사람과 AI agent 가 같이 저작하는 codebase 의 ontology\" 척추: md frontmatter → ontology AI agent (Claude Code 등) = MCP partner frontmatter 자체가 자기승인 3 view: 트리 (/) / 토폴로지 (/top",
       "wordCount": 3217,
-      "updatedAt": "2026-05-02T06:57:52.980Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": []
     },
     {
@@ -597,7 +660,7 @@
       ],
       "excerpt": "This document covers the storage contracts of both the current public product and the designapproved knowledge subsystem v2. Whenever a collection schema changes, update this document first. The change process follows rules/firestoreschema.md. Singleuser mode (current): A single loggedin user is the owner of their own ",
       "wordCount": 5359,
-      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": [
         "archive/rules/firestore-schema"
       ]
@@ -652,7 +715,7 @@
       ],
       "excerpt": "The hosted demo for ohmyontology runs on Firebase Hosting (project: ohmyontology) and serves a static export. Since Next.js is configured with output: 'export', there is no server runtime — the free Spark plan is more than enough. [x] Firebase project ohmyontology created [x] .firebaserc configured with default: ohmyon",
       "wordCount": 352,
-      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": []
     },
     {
@@ -745,7 +808,7 @@
       ],
       "excerpt": "Status: 부분 구현 + 활성 가이드. modeaware adapters (PR 5/6) + useOntologyInsight (Q1=(a)) 머지로 Static / Local / Cloud 3 모드는 코드 구현 완료. Hybrid (양방향 sync) 는 v2 협업 단계. 이 문서는 로컬 디스크의 markdown 폴더 와 Firebase (Firestore + Storage) 사이의 데이터 흐름·sync·충돌 정책을 명시한다. .claude/rules/localfirst.md 의 \"Notion 처럼 폴더만 선택해도 사용\" 헌장을 데이터 레이어에서 어떻게 구현하는지",
       "wordCount": 1170,
-      "updatedAt": "2026-05-02T06:57:52.980Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": []
     },
     {
@@ -788,7 +851,7 @@
       ],
       "excerpt": "✅ 모든 stage 머지 완료 (20260501 저녁, PR 511). 본 문서는 historical analysis 로 보관 — 같은 패턴의 cleanup 이 미래에 필요할 때 참조용. 사용자 가시 변화 시간순: docs/CHANGELOG.md (20260501 저녁 entry). 현재 nextwork: docs/BACKLOG.md. mission v2 = \"사람과 AI agent 가 같이 저작하는 codebase ontology\" (docs/PRODUCTDIRECTION.md). 척추 = md frontmatter → ontology. AI agent = MCP ",
       "wordCount": 495,
-      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": []
     },
     {
@@ -886,7 +949,7 @@
       ],
       "excerpt": "Status: Adopted (Phase 23, 20260501). Why: Root cause 1 from the planner audit — no modeaware hook existed, so every gate looked only at auth role. Nonloggedin users with an active local vault could not perform mutations. Spec location: Codelayer implementation of the .claude/rules/localfirst.md charter and docs/LOCALF",
       "wordCount": 1104,
-      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": []
     },
     {
@@ -1009,7 +1072,7 @@
       ],
       "excerpt": "Status: 활성 가이드 (Q1=(a) 답 + useOntologyInsight 머지 완료, PR 6). 진입점 분기 확정됨 — vault 활성 시 / ontology hub 가 자동 vault 모드, vault 미활성 시 cloud / static fallback. 이 문서는 비로그인 사용자가 첫 화면에서 0 마찰로 사용 시작 하도록 라우트별 진입 동작·권한 게이트·온보딩 단계를 명시한다. .claude/rules/localfirst.md 의 헌장 (\"Notion 처럼 폴더만 선택해도 사용\") 을 UI 레이어에서 어떻게 구현하는지 정의. 관련: .claude/ru",
       "wordCount": 1576,
-      "updatedAt": "2026-05-02T06:57:52.980Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": []
     },
     {
@@ -1332,7 +1395,7 @@
       ],
       "excerpt": "Status: Q3Q7 답 확정 (20260502, user 추천 기본 채택). V1.x roadmap 의 mission v2 정합 평가도 같이 마쳤다. 결론: V1.2V1.4 + V2 는 cloudfirst 가정 으로 설계됐는데, mission v2 가 vaultfirst + functions/ 폐기 (PR 27) 로 전환되며 cloud schema 진화의 기존 의미가 사라졌다. 살아남는 부분만 vaultadaptation 으로 변형 적용; 그 외는 N/A 로 닫는다. Author: 자율 루프 iter12 (20260501) + 이후 update. Inputs: C",
       "wordCount": 8423,
-      "updatedAt": "2026-05-02T06:57:52.980Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": [
         "other-doc",
         "doc:payment-spec",
@@ -1359,7 +1422,7 @@
       ],
       "excerpt": "이 폴더는 과거 세션에서 만든 longform 분석 문서 의 보관소다. 현재 mission / contributor 룰의 진실원은 다음 4 개: docs/PRODUCTDIRECTION.md — mission v2 spec docs/FEATURES.md — 사용자 가시 기능 전수 docs/ARCHITECTURE.md / docs/DATAMODEL.md / docs/DESIGNSYSTEM.md / docs/DEPLOYMENT.md — 영역별 룰 docs/CHANGELOG.md — 시간순 변화 archive 안 문서는 역사적 맥락 으로 남겨둘 뿐 contributor 가이",
       "wordCount": 184,
-      "updatedAt": "2026-05-02T06:57:52.981Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": []
     },
     {
@@ -1522,7 +1585,7 @@
       ],
       "excerpt": "작성: 20260501 (mission v2 cleanup + atomic audit 완료 후) 방법: 사용자 입장에서 mission v2 약속 을 1원리 게이트로 검증. Mission v2: \"사람과 AI agent 가 같이 저작하는 codebase 의 ontology\" | 청중 | 첫 진입 행동 | mission v2 약속 | |||| | 개발자 (이 도구를 자기 codebase 에) | clone → pnpm dev → vault 폴더 선택 | 코드 ↔ 개념 매핑, AI agent 와 같이 저작 | | PM / 디자이너 / 운영 | 개발자가 띄워준 곳에 진입 →",
       "wordCount": 1571,
-      "updatedAt": "2026-05-02T06:57:52.981Z",
+      "updatedAt": "2026-05-04T01:27:35.684Z",
       "linksOut": []
     },
     {
@@ -1576,6 +1639,11 @@
           "depth": 2,
           "text": "P0 — 즉시 실행 가능 (위험 낮음, 가치 큼)",
           "slug": "p0-즉시-실행-가능-위험-낮음-가치-큼"
+        },
+        {
+          "depth": 3,
+          "text": "M1. 10-minute memory loop proof — *launch readiness gate*",
+          "slug": "m1-10-minute-memory-loop-proof-launch-readiness-gate"
         },
         {
           "depth": 3,
@@ -1673,9 +1741,9 @@
           "slug": "참조-문서"
         }
       ],
-      "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260516): localfirst 3 surface (CLI · MCP · Web) 기준으로 재정렬. dogfood 28 노드, CLI 26 commands, MCP 23 tools, installed MCP health path 반영. | PR | 항목 | 결과 | |||| | 155 | vault polling 5s | ✅ visibleonly setInterval, fingerprint diff | | 156 |",
-      "wordCount": 1332,
-      "updatedAt": "2026-05-15T23:34:29.073Z",
+      "excerpt": "작업 순번 만. user 가 \"T?? 진행해\" 하면 그것만 분해해서 실행. 완료된 항목은 ✅ 표시 후 별도 batch 정리 시 일괄 삭제. 갱신 (20260518): reponative AIagent memory layer 포지셔닝 반영. localfirst 3 surface (CLI · MCP · Web), dogfood 29 노드, CLI 27 commands, MCP 23 tools, compiler/query/health/workspacebrief/bootstrap/importinference 루프 기준으로 재정렬. | PR | 항목 | 결과 | |||| | ",
+      "wordCount": 1438,
+      "updatedAt": "2026-05-18T06:46:12.563Z",
       "linksOut": []
     },
     {
@@ -1753,7 +1821,7 @@
       ],
       "excerpt": "The single biggest unverified premise of this project: \"AI agents work better when they can read and write the codebase ontology vault.\" Until we have data, this is a belief, not a claim. This folder is the first attempt to put it on a measurement scale. We built CLI · MCP · 14 tools · web workbench all on top of one a",
       "wordCount": 1034,
-      "updatedAt": "2026-05-06T09:30:43.292Z",
+      "updatedAt": "2026-05-06T02:02:33.371Z",
       "linksOut": [
         "benchmark/tasks",
         "benchmark/rubric",
@@ -1855,7 +1923,7 @@
       ],
       "excerpt": "Caveat — read this before the numbers. This run was performed by Claude Code (Opus 4.7, 1M context) measuring itself. The MCPoff mode was simulated by deliberately using only Read/Grep/Bash/Edit. The MCPon mode was simulated by spawning mcp/src/index.js with stdio JSONRPC (the real protocol path Claude Code uses when o",
       "wordCount": 1775,
-      "updatedAt": "2026-05-04T10:06:27.437Z",
+      "updatedAt": "2026-05-04T08:29:49.277Z",
       "linksOut": []
     },
     {
@@ -2008,7 +2076,7 @@
       ],
       "excerpt": "Companion to 20260504claudecode.md. Same 7 tasks, same rubric, different agent stack. Repo HEAD: post PR 130–133 merge Vault: 22 nodes, 5% orphans (project root) Codex CLI: codexcli 0.128.0 (model: gpt5.5, sandbox: readonly, approval: never) MCP registration: codex mcp add ohmyontology env OMOTVAULT=... node mcp/src/in",
       "wordCount": 2629,
-      "updatedAt": "2026-05-04T10:06:27.438Z",
+      "updatedAt": "2026-05-04T08:58:33.017Z",
       "linksOut": [
         "benchmark/results/2026-05-04-claude-code"
       ]
@@ -2038,7 +2106,7 @@
       ],
       "excerpt": "Tmp vault: /var/folders/4y/kbv6fs2g9fmpp7236t79rc0000gn/T/omotscale1001hNgIV (N=100 nodes, 32 reference elements/hub). Single highMCPadvantage task (findbacklinks(elements/hub)). | Mode | Shell exec | MCP calls | Duration | ||||| | OFF | 3 | 0 | 21.6s | | ON | 8 | 0 | 35.0s | Δ shell calls: 5 (negative = MCP saved exec",
       "wordCount": 105,
-      "updatedAt": "2026-05-05T03:30:20.978Z",
+      "updatedAt": "2026-05-04T11:45:31.991Z",
       "linksOut": []
     },
     {
@@ -2131,7 +2199,7 @@
       ],
       "excerpt": "Rename this file to your actual run date (e.g. 20260510.md). Each run goes in its own file so we can track effect over time as the ontology evolves. Repo HEAD: <git revparse HEAD Vault size: <pnpm dogfood:walk | grep \"vault size\" nodes Claude Code version: <claude version Codex CLI version: <codex version Date / grader",
       "wordCount": 787,
-      "updatedAt": "2026-05-04T10:06:27.438Z",
+      "updatedAt": "2026-05-04T08:22:28.421Z",
       "linksOut": []
     },
     {
@@ -2199,7 +2267,7 @@
       ],
       "excerpt": "Score each agent × mode × task cell (28 cells total per measurement run). Be strict. If you find yourself wanting to round up because the agent \"almost\" got it, write the gap in the Notes column instead of inflating. | Score | Meaning | ||| | 3 | Fully correct. Every item the prompt asked for is present and accurate; n",
       "wordCount": 638,
-      "updatedAt": "2026-05-04T10:06:27.438Z",
+      "updatedAt": "2026-05-04T08:22:28.421Z",
       "linksOut": []
     },
     {
@@ -2271,8 +2339,8 @@
         }
       ],
       "excerpt": "7 tasks across 3 categories. Each has a known correct answer (verifiable by human against the current docs/ontology/ vault, code, and PR history) so we can grade independent of the AI's confidence. Paste the prompt verbatim into a fresh agent session. No followups. Questions where the answer requires reasoning over mul",
-      "wordCount": 796,
-      "updatedAt": "2026-05-04T10:06:27.438Z",
+      "wordCount": 815,
+      "updatedAt": "2026-05-18T04:31:36.861Z",
       "linksOut": []
     },
     {
@@ -2286,6 +2354,16 @@
           "depth": 1,
           "text": "CHANGELOG",
           "slug": "changelog"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-18 — MCP first-contact and packed-smoke hardening",
+          "slug": "2026-05-18-mcp-first-contact-and-packed-smoke-hardening"
+        },
+        {
+          "depth": 2,
+          "text": "2026-05-17 — CLI maintenance queue + focused verification",
+          "slug": "2026-05-17-cli-maintenance-queue-focused-verification"
         },
         {
           "depth": 2,
@@ -3293,9 +3371,9 @@
           "slug": "before-2026-04-30"
         }
       ],
-      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. UI 점검 보고서 (/, /topology, /ontology, /ontology/insights, /ontology/edit, /docs, /projects) ",
-      "wordCount": 15070,
-      "updatedAt": "2026-05-11T23:22:47.060Z",
+      "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. MCP verification now keeps the installed agent surface, firstcontact guidance, release smo",
+      "wordCount": 15399,
+      "updatedAt": "2026-05-18T06:46:12.501Z",
       "linksOut": [
         "slug"
       ]
@@ -3359,8 +3437,8 @@
         }
       ],
       "excerpt": "202605 update — Round 10 removed all backend dependencies. The OSS now builds to a pure static site (output: 'export'), deployable to any static host (Firebase Hosting, Vercel, Netlify, GitHub Pages, S3 + CloudFront, …). The detailed Firebasespecific guide is archived in docs/archive/DEPLOYFIREBASE.md for reference. Th",
-      "wordCount": 364,
-      "updatedAt": "2026-05-02T16:29:38.381Z",
+      "wordCount": 404,
+      "updatedAt": "2026-05-18T06:46:12.518Z",
       "linksOut": [
         "archive/DEPLOY-FIREBASE"
       ]
@@ -3570,7 +3648,7 @@
       ],
       "excerpt": "Linear's website is a masterclass in darkmodefirst product design — a nearblack canvas (08090a) where content emerges from darkness like starlight. The overall impression is one of extreme precision engineering: every element exists in a carefully calibrated hierarchy of luminance, from barelyvisible borders (rgba(255,",
       "wordCount": 3342,
-      "updatedAt": "2026-04-30T16:19:07.591Z",
+      "updatedAt": "2026-05-04T01:27:35.685Z",
       "linksOut": []
     },
     {
@@ -3686,10 +3764,43 @@
       ],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see designreferences/DESIGNlinear.md. Linear's \"starlight rising from darkness\" aesthetic aligns precisely with the constellation metaphor of the topology. The extreme constraint of blackandwhite plus a single indi",
       "wordCount": 694,
-      "updatedAt": "2026-05-09T11:48:53.267Z",
+      "updatedAt": "2026-05-11T00:08:39.981Z",
       "linksOut": [
         "design-references/DESIGN-linear"
       ]
+    },
+    {
+      "slug": "DEVELOPMENT-CHECKS",
+      "path": "docs/DEVELOPMENT-CHECKS.md",
+      "title": "Development Checks",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Development Checks",
+          "slug": "development-checks"
+        },
+        {
+          "depth": 2,
+          "text": "Everyday Checks",
+          "slug": "everyday-checks"
+        },
+        {
+          "depth": 2,
+          "text": "Vault Checks",
+          "slug": "vault-checks"
+        },
+        {
+          "depth": 2,
+          "text": "Package / MCP Release Checks",
+          "slug": "package-mcp-release-checks"
+        }
+      ],
+      "excerpt": "This page keeps the maintaineronly command matrix out of the public README. Use it when changing mcp/, cli/, package manifests, release scripts, or the dogfood ontology contract. health json and workspacebrief json validate the diagnosis payload shape before writing machine output. Workspace next actions need a valid s",
+      "wordCount": 1137,
+      "updatedAt": "2026-05-18T06:46:12.563Z",
+      "linksOut": []
     },
     {
       "slug": "dogfood-friction-2026-05-06",
@@ -3766,7 +3877,7 @@
       ],
       "excerpt": "Setup: /tmp/omotdogfood 에 작은 todo app (4 도메인: auth/task/notification/user) 만든 후, npm link 로 cli + mcp 글로벌 시뮬. 외부 사용자 첫 흐름 시뮬레이션. 2 critical friction — fix 가치 큼, publish 후에도 그대로 (즉시 fix 가능) 2 setup friction — publish 가 원래 plan 이라 publish 후 사라짐 (fix 불필요) MCP 14 tools 동작 — sandbox vault (7 nodes) 에 spawn 후 listconcepts / ",
       "wordCount": 941,
-      "updatedAt": "2026-05-06T09:30:43.292Z",
+      "updatedAt": "2026-05-06T02:02:33.371Z",
       "linksOut": []
     },
     {
@@ -3839,7 +3950,7 @@
       ],
       "excerpt": "Setup: 사용자 본인 real codebase (Korean enterprise community app, React Native + Expo + FSD, 1.8 GB, 20 features) 에 npm link 로 publish 시뮬한 cli + mcp 적용. PR 165 (R15 closeout) 머지 직후 main 의 cli init (cwd .mcp.json + autoprefix default) + cli add 사용. Sanitization: codebase 이름 / company codename / specific feature names 추상화. 도",
       "wordCount": 825,
-      "updatedAt": "2026-05-06T09:30:43.292Z",
+      "updatedAt": "2026-05-06T02:24:50.499Z",
       "linksOut": []
     },
     {
@@ -4211,8 +4322,8 @@
         },
         {
           "depth": 2,
-          "text": "6. What was removed / added (Rounds 1–15)",
-          "slug": "6-what-was-removed-added-rounds-115"
+          "text": "6. What was removed / added (Rounds 1–17)",
+          "slug": "6-what-was-removed-added-rounds-117"
         },
         {
           "depth": 2,
@@ -4225,9 +4336,9 @@
           "slug": "8-source-of-truth-files"
         }
       ],
-      "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260516 (CLI mcpverify command — CLI · MCP · Web 3 surface, 23 MCP tools, installed MCP health + graphquery smoke path). Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI microdetail 은 R10 후 변화 작아 별도",
-      "wordCount": 5075,
-      "updatedAt": "2026-05-16T06:17:15.421Z",
+      "excerpt": "Complete inventory of features users can actually use right now. Last updated: 20260518 (reponative AIagent memory framing, R16/R17 bootstrap/import inference, compiler/query/health/workspacebrief positioning). Routes section UI detail remains a maintained product snapshot. When route behavior changes, update this file",
+      "wordCount": 5603,
+      "updatedAt": "2026-05-18T06:46:12.563Z",
       "linksOut": [
         "slug",
         "project:slug",
@@ -4289,7 +4400,7 @@
       ],
       "excerpt": "README 첫 화면에 박을 30초 GIF / mp4 의 스토리보드. claim → proof 5 컷 시퀀스. 각 컷 ~6초. screen: 좌측 vscode (또는 Obsidian) 가 domains/auth.md 를 열어 frontmatter 보임. 우측 Claude Code terminal 에서 ohmyontology 도구 호출 결과 표시. action: 사람이 markdown 의 capabilities: 키에 capabilities/login 추가 → 저장. AI 가 같은 vault 의 capabilities/login.md 를 addconcept 로 생성. ",
       "wordCount": 414,
-      "updatedAt": "2026-05-16T07:37:12.353Z",
+      "updatedAt": "2026-05-18T06:46:12.536Z",
       "linksOut": []
     },
     {
@@ -4327,7 +4438,7 @@
       ],
       "excerpt": "Submission type: Show HN Category: open source / dev tool (80 chars exactly — under HN's 80 char limit. If too long, fallback: Show HN: ohmyontology – frontmatter is the graph; AI agents read it via MCP) https://github.com/wlsdks/ohmyontology (Word count: ~280. HN expects substantive Show HN posts, not oneliners.) Best",
       "wordCount": 446,
-      "updatedAt": "2026-05-16T07:37:08.789Z",
+      "updatedAt": "2026-05-18T06:46:12.536Z",
       "linksOut": []
     },
     {
@@ -4385,7 +4496,7 @@
       ],
       "excerpt": "오픈소스 launch 단계의 publication 초안 모음. 메인테이너가 시점에 맞춰 직접 publish. 1. 사전 준비 [ ] CLI npm 배포 — cli/ 와 mcp/ 둘 다 npm publish [ ] 정적 호스팅 (GitHub Pages / Vercel / Netlify / Cloudflare Pages 등) 배포 — pnpm build → out/ 업로드. 자세한 가이드는 docs/DEPLOYMENT.md. [ ] hosted demo URL 이 README + CLI 안내 문구와 일치하는지 재확인 [ ] 30s demo gif 녹화 + docs/lau",
       "wordCount": 548,
-      "updatedAt": "2026-05-15T22:45:33.395Z",
+      "updatedAt": "2026-05-18T04:31:36.862Z",
       "linksOut": []
     },
     {
@@ -4433,7 +4544,7 @@
       ],
       "excerpt": "Reddit responds best to honest, problemfirst framing. Each subreddit has its own norms; copy below tuned per audience. Title: ohmyontology — frontmatter as a codebase ontology, AI agents read it via MCP Body (400~500 words, Reddit allows longform better than HN): myproject/ ├── project.md ├── domains/ │ ├── auth.md │ └",
       "wordCount": 919,
-      "updatedAt": "2026-05-15T22:45:45.380Z",
+      "updatedAt": "2026-05-18T04:31:36.862Z",
       "linksOut": []
     },
     {
@@ -4491,7 +4602,7 @@
       ],
       "excerpt": "X 의 언어는 짧고 시각적. 5–7 트윗 짜리 thread 가 sweet spot. 각 트윗 280 chars 안. 1 트윗 = 1 idea. yaml kind: capability domain: domains/auth dependson: [capabilities/signup] Post the thread in one go (drafts feature) Pin tweet 1 to profile Quotetweet your HN submission link in a separate post a few hours later Tag relevant accounts only",
       "wordCount": 442,
-      "updatedAt": "2026-05-15T22:45:29.044Z",
+      "updatedAt": "2026-05-18T04:31:36.862Z",
       "linksOut": []
     },
     {
@@ -4535,7 +4646,7 @@
       ],
       "excerpt": "빌더 (/ontology/edit) 캔버스의 시각 정리 + 손 정렬 도구. PR 261 (20260514) 로 7 commit 단위 도입. 선 꼬임 해소 — useVaultGraphFlow 가 containment 엣지 (domains / capabilities / elements / contains) 만 dagre rank 계산에 투입. relates / dependencies / describes 는 overlay 로만 그려져 rank 에 영향 0 n8n 스타일 엣지 — containment 는 smoothstep + 둥근 모서리 (borderRadius 12) ",
       "wordCount": 330,
-      "updatedAt": "2026-05-14T14:16:24.459Z",
+      "updatedAt": "2026-05-14T12:44:39.985Z",
       "linksOut": [
         "capabilities/builder-vault-write"
       ]
@@ -4564,19 +4675,23 @@
       ],
       "excerpt": "mission v2 의 사람 + AI agent 양립 약속의 코드 구현. 빌더 ephemeral 노드 → mode 별 분기 저장: local: vault.createDoc(${kind}s/${slug}, md) — vault 디스크 직접 작성. AI agent (MCP) 가 같은 vault 에서 즉시 본다. static: 저장 차단 + 안내 toast (\"내 markdown 폴더 열기\" 유도). frontmatter 형식: folder mapping: capability→capabilities, element→elements, domain→domains, projec",
       "wordCount": 79,
-      "updatedAt": "2026-05-12T15:58:45.722Z",
+      "updatedAt": "2026-05-13T00:02:55.337Z",
       "linksOut": []
     },
     {
       "slug": "ontology/capabilities/cli-developer-entry",
       "path": "docs/ontology/capabilities/cli-developer-entry.md",
-      "title": "CLI Developer Entry (26 commands — vault + MCP verify + graph deep dive)",
+      "title": "CLI Developer Entry (27 commands — vault + MCP verify + maintenance queue + graph deep dive)",
       "tags": [],
       "frontmatter": {
         "slug": "capabilities/cli-developer-entry",
         "kind": "capability",
-        "title": "CLI Developer Entry (26 commands — vault + MCP verify + graph deep dive)",
+        "title": "CLI Developer Entry (27 commands — vault + MCP verify + maintenance queue + graph deep dive)",
         "domain": "onboarding-ux",
+        "dependencies": [
+          "capabilities/mcp-server",
+          "capabilities/vault-validator"
+        ],
         "elements": [
           "cli/src/commands/add.mjs",
           "cli/src/commands/analyze.mjs",
@@ -4592,6 +4707,7 @@
           "cli/src/commands/import.mjs",
           "cli/src/commands/infer-imports.mjs",
           "cli/src/commands/list.mjs",
+          "cli/src/commands/maintenance.mjs",
           "cli/src/commands/mcp-verify.mjs",
           "cli/src/commands/merge.mjs",
           "cli/src/commands/node-profile.mjs",
@@ -4604,14 +4720,26 @@
           "cli/src/commands/validate.mjs",
           "cli/src/commands/workspace-brief.mjs",
           "cli/src/index.mjs",
+          "cli/src/lib/batch-results.mjs",
+          "cli/src/lib/batch-results.test.mjs",
           "cli/src/lib/cli-args.mjs",
+          "cli/src/lib/cli-args.test.mjs",
           "cli/src/lib/cli-commands.mjs",
+          "cli/src/lib/diagnosis-options.mjs",
+          "cli/src/lib/diagnosis-options.test.mjs",
+          "cli/src/lib/import-analysis-results.mjs",
+          "cli/src/lib/import-analysis-results.test.mjs",
           "cli/src/lib/mcp-call.mjs",
+          "cli/src/lib/mcp-call.test.mjs",
           "cli/src/lib/mcp-metadata.mjs",
           "cli/src/lib/query-result-contract.mjs",
+          "cli/src/lib/repo-analysis-results.mjs",
+          "cli/src/lib/repo-analysis-results.test.mjs",
           "cli/src/lib/resolve-vault.mjs",
           "scripts/check-package-contracts.mjs",
           "scripts/check-package-contracts.test.mjs",
+          "scripts/lib/test-name-pattern.mjs",
+          "scripts/lib/test-name-pattern.test.mjs",
           "scripts/smoke-clean-onboarding.mjs",
           "scripts/smoke-packed-cli.mjs"
         ],
@@ -4653,9 +4781,35 @@
           "slug": "회귀-차단"
         }
       ],
-      "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령, compile, 그리고 설치된 MCP surface 를 확인하는 mcpverify 명령 추가 — 총 26 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. | Command | W",
-      "wordCount": 2111,
-      "updatedAt": "2026-05-16T13:10:18.527Z",
+      "excerpt": "R12 (20260504) 에 도입된 developerprimary 진입점. R14 에서 import, R15 followup 에서 graphlevel 5 명령, R16R17 에서 analyze / inferimports, R+ cycle 에서 path / orphans + 두 apply 플래그 + bootstrap 합본 명령, compile, maintenance, 그리고 설치된 MCP surface 를 확인하는 mcpverify 명령 추가 — 총 27 명령. 사용자가 vault 만든 후 터미널 즉시 ontology 작업 가능 — 웹 UI / MCP 등록 불필요. ",
+      "wordCount": 5006,
+      "updatedAt": "2026-05-18T06:46:12.502Z",
+      "linksOut": []
+    },
+    {
+      "slug": "ontology/capabilities/firebase-deploy-skill",
+      "path": "docs/ontology/capabilities/firebase-deploy-skill.md",
+      "title": "Firebase Deploy Skill (.claude/skills/firebase-deploy)",
+      "tags": [],
+      "frontmatter": {
+        "slug": "capabilities/firebase-deploy-skill",
+        "kind": "capability",
+        "title": "Firebase Deploy Skill (.claude/skills/firebase-deploy)",
+        "domain": "ai-agent-partner",
+        "elements": [
+          ".claude/skills/firebase-deploy/SKILL.md"
+        ]
+      },
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Firebase Deploy Skill",
+          "slug": "firebase-deploy-skill"
+        }
+      ],
+      "excerpt": ".claude/skills/firebasedeploy/SKILL.md is the agentrunbook for publishing the static web workbench to Firebase Hosting. It reads local .env.prod identifiers, runs the docs/type/build/bundle gates, deploys with firebase deploy only hosting, and verifies the live web.app URL. The skill explicitly keeps Firebase as a stat",
+      "wordCount": 60,
+      "updatedAt": "2026-05-18T06:46:12.536Z",
       "linksOut": []
     },
     {
@@ -4686,7 +4840,7 @@
       ],
       "excerpt": "vault 의 .md 파일 frontmatter 를 직접 읽어 OntologyStub (nodes + edges + warnings) 으로 변환. AI 추출 / 검수 큐 거치지 않는 fastpath. 이게 mission \"frontmatter 가 자기승인\" 의 코드 표현. 지원 frontmatter 키: kind: — canonical 5: project / domain / capability / element / document title:, domain: capabilities: [], elements: [] — 배열 노드 relates: [], dependenc",
       "wordCount": 129,
-      "updatedAt": "2026-05-12T15:58:45.725Z",
+      "updatedAt": "2026-05-13T00:02:55.338Z",
       "linksOut": []
     },
     {
@@ -4735,7 +4889,7 @@
       ],
       "excerpt": "같은 .md 가 사람 GUI · 외부 에디터 · 다른 AI MCP 에 의해 동시 편집될 때 silent overwrite 차단. R11 8 에서 MCP 측 도입, R+ 에서 local UI 의 본문 저장과 frontmatter patch 경로까지 확장. 1. AI agent 가 getconcept 호출 → 응답에 mtime (ms) 포함 2. agent 가 분석 / 수정 후 patchconcept({ slug, frontmatter, expectedmtime: <prev mtime }) 호출 3. write 직전 server 가 현재 mtime 과 비교 4. 다르면 ",
       "wordCount": 183,
-      "updatedAt": "2026-05-12T15:58:45.725Z",
+      "updatedAt": "2026-05-13T00:02:55.338Z",
       "linksOut": []
     },
     {
@@ -4748,6 +4902,9 @@
         "kind": "capability",
         "title": "MCP Server (23 tools)",
         "domain": "ai-agent-partner",
+        "dependencies": [
+          "capabilities/frontmatter-to-ontology"
+        ],
         "elements": [
           "mcp/scripts/json-rpc-lines.mjs",
           "mcp/scripts/verify.mjs",
@@ -4764,7 +4921,9 @@
           "mcp/src/vault.mjs",
           "mcp/src/verify-script.test.mjs",
           "scripts/dogfood-mcp-walk.mjs",
-          "scripts/dogfood-mcp-walk.test.mjs"
+          "scripts/dogfood-mcp-walk.test.mjs",
+          "scripts/lib/test-name-pattern.mjs",
+          "scripts/lib/test-name-pattern.test.mjs"
         ],
         "relates": [
           "capabilities/frontmatter-to-ontology",
@@ -4778,9 +4937,9 @@
           "slug": "mcp-server-23-tools"
         }
       ],
-      "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (kind 필터, limit default 100 / max 500) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 50, 입력 순서 보존, m",
-      "wordCount": 3224,
-      "updatedAt": "2026-05-16T13:10:27.531Z",
+      "excerpt": "@modelcontextprotocol/sdk 기반 stdio JSONRPC 서버. 23 도구 노출 (read 15 + write 8): | 도구 | 동작 | ||| | listconcepts | vault 의 모든 노드 (enumvalidated kind 필터, limit default 100 / max 500) | | getconcept | 단일 slug 의 frontmatter + body excerpt + graph neighbors + outgoingEdges[] | | getconcepts | R+ 배치 reader — 여러 slug 한 호출에 (max 5",
+      "wordCount": 9665,
+      "updatedAt": "2026-05-18T06:46:12.503Z",
       "linksOut": []
     },
     {
@@ -4813,7 +4972,7 @@
       ],
       "excerpt": "R10 (auth + cloud surface 영구 제거) 이후 2 mode: local — useLocalVault().status === 'loaded' (사용자 디스크 vault) static — vault 미선택. 빌드타임 dogfood 매니페스트 (docs/ontology/) 가 fallback. useDataSourceMode() 가 두 mode 를 분기. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 호출자 코드는 단일. 적용 surface: useProjects — local: vault manifest 의 kind: project ",
       "wordCount": 107,
-      "updatedAt": "2026-05-12T15:58:45.726Z",
+      "updatedAt": "2026-05-13T00:02:55.338Z",
       "linksOut": []
     },
     {
@@ -4854,7 +5013,7 @@
       ],
       "excerpt": "R16 followup — /ontologybootstrap slash skill 의 coldstart counterpart. /ontologysync 가 이미 자란 vault 의 incremental sync 라면, 이 skill 은 fresh init 직후 빈 vault 를 codebase 에서 한 번에 채우는 흐름. 1. listkinds — vault 가 진짜 coldstart 인지 (≤ 5 nodes) 확인 2. analyzerepostructure 1 회 호출 (mcp 도구, R16 v0.8.0) — package.json / README.md H2 / s",
       "wordCount": 258,
-      "updatedAt": "2026-05-09T07:33:36.812Z",
+      "updatedAt": "2026-05-11T00:08:39.986Z",
       "linksOut": []
     },
     {
@@ -4890,7 +5049,7 @@
       ],
       "excerpt": "prose (회의록 · PR 본문 · RFC 초안 · 채팅 로그 · Notion 한 단락) 에서 ontology 가 자라는 흐름. Obsidian 처럼 [[link]] 만 자라는 게 아니라 typed ontology 노드 (capability / element / domain) 가 자란다 — LLM 이 매개라서 가능한 path. | Skill | 입력 | 출력 | |||| | [[capabilities/ontologybootstrapskill]] | 빈 vault + 코드 (analyzerepostructure) | 첫 5–15 노드 | | [[capabilities",
       "wordCount": 281,
-      "updatedAt": "2026-05-14T14:16:24.460Z",
+      "updatedAt": "2026-05-14T12:44:39.985Z",
       "linksOut": [
         "link",
         "capabilities/ontology-bootstrap-skill",
@@ -4907,6 +5066,10 @@
         "kind": "capability",
         "title": "Ontology Hub — Mode-Aware (Q1=(a))",
         "domain": "mode-aware-adapters",
+        "dependencies": [
+          "capabilities/frontmatter-to-ontology",
+          "capabilities/mode-aware-adapter"
+        ],
         "elements": [
           "src/features/vault-ontology/model/use-ontology-insight.ts",
           "src/views/ontology-view/ui/OntologyViewPage.tsx"
@@ -4926,7 +5089,7 @@
       ],
       "excerpt": "vault 활성 시 / 가 자동으로 그 데이터로 전환. mission v2 ideal \"Notion 처럼 폴더만 골라도 사용\" 의 ontology hub 표현. useOntologyInsight() 분기: local → useVaultOntology 결과를 KnowledgeProjectInsight shape 으로 변환 static → 빌드타임 dogfood 매니페스트 derivation (moduleload 1 회 메모이즈) OntologyStubNode → KnowledgeGraphNode 변환: sentinel lastApprovedAt = Date(0), la",
       "wordCount": 94,
-      "updatedAt": "2026-05-12T15:58:45.727Z",
+      "updatedAt": "2026-05-18T04:31:36.864Z",
       "linksOut": []
     },
     {
@@ -4960,7 +5123,7 @@
       ],
       "excerpt": "Claude Code 가 코드 변경 후 자동으로 호출하는 userinvocable skill. .claude/skills/ontologysync/SKILL.md 한 파일이 곧 surface — 새 capability / element / domain 가 등장하면 MCP write 도구 (addconcept / patchconcept / addrelation) 로 vault 에 반영하라는 워크플로를 LLM 에게 지시한다. MCP 서버가 런타임 도구 라면 이 skill 은 사용 규약 — readthenwrite, 중복 slug 회피, 5 줄 changelog reply,",
       "wordCount": 105,
-      "updatedAt": "2026-05-06T09:30:43.295Z",
+      "updatedAt": "2026-05-05T15:22:53.804Z",
       "linksOut": []
     },
     {
@@ -5002,7 +5165,7 @@
       ],
       "excerpt": "Claude Code 가 새 세션을 열 때 한 번 실행되어 현재 디렉토리의 ontology vault 요약 (총 노드 수 · kind 분포 · 첫 8 노드 샘플) 을 agent system context 에 inject 한다. 매 prompt 마다 사용자가 \"ontology 활용해\" 라고 알려주지 않아도 agent 가 작업 첫 순간부터 vault 를 인지한다. domains/aiagentpartner — agent 가 vault 와 상호작용하는 surface 군. capabilities/clideveloperentry — vault 요약을 만들 때 ohmyontolo",
       "wordCount": 152,
-      "updatedAt": "2026-05-06T09:30:43.295Z",
+      "updatedAt": "2026-05-05T15:29:33.665Z",
       "linksOut": []
     },
     {
@@ -5033,7 +5196,7 @@
       ],
       "excerpt": "Sigma.js + Graphology + ForceAtlas2 spatial network. 노드 클릭 → ProjectDrawer, hover → 1hop 이웃 강조, 우측 SigmaHubRail (degree 상위), 우측 SigmaMinimap. ⌘K 검색. / (홈 hub) 와 /topology (alias) 양쪽에서 동일 컴포넌트 (HomePage) 가 mount.",
       "wordCount": 42,
-      "updatedAt": "2026-05-12T15:58:45.727Z",
+      "updatedAt": "2026-05-13T00:02:55.338Z",
       "linksOut": []
     },
     {
@@ -5088,7 +5251,7 @@
       ],
       "excerpt": "R14 (155158, 20260504 ~ 20260505) 에 도입된 web 즉시 반영 능력. 사용자 명시 \"웹에서나 잘 반영되면 좋겠는데? 그걸 강화하는건 어때\" 의 4 단계 답. IDE / AI agent / CLI 어느 surface 가 vault .md 만지면 웹 탭이 focus 안 해도 ~5s 안에 반영. | Step | What | Where 인지 | |||| | 155 polling | 5s 간격 fingerprint check + visibleonly 자동 reload | 백그라운드 | | 156 graph diff pulse | 새 노드 amber ",
       "wordCount": 289,
-      "updatedAt": "2026-05-12T15:58:45.728Z",
+      "updatedAt": "2026-05-13T00:02:55.339Z",
       "linksOut": []
     },
     {
@@ -5139,7 +5302,7 @@
       ],
       "excerpt": "frontmatter 가 schema 다 → 키 추가 / 이름 변경 / 값 정리 시 vault 의 N 파일을 일괄 수정해야 한다. R11 에서 마이그레이션 패턴 정립. 각 마이그레이션은 scripts/migrations/<YYYYMMDD<slug.mjs 한 파일. shape: migrate(file: { path, raw, relativePath }) → { raw } | null. null = noop. 1. Line 기반 변형 우선 — parse → reserialize 라운드트립은 주석/공백 손실 위험 2. idempotent — 두 번 적용해도 결과 동일 3.",
       "wordCount": 140,
-      "updatedAt": "2026-05-04T10:06:27.439Z",
+      "updatedAt": "2026-05-04T02:37:26.315Z",
       "linksOut": []
     },
     {
@@ -5152,10 +5315,20 @@
         "kind": "capability",
         "title": "Vault Validator (Silent Corruption 가시화)",
         "domain": "vault-local-first",
+        "dependencies": [
+          "capabilities/frontmatter-to-ontology"
+        ],
         "elements": [
+          "scripts/audit-vault-paths.mjs",
+          "scripts/audit-vault-paths.test.mjs",
+          "scripts/validate-vault-script.test.mjs",
           "scripts/validate-vault.mjs",
           "src/shared/lib/validate-vault-document.ts",
-          "tests/contract/frontmatter-writer.contract.test.ts"
+          "tests/contract/frontmatter-writer.contract.test.ts",
+          "tests/contract/known-codes-drift.contract.test.ts",
+          "tests/contract/parse-frontmatter.contract.test.ts",
+          "tests/contract/validate-vault-document.contract.test.ts",
+          "tests/contract/vault-schema.contract.test.ts"
         ],
         "relates": [
           "capabilities/frontmatter-to-ontology",
@@ -5185,8 +5358,8 @@
         }
       ],
       "excerpt": "frontmatter parser 가 lenient bydesign — 닫힘 빠짐 / 빈 키 / 잘못된 들여쓰기에서 조용히 빈 frontmatter 반환. 사용자가 .md 잘못 작성하면 노드가 graph 에서 조용히 사라짐. R11 에서 이 silent corruption 을 가시화. 1. CLI — pnpm vault:validate [vaultPath] validateVaultDocument(raw) — frontmatter corruption + graph array canonicality issue codes error 1+ 시 exit 1 (CI 게이트 가능",
-      "wordCount": 256,
-      "updatedAt": "2026-05-16T01:03:05.994Z",
+      "wordCount": 374,
+      "updatedAt": "2026-05-18T04:31:36.864Z",
       "linksOut": []
     },
     {
@@ -5199,6 +5372,7 @@
         "kind": "domain",
         "title": "AI Agent Partner",
         "capabilities": [
+          "firebase-deploy-skill",
           "mcp-conflict-guard",
           "mcp-server",
           "ontology-bootstrap-skill",
@@ -5227,7 +5401,7 @@
       ],
       "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 23 도구 (read 15 + write 8) 를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출.",
       "wordCount": 49,
-      "updatedAt": "2026-05-14T14:16:24.461Z",
+      "updatedAt": "2026-05-18T06:46:12.537Z",
       "linksOut": []
     },
     {
@@ -5261,7 +5435,7 @@
       ],
       "excerpt": "useDataSourceMode() 가 local / static 분기 결정. R10 (auth + cloud surface 영구 제거) 이후 두 mode 만 존재. 같은 hook 호출이 mode 별로 다른 source 를 본다 — 사용자에겐 단일 UX. 미래 cloud collab 단계가 다시 도입될 때 'cloud' mode 와 그 adapter 를 새로 추가.",
       "wordCount": 50,
-      "updatedAt": "2026-05-12T23:31:06.921Z",
+      "updatedAt": "2026-05-13T06:58:08.695Z",
       "linksOut": []
     },
     {
@@ -5296,7 +5470,7 @@
       ],
       "excerpt": "crosscutting. 라이트/다크 토글 (html[datatheme=\"light\"]), Sonner기반 toast, arialive 스크린리더 announce, 모바일 BottomTabBar + gesture hint, ⌘K · ⇧⌘K · ? · F · N · Esc 단축키, prefersreducedmotion 자동 존중. fresh vault onboarding 도 이 domain 의 일부: CLI init 과 web workbench starter 가 같은 5node vault README/setup 내용을 제공하고, Claude Code/Cursor .mc",
       "wordCount": 102,
-      "updatedAt": "2026-05-12T15:58:45.729Z",
+      "updatedAt": "2026-05-13T00:02:55.340Z",
       "linksOut": []
     },
     {
@@ -5330,7 +5504,7 @@
       ],
       "excerpt": "4layer class hierarchy (Project · Domain · Capability · Element + Document) + 7 edge types (KNOWLEDGEEDGETYPES) + evidencegrounded statements. Vault frontmatter is the single source of truth — deriveontologyfromvault turns \\.md\\ frontmatter into the inmemory graph. Architecture overview: \\docs/ARCHITECTURE.md\\.",
       "wordCount": 43,
-      "updatedAt": "2026-05-12T15:58:45.730Z",
+      "updatedAt": "2026-05-13T00:02:55.341Z",
       "linksOut": []
     },
     {
@@ -5368,7 +5542,7 @@
       ],
       "excerpt": "사용자 디스크 폴더를 진실원으로. File System Access API + IndexedDB 기반 핸들 영속. focus / visibility 시 fingerprint 비교로 재스캔 shortcircuit. R14 부터는 visible 인 동안 5s polling 으로 focus 안 해도 자동 반영 (vaultliveupdates). 자세한 원칙: .claude/rules/localfirst.md. 사용자 surface: docs/FEATURES.md.",
       "wordCount": 45,
-      "updatedAt": "2026-05-12T15:58:45.730Z",
+      "updatedAt": "2026-05-13T00:02:55.341Z",
       "linksOut": []
     },
     {
@@ -5409,7 +5583,7 @@
       ],
       "excerpt": "같은 ontology 그래프의 세 출구. 토폴로지 (Sigma + ForceAtlas2 spatial network), 둘러보기 (/ontology 트리 계층 + ego graph + 노드 detail), 빌더 (xyflow ERD canvas + md 내보내기). 검색 — ⌘K 프로젝트 / ⇧⌘K 노드+프로젝트 통합.",
       "wordCount": 38,
-      "updatedAt": "2026-05-14T14:16:24.461Z",
+      "updatedAt": "2026-05-14T07:35:12.193Z",
       "linksOut": []
     },
     {
@@ -5436,7 +5610,7 @@
       ],
       "excerpt": "브라우저 native API — showDirectoryPicker() 로 사용자 폴더 선택, FileSystemDirectoryHandle 로 read/write. 우리는 IndexedDB 에 핸들 영속, focus / visibility 시 fingerprint 비교 재스캔. SSRsafe (window 가드). 미지원 브라우저는 LocalVaultPicker 가 명시적 안내.",
       "wordCount": 38,
-      "updatedAt": "2026-05-02T20:17:36.155Z",
+      "updatedAt": "2026-05-04T01:27:35.687Z",
       "linksOut": []
     },
     {
@@ -5464,7 +5638,7 @@
       ],
       "excerpt": "Anthropic 의 공식 MCP TypeScript/JS SDK. mcp/src/index.js 가 Server + StdioServerTransport + CallToolRequestSchema / ListToolsRequestSchema 를 사용. Claude Code · 다른 MCP 호환 client 가 stdin/stdout JSONRPC 로 호출.",
       "wordCount": 31,
-      "updatedAt": "2026-05-01T11:24:50.326Z",
+      "updatedAt": "2026-05-04T01:27:35.687Z",
       "linksOut": []
     },
     {
@@ -5491,7 +5665,7 @@
       ],
       "excerpt": "WebGL spatial network 라이브러리 스택. Sigma 가 render, Graphology 가 그래프 자료구조, ForceAtlas2 가 layout 알고리즘. / (홈 hub) 와 /topology (alias) 의 토폴로지 view 가 의존.",
       "wordCount": 33,
-      "updatedAt": "2026-05-03T02:07:09.125Z",
+      "updatedAt": "2026-05-04T01:27:35.687Z",
       "linksOut": []
     },
     {
@@ -5518,7 +5692,7 @@
       ],
       "excerpt": "ERD 스타일 노드 + edge 캔버스 라이브러리. /ontology/edit (Builder) 가 의존. 노드 가장자리 점에서 drag → 다른 노드 drop → 임시 관계 edge. F 키 fullscreen, N 키 새 project 노드, Del 선택 삭제.",
       "wordCount": 38,
-      "updatedAt": "2026-05-01T11:24:50.326Z",
+      "updatedAt": "2026-05-04T01:27:35.687Z",
       "linksOut": []
     },
     {
@@ -5553,7 +5727,7 @@
       ],
       "excerpt": "마크다운에서 자라는 오픈소스 온톨로지 워크벤치. 사람과 AI agent 가 같이 codebase 의 mental model 을 저작한다. md 가 진실원: vault 의 frontmatter 가 ontology 그대로 localfirst: 사용자 디스크 (vault) 가 단일 진실원. 인증 / 백엔드 의존 0. AI agent partner: MCP 서버를 통해 Claude Code 등이 ontology 를 read/write 3 view: topology (Sigma), tree (/ontology), builder (xyflow ERD)",
       "wordCount": 67,
-      "updatedAt": "2026-05-12T15:58:45.731Z",
+      "updatedAt": "2026-05-13T00:02:55.342Z",
       "linksOut": []
     },
     {
@@ -5564,7 +5738,10 @@
       "frontmatter": {
         "slug": "README",
         "kind": "vault-readme",
-        "title": "oh-my-ontology — 자기 ontology vault"
+        "title": "oh-my-ontology — 자기 ontology vault",
+        "describes": [
+          "project"
+        ]
       },
       "headings": [
         {
@@ -5598,9 +5775,9 @@
           "slug": "갱신"
         }
       ],
-      "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 총 28 노드. 정확한 census 는 ohmyontology list 또는 mcp listkinds 호출. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 23 도구 (read 15 + write 8): read — listcon",
+      "excerpt": "이 디렉토리는 이 프로젝트 자신의 ontology 다. dogfooding — 이 서비스를 만드는 데 필요한 mental model 을 이 서비스의 데이터 형식 (frontmatter md) 으로 표현. 총 29 노드. 정확한 census 는 ohmyontology list 또는 mcp listkinds 호출. 파일을 직접 열거나, pnpm dev 후 /docs/ 에서 vault picker 로 이 디렉토리 선택. MCP 서버 등록 — mcp/README.md 의 .mcp.json 예시 참고. 23 도구 (read 15 + write 8): read — listcon",
       "wordCount": 270,
-      "updatedAt": "2026-05-16T07:38:39.881Z",
+      "updatedAt": "2026-05-18T06:46:12.536Z",
       "linksOut": []
     },
     {
@@ -5624,6 +5801,16 @@
           "depth": 3,
           "text": "Why developer-primary",
           "slug": "why-developer-primary"
+        },
+        {
+          "depth": 3,
+          "text": "Market framing guardrail (v4)",
+          "slug": "market-framing-guardrail-v4"
+        },
+        {
+          "depth": 3,
+          "text": "Required product loop",
+          "slug": "required-product-loop"
         },
         {
           "depth": 2,
@@ -5772,9 +5959,11 @@
         }
       ],
       "excerpt": "Written (v2): 20260501 Decisions captured: the user confirmed Direction A (ontologyfirst) and added dogfooding + AIagent partnership as a new direction. This file overlays v2 on top of v1's strategic diagnosis (left in place); the decisions and the new direction below are what's current. One codebase, one ontology, tha",
-      "wordCount": 1804,
-      "updatedAt": "2026-05-15T23:34:29.074Z",
-      "linksOut": []
+      "wordCount": 2064,
+      "updatedAt": "2026-05-18T06:46:12.563Z",
+      "linksOut": [
+        "AGENT-MEMORY-POSITIONING"
+      ]
     },
     {
       "slug": "PUBLISH-NPM",
@@ -5866,8 +6055,59 @@
       ],
       "excerpt": "This project publishes two npm packages: | Package | Path | What | Required? | ||||| | ohmyontologymcp | mcp/ | MCP server (AI agents read/write the vault) | Required — the core of the AI agent integration | | ohmyontology | cli/ | 25command developer CLI (vault scaffold, bootstrap, compile, graph CRUD/deep dive) | Rec",
       "wordCount": 1143,
-      "updatedAt": "2026-05-16T00:24:02.577Z",
+      "updatedAt": "2026-05-18T04:31:36.861Z",
       "linksOut": []
+    },
+    {
+      "slug": "README",
+      "path": "docs/README.md",
+      "title": "Documentation Guide",
+      "tags": [],
+      "frontmatter": {},
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Documentation Guide",
+          "slug": "documentation-guide"
+        },
+        {
+          "depth": 2,
+          "text": "Current Canon",
+          "slug": "current-canon"
+        },
+        {
+          "depth": 2,
+          "text": "What Is Normative",
+          "slug": "what-is-normative"
+        },
+        {
+          "depth": 2,
+          "text": "What Is Historical",
+          "slug": "what-is-historical"
+        },
+        {
+          "depth": 2,
+          "text": "Update Rules",
+          "slug": "update-rules"
+        }
+      ],
+      "excerpt": "Current as of 20260518. This repository moves quickly; when a document and code disagree, trust package.json, next.config.ts, app/[locale]/layout.tsx, mcp/src/index.js, mcp/src/ontologyengine.mjs, and cli/src/index.mjs first. ohmyontology is now best described as a reponative memory layer for Claude Code, Cursor, and C",
+      "wordCount": 517,
+      "updatedAt": "2026-05-18T06:46:12.563Z",
+      "linksOut": [
+        "../README",
+        "PRODUCT-DIRECTION",
+        "AGENT-MEMORY-POSITIONING",
+        "FEATURES",
+        "ARCHITECTURE",
+        "DEVELOPMENT-CHECKS",
+        "../mcp/README",
+        "../cli/README",
+        "DESIGN-SYSTEM",
+        "DEPLOYMENT",
+        "CHANGELOG",
+        "BACKLOG"
+      ]
     },
     {
       "slug": "TROUBLESHOOTING",
@@ -6044,7 +6284,7 @@
       ],
       "excerpt": "Common issues users hit when starting with ohmyontology. If your case isn't here, open an issue: https://github.com/wlsdks/ohmyontology/issues npm caches the package locally. Force a fresh fetch: The target folder already has README.md / project.md / etc. — the CLI never overwrites existing files. Either: Delete the co",
       "wordCount": 1206,
-      "updatedAt": "2026-05-09T07:51:06.797Z",
+      "updatedAt": "2026-05-11T00:08:39.982Z",
       "linksOut": []
     }
   ],
@@ -6061,12 +6301,22 @@
         "fromSlug": "ARCHITECTURE",
         "context": "ts` — FSD boundary rules Long-form docs: - [`AGENTS.md`](../AGENTS.md) — contributor guide (canonical for AI tools) - **[`PRODUCT-DIRECTION.md`]** — mission - [`FEATURES.md`](./FEATURES.md) — currently shipping features - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — d",
         "linkText": "`PRODUCT-DIRECTION.md`"
+      },
+      {
+        "fromSlug": "README",
+        "context": "README.md`](../README.md) | Public overview, quick start, workflows, verification promises | Canonical public entry | | **[`PRODUCT-DIRECTION.md`]** | Product strategy, audience, launch framing, success criteria | Canonical strategy | | [`AGENT-MEMORY-POSITIONING.md`]",
+        "linkText": "`PRODUCT-DIRECTION.md`"
       }
     ],
     "FEATURES": [
       {
         "fromSlug": "ARCHITECTURE",
         "context": "/AGENTS.md) — contributor guide (canonical for AI tools) - [`PRODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md) — mission - **[`FEATURES.md`]** — currently shipping features - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — design tokens + forbidden patterns - [`DEPLO",
+        "linkText": "`FEATURES.md`"
+      },
+      {
+        "fromSlug": "README",
+        "context": "POSITIONING.md) | Why the product should be sold as agent memory, not ontology editing | Canonical positioning note | | **[`FEATURES.md`]** | Complete inventory of shipping CLI, MCP, and web surfaces | Canonical feature inventory | | [`ARCHITECTURE.md`](ARCHI",
         "linkText": "`FEATURES.md`"
       }
     ],
@@ -6075,6 +6325,11 @@
         "fromSlug": "ARCHITECTURE",
         "context": "ODUCT-DIRECTION.md`](./PRODUCT-DIRECTION.md) — mission - [`FEATURES.md`](./FEATURES.md) — currently shipping features - **[`DESIGN-SYSTEM.md`]** — design tokens + forbidden patterns - [`DEPLOYMENT.md`](./DEPLOYMENT.md) — static export → static hosting - [`CHANGELO",
         "linkText": "`DESIGN-SYSTEM.md`"
+      },
+      {
+        "fromSlug": "README",
+        "context": "./cli/README.md) | CLI commands, graph workflows, installed-package checks | Canonical developer terminal interface | | **[`DESIGN-SYSTEM.md`]** | Visual language, tokens, forbidden patterns | Canonical UI style guide | | [`DEPLOYMENT.md`](DEPLOYMENT.md) | Static",
+        "linkText": "`DESIGN-SYSTEM.md`"
       }
     ],
     "DEPLOYMENT": [
@@ -6082,12 +6337,22 @@
         "fromSlug": "ARCHITECTURE",
         "context": "RES.md) — currently shipping features - [`DESIGN-SYSTEM.md`](./DESIGN-SYSTEM.md) — design tokens + forbidden patterns - **[`DEPLOYMENT.md`]** — static export → static hosting - [`CHANGELOG.md`](./CHANGELOG.md) — chronological user-visible changes - [`docs/archi",
         "linkText": "`DEPLOYMENT.md`"
+      },
+      {
+        "fromSlug": "README",
+        "context": "| | [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md) | Visual language, tokens, forbidden patterns | Canonical UI style guide | | **[`DEPLOYMENT.md`]** | Static export deployment | Current, small | | [`CHANGELOG.md`](CHANGELOG.md) | Chronological user-visible changes | H",
+        "linkText": "`DEPLOYMENT.md`"
       }
     ],
     "CHANGELOG": [
       {
         "fromSlug": "ARCHITECTURE",
         "context": "SYSTEM.md) — design tokens + forbidden patterns - [`DEPLOYMENT.md`](./DEPLOYMENT.md) — static export → static hosting - **[`CHANGELOG.md`]** — chronological user-visible changes - [`docs/archive/`](./archive/) — historical analysis docs (earlier cloud-mode des",
+        "linkText": "`CHANGELOG.md`"
+      },
+      {
+        "fromSlug": "README",
+        "context": "atterns | Canonical UI style guide | | [`DEPLOYMENT.md`](DEPLOYMENT.md) | Static export deployment | Current, small | | **[`CHANGELOG.md`]** | Chronological user-visible changes | Historical ledger | | [`BACKLOG.md`](BACKLOG.md) | Working queue and deferred qu",
         "linkText": "`CHANGELOG.md`"
       }
     ],
@@ -6129,6 +6394,60 @@
         "fromSlug": "FEATURES",
         "context": "d file's `slug:` key, rewrites every backlink (frontmatter array entries, inline string keys like `domain`, body links `**[oldSlug]**` / `(oldSlug.md)`) - Tail-only references (`mcp-server` for `capabilities/mcp-server`) also redirected to the new t",
         "linkText": "oldSlug"
+      }
+    ],
+    "AGENT-MEMORY-POSITIONING": [
+      {
+        "fromSlug": "PRODUCT-DIRECTION",
+        "context": ". The ontology graph is the substrate. The product promise is cheaper, durable agent memory. Canonical internal note: **[`docs/AGENT-MEMORY-POSITIONING.md`]**. ### Required product loop This loop must work before the project is treated as launch-ready: ```text init -> bootst",
+        "linkText": "`docs/AGENT-MEMORY-POSITIONING.md`"
+      },
+      {
+        "fromSlug": "README",
+        "context": "TION.md`](PRODUCT-DIRECTION.md) | Product strategy, audience, launch framing, success criteria | Canonical strategy | | **[`AGENT-MEMORY-POSITIONING.md`]** | Why the product should be sold as agent memory, not ontology editing | Canonical positioning note | | [`FEATURES.md`]",
+        "linkText": "`AGENT-MEMORY-POSITIONING.md`"
+      }
+    ],
+    "../README": [
+      {
+        "fromSlug": "README",
+        "context": "agent can read, query, and maintain through MCP. ## Current Canon | Document | Use it for | Status | |---|---|---| | **[`../README.md`]** | Public overview, quick start, workflows, verification promises | Canonical public entry | | [`PRODUCT-DIRECTION.md`](",
+        "linkText": "`../README.md`"
+      }
+    ],
+    "ARCHITECTURE": [
+      {
+        "fromSlug": "README",
+        "context": "EATURES.md`](FEATURES.md) | Complete inventory of shipping CLI, MCP, and web surfaces | Canonical feature inventory | | **[`ARCHITECTURE.md`]** | Local-first architecture, route/data flow, build/test pipeline | Canonical technical overview | | [`DEVELOPMENT-CHECK",
+        "linkText": "`ARCHITECTURE.md`"
+      }
+    ],
+    "DEVELOPMENT-CHECKS": [
+      {
+        "fromSlug": "README",
+        "context": "`](ARCHITECTURE.md) | Local-first architecture, route/data flow, build/test pipeline | Canonical technical overview | | **[`DEVELOPMENT-CHECKS.md`]** | Maintainer verification, package checks, dogfood release gates | Canonical maintainer checks | | [`../mcp/README.md`]",
+        "linkText": "`DEVELOPMENT-CHECKS.md`"
+      }
+    ],
+    "../mcp/README": [
+      {
+        "fromSlug": "README",
+        "context": "VELOPMENT-CHECKS.md) | Maintainer verification, package checks, dogfood release gates | Canonical maintainer checks | | **[`../mcp/README.md`]** | MCP registration, 23 tools, tool contracts, verification | Canonical agent interface | | [`../cli/README.md`](../cli/",
+        "linkText": "`../mcp/README.md`"
+      }
+    ],
+    "../cli/README": [
+      {
+        "fromSlug": "README",
+        "context": "EADME.md`](../mcp/README.md) | MCP registration, 23 tools, tool contracts, verification | Canonical agent interface | | **[`../cli/README.md`]** | CLI commands, graph workflows, installed-package checks | Canonical developer terminal interface | | [`DESIGN-SYSTEM.",
+        "linkText": "`../cli/README.md`"
+      }
+    ],
+    "BACKLOG": [
+      {
+        "fromSlug": "README",
+        "context": "oyment | Current, small | | [`CHANGELOG.md`](CHANGELOG.md) | Chronological user-visible changes | Historical ledger | | **[`BACKLOG.md`]** | Working queue and deferred questions | Operational, may be noisy | ## What Is Normative The normative product model",
+        "linkText": "`BACKLOG.md`"
       }
     ],
     "archive/rules/firestore-schema": [
@@ -6476,7 +6795,14 @@
                 "path": "ontology/capabilities/cli-developer-entry",
                 "type": "doc",
                 "slug": "ontology/capabilities/cli-developer-entry",
-                "title": "CLI Developer Entry (26 commands — vault + MCP verify + graph deep dive)"
+                "title": "CLI Developer Entry (27 commands — vault + MCP verify + maintenance queue + graph deep dive)"
+              },
+              {
+                "name": "firebase-deploy-skill",
+                "path": "ontology/capabilities/firebase-deploy-skill",
+                "type": "doc",
+                "slug": "ontology/capabilities/firebase-deploy-skill",
+                "title": "Firebase Deploy Skill (.claude/skills/firebase-deploy)"
               },
               {
                 "name": "frontmatter-to-ontology",
@@ -6672,6 +6998,13 @@
         ]
       },
       {
+        "name": "AGENT-MEMORY-POSITIONING",
+        "path": "AGENT-MEMORY-POSITIONING",
+        "type": "doc",
+        "slug": "AGENT-MEMORY-POSITIONING",
+        "title": "Agent Memory Positioning"
+      },
+      {
         "name": "ARCHITECTURE",
         "path": "ARCHITECTURE",
         "type": "doc",
@@ -6707,6 +7040,13 @@
         "title": "Design System"
       },
       {
+        "name": "DEVELOPMENT-CHECKS",
+        "path": "DEVELOPMENT-CHECKS",
+        "type": "doc",
+        "slug": "DEVELOPMENT-CHECKS",
+        "title": "Development Checks"
+      },
+      {
         "name": "dogfood-friction-2026-05-06",
         "path": "dogfood-friction-2026-05-06",
         "type": "doc",
@@ -6740,6 +7080,13 @@
         "type": "doc",
         "slug": "PUBLISH-NPM",
         "title": "npm publish — step-by-step guide"
+      },
+      {
+        "name": "README",
+        "path": "README",
+        "type": "doc",
+        "slug": "README",
+        "title": "Documentation Guide"
       },
       {
         "name": "TROUBLESHOOTING",

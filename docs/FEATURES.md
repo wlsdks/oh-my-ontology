@@ -1,8 +1,9 @@
 # FEATURES — oh-my-ontology
 
 > Complete inventory of features users can **actually use right now**.
-> Last updated: 2026-05-16 (CLI mcp-verify command — CLI · MCP · Web 3 surface, 23 MCP tools, installed MCP health + graph-query smoke path).
-> Routes section UI 디테일은 R10 시점 snapshot — surface 자체와 mode branching 은 R15 까지 정확. routes UI micro-detail 은 R10 후 변화 작아 별도 sweep 보다 *대부분 정확* 가정.
+> Last updated: 2026-05-18 (repo-native AI-agent memory framing, R16/R17 bootstrap/import inference, compiler/query/health/workspace-brief positioning).
+> Routes section UI detail remains a maintained product snapshot. When route
+> behavior changes, update this file alongside the PR body and CHANGELOG.
 > Update trigger: reflect immediately when surfaces are added or removed. Update alongside the PR body and CHANGELOG.
 
 ---
@@ -10,12 +11,17 @@
 ## 0. At a glance
 
 > **Mission v3**: "One codebase, one ontology, that the developer and their AI agent grow together."
+> **Launch framing v4**: "A repo-native memory layer for Claude Code, Cursor, and Codex."
 > **Operating model**: single-user tool. Local-first vault. No login, no backend. **3 surface (CLI · MCP · Web)** — AI agents (Claude Code, Codex, Cursor) read/write directly through the MCP server.
+
+The product should not feel like an ontology editor. The core user-visible loop
+is `init -> bootstrap -> MCP-backed agent answer -> agent sync proposal -> git
+diff review -> better next agent task`.
 
 | Surface | Entry | Audience |
 |---|---|---|
 | **CLI** (R12 / R14 / R15+ · 27 commands) | `init / add / import / list / find / validate / mcp-verify / query / compile` (vault basics + installed MCP health/graph-query smoke + deterministic graph compile) · `analyze / infer-imports / bootstrap` (autonomous ingest) · `backlinks / orphans / path / rename / merge / delete` (graph CRUD) · `overview / hubs / blast-radius / cycles / health / workspace-brief / maintenance / node / similar` (graph deep dive — `query_ontology` ops, including maintenance queue) | developer terminal — vault scaffold, daily exploration, bulk import, MCP sanity check, graph deep dive (same authority as AI agent via MCP) |
-| **MCP** (R5 / R7 / R11 / R14 / R16 / R17) | 23 tools (15 read · 8 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings · bootstrap empty vault (R16 `analyze_repo_structure` · R17 `infer_imports`) |
+| **MCP** (R5 / R7 / R11 / R14 / R16 / R17) | 23 tools (15 read · 8 write) over JSON-RPC | AI agent (Claude Code, Codex, Cursor) — read for context · write back findings · bootstrap empty vault (R16 `analyze_repo_structure` · R17 `infer_imports`) · compile/query/health/workspace-brief as graph-engine memory access |
 | **Web** (8 routes, R10 surface diet) | `pnpm dev` / static export | sigma topology · tree+ego · ERD builder · insights — graph visualization, mobile-friendly |
 
 ```
@@ -396,6 +402,7 @@ Run via `pnpm exec node mcp/src/index.js` (registered in user's `.mcp.json`). AI
 | **`/ontology-bootstrap` skill** (cold start) | Empty vault → first 5–15 nodes from code structure. `analyze_repo_structure` side-effect-zero → user picks candidates → land via batch writers | `.claude/skills/ontology-bootstrap/SKILL.md` |
 | **`/ontology-sync` skill** (code change) | "I'm done with this task — please sync the ontology now" loop. git diff + context → MCP write tools | `.claude/skills/ontology-sync/SKILL.md` |
 | **`/ontology-extract` skill** (prose ingress, R+) | User shares prose (meeting note / PR / RFC / Notion paragraph) → `find_evidence` + `similar_nodes` cross-check → candidate table → user picks → land. LLM hallucination guard via prose-source citation in body | `.claude/skills/ontology-extract/SKILL.md` |
+| **`/firebase-deploy` skill** (static Hosting deploy) | Reads local `.env.prod`, runs docs/type/build/bundle gates, deploys only Firebase Hosting, then verifies the live `web.app` URL. Keeps Firebase as static hosting, not backend. | `.claude/skills/firebase-deploy/SKILL.md` |
 | **`mcp__oh-my-ontology__*` `instructions` field** (R13 v0.7.1) | Server's initialize response carries kind hierarchy, first-time workflow, write safety patterns — every connecting agent gets the discipline without trial-and-error | `mcp/src/index.js` |
 | **`.omotignore`** (R+) | Vault-root gitignore-style file. Patterns match `materialize_external_element` refs in `growth_plan` / `maintenance_plan` and skip them. Intentional external code (e.g. `src/**`, `cli/**`) stops surfacing as noise. `externalElementRefsIgnored` count exposed for transparency | `docs/ontology/.omotignore` (dogfood example) · `mcp/src/omot-ignore.mjs` |
 
@@ -516,7 +523,7 @@ R14 also unified `add_concept` / CLI `add` / CLI `import` to a single per-kind f
 
 ---
 
-## 6. What was removed / added (Rounds 1–15)
+## 6. What was removed / added (Rounds 1–17)
 
 For full reasoning see `docs/CHANGELOG.md`. High-level:
 
@@ -527,6 +534,8 @@ For full reasoning see `docs/CHANGELOG.md`. High-level:
 - **Round 13** — AI agent quality 첫 측정 (Claude Code + Codex, n=2). MCP `instructions` field (v0.7.1). VSCode plugin v0.1.0 → v0.9.0 (R15 에서 제거).
 - **Round 14** — *AI agent ↔ vault 자동 sync*. Web 즉시 반영 4 단계 (5s polling / graph pulse / added toast / modified toast). Frontmatter schema 양식 (3 진입점 동기화). CLI `import` 명령 (외부 .md 정규화). `/ontology-sync` skill + AGENTS read-while-coding 룰. SessionStart hook (vault census 자동 inject).
 - **Round 15** — VSCode plugin 제거 (4 surface → 3). CLI `init` 의 mcp 등록 마찰 1 step 제거 (`.mcp.json` 자체 생성, cwd + vault 양쪽). `add` / `import` 의 `--auto-prefix` default on (starter layout 일관). `--raw-slug` opt-out.
+- **Round 16** — fresh repo bootstrap path. `analyze_repo_structure` / CLI `analyze` propose project/domain/capability/element candidates from package metadata, README headings, and source layout with side effect 0.
+- **Round 17** — import-derived dependency evidence. `infer_imports` / CLI `infer-imports` parse TS/JS imports, resolve relative and tsconfig alias paths, and propose `depends_on` edges without mutating the vault.
 
 ---
 

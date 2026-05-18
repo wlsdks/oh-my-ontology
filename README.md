@@ -1,350 +1,307 @@
 # oh-my-ontology
 
-> **One codebase, one ontology, that the developer and their AI agent grow together.**
+> **A repo-native memory layer for Claude Code, Cursor, and Codex.**
 >
-> Local-first markdown vault. Developer authors via CLI / web UI.
-> AI agent (Claude Code, Codex, Cursor) reads + writes the same `.md` files via MCP — 23 tools.
-> No backend. No login. The git repo is the source of truth.
+> Your AI coding agent forgets your codebase between sessions. Give it a
+> local, git-backed mental model it can read, query, and maintain through MCP.
 
 [![CI](https://github.com/wlsdks/oh-my-ontology/actions/workflows/ci.yml/badge.svg)](https://github.com/wlsdks/oh-my-ontology/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Built with Next.js](https://img.shields.io/badge/Built_with-Next.js-000?logo=next.js)](https://nextjs.org)
-[![MCP server](https://img.shields.io/badge/MCP-23_tools-5e6ad2)](mcp/README.md)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
+[![MCP](https://img.shields.io/badge/MCP-23_tools-5e6ad2)](mcp/README.md)
+
+**Live demo:** https://oh-my-ontology.web.app
+**GitHub:** https://github.com/wlsdks/oh-my-ontology
+
+`oh-my-ontology` is a local-first workbench for the shared memory between a
+developer and their AI coding agent. The graph is not stored in a hosted
+database. It is plain markdown frontmatter inside your repo, so every change is
+reviewable as a normal git diff.
 
 ```bash
-npx oh-my-ontology init my-vault                # scaffold
-cd my-vault
-oh-my-ontology list                             # 5 starter nodes
-oh-my-ontology add capability auth/token-issue --title="Token issue" --domain=auth
-oh-my-ontology find token                       # verify it shows up
-oh-my-ontology validate                         # frontmatter integrity (CI gate-friendly)
+npx oh-my-ontology init ./ontology
+oh-my-ontology analyze . --vault ./ontology
+oh-my-ontology workspace-brief ./ontology
+oh-my-ontology health ./ontology
 ```
 
-That's it. You now have a frontmatter-based ontology vault that the
-developer and their AI agent (Claude Code, Cursor, etc.) can read and
-write together — same `.md` files, same git repo.
-
-> 한국어 안내는 아래 [README (한국어)](#한국어-가이드) 섹션 참조.
+No backend. No login. No cloud account. Your repo is the source of truth.
 
 ---
 
-## What this is
+## Why It Exists
 
-Most "AI in your codebase" tools paste source files into a context window
-and hope the LLM remembers the architecture. **oh-my-ontology takes the
-opposite path:** you (and the AI) maintain the architecture *as a graph
-of markdown files*. The graph is the canonical mental model. Source code
-references it. AI agents read it before suggesting changes and write to
-it after every architectural decision.
+AI coding agents are useful, but they usually rebuild project context from
+scratch every session. They remember the current prompt better than the long
+term shape of the codebase: domains, capabilities, dependencies, ownership,
+and design decisions.
 
-Three claims:
+`oh-my-ontology` gives agents a durable local memory they can query before
+touching code and update after real changes.
 
-1. **Markdown frontmatter is enough** — `kind: capability`, `domain: auth`,
-   `depends_on: [...]` is the entire schema. No DB, no backend, no auth.
-2. **Developer + AI agent share one source of truth** — both edit the same
-   `.md` files. The developer authors via CLI / web UI; the AI agent reads
-   + writes via MCP (Claude Code, Codex, Cursor). Same git repo, same diff.
-3. **MCP server gives the AI its only interface** — **23 tools** (15 read +
-   8 write) over JSON-RPC. The agent doesn't need to "ingest your codebase";
-   it reads the ontology the developer already curates. R16 / R17 added
-   `analyze_repo_structure` and `infer_imports` so the agent can also
-   bootstrap a fresh repo into the vault from heuristics + real import
-   graph (side effect 0, candidates only).
+The product is not "please maintain an ontology." The useful loop is:
 
-## Why we built this
+1. Open a repo.
+2. Draft the first graph automatically from source layout, README headings,
+   `package.json`, and TS/JS imports.
+3. Let the AI agent answer through MCP using the maintained graph.
+4. After code work, let the agent propose memory updates.
+5. Review the markdown diff.
+6. The next agent session starts with better context.
 
-Codebases keep growing. AI assistants can suggest code, but they don't
-*understand* the project's mental model — every conversation starts from
-zero. Existing solutions tie that knowledge to one vendor's memory store
-(Cursor's chats, Claude's projects). We wanted something **portable,
-plain-text, and lives next to the code**: vault frontmatter you commit
-to git, and the AI agent reads via a tiny MCP server.
+## What It Does
 
-The primary audience is the **developer + their AI agent** (R12, 2026-05).
-The developer is already in the codebase — the cost of authoring frontmatter
-is low. Their AI agent (Claude Code, Cursor) is the *real* daily user of
-the 23 MCP tools — it needs ground-truth structure to give better answers,
-and without a developer maintaining it, the ontology rots. PM/designer
-friendliness is a side effect of plain markdown, not a target.
+| Surface | What you use it for |
+|---|---|
+| **CLI** | Init a vault, bootstrap from a repo, validate frontmatter, compile graphs, inspect paths, find backlinks, rename/merge/delete nodes safely. |
+| **MCP server** | Give Claude Code, Cursor, Codex, and other agents 23 local read/write tools over stdio JSON-RPC. |
+| **Web workbench** | Browse and edit the same vault through `/docs`, `/ontology`, `/topology`, `/projects`, and the ERD builder. |
+| **Compiler + query engine** | Turn markdown files into a deterministic graph artifact with `graphHash`, issues, indexes, health checks, impact, lineage, cycles, and maintenance actions. |
 
-## Three views plus MCP, one vault
+## How The Memory Works
 
-The same frontmatter graph rendered three ways and exposed to agents through MCP:
+Every markdown file is one graph node. Frontmatter is the machine-readable
+record; the body is the human-readable explanation.
 
-- **Topology** (`/topology`) — Sigma WebGL spatial network of projects
-- **Tree** (`/`, `/ontology`) — hierarchical drill-down (project → domain → capability → element)
-- **ERD builder** (`/ontology/edit`) — xyflow canvas to add nodes and relations visually
-- **MCP** (separate package) — JSON-RPC over stdio, 23 tools
+```yaml
+---
+slug: capabilities/token-issue
+kind: capability
+title: Token issue
+domain: domains/auth
+elements:
+  - elements/src/auth/token-service
+dependencies:
+  - capabilities/session-refresh
+---
 
-All four read and write the same `.md` files. Pick whichever view fits
-the moment.
-
-## Quick start
-
-### Just AI agents (no UI)
-
-```bash
-npx oh-my-ontology init ./vault
-# Claude Code / Cursor: open the repo or vault folder and restart;
-# init wrote wired .mcp.json files in both places.
-# Codex: run the exact `codex mcp add ...` command printed by init.
+Issues access and refresh tokens for authenticated users.
 ```
 
-### With the visual workbench
+`compile_ontology` reads the vault and produces a deterministic graph artifact:
+canonical nodes, canonical edges, aliases, issues, `graphHash`, `maxMtime`, and
+optional query indexes. `query_ontology` then answers graph-style questions
+over that artifact: neighbors, paths, centrality, communities, impact, blast
+radius, project scope, lineage, cycles, health, workspace brief, and
+maintenance plan.
+
+That means this is not a server-side graph database. It is a markdown-backed
+ontology vault with graph database behavior at runtime.
+
+## Quick Start
+
+### 1. Create a local vault
+
+```bash
+npx oh-my-ontology init ./ontology
+```
+
+The command scaffolds a git-friendly markdown vault and prints the MCP setup
+steps for your agent. Claude Code and Cursor can read the generated `.mcp.json`.
+Codex can use the printed `codex mcp add ...` command.
+
+### 2. Draft the first graph
+
+```bash
+oh-my-ontology analyze . --vault ./ontology      # preview only
+oh-my-ontology bootstrap . --vault ./ontology    # write accepted candidates
+oh-my-ontology workspace-brief ./ontology
+```
+
+`analyze` is side-effect-free. It proposes domains, capabilities, elements, and
+relations from real repo structure. `infer-imports` can add TS/JS import
+evidence for dependency edges.
+
+### 3. Run the visual workbench
 
 ```bash
 git clone https://github.com/wlsdks/oh-my-ontology
 cd oh-my-ontology
 pnpm install
-pnpm dev   # http://localhost:3000
+pnpm dev
 ```
 
-Then visit `/docs` and pick your vault folder (browser File System Access
-API). The workbench reads/writes the same `.md` files the AI does.
+Open `http://localhost:3000`, go to `/docs`, and choose a markdown vault folder.
+The browser reads and writes local files through the File System Access API.
 
-No `.env`, no Firebase, no auth provider, no cloud account needed.
+## Three views plus MCP, one vault
 
-### Vault tooling (R11)
+The same frontmatter graph is rendered three ways and exposed to agents through MCP:
+
+- **Topology** (`/topology`) - Sigma WebGL spatial network of projects and relations.
+- **Tree** (`/`, `/ontology`) - project to domain to capability to element drill-down.
+- **ERD builder** (`/ontology/edit`) - xyflow canvas for adding nodes and relations visually.
+- **MCP** (`mcp/`) - JSON-RPC stdio server with 23 tools for AI agents.
+
+All four read and write the same `.md` files. Pick the interface that matches
+the task; the vault stays the source of truth.
+
+## Agent Workflow
+
+Use the graph before code work:
 
 ```bash
-pnpm vault:validate              # frontmatter integrity audit (CI gate)
-pnpm vault:validate /your/vault  # validate any folder, not just dogfood
+oh-my-ontology workspace-brief ./ontology
+oh-my-ontology overview ./ontology
+oh-my-ontology backlinks capabilities/token-issue ./ontology
+oh-my-ontology blast-radius capabilities/token-issue ./ontology
+```
+
+Then let the agent sync memory after non-trivial changes:
+
+- New code capability: add a `kind: capability` node.
+- New concrete file/module worth tracking: add a `kind: element` node.
+- New dependency: add a relation.
+- Rename or merge: use the safe dry-run commands first, then confirm.
+
+Manual editing is allowed, but the product bet is automation: bootstrap first,
+agent-maintained memory after that.
+
+## Web Routes
+
+| Route | Purpose |
+|---|---|
+| `/` | Landing page or ontology hub after a vault is selected |
+| `/docs` | Local vault picker, markdown editor, command palette |
+| `/ontology` | Tree and ego graph hub |
+| `/ontology/edit` | ERD canvas builder |
+| `/ontology/insights` | Kind census, hubs, relation breakdown |
+| `/topology` | Spatial graph view |
+| `/projects` | Project list from `kind: project` docs |
+
+The public demo is a static site. Real vault editing happens only after the
+browser receives permission to access a local folder on your machine.
+
+## Verifiable promises
+
+| Promise | How this repo checks it |
+|---|---|
+| **No backend** | `pnpm bundle:check` keeps Firebase/server chunks out of local-first routes. |
+| **Static deploy** | `pnpm build` exports to `out/`; Firebase Hosting serves only static files. |
+| **Vault integrity** | `pnpm vault:validate`, `test:vault:validate`, `vault:audit`, and `test:vault:audit` run in CI. |
+| **MCP/CLI contracts** | `pnpm test:mcp:docs`, `pnpm package:check`, `pnpm test:contracts`, and focused `test:mcp:*` scripts cover the agent surface. |
+| **Dogfooding** | This repo's own vault has **29 nodes**: capabilities 17, domains 6, elements 4, project 1, vault-readme 1. |
+
+For the detailed maintainer command matrix, see
+[`docs/DEVELOPMENT-CHECKS.md`](docs/DEVELOPMENT-CHECKS.md).
+
+## Local Development
+
+```bash
+pnpm install
+pnpm dev
+pnpm exec tsc --noEmit
+pnpm lint
+pnpm test:run
+pnpm build
+pnpm bundle:check
+```
+
+Helpful vault commands:
+
+```bash
+pnpm vault:validate
+pnpm vault:audit
+pnpm dogfood:compile
+pnpm dogfood:health
+pnpm dogfood:brief
+```
+
+### Vault tooling
+
+The vault tooling is intentionally local and scriptable:
+
+```bash
+pnpm vault:validate              # frontmatter integrity audit
+pnpm vault:validate /your/vault  # validate any folder
 pnpm vault:validate -- --help    # print validator usage without scanning
 pnpm test:vault:validate         # focused validator CLI argument contract
 pnpm vault:audit                 # dogfood ontology paths match real repo files
 pnpm test:vault:audit            # focused vault audit CLI argument contract
-pnpm vault:migrate --list        # see registered schema migrations
-pnpm vault:migrate <id>          # dry-run a migration (default — no disk writes)
-pnpm vault:migrate <id> --write  # apply a migration to disk
 ```
 
 CI runs `pnpm vault:validate`, `pnpm test:vault:validate`,
-`pnpm vault:audit`, `pnpm test:vault:audit`, and `pnpm package:check` on every PR. The
-`LocalVaultPicker` shows a chip when your vault has
-frontmatter issues so you know which docs aren't becoming graph nodes.
-
-### Package / MCP release checks
-
-```bash
-pnpm package:check              # MCP/CLI package files contract + CLI lib + docs self-test
-pnpm test:cli:lib               # focused CLI shared helper unit contracts
-pnpm test:cli:mcp-call          # narrow CLI MCP wrapper parser/spawn contracts
-pnpm test:contracts             # focused cross-package contract tests
-pnpm test:mcp:docs              # focused README + dogfood ontology docs contract
-pnpm test:mcp:dogfood           # focused dogfood helper + structuredContent/compile/tools-list/row-label/vault-warning/health/sample-shape/maintenance work-queue+formatter/initialize+batch-relation/destructive dry-run/help/argument/timeout/strict relation/closest-value/stderr checks
-pnpm test:mcp:dogfood:timeout   # narrow dogfood argument/timeout/help retry diagnostics
-pnpm test:mcp:maintenance       # narrow maintenance_plan filter/cursor/work-queue+formatter gates
-pnpm test:mcp:package           # focused MCP/CLI package-script/entrypoint/dependency/tarball contract checks
-pnpm test:mcp:suggestions       # focused enum/argument suggestion checks
-pnpm test:mcp:verify            # focused MCP verify helper checks, including tool inventory names
-pnpm test:mcp:verify:first-contact # narrow MCP verify first-contact initialize-safety-recovery/write-safety/health-summary/advisory/read/sample gates
-pnpm test:mcp:verify:timeout    # narrow MCP verify timeout/startup/help diagnostics
-pnpm dogfood:compile            # quick compile_ontology summary over docs/ontology
-pnpm dogfood:health             # quick health gate over docs/ontology
-pnpm dogfood:brief              # quick workspace_brief health snapshot over docs/ontology
-pnpm dogfood:verify             # root checkout installed-style verify over docs/ontology
-pnpm dogfood:test               # full dogfood helper regression suite when focused checks are not enough
-pnpm cli:mcp-verify docs/ontology --timeout-ms 15000 # root checkout dogfood verify
-pnpm cli:mcp-verify -- --help   # root checkout shortcut for installed mcp-verify help scope
-OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
-pnpm integration:cli:mcp-verify
-pnpm integration:cli:maintenance # narrow CLI maintenance command integration gates
-OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
-pnpm integration:mcp:readme
-pnpm exec node --test --test-name-pattern "README first exploration" mcp/src/integration.test.mjs
-pnpm smoke:packed-cli           # pack/install MCP+CLI, verify installed flow/help/failure + tarball summary
-pnpm dogfood:walk               # actual MCP stdio walk over this repo's ontology
-pnpm dogfood:help               # print dogfood usage without starting MCP
-pnpm dogfood:walk -- --help     # print dogfood usage without starting MCP
-cd mcp && OMOT_VAULT=../docs/ontology npm run verify
-cd mcp && npm run verify -- ../docs/ontology
-cd mcp && npm run verify -- --vault ../docs/ontology
-cd mcp && npm run verify -- ../docs/ontology --timeout-ms 15000
-```
-
-Use these when changing `mcp/`, `cli/`, package manifests, or release
-scripts. Prefer the focused `test:mcp:*` scripts for small docs, package,
-dogfood-helper, verify-helper, or enum diagnostic changes before escalating to
-the broader release checks. Use `pnpm dogfood:test` only when the dogfood helper
-itself needs the full regression suite beyond `test:mcp:dogfood`.
-`integration:cli` and `integration:mcp` accept `OMOT_TEST_NAME_PATTERN`, so you can run
-only the spawn-heavy integration cases touched by a small change. When you need
-Node's `--test-name-pattern`, call `pnpm exec node --test --test-name-pattern ... <file>`;
-do not append it after `pnpm integration:* --`, because pnpm forwards `--` as a test file. The
-`test:cli:mcp-call`, `integration:cli:mcp-verify`, `integration:cli:maintenance`, and
-`integration:mcp:readme` shortcuts cover the common install-verification,
-CLI MCP wrapper, CLI maintenance work-queue, and first-contact read-only checks. `cli:mcp-verify`
-is a source-checkout shortcut for the CLI wrapper. `dogfood:compile` is the
-fastest repeatable compiler summary for the dogfood vault, `dogfood:health` is
-the fastest repeatable fail-closed health gate for the dogfood vault,
-`dogfood:brief` is the fastest repeatable first-contact snapshot for the
-dogfood vault, `dogfood:verify` runs the full installed-style dogfood vault gate, and
-`dogfood:test` is the full dogfood helper regression suite to reserve for helper-level
-changes that outgrow `test:mcp:dogfood`.
-`pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` runs the same full
-verify against this repo's dogfood vault from the repo root. Use
-`pnpm cli:mcp-verify -- --help` only for help output; vault arguments are passed
-without the extra `--`. `npm run verify` calls `get_concepts` with discovered slugs plus one
-missing slug, then runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`, so the same batch-read
-partial-row contract and first-contact diagnosis an AI agent should run are
-exercised locally. It also checks both `overview` and `project_map`
-`query_plan` targets plus actual `neighbors`, node→project `path`, and
-`project_scope` calls, so the installed MCP path proves more than the original
-single aggregate query. Project-less vaults skip only the containment-specific
-`project_scope` smoke, and empty vaults skip node-targeted graph smoke until a
-first node exists.
-Use `pnpm dogfood:compile` when you only need the current dogfood vault
-`compile_ontology` summary, `pnpm dogfood:health` when you need the
-fail-closed health JSON gate, or `pnpm dogfood:brief` when you need the
-`workspace_brief` JSON snapshot before choosing the next focused gate.
-`smoke:packed-cli` also runs the installed CLI package `npm test`, then checks
-the installed `mcp-verify --help` output plus project-less and empty-vault
-verify paths, so release tarballs keep exposing the graph-query, destructive
-dry-run, post-write maintenance schema, strict argument / enum rejection,
-annotations, write relation enums, and health tuning schema scope. That keeps
-the graph-query, destructive dry-run, post-write maintenance schema, strict argument / enum,
-annotation, write relation enum, and health tuning smoke scope visible without
-starting a server for help and without assuming every valid vault already has
-containment roots. It also creates a dependency-cycle vault and checks installed
-`workspace-brief --json` exits 1 on fail-severity nextActions.
-For local CLI gates, `compile --json` exits 1 on unresolved graph references,
-flushes large raw artifacts safely through stdout pipes, `cycles --json` exits
-1 on dependency cycles, and `path --json` exits 1 when `found:false` so scripts
-can use these commands as hard ontology checks.
-The graph diagnostic exit contract is fail-closed: malformed `compile`,
-`cycles`, `path`, `health`, or `workspace-brief` payloads are treated as command
-failures instead of clean vaults. For `health --json` and `workspace-brief --json`,
-top-level diagnosis `status` must be `healthy` or `needs_attention`.
-`health` and `workspace-brief` also accept focused diagnosis tuning flags such
-as `--dependency-types A,B`, `--component-types A,B`, `--component-limit N`, and
-`--node-limit N`, forwarding them to MCP `query_ontology` without requiring raw
-JSON-RPC.
-`dogfood:walk` runs that diagnosis plus graph lookup tasks against this
-repo's own `docs/ontology` vault and exits non-zero if the core MCP
-responses, strict unknown-argument and invalid-enum rejection, `get_concepts` success/partial rows, path edge check, vault warnings, `validate_vault` problem files,
-`workspace_brief.nextActions`, `workspace_brief.nextActions[].sample` executable shapes,
-`workspace_brief.health.checks`, `health`, or
-tuned `workspace_brief` / tuned `health` gates regress. Set
-`OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk` for slower local filesystems;
-the value must be a positive integer in milliseconds, and `--help` / timeout
-failures print the same retry shape.
-For `npm run verify` / `mcp-verify` timeout mistakes, the error reports the
-received value or the true timeout, plus a concrete retry example such as
-`npm run verify -- --timeout-ms 15000`, so agents can self-correct without
-guessing the accepted format. Direct verifier and CLI wrapper retry hints
-preserve an explicit vault, for example
-`npm run verify -- --vault <path> --timeout-ms 15000` or
-`oh-my-ontology mcp-verify --vault <path> --timeout-ms 15000`. Startup failures
-before MCP `initialize` preserve stderr diagnostics and print the same
-vault-aware retry shape.
-
-## Verifiable promises
-
-> 📊 **Headline measurement** (R13 benchmark, [methodology](docs/benchmark/)):
-> Claude Code with MCP-on **cuts hallucinated answers 9 → 0** on cross-cutting graph tasks.
-> Codex with MCP-on **cuts tool calls 76%** (7.0 → 1.67/task) at saturated correctness.
-> Same MCP tools, two agents, two different value mechanisms.
-
-| Promise | Verification |
-|---|---|
-| **vault frontmatter = the graph** (no review queue, no LLM extraction) | `grep -r "extractionJob" src/ → 0` |
-| **AI agent partner via MCP** | `mcp/` package, 23 tools, `mcp/scripts/verify.mjs` smoke |
-| **No backend** (Firebase / DB / auth) | `pnpm bundle:check` — firebase SDK chunk 0 (deps removed in R10) |
-| **Dogfooding** | `docs/ontology/` is this project's own curated mental model — **28 nodes** (capabilities 16 · domains 6 · elements 4 · project 1 · vault-readme 1). The MCP server you'd run is the one we use to write *this README*. |
-| **Vault scale** | `node scripts/perf-vault.mjs` measures walk + read + parse on synthetic vaults. **2,000 .md files in 33 ms** (linear, ~17 µs/file). Sub-second up to 1,000 nodes — the ontology will not become the bottleneck. |
-| **AI agent quality measurement** *(cross-agent, n=2)* | [`docs/benchmark/`](docs/benchmark/) — 7 tasks × 3 categories × 2 agents (Claude Code + Codex). [Claude Code results](docs/benchmark/results/2026-05-04-claude-code.md): hallucinations 9 → 0, Cat A correctness +1.0. [Codex results](docs/benchmark/results/2026-05-04-codex.md): Cat A tool calls 7.0 → 1.67. Negative control (Cat C, file-read tasks) passes for both — agents correctly defer to Read/Grep, no over-reach. |
+`pnpm vault:audit`, `pnpm test:vault:audit`, and `pnpm package:check` on every PR.
 
 ## Architecture
 
-- **Framework**: Next.js 16 App Router, `output: 'export'` (static)
-- **i18n**: next-intl 4.11 with `/[locale]/` URL prefix (en / ko)
-- **Visualization**: Sigma.js (WebGL) + Graphology + ForceAtlas2 + xyflow + dagre
-- **Local-first**: File System Access API + IndexedDB
-- **AI agent surface**: `mcp/` MCP server, stdio JSON-RPC, 23 tools
-- **Architecture**: Feature-Sliced Design (ESLint boundaries enforced)
-- **Tests**: Vitest unit + Playwright e2e
+| Area | Stack |
+|---|---|
+| App | Next.js 16, React 19, TypeScript 5, App Router, static export |
+| UI | Tailwind CSS 4, Radix primitives, lucide icons |
+| Graph | Sigma.js, Graphology, ForceAtlas2, xyflow |
+| Local-first | File System Access API, IndexedDB handle persistence |
+| Agent interface | `@modelcontextprotocol/sdk`, stdio JSON-RPC |
+| Tests | Vitest, Testing Library, jsdom, Playwright, Node test runner |
 
-Full details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`AGENTS.md`](AGENTS.md).
+Feature-Sliced Design import direction is enforced by ESLint:
 
-## Repo map
-
-```
-app/            Next.js routes (thin wrappers, locale-prefixed)
-src/            Feature-Sliced Design layers
-  ├── views/    page-level components
-  ├── widgets/  composite UI blocks
-  ├── features/ user interactions
-  ├── entities/ domain entities (project, ontology-class, knowledge-graph, …)
-  └── shared/   ui primitives, lib, config
-mcp/            MCP server (`oh-my-ontology-mcp`, 23 tools) — AI agent surface
-cli/            `npx oh-my-ontology` (27 commands: scaffold, MCP verify, bootstrap, compile, maintenance queue, graph deep dive) — developer terminal surface
-docs/           Long-form docs + dogfood vault (docs/ontology/) + benchmark results
-docs/archive/   Historical analysis docs
-scripts/        Build helpers
+```text
+app -> views -> widgets -> features -> entities -> shared
 ```
 
-## How to contribute
+## Documentation
 
-We're early. The simplest contribution path:
+| Document | Use it for |
+|---|---|
+| [`docs/PRODUCT-DIRECTION.md`](docs/PRODUCT-DIRECTION.md) | Product strategy and launch framing |
+| [`docs/AGENT-MEMORY-POSITIONING.md`](docs/AGENT-MEMORY-POSITIONING.md) | Why this is agent memory, not an ontology editor |
+| [`docs/FEATURES.md`](docs/FEATURES.md) | Current CLI, MCP, and web feature inventory |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Local-first architecture and data flow |
+| [`docs/DEVELOPMENT-CHECKS.md`](docs/DEVELOPMENT-CHECKS.md) | Maintainer verification and release checks |
+| [`mcp/README.md`](mcp/README.md) | MCP registration and tool contracts |
+| [`cli/README.md`](cli/README.md) | CLI commands and examples |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution workflow |
 
-1. Try `npx oh-my-ontology init` and write your project's mental model in markdown
-2. File issues for friction you hit (frontmatter ergonomics, MCP tool gaps, view performance)
-3. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before code PRs
+## Contributing
 
-Roadmap and open questions: [`docs/PRODUCT-DIRECTION.md`](docs/PRODUCT-DIRECTION.md).
+Issues and PRs are welcome. The most useful feedback right now is practical:
+
+- Try `npx oh-my-ontology init` in a real repo.
+- Connect an AI coding agent through MCP and note where the memory helps or fails.
+- Bring a messy markdown vault and report where validation or bootstrap is confusing.
+
+Before contributing, read [`AGENTS.md`](AGENTS.md). It is the canonical guide
+for both humans and AI agents working in this repo.
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT. See [`LICENSE`](LICENSE).
 
 ---
 
 ## 한국어 가이드
 
-> 사람과 AI agent 가 같이 키우는 local-first codebase ontology workbench.
-> markdown frontmatter 가 곧 그래프. 백엔드 / 로그인 0.
+`oh-my-ontology`는 Claude Code, Cursor, Codex 같은 AI coding agent가
+코드베이스의 장기 맥락을 잃지 않도록 돕는 local-first memory layer입니다.
 
-### 30초 시작
+핵심은 간단합니다.
+
+- markdown frontmatter가 그래프입니다.
+- git repo가 진실원입니다.
+- 백엔드, 로그인, DB가 없습니다.
+- 개발자와 AI agent가 같은 `.md` vault를 읽고 씁니다.
+
+빠른 시작:
 
 ```bash
-npx oh-my-ontology init my-vault
-cd my-vault
-# project.md 와 domains/example.md 를 본인 환경에 맞게 수정
-# Claude Code / Cursor 는 생성된 .mcp.json 을 자동 인식
-# Codex 는 init 이 출력한 codex mcp add 명령을 실행
+npx oh-my-ontology init ./ontology
+oh-my-ontology analyze . --vault ./ontology
+oh-my-ontology bootstrap . --vault ./ontology
+oh-my-ontology workspace-brief ./ontology
 ```
 
-자세한 시작 가이드:
-- [`AGENTS.md`](AGENTS.md) — contributor (사람·AI 공통) 가이드
-- [`docs/PRODUCT-DIRECTION.md`](docs/PRODUCT-DIRECTION.md) — mission spec
-- [`docs/FEATURES.md`](docs/FEATURES.md) — 사용자 가시 기능 전수
-- [`mcp/README.md`](mcp/README.md) — MCP 서버 등록 + 23 도구
-
-### 핵심 약속
-
-1. **vault frontmatter = 그래프** — 검수 큐 / 추출 워커 없음. frontmatter 자기-승인.
-2. **AI agent partner** — MCP 서버 (read 15 + write 8, R16 `analyze_repo_structure` · R17 `infer_imports` · compiler-style `compile_ontology` · graph-engine `query_ontology` 포함) 로 같은 vault read/write + 빈 vault bootstrap.
-3. **Local-first single-source** — 사용자 디스크 vault 가 진실원. Firebase / 백엔드 / 인증 의존 0 (R10 — 2026-05).
-4. **Dogfooding** — `docs/ontology/` 가 프로젝트 자기 자신의 mental model.
-
-### 로컬 개발
+웹 workbench를 로컬에서 실행하려면:
 
 ```bash
 pnpm install
-pnpm dev                          # http://localhost:3000
-pnpm test:run
-pnpm exec tsc --noEmit
-pnpm lint
-pnpm build                        # 정적 export → out/
-pnpm bundle:check                 # local-first chunk 회귀 차단
+pnpm dev
 ```
 
-### 사용자 가시 라우트
+브라우저에서 `http://localhost:3000/docs`를 열고 vault 폴더를 선택하면 됩니다.
+실제 파일 읽기/쓰기는 브라우저의 로컬 폴더 권한으로만 동작합니다.
 
-| 영역 | 라우트 |
-|---|---|
-| 시각화 | `/`, `/topology`, `/ontology`, `/ontology/edit`, `/ontology/insights` |
-| 프로젝트 | `/projects`, `/project/[slug]`, `/project/[slug]/edit`, `/project/new` |
-| Vault | `/docs` |
-
-> R10 (2026-05): `/login`, `/signup`, `/account`, `/reset-password`, `/settings/*` 영구 제거. 미래 cloud collab 단계가 다시 도입될 때 인증 surface 새로 디자인.
+제품의 목표는 “온톨로지를 손으로 관리하게 만드는 도구”가 아닙니다. 목표는
+repo를 열면 초안을 만들고, agent가 작업 후 mental model 업데이트를 제안하고,
+사용자가 diff처럼 승인하고, 다음 agent 작업에서 바로 더 나은 맥락을 느끼는
+루프입니다.
