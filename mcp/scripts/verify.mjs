@@ -5449,6 +5449,16 @@ export function pathQueryFailure(parsed, expectedFrom, expectedTo = expectedFrom
   if (!Array.isArray(parsed.edges) || parsed.edges.length !== parsed.hopCount) {
     return 'path response edge count mismatch';
   }
+  if (!Array.isArray(parsed.nodes) || parsed.nodes.length !== parsed.hops.length) {
+    return 'path response node count mismatch';
+  }
+  for (const [index, row] of parsed.nodes.entries()) {
+    const failure = pathNodeFailure(row, index);
+    if (failure) return failure;
+    if (row.slug !== parsed.hops[index]) {
+      return `path response node/hop mismatch at index ${index}`;
+    }
+  }
   for (const [index, edge] of parsed.edges.entries()) {
     const edgeFailure = graphEdgeFailure('path edge', edge, index);
     if (edgeFailure) return edgeFailure;

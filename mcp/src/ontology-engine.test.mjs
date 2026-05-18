@@ -150,6 +150,14 @@ describe('queryCompiledOntology', () => {
       'capabilities/login',
       'domains/auth',
     ]);
+    assert.deepEqual(
+      result.nodes.map((node) => ({ slug: node.slug, title: node.title })),
+      [
+        { slug: 'capabilities/session', title: 'Session' },
+        { slug: 'capabilities/login', title: 'Login' },
+        { slug: 'domains/auth', title: 'Auth' },
+      ],
+    );
     assert.deepEqual(result.edges.map((edge) => edge.via), ['dependencies', 'dependencies']);
   });
 
@@ -196,16 +204,19 @@ describe('queryCompiledOntology', () => {
     assert.deepEqual(result.byLength, { 2: 2 });
     assert.deepEqual(
       result.paths.map((row) => ({
-        hops: row.hops,
-        relations: row.edges.map((edge) => edge.via),
-      })),
+          hops: row.hops,
+          titles: row.nodes.map((node) => node.title),
+          relations: row.edges.map((edge) => edge.via),
+        })),
       [
         {
           hops: ['capabilities/session', 'capabilities/login', 'domains/auth'],
+          titles: ['Session', 'Login', 'Auth'],
           relations: ['dependencies', 'dependencies'],
         },
         {
           hops: ['capabilities/session', 'capabilities/login', 'domains/auth'],
+          titles: ['Session', 'Login', 'Auth'],
           relations: ['dependencies', 'domain'],
         },
       ],
@@ -778,6 +789,10 @@ describe('queryCompiledOntology', () => {
       'capabilities/login',
       'domains/auth',
     ]);
+    assert.deepEqual(
+      result.shortestPath.nodes.map((node) => node.slug),
+      ['capabilities/session', 'capabilities/login', 'domains/auth'],
+    );
     assert.equal(result.shortestPath.hopCount, 2);
     assert.deepEqual(result.commonNeighbors.rows.map((row) => row.slug), [
       'capabilities/login',

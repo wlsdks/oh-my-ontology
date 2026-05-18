@@ -314,7 +314,16 @@ export function createOntologyEngine(artifact, options = {}) {
     const maxHops = normalizeDepth(options.maxHops, 5);
     const direction = normalizePathDirection(options.direction);
     if (from === to) {
-      return { operation: 'path', from, to, found: true, hopCount: 0, hops: [from], edges: [] };
+      return {
+        operation: 'path',
+        from,
+        to,
+        found: true,
+        hopCount: 0,
+        hops: [from],
+        nodes: pathNodes([from]),
+        edges: [],
+      };
     }
 
     const typeSet = normalizeTypes(options.types);
@@ -336,6 +345,7 @@ export function createOntologyEngine(artifact, options = {}) {
             found: true,
             hopCount: nextHops.length - 1,
             hops: nextHops,
+            nodes: pathNodes(nextHops),
             edges: nextEdges,
           };
         }
@@ -344,7 +354,7 @@ export function createOntologyEngine(artifact, options = {}) {
       }
     }
 
-    return { operation: 'path', from, to, found: false, maxHops, hops: [], edges: [] };
+    return { operation: 'path', from, to, found: false, maxHops, hops: [], nodes: [], edges: [] };
   }
 
   function allPaths(fromInput, toInput, options = {}) {
@@ -382,6 +392,7 @@ export function createOntologyEngine(artifact, options = {}) {
       .map((row) => ({
         hopCount: row.hops.length - 1,
         hops: row.hops,
+        nodes: pathNodes(row.hops),
         edges: row.edges,
         byRelation: countEdges(row.edges, 'via'),
       }))
@@ -406,6 +417,10 @@ export function createOntologyEngine(artifact, options = {}) {
       byLength: sortedCountObject(lengthCounts),
       paths: visibleRows,
     };
+  }
+
+  function pathNodes(hops) {
+    return hops.map((slug) => summarizeNode(nodeBySlug.get(slug))).filter(Boolean);
   }
 
   function queryPlan(options = {}) {
@@ -629,6 +644,7 @@ export function createOntologyEngine(artifact, options = {}) {
         maxHops,
         hopCount: shortest.hopCount ?? null,
         hops: shortest.hops,
+        nodes: shortest.nodes ?? pathNodes(shortest.hops ?? []),
         edges: shortest.edges,
       },
       commonNeighbors: {

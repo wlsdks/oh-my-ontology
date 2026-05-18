@@ -7212,6 +7212,10 @@ describe('verify.mjs first-contact gates', () => {
         found: true,
         hopCount: 1,
         hops: ['capabilities/login', 'project'],
+        nodes: [
+          { slug: 'capabilities/login', kind: 'capability', title: 'Login' },
+          { slug: 'project', kind: 'project', title: 'Project' },
+        ],
         edges: [{ from: 'project', to: 'capabilities/login', via: 'capabilities' }],
       }, 'capabilities/login', 'project'),
       null,
@@ -7354,6 +7358,7 @@ describe('verify.mjs first-contact gates', () => {
         found: true,
         hopCount: 1,
         hops: ['project'],
+        nodes: [{ slug: 'project', kind: 'project', title: 'Project' }],
         edges: [],
       }, 'project'),
       'path response hop count mismatch',
@@ -7366,6 +7371,10 @@ describe('verify.mjs first-contact gates', () => {
         found: true,
         hopCount: 1,
         hops: ['capabilities/login', 'project'],
+        nodes: [
+          { slug: 'capabilities/login', kind: 'capability', title: 'Login' },
+          { slug: 'project', kind: 'project', title: 'Project' },
+        ],
         edges: [{ from: 'domains/auth', to: 'project', via: 'domains' }],
       }, 'capabilities/login', 'project'),
       'path response edge/hop mismatch at edge 0',
@@ -7378,6 +7387,10 @@ describe('verify.mjs first-contact gates', () => {
         found: true,
         hopCount: 1,
         hops: ['capabilities/login', 'project'],
+        nodes: [
+          { slug: 'capabilities/login', kind: 'capability', title: 'Login' },
+          { slug: 'project', kind: 'project', title: 'Project' },
+        ],
         edges: [{
           from: 'project',
           to: 'capabilities/login',
@@ -7387,6 +7400,35 @@ describe('verify.mjs first-contact gates', () => {
         }],
       }, 'capabilities/login', 'project'),
       'path response traversal mismatch at edge 0',
+    );
+    assert.equal(
+      pathQueryFailure({
+        operation: 'path',
+        from: 'capabilities/login',
+        to: 'project',
+        found: true,
+        hopCount: 1,
+        hops: ['capabilities/login', 'project'],
+        nodes: [{ slug: 'capabilities/login', kind: 'capability', title: 'Login' }],
+        edges: [{ from: 'project', to: 'capabilities/login', via: 'capabilities' }],
+      }, 'capabilities/login', 'project'),
+      'path response node count mismatch',
+    );
+    assert.equal(
+      pathQueryFailure({
+        operation: 'path',
+        from: 'capabilities/login',
+        to: 'project',
+        found: true,
+        hopCount: 1,
+        hops: ['capabilities/login', 'project'],
+        nodes: [
+          { slug: 'capabilities/login', kind: 'capability', title: 'Login' },
+          { slug: 'domains/wrong', kind: 'project', title: 'Project' },
+        ],
+        edges: [{ from: 'project', to: 'capabilities/login', via: 'capabilities' }],
+      }, 'capabilities/login', 'project'),
+      'path response node/hop mismatch at index 1',
     );
     assert.equal(projectScopeFailure({ operation: 'project_map' }, 'project'), 'project_scope returned unexpected operation: project_map');
     assert.equal(
