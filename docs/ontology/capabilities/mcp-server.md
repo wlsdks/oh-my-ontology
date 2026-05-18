@@ -746,6 +746,9 @@ no-write metadata gate 를 확인한다는 점을 드러낸다.
 최종 `structuredContent` 요약도 write bucket 안에 `batch no-write metadata 2/2` 를
 별도로 출력해 invalid-only batch row-isolation 이 단순 row label 검사에 그치지 않고
 쓰기 메타데이터 부재까지 확인했음을 한 줄에서 볼 수 있게 한다.
+dogfood walk 의 최종 Analysis 도 `batch no-write metadata: 2/2 absent` 를 별도 row 로
+반복 출력해 긴 로그의 마지막만 봐도 `add_concepts` / `add_relations` 두 invalid-only
+batch write smoke 가 모두 dry 한 응답으로 남았는지 판독할 수 있다.
 strict `list_concepts.kind` row 는 `kind:"capabilty"` typo 를 사용해 첫 목록 필터가
 빈 결과로 숨지 않고 node-kind enum 에서 먼저 거절되는지 보여준다.
 strict `query_concepts.kind` / `query_concepts.has-key` row 는 `kind=capabilty` 와

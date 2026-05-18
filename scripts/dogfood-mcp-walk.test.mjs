@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 import { assertPnpmScriptsExist } from "./lib/pnpm-script-refs.mjs";
 
 import {
+  batchNoWriteMetadataCoverageSummary,
   batchRowRepairSummary,
   batchWriteMetadataAbsenceSummary,
   buildDogfoodRequests,
@@ -3900,6 +3901,15 @@ describe("rpc response completion helpers", () => {
       "absent",
     );
     assert.equal(
+      batchNoWriteMetadataCoverageSummary({
+        addConceptsPayload: okShape.addConceptsRowRepair,
+        addConceptsStructuredPayload: okShape.addConceptsRowRepairStructured,
+        addRelationsPayload: okShape.addRelationsRowRepair,
+        addRelationsStructuredPayload: okShape.addRelationsRowRepairStructured,
+      }),
+      "2/2 absent",
+    );
+    assert.equal(
       batchWriteMetadataAbsenceSummary(
         {
           relations: [
@@ -3925,6 +3935,21 @@ describe("rpc response completion helpers", () => {
         "relations",
       ),
       "present structuredContent.postWriteMaintenance, structuredContent.relations[1].alreadyExists",
+    );
+    assert.equal(
+      batchNoWriteMetadataCoverageSummary({
+        addConceptsPayload: okShape.addConceptsRowRepair,
+        addConceptsStructuredPayload: okShape.addConceptsRowRepairStructured,
+        addRelationsPayload: { relations: okShape.addRelationsRowRepair.relations.slice(0, 2) },
+        addRelationsStructuredPayload: {
+          relations: [
+            okShape.addRelationsRowRepair.relations[0],
+            { ...okShape.addRelationsRowRepair.relations[1], alreadyExists: false },
+          ],
+          postWriteMaintenance: {},
+        },
+      }),
+      "1/2 absent (add_relations present structuredContent.postWriteMaintenance, structuredContent.relations[1].alreadyExists)",
     );
   });
 

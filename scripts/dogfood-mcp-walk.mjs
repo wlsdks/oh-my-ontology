@@ -539,6 +539,22 @@ export function batchWriteMetadataAbsenceSummary(payload, structuredPayload, key
   return present.length > 0 ? `present ${present.join(", ")}` : "absent";
 }
 
+export function batchNoWriteMetadataCoverageSummary({
+  addConceptsPayload,
+  addConceptsStructuredPayload,
+  addRelationsPayload,
+  addRelationsStructuredPayload,
+} = {}) {
+  const rows = [
+    ["add_concepts", batchWriteMetadataAbsenceSummary(addConceptsPayload, addConceptsStructuredPayload, "concepts")],
+    ["add_relations", batchWriteMetadataAbsenceSummary(addRelationsPayload, addRelationsStructuredPayload, "relations")],
+  ];
+  const absent = rows.filter(([, status]) => status === "absent").length;
+  const failures = rows.filter(([, status]) => status !== "absent");
+  if (failures.length === 0) return `${absent}/${rows.length} absent`;
+  return `${absent}/${rows.length} absent (${failures.map(([tool, status]) => `${tool} ${status}`).join("; ")})`;
+}
+
 export function batchRowRepairSummary(rows) {
   if (!Array.isArray(rows) || rows.length === 0) return "n/a";
   const failedRows = rows.filter((row) => row?.ok === false).length;
@@ -6154,6 +6170,12 @@ async function main() {
   console.log(`  batch caps: get_concepts ${getConceptsBatchCap?.result?.isError === true} · add_concepts ${addConceptsBatchCap?.result?.isError === true} · add_relations ${addRelationsBatchCap?.result?.isError === true}`);
   console.log(`  batch row repair: add_concepts ${batchRowRepairSummary(addConceptsRowRepair?.concepts)} · add_relations ${batchRowRepairSummary(addRelationsRowRepair?.relations)}`);
   console.log(`  batch row write metadata: add_concepts ${batchWriteMetadataAbsenceSummary(addConceptsRowRepair, addConceptsRowRepairStructured, "concepts")} · add_relations ${batchWriteMetadataAbsenceSummary(addRelationsRowRepair, addRelationsRowRepairStructured, "relations")}`);
+  console.log(`  batch no-write metadata: ${batchNoWriteMetadataCoverageSummary({
+    addConceptsPayload: addConceptsRowRepair,
+    addConceptsStructuredPayload: addConceptsRowRepairStructured,
+    addRelationsPayload: addRelationsRowRepair,
+    addRelationsStructuredPayload: addRelationsRowRepairStructured,
+  })}`);
   console.log(`  gate: ${failures.length === 0 ? `${COLORS.green}pass${COLORS.reset}` : `${COLORS.yellow}fail${COLORS.reset}`}`);
 
   const stderrWarnings = stderrWarningLines(stderr);
