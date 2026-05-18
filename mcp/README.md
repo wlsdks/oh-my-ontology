@@ -95,9 +95,9 @@ tarball contract drift without running unrelated UI or E2E gates.
 `test:mcp:verify` covers the MCP verify helper contract, including
 missing/extra/duplicate/invalid `tools/list` names, without spawning the
 full integration suite. `test:mcp:verify:first-contact` narrows that to
-initialize safety/recovery guidance, read-smoke request inventory, destructive dry-run /
-`patch_concept` conflict guard helper gates, vault warning / `validate_vault`,
-first-contact health summary / advisory / next-action gates, and
+initialize safety/recovery guidance, unknown-tool recovery, read-smoke request
+inventory, destructive dry-run / `patch_concept` conflict guard helper gates,
+vault warning / `validate_vault`, first-contact health summary / advisory / next-action gates, and
 `workspace_brief.nextActions[].sample` shape drift.
 `test:mcp:verify:timeout` narrows verify timeout parsing, startup failure
 retry guidance, usage, and retry diagnostics.

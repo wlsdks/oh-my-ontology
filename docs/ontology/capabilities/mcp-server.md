@@ -497,7 +497,7 @@ semantics 를 확인해 typed-filter pagination 계약을 빠르게 점검한다
 verify helper 자체를 만질 때는 `pnpm test:mcp:verify` 로
 `mcp/src/verify-script.test.mjs` 만 바로 실행한다. 이 helper gate 는
 missing / extra / duplicate / invalid `tools/list` name 같은 inventory 진단도 포함한다. 설치 first-contact initialize safety/recovery guidance /
-read smoke / vault warning / `validate_vault` / health gate / `nextActions[].sample` 실행 액션 shape 만 만질 때는
+unknown-tool recovery / read smoke / vault warning / `validate_vault` / health gate / `nextActions[].sample` 실행 액션 shape 만 만질 때는
 `pnpm test:mcp:verify:first-contact` 로 좁게 확인하고, verify timeout / usage
 진단만 만질 때는 `pnpm test:mcp:verify:timeout` 으로 더 좁게 확인한다.
 `maintenance_plan` filter enum / ready·missing cursor / resume cursor / dogfood
@@ -821,7 +821,7 @@ timeout 출력도 같은 env 이름과 `OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfo
 `workspace_brief` / `health` 비정상 상태, top-level status 와 별개로 내부 health
 check 의 `fail` 상태, warn·fail `workspace_brief.nextActions` 는 exit 1 로 처리한다.
 `pnpm test:mcp:verify:first-contact` 는 first-contact initialize safety/recovery guidance,
-response label, destructive dry-run / `patch_concept` conflict guard helper, diagnosis,
+unknown-tool recovery, response label, destructive dry-run / `patch_concept` conflict guard helper, diagnosis,
 health summary, failing health check, workspace_brief growth/sample/action gate 를 focused 로 확인한다.
 CLI `mcp-verify` 문서도 delegated verify output 의 non-blocking advisory 와
 issues/unresolved/cycles/checks health summary 를 설명해 설치 경로와 source checkout

@@ -72,7 +72,7 @@ verify, or release behavior.
 | `pnpm test:contracts` | Cross-package schema/parser contracts |
 | `pnpm test:mcp:docs` | Explicit root/MCP/CLI/dogfood docs contracts plus Firebase static-hosting guard |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
-| `pnpm test:mcp:verify:first-contact` | First-contact MCP safety guidance |
+| `pnpm test:mcp:verify:first-contact` | First-contact MCP safety and unknown-tool recovery guidance |
 | `pnpm test:mcp:verify:timeout` | Timeout/startup retry diagnostics |
 | `pnpm test:mcp:maintenance` | `maintenance_plan` cursor/filter behavior |
 | `pnpm test:mcp:suggestions` | Enum and argument suggestion quality |
