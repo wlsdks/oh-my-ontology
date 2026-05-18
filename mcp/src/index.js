@@ -501,7 +501,7 @@ const SERVER_INSTRUCTIONS = `oh-my-ontology — vault of markdown files where ea
 
 All read-tool match rows share the same shape \`{slug, kind, title, domain, mtime, ...}\` — same sort/filter logic works across every read tool.
 
-All tool input schemas are strict: unknown arguments are rejected instead of being ignored, unknown tool names are rejected with the closest tool-name hint, and invalid enum values are rejected too. Tool-level error responses include \`structuredContent: { ok: false, errorCode, error }\`; \`unknown_tool\` means fix the reported tool name, \`unknown_argument\` means fix reported argument names, while \`invalid_arguments\` means fix reported enum/filter/type values. If you see an error like \`Unknown tool: list_concept. Did you mean "list_concepts"?\`, \`Unknown argument "lmit" for list_concepts. Did you mean "limit"?\`, \`Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)\`, or \`operation must be one of: ... Did you mean "overview"?\`, fix every reported key/value before retrying; do not assume the server fell back to a default.
+All tool input schemas are strict: unknown arguments are rejected instead of being ignored, unknown tool names are rejected with the closest tool-name hint, and invalid enum values are rejected too. Tool-level error responses include \`structuredContent: { ok: false, errorCode, error, ...repairFields }\`; \`unknown_tool\` means fix the reported tool name, \`unknown_argument\` means fix reported argument names, while \`invalid_arguments\` means fix reported enum/filter/type values. For repairable strict-input errors, read structured fields such as \`receivedTool\`, \`receivedArgument\`, \`unknownArguments\`, \`receivedValue\`, \`suggestion\`, \`allowedTools\`, \`allowedArguments\`, and \`allowedValues\` before retrying; do not parse the human-readable text unless a client cannot read \`structuredContent\`. If you see an error like \`Unknown tool: list_concept. Did you mean "list_concepts"?\`, \`Unknown argument "lmit" for list_concepts. Did you mean "limit"?\`, \`Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)\`, or \`operation must be one of: ... Did you mean "overview"?\`, fix every reported key/value before retrying; do not assume the server fell back to a default.
 
 \`health\` and \`workspace_brief\` can tune their internal graph probes with \`componentLimit\`, \`cycleLimit\`, \`recommendationLimit\`, \`orderLimit\`, \`nodeLimit\`, \`dependencyTypes\`, and \`componentTypes\`. \`dependencyTypes\` / \`componentTypes\` accept relation types ${RELATION_TYPE_UNION}; typoed values fail with nearest-value hints. Use these controls for large vaults or focused diagnostics instead of pulling the full compile artifact.
 
@@ -2619,6 +2619,17 @@ function structuredErrorDetails(message) {
     };
   }
 
+  const allowedValue = message.match(/^(.+?) must be one of: (.+)\. Received: (.+)\.(?: Did you mean "([^"]+)"\?)?$/i);
+  if (allowedValue) {
+    const [, valueName, allowedText, receivedText, suggestion] = allowedValue;
+    return omitUndefined({
+      valueName,
+      receivedValue: parseReceivedValueText(receivedText),
+      suggestion,
+      allowedValues: splitCommaList(allowedText),
+    });
+  }
+
   return {};
 }
 
@@ -2635,6 +2646,12 @@ function splitCommaList(text) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function parseReceivedValueText(text) {
+  const value = String(text).trim();
+  const quoted = value.match(/^"([\s\S]*)"$/);
+  return quoted ? quoted[1] : value;
 }
 
 function omitUndefined(value) {

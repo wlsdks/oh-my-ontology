@@ -3049,7 +3049,14 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.match(responses.find((r) => r.id === 52).result.content[0].text, /operation must be one of/i);
     assert.match(responses.find((r) => r.id === 53).result.content[0].text, /targetOperation must be one of/i);
     assert.match(responses.find((r) => r.id === 54).result.content[0].text, /Did you mean "overview"\?/i);
+    assert.equal(getCallStructured(responses, 54)?.valueName, "operation");
+    assert.equal(getCallStructured(responses, 54)?.receivedValue, "overveiw");
+    assert.equal(getCallStructured(responses, 54)?.suggestion, "overview");
+    assert.ok(getCallStructured(responses, 54)?.allowedValues.includes("overview"));
     assert.match(responses.find((r) => r.id === 55).result.content[0].text, /Did you mean "overview"\?/i);
+    assert.equal(getCallStructured(responses, 55)?.valueName, "targetOperation");
+    assert.equal(getCallStructured(responses, 55)?.receivedValue, "overveiw");
+    assert.equal(getCallStructured(responses, 55)?.suggestion, "overview");
     assert.match(responses.find((r) => r.id === 56).result.content[0].text, /Did you mean "incoming"\?/i);
     assert.match(responses.find((r) => r.id === 57).result.content[0].text, /componentLimit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 58).result.content[0].text, /dependencyTypes items must not have leading or trailing whitespace/i);

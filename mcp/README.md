@@ -186,6 +186,9 @@ clients do not need to parse the human-readable error text.
 Unknown argument errors likewise include `toolName`, `receivedArgument` or
 `unknownArguments`, `receivedArguments`, `suggestion`, and `allowedArguments`
 when those fields apply.
+Invalid enum / filter / type values include the same structured repair shape
+as `valueName`, `receivedValue`, `suggestion`, and `allowedValues`, so clients
+can correct `operation:"overveiw"` without scraping the text form.
 String-array options are strict too: relation filters such as
 `find_neighbors.types` / `query_ontology.types`, `query_ontology.pattern`,
 `maintenance_plan` filters, and analysis scan lists such as
@@ -465,7 +468,9 @@ referrers safety. It also gates strict-input typo recovery guidance, including
 unknown argument rejection plus nearest argument/value hints such as
 `Did you mean "limit"?` and `Did you mean "overview"?`. Unknown-argument
 errors also include `Received arguments: ...` so an agent can repair the exact
-submitted key set instead of guessing from allowed fields alone. Batch repair
+submitted key set instead of guessing from allowed fields alone. Invalid enum
+errors expose `valueName`, `receivedValue`, `suggestion`, and `allowedValues`
+in `structuredContent` for the same reason. Batch repair
 guidance is gated as well: duplicate `add_concepts` input slugs must surface
 `concepts[n] duplicate slug in input batch; first seen at concepts[m]` in
 first-contact instructions, so an agent knows which later row to remove or

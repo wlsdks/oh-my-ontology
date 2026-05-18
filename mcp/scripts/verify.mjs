@@ -2305,6 +2305,9 @@ export function strictEnumFailure(response) {
   if (response?.result?.isError !== true) {
     return 'strict enum response was not rejected';
   }
+  const structuredFailure = structuredErrorFailure(response, 'strict enum', { errorCode: 'invalid_arguments' });
+  if (structuredFailure) return structuredFailure;
+  const structured = response.result.structuredContent;
   const text = response.result.content?.[0]?.text || '';
   if (!/operation must be one of/i.test(text) || !/overveiw/i.test(text)) {
     return 'strict enum response did not report the invalid query_ontology operation';
@@ -2312,7 +2315,13 @@ export function strictEnumFailure(response) {
   if (!/Did you mean "overview"\?/i.test(text)) {
     return 'strict enum response did not suggest the closest query_ontology operation';
   }
-  return structuredErrorFailure(response, 'strict enum', { errorCode: 'invalid_arguments' });
+  if (structured?.valueName !== 'operation' || structured?.receivedValue !== 'overveiw' || structured?.suggestion !== 'overview') {
+    return 'strict enum structured error missing repair hint';
+  }
+  if (!Array.isArray(structured?.allowedValues) || !structured.allowedValues.includes('overview')) {
+    return 'strict enum structured error missing allowed values';
+  }
+  return null;
 }
 
 export function strictMaintenanceFilterFailure(response, field = 'phases') {

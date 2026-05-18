@@ -4778,8 +4778,19 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('fails malformed strict enum smoke responses', () => {
+    const error = 'operation must be one of: overview, health. Received: "overveiw". Did you mean "overview"?';
     assert.equal(
-      strictEnumFailure(strictErrorResponse('operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?')),
+      strictEnumFailure(strictErrorResponse(error, {
+        structuredContent: {
+          ok: false,
+          errorCode: 'invalid_arguments',
+          error,
+          valueName: 'operation',
+          receivedValue: 'overveiw',
+          suggestion: 'overview',
+          allowedValues: ['overview', 'health'],
+        },
+      })),
       null,
     );
     assert.equal(
@@ -4793,6 +4804,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictEnumFailure({ result: { isError: true, content: [{ text: 'operation must be one of: overview. invalid value overveiw' }] } }),
       'strict enum response did not suggest the closest query_ontology operation',
+    );
+    assert.equal(
+      strictEnumFailure(strictErrorResponse(error)),
+      'strict enum structured error missing repair hint',
     );
   });
 
