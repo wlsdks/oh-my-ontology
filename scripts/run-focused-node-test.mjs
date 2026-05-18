@@ -31,7 +31,7 @@ export function focusedTestTargets(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (NODE_TEST_OPTIONS_WITH_VALUE.has(arg)) {
-      index += 1;
+      if (argv[index + 1] && !argv[index + 1].startsWith('-')) index += 1;
       continue;
     }
     if (isNodeTestOptionWithInlineValue(arg)) continue;

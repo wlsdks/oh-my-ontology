@@ -1,7 +1,10 @@
 export function readNodeTestNamePattern(argv = []) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === '--test-name-pattern') return argv[index + 1] || null;
+    if (arg === '--test-name-pattern') {
+      const value = argv[index + 1];
+      return value && !value.startsWith('-') ? value : null;
+    }
     if (arg.startsWith('--test-name-pattern=')) return arg.slice('--test-name-pattern='.length);
   }
   return null;

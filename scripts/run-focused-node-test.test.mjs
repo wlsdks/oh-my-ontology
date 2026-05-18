@@ -53,6 +53,13 @@ describe('focused node test wrapper', () => {
     );
   });
 
+  it('does not leak option values as targets when a split option value is missing', () => {
+    assert.deepEqual(
+      focusedTestTargets(['--test-name-pattern', '--test-timeout', '1000']),
+      [],
+    );
+  });
+
   it('fails before spawning when no test-name pattern is provided', () => {
     const diagnostics = [];
     const exitCode = runFocusedNodeTest({
@@ -85,6 +92,24 @@ describe('focused node test wrapper', () => {
     assert.deepEqual(diagnostics, [
       '[focused-node-test] at least one test target is required; use node --test directly for a full test run\n',
     ]);
+  });
+
+  it('fails before spawning when split --test-name-pattern is missing its value', () => {
+    const diagnostics = [];
+    const exitCode = runFocusedNodeTest({
+      argv: ['--test-name-pattern', '--test-timeout', '1000'],
+      stderr: { write: (text) => diagnostics.push(text) },
+      stdout: { write() {} },
+      spawn() {
+        throw new Error('spawn should not be called');
+      },
+    });
+
+    assert.equal(exitCode, 2);
+    assert.equal(
+      diagnostics.join(''),
+      '[focused-node-test] --test-name-pattern is required; use node --test directly for a full test run\n',
+    );
   });
 
   it('passes through a focused run that executes at least one test', () => {

@@ -124,7 +124,8 @@ tests instead of silently passing as all skipped, and signal-killed `node --test
 subprocesses report the signal plus target path. The wrapper requires an
 explicit pattern and at least one test target; use `node --test` directly for an
 intentional full run. Node test option values such as `--test-concurrency 1`
-or `--test-timeout 1000` are not counted as targets.
+or `--test-timeout 1000` are not counted as targets, and a missing split option
+value cannot leak the following option value into the target list.
 `integration:cli:compile` narrows CLI compile / `--fix` canonicalization contracts
 without running unrelated CLI routes. `dogfood:compile`
 is the shortest root-checkout compiler summary JSON snapshot, `dogfood:compile-fix`

@@ -15,6 +15,10 @@ describe('test name pattern helper', () => {
     assert.equal(readNodeTestNamePattern(['--watch']), null);
   });
 
+  it('does not treat the next option as a split test-name-pattern value', () => {
+    assert.equal(readNodeTestNamePattern(['--test-name-pattern', '--test-timeout', '1000']), null);
+  });
+
   it('prefers OMOT_TEST_NAME_PATTERN over node exec argv', () => {
     const filter = resolveTestNamePattern({
       env: { OMOT_TEST_NAME_PATTERN: 'tools/list' },
