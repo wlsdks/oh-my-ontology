@@ -1981,6 +1981,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(renameConceptTool.outputSchema?.required, ['ok', 'oldSlug', 'newSlug', 'sourcePath', 'targetPath', 'moved', 'backlinkUpdates'])) {
     return 'rename_concept outputSchema required drift';
   }
+  if (renameConceptTool.outputSchema?.additionalProperties !== false) {
+    return 'rename_concept outputSchema root openness drift';
+  }
   for (const propertyName of ['oldSlug', 'newSlug', 'sourcePath', 'targetPath', 'message']) {
     if (outputPropertyAt(renameConceptTool, ['properties', propertyName])?.type !== 'string') {
       return `rename_concept outputSchema ${propertyName} drift`;
@@ -2007,6 +2010,9 @@ export function toolsListSchemaFailure(tools) {
   }
   if (!sameArray(mergeConceptsTool.outputSchema?.required, ['ok', 'fromSlug', 'intoSlug', 'fromPath', 'deleted', 'backlinkUpdates', 'capturedFrom'])) {
     return 'merge_concepts outputSchema required drift';
+  }
+  if (mergeConceptsTool.outputSchema?.additionalProperties !== false) {
+    return 'merge_concepts outputSchema root openness drift';
   }
   for (const propertyName of ['fromSlug', 'intoSlug', 'fromPath', 'message']) {
     if (outputPropertyAt(mergeConceptsTool, ['properties', propertyName])?.type !== 'string') {
@@ -2039,6 +2045,9 @@ export function toolsListSchemaFailure(tools) {
   }
   if (!sameArray(deleteConceptTool.outputSchema?.required, ['ok', 'slug', 'filePath'])) {
     return 'delete_concept outputSchema required drift';
+  }
+  if (deleteConceptTool.outputSchema?.additionalProperties !== false) {
+    return 'delete_concept outputSchema root openness drift';
   }
   for (const propertyName of ['slug', 'filePath', 'message']) {
     if (outputPropertyAt(deleteConceptTool, ['properties', propertyName])?.type !== 'string') {

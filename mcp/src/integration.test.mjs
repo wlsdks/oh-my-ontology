@@ -639,6 +639,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     const renameConcept = findTool("rename_concept");
     assert.equal(renameConcept?.outputSchema?.type, "object");
     assert.deepEqual(renameConcept?.outputSchema?.required, ["ok", "oldSlug", "newSlug", "sourcePath", "targetPath", "moved", "backlinkUpdates"]);
+    assert.equal(renameConcept?.outputSchema?.additionalProperties, false);
     assert.equal(renameConcept?.outputSchema?.properties?.oldSlug?.type, "string");
     assert.equal(renameConcept?.outputSchema?.properties?.newSlug?.type, "string");
     assert.equal(renameConcept?.outputSchema?.properties?.sourcePath?.type, "string");
@@ -657,6 +658,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     const mergeConcepts = findTool("merge_concepts");
     assert.equal(mergeConcepts?.outputSchema?.type, "object");
     assert.deepEqual(mergeConcepts?.outputSchema?.required, ["ok", "fromSlug", "intoSlug", "fromPath", "deleted", "backlinkUpdates", "capturedFrom"]);
+    assert.equal(mergeConcepts?.outputSchema?.additionalProperties, false);
     assert.equal(mergeConcepts?.outputSchema?.properties?.fromSlug?.type, "string");
     assert.equal(mergeConcepts?.outputSchema?.properties?.intoSlug?.type, "string");
     assert.equal(mergeConcepts?.outputSchema?.properties?.fromPath?.type, "string");
@@ -675,6 +677,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     const deleteConcept = findTool("delete_concept");
     assert.equal(deleteConcept?.outputSchema?.type, "object");
     assert.deepEqual(deleteConcept?.outputSchema?.required, ["ok", "slug", "filePath"]);
+    assert.equal(deleteConcept?.outputSchema?.additionalProperties, false);
     assert.equal(deleteConcept?.outputSchema?.properties?.slug?.type, "string");
     assert.equal(deleteConcept?.outputSchema?.properties?.filePath?.type, "string");
     assert.equal(deleteConcept?.outputSchema?.properties?.message?.type, "string");

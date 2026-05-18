@@ -847,6 +847,7 @@ describe('verify.mjs first-contact gates', () => {
             changed: { type: 'boolean' },
             postWriteMaintenance: postWriteMaintenanceSchema,
           },
+          additionalProperties: false,
         },
       },
       {
@@ -876,6 +877,7 @@ describe('verify.mjs first-contact gates', () => {
             changed: { type: 'boolean' },
             postWriteMaintenance: postWriteMaintenanceSchema,
           },
+          additionalProperties: false,
         },
       },
       {
@@ -906,6 +908,7 @@ describe('verify.mjs first-contact gates', () => {
             captured: capturedDocSchema,
             postWriteMaintenance: postWriteMaintenanceSchema,
           },
+          additionalProperties: false,
         },
       },
       {

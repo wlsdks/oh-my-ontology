@@ -2303,6 +2303,7 @@ const TOOLS = [
         postWriteMaintenance: POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA,
       },
       required: ['ok', 'oldSlug', 'newSlug', 'sourcePath', 'targetPath', 'moved', 'backlinkUpdates'],
+      additionalProperties: false,
     },
   },
   {
@@ -2352,6 +2353,7 @@ const TOOLS = [
         postWriteMaintenance: POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA,
       },
       required: ['ok', 'fromSlug', 'intoSlug', 'fromPath', 'deleted', 'backlinkUpdates', 'capturedFrom'],
+      additionalProperties: false,
     },
   },
   {
@@ -2404,6 +2406,7 @@ const TOOLS = [
         postWriteMaintenance: POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA,
       },
       required: ['ok', 'slug', 'filePath'],
+      additionalProperties: false,
     },
   },
 ];

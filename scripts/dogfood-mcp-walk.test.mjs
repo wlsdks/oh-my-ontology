@@ -1467,6 +1467,7 @@ function makeDogfoodToolsList() {
             changed: { type: "boolean" },
             postWriteMaintenance: postWriteMaintenanceSchemaFixture(),
           },
+          additionalProperties: false,
         };
       }
       if (name === "merge_concepts") {
@@ -1486,6 +1487,7 @@ function makeDogfoodToolsList() {
             changed: { type: "boolean" },
             postWriteMaintenance: postWriteMaintenanceSchemaFixture(),
           },
+          additionalProperties: false,
         };
       }
       if (name === "delete_concept") {
@@ -1506,6 +1508,7 @@ function makeDogfoodToolsList() {
             captured: capturedDocSchemaFixture(),
             postWriteMaintenance: postWriteMaintenanceSchemaFixture(),
           },
+          additionalProperties: false,
         };
       }
       return tool;
