@@ -25,6 +25,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const require_ = createRequire(import.meta.url);
 const CLI_PKG = JSON.parse(readFileSync(resolve(__dirname, '../../package.json'), 'utf-8'));
+const DEFAULT_MCP_CALL_TIMEOUT_MS = 15_000;
+const MCP_CALL_TIMEOUT_ENV = 'OMOT_CLI_MCP_TIMEOUT_MS';
 
 export const CLI_CLIENT_INFO = Object.freeze({
   name: 'oh-my-ontology-cli',
@@ -72,6 +74,7 @@ function isFile(path) {
 export function callMcpTool(vaultRoot, toolName, args = {}) {
   return new Promise((resolveP, rejectP) => {
     const entry = resolveMcpEntry();
+    const timeoutMs = mcpCallTimeoutMs();
     const proc = spawn(process.execPath, [entry], {
       env: { ...process.env, OMOT_VAULT: vaultRoot },
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -79,6 +82,20 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
 
     const stdoutChunks = [];
     const stderrChunks = [];
+    let timedOut = false;
+    let settled = false;
+    let timer = null;
+    const finish = (fn) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      fn();
+    };
+    timer = setTimeout(() => {
+      timedOut = true;
+      proc.kill('SIGTERM');
+    }, timeoutMs);
+
     proc.stdout.on('data', (chunk) => {
       stdoutChunks.push(chunk);
     });
@@ -87,17 +104,21 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
     });
 
     proc.on('error', (err) => {
-      rejectP(formatMcpSpawnError(err, { entry, toolName, vaultRoot }));
+      finish(() => rejectP(formatMcpSpawnError(err, { entry, toolName, vaultRoot })));
     });
     proc.on('exit', (code) => {
       const stdoutBuf = Buffer.concat(stdoutChunks).toString('utf8');
       const stderrBuf = Buffer.concat(stderrChunks).toString('utf8');
+      if (timedOut) {
+        finish(() => rejectP(formatMcpCallTimeoutError(timeoutMs, { toolName, vaultRoot, stderr: stderrBuf })));
+        return;
+      }
       if (code !== 0 && code !== null) {
-        rejectP(
+        finish(() => rejectP(
           new Error(
             `mcp exited code ${code} while calling ${toolName} (vault ${vaultRoot}). stderr:\n${stderrBuf.trim() || '(empty)'}`,
           ),
-        );
+        ));
         return;
       }
       try {
@@ -117,16 +138,16 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
           }
         }
         if (!toolResp) {
-          rejectP(
+          finish(() => rejectP(
             new Error(
               `mcp response missing tools/call result for ${toolName} (vault ${vaultRoot}). stdout lines:\n${lines.slice(0, 5).join('\n') || '(empty)'}\nstderr:\n${stderrBuf.trim() || '(empty)'}`,
             ),
-          );
+          ));
           return;
         }
-        resolveP(parseMcpToolResponse(toolResp, { toolName }));
+        finish(() => resolveP(parseMcpToolResponse(toolResp, { toolName })));
       } catch (err) {
-        rejectP(err);
+        finish(() => rejectP(err));
       }
     });
 
@@ -154,6 +175,26 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
     }
     proc.stdin.end();
   });
+}
+
+export function mcpCallTimeoutMs(env = process.env) {
+  const raw = env[MCP_CALL_TIMEOUT_ENV];
+  if (raw == null || raw === '') return DEFAULT_MCP_CALL_TIMEOUT_MS;
+  if (!/^\d+$/.test(String(raw)) || Number(raw) <= 0) {
+    throw new Error(`${MCP_CALL_TIMEOUT_ENV} must be a positive integer wait window in milliseconds. Received: ${JSON.stringify(String(raw))}.`);
+  }
+  return Number(raw);
+}
+
+export function formatMcpCallTimeoutError(timeoutMs, { toolName, vaultRoot, stderr } = {}) {
+  const tool = toolName || '(unknown tool)';
+  const vault = vaultRoot || '(unknown vault)';
+  const stderrText = String(stderr || '').trim();
+  const stderrSuffix = stderrText ? ` stderr:\n${stderrText}` : '';
+  return new Error(
+    `mcp call timed out after ${timeoutMs}ms while calling ${tool} (vault ${vault}). ` +
+      `Set ${MCP_CALL_TIMEOUT_ENV}=N for large or slow vaults.${stderrSuffix}`,
+  );
 }
 
 export function formatMcpSpawnError(err, { entry, toolName, vaultRoot } = {}) {

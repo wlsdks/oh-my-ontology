@@ -90,6 +90,9 @@ health summary / advisory / next-action gates, and `workspace_brief.nextActions[
 shape drift.
 `test:mcp:verify:timeout` narrows timeout parsing, startup failure retry
 guidance, usage, and retry diagnostics that `mcp-verify` exposes through the CLI. Use
+`test:cli:mcp-call` checks MCP response unwrapping, spawn failure mapping, and
+the one-shot MCP call timeout guard used by graph commands without starting the
+full verification suite. Use
 `OMOT_TEST_NAME_PATTERN` with `pnpm integration:cli` when the touched CLI
 integration case has a different name. For Node's `--test-name-pattern`, use
 `pnpm exec node --test --test-name-pattern "..." cli/src/integration.test.mjs`
@@ -199,6 +202,9 @@ server wait window. Invalid timeout values print the received value and a
 retry example such as `oh-my-ontology mcp-verify --timeout-ms 15000`; when the
 wrapper was called with an explicit vault, timeout retry hints preserve that
 vault in the retry command as `--vault <path>`.
+Graph commands that call the MCP server through the shared CLI wrapper also
+fail closed instead of hanging forever; set `OMOT_CLI_MCP_TIMEOUT_MS=N` if a
+large or slow vault needs a longer one-shot MCP call window.
 
 `oh-my-ontology workspace-brief [vault]` follows the same blocking distinction:
 warn/advisory next actions render as guidance, but fail-severity next actions

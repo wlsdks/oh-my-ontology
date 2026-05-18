@@ -1020,6 +1020,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /Invalid timeout values print the received value/);
     assert.match(verifySection, /`oh-my-ontology mcp-verify --timeout-ms 15000`/);
     assert.match(verifySection, /wrapper was called with an explicit vault, timeout retry hints preserve that\s+vault in the retry command as `--vault <path>`/);
+    assert.match(verifySection, /fail closed instead of hanging forever/);
+    assert.match(verifySection, /`OMOT_CLI_MCP_TIMEOUT_MS=N`/);
+    assert.match(verifySection, /longer one-shot MCP call window/);
     assert.match(verifySection, /node-to-project `path`/);
     assert.match(verifySection, /`path` hop\/edge alignment/);
     assert.match(verifySection, /`path` \/ `project_scope` calls/);
@@ -1042,6 +1045,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:verify:first-contact/);
     assert.match(section, /health summary \/ advisory \/ next-action gates/);
     assert.match(section, /pnpm test:mcp:verify:timeout/);
+    assert.match(section, /test:cli:mcp-call/);
     assert.match(section, /pnpm dogfood:verify/);
     assert.match(section, /pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000/);
     assert.match(section, /pnpm cli:mcp-verify -- --help/);
@@ -1049,6 +1053,8 @@ describe('package contract helpers', () => {
     assert.match(section, /argument parsing/);
     assert.match(section, /command registry metadata/);
     assert.match(section, /MCP response unwrapping/);
+    assert.match(section, /spawn failure mapping/);
+    assert.match(section, /one-shot MCP call timeout guard/);
     assert.match(section, /installed MCP verification wrapper/);
     assert.match(section, /documentation drift/);
     assert.match(section, /maintenance_plan filter, cursor, resume,\s+work-queue shape, and bucket \/ next-action formatter contracts/);

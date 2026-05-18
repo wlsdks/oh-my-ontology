@@ -1,8 +1,16 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
-import { formatMcpSpawnError, parseMcpToolResponse } from './mcp-call.mjs';
+import {
+  callMcpTool,
+  formatMcpCallTimeoutError,
+  formatMcpSpawnError,
+  mcpCallTimeoutMs,
+  parseMcpToolResponse,
+} from './mcp-call.mjs';
 
 describe('mcp-call response parsing', () => {
   it('spawns the MCP server with the current Node executable', () => {
@@ -21,6 +29,60 @@ describe('mcp-call response parsing', () => {
       }).message,
       'failed to spawn MCP server while calling query_ontology (vault /tmp/vault, entry /tmp/mcp/src/index.js): spawn node ENOENT',
     );
+  });
+
+  it('parses MCP call timeout configuration strictly', () => {
+    assert.equal(mcpCallTimeoutMs({}), 15_000);
+    assert.equal(mcpCallTimeoutMs({ OMOT_CLI_MCP_TIMEOUT_MS: '25' }), 25);
+    assert.throws(
+      () => mcpCallTimeoutMs({ OMOT_CLI_MCP_TIMEOUT_MS: '1000ms' }),
+      /OMOT_CLI_MCP_TIMEOUT_MS must be a positive integer/,
+    );
+    assert.throws(
+      () => mcpCallTimeoutMs({ OMOT_CLI_MCP_TIMEOUT_MS: '0' }),
+      /OMOT_CLI_MCP_TIMEOUT_MS must be a positive integer/,
+    );
+  });
+
+  it('formats MCP call timeout errors with retry guidance and stderr context', () => {
+    assert.equal(
+      formatMcpCallTimeoutError(25, {
+        toolName: 'compile_ontology',
+        vaultRoot: '/tmp/vault',
+        stderr: 'server starting',
+      }).message,
+      'mcp call timed out after 25ms while calling compile_ontology (vault /tmp/vault). Set OMOT_CLI_MCP_TIMEOUT_MS=N for large or slow vaults. stderr:\nserver starting',
+    );
+  });
+
+  it('times out one-shot MCP calls that never answer', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'omot-mcp-call-timeout-'));
+    const server = join(root, 'silent-mcp.mjs');
+    const previousPath = process.env.OMOT_MCP_PATH;
+    const previousTimeout = process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+    writeFileSync(
+      server,
+      [
+        "process.stderr.write('silent server ready\\n');",
+        'process.stdin.resume();',
+        'setInterval(() => {}, 1000);',
+      ].join('\n'),
+      'utf-8',
+    );
+    process.env.OMOT_MCP_PATH = server;
+    process.env.OMOT_CLI_MCP_TIMEOUT_MS = '25';
+    try {
+      await assert.rejects(
+        () => callMcpTool(root, 'list_kinds'),
+        /mcp call timed out after 25ms while calling list_kinds .*OMOT_CLI_MCP_TIMEOUT_MS=N[\s\S]*silent server ready/,
+      );
+    } finally {
+      if (previousPath === undefined) delete process.env.OMOT_MCP_PATH;
+      else process.env.OMOT_MCP_PATH = previousPath;
+      if (previousTimeout === undefined) delete process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+      else process.env.OMOT_CLI_MCP_TIMEOUT_MS = previousTimeout;
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it('returns structuredContent when text JSON matches with different key order', () => {
