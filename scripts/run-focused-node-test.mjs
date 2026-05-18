@@ -63,6 +63,22 @@ export function disallowedReporterSource({ argv = [], env = process.env } = {}) 
   return envOption ? { option: envOption, source: 'NODE_OPTIONS' } : null;
 }
 
+function focusedTapSummary({ output, pattern, testTargets }) {
+  const tests = tapCount(output, 'tests');
+  const pass = tapCount(output, 'pass');
+  const fail = tapCount(output, 'fail');
+  const cancelled = tapCount(output, 'cancelled');
+  const skipped = tapCount(output, 'skipped');
+  if (tests === null || pass === null || fail === null || cancelled === null) return null;
+
+  const matched = pass + fail + cancelled;
+  const skippedText = skipped === null ? '' : ` skipped=${skipped}`;
+  return (
+    `[focused-node-test] pattern=${pattern} targets=${testTargets.join(',')} ` +
+    `matched=${matched} tests=${tests} pass=${pass} fail=${fail} cancelled=${cancelled}${skippedText}`
+  );
+}
+
 export function runFocusedNodeTest({
   argv = process.argv.slice(2),
   spawn = spawnSync,
@@ -120,16 +136,17 @@ export function runFocusedNodeTest({
     return 1;
   }
   if (result.status !== 0) {
+    const summary = focusedTapSummary({ output: result.stdout, pattern, testTargets });
+    if (summary) stdout.write(`${summary}\n`);
     return result.status;
   }
 
   if (pattern) {
-    const tests = tapCount(result.stdout, 'tests');
     const pass = tapCount(result.stdout, 'pass');
     const fail = tapCount(result.stdout, 'fail');
     const cancelled = tapCount(result.stdout, 'cancelled');
-    const skipped = tapCount(result.stdout, 'skipped');
-    if (tests === null || pass === null || fail === null || cancelled === null) {
+    const summary = focusedTapSummary({ output: result.stdout, pattern, testTargets });
+    if (summary === null || pass === null || fail === null || cancelled === null) {
       const targetSuffix = testTargets.length > 0 ? ` in ${testTargets.join(', ')}` : '';
       stderr.write(
         `[focused-node-test] could not verify --test-name-pattern=${pattern} matched tests${targetSuffix}; ` +
@@ -142,12 +159,7 @@ export function runFocusedNodeTest({
       stderr.write(`[focused-node-test] no tests matched --test-name-pattern=${pattern}${targetSuffix}\n`);
       return 1;
     }
-    const matched = pass + fail + cancelled;
-    const skippedText = skipped === null ? '' : ` skipped=${skipped}`;
-    stdout.write(
-      `[focused-node-test] pattern=${pattern} targets=${testTargets.join(',')} ` +
-      `matched=${matched} tests=${tests} pass=${pass} fail=${fail} cancelled=${cancelled}${skippedText}\n`,
-    );
+    stdout.write(`${summary}\n`);
   }
 
   return 0;

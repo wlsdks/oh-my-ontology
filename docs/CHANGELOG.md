@@ -35,9 +35,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   child-specific focused follow-ups (`dogfood:health`, `dogfood:brief`, or the
   maintenance JSON/test gates) before escalating to full `dogfood:verify`.
 - **Focused test matched count** — `scripts/run-focused-node-test.mjs` now prints
-  `matched=N` in its success summary before file-level `tests=N`, so scoped
-  runs show the actual number of pattern-matched tests without manual
-  skip-count math.
+  `matched=N` before file-level `tests=N` on TAP-summary runs, including matched
+  test failures, so scoped runs show the actual number of pattern-matched tests
+  without manual skip-count math.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 

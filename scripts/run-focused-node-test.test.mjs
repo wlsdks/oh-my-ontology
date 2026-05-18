@@ -197,6 +197,19 @@ describe('focused node test wrapper', () => {
     });
   });
 
+  it('prints matched counts when a focused matched test fails', () => {
+    withFixture(
+      "import test from 'node:test';\ntest('target case', () => { throw new Error('boom'); });\ntest('other case', () => {});\n",
+      (file) => {
+        const result = run(['--test-name-pattern', 'target case', file]);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stdout, /# fail 1/);
+        assert.match(result.stdout, /\[focused-node-test\] pattern=target case targets=.+fixture\.test\.mjs matched=1 tests=2 pass=0 fail=1 cancelled=0 skipped=1/);
+      },
+    );
+  });
+
   it('reports node --test signal exits with the focused target path', () => {
     const diagnostics = [];
     const exitCode = runFocusedNodeTest({
