@@ -81,9 +81,9 @@
     "openSource": {
       "eyebrow": "open source · local-first · MCP",
       "title": "Built in public for developers who use AI coding agents.",
-      "body": "oh-my-ontology is an MIT-licensed workbench by wlsdks. It exists because AI coding agents keep forgetting the long-term shape of a codebase. The project keeps that shape in markdown frontmatter, inside your repo, so Claude Code, Cursor, Codex, and humans can share one memory.",
+      "body": "oh-my-ontology is an MIT-licensed workbench by stark (Jinan Choi / 최진안). It exists because AI coding agents keep forgetting the long-term shape of a codebase. The project keeps that shape in markdown frontmatter, inside your repo, so Claude Code, Cursor, Codex, and humans can share one memory.",
       "madeByLabel": "Made by",
-      "madeByValue": "wlsdks",
+      "madeByValue": "stark (Jinan Choi / 최진안)",
       "licenseLabel": "License",
       "licenseValue": "MIT open source",
       "stackLabel": "Stack",

@@ -81,9 +81,9 @@
     "openSource": {
       "eyebrow": "오픈소스 · local-first · MCP",
       "title": "AI coding agent 를 쓰는 개발자를 위해 공개적으로 만드는 도구.",
-      "body": "oh-my-ontology 는 wlsdks 가 만드는 MIT 라이선스 오픈소스 workbench 입니다. AI coding agent 가 코드베이스의 장기 구조를 계속 잊는 문제를 줄이기 위해 만들었습니다. 프로젝트의 mental model 을 repo 안 markdown frontmatter 로 남겨 Claude Code, Cursor, Codex 와 사람이 같은 기억을 공유하게 합니다.",
+      "body": "oh-my-ontology 는 stark (최진안 / Jinan Choi) 가 만드는 MIT 라이선스 오픈소스 workbench 입니다. AI coding agent 가 코드베이스의 장기 구조를 계속 잊는 문제를 줄이기 위해 만들었습니다. 프로젝트의 mental model 을 repo 안 markdown frontmatter 로 남겨 Claude Code, Cursor, Codex 와 사람이 같은 기억을 공유하게 합니다.",
       "madeByLabel": "만든 사람",
-      "madeByValue": "wlsdks",
+      "madeByValue": "stark (최진안 / Jinan Choi)",
       "licenseLabel": "라이선스",
       "licenseValue": "MIT 오픈소스",
       "stackLabel": "스택",

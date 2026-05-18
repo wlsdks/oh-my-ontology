@@ -41,6 +41,7 @@ export function LandingPage() {
             {t('headerKicker')}
           </span>
         </div>
+        <LocaleSwitch />
       </header>
 
       <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center gap-12 py-12 md:gap-14 md:py-16">
@@ -56,8 +57,8 @@ export function LandingPage() {
             <p className="max-w-xl text-base leading-7 text-[color:var(--color-text-secondary)]">
               {t('subtitle')}
             </p>
-            <LandingActions className="pt-2 md:hidden" />
-            <p className="text-[12px] text-[color:var(--color-text-quaternary)] md:hidden">
+            <LandingActions className="pt-4" />
+            <p className="max-w-xl text-[12px] text-[color:var(--color-text-quaternary)]">
               {t('privacyNote')}
             </p>
           </div>
@@ -80,16 +81,6 @@ export function LandingPage() {
 
         <OpenSourcePanel />
 
-        {/* Local-first 활성화 = 이 도구의 핵심 가치 → primary CTA. 데모
-            트리 둘러보기는 secondary (위험 0 진입 — 폴더 권한 없이 dogfood
-            18 노드 즉시 확인). 이전엔 데모가 primary, 폴더 열기가 secondary
-            였는데 PM 이 첫 클릭에서 dead-end (자기 vault 활성화 경로 못
-            찾음) 로 빠지던 문제 fix. */}
-        <LandingActions className="hidden md:flex" />
-
-        <p className="hidden text-[12px] text-[color:var(--color-text-quaternary)] md:block">
-          {t('privacyNote')}
-        </p>
       </section>
 
       <footer className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[color:var(--color-divider)] pt-4 text-[11px] text-[color:var(--color-text-quaternary)]">
@@ -105,9 +96,6 @@ export function LandingPage() {
         </a>
         <span aria-hidden>·</span>
         <span className="font-mono">{tFooter('stack')}</span>
-        <span className="ml-auto">
-          <LocaleSwitch />
-        </span>
       </footer>
     </main>
   );
@@ -119,7 +107,7 @@ function OpenSourcePanel() {
   return (
     <section
       aria-labelledby="open-source-heading"
-      className="grid gap-4 border-y border-[color:var(--color-divider)] py-5 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] md:items-center"
+      className="grid gap-6 border-y border-[color:var(--color-divider)] py-7 md:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] md:items-center"
     >
       <div>
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-text-quaternary)]">
@@ -136,37 +124,39 @@ function OpenSourcePanel() {
         </p>
       </div>
 
-      <div className="grid gap-2 text-[12px] text-[color:var(--color-text-tertiary)]">
-        <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border-b border-[color:var(--color-divider)] pb-2">
+      <div className="grid gap-0 overflow-hidden rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] text-[12px] text-[color:var(--color-text-tertiary)]">
+        <div className="grid min-h-14 grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 border-b border-[color:var(--color-divider)] px-4">
           <span className="font-mono uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
             {t('madeByLabel')}
           </span>
-          <span>{t('madeByValue')}</span>
+          <span className="text-[13px] text-[color:var(--color-text-secondary)]">{t('madeByValue')}</span>
         </div>
-        <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border-b border-[color:var(--color-divider)] pb-2">
+        <div className="grid min-h-14 grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 border-b border-[color:var(--color-divider)] px-4">
           <span className="font-mono uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
             {t('licenseLabel')}
           </span>
-          <span>{t('licenseValue')}</span>
+          <span className="text-[13px] text-[color:var(--color-text-secondary)]">{t('licenseValue')}</span>
         </div>
-        <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border-b border-[color:var(--color-divider)] pb-2">
+        <div className="grid min-h-14 grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 border-b border-[color:var(--color-divider)] px-4">
           <span className="font-mono uppercase tracking-[0.14em] text-[color:var(--color-text-quaternary)]">
             {t('stackLabel')}
           </span>
-          <span>{t('stackValue')}</span>
+          <span className="text-[13px] leading-5 text-[color:var(--color-text-secondary)]">{t('stackValue')}</span>
         </div>
-        <a
-          href="https://github.com/wlsdks/oh-my-ontology"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "mt-2 w-fit rounded-full",
-          )}
-        >
-          <ExternalLink size={14} />
-          {t('githubCta')}
-        </a>
+        <div className="px-4 py-4">
+          <a
+            href="https://github.com/wlsdks/oh-my-ontology"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "w-fit rounded-full px-4",
+            )}
+          >
+            <ExternalLink size={14} />
+            {t('githubCta')}
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -392,7 +382,7 @@ function ValueChainRail({
 }) {
   return (
     <StaggeredFadeIn as="ol" className="grid gap-3 md:grid-cols-3 md:gap-4">
-      {steps.map((s, i) => (
+      {steps.map((s) => (
         <li
           key={s.index}
           className="relative rounded-2xl border border-[color:var(--color-divider)] bg-[color:var(--color-overlay-1)] px-4 py-3.5"
@@ -401,12 +391,6 @@ function ValueChainRail({
             <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-indigo-accent)]">
               {s.index}
             </span>
-            {i < steps.length - 1 ? (
-              <span
-                aria-hidden
-                className="hidden h-px flex-1 translate-y-[2px] bg-[color:var(--color-divider)] md:block"
-              />
-            ) : null}
           </div>
           <p className="mt-2 text-[14px] font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
             {s.title}
