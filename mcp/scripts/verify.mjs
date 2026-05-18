@@ -1282,6 +1282,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(analyzeTool.outputSchema?.required, ['rootPath', 'framework', 'domains', 'capabilities', 'elements', 'suggestedRelations', 'skipped'])) {
     return 'analyze_repo_structure outputSchema required drift';
   }
+  if (analyzeTool.outputSchema?.additionalProperties !== false) {
+    return 'analyze_repo_structure outputSchema root openness drift';
+  }
   if (outputPropertyAt(analyzeTool, ['properties', 'rootPath'])?.type !== 'string') {
     return 'analyze_repo_structure outputSchema rootPath drift';
   }
@@ -1297,12 +1300,19 @@ export function toolsListSchemaFailure(tools) {
     ) {
       return `analyze_repo_structure outputSchema ${propertyName} rows drift`;
     }
+    if (rowsSchema.items?.additionalProperties !== false) {
+      return `analyze_repo_structure outputSchema ${propertyName} row openness drift`;
+    }
     for (const rowPropertyName of ['slug', 'title']) {
       if (rowsSchema.items?.properties?.[rowPropertyName]?.type !== 'string') {
         return `analyze_repo_structure outputSchema ${propertyName} ${rowPropertyName} drift`;
       }
     }
-    if (rowsSchema.items?.properties?.evidence?.type !== 'object' || !sameArray(rowsSchema.items?.properties?.evidence?.required, ['source'])) {
+    if (
+      rowsSchema.items?.properties?.evidence?.type !== 'object' ||
+      !sameArray(rowsSchema.items?.properties?.evidence?.required, ['source']) ||
+      rowsSchema.items?.properties?.evidence?.additionalProperties !== false
+    ) {
       return `analyze_repo_structure outputSchema ${propertyName} evidence drift`;
     }
   }
@@ -1314,6 +1324,9 @@ export function toolsListSchemaFailure(tools) {
   ) {
     return 'analyze_repo_structure outputSchema suggestedRelations drift';
   }
+  if (suggestedRelationsSchema.items?.additionalProperties !== false) {
+    return 'analyze_repo_structure outputSchema suggestedRelations row openness drift';
+  }
   const skippedSchema = outputPropertyAt(analyzeTool, ['properties', 'skipped']);
   if (
     skippedSchema?.type !== 'array' ||
@@ -1321,6 +1334,9 @@ export function toolsListSchemaFailure(tools) {
     !sameArray(skippedSchema.items?.required, ['path', 'reason'])
   ) {
     return 'analyze_repo_structure outputSchema skipped drift';
+  }
+  if (skippedSchema.items?.additionalProperties !== false) {
+    return 'analyze_repo_structure outputSchema skipped row openness drift';
   }
 
   const inferImportsTool = tools.find((tool) => tool?.name === 'infer_imports');
@@ -1354,6 +1370,9 @@ export function toolsListSchemaFailure(tools) {
   if (!sameArray(inferImportsTool.outputSchema?.required, ['rootPath', 'filesScanned', 'edges', 'externalImports', 'unresolved', 'moduleEdges'])) {
     return 'infer_imports outputSchema required drift';
   }
+  if (inferImportsTool.outputSchema?.additionalProperties !== false) {
+    return 'infer_imports outputSchema root openness drift';
+  }
   if (outputPropertyAt(inferImportsTool, ['properties', 'rootPath'])?.type !== 'string') {
     return 'infer_imports outputSchema rootPath drift';
   }
@@ -1369,6 +1388,9 @@ export function toolsListSchemaFailure(tools) {
   ) {
     return 'infer_imports outputSchema edges drift';
   }
+  if (importEdgeSchema.items?.additionalProperties !== false) {
+    return 'infer_imports outputSchema edge openness drift';
+  }
   if (!sameArray(importEdgeSchema.items?.properties?.kind?.enum, IMPORT_EDGE_KIND_VALUES)) {
     return 'infer_imports outputSchema edge kind drift';
   }
@@ -1380,6 +1402,9 @@ export function toolsListSchemaFailure(tools) {
   ) {
     return 'infer_imports outputSchema externalImports drift';
   }
+  if (externalImportsSchema.items?.additionalProperties !== false) {
+    return 'infer_imports outputSchema externalImports openness drift';
+  }
   const unresolvedSchema = outputPropertyAt(inferImportsTool, ['properties', 'unresolved']);
   if (
     unresolvedSchema?.type !== 'array' ||
@@ -1387,6 +1412,9 @@ export function toolsListSchemaFailure(tools) {
     !sameArray(unresolvedSchema.items?.required, ['from', 'spec', 'reason'])
   ) {
     return 'infer_imports outputSchema unresolved drift';
+  }
+  if (unresolvedSchema.items?.additionalProperties !== false) {
+    return 'infer_imports outputSchema unresolved openness drift';
   }
   if (!sameArray(unresolvedSchema.items?.properties?.reason?.enum, IMPORT_UNRESOLVED_REASON_VALUES)) {
     return 'infer_imports outputSchema unresolved reason drift';
@@ -1398,6 +1426,9 @@ export function toolsListSchemaFailure(tools) {
     !sameArray(moduleEdgesSchema.items?.required, ['from', 'to', 'count', 'kindCounts'])
   ) {
     return 'infer_imports outputSchema moduleEdges drift';
+  }
+  if (moduleEdgesSchema.items?.additionalProperties !== false) {
+    return 'infer_imports outputSchema moduleEdges openness drift';
   }
   if (moduleEdgesSchema.items?.properties?.count?.type !== 'integer' || moduleEdgesSchema.items?.properties?.count?.minimum !== 1) {
     return 'infer_imports outputSchema moduleEdges count drift';

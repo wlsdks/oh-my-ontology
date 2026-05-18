@@ -1279,8 +1279,14 @@ describe('verify.mjs first-contact gates', () => {
                 properties: {
                   slug: { type: 'string' },
                   title: { type: 'string' },
-                  evidence: { type: 'object', required: ['source'] },
+                  evidence: {
+                    type: 'object',
+                    required: ['source'],
+                    properties: { source: { type: 'string' } },
+                    additionalProperties: false,
+                  },
                 },
+                additionalProperties: false,
               },
             },
             capabilities: {
@@ -1291,8 +1297,14 @@ describe('verify.mjs first-contact gates', () => {
                 properties: {
                   slug: { type: 'string' },
                   title: { type: 'string' },
-                  evidence: { type: 'object', required: ['source'] },
+                  evidence: {
+                    type: 'object',
+                    required: ['source'],
+                    properties: { source: { type: 'string' } },
+                    additionalProperties: false,
+                  },
                 },
+                additionalProperties: false,
               },
             },
             elements: {
@@ -1303,8 +1315,14 @@ describe('verify.mjs first-contact gates', () => {
                 properties: {
                   slug: { type: 'string' },
                   title: { type: 'string' },
-                  evidence: { type: 'object', required: ['source'] },
+                  evidence: {
+                    type: 'object',
+                    required: ['source'],
+                    properties: { source: { type: 'string' } },
+                    additionalProperties: false,
+                  },
                 },
+                additionalProperties: false,
               },
             },
             suggestedRelations: {
@@ -1312,7 +1330,12 @@ describe('verify.mjs first-contact gates', () => {
               items: {
                 type: 'object',
                 required: ['from', 'to', 'type'],
-                properties: {},
+                properties: {
+                  from: { type: 'string' },
+                  to: { type: 'string' },
+                  type: { type: 'string' },
+                },
+                additionalProperties: false,
               },
             },
             skipped: {
@@ -1320,10 +1343,15 @@ describe('verify.mjs first-contact gates', () => {
               items: {
                 type: 'object',
                 required: ['path', 'reason'],
-                properties: {},
+                properties: {
+                  path: { type: 'string' },
+                  reason: { type: 'string' },
+                },
+                additionalProperties: false,
               },
             },
           },
+          additionalProperties: false,
         },
       },
       {
@@ -1360,6 +1388,7 @@ describe('verify.mjs first-contact gates', () => {
                   to: { type: 'string' },
                   kind: { enum: IMPORT_EDGE_KIND_VALUES },
                 },
+                additionalProperties: false,
               },
             },
             externalImports: {
@@ -1367,7 +1396,11 @@ describe('verify.mjs first-contact gates', () => {
               items: {
                 type: 'object',
                 required: ['from', 'spec'],
-                properties: {},
+                properties: {
+                  from: { type: 'string' },
+                  spec: { type: 'string' },
+                },
+                additionalProperties: false,
               },
             },
             unresolved: {
@@ -1376,8 +1409,11 @@ describe('verify.mjs first-contact gates', () => {
                 type: 'object',
                 required: ['from', 'spec', 'reason'],
                 properties: {
+                  from: { type: 'string' },
+                  spec: { type: 'string' },
                   reason: { enum: IMPORT_UNRESOLVED_REASON_VALUES },
                 },
+                additionalProperties: false,
               },
             },
             moduleEdges: {
@@ -1386,6 +1422,8 @@ describe('verify.mjs first-contact gates', () => {
                 type: 'object',
                 required: ['from', 'to', 'count', 'kindCounts'],
                 properties: {
+                  from: { type: 'string' },
+                  to: { type: 'string' },
                   count: { type: 'integer', minimum: 1 },
                   kindCounts: {
                     type: 'object',
@@ -1398,9 +1436,11 @@ describe('verify.mjs first-contact gates', () => {
                     minProperties: 1,
                   },
                 },
+                additionalProperties: false,
               },
             },
           },
+          additionalProperties: false,
         },
       },
       {

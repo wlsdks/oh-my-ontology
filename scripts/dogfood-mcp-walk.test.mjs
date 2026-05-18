@@ -1103,8 +1103,14 @@ function makeDogfoodToolsList() {
                 properties: {
                   slug: { type: "string" },
                   title: { type: "string" },
-                  evidence: { type: "object", required: ["source"] },
+                  evidence: {
+                    type: "object",
+                    required: ["source"],
+                    properties: { source: { type: "string" } },
+                    additionalProperties: false,
+                  },
                 },
+                additionalProperties: false,
               },
             },
             capabilities: {
@@ -1115,8 +1121,14 @@ function makeDogfoodToolsList() {
                 properties: {
                   slug: { type: "string" },
                   title: { type: "string" },
-                  evidence: { type: "object", required: ["source"] },
+                  evidence: {
+                    type: "object",
+                    required: ["source"],
+                    properties: { source: { type: "string" } },
+                    additionalProperties: false,
+                  },
                 },
+                additionalProperties: false,
               },
             },
             elements: {
@@ -1127,19 +1139,43 @@ function makeDogfoodToolsList() {
                 properties: {
                   slug: { type: "string" },
                   title: { type: "string" },
-                  evidence: { type: "object", required: ["source"] },
+                  evidence: {
+                    type: "object",
+                    required: ["source"],
+                    properties: { source: { type: "string" } },
+                    additionalProperties: false,
+                  },
                 },
+                additionalProperties: false,
               },
             },
             suggestedRelations: {
               type: "array",
-              items: { type: "object", required: ["from", "to", "type"] },
+              items: {
+                type: "object",
+                required: ["from", "to", "type"],
+                properties: {
+                  from: { type: "string" },
+                  to: { type: "string" },
+                  type: { type: "string" },
+                },
+                additionalProperties: false,
+              },
             },
             skipped: {
               type: "array",
-              items: { type: "object", required: ["path", "reason"] },
+              items: {
+                type: "object",
+                required: ["path", "reason"],
+                properties: {
+                  path: { type: "string" },
+                  reason: { type: "string" },
+                },
+                additionalProperties: false,
+              },
             },
           },
+          additionalProperties: false,
         };
       }
       if (name === "infer_imports") {
@@ -1167,11 +1203,20 @@ function makeDogfoodToolsList() {
                   to: { type: "string" },
                   kind: { enum: IMPORT_EDGE_KIND_VALUES },
                 },
+                additionalProperties: false,
               },
             },
             externalImports: {
               type: "array",
-              items: { type: "object", required: ["from", "spec"] },
+              items: {
+                type: "object",
+                required: ["from", "spec"],
+                properties: {
+                  from: { type: "string" },
+                  spec: { type: "string" },
+                },
+                additionalProperties: false,
+              },
             },
             unresolved: {
               type: "array",
@@ -1179,8 +1224,11 @@ function makeDogfoodToolsList() {
                 type: "object",
                 required: ["from", "spec", "reason"],
                 properties: {
+                  from: { type: "string" },
+                  spec: { type: "string" },
                   reason: { enum: IMPORT_UNRESOLVED_REASON_VALUES },
                 },
+                additionalProperties: false,
               },
             },
             moduleEdges: {
@@ -1189,6 +1237,8 @@ function makeDogfoodToolsList() {
                 type: "object",
                 required: ["from", "to", "count", "kindCounts"],
                 properties: {
+                  from: { type: "string" },
+                  to: { type: "string" },
                   count: { type: "integer", minimum: 1 },
                   kindCounts: {
                     type: "object",
@@ -1201,9 +1251,11 @@ function makeDogfoodToolsList() {
                     minProperties: 1,
                   },
                 },
+                additionalProperties: false,
               },
             },
           },
+          additionalProperties: false,
         };
       }
       if (name === "get_concepts") {

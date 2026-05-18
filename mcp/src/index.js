@@ -1995,6 +1995,7 @@ const TOOLS = [
               },
             },
             required: ['from', 'to', 'kind'],
+            additionalProperties: false,
           },
         },
         externalImports: {
@@ -2006,6 +2007,7 @@ const TOOLS = [
               spec: NON_BLANK_STRING_SCHEMA,
             },
             required: ['from', 'spec'],
+            additionalProperties: false,
           },
         },
         unresolved: {
@@ -2023,6 +2025,7 @@ const TOOLS = [
               },
             },
             required: ['from', 'spec', 'reason'],
+            additionalProperties: false,
           },
         },
         moduleEdges: {
@@ -2047,10 +2050,12 @@ const TOOLS = [
               },
             },
             required: ['from', 'to', 'count', 'kindCounts'],
+            additionalProperties: false,
           },
         },
       },
       required: ['rootPath', 'filesScanned', 'edges', 'externalImports', 'unresolved', 'moduleEdges'],
+      additionalProperties: false,
     },
   },
   {
@@ -2119,9 +2124,11 @@ const TOOLS = [
                   line: { type: 'integer', minimum: 1 },
                 },
                 required: ['source'],
+                additionalProperties: false,
               },
             },
             required: ['slug', 'title', 'evidence'],
+            additionalProperties: false,
           },
         },
         capabilities: {
@@ -2138,9 +2145,11 @@ const TOOLS = [
                   source: NON_BLANK_STRING_SCHEMA,
                 },
                 required: ['source'],
+                additionalProperties: false,
               },
             },
             required: ['slug', 'title', 'evidence'],
+            additionalProperties: false,
           },
         },
         elements: {
@@ -2156,9 +2165,11 @@ const TOOLS = [
                   source: NON_BLANK_STRING_SCHEMA,
                 },
                 required: ['source'],
+                additionalProperties: false,
               },
             },
             required: ['slug', 'title', 'evidence'],
+            additionalProperties: false,
           },
         },
         suggestedRelations: {
@@ -2171,6 +2182,7 @@ const TOOLS = [
               type: NON_BLANK_STRING_SCHEMA,
             },
             required: ['from', 'to', 'type'],
+            additionalProperties: false,
           },
         },
         skipped: {
@@ -2182,6 +2194,7 @@ const TOOLS = [
               reason: NON_BLANK_STRING_SCHEMA,
             },
             required: ['path', 'reason'],
+            additionalProperties: false,
           },
         },
       },
@@ -2194,6 +2207,7 @@ const TOOLS = [
         'suggestedRelations',
         'skipped',
       ],
+      additionalProperties: false,
     },
   },
   {
