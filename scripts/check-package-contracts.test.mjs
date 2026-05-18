@@ -1469,7 +1469,8 @@ describe('package contract helpers', () => {
     assert.match(implementationSection, /fail-closed/);
     assert.match(doc, /`workspace-brief` non-json 의 `HEALTH CHECKS` id:status:count coverage 와 `GROWTH` action/);
     assert.match(doc, /`health` non-json 의 `pass:count` 출력/);
-    assert.match(doc, /`health --help` 의 `--json` automation gate \/ failing health non-zero 설명/);
+    assert.match(doc, /`health --help` 의 `pnpm dogfood:health` automation gate \/ failing health non-zero 설명/);
+    assert.match(doc, /`workspace-brief --help` 의 `pnpm dogfood:health` 선행 안내/);
     assert.match(doc, /`HEALTH CHECKS` 라인에 `compile_issues:pass:0` 같은 id:status:count coverage/);
     assert.match(doc, /mismatch path diagnostics/);
     assert.match(readme, /diagnosis payload shape before writing machine output/);
