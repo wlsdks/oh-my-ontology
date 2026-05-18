@@ -669,6 +669,25 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       assert.equal(postWriteSchema?.properties?.bySeverity?.additionalProperties?.type, "integer", `${toolName} exposes bySeverity bucket schema`);
       assert.equal(postWriteSchema?.properties?.byKind?.additionalProperties?.type, "integer", `${toolName} exposes byKind bucket schema`);
       assert.deepEqual(
+        postWriteSchema?.required,
+        [
+          "operation",
+          "sideEffect",
+          "graphHash",
+          "summary",
+          "filters",
+          "cursor",
+          "byPhase",
+          "bySeverity",
+          "byKind",
+          "limited",
+          "nextExecutableAction",
+          "nextReviewAction",
+          "actions",
+        ],
+        `${toolName} exposes complete post-write maintenance required fields`,
+      );
+      assert.deepEqual(
         postWriteSchema?.properties?.summary?.required,
         ["totalActions", "filteredActions", "remainingActions", "executableActions", "reviewActions"],
         `${toolName} exposes compact summary schema`,

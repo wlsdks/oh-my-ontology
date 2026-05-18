@@ -732,6 +732,8 @@ verify / dogfood gate 도 `nextExecutableAction` / `nextReviewAction` nullable p
 shape drift 를 별도 실패로 잡아 current-page next action 안내가 느슨해지지 않게 한다.
 write-tool description 도 두 pointer 이름을 모두 포함해야 통과하므로 agent-facing 안내와
 `outputSchema` 계약이 서로 다르게 약해지지 않는다.
+compact `postWriteMaintenance` top-level `required` 목록도 설치 verify 와 dogfood gate 가
+고정해 summary / cursor / buckets / next pointers / actions 중 하나가 optional 로 느슨해지면 바로 실패한다.
 `add_concepts` / `add_relations` 도 batch writer `outputSchema` row 계약을
 노출해, bootstrap landing 결과의 성공/실패 row 와 후속 `postWriteMaintenance` 를 구조화된 결과로 바로 처리할 수 있게 한다.
 `rename_concept` / `merge_concepts` / `delete_concept` 도 destructive writer

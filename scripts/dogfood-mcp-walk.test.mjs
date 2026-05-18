@@ -153,6 +153,21 @@ function relationArrayPatchSchemaFixture() {
 function postWriteMaintenanceSchemaFixture() {
   return {
     type: "object",
+    required: [
+      "operation",
+      "sideEffect",
+      "graphHash",
+      "summary",
+      "filters",
+      "cursor",
+      "byPhase",
+      "bySeverity",
+      "byKind",
+      "limited",
+      "nextExecutableAction",
+      "nextReviewAction",
+      "actions",
+    ],
     properties: {
       summary: {
         type: "object",
@@ -3951,6 +3966,13 @@ describe("evaluateDogfoodGate", () => {
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: postWriteSummarySchemaDrifted }),
       ["tools/list: patch_concept outputSchema postWriteMaintenance summary drift"],
+    );
+    const postWriteRequiredSchemaDrifted = makeDogfoodToolsList();
+    postWriteRequiredSchemaDrifted.tools.find((tool) => tool.name === "patch_concept").outputSchema.properties.postWriteMaintenance.required =
+      ["operation", "sideEffect", "graphHash", "summary", "filters", "cursor", "actions"];
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: postWriteRequiredSchemaDrifted }),
+      ["tools/list: patch_concept outputSchema postWriteMaintenance required drift"],
     );
     const postWriteCursorSchemaDrifted = makeDogfoodToolsList();
     postWriteCursorSchemaDrifted.tools.find((tool) => tool.name === "patch_concept").outputSchema.properties.postWriteMaintenance.properties.cursor.properties.hasMore.type = "string";

@@ -281,6 +281,24 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
     return `${toolName} outputSchema postWriteMaintenance drift`;
   }
   const compactActionRequired = ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction'];
+  const postWriteRequired = [
+    'operation',
+    'sideEffect',
+    'graphHash',
+    'summary',
+    'filters',
+    'cursor',
+    'byPhase',
+    'bySeverity',
+    'byKind',
+    'limited',
+    'nextExecutableAction',
+    'nextReviewAction',
+    'actions',
+  ];
+  if (!sameArray(schema.required, postWriteRequired)) {
+    return `${toolName} outputSchema postWriteMaintenance required drift`;
+  }
   const summarySchema = schema.properties?.summary;
   if (
     summarySchema?.type !== 'object' ||
