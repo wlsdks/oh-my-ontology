@@ -2246,6 +2246,9 @@ export function structuredErrorFailure(response, label) {
   if (text && !text.includes(structured.error)) {
     return `${label} structured error mismatch`;
   }
+  if (typeof structured.errorCode !== 'string' || structured.errorCode.trim() === '') {
+    return `${label} structured error code missing`;
+  }
   return null;
 }
 

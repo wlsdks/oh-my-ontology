@@ -2566,9 +2566,26 @@ function error(err) {
     isError: true,
     structuredContent: {
       ok: false,
+      errorCode: classifyErrorCode(err, message),
       error: message,
     },
   };
+}
+
+function classifyErrorCode(err, message) {
+  if (err instanceof VaultConflictError || err?.code === 'VAULT_CONFLICT') {
+    return 'vault_conflict';
+  }
+  if (/^Unknown tool:/i.test(message)) return 'unknown_tool';
+  if (/^Unknown argument /i.test(message) || /^Unknown arguments for /i.test(message)) {
+    return 'unknown_argument';
+  }
+  if (/not found|does not exist/i.test(message)) return 'not_found';
+  if (/already exists|conflict|identical/i.test(message)) return 'conflict';
+  if (/must be|must not|cannot be|At least one|Invalid value|Received:|points outside/i.test(message)) {
+    return 'invalid_arguments';
+  }
+  return 'tool_error';
 }
 
 // ── 도구 구현 ─────────────────────────────────────────────────────────────

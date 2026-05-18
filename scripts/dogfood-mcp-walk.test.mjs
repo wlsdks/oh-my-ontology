@@ -3142,6 +3142,7 @@ const okShape = {
       content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: kind, limit. Received arguments: lmit.' }],
       structuredContent: {
         ok: false,
+        errorCode: "unknown_argument",
         error: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: kind, limit. Received arguments: lmit.',
       },
     },
@@ -3152,6 +3153,7 @@ const okShape = {
       content: [{ text: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit, summry.' }],
       structuredContent: {
         ok: false,
+        errorCode: "unknown_argument",
         error: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit, summry.',
       },
     },
@@ -3282,7 +3284,7 @@ for (const value of Object.values(okShape)) {
   const result = value?.result;
   const text = result?.content?.[0]?.text;
   if (result?.isError === true && typeof text === "string" && !result.structuredContent) {
-    result.structuredContent = { ok: false, error: text };
+    result.structuredContent = { ok: false, errorCode: "invalid_arguments", error: text };
   }
 }
 
@@ -4469,7 +4471,7 @@ describe("evaluateDogfoodGate", () => {
       result: {
         isError: true,
         content: [{ text }],
-        structuredContent: { ok: false, error: text },
+        structuredContent: { ok: false, errorCode: "unknown_argument", error: text },
       },
     });
     assert.deepEqual(
@@ -4495,7 +4497,7 @@ describe("evaluateDogfoodGate", () => {
       result: {
         isError: true,
         content: [{ text }],
-        structuredContent: { ok: false, error: text },
+        structuredContent: { ok: false, errorCode: "unknown_argument", error: text },
       },
     });
     assert.deepEqual(
