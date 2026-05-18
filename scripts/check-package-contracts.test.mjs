@@ -500,6 +500,7 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /pnpm test:dogfood:args\s+Narrow dogfood shortcut argument helper contract/);
     assert.match(result.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference \+ focused wrapper summary contract/);
     assert.match(result.stdout, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
+    assert.match(result.stdout, /pnpm test:mcp:registration\s+Narrow source-checkout .mcp.json\/.mcp.json.example registration template contract/);
     assert.match(result.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
     assert.match(result.stdout, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
     assert.match(result.stdout, /pnpm dogfood:growth\s+Root checkout dogfood vault growth_plan JSON snapshot/);
@@ -2200,6 +2201,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help\\\/empty-vault diagnostics/);
     assert.match(smoke, /pnpm test:dogfood:args\\s\+Narrow dogfood shortcut argument helper contract/);
     assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference \\\+ focused wrapper summary contract/);
+    assert.match(smoke, /pnpm test:mcp:registration\\s\+Narrow source-checkout .mcp.json\\\/.mcp.json.example registration template contract/);
     assert.match(smoke, /pnpm dogfood:compile\\s\+Cheap root checkout compile_ontology summary snapshot/);
     assert.match(smoke, /pnpm dogfood:compile-fix\\s\+Cheap root checkout compile --fix idempotence gate; changed vaults need pnpm docs-vault:build; success ends with \\\[dogfood:compile-fix\\\] docs\\\/ontology unchanged/);
     assert.match(smoke, /pnpm test:dogfood:compile-fix\\s\+Narrow dogfood compile --fix idempotence runner contract/);
@@ -2315,6 +2317,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm dogfood:compile-fix\\s\+Root checkout dogfood vault compile --fix idempotence gate; changed vaults need pnpm docs-vault:build; success ends with \\\[dogfood:compile-fix\\\] docs\\\/ontology unchanged/);
     assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference \\\+ focused wrapper summary contract/);
     assert.match(smoke, /pnpm test:dogfood:compile-fix\\s\+Narrow dogfood compile --fix idempotence runner contract/);
+    assert.match(smoke, /pnpm test:mcp:registration\\s\+Narrow source-checkout .mcp.json\\\/.mcp.json.example registration template contract/);
     assert.match(smoke, /pnpm dogfood:health\\s\+Root checkout dogfood vault health gate/);
     assert.match(smoke, /pnpm dogfood:brief\\s\+Root checkout dogfood vault workspace_brief snapshot/);
     assert.match(smoke, /pnpm dogfood:growth\\s\+Root checkout dogfood vault growth_plan JSON snapshot/);
@@ -2519,7 +2522,9 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /\[dogfood:status\] health:N · workspace-brief:N · maintenance:N/);
     assert.match(regressionSection, /`pnpm dogfood:status` 실패 출력은 `\[dogfood:status\] health:N · workspace-brief:N · maintenance:N` child status 요약 뒤에 실패 child 별 focused follow-up \(`pnpm dogfood:health` \/ `pnpm dogfood:brief` \/ `pnpm dogfood:maintenance` \+ `pnpm test:mcp:maintenance`\) 을 먼저 붙이고 `pnpm dogfood:verify` follow-up hint/);
     assert.match(regressionSection, /`pnpm dogfood:status -- --help` 도 같은 child→focused gate mapping 을 미리 보여줘/);
-    assert.match(regressionSection, /`pnpm cli:mcp-verify -- --help` 의 Focused checks 도 `pnpm dogfood:status` row 에 실패 시 focused hint 후 `pnpm dogfood:verify` hint/);
+    assert.match(regressionSection, /`pnpm cli:mcp-verify -- --help` 의 Focused checks 도 `pnpm test:mcp:registration` row 와 `pnpm dogfood:status` row 를 표시/);
+    assert.match(regressionSection, /registration template 만 바뀐 경우에는 docs gate 전체 대신 template-only gate 를 고르고/);
+    assert.match(regressionSection, /status 실패 시에는 focused hint 후 `pnpm dogfood:verify` escalation 경로/);
     assert.match(regressionSection, /`pnpm test:dogfood:status` 는 그 shortcut 계약만 spawn 없이 검증/);
     assert.match(regressionSection, /`workspace-brief --json` first-contact snapshot/);
     assert.match(regressionSection, /`pnpm dogfood:verify` 는 반복 dogfood vault 검증용 full gate/);

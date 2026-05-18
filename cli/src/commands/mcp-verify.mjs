@@ -260,6 +260,7 @@ function printUsage(output = process.stderr) {
       `  pnpm test:dogfood:args            Narrow dogfood shortcut argument helper contract.\n` +
       `  pnpm test:dogfood:script-refs     Narrow help/package-script reference + focused wrapper summary contract.\n` +
       `  pnpm test:dogfood:compile-fix     Narrow dogfood compile --fix idempotence runner contract.\n` +
+      `  pnpm test:mcp:registration         Narrow source-checkout .mcp.json/.mcp.json.example registration template contract.\n` +
       `  pnpm dogfood:health               Root checkout dogfood vault health gate.\n` +
       `  pnpm dogfood:brief                Root checkout dogfood vault workspace_brief snapshot.\n` +
       `  pnpm dogfood:growth               Root checkout dogfood vault growth_plan JSON snapshot.\n` +

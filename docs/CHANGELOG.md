@@ -47,7 +47,8 @@ can inspect ontology write candidates without raw JSON-RPC.
   `node ./mcp/src/index.js` with `OMOT_VAULT=./docs/ontology`, so local agent
   registration drift is caught by the focused docs gate. The narrower
   `pnpm test:mcp:registration` shortcut checks only that registration-template
-  contract when those files change.
+  contract when those files change, and CLI / direct MCP / dogfood help now
+  surface the shortcut in their Focused checks lists.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 
