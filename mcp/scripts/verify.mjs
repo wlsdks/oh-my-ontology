@@ -280,6 +280,7 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
   if (schema?.type !== 'object') {
     return `${toolName} outputSchema postWriteMaintenance drift`;
   }
+  const compactActionRequired = ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction'];
   const summarySchema = schema.properties?.summary;
   if (
     summarySchema?.type !== 'object' ||
@@ -311,11 +312,22 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
   if (
     schema.properties?.actions?.type !== 'array' ||
     schema.properties.actions.items?.type !== 'object' ||
-    !sameArray(schema.properties.actions.items?.required, ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction']) ||
+    !sameArray(schema.properties.actions.items?.required, compactActionRequired) ||
     schema.properties.actions.items?.properties?.score?.minimum !== 0 ||
     schema.properties.actions.items?.properties?.executable?.type !== 'boolean'
   ) {
     return `${toolName} outputSchema postWriteMaintenance actions drift`;
+  }
+  for (const key of ['nextExecutableAction', 'nextReviewAction']) {
+    const actionSchema = schema.properties?.[key];
+    if (
+      !sameArray(actionSchema?.type, ['object', 'null']) ||
+      !sameArray(actionSchema?.required, compactActionRequired) ||
+      actionSchema.properties?.score?.minimum !== 0 ||
+      actionSchema.properties?.executable?.type !== 'boolean'
+    ) {
+      return `${toolName} outputSchema postWriteMaintenance ${key} drift`;
+    }
   }
   return null;
 }

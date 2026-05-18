@@ -688,6 +688,16 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         ["object", "null"],
         `${toolName} exposes nullable next executable action`,
       );
+      assert.deepEqual(
+        postWriteSchema?.properties?.nextReviewAction?.type,
+        ["object", "null"],
+        `${toolName} exposes nullable next review action`,
+      );
+      assert.deepEqual(
+        postWriteSchema?.properties?.nextReviewAction?.required,
+        ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
+        `${toolName} exposes compact next review action schema`,
+      );
     }
     const expectedMtimeTools = [
       "add_relation",

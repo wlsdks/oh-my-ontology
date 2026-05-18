@@ -3957,6 +3957,12 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, toolsList: postWriteActionsSchemaDrifted }),
       ["tools/list: patch_concept outputSchema postWriteMaintenance actions drift"],
     );
+    const postWriteNextActionSchemaDrifted = makeDogfoodToolsList();
+    postWriteNextActionSchemaDrifted.tools.find((tool) => tool.name === "patch_concept").outputSchema.properties.postWriteMaintenance.properties.nextReviewAction.type = "object";
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: postWriteNextActionSchemaDrifted }),
+      ["tools/list: patch_concept outputSchema postWriteMaintenance nextReviewAction drift"],
+    );
     const renameConceptOutputSchemaDrifted = makeDogfoodToolsList();
     renameConceptOutputSchemaDrifted.tools.find((tool) => tool.name === "rename_concept").outputSchema.properties.backlinkUpdates.type = "array";
     assert.deepEqual(
