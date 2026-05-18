@@ -5,7 +5,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
-import { disallowedReporterOption, focusedTestTargets, runFocusedNodeTest } from './run-focused-node-test.mjs';
+import {
+  disallowedReporterOption,
+  disallowedReporterSource,
+  focusedTestTargets,
+  runFocusedNodeTest,
+} from './run-focused-node-test.mjs';
 
 const SCRIPT = 'scripts/run-focused-node-test.mjs';
 
@@ -128,6 +133,31 @@ describe('focused node test wrapper', () => {
     assert.equal(disallowedReporterOption(['--test-reporter-destination=out.txt']), '--test-reporter-destination');
     assert.deepEqual(diagnostics, [
       '[focused-node-test] --test-reporter is not supported; the wrapper requires the default TAP reporter to verify focused test counts\n',
+    ]);
+  });
+
+  it('fails before spawning when NODE_OPTIONS configures a custom reporter', () => {
+    const diagnostics = [];
+    const exitCode = runFocusedNodeTest({
+      argv: ['--test-name-pattern', 'target case', 'fixture.test.mjs'],
+      env: { NODE_OPTIONS: '--test-reporter=spec' },
+      stderr: { write: (text) => diagnostics.push(text) },
+      stdout: { write() {} },
+      spawn() {
+        throw new Error('spawn should not run with a custom reporter');
+      },
+    });
+
+    assert.equal(exitCode, 2);
+    assert.deepEqual(
+      disallowedReporterSource({
+        argv: ['--test-name-pattern=target case'],
+        env: { NODE_OPTIONS: '--test-reporter-destination=out.txt' },
+      }),
+      { option: '--test-reporter-destination', source: 'NODE_OPTIONS' },
+    );
+    assert.deepEqual(diagnostics, [
+      '[focused-node-test] --test-reporter from NODE_OPTIONS is not supported; the wrapper requires the default TAP reporter to verify focused test counts\n',
     ]);
   });
 

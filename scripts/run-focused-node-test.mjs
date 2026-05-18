@@ -55,6 +55,14 @@ export function disallowedReporterOption(argv) {
   return null;
 }
 
+export function disallowedReporterSource({ argv = [], env = process.env } = {}) {
+  const argOption = disallowedReporterOption(argv);
+  if (argOption) return { option: argOption, source: 'argv' };
+  const nodeOptions = String(env.NODE_OPTIONS ?? '');
+  const envOption = disallowedReporterOption(nodeOptions.split(/\s+/).filter(Boolean));
+  return envOption ? { option: envOption, source: 'NODE_OPTIONS' } : null;
+}
+
 export function runFocusedNodeTest({
   argv = process.argv.slice(2),
   spawn = spawnSync,
@@ -80,10 +88,11 @@ export function runFocusedNodeTest({
     );
     return 2;
   }
-  const reporterOption = disallowedReporterOption(argv);
+  const reporterOption = disallowedReporterSource({ argv, env });
   if (reporterOption) {
+    const sourceSuffix = reporterOption.source === 'NODE_OPTIONS' ? ' from NODE_OPTIONS' : '';
     stderr.write(
-      `[focused-node-test] ${reporterOption} is not supported; ` +
+      `[focused-node-test] ${reporterOption.option}${sourceSuffix} is not supported; ` +
       'the wrapper requires the default TAP reporter to verify focused test counts\n',
     );
     return 2;
