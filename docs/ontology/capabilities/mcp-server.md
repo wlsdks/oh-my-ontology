@@ -5,7 +5,7 @@ title: MCP Server (23 tools)
 domain: ai-agent-partner
 dependencies:
   - capabilities/frontmatter-to-ontology
-elements: [mcp/scripts/json-rpc-lines.mjs, mcp/scripts/verify.mjs, mcp/src/analyze.mjs, mcp/src/index.js, mcp/src/infer-imports.mjs, mcp/src/integration.test.mjs, mcp/src/json-rpc-lines.test.mjs, mcp/src/ontology-compiler.mjs, mcp/src/ontology-engine.mjs, mcp/src/parser.mjs, mcp/src/suggestions.mjs, mcp/src/suggestions.test.mjs, mcp/src/vault.mjs, mcp/src/verify-script.test.mjs, scripts/dogfood-mcp-walk.mjs, scripts/dogfood-mcp-walk.test.mjs, scripts/lib/test-name-pattern.mjs, scripts/lib/test-name-pattern.test.mjs]
+elements: [mcp/scripts/json-rpc-lines.mjs, mcp/scripts/verify.mjs, mcp/src/analyze.mjs, mcp/src/index.js, mcp/src/infer-imports.mjs, mcp/src/integration.test.mjs, mcp/src/json-rpc-lines.test.mjs, mcp/src/ontology-compiler.mjs, mcp/src/ontology-engine.mjs, mcp/src/parser.mjs, mcp/src/suggestions.mjs, mcp/src/suggestions.test.mjs, mcp/src/vault.mjs, mcp/src/verify-script.test.mjs, scripts/dogfood-mcp-walk.mjs, scripts/dogfood-mcp-walk.test.mjs, scripts/lib/test-name-pattern.mjs, scripts/lib/test-name-pattern.test.mjs, scripts/run-focused-node-test.mjs, scripts/run-focused-node-test.test.mjs]
 relates: [capabilities/frontmatter-to-ontology, domains/ai-agent-partner]
 ---
 
@@ -493,6 +493,7 @@ spawn-heavy integration 은 `pnpm integration:mcp` 로 실행하고
 `OMOT_TEST_NAME_PATTERN` 로 수정 파트만 골라 실행할 수 있어, 작은 변경마다 전체 MCP 통합 파일을 돌리는 비용을 줄인다.
 Node `--test-name-pattern` 이 필요하면 `pnpm integration:mcp -- --test-name-pattern ...` 형태로 붙이지 않고
 `pnpm exec node --test --test-name-pattern "..." mcp/src/integration.test.mjs` 를 직접 실행한다.
+root focused `test:mcp:*` package scripts 는 `scripts/run-focused-node-test.mjs` wrapper 를 통해 Node `--test-name-pattern` 이 0개 테스트와 매칭되어도 exit 0 으로 지나가는 silent skip 을 `# pass 0` summary 에서 감지해 실패시킨다.
 root shortcut `pnpm integration:mcp:readme` 는 first-contact README read-only
 subset 만 실행해 agent onboarding 문서 변경을 빠르게 검증한다.
 package manifest / enum suggestion 류의 더 작은 변경은 root 의

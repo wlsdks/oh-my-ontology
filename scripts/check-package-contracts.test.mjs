@@ -123,6 +123,8 @@ describe('package contract helpers', () => {
   it('keeps filtered integration scripts discoverable from development checks docs', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
     const checksDoc = readFileSync('docs/DEVELOPMENT-CHECKS.md', 'utf-8');
+    const focusedNode = 'node scripts/run-focused-node-test.mjs';
+    const nodeTest = 'node --test';
 
     assert.equal(pkg.scripts?.['integration:cli'], 'node --test cli/src/integration.test.mjs');
     assert.equal(
@@ -155,7 +157,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['test:dogfood:args'], 'node --test scripts/lib/dogfood-args.test.mjs');
     assert.equal(
       pkg.scripts?.['test:dogfood:script-refs'],
-      'node --test scripts/lib/pnpm-script-refs.test.mjs && node --test --test-name-pattern "filtered integration scripts discoverable" scripts/check-package-contracts.test.mjs',
+      `${nodeTest} scripts/lib/pnpm-script-refs.test.mjs scripts/run-focused-node-test.test.mjs && ${focusedNode} --test-name-pattern "filtered integration scripts discoverable" scripts/check-package-contracts.test.mjs`,
     );
     assert.equal(pkg.scripts?.['test:dogfood:compile-fix'], 'node --test scripts/dogfood-compile-fix.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:health'], 'node cli/src/index.mjs health docs/ontology --json');
@@ -201,26 +203,26 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:dogfood'] ?? '', /malformed initialize/);
     assert.equal(
       pkg.scripts?.['test:mcp:dogfood:timeout'],
-      'node --test --test-name-pattern "dogfood timeout|timeout failures|dogfood response labels|dogfood help|dogfood arguments" scripts/dogfood-mcp-walk.test.mjs',
+      `${focusedNode} --test-name-pattern "dogfood timeout|timeout failures|dogfood response labels|dogfood help|dogfood arguments" scripts/dogfood-mcp-walk.test.mjs`,
     );
     assert.equal(
       pkg.scripts?.['test:mcp:maintenance'],
-      'node --test --test-name-pattern "maintenance filter|maintenance cursor|maintenance missing-cursor|maintenance ready-cursor|maintenance resume-cursor|malformed maintenance_plan payloads|remaining maintenance buckets|current-page maintenance next actions" mcp/src/verify-script.test.mjs scripts/dogfood-mcp-walk.test.mjs',
+      `${focusedNode} --test-name-pattern "maintenance filter|maintenance cursor|maintenance missing-cursor|maintenance ready-cursor|maintenance resume-cursor|malformed maintenance_plan payloads|remaining maintenance buckets|current-page maintenance next actions" mcp/src/verify-script.test.mjs scripts/dogfood-mcp-walk.test.mjs`,
     );
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/suggestions\.test\.mjs/);
     assert.match(pkg.scripts?.['test:mcp:suggestions'] ?? '', /mcp\/src\/ontology-engine\.test\.mjs/);
     assert.equal(pkg.scripts?.['test:mcp:verify'], 'node --test mcp/src/verify-script.test.mjs');
     assert.equal(
       pkg.scripts?.['test:mcp:verify:first-contact'],
-      'node --test --test-name-pattern "initialize instructions|strict unknown-tool|node-dependent first-contact|first-contact response labels|bootstrap and import-analysis|first-contact verify|destructive writer dry-run|patch_concept conflict guard|list_concepts reports vault warnings|validate_vault reports problem files|malformed validate_vault|first-contact diagnosis|health summary|health check advisories|failing health checks|workspace_brief growth count drift|workspace_brief next action sample drift|fail next actions" mcp/src/verify-script.test.mjs',
+      `${focusedNode} --test-name-pattern "initialize instructions|strict unknown-tool|node-dependent first-contact|first-contact response labels|bootstrap and import-analysis|first-contact verify|destructive writer dry-run|patch_concept conflict guard|list_concepts reports vault warnings|validate_vault reports problem files|malformed validate_vault|first-contact diagnosis|health summary|health check advisories|failing health checks|workspace_brief growth count drift|workspace_brief next action sample drift|fail next actions" mcp/src/verify-script.test.mjs`,
     );
     assert.equal(
       pkg.scripts?.['test:mcp:verify:timeout'],
-      'node --test --test-name-pattern "verify timeout|timeout failures|startup failures|direct verify usage|direct verify timeout|direct verify CLI args" mcp/src/verify-script.test.mjs',
+      `${focusedNode} --test-name-pattern "verify timeout|timeout failures|startup failures|direct verify usage|direct verify timeout|direct verify CLI args" mcp/src/verify-script.test.mjs`,
     );
     assert.match(
       pkg.scripts?.['test:mcp:docs'] ?? '',
-      /^node --test --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
+      /^node scripts\/run-focused-node-test\.mjs --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
     );
     assert.doesNotMatch(
       pkg.scripts?.['test:mcp:docs'] ?? '',
@@ -235,7 +237,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:docs'] ?? '', /dogfood MCP docs/);
     assert.match(
       pkg.scripts?.['test:mcp:package'] ?? '',
-      /^node --test --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
+      /^node scripts\/run-focused-node-test\.mjs --test-name-pattern "[^"]+" scripts\/check-package-contracts\.test\.mjs$/,
     );
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /MCP npm test/);
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /CLI npm test/);
@@ -244,7 +246,7 @@ describe('package contract helpers', () => {
     assert.match(pkg.scripts?.['test:mcp:package'] ?? '', /CLI mcp-verify wrapper/);
     assert.match(
       pkg.scripts?.['test:mcp:suggestions'] ?? '',
-      /^node --test --test-name-pattern "[^"]+" mcp\/src\/suggestions\.test\.mjs mcp\/src\/ontology-engine\.test\.mjs$/,
+      /^node scripts\/run-focused-node-test\.mjs --test-name-pattern "[^"]+" mcp\/src\/suggestions\.test\.mjs mcp\/src\/ontology-engine\.test\.mjs$/,
     );
     for (const heading of [
       '## Default Gate',

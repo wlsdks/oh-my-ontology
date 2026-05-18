@@ -400,16 +400,16 @@ A successful run looks like this:
 ✓ list_kinds — 29 nodes (capability:17, domain:6, element:4, project:1, vault-readme:1)
 ✓ validate_vault — 29 files, 0 problem files
 ✓ project probe — 1 project node
-✓ workspace_brief — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:137)
-✓ workspace_brief_tuned — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:137; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3)
+✓ workspace_brief — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:145)
+✓ workspace_brief_tuned — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:145; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3)
 ✓ health — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1)
 ✓ health_tuned — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies)
-✓ compile_ontology — graph 65f70ced33fa (29 nodes, 238 edges, issues 0)
-✓ compile_ontology page — 1/29 nodes, 1/238 edges
-✓ compile_ontology indexes — out 29, in 28, edgeById 238, aliases 57, edges 101/137/0
-✓ overview — graph 65f70ced33fa (29 nodes, 238 edges, hubs 5)
-✓ overview query_plan — aggregate_scan (medium, nodes 29, edges 238)
-✓ project_map query_plan — aggregate_scan (medium, nodes 29, edges 238)
+✓ compile_ontology — graph d1f2cdff31d3 (29 nodes, 246 edges, issues 0)
+✓ compile_ontology page — 1/29 nodes, 1/246 edges
+✓ compile_ontology indexes — out 29, in 28, edgeById 246, aliases 57, edges 101/145/0
+✓ overview — graph d1f2cdff31d3 (29 nodes, 246 edges, hubs 5)
+✓ overview query_plan — aggregate_scan (medium, nodes 29, edges 246)
+✓ project_map query_plan — aggregate_scan (medium, nodes 29, edges 246)
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
 ✓ project_scope — project (28 nodes, internalEdges 100)
