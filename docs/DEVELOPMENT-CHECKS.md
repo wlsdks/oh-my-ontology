@@ -25,7 +25,7 @@ For user-facing UI changes, add the relevant Playwright route check.
 | App/type safety | `pnpm exec tsc --noEmit` | `pnpm build` |
 | Lint/style | `pnpm lint` | `pnpm test:run` |
 | Static deploy safety | `pnpm build` | `pnpm bundle:check` |
-| Static dogfood manifest | `pnpm docs-vault:check` | `pnpm docs-vault:build` |
+| Static dogfood manifest | `pnpm docs-vault:check` | `pnpm test:docs-vault` |
 | Vault integrity | `pnpm vault:validate` | `pnpm vault:audit` |
 | CLI argument parsing | `pnpm test:cli:args` | `pnpm test:cli:lib` |
 | MCP/docs contract | `pnpm test:mcp:docs` | `pnpm package:check` |
@@ -44,6 +44,7 @@ pnpm vault:validate /your/vault  # validate any folder
 pnpm vault:validate -- --help    # print validator usage without scanning
 pnpm test:vault:validate         # focused validator CLI argument contract
 pnpm docs-vault:check            # static dogfood manifest freshness
+pnpm test:docs-vault             # focused docs-vault build/check helper contract
 pnpm docs-vault:build            # refresh static dogfood manifest and public md
 pnpm vault:audit                 # dogfood path drift guard
 pnpm test:vault:audit            # focused vault audit CLI argument contract

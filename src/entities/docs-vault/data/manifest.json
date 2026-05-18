@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-18T09:11:35.281Z",
+  "generatedAt": "2026-05-18T09:14:40.576Z",
   "docs": [
     {
       "slug": "AGENT-MEMORY-POSITIONING",
@@ -3823,8 +3823,8 @@
         }
       ],
       "excerpt": "Maintaineronly checks live here so the public README stays readable. Use this page when you touch mcp/, cli/, package manifests, release scripts, or the dogfood ontology. Run this before pushing broad docs, package, MCP, or web changes: For userfacing UI changes, add the relevant Playwright route check. | Area | First ",
-      "wordCount": 793,
-      "updatedAt": "2026-05-18T09:05:18.217Z",
+      "wordCount": 801,
+      "updatedAt": "2026-05-18T09:13:55.312Z",
       "linksOut": []
     },
     {
@@ -4864,8 +4864,8 @@
         }
       ],
       "excerpt": "vault 의 .md 파일 frontmatter 를 직접 읽어 OntologyStub (nodes + edges + warnings) 으로 변환. AI 추출 / 검수 큐 거치지 않는 fastpath. 이게 mission \"frontmatter 가 자기승인\" 의 코드 표현. 지원 frontmatter 키: kind: — canonical 5: project / domain / capability / element / document title:, domain: capabilities: [], elements: [] — 배열 노드 relates: [], dependenc",
-      "wordCount": 151,
-      "updatedAt": "2026-05-18T09:08:11.191Z",
+      "wordCount": 165,
+      "updatedAt": "2026-05-18T09:14:28.866Z",
       "linksOut": []
     },
     {

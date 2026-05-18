@@ -148,6 +148,7 @@ describe('package contract helpers', () => {
     );
     assert.equal(pkg.scripts?.['docs-vault:build'], 'node scripts/build-docs-vault.mjs');
     assert.equal(pkg.scripts?.['docs-vault:check'], 'node scripts/build-docs-vault.mjs --check');
+    assert.equal(pkg.scripts?.['test:docs-vault'], 'node --test scripts/build-docs-vault.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:compile'], 'node cli/src/index.mjs compile docs/ontology --summary --json');
     assert.equal(pkg.scripts?.['dogfood:health'], 'node cli/src/index.mjs health docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:brief'], 'node cli/src/index.mjs workspace-brief docs/ontology --json');
@@ -255,6 +256,7 @@ describe('package contract helpers', () => {
       'pnpm build',
       'pnpm bundle:check',
       'pnpm docs-vault:check',
+      'pnpm test:docs-vault',
       'pnpm docs-vault:build',
       'pnpm package:check',
       'pnpm test:cli:args',
@@ -287,8 +289,9 @@ describe('package contract helpers', () => {
     }
 
     assert.match(checksDoc, /\| CLI argument parsing \| `pnpm test:cli:args` \| `pnpm test:cli:lib` \|/);
-    assert.match(checksDoc, /\| Static dogfood manifest \| `pnpm docs-vault:check` \| `pnpm docs-vault:build` \|/);
+    assert.match(checksDoc, /\| Static dogfood manifest \| `pnpm docs-vault:check` \| `pnpm test:docs-vault` \|/);
     assert.match(checksDoc, /pnpm docs-vault:check\s+# static dogfood manifest freshness/);
+    assert.match(checksDoc, /pnpm test:docs-vault\s+# focused docs-vault build\/check helper contract/);
     assert.match(checksDoc, /pnpm docs-vault:build\s+# refresh static dogfood manifest and public md/);
     assert.match(checksDoc, /Use `pnpm dogfood:test` only when the dogfood helper itself changed/);
     assert.match(checksDoc, /`pnpm test:mcp:docs` also guards Firebase Hosting config as static-only/);

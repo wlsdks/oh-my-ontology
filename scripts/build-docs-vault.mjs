@@ -8,7 +8,7 @@
 import { readFile, writeFile, mkdir, readdir, stat, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseFrontmatter } from './lib/parse-frontmatter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -36,7 +36,7 @@ export function usage() {
   ].join('\n');
 }
 
-function parseArgs(argv = process.argv.slice(2)) {
+export function parseArgs(argv = process.argv.slice(2)) {
   if (argv.includes('--help') || argv.includes('-h')) {
     return { help: true };
   }
@@ -212,7 +212,7 @@ async function ensureDir(dir) {
   if (!existsSync(dir)) await mkdir(dir, { recursive: true });
 }
 
-function comparableManifest(manifest) {
+export function comparableManifest(manifest) {
   return {
     ...manifest,
     docs: (manifest.docs ?? []).map((doc) => ({
@@ -236,7 +236,7 @@ function stableStringify(value) {
   return JSON.stringify(value, null, 2);
 }
 
-function comparableDoc(doc) {
+export function comparableDoc(doc) {
   return {
     ...doc,
     updatedAt: '<ignored>',
@@ -454,7 +454,9 @@ async function main() {
   await buildDocsVault({ check: args.check });
 }
 
-main().catch((err) => {
-  console.error('[docs-vault] build failed:', err);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error('[docs-vault] build failed:', err);
+    process.exit(1);
+  });
+}

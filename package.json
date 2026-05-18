@@ -14,6 +14,7 @@
     "build": "pnpm docs-vault:build && next build",
     "docs-vault:build": "node scripts/build-docs-vault.mjs",
     "docs-vault:check": "node scripts/build-docs-vault.mjs --check",
+    "test:docs-vault": "node --test scripts/build-docs-vault.test.mjs",
     "vault:validate": "node scripts/validate-vault.mjs",
     "test:vault:validate": "node --test scripts/validate-vault-script.test.mjs",
     "vault:migrate": "node scripts/migrate-vault.mjs",
