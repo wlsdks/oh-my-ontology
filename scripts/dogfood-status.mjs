@@ -3,6 +3,8 @@ import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { closestDogfoodOption, stripLeadingPnpmSeparator } from './lib/dogfood-args.mjs';
+
 const STATUS_COMMANDS = [
   ['cli/src/index.mjs', 'health', 'docs/ontology'],
   ['cli/src/index.mjs', 'workspace-brief', 'docs/ontology'],
@@ -51,15 +53,21 @@ export function handleDogfoodStatusArgs(argv = [], { stdout = process.stdout, st
     stdout.write(DOGFOOD_STATUS_USAGE);
     return 0;
   }
+  const suggestion = args.length === 1 ? dogfoodStatusArgSuggestion(args[0]) : null;
+  const suffix = suggestion ? ` Did you mean ${suggestion}?` : '';
   stderr.write(
-    `[dogfood:status] unknown argument: ${args[0]}\n` +
+    `[dogfood:status] unknown argument: ${args[0]}.${suffix}\n` +
     'Run pnpm dogfood:status -- --help for usage.\n',
   );
   return 2;
 }
 
 export function normalizeDogfoodStatusArgs(argv = []) {
-  return argv[0] === '--' ? argv.slice(1) : argv;
+  return stripLeadingPnpmSeparator(argv);
+}
+
+export function dogfoodStatusArgSuggestion(arg) {
+  return closestDogfoodOption(arg, ['--help', '-h']);
 }
 
 export function dogfoodStatusExitCode(result) {

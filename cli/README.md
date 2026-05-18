@@ -127,7 +127,8 @@ runs health + workspace-brief and preserves the first failing exit before escala
 checks that always-run shortcut contract without the full dogfood suite, `dogfood:verify` is
 the full root-checkout dogfood vault gate. `pnpm dogfood:compile-fix -- --help`
 and `pnpm dogfood:status -- --help` print shortcut usage without running those
-gates; unsupported shortcut arguments fail with exit 2 before any child check starts.
+gates; unsupported shortcut arguments fail with exit 2 before any child check starts,
+and close `--help` typos include a `Did you mean --help?` hint.
 `dogfood:test` is the full dogfood
 helper regression suite to use only when focused helper checks are not enough, and
 `cli:mcp-verify` is the root-checkout shortcut for the CLI wrapper; use

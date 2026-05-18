@@ -129,7 +129,8 @@ instead of appending the flag after `pnpm integration:mcp --`. From the repo roo
 it still prints the brief after health fails and preserves the first failing exit. Use
 `pnpm dogfood:compile-fix -- --help` / `pnpm dogfood:status -- --help`
 for shortcut usage without running those gates; unsupported shortcut arguments fail
-with exit 2 before starting the underlying checks. Use
+with exit 2 before starting the underlying checks, and close `--help` typos include
+a `Did you mean --help?` hint. Use
 `pnpm dogfood:verify` for the full installed-style dogfood vault gate, or
 `pnpm dogfood:test` only when the dogfood helper itself needs the full
 regression suite beyond the focused `test:mcp:dogfood` gate. Use

@@ -310,6 +310,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /still prints workspace-brief when health fails, then preserves\s+the first failing exit code/);
     assert.match(checksDoc, /Use `pnpm dogfood:compile-fix -- --help` \/ `pnpm dogfood:status -- --help`/);
     assert.match(checksDoc, /unsupported shortcut\s+arguments fail with exit 2 before any child check starts/);
+    assert.match(checksDoc, /close `--help`\s+typos include a `Did you mean --help\?` hint/);
     assert.match(checksDoc, /Use `pnpm dogfood:verify` for the full\s+installed-style dogfood vault gate/);
     assert.match(checksDoc, /`pnpm dogfood:test` only when the dogfood\s+helper itself changed/);
     assert.match(checksDoc, /`pnpm test:mcp:docs` also guards Firebase Hosting config as static-only/);
@@ -711,6 +712,7 @@ describe('package contract helpers', () => {
     assert.match(section, /`pnpm dogfood:compile-fix -- --help` \/ `pnpm dogfood:status -- --help`/);
     assert.match(section, /shortcut usage without running those gates/);
     assert.match(section, /unsupported shortcut arguments fail\s+with exit 2 before starting the underlying checks/);
+    assert.match(section, /close `--help` typos include\s+a `Did you mean --help\?` hint/);
     assert.match(section, /Use\s+`pnpm dogfood:verify` for the full installed-style dogfood vault gate/);
     assert.match(section, /`pnpm dogfood:test` only when the dogfood helper itself needs the full\s+regression suite beyond the focused `test:mcp:dogfood` gate/);
     assert.match(readme, /invalid timeout values fail before the server\s+starts and print\s+the received value plus a concrete retry example/i);
@@ -1277,6 +1279,7 @@ describe('package contract helpers', () => {
     assert.match(section, /`dogfood:verify` is\s+the full root-checkout dogfood vault gate/);
     assert.match(section, /`pnpm dogfood:compile-fix -- --help`\s+and `pnpm dogfood:status -- --help` print shortcut usage without running those\s+gates/);
     assert.match(section, /unsupported shortcut arguments fail with exit 2 before any child check starts/);
+    assert.match(section, /close `--help` typos include a `Did you mean --help\?` hint/);
     assert.match(section, /`dogfood:test` is the full dogfood\s+helper regression suite to use only when focused helper checks are not enough/);
     assert.match(section, /`cli:mcp-verify` is the root-checkout shortcut for the CLI wrapper/);
     assert.match(section, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000` when you need to pass\s+explicit verify args/);
@@ -2232,6 +2235,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm dogfood:health` 는 repo root 의 가장 짧은 fail-closed health gate/);
     assert.match(doc, /`pnpm dogfood:brief` 는 repo root 의 가장 짧은 first-contact snapshot/);
     assert.match(doc, /`pnpm dogfood:status` 는 health 가 non-zero 여도 workspace-brief 까지 출력한 뒤 첫 실패 exit code 를 보존/);
+    assert.match(doc, /`--help` 근접 오타는 `Did you mean --help\?` 힌트/);
     assert.match(doc, /full 설치형 검증은 `pnpm dogfood:verify`/);
     assert.match(doc, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000` 로 풀어 쓴다/);
     assert.match(doc, /dogfood helper \/ structuredContent 출력 계약/);

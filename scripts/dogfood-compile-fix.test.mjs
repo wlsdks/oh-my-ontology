@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 
 import {
   captureDogfoodOntologyDiff,
+  dogfoodCompileFixArgSuggestion,
   dogfoodCompileFixDiagnostic,
   dogfoodCompileFixExitCode,
   dogfoodDiffFileSummary,
@@ -40,9 +41,24 @@ describe('dogfood compile-fix shortcut', () => {
 
     assert.equal(exitCode, 2);
     assert.deepEqual(diagnostics, [
-      '[dogfood:compile-fix] unknown argument: docs/ontology\n' +
+      '[dogfood:compile-fix] unknown argument: docs/ontology.\n' +
       'Run pnpm dogfood:compile-fix -- --help for usage.\n',
     ]);
+  });
+
+  it('suggests --help for close unknown help flags', () => {
+    const diagnostics = [];
+    const exitCode = handleDogfoodCompileFixArgs(['--hlep'], {
+      stderr: { write: (text) => diagnostics.push(text) },
+    });
+
+    assert.equal(exitCode, 2);
+    assert.deepEqual(diagnostics, [
+      '[dogfood:compile-fix] unknown argument: --hlep. Did you mean --help?\n' +
+      'Run pnpm dogfood:compile-fix -- --help for usage.\n',
+    ]);
+    assert.equal(dogfoodCompileFixArgSuggestion('--hlep'), '--help');
+    assert.equal(dogfoodCompileFixArgSuggestion('docs/ontology'), null);
   });
 
   it('runs compile --fix before checking the dogfood vault is unchanged', () => {

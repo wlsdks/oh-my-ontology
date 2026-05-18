@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  dogfoodStatusArgSuggestion,
   dogfoodStatusDiagnostic,
   dogfoodStatusExitCode,
   handleDogfoodStatusArgs,
@@ -38,9 +39,24 @@ describe('dogfood status shortcut', () => {
 
     assert.equal(exitCode, 2);
     assert.deepEqual(diagnostics, [
-      '[dogfood:status] unknown argument: docs/ontology\n' +
+      '[dogfood:status] unknown argument: docs/ontology.\n' +
       'Run pnpm dogfood:status -- --help for usage.\n',
     ]);
+  });
+
+  it('suggests --help for close unknown help flags', () => {
+    const diagnostics = [];
+    const exitCode = handleDogfoodStatusArgs(['--hlep'], {
+      stderr: { write: (text) => diagnostics.push(text) },
+    });
+
+    assert.equal(exitCode, 2);
+    assert.deepEqual(diagnostics, [
+      '[dogfood:status] unknown argument: --hlep. Did you mean --help?\n' +
+      'Run pnpm dogfood:status -- --help for usage.\n',
+    ]);
+    assert.equal(dogfoodStatusArgSuggestion('--hlep'), '--help');
+    assert.equal(dogfoodStatusArgSuggestion('docs/ontology'), null);
   });
 
   it('runs workspace-brief even when health fails and preserves the first non-zero exit', () => {

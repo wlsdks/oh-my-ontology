@@ -3,6 +3,8 @@ import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { closestDogfoodOption, stripLeadingPnpmSeparator } from './lib/dogfood-args.mjs';
+
 const COMPILE_FIX_ARGS = ['cli/src/index.mjs', 'compile', 'docs/ontology', '--fix', '--summary', '--json'];
 const DIFF_ARGS = ['diff', '--', 'docs/ontology'];
 const DOGFOOD_COMPILE_FIX_USAGE = `Usage:
@@ -55,15 +57,21 @@ export function handleDogfoodCompileFixArgs(argv = [], { stdout = process.stdout
     stdout.write(DOGFOOD_COMPILE_FIX_USAGE);
     return 0;
   }
+  const suggestion = args.length === 1 ? dogfoodCompileFixArgSuggestion(args[0]) : null;
+  const suffix = suggestion ? ` Did you mean ${suggestion}?` : '';
   stderr.write(
-    `[dogfood:compile-fix] unknown argument: ${args[0]}\n` +
+    `[dogfood:compile-fix] unknown argument: ${args[0]}.${suffix}\n` +
     'Run pnpm dogfood:compile-fix -- --help for usage.\n',
   );
   return 2;
 }
 
 export function normalizeDogfoodCompileFixArgs(argv = []) {
-  return argv[0] === '--' ? argv.slice(1) : argv;
+  return stripLeadingPnpmSeparator(argv);
+}
+
+export function dogfoodCompileFixArgSuggestion(arg) {
+  return closestDogfoodOption(arg, ['--help', '-h']);
 }
 
 export function captureDogfoodOntologyDiff({ spawn = spawnSync, cwd = process.cwd(), stderr = process.stderr } = {}) {
