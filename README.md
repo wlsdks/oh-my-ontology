@@ -179,6 +179,8 @@ fastest repeatable compiler summary for the dogfood vault, `dogfood:health` is
 the fastest repeatable fail-closed health gate for the dogfood vault,
 `dogfood:brief` is the fastest repeatable first-contact snapshot for the
 dogfood vault, `dogfood:verify` runs the full installed-style dogfood vault gate, and
+`dogfood:test` is the full dogfood helper regression suite to reserve for helper-level
+changes that outgrow `test:mcp:dogfood`.
 `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` runs the same full
 verify against this repo's dogfood vault from the repo root. Use
 `pnpm cli:mcp-verify -- --help` only for help output; vault arguments are passed

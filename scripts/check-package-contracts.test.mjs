@@ -265,6 +265,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /`dogfood:health` is\s+the fastest repeatable fail-closed health gate for the dogfood vault/);
     assert.match(readme, /`dogfood:brief` is\s+the fastest repeatable first-contact snapshot for the\s+dogfood vault/);
     assert.match(readme, /`dogfood:verify`\s+runs the full installed-style dogfood vault gate/);
+    assert.match(readme, /`dogfood:test` is the full dogfood helper regression suite to reserve for helper-level\s+changes that outgrow `test:mcp:dogfood`/);
     assert.match(readme, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000`\s+runs the same full\s+verify against this repo's dogfood vault from the repo root/);
     assert.match(readme, /`pnpm cli:mcp-verify -- --help` only for help output/);
     assert.match(readme, /vault arguments are passed\s+without the extra `--`/);
