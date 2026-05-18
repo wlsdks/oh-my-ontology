@@ -253,6 +253,22 @@ describe('verify.mjs first-contact gates', () => {
     const postWriteDescription =
       'postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers';
     const compactProposedActionTools = ['add_concept', 'add_relation', 'patch_concept'];
+    const maintenanceSummaryRequired = [
+      'totalActions',
+      'filteredActions',
+      'remainingActions',
+      'executableActions',
+      'reviewActions',
+      'compileIssues',
+      'dependencyCycles',
+      'canonicalizationActions',
+      'danglingReferences',
+      'relationRecommendations',
+      'externalElementRefs',
+      'externalElementRefsIgnored',
+      'unassignedNodes',
+      'emptyDomains',
+    ];
     const compactNodeSchema = {
       type: 'object',
       required: ['slug', 'kind', 'title'],
@@ -357,17 +373,23 @@ describe('verify.mjs first-contact gates', () => {
         graphHash: { type: 'string' },
         summary: {
           type: 'object',
-          required: ['totalActions', 'filteredActions', 'remainingActions', 'executableActions', 'reviewActions'],
+          required: maintenanceSummaryRequired,
+          properties: Object.fromEntries(
+            maintenanceSummaryRequired.map((key) => [key, { type: 'integer', minimum: 0 }]),
+          ),
+          additionalProperties: false,
+        },
+        filters: {
+          type: 'object',
+          required: ['executableOnly', 'phases', 'severities', 'kinds'],
           properties: {
-            totalActions: { type: 'integer', minimum: 0 },
-            filteredActions: { type: 'integer', minimum: 0 },
-            remainingActions: { type: 'integer', minimum: 0 },
-            executableActions: { type: 'integer', minimum: 0 },
-            reviewActions: { type: 'integer', minimum: 0 },
+            executableOnly: { type: 'boolean' },
+            phases: { type: 'array', items: { type: 'string', enum: MAINTENANCE_PHASE_VALUES } },
+            severities: { type: 'array', items: { type: 'string', enum: MAINTENANCE_SEVERITY_VALUES } },
+            kinds: { type: 'array', items: { type: 'string', enum: MAINTENANCE_KIND_VALUES } },
           },
           additionalProperties: false,
         },
-        filters: { type: 'object' },
         cursor: {
           type: 'object',
           required: ['afterActionId', 'found', 'reason', 'startIndex', 'nextAfterActionId', 'hasMore'],

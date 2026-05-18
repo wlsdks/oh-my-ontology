@@ -302,14 +302,44 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
     return `${toolName} outputSchema postWriteMaintenance required drift`;
   }
   const summarySchema = schema.properties?.summary;
+  const summaryRequired = [
+    'totalActions',
+    'filteredActions',
+    'remainingActions',
+    'executableActions',
+    'reviewActions',
+    'compileIssues',
+    'dependencyCycles',
+    'canonicalizationActions',
+    'danglingReferences',
+    'relationRecommendations',
+    'externalElementRefs',
+    'externalElementRefsIgnored',
+    'unassignedNodes',
+    'emptyDomains',
+  ];
   if (
     summarySchema?.type !== 'object' ||
-    !sameArray(summarySchema.required, ['totalActions', 'filteredActions', 'remainingActions', 'executableActions', 'reviewActions']) ||
+    !sameArray(summarySchema.required, summaryRequired) ||
     summarySchema.additionalProperties !== false ||
-    summarySchema.properties?.remainingActions?.type !== 'integer' ||
-    summarySchema.properties?.remainingActions?.minimum !== 0
+    summaryRequired.some((key) => (
+      summarySchema.properties?.[key]?.type !== 'integer' ||
+      summarySchema.properties?.[key]?.minimum !== 0
+    ))
   ) {
     return `${toolName} outputSchema postWriteMaintenance summary drift`;
+  }
+  const filtersSchema = schema.properties?.filters;
+  if (
+    filtersSchema?.type !== 'object' ||
+    !sameArray(filtersSchema.required, ['executableOnly', 'phases', 'severities', 'kinds']) ||
+    filtersSchema.additionalProperties !== false ||
+    filtersSchema.properties?.executableOnly?.type !== 'boolean' ||
+    !sameArray(filtersSchema.properties?.phases?.items?.enum, MAINTENANCE_PHASE_VALUES) ||
+    !sameArray(filtersSchema.properties?.severities?.items?.enum, MAINTENANCE_SEVERITY_VALUES) ||
+    !sameArray(filtersSchema.properties?.kinds?.items?.enum, MAINTENANCE_KIND_VALUES)
+  ) {
+    return `${toolName} outputSchema postWriteMaintenance filters drift`;
   }
   const cursorSchema = schema.properties?.cursor;
   if (

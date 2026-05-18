@@ -689,8 +689,33 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       );
       assert.deepEqual(
         postWriteSchema?.properties?.summary?.required,
-        ["totalActions", "filteredActions", "remainingActions", "executableActions", "reviewActions"],
-        `${toolName} exposes compact summary schema`,
+        [
+          "totalActions",
+          "filteredActions",
+          "remainingActions",
+          "executableActions",
+          "reviewActions",
+          "compileIssues",
+          "dependencyCycles",
+          "canonicalizationActions",
+          "danglingReferences",
+          "relationRecommendations",
+          "externalElementRefs",
+          "externalElementRefsIgnored",
+          "unassignedNodes",
+          "emptyDomains",
+        ],
+        `${toolName} exposes full compact summary schema`,
+      );
+      assert.deepEqual(
+        postWriteSchema?.properties?.filters?.required,
+        ["executableOnly", "phases", "severities", "kinds"],
+        `${toolName} exposes maintenance filter schema`,
+      );
+      assert.deepEqual(
+        postWriteSchema?.properties?.filters?.properties?.phases?.items?.enum,
+        ["validate", "repair", "link", "materialize", "review"],
+        `${toolName} exposes maintenance phase filter enum`,
       );
       assert.deepEqual(
         postWriteSchema?.properties?.cursor?.required,
@@ -704,6 +729,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       );
       assert.equal(postWriteSchema?.additionalProperties, false, `${toolName} closes postWriteMaintenance schema`);
       assert.equal(postWriteSchema?.properties?.summary?.additionalProperties, false, `${toolName} closes summary schema`);
+      assert.equal(postWriteSchema?.properties?.filters?.additionalProperties, false, `${toolName} closes filters schema`);
       assert.equal(postWriteSchema?.properties?.cursor?.additionalProperties, false, `${toolName} closes cursor schema`);
       assert.equal(postWriteSchema?.properties?.actions?.items?.additionalProperties, false, `${toolName} closes action row schema`);
       assert.deepEqual(
