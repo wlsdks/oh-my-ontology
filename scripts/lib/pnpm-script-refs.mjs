@@ -14,12 +14,9 @@ const DEFAULT_IGNORED_PNPM_COMMANDS = new Set([
 function collectPnpmCommandCandidates(text) {
   const source = String(text);
   const candidates = [];
-  const lineCommandPattern = /(?:^|\n)\s*(?:[A-Z_][A-Z0-9_]*=\S+\s+)*pnpm\s+([\w:*-]+)/g;
-  const inlineCodeCommandPattern = /`pnpm\s+([\w:*-]+)/g;
-  for (const match of source.matchAll(lineCommandPattern)) {
-    candidates.push(match[1]);
-  }
-  for (const match of source.matchAll(inlineCodeCommandPattern)) {
+  const commandPattern =
+    /(?:^|\n|`|&&|\|\|)\s*(?:[$>]\s*)?(?:[A-Z_][A-Z0-9_]*=\S+\s+)*pnpm\s+([\w:*-]+)/g;
+  for (const match of source.matchAll(commandPattern)) {
     candidates.push(match[1]);
   }
   return candidates;

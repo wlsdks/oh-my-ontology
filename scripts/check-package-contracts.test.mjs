@@ -332,8 +332,9 @@ describe('package contract helpers', () => {
     const cliReadme = readFileSync('cli/README.md', 'utf-8');
     assertPnpmScriptsExist(
       [rootReadme, checksDoc, mcpReadme, cliReadme].join('\n'),
-      JSON.parse(readFileSync('package.json', 'utf-8')).scripts,
+      pkg.scripts,
     );
+    assertPnpmScriptsExist(Object.values(pkg.scripts).join('\n'), pkg.scripts);
   });
 
   it('keeps Firebase static hosting config local-first', () => {

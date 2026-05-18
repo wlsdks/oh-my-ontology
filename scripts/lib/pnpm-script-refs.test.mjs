@@ -20,7 +20,7 @@ describe("pnpm script reference helpers", () => {
 
   it("ignores prose and wildcard examples that are not concrete script refs", () => {
     assert.deepEqual(
-      pnpmScriptsFromText("shared pnpm separator and pnpm forwards args\npnpm integration:* --"),
+      pnpmScriptsFromText("shared pnpm separator; pnpm forwards args\npnpm integration:* --"),
       [],
     );
   });
@@ -28,7 +28,14 @@ describe("pnpm script reference helpers", () => {
   it("extracts inline-code and environment-prefixed command examples", () => {
     assert.deepEqual(
       pnpmScriptsFromText("Use `pnpm dogfood:status`.\nOMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk"),
-      ["dogfood:walk", "dogfood:status"],
+      ["dogfood:status", "dogfood:walk"],
+    );
+  });
+
+  it("extracts chained package-script commands and shell-prompt examples", () => {
+    assert.deepEqual(
+      pnpmScriptsFromText("node scripts/check.mjs && pnpm test:cli:lib\n$ pnpm test:mcp:docs"),
+      ["test:cli:lib", "test:mcp:docs"],
     );
   });
 
