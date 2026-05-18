@@ -68,7 +68,7 @@ verify, or release behavior.
 | `pnpm test:cli:lib` | CLI shared helper contracts |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |
 | `pnpm test:contracts` | Cross-package schema/parser contracts |
-| `pnpm test:mcp:docs` | README, MCP docs, dogfood docs |
+| `pnpm test:mcp:docs` | Explicit root/MCP/CLI/dogfood docs contracts plus Firebase static-hosting guard |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
 | `pnpm test:mcp:verify:first-contact` | First-contact MCP safety guidance |
 | `pnpm test:mcp:verify:timeout` | Timeout/startup retry diagnostics |
@@ -77,6 +77,10 @@ verify, or release behavior.
 | `pnpm test:mcp:package` | MCP/CLI package and tarball checks |
 | `pnpm test:mcp:dogfood` | Focused live dogfood helper contracts |
 | `pnpm dogfood:test` | Full dogfood helper regression suite |
+
+`pnpm test:mcp:docs` intentionally lists explicit test-name fragments instead
+of a broad `README` token, so documentation-only changes do not accidentally
+expand into unrelated package contract checks.
 
 ## Dogfood Shortcuts
 

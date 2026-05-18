@@ -277,6 +277,9 @@ describe('package contract helpers', () => {
 
     assert.match(checksDoc, /Use `pnpm dogfood:test` only when the dogfood helper itself changed/);
     assert.match(checksDoc, /`pnpm test:mcp:docs` also guards Firebase Hosting config as static-only/);
+    assert.match(checksDoc, /Explicit root\/MCP\/CLI\/dogfood docs contracts plus Firebase static-hosting guard/);
+    assert.match(checksDoc, /intentionally lists explicit test-name fragments/);
+    assert.match(checksDoc, /instead\s+of a broad `README` token/);
     assert.match(checksDoc, /Do not append it after `pnpm integration:\* --`/);
     assert.match(checksDoc, /strict argument\/enum handling/);
   });
