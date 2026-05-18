@@ -586,7 +586,8 @@ MCP schema 에서 노출한다. `componentLimit`, `cycleLimit`, `recommendationL
 검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패하고, `--hlep` 같은 help flag 오타는
 nearest hint 로 복구 경로를 보여준다. `pnpm dogfood:walk -- --help`
 는 MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` / `pnpm dogfood:health` /
-`pnpm dogfood:brief` 순서의 더 가벼운 dogfood gate, focused check 경로를 출력해 dogfood 범위 확인 비용을 낮춘다.
+`pnpm dogfood:brief` / `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,
+focused check 경로를 출력해 dogfood 범위 확인 비용을 낮춘다.
 도움말의 `pnpm test:mcp:dogfood` 설명도 compile/index gate, tools/list inventory name / annotation coverage, row-label guidance,
 strict closest-value summary, vault warning / `validate_vault` problem gate, first-contact health/growth/sample-shape gate, maintenance work-queue shape / formatter, initialize safety/recovery guidance, destructive dry-run, structuredContent, strict relation filter, stderr warning 범위를 함께 보여줘 실행 전 검증 surface 를 숨기지 않는다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
 `workspace_brief`, tuned `workspace_brief`, `health`, tuned `health`, `compile_ontology`, `overview`, `pattern_walk`,
