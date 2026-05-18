@@ -60,10 +60,8 @@ export async function runMerge(args) {
     );
     for (const u of updates) {
       process.stdout.write(`  ${COLORS.cyan}${u.slug}${COLORS.reset}\n`);
-      if (Array.isArray(u.changes)) {
-        for (const c of u.changes) {
-          process.stdout.write(`    ${COLORS.dim}${c}${COLORS.reset}\n`);
-        }
+      for (const c of graphUpdateChanges(u)) {
+        process.stdout.write(`    ${COLORS.dim}${c}${COLORS.reset}\n`);
       }
     }
     process.stdout.write(
@@ -101,6 +99,20 @@ function graphUpdates(result) {
   if (Array.isArray(result?.updates)) return result.updates;
   if (Array.isArray(result?.backlinkUpdates?.updates)) return result.backlinkUpdates.updates;
   return [];
+}
+
+function graphUpdateChanges(update) {
+  if (Array.isArray(update?.changes)) return update.changes;
+  const keys = new Set();
+  for (const row of update?.beforeKeys ?? []) {
+    if (typeof row?.key === 'string' && row.key.trim()) keys.add(row.key);
+  }
+  for (const row of update?.afterKeys ?? []) {
+    if (typeof row?.key === 'string' && row.key.trim()) keys.add(row.key);
+  }
+  const changes = [...keys].sort().map((key) => `${key} changed`);
+  if (update?.bodyChanged) changes.push('body changed');
+  return changes;
 }
 
 function parseArgs(args) {
