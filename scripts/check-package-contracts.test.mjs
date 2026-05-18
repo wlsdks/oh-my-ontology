@@ -704,8 +704,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ graph kind enums\/descriptions \+ write relation enums \+ health tuning \+ post-write maintenance schema/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);
-    assert.match(verifySection, /✓ add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes/);
-    assert.match(verifySection, /✓ add_relations — non-object, unknown-field, and invalid-type rows isolated with input indexes and closest-value hints/);
+    assert.match(verifySection, /✓ add_concepts — non-object, all-unknown-field \+ Received fields, and duplicate-slug rows isolated with input indexes/);
+    assert.match(verifySection, /✓ add_relations — non-object, all-unknown-field \+ Received fields, and invalid-type rows isolated with input indexes and closest-value hints/);
     assert.match(verifySection, /✓ strict enums — invalid query operation rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict relation filters — invalid dependencyTypes rejected with closest-value hint/);
     assert.match(verifySection, /✓ strict list_concepts filters — invalid kind rejected with closest-value hint/);
@@ -1633,6 +1633,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`add_concepts` \/ `add_relations` 는 non-object row 와 unknown row fields, invalid relation type row 를 넣어\s+top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서\s+실제 호출로 확인/);
     assert.match(doc, /unknown-field row 에 모든 offending field \/ nearest field hint \/\s+`Received fields: \.\.\.` 가 남는지/);
     assert.match(doc, /relation type row 에 closest-value hint 가 남는지와\s+invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
+    assert.match(doc, /성공 로그도 `all-unknown-field \+ Received fields` 를 그대로 드러내/);
     assert.match(doc, /initialize first-contact 안내도 같은 batch relation type closest-value hint 를 설명해야 하며,\s+verify helper 가 안내 문구 drift 를 별도 실패로 처리/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
@@ -1830,8 +1831,8 @@ describe('package contract helpers', () => {
     );
     assert.match(smoke, /strict arguments — unknown tool argument rejected at runtime/);
     assert.match(smoke, /strict arguments — multiple unknown tool arguments reported together/);
-    assert.match(smoke, /add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes/);
-    assert.match(smoke, /add_relations — non-object, unknown-field, and invalid-type rows isolated with input indexes and closest-value hints/);
+    assert.match(smoke, /add_concepts — non-object, all-unknown-field \\\+ Received fields, and duplicate-slug rows isolated with input indexes/);
+    assert.match(smoke, /add_relations — non-object, all-unknown-field \\\+ Received fields, and invalid-type rows isolated with input indexes and closest-value hints/);
     assert.match(smoke, /destructive dry-runs — rename_concept · merge_concepts · delete_concept preview without write-maintenance/);
     assert.match(smoke, /structuredContentVerifySummary/);
     assert.match(smoke, /installedVerifyStructuredContentRe/);

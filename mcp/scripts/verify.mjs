@@ -6077,13 +6077,13 @@ async function step2BootAndCall() {
         log('fail', addConceptsRowIsolationFailure);
         return res(false);
       }
-      log('ok', 'add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes');
+      log('ok', 'add_concepts — non-object, all-unknown-field + Received fields, and duplicate-slug rows isolated with input indexes');
       const addRelationsRowIsolationFailure = batchRowIsolationFailure(addRelationsRowIsolationRes, 'relations', 'add_relations');
       if (addRelationsRowIsolationFailure) {
         log('fail', addRelationsRowIsolationFailure);
         return res(false);
       }
-      log('ok', 'add_relations — non-object, unknown-field, and invalid-type rows isolated with input indexes and closest-value hints');
+      log('ok', 'add_relations — non-object, all-unknown-field + Received fields, and invalid-type rows isolated with input indexes and closest-value hints');
       const destructiveDryRunResponses = destructiveDryRunExpectedResponses.map(([toolName, id]) => [
         toolName,
         responses.find((response) => response.id === id),
