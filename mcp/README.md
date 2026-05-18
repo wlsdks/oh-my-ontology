@@ -71,6 +71,8 @@ pnpm test:dogfood:script-refs
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
+pnpm dogfood:growth
+pnpm dogfood:maintenance
 pnpm dogfood:status
 pnpm test:dogfood:status
 pnpm dogfood:verify
@@ -116,6 +118,10 @@ snapshot without running the full installed-style MCP verify walk.
 without running the full installed-style MCP verify walk.
 `dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot
 without running the full installed-style MCP verify walk.
+`dogfood:growth` prints the dogfood vault `growth_plan` JSON snapshot
+without running the full installed-style MCP verify walk.
+`dogfood:maintenance` prints the dogfood vault `maintenance_plan` JSON snapshot
+without running the full installed-style MCP verify walk.
 `dogfood:status` always runs health + workspace-brief + maintenance, prints `[dogfood:status] health:N · workspace-brief:N · maintenance:N`, preserves the first failing exit before escalating, and prints a `pnpm dogfood:verify` follow-up hint on failure.
 `test:dogfood:status` checks that always-run shortcut contract without the full dogfood suite.
 Use `OMOT_TEST_NAME_PATTERN` with `pnpm integration:mcp` when the touched MCP
@@ -136,7 +142,9 @@ value cannot leak the following option value into the target list.
 `pnpm test:dogfood:script-refs` checks help text and package script body `pnpm ...` references against root package scripts.
 `pnpm test:dogfood:compile-fix` checks that idempotence guard without the full dogfood suite.
 `pnpm dogfood:health` is the shortest dogfood vault health gate.
-`pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot. Use
+`pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot.
+`pnpm dogfood:growth` is the shortest dogfood vault growth candidate snapshot.
+`pnpm dogfood:maintenance` is the shortest dogfood vault maintenance queue snapshot. Use
 `pnpm dogfood:status` for the cheap human-readable health + first-contact + maintenance queue;
 it still prints the brief after health fails, preserves the first failing exit,
 and prints a `pnpm dogfood:verify` follow-up hint on failure. Use
@@ -334,6 +342,8 @@ pnpm test:dogfood:script-refs
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
+pnpm dogfood:growth
+pnpm dogfood:maintenance
 pnpm dogfood:status
 pnpm dogfood:verify
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000
@@ -427,16 +437,16 @@ A successful run looks like this:
 ✓ list_kinds — 29 nodes (capability:17, domain:6, element:4, project:1, vault-readme:1)
 ✓ validate_vault — 29 files, 0 problem files
 ✓ project probe — 1 project node
-✓ workspace_brief — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:145)
-✓ workspace_brief_tuned — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:145; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3)
+✓ workspace_brief — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:146)
+✓ workspace_brief_tuned — healthy (29 nodes, 0 next actions, 5 health checks, growth actions:0 external:0 ignoredExternal:146; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies; nodeLimit=3)
 ✓ health — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1)
 ✓ health_tuned — healthy (issues:0, unresolved:0, cycles:0, 5 checks: compile_issues:pass:0, unresolved_edges:pass:0, dependency_cycles:pass:0, relation_recommendations:pass:0, components:pass:1; dependencyTypes=dependencies; componentTypes=domains/domain/capabilities/dependencies)
-✓ compile_ontology — graph d1f2cdff31d3 (29 nodes, 246 edges, issues 0)
-✓ compile_ontology page — 1/29 nodes, 1/246 edges
-✓ compile_ontology indexes — out 29, in 28, edgeById 246, aliases 57, edges 101/145/0
-✓ overview — graph d1f2cdff31d3 (29 nodes, 246 edges, hubs 5)
-✓ overview query_plan — aggregate_scan (medium, nodes 29, edges 246)
-✓ project_map query_plan — aggregate_scan (medium, nodes 29, edges 246)
+✓ compile_ontology — graph 86b76fa9d3bc (29 nodes, 247 edges, issues 0)
+✓ compile_ontology page — 1/29 nodes, 1/247 edges
+✓ compile_ontology indexes — out 29, in 28, edgeById 247, aliases 57, edges 101/146/0
+✓ overview — graph 86b76fa9d3bc (29 nodes, 247 edges, hubs 5)
+✓ overview query_plan — aggregate_scan (medium, nodes 29, edges 247)
+✓ project_map query_plan — aggregate_scan (medium, nodes 29, edges 247)
 ✓ neighbors — elements/file-system-access-api (3/3 edges, limited false)
 ✓ path — elements/file-system-access-api → project (2 hops, 2 edges)
 ✓ project_scope — project (28 nodes, internalEdges 100)

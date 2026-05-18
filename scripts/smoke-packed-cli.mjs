@@ -511,6 +511,8 @@ try {
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:brief\s+Root checkout dogfood vault workspace_brief snapshot/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:growth\s+Root checkout dogfood vault growth_plan JSON snapshot/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:maintenance\s+Root checkout dogfood vault maintenance_plan JSON snapshot/);
   assert.match(
     cliMcpVerifyHelp.stdout,
     /pnpm dogfood:status\s+Root checkout dogfood vault human-readable health \+ brief \+ maintenance; ends with \[dogfood:status\] health:N · workspace-brief:N · maintenance:N and hints pnpm dogfood:verify on failure/,
@@ -744,7 +746,9 @@ try {
   assert.match(directMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/startup\/help\/empty-vault diagnostics/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference contract/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:compile\s+Cheap root checkout compile_ontology summary snapshot/);
-  assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:status\s+Cheap root checkout health \+ workspace-brief preflight before full verify/);
+  assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:growth\s+Cheap root checkout growth_plan snapshot/);
+  assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:maintenance\s+Cheap root checkout maintenance_plan snapshot/);
+  assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:status\s+Cheap root checkout health \+ workspace-brief \+ maintenance preflight before full verify/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:verify\s+Root checkout dogfood vault installed-style verify gate/);
 
   const mcpEmptyVerify = runRaw(

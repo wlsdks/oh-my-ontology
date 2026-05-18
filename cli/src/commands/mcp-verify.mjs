@@ -262,6 +262,8 @@ function printUsage(output = process.stderr) {
       `  pnpm test:dogfood:compile-fix     Narrow dogfood compile --fix idempotence runner contract.\n` +
       `  pnpm dogfood:health               Root checkout dogfood vault health gate.\n` +
       `  pnpm dogfood:brief                Root checkout dogfood vault workspace_brief snapshot.\n` +
+      `  pnpm dogfood:growth               Root checkout dogfood vault growth_plan JSON snapshot.\n` +
+      `  pnpm dogfood:maintenance          Root checkout dogfood vault maintenance_plan JSON snapshot.\n` +
       `  pnpm dogfood:status               Root checkout dogfood vault human-readable health + brief + maintenance; ends with [dogfood:status] health:N · workspace-brief:N · maintenance:N and hints pnpm dogfood:verify on failure.\n` +
       `  pnpm test:dogfood:status          Narrow dogfood status shortcut runner contract.\n` +
       `  pnpm dogfood:verify               Root checkout dogfood vault verify shortcut.\n` +

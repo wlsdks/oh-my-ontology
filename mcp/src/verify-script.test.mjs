@@ -4744,7 +4744,9 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /Narrow MCP verify timeout\/startup\/help\/empty-vault diagnostics/);
     assert.match(verifyUsage(), /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference contract/);
     assert.match(verifyUsage(), /pnpm dogfood:compile\s+Cheap root checkout compile_ontology summary snapshot/);
-    assert.match(verifyUsage(), /pnpm dogfood:status\s+Cheap root checkout health \+ workspace-brief preflight before full verify/);
+    assert.match(verifyUsage(), /pnpm dogfood:growth\s+Cheap root checkout growth_plan snapshot/);
+    assert.match(verifyUsage(), /pnpm dogfood:maintenance\s+Cheap root checkout maintenance_plan snapshot/);
+    assert.match(verifyUsage(), /pnpm dogfood:status\s+Cheap root checkout health \+ workspace-brief \+ maintenance preflight before full verify/);
     assert.match(verifyUsage(), /pnpm dogfood:verify\s+Root checkout dogfood vault installed-style verify gate/);
     assertPnpmScriptsExist(verifyUsage(), ROOT_PKG.scripts, { filteredScripts: { './mcp': MCP_PKG.scripts } });
   });

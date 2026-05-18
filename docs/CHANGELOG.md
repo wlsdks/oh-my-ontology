@@ -19,6 +19,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   `growth_plan` summary/group/candidate rows before JSON or human output.
 - **Dogfood shortcut** — `pnpm dogfood:growth` snapshots the project ontology's
   growth plan as a focused check.
+- **Maintenance dogfood shortcut** — `pnpm dogfood:maintenance` snapshots the
+  project ontology's `maintenance_plan` queue as a focused check without running
+  the full human-readable status preflight.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 

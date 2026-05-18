@@ -3588,6 +3588,8 @@ export function verifyUsage() {
     '  pnpm test:mcp:verify:timeout    Narrow MCP verify timeout/startup/help/empty-vault diagnostics.\n' +
     '  pnpm test:dogfood:script-refs   Narrow help/package-script reference contract.\n' +
     '  pnpm dogfood:compile            Cheap root checkout compile_ontology summary snapshot.\n' +
+    '  pnpm dogfood:growth             Cheap root checkout growth_plan snapshot.\n' +
+    '  pnpm dogfood:maintenance        Cheap root checkout maintenance_plan snapshot.\n' +
     '  pnpm dogfood:status             Cheap root checkout health + workspace-brief + maintenance preflight before full verify.\n' +
     '  pnpm dogfood:verify             Root checkout dogfood vault installed-style verify gate.\n'
   );

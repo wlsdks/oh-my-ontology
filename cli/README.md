@@ -81,6 +81,7 @@ pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
 pnpm dogfood:growth
+pnpm dogfood:maintenance
 pnpm dogfood:status
 pnpm test:dogfood:status
 pnpm dogfood:verify
@@ -141,7 +142,8 @@ and ends successful runs with `[dogfood:compile-fix] docs/ontology unchanged`,
 `test:dogfood:compile-fix` checks that idempotence guard without invoking the full dogfood suite,
 `dogfood:health` is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
 the shortest root-checkout first-contact JSON snapshot, `dogfood:growth` is the
-shortest root-checkout growth_plan JSON snapshot, `dogfood:status` always
+shortest root-checkout growth_plan JSON snapshot, `dogfood:maintenance` is the
+shortest root-checkout maintenance_plan JSON snapshot, `dogfood:status` always
 runs health + workspace-brief + maintenance, prints `[dogfood:status] health:N · workspace-brief:N · maintenance:N`,
 preserves the first failing exit before escalating, and prints a
 `pnpm dogfood:verify` follow-up hint on failure, `test:dogfood:status` checks

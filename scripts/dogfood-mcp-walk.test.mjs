@@ -4118,6 +4118,8 @@ describe("rpc response completion helpers", () => {
     );
     assert.match(usage, /pnpm dogfood:health\s+Fail-closed health JSON gate over docs\/ontology/);
     assert.match(usage, /pnpm dogfood:brief\s+First-contact workspace_brief JSON snapshot over docs\/ontology/);
+    assert.match(usage, /pnpm dogfood:growth\s+growth_plan JSON snapshot over docs\/ontology/);
+    assert.match(usage, /pnpm dogfood:maintenance\s+maintenance_plan JSON snapshot over docs\/ontology/);
     assert.match(
       usage,
       /pnpm dogfood:status\s+Human-readable health \+ workspace_brief \+ maintenance over docs\/ontology; ends with \[dogfood:status\] health:N · workspace-brief:N · maintenance:N and hints pnpm dogfood:verify on failure/,

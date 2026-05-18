@@ -539,6 +539,8 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 `pnpm dogfood:compile-fix` 는 repo root 의 `compile --fix` idempotence gate 로 canonicalization 이 docs/ontology diff 를 남기면 실패하고 성공 시 `[dogfood:compile-fix] docs/ontology unchanged` 요약으로 끝나며,
 `pnpm dogfood:health` 는 repo root 의 가장 짧은 fail-closed health gate 이며,
 `pnpm dogfood:brief` 는 repo root 의 가장 짧은 first-contact snapshot 이며,
+`pnpm dogfood:growth` 는 repo root 의 가장 짧은 growth candidate snapshot 이며,
+`pnpm dogfood:maintenance` 는 repo root 의 가장 짧은 maintenance queue snapshot 이며,
 `pnpm dogfood:status` 는 health 가 non-zero 여도 workspace-brief 와 maintenance queue 까지 출력한 뒤 첫 실패 exit code 를 보존해 사람이 읽는 health + brief + maintenance snapshot 을 실패 상황에서도 보여주고 마지막에 `[dogfood:status] health:N · workspace-brief:N · maintenance:N` 요약과 `pnpm dogfood:verify` follow-up hint 를 남기며,
 `pnpm dogfood:compile-fix -- --help` / `pnpm dogfood:status -- --help` 는 실제 gate 를 실행하지 않는 usage path 이고 잘못된 인자는 exit 2 로 실패하며 `--help` 근접 오타는 `Did you mean --help?` 힌트를 주고,
 full 설치형 검증은 `pnpm dogfood:verify`, 명시 인자가 필요할 때만
@@ -662,7 +664,7 @@ MCP schema 에서 노출한다. `componentLimit`, `cycleLimit`, `recommendationL
 검증하므로 잘못된 인자는 MCP server 를 띄우기 전에 실패하고, `--hlep` 같은 help flag 오타는
 nearest hint 와 `Run pnpm dogfood:walk -- --help for usage.` 복구 경로를 보여준다. `pnpm dogfood:walk -- --help`
 는 MCP server 를 띄우지 않고 usage, `pnpm dogfood:compile` / `pnpm dogfood:compile-fix` /
-`pnpm dogfood:health` / `pnpm dogfood:brief` / `pnpm dogfood:status` / `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,
+`pnpm dogfood:health` / `pnpm dogfood:brief` / `pnpm dogfood:growth` / `pnpm dogfood:maintenance` / `pnpm dogfood:status` / `pnpm dogfood:verify` 순서의 더 가벼운 dogfood gate, installed-style verify gate,
 focused check 경로를 출력하고 `dogfood:compile-fix` 성공 마지막 줄 `[dogfood:compile-fix] docs/ontology unchanged` 와 `dogfood:status` 마지막 줄 `[dogfood:status] health:N · workspace-brief:N · maintenance:N` 및 실패 시 `pnpm dogfood:verify` hint 를 보여주며, `pnpm test:dogfood:args` / `pnpm test:dogfood:script-refs` / `pnpm test:dogfood:compile-fix` / `pnpm test:dogfood:status` 로 shared shortcut argument helper, help/package-script reference, compile-fix idempotence runner, status shortcut runner 만 좁게 검증할 수 있음을 보여줘 dogfood 범위 확인 비용을 낮춘다.
 도움말의 `pnpm test:mcp:dogfood` 설명도 compile/index gate, tools/list inventory name / annotation coverage, row-label guidance,
 batch cap gates, invalid-only batch row repair + no-write metadata smoke, strict closest-value / unknown-tool repair summary, vault warning / `validate_vault` problem gate, first-contact health/growth/sample-shape gate, maintenance work-queue shape / formatter, initialize tool-inventory + safety/recovery guidance, destructive dry-run, structuredContent, strict relation filter, strict add_relation type-preflight + no-write metadata, strict graph kind filter, stderr warning 범위를 함께 보여줘 실행 전 검증 surface 를 숨기지 않는다. 기본 census / backlink / path 질의에 더해 `validate_vault`,
