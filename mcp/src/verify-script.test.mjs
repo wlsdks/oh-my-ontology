@@ -754,7 +754,7 @@ describe('verify.mjs first-contact gates', () => {
                   error: { type: 'string' },
                   errorCode: { type: 'string' },
                   valueName: { type: 'string' },
-                  receivedValue: {},
+                  receivedValue: { type: 'string' },
                   suggestion: { type: 'string' },
                   allowedValues: { type: 'array', items: { type: 'string' } },
                   rowName: { type: 'string' },
@@ -830,7 +830,7 @@ describe('verify.mjs first-contact gates', () => {
                   error: { type: 'string' },
                   errorCode: { type: 'string' },
                   valueName: { type: 'string' },
-                  receivedValue: {},
+                  receivedValue: { type: 'string' },
                   suggestion: { type: 'string' },
                   allowedValues: { type: 'array', items: { type: 'string' } },
                   rowName: { type: 'string' },
@@ -3851,6 +3851,31 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_concepts'),
+        {
+          ...tools.find((tool) => tool.name === 'add_concepts'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'add_concepts').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties,
+              concepts: {
+                ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties.concepts,
+                items: {
+                  ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties.concepts.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'add_concepts').outputSchema.properties.concepts.items.properties,
+                    receivedValue: {},
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'add_concepts outputSchema row receivedValue drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
@@ -3972,6 +3997,31 @@ describe('verify.mjs first-contact gates', () => {
         },
       ]),
       'add_relations outputSchema row similarSlugs drift',
+    );
+    assert.equal(
+      toolsListSchemaFailure([
+        ...tools.filter((tool) => tool.name !== 'add_relations'),
+        {
+          ...tools.find((tool) => tool.name === 'add_relations'),
+          outputSchema: {
+            ...tools.find((tool) => tool.name === 'add_relations').outputSchema,
+            properties: {
+              ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties,
+              relations: {
+                ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations,
+                items: {
+                  ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations.items,
+                  properties: {
+                    ...tools.find((tool) => tool.name === 'add_relations').outputSchema.properties.relations.items.properties,
+                    receivedValue: {},
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]),
+      'add_relations outputSchema row receivedValue drift',
     );
     assert.equal(
       toolsListSchemaFailure([

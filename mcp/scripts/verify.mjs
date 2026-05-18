@@ -1925,7 +1925,7 @@ export function toolsListSchemaFailure(tools) {
       return `add_concepts outputSchema row ${propertyName} drift`;
     }
   }
-  if (!Object.prototype.hasOwnProperty.call(addConceptRowsSchema.items?.properties || {}, 'receivedValue')) {
+  if (addConceptRowsSchema.items?.properties?.receivedValue?.type !== 'string') {
     return 'add_concepts outputSchema row receivedValue drift';
   }
   if (addConceptRowsSchema.items?.properties?.unknownFields?.type !== 'array') {
@@ -2037,7 +2037,7 @@ export function toolsListSchemaFailure(tools) {
       return `add_relations outputSchema row ${propertyName} drift`;
     }
   }
-  if (!Object.prototype.hasOwnProperty.call(addRelationRowsSchema.items?.properties || {}, 'receivedValue')) {
+  if (addRelationRowsSchema.items?.properties?.receivedValue?.type !== 'string') {
     return 'add_relations outputSchema row receivedValue drift';
   }
   if (addRelationRowsSchema.items?.properties?.unknownFields?.type !== 'array') {

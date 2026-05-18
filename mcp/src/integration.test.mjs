@@ -625,6 +625,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(addConcepts?.outputSchema?.properties?.concepts?.items?.additionalProperties, false);
     assert.equal(addConcepts?.outputSchema?.properties?.concepts?.items?.properties?.ok?.type, "boolean");
     assert.equal(addConcepts?.outputSchema?.properties?.concepts?.items?.properties?.warnings?.items?.type, "string");
+    assert.equal(addConcepts?.outputSchema?.properties?.concepts?.items?.properties?.receivedValue?.type, "string");
     assert.equal(addConcepts?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const addConcept = findTool("add_concept");
     assert.equal(addConcept?.outputSchema?.type, "object");
@@ -644,6 +645,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(addRelations?.outputSchema?.properties?.relations?.items?.additionalProperties, false);
     assert.equal(addRelations?.outputSchema?.properties?.relations?.items?.properties?.ok?.type, "boolean");
     assert.equal(addRelations?.outputSchema?.properties?.relations?.items?.properties?.alreadyExists?.type, "boolean");
+    assert.equal(addRelations?.outputSchema?.properties?.relations?.items?.properties?.receivedValue?.type, "string");
     assert.equal(addRelations?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const addRelation = findTool("add_relation");
     assert.equal(addRelation?.outputSchema?.type, "object");
