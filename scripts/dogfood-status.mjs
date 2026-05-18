@@ -6,15 +6,16 @@ import { fileURLToPath } from 'node:url';
 import { closestDogfoodOption, stripLeadingPnpmSeparator } from './lib/dogfood-args.mjs';
 
 const STATUS_COMMANDS = [
-  ['cli/src/index.mjs', 'health', 'docs/ontology'],
-  ['cli/src/index.mjs', 'workspace-brief', 'docs/ontology'],
+  { label: 'health', args: ['cli/src/index.mjs', 'health', 'docs/ontology'] },
+  { label: 'workspace-brief', args: ['cli/src/index.mjs', 'workspace-brief', 'docs/ontology'] },
 ];
 const DOGFOOD_STATUS_USAGE = `Usage:
   pnpm dogfood:status
   pnpm dogfood:status -- --help
 
 Runs the cheap human-readable health + workspace-brief pair over this repo's
-docs/ontology vault and preserves the first failing exit code.
+docs/ontology vault, prints a final health/workspace-brief status summary, and
+preserves the first failing exit code.
 Use pnpm dogfood:verify when you need the full installed-style dogfood vault gate.
 `;
 
@@ -30,18 +31,24 @@ export function runDogfoodStatus({
   if (argsStatus !== null) return argsStatus;
 
   let exitCode = 0;
+  const results = [];
 
-  for (const args of STATUS_COMMANDS) {
+  for (const { label, args } of STATUS_COMMANDS) {
     const result = spawn(process.execPath, args, { cwd, stdio });
     const diagnostic = dogfoodStatusDiagnostic(args, result);
     if (diagnostic) {
       stderr.write(`${diagnostic}\n`);
     }
     const status = dogfoodStatusExitCode(result);
+    results.push({ label, status });
 
     if (exitCode === 0 && status !== 0) {
       exitCode = status;
     }
+  }
+
+  if (stdio === 'inherit') {
+    stdout.write(`${dogfoodStatusSummary(results)}\n`);
   }
 
   return exitCode;
@@ -76,6 +83,11 @@ export function dogfoodStatusExitCode(result) {
   if (typeof result?.signal === 'string' && result.signal.length > 0) return 1;
   if (result?.error) return 1;
   return 1;
+}
+
+export function dogfoodStatusSummary(results = []) {
+  const parts = results.map((row) => `${row.label}:${row.status}`);
+  return `[dogfood:status] ${parts.join(' · ')}`;
 }
 
 export function dogfoodStatusDiagnostic(args, result) {

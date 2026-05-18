@@ -5,6 +5,7 @@ import {
   dogfoodStatusArgSuggestion,
   dogfoodStatusDiagnostic,
   dogfoodStatusExitCode,
+  dogfoodStatusSummary,
   handleDogfoodStatusArgs,
   normalizeDogfoodStatusArgs,
   runDogfoodStatus,
@@ -24,6 +25,7 @@ describe('dogfood status shortcut', () => {
     assert.equal(exitCode, 0);
     assert.match(output.join(''), /pnpm dogfood:status/);
     assert.match(output.join(''), /health \+ workspace-brief pair/);
+    assert.match(output.join(''), /final health\/workspace-brief status summary/);
     assert.match(output.join(''), /pnpm dogfood:verify/);
     assert.match(output.join(''), /full installed-style dogfood vault gate/);
   });
@@ -63,10 +65,11 @@ describe('dogfood status shortcut', () => {
 
   it('runs workspace-brief even when health fails and preserves the first non-zero exit', () => {
     const calls = [];
+    const output = [];
     const exitCode = runDogfoodStatus({
       argv: [],
       cwd: '/repo',
-      stdio: 'pipe',
+      stdout: { write: (text) => output.push(text) },
       spawn(command, args, options) {
         calls.push({ command, args, options });
         return { status: calls.length === 1 ? 1 : 0 };
@@ -80,12 +83,14 @@ describe('dogfood status shortcut', () => {
       ['workspace-brief', 'docs/ontology'],
     ]);
     assert.equal(calls[0].options.cwd, '/repo');
-    assert.equal(calls[0].options.stdio, 'pipe');
+    assert.equal(calls[0].options.stdio, 'inherit');
+    assert.deepEqual(output, ['[dogfood:status] health:1 · workspace-brief:0\n']);
   });
 
   it('returns the workspace-brief failure when health passes first', () => {
     const calls = [];
     const exitCode = runDogfoodStatus({
+      stdio: 'pipe',
       spawn(_command, args) {
         calls.push(args);
         return { status: calls.length === 1 ? 0 : 2 };
@@ -100,6 +105,7 @@ describe('dogfood status shortcut', () => {
     const calls = [];
     const diagnostics = [];
     const exitCode = runDogfoodStatus({
+      stdio: 'pipe',
       stderr: { write: (text) => diagnostics.push(text) },
       spawn(_command, args) {
         calls.push(args);
@@ -123,6 +129,16 @@ describe('dogfood status shortcut', () => {
     assert.equal(dogfoodStatusExitCode({ status: null, signal: 'SIGTERM' }), 1);
     assert.equal(dogfoodStatusExitCode({ error: new Error('spawn failed') }), 1);
     assert.equal(dogfoodStatusExitCode({}), 1);
+  });
+
+  it('formats the final health and workspace-brief status summary', () => {
+    assert.equal(
+      dogfoodStatusSummary([
+        { label: 'health', status: 0 },
+        { label: 'workspace-brief', status: 2 },
+      ]),
+      '[dogfood:status] health:0 · workspace-brief:2',
+    );
   });
 
   it('formats child launch and signal diagnostics without wrapping normal exits', () => {

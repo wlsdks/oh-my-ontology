@@ -135,7 +135,8 @@ runs root-checkout `compile --fix` and fails if canonicalization leaves a docs/o
 `test:dogfood:compile-fix` checks that idempotence guard without invoking the full dogfood suite,
 `dogfood:health` is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
 the shortest root-checkout first-contact JSON snapshot, `dogfood:status` always
-runs health + workspace-brief and preserves the first failing exit before escalating, `test:dogfood:status`
+runs health + workspace-brief, prints `[dogfood:status] health:N · workspace-brief:N`,
+and preserves the first failing exit before escalating, `test:dogfood:status`
 checks that always-run shortcut contract without the full dogfood suite, `dogfood:verify` is
 the full root-checkout dogfood vault gate. `pnpm dogfood:compile-fix -- --help`
 and `pnpm dogfood:status -- --help` print shortcut usage without running those

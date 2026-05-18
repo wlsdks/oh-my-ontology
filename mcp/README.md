@@ -116,7 +116,7 @@ snapshot without running the full installed-style MCP verify walk.
 without running the full installed-style MCP verify walk.
 `dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot
 without running the full installed-style MCP verify walk.
-`dogfood:status` always runs health + workspace-brief and preserves the first failing exit before escalating.
+`dogfood:status` always runs health + workspace-brief, prints `[dogfood:status] health:N · workspace-brief:N`, and preserves the first failing exit before escalating.
 `test:dogfood:status` checks that always-run shortcut contract without the full dogfood suite.
 Use `OMOT_TEST_NAME_PATTERN` with `pnpm integration:mcp` when the touched MCP
 integration case has a different name. For Node's `--test-name-pattern`, use
