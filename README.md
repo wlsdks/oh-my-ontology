@@ -140,6 +140,7 @@ pnpm test:mcp:verify            # focused MCP verify helper checks, including to
 pnpm test:mcp:verify:first-contact # narrow MCP verify first-contact initialize-safety-recovery/write-safety/health-summary/advisory/read/sample gates
 pnpm test:mcp:verify:timeout    # narrow MCP verify timeout/startup/help diagnostics
 pnpm dogfood:compile            # quick compile_ontology summary over docs/ontology
+pnpm dogfood:health             # quick health gate over docs/ontology
 pnpm dogfood:brief              # quick workspace_brief health snapshot over docs/ontology
 pnpm dogfood:verify             # root checkout installed-style verify over docs/ontology
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000 # root checkout dogfood verify
@@ -171,9 +172,10 @@ do not append it after `pnpm integration:* --`, because pnpm forwards `--` as a 
 `integration:mcp:readme` shortcuts cover the common install-verification,
 CLI MCP wrapper, CLI maintenance work-queue, and first-contact read-only checks. `cli:mcp-verify`
 is a source-checkout shortcut for the CLI wrapper. `dogfood:compile` is the
-fastest repeatable compiler summary for the dogfood vault, `dogfood:brief` is
-the fastest repeatable first-contact snapshot for the dogfood vault,
-`dogfood:verify` runs the full installed-style dogfood vault gate, and
+fastest repeatable compiler summary for the dogfood vault, `dogfood:health` is
+the fastest repeatable fail-closed health gate for the dogfood vault,
+`dogfood:brief` is the fastest repeatable first-contact snapshot for the
+dogfood vault, `dogfood:verify` runs the full installed-style dogfood vault gate, and
 `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` runs the same full
 verify against this repo's dogfood vault from the repo root. Use
 `pnpm cli:mcp-verify -- --help` only for help output; vault arguments are passed
@@ -187,7 +189,8 @@ single aggregate query. Project-less vaults skip only the containment-specific
 `project_scope` smoke, and empty vaults skip node-targeted graph smoke until a
 first node exists.
 Use `pnpm dogfood:compile` when you only need the current dogfood vault
-`compile_ontology` summary, or `pnpm dogfood:brief` when you need the
+`compile_ontology` summary, `pnpm dogfood:health` when you need the
+fail-closed health JSON gate, or `pnpm dogfood:brief` when you need the
 `workspace_brief` JSON snapshot before choosing the next focused gate.
 `smoke:packed-cli` also runs the installed CLI package `npm test`, then checks
 the installed `mcp-verify --help` output plus project-less and empty-vault

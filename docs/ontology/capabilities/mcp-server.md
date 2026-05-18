@@ -470,6 +470,7 @@ package manifest / enum suggestion 류의 더 작은 변경은 root 의
 `pnpm test:mcp:package` / `pnpm test:mcp:suggestions` 로 파일 단위 검증을 먼저
 돌려 반복 dogfood 비용을 낮춘다. 설치 verify 를 dogfood vault 에 반복 적용할 때는
 `pnpm dogfood:compile` 은 repo root 의 가장 짧은 compiler snapshot 이고,
+`pnpm dogfood:health` 는 repo root 의 가장 짧은 fail-closed health gate 이며,
 `pnpm dogfood:brief` 는 repo root 의 가장 짧은 first-contact snapshot 이며,
 full 설치형 검증은 `pnpm dogfood:verify`, 명시 인자가 필요할 때만
 `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` 로 풀어 쓴다. dogfood helper / structuredContent 출력 계약이나
