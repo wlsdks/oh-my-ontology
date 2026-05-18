@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
-import { focusedTestTargets, runFocusedNodeTest } from './run-focused-node-test.mjs';
+import { disallowedReporterOption, focusedTestTargets, runFocusedNodeTest } from './run-focused-node-test.mjs';
 
 const SCRIPT = 'scripts/run-focused-node-test.mjs';
 
@@ -112,6 +112,25 @@ describe('focused node test wrapper', () => {
     );
   });
 
+  it('fails before spawning when reporter options hide TAP counts', () => {
+    const diagnostics = [];
+    const exitCode = runFocusedNodeTest({
+      argv: ['--test-name-pattern', 'target case', '--test-reporter=spec', 'fixture.test.mjs'],
+      stderr: { write: (text) => diagnostics.push(text) },
+      stdout: { write() {} },
+      spawn() {
+        throw new Error('spawn should not run with a custom reporter');
+      },
+    });
+
+    assert.equal(exitCode, 2);
+    assert.equal(disallowedReporterOption(['--test-reporter', 'spec']), '--test-reporter');
+    assert.equal(disallowedReporterOption(['--test-reporter-destination=out.txt']), '--test-reporter-destination');
+    assert.deepEqual(diagnostics, [
+      '[focused-node-test] --test-reporter is not supported; the wrapper requires the default TAP reporter to verify focused test counts\n',
+    ]);
+  });
+
   it('passes through a focused run that executes at least one test', () => {
     withFixture(
       "import test from 'node:test';\ntest('target case', () => {});\ntest('other case', () => {});\n",
@@ -143,19 +162,6 @@ describe('focused node test wrapper', () => {
       assert.equal(result.status, 1);
       assert.match(result.stdout, /# pass 0/);
       assert.match(result.stderr, new RegExp(`no tests matched --test-name-pattern=missing case in ${file}`));
-    });
-  });
-
-  it('fails closed when the reporter hides TAP summary counts', () => {
-    withFixture("import test from 'node:test';\ntest('target case', () => {});\n", (file) => {
-      const result = run(['--test-name-pattern', 'target case', '--test-reporter=spec', file]);
-
-      assert.equal(result.status, 1);
-      assert.match(result.stdout, /target case/);
-      assert.match(
-        result.stderr,
-        new RegExp(`could not verify --test-name-pattern=target case matched tests in ${file}; use the default TAP reporter`),
-      );
     });
   });
 

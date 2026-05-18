@@ -13,6 +13,10 @@ const NODE_TEST_OPTIONS_WITH_VALUE = new Set([
   '--test-shard',
   '--test-timeout',
 ]);
+const NODE_TEST_REPORTER_OPTIONS = new Set([
+  '--test-reporter',
+  '--test-reporter-destination',
+]);
 
 function isNodeTestOptionWithInlineValue(arg) {
   for (const option of NODE_TEST_OPTIONS_WITH_VALUE) {
@@ -41,6 +45,16 @@ export function focusedTestTargets(argv) {
   return targets;
 }
 
+export function disallowedReporterOption(argv) {
+  for (const arg of argv) {
+    if (NODE_TEST_REPORTER_OPTIONS.has(arg)) return arg;
+    for (const option of NODE_TEST_REPORTER_OPTIONS) {
+      if (arg.startsWith(`${option}=`)) return option;
+    }
+  }
+  return null;
+}
+
 export function runFocusedNodeTest({
   argv = process.argv.slice(2),
   spawn = spawnSync,
@@ -63,6 +77,14 @@ export function runFocusedNodeTest({
     stderr.write(
       '[focused-node-test] at least one test target is required; ' +
       'use node --test directly for a full test run\n',
+    );
+    return 2;
+  }
+  const reporterOption = disallowedReporterOption(argv);
+  if (reporterOption) {
+    stderr.write(
+      `[focused-node-test] ${reporterOption} is not supported; ` +
+      'the wrapper requires the default TAP reporter to verify focused test counts\n',
     );
     return 2;
   }
