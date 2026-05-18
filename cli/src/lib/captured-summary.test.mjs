@@ -26,7 +26,7 @@ describe('captured-summary', () => {
 
   it('formats title-only captures', () => {
     assert.equal(
-      formatCapturedSummary({ frontmatter: { title: 'Foo' }, bodyExcerpt: '   ' }, 'deleted source', COLORS),
+      formatCapturedSummary({ frontmatter: { title: '  Foo  ' }, bodyExcerpt: '   ' }, 'deleted source', COLORS),
       '  <dim>deleted source</> <cyan>Foo</>\n',
     );
   });
@@ -41,5 +41,12 @@ describe('captured-summary', () => {
   it('returns an empty string when no summary fields are available', () => {
     assert.equal(formatCapturedSummary(null, 'deleted node', COLORS), '');
     assert.equal(formatCapturedSummary({ frontmatter: {}, bodyExcerpt: '   ' }, 'deleted node', COLORS), '');
+  });
+
+  it('ignores malformed non-string titles without leaking object text', () => {
+    assert.equal(
+      formatCapturedSummary({ frontmatter: { title: { text: 'Foo' } }, bodyExcerpt: '# Foo' }, 'deleted node', COLORS),
+      '  <dim>deleted node</>\n    <dim># Foo</>\n',
+    );
   });
 });

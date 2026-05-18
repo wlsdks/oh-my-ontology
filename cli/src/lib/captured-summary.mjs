@@ -1,5 +1,5 @@
 export function formatCapturedSummary(captured, label, colors) {
-  const title = captured?.frontmatter?.title;
+  const title = nonEmptyString(captured?.frontmatter?.title);
   const excerpt = typeof captured?.bodyExcerpt === 'string' ? captured.bodyExcerpt.trim() : '';
   if (!title && !excerpt) return '';
 
@@ -10,4 +10,9 @@ export function formatCapturedSummary(captured, label, colors) {
     output += `    ${colors.dim}${excerpt}${colors.reset}\n`;
   }
   return output;
+}
+
+function nonEmptyString(value) {
+  if (typeof value !== 'string') return '';
+  return value.trim();
 }
