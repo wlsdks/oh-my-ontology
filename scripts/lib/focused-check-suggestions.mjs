@@ -204,16 +204,39 @@ const MCP_DIRECT_UNIT_TEST_FILES = new Set([
   'mcp/src/json-rpc-lines.test.mjs',
 ]);
 
+const CLI_DIRECT_LIB_TESTS = new Map([
+  ['cli/src/lib/batch-results.mjs', 'cli/src/lib/batch-results.test.mjs'],
+  ['cli/src/lib/captured-summary.mjs', 'cli/src/lib/captured-summary.test.mjs'],
+  ['cli/src/lib/cli-args.mjs', 'cli/src/lib/cli-args.test.mjs'],
+  ['cli/src/lib/cli-commands.mjs', 'cli/src/lib/cli-commands.test.mjs'],
+  ['cli/src/lib/diagnosis-colors.mjs', 'cli/src/lib/diagnosis-colors.test.mjs'],
+  ['cli/src/lib/diagnosis-options.mjs', 'cli/src/lib/diagnosis-options.test.mjs'],
+  ['cli/src/lib/import-analysis-results.mjs', 'cli/src/lib/import-analysis-results.test.mjs'],
+  ['cli/src/lib/mcp-call.mjs', 'cli/src/lib/mcp-call.test.mjs'],
+  ['cli/src/lib/mcp-metadata.mjs', 'cli/src/lib/mcp-metadata.test.mjs'],
+  ['cli/src/lib/query-result-contract.mjs', 'cli/src/lib/query-result-contract.test.mjs'],
+  ['cli/src/lib/repo-analysis-results.mjs', 'cli/src/lib/repo-analysis-results.test.mjs'],
+  ['cli/src/lib/resolve-vault.mjs', 'cli/src/lib/resolve-vault.test.mjs'],
+]);
+
+const CLI_DIRECT_LIB_TEST_FILES = new Set(CLI_DIRECT_LIB_TESTS.values());
+
 export function normalizeChangedPath(path) {
   return String(path || '').trim().replace(/\\/g, '/').replace(/^\.\//, '');
 }
 
 export function suggestFocusedChecks(paths = []) {
   const normalizedPaths = [...new Set(paths.map(normalizeChangedPath).filter(Boolean))];
-  const commands = insertBeforeCommand(
-    rulesToSuggestions(RULES, normalizedPaths),
+  const staticCommands = rulesToSuggestions(RULES, normalizedPaths);
+  const withMcpDirect = insertBeforeCommand(
+    staticCommands,
     directMcpUnitTestSuggestions(normalizedPaths),
     'pnpm test:mcp:unit',
+  );
+  const commands = insertBeforeCommand(
+    withMcpDirect,
+    directCliLibTestSuggestions(normalizedPaths),
+    'pnpm test:cli:lib',
   );
   const escalations = rulesToSuggestions(ESCALATIONS, normalizedPaths);
   return { paths: normalizedPaths, commands, escalations };
@@ -227,6 +250,22 @@ function directMcpUnitTestSuggestions(paths) {
     const row = byTestFile.get(testFile) ?? {
       command: `pnpm exec node --test ${testFile}`,
       reason: 'direct MCP unit test for changed core file',
+      paths: [],
+    };
+    row.paths.push(path);
+    byTestFile.set(testFile, row);
+  }
+  return [...byTestFile.values()];
+}
+
+function directCliLibTestSuggestions(paths) {
+  const byTestFile = new Map();
+  for (const path of paths) {
+    const testFile = CLI_DIRECT_LIB_TESTS.get(path) ?? (CLI_DIRECT_LIB_TEST_FILES.has(path) ? path : null);
+    if (!testFile) continue;
+    const row = byTestFile.get(testFile) ?? {
+      command: `pnpm exec node --test ${testFile}`,
+      reason: 'direct CLI lib unit test for changed helper',
       paths: [],
     };
     row.paths.push(path);

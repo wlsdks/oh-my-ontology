@@ -93,6 +93,38 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests direct CLI lib unit tests before aggregate CLI lib gate', () => {
+    const result = suggestFocusedChecks([
+      'cli/src/lib/batch-results.mjs',
+      'cli/src/lib/query-result-contract.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test cli/src/lib/batch-results.test.mjs',
+      'pnpm exec node --test cli/src/lib/query-result-contract.test.mjs',
+      'pnpm test:cli:lib',
+      'pnpm dogfood:status',
+    ]);
+  });
+
+  it('deduplicates direct CLI lib unit tests when source and test both changed', () => {
+    const result = suggestFocusedChecks([
+      'cli/src/lib/mcp-call.mjs',
+      'cli/src/lib/mcp-call.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:cli:mcp-call',
+      'pnpm exec node --test cli/src/lib/mcp-call.test.mjs',
+      'pnpm test:cli:lib',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.commands[1].paths, [
+      'cli/src/lib/mcp-call.mjs',
+      'cli/src/lib/mcp-call.test.mjs',
+    ]);
+  });
+
   it('suggests narrow dogfood helper tests before broader dogfood gates', () => {
     const result = suggestFocusedChecks([
       'scripts/lib/dogfood-args.mjs',

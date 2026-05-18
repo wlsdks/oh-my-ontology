@@ -90,7 +90,10 @@ checks first: `pnpm test:docs-vault`, `pnpm test:vault:validate`, or
 `pnpm test:contracts` before broader package or app checks. MCP core source
 changes first print the direct sibling unit command (`pnpm exec node --test
 mcp/src/<name>.test.mjs` when one exists), then `pnpm test:mcp:unit` before
-readme-flow integration or full dogfood verification.
+readme-flow integration or full dogfood verification. CLI shared helper changes
+do the same for `cli/src/lib/<name>.test.mjs`, so run the printed direct
+`pnpm exec node --test ...` command before `pnpm test:cli:lib` when only one
+helper moved.
 
 | Command | Use when |
 |---|---|
@@ -98,7 +101,7 @@ readme-flow integration or full dogfood verification.
 | `pnpm checks:changed` | Suggest first focused checks from changed paths |
 | `pnpm test:checks:changed` | Changed-path focused-check suggestion helper |
 | `pnpm test:cli:args` | CLI argument parser contracts |
-| `pnpm test:cli:lib` | CLI shared helper contracts |
+| `pnpm test:cli:lib` | CLI shared helper contracts; use the direct sibling `pnpm exec node --test cli/src/lib/<name>.test.mjs` first when `pnpm checks:changed` prints one |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |
 | `pnpm integration:cli:compile` | CLI compile / `--fix` canonicalization contracts |
 | `pnpm integration:cli:growth` | CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts |

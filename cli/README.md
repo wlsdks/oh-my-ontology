@@ -97,7 +97,9 @@ first when the change is limited to flag, positional, integer, or CSV parsing.
 `test:cli:lib` checks shared CLI helper contracts for argument parsing,
 command registry metadata, MCP response unwrapping, package metadata, graph
 result fail-closed handling, and batch post-write maintenance metadata without
-spawning the full CLI.
+spawning the full CLI. If `pnpm checks:changed` prints a direct
+`pnpm exec node --test cli/src/lib/<name>.test.mjs` command for a touched CLI
+helper, run that first before the aggregate lib gate.
 `test:contracts` checks cross-package parser, writer, schema, and validator
 parity without running unrelated UI or E2E gates.
 `test:mcp:unit` runs MCP core parser, vault, compiler, query, import-analysis,
