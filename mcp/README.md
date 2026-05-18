@@ -265,7 +265,8 @@ direct read smokes for `list_concepts` project probe / `get_concept` /
 `get_concepts` / `find_evidence` / `find_backlinks` / `query_concepts` /
 limited `query_concepts` / `analyze_repo_structure` / `infer_imports` /
 `find_neighbors` / `find_path` / `find_orphans`,
-strict unknown-argument / invalid-enum rejection, enum-validated
+strict unknown-argument / invalid-enum rejection with structured
+`errorCode` values (`unknown_argument` / `invalid_arguments`), enum-validated
 `maintenance_plan` filters, batch row isolation for non-object row shape,
 unknown row field inputs, invalid `add_relations` type hints, and duplicate
 `add_concepts` slugs with `concepts[n]` / `relations[n]` error labels, and
