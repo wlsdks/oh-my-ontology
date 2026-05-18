@@ -426,8 +426,8 @@ export function writeRowLabelGuidanceSummary(tools) {
   if (!/concepts\[n\]/.test(addConcepts?.description || "")) {
     missing.push("add_concepts concepts[n]");
   }
-  if (!/Received fields/.test(addConcepts?.description || "")) {
-    missing.push("add_concepts Received fields");
+  if (!/every unknown field/.test(addConcepts?.description || "") || !/Received fields/.test(addConcepts?.description || "")) {
+    missing.push("add_concepts multi-field Received fields");
   }
   if (!/duplicate input slugs/.test(addConcepts?.description || "") || !/first-seen `concepts\[m\]`/.test(addConcepts?.description || "")) {
     missing.push("add_concepts duplicate first-seen");
@@ -435,8 +435,8 @@ export function writeRowLabelGuidanceSummary(tools) {
   if (!/relations\[n\]/.test(addRelations?.description || "")) {
     missing.push("add_relations relations[n]");
   }
-  if (!/Received fields/.test(addRelations?.description || "")) {
-    missing.push("add_relations Received fields");
+  if (!/every unknown field/.test(addRelations?.description || "") || !/Received fields/.test(addRelations?.description || "")) {
+    missing.push("add_relations multi-field Received fields");
   }
   if (!/unknown type/.test(addRelations?.description || "") || !/closest-value hint/.test(addRelations?.description || "")) {
     missing.push("add_relations closest-value type hint");
