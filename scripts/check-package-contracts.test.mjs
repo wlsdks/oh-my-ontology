@@ -272,6 +272,23 @@ describe('package contract helpers', () => {
       );
     }
 
+    for (const [scope, testFile] of [
+      ['cli', 'cli/src/integration.test.mjs'],
+      ['MCP', 'mcp/src/integration.test.mjs'],
+    ]) {
+      const pattern = `__omot_no_such_${scope.toLowerCase()}_integration_test__`;
+      const result = spawnSync(process.execPath, [testFile], {
+        cwd: process.cwd(),
+        env: { ...process.env, OMOT_TEST_NAME_PATTERN: pattern },
+        encoding: 'utf-8',
+      });
+      assert.equal(result.status, 1, `${testFile} must fail when its custom filter matches 0 tests`);
+      assert.match(
+        `${result.stdout}\n${result.stderr}`,
+        new RegExp(`no ${scope} integration tests matched OMOT_TEST_NAME_PATTERN=${pattern}`),
+      );
+    }
+
     for (const heading of [
       '## Default Gate',
       '## Quick Matrix',
