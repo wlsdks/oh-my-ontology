@@ -1728,6 +1728,10 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
       /Unknown argument "lmit" for list_concepts/i,
     );
     assert.equal(responses.find((r) => r.id === 6)?.result?.structuredContent?.errorCode, "unknown_argument");
+    assert.deepEqual(getCallStructured(responses, 6)?.allowedArguments, ["domain", "kind", "limit", "since", "summary"]);
+    assert.deepEqual(getCallStructured(responses, 6)?.receivedArguments, ["lmit"]);
+    assert.equal(getCallStructured(responses, 6)?.receivedArgument, "lmit");
+    assert.equal(getCallStructured(responses, 6)?.suggestion, "limit");
     assert.equal(isErrorResponse(responses, 7), true);
     assert.match(getCallText(responses, 7), /Unknown argument "limit" for list_kinds/i);
     assert.doesNotMatch(getCallText(responses, 7), /Did you mean/i);
@@ -1738,11 +1742,19 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
     assert.match(getCallText(responses, 8), /"summry" \(did you mean "summary"\?\)/i);
     assert.match(getCallText(responses, 8), /Allowed arguments: domain, kind, limit, since, summary/i);
     assert.equal(getCallStructured(responses, 8)?.errorCode, "unknown_argument");
+    assert.deepEqual(getCallStructured(responses, 8)?.unknownArguments, [
+      { name: "lmit", suggestion: "limit" },
+      { name: "summry", suggestion: "summary" },
+    ]);
+    assert.deepEqual(getCallStructured(responses, 8)?.receivedArguments, ["lmit", "summry"]);
     assert.equal(isErrorResponse(responses, 9), true);
     assert.match(getCallText(responses, 9), /Unknown tool: list_concept/i);
     assert.match(getCallText(responses, 9), /Did you mean "list_concepts"\?/i);
     assert.match(getCallText(responses, 9), /Allowed tools: /i);
     assert.equal(getCallStructured(responses, 9)?.errorCode, "unknown_tool");
+    assert.equal(getCallStructured(responses, 9)?.receivedTool, "list_concept");
+    assert.equal(getCallStructured(responses, 9)?.suggestion, "list_concepts");
+    assert.ok(getCallStructured(responses, 9)?.allowedTools.includes("list_concepts"));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

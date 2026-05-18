@@ -2568,6 +2568,7 @@ function ok(result) {
 
 function error(err) {
   const message = err instanceof Error ? err.message : String(err);
+  const details = structuredErrorDetails(message);
   return {
     content: [{ type: 'text', text: `Error: ${message}` }],
     isError: true,
@@ -2575,8 +2576,69 @@ function error(err) {
       ok: false,
       errorCode: classifyErrorCode(err, message),
       error: message,
+      ...details,
     },
   };
+}
+
+function structuredErrorDetails(message) {
+  const unknownTool = message.match(/^Unknown tool: ([^.]+)\.(?: Did you mean "([^"]+)"\?)? Allowed tools: (.+)\.$/i);
+  if (unknownTool) {
+    const [, receivedTool, suggestion, allowedText] = unknownTool;
+    return omitUndefined({
+      receivedTool,
+      suggestion,
+      allowedTools: splitCommaList(allowedText),
+    });
+  }
+
+  const unknownArgument = message.match(
+    /^Unknown argument "([^"]+)" for ([^.]+)\.(?: Did you mean "([^"]+)"\?)? Allowed arguments: (.+)\. Received arguments: (.+)\.$/i,
+  );
+  if (unknownArgument) {
+    const [, receivedArgument, toolName, suggestion, allowedText, receivedText] = unknownArgument;
+    return omitUndefined({
+      toolName,
+      receivedArgument,
+      suggestion,
+      allowedArguments: splitCommaList(allowedText),
+      receivedArguments: splitCommaList(receivedText),
+    });
+  }
+
+  const unknownArguments = message.match(
+    /^Unknown arguments for ([^:]+): (.+)\. Allowed arguments: (.+)\. Received arguments: (.+)\.$/i,
+  );
+  if (unknownArguments) {
+    const [, toolName, unknownText, allowedText, receivedText] = unknownArguments;
+    return {
+      toolName,
+      receivedArguments: splitCommaList(receivedText),
+      unknownArguments: extractUnknownArgumentHints(unknownText),
+      allowedArguments: splitCommaList(allowedText),
+    };
+  }
+
+  return {};
+}
+
+function extractUnknownArgumentHints(text) {
+  return [...text.matchAll(/"([^"]+)"(?: \(did you mean "([^"]+)"\?\))?/g)].map((match) => omitUndefined({
+    name: match[1],
+    suggestion: match[2],
+  }));
+}
+
+function splitCommaList(text) {
+  if (text === 'no arguments' || text === 'none') return [];
+  return String(text)
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function omitUndefined(value) {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined));
 }
 
 function classifyErrorCode(err, message) {

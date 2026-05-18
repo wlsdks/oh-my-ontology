@@ -2202,6 +2202,7 @@ export function strictArgsFailure(response) {
   }
   const structuredFailure = structuredErrorFailure(response, 'strict arguments', { errorCode: 'unknown_argument' });
   if (structuredFailure) return structuredFailure;
+  const structured = response.result.structuredContent;
   const text = response.result.content?.[0]?.text || '';
   if (!/Unknown argument "lmit" for list_concepts/i.test(text)) {
     return 'strict arguments response did not report the unknown list_concepts argument';
@@ -2212,6 +2213,12 @@ export function strictArgsFailure(response) {
   if (!/Received arguments: lmit/i.test(text)) {
     return 'strict arguments response did not report the received list_concepts arguments';
   }
+  if (structured?.receivedArgument !== 'lmit' || structured?.suggestion !== 'limit') {
+    return 'strict arguments structured error missing repair hint';
+  }
+  if (!sameArray(structured?.allowedArguments, ['domain', 'kind', 'limit', 'since', 'summary'])) {
+    return 'strict arguments structured error missing allowed arguments';
+  }
   return null;
 }
 
@@ -2221,6 +2228,7 @@ export function strictMultiArgsFailure(response) {
   }
   const structuredFailure = structuredErrorFailure(response, 'strict multi-argument', { errorCode: 'unknown_argument' });
   if (structuredFailure) return structuredFailure;
+  const structured = response.result.structuredContent;
   const text = response.result.content?.[0]?.text || '';
   if (!/Unknown arguments for list_concepts/i.test(text)) {
     return 'strict multi-argument response did not report all unknown list_concepts arguments';
@@ -2234,6 +2242,18 @@ export function strictMultiArgsFailure(response) {
   if (!/Received arguments: lmit, summry/i.test(text)) {
     return 'strict multi-argument response did not report all received list_concepts arguments';
   }
+  if (!sameArray(structured?.receivedArguments, ['lmit', 'summry'])) {
+    return 'strict multi-argument structured error missing received arguments';
+  }
+  if (!Array.isArray(structured?.unknownArguments) || structured.unknownArguments.length !== 2) {
+    return 'strict multi-argument structured error missing unknown argument hints';
+  }
+  if (structured.unknownArguments[0]?.name !== 'lmit' || structured.unknownArguments[0]?.suggestion !== 'limit') {
+    return 'strict multi-argument structured error missing limit hint';
+  }
+  if (structured.unknownArguments[1]?.name !== 'summry' || structured.unknownArguments[1]?.suggestion !== 'summary') {
+    return 'strict multi-argument structured error missing summary hint';
+  }
   return null;
 }
 
@@ -2243,6 +2263,7 @@ export function strictUnknownToolFailure(response) {
   }
   const structuredFailure = structuredErrorFailure(response, 'strict unknown-tool', { errorCode: 'unknown_tool' });
   if (structuredFailure) return structuredFailure;
+  const structured = response.result.structuredContent;
   const text = response.result.content?.[0]?.text || '';
   if (!/Unknown tool: list_concept/i.test(text)) {
     return 'strict unknown-tool response did not report the unknown tool name';
@@ -2252,6 +2273,12 @@ export function strictUnknownToolFailure(response) {
   }
   if (!/Allowed tools: /i.test(text) || !/list_concepts/i.test(text)) {
     return 'strict unknown-tool response did not report the allowed tool list';
+  }
+  if (structured?.receivedTool !== 'list_concept' || structured?.suggestion !== 'list_concepts') {
+    return 'strict unknown-tool structured error missing repair hint';
+  }
+  if (!Array.isArray(structured?.allowedTools) || !structured.allowedTools.includes('list_concepts')) {
+    return 'strict unknown-tool structured error missing allowed tools';
   }
   return null;
 }

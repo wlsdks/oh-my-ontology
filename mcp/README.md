@@ -180,7 +180,12 @@ Unknown tool names fail closed too. The runtime keeps the `unknown_tool`
 structured error code, adds the nearest tool-name hint when one is available
 (for example `Did you mean "list_concepts"?`), and prints the allowed tool list
 so an agent can repair a misspelled `tools/call.params.name` without an extra
-`tools/list` round trip.
+`tools/list` round trip. The same repair data is present in
+`structuredContent` as `receivedTool`, `suggestion`, and `allowedTools`, so MCP
+clients do not need to parse the human-readable error text.
+Unknown argument errors likewise include `toolName`, `receivedArgument` or
+`unknownArguments`, `receivedArguments`, `suggestion`, and `allowedArguments`
+when those fields apply.
 String-array options are strict too: relation filters such as
 `find_neighbors.types` / `query_ontology.types`, `query_ontology.pattern`,
 `maintenance_plan` filters, and analysis scan lists such as

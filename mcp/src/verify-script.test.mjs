@@ -4179,7 +4179,16 @@ describe('verify.mjs first-contact gates', () => {
         result: {
           isError: true,
           content: [{ text: `Error: ${error}` }],
-          structuredContent: { ok: false, errorCode: 'unknown_argument', error },
+          structuredContent: {
+            ok: false,
+            errorCode: 'unknown_argument',
+            error,
+            toolName: 'list_concepts',
+            receivedArgument: 'lmit',
+            suggestion: 'limit',
+            allowedArguments: ['domain', 'kind', 'limit', 'since', 'summary'],
+            receivedArguments: ['lmit'],
+          },
         },
       }),
       null,
@@ -4216,6 +4225,10 @@ describe('verify.mjs first-contact gates', () => {
       strictArgsFailure(strictErrorResponse('Unknown argument "lmit" for list_concepts. Did you mean "limit"?', { structuredContent: { ok: false, errorCode: 'unknown_argument', error: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"?' } })),
       'strict arguments response did not report the received list_concepts arguments',
     );
+    assert.equal(
+      strictArgsFailure(strictErrorResponse(error, { structuredContent: { ok: false, errorCode: 'unknown_argument', error } })),
+      'strict arguments structured error missing repair hint',
+    );
   });
 
   it('fails malformed strict multi-argument smoke responses', () => {
@@ -4225,7 +4238,18 @@ describe('verify.mjs first-contact gates', () => {
         result: {
           isError: true,
           content: [{ text: `Error: ${error}` }],
-          structuredContent: { ok: false, errorCode: 'unknown_argument', error },
+          structuredContent: {
+            ok: false,
+            errorCode: 'unknown_argument',
+            error,
+            toolName: 'list_concepts',
+            receivedArguments: ['lmit', 'summry'],
+            unknownArguments: [
+              { name: 'lmit', suggestion: 'limit' },
+              { name: 'summry', suggestion: 'summary' },
+            ],
+            allowedArguments: ['domain', 'kind', 'limit', 'since', 'summary'],
+          },
         },
       }),
       null,
@@ -4250,6 +4274,10 @@ describe('verify.mjs first-contact gates', () => {
       strictMultiArgsFailure(strictErrorResponse('Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)', { structuredContent: { ok: false, errorCode: 'unknown_argument', error: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)' } })),
       'strict multi-argument response did not report all received list_concepts arguments',
     );
+    assert.equal(
+      strictMultiArgsFailure(strictErrorResponse(error, { structuredContent: { ok: false, errorCode: 'unknown_argument', error } })),
+      'strict multi-argument structured error missing received arguments',
+    );
   });
 
   it('fails malformed strict unknown-tool smoke responses', () => {
@@ -4259,7 +4287,14 @@ describe('verify.mjs first-contact gates', () => {
         result: {
           isError: true,
           content: [{ text: `Error: ${error}` }],
-          structuredContent: { ok: false, errorCode: 'unknown_tool', error },
+          structuredContent: {
+            ok: false,
+            errorCode: 'unknown_tool',
+            error,
+            receivedTool: 'list_concept',
+            suggestion: 'list_concepts',
+            allowedTools: ['add_concept', 'list_concepts'],
+          },
         },
       }),
       null,
@@ -4311,6 +4346,16 @@ describe('verify.mjs first-contact gates', () => {
         },
       }),
       'strict unknown-tool response did not report the allowed tool list',
+    );
+    assert.equal(
+      strictUnknownToolFailure({
+        result: {
+          isError: true,
+          content: [{ text: `Error: ${error}` }],
+          structuredContent: { ok: false, errorCode: 'unknown_tool', error },
+        },
+      }),
+      'strict unknown-tool structured error missing repair hint',
     );
   });
 
