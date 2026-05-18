@@ -3224,7 +3224,7 @@ await test('maintenance --help — documents summary and next pointers', async (
   assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
   const clean = stripAnsi(r.stdout);
   assert.match(clean, /cursor state, summary counts, bucket counts/);
-  assert.match(clean, /current-page next executable\/review pointers/);
+  assert.match(clean, /current-page next executable\/review pointers with phase\/kind, severity, and exec\/review detail/);
 });
 
 await test('maintenance — rejects malformed CLI flags before runtime work', async () => {

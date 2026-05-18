@@ -230,7 +230,7 @@ function printUsage(stream = process.stderr) {
       `      [--kinds inspect_compile_issue,canonicalize_graph_arrays,...]\n\n` +
       `Inspect the MCP maintenance_plan work queue without writing to the vault.\n` +
       `Non-JSON output includes cursor state, summary counts, bucket counts, and\n` +
-      `current-page next executable/review pointers when actions are present.\n` +
+      `current-page next executable/review pointers with phase/kind, severity, and exec/review detail.\n` +
       `--limit range 1-${LIMIT_CAP}.\n`,
   );
 }

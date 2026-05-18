@@ -1529,7 +1529,7 @@ describe('package contract helpers', () => {
     assert.match(maintenanceSection, /remaining\/filtered\/total counts/);
     assert.match(maintenanceSection, /cursor state/);
     assert.match(maintenanceSection, /phase\/severity\/kind bucket summaries/);
-    assert.match(maintenanceSection, /current-page next executable\/review pointers/);
+    assert.match(maintenanceSection, /current-page next executable\/review pointers with phase\/kind, severity, and exec\/review detail/);
     assert.match(maintenanceSection, /`pnpm integration:cli:maintenance`/);
     assert.match(maintenanceSection, /maintenance-related installed verify cases/);
     assert.match(maintenanceSection, /신규 integration test 3건/);
@@ -1825,6 +1825,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /`NEXT ACTIONS` labels use `id\/kind` when those fields differ/);
     assert.match(doc, /`workspace-brief` non-json 의 `PROJECT별 포함 노드 수 \(project_scope\)` label/);
     assert.match(doc, /current-page next action pointer 와 `phase\/kind · severity · exec\|review` detail/);
+    assert.match(doc, /`--help` 도 cursor \/ summary \/ bucket \/ next pointer 의 phase\/kind, severity, exec\/review detail 출력 계약을 설명/);
     assert.match(doc, /`workspace-brief --help` 의 `project_scope 포함 노드 요약`/);
     assert.match(doc, /`health` non-json 의 `pass:count` 출력/);
     assert.match(doc, /`health --help` 의 `pnpm dogfood:health` automation gate \/ failing health non-zero \/ `pnpm dogfood:status` 설명/);
