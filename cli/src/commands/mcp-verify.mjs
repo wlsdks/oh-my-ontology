@@ -258,7 +258,7 @@ function printUsage(output = process.stderr) {
       `  pnpm dogfood:compile              Root checkout dogfood vault compile_ontology summary.\n` +
       `  pnpm dogfood:compile-fix          Root checkout dogfood vault compile --fix idempotence gate; changed vaults need pnpm docs-vault:build; success ends with [dogfood:compile-fix] docs/ontology unchanged.\n` +
       `  pnpm test:dogfood:args            Narrow dogfood shortcut argument helper contract.\n` +
-      `  pnpm test:dogfood:script-refs     Narrow help/package-script reference + focused wrapper summary contract.\n` +
+      `  pnpm test:dogfood:script-refs     Narrow help/package-script reference + focused filter parser/wrapper summary contract.\n` +
       `  pnpm test:dogfood:compile-fix     Narrow dogfood compile --fix idempotence runner contract.\n` +
       `  pnpm test:mcp:registration         Narrow source-checkout .mcp.json/.mcp.json.example registration template contract.\n` +
       `  pnpm dogfood:health               Root checkout dogfood vault health gate.\n` +

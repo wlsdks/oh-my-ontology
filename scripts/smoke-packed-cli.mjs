@@ -507,7 +507,7 @@ try {
     /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate; changed vaults need pnpm docs-vault:build; success ends with \[dogfood:compile-fix\] docs\/ontology unchanged/,
   );
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:dogfood:args\s+Narrow dogfood shortcut argument helper contract/);
-  assert.match(cliMcpVerifyHelp.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference \+ focused wrapper summary contract/);
+  assert.match(cliMcpVerifyHelp.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference \+ focused filter parser\/wrapper summary contract/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm test:mcp:registration\s+Narrow source-checkout .mcp.json\/.mcp.json.example registration template contract/);
   assert.match(cliMcpVerifyHelp.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
@@ -748,7 +748,7 @@ try {
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:mcp:verify:timeout/);
   assert.match(directMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/startup\/help\/empty-vault diagnostics/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:dogfood:args\s+Narrow dogfood shortcut argument helper contract/);
-  assert.match(directMcpVerifyHelp.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference \+ focused wrapper summary contract/);
+  assert.match(directMcpVerifyHelp.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference \+ focused filter parser\/wrapper summary contract/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:mcp:registration\s+Narrow source-checkout .mcp.json\/.mcp.json.example registration template contract/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:compile\s+Cheap root checkout compile_ontology summary snapshot/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:compile-fix\s+Cheap root checkout compile --fix idempotence gate; changed vaults need pnpm docs-vault:build; success ends with \[dogfood:compile-fix\] docs\/ontology unchanged/);

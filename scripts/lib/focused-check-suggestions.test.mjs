@@ -193,6 +193,7 @@ describe('focused check suggestions', () => {
     ]);
 
     assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:dogfood:script-refs',
       'pnpm test:mcp:verify',
       'pnpm integration:cli:mcp-verify',
       'pnpm test:mcp:package',

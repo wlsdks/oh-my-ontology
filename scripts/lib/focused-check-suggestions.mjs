@@ -55,6 +55,8 @@ const RULES = [
       /^scripts\/lib\/test-name-pattern\.(?:mjs|test\.mjs)$/,
       /^scripts\/run-focused-node-test\.(?:mjs|test\.mjs)$/,
       /^scripts\/dogfood-mcp-walk\.(?:mjs|test\.mjs)$/,
+      /^cli\/src\/commands\/mcp-verify\.mjs$/,
+      /^mcp\/scripts\/verify\.mjs$/,
     ],
   },
   {

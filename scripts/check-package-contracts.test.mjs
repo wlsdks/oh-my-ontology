@@ -411,6 +411,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /`pnpm dogfood:test` only when the dogfood\s+helper itself changed/);
     assert.match(checksDoc, /Use `pnpm test:mcp:maintenance` when only `maintenance_plan` filter, cursor,\s+resume, or formatter behavior changed/);
     assert.match(checksDoc, /\| `pnpm test:mcp:suggestions` \| Enum and argument suggestion quality; use the direct sibling `pnpm exec node --test mcp\/src\/suggestions\.test\.mjs` first when `pnpm checks:changed` prints one \|/);
+    assert.match(checksDoc, /CLI\/MCP verify help changes route to `pnpm test:dogfood:script-refs` too,\s+because those help surfaces list root `pnpm \.\.\.` shortcuts/);
     assert.match(checksDoc, /`pnpm checks:changed` routes dogfood shortcut helper changes to\s+`pnpm test:dogfood:args`, `pnpm test:dogfood:script-refs`, or\s+`pnpm test:dogfood:compile-fix` before broader dogfood gates/);
     assert.match(checksDoc, /`pnpm test:mcp:docs` also guards Firebase Hosting config as static-only/);
     assert.match(checksDoc, /`pnpm test:mcp:docs` also guards\s+the tracked `.mcp.json` and `.mcp.json.example` source-checkout templates/);
@@ -518,7 +519,7 @@ describe('package contract helpers', () => {
       /pnpm dogfood:compile-fix\s+Root checkout dogfood vault compile --fix idempotence gate; changed vaults need pnpm docs-vault:build; success ends with \[dogfood:compile-fix\] docs\/ontology unchanged/,
     );
     assert.match(result.stdout, /pnpm test:dogfood:args\s+Narrow dogfood shortcut argument helper contract/);
-    assert.match(result.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference \+ focused wrapper summary contract/);
+    assert.match(result.stdout, /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference \+ focused filter parser\/wrapper summary contract/);
     assert.match(result.stdout, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
     assert.match(result.stdout, /pnpm test:mcp:registration\s+Narrow source-checkout .mcp.json\/.mcp.json.example registration template contract/);
     assert.match(result.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
@@ -2222,7 +2223,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm test:mcp:verify:timeout/);
     assert.match(smoke, /Narrow MCP verify timeout\\\/startup\\\/help\\\/empty-vault diagnostics/);
     assert.match(smoke, /pnpm test:dogfood:args\\s\+Narrow dogfood shortcut argument helper contract/);
-    assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference \\\+ focused wrapper summary contract/);
+    assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference \\\+ focused filter parser\/wrapper summary contract/);
     assert.match(smoke, /pnpm test:mcp:registration\\s\+Narrow source-checkout .mcp.json\\\/.mcp.json.example registration template contract/);
     assert.match(smoke, /pnpm dogfood:compile\\s\+Cheap root checkout compile_ontology summary snapshot/);
     assert.match(smoke, /pnpm dogfood:compile-fix\\s\+Cheap root checkout compile --fix idempotence gate; changed vaults need pnpm docs-vault:build; success ends with \\\[dogfood:compile-fix\\\] docs\\\/ontology unchanged/);
@@ -2337,7 +2338,7 @@ describe('package contract helpers', () => {
     assert.match(smoke, /pnpm integration:cli:mcp-verify/);
     assert.match(smoke, /pnpm dogfood:compile\\s\+Root checkout dogfood vault compile_ontology summary/);
     assert.match(smoke, /pnpm dogfood:compile-fix\\s\+Root checkout dogfood vault compile --fix idempotence gate; changed vaults need pnpm docs-vault:build; success ends with \\\[dogfood:compile-fix\\\] docs\\\/ontology unchanged/);
-    assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference \\\+ focused wrapper summary contract/);
+    assert.match(smoke, /pnpm test:dogfood:script-refs\\s\+Narrow help\\\/package-script reference \\\+ focused filter parser\/wrapper summary contract/);
     assert.match(smoke, /pnpm test:dogfood:compile-fix\\s\+Narrow dogfood compile --fix idempotence runner contract/);
     assert.match(smoke, /pnpm test:mcp:registration\\s\+Narrow source-checkout .mcp.json\\\/.mcp.json.example registration template contract/);
     assert.match(smoke, /pnpm dogfood:health\\s\+Root checkout dogfood vault health gate/);
