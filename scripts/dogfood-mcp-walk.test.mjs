@@ -100,7 +100,7 @@ function makeDogfoodInitialize() {
       "Batch add_concepts and add_relations isolate each non-object row and unknown row fields as ok:false.",
       'Batch add_relations unknown type row errors include a closest-value hint such as Did you mean "depends_on"?',
       "Duplicate add_concepts input slugs report concepts[n] duplicate slug in input batch; first seen at concepts[m].",
-      'operation must be one of: overview, health. Invalid value: overveiw. Did you mean "overview"?',
+      'operation must be one of: ... Invalid value: overveiw. Did you mean "overview"?',
       "maintenance_plan phases, severities, and kinds filters are enum-validated.",
       "health and workspace_brief tune probes with componentLimit, cycleLimit, recommendationLimit, orderLimit, nodeLimit, dependencyTypes, and componentTypes.",
       "dependencyTypes / componentTypes accept relation types domains, domain, capabilities, elements, dependencies, depends_on, relates, contains, describes; typoed values fail with nearest-value hints.",
