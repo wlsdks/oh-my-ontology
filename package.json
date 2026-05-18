@@ -38,6 +38,7 @@
     "benchmark:scale": "node scripts/benchmark-scale.mjs",
     "dogfood:compile": "node cli/src/index.mjs compile docs/ontology --summary --json",
     "dogfood:compile-fix": "node scripts/dogfood-compile-fix.mjs",
+    "test:dogfood:args": "node --test scripts/lib/dogfood-args.test.mjs",
     "test:dogfood:compile-fix": "node --test scripts/dogfood-compile-fix.test.mjs",
     "dogfood:health": "node cli/src/index.mjs health docs/ontology --json",
     "dogfood:brief": "node cli/src/index.mjs workspace-brief docs/ontology --json",

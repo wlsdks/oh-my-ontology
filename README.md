@@ -210,6 +210,7 @@ pnpm vault:audit
 pnpm dogfood:compile
 pnpm dogfood:compile-fix
 pnpm dogfood:compile-fix -- --help
+pnpm test:dogfood:args
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief

@@ -151,6 +151,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['test:docs-vault'], 'node --test scripts/build-docs-vault.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:compile'], 'node cli/src/index.mjs compile docs/ontology --summary --json');
     assert.equal(pkg.scripts?.['dogfood:compile-fix'], 'node scripts/dogfood-compile-fix.mjs');
+    assert.equal(pkg.scripts?.['test:dogfood:args'], 'node --test scripts/lib/dogfood-args.test.mjs');
     assert.equal(pkg.scripts?.['test:dogfood:compile-fix'], 'node --test scripts/dogfood-compile-fix.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:health'], 'node cli/src/index.mjs health docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:brief'], 'node cli/src/index.mjs workspace-brief docs/ontology --json');
@@ -274,6 +275,7 @@ describe('package contract helpers', () => {
       'pnpm dogfood:compile',
       'pnpm dogfood:compile-fix',
       'pnpm dogfood:compile-fix -- --help',
+      'pnpm test:dogfood:args',
       'pnpm test:dogfood:compile-fix',
       'pnpm dogfood:health',
       'pnpm dogfood:brief',
@@ -306,6 +308,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);
     assert.match(checksDoc, /`pnpm dogfood:compile-fix` runs `compile --fix` against docs\/ontology and fails\s+if it leaves a git diff/);
+    assert.match(checksDoc, /`pnpm test:dogfood:args` checks the shared pnpm separator and nearest\s+`--help` hint helper without invoking any dogfood gate/);
     assert.match(checksDoc, /`pnpm dogfood:status` runs the cheap human-readable health \+ workspace-brief\s+gates together/);
     assert.match(checksDoc, /still prints workspace-brief when health fails, then preserves\s+the first failing exit code/);
     assert.match(checksDoc, /Use `pnpm dogfood:compile-fix -- --help` \/ `pnpm dogfood:status -- --help`/);
@@ -689,6 +692,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm integration:cli:compile/);
     assert.match(section, /pnpm dogfood:compile/);
     assert.match(section, /pnpm dogfood:compile-fix/);
+    assert.match(section, /pnpm test:dogfood:args/);
     assert.match(section, /pnpm test:dogfood:compile-fix/);
     assert.match(section, /pnpm dogfood:health/);
     assert.match(section, /pnpm dogfood:brief/);
@@ -1271,6 +1275,7 @@ describe('package contract helpers', () => {
     assert.match(section, /`integration:cli:compile`\s+narrows CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /`dogfood:compile`\s+is the shortest root-checkout compiler summary JSON snapshot/);
     assert.match(section, /`dogfood:compile-fix`\s+runs root-checkout `compile --fix` and fails if canonicalization leaves a docs\/ontology diff/);
+    assert.match(section, /`test:dogfood:args`\s+checks shared dogfood shortcut argument helpers without invoking any gate/);
     assert.match(section, /`test:dogfood:compile-fix`\s+checks that idempotence guard without invoking the full dogfood suite/);
     assert.match(section, /`dogfood:health`\s+is the shortest root-checkout fail-closed health JSON gate/);
     assert.match(section, /`dogfood:brief`\s+is\s+the shortest root-checkout first-contact JSON snapshot/);
@@ -1497,6 +1502,7 @@ describe('package contract helpers', () => {
     assert.match(dogfoodRow, new RegExp(`vault-readme ${census.byKind['vault-readme']}`));
     assert.match(helpfulCommands, /pnpm dogfood:status/);
     assert.match(helpfulCommands, /pnpm dogfood:compile-fix -- --help/);
+    assert.match(helpfulCommands, /pnpm test:dogfood:args/);
     assert.match(helpfulCommands, /pnpm dogfood:status -- --help/);
     assert.match(helpfulCommands, /pnpm test:dogfood:status/);
   });

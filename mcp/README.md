@@ -66,6 +66,7 @@ pnpm test:mcp:verify:timeout
 pnpm integration:cli:compile
 pnpm dogfood:compile
 pnpm dogfood:compile-fix
+pnpm test:dogfood:args
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
@@ -122,6 +123,7 @@ integration case has a different name. For Node's `--test-name-pattern`, use
 instead of appending the flag after `pnpm integration:mcp --`. From the repo root,
 `pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot.
 `pnpm dogfood:compile-fix` runs dogfood `compile --fix` and fails if canonicalization leaves a docs/ontology diff.
+`pnpm test:dogfood:args` checks shared dogfood shortcut argument helpers without invoking any gate.
 `pnpm test:dogfood:compile-fix` checks that idempotence guard without the full dogfood suite.
 `pnpm dogfood:health` is the shortest dogfood vault health gate.
 `pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot. Use
