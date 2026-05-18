@@ -86,7 +86,8 @@ function render(result) {
       const score =
         typeof h[scoreKey] === 'number' ? h[scoreKey].toFixed(scoreKey === 'pageRank' ? 4 : 0) : '-';
       const deg = `${COLORS.dim}${scoreKey} ${score}${COLORS.reset} ${COLORS.dim}(deg ${h.degree})${COLORS.reset}`;
-      process.stdout.write(`  ${COLORS.bold}${rank}${COLORS.reset} ${kc}${slug}${COLORS.reset} ${deg}\n`);
+      const titleText = h.title && h.title !== h.slug ? ` ${COLORS.dim}— ${h.title}${COLORS.reset}` : '';
+      process.stdout.write(`  ${COLORS.bold}${rank}${COLORS.reset} ${kc}${slug}${COLORS.reset}${titleText} ${deg}\n`);
     }
     process.stdout.write('\n');
   }

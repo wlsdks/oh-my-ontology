@@ -2938,6 +2938,20 @@ await test('overview --limit 3 — 허브 N 만 출력', async () => {
   }
 });
 
+await test('hubs — human rankings include node titles for scanability', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run(['hubs', root, '--limit=2']);
+    assert.equal(r.code, 0, `stdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /PageRank/);
+    assert.match(clean, /domains\/auth\s+— Auth/);
+    assert.match(clean, /capabilities\/foo\s+— Foo/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('workspace-brief — fail severity nextActions make the CLI fail', async () => {
   const root = buildCycleFixture();
   try {
