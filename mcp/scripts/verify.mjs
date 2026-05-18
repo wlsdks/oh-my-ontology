@@ -907,6 +907,7 @@ export function toolsListSchemaFailure(tools) {
     }
   }
   const canonicalizationActionSchema = outputPropertyAt(compileTool, ['properties', 'canonicalizationActions', 'items']);
+  const frontmatterProperties = canonicalizationActionSchema?.properties?.frontmatter?.properties ?? {};
   if (
     canonicalizationActionSchema?.type !== 'object' ||
     !sameArray(canonicalizationActionSchema.required, ['slug', 'keys', 'frontmatter', 'expected_mtime']) ||
@@ -914,7 +915,9 @@ export function toolsListSchemaFailure(tools) {
     !sameArray(canonicalizationActionSchema.properties?.keys?.items?.enum, GRAPH_ARRAY_KEYS) ||
     canonicalizationActionSchema.properties?.frontmatter?.type !== 'object' ||
     canonicalizationActionSchema.properties?.frontmatter?.additionalProperties !== false ||
-    !sameArray(Object.keys(canonicalizationActionSchema.properties?.frontmatter?.properties ?? {}).sort(), [...GRAPH_ARRAY_KEYS].sort())
+    !sameArray(Object.keys(frontmatterProperties).sort(), [...GRAPH_ARRAY_KEYS].sort()) ||
+    GRAPH_ARRAY_KEYS.some((key) => frontmatterProperties[key]?.type !== 'array' || frontmatterProperties[key]?.items?.minLength !== 1) ||
+    canonicalizationActionSchema.properties?.expected_mtime?.minimum !== 0
   ) {
     return 'compile_ontology outputSchema canonicalizationActions drift';
   }

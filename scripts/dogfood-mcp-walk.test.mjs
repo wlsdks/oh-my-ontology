@@ -144,7 +144,7 @@ function relationArrayPatchSchemaFixture() {
   return {
     type: "object",
     properties: Object.fromEntries(
-      GRAPH_ARRAY_KEYS.map((key) => [key, { type: "array", items: { type: "string" } }]),
+      GRAPH_ARRAY_KEYS.map((key) => [key, { type: "array", items: { type: "string", minLength: 1 } }]),
     ),
     additionalProperties: false,
   };
@@ -3775,6 +3775,12 @@ describe("evaluateDogfoodGate", () => {
     compileActionSchemaDrifted.tools.find((tool) => tool.name === "compile_ontology").outputSchema.properties.canonicalizationActions.items.properties.keys.items.enum = ["contains"];
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, toolsList: compileActionSchemaDrifted }),
+      ["tools/list: compile_ontology outputSchema canonicalizationActions drift"],
+    );
+    const compileActionMtimeSchemaDrifted = makeDogfoodToolsList();
+    delete compileActionMtimeSchemaDrifted.tools.find((tool) => tool.name === "compile_ontology").outputSchema.properties.canonicalizationActions.items.properties.expected_mtime.minimum;
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, toolsList: compileActionMtimeSchemaDrifted }),
       ["tools/list: compile_ontology outputSchema canonicalizationActions drift"],
     );
     const analyzeOutputSchemaDrifted = makeDogfoodToolsList();

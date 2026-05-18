@@ -461,6 +461,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       Object.keys(canonicalizationActionSchema?.properties?.frontmatter?.properties ?? {}).sort(),
       [...GRAPH_ARRAY_KEYS].sort(),
     );
+    assert.equal(canonicalizationActionSchema?.properties?.frontmatter?.properties?.contains?.items?.minLength, 1);
+    assert.equal(canonicalizationActionSchema?.properties?.expected_mtime?.minimum, 0);
     assert.deepEqual(compileOntology?.outputSchema?.properties?.summary?.required, ["nodes", "edges", "graphHash", "maxMtime", "resolvedEdges", "externalEdges", "unresolvedEdges", "aliases", "ambiguousAliases", "issues"]);
     const analyzeRepo = findTool("analyze_repo_structure");
     assert.match(

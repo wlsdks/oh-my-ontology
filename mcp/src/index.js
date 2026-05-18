@@ -1287,7 +1287,7 @@ const TOOLS = [
               slug: NON_BLANK_STRING_SCHEMA,
               keys: { type: 'array', items: { ...NON_BLANK_STRING_SCHEMA, enum: GRAPH_ARRAY_KEYS } },
               frontmatter: RELATION_ARRAY_PATCH_SCHEMA,
-              expected_mtime: { type: 'number' },
+              expected_mtime: { type: 'number', minimum: 0 },
             },
             required: ['slug', 'keys', 'frontmatter', 'expected_mtime'],
           },
