@@ -58,6 +58,7 @@ pnpm test:mcp:suggestions
 pnpm test:mcp:verify
 pnpm test:mcp:verify:first-contact
 pnpm test:mcp:verify:timeout
+pnpm dogfood:compile
 pnpm dogfood:brief
 pnpm dogfood:verify
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000
@@ -91,12 +92,15 @@ first-contact health summary / advisory / next-action gates, and
 `workspace_brief.nextActions[].sample` shape drift.
 `test:mcp:verify:timeout` narrows verify timeout parsing, startup failure
 retry guidance, usage, and retry diagnostics.
+`dogfood:compile` prints the dogfood vault `compile_ontology` summary JSON
+snapshot without running the full installed-style MCP verify walk.
 `dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot
 without running the full installed-style MCP verify walk.
 Use `OMOT_TEST_NAME_PATTERN` with `pnpm integration:mcp` when the touched MCP
 integration case has a different name. For Node's `--test-name-pattern`, use
 `pnpm exec node --test --test-name-pattern "..." mcp/src/integration.test.mjs`
 instead of appending the flag after `pnpm integration:mcp --`. From the repo root,
+`pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot.
 `pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot. Use
 `pnpm dogfood:verify` for the full installed-style dogfood vault gate, or
 `pnpm cli:mcp-verify docs/ontology --timeout-ms 15000` when you need
@@ -252,6 +256,7 @@ if you change one, mirror the other.
 ```bash
 cd mcp && npm install
 # From the repo root, prefer the CLI wrapper for the dogfood vault:
+pnpm dogfood:compile
 pnpm dogfood:brief
 pnpm dogfood:verify
 pnpm cli:mcp-verify docs/ontology --timeout-ms 15000
