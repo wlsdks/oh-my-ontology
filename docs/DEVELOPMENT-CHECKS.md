@@ -142,6 +142,8 @@ escalation path are visible. Use
 `pnpm dogfood:verify` for the full
 installed-style dogfood vault gate, and `pnpm dogfood:test` only when the dogfood
 helper itself changed or the focused `test:mcp:dogfood` subset is not enough.
+Use `pnpm test:mcp:maintenance` when only `maintenance_plan` filter, cursor,
+resume, or formatter behavior changed.
 Use `pnpm dogfood:compile-fix -- --help` / `pnpm dogfood:status -- --help`
 when you need shortcut usage without running those gates; unsupported shortcut
 arguments fail with exit 2 before any child check starts, and close `--help`

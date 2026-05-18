@@ -28,6 +28,9 @@ can inspect ontology write candidates without raw JSON-RPC.
 - **Maintenance focused gate discovery** — CLI and direct MCP verify help now
   point to `pnpm test:mcp:maintenance` when only the `maintenance_plan` queue,
   cursor, and formatter contracts changed.
+- **Dogfood help gate discovery** — `pnpm dogfood:help` now also surfaces
+  `pnpm test:mcp:maintenance`, so dogfood users can jump to the maintenance-only
+  focused gate without reading the broader MCP docs.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 
