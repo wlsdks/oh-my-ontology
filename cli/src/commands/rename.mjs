@@ -53,7 +53,7 @@ export async function runRename(args) {
       process.stdout.write(JSON.stringify(preview, null, 2) + '\n');
       return 0;
     }
-    const updates = preview?.updates ?? [];
+    const updates = graphUpdates(preview);
     process.stdout.write(
       `${COLORS.yellow}dry-run${COLORS.reset}  ` +
         `${COLORS.bold}${oldSlug}${COLORS.reset} → ${COLORS.bold}${newSlug}${COLORS.reset} ` +
@@ -92,12 +92,18 @@ export async function runRename(args) {
     process.stdout.write(JSON.stringify(result, null, 2) + '\n');
     return 0;
   }
-  const updates = result?.updates ?? [];
+  const updates = graphUpdates(result);
   process.stdout.write(
     `${COLORS.green}ok${COLORS.reset}    ${COLORS.bold}${oldSlug}${COLORS.reset} → ${COLORS.bold}${newSlug}${COLORS.reset} ` +
       `${COLORS.dim}(${updates.length} file(s) updated)${COLORS.reset}\n`,
   );
   return 0;
+}
+
+function graphUpdates(result) {
+  if (Array.isArray(result?.updates)) return result.updates;
+  if (Array.isArray(result?.backlinkUpdates?.updates)) return result.backlinkUpdates.updates;
+  return [];
 }
 
 function parseArgs(args) {

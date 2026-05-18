@@ -3574,6 +3574,8 @@ await test('rename — dry-run preview, no disk change', async () => {
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /dry-run/);
     assert.match(clean, /capabilities\/foo-renamed/);
+    assert.match(clean, /[1-9]\d* file\(s\) would change/);
+    assert.match(clean, /capabilities\/bar/);
     // foo.md 그대로 존재 (dry-run)
     assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), true);
     assert.equal(
@@ -3719,6 +3721,8 @@ await test('merge — dry-run preview', async () => {
     assert.match(clean, /dry-run/);
     assert.match(clean, /capabilities\/foo/);
     assert.match(clean, /capabilities\/bar/);
+    assert.match(clean, /[1-9]\d* file\(s\) would change/);
+    assert.match(clean, /domains\/auth/);
     // foo.md 그대로 존재 (dry-run)
     assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), true);
   } finally {
