@@ -359,9 +359,15 @@ describe('extractSummaryExcerpt (R+)', () => {
     assert.ok(r.endsWith('…'));
   });
 
-  it('list / 인용도 block 으로 인식 (-, *, > 모두)', () => {
+  it('list / 인용도 block 으로 인식 (-, *, ordered, > 모두)', () => {
     const body = '- item 1\n- item 2\n\n뒤에 오는 prose.';
     const r = extractSummaryExcerpt(body);
     assert.equal(r, '뒤에 오는 prose.');
+  });
+
+  it('ordered list 는 prose 로 오인하지 않고 다음 설명 단락을 사용', () => {
+    const body = '1. first step\n2) second step\n\nActual explanatory paragraph.';
+    const r = extractSummaryExcerpt(body);
+    assert.equal(r, 'Actual explanatory paragraph.');
   });
 });

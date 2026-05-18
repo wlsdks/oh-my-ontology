@@ -200,6 +200,7 @@ export function extractSummaryExcerpt(body, maxLen = 800) {
     if (trimmed.startsWith('|')) return true; // 표
     if (trimmed.startsWith('#')) return true; // heading
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) return true; // 리스트
+    if (/^\d+[.)]\s+/.test(trimmed)) return true; // ordered list
     if (trimmed.startsWith('> ')) return true; // 인용
     return false;
   };
