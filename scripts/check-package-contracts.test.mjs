@@ -138,6 +138,10 @@ describe('package contract helpers', () => {
       `${focusedNode} --test-name-pattern "mcp-verify" cli/src/integration.test.mjs`,
     );
     assert.equal(
+      pkg.scripts?.['integration:cli:diagnosis'],
+      `${focusedNode} --test-name-pattern "health|workspace-brief" cli/src/integration.test.mjs`,
+    );
+    assert.equal(
       pkg.scripts?.['integration:cli:growth'],
       `${focusedNode} --test-name-pattern "growth" cli/src/integration.test.mjs`,
     );
@@ -358,6 +362,7 @@ describe('package contract helpers', () => {
       'OMOT_DOGFOOD_TIMEOUT_MS=12000 pnpm dogfood:walk',
       'OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli',
       'pnpm integration:cli:mcp-verify',
+      'pnpm integration:cli:diagnosis',
       'pnpm integration:cli:growth',
       'pnpm integration:cli:maintenance',
       'OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp',
@@ -381,6 +386,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /Parser\/schema\/validator parity changes route to\s+`pnpm test:contracts` before broader package or app checks/);
     assert.match(checksDoc, /CLI shared helper changes\s+do the same for `cli\/src\/lib\/<name>\.test\.mjs`, so run the printed direct\s+`pnpm exec node --test \.\.\.` command before `pnpm test:cli:lib`/);
     assert.match(checksDoc, /\| `pnpm test:cli:lib` \| CLI shared helper contracts; use the direct sibling `pnpm exec node --test cli\/src\/lib\/<name>\.test\.mjs` first when `pnpm checks:changed` prints one \|/);
+    assert.match(checksDoc, /\| `pnpm integration:cli:diagnosis` \| CLI `health` \/ `workspace-brief` diagnosis contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:cli:growth` \| CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts \|/);
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);
@@ -1498,6 +1504,7 @@ describe('package contract helpers', () => {
     assert.match(section, /Focused runs\s+with TAP summaries end with `matched=N` before file-level `tests=N`, even when a\s+matched test fails/);
     assert.match(section, /File setup\/import failures are reported separately as\s+`setupFailures=N`/);
     assert.match(section, /`integration:cli:compile`\s+narrows CLI compile \/ `--fix` canonicalization contracts/);
+    assert.match(section, /`integration:cli:diagnosis`\s+narrows CLI health \/ workspace-brief diagnosis contracts/);
     assert.match(section, /`integration:cli:growth`\s+narrows the CLI growth_plan wrapper, candidate rendering, malformed payload, and argument contracts/);
     assert.match(section, /`dogfood:compile`\s+is the shortest root-checkout compiler summary JSON snapshot/);
     assert.match(section, /`dogfood:compile-fix`\s+runs root-checkout `compile --fix`, fails if canonicalization leaves a docs\/ontology diff,\s+points changed-vault failures at `pnpm docs-vault:build`, and ends successful runs\s+with `\[dogfood:compile-fix\] docs\/ontology unchanged`/);

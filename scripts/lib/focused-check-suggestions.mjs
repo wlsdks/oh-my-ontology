@@ -132,6 +132,11 @@ const RULES = [
     matches: [/^cli\/src\/commands\/mcp-verify\.mjs$/],
   },
   {
+    command: 'pnpm integration:cli:diagnosis',
+    reason: 'CLI health/workspace-brief diagnosis command changed',
+    matches: [/^cli\/src\/commands\/(?:health|workspace-brief)\.mjs$/],
+  },
+  {
     command: 'pnpm integration:cli:growth',
     reason: 'CLI growth command changed',
     matches: [/^cli\/src\/commands\/growth\.mjs$/],

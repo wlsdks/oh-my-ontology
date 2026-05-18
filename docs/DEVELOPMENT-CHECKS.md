@@ -111,6 +111,7 @@ dogfood docs assertions as well as package/release assertions.
 | `pnpm test:cli:lib` | CLI shared helper contracts; use the direct sibling `pnpm exec node --test cli/src/lib/<name>.test.mjs` first when `pnpm checks:changed` prints one |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |
 | `pnpm integration:cli:compile` | CLI compile / `--fix` canonicalization contracts |
+| `pnpm integration:cli:diagnosis` | CLI `health` / `workspace-brief` diagnosis contracts |
 | `pnpm integration:cli:growth` | CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts |
 | `pnpm test:contracts` | Cross-package schema/parser contracts |
 | `pnpm test:mcp:docs` | Explicit root/MCP/CLI/dogfood docs contracts plus Firebase static-hosting and MCP registration-template guards |
@@ -221,6 +222,7 @@ Use these when the full integration suite is more than the change needs:
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
 pnpm integration:cli:compile
 pnpm integration:cli:mcp-verify
+pnpm integration:cli:diagnosis
 pnpm integration:cli:maintenance
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
 pnpm integration:mcp:readme

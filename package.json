@@ -28,6 +28,7 @@
     "integration:cli": "node --test cli/src/integration.test.mjs",
     "integration:cli:compile": "node scripts/run-focused-node-test.mjs --test-name-pattern \"compile\" cli/src/integration.test.mjs",
     "integration:cli:mcp-verify": "node scripts/run-focused-node-test.mjs --test-name-pattern \"mcp-verify\" cli/src/integration.test.mjs",
+    "integration:cli:diagnosis": "node scripts/run-focused-node-test.mjs --test-name-pattern \"health|workspace-brief\" cli/src/integration.test.mjs",
     "integration:cli:growth": "node scripts/run-focused-node-test.mjs --test-name-pattern \"growth\" cli/src/integration.test.mjs",
     "integration:cli:maintenance": "node scripts/run-focused-node-test.mjs --test-name-pattern \"maintenance\" cli/src/integration.test.mjs",
     "cli:mcp-verify": "node cli/src/index.mjs mcp-verify",

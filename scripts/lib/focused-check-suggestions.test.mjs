@@ -237,6 +237,18 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests focused CLI diagnosis integration for health and workspace-brief commands', () => {
+    const result = suggestFocusedChecks([
+      'cli/src/commands/health.mjs',
+      'cli/src/commands/workspace-brief.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm integration:cli:diagnosis',
+      'pnpm dogfood:status',
+    ]);
+  });
+
   it('suggests the advisor self-test when the focused-check advisor changes', () => {
     const result = suggestFocusedChecks([
       'scripts/lib/focused-check-suggestions.mjs',
