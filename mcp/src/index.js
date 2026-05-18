@@ -184,6 +184,40 @@ const CAPTURED_DOC_OUTPUT_SCHEMA = Object.freeze({
   required: ['frontmatter'],
   additionalProperties: false,
 });
+const VAULT_WARNING_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    code: { ...NON_BLANK_STRING_SCHEMA, enum: VAULT_ISSUE_CODE_VALUES },
+    severity: { ...NON_BLANK_STRING_SCHEMA, enum: ['error', 'warning'] },
+    message: NON_BLANK_STRING_SCHEMA,
+  },
+  required: ['code', 'severity', 'message'],
+  additionalProperties: false,
+});
+const CONCEPT_NEIGHBORS_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    domains: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+    domain: { type: ['string', 'null'] },
+    capabilities: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+    elements: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+    dependencies: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+    relates: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+    contains: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+    describes: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+  },
+  required: ['domains', 'domain', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes'],
+  additionalProperties: false,
+});
+const OUTGOING_EDGE_OUTPUT_SCHEMA = Object.freeze({
+  type: 'object',
+  properties: {
+    to: NON_BLANK_STRING_SCHEMA,
+    via: NON_BLANK_STRING_SCHEMA,
+  },
+  required: ['to', 'via'],
+  additionalProperties: false,
+});
 const VAULT_ISSUE_CODE_DESCRIPTION = VAULT_ISSUE_CODE_VALUES.map((code) => `\`${code}\``).join(', ');
 const IMPORT_EDGE_KIND_DESCRIPTION = IMPORT_EDGE_KIND_VALUES.join(', ');
 const NODE_KIND_DESCRIPTION = NODE_KIND_VALUES.join(', ');
@@ -620,29 +654,12 @@ const TOOLS = [
           description: 'Short body excerpt.',
         },
         neighbors: {
-          type: 'object',
-          properties: {
-            domains: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-            domain: { type: ['string', 'null'] },
-            capabilities: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-            elements: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-            dependencies: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-            relates: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-            contains: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-            describes: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-          },
-          required: ['domains', 'domain', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes'],
+          ...CONCEPT_NEIGHBORS_OUTPUT_SCHEMA,
+          description: 'Direct graph neighbor buckets.',
         },
         outgoingEdges: {
           type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              to: NON_BLANK_STRING_SCHEMA,
-              via: NON_BLANK_STRING_SCHEMA,
-            },
-            required: ['to', 'via'],
-          },
+          items: OUTGOING_EDGE_OUTPUT_SCHEMA,
         },
         mtime: {
           type: 'number',
@@ -650,7 +667,7 @@ const TOOLS = [
         },
         warnings: {
           type: 'array',
-          items: { type: 'object' },
+          items: VAULT_WARNING_OUTPUT_SCHEMA,
         },
       },
       required: ['slug', 'frontmatter', 'excerpt', 'neighbors', 'outgoingEdges', 'mtime'],
@@ -694,19 +711,12 @@ const TOOLS = [
                 description: 'Short body excerpt for successful rows.',
               },
               neighbors: {
-                type: 'object',
+                ...CONCEPT_NEIGHBORS_OUTPUT_SCHEMA,
                 description: 'Direct graph neighbor buckets for successful rows.',
               },
               outgoingEdges: {
                 type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    to: NON_BLANK_STRING_SCHEMA,
-                    via: NON_BLANK_STRING_SCHEMA,
-                  },
-                  required: ['to', 'via'],
-                },
+                items: OUTGOING_EDGE_OUTPUT_SCHEMA,
               },
               mtime: {
                 type: 'number',
@@ -714,7 +724,7 @@ const TOOLS = [
               },
               warnings: {
                 type: 'array',
-                items: { type: 'object' },
+                items: VAULT_WARNING_OUTPUT_SCHEMA,
               },
               error: {
                 type: 'string',

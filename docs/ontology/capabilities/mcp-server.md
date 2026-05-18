@@ -742,6 +742,8 @@ summary 는 실제 payload 의 세부 카운트까지 포함하고, filters 는 
 `severities` / `kinds` enum array 로 닫아 post-write queue 상태를 schema 만으로 해석할 수 있게 한다.
 destructive writer 의 `backlinkUpdates` / `capturedFrom` / `backlinksAtDelete` 도 실제 dry-run·confirm
 payload 구조로 닫아 rename / merge / delete 결과를 agent 가 추측 없이 후속 검토할 수 있게 한다.
+read tool 의 핵심 진입점인 `get_concept` / `get_concepts` 도 `neighbors` / `outgoingEdges` /
+`warnings` 구조를 닫아 vault issue 와 graph edge payload 를 안전하게 파싱할 수 있게 한다.
 verify / dogfood gate 도 `nextExecutableAction` / `nextReviewAction` nullable pointer
 shape drift 를 별도 실패로 잡아 current-page next action 안내가 느슨해지지 않게 한다.
 write-tool description 도 두 pointer 이름을 모두 포함해야 통과하므로 agent-facing 안내와

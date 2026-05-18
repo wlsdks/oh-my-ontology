@@ -351,6 +351,58 @@ function backlinkRowsSchemaFailure(schema, label) {
   return null;
 }
 
+function conceptNeighborsSchemaFailure(schema, label) {
+  const required = ['domains', 'domain', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes'];
+  if (
+    schema?.type !== 'object' ||
+    !sameArray(schema.required, required) ||
+    schema.additionalProperties !== false
+  ) {
+    return `${label} outputSchema neighbors drift`;
+  }
+  for (const propertyName of ['domains', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes']) {
+    const neighborSchema = schema.properties?.[propertyName];
+    if (neighborSchema?.type !== 'array' || neighborSchema.items?.type !== 'string') {
+      return `${label} outputSchema neighbors ${propertyName} drift`;
+    }
+  }
+  if (!sameArray(schema.properties?.domain?.type, ['string', 'null'])) {
+    return `${label} outputSchema neighbors domain drift`;
+  }
+  return null;
+}
+
+function outgoingEdgesSchemaFailure(schema, label) {
+  const row = schema?.items;
+  if (
+    schema?.type !== 'array' ||
+    row?.type !== 'object' ||
+    !sameArray(row.required, ['to', 'via']) ||
+    row.additionalProperties !== false ||
+    row.properties?.to?.type !== 'string' ||
+    row.properties?.via?.type !== 'string'
+  ) {
+    return `${label} outputSchema outgoingEdges drift`;
+  }
+  return null;
+}
+
+function vaultWarningsSchemaFailure(schema, label) {
+  const row = schema?.items;
+  if (
+    schema?.type !== 'array' ||
+    row?.type !== 'object' ||
+    !sameArray(row.required, ['code', 'severity', 'message']) ||
+    row.additionalProperties !== false ||
+    !sameArray(row.properties?.code?.enum, VAULT_ISSUE_CODE_VALUES) ||
+    !sameArray(row.properties?.severity?.enum, ['error', 'warning']) ||
+    row.properties?.message?.type !== 'string'
+  ) {
+    return `${label} outputSchema warnings drift`;
+  }
+  return null;
+}
+
 function postWriteMaintenanceSchemaFailure(schema, toolName) {
   if (schema?.type !== 'object') {
     return `${toolName} outputSchema postWriteMaintenance drift`;
@@ -611,26 +663,20 @@ export function toolsListSchemaFailure(tools) {
     return 'get_concept outputSchema frontmatter drift';
   }
   const getConceptNeighborsSchema = outputPropertyAt(getConceptTool, ['properties', 'neighbors']);
-  if (
-    getConceptNeighborsSchema?.type !== 'object' ||
-    !sameArray(getConceptNeighborsSchema.required, ['domains', 'domain', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes'])
-  ) {
-    return 'get_concept outputSchema neighbors drift';
-  }
-  for (const propertyName of ['domains', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes']) {
-    const neighborSchema = getConceptNeighborsSchema.properties?.[propertyName];
-    if (neighborSchema?.type !== 'array' || neighborSchema.items?.type !== 'string') {
-      return `get_concept outputSchema neighbors ${propertyName} drift`;
-    }
-  }
+  const getConceptNeighborsFailure = conceptNeighborsSchemaFailure(getConceptNeighborsSchema, 'get_concept');
+  if (getConceptNeighborsFailure) return getConceptNeighborsFailure;
   const getConceptEdgesSchema = outputPropertyAt(getConceptTool, ['properties', 'outgoingEdges']);
-  if (getConceptEdgesSchema?.type !== 'array' || !sameArray(getConceptEdgesSchema.items?.required, ['to', 'via'])) {
-    return 'get_concept outputSchema outgoingEdges drift';
-  }
+  const getConceptEdgesFailure = outgoingEdgesSchemaFailure(getConceptEdgesSchema, 'get_concept');
+  if (getConceptEdgesFailure) return getConceptEdgesFailure;
   const getConceptMtimeSchema = outputPropertyAt(getConceptTool, ['properties', 'mtime']);
   if (getConceptMtimeSchema?.type !== 'number' || getConceptMtimeSchema.minimum !== 0) {
     return 'get_concept outputSchema mtime drift';
   }
+  const getConceptWarningsFailure = vaultWarningsSchemaFailure(
+    outputPropertyAt(getConceptTool, ['properties', 'warnings']),
+    'get_concept',
+  );
+  if (getConceptWarningsFailure) return getConceptWarningsFailure;
 
   const getConceptsTool = tools.find((tool) => tool?.name === 'get_concepts');
   if (!getConceptsTool) return 'tools/list response missing get_concepts tool';
@@ -681,15 +727,21 @@ export function toolsListSchemaFailure(tools) {
   if (getConceptsItemsSchema.properties?.excerpt?.type !== 'string') {
     return 'get_concepts outputSchema row excerpt drift';
   }
-  if (getConceptsItemsSchema.properties?.neighbors?.type !== 'object') {
-    return 'get_concepts outputSchema row neighbors drift';
-  }
-  if (getConceptsItemsSchema.properties?.outgoingEdges?.type !== 'array' || !sameArray(getConceptsItemsSchema.properties?.outgoingEdges?.items?.required, ['to', 'via'])) {
-    return 'get_concepts outputSchema row outgoingEdges drift';
-  }
-  if (getConceptsItemsSchema.properties?.warnings?.type !== 'array') {
-    return 'get_concepts outputSchema row warnings drift';
-  }
+  const getConceptsNeighborsFailure = conceptNeighborsSchemaFailure(
+    getConceptsItemsSchema.properties?.neighbors,
+    'get_concepts row',
+  );
+  if (getConceptsNeighborsFailure) return getConceptsNeighborsFailure;
+  const getConceptsEdgesFailure = outgoingEdgesSchemaFailure(
+    getConceptsItemsSchema.properties?.outgoingEdges,
+    'get_concepts row',
+  );
+  if (getConceptsEdgesFailure) return getConceptsEdgesFailure;
+  const getConceptsWarningsFailure = vaultWarningsSchemaFailure(
+    getConceptsItemsSchema.properties?.warnings,
+    'get_concepts row',
+  );
+  if (getConceptsWarningsFailure) return getConceptsWarningsFailure;
 
   const findEvidenceTool = tools.find((tool) => tool?.name === 'find_evidence');
   if (!findEvidenceTool) return 'tools/list response missing find_evidence tool';

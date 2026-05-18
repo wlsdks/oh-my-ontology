@@ -346,8 +346,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.deepEqual(getConceptTool?.outputSchema?.required, ["slug", "frontmatter", "excerpt", "neighbors", "outgoingEdges", "mtime"]);
     assert.equal(getConceptTool?.outputSchema?.properties?.frontmatter?.type, "object");
     assert.deepEqual(getConceptTool?.outputSchema?.properties?.neighbors?.required, ["domains", "domain", "capabilities", "elements", "dependencies", "relates", "contains", "describes"]);
+    assert.equal(getConceptTool?.outputSchema?.properties?.neighbors?.additionalProperties, false);
     assert.equal(getConceptTool?.outputSchema?.properties?.outgoingEdges?.items?.properties?.via?.type, "string");
+    assert.equal(getConceptTool?.outputSchema?.properties?.outgoingEdges?.items?.additionalProperties, false);
     assert.equal(getConceptTool?.outputSchema?.properties?.mtime?.type, "number");
+    assert.deepEqual(getConceptTool?.outputSchema?.properties?.warnings?.items?.required, ["code", "severity", "message"]);
+    assert.equal(getConceptTool?.outputSchema?.properties?.warnings?.items?.additionalProperties, false);
     const getConceptsTool = findTool("get_concepts");
     assert.equal(getConceptsTool?.outputSchema?.type, "object");
     assert.deepEqual(getConceptsTool?.outputSchema?.required, ["concepts"]);
@@ -357,9 +361,12 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.frontmatter?.type, "object");
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.excerpt?.type, "string");
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.neighbors?.type, "object");
+    assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.neighbors?.additionalProperties, false);
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.outgoingEdges?.type, "array");
+    assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.outgoingEdges?.items?.additionalProperties, false);
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.mtime?.type, "number");
     assert.equal(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.warnings?.type, "array");
+    assert.deepEqual(getConceptsTool?.outputSchema?.properties?.concepts?.items?.properties?.warnings?.items?.properties?.severity?.enum, ["error", "warning"]);
     const findEvidence = findTool("find_evidence");
     assert.match(
       findEvidence?.description ?? "",

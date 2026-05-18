@@ -286,6 +286,46 @@ describe('verify.mjs first-contact gates', () => {
       ),
       additionalProperties: false,
     };
+    const conceptNeighborsSchema = {
+      type: 'object',
+      required: ['domains', 'domain', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes'],
+      properties: {
+        domains: { type: 'array', items: { type: 'string' } },
+        domain: { type: ['string', 'null'] },
+        capabilities: { type: 'array', items: { type: 'string' } },
+        elements: { type: 'array', items: { type: 'string' } },
+        dependencies: { type: 'array', items: { type: 'string' } },
+        relates: { type: 'array', items: { type: 'string' } },
+        contains: { type: 'array', items: { type: 'string' } },
+        describes: { type: 'array', items: { type: 'string' } },
+      },
+      additionalProperties: false,
+    };
+    const outgoingEdgesSchema = {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['to', 'via'],
+        properties: {
+          to: { type: 'string' },
+          via: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
+    };
+    const vaultWarningsSchema = {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['code', 'severity', 'message'],
+        properties: {
+          code: { type: 'string', enum: VAULT_ISSUE_CODE_VALUES },
+          severity: { type: 'string', enum: ['error', 'warning'] },
+          message: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
+    };
     const backlinkKeyChangeSchema = {
       type: 'object',
       required: ['key'],
@@ -563,15 +603,10 @@ describe('verify.mjs first-contact gates', () => {
                   slug: { type: 'string' },
                   frontmatter: { type: 'object' },
                   excerpt: { type: 'string' },
-                  neighbors: { type: 'object' },
-                  outgoingEdges: {
-                    type: 'array',
-                    items: {
-                      required: ['to', 'via'],
-                    },
-                  },
+                  neighbors: conceptNeighborsSchema,
+                  outgoingEdges: outgoingEdgesSchema,
                   mtime: { type: 'number', minimum: 0 },
-                  warnings: { type: 'array' },
+                  warnings: vaultWarningsSchema,
                 },
               },
             },
@@ -1431,27 +1466,10 @@ describe('verify.mjs first-contact gates', () => {
             slug: { type: 'string' },
             frontmatter: { type: 'object' },
             excerpt: { type: 'string' },
-            neighbors: {
-              type: 'object',
-              required: ['domains', 'domain', 'capabilities', 'elements', 'dependencies', 'relates', 'contains', 'describes'],
-              properties: {
-                domains: { type: 'array', items: { type: 'string' } },
-                domain: { type: ['string', 'null'] },
-                capabilities: { type: 'array', items: { type: 'string' } },
-                elements: { type: 'array', items: { type: 'string' } },
-                dependencies: { type: 'array', items: { type: 'string' } },
-                relates: { type: 'array', items: { type: 'string' } },
-                contains: { type: 'array', items: { type: 'string' } },
-                describes: { type: 'array', items: { type: 'string' } },
-              },
-            },
-            outgoingEdges: {
-              type: 'array',
-              items: {
-                required: ['to', 'via'],
-              },
-            },
+            neighbors: conceptNeighborsSchema,
+            outgoingEdges: outgoingEdgesSchema,
             mtime: { type: 'number', minimum: 0 },
+            warnings: vaultWarningsSchema,
           },
         },
       },
