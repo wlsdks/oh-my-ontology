@@ -35,6 +35,14 @@ export function runFocusedNodeTest({
 } = {}) {
   const pattern = readNodeTestNamePattern(argv);
   const testTargets = focusedTestTargets(argv);
+  if (!pattern) {
+    const targetSuffix = testTargets.length > 0 ? ` for ${testTargets.join(', ')}` : '';
+    stderr.write(
+      `[focused-node-test] --test-name-pattern is required${targetSuffix}; ` +
+      'use node --test directly for a full test run\n',
+    );
+    return 2;
+  }
   const result = spawn(process.execPath, ['--test', ...argv], {
     cwd,
     env,

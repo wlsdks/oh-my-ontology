@@ -35,6 +35,23 @@ function run(args) {
 }
 
 describe('focused node test wrapper', () => {
+  it('fails before spawning when no test-name pattern is provided', () => {
+    const diagnostics = [];
+    const exitCode = runFocusedNodeTest({
+      argv: ['fixture.test.mjs'],
+      stderr: { write: (text) => diagnostics.push(text) },
+      stdout: { write() {} },
+      spawn() {
+        throw new Error('spawn should not run without a pattern');
+      },
+    });
+
+    assert.equal(exitCode, 2);
+    assert.deepEqual(diagnostics, [
+      '[focused-node-test] --test-name-pattern is required for fixture.test.mjs; use node --test directly for a full test run\n',
+    ]);
+  });
+
   it('passes through a focused run that executes at least one test', () => {
     withFixture(
       "import test from 'node:test';\ntest('target case', () => {});\ntest('other case', () => {});\n",

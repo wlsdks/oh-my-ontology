@@ -121,7 +121,8 @@ instead of appending the flag after `pnpm integration:cli --`.
 From the repo root, focused integration subset and `test:mcp:*` shortcuts use
 `scripts/run-focused-node-test.mjs` so typoed patterns fail when they match 0
 tests instead of silently passing as all skipped, and signal-killed `node --test`
-subprocesses report the signal plus target path.
+subprocesses report the signal plus target path. The wrapper requires an
+explicit pattern; use `node --test` directly for an intentional full run.
 `integration:cli:compile` narrows CLI compile / `--fix` canonicalization contracts
 without running unrelated CLI routes. `dogfood:compile`
 is the shortest root-checkout compiler summary JSON snapshot, `dogfood:compile-fix`
