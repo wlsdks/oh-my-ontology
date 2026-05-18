@@ -7,6 +7,8 @@ import { describe, it } from 'node:test';
 import {
   callMcpTool,
   formatMcpCallTimeoutError,
+  formatMcpMissingResponseError,
+  formatMcpProcessExitError,
   formatMcpSpawnError,
   mcpCallTimeoutMs,
   parseMcpToolResponse,
@@ -52,6 +54,29 @@ describe('mcp-call response parsing', () => {
         stderr: 'server starting',
       }).message,
       'mcp call timed out after 25ms while calling compile_ontology (vault /tmp/vault). Set OMOT_CLI_MCP_TIMEOUT_MS=N for large or slow vaults. stderr:\nserver starting',
+    );
+  });
+
+  it('formats MCP process exit errors with actionable retry guidance', () => {
+    assert.equal(
+      formatMcpProcessExitError(7, {
+        toolName: 'query_ontology',
+        vaultRoot: '/tmp/vault',
+        stderr: 'fake mcp boom',
+      }).message,
+      'mcp exited code 7 while calling query_ontology (vault /tmp/vault). Check OMOT_MCP_PATH, or set OMOT_CLI_MCP_TIMEOUT_MS=N for large or slow vaults. stderr:\nfake mcp boom',
+    );
+  });
+
+  it('formats missing MCP response errors with stdout and stderr context', () => {
+    assert.equal(
+      formatMcpMissingResponseError({
+        toolName: 'query_ontology',
+        vaultRoot: '/tmp/vault',
+        stdoutLines: ['{"id":1,"result":{}}'],
+        stderr: 'server never answered',
+      }).message,
+      'mcp response missing tools/call result for query_ontology (vault /tmp/vault). Check OMOT_MCP_PATH, or set OMOT_CLI_MCP_TIMEOUT_MS=N if the server is still starting. stdout lines:\n{"id":1,"result":{}}\nstderr:\nserver never answered',
     );
   });
 

@@ -126,9 +126,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
       }
       if (code !== 0 && code !== null) {
         finish(() => rejectP(
-          new Error(
-            `mcp exited code ${code} while calling ${toolName} (vault ${vaultRoot}). stderr:\n${stderrBuf.trim() || '(empty)'}`,
-          ),
+          formatMcpProcessExitError(code, { toolName, vaultRoot, stderr: stderrBuf }),
         ));
         return;
       }
@@ -150,9 +148,12 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
         }
         if (!toolResp) {
           finish(() => rejectP(
-            new Error(
-              `mcp response missing tools/call result for ${toolName} (vault ${vaultRoot}). stdout lines:\n${lines.slice(0, 5).join('\n') || '(empty)'}\nstderr:\n${stderrBuf.trim() || '(empty)'}`,
-            ),
+            formatMcpMissingResponseError({
+              toolName,
+              vaultRoot,
+              stdoutLines: lines.slice(0, 5),
+              stderr: stderrBuf,
+            }),
           ));
           return;
         }
@@ -205,6 +206,28 @@ export function formatMcpCallTimeoutError(timeoutMs, { toolName, vaultRoot, stde
   return new Error(
     `mcp call timed out after ${timeoutMs}ms while calling ${tool} (vault ${vault}). ` +
       `Set ${MCP_CALL_TIMEOUT_ENV}=N for large or slow vaults.${stderrSuffix}`,
+  );
+}
+
+export function formatMcpProcessExitError(code, { toolName, vaultRoot, stderr } = {}) {
+  const tool = toolName || '(unknown tool)';
+  const vault = vaultRoot || '(unknown vault)';
+  const stderrText = String(stderr || '').trim() || '(empty)';
+  return new Error(
+    `mcp exited code ${code} while calling ${tool} (vault ${vault}). ` +
+      `Check OMOT_MCP_PATH, or set ${MCP_CALL_TIMEOUT_ENV}=N for large or slow vaults. stderr:\n${stderrText}`,
+  );
+}
+
+export function formatMcpMissingResponseError({ toolName, vaultRoot, stdoutLines, stderr } = {}) {
+  const tool = toolName || '(unknown tool)';
+  const vault = vaultRoot || '(unknown vault)';
+  const stdoutText = Array.isArray(stdoutLines) && stdoutLines.length > 0 ? stdoutLines.join('\n') : '(empty)';
+  const stderrText = String(stderr || '').trim() || '(empty)';
+  return new Error(
+    `mcp response missing tools/call result for ${tool} (vault ${vault}). ` +
+      `Check OMOT_MCP_PATH, or set ${MCP_CALL_TIMEOUT_ENV}=N if the server is still starting. ` +
+      `stdout lines:\n${stdoutText}\nstderr:\n${stderrText}`,
   );
 }
 

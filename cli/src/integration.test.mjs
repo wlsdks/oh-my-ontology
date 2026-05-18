@@ -2269,6 +2269,8 @@ await test('graph MCP calls — label spawned MCP exit failures with tool and va
     const stderr = stripAnsi(r.stderr);
     assert.match(stderr, /mcp exited code 7 while calling query_ontology/);
     assert.ok(stderr.includes(`vault ${root}`), stderr);
+    assert.match(stderr, /Check OMOT_MCP_PATH/);
+    assert.match(stderr, /OMOT_CLI_MCP_TIMEOUT_MS=N/);
     assert.match(stderr, /fake mcp boom/);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -2296,6 +2298,8 @@ await test('graph MCP calls — label missing tools/call responses with tool and
     const stderr = stripAnsi(r.stderr);
     assert.match(stderr, /mcp response missing tools\/call result for query_ontology/);
     assert.ok(stderr.includes(`vault ${root}`), stderr);
+    assert.match(stderr, /Check OMOT_MCP_PATH/);
+    assert.match(stderr, /OMOT_CLI_MCP_TIMEOUT_MS=N/);
     assert.match(stderr, /"id":1/);
   } finally {
     rmSync(root, { recursive: true, force: true });
