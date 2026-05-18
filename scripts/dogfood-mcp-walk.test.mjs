@@ -3248,6 +3248,15 @@ describe("rpc response completion helpers", () => {
     assertPnpmScriptsExist(usage);
   });
 
+  it("dogfood help — helper uses natural exit so verbose stdout can flush", () => {
+    const source = readFileSync("scripts/dogfood-mcp-walk.mjs", "utf-8");
+
+    assert.doesNotMatch(source, /\bprocess\.exit\s*\(/);
+    assert.match(source, /process\.exitCode\s*=\s*await main\(\)\.catch/);
+    assert.match(source, /return 2/);
+    assert.match(source, /return 1/);
+  });
+
   it("rejects unsupported dogfood arguments before starting MCP", () => {
     assert.deepEqual(parseDogfoodArgs(["docs/ontology"]), {
       help: false,

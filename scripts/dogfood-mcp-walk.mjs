@@ -25,7 +25,6 @@ import {
   compileIndexesFailure,
   compileIndexesSummary,
   destructiveDryRunFailure,
-  EXPECTED_TOOLS,
   analyzeRepoStructureFailure,
   formatCount,
   inferImportsFailure,
@@ -4649,17 +4648,17 @@ async function main() {
   const args = parseDogfoodArgs();
   if (args.help) {
     console.log(dogfoodUsage());
-    return;
+    return 0;
   }
   if (args.error) {
     console.error(`${args.error}\n\n${dogfoodUsage()}`);
-    process.exit(2);
+    return 2;
   }
 
   const timeoutMs = parseDogfoodTimeoutMs(DOGFOOD_TIMEOUT_MS_RAW);
   if (timeoutMs === false) {
     console.error(dogfoodTimeoutErrorMessage(DOGFOOD_TIMEOUT_MS_RAW));
-    process.exit(1);
+    return 1;
   }
 
   console.log(
@@ -5925,13 +5924,14 @@ async function main() {
     for (const failure of failures) {
       console.error(`  - ${failure}`);
     }
-    process.exit(1);
+    return 1;
   }
+  return 0;
 }
 
 if (fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? "")) {
-  main().catch((err) => {
+  process.exitCode = await main().catch((err) => {
     console.error("dogfood walk failed:", err);
-    process.exit(1);
+    return 1;
   });
 }
