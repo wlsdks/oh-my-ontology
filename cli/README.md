@@ -74,6 +74,7 @@ pnpm test:mcp:verify:timeout
 pnpm dogfood:compile
 pnpm dogfood:compile-fix
 pnpm test:dogfood:args
+pnpm test:dogfood:script-refs
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
@@ -122,6 +123,7 @@ without running unrelated CLI routes. `dogfood:compile`
 is the shortest root-checkout compiler summary JSON snapshot, `dogfood:compile-fix`
 runs root-checkout `compile --fix` and fails if canonicalization leaves a docs/ontology diff,
 `test:dogfood:args` checks shared dogfood shortcut argument helpers without invoking any gate,
+`test:dogfood:script-refs` checks help text `pnpm ...` references against root package scripts,
 `test:dogfood:compile-fix` checks that idempotence guard without invoking the full dogfood suite,
 `dogfood:health` is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
 the shortest root-checkout first-contact JSON snapshot, `dogfood:status` always

@@ -67,6 +67,7 @@ pnpm integration:cli:compile
 pnpm dogfood:compile
 pnpm dogfood:compile-fix
 pnpm test:dogfood:args
+pnpm test:dogfood:script-refs
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
@@ -124,6 +125,7 @@ instead of appending the flag after `pnpm integration:mcp --`. From the repo roo
 `pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot.
 `pnpm dogfood:compile-fix` runs dogfood `compile --fix` and fails if canonicalization leaves a docs/ontology diff.
 `pnpm test:dogfood:args` checks shared dogfood shortcut argument helpers without invoking any gate.
+`pnpm test:dogfood:script-refs` checks help text `pnpm ...` references against root package scripts.
 `pnpm test:dogfood:compile-fix` checks that idempotence guard without the full dogfood suite.
 `pnpm dogfood:health` is the shortest dogfood vault health gate.
 `pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot. Use
@@ -304,6 +306,7 @@ cd mcp && npm install
 # From the repo root, prefer the CLI wrapper for the dogfood vault:
 pnpm dogfood:compile
 pnpm dogfood:compile-fix
+pnpm test:dogfood:script-refs
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
