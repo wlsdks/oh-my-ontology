@@ -9,7 +9,12 @@
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 
 MCP verification now keeps the installed agent surface, first-contact guidance,
-and release smoke in lockstep for batch relation failures.
+release smoke, and dogfood ontology in lockstep for batch writer failures.
+
+- **Batch unknown-field diagnostics** — `add_concepts` / `add_relations`
+  row-isolation checks now require every offending unknown field, nearest field
+  hints, and `Received fields: ...` in row-level errors, so agents can repair
+  malformed batch rows without guessing which keys were actually sent.
 
 - **Batch relation type hints** — `add_relations` row-isolation checks now cover
   invalid relation types as row-level `ok:false` results with closest-value

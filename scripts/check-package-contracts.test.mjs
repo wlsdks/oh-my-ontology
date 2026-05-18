@@ -1247,6 +1247,8 @@ describe('package contract helpers', () => {
     assert.match(productMaintenanceSection, /real `add_relation` \/ `add_concept` inputs/);
     assert.match(productMaintenanceSection, /27-command CLI surface/);
     assert.match(productMcpHardeningSection, /Batch relation type hints/);
+    assert.match(productMcpHardeningSection, /Batch unknown-field diagnostics/);
+    assert.match(productMcpHardeningSection, /every offending unknown field, nearest field\s+hints, and `Received fields: \.\.\.`/);
     assert.match(productMcpHardeningSection, /invalid relation types as row-level `ok:false` results with closest-value\s+hints/);
     assert.match(productMcpHardeningSection, /First-contact guidance gate/);
     assert.match(productMcpHardeningSection, /`initialize\.instructions` must explain/);
@@ -1445,9 +1447,11 @@ describe('package contract helpers', () => {
     assert.match(mcpVerifyRow, /`add_concepts` \/ `add_relations` row-isolation runtime smoke/);
     assert.match(mcpVerifyRow, /`concepts\[n\]` \/ `relations\[n\]` row label/);
     assert.match(mcpVerifyRow, /`add_concepts` duplicate slug first-seen label/);
+    assert.match(mcpVerifyRow, /unknown-field 모든 offending field \+ nearest field hint \+ `Received fields: \.\.\.`/);
     assert.match(mcpVerifyRow, /`Received fields: \.\.\.`/);
     assert.match(mcpVerifyRow, /invalid `add_relations` type closest-value hint/);
     assert.match(mcpVerifyRow, /top-level tool error 가 아니라 row-level `ok:false`/);
+    assert.match(mcpVerifyRow, /unknown-field row 에 모든 offending field \/ nearest field hint \/ `Received fields: \.\.\.` 가 남는지/);
     assert.match(mcpVerifyRow, /invalid relation type row 에 closest-value hint 가 남는지와 invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(mcpVerifyRow, /write-tool `postWriteMaintenance` `byPhase` \/ `bySeverity` \/ `byKind` bucket \+ `score` \/ executable `proposedAction` \/ current-page next-action guidance/);
     assert.match(mcpVerifyRow, /ready `maintenance_plan` cursor \+ missing `maintenance_plan\.afterActionId` cursor smoke/);
@@ -1621,8 +1625,11 @@ describe('package contract helpers', () => {
     assert.match(doc, /row-level non-object \/ blank \/ padded \/ unknown-field 입력은 해당 row 만 실패/);
     assert.match(doc, /row-level non-object \/ unknown-field 입력도 해당 row 만 실패/);
     assert.match(doc, /`concepts\[n\]` \/ `relations\[n\]` row label/);
+    assert.match(doc, /모든 offending field 와 nearest field hint/);
+    assert.match(doc, /모든 offending field \/ nearest field hint/);
     assert.match(doc, /`Received fields: \.\.\.`/);
     assert.match(doc, /`add_concepts` \/ `add_relations` 는 non-object row 와 unknown row fields, invalid relation type row 를 넣어\s+top-level tool error 가 아니라 row-level `ok:false` 로 격리되는지 설치 검증에서\s+실제 호출로 확인/);
+    assert.match(doc, /unknown-field row 에 모든 offending field \/ nearest field hint \/\s+`Received fields: \.\.\.` 가 남는지/);
     assert.match(doc, /relation type row 에 closest-value hint 가 남는지와\s+invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(doc, /initialize first-contact 안내도 같은 batch relation type closest-value hint 를 설명해야 하며,\s+verify helper 가 안내 문구 drift 를 별도 실패로 처리/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
