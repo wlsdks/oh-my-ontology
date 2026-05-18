@@ -2813,6 +2813,8 @@ await test('query — kind=capability AND has(elements)', async () => {
     assert.equal(r.code, 0);
     const clean = stripAnsi(r.stdout);
     // Only foo has elements; bar has relates only.
+    assert.match(clean, /showing 1\/1 match\(es\)/);
+    assert.match(clean, /parsed:.*kind = capability.*has\(elements\)/);
     assert.match(clean, /capabilities\/foo/);
     assert.doesNotMatch(clean, /capabilities\/bar.*\n/);
   } finally {

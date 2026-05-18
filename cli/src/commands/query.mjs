@@ -64,10 +64,16 @@ export async function runQuery(args) {
   }
 
   const matches = result?.matches ?? [];
+  const total = result?.total ?? matches.length;
+  const limited = result?.limited === true;
   process.stdout.write(
     `${COLORS.dim}filter:${COLORS.reset} ${COLORS.bold}${filter}${COLORS.reset} ` +
-      `${COLORS.dim}— ${result?.total ?? matches.length} match(es)${result?.limited ? ' (limited)' : ''}${COLORS.reset}\n\n`,
+      `${COLORS.dim}— showing ${matches.length}/${total} match(es)${limited ? ' (limited)' : ''}${COLORS.reset}\n`,
   );
+  if (result?.parsedAs && result.parsedAs !== filter) {
+    process.stdout.write(`${COLORS.dim}parsed:${COLORS.reset} ${result.parsedAs}\n`);
+  }
+  process.stdout.write('\n');
   if (matches.length === 0) return 0;
   for (const m of matches) {
     const kc = KIND_COLORS[m.kind] || COLORS.dim;
