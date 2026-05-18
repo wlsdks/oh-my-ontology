@@ -298,13 +298,14 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
     'nextReviewAction',
     'actions',
   ];
-  if (!sameArray(schema.required, postWriteRequired)) {
+  if (!sameArray(schema.required, postWriteRequired) || schema.additionalProperties !== false) {
     return `${toolName} outputSchema postWriteMaintenance required drift`;
   }
   const summarySchema = schema.properties?.summary;
   if (
     summarySchema?.type !== 'object' ||
     !sameArray(summarySchema.required, ['totalActions', 'filteredActions', 'remainingActions', 'executableActions', 'reviewActions']) ||
+    summarySchema.additionalProperties !== false ||
     summarySchema.properties?.remainingActions?.type !== 'integer' ||
     summarySchema.properties?.remainingActions?.minimum !== 0
   ) {
@@ -314,6 +315,7 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
   if (
     cursorSchema?.type !== 'object' ||
     !sameArray(cursorSchema.required, ['afterActionId', 'found', 'reason', 'startIndex', 'nextAfterActionId', 'hasMore']) ||
+    cursorSchema.additionalProperties !== false ||
     cursorSchema.properties?.found?.type !== 'boolean' ||
     cursorSchema.properties?.hasMore?.type !== 'boolean'
   ) {
@@ -337,6 +339,7 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
     schema.properties.actions.items?.properties?.executable?.type !== 'boolean' ||
     !sameArray(schema.properties.actions.items?.properties?.proposedAction?.type, ['object', 'null']) ||
     !sameArray(schema.properties.actions.items?.properties?.proposedAction?.required, ['tool', 'args']) ||
+    schema.properties.actions.items?.properties?.proposedAction?.additionalProperties !== false ||
     schema.properties.actions.items?.properties?.proposedAction?.properties?.tool?.type !== 'string' ||
     !sameArray(schema.properties.actions.items?.properties?.proposedAction?.properties?.tool?.enum, compactProposedActionTools) ||
     !Array.isArray(proposedArgsSchemas) ||
@@ -346,9 +349,13 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
     !sameArray(proposedArgsSchemas[1]?.properties?.type?.enum, WRITE_RELATION_TYPE_VALUES) ||
     !sameArray(proposedArgsSchemas[2]?.required, ['slug', 'frontmatter', 'expected_mtime']) ||
     proposedArgsSchemas[2]?.properties?.frontmatter?.additionalProperties !== false ||
+    schema.properties.actions.items?.additionalProperties !== false ||
+    schema.properties.actions.items?.properties?.node?.additionalProperties !== false ||
     schema.properties.actions.items?.properties?.node?.properties?.slug?.type !== 'string' ||
     !sameArray(schema.properties.actions.items?.properties?.nodes?.type, ['array', 'object']) ||
+    schema.properties.actions.items?.properties?.nodes?.items?.additionalProperties !== false ||
     schema.properties.actions.items?.properties?.nodes?.items?.properties?.slug?.type !== 'string' ||
+    schema.properties.actions.items?.properties?.nodes?.additionalProperties?.additionalProperties !== false ||
     schema.properties.actions.items?.properties?.nodes?.additionalProperties?.properties?.slug?.type !== 'string'
   ) {
     return `${toolName} outputSchema postWriteMaintenance actions drift`;
@@ -362,6 +369,8 @@ function postWriteMaintenanceSchemaFailure(schema, toolName) {
       actionSchema.properties?.executable?.type !== 'boolean' ||
       !sameArray(actionSchema.properties?.proposedAction?.type, ['object', 'null']) ||
       !sameArray(actionSchema.properties?.proposedAction?.required, ['tool', 'args']) ||
+      actionSchema.additionalProperties !== false ||
+      actionSchema.properties?.proposedAction?.additionalProperties !== false ||
       !sameArray(actionSchema.properties?.proposedAction?.properties?.tool?.enum, compactProposedActionTools) ||
       actionSchema.properties?.proposedAction?.properties?.args?.oneOf?.length !== 3
     ) {

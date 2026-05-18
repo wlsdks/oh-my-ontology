@@ -179,6 +179,7 @@ const COMPACT_MAINTENANCE_NODE_OUTPUT_SCHEMA = Object.freeze({
     title: NON_BLANK_STRING_SCHEMA,
   },
   required: ['slug', 'kind', 'title'],
+  additionalProperties: false,
 });
 const COMPACT_MAINTENANCE_PROPOSED_ACTION_OUTPUT_SCHEMA = Object.freeze({
   type: ['object', 'null'],
@@ -187,6 +188,7 @@ const COMPACT_MAINTENANCE_PROPOSED_ACTION_OUTPUT_SCHEMA = Object.freeze({
     args: COMPACT_MAINTENANCE_PROPOSED_ACTION_ARGS_OUTPUT_SCHEMA,
   },
   required: ['tool', 'args'],
+  additionalProperties: false,
 });
 const COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA = Object.freeze({
   type: 'object',
@@ -207,6 +209,7 @@ const COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA = Object.freeze({
     },
   },
   required: ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction'],
+  additionalProperties: false,
 });
 const NULLABLE_COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA = Object.freeze({
   ...COMPACT_MAINTENANCE_ACTION_OUTPUT_SCHEMA,
@@ -230,6 +233,7 @@ const POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA = Object.freeze({
         reviewActions: { type: 'integer', minimum: 0 },
       },
       required: ['totalActions', 'filteredActions', 'remainingActions', 'executableActions', 'reviewActions'],
+      additionalProperties: false,
     },
     filters: { type: 'object' },
     cursor: {
@@ -243,6 +247,7 @@ const POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA = Object.freeze({
         hasMore: { type: 'boolean' },
       },
       required: ['afterActionId', 'found', 'reason', 'startIndex', 'nextAfterActionId', 'hasMore'],
+      additionalProperties: false,
     },
     byPhase: { type: 'object', additionalProperties: { type: 'integer', minimum: 0 } },
     bySeverity: { type: 'object', additionalProperties: { type: 'integer', minimum: 0 } },
@@ -273,6 +278,7 @@ const POST_WRITE_MAINTENANCE_OUTPUT_SCHEMA = Object.freeze({
     'nextReviewAction',
     'actions',
   ],
+  additionalProperties: false,
 });
 
 function nonBlankStringSchema(description, extra = {}) {

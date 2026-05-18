@@ -131,6 +131,7 @@ import {
   workspaceBriefSummary,
 } from '../scripts/verify.mjs';
 import { expectedResponseIds, missingResponseLabels } from '../scripts/json-rpc-lines.mjs';
+import { GRAPH_ARRAY_KEYS } from './vault.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
@@ -250,15 +251,145 @@ describe('verify.mjs first-contact gates', () => {
 
   it('fails tools/list schema drift for strict arguments, graph-query enums, batch caps, and write safety', () => {
     const postWriteDescription =
-      'postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers';
+      'postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers';
+    const compactProposedActionTools = ['add_concept', 'add_relation', 'patch_concept'];
+    const compactNodeSchema = {
+      type: 'object',
+      required: ['slug', 'kind', 'title'],
+      properties: {
+        slug: { type: 'string' },
+        kind: { type: 'string', enum: NODE_KIND_VALUES },
+        title: { type: 'string' },
+      },
+      additionalProperties: false,
+    };
+    const relationArrayPatchSchema = {
+      type: 'object',
+      properties: Object.fromEntries(
+        GRAPH_ARRAY_KEYS.map((key) => [key, { type: 'array', items: { type: 'string', minLength: 1 } }]),
+      ),
+      additionalProperties: false,
+    };
+    const compactProposedActionSchema = {
+      type: ['object', 'null'],
+      required: ['tool', 'args'],
+      properties: {
+        tool: { type: 'string', enum: compactProposedActionTools },
+        args: {
+          oneOf: [
+            {
+              type: 'object',
+              required: ['slug', 'kind', 'title'],
+              properties: {
+                slug: { type: 'string' },
+                kind: { type: 'string', enum: NODE_KIND_VALUES },
+                title: { type: 'string' },
+              },
+              additionalProperties: false,
+            },
+            {
+              type: 'object',
+              required: ['from', 'to', 'type'],
+              properties: {
+                from: { type: 'string' },
+                to: { type: 'string' },
+                type: { type: 'string', enum: WRITE_RELATION_TYPE_VALUES },
+              },
+              additionalProperties: false,
+            },
+            {
+              type: 'object',
+              required: ['slug', 'frontmatter', 'expected_mtime'],
+              properties: {
+                slug: { type: 'string' },
+                frontmatter: relationArrayPatchSchema,
+                expected_mtime: { type: 'number', minimum: 0 },
+              },
+              additionalProperties: false,
+            },
+          ],
+        },
+      },
+      additionalProperties: false,
+    };
+    const compactActionProperties = {
+      id: { type: 'string' },
+      phase: { type: 'string', enum: MAINTENANCE_PHASE_VALUES },
+      kind: { type: 'string', enum: MAINTENANCE_KIND_VALUES },
+      severity: { type: 'string', enum: MAINTENANCE_SEVERITY_VALUES },
+      score: { type: 'number', minimum: 0 },
+      executable: { type: 'boolean' },
+      reason: { type: 'string' },
+      proposedAction: compactProposedActionSchema,
+      node: compactNodeSchema,
+      nodes: {
+        type: ['array', 'object'],
+        items: compactNodeSchema,
+        additionalProperties: compactNodeSchema,
+      },
+    };
+    const compactActionSchema = {
+      type: 'object',
+      required: ['id', 'phase', 'kind', 'severity', 'score', 'executable', 'reason', 'proposedAction'],
+      properties: compactActionProperties,
+      additionalProperties: false,
+    };
     const postWriteMaintenanceSchema = {
       type: 'object',
+      required: [
+        'operation',
+        'sideEffect',
+        'graphHash',
+        'summary',
+        'filters',
+        'cursor',
+        'byPhase',
+        'bySeverity',
+        'byKind',
+        'limited',
+        'nextExecutableAction',
+        'nextReviewAction',
+        'actions',
+      ],
       properties: {
+        operation: { type: 'string', enum: ['maintenance_plan'] },
+        sideEffect: { type: 'boolean' },
+        graphHash: { type: 'string' },
+        summary: {
+          type: 'object',
+          required: ['totalActions', 'filteredActions', 'remainingActions', 'executableActions', 'reviewActions'],
+          properties: {
+            totalActions: { type: 'integer', minimum: 0 },
+            filteredActions: { type: 'integer', minimum: 0 },
+            remainingActions: { type: 'integer', minimum: 0 },
+            executableActions: { type: 'integer', minimum: 0 },
+            reviewActions: { type: 'integer', minimum: 0 },
+          },
+          additionalProperties: false,
+        },
+        filters: { type: 'object' },
+        cursor: {
+          type: 'object',
+          required: ['afterActionId', 'found', 'reason', 'startIndex', 'nextAfterActionId', 'hasMore'],
+          properties: {
+            afterActionId: { type: ['string', 'null'] },
+            found: { type: 'boolean' },
+            reason: { type: ['string', 'null'] },
+            startIndex: { type: ['integer', 'null'], minimum: 0 },
+            nextAfterActionId: { type: ['string', 'null'] },
+            hasMore: { type: 'boolean' },
+          },
+          additionalProperties: false,
+        },
         byPhase: { type: 'object', additionalProperties: { type: 'integer', minimum: 0 } },
         bySeverity: { type: 'object', additionalProperties: { type: 'integer', minimum: 0 } },
         byKind: { type: 'object', additionalProperties: { type: 'integer', minimum: 0 } },
-        actions: { type: 'array' },
+        limited: { type: 'boolean' },
+        nextExecutableAction: { ...compactActionSchema, type: ['object', 'null'] },
+        nextReviewAction: { ...compactActionSchema, type: ['object', 'null'] },
+        actions: { type: 'array', items: compactActionSchema },
       },
+      additionalProperties: false,
     };
     const tools = [
       {
@@ -662,7 +793,7 @@ describe('verify.mjs first-contact gates', () => {
             targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
             afterActionId: {
               description:
-                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity. Unknown cursors return cursor.nextAfterActionId=null, cursor.hasMore=false.',
+                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the current returned page and preserve that action id, executable flag, phase, kind, and severity. Unknown cursors return cursor.nextAfterActionId=null, cursor.hasMore=false.',
             },
             componentLimit: {
               type: 'integer',
@@ -924,9 +1055,15 @@ describe('verify.mjs first-contact gates', () => {
                 required: ['slug', 'keys', 'frontmatter', 'expected_mtime'],
                 properties: {
                   slug: { type: 'string' },
-                  keys: { type: 'array', items: { type: 'string' } },
-                  frontmatter: { type: 'object' },
-                  expected_mtime: { type: 'number' },
+                  keys: { type: 'array', items: { type: 'string', enum: GRAPH_ARRAY_KEYS } },
+                  frontmatter: {
+                    type: 'object',
+                    properties: Object.fromEntries(
+                      GRAPH_ARRAY_KEYS.map((key) => [key, { type: 'array', items: { type: 'string', minLength: 1 } }]),
+                    ),
+                    additionalProperties: false,
+                  },
+                  expected_mtime: { type: 'number', minimum: 0 },
                 },
               },
             },
@@ -1146,7 +1283,7 @@ describe('verify.mjs first-contact gates', () => {
       {
         name: 'add_concept',
         description:
-          'Successful writes return postWriteMaintenance with score, proposedAction, and current-page next action pointers.',
+          'Successful writes return postWriteMaintenance with score, proposedAction, and current-page nextExecutableAction / nextReviewAction pointers.',
         inputSchema: { additionalProperties: false, properties: {} },
       },
       {
@@ -1506,7 +1643,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
         tool.name === 'add_concept' && tool.outputSchema
-          ? { ...tool, description: 'Successful writes return postWriteMaintenance with current-page next action pointers.' }
+          ? { ...tool, description: 'Successful writes return postWriteMaintenance with current-page nextExecutableAction / nextReviewAction pointers.' }
           : tool
       ))),
       'add_concept description missing maintenance action score guidance',
@@ -1516,7 +1653,7 @@ describe('verify.mjs first-contact gates', () => {
         tool.name === 'add_concept' && tool.outputSchema
           ? {
               ...tool,
-              description: 'Successful writes return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+              description: 'Successful writes return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
               outputSchema: {
                 ...tool.outputSchema,
                 properties: {
@@ -1527,7 +1664,7 @@ describe('verify.mjs first-contact gates', () => {
             }
           : tool
       ))),
-      'add_concept outputSchema postWriteMaintenance byPhase bucket drift',
+      'add_concept outputSchema postWriteMaintenance required drift',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
@@ -1542,7 +1679,7 @@ describe('verify.mjs first-contact gates', () => {
         tool.name === 'patch_concept'
           ? {
               ...tool,
-              description: 'Changed writes return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+              description: 'Changed writes return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
               outputSchema: {
                 ...tool.outputSchema,
                 properties: {
@@ -1553,12 +1690,12 @@ describe('verify.mjs first-contact gates', () => {
             }
           : tool
       ))),
-      'patch_concept outputSchema postWriteMaintenance byPhase bucket drift',
+      'patch_concept outputSchema postWriteMaintenance required drift',
     );
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
         tool.name === 'add_relation'
-          ? { ...tool, description: 'Changed writes return postWriteMaintenance with score and current-page next action pointers.' }
+          ? { ...tool, description: 'Changed writes return postWriteMaintenance with score and current-page nextExecutableAction / nextReviewAction pointers.' }
           : tool
       ))),
       'add_relation description missing executable maintenance proposedAction guidance',
@@ -1566,7 +1703,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       toolsListSchemaFailure(tools.map((tool) => (
         tool.name === 'add_relation'
-          ? { ...tool, description: 'Changed writes return postWriteMaintenance with score proposedAction and current-page next action pointers.' }
+          ? { ...tool, description: 'Changed writes return postWriteMaintenance with score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.' }
           : tool
       ))),
       'add_relation description missing maintenance bucket guidance',
@@ -1914,7 +2051,7 @@ describe('verify.mjs first-contact gates', () => {
             ...queryOntologyTool.inputSchema.properties,
             afterActionId: {
               description:
-                'maintenance_plan only: nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page.',
+                'maintenance_plan only: nextExecutableAction/nextReviewAction point only at the first executable/review action in the current returned page.',
             },
           },
         },
@@ -1930,7 +2067,7 @@ describe('verify.mjs first-contact gates', () => {
             ...queryOntologyTool.inputSchema.properties,
             afterActionId: {
               description:
-                'maintenance_plan only: cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.',
+                'maintenance_plan only: cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the current returned page and preserve that action id, executable flag, phase, kind, and severity.',
             },
           },
         },
@@ -1946,7 +2083,7 @@ describe('verify.mjs first-contact gates', () => {
             ...queryOntologyTool.inputSchema.properties,
             afterActionId: {
               description:
-                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.',
+                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, nextExecutableAction/nextReviewAction point only at the first executable/review action in the current returned page and preserve that action id, executable flag, phase, kind, and severity.',
             },
           },
         },
@@ -1962,7 +2099,7 @@ describe('verify.mjs first-contact gates', () => {
             ...queryOntologyTool.inputSchema.properties,
             afterActionId: {
               description:
-                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the returned page and preserve that action id, executable flag, phase, kind, and severity.',
+                'maintenance_plan only: cursor.nextAfterActionId matches the last returned action id, cursor.hasMore matches whether more remaining actions exist after this page, nextExecutableAction/nextReviewAction point only at the first executable/review action in the current returned page and preserve that action id, executable flag, phase, kind, and severity.',
             },
           },
         },
@@ -3190,7 +3327,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
-          description: 'Batch writes return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_concepts description missing row isolation guidance',
@@ -3200,7 +3337,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
-          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_concepts description missing row label guidance',
@@ -3210,7 +3347,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
-          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_concepts description missing received fields guidance',
@@ -3220,7 +3357,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_concepts'),
         {
           ...tools.find((tool) => tool.name === 'add_concepts'),
-          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels, unknown-field rows include Received fields, and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes isolate non-object row shape and unknown row field as ok:false rows with concepts[n] labels, unknown-field rows include Received fields, and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_concepts description missing duplicate row guidance',
@@ -3265,7 +3402,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_relations description missing row isolation guidance',
@@ -3275,7 +3412,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_relations description missing row label guidance',
@@ -3285,7 +3422,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows with relations[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes isolate non-object row shape, unknown type with closest-value hint, and unknown row field as ok:false rows with relations[n] labels and return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_relations description missing received fields guidance',
@@ -3295,7 +3432,7 @@ describe('verify.mjs first-contact gates', () => {
         ...tools.filter((tool) => tool.name !== 'add_relations'),
         {
           ...tools.find((tool) => tool.name === 'add_relations'),
-          description: 'Batch writes isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels, and unknown-field rows include Received fields. Return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page next action pointers.',
+          description: 'Batch writes isolate non-object row shape, unknown type, and unknown row field as ok:false rows with relations[n] labels, and unknown-field rows include Received fields. Return postWriteMaintenance with byPhase bySeverity byKind score proposedAction and current-page nextExecutableAction / nextReviewAction pointers.',
         },
       ]),
       'add_relations description missing closest-value type guidance',

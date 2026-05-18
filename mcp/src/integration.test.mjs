@@ -702,10 +702,19 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
         `${toolName} exposes compact action row schema`,
       );
+      assert.equal(postWriteSchema?.additionalProperties, false, `${toolName} closes postWriteMaintenance schema`);
+      assert.equal(postWriteSchema?.properties?.summary?.additionalProperties, false, `${toolName} closes summary schema`);
+      assert.equal(postWriteSchema?.properties?.cursor?.additionalProperties, false, `${toolName} closes cursor schema`);
+      assert.equal(postWriteSchema?.properties?.actions?.items?.additionalProperties, false, `${toolName} closes action row schema`);
       assert.deepEqual(
         postWriteSchema?.properties?.actions?.items?.properties?.proposedAction?.required,
         ["tool", "args"],
         `${toolName} exposes executable proposedAction call schema`,
+      );
+      assert.equal(
+        postWriteSchema?.properties?.actions?.items?.properties?.proposedAction?.additionalProperties,
+        false,
+        `${toolName} closes executable proposedAction schema`,
       );
       assert.deepEqual(
         postWriteSchema?.properties?.actions?.items?.properties?.proposedAction?.properties?.tool?.enum,
@@ -732,6 +741,11 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         ["slug", "kind", "title"],
         `${toolName} exposes compact action node schema`,
       );
+      assert.equal(
+        postWriteSchema?.properties?.actions?.items?.properties?.node?.additionalProperties,
+        false,
+        `${toolName} closes compact action node schema`,
+      );
       assert.deepEqual(
         postWriteSchema?.properties?.actions?.items?.properties?.nodes?.type,
         ["array", "object"],
@@ -742,10 +756,20 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
         ["slug", "kind", "title"],
         `${toolName} exposes array compact action node rows`,
       );
+      assert.equal(
+        postWriteSchema?.properties?.actions?.items?.properties?.nodes?.items?.additionalProperties,
+        false,
+        `${toolName} closes array compact action node rows`,
+      );
       assert.deepEqual(
         postWriteSchema?.properties?.actions?.items?.properties?.nodes?.additionalProperties?.required,
         ["slug", "kind", "title"],
         `${toolName} exposes keyed compact action node rows`,
+      );
+      assert.equal(
+        postWriteSchema?.properties?.actions?.items?.properties?.nodes?.additionalProperties?.additionalProperties,
+        false,
+        `${toolName} closes keyed compact action node rows`,
       );
       assert.deepEqual(
         postWriteSchema?.properties?.nextExecutableAction?.type,

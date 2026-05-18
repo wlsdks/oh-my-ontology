@@ -193,6 +193,7 @@ function postWriteMaintenanceSchemaFixture() {
       tool: { type: "string", enum: compactProposedActionTools },
       args: compactProposedActionArgsSchema,
     },
+    additionalProperties: false,
   };
   const compactNodeSchema = {
     type: "object",
@@ -202,6 +203,7 @@ function postWriteMaintenanceSchemaFixture() {
       kind: { type: "string", enum: NODE_KIND_VALUES },
       title: { type: "string" },
     },
+    additionalProperties: false,
   };
   const compactActionProperties = {
     id: { type: "string" },
@@ -237,6 +239,9 @@ function postWriteMaintenanceSchemaFixture() {
       "actions",
     ],
     properties: {
+      operation: { type: "string", enum: ["maintenance_plan"] },
+      sideEffect: { type: "boolean" },
+      graphHash: { type: "string" },
       summary: {
         type: "object",
         required: ["totalActions", "filteredActions", "remainingActions", "executableActions", "reviewActions"],
@@ -247,7 +252,9 @@ function postWriteMaintenanceSchemaFixture() {
           executableActions: { type: "integer", minimum: 0 },
           reviewActions: { type: "integer", minimum: 0 },
         },
+        additionalProperties: false,
       },
+      filters: { type: "object" },
       cursor: {
         type: "object",
         required: ["afterActionId", "found", "reason", "startIndex", "nextAfterActionId", "hasMore"],
@@ -259,29 +266,35 @@ function postWriteMaintenanceSchemaFixture() {
           nextAfterActionId: { type: ["string", "null"] },
           hasMore: { type: "boolean" },
         },
+        additionalProperties: false,
       },
       byPhase: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
       bySeverity: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
       byKind: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
+      limited: { type: "boolean" },
       actions: {
         type: "array",
         items: {
           type: "object",
           required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
           properties: compactActionProperties,
+          additionalProperties: false,
         },
       },
       nextExecutableAction: {
         type: ["object", "null"],
         required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
         properties: compactActionProperties,
+        additionalProperties: false,
       },
       nextReviewAction: {
         type: ["object", "null"],
         required: ["id", "phase", "kind", "severity", "score", "executable", "reason", "proposedAction"],
         properties: compactActionProperties,
+        additionalProperties: false,
       },
     },
+    additionalProperties: false,
   };
 }
 
