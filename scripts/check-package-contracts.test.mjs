@@ -1273,7 +1273,8 @@ describe('package contract helpers', () => {
     assert.match(growthRow, /MCP `growth_plan` candidates/);
     assert.match(growthRow, /relation recommendations, external element refs, dangling references, unassigned nodes, empty domains, and ignored external refs/);
     assert.match(growthRow, /candidate reasons, and proposed tool calls/);
-    assert.match(growthRow, /Malformed growth candidate payloads fail closed before JSON or human output/);
+    assert.match(growthRow, /kind-specific `proposedAction` mismatches/);
+    assert.match(growthRow, /Malformed growth candidate payloads.*fail closed before JSON or human output/);
     assert.match(maintenanceRow, /MCP `maintenance_plan` cleanup\/repair work queue/);
     assert.match(maintenanceRow, /`--after-action-id`/);
     assert.match(maintenanceRow, /compile\/cycle\/canonicalize\/dangling\/relation\/external\/ignored-external summary counts/);
@@ -2384,6 +2385,8 @@ describe('package contract helpers', () => {
     assert.match(growthRow, /MCP `query_ontology\(growth_plan\)`/);
     assert.match(growthRow, /relation recommendation \/ external element ref \/ dangling reference \/ unassigned node \/ empty domain \/ ignored external ref count/);
     assert.match(growthRow, /proposed tool call/);
+    assert.match(growthRow, /`totalActions` 는 실행 가능한 relation\/external\/dangling 후보만 합산/);
+    assert.match(growthRow, /kind-specific proposedAction endpoint\/slug\/kind 의미/);
     assert.match(growthRow, /malformed 인 growth payload 는 JSON 또는 human output 전 exit 2/);
     assert.match(cyclesRow, /malformed cycle row 는 JSON 또는 human output 전 exit 2/);
     assert.doesNotMatch(regressionSection, /\*\*\d+ spawn-based\*\* integration test/);

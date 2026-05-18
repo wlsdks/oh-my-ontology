@@ -142,9 +142,7 @@ export function assertGrowthPlanShape(result) {
   }
   const computedTotal = result.summary.relationRecommendations
     + result.summary.externalElementRefs
-    + result.summary.danglingReferences
-    + result.summary.unassignedNodes
-    + result.summary.emptyDomains;
+    + result.summary.danglingReferences;
   if (result.summary.totalActions !== computedTotal) {
     throw new Error('growth_plan summary.totalActions must equal the actionable candidate totals');
   }
@@ -676,9 +674,8 @@ function assertRelationRecommendationsGroup(group, expectedTotal) {
     throw new Error('growth_plan relationRecommendations recommendations length must equal totalRecommendations when not limited');
   }
   for (let index = 0; index < group.recommendations.length; index += 1) {
-    if (!validGrowthCandidateRow(group.recommendations[index], { requireProposedAction: true })) {
-      throw new Error(`growth_plan relationRecommendations.recommendations[${index}] has an invalid growth-candidate shape`);
-    }
+    const failure = growthCandidateRowFailure(group.recommendations[index], { requireProposedAction: true });
+    if (failure) throw new Error(`growth_plan relationRecommendations.recommendations[${index}] ${failure}`);
   }
 }
 
@@ -705,23 +702,45 @@ function assertGrowthRowsGroup(name, group, expectedTotal) {
     throw new Error(`growth_plan ${name}.rows length must equal total when not limited`);
   }
   for (let index = 0; index < group.rows.length; index += 1) {
-    if (!validGrowthCandidateRow(group.rows[index])) {
-      throw new Error(`growth_plan ${name}.rows[${index}] has an invalid growth-candidate shape`);
-    }
+    const failure = growthCandidateRowFailure(group.rows[index]);
+    if (failure) throw new Error(`growth_plan ${name}.rows[${index}] ${failure}`);
   }
 }
 
-function validGrowthCandidateRow(row, { requireProposedAction = false } = {}) {
+function growthCandidateRowFailure(row, { requireProposedAction = false } = {}) {
   if (!isPlainObject(row) || !hasNonEmptyString(row.kind, row.reason) || !Number.isFinite(row.score) || row.score < 0) {
-    return false;
+    return 'has an invalid growth-candidate shape';
   }
-  if (requireProposedAction && !isPlainObject(row.proposedAction)) return false;
+  if (requireProposedAction && !isPlainObject(row.proposedAction)) return 'must include proposedAction';
   if (row.proposedAction !== undefined && row.proposedAction !== null) {
     if (!isPlainObject(row.proposedAction) || !hasNonEmptyString(row.proposedAction.tool) || !isPlainObject(row.proposedAction.args)) {
-      return false;
+      return 'has an invalid proposedAction shape';
+    }
+    const actionFailure = growthProposedActionFailure(row);
+    if (actionFailure) return actionFailure;
+  }
+  return null;
+}
+
+function growthProposedActionFailure(row) {
+  const { tool, args } = row.proposedAction;
+  if (row.kind === 'missing_domain_containment') {
+    if (tool !== 'add_relation') return 'proposedAction.tool must be add_relation';
+    if (args.from !== row.from || args.to !== row.to || args.type !== row.relation) {
+      return 'proposedAction relation args must match row endpoints and relation';
     }
   }
-  return true;
+  if (row.kind === 'materialize_external_element') {
+    if (tool !== 'add_concept') return 'proposedAction.tool must be add_concept';
+    if (args.slug !== row.suggestedSlug) return 'proposedAction.slug must match suggestedSlug';
+    if (args.kind !== 'element') return 'proposedAction.kind must be element';
+  }
+  if (row.kind === 'resolve_dangling_reference') {
+    if (tool !== 'add_concept') return 'proposedAction.tool must be add_concept';
+    if (args.slug !== row.suggestedSlug) return 'proposedAction.slug must match suggestedSlug';
+    if (args.kind !== row.inferredKind) return 'proposedAction.kind must match inferredKind';
+  }
+  return null;
 }
 
 function validNodeSummary(row) {

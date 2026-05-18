@@ -383,10 +383,11 @@ describe('query-result-contract', () => {
         limited: false,
         recommendations: [
           {
-            kind: 'add_missing_relation',
+            kind: 'missing_domain_containment',
             score: 0.7,
             from: 'project',
             to: 'domains/auth',
+            relation: 'contains',
             reason: 'Missing containment relation.',
             proposedAction: { tool: 'add_relation', args: { from: 'project', to: 'domains/auth', type: 'contains' } },
           },
@@ -402,6 +403,7 @@ describe('query-result-contract', () => {
             score: 0.8,
             from: 'capabilities/foo',
             ref: 'src/foo.ts',
+            suggestedSlug: 'elements/src/foo',
             reason: 'Materialize external element.',
             proposedAction: { tool: 'add_concept', args: { slug: 'elements/src/foo', kind: 'element', title: 'Foo' } },
           },
@@ -414,6 +416,23 @@ describe('query-result-contract', () => {
     };
 
     assert.equal(assertGrowthPlanShape(valid), valid);
+    assert.equal(
+      assertGrowthPlanShape({
+        ...valid,
+        summary: { ...valid.summary, unassignedNodes: 1, emptyDomains: 1 },
+        unassignedNodes: {
+          total: 1,
+          limited: false,
+          rows: [{ kind: 'unassigned_node', score: 0.5, slug: 'capabilities/free', reason: 'Assign a domain.' }],
+        },
+        emptyDomains: {
+          total: 1,
+          limited: false,
+          rows: [{ kind: 'empty_domain', score: 0.4, slug: 'domains/empty', reason: 'No contained nodes.' }],
+        },
+      }).summary.totalActions,
+      2,
+    );
     assert.throws(
       () => assertGrowthPlanShape({ ...valid, summary: { ...valid.summary, totalActions: 3 } }),
       /summary\.totalActions must equal the actionable candidate totals/,
@@ -441,6 +460,36 @@ describe('query-result-contract', () => {
         },
       }),
       /externalElementRefs\.rows\[0\] has an invalid growth-candidate shape/,
+    );
+    assert.throws(
+      () => assertGrowthPlanShape({
+        ...valid,
+        relationRecommendations: {
+          ...valid.relationRecommendations,
+          recommendations: [
+            {
+              ...valid.relationRecommendations.recommendations[0],
+              proposedAction: { tool: 'add_concept', args: { from: 'project', to: 'domains/auth', type: 'contains' } },
+            },
+          ],
+        },
+      }),
+      /relationRecommendations\.recommendations\[0\] proposedAction\.tool must be add_relation/,
+    );
+    assert.throws(
+      () => assertGrowthPlanShape({
+        ...valid,
+        externalElementRefs: {
+          ...valid.externalElementRefs,
+          rows: [
+            {
+              ...valid.externalElementRefs.rows[0],
+              proposedAction: { tool: 'add_concept', args: { slug: 'elements/other', kind: 'element', title: 'Foo' } },
+            },
+          ],
+        },
+      }),
+      /externalElementRefs\.rows\[0\] proposedAction\.slug must match suggestedSlug/,
     );
   });
 
