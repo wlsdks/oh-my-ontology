@@ -4821,6 +4821,23 @@ describe('verify.mjs first-contact gates', () => {
               concepts: [
                 conceptRows[0],
                 conceptRows[1],
+                { ...conceptRows[2], allowedValues: ['project', 'domain'] },
+                conceptRows[3],
+              ],
+            }),
+          }],
+        },
+      }, 'concepts', 'add_concepts'),
+      'add_concepts row-isolation response missing duplicate seed structured repair',
+    );
+    assert.equal(
+      batchRowIsolationFailure({
+        result: {
+          content: [{
+            text: JSON.stringify({
+              concepts: [
+                conceptRows[0],
+                conceptRows[1],
                 conceptRows[2],
                 { ...conceptRows[3], error: 'concepts[3] duplicate slug in input batch' },
               ],

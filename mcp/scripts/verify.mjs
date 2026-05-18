@@ -87,6 +87,7 @@ const DIAGNOSIS_STATUSES = new Set(['healthy', 'needs_attention']);
 const HEALTH_CHECK_STATUSES = new Set(['pass', 'warn', 'fail', 'info']);
 const NEXT_ACTION_SEVERITIES = new Set(['info', 'warn', 'fail']);
 export const TOOLS_LIST_SCHEMA_CONTRACT_SUMMARY = 'strict arguments + annotations + graph-query enums + graph kind enums/descriptions + write relation enums + health tuning + post-write maintenance schema';
+const ADD_CONCEPT_KIND_VALUES = Object.freeze(['project', 'domain', 'capability', 'element', 'document']);
 const NODE_KIND_DESCRIPTION = NODE_KIND_VALUES.join(', ');
 const EDGE_TARGET_KIND_DESCRIPTION = EDGE_TARGET_KIND_VALUES.join(', ');
 export const VERIFY_TUNED_HEALTH_ARGS = {
@@ -4984,7 +4985,8 @@ export function batchRowIsolationFailure(response, key, label) {
       thirdRow.errorCode !== 'invalid_arguments' ||
       thirdRow.valueName !== 'kind' ||
       thirdRow.receivedValue !== 'capabilty' ||
-      thirdRow.suggestion !== 'capability'
+      thirdRow.suggestion !== 'capability' ||
+      !sameArray(thirdRow.allowedValues, ADD_CONCEPT_KIND_VALUES)
     )
   ) {
     return `${label} row-isolation response missing duplicate seed structured repair`;
