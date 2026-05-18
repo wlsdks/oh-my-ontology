@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-18T09:08:14.991Z",
+  "generatedAt": "2026-05-18T09:11:35.281Z",
   "docs": [
     {
       "slug": "AGENT-MEMORY-POSITIONING",
@@ -140,8 +140,8 @@
         }
       ],
       "excerpt": "20260518 update — the current architecture is a localfirst, gitbacked memory layer for AI coding agents. Round 10 permanently removed all auth + cloud surface; later rounds added deterministic graph compilation, graphengine queries, health/workspace briefs, bootstrap analysis, and import inference. Earlier cloudmode de",
-      "wordCount": 1125,
-      "updatedAt": "2026-05-18T06:48:02.192Z",
+      "wordCount": 1137,
+      "updatedAt": "2026-05-18T09:11:00.703Z",
       "linksOut": [
         "../AGENTS",
         "PRODUCT-DIRECTION",

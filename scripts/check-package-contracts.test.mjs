@@ -1390,15 +1390,20 @@ describe('package contract helpers', () => {
     assert.match(workflow, /name: Vault validator CLI contract\s+run: pnpm test:vault:validate/);
     assert.match(workflow, /name: Vault paths audit \(capability\/element 의 path 가 실 코드 일치\)\s+run: pnpm vault:audit/);
     assert.match(workflow, /name: Vault audit CLI contract\s+run: pnpm test:vault:audit/);
+    assert.match(workflow, /name: Docs vault manifest freshness\s+run: pnpm docs-vault:check/);
     assert.match(vaultTooling, /pnpm vault:validate\s+# frontmatter integrity audit/);
     assert.match(vaultTooling, /pnpm vault:validate \/your\/vault/);
     assert.match(vaultTooling, /pnpm vault:validate -- --help/);
     assert.match(vaultTooling, /print validator usage without scanning/);
     assert.match(vaultTooling, /pnpm test:vault:validate/);
     assert.match(vaultTooling, /focused validator CLI argument contract/);
+    assert.match(vaultTooling, /pnpm docs-vault:check/);
+    assert.match(vaultTooling, /static dogfood manifest freshness/);
     assert.match(vaultTooling, /pnpm test:vault:audit/);
     assert.match(vaultTooling, /focused vault audit CLI argument contract/);
-    assert.match(readme, /CI runs `pnpm vault:validate`, `pnpm test:vault:validate`,\s+`pnpm vault:audit`, `pnpm test:vault:audit`, and `pnpm package:check`/);
+    assert.match(readme, /\*\*Static dogfood manifest\*\* \| `pnpm docs-vault:check` keeps committed `src\/entities\/docs-vault\/data\/manifest\.json` and `public\/docs-vault\/` in sync with `docs\/`/);
+    assert.match(readme, /pnpm docs-vault:check\s+# committed docs-vault output freshness/);
+    assert.match(readme, /CI runs `pnpm docs-vault:check`, `pnpm vault:validate`, `pnpm test:vault:validate`,\s+`pnpm vault:audit`, `pnpm test:vault:audit`, and `pnpm package:check`/);
     assert.match(agents, /pnpm test:vault:validate\s+# focused validator CLI argument contract/);
     assert.match(agents, /pnpm test:contracts\s+# focused cross-package contract suite/);
     assert.match(agents, /pnpm vault:audit\s+# capability\/element path drift guard \(R12\)/);
@@ -1407,11 +1412,13 @@ describe('package contract helpers', () => {
     assert.match(agents, /pnpm test:contracts\s+# cross-package contract focused test/);
     assert.match(agents, /pnpm test:vault:validate\s+# validator CLI 인자 계약 focused test/);
     assert.match(architecture, /pnpm test:vault:validate\s+# focused validator CLI argument contract \(CI gate\)/);
+    assert.match(architecture, /pnpm docs-vault:check\s+# verify committed docs-vault outputs are fresh \(CI gate\)/);
     assert.match(architecture, /pnpm test:vault:audit\s+# focused vault audit CLI argument contract \(CI gate\)/);
     assert.match(architecture, /pnpm test:contracts\s+# focused cross-package parser\/schema\/validator contracts/);
-    assert.match(architecture, /`vault:validate`, `test:vault:validate`, `vault:audit`, `test:vault:audit`, and `package:check` run in CI/);
+    assert.match(architecture, /`docs-vault:check`, `vault:validate`, `test:vault:validate`, `vault:audit`, `test:vault:audit`, and `package:check` run in CI/);
     assert.match(prTemplate, /If `scripts\/validate-vault\.mjs`, vault validation docs, or CI validation gates changed: `pnpm test:vault:validate`/);
     assert.match(prTemplate, /If `scripts\/audit-vault-paths\.mjs`, dogfood path audit docs, or CI audit gates changed: `pnpm test:vault:audit`/);
+    assert.match(prTemplate, /If `docs\/`, `public\/docs-vault\/`, or static dogfood manifest behavior changed: `pnpm docs-vault:check`/);
   });
 
   it('keeps the benchmark script-list task unfrozen', () => {

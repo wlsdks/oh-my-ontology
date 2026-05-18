@@ -20,6 +20,7 @@ Korean or English both fine.
 - [ ] `pnpm bundle:check` — local-first routes still 0 KB firebase
 - [ ] If `scripts/validate-vault.mjs`, vault validation docs, or CI validation gates changed: `pnpm test:vault:validate`
 - [ ] If `scripts/audit-vault-paths.mjs`, dogfood path audit docs, or CI audit gates changed: `pnpm test:vault:audit`
+- [ ] If `docs/`, `public/docs-vault/`, or static dogfood manifest behavior changed: `pnpm docs-vault:check`
 - [ ] If `mcp/`, `cli/`, package manifests, or release scripts changed: `pnpm package:check`
 - [ ] If MCP tools / dogfood ontology changed: `pnpm dogfood:walk`
 - [ ] Browser smoke test on changed surfaces (paste console errors here, ideally 0)

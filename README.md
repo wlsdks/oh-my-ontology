@@ -181,6 +181,7 @@ browser receives permission to access a local folder on your machine.
 |---|---|
 | **No backend** | `pnpm bundle:check` keeps Firebase/server chunks out of local-first routes. |
 | **Static deploy** | `pnpm build` exports to `out/`; Firebase Hosting serves only static files. |
+| **Static dogfood manifest** | `pnpm docs-vault:check` keeps committed `src/entities/docs-vault/data/manifest.json` and `public/docs-vault/` in sync with `docs/`. |
 | **Vault integrity** | `pnpm vault:validate`, `test:vault:validate`, `vault:audit`, and `test:vault:audit` run in CI. |
 | **MCP/CLI contracts** | `pnpm test:cli:args`, `pnpm test:mcp:docs`, `pnpm package:check`, `pnpm test:contracts`, and focused `test:mcp:*` scripts cover the agent surface. |
 | **Dogfooding** | This repo's own vault has **29 nodes**: capabilities 17, domains 6, elements 4, project 1, vault-readme 1. |
@@ -197,6 +198,7 @@ pnpm exec tsc --noEmit
 pnpm lint
 pnpm test:run
 pnpm build
+pnpm docs-vault:check
 pnpm bundle:check
 ```
 
@@ -219,11 +221,12 @@ pnpm vault:validate              # frontmatter integrity audit
 pnpm vault:validate /your/vault  # validate any folder
 pnpm vault:validate -- --help    # print validator usage without scanning
 pnpm test:vault:validate         # focused validator CLI argument contract
+pnpm docs-vault:check            # committed docs-vault output freshness
 pnpm vault:audit                 # dogfood ontology paths match real repo files
 pnpm test:vault:audit            # focused vault audit CLI argument contract
 ```
 
-CI runs `pnpm vault:validate`, `pnpm test:vault:validate`,
+CI runs `pnpm docs-vault:check`, `pnpm vault:validate`, `pnpm test:vault:validate`,
 `pnpm vault:audit`, `pnpm test:vault:audit`, and `pnpm package:check` on every PR.
 
 ## Architecture

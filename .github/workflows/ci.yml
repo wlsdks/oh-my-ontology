@@ -56,6 +56,9 @@ jobs:
       - name: Vault audit CLI contract
         run: pnpm test:vault:audit
 
+      - name: Docs vault manifest freshness
+        run: pnpm docs-vault:check
+
       - name: Package contracts (MCP/CLI publish files)
         run: pnpm package:check
 
