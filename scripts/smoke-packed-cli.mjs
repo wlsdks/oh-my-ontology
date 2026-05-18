@@ -733,6 +733,7 @@ try {
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm test:mcp:verify:timeout/);
   assert.match(directMcpVerifyHelp.stdout, /Narrow MCP verify timeout\/startup\/help diagnostics/);
+  assert.match(directMcpVerifyHelp.stdout, /pnpm test:dogfood:script-refs\s+Narrow documented pnpm script reference contract/);
   assert.match(directMcpVerifyHelp.stdout, /pnpm dogfood:verify\s+Root checkout dogfood vault installed-style verify gate/);
 
   const mcpEmptyVerify = run(
