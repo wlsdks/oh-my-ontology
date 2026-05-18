@@ -10,6 +10,21 @@ const RULES = [
     matches: [/^docs\/ontology\//, /^src\/entities\/docs-vault\/data\/manifest\.json$/],
   },
   {
+    command: 'pnpm test:docs-vault',
+    reason: 'docs-vault build/check helper changed',
+    matches: [/^scripts\/build-docs-vault\.(?:mjs|test\.mjs)$/],
+  },
+  {
+    command: 'pnpm test:vault:validate',
+    reason: 'vault validator script changed',
+    matches: [/^scripts\/validate-vault(?:-script)?\.test\.mjs$/, /^scripts\/validate-vault\.mjs$/],
+  },
+  {
+    command: 'pnpm test:vault:audit',
+    reason: 'vault path audit script changed',
+    matches: [/^scripts\/audit-vault-paths\.(?:mjs|test\.mjs)$/],
+  },
+  {
     command: 'pnpm test:dogfood:script-refs',
     reason: 'help text, package-script references, or focused wrapper behavior changed',
     matches: [

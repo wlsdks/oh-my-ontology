@@ -30,6 +30,20 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests narrow vault tooling tests for vault helper scripts', () => {
+    const result = suggestFocusedChecks([
+      'scripts/build-docs-vault.mjs',
+      'scripts/validate-vault.mjs',
+      'scripts/audit-vault-paths.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:docs-vault',
+      'pnpm test:vault:validate',
+      'pnpm test:vault:audit',
+    ]);
+  });
+
   it('suggests focused CLI and MCP verify gates without jumping straight to full suites', () => {
     const result = suggestFocusedChecks([
       'cli/src/commands/mcp-verify.mjs',

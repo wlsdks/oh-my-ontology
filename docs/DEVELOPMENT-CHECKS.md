@@ -83,7 +83,9 @@ plus untracked files from `git ls-files --others --exclude-standard`, excluding
 local `.agents/` and `.codex/` agent state. Pass paths after `--` to inspect a
 planned file set before editing. It prints first checks plus explicit
 escalation gates, and is only an advisor; still add runtime/browser checks when
-the touched behavior needs them.
+the touched behavior needs them. Vault helper changes route to their narrow
+checks first: `pnpm test:docs-vault`, `pnpm test:vault:validate`, or
+`pnpm test:vault:audit`.
 
 | Command | Use when |
 |---|---|

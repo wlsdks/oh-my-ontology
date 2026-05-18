@@ -54,7 +54,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   `git ls-files --others --exclude-standard` paths (excluding local `.agents/`
   / `.codex/` agent state), or explicit paths after `--`, to the first focused
   checks plus escalation gates so agents can avoid broad test runs when a
-  narrower verification path is enough.
+  narrower verification path is enough. Vault helper scripts now route to
+  `pnpm test:docs-vault`, `pnpm test:vault:validate`, or
+  `pnpm test:vault:audit` before broader docs/package gates.
 
 ## 2026-05-18 — MCP first-contact and packed-smoke hardening
 
