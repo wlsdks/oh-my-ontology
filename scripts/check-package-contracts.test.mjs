@@ -933,8 +933,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /✓ strict query_concepts filters — invalid kind\/has-key rejected with closest-value hints/);
     assert.match(verifySection, /✓ strict find_neighbors filters — invalid relation types rejected before slug resolution with closest-value hint/);
     assert.match(verifySection, /✓ strict find_orphans filters — invalid kind\/excludeKinds rejected with closest-value hints/);
-    assert.match(verifySection, /✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint/);
-    assert.match(verifySection, /✓ strict add_relation — invalid type rejected before endpoint resolution without writing/);
+    assert.match(verifySection, /✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint and structured repair/);
+    assert.match(verifySection, /✓ strict add_relation — invalid type rejected before endpoint resolution with structured repair and no write metadata/);
     assert.match(verifySection, /✓ strict graph filters — invalid match_nodes\.kind\/sort, match_edges\.type, and recommend_relations\.kind rejected with narrowed diagnostics/);
     assert.match(verifySection, /✓ strict graph edge kind filters — invalid match_edges\.fromKind\/toKind rejected with closest-value hints/);
     assert.match(verifySection, /✓ maintenance cursor — missing afterActionId reported .*phase none; severity none; kind none; executable none; review none/);
@@ -2437,6 +2437,9 @@ describe('package contract helpers', () => {
     assert.match(doc, /focused subset, workspace_brief sample-shape gate, maintenance work-queue shape \/ formatter, initialize safety\/recovery guidance, tools\/list inventory name \/ annotation coverage, row-label guidance summary, strict closest-value \/ unknown-tool repair summary, strict add_relation type-preflight 를 fixture 로 검증/);
     assert.match(doc, /전체 helper 회귀가 필요할 때만\s+`pnpm dogfood:test`/);
     assert.match(doc, /strict relation filter/);
+    assert.match(doc, /설치형 `pnpm cli:mcp-verify` 성공 로그도 strict `relation_check` \/ `add_relation`/);
+    assert.match(doc, /`structuredContent\.valueName` \/ `receivedValue` \/ `suggestion` \/ `allowedValues`/);
+    assert.match(doc, /no-write metadata gate/);
     assert.match(doc, /stderr warning filtering/);
     assert.match(doc, /first-contact README read-only/);
     assert.match(doc, /직접 verify help 는\s+`mcp\/` package directory 의 `npm run verify -- --help` 또는 repo root 의\s+`node mcp\/scripts\/verify\.mjs --help`/);

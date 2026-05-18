@@ -6842,13 +6842,13 @@ async function step2BootAndCall() {
         log('fail', strictRelationCheck);
         return res(false);
       }
-      log('ok', 'strict relation_check — invalid type rejected before endpoint resolution with closest-value hint');
+      log('ok', 'strict relation_check — invalid type rejected before endpoint resolution with closest-value hint and structured repair');
       const strictAddRelation = strictAddRelationFailure(strictAddRelationRes);
       if (strictAddRelation) {
         log('fail', strictAddRelation);
         return res(false);
       }
-      log('ok', 'strict add_relation — invalid type rejected before endpoint resolution without writing');
+      log('ok', 'strict add_relation — invalid type rejected before endpoint resolution with structured repair and no write metadata');
       const strictGraphKindFilter = strictGraphKindFilterFailure(strictGraphKindFilterRes);
       if (strictGraphKindFilter) {
         log('fail', strictGraphKindFilter);

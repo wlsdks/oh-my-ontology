@@ -401,8 +401,8 @@ A successful run looks like this:
 ✓ strict query_concepts filters — invalid kind/has-key rejected with closest-value hints
 ✓ strict find_neighbors filters — invalid relation types rejected before slug resolution with closest-value hint
 ✓ strict find_orphans filters — invalid kind/excludeKinds rejected with closest-value hints
-✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint
-✓ strict add_relation — invalid type rejected before endpoint resolution without writing
+✓ strict relation_check — invalid type rejected before endpoint resolution with closest-value hint and structured repair
+✓ strict add_relation — invalid type rejected before endpoint resolution with structured repair and no write metadata
 ✓ strict graph filters — invalid match_nodes.kind/sort, match_edges.type, and recommend_relations.kind rejected with narrowed diagnostics
 ✓ strict graph edge kind filters — invalid match_edges.fromKind/toKind rejected with closest-value hints
 ✓ maintenance cursor — missing afterActionId reported (afterActionId not found in filtered maintenance actions; phase none; severity none; kind none; executable none; review none)

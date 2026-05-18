@@ -737,6 +737,10 @@ Analysis 가 `strict arguments + annotations + graph-query enums + graph kind en
 `relation_check` 의 `type depend_on->depends_on; allowed 9`,
 single-writer `add_relation` 의 `type depend_on->depends_on; allowed 8` 까지 표시해, 단순히 rejected 여부만
 통과한 것인지 suggestion 품질과 허용 enum 폭까지 검증된 것인지 구분할 수 있게 한다.
+설치형 `pnpm cli:mcp-verify` 성공 로그도 strict `relation_check` / `add_relation`
+row 를 structured repair 로 명명해, 검증자가 단순 closest-value 텍스트가 아니라
+`structuredContent.valueName` / `receivedValue` / `suggestion` / `allowedValues` 와
+no-write metadata gate 를 확인한다는 점을 드러낸다.
 strict `list_concepts.kind` row 는 `kind:"capabilty"` typo 를 사용해 첫 목록 필터가
 빈 결과로 숨지 않고 node-kind enum 에서 먼저 거절되는지 보여준다.
 strict `query_concepts.kind` / `query_concepts.has-key` row 는 `kind=capabilty` 와
