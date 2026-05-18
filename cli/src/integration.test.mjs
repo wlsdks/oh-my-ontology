@@ -2856,6 +2856,7 @@ await test('overview — graph fixture 의 counts + 허브 정확', async () => 
     assert.match(clean, /domain\s+1/);
     // 허브 — degree 가 가장 큰 domains/auth 가 top
     assert.match(clean, /domains\/auth/);
+    assert.match(clean, /domains\/auth\s+— Auth/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

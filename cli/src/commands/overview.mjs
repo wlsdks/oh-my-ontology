@@ -138,7 +138,8 @@ function renderOverview(result, hubsLimit) {
       const slug = h.slug.padEnd(50);
       const deg = `${COLORS.dim}deg ${h.degree}${COLORS.reset}` +
         ` ${COLORS.dim}(in ${h.inDegree} · out ${h.outDegree})${COLORS.reset}`;
-      process.stdout.write(`  ${COLORS.bold}${rank}${COLORS.reset} ${kc}${slug}${COLORS.reset} ${deg}\n`);
+      const titleText = h.title && h.title !== h.slug ? ` ${COLORS.dim}— ${h.title}${COLORS.reset}` : '';
+      process.stdout.write(`  ${COLORS.bold}${rank}${COLORS.reset} ${kc}${slug}${COLORS.reset}${titleText} ${deg}\n`);
     }
   }
 }
