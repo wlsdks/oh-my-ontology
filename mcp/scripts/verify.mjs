@@ -3532,9 +3532,10 @@ export function verifyUsage() {
     '  node mcp/scripts/verify.mjs [vault] [--timeout-ms N]\n' +
     '  node mcp/scripts/verify.mjs --vault path --timeout-ms 15000\n' +
     '  npm run verify -- [vault] [--timeout-ms N]\n' +
-    '  npm run verify -- --vault path --timeout-ms 15000\n\n' +
+    '  npm run verify -- --vault path --timeout-ms 15000\n' +
+    '  pnpm --filter ./mcp verify -- --help\n\n' +
     'Runs the MCP server first-contact verification against the resolved vault.\n' +
-    'Run npm run verify from the mcp/ package directory; from the repo root, use the node mcp/scripts/verify.mjs form.\n' +
+    'Run npm run verify from the mcp/ package directory; from the repo root, use node mcp/scripts/verify.mjs or pnpm --filter ./mcp verify -- ...\n' +
     'Explicit [vault] or --vault arguments take precedence over OMOT_VAULT.\n' +
     'Timeout cleanup sends SIGTERM and then SIGKILL; set OMOT_VERIFY_KILL_GRACE_MS=N only when the post-timeout cleanup window needs explicit tuning.\n' +
     'Checks parser smoke, server boot, tool inventory (missing/extra/duplicate/invalid names), and direct read smokes,\n' +

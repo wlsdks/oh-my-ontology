@@ -4667,8 +4667,9 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);
     assert.match(verifyUsage(), /npm run verify -- \[vault\] \[--timeout-ms N\]/);
     assert.match(verifyUsage(), /npm run verify -- --vault path --timeout-ms 15000/);
+    assert.match(verifyUsage(), /pnpm --filter \.\/mcp verify -- --help/);
     assert.match(verifyUsage(), /Run npm run verify from the mcp\/ package directory/);
-    assert.match(verifyUsage(), /from the repo root, use the node mcp\/scripts\/verify\.mjs form/);
+    assert.match(verifyUsage(), /from the repo root, use node mcp\/scripts\/verify\.mjs or pnpm --filter \.\/mcp verify -- \.\.\./);
     assert.match(verifyUsage(), /Explicit \[vault\] or --vault arguments take precedence over OMOT_VAULT/);
     assert.match(verifyUsage(), /Timeout cleanup sends SIGTERM and then SIGKILL/);
     assert.match(verifyUsage(), /OMOT_VERIFY_KILL_GRACE_MS=N/);
@@ -4698,7 +4699,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /Narrow MCP verify timeout\/startup\/help diagnostics/);
     assert.match(verifyUsage(), /pnpm test:dogfood:script-refs\s+Narrow help\/package-script reference contract/);
     assert.match(verifyUsage(), /pnpm dogfood:verify\s+Root checkout dogfood vault installed-style verify gate/);
-    assertPnpmScriptsExist(verifyUsage(), ROOT_PKG.scripts);
+    assertPnpmScriptsExist(verifyUsage(), ROOT_PKG.scripts, { filteredScripts: { './mcp': MCP_PKG.scripts } });
   });
 
   it('direct verify usage keeps entrypoint on natural exit so verbose output can flush', () => {

@@ -719,8 +719,9 @@ try {
   assert.match(directMcpVerifyHelp.stdout, /node mcp\/scripts\/verify\.mjs --vault path --timeout-ms 15000/);
   assert.match(directMcpVerifyHelp.stdout, /npm run verify -- \[vault\] \[--timeout-ms N\]/);
   assert.match(directMcpVerifyHelp.stdout, /npm run verify -- --vault path --timeout-ms 15000/);
+  assert.match(directMcpVerifyHelp.stdout, /pnpm --filter \.\/mcp verify -- --help/);
   assert.match(directMcpVerifyHelp.stdout, /Run npm run verify from the mcp\/ package directory/);
-  assert.match(directMcpVerifyHelp.stdout, /from the repo root, use the node mcp\/scripts\/verify\.mjs form/);
+  assert.match(directMcpVerifyHelp.stdout, /from the repo root, use node mcp\/scripts\/verify\.mjs or pnpm --filter \.\/mcp verify -- \.\.\./);
   assert.match(directMcpVerifyHelp.stdout, /Explicit \[vault\] or --vault arguments take precedence over OMOT_VAULT/);
   assert.match(directMcpVerifyHelp.stdout, /tool inventory \(missing\/extra\/duplicate\/invalid names\)/);
   assert.match(directMcpVerifyHelp.stdout, /project probe/);
