@@ -135,7 +135,9 @@ subprocesses report the signal plus target path. The wrapper requires an
 explicit pattern and at least one test target; use `node --test` directly for an
 intentional full run. Node test option values such as `--test-concurrency 1`
 or `--test-timeout 1000` are not counted as targets, and a missing split option
-value cannot leak the following option value into the target list.
+value cannot leak the following option value into the target list. Successful
+focused runs end with `matched=N` before file-level `tests=N`, so the exact
+scoped test count is visible without subtracting skipped tests.
 `pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot.
 `pnpm dogfood:compile-fix` runs dogfood `compile --fix`, fails if canonicalization leaves a docs/ontology diff, tells you to run `pnpm docs-vault:build`, and ends successful runs with `[dogfood:compile-fix] docs/ontology unchanged`.
 `pnpm test:dogfood:args` checks shared dogfood shortcut argument helpers without invoking any gate.
