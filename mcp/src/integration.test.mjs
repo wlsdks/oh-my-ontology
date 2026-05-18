@@ -4038,6 +4038,7 @@ await test("add_concepts — unknown row field 는 row-level error 로 격리", 
     assert.equal(result.concepts[1].rowName, "concepts[1]");
     assert.equal(result.concepts[1].receivedField, "titel");
     assert.equal(result.concepts[1].suggestion, "title");
+    assert.deepEqual(result.concepts[1].unknownFields, [{ name: "titel", suggestion: "title" }]);
     assert.deepEqual(result.concepts[1].receivedFields, ["domain", "kind", "slug", "titel", "title"]);
     assert.equal(result.concepts[2].ok, false);
     assert.match(result.concepts[2].error, /Unknown fields in concepts\[2\]/i);
@@ -4452,6 +4453,7 @@ await test("add_relations — unknown row field 는 row-level error 로 격리",
     assert.equal(result.relations[1].rowName, "relations[1]");
     assert.equal(result.relations[1].receivedField, "relation");
     assert.equal(result.relations[1].suggestion, "type");
+    assert.deepEqual(result.relations[1].unknownFields, [{ name: "relation", suggestion: "type" }]);
     assert.equal(result.relations[2].ok, false);
     assert.match(result.relations[2].error, /Unknown fields in relations\[2\]/i);
     assert.match(result.relations[2].error, /"relation" \(did you mean "type"\?\)/i);

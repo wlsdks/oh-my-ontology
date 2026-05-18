@@ -221,6 +221,9 @@ Unknown argument errors likewise include `toolName`, `receivedArgument`,
 `unknownArguments`, `receivedArguments`, `suggestion`, and `allowedArguments`
 when those fields apply, so single-argument and multi-argument typos can share
 one structured repair path.
+Row-level unknown field errors follow the same pattern: single-field errors
+include both `receivedField` and a one-row `unknownFields` array, while
+multi-field errors include every offending field.
 Invalid enum / filter / type values include the same structured repair shape
 as `valueName`, `receivedValue`, `suggestion`, and `allowedValues`, so clients
 can correct `operation:"overveiw"` without scraping the text form.

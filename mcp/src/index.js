@@ -2702,6 +2702,7 @@ function structuredErrorDetails(message) {
       rowName,
       receivedField,
       suggestion,
+      unknownFields: [omitUndefined({ name: receivedField, suggestion })],
       allowedFields: splitCommaList(allowedText),
       receivedFields: splitCommaList(receivedText),
     });
