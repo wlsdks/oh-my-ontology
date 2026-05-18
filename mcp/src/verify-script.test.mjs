@@ -40,6 +40,7 @@ import {
   diagnosisIssueCount,
   destructiveDryRunFailure,
   destructiveDryRunSmokeFailure,
+  DYNAMIC_FIRST_CONTACT_RESPONSE_IDS,
   patchConflictGuardFailure,
   EXPECTED_DESTRUCTIVE_TOOLS,
   EXPECTED_IDEMPOTENT_TOOLS,
@@ -5835,6 +5836,7 @@ describe('verify.mjs first-contact gates', () => {
   it('keeps node-dependent first-contact smokes optional until their live target exists', () => {
     const ids = initialExpectedFirstContactIds();
     assert.deepEqual(OPTIONAL_FIRST_CONTACT_RESPONSE_IDS, [30, 31, 33, 35, 36, 37, 43, 44, 45, 61]);
+    assert.deepEqual(DYNAMIC_FIRST_CONTACT_RESPONSE_IDS, [11, 13, 14, 15, ...OPTIONAL_FIRST_CONTACT_RESPONSE_IDS]);
     for (const optionalId of OPTIONAL_FIRST_CONTACT_RESPONSE_IDS) {
       assert.equal(ids.has(optionalId), false, `${FIRST_CONTACT_RESPONSE_LABELS.get(optionalId)} starts optional`);
     }
@@ -5897,7 +5899,7 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(64), 'get_concepts_batch_cap');
     assert.equal(FIRST_CONTACT_RESPONSE_LABELS.get(65), 'strict_unknown_tool');
     assert.deepEqual(
-      [...expectedResponseIds(buildFirstContactRequests()), 11, 13, 14, 15, 30, 31, 33, 35, 36, 37, 43, 44, 45, 61].sort((a, b) => a - b),
+      [...expectedResponseIds(buildFirstContactRequests()), ...DYNAMIC_FIRST_CONTACT_RESPONSE_IDS].sort((a, b) => a - b),
       [...FIRST_CONTACT_RESPONSE_LABELS.keys()].sort((a, b) => a - b),
     );
     const responsesWithoutGetConcepts = [...FIRST_CONTACT_RESPONSE_LABELS.keys()]

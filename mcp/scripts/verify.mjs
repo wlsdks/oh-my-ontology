@@ -3117,6 +3117,14 @@ export const OPTIONAL_FIRST_CONTACT_RESPONSE_IDS = [
   61, // patch_concept_conflict_guard — sent only when a real writable node exists.
 ];
 
+export const DYNAMIC_FIRST_CONTACT_RESPONSE_IDS = [
+  11, // get_concepts — sent after list_concepts returns the current sample slugs.
+  13, // neighbors — sent after graph smoke target selection.
+  14, // path — sent after graph smoke target selection.
+  15, // project_scope — sent after project probe/listing discovers a project node.
+  ...OPTIONAL_FIRST_CONTACT_RESPONSE_IDS,
+];
+
 function log(level, msg) {
   const tag =
     level === 'ok' ? '\x1b[32m✓\x1b[0m' :
