@@ -435,7 +435,10 @@ Did you mean "limit"?`, `Unknown arguments for list_concepts: "lmit" (did you me
 Did you mean "overview"?` 같은 오류가 기본값 fallback 이 아니라 즉시 고쳐야 하는
 인자명/값 오류임을 agent-facing instructions 와 verify/dogfood smoke 에서 직접 안내한다.
 unknown argument 오류는 `Received arguments: ...` 도 함께 포함해 agent 가 실제 전송한
-키 집합을 보고 한 번에 수정할 수 있게 한다.
+키 집합을 보고 한 번에 수정할 수 있게 한다. tool-level 오류는
+`structuredContent.errorCode` 도 함께 제공되며, initialize instructions 와 verify
+smoke 는 unknown argument 의 `unknown_argument`, enum/filter/type 값 오류의
+`invalid_arguments` 를 agent 가 텍스트 파싱 대신 우선 사용할 수 있게 안내한다.
 `add_relations` first-contact smoke 는 non-object row, unknown field row,
 relation type typo row 를 함께 보내 row-level 격리와 relation type nearest hint 를 동시에 검증한다.
 `maintenance_plan` filter smoke 도 `phases: ["repiar"]`, `severities: ["fatal"]`,

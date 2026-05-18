@@ -2787,6 +2787,7 @@ export function initializeInstructionsFailure(response) {
     ['dangling referrers safety', /dangling referrers/i],
     ['expected_mtime conflict guard', /expected_mtime/],
     ['strict arguments guidance', /unknown arguments are rejected/i],
+    ['structured errorCode guidance', /structuredContent[\s\S]*errorCode[\s\S]*unknown_argument[\s\S]*invalid_arguments/i],
     ['nearest argument hint guidance', /Did you mean "limit"\?/],
     ['multiple unknown arguments guidance', /Unknown arguments for list_concepts[\s\S]*"summry"[\s\S]*did you mean "summary"\?/i],
     ['batch row isolation guidance', /non-object row[\s\S]*unknown row field[\s\S]*ok:\s*false/i],

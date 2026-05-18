@@ -5377,6 +5377,7 @@ describe('verify.mjs first-contact gates', () => {
       'Use expected_mtime when patching a previously-read concept.',
       'Tool schemas reject unknown arguments with nearest hints.',
       'unknown arguments are rejected instead of being ignored.',
+      'Tool-level errors include structuredContent errorCode values such as unknown_argument for unknown argument names and invalid_arguments for invalid enum/filter/type values.',
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
       'Batch add_concepts and add_relations isolate each non-object row and unknown row field as ok:false.',
@@ -5414,6 +5415,10 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('unknown arguments are rejected', '') } }),
       'initialize instructions missing strict arguments guidance',
+    );
+    assert.equal(
+      initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('unknown_argument', 'argument_error') } }),
+      'initialize instructions missing structured errorCode guidance',
     );
     assert.equal(
       initializeInstructionsFailure({ result: { instructions: safeInstructions.replace('"summry" (did you mean "summary"?)', '"summry"') } }),
