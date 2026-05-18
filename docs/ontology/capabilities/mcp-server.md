@@ -454,7 +454,8 @@ read-only first-contact diagnosis, `expected_mtime`, existing `newSlug` /
 strict-input typo recovery 안내도 같은 gate 에 포함되어 `Did you mean "limit"?`,
 `Did you mean "overview"?`, `Did you mean "depends_on"?`, `Did you mean "repair"?`,
 `Did you mean "capabilities"?`
-같은 nearest hint 가 first-contact 에서 사라지지 않게 한다. batch repair 안내도
+같은 nearest hint 가 first-contact 에서 사라지지 않게 한다. row-level unknown-field repair 의
+`receivedField` / `unknownFields` / `allowedFields` / `receivedFields` 안내와 batch repair 안내도
 같은 gate 에 포함되어 `add_concepts` duplicate input slug 는
 `concepts[n] duplicate slug in input batch; first seen at concepts[m]` 형태로
 나중 row 와 최초 row 를 알려야 한다.

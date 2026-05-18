@@ -1186,6 +1186,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /Did you mean "depends_on"\?/);
     assert.match(verifySection, /strict-input typo recovery/);
     assert.match(verifySection, /`Did you mean "limit"\?` \/ `Did you mean "overview"\?`/);
+    assert.match(readme, /row-level unknown field repair fields include `receivedField` \/ `unknownFields` \/ `allowedFields` \/ `receivedFields`/);
     assert.match(verifySection, /runtime negative smoke calls with invalid `list_concepts\.lmit`/);
     assert.match(verifySection, /`query_ontology\.operation="overveiw"` inputs/);
   });
@@ -1931,7 +1932,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /relation type row 에 closest-value hint 가 남는지와\s+invalid-only smoke 에 `postWriteMaintenance` 가 없는지도 확인/);
     assert.match(doc, /`get_concepts` \/ `add_concepts` \/\s+`add_relations` 51-row batch 도 실제 호출해 `invalid_arguments` 로 거절되는지 확인/);
     assert.match(doc, /성공 로그도 `single\/multi unknown-field repair` 를 그대로 드러내/);
-    assert.match(doc, /initialize first-contact 안내도 같은 batch relation type closest-value hint 를 설명해야 하며,\s+verify helper 가 안내 문구 drift 를 별도 실패로 처리/);
+    assert.match(doc, /row-level unknown-field repair 의\s+`receivedField` \/ `unknownFields` \/ `allowedFields` \/ `receivedFields` 안내와 batch repair 안내/);
     assert.match(doc, /`rename_concept` \/ `merge_concepts` \/ `delete_concept` 도 destructive writer\s+dry-run\/confirm `outputSchema`/);
     assert.match(doc, /`validate_vault` 도 `outputSchema` 와 동일한 `structuredContent` health payload/);
     assert.match(doc, /issue-code enum\/key set/);

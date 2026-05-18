@@ -3037,6 +3037,7 @@ export function initializeInstructionsFailure(response) {
     ['unknown tool guidance', /unknown tool names are rejected[\s\S]*Unknown tool: list_concept[\s\S]*Did you mean "list_concepts"\?/i],
     ['structured errorCode guidance', /structuredContent[\s\S]*errorCode[\s\S]*unknown_tool[\s\S]*unknown_argument[\s\S]*invalid_arguments/i],
     ['structured repair fields guidance', /structuredContent[\s\S]*receivedTool[\s\S]*receivedArgument[\s\S]*unknownArguments[\s\S]*receivedValue[\s\S]*suggestion[\s\S]*allowedTools[\s\S]*allowedArguments[\s\S]*allowedValues/i],
+    ['structured row field repair guidance', /structuredContent[\s\S]*receivedField[\s\S]*unknownFields[\s\S]*allowedFields[\s\S]*receivedFields/i],
     ['structured missing slug guidance', /missingSlug[\s\S]*similarSlugs[\s\S]*recoveryTools[\s\S]*createTool/i],
     ['structured conflict guidance', /conflictSlug[\s\S]*recoveryTools[\s\S]*overwriteOption/i],
     ['nearest argument hint guidance', /Did you mean "limit"\?/],

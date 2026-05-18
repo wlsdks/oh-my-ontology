@@ -96,7 +96,7 @@ function makeDogfoodInitialize() {
       "unknown arguments are rejected instead of being ignored.",
       'unknown tool names are rejected with closest tool-name hints such as Unknown tool: list_concept. Did you mean "list_concepts"?',
       "Tool errors include structuredContent.errorCode values such as unknown_tool, unknown_argument, and invalid_arguments.",
-      "Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.",
+      "Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedField, unknownFields, allowedFields, receivedFields, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.",
       "Missing node errors include structuredContent repair fields such as missingSlug, similarSlugs, recoveryTools, and createTool.",
       "Slug conflict errors include structuredContent repair fields such as conflictSlug, recoveryTools, and overwriteOption.",
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
@@ -4204,10 +4204,20 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         initialize: {
           ...okShape.initialize,
-          instructions: okShape.initialize.instructions.replace("Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.", "Tool errors are plain text."),
+          instructions: okShape.initialize.instructions.replace("Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedField, unknownFields, allowedFields, receivedFields, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.", "Tool errors are plain text."),
         },
       }),
       ["initialize: initialize instructions missing structured repair fields guidance"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        initialize: {
+          ...okShape.initialize,
+          instructions: okShape.initialize.instructions.replace("receivedField, unknownFields, allowedFields, receivedFields, ", ""),
+        },
+      }),
+      ["initialize: initialize instructions missing structured row field repair guidance"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
