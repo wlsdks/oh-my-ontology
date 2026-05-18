@@ -91,7 +91,9 @@ function makeDogfoodInitialize() {
       "Use expected_mtime when patching a previously-read concept.",
       "Tool schemas reject unknown arguments with nearest hints.",
       "unknown arguments are rejected instead of being ignored.",
-      "Tool errors include structuredContent.errorCode values such as unknown_argument and invalid_arguments.",
+      'unknown tool names are rejected with closest tool-name hints such as Unknown tool: list_concept. Did you mean "list_concepts"?',
+      "Tool errors include structuredContent.errorCode values such as unknown_tool, unknown_argument, and invalid_arguments.",
+      "Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.",
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
       "Batch add_concepts and add_relations isolate each non-object row and unknown row fields as ok:false.",
@@ -3151,11 +3153,16 @@ const okShape = {
   strictArgs: {
     result: {
       isError: true,
-      content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: kind, limit. Received arguments: lmit.' }],
+      content: [{ text: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit.' }],
       structuredContent: {
         ok: false,
         errorCode: "unknown_argument",
-        error: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: kind, limit. Received arguments: lmit.',
+        error: 'Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit.',
+        toolName: "list_concepts",
+        receivedArgument: "lmit",
+        suggestion: "limit",
+        allowedArguments: ["domain", "kind", "limit", "since", "summary"],
+        receivedArguments: ["lmit"],
       },
     },
   },
@@ -3167,6 +3174,13 @@ const okShape = {
         ok: false,
         errorCode: "unknown_argument",
         error: 'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit, summry.',
+        toolName: "list_concepts",
+        receivedArguments: ["lmit", "summry"],
+        unknownArguments: [
+          { name: "lmit", suggestion: "limit" },
+          { name: "summry", suggestion: "summary" },
+        ],
+        allowedArguments: ["domain", "kind", "limit", "since", "summary"],
       },
     },
   },
@@ -3174,6 +3188,15 @@ const okShape = {
     result: {
       isError: true,
       content: [{ text: 'operation must be one of: overview, health. Received: "overveiw". Did you mean "overview"?' }],
+      structuredContent: {
+        ok: false,
+        errorCode: "invalid_arguments",
+        error: 'operation must be one of: overview, health. Received: "overveiw". Did you mean "overview"?',
+        valueName: "operation",
+        receivedValue: "overveiw",
+        suggestion: "overview",
+        allowedValues: ["overview", "health"],
+      },
     },
   },
   strictMaintenancePhaseFilter: {
@@ -4097,10 +4120,20 @@ describe("evaluateDogfoodGate", () => {
         ...okShape,
         initialize: {
           ...okShape.initialize,
-          instructions: okShape.initialize.instructions.replace("Tool errors include structuredContent.errorCode values such as unknown_argument and invalid_arguments.", "Tool errors are plain text."),
+          instructions: okShape.initialize.instructions.replace("Tool errors include structuredContent.errorCode values such as unknown_tool, unknown_argument, and invalid_arguments.", "Tool errors are plain text."),
         },
       }),
       ["initialize: initialize instructions missing structured errorCode guidance"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        initialize: {
+          ...okShape.initialize,
+          instructions: okShape.initialize.instructions.replace("Tool errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.", "Tool errors are plain text."),
+        },
+      }),
+      ["initialize: initialize instructions missing structured repair fields guidance"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({
@@ -4566,6 +4599,10 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, strictArgs: structuredError('Unknown argument "lmit" for list_concepts. Did you mean "limit"?') }),
       ["strict_args: strict arguments response did not report the received list_concepts arguments"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictArgs: structuredError('Unknown argument "lmit" for list_concepts. Did you mean "limit"? Allowed arguments: kind, limit. Received arguments: lmit.') }),
+      ["strict_args: strict arguments structured error missing repair hint"],
+    );
   });
 
   it("fails malformed strict multi-argument dogfood responses", () => {
@@ -4592,6 +4629,10 @@ describe("evaluateDogfoodGate", () => {
       evaluateDogfoodGate({ ...okShape, strictMultiArgs: structuredError('Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)') }),
       ["strict_multi_args: strict multi-argument response did not report all received list_concepts arguments"],
     );
+    assert.deepEqual(
+      evaluateDogfoodGate({ ...okShape, strictMultiArgs: structuredError('Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?). Allowed arguments: domain, kind, limit, since, summary. Received arguments: lmit, summry.') }),
+      ["strict_multi_args: strict multi-argument structured error missing received arguments"],
+    );
   });
 
   it("fails malformed strict enum dogfood responses", () => {
@@ -4601,11 +4642,28 @@ describe("evaluateDogfoodGate", () => {
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, strictEnum: { result: { isError: true, content: [{ text: "different error" }] } } }),
-      ["strict_enum: strict enum response did not report the invalid query_ontology operation"],
+      ["strict_enum: strict enum structured error missing"],
     );
     assert.deepEqual(
       evaluateDogfoodGate({ ...okShape, strictEnum: { result: { isError: true, content: [{ text: 'operation must be one of: overview. Received: "overveiw".' }] } } }),
-      ["strict_enum: strict enum response did not suggest the closest query_ontology operation"],
+      ["strict_enum: strict enum structured error missing"],
+    );
+    assert.deepEqual(
+      evaluateDogfoodGate({
+        ...okShape,
+        strictEnum: {
+          result: {
+            isError: true,
+            content: [{ text: 'operation must be one of: overview, health. Received: "overveiw". Did you mean "overview"?' }],
+            structuredContent: {
+              ok: false,
+              errorCode: "invalid_arguments",
+              error: 'operation must be one of: overview, health. Received: "overveiw". Did you mean "overview"?',
+            },
+          },
+        },
+      }),
+      ["strict_enum: strict enum structured error missing repair hint"],
     );
   });
 

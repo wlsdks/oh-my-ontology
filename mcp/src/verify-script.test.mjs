@@ -4799,15 +4799,21 @@ describe('verify.mjs first-contact gates', () => {
     );
     assert.equal(
       strictEnumFailure({ result: { isError: true, content: [{ text: 'different error' }] } }),
-      'strict enum response did not report the invalid query_ontology operation',
+      'strict enum structured error missing',
     );
     assert.equal(
       strictEnumFailure({ result: { isError: true, content: [{ text: 'operation must be one of: overview. invalid value overveiw' }] } }),
-      'strict enum response did not suggest the closest query_ontology operation',
+      'strict enum structured error missing',
     );
     assert.equal(
       strictEnumFailure(strictErrorResponse(error)),
       'strict enum structured error missing repair hint',
+    );
+    assert.equal(
+      strictEnumFailure(strictErrorResponse(error, {
+        structuredContent: { ok: false, errorCode: 'invalid_arguments', error, valueName: 'operation', receivedValue: 'overveiw', suggestion: 'overview' },
+      })),
+      'strict enum structured error missing allowed values',
     );
   });
 
@@ -5598,6 +5604,7 @@ describe('verify.mjs first-contact gates', () => {
       'unknown arguments are rejected instead of being ignored.',
       'unknown tool names are rejected with closest tool-name hints.',
       'Tool-level errors include structuredContent errorCode values such as unknown_tool for unknown tool names, unknown_argument for unknown argument names and invalid_arguments for invalid enum/filter/type values.',
+      'Tool-level errors include structuredContent repair fields such as receivedTool, receivedArgument, unknownArguments, receivedValue, suggestion, allowedTools, allowedArguments, and allowedValues.',
       'Unknown tool: list_concept. Did you mean "list_concepts"?',
       'Unknown argument "lmit" for list_concepts. Did you mean "limit"?',
       'Unknown arguments for list_concepts: "lmit" (did you mean "limit"?), "summry" (did you mean "summary"?)',
