@@ -284,6 +284,7 @@ describe('package contract helpers', () => {
     assert.match(result.stdout, /oh-my-ontology mcp-verify \[vault\] \[--timeout-ms N\]/);
     assert.match(result.stdout, /tool inventory \(missing\/extra\/duplicate\/invalid names\)/);
     assert.match(result.stdout, /Focused checks:/);
+    assert.match(result.stdout, /pnpm test:cli:mcp-call\s+CLI MCP wrapper parser\/spawn\/structuredContent contract checks/);
     assert.match(result.stdout, /pnpm integration:cli:mcp-verify/);
     assert.match(result.stdout, /pnpm dogfood:compile\s+Root checkout dogfood vault compile_ontology summary/);
     assert.match(result.stdout, /pnpm dogfood:health\s+Root checkout dogfood vault health gate/);
