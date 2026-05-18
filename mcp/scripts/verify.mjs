@@ -6460,26 +6460,26 @@ async function step2BootAndCall() {
 async function main() {
   if (VERIFY_ARGS.help) {
     process.stdout.write(verifyUsage());
-    process.exit(0);
+    return 0;
   }
   if (VERIFY_ARGS.error) {
     process.stderr.write(`\n[oh-my-ontology-mcp verify]\n\n\x1b[31m✗\x1b[0m ${VERIFY_ARGS.error}\n`);
     process.stderr.write(verifyUsage());
-    process.exit(1);
+    return 1;
   }
   if (verifyTimeoutMs() === false) {
     process.stderr.write(`\n[oh-my-ontology-mcp verify]\n\n\x1b[31m✗\x1b[0m ${verifyTimeoutValueErrorMessage(VERIFY_TIMEOUT_MS_RAW, verifyRetryEnvForVault(VAULT))}\n`);
-    process.exit(1);
+    return 1;
   }
   console.log('\n[oh-my-ontology-mcp verify]\n');
   const ok1 = await step1ParserSmoke();
-  if (!ok1) process.exit(1);
+  if (!ok1) return 1;
   const ok2 = await step2BootAndCall();
-  if (!ok2) process.exit(1);
+  if (!ok2) return 1;
   console.log(`\n\x1b[32m${verifySuccessMessage()}\x1b[0m\n`);
-  process.exit(0);
+  return 0;
 }
 
 if (IS_MAIN) {
-  main();
+  process.exitCode = await main();
 }

@@ -3700,6 +3700,15 @@ describe('verify.mjs first-contact gates', () => {
     assertPnpmScriptsExist(verifyUsage());
   });
 
+  it('direct verify usage keeps entrypoint on natural exit so verbose output can flush', () => {
+    const source = readFileSync(VERIFY_SCRIPT, 'utf-8');
+
+    assert.doesNotMatch(source, /\bprocess\.exit\s*\(/);
+    assert.match(source, /process\.exitCode\s*=\s*await main\(\)/);
+    assert.match(source, /return 1/);
+    assert.match(source, /return 0/);
+  });
+
   it('keeps the verify success message MCP-client neutral', () => {
     assert.equal(
       verifySuccessMessage(23),
