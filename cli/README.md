@@ -204,7 +204,9 @@ wrapper was called with an explicit vault, timeout retry hints preserve that
 vault in the retry command as `--vault <path>`.
 Graph commands that call the MCP server through the shared CLI wrapper also
 fail closed instead of hanging forever; set `OMOT_CLI_MCP_TIMEOUT_MS=N` if a
-large or slow vault needs a longer one-shot MCP call window.
+large or slow vault needs a longer one-shot MCP call window. After timeout the
+wrapper sends `SIGTERM` and then `SIGKILL`; set `OMOT_CLI_MCP_KILL_GRACE_MS=N`
+only when that post-timeout cleanup window needs explicit tuning.
 
 `oh-my-ontology workspace-brief [vault]` follows the same blocking distinction:
 warn/advisory next actions render as guidance, but fail-severity next actions

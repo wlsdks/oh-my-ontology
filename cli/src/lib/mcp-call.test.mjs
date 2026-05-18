@@ -13,6 +13,7 @@ import {
   formatMcpSpawnError,
   formatMcpStdinError,
   mcpCallTimeoutMs,
+  mcpKillGraceMs,
   parseMcpToolResponse,
 } from './mcp-call.mjs';
 
@@ -66,6 +67,19 @@ describe('mcp-call response parsing', () => {
     );
   });
 
+  it('parses MCP kill grace configuration strictly', () => {
+    assert.equal(mcpKillGraceMs({}), 1_000);
+    assert.equal(mcpKillGraceMs({ OMOT_CLI_MCP_KILL_GRACE_MS: '25' }), 25);
+    assert.throws(
+      () => mcpKillGraceMs({ OMOT_CLI_MCP_KILL_GRACE_MS: '250ms' }),
+      /OMOT_CLI_MCP_KILL_GRACE_MS must be a positive integer/,
+    );
+    assert.throws(
+      () => mcpKillGraceMs({ OMOT_CLI_MCP_KILL_GRACE_MS: '0' }),
+      /OMOT_CLI_MCP_KILL_GRACE_MS must be a positive integer/,
+    );
+  });
+
   it('formats MCP call timeout errors with retry guidance and stderr context', () => {
     assert.equal(
       formatMcpCallTimeoutError(25, {
@@ -115,6 +129,7 @@ describe('mcp-call response parsing', () => {
     const server = join(root, 'silent-mcp.mjs');
     const previousPath = process.env.OMOT_MCP_PATH;
     const previousTimeout = process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+    const previousKillGrace = process.env.OMOT_CLI_MCP_KILL_GRACE_MS;
     writeFileSync(
       server,
       [
@@ -126,6 +141,7 @@ describe('mcp-call response parsing', () => {
     );
     process.env.OMOT_MCP_PATH = server;
     process.env.OMOT_CLI_MCP_TIMEOUT_MS = '25';
+    process.env.OMOT_CLI_MCP_KILL_GRACE_MS = '25';
     try {
       await assert.rejects(
         () => callMcpTool(root, 'list_kinds'),
@@ -136,6 +152,8 @@ describe('mcp-call response parsing', () => {
       else process.env.OMOT_MCP_PATH = previousPath;
       if (previousTimeout === undefined) delete process.env.OMOT_CLI_MCP_TIMEOUT_MS;
       else process.env.OMOT_CLI_MCP_TIMEOUT_MS = previousTimeout;
+      if (previousKillGrace === undefined) delete process.env.OMOT_CLI_MCP_KILL_GRACE_MS;
+      else process.env.OMOT_CLI_MCP_KILL_GRACE_MS = previousKillGrace;
       rmSync(root, { recursive: true, force: true });
     }
   });
@@ -145,6 +163,7 @@ describe('mcp-call response parsing', () => {
     const server = join(root, 'ignore-term-mcp.mjs');
     const previousPath = process.env.OMOT_MCP_PATH;
     const previousTimeout = process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+    const previousKillGrace = process.env.OMOT_CLI_MCP_KILL_GRACE_MS;
     writeFileSync(
       server,
       [
@@ -157,6 +176,7 @@ describe('mcp-call response parsing', () => {
     );
     process.env.OMOT_MCP_PATH = server;
     process.env.OMOT_CLI_MCP_TIMEOUT_MS = '25';
+    process.env.OMOT_CLI_MCP_KILL_GRACE_MS = '25';
     try {
       const started = Date.now();
       await assert.rejects(
@@ -169,6 +189,8 @@ describe('mcp-call response parsing', () => {
       else process.env.OMOT_MCP_PATH = previousPath;
       if (previousTimeout === undefined) delete process.env.OMOT_CLI_MCP_TIMEOUT_MS;
       else process.env.OMOT_CLI_MCP_TIMEOUT_MS = previousTimeout;
+      if (previousKillGrace === undefined) delete process.env.OMOT_CLI_MCP_KILL_GRACE_MS;
+      else process.env.OMOT_CLI_MCP_KILL_GRACE_MS = previousKillGrace;
       rmSync(root, { recursive: true, force: true });
     }
   });
@@ -178,6 +200,7 @@ describe('mcp-call response parsing', () => {
     const server = join(root, 'json-rpc-error-mcp.mjs');
     const previousPath = process.env.OMOT_MCP_PATH;
     const previousTimeout = process.env.OMOT_CLI_MCP_TIMEOUT_MS;
+    const previousKillGrace = process.env.OMOT_CLI_MCP_KILL_GRACE_MS;
     writeFileSync(
       server,
       [
@@ -196,6 +219,7 @@ describe('mcp-call response parsing', () => {
     );
     process.env.OMOT_MCP_PATH = server;
     process.env.OMOT_CLI_MCP_TIMEOUT_MS = '1000';
+    process.env.OMOT_CLI_MCP_KILL_GRACE_MS = '25';
     try {
       await assert.rejects(
         () => callMcpTool(root, 'query_ontology', { operation: 'overveiw' }),
@@ -206,6 +230,8 @@ describe('mcp-call response parsing', () => {
       else process.env.OMOT_MCP_PATH = previousPath;
       if (previousTimeout === undefined) delete process.env.OMOT_CLI_MCP_TIMEOUT_MS;
       else process.env.OMOT_CLI_MCP_TIMEOUT_MS = previousTimeout;
+      if (previousKillGrace === undefined) delete process.env.OMOT_CLI_MCP_KILL_GRACE_MS;
+      else process.env.OMOT_CLI_MCP_KILL_GRACE_MS = previousKillGrace;
       rmSync(root, { recursive: true, force: true });
     }
   });

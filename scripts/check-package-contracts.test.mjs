@@ -1023,6 +1023,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /fail closed instead of hanging forever/);
     assert.match(verifySection, /`OMOT_CLI_MCP_TIMEOUT_MS=N`/);
     assert.match(verifySection, /longer one-shot MCP call window/);
+    assert.match(verifySection, /`SIGTERM` and then `SIGKILL`/);
+    assert.match(verifySection, /`OMOT_CLI_MCP_KILL_GRACE_MS=N`/);
+    assert.match(verifySection, /post-timeout cleanup window/);
     assert.match(verifySection, /node-to-project `path`/);
     assert.match(verifySection, /`path` hop\/edge alignment/);
     assert.match(verifySection, /`path` \/ `project_scope` calls/);

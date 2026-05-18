@@ -26,7 +26,9 @@ const __dirname = dirname(__filename);
 const require_ = createRequire(import.meta.url);
 const CLI_PKG = JSON.parse(readFileSync(resolve(__dirname, '../../package.json'), 'utf-8'));
 const DEFAULT_MCP_CALL_TIMEOUT_MS = 15_000;
+const DEFAULT_MCP_KILL_GRACE_MS = 1_000;
 const MCP_CALL_TIMEOUT_ENV = 'OMOT_CLI_MCP_TIMEOUT_MS';
+const MCP_KILL_GRACE_ENV = 'OMOT_CLI_MCP_KILL_GRACE_MS';
 
 export const CLI_CLIENT_INFO = Object.freeze({
   name: 'oh-my-ontology-cli',
@@ -75,6 +77,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
   return new Promise((resolveP, rejectP) => {
     const entry = resolveMcpEntry();
     const timeoutMs = mcpCallTimeoutMs();
+    const killGraceMs = mcpKillGraceMs();
     const proc = spawn(process.execPath, [entry], {
       env: { ...process.env, OMOT_VAULT: vaultRoot },
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -103,7 +106,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
       proc.kill('SIGTERM');
       killTimer = setTimeout(() => {
         if (!exited) proc.kill('SIGKILL');
-      }, 1_000);
+      }, killGraceMs);
       killTimer.unref?.();
       finish(() => rejectP(formatMcpCallTimeoutError(timeoutMs, { toolName, vaultRoot, stderr: stderrBuf })));
     }, timeoutMs);
@@ -205,6 +208,15 @@ export function mcpCallTimeoutMs(env = process.env) {
   if (raw == null || raw === '') return DEFAULT_MCP_CALL_TIMEOUT_MS;
   if (!/^\d+$/.test(String(raw)) || Number(raw) <= 0) {
     throw new Error(`${MCP_CALL_TIMEOUT_ENV} must be a positive integer wait window in milliseconds. Received: ${JSON.stringify(String(raw))}.`);
+  }
+  return Number(raw);
+}
+
+export function mcpKillGraceMs(env = process.env) {
+  const raw = env[MCP_KILL_GRACE_ENV];
+  if (raw == null || raw === '') return DEFAULT_MCP_KILL_GRACE_MS;
+  if (!/^\d+$/.test(String(raw)) || Number(raw) <= 0) {
+    throw new Error(`${MCP_KILL_GRACE_ENV} must be a positive integer wait window in milliseconds. Received: ${JSON.stringify(String(raw))}.`);
   }
   return Number(raw);
 }
