@@ -591,6 +591,32 @@ await test('mcp-verify — passes CLI retry hint to the verify script', async ()
   assert.doesNotMatch(stripAnsi(r.stderr), /npm run verify -- --timeout-ms 15000/);
 });
 
+await test('mcp-verify — times out a stalled verify script override', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'cli-mcp-verify-stall-'));
+  const vault = join(root, 'ontology');
+  mkdirSync(vault);
+  const verifyScript = join(root, 'stalled-verify.mjs');
+  writeFileSync(
+    verifyScript,
+    "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000);",
+    'utf-8',
+  );
+
+  const started = Date.now();
+  const r = await run(['mcp-verify', vault, '--timeout-ms', '25'], {
+    env: {
+      OMOT_MCP_VERIFY_PATH: verifyScript,
+      OMOT_VERIFY_KILL_GRACE_MS: '25',
+    },
+  });
+
+  assert.equal(r.code, 1);
+  assert.ok(Date.now() - started < 1000, 'wrapper should fail closed without hanging the integration suite');
+  assert.match(stripAnsi(r.stderr), /MCP verify wrapper timed out after 50ms/);
+  assert.match(stripAnsi(r.stderr), /Check OMOT_MCP_VERIFY_PATH/);
+  assert.match(stripAnsi(r.stderr), /increase --timeout-ms \/ OMOT_VERIFY_TIMEOUT_MS/);
+});
+
 await test('mcp-verify — rejects ambiguous vault arguments', async () => {
   const missing = await run(['mcp-verify', '--vault']);
   assert.equal(missing.code, 1);

@@ -13,6 +13,8 @@ import { formatUnknownFlagError, parsePositiveIntegerFlag, parseVaultFlag, resol
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require_ = createRequire(import.meta.url);
 const ALLOWED_FLAGS = ['--vault', '--timeout-ms'];
+const DEFAULT_VERIFY_TIMEOUT_MS = 8_000;
+const DEFAULT_VERIFY_KILL_GRACE_MS = 1_000;
 
 const COLORS = {
   red: '\x1b[31m',
@@ -88,6 +90,20 @@ function isFile(path) {
 
 function runVerifyScript(verifyScript, vaultRoot, timeoutMs, vaultArg) {
   return new Promise((resolveP) => {
+    const verifyWaitMs = mcpVerifyEffectiveTimeoutMs(timeoutMs, process.env);
+    const killGraceMs = mcpVerifyEffectiveKillGraceMs(process.env);
+    const wrapperTimeoutMs = verifyWaitMs + killGraceMs;
+    let settled = false;
+    let exited = false;
+    let killTimer = null;
+    let timeoutTimer = null;
+    const finish = (code) => {
+      if (settled) return;
+      settled = true;
+      if (timeoutTimer) clearTimeout(timeoutTimer);
+      if (killTimer) clearTimeout(killTimer);
+      resolveP(code);
+    };
     const proc = spawn(process.execPath, [verifyScript], {
       env: {
         ...process.env,
@@ -99,10 +115,25 @@ function runVerifyScript(verifyScript, vaultRoot, timeoutMs, vaultArg) {
     });
     proc.stdout.on('data', (b) => process.stdout.write(b));
     proc.stderr.on('data', (b) => process.stderr.write(b));
-    proc.on('close', (code) => resolveP(code ?? 1));
+    timeoutTimer = setTimeout(() => {
+      process.stderr.write(
+        `${COLORS.red}error${COLORS.reset}  MCP verify wrapper timed out after ${wrapperTimeoutMs}ms. ` +
+        'Check OMOT_MCP_VERIFY_PATH or increase --timeout-ms / OMOT_VERIFY_TIMEOUT_MS.\n',
+      );
+      proc.kill('SIGTERM');
+      killTimer = setTimeout(() => {
+        if (!exited) proc.kill('SIGKILL');
+      }, killGraceMs);
+      killTimer.unref?.();
+    }, wrapperTimeoutMs);
+    timeoutTimer.unref?.();
+    proc.on('close', (code) => {
+      exited = true;
+      finish(code ?? 1);
+    });
     proc.on('error', (err) => {
       process.stderr.write(`${COLORS.red}error${COLORS.reset}  ${err.message}\n`);
-      resolveP(2);
+      finish(2);
     });
   });
 }
@@ -169,6 +200,21 @@ function mcpVerifyEnvTimeoutError(timeoutMs, rawValue, vaultArg = null) {
   const parsed = parsePositiveIntegerFlag('OMOT_VERIFY_TIMEOUT_MS', rawValue);
   if (!(parsed instanceof Error)) return null;
   return mcpVerifyTimeoutValueErrorMessage(parsed.message, rawValue, vaultArg);
+}
+
+function mcpVerifyEffectiveTimeoutMs(timeoutMs, env = process.env) {
+  if (timeoutMs != null) return timeoutMs;
+  const rawValue = env.OMOT_VERIFY_TIMEOUT_MS;
+  if (rawValue == null || rawValue === '') return DEFAULT_VERIFY_TIMEOUT_MS;
+  const parsed = parsePositiveIntegerFlag('OMOT_VERIFY_TIMEOUT_MS', rawValue);
+  return parsed instanceof Error ? DEFAULT_VERIFY_TIMEOUT_MS : parsed;
+}
+
+function mcpVerifyEffectiveKillGraceMs(env = process.env) {
+  const rawValue = env.OMOT_VERIFY_KILL_GRACE_MS;
+  if (rawValue == null || rawValue === '') return DEFAULT_VERIFY_KILL_GRACE_MS;
+  const parsed = parsePositiveIntegerFlag('OMOT_VERIFY_KILL_GRACE_MS', rawValue);
+  return parsed instanceof Error ? DEFAULT_VERIFY_KILL_GRACE_MS : parsed;
 }
 
 function mcpVerifyEnvKillGraceError(rawValue) {

@@ -203,7 +203,9 @@ retry example such as `oh-my-ontology mcp-verify --timeout-ms 15000`; when the
 wrapper was called with an explicit vault, timeout retry hints preserve that
 vault in the retry command as `--vault <path>`. After timeout the delegated
 verifier sends `SIGTERM` and then `SIGKILL`; set `OMOT_VERIFY_KILL_GRACE_MS=N`
-only when that post-timeout cleanup window needs explicit tuning.
+only when that post-timeout cleanup window needs explicit tuning. The CLI
+wrapper also has its own outer timeout for `OMOT_MCP_VERIFY_PATH` overrides, so
+a custom verify script that stalls cannot hang the installed sanity check.
 Graph commands that call the MCP server through the shared CLI wrapper also
 fail closed instead of hanging forever; set `OMOT_CLI_MCP_TIMEOUT_MS=N` if a
 large or slow vault needs a longer one-shot MCP call window. After timeout the

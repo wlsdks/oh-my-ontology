@@ -1029,6 +1029,8 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /`SIGTERM` and then `SIGKILL`/);
     assert.match(verifySection, /`OMOT_CLI_MCP_KILL_GRACE_MS=N`/);
     assert.match(verifySection, /post-timeout cleanup window/);
+    assert.match(verifySection, /outer timeout for `OMOT_MCP_VERIFY_PATH` overrides/);
+    assert.match(verifySection, /custom verify script that stalls cannot hang/);
     assert.match(verifySection, /node-to-project `path`/);
     assert.match(verifySection, /`path` hop\/edge alignment/);
     assert.match(verifySection, /`path` \/ `project_scope` calls/);
@@ -2075,6 +2077,10 @@ export const CLI_COMMAND_RUNNERS = Object.freeze({
     assert.match(wrapper, /OMOT_VERIFY_RETRY_EXAMPLE: mcpVerifyRetryExample\(vaultArg\)/);
     assert.match(wrapper, /spawn\(process\.execPath, \[verifyScript\]/);
     assert.doesNotMatch(wrapper, /spawn\('node', \[verifyScript\]/);
+    assert.match(wrapper, /MCP verify wrapper timed out after \$\{wrapperTimeoutMs\}ms/);
+    assert.match(wrapper, /Check OMOT_MCP_VERIFY_PATH/);
+    assert.match(wrapper, /proc\.kill\('SIGTERM'\)/);
+    assert.match(wrapper, /proc\.kill\('SIGKILL'\)/);
     assert.match(wrapper, /oh-my-ontology mcp-verify\$\{vaultPart\} --timeout-ms 15000/);
     assert.match(wrapper, /--vault \$\{shellArg\(vaultArg\)\}/);
     assert.match(wrapper, /String\(flags\.timeoutMsRaw \?\? ''\)\.startsWith\('--'\)/);
@@ -2082,6 +2088,9 @@ export const CLI_COMMAND_RUNNERS = Object.freeze({
     assert.match(verify, /OMOT_VERIFY_RETRY_EXAMPLE/);
     assert.match(verify, /DEFAULT_VERIFY_RETRY_EXAMPLE = 'npm run verify -- --timeout-ms 15000'/);
     assert.match(integration, /passes CLI retry hint to the verify script/);
+    assert.match(integration, /times out a stalled verify script override/);
+    assert.match(integration, /OMOT_MCP_VERIFY_PATH: verifyScript/);
+    assert.match(integration, /MCP verify wrapper timed out after 50ms/);
     assert.match(integration, /retry=\$\{process\.env\.OMOT_VERIFY_RETRY_EXAMPLE\}/);
     assert.match(integration, /oh-my-ontology mcp-verify --vault '.\+vault with space' --timeout-ms 15000/);
     assert.match(integration, /oh-my-ontology mcp-verify --vault ontology --timeout-ms 15000/);
