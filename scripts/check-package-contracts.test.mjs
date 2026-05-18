@@ -254,8 +254,8 @@ describe('package contract helpers', () => {
     assert.match(readme, /runs `workspace_brief`, tuned `workspace_brief`, `health`, and tuned `health`/);
     assert.match(readme, /`health` and `workspace-brief` also accept focused diagnosis tuning flags/);
     assert.match(readme, /`--dependency-types A,B`, `--component-types A,B`, `--component-limit N`/);
-    assert.match(readme, /graph-query, destructive\s+dry-run, post-write bucket guidance, strict argument \/ enum rejection,\s+annotations, write relation enums, and health tuning schema scope/);
-    assert.match(readme, /graph-query, destructive dry-run, post-write bucket, strict argument \/ enum,\s+annotation, write relation enum, and health tuning smoke scope/);
+    assert.match(readme, /graph-query, destructive\s+dry-run, post-write maintenance schema, strict argument \/ enum rejection,\s+annotations, write relation enums, and health tuning schema scope/);
+    assert.match(readme, /graph-query, destructive dry-run, post-write maintenance schema, strict argument \/ enum,\s+annotation, write relation enum, and health tuning smoke scope/);
   });
 
   it('keeps the root README mcp-verify shortcut executable from source checkout', () => {
@@ -664,7 +664,7 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /list_concepts\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports\/find_neighbors\/find_path\/find_orphans\/list_kinds/);
     assert.match(verifySection, /✓ initialize instructions — first-contact safety and recovery guidance present/);
     assert.match(verifySection, /✓ tools\/list inventory names — missing\/extra\/duplicate\/invalid checks passed/);
-    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ graph kind enums\/descriptions \+ write relation enums \+ health tuning \+ post-write bucket guidance/);
+    assert.match(verifySection, /✓ tools\/list schema contract — strict arguments \+ annotations \+ graph-query enums \+ graph kind enums\/descriptions \+ write relation enums \+ health tuning \+ post-write maintenance schema/);
     assert.match(verifySection, /✓ strict arguments — unknown tool argument rejected at runtime/);
     assert.match(verifySection, /✓ strict arguments — multiple unknown tool arguments reported together/);
     assert.match(verifySection, /✓ add_concepts — non-object, unknown-field, and duplicate-slug rows isolated with input indexes/);
@@ -1218,7 +1218,7 @@ describe('package contract helpers', () => {
     assert.match(releaseChecks, /get_concepts` with discovered slugs plus one\s+missing slug/);
     assert.match(releaseChecks, /batch-read\s+partial-row contract/);
     assert.match(releaseChecks, /mcp-verify --help/);
-    assert.match(releaseChecks, /graph-query, destructive\s+dry-run, post-write bucket guidance, strict argument \/ enum rejection,\s+annotations, write relation enums, and health tuning schema scope/);
+    assert.match(releaseChecks, /graph-query, destructive\s+dry-run, post-write maintenance schema, strict argument \/ enum rejection,\s+annotations, write relation enums, and health tuning schema scope/);
     assert.match(releaseChecks, /actual `neighbors`, node→project `path`, and\s+`project_scope` calls/);
     assert.match(releaseChecks, /project-less and empty-vault\s+verify paths/);
     assert.match(releaseChecks, /flow\/help\/failure/);
@@ -1527,7 +1527,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`add_concepts` duplicate\s+slug first-seen 안내/);
     assert.match(doc, /write row labels: pass/);
     assert.match(doc, /schema gate 도 같은 summary helper 를 공유/);
-    assert.match(doc, /strict arguments \+ annotations \+ graph-query enums \+ graph kind enums\/descriptions \+ write relation enums\s+\+ health tuning \+ post-write bucket guidance/);
+    assert.match(doc, /strict arguments \+ annotations \+ graph-query enums \+ graph kind enums\/descriptions \+ write relation enums\s+\+ health tuning \+ post-write maintenance schema/);
     assert.match(doc, /batch repair 안내도\s+같은 gate 에 포함/);
     assert.match(doc, /`concepts\[n\] duplicate slug in input batch; first seen at concepts\[m\]`/);
     assert.match(doc, /strict relation filter \/ `relation_check` row/);
@@ -1961,7 +1961,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /vault 인자는 추가 `--` 없이 넘기고 help flag 에만 `-- --help`/);
     assert.match(regressionSection, /timeout retry hint 는 `--vault <path>` 를 보존/);
     assert.match(regressionSection, /직접 `npm run verify -- --vault <path>` 경로도 같은 vault-preserving retry 계약/);
-    assert.match(regressionSection, /write-tool post-write bucket guidance/);
+    assert.match(regressionSection, /write-tool post-write maintenance schema/);
     assert.match(regressionSection, /maintenance filter enum/);
     assert.match(regressionSection, /ready cursor \/ missing cursor 계약/);
     assert.match(regressionSection, /ready cursor \/ missing cursor scope/);

@@ -185,9 +185,9 @@ first node exists.
 `smoke:packed-cli` also runs the installed CLI package `npm test`, then checks
 the installed `mcp-verify --help` output plus project-less and empty-vault
 verify paths, so release tarballs keep exposing the graph-query, destructive
-dry-run, post-write bucket guidance, strict argument / enum rejection,
+dry-run, post-write maintenance schema, strict argument / enum rejection,
 annotations, write relation enums, and health tuning schema scope. That keeps
-the graph-query, destructive dry-run, post-write bucket, strict argument / enum,
+the graph-query, destructive dry-run, post-write maintenance schema, strict argument / enum,
 annotation, write relation enum, and health tuning smoke scope visible without
 starting a server for help and without assuming every valid vault already has
 containment roots. It also creates a dependency-cycle vault and checks installed
