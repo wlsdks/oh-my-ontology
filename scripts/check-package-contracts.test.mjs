@@ -563,6 +563,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:dogfood/);
     assert.match(section, /pnpm test:mcp:dogfood:timeout/);
     assert.match(section, /pnpm test:mcp:maintenance/);
+    assert.match(section, /pnpm test:mcp:package/);
     assert.match(section, /pnpm test:mcp:suggestions/);
     assert.match(section, /pnpm test:mcp:verify/);
     assert.match(section, /pnpm test:mcp:verify:first-contact/);
@@ -600,6 +601,7 @@ describe('package contract helpers', () => {
     assert.match(section, /workspace_brief\.nextActions\[\]\.sample`\s+shape drift/);
     assert.match(section, /dogfood argument rejection,\s+timeout parsing, missing response labels, and retry help/);
     assert.match(section, /maintenance_plan filter enums, ready\/missing\s+cursor handling, resume-cursor behavior, dogfood work-queue shape gates, and\s+bucket \/ next-action formatter checks/);
+    assert.match(section, /package-script, CLI entrypoint, dependency, and\s+tarball contract drift/);
     assert.match(section, /unsupported-argument\s+rejection/);
     assert.match(section, /strict relation filter\s+rejection/);
     assert.match(section, /strict closest-value\s+summary/);

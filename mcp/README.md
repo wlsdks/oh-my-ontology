@@ -54,6 +54,7 @@ pnpm test:mcp:docs
 pnpm test:mcp:dogfood
 pnpm test:mcp:dogfood:timeout
 pnpm test:mcp:maintenance
+pnpm test:mcp:package
 pnpm test:mcp:suggestions
 pnpm test:mcp:verify
 pnpm test:mcp:verify:first-contact
@@ -84,6 +85,8 @@ timeout parsing, missing response labels, and retry help.
 `test:mcp:maintenance` narrows maintenance_plan filter enums, ready/missing
 cursor handling, resume-cursor behavior, dogfood work-queue shape gates, and
 bucket / next-action formatter checks.
+`test:mcp:package` checks package-script, CLI entrypoint, dependency, and
+tarball contract drift without running unrelated UI or E2E gates.
 `test:mcp:suggestions` covers strict enum / argument suggestion behavior.
 `test:mcp:verify` covers the MCP verify helper contract, including
 missing/extra/duplicate/invalid `tools/list` names, without spawning the
