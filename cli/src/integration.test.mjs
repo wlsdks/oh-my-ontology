@@ -3154,6 +3154,7 @@ await test('health --help — documents focused diagnosis tuning flags', async (
   assert.match(clean, /--dependency-types A,B/);
   assert.match(clean, /--component-types A,B/);
   assert.match(clean, /--component-limit N/);
+  assert.match(clean, /Use --json for repeatable automation gates; failing health checks exit non-zero/);
   assert.match(clean, /Tuning flags forward to query_ontology health/);
 });
 

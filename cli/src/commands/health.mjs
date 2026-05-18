@@ -108,6 +108,7 @@ function printUsage(stream = process.stderr) {
       `       [--component-limit N] [--cycle-limit N] [--recommendation-limit N]\n` +
       `       [--order-limit N] [--node-limit N]\n\n` +
       `pass=healthy / warn=info-only / fail=blocking. exit 0 만 healthy.\n` +
+      `Use --json for repeatable automation gates; failing health checks exit non-zero.\n` +
       `Tuning flags forward to query_ontology health for focused diagnostics.\n`,
   );
 }
