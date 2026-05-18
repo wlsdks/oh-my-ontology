@@ -114,8 +114,12 @@ describe('dogfood status shortcut', () => {
 
   it('returns the workspace-brief failure when health passes first', () => {
     const calls = [];
+    const output = [];
+    const diagnostics = [];
     const exitCode = runDogfoodStatus({
       stdio: 'pipe',
+      stdout: { write: (text) => output.push(text) },
+      stderr: { write: (text) => diagnostics.push(text) },
       spawn(_command, args) {
         calls.push(args);
         return { status: calls.length === 1 ? 0 : 2 };
@@ -124,6 +128,10 @@ describe('dogfood status shortcut', () => {
 
     assert.equal(exitCode, 2);
     assert.equal(calls.length, 2);
+    assert.deepEqual(output, ['[dogfood:status] health:0 · workspace-brief:2\n']);
+    assert.deepEqual(diagnostics, [
+      '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate\n',
+    ]);
   });
 
   it('prints the verify follow-up hint when only workspace-brief fails', () => {
@@ -148,9 +156,11 @@ describe('dogfood status shortcut', () => {
 
   it('treats spawn errors and signals as failures while still running both checks', () => {
     const calls = [];
+    const output = [];
     const diagnostics = [];
     const exitCode = runDogfoodStatus({
       stdio: 'pipe',
+      stdout: { write: (text) => output.push(text) },
       stderr: { write: (text) => diagnostics.push(text) },
       spawn(_command, args) {
         calls.push(args);
@@ -162,9 +172,11 @@ describe('dogfood status shortcut', () => {
 
     assert.equal(exitCode, 1);
     assert.equal(calls.length, 2);
+    assert.deepEqual(output, ['[dogfood:status] health:1 · workspace-brief:1\n']);
     assert.deepEqual(diagnostics, [
       '[dogfood:status] node cli/src/index.mjs health docs/ontology terminated by SIGTERM\n',
       '[dogfood:status] node cli/src/index.mjs workspace-brief docs/ontology failed to start: spawn failed\n',
+      '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate\n',
     ]);
   });
 

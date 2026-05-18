@@ -37,11 +37,9 @@ export function runDogfoodStatus({
     }
   }
 
-  if (stdio === 'inherit') {
-    stdout.write(`${dogfoodStatusSummary(results)}\n`);
-    if (exitCode !== 0) {
-      stderr.write(`${dogfoodStatusFailureHint()}\n`);
-    }
+  stdout.write(`${dogfoodStatusSummary(results)}\n`);
+  if (exitCode !== 0) {
+    stderr.write(`${dogfoodStatusFailureHint()}\n`);
   }
 
   return exitCode;
