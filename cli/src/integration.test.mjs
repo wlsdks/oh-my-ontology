@@ -3683,6 +3683,29 @@ await test('delete --confirm — backlinks 있으면 MCP error 로 실패', asyn
   }
 });
 
+await test('delete --confirm --force — 적용 출력에 dangling backlink 를 보여준다', async () => {
+  const root = await buildGraphFixture();
+  try {
+    const r = await run([
+      'delete',
+      'capabilities/foo',
+      root,
+      '--confirm',
+      '--force',
+    ]);
+    assert.equal(r.code, 0, `stderr: ${r.stderr}`);
+    const clean = stripAnsi(r.stdout);
+    assert.match(clean, /deleted/);
+    assert.match(clean, /2 dangling backlink\(s\) left/);
+    assert.match(clean, /capabilities\/bar\s+— Bar\s+\(relates\)/);
+    assert.match(clean, /domains\/auth\s+— Auth\s+\(capabilities\)/);
+    assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
+    assert.match(readFileSync(join(root, 'capabilities/bar.md'), 'utf-8'), /capabilities\/foo/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 await test('delete --confirm (no backlinks) — 파일 삭제', async () => {
   const root = withVault([
     {

@@ -91,9 +91,24 @@ export async function runDelete(args) {
     process.stdout.write(JSON.stringify(result, null, 2) + '\n');
     return 0;
   }
+  const backlinksAtDelete = Array.isArray(result?.backlinksAtDelete) ? result.backlinksAtDelete : [];
   process.stdout.write(
-    `${COLORS.green}ok${COLORS.reset}    ${COLORS.bold}${slug}${COLORS.reset} ${COLORS.dim}deleted${COLORS.reset}\n`,
+    `${COLORS.green}ok${COLORS.reset}    ${COLORS.bold}${slug}${COLORS.reset} ${COLORS.dim}deleted${COLORS.reset}` +
+      (backlinksAtDelete.length > 0
+        ? ` ${COLORS.yellow}(${backlinksAtDelete.length} dangling backlink(s) left)${COLORS.reset}`
+        : '') +
+      `\n`,
   );
+  for (const bl of backlinksAtDelete) {
+    const titleText = bl.title && bl.title !== bl.slug ? ` ${COLORS.dim}— ${bl.title}${COLORS.reset}` : '';
+    process.stdout.write(
+      `  ${COLORS.cyan}${bl.slug}${COLORS.reset}${titleText}` +
+        (Array.isArray(bl.matchedKeys)
+          ? ` ${COLORS.dim}(${bl.matchedKeys.join(', ')})${COLORS.reset}`
+          : '') +
+        `\n`,
+    );
+  }
   return 0;
 }
 
