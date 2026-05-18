@@ -97,6 +97,7 @@ These target this repo's own `docs/ontology` vault:
 pnpm dogfood:compile
 pnpm dogfood:compile-fix
 pnpm test:dogfood:args
+pnpm test:dogfood:script-refs
 pnpm test:dogfood:compile-fix
 pnpm dogfood:health
 pnpm dogfood:brief
@@ -111,7 +112,9 @@ pnpm dogfood:help
 if it leaves a git diff, so the dogfood vault stays canonicalized. `pnpm
 test:dogfood:compile-fix` checks that idempotence guard without the full dogfood
 suite. `pnpm test:dogfood:args` checks the shared pnpm separator and nearest
-`--help` hint helper without invoking any dogfood gate.
+`--help` hint helper without invoking any dogfood gate. `pnpm
+test:dogfood:script-refs` checks that help text `pnpm ...` references still
+resolve to root package scripts.
 
 `pnpm dogfood:status` runs the cheap human-readable health + workspace-brief
 gates together. It still prints workspace-brief when health fails, then preserves

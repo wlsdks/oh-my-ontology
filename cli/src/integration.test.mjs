@@ -30,6 +30,7 @@ import {
   formatTestFilterSuffix,
   resolveTestNamePattern,
 } from '../../scripts/lib/test-name-pattern.mjs';
+import { assertPnpmScriptsExist } from '../../scripts/lib/pnpm-script-refs.mjs';
 import { CLI_CLIENT_INFO } from './lib/mcp-call.mjs';
 import { expectedToolsListAnnotationSummary } from '../../mcp/scripts/verify.mjs';
 
@@ -68,12 +69,6 @@ function stripAnsi(s) {
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function assertPnpmScriptsExist(text) {
-  for (const [, script] of text.matchAll(/pnpm ([\w:-]+)/g)) {
-    assert.equal(typeof ROOT_PKG.scripts?.[script], 'string', `${script} exists in package.json`);
-  }
 }
 
 function withVault(seed = []) {
@@ -516,7 +511,7 @@ await test('mcp-verify --help — describes the full graph-query smoke contract'
   assert.match(clean, /pnpm test:mcp:verify:first-contact\s+Narrow first-contact initialize-safety-recovery\/unknown-tool\/write-safety\/health-summary\/advisory\/read\/sample-shape helper gates/);
   assert.match(clean, /pnpm test:mcp:verify:timeout/);
   assert.match(clean, /Narrow MCP verify timeout\/startup\/help diagnostics/);
-  assertPnpmScriptsExist(clean);
+  assertPnpmScriptsExist(clean, ROOT_PKG.scripts);
 });
 
 await test('mcp-verify — rejects invalid timeout values', async () => {

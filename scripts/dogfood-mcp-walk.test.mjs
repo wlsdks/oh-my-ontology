@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
+import { assertPnpmScriptsExist } from "./lib/pnpm-script-refs.mjs";
+
 import {
   buildDogfoodRequests,
   componentSummary,
@@ -111,12 +113,6 @@ function makeDogfoodInitialize() {
       "maintenance_plan missing cursors return cursor.nextAfterActionId=null and cursor.hasMore=false.",
     ].join("\n"),
   };
-}
-
-function assertPnpmScriptsExist(text) {
-  for (const [, script] of text.matchAll(/pnpm ([\w:-]+)/g)) {
-    assert.equal(typeof ROOT_PKG.scripts?.[script], "string", `${script} exists in package.json`);
-  }
 }
 
 function paginationSchemaFixture() {
@@ -3706,13 +3702,14 @@ describe("rpc response completion helpers", () => {
     assert.match(usage, /pnpm dogfood:status\s+Human-readable health \+ workspace_brief over docs\/ontology/);
     assert.match(usage, /pnpm dogfood:verify\s+Installed-style verify gate over docs\/ontology before the full walk/);
     assert.match(usage, /pnpm test:dogfood:args\s+Shared dogfood shortcut argument helper contract/);
+    assert.match(usage, /pnpm test:dogfood:script-refs\s+Shared help-to-package script reference contract/);
     assert.match(usage, /pnpm test:dogfood:compile-fix\s+Narrow dogfood compile --fix idempotence runner contract/);
     assert.match(usage, /pnpm test:dogfood:status\s+Narrow dogfood status shortcut runner contract/);
     assert.match(usage, /pnpm test:mcp:dogfood:timeout/);
     assert.match(usage, /Narrow dogfood timeout\/help retry diagnostics/);
     assert.match(usage, /pnpm dogfood:test\s+Full dogfood helper regression suite when focused checks are not enough/);
     assert.match(usage, /Dogfood helper, compile\/index gates, tools\/list inventory names \+ annotation coverage, row-label guidance, batch cap gates, strict closest-value and unknown-tool repair summary, vault warning and validate_vault problem gates, first-contact health\/growth\/sample-shape gates, maintenance work-queue shape \+ formatter checks, initialize safety\/recovery guidance, destructive dry-run, help\/argument\/timeout handling, structuredContent, strict relation filters, strict add_relation type-preflight, strict graph kind filters, stderr warning checks/);
-    assertPnpmScriptsExist(usage);
+    assertPnpmScriptsExist(usage, ROOT_PKG.scripts);
   });
 
   it("dogfood help — helper uses natural exit so verbose stdout can flush", () => {

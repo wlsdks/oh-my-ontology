@@ -152,6 +152,7 @@ describe('package contract helpers', () => {
     assert.equal(pkg.scripts?.['dogfood:compile'], 'node cli/src/index.mjs compile docs/ontology --summary --json');
     assert.equal(pkg.scripts?.['dogfood:compile-fix'], 'node scripts/dogfood-compile-fix.mjs');
     assert.equal(pkg.scripts?.['test:dogfood:args'], 'node --test scripts/lib/dogfood-args.test.mjs');
+    assert.equal(pkg.scripts?.['test:dogfood:script-refs'], 'node --test scripts/lib/pnpm-script-refs.test.mjs');
     assert.equal(pkg.scripts?.['test:dogfood:compile-fix'], 'node --test scripts/dogfood-compile-fix.test.mjs');
     assert.equal(pkg.scripts?.['dogfood:health'], 'node cli/src/index.mjs health docs/ontology --json');
     assert.equal(pkg.scripts?.['dogfood:brief'], 'node cli/src/index.mjs workspace-brief docs/ontology --json');
@@ -276,6 +277,7 @@ describe('package contract helpers', () => {
       'pnpm dogfood:compile-fix',
       'pnpm dogfood:compile-fix -- --help',
       'pnpm test:dogfood:args',
+      'pnpm test:dogfood:script-refs',
       'pnpm test:dogfood:compile-fix',
       'pnpm dogfood:health',
       'pnpm dogfood:brief',
@@ -309,6 +311,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /pnpm test:dogfood:status/);
     assert.match(checksDoc, /`pnpm dogfood:compile-fix` runs `compile --fix` against docs\/ontology and fails\s+if it leaves a git diff/);
     assert.match(checksDoc, /`pnpm test:dogfood:args` checks the shared pnpm separator and nearest\s+`--help` hint helper without invoking any dogfood gate/);
+    assert.match(checksDoc, /`pnpm\s+test:dogfood:script-refs` checks that help text `pnpm \.\.\.` references still\s+resolve to root package scripts/);
     assert.match(checksDoc, /`pnpm dogfood:status` runs the cheap human-readable health \+ workspace-brief\s+gates together/);
     assert.match(checksDoc, /still prints workspace-brief when health fails, then preserves\s+the first failing exit code/);
     assert.match(checksDoc, /Use `pnpm dogfood:compile-fix -- --help` \/ `pnpm dogfood:status -- --help`/);
