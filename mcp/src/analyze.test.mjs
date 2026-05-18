@@ -219,6 +219,10 @@ test('invalid analyze options are rejected instead of coerced', () => {
       () => analyzeRepoStructure(root, { ignore: ['dist', ' '] }),
       /ignore items must be non-empty strings/,
     );
+    assert.throws(
+      () => analyzeRepoStructure(root, { ignore: Array.from({ length: 201 }, (_, index) => `skip-${index}`) }),
+      /ignore must contain at most 200 items/,
+    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

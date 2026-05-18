@@ -276,6 +276,32 @@ function outputPropertyAt(tool, path) {
   return path.reduce((value, key) => value?.[key], tool?.outputSchema);
 }
 
+function inputArrayMaxItemsFailure(tools) {
+  for (const tool of tools) {
+    const stack = [{ schema: tool?.inputSchema, path: `${tool?.name || '(unknown)'}.inputSchema` }];
+    while (stack.length > 0) {
+      const { schema, path } = stack.pop();
+      if (!schema || typeof schema !== 'object') continue;
+      if (schema.type === 'array' && schema.maxItems === undefined) {
+        return `${path} array maxItems drift`;
+      }
+      for (const [key, value] of Object.entries(schema.properties || {})) {
+        stack.push({ schema: value, path: `${path}.properties.${key}` });
+      }
+      if (schema.items) {
+        stack.push({ schema: schema.items, path: `${path}.items` });
+      }
+      for (const key of ['oneOf', 'anyOf', 'allOf']) {
+        if (!Array.isArray(schema[key])) continue;
+        schema[key].forEach((value, index) => {
+          stack.push({ schema: value, path: `${path}.${key}.${index}` });
+        });
+      }
+    }
+  }
+  return null;
+}
+
 function backlinkRewritePlanSchemaFailure(schema, label) {
   if (
     schema?.type !== 'object' ||
@@ -543,6 +569,8 @@ export function toolsListSchemaFailure(tools) {
   if (schemaDriftTool) {
     return `tools/list schema missing additionalProperties:false: ${schemaDriftTool.name || '(unknown)'}`;
   }
+  const arrayMaxItemsFailure = inputArrayMaxItemsFailure(tools);
+  if (arrayMaxItemsFailure) return arrayMaxItemsFailure;
   const titleDriftTool = tools.find((tool) => tool?.annotations?.title !== expectedToolTitle(tool?.name));
   if (titleDriftTool) {
     return `tools/list title annotation drift: ${titleDriftTool.name || '(unknown)'} (expected ${JSON.stringify(expectedToolTitle(titleDriftTool?.name))}, got ${JSON.stringify(titleDriftTool?.annotations?.title)})`;

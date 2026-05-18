@@ -633,6 +633,7 @@ describe('verify.mjs first-contact gates', () => {
             },
             excludeKinds: {
               type: 'array',
+              maxItems: NODE_KIND_VALUES.length,
               items: { type: 'string', enum: NODE_KIND_VALUES },
               description: "Defaults to ['project', 'vault-readme']. Pass [] to include every kind. Typos fail with nearest-value hints.",
             },
@@ -955,8 +956,8 @@ describe('verify.mjs first-contact gates', () => {
               maximum: 500,
               description: 'components/communities/health/workspace_brief only: positive integer max node summaries.',
             },
-            types: { type: 'array', items: { type: 'string', enum: RELATION_TYPE_VALUES } },
-            pattern: { type: 'array', items: { type: 'string', enum: RELATION_TYPE_VALUES } },
+            types: { type: 'array', maxItems: RELATION_TYPE_VALUES.length, items: { type: 'string', enum: RELATION_TYPE_VALUES } },
+            pattern: { type: 'array', maxItems: RELATION_TYPE_VALUES.length, items: { type: 'string', enum: RELATION_TYPE_VALUES } },
             type: { type: 'string', enum: RELATION_TYPE_VALUES },
             relation: { type: 'string', enum: RELATION_TYPE_VALUES },
             kind: {
@@ -979,17 +980,21 @@ describe('verify.mjs first-contact gates', () => {
             },
             dependencyTypes: {
               type: 'array',
+              maxItems: RELATION_TYPE_VALUES.length,
               items: { type: 'string', enum: RELATION_TYPE_VALUES },
               description: 'health/workspace_brief only: dependency relation types.',
             },
             componentTypes: {
               type: 'array',
+              maxItems: RELATION_TYPE_VALUES.length,
               items: { type: 'string', enum: RELATION_TYPE_VALUES },
               description: 'health/workspace_brief only: relation types used for connected-component checks.',
             },
-            phases: { items: { enum: MAINTENANCE_PHASE_VALUES } },
-            severities: { items: { enum: MAINTENANCE_SEVERITY_VALUES } },
+            phases: { type: 'array', maxItems: MAINTENANCE_PHASE_VALUES.length, items: { enum: MAINTENANCE_PHASE_VALUES } },
+            severities: { type: 'array', maxItems: MAINTENANCE_SEVERITY_VALUES.length, items: { enum: MAINTENANCE_SEVERITY_VALUES } },
             kinds: {
+              type: 'array',
+              maxItems: MAINTENANCE_KIND_VALUES.length,
               items: {
                 enum: MAINTENANCE_KIND_VALUES,
               },
@@ -1432,8 +1437,8 @@ describe('verify.mjs first-contact gates', () => {
           additionalProperties: false,
           properties: {
             rootPath: { type: 'string' },
-            sourceFolders: { type: 'array', items: { type: 'string' } },
-            ignore: { type: 'array', items: { type: 'string' } },
+            sourceFolders: { type: 'array', maxItems: 50, items: { type: 'string' } },
+            ignore: { type: 'array', maxItems: 200, items: { type: 'string' } },
             maxFiles: {
               type: 'integer',
               minimum: 1,
@@ -1694,6 +1699,7 @@ describe('verify.mjs first-contact gates', () => {
             },
             types: {
               type: 'array',
+              maxItems: RELATION_TYPE_VALUES.length,
               items: { type: 'string', enum: RELATION_TYPE_VALUES },
               description:
                 'Optional relation types/frontmatter keys to include, e.g. ["domain", "depends_on", "contains"]. Public add_relation types are normalized to stored graph keys.',
@@ -2357,7 +2363,7 @@ describe('verify.mjs first-contact gates', () => {
           ...queryOntologyTool.inputSchema,
           properties: {
             ...queryOntologyTool.inputSchema.properties,
-            dependencyTypes: { type: 'array', items: { type: 'number' }, description: 'health/workspace_brief only.' },
+            dependencyTypes: { type: 'array', maxItems: RELATION_TYPE_VALUES.length, items: { type: 'number' }, description: 'health/workspace_brief only.' },
           },
         },
       })),
@@ -2370,7 +2376,7 @@ describe('verify.mjs first-contact gates', () => {
           ...queryOntologyTool.inputSchema,
           properties: {
             ...queryOntologyTool.inputSchema.properties,
-            componentTypes: { type: 'array', items: { type: 'string', enum: RELATION_TYPE_VALUES }, description: 'components only.' },
+            componentTypes: { type: 'array', maxItems: RELATION_TYPE_VALUES.length, items: { type: 'string', enum: RELATION_TYPE_VALUES }, description: 'components only.' },
           },
         },
       })),
@@ -2414,6 +2420,7 @@ describe('verify.mjs first-contact gates', () => {
             ...findOrphansTool.inputSchema.properties,
             excludeKinds: {
               type: 'array',
+              maxItems: NODE_KIND_VALUES.length,
               items: { type: 'number' },
               description: "Defaults to ['project', 'vault-readme'].",
             },
@@ -2431,6 +2438,7 @@ describe('verify.mjs first-contact gates', () => {
             ...findOrphansTool.inputSchema.properties,
             excludeKinds: {
               type: 'array',
+              maxItems: NODE_KIND_VALUES.length,
               items: { type: 'string', enum: NODE_KIND_VALUES },
               description: 'Pass [] to include every kind.',
             },
@@ -3434,6 +3442,7 @@ describe('verify.mjs first-contact gates', () => {
               ...findNeighborsTool.inputSchema.properties,
               types: {
                 type: 'array',
+                maxItems: RELATION_TYPE_VALUES.length,
                 items: { type: 'string' },
                 description: 'Optional relation types/frontmatter keys to include.',
               },

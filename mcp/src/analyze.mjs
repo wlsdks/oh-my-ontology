@@ -51,6 +51,7 @@ const DEFAULT_IGNORE = new Set([
 ]);
 
 const SOURCE_FOLDERS = ['src', 'lib', 'app', 'packages'];
+const IGNORE_ARRAY_MAX_ITEMS = 200;
 
 const ELEMENT_ENTRY_FILES = [
   'index.ts',
@@ -76,7 +77,7 @@ export function analyzeRepoStructure(rootPath, options = {}) {
   const maxDepth = optionalNonNegativeInteger(options.maxDepth, 'maxDepth', { max: 10 }) ?? 2;
   const ignore = new Set([
     ...DEFAULT_IGNORE,
-    ...optionalStringArray(options.ignore, 'ignore'),
+    ...optionalStringArray(options.ignore, 'ignore', { max: IGNORE_ARRAY_MAX_ITEMS }),
   ]);
 
   const skipped = [];
@@ -342,10 +343,13 @@ function optionalNonNegativeInteger(value, name, options = {}) {
   return value;
 }
 
-function optionalStringArray(value, name) {
+function optionalStringArray(value, name, options = {}) {
   if (value === undefined) return [];
   if (!Array.isArray(value) || !value.every((item) => typeof item === 'string')) {
     throw new Error(`${name} must be an array of strings.`);
+  }
+  if (options.max !== undefined && value.length > options.max) {
+    throw new Error(`${name} must contain at most ${options.max} items.`);
   }
   return value.map((item) => {
     const trimmed = item.trim();

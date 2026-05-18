@@ -391,8 +391,16 @@ test('invalid infer options are rejected instead of coerced', () => {
       /sourceFolders items must not have leading or trailing whitespace/,
     );
     assert.throws(
+      () => inferImports(root, { sourceFolders: Array.from({ length: 51 }, (_, index) => `src-${index}`) }),
+      /sourceFolders must contain at most 50 items/,
+    );
+    assert.throws(
       () => inferImports(root, { ignore: ['dist', 7] }),
       /ignore must be an array of strings/,
+    );
+    assert.throws(
+      () => inferImports(root, { ignore: Array.from({ length: 201 }, (_, index) => `skip-${index}`) }),
+      /ignore must contain at most 200 items/,
     );
     assert.throws(
       () => inferImports(root, { maxFiles: 0 }),

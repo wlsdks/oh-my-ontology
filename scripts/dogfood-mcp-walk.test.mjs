@@ -462,9 +462,9 @@ function makeDogfoodToolsList() {
         tool.inputSchema.properties = {
           operation: { enum: QUERY_ONTOLOGY_OPERATIONS },
           targetOperation: { enum: QUERY_PLAN_TARGET_OPERATIONS },
-          phases: { items: { enum: MAINTENANCE_PHASE_VALUES } },
-          severities: { items: { enum: MAINTENANCE_SEVERITY_VALUES } },
-          kinds: { items: { enum: MAINTENANCE_KIND_VALUES } },
+          phases: { type: "array", maxItems: MAINTENANCE_PHASE_VALUES.length, items: { enum: MAINTENANCE_PHASE_VALUES } },
+          severities: { type: "array", maxItems: MAINTENANCE_SEVERITY_VALUES.length, items: { enum: MAINTENANCE_SEVERITY_VALUES } },
+          kinds: { type: "array", maxItems: MAINTENANCE_KIND_VALUES.length, items: { enum: MAINTENANCE_KIND_VALUES } },
           afterActionId: {
             description:
               "nextExecutableAction/nextReviewAction point only at the first executable/review action in the current returned page and preserve that action id, executable flag, phase, kind, and severity. cursor.nextAfterActionId matches the last returned action id, cursor.hasMore matches whether more remaining actions exist after this page, and unknown cursors return cursor.nextAfterActionId=null, cursor.hasMore=false.",
@@ -474,8 +474,8 @@ function makeDogfoodToolsList() {
           recommendationLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
           orderLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
           nodeLimit: { type: "integer", minimum: 1, maximum: 500, description: "health/workspace_brief tuning" },
-          types: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES } },
-          pattern: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES } },
+          types: { type: "array", maxItems: RELATION_TYPE_VALUES.length, items: { type: "string", enum: RELATION_TYPE_VALUES } },
+          pattern: { type: "array", maxItems: RELATION_TYPE_VALUES.length, items: { type: "string", enum: RELATION_TYPE_VALUES } },
           type: { type: "string", enum: RELATION_TYPE_VALUES },
           relation: { type: "string", enum: RELATION_TYPE_VALUES },
           kind: {
@@ -496,8 +496,8 @@ function makeDogfoodToolsList() {
             description:
               "match_edges only: optional target kind filter (project, domain, capability, element, document, vault-readme, external, unresolved). Use external or unresolved for non-node refs.",
           },
-          dependencyTypes: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
-          componentTypes: { type: "array", items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
+          dependencyTypes: { type: "array", maxItems: RELATION_TYPE_VALUES.length, items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
+          componentTypes: { type: "array", maxItems: RELATION_TYPE_VALUES.length, items: { type: "string", enum: RELATION_TYPE_VALUES }, description: "health/workspace_brief tuning" },
         };
       }
       if (name === "list_concepts") {
@@ -694,6 +694,7 @@ function makeDogfoodToolsList() {
           },
           types: {
             type: "array",
+            maxItems: RELATION_TYPE_VALUES.length,
             items: { type: "string", enum: RELATION_TYPE_VALUES },
             description:
               'Optional relation types, e.g. ["domain", "depends_on"]. Public add_relation types are normalized to stored graph keys.',
@@ -879,6 +880,7 @@ function makeDogfoodToolsList() {
         };
         tool.inputSchema.properties.excludeKinds = {
           type: "array",
+          maxItems: NODE_KIND_VALUES.length,
           items: { type: "string", enum: NODE_KIND_VALUES },
           description: "Defaults exclude project and vault-readme. Typos fail with nearest-value hints.",
         };

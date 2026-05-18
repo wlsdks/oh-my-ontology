@@ -513,6 +513,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
       /Repository root to analyze[\s\S]*Defaults to the MCP server cwd/i,
       "analyze_repo_structure rootPath schema documents default root",
     );
+    assert.equal(analyzeRepo?.inputSchema?.properties?.ignore?.maxItems, 200);
     assert.equal(analyzeRepo?.outputSchema?.type, "object");
     assert.deepEqual(analyzeRepo?.outputSchema?.required, ["rootPath", "framework", "domains", "capabilities", "elements", "suggestedRelations", "skipped"]);
     assert.equal(analyzeRepo?.outputSchema?.additionalProperties, false);
@@ -526,6 +527,8 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(analyzeRepo?.outputSchema?.properties?.suggestedRelations?.items?.additionalProperties, false);
     const inferImports = findTool("infer_imports");
     assert.equal(inferImports?.outputSchema?.type, "object");
+    assert.equal(inferImports?.inputSchema?.properties?.sourceFolders?.maxItems, 50);
+    assert.equal(inferImports?.inputSchema?.properties?.ignore?.maxItems, 200);
     assert.deepEqual(inferImports?.outputSchema?.required, ["rootPath", "filesScanned", "edges", "externalImports", "unresolved", "moduleEdges"]);
     assert.equal(inferImports?.outputSchema?.additionalProperties, false);
     assert.equal(inferImports?.outputSchema?.properties?.filesScanned?.type, "integer");

@@ -33,6 +33,8 @@ const DEFAULT_IGNORE = new Set([
   '.cache',
   'coverage',
 ]);
+const IGNORE_ARRAY_MAX_ITEMS = 200;
+const SOURCE_FOLDER_ARRAY_MAX_ITEMS = 50;
 
 const SOURCE_EXT = new Set([
   '.ts',
@@ -118,10 +120,11 @@ export function inferImports(rootPath, options = {}) {
   }
   const ignore = new Set([
     ...DEFAULT_IGNORE,
-    ...optionalStringArray(options.ignore, 'ignore'),
+    ...optionalStringArray(options.ignore, 'ignore', { max: IGNORE_ARRAY_MAX_ITEMS }),
   ]);
   const maxFiles = optionalPositiveInteger(options.maxFiles, 'maxFiles', { max: 50000 }) ?? 5000;
   const sourceFolders = optionalStringArray(options.sourceFolders, 'sourceFolders', {
+    max: SOURCE_FOLDER_ARRAY_MAX_ITEMS,
     fallback: ['src', 'lib', 'app', 'packages'],
   });
 
@@ -498,6 +501,9 @@ function optionalStringArray(value, name, options = {}) {
   if (value === undefined) return options.fallback ?? [];
   if (!Array.isArray(value) || !value.every((item) => typeof item === 'string')) {
     throw new Error(`${name} must be an array of strings.`);
+  }
+  if (options.max !== undefined && value.length > options.max) {
+    throw new Error(`${name} must contain at most ${options.max} items.`);
   }
   return value.map((item) => {
     const trimmed = item.trim();

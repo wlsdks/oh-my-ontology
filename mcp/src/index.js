@@ -123,10 +123,16 @@ const NON_BLANK_STRING_SCHEMA = Object.freeze({
   minLength: 1,
   pattern: '^(?!\\s)(?!.*\\s$)(?!.*\\u0000).+$',
 });
+const GRAPH_REF_ARRAY_MAX_ITEMS = 500;
+const IGNORE_ARRAY_MAX_ITEMS = 200;
+const SOURCE_FOLDER_ARRAY_MAX_ITEMS = 50;
 const RELATION_ARRAY_PATCH_SCHEMA = Object.freeze({
   type: 'object',
   properties: Object.fromEntries(
-    GRAPH_ARRAY_KEYS.map((key) => [key, { type: 'array', items: NON_BLANK_STRING_SCHEMA }]),
+    GRAPH_ARRAY_KEYS.map((key) => [
+      key,
+      { type: 'array', maxItems: GRAPH_REF_ARRAY_MAX_ITEMS, items: NON_BLANK_STRING_SCHEMA },
+    ]),
   ),
   additionalProperties: false,
 });
@@ -812,11 +818,13 @@ const TOOLS = [
         ),
         capabilities: {
           type: 'array',
+          maxItems: GRAPH_REF_ARRAY_MAX_ITEMS,
           items: NON_BLANK_STRING_SCHEMA,
           description: 'Capability slugs this node owns (project / domain).',
         },
         elements: {
           type: 'array',
+          maxItems: GRAPH_REF_ARRAY_MAX_ITEMS,
           items: NON_BLANK_STRING_SCHEMA,
           description: 'Element slugs this node uses (project / capability).',
         },
@@ -868,8 +876,8 @@ const TOOLS = [
               },
               title: NON_BLANK_STRING_SCHEMA,
               domain: NON_BLANK_STRING_SCHEMA,
-              capabilities: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
-              elements: { type: 'array', items: NON_BLANK_STRING_SCHEMA },
+              capabilities: { type: 'array', maxItems: GRAPH_REF_ARRAY_MAX_ITEMS, items: NON_BLANK_STRING_SCHEMA },
+              elements: { type: 'array', maxItems: GRAPH_REF_ARRAY_MAX_ITEMS, items: NON_BLANK_STRING_SCHEMA },
               body: { type: 'string' },
             },
             required: ['slug', 'kind', 'title'],
@@ -1120,6 +1128,7 @@ const TOOLS = [
         },
         types: {
           type: 'array',
+          maxItems: RELATION_TYPE_VALUES.length,
           items: { ...NON_BLANK_STRING_SCHEMA, enum: RELATION_TYPE_VALUES },
           description:
             'Optional relation types/frontmatter keys to include, e.g. ["domain", "depends_on", "contains"]. Public add_relation types are normalized to stored graph keys.',
@@ -1293,6 +1302,7 @@ const TOOLS = [
         ),
         excludeKinds: {
           type: 'array',
+          maxItems: NODE_KIND_VALUES.length,
           items: { ...NON_BLANK_STRING_SCHEMA, enum: NODE_KIND_VALUES },
           description:
             "Kinds to exclude from results. Defaults to ['project', 'vault-readme']. Pass [] to include every kind. Typos fail with nearest-value hints.",
@@ -1679,12 +1689,14 @@ const TOOLS = [
         },
         types: {
           type: 'array',
+          maxItems: RELATION_TYPE_VALUES.length,
           items: { ...NON_BLANK_STRING_SCHEMA, enum: RELATION_TYPE_VALUES },
           description:
             'Optional relation types to include, e.g. ["dependencies"] or ["depends_on"].',
         },
         pattern: {
           type: 'array',
+          maxItems: RELATION_TYPE_VALUES.length,
           items: { ...NON_BLANK_STRING_SCHEMA, enum: RELATION_TYPE_VALUES },
           description:
             'pattern_walk only: required relation sequence to follow, e.g. ["domains", "capabilities", "elements"]. depends_on is normalized to dependencies.',
@@ -1796,6 +1808,7 @@ const TOOLS = [
         },
         phases: {
           type: 'array',
+          maxItems: MAINTENANCE_PHASE_VALUES.length,
           items: {
             ...NON_BLANK_STRING_SCHEMA,
             enum: MAINTENANCE_PHASE_VALUES,
@@ -1805,6 +1818,7 @@ const TOOLS = [
         },
         severities: {
           type: 'array',
+          maxItems: MAINTENANCE_SEVERITY_VALUES.length,
           items: {
             ...NON_BLANK_STRING_SCHEMA,
             enum: MAINTENANCE_SEVERITY_VALUES,
@@ -1814,6 +1828,7 @@ const TOOLS = [
         },
         kinds: {
           type: 'array',
+          maxItems: MAINTENANCE_KIND_VALUES.length,
           items: {
             ...NON_BLANK_STRING_SCHEMA,
             enum: MAINTENANCE_KIND_VALUES,
@@ -1874,12 +1889,14 @@ const TOOLS = [
         },
         dependencyTypes: {
           type: 'array',
+          maxItems: RELATION_TYPE_VALUES.length,
           items: { ...NON_BLANK_STRING_SCHEMA, enum: RELATION_TYPE_VALUES },
           description:
             'health/workspace_brief only: dependency relation types used for cycle and topological-order checks. Defaults to ["dependencies"].',
         },
         componentTypes: {
           type: 'array',
+          maxItems: RELATION_TYPE_VALUES.length,
           items: { ...NON_BLANK_STRING_SCHEMA, enum: RELATION_TYPE_VALUES },
           description:
             'health/workspace_brief only: relation types used for connected-component checks. Defaults to the full graph relation set.',
@@ -1993,6 +2010,7 @@ const TOOLS = [
         },
         sourceFolders: {
           type: 'array',
+          maxItems: SOURCE_FOLDER_ARRAY_MAX_ITEMS,
           items: NON_BLANK_STRING_SCHEMA,
           description:
             "Source folders to walk (default: ['src','lib','app','packages']). " +
@@ -2000,6 +2018,7 @@ const TOOLS = [
         },
         ignore: {
           type: 'array',
+          maxItems: IGNORE_ARRAY_MAX_ITEMS,
           items: NON_BLANK_STRING_SCHEMA,
           description:
             "Extra folder names to skip (added to defaults: node_modules, dist, build, …).",
@@ -2124,6 +2143,7 @@ const TOOLS = [
         },
         ignore: {
           type: 'array',
+          maxItems: IGNORE_ARRAY_MAX_ITEMS,
           items: NON_BLANK_STRING_SCHEMA,
           description:
             "Extra folder names to skip (added to defaults: node_modules, .git, dist, build, …).",
@@ -2839,10 +2859,13 @@ function requireOptionalNonBlankString(value, name) {
   requireNonBlankString(value, name);
 }
 
-function requireOptionalStringArray(value, name) {
+function requireOptionalStringArray(value, name, options = {}) {
   if (value === undefined) return;
   if (!Array.isArray(value)) {
     throw new Error(`${name} must be an array of strings.`);
+  }
+  if (options.max !== undefined && value.length > options.max) {
+    throw new Error(`${name} must contain at most ${options.max} items.`);
   }
   for (const item of value) {
     if (typeof item !== 'string') {
@@ -2861,7 +2884,7 @@ function requireOptionalStringArray(value, name) {
 }
 
 function requireOptionalRelationTypeArray(value, name) {
-  requireOptionalStringArray(value, name);
+  requireOptionalStringArray(value, name, { max: RELATION_TYPE_VALUES.length });
   if (value === undefined) return;
   for (const item of value) {
     if (!RELATION_TYPE_VALUES.includes(item)) {
@@ -2871,7 +2894,7 @@ function requireOptionalRelationTypeArray(value, name) {
 }
 
 function requireOptionalNodeKindArray(value, name) {
-  requireOptionalStringArray(value, name);
+  requireOptionalStringArray(value, name, { max: NODE_KIND_VALUES.length });
   if (value === undefined) return;
   for (const item of value) {
     if (!NODE_KIND_VALUES.includes(item)) {
@@ -2916,7 +2939,7 @@ function requireValidFrontmatterPatch(frontmatter) {
     if (!GRAPH_ARRAY_KEY_SET.has(key) || value === null || value === undefined) {
       continue;
     }
-    requireOptionalStringArray(value, `frontmatter.${key}`);
+    requireOptionalStringArray(value, `frontmatter.${key}`, { max: GRAPH_REF_ARRAY_MAX_ITEMS });
   }
   if (Object.prototype.hasOwnProperty.call(frontmatter, 'kind')) {
     const kind = frontmatter.kind;
@@ -2943,8 +2966,8 @@ function addConcept({ slug, kind, title, domain, capabilities, elements, body },
   requireNonBlankString(kind, 'kind');
   requireNonBlankString(title, 'title');
   if (domain !== undefined) requireNonBlankString(domain, 'domain');
-  requireOptionalStringArray(capabilities, 'capabilities');
-  requireOptionalStringArray(elements, 'elements');
+  requireOptionalStringArray(capabilities, 'capabilities', { max: GRAPH_REF_ARRAY_MAX_ITEMS });
+  requireOptionalStringArray(elements, 'elements', { max: GRAPH_REF_ARRAY_MAX_ITEMS });
   if (body !== undefined && typeof body !== 'string') {
     throw new Error('body must be a string.');
   }
@@ -3554,17 +3577,13 @@ function validateQueryOntologyArgs(args = {}) {
   ]) {
     requireOptionalBoolean(args[key], key);
   }
-  for (const key of [
-    'types',
-    'pattern',
-    'phases',
-    'severities',
-    'kinds',
-    'dependencyTypes',
-    'componentTypes',
-  ]) {
-    requireOptionalStringArray(args[key], key);
-  }
+  requireOptionalStringArray(args.types, 'types', { max: RELATION_TYPE_VALUES.length });
+  requireOptionalStringArray(args.pattern, 'pattern', { max: RELATION_TYPE_VALUES.length });
+  requireOptionalStringArray(args.phases, 'phases', { max: MAINTENANCE_PHASE_VALUES.length });
+  requireOptionalStringArray(args.severities, 'severities', { max: MAINTENANCE_SEVERITY_VALUES.length });
+  requireOptionalStringArray(args.kinds, 'kinds', { max: MAINTENANCE_KIND_VALUES.length });
+  requireOptionalStringArray(args.dependencyTypes, 'dependencyTypes', { max: RELATION_TYPE_VALUES.length });
+  requireOptionalStringArray(args.componentTypes, 'componentTypes', { max: RELATION_TYPE_VALUES.length });
 }
 
 function compactPostWriteMaintenance(limit = 5) {
@@ -3778,7 +3797,7 @@ function isPathLikeGraphRef(ref) {
 function analyzeRepoStructureTool({ rootPath, maxDepth, ignore } = {}) {
   requireOptionalNonBlankString(rootPath, 'rootPath');
   requireOptionalNonNegativeInteger(maxDepth, 'maxDepth', { max: 10 });
-  requireOptionalStringArray(ignore, 'ignore');
+  requireOptionalStringArray(ignore, 'ignore', { max: IGNORE_ARRAY_MAX_ITEMS });
   const target = rootPath
     ? resolve(rootPath)
     : process.cwd();
@@ -3792,8 +3811,8 @@ function analyzeRepoStructureTool({ rootPath, maxDepth, ignore } = {}) {
 // agent 의 add_relation depends_on 후보.
 function inferImportsTool({ rootPath, sourceFolders, ignore, maxFiles } = {}) {
   requireOptionalNonBlankString(rootPath, 'rootPath');
-  requireOptionalStringArray(sourceFolders, 'sourceFolders');
-  requireOptionalStringArray(ignore, 'ignore');
+  requireOptionalStringArray(sourceFolders, 'sourceFolders', { max: SOURCE_FOLDER_ARRAY_MAX_ITEMS });
+  requireOptionalStringArray(ignore, 'ignore', { max: IGNORE_ARRAY_MAX_ITEMS });
   requireOptionalPositiveInteger(maxFiles, 'maxFiles', { max: 50000 });
   const target = rootPath ? resolve(rootPath) : process.cwd();
   return inferImports(target, {
