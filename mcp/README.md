@@ -63,6 +63,7 @@ pnpm test:mcp:suggestions
 pnpm test:mcp:verify
 pnpm test:mcp:verify:first-contact
 pnpm test:mcp:verify:timeout
+pnpm integration:cli:compile
 pnpm dogfood:compile
 pnpm dogfood:health
 pnpm dogfood:brief
@@ -101,6 +102,8 @@ vault warning / `validate_vault`, first-contact health summary / advisory / next
 `workspace_brief.nextActions[].sample` shape drift.
 `test:mcp:verify:timeout` narrows verify timeout parsing, startup failure
 retry guidance, usage, and retry diagnostics.
+`integration:cli:compile` narrows CLI compile / `--fix` canonicalization
+contracts without running unrelated CLI routes.
 `dogfood:compile` prints the dogfood vault `compile_ontology` summary JSON
 snapshot without running the full installed-style MCP verify walk.
 `dogfood:health` prints the dogfood vault fail-closed `health` JSON gate

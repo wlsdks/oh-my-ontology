@@ -24,6 +24,7 @@
     "test:cli:mcp-call": "node --test cli/src/lib/mcp-call.test.mjs",
     "test:contracts": "vitest run tests/contract",
     "integration:cli": "node --test cli/src/integration.test.mjs",
+    "integration:cli:compile": "node --test --test-name-pattern \"compile\" cli/src/integration.test.mjs",
     "integration:cli:mcp-verify": "node --test --test-name-pattern \"mcp-verify\" cli/src/integration.test.mjs",
     "integration:cli:maintenance": "node --test --test-name-pattern \"maintenance\" cli/src/integration.test.mjs",
     "cli:mcp-verify": "node cli/src/index.mjs mcp-verify",

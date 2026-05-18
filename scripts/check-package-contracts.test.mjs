@@ -125,6 +125,10 @@ describe('package contract helpers', () => {
 
     assert.equal(pkg.scripts?.['integration:cli'], 'node --test cli/src/integration.test.mjs');
     assert.equal(
+      pkg.scripts?.['integration:cli:compile'],
+      'node --test --test-name-pattern "compile" cli/src/integration.test.mjs',
+    );
+    assert.equal(
       pkg.scripts?.['integration:cli:mcp-verify'],
       'node --test --test-name-pattern "mcp-verify" cli/src/integration.test.mjs',
     );
@@ -635,6 +639,7 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:mcp:verify:first-contact/);
     assert.match(section, /first-contact health summary \/ advisory \/ next-action gates/);
     assert.match(section, /pnpm test:mcp:verify:timeout/);
+    assert.match(section, /pnpm integration:cli:compile/);
     assert.match(section, /pnpm dogfood:compile/);
     assert.match(section, /pnpm dogfood:health/);
     assert.match(section, /pnpm dogfood:brief/);
@@ -1173,6 +1178,8 @@ describe('package contract helpers', () => {
     assert.match(section, /health\s+summary \/ advisory \/ next-action gates/);
     assert.match(section, /pnpm test:mcp:verify:timeout/);
     assert.match(section, /test:cli:mcp-call/);
+    assert.match(section, /integration:cli:compile/);
+    assert.match(section, /CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /pnpm dogfood:compile/);
     assert.match(section, /pnpm dogfood:health/);
     assert.match(section, /pnpm dogfood:brief/);
@@ -1197,6 +1204,7 @@ describe('package contract helpers', () => {
     assert.match(section, /OMOT_TEST_NAME_PATTERN/);
     assert.match(section, /pnpm exec node --test --test-name-pattern/);
     assert.match(section, /instead of appending the flag after `pnpm integration:cli --`/);
+    assert.match(section, /`integration:cli:compile`\s+narrows CLI compile \/ `--fix` canonicalization contracts/);
     assert.match(section, /`dogfood:compile`\s+is the shortest root-checkout compiler summary JSON snapshot/);
     assert.match(section, /`dogfood:health`\s+is the shortest root-checkout fail-closed health JSON gate/);
     assert.match(section, /`dogfood:brief`\s+is\s+the shortest root-checkout first-contact JSON snapshot/);

@@ -111,7 +111,9 @@ full verification suite. Use
 `OMOT_TEST_NAME_PATTERN` with `pnpm integration:cli` when the touched CLI
 integration case has a different name. For Node's `--test-name-pattern`, use
 `pnpm exec node --test --test-name-pattern "..." cli/src/integration.test.mjs`
-instead of appending the flag after `pnpm integration:cli --`. `dogfood:compile`
+instead of appending the flag after `pnpm integration:cli --`.
+`integration:cli:compile` narrows CLI compile / `--fix` canonicalization contracts
+without running unrelated CLI routes. `dogfood:compile`
 is the shortest root-checkout compiler summary JSON snapshot, `dogfood:health`
 is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
 the shortest root-checkout first-contact JSON snapshot, `dogfood:verify` is

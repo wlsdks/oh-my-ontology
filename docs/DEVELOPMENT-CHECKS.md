@@ -69,6 +69,7 @@ verify, or release behavior.
 | `pnpm test:cli:args` | CLI argument parser contracts |
 | `pnpm test:cli:lib` | CLI shared helper contracts |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |
+| `pnpm integration:cli:compile` | CLI compile / `--fix` canonicalization contracts |
 | `pnpm test:contracts` | Cross-package schema/parser contracts |
 | `pnpm test:mcp:docs` | Explicit root/MCP/CLI/dogfood docs contracts plus Firebase static-hosting guard |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
@@ -112,6 +113,7 @@ Use these when the full integration suite is more than the change needs:
 
 ```bash
 OMOT_TEST_NAME_PATTERN="mcp-verify" pnpm integration:cli
+pnpm integration:cli:compile
 pnpm integration:cli:mcp-verify
 pnpm integration:cli:maintenance
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
