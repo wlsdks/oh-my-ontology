@@ -249,6 +249,20 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests focused CLI graph-read integration for read-only graph commands', () => {
+    const result = suggestFocusedChecks([
+      'cli/src/commands/backlinks.mjs',
+      'cli/src/commands/path.mjs',
+      'cli/src/commands/node-profile.mjs',
+      'cli/src/commands/similar.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm integration:cli:graph-read',
+      'pnpm dogfood:status',
+    ]);
+  });
+
   it('suggests the advisor self-test when the focused-check advisor changes', () => {
     const result = suggestFocusedChecks([
       'scripts/lib/focused-check-suggestions.mjs',

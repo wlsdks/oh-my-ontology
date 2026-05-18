@@ -137,6 +137,13 @@ const RULES = [
     matches: [/^cli\/src\/commands\/(?:health|workspace-brief)\.mjs$/],
   },
   {
+    command: 'pnpm integration:cli:graph-read',
+    reason: 'CLI graph read command changed',
+    matches: [
+      /^cli\/src\/commands\/(?:backlinks|path|orphans|query|overview|hubs|blast-radius|cycles|node-profile|similar)\.mjs$/,
+    ],
+  },
+  {
     command: 'pnpm integration:cli:growth',
     reason: 'CLI growth command changed',
     matches: [/^cli\/src\/commands\/growth\.mjs$/],
