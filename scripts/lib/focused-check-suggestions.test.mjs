@@ -93,6 +93,23 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests direct MCP suggestions tests before the broader suggestions gate', () => {
+    const result = suggestFocusedChecks([
+      'mcp/src/suggestions.mjs',
+      'mcp/src/suggestions.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test mcp/src/suggestions.test.mjs',
+      'pnpm test:mcp:suggestions',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.commands[0].paths, [
+      'mcp/src/suggestions.mjs',
+      'mcp/src/suggestions.test.mjs',
+    ]);
+  });
+
   it('suggests direct CLI lib unit tests before aggregate CLI lib gate', () => {
     const result = suggestFocusedChecks([
       'cli/src/lib/batch-results.mjs',

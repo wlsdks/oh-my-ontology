@@ -116,7 +116,7 @@ dogfood docs assertions as well as package/release assertions.
 | `pnpm test:mcp:verify:first-contact` | First-contact MCP safety and unknown-tool recovery guidance |
 | `pnpm test:mcp:verify:timeout` | Timeout/startup retry diagnostics |
 | `pnpm test:mcp:maintenance` | `maintenance_plan` cursor/filter behavior |
-| `pnpm test:mcp:suggestions` | Enum and argument suggestion quality |
+| `pnpm test:mcp:suggestions` | Enum and argument suggestion quality; use the direct sibling `pnpm exec node --test mcp/src/suggestions.test.mjs` first when `pnpm checks:changed` prints one |
 | `pnpm test:mcp:package` | MCP/CLI package and tarball checks |
 | `pnpm test:mcp:dogfood` | Focused live dogfood helper contracts |
 | `pnpm dogfood:test` | Full dogfood helper regression suite |

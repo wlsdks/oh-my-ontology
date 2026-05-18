@@ -194,6 +194,7 @@ const MCP_DIRECT_UNIT_TESTS = new Map([
   ['mcp/src/ontology-engine.mjs', 'mcp/src/ontology-engine.test.mjs'],
   ['mcp/src/parser.mjs', 'mcp/src/parser.test.mjs'],
   ['mcp/src/query.mjs', 'mcp/src/query.test.mjs'],
+  ['mcp/src/suggestions.mjs', 'mcp/src/suggestions.test.mjs'],
   ['mcp/src/validate.mjs', 'mcp/src/validate.test.mjs'],
   ['mcp/src/vault.mjs', 'mcp/src/vault.test.mjs'],
 ]);
