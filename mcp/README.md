@@ -517,7 +517,9 @@ the received value plus a concrete retry example, for example
 explicit vault, timeout retry hints preserve that vault, for example
 `npm run verify -- --vault <path> --timeout-ms 15000`; the repo-root CLI wrapper
 uses the same pattern with `oh-my-ontology mcp-verify --vault <path>
---timeout-ms 15000`. Server startup failures before `initialize` keep stderr
+--timeout-ms 15000`. After timeout the verifier sends `SIGTERM` and then
+`SIGKILL`; set `OMOT_VERIFY_KILL_GRACE_MS=N` only when that post-timeout cleanup
+window needs explicit tuning. Server startup failures before `initialize` keep stderr
 diagnostics and include the same vault-preserving retry example.
 
 ### Manual verification (reference)

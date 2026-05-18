@@ -77,6 +77,7 @@ const SERVER_ENTRY = join(MCP_ROOT, 'src', 'index.js');
 const IS_MAIN = fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '');
 const VERIFY_ALLOWED_FLAGS = ['--vault', '--timeout-ms', '--help'];
 const DEFAULT_VERIFY_RETRY_EXAMPLE = 'npm run verify -- --timeout-ms 15000';
+const DEFAULT_VERIFY_KILL_GRACE_MS = 1_000;
 const VERIFY_ARGS = parseVerifyArgs({ isMain: IS_MAIN });
 const VAULT = VERIFY_ARGS.vault;
 const VERIFY_TIMEOUT_MS_RAW = VERIFY_ARGS.timeoutMsRaw;
@@ -2479,6 +2480,20 @@ export function parseVerifyTimeoutMs(value, fallback = 8000) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : false;
 }
 
+export function parseVerifyKillGraceMs(env = process.env) {
+  return parseVerifyTimeoutMs(env.OMOT_VERIFY_KILL_GRACE_MS, DEFAULT_VERIFY_KILL_GRACE_MS);
+}
+
+export function verifyKillGraceValueErrorMessage(env = process.env) {
+  const value = env.OMOT_VERIFY_KILL_GRACE_MS;
+  const received = value == null ? 'undefined' : JSON.stringify(String(value));
+  return [
+    'verify kill grace must be a positive integer wait window in milliseconds.',
+    `Received: ${received}.`,
+    'Set OMOT_VERIFY_KILL_GRACE_MS=N.',
+  ].join(' ');
+}
+
 export function resolveVerifyVault({
   env = process.env,
   argv = process.argv,
@@ -2646,6 +2661,7 @@ export function verifyTimeoutFailure(timeoutMs, env = process.env) {
   return [
     `server verify timed out after ${timeoutMs}ms.`,
     'Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults.',
+    'After timeout verify sends SIGTERM and then SIGKILL; set OMOT_VERIFY_KILL_GRACE_MS=N only to tune that cleanup window.',
     `Example: ${verifyRetryExample(env)}`,
   ].join(' ');
 }
@@ -2696,6 +2712,7 @@ export function verifyUsage() {
     'Runs the MCP server first-contact verification against the resolved vault.\n' +
     'Run npm run verify from the mcp/ package directory; from the repo root, use the node mcp/scripts/verify.mjs form.\n' +
     'Explicit [vault] or --vault arguments take precedence over OMOT_VAULT.\n' +
+    'Timeout cleanup sends SIGTERM and then SIGKILL; set OMOT_VERIFY_KILL_GRACE_MS=N only when the post-timeout cleanup window needs explicit tuning.\n' +
     'Checks parser smoke, server boot, tool inventory (missing/extra/duplicate/invalid names), and direct read smokes,\n' +
     'including list/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans.\n' +
     'It also checks node census, vault validation, workspace health, compile_ontology summary + paginated full-artifact + indexed full-artifact smoke, overview, query plans, and graph-query smoke.\n' +
@@ -5141,6 +5158,11 @@ async function step2BootAndCall() {
     log('fail', 'verify timeout must be a positive integer');
     return false;
   }
+  const killGraceMs = parseVerifyKillGraceMs();
+  if (killGraceMs === false) {
+    log('fail', verifyKillGraceValueErrorMessage());
+    return false;
+  }
   log('info', `step 2 — server boot + tools/list + list_concepts/project probe/get_concept/get_concepts/find_evidence/find_backlinks/query_concepts/limited query_concepts/analyze_repo_structure/infer_imports/find_neighbors/find_path/find_orphans/list_kinds/destructive dry-runs (vault=${VAULT}, timeout=${timeoutMs}ms)`);
 
   const lines = buildFirstContactRequests().map((request) => JSON.stringify(request));
@@ -5177,6 +5199,14 @@ async function step2BootAndCall() {
     expectedFirstContactIds.delete(45);
     let limitedQueryConceptsSmoke = null;
     let timer = null;
+    let killTimer = null;
+    const stopServer = () => {
+      proc.kill('SIGTERM');
+      if (!killTimer) {
+        killTimer = setTimeout(() => proc.kill('SIGKILL'), killGraceMs);
+        killTimer.unref?.();
+      }
+    };
     proc.stdout.on('data', (b) => {
       stdout += stdoutDecoder.write(b);
       if (!sentGetConceptsSmoke || !sentFindBacklinksSmoke || !sentDirectGraphReadSmoke || !sentLimitedQueryConceptsSmoke || !sentGraphQuerySmoke || !sentDestructiveDryRunSmoke) {
@@ -5310,7 +5340,7 @@ async function step2BootAndCall() {
       if (!completed && (hasAllFirstContactResponses(stdout, expectedFirstContactIds) || hasFirstContactErrorResponse(stdout, expectedFirstContactIds))) {
         completed = true;
         if (timer) clearTimeout(timer);
-        proc.kill('SIGTERM');
+        stopServer();
       }
     });
     proc.stderr.on('data', (b) => (stderr += stderrDecoder.write(b)));
@@ -5318,11 +5348,12 @@ async function step2BootAndCall() {
     proc.stdin.write(lines.join('\n') + '\n');
     timer = setTimeout(() => {
       timedOut = true;
-      proc.kill('SIGTERM');
+      stopServer();
     }, timeoutMs);
 
     proc.on('close', () => {
       if (timer) clearTimeout(timer);
+      if (killTimer) clearTimeout(killTimer);
       stdout += stdoutDecoder.end();
       stderr += stderrDecoder.end();
       const responses = parseJsonRpcResponses(stdout);

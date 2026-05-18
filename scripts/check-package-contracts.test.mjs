@@ -898,6 +898,9 @@ describe('package contract helpers', () => {
     assert.match(verifySection, /supports `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS`/);
     assert.match(verifySection, /suggest increasing `--timeout-ms` or `OMOT_VERIFY_TIMEOUT_MS`/);
     assert.match(verifySection, /Real timeout failures suggest the same\s+retry shape/);
+    assert.match(verifySection, /`SIGTERM` and then\s+`SIGKILL`/);
+    assert.match(verifySection, /`OMOT_VERIFY_KILL_GRACE_MS=N`/);
+    assert.match(verifySection, /post-timeout cleanup\s+window/);
     assert.match(verifySection, /invalid timeout values fail before the server\s+starts and print\s+the received value plus a concrete retry example/i);
     assert.match(verifySection, /`npm run verify -- --timeout-ms 15000`/);
     assert.match(verifySection, /validates the installed `tools\/list` schema contract/);

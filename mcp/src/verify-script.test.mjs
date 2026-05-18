@@ -78,6 +78,7 @@ import {
   overviewFailure,
   overviewQueryPlanFailure,
   parseVerifyArgs,
+  parseVerifyKillGraceMs,
   parseVerifyTimeoutMs,
   resolveVerifyVault,
   neighborsFailure,
@@ -119,6 +120,7 @@ import {
   VERIFY_TUNED_WORKSPACE_BRIEF_NODE_LIMIT,
   verifyCountConsistencyFailure,
   verifyCountConsistencySummary,
+  verifyKillGraceValueErrorMessage,
   verifyRetryEnvForVault,
   verifyRetryExample,
   verifySuccessMessage,
@@ -3485,6 +3487,22 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(parseVerifyTimeoutMs('15000'), 15000);
   });
 
+  it('parses verify timeout kill grace env as a strict positive integer', () => {
+    assert.equal(parseVerifyKillGraceMs({}), 1_000);
+    assert.equal(parseVerifyKillGraceMs({ OMOT_VERIFY_KILL_GRACE_MS: '' }), 1_000);
+    assert.equal(parseVerifyKillGraceMs({ OMOT_VERIFY_KILL_GRACE_MS: '25' }), 25);
+    assert.equal(parseVerifyKillGraceMs({ OMOT_VERIFY_KILL_GRACE_MS: '25ms' }), false);
+    assert.equal(parseVerifyKillGraceMs({ OMOT_VERIFY_KILL_GRACE_MS: '0' }), false);
+    assert.match(
+      verifyKillGraceValueErrorMessage({ OMOT_VERIFY_KILL_GRACE_MS: '25ms' }),
+      /Received: "25ms"/,
+    );
+    assert.match(
+      verifyKillGraceValueErrorMessage({ OMOT_VERIFY_KILL_GRACE_MS: '25ms' }),
+      /OMOT_VERIFY_KILL_GRACE_MS=N/,
+    );
+  });
+
   it('resolves verify vault from explicit arg, env, or cwd', () => {
     assert.equal(
       resolveVerifyVault({ env: { OMOT_VAULT: '/tmp/env-vault' }, argv: ['node', 'verify.mjs', '/tmp/arg-vault'], cwd: '/tmp/cwd', isMain: true }),
@@ -3673,6 +3691,8 @@ describe('verify.mjs first-contact gates', () => {
     assert.match(verifyUsage(), /Run npm run verify from the mcp\/ package directory/);
     assert.match(verifyUsage(), /from the repo root, use the node mcp\/scripts\/verify\.mjs form/);
     assert.match(verifyUsage(), /Explicit \[vault\] or --vault arguments take precedence over OMOT_VAULT/);
+    assert.match(verifyUsage(), /Timeout cleanup sends SIGTERM and then SIGKILL/);
+    assert.match(verifyUsage(), /OMOT_VERIFY_KILL_GRACE_MS=N/);
     assert.match(verifyUsage(), /tool inventory \(missing\/extra\/duplicate\/invalid names\)/);
     assert.match(verifyUsage(), /project probe/);
     assert.match(verifyUsage(), /list\/project probe\/get_concept\/get_concepts\/find_evidence\/find_backlinks\/query_concepts\/limited query_concepts\/analyze_repo_structure\/infer_imports\/find_neighbors\/find_path\/find_orphans/);
@@ -3707,6 +3727,8 @@ describe('verify.mjs first-contact gates', () => {
     assert.doesNotMatch(source, /spawn\('node', \[(PARSER_TEST|SERVER_ENTRY)\]/);
     assert.match(source, /spawn\(process\.execPath, \[PARSER_TEST\]/);
     assert.match(source, /spawn\(process\.execPath, \[SERVER_ENTRY\]/);
+    assert.match(source, /proc\.kill\('SIGTERM'\)/);
+    assert.match(source, /proc\.kill\('SIGKILL'\)/);
     assert.match(source, /process\.exitCode\s*=\s*await main\(\)/);
     assert.match(source, /return 1/);
     assert.match(source, /return 0/);
@@ -5114,11 +5136,11 @@ describe('verify.mjs first-contact gates', () => {
   it('formats actionable timeout failures', () => {
     assert.equal(
       verifyTimeoutFailure(1, {}),
-      'server verify timed out after 1ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults. Example: npm run verify -- --timeout-ms 15000',
+      'server verify timed out after 1ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults. After timeout verify sends SIGTERM and then SIGKILL; set OMOT_VERIFY_KILL_GRACE_MS=N only to tune that cleanup window. Example: npm run verify -- --timeout-ms 15000',
     );
     assert.equal(
       verifyTimeoutFailure(1, { OMOT_VERIFY_RETRY_EXAMPLE: 'oh-my-ontology mcp-verify --timeout-ms 15000' }),
-      'server verify timed out after 1ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults. Example: oh-my-ontology mcp-verify --timeout-ms 15000',
+      'server verify timed out after 1ms. Increase --timeout-ms or OMOT_VERIFY_TIMEOUT_MS for large or slow vaults. After timeout verify sends SIGTERM and then SIGKILL; set OMOT_VERIFY_KILL_GRACE_MS=N only to tune that cleanup window. Example: oh-my-ontology mcp-verify --timeout-ms 15000',
     );
     assert.equal(
       verifyRetryExample({ OMOT_VERIFY_RETRY_EXAMPLE: ' oh-my-ontology mcp-verify --timeout-ms 15000 ' }),
