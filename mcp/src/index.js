@@ -4095,7 +4095,7 @@ function mergeConcepts({ fromSlug, intoSlug, confirm = false, expected_mtime }) 
       backlinkUpdates: preview,
       capturedFrom: {
         frontmatter: fromDoc.frontmatter,
-        bodyExcerpt: fromDoc.body.slice(0, 200),
+        bodyExcerpt: extractSummaryExcerpt(fromDoc.body, 200),
       },
       message: `dry-run — confirm:true 를 주면 ${preview.totalUpdated} 곳 backlink redirect 후 ${fromSlug}.md 가 영구 삭제됩니다.`,
     };
@@ -4115,7 +4115,7 @@ function mergeConcepts({ fromSlug, intoSlug, confirm = false, expected_mtime }) 
     capturedFrom: {
       frontmatter: fromDoc.frontmatter,
       body: fromDoc.body,
-      bodyExcerpt: fromDoc.body.slice(0, 200),
+      bodyExcerpt: extractSummaryExcerpt(fromDoc.body, 200),
     },
     postWriteMaintenance: compactPostWriteMaintenance(),
   };
@@ -4170,7 +4170,7 @@ function deleteConcept({ slug, confirm = false, force = false, expected_mtime })
     captured: {
       frontmatter: deleted.frontmatter,
       body: deleted.body,
-      bodyExcerpt: deleted.body.slice(0, 200),
+      bodyExcerpt: extractSummaryExcerpt(deleted.body, 200),
     },
     postWriteMaintenance: compactPostWriteMaintenance(),
   };

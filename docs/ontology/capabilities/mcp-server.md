@@ -100,9 +100,9 @@ containment-specific check 만 skip 한다.
 완전히 빈 vault 는 node-targeted graph smoke 를 skip 하되 boot / inventory /
 validation / diagnosis / compile / overview / query planning 은 계속 hard gate 로 검증한다.
 | `patch_concept` | 기존 노드 frontmatter (key 단위 patch) + body 갱신 — graph 배열 patch 는 clean string array 만 허용하고 dedup + sort, 핵심 scalar(`kind`/`domain`/frontmatter `slug`/`body`) 도 strict 검증, changed write 는 compact `postWriteMaintenance` 반환 (`byPhase`·`bySeverity`·`byKind` bucket / `score` / executable `proposedAction` 으로 후속 정리 우선순위와 실행 의도 판단 가능) |
-| `delete_concept` | **⚠ DESTRUCTIVE** — 노드 영구 삭제. 안전 가드 2단: ① `confirm:true` 미지정 시 dry-run, ② backlinks 있으면 throw — `force:true` 만 강행. confirmed delete 응답은 복구용 `captured.frontmatter` / full `body` 와 빠른 확인용 `bodyExcerpt`, `backlinksAtDelete[]`, compact `postWriteMaintenance` (`byPhase`·`bySeverity`·`byKind` bucket / `score` / executable `proposedAction`) 를 함께 반환한다. |
+| `delete_concept` | **⚠ DESTRUCTIVE** — 노드 영구 삭제. 안전 가드 2단: ① `confirm:true` 미지정 시 dry-run, ② backlinks 있으면 throw — `force:true` 만 강행. confirmed delete 응답은 복구용 `captured.frontmatter` / full `body` 와 prose-aware 빠른 확인용 `bodyExcerpt`, `backlinksAtDelete[]`, compact `postWriteMaintenance` (`byPhase`·`bySeverity`·`byKind` bucket / `score` / executable `proposedAction`) 를 함께 반환한다. |
 | `rename_concept` | **⚠ MULTI-FILE (R11)** — slug 변경 + 모든 backlink 의 array/body 자동 redirect. dry-run default. `newSlug` 가 이미 있으면 throw 하고, 의식적으로 `overwrite:true` 를 준 경우만 대체. tail-only 참조도 새 tail 로 일관 갱신. `find_backlinks` + N 회 `patch_concept` 의 atomic 대체. confirmed rename 은 compact `postWriteMaintenance` 반환 (`byPhase`·`bySeverity`·`byKind` bucket / `score` / executable `proposedAction` 포함). |
-| `merge_concepts` | **⚠ DESTRUCTIVE MULTI-FILE (R11)** — `fromSlug` 의 backlink 를 `intoSlug` 로 redirect 후 fromSlug.md 삭제. `intoSlug` 의 frontmatter/body 는 자동 합치지 않음 (필요 시 후속 `patch_concept`). dry-run default. confirmed merge 는 `capturedFrom.frontmatter` / full `body` / `bodyExcerpt`, backlink redirect plan, compact `postWriteMaintenance` (`byPhase`·`bySeverity`·`byKind` bucket / `score` / executable `proposedAction`) 를 함께 반환한다. |
+| `merge_concepts` | **⚠ DESTRUCTIVE MULTI-FILE (R11)** — `fromSlug` 의 backlink 를 `intoSlug` 로 redirect 후 fromSlug.md 삭제. `intoSlug` 의 frontmatter/body 는 자동 합치지 않음 (필요 시 후속 `patch_concept`). dry-run default. confirmed merge 는 `capturedFrom.frontmatter` / full `body` / prose-aware `bodyExcerpt`, backlink redirect plan, compact `postWriteMaintenance` (`byPhase`·`bySeverity`·`byKind` bucket / `score` / executable `proposedAction`) 를 함께 반환한다. |
 
 환경변수 `OMOT_VAULT` 로 vault 위치 지정. 등록 가이드: `mcp/README.md`. 1줄 verify:
 `npm run verify` (mcp/) — parser smoke, server boot, 23-tool inventory
@@ -816,8 +816,8 @@ summary 는 실제 payload 의 세부 카운트까지 포함하고, filters 는 
 destructive writer 의 `backlinkUpdates` / `capturedFrom` / `backlinksAtDelete` 도 실제 dry-run·confirm
 payload 구조로 닫아 rename / merge / delete 결과를 agent 가 추측 없이 후속 검토할 수 있게 한다.
 confirmed `merge_concepts` / `delete_concept` 의 capture payload 는 복구용 full `body` 와
-빠른 확인용 `bodyExcerpt` 를 함께 담아, agent 가 긴 문서를 다시 열지 않고도 삭제/병합 대상을
-검토할 수 있게 한다.
+heading / 표 / 코드블록 / 리스트 / 인용을 건너뛴 prose-aware `bodyExcerpt` 를 함께 담아,
+agent 가 긴 문서를 다시 열지 않고도 삭제/병합 대상을 검토할 수 있게 한다.
 read tool 의 핵심 진입점인 `get_concept` / `get_concepts` 도 `neighbors` / `outgoingEdges` /
 `warnings` 구조를 닫아 vault issue 와 graph edge payload 를 안전하게 파싱할 수 있게 한다.
 두 tool 의 root / batch-row object 도 닫혀 응답에 없는 필드를 agent 가 후속 상태로 가정하지 못한다.
