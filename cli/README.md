@@ -137,8 +137,9 @@ and ends successful runs with `[dogfood:compile-fix] docs/ontology unchanged`,
 `dogfood:health` is the shortest root-checkout fail-closed health JSON gate, `dogfood:brief` is
 the shortest root-checkout first-contact JSON snapshot, `dogfood:status` always
 runs health + workspace-brief, prints `[dogfood:status] health:N · workspace-brief:N`,
-and preserves the first failing exit before escalating, `test:dogfood:status`
-checks that always-run shortcut contract without the full dogfood suite, `dogfood:verify` is
+preserves the first failing exit before escalating, and prints a
+`pnpm dogfood:verify` follow-up hint on failure, `test:dogfood:status` checks
+that always-run shortcut contract without the full dogfood suite, `dogfood:verify` is
 the full root-checkout dogfood vault gate. `pnpm dogfood:compile-fix -- --help`
 and `pnpm dogfood:status -- --help` print shortcut usage without running those
 gates; unsupported shortcut arguments fail with exit 2 before any child check starts,

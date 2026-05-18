@@ -365,6 +365,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /`pnpm dogfood:status` runs the cheap human-readable health \+ workspace-brief\s+gates together/);
     assert.match(checksDoc, /still prints workspace-brief when health fails, then preserves\s+the first failing exit code/);
     assert.match(checksDoc, /\[dogfood:status\] health:N ·\s+workspace-brief:N/);
+    assert.match(checksDoc, /prints a `pnpm dogfood:verify` follow-up hint on failure/);
     assert.match(checksDoc, /Use `pnpm dogfood:compile-fix -- --help` \/ `pnpm dogfood:status -- --help`/);
     assert.match(checksDoc, /unsupported shortcut\s+arguments fail with exit 2 before any child check starts/);
     assert.match(checksDoc, /close `--help`\s+typos include a `Did you mean --help\?` hint/);
@@ -799,14 +800,14 @@ describe('package contract helpers', () => {
     assert.match(section, /`pnpm test:dogfood:script-refs` checks help text and package script body `pnpm \.\.\.` references against root package scripts/);
     assert.match(section, /`dogfood:health` prints the dogfood vault fail-closed `health` JSON gate/);
     assert.match(section, /`dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot/);
-    assert.match(section, /`dogfood:status` always runs health \+ workspace-brief, prints `\[dogfood:status\] health:N · workspace-brief:N`,\s+and preserves the first failing exit before escalating/);
+    assert.match(section, /`dogfood:status` always runs health \+ workspace-brief, prints `\[dogfood:status\] health:N · workspace-brief:N`,\s+preserves the first failing exit before escalating, and prints a `pnpm dogfood:verify` follow-up hint on failure/);
     assert.match(section, /\[dogfood:status\] health:N · workspace-brief:N/);
     assert.match(section, /`test:dogfood:status` checks that always-run shortcut contract without the full dogfood suite/);
     assert.match(section, /`pnpm dogfood:compile` is the shortest dogfood vault compiler snapshot/);
     assert.match(section, /`pnpm dogfood:health` is the shortest dogfood vault health gate/);
     assert.match(section, /`pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot/);
     assert.match(section, /`pnpm dogfood:status` for the cheap human-readable health \+ first-contact pair/);
-    assert.match(section, /it still prints the brief after health fails and preserves the first failing exit/);
+    assert.match(section, /it still prints the brief after health fails, preserves the first failing exit,\s+and prints a `pnpm dogfood:verify` follow-up hint on failure/);
     assert.match(section, /`pnpm dogfood:compile-fix -- --help` \/ `pnpm dogfood:status -- --help`/);
     assert.match(section, /shortcut usage without running those gates/);
     assert.match(section, /unsupported shortcut arguments fail\s+with exit 2 before starting the underlying checks/);
@@ -1410,9 +1411,9 @@ describe('package contract helpers', () => {
     assert.match(section, /`test:dogfood:compile-fix`\s+checks that idempotence guard without invoking the full dogfood suite/);
     assert.match(section, /`dogfood:health`\s+is the shortest root-checkout fail-closed health JSON gate/);
     assert.match(section, /`dogfood:brief`\s+is\s+the shortest root-checkout first-contact JSON snapshot/);
-    assert.match(section, /`dogfood:status` always\s+runs health \+ workspace-brief, prints `\[dogfood:status\] health:N · workspace-brief:N`,\s+and preserves the first failing exit before escalating/);
+    assert.match(section, /`dogfood:status` always\s+runs health \+ workspace-brief, prints `\[dogfood:status\] health:N · workspace-brief:N`,\s+preserves the first failing exit before escalating, and prints a\s+`pnpm dogfood:verify` follow-up hint on failure/);
     assert.match(section, /\[dogfood:status\] health:N · workspace-brief:N/);
-    assert.match(section, /`test:dogfood:status`\s+checks that always-run shortcut contract without the full dogfood suite/);
+    assert.match(section, /`test:dogfood:status`\s+checks\s+that always-run shortcut contract without the full dogfood suite/);
     assert.match(section, /`dogfood:verify` is\s+the full root-checkout dogfood vault gate/);
     assert.match(section, /`pnpm dogfood:compile-fix -- --help`\s+and `pnpm dogfood:status -- --help` print shortcut usage without running those\s+gates/);
     assert.match(section, /unsupported shortcut arguments fail with exit 2 before any child check starts/);
@@ -2401,6 +2402,7 @@ describe('package contract helpers', () => {
     assert.match(regressionSection, /`pnpm dogfood:brief` 는 docs\/ontology 의 `workspace-brief --json` first-contact snapshot/);
     assert.match(regressionSection, /`pnpm dogfood:status` 는 health 가 non-zero 여도 workspace-brief 를 계속 실행한 뒤 첫 실패 exit code 를 보존/);
     assert.match(regressionSection, /\[dogfood:status\] health:N · workspace-brief:N/);
+    assert.match(regressionSection, /`pnpm dogfood:status` 실패 출력은 `\[dogfood:status\] health:N · workspace-brief:N` child status 요약 뒤에 `pnpm dogfood:verify` follow-up hint/);
     assert.match(regressionSection, /`pnpm cli:mcp-verify -- --help` 는[\s\S]*`dogfood:compile-fix` \/ `dogfood:status` 의 성공 마지막 줄까지 보여줘/);
     assert.match(regressionSection, /`pnpm test:dogfood:status` 는 그 shortcut 계약만 spawn 없이 검증/);
     assert.match(regressionSection, /`workspace-brief --json` first-contact snapshot/);
@@ -2454,6 +2456,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /`pnpm dogfood:brief` 는 repo root 의 가장 짧은 first-contact snapshot/);
     assert.match(doc, /`pnpm dogfood:status` 는 health 가 non-zero 여도 workspace-brief 까지 출력한 뒤 첫 실패 exit code 를 보존/);
     assert.match(doc, /\[dogfood:status\] health:N · workspace-brief:N/);
+    assert.match(doc, /`\[dogfood:status\] health:N · workspace-brief:N` 요약과 `pnpm dogfood:verify` follow-up hint/);
     assert.match(doc, /`--help` 근접 오타는 `Did you mean --help\?` 힌트/);
     assert.match(doc, /full 설치형 검증은 `pnpm dogfood:verify`/);
     assert.match(doc, /`pnpm cli:mcp-verify docs\/ontology --timeout-ms 15000` 로 풀어 쓴다/);

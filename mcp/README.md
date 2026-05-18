@@ -116,7 +116,7 @@ snapshot without running the full installed-style MCP verify walk.
 without running the full installed-style MCP verify walk.
 `dogfood:brief` prints the dogfood vault `workspace_brief` JSON snapshot
 without running the full installed-style MCP verify walk.
-`dogfood:status` always runs health + workspace-brief, prints `[dogfood:status] health:N · workspace-brief:N`, and preserves the first failing exit before escalating.
+`dogfood:status` always runs health + workspace-brief, prints `[dogfood:status] health:N · workspace-brief:N`, preserves the first failing exit before escalating, and prints a `pnpm dogfood:verify` follow-up hint on failure.
 `test:dogfood:status` checks that always-run shortcut contract without the full dogfood suite.
 Use `OMOT_TEST_NAME_PATTERN` with `pnpm integration:mcp` when the touched MCP
 integration case has a different name. For Node's `--test-name-pattern`, use
@@ -138,7 +138,8 @@ value cannot leak the following option value into the target list.
 `pnpm dogfood:health` is the shortest dogfood vault health gate.
 `pnpm dogfood:brief` is the shortest dogfood vault first-contact snapshot. Use
 `pnpm dogfood:status` for the cheap human-readable health + first-contact pair;
-it still prints the brief after health fails and preserves the first failing exit. Use
+it still prints the brief after health fails, preserves the first failing exit,
+and prints a `pnpm dogfood:verify` follow-up hint on failure. Use
 `pnpm dogfood:compile-fix -- --help` / `pnpm dogfood:status -- --help`
 for shortcut usage without running those gates; unsupported shortcut arguments fail
 with exit 2 before starting the underlying checks, and close `--help` typos include

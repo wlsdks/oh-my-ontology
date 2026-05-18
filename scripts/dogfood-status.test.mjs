@@ -5,6 +5,7 @@ import {
   dogfoodStatusArgSuggestion,
   dogfoodStatusDiagnostic,
   dogfoodStatusExitCode,
+  dogfoodStatusFailureHint,
   dogfoodStatusSummary,
   handleDogfoodStatusArgs,
   normalizeDogfoodStatusArgs,
@@ -66,10 +67,12 @@ describe('dogfood status shortcut', () => {
   it('runs workspace-brief even when health fails and preserves the first non-zero exit', () => {
     const calls = [];
     const output = [];
+    const diagnostics = [];
     const exitCode = runDogfoodStatus({
       argv: [],
       cwd: '/repo',
       stdout: { write: (text) => output.push(text) },
+      stderr: { write: (text) => diagnostics.push(text) },
       spawn(command, args, options) {
         calls.push({ command, args, options });
         return { status: calls.length === 1 ? 1 : 0 };
@@ -85,6 +88,9 @@ describe('dogfood status shortcut', () => {
     assert.equal(calls[0].options.cwd, '/repo');
     assert.equal(calls[0].options.stdio, 'inherit');
     assert.deepEqual(output, ['[dogfood:status] health:1 · workspace-brief:0\n']);
+    assert.deepEqual(diagnostics, [
+      '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate\n',
+    ]);
   });
 
   it('returns the workspace-brief failure when health passes first', () => {
@@ -138,6 +144,10 @@ describe('dogfood status shortcut', () => {
         { label: 'workspace-brief', status: 2 },
       ]),
       '[dogfood:status] health:0 · workspace-brief:2',
+    );
+    assert.equal(
+      dogfoodStatusFailureHint(),
+      '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate',
     );
   });
 

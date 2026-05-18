@@ -49,6 +49,9 @@ export function runDogfoodStatus({
 
   if (stdio === 'inherit') {
     stdout.write(`${dogfoodStatusSummary(results)}\n`);
+    if (exitCode !== 0) {
+      stderr.write(`${dogfoodStatusFailureHint()}\n`);
+    }
   }
 
   return exitCode;
@@ -88,6 +91,10 @@ export function dogfoodStatusExitCode(result) {
 export function dogfoodStatusSummary(results = []) {
   const parts = results.map((row) => `${row.label}:${row.status}`);
   return `[dogfood:status] ${parts.join(' · ')}`;
+}
+
+export function dogfoodStatusFailureHint() {
+  return '[dogfood:status] run pnpm dogfood:verify for the full installed-style dogfood vault gate';
 }
 
 export function dogfoodStatusDiagnostic(args, result) {

@@ -130,8 +130,9 @@ Node test wrappers fail when a pattern matches 0 tests.
 
 `pnpm dogfood:status` runs the cheap human-readable health + workspace-brief
 gates together. It still prints workspace-brief when health fails, then preserves
-the first failing exit code and ends with `[dogfood:status] health:N ·
-workspace-brief:N` so the two child statuses are visible in one line. Use
+the first failing exit code, ends with `[dogfood:status] health:N ·
+workspace-brief:N`, and prints a `pnpm dogfood:verify` follow-up hint on failure
+so the two child statuses and next escalation path are visible. Use
 `pnpm dogfood:verify` for the full
 installed-style dogfood vault gate, and `pnpm dogfood:test` only when the dogfood
 helper itself changed or the focused `test:mcp:dogfood` subset is not enough.
