@@ -1641,6 +1641,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /batch repair 안내도\s+같은 gate 에 포함/);
     assert.match(doc, /strict enum \/ maintenance filter \/ relation filter \/ graph kind filter \/ sort \/ type smoke/);
     assert.match(doc, /`structuredContent\.valueName`, `receivedValue`, `suggestion`, `allowedValues`/);
+    assert.match(doc, /`allowedValues` 는\s+일부 대표값이 아니라 해당 입력의 전체 enum 순서와 정확히 일치/);
     assert.match(doc, /`concepts\[n\] duplicate slug in input batch; first seen at concepts\[m\]`/);
     assert.match(doc, /strict relation filter \/ `relation_check` row/);
     assert.match(doc, /`dependencyTypes items depend_on->depends_on; allowed 9`/);

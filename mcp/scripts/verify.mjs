@@ -2315,7 +2315,7 @@ function structuredValueRepairFailure(
   if (requireSuggestion && structured?.suggestion !== suggestion) {
     return `${label} structured error missing repair hint`;
   }
-  if (!Array.isArray(structured?.allowedValues) || allowedValues.some((value) => !structured.allowedValues.includes(value))) {
+  if (!sameArray(structured?.allowedValues, allowedValues)) {
     return `${label} structured error missing allowed values`;
   }
   return null;
@@ -2336,7 +2336,7 @@ export function strictEnumFailure(response) {
     valueName: 'operation',
     received: 'overveiw',
     suggestion: 'overview',
-    allowedValues: ['overview'],
+    allowedValues: QUERY_ONTOLOGY_OPERATIONS,
   });
 }
 
@@ -2389,7 +2389,7 @@ export function strictRelationFilterFailure(response) {
     valueName: 'dependencyTypes items',
     received: 'depend_on',
     suggestion: 'depends_on',
-    allowedValues: ['depends_on'],
+    allowedValues: RELATION_TYPE_VALUES,
   });
 }
 
@@ -2411,7 +2411,7 @@ export function strictFindNeighborsTypeFailure(response) {
     valueName: 'types items',
     received: 'depend_on',
     suggestion: 'depends_on',
-    allowedValues: ['depends_on'],
+    allowedValues: RELATION_TYPE_VALUES,
   });
 }
 
@@ -2436,7 +2436,7 @@ export function strictFindOrphansKindFailure(
     valueName: field,
     received,
     suggestion,
-    allowedValues: [suggestion],
+    allowedValues: NODE_KIND_VALUES,
   });
 }
 
@@ -2461,7 +2461,7 @@ export function strictQueryConceptsFilterFailure(
     valueName: field,
     received,
     suggestion,
-    allowedValues: [suggestion],
+    allowedValues: field === 'has key' ? GRAPH_ARRAY_KEYS : NODE_KIND_VALUES,
   });
 }
 
@@ -2486,7 +2486,7 @@ export function strictListConceptsKindFailure(
     valueName: 'kind',
     received,
     suggestion,
-    allowedValues: [suggestion],
+    allowedValues: NODE_KIND_VALUES,
   });
 }
 
@@ -2511,7 +2511,7 @@ export function strictGraphKindFilterFailure(
     valueName: field,
     received,
     suggestion,
-    allowedValues: [suggestion],
+    allowedValues: field === 'toKind' ? EDGE_TARGET_KIND_VALUES : NODE_KIND_VALUES,
   });
 }
 
@@ -2569,7 +2569,7 @@ export function strictMatchNodesSortFailure(response) {
     valueName: 'sort',
     received: 'outDegre',
     suggestion: 'outDegree',
-    allowedValues: ['outDegree'],
+    allowedValues: ['degree', 'inDegree', 'outDegree', 'slug'],
   });
 }
 
@@ -2591,7 +2591,7 @@ export function strictRelationCheckFailure(response) {
     valueName: 'type',
     received: 'depend_on',
     suggestion: 'depends_on',
-    allowedValues: ['depends_on'],
+    allowedValues: RELATION_TYPE_VALUES,
   });
 }
 
@@ -2613,7 +2613,7 @@ export function strictMatchEdgesTypeFailure(response) {
     valueName: 'type',
     received: 'depend_on',
     suggestion: 'depends_on',
-    allowedValues: ['depends_on'],
+    allowedValues: RELATION_TYPE_VALUES,
   });
 }
 
@@ -2641,7 +2641,7 @@ export function strictAddRelationFailure(response) {
     valueName: 'type',
     received: 'depend_on',
     suggestion: 'depends_on',
-    allowedValues: ['depends_on'],
+    allowedValues: WRITE_RELATION_TYPE_VALUES,
   });
 }
 

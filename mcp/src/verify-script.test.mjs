@@ -4795,7 +4795,7 @@ describe('verify.mjs first-contact gates', () => {
   });
 
   it('fails malformed strict enum smoke responses', () => {
-    const error = 'operation must be one of: overview, health. Received: "overveiw". Did you mean "overview"?';
+    const error = `operation must be one of: ${QUERY_ONTOLOGY_OPERATIONS.join(', ')}. Received: "overveiw". Did you mean "overview"?`;
     assert.equal(
       strictEnumFailure(strictErrorResponse(error, {
         structuredContent: {
@@ -4805,7 +4805,7 @@ describe('verify.mjs first-contact gates', () => {
           valueName: 'operation',
           receivedValue: 'overveiw',
           suggestion: 'overview',
-          allowedValues: ['overview', 'health'],
+          allowedValues: QUERY_ONTOLOGY_OPERATIONS,
         },
       })),
       null,
@@ -4831,6 +4831,12 @@ describe('verify.mjs first-contact gates', () => {
     assert.equal(
       strictEnumFailure(strictErrorResponse(error, {
         structuredContent: { ok: false, errorCode: 'invalid_arguments', error, valueName: 'operation', receivedValue: 'overveiw', suggestion: 'overview' },
+      })),
+      'strict enum structured error missing allowed values',
+    );
+    assert.equal(
+      strictEnumFailure(strictErrorResponse(error, {
+        structuredContent: { ok: false, errorCode: 'invalid_arguments', error, valueName: 'operation', receivedValue: 'overveiw', suggestion: 'overview', allowedValues: ['overview', 'health'] },
       })),
       'strict enum structured error missing allowed values',
     );
@@ -5162,7 +5168,7 @@ describe('verify.mjs first-contact gates', () => {
 
   it('fails malformed strict add_relation smoke responses', () => {
     assert.equal(
-      strictAddRelationFailure(strictErrorResponse('type must be one of: depends_on, relates, contains, describes. Received: "depend_on". Did you mean "depends_on"?')),
+      strictAddRelationFailure(strictErrorResponse(`type must be one of: ${WRITE_RELATION_TYPE_VALUES.join(', ')}. Received: "depend_on". Did you mean "depends_on"?`)),
       null,
     );
     assert.equal(

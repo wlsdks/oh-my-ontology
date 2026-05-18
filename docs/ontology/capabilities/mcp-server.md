@@ -148,7 +148,8 @@ tool-level 실패 응답도 `structuredContent: { ok:false, errorCode, error }` 
 텍스트 파싱 없이 retry / 수정 / 사용자 보고 분기를 결정할 수 있고, strict argument / enum / filter / type / write-safety verify 와 dogfood gate 가 `errorCode` 까지 확인한다.
 설치 verify 는 strict enum / maintenance filter / relation filter / graph kind filter / sort / type smoke 의
 `structuredContent.valueName`, `receivedValue`, `suggestion`, `allowedValues` 도 직접 확인해,
-human-readable text hint 와 MCP client 용 repair payload 가 따로 drift 나지 않게 한다.
+human-readable text hint 와 MCP client 용 repair payload 가 따로 drift 나지 않게 한다. `allowedValues` 는
+일부 대표값이 아니라 해당 입력의 전체 enum 순서와 정확히 일치해야 통과한다.
 dogfood walk 의 strict tool-name / argument / multi-argument / enum / filter 섹션은 `structuredContent` 의
 repair field 를 읽어 `arg lmit->limit`, `args lmit->limit, summry->summary`,
 `operation overveiw->overview`, `tool list_concept->list_concepts`,
