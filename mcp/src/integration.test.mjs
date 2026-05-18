@@ -43,6 +43,7 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SERVER_ENTRY = resolve(__dirname, "index.js");
+const EQUALITY_FILTER_KEYS = ["kind", "domain", "slug", "title"];
 
 let passed = 0;
 let failed = 0;
@@ -180,6 +181,17 @@ function getCallStructured(responses, id) {
   if (!res) throw new Error(`no response for id ${id}`);
   if (res.error) throw new Error(`error response: ${JSON.stringify(res.error)}`);
   return res.result?.structuredContent;
+}
+
+function assertStructuredValueRepair(responses, id, { valueName, receivedValue, suggestion, allowedValues }) {
+  const structured = getCallStructured(responses, id);
+  assert.equal(structured?.errorCode, "invalid_arguments", `request ${id} errorCode`);
+  assert.equal(structured?.valueName, valueName, `request ${id} valueName`);
+  assert.equal(structured?.receivedValue, receivedValue, `request ${id} receivedValue`);
+  if (suggestion !== undefined) {
+    assert.equal(structured?.suggestion, suggestion, `request ${id} suggestion`);
+  }
+  assert.deepEqual(structured?.allowedValues, allowedValues, `request ${id} allowedValues`);
 }
 
 function isErrorResponse(responses, id) {
@@ -1754,7 +1766,7 @@ await test("tools/call — arguments 생략은 빈 object, non-object 는 명시
     assert.equal(getCallStructured(responses, 9)?.errorCode, "unknown_tool");
     assert.equal(getCallStructured(responses, 9)?.receivedTool, "list_concept");
     assert.equal(getCallStructured(responses, 9)?.suggestion, "list_concepts");
-    assert.ok(getCallStructured(responses, 9)?.allowedTools.includes("list_concepts"));
+    assert.deepEqual(getCallStructured(responses, 9)?.allowedTools, [...EXPECTED_TOOLS].sort());
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -3052,63 +3064,173 @@ await test("MCP read/query tools — invalid numeric and direction options are r
     assert.equal(getCallStructured(responses, 54)?.valueName, "operation");
     assert.equal(getCallStructured(responses, 54)?.receivedValue, "overveiw");
     assert.equal(getCallStructured(responses, 54)?.suggestion, "overview");
-    assert.ok(getCallStructured(responses, 54)?.allowedValues.includes("overview"));
+    assertStructuredValueRepair(responses, 54, {
+      valueName: "operation",
+      receivedValue: "overveiw",
+      suggestion: "overview",
+      allowedValues: QUERY_ONTOLOGY_OPERATIONS,
+    });
     assert.match(responses.find((r) => r.id === 55).result.content[0].text, /Did you mean "overview"\?/i);
-    assert.equal(getCallStructured(responses, 55)?.valueName, "targetOperation");
-    assert.equal(getCallStructured(responses, 55)?.receivedValue, "overveiw");
-    assert.equal(getCallStructured(responses, 55)?.suggestion, "overview");
+    assertStructuredValueRepair(responses, 55, {
+      valueName: "targetOperation",
+      receivedValue: "overveiw",
+      suggestion: "overview",
+      allowedValues: QUERY_PLAN_TARGET_OPERATIONS,
+    });
     assert.match(responses.find((r) => r.id === 56).result.content[0].text, /Did you mean "incoming"\?/i);
+    assertStructuredValueRepair(responses, 56, {
+      valueName: "direction",
+      receivedValue: "incomng",
+      suggestion: "incoming",
+      allowedValues: ["outgoing", "incoming", "both"],
+    });
     assert.match(responses.find((r) => r.id === 57).result.content[0].text, /componentLimit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 58).result.content[0].text, /dependencyTypes items must not have leading or trailing whitespace/i);
     assert.match(responses.find((r) => r.id === 59).result.content[0].text, /componentLimit must be <= 500/i);
     assert.match(responses.find((r) => r.id === 60).result.content[0].text, /phases items must be one of: validate, repair, link, materialize, review/i);
     assert.match(responses.find((r) => r.id === 60).result.content[0].text, /Received: "repiar"/i);
     assert.match(responses.find((r) => r.id === 60).result.content[0].text, /Did you mean "repair"\?/i);
+    assertStructuredValueRepair(responses, 60, {
+      valueName: "phases items",
+      receivedValue: "repiar",
+      suggestion: "repair",
+      allowedValues: MAINTENANCE_PHASE_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 61).result.content[0].text, /severities items must be one of: fail, warn, info/i);
     assert.match(responses.find((r) => r.id === 61).result.content[0].text, /Received: "fatal"/i);
     assert.match(responses.find((r) => r.id === 61).result.content[0].text, /Did you mean "fail"\?/i);
+    assertStructuredValueRepair(responses, 61, {
+      valueName: "severities items",
+      receivedValue: "fatal",
+      suggestion: "fail",
+      allowedValues: MAINTENANCE_SEVERITY_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 62).result.content[0].text, /kinds items must be one of: inspect_compile_issue, break_dependency_cycle, canonicalize_graph_arrays, resolve_dangling_reference, add_missing_relation, materialize_external_element, unassigned_node, empty_domain/i);
     assert.match(responses.find((r) => r.id === 62).result.content[0].text, /Received: "add_mising_relation"/i);
     assert.match(responses.find((r) => r.id === 62).result.content[0].text, /Did you mean "add_missing_relation"\?/i);
+    assertStructuredValueRepair(responses, 62, {
+      valueName: "kinds items",
+      receivedValue: "add_mising_relation",
+      suggestion: "add_missing_relation",
+      allowedValues: MAINTENANCE_KIND_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 63).result.content[0].text, /dependencyTypes items must be one of/i);
     assert.match(responses.find((r) => r.id === 63).result.content[0].text, /Received: "depend_on"/i);
     assert.match(responses.find((r) => r.id === 63).result.content[0].text, /Did you mean "depends_on"\?/i);
+    assertStructuredValueRepair(responses, 63, {
+      valueName: "dependencyTypes items",
+      receivedValue: "depend_on",
+      suggestion: "depends_on",
+      allowedValues: RELATION_TYPE_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 64).result.content[0].text, /componentTypes items must be one of/i);
     assert.match(responses.find((r) => r.id === 64).result.content[0].text, /Received: "capabilties"/i);
     assert.match(responses.find((r) => r.id === 64).result.content[0].text, /Did you mean "capabilities"\?/i);
+    assertStructuredValueRepair(responses, 64, {
+      valueName: "componentTypes items",
+      receivedValue: "capabilties",
+      suggestion: "capabilities",
+      allowedValues: RELATION_TYPE_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 65).result.content[0].text, /type must be one of/i);
     assert.match(responses.find((r) => r.id === 65).result.content[0].text, /Received: "depend_on"/i);
     assert.match(responses.find((r) => r.id === 65).result.content[0].text, /Did you mean "depends_on"\?/i);
+    assertStructuredValueRepair(responses, 65, {
+      valueName: "type",
+      receivedValue: "depend_on",
+      suggestion: "depends_on",
+      allowedValues: RELATION_TYPE_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 66).result.content[0].text, /kind must be one of/i);
     assert.match(responses.find((r) => r.id === 66).result.content[0].text, /Received: "capabilty"/i);
     assert.match(responses.find((r) => r.id === 66).result.content[0].text, /Did you mean "capability"\?/i);
+    assertStructuredValueRepair(responses, 66, {
+      valueName: "kind",
+      receivedValue: "capabilty",
+      suggestion: "capability",
+      allowedValues: NODE_KIND_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 67).result.content[0].text, /fromKind must be one of/i);
     assert.match(responses.find((r) => r.id === 67).result.content[0].text, /Received: "capabilty"/i);
     assert.match(responses.find((r) => r.id === 67).result.content[0].text, /Did you mean "capability"\?/i);
+    assertStructuredValueRepair(responses, 67, {
+      valueName: "fromKind",
+      receivedValue: "capabilty",
+      suggestion: "capability",
+      allowedValues: NODE_KIND_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 68).result.content[0].text, /toKind must be one of/i);
     assert.match(responses.find((r) => r.id === 68).result.content[0].text, /Received: "externl"/i);
     assert.match(responses.find((r) => r.id === 68).result.content[0].text, /Did you mean "external"\?/i);
+    assertStructuredValueRepair(responses, 68, {
+      valueName: "toKind",
+      receivedValue: "externl",
+      suggestion: "external",
+      allowedValues: EDGE_TARGET_KIND_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 69).result.content[0].text, /types items must be one of/i);
     assert.match(responses.find((r) => r.id === 69).result.content[0].text, /Received: "depend_on"/i);
     assert.match(responses.find((r) => r.id === 69).result.content[0].text, /Did you mean "depends_on"\?/i);
+    assertStructuredValueRepair(responses, 69, {
+      valueName: "types items",
+      receivedValue: "depend_on",
+      suggestion: "depends_on",
+      allowedValues: RELATION_TYPE_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 70).result.content[0].text, /kind must be one of/i);
     assert.match(responses.find((r) => r.id === 70).result.content[0].text, /Received: "capabilty"/i);
     assert.match(responses.find((r) => r.id === 70).result.content[0].text, /Did you mean "capability"\?/i);
+    assertStructuredValueRepair(responses, 70, {
+      valueName: "kind",
+      receivedValue: "capabilty",
+      suggestion: "capability",
+      allowedValues: NODE_KIND_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 71).result.content[0].text, /excludeKinds items must be one of/i);
     assert.match(responses.find((r) => r.id === 71).result.content[0].text, /Received: "capabilty"/i);
     assert.match(responses.find((r) => r.id === 71).result.content[0].text, /Did you mean "capability"\?/i);
+    assertStructuredValueRepair(responses, 71, {
+      valueName: "excludeKinds items",
+      receivedValue: "capabilty",
+      suggestion: "capability",
+      allowedValues: NODE_KIND_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 72).result.content[0].text, /kind must be one of/i);
     assert.match(responses.find((r) => r.id === 72).result.content[0].text, /Received: "capabilty"/i);
     assert.match(responses.find((r) => r.id === 72).result.content[0].text, /Did you mean "capability"\?/i);
+    assertStructuredValueRepair(responses, 72, {
+      valueName: "kind",
+      receivedValue: "capabilty",
+      suggestion: "capability",
+      allowedValues: NODE_KIND_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 73).result.content[0].text, /has key must be one of/i);
     assert.match(responses.find((r) => r.id === 73).result.content[0].text, /Received: "capabilties"/i);
     assert.match(responses.find((r) => r.id === 73).result.content[0].text, /Did you mean "capabilities"\?/i);
+    assertStructuredValueRepair(responses, 73, {
+      valueName: "has key",
+      receivedValue: "capabilties",
+      suggestion: "capabilities",
+      allowedValues: GRAPH_ARRAY_KEYS,
+    });
     assert.match(responses.find((r) => r.id === 74).result.content[0].text, /key must be one of/i);
     assert.match(responses.find((r) => r.id === 74).result.content[0].text, /Received: "knd"/i);
     assert.match(responses.find((r) => r.id === 74).result.content[0].text, /Did you mean "kind"\?/i);
+    assertStructuredValueRepair(responses, 74, {
+      valueName: "key",
+      receivedValue: "knd",
+      suggestion: "kind",
+      allowedValues: EQUALITY_FILTER_KEYS,
+    });
     assert.match(responses.find((r) => r.id === 75).result.content[0].text, /kind must be one of/i);
     assert.match(responses.find((r) => r.id === 75).result.content[0].text, /Received: "capabilty"/i);
     assert.match(responses.find((r) => r.id === 75).result.content[0].text, /Did you mean "capability"\?/i);
+    assertStructuredValueRepair(responses, 75, {
+      valueName: "kind",
+      receivedValue: "capabilty",
+      suggestion: "capability",
+      allowedValues: NODE_KIND_VALUES,
+    });
     assert.match(responses.find((r) => r.id === 16).result.content[0].text, /pattern must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 17).result.content[0].text, /phases must be an array of strings/i);
     assert.match(responses.find((r) => r.id === 18).result.content[0].text, /types items must be non-empty strings/i);
