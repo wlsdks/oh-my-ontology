@@ -53,6 +53,9 @@ test("absolute slug 매칭 — array 항목 치환", () => {
   );
   const result = redirectBacklinks(root, "target", "renamed");
   assert.equal(result.totalUpdated, 1);
+  assert.equal(result.updates[0].slug, "ref");
+  assert.equal(result.updates[0].title, "Ref");
+  assert.deepEqual(result.updates[0].afterKeys, [{ key: "dependencies", after: ["renamed"] }]);
   const after = readMd(root, "ref");
   assert.match(after, /dependencies: \[renamed\]/);
   rmSync(root, { recursive: true, force: true });

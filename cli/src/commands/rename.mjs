@@ -60,7 +60,7 @@ export async function runRename(args) {
         `${COLORS.dim}(${updates.length} file(s) would change)${COLORS.reset}\n\n`,
     );
     for (const u of updates) {
-      process.stdout.write(`  ${COLORS.cyan}${u.slug}${COLORS.reset}\n`);
+      process.stdout.write(`  ${COLORS.cyan}${u.slug}${COLORS.reset}${graphUpdateTitle(u)}\n`);
       for (const c of graphUpdateChanges(u)) {
         process.stdout.write(`    ${COLORS.dim}${c}${COLORS.reset}\n`);
       }
@@ -96,7 +96,7 @@ export async function runRename(args) {
       `${COLORS.dim}(${updates.length} file(s) updated)${COLORS.reset}\n`,
   );
   for (const u of updates) {
-    process.stdout.write(`  ${COLORS.cyan}${u.slug}${COLORS.reset}\n`);
+    process.stdout.write(`  ${COLORS.cyan}${u.slug}${COLORS.reset}${graphUpdateTitle(u)}\n`);
     for (const c of graphUpdateChanges(u)) {
       process.stdout.write(`    ${COLORS.dim}${c}${COLORS.reset}\n`);
     }
@@ -108,6 +108,12 @@ function graphUpdates(result) {
   if (Array.isArray(result?.updates)) return result.updates;
   if (Array.isArray(result?.backlinkUpdates?.updates)) return result.backlinkUpdates.updates;
   return [];
+}
+
+function graphUpdateTitle(update) {
+  return update?.title && update.title !== update.slug
+    ? ` ${COLORS.dim}— ${update.title}${COLORS.reset}`
+    : '';
 }
 
 function graphUpdateChanges(update) {

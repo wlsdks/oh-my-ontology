@@ -317,9 +317,10 @@ function backlinkRewritePlanSchemaFailure(schema, label) {
   if (
     updates?.type !== 'array' ||
     row?.type !== 'object' ||
-    !sameArray(row.required, ['slug', 'beforeKeys', 'afterKeys', 'bodyChanged']) ||
+    !sameArray(row.required, ['slug', 'title', 'beforeKeys', 'afterKeys', 'bodyChanged']) ||
     row.additionalProperties !== false ||
     row.properties?.slug?.type !== 'string' ||
+    row.properties?.title?.type !== 'string' ||
     row.properties?.bodyChanged?.type !== 'boolean'
   ) {
     return `${label} outputSchema backlinkUpdates updates drift`;

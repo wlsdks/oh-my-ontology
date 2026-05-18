@@ -910,6 +910,7 @@ export function redirectBacklinks(rootPath, targetSlug, nextSlug, options = {}) 
 
     updates.push({
       slug: doc.slug,
+      title: docTitle(doc),
       beforeKeys,
       afterKeys,
       bodyChanged,
@@ -922,6 +923,16 @@ export function redirectBacklinks(rootPath, targetSlug, nextSlug, options = {}) 
   }
 
   return { updates, totalUpdated: updates.length };
+}
+
+function docTitle(doc) {
+  if (typeof doc?.frontmatter?.title === 'string' && doc.frontmatter.title.trim()) {
+    return doc.frontmatter.title;
+  }
+  if (typeof doc?.frontmatter?.name === 'string' && doc.frontmatter.name.trim()) {
+    return doc.frontmatter.name;
+  }
+  return doc?.slug;
 }
 
 /**

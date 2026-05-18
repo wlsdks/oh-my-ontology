@@ -669,7 +669,7 @@ await test("tools/list — 단일 도구 description 이 batch 짝을 cross-refe
     assert.equal(renameConcept?.outputSchema?.properties?.backlinkUpdates?.type, "object");
     assert.deepEqual(renameConcept?.outputSchema?.properties?.backlinkUpdates?.required, ["updates", "totalUpdated"]);
     assert.equal(renameConcept?.outputSchema?.properties?.backlinkUpdates?.additionalProperties, false);
-    assert.deepEqual(renameConcept?.outputSchema?.properties?.backlinkUpdates?.properties?.updates?.items?.required, ["slug", "beforeKeys", "afterKeys", "bodyChanged"]);
+    assert.deepEqual(renameConcept?.outputSchema?.properties?.backlinkUpdates?.properties?.updates?.items?.required, ["slug", "title", "beforeKeys", "afterKeys", "bodyChanged"]);
     assert.equal(renameConcept?.outputSchema?.properties?.backlinkUpdates?.properties?.updates?.items?.additionalProperties, false);
     assert.equal(renameConcept?.outputSchema?.properties?.postWriteMaintenance?.type, "object");
     const mergeConcepts = findTool("merge_concepts");
@@ -4687,6 +4687,8 @@ await test("rename_concept confirm:true — 파일 이동 + backlink redirect", 
     assert.equal(result.ok, true);
     assert.equal(result.moved, true);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
+    assert.equal(result.backlinkUpdates.updates[0].slug, "ref");
+    assert.equal(result.backlinkUpdates.updates[0].title, "Ref");
     assert.equal(result.changed, true);
     assertPostWriteMaintenanceShape(result.postWriteMaintenance, "rename_concept postWriteMaintenance");
   } finally {
@@ -4749,6 +4751,8 @@ await test("merge_concepts dry-run — preview 만, 디스크 변경 0", async (
     assert.equal(result.dryRun, true);
     assert.equal(result.deleted, false);
     assert.equal(result.backlinkUpdates.totalUpdated, 1);
+    assert.equal(result.backlinkUpdates.updates[0].slug, "ref");
+    assert.equal(result.backlinkUpdates.updates[0].title, "Ref");
     assert.equal(result.capturedFrom.frontmatter.title, "From");
     assert.match(result.message, /confirm:true/);
     assert.equal(result.changed, undefined);

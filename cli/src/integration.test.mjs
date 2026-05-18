@@ -3575,7 +3575,7 @@ await test('rename — dry-run preview, no disk change', async () => {
     assert.match(clean, /dry-run/);
     assert.match(clean, /capabilities\/foo-renamed/);
     assert.match(clean, /[1-9]\d* file\(s\) would change/);
-    assert.match(clean, /capabilities\/bar/);
+    assert.match(clean, /capabilities\/bar\s+— Bar/);
     assert.match(clean, /relates changed/);
     // foo.md 그대로 존재 (dry-run)
     assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), true);
@@ -3601,7 +3601,7 @@ await test('rename --confirm — 파일 이동 + backlink redirect', async () =>
     assert.equal(r.code, 0, `stderr: ${r.stderr}`);
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /[1-9]\d* file\(s\) updated/);
-    assert.match(clean, /capabilities\/bar/);
+    assert.match(clean, /capabilities\/bar\s+— Bar/);
     assert.match(clean, /relates changed/);
     assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
     assert.equal(
@@ -3750,7 +3750,7 @@ await test('merge — dry-run preview', async () => {
     assert.match(clean, /capabilities\/foo/);
     assert.match(clean, /capabilities\/bar/);
     assert.match(clean, /[1-9]\d* file\(s\) would change/);
-    assert.match(clean, /domains\/auth/);
+    assert.match(clean, /domains\/auth\s+— Auth/);
     assert.match(clean, /capabilities changed/);
     // foo.md 그대로 존재 (dry-run)
     assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), true);
@@ -3773,7 +3773,7 @@ await test('merge --confirm — 적용 출력에 변경 파일과 key 를 보여
     const clean = stripAnsi(r.stdout);
     assert.match(clean, /[1-9]\d* file\(s\) updated/);
     assert.match(clean, /capabilities\/foo\.md deleted/);
-    assert.match(clean, /domains\/auth/);
+    assert.match(clean, /domains\/auth\s+— Auth/);
     assert.match(clean, /capabilities changed/);
     assert.equal(existsSyncTest(join(root, 'capabilities/foo.md')), false);
     const authText = readFileSync(join(root, 'domains/auth.md'), 'utf-8');

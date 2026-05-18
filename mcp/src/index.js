@@ -150,11 +150,12 @@ const BACKLINK_REWRITE_UPDATE_OUTPUT_SCHEMA = Object.freeze({
   type: 'object',
   properties: {
     slug: NON_BLANK_STRING_SCHEMA,
+    title: NON_BLANK_STRING_SCHEMA,
     beforeKeys: { type: 'array', items: BACKLINK_REWRITE_KEY_CHANGE_OUTPUT_SCHEMA },
     afterKeys: { type: 'array', items: BACKLINK_REWRITE_KEY_CHANGE_OUTPUT_SCHEMA },
     bodyChanged: { type: 'boolean' },
   },
-  required: ['slug', 'beforeKeys', 'afterKeys', 'bodyChanged'],
+  required: ['slug', 'title', 'beforeKeys', 'afterKeys', 'bodyChanged'],
   additionalProperties: false,
 });
 const BACKLINK_REWRITE_PLAN_OUTPUT_SCHEMA = Object.freeze({

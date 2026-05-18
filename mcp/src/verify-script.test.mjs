@@ -374,9 +374,10 @@ describe('verify.mjs first-contact gates', () => {
           type: 'array',
           items: {
             type: 'object',
-            required: ['slug', 'beforeKeys', 'afterKeys', 'bodyChanged'],
+            required: ['slug', 'title', 'beforeKeys', 'afterKeys', 'bodyChanged'],
             properties: {
               slug: { type: 'string' },
+              title: { type: 'string' },
               beforeKeys: { type: 'array', items: backlinkKeyChangeSchema },
               afterKeys: { type: 'array', items: backlinkKeyChangeSchema },
               bodyChanged: { type: 'boolean' },
