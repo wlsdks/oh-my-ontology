@@ -32,6 +32,13 @@ describe('mcp-call response parsing', () => {
     assert.match(source, /formatMcpStdinError/);
   });
 
+  it('parses MCP responses after stdio streams close', () => {
+    const source = readFileSync('cli/src/lib/mcp-call.mjs', 'utf-8');
+
+    assert.match(source, /proc\.on\('close'/);
+    assert.doesNotMatch(source, /proc\.on\('exit'/);
+  });
+
   it('formats MCP spawn errors with tool, vault, and entry context', () => {
     assert.equal(
       formatMcpSpawnError(new Error('spawn node ENOENT'), {

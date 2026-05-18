@@ -1751,6 +1751,7 @@ describe('package contract helpers', () => {
     assert.match(readme, /cannot be\s+mistaken for a loose project summary/);
     assert.match(implementationSection, /MCP tool name, 첫 mismatch path, parsed value, structuredContent value/);
     assert.match(implementationSection, /MCP spawn error \/ stdin write error \/ child process exit \/ missing `tools\/call` response 도 tool name \/ vault root \/ entry path/);
+    assert.match(implementationSection, /child `close` 이벤트에서 stdio drain 이후 파싱/);
     assert.match(implementationSection, /`concepts\[n\]` \/ `relations\[n\]` fallback label/);
     assert.match(implementationSection, /`undefined` 를 노출하지 않고/);
     assert.match(implementationSection, /malformed `compile` \/ `query_concepts` \/ `find_backlinks` \/ `find_orphans` \/ `overview` \/ `node_profile` \/ `similar_nodes` \/ `hubs` \/ `blast-radius` \/ `cycles` \/ `path` \/ `health` \/ `workspace-brief` payload/);
@@ -2272,6 +2273,7 @@ describe('package contract helpers', () => {
     assert.match(doc, /MCP `structuredContent` 를 먼저 사용하되/);
     assert.match(doc, /text JSON 과 `structuredContent` 가 둘 다 있으면 구조적으로 비교/);
     assert.match(doc, /mismatch 를 실패로 처리/);
+    assert.match(doc, /JSON-RPC 응답은 child `close` 이벤트에서 stdio drain 이후 파싱/);
     assert.match(doc, /성공 응답은 text 없이 `structuredContent` 만 있어도 수용/);
     assert.match(doc, /`structuredContent` 가 없는 경우에만 text JSON 으로 fallback/);
     assert.match(doc, /cli\/src\/lib\/mcp-call\.test\.mjs/);

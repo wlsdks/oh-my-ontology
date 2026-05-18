@@ -124,7 +124,7 @@ export function callMcpTool(vaultRoot, toolName, args = {}) {
     proc.stdin.on('error', (err) => {
       finish(() => rejectP(formatMcpStdinError(err, { entry, toolName, vaultRoot })));
     });
-    proc.on('exit', (code) => {
+    proc.on('close', (code) => {
       exited = true;
       clearTimeout(killTimer);
       if (settled) return;
