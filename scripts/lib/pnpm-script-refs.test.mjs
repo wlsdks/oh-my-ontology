@@ -20,7 +20,7 @@ describe("pnpm script reference helpers", () => {
 
   it("ignores prose and wildcard examples that are not concrete script refs", () => {
     assert.deepEqual(
-      pnpmScriptsFromText("shared pnpm separator; pnpm forwards args\npnpm integration:* --"),
+      pnpmScriptsFromText("shared pnpm separator; pnpm forwards args\npnpm integration:* --\n`pnpm ...`"),
       [],
     );
   });
@@ -36,6 +36,13 @@ describe("pnpm script reference helpers", () => {
     assert.deepEqual(
       pnpmScriptsFromText("node scripts/check.mjs && pnpm test:cli:lib\n$ pnpm test:mcp:docs"),
       ["test:cli:lib", "test:mcp:docs"],
+    );
+  });
+
+  it("extracts script references after pnpm options", () => {
+    assert.deepEqual(
+      pnpmScriptsFromText("pnpm --silent dogfood:status\npnpm --filter ./mcp test:mcp:package"),
+      ["dogfood:status", "test:mcp:package"],
     );
   });
 
