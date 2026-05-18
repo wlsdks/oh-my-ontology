@@ -59,6 +59,11 @@ const RULES = [
     ],
   },
   {
+    command: 'pnpm integration:mcp:write',
+    reason: 'MCP write tool handler surface changed',
+    matches: [/^mcp\/src\/(?:index|vault)\.(?:mjs|js)$/],
+  },
+  {
     command: 'pnpm test:dogfood:script-refs',
     reason: 'help text, package-script references, or focused wrapper behavior changed',
     matches: [

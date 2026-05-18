@@ -183,6 +183,10 @@ describe('package contract helpers', () => {
       `${focusedNode} --test-name-pattern "^(compile_ontology|analyze_repo_structure|infer_imports|query_ontology|list_concepts|find_evidence|find_backlinks|find_neighbors|find_path|MCP read/query tools|query_concepts|find_orphans|get_concept|get_concepts|validate_vault)" mcp/src/integration.test.mjs`,
     );
     assert.equal(
+      pkg.scripts?.['integration:mcp:write'],
+      `${focusedNode} --test-name-pattern "^(add_concepts|add_concept/add_concepts|MCP slug conflicts|MCP write tools|add_relations|patch_concept|rename_concept|graph destructive writes|merge_concepts|delete_concept|add_relation)" mcp/src/integration.test.mjs`,
+    );
+    assert.equal(
       pkg.scripts?.['integration:mcp:readme'],
       `${focusedNode} --test-name-pattern "README first exploration" mcp/src/integration.test.mjs`,
     );
@@ -400,6 +404,7 @@ describe('package contract helpers', () => {
       'pnpm integration:cli:maintenance',
       'pnpm integration:mcp:surface',
       'pnpm integration:mcp:read',
+      'pnpm integration:mcp:write',
       'OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp',
       'pnpm integration:mcp:readme',
       'pnpm cli:mcp-verify docs/ontology --timeout-ms 15000',
@@ -430,6 +435,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /\| `pnpm integration:cli:growth` \| CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:surface` \| MCP JSON-RPC `tools\/list`, `initialize`, and `tools\/call` surface contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:read` \| MCP read\/query tool handler contracts \|/);
+    assert.match(checksDoc, /\| `pnpm integration:mcp:write` \| MCP write tool handler contracts \|/);
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);
     assert.match(checksDoc, /`pnpm dogfood:compile-fix` runs `compile --fix` against docs\/ontology and fails\s+if it leaves a git diff/);
@@ -880,9 +886,11 @@ describe('package contract helpers', () => {
     assert.match(section, /pnpm test:contracts/);
     assert.match(section, /pnpm integration:mcp:surface/);
     assert.match(section, /pnpm integration:mcp:read/);
+    assert.match(section, /pnpm integration:mcp:write/);
     assert.match(section, /pnpm integration:mcp:readme/);
     assert.match(section, /JSON-RPC `tools\/list`, `initialize`, and\s+`tools\/call` server surface/);
     assert.match(section, /read\/query tool\s+handler contracts/);
+    assert.match(section, /write tool handler contracts/);
     assert.match(section, /pnpm test:mcp:docs/);
     assert.match(section, /pnpm test:mcp:registration/);
     assert.match(section, /source-checkout `.mcp.json` and\s+`.mcp.json.example` templates/);

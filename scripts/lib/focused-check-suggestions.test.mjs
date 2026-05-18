@@ -72,6 +72,7 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/vault.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:read',
+      'pnpm integration:mcp:write',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
@@ -86,6 +87,7 @@ describe('focused check suggestions', () => {
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:surface',
+      'pnpm integration:mcp:write',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
@@ -113,6 +115,28 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/validate.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:read',
+      'pnpm integration:mcp:write',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
+  });
+
+  it('suggests focused MCP write integration for server write handler changes', () => {
+    const result = suggestFocusedChecks([
+      'mcp/src/vault.mjs',
+      'mcp/src/index.js',
+      'mcp/src/redirect-backlinks.test.mjs',
+      'mcp/src/conflict-detection.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test mcp/src/vault.test.mjs',
+      'pnpm exec node --test mcp/src/redirect-backlinks.test.mjs',
+      'pnpm exec node --test mcp/src/conflict-detection.test.mjs',
+      'pnpm test:mcp:unit',
+      'pnpm integration:mcp:surface',
+      'pnpm integration:mcp:read',
+      'pnpm integration:mcp:write',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);

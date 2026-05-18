@@ -534,6 +534,7 @@ root focused integration subset / `test:mcp:*` package scripts 는 `scripts/run-
 package contract 는 `--test-name-pattern` 을 쓰는 root script 를 전부 스캔해 반드시 이 wrapper 를 거치도록 고정하고, wrapper 를 쓰는 script 가 명시적 pattern 과 target 을 넘기는지도 고정한다. CLI / MCP integration runner 자체도 non-matching `OMOT_TEST_NAME_PATTERN` 으로 exit 1 을 내는지 smoke 한다.
 root shortcut `pnpm integration:mcp:surface` 는 JSON-RPC `tools/list` / `initialize` / `tools/call`
 server surface subset 만, `pnpm integration:mcp:read` 는 read/query tool handler subset 만,
+`pnpm integration:mcp:write` 는 write tool handler subset 만,
 `pnpm integration:mcp:readme` 는 first-contact README read-only
 subset 만 실행해 agent onboarding 문서 변경을 빠르게 검증한다.
 package manifest / enum suggestion 류의 더 작은 변경은 root 의
