@@ -1855,6 +1855,8 @@ describe('package contract helpers', () => {
     assert.match(dogfoodSection, /severity\/kind\/id\/count\/message/);
     assert.match(dogfoodSection, /workspace_brief non-blocking nextActions/);
     assert.match(dogfoodSection, /workspace_brief_tuned non-blocking nextActions/);
+    assert.match(dogfoodSection, /`id\/kind:severity:count`/);
+    assert.match(dogfoodSection, /`components\/health_check`/);
     assert.match(doc, /parser smoke subprocess 가 signal 로 종료되면/);
     assert.match(doc, /`parser test terminated by SIGTERM`/);
     assert.match(doc, /first-contact 완료 전 signal 종료는 timeout \/ startup 실패와 구분/);

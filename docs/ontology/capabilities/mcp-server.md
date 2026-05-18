@@ -383,7 +383,9 @@ wiring 확인 직후 정리할 항목을 바로 보여준다. 마지막 Analysis
 `workspace_brief non-blocking nextActions` /
 `workspace_brief_tuned non-blocking nextActions` 를
 label:severity:count 형태로 다시 출력해 긴 dogfood 로그의 끝만 봐도 후속
-조치의 종류와 규모를 알 수 있게 한다. 최종 Analysis 의
+조치의 종류와 규모를 알 수 있게 한다. 여기서 `id` 와 `kind` 가 서로 다르면
+`id/kind:severity:count` 로 둘 다 표시해 `components/health_check` 같은 scoped
+diagnosis action 이 일반 cleanup action 처럼 보이지 않게 한다. 최종 Analysis 의
 `workspace_brief_tuned scope` 도 `dependencyTypes=dependencies`,
 `componentTypes=domains/domain/capabilities/dependencies`, `nodeLimit=3` 를
 같이 출력해 tuned nextActions 가 어떤 graph slice 에서 나온 것인지 로그 끝에서
