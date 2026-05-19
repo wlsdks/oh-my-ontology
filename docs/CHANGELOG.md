@@ -89,6 +89,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   App/source TypeScript files under `app/` or `src/` now route to direct
   sibling Vitest tests when available, so small UI/helper changes get a narrow
   `pnpm exec vitest run <file>.test.ts[x]` first check instead of no mapping.
+  Source TypeScript files under `src/**/*.ts[x]` now also route to
+  `pnpm exec tsc --noEmit`, giving files without sibling tests a focused
+  type-safety gate instead of no mapping.
   Playwright specs under `tests/e2e/` now route to exact
   `pnpm exec playwright test tests/e2e/<name>.spec.ts` commands, keeping E2E
   journey edits focused before any broader browser sweep.

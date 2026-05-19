@@ -444,6 +444,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /Parser\/schema\/validator parity changes route to\s+`pnpm test:contracts` before broader package or app checks/);
     assert.match(checksDoc, /CLI shared helper changes\s+do the same for `cli\/src\/lib\/<name>\.test\.mjs`, so run the printed direct\s+`pnpm exec node --test \.\.\.` command before `pnpm test:cli:lib`/);
     assert.match(checksDoc, /App\/source TypeScript changes under `app\/` or `src\/` first print a direct\s+Vitest sibling command \(`pnpm exec vitest run <path>\.test\.ts\[x\]`\)/);
+    assert.match(checksDoc, /Source TypeScript files under `src\/\*\*\/\*\.ts\[x\]` also route to\s+`pnpm exec tsc --noEmit`/);
     assert.match(checksDoc, /E2E spec changes under `tests\/e2e\/` first print the exact Playwright command\s+\(`pnpm exec playwright test tests\/e2e\/<name>\.spec\.ts`\)/);
     assert.match(checksDoc, /`vitest\.config\.ts` \/ `vitest\.setup\.ts` changes route to a small config smoke:\s+`pnpm exec vitest run src\/shared\/lib\/cn\.test\.ts tests\/contract\/vault-schema\.contract\.test\.ts`/);
     assert.match(checksDoc, /`playwright\.config\.ts` changes route to the local-vault picker spec first/);

@@ -102,6 +102,9 @@ focused-check advisor changes use the same pattern: direct
 App/source TypeScript changes under `app/` or `src/` first print a direct
 Vitest sibling command (`pnpm exec vitest run <path>.test.ts[x]`) when that
 test file exists or is part of the same changed path set.
+Source TypeScript files under `src/**/*.ts[x]` also route to
+`pnpm exec tsc --noEmit`, so files without sibling tests still get a focused
+type-safety gate instead of no mapping.
 E2E spec changes under `tests/e2e/` first print the exact Playwright command
 (`pnpm exec playwright test tests/e2e/<name>.spec.ts`) so a single journey edit
 does not start from the entire E2E suite.

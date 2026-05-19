@@ -55,6 +55,7 @@ describe('focused check suggestions', () => {
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm exec vitest run src/shared/lib/validate-vault-document.test.ts',
       'pnpm test:contracts',
+      'pnpm exec tsc --noEmit',
       'pnpm test:cli:lib',
       'pnpm dogfood:status',
     ]);
@@ -472,11 +473,22 @@ describe('focused check suggestions', () => {
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm exec vitest run src/shared/lib/cn.test.ts',
       'pnpm exec vitest run src/widgets/docs-vault/ui/DocsVaultEditor.test.tsx',
+      'pnpm exec tsc --noEmit',
     ]);
     assert.deepEqual(result.commands[0].paths, [
       'src/shared/lib/cn.ts',
       'src/shared/lib/cn.test.ts',
     ]);
+  });
+
+  it('suggests typecheck for app/source TypeScript files without sibling tests', () => {
+    const result = suggestFocusedChecks([
+      'src/shared/config/site.ts',
+      'src/widgets/operations-nav/ui/OperationsNav.tsx',
+      'src/views/root-entry/ui/RootEntryPage.tsx',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), ['pnpm exec tsc --noEmit']);
   });
 
   it('suggests direct Playwright specs for changed e2e tests', () => {
