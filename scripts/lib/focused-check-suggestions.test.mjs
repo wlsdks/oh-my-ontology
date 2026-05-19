@@ -72,6 +72,7 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/vault.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:repo-analysis',
+      'pnpm integration:mcp:vault-read',
       'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
       'pnpm dogfood:status',
@@ -117,6 +118,7 @@ describe('focused check suggestions', () => {
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:graph',
       'pnpm integration:mcp:repo-analysis',
+      'pnpm integration:mcp:vault-read',
       'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
       'pnpm dogfood:status',
@@ -174,6 +176,26 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/conflict-detection.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:surface',
+      'pnpm integration:mcp:vault-read',
+      'pnpm integration:mcp:read',
+      'pnpm integration:mcp:write',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
+  });
+
+  it('suggests focused MCP vault-read integration for vault read handlers', () => {
+    const result = suggestFocusedChecks([
+      'mcp/src/vault.mjs',
+      'mcp/src/validate.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:contracts',
+      'pnpm exec node --test mcp/src/vault.test.mjs',
+      'pnpm exec node --test mcp/src/validate.test.mjs',
+      'pnpm test:mcp:unit',
+      'pnpm integration:mcp:vault-read',
       'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
       'pnpm dogfood:status',

@@ -535,7 +535,8 @@ package contract 는 `--test-name-pattern` 을 쓰는 root script 를 전부 스
 root shortcut `pnpm integration:mcp:surface` 는 JSON-RPC `tools/list` / `initialize` / `tools/call`
 server surface subset 만, `pnpm integration:mcp:repo-analysis` 는 `analyze_repo_structure` / `infer_imports`
 code-to-vault handler subset 만, `pnpm integration:mcp:graph` 는 `compile_ontology` / `query_ontology`
-graph artifact/query handler subset 만, `pnpm integration:mcp:read` 는 read/query tool handler subset 만,
+graph artifact/query handler subset 만, `pnpm integration:mcp:vault-read` 는 list/get/find/validate
+vault read subset 만, `pnpm integration:mcp:read` 는 read/query tool handler subset 만,
 `pnpm integration:mcp:write` 는 write tool handler subset 만,
 `pnpm integration:mcp:readme` 는 first-contact README read-only
 subset 만 실행해 agent onboarding 문서 변경을 빠르게 검증한다.

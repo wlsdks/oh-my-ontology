@@ -62,6 +62,11 @@ const RULES = [
     matches: [/^mcp\/src\/(?:analyze|infer-imports)\.mjs$/],
   },
   {
+    command: 'pnpm integration:mcp:vault-read',
+    reason: 'MCP vault/frontmatter read handler surface changed',
+    matches: [/^mcp\/src\/(?:validate|vault)\.mjs$/],
+  },
+  {
     command: 'pnpm integration:mcp:read',
     reason: 'MCP read/query tool handler surface changed',
     matches: [

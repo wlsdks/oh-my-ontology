@@ -125,6 +125,7 @@ dogfood docs assertions as well as package/release assertions.
 | `pnpm integration:mcp:surface` | MCP JSON-RPC `tools/list`, `initialize`, and `tools/call` surface contracts |
 | `pnpm integration:mcp:repo-analysis` | MCP `analyze_repo_structure` / `infer_imports` code-to-vault contracts |
 | `pnpm integration:mcp:graph` | MCP `compile_ontology` / `query_ontology` graph artifact/query contracts |
+| `pnpm integration:mcp:vault-read` | MCP list/get/find/validate vault read contracts |
 | `pnpm integration:mcp:read` | MCP read/query tool handler contracts |
 | `pnpm integration:mcp:write` | MCP write tool handler contracts |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
@@ -242,6 +243,7 @@ pnpm integration:cli:maintenance
 pnpm integration:mcp:surface
 pnpm integration:mcp:repo-analysis
 pnpm integration:mcp:graph
+pnpm integration:mcp:vault-read
 pnpm integration:mcp:read
 pnpm integration:mcp:write
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp
