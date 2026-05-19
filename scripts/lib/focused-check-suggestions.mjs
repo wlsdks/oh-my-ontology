@@ -435,6 +435,10 @@ const CLI_DIRECT_LIB_TESTS = new Map([
 const CLI_DIRECT_LIB_TEST_FILES = new Set(CLI_DIRECT_LIB_TESTS.values());
 
 const SCRIPT_DIRECT_LIB_TESTS = new Map([
+  ['scripts/audit-vault-paths.mjs', 'scripts/audit-vault-paths.test.mjs'],
+  ['scripts/audit-vault-paths.test.mjs', 'scripts/audit-vault-paths.test.mjs'],
+  ['scripts/build-docs-vault.mjs', 'scripts/build-docs-vault.test.mjs'],
+  ['scripts/build-docs-vault.test.mjs', 'scripts/build-docs-vault.test.mjs'],
   ['scripts/dogfood-compile-fix.mjs', 'scripts/dogfood-compile-fix.test.mjs'],
   ['scripts/dogfood-compile-fix.test.mjs', 'scripts/dogfood-compile-fix.test.mjs'],
   ['scripts/dogfood-mcp-walk.mjs', 'scripts/dogfood-mcp-walk.test.mjs'],

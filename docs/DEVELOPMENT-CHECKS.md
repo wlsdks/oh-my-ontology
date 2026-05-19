@@ -84,11 +84,10 @@ plus untracked files from `git ls-files --others --exclude-standard`, excluding
 local `.agents/` and `.codex/` agent state. Pass paths after `--` to inspect a
 planned file set before editing. It prints first checks plus explicit
 escalation gates, and is only an advisor; still add runtime/browser checks when
-the touched behavior needs them. Vault helper changes route to their narrow
-checks first: `pnpm test:docs-vault`, `pnpm test:vault:validate`, or
-`pnpm test:vault:audit`. These shortcuts are already single-file `node --test`
-contracts, so `pnpm checks:changed` does not print a duplicate direct command
-for them. Vault migration runner or migration files route to
+the touched behavior needs them. Vault helper changes route to direct sibling
+`pnpm exec node --test ...` checks when available, then to their narrow package
+shortcuts: `pnpm test:docs-vault`, `pnpm test:vault:validate`, or
+`pnpm test:vault:audit`. Vault migration runner or migration files route to
 `pnpm vault:migrate --list` first, and migration implementations also route to
 `pnpm test:contracts` so schema-evolution fixtures stay checked. Any
 `docs/**/*.md` change routes to `pnpm docs-vault:check`, because

@@ -46,6 +46,8 @@ describe('focused check suggestions', () => {
     ]);
 
     assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test scripts/build-docs-vault.test.mjs',
+      'pnpm exec node --test scripts/audit-vault-paths.test.mjs',
       'pnpm test:docs-vault',
       'pnpm test:vault:validate',
       'pnpm test:vault:audit',

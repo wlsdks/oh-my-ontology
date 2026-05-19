@@ -55,8 +55,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   / `.codex/` agent state), or explicit paths after `--`, to the first focused
   checks plus escalation gates so agents can avoid broad test runs when a
   narrower verification path is enough. Vault helper scripts now route to
+  direct sibling `pnpm exec node --test ...` checks when available before
   `pnpm test:docs-vault`, `pnpm test:vault:validate`, or
-  `pnpm test:vault:audit` before broader docs/package gates; vault migration
+  `pnpm test:vault:audit` and broader docs/package gates; vault migration
   runner/files now route to `pnpm vault:migrate --list` and migration
   implementations also route to `pnpm test:contracts`; parser/schema/
   validator parity files, including `tests/fixtures/vault-schema-cases.mjs`,
