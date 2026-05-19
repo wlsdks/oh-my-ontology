@@ -318,6 +318,7 @@ describe('focused check suggestions', () => {
 
   it('suggests direct script helper unit tests before broader script-ref gates', () => {
     const result = suggestFocusedChecks([
+      'scripts/lib/focused-check-suggestions.mjs',
       'scripts/lib/pnpm-script-refs.mjs',
       'scripts/lib/test-name-pattern.mjs',
       'scripts/lib/test-name-pattern.test.mjs',
@@ -325,12 +326,14 @@ describe('focused check suggestions', () => {
     ]);
 
     assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test scripts/lib/focused-check-suggestions.test.mjs',
       'pnpm exec node --test scripts/lib/pnpm-script-refs.test.mjs',
       'pnpm exec node --test scripts/lib/test-name-pattern.test.mjs',
       'pnpm exec node --test scripts/lib/vault-census.test.mjs',
       'pnpm test:dogfood:script-refs',
+      'pnpm test:checks:changed',
     ]);
-    assert.deepEqual(result.commands[1].paths, [
+    assert.deepEqual(result.commands[2].paths, [
       'scripts/lib/test-name-pattern.mjs',
       'scripts/lib/test-name-pattern.test.mjs',
     ]);
@@ -474,7 +477,11 @@ describe('focused check suggestions', () => {
       'scripts/suggest-focused-checks.test.mjs',
     ]);
 
-    assert.deepEqual(result.commands.map((row) => row.command), ['pnpm test:checks:changed']);
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test scripts/lib/focused-check-suggestions.test.mjs',
+      'pnpm exec node --test scripts/suggest-focused-checks.test.mjs',
+      'pnpm test:checks:changed',
+    ]);
   });
 
   it('suggests docs contracts when the shared package contract test changes', () => {

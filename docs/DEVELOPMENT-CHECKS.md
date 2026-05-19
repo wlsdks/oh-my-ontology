@@ -94,6 +94,8 @@ readme-flow integration or full dogfood verification. CLI shared helper changes
 do the same for `cli/src/lib/<name>.test.mjs`, so run the printed direct
 `pnpm exec node --test ...` command before `pnpm test:cli:lib` when only one
 helper moved.
+Script helper and focused-check advisor changes use the same pattern: direct
+`pnpm exec node --test scripts/...test.mjs` first, then the aggregate shortcut.
 CLI/MCP verify help changes route to `pnpm test:dogfood:script-refs` too,
 because those help surfaces list root `pnpm ...` shortcuts.
 Root/MCP/CLI README changes and this file also route to that gate when they may
@@ -106,7 +108,7 @@ dogfood docs assertions as well as package/release assertions.
 |---|---|
 | `pnpm package:check` | Package files, entrypoints, docs contracts |
 | `pnpm checks:changed` | Suggest first focused checks from changed paths |
-| `pnpm test:checks:changed` | Changed-path focused-check suggestion helper |
+| `pnpm test:checks:changed` | Changed-path focused-check suggestion helper; use the direct `pnpm exec node --test scripts/lib/focused-check-suggestions.test.mjs` or `scripts/suggest-focused-checks.test.mjs` first when printed |
 | `pnpm test:cli:args` | CLI argument parser contracts |
 | `pnpm test:cli:lib` | CLI shared helper contracts; use the direct sibling `pnpm exec node --test cli/src/lib/<name>.test.mjs` first when `pnpm checks:changed` prints one |
 | `pnpm test:cli:mcp-call` | CLI MCP wrapper parser/spawn behavior |

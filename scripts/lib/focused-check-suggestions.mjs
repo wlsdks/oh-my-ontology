@@ -312,12 +312,18 @@ const CLI_DIRECT_LIB_TESTS = new Map([
 const CLI_DIRECT_LIB_TEST_FILES = new Set(CLI_DIRECT_LIB_TESTS.values());
 
 const SCRIPT_DIRECT_LIB_TESTS = new Map([
+  ['scripts/lib/focused-check-suggestions.mjs', 'scripts/lib/focused-check-suggestions.test.mjs'],
   ['scripts/lib/pnpm-script-refs.mjs', 'scripts/lib/pnpm-script-refs.test.mjs'],
   ['scripts/lib/test-name-pattern.mjs', 'scripts/lib/test-name-pattern.test.mjs'],
   ['scripts/lib/vault-census.mjs', 'scripts/lib/vault-census.test.mjs'],
 ]);
 
 const SCRIPT_DIRECT_LIB_TEST_FILES = new Set(SCRIPT_DIRECT_LIB_TESTS.values());
+
+const FOCUSED_CHECK_DIRECT_TESTS = new Map([
+  ['scripts/suggest-focused-checks.mjs', 'scripts/suggest-focused-checks.test.mjs'],
+  ['scripts/suggest-focused-checks.test.mjs', 'scripts/suggest-focused-checks.test.mjs'],
+]);
 
 export function normalizeChangedPath(path) {
   return String(path || '').trim().replace(/\\/g, '/').replace(/^\.\//, '');
@@ -341,8 +347,13 @@ export function suggestFocusedChecks(paths = []) {
     directScriptLibTestSuggestions(normalizedPaths),
     'pnpm test:dogfood:script-refs',
   );
+  const withFocusedCheckDirect = insertBeforeCommand(
+    withScriptDirect,
+    directFocusedCheckTestSuggestions(normalizedPaths),
+    'pnpm test:checks:changed',
+  );
   const escalations = rulesToSuggestions(ESCALATIONS, normalizedPaths);
-  return { paths: normalizedPaths, commands: withScriptDirect, escalations };
+  return { paths: normalizedPaths, commands: withFocusedCheckDirect, escalations };
 }
 
 function directMcpUnitTestSuggestions(paths) {
@@ -385,6 +396,22 @@ function directScriptLibTestSuggestions(paths) {
     const row = byTestFile.get(testFile) ?? {
       command: `pnpm exec node --test ${testFile}`,
       reason: 'direct script helper unit test for changed helper',
+      paths: [],
+    };
+    row.paths.push(path);
+    byTestFile.set(testFile, row);
+  }
+  return [...byTestFile.values()];
+}
+
+function directFocusedCheckTestSuggestions(paths) {
+  const byTestFile = new Map();
+  for (const path of paths) {
+    const testFile = FOCUSED_CHECK_DIRECT_TESTS.get(path);
+    if (!testFile) continue;
+    const row = byTestFile.get(testFile) ?? {
+      command: `pnpm exec node --test ${testFile}`,
+      reason: 'direct focused-check advisor test for changed helper',
       paths: [],
     };
     row.paths.push(path);
