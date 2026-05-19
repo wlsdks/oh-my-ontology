@@ -463,6 +463,20 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests focused smoke checks for test runner config changes', () => {
+    const vitest = suggestFocusedChecks(['vitest.config.ts', 'vitest.setup.ts']);
+
+    assert.deepEqual(vitest.commands.map((row) => row.command), [
+      'pnpm exec vitest run src/shared/lib/cn.test.ts tests/contract/vault-schema.contract.test.ts',
+    ]);
+
+    const playwright = suggestFocusedChecks(['playwright.config.ts']);
+
+    assert.deepEqual(playwright.commands.map((row) => row.command), [
+      'pnpm exec playwright test tests/e2e/local-vault-picker.spec.ts',
+    ]);
+  });
+
   it('suggests script-reference checks for docs whose pnpm references are scanned', () => {
     const result = suggestFocusedChecks([
       'README.md',

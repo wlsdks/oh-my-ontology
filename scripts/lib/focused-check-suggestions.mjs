@@ -126,6 +126,16 @@ const RULES = [
     ],
   },
   {
+    command: 'pnpm exec vitest run src/shared/lib/cn.test.ts tests/contract/vault-schema.contract.test.ts',
+    reason: 'Vitest config, setup, or test discovery changed',
+    matches: [/^vitest\.config\.ts$/, /^vitest\.setup\.ts$/],
+  },
+  {
+    command: 'pnpm exec playwright test tests/e2e/local-vault-picker.spec.ts',
+    reason: 'Playwright config or webServer behavior changed',
+    matches: [/^playwright\.config\.ts$/],
+  },
+  {
     command: 'pnpm test:dogfood:status',
     reason: 'dogfood status shortcut changed',
     matches: [/^scripts\/dogfood-status\.(?:mjs|test\.mjs)$/],

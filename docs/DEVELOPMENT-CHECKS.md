@@ -105,6 +105,11 @@ test file exists or is part of the same changed path set.
 E2E spec changes under `tests/e2e/` first print the exact Playwright command
 (`pnpm exec playwright test tests/e2e/<name>.spec.ts`) so a single journey edit
 does not start from the entire E2E suite.
+`vitest.config.ts` / `vitest.setup.ts` changes route to a small config smoke:
+`pnpm exec vitest run src/shared/lib/cn.test.ts tests/contract/vault-schema.contract.test.ts`.
+`playwright.config.ts` changes route to the local-vault picker spec first,
+because it exercises the Playwright webServer startup path without beginning
+with every browser journey.
 The local-first bundle guard is artifact-based: when `scripts/check-bundle.mjs`
 changes, run `pnpm build` first and then `pnpm bundle:check`.
 `next.config.ts` is static-export source-of-truth; changes route to
@@ -134,7 +139,9 @@ resolution changes are not left with a no-mapping advisor result.
 | `pnpm bundle:check` | Local-first static export bundle guard; run after `pnpm build` when `scripts/check-bundle.mjs` changed |
 | `pnpm exec tsc --noEmit` | TypeScript and Next config type safety |
 | `pnpm exec vitest run <path>.test.ts[x]` | Direct app/source sibling test printed by `pnpm checks:changed` when available |
+| `pnpm exec vitest run src/shared/lib/cn.test.ts tests/contract/vault-schema.contract.test.ts` | Vitest config/setup smoke for jsdom setup plus contract discovery |
 | `pnpm exec playwright test tests/e2e/<name>.spec.ts` | Direct E2E spec printed by `pnpm checks:changed` for changed Playwright specs |
+| `pnpm exec playwright test tests/e2e/local-vault-picker.spec.ts` | Playwright config/webServer smoke before broader E2E |
 | `pnpm lint` | ESLint and FSD boundary config |
 | `pnpm checks:changed` | Suggest first focused checks from changed paths |
 | `pnpm test:checks:changed` | Changed-path focused-check suggestion helper; use the direct `pnpm exec node --test scripts/lib/focused-check-suggestions.test.mjs` or `scripts/suggest-focused-checks.test.mjs` first when printed |

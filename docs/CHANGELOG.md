@@ -92,6 +92,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   Playwright specs under `tests/e2e/` now route to exact
   `pnpm exec playwright test tests/e2e/<name>.spec.ts` commands, keeping E2E
   journey edits focused before any broader browser sweep.
+  `vitest.config.ts` / `vitest.setup.ts` now route to a small Vitest smoke that
+  covers jsdom setup plus contract discovery, and `playwright.config.ts` routes
+  to the local-vault picker spec before broader E2E.
   Changes to the shared package/docs contract test now also route to
   `pnpm test:mcp:docs`, not only `pnpm test:mcp:package`, so docs assertion
   edits do not get verified by a package-only subset that skips them.
