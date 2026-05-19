@@ -100,7 +100,6 @@ describe('focused check suggestions', () => {
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:repo-analysis',
       'pnpm integration:mcp:vault-read',
-      'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
       'pnpm dogfood:status',
     ]);
@@ -164,15 +163,24 @@ describe('focused check suggestions', () => {
     const result = suggestFocusedChecks([
       'mcp/src/ontology-compiler.mjs',
       'mcp/src/ontology-engine.mjs',
-      'mcp/src/query.mjs',
     ]);
 
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm exec node --test mcp/src/ontology-compiler.test.mjs',
       'pnpm exec node --test mcp/src/ontology-engine.test.mjs',
-      'pnpm exec node --test mcp/src/query.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:graph',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
+  });
+
+  it('suggests read integration, not graph integration, for the query_concepts DSL parser', () => {
+    const result = suggestFocusedChecks(['mcp/src/query.mjs']);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test mcp/src/query.test.mjs',
+      'pnpm test:mcp:unit',
       'pnpm integration:mcp:read',
       'pnpm dogfood:status',
     ]);
@@ -210,7 +218,6 @@ describe('focused check suggestions', () => {
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:surface',
       'pnpm integration:mcp:vault-read',
-      'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
       'pnpm dogfood:status',
     ]);
@@ -229,7 +236,6 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/validate.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:vault-read',
-      'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
       'pnpm dogfood:status',
     ]);

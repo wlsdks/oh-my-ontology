@@ -92,9 +92,9 @@ pnpm cli:mcp-verify -- --help
 `integration:mcp:surface` narrows the JSON-RPC `tools/list`, `initialize`, and
 `tools/call` server surface. `integration:mcp:repo-analysis` narrows code-to-vault analysis
 handler contracts. `integration:mcp:graph` narrows graph artifact/query handler contracts.
-`integration:mcp:vault-read` narrows list/get/find/validate vault read contracts.
-`integration:mcp:read` narrows read/query tool handler contracts without
-duplicating the repo-analysis subset.
+`integration:mcp:vault-read` narrows list/get/find/path/orphans/validate vault read contracts.
+`integration:mcp:read` narrows `query_concepts` and shared read/query validation
+contracts without duplicating graph or repo-analysis subsets.
 `integration:mcp:write` narrows write tool handler contracts.
 `integration:mcp:readme` runs the documented
 first-contact read-only MCP flow only. `test:mcp:unit` runs the MCP core parser, vault, compiler, query,

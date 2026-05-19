@@ -88,9 +88,11 @@ can inspect ontology write candidates without raw JSON-RPC.
   MCP `analyze_repo_structure` / `infer_imports` implementation changes now
   start with direct unit tests plus `pnpm integration:mcp:repo-analysis` instead
   of also starting the broader read/query subset.
-  The root `pnpm integration:mcp:read` shortcut also excludes those repo-analysis
-  handlers now, so explicit read/query runs do not duplicate the repo-analysis
-  subset.
+  The root `pnpm integration:mcp:read` shortcut also excludes graph and
+  repo-analysis handlers now, so explicit read/query runs do not duplicate
+  those focused subsets.
+  `mcp/src/query.mjs` changes now stay on the `query_concepts` read path instead
+  of also suggesting the graph-engine integration subset.
   reference checks now resolve `pnpm -C <dir>` / `pnpm --dir <dir>` examples
   against the matching package scripts instead of the root package. CLI package
   lockfile changes now route to the same package-contract checks as MCP

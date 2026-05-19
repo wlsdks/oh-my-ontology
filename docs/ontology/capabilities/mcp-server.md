@@ -535,17 +535,19 @@ package contract 는 `--test-name-pattern` 을 쓰는 root script 를 전부 스
 root shortcut `pnpm integration:mcp:surface` 는 JSON-RPC `tools/list` / `initialize` / `tools/call`
 server surface subset 만, `pnpm integration:mcp:repo-analysis` 는 `analyze_repo_structure` / `infer_imports`
 code-to-vault handler subset 만, `pnpm integration:mcp:graph` 는 `compile_ontology` / `query_ontology`
-graph artifact/query handler subset 만, `pnpm integration:mcp:vault-read` 는 list/get/find/validate
-vault read subset 만, `pnpm integration:mcp:read` 는 read/query tool handler subset 만,
+graph artifact/query handler subset 만, `pnpm integration:mcp:vault-read` 는 list/get/find/path/orphans/validate
+vault read subset 만, `pnpm integration:mcp:read` 는 `query_concepts` 와 shared read/query validation subset 만,
 `pnpm integration:mcp:write` 는 write tool handler subset 만,
 `pnpm integration:mcp:readme` 는 first-contact README read-only
 subset 만 실행해 agent onboarding 문서 변경을 빠르게 검증한다.
 Focused-check advisor 는 `mcp/src/analyze.mjs` / `mcp/src/infer-imports.mjs`
 변경을 repo-analysis subset 으로 라우팅하고 broad read/query subset 은 함께 시작하지 않아
 code-to-vault 변경의 반복 검증 비용을 낮춘다.
-root `pnpm integration:mcp:read` shortcut 도 repo-analysis handler 를 제외해
-명시적으로 read/query subset 을 실행할 때도 `pnpm integration:mcp:repo-analysis` 와
-중복되지 않는다.
+root `pnpm integration:mcp:read` shortcut 도 graph / repo-analysis handler 를 제외해
+명시적으로 read/query subset 을 실행할 때도 `pnpm integration:mcp:graph` /
+`pnpm integration:mcp:repo-analysis` 와 중복되지 않는다.
+`mcp/src/query.mjs` 는 graph engine 이 아니라 `query_concepts` filter DSL 이므로
+focused-check advisor 는 graph subset 대신 read/query subset 으로만 라우팅한다.
 package manifest / enum suggestion 류의 더 작은 변경은 root 의
 `pnpm test:mcp:package` / `pnpm test:mcp:suggestions` 로 파일 단위 검증을 먼저
 돌려 반복 dogfood 비용을 낮춘다. 설치 verify 를 dogfood vault 에 반복 적용할 때는

@@ -80,7 +80,7 @@ const RULES = [
   {
     command: 'pnpm integration:mcp:graph',
     reason: 'MCP graph artifact/query handler surface changed',
-    matches: [/^mcp\/src\/(?:ontology-compiler|ontology-engine|query)\.mjs$/],
+    matches: [/^mcp\/src\/(?:ontology-compiler|ontology-engine)\.mjs$/],
   },
   {
     command: 'pnpm integration:mcp:repo-analysis',
@@ -96,7 +96,7 @@ const RULES = [
     command: 'pnpm integration:mcp:read',
     reason: 'MCP read/query tool handler surface changed',
     matches: [
-      /^mcp\/src\/(?:ontology-compiler|ontology-engine|query|validate|vault)\.mjs$/,
+      /^mcp\/src\/query\.mjs$/,
     ],
   },
   {

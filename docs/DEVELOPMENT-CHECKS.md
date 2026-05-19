@@ -205,8 +205,8 @@ unless the changed behavior itself needs installed-style dogfood verification.
 | `pnpm integration:mcp:surface` | MCP JSON-RPC `tools/list`, `initialize`, and `tools/call` surface contracts |
 | `pnpm integration:mcp:repo-analysis` | MCP `analyze_repo_structure` / `infer_imports` code-to-vault contracts; advisor routes those implementation files here before broader read/query gates |
 | `pnpm integration:mcp:graph` | MCP `compile_ontology` / `query_ontology` graph artifact/query contracts |
-| `pnpm integration:mcp:vault-read` | MCP list/get/find/validate vault read contracts |
-| `pnpm integration:mcp:read` | MCP read/query tool handler contracts |
+| `pnpm integration:mcp:vault-read` | MCP list/get/find/path/orphans/validate vault read contracts |
+| `pnpm integration:mcp:read` | MCP `query_concepts` and shared read/query validation contracts |
 | `pnpm integration:mcp:write` | MCP write tool handler contracts |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
 | `pnpm test:mcp:verify:first-contact` | First-contact MCP safety and unknown-tool recovery guidance |

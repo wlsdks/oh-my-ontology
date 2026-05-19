@@ -188,11 +188,11 @@ describe('package contract helpers', () => {
     );
     assert.equal(
       pkg.scripts?.['integration:mcp:vault-read'],
-      `${focusedNode} --test-name-pattern "^(list_concepts|find_evidence|find_backlinks|find_neighbors|find_path|MCP read/query tools|query_concepts|find_orphans|get_concept|get_concepts|validate_vault)" mcp/src/integration.test.mjs`,
+      `${focusedNode} --test-name-pattern "^(list_concepts|find_evidence|find_backlinks|find_neighbors|find_path|find_orphans|get_concept|get_concepts|validate_vault)" mcp/src/integration.test.mjs`,
     );
     assert.equal(
       pkg.scripts?.['integration:mcp:read'],
-      `${focusedNode} --test-name-pattern "^(compile_ontology|query_ontology|list_concepts|find_evidence|find_backlinks|find_neighbors|find_path|MCP read/query tools|query_concepts|find_orphans|get_concept|get_concepts|validate_vault)" mcp/src/integration.test.mjs`,
+      `${focusedNode} --test-name-pattern "^(MCP read/query tools|query_concepts)" mcp/src/integration.test.mjs`,
     );
     assert.equal(
       pkg.scripts?.['integration:mcp:write'],
@@ -486,8 +486,8 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /\| `pnpm integration:mcp:surface` \| MCP JSON-RPC `tools\/list`, `initialize`, and `tools\/call` surface contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:repo-analysis` \| MCP `analyze_repo_structure` \/ `infer_imports` code-to-vault contracts; advisor routes those implementation files here before broader read\/query gates \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:graph` \| MCP `compile_ontology` \/ `query_ontology` graph artifact\/query contracts \|/);
-    assert.match(checksDoc, /\| `pnpm integration:mcp:vault-read` \| MCP list\/get\/find\/validate vault read contracts \|/);
-    assert.match(checksDoc, /\| `pnpm integration:mcp:read` \| MCP read\/query tool handler contracts \|/);
+    assert.match(checksDoc, /\| `pnpm integration:mcp:vault-read` \| MCP list\/get\/find\/path\/orphans\/validate vault read contracts \|/);
+    assert.match(checksDoc, /\| `pnpm integration:mcp:read` \| MCP `query_concepts` and shared read\/query validation contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:write` \| MCP write tool handler contracts \|/);
     assert.match(checksDoc, /\| Dogfood MCP smoke \| `pnpm dogfood:status` \| `pnpm dogfood:verify` \|/);
     assert.match(checksDoc, /pnpm test:dogfood:status/);
@@ -963,8 +963,8 @@ describe('package contract helpers', () => {
     assert.match(section, /JSON-RPC `tools\/list`, `initialize`, and\s+`tools\/call` server surface/);
     assert.match(section, /code-to-vault analysis\s+handler contracts/);
     assert.match(section, /graph artifact\/query\s+handler contracts/);
-    assert.match(section, /list\/get\/find\/validate vault read\s+contracts/);
-    assert.match(section, /read\/query tool\s+handler contracts/);
+    assert.match(section, /list\/get\/find\/path\/orphans\/validate vault read\s+contracts/);
+    assert.match(section, /`query_concepts` and shared read\/query validation\s+contracts/);
     assert.match(section, /write tool handler contracts/);
     assert.match(section, /pnpm test:mcp:docs/);
     assert.match(section, /pnpm test:mcp:registration/);
