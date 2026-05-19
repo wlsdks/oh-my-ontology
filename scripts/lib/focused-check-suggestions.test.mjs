@@ -398,6 +398,22 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests lint when ESLint config changes', () => {
+    const result = suggestFocusedChecks(['eslint.config.mjs']);
+
+    assert.deepEqual(result.commands.map((row) => row.command), ['pnpm lint']);
+  });
+
+  it('suggests typecheck and repo-analysis gates when TS config changes', () => {
+    const result = suggestFocusedChecks(['tsconfig.json']);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm integration:mcp:repo-analysis',
+      'pnpm exec tsc --noEmit',
+      'pnpm integration:cli:repo-analysis',
+    ]);
+  });
+
   it('suggests script-reference checks for docs whose pnpm references are scanned', () => {
     const result = suggestFocusedChecks([
       'README.md',

@@ -93,7 +93,7 @@ src/
 
 **Import direction**: `app → views → widgets → features → entities → shared`. ESLint blocks the reverse.
 
-The directory layout is enforced by `eslint-plugin-boundaries` in `eslint.config.ts`.
+The directory layout is enforced by `eslint-plugin-boundaries` in `eslint.config.mjs`.
 
 ## Data flow
 
@@ -198,7 +198,7 @@ When docs and code disagree, code wins:
 - `package.json` — what's installed, what scripts exist
 - `next.config.ts` — output mode, image config
 - `app/layout.tsx` — metadata, providers, head
-- `eslint.config.ts` — FSD boundary rules
+- `eslint.config.mjs` — FSD boundary rules
 
 Long-form docs:
 

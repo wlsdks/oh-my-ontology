@@ -64,7 +64,7 @@ const RULES = [
   {
     command: 'pnpm integration:mcp:repo-analysis',
     reason: 'MCP code-to-vault analysis handler surface changed',
-    matches: [/^mcp\/src\/(?:analyze|infer-imports)\.mjs$/],
+    matches: [/^mcp\/src\/(?:analyze|infer-imports)\.mjs$/, /^tsconfig\.json$/],
   },
   {
     command: 'pnpm integration:mcp:vault-read',
@@ -125,8 +125,13 @@ const RULES = [
   },
   {
     command: 'pnpm exec tsc --noEmit',
-    reason: 'Next.js static export config changed',
-    matches: [/^next\.config\.ts$/],
+    reason: 'TypeScript or Next.js static export config changed',
+    matches: [/^next\.config\.ts$/, /^tsconfig\.json$/],
+  },
+  {
+    command: 'pnpm lint',
+    reason: 'ESLint boundary or style rules changed',
+    matches: [/^eslint\.config\.mjs$/],
   },
   {
     command: 'pnpm build',
@@ -228,7 +233,7 @@ const RULES = [
   {
     command: 'pnpm integration:cli:repo-analysis',
     reason: 'CLI repo analysis or bootstrap command changed',
-    matches: [/^cli\/src\/commands\/(?:analyze|infer-imports|bootstrap)\.mjs$/],
+    matches: [/^cli\/src\/commands\/(?:analyze|infer-imports|bootstrap)\.mjs$/, /^tsconfig\.json$/],
   },
   {
     command: 'pnpm integration:cli:local-vault',
