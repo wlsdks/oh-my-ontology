@@ -190,7 +190,6 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/infer-imports.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:repo-analysis',
-      'pnpm integration:mcp:read',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
@@ -247,7 +246,6 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/infer-imports.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:repo-analysis',
-      'pnpm integration:mcp:read',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.commands[0].paths, [

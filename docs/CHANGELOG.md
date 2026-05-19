@@ -85,6 +85,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   shortcut.
   GitHub issue/discussion community templates now route to `pnpm test:mcp:docs`
   instead of having no focused advisor result.
+  MCP `analyze_repo_structure` / `infer_imports` implementation changes now
+  start with direct unit tests plus `pnpm integration:mcp:repo-analysis` instead
+  of also starting the broader read/query subset.
   reference checks now resolve `pnpm -C <dir>` / `pnpm --dir <dir>` examples
   against the matching package scripts instead of the root package. CLI package
   lockfile changes now route to the same package-contract checks as MCP

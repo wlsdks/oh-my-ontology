@@ -484,7 +484,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /\| `pnpm integration:cli:growth` \| CLI `growth_plan` wrapper, candidate rendering, malformed payload, and argument contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp` \| Full MCP integration contracts; use when `mcp\/src\/integration\.test\.mjs` itself changed \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:surface` \| MCP JSON-RPC `tools\/list`, `initialize`, and `tools\/call` surface contracts \|/);
-    assert.match(checksDoc, /\| `pnpm integration:mcp:repo-analysis` \| MCP `analyze_repo_structure` \/ `infer_imports` code-to-vault contracts \|/);
+    assert.match(checksDoc, /\| `pnpm integration:mcp:repo-analysis` \| MCP `analyze_repo_structure` \/ `infer_imports` code-to-vault contracts; advisor routes those implementation files here before broader read\/query gates \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:graph` \| MCP `compile_ontology` \/ `query_ontology` graph artifact\/query contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:vault-read` \| MCP list\/get\/find\/validate vault read contracts \|/);
     assert.match(checksDoc, /\| `pnpm integration:mcp:read` \| MCP read\/query tool handler contracts \|/);

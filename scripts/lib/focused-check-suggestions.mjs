@@ -96,7 +96,7 @@ const RULES = [
     command: 'pnpm integration:mcp:read',
     reason: 'MCP read/query tool handler surface changed',
     matches: [
-      /^mcp\/src\/(?:analyze|infer-imports|ontology-compiler|ontology-engine|query|validate|vault)\.mjs$/,
+      /^mcp\/src\/(?:ontology-compiler|ontology-engine|query|validate|vault)\.mjs$/,
     ],
   },
   {
