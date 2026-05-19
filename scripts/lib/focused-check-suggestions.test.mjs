@@ -567,6 +567,7 @@ describe('focused check suggestions', () => {
     const result = suggestFocusedChecks([
       'README.md',
       'docs/DEVELOPMENT-CHECKS.md',
+      'docs/benchmark/README.md',
       'mcp/README.md',
       'cli/README.md',
       'scripts/migrations/README.md',

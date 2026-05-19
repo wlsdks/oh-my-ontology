@@ -266,6 +266,9 @@ test:dogfood:script-refs` checks that help text and package script body
 that focused Node test wrappers fail when a pattern matches 0 tests, print
 matched counts for failed focused runs, and split setup/import failures into
 `setupFailures=N`.
+Benchmark README changes also route here because that page documents runnable
+`pnpm` benchmark commands and is scanned by the package-script reference
+contract.
 When `pnpm checks:changed` prints direct script-helper tests such as
 `pnpm exec node --test scripts/lib/test-name-pattern.test.mjs` or
 `pnpm exec node --test scripts/lib/pnpm-script-refs.test.mjs`, run those before
