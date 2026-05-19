@@ -450,6 +450,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /`postcss\.config\.mjs` and `app\/globals\.css` route to the overflow sweep spec/);
     assert.match(checksDoc, /when `scripts\/check-bundle\.mjs`\s+changes, run `pnpm build` first and then `pnpm bundle:check`/);
     assert.match(checksDoc, /`next\.config\.ts` is static-export source-of-truth; changes route to\s+`pnpm exec tsc --noEmit`, `pnpm build`, and then `pnpm bundle:check`/);
+    assert.match(checksDoc, /Next App Router entries under `app\/\*\*\/\*\.ts\[x\]` and `next-env\.d\.ts` route to\s+`pnpm exec tsc --noEmit`/);
     assert.match(checksDoc, /`eslint\.config\.mjs` changes route to `pnpm lint`/);
     assert.match(checksDoc, /`tsconfig\.json` changes route\s+to `pnpm exec tsc --noEmit` plus the CLI\/MCP repo-analysis focused integrations/);
     assert.match(checksDoc, /GitHub quality-gate files \(`\.github\/workflows\/ci\.yml`,\s+`\.github\/PULL_REQUEST_TEMPLATE\.md`\) route to `pnpm test:mcp:docs` and\s+`pnpm test:mcp:package`, with `pnpm package:check` as the escalation/);

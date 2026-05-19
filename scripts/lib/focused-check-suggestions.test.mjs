@@ -399,6 +399,18 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests typecheck for Next app route and metadata entries', () => {
+    const result = suggestFocusedChecks([
+      'app/layout.tsx',
+      'app/page.tsx',
+      'app/sitemap.ts',
+      'app/[locale]/docs/page.tsx',
+      'next-env.d.ts',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), ['pnpm exec tsc --noEmit']);
+  });
+
   it('suggests lint when ESLint config changes', () => {
     const result = suggestFocusedChecks(['eslint.config.mjs']);
 

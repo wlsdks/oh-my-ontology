@@ -97,6 +97,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   to the local-vault picker spec before broader E2E.
   `postcss.config.mjs` and `app/globals.css` now route to the responsive
   overflow sweep spec, so global styling changes get a focused browser check.
+  Next App Router entries under `app/**/*.ts[x]` and `next-env.d.ts` now route
+  to `pnpm exec tsc --noEmit`, covering route exports and metadata types before
+  broader browser/build checks.
   Changes to the shared package/docs contract test now also route to
   `pnpm test:mcp:docs`, not only `pnpm test:mcp:package`, so docs assertion
   edits do not get verified by a package-only subset that skips them.

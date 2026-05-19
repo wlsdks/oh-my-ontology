@@ -117,6 +117,9 @@ The local-first bundle guard is artifact-based: when `scripts/check-bundle.mjs`
 changes, run `pnpm build` first and then `pnpm bundle:check`.
 `next.config.ts` is static-export source-of-truth; changes route to
 `pnpm exec tsc --noEmit`, `pnpm build`, and then `pnpm bundle:check`.
+Next App Router entries under `app/**/*.ts[x]` and `next-env.d.ts` route to
+`pnpm exec tsc --noEmit`, so route exports, metadata routes, and page/layout
+type drift are caught before broader browser or build checks.
 `eslint.config.mjs` changes route to `pnpm lint`. `tsconfig.json` changes route
 to `pnpm exec tsc --noEmit` plus the CLI/MCP repo-analysis focused integrations,
 because `infer_imports` also reads TypeScript path aliases.

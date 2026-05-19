@@ -148,7 +148,13 @@ const RULES = [
   {
     command: 'pnpm exec tsc --noEmit',
     reason: 'TypeScript or Next.js static export config changed',
-    matches: [/^next\.config\.ts$/, /^tsconfig\.json$/, /^\.githooks\/pre-push$/],
+    matches: [
+      /^app\/.*\.(?:ts|tsx)$/,
+      /^next\.config\.ts$/,
+      /^next-env\.d\.ts$/,
+      /^tsconfig\.json$/,
+      /^\.githooks\/pre-push$/,
+    ],
   },
   {
     command: 'pnpm lint',
