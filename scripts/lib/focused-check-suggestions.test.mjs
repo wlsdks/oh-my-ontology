@@ -451,6 +451,18 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests direct Playwright specs for changed e2e tests', () => {
+    const result = suggestFocusedChecks([
+      'tests/e2e/ontology-ui.spec.ts',
+      'tests/e2e/local-vault-picker.spec.ts',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec playwright test tests/e2e/ontology-ui.spec.ts',
+      'pnpm exec playwright test tests/e2e/local-vault-picker.spec.ts',
+    ]);
+  });
+
   it('suggests script-reference checks for docs whose pnpm references are scanned', () => {
     const result = suggestFocusedChecks([
       'README.md',

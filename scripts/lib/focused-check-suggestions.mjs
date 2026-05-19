@@ -389,8 +389,12 @@ export function suggestFocusedChecks(paths = []) {
     staticCommands,
     directVitestTestSuggestions(normalizedPaths),
   );
-  const withMcpDirect = insertBeforeCommand(
+  const withPlaywrightDirect = prependSuggestions(
     withVitestDirect,
+    directPlaywrightTestSuggestions(normalizedPaths),
+  );
+  const withMcpDirect = insertBeforeCommand(
+    withPlaywrightDirect,
     directMcpUnitTestSuggestions(normalizedPaths),
     'pnpm test:mcp:unit',
   );
@@ -428,6 +432,16 @@ function directVitestTestSuggestions(paths) {
     byTestFile.set(testFile, row);
   }
   return [...byTestFile.values()];
+}
+
+function directPlaywrightTestSuggestions(paths) {
+  return paths
+    .filter((path) => /^tests\/e2e\/.+\.spec\.ts$/.test(path))
+    .map((path) => ({
+      command: `pnpm exec playwright test ${path}`,
+      reason: 'direct Playwright spec for changed e2e test',
+      paths: [path],
+    }));
 }
 
 function resolveVitestTestFile(path, pathSet) {

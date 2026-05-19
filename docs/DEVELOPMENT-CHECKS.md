@@ -102,6 +102,9 @@ focused-check advisor changes use the same pattern: direct
 App/source TypeScript changes under `app/` or `src/` first print a direct
 Vitest sibling command (`pnpm exec vitest run <path>.test.ts[x]`) when that
 test file exists or is part of the same changed path set.
+E2E spec changes under `tests/e2e/` first print the exact Playwright command
+(`pnpm exec playwright test tests/e2e/<name>.spec.ts`) so a single journey edit
+does not start from the entire E2E suite.
 The local-first bundle guard is artifact-based: when `scripts/check-bundle.mjs`
 changes, run `pnpm build` first and then `pnpm bundle:check`.
 `next.config.ts` is static-export source-of-truth; changes route to
@@ -131,6 +134,7 @@ resolution changes are not left with a no-mapping advisor result.
 | `pnpm bundle:check` | Local-first static export bundle guard; run after `pnpm build` when `scripts/check-bundle.mjs` changed |
 | `pnpm exec tsc --noEmit` | TypeScript and Next config type safety |
 | `pnpm exec vitest run <path>.test.ts[x]` | Direct app/source sibling test printed by `pnpm checks:changed` when available |
+| `pnpm exec playwright test tests/e2e/<name>.spec.ts` | Direct E2E spec printed by `pnpm checks:changed` for changed Playwright specs |
 | `pnpm lint` | ESLint and FSD boundary config |
 | `pnpm checks:changed` | Suggest first focused checks from changed paths |
 | `pnpm test:checks:changed` | Changed-path focused-check suggestion helper; use the direct `pnpm exec node --test scripts/lib/focused-check-suggestions.test.mjs` or `scripts/suggest-focused-checks.test.mjs` first when printed |
