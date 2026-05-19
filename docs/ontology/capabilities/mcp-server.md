@@ -557,7 +557,10 @@ vault warning / `validate_vault` problem gate, first-contact health gate,
 workspace_brief sample-shape gate, maintenance work-queue shape / formatter gate, initialize tool-inventory + safety/recovery guidance gate,
 destructive dry-run gate, tools/list inventory name / annotation coverage, strict relation filter, stderr warning filtering 을 만질 때는 `pnpm test:mcp:dogfood` 로 dogfood helper 와
 관련 문서 계약만 먼저 확인한다. dogfood argument / timeout / retry help 만 만질 때는
-`pnpm test:mcp:dogfood:timeout` 으로 더 좁게 확인한다. 직접 verify help 는
+`pnpm test:mcp:dogfood:timeout` 으로 더 좁게 확인한다.
+Focused checks 는 `scripts/dogfood-mcp-walk.mjs` 또는 sibling test 변경 시
+`pnpm test:mcp:dogfood:timeout` 을 `pnpm test:mcp:dogfood` 앞에 먼저 보여준다.
+직접 verify help 는
 `mcp/` package directory 의 `npm run verify -- --help`, repo root 의
 `node mcp/scripts/verify.mjs --help`, 또는 root `pnpm --filter ./mcp verify -- --help` 로 확인하며,
 Focused checks 에 `pnpm test:dogfood:args` / `pnpm test:dogfood:script-refs` / `pnpm test:dogfood:compile-fix` / `pnpm test:dogfood:status` / `pnpm test:mcp:maintenance`

@@ -341,6 +341,7 @@ describe('focused check suggestions', () => {
 
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm test:dogfood:script-refs',
+      'pnpm test:mcp:dogfood:timeout',
       'pnpm test:mcp:dogfood',
       'pnpm dogfood:status',
     ]);

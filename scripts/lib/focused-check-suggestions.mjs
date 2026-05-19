@@ -119,6 +119,11 @@ const RULES = [
     matches: [/^scripts\/dogfood-status\.(?:mjs|test\.mjs)$/],
   },
   {
+    command: 'pnpm test:mcp:dogfood:timeout',
+    reason: 'MCP dogfood timeout/argument diagnostics changed',
+    matches: [/^scripts\/dogfood-mcp-walk\.(?:mjs|test\.mjs)$/],
+  },
+  {
     command: 'pnpm test:mcp:dogfood',
     reason: 'MCP dogfood helper changed',
     matches: [/^scripts\/dogfood-mcp-walk\.(?:mjs|test\.mjs)$/],

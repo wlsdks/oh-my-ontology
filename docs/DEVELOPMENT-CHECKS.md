@@ -214,6 +214,8 @@ resume, or formatter behavior changed.
 `pnpm checks:changed` routes dogfood shortcut helper changes to
 `pnpm test:dogfood:args`, `pnpm test:dogfood:script-refs`, or
 `pnpm test:dogfood:compile-fix` before broader dogfood gates.
+It routes dogfood MCP helper changes to `pnpm test:mcp:dogfood:timeout`
+before the broader `pnpm test:mcp:dogfood` gate.
 It routes MCP verify helper changes to `pnpm test:mcp:verify:first-contact`
 and `pnpm test:mcp:verify:timeout` before the broader `pnpm test:mcp:verify`
 gate.
