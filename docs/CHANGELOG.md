@@ -62,7 +62,8 @@ can inspect ontology write candidates without raw JSON-RPC.
   validator parity files, including `tests/fixtures/vault-schema-cases.mjs`,
   route to `pnpm test:contracts`; MCP core source/test
   changes print direct sibling `pnpm exec node --test mcp/src/<name>.test.mjs`
-  commands before `pnpm test:mcp:unit`; MCP suggestions source/test changes
+  commands before `pnpm test:mcp:unit`, including the installed verify helper's
+  shared `mcp/scripts/json-rpc-lines.mjs`; MCP suggestions source/test changes
   now print `pnpm exec node --test mcp/src/suggestions.test.mjs` before the
   broader `pnpm test:mcp:suggestions`; CLI shared helper source/test changes
   print direct sibling `pnpm exec node --test cli/src/lib/<name>.test.mjs`

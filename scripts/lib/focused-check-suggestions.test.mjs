@@ -77,12 +77,14 @@ describe('focused check suggestions', () => {
       'mcp/src/analyze.mjs',
       'mcp/src/ontology-compiler.test.mjs',
       'mcp/src/vault.mjs',
+      'mcp/scripts/json-rpc-lines.mjs',
     ]);
 
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm exec node --test mcp/src/analyze.test.mjs',
       'pnpm exec node --test mcp/src/ontology-compiler.test.mjs',
       'pnpm exec node --test mcp/src/vault.test.mjs',
+      'pnpm exec node --test mcp/src/json-rpc-lines.test.mjs',
       'pnpm test:mcp:unit',
       'pnpm integration:mcp:repo-analysis',
       'pnpm integration:mcp:vault-read',

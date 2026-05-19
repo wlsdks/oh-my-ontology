@@ -406,6 +406,7 @@ const MCP_DIRECT_UNIT_TESTS = new Map([
   ['mcp/src/suggestions.mjs', 'mcp/src/suggestions.test.mjs'],
   ['mcp/src/validate.mjs', 'mcp/src/validate.test.mjs'],
   ['mcp/src/vault.mjs', 'mcp/src/vault.test.mjs'],
+  ['mcp/scripts/json-rpc-lines.mjs', 'mcp/src/json-rpc-lines.test.mjs'],
 ]);
 
 const MCP_DIRECT_UNIT_TEST_FILES = new Set([
