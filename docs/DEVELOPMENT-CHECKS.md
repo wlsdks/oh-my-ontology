@@ -124,6 +124,7 @@ dogfood docs assertions as well as package/release assertions.
 | `pnpm test:mcp:unit` | MCP core parser, vault, compiler, query, import-analysis, and JSON-RPC line helpers; use the direct sibling `pnpm exec node --test mcp/src/<name>.test.mjs` first when `pnpm checks:changed` prints one |
 | `pnpm integration:mcp:surface` | MCP JSON-RPC `tools/list`, `initialize`, and `tools/call` surface contracts |
 | `pnpm integration:mcp:repo-analysis` | MCP `analyze_repo_structure` / `infer_imports` code-to-vault contracts |
+| `pnpm integration:mcp:graph` | MCP `compile_ontology` / `query_ontology` graph artifact/query contracts |
 | `pnpm integration:mcp:read` | MCP read/query tool handler contracts |
 | `pnpm integration:mcp:write` | MCP write tool handler contracts |
 | `pnpm test:mcp:verify` | MCP verifier helper behavior |
@@ -240,6 +241,7 @@ pnpm integration:cli:local-vault
 pnpm integration:cli:maintenance
 pnpm integration:mcp:surface
 pnpm integration:mcp:repo-analysis
+pnpm integration:mcp:graph
 pnpm integration:mcp:read
 pnpm integration:mcp:write
 OMOT_TEST_NAME_PATTERN="tools/list|initialize" pnpm integration:mcp

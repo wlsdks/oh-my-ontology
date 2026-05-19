@@ -115,9 +115,29 @@ describe('focused check suggestions', () => {
       'pnpm exec node --test mcp/src/infer-imports.test.mjs',
       'pnpm exec node --test mcp/src/validate.test.mjs',
       'pnpm test:mcp:unit',
+      'pnpm integration:mcp:graph',
       'pnpm integration:mcp:repo-analysis',
       'pnpm integration:mcp:read',
       'pnpm integration:mcp:write',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
+  });
+
+  it('suggests focused MCP graph integration for graph artifact/query handlers', () => {
+    const result = suggestFocusedChecks([
+      'mcp/src/ontology-compiler.mjs',
+      'mcp/src/ontology-engine.mjs',
+      'mcp/src/query.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec node --test mcp/src/ontology-compiler.test.mjs',
+      'pnpm exec node --test mcp/src/ontology-engine.test.mjs',
+      'pnpm exec node --test mcp/src/query.test.mjs',
+      'pnpm test:mcp:unit',
+      'pnpm integration:mcp:graph',
+      'pnpm integration:mcp:read',
       'pnpm dogfood:status',
     ]);
     assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);

@@ -52,6 +52,11 @@ const RULES = [
     matches: [/^mcp\/src\/index\.js$/, /^mcp\/src\/integration\.test\.mjs$/],
   },
   {
+    command: 'pnpm integration:mcp:graph',
+    reason: 'MCP graph artifact/query handler surface changed',
+    matches: [/^mcp\/src\/(?:ontology-compiler|ontology-engine|query)\.mjs$/],
+  },
+  {
     command: 'pnpm integration:mcp:repo-analysis',
     reason: 'MCP code-to-vault analysis handler surface changed',
     matches: [/^mcp\/src\/(?:analyze|infer-imports)\.mjs$/],

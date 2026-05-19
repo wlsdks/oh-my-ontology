@@ -56,6 +56,7 @@ pnpm test:contracts
 pnpm test:mcp:unit
 pnpm integration:mcp:surface
 pnpm integration:mcp:repo-analysis
+pnpm integration:mcp:graph
 pnpm integration:mcp:read
 pnpm integration:mcp:write
 pnpm integration:mcp:readme
@@ -89,7 +90,8 @@ pnpm cli:mcp-verify -- --help
 
 `integration:mcp:surface` narrows the JSON-RPC `tools/list`, `initialize`, and
 `tools/call` server surface. `integration:mcp:repo-analysis` narrows code-to-vault analysis
-handler contracts. `integration:mcp:read` narrows read/query tool handler contracts.
+handler contracts. `integration:mcp:graph` narrows graph artifact/query handler contracts.
+`integration:mcp:read` narrows read/query tool handler contracts.
 `integration:mcp:write` narrows write tool handler contracts.
 `integration:mcp:readme` runs the documented
 first-contact read-only MCP flow only. `test:mcp:unit` runs the MCP core parser, vault, compiler, query,
