@@ -86,6 +86,9 @@ can inspect ontology write candidates without raw JSON-RPC.
   `pnpm exec tsc --noEmit` plus CLI/MCP repo-analysis focused integrations.
   GitHub CI / PR template changes now route to package-docs contract checks,
   and the pre-push hook routes to its enforced `pnpm exec tsc --noEmit` gate.
+  App/source TypeScript files under `app/` or `src/` now route to direct
+  sibling Vitest tests when available, so small UI/helper changes get a narrow
+  `pnpm exec vitest run <file>.test.ts[x]` first check instead of no mapping.
   Changes to the shared package/docs contract test now also route to
   `pnpm test:mcp:docs`, not only `pnpm test:mcp:package`, so docs assertion
   edits do not get verified by a package-only subset that skips them.

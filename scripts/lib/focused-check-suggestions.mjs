@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+
 const RULES = [
   {
     command: 'pnpm test:mcp:registration',
@@ -383,8 +385,12 @@ export function normalizeChangedPath(path) {
 export function suggestFocusedChecks(paths = []) {
   const normalizedPaths = [...new Set(paths.map(normalizeChangedPath).filter(Boolean))];
   const staticCommands = rulesToSuggestions(RULES, normalizedPaths);
-  const withMcpDirect = insertBeforeCommand(
+  const withVitestDirect = prependSuggestions(
     staticCommands,
+    directVitestTestSuggestions(normalizedPaths),
+  );
+  const withMcpDirect = insertBeforeCommand(
+    withVitestDirect,
     directMcpUnitTestSuggestions(normalizedPaths),
     'pnpm test:mcp:unit',
   );
@@ -405,6 +411,33 @@ export function suggestFocusedChecks(paths = []) {
   );
   const escalations = rulesToSuggestions(ESCALATIONS, normalizedPaths);
   return { paths: normalizedPaths, commands: withFocusedCheckDirect, escalations };
+}
+
+function directVitestTestSuggestions(paths) {
+  const pathSet = new Set(paths);
+  const byTestFile = new Map();
+  for (const path of paths) {
+    const testFile = resolveVitestTestFile(path, pathSet);
+    if (!testFile) continue;
+    const row = byTestFile.get(testFile) ?? {
+      command: `pnpm exec vitest run ${testFile}`,
+      reason: 'direct Vitest sibling test for changed app/source file',
+      paths: [],
+    };
+    row.paths.push(path);
+    byTestFile.set(testFile, row);
+  }
+  return [...byTestFile.values()];
+}
+
+function resolveVitestTestFile(path, pathSet) {
+  if (!/^(?:src|app)\//.test(path)) return null;
+  if (!/\.(?:ts|tsx)$/.test(path)) return null;
+  if (/\.(?:test|spec)\.(?:ts|tsx)$/.test(path)) return path;
+
+  const testFile = path.replace(/\.(tsx?)$/, '.test.$1');
+  if (pathSet.has(testFile) || existsSync(testFile)) return testFile;
+  return null;
 }
 
 function directMcpUnitTestSuggestions(paths) {
@@ -469,6 +502,13 @@ function directFocusedCheckTestSuggestions(paths) {
     byTestFile.set(testFile, row);
   }
   return [...byTestFile.values()];
+}
+
+function prependSuggestions(suggestions, additions) {
+  if (additions.length === 0) return suggestions;
+  const existing = new Set(suggestions.map((item) => item.command));
+  const uniqueAdditions = additions.filter((item) => !existing.has(item.command));
+  return [...uniqueAdditions, ...suggestions];
 }
 
 function insertBeforeCommand(suggestions, additions, command) {

@@ -53,6 +53,7 @@ describe('focused check suggestions', () => {
     ]);
 
     assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec vitest run src/shared/lib/validate-vault-document.test.ts',
       'pnpm test:contracts',
       'pnpm test:cli:lib',
       'pnpm dogfood:status',
@@ -431,6 +432,23 @@ describe('focused check suggestions', () => {
     const result = suggestFocusedChecks(['.githooks/pre-push']);
 
     assert.deepEqual(result.commands.map((row) => row.command), ['pnpm exec tsc --noEmit']);
+  });
+
+  it('suggests direct Vitest sibling tests for app and source files', () => {
+    const result = suggestFocusedChecks([
+      'src/shared/lib/cn.ts',
+      'src/shared/lib/cn.test.ts',
+      'src/widgets/docs-vault/ui/DocsVaultEditor.tsx',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm exec vitest run src/shared/lib/cn.test.ts',
+      'pnpm exec vitest run src/widgets/docs-vault/ui/DocsVaultEditor.test.tsx',
+    ]);
+    assert.deepEqual(result.commands[0].paths, [
+      'src/shared/lib/cn.ts',
+      'src/shared/lib/cn.test.ts',
+    ]);
   });
 
   it('suggests script-reference checks for docs whose pnpm references are scanned', () => {

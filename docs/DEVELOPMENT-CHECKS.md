@@ -99,6 +99,9 @@ helper moved.
 Dogfood shortcut helpers, script helpers, focused node-test runner, and
 focused-check advisor changes use the same pattern: direct
 `pnpm exec node --test scripts/...test.mjs` first, then the aggregate shortcut.
+App/source TypeScript changes under `app/` or `src/` first print a direct
+Vitest sibling command (`pnpm exec vitest run <path>.test.ts[x]`) when that
+test file exists or is part of the same changed path set.
 The local-first bundle guard is artifact-based: when `scripts/check-bundle.mjs`
 changes, run `pnpm build` first and then `pnpm bundle:check`.
 `next.config.ts` is static-export source-of-truth; changes route to
@@ -127,6 +130,7 @@ resolution changes are not left with a no-mapping advisor result.
 | `pnpm package:check` | Package files, lockfiles, entrypoints, docs contracts |
 | `pnpm bundle:check` | Local-first static export bundle guard; run after `pnpm build` when `scripts/check-bundle.mjs` changed |
 | `pnpm exec tsc --noEmit` | TypeScript and Next config type safety |
+| `pnpm exec vitest run <path>.test.ts[x]` | Direct app/source sibling test printed by `pnpm checks:changed` when available |
 | `pnpm lint` | ESLint and FSD boundary config |
 | `pnpm checks:changed` | Suggest first focused checks from changed paths |
 | `pnpm test:checks:changed` | Changed-path focused-check suggestion helper; use the direct `pnpm exec node --test scripts/lib/focused-check-suggestions.test.mjs` or `scripts/suggest-focused-checks.test.mjs` first when printed |
