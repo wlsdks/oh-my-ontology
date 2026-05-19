@@ -370,6 +370,8 @@ describe('focused check suggestions', () => {
 
     assert.deepEqual(result.commands.map((row) => row.command), [
       'pnpm test:dogfood:script-refs',
+      'pnpm test:mcp:verify:first-contact',
+      'pnpm test:mcp:verify:timeout',
       'pnpm test:mcp:verify',
       'pnpm integration:cli:mcp-verify',
       'pnpm test:mcp:package',
@@ -379,6 +381,22 @@ describe('focused check suggestions', () => {
       'pnpm package:check',
       'pnpm dogfood:verify',
     ]);
+  });
+
+  it('suggests narrow MCP verify tests before the full verify helper gate', () => {
+    const result = suggestFocusedChecks([
+      'mcp/scripts/verify.mjs',
+      'mcp/src/verify-script.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), [
+      'pnpm test:dogfood:script-refs',
+      'pnpm test:mcp:verify:first-contact',
+      'pnpm test:mcp:verify:timeout',
+      'pnpm test:mcp:verify',
+      'pnpm dogfood:status',
+    ]);
+    assert.deepEqual(result.escalations.map((row) => row.command), ['pnpm dogfood:verify']);
   });
 
   it('suggests focused CLI diagnosis integration for health and workspace-brief commands', () => {

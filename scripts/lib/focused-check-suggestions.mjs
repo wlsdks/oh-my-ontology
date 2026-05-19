@@ -124,6 +124,16 @@ const RULES = [
     matches: [/^scripts\/dogfood-mcp-walk\.(?:mjs|test\.mjs)$/],
   },
   {
+    command: 'pnpm test:mcp:verify:first-contact',
+    reason: 'MCP verify first-contact helper changed',
+    matches: [/^mcp\/scripts\/verify\.mjs$/, /^mcp\/src\/verify-script\.test\.mjs$/],
+  },
+  {
+    command: 'pnpm test:mcp:verify:timeout',
+    reason: 'MCP verify timeout/startup diagnostics changed',
+    matches: [/^mcp\/scripts\/verify\.mjs$/, /^mcp\/src\/verify-script\.test\.mjs$/],
+  },
+  {
     command: 'pnpm test:mcp:verify',
     reason: 'MCP verify helper changed',
     matches: [/^mcp\/scripts\/verify\.mjs$/, /^mcp\/src\/verify-script\.test\.mjs$/],
