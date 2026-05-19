@@ -6,6 +6,7 @@ const DEFAULT_IGNORED_PNPM_COMMANDS = new Set([
   "exec",
   "install",
   "link",
+  "patch",
   "publish",
   "run",
   "setup",

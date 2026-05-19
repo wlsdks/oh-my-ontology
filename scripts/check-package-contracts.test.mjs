@@ -457,6 +457,7 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /`tsconfig\.json` changes route\s+to `pnpm exec tsc --noEmit` plus the CLI\/MCP repo-analysis focused integrations/);
     assert.match(checksDoc, /GitHub quality-gate files \(`\.github\/workflows\/ci\.yml`,\s+`\.github\/PULL_REQUEST_TEMPLATE\.md`\) route to `pnpm test:mcp:docs` and\s+`pnpm test:mcp:package`, with `pnpm package:check` as the escalation/);
     assert.match(checksDoc, /`\.githooks\/pre-push` hook routes to `pnpm exec tsc --noEmit`/);
+    assert.match(checksDoc, /Claude Code agent rules and skills under `\.claude\/LOOP-PRINCIPLES\.md`,\s+`\.claude\/rules\/\*\.md`, and `\.claude\/skills\/\*\/SKILL\.md` also route to\s+`pnpm test:dogfood:script-refs`/);
     assert.match(checksDoc, /Claude Code hook wiring and publish guard changes under `\.claude\/hooks\/\*\.sh`\s+or `\.claude\/settings\.json` route to `pnpm test:claude:hooks`/);
     assert.match(checksDoc, /Any `docs\/\*\*\/\*\.md` change routes to `pnpm docs-vault:check`, because\s+the static docs vault indexes the whole docs tree/);
     assert.match(checksDoc, /Root `pnpm-lock\.yaml` and the MCP package lockfile route to\s+`pnpm test:mcp:package` plus `pnpm package:check` escalation/);
@@ -531,8 +532,22 @@ describe('package contract helpers', () => {
     const rootReadme = readFileSync('README.md', 'utf-8');
     const mcpReadme = readFileSync('mcp/README.md', 'utf-8');
     const cliReadme = readFileSync('cli/README.md', 'utf-8');
+    const claudeAgentDocs = [
+      '.claude/LOOP-PRINCIPLES.md',
+      '.claude/rules/architecture.md',
+      '.claude/rules/design.md',
+      '.claude/rules/documentation.md',
+      '.claude/rules/forbidden.md',
+      '.claude/rules/git.md',
+      '.claude/rules/local-first.md',
+      '.claude/rules/testing.md',
+      '.claude/skills/firebase-deploy/SKILL.md',
+      '.claude/skills/ontology-bootstrap/SKILL.md',
+      '.claude/skills/ontology-extract/SKILL.md',
+      '.claude/skills/ontology-sync/SKILL.md',
+    ].map((file) => readFileSync(file, 'utf-8')).join('\n');
     assertPnpmScriptsExist(
-      [rootReadme, checksDoc, mcpReadme, cliReadme].join('\n'),
+      [rootReadme, checksDoc, mcpReadme, cliReadme, claudeAgentDocs].join('\n'),
       pkg.scripts,
       { filteredScripts: { './mcp': mcpPkg.scripts } },
     );

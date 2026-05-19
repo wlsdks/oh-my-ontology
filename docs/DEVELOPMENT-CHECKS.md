@@ -138,6 +138,10 @@ GitHub quality-gate files (`.github/workflows/ci.yml`,
 hook's own enforced gate.
 CLI/MCP verify help changes route to `pnpm test:dogfood:script-refs` too,
 because those help surfaces list root `pnpm ...` shortcuts.
+Claude Code agent rules and skills under `.claude/LOOP-PRINCIPLES.md`,
+`.claude/rules/*.md`, and `.claude/skills/*/SKILL.md` also route to
+`pnpm test:dogfood:script-refs`, because those files contain executable
+workflow snippets that should not drift from package scripts.
 Claude Code hook wiring and publish guard changes under `.claude/hooks/*.sh`
 or `.claude/settings.json` route to `pnpm test:claude:hooks`.
 Root/MCP/CLI README changes and this file also route to that gate when they may

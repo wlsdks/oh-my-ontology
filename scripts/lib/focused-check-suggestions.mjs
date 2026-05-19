@@ -105,6 +105,9 @@ const RULES = [
       /^docs\/DEVELOPMENT-CHECKS\.md$/,
       /^mcp\/README\.md$/,
       /^cli\/README\.md$/,
+      /^\.claude\/LOOP-PRINCIPLES\.md$/,
+      /^\.claude\/rules\/[^/]+\.md$/,
+      /^\.claude\/skills\/[^/]+\/SKILL\.md$/,
     ],
   },
   {

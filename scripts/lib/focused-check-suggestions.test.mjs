@@ -548,6 +548,9 @@ describe('focused check suggestions', () => {
       'docs/DEVELOPMENT-CHECKS.md',
       'mcp/README.md',
       'cli/README.md',
+      '.claude/LOOP-PRINCIPLES.md',
+      '.claude/rules/testing.md',
+      '.claude/skills/ontology-bootstrap/SKILL.md',
     ]);
 
     assert.deepEqual(result.commands.map((row) => row.command), [

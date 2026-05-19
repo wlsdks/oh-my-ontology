@@ -18,7 +18,7 @@ describe("pnpm script reference helpers", () => {
 
   it("ignores pnpm builtin commands that are not package scripts", () => {
     assert.deepEqual(
-      pnpmScriptsFromText("pnpm install\npnpm exec tsc --noEmit\npnpm dev\npnpm setup"),
+      pnpmScriptsFromText("pnpm install\npnpm exec tsc --noEmit\npnpm patch react\npnpm dev\npnpm setup"),
       ["dev"],
     );
   });
