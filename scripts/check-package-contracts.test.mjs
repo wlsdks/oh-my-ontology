@@ -192,7 +192,7 @@ describe('package contract helpers', () => {
     );
     assert.equal(
       pkg.scripts?.['integration:mcp:read'],
-      `${focusedNode} --test-name-pattern "^(compile_ontology|analyze_repo_structure|infer_imports|query_ontology|list_concepts|find_evidence|find_backlinks|find_neighbors|find_path|MCP read/query tools|query_concepts|find_orphans|get_concept|get_concepts|validate_vault)" mcp/src/integration.test.mjs`,
+      `${focusedNode} --test-name-pattern "^(compile_ontology|query_ontology|list_concepts|find_evidence|find_backlinks|find_neighbors|find_path|MCP read/query tools|query_concepts|find_orphans|get_concept|get_concepts|validate_vault)" mcp/src/integration.test.mjs`,
     );
     assert.equal(
       pkg.scripts?.['integration:mcp:write'],
