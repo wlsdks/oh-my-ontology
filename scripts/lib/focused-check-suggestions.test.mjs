@@ -381,6 +381,17 @@ describe('focused check suggestions', () => {
     ]);
   });
 
+  it('suggests Claude hook tests for hook wiring and publish guard changes', () => {
+    const result = suggestFocusedChecks([
+      '.claude/settings.json',
+      '.claude/hooks/block-npm-publish.sh',
+      '.claude/hooks/inject-ontology-summary.sh',
+      'scripts/claude-hooks.test.mjs',
+    ]);
+
+    assert.deepEqual(result.commands.map((row) => row.command), ['pnpm test:claude:hooks']);
+  });
+
   it('suggests build and bundle check when the bundle guard changes', () => {
     const result = suggestFocusedChecks(['scripts/check-bundle.mjs']);
 

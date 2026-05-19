@@ -50,19 +50,42 @@ BLOCKED=0
 REASON=""
 
 # 명령 시작점 patterns:
-#   ^                       — line 시작 (each line, multi-line input 의 각 줄)
+#   ^                       — line 시작 (heredoc body 제외)
 #   (&&|\|\||;|\|)\s+       — shell chain delimiter 직후 (&&, ||, ;, |)
-# 단순 공백 (" ") 만 앞에 있는 경우 (heredoc 본문) 는 cover 안 함.
+# multi-line heredoc body 의 line-start 텍스트는 검사 전에 제거해 명령
+# 시작으로 오인하지 않는다.
 PUBLISH_RE='(^|(&&|\|\||;|\|)[[:space:]]+)(npm|pnpm|yarn)[[:space:]]+publish([[:space:]]|$)'
 PACK_RE='(^|(&&|\|\||;|\|)[[:space:]]+)npm[[:space:]]+pack([[:space:]]|$)'
+COMMAND_FOR_MATCH=$(COMMAND="$COMMAND" python3 - <<'PY'
+import os
+import re
 
-if echo "$COMMAND" | grep -E "$PUBLISH_RE" >/dev/null; then
+command = os.environ.get("COMMAND", "")
+lines = command.splitlines()
+out = []
+skip_until = None
+
+for line in lines:
+    if skip_until is not None:
+        if line.strip() == skip_until:
+            skip_until = None
+        continue
+    out.append(line)
+    match = re.search(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z0-9_]*)['\"]?", line)
+    if match:
+        skip_until = match.group(1)
+
+print("\n".join(out))
+PY
+)
+
+if echo "$COMMAND_FOR_MATCH" | grep -E "$PUBLISH_RE" >/dev/null; then
   BLOCKED=1
   REASON="npm/pnpm/yarn publish 명령이 감지됐습니다. 외부 npm 레지스트리에 영구 발행되는 작업이라 사용자의 명시적 승인이 필수입니다."
 fi
 
-if [[ $BLOCKED -eq 0 ]] && echo "$COMMAND" | grep -E "$PACK_RE" >/dev/null; then
-  if ! echo "$COMMAND" | grep -E -- '--dry-run' >/dev/null; then
+if [[ $BLOCKED -eq 0 ]] && echo "$COMMAND_FOR_MATCH" | grep -E "$PACK_RE" >/dev/null; then
+  if ! echo "$COMMAND_FOR_MATCH" | grep -E -- '--dry-run' >/dev/null; then
     BLOCKED=1
     REASON="'npm pack' 이 --dry-run 없이 실행되려고 합니다. 실제 tarball 생성/발행은 사용자 승인이 필수입니다 (감사용이면 --dry-run 추가)."
   fi

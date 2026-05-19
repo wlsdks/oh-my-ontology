@@ -108,6 +108,15 @@ const RULES = [
     ],
   },
   {
+    command: 'pnpm test:claude:hooks',
+    reason: 'Claude Code hook wiring or publish guard changed',
+    matches: [
+      /^\.claude\/hooks\/(?:block-npm-publish|inject-ontology-summary)\.sh$/,
+      /^\.claude\/settings\.json$/,
+      /^scripts\/claude-hooks\.test\.mjs$/,
+    ],
+  },
+  {
     command: 'pnpm test:dogfood:args',
     reason: 'dogfood shortcut argument helper changed',
     matches: [/^scripts\/lib\/dogfood-args\.(?:mjs|test\.mjs)$/],

@@ -457,11 +457,13 @@ describe('package contract helpers', () => {
     assert.match(checksDoc, /`tsconfig\.json` changes route\s+to `pnpm exec tsc --noEmit` plus the CLI\/MCP repo-analysis focused integrations/);
     assert.match(checksDoc, /GitHub quality-gate files \(`\.github\/workflows\/ci\.yml`,\s+`\.github\/PULL_REQUEST_TEMPLATE\.md`\) route to `pnpm test:mcp:docs` and\s+`pnpm test:mcp:package`, with `pnpm package:check` as the escalation/);
     assert.match(checksDoc, /`\.githooks\/pre-push` hook routes to `pnpm exec tsc --noEmit`/);
+    assert.match(checksDoc, /Claude Code hook wiring and publish guard changes under `\.claude\/hooks\/\*\.sh`\s+or `\.claude\/settings\.json` route to `pnpm test:claude:hooks`/);
     assert.match(checksDoc, /Root `pnpm-lock\.yaml` and the MCP package lockfile route to\s+`pnpm test:mcp:package` plus `pnpm package:check` escalation/);
     assert.match(checksDoc, /\| `pnpm package:check` \| Package files, lockfiles, entrypoints, docs contracts \|/);
     assert.match(checksDoc, /\| `pnpm bundle:check` \| Local-first static export bundle guard; run after `pnpm build` when `scripts\/check-bundle\.mjs` changed \|/);
     assert.match(checksDoc, /\| `pnpm exec tsc --noEmit` \| TypeScript and Next config type safety \|/);
     assert.match(checksDoc, /\| `pnpm test:i18n:messages` \| Locale routing\/message catalog parity \|/);
+    assert.match(checksDoc, /\| `pnpm test:claude:hooks` \| Claude Code hook wiring and npm publish guard \|/);
     assert.match(checksDoc, /\| `pnpm exec vitest run <path>\.test\.ts\[x\]` \| Direct app\/source sibling test printed by `pnpm checks:changed` when available \|/);
     assert.match(checksDoc, /\| `pnpm exec vitest run src\/shared\/lib\/cn\.test\.ts tests\/contract\/vault-schema\.contract\.test\.ts` \| Vitest config\/setup smoke for jsdom setup plus contract discovery \|/);
     assert.match(checksDoc, /\| `pnpm exec playwright test tests\/e2e\/<name>\.spec\.ts` \| Direct E2E spec printed by `pnpm checks:changed` for changed Playwright specs \|/);

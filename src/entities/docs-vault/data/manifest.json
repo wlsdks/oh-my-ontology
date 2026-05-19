@@ -1,6 +1,6 @@
 {
   "version": "2026-04-23",
-  "generatedAt": "2026-05-19T01:13:05.172Z",
+  "generatedAt": "2026-05-19T01:16:25.207Z",
   "docs": [
     {
       "slug": "AGENT-MEMORY-POSITIONING",
@@ -3377,8 +3377,8 @@
         }
       ],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed. Focused on uservisible changes, not PRlevel granularity. Newest at the top. Datebased since we're presemver in the v0.x stage. The developer CLI now exposes MCP growthplan directly, so agents and humans can inspect on",
-      "wordCount": 16307,
-      "updatedAt": "2026-05-19T01:12:24.924Z",
+      "wordCount": 16335,
+      "updatedAt": "2026-05-19T01:16:03.539Z",
       "linksOut": [
         "slug"
       ]
@@ -3828,8 +3828,8 @@
         }
       ],
       "excerpt": "Maintaineronly checks live here so the public README stays readable. Use this page when you touch mcp/, cli/, package manifests, release scripts, or the dogfood ontology. Run this before pushing broad docs, package, MCP, or web changes: For userfacing UI changes, add the relevant Playwright route check. | Area | First ",
-      "wordCount": 2463,
-      "updatedAt": "2026-05-19T01:12:24.923Z",
+      "wordCount": 2492,
+      "updatedAt": "2026-05-19T01:16:03.539Z",
       "linksOut": []
     },
     {
@@ -5428,6 +5428,7 @@
           "session-start-ontology-context"
         ],
         "elements": [
+          ".claude/hooks/block-npm-publish.sh",
           ".claude/hooks/inject-ontology-summary.sh",
           "mcp-sdk",
           "mcp/src/index.js",
@@ -5446,9 +5447,9 @@
           "slug": "ai-agent-partner"
         }
       ],
-      "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 23 도구 (read 15 + write 8) 를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출.",
-      "wordCount": 49,
-      "updatedAt": "2026-05-18T06:48:02.168Z",
+      "excerpt": "Claude Code 같은 LLM agent 가 같은 ontology 를 read/write 하는 surface. MCP 서버 (mcp/) 가 23 도구 (read 15 + write 8) 를 stdin/stdout JSONRPC 로 노출. 등록 가이드: mcp/README.md. 사용자 LLM 비용을 cloud 로 옮기지 않음 — agent 가 자기 LLM 으로 호출. .claude/hooks/blocknpmpublish.sh 는 agent 가 사용자 명시 승인 없이 npm publish 계열 명령을 실행하지 못하게 막는 안전장치다. pnpm test:claude:",
+      "wordCount": 78,
+      "updatedAt": "2026-05-19T01:16:16.522Z",
       "linksOut": []
     },
     {

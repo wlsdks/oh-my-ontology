@@ -136,6 +136,8 @@ GitHub quality-gate files (`.github/workflows/ci.yml`,
 hook's own enforced gate.
 CLI/MCP verify help changes route to `pnpm test:dogfood:script-refs` too,
 because those help surfaces list root `pnpm ...` shortcuts.
+Claude Code hook wiring and publish guard changes under `.claude/hooks/*.sh`
+or `.claude/settings.json` route to `pnpm test:claude:hooks`.
 Root/MCP/CLI README changes and this file also route to that gate when they may
 change scanned `pnpm ...` references.
 Changes to `scripts/check-package-contracts.test.mjs` also route to
@@ -151,6 +153,7 @@ resolution changes are not left with a no-mapping advisor result.
 | `pnpm bundle:check` | Local-first static export bundle guard; run after `pnpm build` when `scripts/check-bundle.mjs` changed |
 | `pnpm exec tsc --noEmit` | TypeScript and Next config type safety |
 | `pnpm test:i18n:messages` | Locale routing/message catalog parity |
+| `pnpm test:claude:hooks` | Claude Code hook wiring and npm publish guard |
 | `pnpm exec vitest run <path>.test.ts[x]` | Direct app/source sibling test printed by `pnpm checks:changed` when available |
 | `pnpm exec vitest run src/shared/lib/cn.test.ts tests/contract/vault-schema.contract.test.ts` | Vitest config/setup smoke for jsdom setup plus contract discovery |
 | `pnpm exec playwright test tests/e2e/<name>.spec.ts` | Direct E2E spec printed by `pnpm checks:changed` for changed Playwright specs |
