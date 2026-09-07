@@ -20,6 +20,7 @@ import {
 } from '@/shared/ui';
 import { Input } from '@/shared/ui/input';
 import { PAGE_COLUMN_FORM } from '@/shared/ui/page-frame';
+import { badgeClass } from '@/shared/ui/badge-class';
 import { controlClass } from '@/shared/ui/control-class';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
 import {
@@ -853,14 +854,38 @@ function ConnectorDetailDialog({
     >
       {connector ? (
         <>
-          {/* Close sits in the corner, as in the add dialog; Escape and the scrim do the same. */}
+          {/*
+            **A card about one connector, read top to bottom** (owner, 2026-09-07 evening: "this
+            design falls short"). What it is, whether it is on, what will actually run, where the
+            traffic goes, what this machine holds for it, and last the way out. The command sits in
+            its own block the way a row draws it, not as a bare line under a caption; the caveat
+            about which sessions carry it is a footnote, not the third sentence.
+          */}
           <div className="flex items-start justify-between gap-3">
-            <h2
-              id={`${testIdPrefix}-detail-title`}
-              className="min-w-0 truncate text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]"
-            >
-              {connector.name}
-            </h2>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <ServiceMark
+                mark={resolveServiceMark(connector.name, whatRuns(connector))}
+                className="shrink-0 text-[color:var(--color-text-tertiary)]"
+              />
+              <h2
+                id={`${testIdPrefix}-detail-title`}
+                className="min-w-0 truncate text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]"
+              >
+                {connector.name}
+              </h2>
+              <span
+                data-testid={`${testIdPrefix}-detail-state`}
+                data-enabled={connector.enabled ? 'true' : 'false'}
+                className={badgeClass({
+                  shape: 'micro',
+                  className: connector.enabled
+                    ? 'border border-[color:var(--color-indigo-a46)] text-[color:var(--color-text-secondary)]'
+                    : 'border border-[color:var(--color-border-soft)] text-[color:var(--color-text-quaternary)]',
+                })}
+              >
+                {connector.enabled ? t('on') : t('off')}
+              </span>
+            </div>
             <IconButton
               label={t('close')}
               size="sm"
@@ -872,35 +897,32 @@ function ConnectorDetailDialog({
               <X size={ICON_SIZE.lg} aria-hidden />
             </IconButton>
           </div>
-          <p className="mt-2 text-label text-[color:var(--color-text-quaternary)]">
-            {t('whatRunsLabel')}
-          </p>
-          <code className="mt-0.5 block break-all font-mono text-label leading-label text-[color:var(--color-text-secondary)]">
-            {whatRuns(connector)}
-          </code>
-          {/*
-            **Two sentences, because there are two destinations** (measured on the rendered screen,
-            2026-09-05). One sentence naming a `{destination}` read "the agent talks to
-            /opt/homebrew/bin/npx -y @notionhq/notion-mcp-server directly" for a program - it
-            repeated the line directly above it, and it named a command where a service belongs.
-            Atlas cannot know what host a local program will reach, and inventing one would be
-            worse than saying so.
-          */}
-          <p className="mt-2 break-keep text-label leading-prose text-[color:var(--color-text-tertiary)]">
-            {connector.transport === 'http'
-              ? t('rowTransfer', { destination: connectorDestination(connector) })
-              : t('rowTransferStdio')}
-          </p>
-          {/*
-            **Which sessions carry this at all** (moved here 2026-09-05). It stood in the panel's
-            preamble, where it was the third sentence somebody read before reaching any connector;
-            it belongs where a person is deciding about one, next to where that one's traffic goes.
-            The `/agents` link is beside it because "a Codex session gets the folder's own server
-            and nothing else" is only actionable if you can go and see which runtimes you have.
-          */}
+
+          <div className="mt-4 rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)] px-3 py-2.5">
+            <p className="text-label leading-label text-[color:var(--color-text-quaternary)]">
+              {t('whatRunsLabel')}
+            </p>
+            <code className="mt-1 block break-all font-mono text-label leading-label text-[color:var(--color-text-primary)]">
+              {whatRuns(connector)}
+            </code>
+            <p className="mt-2 break-keep text-label leading-prose text-[color:var(--color-text-tertiary)]">
+              {connector.transport === 'http'
+                ? t('rowTransfer', { destination: connectorDestination(connector) })
+                : t('rowTransferStdio')}
+            </p>
+          </div>
+
+          <VariableFields
+            connector={connector}
+            canStoreSecrets={canStoreSecrets}
+            storedRefs={storedRefs}
+            onUpsert={onUpsert}
+            testIdPrefix={testIdPrefix}
+          />
+
           <p
             data-testid={`${testIdPrefix}-runtime`}
-            className="mt-1 break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
+            className="mt-4 break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
           >
             {t('runtimeNarrowing')}{' '}
             <Link
@@ -912,15 +934,7 @@ function ConnectorDetailDialog({
             </Link>
           </p>
 
-          <VariableFields
-            connector={connector}
-            canStoreSecrets={canStoreSecrets}
-            storedRefs={storedRefs}
-            onUpsert={onUpsert}
-            testIdPrefix={testIdPrefix}
-          />
-
-          <div className="mt-4 flex items-center justify-start gap-2">
+          <div className="mt-4 flex items-center justify-start gap-2 border-t border-[color:var(--color-border-soft)] pt-3">
             <button
               type="button"
               data-testid={`${testIdPrefix}-item-remove`}
