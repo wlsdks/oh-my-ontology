@@ -9,7 +9,16 @@ import { BookOpen, Search, X } from 'lucide-react';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
 import { cn } from '@/shared/lib/cn';
 import { controlClass } from '@/shared/ui';
-import { EXIT_TRANSITION, OVERLAY_SPRING, OVERLAY_SPRING_REDUCED, SCRIM_FADE, SCRIM_FADE_REDUCED, useExitLockout } from "@/shared/motion";
+import {
+  EXIT_TRANSITION,
+  OVERLAY_RISE,
+  OVERLAY_SETTLED,
+  OVERLAY_SPRING,
+  OVERLAY_SPRING_REDUCED,
+  SCRIM_FADE,
+  SCRIM_FADE_REDUCED,
+  useExitLockout,
+} from '@/shared/motion';
 import { mergeRefs } from "@/shared/lib/merge-refs";
 import { useBodyScrollLock } from '@/shared/lib/use-body-scroll-lock';
 import type { Project } from '@/entities/project';
@@ -357,9 +366,9 @@ function SearchPaletteDialog({
       <motion.div
         ref={mergeRefs(dialogRef, panelLockoutRef)}
         onAnimationStart={panelLockoutOnAnimationStart}
-        initial={{ y: 8, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 8, opacity: 0, transition: EXIT_TRANSITION }}
+        initial={OVERLAY_RISE}
+        animate={OVERLAY_SETTLED}
+        exit={{ ...OVERLAY_RISE, transition: EXIT_TRANSITION }}
         transition={panelTransition}
         data-overlay-spring="true"
         data-search-palette-panel="true"
