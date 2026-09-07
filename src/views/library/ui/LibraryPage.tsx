@@ -63,7 +63,7 @@ import { LibraryStage } from "./parts/LibraryStage";
 import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
 import { LibraryAgentDock } from "./parts/LibraryAgentDock";
-import { selectLibraryHandle } from "../lib/select-library-handle";
+import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
 import { SourceSummary } from "./parts/SourceSummary";
 import { WikiPageHeader } from "./parts/WikiPageHeader";
 import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
@@ -142,7 +142,7 @@ export function LibraryPage() {
   const toast = useToast();
   const localVault = useLocalVault();
 
-  const handle = selectLibraryHandle(localVault.status, localVault.handle);
+  const handle = selectOpenVaultHandle(localVault.status, localVault.handle);
   const manifest = localVault.manifest;
   const hasFolder = handle !== null && manifest !== null;
   /**
