@@ -894,11 +894,16 @@ url = "https://example.test/mcp"
         // The caller cannot ask for an arbitrary name. If this list ever takes a parameter the
         // capability has changed from "where is npx" to "resolve anything", which is a different
         // review (PO steward, 2026-09-07).
-        assert_eq!(CONNECTOR_RUNTIMES, &["npx", "node", "uvx", "python3", "docker"]);
+        assert_eq!(
+            CONNECTOR_RUNTIMES,
+            &["npx", "node", "uvx", "python3", "docker"]
+        );
         let source = include_str!("connectors.rs");
         let body = source.split("#[cfg(test)]").next().unwrap();
         assert!(
-            body.contains("pub fn resolve_connector_runtimes() -> Result<Vec<ResolvedRuntime>, String>"),
+            body.contains(
+                "pub fn resolve_connector_runtimes() -> Result<Vec<ResolvedRuntime>, String>"
+            ),
             "resolve_connector_runtimes must take no caller-supplied name"
         );
     }

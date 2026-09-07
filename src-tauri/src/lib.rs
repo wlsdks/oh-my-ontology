@@ -16,17 +16,16 @@ use tauri::{AppHandle, Emitter, Manager, RunEvent, State};
 /// ACP harness — finds coding agents already installed by the user and invokes them within the app.
 mod acp;
 mod acp_doctor;
-mod managed_node;
 /// "Agent Connection" — interprets bundled MCP server paths · plans/writes config files · self-validates.
 mod agent_setup;
 /// Immutable, vault-local ACP analysis and diagnostic-review Markdown.
 mod analysis_archive;
-/// Read-only discovery of MCP servers the person already registered elsewhere — names and key
-/// names, never secret values.
-mod connectors;
 /// Keychain entries behind an external connector's tokens, resolved into the outgoing ACP line so
 /// the WebView never holds one.
 mod connector_secrets;
+/// Read-only discovery of MCP servers the person already registered elsewhere — names and key
+/// names, never secret values.
+mod connectors;
 /// The one inbound address this app answers — `ontology-atlas://mcp?install=` — and the rejection
 /// rules that keep it from becoming a router.
 mod deep_link;
@@ -41,6 +40,7 @@ mod library;
 mod llm;
 /// LLM call audit log — implementation of "do not send if logging fails."
 mod llm_audit;
+mod managed_node;
 mod secrets;
 
 /// How long a deep link keeps trying to reach the form: 20 attempts, 250 ms apart, so a cold
@@ -292,8 +292,19 @@ pub(crate) fn canonical_root(root_path: &str) -> Result<PathBuf, String> {
 /// Reason for splitting by extension: to accurately determine if it is a bundle, one must read `Info.plist`, but by then you have already looked inside. The name is visible before opening. This list contains items that macOS **executes or treats specially**.
 fn is_bundle_directory(root: &Path) -> bool {
     const BUNDLE_EXTENSIONS: &[&str] = &[
-        "app", "bundle", "framework", "kext", "plugin", "prefpane", "qlgenerator",
-        "saver", "wdgt", "xpc", "appex", "component", "mdimporter",
+        "app",
+        "bundle",
+        "framework",
+        "kext",
+        "plugin",
+        "prefpane",
+        "qlgenerator",
+        "saver",
+        "wdgt",
+        "xpc",
+        "appex",
+        "component",
+        "mdimporter",
     ];
     root.extension()
         .and_then(|e| e.to_str())
@@ -376,13 +387,19 @@ fn ensure_inside_canonical(root_path: &str, path: &Path) -> Result<PathBuf, Stri
     Ok(canonical_path)
 }
 
-pub(crate) fn resolve_existing_inside(root_path: &str, relative_path: &str) -> Result<PathBuf, String> {
+pub(crate) fn resolve_existing_inside(
+    root_path: &str,
+    relative_path: &str,
+) -> Result<PathBuf, String> {
     let path = resolve_inside(root_path, relative_path)?;
     ensure_inside_canonical(root_path, &path)
 }
 
 #[cfg(not(unix))]
-pub(crate) fn resolve_write_target_inside(root_path: &str, relative_path: &str) -> Result<PathBuf, String> {
+pub(crate) fn resolve_write_target_inside(
+    root_path: &str,
+    relative_path: &str,
+) -> Result<PathBuf, String> {
     let path = resolve_inside(root_path, relative_path)?;
     if path.exists() {
         return ensure_inside_canonical(root_path, &path);
@@ -884,8 +901,8 @@ fn acp_start(
         read_text: &read_text,
         login_ok: &login_ok,
     };
-    let home = std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" })
-        .map(PathBuf::from);
+    let home =
+        std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" }).map(PathBuf::from);
     // Must also find what the app installed on our behalf — otherwise, even after installing,
     // the screen keeps saying "Installation required."
     let app_data_for_paths = app.path().app_data_dir().ok();
@@ -1006,8 +1023,8 @@ fn acp_start(
     /*
      * The first download (tens of MB) takes minutes, but the screen only showed "Starting" —
      * the user thought it was stuck and closed the app, which was the very trigger that created the broken cache above (2026-08-19). So we notify the screen only when the download actually starts, and measure progress **without fabricating**: total size is not fixed anywhere,
-     // so percentage cannot be made honest, but the growing size of the cache entry directory
-     // (how many MB so far) is measurable.
+    // so percentage cannot be made honest, but the growing size of the cache entry directory
+    // (how many MB so far) is measurable.
      */
     /*
      * ⚠️ Notifications must be sent **after this command returns**. The screen only subscribes to `acp://notice` after receiving the answer (session name) from `acp_start`, so emitting here would make the first notification vanish into the void. So we move everything to a thread and wait briefly before sending — if we still miss it, the progress notifications arriving every second allow the screen side to refresh the display (`use-acp-session.ts`).
@@ -1238,7 +1255,10 @@ fn terminate_all_acp_sessions(app: &AppHandle) {
 /// So the screen calls twice: first draw without the check, then check and
 /// correct.
 #[tauri::command(async)]
-fn acp_detect_runtimes(app: tauri::AppHandle, probe_login: Option<bool>) -> Vec<acp::AcpRuntimeStatus> {
+fn acp_detect_runtimes(
+    app: tauri::AppHandle,
+    probe_login: Option<bool>,
+) -> Vec<acp::AcpRuntimeStatus> {
     let (is_executable, list_dir, read_text, login_ok) = acp::real_probe();
     let skip = |_: &str, _: &std::path::Path, _: &[&str], _: &str| None;
     let probe = acp::FsProbe {
@@ -1389,10 +1409,7 @@ fn emit_install_progress(
 /// The screen asks once when it remounts — that is how a completion that went
 /// by while the sheet was closed is not missed.
 #[tauri::command]
-fn acp_install_progress(
-    app: tauri::AppHandle,
-    runtime_id: String,
-) -> Option<AcpInstallProgress> {
+fn acp_install_progress(app: tauri::AppHandle, runtime_id: String) -> Option<AcpInstallProgress> {
     let state = app.try_state::<AcpInstallProgressState>()?;
     let last = state.last.lock().ok()?;
     last.get(&runtime_id).cloned()
@@ -1443,7 +1460,15 @@ fn acp_install_node(
     managed_node::ensure_managed_node(&app_data, &reporter).inspect_err(|_| {
         emit_install_progress(&app, &runtime_id, "node", "failed", None, None, None);
     })?;
-    emit_install_progress(&app, &runtime_id, "node", "verifying-install", None, None, None);
+    emit_install_progress(
+        &app,
+        &runtime_id,
+        "node",
+        "verifying-install",
+        None,
+        None,
+        None,
+    );
     let after = doctor_context(&app, &runtime_id)?;
     emit_install_progress(&app, &runtime_id, "node", "done", None, None, None);
     Ok(acp_doctor::diagnose(&after.borrow()))
@@ -1504,8 +1529,8 @@ fn acp_install_cli(
     );
     // Do not launch npm by **name** — the PATH of a GUI app differs from the user's shell
     // (the measurement at the top of this file confirms why).
-    let npm = acp::resolve_command("npm", &dirs, &probe)
-        .ok_or_else(|| "npm-missing".to_string())?;
+    let npm =
+        acp::resolve_command("npm", &dirs, &probe).ok_or_else(|| "npm-missing".to_string())?;
     let child_path = std::env::join_paths(dirs.iter())
         .map(|joined| joined.to_string_lossy().to_string())
         .unwrap_or_default();
@@ -1527,14 +1552,16 @@ fn acp_install_cli(
      * ⚠️ **Do not use `.output()`** (owner's note 2026-08-20).
      *
      * That function returns only after the process ends. npm runs for 30–90 seconds, during which the screen
-     // remains unaware, displaying only the four characters "Installing...", which is the defect this repo calls
+    // remains unaware, displaying only the four characters "Installing...", which is the defect this repo calls
      * "quiet waiting".
      *
      * Instead, **stream stderr line by line.** npm writes progress there.
      * Do not fabricate percentages; **push the exact lines the tool actually emitted** —
      * since they are not sentences we created, they do not become outdated.
      */
-    let mut child = command.spawn().map_err(|err| format!("install-failed:{err}"))?;
+    let mut child = command
+        .spawn()
+        .map_err(|err| format!("install-failed:{err}"))?;
     let stderr_pipe = child.stderr.take();
     let tail = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
     let pump = stderr_pipe.map(|pipe| {
@@ -1566,7 +1593,9 @@ fn acp_install_cli(
             }
         })
     });
-    let status = child.wait().map_err(|err| format!("install-failed:{err}"))?;
+    let status = child
+        .wait()
+        .map_err(|err| format!("install-failed:{err}"))?;
     if let Some(handle) = pump {
         let _ = handle.join();
     }
@@ -1579,7 +1608,15 @@ fn acp_install_cli(
     }
 
     // Do not end with "Installed" — **say "Re-verifying..."** and provide the re-verified value.
-    emit_install_progress(&app, &runtime_id, "cli", "verifying-install", None, None, None);
+    emit_install_progress(
+        &app,
+        &runtime_id,
+        "cli",
+        "verifying-install",
+        None,
+        None,
+        None,
+    );
     let after = doctor_context(&app, &runtime_id)?;
     emit_install_progress(&app, &runtime_id, "cli", "done", None, None, None);
     Ok(acp_doctor::diagnose(&after.borrow()))
@@ -1661,7 +1698,10 @@ pub(crate) fn is_openable_url(url: &str) -> bool {
 /// when the cause lay in a different phase (as seen in the 2026-08-20 login incident). Here we
 /// return only facts; the screen generates the sentences.
 #[tauri::command(async)]
-fn acp_diagnose(app: tauri::AppHandle, runtime_id: String) -> Result<Vec<acp_doctor::AcpCheck>, String> {
+fn acp_diagnose(
+    app: tauri::AppHandle,
+    runtime_id: String,
+) -> Result<Vec<acp_doctor::AcpCheck>, String> {
     // If re-verifying starts, forget previous installation results — the screen also clears its
     // state at the same moment, so both locations follow the same rule.
     forget_install_progress(&app, &runtime_id);
@@ -1754,7 +1794,8 @@ fn doctor_context(app: &tauri::AppHandle, runtime_id: &str) -> Result<OwnedDocto
         .map(|joined| joined.to_string_lossy().to_string())
         .unwrap_or_default();
 
-    let agent = acp::registry_agent(runtime_id).ok_or_else(|| format!("unknown-runtime:{runtime_id}"))?;
+    let agent =
+        acp::registry_agent(runtime_id).ok_or_else(|| format!("unknown-runtime:{runtime_id}"))?;
     let cli = agent
         .cli
         .as_deref()
@@ -1767,8 +1808,8 @@ fn doctor_context(app: &tauri::AppHandle, runtime_id: &str) -> Result<OwnedDocto
         managed_bin.as_deref(),
         managed_node_bin.as_deref(),
     )
-        .ok()
-        .map(|launch| launch.program);
+    .ok()
+    .map(|launch| launch.program);
 
     let app_data_dir = app
         .path()
@@ -2243,8 +2284,11 @@ fn walk_vault_stamps(
     }
 
     if children.iter().any(|(name, _)| name == VAULT_CACHE_DIR_TAG) {
-        acc.pruned_dirs
-            .push(if prefix.is_empty() { ".".into() } else { prefix.into() });
+        acc.pruned_dirs.push(if prefix.is_empty() {
+            ".".into()
+        } else {
+            prefix.into()
+        });
         return Ok(());
     }
 
@@ -2481,10 +2525,7 @@ fn remove_vault_entry(
 
         #[cfg(windows)]
         {
-            if fs::metadata(&path)
-                .map_err(|err| err.to_string())?
-                .is_dir()
-            {
+            if fs::metadata(&path).map_err(|err| err.to_string())?.is_dir() {
                 return fs::remove_dir(path).map_err(|err| err.to_string());
             }
         }
@@ -2643,8 +2684,8 @@ fn default_vault_parent_dir(home: &str) -> PathBuf {
 
 #[tauri::command]
 fn ensure_default_vault_parent_dir() -> Result<String, String> {
-    let home = std::env::var("HOME")
-        .map_err(|_| "HOME environment variable is not set".to_string())?;
+    let home =
+        std::env::var("HOME").map_err(|_| "HOME environment variable is not set".to_string())?;
     let parent = default_vault_parent_dir(&home);
     fs::create_dir_all(&parent).map_err(|err| err.to_string())?;
     let canonical = fs::canonicalize(&parent).map_err(|err| err.to_string())?;
@@ -2754,21 +2795,11 @@ fn macos_language_hint() -> String {
 #[cfg(target_os = "macos")]
 fn install_native_tray(app: &mut tauri::App) -> tauri::Result<()> {
     let labels = native_tray_labels(&macos_language_hint());
-    let open = tauri::menu::MenuItem::with_id(
-        app,
-        NATIVE_TRAY_OPEN_ID,
-        labels.open,
-        true,
-        None::<&str>,
-    )?;
+    let open =
+        tauri::menu::MenuItem::with_id(app, NATIVE_TRAY_OPEN_ID, labels.open, true, None::<&str>)?;
     let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
-    let quit = tauri::menu::MenuItem::with_id(
-        app,
-        NATIVE_TRAY_QUIT_ID,
-        labels.quit,
-        true,
-        None::<&str>,
-    )?;
+    let quit =
+        tauri::menu::MenuItem::with_id(app, NATIVE_TRAY_QUIT_ID, labels.quit, true, None::<&str>)?;
     let menu = tauri::menu::Menu::with_items(app, &[&open, &separator, &quit])?;
 
     TrayIconBuilder::with_id(NATIVE_TRAY_ID)
@@ -2803,7 +2834,11 @@ struct SavedWindowState {
 
 /// Reads the geometry the plugin saved, or `None` when there is nothing to restore.
 fn read_saved_window_state(app: &AppHandle) -> Option<SavedWindowState> {
-    let path = app.path().app_config_dir().ok()?.join(WINDOW_STATE_FILENAME);
+    let path = app
+        .path()
+        .app_config_dir()
+        .ok()?
+        .join(WINDOW_STATE_FILENAME);
     let raw = fs::read_to_string(path).ok()?;
     let parsed: serde_json::Value = serde_json::from_str(&raw).ok()?;
     serde_json::from_value(parsed.get(MAIN_WINDOW_LABEL)?.clone()).ok()
@@ -3666,7 +3701,11 @@ mod tests {
     /// so if bypassed, a single link could open arbitrary things.
     #[test]
     fn only_http_urls_are_handed_to_the_os() {
-        for good in ["https://example.com", "http://example.com/a?b=c", "HTTPS://EXAMPLE.COM"] {
+        for good in [
+            "https://example.com",
+            "http://example.com/a?b=c",
+            "HTTPS://EXAMPLE.COM",
+        ] {
             assert!(crate::is_openable_url(good), "{good} 를 막았다");
         }
         for bad in [
@@ -3824,10 +3863,8 @@ mod tests {
 
     #[test]
     fn permission_verdict_uses_the_registered_session_root_and_unknown_sessions_ask() {
-        let base = std::env::temp_dir().join(format!(
-            "atlas-acp-session-root-{}",
-            std::process::id()
-        ));
+        let base =
+            std::env::temp_dir().join(format!("atlas-acp-session-root-{}", std::process::id()));
         let vault = base.join("vault");
         let outside = base.join("outside.md");
         std::fs::create_dir_all(&vault).unwrap();
@@ -3856,11 +3893,7 @@ mod tests {
             acp::PermissionVerdict::Ask
         );
         assert_eq!(
-            permission_verdict_for_session(
-                &sessions,
-                "caller-invented-session",
-                outside.to_str()
-            ),
+            permission_verdict_for_session(&sessions, "caller-invented-session", outside.to_str()),
             acp::PermissionVerdict::Ask,
             "등록되지 않은 세션은 화면이 어떤 경로를 보내도 자동 허용하면 안 된다"
         );
@@ -4789,7 +4822,15 @@ mod acp_install_progress_tests {
         keys.sort_unstable();
         assert_eq!(
             keys,
-            vec!["at", "job", "note", "received", "runtimeId", "stage", "total"],
+            vec![
+                "at",
+                "job",
+                "note",
+                "received",
+                "runtimeId",
+                "stage",
+                "total"
+            ],
             "화면이 읽는 키와 다르다 — 이러면 진행률이 조용히 사라진다"
         );
         assert_eq!(object["runtimeId"], "claude-acp");
@@ -4805,7 +4846,6 @@ mod acp_install_progress_tests {
         assert_eq!(ACP_INSTALL_PROGRESS_EVENT, "acp-install://progress");
     }
 }
-
 
 #[cfg(test)]
 mod window_geometry_tests {
@@ -4849,7 +4889,10 @@ mod window_geometry_tests {
         // measurement scripts already sweep.
         let usable = REFERENCE_14_INCH.height - MACOS_MENU_BAR_RESERVE_PT - MACOS_TITLE_BAR_PT;
         assert!(900.0 <= usable, "900 must fit inside {usable}");
-        assert!(982.0 > usable, "982 must not fit, which is why it was never a window");
+        assert!(
+            982.0 > usable,
+            "982 must not fit, which is why it was never a window"
+        );
     }
 
     #[test]
@@ -4865,7 +4908,10 @@ mod window_geometry_tests {
             REFERENCE_14_INCH.height - MACOS_MENU_BAR_MIN_PT - MACOS_TITLE_BAR_PT
         );
         assert!(result.resized);
-        assert!(result.repositioned, "a clamped window must not keep an origin that now overflows");
+        assert!(
+            result.repositioned,
+            "a clamped window must not keep an origin that now overflows"
+        );
     }
 
     #[test]
@@ -4962,7 +5008,10 @@ mod window_geometry_tests {
         let saved = at(0.0, MACOS_MENU_BAR_MIN_PT, 1400.0, 900.0);
         let result = sanitize_window_geometry(saved, EXTERNAL_1080P, MAIN_WINDOW_MIN_LOGICAL);
         assert_eq!(result.geometry, saved);
-        assert!(!result.repositioned, "a window a non-notched display allows must be left where it is");
+        assert!(
+            !result.repositioned,
+            "a window a non-notched display allows must be left where it is"
+        );
         assert!(!result.resized);
     }
 
@@ -4975,7 +5024,10 @@ mod window_geometry_tests {
         let saved = at(0.0, MACOS_MENU_BAR_MIN_PT, 1920.0, zoomed_height);
         let result = sanitize_window_geometry(saved, EXTERNAL_1080P, MAIN_WINDOW_MIN_LOGICAL);
         assert_eq!(result.geometry, saved);
-        assert!(!result.resized, "a window that fits its display exactly must not be clamped");
+        assert!(
+            !result.resized,
+            "a window that fits its display exactly must not be clamped"
+        );
         assert!(!result.repositioned);
     }
 

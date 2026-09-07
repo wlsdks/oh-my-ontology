@@ -327,7 +327,9 @@ pub fn import_source_files(
         hasher.update(&bytes);
         let hash = format!("{:x}", hasher.finalize());
 
-        if let Some((_, relative)) = existing.iter().find(|(existing_hash, _)| *existing_hash == hash)
+        if let Some((_, relative)) = existing
+            .iter()
+            .find(|(existing_hash, _)| *existing_hash == hash)
         {
             results.push(SourceImportResult {
                 picked_name,
@@ -602,7 +604,10 @@ mod tests {
         let root = std::env::temp_dir().join(format!("atlas-lib-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(root.join(SOURCES_DIR)).unwrap();
-        let root_path = fs::canonicalize(&root).unwrap().to_string_lossy().to_string();
+        let root_path = fs::canonicalize(&root)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
 
         write_source_bytes(&root_path, "sources/plan.pdf", b"%PDF-1.7\n").unwrap();
         assert_eq!(
@@ -622,6 +627,9 @@ mod tests {
         assert_eq!(safe_source_file_name("../a.pdf"), None);
         assert_eq!(safe_source_file_name("dir/a.pdf"), None);
         assert_eq!(safe_source_file_name("..").as_deref(), None);
-        assert_eq!(safe_source_file_name(".hidden.pdf").as_deref(), Some("hidden.pdf"));
+        assert_eq!(
+            safe_source_file_name(".hidden.pdf").as_deref(),
+            Some("hidden.pdf")
+        );
     }
 }

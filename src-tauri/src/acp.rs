@@ -739,7 +739,8 @@ pub(crate) fn resolve_launch(
     managed_bin: Option<&Path>,
     managed_node_bin: Option<&Path>,
 ) -> Result<AcpLaunch, String> {
-    let agent = registry_agent(runtime_id).ok_or_else(|| format!("unknown-runtime:{runtime_id}"))?;
+    let agent =
+        registry_agent(runtime_id).ok_or_else(|| format!("unknown-runtime:{runtime_id}"))?;
     let dirs = candidate_bin_dirs(home, path_env, probe, managed_bin, managed_node_bin);
     let joined = std::env::join_paths(dirs.iter())
         .map_err(|err| format!("path-join-failed:{err}"))?
@@ -1012,10 +1013,7 @@ pub(crate) enum NpxCachePreflight {
     HealedBrokenEntry { reason: &'static str },
     /// Corrupted but could not be deleted — leaving it as-is fails exactly as before.
     /// Raise the reason so the UI can at least diagnose it.
-    HealFailed {
-        reason: &'static str,
-        error: String,
-    },
+    HealFailed { reason: &'static str, error: String },
 }
 
 /// Inspects the cache entry just before launching via npx and, if broken, deletes **only
@@ -1181,8 +1179,8 @@ pub(crate) fn prepare_isolated_config(
     // An executor whose isolation we have not yet measured is **honestly reported as not
     // isolated.** Moving settings via a guessed environment variable silently breaks login,
     // and the user has no way to know why it does not work.
-    let spec = isolation_for(runtime_id)
-        .ok_or_else(|| format!("isolation-unsupported:{runtime_id}"))?;
+    let spec =
+        isolation_for(runtime_id).ok_or_else(|| format!("isolation-unsupported:{runtime_id}"))?;
 
     let dir = app_data_dir.join("agent-config").join(spec.id);
     std::fs::create_dir_all(&dir).map_err(|err| format!("config-dir-failed:{err}"))?;
@@ -1197,6 +1195,9 @@ pub(crate) fn prepare_isolated_config(
     }
 
     if let Some(home) = home {
+        if spec.id == "claude-acp" {
+            mirror_terminal_login(&dir, home);
+        }
         let source = home.join(spec.user_config_dir).join(spec.credentials_file);
         let link = dir.join(spec.credentials_file);
         if source.exists() {
@@ -1309,7 +1310,10 @@ fn clear_shadowing_credentials(config_dir: &Path, cli: Option<&Path>, path_env: 
 /// of defect once in a CI preparation step (2026-08-20, apt ate 20 minutes).
 ///
 /// If it cannot be launched or exceeds the limit, `None` — meaning **unknown**, not "failed".
-pub(crate) fn bounded_output(mut command: std::process::Command, limit: std::time::Duration) -> Option<String> {
+pub(crate) fn bounded_output(
+    mut command: std::process::Command,
+    limit: std::time::Duration,
+) -> Option<String> {
     use std::io::Read;
     use std::process::Stdio;
 
@@ -1421,7 +1425,6 @@ pub(crate) fn claude_status_is_logged_out(stdout: &str) -> bool {
     value.get("loggedIn") == Some(&serde_json::Value::Bool(false))
 }
 
-
 /// The name of this executor's "where do settings get read from" environment variable.
 pub(crate) fn config_env_for(runtime_id: &str) -> Option<&'static str> {
     isolation_for(runtime_id).map(|s| s.config_env)
@@ -1453,6 +1456,105 @@ pub(crate) fn prepare_runtime_isolation(
 }
 
 /// Puts the credentials link in place. If it already points at the right place, leave it alone.
+/// The keychain item Claude Code reads when no `CLAUDE_CONFIG_DIR` is set — the terminal's login.
+const DEFAULT_CLAUDE_CREDENTIALS_SERVICE: &str = "Claude Code-credentials";
+
+/// The keychain items that can hold the terminal's login, in the order to try them: the
+/// unscoped item first, then the item Claude Code names after the default folder itself.
+pub(crate) fn terminal_login_services(home: &Path) -> Vec<String> {
+    vec![
+        DEFAULT_CLAUDE_CREDENTIALS_SERVICE.to_string(),
+        claude_credentials_service(&home.join(".claude")),
+    ]
+}
+
+/// Carries the terminal's cached account (`oauthAccount` in `~/.claude.json`) into the
+/// app folder's own `.claude.json`, so `claude auth status` under the app folder names the
+/// account the token actually belongs to. Returns the merged document, or `None` when the
+/// terminal has no account to carry.
+pub(crate) fn merge_oauth_account(
+    app_document: Option<serde_json::Value>,
+    terminal_document: &serde_json::Value,
+) -> Option<serde_json::Value> {
+    let account = terminal_document.get("oauthAccount")?.clone();
+    let mut document = match app_document {
+        Some(serde_json::Value::Object(map)) => serde_json::Value::Object(map),
+        _ => serde_json::Value::Object(serde_json::Map::new()),
+    };
+    document
+        .as_object_mut()?
+        .insert("oauthAccount".to_string(), account);
+    Some(document)
+}
+
+/// **The app's Claude follows the terminal login, at every start.**
+///
+/// ## Why (measured 2026-09-08, 00:50)
+///
+/// The link to `~/.claude/.credentials.json` below was the whole design: one login, no fork.
+/// On this machine that file was a token from the day before, while the login the
+/// terminal actually used lived in the keychain — Claude Code writes the keychain on
+/// macOS and leaves the file behind. The owner switched accounts in the terminal; the app
+/// kept the old account's token in its own keychain item and reported that account's
+/// session limit ("resets 1am") while the terminal, on the new account, had room.
+///
+/// So the terminal's keychain item is mirrored into the app-scoped item before every
+/// session. The secret never leaves the keychain except through `security`, the same tool
+/// Claude Code itself uses to store it; it passes through one `security` argument list,
+/// as it does when Claude Code writes it. Failure is silent: with nothing to mirror the
+/// link below still stands, and the doctor's own repair is unchanged.
+fn mirror_terminal_login(config_dir: &Path, home: &Path) {
+    #[cfg(target_os = "macos")]
+    {
+        let app_service = claude_credentials_service(config_dir);
+        for service in terminal_login_services(home) {
+            let mut read = std::process::Command::new("security");
+            read.args(["find-generic-password", "-s", &service, "-w"]);
+            let Some(secret) = bounded_output(read, KEYCHAIN_PROBE_TIMEOUT) else {
+                continue;
+            };
+            let secret = secret.trim_end_matches(['\n', '\r']);
+            if secret.is_empty() {
+                continue;
+            }
+            let mut write = std::process::Command::new("security");
+            write.args([
+                "add-generic-password",
+                "-U",
+                "-s",
+                &app_service,
+                "-a",
+                "claude",
+                "-w",
+                secret,
+            ]);
+            if bounded_output(write, KEYCHAIN_PROBE_TIMEOUT).is_some() {
+                log::info!("acp login mirrored from {service} into the app-scoped keychain item");
+            }
+            break;
+        }
+
+        let terminal_document = std::fs::read_to_string(home.join(".claude.json"))
+            .ok()
+            .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
+        if let Some(terminal_document) = terminal_document {
+            let app_path = config_dir.join(".claude.json");
+            let app_document = std::fs::read_to_string(&app_path)
+                .ok()
+                .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
+            if let Some(merged) = merge_oauth_account(app_document, &terminal_document) {
+                if let Ok(text) = serde_json::to_string_pretty(&merged) {
+                    let _ = std::fs::write(&app_path, text);
+                }
+            }
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (config_dir, home);
+    }
+}
+
 fn link_credentials(source: &Path, link: &Path) -> Result<(), String> {
     if let Ok(existing) = std::fs::read_link(link) {
         if existing == source {
@@ -1690,8 +1792,7 @@ fn signal_group_or_leader(pid: u32, signal: i32) -> Result<(), String> {
                 return Ok(());
             }
             let leader_err = std::io::Error::last_os_error();
-            if leader_err.raw_os_error() == Some(libc::ESRCH) || !process_is_running(pid)
-            {
+            if leader_err.raw_os_error() == Some(libc::ESRCH) || !process_is_running(pid) {
                 return Ok(());
             }
             Err(format!("failed to signal {pid}: {leader_err}"))
@@ -1703,9 +1804,7 @@ fn signal_group_or_leader(pid: u32, signal: i32) -> Result<(), String> {
                     libc::kill(pid as i32, signal);
                 }
             }
-            Err(format!(
-                "failed to signal process group {pid}: {group_err}"
-            ))
+            Err(format!("failed to signal process group {pid}: {group_err}"))
         }
         _ => Err(format!("failed to signal group {pid}: {group_err}")),
     }
@@ -1916,7 +2015,11 @@ pub(crate) fn real_probe() -> RealProbe {
              * unknown — we say we could not check rather than guess which run was right.
              */
             let second = run_login_probe(runtime_id, path, args, child_path);
-            if second == Some(false) { Some(false) } else { None }
+            if second == Some(false) {
+                Some(false)
+            } else {
+                None
+            }
         };
 
     (is_executable, list_dir, read_text, login_ok)
@@ -2072,8 +2175,12 @@ mod tests {
     fn explicit_environment_profiles_exist_only_for_verified_login_probes() {
         assert!(!SANITIZED_ENV_RUNTIMES.is_empty());
         for runtime_id in SANITIZED_ENV_RUNTIMES {
-            let agent = registry_agent(runtime_id).expect("environment profile needs a registry row");
-            assert!(agent.verified, "{runtime_id}: unverified runtime got an environment profile");
+            let agent =
+                registry_agent(runtime_id).expect("environment profile needs a registry row");
+            assert!(
+                agent.verified,
+                "{runtime_id}: unverified runtime got an environment profile"
+            );
             assert!(
                 LOGIN_PROBE.iter().any(|(id, _)| id == runtime_id),
                 "{runtime_id}: environment was changed without a measured login probe"
@@ -2271,8 +2378,8 @@ mod tests {
     #[test]
     fn a_stale_copy_in_an_old_nvm_version_does_not_beat_the_real_one() {
         let files: HashSet<PathBuf> = [
-            "/home/me/.local/bin/claude",                        // the real one
-            "/home/me/.nvm/versions/node/v22.15.0/bin/claude",   // the stale copy
+            "/home/me/.local/bin/claude",                      // the real one
+            "/home/me/.nvm/versions/node/v22.15.0/bin/claude", // the stale copy
             "/home/me/.nvm/versions/node/v24.16.0/bin/npx",
         ]
         .iter()
@@ -2388,7 +2495,8 @@ mod tests {
         };
 
         // PATH is only the minimum a GUI app receives — nothing lives here.
-        let path = std::env::join_paths([PathBuf::from("/usr/bin"), PathBuf::from("/bin")]).unwrap();
+        let path =
+            std::env::join_paths([PathBuf::from("/usr/bin"), PathBuf::from("/bin")]).unwrap();
         let out = detect_runtimes(Some(Path::new("/home/me")), Some(&path), &probe, None, None);
 
         let claude = out.iter().find(|r| r.id == "claude-acp").unwrap();
@@ -2429,7 +2537,10 @@ mod tests {
             };
             let out = detect_runtimes(None, None, &probe, None, None);
             let claude = out.iter().find(|r| r.id == "claude-acp").unwrap();
-            assert_eq!(claude.state, "cli-missing", "CLI 부재가 먼저다 — 할 일이 더 분명하다");
+            assert_eq!(
+                claude.state, "cli-missing",
+                "CLI 부재가 먼저다 — 할 일이 더 분명하다"
+            );
         }
 
         // ② The CLI exists but neither npx nor an adapter does → no way to launch.
@@ -2523,7 +2634,11 @@ mod tests {
      */
     #[test]
     fn only_the_measured_logged_out_code_means_signed_out() {
-        assert_eq!(classify_login_exit(Some(0)), Some(true), "0 은 로그인돼 있다");
+        assert_eq!(
+            classify_login_exit(Some(0)),
+            Some(true),
+            "0 은 로그인돼 있다"
+        );
         assert_eq!(
             classify_login_exit(Some(LOGIN_LOGGED_OUT_EXIT)),
             Some(false),
@@ -2562,8 +2677,14 @@ mod tests {
         let out = detect_runtimes(None, Some(path_env.as_os_str()), &probe, None, None);
         let claude = out.iter().find(|r| r.id == "claude-acp").unwrap();
         assert_eq!(claude.state, "login-unknown");
-        assert!(claude.cli_path.is_some(), "찾은 CLI 경로를 지우면 실행할 방법이 사라진다");
-        assert!(claude.adapter_path.is_some(), "어댑터 경로도 그대로 남아야 한다");
+        assert!(
+            claude.cli_path.is_some(),
+            "찾은 CLI 경로를 지우면 실행할 방법이 사라진다"
+        );
+        assert!(
+            claude.adapter_path.is_some(),
+            "어댑터 경로도 그대로 남아야 한다"
+        );
     }
 
     /// A runtime we never measured keeps `cli-unknown`; only the ones we asked can be
@@ -2622,9 +2743,15 @@ mod tests {
         detect_runtimes(None, Some(path_env.as_os_str()), &probe, None, None);
 
         let asked = asked.borrow();
-        assert_eq!(asked.len(), LOGIN_PROBE.len(), "물어본 횟수가 표와 다르다: {asked:?}");
+        assert_eq!(
+            asked.len(),
+            LOGIN_PROBE.len(),
+            "물어본 횟수가 표와 다르다: {asked:?}"
+        );
         assert!(
-            !asked.iter().any(|p| Path::new(p).file_name().is_some_and(|name| name == "gemini")),
+            !asked.iter().any(|p| Path::new(p)
+                .file_name()
+                .is_some_and(|name| name == "gemini")),
             "재 보지 않은 도구에 물어봤다 — 그 도구에서 그 인자가 무슨 뜻인지 모른다",
         );
     }
@@ -2733,9 +2860,9 @@ mod tests {
     fn an_installed_adapter_wins_over_npx() {
         // npx is slow on first execution. If already installed, use that.
         let files: HashSet<PathBuf> = ["claude", "claude-agent-acp", "npx"]
-        .iter()
-        .map(|name| test_bin(name))
-        .collect();
+            .iter()
+            .map(|name| test_bin(name))
+            .collect();
         let path_env = test_path_env();
         let dirs = empty_dirs();
         let (is_exec, list, read) = probe_with(&files, &dirs);
@@ -2778,17 +2905,14 @@ mod tests {
                 None,
                 Some(path_env.as_os_str()),
                 &probe,
-            None,
-            None,
+                None,
+                None,
             )
             .unwrap();
             assert_eq!(launch.program, test_bin("npx"));
             assert_eq!(
                 launch.args,
-                vec![
-                    "-y".to_string(),
-                    npx_package("claude-acp").to_string()
-                ],
+                vec!["-y".to_string(), npx_package("claude-acp").to_string()],
                 "설치돼 있지 않으면 버전 못 박은 npx 로 띄운다"
             );
         }
@@ -2839,8 +2963,15 @@ mod tests {
             read_text: &read,
             login_ok: &|_, _, _, _| None,
         };
-        let launch = resolve_launch("claude-acp", Some(Path::new("/home/me")), None, &probe,
-            None, None).unwrap();
+        let launch = resolve_launch(
+            "claude-acp",
+            Some(Path::new("/home/me")),
+            None,
+            &probe,
+            None,
+            None,
+        )
+        .unwrap();
         assert!(
             launch.path_env.contains("/home/me/.local/bin"),
             "자식 PATH 에 CLI 가 있는 자리가 없다: {}",
@@ -2869,10 +3000,16 @@ mod tests {
             read_text: &read,
             login_ok: &|_, _, _, _| None,
         };
-        assert!(resolve_launch("claude-acp", None, Some(path_env.as_os_str()), &probe,
-            None, None)
-            .unwrap_err()
-            .starts_with("cli-missing:"));
+        assert!(resolve_launch(
+            "claude-acp",
+            None,
+            Some(path_env.as_os_str()),
+            &probe,
+            None,
+            None
+        )
+        .unwrap_err()
+        .starts_with("cli-missing:"));
 
         // The CLI exists but there is no way to launch — a different prescription is needed.
         let cli_only: HashSet<PathBuf> = [test_bin("claude")].into_iter().collect();
@@ -2884,16 +3021,24 @@ mod tests {
             login_ok: &|_, _, _, _| None,
         };
         assert_eq!(
-            resolve_launch("claude-acp", None, Some(path_env.as_os_str()), &probe,
-            None, None).unwrap_err(),
+            resolve_launch(
+                "claude-acp",
+                None,
+                Some(path_env.as_os_str()),
+                &probe,
+                None,
+                None
+            )
+            .unwrap_err(),
             "node-missing"
         );
 
         // An unknown executor is not silently passed through.
-        assert!(resolve_launch("nope", None, Some(path_env.as_os_str()), &probe,
-            None, None)
-            .unwrap_err()
-            .starts_with("unknown-runtime:"));
+        assert!(
+            resolve_launch("nope", None, Some(path_env.as_os_str()), &probe, None, None)
+                .unwrap_err()
+                .starts_with("unknown-runtime:")
+        );
     }
 
     #[test]
@@ -3046,7 +3191,10 @@ mod tests {
             "손자가 리더의 프로세스 그룹을 떠나면 이 검사는 다른 조건을 잰다"
         );
 
-        assert_eq!(unsafe { libc::kill(-(leader_pid as i32), libc::SIGTERM) }, 0);
+        assert_eq!(
+            unsafe { libc::kill(-(leader_pid as i32), libc::SIGTERM) },
+            0
+        );
         let _ = leader.wait();
         assert!(
             process_is_running(grandchild),
@@ -3098,7 +3246,10 @@ mod tests {
         let settings: serde_json::Value = serde_json::from_str(ISOLATED_CLAUDE_SETTINGS)
             .expect("격리 설정이 올바른 JSON 이어야 한다");
         let perms = &settings["permissions"];
-        assert_eq!(perms["defaultMode"], "default", "모델이 알아서 승인하면 관문이 없다");
+        assert_eq!(
+            perms["defaultMode"], "default",
+            "모델이 알아서 승인하면 관문이 없다"
+        );
         for key in ["allow", "deny", "ask"] {
             assert_eq!(
                 perms[key].as_array().map(|a| a.len()),
@@ -3140,7 +3291,7 @@ mod tests {
     #[test]
     fn bounded_output_kills_a_command_that_never_finishes() {
         // If the upper bound doesn't work, this test consumes 30 seconds and fails on its own —
-    // proving "killed" via wall-clock time as well.
+        // proving "killed" via wall-clock time as well.
         let started = std::time::Instant::now();
         let out = bounded_output(
             node_command("setTimeout(() => {}, 30000)"),
@@ -3167,7 +3318,13 @@ mod tests {
     #[test]
     fn unknown_status_is_never_read_as_logged_out() {
         // Interpreting undecidable results as "dead" would erase valid logins.
-        for noise in ["", "not json", "{}", r#"{"loggedIn": null}"#, r#"{"loggedIn": "false"}"#] {
+        for noise in [
+            "",
+            "not json",
+            "{}",
+            r#"{"loggedIn": null}"#,
+            r#"{"loggedIn": "false"}"#,
+        ] {
             assert!(
                 !claude_status_is_logged_out(noise),
                 "모르는 출력을 로그아웃으로 읽었다: {noise:?}"
@@ -3198,7 +3355,10 @@ mod tests {
         assert!(!cmd.contains("@latest"), "{cmd}");
         let package = installable_package("claude-acp").unwrap();
         assert!(
-            package.rsplit('@').next().is_some_and(|v| v.chars().next().is_some_and(|c| c.is_ascii_digit())),
+            package
+                .rsplit('@')
+                .next()
+                .is_some_and(|v| v.chars().next().is_some_and(|c| c.is_ascii_digit())),
             "버전이 고정되지 않았다: {package}"
         );
     }
@@ -3206,7 +3366,7 @@ mod tests {
     #[test]
     fn only_measured_runtimes_can_be_installed_for_the_user() {
         // Proposing installation for an unlisted item means telling the screen to install a package on the user's machine
-    // that we have never verified.
+        // that we have never verified.
         assert!(managed_install_command("gemini-acp", Path::new("/tmp/x")).is_none());
         assert!(installable_package("gemini-acp").is_none());
         for (id, _) in INSTALLABLE_CLI {
@@ -3246,6 +3406,33 @@ mod tests {
             )),
             "Claude Code-credentials-85f2eaa5"
         );
+    }
+
+    #[test]
+    fn the_terminal_login_is_looked_for_unscoped_first_then_under_the_default_folder() {
+        let services = terminal_login_services(Path::new("/Users/probe"));
+        assert_eq!(services[0], "Claude Code-credentials");
+        // Joined the way the mirror joins it, so the separator is the platform's own.
+        assert_eq!(
+            services[1],
+            claude_credentials_service(&Path::new("/Users/probe").join(".claude"))
+        );
+        assert_eq!(services.len(), 2);
+    }
+
+    #[test]
+    fn the_terminal_account_is_carried_into_the_app_folder_without_losing_its_other_keys() {
+        let terminal = serde_json::json!({ "oauthAccount": { "emailAddress": "new@example.com" }, "other": 1 });
+        let app = serde_json::json!({ "oauthAccount": { "emailAddress": "old@example.com" }, "projects": {} });
+        let merged = merge_oauth_account(Some(app), &terminal).expect("an account to carry");
+        assert_eq!(merged["oauthAccount"]["emailAddress"], "new@example.com");
+        assert!(merged.get("projects").is_some(), "the app's own keys stay");
+        assert!(merged.get("other").is_none(), "only the account travels");
+        // No app document yet: the account still lands in a fresh one.
+        let fresh = merge_oauth_account(None, &terminal).expect("an account to carry");
+        assert_eq!(fresh["oauthAccount"]["emailAddress"], "new@example.com");
+        // A terminal with no account carries nothing.
+        assert!(merge_oauth_account(None, &serde_json::json!({})).is_none());
     }
 
     #[test]
@@ -3303,12 +3490,18 @@ mod tests {
             !written.contains("approval_policy = \"untrusted\""),
             "codex 0.153 refuses this value before a session can start"
         );
-        assert!(written.contains("sandbox_mode = \"read-only\""), "the floor is the sandbox");
+        assert!(
+            written.contains("sandbox_mode = \"read-only\""),
+            "the floor is the sandbox"
+        );
         assert!(
             written.contains("OATLAS_WRITE_CONSENT = \"on\""),
             "Atlas writes still have to stop at the server-owned checkpoint"
         );
-        assert!(!written.contains("danger-full-access"), "the user's own grant must not leak in");
+        assert!(
+            !written.contains("danger-full-access"),
+            "the user's own grant must not leak in"
+        );
         let _ = std::fs::remove_dir_all(&base);
     }
 
@@ -3337,8 +3530,12 @@ mod tests {
         }
 
         // Prevents users from forgetting they opened a gate by modifying our settings —
-    // this directory belongs to the app and is rewritten every time.
-        std::fs::write(dir.join("settings.json"), "{\"permissions\":{\"allow\":[\"Bash(*)\"]}}").unwrap();
+        // this directory belongs to the app and is rewritten every time.
+        std::fs::write(
+            dir.join("settings.json"),
+            "{\"permissions\":{\"allow\":[\"Bash(*)\"]}}",
+        )
+        .unwrap();
         let dir2 = prepare_isolated_config("claude-acp", &app_data, Some(&home), None, "").unwrap();
         assert_eq!(
             std::fs::read_to_string(dir2.join("settings.json")).unwrap(),
@@ -3356,7 +3553,9 @@ mod tests {
         let _ = std::fs::remove_dir_all(&base);
         let home = base.join("home");
         std::fs::create_dir_all(&home).unwrap();
-        let dir = prepare_isolated_config("claude-acp", &base.join("appdata"), Some(&home), None, "").unwrap();
+        let dir =
+            prepare_isolated_config("claude-acp", &base.join("appdata"), Some(&home), None, "")
+                .unwrap();
         assert!(!dir.join(".credentials.json").exists());
         let _ = std::fs::remove_dir_all(&base);
     }
@@ -3372,7 +3571,8 @@ mod tests {
         let app_data_file = base.join("not-a-directory");
         std::fs::write(&app_data_file, "blocked").unwrap();
 
-        let error = prepare_runtime_isolation("claude-acp", &app_data_file, None, None, "").unwrap_err();
+        let error =
+            prepare_runtime_isolation("claude-acp", &app_data_file, None, None, "").unwrap_err();
         assert!(
             error.starts_with("isolation-failed:config-dir-failed:"),
             "격리 준비 실패가 시작 실패로 올라오지 않았다: {error}"
@@ -3400,7 +3600,7 @@ mod tests {
     #[test]
     fn permission_policy_reads_the_path_not_the_title() {
         // Live measurement: inside Bolt, titles were relative paths; outside, absolute paths. If we judge by text,
-    // the policy quietly flips when the text changes.
+        // the policy quietly flips when the text changes.
         let base = std::env::temp_dir().join(format!("atlas-acp-perm-{}", std::process::id()));
         let vault = base.join("vault");
         let outside = base.join("outside");
@@ -3439,10 +3639,8 @@ mod tests {
 
     #[test]
     fn permission_policy_rejects_invalid_vault_roots_instead_of_allowing_everything() {
-        let base = std::env::temp_dir().join(format!(
-            "atlas-acp-invalid-root-{}",
-            std::process::id()
-        ));
+        let base =
+            std::env::temp_dir().join(format!("atlas-acp-invalid-root-{}", std::process::id()));
         let outside = base.join("outside.md");
         let not_a_directory = base.join("not-a-directory");
         std::fs::create_dir_all(&base).unwrap();
@@ -3469,10 +3667,8 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn permission_policy_rejects_a_session_root_replaced_by_an_outside_symlink() {
-        let base = std::env::temp_dir().join(format!(
-            "atlas-acp-replaced-root-{}",
-            std::process::id()
-        ));
+        let base =
+            std::env::temp_dir().join(format!("atlas-acp-replaced-root-{}", std::process::id()));
         let vault = base.join("vault");
         let outside = base.join("outside");
         std::fs::create_dir_all(&vault).unwrap();
@@ -3519,7 +3715,11 @@ mod tests {
     fn the_registry_snapshot_is_loaded_and_every_entry_can_be_launched() {
         // If the snapshot is unreadable, the list is empty, and these checks pass "on an empty set". We block that state first.
         let agents = registry();
-        assert!(agents.len() >= 20, "레지스트리 스냅샷이 비었거나 너무 작다: {}", agents.len());
+        assert!(
+            agents.len() >= 20,
+            "레지스트리 스냅샷이 비었거나 너무 작다: {}",
+            agents.len()
+        );
 
         for agent in agents {
             assert!(!agent.id.is_empty() && !agent.name.is_empty());
@@ -3529,19 +3729,27 @@ mod tests {
                     // quietly starts speaking a different protocol.
                     assert!(
                         package.contains('@')
-                            && package
-                                .rsplit('@')
+                            && package.rsplit('@').next().is_some_and(|v| v
+                                .chars()
                                 .next()
-                                .is_some_and(|v| v.chars().next().is_some_and(|c| c.is_ascii_digit())),
+                                .is_some_and(|c| c.is_ascii_digit())),
                         "{} 의 npx 패키지에 버전이 없다: {package}",
                         agent.id
                     );
-                    assert!(adapter_bin_name(package).is_some(), "{}: 실행 파일 이름을 못 뽑는다", agent.id);
+                    assert!(
+                        adapter_bin_name(package).is_some(),
+                        "{}: 실행 파일 이름을 못 뽑는다",
+                        agent.id
+                    );
                 }
                 RegistryLaunch::Uvx { package, .. } => assert!(!package.is_empty()),
                 RegistryLaunch::Binary { command, .. } => {
                     assert!(!command.is_empty());
-                    assert!(!command.starts_with("./"), "{}: `./` 가 안 벗겨졌다", agent.id);
+                    assert!(
+                        !command.starts_with("./"),
+                        "{}: `./` 가 안 벗겨졌다",
+                        agent.id
+                    );
                 }
             }
         }
@@ -3567,7 +3775,10 @@ mod tests {
             adapter_bin_name("@agentclientprotocol/claude-agent-acp@0.68.0").as_deref(),
             Some("claude-agent-acp")
         );
-        assert_eq!(adapter_bin_name("codex-acp@1.3.0").as_deref(), Some("codex-acp"));
+        assert_eq!(
+            adapter_bin_name("codex-acp@1.3.0").as_deref(),
+            Some("codex-acp")
+        );
         assert_eq!(adapter_bin_name("plain").as_deref(), Some("plain"));
     }
 }
@@ -3591,9 +3802,13 @@ mod real_machine_probe {
         let home = std::env::var_os("HOME").map(PathBuf::from);
         // Simulates the poor PATH received by GUI apps — using the terminal PATH would cause this diagnostic
         // to fail to measure what it intended.
-        let gui_path = std::env::join_paths([PathBuf::from("/usr/bin"), PathBuf::from("/bin")]).unwrap();
+        let gui_path =
+            std::env::join_paths([PathBuf::from("/usr/bin"), PathBuf::from("/bin")]).unwrap();
         for r in detect_runtimes(home.as_deref(), Some(&gui_path), &probe, None, None) {
-            println!("{:>8} · {:<14} cli={:?} adapter={:?} verified={:?}", r.state, r.id, r.cli_path, r.adapter_path, r.verified);
+            println!(
+                "{:>8} · {:<14} cli={:?} adapter={:?} verified={:?}",
+                r.state, r.id, r.cli_path, r.adapter_path, r.verified
+            );
         }
         println!("--- launch ---");
         for id in ["claude-acp", "codex-acp"] {
@@ -3667,10 +3882,16 @@ mod newcomer_view {
         }
         println!("── 아무것도 안 깔린 기계 ──");
         for (state, ids) in &by_state {
-            println!("  {state:16} {}개  예: {}", ids.len(), ids.iter().take(3).cloned().collect::<Vec<_>>().join(", "));
+            println!(
+                "  {state:16} {}개  예: {}",
+                ids.len(),
+                ids.iter().take(3).cloned().collect::<Vec<_>>().join(", ")
+            );
         }
-        println!("  → 「이 컴퓨터에서 확인됐어요」 = {}개",
-                 out.iter().filter(|s| s.state == "ready").count());
+        println!(
+            "  → 「이 컴퓨터에서 확인됐어요」 = {}개",
+            out.iter().filter(|s| s.state == "ready").count()
+        );
 
         // ② People with only node (common among developers)
         let mut files: HashSet<PathBuf> = HashSet::new();
@@ -3685,9 +3906,16 @@ mod newcomer_view {
         let out = detect_runtimes(None, None, &probe, None, None);
         println!("── npx 만 있는 기계 ──");
         let mut by_state: std::collections::BTreeMap<&str, usize> = Default::default();
-        for s in &out { *by_state.entry(s.state.as_str()).or_default() += 1; }
-        for (state, n) in &by_state { println!("  {state:16} {n}개"); }
-        println!("  → 「확인됐어요」 = {}개", out.iter().filter(|s| s.state == "ready").count());
+        for s in &out {
+            *by_state.entry(s.state.as_str()).or_default() += 1;
+        }
+        for (state, n) in &by_state {
+            println!("  {state:16} {n}개");
+        }
+        println!(
+            "  → 「확인됐어요」 = {}개",
+            out.iter().filter(|s| s.state == "ready").count()
+        );
     }
 }
 
@@ -3807,7 +4035,10 @@ mod npx_cache_tests {
                 bin_entries: &["claude-agent-acp"],
             },
         );
-        assert_eq!(npx_entry_health(&entry, CLAUDE_SPEC), NpxEntryHealth::Usable);
+        assert_eq!(
+            npx_entry_health(&entry, CLAUDE_SPEC),
+            NpxEntryHealth::Usable
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 
@@ -3852,7 +4083,10 @@ mod npx_cache_tests {
                 bin_entries: &[],
             },
         );
-        assert_eq!(npx_entry_health(&entry, CLAUDE_SPEC), NpxEntryHealth::Usable);
+        assert_eq!(
+            npx_entry_health(&entry, CLAUDE_SPEC),
+            NpxEntryHealth::Usable
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 
@@ -3889,7 +4123,11 @@ mod npx_cache_tests {
         );
         assert!(!ours.exists(), "깨진 항목은 지워져야 한다");
         assert!(
-            neighbor.join("node_modules").join(".bin").join("other").exists(),
+            neighbor
+                .join("node_modules")
+                .join(".bin")
+                .join("other")
+                .exists(),
             "옆의 남의 항목은 그대로여야 한다 — 범위는 항목 하나다"
         );
 
@@ -3953,7 +4191,11 @@ mod npx_cache_tests {
         // With no npmrc, the platform default applies.
         let plain = scratch("plainhome");
         let expected = if cfg!(windows) {
-            plain.join("AppData").join("Local").join("npm-cache").join("_npx")
+            plain
+                .join("AppData")
+                .join("Local")
+                .join("npm-cache")
+                .join("_npx")
         } else {
             plain.join(".npm").join("_npx")
         };
