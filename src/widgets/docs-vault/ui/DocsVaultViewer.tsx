@@ -399,7 +399,10 @@ export function DocsVaultViewer({
         return (
           <h2
             id={slug}
-            className="group relative mt-10 mb-3 text-title font-[var(--font-weight-strong)] leading-body text-[color:var(--color-text-primary)]"
+            /* A page whose first line is a section heading — every wiki page, whose title the
+               Library draws in its own header — carried the section gap on top of the
+               article's own inset: measured 80px of nothing above "Summary" (2026-09-07). */
+            className="group relative mt-10 mb-3 text-title font-[var(--font-weight-strong)] leading-body text-[color:var(--color-text-primary)] first:mt-0"
             {...rest}
           >
             {highlightChildren(children, 'h2')}

@@ -3988,6 +3988,10 @@
       "openOnMap": "Follow on the map"
     },
     "trouble": {
+      "limit": {
+        "title": "This tool has hit its usage limit",
+        "hint": "Not the app: the tool's own plan is out of room. If Details names when it resets, press Retry then; until then pick another tool below and carry on."
+      },
       "auth": {
         "title": "An old app-scoped sign-in is getting in the way",
         "hint": "You do not need a separate sign-in. This app uses the same one you use in your terminal. What is in the way is a keychain entry from an earlier app-scoped sign-in: it shadows the shared one and has already expired. Press 「Try again」 below and the app clears that entry and falls back to your real sign-in. If that still fails, paste the one-line command under 「Details」 into a terminal."
@@ -4021,7 +4025,9 @@
       "diedMidTurn": "The agent stopped in the middle of answering. What you see is everything that arrived. Start a new chat above and ask again.",
       "modeMoved": "The tool moved this conversation into {mode}, a mode that accepts file edits without asking you first.",
       "modeMovedServerGate": "The tool moved this conversation into {mode}, a mode that accepts file edits without asking you first. Changes made through Atlas tools still stop at the server for your approval.",
-      "autoAllowed": "{detail} was written without asking: it fits the wiki page contract. Open it from the list to read it back."
+      "autoAllowed": "{detail} was written without asking: it fits the wiki page contract.",
+      "openPage": "Open",
+      "askNext": "Ask next time"
     },
     "suggest": {
       "heading": "Spotted on the map · press to fill the message box",
@@ -4569,7 +4575,11 @@
       "newPageMake": "Make",
       "newPageDone": "Made {page}. Write it in your editor; the list follows the file.",
       "newPageExists": "{page} already exists; opened it instead.",
-      "newPageFailed": "Could not make the page. Check the folder can be written."
+      "newPageFailed": "Could not make the page. Check the folder can be written.",
+      "askNextDone": "From the next page on, the card stops each write. Settings › Workspace turns it back.",
+      "undo": "Undo",
+      "undone": "Removed {page}.",
+      "undoFailed": "Could not undo: the file is already gone or the folder is not writable."
     },
     "graph": {
       "title": "Graph",
@@ -4730,6 +4740,7 @@
       "title": "Check results",
       "never": "Not checked yet. Check the wiki and this page gathers the values two pages disagree on, the claims a later page replaced, the missing links, and the names without a page.",
       "clean": "The last check found nothing to fix.",
+      "fixed": "Fixed · check again to re-judge",
       "gone": "What the last check found does not survive reopening the app. Check the wiki again to see it.",
       "emptyLede": "Checking the wiki reads and reports. It writes nothing.",
       "namesTitle": "Names without a page",
@@ -4737,7 +4748,13 @@
     },
     "search": {
       "placeholder": "Search sources and pages",
-      "matches": "{sources, plural, one {# source} other {# sources}} · {pages, plural, one {# page} other {# pages}} match"
+      "matches": "{sources, plural, one {# source} other {# sources}} · {pages, plural, one {# page} other {# pages}} match",
+      "noneHere": "None in this list.",
+      "showPages": "Show {count, plural, one {# wiki page} other {# wiki pages}}",
+      "showSources": "Show {count, plural, one {# source} other {# sources}}"
+    },
+    "conversation": {
+      "open": "Conversation"
     }
   },
   "libraryImport": {

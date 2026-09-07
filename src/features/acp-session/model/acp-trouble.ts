@@ -21,7 +21,7 @@
  * repository counts that as a defect.
  */
 
-type AcpTroubleKind = 'auth' | 'install' | 'timeout' | 'launch' | 'network' | 'unknown';
+type AcpTroubleKind = 'limit' | 'auth' | 'install' | 'timeout' | 'launch' | 'network' | 'unknown';
 
 export interface AcpTrouble {
   kind: AcpTroubleKind;
@@ -34,6 +34,10 @@ export interface AcpTrouble {
  * shapes are matched (measured: claude gives `authentication_failed`, some tools
  * `Authentication required`).
  */
+// The tool's own plan ran out, not the app: "You've hit your session limit · resets 1am" came back
+// as `errorKind: rate_limit` and the screen called it a generic problem with a retry that could not
+// work until the hour named in the message (installed app, 2026-09-07).
+const LIMIT = /rate[_ ]?limit|session limit|usage limit|quota|too many requests|429/i;
 const AUTH = /authentication[_ ]?(failed|required)|oauth|not logged ?in|unauthorized|401/i;
 /**
  * The first download was interrupted and it hit a half-built npx cache (owner's real machine,
@@ -70,7 +74,9 @@ export function readAcpTrouble(raw: string, diagnostics: readonly string[] = [])
   // message happens to contain a word like "network", reading it as an authentication problem is what
   // gives the user the right next step. Install must come before launch — for the same ENOENT, "a
   // half-built cache" and "the tool is missing" have different next steps for the user.
-  const kind: AcpTroubleKind = AUTH.test(detail)
+  const kind: AcpTroubleKind = LIMIT.test(detail)
+    ? 'limit'
+    : AUTH.test(detail)
     ? 'auth'
     : INSTALL.test(detail) || INSTALL.test(stderrClues)
       ? 'install'

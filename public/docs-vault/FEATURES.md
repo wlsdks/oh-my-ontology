@@ -1496,6 +1496,19 @@ values with both citations for a disagreement, the current value first for a sup
 claim, links both ways for a missing link, nothing outside those pages. The edits land or
 stop at the card exactly as a compile's do, and `wiki/_log.md` records the turn as `fix`.
 
+**After the council** (2026-09-07, evening). A finding a Fix turn completed wears *Fixed ·
+check again* in place of its door until the next check re-judges the pages; Fix and Propose
+wait while any turn runs. The *auto-allowed* notice in the conversation carries two doors —
+*Open* the page that landed, and *Ask next time*, which writes the same setting Settings
+owns. *New page* and *File the answer* toasts carry *Undo*, which removes the file just
+written. The *Check results* page has the reader's outline rail from two sections up and
+the same back-to-top. Below 420px of reading column at `lg` and above the index folds on
+its own and unfolds above 460px; unfolding it while narrow is the person's choice and
+stands. The fold is one icon control in one place — the panel glyph on the column's
+eyebrow line closes it, and the same glyph at the pane's top-left opens it — and the
+reader's way back reads *Graph*, the thing it shows, with no arrow (owner, 2026-09-07). A search whose matches all sit on the other half of the switch says so under the empty list and offers the switch, instead of a count over nothing. A page whose first line is a section heading no longer carries the section gap above it. A *Conversation* chip on the graph's status row and on the reader's top row reopens the dock after it was closed; before, closing it was the end of the transcript. The conversation's composer has one quiet row at its bottom, the way chat composers are laid out elsewhere: the tool with its model as one text picker (*Codex · GPT-5.6-Sol (low)*) and the mode on the left, the status word, past conversations, new conversation and send on the right; a tool that has run out of plan is named as a limit with the hour it lifts, not as a generic problem with a retry. The writer label prints only on the rows that are the exception to the
+folder's majority writer. The scroll-end gate measures the Library's own scrollers.
+
 **File the answer** (2026-09-07). After an ask turn ends, a chip in the conversation,
 directly under the answer and above the composer, writes the last answer as a page under
 `wiki/answers/`: the question is the title and summary,
