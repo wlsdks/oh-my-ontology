@@ -913,6 +913,9 @@ store can drift from it.
     through `sources_truncated:` frontmatter, that it read only the first part of the
     file, so the row counts as waiting for Compile and the stepper says in one sentence
     that a second run picks up the rest; a file that then changes becomes `stale` instead.
+    It wears the amber `stale` wears, because the shelf counts both as rows to act on and
+    a neutral chip on a counted row reads as nothing to do (owner, 2026-09-07); the word,
+    not the colour, is what tells the two apart.
   - `stale` — the hashes disagree, or a page cites it without recording one.
   - `checking` — cited with a hash, not yet measured. Hashing is lazy and only ever asked
     for on cited files; the app hashes natively, a browser with `crypto.subtle`.

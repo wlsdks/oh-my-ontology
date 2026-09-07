@@ -368,15 +368,22 @@ export function LibrarySection({
                         </span>
                       ) : (
                         /*
-                         * ⚠️ **Amber is reserved for a write-up that may be wrong.** `stale`
-                         * earns it: the bytes moved under the page. `partial` does not —
-                         * the page is right about everything it says and simply stops
-                         * short of the file, so it wears the same quiet border as a source
-                         * nobody has written up yet and is separated by its word, which is
-                         * the fact rather than a temperature.
+                         * ⚠️ **Amber marks a row to act on, not a page that is wrong**
+                         * (owner, 2026-09-07). `partial` shipped in the quiet border on the
+                         * reasoning that the page is right about everything it says — but
+                         * the shelf counts it with the waiting sources and Compile will act
+                         * on it, and a neutral chip on such a row reads as *nothing to do*.
+                         * So it wears the amber `stale` wears, and the two are told apart
+                         * by their words (`read in part` against `stale`), which is the
+                         * fact rather than a temperature. `not-compiled` keeps the quiet
+                         * border: nothing is wrong there and nobody has started.
                          */
                         <StateBadge
-                          tone={row.state === "stale" ? "warning" : "neutral"}
+                          tone={
+                            row.state === "stale" || row.state === "partial"
+                              ? "warning"
+                              : "neutral"
+                          }
                           testId={`library-source-state-${row.state}`}
                         >
                           {stateLabel}

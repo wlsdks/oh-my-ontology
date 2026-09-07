@@ -202,10 +202,12 @@ export function SourceSummary({
                       "flex-none",
                       page.freshness === "current" &&
                         "text-[color:var(--color-success-text-a90)]",
-                      /* Not amber: the page is right about what it covers. It is a stated
-                         boundary, so it reads as ink rather than as a warning. */
+                      /* The same amber the row's chip carries (owner, 2026-09-07). This
+                         pane and the index must not disagree about whether a part-read
+                         write-up is something to act on; the word, not the colour, is what
+                         separates it from `behind`. */
                       page.freshness === "partial" &&
-                        "text-[color:var(--color-text-tertiary)]",
+                        "text-[color:var(--color-amber-source-a90)]",
                       page.freshness === "behind" &&
                         "text-[color:var(--color-amber-source-a90)]",
                       page.freshness === "unchecked" &&
