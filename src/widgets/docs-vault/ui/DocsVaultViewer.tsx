@@ -608,7 +608,7 @@ export function DocsVaultViewer({
   return (
     <article
       data-docs-viewer
-      className="mx-auto max-w-[760px] px-6 py-8 md:px-10 md:py-10"
+      className="mx-auto max-w-[var(--measure-doc-column)] px-6 py-8 md:px-10 md:py-10"
     >
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {raw}

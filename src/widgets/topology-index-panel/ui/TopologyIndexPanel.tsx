@@ -740,8 +740,8 @@ export function TopologyIndexPanel({
         // stays crisp — the first row is never cut). It is a mask rather than a
         // transform or colour, so it does not touch the charter.
         style={{
-          maskImage: "linear-gradient(to bottom, #000 calc(100% - 12px), transparent)",
-          WebkitMaskImage: "linear-gradient(to bottom, #000 calc(100% - 12px), transparent)",
+          maskImage: "linear-gradient(to bottom, black calc(100% - 12px), transparent)",
+          WebkitMaskImage: "linear-gradient(to bottom, black calc(100% - 12px), transparent)",
         }}
       >
         {visibleRoots.length === 0 ? (

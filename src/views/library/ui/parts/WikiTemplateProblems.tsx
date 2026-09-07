@@ -39,7 +39,7 @@ export function WikiTemplateProblems({
     <section
       aria-label={t("wiki.offTemplateAriaLabel")}
       data-testid="library-wiki-problems"
-      className="mx-auto mt-4 max-w-[760px] px-6 md:px-10"
+      className="mx-auto mt-4 max-w-[var(--measure-doc-column)] px-6 md:px-10"
     >
       <div className="rounded-chip border border-[color:var(--color-border-strong)] bg-[color:var(--color-overlay-1)] px-4 py-3">
         <p className="text-body font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">

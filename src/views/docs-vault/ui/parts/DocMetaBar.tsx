@@ -124,7 +124,7 @@ export function DocMetaBar({
   return (
     <section
       aria-label={inGraph ? t("recordProofAria") : t("notOnMapAria")}
-      className="mx-auto flex max-w-[760px] flex-col gap-2 border-b border-[color:var(--color-overlay-2)] px-6 py-2 text-label text-[color:var(--color-text-quaternary)] md:px-10"
+      className="mx-auto flex max-w-[var(--measure-doc-column)] flex-col gap-2 border-b border-[color:var(--color-overlay-2)] px-6 py-2 text-label text-[color:var(--color-text-quaternary)] md:px-10"
     >
       {/* Only a document that is not on the map gets its own line — there, why it is not is the fact. */}
       {proofBody ? (

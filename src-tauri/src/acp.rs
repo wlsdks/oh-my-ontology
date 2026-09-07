@@ -3412,9 +3412,10 @@ mod tests {
     fn the_terminal_login_is_looked_for_unscoped_first_then_under_the_default_folder() {
         let services = terminal_login_services(Path::new("/Users/probe"));
         assert_eq!(services[0], "Claude Code-credentials");
+        // Joined the way the mirror joins it, so the separator is the platform's own.
         assert_eq!(
             services[1],
-            claude_credentials_service(Path::new("/Users/probe/.claude"))
+            claude_credentials_service(&Path::new("/Users/probe").join(".claude"))
         );
         assert_eq!(services.len(), 2);
     }
