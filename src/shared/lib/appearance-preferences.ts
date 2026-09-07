@@ -874,3 +874,90 @@ export function useExpand(): ExpandPreference {
   const getServerSnapshot = useCallback(() => DEFAULT_EXPAND, []);
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+/* ── Library index (which list, and whether the column stands) ───────────── */
+
+/**
+ * **Which of the Library's two lists the index is showing**, remembered per machine.
+ *
+ * The column carried both — sources above, wiki below, one scroll — until the owner read
+ * it in the installed app on a folder of seven sources and seven pages (2026-09-07):
+ * *"I hate this structure: sources on top, wiki underneath, one long scroll. A switch at
+ * the top is better."* One segmented control now names both lists with their counts and
+ * draws one of them, so the doors on screen are the ones that belong to the list on
+ * screen.
+ *
+ * **Sources is the default** because it is the first half of the work: a folder with no
+ * sources has no pages to list, and the three doors that are the reason somebody opens
+ * this destination — add, find, bring from a service — are that segment's own. The stored
+ * answer wins from the second visit onward, and opening a file from the graph or from the
+ * guide moves the switch to the list that file is in, so the index can never name one
+ * thing while the reader shows another.
+ */
+export type LibraryIndexSegment = "sources" | "wiki";
+
+const LIBRARY_INDEX_SEGMENTS: readonly LibraryIndexSegment[] = ["sources", "wiki"];
+
+export const DEFAULT_LIBRARY_INDEX_SEGMENT: LibraryIndexSegment = "sources";
+
+const LIBRARY_INDEX_SEGMENT_KEY = "atlas.library.index-segment";
+
+function isLibraryIndexSegment(value: string | null): value is LibraryIndexSegment {
+  return value !== null && (LIBRARY_INDEX_SEGMENTS as readonly string[]).includes(value);
+}
+
+function readLibraryIndexSegment(): LibraryIndexSegment {
+  if (typeof window === "undefined") return DEFAULT_LIBRARY_INDEX_SEGMENT;
+  try {
+    const saved = window.localStorage.getItem(LIBRARY_INDEX_SEGMENT_KEY);
+    return isLibraryIndexSegment(saved) ? saved : DEFAULT_LIBRARY_INDEX_SEGMENT;
+  } catch {
+    return DEFAULT_LIBRARY_INDEX_SEGMENT;
+  }
+}
+
+export function writeLibraryIndexSegment(value: LibraryIndexSegment): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LIBRARY_INDEX_SEGMENT_KEY, value);
+  } catch {
+    // Storage blocked; the event still updates this session.
+  }
+  notifyPreferenceChange();
+}
+
+export function useLibraryIndexSegment(): LibraryIndexSegment {
+  const getSnapshot = useCallback(() => readLibraryIndexSegment(), []);
+  const getServerSnapshot = useCallback(() => DEFAULT_LIBRARY_INDEX_SEGMENT, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
+/**
+ * **Whether the Library's index column is folded to its edge tab**, per machine.
+ *
+ * Same verdict, same day: *"the left panel must be closable, I may want only the graph."*
+ * The map's INDEX panel already answers this — it folds to a slim vertical tab and its
+ * camera refits against the width it gained — so the Library borrows the vocabulary
+ * rather than inventing a second one. Off by default: the column is how a person reaches
+ * the doors, and a destination that opens folded hides them.
+ *
+ * The fold is a `lg`-and-above answer only. Below `lg` the index is the bottom half of one
+ * column and the graph is the top of it; there is no second pane for the column to give
+ * its width to.
+ */
+const LIBRARY_INDEX_COLLAPSED_KEY = "atlas.library.index-collapsed";
+
+const DEFAULT_LIBRARY_INDEX_COLLAPSED = false;
+
+export function writeLibraryIndexCollapsed(value: boolean): void {
+  writeOnOff(LIBRARY_INDEX_COLLAPSED_KEY, value);
+}
+
+export function useLibraryIndexCollapsed(): boolean {
+  const getSnapshot = useCallback(
+    () => readOnOff(LIBRARY_INDEX_COLLAPSED_KEY, DEFAULT_LIBRARY_INDEX_COLLAPSED),
+    [],
+  );
+  const getServerSnapshot = useCallback(() => DEFAULT_LIBRARY_INDEX_COLLAPSED, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}

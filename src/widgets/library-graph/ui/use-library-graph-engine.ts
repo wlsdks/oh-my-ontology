@@ -565,6 +565,7 @@ export function useLibraryGraphEngine({
     const measure = (): void => {
       const rect = canvas.getBoundingClientRect();
       const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
+      const previous = boxRef.current;
       pendingBoxRef.current = { width: rect.width, height: rect.height, dpr };
       rectRef.current = { left: rect.left, top: rect.top };
       const sim = simRef.current;
@@ -572,6 +573,48 @@ export function useLibraryGraphEngine({
       // The first measurement is also what makes the simulation possible: it runs in the
       // canvas's own pixels, so before there is a box there is nothing to create.
       else if (rect.width > 0 && rect.height > 0) syncSimulationRef.current();
+      /*
+       * ⚠️ **A camera somebody took still has to survive the box changing** (owner,
+       * 2026-09-07, installed app: *"the middle is unnatural, things hide behind the
+       * left/right areas … can't it auto-shrink?"*).
+       *
+       * While auto-fit is armed the paint below already follows every new box, so a dock
+       * opening or the index folding re-frames the picture on its own. But dragging a mark
+       * calls `takeCamera` — and pulling the graph apart by hand is what this canvas is
+       * for since 2026-09-07 — so from the first drag onward the view is frozen in the box
+       * it was set in. Narrow that box by a 420px dock and the marks that were on the right
+       * are simply outside it, with no gesture that says so.
+       *
+       * The answer is not to re-fit, which would throw away the arrangement the person just
+       * made and move every mark under their hand. It is to **keep the same world extent
+       * visible**: the box shrank by a ratio, so the scale falls by that ratio and the
+       * centre does not move, and exactly what was on screen is still on screen — smaller.
+       * The smaller of the two axes decides, so neither edge can lose anything. Growing the
+       * box is the same rule read the other way, which is what makes closing the dock give
+       * the picture the room back.
+       *
+       * The result is still folded into `scaleBounds` for the new box: those are the same
+       * floor and ceiling a wheel gesture obeys, and a camera the person took should not end
+       * up somewhere they could not have reached by hand.
+       */
+      if (
+        !autoFitRef.current.on &&
+        sim &&
+        rect.width > 0 &&
+        rect.height > 0 &&
+        previous.width > 0 &&
+        previous.height > 0 &&
+        (Math.abs(rect.width - previous.width) > 1 || Math.abs(rect.height - previous.height) > 1)
+      ) {
+        const box = { width: rect.width, height: rect.height };
+        const ratio = Math.min(box.width / previous.width, box.height / previous.height);
+        const limits = scaleBounds(fitView(librarySimulationBounds(sim), box, FIT_PADDING).scale);
+        const view = viewRef.current;
+        viewRef.current = {
+          ...view,
+          scale: Math.min(limits.max, Math.max(limits.min, view.scale * ratio)),
+        };
+      }
       wake();
     };
     const observer = new ResizeObserver(measure);

@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, ListChecks } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Info, ListChecks } from "lucide-react";
 
 import { useLocalVault, useVaultIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
@@ -45,12 +45,21 @@ import {
 import { DocsVaultViewer } from "@/widgets/docs-vault";
 import { LibraryGraph } from "@/widgets/library-graph";
 import { LibraryImportDialog } from "@/widgets/library-import";
+import {
+  useLibraryIndexCollapsed,
+  useLibraryIndexSegment,
+  writeLibraryIndexCollapsed,
+  writeLibraryIndexSegment,
+  type LibraryIndexSegment,
+} from "@/shared/lib/appearance-preferences";
 import { cn } from "@/shared/lib/cn";
+import { RIGHT_DOCK_WIDTH_VAR } from "@/shared/lib/right-dock-reserve";
 import { getTauriVaultRootPath, revealTauriVaultFile } from "@/shared/lib/tauri-vault-fs";
 import { controlClass } from "@/shared/ui/control-class";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { PAGE_COLUMN_STAGE } from "@/shared/ui/page-frame";
-import { useToast } from "@/shared/ui";
+import { SegmentedControl } from "@/shared/ui/segmented-control";
+import { Tooltip, TooltipProvider, useToast } from "@/shared/ui";
 
 import { isWikiFurnitureSlug } from "@/shared/lib/wiki-page-schema";
 import { libraryCompileBlockedReason, libraryTransferSentence } from "../lib/compile-availability";
@@ -63,6 +72,7 @@ import { LibraryStage } from "./parts/LibraryStage";
 import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
 import { LibraryAgentDock } from "./parts/LibraryAgentDock";
+import { useChatWidth } from "@/widgets/acp-chat-panel";
 import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
 import { SourceSummary } from "./parts/SourceSummary";
 import { WikiPageHeader } from "./parts/WikiPageHeader";
@@ -439,6 +449,36 @@ export function LibraryPage() {
     [manifest],
   );
 
+  /**
+   * **What the dock takes from the row, said out loud.**
+   *
+   * The dock's frame is already a flex sibling of the reader at `xl`
+   * (`LibraryAgentDock`: `xl:relative xl:shrink-0`), so the graph's box really does narrow
+   * when it opens and the canvas refits against it. What was missing is the *published*
+   * width: `--app-right-dock-width` is how every surface positioned against the viewport's
+   * right edge learns that the right-hand wall is the dock's edge and not the window's
+   * (`right-dock-reserve.ts`), and the toaster reads it to stay centred over what is left.
+   * The map has published it since 2026-08-16; this screen grew a dock on 2026-09-06 and
+   * did not, so a toast on the Library landed on the composer.
+   *
+   * The width is lifted out of the dock so one instance owns it: `useChatWidth` keeps the
+   * in-flight drag in local state, and a second copy of the hook would publish the stored
+   * width while the handle was still moving.
+   */
+  const chatWidth = useChatWidth();
+  const dockOpen = agent.route === "agent" && agent.runtime !== null && nativeVaultRootPath !== null && agent.open;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!dockOpen) {
+      root.style.removeProperty(RIGHT_DOCK_WIDTH_VAR);
+      return undefined;
+    }
+    root.style.setProperty(RIGHT_DOCK_WIDTH_VAR, `${Math.round(chatWidth.width)}px`);
+    return () => {
+      root.style.removeProperty(RIGHT_DOCK_WIDTH_VAR);
+    };
+  }, [chatWidth.width, dockOpen]);
+
   /*
    * ── The third door: documents that are not on this computer yet ────────────────────────────
    *
@@ -690,6 +730,64 @@ export function LibraryPage() {
    * guidance, Escape or an outside press closes it, and focus goes back to the chip.
    */
   const [shelfOpen, setShelfOpen] = useState(false);
+  /** Which list the index draws, and whether the column is folded — both per machine. */
+  const indexSegment = useLibraryIndexSegment();
+  const indexCollapsed = useLibraryIndexCollapsed();
+  const indexTabRef = useRef<HTMLButtonElement | null>(null);
+  const indexCollapseRef = useRef<HTMLButtonElement | null>(null);
+  /**
+   * **Folding moves focus with the control that vanished.** Both halves of this toggle are
+   * the same act, so the hand that pressed one has to land on the other; without it a
+   * keyboard press dropped focus to `<body>` and Tab restarted at the top of the document.
+   */
+  const [focusIndexControl, setFocusIndexControl] = useState<"tab" | "head" | null>(null);
+  const setIndexCollapsed = useCallback((next: boolean) => {
+    writeLibraryIndexCollapsed(next);
+    setFocusIndexControl(next ? "tab" : "head");
+  }, []);
+  /**
+   * **The bar was the "there is more" mark, so a fade takes its place** (2026-09-07).
+   *
+   * Every scroller in the shell now hides its bar (`app/globals.css`), and this column is
+   * the case that rule warns about: a list of file names cut by a hard edge says nothing
+   * about whether the cut is the end. So the edge that still has rows behind it fades,
+   * exactly as the tab strips and the conversation's history list already do —
+   * `--tabbar-edge-fade`, four states, no new value.
+   */
+  const indexScrollRef = useRef<HTMLDivElement | null>(null);
+  const [indexEdge, setIndexEdge] = useState({ top: false, bottom: false });
+  const measureIndexEdges = useCallback(() => {
+    const box = indexScrollRef.current;
+    if (!box) return;
+    const top = box.scrollTop > 1;
+    const bottom = box.scrollTop < box.scrollHeight - box.clientHeight - 1;
+    setIndexEdge((previous) =>
+      previous.top === top && previous.bottom === bottom ? previous : { top, bottom },
+    );
+  }, []);
+  const handleIndexScroll = useCallback(() => measureIndexEdges(), [measureIndexEdges]);
+  /*
+   * The box's own rect answers the window resizing and the column folding; the row counts
+   * answer the list changing under it. Switching the segment replaces every row, so a fade
+   * left over from a list that is no longer drawn would point at nothing.
+   */
+  useEffect(() => {
+    const box = indexScrollRef.current;
+    if (!box || typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(() => measureIndexEdges());
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [measureIndexEdges]);
+  useEffect(() => {
+    measureIndexEdges();
+  }, [indexSegment, measureIndexEdges, model.sources.length, model.wikiPages.length]);
+
+  useEffect(() => {
+    if (focusIndexControl === null) return;
+    const target = focusIndexControl === "tab" ? indexTabRef.current : indexCollapseRef.current;
+    target?.focus();
+    setFocusIndexControl(null);
+  }, [focusIndexControl, indexCollapsed]);
   /**
    * **Choosing a file closes the guide, by any route** (design-interaction, 2026-09-06).
    *
@@ -707,6 +805,13 @@ export function LibraryPage() {
   const choose = useCallback((next: typeof selected) => {
     setShelfOpen(false);
     setSelected(next);
+    /*
+     * **The switch follows what was opened.** A file can be reached from three places that
+     * are not the index — the graph, the guide, and a reader's own crossings — and the
+     * index would otherwise say *Sources* while the pane showed a wiki page. Only a real
+     * choice moves it; the back control leaves the switch where the person left it.
+     */
+    if (next) writeLibraryIndexSegment(next.kind === "wiki" ? "wiki" : "sources");
   }, []);
   /**
    * Whether this folder has anything for the workbench to show — the same test the canvas
@@ -892,6 +997,16 @@ export function LibraryPage() {
   }
 
   const narrowShowsReader = selected !== null;
+  // Four states — both edges, either, neither — the way `AcpChatPanel` writes its own.
+  const indexFade = "var(--tabbar-edge-fade)";
+  const indexMask =
+    indexEdge.top && indexEdge.bottom
+      ? `linear-gradient(to bottom, transparent 0, black ${indexFade}, black calc(100% - ${indexFade}), transparent 100%)`
+      : indexEdge.bottom
+        ? `linear-gradient(to bottom, black calc(100% - ${indexFade}), transparent 100%)`
+        : indexEdge.top
+          ? `linear-gradient(to bottom, transparent 0, black ${indexFade})`
+          : undefined;
 
   return (
     /*
@@ -912,6 +1027,44 @@ export function LibraryPage() {
       className="topology-ui-scale relative flex min-h-0 w-full flex-1 bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)] max-lg:flex-col"
     >
       {/*
+        **The folded index — the map's own vocabulary, borrowed.**
+
+        Markup copied from `src/widgets/topology-index-panel/ui/TopologyIndexTab.tsx`
+        (26px `--topology-index-tab-width`, a vertical label, a `ChevronRight`), because
+        that component hardcodes the word *Index* and a power dot this column has no
+        equivalent of, and parameterising the map's tab is a change to the map. What is
+        **not** copied is its surface: the map's tab floats over a canvas on
+        `--topology-v2-panel-*`, while this one is the column narrowed to its edge, so it
+        keeps `--color-panel` and the border the aside itself carries and stays flush.
+
+        `lg` and above only. Below it the index is the bottom half of one column with the
+        graph above it — there is no second pane for the width to go to.
+      */}
+      {indexCollapsed ? (
+        <button
+          type="button"
+          ref={indexTabRef}
+          onClick={() => setIndexCollapsed(false)}
+          aria-label={t("index.expand")}
+          aria-expanded={false}
+          data-testid="library-index-tab"
+          className="hidden flex-none flex-col items-center gap-2.5 self-stretch border-r border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] py-2.5 hover:text-[color:var(--color-text-primary)] lg:flex"
+          style={{ width: "var(--topology-index-tab-width)" }}
+        >
+          <span
+            className="whitespace-nowrap font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]"
+            style={{ writingMode: "vertical-rl" }}
+          >
+            {t("title")}
+          </span>
+          {/* Direction, which the label-decoration rule allows: the column comes back out. */}
+          <span aria-hidden className="inline-flex text-[color:var(--color-text-quaternary)]">
+            <ChevronRight size={ICON_SIZE.sm} aria-hidden />
+          </span>
+        </button>
+      ) : null}
+
+      {/*
         The index. Below `lg` it is the lower half of one column and stands aside once
         something is open; the reader's back control is what brings it back.
       */}
@@ -924,34 +1077,72 @@ export function LibraryPage() {
              of the canvas. */
           "flex w-full min-w-0 min-h-0 flex-1 flex-col overflow-hidden bg-[color:var(--color-panel)] max-lg:border-t max-lg:border-[color:var(--color-border-soft)] lg:w-[var(--docs-list-width)] lg:flex-none lg:border-r lg:border-[color:var(--color-border-soft)]",
           narrowShowsReader && "max-lg:hidden",
+          indexCollapsed && "lg:hidden",
         )}
       >
         {/*
-          **One scroller, at every width** (owner, 2026-09-06): *"I don't like this left
-          panel being split into a top and a bottom like this … improve it!"*
-
-          It used to be three boxes — a fixed intro, then two lists that each owned their
-          own overflow at `lg` and stood at natural height below it. On the owner's folder
-          of seven sources and seven pages the longer list was cut mid-row, and the two
-          halves slid past each other whenever either was scrolled, which is what makes one
-          column read as two panes. The narrow layout had already been forced onto one
-          scroller (two lists in half a phone measured 30px and **zero**); this is the same
-          answer at every width, which is one answer instead of two.
-
-          The intro rides inside it, so the section heads — which are `sticky` — can pin to
-          the top of the box that actually scrolls. Below `lg` the bottom tab bar stands
-          over this column, and the reserve is the scrolling box's own to pay
+          **The head does not scroll** (owner, 2026-09-07: *"a switch at the top is
+          better"*). It is the name of the place, the switch, and the fold — three things a
+          person needs while they are inside a list, so none of them may pass under the
+          fold with the rows. The lede that used to sit here is now the `Info` glyph's
+          tooltip: measured at 280px it was three lines of a sentence read once, and it was
+          the ~60px this switch now stands in.
+        */}
+        <div className="flex-none border-b border-[color:var(--color-overlay-2)] px-3 pb-2.5 pt-4">
+          <LibraryHeader
+            t={t}
+            onCollapse={() => setIndexCollapsed(true)}
+            collapseRef={indexCollapseRef}
+          />
+          <SegmentedControl
+            ariaLabel={t("index.aria")}
+            value={indexSegment}
+            onChange={(next: LibraryIndexSegment) => writeLibraryIndexSegment(next)}
+            /*
+             * `lg` (32px), not the `md` this first shipped as. Measured at 280px, `md`
+             * drew the switch 24px tall under a title and **over** the 32px door chips it
+             * governs — the control that decides what the column is, smaller than the
+             * controls inside it. 32 also puts it on the same step as those chips, which
+             * is the one step this head's role gets.
+             */
+            size="lg"
+            fill
+            testId="library-index-segment"
+            className="mt-3"
+            options={[
+              {
+                value: "sources",
+                label: t("index.sources", { count: model.sources.length }),
+                testId: "library-index-segment-sources",
+              },
+              {
+                value: "wiki",
+                label: t("index.wiki", { count: model.wikiPages.length }),
+                testId: "library-index-segment-wiki",
+              },
+            ]}
+          />
+        </div>
+        {/*
+          One scroller, and it holds one list. Below `lg` the bottom tab bar stands over
+          this column and the reserve is the scrolling box's own to pay
           (`.claude/rules/design.md`).
+
+          The bar is hidden here as it is everywhere (`app/globals.css`, 2026-09-07), so
+          the mask is what says a list continues past the fold — the same
+          `--tabbar-edge-fade` the strips use. It is applied only while there is something
+          below, or a short list would fade its own last row for no reason.
         */}
         <div
           data-testid="library-index-scroll"
-          className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]"
+          ref={indexScrollRef}
+          onScroll={handleIndexScroll}
+          style={indexMask ? { maskImage: indexMask, WebkitMaskImage: indexMask } : undefined}
+          className="atlas-scroll-quiet flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]"
         >
-          <div className="border-b border-[color:var(--color-overlay-2)] px-3 pb-3 pt-4">
-            <LibraryHeader t={t} />
-          </div>
           <LibrarySection
             model={model}
+            segment={indexSegment}
             selectedSlug={opened?.kind === "wiki" ? opened.slug : null}
             selectedSourcePath={opened?.kind === "source" ? opened.path : null}
             onSelect={(slug) => choose({ kind: "wiki", slug })}
@@ -992,9 +1183,12 @@ export function LibraryPage() {
              * would have been on **no** surface at all, which is the one outcome this
              * disclosure may not have. So the condition is the popup itself: while it is
              * open step two owns the sentence, and every other moment this column does.
-             * The redesign of that popup into a 360px stepper kept the rule intact: the
-             * sentence still sits directly under the Compile press, which is the placement
-             * `.claude/rules/local-first.md` asks for.
+             *
+             * ⚠️ It also had to survive the switch (2026-09-07): the sentence sits under
+             * Compile, and Compile is now drawn only while the Wiki list is showing. That
+             * is the placement `.claude/rules/local-first.md` asks for — the disclosure is
+             * beside the press — and the press itself is what it discloses, so a column
+             * with no Compile on it has nothing to disclose.
              */
             compileNote={
               shelfOpen
@@ -1149,7 +1343,7 @@ export function LibraryPage() {
             <WikiPageHeader
               doc={selectedWikiDoc}
               originals={model.pairing.originalsByWiki.get(selectedWikiDoc.slug) ?? EMPTY_ORIGINALS}
-              onOpenSource={(path) => setSelected({ kind: "source", path })}
+              onOpenSource={(path) => choose({ kind: "source", path })}
               t={t}
             />
             <WikiTemplateProblems problems={wikiProblems} t={t} />
@@ -1157,7 +1351,7 @@ export function LibraryPage() {
               key={selectedWikiDoc.slug}
               doc={selectedWikiDoc}
               vaultSlugs={vaultSlugs}
-              onNavigate={(slug) => setSelected({ kind: "wiki", slug })}
+              onNavigate={(slug) => choose({ kind: "wiki", slug })}
               getDocContent={getDocContent}
               resolveImage={resolveImage}
             />
@@ -1170,9 +1364,19 @@ export function LibraryPage() {
               canReveal={nativeVaultRootPath !== null}
               writeUps={model.pairing.writeUpsBySource.get(selectedSource.path) ?? EMPTY_WRITE_UPS}
               onOpen={() => handleOpenSource(selectedSource)}
-              onOpenWiki={(slug) => setSelected({ kind: "wiki", slug })}
+              onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
               onCompile={handleCompile}
-              compileBlockedReason={compileBlocked}
+              /*
+               * The same one slot the column carries, asked the same way: the reason
+               * Compile is refused, or what leaves this computer when it runs. This press
+               * is the one a person is looking at while a source is open, so this is where
+               * the disclosure belongs (`.claude/rules/local-first.md`).
+               */
+              compileNote={
+                compileBlocked ??
+                libraryTransferSentence({ route: agent.route, localModel: agent.localModel }, t)
+              }
+              compileBlocked={compileBlocked !== null}
               busy={busy}
               t={t}
             />
@@ -1222,10 +1426,7 @@ export function LibraryPage() {
                 }
               : null
           }
-          onOpenWiki={(slug) => {
-            closeShelf();
-            setSelected({ kind: "wiki", slug });
-          }}
+          onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
           busy={busy}
           t={t}
         />
@@ -1241,6 +1442,7 @@ export function LibraryPage() {
       */}
       {agent.route === "agent" && agent.runtime && nativeVaultRootPath ? (
         <LibraryAgentDock
+          chatWidth={chatWidth}
           judgeWrite={judgeWrite}
           onTurnStarted={handleTurnStarted}
           open={agent.open}
@@ -1272,25 +1474,114 @@ export function LibraryPage() {
   );
 }
 
-/** Eyebrow, name, one line. Not a display title: this is a workbench, not a document. */
-function LibraryHeader({ t, inFolder = true }: { t: ReturnType<typeof useTranslations<"library">>; inFolder?: boolean }) {
+/**
+ * Eyebrow, name, and the two controls that belong to the column itself. Not a display
+ * title: this is a workbench, not a document.
+ *
+ * ⚠️ **The lede is a glyph now** (owner, 2026-09-07: *"put one icon beside the title and
+ * show the explanation in a tooltip on hover"*). It was three lines of `text-label` in a
+ * 280px column — a sentence read once on the first visit and then re-read on every visit
+ * after it, holding the ~60px the switch under it now stands in. It is not deleted: the
+ * `Info` glyph is a real focusable control with the sentence as its accessible name, so a
+ * keyboard and a screen reader reach it the same way a pointer does, which a paragraph
+ * that had been cut would not have offered either.
+ */
+function LibraryHeader({
+  t,
+  inFolder = true,
+  onCollapse,
+  collapseRef,
+}: {
+  t: ReturnType<typeof useTranslations<"library">>;
+  inFolder?: boolean;
+  /** Folds the column to its edge tab. Absent where there is no column to fold. */
+  onCollapse?: () => void;
+  collapseRef?: RefObject<HTMLButtonElement | null>;
+}) {
   return (
     <div data-testid="library-header">
       {/* "In this folder" is only true once a folder is open; the stage before that has none. */}
-      {inFolder ? (
-        <p className="font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
-          {t("eyebrow")}
-        </p>
-      ) : null}
-      <h1 className="mt-1 text-body-lg font-[var(--font-weight-signature)] leading-title text-[color:var(--color-text-primary)]">
-        {t("title")}
-      </h1>
-      {/* `text-label`, not `text-caption`: 9.5px is the eyebrow's size, and measured in the
-          280px column this lede is three lines a person reads once and has to be able to
-          read. The chrome ladder's next step up is the one for a sentence. */}
-      <p className="mt-1.5 text-label leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]">
-        {t("lede")}
-      </p>
+      <div className="flex min-h-4 items-center gap-2">
+        {inFolder ? (
+          <p className="min-w-0 flex-1 truncate font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
+            {t("eyebrow")}
+          </p>
+        ) : null}
+        {/*
+          ⚠️ **The fold rides on the eyebrow line, not beside the title** — and that is a
+          placement the tooltip decided. The description opens to the `right` of the `Info`
+          glyph, and Radix tooltip content takes pointer events, so with the fold on the
+          same row the panel lay directly on the control a hand travels to next: measured,
+          the press was intercepted for as long as the tooltip stood. One row up, the
+          tooltip opens over the picture, where nothing is being aimed at.
+        */}
+        {onCollapse ? (
+          <button
+            type="button"
+            ref={collapseRef}
+            onClick={onCollapse}
+            aria-label={t("index.collapse")}
+            aria-expanded
+            data-testid="library-index-collapse"
+            /* `lg` and up: below it the column is the bottom half of one column and has
+               nowhere to fold to. `ChevronLeft` carries direction, which the
+               label-decoration rule allows and a decorative arrow would not. */
+            className={controlClass({
+              shape: "icon",
+              size: "sm",
+              tone: "muted",
+              hoverInk: "strong",
+              className: "-mr-1 ml-auto hidden flex-none lg:inline-flex",
+            })}
+          >
+            <ChevronLeft size={ICON_SIZE.sm} aria-hidden />
+          </button>
+        ) : null}
+      </div>
+      <div className="mt-1 flex min-w-0 items-center gap-1.5">
+        <h1 className="min-w-0 truncate text-body-lg font-[var(--font-weight-signature)] leading-title text-[color:var(--color-text-primary)]">
+          {t("title")}
+        </h1>
+        {/*
+          Three corrections, each from a measurement (2026-09-07).
+
+          **A width.** The sentence is 150 characters and a tooltip has no width of its
+          own, so on the default `top` side it drew as one line the width of the window,
+          clipped at the left edge and lying across the graph's header (1040×760).
+
+          **`side="right"`.** `bottom` put the panel on the switch the hand travels to
+          next; `right` opens into the picture, where nothing is being aimed at, and the
+          fold moved up to the eyebrow line to leave that side clear.
+
+          **`disableHoverableContent`.** Radix keeps a tooltip open while the pointer is
+          over the panel *and* the panel takes pointer events, so a control underneath it
+          could not be pressed for as long as it stood — measured as a click intercepted
+          indefinitely. This is a sentence, not a surface with anything to reach in it, so
+          the grace area is worth nothing and costs the press.
+        */}
+        <TooltipProvider disableHoverableContent>
+          <Tooltip
+            withProvider={false}
+            side="right"
+            content={<span className="block max-w-64 [word-break:keep-all]">{t("lede")}</span>}
+          >
+            <button
+              type="button"
+              data-testid="library-lede-info"
+              aria-label={t("lede")}
+              className={controlClass({
+                shape: "icon",
+                size: "sm",
+                tone: "muted",
+                hoverInk: "strong",
+                className: "flex-none",
+              })}
+            >
+              <Info size={ICON_SIZE.sm} aria-hidden />
+            </button>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
     </div>
   );
 }

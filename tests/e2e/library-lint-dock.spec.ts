@@ -185,6 +185,14 @@ async function openFolder(page: Page) {
   // open folder in the session instead of asking the restore to find it again.
   await page.getByTestId("app-nav-rail").getByRole("link", { name: "Library" }).click();
   await page.getByTestId("library-sources").waitFor({ timeout: 30_000 });
+  /*
+   * Check the wiki and Compile are the Wiki half's own doors since 2026-09-07: the index
+   * draws one list at a time and the switch decides which. The column opens on Sources —
+   * the first half of the work — so a spec about the wiki's doors presses the switch, the
+   * same press a person makes.
+   */
+  await page.getByTestId("library-index-segment-wiki").click();
+  await page.getByTestId("library-wiki").waitFor({ timeout: 30_000 });
 }
 
 test.describe("Check the wiki opens the agent dock", () => {
@@ -207,7 +215,7 @@ test.describe("Check the wiki opens the agent dock", () => {
     const logLine = page.getByTestId("library-wiki-log");
     await expect(logLine).toContainText("architecture (new)");
     await expect(logLine).toContainText("superseded 1");
-    await expect(page.getByTestId("library-wiki")).toContainText("Wiki · 2");
+    await expect(page.getByTestId("library-index-segment")).toContainText("Wiki 2");
     // With nothing selected the pane is the graph (2026-09-06, third pass), so no page
     // heading is on screen here; the list above already proves the template is not a row.
     // Same row, Lint first: reading before writing.
