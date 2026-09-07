@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — A node's `created_by` names the connecting client when no heartbeat is registered",
+      "slug": "2026-09-07-a-nodes-created_by-names-the-connecting-client-when-no-heartbeat-is-registered"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — Markdown under sources/ is a raw source, not a shadow page",
       "slug": "2026-09-07-markdown-under-sources-is-a-raw-source-not-a-shadow-page"
     },

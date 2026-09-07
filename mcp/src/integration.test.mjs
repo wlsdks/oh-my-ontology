@@ -6971,7 +6971,10 @@ await test("add_concept/add_concepts — created_by 는 활동 로그와 같은 
   }
 });
 
-await test("add_concept/add_concepts — 하트비트가 없으면 이름만 모른다 (사람으로 떨어지지 않는다)", async () => {
+// With no heartbeat the stamp follows the activity log one step further (2026-09-07):
+// the connect greeting's clientInfo.name. The test harness greets as "test", so that is
+// the name; a human it still is not.
+await test("add_concept/add_concepts — 하트비트가 없으면 연결 인사의 이름을 쓴다 (사람으로 떨어지지 않는다)", async () => {
   const root = makeVault([]);
   try {
     const { responses } = await rpc(root, [
@@ -6980,8 +6983,8 @@ await test("add_concept/add_concepts — 하트비트가 없으면 이름만 모
       callTool(3, "get_concept", { slug: "capabilities/nameless" }),
       callTool(4, "query_concepts", { filter: "created_by=human" }),
     ]);
-    assert.equal(getCallParsed(responses, 3).frontmatter.created_by, "agent:unknown");
-    assert.equal(getCallParsed(responses, 4).total, 0, "an unnamed agent is still not a human");
+    assert.equal(getCallParsed(responses, 3).frontmatter.created_by, "agent:test");
+    assert.equal(getCallParsed(responses, 4).total, 0, "an agent named only by its greeting is still not a human");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

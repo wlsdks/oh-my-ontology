@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — A node's `created_by` names the connecting client when no heartbeat is registered
+
+**Why**: the post-merge inspection of #1486 wrote an element through the app's own agent conversation and the node said `created_by: "agent:unknown"` while the activity log beside it said `claude-code`: the log had learned to read the connect greeting's `clientInfo.name` on 2026-08-13 and the authorship stamp had not.
+**Prior**: 2026-07-31 "`created_by` is stamped at write time by the path that proves the actor" stands; 2026-08-13 (activity log reads heartbeat, then greeting) stands and is what the stamp now follows.
+**Decision**: `agentProvenance()` resolves the name exactly as the activity log does — heartbeat, then `clientInfo.name`, then unknown — so one identity scheme serves both records.
+**Dissent**: the app could pass its own runtime name in the server env; rejected because that is a second identity scheme, and the greeting already carries the fact.
+**Falsifier**: a node written through a connected client whose greeting names it and whose `created_by` still says unknown; the log and the stamp naming different agents for one write.
+**Owner**: jinan
+
 ## 2026-09-07 — Markdown under sources/ is a raw source, not a shadow page
 
 **Why**: reviewing the merged Library on a seeded folder, a `.md` dropped under `sources/` was the one format the list, the graph and Compile could not see: the walk read every Markdown file as a vault page before asking whether the path sat under `sources/`. Notes arrive as Markdown most of all (a Notion or Obsidian export), and the service import writes exactly that.
