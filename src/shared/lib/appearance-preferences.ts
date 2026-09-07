@@ -898,7 +898,7 @@ export type LibraryIndexSegment = "sources" | "wiki";
 
 const LIBRARY_INDEX_SEGMENTS: readonly LibraryIndexSegment[] = ["sources", "wiki"];
 
-export const DEFAULT_LIBRARY_INDEX_SEGMENT: LibraryIndexSegment = "sources";
+const DEFAULT_LIBRARY_INDEX_SEGMENT: LibraryIndexSegment = "sources";
 
 const LIBRARY_INDEX_SEGMENT_KEY = "atlas.library.index-segment";
 
