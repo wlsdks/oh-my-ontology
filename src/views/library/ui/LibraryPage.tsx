@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Info, ListChecks, MessageSquare, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Info, ListChecks, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { useLocalVault, useVaultIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
@@ -13,6 +13,7 @@ import { DESTINATION_HREF } from "@/shared/config/destinations";
 import { OpenVaultCta } from "@/features/docs-vault-local";
 import { useVaultConnectors } from "@/features/mcp-connectors";
 import { isAcpBridgeAvailable } from "@/shared/lib/tauri-acp";
+import type { AcpTurnActivity } from "@/features/acp-session";
 import {
   addSources,
   addSourcesInBrowser,
@@ -83,6 +84,7 @@ import { LibraryStage } from "./parts/LibraryStage";
 import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
 import { LibraryAgentDock } from "./parts/LibraryAgentDock";
+import { LibraryConversationDoor } from "./parts/LibraryConversationDoor";
 import { SelectionAsk } from "./parts/SelectionAsk";
 import { useChatWidth } from "@/widgets/acp-chat-panel";
 import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
@@ -521,6 +523,11 @@ export function LibraryPage() {
    */
   const chatWidth = useChatWidth();
   const dockOpen = agent.route === "agent" && agent.runtime !== null && nativeVaultRootPath !== null && agent.open;
+  /**
+   * **The dock, put away.** One turn's step and target while this screen's conversation is
+   * running; `null` between turns and while the panel has never opened.
+   */
+  const [agentActivity, setAgentActivity] = useState<AcpTurnActivity | null>(null);
   /*
    * **The conversation can be reopened.** Closing the dock used to be the end of it: no
    * control on the Library brought it back, and the only way to see the transcript again
@@ -528,18 +535,22 @@ export function LibraryPage() {
    * talking with the agent and going back, there is no way to open that agent again").
    * The chip stands where the person is — on the graph's status row and on the reader's
    * top row — and only while there is a conversation to return to and the dock is shut.
+   *
+   * ## The same chip is the resting state (owner, 2026-09-08)
+   *
+   * *"If I press X while it is working, it should shrink into a small icon in the right-hand
+   * area, and pressing it again should show the conversation I was having."* That control
+   * already exists — this chip — and it already sits at the right end of both rows, which is
+   * where a put-away right-hand dock belongs. So the running turn is drawn **on** it rather
+   * than beside it; `LibraryConversationDoor` owns what it says in each state and why.
    */
   const conversationDoor =
     agent.route === "agent" && agent.runtime !== null && nativeVaultRootPath !== null && !agent.open ? (
-      <button
-        type="button"
-        onClick={() => agent.setOpen(true)}
-        data-testid="library-open-conversation"
-        className={controlClass({ shape: "chip", tone: "muted", hoverInk: "strong", className: "flex-none gap-1.5" })}
-      >
-        <MessageSquare size={ICON_SIZE.sm} aria-hidden />
-        {t("conversation.open")}
-      </button>
+      <LibraryConversationDoor
+        activity={agentActivity}
+        agentLabel={agent.runtime.label}
+        onOpen={() => agent.setOpen(true)}
+      />
     ) : null;
   useEffect(() => {
     const root = document.documentElement;
@@ -1769,6 +1780,7 @@ export function LibraryPage() {
           judgeWrite={judgeWrite}
           autoDecide={autoDecide}
           onTurnStarted={handleTurnStarted}
+          onTurnActivityChange={setAgentActivity}
           onFileAnswer={lastAnswer ? handleFileAnswer : null}
           noticeActions={{
             openPage: (path) => choose({ kind: "wiki", slug: path.replace(/\.md$/, "") }),

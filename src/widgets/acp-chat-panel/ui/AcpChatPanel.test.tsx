@@ -3227,3 +3227,111 @@ describe('작성 칸 — `/` 메뉴', () => {
     await waitFor(() => expect(screen.queryByTestId('acp-chat-slash-menu')).toBeNull());
   });
 });
+
+/**
+ * Owner, installed app, 2026-09-08: *"every time I press X and go back into the agent it is a new
+ * conversation — the previous, latest conversation should always open, and I should be able to
+ * pick one."* Everything needed was already on the wire (`session/list`, `session/load`); nothing
+ * consulted it. These cases pin what the panel now asks the adapter, and — just as importantly —
+ * what it does when the adapter cannot answer.
+ */
+describe('reopening the panel — the folder\'s latest conversation, not a blank one', () => {
+  /** Boots with `resumeLatest`, answering `session/list` with these rows. */
+  async function bootResuming(sessions: unknown[]) {
+    const view = render(
+      <AcpChatPanel
+        runtimeId="claude-acp"
+        runtimeLabel="Claude Code"
+        vaultRoot="/vault"
+        mcpServers={[{ name: 'atlas-vault' }]}
+        resumeLatest
+      />,
+    );
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'initialize')).toBe(true));
+    replyTo('initialize', { protocolVersion: 1 });
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/list')).toBe(true));
+    replyTo('session/list', { sessions });
+    return view;
+  }
+
+  it('loads the newest conversation in this folder and never opens a new one', async () => {
+    await bootResuming([
+      { sessionId: 's-old', cwd: '/vault', title: 'Yesterday', updatedAt: '2026-09-06T09:00:00.000Z' },
+      { sessionId: 's-new', cwd: '/vault', title: 'Last night', updatedAt: '2026-09-07T23:40:00.000Z' },
+    ]);
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/load')).toBe(true));
+    const load = bridge.sent.find((m) => m.method === 'session/load');
+    expect((load?.params as { sessionId?: string }).sessionId).toBe('s-new');
+    replyTo('session/load', { sessionId: 's-new' });
+    await waitFor(() =>
+      expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'ready'),
+    );
+    expect(bridge.sent.some((m) => m.method === 'session/new')).toBe(false);
+  });
+
+  it('reaches the other conversations at once — the history door does not wait for a turn', async () => {
+    await bootResuming([
+      { sessionId: 's-old', cwd: '/vault', title: 'Yesterday', updatedAt: '2026-09-06T09:00:00.000Z' },
+      { sessionId: 's-new', cwd: '/vault', title: 'Last night', updatedAt: '2026-09-07T23:40:00.000Z' },
+    ]);
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/load')).toBe(true));
+    replyTo('session/load', { sessionId: 's-new' });
+    await waitFor(() =>
+      expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'ready'),
+    );
+    fireEvent.click(screen.getByTestId('acp-chat-history'));
+    const rows = await screen.findAllByTestId('acp-chat-history-item');
+    // Newest first, so the row a person reads as "the one I was in" is the one that opened.
+    expect(rows.map((row) => row.getAttribute('data-session-id'))).toEqual(['s-new', 's-old']);
+  });
+
+  it('opens a new conversation when this folder has none — a first run is not a failure', async () => {
+    await bootResuming([]);
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/new')).toBe(true));
+    expect(bridge.sent.some((m) => m.method === 'session/load')).toBe(false);
+    replyTo('session/new', { sessionId: 's-1' });
+    await waitFor(() =>
+      expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'ready'),
+    );
+  });
+
+  it('opens a new conversation when the adapter refuses to load the old one', async () => {
+    await bootResuming([
+      { sessionId: 's-gone', cwd: '/vault', title: 'Deleted since', updatedAt: '2026-09-07T23:40:00.000Z' },
+    ]);
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/load')).toBe(true));
+    const load = bridge.sent.find((m) => m.method === 'session/load');
+    emit({ jsonrpc: '2.0', id: load?.id, error: { code: -32603, message: 'no such session' } });
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/new')).toBe(true));
+    replyTo('session/new', { sessionId: 's-1' });
+    await waitFor(() =>
+      expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'ready'),
+    );
+  });
+
+  it('leaves a conversation from another folder alone', async () => {
+    await bootResuming([
+      { sessionId: 's-elsewhere', cwd: '/other', title: 'Another repository', updatedAt: '2026-09-07T23:40:00.000Z' },
+    ]);
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/new')).toBe(true));
+    expect(bridge.sent.some((m) => m.method === 'session/load')).toBe(false);
+  });
+
+  it('means new when a person presses New conversation', async () => {
+    await bootResuming([
+      { sessionId: 's-new', cwd: '/vault', title: 'Last night', updatedAt: '2026-09-07T23:40:00.000Z' },
+    ]);
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/load')).toBe(true));
+    replyTo('session/load', { sessionId: 's-new' });
+    await waitFor(() =>
+      expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'ready'),
+    );
+    bridge.sent = [];
+    fireEvent.click(screen.getByTestId('acp-chat-new'));
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'initialize')).toBe(true));
+    replyTo('initialize', { protocolVersion: 1 });
+    // The automatic resume steps aside: no list is consulted and no old conversation is loaded.
+    await waitFor(() => expect(bridge.sent.some((m) => m.method === 'session/new')).toBe(true));
+    expect(bridge.sent.some((m) => m.method === 'session/load')).toBe(false);
+  });
+});

@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-08 — Closing the Library dock puts the conversation away; reopening resumes the latest",
+      "slug": "2026-09-08-closing-the-library-dock-puts-the-conversation-away-reopening-resumes-the-latest"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-08 — Kind tone and the document column become tokens, and colour literals get a gate",
       "slug": "2026-09-08-kind-tone-and-the-document-column-become-tokens-and-colour-literals-get-a-gate"
     },

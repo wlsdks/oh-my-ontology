@@ -4754,7 +4754,9 @@
       "showSources": "원문 {count}개 보기"
     },
     "conversation": {
-      "open": "대화"
+      "open": "대화",
+      "running": "{phase} · {target}",
+      "runningLabel": "대화 열기. {agent} 작업 중: {phase}."
     }
   },
   "libraryImport": {

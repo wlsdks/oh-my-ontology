@@ -8,9 +8,21 @@ import { LibraryAgentDock } from "./LibraryAgentDock";
 const sessionEnabledSeen: boolean[] = [];
 
 vi.mock("@/widgets/acp-chat-panel", () => ({
-  AcpChatPanel: ({ sessionEnabled }: { sessionEnabled?: boolean }) => {
+  AcpChatPanel: ({
+    sessionEnabled,
+    resumeLatest,
+  }: {
+    sessionEnabled?: boolean;
+    resumeLatest?: boolean;
+  }) => {
     sessionEnabledSeen.push(sessionEnabled === true);
-    return <div data-testid="chat-panel" data-session-enabled={sessionEnabled ? "true" : "false"} />;
+    return (
+      <div
+        data-testid="chat-panel"
+        data-session-enabled={sessionEnabled ? "true" : "false"}
+        data-resume-latest={resumeLatest ? "true" : "false"}
+      />
+    );
   },
   AcpChatResizeHandle: () => null,
   AcpDockHeader: () => null,
@@ -18,6 +30,25 @@ vi.mock("@/widgets/acp-chat-panel", () => ({
 }));
 
 const RUNTIME = { id: "claude-acp", label: "Claude Agent" };
+
+function dock(open: boolean) {
+  return (
+    <NextIntlClientProvider locale="en" messages={enMessages}>
+      <LibraryAgentDock
+        chatWidth={{ width: 420, setWidth: () => {}, commitWidth: () => {} }}
+        open={open}
+        runtime={RUNTIME}
+        runtimes={[RUNTIME]}
+        onRuntimeChange={() => {}}
+        vaultRoot="/Users/probe/atlas"
+        mcpServers={[]}
+        openingRequest={{ kind: "lint", text: "Check the wiki", nonce: 1 }}
+        knownSlugs={new Set()}
+        onClose={() => {}}
+      />
+    </NextIntlClientProvider>
+  );
+}
 
 function mount(width: "wide" | "narrow") {
   Object.defineProperty(window, "matchMedia", {
@@ -34,22 +65,8 @@ function mount(width: "wide" | "narrow") {
       dispatchEvent: () => false,
     }),
   });
-  return render(
-    <NextIntlClientProvider locale="en" messages={enMessages}>
-      <LibraryAgentDock
-        chatWidth={{ width: 420, setWidth: () => {}, commitWidth: () => {} }}
-        open
-        runtime={RUNTIME}
-        runtimes={[RUNTIME]}
-        onRuntimeChange={() => {}}
-        vaultRoot="/Users/probe/atlas"
-        mcpServers={[]}
-        openingRequest={{ kind: "lint", text: "Check the wiki", nonce: 1 }}
-        knownSlugs={new Set()}
-        onClose={() => {}}
-      />
-    </NextIntlClientProvider>,
-  );
+  const view = render(dock(true));
+  return { ...view, close: () => view.rerender(dock(false)), reopen: () => view.rerender(dock(true)) };
 }
 
 afterEach(() => {
@@ -90,5 +107,86 @@ describe("a dock mounted while already open", () => {
     const { getByTestId } = mount("narrow");
     await act(async () => {});
     expect(getByTestId("chat-panel").getAttribute("data-session-enabled")).toBe("true");
+  });
+});
+
+/**
+ * Owner, installed app, 2026-09-08: *"if I press X while it is working, the work seems to just
+ * stop."* It did. `Surface` unmounts its children when its exit window closes, and the panel's ACP
+ * session stops itself on unmount — so the press killed the adapter process and the transcript.
+ * These cases measure the mount, which is what the session's life hangs on.
+ */
+describe("closing the dock puts the conversation away", () => {
+  function settleFrames() {
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      callback(0);
+      return 1;
+    });
+  }
+
+  it("keeps the panel mounted after the exit window has closed", async () => {
+    settleFrames();
+    const view = mount("narrow");
+    await act(async () => {});
+    view.close();
+    // Well past `EXIT_WINDOW_MS`, which is when the panel used to be destroyed.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    });
+    expect(view.queryByTestId("chat-panel")).not.toBeNull();
+    expect(view.getByTestId("library-agent-dock-frame").getAttribute("data-dock-state")).toBe(
+      "put-away",
+    );
+  });
+
+  it("puts the shut frame out of reach — hidden is not the same as unreachable", async () => {
+    settleFrames();
+    const view = mount("narrow");
+    await act(async () => {});
+    const frame = view.getByTestId("library-agent-dock-frame");
+    expect(frame.hasAttribute("inert")).toBe(false);
+    expect(frame.getAttribute("aria-hidden")).toBeNull();
+    view.close();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    });
+    expect(frame.hasAttribute("inert")).toBe(true);
+    expect(frame.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("hands the session back on reopening rather than building a second one", async () => {
+    settleFrames();
+    const view = mount("narrow");
+    await act(async () => {});
+    const panel = view.getByTestId("chat-panel");
+    view.close();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    });
+    view.reopen();
+    await act(async () => {});
+    // The same DOM node, so React never unmounted it — the ACP session behind it is the one
+    // the person left running.
+    expect(view.getByTestId("chat-panel")).toBe(panel);
+    expect(view.getByTestId("library-agent-dock-frame").getAttribute("data-dock-state")).toBe(
+      "open",
+    );
+    expect(view.getByTestId("chat-panel").getAttribute("data-session-enabled")).toBe("true");
+  });
+
+  it("draws nothing at all before the first opening", () => {
+    settleFrames();
+    const view = render(dock(false));
+    expect(view.queryByTestId("chat-panel")).toBeNull();
+    expect(view.getByTestId("library-agent-dock-frame").getAttribute("data-dock-state")).toBe(
+      "empty",
+    );
+  });
+
+  it("asks the panel to reopen on the folder's latest conversation", async () => {
+    settleFrames();
+    const view = mount("narrow");
+    await act(async () => {});
+    expect(view.getByTestId("chat-panel").getAttribute("data-resume-latest")).toBe("true");
   });
 });
