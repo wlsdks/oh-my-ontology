@@ -4552,7 +4552,14 @@
         "missingLink": "빠진 연결"
       },
       "fix": "고치기",
-      "fixTooltip": "이 항목을 그 문서들에서 고치는 에이전트 턴 한 번을 시작합니다. 어긋남은 두 값을 양쪽에 인용과 함께, 대체된 주장은 현재 값을 앞에, 빠진 연결은 양쪽에 링크를."
+      "fixTooltip": "이 항목을 그 문서들에서 고치는 에이전트 턴 한 번을 시작합니다. 어긋남은 두 값을 양쪽에 인용과 함께, 대체된 주장은 현재 값을 앞에, 빠진 연결은 양쪽에 링크를.",
+      "newPage": "새 문서",
+      "newPageTooltip": "직접 쓰는 문서를 시작합니다. 서식의 절과 created_by: human 만 있는 빈 문서이고, 어느 편집기에서든 채우면 목록이 따라옵니다.",
+      "newPageTitle": "문서 제목",
+      "newPageMake": "만들기",
+      "newPageDone": "{page} 를 만들었습니다. 편집기에서 쓰면 목록이 파일을 따라옵니다.",
+      "newPageExists": "{page} 가 이미 있어 그 문서를 열었습니다.",
+      "newPageFailed": "문서를 만들지 못했습니다. 폴더에 쓸 수 있는지 확인하세요."
     },
     "graph": {
       "title": "그래프",
@@ -4708,6 +4715,10 @@
       "explain": "쉬운 말로 설명해 주세요",
       "placeholder": "또는 직접 묻기",
       "send": "묻기"
+    },
+    "search": {
+      "placeholder": "원문·문서 검색",
+      "matches": "원문 {sources}개 · 문서 {pages}개 일치"
     }
   },
   "libraryImport": {

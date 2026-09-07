@@ -24,6 +24,7 @@ import { writerLabel } from "../../lib/writer-label";
 import { localizeWikiLogSummary } from "../../lib/wiki-log-summary";
 import { controlClass } from "@/shared/ui/control-class";
 import { Chip, RowButton, Tooltip } from "@/shared/ui";
+import { Input } from "@/shared/ui/input";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 
 import { isAdvisoryWikiCode, isWikiFolderCode } from "../../lib/merge-wiki-verdict";
@@ -127,6 +128,8 @@ export interface LibrarySectionProps {
   writeMode?: "auto" | "ask";
   /** Files the last answer the agent gave as a wiki page; null when there is none. */
   onFileAnswer?: (() => void) | null;
+  /** Starts a page a person writes by hand, from a title. Null where the folder cannot be written. */
+  onNewPage?: ((title: string) => void) | null;
   onWriteModeChange?: ((mode: "auto" | "ask") => void) | null;
   /**
    * The brain picker, when this computer offers two and Compile can therefore be pointed
@@ -253,6 +256,7 @@ export function LibrarySection({
   hasWikiTemplate = true,
   writeMode = "auto",
   onFileAnswer = null,
+  onNewPage = null,
   onWriteModeChange = null,
   brainControl,
   compileNote,
@@ -265,6 +269,22 @@ export function LibrarySection({
    * this list has — and the rest fold behind a count a person can open.
    */
   const [candidatesOpen, setCandidatesOpen] = useState(false);
+  /*
+   * One search over both lists (owner direction 2026-09-07; the LLM Wiki pattern reaches
+   * for a search tool once the folder grows). A source matches on its path, a page on its
+   * title or on the text the Library already holds for the contract check, so nothing is
+   * read twice. The headers keep the folder's totals; the line under the field says what
+   * matched.
+   */
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const matches = (text: string | null | undefined) => (text ?? "").toLowerCase().includes(needle);
+  const visibleSources = needle ? model.sources.filter((row) => matches(row.path)) : model.sources;
+  const visiblePages = needle
+    ? model.wikiPages.filter((page) => matches(page.title) || matches(model.pageTexts.get(page.slug)))
+    : model.wikiPages;
+  const [newPageOpen, setNewPageOpen] = useState(false);
+  const [newPageTitle, setNewPageTitle] = useState("");
   const orderedCandidates = [...candidates].sort((a, b) => Number(isMapKind(b.kind)) - Number(isMapKind(a.kind)));
   const shownCandidates = candidatesOpen ? orderedCandidates : orderedCandidates.slice(0, CANDIDATE_FOLD);
   const foldedCandidates = orderedCandidates.length - shownCandidates.length;
@@ -281,6 +301,24 @@ export function LibrarySection({
     <>
       {/* No `min-h-0` and no overflow: the column above owns the one scroller, and a
           section that could shrink is a section that can cut a row in half. */}
+      {model.sources.length + model.wikiPages.length > 0 ? (
+        <div className="flex flex-none flex-col gap-1 px-3 pb-2">
+          <Input
+            data-testid="library-search"
+            size="sm"
+            type="search"
+            aria-label={t("search.placeholder")}
+            placeholder={t("search.placeholder")}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          {needle ? (
+            <p data-testid="library-search-matches" className="text-caption text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
+              {t("search.matches", { sources: visibleSources.length, pages: visiblePages.length })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <section data-testid="library-sources" className="flex flex-col pb-1">
         <SectionHeader
           icon={
@@ -343,7 +381,7 @@ export function LibrarySection({
               aria-label={t("sources.listAria")}
               className="flex flex-col gap-0.5 px-2"
             >
-              {model.sources.map((row) => {
+              {visibleSources.map((row) => {
                 const active = row.path === selectedSourcePath;
                 const stateLabel = t(`sources.state.${row.state}.label`);
                 return (
@@ -488,6 +526,22 @@ export function LibrarySection({
                       </Chip>
                     </Tooltip>
                   ) : null}
+                  {onNewPage ? (
+                    <Tooltip content={t("wiki.newPageTooltip")}>
+                      <Chip
+                        data-testid="library-new-page"
+                        onClick={() => setNewPageOpen((open) => !open)}
+                        disabled={busy}
+                        tone="muted"
+                        aria-expanded={newPageOpen}
+                        className="flex-none hover:text-[color:var(--color-text-primary)]"
+                        aria-label={t("wiki.newPageTooltip")}
+                      >
+                        <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
+                        <span className="min-w-0 truncate">{t("wiki.newPage")}</span>
+                      </Chip>
+                    </Tooltip>
+                  ) : null}
                   {onFileAnswer ? (
                     /* The LLM Wiki pattern's "answers can be filed back": the last answer
                        becomes a page under wiki/answers/, judged by the same contract. */
@@ -544,6 +598,40 @@ export function LibrarySection({
                     </span>
                   ) : null}
                 </span>
+                {onNewPage && newPageOpen ? (
+                  <span data-testid="library-new-page-row" className="flex min-w-0 items-center gap-1 px-1 pt-1">
+                    <Input
+                      data-testid="library-new-page-title"
+                      size="sm"
+                      aria-label={t("wiki.newPageTitle")}
+                      placeholder={t("wiki.newPageTitle")}
+                      value={newPageTitle}
+                      autoFocus
+                      onChange={(event) => setNewPageTitle(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") setNewPageOpen(false);
+                        if (event.key === "Enter" && newPageTitle.trim()) {
+                          onNewPage(newPageTitle.trim());
+                          setNewPageTitle("");
+                          setNewPageOpen(false);
+                        }
+                      }}
+                      className="min-w-0 flex-1"
+                    />
+                    <Chip
+                      data-testid="library-new-page-make"
+                      tone="muted"
+                      disabled={busy || newPageTitle.trim() === ""}
+                      onClick={() => {
+                        onNewPage(newPageTitle.trim());
+                        setNewPageTitle("");
+                        setNewPageOpen(false);
+                      }}
+                    >
+                      {t("wiki.newPageMake")}
+                    </Chip>
+                  </span>
+                ) : null}
                 {/* The picker is what the buttons beside it will run on; a control on its
                     own row reads as a setting rather than as part of the press. */}
                 {brainControl ? (
@@ -624,7 +712,7 @@ export function LibrarySection({
               aria-label={t("wiki.listAria")}
               className="flex flex-col gap-0.5 px-2"
             >
-              {model.wikiPages.map((page) => {
+              {visiblePages.map((page) => {
                 const active = page.slug === selectedSlug;
                 const verdict = model.verdicts.get(page.slug);
                 /*

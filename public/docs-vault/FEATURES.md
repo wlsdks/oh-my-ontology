@@ -1421,6 +1421,14 @@ is under the pointer or the keyboard: an original file, a wiki page, or a concep
 map, each with what its lines mean and what pressing does; the **Names without a page**
 header carries a tooltip saying why only map kinds can be proposed.
 
+**Search, and a page of your own** (2026-09-07). One field above the lists filters both:
+a source by its path, a page by its title or by the text the Library already holds for
+the contract check, with a line saying how many of each matched; the headers keep the
+folder's totals. **New page** starts a page a person writes by hand — the contract's
+sections, `created_by: human`, empty `sources:` — opens it, and leaves the writing to any
+editor; the folder watcher brings the text back and the list says what the page still
+lacks.
+
 **Fix what the check found** (2026-09-07). The check's closing block also lists its
 findings — a disagreement, a superseded claim, a missing link — each with the pages it
 touches, and the Library lists them under **What the check found** with a **Fix** chip. Fix

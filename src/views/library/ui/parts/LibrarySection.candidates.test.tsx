@@ -29,7 +29,7 @@ const CANDIDATES: LintNodeCandidate[] = [
   { name: "Teodor Vasquez", kind: "person", pages: ["wiki/a"], why: "" },
 ];
 
-function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null, writeMode = "auto", findings = [], onFix = null }: { onPropose: ((c: LintNodeCandidate) => void) | null; candidates?: LintNodeCandidate[]; onWriteModeChange?: ((mode: "auto" | "ask") => void) | null; writeMode?: "auto" | "ask"; findings?: LintFinding[]; onFix?: ((f: LintFinding) => void) | null }) {
+function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null, writeMode = "auto", findings = [], onFix = null, onNewPage = null }: { onPropose: ((c: LintNodeCandidate) => void) | null; candidates?: LintNodeCandidate[]; onWriteModeChange?: ((mode: "auto" | "ask") => void) | null; writeMode?: "auto" | "ask"; findings?: LintFinding[]; onFix?: ((f: LintFinding) => void) | null; onNewPage?: ((title: string) => void) | null }) {
   const t = useTranslations("library");
   return (
     <LibrarySection
@@ -49,6 +49,7 @@ function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null,
       onWriteModeChange={onWriteModeChange}
       findings={findings}
       onFix={onFix}
+      onNewPage={onNewPage}
       /*
        * `transferNote` became `compileNote` and the drop hint left this column for the
        * empty-folder stage (2026-09-07 merge). The case is unchanged; it points at the
@@ -119,6 +120,25 @@ describe("names without a page become node candidates a person can propose", () 
     expect(row.textContent).toContain("disagreement · a, b");
     fireEvent.click(screen.getByTestId("library-finding-fix"));
     expect(onFix).toHaveBeenCalledWith(findings[0]);
+  });
+
+  it("filters both lists from one field and says what matched", () => {
+    mount(<Harness onPropose={null} candidates={[]} />);
+    const rows = () => screen.getByTestId("library-wiki-list").querySelectorAll('[data-testid^="library-wiki-wiki/"]');
+    expect(rows()).toHaveLength(2);
+    fireEvent.change(screen.getByTestId("library-search"), { target: { value: "b" } });
+    expect(rows()).toHaveLength(1);
+    expect(screen.getByTestId("library-search-matches").textContent).toContain("1 page");
+  });
+
+  it("starts a page from a title on Enter and hands the title back", () => {
+    const onNewPage = vi.fn();
+    mount(<Harness onPropose={null} candidates={[]} onNewPage={onNewPage} />);
+    fireEvent.click(screen.getByTestId("library-new-page"));
+    const title = screen.getByTestId("library-new-page-title");
+    fireEvent.change(title, { target: { value: "Meeting notes" } });
+    fireEvent.keyDown(title, { key: "Enter" });
+    expect(onNewPage).toHaveBeenCalledWith("Meeting notes");
   });
 
   it("shows no rows when the last check named nobody, and no chip where no agent can run", () => {

@@ -4552,7 +4552,14 @@
         "missingLink": "missing link"
       },
       "fix": "Fix",
-      "fixTooltip": "Start one agent turn that repairs this on the pages named: both values with both citations for a disagreement, the current value first for a superseded claim, links both ways for a missing link."
+      "fixTooltip": "Start one agent turn that repairs this on the pages named: both values with both citations for a disagreement, the current value first for a superseded claim, links both ways for a missing link.",
+      "newPage": "New page",
+      "newPageTooltip": "Start a page you write yourself: the contract's sections and created_by: human, empty until you fill it in any editor. The list updates by itself.",
+      "newPageTitle": "Page title",
+      "newPageMake": "Make",
+      "newPageDone": "Made {page}. Write it in your editor; the list follows the file.",
+      "newPageExists": "{page} already exists; opened it instead.",
+      "newPageFailed": "Could not make the page. Check the folder can be written."
     },
     "graph": {
       "title": "Graph",
@@ -4708,6 +4715,10 @@
       "explain": "Explain it in plain words",
       "placeholder": "Or ask in your own words",
       "send": "Ask"
+    },
+    "search": {
+      "placeholder": "Search sources and pages",
+      "matches": "{sources, plural, one {# source} other {# sources}} · {pages, plural, one {# page} other {# pages}} match"
     }
   },
   "libraryImport": {

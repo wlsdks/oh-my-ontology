@@ -40,6 +40,7 @@ import {
   buildFixBrief,
   parseLintFindings,
   buildAnswerPage,
+  buildHumanPage,
   writeWikiFile,
 } from "@/features/library";
 import {
@@ -551,6 +552,26 @@ export function LibraryPage() {
     [agent, locale, nativeVaultRootPath],
   );
 
+  const handleNewPage = useCallback(
+    async (title: string) => {
+      if (!handle) return;
+      const page = buildHumanPage({ title, now: new Date() });
+      if (knownSlugs.has(page.slug)) {
+        toast.show(t("wiki.newPageExists", { page: page.slug }), "error");
+        setSelected({ kind: "wiki", slug: page.slug });
+        return;
+      }
+      try {
+        await writeWikiFile(handle, page.path, page.text);
+        setSelected({ kind: "wiki", slug: page.slug });
+        toast.show(t("wiki.newPageDone", { page: page.slug }), "success");
+      } catch (err) {
+        toast.show(err instanceof Error && err.message ? err.message : t("wiki.newPageFailed"), "error");
+      }
+    },
+    [handle, knownSlugs, t, toast],
+  );
+
   const handleFileAnswer = useCallback(async () => {
     if (!lastAnswer || !handle) return;
     const page = buildAnswerPage({
@@ -1052,6 +1073,7 @@ export function LibraryPage() {
             hasWikiTemplate={docs.some((doc) => doc.slug === "wiki/_template")}
             writeMode={writeMode}
             onFileAnswer={lastAnswer ? handleFileAnswer : null}
+            onNewPage={handle ? handleNewPage : null}
             onWriteModeChange={changeWriteMode}
             onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
             /*
