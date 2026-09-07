@@ -4425,7 +4425,9 @@
       "playwright": "웹 페이지를 열어 접근성 스냅샷으로 이동·클릭·입력·읽기를 합니다.",
       "context7": "라이브러리의 현재 버전 문서와 코드 예시를 가져옵니다."
     },
-    "attachedToast": "{name} 을(를) 붙였어요. 아직 꺼져 있고, 켜면 에이전트가 씁니다."
+    "attachedToast": "{name} 을(를) 붙였어요. 아직 꺼져 있고, 켜면 에이전트가 씁니다.",
+    "foundMore": "{count}개 더 보기",
+    "foundLess": "접기"
   },
   "library": {
     "title": "자료실",

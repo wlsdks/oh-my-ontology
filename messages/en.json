@@ -4425,7 +4425,9 @@
       "playwright": "Open web pages and navigate, click, type and read through accessibility snapshots.",
       "context7": "Current, version-specific documentation and code examples for a library."
     },
-    "attachedToast": "{name} is attached and off. Switch it on when you want the agent to use it."
+    "attachedToast": "{name} is attached and off. Switch it on when you want the agent to use it.",
+    "foundMore": "{count} more",
+    "foundLess": "Fold"
   },
   "library": {
     "title": "Library",

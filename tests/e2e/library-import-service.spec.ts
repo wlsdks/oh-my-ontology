@@ -58,15 +58,17 @@ test("자료실에 서비스에서 가져오는 문이 있고, 전문 용어를 
   await expect(page.getByTestId("library-import-step")).toHaveAttribute("data-step", "connect");
 
   /*
-   * The sentence that has to be here before anybody presses Connect: a window opens, and the
-   * coding agent — not Atlas — opens it and keeps what comes back. Claiming custody Atlas does
-   * not have is the failure this line exists to prevent (PO steward, 2026-09-07).
+   * The sentences that have to be here before anybody presses Connect (2026-09-07, evening):
+   * Notion is a program with one token now, so the step asks for that value, says it goes to
+   * the keychain and not the folder, and that the coding tool — not Atlas — is what reaches the
+   * service with it. Claiming custody Atlas does not have is the failure this line prevents.
    */
-  await expect(dialog).toContainText("코딩 도구가 열고");
-  await expect(dialog).toContainText("취소되지는 않아요");
-  // Told that the row does not revoke, and told where the real lock is (cold walkthrough).
-  await expect(page.getByTestId("library-import-revoke")).toHaveAttribute("href", /notion\.com/);
-  await expect(page.getByTestId("library-import-connect")).toBeVisible();
+  await expect(dialog).toContainText("키체인");
+  await expect(dialog).toContainText("코딩 도구");
+  await expect(page.getByTestId("library-import-token")).toBeVisible();
+  await expect(page.getByTestId("library-import-token-issue")).toHaveAttribute("href", /notion\.so/);
+  // The press waits for the value.
+  await expect(page.getByTestId("library-import-connect")).toBeDisabled();
 });
 
 test("웹에서는 못 누를 버튼을 내밀지 않고, 대신 무엇이 되었는지 말한다", async ({ page }) => {
@@ -89,6 +91,7 @@ test("웹에서는 못 누를 버튼을 내밀지 않고, 대신 무엇이 되�
   await page.waitForLoadState("networkidle");
   await page.getByTestId("library-start-import").click();
   await page.locator('[data-testid="library-import-service"][data-service="notion"]').click();
+  await page.getByTestId("library-import-token").fill("ntn_e2e_value");
   await page.getByTestId("library-import-connect").click();
 
   await expect(page.getByTestId("library-import-step")).toHaveAttribute("data-step", "choose");

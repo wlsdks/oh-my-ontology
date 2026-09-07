@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus, X } from 'lucide-react';
 
 import { Link } from '@/i18n/navigation';
 import { DESTINATION_HREF } from '@/shared/config/destinations';
@@ -853,12 +853,25 @@ function ConnectorDetailDialog({
     >
       {connector ? (
         <>
-          <h2
-            id={`${testIdPrefix}-detail-title`}
-            className="text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]"
-          >
-            {connector.name}
-          </h2>
+          {/* Close sits in the corner, as in the add dialog; Escape and the scrim do the same. */}
+          <div className="flex items-start justify-between gap-3">
+            <h2
+              id={`${testIdPrefix}-detail-title`}
+              className="min-w-0 truncate text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]"
+            >
+              {connector.name}
+            </h2>
+            <IconButton
+              label={t('close')}
+              size="sm"
+              tone="muted"
+              data-testid={`${testIdPrefix}-item-close`}
+              className="-mr-1 -mt-1 shrink-0"
+              onClick={onClose}
+            >
+              <X size={ICON_SIZE.lg} aria-hidden />
+            </IconButton>
+          </div>
           <p className="mt-2 text-label text-[color:var(--color-text-quaternary)]">
             {t('whatRunsLabel')}
           </p>
@@ -907,7 +920,7 @@ function ConnectorDetailDialog({
             testIdPrefix={testIdPrefix}
           />
 
-          <div className="mt-4 flex items-center justify-between gap-2">
+          <div className="mt-4 flex items-center justify-start gap-2">
             <button
               type="button"
               data-testid={`${testIdPrefix}-item-remove`}
@@ -928,9 +941,6 @@ function ConnectorDetailDialog({
             >
               {t('remove')}
             </button>
-            <Button variant="ghost" onClick={onClose}>
-              {t('close')}
-            </Button>
           </div>
         </>
       ) : null}

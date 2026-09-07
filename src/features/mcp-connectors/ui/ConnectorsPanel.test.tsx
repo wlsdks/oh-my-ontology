@@ -886,6 +886,66 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     expect(notion.querySelector('[data-testid="connectors-catalogue-attached"]')).not.toBeNull();
   });
 
+  it('이 컴퓨터에서 찾은 것은 세 줄까지만 펼치고, 나머지는 개수로 접어 둔다 — 검색하면 전부 보인다', async () => {
+    /*
+     * Installed-app check, 2026-09-07: on a developer's machine the scan found nine servers —
+     * chrome-devtools, codegraph, pencil — and Notion sat below the fold. The services a person
+     * came for lead; the scan follows, folded past three rows unless they searched.
+     */
+    bridge.discovered = {
+      connectors: ['alpha', 'bravo', 'charlie', 'delta', 'echo'].map((name) => ({
+        source: 'claude-user',
+        name,
+        transport: 'stdio',
+        // No letter shared with the names below, so a search matches names alone.
+        command: `/opt/x/${name}`,
+        args: [],
+        envKeys: [],
+        headerKeys: [],
+      })),
+      sources: [],
+    };
+    const vault = fakeVault();
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-add-open')).toBeInTheDocument());
+    openAdd();
+    await waitFor(() => expect(screen.getAllByTestId('connectors-found-item')).toHaveLength(3));
+    // The catalogue stands above the scan.
+    const groups = screen.getByTestId('connectors-add-groups');
+    const order = Array.from(groups.querySelectorAll('section')).map((node) =>
+      node.getAttribute('data-testid'),
+    );
+    expect(order.indexOf('connectors-catalogue-section')).toBeLessThan(
+      order.indexOf('connectors-found-section'),
+    );
+    const more = screen.getByTestId('connectors-found-more');
+    expect(more).toHaveTextContent('2');
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(more);
+    expect(screen.getAllByTestId('connectors-found-item')).toHaveLength(5);
+    expect(screen.getByTestId('connectors-found-more')).toHaveAttribute('aria-expanded', 'true');
+    // A search shows every match and hides the fold: the person asked.
+    fireEvent.change(screen.getByTestId('connectors-search'), { target: { value: 'a' } });
+    await waitFor(() => expect(screen.queryByTestId('connectors-found-more')).toBeNull());
+    // alpha, bravo, charlie, delta — four, past the fold, all shown.
+    expect(screen.getAllByTestId('connectors-found-item')).toHaveLength(4);
+  });
+
+  it('연결 도구 상세도 닫기는 모서리 하나다', async () => {
+    const vault = fakeVault(seeded(stdioRecord));
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-item-menu')).toBeInTheDocument());
+    openDetail();
+    const dialog = await screen.findByTestId('connectors-item-dialog');
+    expect(dialog.querySelectorAll('[data-testid="connectors-item-close"]')).toHaveLength(1);
+    const closers = Array.from(dialog.querySelectorAll('button')).filter(
+      (button) => button.textContent?.trim() === '닫기',
+    );
+    expect(closers).toHaveLength(0);
+    fireEvent.click(screen.getByTestId('connectors-item-close'));
+    await waitFor(() => expect(screen.queryByTestId('connectors-item-dialog')).toBeNull());
+  });
+
   it('닫기는 모서리에 하나, 그리고 Escape — 목록 아래에 버튼을 두지 않는다', async () => {
     const vault = fakeVault();
     draw(<Panel handle={vault.handle} />);
