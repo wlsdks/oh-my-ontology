@@ -16,12 +16,12 @@ import { buildTopologyDeeplinkForDoc, type VaultDoc } from "@/entities/docs-vaul
  * |---|---|---|
  * | `source` | `manifest.sources` | every file in the folder, cited or not — an unattached dot **is** the fact that nobody has written it up |
  * | `page` | wiki pages | one write-up |
- * | `concept` | a page's `[[slug]]` that resolves to a doc carrying `kind:` | the reach from a write-up into the ontology |
+ * | `concept` | a page's `[[slug]]` that resolves to a doc carrying `kind:`, or a `kind:` doc whose body links a page | the reach between a write-up and the ontology, in either direction |
  *
  * | Edge | Read from | Means |
  * |---|---|---|
  * | `cites` | the page's `sources:` frontmatter | this write-up was made from that file |
- * | `mentions` | the page's body wikilinks | this write-up names that concept |
+ * | `mentions` | the page's body wikilinks, and a concept's body `[[wiki/…]]` links | one names the other: a write-up names a concept, or a node cites the write-ups it was drawn from (a node the wiki proposed carries them as evidence, 2026-09-06) |
  *
  * **An unresolved link is not drawn.** `[[src:sources/quarter-plan.pdf#p2]]` — the
  * citation form wiki pages use inside a bullet — resolves to no document, and neither
@@ -237,6 +237,28 @@ export function buildLibraryGraph({
       if (drawn.has(id)) continue;
       drawn.add(id);
       edges.push({ id, source: from, target: to, relation: "mentions", certainty: "current" });
+    }
+  }
+
+  // ── mentions, the other way: a concept whose body links a wiki page. The node the
+  //    wiki proposed cites its pages as `[[wiki/…]]`; without this the bridge the Library
+  //    made was invisible on the Library's own picture (installed app, 2026-09-07). ──
+  for (const doc of docs) {
+    if (!isConcept(doc) || pages.has(doc.slug)) continue;
+    for (const target of doc.linksOut) {
+      if (!pages.has(target)) continue;
+      const from = conceptId(doc.slug);
+      push({
+        id: from,
+        kind: "concept",
+        label: doc.title,
+        ref: doc.slug,
+        href: buildTopologyDeeplinkForDoc(doc),
+      });
+      const id = `mentions:${doc.slug}→${target}`;
+      if (drawn.has(id)) continue;
+      drawn.add(id);
+      edges.push({ id, source: from, target: pageId(target), relation: "mentions", certainty: "current" });
     }
   }
 

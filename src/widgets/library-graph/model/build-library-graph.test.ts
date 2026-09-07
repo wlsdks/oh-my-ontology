@@ -66,6 +66,39 @@ describe("the library graph", () => {
     ]);
   });
 
+  it("draws a map node's link to a wiki page as a mention the other way — the bridge the wiki proposed", () => {
+    // The node the Library proposed cites its pages as `[[wiki/…]]` (2026-09-06); on the
+    // installed app the picture still showed no concept, because only page→concept was read.
+    const timber = doc({
+      slug: "elements/timber-sash-frames",
+      title: "Timber sash frames",
+      frontmatter: { kind: "element" },
+      linksOut: ["wiki/site-survey", "wiki/change-request", "wiki/missing"],
+    });
+    const survey = doc({ slug: "wiki/site-survey", frontmatter: {}, linksOut: [] });
+    const change = doc({ slug: "wiki/change-request", frontmatter: {}, linksOut: [] });
+    const graph = buildLibraryGraph({
+      docs: [timber, survey, change],
+      wikiPages: [page("wiki/site-survey"), page("wiki/change-request")],
+      sources: [],
+    });
+    const concept = graph.nodes.find((node) => node.kind === "concept");
+    expect(concept?.ref).toBe("elements/timber-sash-frames");
+    expect(graph.edges.filter((edge) => edge.relation === "mentions").map((edge) => `${edge.source}→${edge.target}`)).toEqual([
+      "concept:elements/timber-sash-frames→page:wiki/site-survey",
+      "concept:elements/timber-sash-frames→page:wiki/change-request",
+    ]);
+    expect(graph.counts).toMatchObject({ concepts: 1, mentions: 2 });
+  });
+
+  it("draws one concept when a page names it and it cites the page back, with one edge each way", () => {
+    const node = doc({ slug: "elements/lift", title: "Lift", frontmatter: { kind: "element" }, linksOut: ["wiki/survey"] });
+    const survey = doc({ slug: "wiki/survey", frontmatter: {}, linksOut: ["elements/lift"] });
+    const graph = buildLibraryGraph({ docs: [node, survey], wikiPages: [page("wiki/survey")], sources: [] });
+    expect(graph.nodes.filter((n) => n.kind === "concept")).toHaveLength(1);
+    expect(graph.counts.mentions).toBe(2);
+  });
+
   it("does not draw a link that resolves to nothing — a citation marker is not a node", () => {
     const graph = buildLibraryGraph({
       docs: [
