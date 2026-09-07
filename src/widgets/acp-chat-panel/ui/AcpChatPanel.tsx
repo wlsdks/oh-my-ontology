@@ -170,13 +170,18 @@ const EMPTY_KNOWN_RELATIONS: ReadonlySet<string> = new Set();
  *
  * It is a floor, not a width: above it the slots still divide the row equally.
  */
-const PICKER_MIN_WIDTH_CLASS = 'min-w-[104px]';
+/*
+ * A quiet picker is content-sized: the 104px floor the boxed pickers had put a short
+ * mode name's chevron a hand-span from its word (owner, 2026-09-07, "a bit prettier").
+ * What remains is a floor that keeps a chevron from standing alone.
+ */
+const PICKER_MIN_WIDTH_CLASS = 'min-w-[3rem]';
 /*
  * A picker alone on its row used to take the whole composer width — a 600px box for two
  * entries (installed app, 2026-09-07, the owner's "buttons are too big"). The equal-slot
  * rule still shares the row between the two pickers; this stops one from swallowing it.
  */
-const PICKER_MAX_WIDTH_CLASS = 'max-w-[18rem]';
+const PICKER_MAX_WIDTH_CLASS = 'max-w-[16rem]';
 
 interface SuggestionRowsProps {
   heading: string;

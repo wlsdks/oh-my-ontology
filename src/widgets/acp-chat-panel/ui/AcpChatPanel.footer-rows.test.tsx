@@ -122,7 +122,7 @@ describe('the composer footer is one quiet row: pickers left, status and buttons
     await bootPanel();
     for (const testId of ['acp-chat-runtime', 'acp-chat-mode']) {
       const wrapper = screen.getByTestId(testId).closest('.relative')!;
-      expect(wrapper.className, testId).toContain('min-w-[104px]');
+      expect(wrapper.className, testId).toContain('min-w-[3rem]');
     }
   });
 });

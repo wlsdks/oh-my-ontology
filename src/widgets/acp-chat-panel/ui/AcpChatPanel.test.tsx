@@ -224,7 +224,7 @@ describe('대화 패널 — 일어난 일만 그린다', () => {
     // `className` lands on the Select's own wrapper; the trigger inside it is `w-full`.
     // A quiet picker is content-sized with a floor, never an equal slot that could swell.
     const modeWrapper = screen.getByTestId('acp-chat-mode').closest('.relative')!;
-    expect(modeWrapper.className).toContain('min-w-[104px]');
+    expect(modeWrapper.className).toContain('min-w-[3rem]');
     expect(modeWrapper.className).toContain('shrink');
     // One tool, one model: nothing to choose, so the tool's name carries the model as text
     // instead of a one-entry picker (owner, 2026-09-07: the model is the tool's own entry).
