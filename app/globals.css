@@ -657,6 +657,30 @@
   --page-bottom-breath: 40px;
 
   /*
+   * ── The floating «back to top» pill, and the room the page owes it ─────────────────
+   *
+   * `BackToTopButton` is laid over the reading pane's scroll area on purpose, so it holds
+   * its screen position while the body scrolls. That is fine everywhere except at the end
+   * of the scroll, where the page stops moving and whatever the pill covers stays covered.
+   *
+   * Owner report on the installed app, 2026-09-08: at the foot of the Library's check
+   * results the pill sat on the "N more names" fold chip and hid its words. Measured
+   * the same day on the wiki reader at 1400×860 / 1200×800 / 1040×720, the last line of the
+   * page ended **8px below the pill's top edge** at all three, and at 1040 (the app's window
+   * floor, where the pane is narrowest) 60px of that line's width sat behind the pill —
+   * `pb` on the scroll container was 0 and the whole gap was the last paragraph's own margin.
+   *
+   * So the two values are **one arithmetic**, not two decisions: the page reserves the
+   * pill's inset plus its own height plus 12px of breath, and the pill's inset is the only
+   * number anyone edits. `--chrome-tile-size` is the pill's height and rises to 44 on coarse
+   * pointers, so the reserve follows it without a second rule.
+   */
+  --doc-reading-back-to-top-inset: 24px;
+  --doc-reading-back-to-top-clearance: calc(
+    var(--doc-reading-back-to-top-inset) + var(--chrome-tile-size) + 12px
+  );
+
+  /*
    * Setup measurement width — the single column width holding one task for destinations "not yet capable of their own work" (2026-07-26, destination redesign).
    *
    * Why a token: The `/git/` disconnected state has three steps (open in app → choose folder → start recording), and users pass through these three **continuously**. If widths differ per state, the surface expands and contracts with each step, reading as "jumped to another page." Sharing one measurement width makes the three steps feel like **one task surface**.
@@ -3671,6 +3695,18 @@ primary colors reference global monochrome/single indigo ladder (`--color-indigo
       );
       /* Bottom-right readout (legend + status) same — remove tab bar occlusion. */
       --topology-relation-legend-bottom-inset: calc(
+        var(--topology-mobile-bottom-tab-reserve) + 12px
+      );
+      /*
+       * The reading pane's «back to top» pill is bottom-anchored inside the pane, and the
+       * pane runs to the bottom of the shell slot — so below `lg` the fixed tab bar stood on
+       * top of it. Measured 2026-09-08 on `/ko/library/` with a wiki page open:
+       * `elementsFromPoint` at the pill's own centre returned the tab bar's `<a>` first at
+       * both 768×950 and 390×844, i.e. the control was neither readable nor pressable. It
+       * takes the same `+ 12px` step above the reserve as the two rows above, and because
+       * the clearance token is derived from this inset the page's reserve follows on its own.
+       */
+      --doc-reading-back-to-top-inset: calc(
         var(--topology-mobile-bottom-tab-reserve) + 12px
       );
     }

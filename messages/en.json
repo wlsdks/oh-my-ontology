@@ -4754,7 +4754,9 @@
       "showSources": "Show {count, plural, one {# source} other {# sources}}"
     },
     "conversation": {
-      "open": "Conversation"
+      "open": "Conversation",
+      "running": "{phase} · {target}",
+      "runningLabel": "Open the conversation. {agent} is still working: {phase}."
     }
   },
   "libraryImport": {

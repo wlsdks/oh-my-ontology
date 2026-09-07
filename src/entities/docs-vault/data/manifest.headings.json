@@ -6489,6 +6489,16 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-08 — The Library graph stands still; hover changes ink, never position",
+      "slug": "2026-09-08-the-library-graph-stands-still-hover-changes-ink-never-position"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-08 — Closing the Library dock puts the conversation away; reopening resumes the latest",
+      "slug": "2026-09-08-closing-the-library-dock-puts-the-conversation-away-reopening-resumes-the-latest"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-08 — Kind tone and the document column become tokens, and colour literals get a gate",
       "slug": "2026-09-08-kind-tone-and-the-document-column-become-tokens-and-colour-literals-get-a-gate"
     },
@@ -9879,6 +9889,11 @@
       "depth": 3,
       "text": "Touch & tablet responsive contract (2026-07-23, Responsive Audit Round)",
       "slug": "touch-tablet-responsive-contract-2026-07-23-responsive-audit-round"
+    },
+    {
+      "depth": 3,
+      "text": "A floating control laid over a scroll area owes the page a reserve (2026-09-08)",
+      "slug": "a-floating-control-laid-over-a-scroll-area-owes-the-page-a-reserve-2026-09-08"
     },
     {
       "depth": 3,

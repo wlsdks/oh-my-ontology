@@ -38,6 +38,27 @@ type AcpChatPanelProps = ComponentProps<typeof AcpChatPanel>;
  * started from here and is compiling *this* folder. One lucide `Library` glyph, matching
  * the destination's own rail icon — a second wordmark would be chrome, and a second title
  * would be two headings in eight pixels of each other.
+ *
+ * ## Closing puts the conversation away; it does not end it (owner, 2026-09-08)
+ *
+ * *"If I press X mid-conversation and come back in, does the conversation continue? It is
+ * supposed to keep working in the background, but it looks like the work just stops."* It
+ * did stop. `Surface` unmounts its children once the exit window closes, unmounting
+ * `AcpChatPanel` with them, and `useAcpSession`'s cleanup calls `stop()` — which calls
+ * `stopAcpSession` and kills the adapter process. A turn in flight died with the press,
+ * and the transcript went with it.
+ *
+ * So the surface stays open for as long as the conversation stands. **The frame is what
+ * closes**: its width transitions to zero over `--agent-panel-reflow-duration`, taking the
+ * panel with it, and while it is shut the frame is `inert` and `aria-hidden`, so nothing
+ * inside is reachable by tab, pointer or screen reader. What is given up is the surface's
+ * own 140ms brightness exit, and that reads correctly rather than as a loss: the
+ * conversation is **put away**, not dismissed, and it is still there when the frame opens
+ * again — with its transcript, its permission card and its running turn.
+ *
+ * The conversation ends when the person leaves the Library. This whole subtree unmounts
+ * then, `stop()` runs, and the adapter really does exit — a background turn is background
+ * work on this screen, not a process outliving the screen that started it.
  */
 export interface LibraryAgentOpeningRequest {
   /**
@@ -70,6 +91,7 @@ export function LibraryAgentDock({
   judgeWrite,
   autoDecide,
   onTurnStarted,
+  onTurnActivityChange,
   onFileAnswer = null,
   noticeActions = null,
   chatWidth,
@@ -94,6 +116,12 @@ export function LibraryAgentDock({
   /** The doors an `auto-allowed` notice carries; see `AcpChatPanelProps.noticeActions`. */
   noticeActions?: AcpChatPanelProps["noticeActions"];
   /**
+   * One turn's observable step and target, or `null` between turns. The page draws the
+   * resting state from it while this dock is shut — a closed dock with a live turn behind it
+   * has to say so, or the background work the owner asked for is invisible work.
+   */
+  onTurnActivityChange?: AcpChatPanelProps["onTurnActivityChange"];
+  /**
    * The dock's width, owned by the page rather than by this frame (2026-09-07).
    *
    * `useChatWidth` keeps the width **during a drag** in local state and only stores it on
@@ -110,7 +138,28 @@ export function LibraryAgentDock({
 }) {
   const tChat = useTranslations("acpChat");
   const tLibrary = useTranslations("library");
+  /*
+   * Only the right-hand wall reads this gate now. `--app-right-dock-width` is dropped the
+   * moment the dock shuts, and surfaces measuring against that wall must not jump into the
+   * space while the frame is still travelling out of it — that is the whole of what the exit
+   * window is for here. What is drawn is decided by `standing` below.
+   */
   const presence = usePanelPresence(open);
+  /*
+   * **Has this conversation stood up?** Separate from whether it is visible.
+   *
+   * Once true it stays true for this dock's life, and it is what keeps `Surface` mounted
+   * through a close. Deriving it from `open` alone is the defect this file's header records:
+   * the panel unmounts, its ACP session stops, and the turn a person left running dies.
+   */
+  const [standing, setStanding] = useState(open);
+  /*
+   * Adjusted during render, which is React's own pattern for a value derived from a prop that
+   * must then outlive it. In an effect it would be one frame late — and that frame is the first
+   * frame of the opening, so the panel would mount after the width had already begun moving.
+   * The condition is what keeps it from looping.
+   */
+  if (open && !standing) setStanding(true);
   /*
    * The session starts once the dock has its width, whichever way it opened. It used to
    * start only for a door's request (the nonce), so a dock opened from the *Conversation*
@@ -151,6 +200,16 @@ export function LibraryAgentDock({
     <div
       data-testid="library-agent-dock-frame"
       data-right-dock={open || presence.mounted ? "library-agent" : undefined}
+      data-dock-state={open ? "open" : standing ? "put-away" : "empty"}
+      /*
+       * A shut frame is **out of reach**, not merely out of sight. The panel behind it keeps
+       * its composer, its buttons and possibly a permission card; `overflow-hidden` hides
+       * them but leaves every one of them tabbable and readable by assistive technology.
+       * `inert` takes the focus with it, which is also what blurs a composer somebody was
+       * typing in when they pressed X.
+       */
+      inert={!open}
+      aria-hidden={!open || undefined}
       onTransitionEnd={(event) => {
         if (event.target === event.currentTarget && event.propertyName === "width" && open) {
           setSettled(true);
@@ -171,9 +230,13 @@ export function LibraryAgentDock({
         open ? "w-full xl:w-[var(--library-agent-chat-width)]" : "pointer-events-none w-0 xl:w-0",
       )}
     >
-      {presence.mounted ? (
+      {standing ? (
         <Surface
-          open={open}
+          /*
+           * Open for as long as the conversation stands, so the panel — and the ACP session
+           * inside it — survives the close. The frame above owns the movement and the reach.
+           */
+          open={standing}
           as="aside"
           motion="overlay"
           data-testid="library-agent-dock"
@@ -208,10 +271,20 @@ export function LibraryAgentDock({
             vaultRoot={vaultRoot}
             mcpServers={mcpServers}
             sessionEnabled={open && settled}
+            /*
+             * Reopening lands in the conversation this folder was last having, rather than in a
+             * blank one (owner, 2026-09-08). It matters here more than on any other dock,
+             * because this is the dock people close: the Library's reader wants the width back.
+             * A live session is untouched by it — `start()` returns at its own lock — so this
+             * decides only what a *cold* dock opens on, which is the case the owner met after
+             * quitting the app.
+             */
+            resumeLatest
             openingRequest={openingRequest}
             judgeWrite={judgeWrite}
             autoDecide={autoDecide}
             onTurnStarted={onTurnStarted}
+            onTurnActivityChange={onTurnActivityChange}
             knownSlugs={knownSlugs}
             noticeActions={noticeActions}
             beforeComposer={

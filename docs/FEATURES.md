@@ -903,7 +903,7 @@ against 1.73 ms approximated at 800; one whole tick is 0.10 / 0.40 / 1.73 ms at 
 800 nodes). Nothing new is installed: Graphology is no longer imported by this widget at
 all.
 
-**Four gestures, and a picture that never freezes.** Dragging a mark pins it under the
+**Four gestures, and a picture that is still until a hand moves it.** Dragging a mark pins it under the
 pointer while the springs pull its neighbours after it, and releasing hands it a capped
 flick — on a folder where six pages cite the same seven sources no layout can separate
 anything, so *pulling one dot out of the tangle* is the reading operation. The wheel zooms
@@ -912,19 +912,49 @@ double-click and a `ChromeTile` in the canvas's corner fit the whole picture; a 
 pointer gets one-finger drag and pinch. Which gesture a press *is* is decided once, at
 pointerdown, past a 7px threshold. Hovering holds the mark, its neighbours and their edges
 at full ink and dims everything else to 35% over `--motion-fast`. Marks are graded 5–10px
-by degree, edges are quadratic bows deeper the longer they run, every mark clears a 1px
-halo of the canvas ground, and every standing name is stroked in that ground before it is
-filled, so a grey label crossed by a grey line is still readable. Once the picture is at
-rest it keeps a deliberately tiny **ambient drift** — 0.28px per axis, 0.4px radial, 7.2s
-period, applied in *screen* pixels so a zoom cannot multiply it, and repainted one frame in
-four. It is an owner directive against the motion charter's own preference and
-`docs/DECISIONS.md` (2026-09-07) records that with its dissent. Under
-`prefers-reduced-motion` there is no settle and no drift: the simulation is run to rest
-synchronously and drawn once, and `tests/e2e/library-graph-alive.spec.ts` proves the canvas
-is byte-identical frame to frame. Recorded on a real display (15 s, 30 fps): the arrival
-decays monotonically over 2.1 s with no stall, the hover dim measures cv 0.12 across its
-ramp, the drag tracks the hand with no stall, and at rest the frame-to-frame change sits at
-the recording's own noise floor.
+by degree, edges are quadratic bows deeper the longer they run, and every mark clears a 1px
+halo of the canvas ground. Under `prefers-reduced-motion` there is no settle: the
+simulation is run to rest synchronously and drawn once, and
+`tests/e2e/library-graph-alive.spec.ts` proves the canvas is byte-identical frame to frame.
+
+**Hover changes ink, never position, and a settled picture stops the loop** (2026-09-08).
+The canvas used to keep a 0.28px / 7.2s **ambient drift** after it settled, repainted one
+frame in four so it would never read as a frozen image. The owner looked at it in the
+installed app — *"why does it wriggle whenever the mouse is on the graph? … get rid of that
+effect"* — and it is gone: no phase, no clock, no per-frame offset. Measured at 1400×860 on
+the seeded folder, three idle seconds went from **362 `requestAnimationFrame` callbacks and
+0.74px of travel to 0 callbacks and a byte-identical bitmap**, and a slow hover across the
+canvas from 0.58px of mark movement to **0px**. What is left wakes the loop only for what a
+person did: hover, focus and selection for their dim ramp; drag, release, resize and a
+changed folder for the physics.
+
+**The caption row was the larger half of that**, and it was invisible at the width it was
+built at. The line under the canvas swaps the legend sentence for a description of the
+pointed-at mark, and the two are different lengths: measured on 2026-09-08, at 1040×720,
+768 and 390 the legend wraps to two lines and the description does not, so the row lost
+20px and the `flex-1` canvas above it **grew by a whole line-height the instant a pointer
+touched a dot**, re-fitted, and moved every mark — fifty times the ambient drift, on every
+hover, at every width except the one the picture was last measured at. Both sentences now
+lie in one grid cell, so the taller sets the row's height and the visible one never changes
+it; the canvas height delta across a hover is 0px at 1400, 1040, 768 and 390.
+`docs/DECISIONS.md` (2026-09-08) carries the reversal and what the 2026-09-07 record staked
+on the other answer; `tests/e2e/library-graph-alive.spec.ts` owns the standing gate — a
+settled canvas that asks for a frame, or a mark that moves under a hovering pointer, fails
+it.
+
+**Three composition fixes came with it**, each measured on the same folder. An unattached
+mark's ring now starts on the **vertical**, where the fit has slack — the connected mass
+settles wider than its canvas, so one loose page at three o'clock used to stretch the
+picture to aspect 1.79 in a 1.25 box and leave a third of the height empty; vertical fill
+went 0.65 → 0.91 at 1400×860 and 0.49 → 0.89 at 1040×720, and the closest pair of marks
+gained 61 → 72px and 30 → 44px of clearance. The ring stands off the mass's **bounding
+box** rather than its centre of gravity, so the standoff is the distance the code states
+instead of the mass's longest half-span. And a standing name is now legible where the mesh
+is densest: it takes **its own mark's ink** (a source's name was set in the edge ink, 1.17:1
+from every line crossing it), it is stroked in a **2px** ground halo — wider than the 1.5px
+citation line that used to run through the glyphs — and it is shortened **in the middle**,
+so `volunteer-email-2026-09-02.txt` and `…-05.txt` no longer render as one identical
+`volunteer-email-2026-0…` on two different squares.
 
 **The original and the write-up cross both ways** (2026-09-06). A wiki page's header names
 the action: one cited source is a single **View original** button carrying the file name;
@@ -1507,7 +1537,30 @@ its own and unfolds above 460px; unfolding it while narrow is the person's choic
 stands. The fold is one icon control in one place — the panel glyph on the column's
 eyebrow line closes it, and the same glyph at the pane's top-left opens it — and the
 reader's way back reads *Graph*, the thing it shows, with no arrow (owner, 2026-09-07). A search whose matches all sit on the other half of the switch says so under the empty list and offers the switch, instead of a count over nothing. A page whose first line is a section heading no longer carries the section gap above it. A *Conversation* chip on the graph's status row and on the reader's top row reopens the dock after it was closed; before, closing it was the end of the transcript. The conversation's composer has one quiet row at its bottom, the way chat composers are laid out elsewhere: the tool with its model as one text picker (*Codex · GPT-5.6-Sol (low)*) and the mode on the left, the status word, past conversations, new conversation and send on the right; a tool that has run out of plan is named as a limit with the hour it lifts, not as a generic problem with a retry. The app's Claude follows the terminal login at every session start: the keychain item the terminal uses is mirrored into the app's own, and the app's cached account name is refreshed with it, so an account switched in the terminal reaches the app without a repair. A door pressed into a broken session restarts the session and then sends, instead of waiting behind the old error. The writer label prints only on the rows that are the exception to the
-folder's majority writer. The scroll-end gate measures the Library's own scrollers.
+folder's majority writer. The scroll-end gate measures the Library's own scrollers. The
+end of a page now keeps room for the floating *Back to top*: the last line stands clear of
+the pill instead of ending behind it — on a wiki page, on *Check results*, and on the Docs
+reader, which is the same pane — and below `lg` the pill itself stands above the bottom tab
+bar rather than behind it (owner, 2026-09-08).
+
+**Closing the dock puts the conversation away** (2026-09-08). Pressing X on the Library's
+conversation used to end it: the panel unmounted, its ACP session stopped, and the adapter
+process was killed — so a turn in flight died with the press and the transcript went with
+it. The panel now stays mounted behind the shut frame. The frame is what closes, in the
+same width movement as before, and while it is shut it is `inert` and `aria-hidden`, so
+nothing behind it can be tabbed into or read out. A turn keeps running, its clock keeps
+counting, and a permission card raised while the dock was shut is still waiting when it
+opens. The conversation ends when the person leaves the Library, which is when the screen
+that started it goes away. While a turn runs behind the shut dock, the same *Conversation*
+chip — right end of the graph's status row and of the reader's top row — says which step is
+running and what it is on (*Editing · Write wiki/contractor-quotes.md*, *Waiting for
+approval · …*) with one indigo dot beside it; there is no second resting surface, because
+one door to one conversation is enough. And reopening lands in **this folder's latest
+conversation** rather than a blank one: the dock asks the adapter for its conversations in
+this folder, resumes the newest, and the past-conversations door is reachable from the
+first ready frame instead of only after a turn. An adapter with no session list, a folder
+with no past conversation, and a conversation the adapter will not reload all fall through
+to a new one, which is what happened before. *New conversation* still means new.
 
 **File the answer** (2026-09-07). After an ask turn ends, a chip in the conversation,
 directly under the answer and above the composer, writes the last answer as a page under

@@ -35,23 +35,21 @@ import { useLibraryGraphEngine } from "./use-library-graph-engine";
  * A picture that shows the whole folder at once is an *overview*, so the pane **is** this
  * canvas whenever nothing is chosen, the way the map fills its own tab.
  *
- * ## Motion — a live simulation, reversing 2026-09-06
+ * ## Motion — live under a hand, still under a gaze
  *
- * ⚠️ This file used to say: *"One settle, then stillness … a live simulation beside a
- * document a person is reading is movement with nothing to say."* The owner looked at the
- * result on 2026-09-07 and rejected it — *"this graph does not move, it is fixed, and
- * that is a shame. Improve it now — it has to be excellent, built to the highest visual
- * standard."* The
- * argument was wrong about this folder: with six pages citing the same seven sources, a
- * settled layout is a hairball, and the only way to read a hairball is to **pull it
- * apart**, which needs physics that are still running when the hand arrives.
+ * The physics is live: `library-force-simulation.ts` steps on `requestAnimationFrame`
+ * while the picture is arriving and re-heats when a hand disturbs it. With ten pages
+ * citing the same eight files a settled layout is a hairball, and the only way to read a
+ * hairball is to **pull it apart** — which needs forces still running when the hand
+ * arrives (2026-09-07, owner).
  *
- * So: `library-force-simulation.ts` steps on `requestAnimationFrame` while the picture is
- * arriving, re-heats when it is disturbed, and afterwards keeps a bounded ambient drift
- * (0.28px per axis, 0.4px radial, 7.2s) so the canvas never reads as a frozen image. Under
- * `prefers-reduced-motion` it settles synchronously and the drift does not exist —
- * an endless drift is exactly the family that preference is for. `docs/DECISIONS.md`,
- * 2026-09-07, carries the reversal, its numbers, and the dissent.
+ * ⚠️ **It also used to keep a 0.28px/7.2s ambient drift after it settled**, so the canvas
+ * never read as a frozen image. The owner reversed that on 2026-09-08 in the installed
+ * app — *"why does it wriggle whenever I put the mouse on the graph? it is hard to look
+ * at … get rid of that strange effect"* — and the drift is gone entirely. What is left is
+ * the rule the reversal is really about: **motion here is only ever the answer to
+ * something a person did.** Hover changes ink and nothing else; the loop stops painting
+ * the moment nothing is moving. `docs/DECISIONS.md`, 2026-09-08.
  */
 
 export interface LibraryGraphSelection {
@@ -378,22 +376,48 @@ export function LibraryGraph({
         {/* The legend: what the three marks mean, and the one verb. `text-label`
             rather than `text-caption` because 9.5px is this product's uppercase-eyebrow
             size and this is the sentence a newcomer has to read; `text-tertiary`
-            because quaternary is for what may go unread (design-lead, 2026-09-06). */}
-        <p
-          id="library-graph-hint"
-          data-testid="library-graph-hint"
-          className={cn(
-            "mt-1.5 text-label leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]",
-            captionQuiet && "max-lg:sr-only",
-          )}
-        >
-          {/* While a mark is under the pointer or the keyboard, the legend's line says what
-              that one mark is and what pressing it does — the same slot, so nothing moves.
-              Owner direction 2026-09-07: the bridge to the map has to read at a glance. */}
-          {activeNode
-            ? t(`graph.describe.${activeNode.kind}`, { name: activeNode.label })
-            : t("graph.legend")}
-        </p>
+            because quaternary is for what may go unread (design-lead, 2026-09-06).
+
+            ⚠️ **The row's height is the legend's, at every width and in every state.**
+            The line below swaps the legend sentence for a description of the pointed-at
+            mark, and "the same slot" was only true where both fitted on one line. Measured
+            on 2026-09-08: at 1040×720, 768 and 390 the legend wraps and the description
+            does not, so the row lost 20px the instant a pointer touched a dot — and the
+            canvas is `flex-1` above it, so it *grew by 20px*, re-fitted, and moved every
+            mark. That is a whole line-height of movement on every hover, against the 0.4px
+            of ambient drift removed the same day, and it is the larger half of what the
+            owner saw. Both sentences are laid in one grid cell so the taller of them sets
+            the height and the visible one never changes it. */}
+        <div className={cn("mt-1.5 grid", captionQuiet && "max-lg:mt-0")}>
+          <p
+            aria-hidden
+            className={cn(
+              "invisible col-start-1 row-start-1 text-label leading-body [word-break:keep-all]",
+              captionQuiet && "max-lg:sr-only",
+            )}
+          >
+            {t("graph.legend")}
+          </p>
+          <p
+            id="library-graph-hint"
+            data-testid="library-graph-hint"
+            /* Quiet is per line, not on the cell: `sr-only` on the wrapper leaves each
+               line laid out at its own size inside a clipped box, so the legend still
+               measured as painted and the guide still had it underneath (CI, 2026-09-08).
+               Both lines take it, so the row collapses and the shelf gets the room. */
+            className={cn(
+              "col-start-1 row-start-1 text-label leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]",
+              captionQuiet && "max-lg:sr-only",
+            )}
+          >
+            {/* While a mark is under the pointer or the keyboard, the legend's line says what
+                that one mark is and what pressing it does — the same slot, so nothing moves.
+                Owner direction 2026-09-07: the bridge to the map has to read at a glance. */}
+            {activeNode
+              ? t(`graph.describe.${activeNode.kind}`, { name: activeNode.label })
+              : t("graph.legend")}
+          </p>
+        </div>
         {/* The keyboard path is said to the people who need it and not to the ones
             who do not: it is part of the canvas's description, never a rendered line
             telling a phone to press arrow keys. */}
