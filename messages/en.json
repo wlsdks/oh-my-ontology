@@ -4525,7 +4525,9 @@
       "logRevised": "revised",
       "logNothingNew": "nothing new",
       "emptyNoTemplate": "No wiki pages yet, and no template in this folder. Start a wiki from Settings › Workspace: it writes wiki/_template.md, the shape every page follows.",
-      "folderMark": "link"
+      "folderMark": "link",
+      "candidatesMore": "{count, plural, one {# more name} other {# more names}}",
+      "candidatesLess": "Fewer names"
     },
     "graph": {
       "title": "Graph",
