@@ -993,20 +993,23 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
 - **Bring from a service** (new 2026-09-07) — the door for documents that are not on
   this computer at all. Owner: *"connecting a service is mostly for the Library anyway —
   people want the things they already wrote somewhere else."* Tiles name services, not
-  protocols — Notion, Confluence, Jira, GitHub, and last, a way out to the technical
-  dialog on `/mcp` for anything else. **This path never says MCP, stdio, npx or
-  environment variable**; a component test asserts that. Three steps: ① Atlas writes the
-  connection into the folder and switches it on, saying that a sign-in window will open,
-  that the **coding agent** opens it and keeps what comes back, and that removing the row
-  later revokes nothing; ② the person says what to bring, in their own words; ③ a bounded
-  brief opens the Library's existing agent turn, which searches, lists at most twenty
-  documents, waits to be told which, and writes each one under `sources/<service>/` with
-  `source_url` and `fetched_at` in the frontmatter — **through the permission card that
-  already exists**, one card per file, and forbidden from touching anything outside that
-  folder. Confluence and Jira are two tiles over one Atlassian connection, because nobody
-  thinks "I want my Atlassian documents". **Google Drive is deliberately absent**: no entry
-  in the committed catalogue has verified facts for it yet, and a tile onto a guess is a
-  door that opens onto nothing.
+  protocols — Notion, GitHub, and last, a way out to the technical dialog on `/mcp` for
+  anything else. **This path never says MCP, stdio, npx or environment variable**; a
+  component test asserts that. Three steps: ① the person pastes the one value the service
+  issues, with a link to where; Atlas puts it in the keychain, writes the connection into
+  the folder with the name only, and switches it on — saying that the **coding agent**, not
+  Atlas, is what reaches the service with it; ② the person says what to bring, in their own
+  words; ③ a bounded brief opens the Library's existing agent turn, which searches, lists
+  at most twenty documents, waits to be told which, and writes each one under
+  `sources/<service>/` with `source_url` and `fetched_at` in the frontmatter — **through
+  the permission card that already exists**, one card per file, and forbidden from
+  touching anything outside that
+  folder. **Confluence and Jira left the tiles on 2026-09-07**: both rode Atlassian's hosted
+  address, which signs in with OAuth, and the in-app session cannot open that window (the
+  measurement is in the decision record); a tile onto a connection the agent can never use
+  is the dead end this door exists to remove, so they return with an adapter that can sign
+  in. **Google Drive is deliberately absent**: no entry in the committed catalogue has
+  verified facts for it yet, and a tile onto a guess is a door that opens onto nothing.
   **What is not proven**: the picking happens inside the agent turn, not on this screen,
   because Atlas is not the MCP client and cannot call a service's tools or receive their
   result as data. Nothing here has been observed against a live Notion or Atlassian
@@ -1660,14 +1663,16 @@ and Escape. The tabs this replaced lasted one afternoon; the record is in
   carries no download count, no ranking and no "recommended", and the screen states its
   size, its capture date, that Atlas has audited none of it, and that *By hand* reaches
   everything it does not list.
-- **Two shapes, kept apart, because they ask different things.** A **hosted address**
-  (Notion `https://mcp.notion.com/mcp`, Atlassian `https://mcp.atlassian.com/v2/mcp`,
-  GitHub `https://api.githubcopilot.com/mcp/`, Linear, Sentry, Context7, Supabase) asks
-  for nothing: the **coding agent**
-  opens the sign-in window and holds what comes back. Atlas performs no OAuth, stores no
-  token for it, and removing the row does not revoke it — all three of which the row
-  says. A **local program** asks for exactly one credential, with a link to the page that
-  issues it.
+- **Only what the press can make work.** A hosted address that signs in with OAuth
+  (Notion's, Atlassian's, GitHub's, and the rest) is **not** offered: measured on
+  2026-09-07 against claude-agent-acp 0.75.0, such an address handed to the in-app session
+  reports "requires authentication", the adapter says the session cannot open the sign-in
+  window, and no tool registers; a token earned in the terminal for the same name and
+  address did not carry over. The generator refuses that shape. What remains is a **local
+  program** that asks for exactly one credential, with a link to the page that issues it,
+  and an **address that asks nothing** (Context7). Four services today: Notion, GitHub,
+  Context7, Playwright. The hosted rows return when an adapter is measured running the
+  flow.
 - **The program is chosen, not typed.** `resolve_connector_runtimes` resolves a fixed
   allow-list — `npx`, `node`, `uvx`, `python3`, `docker` — to absolute paths on this
   machine and shows them. It opens no file, lists no directory and executes nothing. This

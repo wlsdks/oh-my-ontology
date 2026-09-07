@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — A hosted OAuth address leaves the catalogue: the in-app session cannot sign in
+
+**Why**: the one-list record's own falsifier, "a hosted row that attaches and 401s with no sign-in", fired the same evening when the owner asked for a full check. Measured against claude-agent-acp 0.75.0 with the app's own `session/new` shape: a hosted OAuth server `notion` at `https://mcp.notion.com/mcp` reports "requires authentication", the adapter says the non-interactive session cannot run the OAuth flow, no `mcp__notion__` tool registers, and a terminal token stored for the same name and address did not carry over. Two runs. The seven addresses themselves answer an MCP initialize with the standard OAuth challenge, so the fault is the session, not the facts.
+**Prior**: the one-list record's dissent (po-evidence, "ship the local half alone") was right. Upholds 2026-09-05 "Atlas never sits in the path": the fix is not Atlas opening the window.
+**Decision**: the catalogue holds only what the press can make work in the app: a local program with one keychain token, or an address that asks nothing. The generator refuses a hosted OAuth variant at build time, citing the measurement; the committed file's test pins the rule. Atlassian, Linear, Sentry and Supabase leave; Notion and GitHub keep their program variants; Context7 and Playwright stay. Four services.
+**Dissent**: the owner's option A, keeping hosted rows as "attach it in your terminal tool" with a copyable command; declined because a row Atlas cannot make work in its own agent is what the owner had just questioned the list for.
+**Falsifier**: an adapter measured running the OAuth flow from a `session/new` server, or a terminal token that such a server picks up; either reopens the hosted rows.
+**Owner**: jinan
+
 ## 2026-09-07 — Adding a connector is one list; a press attaches what asks nothing and asks in place for one thing
 
 **Why**: the owner read the morning's three-tab dialog in the installed app and rejected the tabs and the Close button under the list, and asked how Codex and open-source clients do it. Cline, Goose, Cursor, VS Code, Claude Desktop, Zed, LM Studio, Continue and the Codex directory all show one list of name, one line, one button, with "by hand" a last row or a separate form. Codex's one-press "+" is a reviewed OAuth app listing, not a property of MCP.
