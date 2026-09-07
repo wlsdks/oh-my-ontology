@@ -122,6 +122,8 @@ export interface LibrarySectionProps {
   hasWikiTemplate?: boolean;
   /** How an agent's wiki page write is handled: lands when it fits, or asks each time. */
   writeMode?: "auto" | "ask";
+  /** Files the last answer the agent gave as a wiki page; null when there is none. */
+  onFileAnswer?: (() => void) | null;
   onWriteModeChange?: ((mode: "auto" | "ask") => void) | null;
   /**
    * The brain picker, when this computer offers two and Compile can therefore be pointed
@@ -245,6 +247,7 @@ export function LibrarySection({
   onPropose,
   hasWikiTemplate = true,
   writeMode = "auto",
+  onFileAnswer = null,
   onWriteModeChange = null,
   brainControl,
   compileNote,
@@ -477,6 +480,23 @@ export function LibrarySection({
                       >
                         <Sparkles size={ICON_SIZE.sm} aria-hidden />
                         <span className="min-w-0 truncate">{t("wiki.compile")}</span>
+                      </Chip>
+                    </Tooltip>
+                  ) : null}
+                  {onFileAnswer ? (
+                    /* The LLM Wiki pattern's "answers can be filed back": the last answer
+                       becomes a page under wiki/answers/, judged by the same contract. */
+                    <Tooltip content={t("wiki.fileAnswerTooltip")}>
+                      <Chip
+                        data-testid="library-file-answer"
+                        onClick={onFileAnswer}
+                        disabled={busy}
+                        tone="muted"
+                        className="flex-none hover:text-[color:var(--color-text-primary)]"
+                        aria-label={t("wiki.fileAnswerTooltip")}
+                      >
+                        <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
+                        <span className="min-w-0 truncate">{t("wiki.fileAnswer")}</span>
                       </Chip>
                     </Tooltip>
                   ) : null}

@@ -21,3 +21,5 @@ export type { PageWriteRequest, PageWriteVerdict } from "./lib/judge-page-write"
 export { FindDocumentsDialog } from "./ui/FindDocumentsDialog";
 export { buildAskBrief } from "./lib/ask-brief";
 export type { AskQuestionId } from "./lib/ask-brief";
+export { buildAnswerPage } from "./lib/answer-page";
+export { writeWikiFile } from "./lib/write-wiki-file";

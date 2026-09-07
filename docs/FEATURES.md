@@ -1421,6 +1421,15 @@ is under the pointer or the keyboard: an original file, a wiki page, or a concep
 map, each with what its lines mean and what pressing does; the **Names without a page**
 header carries a tooltip saying why only map kinds can be proposed.
 
+**File the answer** (2026-09-07). After an ask turn ends, a chip beside Compile writes
+the last answer as a page under `wiki/answers/`: the question is the title and summary,
+every answer line with a `[[src:…]]` citation becomes a fact, the cited files become
+`sources:` with the hashes the Library measured, and uncited lines go under "Not in
+sources". The page meets the same validator as every other; an answer that does not fit is
+not written and the first problem is said instead. This is the LLM Wiki pattern's "answers
+can be filed back", done by the app rather than by another agent turn, so nothing is
+claimed that the answer did not cite.
+
 ### First run — what the folder holds (2026-09-06)
 
 "Just start" and "Create" open one question before writing anything: a documents wiki, an

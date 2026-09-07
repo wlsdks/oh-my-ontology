@@ -982,13 +982,14 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 36229,
+      "wordCount": 36343,
       "updatedAt": "2026-09-07",
       "linksOut": [
         "ANALYSIS-RECORDS",
         "slug",
         "project:slug",
         "wiki/…",
+        "src:…",
         "oldSlug"
       ]
     },
@@ -4438,6 +4439,18 @@
         "linkText": "project:slug"
       }
     ],
+    "src:…": [
+      {
+        "fromSlug": "benchmark/FINDINGS-2026-09-06-wiki-accumulation-probe",
+        "context": "now skips the template, pinned by a unit case and the Lint dock e2e. The wikilink outlink extractor was also counting `**[src:…]**` citations as links to a document named after a PDF; it skips them now. What this pass does not settle: - E folded th",
+        "linkText": "src:…"
+      },
+      {
+        "fromSlug": "FEATURES",
+        "context": "rites the last answer as a page under `wiki/answers/`: the question is the title and summary, every answer line with a `**[src:…]**` citation becomes a fact, the cited files become `sources:` with the hashes the Library measured, and uncited lines go",
+        "linkText": "src:…"
+      }
+    ],
     "oldSlug": [
       {
         "fromSlug": "FEATURES",
@@ -4699,13 +4712,6 @@
         "fromSlug": "benchmark/README",
         "context": "ing the run above.** Most of its published delta was vault vocabulary a control arm cannot write, not a comparison. | | **[`results/2026-08-31-gb-r3-summary.md`]** | Raw 3-repeat lifecycle matrix summary; machine coverage only. | | [`results/2026-08-31-gb-r3-regrade-summary.md`](res",
         "linkText": "`results/2026-08-31-gb-r3-summary.md`"
-      }
-    ],
-    "src:…": [
-      {
-        "fromSlug": "benchmark/FINDINGS-2026-09-06-wiki-accumulation-probe",
-        "context": "now skips the template, pinned by a unit case and the Lint dock e2e. The wikilink outlink extractor was also counting `**[src:…]**` citations as links to a document named after a PDF; it skips them now. What this pass does not settle: - E folded th",
-        "linkText": "src:…"
       }
     ],
     "benchmark/tasks": [

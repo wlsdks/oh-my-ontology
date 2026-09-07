@@ -37,6 +37,8 @@ import {
   dropCandidatesWithNodes,
   wikiPagePathOf,
   buildAskBrief,
+  buildAnswerPage,
+  writeWikiFile,
 } from "@/features/library";
 import {
   DocReadingPane,
@@ -523,6 +525,10 @@ export function LibraryPage() {
       // A browser that refuses storage keeps the choice for this visit only.
     }
   }, []);
+  /* The last question asked from a page and the answer it got: the pair a person can file
+     back as a wiki page (owner direction 2026-09-07, the LLM Wiki pattern). */
+  const pendingAskRef = useRef<{ question: string; askedOn: string | null } | null>(null);
+  const [lastAnswer, setLastAnswer] = useState<{ question: string; text: string; askedOn: string | null } | null>(null);
   const judgeWrite = useCallback(
     (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null }) =>
       nativeVaultRootPath
@@ -535,6 +541,31 @@ export function LibraryPage() {
         : null,
     [model.pageTexts, model.sources, nativeVaultRootPath],
   );
+  const handleFileAnswer = useCallback(async () => {
+    if (!lastAnswer || !handle) return;
+    const page = buildAnswerPage({
+      question: lastAnswer.question,
+      answer: lastAnswer.text,
+      askedOn: lastAnswer.askedOn,
+      writer: agent.runtime ? `agent:${agent.runtime.id}` : "agent:unknown",
+      now: new Date(),
+      hashes: model.hashes,
+      knownSources: model.sources.map((row) => row.path),
+    });
+    if (page.problems.length > 0) {
+      toast.show(t("wiki.fileAnswerRejected", { code: page.problems[0]!.code }), "error");
+      return;
+    }
+    try {
+      await writeWikiFile(handle, page.path, page.text);
+      setLastAnswer(null);
+      setSelected({ kind: "wiki", slug: page.slug });
+      toast.show(t("wiki.fileAnswerDone", { page: page.slug }), "success");
+    } catch (err) {
+      toast.show(err instanceof Error && err.message ? err.message : t("wiki.fileAnswerRejected", { code: "write" }), "error");
+    }
+  }, [agent.runtime, handle, lastAnswer, model.hashes, model.sources, t, toast]);
+
   const autoDecide = useCallback(
     (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null; toolName: string | null }) => {
       if (writeMode !== "auto" || !nativeVaultRootPath) return null;
@@ -589,7 +620,12 @@ export function LibraryPage() {
          * and an import writes documents under `sources/`; neither touches a page, so neither
          * is an entry, or the log would claim a compile that never ran.
          */
-        if (kind === "propose" || kind === "import" || kind === "ask") return;
+        if (kind === "ask") {
+          const asked = pendingAskRef.current;
+          if (asked && lastAgentText && lastAgentText.trim()) setLastAnswer({ question: asked.question, text: lastAgentText, askedOn: asked.askedOn });
+          return;
+        }
+        if (kind === "propose" || kind === "import") return;
         const summary =
           kind === "lint"
             ? describeLintTurn(lastAgentText)
@@ -1001,6 +1037,7 @@ export function LibraryPage() {
             candidates={openCandidates}
             hasWikiTemplate={docs.some((doc) => doc.slug === "wiki/_template")}
             writeMode={writeMode}
+            onFileAnswer={lastAnswer ? handleFileAnswer : null}
             onWriteModeChange={changeWriteMode}
             onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
             /*
@@ -1207,7 +1244,11 @@ export function LibraryPage() {
                 <SelectionAsk
                   containerRef={pageBodyRef}
                   disabled={agent.runtime === null}
-                  onAsk={(selection, question, customQuestion) =>
+                  onAsk={(selection, question, customQuestion) => {
+                    pendingAskRef.current = {
+                      question: question === "custom" ? (customQuestion ?? "").trim() : t(`ask.${question}`),
+                      askedOn: selectedWikiDoc.slug,
+                    };
                     agent.start(
                       buildAskBrief({
                         selection,
@@ -1218,8 +1259,8 @@ export function LibraryPage() {
                         vaultRoot: nativeVaultRootPath ?? "",
                       }),
                       "ask",
-                    )
-                  }
+                    );
+                  }}
                   t={t}
                 />
               ) : null}

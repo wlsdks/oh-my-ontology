@@ -4539,7 +4539,11 @@
       "writeModeLabel": "What happens when the agent writes a wiki page",
       "writeModeAutoTooltip": "A page that fits the contract is written at once and noted in the conversation; one that does not still stops at the card.",
       "writeModeAskTooltip": "Every page write stops at the card for your decision.",
-      "candidatesTooltip": "Names the last check saw on three or more pages with no page of their own. Only what the code builds, a domain, a capability or an element, can be proposed as a node on the map; people and organisations stay names in the wiki."
+      "candidatesTooltip": "Names the last check saw on three or more pages with no page of their own. Only what the code builds, a domain, a capability or an element, can be proposed as a node on the map; people and organisations stay names in the wiki.",
+      "fileAnswer": "File the answer",
+      "fileAnswerTooltip": "Write the last answer as a wiki page under wiki/answers/, with the files it cited as its sources. Judged by the same contract as every page.",
+      "fileAnswerDone": "Filed as {page}.",
+      "fileAnswerRejected": "Not filed: the answer does not fit the page contract ({code}). Ask for citations and try again."
     },
     "graph": {
       "title": "Graph",
