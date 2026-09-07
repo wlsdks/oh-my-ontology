@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — The login carrier is chosen by measurement, and the account a probe names is only a cache
+
+**Why**: the mirror added twelve hours earlier installed the first keychain item that answered, which is an order, not a measurement. Measuring instead: all four carriers here held one token (sha256 `811a3992`), and the two accounts read side by side were not two logins but two caches. `claude auth status` copies `email` out of `<config dir>/.claude.json` and never re-derives it from the token — proved by setting that file to `sentinel@example.com` and watching the probe report it over an untouched credential.
+**Prior**: supersedes the mirror-source half of the 2026-09-08 00:50 record. Its goal stands; its claim that the login sits in a fixed first keychain item, and its reading of two probe emails as two logins, do not.
+**Decision**: every carrier — both keychain items and `~/.claude/.credentials.json` — is compared by sha256 digest, never by its bytes. Carriers that agree name the login themselves; carriers that disagree are settled by which the terminal wrote last, every stamp normalised to one UTC clock; a carrier that cannot date itself, or a tie, installs nothing. The clock is load-bearing: read locally, the file's mtime is nine hours off the keychain's `mdat` here — enough to invert the winner and keep the account being switched away from. The terminal's cached account travels only when `profileFetchedAt` says it is not the staler of the two.
+**Dissent**: deleting the app-scoped item and letting the existing symlink carry the login needs no secret handling and cannot go stale, and a folder holding only that link measures `loggedIn: true`; rejected because it strands a machine whose link could not be made. Rejected as unusable: proving the install by re-probing for a matching `email`, which the cache measurement shows passes whatever token was written.
+**Falsifier**: an app session billed to a different account than a terminal on the same machine.
+**Owner**: jinan
+
 ## 2026-09-08 — A width that already has a name stops being written as a number
 
 **Why**: the census after the token sweep found the same numbers beside the tokens that mean them. Four centred surfaces (the recent-changes dialog, the vault-open sheet, the docs unified palette, the similar-node notice) set their own 420 or 560 while the dialog ramp holds exactly those two for exactly that shape. Worse, `page-frame.ts` named 640 and wrote the rule — *a value earns a name the moment something else needs it* — and four more sites then wrote 640 by hand outside it.
