@@ -129,7 +129,7 @@ import {
   walkDirectionForKey,
 } from "../interaction/keyboard-walk";
 import { keyboardZoomIntent } from "../interaction/keyboard-zoom";
-import { createGrowthReplay, GROWTH_REPLAY_CANCEL_GRACE_MS, stepGrowthReplay, type GrowthReplay } from "../model/growth-replay";
+import { createGrowthReplay, stepGrowthReplay, type GrowthReplay } from "../model/growth-replay";
 import {
   TIER_LEGEND_RAIL_COLUMN_PX,
   tierLegendPlacement,
@@ -260,8 +260,18 @@ export interface UseTopologyLoopArgs {
    */
   overviewFit?: "spine" | "full";
   fitViewToken: number;
-  /** Bump to start a growth replay (`model/growth-replay.ts`). Ignored under reduced motion. */
+  /**
+   * Bump to **toggle** a growth replay (`model/growth-replay.ts`). Ignored under
+   * reduced motion. A bump while one runs stops it — the control is a toggle,
+   * not a hold (owner, 2026-09-07; see the token effect for the full rule).
+   */
   growthReplayToken?: number;
+  /**
+   * Fires on every transition of "is a growth replay running", so the control
+   * can carry the active tone and `aria-pressed` for exactly as long as the
+   * replay lasts, including when it ends on its own.
+   */
+  onGrowthReplayingChange?: (running: boolean) => void;
   /** Bumped to aim the camera at the spotlit nodes when the lens or its window changes (0 = unused). */
   spotlightFitToken?: number;
   relayoutToken: number;
@@ -534,7 +544,7 @@ export type UseTopologyLoopResult = TopologyPointerHandlers & {
 };
 
 export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResult {
-  const { nodes, edges, focusedSlug, emphasizedNeighborSlug = null, dataSourceKey = null, overviewFit = "spine", fitViewToken, growthReplayToken = 0, spotlightFitToken = 0, relayoutToken, revealToken = 0, onSelectEdge, onHoverEdge, onSelect, onPaneClick, onVisibleCountChange, onGraphStatsChange, onDrawnCountChange, onDomeTierAnchorsChange, onTierLegendPlacementChange, onZoomTierChange, onContextMenuNode, onContextMenuPane, agentFocusNodeId = null, spotlightIds = null, mapLensKind = "recent", pathEdgeIds = null, selectedEdge = null, previewEdge = null, expandedParents = EMPTY_EXPANDED_SET, onToggleCluster, onHoverCluster, realmRootId = null, onEnterRealm, realmEnterButtonRef, realmCaption = null, visitedTrail = EMPTY_TRAIL, trailLensActiveRef, clusterBarLabels = null, domeTierLabels = null, trailHoverNodeIdRef, panelHoverNodeIdRef, tierReveal = DEFAULT_TIER_REVEAL, tourAnchorNodeId = null, tourAnchorRef, glyphSet = "geometric", canvasBackground = "dot", view3d = false, mapArrangement = DEFAULT_MAP_ARRANGEMENT, detailPanelVisible = false, footprint = null, expand = DEFAULT_EXPAND, wheelIntent = "zoom", ambientSleepDelayMs, onWalkDeadEnd = null } = args;
+  const { nodes, edges, focusedSlug, emphasizedNeighborSlug = null, dataSourceKey = null, overviewFit = "spine", fitViewToken, growthReplayToken = 0, onGrowthReplayingChange, spotlightFitToken = 0, relayoutToken, revealToken = 0, onSelectEdge, onHoverEdge, onSelect, onPaneClick, onVisibleCountChange, onGraphStatsChange, onDrawnCountChange, onDomeTierAnchorsChange, onTierLegendPlacementChange, onZoomTierChange, onContextMenuNode, onContextMenuPane, agentFocusNodeId = null, spotlightIds = null, mapLensKind = "recent", pathEdgeIds = null, selectedEdge = null, previewEdge = null, expandedParents = EMPTY_EXPANDED_SET, onToggleCluster, onHoverCluster, realmRootId = null, onEnterRealm, realmEnterButtonRef, realmCaption = null, visitedTrail = EMPTY_TRAIL, trailLensActiveRef, clusterBarLabels = null, domeTierLabels = null, trailHoverNodeIdRef, panelHoverNodeIdRef, tierReveal = DEFAULT_TIER_REVEAL, tourAnchorNodeId = null, tourAnchorRef, glyphSet = "geometric", canvasBackground = "dot", view3d = false, mapArrangement = DEFAULT_MAP_ARRANGEMENT, detailPanelVisible = false, footprint = null, expand = DEFAULT_EXPAND, wheelIntent = "zoom", ambientSleepDelayMs, onWalkDeadEnd = null } = args;
 
   const getRealmCaption = useEffectEvent(() => realmCaption);
   const annotationRef = useRef({ captions: args.relationCaptions, questions: args.reviewQuestionIds });
@@ -1063,6 +1073,17 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
   const growthReplayRef = useRef<GrowthReplay | null>(null);
   const growthReplayAppearRef = useRef<Map<string, number>>(new Map());
   const growthReplayTokenSeenRef = useRef(growthReplayToken);
+  const onGrowthReplayingChangeRef = useRef<typeof onGrowthReplayingChange>(onGrowthReplayingChange);
+  /**
+   * Ends the replay and announces it once. Every exit — the second press, Esc, a
+   * node click, a canvas drag, and reaching the end — funnels through here, so
+   * the control's active tone can never outlive the motion it describes.
+   */
+  const endGrowthReplay = useCallback(() => {
+    if (growthReplayRef.current === null) return;
+    growthReplayRef.current = null;
+    onGrowthReplayingChangeRef.current?.(false);
+  }, []);
   const prevNodeIdsRef = useRef<Set<string>>(new Set());
   /**
    * Ids of nodes **born during this session**. The appearance ramp
@@ -1323,6 +1344,10 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     const tgt: CameraKeyframe = { x: target.tx, y: target.ty, scale: target.tscale };
     cameraTweenRef.current = { start, target: tgt, startMs: performance.now(), durationMs: durationOverrideMs ?? cameraTransitionDurationMs(start, tgt) };
   }, []);
+
+  useEffect(() => {
+    onGrowthReplayingChangeRef.current = onGrowthReplayingChange;
+  });
 
   useEffect(() => {
     onZoomTierChangeRef.current = onZoomTierChange;
@@ -2138,9 +2163,38 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     cameraAngularFreqRef.current = tokens.cameraSpringAngFreqTransition;
     beginCameraTween(overviewTarget);
   }, [beginCameraTween, domeFitTarget]);
+  /**
+   * **The replay is a toggle, not a hold** (owner, 2026-09-07: *"nobody keeps the
+   * mouse still after pressing a button; make the button show an active state
+   * while it runs and stop on a second press."*).
+   *
+   * It used to end on the first input after a 300 ms grace, which meant the
+   * pointer drifting one pixel, a hover, or a wheel notch killed a twelve-second
+   * event the person had just asked for. This narrows the 2026-09-02 rule
+   * ("ends on its own or on the first input", `docs/DECISIONS.md`) to four
+   * **deliberate** exits, all of them routed through `endGrowthReplay`:
+   *
+   * | Exit | Where |
+   * |---|---|
+   * | a second press of the control | this effect, below |
+   * | `Escape` | the window keydown effect beside this one |
+   * | any press on the canvas — a node, the ground, or the start of a drag | the `pointerdown` effect beside this one |
+   *
+   * **Pointer movement, hover and wheel-zoom keep it running.** Wheel could
+   * equally have been an exit; it is not, because the wheel is how a reader
+   * leans in to watch something appear, and taking the picture away for that is
+   * the same defect in a smaller form. Zooming during a replay is harmless — the
+   * replay drives appear ramps only and never touches the camera after its
+   * opening fit.
+   */
   useEffect(() => {
     if (growthReplayToken === growthReplayTokenSeenRef.current) return;
     growthReplayTokenSeenRef.current = growthReplayToken;
+    // A press while one runs is the second press: stop, and start nothing.
+    if (growthReplayRef.current !== null) {
+      endGrowthReplay();
+      return;
+    }
     const world = worldRef.current;
     if (!world || reducedMotionRef.current) return;
     const tokens = readTopologyV2TokensOrNull();
@@ -2170,7 +2224,39 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
     );
     growthReplayAppearRef.current = new Map();
     lastActiveMsRef.current = now;
-  }, [growthReplayToken, runOverviewFit]);
+    onGrowthReplayingChangeRef.current?.(true);
+  }, [endGrowthReplay, growthReplayToken, runOverviewFit]);
+  // Esc — the app-wide "put this away" key, and the one exit that needs no
+  // pointer. Registered only while a replay is in flight so it never competes
+  // with the dismissal order that owns Esc the rest of the time.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || growthReplayRef.current === null) return;
+      e.stopPropagation();
+      endGrowthReplay();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [endGrowthReplay]);
+  /**
+   * A press on the canvas ends it — the reader reached for the map, which is the
+   * one gesture that says "show me this instead of that". One listener rather
+   * than a wrapper per callback, because the callbacks do not cover the ground:
+   * `onPaneClick` fires only when there is a selection to clear, so a click on
+   * empty space with nothing selected reached nothing (measured 2026-09-07). A
+   * press also opens every drag, so this covers panning and node dragging too.
+   *
+   * `pointerdown`, not `click`: the replay should stop the moment the map is
+   * touched, not when the button comes back up at the end of a long drag.
+   */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const onDown = () => endGrowthReplay();
+    canvas.addEventListener("pointerdown", onDown);
+    return () => canvas.removeEventListener("pointerdown", onDown);
+  }, [endGrowthReplay]);
   useEffect(() => {
     // Skip while both tokens still equal their captured mount-time values —
     // this effect's own mount-time fire (see `initialFitTokensRef` above).
@@ -2994,14 +3080,13 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
                   assembled: domeRt.rampClock >= DOME_ASSEMBLE_TOTAL_MS,
                 }))));
 
-        // Growth replay — advance every node's appear value for this frame; the
-        // first input after the starting click ends it (nothing is left behind,
-        // `appearRef` still holds every node at 1).
+        // Growth replay — advance every node's appear value for this frame, and end
+        // it when the last node has fully appeared. Nothing is left behind:
+        // `appearRef` still holds every node at 1. The deliberate exits are listed
+        // in the token effect's table; none of them is a pointer move.
         if (growthReplayRef.current !== null) {
-          const replay = growthReplayRef.current;
-          const cancelled = lastInputMsRef.current > replay.startMs + GROWTH_REPLAY_CANCEL_GRACE_MS;
-          if (cancelled || stepGrowthReplay(replay, now, growthReplayAppearRef.current)) {
-            growthReplayRef.current = null;
+          if (stepGrowthReplay(growthReplayRef.current, now, growthReplayAppearRef.current)) {
+            endGrowthReplay();
           }
           lastActiveMsRef.current = now;
         }
@@ -5269,11 +5354,12 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
       canvas.removeEventListener("contextlost", onContextLost);
       canvas.removeEventListener("contextrestored", onContextRestored);
     };
-    // `beginCameraTween`, `cameraTokens` and `domeFitTarget` are `useCallback`s
-    // with empty deps, so their references never change. They appear here only
-    // because the frame body calls them (3D fit-on, selection reframe); this
-    // effect never re-runs, so the loop is never remounted.
-  }, [beginCameraTween, cameraTokens, domeFitTarget]);
+    // `beginCameraTween`, `cameraTokens`, `domeFitTarget` and `endGrowthReplay`
+    // are `useCallback`s with empty deps, so their references never change. They
+    // appear here only because the frame body calls them (3D fit-on, selection
+    // reframe, the replay reaching its end); this effect never re-runs, so the
+    // loop is never remounted.
+  }, [beginCameraTween, cameraTokens, domeFitTarget, endGrowthReplay]);
 
   // refs below are only dereferenced inside the returned event-handler
   // closures (pointerdown/move/up/wheel), never synchronously during this

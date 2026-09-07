@@ -16,10 +16,18 @@
  *
  * Why not a mode. A slider or a scrub bar is a permanent control that turns
  * "when" into a second axis the map must keep answering. A replay is a twelve
- * second event: it starts on request, cannot be steered, ends on its own or on
- * the first input, and leaves nothing behind. Camera, focus and lenses are
- * untouched — the replay only drives each node's appear ramp, the same ramp a
- * newly created node already uses to swell into view, so nothing new is drawn.
+ * second event: it starts on request, cannot be steered, and leaves nothing
+ * behind. Camera, focus and lenses are untouched — the replay only drives each
+ * node's appear ramp, the same ramp a newly created node already uses to swell
+ * into view, so nothing new is drawn.
+ *
+ * **How it ends (2026-09-07).** It runs to its end unless the reader deliberately
+ * stops it: a second press of the control, `Escape`, a node or pane click, or a
+ * drag on the canvas. Pointer movement, hover and wheel-zoom do not stop it —
+ * the first rule ended on "the first input", and the owner's verdict was that
+ * *"nobody keeps the mouse still after pressing a button"*. The exits and the
+ * control's active state are wired in `ui/use-topology-loop.ts`; this module
+ * stays a pure schedule and knows nothing about input.
  *
  * Reduced motion: a replay is app-generated motion with no direct-manipulation
  * exemption, so the request is ignored there (the caller decides).
@@ -45,8 +53,6 @@ export const GROWTH_REPLAY_MAX_MS = 16_000;
 const GROWTH_REPLAY_PER_NODE_MS = 40;
 /** How long one node takes to swell from 0 to 1 once its turn comes. */
 export const GROWTH_REPLAY_RISE_MS = 600;
-/** An input this long after the start cancels the replay (the first 300 ms is the click that started it). */
-export const GROWTH_REPLAY_CANCEL_GRACE_MS = 300;
 
 const KIND_RANK: Record<GrowthReplayNode["kind"], number> = { project: 0, domain: 1, capability: 2, element: 3 };
 const byIdAsc = (a: GrowthReplayNode, b: GrowthReplayNode) => (a.id < b.id ? -1 : 1);
