@@ -1620,11 +1620,20 @@ vault server.
 - **Name collisions are called out first.** Codex silently drops an ACP-supplied server
   whose name a config layer already holds.
 
-**Three ways in, under one search (2026-09-07).** The add dialog has tabs: *Found here*
-(this machine's own config files), *Catalogue*, and *By hand*. One search box above the
-strip filters all three, because somebody typing "notion" does not yet know which of them
-will answer.
+**One list under one search (2026-09-07).** The add dialog is one scroll: *Already on this
+computer* (this machine's own config files), *Ready to attach* (the catalogue, its capture
+date beside the heading), and *Not in the list? Add it by hand*, a folded row at the bottom
+that unfolds the full form. One search box narrows every group at once, because somebody
+typing "notion" does not yet know which of them will answer. Close is the corner control
+and Escape. The tabs this replaced lasted one afternoon; the record is in
+`docs/DECISIONS.md` (2026-09-07, one list).
 
+- **One rule for the button.** A press attaches what asks nothing — a hosted OAuth address,
+  a local program with no required variable — and the row lands in the folder switched
+  off. A row that needs a value unfolds a panel under itself: the command written out, one
+  password field per required variable with a link to where it is issued, and the press.
+  Where there is no keychain the field is not offered and the sentence says what to do.
+  Every row shows the address or command it would write, verbatim, before the press.
 - **The catalogue is a committed file**, `src/shared/config/mcp-catalogue.generated.ts`,
   written by `pnpm mcp:catalogue` from the official MCP Registry (whose metadata is
   CC0-1.0) plus vendor pages a person read on a stated date. **Nothing is fetched while
@@ -1634,7 +1643,8 @@ will answer.
   everything it does not list.
 - **Two shapes, kept apart, because they ask different things.** A **hosted address**
   (Notion `https://mcp.notion.com/mcp`, Atlassian `https://mcp.atlassian.com/v2/mcp`,
-  GitHub `https://api.githubcopilot.com/mcp/`) asks for nothing: the **coding agent**
+  GitHub `https://api.githubcopilot.com/mcp/`, Linear, Sentry, Context7, Supabase) asks
+  for nothing: the **coding agent**
   opens the sign-in window and holds what comes back. Atlas performs no OAuth, stores no
   token for it, and removing the row does not revoke it — all three of which the row
   says. A **local program** asks for exactly one credential, with a link to the page that
@@ -1658,7 +1668,8 @@ will answer.
   already open, and a refused link is logged and dropped rather than followed.
 
 **On the web**: adding, editing and removing connectors work (the list is in the folder,
-which a browser holds), and the catalogue and the by-hand form work unchanged. Finding
+which a browser holds), and the catalogue and the by-hand form work unchanged; a catalogue
+row that needs a token offers no field there and says so. Finding
 what is already registered, resolving a runtime path, and keeping a token are app-only,
 and the panel says so with somewhere to go.
 
