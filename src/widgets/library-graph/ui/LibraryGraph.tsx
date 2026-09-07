@@ -388,17 +388,27 @@ export function LibraryGraph({
             of ambient drift removed the same day, and it is the larger half of what the
             owner saw. Both sentences are laid in one grid cell so the taller of them sets
             the height and the visible one never changes it. */}
-        <div className={cn("mt-1.5 grid", captionQuiet && "max-lg:sr-only")}>
+        <div className={cn("mt-1.5 grid", captionQuiet && "max-lg:mt-0")}>
           <p
             aria-hidden
-            className="invisible col-start-1 row-start-1 text-label leading-body [word-break:keep-all]"
+            className={cn(
+              "invisible col-start-1 row-start-1 text-label leading-body [word-break:keep-all]",
+              captionQuiet && "max-lg:sr-only",
+            )}
           >
             {t("graph.legend")}
           </p>
           <p
             id="library-graph-hint"
             data-testid="library-graph-hint"
-            className="col-start-1 row-start-1 text-label leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
+            /* Quiet is per line, not on the cell: `sr-only` on the wrapper leaves each
+               line laid out at its own size inside a clipped box, so the legend still
+               measured as painted and the guide still had it underneath (CI, 2026-09-08).
+               Both lines take it, so the row collapses and the shelf gets the room. */
+            className={cn(
+              "col-start-1 row-start-1 text-label leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]",
+              captionQuiet && "max-lg:sr-only",
+            )}
           >
             {/* While a mark is under the pointer or the keyboard, the legend's line says what
                 that one mark is and what pressing it does — the same slot, so nothing moves.
