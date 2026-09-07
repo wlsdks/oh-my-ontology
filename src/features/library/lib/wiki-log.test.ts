@@ -40,6 +40,11 @@ describe("the lint line carries the report's counts when the report states them"
     expect(describeLintTurn(text)).toBe("disagreement 0 · superseded 1 · missing-link 2 · name-without-page 6");
   });
 
+  it("prefers the counts in the report's block, whatever language the prose is in", () => {
+    const text = "…\n**범주별 개수** — 어긋남 9, 대체된 주장 9, 빠진 연결 9, 문서 없는 이름 9.\n```json\n{\"counts\":{\"disagreement\":0,\"superseded\":2,\"missingLink\":1,\"nameWithoutPage\":5,\"uncertain\":4},\"nodeCandidates\":[]}\n```";
+    expect(describeLintTurn(text)).toBe("disagreement 0 · superseded 2 · missing-link 1 · name-without-page 5");
+  });
+
   it("reads a Korean report's count line, as the localized brief asks for it", () => {
     const text = "…\n**범주별 개수** — 어긋남 0, 대체된 주장 2, 빠진 연결 1, 문서 없는 이름 5.\n```json\n{}\n```";
     expect(describeLintTurn(text)).toBe("disagreement 0 · superseded 2 · missing-link 1 · name-without-page 5");
