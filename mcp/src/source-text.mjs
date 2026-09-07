@@ -1,0 +1,324 @@
+/**
+ * The text of a raw source, in the units a wiki citation can name.
+ *
+ * A wiki page cites `[[src:sources/<file>#<anchor>]]`, and the anchor grammar
+ * (`wiki-schema.mjs`) names a heading in a document, a sheet and row in a workbook, a row
+ * in a table, a line in a text file, a page in a PDF. An agent that reads a DOCX or an XLSX
+ * with its own tools has to reach for a shell (`unzip -p … | sed …`), which in the app
+ * raises an execute permission card on a turn that only reads — the first ask about a
+ * passage on 2026-09-07 stopped at exactly that card. This module reads the same files
+ * without a shell and returns their text already cut into citable units, so the agent
+ * cites the anchor it was handed instead of inventing one.
+ *
+ * Nothing is converted and kept: the file is read on request and the text returned once.
+ * Only the formats an agent cannot read natively get a real parser (DOCX, XLSX); CSV and
+ * text formats are split the way their anchors count (rows, lines). A PDF is reported as
+ * something the agent reads itself, because the runtimes do, page numbers included.
+ *
+ * The zip reader below is deliberately small: central directory, local header, one
+ * `inflateRawSync` per entry. Office files are plain zips with XML inside, and pulling a
+ * dependency for that would put a third-party parser between a person's document and the
+ * wiki that quotes it.
+ */
+import { inflateRawSync } from 'node:zlib';
+
+/** Units returned at most per call; `from` pages past it. */
+export const READ_SOURCE_DEFAULT_LIMIT = 200;
+export const READ_SOURCE_MAX_LIMIT = 1000;
+/** Characters of text returned at most per call, whatever the unit count. */
+export const READ_SOURCE_MAX_CHARS = 60_000;
+
+// ── zip ─────────────────────────────────────────────────────────────────────────
+
+const EOCD_SIGNATURE = 0x06054b50;
+const CENTRAL_SIGNATURE = 0x02014b50;
+const LOCAL_SIGNATURE = 0x04034b50;
+
+/**
+ * Every entry of a zip, by name, decompressed on demand.
+ *
+ * @param {Buffer} buffer
+ * @returns {Map<string, () => Buffer>}
+ */
+export function readZipEntries(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 22) throw new Error('not a zip file: too short');
+  // The end-of-central-directory record sits at the tail, before a comment of up to 64 KiB.
+  let eocd = -1;
+  const floor = Math.max(0, buffer.length - 22 - 0xffff);
+  for (let index = buffer.length - 22; index >= floor; index -= 1) {
+    if (buffer.readUInt32LE(index) === EOCD_SIGNATURE) {
+      eocd = index;
+      break;
+    }
+  }
+  if (eocd < 0) throw new Error('not a zip file: no end-of-central-directory record');
+  const entryCount = buffer.readUInt16LE(eocd + 10);
+  let offset = buffer.readUInt32LE(eocd + 16);
+  const entries = new Map();
+  for (let index = 0; index < entryCount; index += 1) {
+    if (buffer.readUInt32LE(offset) !== CENTRAL_SIGNATURE) throw new Error('zip central directory is damaged');
+    const method = buffer.readUInt16LE(offset + 10);
+    const compressedSize = buffer.readUInt32LE(offset + 20);
+    const uncompressedSize = buffer.readUInt32LE(offset + 24);
+    const nameLength = buffer.readUInt16LE(offset + 28);
+    const extraLength = buffer.readUInt16LE(offset + 30);
+    const commentLength = buffer.readUInt16LE(offset + 32);
+    const localOffset = buffer.readUInt32LE(offset + 42);
+    const name = buffer.toString('utf8', offset + 46, offset + 46 + nameLength);
+    entries.set(name, () => {
+      if (buffer.readUInt32LE(localOffset) !== LOCAL_SIGNATURE) throw new Error(`zip entry ${name} is damaged`);
+      const localNameLength = buffer.readUInt16LE(localOffset + 26);
+      const localExtraLength = buffer.readUInt16LE(localOffset + 28);
+      const start = localOffset + 30 + localNameLength + localExtraLength;
+      const raw = buffer.subarray(start, start + compressedSize);
+      if (method === 0) return Buffer.from(raw);
+      if (method === 8) {
+        const out = inflateRawSync(raw);
+        if (uncompressedSize !== 0xffffffff && out.length !== uncompressedSize) {
+          throw new Error(`zip entry ${name} inflated to ${out.length} bytes, expected ${uncompressedSize}`);
+        }
+        return out;
+      }
+      throw new Error(`zip entry ${name} uses compression method ${method}, which is not supported`);
+    });
+    offset += 46 + nameLength + extraLength + commentLength;
+  }
+  return entries;
+}
+
+// ── xml, the little that Office text needs ───────────────────────────────────────
+
+const XML_ENTITIES = { lt: '<', gt: '>', amp: '&', quot: '"', apos: "'" };
+
+/** `&amp;` and friends, plus numeric references, back to characters. */
+function decodeXmlText(text) {
+  return String(text).replace(/&(#x[0-9a-fA-F]+|#\d+|[a-z]+);/g, (whole, body) => {
+    if (body[0] === '#') {
+      const code = body[1] === 'x' ? Number.parseInt(body.slice(2), 16) : Number.parseInt(body.slice(1), 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : whole;
+    }
+    return XML_ENTITIES[body] ?? whole;
+  });
+}
+
+/** The character data of every `<tag>` element in order, tags themselves dropped. */
+function textOf(xml) {
+  return decodeXmlText(xml.replace(/<[^>]+>/g, ''));
+}
+
+/**
+ * A heading title as the anchor names it. The anchor grammar allows `[a-z0-9-]` only, so
+ * accented letters lose their marks and a heading with no Latin letters at all (a Korean
+ * one, say) gets no slug here; the caller numbers it instead.
+ */
+export function headingSlug(title) {
+  return String(title)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64);
+}
+
+// ── formats ─────────────────────────────────────────────────────────────────────
+
+/**
+ * A DOCX: its paragraphs in order. A paragraph styled as a heading opens a section, and
+ * every paragraph under it carries that heading's `h:<slug>` anchor. Paragraphs before
+ * the first heading carry `p1`, the one page a short letter or note has.
+ */
+export function docxUnits(buffer) {
+  const entries = readZipEntries(buffer);
+  const document = entries.get('word/document.xml');
+  if (!document) throw new Error('not a DOCX: word/document.xml is missing');
+  const xml = document().toString('utf8');
+  const units = [];
+  let anchor = 'p1';
+  let heading = null;
+  let headingCount = 0;
+  for (const match of xml.matchAll(/<w:p\b[\s\S]*?<\/w:p>/g)) {
+    const paragraph = match[0];
+    // Runs keep their order; tabs and breaks become spaces so words do not fuse.
+    const text = textOf(
+      paragraph.replace(/<w:tab\/>/g, ' ').replace(/<w:br\b[^>]*\/>/g, ' ').replace(/<w:t\b[^>]*>/g, '<w:t>'),
+    )
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!text) continue;
+    const style = /<w:pStyle\b[^>]*w:val="([^"]+)"/.exec(paragraph)?.[1] ?? '';
+    if (/^(heading|title)\d*$/i.test(style) || /^(제목|見出し)\d*$/.test(style)) {
+      heading = text;
+      headingCount += 1;
+      anchor = `h:${headingSlug(text) || `heading-${headingCount}`}`;
+      units.push({ anchor, heading, text, kind: 'heading' });
+      continue;
+    }
+    units.push({ anchor, heading, text, kind: 'paragraph' });
+  }
+  return units;
+}
+
+/**
+ * An XLSX: every sheet's rows, `s<n>r<m>` where `n` counts sheets in workbook order and
+ * `m` is the row's own number in the sheet. Cells are joined with ` | ` so a row reads
+ * as one line; shared strings are resolved, formulas give their cached value.
+ */
+export function xlsxUnits(buffer, { sheet } = {}) {
+  const entries = readZipEntries(buffer);
+  const workbook = entries.get('xl/workbook.xml');
+  if (!workbook) throw new Error('not an XLSX: xl/workbook.xml is missing');
+  const sheets = [...workbook().toString('utf8').matchAll(/<sheet\b[^>]*\bname="([^"]*)"[^>]*\br:id="([^"]+)"/g)].map(
+    (match, index) => ({ index: index + 1, name: decodeXmlText(match[1]), rid: match[2] }),
+  );
+  const rels = entries.get('xl/_rels/workbook.xml.rels')?.().toString('utf8') ?? '';
+  const targetByRid = new Map(
+    [...rels.matchAll(/<Relationship\b[^>]*\bId="([^"]+)"[^>]*\bTarget="([^"]+)"/g)].map((match) => [
+      match[1],
+      match[2],
+    ]),
+  );
+  const shared = [];
+  const sharedXml = entries.get('xl/sharedStrings.xml')?.().toString('utf8');
+  if (sharedXml) {
+    for (const item of sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)) shared.push(textOf(item[1]));
+  }
+  const units = [];
+  for (const meta of sheets) {
+    if (sheet !== undefined && meta.index !== sheet) continue;
+    const target = (targetByRid.get(meta.rid) ?? `worksheets/sheet${meta.index}.xml`).replace(/^\/?(xl\/)?/, '');
+    const sheetXml = entries.get(`xl/${target}`)?.().toString('utf8');
+    if (!sheetXml) continue;
+    for (const row of sheetXml.matchAll(/<row\b[^>]*\br="(\d+)"[^>]*>([\s\S]*?)<\/row>/g)) {
+      const cells = [];
+      for (const cell of row[2].matchAll(/<c\b([^>]*)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+        const attrs = cell[1];
+        const body = cell[2] ?? '';
+        const type = /\bt="([^"]+)"/.exec(attrs)?.[1];
+        let value = '';
+        if (type === 's') {
+          const index = Number.parseInt(textOf(/<v>([\s\S]*?)<\/v>/.exec(body)?.[1] ?? ''), 10);
+          value = shared[index] ?? '';
+        } else if (type === 'inlineStr') {
+          value = textOf(/<is>([\s\S]*?)<\/is>/.exec(body)?.[1] ?? '');
+        } else {
+          value = textOf(/<v>([\s\S]*?)<\/v>/.exec(body)?.[1] ?? '');
+        }
+        cells.push(value.replace(/\s+/g, ' ').trim());
+      }
+      while (cells.length > 0 && cells[cells.length - 1] === '') cells.pop();
+      const text = cells.join(' | ').trim();
+      if (!text) continue;
+      units.push({ anchor: `s${meta.index}r${row[1]}`, sheet: meta.name, text, kind: 'row' });
+    }
+  }
+  return units;
+}
+
+/** A CSV or TSV: one unit per non-empty row, `r<n>` counting from the first line. */
+function tableUnits(text) {
+  return String(text)
+    .split(/\r?\n/)
+    .map((line, index) => ({ anchor: `r${index + 1}`, text: line.trim(), kind: 'row' }))
+    .filter((unit) => unit.text);
+}
+
+/** A text file: one unit per non-empty line, `l<n>` counting from the first line. */
+function lineUnits(text) {
+  return String(text)
+    .split(/\r?\n/)
+    .map((line, index) => ({ anchor: `l${index + 1}`, text: line.trim(), kind: 'line' }))
+    .filter((unit) => unit.text);
+}
+
+/** An HTML file: tags dropped, then lines like a text file. */
+export function htmlUnits(html) {
+  const text = decodeXmlText(
+    String(html)
+      .replace(/<script\b[\s\S]*?<\/script>/gi, '')
+      .replace(/<style\b[\s\S]*?<\/style>/gi, '')
+      .replace(/<\/(p|div|li|tr|h[1-6]|br|section|article|header|footer)\b[^>]*>/gi, '\n')
+      .replace(/<br\b[^>]*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, ''),
+  );
+  return lineUnits(text);
+}
+
+// ── the tool's answer ───────────────────────────────────────────────────────────
+
+const FORMAT_BY_EXTENSION = {
+  docx: 'docx',
+  xlsx: 'xlsx',
+  csv: 'csv',
+  tsv: 'csv',
+  txt: 'text',
+  md: 'text',
+  markdown: 'text',
+  log: 'text',
+  json: 'text',
+  yaml: 'text',
+  yml: 'text',
+  html: 'html',
+  htm: 'html',
+  pdf: 'pdf',
+};
+
+/**
+ * Read one raw source into citable units.
+ *
+ * @param {Buffer} buffer the file's bytes
+ * @param {string} path vault-relative, `sources/<file>`
+ * @param {{ from?: number, limit?: number, sheet?: number }} [options]
+ *   `from` is the 1-based index of the first unit to return; `limit` the count; `sheet`
+ *   narrows a workbook to one sheet number.
+ * @returns {{ path, format, units, unitCount, from, truncated, note? }}
+ */
+export function readSourceText(buffer, path, options = {}) {
+  const extension = String(path).toLowerCase().split('.').pop() ?? '';
+  const format = FORMAT_BY_EXTENSION[extension] ?? 'binary';
+  const from = Math.max(1, Math.trunc(Number(options.from) || 1));
+  const limit = Math.min(READ_SOURCE_MAX_LIMIT, Math.max(1, Math.trunc(Number(options.limit) || READ_SOURCE_DEFAULT_LIMIT)));
+
+  let units;
+  let note;
+  switch (format) {
+    case 'docx':
+      units = docxUnits(buffer);
+      break;
+    case 'xlsx':
+      units = xlsxUnits(buffer, { sheet: options.sheet });
+      break;
+    case 'csv':
+      units = tableUnits(buffer.toString('utf8'));
+      break;
+    case 'text':
+      units = lineUnits(buffer.toString('utf8'));
+      break;
+    case 'html':
+      units = htmlUnits(buffer.toString('utf8'));
+      break;
+    case 'pdf':
+      units = [];
+      note =
+        'A PDF is read natively by the agent runtime, page by page; cite `#p<n>` with the page number. This tool returns no text for it.';
+      break;
+    default:
+      units = [];
+      note = `No text reader for \`.${extension}\`. Cite the file by page (\`#p<n>\`) only when a person can find that page in it.`;
+  }
+
+  const unitCount = units.length;
+  const window = units.slice(from - 1, from - 1 + limit);
+  const kept = [];
+  let chars = 0;
+  for (const unit of window) {
+    chars += unit.text.length;
+    if (chars > READ_SOURCE_MAX_CHARS && kept.length > 0) break;
+    kept.push(unit);
+  }
+  const truncated = from - 1 + kept.length < unitCount;
+  const answer = { path, format, unitCount, from, units: kept, truncated };
+  if (truncated) answer.next = from + kept.length;
+  if (note) answer.note = note;
+  return answer;
+}

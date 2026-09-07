@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — `read_source` (2026-09-07)
+
+- A read-only tool that returns the text of one file under `sources/` in the units a
+  wiki citation names (DOCX by heading, XLSX by sheet and row, CSV by row, text and HTML
+  by line), each with its anchor and the file's sha256. No dependency: a small zip reader
+  and the XML the Office formats carry. A PDF returns no text; runtimes read it natively.
+  Surface: 38 tools (22 read + 16 write).
+
 ### Fixed — compact handoff task boundaries (2026-09-02)
 
 - Compact `agent_brief` now treats persisted Definition/Includes as positive scope and Excludes as an explicit boundary. Conflicting, unsupported, or tied claims return no capability instead of letting noun overlap choose the wrong responsibility; task text, tool/schema shape, source-currentness, approval, and write authority stay unchanged.

@@ -142,11 +142,12 @@ function ruleLines(locale: string, writerId: string, hashLines: readonly string[
 /**
  * The whole turn, as one message.
  *
- * It names the files by vault-relative path and lets the agent read them with its own
- * tools — Atlas converts nothing. That is the point of keeping sources verbatim: a PDF
- * reader, a spreadsheet tool, or a shell command the agent already has will do a better
- * job than any converter shipped here, and whatever it does is visible in its own
- * transcript.
+ * It names the files by vault-relative path and tells the agent how to read them: a PDF
+ * with its own reader, a DOCX, XLSX, CSV or text file through the server's `read_source`,
+ * which returns the text in the anchor units a citation names. Atlas converts nothing and
+ * keeps nothing converted: the tool reads on request. Before it existed (2026-09-07) the
+ * agent shelled out for every DOCX, and in the app that raised an execute permission card
+ * on a turn that writes only wiki pages.
  */
 function existingPageLines(pages: readonly LibraryWikiPage[], locale: string): string[] {
   if (pages.length === 0) {
@@ -189,7 +190,7 @@ export function buildCompileBrief({
       "읽을 파일 (이 폴더 기준 경로):",
       paths,
       "",
-      "각 파일은 네 도구로 직접 읽어. PDF 는 그대로, DOCX·XLSX 는 네가 가진 도구로.",
+      "PDF 는 네 도구로 그대로 읽어. DOCX·XLSX·CSV·텍스트는 `read_source` 도구로 읽어: 인용에 쓸 앵커(`h:`, `s2r14`, `r89`, `l204`)가 단위마다 붙어서 와. 셸 명령은 쓰지 마.",
       `결과는 \`${WIKI_DIR}/<주제>.md\` 로 쓰거나 이미 있으면 고쳐 줘.`,
       `본문 순서는 고정이야: ${sections}. 빈 절도 지우지 말고 남겨.`,
       "",
@@ -215,7 +216,7 @@ export function buildCompileBrief({
     "Files to read (paths relative to this folder):",
     paths,
     "",
-    "Read each one with your own tools — PDFs natively, DOCX and XLSX with whatever you have. Atlas converts nothing.",
+    "Read a PDF with your own reader. Read a DOCX, XLSX, CSV or text file through the `read_source` tool: it returns the text in the units a citation names, each with its anchor (`h:`, `s2r14`, `r89`, `l204`). Do not shell out for them. Atlas converts nothing and keeps nothing converted.",
     `Write or update \`${WIKI_DIR}/<topic>.md\`.`,
     `The body order is fixed: ${sections}. Keep an empty section rather than dropping it.`,
     "",
