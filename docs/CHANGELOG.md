@@ -47,11 +47,12 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: an MCP screen; Connectors off, filled by Notion, Atlassian, GitHub, or an ontology-atlas:// link. The Library graph pulls apart by hand, a stage on an empty folder, a stepper, one index column, a door for outside notes, a local model card; Check the wiki proposes nodes; a wiki log; one folder shape; a source says when partly read. Meaning asks reasons; trails show steps. Strata: named planes.
+**Added**: an MCP screen; Connectors filled by Notion, Atlassian, GitHub, or an ontology-atlas:// link. The Library graph pulls apart by hand, a stage on an empty folder, a stepper, a door for outside notes, a local model card; Check the wiki reports and proposes nodes; a wiki log; a source says when partly read. Meaning asks reasons; Strata names planes.
 
-**Changed**: connectors add in three tabs, one search; Agents lists what it confirmed, rest in a popup. Insights opens on four measures; chat widens; Agents and MCP read one column; toasts sit under the toolbar; sources/ takes Markdown.
+**Changed**: the Library index switches between Sources and Wiki, its description a tooltip, the column folds, the graph shrinks to fit; no scroller draws a bar. Connectors add in three tabs; Agents lists what it confirmed. Insights opens on four measures, chat widens; sources/ takes Markdown.
 
-**Fixed**: 3D relations stay visible; centres click; repeat lookups fold; permission cards read plainly; rails stop blinking; footprints curve; docks name tool and mode; Korean reports count; loose files ring the cluster; the Docs head fits a 280px pane.
+**Fixed**: 3D relations stay visible; centres click; repeat lookups fold; permission cards read plain; rails stop blinking; footprints curve; docks name tool and mode; Korean reports count; loose files ring the cluster; the Docs head fits 280px.
+
 
 ## 2026-09-05 · v1.0.6: the in-app Claude chat keeps its permission gate
 

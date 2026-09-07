@@ -1213,6 +1213,27 @@ everything kept, below everything removed. Lint cannot see this: the class is th
 `OVERVIEW` and the defect on a Korean label, and only the rendered page holds both facts. The spec
 probes its own detector in both directions.
 
+### Scrollers draw no bar; scrolling is unchanged (2026-09-07)
+
+Owner, reading the installed Library: *"I don't want scrollbars to appear when things
+scroll. Everything, just smooth scrolling."*
+
+| Value | Where | What it means |
+|---|---|---|
+| `scrollbar-width: none` + `::-webkit-scrollbar { display: none }` on `html`, `body` and every descendant | `app/globals.css` | **No scroller in the product paints a bar.** Both spellings, because Safari and the macOS WebView ignore the standards property |
+| `scroll-behavior: smooth` under `@media (prefers-reduced-motion: no-preference)` | `html` only | The page scroller glides. Inner scrollers do not: `scroll-behavior` changes what `element.scrollTop = n` *means*, and eight measuring specs set it on inner boxes and read the result on the next line |
+| `--tabbar-edge-fade` mask | every scroller where the bar was the only "there is more" mark | Hiding a bar removes a mark. The surface that loses one owes a fade — the Library's index column and the conversation's history list both pay it |
+
+`.atlas-scroll-quiet` survives the promotion with a narrower meaning: **this scroller was
+designed without a bar**, so it either needs no cue or draws one of its own. It is the
+marker `tests/contract/chat-scroller-quiet.contract.test.ts` counts, and the reason each
+listed surface is exempt from owing a fade.
+
+⚠️ **This does not touch reach.** Wheel, trackpad, keyboard and programmatic scrolling are
+identical; only the painted bar is gone. Measured on the built export at 1512×917,
+1040×760, 768×1024 and 390×844: the Library's index scroller and the document scroller both
+report a bar width of 0 while the column still scrolls.
+
 ### Quiet scroller — `.atlas-scroll-quiet` (2026-09-06)
 
 Owner, on the ACP panel in the installed app: *"a scrollbar keeps appearing on the right
@@ -1248,8 +1269,10 @@ the inline value.
 
 Gate: `tests/contract/chat-scroller-quiet.contract.test.ts` — the rule exists in both
 spellings, matches the strip rule it generalises, every vertical scroller in the three
-conversation sources carries the class, a planted scroller without it fails, and the two
-edge fades and the distance rule are pinned.
+conversation sources carries the class, a planted scroller without it fails, and the
+edge fades and the distance rule are pinned. Since 2026-09-07 it also pins the
+document-wide rule above, the page-scroller-only `smooth`, and the Library index column's
+own fade.
 
 ### App-embedded terminal dock tokens — Removed (2026-07-26)
 

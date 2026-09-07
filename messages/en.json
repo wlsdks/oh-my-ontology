@@ -4423,6 +4423,14 @@
     "title": "Library",
     "eyebrow": "In this folder",
     "lede": "The project documents you gathered, in whatever format they arrived, and the wiki pages written from them. A source is kept byte for byte, and every claim on a page cites one.",
+    "index": {
+      "aria": "Which list the index shows",
+      "sources": "Sources {count}",
+      "wiki": "Wiki {count}",
+      "about": "What this folder holds",
+      "collapse": "Fold the index away",
+      "expand": "Show the index"
+    },
     "emptyTitle": "Nothing gathered yet",
     "emptyBody": "Bring in the documents this project already has: a spec, a slide deck, a spreadsheet, a page you exported. Atlas copies them into sources/ untouched and never opens them until you ask.",
     "sources": {
