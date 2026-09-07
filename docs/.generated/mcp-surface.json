@@ -2,8 +2,8 @@
   "_generatedBy": "pnpm docs:surface:build",
   "_contract": "Derived from the MCP tool registry and the CLI command registry. Never hand-edit — run `pnpm docs:surface:build` and commit the diff.",
   "mcp": {
-    "toolCount": 37,
-    "readToolCount": 21,
+    "toolCount": 38,
+    "readToolCount": 22,
     "writeToolCount": 16,
     "tools": [
       {
@@ -419,6 +419,19 @@
         ],
         "required": [
           "operation"
+        ]
+      },
+      {
+        "name": "read_source",
+        "mode": "read",
+        "arguments": [
+          "from",
+          "limit",
+          "path",
+          "sheet"
+        ],
+        "required": [
+          "path"
         ]
       },
       {

@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — The MCP server reads a source's text on request; Atlas still keeps no converted copy
+
+**Why**: the first ask about a passage on a DOCX-backed page stopped at an execute permission card: the agent had to shell out (`unzip -p … | sed`) to read the original, on a turn that only reads. "Atlas converts nothing" had been read as "Atlas never opens a source", which made every DOCX and XLSX a shell command away.
+**Prior**: 2026-09-06 "The wiki page contract" (citations name one place in one document) stands; the compile brief's "Atlas converts nothing" is narrowed, not overturned: no converted file is written, ever.
+**Decision**: `read_source` (read-only, `sources/` only, inside the folder only) returns a file's text cut into the anchor units the contract already names — DOCX by heading, XLSX by sheet and row, CSV by row, text and HTML by line — with the anchor on each unit and the file's sha256. A PDF returns no text; the runtimes read PDFs natively. The Library briefs point at the tool; the shell stays the agent's fallback and still stops at its card.
+**Dissent**: shipping a parser puts Atlas between the document and the quote; a wrong split misattributes an anchor. Kept small (no dependency, two formats parsed) and answered by the sha256 on every answer: the page's `source_hash` and the tool's hash are the same bytes.
+**Falsifier**: a DOCX or XLSX in a real folder whose text the tool splits into anchors a reader cannot find in the document, or a read-only turn in the app that still raises an execute card after being told about the tool.
+**Owner**: jinan
+
 ## 2026-09-07 — A wiki page that fits its contract is written without a card; the person can switch to being asked
 
 **Why**: the owner read "every write stops at the permission card" as the product principle and corrected it: agents act, people can step in, and a screen that asks before every page is one nobody keeps using. Compile of seven documents had stopped seven times for pages the card itself judged as fitting.

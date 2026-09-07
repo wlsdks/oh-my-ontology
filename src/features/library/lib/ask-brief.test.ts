@@ -13,6 +13,7 @@ describe("buildAskBrief", () => {
     expect(brief).toContain("Write nothing.");
     // The answer can be filed as a page, so the brief names the one citation form that counts.
     expect(brief).toContain("`[[src:sources/<file>#p<page>]]`");
+    expect(brief).toContain("`read_source` tool");
   });
 
   it("uses the person's own words for a custom question, in the screen's language", () => {

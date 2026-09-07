@@ -173,6 +173,7 @@ export const EXPECTED_READ_TOOLS = [
   'query_ontology',
   'validate_vault',
   'validate_wiki',
+  'read_source',
   'inspect_architecture',
   'analyze_repo_structure',
   'infer_imports',

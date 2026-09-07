@@ -194,9 +194,11 @@ describe("the brief names the files and nothing else about them", () => {
     ).toContain(`폴더: ${VAULT_ROOT}`);
   });
 
-  it("says the agent reads them itself, because Atlas converts nothing", () => {
+  it("sends the agent to read_source for a DOCX and to its own reader for a PDF, because Atlas converts nothing", () => {
     const brief = buildCompileBrief({ sources: SOURCES, locale: "en", writerId: "agent:claude", vaultRoot: VAULT_ROOT });
     expect(brief).toContain("Atlas converts nothing");
+    expect(brief).toContain("`read_source` tool");
+    expect(brief).toContain("Do not shell out");
   });
 });
 

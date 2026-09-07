@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — The MCP server reads a source's text on request; Atlas still keeps no converted copy",
+      "slug": "2026-09-07-the-mcp-server-reads-a-sources-text-on-request-atlas-still-keeps-no-converted-copy"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — A wiki page that fits its contract is written without a card; the person can switch to being asked",
       "slug": "2026-09-07-a-wiki-page-that-fits-its-contract-is-written-without-a-card-the-person-can-switch-to-being-asked"
     },

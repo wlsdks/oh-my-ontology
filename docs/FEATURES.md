@@ -1486,7 +1486,14 @@ as uncited); the ask brief now names the form outright. The page meets the same 
 as every other; an answer that cites nothing is refused by name (`no-cited-fact`), and one
 that does not fit is not written and the first problem is said instead. The summary ends
 with "See also" links to every page that already writes up a cited source, so the folder
-check's `shared-source-unlinked` has nothing to raise on a filed answer. This is the LLM Wiki pattern's "answers
+check's `shared-source-unlinked` has nothing to raise on a filed answer.
+
+**Reading a DOCX without a shell** (2026-09-07). The MCP server's `read_source` returns the
+text of one file under `sources/` in the units a citation names — a DOCX by heading, an
+XLSX by sheet and row, a CSV by row, text and HTML by line — each unit with its anchor. The
+Compile, Check, Fix and ask briefs point the agent at it, so a turn that only reads no longer
+raises an execute permission card for `unzip -p … | sed …`; a PDF the runtime reads itself,
+page by page. Nothing is converted and kept: the file is read on request. This is the LLM Wiki pattern's "answers
 can be filed back", done by the app rather than by another agent turn, so nothing is
 claimed that the answer did not cite.
 

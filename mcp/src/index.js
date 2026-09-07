@@ -203,6 +203,7 @@ import {
   suppressParentedExpectedFieldIssues,
 } from './validate.mjs';
 import { WIKI_DIR, isWikiFurnitureSlug, validateWikiPage, validateWikiFolder } from './wiki-schema.mjs';
+import { READ_SOURCE_DEFAULT_LIMIT, READ_SOURCE_MAX_LIMIT, readSourceText } from './source-text.mjs';
 import {
   buildFrontmatter,
   defaultBody,
@@ -4714,6 +4715,66 @@ const TOOLS = [
     },
   },
   {
+    name: 'read_source',
+    description:
+      'Read the text of one raw source under `sources/`, cut into the units a wiki citation names ' +
+      '(`docs/ONTOLOGY-ATLAS-SPEC.md` §11): a DOCX by heading (`h:<slug>`; paragraphs before the first ' +
+      'heading are `p1`), an XLSX by sheet and row (`s<n>r<m>`), a CSV by row (`r<n>`), a text or HTML file by ' +
+      'line (`l<n>`). Each unit carries the exact anchor to write into `[[src:sources/<file>#<anchor>]]`, so a ' +
+      'page cites what it quotes. A PDF returns no text: the agent runtime reads PDFs natively, page by page, ' +
+      'and cites `#p<n>`. Nothing is converted and kept — the file is read on request and the text returned ' +
+      'once. Paging: `from` (1-based unit index) and `limit` (default ' +
+      `${READ_SOURCE_DEFAULT_LIMIT}, max ${READ_SOURCE_MAX_LIMIT}` +
+      '); when `truncated` is true, `next` is the `from` to continue with. `sheet` narrows a workbook to one ' +
+      'sheet number. Returns `{ path, format, unitCount, from, units: [{anchor, text, kind, heading?, sheet?}], ' +
+      'truncated, next?, sha256, note? }`. side effect 0. Use it in place of a shell command when a Compile, ' +
+      'Check or ask turn needs what a DOCX or XLSX says.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        path: nonBlankStringSchema('Vault-relative path under `sources/` (`sources/plan.docx`).'),
+        from: { type: 'integer', minimum: 1, description: '1-based index of the first unit to return. Default 1.' },
+        limit: {
+          type: 'integer',
+          minimum: 1,
+          maximum: READ_SOURCE_MAX_LIMIT,
+          description: `Units to return at most. Default ${READ_SOURCE_DEFAULT_LIMIT}.`,
+        },
+        sheet: { type: 'integer', minimum: 1, description: 'XLSX only: return one sheet, by its number in workbook order.' },
+      },
+      required: ['path'],
+      additionalProperties: false,
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string' },
+        format: { type: 'string', enum: ['docx', 'xlsx', 'csv', 'text', 'html', 'pdf', 'binary'] },
+        unitCount: { type: 'integer', minimum: 0 },
+        from: { type: 'integer', minimum: 1 },
+        units: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              anchor: { type: 'string' },
+              text: { type: 'string' },
+              kind: { type: 'string' },
+              heading: { type: ['string', 'null'] },
+              sheet: { type: 'string' },
+            },
+            required: ['anchor', 'text', 'kind'],
+          },
+        },
+        truncated: { type: 'boolean' },
+        next: { type: 'integer', minimum: 1 },
+        sha256: { type: 'string' },
+        note: { type: 'string' },
+      },
+      required: ['path', 'format', 'unitCount', 'from', 'units', 'truncated', 'sha256'],
+    },
+  },
+  {
     name: 'inspect_architecture',
     description:
       'Read one reviewed architecture-profile/v1 document from the active vault, scan the connected repository with the existing bounded static import analyzer, and return an architectureBrief:v1 for humans and coding agents. The profile declares scoped roles, intended dependency rules, and which known import usages those rules govern; source imports remain observed evidence with usage-qualified receipts. The result distinguishes conforms, violated, and unknown, and never treats unsupported languages, unclassified import usage, empty role mappings, or unmapped edges as compliance. Pattern labels are human/document declarations, not folder-name inference. side effect 0.',
@@ -6619,6 +6680,7 @@ const READ_TOOL_NAMES = new Set([
   'query_ontology',
   'validate_vault',
   'validate_wiki',
+  'read_source',
   'inspect_architecture',
   'analyze_repo_structure',
   'infer_imports',
@@ -6911,6 +6973,8 @@ server.setRequestHandler('tools/call', async (request) => {
         return ok(await queryOntologyTool(args));
       case 'validate_vault':
         return ok(validateVaultTool(args));
+      case 'read_source':
+        return ok(readSourceTool(args));
       case 'validate_wiki':
         return ok(validateWikiTool(args));
       case 'inspect_architecture':
@@ -10408,6 +10472,33 @@ function validateWikiTool({ paths } = {}) {
 }
 
 /** Vault-relative paths under `sources/`. A listing, never a read. */
+/**
+ * The text of one raw source, in citable units — `read_source`.
+ *
+ * The path is checked before anything is opened: it must sit under `sources/` and resolve
+ * inside the vault, so a request cannot read a file the folder does not hold. The bytes are
+ * hashed as read, which is the same `source_hash` a page records.
+ */
+function readSourceTool({ path, from, limit, sheet } = {}) {
+  const relPath = String(path ?? '').replace(/\\/g, '/').replace(/^\.\//, '');
+  if (!relPath.startsWith('sources/') || relPath.split('/').includes('..') || relPath.endsWith('/')) {
+    throw new Error('read_source: `path` must name a file under `sources/`, such as `sources/plan.docx`.');
+  }
+  const absolute = resolve(VAULT_ROOT, relPath);
+  if (!absolute.startsWith(resolve(VAULT_ROOT, 'sources') + sep)) {
+    throw new Error('read_source: `path` must stay inside the vault\'s `sources/` folder.');
+  }
+  let buffer;
+  try {
+    buffer = readFileSync(absolute);
+  } catch {
+    throw new Error(`read_source: \`${relPath}\` is not in this folder. \`validate_wiki\` lists the sources every page cites.`);
+  }
+  const answer = readSourceText(buffer, relPath, { from, limit, sheet });
+  answer.sha256 = createHash('sha256').update(buffer).digest('hex');
+  return answer;
+}
+
 function listVaultSourcePaths() {
   const out = [];
   const stack = [{ dir: join(VAULT_ROOT, 'sources'), prefix: 'sources' }];
