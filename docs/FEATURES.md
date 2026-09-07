@@ -995,7 +995,8 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   candidate. It modifies nothing; enabled from two pages up, since one page has
   nothing to disagree with. The report ends with one block a program reads — the
   count per category and those names — and the Library lists the names under the Wiki as
-  **Names without a page**; the counts go to `wiki/_log.md` in one shape in every language. The
+  **Names without a page** — five at a time, the map kinds first, the rest behind a count
+  a person can open (2026-09-07, ten names had pushed the page list off the rail); the counts go to `wiki/_log.md` in one shape in every language. The
   report sorts each name: something the code builds (a domain, capability or element),
   a person, an organisation, or other. Only the first sort gets a **Propose as node**
   chip, and only in a folder that already holds an ontology — a folder of documents

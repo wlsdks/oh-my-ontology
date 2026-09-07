@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
@@ -79,6 +79,9 @@ import type { LibraryUiModel } from "../../lib/use-library-model";
  * the loudest thing in the column. A chip is now spent only where a person can act:
  * stale, off-template, not yet written up. Success is a check in the row's own ink.
  */
+
+/** Candidate rows drawn before the list folds; the rail's height at 14 inches fits five with the wiki list above. */
+const CANDIDATE_FOLD = 5;
 
 export interface LibrarySectionProps {
   model: LibraryUiModel;
@@ -243,6 +246,15 @@ export function LibrarySection({
   busy,
   t,
 }: LibrarySectionProps) {
+  /*
+   * A long candidate list pushed the wiki pages off the rail (installed app, 2026-09-07:
+   * ten names). Five rows show — the map kinds first, since those carry the one door
+   * this list has — and the rest fold behind a count a person can open.
+   */
+  const [candidatesOpen, setCandidatesOpen] = useState(false);
+  const orderedCandidates = [...candidates].sort((a, b) => Number(isMapKind(b.kind)) - Number(isMapKind(a.kind)));
+  const shownCandidates = candidatesOpen ? orderedCandidates : orderedCandidates.slice(0, CANDIDATE_FOLD);
+  const foldedCandidates = orderedCandidates.length - shownCandidates.length;
   const hasSources = model.sources.length > 0;
   const hasWiki = model.wikiPages.length > 0;
   /** What is still waiting, in words — the same line step two's caption prints. */
@@ -660,7 +672,7 @@ export function LibrarySection({
               {t("wiki.candidatesHeader", { count: candidates.length })}
             </p>
             <ul className="flex flex-col gap-0.5">
-              {candidates.map((candidate) => (
+              {shownCandidates.map((candidate) => (
                 <li
                   key={`${candidate.name}\u0000${candidate.pages.join(",")}`}
                   data-testid="library-candidate"
@@ -695,6 +707,17 @@ export function LibrarySection({
                 </li>
               ))}
             </ul>
+            {foldedCandidates > 0 || candidatesOpen ? (
+              <Chip
+                data-testid="library-candidates-fold"
+                tone="muted"
+                className="mt-1"
+                onClick={() => setCandidatesOpen((open) => !open)}
+                aria-expanded={candidatesOpen}
+              >
+                {candidatesOpen ? t("wiki.candidatesLess") : t("wiki.candidatesMore", { count: foldedCandidates })}
+              </Chip>
+            ) : null}
           </section>
         ) : null}
       </section>

@@ -4530,7 +4530,9 @@
       "logRevised": "고침",
       "logNothingNew": "새 내용 없음",
       "emptyNoTemplate": "아직 위키 문서가 없고 서식도 없습니다. 설정 › 작업 공간에서 위키를 시작하면 wiki/_template.md 가 생기고, 문서는 그 서식을 따릅니다.",
-      "folderMark": "끊긴 링크"
+      "folderMark": "끊긴 링크",
+      "candidatesMore": "이름 {count}개 더 보기",
+      "candidatesLess": "접기"
     },
     "graph": {
       "title": "그래프",
