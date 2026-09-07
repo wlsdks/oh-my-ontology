@@ -146,10 +146,17 @@ pub(crate) fn parse_install_deep_link(raw: &str) -> Result<String, DeepLinkRefus
 /// raw history call; the vault handle survives, since it lives in IndexedDB and is restored on
 /// boot exactly as it is after the updater's restart.
 ///
-/// It returns `true` once the window is on the target, so the caller can stop instead of assigning
-/// again. That answer is what makes a **cold start** work: a link pressed while Atlas is closed
-/// arrives before the first document exists, and one blind `eval` into a page that is not there
-/// yet is a link that silently did nothing.
+/// It returns `true` once there is nothing left to do, so the caller can stop. That answer is what
+/// makes a **cold start** work: a link pressed while Atlas is closed arrives before the first
+/// document exists, and one blind `eval` into a page that is not there yet is a link that silently
+/// did nothing. So the caller repeats this until it answers.
+///
+/// ⚠️ **One assignment per link, remembered in `sessionStorage`.** Measured 2026-09-07 on the
+/// installed app: re-evaluating every 250 ms restarted the navigation before it committed, twenty
+/// times, and the window never arrived. And a vault-less app answers a workbench route by sending
+/// the person back to first run (`VaultRouteIdentityBoundary`), so a script that only asked "am I
+/// there yet" would bounce that screen for five seconds. The marker survives the navigation, which
+/// a `window` property does not, so a link that was redirected away is a link that stops.
 ///
 /// The payload is checked by [`parse_install_deep_link`] before it can reach this function, so it
 /// carries no character that could end the literal. It is escaped anyway: a second line of defence
@@ -161,6 +168,10 @@ pub(crate) fn build_install_route_script(payload: &str) -> String {
   const payload = {payload};
   const query = "?tab=connectors&install=" + payload;
   if (location.pathname.endsWith("/mcp/") && location.search === query) return true;
+  let tried = null;
+  try {{ tried = sessionStorage.getItem("atlas.deepLink"); }} catch (error) {{ tried = null; }}
+  if (tried === payload) return true;
+  try {{ sessionStorage.setItem("atlas.deepLink", payload); }} catch (error) {{ /* private mode */ }}
   const locale = location.pathname.startsWith("/ko/") ? "ko" : "en";
   location.assign("/" + locale + "/mcp/" + query);
   return false;
@@ -300,5 +311,14 @@ mod tests {
             "{script}"
         );
         assert!(script.contains("return true;"), "{script}");
+        // One assignment per link: the marker outlives the navigation, so a redirect stops it.
+        assert!(
+            script.contains(r#"sessionStorage.setItem("atlas.deepLink", payload)"#),
+            "{script}"
+        );
+        assert!(
+            script.contains("if (tried === payload) return true;"),
+            "{script}"
+        );
     }
 }
