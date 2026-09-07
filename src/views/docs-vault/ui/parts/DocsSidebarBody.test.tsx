@@ -6,7 +6,7 @@ import type { VaultDoc, VaultManifest } from "@/entities/docs-vault";
 import type { DocsTreeGroup, DocsTreeSort } from "@/widgets/docs-vault/lib/tree-order";
 import type { DocsVaultCollection } from "../../lib/docs-vault-collection";
 import type { AgentFilesUiModel } from "../../lib/agent-files";
-import { DocsSidebarBody } from "./DocsSidebarBody";
+import { DOCS_HEAD_LABEL_MIN_PX, DocsSidebarBody } from "./DocsSidebarBody";
 
 function makeDoc(slug: string, title: string, updatedAt: string): VaultDoc {
   return {
@@ -237,6 +237,36 @@ describe("DocsSidebarBody — #22 아이콘 행: 검색 토글 + 카운트", () 
     expect(active).toHaveAttribute("role", "radio");
     // The count stays in the tooltip (the accessible name), so the chip label does not eat width.
     expect(active.getAttribute("aria-label")).toContain("3");
+  });
+
+  /**
+   * **The threshold in the class and the threshold in the constant are one number**
+   * (2026-09-07).
+   *
+   * Tailwind extracts class names statically, so `@min-[…px]/docs-head:` has to be written
+   * out literally; the constant beside it carries the arithmetic and the measurement that
+   * chose it. Two copies of a number drift, and this one drifting is invisible — the label
+   * would simply start appearing at a width that cannot hold it, which is the defect this
+   * round was opened for. jsdom computes no container query, so the pair is what can be
+   * checked here; `docs-sidebar-head.spec.ts` measures the rendered rects.
+   */
+  it("켠 이름은 줄 너비가 감당할 때만 그려진다", () => {
+    const docs = [makeDoc("a", "A", new Date().toISOString())];
+    renderSidebar(docs, {
+      collection: "all",
+      collectionCounts: { all: 1, guides: 1, ontology: 0 },
+    });
+    const label = screen.getByText("전체 문서");
+    expect(label.className).toContain("hidden");
+    expect(label.className).toContain(`@min-[${DOCS_HEAD_LABEL_MIN_PX}px]/docs-head:inline`);
+    // The row is the container being measured — not the window, which says nothing about a
+    // pane that renders at 280, 300 and 340 inside one viewport.
+    const row = screen.getByTestId("docs-sidebar-head-row");
+    expect(row.className).toContain("@container/docs-head");
+    // The trailing cluster holds the edge, so it is the collection well that gives way.
+    expect(screen.getByTestId("docs-sidebar-new-doc").parentElement?.className).toContain(
+      "flex-none",
+    );
   });
 
   /**
