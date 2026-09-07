@@ -124,13 +124,16 @@ export const PAGE_FRAME_FORM =
  *
  * **No new value was invented** — 640 is what the assembly entry already used,
  * and it has now gained a second consumer (the repo's rule: a value earns a name
- * the moment something else needs it). Two screens point at one place.
+ * the moment something else needs it). Two screens point at one place. Since
+ * 2026-09-08 the number itself is `--measure-stage-column`, because four more
+ * sites were writing it by hand outside this constant.
  *
  * This constant sets **width only**. Centring belongs to the stage that contains
  * it (`flex-1` + `items-center justify-center`) — a column that centred itself
  * would carry that alignment into the scrolling list state too.
  */
-export const PAGE_COLUMN_STAGE = "mx-auto w-full max-w-[640px]" as const;
+export const PAGE_COLUMN_STAGE =
+  "mx-auto w-full max-w-[var(--measure-stage-column)]" as const;
 
 /**
  * **Reading column for a list of rows inside a page-width card** (2026-09-05, design council).

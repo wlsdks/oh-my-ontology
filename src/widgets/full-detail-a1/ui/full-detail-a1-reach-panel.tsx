@@ -118,7 +118,7 @@ export function FullDetailA1ReachPanel({
       {topRows.length > 0 ? (
         <div
           data-fulldetail-domain-bars
-          className="mt-3.5 grid max-w-[640px] grid-cols-[170px_1fr_44px] items-center gap-x-3.5 gap-y-1.5"
+          className="mt-3.5 grid max-w-[var(--measure-stage-column)] grid-cols-[170px_1fr_44px] items-center gap-x-3.5 gap-y-1.5"
         >
           {topRows.map((row) => (
             <DomainBarRow

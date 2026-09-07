@@ -99,7 +99,7 @@ export function RecentChangesNeedsVaultDialog({
             aria-modal="true"
             aria-label={t('title')}
             data-testid="recent-changes-needs-vault-dialog"
-            className="w-full max-w-[420px] rounded-[var(--radius-panel)] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] shadow-[var(--shadow-elevation-3)]"
+            className="w-full max-w-[var(--dialog-w-sm)] rounded-[var(--radius-panel)] border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] shadow-[var(--shadow-elevation-3)]"
           >
             <header className="flex items-start justify-between gap-3 border-b border-[color:var(--color-border-soft)] px-5 py-4">
               <div>
