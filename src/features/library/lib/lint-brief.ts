@@ -104,10 +104,11 @@ export function buildLintBrief({ pages, locale, vaultRoot, findings }: LintBrief
       "",
       "출력: 범주마다 마크다운 목록, 항목은 한 줄: `문서 A` ↔ `문서 B` — 무엇이 어긋나는지 — 두 값. 끝에 범주별 개수.",
       "",
-      "맨 마지막에 4번 항목을 기계가 읽을 수 있게 한 번 더 적어. 정확히 이 모양의 코드 블록 하나로, 다른 말 없이:",
+      "맨 마지막에 범주별 개수와 4번 항목을 기계가 읽을 수 있게 한 번 더 적어. 정확히 이 모양의 코드 블록 하나로, 다른 말 없이:",
       "```json",
-      '{"nodeCandidates":[{"name":"<이름>","kind":"domain|capability|element|person|organisation|other","pages":["wiki/<슬러그>","..."],"why":"<한 문장>"}]}',
+      '{"counts":{"disagreement":0,"superseded":0,"missingLink":0,"nameWithoutPage":0,"uncertain":0},"nodeCandidates":[{"name":"<이름>","kind":"domain|capability|element|person|organisation|other","pages":["wiki/<슬러그>","..."],"why":"<한 문장>"}]}',
       "```",
+      "counts: 위 보고에 적은 항목 수 그대로. 세지 않은 범주는 0.",
       "kind: 이름이 코드가 만드는 것(시스템, 서비스, 부품, 기능 영역)이면 domain·capability·element 중 하나. 사람은 person, 회사·팀·기관은 organisation, 그 밖(날짜, 결정, 릴리스 번호 같은 것)은 other. 지도는 코드의 온톨로지라 사람과 조직은 노드가 아니야. 후보가 없으면 빈 배열.",
     ].join("\n");
   }
@@ -132,10 +133,11 @@ export function buildLintBrief({ pages, locale, vaultRoot, findings }: LintBrief
     "",
     "Output: a markdown list per category, each item one line: `page A` ↔ `page B` — what disagrees — the two values. End with a count per category.",
     "",
-    "Then, last of all, restate item 4 for a program to read: exactly one fenced block of this shape and nothing else after it:",
+    "Then, last of all, restate the counts and item 4 for a program to read: exactly one fenced block of this shape and nothing else after it:",
     "```json",
-    '{"nodeCandidates":[{"name":"<name>","kind":"domain|capability|element|person|organisation|other","pages":["wiki/<slug>","..."],"why":"<one sentence>"}]}',
+    '{"counts":{"disagreement":0,"superseded":0,"missingLink":0,"nameWithoutPage":0,"uncertain":0},"nodeCandidates":[{"name":"<name>","kind":"domain|capability|element|person|organisation|other","pages":["wiki/<slug>","..."],"why":"<one sentence>"}]}',
     "```",
+    "`counts`: the number of items you listed under each category above; a category you did not count is 0.",
     "`kind`: when the name is something the code builds — a system, a service, a component, an area of function — one of domain, capability, element. A person is `person`; a company, team or body is `organisation`; anything else (a date, a decision, a release number) is `other`. The map is the code's ontology, so people and organisations are never nodes. An empty array when there are no candidates.",
   ].join("\n");
 }
@@ -168,6 +170,53 @@ const KINDS: ReadonlySet<string> = new Set(["domain", "capability", "element", "
  * carrying `nodeCandidates`; prose is never parsed, and a malformed block is treated as
  * absent — a wrong candidate offered to a person is worse than no row.
  */
+export interface LintCounts {
+  disagreement: number;
+  superseded: number;
+  missingLink: number;
+  nameWithoutPage: number;
+  uncertain: number;
+}
+
+const COUNT_KEYS = ["disagreement", "superseded", "missingLink", "nameWithoutPage", "uncertain"] as const;
+
+/**
+ * The counts the report ended with, or `null` when the block carries none. Read from the
+ * same last fenced JSON block as the candidates, so the log no longer depends on the
+ * language the prose count line was written in (a Korean report on 2026-09-07 said
+ * "counts not stated" because only the English labels were known). A count that is not a
+ * non-negative integer makes the whole set absent — a guessed number is worse than none.
+ */
+export function parseLintCounts(text: string | null | undefined): LintCounts | null {
+  const block = lastReportBlock(text);
+  if (!block) return null;
+  try {
+    const parsed = JSON.parse(block) as { counts?: unknown };
+    if (!parsed.counts || typeof parsed.counts !== "object") return null;
+    const raw = parsed.counts as Record<string, unknown>;
+    const out = {} as LintCounts;
+    for (const key of COUNT_KEYS) {
+      const value = raw[key];
+      if (typeof value !== "number" || !Number.isInteger(value) || value < 0) return null;
+      out[key] = value;
+    }
+    return out;
+  } catch {
+    return null;
+  }
+}
+
+/** The last fenced JSON block that is the report's machine-readable tail, or `null`. */
+function lastReportBlock(text: string | null | undefined): string | null {
+  const source = String(text ?? "");
+  const blocks = [...source.matchAll(/```(?:json)?\s*\n([\s\S]*?)\n```/g)].map((m) => m[1] ?? "");
+  for (let i = blocks.length - 1; i >= 0; i -= 1) {
+    const block = blocks[i]!;
+    if (block.includes("nodeCandidates") || block.includes('"counts"')) return block;
+  }
+  return null;
+}
+
 export function parseLintCandidates(text: string | null | undefined): LintNodeCandidate[] {
   const source = String(text ?? "");
   const blocks = [...source.matchAll(/```(?:json)?\s*\n([\s\S]*?)\n```/g)].map((m) => m[1] ?? "");
