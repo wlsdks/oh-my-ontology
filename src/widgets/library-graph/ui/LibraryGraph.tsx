@@ -382,7 +382,12 @@ export function LibraryGraph({
             captionQuiet && "max-lg:sr-only",
           )}
         >
-          {t("graph.legend")}
+          {/* While a mark is under the pointer or the keyboard, the legend's line says what
+              that one mark is and what pressing it does — the same slot, so nothing moves.
+              Owner direction 2026-09-07: the bridge to the map has to read at a glance. */}
+          {activeNode
+            ? t(`graph.describe.${activeNode.kind}`, { name: activeNode.label })
+            : t("graph.legend")}
         </p>
         {/* The keyboard path is said to the people who need it and not to the ones
             who do not: it is part of the canvas's description, never a rendered line

@@ -229,3 +229,19 @@ describe("the brief names the pages that already exist", () => {
     expect(buildCompileBrief({ sources: SOURCES, locale: "ko", writerId: "agent:claude", vaultRoot: VAULT_ROOT })).toContain("아직 문서가 없어");
   });
 });
+
+describe("the brief hands over the hashes the Library measured", () => {
+  it("prints each target's sha256 and tells the writer to copy it rather than compute it", () => {
+    const brief = buildCompileBrief({
+      sources: [{ path: "sources/a.pdf", state: "not-compiled" } as never],
+      locale: "en",
+      writerId: "agent:claude",
+      vaultRoot: "/v",
+      hashes: new Map([["sources/a.pdf", "f".repeat(64)]]),
+      now: new Date("2026-09-07T04:41:00Z"),
+    });
+    expect(brief).toContain(`sources/a.pdf: ${"f".repeat(64)}`);
+    expect(brief).toContain("do not compute it yourself");
+    expect(brief).toContain("compiled_at: 2026-09-07T04:41:00Z");
+  });
+});

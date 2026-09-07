@@ -11,11 +11,18 @@ export {
   rememberDeclinedCandidates,
 } from "./lib/declined-candidates";
 export { buildCompileBrief, selectCompileTargets } from "./lib/compile-brief";
-export { buildLintBrief, isMapKind, parseLintCandidates, dropCandidatesWithNodes } from "./lib/lint-brief";
+export { buildLintBrief, isMapKind, parseLintCandidates, parseLintFindings, dropCandidatesWithNodes } from "./lib/lint-brief";
+export type { LintFinding } from "./lib/lint-brief";
+export { buildFixBrief } from "./lib/fix-brief";
 export type { LintNodeCandidate } from "./lib/lint-brief";
 export { buildProposeNodeBrief } from "./lib/propose-node-brief";
-export { judgePageWrite } from "./lib/judge-page-write";
+export { judgePageWrite, wikiPagePathOf } from "./lib/judge-page-write";
 export { appendWikiLog, describeCompileTurn, describeLintTurn, parseWikiLog } from "./lib/wiki-log";
 export type { WikiLogEntry } from "./lib/wiki-log";
 export type { PageWriteRequest, PageWriteVerdict } from "./lib/judge-page-write";
 export { FindDocumentsDialog } from "./ui/FindDocumentsDialog";
+export { buildAskBrief } from "./lib/ask-brief";
+export type { AskQuestionId } from "./lib/ask-brief";
+export { buildAnswerPage } from "./lib/answer-page";
+export { writeWikiFile } from "./lib/write-wiki-file";
+export { buildHumanPage } from "./lib/human-page";

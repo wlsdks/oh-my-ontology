@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { formatSourceBytes, type LibrarySourceRow } from "@/entities/docs-vault";
-import { isMapKind, type LintNodeCandidate } from "@/features/library";
+import { isMapKind, type LintFinding, type LintNodeCandidate } from "@/features/library";
 import type { LibraryIndexSegment } from "@/shared/lib/appearance-preferences";
 import { cn } from "@/shared/lib/cn";
 import { badgeClass } from "@/shared/ui/badge-class";
@@ -24,6 +24,7 @@ import { writerLabel } from "../../lib/writer-label";
 import { localizeWikiLogSummary } from "../../lib/wiki-log-summary";
 import { controlClass } from "@/shared/ui/control-class";
 import { Chip, RowButton, Tooltip } from "@/shared/ui";
+import { Input } from "@/shared/ui/input";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 
 import { isAdvisoryWikiCode, isWikiFolderCode } from "../../lib/merge-wiki-verdict";
@@ -121,10 +122,20 @@ export interface LibrarySectionProps {
   onLint: (() => void) | null;
   /** Names the last check found with no page of their own — offered as ontology node candidates. */
   candidates: readonly LintNodeCandidate[];
+  /** What the last check found under its first three categories, each with a door to fix it. */
+  findings?: readonly LintFinding[];
+  onFix?: ((finding: LintFinding) => void) | null;
   /** Starts one agent turn that proposes the candidate through the ontology-write card; null like the others. */
   onPropose: ((candidate: LintNodeCandidate) => void) | null;
   /** Whether `wiki/_template.md` exists: without it the empty state says how to get one. */
   hasWikiTemplate?: boolean;
+  /** How an agent's wiki page write is handled: lands when it fits, or asks each time. */
+  writeMode?: "auto" | "ask";
+  /** Files the last answer the agent gave as a wiki page; null when there is none. */
+  onFileAnswer?: (() => void) | null;
+  /** Starts a page a person writes by hand, from a title. Null where the folder cannot be written. */
+  onNewPage?: ((title: string) => void) | null;
+  onWriteModeChange?: ((mode: "auto" | "ask") => void) | null;
   /**
    * The brain picker, when this computer offers two and Compile can therefore be pointed
    * at either. Null draws nothing: with one brain there is no choice to make.
@@ -232,8 +243,14 @@ export function LibrarySection({
   onCompile,
   onLint,
   candidates,
+  findings = [],
+  onFix = null,
   onPropose,
   hasWikiTemplate = true,
+  writeMode = "auto",
+  onFileAnswer = null,
+  onNewPage = null,
+  onWriteModeChange = null,
   brainControl,
   compileNote,
   segment,
@@ -246,6 +263,22 @@ export function LibrarySection({
    * this list has — and the rest fold behind a count a person can open.
    */
   const [candidatesOpen, setCandidatesOpen] = useState(false);
+  /*
+   * One search over both lists (owner direction 2026-09-07; the LLM Wiki pattern reaches
+   * for a search tool once the folder grows). A source matches on its path, a page on its
+   * title or on the text the Library already holds for the contract check, so nothing is
+   * read twice. The headers keep the folder's totals; the line under the field says what
+   * matched.
+   */
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const matches = (text: string | null | undefined) => (text ?? "").toLowerCase().includes(needle);
+  const visibleSources = needle ? model.sources.filter((row) => matches(row.path)) : model.sources;
+  const visiblePages = needle
+    ? model.wikiPages.filter((page) => matches(page.title) || matches(model.pageTexts.get(page.slug)))
+    : model.wikiPages;
+  const [newPageOpen, setNewPageOpen] = useState(false);
+  const [newPageTitle, setNewPageTitle] = useState("");
   const orderedCandidates = [...candidates].sort((a, b) => Number(isMapKind(b.kind)) - Number(isMapKind(a.kind)));
   const shownCandidates = candidatesOpen ? orderedCandidates : orderedCandidates.slice(0, CANDIDATE_FOLD);
   const foldedCandidates = orderedCandidates.length - shownCandidates.length;
@@ -258,11 +291,37 @@ export function LibrarySection({
     verdict.problems.some((problem) => !isWikiFolderCode(problem.code)),
   ).length;
 
+  /*
+   * One field, both halves (2026-09-07): it filters whichever list the switch shows, on
+   * path, title and page text. It is the wiki pattern's "search at scale" in its smallest
+   * form; an index file or a search engine is what a folder of hundreds would add.
+   */
+  const searchField =
+    model.sources.length + model.wikiPages.length > 0 ? (
+      <div className="flex flex-none flex-col gap-1 px-3 pb-2">
+        <Input
+          data-testid="library-search"
+          size="sm"
+          type="search"
+          aria-label={t("search.placeholder")}
+          placeholder={t("search.placeholder")}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        {needle ? (
+          <p data-testid="library-search-matches" className="text-caption text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
+            {t("search.matches", { sources: visibleSources.length, pages: visiblePages.length })}
+          </p>
+        ) : null}
+      </div>
+    ) : null;
+
   if (segment === "sources") {
     return (
       /* No `min-h-0` and no overflow: the column above owns the one scroller, and a
          section that could shrink is a section that can cut a row in half. */
       <section data-testid="library-sources" className="flex flex-col pb-1 pt-3">
+        {searchField}
         <SectionActions>
           <Tooltip content={t("sources.addTooltip")}>
             <Chip
@@ -312,7 +371,7 @@ export function LibrarySection({
               aria-label={t("sources.listAria")}
               className="flex flex-col gap-0.5 px-2"
             >
-              {model.sources.map((row) => {
+              {visibleSources.map((row) => {
                 const active = row.path === selectedSourcePath;
                 const stateLabel = t(`sources.state.${row.state}.label`);
                 return (
@@ -406,6 +465,7 @@ export function LibrarySection({
 
   return (
     <section data-testid="library-wiki" className="flex flex-col pb-1 pt-3">
+      {searchField}
       <SectionActions>
         {onCompile || onLint ? (
           <>
@@ -524,6 +584,123 @@ export function LibrarySection({
         </p>
       ) : null}
 
+      {onNewPage || onFileAnswer || (onWriteModeChange && (onCompile || onLint)) ? (
+        <div className="flex flex-col gap-1 px-3 pb-1">
+          {/* The second row: the doors that are not the two the spec measures — a page of
+              your own, filing an answer, and how writes land. It stands under the disclosure,
+              not between Compile and it: `library-compile-dock.spec.ts` pins that sentence to
+              within 24px of the chip. It wraps, so at 280px nothing is cut off (installed app,
+              2026-09-07). */}
+          <span className="flex min-w-0 flex-wrap items-center gap-1 pt-1">
+            {onNewPage ? (
+              <Tooltip content={t("wiki.newPageTooltip")}>
+                <Chip
+                  data-testid="library-new-page"
+                  onClick={() => setNewPageOpen((open) => !open)}
+                  disabled={busy}
+                  tone="muted"
+                  aria-expanded={newPageOpen}
+                  className="flex-none hover:text-[color:var(--color-text-primary)]"
+                  aria-label={t("wiki.newPageTooltip")}
+                >
+                  <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
+                  <span className="min-w-0 truncate">{t("wiki.newPage")}</span>
+                </Chip>
+              </Tooltip>
+            ) : null}
+            {onFileAnswer ? (
+              /* The LLM Wiki pattern's "answers can be filed back": the last answer
+                 becomes a page under wiki/answers/, judged by the same contract. */
+              <Tooltip content={t("wiki.fileAnswerTooltip")}>
+                <Chip
+                  data-testid="library-file-answer"
+                  onClick={onFileAnswer}
+                  disabled={busy}
+                  tone="muted"
+                  className="flex-none hover:text-[color:var(--color-text-primary)]"
+                  aria-label={t("wiki.fileAnswerTooltip")}
+                >
+                  <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
+                  <span className="min-w-0 truncate">{t("wiki.fileAnswer")}</span>
+                </Chip>
+              </Tooltip>
+            ) : null}
+            {onWriteModeChange && (onCompile || onLint) ? (
+              /*
+               * Owner direction 2026-09-07: the agent acts and the person can step in.
+               * A page that fits the contract lands at once; the person can switch to
+               * being asked each time. Two chips, one active, beside the doors they govern.
+               */
+              <span
+                role="group"
+                aria-label={t("wiki.writeModeLabel")}
+                data-testid="library-write-mode"
+                className="ml-auto inline-flex flex-none items-center gap-1"
+              >
+                <Tooltip content={t("wiki.writeModeAutoTooltip")}>
+                  <Chip
+                    data-testid="library-write-mode-auto"
+                    onClick={() => onWriteModeChange("auto")}
+                    active={writeMode === "auto"}
+                    aria-pressed={writeMode === "auto"}
+                    tone="muted"
+                    className="flex-none"
+                  >
+                    {t("wiki.writeModeAuto")}
+                  </Chip>
+                </Tooltip>
+                <Tooltip content={t("wiki.writeModeAskTooltip")}>
+                  <Chip
+                    data-testid="library-write-mode-ask"
+                    onClick={() => onWriteModeChange("ask")}
+                    active={writeMode === "ask"}
+                    aria-pressed={writeMode === "ask"}
+                    tone="muted"
+                    className="flex-none"
+                  >
+                    {t("wiki.writeModeAsk")}
+                  </Chip>
+                </Tooltip>
+              </span>
+            ) : null}
+          </span>
+          {onNewPage && newPageOpen ? (
+            <span data-testid="library-new-page-row" className="flex min-w-0 items-center gap-1 px-1 pt-1">
+              <Input
+                data-testid="library-new-page-title"
+                size="sm"
+                aria-label={t("wiki.newPageTitle")}
+                placeholder={t("wiki.newPageTitle")}
+                value={newPageTitle}
+                autoFocus
+                onChange={(event) => setNewPageTitle(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") setNewPageOpen(false);
+                  if (event.key === "Enter" && newPageTitle.trim()) {
+                    onNewPage(newPageTitle.trim());
+                    setNewPageTitle("");
+                    setNewPageOpen(false);
+                  }
+                }}
+                className="min-w-0 flex-1"
+              />
+              <Chip
+                data-testid="library-new-page-make"
+                tone="muted"
+                disabled={busy || newPageTitle.trim() === ""}
+                onClick={() => {
+                  onNewPage(newPageTitle.trim());
+                  setNewPageTitle("");
+                  setNewPageOpen(false);
+                }}
+              >
+                {t("wiki.newPageMake")}
+              </Chip>
+            </span>
+          ) : null}
+
+        </div>
+      ) : null}
       {hasWiki ? (
         <>
           <ul
@@ -531,7 +708,7 @@ export function LibrarySection({
             aria-label={t("wiki.listAria")}
             className="flex flex-col gap-0.5 px-2"
           >
-            {model.wikiPages.map((page) => {
+            {visiblePages.map((page) => {
               const active = page.slug === selectedSlug;
               const verdict = model.verdicts.get(page.slug);
               /*
@@ -624,6 +801,54 @@ export function LibrarySection({
         </p>
       )}
 
+{findings.length > 0 ? (
+        // What the check found, one row each, with the one door a report-only turn had
+        // no way to offer (owner direction 2026-09-07): Fix starts a turn on those pages.
+        <section
+          data-testid="library-findings"
+          aria-label={t("wiki.findingsHeader", { count: findings.length })}
+          className="flex-none px-2 pb-1"
+        >
+          <Tooltip content={t("wiki.findingsTooltip")}>
+            <p tabIndex={0} className="px-1 pb-1 text-caption text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
+              {t("wiki.findingsHeader", { count: findings.length })}
+            </p>
+          </Tooltip>
+          <ul className="flex flex-col gap-0.5">
+            {findings.map((finding, index) => (
+              <li
+                key={`${finding.code}\u0000${finding.pages.join(",")}\u0000${index}`}
+                data-testid="library-finding"
+                className="flex min-w-0 flex-col gap-0.5 rounded-chip px-1 py-1"
+              >
+                <span className="text-label text-[color:var(--color-text-primary)] [word-break:keep-all]">
+                  {finding.summary}
+                </span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate text-caption text-[color:var(--color-text-quaternary)]">
+                    {t(`wiki.findingKind.${finding.code === "missing-link" ? "missingLink" : finding.code}`)} · {finding.pages.map((slug) => slug.replace(/^wiki\//, "")).join(", ")}
+                  </span>
+                  {onFix ? (
+                    <Tooltip content={t("wiki.fixTooltip")}>
+                      <Chip
+                        data-testid="library-finding-fix"
+                        onClick={() => onFix(finding)}
+                        disabled={busy}
+                        tone="muted"
+                        className="flex-none hover:text-[color:var(--color-text-primary)]"
+                        aria-label={`${t("wiki.fix")}: ${finding.summary}`}
+                      >
+                        <span className="min-w-0 truncate">{t("wiki.fix")}</span>
+                      </Chip>
+                    </Tooltip>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      
       {/*
         **The wiki's candidates for the graph** (PR #1486): a name the last check found on
         three or more pages with no page of its own. Not a page to write — a node to
@@ -643,9 +868,11 @@ export function LibrarySection({
           aria-label={t("wiki.candidatesHeader", { count: candidates.length })}
           className="flex flex-col px-2 pb-1"
         >
-          <p className="px-1 pb-1 text-caption leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
-            {t("wiki.candidatesHeader", { count: candidates.length })}
-          </p>
+          <Tooltip content={t("wiki.candidatesTooltip")}>
+            <p tabIndex={0} className="px-1 pb-1 text-caption leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
+              {t("wiki.candidatesHeader", { count: candidates.length })}
+            </p>
+          </Tooltip>
           <ul className="flex flex-col gap-0.5">
             {shownCandidates.map((candidate) => (
               <li

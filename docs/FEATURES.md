@@ -1007,7 +1007,10 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
 - **Compile** — starts one in-app ACP turn whose brief embeds `wiki/_template.md`
   verbatim and names `wiki-validate` as the acceptance test. Enabled only while some
   source is not compiled or stale. Beside it: the coding agent's provider traffic is not
-  in `.ontology-atlas/llm-audit.jsonl`. Every write still stops at the permission card,
+  in `.ontology-atlas/llm-audit.jsonl`. A page under `wiki/` that fits the contract is
+  written without a card and the conversation says so in one line (2026-09-07, owner
+  direction: agents act, people can step in); a two-chip switch beside Compile, "Writes
+  land" / "Ask each time", brings the card back for every page. A page that does not fit,
   and for a page under `wiki/` the card shows the verdict first: the page as the write
   would leave it (a whole file, or an edit applied to the page on disk), judged against
   the contract, one quiet line when it fits and the codes with the first message when it
@@ -1436,6 +1439,56 @@ RATIO-SYSTEM 1600px container / 960px centered utility column.
 - GitHub repo link row · the hosted-site scope note (the website never opens or edits vault folders) · footer (license / GitHub / stack)
 
 ---
+
+### Library — ask about a passage, and a graph that explains its marks (2026-09-07)
+
+Select eight or more characters in a wiki page and one bar stands just above the first
+selected line — where does this come from, does anything disagree with it, explain it in
+plain words — with a line for the person's own words at its end. While the bar is up the
+rest of the page steps back to quaternary ink, so the selection and the questions are the
+only bright things; a press outside the page or Escape clears both. (The first shape that
+day, a chip under the selection opening a list beside the text, covered three lines of the
+page and took a second press; the owner rejected it on sight.) The chosen question goes to
+the docked agent as one read-only turn with
+the exact passage quoted, the page named, and the rule to read the page and its originals
+and cite them (`buildAskBrief`). A page that cites several originals folds them under one closed line naming the count
+(`Disclosure`, 2026-09-07); open, they are chips on a wrapping row, each a press that opens
+the source. Six full rows had pushed the Summary below the fold of the installed app. A
+page with one original keeps its single row. The graph's legend line becomes a description while a mark
+is under the pointer or the keyboard: an original file, a wiki page, or a concept on the
+map, each with what its lines mean and what pressing does; the **Names without a page**
+header carries a tooltip saying why only map kinds can be proposed.
+
+**Search, and a page of your own** (2026-09-07). One field above the lists filters both:
+a source by its path, a page by its title or by the text the Library already holds for
+the contract check, with a line saying how many of each matched; the headers keep the
+folder's totals. **New page** starts a page a person writes by hand — the contract's
+sections, `created_by: human`, empty `sources:` — opens it, and leaves the writing to any
+editor; the folder watcher brings the text back and the list says what the page still
+lacks.
+
+**Fix what the check found** (2026-09-07). The check's closing block also lists its
+findings — a disagreement, a superseded claim, a missing link — each with the pages it
+touches, and the Library lists them under **What the check found** with a **Fix** chip. Fix
+starts one agent turn on those pages with the same rules the compile brief holds: both
+values with both citations for a disagreement, the current value first for a superseded
+claim, links both ways for a missing link, nothing outside those pages. The edits land or
+stop at the card exactly as a compile's do, and `wiki/_log.md` records the turn as `fix`.
+
+**File the answer** (2026-09-07). After an ask turn ends, a chip beside Compile writes
+the last answer as a page under `wiki/answers/`: the question is the title and summary,
+every answer line with a `[[src:…]]` citation becomes a fact, the cited files become
+`sources:` with the hashes the Library measured, and uncited lines go under "Not in
+sources". A citation an agent wrote loosely in prose, `sources/<file>#p3` bare or in
+backticks with or without `src:`, is rewritten into the wiki form first, since it names
+the same place (the first installed-app answer cited every fact that way and was refused
+as uncited); the ask brief now names the form outright. The page meets the same validator
+as every other; an answer that cites nothing is refused by name (`no-cited-fact`), and one
+that does not fit is not written and the first problem is said instead. The summary ends
+with "See also" links to every page that already writes up a cited source, so the folder
+check's `shared-source-unlinked` has nothing to raise on a filed answer. This is the LLM Wiki pattern's "answers
+can be filed back", done by the app rather than by another agent turn, so nothing is
+claimed that the answer did not cite.
 
 ### First run — what the folder holds (2026-09-06)
 

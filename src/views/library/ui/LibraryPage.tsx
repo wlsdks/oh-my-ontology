@@ -6,7 +6,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Info, ListChecks } from "lucide-r
 
 import { useLocalVault, useVaultIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
-import type { LintNodeCandidate } from "@/features/library";
+import type { LintFinding, LintNodeCandidate } from "@/features/library";
 import type { LibrarySourceRow, SourceCandidate } from "@/entities/docs-vault";
 import { useRouter } from "@/i18n/navigation";
 import { DESTINATION_HREF } from "@/shared/config/destinations";
@@ -35,6 +35,13 @@ import {
   withoutImportedNames,
   type DiscoveryOutcome,
   dropCandidatesWithNodes,
+  wikiPagePathOf,
+  buildAskBrief,
+  buildFixBrief,
+  parseLintFindings,
+  buildAnswerPage,
+  buildHumanPage,
+  writeWikiFile,
 } from "@/features/library";
 import {
   DocReadingPane,
@@ -72,6 +79,7 @@ import { LibraryStage } from "./parts/LibraryStage";
 import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
 import { LibraryAgentDock } from "./parts/LibraryAgentDock";
+import { SelectionAsk } from "./parts/SelectionAsk";
 import { useChatWidth } from "@/widgets/acp-chat-panel";
 import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
 import { SourceSummary } from "./parts/SourceSummary";
@@ -146,6 +154,8 @@ import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
  * copy with **two duplicate doors**, the canvas's own sentence, and a 560px panel lying
  * across it. The screen is now `LibraryStartStage`, and the guide is only ever a press.
  */
+const WRITE_MODE_KEY = "library.wikiWriteMode";
+
 export function LibraryPage() {
   const t = useTranslations("library");
   const locale = useLocale();
@@ -537,6 +547,31 @@ export function LibraryPage() {
    * it, judged against the wiki page contract. Edits are applied to the page text the model
    * last read; a page it has not read yet gets no verdict rather than a guessed one.
    */
+  /*
+   * How an agent's wiki page write is handled. Owner direction 2026-09-07: agents act and
+   * people can step in — not every write waits. Default: a page that fits the contract
+   * lands and the transcript says so; a page that does not still stops at the card. The
+   * choice is a per-screen convenience kept in this browser, never a vault fact.
+   */
+  const [writeMode, setWriteMode] = useState<"auto" | "ask">(() => {
+    try {
+      return window.localStorage.getItem(WRITE_MODE_KEY) === "ask" ? "ask" : "auto";
+    } catch {
+      return "auto";
+    }
+  });
+  const changeWriteMode = useCallback((mode: "auto" | "ask") => {
+    setWriteMode(mode);
+    try {
+      window.localStorage.setItem(WRITE_MODE_KEY, mode);
+    } catch {
+      // A browser that refuses storage keeps the choice for this visit only.
+    }
+  }, []);
+  /* The last question asked from a page and the answer it got: the pair a person can file
+     back as a wiki page (owner direction 2026-09-07, the LLM Wiki pattern). */
+  const pendingAskRef = useRef<{ question: string; askedOn: string | null } | null>(null);
+  const [lastAnswer, setLastAnswer] = useState<{ question: string; text: string; askedOn: string | null } | null>(null);
   const judgeWrite = useCallback(
     (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null }) =>
       nativeVaultRootPath
@@ -548,6 +583,73 @@ export function LibraryPage() {
           })
         : null,
     [model.pageTexts, model.sources, nativeVaultRootPath],
+  );
+  const handleFix = useCallback(
+    (finding: LintFinding) => {
+      if (!nativeVaultRootPath) return;
+      agent.start(buildFixBrief({ finding, locale, vaultRoot: nativeVaultRootPath }), "fix");
+    },
+    [agent, locale, nativeVaultRootPath],
+  );
+
+  const handleNewPage = useCallback(
+    async (title: string) => {
+      if (!handle) return;
+      const page = buildHumanPage({ title, now: new Date() });
+      if (knownSlugs.has(page.slug)) {
+        toast.show(t("wiki.newPageExists", { page: page.slug }), "error");
+        setSelected({ kind: "wiki", slug: page.slug });
+        return;
+      }
+      try {
+        await writeWikiFile(handle, page.path, page.text);
+        setSelected({ kind: "wiki", slug: page.slug });
+        toast.show(t("wiki.newPageDone", { page: page.slug }), "success");
+      } catch (err) {
+        toast.show(err instanceof Error && err.message ? err.message : t("wiki.newPageFailed"), "error");
+      }
+    },
+    [handle, knownSlugs, t, toast],
+  );
+
+  const handleFileAnswer = useCallback(async () => {
+    if (!lastAnswer || !handle) return;
+    const page = buildAnswerPage({
+      question: lastAnswer.question,
+      answer: lastAnswer.text,
+      askedOn: lastAnswer.askedOn,
+      writer: agent.runtime ? `agent:${agent.runtime.id}` : "agent:unknown",
+      now: new Date(),
+      hashes: model.hashes,
+      knownSources: model.sources.map((row) => row.path),
+      pagesForSource: (path) =>
+        [...model.pairing.originalsByWiki.entries()]
+          .filter(([, originals]) => originals.some((original) => original.path === path))
+          .map(([slug]) => slug),
+    });
+    if (page.problems.length > 0) {
+      toast.show(t("wiki.fileAnswerRejected", { code: page.problems[0]!.code }), "error");
+      return;
+    }
+    try {
+      await writeWikiFile(handle, page.path, page.text);
+      setLastAnswer(null);
+      setSelected({ kind: "wiki", slug: page.slug });
+      toast.show(t("wiki.fileAnswerDone", { page: page.slug }), "success");
+    } catch (err) {
+      toast.show(err instanceof Error && err.message ? err.message : t("wiki.fileAnswerRejected", { code: "write" }), "error");
+    }
+  }, [agent.runtime, handle, lastAnswer, model.hashes, model.pairing.originalsByWiki, model.sources, t, toast]);
+
+  const autoDecide = useCallback(
+    (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null; toolName: string | null }) => {
+      if (writeMode !== "auto" || !nativeVaultRootPath) return null;
+      const page = wikiPagePathOf(request.filePath, nativeVaultRootPath);
+      if (!page) return null;
+      const verdict = judgeWrite(request);
+      return verdict?.ok ? page : null;
+    },
+    [judgeWrite, nativeVaultRootPath, writeMode],
   );
 
   /**
@@ -562,7 +664,9 @@ export function LibraryPage() {
    * a lint turn completes; cleared by the next lint. Never persisted: a candidate is an
    * offer, and the offer is remade each time the wiki is checked.
    */
+  const pageBodyRef = useRef<HTMLDivElement | null>(null);
   const [candidates, setCandidates] = useState<LintNodeCandidate[]>([]);
+  const [findings, setFindings] = useState<LintFinding[]>([]);
   /* A candidate the card already turned into a node leaves the list; the report cannot know. */
   const openCandidates = useMemo(() => dropCandidatesWithNodes(candidates, docs), [candidates, docs]);
   const latestDocsRef = useRef(docs);
@@ -587,16 +691,22 @@ export function LibraryPage() {
         const after = stamp(latestDocsRef.current);
         const lastAgentText = [...completion.events].reverse().find((event) => event.kind === "agent")?.text ?? null;
         if (kind === "lint") setCandidates(parseLintCandidates(lastAgentText));
+        if (kind === "lint") setFindings(parseLintFindings(lastAgentText));
         /*
          * The wiki log records what happened to the wiki. A proposal writes one ontology node
          * and an import writes documents under `sources/`; neither touches a page, so neither
          * is an entry, or the log would claim a compile that never ran.
          */
+        if (kind === "ask") {
+          const asked = pendingAskRef.current;
+          if (asked && lastAgentText && lastAgentText.trim()) setLastAnswer({ question: asked.question, text: lastAgentText, askedOn: asked.askedOn });
+          return;
+        }
         if (kind === "propose" || kind === "import") return;
         const summary =
           kind === "lint"
             ? describeLintTurn(lastAgentText)
-            : describeCompileTurn({ sources, before, after });
+            : describeCompileTurn({ sources: kind === "fix" ? [] : sources, before, after });
         try {
           await appendWikiLog(handle, { at: completion.endedAt, kind, summary, writer });
         } catch {
@@ -1172,7 +1282,13 @@ export function LibraryPage() {
             onCompile={agent.route === "agent" || agent.route === "local" ? handleCompile : null}
             onLint={agent.route === "agent" ? handleLint : null}
             candidates={openCandidates}
+            findings={findings}
+            onFix={agent.route === "agent" ? handleFix : null}
             hasWikiTemplate={docs.some((doc) => doc.slug === "wiki/_template")}
+            writeMode={writeMode}
+            onFileAnswer={lastAnswer ? handleFileAnswer : null}
+            onNewPage={handle ? handleNewPage : null}
+            onWriteModeChange={changeWriteMode}
             onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
             /*
              * The same picker as step two, reading and writing the same stored answer, so
@@ -1366,14 +1482,48 @@ export function LibraryPage() {
               t={t}
             />
             <WikiTemplateProblems problems={wikiProblems} t={t} />
-            <DocsVaultViewer
-              key={selectedWikiDoc.slug}
-              doc={selectedWikiDoc}
-              vaultSlugs={vaultSlugs}
-              onNavigate={(slug) => choose({ kind: "wiki", slug })}
-              getDocContent={getDocContent}
-              resolveImage={resolveImage}
-            />
+            {/* The passage a person selects here can be asked about at once; the chip and
+                its list hang from the selection inside this positioned box. */}
+            <div
+              ref={pageBodyRef}
+              // With a passage selected (`data-selecting`, set by SelectionAsk), every line of
+              // the page except the selection itself and the ask chip steps back to quaternary
+              // ink; `::selection` keeps the selected words at primary over the indigo wash.
+              className="relative data-[selecting=true]:[&>:not([data-testid=library-selection-ask])_*]:text-[color:var(--color-text-quaternary)]"
+            >
+              <DocsVaultViewer
+                key={selectedWikiDoc.slug}
+                doc={selectedWikiDoc}
+                vaultSlugs={vaultSlugs}
+                onNavigate={(slug) => choose({ kind: "wiki", slug })}
+                getDocContent={getDocContent}
+                resolveImage={resolveImage}
+              />
+              {agent.route === "agent" ? (
+                <SelectionAsk
+                  containerRef={pageBodyRef}
+                  disabled={agent.runtime === null}
+                  onAsk={(selection, question, customQuestion) => {
+                    pendingAskRef.current = {
+                      question: question === "custom" ? (customQuestion ?? "").trim() : t(`ask.${question}`),
+                      askedOn: selectedWikiDoc.slug,
+                    };
+                    agent.start(
+                      buildAskBrief({
+                        selection,
+                        pageSlug: selectedWikiDoc.slug,
+                        question,
+                        customQuestion,
+                        locale,
+                        vaultRoot: nativeVaultRootPath ?? "",
+                      }),
+                      "ask",
+                    );
+                  }}
+                  t={t}
+                />
+              ) : null}
+            </div>
           </DocReadingPane>
         ) : selectedSource ? (
           <div className="min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]">
@@ -1463,6 +1613,7 @@ export function LibraryPage() {
         <LibraryAgentDock
           chatWidth={chatWidth}
           judgeWrite={judgeWrite}
+          autoDecide={autoDecide}
           onTurnStarted={handleTurnStarted}
           open={agent.open}
           runtime={agent.runtime}

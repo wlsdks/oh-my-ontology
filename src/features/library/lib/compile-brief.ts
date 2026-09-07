@@ -89,6 +89,10 @@ export interface CompileBriefInput {
    * once, at the top, so every path below it has a home.
    */
   vaultRoot: string;
+  /** sha256 by vault-relative source path, as the Library measured it; the writer copies it. */
+  hashes?: ReadonlyMap<string, string>;
+  /** The moment Compile was pressed, for `compiled_at`; the writer copies it rather than asking a shell. */
+  now?: Date;
 }
 
 /** Sources a Compile run acts on: the ones with no write-up, or one that no longer fits. */
@@ -105,11 +109,13 @@ export function selectCompileTargets(
   );
 }
 
-function ruleLines(locale: string, writerId: string): string[] {
+function ruleLines(locale: string, writerId: string, hashLines: readonly string[] = [], compiledAt: string | null = null): string[] {
   return locale === "ko"
     ? [
         `a. 프레임matter 에 \`kind:\` 를 절대 넣지 마. 그 키가 문서를 그래프 노드로 만들고, 위키 문서는 노드가 아니야.`,
         `b. \`created_by: ${writerId}\`, \`sources: [${WIKI_SOURCES_DIR}/<파일>, …]\`, \`source_hash: {<경로>: <읽은 바이트의 sha256>}\`, \`compiled_at\` 을 반드시 채워.`,
+        ...(hashLines.length > 0 ? [`   원문의 sha256 은 여기 있어. 그대로 \`source_hash\` 에 옮겨 적고 직접 계산하지 마: ${hashLines.join(", ")}`] : []),
+        ...(compiledAt ? [`   \`compiled_at\` 은 \`${compiledAt}\` 으로 적어. 시각을 셸로 묻지 마.`] : []),
         `c. \`## Facts\` 의 모든 항목은 출처로 끝나야 해: \`[[src:${WIKI_SOURCES_DIR}/<경로>#p12]]\`. 앵커는 p<쪽> · s<시트> · s<시트>r<행> · r<행> · l<줄> · h:<제목-슬러그> 중 하나이고, 형식이 허용하는 한 반드시 붙여.`,
         `d. 원문에서 근거를 찾지 못한 내용은 \`## Not in sources\` 에만 적어. 지우지도 말고, 사실 목록에 섞지도 마.`,
         `e. \`${WIKI_SOURCES_DIR}/\` 안의 어떤 파일도 고치거나 옮기거나 지우지 마. 원문은 그대로 두는 것이 이 폴더의 규칙이야.`,
@@ -121,6 +127,8 @@ function ruleLines(locale: string, writerId: string): string[] {
     : [
         `a. Never put \`kind:\` in the frontmatter. That key is what makes a document a graph node, and a wiki page is not one.`,
         `b. Fill in \`created_by: ${writerId}\`, \`sources: [${WIKI_SOURCES_DIR}/<file>, …]\`, \`source_hash: {<path>: <sha256 of the bytes you read>}\`, and \`compiled_at\`.`,
+        ...(hashLines.length > 0 ? [`   The sha256 of each source is given here; copy it into \`source_hash\` and do not compute it yourself: ${hashLines.join(", ")}`] : []),
+        ...(compiledAt ? [`   Write \`compiled_at: ${compiledAt}\`; do not ask a shell for the time.`] : []),
         `c. Every bullet under \`## Facts\` ends in a citation: \`[[src:${WIKI_SOURCES_DIR}/<path>#p12]]\`. The anchor is p<page> · s<sheet> · s<sheet>r<row> · r<row> · l<line> · h:<heading-slug>, and you give one wherever the format has one.`,
         `d. Anything you could not ground in a source goes under \`## Not in sources\`, and nowhere else. Do not drop it, and do not mix it into the facts.`,
         `e. Never modify, move or delete anything under \`${WIKI_SOURCES_DIR}/\`. The raw file is what everything else is checked against.`,
@@ -158,12 +166,19 @@ export function buildCompileBrief({
   writerId,
   vaultRoot,
   existingPages = [],
+  hashes,
+  now,
 }: CompileBriefInput): string {
   const targets = selectCompileTargets(sources);
+  const compiledAt = now ? now.toISOString().replace(/\.\d{3}Z$/, "Z") : null;
+  const hashLines = targets
+    .map((row) => [row.path, hashes?.get(row.path)] as const)
+    .filter((pair): pair is readonly [string, string] => typeof pair[1] === "string")
+    .map(([path, sha]) => `${path}: ${sha}`);
   const paths = targets.map((row) => `- ${row.path}`).join("\n");
   const existing = existingPageLines(existingPages, locale).join("\n");
   const sections = WIKI_SECTION_ORDER.join(" → ");
-  const rules = ruleLines(locale, writerId).join("\n");
+  const rules = ruleLines(locale, writerId, hashLines, compiledAt).join("\n");
 
   if (locale === "ko") {
     return [
@@ -188,7 +203,7 @@ export function buildCompileBrief({
       WIKI_PAGE_TEMPLATE.trimEnd(),
       "```",
       "",
-      "`wiki-validate` 를 통과하지 못하는 문서는 위키 목록에 첫 문제 코드와 함께 떠. 쓰기는 한 건씩 사람의 허락을 기다려.",
+      "`wiki-validate` 를 통과하지 못하는 문서는 위키 목록에 첫 문제 코드와 함께 떠. 서식에 맞는 문서는 바로 쓰이고, 맞지 않는 문서만 사람의 허락 카드에서 멈춰.",
     ].join("\n");
   }
 
@@ -214,6 +229,6 @@ export function buildCompileBrief({
     WIKI_PAGE_TEMPLATE.trimEnd(),
     "```",
     "",
-    "Every write waits for the person's approval, one page at a time.",
+    "A page that fits the contract is written at once; only a page that does not stops at the person's permission card.",
   ].join("\n");
 }

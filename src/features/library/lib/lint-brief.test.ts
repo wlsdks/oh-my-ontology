@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildLintBrief, dropCandidatesWithNodes, isMapKind, parseLintCandidates, parseLintCounts } from "./lint-brief";
+import { buildLintBrief, dropCandidatesWithNodes, isMapKind, parseLintCandidates, parseLintCounts, parseLintFindings } from "./lint-brief";
 
 const PAGES = [
   { slug: "wiki/plan", title: "Plan", sourcePaths: ["sources/plan.pdf"], createdBy: "agent:claude", compiledAt: null },
@@ -83,6 +83,27 @@ describe("the report's last block is what a program reads", () => {
     expect(parseLintCounts(block('{"disagreement":"none","superseded":2,"missingLink":1,"nameWithoutPage":5,"uncertain":4}'))).toBeNull();
     expect(parseLintCounts("```json\n{\"nodeCandidates\":[]}\n```")).toBeNull();
     expect(parseLintCounts(null)).toBeNull();
+  });
+
+  it("asks for findings in the block and reads them back, dropping a malformed entry", () => {
+    for (const locale of ["en", "ko"] as const) {
+      expect(buildLintBrief({ pages: PAGES, locale, vaultRoot: VAULT_ROOT })).toContain('"findings":[{"code":"disagreement|superseded|missing-link"');
+    }
+    const text = "…\n```json\n" + JSON.stringify({
+      counts: { disagreement: 1, superseded: 0, missingLink: 1, nameWithoutPage: 0, uncertain: 0 },
+      findings: [
+        { code: "disagreement", pages: ["wiki/a.md", "wiki/b"], summary: " Budget 240,000 vs 210,000 " },
+        { code: "missing-link", pages: ["wiki/a"], summary: "Same source, no link" },
+        { code: "typo", pages: ["wiki/a"], summary: "not a code" },
+        { code: "superseded", pages: [], summary: "no pages" },
+      ],
+      nodeCandidates: [],
+    }) + "\n```";
+    expect(parseLintFindings(text)).toEqual([
+      { code: "disagreement", pages: ["wiki/a", "wiki/b"], summary: "Budget 240,000 vs 210,000" },
+      { code: "missing-link", pages: ["wiki/a"], summary: "Same source, no link" },
+    ]);
+    expect(parseLintFindings("no block")).toEqual([]);
   });
 
   it("reads candidates from the last fenced json block and normalises them", () => {

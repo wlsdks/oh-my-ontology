@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — A wiki page that fits its contract is written without a card; the person can switch to being asked
+
+**Why**: the owner read "every write stops at the permission card" as the product principle and corrected it: agents act, people can step in, and a screen that asks before every page is one nobody keeps using. Compile of seven documents had stopped seven times for pages the card itself judged as fitting.
+**Prior**: 2026-09-06 "The permission card judges a wiki page before Allow…" stands and is what makes this safe: the same verdict now decides instead of only informing. The map's rule ("ACP writes wait for allow_once or reject_once", `AGENTS.md`) is not touched: an ontology write still stops at the card.
+**Decision**: the Library answers a file permission itself when the request is a page under `wiki/` and `judgePageWrite` says it fits; the transcript gets one line naming the page. A page that does not fit still stops at the card. A two-chip switch beside Compile ("Writes land" / "Ask each time") lets a person choose asking; the choice is a browser convenience, never a vault fact.
+**Dissent**: a per-page undo would make the default safer than a switch; deferred, because History already shows every page diff and Git holds the previous text.
+**Falsifier**: a page landing that `wiki-validate` rejects; a person unable to make the card come back; a node written through the Library without a card.
+**Owner**: jinan
+
 ## 2026-09-07 — The Library index is a switch between two lists, and its description is a glyph
 
 **Why**: the owner, on the installed app at `/ko/library`, seven sources and seven pages: *"I hate this structure: sources on top, wiki underneath, one long scroll. A switch at the top is better"*, and *"put one icon beside the title and show the explanation in a tooltip on hover."* Measured at 1512×917: 14 rows, two heads, five chips and three captions in a 280px column, the Compile press off screen from the rows it acts on, and a three-line lede holding 60px a person reads once.

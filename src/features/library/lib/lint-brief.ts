@@ -106,9 +106,10 @@ export function buildLintBrief({ pages, locale, vaultRoot, findings }: LintBrief
       "",
       "맨 마지막에 범주별 개수와 4번 항목을 기계가 읽을 수 있게 한 번 더 적어. 정확히 이 모양의 코드 블록 하나로, 다른 말 없이:",
       "```json",
-      '{"counts":{"disagreement":0,"superseded":0,"missingLink":0,"nameWithoutPage":0,"uncertain":0},"nodeCandidates":[{"name":"<이름>","kind":"domain|capability|element|person|organisation|other","pages":["wiki/<슬러그>","..."],"why":"<한 문장>"}]}',
+      '{"counts":{"disagreement":0,"superseded":0,"missingLink":0,"nameWithoutPage":0,"uncertain":0},"findings":[{"code":"disagreement|superseded|missing-link","pages":["wiki/<슬러그>","..."],"summary":"<한 문장: 무엇이 어긋나거나 빠졌는지, 두 값>"}],"nodeCandidates":[{"name":"<이름>","kind":"domain|capability|element|person|organisation|other","pages":["wiki/<슬러그>","..."],"why":"<한 문장>"}]}',
       "```",
       "counts: 위 보고에 적은 항목 수 그대로. 세지 않은 범주는 0.",
+      "findings: 1~3번 범주의 항목 하나마다 하나. pages 는 그 항목이 걸린 문서. 4번 범주는 findings 가 아니라 nodeCandidates 로.",
       "kind: 이름이 코드가 만드는 것(시스템, 서비스, 부품, 기능 영역)이면 domain·capability·element 중 하나. 사람은 person, 회사·팀·기관은 organisation, 그 밖(날짜, 결정, 릴리스 번호 같은 것)은 other. 지도는 코드의 온톨로지라 사람과 조직은 노드가 아니야. 후보가 없으면 빈 배열.",
     ].join("\n");
   }
@@ -135,9 +136,10 @@ export function buildLintBrief({ pages, locale, vaultRoot, findings }: LintBrief
     "",
     "Then, last of all, restate the counts and item 4 for a program to read: exactly one fenced block of this shape and nothing else after it:",
     "```json",
-    '{"counts":{"disagreement":0,"superseded":0,"missingLink":0,"nameWithoutPage":0,"uncertain":0},"nodeCandidates":[{"name":"<name>","kind":"domain|capability|element|person|organisation|other","pages":["wiki/<slug>","..."],"why":"<one sentence>"}]}',
+    '{"counts":{"disagreement":0,"superseded":0,"missingLink":0,"nameWithoutPage":0,"uncertain":0},"findings":[{"code":"disagreement|superseded|missing-link","pages":["wiki/<slug>","..."],"summary":"<one sentence: what disagrees or is missing, with both values>"}],"nodeCandidates":[{"name":"<name>","kind":"domain|capability|element|person|organisation|other","pages":["wiki/<slug>","..."],"why":"<one sentence>"}]}',
     "```",
     "`counts`: the number of items you listed under each category above; a category you did not count is 0.",
+    "`findings`: one entry per item under categories 1 to 3, with the pages the item touches. Category 4 goes to `nodeCandidates`, not here.",
     "`kind`: when the name is something the code builds — a system, a service, a component, an area of function — one of domain, capability, element. A person is `person`; a company, team or body is `organisation`; anything else (a date, a decision, a release number) is `other`. The map is the code's ontology, so people and organisations are never nodes. An empty array when there are no candidates.",
   ].join("\n");
 }
@@ -215,6 +217,45 @@ function lastReportBlock(text: string | null | undefined): string | null {
     if (block.includes("nodeCandidates") || block.includes('"counts"')) return block;
   }
   return null;
+}
+
+type LintFindingCode = "disagreement" | "superseded" | "missing-link";
+
+export interface LintFinding {
+  code: LintFindingCode;
+  pages: string[];
+  summary: string;
+}
+
+const FINDING_CODES: ReadonlySet<string> = new Set(["disagreement", "superseded", "missing-link"]);
+
+/**
+ * The findings the report ended with, one per item under the first three categories, so
+ * each can carry a door of its own (Fix). Read from the same block as the counts; a
+ * malformed entry is dropped, never guessed.
+ */
+export function parseLintFindings(text: string | null | undefined): LintFinding[] {
+  const block = lastReportBlock(text);
+  if (!block) return [];
+  try {
+    const parsed = JSON.parse(block) as { findings?: unknown };
+    if (!Array.isArray(parsed.findings)) return [];
+    const out: LintFinding[] = [];
+    for (const item of parsed.findings) {
+      if (!item || typeof item !== "object") continue;
+      const row = item as Record<string, unknown>;
+      const code = typeof row.code === "string" && FINDING_CODES.has(row.code) ? (row.code as LintFindingCode) : null;
+      const summary = typeof row.summary === "string" ? row.summary.trim() : "";
+      const pages = Array.isArray(row.pages)
+        ? row.pages.filter((p): p is string => typeof p === "string").map((p) => p.trim().replace(/\.md$/, "")).filter(Boolean)
+        : [];
+      if (!code || !summary || pages.length === 0) continue;
+      out.push({ code, pages, summary });
+    }
+    return out;
+  } catch {
+    return [];
+  }
 }
 
 export function parseLintCandidates(text: string | null | undefined): LintNodeCandidate[] {

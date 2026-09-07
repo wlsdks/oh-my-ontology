@@ -4015,7 +4015,8 @@
       "gateOff": "In this conversation Atlas cannot ask you before a file outside this folder is touched. The tool follows the settings you gave it directly.",
       "diedMidTurn": "The agent stopped in the middle of answering. What you see is everything that arrived. Start a new chat above and ask again.",
       "modeMoved": "The tool moved this conversation into {mode}, a mode that accepts file edits without asking you first.",
-      "modeMovedServerGate": "The tool moved this conversation into {mode}, a mode that accepts file edits without asking you first. Changes made through Atlas tools still stop at the server for your approval."
+      "modeMovedServerGate": "The tool moved this conversation into {mode}, a mode that accepts file edits without asking you first. Changes made through Atlas tools still stop at the server for your approval.",
+      "autoAllowed": "{detail} was written without asking: it fits the wiki page contract. Open it from the list to read it back."
     },
     "suggest": {
       "heading": "Spotted on the map · press to fill the message box",
@@ -4483,7 +4484,7 @@
       "header": "Wiki · {count}",
       "listAria": "Wiki pages in this folder",
       "compile": "Compile",
-      "compileTooltip": "Start one agent turn that reads the sources and writes wiki pages. Every write waits for you.",
+      "compileTooltip": "Start one agent turn that reads the sources and writes wiki pages. A page that fits the contract lands at once; one that does not stops at your permission card.",
       "lint": "Check the wiki",
       "lintTooltip": "Start one agent turn that reads the wiki pages and reports disagreements, superseded claims, missing links, and names without a page. It writes nothing.",
       "candidatesHeader": "Names without a page · {count}",
@@ -4504,7 +4505,7 @@
       "unknownAuthor": "unknown",
       "offTemplate": "off-template",
       "offTemplateCount": "{count, plural, one {# page does not fit the template} other {# pages do not fit the template}}",
-      "transfer": "Traffic goes from the coding agent straight to its provider; Atlas is not in the middle and .ontology-atlas/llm-audit.jsonl does not record it. Every write still stops at your permission card.",
+      "transfer": "Traffic goes from the coding agent straight to its provider; Atlas is not in the middle and .ontology-atlas/llm-audit.jsonl does not record it. A page that fits the contract lands at once and is noted; one that does not stops at your permission card.",
       "compileFailed": "Could not start the agent turn: {reason}",
       "compileWebLimit": "Writing pages needs a coding agent running on this computer, which only the app can start. Reading and editing the pages works here.",
       "compileWebGetApp": "Get the app",
@@ -4523,6 +4524,7 @@
         "reviewed": "reviewed"
       },
       "viewOriginal": "View original",
+      "viewOriginalCount": "{count, plural, one {# original} other {# originals}}",
       "viewOriginalOne": "View original: {name}",
       "originalMissing": "Cites {name}, which is not in this folder.",
       "compileCreateFile": "Create {path}",
@@ -4540,7 +4542,33 @@
       "emptyNoTemplate": "No wiki pages yet, and no template in this folder. Start a wiki from Settings › Workspace: it writes wiki/_template.md, the shape every page follows.",
       "folderMark": "link",
       "candidatesMore": "{count, plural, one {# more name} other {# more names}}",
-      "candidatesLess": "Fewer names"
+      "candidatesLess": "Fewer names",
+      "writeModeAuto": "Writes land",
+      "writeModeAsk": "Ask each time",
+      "writeModeLabel": "What happens when the agent writes a wiki page",
+      "writeModeAutoTooltip": "A page that fits the contract is written at once and noted in the conversation; one that does not still stops at the card.",
+      "writeModeAskTooltip": "Every page write stops at the card for your decision.",
+      "candidatesTooltip": "Names the last check saw on three or more pages with no page of their own. Only what the code builds, a domain, a capability or an element, can be proposed as a node on the map; people and organisations stay names in the wiki.",
+      "fileAnswer": "File the answer",
+      "fileAnswerTooltip": "Write the last answer as a wiki page under wiki/answers/, with the files it cited as its sources. Judged by the same contract as every page.",
+      "fileAnswerDone": "Filed as {page}.",
+      "fileAnswerRejected": "Not filed: the answer does not fit the page contract ({code}). Ask for citations and try again.",
+      "findingsHeader": "What the check found · {count}",
+      "findingsTooltip": "The last check's findings, one per row: two pages disagreeing, a claim a later document replaced, or pages that share a topic without linking. Fix starts one agent turn on those pages; the edits meet the page contract like any other.",
+      "findingKind": {
+        "disagreement": "disagreement",
+        "superseded": "superseded claim",
+        "missingLink": "missing link"
+      },
+      "fix": "Fix",
+      "fixTooltip": "Start one agent turn that repairs this on the pages named: both values with both citations for a disagreement, the current value first for a superseded claim, links both ways for a missing link.",
+      "newPage": "New page",
+      "newPageTooltip": "Start a page you write yourself: the contract's sections and created_by: human, empty until you fill it in any editor. The list updates by itself.",
+      "newPageTitle": "Page title",
+      "newPageMake": "Make",
+      "newPageDone": "Made {page}. Write it in your editor; the list follows the file.",
+      "newPageExists": "{page} already exists; opened it instead.",
+      "newPageFailed": "Could not make the page. Check the folder can be written."
     },
     "graph": {
       "title": "Graph",
@@ -4558,7 +4586,12 @@
       "actionSelect": "opens it here",
       "actionMap": "opens it on the map",
       "openOnMap": "open on the map",
-      "fit": "Fit the whole picture"
+      "fit": "Fit the whole picture",
+      "describe": {
+        "source": "{name}: an original file. A thick line leads to the page written from it; no line means nobody has written it up yet. Press to open it.",
+        "page": "{name}: a wiki page. Thick lines lead to the originals it cites, dashed lines to concepts it names. Press to read it.",
+        "concept": "{name}: a concept on the map. The dashed lines lead to the wiki pages it names or was drawn from. Press to open it on the map."
+      }
     },
     "find": {
       "title": "Documents in the folders you granted",
@@ -4682,6 +4715,19 @@
       "failed": "Nothing was written. {reason}",
       "noSnapshot": "No save point is taken here; the change is in your folder and in Git.",
       "nothing": "It finished without proposing a page."
+    },
+    "ask": {
+      "title": "Ask the agent about the selected passage",
+      "evidence": "Where from?",
+      "disagreement": "What disagrees?",
+      "explain": "In plain words",
+      "own": "My own question",
+      "placeholder": "Type what you want to ask",
+      "send": "Ask"
+    },
+    "search": {
+      "placeholder": "Search sources and pages",
+      "matches": "{sources, plural, one {# source} other {# sources}} · {pages, plural, one {# page} other {# pages}} match"
     }
   },
   "libraryImport": {

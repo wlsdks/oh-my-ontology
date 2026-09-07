@@ -3,7 +3,7 @@ import { NextIntlClientProvider, useTranslations } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 
 import enMessages from "../../../../../messages/en.json";
-import type { LintNodeCandidate } from "@/features/library";
+import type { LintFinding, LintNodeCandidate } from "@/features/library";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 import { LibrarySection } from "./LibrarySection";
 
@@ -29,7 +29,7 @@ const CANDIDATES: LintNodeCandidate[] = [
   { name: "Teodor Vasquez", kind: "person", pages: ["wiki/a"], why: "" },
 ];
 
-function Harness({ onPropose, candidates = CANDIDATES }: { onPropose: ((c: LintNodeCandidate) => void) | null; candidates?: LintNodeCandidate[] }) {
+function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null, writeMode = "auto", findings = [], onFix = null, onNewPage = null }: { onPropose: ((c: LintNodeCandidate) => void) | null; candidates?: LintNodeCandidate[]; onWriteModeChange?: ((mode: "auto" | "ask") => void) | null; writeMode?: "auto" | "ask"; findings?: LintFinding[]; onFix?: ((f: LintFinding) => void) | null; onNewPage?: ((title: string) => void) | null }) {
   const t = useTranslations("library");
   return (
     <LibrarySection
@@ -45,6 +45,11 @@ function Harness({ onPropose, candidates = CANDIDATES }: { onPropose: ((c: LintN
       onLint={() => {}}
       candidates={candidates}
       onPropose={onPropose}
+      writeMode={writeMode}
+      onWriteModeChange={onWriteModeChange}
+      findings={findings}
+      onFix={onFix}
+      onNewPage={onNewPage}
       /* The candidates list is the wiki half of the column; the switch above it decides. */
       segment="wiki"
       /*
@@ -98,6 +103,44 @@ describe("names without a page become node candidates a person can propose", () 
     fireEvent.click(fold);
     expect(screen.getAllByTestId("library-candidate")).toHaveLength(7);
     expect(screen.getByTestId("library-candidates-fold").textContent).toContain("Fewer names");
+  });
+
+  it("offers the write-mode switch beside the doors, with the landing default active", () => {
+    const onWriteModeChange = vi.fn();
+    mount(<Harness onPropose={vi.fn()} onWriteModeChange={onWriteModeChange} />);
+    expect(screen.getByTestId("library-write-mode-auto").getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(screen.getByTestId("library-write-mode-ask"));
+    expect(onWriteModeChange).toHaveBeenCalledWith("ask");
+  });
+
+  it("lists each finding with its kind and pages, and a Fix chip that hands the finding back", () => {
+    const onFix = vi.fn();
+    const findings: LintFinding[] = [{ code: "disagreement", pages: ["wiki/a", "wiki/b"], summary: "Budget 240,000 vs 210,000." }];
+    mount(<Harness onPropose={null} findings={findings} onFix={onFix} />);
+    const row = screen.getByTestId("library-finding");
+    expect(row.textContent).toContain("Budget 240,000 vs 210,000.");
+    expect(row.textContent).toContain("disagreement · a, b");
+    fireEvent.click(screen.getByTestId("library-finding-fix"));
+    expect(onFix).toHaveBeenCalledWith(findings[0]);
+  });
+
+  it("filters both lists from one field and says what matched", () => {
+    mount(<Harness onPropose={null} candidates={[]} />);
+    const rows = () => screen.getByTestId("library-wiki-list").querySelectorAll('[data-testid^="library-wiki-wiki/"]');
+    expect(rows()).toHaveLength(2);
+    fireEvent.change(screen.getByTestId("library-search"), { target: { value: "b" } });
+    expect(rows()).toHaveLength(1);
+    expect(screen.getByTestId("library-search-matches").textContent).toContain("1 page");
+  });
+
+  it("starts a page from a title on Enter and hands the title back", () => {
+    const onNewPage = vi.fn();
+    mount(<Harness onPropose={null} candidates={[]} onNewPage={onNewPage} />);
+    fireEvent.click(screen.getByTestId("library-new-page"));
+    const title = screen.getByTestId("library-new-page-title");
+    fireEvent.change(title, { target: { value: "Meeting notes" } });
+    fireEvent.keyDown(title, { key: "Enter" });
+    expect(onNewPage).toHaveBeenCalledWith("Meeting notes");
   });
 
   it("shows no rows when the last check named nobody, and no chip where no agent can run", () => {

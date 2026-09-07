@@ -13,7 +13,13 @@ export function writerLabel(createdBy: string | null | undefined, t: LibraryLabe
   if (!createdBy) return t("wiki.unknownAuthor");
   if (createdBy === "human") return t("wiki.writer.human");
   const agent = /^agent:(.+)$/.exec(createdBy);
-  if (agent) return t("wiki.writer.agent", { name: RUNTIME_NAMES[agent[1]] ?? agent[1] });
+  if (agent) {
+    // `agent:claude-acp`, `agent:claude-code`, `agent:codex-acp`: the runtime id carries a
+    // suffix the greeting adds; the person knows the tool by its first word.
+    const id = agent[1];
+    const known = Object.keys(RUNTIME_NAMES).find((key) => id === key || id.startsWith(`${key}-`));
+    return t("wiki.writer.agent", { name: known ? RUNTIME_NAMES[known] : id });
+  }
   const model = /^model:(.+)$/.exec(createdBy);
   if (model) return t("wiki.writer.model", { name: model[1] });
   return createdBy;

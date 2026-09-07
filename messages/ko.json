@@ -4015,7 +4015,8 @@
       "gateOff": "이 대화에서는 폴더 밖 파일을 건드릴 때 Atlas 가 대신 물어봐 주지 못해요. 그 도구에 직접 해 둔 설정대로 움직입니다.",
       "diedMidTurn": "답하는 도중에 에이전트가 멈췄어요. 여기까지가 받은 전부예요. 위의 「새 대화」로 다시 물어봐 주세요.",
       "modeMoved": "도구가 이 대화를 {mode} 방식으로 옮겼습니다. 이 방식은 파일 수정을 먼저 묻지 않고 받아들입니다.",
-      "modeMovedServerGate": "도구가 이 대화를 {mode} 방식으로 옮겼습니다. 이 방식은 파일 수정을 먼저 묻지 않고 받아들입니다. 아틀라스 도구로 지나가는 변경은 서버에서 그대로 승인을 받습니다."
+      "modeMovedServerGate": "도구가 이 대화를 {mode} 방식으로 옮겼습니다. 이 방식은 파일 수정을 먼저 묻지 않고 받아들입니다. 아틀라스 도구로 지나가는 변경은 서버에서 그대로 승인을 받습니다.",
+      "autoAllowed": "{detail} 을(를) 묻지 않고 썼습니다. 위키 서식에 맞아서요. 목록에서 열어 읽어 보세요."
     },
     "suggest": {
       "heading": "지도에서 찾은 것 · 누르면 문장이 아래 칸에 채워져요",
@@ -4483,7 +4484,7 @@
       "header": "위키 · {count}",
       "listAria": "이 폴더의 위키 문서",
       "compile": "정리 시작",
-      "compileTooltip": "원문을 읽고 위키 문서를 쓰는 에이전트 턴을 한 번 시작합니다. 쓰기는 모두 사람의 허락을 기다립니다.",
+      "compileTooltip": "원문을 읽고 위키 문서를 쓰는 에이전트 턴을 한 번 시작합니다. 서식에 맞는 문서는 바로 쓰고, 맞지 않는 문서는 허락 카드에서 멈춥니다.",
       "lint": "위키 점검",
       "lintTooltip": "위키 문서를 읽고 어긋남·대체된 주장·빠진 연결·문서 없는 이름을 보고하는 에이전트 턴을 한 번 시작합니다. 아무것도 쓰지 않습니다.",
       "candidatesHeader": "문서 없는 이름 · {count}",
@@ -4504,7 +4505,7 @@
       "unknownAuthor": "미상",
       "offTemplate": "서식 밖",
       "offTemplateCount": "{count}개 문서가 서식에 맞지 않습니다",
-      "transfer": "통신은 코딩 에이전트에서 제공자로 곧장 갑니다. Atlas 는 그 사이에 없고 .ontology-atlas/llm-audit.jsonl 에도 남지 않습니다. 쓰기는 여전히 허락 카드에서 멈춥니다.",
+      "transfer": "통신은 코딩 에이전트에서 제공자로 곧장 갑니다. Atlas 는 그 사이에 없고 .ontology-atlas/llm-audit.jsonl 에도 남지 않습니다. 서식에 맞는 문서는 바로 쓰고 대화에 한 줄 남기며, 맞지 않는 문서만 허락 카드에서 멈춥니다.",
       "compileFailed": "에이전트 턴을 시작하지 못했습니다: {reason}",
       "compileWebLimit": "문서를 쓰려면 이 컴퓨터에서 도는 코딩 에이전트가 필요하고, 그건 앱만 띄울 수 있습니다. 문서를 읽고 고치는 일은 여기서도 됩니다.",
       "compileWebGetApp": "앱 받기",
@@ -4523,6 +4524,7 @@
         "reviewed": "검토됨"
       },
       "viewOriginal": "원본 보기",
+      "viewOriginalCount": "원문 {count}개",
       "viewOriginalOne": "원본 보기: {name}",
       "originalMissing": "{name} 을(를) 인용하지만 이 폴더에는 없습니다.",
       "compileCreateFile": "{path} 만들기",
@@ -4540,7 +4542,33 @@
       "emptyNoTemplate": "아직 위키 문서가 없고 서식도 없습니다. 설정 › 작업 공간에서 위키를 시작하면 wiki/_template.md 가 생기고, 문서는 그 서식을 따릅니다.",
       "folderMark": "끊긴 링크",
       "candidatesMore": "이름 {count}개 더 보기",
-      "candidatesLess": "접기"
+      "candidatesLess": "접기",
+      "writeModeAuto": "바로 쓰기",
+      "writeModeAsk": "매번 묻기",
+      "writeModeLabel": "에이전트가 위키 문서를 쓸 때",
+      "writeModeAutoTooltip": "서식에 맞는 문서는 바로 쓰고 대화에 한 줄 남깁니다. 맞지 않는 문서는 그대로 허락 카드에서 멈춥니다.",
+      "writeModeAskTooltip": "문서를 쓸 때마다 허락 카드에서 멈춥니다.",
+      "candidatesTooltip": "마지막 점검이 세 문서 이상에서 본, 자기 문서가 없는 이름입니다. 코드가 만드는 것(도메인·역량·요소)만 지도의 노드로 제안할 수 있고, 사람과 조직은 위키에 남습니다.",
+      "fileAnswer": "답 저장",
+      "fileAnswerTooltip": "마지막 답을 wiki/answers/ 아래 위키 문서로 씁니다. 인용한 원문이 그 문서의 출처가 되고, 다른 문서와 같은 서식 검사를 받습니다.",
+      "fileAnswerDone": "{page} 로 저장했습니다.",
+      "fileAnswerRejected": "저장하지 않았습니다. 답이 문서 서식에 맞지 않습니다({code}). 인용을 달아 다시 물어보세요.",
+      "findingsHeader": "점검이 찾은 것 · {count}",
+      "findingsTooltip": "마지막 점검이 찾은 항목입니다. 두 문서의 어긋남, 나중 문서가 바꿔 놓은 주장, 같은 주제를 다루는데 서로 링크가 없는 문서. 고치기를 누르면 그 문서들에 에이전트 턴 한 번을 시작하고, 고친 내용은 다른 문서와 같은 서식 검사를 받습니다.",
+      "findingKind": {
+        "disagreement": "어긋남",
+        "superseded": "대체된 주장",
+        "missingLink": "빠진 연결"
+      },
+      "fix": "고치기",
+      "fixTooltip": "이 항목을 그 문서들에서 고치는 에이전트 턴 한 번을 시작합니다. 어긋남은 두 값을 양쪽에 인용과 함께, 대체된 주장은 현재 값을 앞에, 빠진 연결은 양쪽에 링크를.",
+      "newPage": "새 문서",
+      "newPageTooltip": "직접 쓰는 문서를 시작합니다. 서식의 절과 created_by: human 만 있는 빈 문서이고, 어느 편집기에서든 채우면 목록이 따라옵니다.",
+      "newPageTitle": "문서 제목",
+      "newPageMake": "만들기",
+      "newPageDone": "{page} 를 만들었습니다. 편집기에서 쓰면 목록이 파일을 따라옵니다.",
+      "newPageExists": "{page} 가 이미 있어 그 문서를 열었습니다.",
+      "newPageFailed": "문서를 만들지 못했습니다. 폴더에 쓸 수 있는지 확인하세요."
     },
     "graph": {
       "title": "그래프",
@@ -4558,7 +4586,12 @@
       "actionSelect": "여기서 엽니다",
       "actionMap": "지도에서 엽니다",
       "openOnMap": "지도에서 열기",
-      "fit": "전체 보기"
+      "fit": "전체 보기",
+      "describe": {
+        "source": "{name}: 원문 파일. 굵은 선은 이 원문으로 쓴 위키 문서로 이어지고, 선이 없으면 아직 정리되지 않았습니다. 누르면 엽니다.",
+        "page": "{name}: 위키 문서. 굵은 선은 인용한 원문으로, 점선은 이름 부른 개념으로 이어집니다. 누르면 읽습니다.",
+        "concept": "{name}: 지도 위의 개념. 점선은 이 개념이 이름 부르거나 근거로 삼은 위키 문서입니다. 누르면 지도에서 엽니다."
+      }
     },
     "find": {
       "title": "허락한 폴더 안의 문서",
@@ -4682,6 +4715,19 @@
       "failed": "아무것도 쓰지 않았어요. {reason}",
       "noSnapshot": "여기서는 저장 지점을 만들지 않아요. 변경은 폴더와 Git 에 그대로 남아요.",
       "nothing": "문서를 제안하지 않고 끝났어요."
+    },
+    "ask": {
+      "title": "선택한 문장을 에이전트에게 묻습니다",
+      "evidence": "어디서 왔나요?",
+      "disagreement": "어긋나는 문서는?",
+      "explain": "쉬운 말로",
+      "own": "직접 묻기",
+      "placeholder": "묻고 싶은 것을 적어요",
+      "send": "묻기"
+    },
+    "search": {
+      "placeholder": "원문·문서 검색",
+      "matches": "원문 {sources}개 · 문서 {pages}개 일치"
     }
   },
   "libraryImport": {

@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — A wiki page that fits its contract is written without a card; the person can switch to being asked",
+      "slug": "2026-09-07-a-wiki-page-that-fits-its-contract-is-written-without-a-card-the-person-can-switch-to-being-asked"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — The Library index is a switch between two lists, and its description is a glyph",
       "slug": "2026-09-07-the-library-index-is-a-switch-between-two-lists-and-its-description-is-a-glyph"
     },
@@ -11510,6 +11515,11 @@
       "depth": 4,
       "text": "GitHub row + release-gate note + footer",
       "slug": "github-row-release-gate-note-footer"
+    },
+    {
+      "depth": 3,
+      "text": "Library — ask about a passage, and a graph that explains its marks (2026-09-07)",
+      "slug": "library-ask-about-a-passage-and-a-graph-that-explains-its-marks-2026-09-07"
     },
     {
       "depth": 3,

@@ -74,6 +74,8 @@ export type AcpEvent =
       kind: 'notice';
       id: string;
       text: string;
+      /** What `auto-allowed` allowed: the vault-relative path the screen judged. */
+      detail?: string;
       /**
        * The mode the adapter moved this session into, verbatim as the adapter names it. Present
        * only on `mode-moved`. Not translated: it is the id the tool itself shows, and inventing a
@@ -110,6 +112,14 @@ export interface UseAcpSessionOptions {
   onWorkReceipt?: (receipt: AcpWorkReceipt) => void;
   /** Captures the initiating context and returns that turn's archival observer. */
   onTurnStarted?: (turn: AcpTurnStart) => ((turn: AcpTurnCompletion) => void | Promise<void>) | null;
+  /**
+   * Lets the screen answer a permission request itself. Return a short note (what was
+   * allowed, for the transcript) to allow the request at once without a card; return null
+   * to ask the person as before. The Library uses it for a wiki page that fits the
+   * contract (owner direction 2026-09-07: agents act, people can step in — not every write
+   * waits). An ontology write never comes here: the caller's judge does not know nodes.
+   */
+  autoDecide?: (request: AcpPermissionRequest) => string | null;
 }
 
 export interface AcpTurnStart {
@@ -269,6 +279,7 @@ export function useAcpSession({
   approvalSettleMs = 0,
   onWorkReceipt,
   onTurnStarted,
+  autoDecide,
 }: UseAcpSessionOptions) {
   const [status, setStatus] = useState<AcpSessionStatus>('idle');
   /*
@@ -379,6 +390,7 @@ export function useAcpSession({
    * dependencies (a cycle). A ref breaks one step — call the latest without creating the dependency.
    */
   const startRef = useRef<(() => Promise<void>) | null>(null);
+  const autoDecideRef = useRef<UseAcpSessionOptions['autoDecide']>(undefined);
   const stopRef = useRef<(() => Promise<void>) | null>(null);
   const acpSessionRef = useRef<string | null>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
@@ -616,6 +628,15 @@ export function useAcpSession({
         resolve(null);
         return;
       }
+      // The screen may already know the answer: a wiki page that fits its contract lands
+      // without a card, and the transcript says so where the card would have stood.
+      const note = request.reviewKind === 'permission' ? (autoDecideRef.current?.(request) ?? null) : null;
+      const allow = note !== null ? request.options.find((option) => option.kind === 'allow_once') : undefined;
+      if (note !== null && allow) {
+        push({ kind: 'notice', id: nextEventId(), text: 'auto-allowed', detail: note });
+        resolve(allow.optionId);
+        return;
+      }
       pendingResolverRef.current = resolve;
       setPending({
         request,
@@ -666,7 +687,7 @@ export function useAcpSession({
     // The chain must survive any outcome, or one settled question blocks every later one.
     askChainRef.current = result.catch(() => null);
     return result;
-  }, [approvalSettleMs, emitWorkReceipt, runtimeId, setApprovedOntologyWriteTracked]);
+  }, [approvalSettleMs, emitWorkReceipt, push, runtimeId, setApprovedOntologyWriteTracked]);
 
   const start = useCallback(async () => {
     if (!isAcpBridgeAvailable() || !vaultRoot) return;
@@ -1159,8 +1180,9 @@ export function useAcpSession({
    */
   useEffect(() => {
     startRef.current = start;
+    autoDecideRef.current = autoDecide;
     stopRef.current = stop;
-  }, [start, stop, setStatusTracked]);
+  }, [start, stop, setStatusTracked, autoDecide]);
 
   useEffect(() => {
     disposedRef.current = false;

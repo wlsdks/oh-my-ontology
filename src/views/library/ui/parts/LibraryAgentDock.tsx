@@ -47,7 +47,7 @@ export interface LibraryAgentOpeningRequest {
    * the attribute has to say which, or a capture of an import turn reads as a compile that
    * behaved strangely.
    */
-  kind: "compile" | "lint" | "propose" | "import";
+  kind: "compile" | "lint" | "propose" | "import" | "ask" | "fix";
   text: string;
   nonce: number;
 }
@@ -68,6 +68,7 @@ export function LibraryAgentDock({
   knownSlugs,
   onClose,
   judgeWrite,
+  autoDecide,
   onTurnStarted,
   chatWidth,
 }: {
@@ -82,6 +83,8 @@ export function LibraryAgentDock({
   onClose: () => void;
   /** Judges a wiki page write before the permission card asks; see `judgePageWrite`. */
   judgeWrite?: (request: PageWriteRequest) => PageWriteVerdict | null;
+  /** Allows a wiki page write that fits without a card; see `LibraryPage`. */
+  autoDecide?: AcpChatPanelProps["autoDecide"];
   /** Sees each turn start and hands back what to do when it ends; the wiki log hangs here. */
   onTurnStarted?: AcpChatPanelProps["onTurnStarted"];
   /**
@@ -203,6 +206,7 @@ export function LibraryAgentDock({
             }
             openingRequest={openingRequest}
             judgeWrite={judgeWrite}
+            autoDecide={autoDecide}
             onTurnStarted={onTurnStarted}
             knownSlugs={knownSlugs}
           />
