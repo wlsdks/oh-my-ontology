@@ -70,24 +70,13 @@ test("a launch without a package still gets a label instead of undefined", () =>
   assert.equal(launchLabel({}), "(none)");
 });
 
-test("the measured Codex compatibility pin has a live upstream subject", () => {
-  const ids = runtimeLaunchPinIds();
-  assert.ok(ids.length > 0, "the compatibility-pin scan must not run over zero runtimes");
-  assert.deepEqual(ids, ["codex-acp"]);
-  assert.deepEqual(
-    runtimeLaunchPinIssues([
-      {
-        id: "codex-acp",
-        distribution: {
-          npx: { package: "@agentclientprotocol/codex-acp@1.10.0", args: [] },
-        },
-      },
-    ]),
-    [],
-  );
-});
-
-test("a new upstream Codex adapter turns the compatibility gate red with both identities", () => {
+test("no launch pin stands today, and the mechanism reports nothing", () => {
+  /*
+   * The owner overturned the Codex pin on 2026-09-07 ("the version is always the newest"); the
+   * table is empty but kept, so a future measured boundary failure can pin again with a named
+   * upstream subject. An empty table must scan to nothing rather than to an error.
+   */
+  assert.deepEqual(runtimeLaunchPinIds(), []);
   assert.deepEqual(
     runtimeLaunchPinIssues([
       {
@@ -97,13 +86,6 @@ test("a new upstream Codex adapter turns the compatibility gate red with both id
         },
       },
     ]),
-    [
-      {
-        id: "codex-acp",
-        pinned: "@agentclientprotocol/codex-acp@1.6.2",
-        reviewedUpstream: "@agentclientprotocol/codex-acp@1.10.0",
-        actualUpstream: "@agentclientprotocol/codex-acp@2.0.0",
-      },
-    ],
+    [],
   );
 });

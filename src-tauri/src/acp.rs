@@ -163,7 +163,12 @@ pub(crate) const ISOLATION: &[IsolationSpec] = &[
 // `read-only` mode sends an actual `readOnly` sandbox (1.6.2), forces that mode before the session is
 // usable, and keeps Atlas MCP writes behind the server checkpoint (`mcp/src/write-consent.mjs`).
 //
-// **1.9.0 does the same thing, so the pin stays** (adapter source reviewed 2026-09-05). Its
+// **Overturned 2026-09-07 (owner): the app launches the newest upstream adapter.** The vault is a
+// Git folder, every write is a diff and `git checkout` is the undo, so a file changed inside the
+// vault without a card is accepted; the forced `read-only` mode still narrows the sandbox to the
+// vault folder and Atlas MCP writes still ask. The paragraphs below are the history of the pin.
+//
+// **1.9.0 does the same thing, so the pin stayed** (adapter source reviewed 2026-09-05). Its
 // `AgentMode.ReadOnly` still carries the id `read-only` and the name "Ask for approval" while its
 // `sandboxPolicy` is `workspaceWrite` and its `sandboxMode` is `workspace-write`. Naming 1.8.0 alone
 // here read like a single bad release; it is the shape both later versions ship, and only the id

@@ -63,6 +63,15 @@ record stays in Git history before commit `e4fb49a89`.
 **Falsifier**: an adapter measured running the OAuth flow from a `session/new` server, or a terminal token that such a server picks up; either reopens the hosted rows.
 **Owner**: jinan
 
+## 2026-09-07 — The app launches the newest ACP adapters; the Codex pin is overturned and Git is the undo
+
+**Why**: the owner, on the Codex caveat: *"the version is always the newest. A change is free; what has to be right is the versioning, and we can always go back."* The 2026-09-03 pin held `codex-acp` at 1.6.2 because 1.8.0–1.10.0 map `read-only` to a `workspaceWrite` sandbox, so an in-app Codex turn can change a vault file without a permission card. The 2026-09-05 static reading of 1.10.0 stands. `claude-agent-acp` 0.75.1 differs from 0.75.0 in no transcribed file (`session-mode.js`, `permissions/`); the change is session resume.
+**Prior**: overturns 2026-09-03 "Codex chat pins the last adapter whose read-only mode holds the installed permission matrix" and the 2026-09-05 refusals of 1.8.0, 1.9.0 and 1.10.0; upholds the isolated `on-request` config, the forced `read-only` mode (it still narrows the sandbox to the vault folder) and the Atlas MCP write checkpoint.
+**Decision**: `RUNTIME_LAUNCH_PINS` is empty and the registry takes the newest upstream: `codex-acp` 1.10.0, `claude-agent-acp` 0.75.1 today. The unreviewed-release gate stays as a mechanism. The doctor's Codex row and the feature docs say a vault write may land without a card and is undone through Git. Not measured: Codex credits are exhausted until 2026-09-12; the behavioural matrix and connectors in a Codex session are measured that day.
+**Dissent**: the earlier records' own reasoning — a promise that Atlas asks before a file changes, and a vault that is not a Git folder has no undo. The owner accepts the first; the second stays open below.
+**Falsifier**: a turn writing outside the vault folder, or inside a vault that is not a Git repository with no notice; a turn that cannot start; connectors that do not ride a Codex session on 2026-09-12.
+**Owner**: jinan
+
 ## 2026-09-07 — Adding a connector is one list; a press attaches what asks nothing and asks in place for one thing
 
 **Why**: the owner read the morning's three-tab dialog in the installed app and rejected the tabs and the Close button under the list, and asked how Codex and open-source clients do it. Cline, Goose, Cursor, VS Code, Claude Desktop, Zed, LM Studio, Continue and the Codex directory all show one list of name, one line, one button, with "by hand" a last row or a separate form. Codex's one-press "+" is a reviewed OAuth app listing, not a property of MCP.
@@ -80,6 +89,7 @@ record stays in Git history before commit `e4fb49a89`.
 **Dissent**: shipping a parser puts Atlas between the document and the quote; a wrong split misattributes an anchor. Kept small (no dependency, two formats parsed) and answered by the sha256 on every answer: the page's `source_hash` and the tool's hash are the same bytes.
 **Falsifier**: a DOCX or XLSX in a real folder whose text the tool splits into anchors a reader cannot find in the document, or a read-only turn in the app that still raises an execute card after being told about the tool.
 **Owner**: jinan
+
 ## 2026-09-07 — The Library column is an index; the check's answer is a page, the answer's filing stands beside the answer, the write setting is a setting
 
 **Why**: the owner read the installed app's Library column and rejected it: a second door row split across two lines, two caption sentences under the doors, the check's findings and seven names inside a 280px column pushing the page list off the screen. "A different strategy for what the column holds, and raise the design level."

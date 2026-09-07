@@ -99,17 +99,16 @@ const VERIFIED = new Set(['claude-acp', 'codex-acp']);
  * new adapter before either advancing or retaining the pin.
  */
 const RUNTIME_LAUNCH_PINS = {
-  'codex-acp': {
-    package: '@agentclientprotocol/codex-acp@1.6.2',
-    // 1.9.0 inspected 2026-09-05: its `read-only` mode still maps to a `workspaceWrite` sandbox
-    // (shipped `AgentMode.ReadOnly`, and the `turn_context` record of a live isolated session),
-    // exactly the 1.8.0 boundary failure. Pin retained; decision ledger 2026-09-05.
-    // 1.10.0 inspected statically on 2026-09-05: `AgentMode.ts` is byte-identical to the reviewed
-    // 1.9.0, so `read-only` still maps to `sandboxMode: "workspace-write"`; the only functional
-    // change is a background-terminal ("async tasks") feature, and permission / mcpServers
-    // handling did not move. Pin retained; decision ledger 2026-09-05.
-    reviewedUpstreamPackage: '@agentclientprotocol/codex-acp@1.10.0',
-  },
+  /*
+   * **No pin stands today (owner direction, 2026-09-07 evening).** `codex-acp` was held at 1.6.2
+   * from 2026-09-03 because 1.8.0–1.10.0 map their `read-only` mode to a `workspaceWrite` sandbox,
+   * so an in-app Codex turn could change a file inside the vault without a permission card. The
+   * owner overturned that on 2026-09-07: *"the version is always the newest; a change is free,
+   * versioning is what has to be right"* — the vault is a Git folder, every write is a diff, and
+   * `git checkout` is the undo. The record, its losing dissent and its falsifier are in
+   * `docs/DECISIONS.md` (2026-09-07). The mechanism stays so a future measured boundary failure can
+   * pin again with a named upstream subject; the table is simply empty.
+   */
 };
 
 export function runtimeLaunchPinIds() {
