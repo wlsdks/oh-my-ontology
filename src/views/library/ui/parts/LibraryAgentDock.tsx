@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Library } from "lucide-react";
+import { FilePlus2, Library } from "lucide-react";
 
 import type { PageWriteRequest, PageWriteVerdict } from "@/features/library";
 import { cn } from "@/shared/lib/cn";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { usePanelPresence } from "@/shared/lib/use-presence";
-import { AGENT_DOCK_INSET_SURFACE_CLASS, Surface } from "@/shared/ui";
+import { AGENT_DOCK_INSET_SURFACE_CLASS, Chip, Surface, Tooltip } from "@/shared/ui";
 import { AcpChatPanel, AcpChatResizeHandle, AcpDockHeader } from "@/widgets/acp-chat-panel";
 import type { ComponentProps } from "react";
 
@@ -70,6 +70,7 @@ export function LibraryAgentDock({
   judgeWrite,
   autoDecide,
   onTurnStarted,
+  onFileAnswer = null,
   chatWidth,
 }: {
   open: boolean;
@@ -87,6 +88,8 @@ export function LibraryAgentDock({
   autoDecide?: AcpChatPanelProps["autoDecide"];
   /** Sees each turn start and hands back what to do when it ends; the wiki log hangs here. */
   onTurnStarted?: AcpChatPanelProps["onTurnStarted"];
+  /** Files the last answer as a wiki page; null while there is no answer to file. */
+  onFileAnswer?: (() => void) | null;
   /**
    * The dock's width, owned by the page rather than by this frame (2026-09-07).
    *
@@ -209,6 +212,24 @@ export function LibraryAgentDock({
             autoDecide={autoDecide}
             onTurnStarted={onTurnStarted}
             knownSlugs={knownSlugs}
+            beforeComposer={
+              onFileAnswer ? (
+                // The LLM Wiki pattern's "answers can be filed back", standing under the
+                // answer it files rather than in the index column (owner, 2026-09-07).
+                <Tooltip content={tLibrary("wiki.fileAnswerTooltip")}>
+                  <Chip
+                    data-testid="library-file-answer"
+                    onClick={onFileAnswer}
+                    tone="secondary"
+                    hoverInk="strong"
+                    aria-label={tLibrary("wiki.fileAnswerTooltip")}
+                  >
+                    <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
+                    <span>{tLibrary("wiki.fileAnswer")}</span>
+                  </Chip>
+                </Tooltip>
+              ) : null
+            }
           />
         </Surface>
       ) : null}

@@ -49,6 +49,7 @@ import { ExpandSettings } from './ExpandSettings';
 import { AgentActivitySettings } from './AgentActivitySettings';
 import { SegmentSwitch, SettingsGroup, SettingsRow } from './settings-primitives';
 import { VaultShapeSettings } from './VaultShapeSettings';
+import { WikiWriteModeSettings } from './WikiWriteModeSettings';
 import { useFrameMeter, writeFrameMeter } from '@/shared/lib/appearance-preferences';
 import { BlockImportModule } from '@/features/ontology-blocks';
 import { AiConnectionPanel } from './AiConnectionPanel';
@@ -1015,6 +1016,7 @@ export function AppSettingsMenu({
                     <>
                   <SettingsGroup>
                 <VaultShapeSettings />
+                <WikiWriteModeSettings />
                 {showVaultManagement ? (
                   <SettingsRow
                     testId="app-settings-workspace-folder"

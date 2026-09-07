@@ -283,7 +283,9 @@ test.describe("the Library destination", () => {
     await page.getByTestId("library-index-segment-wiki").click();
 
     const wiki = page.getByTestId("library-wiki-list");
-    await expect(wiki.getByRole("button")).toHaveCount(2);
+    // Two page rows; the list's own last row is New page (council 2026-09-07), not a page.
+    await expect(wiki.locator('[data-testid^="library-wiki-wiki/"]')).toHaveCount(2);
+    await expect(wiki.getByTestId("library-new-page")).toBeVisible();
     await expect(wiki).toContainText("Quarter plan");
     await expect(wiki).toContainText("Handover notes");
     // The pill says one fixed word. A badge carrying the code changed shape row by row

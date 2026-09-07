@@ -56,6 +56,7 @@ import {
   useLibraryIndexCollapsed,
   useLibraryIndexSegment,
   writeLibraryIndexCollapsed,
+  useWikiWriteMode,
   writeLibraryIndexSegment,
   type LibraryIndexSegment,
 } from "@/shared/lib/appearance-preferences";
@@ -72,6 +73,7 @@ import { isWikiFurnitureSlug } from "@/shared/lib/wiki-page-schema";
 import { libraryCompileBlockedReason, libraryTransferSentence } from "../lib/compile-availability";
 import { useLibraryModel } from "../lib/use-library-model";
 import { useLibraryAgent } from "../lib/use-library-agent";
+import { LibraryCheckReport } from "./parts/LibraryCheckReport";
 import { LibrarySection } from "./parts/LibrarySection";
 import { CompileBrainSelect } from "./parts/CompileBrainSelect";
 import { LibraryShelfPopover } from "./parts/LibraryShelfPopover";
@@ -154,7 +156,6 @@ import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
  * copy with **two duplicate doors**, the canvas's own sentence, and a 560px panel lying
  * across it. The screen is now `LibraryStartStage`, and the guide is only ever a press.
  */
-const WRITE_MODE_KEY = "library.wikiWriteMode";
 
 export function LibraryPage() {
   const t = useTranslations("library");
@@ -172,8 +173,33 @@ export function LibraryPage() {
   const nativeVaultRootPath = handle ? (getTauriVaultRootPath(handle) ?? null) : null;
 
   const [selected, setSelected] = useState<
-    { kind: "wiki"; slug: string } | { kind: "source"; path: string } | null
+    { kind: "wiki"; slug: string } | { kind: "source"; path: string } | { kind: "report" } | null
   >(null);
+  /** What is open right now, readable from a completion callback made turns ago. */
+  const latestSelectedRef = useRef<typeof selected>(null);
+  useEffect(() => {
+    latestSelectedRef.current = selected;
+  }, [selected]);
+  const [shelfOpen, setShelfOpen] = useState(false);
+  /** Set when a page opened on its own (a check ending), so the focus stays where the person had it. */
+  const skipReaderFocusRef = useRef(false);
+  /*
+   * Whether an agent turn is in flight. The Fix and Propose doors disable on it: the dock
+   * keeps only the newest opening request while a turn runs, so five presses would drop
+   * three in silence (design-interaction, council 2026-09-07).
+   */
+  const [turnRunning, setTurnRunning] = useState(false);
+  const choose = useCallback((next: typeof selected) => {
+    setShelfOpen(false);
+    setSelected(next);
+    /*
+     * **The switch follows what was opened.** A file can be reached from three places that
+     * are not the index — the graph, the guide, and a reader's own crossings — and the
+     * index would otherwise say *Sources* while the pane showed a wiki page. Only a real
+     * choice moves it; the back control leaves the switch where the person left it.
+     */
+    if (next && next.kind !== "report") writeLibraryIndexSegment(next.kind === "wiki" ? "wiki" : "sources");
+  }, []);
   const [busy, setBusy] = useState(false);
   const shelfChipRef = useRef<HTMLButtonElement | null>(null);
 
@@ -553,21 +579,8 @@ export function LibraryPage() {
    * lands and the transcript says so; a page that does not still stops at the card. The
    * choice is a per-screen convenience kept in this browser, never a vault fact.
    */
-  const [writeMode, setWriteMode] = useState<"auto" | "ask">(() => {
-    try {
-      return window.localStorage.getItem(WRITE_MODE_KEY) === "ask" ? "ask" : "auto";
-    } catch {
-      return "auto";
-    }
-  });
-  const changeWriteMode = useCallback((mode: "auto" | "ask") => {
-    setWriteMode(mode);
-    try {
-      window.localStorage.setItem(WRITE_MODE_KEY, mode);
-    } catch {
-      // A browser that refuses storage keeps the choice for this visit only.
-    }
-  }, []);
+  // How an agent's page lands, chosen in Settings (owner, 2026-09-07): the column is an index.
+  const writeMode = useWikiWriteMode();
   /* The last question asked from a page and the answer it got: the pair a person can file
      back as a wiki page (owner direction 2026-09-07, the LLM Wiki pattern). */
   const pendingAskRef = useRef<{ question: string; askedOn: string | null } | null>(null);
@@ -686,12 +699,27 @@ export function LibraryPage() {
       const before = stamp(latestDocsRef.current);
       const sources = selectCompileTargets(model.sources).map((row) => row.path);
       const writer = agent.runtime ? `agent:${agent.runtime.id}` : "agent:unknown";
+      setTurnRunning(true);
       return async (completion: { endedAt: string; outcome: string; events: ReadonlyArray<{ kind: string; text?: string }> }) => {
-        if (completion.outcome === "cancelled") return;
+        setTurnRunning(false);
+        // A cancelled or failed turn reported nothing: reading its absence as "nothing to fix"
+        // would print a clean report over a check that never finished (design-interaction,
+        // council 2026-09-07).
+        if (completion.outcome !== "completed") return;
         const after = stamp(latestDocsRef.current);
         const lastAgentText = [...completion.events].reverse().find((event) => event.kind === "agent")?.text ?? null;
         if (kind === "lint") setCandidates(parseLintCandidates(lastAgentText));
         if (kind === "lint") setFindings(parseLintFindings(lastAgentText));
+        // The check's answer is a page in the pane, not rows in the index (owner, 2026-09-07).
+        // It takes the pane only when nothing else has it — a person reading a page keeps the
+        // page — and it never takes the focus, because a completion is not a press.
+        if (kind === "lint") {
+          const current = latestSelectedRef.current;
+          if (current === null || current.kind === "report") {
+            skipReaderFocusRef.current = true;
+            choose({ kind: "report" });
+          }
+        }
         /*
          * The wiki log records what happened to the wiki. A proposal writes one ontology node
          * and an import writes documents under `sources/`; neither touches a page, so neither
@@ -715,7 +743,7 @@ export function LibraryPage() {
         }
       };
     },
-    [agent.openingRequest?.kind, agent.runtime, handle, model.sources],
+    [agent.openingRequest?.kind, agent.runtime, choose, handle, model.sources],
   );
 
   /**
@@ -806,6 +834,10 @@ export function LibraryPage() {
     }
     if (lastFocusedSelection.current === selected) return;
     lastFocusedSelection.current = selected;
+    if (skipReaderFocusRef.current) {
+      skipReaderFocusRef.current = false;
+      return;
+    }
     readerRef.current?.focus({ preventScroll: true });
   }, [selected]);
 
@@ -817,7 +849,7 @@ export function LibraryPage() {
    * would close two things with one press.
    */
   useEffect(() => {
-    if (selected === null || findOpen || agent.open) return;
+    if (selected === null || findOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       setSelected(null);
@@ -839,7 +871,6 @@ export function LibraryPage() {
    * no longer reaches this shape at all. What is left is a press: the chip opens the
    * guidance, Escape or an outside press closes it, and focus goes back to the chip.
    */
-  const [shelfOpen, setShelfOpen] = useState(false);
   /** Which list the index draws, and whether the column is folded — both per machine. */
   const indexSegment = useLibraryIndexSegment();
   const indexCollapsed = useLibraryIndexCollapsed();
@@ -917,17 +948,6 @@ export function LibraryPage() {
    * derived form would raise the panel again the moment somebody pressed back, which is
    * the self-raising behaviour this redesign removed.
    */
-  const choose = useCallback((next: typeof selected) => {
-    setShelfOpen(false);
-    setSelected(next);
-    /*
-     * **The switch follows what was opened.** A file can be reached from three places that
-     * are not the index — the graph, the guide, and a reader's own crossings — and the
-     * index would otherwise say *Sources* while the pane showed a wiki page. Only a real
-     * choice moves it; the back control leaves the switch where the person left it.
-     */
-    if (next) writeLibraryIndexSegment(next.kind === "wiki" ? "wiki" : "sources");
-  }, []);
   /**
    * Whether this folder has anything for the workbench to show — the same test the canvas
    * makes, so the two can never disagree about whether there is a picture.
@@ -1184,7 +1204,7 @@ export function LibraryPage() {
             className="whitespace-nowrap font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]"
             style={{ writingMode: "vertical-rl" }}
           >
-            {t("title")}
+            {t("index.tab")}
           </span>
           {/* Direction, which the label-decoration rule allows: the column comes back out. */}
           <span aria-hidden className="inline-flex text-[color:var(--color-text-quaternary)]">
@@ -1281,15 +1301,17 @@ export function LibraryPage() {
             onImportFromService={openImport}
             onCompile={agent.route === "agent" || agent.route === "local" ? handleCompile : null}
             onLint={agent.route === "agent" ? handleLint : null}
-            candidates={openCandidates}
-            findings={findings}
-            onFix={agent.route === "agent" ? handleFix : null}
             hasWikiTemplate={docs.some((doc) => doc.slug === "wiki/_template")}
-            writeMode={writeMode}
-            onFileAnswer={lastAnswer ? handleFileAnswer : null}
             onNewPage={handle ? handleNewPage : null}
-            onWriteModeChange={changeWriteMode}
-            onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
+            report={
+              findings.length + openCandidates.length > 0 || model.log.lastLint
+                ? {
+                    count: findings.length + openCandidates.length,
+                    open: opened?.kind === "report",
+                    onOpen: () => choose({ kind: "report" }),
+                  }
+                : null
+            }
             /*
              * The same picker as step two, reading and writing the same stored answer, so
              * the sidebar and the shelf can never name different brains.
@@ -1326,13 +1348,9 @@ export function LibraryPage() {
              * with no Compile on it has nothing to disclose.
              */
             compileNote={
-              shelfOpen
+              shelfOpen || compileBlocked !== null
                 ? null
-                : (compileBlocked ??
-                  libraryTransferSentence(
-                    { route: agent.route, localModel: agent.localModel },
-                    t,
-                  ))
+                : libraryTransferSentence({ route: agent.route, localModel: agent.localModel }, t)
             }
             busy={busy}
             t={t}
@@ -1386,7 +1404,7 @@ export function LibraryPage() {
                the file changed underneath it (design-infoviz, 2026-09-06). */
             sources={model.sources}
             selection={
-              opened === null
+              opened === null || opened.kind === "report"
                 ? null
                 : opened.kind === "wiki"
                   ? { kind: "wiki", ref: opened.slug }
@@ -1460,6 +1478,24 @@ export function LibraryPage() {
           </div>
         ) : null}
 
+        {opened?.kind === "report" ? (
+          <div
+            data-testid="library-report-pane"
+            className="min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]"
+          >
+            <LibraryCheckReport
+              findings={findings}
+              candidates={openCandidates}
+              lastLint={model.log.lastLint}
+              busy={busy || turnRunning}
+              onLint={agent.route === "agent" ? handleLint : null}
+              onFix={agent.route === "agent" ? handleFix : null}
+              onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
+              onOpenPage={(slug) => choose({ kind: "wiki", slug })}
+              t={t}
+            />
+          </div>
+        ) : null}
         {selectedWikiDoc ? (
           <DocReadingPane
             data-testid="library-reading-pane"
@@ -1615,6 +1651,7 @@ export function LibraryPage() {
           judgeWrite={judgeWrite}
           autoDecide={autoDecide}
           onTurnStarted={handleTurnStarted}
+          onFileAnswer={lastAnswer ? handleFileAnswer : null}
           open={agent.open}
           runtime={agent.runtime}
           runtimes={agent.runtimes}

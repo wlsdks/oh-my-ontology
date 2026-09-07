@@ -260,6 +260,7 @@ export function AcpChatPanel({
   runtimeId,
   runtimeLabel,
   vaultRoot,
+  beforeComposer = null,
   mcpServers,
   sessionEnabled = true,
   runtimes = [],
@@ -366,6 +367,12 @@ export function AcpChatPanel({
    * nowhere stops pressing the rest (`link-slugs.ts`).
    */
   knownSlugs?: ReadonlySet<string>;
+  /**
+   * One row the host draws directly above the composer, under the last answer — the
+   * Library's "file this answer as a page" chip stands here, beside the answer it files
+   * rather than in the index column (owner, 2026-09-07). Null draws nothing.
+   */
+  beforeComposer?: ReactNode;
   /** Current graph relation keys (`from\0type\0to`) used to reject invented presentation edges. */
   knownRelations?: ReadonlySet<string>;
   /** Only the explicit whole-ontology Flow request can become a presentation in this slice. */
@@ -1581,6 +1588,11 @@ export function AcpChatPanel({
 
         The composer is `frame="bare"` so a box is not created inside a box.
       */}
+      {beforeComposer ? (
+        <div data-testid="acp-chat-before-composer" className="flex shrink-0 flex-wrap items-center gap-1 pb-1.5">
+          {beforeComposer}
+        </div>
+      ) : null}
       <div
         data-testid="acp-chat-composer"
         inert={presentationVisible ? true : undefined}

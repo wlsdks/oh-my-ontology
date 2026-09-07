@@ -850,17 +850,25 @@ drawing Sources.
 The Wiki half carries what the wiki's own work needs, in this shape (merged from the LLM
 Wiki round, 2026-09-07): the count on the switch above, then **Check the wiki** and
 **Compile** on one unwrapping line so reading stands to the left of writing, then the brain
-picker on the line beneath when this computer offers two. Under it, one `text-label` caption reads the app's
-own record — *Last compile …, last check …*, from `wiki/_log.md` — and beneath that the
-single compile disclosure. **The folder's findings are not a pill.** A page that misses the
+picker on the line beneath when this computer offers two, and beneath that the single
+compile disclosure — only while Compile can be pressed; a reason it cannot is the status
+strip's to say. **The column is an index and nothing else** (owner, 2026-09-07, direction
+B of three): the switch, the search field, the door row — Check the wiki and Compile — one
+row that says where the check's answer is (*Check results N*, above the list, present once
+the wiki was ever checked), and the list, whose last row is *New page*. The design council
+(2026-09-07) moved the report's door from the canvas header, which is hidden the moment a
+page is open, into the column, and New page from an icon chip beside the two agent doors
+into the list it acts on, with its own glyph. The app's own record of the last check, the check's findings and the names
+without a page moved out of it to a page in the reading pane (*Check results*, below); the
+write setting moved to Settings; filing an answer moved beside the answer. **The folder's
+findings are not a pill.** A page that misses the
 wiki template still wears the amber `off-template` pill, because the fix is in that page's
 own bytes; a folder finding — `dangling-wikilink`, `orphan-page`,
 `shared-source-unlinked` — is about where the page sits, is true of nearly every row on a
 young wiki, and shows as one quiet word on the row with the count carried once in the
 header strip. It is the same reasoning that took the green chip off every compiled source.
-**Names without a page** keeps its list and its **Propose as node** chips at the foot of
-the column, at this column's own `px-2` inset and `gap-0.5` rhythm rather than the spacing
-it arrived in.
+**Names without a page** keeps its list and its **Propose as node** chips on the *Check
+results* page in the pane, five at a time with the map kinds first.
 
 **Below `lg` the whole pane reaches a phone** (2026-09-06, third pass). None of it used to
 be drawn there: the pane was hidden whenever nothing was chosen, which is the state it
@@ -965,8 +973,8 @@ store can drift from it.
   template, and `wiki/_log.md`, which the app appends to after each Compile (the sources
   handed over, the pages the folder shows new or revised) and each Check-the-wiki run
   (the counts the report ended with). A person who does not commit their folder still
-  has the wiki's own memory; a person who does has a commit body ready. The Wiki header
-  reads it back as one caption: the last compile and the last check, each with its time.
+  has the wiki's own memory; a person who does has a commit body ready. The *Check
+  results* page reads the last check back at its head, with its time.
 
 Tour one-click doors: hree one-click doors, plus one that reaches outside this computer:
 
@@ -1009,8 +1017,10 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   source is not compiled or stale. Beside it: the coding agent's provider traffic is not
   in `.ontology-atlas/llm-audit.jsonl`. A page under `wiki/` that fits the contract is
   written without a card and the conversation says so in one line (2026-09-07, owner
-  direction: agents act, people can step in); a two-chip switch beside Compile, "Writes
-  land" / "Ask each time", brings the card back for every page. A page that does not fit,
+  direction: agents act, people can step in); Settings › *When the agent writes a wiki
+  page* — "Write at once" / "Ask each time" — brings the card back for every page, a
+  setting rather than a door because it governs every Compile, Fix and proposal (owner,
+  2026-09-07: two chips beside the doors read as scattered). A page that does not fit,
   and for a page under `wiki/` the card shows the verdict first: the page as the write
   would leave it (a whole file, or an edit applied to the page on disk), judged against
   the contract, one quiet line when it fits and the codes with the first message when it
@@ -1028,9 +1038,10 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
   more pages with no page of its own, which the brief labels an ontology node
   candidate. It modifies nothing; enabled from two pages up, since one page has
   nothing to disagree with. The report ends with one block a program reads — the
-  count per category and those names — and the Library lists the names under the Wiki as
-  **Names without a page** — five at a time, the map kinds first, the rest behind a count
-  a person can open (2026-09-07, ten names had pushed the page list off the rail); the counts go to `wiki/_log.md` in one shape in every language. The
+  count per category and those names — and the Library opens the *Check results* page in
+  the pane, whose **Names without a page** section lists them five at a time, the map kinds
+  first, the rest behind a count a person can open; the counts go to `wiki/_log.md` in one
+  shape in every language. The
   report sorts each name: something the code builds (a domain, capability or element),
   a person, an organisation, or other. Only the first sort gets a **Propose as node**
   chip, and only in a folder that already holds an ontology — a folder of documents
@@ -1467,16 +1478,24 @@ sections, `created_by: human`, empty `sources:` — opens it, and leaves the wri
 editor; the folder watcher brings the text back and the list says what the page still
 lacks.
 
-**Fix what the check found** (2026-09-07). The check's closing block also lists its
-findings — a disagreement, a superseded claim, a missing link — each with the pages it
-touches, and the Library lists them under **What the check found** with a **Fix** chip. Fix
+**Check results, a page in the pane** (2026-09-07). The check's closing block also lists
+its findings — a disagreement, a superseded claim, a missing link — each with the pages it
+touches. When the check ends the pane opens *Check results*: the last check's record at
+the head, one section per kind with every summary whole and each page a press, a **Fix**
+chip per row, then **Names without a page** with its Propose chips; the *Check results N*
+row above the wiki list reopens it, and a wiki never checked gets the Check door itself. The
+page takes the pane only when nothing else has it and only after a check that completed; a
+cancelled or failed turn opens nothing and clears nothing, and the focus stays where the
+person had it, because a completion is not a press. In the 280px column these had been three-line clips that pushed the page list
+off the screen (installed app, six findings and seven names). Fix
 starts one agent turn on those pages with the same rules the compile brief holds: both
 values with both citations for a disagreement, the current value first for a superseded
 claim, links both ways for a missing link, nothing outside those pages. The edits land or
 stop at the card exactly as a compile's do, and `wiki/_log.md` records the turn as `fix`.
 
-**File the answer** (2026-09-07). After an ask turn ends, a chip beside Compile writes
-the last answer as a page under `wiki/answers/`: the question is the title and summary,
+**File the answer** (2026-09-07). After an ask turn ends, a chip in the conversation,
+directly under the answer and above the composer, writes the last answer as a page under
+`wiki/answers/`: the question is the title and summary,
 every answer line with a `[[src:…]]` citation becomes a fact, the cited files become
 `sources:` with the hashes the Library measured, and uncited lines go under "Not in
 sources". A citation an agent wrote loosely in prose, `sources/<file>#p3` bare or in

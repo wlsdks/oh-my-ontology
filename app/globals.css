@@ -4192,15 +4192,15 @@ body *::-webkit-scrollbar {
   transition-duration: var(--motion-fast);
 }
 
-/* The toaster is top-centred, but "centre" means the map area, not the viewport: with
-   the agent dock open the map's own toolbar is centred over what is left of the width,
-   and a toast centred on the viewport would sit half under the dock. The dock effect
-   publishes its width (`--app-right-dock-width`, `right-dock-reserve.ts`); half of it
-   moves the toaster's anchor left. sonner injects its own stylesheet at runtime,
-   after ours, with the same `[data-sonner-toaster][data-x-position]` selector, so
-   the `html` prefix is what makes this rule win. */
+/* The toaster is top-centred on the **viewport** (owner, 2026-09-07). It used to centre
+   over the map area, shifted left by half the agent dock's width, and on the Library the
+   result stood over the index column, far from where the eye was. A toast is transient
+   and drawn above every dock, so the screen's own centre is the one place a person finds
+   it whatever pane is open. sonner injects its own stylesheet at runtime, after ours,
+   with the same `[data-sonner-toaster][data-x-position]` selector, so the `html` prefix
+   is what makes this rule win. */
 html [data-sonner-toaster][data-x-position='center'] {
-  left: calc(50% - var(--app-right-dock-width, 0px) / 2);
+  left: 50%;
   transform: translateX(-50%);
 }
 

@@ -262,7 +262,12 @@ export function LibraryGraph({
         {/* Whatever the screen wants to hang on this row — the status strip and the door
             to the shelf, both of which are the view's facts, not the canvas's. A widget
             below `views` cannot reach them, so they arrive as a slot. */}
-        {headerEnd ? <div className="ml-auto flex items-center gap-2">{headerEnd}</div> : null}
+        {headerEnd ? (
+          /* `min-w-0` + wrap: below ~560px the status strip takes its own line instead of
+             truncating its payload or clipping the shelf chip out of reach (design-responsive,
+             council 2026-09-07: measured at 320 and 390); at 768 and above one line as before. */
+          <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-x-2 gap-y-1">{headerEnd}</div>
+        ) : null}
       </div>
 
       {graph.nodes.length === 0 ? (

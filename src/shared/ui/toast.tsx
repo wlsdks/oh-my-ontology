@@ -47,8 +47,9 @@ interface ToastApi {
  * toolbar is centred and the agent dock stands on the right, so a corner toast was
  * either under the dock or behind the person's attention. The toaster sits under
  * the top toolbar (`--app-toast-top-offset`, planted by the map; 16px elsewhere) and
- * is centred over the area left of the right dock (`--right-dock-width`, see the
- * rule in `app/globals.css`), which is where the toolbar itself is centred.
+ * is centred on the viewport (owner, 2026-09-07; the rule in `app/globals.css`). Below
+ * 1480px of window it crosses the edge of an open 520px dock; measured 26px of painted
+ * panel at 1400, none at the app's opening 1512, and accepted as a transient drawn above.
  *
  * **Unstyled on purpose.** sonner's stock box (rounded pill, its own close chip at
  * the top-left corner, grey icon) read as a foreign widget beside our chrome. The

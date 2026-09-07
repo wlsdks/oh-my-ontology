@@ -3195,7 +3195,12 @@
     "workspaceShapeCaption": "설정이 아니라 파일에서 읽습니다. 추가하면 시작 파일을 쓰고, 탭이 따라옵니다.",
     "workspaceShapeStartMap": "지도 시작",
     "workspaceShapeStartWiki": "위키 시작",
-    "workspaceShapeStarted": "이 폴더에 추가했어요."
+    "workspaceShapeStarted": "이 폴더에 추가했어요.",
+    "wikiWriteModeLabel": "에이전트가 위키 문서를 쓸 때",
+    "wikiWriteModeAuto": "바로 쓰기",
+    "wikiWriteModeAsk": "매번 묻기",
+    "wikiWriteModeAutoCaption": "서식에 맞는 문서는 바로 쓰고 대화에 한 줄 남깁니다. 맞지 않는 문서는 허락 카드에서 멈춥니다.",
+    "wikiWriteModeAskCaption": "문서를 쓸 때마다 허락 카드에서 멈춥니다."
   },
   "copyProjectLink": {
     "toastSuccess": "링크가 복사됐습니다",
@@ -4431,6 +4436,7 @@
     "eyebrow": "이 폴더 안",
     "lede": "형식을 가리지 않고 모아 둔 문서와, 그 문서를 읽고 쓴 위키 문서가 여기 있습니다. 원문은 온 그대로 남고, 위키 문서의 문장은 저마다 원문을 인용합니다.",
     "index": {
+      "tab": "색인",
       "aria": "색인이 보여 줄 목록",
       "sources": "원문 {count}",
       "wiki": "위키 {count}",
@@ -4493,7 +4499,6 @@
       "compileTooltip": "원문을 읽고 위키 문서를 쓰는 에이전트 턴을 한 번 시작합니다. 서식에 맞는 문서는 바로 쓰고, 맞지 않는 문서는 허락 카드에서 멈춥니다.",
       "lint": "위키 점검",
       "lintTooltip": "위키 문서를 읽고 어긋남·대체된 주장·빠진 연결·문서 없는 이름을 보고하는 에이전트 턴을 한 번 시작합니다. 아무것도 쓰지 않습니다.",
-      "candidatesHeader": "문서 없는 이름 · {count}",
       "candidateKind": {
         "domain": "도메인",
         "capability": "역량",
@@ -4505,7 +4510,6 @@
       "candidatePages": "문서 {count}곳",
       "propose": "노드로 제안",
       "proposeTooltip": "이 문서들을 읽고 온톨로지 노드 하나를 제안하는 에이전트 턴을 한 번 시작합니다. 쓰기는 허락 카드에서 멈춥니다.",
-      "logCompile": "마지막 정리 {when}: {summary}",
       "logLint": "마지막 점검 {when}: {summary}",
       "empty": "아직 위키 문서가 없습니다. 위키 문서는 kind: 가 없는 마크다운이고, 서식은 wiki/_template.md 에 있습니다.",
       "unknownAuthor": "미상",
@@ -4549,18 +4553,11 @@
       "folderMark": "끊긴 링크",
       "candidatesMore": "이름 {count}개 더 보기",
       "candidatesLess": "접기",
-      "writeModeAuto": "바로 쓰기",
-      "writeModeAsk": "매번 묻기",
-      "writeModeLabel": "에이전트가 위키 문서를 쓸 때",
-      "writeModeAutoTooltip": "서식에 맞는 문서는 바로 쓰고 대화에 한 줄 남깁니다. 맞지 않는 문서는 그대로 허락 카드에서 멈춥니다.",
-      "writeModeAskTooltip": "문서를 쓸 때마다 허락 카드에서 멈춥니다.",
       "candidatesTooltip": "마지막 점검이 세 문서 이상에서 본, 자기 문서가 없는 이름입니다. 코드가 만드는 것(도메인·역량·요소)만 지도의 노드로 제안할 수 있고, 사람과 조직은 위키에 남습니다.",
       "fileAnswer": "답 저장",
       "fileAnswerTooltip": "마지막 답을 wiki/answers/ 아래 위키 문서로 씁니다. 인용한 원문이 그 문서의 출처가 되고, 다른 문서와 같은 서식 검사를 받습니다.",
       "fileAnswerDone": "{page} 로 저장했습니다.",
       "fileAnswerRejected": "저장하지 않았습니다. 답이 문서 서식에 맞지 않습니다({code}). 인용을 달아 다시 물어보세요.",
-      "findingsHeader": "점검이 찾은 것 · {count}",
-      "findingsTooltip": "마지막 점검이 찾은 항목입니다. 두 문서의 어긋남, 나중 문서가 바꿔 놓은 주장, 같은 주제를 다루는데 서로 링크가 없는 문서. 고치기를 누르면 그 문서들에 에이전트 턴 한 번을 시작하고, 고친 내용은 다른 문서와 같은 서식 검사를 받습니다.",
       "findingKind": {
         "disagreement": "어긋남",
         "superseded": "대체된 주장",
@@ -4730,6 +4727,15 @@
       "own": "직접 묻기",
       "placeholder": "묻고 싶은 것을 적어요",
       "send": "묻기"
+    },
+    "report": {
+      "title": "점검 결과",
+      "never": "아직 점검하지 않았습니다. 위키 점검을 누르면 문서끼리 어긋나는 값, 나중 문서가 바꿔 놓은 주장, 빠진 연결, 문서 없는 이름을 여기에 모읍니다.",
+      "clean": "마지막 점검이 고칠 것을 찾지 못했습니다.",
+      "gone": "지난 점검이 찾은 항목은 이 앱을 다시 연 뒤에는 남아 있지 않습니다. 위키 점검을 다시 누르면 새로 보입니다.",
+      "emptyLede": "위키 점검은 문서를 읽고 보고만 합니다. 아무것도 쓰지 않습니다.",
+      "namesTitle": "문서 없는 이름",
+      "open": "점검 결과 {count}"
     },
     "search": {
       "placeholder": "원문·문서 검색",
