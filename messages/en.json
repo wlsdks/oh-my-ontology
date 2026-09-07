@@ -4543,7 +4543,16 @@
       "fileAnswer": "File the answer",
       "fileAnswerTooltip": "Write the last answer as a wiki page under wiki/answers/, with the files it cited as its sources. Judged by the same contract as every page.",
       "fileAnswerDone": "Filed as {page}.",
-      "fileAnswerRejected": "Not filed: the answer does not fit the page contract ({code}). Ask for citations and try again."
+      "fileAnswerRejected": "Not filed: the answer does not fit the page contract ({code}). Ask for citations and try again.",
+      "findingsHeader": "What the check found · {count}",
+      "findingsTooltip": "The last check's findings, one per row: two pages disagreeing, a claim a later document replaced, or pages that share a topic without linking. Fix starts one agent turn on those pages; the edits meet the page contract like any other.",
+      "findingKind": {
+        "disagreement": "disagreement",
+        "superseded": "superseded claim",
+        "missingLink": "missing link"
+      },
+      "fix": "Fix",
+      "fixTooltip": "Start one agent turn that repairs this on the pages named: both values with both citations for a disagreement, the current value first for a superseded claim, links both ways for a missing link."
     },
     "graph": {
       "title": "Graph",

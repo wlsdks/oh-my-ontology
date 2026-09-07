@@ -4543,7 +4543,16 @@
       "fileAnswer": "답 저장",
       "fileAnswerTooltip": "마지막 답을 wiki/answers/ 아래 위키 문서로 씁니다. 인용한 원문이 그 문서의 출처가 되고, 다른 문서와 같은 서식 검사를 받습니다.",
       "fileAnswerDone": "{page} 로 저장했습니다.",
-      "fileAnswerRejected": "저장하지 않았습니다. 답이 문서 서식에 맞지 않습니다({code}). 인용을 달아 다시 물어보세요."
+      "fileAnswerRejected": "저장하지 않았습니다. 답이 문서 서식에 맞지 않습니다({code}). 인용을 달아 다시 물어보세요.",
+      "findingsHeader": "점검이 찾은 것 · {count}",
+      "findingsTooltip": "마지막 점검이 찾은 항목입니다. 두 문서의 어긋남, 나중 문서가 바꿔 놓은 주장, 같은 주제를 다루는데 서로 링크가 없는 문서. 고치기를 누르면 그 문서들에 에이전트 턴 한 번을 시작하고, 고친 내용은 다른 문서와 같은 서식 검사를 받습니다.",
+      "findingKind": {
+        "disagreement": "어긋남",
+        "superseded": "대체된 주장",
+        "missingLink": "빠진 연결"
+      },
+      "fix": "고치기",
+      "fixTooltip": "이 항목을 그 문서들에서 고치는 에이전트 턴 한 번을 시작합니다. 어긋남은 두 값을 양쪽에 인용과 함께, 대체된 주장은 현재 값을 앞에, 빠진 연결은 양쪽에 링크를."
     },
     "graph": {
       "title": "그래프",

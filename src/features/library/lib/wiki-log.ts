@@ -22,7 +22,7 @@ import { parseLintCounts } from "./lint-brief";
 
 const WIKI_LOG_FILENAME = "_log.md";
 
-type WikiLogKind = "compile" | "lint";
+type WikiLogKind = "compile" | "lint" | "fix";
 
 export interface WikiLogEntry {
   /** ISO-8601, UTC. */
@@ -43,7 +43,7 @@ const HEADER = [
   "",
 ].join("\n");
 
-const ENTRY = /^## \[([^\]]+)\] (compile|lint) \| (.*) \| ([^|]+)$/;
+const ENTRY = /^## \[([^\]]+)\] (compile|lint|fix) \| (.*) \| ([^|]+)$/;
 
 export function formatWikiLogEntry(entry: WikiLogEntry): string {
   const summary = entry.summary.replace(/\s+/g, " ").trim();

@@ -47,7 +47,7 @@ export interface LibraryAgentOpeningRequest {
    * the attribute has to say which, or a capture of an import turn reads as a compile that
    * behaved strangely.
    */
-  kind: "compile" | "lint" | "propose" | "import" | "ask";
+  kind: "compile" | "lint" | "propose" | "import" | "ask" | "fix";
   text: string;
   nonce: number;
 }

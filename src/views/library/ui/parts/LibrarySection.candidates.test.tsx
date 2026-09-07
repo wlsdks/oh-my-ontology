@@ -3,7 +3,7 @@ import { NextIntlClientProvider, useTranslations } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 
 import enMessages from "../../../../../messages/en.json";
-import type { LintNodeCandidate } from "@/features/library";
+import type { LintFinding, LintNodeCandidate } from "@/features/library";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 import { LibrarySection } from "./LibrarySection";
 
@@ -29,7 +29,7 @@ const CANDIDATES: LintNodeCandidate[] = [
   { name: "Teodor Vasquez", kind: "person", pages: ["wiki/a"], why: "" },
 ];
 
-function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null, writeMode = "auto" }: { onPropose: ((c: LintNodeCandidate) => void) | null; candidates?: LintNodeCandidate[]; onWriteModeChange?: ((mode: "auto" | "ask") => void) | null; writeMode?: "auto" | "ask" }) {
+function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null, writeMode = "auto", findings = [], onFix = null }: { onPropose: ((c: LintNodeCandidate) => void) | null; candidates?: LintNodeCandidate[]; onWriteModeChange?: ((mode: "auto" | "ask") => void) | null; writeMode?: "auto" | "ask"; findings?: LintFinding[]; onFix?: ((f: LintFinding) => void) | null }) {
   const t = useTranslations("library");
   return (
     <LibrarySection
@@ -47,6 +47,8 @@ function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null,
       onPropose={onPropose}
       writeMode={writeMode}
       onWriteModeChange={onWriteModeChange}
+      findings={findings}
+      onFix={onFix}
       /*
        * `transferNote` became `compileNote` and the drop hint left this column for the
        * empty-folder stage (2026-09-07 merge). The case is unchanged; it points at the
@@ -106,6 +108,17 @@ describe("names without a page become node candidates a person can propose", () 
     expect(screen.getByTestId("library-write-mode-auto").getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(screen.getByTestId("library-write-mode-ask"));
     expect(onWriteModeChange).toHaveBeenCalledWith("ask");
+  });
+
+  it("lists each finding with its kind and pages, and a Fix chip that hands the finding back", () => {
+    const onFix = vi.fn();
+    const findings: LintFinding[] = [{ code: "disagreement", pages: ["wiki/a", "wiki/b"], summary: "Budget 240,000 vs 210,000." }];
+    mount(<Harness onPropose={null} findings={findings} onFix={onFix} />);
+    const row = screen.getByTestId("library-finding");
+    expect(row.textContent).toContain("Budget 240,000 vs 210,000.");
+    expect(row.textContent).toContain("disagreement · a, b");
+    fireEvent.click(screen.getByTestId("library-finding-fix"));
+    expect(onFix).toHaveBeenCalledWith(findings[0]);
   });
 
   it("shows no rows when the last check named nobody, and no chip where no agent can run", () => {

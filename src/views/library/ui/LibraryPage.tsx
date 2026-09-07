@@ -6,7 +6,7 @@ import { ArrowLeft, ListChecks } from "lucide-react";
 
 import { useLocalVault, useVaultIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
-import type { LintNodeCandidate } from "@/features/library";
+import type { LintFinding, LintNodeCandidate } from "@/features/library";
 import type { LibrarySourceRow, SourceCandidate } from "@/entities/docs-vault";
 import { useRouter } from "@/i18n/navigation";
 import { DESTINATION_HREF } from "@/shared/config/destinations";
@@ -37,6 +37,8 @@ import {
   dropCandidatesWithNodes,
   wikiPagePathOf,
   buildAskBrief,
+  buildFixBrief,
+  parseLintFindings,
   buildAnswerPage,
   writeWikiFile,
 } from "@/features/library";
@@ -541,6 +543,14 @@ export function LibraryPage() {
         : null,
     [model.pageTexts, model.sources, nativeVaultRootPath],
   );
+  const handleFix = useCallback(
+    (finding: LintFinding) => {
+      if (!nativeVaultRootPath) return;
+      agent.start(buildFixBrief({ finding, locale, vaultRoot: nativeVaultRootPath }), "fix");
+    },
+    [agent, locale, nativeVaultRootPath],
+  );
+
   const handleFileAnswer = useCallback(async () => {
     if (!lastAnswer || !handle) return;
     const page = buildAnswerPage({
@@ -591,6 +601,7 @@ export function LibraryPage() {
    */
   const pageBodyRef = useRef<HTMLDivElement | null>(null);
   const [candidates, setCandidates] = useState<LintNodeCandidate[]>([]);
+  const [findings, setFindings] = useState<LintFinding[]>([]);
   /* A candidate the card already turned into a node leaves the list; the report cannot know. */
   const openCandidates = useMemo(() => dropCandidatesWithNodes(candidates, docs), [candidates, docs]);
   const latestDocsRef = useRef(docs);
@@ -615,6 +626,7 @@ export function LibraryPage() {
         const after = stamp(latestDocsRef.current);
         const lastAgentText = [...completion.events].reverse().find((event) => event.kind === "agent")?.text ?? null;
         if (kind === "lint") setCandidates(parseLintCandidates(lastAgentText));
+        if (kind === "lint") setFindings(parseLintFindings(lastAgentText));
         /*
          * The wiki log records what happened to the wiki. A proposal writes one ontology node
          * and an import writes documents under `sources/`; neither touches a page, so neither
@@ -629,7 +641,7 @@ export function LibraryPage() {
         const summary =
           kind === "lint"
             ? describeLintTurn(lastAgentText)
-            : describeCompileTurn({ sources, before, after });
+            : describeCompileTurn({ sources: kind === "fix" ? [] : sources, before, after });
         try {
           await appendWikiLog(handle, { at: completion.endedAt, kind, summary, writer });
         } catch {
@@ -1035,6 +1047,8 @@ export function LibraryPage() {
             onCompile={agent.route === "agent" || agent.route === "local" ? handleCompile : null}
             onLint={agent.route === "agent" ? handleLint : null}
             candidates={openCandidates}
+            findings={findings}
+            onFix={agent.route === "agent" ? handleFix : null}
             hasWikiTemplate={docs.some((doc) => doc.slug === "wiki/_template")}
             writeMode={writeMode}
             onFileAnswer={lastAnswer ? handleFileAnswer : null}

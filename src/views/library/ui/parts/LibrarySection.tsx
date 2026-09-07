@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 import { formatSourceBytes, type LibrarySourceRow } from "@/entities/docs-vault";
-import { isMapKind, type LintNodeCandidate } from "@/features/library";
+import { isMapKind, type LintFinding, type LintNodeCandidate } from "@/features/library";
 import { cn } from "@/shared/lib/cn";
 import { badgeClass } from "@/shared/ui/badge-class";
 import { writerLabel } from "../../lib/writer-label";
@@ -116,6 +116,9 @@ export interface LibrarySectionProps {
   onLint: (() => void) | null;
   /** Names the last check found with no page of their own — offered as ontology node candidates. */
   candidates: readonly LintNodeCandidate[];
+  /** What the last check found under its first three categories, each with a door to fix it. */
+  findings?: readonly LintFinding[];
+  onFix?: ((finding: LintFinding) => void) | null;
   /** Starts one agent turn that proposes the candidate through the ontology-write card; null like the others. */
   onPropose: ((candidate: LintNodeCandidate) => void) | null;
   /** Whether `wiki/_template.md` exists: without it the empty state says how to get one. */
@@ -244,6 +247,8 @@ export function LibrarySection({
   onCompile,
   onLint,
   candidates,
+  findings = [],
+  onFix = null,
   onPropose,
   hasWikiTemplate = true,
   writeMode = "auto",
@@ -725,6 +730,53 @@ export function LibrarySection({
           its own meta (installed app, 2026-09-06) — and the meta and the chip share the
           line beneath.
         */}
+        {findings.length > 0 ? (
+          // What the check found, one row each, with the one door a report-only turn had
+          // no way to offer (owner direction 2026-09-07): Fix starts a turn on those pages.
+          <section
+            data-testid="library-findings"
+            aria-label={t("wiki.findingsHeader", { count: findings.length })}
+            className="flex-none px-2 pb-1"
+          >
+            <Tooltip content={t("wiki.findingsTooltip")}>
+              <p tabIndex={0} className="px-1 pb-1 text-caption text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
+                {t("wiki.findingsHeader", { count: findings.length })}
+              </p>
+            </Tooltip>
+            <ul className="flex flex-col gap-0.5">
+              {findings.map((finding, index) => (
+                <li
+                  key={`${finding.code}\u0000${finding.pages.join(",")}\u0000${index}`}
+                  data-testid="library-finding"
+                  className="flex min-w-0 flex-col gap-0.5 rounded-chip px-1 py-1"
+                >
+                  <span className="text-label text-[color:var(--color-text-primary)] [word-break:keep-all]">
+                    {finding.summary}
+                  </span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="min-w-0 flex-1 truncate text-caption text-[color:var(--color-text-quaternary)]">
+                      {t(`wiki.findingKind.${finding.code === "missing-link" ? "missingLink" : finding.code}`)} · {finding.pages.map((slug) => slug.replace(/^wiki\//, "")).join(", ")}
+                    </span>
+                    {onFix ? (
+                      <Tooltip content={t("wiki.fixTooltip")}>
+                        <Chip
+                          data-testid="library-finding-fix"
+                          onClick={() => onFix(finding)}
+                          disabled={busy}
+                          tone="muted"
+                          className="flex-none hover:text-[color:var(--color-text-primary)]"
+                          aria-label={`${t("wiki.fix")}: ${finding.summary}`}
+                        >
+                          <span className="min-w-0 truncate">{t("wiki.fix")}</span>
+                        </Chip>
+                      </Tooltip>
+                    ) : null}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         {candidates.length > 0 ? (
           <section
             data-testid="library-candidates"

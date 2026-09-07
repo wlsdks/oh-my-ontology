@@ -1421,6 +1421,14 @@ is under the pointer or the keyboard: an original file, a wiki page, or a concep
 map, each with what its lines mean and what pressing does; the **Names without a page**
 header carries a tooltip saying why only map kinds can be proposed.
 
+**Fix what the check found** (2026-09-07). The check's closing block also lists its
+findings — a disagreement, a superseded claim, a missing link — each with the pages it
+touches, and the Library lists them under **What the check found** with a **Fix** chip. Fix
+starts one agent turn on those pages with the same rules the compile brief holds: both
+values with both citations for a disagreement, the current value first for a superseded
+claim, links both ways for a missing link, nothing outside those pages. The edits land or
+stop at the card exactly as a compile's do, and `wiki/_log.md` records the turn as `fix`.
+
 **File the answer** (2026-09-07). After an ask turn ends, a chip beside Compile writes
 the last answer as a page under `wiki/answers/`: the question is the title and summary,
 every answer line with a `[[src:…]]` citation becomes a fact, the cited files become

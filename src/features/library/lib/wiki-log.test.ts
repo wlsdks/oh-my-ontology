@@ -56,6 +56,13 @@ describe("the lint line carries the report's counts when the report states them"
   });
 });
 
+describe("a fix turn is its own kind of line", () => {
+  it("parses a fix entry as fix, not as compile", () => {
+    const line = formatWikiLogEntry({ at: "2026-09-07T03:00:00Z", kind: "fix", summary: "charter, risk-register (revised)", writer: "agent:claude-code" });
+    expect(parseWikiLog(`# Wiki log\n\n${line}\n`)).toEqual([{ at: "2026-09-07T03:00:00Z", kind: "fix", summary: "charter, risk-register (revised)", writer: "agent:claude-code" }]);
+  });
+});
+
 describe("appendWikiLog writes a file a person and grep can both read", () => {
   function memoryVault() {
     let content: string | null = null;
