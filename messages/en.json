@@ -4708,7 +4708,6 @@
       "nothing": "It finished without proposing a page."
     },
     "ask": {
-      "chip": "Ask about this",
       "title": "Ask the agent about the selected passage",
       "evidence": "Where does this come from?",
       "disagreement": "Does anything disagree with it?",

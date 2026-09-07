@@ -211,9 +211,9 @@ const BASELINE_HARD_CUTS = 0;
  * in `tests/e2e/library.spec.ts` (drawn, Escape closes it, focus returns to its chip).
  */
 /*
- * 38 → 39 (2026-09-07): the Library's select-to-ask list. Selecting a passage in a wiki
- * page shows one chip; pressing it opens this `Surface` with `transientSurface("anchored")`
- * beside the text. It needs the desktop ACP bridge (the docked agent answers), so the
+ * 38 → 39 (2026-09-07): the Library's select-to-ask bar. Selecting a passage in a wiki
+ * page raises this `Surface` with `transientSurface("anchored")` just above the first
+ * selected line, holding the questions. It needs the desktop ACP bridge (the docked agent answers), so the
  * static browser sweep cannot open it; `SelectionAsk.test.tsx` carries its named aside,
  * its Escape path and the sent question, and the installed app carries the real press.
  */

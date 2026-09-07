@@ -1411,10 +1411,14 @@ RATIO-SYSTEM 1600px container / 960px centered utility column.
 
 ### Library — ask about a passage, and a graph that explains its marks (2026-09-07)
 
-Select eight or more characters in a wiki page and a chip, **Ask about this**, appears
-under the selection. Pressing it opens a short list beside the text — where does this come
-from, does anything disagree with it, explain it in plain words — and a line for the
-person's own words. The chosen question goes to the docked agent as one read-only turn with
+Select eight or more characters in a wiki page and one bar stands just above the first
+selected line — where does this come from, does anything disagree with it, explain it in
+plain words — with a line for the person's own words at its end. While the bar is up the
+rest of the page steps back to quaternary ink, so the selection and the questions are the
+only bright things; a press outside the page or Escape clears both. (The first shape that
+day, a chip under the selection opening a list beside the text, covered three lines of the
+page and took a second press; the owner rejected it on sight.) The chosen question goes to
+the docked agent as one read-only turn with
 the exact passage quoted, the page named, and the rule to read the page and its originals
 and cite them (`buildAskBrief`). The graph's legend line becomes a description while a mark
 is under the pointer or the keyboard: an original file, a wiki page, or a concept on the

@@ -6,8 +6,8 @@ import { seedFirstRunSeen } from "./first-run-seed";
  * **Select a passage, ask the agent about it.**
  *
  * Owner direction 2026-09-07: dragging over a sentence in a wiki page offers a question at
- * once. This spec proves the chip appears only after a selection inside the page body, that
- * the list opens beside it, and that pressing a question reaches the docked agent with an
+ * once. This spec proves the bar appears only after a selection inside the page body, stands
+ * above it, and that pressing a question reaches the docked agent with an
  * `ask` request. The brief's wording is `ask-brief.test.ts`'s to pin; the popover's own
  * keyboard path is `SelectionAsk.test.tsx`'s.
  *
@@ -204,7 +204,7 @@ test.describe("Select a passage, ask the agent", () => {
     await installDesktopBridge(page);
   });
 
-  test("a selection inside the page shows one chip; the list sends an ask request to the dock", async ({ page }) => {
+  test("a selection inside the page raises the bar; a question sends an ask request to the dock", async ({ page }) => {
     await openFolder(page);
     await page.getByTestId("library-wiki-wiki/architecture").click();
     await page.getByTestId("library-reading-pane").waitFor({ timeout: 25_000 });
@@ -221,21 +221,48 @@ test.describe("Select a passage, ask the agent", () => {
       selection.addRange(range);
     });
     await paragraph.dispatchEvent("mouseup");
-    const chip = page.getByTestId("library-selection-ask-chip");
-    await expect(chip).toBeVisible({ timeout: 5_000 });
-    // The chip hangs just under the selected lines, on screen; a chip measured from the
-    // wrong box sat a pane height below the text in the installed app and was never seen.
-    await expect(chip).toBeInViewport();
-    const [textBox, chipBox] = await Promise.all([paragraph.boundingBox(), chip.boundingBox()]);
-    expect(chipBox!.y - textBox!.y - textBox!.height).toBeGreaterThanOrEqual(0);
-    expect(chipBox!.y - textBox!.y - textBox!.height).toBeLessThan(40);
-
-    await chip.click();
-    await expect(page.getByRole("complementary", { name: "Ask the agent about the selected passage" })).toBeVisible();
+    // The bar stands on screen, just above the first selected line, with its questions.
+    const bar = page.getByRole("complementary", { name: "Ask the agent about the selected passage" });
+    await expect(bar).toBeVisible({ timeout: 5_000 });
+    await expect(bar).toBeInViewport();
+    const [textBox, barBox] = await Promise.all([paragraph.boundingBox(), bar.boundingBox()]);
+    // A bar measured from the wrong box sat a pane height below the text in the installed
+    // app and was never seen; a bar under the text covered three lines of it.
+    expect(textBox!.y - (barBox!.y + barBox!.height)).toBeGreaterThanOrEqual(0);
+    expect(textBox!.y - (barBox!.y + barBox!.height)).toBeLessThan(24);
     await page.getByTestId("library-ask-evidence").click();
     const dock = page.getByTestId("library-agent-dock");
     await expect(dock).toBeVisible({ timeout: 25_000 });
     await expect(dock).toHaveAttribute("data-agent-request-kind", "ask");
     await expect(page.getByTestId("library-selection-ask")).toHaveCount(0);
+  });
+  test("the bar has its own ground and the rest of the page steps back while a passage is selected", async ({ page }) => {
+    await openFolder(page);
+    await page.getByTestId("library-wiki-wiki/architecture").click();
+    const pane = page.getByTestId("library-reading-pane");
+    await pane.waitFor({ timeout: 25_000 });
+    const paragraph = pane.locator("p").filter({ hasText: /Architecture\. See/ }).last();
+    const fact = pane.locator("li").filter({ hasText: /A fact/ }).first();
+    const inkBefore = await fact.evaluate((el) => getComputedStyle(el).color);
+    // A real drag over the sentence, the way a person selects it.
+    const box = (await paragraph.boundingBox())!;
+    await page.mouse.move(box.x + 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width - 40, box.y + box.height / 2, { steps: 8 });
+    await page.mouse.up();
+    const bar = page.getByRole("complementary", { name: "Ask the agent about the selected passage" });
+    await expect(bar).toBeVisible();
+    // The bar has its own ground, so the line under it cannot show through its labels.
+    const barBg = await bar.evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(barBg).not.toMatch(/rgba\(\d+, \d+, \d+, 0\)/);
+    // Lines outside the selection are dimmed; the bar's own labels are not.
+    const inkDuring = await fact.evaluate((el) => getComputedStyle(el).color);
+    expect(inkDuring).not.toBe(inkBefore);
+    const questionInk = await page.getByTestId("library-ask-evidence").evaluate((el) => getComputedStyle(el).color);
+    expect(questionInk).not.toBe(inkDuring);
+    // A click on the shelf, outside the page, collapses the selection and restores the page.
+    await page.getByTestId("library-sources").click({ position: { x: 4, y: 4 } });
+    await expect(bar).toHaveCount(0);
+    await expect.poll(() => fact.evaluate((el) => getComputedStyle(el).color)).toBe(inkBefore);
   });
 });

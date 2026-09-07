@@ -43,14 +43,27 @@ async function selectPassage() {
 }
 
 describe("select a passage, ask the agent about it", () => {
-  it("shows nothing until a passage is selected, then one chip", async () => {
+  it("shows nothing until a passage is selected, then the named bar with its three questions", async () => {
     mount(vi.fn());
     expect(screen.queryByTestId("library-selection-ask")).toBeNull();
     await selectPassage();
-    expect(screen.getByTestId("library-selection-ask-chip")).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Ask the agent about the selected passage" })).toBeInTheDocument();
+    for (const question of ["evidence", "disagreement", "explain"]) {
+      expect(screen.getByTestId(`library-ask-${question}`)).toBeInTheDocument();
+    }
   });
 
-  it("hangs the chip from the selection, measured from the body box itself", async () => {
+  it("marks the body as selecting while the bar is up, and clears it after the ask", async () => {
+    mount(vi.fn());
+    const body = screen.getByTestId("body");
+    expect(body.dataset.selecting).toBeUndefined();
+    await selectPassage();
+    expect(body.dataset.selecting).toBe("true");
+    fireEvent.click(screen.getByTestId("library-ask-evidence"));
+    await waitFor(() => expect(body.dataset.selecting).toBeUndefined());
+  });
+
+  it("stands above the first selected line, measured from the body box itself", async () => {
     mount(vi.fn());
     const body = screen.getByTestId("body");
     vi.spyOn(body, "getBoundingClientRect").mockReturnValue({
@@ -65,17 +78,17 @@ describe("select a passage, ask the agent about it", () => {
       delete (Range.prototype as unknown as { getBoundingClientRect?: () => DOMRect }).getBoundingClientRect;
     }
     const box = screen.getByTestId("library-selection-ask");
-    // 604 - 400 + 6: just under the selected line, not a pane height below it.
-    expect(box.style.top).toBe("210px");
+    // 580 - 400 - 8, then lifted by its own height: its bottom edge sits 8px above the line,
+    // not a pane height below it.
+    expect(box.style.top).toBe("172px");
     expect(box.style.left).toBe("40px");
+    expect(box.style.transform).toBe("translateY(-100%)");
   });
 
-  it("opens a named list beside the text and sends the chosen question with the exact passage", async () => {
+  it("sends the chosen question with the exact passage", async () => {
     const onAsk = vi.fn();
     mount(onAsk);
     await selectPassage();
-    fireEvent.click(screen.getByTestId("library-selection-ask-chip"));
-    expect(screen.getByRole("complementary", { name: "Ask the agent about the selected passage" })).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("library-ask-disagreement"));
     expect(onAsk).toHaveBeenCalledWith("budget becomes 221,400 aft", "disagreement", undefined);
   });
@@ -84,13 +97,13 @@ describe("select a passage, ask the agent about it", () => {
     const onAsk = vi.fn();
     mount(onAsk);
     await selectPassage();
-    fireEvent.click(screen.getByTestId("library-selection-ask-chip"));
     const input = screen.getByTestId("library-ask-custom");
     fireEvent.change(input, { target: { value: "Is this figure final?" } });
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onAsk).toHaveBeenCalledWith("budget becomes 221,400 aft", "custom", "Is this figure final?");
+    await waitFor(() => expect(screen.queryByRole("complementary")).toBeNull(), { timeout: 1500 });
     await selectPassage();
-    fireEvent.click(screen.getByTestId("library-selection-ask-chip"));
+    expect(screen.getByRole("complementary")).toBeInTheDocument();
     fireEvent.keyDown(window, { key: "Escape" });
     // The surface keeps its exit window before it unmounts, so the assertion waits for it.
     await waitFor(() => expect(screen.queryByRole("complementary")).toBeNull(), { timeout: 1500 });

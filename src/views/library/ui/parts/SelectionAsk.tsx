@@ -12,20 +12,36 @@ import type { useTranslations } from "next-intl";
 
 type Translator = ReturnType<typeof useTranslations<"library">>;
 
+/** Fewer characters than this is a word someone double-clicked, not a passage. */
+const MIN_PASSAGE = 8;
+/** One bar row, with the gap above the line: the room needed to sit above a selection. */
+const BAR_ROOM = 56;
+/** The widest the bar gets on one row; the left edge is clamped so this much stays inside. */
+const BAR_WIDTH = 560;
+
+type Placement = { text: string; top: number; left: number; above: boolean };
+
 /**
  * Select a passage in a wiki page, ask the agent about it.
  *
  * Owner direction 2026-09-07: dragging over text should offer a question at once, with the
- * question chosen rather than typed from scratch. One chip appears under the selection;
- * pressing it opens a short list beside the text — where this comes from, what disagrees,
- * explain it — and a line for the person's own words. Nothing is sent until one of them is
+ * question chosen rather than typed from scratch. The moment a passage is selected a single
+ * bar appears just above its first line — where this comes from, what disagrees, explain
+ * it — and a line for the person's own words. Nothing is sent until one of them is
  * pressed, and the passage is quoted into the conversation so the answer is about exactly
- * those words.
+ * those words. While the bar is up the page body carries `data-selecting`, and the page
+ * dims every line but the selection and the bar.
  *
- * The list is `transientSurface('anchored')` on the shared `Surface`, the same shape as the
+ * Why one bar and not a chip that opens a list (the first shape, same day): the list stood
+ * to the left of the text and covered three lines of it, and it took a second press to see
+ * the questions. A row above the first selected line covers at most the line before it,
+ * and reads as belonging to the selection the way an editor's formatting bar does.
+ *
+ * The bar is `transientSurface('anchored')` on the shared `Surface`, the same shape as the
  * Library's shelf popover: beside what opened it, closes on Escape or an outside press, no
- * scrim. The chip and the list are placed inside `containerRef`'s positioned ancestor from
- * the selection's own rectangle, so they follow the text at every width.
+ * scrim. It is placed inside `containerRef`, the positioned page-body box, from the
+ * selection's own line rectangles, so it follows the text at every width; when the first
+ * line is too close to the top of the scroll pane, it hangs under the last line instead.
  */
 export function SelectionAsk({
   containerRef,
@@ -38,52 +54,78 @@ export function SelectionAsk({
   disabled: boolean;
   t: Translator;
 }) {
-  const [selection, setSelection] = useState<{ text: string; top: number; left: number } | null>(null);
+  const [placement, setPlacement] = useState<Placement | null>(null);
   const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState("");
-  const listRef = useRef<HTMLElement | null>(null);
+  const barRef = useRef<HTMLElement | null>(null);
 
   const readSelection = useCallback(() => {
     const container = containerRef.current;
     const live = typeof window !== "undefined" ? window.getSelection() : null;
     if (!container || !live || live.rangeCount === 0 || live.isCollapsed) {
-      if (!open) setSelection(null);
+      setOpen(false);
       return;
     }
     const range = live.getRangeAt(0);
     if (!container.contains(range.commonAncestorContainer)) {
-      if (!open) setSelection(null);
+      setOpen(false);
       return;
     }
     const text = live.toString().trim();
-    if (text.length < 8) {
-      if (!open) setSelection(null);
+    if (text.length < MIN_PASSAGE) {
+      setOpen(false);
       return;
     }
-    // The chip is absolutely positioned inside `container`, which is the positioned box, so
-    // its offsets are measured from that box's own rectangle. Measuring from the scroll
-    // pane's positioned ancestor instead placed the chip a whole pane height too low in the
-    // installed app (2026-09-07): present in the accessibility tree, never on screen.
-    // A range without a rectangle (a DOM without layout) still gets the chip, at the top.
-    const rect =
-      typeof range.getBoundingClientRect === "function" ? range.getBoundingClientRect() : { bottom: 0, left: 0 };
+    // A range without rectangles (a DOM without layout) still gets the bar, at the top.
+    const lines = typeof range.getClientRects === "function" ? Array.from(range.getClientRects()) : [];
+    const bounding =
+      typeof range.getBoundingClientRect === "function"
+        ? range.getBoundingClientRect()
+        : { top: 0, bottom: 0, left: 0 };
+    const first = lines[0] ?? bounding;
+    const last = lines[lines.length - 1] ?? bounding;
     const hostRect = container.getBoundingClientRect();
-    setSelection({
+    const paneTop = scrollPaneOf(container)?.getBoundingClientRect().top ?? 0;
+    const above = first.top - paneTop >= BAR_ROOM;
+    setPlacement({
       text,
-      top: rect.bottom - hostRect.top + 6,
-      left: Math.max(8, Math.min(rect.left - hostRect.left, hostRect.width - 200)),
+      above,
+      top: above ? first.top - hostRect.top - 8 : last.bottom - hostRect.top + 8,
+      left: Math.max(8, Math.min(first.left - hostRect.left, hostRect.width - 8 - BAR_WIDTH)),
     });
+    setOpen(true);
+  }, [containerRef]);
+
+  // The body box carries `data-selecting` while the bar is up; the page's own class dims
+  // everything under it except this bar (see LibraryPage).
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    if (open) container.dataset.selecting = "true";
+    else delete container.dataset.selecting;
+    return () => {
+      delete container.dataset.selecting;
+    };
   }, [containerRef, open]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const onUp = () => window.setTimeout(readSelection, 0);
+    // A selection collapsed from anywhere (a press on the shelf, Escape, a key) takes the
+    // bar and the dimming with it; only a release inside the page can raise the bar, so a
+    // drag in progress never flickers one into view.
+    const onChange = () => {
+      const live = window.getSelection();
+      if (!live || live.isCollapsed || live.rangeCount === 0) window.setTimeout(readSelection, 0);
+    };
     container.addEventListener("mouseup", onUp);
     container.addEventListener("keyup", onUp);
+    document.addEventListener("selectionchange", onChange);
     return () => {
       container.removeEventListener("mouseup", onUp);
       container.removeEventListener("keyup", onUp);
+      document.removeEventListener("selectionchange", onChange);
     };
   }, [containerRef, readSelection]);
 
@@ -92,11 +134,19 @@ export function SelectionAsk({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.stopPropagation();
+        window.getSelection()?.removeAllRanges();
         setOpen(false);
       }
     };
+    // A press outside the bar and outside the page clears the selection, which closes the
+    // bar through `selectionchange`; a press inside the page starts a new selection.
     const onDown = (event: MouseEvent) => {
-      if (listRef.current && !listRef.current.contains(event.target as Node)) setOpen(false);
+      const container = containerRef.current;
+      const target = event.target as Node;
+      if (barRef.current?.contains(target)) return;
+      if (container?.contains(target)) return;
+      window.getSelection()?.removeAllRanges();
+      setOpen(false);
     };
     window.addEventListener("keydown", onKey, true);
     window.addEventListener("mousedown", onDown);
@@ -104,80 +154,93 @@ export function SelectionAsk({
       window.removeEventListener("keydown", onKey, true);
       window.removeEventListener("mousedown", onDown);
     };
-  }, [open]);
+  }, [containerRef, open]);
 
-  if (!selection) return null;
-  const ask = (question: AskQuestionId, customQuestion?: string) => {
-    onAsk(selection.text, question, customQuestion);
-    setOpen(false);
-    setSelection(null);
+  const onExited = useCallback(() => {
+    setPlacement(null);
     setCustom("");
+  }, []);
+
+  if (!placement) return null;
+  const ask = (question: AskQuestionId, customQuestion?: string) => {
+    onAsk(placement.text, question, customQuestion);
+    setOpen(false);
     window.getSelection()?.removeAllRanges();
   };
   const questions: ReadonlyArray<Exclude<AskQuestionId, "custom">> = ["evidence", "disagreement", "explain"];
 
   return (
-    <div data-testid="library-selection-ask" className="absolute z-30" style={{ top: selection.top, left: selection.left }}>
+    <div
+      data-testid="library-selection-ask"
+      className="absolute z-30 max-w-[calc(100%-16px)]"
+      style={{ top: placement.top, left: placement.left, transform: placement.above ? "translateY(-100%)" : undefined }}
+    >
       <Surface
         open={open}
         as="aside"
-        ref={listRef}
+        ref={barRef}
         motion="chrome"
-        origin="top left"
+        origin={placement.above ? "bottom left" : "top left"}
+        onExited={onExited}
         {...transientSurface("anchored")}
         aria-label={t("ask.title")}
-        className="flex w-[min(320px,calc(100vw-2rem))] flex-col overflow-hidden rounded-panel border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] shadow-[var(--shadow-elevation-2)]"
+        className="flex flex-wrap items-center gap-1 rounded-panel border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-1.5 shadow-[var(--shadow-elevation-1)]"
       >
-        <div className="flex flex-col gap-1.5 p-[var(--card-pad)]">
-          <p className="text-caption text-[color:var(--color-text-quaternary)] [word-break:keep-all]">{t("ask.title")}</p>
-          {questions.map((question) => (
-            <Chip
-              key={question}
-              data-testid={`library-ask-${question}`}
-              tone="muted"
-              disabled={disabled}
-              onClick={() => ask(question)}
-              className="justify-start text-left"
-            >
-              {t(`ask.${question}`)}
-            </Chip>
-          ))}
-          <div className="flex items-center gap-1">
-            <Input
-              data-testid="library-ask-custom"
-              size="sm"
-              aria-label={t("ask.placeholder")}
-              value={custom}
-              onChange={(event) => setCustom(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && custom.trim()) ask("custom", custom);
-              }}
-              placeholder={t("ask.placeholder")}
-              className="min-w-0 flex-1"
-            />
-            <Chip
-              data-testid="library-ask-send"
-              tone="muted"
-              disabled={disabled || custom.trim() === ""}
-              onClick={() => ask("custom", custom)}
-            >
-              {t("ask.send")}
-            </Chip>
-          </div>
-        </div>
-      </Surface>
-      {!open ? (
-        <Chip
-          data-testid="library-selection-ask-chip"
-          tone="muted"
-          disabled={disabled}
-          onClick={() => setOpen(true)}
-          aria-label={t("ask.chip")}
+        <span
+          className="inline-flex h-6 w-6 shrink-0 items-center justify-center text-[color:var(--color-text-quaternary)]"
+          title={t("ask.title")}
+          aria-hidden
         >
-          <MessageCircleQuestion size={ICON_SIZE.sm} aria-hidden />
-          <span>{t("ask.chip")}</span>
-        </Chip>
-      ) : null}
+          <MessageCircleQuestion size={ICON_SIZE.sm} />
+        </span>
+        {questions.map((question) => (
+          <Chip
+            key={question}
+            data-testid={`library-ask-${question}`}
+            tone="secondary"
+            hoverInk="strong"
+            hoverSurface="lift"
+            disabled={disabled}
+            onClick={() => ask(question)}
+          >
+            {t(`ask.${question}`)}
+          </Chip>
+        ))}
+        <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-[color:var(--color-divider)]" />
+        <span className="flex min-w-0 flex-1 items-center gap-1">
+          <Input
+            data-testid="library-ask-custom"
+            size="sm"
+            aria-label={t("ask.placeholder")}
+            value={custom}
+            onChange={(event) => setCustom(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && custom.trim()) ask("custom", custom);
+            }}
+            placeholder={t("ask.placeholder")}
+            className="min-w-[10rem] flex-1"
+          />
+          <Chip
+            data-testid="library-ask-send"
+            tone={custom.trim() ? "accent" : "muted"}
+            disabled={disabled || custom.trim() === ""}
+            onClick={() => ask("custom", custom)}
+          >
+            {t("ask.send")}
+          </Chip>
+        </span>
+      </Surface>
     </div>
   );
+}
+
+/** The nearest ancestor that scrolls vertically, so the bar knows how much room is above. */
+function scrollPaneOf(node: HTMLElement): HTMLElement | null {
+  let current = node.parentElement;
+  while (current) {
+    const overflowY = window.getComputedStyle(current).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll") return current;
+    current = current.parentElement;
+  }
+  return null;
 }

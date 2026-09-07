@@ -1267,7 +1267,13 @@ export function LibraryPage() {
             <WikiTemplateProblems problems={wikiProblems} t={t} />
             {/* The passage a person selects here can be asked about at once; the chip and
                 its list hang from the selection inside this positioned box. */}
-            <div ref={pageBodyRef} className="relative">
+            <div
+              ref={pageBodyRef}
+              // With a passage selected (`data-selecting`, set by SelectionAsk), every line of
+              // the page except the selection itself and the ask chip steps back to quaternary
+              // ink; `::selection` keeps the selected words at primary over the indigo wash.
+              className="relative data-[selecting=true]:[&>:not([data-testid=library-selection-ask])_*]:text-[color:var(--color-text-quaternary)]"
+            >
               <DocsVaultViewer
                 key={selectedWikiDoc.slug}
                 doc={selectedWikiDoc}
