@@ -1539,6 +1539,25 @@ eyebrow line closes it, and the same glyph at the pane's top-left opens it — a
 reader's way back reads *Graph*, the thing it shows, with no arrow (owner, 2026-09-07). A search whose matches all sit on the other half of the switch says so under the empty list and offers the switch, instead of a count over nothing. A page whose first line is a section heading no longer carries the section gap above it. A *Conversation* chip on the graph's status row and on the reader's top row reopens the dock after it was closed; before, closing it was the end of the transcript. The conversation's composer has one quiet row at its bottom, the way chat composers are laid out elsewhere: the tool with its model as one text picker (*Codex · GPT-5.6-Sol (low)*) and the mode on the left, the status word, past conversations, new conversation and send on the right; a tool that has run out of plan is named as a limit with the hour it lifts, not as a generic problem with a retry. The writer label prints only on the rows that are the exception to the
 folder's majority writer. The scroll-end gate measures the Library's own scrollers.
 
+**Closing the dock puts the conversation away** (2026-09-08). Pressing X on the Library's
+conversation used to end it: the panel unmounted, its ACP session stopped, and the adapter
+process was killed — so a turn in flight died with the press and the transcript went with
+it. The panel now stays mounted behind the shut frame. The frame is what closes, in the
+same width movement as before, and while it is shut it is `inert` and `aria-hidden`, so
+nothing behind it can be tabbed into or read out. A turn keeps running, its clock keeps
+counting, and a permission card raised while the dock was shut is still waiting when it
+opens. The conversation ends when the person leaves the Library, which is when the screen
+that started it goes away. While a turn runs behind the shut dock, the same *Conversation*
+chip — right end of the graph's status row and of the reader's top row — says which step is
+running and what it is on (*Editing · Write wiki/contractor-quotes.md*, *Waiting for
+approval · …*) with one indigo dot beside it; there is no second resting surface, because
+one door to one conversation is enough. And reopening lands in **this folder's latest
+conversation** rather than a blank one: the dock asks the adapter for its conversations in
+this folder, resumes the newest, and the past-conversations door is reachable from the
+first ready frame instead of only after a turn. An adapter with no session list, a folder
+with no past conversation, and a conversation the adapter will not reload all fall through
+to a new one, which is what happened before. *New conversation* still means new.
+
 **File the answer** (2026-09-07). After an ask turn ends, a chip in the conversation,
 directly under the answer and above the composer, writes the last answer as a page under
 `wiki/answers/`: the question is the title and summary,

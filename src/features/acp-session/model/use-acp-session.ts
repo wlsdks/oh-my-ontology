@@ -16,6 +16,7 @@ import { modeKeepsGate } from './mode-safety';
 import { isDiagnosticStderr } from './acp-trouble';
 import { readSlashCommands, type AcpSlashCommand } from './slash-commands';
 import { hasVaultMcpServer, VAULT_MCP_SERVER_NAME, vaultWriteConsentOn } from './vault-mcp-server';
+import { latestSession, orderSessionsByRecency } from './session-recency';
 import {
   applyCurrentMode,
   createAcpClient,
@@ -120,6 +121,28 @@ export interface UseAcpSessionOptions {
    * waits). An ontology write never comes here: the caller's judge does not know nodes.
    */
   autoDecide?: (request: AcpPermissionRequest) => string | null;
+  /**
+   * Whether opening this panel **continues where the folder left off** instead of starting a
+   * blank conversation.
+   *
+   * Owner, installed app, 2026-09-08: *"every time I press X and go back into the agent it is a
+   * new conversation — I cannot pick the one I was having and carry on. The previous, latest
+   * conversation should always open."* The pieces were already here (`session/list`,
+   * `session/load`, the history door); nothing consulted them until a person pressed the history
+   * button, and the history button only exists once a session has already opened — so the first
+   * screen a returning person saw was always empty.
+   *
+   * With this on, the first `start()` of this panel asks the adapter for this folder's
+   * conversations and resumes the newest one. Failure is not fatal in either direction: an
+   * adapter with no `session/list`, a folder with no past conversation, or a `session/load` that
+   * refuses all fall through to a new conversation, which is what happened before this option
+   * existed. Nothing leaves the machine — the list is the adapter's own, for this folder only
+   * (`keepSessionsInFolder`).
+   *
+   * A person who presses **New conversation** has answered the question themselves, so this stops
+   * applying for the rest of that panel's life.
+   */
+  resumeLatest?: boolean;
 }
 
 export interface AcpTurnStart {
@@ -280,6 +303,7 @@ export function useAcpSession({
   onWorkReceipt,
   onTurnStarted,
   autoDecide,
+  resumeLatest = false,
 }: UseAcpSessionOptions) {
   const [status, setStatus] = useState<AcpSessionStatus>('idle');
   /*
@@ -370,6 +394,19 @@ export function useAcpSession({
   const sessionIdRef = useRef<string | null>(null);
   /** The conversation the next `start()` resumes. Used once, then cleared. */
   const resumeIdRef = useRef<string | null>(null);
+  /**
+   * Has the person asked for a blank conversation? Then `resumeLatest` stops applying.
+   *
+   * Without this flag the two features cancel each other out: `switchSession(null)` clears
+   * `resumeIdRef` to mean "a new one", and a `start()` that then looks up the latest conversation
+   * would resume the very conversation the person just left. New conversation has to be able to
+   * mean new.
+   */
+  const freshRequestedRef = useRef(false);
+  const resumeLatestRef = useRef(resumeLatest);
+  useEffect(() => {
+    resumeLatestRef.current = resumeLatest;
+  }, [resumeLatest]);
   /** Are we starting right now? `clientRef` is filled only after everything finishes, so it is late. */
   const startingRef = useRef(false);
   /** Collected stderr — surfaced only when something goes wrong. */
@@ -904,6 +941,26 @@ export function useAcpSession({
 
       await client.initialize();
       /*
+       * **Nobody asked for a particular conversation, so the folder's latest one is the answer.**
+       *
+       * Read before the session is created rather than after, which is the only order that can
+       * change which session is created. The list is also handed to the screen here, so the
+       * history door is reachable from the first frame the panel is ready — until 2026-09-08 it
+       * appeared only after `session/list` returned *following* a successful start, and a person
+       * whose session was still starting had no way to reach an earlier conversation at all.
+       *
+       * An adapter without `session/list` answers with an empty list (`acp-client.ts` swallows the
+       * method error), which lands on `newSession` below exactly as before.
+       */
+      if (!resumeIdRef.current && resumeLatestRef.current && !freshRequestedRef.current) {
+        const known = await client.listSessions(vaultRoot).catch(() => [] as AcpSessionSummary[]);
+        if (!stale()) {
+          const ordered = orderSessionsByRecency(known);
+          if (!disposedRef.current) setSessions(ordered);
+          resumeIdRef.current = latestSession(ordered)?.sessionId ?? null;
+        }
+      }
+      /*
        * With a conversation to resume, try that first. On failure it **falls through to a new
        * conversation** — being unable to open a past conversation must not become the reason a
        * conversation cannot be opened at all (that file is not ours and can disappear at any time).
@@ -984,7 +1041,9 @@ export function useAcpSession({
       void client
         .listSessions(vaultRoot)
         .then((list) => {
-          if (!disposedRef.current) setSessions(list);
+          // Newest first, the same order the resume above chose from — the top row of the
+          // history door and the conversation reopening restores must be the same one.
+          if (!disposedRef.current) setSessions(orderSessionsByRecency(list));
         })
         .catch(() => {
           /* Being unable to read past conversations is not this conversation's problem. */
@@ -1055,6 +1114,10 @@ export function useAcpSession({
       setApprovedOntologyWriteTracked(null);
       setError(null);
       resumeIdRef.current = sessionId;
+      // A blank conversation was asked for **by a person**, so the automatic resume above stops
+      // answering for this panel. Picking a past conversation is the opposite answer and restores
+      // it, because that press said which conversation to be in, not that there should be none.
+      freshRequestedRef.current = sessionId === null;
       setChoices(EMPTY_CHOICES);
       await startRef.current?.();
     },
