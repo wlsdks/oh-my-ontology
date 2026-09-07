@@ -6,7 +6,13 @@ import { ICON_SIZE } from '@/shared/ui/icon-size';
 import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 
-import { EXIT_TRANSITION, MOTION, useExitLockout } from '@/shared/motion';
+import {
+  EXIT_TRANSITION,
+  MOTION,
+  SHEET_RISE,
+  SHEET_SETTLED,
+  useExitLockout,
+} from '@/shared/motion';
 import { Button, controlClass } from '@/shared/ui';
 
 export interface RecentChangesNeedsVaultDialogProps {
@@ -90,9 +96,9 @@ export function RecentChangesNeedsVaultDialog({
           <motion.section
             ref={dialogLockoutRef}
             onAnimationStart={dialogLockoutOnAnimationStart}
-            initial={{ opacity: 0, y: 12, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.985, transition: EXIT_TRANSITION }}
+            initial={SHEET_RISE}
+            animate={SHEET_SETTLED}
+            exit={{ ...SHEET_RISE, transition: EXIT_TRANSITION }}
             transition={MOTION.base}
             onClick={(event) => event.stopPropagation()}
             role="dialog"

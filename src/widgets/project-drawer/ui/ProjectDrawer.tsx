@@ -11,7 +11,14 @@ import {
   useDragControls,
   useReducedMotion,
 } from "framer-motion";
-import { EXIT_TRANSITION, MOTION, OVERLAY_SPRING, useExitLockout } from "@/shared/motion";
+import {
+  EXIT_TRANSITION,
+  MOTION,
+  OVERLAY_RISE,
+  OVERLAY_SETTLED,
+  OVERLAY_SPRING,
+  useExitLockout,
+} from '@/shared/motion';
 import { mergeRefs } from "@/shared/lib/merge-refs";
 import { ArrowUpRight, BookOpen, ChevronDown, X } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
@@ -467,8 +474,8 @@ export function ProjectDrawer({
               className="flex-1 px-4 py-4 md:px-6 md:py-6"
             >
               <motion.section
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={OVERLAY_RISE}
+                animate={OVERLAY_SETTLED}
                 transition={MOTION.base}
                 /* The hero is an in-flow content card scrolling inside the drawer — the
                  * sheet step (rounded-sheet) belongs to a floating surface and cannot be
@@ -648,8 +655,8 @@ export function ProjectDrawer({
                   only. */}
               {!isContainerNode && (
                 <motion.section
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={OVERLAY_RISE}
+                  animate={OVERLAY_SETTLED}
                   transition={{ ...MOTION.base, delay: 0.03 }}
                   className="mt-5 md:mt-6"
                 >

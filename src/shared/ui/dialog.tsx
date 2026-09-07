@@ -10,12 +10,14 @@ import { useBodyScrollLock } from "@/shared/lib/use-body-scroll-lock";
 import { useDialogFocusTrap } from "@/shared/lib/use-dialog-focus-trap";
 import {
   EXIT_TRANSITION,
+  OVERLAY_RISE,
+  OVERLAY_SETTLED,
   OVERLAY_SPRING,
   OVERLAY_SPRING_REDUCED,
   SCRIM_FADE,
   SCRIM_FADE_REDUCED,
   useExitLockout,
-} from "@/shared/motion";
+} from '@/shared/motion';
 import { transientSurface } from "./transient-surface";
 
 /**
@@ -149,9 +151,9 @@ export function Dialog({
           <motion.div
             ref={mergeRefs(containerRef, containerLockoutRef)}
             onAnimationStart={containerLockoutOnAnimationStart}
-            initial={{ y: 8, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 8, opacity: 0, transition: EXIT_TRANSITION }}
+            initial={OVERLAY_RISE}
+            animate={OVERLAY_SETTLED}
+            exit={{ ...OVERLAY_RISE, transition: EXIT_TRANSITION }}
             transition={reducedMotion ? OVERLAY_SPRING_REDUCED : OVERLAY_SPRING}
             role={role}
             aria-modal="true"
