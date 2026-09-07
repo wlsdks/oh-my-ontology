@@ -4435,7 +4435,7 @@
       "empty": "아직 원문이 없습니다. 이미 갖고 있는 문서를 넣으세요. 형식은 무엇이든 되고, 온 그대로 보관합니다.",
       "noFormat": "파일",
       "needsCompile": "{count}개는 아직 정리되지 않았습니다",
-      "dropHint": "Finder 에서 {folder}/sources/ 로 파일을 끌어다 놓아도 됩니다. 목록은 알아서 바뀝니다.",
+      "dropHint": "Finder 에서 {folder} 안에 sources/ 폴더를 만들고 파일을 넣어도 됩니다. 목록은 알아서 바뀝니다.",
       "state": {
         "nobody": "아무도",
         "not-compiled": {
