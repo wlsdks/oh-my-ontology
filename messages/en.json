@@ -4318,10 +4318,10 @@
     "searchPlaceholder": "A name, a command, an address",
     "groupFound": "Already on this computer",
     "groupCatalogue": "Ready to attach",
-    "catalogueMeta": "A short list as of {date}. Atlas has not audited it, and the app fetches nothing.",
+    "catalogueMeta": "As of {date}. Not audited by Atlas; the app fetches nothing.",
     "customToggle": "Not in the list? Add it by hand",
     "noneForSearch": "Nothing matches “{query}”. By hand still reaches it.",
-    "asksOauthShort": "your coding agent opens the sign-in window",
+    "asksOauthShort": "sign-in via your coding agent",
     "asksTokenShort": "asks for {keys}",
     "catalogueAttached": "Attached",
     "variantRemote": "By address",
@@ -4423,7 +4423,8 @@
       "playwright": "Open web pages and navigate, click, type and read through accessibility snapshots.",
       "context7": "Current, version-specific documentation and code examples for a library.",
       "supabase": "Query and manage a Supabase project's database, auth, realtime and migrations."
-    }
+    },
+    "attachedToast": "{name} is attached and off. Switch it on when you want the agent to use it."
   },
   "library": {
     "title": "Library",

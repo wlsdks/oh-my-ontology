@@ -4318,7 +4318,7 @@
     "searchPlaceholder": "이름, 명령, 주소",
     "groupFound": "이 컴퓨터에 이미 있는 것",
     "groupCatalogue": "바로 붙일 수 있는 것",
-    "catalogueMeta": "{date} 기준 짧은 목록. Atlas 가 검증한 목록은 아니고, 앱은 어디에서도 받아 오지 않아요.",
+    "catalogueMeta": "{date} 기준. Atlas 가 검증하지 않았고, 앱은 어디에서도 받아 오지 않아요.",
     "customToggle": "목록에 없으면 직접 적기",
     "noneForSearch": "「{query}」와 맞는 게 없어요. 직접 적기로는 넣을 수 있어요.",
     "asksOauthShort": "로그인 창은 코딩 도구가 엽니다",
@@ -4423,7 +4423,8 @@
       "playwright": "웹 페이지를 열어 접근성 스냅샷으로 이동·클릭·입력·읽기를 합니다.",
       "context7": "라이브러리의 현재 버전 문서와 코드 예시를 가져옵니다.",
       "supabase": "Supabase 의 데이터베이스·인증·실시간·마이그레이션을 다룹니다."
-    }
+    },
+    "attachedToast": "{name} 을(를) 붙였어요. 아직 꺼져 있고, 켜면 에이전트가 씁니다."
   },
   "library": {
     "title": "자료실",

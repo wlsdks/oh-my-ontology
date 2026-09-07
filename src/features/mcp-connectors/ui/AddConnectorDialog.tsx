@@ -18,6 +18,7 @@ import { badgeClass } from '@/shared/ui/badge-class';
 import { SegmentedControl } from '@/shared/ui/segmented-control';
 import { Input } from '@/shared/ui/input';
 import { controlClass } from '@/shared/ui/control-class';
+import { cn } from '@/shared/lib/cn';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
 import {
   connectorProblems,
@@ -425,7 +426,12 @@ export function AddConnectorDialog({
       labelledBy={`${testIdPrefix}-add-title`}
       testId={`${testIdPrefix}-add-dialog`}
       initialFocus="none"
-      className="max-h-[min(80vh,var(--dialog-max-h))] overflow-y-auto"
+      /*
+       * The title and the search stay put; the groups scroll under them. Scrolling the whole
+       * panel took the search box off screen at the fourth row (own review, 2026-09-07), which
+       * is the moment somebody wants to narrow the list.
+       */
+      className="flex max-h-[min(80vh,var(--dialog-max-h))] flex-col"
     >
       {/*
         The close control sits where every other dialog in this app keeps it, at the top corner,
@@ -476,7 +482,11 @@ export function AddConnectorDialog({
         className="mt-3 w-full border-[color:var(--color-border-strong)]"
       />
 
-      <div className="mt-4 flex flex-col gap-5" data-testid={`${testIdPrefix}-add-groups`}>
+      <div
+        data-testid={`${testIdPrefix}-add-scroll`}
+        className="-mx-4 mt-4 min-h-0 flex-1 overflow-y-auto px-4"
+      >
+      <div className="flex flex-col gap-5" data-testid={`${testIdPrefix}-add-groups`}>
         {/*
           Order is by what a person can act on without typing. On the installed app the scan of this
           machine leads; in a browser the scan can only say why it is empty, so the catalogue leads
@@ -581,6 +591,7 @@ export function AddConnectorDialog({
           {t('addFailed', { reason: t(`addFailReason.${failure}` as AddFailureKey) })}
         </p>
       ) : null}
+      </div>
     </Dialog>
   );
 }
@@ -825,7 +836,14 @@ function CatalogueSection({
                   className="mt-0.5 text-[color:var(--color-text-tertiary)]"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-body font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
+                  <p
+                    className={cn(
+                      'truncate text-body font-[var(--font-weight-signature)]',
+                      attached
+                        ? 'text-[color:var(--color-text-tertiary)]'
+                        : 'text-[color:var(--color-text-primary)]',
+                    )}
+                  >
                     {entry.title}
                   </p>
                   {/*
