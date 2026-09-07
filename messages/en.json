@@ -4435,7 +4435,7 @@
       "empty": "No raw sources yet. Add the project documents you already have. Any format; Atlas keeps them exactly as they arrived.",
       "noFormat": "FILE",
       "needsCompile": "{count, plural, one {# not written up yet} other {# not written up yet}}",
-      "dropHint": "Or drop files into {folder}/sources/ in Finder; the list updates by itself.",
+      "dropHint": "Or make a sources/ folder inside {folder} in Finder and drop files there; the list updates by itself.",
       "state": {
         "nobody": "nobody",
         "not-compiled": {
