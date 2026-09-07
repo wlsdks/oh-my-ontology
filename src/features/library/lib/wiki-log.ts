@@ -1,4 +1,5 @@
 import { WIKI_DIR } from "@/shared/lib/wiki-page-schema";
+import { parseLintCounts } from "./lint-brief";
 
 /**
  * `wiki/_log.md` — **what happened to the wiki, written by the app, never by the agent.**
@@ -92,6 +93,17 @@ export function describeCompileTurn(input: {
  */
 export function describeLintTurn(finalText: string | null): string {
   const text = finalText ?? "";
+  // The block the brief asks for carries the counts in one shape in every language; the
+  // prose count line below is the fallback for a report that left the block out.
+  const fromBlock = parseLintCounts(text);
+  if (fromBlock) {
+    return [
+      `disagreement ${fromBlock.disagreement}`,
+      `superseded ${fromBlock.superseded}`,
+      `missing-link ${fromBlock.missingLink}`,
+      `name-without-page ${fromBlock.nameWithoutPage}`,
+    ].join(" · ");
+  }
   const pick = (label: RegExp) => {
     const match = label.exec(text);
     return match ? Number(match[1]) : null;
