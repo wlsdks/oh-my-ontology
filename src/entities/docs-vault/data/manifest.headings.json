@@ -2753,6 +2753,88 @@
       "slug": "what-this-does-and-does-not-show"
     }
   ],
+  "benchmark/MCP-ONE-CLICK-2026-09-07": [
+    {
+      "depth": 1,
+      "text": "How other open-source clients make an MCP server one press — 2026-09-07",
+      "slug": "how-other-open-source-clients-make-an-mcp-server-one-press-2026-09-07"
+    },
+    {
+      "depth": 2,
+      "text": "The short answer",
+      "slug": "the-short-answer"
+    },
+    {
+      "depth": 2,
+      "text": "1. The official MCP Registry",
+      "slug": "1-the-official-mcp-registry"
+    },
+    {
+      "depth": 3,
+      "text": "`server.json`, the field names that matter",
+      "slug": "serverjson-the-field-names-that-matter"
+    },
+    {
+      "depth": 2,
+      "text": "2. Command-line adds",
+      "slug": "2-command-line-adds"
+    },
+    {
+      "depth": 2,
+      "text": "3. Deep links — the \"Add to X\" button",
+      "slug": "3-deep-links-the-add-to-x-button"
+    },
+    {
+      "depth": 3,
+      "text": "The deep link is where the breaches were",
+      "slug": "the-deep-link-is-where-the-breaches-were"
+    },
+    {
+      "depth": 2,
+      "text": "4. Catalogues and marketplaces",
+      "slug": "4-catalogues-and-marketplaces"
+    },
+    {
+      "depth": 2,
+      "text": "5. OAuth for remote servers",
+      "slug": "5-oauth-for-remote-servers"
+    },
+    {
+      "depth": 2,
+      "text": "6. The three worked examples",
+      "slug": "6-the-three-worked-examples"
+    },
+    {
+      "depth": 3,
+      "text": "Notion",
+      "slug": "notion"
+    },
+    {
+      "depth": 3,
+      "text": "Atlassian",
+      "slug": "atlassian"
+    },
+    {
+      "depth": 3,
+      "text": "GitHub",
+      "slug": "github"
+    },
+    {
+      "depth": 3,
+      "text": "So is it a partnership?",
+      "slug": "so-is-it-a-partnership"
+    },
+    {
+      "depth": 2,
+      "text": "7. What is portable to Atlas, and what is not",
+      "slug": "7-what-is-portable-to-atlas-and-what-is-not"
+    },
+    {
+      "depth": 2,
+      "text": "8. Recommendation",
+      "slug": "8-recommendation"
+    }
+  ],
   "benchmark/README": [
     {
       "depth": 1,
@@ -6402,6 +6484,31 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — Markdown under sources/ is a raw source, not a shadow page",
+      "slug": "2026-09-07-markdown-under-sources-is-a-raw-source-not-a-shadow-page"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-07 — Attaching an MCP server is a catalogue pick; a deep link only pre-fills",
+      "slug": "2026-09-07-attaching-an-mcp-server-is-a-catalogue-pick-a-deep-link-only-pre-fills"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-07 — The Library graph is a live force simulation with a bounded drift",
+      "slug": "2026-09-07-the-library-graph-is-a-live-force-simulation-with-a-bounded-drift"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-07 — Strata's tier legend takes the right edge only where the fit was not going to use it",
+      "slug": "2026-09-07-stratas-tier-legend-takes-the-right-edge-only-where-the-fit-was-not-going-to-use-it"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-07 — A resting 3D relation line is never thinner than one device pixel",
+      "slug": "2026-09-07-a-resting-3d-relation-line-is-never-thinner-than-one-device-pixel"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-06 — The Library stays on every rail; only a wiki without a map hides the map doors",
       "slug": "2026-09-06-the-library-stays-on-every-rail-only-a-wiki-without-a-map-hides-the-map-doors"
     },
@@ -6429,6 +6536,11 @@
       "depth": 2,
       "text": "2026-09-06 — The wiki page contract gains a folder half, and the Compile brief revises, flags, and links",
       "slug": "2026-09-06-the-wiki-page-contract-gains-a-folder-half-and-the-compile-brief-revises-flags-and-links"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-06 — An empty Library folder is an empty state; guidance is a compact stepper; the index is one column",
+      "slug": "2026-09-06-an-empty-library-folder-is-an-empty-state-guidance-is-a-compact-stepper-the-index-is-one-column"
     },
     {
       "depth": 2,
@@ -10576,6 +10688,11 @@
       "depth": 3,
       "text": "ACP agent-runtime registry snapshot",
       "slug": "acp-agent-runtime-registry-snapshot"
+    },
+    {
+      "depth": 3,
+      "text": "MCP connector catalogue snapshot",
+      "slug": "mcp-connector-catalogue-snapshot"
     },
     {
       "depth": 3,

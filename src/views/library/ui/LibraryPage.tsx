@@ -8,7 +8,11 @@ import { useLocalVault, useVaultIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
 import type { LintNodeCandidate } from "@/features/library";
 import type { LibrarySourceRow, SourceCandidate } from "@/entities/docs-vault";
+import { useRouter } from "@/i18n/navigation";
+import { DESTINATION_HREF } from "@/shared/config/destinations";
 import { OpenVaultCta } from "@/features/docs-vault-local";
+import { useVaultConnectors } from "@/features/mcp-connectors";
+import { isAcpBridgeAvailable } from "@/shared/lib/tauri-acp";
 import {
   addSources,
   addSourcesInBrowser,
@@ -40,6 +44,7 @@ import {
 } from "@/widgets/doc-reading-pane";
 import { DocsVaultViewer } from "@/widgets/docs-vault";
 import { LibraryGraph } from "@/widgets/library-graph";
+import { LibraryImportDialog } from "@/widgets/library-import";
 import { cn } from "@/shared/lib/cn";
 import { getTauriVaultRootPath, revealTauriVaultFile } from "@/shared/lib/tauri-vault-fs";
 import { controlClass } from "@/shared/ui/control-class";
@@ -55,6 +60,7 @@ import { LibrarySection } from "./parts/LibrarySection";
 import { CompileBrainSelect } from "./parts/CompileBrainSelect";
 import { LibraryShelfPopover } from "./parts/LibraryShelfPopover";
 import { LibraryStage } from "./parts/LibraryStage";
+import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
 import { LibraryAgentDock } from "./parts/LibraryAgentDock";
 import { selectLibraryHandle } from "../lib/select-library-handle";
@@ -114,12 +120,21 @@ import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
  * no overview and no guidance. Measured a zero rect at 390×844 and 768×1024 on the seeded
  * folder. It is now the top half of that column at every width.
  *
- * ## With no folder open
+ * ## With no folder open, and with an empty one
  *
  * One centred stage, not an empty two-pane workbench. There is no folder to add a
  * document *to*, so an index of nothing beside a reader of nothing would be two empty
  * boxes asking the same question. `PAGE_COLUMN_STAGE` is this repository's existing
  * answer for "nothing to open yet" (2026-08-12).
+ *
+ * ⚠️ **A folder that is open and empty gets the same answer** (owner, 2026-09-06). It
+ * used to get the workbench plus a guide that raised itself over the picture, and the
+ * owner read that frame as broken: *"why does this design look like this? … the sizes
+ * inside the right panel are no good … and it overlaps this text."* Measured at 1512×982
+ * on a folder with nothing in it, six surfaces stated the same emptiness — the caption's
+ * three zeroes, a strip of three turns-not-yet-come, both index lists' own "nothing here"
+ * copy with **two duplicate doors**, the canvas's own sentence, and a 560px panel lying
+ * across it. The screen is now `LibraryStartStage`, and the guide is only ever a press.
  */
 export function LibraryPage() {
   const t = useTranslations("library");
@@ -423,6 +438,24 @@ export function LibraryPage() {
     () => new Set((manifest?.docs ?? []).map((doc) => doc.slug)),
     [manifest],
   );
+
+  /*
+   * ── The third door: documents that are not on this computer yet ────────────────────────────
+   *
+   * Owner, 2026-09-07: *"connecting a service is mostly for the Library anyway — people want the
+   * things they already wrote somewhere else."* Add files and Find documents both assume the
+   * document is already on disk; for somebody whose notes live in Notion, neither is a door.
+   *
+   * The whole flow lives in `@/widgets/library-import` and never says MCP, stdio or environment
+   * variable. What it needs from this view is the two things only this view has: the folder's
+   * connector list to write the descriptor into, and the agent turn that does the fetching. The
+   * technical dialog on `/mcp` is unchanged and is the last tile, for a service the list does not
+   * know.
+   */
+  const connectors = useVaultConnectors(handle);
+  const importRouter = useRouter();
+  const [importOpen, setImportOpen] = useState(false);
+  const openImport = useCallback(() => setImportOpen(true), []);
   const handleCompile = useCallback(() => {
     /*
      * **A press that does nothing must never be silent** (installed app, 2026-09-05).
@@ -514,7 +547,12 @@ export function LibraryPage() {
         const after = stamp(latestDocsRef.current);
         const lastAgentText = [...completion.events].reverse().find((event) => event.kind === "agent")?.text ?? null;
         if (kind === "lint") setCandidates(parseLintCandidates(lastAgentText));
-        if (kind === "propose") return;
+        /*
+         * The wiki log records what happened to the wiki. A proposal writes one ontology node
+         * and an import writes documents under `sources/`; neither touches a page, so neither
+         * is an entry, or the log would claim a compile that never ran.
+         */
+        if (kind === "propose" || kind === "import") return;
         const summary =
           kind === "lint"
             ? describeLintTurn(lastAgentText)
@@ -639,32 +677,68 @@ export function LibraryPage() {
   }, [agent.open, findOpen, selected]);
 
   /**
-   * **The shelf raises itself only over an empty folder, and never after a choice.**
+   * **Nothing raises itself any more** (owner, 2026-09-06).
    *
-   * A guide that reappears over the picture on every visit is the defect the shelf itself
-   * replaced, one layer up: an answer to a question this person stopped asking after the
-   * first time. So the automatic open is bound to the one state where there is genuinely
-   * nothing else to look at — **no sources at all** — and a person's own press, either
-   * way, wins from then on.
+   * The panel used to open by itself over a folder with no sources, on the reasoning that
+   * there was nothing else to look at. The owner opened exactly that folder in the
+   * installed app and read the result as broken: the guide lay across the graph's own
+   * "Nothing to draw yet…" sentence while three other surfaces said the same emptiness.
    *
-   * ⚠️ **Derived, not an effect.** `null` means nobody has chosen yet; the folder decides
-   * that case. Writing it into state from an effect would need `setState` inside one
-   * (the rule `react-hooks/set-state-in-effect` exists for the render loop this causes),
-   * and would also have to re-decide whenever the folder changed. The same shape the
-   * graph's own disclosure used before it became the pane.
-   *
-   * `useState`, not `localStorage`: this is about this sitting. A preference that outlived
-   * the session would hide the guide from somebody who never saw it.
+   * A folder with nothing in it is now an **empty state** rather than a workbench with a
+   * popup over it (`LibraryStartStage`), so the state that justified the automatic open
+   * no longer reaches this shape at all. What is left is a press: the chip opens the
+   * guidance, Escape or an outside press closes it, and focus goes back to the chip.
    */
-  const [shelfChoice, setShelfChoice] = useState<boolean | null>(null);
-  const shelfOpen = shelfChoice ?? (hasFolder && model.sources.length === 0);
-  const closeShelf = useCallback(() => setShelfChoice(false), []);
+  const [shelfOpen, setShelfOpen] = useState(false);
   /**
-   * Pressing a door inside the panel is a choice to keep it: without this, `Add files`
-   * succeeding would drop `sources.length` out of zero and the panel would vanish from
-   * under the hand that just used it.
+   * **Choosing a file closes the guide, by any route** (design-interaction, 2026-09-06).
+   *
+   * Selecting hides the canvas, and the chip lives in the canvas's header — so a panel
+   * left open after a choice floats over the reader with its anchor gone: `onExited`
+   * focuses a `display:none` chip (a silent no-op), the panel's own Escape handler eats
+   * the first press, and the way back needs two. The pointer path happened to be covered
+   * because the outside-press listener is `pointerdown`; **Enter on a row is not a
+   * pointerdown**, so the keyboard path was the one that broke.
+   *
+   * It is a setter rather than `open={shelfOpen && selected === null}` on purpose: the
+   * derived form would raise the panel again the moment somebody pressed back, which is
+   * the self-raising behaviour this redesign removed.
    */
-  const keepShelf = useCallback(() => setShelfChoice(true), []);
+  const choose = useCallback((next: typeof selected) => {
+    setShelfOpen(false);
+    setSelected(next);
+  }, []);
+  /**
+   * Whether this folder has anything for the workbench to show — the same test the canvas
+   * makes, so the two can never disagree about whether there is a picture.
+   */
+  const libraryIsEmpty = model.sources.length === 0 && model.wikiPages.length === 0;
+  const closeShelf = useCallback(() => setShelfOpen(false), []);
+  /**
+   * Pressing a door inside the panel keeps it open: without this, `Add files` succeeding
+   * would re-render the pane under the hand that just used it.
+   */
+  const keepShelf = useCallback(() => setShelfOpen(true), []);
+
+  /**
+   * **Where the keyboard lands when the empty folder stops being empty.**
+   *
+   * Pressing `Add files` on the start stage succeeds and the whole branch unmounts — the
+   * button that was pressed goes with it, and `document.activeElement` falls back to
+   * `<body>`, so the next Tab starts at the rail rather than at the workbench that just
+   * arrived (design-interaction, 2026-09-06). The reader's own focus repair does not fire
+   * here because nothing was **selected**; the screen changed underneath instead.
+   *
+   * It is deliberately silent on the first render: arriving at a folder that already has
+   * files is not the same event as a folder filling up under somebody's hand.
+   */
+  const wasEmpty = useRef<boolean | null>(null);
+  useEffect(() => {
+    const before = wasEmpty.current;
+    wasEmpty.current = libraryIsEmpty;
+    if (before !== true || libraryIsEmpty) return;
+    document.getElementById("main")?.focus({ preventScroll: true });
+  }, [libraryIsEmpty]);
 
   const wikiProblems = selectedWikiDoc
     ? (model.verdicts.get(selectedWikiDoc.slug)?.problems ?? [])
@@ -730,6 +804,93 @@ export function LibraryPage() {
     );
   }
 
+  /**
+   * **A folder with nothing in it is an empty state, not a workbench with a popup over
+   * it** (owner, 2026-09-06 — `docs/DECISIONS.md`).
+   *
+   * The condition is exactly the one that makes the canvas empty: no sources and no
+   * pages means `buildLibraryGraph` returns no nodes, so the pane would draw its
+   * "Nothing to draw yet…" sentence, the header would count three zeroes, the strip
+   * would print three turns-not-yet-come, both index lists would carry their own
+   * "nothing here" copy **and their own two doors**, and the guide would raise itself
+   * over all of it. Six statements of one fact, one of them lying across another.
+   *
+   * ⚠️ It is not "no sources". A folder with hand-written pages and no sources still has
+   * a picture to draw and an index worth reading, so it keeps the workbench.
+   */
+  /*
+   * The service door, shared by the empty stage and the workbench: the folder that has
+   * nothing in it yet is exactly where a person whose notes live elsewhere arrives.
+   */
+  const importDialog = (
+    <>
+    {/*
+      The service door. Blocking, because it ends in a connection being written into the
+      folder and a conversation opening — an errand with a beginning and an end, which is what
+      `Dialog` is for. It closes before it hands the brief over, so the dock is never behind a
+      scrim (`.claude/rules/design.md` forbids two blocking surfaces at once).
+    */}
+    <LibraryImportDialog
+      open={importOpen}
+      onClose={() => setImportOpen(false)}
+      onAttach={(connector) => connectors.upsert(connector)}
+      onBrief={(brief) => agent.start(brief, "import")}
+      /*
+       * ⚠️ **Whether the last press can do anything** (cold walkthrough, 2026-09-07). Only the
+       * coding-agent route can fetch from a service: `useLocalCompile` reads files already
+       * under `sources/` and has no tool that reaches outward, and a browser has no agent at
+       * all. Without this the dialog closed on a press that started nothing, which reads as a
+       * broken product rather than a surface that cannot do it.
+       */
+      canRunAgent={agent.route === "agent"}
+      /*
+       * Two different absences: a browser cannot start any program, while the installed app can
+       * and has simply verified no coding tool yet. The remedies differ too — one is the app,
+       * the other is the runtimes screen — so the card is told which it is meeting.
+       */
+      agentGap={isAcpBridgeAvailable() ? "runtime" : "browser"}
+      /*
+       * A service this list does not know goes to the technical dialog, which lives on `/mcp`
+       * and is unchanged. `?tab=connectors` opens it on the half that adds one, so nobody
+       * arrives on the share tab wondering where the connectors went.
+       */
+      onOpenAdvanced={() => importRouter.push(`${DESTINATION_HREF.mcp}?tab=connectors`)}
+    />
+    </>
+  );
+
+  if (libraryIsEmpty) {
+    return (
+      <main
+        id="main"
+        tabIndex={-1}
+        data-testid="library-page"
+        data-library-state="empty-folder"
+        className="flex min-h-0 flex-1 items-center justify-center overflow-auto px-5 py-10 max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+24px)]"
+      >
+        <LibraryStartStage
+          vaultLabel={nativeVaultRootPath ?? handle.name}
+          busy={busy}
+          onAddFiles={handleAddFiles}
+          onFindDocuments={handleFindDocuments}
+          onImportFromService={openImport}
+          t={t}
+        />
+        {importDialog}
+        {/* The same dialog the workbench uses: discovery proposes, a person approves. */}
+        <FindDocumentsDialog
+          open={findOpen}
+          onClose={() => setFindOpen(false)}
+          outcome={discovery}
+          declinedCount={declinedCount}
+          onForgetDeclined={handleForgetDeclined}
+          onAdd={handleAddCandidates}
+          busy={busy}
+        />
+      </main>
+    );
+  }
+
   const narrowShowsReader = selected !== null;
 
   return (
@@ -758,44 +919,46 @@ export function LibraryPage() {
         data-testid="library-index"
         aria-label={t("title")}
         className={cn(
-          /* Below `lg` the two panes stack, and the boundary between them falls in the
-             middle of whichever step the shelf's scroller happened to cut. The panel tone
-             already changes there; the rule says so outright, so a card cut by the edge
-             of one pane does not read as a card that failed to draw. */
+          /* Below `lg` the two panes stack, and the rule states the boundary the panel
+             tone already implies, so the top of this column does not read as the bottom
+             of the canvas. */
           "flex w-full min-w-0 min-h-0 flex-1 flex-col overflow-hidden bg-[color:var(--color-panel)] max-lg:border-t max-lg:border-[color:var(--color-border-soft)] lg:w-[var(--docs-list-width)] lg:flex-none lg:border-r lg:border-[color:var(--color-border-soft)]",
           narrowShowsReader && "max-lg:hidden",
         )}
       >
-        <div className="flex-none border-b border-[color:var(--color-overlay-2)] px-3 pb-3 pt-4">
-          <LibraryHeader t={t} />
-        </div>
         {/*
-          Below `lg` the bottom tab bar stands over this column, so the last row of a long
-          list would sit behind it. The reserve is the surface's own to pay
-          (`.claude/rules/design.md`), and it belongs to the box that scrolls.
+          **One scroller, at every width** (owner, 2026-09-06): *"I don't like this left
+          panel being split into a top and a bottom like this … improve it!"*
 
-          ⚠️ **And below `lg` that box is this one, not the two lists inside it.** Measured
-          at 390×844 the moment the shelf took the top of the column: with the index on
-          half a phone, the two sections' own chrome — two headers, two action rows, the
-          web-Compile sentence and two footnotes — came to 186 of the 333px left, so
-          `library-source-list` shrank to 30px and `library-wiki-list` to **zero**. Two
-          scrollers cannot share a box that small; one can. So here the index scrolls as a
-          whole and the lists stand at their natural height, while at `lg`, where the
-          column is the full window, the two lists keep their own scrollers exactly as
-          before.
+          It used to be three boxes — a fixed intro, then two lists that each owned their
+          own overflow at `lg` and stood at natural height below it. On the owner's folder
+          of seven sources and seven pages the longer list was cut mid-row, and the two
+          halves slid past each other whenever either was scrolled, which is what makes one
+          column read as two panes. The narrow layout had already been forced onto one
+          scroller (two lists in half a phone measured 30px and **zero**); this is the same
+          answer at every width, which is one answer instead of two.
+
+          The intro rides inside it, so the section heads — which are `sticky` — can pin to
+          the top of the box that actually scrolls. Below `lg` the bottom tab bar stands
+          over this column, and the reserve is the scrolling box's own to pay
+          (`.claude/rules/design.md`).
         */}
         <div
           data-testid="library-index-scroll"
-          className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)] lg:overflow-y-hidden"
+          className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]"
         >
+          <div className="border-b border-[color:var(--color-overlay-2)] px-3 pb-3 pt-4">
+            <LibraryHeader t={t} />
+          </div>
           <LibrarySection
             model={model}
             selectedSlug={opened?.kind === "wiki" ? opened.slug : null}
             selectedSourcePath={opened?.kind === "source" ? opened.path : null}
-            onSelect={(slug) => setSelected({ kind: "wiki", slug })}
-            onOpenSource={(row) => setSelected({ kind: "source", path: row.path })}
+            onSelect={(slug) => choose({ kind: "wiki", slug })}
+            onOpenSource={(row) => choose({ kind: "source", path: row.path })}
             onAddFiles={handleAddFiles}
             onFindDocuments={handleFindDocuments}
+            onImportFromService={openImport}
             onCompile={agent.route === "agent" || agent.route === "local" ? handleCompile : null}
             onLint={agent.route === "agent" ? handleLint : null}
             candidates={openCandidates}
@@ -829,16 +992,19 @@ export function LibraryPage() {
              * would have been on **no** surface at all, which is the one outcome this
              * disclosure may not have. So the condition is the popup itself: while it is
              * open step two owns the sentence, and every other moment this column does.
+             * The redesign of that popup into a 360px stepper kept the rule intact: the
+             * sentence still sits directly under the Compile press, which is the placement
+             * `.claude/rules/local-first.md` asks for.
              */
-            transferNote={
+            compileNote={
               shelfOpen
                 ? null
-                : libraryTransferSentence(
+                : (compileBlocked ??
+                  libraryTransferSentence(
                     { route: agent.route, localModel: agent.localModel },
                     t,
-                  )
+                  ))
             }
-            vaultLabel={nativeVaultRootPath ?? handle.name}
             busy={busy}
             t={t}
           />
@@ -898,21 +1064,32 @@ export function LibraryPage() {
                   : { kind: "source", ref: opened.path }
             }
             onSelect={(next) =>
-              setSelected(
+              choose(
                 next.kind === "wiki"
                   ? { kind: "wiki", slug: next.ref }
                   : { kind: "source", path: next.ref },
               )
             }
+            /* Below `lg` the canvas is the top half of one column and the guide reaches
+               the legend at its foot; measured with `elementsFromPoint` at 768 and 390. */
+            captionQuiet={shelfOpen}
             headerEnd={
               <>
                 <LibraryStatusStrip model={model} t={t} />
                 <button
                   type="button"
                   ref={shelfChipRef}
-                  onClick={() => setShelfChoice(!shelfOpen)}
+                  onClick={() => setShelfOpen(!shelfOpen)}
                   aria-expanded={shelfOpen}
-                  aria-haspopup="dialog"
+                  /*
+                   * `true`, not `"dialog"`: the surface it raises is deliberately not one —
+                   * no scrim, no trap, no `aria-modal`, because it exists to be read
+                   * against the picture behind it. Claiming a dialog and drawing a popover
+                   * is the mismatch a screen reader has no way to recover from
+                   * (design-interaction, 2026-09-06).
+                   */
+                  aria-haspopup="true"
+                  aria-controls={shelfOpen ? "library-shelf-popover" : undefined}
                   data-testid="library-shelf-open"
                   className={controlClass({
                     shape: "chip",
@@ -1015,7 +1192,7 @@ export function LibraryPage() {
         title={t("stage.title")}
         closeLabel={t("stage.close")}
       >
-        <LibraryStage
+<LibraryStage
           model={model}
           route={agent.route}
           agentLabel={agent.runtime?.label ?? null}
@@ -1037,13 +1214,19 @@ export function LibraryPage() {
             keepShelf();
             handleCompile();
           }}
+          onLint={
+            agent.route === "agent"
+              ? () => {
+                  keepShelf();
+                  handleLint();
+                }
+              : null
+          }
           onOpenWiki={(slug) => {
             closeShelf();
             setSelected({ kind: "wiki", slug });
           }}
-          lastDiscoveryCount={discovery?.candidates.length ?? null}
           busy={busy}
-          locale={locale}
           t={t}
         />
       </LibraryShelfPopover>
@@ -1071,6 +1254,8 @@ export function LibraryPage() {
           onClose={() => agent.setOpen(false)}
         />
       ) : null}
+
+      {importDialog}
 
       {/* Discovery proposes; this dialog is where a person approves. Blocking, because it
           is asking to take copies of their files. */}
