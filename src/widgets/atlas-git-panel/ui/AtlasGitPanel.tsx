@@ -661,7 +661,7 @@ export function AtlasGitPanel({
    * The shared `useCopyFeedback` already has the three states
    * `idle | copied | failed`; use it rather than inventing a mechanism.
    */
-  const { state: initCopyState, copy: copyInitCommandText } = useCopyFeedback(1600);
+  const { state: initCopyState, copy: copyInitCommandText } = useCopyFeedback();
   const copyInitCommand = useCallback(
     () => void copyInitCommandText(INIT_CLI_COMMAND),
     [copyInitCommandText],
