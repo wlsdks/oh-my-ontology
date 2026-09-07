@@ -63,6 +63,15 @@ record stays in Git history before commit `e4fb49a89`.
 **Falsifier**: a person who reads the ring as a relation and looks for the line; a loose mark inside the cluster; a ring that hides the components inside it.
 **Owner**: jinan
 
+## 2026-09-07 — Google Drive gets a sentence under the import tiles, not a tile
+
+**Why**: the owner named Google Drive for the Library's service door. The MCP Registry, read 2026-09-07, lists no Drive server from Google; every community server (`io.github.domdomegg/google-drive-mcp` 1.3.0 among them) starts by sending the person to the Google Cloud console to create an OAuth client id and secret. The door's standard is a sign-in and nothing else.
+**Prior**: upholds 2026-09-07 "Attaching an MCP server is a catalogue pick" (a catalogue row needs a person-verified source) and its dissent about hosted rows; upholds 2026-09-05 connectors ("Atlas never sits in the path").
+**Decision**: no Drive tile. One `text-label` sentence under the tiles says Drive is not here, why in plain words, and the fastest path that works today (download, then Add files). No disabled tile: a control that cannot be pressed is a dead end, and a tile that opens onto a console is worse.
+**Dissent**: design-lead: a named absence is still chrome; a person who never thought of Drive now reads about it. Not adopted: the person who did think of it is the one the owner named, and one sentence at quaternary ink is the smallest honest answer.
+**Falsifier**: Google or a hosted provider ships a Drive MCP endpoint that signs in with OAuth alone (dynamic client registration, no console step); then the sentence goes and a catalogue row comes in with its source.
+**Owner**: jinan
+
 ## 2026-09-07 — Markdown under sources/ is a raw source, not a shadow page
 
 **Why**: reviewing the merged Library on a seeded folder, a `.md` dropped under `sources/` was the one format the list, the graph and Compile could not see: the walk read every Markdown file as a vault page before asking whether the path sat under `sources/`. Notes arrive as Markdown most of all (a Notion or Obsidian export), and the service import writes exactly that.
