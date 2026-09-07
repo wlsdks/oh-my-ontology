@@ -47,8 +47,17 @@ export interface SelectProps {
    */
   ariaDescribedby?: string;
   disabled?: boolean;
-  /** Trigger height. Default `lg` (40px, `--control-h-lg`); dense forms use `md` (32px). */
-  size?: "md" | "lg";
+  /**
+   * Trigger height. Default `lg` (40px, `--control-h-lg`); dense forms use `md` (32px);
+   * a picker that sits in a row of chips uses `sm` (28px, label type).
+   */
+  size?: "sm" | "md" | "lg";
+  /**
+   * `quiet` draws the trigger as text with a chevron — no border, no fill until hover —
+   * for a picker that sits in a row of icon buttons, the way a chat composer's model and
+   * mode pickers do. The list it opens is the same.
+   */
+  quiet?: boolean;
   className?: string;
   id?: string;
   "data-testid"?: string;
@@ -158,6 +167,7 @@ export function Select({
   ariaDescribedby,
   disabled = false,
   size = "lg",
+  quiet = false,
   className,
   id,
   "data-testid": dataTestid,
@@ -548,12 +558,19 @@ export function Select({
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={onKeyDown}
         className={cn(
-          "flex w-full items-center gap-2 rounded-card border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] px-3 text-left text-body text-[color:var(--color-text-secondary)] outline-none transition-colors hover:border-[color:var(--color-border-strong)] focus-visible:outline-none focus-visible:border-[color:var(--color-indigo-a46)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-indigo-a24)] data-[state=open]:border-[color:var(--color-indigo-a46)]",
+          "flex w-full items-center gap-2 rounded-card border px-3 text-left text-body text-[color:var(--color-text-secondary)] outline-none transition-colors focus-visible:outline-none focus-visible:border-[color:var(--color-indigo-a46)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-indigo-a24)] data-[state=open]:border-[color:var(--color-indigo-a46)]",
+          quiet
+            ? "border-transparent bg-transparent hover:bg-[color:var(--color-overlay-1)] data-[state=open]:bg-[color:var(--color-overlay-1)]"
+            : "border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] hover:border-[color:var(--color-border-strong)]",
           // The disabled set comes from the value layer. Hand-written versions keep
           // the cursor and the dim but drop the hover suppression — this call site
           // had exactly that gap.
           CONTROL_DISABLED_CLASS,
-          size === "md" ? "h-[var(--control-h-md)]" : "h-[var(--control-h-lg)]",
+          size === "sm"
+            ? cn("h-[var(--control-h-sm)] text-label", quiet ? "gap-1 px-1.5" : "px-2")
+            : size === "md"
+              ? "h-[var(--control-h-md)]"
+              : "h-[var(--control-h-lg)]",
         )}
       >
         <span

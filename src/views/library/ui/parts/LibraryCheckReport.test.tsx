@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import enMessages from "../../../../../messages/en.json";
 import type { LintFinding, LintNodeCandidate } from "@/features/library";
-import { LibraryCheckReport } from "./LibraryCheckReport";
+import { LibraryCheckReport, findingKey } from "./LibraryCheckReport";
 
 const CANDIDATES: LintNodeCandidate[] = [
   { name: "Export Worker", kind: "element", pages: ["wiki/a", "wiki/b"], why: "named on three pages" },
@@ -74,6 +74,19 @@ describe("the check's answer is a page in the pane", () => {
     expect(onOpenPage).toHaveBeenCalledWith("wiki/b");
     fireEvent.click(screen.getAllByTestId("library-finding-fix")[0]!);
     expect(onFix).toHaveBeenCalledWith(findings[0]);
+  });
+
+  it("marks a finding a Fix turn completed and takes its door away until the next check", () => {
+    const findings: LintFinding[] = [
+      { code: "disagreement", pages: ["wiki/a", "wiki/b"], summary: "Budget 240,000 vs 210,000." },
+      { code: "superseded", pages: ["wiki/a"], summary: "Reopening moved." },
+    ];
+    mount(<Harness findings={findings} onFix={vi.fn()} fixedKeys={new Set([findingKey(findings[0]!)])} />);
+    const rows = screen.getAllByTestId("library-finding");
+    expect(rows[0]!.getAttribute("data-state")).toBe("fixed");
+    expect(rows[0]!.textContent).toContain("Fixed");
+    expect(rows[1]!.getAttribute("data-state")).toBeNull();
+    expect(screen.getAllByTestId("library-finding-fix")).toHaveLength(1);
   });
 
   it("lists each name with its kind and page count, and a Propose chip only for a map kind", () => {

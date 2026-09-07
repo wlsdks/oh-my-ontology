@@ -99,6 +99,33 @@ record stays in Git history before commit `e4fb49a89`.
 **Falsifier**: a DOCX or XLSX in a real folder whose text the tool splits into anchors a reader cannot find in the document, or a read-only turn in the app that still raises an execute card after being told about the tool.
 **Owner**: jinan
 
+## 2026-09-07 — The conversation composer's bottom row is quiet: the tool with its model and the mode as text pickers, then the status, the session doors and send
+
+**Why**: the composer's footer held three bordered 32px pickers — tool, model, mode — that stacked into two rows inside the Library dock; the owner asked who lays a composer out like that, said to merge the tool and its version into one control, tried them as a toolbar above the transcript and rejected the empty band that left, and asked for one line at the very bottom (installed app, 2026-09-07).
+**Prior**: 2026-09-06 footer-row decisions on equal-slot widths stand; the count of pickers they sized is what changes.
+**Decision**: one picker lists the current tool's models under the tool's name (`Codex · GPT-5.6-Sol (low)`) with the other tools beside them by name; the mode keeps its own picker because it is a different question; both use the 28px `sm` select. With one tool and one model there is no picker, and the name carries the model as text. Both are quiet triggers — text and a chevron, no border until hover — on the composer's own bottom row, with the status word, the session doors and send at the row's right, the way chat composers elsewhere keep model and mode beside send. The two-row footer measurement is retired; a quiet picker truncates to its 104px floor instead of wrapping.
+**Dissent**: a grouped custom menu (tool as a heading, models beneath) reads the hierarchy better; deferred because the shared `Select` has no groups and a second listbox shape would be a second thing to keep. The toolbar above the transcript kept the composer to text and send, but cost a band of chrome at the top the transcript did not need.
+**Falsifier**: a person who cannot find the model after the merge, or a tool list long enough that the flat entries stop reading as one tool with versions.
+**Owner**: jinan
+
+## 2026-09-07 — The Library's fold is one icon control in one place, and the reader's way back is named Graph
+
+**Why**: on the installed app the folded column showed a 26px rail tab — vertical *Index*, a chevron — beside a *Library* chip with an arrow, and the owner asked what the two odd controls and the arrow were for, and why a chip named Library opens the graph (owner, 2026-09-07 evening).
+**Prior**: 2026-09-07 "The Library column folds, and the graph re-clamps a box it did not choose" — its fold, storage key and focus rule stand; the rail-tab shape it borrowed from the map is overturned here. The map's own tab is untouched.
+**Decision**: the fold control on the column's eyebrow line is the panel-close glyph; when the column is folded the same-shaped panel-open glyph stands at the pane's top-left, and nothing else marks the fold. The reader's way back reads *Graph*, the thing it shows, with no arrow.
+**Dissent**: keeping the map's tab for one vocabulary across the app; lost because the map's tab is a drawer handle over a canvas and here it stood in a row of chrome, where it read as a second control with one word.
+**Falsifier**: a person who cannot find the folded index again, or who reads *Graph* as a title rather than a door.
+**Owner**: jinan
+
+## 2026-09-07 — The Library index folds on its own when the reading column would fall under 420px
+
+**Why**: the dock's drag floor protects the map's 480px, and the Library's row costs 280px more, so at the app's own 1040px minimum with a 496px dock the reading column computed to 120px (design-workbench, council on the column redesign).
+**Prior**: 2026-09-07 "The Library column folds, and the graph re-clamps a box it did not choose" stands; this adds one more reason the same fold happens, never a second fold.
+**Decision**: at `lg` and above, when the reading column measures under 420px the index folds; it unfolds again above 460px, so a one-pixel drag cannot make it flap. Unfolding it while narrow is the person's choice and stands until the pane is wide enough on its own. The stored preference is untouched: an automatic fold is not a choice to remember.
+**Dissent**: narrowing the dock first (a Library-aware chat clamp) would keep the index up longer; deferred, because the fold exists and costs 38px, and the dock's own floor is a separate contract.
+**Falsifier**: an index that folds and unfolds while a person drags the dock, or a person who cannot get the index back at a narrow window.
+**Owner**: jinan
+
 ## 2026-09-07 — The Library column is an index; the check's answer is a page, the answer's filing stands beside the answer, the write setting is a setting
 
 **Why**: the owner read the installed app's Library column and rejected it: a second door row split across two lines, two caption sentences under the doors, the check's findings and seven names inside a 280px column pushing the page list off the screen. "A different strategy for what the column holds, and raise the design level."

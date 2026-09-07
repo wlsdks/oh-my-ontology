@@ -471,7 +471,40 @@ const VAULT_VIEWPORTS = [
 for (const vp of VAULT_VIEWPORTS) {
   test(`스크롤 끝 하단 여백 — 폴더를 연 ${vp.label}`, async ({ page }) => {
     test.setTimeout(180_000);
-    await stubDirectoryPicker(page, { ...FIXTURE_VAULT });
+    // The Library measurement below needs a wiki page long enough to scroll; the shared
+    // fixture is map-only, so this pass adds one source and one long page of its own.
+    await stubDirectoryPicker(page, {
+      ...FIXTURE_VAULT,
+      "sources/handover.txt": "Handover notes\nline two\n",
+      "wiki/handover.md": [
+        "---",
+        "title: Handover",
+        "created_by: agent:claude",
+        "compiled_at: 2026-09-06T10:00:00Z",
+        "sources:",
+        "  - sources/handover.txt",
+        "source_hash:",
+        "  sources/handover.txt: " + "a".repeat(64),
+        "status: draft",
+        "summary: A long page.",
+        "---",
+        "",
+        "## Summary",
+        "",
+        "A long page, so the reader scrolls.",
+        "",
+        "## Facts",
+        "",
+        ...Array.from({ length: 40 }, (_, i) => `- Fact number ${i + 1} of the handover. [[src:sources/handover.txt#l1]]`),
+        "",
+        "## Decisions",
+        "",
+        "## Open questions",
+        "",
+        "## Not in sources",
+        "",
+      ].join("\n"),
+    });
     await seedFirstRunSeen(page);
     await page.setViewportSize({ width: vp.w, height: vp.h });
 
@@ -514,6 +547,69 @@ for (const vp of VAULT_VIEWPORTS) {
       `${vp.label}: 폴더를 열고도 스크롤되는 라우트가 없다 — 이 검사가 통째로 공회전했다`,
     ).toBeGreaterThan(0);
 
+    /*
+     * ⑤ **The Library scrolls inside its own boxes, not in the shell slot.** Its `<main>` is
+     * `overflow-hidden` with the index column and the reading pane scrolling within it, so
+     * the slot above never scrolls and every check above skipped this destination on every
+     * pass (design-workbench, council 2026-09-07). Measure the two inner scrollers directly:
+     * the wiki reader with a page open, and the index column.
+     */
+    await page.goto("/ko/library/", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1200);
+    await page.getByTestId("library-index-segment-wiki").click({ timeout: 15_000 });
+    const firstPage = page.locator('[data-testid^="library-wiki-wiki/"]').first();
+    expect(await firstPage.count(), "/ko/library/: the fixture's wiki page is not listed — nothing below is measured").toBeGreaterThan(0);
+    {
+      await firstPage.click();
+      await page.getByTestId("library-reading-pane").waitFor({ timeout: 15_000 });
+      await page.waitForTimeout(600);
+      const reader = await measureInner(page, '[data-testid="library-reading-pane"]');
+      if (reader.scrollable) {
+        if (reader.gap === null) violations.push("/ko/library/ reader: 잉크를 하나도 못 찾았다 — 계측 실패이지 통과가 아니다");
+        else if (reader.gap < MIN_GAP) violations.push(`/ko/library/ reader: 스크롤 끝 하단 여백 ${reader.gap}px (< ${MIN_GAP})`);
+      }
+    }
+    const index = await measureInner(page, '[data-testid="library-index-scroll"]');
+    if (index.scrollable) {
+      if (index.gap === null) violations.push("/ko/library/ index: 잉크를 하나도 못 찾았다 — 계측 실패이지 통과가 아니다");
+      else if (index.gap < MIN_GAP) violations.push(`/ko/library/ index: 스크롤 끝 하단 여백 ${index.gap}px (< ${MIN_GAP})`);
+    }
+
     expect(violations, violations.join("\n")).toEqual([]);
   });
+}
+
+/**
+ * The scroll-end gap of one inner scroller: the box itself when it scrolls, else the first
+ * descendant that does. Scrolls to the end, then measures from the last painted ink to the
+ * scroller's bottom edge — the same yardstick `measure()` uses for the shell slot.
+ */
+async function measureInner(
+  page: import("@playwright/test").Page,
+  selector: string,
+): Promise<{ scrollable: boolean; gap: number | null }> {
+  return page.evaluate((sel) => {
+    const host = document.querySelector<HTMLElement>(sel);
+    if (!host) return { scrollable: false, gap: null };
+    const scrolls = (el: HTMLElement) => {
+      const overflow = getComputedStyle(el).overflowY;
+      return (overflow === "auto" || overflow === "scroll") && el.scrollHeight > el.clientHeight + 1;
+    };
+    const scroller = scrolls(host)
+      ? host
+      : [...host.querySelectorAll<HTMLElement>("*")].find(scrolls) ?? null;
+    if (!scroller) return { scrollable: false, gap: null };
+    scroller.scrollTop = scroller.scrollHeight;
+    const bottom = scroller.getBoundingClientRect().bottom;
+    // Last ink — a container's bottom padding is spacing, not content, so only leaves count.
+    let lastInk = -Infinity;
+    for (const el of scroller.querySelectorAll<HTMLElement>("*")) {
+      if (el.children.length > 0) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.height <= 2 || rect.width <= 2) continue;
+      lastInk = Math.max(lastInk, rect.bottom);
+    }
+    if (!Number.isFinite(lastInk)) return { scrollable: true, gap: null };
+    return { scrollable: true, gap: Math.round(bottom - lastInk) };
+  }, selector);
 }

@@ -43,6 +43,33 @@ function logWhen(at: string): string {
   return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
+/**
+ * The report's sections, in reading order, as the outline rail lists them: one per kind
+ * that has findings, then the names. The page builds the rail from this so the rail and
+ * the page cannot disagree about what is on it.
+ */
+export function reportOutline(
+  findings: readonly LintFinding[],
+  candidateCount: number,
+  t: ReturnType<typeof useTranslations<"library">>,
+): Array<{ slug: string; text: string; depth: number; occurrence: number; duplicate: boolean }> {
+  const out: Array<{ slug: string; text: string; depth: number; occurrence: number; duplicate: boolean }> = [];
+  for (const code of FINDING_ORDER) {
+    const count = findings.filter((finding) => finding.code === code).length;
+    if (count === 0) continue;
+    out.push({ slug: `report-${code}`, text: `${t(`wiki.findingKind.${findingKindKey(code)}`)} ${count}`, depth: 2, occurrence: 1, duplicate: false });
+  }
+  if (candidateCount > 0) {
+    out.push({ slug: "report-names", text: `${t("report.namesTitle")} ${candidateCount}`, depth: 2, occurrence: 1, duplicate: false });
+  }
+  return out;
+}
+
+/** One finding's identity across a turn: its kind, its pages, its sentence. */
+export function findingKey(finding: LintFinding): string {
+  return `${finding.code}\u241f${finding.pages.join(",")}\u241f${finding.summary}`;
+}
+
 function pageName(slug: string): string {
   return slug.replace(/^wiki\//, "");
 }
@@ -56,6 +83,7 @@ export function LibraryCheckReport({
   onFix,
   onPropose,
   onOpenPage,
+  fixedKeys,
   t,
 }: {
   findings: readonly LintFinding[];
@@ -68,6 +96,8 @@ export function LibraryCheckReport({
   onFix: ((finding: LintFinding) => void) | null;
   onPropose: ((candidate: LintNodeCandidate) => void) | null;
   onOpenPage: (slug: string) => void;
+  /** Keys (`findingKey`) of the findings a Fix turn completed since the last check. */
+  fixedKeys?: ReadonlySet<string>;
   t: ReturnType<typeof useTranslations<"library">>;
 }) {
   const [candidatesOpen, setCandidatesOpen] = useState(false);
@@ -121,7 +151,10 @@ export function LibraryCheckReport({
 
       {groups.map((group) => (
         <section key={group.code} data-testid={`library-check-report-${group.code}`} className="mt-10">
-          <h3 className="text-title font-[var(--font-weight-strong)] leading-body text-[color:var(--color-text-primary)]">
+          <h3
+            id={`report-${group.code}`}
+            className="scroll-mt-4 text-title font-[var(--font-weight-strong)] leading-body text-[color:var(--color-text-primary)]"
+          >
             {t(`wiki.findingKind.${findingKindKey(group.code)}`)}
             <span className="ml-2 text-label font-normal text-[color:var(--color-text-quaternary)]">
               {group.rows.length}
@@ -130,8 +163,9 @@ export function LibraryCheckReport({
           <ul className="mt-3 flex flex-col divide-y divide-[color:var(--color-divider)]">
             {group.rows.map((finding, index) => (
               <li
-                key={`${finding.code}${finding.pages.join(",")}${index}`}
+                key={`${findingKey(finding)}${index}`}
                 data-testid="library-finding"
+                data-state={fixedKeys?.has(findingKey(finding)) ? "fixed" : undefined}
                 className="flex min-w-0 items-start gap-4 py-3"
               >
                 <div className="min-w-0 flex-1">
@@ -160,7 +194,16 @@ export function LibraryCheckReport({
                     ))}
                   </p>
                 </div>
-                {onFix ? (
+                {fixedKeys?.has(findingKey(finding)) ? (
+                  /* A Fix turn ended on this one: the row says so until the next check
+                     re-judges the pages (design-interaction, council 2026-09-07). */
+                  <span
+                    data-testid="library-finding-fixed"
+                    className="flex-none pt-1 text-caption text-[color:var(--color-text-quaternary)] [word-break:keep-all]"
+                  >
+                    {t("report.fixed")}
+                  </span>
+                ) : onFix ? (
                   <Tooltip content={t("wiki.fixTooltip")}>
                     <Chip
                       data-testid="library-finding-fix"
@@ -183,7 +226,10 @@ export function LibraryCheckReport({
 
       {candidates.length > 0 ? (
         <section data-testid="library-candidates" className="mt-10">
-          <h3 className="text-title font-[var(--font-weight-strong)] leading-body text-[color:var(--color-text-primary)]">
+          <h3
+            id="report-names"
+            className="scroll-mt-4 text-title font-[var(--font-weight-strong)] leading-body text-[color:var(--color-text-primary)]"
+          >
             {t("report.namesTitle")}
             <span className="ml-2 text-label font-normal text-[color:var(--color-text-quaternary)]">
               {candidates.length}

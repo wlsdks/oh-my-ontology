@@ -498,7 +498,21 @@ export function useLibraryGraphEngine({
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [wake]);
 
-  useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(frameRef.current);
+      /*
+       * The flag has to fall with the frame. Under React's development double-mount the
+       * first mount's cleanup ran this cancel while `runningRef` stayed `true`, so every
+       * later `wake()` returned at its first line and the canvas stayed a 300×150 default
+       * for the whole session — measured in the browser on 2026-09-07 (three frames, none
+       * of them this loop's). Production never double-mounts, which is why the installed
+       * app drew the picture the browser did not.
+       */
+      runningRef.current = false;
+    },
+    [],
+  );
 
   /** The last shape of every node, so a removed one can still be drawn while it fades. */
   const lastKnownRef = useRef<Map<string, LibraryGraphNode>>(new Map());

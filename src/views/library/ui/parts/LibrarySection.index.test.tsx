@@ -48,6 +48,28 @@ function Harness({ onNewPage = null, report = null }: { onNewPage?: ((title: str
   );
 }
 
+function HarnessWith({ model }: { model: LibraryUiModel }) {
+  const t = useTranslations("library");
+  return (
+    <LibrarySection
+      model={model}
+      selectedSlug={null}
+      selectedSourcePath={null}
+      onSelect={() => {}}
+      onOpenSource={() => {}}
+      onAddFiles={() => {}}
+      onFindDocuments={() => {}}
+      onImportFromService={() => {}}
+      onCompile={() => {}}
+      onLint={() => {}}
+      segment="wiki"
+      compileNote={null}
+      busy={false}
+      t={t}
+    />
+  );
+}
+
 function mount(node: React.ReactNode) {
   return render(<NextIntlClientProvider locale="en" messages={enMessages}>{node}</NextIntlClientProvider>);
 }
@@ -84,6 +106,20 @@ describe("the wiki half of the column is an index: search, three doors, the list
     expect(list.contains(screen.getByTestId("library-new-page"))).toBe(true);
   });
 
+  it("names the writer only on the rows that are the exception", () => {
+    const withPerson = {
+      ...MODEL,
+      wikiPages: [
+        ...MODEL.wikiPages,
+        { slug: "wiki/c", title: "C", sourcePaths: [], createdBy: "human", compiledAt: null },
+      ],
+    } as unknown as LibraryUiModel;
+    mount(<HarnessWith model={withPerson} />);
+    const labels = screen.getAllByTestId("library-wiki-writer");
+    expect(labels).toHaveLength(1);
+    expect(labels[0]!.textContent).toContain("a person");
+  });
+
   it("says where the check's answer is with one row above the list, only once the wiki was checked", () => {
     const onOpen = vi.fn();
     const { rerender } = mount(<Harness />);
@@ -97,5 +133,53 @@ describe("the wiki half of the column is an index: search, three doors, the list
     expect(row.textContent).toContain("Check results 6");
     fireEvent.click(row);
     expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("a search whose matches sit on the other half of the switch", () => {
+  function SourcesHarness({ model }: { model: LibraryUiModel }) {
+    const t = useTranslations("library");
+    return (
+      <LibrarySection
+        model={model}
+        selectedSlug={null}
+        selectedSourcePath={null}
+        onSelect={() => {}}
+        onOpenSource={() => {}}
+        onAddFiles={() => {}}
+        onFindDocuments={() => {}}
+        onImportFromService={() => {}}
+        onCompile={() => {}}
+        onLint={() => {}}
+        onNewPage={null}
+        report={null}
+        segment="sources"
+        compileNote={null}
+        busy={false}
+        t={t}
+      />
+    );
+  }
+
+  it("names the matches on the other list and switches there, instead of an empty list under a count", () => {
+    // Browser walkthrough 2026-09-07: "sources 0 · pages 6" stood over nothing, and the
+    // person had to know to press the other half of the switch.
+    window.localStorage.removeItem("atlas.library.index-segment");
+    const model = {
+      ...MODEL,
+      sources: [{ path: "sources/quotes.csv", name: "quotes.csv", format: "csv", size: 10, state: "compiled", citedBy: [] }],
+      wikiPages: [{ slug: "wiki/sash", title: "Sash frames", sourcePaths: [], createdBy: "agent:claude", compiledAt: null }],
+    } as unknown as LibraryUiModel;
+    render(
+      <NextIntlClientProvider locale="en" messages={enMessages}>
+        <SourcesHarness model={model} />
+      </NextIntlClientProvider>,
+    );
+    fireEvent.change(screen.getByTestId("library-search"), { target: { value: "sash" } });
+    expect(screen.getByTestId("library-search-matches")).toHaveTextContent("0 sources");
+    const door = screen.getByTestId("library-search-other-half");
+    expect(door).toHaveTextContent("Show 1 wiki page");
+    fireEvent.click(door);
+    expect(window.localStorage.getItem("atlas.library.index-segment")).toBe("wiki");
   });
 });
