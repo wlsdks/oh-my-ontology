@@ -125,7 +125,7 @@ import {
   ELEMENT_NAMING_RULE_EN,
   META_MODEL_RULES_EN,
 } from './construction-rules.mjs';
-import { appendActivityEntry, buildActivityEntry, readHeartbeatAgent, resolveAgentName } from './activity-log.mjs';
+import { appendActivityEntry, buildActivityEntry, resolveAgentName } from './activity-log.mjs';
 import { unlinkSync } from 'node:fs';
 import { buildMarkdown, parseFrontmatter } from './parser.mjs';
 import { analyzeRepoStructure } from './analyze.mjs';
@@ -8005,12 +8005,15 @@ function requireNodeNotReservedForHuman(doc, operation) {
  * the only place it is stamped.
  *
  * The name reuses the identity the activity log (`activity.jsonl`) already
- * writes: the heartbeat in `.ontology-atlas/agent-activity.json`. No second
- * identity scheme. With no heartbeat only the name is unknown — a human still did
- * not write it — so it is `agent:unknown` (decision ledger, 2026-07-31).
+ * writes, resolved the same way — heartbeat > the connect greeting's
+ * clientInfo.name > unknown (2026-09-07; the activity log made that move on
+ * 2026-08-13 and the stamp lagged, so a node written from the app's own agent
+ * conversation said `agent:unknown` while the log beside it said `claude-code`).
+ * No second identity scheme. With neither only the name is unknown — a human
+ * still did not write it — so it is `agent:unknown` (decision ledger, 2026-07-31).
  */
 function agentProvenance() {
-  return agentCreatedBy(readHeartbeatAgent(VAULT_ROOT));
+  return agentCreatedBy(resolveAgentName(VAULT_ROOT, server.getClientVersion?.()));
 }
 
 function addConcept({ slug, kind, title, domain, capabilities, elements, path, body, labels }, options = {}) {

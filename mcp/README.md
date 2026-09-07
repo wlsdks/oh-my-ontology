@@ -1098,8 +1098,10 @@ before the first file write.
 ### `created_by` — who authored the node (2026-07-31)
 
 An **optional** field with exactly two shapes: `human`, or `agent:<name>`
-(the agent name is the one the local activity log already records — the
-`.ontology-atlas/agent-activity.json` heartbeat).
+(the agent name is the one the local activity log already records, resolved the
+same way: the `.ontology-atlas/agent-activity.json` heartbeat first, otherwise
+the `clientInfo.name` the MCP client sent in its connect greeting — `claude-code`
+and friends — and `unknown` only with neither; 2026-09-07).
 
 **Absence means unknown. It never means `human`.** Provenance is stamped at
 write time by the path that proves the actor, and nothing derives it after the

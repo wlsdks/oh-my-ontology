@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — A node's `created_by` names the connecting client when no heartbeat is registered",
+      "slug": "2026-09-07-a-nodes-created_by-names-the-connecting-client-when-no-heartbeat-is-registered"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — An unattached mark stands on a ring, not on a wall",
       "slug": "2026-09-07-an-unattached-mark-stands-on-a-ring-not-on-a-wall"
     },
