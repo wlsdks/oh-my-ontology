@@ -16,6 +16,7 @@ import {
   LiveAnnouncer,
   ServiceMark,
   resolveServiceMark,
+  useToast,
 } from '@/shared/ui';
 import { Input } from '@/shared/ui/input';
 import { PAGE_COLUMN_FORM } from '@/shared/ui/page-frame';
@@ -28,7 +29,7 @@ import {
   type ConnectorRecord,
   type ConnectorValueEntry,
 } from '@/shared/lib/connector-record';
-import { CONNECTORS_RELATIVE_PATH } from '@/shared/lib/connector-store';
+import { CONNECTORS_RELATIVE_PATH, type ConnectorWriteResult } from '@/shared/lib/connector-store';
 import {
   discoverMcpConnectors,
   isConnectorDiscoveryAvailable,
@@ -220,6 +221,21 @@ export function ConnectorsPanel({
       });
     },
     [store],
+  );
+
+  /**
+   * The dialog closes on a saved row, and the row lands **off**. A person who pressed "+" and
+   * watched the dialog go could read that as "connected" (falsifier in the 2026-09-07 one-list
+   * record), so the toast says both halves: attached, and still off.
+   */
+  const toast = useToast();
+  const announceAttached = useCallback(
+    async (name: string, write: Promise<ConnectorWriteResult | null>) => {
+      const result = await write;
+      if (result?.status === 'saved') toast.show(t('attachedToast', { name }), 'info');
+      return result;
+    },
+    [t, toast],
   );
 
   const [addOpen, setAddOpen] = useState(false);
@@ -548,8 +564,8 @@ export function ConnectorsPanel({
          * that never happened looked exactly like one that did. `ConnectorWriteResult` already
          * says which it was; nothing was reading it.
          */
-        onAddDiscovered={(server) => addDiscovered(server)}
-        onAddCustom={(draft) => store.upsert(draft)}
+        onAddDiscovered={(server) => announceAttached(server.name, addDiscovered(server))}
+        onAddCustom={(draft) => announceAttached(draft.name, store.upsert(draft))}
         incoming={incoming}
         testIdPrefix={testIdPrefix}
       />

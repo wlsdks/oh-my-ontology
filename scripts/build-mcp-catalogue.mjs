@@ -169,6 +169,117 @@ const CURATION = [
       },
     ],
   },
+  {
+    id: 'linear',
+    name: 'linear',
+    title: 'Linear',
+    summary: 'Find, create and update issues, projects and comments in Linear.',
+    docsUrl: 'https://linear.app/docs/mcp',
+    verifiedAt: '2026-09-07',
+    registryName: 'app.linear/linear',
+    variants: [
+      {
+        kind: 'remote',
+        transport: 'http',
+        url: 'https://mcp.linear.app/mcp',
+        auth: 'oauth',
+        headers: [],
+      },
+    ],
+  },
+  {
+    id: 'sentry',
+    name: 'sentry',
+    title: 'Sentry',
+    summary: 'Read errors, issues and debugging data from your Sentry organization.',
+    docsUrl: 'https://mcp.sentry.dev/',
+    verifiedAt: '2026-09-07',
+    registryName: 'io.github.getsentry/sentry-mcp',
+    // Remote only. The local package takes its token as a command-line flag the vendor page
+    // writes out by hand, which this catalogue does not template.
+    variants: [
+      {
+        kind: 'remote',
+        transport: 'http',
+        url: 'https://mcp.sentry.dev/mcp',
+        auth: 'oauth',
+        headers: [],
+      },
+    ],
+  },
+  {
+    id: 'playwright',
+    name: 'playwright',
+    title: 'Playwright',
+    summary: 'Open web pages and navigate, click, type and read through accessibility snapshots.',
+    docsUrl: 'https://github.com/microsoft/playwright-mcp',
+    verifiedAt: '2026-09-07',
+    registryName: 'io.github.microsoft/playwright-mcp',
+    variants: [
+      {
+        kind: 'local',
+        transport: 'stdio',
+        runtime: 'npx',
+        packageId: '@playwright/mcp',
+        args: ['-y', '@playwright/mcp@latest'],
+        env: [],
+      },
+    ],
+  },
+  {
+    id: 'context7',
+    name: 'context7',
+    title: 'Context7',
+    summary: 'Current, version-specific documentation and code examples for a library.',
+    docsUrl: 'https://github.com/upstash/context7',
+    verifiedAt: '2026-09-07',
+    registryName: 'io.github.upstash/context7',
+    variants: [
+      {
+        kind: 'remote',
+        transport: 'http',
+        url: 'https://mcp.context7.com/mcp',
+        // No sign-in. An API key raises the rate limit and is optional; the vendor page says so.
+        auth: 'none',
+        headers: [],
+      },
+      {
+        kind: 'local',
+        transport: 'stdio',
+        runtime: 'npx',
+        packageId: '@upstash/context7-mcp',
+        args: ['-y', '@upstash/context7-mcp'],
+        env: [
+          {
+            name: 'CONTEXT7_API_KEY',
+            secret: true,
+            required: false,
+            issueUrl: 'https://context7.com/dashboard',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'supabase',
+    name: 'supabase',
+    title: 'Supabase',
+    summary: "Query and manage a Supabase project's database, auth, realtime and migrations.",
+    docsUrl: 'https://supabase.com/docs/guides/getting-started/mcp',
+    verifiedAt: '2026-09-07',
+    registryName: 'com.supabase/mcp',
+    // Remote only. The local package needs a project reference on its command line, which is
+    // the person's, not the catalogue's.
+    variants: [
+      {
+        kind: 'remote',
+        transport: 'http',
+        url: 'https://mcp.supabase.com/mcp',
+        auth: 'oauth',
+        headers: [],
+      },
+    ],
+  },
 ];
 
 /**

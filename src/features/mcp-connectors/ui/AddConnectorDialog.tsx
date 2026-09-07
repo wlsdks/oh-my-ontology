@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Info, Plus, X } from 'lucide-react';
+import { ChevronRight, Info, Plus, X } from 'lucide-react';
 
 import { Link } from '@/i18n/navigation';
 import {
@@ -12,13 +12,13 @@ import {
   Dialog,
   IconButton,
   ServiceMark,
-  TabBar,
   resolveServiceMark,
 } from '@/shared/ui';
 import { badgeClass } from '@/shared/ui/badge-class';
 import { SegmentedControl } from '@/shared/ui/segmented-control';
 import { Input } from '@/shared/ui/input';
 import { controlClass } from '@/shared/ui/control-class';
+import { cn } from '@/shared/lib/cn';
 import { ICON_SIZE } from '@/shared/ui/icon-size';
 import {
   connectorProblems,
@@ -42,6 +42,7 @@ import {
   variantRuns,
   variantVariables,
   type CatalogueEntry,
+  type CatalogueVariable,
   type CatalogueVariant,
 } from '@/shared/config/mcp-catalogue';
 import {
@@ -53,60 +54,39 @@ import {
 import { groupDiscovered, shortSourceKey, type DiscoveredGroup } from './discovered-groups';
 
 /**
- * **Adding a connector, as three errands under one search.**
+ * **Adding a connector: one list under one search, and a press that does what the row says.**
  *
- * ## Why tabs, and why these three
+ * ## Why one list and not three tabs
  *
- * The owner read this dialog in the installed app on 2026-09-07 and said two things: split what
- * was found from what is being added, and *"I don't know what I'm supposed to do here"* about the
- * form underneath. Both are the same defect. The dialog stacked a scan of this machine on top of
- * a five-field form, so a person met an answer and a blank page at once and could not tell which
- * one was theirs.
+ * The 2026-09-07 morning build split this dialog into *Found here*, *Catalogue* and *By hand*
+ * tabs. The owner read the result in the installed app the same afternoon and said the tabs were
+ * the problem: a person opening "add" does not know which of three errands they are on, and a
+ * strip that asks them to pick one before showing anything is the same "I don't know what to do
+ * here" the tabs were built to answer. Every MCP client surveyed that day (Cline, Goose, Cursor,
+ * VS Code, Claude Desktop, Codex) shows one list — name, one line, one button — and keeps "by
+ * hand" as the last row or a separate form. So this dialog does too.
  *
- * The three are not arbitrary — they are the three states a person is actually in:
+ * Three groups, in the order somebody can act on them without typing:
  *
- * 1. **Found here.** They already typed this server into another tool. One press copies it.
- * 2. **Catalogue.** They know the *service* by name — Notion, GitHub — and nothing else. The
- *    committed list (`src/shared/config/mcp-catalogue.generated.ts`) fills in the rest.
- * 3. **By hand.** Nothing on this computer and nothing in the list knows about it. This is the
- *    path that always works, and it is last because it is the rarest.
+ * 1. **Already on this computer.** Registered in another tool's config. One press copies it.
+ * 2. **Ready to attach.** The committed catalogue (`mcp-catalogue.generated.ts`). The row shows
+ *    the address or command it will write, verbatim, and what it will ask.
+ * 3. **By hand.** A disclosure at the bottom that unfolds the full form. It is also where an
+ *    install link lands, filled in.
  *
- * One search box above the strip filters all three, because somebody typing "notion" does not
- * know which of the three will answer them, and making them guess is the thing tabs are worst at.
+ * ## What the press does
  *
- * ## What the catalogue is not
+ * One rule, so the button can read the same everywhere: **a press attaches what asks nothing and
+ * asks, in place, for what asks one thing.** A hosted address with OAuth asks nothing of this
+ * dialog — the coding agent opens the sign-in window and holds what comes back — so the row goes
+ * straight into the folder, switched off. A local program that needs a token unfolds a small panel
+ * under its own row: the command written out, one password field per required variable, and the
+ * press. Nothing is written until that press, and no value ever goes into the folder's file.
  *
- * Not a marketplace. No counts, no ranking, no "recommended", nothing fetched while the app runs
- * (`.claude/rules/forbidden.md`, and the generator's own header). Every row says where its facts
- * came from and when they were captured, and the tab says out loud that the list is short and
- * that Atlas has audited none of it. Borrowing the registry's authority for a line one of us
- * typed is the failure this disclosure exists to prevent (PO steward, 2026-09-07).
+ * This overturns the morning's "picking fills the by-hand form" for catalogue rows; the record is
+ * in `docs/DECISIONS.md` (2026-09-07, one list). What it keeps: the row shows what will run
+ * before the press, the row is off after it, the origin is recorded, and a link only pre-fills.
  */
-
-type ProblemKey = `problem.${ConnectorProblem}`;
-type SourceKey = `source.${ReturnType<typeof shortSourceKey>}`;
-
-/** What to tell somebody when the folder saved nothing. */
-type AddFailureReason = 'noFolder' | 'malformed' | 'writeFailed' | 'secret';
-type AddFailureKey = `addFailReason.${AddFailureReason}`;
-
-function addFailureReason(result: ConnectorWriteResult | null): AddFailureReason | null {
-  if (result === null) return 'noFolder';
-  switch (result.status) {
-    case 'saved':
-      return null;
-    case 'blocked_unavailable':
-      return 'noFolder';
-    case 'blocked_malformed':
-      return 'malformed';
-    case 'blocked_secret':
-      return 'secret';
-    default:
-      return 'writeFailed';
-  }
-}
-
-export type AddTab = 'found' | 'catalogue' | 'custom';
 
 /** A short, stable id. `crypto.randomUUID` exists in every surface this ships to. */
 export function newConnectorId(): string {
@@ -123,7 +103,7 @@ interface DraftVariable {
   secret: boolean;
 }
 
-/** The draft a catalogue entry or an install link hands to the by-hand tab. */
+/** The draft a catalogue entry or an install link hands to the by-hand form. */
 export interface CustomPrefill {
   name: string;
   transport: ConnectorTransport;
@@ -194,6 +174,55 @@ const EMPTY_PREFILL: CustomPrefill = {
   variables: [],
 };
 
+type ProblemKey = `problem.${ConnectorProblem}`;
+type SourceKey = `source.${ReturnType<typeof shortSourceKey>}`;
+
+/** What to tell somebody when the folder saved nothing. */
+type AddFailureReason = 'noFolder' | 'malformed' | 'writeFailed' | 'secret';
+type AddFailureKey = `addFailReason.${AddFailureReason}`;
+
+function addFailureReason(result: ConnectorWriteResult | null): AddFailureReason | null {
+  if (result === null) return 'noFolder';
+  switch (result.status) {
+    case 'saved':
+      return null;
+    case 'blocked_unavailable':
+      return 'noFolder';
+    case 'blocked_malformed':
+      return 'malformed';
+    case 'blocked_secret':
+      return 'secret';
+    default:
+      return 'writeFailed';
+  }
+}
+
+
+/** The variables a variant cannot attach without. */
+function requiredVariables(variant: CatalogueVariant): readonly CatalogueVariable[] {
+  return variantVariables(variant).filter((variable) => variable.required);
+}
+
+/**
+ * The row's own button goes to the first hosted address, else the first local program. A hosted
+ * address is the one that asks nothing, which is what a single press should land on when the
+ * vendor offers both; the local program stays one press further, named for what it is.
+ */
+function primaryVariant(entry: CatalogueEntry): CatalogueVariant {
+  return entry.variants.find((variant) => variant.kind === 'remote') ?? entry.variants[0];
+}
+
+/** A stable key for a variant inside its entry, for the unfolded panel and the test hooks. */
+function variantKey(variant: CatalogueVariant): string {
+  return variantRuns(variant);
+}
+
+/** What a press on this variant will do: write the row, or ask for something first. */
+type PressOutcome = 'attaches' | 'asks';
+function pressOutcome(variant: CatalogueVariant): PressOutcome {
+  return requiredVariables(variant).length > 0 ? 'asks' : 'attaches';
+}
+
 export function AddConnectorDialog({
   open,
   onClose,
@@ -220,11 +249,14 @@ export function AddConnectorDialog({
 }) {
   const t = useTranslations('connectors');
   const [query, setQuery] = useState('');
-  const [tab, setTab] = useState<AddTab>('found');
   const [failure, setFailure] = useState<AddFailureReason | null>(null);
   const [prefill, setPrefill] = useState<CustomPrefill>(EMPTY_PREFILL);
   /** Bumped on every pre-fill so the form remounts and takes the new values. */
   const [prefillTick, setPrefillTick] = useState(0);
+  /** Whether the by-hand form is unfolded at the bottom. */
+  const [customOpen, setCustomOpen] = useState(false);
+  /** The one catalogue variant currently asking for its value, if any. */
+  const [asking, setAsking] = useState<{ entryId: string; variant: string } | null>(null);
 
   /**
    * Where this machine's runtimes are. Read once when the dialog opens, because the answer is the
@@ -247,13 +279,12 @@ export function AddConnectorDialog({
    * ── Two resets, adjusted during render rather than in an effect ───────────────────────────
    *
    * Both are the React "adjust state when a prop changes" pattern: compare with what was seen
-   * last render and correct immediately, so the dialog never paints one frame on the wrong tab.
+   * last render and correct immediately, so the dialog never paints one frame in the wrong state.
    * An effect would do the same work a frame later — and `react-hooks/set-state-in-effect`
    * refuses it for the same reason.
    *
-   * ① **Opening** lands on whichever tab can answer somebody without typing: what this computer
-   *    already registers, or — where nothing can be scanned — the catalogue.
-   * ② **A draft arriving from outside** (an install link) opens the by-hand tab already filled.
+   * ① **Opening** folds everything back: no search, no panel asking for a value, the form closed.
+   * ② **A draft arriving from outside** (an install link) unfolds the by-hand form already filled.
    *    It is deliberately not saved: a link is an invitation, and the press is still the
    *    person's (`src/shared/lib/mcp-install-link.ts` carries the CVE that rule comes from).
    */
@@ -261,23 +292,36 @@ export function AddConnectorDialog({
   if (open !== seenOpen) {
     setSeenOpen(open);
     if (open) {
-      setTab(canDiscover ? 'found' : 'catalogue');
+      setQuery('');
       setFailure(null);
+      setAsking(null);
+      setCustomOpen(false);
     }
   }
   /*
    * ⚠️ **Seeded `null`, not with what arrived** (caught in the rendered run, 2026-09-07). Seeding
    * with `incoming` made the first render already equal to it, so the comparison never fired and
-   * a link opened the dialog on the tab it would have opened on anyway — filled form, wrong tab,
-   * and nothing saying why. `null` means the first arrival is always a change.
+   * a link opened the dialog with the form folded — filled form, out of sight, and nothing saying
+   * why. `null` means the first arrival is always a change.
    */
   const [seenIncoming, setSeenIncoming] = useState<CustomPrefill | null>(null);
   if (open && incoming && incoming !== seenIncoming) {
     setSeenIncoming(incoming);
     setPrefill(incoming);
     setPrefillTick((tick) => tick + 1);
-    setTab('custom');
+    setCustomOpen(true);
   }
+
+  /** The unfolded form, so a pre-fill from a link or a row can bring it into view. */
+  const customRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (prefillTick === 0 || !customOpen) return;
+    const node = customRef.current;
+    // jsdom has no `scrollIntoView`; the form is still unfolded, which is the contract.
+    if (node && typeof node.scrollIntoView === 'function') {
+      node.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }, [customOpen, prefillTick]);
 
   const attempt = useCallback(
     async (write: () => Promise<ConnectorWriteResult | null>) => {
@@ -292,6 +336,26 @@ export function AddConnectorDialog({
       return false;
     },
     [onClose],
+  );
+
+  /**
+   * A row plus the values it asked for. The token goes into the keychain **only after the row is
+   * on disk**. Storing it first and then failing the write leaves a value on this machine that
+   * nothing on screen points at — the orphan the removal path already had to fix once
+   * (`forgetSecrets`, 2026-09-05).
+   */
+  const addWithSecrets = useCallback(
+    (connector: ConnectorRecord, secrets: Array<{ ref: string; value: string }>) =>
+      attempt(async () => {
+        const result = await onAddCustom(connector);
+        if (result?.status === 'saved') {
+          await Promise.all(
+            secrets.map(({ ref, value }) => connectorSecretSet(ref, value).catch(() => null)),
+          );
+        }
+        return result;
+      }),
+    [attempt, onAddCustom],
   );
 
   const groups = useMemo(
@@ -309,13 +373,50 @@ export function AddConnectorDialog({
       )
     : groups;
   const catalogueMatches = useMemo(() => searchCatalogue(MCP_CATALOGUE, query), [query]);
+  const nothingMatches =
+    needle.length > 0 && catalogueMatches.length === 0 && (!canDiscover || foundMatches.length === 0);
 
-  const chooseCatalogue = (entry: CatalogueEntry, variant: CatalogueVariant) => {
+  /** A catalogue row, as the record the folder will hold. */
+  const catalogueRecord = (entry: CatalogueEntry, variant: CatalogueVariant) => {
+    const id = newConnectorId();
+    return catalogueDraft(entry, variant, {
+      id,
+      capturedAt: MCP_CATALOGUE_CAPTURED_AT,
+      runtimePath: variant.kind === 'local' ? runtimePath(runtimes, variant.runtime) : null,
+      secretRef: connectorSecretRef,
+    });
+  };
+
+  /** The one rule: attach what asks nothing, ask in place for what asks one thing. */
+  const pressCatalogue = (entry: CatalogueEntry, variant: CatalogueVariant) => {
+    setFailure(null);
+    if (pressOutcome(variant) === 'attaches') {
+      setAsking(null);
+      void addWithSecrets(catalogueRecord(entry, variant), []);
+      return;
+    }
+    setAsking({ entryId: entry.id, variant: variantKey(variant) });
+  };
+
+  /** The escape hatch out of a row: the same facts, in the by-hand form, editable. */
+  const editCatalogue = (entry: CatalogueEntry, variant: CatalogueVariant) => {
     setPrefill(prefillFromCatalogue(entry, variant, runtimes));
     setPrefillTick((tick) => tick + 1);
-    setTab('custom');
+    setAsking(null);
+    setCustomOpen(true);
     setFailure(null);
   };
+
+  const foundSection = (
+    <FoundSection
+      canDiscover={canDiscover}
+      discovered={discovered}
+      matches={foundMatches}
+      query={query}
+      onAdd={(server) => void attempt(() => onAddDiscovered(server))}
+      testIdPrefix={testIdPrefix}
+    />
+  );
 
   return (
     <Dialog
@@ -324,118 +425,162 @@ export function AddConnectorDialog({
       size="md"
       labelledBy={`${testIdPrefix}-add-title`}
       testId={`${testIdPrefix}-add-dialog`}
-      className="max-h-[min(80vh,var(--dialog-max-h))] overflow-y-auto"
+      initialFocus="none"
+      /*
+       * The title and the search stay put; the groups scroll under them. Scrolling the whole
+       * panel took the search box off screen at the fourth row (own review, 2026-09-07), which
+       * is the moment somebody wants to narrow the list.
+       */
+      className="flex max-h-[min(80vh,var(--dialog-max-h))] flex-col"
     >
-      <h2
-        id={`${testIdPrefix}-add-title`}
-        className="text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]"
-      >
-        {t('addTitle')}
-      </h2>
-      <p
-        data-testid={`${testIdPrefix}-add-runtime`}
-        className="mt-1 break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
-      >
-        {t('runtimeNarrowing')}
-      </p>
+      {/*
+        The close control sits where every other dialog in this app keeps it, at the top corner,
+        and Escape and the scrim do the same. A "Close" button under a list that scrolls was the
+        last thing on screen and the least useful (owner, 2026-09-07).
+      */}
+      <div className="flex items-start justify-between gap-3">
+        <h2
+          id={`${testIdPrefix}-add-title`}
+          className="min-w-0 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]"
+        >
+          {t('addTitle')}
+        </h2>
+        <IconButton
+          label={t('close')}
+          size="sm"
+          tone="muted"
+          data-testid={`${testIdPrefix}-add-close`}
+          className="-mr-1 -mt-1 shrink-0"
+          onClick={onClose}
+        >
+          <X size={ICON_SIZE.lg} aria-hidden />
+        </IconButton>
+      </div>
 
       {/*
-        **The search stands above the strip, not inside a tab.** Somebody typing "notion" does not
-        yet know whether this machine already registers it, whether the catalogue holds it, or
-        whether they will end up typing it themselves — and a search that only looks inside the
-        tab you happen to be on makes them guess. The counts on the tabs answer the guess instead.
+        **One search over everything below.** Somebody typing "notion" does not yet know whether
+        this machine already registers it, whether the catalogue holds it, or whether they will end
+        up typing it themselves — and the list answers by narrowing every group at once.
+      */}
+      {/*
+        It takes focus on open and wears the strong border at rest (design lead, 2026-09-07):
+        drawn like the rows under it, it read as "row zero" rather than the one control that
+        acts on all of them. `initialFocus="none"` on the dialog is what lets it, since the
+        trap's "first" would land on the corner close.
       */}
       <Input
-        label={t('searchLabel')}
+        aria-label={t('searchLabel')}
         size="md"
         type="search"
         autoComplete="off"
         spellCheck={false}
+        autoFocus
         value={query}
         placeholder={t('searchPlaceholder')}
         data-testid={`${testIdPrefix}-search`}
         onChange={(event) => setQuery(event.target.value)}
-        className="mt-3 w-full"
+        className="mt-3 w-full border-[color:var(--color-border-strong)]"
       />
 
-      <div className="mt-3" data-testid={`${testIdPrefix}-add-tabs`}>
-        <TabBar
-          idPrefix={`${testIdPrefix}-add`}
-          ariaLabel={t('addTablistAriaLabel')}
-          activeKey={tab}
-          onSelect={(next) => setTab(next as AddTab)}
-          items={[
-            {
-              key: 'found',
-              label: t('tabFound'),
-              count: canDiscover ? foundMatches.length : undefined,
-              countTitle: canDiscover ? t('tabFoundCountTitle') : undefined,
-            },
-            {
-              key: 'catalogue',
-              label: t('tabCatalogue'),
-              count: catalogueMatches.length,
-              countTitle: t('tabCatalogueCountTitle'),
-            },
-            { key: 'custom', label: t('tabCustom') },
-          ]}
+      <div
+        data-testid={`${testIdPrefix}-add-scroll`}
+        className="-mx-4 mt-4 min-h-0 flex-1 overflow-y-auto px-4"
+      >
+      <div className="flex flex-col gap-5" data-testid={`${testIdPrefix}-add-groups`}>
+        {/*
+          Order is by what a person can act on without typing. On the installed app the scan of this
+          machine leads; in a browser the scan can only say why it is empty, so the catalogue leads
+          and that explanation follows it rather than standing in front of the one usable list.
+        */}
+        {canDiscover ? foundSection : null}
+
+        <CatalogueSection
+          entries={catalogueMatches}
+          query={query}
+          runtimes={runtimes}
+          attachedNames={attachedNames}
+          asking={asking}
+          canStoreSecrets={canStoreSecrets}
+          onPress={pressCatalogue}
+          onEdit={editCatalogue}
+          onDismiss={() => setAsking(null)}
+          onAttach={(entry, variant, values) => {
+            const record = catalogueRecord(entry, variant);
+            const secrets = record.transport === 'http' ? record.headers : record.env;
+            void addWithSecrets(
+              record,
+              secrets.flatMap((item) =>
+                typeof item.secretRef === 'string' && values[item.name]?.trim()
+                  ? [{ ref: item.secretRef, value: values[item.name].trim() }]
+                  : [],
+              ),
+            );
+          }}
+          testIdPrefix={testIdPrefix}
         />
+
+        {!canDiscover ? foundSection : null}
+
+        {nothingMatches ? (
+          <p
+            data-testid={`${testIdPrefix}-add-none`}
+            className="break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
+          >
+            {t('noneForSearch', { query: query.trim() })}
+          </p>
+        ) : null}
+
+        {/*
+          **By hand is the last row, folded.** It reaches every server the two lists do not, and it
+          says so in its one line; unfolding it is the only step, and a link arriving from outside
+          unfolds it already filled.
+        */}
+        <section ref={customRef} data-testid={`${testIdPrefix}-custom-section`} className="pb-2">
+          <button
+            type="button"
+            aria-expanded={customOpen}
+            aria-controls={`${testIdPrefix}-custom-body`}
+            data-testid={`${testIdPrefix}-custom-toggle`}
+            onClick={() => setCustomOpen((value) => !value)}
+            className={controlClass({
+              shape: 'link',
+              tone: 'muted',
+              hoverInk: 'strong',
+              className: 'gap-1 text-body font-[var(--font-weight-signature)]',
+            })}
+          >
+            <ChevronRight
+              size={ICON_SIZE.sm}
+              aria-hidden
+              className={customOpen ? 'rotate-90 transition-transform' : 'transition-transform'}
+            />
+            {t('customToggle')}
+          </button>
+          {customOpen ? (
+            <div id={`${testIdPrefix}-custom-body`} className="mt-3">
+              <CustomConnectorForm
+                key={prefillTick}
+                prefill={prefill}
+                runtimes={runtimes}
+                canStoreSecrets={canStoreSecrets}
+                onAdd={(connector, secrets) => void addWithSecrets(connector, secrets)}
+                testIdPrefix={testIdPrefix}
+              />
+            </div>
+          ) : null}
+        </section>
       </div>
 
-      <div
-        role="tabpanel"
-        id={`${testIdPrefix}-add-tabpanel-${tab}`}
-        aria-labelledby={`${testIdPrefix}-add-tab-${tab}`}
-        data-testid={`${testIdPrefix}-add-tabpanel`}
-        data-add-tab={tab}
-        className="mt-3 min-w-0"
+      {/*
+        The caveat about which sessions carry a connector is true and stays, below the task
+        rather than ahead of it (design lead, 2026-09-07): it is a fact to know, not a step.
+      */}
+      <p
+        data-testid={`${testIdPrefix}-add-runtime`}
+        className="mt-4 break-keep border-t border-[color:var(--color-border-soft)] pt-3 text-label leading-prose text-[color:var(--color-text-quaternary)]"
       >
-        {tab === 'found' ? (
-          <FoundTab
-            canDiscover={canDiscover}
-            discovered={discovered}
-            matches={foundMatches}
-            query={query}
-            onAdd={(server) => void attempt(() => onAddDiscovered(server))}
-            testIdPrefix={testIdPrefix}
-          />
-        ) : null}
-        {tab === 'catalogue' ? (
-          <CatalogueTab
-            entries={catalogueMatches}
-            query={query}
-            runtimes={runtimes}
-            onChoose={chooseCatalogue}
-            testIdPrefix={testIdPrefix}
-          />
-        ) : null}
-        {tab === 'custom' ? (
-          <CustomConnectorForm
-            key={prefillTick}
-            prefill={prefill}
-            runtimes={runtimes}
-            canStoreSecrets={canStoreSecrets}
-            onAdd={(connector, secrets) =>
-              void attempt(async () => {
-                const result = await onAddCustom(connector);
-                /*
-                 * The token goes into the keychain **only after the row is on disk**. Storing it
-                 * first and then failing the write leaves a value on this machine that nothing
-                 * on screen points at — the orphan the removal path already had to fix once
-                 * (`forgetSecrets`, 2026-09-05).
-                 */
-                if (result?.status === 'saved') {
-                  await Promise.all(
-                    secrets.map(({ ref, value }) => connectorSecretSet(ref, value).catch(() => null)),
-                  );
-                }
-                return result;
-              })
-            }
-            testIdPrefix={testIdPrefix}
-          />
-        ) : null}
-      </div>
+        {t('runtimeNarrowing')}
+      </p>
 
       {failure ? (
         <p
@@ -446,18 +591,29 @@ export function AddConnectorDialog({
           {t('addFailed', { reason: t(`addFailReason.${failure}` as AddFailureKey) })}
         </p>
       ) : null}
-
-      <div className="mt-4 flex justify-end">
-        <Button variant="ghost" onClick={onClose}>
-          {t('close')}
-        </Button>
       </div>
     </Dialog>
   );
 }
 
+/** A group's one-line heading: what the rows below have in common, and a quiet fact beside it. */
+function GroupHeading({ title, meta }: { title: string; meta?: string }) {
+  return (
+    <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+      <h3 className="text-label font-[var(--font-weight-signature)] text-[color:var(--color-text-secondary)]">
+        {title}
+      </h3>
+      {meta ? (
+        <p className="break-keep text-label leading-label text-[color:var(--color-text-quaternary)]">
+          {meta}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 /** What this machine already registers — one row per thing that actually runs. */
-function FoundTab({
+function FoundSection({
   canDiscover,
   discovered,
   matches,
@@ -476,8 +632,8 @@ function FoundTab({
   if (!canDiscover) {
     /*
      * Why it is missing and what still works — the degradation contract, not "coming soon". It
-     * stands inside this tab because finding is what happens here; the list on the screen behind
-     * is fully usable, and putting this out there would read as a verdict on the whole panel.
+     * stands where the scan would, after the list that does work here; the panel behind is fully
+     * usable, and putting this first would read as a verdict on the whole dialog.
      */
     return (
       <div
@@ -514,281 +670,449 @@ function FoundTab({
       </div>
     );
   }
-  if (discovered === null) {
-    return (
-      <p
-        role="status"
-        data-testid={`${testIdPrefix}-scanning`}
-        className="break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
-      >
-        {t('scanning')}
-      </p>
-    );
-  }
-  if (matches.length === 0) {
-    return (
-      <p
-        data-testid={`${testIdPrefix}-found-empty`}
-        className="break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
-      >
-        {query.trim() ? t('foundNoneForSearch', { query: query.trim() }) : t('foundNone')}
-      </p>
-    );
-  }
+  // Searching hides an empty group rather than explaining it; the dialog's one line does that.
+  if (discovered !== null && matches.length === 0 && query.trim()) return null;
   return (
-    <ul data-testid={`${testIdPrefix}-found`} className="flex flex-col gap-2">
-      {matches.map((group) => {
-        const server = group.server;
-        const usable = isAttachableTransport(server.transport);
-        const runs = server.url ?? [server.command, ...server.args].join(' ');
-        return (
-          <li
-            key={group.key}
-            data-testid={`${testIdPrefix}-found-item`}
-            data-connector-transport={server.transport}
-            data-connector-sources={group.sources.join(' ')}
-            className="flex items-start gap-3 rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)] px-3 py-2"
-          >
-            <ServiceMark
-              mark={resolveServiceMark(server.name, runs)}
-              className="mt-0.5 text-[color:var(--color-text-tertiary)]"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-body font-[var(--font-weight-signature)] text-[color:var(--color-text-secondary)]">
-                {server.name}
-              </p>
-              {/* Verbatim and unwrapped-away: a confirmation that hides an argument is the
-                  DeepJack shape (`mcp-install-link.ts`). */}
-              <code className="mt-0.5 block break-all font-mono text-label leading-label text-[color:var(--color-text-tertiary)]">
-                {runs}
-              </code>
-              <div className="mt-1 flex flex-wrap items-center gap-1">
-                <span className="text-label leading-label text-[color:var(--color-text-quaternary)]">
-                  {t('sourceLabel')}
-                </span>
-                {[...new Set(group.sources.map(shortSourceKey))].map((key) => (
-                  <span
-                    key={key}
-                    data-testid={`${testIdPrefix}-found-source`}
-                    className={badgeClass({
-                      shape: 'micro',
-                      className:
-                        'border border-[color:var(--color-border-soft)] text-[color:var(--color-text-tertiary)]',
-                    })}
-                  >
-                    {t(`source.${key}` as SourceKey)}
-                  </span>
-                ))}
-              </div>
-              {!usable ? (
-                <p className="mt-1 break-keep text-label leading-prose text-[color:var(--color-status-warning)]">
-                  {t('foundUnsupported', { transport: server.transport })}
-                </p>
-              ) : null}
-            </div>
-            {usable ? (
-              <Chip data-testid={`${testIdPrefix}-found-add`} onClick={() => onAdd(server)}>
-                {t('add')}
-              </Chip>
-            ) : null}
-          </li>
-        );
-      })}
-    </ul>
+    <section data-testid={`${testIdPrefix}-found-section`}>
+      <GroupHeading title={t('groupFound')} />
+      {discovered === null ? (
+        <p
+          role="status"
+          data-testid={`${testIdPrefix}-scanning`}
+          className="break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
+        >
+          {t('scanning')}
+        </p>
+      ) : matches.length === 0 ? (
+        <p
+          data-testid={`${testIdPrefix}-found-empty`}
+          className="break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
+        >
+          {t('foundNone')}
+        </p>
+      ) : (
+        <ul data-testid={`${testIdPrefix}-found`} className="flex flex-col gap-2">
+          {matches.map((group) => {
+            const server = group.server;
+            const usable = isAttachableTransport(server.transport);
+            const runs = server.url ?? [server.command, ...server.args].join(' ');
+            return (
+              <li
+                key={group.key}
+                data-testid={`${testIdPrefix}-found-item`}
+                data-connector-transport={server.transport}
+                data-connector-sources={group.sources.join(' ')}
+                className="flex items-start gap-3 rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)] px-3 py-2"
+              >
+                <ServiceMark
+                  mark={resolveServiceMark(server.name, runs)}
+                  className="mt-0.5 text-[color:var(--color-text-tertiary)]"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <p className="truncate text-body font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
+                      {server.name}
+                    </p>
+                    {[...new Set(group.sources.map(shortSourceKey))].map((key) => (
+                      <span
+                        key={key}
+                        data-testid={`${testIdPrefix}-found-source`}
+                        className={badgeClass({
+                          shape: 'micro',
+                          className:
+                            'border border-[color:var(--color-border-soft)] text-[color:var(--color-text-quaternary)]',
+                        })}
+                      >
+                        {t(`source.${key}` as SourceKey)}
+                      </span>
+                    ))}
+                  </div>
+                  {/* Verbatim and unwrapped-away: a confirmation that hides an argument is the
+                      DeepJack shape (`mcp-install-link.ts`). */}
+                  <code className="mt-0.5 block break-all font-mono text-label leading-label text-[color:var(--color-text-tertiary)]">
+                    {runs}
+                  </code>
+                  {!usable ? (
+                    <p className="mt-1 break-keep text-label leading-prose text-[color:var(--color-status-warning)]">
+                      {t('foundUnsupported', { transport: server.transport })}
+                    </p>
+                  ) : null}
+                </div>
+                {usable ? (
+                  <Chip data-testid={`${testIdPrefix}-found-add`} onClick={() => onAdd(server)}>
+                    <Plus size={ICON_SIZE.sm} aria-hidden />
+                    {t('add')}
+                  </Chip>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
 
 /**
  * The catalogue — **a shortcut past typing a package name, and it says so.**
  *
- * A row does not attach anything. It fills the by-hand form, so the last thing a person sees
- * before the press is still the command or the address, written out. That ordering is not
- * politeness: it is the difference between this and the deep-link CVEs.
+ * Every row carries the address or command it would write, verbatim, and one clause saying what
+ * the press will ask. The press attaches a row that asks nothing; a row that needs a value unfolds
+ * `VariantAsk` under itself and waits. A curated row and a registry row are still told apart, in
+ * the unfolded panel: Atlas must not borrow the registry's authority for a line one of us typed.
  */
-function CatalogueTab({
+function CatalogueSection({
   entries,
   query,
   runtimes,
-  onChoose,
+  attachedNames,
+  asking,
+  canStoreSecrets,
+  onPress,
+  onEdit,
+  onDismiss,
+  onAttach,
   testIdPrefix,
 }: {
   entries: CatalogueEntry[];
   query: string;
   runtimes: readonly ResolvedRuntime[] | null;
-  onChoose: (entry: CatalogueEntry, variant: CatalogueVariant) => void;
+  attachedNames: Set<string>;
+  asking: { entryId: string; variant: string } | null;
+  canStoreSecrets: boolean;
+  onPress: (entry: CatalogueEntry, variant: CatalogueVariant) => void;
+  onEdit: (entry: CatalogueEntry, variant: CatalogueVariant) => void;
+  onDismiss: () => void;
+  onAttach: (entry: CatalogueEntry, variant: CatalogueVariant, values: Record<string, string>) => void;
   testIdPrefix: string;
 }) {
   const t = useTranslations('connectors');
+  if (entries.length === 0 && query.trim()) return null;
   return (
-    <>
+    <section data-testid={`${testIdPrefix}-catalogue-section`}>
       {/*
-        The three sentences the steward's review made conditions: how big and how old the list is,
-        that nobody here audited it, and that the by-hand tab reaches everything this does not.
-        A catalogue that implies completeness is a catalogue that lies by omission.
+        The facts the steward's review made conditions, in one quiet line: when the list was
+        captured and that nobody here audited it. Its size is the list itself, and the folded row
+        under it is where everything it does not hold goes in.
       */}
-      <p
-        data-testid={`${testIdPrefix}-catalogue-provenance`}
-        className="break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
-      >
-        {t('catalogueProvenance', {
-          count: MCP_CATALOGUE.length,
-          date: MCP_CATALOGUE_CAPTURED_AT,
-        })}
-      </p>
-      {entries.length === 0 ? (
-        <p
-          data-testid={`${testIdPrefix}-catalogue-empty`}
-          className="mt-2 break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
-        >
-          {t('catalogueNoneForSearch', { query: query.trim() })}
-        </p>
-      ) : (
-        <ul data-testid={`${testIdPrefix}-catalogue`} className="mt-2 flex flex-col gap-2">
-          {entries.map((entry) => (
+      <GroupHeading
+        title={t('groupCatalogue')}
+        meta={t('catalogueMeta', { date: MCP_CATALOGUE_CAPTURED_AT })}
+      />
+      <ul data-testid={`${testIdPrefix}-catalogue`} className="flex flex-col gap-2">
+        {entries.map((entry) => {
+          const primary = primaryVariant(entry);
+          const others = entry.variants.filter((variant) => variant !== primary);
+          const attached = attachedNames.has(entry.name);
+          const askingHere =
+            asking?.entryId === entry.id
+              ? entry.variants.find((variant) => variantKey(variant) === asking.variant) ?? null
+              : null;
+          const primaryPath =
+            primary.kind === 'local' ? runtimePath(runtimes, primary.runtime) : null;
+          // One disclosure contract for every control that opens the asking panel (interaction
+          // seat, 2026-09-07): the panel has an id, and each opener says it controls it.
+          const askId = `${testIdPrefix}-catalogue-ask-${entry.id}`;
+          return (
             <li
               key={entry.id}
               data-testid={`${testIdPrefix}-catalogue-item`}
               data-catalogue-id={entry.id}
-              className="rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)] px-3 py-2.5"
+              data-catalogue-attached={attached ? 'true' : 'false'}
+              className="rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)] px-3 py-2"
             >
               <div className="flex items-start gap-3">
                 <ServiceMark
                   /*
                    * ⚠️ **Not the docs URL** (caught in the rendered capture, 2026-09-07). Every
                    * vendor's instructions live on github.com, so matching against `docsUrl` put
-                   * GitHub's mark on the Atlassian row — someone else's brand on a row that is
-                   * not theirs, which is worse than the generic plug. The command or address is
-                   * the part that cannot lie about which service is on the other end, the same
-                   * reasoning the attached list already records.
+                   * GitHub's mark on the Atlassian row. The command or address is the part that
+                   * cannot lie about which service is on the other end.
                    */
-                  mark={resolveServiceMark(entry.name, entry.variants.map((variant) => variantRuns(variant)).join(' '))}
+                  mark={resolveServiceMark(
+                    entry.name,
+                    entry.variants.map((variant) => variantRuns(variant)).join(' '),
+                  )}
                   className="mt-0.5 text-[color:var(--color-text-tertiary)]"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-body font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
+                  <p
+                    className={cn(
+                      'truncate text-body font-[var(--font-weight-signature)]',
+                      attached
+                        ? 'text-[color:var(--color-text-tertiary)]'
+                        : 'text-[color:var(--color-text-primary)]',
+                    )}
+                  >
                     {entry.title}
                   </p>
                   {/*
-                    ⚠️ **The one line is localized; the facts are not.** `summary` in the
-                    generated file is what a person read on the vendor's English page, and it
-                    stayed English on the Korean screen (caught in the rendered capture,
-                    2026-09-07) — a Korean reader met a Korean dialog with English sentences
-                    inside it. The catalogue keeps its English as the record of what was read,
-                    and `messages/<locale>.json` carries the sentence, falling back to the file
-                    for an entry nobody has translated yet. That is the same split the vault
-                    already uses: `title` is the canonical name, `display_<locale>` is the shown
-                    one.
+                    The one line is localized; the facts are not. `summary` is what a person read
+                    on the vendor's English page; `messages/<locale>.json` carries the sentence.
                   */}
                   <p className="mt-0.5 break-keep text-label leading-prose text-[color:var(--color-text-tertiary)]">
                     {t.has(`catalogueSummary.${entry.id}` as 'catalogueSummary.notion')
                       ? t(`catalogueSummary.${entry.id}` as 'catalogueSummary.notion')
                       : entry.summary}
                   </p>
-                </div>
-              </div>
-              <ul className="mt-2 flex flex-col gap-1.5">
-                {entry.variants.map((variant) => {
-                  const secrets = variantVariables(variant).filter((variable) => variable.required);
-                  const resolved =
-                    variant.kind === 'local' ? runtimePath(runtimes, variant.runtime) : null;
-                  return (
-                    <li
-                      key={variantRuns(variant)}
-                      data-testid={`${testIdPrefix}-catalogue-variant`}
-                      data-variant-kind={variant.kind}
-                      data-variant-source={variant.source}
-                      className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l border-[color:var(--color-border-strong)] pl-2.5"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-label leading-label text-[color:var(--color-text-secondary)]">
-                          {variant.kind === 'remote'
-                            ? t('variantRemote', { label: variant.label ?? '' }).trim()
-                            : t('variantLocal', { runtime: variant.runtime })}
-                        </p>
-                        <code className="mt-0.5 block break-all font-mono text-label leading-label text-[color:var(--color-text-quaternary)]">
-                          {variantRuns(variant, resolved)}
-                        </code>
-                        <p className="mt-0.5 break-keep text-label leading-label text-[color:var(--color-text-quaternary)]">
-                          {/*
-                            **What this one will ask of you**, before it is chosen. An OAuth
-                            address asks for nothing and ends in the coding agent's own browser
-                            window — Atlas neither opens it nor holds what comes back, and saying
-                            otherwise would claim custody it does not have.
-                          */}
-                          {variant.kind === 'remote' && variant.auth === 'oauth'
-                            ? t('variantAsksOauth')
-                            : secrets.length > 0
-                              ? t('variantAsksToken', {
-                                  keys: secrets.map((variable) => variable.name).join(', '),
-                                })
-                              : t('variantAsksNothing')}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <span
-                          className={badgeClass({
-                            shape: 'micro',
-                            className:
-                              'border border-[color:var(--color-border-soft)] text-[color:var(--color-text-quaternary)]',
-                          })}
-                        >
-                          {variant.source === 'registry'
-                            ? t('sourceRegistry')
-                            : t('sourceCurated', { date: entry.verifiedAt })}
-                        </span>
+                  {/*
+                    **What the press writes and what it asks, before the press.** The address or
+                    command is verbatim — the last thing seen before a row lands in the folder is
+                    still the thing that will run, which is the whole distance between this and
+                    the one-click CVEs.
+                  */}
+                  <p
+                    data-testid={`${testIdPrefix}-catalogue-runs`}
+                    className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 text-label leading-label text-[color:var(--color-text-quaternary)]"
+                  >
+                    <code className="min-w-0 max-w-full truncate font-mono">
+                      {variantRuns(primary, primaryPath)}
+                    </code>
+                    <span className="break-keep">{asksClause(t, primary)}</span>
+                  </p>
+                  {others.length > 0 ? (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                      {/*
+                        The other ways in are controls, drawn as controls. As muted links they read
+                        as a third caption line (rendered check, 2026-09-07) and nobody pressed them.
+                      */}
+                      {others.map((variant) => (
                         <Chip
-                          data-testid={`${testIdPrefix}-catalogue-choose`}
-                          onClick={() => onChoose(entry, variant)}
+                          key={variantKey(variant)}
+                          size="sm"
+                          data-testid={`${testIdPrefix}-catalogue-other`}
+                          data-variant-kind={variant.kind}
+                          data-press={pressOutcome(variant)}
+                          disabled={attached}
+                          aria-expanded={
+                            pressOutcome(variant) === 'asks' ? askingHere === variant : undefined
+                          }
+                          aria-controls={pressOutcome(variant) === 'asks' ? askId : undefined}
+                          onClick={() => onPress(entry, variant)}
                         >
-                          {t('catalogueChoose')}
+                          {variantLabel(t, variant)}
                         </Chip>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-              <a
-                href={entry.docsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-testid={`${testIdPrefix}-catalogue-docs`}
-                className={controlClass({
-                  shape: 'link',
-                  tone: 'muted',
-                  hoverInk: 'strong',
-                  className: 'mt-2 text-label',
-                })}
-              >
-                <span aria-hidden data-external-link-marker>
-                  ↗
-                </span>
-                {t('catalogueDocs', { title: entry.title })}
-              </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                {attached ? (
+                  <span
+                    data-testid={`${testIdPrefix}-catalogue-attached`}
+                    className="shrink-0 pt-1 text-label leading-label text-[color:var(--color-text-quaternary)]"
+                  >
+                    {t('catalogueAttached')}
+                  </span>
+                ) : (
+                  <Chip
+                    data-testid={`${testIdPrefix}-catalogue-add`}
+                    data-variant-kind={primary.kind}
+                    data-press={pressOutcome(primary)}
+                    aria-expanded={pressOutcome(primary) === 'asks' ? askingHere === primary : undefined}
+                    aria-controls={pressOutcome(primary) === 'asks' ? askId : undefined}
+                    onClick={() => onPress(entry, primary)}
+                  >
+                    <Plus size={ICON_SIZE.sm} aria-hidden />
+                    {t('add')}
+                  </Chip>
+                )}
+              </div>
+              {askingHere ? (
+                <VariantAsk
+                  id={askId}
+                  entry={entry}
+                  variant={askingHere}
+                  runtimes={runtimes}
+                  canStoreSecrets={canStoreSecrets}
+                  onAttach={(values) => onAttach(entry, askingHere, values)}
+                  onEdit={() => onEdit(entry, askingHere)}
+                  onDismiss={onDismiss}
+                  testIdPrefix={testIdPrefix}
+                />
+              ) : null}
             </li>
-          ))}
-        </ul>
-      )}
-    </>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
+type Translate = ReturnType<typeof useTranslations<'connectors'>>;
+
+/** The one clause after the verbatim line: what pressing will ask of the person. */
+function asksClause(t: Translate, variant: CatalogueVariant): string {
+  const required = requiredVariables(variant);
+  if (required.length > 0)
+    return t('asksTokenShort', { keys: required.map((variable) => variable.name).join(', ') });
+  if (variant.kind === 'remote' && variant.auth === 'oauth') return t('asksOauthShort');
+  return t('variantAsksNothing');
+}
+
+/** The name of a secondary way in, as a person would say it. */
+function variantLabel(t: Translate, variant: CatalogueVariant): string {
+  if (variant.kind === 'remote')
+    return variant.label ? t('variantRemoteLabelled', { label: variant.label }) : t('variantRemote');
+  return t('variantLocal', { runtime: variant.runtime });
+}
+
 /**
- * **By hand — one question per line, and nothing typed that this machine already knows.**
+ * **A row asking for the one thing it cannot attach without**, unfolded under itself.
  *
- * Three things changed on 2026-09-07, all from the same owner sentence (*"I don't know what I'm
- * supposed to do here"*):
- *
- * 1. **The program is chosen, not typed.** The old field asked for an absolute path, because a
- *    connector inherits no `PATH` and a bare `npx` silently produces no tools. Nobody knows where
- *    their `npx` is. `resolve_connector_runtimes` does, so the five it knows about are buttons
- *    with the resolved path underneath, and the typed field is the escape hatch behind them.
- * 2. **A variable is a name and a value on one row**, not a comma-separated list of names with the
- *    values entered somewhere else afterwards. The old form could not finish the job it started.
- * 3. **The secret choice is on the row it belongs to.** A checked row's value goes to this
- *    machine's keychain and the folder's file gets only the name; a credential-shaped name is
- *    checked and locked, because `serializeConnectorState` refuses to write a literal for one and
- *    a box whose contents are thrown away is worse than no box.
+ * What it shows, in order: where these facts came from; the command written out, with this
+ * machine's resolved runtime where one was found; the sentence saying where the value goes; one
+ * password field per required variable with a link to where it is issued; and the press. On a
+ * surface with no keychain the field is not offered — a box whose contents would be thrown away
+ * is worse than no box — and the sentence says what to do instead.
  */
+function VariantAsk({
+  id,
+  entry,
+  variant,
+  runtimes,
+  canStoreSecrets,
+  onAttach,
+  onEdit,
+  onDismiss,
+  testIdPrefix,
+}: {
+  id: string;
+  entry: CatalogueEntry;
+  variant: CatalogueVariant;
+  runtimes: readonly ResolvedRuntime[] | null;
+  canStoreSecrets: boolean;
+  onAttach: (values: Record<string, string>) => void;
+  onEdit: () => void;
+  onDismiss: () => void;
+  testIdPrefix: string;
+}) {
+  const t = useTranslations('connectors');
+  const required = requiredVariables(variant);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const resolved = variant.kind === 'local' ? runtimePath(runtimes, variant.runtime) : null;
+  const complete = required.every((variable) => (values[variable.name] ?? '').trim().length > 0);
+  const firstField = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    firstField.current?.focus();
+  }, []);
+  return (
+    <div
+      id={id}
+      data-testid={`${testIdPrefix}-catalogue-ask`}
+      data-variant-kind={variant.kind}
+      data-variant-source={variant.source}
+      className="mt-2 border-l border-[color:var(--color-border-strong)] pl-3"
+    >
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-label leading-label text-[color:var(--color-text-secondary)]">
+        <span>{variantLabel(t, variant)}</span>
+        <span
+          className={badgeClass({
+            shape: 'micro',
+            className:
+              'border border-[color:var(--color-border-soft)] text-[color:var(--color-text-quaternary)]',
+          })}
+        >
+          {variant.source === 'registry'
+            ? t('sourceRegistry')
+            : t('sourceCurated', { date: entry.verifiedAt })}
+        </span>
+      </p>
+      <code className="mt-1 block break-all font-mono text-label leading-label text-[color:var(--color-text-tertiary)]">
+        {variantRuns(variant, resolved)}
+      </code>
+      <p className="mt-1 break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]">
+        {canStoreSecrets
+          ? t('variantAsksToken', { keys: required.map((variable) => variable.name).join(', ') })
+          : t('secretsWeb', { keys: required.map((variable) => variable.name).join(', ') })}
+      </p>
+      {canStoreSecrets ? (
+        <div className="mt-2 flex flex-col gap-2">
+          {required.map((variable, index) => (
+            <div key={variable.name} className="flex flex-col gap-1">
+              <Input
+                ref={index === 0 ? firstField : undefined}
+                id={`${testIdPrefix}-ask-${variable.name}`}
+                label={variable.name}
+                size="md"
+                type="password"
+                autoComplete="off"
+                spellCheck={false}
+                value={values[variable.name] ?? ''}
+                placeholder={t('valuePlaceholder')}
+                data-testid={`${testIdPrefix}-catalogue-ask-value`}
+                data-variable={variable.name}
+                onChange={(event) =>
+                  setValues((current) => ({ ...current, [variable.name]: event.target.value }))
+                }
+                className="w-full"
+              />
+              {variable.issueUrl ? (
+                <a
+                  href={variable.issueUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid={`${testIdPrefix}-catalogue-ask-issue`}
+                  className={controlClass({
+                    shape: 'link',
+                    tone: 'muted',
+                    hoverInk: 'strong',
+                    className: 'self-start text-label',
+                  })}
+                >
+                  <span aria-hidden data-external-link-marker>
+                    ↗
+                  </span>
+                  {t('issueLink', { name: variable.name })}
+                </a>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+        {canStoreSecrets ? (
+          <Button
+            variant="primary"
+            data-testid={`${testIdPrefix}-catalogue-ask-add`}
+            disabled={!complete}
+            onClick={() => onAttach(values)}
+          >
+            {t('customAdd')}
+          </Button>
+        ) : null}
+        <button
+          type="button"
+          data-testid={`${testIdPrefix}-catalogue-ask-edit`}
+          onClick={onEdit}
+          className={controlClass({ shape: 'link', tone: 'muted', hoverInk: 'strong', className: 'text-label' })}
+        >
+          {t('askEdit')}
+        </button>
+        <button
+          type="button"
+          data-testid={`${testIdPrefix}-catalogue-ask-dismiss`}
+          onClick={onDismiss}
+          className={controlClass({ shape: 'link', tone: 'muted', hoverInk: 'strong', className: 'text-label' })}
+        >
+          {t('askDismiss')}
+        </button>
+        <a
+          href={entry.docsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid={`${testIdPrefix}-catalogue-docs`}
+          className={controlClass({ shape: 'link', tone: 'muted', hoverInk: 'strong', className: 'text-label' })}
+        >
+          <span aria-hidden data-external-link-marker>
+            ↗
+          </span>
+          {t('catalogueDocs', { title: entry.title })}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function CustomConnectorForm({
   prefill,
   runtimes,
