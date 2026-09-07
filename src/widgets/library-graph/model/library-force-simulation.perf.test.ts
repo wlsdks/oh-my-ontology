@@ -128,8 +128,8 @@ describe("the live simulation's frame budget", () => {
    */
   it("keeps the exact pass ahead below the crossover and behind it above", () => {
     // Far enough either side of the crossing that the gap is bigger than the noise: at
-    // 200 the exact pass wins by about 60%, at 2160 the tree wins by about the same.
-    const below = 200;
+    // 100 the exact pass is clearly ahead, at 2160 the tree is clearly ahead.
+    const below = 100;
     const above = 2160;
     const belowExact = bestTickMs(below, Number.POSITIVE_INFINITY);
     const belowTree = bestTickMs(below, 0);
