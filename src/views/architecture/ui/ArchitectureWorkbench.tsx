@@ -463,7 +463,7 @@ export function ArchitectureWorkbench({
   if (!selected) {
     return (
       <main className="flex min-h-0 flex-1 flex-col items-center justify-center p-5 md:p-10">
-        {profileNotices ? <div className="w-full max-w-[640px]">{profileNotices}</div> : null}
+        {profileNotices ? <div className="w-full max-w-[var(--measure-stage-column)]">{profileNotices}</div> : null}
         <EmptyState
           title={t('noProfiles')}
           titleAs="h1"
@@ -480,7 +480,7 @@ export function ArchitectureWorkbench({
            * EmptyState intentionally demotes centred titles to body text, so this
            * page-owned h1 restores the existing display/strong/primary contract.
            */
-          className="max-w-[640px] [&_h1]:break-keep [&_h1]:font-[var(--font-weight-strong)] [&_h1]:text-display [&_h1]:text-[color:var(--color-text-primary)]"
+          className="max-w-[var(--measure-stage-column)] [&_h1]:break-keep [&_h1]:font-[var(--font-weight-strong)] [&_h1]:text-display [&_h1]:text-[color:var(--color-text-primary)]"
           /*
            * ⚠️ **The button carries the task; it used to only change the address.**
            *

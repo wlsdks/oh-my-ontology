@@ -643,6 +643,17 @@
    * frontmatter block also need, so the two stay separate tokens.
    */
   --measure-doc-column: 760px;
+  /*
+   * Stage column — the content column of a destination's stage (2026-09-08).
+   *
+   * `page-frame.ts` already carried this number and its rule: *"640 is what the assembly entry
+   * already used, and it has now gained a second consumer — a value earns a name the moment
+   * something else needs it."* By today it had seven consumers and only three read the name, so
+   * the number is the token and `PAGE_COLUMN_STAGE` reads it. Distinct from `--measure-prose`
+   * (a line-length cap in `ch`), `--measure-doc-column` (760, a document page) and
+   * `--git-setup-measure` (520, one task in an empty destination).
+   */
+  --measure-stage-column: 640px;
   --page-bottom-breath: 40px;
 
   /*

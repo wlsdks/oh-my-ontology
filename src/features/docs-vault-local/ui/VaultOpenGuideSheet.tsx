@@ -119,7 +119,7 @@ export function VaultOpenGuideSheet({
             // the first modal a user sees in the app, in a colour that is not indigo (measured in the
             // 2026-08-04 audit, reproduced on both app and web. Gate:
             // tests/e2e/dialog-focus-ring.spec.ts).
-            className="flex w-full max-w-[420px] flex-col overflow-hidden rounded-sheet border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] shadow-[var(--shadow-elevation-3)] focus-visible:outline-none"
+            className="flex w-full max-w-[var(--dialog-w-sm)] flex-col overflow-hidden rounded-sheet border border-[color:var(--color-divider)] bg-[color:var(--color-panel)] shadow-[var(--shadow-elevation-3)] focus-visible:outline-none"
           >
             <header className="flex shrink-0 items-start justify-between gap-3 border-b border-[color:var(--color-border-soft)] px-5 py-4">
               <div>

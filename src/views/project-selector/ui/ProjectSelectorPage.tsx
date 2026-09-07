@@ -281,7 +281,7 @@ export function ProjectSelectorPage() {
           {/* People first: the top line is the plain human path (the "new project" button above). The
               two code chips below are explicitly demoted as the developer and agent path — demoted, not
               deleted (the code strings themselves are preserved). */}
-          <p className="mt-3 max-w-[640px] text-body leading-title text-[color:var(--color-text-secondary)]">
+          <p className="mt-3 max-w-[var(--measure-stage-column)] text-body leading-title text-[color:var(--color-text-secondary)]">
             {t("nextSlotHumanLead")}
           </p>
           <div className="mt-3 border-t border-[color:var(--color-divider)] pt-3">

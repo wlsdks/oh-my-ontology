@@ -2816,7 +2816,7 @@ function DocsVaultContent() {
             key="pending-similar-doc"
             className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-4"
           >
-            <div className="pointer-events-auto w-full max-w-[420px]">
+            <div className="pointer-events-auto w-full max-w-[var(--dialog-w-sm)]">
               <SimilarNodeWarning
                 message={t('dialog.similarNodeWarning', { title: pendingSimilarDoc.match.title })}
                 openLabel={t('dialog.similarNodeOpen')}
