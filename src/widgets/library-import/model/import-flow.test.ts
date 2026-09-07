@@ -31,22 +31,30 @@ describe('the tiles', () => {
     expect(serviceEntry(importService('other'))).toBeNull();
   });
 
-  it('draws Confluence and Jira separately over one Atlassian connection', () => {
+  it('offers no tile that leads to a connection the agent cannot use', () => {
     /*
-     * Nobody thinks "I want my Atlassian documents". One connector, two doors, and the folder
-     * each lands in says which they meant.
+     * Confluence and Jira rode Atlassian's hosted OAuth address and left on 2026-09-07 with it;
+     * every tile that remains resolves to a catalogue entry the in-app session can attach.
      */
-    expect(importService('confluence').catalogueId).toBe('atlassian');
-    expect(importService('jira').catalogueId).toBe('atlassian');
-    expect(importService('confluence').folder).not.toBe(importService('jira').folder);
+    for (const service of IMPORT_SERVICES) {
+      if (service.id === 'other') continue;
+      expect(serviceEntry(service)).not.toBeNull();
+    }
+    expect(IMPORT_SERVICES.map((service) => service.id)).toEqual(['notion', 'github', 'other']);
   });
 
-  it('prefers the address with nothing to type whenever the service has one', () => {
-    // The hosted shape is the entire promise of this door; a local program is the fallback.
+  it('asks the one token when a service is a program, and never offers a hosted sign-in', () => {
+    /*
+     * The hosted shape was this door's first promise, and it could not keep it: the in-app
+     * session cannot open the sign-in window (measured 2026-09-07, evening). What a tile offers
+     * now is a program with one token, which the person types once here.
+     */
     const notion = serviceEntry(importService('notion'))!;
-    const variant = serviceVariant(notion);
-    expect(variant.kind).toBe('remote');
-    expect(serviceAsk(importService('notion'))).toEqual({ kind: 'browser' });
+    expect(serviceVariant(notion).kind).toBe('local');
+    expect(serviceAsk(importService('notion'))).toMatchObject({ kind: 'token', name: 'NOTION_TOKEN' });
+    for (const service of IMPORT_SERVICES) {
+      expect(serviceAsk(service).kind).not.toBe('browser');
+    }
   });
 
   it('names the one value and where it is issued when a service issues one', () => {
@@ -67,7 +75,9 @@ describe('the tiles', () => {
 describe('what it writes into the folder', () => {
   it('writes the same descriptor the MCP screen would, switched on', () => {
     const record = importConnector(importService('notion'), { id: 'c1', secretRef })!;
-    expect(record).toMatchObject({ transport: 'http', url: 'https://mcp.notion.com/mcp' });
+    expect(record).toMatchObject({ transport: 'stdio' });
+    expect(record.args.join(' ')).toContain('@notionhq/notion-mcp-server');
+    expect(record.env).toEqual([{ name: 'NOTION_TOKEN', secretRef: 'c1:NOTION_TOKEN' }]);
     /*
      * ⚠️ **On, and this is the one path where that is right.** Everywhere else a connector
      * arrives off, because writing one down is not choosing to use it. Here the person pressed a

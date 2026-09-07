@@ -50,7 +50,7 @@ import type { ConnectorRecord } from '@/shared/lib/connector-record';
  * exported constant with no reader is what the dead-code ratchet is there to catch. `IMPORT_SERVICES`
  * below is the list, and its `id` field is checked against this.
  */
-export type ImportServiceId = 'notion' | 'confluence' | 'jira' | 'github' | 'other';
+export type ImportServiceId = 'notion' | 'github' | 'other';
 
 export interface ImportService {
   id: ImportServiceId;
@@ -83,11 +83,17 @@ export interface ImportService {
  * tiles, with the path that does work today. It goes in when Google or a hosted provider offers
  * a sign-in-only endpoint and somebody adds it to `scripts/build-mcp-catalogue.mjs` with sources.
  */
+/*
+ * ⚠️ **Confluence and Jira left on 2026-09-07, evening.** Both rode the Atlassian hosted address,
+ * which signs in with OAuth — and a hosted OAuth address handed to the in-app session reports
+ * "requires authentication" with no way to open the window (measured against claude-agent-acp
+ * 0.75.0; the catalogue generator now refuses that shape). A tile that leads to a connection the
+ * agent can never use is the dead end this door exists to remove, so the tiles wait for an
+ * adapter that can sign in. Notion and GitHub stay as programs with one token each.
+ */
 export const IMPORT_SERVICES: readonly ImportService[] = [
-  { id: 'notion', catalogueId: 'notion', connect: 'browser', folder: 'sources/notion' },
-  { id: 'confluence', catalogueId: 'atlassian', connect: 'browser', folder: 'sources/confluence' },
-  { id: 'jira', catalogueId: 'atlassian', connect: 'browser', folder: 'sources/jira' },
-  { id: 'github', catalogueId: 'github', connect: 'browser', folder: 'sources/github' },
+  { id: 'notion', catalogueId: 'notion', connect: 'token', folder: 'sources/notion' },
+  { id: 'github', catalogueId: 'github', connect: 'token', folder: 'sources/github' },
   { id: 'other', catalogueId: null, connect: 'manual', folder: 'sources' },
 ];
 

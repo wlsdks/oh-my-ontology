@@ -783,25 +783,26 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     expect(screen.getByTestId('connectors-custom-toggle')).toBeInTheDocument();
   });
 
-  it('카탈로그의 주소 줄은 한 번 눌러 붙고, 꺼진 채로 들어가며, 어디서 왔는지 적힌다', async () => {
+  it('묻는 게 없는 카탈로그 줄은 한 번 눌러 붙고, 꺼진 채로 들어가며, 어디서 왔는지 적힌다', async () => {
     /*
-     * The one rule of the list (2026-09-07, afternoon): a press attaches what asks nothing. A
-     * hosted OAuth address asks nothing of this dialog — the coding agent opens the sign-in
-     * window — so the row goes straight into the folder, off, with its origin recorded.
+     * The one rule of the list (2026-09-07, afternoon): a press attaches what asks nothing.
+     * Context7's address needs no sign-in and no token, so the row goes straight into the
+     * folder, off, with its origin recorded. (A hosted OAuth address is no longer offered: the
+     * in-app session cannot open its sign-in window — measured the same evening.)
      */
     const vault = fakeVault();
     draw(<Panel handle={vault.handle} />);
     await waitFor(() => expect(screen.getByTestId('connectors-empty')).toBeInTheDocument());
     openAdd();
-    const atlassian = document.querySelector(
-      '[data-testid="connectors-catalogue-item"][data-catalogue-id="atlassian"]',
+    const context7 = document.querySelector(
+      '[data-testid="connectors-catalogue-item"][data-catalogue-id="context7"]',
     ) as HTMLElement;
-    expect(atlassian).not.toBeNull();
+    expect(context7).not.toBeNull();
     // The address it will write is on the row, verbatim, before the press.
-    expect(atlassian.querySelector('[data-testid="connectors-catalogue-runs"]')).toHaveTextContent(
-      'https://mcp.atlassian.com/v2/mcp',
+    expect(context7.querySelector('[data-testid="connectors-catalogue-runs"]')).toHaveTextContent(
+      'https://mcp.context7.com/mcp',
     );
-    const add = atlassian.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement;
+    const add = context7.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement;
     expect(add).toHaveAttribute('data-press', 'attaches');
     fireEvent.click(add);
     await waitFor(() => expect(screen.getByTestId('connectors-item')).toBeInTheDocument());
@@ -809,8 +810,8 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     await waitFor(() => expect(screen.queryByTestId('connectors-add-dialog')).toBeNull());
     expect(screen.getByTestId('connectors-item')).toHaveAttribute('data-connector-enabled', 'false');
     const written = vault.files.get('.ontology-atlas/connectors.json') ?? '';
-    expect(written).toContain('https://mcp.atlassian.com/v2/mcp');
-    expect(written).toContain('catalogue:atlassian@');
+    expect(written).toContain('https://mcp.context7.com/mcp');
+    expect(written).toContain('catalogue:context7@');
     // Nothing was stored for it: there is no token to store.
     expect(bridge.secretSets).toEqual([]);
   });
@@ -823,16 +824,11 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     const notion = document.querySelector(
       '[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]',
     ) as HTMLElement;
-    // Notion offers both; the row's own button is the address, and the program is one press
-    // further, named for what it is.
-    expect(notion.querySelector('[data-testid="connectors-catalogue-add"]')).toHaveAttribute(
-      'data-variant-kind',
-      'remote',
-    );
-    const local = notion.querySelector(
-      '[data-testid="connectors-catalogue-other"][data-variant-kind="local"]',
-    ) as HTMLElement;
-    fireEvent.click(local);
+    // Notion is a program with a token now, so the row's own button asks rather than attaches.
+    const add = notion.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement;
+    expect(add).toHaveAttribute('data-variant-kind', 'local');
+    expect(add).toHaveAttribute('data-press', 'asks');
+    fireEvent.click(add);
     const ask = await screen.findByTestId('connectors-catalogue-ask');
     expect(ask).toHaveAttribute('data-variant-kind', 'local');
     // The command is written out above the field, and the press waits for the value.
@@ -865,11 +861,7 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     const notion = document.querySelector(
       '[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]',
     ) as HTMLElement;
-    fireEvent.click(
-      notion.querySelector(
-        '[data-testid="connectors-catalogue-other"][data-variant-kind="local"]',
-      ) as HTMLElement,
-    );
+    fireEvent.click(notion.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement);
     const ask = await screen.findByTestId('connectors-catalogue-ask');
     // A box whose contents would be thrown away is worse than no box.
     expect(screen.queryByTestId('connectors-catalogue-ask-value')).toBeNull();
@@ -892,6 +884,66 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     expect(notion).toHaveAttribute('data-catalogue-attached', 'true');
     expect(notion.querySelector('[data-testid="connectors-catalogue-add"]')).toBeNull();
     expect(notion.querySelector('[data-testid="connectors-catalogue-attached"]')).not.toBeNull();
+  });
+
+  it('이 컴퓨터에서 찾은 것은 세 줄까지만 펼치고, 나머지는 개수로 접어 둔다 — 검색하면 전부 보인다', async () => {
+    /*
+     * Installed-app check, 2026-09-07: on a developer's machine the scan found nine servers —
+     * chrome-devtools, codegraph, pencil — and Notion sat below the fold. The services a person
+     * came for lead; the scan follows, folded past three rows unless they searched.
+     */
+    bridge.discovered = {
+      connectors: ['alpha', 'bravo', 'charlie', 'delta', 'echo'].map((name) => ({
+        source: 'claude-user',
+        name,
+        transport: 'stdio',
+        // No letter shared with the names below, so a search matches names alone.
+        command: `/opt/x/${name}`,
+        args: [],
+        envKeys: [],
+        headerKeys: [],
+      })),
+      sources: [],
+    };
+    const vault = fakeVault();
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-add-open')).toBeInTheDocument());
+    openAdd();
+    await waitFor(() => expect(screen.getAllByTestId('connectors-found-item')).toHaveLength(3));
+    // The catalogue stands above the scan.
+    const groups = screen.getByTestId('connectors-add-groups');
+    const order = Array.from(groups.querySelectorAll('section')).map((node) =>
+      node.getAttribute('data-testid'),
+    );
+    expect(order.indexOf('connectors-catalogue-section')).toBeLessThan(
+      order.indexOf('connectors-found-section'),
+    );
+    const more = screen.getByTestId('connectors-found-more');
+    expect(more).toHaveTextContent('2');
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(more);
+    expect(screen.getAllByTestId('connectors-found-item')).toHaveLength(5);
+    expect(screen.getByTestId('connectors-found-more')).toHaveAttribute('aria-expanded', 'true');
+    // A search shows every match and hides the fold: the person asked.
+    fireEvent.change(screen.getByTestId('connectors-search'), { target: { value: 'a' } });
+    await waitFor(() => expect(screen.queryByTestId('connectors-found-more')).toBeNull());
+    // alpha, bravo, charlie, delta — four, past the fold, all shown.
+    expect(screen.getAllByTestId('connectors-found-item')).toHaveLength(4);
+  });
+
+  it('연결 도구 상세도 닫기는 모서리 하나다', async () => {
+    const vault = fakeVault(seeded(stdioRecord));
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-item-menu')).toBeInTheDocument());
+    openDetail();
+    const dialog = await screen.findByTestId('connectors-item-dialog');
+    expect(dialog.querySelectorAll('[data-testid="connectors-item-close"]')).toHaveLength(1);
+    const closers = Array.from(dialog.querySelectorAll('button')).filter(
+      (button) => button.textContent?.trim() === '닫기',
+    );
+    expect(closers).toHaveLength(0);
+    fireEvent.click(screen.getByTestId('connectors-item-close'));
+    await waitFor(() => expect(screen.queryByTestId('connectors-item-dialog')).toBeNull());
   });
 
   it('닫기는 모서리에 하나, 그리고 Escape — 목록 아래에 버튼을 두지 않는다', async () => {

@@ -439,6 +439,13 @@ const DEGRADED_SURFACES: readonly DegradedSurface[] = [
       await page
         .locator('[data-testid="library-import-service"][data-service="notion"]')
         .click();
+      /*
+       * Notion is a program with a token now (2026-09-07, evening): the hosted address that
+       * asked nothing left the catalogue because the in-app session cannot open its sign-in
+       * window. The press waits for a value, so the walk types one; what it proves is
+       * unchanged — the browser cannot start the coding tool that fetches, and says so.
+       */
+      await page.getByTestId("library-import-token").fill("ntn_smoke_value");
       await page.getByTestId("library-import-connect").click();
       await page
         .getByTestId("library-import-no-agent")
