@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — The installed app answers one address, and it only fills in a form",
+      "slug": "2026-09-07-the-installed-app-answers-one-address-and-it-only-fills-in-a-form"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — Markdown under sources/ is a raw source, not a shadow page",
       "slug": "2026-09-07-markdown-under-sources-is-a-raw-source-not-a-shadow-page"
     },

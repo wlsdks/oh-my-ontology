@@ -1,5 +1,5 @@
 /**
- * `ontology-atlas://mcp/install?name=…&config=<base64 json>` — **an invitation, never an install.**
+ * `ontology-atlas://mcp?install=<base64 json>` — **an invitation, never an install.**
  *
  * ## The shape, and why it is somebody else's
  *
@@ -33,13 +33,16 @@
  * 4. **One level of decoding, no recursion.** The payload is parsed once as
  *    JSON. Nothing here re-parses a string field as a URL or a nested config.
  *
- * ## Where a link comes from today
+ * ## Where a link comes from
  *
- * The custom scheme is not registered with macOS in this change — that needs a
- * Tauri deep-link plugin, which is a dependency this change may not add. What
- * ships is the parser and the pre-fill, reachable through `?install=` on the
- * `/mcp` address, so the shape is proven and testable before anything outside
- * the app can call it. Registration is the named follow-up.
+ * `ontology-atlas://mcp?install=<payload>` is registered with macOS by the installed
+ * app (`src-tauri/src/deep_link.rs`, 2026-09-07). That door answers one grammar and
+ * nothing else: any other destination, and any query key besides `install`, refuses the
+ * whole URL, so an address cannot carry a credential or a second destination past it.
+ * What it does on success is put the payload back on
+ * `/<locale>/mcp/?tab=connectors&install=…` — the same address a person can paste into
+ * the web app — and this parser is what reads it there. One parser, one set of refusals,
+ * two callers.
  */
 import {
   looksLikeSecretKey,
@@ -260,8 +263,14 @@ export function parseMcpInstallLink(
 }
 
 /**
- * The link a page would publish for a connector. Used by the tests to prove the round trip, and
- * available for a "copy an Add-to-Atlas link" affordance if one is ever asked for.
+ * The link a page would publish for a connector — the address the installed app is actually
+ * registered for, so what this mints is what the OS opens. Used by the tests to prove the round
+ * trip, and available for a "copy an Add-to-Atlas link" affordance if one is ever asked for.
+ *
+ * The parameter is `install`, not `config`: it is the **route** parameter, because all the deep
+ * link does is put the payload on `/mcp/?tab=connectors&install=…`. `parseMcpInstallLink` reads
+ * `config`, and the one line that translates between them lives in the caller — the panel does it
+ * from the address bar, `deep_link.rs` does it from the URL.
  */
 export function buildMcpInstallLink(connector: ConnectorRecord): string {
   const config =
@@ -278,5 +287,5 @@ export function buildMcpInstallLink(connector: ConnectorRecord): string {
     typeof btoa === 'function'
       ? btoa(String.fromCharCode(...new TextEncoder().encode(json)))
       : Buffer.from(json, 'utf8').toString('base64');
-  return `ontology-atlas://mcp/install?name=${encodeURIComponent(connector.name)}&config=${encodeURIComponent(base64)}`;
+  return `ontology-atlas://mcp?install=${encodeURIComponent(base64)}`;
 }

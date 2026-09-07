@@ -47,7 +47,7 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: an MCP screen; Connectors off by default, Notion, Atlassian and GitHub filling the form. Library opens on a live graph a hand can pull apart, one stage on an empty folder, a compact stepper, one index column, a door for notes kept elsewhere, a local model behind a card; Markdown under sources/ is a source. Insights repairs back-links. Meaning asks for reasons; trails say how steps connect. Strata: named planes.
+**Added**: an MCP screen; Connectors off by default, Notion, Atlassian and GitHub filling the form, and an ontology-atlas:// link opening the app on it. Library opens on a live graph a hand can pull apart, with a stepper, one index column, a door for outside notes and a local model card; Markdown under sources/ is a source. Insights repairs back-links. Meaning asks for reasons; trails say how steps connect. Strata: named planes.
 
 **Changed**: connectors add in three tabs under one search; Agents lists what it confirmed, the rest in a search window. Insights opens on four measures; chat widens, keeps a clock; Agents and MCP read one column; toasts sit under the toolbar.
 

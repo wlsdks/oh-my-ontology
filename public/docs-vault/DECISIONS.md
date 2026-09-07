@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — The installed app answers one address, and it only fills in a form
+
+**Why**: the install link shipped the same day proved the payload but could not be pressed: a link on a web page cannot open an installed app, so its only caller was somebody pasting a URL. Every vendor page publishing an "Add to …" button publishes a custom scheme, and Atlas had none.
+**Prior**: overturns 2026-08-24 "PO Council: reject the `ontology-atlas://` OS URL scheme (0/24)" for one destination only, and its follow-up "The rejected URL scheme gets a gate", whose gate is renamed `url-scheme-one-door.contract.test.ts` and narrowed, not deleted. The council's other OUT items stand: no uid or node addresses, no second address vocabulary, no URL that writes or executes. 2026-09-07 "Attaching an MCP server is a catalogue pick" stands in full.
+**Decision**: `tauri-plugin-deep-link` registers `ontology-atlas://`, and `src-tauri/src/deep_link.rs` answers `ontology-atlas://mcp?install=<payload>` and nothing else — another destination, a query key besides `install`, a character outside the URL-safe set, or over 4 KiB is logged with its reason and dropped, never redirected, and the URL itself is never logged. On success the window comes forward at `/<locale>/mcp/?tab=connectors&install=…`, the address the web app already reads, and the same strict parser fills the form; nothing is written or enabled. Registered after `tauri-plugin-single-instance`, so a second press routes the window that exists, and `buildMcpInstallLink` now publishes this address.
+**Dissent**: the 2026-08-24 count — a scheme serves about six installs, and an inbound URL puts the product on both sides of its own outbound http/https-only threat model. Answered by narrowness, not volume: one destination, one parameter, no decoding in Rust, a press still required.
+**Falsifier**: a link that attaches, enables or writes without a press; a second scheme or destination in the config; a refused URL that still moved the window; an Add-to-Atlas press that opens a second window.
+**Owner**: jinan
+
 ## 2026-09-07 — Markdown under sources/ is a raw source, not a shadow page
 
 **Why**: reviewing the merged Library on a seeded folder, a `.md` dropped under `sources/` was the one format the list, the graph and Compile could not see: the walk read every Markdown file as a vault page before asking whether the path sat under `sources/`. Notes arrive as Markdown most of all (a Notion or Obsidian export), and the service import writes exactly that.

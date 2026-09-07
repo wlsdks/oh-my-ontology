@@ -56,7 +56,13 @@ libc = "0.2"
 # a second launch a routine event, not an exotic one. Desktop-only by construction: the plugin does
 # not exist for mobile targets.
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
-tauri-plugin-single-instance = "2.4.3"
+tauri-plugin-single-instance = { version = "2.4.3", features = ["deep-link"] }
+# Registers `ontology-atlas://` with the OS so a vendor page's "Add to Atlas" button can reach the
+# installed app. Official Tauri plugin, MIT OR Apache-2.0, same workspace and release train as the
+# updater, process, log, window-state and single-instance plugins already here — no new publisher.
+# `src-tauri/src/deep_link.rs` answers exactly one grammar and drops everything else; the payload is
+# read by the same strict parser the web `?install=` address already feeds.
+tauri-plugin-deep-link = "2.4.10"
 
 # objc2 is a transitive dep already pulled by tauri — zero new supply-chain surface.
 # Used only for WKWebView's 60fps rAF release (ProMotion 120Hz).

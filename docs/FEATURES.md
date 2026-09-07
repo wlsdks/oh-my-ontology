@@ -1545,12 +1545,13 @@ will answer.
   unmarked.
 - **Where a row came from is recorded.** `origin` holds `catalogue:<id>@<capture date>`,
   so the folder can say which entry and which capture produced it.
-- **An install link only pre-fills.** `ontology-atlas://mcp/install?name=&config=<base64>`
-  (also reachable as `?install=` on `/mcp`) opens the dialog filled in and waits for the
-  press. An unknown field refuses the whole payload, no value survives, and every
-  argument is rendered verbatim — the lesson of CVE-2025-54133, recorded with its sources
-  in `docs/benchmark/MCP-ONE-CLICK-2026-09-07.md`. Registering the URL scheme with macOS
-  is a named follow-up; it needs a Tauri plugin dependency this change did not add.
+- **An install link only pre-fills.** `ontology-atlas://mcp?install=<base64>` — registered
+  with macOS by the installed app, and reachable as `?install=` on `/mcp` in any browser —
+  opens the dialog filled in and waits for the press. An unknown field refuses the whole
+  payload, no value survives, and every argument is rendered verbatim — the lesson of
+  CVE-2025-54133, recorded with its sources in `docs/benchmark/MCP-ONE-CLICK-2026-09-07.md`.
+  The app answers that one address and nothing else, a second press routes the window
+  already open, and a refused link is logged and dropped rather than followed.
 
 **On the web**: adding, editing and removing connectors work (the list is in the folder,
 which a browser holds), and the catalogue and the by-hand form work unchanged. Finding

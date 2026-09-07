@@ -137,6 +137,25 @@ The macOS shell also owns one Rust-native, state-free menu-bar item that opens
 the existing main window or quits. It creates no second window, background
 service, webview tray permission, or web equivalent.
 
+**One inbound address.** Since 2026-09-07 the installed app registers the
+`ontology-atlas://` URL scheme (`tauri-plugin-deep-link`, declared in
+`src-tauri/tauri.conf.json` under `plugins.deep-link.desktop.schemes`) so that a
+vendor page's "Add to Ontology Atlas" button can reach it. It answers exactly one
+grammar — `ontology-atlas://mcp?install=<base64 server config>` — and
+`src-tauri/src/deep_link.rs` refuses everything else: any other destination, any
+query key besides `install`, a payload with a character outside the URL-safe set,
+or one over 4 KiB. A refused URL is logged with its reason and dropped; it never
+moves the window, and the URL itself is never written to the log. On success the
+window is brought forward and sent to `/<locale>/mcp/?tab=connectors&install=…`,
+the same address the web app reads, where `parseMcpInstallLink` pre-fills the
+add-connector form and stops: nothing is written, nothing is enabled, and the
+person still presses Add. The deep-link plugin is registered immediately after
+`tauri-plugin-single-instance`, so a second press while the app is running routes
+the window that exists rather than starting a rival one. The 2026-08-24 council
+that rejected this scheme is overturned only for this door; uid addresses, node
+addresses and any URL that writes or executes remain out, and
+`tests/contract/url-scheme-one-door.contract.test.ts` is what keeps them out.
+
 **What each surface is for.** The app is where the vault lives day to day: the
 place a person reads the map, judges it, and connects their AI agents. The web
 has two jobs, in this order. (1) It is the **gateway** — it opens the map with
@@ -428,8 +447,8 @@ until a local manifest exists.
                            link in the Cursor/VS Code shape, and never attaches on its own:
                            an unknown field refuses the payload, no value crosses, every
                            argument renders verbatim, and the switch stays off. The
-                           ontology-atlas:// URL scheme it is shaped for is NOT registered
-                           with macOS yet; that needs a Tauri deep-link plugin
+                           installed app registers ontology-atlas://mcp?install= for that
+                           link (2026-09-07) and answers no other address
 /library                   the project documents gathered into this folder and the wiki
                            pages written from them. Two panes: Sources and Wiki on the
                            left with the doors (Add files, Find documents, Bring from a
