@@ -211,10 +211,6 @@ test.describe("Check the wiki opens the agent dock", () => {
     // opens a real page rather than "<the page name>" (installed app, 2026-09-06).
     await expect(page.getByTestId("library-wiki")).not.toContainText("<the page name>");
     await expect(page.getByTestId("library-wiki")).not.toContainText("Wiki log");
-    // The header line reads the log: last compile and last check, from the app's own record.
-    const logLine = page.getByTestId("library-wiki-log");
-    await expect(logLine).toContainText("architecture (new)");
-    await expect(logLine).toContainText("superseded 1");
     await expect(page.getByTestId("library-index-segment")).toContainText("Wiki 2");
     // With nothing selected the pane is the graph (2026-09-06, third pass), so no page
     // heading is on screen here; the list above already proves the template is not a row.
@@ -225,6 +221,42 @@ test.describe("Check the wiki opens the agent dock", () => {
     ]);
     expect(lintBox && compileBox && Math.abs(lintBox.y - compileBox.y) < 4, "the two doors share a row").toBe(true);
     expect(lintBox!.x, "Lint sits to the left of Compile").toBeLessThan(compileBox!.x);
+    // The app's own record of the last check is read back on the Check results page in the
+    // pane, opened from the chip beside the status strip (owner, 2026-09-07: the column is an
+    // index); nothing about it stands in the column.
+    await expect(page.getByTestId("library-wiki-log")).toHaveCount(0);
+    await page.getByTestId("library-open-report").click();
+    await expect(page.getByTestId("library-check-report-when")).toContainText("superseded 1");
+    await expect(page.getByTestId("library-check-report")).toBeVisible();
+    await expect(page.getByTestId("library-reading-pane")).toHaveCount(0);
+    // Back to the index the way a person goes: the switch is untouched by a page that is neither half.
+    await page.getByTestId("library-index-segment-wiki").click();
+    // At a phone's width the report (still open: the switch does not close a page) is one
+    // column that never scrolls sideways.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const report = page.getByTestId("library-check-report");
+    await expect(report).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    const box = (await report.boundingBox())!;
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    // At 320 (1280 at 400% zoom) the report and the shelf chip are still hit-testable: an
+    // `overflow-hidden` ancestor clips instead of scrolling, so `scrollWidth` alone stays
+    // green over lost content (design-responsive, council 2026-09-07).
+    await page.setViewportSize({ width: 320, height: 844 });
+    for (const id of ["library-check-report", "library-shelf-open"]) {
+      const target = page.getByTestId(id);
+      if ((await target.count()) === 0) continue;
+      // Below `lg` the graph and its header are hidden while a page is open, so the shelf
+      // chip has no box there; only what is drawn is judged.
+      const rect = await target.boundingBox();
+      if (!rect) continue;
+      const hit = await page.evaluate(
+        ([x, y, testId]) => document.elementFromPoint(x, y)?.closest(`[data-testid="${testId}"]`) !== null,
+        [rect.x + rect.width / 2, rect.y + Math.min(rect.height / 2, 20), id] as const,
+      );
+      expect(hit, `${id} is under the pointer at 320`).toBe(true);
+    }
   });
 
   test("pressing it opens the dock carrying a lint request", async ({ page }) => {

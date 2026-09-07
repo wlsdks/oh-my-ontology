@@ -961,3 +961,44 @@ export function useLibraryIndexCollapsed(): boolean {
   const getServerSnapshot = useCallback(() => DEFAULT_LIBRARY_INDEX_COLLAPSED, []);
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+/**
+ * **How an agent's wiki page lands**, per machine.
+ *
+ * Owner direction 2026-09-07: agents act and the person can step in. `auto` lets a page
+ * that fits the wiki contract be written without a permission card; `ask` stops every
+ * page at the card. It is a setting, not a door: it changes how every Compile, Fix and
+ * proposal behaves, so it lives in Settings beside the folder's shape rather than in the
+ * Library's index column, where two chips beside the doors read as scattered (owner,
+ * 2026-09-07 evening). The key predates this move so a person's earlier choice carries.
+ */
+export type WikiWriteMode = "auto" | "ask";
+
+const WIKI_WRITE_MODE_KEY = "library.wikiWriteMode";
+
+const DEFAULT_WIKI_WRITE_MODE: WikiWriteMode = "auto";
+
+function readWikiWriteMode(): WikiWriteMode {
+  if (typeof window === "undefined") return DEFAULT_WIKI_WRITE_MODE;
+  try {
+    return window.localStorage.getItem(WIKI_WRITE_MODE_KEY) === "ask" ? "ask" : DEFAULT_WIKI_WRITE_MODE;
+  } catch {
+    return DEFAULT_WIKI_WRITE_MODE;
+  }
+}
+
+export function writeWikiWriteMode(value: WikiWriteMode): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(WIKI_WRITE_MODE_KEY, value);
+  } catch {
+    // Storage blocked; the event still updates this session.
+  }
+  notifyPreferenceChange();
+}
+
+export function useWikiWriteMode(): WikiWriteMode {
+  const getSnapshot = useCallback(() => readWikiWriteMode(), []);
+  const getServerSnapshot = useCallback(() => DEFAULT_WIKI_WRITE_MODE, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}

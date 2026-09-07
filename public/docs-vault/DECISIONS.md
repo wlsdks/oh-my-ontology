@@ -62,6 +62,23 @@ record stays in Git history before commit `e4fb49a89`.
 **Dissent**: shipping a parser puts Atlas between the document and the quote; a wrong split misattributes an anchor. Kept small (no dependency, two formats parsed) and answered by the sha256 on every answer: the page's `source_hash` and the tool's hash are the same bytes.
 **Falsifier**: a DOCX or XLSX in a real folder whose text the tool splits into anchors a reader cannot find in the document, or a read-only turn in the app that still raises an execute card after being told about the tool.
 **Owner**: jinan
+## 2026-09-07 — The Library column is an index; the check's answer is a page, the answer's filing stands beside the answer, the write setting is a setting
+
+**Why**: the owner read the installed app's Library column and rejected it: a second door row split across two lines, two caption sentences under the doors, the check's findings and seven names inside a 280px column pushing the page list off the screen. "A different strategy for what the column holds, and raise the design level."
+**Prior**: 2026-09-07 "The Library index is a switch between two lists" stands and is the frame; 2026-09-06 "the disclosure lives where Compile can be pressed" stands, narrowed to the sentence about what leaves the computer (a reason Compile is refused is the status strip's). 2026-09-07 "A wiki page that fits its contract is written without a card; the person can switch" stands; the switch moves.
+**Decision**: direction B of three (A status quo, C a foot drawer). The column holds the switch, the search field, one door row (Check · Compile), a *Check results N* row above the list once the wiki was checked, and the list with *New page* as its last row. The check's findings and the names without a page are a *Check results* page in the reading pane, opened when a completed check ends and nothing else is open, or from that row, with Fix and Propose per row. Filing an answer is a chip under the answer in the conversation. The write mode is Settings › "When the agent writes a wiki page". The folded column's tab reads "Index", in Korean the same word its accessible name uses.
+**Dissent**: C kept every fact one press away inside the column; lost because 280px cannot hold a finding's sentence, and a sheet over the list hides the list. Council (design-lead, design-interaction): a report door in the canvas header vanishes when a page is open, and an icon-only New page door shares its glyph with "add files"; both moved into the column's own rows.
+**Falsifier**: a person who, after a check, reads the conversation's answer again because the *Check results* page was not found; or a column that regrows a second row.
+**Owner**: jinan
+
+## 2026-09-07 — Toasts centre on the viewport, not on the map area
+
+**Why**: on the installed app's Library with the conversation open, a toast (the "added: where does this come from?" notice) stood over the index column at the top left, half a dock-width left of centre; the owner read it as misplaced and asked for the screen's own centre.
+**Prior**: narrows 2026-09-06 "toasts stand under the top toolbar" (#1477): the top placement and `--app-toast-top-offset` stand; the clause "centred over the map area rather than the viewport when a dock stands on the right" is overturned.
+**Decision**: the toaster's anchor is `left: 50%` of the viewport on every screen. A toast is transient and drawn above every dock, so the one place a person finds it is the screen's centre whatever pane is open. `--app-right-dock-width` stays published for the panes that reserve space; the toaster no longer reads it.
+**Dissent**: with a 520px dock on a 1400px window a wide toast overlaps the dock's left edge; the map-area centring avoided that. Accepted below 1480px of window (measured: 26px of painted panel at 1400, none at the app's opening 1512): the overlap is transient and above the dock, and the misplacement was permanent.
+**Falsifier**: a toast whose action a person cannot reach because a dock covers it, or a toast read as "in the wrong place" on a screen with no dock.
+**Owner**: jinan
 
 ## 2026-09-07 — A wiki page that fits its contract is written without a card; the person can switch to being asked
 

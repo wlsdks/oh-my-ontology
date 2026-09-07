@@ -4,24 +4,13 @@ import { useState, type ReactNode } from "react";
 import type { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
-import {
-  BookText,
-  Check,
-  CloudDownload,
-  FilePlus2,
-  FileText,
-  Search,
-  Sparkles,
-  Stethoscope,
-} from "lucide-react";
+import { BookText, Check, CloudDownload, FilePlus2, FileText, PencilLine, Search, Sparkles, Stethoscope } from "lucide-react";
 
 import { formatSourceBytes, type LibrarySourceRow } from "@/entities/docs-vault";
-import { isMapKind, type LintFinding, type LintNodeCandidate } from "@/features/library";
 import type { LibraryIndexSegment } from "@/shared/lib/appearance-preferences";
 import { cn } from "@/shared/lib/cn";
 import { badgeClass } from "@/shared/ui/badge-class";
 import { writerLabel } from "../../lib/writer-label";
-import { localizeWikiLogSummary } from "../../lib/wiki-log-summary";
 import { controlClass } from "@/shared/ui/control-class";
 import { Chip, RowButton, Tooltip } from "@/shared/ui";
 import { Input } from "@/shared/ui/input";
@@ -87,7 +76,6 @@ import type { LibraryUiModel } from "../../lib/use-library-model";
  */
 
 /** Candidate rows drawn before the list folds; the rail's height at 14 inches fits five with the wiki list above. */
-const CANDIDATE_FOLD = 5;
 
 export interface LibrarySectionProps {
   model: LibraryUiModel;
@@ -121,21 +109,22 @@ export interface LibrarySectionProps {
   /** Starts the report-only health check; null where no agent can run, like Compile. */
   onLint: (() => void) | null;
   /** Names the last check found with no page of their own — offered as ontology node candidates. */
-  candidates: readonly LintNodeCandidate[];
   /** What the last check found under its first three categories, each with a door to fix it. */
-  findings?: readonly LintFinding[];
-  onFix?: ((finding: LintFinding) => void) | null;
   /** Starts one agent turn that proposes the candidate through the ontology-write card; null like the others. */
-  onPropose: ((candidate: LintNodeCandidate) => void) | null;
   /** Whether `wiki/_template.md` exists: without it the empty state says how to get one. */
   hasWikiTemplate?: boolean;
   /** How an agent's wiki page write is handled: lands when it fits, or asks each time. */
-  writeMode?: "auto" | "ask";
   /** Files the last answer the agent gave as a wiki page; null when there is none. */
-  onFileAnswer?: (() => void) | null;
   /** Starts a page a person writes by hand, from a title. Null where the folder cannot be written. */
   onNewPage?: ((title: string) => void) | null;
-  onWriteModeChange?: ((mode: "auto" | "ask") => void) | null;
+  /**
+   * The Check results page: how many findings and names it holds, whether it is the open
+   * page, and the press that opens it. Null when the wiki was never checked — the row is
+   * the index's one line about the check, and an unchecked wiki has none (design-lead,
+   * council 2026-09-07: the report's door must survive a page being open, which the
+   * canvas header does not).
+   */
+  report?: { count: number; open: boolean; onOpen: () => void } | null;
   /**
    * The brain picker, when this computer offers two and Compile can therefore be pointed
    * at either. Null draws nothing: with one brain there is no choice to make.
@@ -213,11 +202,6 @@ function StateBadge({
 }
 
 /** The log's ISO stamp as a person reads it; the raw stamp when it does not parse. */
-function logWhen(at: string): string {
-  const date = new Date(at);
-  if (Number.isNaN(date.getTime())) return at;
-  return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-}
 
 /** One line of counting under a list. `text-caption`, because it is a footnote to rows. */
 function ListNote({ testId, children }: { testId: string; children: ReactNode }) {
@@ -242,15 +226,9 @@ export function LibrarySection({
   onImportFromService,
   onCompile,
   onLint,
-  candidates,
-  findings = [],
-  onFix = null,
-  onPropose,
   hasWikiTemplate = true,
-  writeMode = "auto",
-  onFileAnswer = null,
   onNewPage = null,
-  onWriteModeChange = null,
+  report = null,
   brainControl,
   compileNote,
   segment,
@@ -262,7 +240,6 @@ export function LibrarySection({
    * ten names). Five rows show — the map kinds first, since those carry the one door
    * this list has — and the rest fold behind a count a person can open.
    */
-  const [candidatesOpen, setCandidatesOpen] = useState(false);
   /*
    * One search over both lists (owner direction 2026-09-07; the LLM Wiki pattern reaches
    * for a search tool once the folder grows). A source matches on its path, a page on its
@@ -279,9 +256,6 @@ export function LibrarySection({
     : model.wikiPages;
   const [newPageOpen, setNewPageOpen] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState("");
-  const orderedCandidates = [...candidates].sort((a, b) => Number(isMapKind(b.kind)) - Number(isMapKind(a.kind)));
-  const shownCandidates = candidatesOpen ? orderedCandidates : orderedCandidates.slice(0, CANDIDATE_FOLD);
-  const foldedCandidates = orderedCandidates.length - shownCandidates.length;
   const hasSources = model.sources.length > 0;
   const hasWiki = model.wikiPages.length > 0;
   /** What is still waiting, in words — the same line step two's caption prints. */
@@ -489,7 +463,7 @@ export function LibrarySection({
                     disabled={busy || model.wikiPages.length < 2}
                     tone="muted"
                     className="flex-none hover:text-[color:var(--color-text-primary)]"
-                    aria-label={t("wiki.lintTooltip")}
+                    aria-label={t("wiki.lint")}
                   >
                     <Stethoscope size={ICON_SIZE.sm} aria-hidden />
                     <span className="min-w-0 truncate">{t("wiki.lint")}</span>
@@ -504,7 +478,7 @@ export function LibrarySection({
                     disabled={busy || model.needsCompileCount === 0}
                     tone="muted"
                     className="flex-none hover:text-[color:var(--color-text-primary)]"
-                    aria-label={t("wiki.compileTooltip")}
+                    aria-label={t("wiki.compile")}
                   >
                     <Sparkles size={ICON_SIZE.sm} aria-hidden />
                     <span className="min-w-0 truncate">{t("wiki.compile")}</span>
@@ -515,7 +489,7 @@ export function LibrarySection({
             {/* The picker is what the buttons beside it will run on; a control on its own
                 row reads as a setting rather than as part of the press. */}
             {brainControl ? (
-              <span data-testid="library-brain-control" className="min-w-0 flex-1">
+              <span data-testid="library-brain-control" className="min-w-[9rem] flex-auto">
                 {brainControl}
               </span>
             ) : null}
@@ -529,33 +503,6 @@ export function LibrarySection({
         it works, and what still works here (the pages read and edit exactly as they do
         in the app). It is the same slot as `compileNote`, and only one can be true.
       */}
-      {/*
-        **What happened last, from the app's own record** (`wiki/_log.md`, PR #1486). One
-        caption, two facts at most: the last Compile and the last Check, each with its
-        time. `text-label` rather than `text-caption` — 9.5px is this product's
-        uppercase-eyebrow size, and this is a sentence a person reads to decide whether to
-        press anything at all.
-      */}
-      {model.log.lastCompile || model.log.lastLint ? (
-        <p
-          data-testid="library-wiki-log"
-          className="px-3 pb-1 text-label leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all] [overflow-wrap:anywhere]"
-        >
-          {model.log.lastCompile
-            ? t("wiki.logCompile", {
-                when: logWhen(model.log.lastCompile.at),
-                summary: localizeWikiLogSummary(model.log.lastCompile.summary, t),
-              })
-            : null}
-          {model.log.lastCompile && model.log.lastLint ? " · " : null}
-          {model.log.lastLint
-            ? t("wiki.logLint", {
-                when: logWhen(model.log.lastLint.at),
-                summary: localizeWikiLogSummary(model.log.lastLint.summary, t),
-              })
-            : null}
-        </p>
-      ) : null}
 
       {onCompile === null ? (
         <p
@@ -584,121 +531,22 @@ export function LibrarySection({
         </p>
       ) : null}
 
-      {onNewPage || onFileAnswer || (onWriteModeChange && (onCompile || onLint)) ? (
-        <div className="flex flex-col gap-1 px-3 pb-1">
-          {/* The second row: the doors that are not the two the spec measures — a page of
-              your own, filing an answer, and how writes land. It stands under the disclosure,
-              not between Compile and it: `library-compile-dock.spec.ts` pins that sentence to
-              within 24px of the chip. It wraps, so at 280px nothing is cut off (installed app,
-              2026-09-07). */}
-          <span className="flex min-w-0 flex-wrap items-center gap-1 pt-1">
-            {onNewPage ? (
-              <Tooltip content={t("wiki.newPageTooltip")}>
-                <Chip
-                  data-testid="library-new-page"
-                  onClick={() => setNewPageOpen((open) => !open)}
-                  disabled={busy}
-                  tone="muted"
-                  aria-expanded={newPageOpen}
-                  className="flex-none hover:text-[color:var(--color-text-primary)]"
-                  aria-label={t("wiki.newPageTooltip")}
-                >
-                  <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
-                  <span className="min-w-0 truncate">{t("wiki.newPage")}</span>
-                </Chip>
-              </Tooltip>
-            ) : null}
-            {onFileAnswer ? (
-              /* The LLM Wiki pattern's "answers can be filed back": the last answer
-                 becomes a page under wiki/answers/, judged by the same contract. */
-              <Tooltip content={t("wiki.fileAnswerTooltip")}>
-                <Chip
-                  data-testid="library-file-answer"
-                  onClick={onFileAnswer}
-                  disabled={busy}
-                  tone="muted"
-                  className="flex-none hover:text-[color:var(--color-text-primary)]"
-                  aria-label={t("wiki.fileAnswerTooltip")}
-                >
-                  <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
-                  <span className="min-w-0 truncate">{t("wiki.fileAnswer")}</span>
-                </Chip>
-              </Tooltip>
-            ) : null}
-            {onWriteModeChange && (onCompile || onLint) ? (
-              /*
-               * Owner direction 2026-09-07: the agent acts and the person can step in.
-               * A page that fits the contract lands at once; the person can switch to
-               * being asked each time. Two chips, one active, beside the doors they govern.
-               */
-              <span
-                role="group"
-                aria-label={t("wiki.writeModeLabel")}
-                data-testid="library-write-mode"
-                className="ml-auto inline-flex flex-none items-center gap-1"
-              >
-                <Tooltip content={t("wiki.writeModeAutoTooltip")}>
-                  <Chip
-                    data-testid="library-write-mode-auto"
-                    onClick={() => onWriteModeChange("auto")}
-                    active={writeMode === "auto"}
-                    aria-pressed={writeMode === "auto"}
-                    tone="muted"
-                    className="flex-none"
-                  >
-                    {t("wiki.writeModeAuto")}
-                  </Chip>
-                </Tooltip>
-                <Tooltip content={t("wiki.writeModeAskTooltip")}>
-                  <Chip
-                    data-testid="library-write-mode-ask"
-                    onClick={() => onWriteModeChange("ask")}
-                    active={writeMode === "ask"}
-                    aria-pressed={writeMode === "ask"}
-                    tone="muted"
-                    className="flex-none"
-                  >
-                    {t("wiki.writeModeAsk")}
-                  </Chip>
-                </Tooltip>
-              </span>
-            ) : null}
-          </span>
-          {onNewPage && newPageOpen ? (
-            <span data-testid="library-new-page-row" className="flex min-w-0 items-center gap-1 px-1 pt-1">
-              <Input
-                data-testid="library-new-page-title"
-                size="sm"
-                aria-label={t("wiki.newPageTitle")}
-                placeholder={t("wiki.newPageTitle")}
-                value={newPageTitle}
-                autoFocus
-                onChange={(event) => setNewPageTitle(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Escape") setNewPageOpen(false);
-                  if (event.key === "Enter" && newPageTitle.trim()) {
-                    onNewPage(newPageTitle.trim());
-                    setNewPageTitle("");
-                    setNewPageOpen(false);
-                  }
-                }}
-                className="min-w-0 flex-1"
-              />
-              <Chip
-                data-testid="library-new-page-make"
-                tone="muted"
-                disabled={busy || newPageTitle.trim() === ""}
-                onClick={() => {
-                  onNewPage(newPageTitle.trim());
-                  setNewPageTitle("");
-                  setNewPageOpen(false);
-                }}
-              >
-                {t("wiki.newPageMake")}
-              </Chip>
+      {report ? (
+        /* The index's one line about the check: where its answer is, and how much it holds.
+           A row, not a door — pressing it opens a page, it starts nothing. */
+        <div className="px-2 pb-1">
+          <RowButton
+            data-testid="library-open-report"
+            active={report.open}
+            aria-current={report.open ? "page" : undefined}
+            onClick={report.onOpen}
+            className="hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]"
+          >
+            <Stethoscope size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">
+              {report.count > 0 ? t("report.open", { count: report.count }) : t("report.title")}
             </span>
-          ) : null}
-
+          </RowButton>
         </div>
       ) : null}
       {hasWiki ? (
@@ -778,6 +626,72 @@ export function LibrarySection({
                 </li>
               );
             })}
+            {onNewPage ? (
+              /* A page a person writes by hand is the list's own last row, not a door beside
+                 the two agent turns (council 2026-09-07): a hand action on the list, drawn in
+                 the list's grammar, with its own glyph — `FilePlus2` already means "add a
+                 file" one switch away and "file the answer" in the dock. */
+              <li>
+                {newPageOpen ? (
+                    <span
+                    id="library-new-page-row"
+                    data-testid="library-new-page-row"
+                    className="flex min-w-0 items-center gap-1 px-1 py-1"
+                    onKeyDown={(event) => {
+                      // The row owns Escape: pressed on the Make chip it must not reach the page
+                      // handler, which would close the open document instead of this row.
+                      if (event.key === "Escape") {
+                        event.stopPropagation();
+                        setNewPageOpen(false);
+                      }
+                    }}
+                  >
+                      <Input
+                        data-testid="library-new-page-title"
+                        size="sm"
+                        aria-label={t("wiki.newPageTitle")}
+                        placeholder={t("wiki.newPageTitle")}
+                        value={newPageTitle}
+                        autoFocus
+                        onChange={(event) => setNewPageTitle(event.target.value)}
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter" && newPageTitle.trim()) {
+                            onNewPage(newPageTitle.trim());
+                            setNewPageTitle("");
+                            setNewPageOpen(false);
+                          }
+                        }}
+                        className="min-w-0 flex-1"
+                      />
+                      <Chip
+                        data-testid="library-new-page-make"
+                        tone="muted"
+                        disabled={busy || newPageTitle.trim() === ""}
+                        onClick={() => {
+                          onNewPage(newPageTitle.trim());
+                          setNewPageTitle("");
+                          setNewPageOpen(false);
+                        }}
+                      >
+                        {t("wiki.newPageMake")}
+                      </Chip>
+                    </span>
+                ) : (
+                  <RowButton
+                    data-testid="library-new-page"
+                    onClick={() => setNewPageOpen(true)}
+                    disabled={busy}
+                    aria-expanded={false}
+                    aria-controls="library-new-page-row"
+                    title={t("wiki.newPageTooltip")}
+                    className="hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]"
+                  >
+                    <PencilLine size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate">{t("wiki.newPage")}</span>
+                  </RowButton>
+                )}
+              </li>
+            ) : null}
           </ul>
           {/*
             The same count the rows draw and the header strip prints. `offTemplateCount`
@@ -801,127 +715,6 @@ export function LibrarySection({
         </p>
       )}
 
-{findings.length > 0 ? (
-        // What the check found, one row each, with the one door a report-only turn had
-        // no way to offer (owner direction 2026-09-07): Fix starts a turn on those pages.
-        <section
-          data-testid="library-findings"
-          aria-label={t("wiki.findingsHeader", { count: findings.length })}
-          className="flex-none px-2 pb-1"
-        >
-          <Tooltip content={t("wiki.findingsTooltip")}>
-            <p tabIndex={0} className="px-1 pb-1 text-caption text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
-              {t("wiki.findingsHeader", { count: findings.length })}
-            </p>
-          </Tooltip>
-          <ul className="flex flex-col gap-0.5">
-            {findings.map((finding, index) => (
-              <li
-                key={`${finding.code}\u0000${finding.pages.join(",")}\u0000${index}`}
-                data-testid="library-finding"
-                className="flex min-w-0 flex-col gap-0.5 rounded-chip px-1 py-1"
-              >
-                <span className="text-label text-[color:var(--color-text-primary)] [word-break:keep-all]">
-                  {finding.summary}
-                </span>
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className="min-w-0 flex-1 truncate text-caption text-[color:var(--color-text-quaternary)]">
-                    {t(`wiki.findingKind.${finding.code === "missing-link" ? "missingLink" : finding.code}`)} · {finding.pages.map((slug) => slug.replace(/^wiki\//, "")).join(", ")}
-                  </span>
-                  {onFix ? (
-                    <Tooltip content={t("wiki.fixTooltip")}>
-                      <Chip
-                        data-testid="library-finding-fix"
-                        onClick={() => onFix(finding)}
-                        disabled={busy}
-                        tone="muted"
-                        className="flex-none hover:text-[color:var(--color-text-primary)]"
-                        aria-label={`${t("wiki.fix")}: ${finding.summary}`}
-                      >
-                        <span className="min-w-0 truncate">{t("wiki.fix")}</span>
-                      </Chip>
-                    </Tooltip>
-                  ) : null}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-      
-      {/*
-        **The wiki's candidates for the graph** (PR #1486): a name the last check found on
-        three or more pages with no page of its own. Not a page to write — a node to
-        propose, and the proposal goes through the same permission card every ontology
-        write does.
-
-        It keeps this column's own rhythm rather than the shape it arrived in: the same
-        `px-2` list inset and `gap-0.5` between rows as the two lists above it, so a
-        reader scrolling one column does not meet a third spacing system at the bottom of
-        it. The name still takes its own line — at 280px it truncated to "Timber…" beside
-        its own meta (installed app, 2026-09-06) — and the meta and the chip share the
-        line beneath.
-      */}
-      {candidates.length > 0 ? (
-        <section
-          data-testid="library-candidates"
-          aria-label={t("wiki.candidatesHeader", { count: candidates.length })}
-          className="flex flex-col px-2 pb-1"
-        >
-          <Tooltip content={t("wiki.candidatesTooltip")}>
-            <p tabIndex={0} className="px-1 pb-1 text-caption leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
-              {t("wiki.candidatesHeader", { count: candidates.length })}
-            </p>
-          </Tooltip>
-          <ul className="flex flex-col gap-0.5">
-            {shownCandidates.map((candidate) => (
-              <li
-                key={`${candidate.name}\u0000${candidate.pages.join(",")}`}
-                data-testid="library-candidate"
-                className="flex min-w-0 flex-col gap-0.5 rounded-chip px-1 py-1"
-              >
-                <span
-                  className="text-label leading-body text-[color:var(--color-text-primary)] [word-break:keep-all]"
-                  title={candidate.why || undefined}
-                >
-                  {candidate.name}
-                </span>
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className="min-w-0 flex-1 truncate text-caption text-[color:var(--color-text-quaternary)]">
-                    {t(`wiki.candidateKind.${candidate.kind}`)} ·{" "}
-                    {t("wiki.candidatePages", { count: candidate.pages.length })}
-                  </span>
-                  {onPropose && isMapKind(candidate.kind) ? (
-                    <Tooltip content={t("wiki.proposeTooltip")}>
-                      <Chip
-                        data-testid="library-candidate-propose"
-                        onClick={() => onPropose(candidate)}
-                        disabled={busy}
-                        tone="muted"
-                        className="flex-none hover:text-[color:var(--color-text-primary)]"
-                        aria-label={`${t("wiki.propose")}: ${candidate.name}`}
-                      >
-                        <span className="min-w-0 truncate">{t("wiki.propose")}</span>
-                      </Chip>
-                    </Tooltip>
-                  ) : null}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {foldedCandidates > 0 || candidatesOpen ? (
-            <Chip
-              data-testid="library-candidates-fold"
-              tone="muted"
-              className="mt-1"
-              onClick={() => setCandidatesOpen((open) => !open)}
-              aria-expanded={candidatesOpen}
-            >
-              {candidatesOpen ? t("wiki.candidatesLess") : t("wiki.candidatesMore", { count: foldedCandidates })}
-            </Chip>
-          ) : null}
-        </section>
-      ) : null}
     </section>
   );
 }

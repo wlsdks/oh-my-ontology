@@ -3195,7 +3195,12 @@
     "workspaceShapeCaption": "Read from the files, not a setting. Adding a part writes its starter files; the tabs follow.",
     "workspaceShapeStartMap": "Start the map",
     "workspaceShapeStartWiki": "Start a wiki",
-    "workspaceShapeStarted": "Added to this folder."
+    "workspaceShapeStarted": "Added to this folder.",
+    "wikiWriteModeLabel": "When the agent writes a wiki page",
+    "wikiWriteModeAuto": "Write at once",
+    "wikiWriteModeAsk": "Ask each time",
+    "wikiWriteModeAutoCaption": "A page that fits the contract is written at once and noted in the conversation; one that does not stops at the permission card.",
+    "wikiWriteModeAskCaption": "Every page stops at the permission card."
   },
   "copyProjectLink": {
     "toastSuccess": "Link copied",
@@ -4425,6 +4430,7 @@
     "eyebrow": "In this folder",
     "lede": "The project documents you gathered, in whatever format they arrived, and the wiki pages written from them. A source is kept byte for byte, and every claim on a page cites one.",
     "index": {
+      "tab": "Index",
       "aria": "Which list the index shows",
       "sources": "Sources {count}",
       "wiki": "Wiki {count}",
@@ -4487,7 +4493,6 @@
       "compileTooltip": "Start one agent turn that reads the sources and writes wiki pages. A page that fits the contract lands at once; one that does not stops at your permission card.",
       "lint": "Check the wiki",
       "lintTooltip": "Start one agent turn that reads the wiki pages and reports disagreements, superseded claims, missing links, and names without a page. It writes nothing.",
-      "candidatesHeader": "Names without a page · {count}",
       "candidateKind": {
         "domain": "domain",
         "capability": "capability",
@@ -4499,7 +4504,6 @@
       "candidatePages": "{count, plural, one {on # page} other {on # pages}}",
       "propose": "Propose as node",
       "proposeTooltip": "Start one agent turn that reads these pages and proposes one ontology node. The write stops at your permission card.",
-      "logCompile": "Last compile {when}: {summary}",
       "logLint": "Last check {when}: {summary}",
       "empty": "No wiki pages yet. A page is Markdown with no kind:, in the shape wiki/_template.md holds.",
       "unknownAuthor": "unknown",
@@ -4543,18 +4547,11 @@
       "folderMark": "link",
       "candidatesMore": "{count, plural, one {# more name} other {# more names}}",
       "candidatesLess": "Fewer names",
-      "writeModeAuto": "Writes land",
-      "writeModeAsk": "Ask each time",
-      "writeModeLabel": "What happens when the agent writes a wiki page",
-      "writeModeAutoTooltip": "A page that fits the contract is written at once and noted in the conversation; one that does not still stops at the card.",
-      "writeModeAskTooltip": "Every page write stops at the card for your decision.",
       "candidatesTooltip": "Names the last check saw on three or more pages with no page of their own. Only what the code builds, a domain, a capability or an element, can be proposed as a node on the map; people and organisations stay names in the wiki.",
       "fileAnswer": "File the answer",
       "fileAnswerTooltip": "Write the last answer as a wiki page under wiki/answers/, with the files it cited as its sources. Judged by the same contract as every page.",
       "fileAnswerDone": "Filed as {page}.",
       "fileAnswerRejected": "Not filed: the answer does not fit the page contract ({code}). Ask for citations and try again.",
-      "findingsHeader": "What the check found · {count}",
-      "findingsTooltip": "The last check's findings, one per row: two pages disagreeing, a claim a later document replaced, or pages that share a topic without linking. Fix starts one agent turn on those pages; the edits meet the page contract like any other.",
       "findingKind": {
         "disagreement": "disagreement",
         "superseded": "superseded claim",
@@ -4724,6 +4721,15 @@
       "own": "My own question",
       "placeholder": "Type what you want to ask",
       "send": "Ask"
+    },
+    "report": {
+      "title": "Check results",
+      "never": "Not checked yet. Check the wiki and this page gathers the values two pages disagree on, the claims a later page replaced, the missing links, and the names without a page.",
+      "clean": "The last check found nothing to fix.",
+      "gone": "What the last check found does not survive reopening the app. Check the wiki again to see it.",
+      "emptyLede": "Checking the wiki reads and reports. It writes nothing.",
+      "namesTitle": "Names without a page",
+      "open": "Check results {count}"
     },
     "search": {
       "placeholder": "Search sources and pages",
