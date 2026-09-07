@@ -711,9 +711,11 @@ export function LibrarySection({
             aria-label={t("wiki.candidatesHeader", { count: candidates.length })}
             className="flex flex-col px-2 pb-1"
           >
-            <p className="px-1 pb-1 text-caption leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
-              {t("wiki.candidatesHeader", { count: candidates.length })}
-            </p>
+            <Tooltip content={t("wiki.candidatesTooltip")}>
+              <p tabIndex={0} className="px-1 pb-1 text-caption leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
+                {t("wiki.candidatesHeader", { count: candidates.length })}
+              </p>
+            </Tooltip>
             <ul className="flex flex-col gap-0.5">
               {shownCandidates.map((candidate) => (
                 <li

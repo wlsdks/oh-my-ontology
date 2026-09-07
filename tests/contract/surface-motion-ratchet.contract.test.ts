@@ -210,7 +210,14 @@ const BASELINE_HARD_CUTS = 0;
  * it in a browser — so its open path is measured directly, by the `the Library pane` cases
  * in `tests/e2e/library.spec.ts` (drawn, Escape closes it, focus returns to its chip).
  */
-const BASELINE_APPEARING_SURFACES = 38;
+/*
+ * 38 → 39 (2026-09-07): the Library's select-to-ask list. Selecting a passage in a wiki
+ * page shows one chip; pressing it opens this `Surface` with `transientSurface("anchored")`
+ * beside the text. It needs the desktop ACP bridge (the docked agent answers), so the
+ * static browser sweep cannot open it; `SelectionAsk.test.tsx` carries its named aside,
+ * its Escape path and the sent question, and the installed app carries the real press.
+ */
+const BASELINE_APPEARING_SURFACES = 39;
 
 const SELF = 'tests/contract/surface-motion-ratchet.contract.test.ts';
 const FIXTURES = 'tests/fixtures/surface-motion';

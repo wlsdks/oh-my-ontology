@@ -1409,6 +1409,18 @@ RATIO-SYSTEM 1600px container / 960px centered utility column.
 
 ---
 
+### Library — ask about a passage, and a graph that explains its marks (2026-09-07)
+
+Select eight or more characters in a wiki page and a chip, **Ask about this**, appears
+under the selection. Pressing it opens a short list beside the text — where does this come
+from, does anything disagree with it, explain it in plain words — and a line for the
+person's own words. The chosen question goes to the docked agent as one read-only turn with
+the exact passage quoted, the page named, and the rule to read the page and its originals
+and cite them (`buildAskBrief`). The graph's legend line becomes a description while a mark
+is under the pointer or the keyboard: an original file, a wiki page, or a concept on the
+map, each with what its lines mean and what pressing does; the **Names without a page**
+header carries a tooltip saying why only map kinds can be proposed.
+
 ### First run — what the folder holds (2026-09-06)
 
 "Just start" and "Create" open one question before writing anything: a documents wiki, an

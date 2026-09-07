@@ -19,3 +19,5 @@ export { appendWikiLog, describeCompileTurn, describeLintTurn, parseWikiLog } fr
 export type { WikiLogEntry } from "./lib/wiki-log";
 export type { PageWriteRequest, PageWriteVerdict } from "./lib/judge-page-write";
 export { FindDocumentsDialog } from "./ui/FindDocumentsDialog";
+export { buildAskBrief } from "./lib/ask-brief";
+export type { AskQuestionId } from "./lib/ask-brief";

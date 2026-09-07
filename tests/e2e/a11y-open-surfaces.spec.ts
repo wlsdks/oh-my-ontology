@@ -161,6 +161,12 @@ const MIN_RULES_PASSED = 15;
  * carry its accessibility proof.
  */
 /*
+ * 38 → 39 (2026-09-07): the Library's select-to-ask list. It appears only after a text
+ * selection inside a wiki page and only where a desktop ACP runtime can answer, so it
+ * cannot join this single-click OPENERS grammar. `SelectionAsk.test.tsx` covers the named
+ * aside, Escape, the three questions and the typed one; the installed app carries the press.
+ */
+/*
  * 33 → 34 (2026-09-04): the Flow presentation requires a Tauri vault path, an
  * eligible ACP runtime, an exact completed Flow turn, and successful source-hidden
  * qualification. It therefore cannot join this static single-click OPENERS grammar.

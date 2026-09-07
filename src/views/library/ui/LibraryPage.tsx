@@ -36,6 +36,7 @@ import {
   type DiscoveryOutcome,
   dropCandidatesWithNodes,
   wikiPagePathOf,
+  buildAskBrief,
 } from "@/features/library";
 import {
   DocReadingPane,
@@ -64,6 +65,7 @@ import { LibraryStage } from "./parts/LibraryStage";
 import { LibraryStartStage } from "./parts/LibraryStartStage";
 import { LibraryStatusStrip } from "./parts/LibraryStatusStrip";
 import { LibraryAgentDock } from "./parts/LibraryAgentDock";
+import { SelectionAsk } from "./parts/SelectionAsk";
 import { selectOpenVaultHandle } from "@/shared/lib/select-open-vault-handle";
 import { SourceSummary } from "./parts/SourceSummary";
 import { WikiPageHeader } from "./parts/WikiPageHeader";
@@ -556,6 +558,7 @@ export function LibraryPage() {
    * a lint turn completes; cleared by the next lint. Never persisted: a candidate is an
    * offer, and the offer is remade each time the wiki is checked.
    */
+  const pageBodyRef = useRef<HTMLDivElement | null>(null);
   const [candidates, setCandidates] = useState<LintNodeCandidate[]>([]);
   /* A candidate the card already turned into a node leaves the list; the report cannot know. */
   const openCandidates = useMemo(() => dropCandidatesWithNodes(candidates, docs), [candidates, docs]);
@@ -586,7 +589,7 @@ export function LibraryPage() {
          * and an import writes documents under `sources/`; neither touches a page, so neither
          * is an entry, or the log would claim a compile that never ran.
          */
-        if (kind === "propose" || kind === "import") return;
+        if (kind === "propose" || kind === "import" || kind === "ask") return;
         const summary =
           kind === "lint"
             ? describeLintTurn(lastAgentText)
@@ -1189,14 +1192,38 @@ export function LibraryPage() {
               t={t}
             />
             <WikiTemplateProblems problems={wikiProblems} t={t} />
-            <DocsVaultViewer
-              key={selectedWikiDoc.slug}
-              doc={selectedWikiDoc}
-              vaultSlugs={vaultSlugs}
-              onNavigate={(slug) => setSelected({ kind: "wiki", slug })}
-              getDocContent={getDocContent}
-              resolveImage={resolveImage}
-            />
+            {/* The passage a person selects here can be asked about at once; the chip and
+                its list hang from the selection inside this positioned box. */}
+            <div ref={pageBodyRef} className="relative">
+              <DocsVaultViewer
+                key={selectedWikiDoc.slug}
+                doc={selectedWikiDoc}
+                vaultSlugs={vaultSlugs}
+                onNavigate={(slug) => setSelected({ kind: "wiki", slug })}
+                getDocContent={getDocContent}
+                resolveImage={resolveImage}
+              />
+              {agent.route === "agent" ? (
+                <SelectionAsk
+                  containerRef={pageBodyRef}
+                  disabled={agent.runtime === null}
+                  onAsk={(selection, question, customQuestion) =>
+                    agent.start(
+                      buildAskBrief({
+                        selection,
+                        pageSlug: selectedWikiDoc.slug,
+                        question,
+                        customQuestion,
+                        locale,
+                        vaultRoot: nativeVaultRootPath ?? "",
+                      }),
+                      "ask",
+                    )
+                  }
+                  t={t}
+                />
+              ) : null}
+            </div>
           </DocReadingPane>
         ) : selectedSource ? (
           <div className="min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]">

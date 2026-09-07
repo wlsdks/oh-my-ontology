@@ -4538,7 +4538,8 @@
       "writeModeAsk": "Ask each time",
       "writeModeLabel": "What happens when the agent writes a wiki page",
       "writeModeAutoTooltip": "A page that fits the contract is written at once and noted in the conversation; one that does not still stops at the card.",
-      "writeModeAskTooltip": "Every page write stops at the card for your decision."
+      "writeModeAskTooltip": "Every page write stops at the card for your decision.",
+      "candidatesTooltip": "Names the last check saw on three or more pages with no page of their own. Only what the code builds, a domain, a capability or an element, can be proposed as a node on the map; people and organisations stay names in the wiki."
     },
     "graph": {
       "title": "Graph",
@@ -4556,7 +4557,12 @@
       "actionSelect": "opens it here",
       "actionMap": "opens it on the map",
       "openOnMap": "open on the map",
-      "fit": "Fit the whole picture"
+      "fit": "Fit the whole picture",
+      "describe": {
+        "source": "{name}: an original file. A thick line leads to the page written from it; no line means nobody has written it up yet. Press to open it.",
+        "page": "{name}: a wiki page. Thick lines lead to the originals it cites, dashed lines to concepts it names. Press to read it.",
+        "concept": "{name}: a concept on the map. The dashed lines lead to the wiki pages it names or was drawn from. Press to open it on the map."
+      }
     },
     "find": {
       "title": "Documents in the folders you granted",
@@ -4680,6 +4686,15 @@
       "failed": "Nothing was written. {reason}",
       "noSnapshot": "No save point is taken here; the change is in your folder and in Git.",
       "nothing": "It finished without proposing a page."
+    },
+    "ask": {
+      "chip": "Ask about this",
+      "title": "Ask the agent about the selected passage",
+      "evidence": "Where does this come from?",
+      "disagreement": "Does anything disagree with it?",
+      "explain": "Explain it in plain words",
+      "placeholder": "Or ask in your own words",
+      "send": "Ask"
     }
   },
   "libraryImport": {
