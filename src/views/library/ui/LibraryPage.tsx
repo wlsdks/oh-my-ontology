@@ -1053,7 +1053,21 @@ export function LibraryPage() {
           aria-label={t("index.expand")}
           aria-expanded={false}
           data-testid="library-index-tab"
-          className="hidden flex-none flex-col items-center gap-2.5 self-stretch border-r border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] py-2.5 hover:text-[color:var(--color-text-primary)] lg:flex"
+          /*
+           * `shape: "tile"` is the value layer's **vertical stack** — icon above, label
+           * below — which is exactly what an edge handle is, and it is why this is not a
+           * hand-written control: the map's own tab is registered debt under the claim
+           * `shape-gap` / `flex-col`, and a second copy of that claim would be a second
+           * place to fix. The tile brings its border, its radius and its transition; this
+           * adds only placement, the 26px width, and the panel ground.
+           */
+          className={controlClass({
+            shape: "tile",
+            tone: "muted",
+            hoverInk: "strong",
+            className:
+              "my-3 ml-3 hidden flex-none items-center gap-2.5 self-start border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] py-2.5 lg:flex",
+          })}
           style={{ width: "var(--topology-index-tab-width)" }}
         >
           <span
