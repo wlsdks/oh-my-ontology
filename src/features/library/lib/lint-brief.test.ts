@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildLintBrief, dropCandidatesWithNodes, isMapKind, parseLintCandidates } from "./lint-brief";
+import { buildLintBrief, dropCandidatesWithNodes, isMapKind, parseLintCandidates, parseLintCounts } from "./lint-brief";
 
 const PAGES = [
   { slug: "wiki/plan", title: "Plan", sourcePaths: ["sources/plan.pdf"], createdBy: "agent:claude", compiledAt: null },
@@ -65,6 +65,24 @@ describe("the report's last block is what a program reads", () => {
       expect(brief).toContain('"nodeCandidates"');
       expect(brief).toContain("person|organisation|other");
     }
+  });
+
+  it("asks for the counts in the same block, in both locales", () => {
+    for (const locale of ["en", "ko"] as const) {
+      const brief = buildLintBrief({ pages: PAGES, locale, vaultRoot: VAULT_ROOT });
+      expect(brief).toContain('"counts":{"disagreement":0,"superseded":0,"missingLink":0,"nameWithoutPage":0,"uncertain":0}');
+    }
+  });
+
+  it("reads the counts from the block and refuses a set with a missing or non-integer figure", () => {
+    const block = (counts: string) => "prose\n```json\n{\"counts\":" + counts + ",\"nodeCandidates\":[]}\n```";
+    expect(parseLintCounts(block('{"disagreement":0,"superseded":2,"missingLink":1,"nameWithoutPage":5,"uncertain":4}'))).toEqual({
+      disagreement: 0, superseded: 2, missingLink: 1, nameWithoutPage: 5, uncertain: 4,
+    });
+    expect(parseLintCounts(block('{"disagreement":0,"superseded":2}'))).toBeNull();
+    expect(parseLintCounts(block('{"disagreement":"none","superseded":2,"missingLink":1,"nameWithoutPage":5,"uncertain":4}'))).toBeNull();
+    expect(parseLintCounts("```json\n{\"nodeCandidates\":[]}\n```")).toBeNull();
+    expect(parseLintCounts(null)).toBeNull();
   });
 
   it("reads candidates from the last fenced json block and normalises them", () => {
