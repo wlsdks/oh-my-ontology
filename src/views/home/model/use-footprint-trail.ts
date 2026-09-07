@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 
 import { resolveNodeAgentTarget } from "@/entities/knowledge-graph";
 import { copyText } from "@/shared/lib/copy-text";
+import { COPY_FEEDBACK_RESET_MS } from "@/shared/lib/use-copy-feedback";
 
 import {
   appendFootprintVisit,
@@ -150,6 +151,12 @@ export function useFootprintTrail({
     [footprintTrailStepLinks, relationLabelOf],
   );
   const [footprintPacketCopied, setFootprintPacketCopied] = useState(false);
+  /* Clears itself, and cancels on unmount — see `COPY_FEEDBACK_RESET_MS`. */
+  useEffect(() => {
+    if (!footprintPacketCopied) return;
+    const timer = window.setTimeout(() => setFootprintPacketCopied(false), COPY_FEEDBACK_RESET_MS);
+    return () => window.clearTimeout(timer);
+  }, [footprintPacketCopied]);
   const copyFootprintPacket = useCallback(async () => {
     if (footprintTrailEntries.length === 0) return;
     const ok = await copyText(
@@ -169,7 +176,6 @@ export function useFootprintTrail({
     );
     if (!ok) return;
     setFootprintPacketCopied(true);
-    window.setTimeout(() => setFootprintPacketCopied(false), 1600);
   }, [footprintTrailEntries, footprintTrailStepCaptions, dustySlugs, t]);
   // Footprint lens — a transient state **equivalent to** the popover being open: no
   // new mode, toggle, or URL state. While it is open the map folds away relation

@@ -122,7 +122,7 @@ function CommandRow({
   testId: string;
 }) {
   const t = useTranslations('agentConnect');
-  const { state, copy } = useCopyFeedback(1600);
+  const { state, copy } = useCopyFeedback();
   return (
     <div className="flex flex-col gap-1">
       <p className="text-body text-[color:var(--color-text-quaternary)]">{label}</p>
@@ -163,7 +163,7 @@ export function WebManualConnectPanel({
   const [pathConfirmed, setPathConfirmed] = useState(false);
   const [client, setClient] = useState<AgentClientId>(AGENT_CLIENTS[0].id);
   const [cloneCopied, setCloneCopied] = useState(false);
-  const { state: configCopyState, copy: copyConfig } = useCopyFeedback(1600);
+  const { state: configCopyState, copy: copyConfig } = useCopyFeedback();
 
   const vault = useMemo(() => normalizeManualPath(vaultRaw), [vaultRaw]);
   const checkout = useMemo(() => normalizeManualPath(checkoutRaw), [checkoutRaw]);

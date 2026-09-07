@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { controlClass } from '@/shared/ui';
+import { COPY_FEEDBACK_RESET_MS } from '@/shared/lib/use-copy-feedback';
 
 /**
  * The boundary card — it states honestly 「what cannot be done here」 and hands over
@@ -48,7 +49,7 @@ export function AgentHandoffPacket({
   // true only briefly, right after the press.
   useEffect(() => {
     if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(false), 1600);
+    const timer = window.setTimeout(() => setCopied(false), COPY_FEEDBACK_RESET_MS);
     return () => window.clearTimeout(timer);
   }, [copied]);
   // The concept name is exactly what the screen calls it — it has to resolve in the
