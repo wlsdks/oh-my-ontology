@@ -47,9 +47,9 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: an MCP screen; Connectors filled by Notion, Atlassian, GitHub, or an ontology-atlas:// link. The Library graph pulls apart by hand; an empty-folder stage, a stepper, a door for outside notes, a local model card; Check the wiki proposes nodes and logs them; a partly read source says so. Meaning asks reasons; Strata names planes.
+**Added**: an MCP screen; Connectors filled by Notion, GitHub, Context7, Playwright, or an ontology-atlas:// link. The Library graph pulls apart by hand; an empty-folder stage, a stepper, a door for outside notes, a local model card; Check the wiki proposes nodes and logs them; a partly read source says so. Meaning asks reasons; Strata names planes.
 
-**Changed**: the Library index switches between Sources and Wiki, the column folds, the graph fits; no scroller draws a bar. Connectors add from one list of eight, a press attaching or asking in place; Agents lists what it confirmed. Insights opens on four measures. The growth replay is a toggle.
+**Changed**: the Library index switches between Sources and Wiki, the column folds, the graph fits; no scroller draws a bar. Connectors add from one list, a press attaching or asking in place; Agents lists what it confirmed. Insights opens on four measures. The growth replay is a toggle.
 
 **Fixed**: 3D relations stay visible; centres click; permission cards read plainly; rails stop blinking; docks name tool and mode; loose files ring the cluster; the Docs head fits 280px. Closing the 3D picker no longer walks the map.
 

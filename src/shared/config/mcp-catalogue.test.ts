@@ -72,40 +72,39 @@ describe('the committed catalogue', () => {
     }
   });
 
-  it('keeps the three services the owner asked about, each with the shape it really has', () => {
+  it('holds only what the in-app press can make work, and no hosted OAuth address', () => {
     /*
-     * 2026-09-07: *"how do I connect Notion, Atlassian, GitHub?"* — the answer is different for
-     * each, which is precisely why they are the first three rows and why the two shapes are kept
-     * apart in the type.
+     * 2026-09-07, evening: a hosted OAuth address handed to the in-app session reports "requires
+     * authentication" and the adapter cannot open the sign-in window (measured against
+     * claude-agent-acp 0.75.0, `scripts/build-mcp-catalogue.mjs` records it). So every row here
+     * is a local program with a token, or an address that asks nothing. The generator refuses
+     * the other shape; this pins the committed file to the same rule.
      */
-    const notion = entryOf('notion');
-    expect(notion.variants.map((variant) => variant.kind).sort()).toEqual(['local', 'remote']);
-
-    // Atlassian is cloud-only; there is no independent local server, and inventing one would be
-    // a row that cannot work (`docs/benchmark/MCP-ONE-CLICK-2026-09-07.md` §6).
-    expect(entryOf('atlassian').variants.every((variant) => variant.kind === 'remote')).toBe(true);
-
-    const github = entryOf('github');
-    expect(github.variants.some((variant) => variant.kind === 'local')).toBe(true);
-    expect(
-      github.variants.some(
-        (variant) => variant.kind === 'remote' && variant.url.endsWith('/readonly'),
-      ),
-    ).toBe(true);
+    for (const entry of MCP_CATALOGUE) {
+      for (const variant of entry.variants) {
+        if (variant.kind === 'remote') expect(variant.auth).not.toBe('oauth');
+      }
+    }
+    // Notion and GitHub are programs with one token each; Context7 is the address that asks
+    // nothing, with a program beside it; Playwright is a program that asks nothing.
+    expect(entryOf('notion').variants.map((variant) => variant.kind)).toEqual(['local']);
+    expect(entryOf('github').variants.map((variant) => variant.kind)).toEqual(['local']);
+    expect(entryOf('context7').variants.map((variant) => variant.kind).sort()).toEqual(['local', 'remote']);
+    expect(entryOf('playwright').variants.map((variant) => variant.kind)).toEqual(['local']);
   });
 });
 
 describe('choosing an entry', () => {
-  it('an OAuth address asks for nothing, which is what makes it the one-press case', () => {
-    const atlassian = entryOf('atlassian');
-    const variant = atlassian.variants[0];
+  it('an address that asks nothing is the one-press case', () => {
+    const context7 = entryOf('context7');
+    const variant = context7.variants.find((candidate) => candidate.kind === 'remote')!;
     expect(variantSecrets(variant)).toHaveLength(0);
-    const draft = catalogueDraft(atlassian, variant, {
+    const draft = catalogueDraft(context7, variant, {
       id: 'c1',
       capturedAt: MCP_CATALOGUE_CAPTURED_AT,
       secretRef: (id, name) => `${id}:${name}`,
     });
-    expect(draft).toMatchObject({ transport: 'http', url: 'https://mcp.atlassian.com/v2/mcp' });
+    expect(draft).toMatchObject({ transport: 'http', url: 'https://mcp.context7.com/mcp' });
     expect(draft.headers).toEqual([]);
     // Written down is not switched on.
     expect(draft.enabled).toBe(false);
@@ -163,10 +162,12 @@ describe('choosing an entry', () => {
 describe('search', () => {
   it('finds a service by its name, by what it is for, and by the address itself', () => {
     expect(searchCatalogue(MCP_CATALOGUE, 'notion').map((entry) => entry.id)).toEqual(['notion']);
-    expect(searchCatalogue(MCP_CATALOGUE, 'jira').map((entry) => entry.id)).toEqual(['atlassian']);
+    expect(searchCatalogue(MCP_CATALOGUE, 'documentation').map((entry) => entry.id)).toEqual([
+      'context7',
+    ]);
     // Somebody who half-remembers the URL has to find it too.
-    expect(searchCatalogue(MCP_CATALOGUE, 'githubcopilot').map((entry) => entry.id)).toEqual([
-      'github',
+    expect(searchCatalogue(MCP_CATALOGUE, 'context7.com').map((entry) => entry.id)).toEqual([
+      'context7',
     ]);
     // And by the variable name, which is often the only thing written in a colleague's message.
     expect(searchCatalogue(MCP_CATALOGUE, 'GITHUB_PERSONAL').map((entry) => entry.id)).toEqual([
@@ -183,10 +184,9 @@ describe('search', () => {
 
 describe('what one line says will run', () => {
   it('is the address for a hosted entry and the resolved command for a local one', () => {
-    const github = entryOf('github');
-    const remote = github.variants.find((variant) => variant.kind === 'remote')!;
-    const local = github.variants.find((variant) => variant.kind === 'local')!;
-    expect(variantRuns(remote)).toBe('https://api.githubcopilot.com/mcp/');
+    const remote = entryOf('context7').variants.find((variant) => variant.kind === 'remote')!;
+    const local = entryOf('github').variants.find((variant) => variant.kind === 'local')!;
+    expect(variantRuns(remote)).toBe('https://mcp.context7.com/mcp');
     expect(variantRuns(local, '/usr/local/bin/docker')).toContain('/usr/local/bin/docker run');
   });
 });

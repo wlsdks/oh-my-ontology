@@ -783,25 +783,26 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     expect(screen.getByTestId('connectors-custom-toggle')).toBeInTheDocument();
   });
 
-  it('카탈로그의 주소 줄은 한 번 눌러 붙고, 꺼진 채로 들어가며, 어디서 왔는지 적힌다', async () => {
+  it('묻는 게 없는 카탈로그 줄은 한 번 눌러 붙고, 꺼진 채로 들어가며, 어디서 왔는지 적힌다', async () => {
     /*
-     * The one rule of the list (2026-09-07, afternoon): a press attaches what asks nothing. A
-     * hosted OAuth address asks nothing of this dialog — the coding agent opens the sign-in
-     * window — so the row goes straight into the folder, off, with its origin recorded.
+     * The one rule of the list (2026-09-07, afternoon): a press attaches what asks nothing.
+     * Context7's address needs no sign-in and no token, so the row goes straight into the
+     * folder, off, with its origin recorded. (A hosted OAuth address is no longer offered: the
+     * in-app session cannot open its sign-in window — measured the same evening.)
      */
     const vault = fakeVault();
     draw(<Panel handle={vault.handle} />);
     await waitFor(() => expect(screen.getByTestId('connectors-empty')).toBeInTheDocument());
     openAdd();
-    const atlassian = document.querySelector(
-      '[data-testid="connectors-catalogue-item"][data-catalogue-id="atlassian"]',
+    const context7 = document.querySelector(
+      '[data-testid="connectors-catalogue-item"][data-catalogue-id="context7"]',
     ) as HTMLElement;
-    expect(atlassian).not.toBeNull();
+    expect(context7).not.toBeNull();
     // The address it will write is on the row, verbatim, before the press.
-    expect(atlassian.querySelector('[data-testid="connectors-catalogue-runs"]')).toHaveTextContent(
-      'https://mcp.atlassian.com/v2/mcp',
+    expect(context7.querySelector('[data-testid="connectors-catalogue-runs"]')).toHaveTextContent(
+      'https://mcp.context7.com/mcp',
     );
-    const add = atlassian.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement;
+    const add = context7.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement;
     expect(add).toHaveAttribute('data-press', 'attaches');
     fireEvent.click(add);
     await waitFor(() => expect(screen.getByTestId('connectors-item')).toBeInTheDocument());
@@ -809,8 +810,8 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     await waitFor(() => expect(screen.queryByTestId('connectors-add-dialog')).toBeNull());
     expect(screen.getByTestId('connectors-item')).toHaveAttribute('data-connector-enabled', 'false');
     const written = vault.files.get('.ontology-atlas/connectors.json') ?? '';
-    expect(written).toContain('https://mcp.atlassian.com/v2/mcp');
-    expect(written).toContain('catalogue:atlassian@');
+    expect(written).toContain('https://mcp.context7.com/mcp');
+    expect(written).toContain('catalogue:context7@');
     // Nothing was stored for it: there is no token to store.
     expect(bridge.secretSets).toEqual([]);
   });
@@ -823,16 +824,11 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     const notion = document.querySelector(
       '[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]',
     ) as HTMLElement;
-    // Notion offers both; the row's own button is the address, and the program is one press
-    // further, named for what it is.
-    expect(notion.querySelector('[data-testid="connectors-catalogue-add"]')).toHaveAttribute(
-      'data-variant-kind',
-      'remote',
-    );
-    const local = notion.querySelector(
-      '[data-testid="connectors-catalogue-other"][data-variant-kind="local"]',
-    ) as HTMLElement;
-    fireEvent.click(local);
+    // Notion is a program with a token now, so the row's own button asks rather than attaches.
+    const add = notion.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement;
+    expect(add).toHaveAttribute('data-variant-kind', 'local');
+    expect(add).toHaveAttribute('data-press', 'asks');
+    fireEvent.click(add);
     const ask = await screen.findByTestId('connectors-catalogue-ask');
     expect(ask).toHaveAttribute('data-variant-kind', 'local');
     // The command is written out above the field, and the press waits for the value.
@@ -865,11 +861,7 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
     const notion = document.querySelector(
       '[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]',
     ) as HTMLElement;
-    fireEvent.click(
-      notion.querySelector(
-        '[data-testid="connectors-catalogue-other"][data-variant-kind="local"]',
-      ) as HTMLElement,
-    );
+    fireEvent.click(notion.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement);
     const ask = await screen.findByTestId('connectors-catalogue-ask');
     // A box whose contents would be thrown away is worse than no box.
     expect(screen.queryByTestId('connectors-catalogue-ask-value')).toBeNull();

@@ -1660,14 +1660,16 @@ and Escape. The tabs this replaced lasted one afternoon; the record is in
   carries no download count, no ranking and no "recommended", and the screen states its
   size, its capture date, that Atlas has audited none of it, and that *By hand* reaches
   everything it does not list.
-- **Two shapes, kept apart, because they ask different things.** A **hosted address**
-  (Notion `https://mcp.notion.com/mcp`, Atlassian `https://mcp.atlassian.com/v2/mcp`,
-  GitHub `https://api.githubcopilot.com/mcp/`, Linear, Sentry, Context7, Supabase) asks
-  for nothing: the **coding agent**
-  opens the sign-in window and holds what comes back. Atlas performs no OAuth, stores no
-  token for it, and removing the row does not revoke it — all three of which the row
-  says. A **local program** asks for exactly one credential, with a link to the page that
-  issues it.
+- **Only what the press can make work.** A hosted address that signs in with OAuth
+  (Notion's, Atlassian's, GitHub's, and the rest) is **not** offered: measured on
+  2026-09-07 against claude-agent-acp 0.75.0, such an address handed to the in-app session
+  reports "requires authentication", the adapter says the session cannot open the sign-in
+  window, and no tool registers; a token earned in the terminal for the same name and
+  address did not carry over. The generator refuses that shape. What remains is a **local
+  program** that asks for exactly one credential, with a link to the page that issues it,
+  and an **address that asks nothing** (Context7). Four services today: Notion, GitHub,
+  Context7, Playwright. The hosted rows return when an adapter is measured running the
+  flow.
 - **The program is chosen, not typed.** `resolve_connector_runtimes` resolves a fixed
   allow-list — `npx`, `node`, `uvx`, `python3`, `docker` — to absolute paths on this
   machine and shows them. It opens no file, lists no directory and executes nothing. This
