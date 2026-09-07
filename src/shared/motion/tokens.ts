@@ -148,6 +148,49 @@ export const SCRIM_FADE_REDUCED = OVERLAY_SPRING_REDUCED;
  * GitHub's Linux runner). This object stays a pure `{ duration, ease }` transition so it
  * carries no non-numeric animatable value.
  */
+/**
+ * **Where a surface starts, as a name.**
+ *
+ * `EXIT_TRANSITION` below put the exit *clock* under the mirror contract, and `MOTION`
+ * put the entry clock there before it. The **distance** stayed a literal: eight files
+ * wrote their own `{ opacity: 0, y: 8 }` or `{ opacity: 0, y: 12, scale: 0.985 }`, which
+ * is the setup the module's own doc-blocks keep describing — duplicate a value and
+ * eventually only one copy changes. Measured 2026-09-08: 16 sites, two distances, zero
+ * disagreement so far.
+ *
+ * **Two grammars, and the split is real.** `dialog.tsx`'s contract says the overlay
+ * grammar is "opacity plus an 8px rise", and the primitive plus the search palette,
+ * the project drawer's hero and the project card all take it. Four hand-built modal
+ * surfaces — the shortcut sheet, the recent-changes dialog, the block import module and
+ * the vault-open guide sheet — arrive from 12px with a hair of scale instead. Naming
+ * both is not blessing the split: it is what makes the split countable, and
+ * `framer-entrance-grammar.contract.test.ts` refuses a third.
+ *
+ * The resting state is exported beside each start so a consumer cannot spread the start
+ * and forget to animate `scale` back to 1.
+ */
+export const OVERLAY_RISE = { opacity: 0, y: 8 } as const;
+
+/** The rest state `OVERLAY_RISE` travels to. */
+export const OVERLAY_SETTLED = { opacity: 1, y: 0 } as const;
+
+/** A sheet arriving: further below, and a hair small on the way in. */
+export const SHEET_RISE = { opacity: 0, y: 12, scale: 0.985 } as const;
+
+/** The rest state `SHEET_RISE` travels to — `scale` included, or the sheet stays small. */
+export const SHEET_SETTLED = { opacity: 1, y: 0, scale: 1 } as const;
+
+/**
+ * The reduced-motion equivalent of `SHEET_RISE`: the same axes, travel zero.
+ *
+ * The shortcut sheet's own doc-block records why this is not simply "no animation" —
+ * the global kill rule cuts CSS animations, and a framer sheet kept its opacity easing
+ * while its geometry was cut to one frame, so the surface teleported. *"It is not a
+ * teleport when the travel distance is 0, not the time."* Named beside its sibling for
+ * the same reason `OVERLAY_SPRING_REDUCED` and `SCRIM_FADE_REDUCED` are named.
+ */
+export const SHEET_RISE_REDUCED = { opacity: 0, y: 0, scale: 1 } as const;
+
 export const EXIT_TRANSITION = {
   duration: MOTION.fast.duration,
   ease: MOTION_EASE_EXIT,

@@ -5,7 +5,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { PackageOpen, X } from "lucide-react";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { useTranslations } from "next-intl";
-import { EXIT_TRANSITION, MOTION, useExitLockout } from "@/shared/motion";
+import {
+  EXIT_TRANSITION,
+  MOTION,
+  SHEET_RISE,
+  SHEET_SETTLED,
+  useExitLockout,
+} from '@/shared/motion';
 import { useBodyScrollLock } from "@/shared/lib/use-body-scroll-lock";
 import { isPickerAbort } from "@/shared/lib/picker-abort";
 import {
@@ -318,9 +324,9 @@ export function BlockImportModule() {
             <motion.section
               ref={blockImportDialogLockoutRef}
               onAnimationStart={blockImportDialogLockoutOnAnimationStart}
-              initial={{ opacity: 0, y: 12, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.985, transition: EXIT_TRANSITION }}
+              initial={SHEET_RISE}
+              animate={SHEET_SETTLED}
+              exit={{ ...SHEET_RISE, transition: EXIT_TRANSITION }}
               transition={MOTION.base}
               onClick={(event) => event.stopPropagation()}
               role="dialog"
