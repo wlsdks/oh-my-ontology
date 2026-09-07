@@ -160,7 +160,7 @@ export function ConnectionsTab({
                     className="flex items-center gap-3 border-t border-[color:var(--color-divider)] py-2.5 first:border-t-0"
                   >
                     <TopologyV2TraceMark containment={isContainmentRelation(row.type)} />
-                    <span className="w-[104px] flex-none truncate font-mono text-body text-[color:var(--color-text-primary)]">
+                    <span className="w-[var(--insights-row-label-w)] flex-none truncate font-mono text-body text-[color:var(--color-text-primary)]">
                       {edgeTypeLabel(row.type)}
                     </span>
                     <span className="h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--color-overlay-2)]">

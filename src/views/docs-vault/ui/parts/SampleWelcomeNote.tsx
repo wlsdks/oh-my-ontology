@@ -61,7 +61,7 @@ export function SampleWelcomeNote({
       >
         <X size={ICON_SIZE.sm} aria-hidden />
       </IconButton>
-      <p className="max-w-[560px] pr-6 text-body leading-body text-[color:var(--color-text-secondary)]">
+      <p className="max-w-[var(--measure-note-column)] pr-6 text-body leading-body text-[color:var(--color-text-secondary)]">
         <span className="block font-[var(--font-weight-emphasis)] text-[color:var(--color-text-primary)]">
           {copy.title}
         </span>

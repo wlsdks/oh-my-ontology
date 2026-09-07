@@ -106,7 +106,7 @@ export function OverviewTab({
               const width = kindMax > 0 ? Math.max(2, Math.round((row.count / kindMax) * 100)) : 0;
               return (
                 <div key={row.kind} className="flex items-center gap-3 py-0.5">
-                  <span className="flex w-[136px] flex-none items-center gap-2 text-body-lg text-[color:var(--color-text-secondary)]">
+                  <span className="flex w-[var(--insights-row-label-w)] flex-none items-center gap-2 text-body-lg text-[color:var(--color-text-secondary)]">
                     <TopologyV2KindGlyph kind={row.kind} size={16} />
                     {kindLabel(row.kind)}
                   </span>

@@ -654,6 +654,23 @@
    * `--git-setup-measure` (520, one task in an empty destination).
    */
   --measure-stage-column: 640px;
+  /*
+   * Note column — a narrow block of explanatory content inside an otherwise empty
+   * destination: the Docs empty state's card, its sample note, the starter CTA's note
+   * (2026-09-08, owner direction "one value per role"). Distinct from
+   * `--git-setup-measure` (520, one *task* column, with a form and a command in it) and
+   * from `--measure-stage-column` (640, a whole stage). The three sites wrote 560 by hand.
+   */
+  --measure-note-column: 560px;
+
+  /*
+   * Insights row label — the leading label cell of a kind/domain row (2026-09-08). The
+   * Overview and Freshness tabs used 136 and the Connections tab 104 for the identical
+   * job, so a reader moving between tabs saw the bars start at two different places.
+   * 136 is the value two of the three tabs already carried and the one long Korean kind
+   * names fit in; Connections widens by 32px.
+   */
+  --insights-row-label-w: 136px;
   --page-bottom-breath: 40px;
 
   /*
