@@ -28,6 +28,7 @@ import { seedPositions, type LayoutPoint } from "./library-graph-layout";
  * | many-body repulsion | two things with nothing between them do not belong in the same place |
  * | collision | a mark never sits on another mark, whatever the springs want |
  * | gravity, **aspect-aware** | the cloud is held in the box it is drawn in, and stretched along the box's long axis rather than fitted into a corner of it |
+ * | orphan ring | a mark no relation answers for has a place of its own — one ellipse around the connected mass, evenly spread — rather than the residue of the other two forces, which threw it at a wall |
  *
  * The aspect-aware gravity is the one force here that is not standard, and it is what
  * pays the old layout's measured debt: a uniform fit of a 1.39-aspect cloud into a
@@ -111,6 +112,63 @@ const COLLISION_PAD = 7;
 const COLLISION_EXACT_MAX_ORDER = 150;
 
 /**
+ * **The room a name needs.** The fit reserves this much of the canvas on every side so the
+ * outermost mark still has somewhere to put its label, and the orphan ring below is held
+ * the same distance off the edge in the simulation's own units — one number, so a mark the
+ * physics placed at the boundary and a fit that draws it cannot disagree about where the
+ * boundary is. The standing label is `text-label` (11px) on a 15px line, 5px under the
+ * mark, on top of a mark up to 10px: 34 is that stack with a pixel to spare.
+ */
+export const LIBRARY_LABEL_ALLOWANCE = 34;
+
+/**
+ * **The orphan ring** — where a mark that is attached to nothing settles.
+ *
+ * A degree-0 mark is the one node in this model that no spring answers for. It has
+ * repulsion pushing it away from everything and gravity pulling it at the centre, and the
+ * balance of those two alone is *far out and wherever*: measured on the owner's seeded
+ * folder at 1512×917 on 2026-09-07, `interview-notes.txt` sat on the top edge,
+ * `design-system.docx` on the bottom one, `Handover notes` on the right, and
+ * `kickoff-notes.html` in the bottom-right corner 40px from the fit control, while the two
+ * real components sat small in the middle. Nothing was wrong with any single position; the
+ * picture read as scattered because four marks had been thrown to four different walls.
+ *
+ * So the unattached marks are given a place of their own rather than left to the residue
+ * of two forces: **one calm ellipse around the connected mass**, its aspect the canvas's,
+ * its radius the mass's own bounding radius plus {@link ORPHAN_RING_GAP}, and its angles
+ * spread evenly and deterministically by sorted id. It is a gravity target, not a
+ * position — orphans still repel, still collide, still drag, and still drift — so the
+ * picture stays alive, which `docs/DECISIONS.md` (2026-09-07) requires of it.
+ *
+ * The ellipse is what keeps the fill the same record measured: a *circular* ring around a
+ * 3.56-aspect canvas would make the whole picture as tall as it is wide and give back the
+ * width that record's falsifier is stated against.
+ */
+const ORPHAN_RING_GAP = 56;
+/** Ring radius when there is no connected mass to stand off from — a folder of loose files. */
+const ORPHAN_RING_MIN_RADIUS = 90;
+/**
+ * Pull toward the ring slot, per tick. Several times {@link GRAVITY}: the ring is a place
+ * the mark belongs, not a preference it drifts toward, and it has to answer the repulsion
+ * of every mark in the mass at once.
+ */
+const ORPHAN_RING_GRAVITY = 0.085;
+/**
+ * The first slot's angle: three o'clock, and **no half-slot offset**.
+ *
+ * ⚠️ Measured, and the opposite of the obvious choice. Half a slot off the top looked
+ * tidier written down and put four orphans at ±45°, which is a *rectangle*: each of the
+ * four marks is then simultaneously the leftmost-or-rightmost and the topmost-or-
+ * bottommost thing in the picture, so the fit — which pins the bounding box to the canvas
+ * — lands all four in the four corners, 34px from two walls each and one of them under the
+ * fit control. That is the defect this ring exists to remove, restated as a diamond.
+ *
+ * On the axes the extremes are held by different marks: the picture's bounding box has
+ * empty corners, and each loose mark is near one wall and far from the other three.
+ */
+const ORPHAN_RING_PHASE = 0;
+
+/**
  * **Ambient life** — the ≤0.4px, ≥6s drift the picture keeps after it has settled.
  *
  * The motion charter prefers information motion and is suspicious of decorative
@@ -157,6 +215,12 @@ interface SimulationNode {
   phase: number;
   /** How many edges touch it — what the drawn radius is graded by. */
   degree: number;
+  /**
+   * Angle of this mark's slot on the orphan ring, or `null` when it has a relation and the
+   * springs answer for it. Assigned from the sorted id, so it is the same on every machine
+   * and the same on every visit.
+   */
+  orbit: number | null;
 }
 
 interface SimulationLink {
@@ -255,8 +319,10 @@ export function createLibrarySimulation({
       entered: 1,
       phase: phaseOf(node.id),
       degree: degree.get(node.id) ?? 0,
+      orbit: null,
     };
   });
+  assignOrbits(nodes);
   const index = new Map(nodes.map((node, position) => [node.id, position]));
   return {
     nodes,
@@ -312,6 +378,109 @@ function phaseOf(id: string): number {
 }
 
 /**
+ * Hands every unattached mark its slot on the ring, and takes the slot back from every
+ * mark that has a relation.
+ *
+ * **Evenly spread, in sorted-id order.** Even spacing is the whole of what makes four
+ * loose files read as a composition rather than as four accidents; sorting by id is what
+ * makes it the *same* composition on every machine and every visit, which is the property
+ * the rest of this file pays for so carefully. The order is also the one a person can
+ * predict — a folder's sources arrive together on the ring rather than interleaved with
+ * its pages.
+ */
+function assignOrbits(nodes: SimulationNode[]): void {
+  const loose: SimulationNode[] = [];
+  for (const node of nodes) {
+    node.orbit = null;
+    if (node.degree === 0) loose.push(node);
+  }
+  if (loose.length === 0) return;
+  loose.sort((first, second) => (first.id < second.id ? -1 : first.id > second.id ? 1 : 0));
+  loose.forEach((node, position) => {
+    node.orbit = ORPHAN_RING_PHASE + (position / loose.length) * Math.PI * 2;
+  });
+}
+
+/**
+ * **The ellipse the unattached marks stand on**, in the simulation's own units, or `null`
+ * when the folder has none.
+ *
+ * Exported because it is the claim, not an implementation detail: a test asserting that an
+ * orphan settled *in the band* has to be able to ask where the band is, and computing it a
+ * second time in the test would only prove the test agrees with itself.
+ *
+ * Two things decide it. The **centre and the two standoffs** come from the connected mass,
+ * measured per axis, so the ring stands off whatever the springs happened to build rather
+ * than off the origin — and by {@link ORPHAN_RING_GAP} on both axes, never through it. The
+ * **aspect** is the box's, for the reason the gravity is aspect-aware: a circle around a
+ * wide canvas throws away its width, and because the ring is the outermost thing in the
+ * picture its aspect is the picture's, so a fit that reserves the same padding on all four
+ * sides fills both axes to that padding rather than one of them.
+ *
+ * ⚠️ **It is not clamped to the box, and that is deliberate.** The margin a person sees is
+ * the fit's: it maps the whole picture into the canvas less {@link LIBRARY_LABEL_ALLOWANCE}
+ * on every side, so the outermost mark is that far in whatever the world coordinates say. A
+ * clamp could only bind on a canvas too small to hold the connected mass either, and there
+ * the only thing it could buy would be pulling the loose marks *into* the cluster — the
+ * defect, restated inward.
+ */
+export function libraryOrphanRing(
+  sim: LibrarySimulation,
+): { cx: number; cy: number; rx: number; ry: number } | null {
+  let loose = 0;
+  let sumX = 0;
+  let sumY = 0;
+  let held = 0;
+  for (const node of sim.nodes) {
+    if (node.orbit !== null) {
+      loose += 1;
+      continue;
+    }
+    sumX += node.x;
+    sumY += node.y;
+    held += 1;
+  }
+  if (loose === 0) return null;
+  const cx = held > 0 ? sumX / held : 0;
+  const cy = held > 0 ? sumY / held : 0;
+  let massX = 0;
+  let massY = 0;
+  for (const node of sim.nodes) {
+    if (node.orbit !== null) continue;
+    massX = Math.max(massX, Math.abs(node.x - cx) + node.radius);
+    massY = Math.max(massY, Math.abs(node.y - cy) + node.radius);
+  }
+  const ratio = Math.min(4, Math.max(0.25, sim.box.width / sim.box.height));
+  // The smaller radius decides, then the aspect gives the other one: solving it this way
+  // round is what guarantees both standoffs at once, whichever axis the mass is long in.
+  const ry = Math.max(
+    massY + ORPHAN_RING_GAP,
+    (massX + ORPHAN_RING_GAP) / ratio,
+    ORPHAN_RING_MIN_RADIUS / Math.sqrt(ratio),
+  );
+  return { cx, cy, rx: ry * ratio, ry };
+}
+
+/**
+ * Pulls each unattached mark toward its own slot instead of toward the centre.
+ *
+ * It is a force like every other one here, scaled by alpha and answered by repulsion and
+ * collision, so a settled orphan sits *near* its slot rather than *at* it, a dragged one
+ * leaves it, and a released one comes home. Freezing them on the ellipse would have been
+ * fewer lines and would have made four of the marks on a live canvas dead.
+ */
+function applyOrphanRing(sim: LibrarySimulation, alpha: number): void {
+  const ring = libraryOrphanRing(sim);
+  if (!ring) return;
+  const strength = ORPHAN_RING_GRAVITY * alpha;
+  for (const node of sim.nodes) {
+    if (node.orbit === null) continue;
+    node.vx += (ring.cx + Math.cos(node.orbit) * ring.rx - node.x) * strength;
+    node.vy += (ring.cy + Math.sin(node.orbit) * ring.ry - node.y) * strength;
+  }
+}
+
+/**
  * One tick.
  *
  * Velocity Verlet in the form `d3-force` uses: forces accumulate into velocity, velocity
@@ -326,6 +495,7 @@ export function stepLibrarySimulation(sim: LibrarySimulation): LibrarySimulation
 
   applyManyBody(sim, alpha);
   applyGravity(sim, alpha);
+  applyOrphanRing(sim, alpha);
   for (let pass = 0; pass < RELAX_PASSES; pass += 1) {
     applyLinks(sim, alpha / RELAX_PASSES);
     applyCollisions(sim);
@@ -357,13 +527,40 @@ export function stepLibrarySimulation(sim: LibrarySimulation): LibrarySimulation
   return sim;
 }
 
+/**
+ * ⚠️ **An unattached mark takes no part in this force**, in either pass.
+ *
+ * Repulsion is what threw the loose marks at the walls: it falls off as 1/d, so seven
+ * marks 300 units away still push about 6 units per tick, and the only thing that was
+ * answering was a gravity aimed at a centre the mark was already 300 units from. Nothing
+ * in the folder said where it should be, so the picture said "far away, in whichever
+ * direction it started". The ring says it instead, and saying it twice — a slot and a
+ * shove — leaves the mark at whichever offset the two happen to cancel at, which is not a
+ * place either.
+ *
+ * What repulsion exists for is still paid: collision keeps every mark off every other one,
+ * and the ring stands the whole set clear of the mass by {@link ORPHAN_RING_GAP}. What is
+ * given up is orphans nudging the connected picture around, which is a good trade —
+ * a folder's real layout should not depend on how many files nobody cited.
+ */
 function applyManyBody(sim: LibrarySimulation, alpha: number): void {
   const { nodes } = sim;
   const charge = MANY_BODY_STRENGTH * alpha;
-  if (nodes.length > sim.exactMaxOrder) {
-    const tree = new LibraryQuadtree(nodes);
+  /*
+   * The orphans are taken out **once**, not tested inside the pair loop: a branch in there
+   * runs n²/2 times, and adding one to it measured the 200-node exact pass at 0.62ms
+   * against 0.35 (2026-09-07, the perf test's own crossover case, which is exactly why
+   * that gate is stated as a comparison rather than a wall-clock ceiling). The copy is a
+   * list of references, made only on a folder that has an orphan at all.
+   */
+  const held = nodes.some((node) => node.orbit !== null)
+    ? nodes.filter((node) => node.orbit === null)
+    : nodes;
+  if (held.length === 0) return;
+  if (held.length > sim.exactMaxOrder) {
+    const tree = new LibraryQuadtree(held);
     const out = { fx: 0, fy: 0 };
-    for (const node of nodes) {
+    for (const node of held) {
       out.fx = 0;
       out.fy = 0;
       tree.accumulate(node.x, node.y, charge, out);
@@ -372,10 +569,10 @@ function applyManyBody(sim: LibrarySimulation, alpha: number): void {
     }
     return;
   }
-  for (let a = 0; a < nodes.length; a += 1) {
-    const first = nodes[a]!;
-    for (let b = a + 1; b < nodes.length; b += 1) {
-      const second = nodes[b]!;
+  for (let a = 0; a < held.length; a += 1) {
+    const first = held[a]!;
+    for (let b = a + 1; b < held.length; b += 1) {
+      const second = held[b]!;
       let dx = second.x - first.x;
       let dy = second.y - first.y;
       let distanceSquared = dx * dx + dy * dy;
@@ -411,6 +608,8 @@ function applyGravity(sim: LibrarySimulation, alpha: number): void {
   const strengthX = (GRAVITY / skew) * alpha;
   const strengthY = GRAVITY * skew * alpha;
   for (const node of sim.nodes) {
+    // An unattached mark answers to its ring slot instead; two centres would fight.
+    if (node.orbit !== null) continue;
     node.vx -= node.x * strengthX;
     node.vy -= node.y * strengthY;
   }
@@ -660,8 +859,13 @@ export function syncLibrarySimulation(
       entered: 0,
       phase: phaseOf(node.id),
       degree: degree.get(node.id) ?? 0,
+      orbit: null,
     };
   });
+  // A page that just gained its first citation stops being an orphan, and one whose last
+  // source was deleted becomes one: the ring is re-derived from the new degrees, never
+  // carried over.
+  assignOrbits(nodes);
 
   sim.nodes = nodes;
   sim.index = new Map(nodes.map((node, position) => [node.id, position]));
