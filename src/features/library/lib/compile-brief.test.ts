@@ -26,15 +26,19 @@ const VAULT_ROOT = "/Users/probe/Ontology Atlas/launch";
 const SOURCES: LibrarySourceRow[] = [
   row("sources/plan.pdf", "not-compiled"),
   row("sources/budget.xlsx", "stale"),
+  row("sources/half.pdf", "partial"),
   row("sources/done.docx", "compiled"),
   row("sources/pending.pptx", "checking"),
 ];
 
 describe("Compile acts on what is not written up", () => {
-  it("targets the not-compiled and the stale, and leaves the rest alone", () => {
+  it("targets the not-compiled, the stale and the part-read, and leaves the rest alone", () => {
+    // A page written from the first part of a long file has the rest of that file still
+    // to read, and this run is the one that reads it.
     expect(selectCompileTargets(SOURCES).map((target) => target.path)).toEqual([
       "sources/plan.pdf",
       "sources/budget.xlsx",
+      "sources/half.pdf",
     ]);
   });
 

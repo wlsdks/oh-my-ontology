@@ -68,7 +68,7 @@ import {
  */
 
 export interface CompileBriefInput {
-  /** Sources the run should cover — everything not compiled or stale. */
+  /** Sources the run should cover — not compiled, stale, or read only in part. */
   sources: readonly LibrarySourceRow[];
   locale: string;
   /** `agent:claude`, `model:llama3.1` — whatever will end up in `created_by`. */
@@ -95,7 +95,14 @@ export interface CompileBriefInput {
 export function selectCompileTargets(
   sources: readonly LibrarySourceRow[],
 ): LibrarySourceRow[] {
-  return sources.filter((row) => row.state === "not-compiled" || row.state === "stale");
+  return sources.filter(
+    (row) =>
+      row.state === "not-compiled" ||
+      row.state === "stale" ||
+      // Read only in part: the rest of that file is exactly the work this run exists to
+      // do, so the brief hands it over with the ones nothing has covered at all.
+      row.state === "partial",
+  );
 }
 
 function ruleLines(locale: string, writerId: string): string[] {

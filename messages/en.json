@@ -4446,6 +4446,10 @@
           "label": "compiled",
           "hint": "Written up in {pages}, and the file has not changed since."
         },
+        "partial": {
+          "label": "read in part",
+          "hint": "{pages} read only the first part of this file, so the rest is not written up."
+        },
         "stale": {
           "label": "stale",
           "hint": "{pages} was written from a different version of this file, or recorded no hash for it."
@@ -4463,6 +4467,7 @@
       "openFailed": "Could not open that file.",
       "needsCompileSplit": "{notCompiled, plural, one {# not written up yet} other {# not written up yet}} · {stale, plural, one {# page behind its source} other {# pages behind their sources}}",
       "staleOnly": "{count, plural, one {# page is behind its source} other {# pages are behind their sources}}",
+      "partialOnly": "{count, plural, one {# read only in part} other {# read only in part}}",
       "import": "Bring from a service",
       "importTooltip": "Bring documents in from Notion, Confluence, Jira or GitHub"
     },
@@ -4578,6 +4583,7 @@
       "viewWriteUp": "View write-up",
       "writeUp": {
         "current": "current",
+        "partial": "part of the file",
         "behind": "behind",
         "unchecked": "not checked"
       }
@@ -4603,14 +4609,16 @@
       "compile": {
         "title": "Compile",
         "brainLabel": "Runs on",
-        "checkingLine": "{count, plural, one {# source is} other {# sources are}} still being checked against the pages"
+        "checkingLine": "{count, plural, one {# source is} other {# sources are}} still being checked against the pages",
+        "partialLine": "Compiling again is what picks up the rest of a file the pages only read the first part of."
       },
       "read": {
         "title": "Read",
         "startWith": "Start with {title}",
         "nothingYet": "No wiki page yet. Compile writes the first one.",
         "coveredLine": "{compiled} of {total} sources written up",
-        "coveredChecking": "{compiled} of {total} written up, {checking} still being checked"
+        "coveredChecking": "{compiled} of {total} written up, {checking} still being checked",
+        "coveredPartial": "{compiled} of {total} written up, {partial} read in part"
       },
       "brainAgent": "{name}",
       "brainLocal": "{model} on {host}",
@@ -4631,7 +4639,8 @@
       "statusOffTemplate": "{count, plural, one {# off-template} other {# off-template}}",
       "statusReady": "Every source is written up",
       "statusUnlinked": "{count, plural, one {# dangling link} other {# dangling links}}",
-      "statusChecking": "{count, plural, one {# being checked} other {# being checked}}"
+      "statusChecking": "{count, plural, one {# being checked} other {# being checked}}",
+      "statusPartial": "{count, plural, one {# read in part} other {# read in part}}"
     },
     "localCompile": {
       "title": "Ready to write",

@@ -84,6 +84,14 @@ export const WIKI_FIELDS: readonly WikiField[] = [
     description: 'One sentence. What this page is about, not how it was made.',
   },
   {
+    key: 'sources_truncated',
+    required: false,
+    description:
+      'The subset of `sources` this run read only part of, because the file was longer than ' +
+      'the per-read cap. Every path here must also be in `sources`. Absent means the page ' +
+      'was written from whole files.',
+  },
+  {
     key: 'describes',
     required: false,
     description:
@@ -182,6 +190,7 @@ type WikiProblemCode =
   | 'section-order'
   | 'uncited-fact'
   | 'bad-citation'
+  | 'bad-truncation-record'
   | 'citation-target-missing'
   | 'describes-needs-approval'
   | 'dangling-wikilink'
@@ -331,6 +340,46 @@ export function validateWikiPage(
       ? [frontmatter.sources.trim()]
       : [];
   const known = options.knownSources ? new Set(options.knownSources) : null;
+
+  /**
+   * `sources_truncated`: a boundary a reader can place, or no boundary at all.
+   *
+   * The Library reads this key to say `partial` where it would otherwise say `compiled`
+   * (`vault-library.ts`), and it reads it only for paths the page cites. A path outside
+   * `sources:` therefore reaches no screen, which is why it is reported here rather than
+   * left to be discovered as a row that never changed.
+   */
+  if (Object.prototype.hasOwnProperty.call(frontmatter, 'sources_truncated')) {
+    const raw: unknown = frontmatter.sources_truncated;
+    const listed = Array.isArray(raw)
+      ? (raw as unknown[])
+          .filter((value): value is string => typeof value === 'string')
+          .map((value) => value.trim())
+      : typeof raw === 'string' && raw.trim()
+        ? [raw.trim()]
+        : null;
+    if (listed === null) {
+      problems.push(
+        problem(
+          'bad-truncation-record',
+          '`sources_truncated:` is a list of the paths in `sources:` that were read only in ' +
+            'part. This value is not a list of paths, so it records no boundary at all.',
+        ),
+      );
+    } else {
+      for (const path of listed) {
+        if (declaredSources.includes(path)) continue;
+        problems.push(
+          problem(
+            'bad-truncation-record',
+            `\`${path}\` is under \`sources_truncated:\` but not under \`sources:\`. The key says ` +
+              "which of this page's own sources stop short, so a path the page does not cite " +
+              'names a boundary no reader can place.',
+          ),
+        );
+      }
+    }
+  }
 
   for (const bullet of sectionBullets(body, frontmatterLines, sections, 'Facts')) {
     if (extractWikiCitations(bullet.text).length === 0) {

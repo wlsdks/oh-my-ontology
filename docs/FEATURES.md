@@ -895,7 +895,8 @@ fact. Both crossings are drawn as list rows at the index's own 36px step rather 
 32px chips, because opening a document is one job and it was carrying two heights
 depending on which pane a person pressed from; the source pane's label column moved 132 →
 148px for the same reason, matching the shelf's. A source's pane answers the other direction with **View write-up** — every page
-citing it, each marked `current`, `behind`, or `not checked` from the sha256 it recorded
+citing it, each marked `current`, `part of the file`, `behind`, or `not checked` from the
+sha256 it recorded and its own truncation record
 — and, when no page cites it, the Compile button in that row's place. `not checked` is its
 own word because hashing is lazy: reporting an unmeasured file as `behind` made this pane
 contradict its own state row, which reads `checking` in exactly that window. Both directions are derived in
@@ -908,6 +909,13 @@ store can drift from it.
   holds, which is why a folder of PDFs adds nothing to the map.
   - `not compiled` — no wiki page cites it.
   - `compiled` — a page cites it and the sha256 it recorded still matches the file.
+  - `read in part` (2026-09-07) — the hash still matches and every page citing it says,
+    through `sources_truncated:` frontmatter, that it read only the first part of the
+    file, so the row counts as waiting for Compile and the stepper says in one sentence
+    that a second run picks up the rest; a file that then changes becomes `stale` instead.
+    It wears the amber `stale` wears, because the shelf counts both as rows to act on and
+    a neutral chip on a counted row reads as nothing to do (owner, 2026-09-07); the word,
+    not the colour, is what tells the two apart.
   - `stale` — the hashes disagree, or a page cites it without recording one.
   - `checking` — cited with a hash, not yet measured. Hashing is lazy and only ever asked
     for on cited files; the app hashes natively, a browser with `crypto.subtle`.

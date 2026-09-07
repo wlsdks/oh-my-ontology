@@ -98,7 +98,10 @@ export function selectLocalCompileTargets(
 ): LibrarySourceRow[] {
   return sources.filter(
     (row) =>
-      (row.state === "not-compiled" || row.state === "stale") &&
+      // `partial` counts with them: the rest of a file read only in part is work this
+      // route can do, and leaving it out told a folder of part-read sources that its
+      // formats were the problem (`blockedLocalFormats`) when they were not.
+      (row.state === "not-compiled" || row.state === "stale" || row.state === "partial") &&
       classifySourceFormat(row.format) === "readable",
   );
 }

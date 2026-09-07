@@ -27,6 +27,7 @@ import { Chip, RowButton, Tooltip } from "@/shared/ui";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 
 import { isAdvisoryWikiCode, isWikiFolderCode } from "../../lib/merge-wiki-verdict";
+import { libraryWaitingLine } from "../../lib/stage-steps";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 
 /**
@@ -256,6 +257,8 @@ export function LibrarySection({
   const foldedCandidates = orderedCandidates.length - shownCandidates.length;
   const hasSources = model.sources.length > 0;
   const hasWiki = model.wikiPages.length > 0;
+  /** What is still waiting, in words — the same line step two's caption prints. */
+  const waitingLine = libraryWaitingLine(model, t);
   /** Pages whose **own** shape misses the template — the rows that wear the amber pill. */
   const offTemplateRows = [...model.verdicts.values()].filter((verdict) =>
     verdict.problems.some((problem) => !isWikiFolderCode(problem.code)),
@@ -376,8 +379,23 @@ export function LibrarySection({
                           {stateLabel}
                         </span>
                       ) : (
+                        /*
+                         * ⚠️ **Amber marks a row to act on, not a page that is wrong**
+                         * (owner, 2026-09-07). `partial` shipped in the quiet border on the
+                         * reasoning that the page is right about everything it says — but
+                         * the shelf counts it with the waiting sources and Compile will act
+                         * on it, and a neutral chip on such a row reads as *nothing to do*.
+                         * So it wears the amber `stale` wears, and the two are told apart
+                         * by their words (`read in part` against `stale`), which is the
+                         * fact rather than a temperature. `not-compiled` keeps the quiet
+                         * border: nothing is wrong there and nobody has started.
+                         */
                         <StateBadge
-                          tone={row.state === "stale" ? "warning" : "neutral"}
+                          tone={
+                            row.state === "stale" || row.state === "partial"
+                              ? "warning"
+                              : "neutral"
+                          }
                           testId={`library-source-state-${row.state}`}
                         >
                           {stateLabel}
@@ -388,17 +406,8 @@ export function LibrarySection({
                 );
               })}
             </ul>
-            {model.needsCompileCount > 0 ? (
-              <ListNote testId="library-needs-compile">
-                {model.staleCount > 0 && model.notCompiledCount > 0
-                  ? t("sources.needsCompileSplit", {
-                      notCompiled: model.notCompiledCount,
-                      stale: model.staleCount,
-                    })
-                  : model.staleCount > 0
-                    ? t("sources.staleOnly", { count: model.staleCount })
-                    : t("sources.needsCompile", { count: model.notCompiledCount })}
-              </ListNote>
+            {waitingLine ? (
+              <ListNote testId="library-needs-compile">{waitingLine}</ListNote>
             ) : null}
           </>
         ) : (

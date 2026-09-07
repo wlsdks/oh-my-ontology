@@ -21,6 +21,7 @@ import type { VaultDoc, VaultSourceFile } from '../model/types';
  * sources: [sources/quarter-plan.pdf]
  * source_hash:
  *   sources/quarter-plan.pdf: 3b1f…
+ * sources_truncated: [sources/quarter-plan.pdf]
  * compiled_at: 2026-09-05T10:00:00Z
  * ---
  * ```
@@ -28,6 +29,14 @@ import type { VaultDoc, VaultSourceFile } from '../model/types';
  * The hash is what makes the answer honest. Without it a page that cites a file says
  * only "somebody once read something with this name", which is exactly the claim that
  * goes stale in silence when the file is replaced.
+ *
+ * `sources_truncated` is the second half of that honesty, added 2026-09-07. A long file
+ * is cut at the per-read cap, so a page can be written from the first forty pages of a
+ * two-hundred-page document and still record a hash that matches every byte of it. The
+ * hash then says *this page describes this file*, which is true of the part that was read
+ * and false of the rest — and the row said `compiled`, which is how half a document
+ * disappears without anybody being told. The writer records which sources it only got
+ * part of, and the row says `partial` instead.
  */
 
 /** The top-level folder holding wiki pages. Mirrors `VAULT_SOURCES_DIR`. */
@@ -41,11 +50,15 @@ const VAULT_WIKI_DIR = 'wiki';
  * - `stale` — a page cites it and the hashes disagree, or the page cites it without a
  *   hash at all. Both mean the same thing to a person: *the write-up may no longer
  *   describe this file*, and the cure is the same.
+ * - `partial` — a page cites it, its hash still matches, and that page says it read only
+ *   part of this file. Nothing is wrong with the write-up; it simply stops short of the
+ *   document, and a person deciding whether to open the original needs that before they
+ *   trust the page instead.
  * - `checking` — a page cites it with a hash and the file has not been hashed yet. A
  *   transient state, never a resting one; showing "compiled" during it would be a claim
  *   nothing has verified.
  */
-type SourceCompileState = 'not-compiled' | 'compiled' | 'stale' | 'checking';
+type SourceCompileState = 'not-compiled' | 'compiled' | 'partial' | 'stale' | 'checking';
 
 interface WikiCitation {
   /** Slug of the wiki page, as `VaultDoc.slug` spells it (`wiki/quarter-plan`). */
@@ -54,6 +67,8 @@ interface WikiCitation {
   sourcePath: string;
   /** The sha256 that page recorded for this source, or null when it recorded none. */
   sourceHash: string | null;
+  /** True when that page recorded this source under `sources_truncated`. */
+  truncated: boolean;
 }
 
 export interface LibraryWikiPage {
@@ -128,11 +143,15 @@ function collectWikiCitations(
   for (const doc of docs) {
     if (!isWikiPage(doc)) continue;
     const hashes = readHashMap(doc.frontmatter.source_hash);
+    // Read with the same tolerance as `sources:` — a hand-edited scalar is the commonest
+    // shape, and a page that named one truncated file should not be read as naming none.
+    const truncated = new Set(readStringArray(doc.frontmatter.sources_truncated));
     for (const sourcePath of readStringArray(doc.frontmatter.sources)) {
       const citation: WikiCitation = {
         wikiSlug: doc.slug,
         sourcePath,
         sourceHash: hashes.get(sourcePath) ?? null,
+        truncated: truncated.has(sourcePath),
       };
       const list = out.get(sourcePath);
       if (list) list.push(citation);
@@ -153,7 +172,12 @@ function collectWikiCitations(
  * **Any** citing page matching is enough for `compiled`. Two pages may cover one document
  * and one of them may be older; the source is still described somewhere by something
  * current, and marking it stale would send a person to re-compile a file that is already
- * covered.
+ * covered. The same generosity decides `partial`: it takes **every** matching page having
+ * read only part of the file, because one page that read it whole covers it whole.
+ *
+ * `stale` outranks `partial`. A page that read half a file and a file that has since been
+ * replaced is not a page describing half of what is on disk — it is a page describing half
+ * of something else, and the cure is the one `stale` already names.
  */
 function deriveSourceState(
   citations: readonly WikiCitation[] | undefined,
@@ -166,9 +190,9 @@ function deriveSourceState(
   // name and the same cure.
   if (hashed.length === 0) return 'stale';
   if (actualHash === undefined) return 'checking';
-  return hashed.some((citation) => citation.sourceHash === actualHash.toLowerCase())
-    ? 'compiled'
-    : 'stale';
+  const matching = hashed.filter((citation) => citation.sourceHash === actualHash.toLowerCase());
+  if (matching.length === 0) return 'stale';
+  return matching.some((citation) => !citation.truncated) ? 'compiled' : 'partial';
 }
 
 export interface LibrarySourceRow extends VaultSourceFile {
@@ -180,13 +204,22 @@ export interface LibrarySourceRow extends VaultSourceFile {
 export interface LibraryModel {
   sources: LibrarySourceRow[];
   wikiPages: LibraryWikiPage[];
-  /** Sources whose state is `not-compiled` or `stale` — the count Compile acts on. */
+  /**
+   * Sources whose state is `not-compiled`, `partial` or `stale` — the count Compile acts on.
+   *
+   * `partial` joined it on 2026-09-07. A page written from the first part of a file is a
+   * page with more of that file still to read, so the run that would read the rest is the
+   * same run this count exists to offer. It is the least urgent of the three, which is why
+   * the surfaces name it in its own clause rather than folding it into the others.
+   */
   needsCompileCount: number;
   /** Sources nobody has written up. The footer names this apart from `staleCount`: a person
    *  reading "5 not written up" when two of them have pages is being told something false. */
   notCompiledCount: number;
   /** Sources whose page cites a hash the bytes no longer match. */
   staleCount: number;
+  /** Sources every citing page read only part of, with the bytes still matching. */
+  partialCount: number;
   /** Paths worth hashing: cited, hash recorded, not yet measured. */
   pathsNeedingHash: string[];
   /** Both crossings between a source and the pages written from it. */
@@ -224,10 +257,11 @@ export function buildLibraryModel({
     sources: rows,
     wikiPages: selectWikiPages(docs),
     needsCompileCount: rows.filter(
-      (row) => row.state === 'not-compiled' || row.state === 'stale',
+      (row) => row.state === 'not-compiled' || row.state === 'stale' || row.state === 'partial',
     ).length,
     notCompiledCount: rows.filter((row) => row.state === 'not-compiled').length,
     staleCount: rows.filter((row) => row.state === 'stale').length,
+    partialCount: rows.filter((row) => row.state === 'partial').length,
     // `checking` **is** the definition of "worth hashing": cited, a hash recorded, and
     // nothing measured yet. The caller drops a path from its cache when the file's mtime
     // changes, which puts the row back into `checking` and back into this list.
@@ -285,6 +319,8 @@ export interface LibraryOriginalLink {
  * How a write-up stands to the bytes it was written from.
  *
  * - `current` — the page recorded a hash for this source and it matches the measured one.
+ * - `partial` — the hash matches and the page says it read only part of the file. What it
+ *   says is current; what it leaves out is the rest of the document.
  * - `behind` — the hashes disagree, or the page recorded none. A reader can act on
  *   neither, and the cure is the same.
  * - `unchecked` — the page recorded a hash and **nothing has measured the file yet**.
@@ -295,7 +331,7 @@ export interface LibraryOriginalLink {
  * whenever hashing cannot happen at all — a browser without `crypto.subtle`, or a source
  * the session holds no handle for — so it is a resting state, not a flicker.
  */
-type WriteUpFreshness = 'current' | 'behind' | 'unchecked';
+type WriteUpFreshness = 'current' | 'partial' | 'behind' | 'unchecked';
 
 /** One wiki page citing a source, and how it stands to the bytes on disk. */
 export interface LibraryWriteUpLink {
@@ -360,9 +396,11 @@ function buildLibraryPairing({
             ? 'behind'
             : actual === undefined
               ? 'unchecked'
-              : citation.sourceHash === actual
-                ? 'current'
-                : 'behind',
+              : citation.sourceHash !== actual
+                ? 'behind'
+                : citation.truncated
+                  ? 'partial'
+                  : 'current',
       });
     }
     writeUpsBySource.set(

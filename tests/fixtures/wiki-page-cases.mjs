@@ -216,6 +216,39 @@ export const WIKI_PAGE_CASES = [
     expectedCodes: ['citation-target-missing'],
   },
   {
+    name: 'a page that read part of one of its own sources records it and stays valid',
+    input: page(
+      FRONTMATTER.replace(
+        'status: draft',
+        'sources_truncated:\n  - sources/plan.pdf\nstatus: draft',
+      ),
+      BODY,
+    ),
+    expectedOk: true,
+    expectedCodes: [],
+  },
+  {
+    name: 'a truncation record naming a file the page does not cite places no boundary',
+    input: page(
+      FRONTMATTER.replace(
+        'status: draft',
+        'sources_truncated:\n  - sources/other.pdf\nstatus: draft',
+      ),
+      BODY,
+    ),
+    expectedOk: false,
+    expectedCodes: ['bad-truncation-record'],
+  },
+  {
+    name: 'a truncation record that is not a list of paths records nothing at all',
+    input: page(
+      FRONTMATTER.replace('status: draft', 'sources_truncated: {}\nstatus: draft'),
+      BODY,
+    ),
+    expectedOk: false,
+    expectedCodes: ['bad-truncation-record'],
+  },
+  {
     name: 'describes on a draft is an unapproved claim about the graph',
     input: page(
       FRONTMATTER.replace('status: draft', 'status: draft\ndescribes:\n  - capabilities/mcp-server'),
