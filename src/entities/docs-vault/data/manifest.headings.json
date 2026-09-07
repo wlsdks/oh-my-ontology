@@ -6514,6 +6514,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-08 — The app's Claude follows the terminal login by mirroring the keychain item, not by linking the file",
+      "slug": "2026-09-08-the-apps-claude-follows-the-terminal-login-by-mirroring-the-keychain-item-not-by-linking-the-file"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — The conversation composer's bottom row is quiet: the tool with its model and the mode as text pickers, then the status, the session doors and send",
       "slug": "2026-09-07-the-conversation-composers-bottom-row-is-quiet-the-tool-with-its-model-and-the-mode-as-text-pickers-then-the-status-the-session-doors-and-send"
     },

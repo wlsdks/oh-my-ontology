@@ -26,7 +26,9 @@ fn validate_file_name(name: &str) -> Result<(), String> {
             25..=60 => byte.is_ascii_digit() || (b'a'..=b'f').contains(byte),
             _ => byte.is_ascii_digit(),
         };
-        if !valid { return Err("invalid analysis file name".into()); }
+        if !valid {
+            return Err("invalid analysis file name".into());
+        }
     }
     if bytes[39] != b'4' || !matches!(bytes[44], b'8' | b'9' | b'a' | b'b') {
         return Err("analysis file name must carry a UUIDv4".into());
@@ -65,7 +67,10 @@ fn validate_envelope(file_name: &str, content: &str) -> Result<(), String> {
     if header_string(content, "analysis_schema")? != "atlas-analysis/v1" {
         return Err("unsupported analysis schema".into());
     }
-    if !matches!(header_string(content, "record_type")?.as_str(), "run" | "review") {
+    if !matches!(
+        header_string(content, "record_type")?.as_str(),
+        "run" | "review"
+    ) {
         return Err("unsupported analysis record type".into());
     }
     let id = header_string(content, "id")?;
@@ -106,7 +111,10 @@ pub(crate) fn append_analysis_record(
 }
 
 #[tauri::command]
-pub(crate) fn read_analysis_record_text(root_path: String, file_name: String) -> Result<String, String> {
+pub(crate) fn read_analysis_record_text(
+    root_path: String,
+    file_name: String,
+) -> Result<String, String> {
     validate_file_name(&file_name)?;
     #[cfg(unix)]
     {
@@ -114,14 +122,29 @@ pub(crate) fn read_analysis_record_text(root_path: String, file_name: String) ->
         use std::os::fd::{AsRawFd, FromRawFd};
         let parent = crate::agent_setup::open_absolute_directory_no_follow(&root.join(DIRECTORY))?;
         let name = std::ffi::CString::new(file_name).map_err(|error| error.to_string())?;
-        let fd = unsafe { libc::openat(parent.as_raw_fd(), name.as_ptr(), libc::O_RDONLY | libc::O_CLOEXEC | libc::O_NOFOLLOW | libc::O_NONBLOCK) };
-        if fd < 0 { return Err(std::io::Error::last_os_error().to_string()); }
+        let fd = unsafe {
+            libc::openat(
+                parent.as_raw_fd(),
+                name.as_ptr(),
+                libc::O_RDONLY | libc::O_CLOEXEC | libc::O_NOFOLLOW | libc::O_NONBLOCK,
+            )
+        };
+        if fd < 0 {
+            return Err(std::io::Error::last_os_error().to_string());
+        }
         let mut file = unsafe { fs::File::from_raw_fd(fd) };
         let metadata = file.metadata().map_err(|error| error.to_string())?;
-        if !metadata.is_file() || metadata.len() > LIMIT as u64 { return Err("analysis record is not a bounded regular file".into()); }
+        if !metadata.is_file() || metadata.len() > LIMIT as u64 {
+            return Err("analysis record is not a bounded regular file".into());
+        }
         let mut text = String::new();
-        (&mut file).take((LIMIT + 1) as u64).read_to_string(&mut text).map_err(|error| error.to_string())?;
-        if text.len() > LIMIT { return Err("analysis record exceeds the supported byte budget".into()); }
+        (&mut file)
+            .take((LIMIT + 1) as u64)
+            .read_to_string(&mut text)
+            .map_err(|error| error.to_string())?;
+        if text.len() > LIMIT {
+            return Err("analysis record exceeds the supported byte budget".into());
+        }
         let after = file.metadata().map_err(|error| error.to_string())?;
         if after.len() != metadata.len() || after.modified().ok() != metadata.modified().ok() {
             return Err("analysis record changed while it was read".into());
@@ -142,17 +165,28 @@ fn read_portable_record(root_path: &str, file_name: &str) -> Result<String, Stri
     let mut component = root;
     for name in [".ontology-atlas", "analyses", file_name] {
         component.push(name);
-        if fs::symlink_metadata(&component).map_err(|error| error.to_string())?.file_type().is_symlink() {
+        if fs::symlink_metadata(&component)
+            .map_err(|error| error.to_string())?
+            .file_type()
+            .is_symlink()
+        {
             return Err("analysis record path must not contain symlinks".into());
         }
     }
     let target = super::resolve_existing_inside(root_path, &format!("{DIRECTORY}/{file_name}"))?;
     let mut file = fs::File::open(target).map_err(|error| error.to_string())?;
     let metadata = file.metadata().map_err(|error| error.to_string())?;
-    if !metadata.is_file() || metadata.len() > LIMIT as u64 { return Err("analysis record is not a bounded regular file".into()); }
+    if !metadata.is_file() || metadata.len() > LIMIT as u64 {
+        return Err("analysis record is not a bounded regular file".into());
+    }
     let mut text = String::new();
-    (&mut file).take((LIMIT + 1) as u64).read_to_string(&mut text).map_err(|error| error.to_string())?;
-    if text.len() > LIMIT { return Err("analysis record exceeds the supported byte budget".into()); }
+    (&mut file)
+        .take((LIMIT + 1) as u64)
+        .read_to_string(&mut text)
+        .map_err(|error| error.to_string())?;
+    if text.len() > LIMIT {
+        return Err("analysis record exceeds the supported byte budget".into());
+    }
     let after = file.metadata().map_err(|error| error.to_string())?;
     if after.len() != metadata.len() || after.modified().ok() != metadata.modified().ok() {
         return Err("analysis record changed while it was read".into());
@@ -271,17 +305,35 @@ fn publish_exclusively(
     }
     let mut temporary = unsafe { fs::File::from_raw_fd(fd) };
     let result = (|| -> Result<bool, String> {
-        if temporary.metadata().map_err(|error| error.to_string())?.nlink() != 1 {
+        if temporary
+            .metadata()
+            .map_err(|error| error.to_string())?
+            .nlink()
+            != 1
+        {
             return Err("analysis temporary identity changed".into());
         }
-        temporary.write_all(contents.as_bytes()).map_err(|error| error.to_string())?;
+        temporary
+            .write_all(contents.as_bytes())
+            .map_err(|error| error.to_string())?;
         temporary.sync_all().map_err(|error| error.to_string())?;
-        if temporary.metadata().map_err(|error| error.to_string())?.nlink() != 1 {
+        if temporary
+            .metadata()
+            .map_err(|error| error.to_string())?
+            .nlink()
+            != 1
+        {
             return Err("analysis temporary identity changed".into());
         }
         // linkat publishes a complete inode and cannot replace an existing name.
         let linked = unsafe {
-            libc::linkat(parent.as_raw_fd(), temporary_name.as_ptr(), parent.as_raw_fd(), name.as_ptr(), 0)
+            libc::linkat(
+                parent.as_raw_fd(),
+                temporary_name.as_ptr(),
+                parent.as_raw_fd(),
+                name.as_ptr(),
+                0,
+            )
         };
         if linked == 0 {
             parent.sync_all().map_err(|error| error.to_string())?;
@@ -307,19 +359,28 @@ fn publish_portable(target: &Path, contents: &str) -> Result<bool, String> {
         .map_err(|error| error.to_string())?
         .as_nanos();
     let temporary = target.with_extension(format!("{}-{nonce}.tmp", std::process::id()));
-    let mut file = OpenOptions::new().write(true).create_new(true).open(&temporary).map_err(|error| error.to_string())?;
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&temporary)
+        .map_err(|error| error.to_string())?;
     let result = (|| -> Result<bool, String> {
-        file.write_all(contents.as_bytes()).map_err(|error| error.to_string())?;
+        file.write_all(contents.as_bytes())
+            .map_err(|error| error.to_string())?;
         file.sync_all().map_err(|error| error.to_string())?;
         match fs::hard_link(&temporary, target) {
             Ok(()) => Ok(true),
             Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
                 let metadata = fs::symlink_metadata(target).map_err(|error| error.to_string())?;
                 if !metadata.is_file() || metadata.len() as usize != contents.len() {
-                    return Err("analysis identity conflict; the existing record was preserved".into());
+                    return Err(
+                        "analysis identity conflict; the existing record was preserved".into(),
+                    );
                 }
                 if fs::read_to_string(target).map_err(|error| error.to_string())? != contents {
-                    return Err("analysis identity conflict; the existing record was preserved".into());
+                    return Err(
+                        "analysis identity conflict; the existing record was preserved".into(),
+                    );
                 }
                 Ok(false)
             }
@@ -349,12 +410,29 @@ mod tests {
     fn append_is_create_only_and_identical_retries_are_idempotent() {
         let (root, name, body) = fixture();
         let path = root.to_string_lossy().to_string();
-        assert!(append_analysis_record(path.clone(), name.clone(), body.clone()).unwrap().created);
-        assert!(!append_analysis_record(path.clone(), name.clone(), body.clone()).unwrap().created);
-        assert!(append_analysis_record(path, name.clone(), body.replace("Original", "Modified")).is_err());
-        assert_eq!(fs::read_to_string(root.join(DIRECTORY).join(name)).unwrap(), body);
+        assert!(
+            append_analysis_record(path.clone(), name.clone(), body.clone())
+                .unwrap()
+                .created
+        );
+        assert!(
+            !append_analysis_record(path.clone(), name.clone(), body.clone())
+                .unwrap()
+                .created
+        );
+        assert!(
+            append_analysis_record(path, name.clone(), body.replace("Original", "Modified"))
+                .is_err()
+        );
+        assert_eq!(
+            fs::read_to_string(root.join(DIRECTORY).join(name)).unwrap(),
+            body
+        );
         assert_eq!(fs::read_dir(root.join(DIRECTORY)).unwrap().count(), 1);
-        assert_eq!(read_analysis_record_text(root.to_string_lossy().to_string(), analysis_name()).unwrap(), body);
+        assert_eq!(
+            read_analysis_record_text(root.to_string_lossy().to_string(), analysis_name()).unwrap(),
+            body
+        );
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -382,7 +460,8 @@ mod tests {
         let (root, name, body) = fixture();
         fs::create_dir_all(root.join(DIRECTORY)).unwrap();
         fs::write(root.join("original.md"), body).unwrap();
-        std::os::unix::fs::symlink(root.join("original.md"), root.join(DIRECTORY).join(&name)).unwrap();
+        std::os::unix::fs::symlink(root.join("original.md"), root.join(DIRECTORY).join(&name))
+            .unwrap();
         assert!(read_portable_record(&root.to_string_lossy(), &name).is_err());
         fs::remove_dir_all(root).unwrap();
     }
@@ -390,7 +469,9 @@ mod tests {
     #[test]
     fn record_reads_do_not_create_directories_and_bound_the_payload() {
         let (root, name, body) = fixture();
-        assert!(read_analysis_record_text(root.to_string_lossy().to_string(), name.clone()).is_err());
+        assert!(
+            read_analysis_record_text(root.to_string_lossy().to_string(), name.clone()).is_err()
+        );
         assert!(!root.join(".ontology-atlas").exists());
         append_analysis_record(root.to_string_lossy().to_string(), name.clone(), body).unwrap();
         fs::write(root.join(DIRECTORY).join(&name), vec![b'x'; LIMIT + 1]).unwrap();
@@ -401,8 +482,18 @@ mod tests {
     #[test]
     fn generated_name_and_envelope_are_required_before_any_write() {
         let (root, name, body) = fixture();
-        assert!(append_analysis_record(root.to_string_lossy().to_string(), format!("../{name}"), body.clone()).is_err());
-        assert!(append_analysis_record(root.to_string_lossy().to_string(), name, body.replace("atlas-analysis/v1", "unknown")).is_err());
+        assert!(append_analysis_record(
+            root.to_string_lossy().to_string(),
+            format!("../{name}"),
+            body.clone()
+        )
+        .is_err());
+        assert!(append_analysis_record(
+            root.to_string_lossy().to_string(),
+            name,
+            body.replace("atlas-analysis/v1", "unknown")
+        )
+        .is_err());
         assert!(!root.join(DIRECTORY).exists());
         fs::remove_dir_all(root).unwrap();
     }
@@ -416,14 +507,24 @@ mod tests {
         fs::create_dir_all(&outside).unwrap();
         fs::create_dir_all(root.join(".ontology-atlas")).unwrap();
         symlink(&outside, root.join(DIRECTORY)).unwrap();
-        assert!(append_analysis_record(root.to_string_lossy().to_string(), name.clone(), body.clone()).is_err());
+        assert!(append_analysis_record(
+            root.to_string_lossy().to_string(),
+            name.clone(),
+            body.clone()
+        )
+        .is_err());
         fs::remove_file(root.join(DIRECTORY)).unwrap();
         fs::create_dir(root.join(DIRECTORY)).unwrap();
         let moved = root.join("original-analyses");
-        let result = append_after_open(root.to_string_lossy().to_string(), name.clone(), body, || {
-            fs::rename(root.join(DIRECTORY), &moved).unwrap();
-            symlink(&outside, root.join(DIRECTORY)).unwrap();
-        });
+        let result = append_after_open(
+            root.to_string_lossy().to_string(),
+            name.clone(),
+            body,
+            || {
+                fs::rename(root.join(DIRECTORY), &moved).unwrap();
+                symlink(&outside, root.join(DIRECTORY)).unwrap();
+            },
+        );
         assert!(result.is_err());
         assert!(!outside.join(name).exists());
         assert_eq!(fs::read_dir(moved).unwrap().count(), 0);

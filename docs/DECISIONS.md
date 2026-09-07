@@ -108,6 +108,15 @@ record stays in Git history before commit `e4fb49a89`.
 **Falsifier**: a DOCX or XLSX in a real folder whose text the tool splits into anchors a reader cannot find in the document, or a read-only turn in the app that still raises an execute card after being told about the tool.
 **Owner**: jinan
 
+## 2026-09-08 — The app's Claude follows the terminal login by mirroring the keychain item, not by linking the file
+
+**Why**: the app linked `~/.claude/.credentials.json` into its own config folder; on macOS Claude Code keeps the live login in the keychain and leaves that file behind, so after the owner switched accounts in the terminal the app kept the old account's token and reported its session limit while the terminal had room (installed app, 2026-09-08 00:50; the two accounts were read side by side with `claude auth status`).
+**Prior**: 2026-08-20 "remove the app-share item" stands for a dead app-scoped login; this adds the mirror for a live one that is simply not the terminal's.
+**Decision**: before every Claude session the app reads the terminal's keychain item (`Claude Code-credentials`, then the item named after `~/.claude`) with the same `security` tool Claude Code uses and writes it into the app-scoped item; the terminal's cached account travels into the app folder's `.claude.json` so status names the right account. A terminal with no login mirrors nothing and the file link stands as before.
+**Dissent**: dropping the app's own config folder so the child reads the terminal login directly would remove the mirror entirely; deferred because the folder carries the app's settings and permission gate, and moving those to flags is a separate decision.
+**Falsifier**: an app session that reports a different account than `claude auth status` in a terminal on the same machine.
+**Owner**: jinan
+
 ## 2026-09-07 — The conversation composer's bottom row is quiet: the tool with its model and the mode as text pickers, then the status, the session doors and send
 
 **Why**: the composer's footer held three bordered 32px pickers — tool, model, mode — that stacked into two rows inside the Library dock; the owner asked who lays a composer out like that, said to merge the tool and its version into one control, tried them as a toolbar above the transcript and rejected the empty band that left, and asked for one line at the very bottom (installed app, 2026-09-07).

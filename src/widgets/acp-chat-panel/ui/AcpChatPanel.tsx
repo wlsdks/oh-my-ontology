@@ -728,16 +728,34 @@ export function AcpChatPanel({
    * in state would re-run the effect on the very render the send causes.
    */
   const sentOpeningNonceRef = useRef<number | null>(null);
+  /*
+   * A door pressed into a broken session restarts it. The request used to wait for
+   * `ready` — which never came after an error — so the person saw the old error card,
+   * pressed the door again, and nothing moved until they found Retry (owner, installed
+   * app, 2026-09-08). Once per request: the restart either reaches `ready` and sends, or
+   * fails again and shows the fresh error.
+   */
+  const restartedOpeningNonceRef = useRef<number | null>(null);
   const openingNonce = openingRequest?.nonce ?? null;
   const openingText = openingRequest?.text ?? null;
   useEffect(() => {
     if (openingNonce === null || !openingText) return;
     if (openingScopeMismatch) return;
+    if (
+      (status === 'error' || status === 'exited') &&
+      sentOpeningNonceRef.current !== openingNonce &&
+      restartedOpeningNonceRef.current !== openingNonce
+    ) {
+      restartedOpeningNonceRef.current = openingNonce;
+      setHistoryOpen(false);
+      void switchSession(null);
+      return;
+    }
     if (status !== 'ready') return;
     if (sentOpeningNonceRef.current === openingNonce) return;
     sentOpeningNonceRef.current = openingNonce;
     void send(openingText);
-  }, [openingNonce, openingText, openingScopeMismatch, status, send]);
+  }, [openingNonce, openingText, openingScopeMismatch, status, send, switchSession]);
 
   const prefillNonce = prefillRequest?.nonce ?? null;
   const prefillText = prefillRequest?.text ?? null;
