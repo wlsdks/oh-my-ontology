@@ -1021,3 +1021,47 @@ describe('a session that begins in a mode the filter hides', () => {
     });
   });
 });
+
+describe('autoDecide — the screen answers a permission it can judge', () => {
+  const permissionRequest = (id: number, path: string) =>
+    JSON.stringify({
+      jsonrpc: '2.0',
+      id,
+      method: 'session/request_permission',
+      params: {
+        sessionId: 's-1',
+        options: [
+          { kind: 'reject_once', name: 'Deny', optionId: 'reject' },
+          { kind: 'allow_once', name: 'Allow', optionId: 'allow' },
+        ],
+        toolCall: { toolCallId: `tool-${id}`, title: `Write ${path}`, kind: 'edit', rawInput: { file_path: path } },
+      },
+    });
+
+  it('allows at once with a transcript line when the screen says so, and still asks otherwise', async () => {
+    // Owner direction 2026-09-07: agents act, people can step in. The Library judges a wiki
+    // page against its contract; a fitting page lands without a card.
+    const { result } = renderHook(() =>
+      useAcpSession({
+        runtimeId: 'claude-acp',
+        vaultRoot: '/vault',
+        autoDecide: (request) => (request.filePath?.endsWith('/wiki/a.md') ? 'wiki/a.md' : null),
+      }),
+    );
+    const starting = result.current.start();
+    await waitFor(() => expect(bridge.starts).toBe(1));
+    await act(async () => { bridge.release?.(); await starting; });
+
+    await act(async () => { bridge.listener?.(permissionRequest(201, '/vault/wiki/a.md')); });
+    await waitFor(() => expect(bridge.sent.some((m) => m.id === 201 && 'result' in m)).toBe(true));
+    const answer = bridge.sent.find((m) => m.id === 201) as { result: { outcome: { optionId: string } } };
+    expect(answer.result.outcome.optionId).toBe('allow');
+    expect(result.current.pending).toBeNull();
+    expect(result.current.events.some((event) => event.kind === 'notice' && event.text === 'auto-allowed' && event.detail === 'wiki/a.md')).toBe(true);
+
+    await act(async () => { bridge.listener?.(permissionRequest(202, '/vault/notes.md')); });
+    await waitFor(() => expect(result.current.pending?.request.filePath).toBe('/vault/notes.md'));
+    await act(async () => { result.current.pending?.resolve('reject'); });
+    await act(async () => { await result.current.stop(); });
+  });
+});

@@ -4015,7 +4015,8 @@
       "gateOff": "In this conversation Atlas cannot ask you before a file outside this folder is touched. The tool follows the settings you gave it directly.",
       "diedMidTurn": "The agent stopped in the middle of answering. What you see is everything that arrived. Start a new chat above and ask again.",
       "modeMoved": "The tool moved this conversation into {mode}, a mode that accepts file edits without asking you first.",
-      "modeMovedServerGate": "The tool moved this conversation into {mode}, a mode that accepts file edits without asking you first. Changes made through Atlas tools still stop at the server for your approval."
+      "modeMovedServerGate": "The tool moved this conversation into {mode}, a mode that accepts file edits without asking you first. Changes made through Atlas tools still stop at the server for your approval.",
+      "autoAllowed": "{detail} was written without asking: it fits the wiki page contract. Open it from the list to read it back."
     },
     "suggest": {
       "heading": "Spotted on the map · press to fill the message box",
@@ -4532,7 +4533,12 @@
       "emptyNoTemplate": "No wiki pages yet, and no template in this folder. Start a wiki from Settings › Workspace: it writes wiki/_template.md, the shape every page follows.",
       "folderMark": "link",
       "candidatesMore": "{count, plural, one {# more name} other {# more names}}",
-      "candidatesLess": "Fewer names"
+      "candidatesLess": "Fewer names",
+      "writeModeAuto": "Writes land",
+      "writeModeAsk": "Ask each time",
+      "writeModeLabel": "What happens when the agent writes a wiki page",
+      "writeModeAutoTooltip": "A page that fits the contract is written at once and noted in the conversation; one that does not still stops at the card.",
+      "writeModeAskTooltip": "Every page write stops at the card for your decision."
     },
     "graph": {
       "title": "Graph",

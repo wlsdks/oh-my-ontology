@@ -120,6 +120,9 @@ export interface LibrarySectionProps {
   onPropose: ((candidate: LintNodeCandidate) => void) | null;
   /** Whether `wiki/_template.md` exists: without it the empty state says how to get one. */
   hasWikiTemplate?: boolean;
+  /** How an agent's wiki page write is handled: lands when it fits, or asks each time. */
+  writeMode?: "auto" | "ask";
+  onWriteModeChange?: ((mode: "auto" | "ask") => void) | null;
   /**
    * The brain picker, when this computer offers two and Compile can therefore be pointed
    * at either. Null draws nothing: with one brain there is no choice to make.
@@ -241,6 +244,8 @@ export function LibrarySection({
   candidates,
   onPropose,
   hasWikiTemplate = true,
+  writeMode = "auto",
+  onWriteModeChange = null,
   brainControl,
   compileNote,
   busy,
@@ -474,6 +479,44 @@ export function LibrarySection({
                         <span className="min-w-0 truncate">{t("wiki.compile")}</span>
                       </Chip>
                     </Tooltip>
+                  ) : null}
+                  {onWriteModeChange && (onCompile || onLint) ? (
+                    /*
+                     * Owner direction 2026-09-07: the agent acts and the person can step in.
+                     * A page that fits the contract lands at once; the person can switch to
+                     * being asked each time. Two chips, one active, beside the doors they govern.
+                     */
+                    <span
+                      role="group"
+                      aria-label={t("wiki.writeModeLabel")}
+                      data-testid="library-write-mode"
+                      className="ml-auto inline-flex flex-none items-center gap-1"
+                    >
+                      <Tooltip content={t("wiki.writeModeAutoTooltip")}>
+                        <Chip
+                          data-testid="library-write-mode-auto"
+                          onClick={() => onWriteModeChange("auto")}
+                          active={writeMode === "auto"}
+                          aria-pressed={writeMode === "auto"}
+                          tone="muted"
+                          className="flex-none"
+                        >
+                          {t("wiki.writeModeAuto")}
+                        </Chip>
+                      </Tooltip>
+                      <Tooltip content={t("wiki.writeModeAskTooltip")}>
+                        <Chip
+                          data-testid="library-write-mode-ask"
+                          onClick={() => onWriteModeChange("ask")}
+                          active={writeMode === "ask"}
+                          aria-pressed={writeMode === "ask"}
+                          tone="muted"
+                          className="flex-none"
+                        >
+                          {t("wiki.writeModeAsk")}
+                        </Chip>
+                      </Tooltip>
+                    </span>
                   ) : null}
                 </span>
                 {/* The picker is what the buttons beside it will run on; a control on its

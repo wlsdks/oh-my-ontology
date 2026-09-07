@@ -976,7 +976,10 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
 - **Compile** — starts one in-app ACP turn whose brief embeds `wiki/_template.md`
   verbatim and names `wiki-validate` as the acceptance test. Enabled only while some
   source is not compiled or stale. Beside it: the coding agent's provider traffic is not
-  in `.ontology-atlas/llm-audit.jsonl`. Every write still stops at the permission card,
+  in `.ontology-atlas/llm-audit.jsonl`. A page under `wiki/` that fits the contract is
+  written without a card and the conversation says so in one line (2026-09-07, owner
+  direction: agents act, people can step in); a two-chip switch beside Compile, "Writes
+  land" / "Ask each time", brings the card back for every page. A page that does not fit,
   and for a page under `wiki/` the card shows the verdict first: the page as the write
   would leave it (a whole file, or an edit applied to the page on disk), judged against
   the contract, one quiet line when it fits and the codes with the first message when it

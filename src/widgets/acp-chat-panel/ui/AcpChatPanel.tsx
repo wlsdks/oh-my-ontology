@@ -269,6 +269,7 @@ export function AcpChatPanel({
   requestScopeKey,
   onOpeningRequestSent,
   judgeWrite,
+  autoDecide,
   suggestions = [],
   onSuggestionAction,
   knownSlugs,
@@ -336,6 +337,16 @@ export function AcpChatPanel({
     ok: boolean;
     problems: ReadonlyArray<{ code: string; message: string; line?: number }>;
   } | null;
+  /**
+   * Answers a file permission itself when the screen's own contract says the write fits:
+   * the request lands without a card and the transcript notes it. Null asks the person.
+   */
+  autoDecide?: (request: {
+    filePath: string | null;
+    rawInput: Record<string, unknown>;
+    toolKind: string | null;
+    toolName: string | null;
+  }) => string | null;
   /**
    * The answer to 「What should I ask?」 (what should I ask) — drawn from **this folder's
    * current state** (`useChatSuggestions`). It appears in the empty conversation and,
@@ -421,6 +432,7 @@ export function AcpChatPanel({
     approvalSettleMs: reducedMotion ? 0 : MOTION.settle.duration * 1000,
     onWorkReceipt,
     onTurnStarted: captureTurnStart,
+    autoDecide,
   });
   const pendingChangeSet = useMemo(
     () =>
@@ -2565,7 +2577,9 @@ function TranscriptEntry({
         ? t(event.serverGate ? 'notice.modeMovedServerGate' : 'notice.modeMoved', {
             mode: event.mode ?? '',
           })
-        : t(event.text === 'died-mid-turn' ? 'notice.diedMidTurn' : 'notice.gateOff')}
+        : event.text === 'auto-allowed'
+          ? t('notice.autoAllowed', { detail: event.detail ?? '' })
+          : t(event.text === 'died-mid-turn' ? 'notice.diedMidTurn' : 'notice.gateOff')}
     </p>
   );
 }

@@ -29,7 +29,7 @@ const CANDIDATES: LintNodeCandidate[] = [
   { name: "Teodor Vasquez", kind: "person", pages: ["wiki/a"], why: "" },
 ];
 
-function Harness({ onPropose, candidates = CANDIDATES }: { onPropose: ((c: LintNodeCandidate) => void) | null; candidates?: LintNodeCandidate[] }) {
+function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null, writeMode = "auto" }: { onPropose: ((c: LintNodeCandidate) => void) | null; candidates?: LintNodeCandidate[]; onWriteModeChange?: ((mode: "auto" | "ask") => void) | null; writeMode?: "auto" | "ask" }) {
   const t = useTranslations("library");
   return (
     <LibrarySection
@@ -45,6 +45,8 @@ function Harness({ onPropose, candidates = CANDIDATES }: { onPropose: ((c: LintN
       onLint={() => {}}
       candidates={candidates}
       onPropose={onPropose}
+      writeMode={writeMode}
+      onWriteModeChange={onWriteModeChange}
       /*
        * `transferNote` became `compileNote` and the drop hint left this column for the
        * empty-folder stage (2026-09-07 merge). The case is unchanged; it points at the
@@ -96,6 +98,14 @@ describe("names without a page become node candidates a person can propose", () 
     fireEvent.click(fold);
     expect(screen.getAllByTestId("library-candidate")).toHaveLength(7);
     expect(screen.getByTestId("library-candidates-fold").textContent).toContain("Fewer names");
+  });
+
+  it("offers the write-mode switch beside the doors, with the landing default active", () => {
+    const onWriteModeChange = vi.fn();
+    mount(<Harness onPropose={vi.fn()} onWriteModeChange={onWriteModeChange} />);
+    expect(screen.getByTestId("library-write-mode-auto").getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(screen.getByTestId("library-write-mode-ask"));
+    expect(onWriteModeChange).toHaveBeenCalledWith("ask");
   });
 
   it("shows no rows when the last check named nobody, and no chip where no agent can run", () => {

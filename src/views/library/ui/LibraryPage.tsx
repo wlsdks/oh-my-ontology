@@ -35,6 +35,7 @@ import {
   withoutImportedNames,
   type DiscoveryOutcome,
   dropCandidatesWithNodes,
+  wikiPagePathOf,
 } from "@/features/library";
 import {
   DocReadingPane,
@@ -136,6 +137,8 @@ import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
  * copy with **two duplicate doors**, the canvas's own sentence, and a 560px panel lying
  * across it. The screen is now `LibraryStartStage`, and the guide is only ever a press.
  */
+const WRITE_MODE_KEY = "library.wikiWriteMode";
+
 export function LibraryPage() {
   const t = useTranslations("library");
   const locale = useLocale();
@@ -497,6 +500,27 @@ export function LibraryPage() {
    * it, judged against the wiki page contract. Edits are applied to the page text the model
    * last read; a page it has not read yet gets no verdict rather than a guessed one.
    */
+  /*
+   * How an agent's wiki page write is handled. Owner direction 2026-09-07: agents act and
+   * people can step in — not every write waits. Default: a page that fits the contract
+   * lands and the transcript says so; a page that does not still stops at the card. The
+   * choice is a per-screen convenience kept in this browser, never a vault fact.
+   */
+  const [writeMode, setWriteMode] = useState<"auto" | "ask">(() => {
+    try {
+      return window.localStorage.getItem(WRITE_MODE_KEY) === "ask" ? "ask" : "auto";
+    } catch {
+      return "auto";
+    }
+  });
+  const changeWriteMode = useCallback((mode: "auto" | "ask") => {
+    setWriteMode(mode);
+    try {
+      window.localStorage.setItem(WRITE_MODE_KEY, mode);
+    } catch {
+      // A browser that refuses storage keeps the choice for this visit only.
+    }
+  }, []);
   const judgeWrite = useCallback(
     (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null }) =>
       nativeVaultRootPath
@@ -508,6 +532,16 @@ export function LibraryPage() {
           })
         : null,
     [model.pageTexts, model.sources, nativeVaultRootPath],
+  );
+  const autoDecide = useCallback(
+    (request: { filePath: string | null; rawInput: Record<string, unknown>; toolKind: string | null; toolName: string | null }) => {
+      if (writeMode !== "auto" || !nativeVaultRootPath) return null;
+      const page = wikiPagePathOf(request.filePath, nativeVaultRootPath);
+      if (!page) return null;
+      const verdict = judgeWrite(request);
+      return verdict?.ok ? page : null;
+    },
+    [judgeWrite, nativeVaultRootPath, writeMode],
   );
 
   /**
@@ -963,6 +997,8 @@ export function LibraryPage() {
             onLint={agent.route === "agent" ? handleLint : null}
             candidates={openCandidates}
             hasWikiTemplate={docs.some((doc) => doc.slug === "wiki/_template")}
+            writeMode={writeMode}
+            onWriteModeChange={changeWriteMode}
             onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
             /*
              * The same picker as step two, reading and writing the same stored answer, so
@@ -1242,6 +1278,7 @@ export function LibraryPage() {
       {agent.route === "agent" && agent.runtime && nativeVaultRootPath ? (
         <LibraryAgentDock
           judgeWrite={judgeWrite}
+          autoDecide={autoDecide}
           onTurnStarted={handleTurnStarted}
           open={agent.open}
           runtime={agent.runtime}

@@ -68,6 +68,7 @@ export function LibraryAgentDock({
   knownSlugs,
   onClose,
   judgeWrite,
+  autoDecide,
   onTurnStarted,
 }: {
   open: boolean;
@@ -81,6 +82,8 @@ export function LibraryAgentDock({
   onClose: () => void;
   /** Judges a wiki page write before the permission card asks; see `judgePageWrite`. */
   judgeWrite?: (request: PageWriteRequest) => PageWriteVerdict | null;
+  /** Allows a wiki page write that fits without a card; see `LibraryPage`. */
+  autoDecide?: AcpChatPanelProps["autoDecide"];
   /** Sees each turn start and hands back what to do when it ends; the wiki log hangs here. */
   onTurnStarted?: AcpChatPanelProps["onTurnStarted"];
 }) {
@@ -189,6 +192,7 @@ export function LibraryAgentDock({
             }
             openingRequest={openingRequest}
             judgeWrite={judgeWrite}
+            autoDecide={autoDecide}
             onTurnStarted={onTurnStarted}
             knownSlugs={knownSlugs}
           />
