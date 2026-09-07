@@ -2553,7 +2553,7 @@
       "switchToMyDataTooltip": "Open my markdown folder: the map fills with my data (⌘O)",
       "changeAnnouncement": "{count} concepts updated: synced",
       "close": "Close",
-      "replayGrowthTooltip": "Replay how it grew",
+      "replayGrowthTooltip": "Ontology growth flow",
       "tourTooltip": "Guided tour",
       "shortcutsTooltip": "Keyboard shortcuts (?)",
       "spotlightWindowSummary": "Last {days}d · {count}"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { usePanelPresence } from '@/shared/lib/use-presence';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/lib/cn';
@@ -60,7 +60,30 @@ type View3dChoice = 'flat' | MapArrangement;
  */
 const CHOICES: readonly View3dChoice[] = ['flat', 'ownership', 'strata', 'coupling'];
 
-export function View3dMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+/**
+ * Is this press on the map itself? The picker floats over the canvas, so the
+ * canvas is the one surface a dismissing press must not also act on. Matched by
+ * element type rather than by importing the map widget — `search-hint` and
+ * `topology-map-v2` are siblings, and a DOM shape is not a dependency.
+ */
+function isMapCanvas(target: Node): boolean {
+  const element = target instanceof Element ? target : target.parentElement;
+  return element?.closest('canvas') != null;
+}
+
+export function View3dMenu({
+  open,
+  onClose,
+  anchorRef,
+}: {
+  open: boolean;
+  onClose: () => void;
+  /**
+   * The 「3D」 chip that owns this picker. A press on it is the chip's own
+   * business — see the dismissal block below.
+   */
+  anchorRef?: RefObject<HTMLElement | null>;
+}) {
   const t = useTranslations('searchWidgets.hint');
   const view3d = useView3d();
   const arrangement = useMapArrangement();
@@ -110,9 +133,49 @@ export function View3dMenu({ open, onClose }: { open: boolean; onClose: () => vo
         onClose();
       }
     };
+    /**
+     * **Putting the picker away must not walk the map** (owner report, 2026-09-07).
+     *
+     * Two holes met here, and together they wrote state the owner never asked for:
+     *
+     * 1. The chip counted as 「outside」. Pressing it a second time closed here and
+     *    the chip's own toggle reopened in the same React batch, so the control that
+     *    opens the picker **could not close it** (measured: `data-state` stayed
+     *    `open` after a second chip press). The only way out left was pressing the
+     *    map.
+     * 2. That press was not consumed. It dismissed the picker **and** reached the
+     *    canvas, selecting whatever node sat under it. In 3D every tier is drawn, so
+     *    that is usually a capability or an element — which appends a footprint step
+     *    and derives the node's `contains` ancestors into `open=`. Back in flat 2D
+     *    the reader finds a walked-trail chip and one domain fanned open, from a click
+     *    they never meant to make.
+     *
+     * So: the anchor is not outside, and a dismissing press that lands on the map
+     * canvas closes the picker and stops there. It is swallowed on `pointerdown`
+     * (capture) plus the `click` that follows, because the canvas acts on both.
+     * Other chrome is left alone on purpose — a press on the search chip or the nav
+     * rail should still do its job on the first try; only the surface this picker
+     * hovers over is protected, and only for the one press that dismissed it.
+     */
     const onDown = (e: PointerEvent) => {
       const box = boxRef.current;
-      if (box && e.target instanceof Node && !box.contains(e.target)) onClose();
+      if (!(e.target instanceof Node)) return;
+      if (box?.contains(e.target)) return;
+      if (anchorRef?.current?.contains(e.target)) return;
+      onClose();
+      if (!isMapCanvas(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const swallowClick = (click: Event) => {
+        click.preventDefault();
+        click.stopPropagation();
+      };
+      document.addEventListener('click', swallowClick, { capture: true, once: true });
+      // If no click follows (a drag, a press that left the canvas), drop the trap on
+      // the next frame rather than eating an unrelated later click.
+      requestAnimationFrame(() =>
+        document.removeEventListener('click', swallowClick, true),
+      );
     };
     document.addEventListener('keydown', onKey);
     // Received on capture — stops the map canvas swallowing pointerdown first and
@@ -122,7 +185,7 @@ export function View3dMenu({ open, onClose }: { open: boolean; onClose: () => vo
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('pointerdown', onDown, true);
     };
-  }, [onClose, open]);
+  }, [anchorRef, onClose, open]);
 
   if (!presence.mounted) return null;
 

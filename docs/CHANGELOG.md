@@ -47,11 +47,11 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: an MCP screen; Connectors filled by Notion, Atlassian, GitHub, or an ontology-atlas:// link. The Library graph pulls apart by hand, a stage on an empty folder, a stepper, a door for outside notes, a local model card; Check the wiki reports and proposes nodes; a wiki log; a source says when only part was read. Meaning asks reasons; Strata names planes.
+**Added**: an MCP screen; Connectors filled by Notion, Atlassian, GitHub, or an ontology-atlas:// link. The Library graph pulls apart by hand; an empty-folder stage, a stepper, a door for outside notes, a local model card; Check the wiki proposes nodes and logs them; a partly read source says so. Meaning asks reasons; Strata names planes.
 
-**Changed**: the Library index switches between Sources and Wiki, its description is a tooltip, the column folds and the graph shrinks to fit; no scroller draws a bar. Connectors add in three tabs; Agents lists what it confirmed. Insights opens on four measures; chat widens; sources/ takes Markdown.
+**Changed**: the Library index switches between Sources and Wiki, its description a tooltip, the column folds and the graph shrinks to fit; no scroller draws a bar. Connectors add in three tabs; Agents lists what it confirmed. Insights opens on four measures. The growth replay is a toggle, Ontology growth flow; the pointer no longer ends it.
 
-**Fixed**: 3D relations stay visible; centres click; repeat lookups fold; permission cards read plainly; rails stop blinking; footprints curve; docks name tool and mode; Korean reports count; loose files ring the cluster.
+**Fixed**: 3D relations stay visible; centres click; permission cards read plainly; rails stop blinking; docks name tool and mode; loose files ring the cluster. Dismissing the 3D picker no longer walks the map.
 
 
 ## 2026-09-05 · v1.0.6: the in-app Claude chat keeps its permission gate

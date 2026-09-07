@@ -81,6 +81,15 @@ record stays in Git history before commit `e4fb49a89`.
 **Falsifier**: somebody who cannot tell a cut list from a finished one on a faded edge; a scroller whose hidden bar loses a person their place in a long document.
 **Owner**: jinan
 
+## 2026-09-07 — The growth replay is a toggle, and putting the 3D picker away is not a walk
+
+**Why**: the owner pressed the replay tile and it died under the mouse: the rule ended it on the first input after a 300 ms grace, and *"nobody keeps the mouse still after pressing a button"*. The same session showed the map back in flat carrying a walked trail and one domain fanned open from a click never made: the 3D chip could not close its own picker (it closed and reopened in one batch), so the only exit was pressing the map, and that press both dismissed the picker and selected the node under it, which in 3D is a capability, which writes `open=`.
+**Prior**: narrows the 2026-09-02 growth-replay rule "it starts on request, cannot be steered, ends on its own or on the first input" (recorded in `model/growth-replay.ts` and the topology-browsing capability note, never in this ledger). The rest of that rule stands: no scrub bar, no mode, camera and focus untouched, reduced motion ignores the request.
+**Decision**: the replay runs to its end unless the reader deliberately stops it: a second press, `Escape`, or any press on the canvas. Movement, hover and wheel-zoom keep it running, and the control carries the active border and `aria-pressed` for exactly as long as it runs. The 3D picker's anchor is not "outside" it, and a dismissing press that lands on the canvas is consumed. A node clicked on purpose in 3D still keeps its selection and its trail step in flat.
+**Dissent**: the first-input exit was a safety catch, so that a twelve-second event could never hold the map hostage; a reader who does not know the second press is a stop is now stuck watching. Answered by three cheap exits, one of them `Escape`, and by the control saying it is pressed.
+**Falsifier**: reopen if a reader reports being unable to stop a replay, if a replay is seen ending without one of the four exits, or if a press meant for a chip or a rail is swallowed because the picker was open.
+**Owner**: jinan
+
 ## 2026-09-07 — The installed app answers one address, and it only fills in a form
 
 **Why**: the install link shipped the same day proved the payload but could not be pressed: a link on a web page cannot open an installed app, so its only caller was somebody pasting a URL. Every vendor page publishing an "Add to …" button publishes a custom scheme, and Atlas had none.
