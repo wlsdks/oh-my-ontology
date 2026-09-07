@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — Google Drive gets a sentence under the import tiles, not a tile",
+      "slug": "2026-09-07-google-drive-gets-a-sentence-under-the-import-tiles-not-a-tile"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — Markdown under sources/ is a raw source, not a shadow page",
       "slug": "2026-09-07-markdown-under-sources-is-a-raw-source-not-a-shadow-page"
     },
