@@ -75,10 +75,13 @@ export interface ImportService {
  * want my Atlassian documents"*, they think *"that Confluence page"*. One connector, two doors,
  * and the folder each lands in says which they meant.
  *
- * ⚠️ **Google Drive is deliberately absent.** The owner named it, and there is no entry in the
- * committed catalogue whose facts a person has verified — an unverified tile would be a door that
- * opens onto a guess. It goes in when somebody reads a vendor page and adds it to
- * `scripts/build-mcp-catalogue.mjs`, which is the whole reason that file states its sources.
+ * ⚠️ **Google Drive is deliberately absent** (decision 2026-09-07). The owner named it, and the
+ * MCP Registry was read on 2026-09-07: Google publishes no Drive server, and every community one
+ * (`io.github.domdomegg/google-drive-mcp` 1.3.0 and the rest) asks the person to create their own
+ * OAuth client in the Google Cloud console before anything works. A tile would be a door onto
+ * that console, which is the opposite of what this dialog is for. The dialog says so under the
+ * tiles, with the path that does work today. It goes in when Google or a hosted provider offers
+ * a sign-in-only endpoint and somebody adds it to `scripts/build-mcp-catalogue.mjs` with sources.
  */
 export const IMPORT_SERVICES: readonly ImportService[] = [
   { id: 'notion', catalogueId: 'notion', connect: 'browser', folder: 'sources/notion' },
