@@ -107,20 +107,31 @@ pub(crate) fn managed_node_bin_dir(app_data_dir: &Path) -> Option<PathBuf> {
     let artifact = MANAGED_NODE?;
     let root = managed_node_root(app_data_dir).join(artifact.platform);
     // Windows distributions put `node.exe`·`npm.cmd` right at the archive root — there is no `bin/`.
-    Some(if cfg!(windows) { root } else { root.join("bin") })
+    Some(if cfg!(windows) {
+        root
+    } else {
+        root.join("bin")
+    })
 }
 
 /// Has it already been downloaded.
 pub(crate) fn managed_node_present(app_data_dir: &Path) -> bool {
     managed_node_bin_dir(app_data_dir)
-        .map(|bin| bin.join(if cfg!(windows) { "node.exe" } else { "node" }).exists())
+        .map(|bin| {
+            bin.join(if cfg!(windows) { "node.exe" } else { "node" })
+                .exists()
+        })
         .unwrap_or(false)
 }
 
 /// **The fact the screen shows first.** What is downloaded from where can be read before pressing.
 pub(crate) fn managed_node_plan() -> Option<String> {
     let artifact = MANAGED_NODE?;
-    Some(format!("{} ({})", download_url(&artifact), &artifact.sha256[..12]))
+    Some(format!(
+        "{} ({})",
+        download_url(&artifact),
+        &artifact.sha256[..12]
+    ))
 }
 
 fn download_url(artifact: &ManagedNodeArtifact) -> String {
@@ -162,7 +173,8 @@ pub(crate) fn ensure_managed_node(
     report: NodeProgress<'_>,
 ) -> Result<PathBuf, String> {
     let artifact = MANAGED_NODE.ok_or_else(|| "unsupported-platform".to_string())?;
-    let bin = managed_node_bin_dir(app_data_dir).ok_or_else(|| "unsupported-platform".to_string())?;
+    let bin =
+        managed_node_bin_dir(app_data_dir).ok_or_else(|| "unsupported-platform".to_string())?;
     if managed_node_present(app_data_dir) {
         return Ok(bin);
     }
@@ -281,8 +293,11 @@ fn extract(archive: &Path, into: &Path) -> Result<(), String> {
         c.arg("-xzf").arg(archive).arg("-C").arg(into);
         c
     };
-    bounded_output(command_ref(&mut command), std::time::Duration::from_secs(300))
-        .ok_or_else(|| "node-extract-failed".to_string())?;
+    bounded_output(
+        command_ref(&mut command),
+        std::time::Duration::from_secs(300),
+    )
+    .ok_or_else(|| "node-extract-failed".to_string())?;
     Ok(())
 }
 
