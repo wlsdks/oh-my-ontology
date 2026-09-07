@@ -12,10 +12,9 @@ function Harness({ onAsk, disabled = false }: { onAsk: OnAsk; disabled?: boolean
   const t = useTranslations("library");
   const ref = useRef<HTMLDivElement | null>(null);
   return (
-    <div className="relative">
-      <div ref={ref} data-testid="body">
-        <p data-testid="passage">The budget becomes 221,400 after the change request.</p>
-      </div>
+    // The same shape as LibraryPage: the chip lives inside the positioned body box.
+    <div ref={ref} data-testid="body" className="relative">
+      <p data-testid="passage">The budget becomes 221,400 after the change request.</p>
       <SelectionAsk containerRef={ref} onAsk={onAsk} disabled={disabled} t={t} />
     </div>
   );
@@ -49,6 +48,26 @@ describe("select a passage, ask the agent about it", () => {
     expect(screen.queryByTestId("library-selection-ask")).toBeNull();
     await selectPassage();
     expect(screen.getByTestId("library-selection-ask-chip")).toBeInTheDocument();
+  });
+
+  it("hangs the chip from the selection, measured from the body box itself", async () => {
+    mount(vi.fn());
+    const body = screen.getByTestId("body");
+    vi.spyOn(body, "getBoundingClientRect").mockReturnValue({
+      top: 400, left: 300, bottom: 1400, right: 1300, width: 1000, height: 1000, x: 300, y: 400, toJSON: () => ({}),
+    });
+    const rangeRect = { top: 580, left: 340, bottom: 604, right: 900, width: 560, height: 24, x: 340, y: 580, toJSON: () => ({}) };
+    // jsdom ranges carry no layout; give this one the rectangle a browser would report.
+    (Range.prototype as unknown as { getBoundingClientRect: () => DOMRect }).getBoundingClientRect = () => rangeRect;
+    try {
+      await selectPassage();
+    } finally {
+      delete (Range.prototype as unknown as { getBoundingClientRect?: () => DOMRect }).getBoundingClientRect;
+    }
+    const box = screen.getByTestId("library-selection-ask");
+    // 604 - 400 + 6: just under the selected line, not a pane height below it.
+    expect(box.style.top).toBe("210px");
+    expect(box.style.left).toBe("40px");
   });
 
   it("opens a named list beside the text and sends the chosen question with the exact passage", async () => {

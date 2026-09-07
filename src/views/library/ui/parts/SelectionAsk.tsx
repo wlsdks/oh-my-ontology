@@ -60,15 +60,18 @@ export function SelectionAsk({
       if (!open) setSelection(null);
       return;
     }
-    const host = (container.offsetParent as HTMLElement | null) ?? container;
+    // The chip is absolutely positioned inside `container`, which is the positioned box, so
+    // its offsets are measured from that box's own rectangle. Measuring from the scroll
+    // pane's positioned ancestor instead placed the chip a whole pane height too low in the
+    // installed app (2026-09-07): present in the accessibility tree, never on screen.
     // A range without a rectangle (a DOM without layout) still gets the chip, at the top.
     const rect =
       typeof range.getBoundingClientRect === "function" ? range.getBoundingClientRect() : { bottom: 0, left: 0 };
-    const hostRect = host.getBoundingClientRect();
+    const hostRect = container.getBoundingClientRect();
     setSelection({
       text,
-      top: rect.bottom - hostRect.top + host.scrollTop + 6,
-      left: Math.max(8, Math.min(rect.left - hostRect.left + host.scrollLeft, hostRect.width - 200)),
+      top: rect.bottom - hostRect.top + 6,
+      left: Math.max(8, Math.min(rect.left - hostRect.left, hostRect.width - 200)),
     });
   }, [containerRef, open]);
 

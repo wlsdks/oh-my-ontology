@@ -223,6 +223,12 @@ test.describe("Select a passage, ask the agent", () => {
     await paragraph.dispatchEvent("mouseup");
     const chip = page.getByTestId("library-selection-ask-chip");
     await expect(chip).toBeVisible({ timeout: 5_000 });
+    // The chip hangs just under the selected lines, on screen; a chip measured from the
+    // wrong box sat a pane height below the text in the installed app and was never seen.
+    await expect(chip).toBeInViewport();
+    const [textBox, chipBox] = await Promise.all([paragraph.boundingBox(), chip.boundingBox()]);
+    expect(chipBox!.y - textBox!.y - textBox!.height).toBeGreaterThanOrEqual(0);
+    expect(chipBox!.y - textBox!.y - textBox!.height).toBeLessThan(40);
 
     await chip.click();
     await expect(page.getByRole("complementary", { name: "Ask the agent about the selected passage" })).toBeVisible();

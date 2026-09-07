@@ -526,6 +526,11 @@ export function LibrarySection({
                       </Chip>
                     </Tooltip>
                   ) : null}
+                </span>
+                {/* The second row: the doors that are not the two the spec measures — a
+                    page of your own, filing an answer, and how writes land. It wraps, so at
+                    280px nothing is cut off (installed app, 2026-09-07). */}
+                <span className="flex min-w-0 flex-wrap items-center gap-1 pt-1">
                   {onNewPage ? (
                     <Tooltip content={t("wiki.newPageTooltip")}>
                       <Chip

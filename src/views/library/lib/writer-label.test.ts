@@ -21,3 +21,12 @@ describe("writerLabel", () => {
     expect(wikiStatusLabel(null, t)).toBeNull();
   });
 });
+
+describe("a runtime id with a suffix still names the tool", () => {
+  it("maps agent:claude-acp and agent:codex-acp to their tools", () => {
+    const t = (key: string, values?: Record<string, string | number>) => `${key}:${values?.name ?? ""}`;
+    expect(writerLabel("agent:claude-acp", t)).toBe("wiki.writer.agent:Claude");
+    expect(writerLabel("agent:codex-acp", t)).toBe("wiki.writer.agent:Codex");
+    expect(writerLabel("agent:other-tool", t)).toBe("wiki.writer.agent:other-tool");
+  });
+});
