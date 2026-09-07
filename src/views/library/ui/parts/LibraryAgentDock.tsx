@@ -9,7 +9,7 @@ import { cn } from "@/shared/lib/cn";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { usePanelPresence } from "@/shared/lib/use-presence";
 import { AGENT_DOCK_INSET_SURFACE_CLASS, Surface } from "@/shared/ui";
-import { AcpChatPanel, AcpChatResizeHandle, AcpDockHeader, useChatWidth } from "@/widgets/acp-chat-panel";
+import { AcpChatPanel, AcpChatResizeHandle, AcpDockHeader } from "@/widgets/acp-chat-panel";
 import type { ComponentProps } from "react";
 
 type AcpChatPanelProps = ComponentProps<typeof AcpChatPanel>;
@@ -69,6 +69,7 @@ export function LibraryAgentDock({
   onClose,
   judgeWrite,
   onTurnStarted,
+  chatWidth,
 }: {
   open: boolean;
   runtime: LibraryAgentRuntime;
@@ -83,10 +84,23 @@ export function LibraryAgentDock({
   judgeWrite?: (request: PageWriteRequest) => PageWriteVerdict | null;
   /** Sees each turn start and hands back what to do when it ends; the wiki log hangs here. */
   onTurnStarted?: AcpChatPanelProps["onTurnStarted"];
+  /**
+   * The dock's width, owned by the page rather than by this frame (2026-09-07).
+   *
+   * `useChatWidth` keeps the width **during a drag** in local state and only stores it on
+   * release, so two instances of the hook disagree for the length of every drag. The page
+   * publishes this width as `--app-right-dock-width` — the right-hand wall every floating
+   * surface measures against — and a wall that lags the handle by a whole gesture is the
+   * defect the variable exists to prevent. One owner, one number.
+   */
+  chatWidth: {
+    width: number;
+    setWidth: (width: number) => void;
+    commitWidth: (width: number) => void;
+  };
 }) {
   const tChat = useTranslations("acpChat");
   const tLibrary = useTranslations("library");
-  const chatWidth = useChatWidth();
   const presence = usePanelPresence(open);
   const [enabledRequestNonce, setEnabledRequestNonce] = useState<number | null>(null);
   /*
