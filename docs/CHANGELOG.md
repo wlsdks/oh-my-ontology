@@ -47,9 +47,9 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: an MCP screen; Connectors off, Notion, Atlassian, GitHub fill the form. Library opens on a live graph a hand can pull apart, a stage on an empty folder, a stepper, one index column, a door for notes elsewhere, a local model behind a card; Check the wiki reports and proposes nodes; a wiki log line; one folder shape. Insights repairs back-links. Meaning asks for reasons; trails explain steps. Strata: named planes.
+**Added**: an MCP screen; Connectors off, Notion, Atlassian, GitHub fill the form. Library opens on a live graph a hand can pull apart, a stage on an empty folder, a stepper, one index column, a door for notes elsewhere, a local model behind a card; Check the wiki reports and proposes nodes; a wiki log line; one folder shape. Insights repairs links. Meaning asks for reasons; trails explain steps. Strata: named planes.
 
-**Changed**: connectors add in three tabs under one search; Agents lists what it confirmed, the rest in a search window. Insights opens on four measures; chat widens; Agents and MCP read one column; toasts sit under the toolbar; Markdown under sources/ is a source.
+**Changed**: connectors add in three tabs under one search; Agents lists what it confirmed, the rest in a search popup. Insights opens on four measures; chat widens; Agents and MCP read one column; toasts sit under the toolbar; Markdown under sources/ is a source.
 
 **Fixed**: 3D relations stay visible; centres are clickable; repeat lookups fold; permission cards read plainly; rails stop blinking; footprints follow curves; docks name tool and mode; Korean reports count.
 
