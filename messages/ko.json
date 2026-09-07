@@ -2553,7 +2553,7 @@
       "switchToMyDataTooltip": "내 폴더 열기: 지도가 내 데이터로 채워집니다 (⌘O)",
       "changeAnnouncement": "개념 {count}개 갱신됨: 반영됨",
       "close": "닫기",
-      "replayGrowthTooltip": "자라는 순서로 다시 보기",
+      "replayGrowthTooltip": "온톨로지 생성 흐름 보기",
       "tourTooltip": "가이드 투어",
       "shortcutsTooltip": "키보드 단축키 (?)",
       "spotlightWindowSummary": "최근 {days}일 · {count}"

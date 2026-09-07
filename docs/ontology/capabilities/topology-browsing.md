@@ -86,9 +86,10 @@ medium-high (0.85): Explicitly states that the capability candidate is supported
 - **Growth replay (2026-09-02)**: A play tile under the fit tile replays the ontology appearing piece by piece in
   containment order (project, then each domain with its capabilities and their elements) over six to sixteen seconds
   depending on size (`model/growth-replay.ts`). It drives only each node's existing appear ramp (lines follow their dimmer
-  endpoint), fits the camera first, ends on its own or on the first input, and leaves nothing behind; reduced motion
-  ignores the request. In the cone tree it grows one cone at a time. Creation dates, once nodes carry them, can replace
-  the containment order without touching playback.
+  endpoint), fits the camera first, and leaves nothing behind; reduced motion ignores the request. It is a **toggle**
+  (2026-09-07): the tile carries the active border while it runs, and only a second press, `Escape`, or a press on the
+  canvas stops it; pointer movement, hover and wheel-zoom do not. In the cone tree it grows one cone at a time. Creation
+  dates, once nodes carry them, can replace the containment order without touching playback.
 - **Keyboard zoom and fit (2026-09-02)**: With the canvas focused, `+`/`=` and `-`/`_` step the camera ×1.25 about the
   viewport centre on the same tween the fit uses, and `0` runs the toolbar's whole-map fit (`runOverviewFit`, shared by
   the fit and relayout tokens). Modifier combinations stay with the browser. `interaction/keyboard-zoom.ts` decides the
