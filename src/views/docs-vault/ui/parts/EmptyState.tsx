@@ -20,7 +20,7 @@ export function EmptyState({
   const t = useTranslations("vaultWidgets.parts.empty");
   return (
     <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-      <div className="w-full max-w-[560px] rounded-card border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-5 shadow-[var(--shadow-elevation-1)]">
+      <div className="w-full max-w-[var(--measure-note-column)] rounded-card border border-[color:var(--color-border-soft)] bg-[color:var(--color-overlay-1)] p-5 shadow-[var(--shadow-elevation-1)]">
         <p className="font-mono text-caption uppercase tracking-[var(--tracking-caps-14)] text-[color:var(--color-text-quaternary)]">
           {t("eyebrow", { count: docCount })}
         </p>

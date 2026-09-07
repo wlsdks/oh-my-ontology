@@ -204,7 +204,7 @@ export function OntologyStarterCta({ onScaffold, docCount, vaultPath = null }: P
           <br />
           {t('emptyBodyLine2')}
         </p>
-        <div className="mx-auto mt-4 max-w-[560px] rounded-chip border border-[color:var(--color-indigo-a24)] bg-[color:var(--color-surface-deep-a18)] px-3 py-2 text-left">
+        <div className="mx-auto mt-4 max-w-[var(--measure-note-column)] rounded-chip border border-[color:var(--color-indigo-a24)] bg-[color:var(--color-surface-deep-a18)] px-3 py-2 text-left">
           <p className="font-mono text-caption uppercase tracking-[var(--tracking-caps-12)] text-[color:var(--color-indigo-accent)]">
             {t('definitionLabel')}
           </p>

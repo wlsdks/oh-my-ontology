@@ -1162,7 +1162,7 @@ export function DocsVaultEditor({
         </div>
         {preview ? (
           <div className="min-h-0 w-1/2 overflow-auto bg-[color:var(--color-surface-deep-a20)]">
-            <article className="mx-auto max-w-[720px] px-6 py-6 md:px-8">
+            <article className="mx-auto max-w-[var(--measure-doc-column)] px-6 py-6 md:px-8">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{

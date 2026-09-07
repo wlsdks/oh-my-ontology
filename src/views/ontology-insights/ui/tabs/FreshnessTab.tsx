@@ -140,7 +140,7 @@ export function FreshnessTab({
               >
                 <span
                   className={
-                    "flex w-[136px] flex-none items-center gap-1.5 truncate text-label " +
+                    "flex w-[var(--insights-row-label-w)] flex-none items-center gap-1.5 truncate text-label " +
                     (row.stale ? "text-[color:var(--color-text-quaternary)]" : "text-[color:var(--color-text-secondary)]")
                   }
                 >
@@ -180,7 +180,7 @@ export function FreshnessTab({
               </div>
             ))}
             <div className="flex items-center gap-2 text-caption text-[color:var(--color-text-quaternary)]">
-              <span className="w-[136px] flex-none" aria-hidden />
+              <span className="w-[var(--insights-row-label-w)] flex-none" aria-hidden />
               <span className="flex flex-1 items-center justify-between">
                 <span>{labels.axisStart}</span>
                 <span>{labels.axisEnd}</span>
