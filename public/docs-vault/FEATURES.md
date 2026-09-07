@@ -1059,7 +1059,10 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
 two file kinds the lists carry, plus the third thing they reach: a raw
 source is a square, a wiki page a filled circle, and an ontology concept a page names with
 `[[slug]]` is a ring. A solid line is a citation from the page's `sources:` frontmatter; a
-dashed line is a mention from its body. A link that resolves to nothing is not drawn, and a
+dashed line is a mention from its body — and, since 2026-09-07, the other way too: a map
+node whose body cites `[[wiki/…]]` pages is drawn as a ring with a dashed line to each,
+so the node the wiki proposed shows its evidence on the Library's own picture. A link
+that resolves to nothing is not drawn, and a
 source nobody has written up simply has no line, which is the same fact the `not compiled`
 word carries in the list. The caption counts what is on the canvas: sources, pages,
 concepts, links; beside it stand the status strip and the door to the shelf. A citation is
