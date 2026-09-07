@@ -10,7 +10,15 @@ import {
   NAV_LEADER_KEY,
 } from "@/shared/config/destinations";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
-import { EXIT_TRANSITION, MOTION, OVERLAY_SPRING_REDUCED, useExitLockout } from "@/shared/motion";
+import {
+  EXIT_TRANSITION,
+  MOTION,
+  OVERLAY_SPRING_REDUCED,
+  SHEET_RISE,
+  SHEET_RISE_REDUCED,
+  SHEET_SETTLED,
+  useExitLockout,
+} from '@/shared/motion';
 import { mergeRefs } from "@/shared/lib/merge-refs";
 import { useBodyScrollLock } from "@/shared/lib/use-body-scroll-lock";
 import { usePathname } from "@/i18n/navigation";
@@ -409,15 +417,15 @@ export function ShortcutSheet({ open, onClose }: Props) {
   const reducedMotion = useReducedMotion();
   const surfaceMotion = reducedMotion
     ? {
-        initial: { opacity: 0, y: 0, scale: 1 },
-        animate: { opacity: 1, y: 0, scale: 1 },
-        exit: { opacity: 0, y: 0, scale: 1, transition: EXIT_TRANSITION },
+        initial: SHEET_RISE_REDUCED,
+        animate: SHEET_SETTLED,
+        exit: { ...SHEET_RISE_REDUCED, transition: EXIT_TRANSITION },
         transition: OVERLAY_SPRING_REDUCED,
       }
     : {
-        initial: { opacity: 0, y: 12, scale: 0.985 },
-        animate: { opacity: 1, y: 0, scale: 1 },
-        exit: { opacity: 0, y: 12, scale: 0.985, transition: EXIT_TRANSITION },
+        initial: SHEET_RISE,
+        animate: SHEET_SETTLED,
+        exit: { ...SHEET_RISE, transition: EXIT_TRANSITION },
         transition: MOTION.base,
       };
   const { ref: scrimLockoutRef, onAnimationStart: scrimLockoutOnAnimationStart } = useExitLockout<HTMLDivElement>();

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { badgeClass } from "@/shared/ui/badge-class";
 import { cn } from '@/shared/lib/cn';
-import { MOTION, STAGGER } from '@/shared/motion';
+import { MOTION, OVERLAY_RISE, STAGGER } from '@/shared/motion';
 import type { Project } from '../model/types';
 
 /**
@@ -126,7 +126,7 @@ export function ProjectCard({
       <motion.div
         data-testid={`topology-project-${project.slug}`}
         data-view-mode="compact"
-        initial={preview ? false : { opacity: 0, y: 8 }}
+        initial={preview ? false : OVERLAY_RISE}
         animate={preview ? undefined : { opacity: dimmed ? 0.14 : 1, y: 0 }}
         transition={
           preview
@@ -196,7 +196,7 @@ export function ProjectCard({
     <motion.div
       data-testid={`topology-project-${project.slug}`}
       data-view-mode="card"
-      initial={preview ? false : { opacity: 0, y: 8 }}
+      initial={preview ? false : OVERLAY_RISE}
       animate={preview ? undefined : { opacity: dimmed ? 0.09 : 1, y: 0 }}
       transition={
         preview
