@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — A width that already has a name stops being written as a number
+
+**Why**: the census after the token sweep found the same numbers beside the tokens that mean them. Four centred surfaces (the recent-changes dialog, the vault-open sheet, the docs unified palette, the similar-node notice) set their own 420 or 560 while the dialog ramp holds exactly those two for exactly that shape. Worse, `page-frame.ts` named 640 and wrote the rule — *a value earns a name the moment something else needs it* — and four more sites then wrote 640 by hand outside it.
+**Prior**: upholds 2026-08-15 "two dialog widths are canonical" (this adds consumers, not a tier) and the 2026-09-08 token sweep. `PAGE_COLUMN_STAGE` keeps its meaning and its consumers; only the number moves behind a token.
+**Decision**: the four centred surfaces read `--dialog-w-sm` / `--dialog-w-md`; 640 becomes `--measure-stage-column` and `PAGE_COLUMN_STAGE` reads it, as do the architecture workbench, the project selector and the full-detail reach grid. Measured after the swap: the vault sheet 419px, both stage columns 640px — unchanged. The docs empty state, sample note and starter CTA keep their 560/420: they are content columns inside a destination, and a modal's width on a paragraph would be a wrong name, not a shared one.
+**Dissent**: those three excluded sites share the number and, arguably, the "one narrow column of content" role; a later pass may give them a measure token of their own. Declined here because the only token with that value today means "a centred surface".
+**Falsifier**: a rendered width that differs from before; a fifth centred surface written as a number; a paragraph reading a dialog tier.
+**Owner**: jinan
+
 ## 2026-09-08 — Kind tone and the document column become tokens, and colour literals get a gate
 
 **Why**: the owner asked for a whole-app check with every value on a token. The sweep found no broken screen (14 routes, three widths, no console error or overflow). The inventory found the type, radius, shadow, duration and z gates closed and four holes beneath them: 41 hex outside Tailwind brackets, 41 `rgb()/rgba()` with no selector, named `ease-*` classes, and `maskImage` outside the inline-style gate. Most of the colour debt was the kind palette living as rgba literals in `tone.ts`: a sanctioned data mark no colour gate could see.
