@@ -161,6 +161,11 @@ const STORAGE_KEY_REGISTRY: StorageEntry[] = [
   // change my preference for how things expand.
   { key: "ontology-atlas:expand:v1", kind: "storage", scope: "global", note: "확장 어포던스·구조·개수 선호" },
   { key: "atlas.acp-chat.width", kind: "storage", scope: "global", note: "대화 칸 폭 — 이 컴퓨터의 화면 취향이라 볼트를 바꿔도 그대로다" },
+  // The Library index: which of its two lists is drawn, and whether the column is folded
+  // to its rail. Both are this screen's shape on this machine, like the chat width above —
+  // changing folder must not change how the column stands.
+  { key: "atlas.library.index-segment", kind: "storage", scope: "global", note: "Library index: Sources or Wiki" },
+  { key: "atlas.library.index-collapsed", kind: "storage", scope: "global", note: "Library index folded to its rail tab" },
   { key: "ontology-atlas:locale", kind: "storage", scope: "global", note: "화면 언어" },
   { key: "ontology-atlas:local-endpoint", kind: "storage", scope: "global", note: "LLM 로컬 엔드포인트" },
   // Which brain Compile runs on when this computer offers both. A machine preference

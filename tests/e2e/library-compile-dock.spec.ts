@@ -194,6 +194,13 @@ async function openFolder(page: Page) {
   // open folder in the session instead of asking the restore to find it again.
   await page.getByTestId("app-nav-rail").getByRole("link", { name: "Library" }).click();
   await page.getByTestId("library-sources").waitFor({ timeout: 30_000 });
+  /*
+   * Compile is the Wiki half's own door since 2026-09-07: the index draws one list at a
+   * time and the switch decides which. The column opens on Sources — the first half of the
+   * work — so this presses the switch, the same press a person makes.
+   */
+  await page.getByTestId("library-index-segment-wiki").click();
+  await page.getByTestId("library-wiki").waitFor({ timeout: 30_000 });
 }
 
 test.describe("Compile opens the agent dock", () => {
@@ -208,8 +215,11 @@ test.describe("Compile opens the agent dock", () => {
     await openFolder(page);
     await expect(page.getByTestId("library-compile")).toBeVisible({ timeout: 25_000 });
     await expect(page.getByTestId("library-compile")).toBeEnabled();
-    // Four sources, none written up, so the chip has work to do and says so.
+    // Four sources, none written up, so the chip has work to do and says so. The count is
+    // the Sources half's own line, one press away since the index became a switch.
+    await page.getByTestId("library-index-segment-sources").click();
     await expect(page.getByTestId("library-needs-compile")).toContainText("4");
+    await page.getByTestId("library-index-segment-wiki").click();
     /*
      * And what leaves this computer is stated beside the button that starts it — on the
      * shelf, which is where Compile's own brain picker stands.
@@ -287,13 +297,30 @@ test.describe("Compile opens the agent dock", () => {
      * numbers there are only tens of pixels apart on a short folder.
      */
     await expect(page.getByTestId("library-wiki").getByTestId("library-transfer")).toBeVisible();
-    await expect(page.getByTestId("library-sources").getByTestId("library-transfer")).toHaveCount(
-      0,
-    );
+    /*
+     * And it is not on the other half. The switch is what makes that checkable now: the
+     * Sources list has no Compile on it, so it has nothing to disclose — which is the rule
+     * `.claude/rules/local-first.md` asks for, the disclosure beside the press.
+     */
+    await page.getByTestId("library-index-segment-sources").click();
+    await expect(page.getByTestId("library-sources")).toBeVisible();
+    await expect(page.getByTestId("library-transfer")).toHaveCount(0);
 
+    /*
+     * ⚠️ **And opening a source moves it to that source's own press.** `SourceSummary`
+     * draws a Compile of its own for a file nobody has written up, and until 2026-09-07
+     * the sentence for it lived three hundred pixels away in a column that happened to be
+     * drawing the Wiki half. With the switch, that column is drawing Sources — so the
+     * disclosure follows the button, which is the placement the rule asks for. Still
+     * exactly one: the column has no Compile on this half, so it prints nothing.
+     */
     await page.getByTestId("library-source-sources/architecture.docx").click();
     await expect(page.getByTestId("library-stage")).toHaveCount(0);
+    await expect(page.getByTestId("library-transfer")).toHaveCount(1);
     await expect(page.getByTestId("library-transfer")).toContainText("llm-audit.jsonl");
+    await expect(
+      page.getByTestId("library-source-summary").getByTestId("library-transfer"),
+    ).toBeVisible();
   });
 
   test("pressing it opens a dock with a real rect, inside the row that holds the reader", async ({

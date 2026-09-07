@@ -164,9 +164,16 @@ test.describe("A folder of pages and no nodes opens on the Library", () => {
     const door = page.getByRole("button", { name: /^Open my folder/ });
     await door.first().waitFor({ timeout: 25_000 });
     await door.first().click();
-    await expect(page.getByTestId("library-wiki")).toBeVisible({ timeout: 30_000 });
+    /*
+     * The index draws one list and the switch names both (2026-09-07), so the count that
+     * proves the page arrived is on the switch; the list itself is one press away.
+     */
+    const segment = page.getByTestId("library-index-segment");
+    await expect(segment).toBeVisible({ timeout: 30_000 });
     await expect(page).toHaveURL(/\/en\/library\/?/);
-    await expect(page.getByTestId("library-wiki")).toContainText("Wiki · 1");
+    await expect(segment).toContainText("Wiki 1");
+    await page.getByTestId("library-index-segment-wiki").click();
+    await expect(page.getByTestId("library-wiki")).toBeVisible();
     // The rail reads the same files: a wiki without a map has no map doors, and keeps the
     // wiki, the agent, MCP and history.
     await expect(page.getByTestId("app-nav-rail-item-library")).toBeVisible();

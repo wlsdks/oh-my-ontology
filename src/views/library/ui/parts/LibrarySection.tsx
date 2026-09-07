@@ -9,7 +9,6 @@ import {
   Check,
   CloudDownload,
   FilePlus2,
-  FileStack,
   FileText,
   Search,
   Sparkles,
@@ -18,6 +17,7 @@ import {
 
 import { formatSourceBytes, type LibrarySourceRow } from "@/entities/docs-vault";
 import { isMapKind, type LintNodeCandidate } from "@/features/library";
+import type { LibraryIndexSegment } from "@/shared/lib/appearance-preferences";
 import { cn } from "@/shared/lib/cn";
 import { badgeClass } from "@/shared/ui/badge-class";
 import { writerLabel } from "../../lib/writer-label";
@@ -31,35 +31,40 @@ import { libraryWaitingLine } from "../../lib/stage-steps";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 
 /**
- * The library's index: **Sources** and **Wiki**, in one column that scrolls once.
+ * The library's index: **Sources** or **Wiki**, one of them at a time.
  *
  * A vault holds three kinds of file and only one is the graph (`docs/DECISIONS.md`,
- * 2026-09-05). Docs draws the third kind; these two sections draw the other two, in the
- * order of the work — what a person brought in, then what was made of it.
+ * 2026-09-05). Docs draws the third kind; this column draws the other two, in the order of
+ * the work — what a person brought in, then what was made of it.
  *
- * ## Why it is one scroller (owner, 2026-09-06)
+ * ## Why it is a switch and not a scroll (owner, 2026-09-07)
  *
- * > *"I don't like this left panel being split into a top and a bottom like this and drawn
- * > oddly either. Improve it!"*
+ * > *"I hate this structure: sources on top, wiki underneath, one long scroll. A switch at
+ * > the top is better."*
  *
- * It was two boxes that scrolled independently inside a 280px column, each with its own
- * overflow. The consequences were all measurable on the frame the owner sent, a folder of
- * seven sources and seven pages: whichever list was longer was **cut mid-row**, so the
- * bottom of the column showed half a file name; the two halves moved past each other when
- * either was scrolled, which is what makes a single column read as two panes; and the
- * transfer sentence was pinned under the cut, at the very bottom of a list that was still
- * going.
+ * The stacking survived two redesigns. On 2026-09-06 the two lists stopped owning separate
+ * overflows and became one scroller with sticky heads, which fixed the cut rows; it did not
+ * fix what the owner was actually reading, because a folder of seven sources and seven
+ * pages is still 14 rows plus two heads plus five chips plus three captions in a 280px
+ * column — measured on the installed app, reaching the wiki list meant scrolling past
+ * everything about sources, and the Compile press was off screen from the source rows it
+ * acts on.
  *
- * So the column scrolls once — `LibraryPage` owns that scroller — and the two sections
- * stand at their natural height inside it. What replaces the boxes is a **sticky section
- * head**: the eyebrow with its count stays at the top of the scroller while its own rows
- * pass under it, so the answer to "which list am I in" is on screen without a border
- * dividing the column into halves.
+ * So the column names both lists once, with their counts, in one segmented control at its
+ * top (`LibraryPage` draws it) and this file draws **one** of them. Nothing about the
+ * inactive list is rendered — not its rows, not its head, not its doors — so the column's
+ * whole height belongs to the list a person chose, and the doors on screen are the ones
+ * that act on it.
+ *
+ * ⚠️ **The section head lost its label row.** With the switch naming the list and its
+ * count directly above, an eyebrow repeating *SOURCES · 7* under a segment reading
+ * *Sources 7* is the same fact twice in 28px. What stays is the actions row, because the
+ * doors are not named anywhere else.
  *
  * ⚠️ This also retires the `lg` / below-`lg` split. The narrow layout had already been
  * forced onto one scroller in 2026-09-06 (two lists in half a phone measured 30px and
- * **zero**); the same reasoning was always true of 280px, and keeping two answers meant
- * the width decided how the screen behaved.
+ * **zero**); the switch is the same answer at every width, which is one answer instead of
+ * two.
  *
  * **Sources is the only list here whose rows are not documents.** A row is a file Atlas
  * has never opened: its name, its format, its size, and one word about whether anybody has
@@ -137,44 +142,32 @@ export interface LibrarySectionProps {
    * exactly one of the two may print it.
    */
   compileNote: string | null;
+  /**
+   * Which of the two lists this column is showing. There is no "both": the switch above
+   * is exclusive, and rendering the inactive list `hidden` would leave its rows in the tab
+   * order and its doors reachable from the keyboard while nothing on screen names them.
+   */
+  segment: LibraryIndexSegment;
   busy: boolean;
   t: ReturnType<typeof useTranslations<"library">>;
 }
 
 /**
- * **The eyebrow keeps its own line, and now it stays put** (2026-09-05, 2026-09-06).
+ * **The doors, and nothing that repeats the switch** (2026-09-05, 2026-09-06, 2026-09-07).
  *
  * The first build put the label and both action chips on one row. At the column's 280px
  * the two chips took the width and the eyebrow truncated to `SO…` — the section lost its
- * name to its buttons. Actions therefore sit on a second row.
+ * name to its buttons. Actions therefore sat on a second row under a `sticky` eyebrow.
  *
- * `sticky` is on the label row alone. It is 28px, it is the only part that answers "which
- * list is this", and pinning the action rows as well would put a 68px lid over a 280px
- * column. The actions scroll away under an opaque head; the head is `--color-panel`, which
- * is the aside's own ground, so nothing shows through it.
+ * The eyebrow is gone with the stacking (2026-09-07). The segmented control at the top of
+ * the column is the head now: it names the list and carries its count, it is the control a
+ * person just pressed to get here, and it does not scroll away, so a second head 28px under
+ * it printed the same fact twice and spent the height on it. `sticky` goes with it — there
+ * is nothing left to pin.
  */
-function SectionHeader({
-  icon,
-  label,
-  actions,
-}: {
-  icon: ReactNode;
-  label: string;
-  actions?: ReactNode;
-}) {
-  return (
-    <>
-      <div className="sticky top-0 z-10 flex items-center gap-1.5 bg-[color:var(--color-panel)] px-3 pb-1.5 pt-3">
-        {icon}
-        <span className="min-w-0 flex-1 truncate font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
-          {label}
-        </span>
-      </div>
-      {actions ? (
-        <div className="flex flex-wrap items-center gap-1 px-3 pb-2">{actions}</div>
-      ) : null}
-    </>
-  );
+function SectionActions({ children }: { children?: ReactNode }) {
+  if (!children) return null;
+  return <div className="flex flex-wrap items-center gap-1 px-3 pb-2">{children}</div>;
 }
 
 /**
@@ -243,6 +236,7 @@ export function LibrarySection({
   hasWikiTemplate = true,
   brainControl,
   compileNote,
+  segment,
   busy,
   t,
 }: LibrarySectionProps) {
@@ -264,64 +258,52 @@ export function LibrarySection({
     verdict.problems.some((problem) => !isWikiFolderCode(problem.code)),
   ).length;
 
-  return (
-    <>
-      {/* No `min-h-0` and no overflow: the column above owns the one scroller, and a
-          section that could shrink is a section that can cut a row in half. */}
-      <section data-testid="library-sources" className="flex flex-col pb-1">
-        <SectionHeader
-          icon={
-            <FileStack
-              size={ICON_SIZE.sm}
-              className="flex-none text-[color:var(--color-text-quaternary)]"
-              aria-hidden
-            />
-          }
-          label={t("sources.header", { count: model.sources.length })}
-          actions={
-            <>
-              <Tooltip content={t("sources.addTooltip")}>
-                <Chip
-                  data-testid="library-add-files"
-                  onClick={onAddFiles}
-                  disabled={busy}
-                  tone="muted"
-                  className="flex-none hover:text-[color:var(--color-text-primary)]"
-                  aria-label={t("sources.addTooltip")}
-                >
-                  <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
-                  <span className="min-w-0 truncate">{t("sources.add")}</span>
-                </Chip>
-              </Tooltip>
-              <Tooltip content={t("sources.findTooltip")}>
-                <Chip
-                  data-testid="library-find-documents"
-                  onClick={onFindDocuments}
-                  disabled={busy}
-                  tone="muted"
-                  className="flex-none hover:text-[color:var(--color-text-primary)]"
-                  aria-label={t("sources.findTooltip")}
-                >
-                  <Search size={ICON_SIZE.sm} aria-hidden />
-                  <span className="min-w-0 truncate">{t("sources.find")}</span>
-                </Chip>
-              </Tooltip>
-              <Tooltip content={t("sources.importTooltip")}>
-                <Chip
-                  data-testid="library-import-open"
-                  onClick={onImportFromService}
-                  disabled={busy}
-                  tone="muted"
-                  className="flex-none hover:text-[color:var(--color-text-primary)]"
-                  aria-label={t("sources.importTooltip")}
-                >
-                  <CloudDownload size={ICON_SIZE.sm} aria-hidden />
-                  <span className="min-w-0 truncate">{t("sources.import")}</span>
-                </Chip>
-              </Tooltip>
-            </>
-          }
-        />
+  if (segment === "sources") {
+    return (
+      /* No `min-h-0` and no overflow: the column above owns the one scroller, and a
+         section that could shrink is a section that can cut a row in half. */
+      <section data-testid="library-sources" className="flex flex-col pb-1 pt-3">
+        <SectionActions>
+          <Tooltip content={t("sources.addTooltip")}>
+            <Chip
+              data-testid="library-add-files"
+              onClick={onAddFiles}
+              disabled={busy}
+              tone="muted"
+              className="flex-none hover:text-[color:var(--color-text-primary)]"
+              aria-label={t("sources.addTooltip")}
+            >
+              <FilePlus2 size={ICON_SIZE.sm} aria-hidden />
+              <span className="min-w-0 truncate">{t("sources.add")}</span>
+            </Chip>
+          </Tooltip>
+          <Tooltip content={t("sources.findTooltip")}>
+            <Chip
+              data-testid="library-find-documents"
+              onClick={onFindDocuments}
+              disabled={busy}
+              tone="muted"
+              className="flex-none hover:text-[color:var(--color-text-primary)]"
+              aria-label={t("sources.findTooltip")}
+            >
+              <Search size={ICON_SIZE.sm} aria-hidden />
+              <span className="min-w-0 truncate">{t("sources.find")}</span>
+            </Chip>
+          </Tooltip>
+          <Tooltip content={t("sources.importTooltip")}>
+            <Chip
+              data-testid="library-import-open"
+              onClick={onImportFromService}
+              disabled={busy}
+              tone="muted"
+              className="flex-none hover:text-[color:var(--color-text-primary)]"
+              aria-label={t("sources.importTooltip")}
+            >
+              <CloudDownload size={ICON_SIZE.sm} aria-hidden />
+              <span className="min-w-0 truncate">{t("sources.import")}</span>
+            </Chip>
+          </Tooltip>
+        </SectionActions>
 
         {hasSources ? (
           <>
@@ -419,308 +401,300 @@ export function LibrarySection({
           </p>
         )}
       </section>
+    );
+  }
 
-      <section data-testid="library-wiki" className="flex flex-col pb-1">
-        <SectionHeader
-          icon={
-            <BookText
-              size={ICON_SIZE.sm}
-              className="flex-none text-[color:var(--color-text-quaternary)]"
-              aria-hidden
-            />
-          }
-          label={t("wiki.header", { count: model.wikiPages.length })}
-          actions={
-            onCompile || onLint ? (
-              <>
-                {/*
-                  **The two doors share one line, reading before writing.** The span does
-                  not wrap, so `Check the wiki` and `Compile` stay on the same row at 280px
-                  and the check is to the left — the order of the work, and the geometry
-                  `library-lint-dock.spec.ts` measures. The picker below may take a line of
-                  its own; it is what the press will run on, not a third door.
-                */}
-                <span className="flex min-w-0 items-center gap-1">
-                  {onLint ? (
-                    // The judgement half of the health check: what `wiki-validate` cannot
-                    // decide (two pages disagreeing, a claim a later page replaced). Report
-                    // only, so it needs no page count to be worth pressing — one page has
-                    // nothing to disagree with, hence two.
-                    <Tooltip content={t("wiki.lintTooltip")}>
+  return (
+    <section data-testid="library-wiki" className="flex flex-col pb-1 pt-3">
+      <SectionActions>
+        {onCompile || onLint ? (
+          <>
+            {/*
+              **The two doors share one line, reading before writing.** The span does not
+              wrap, so `Check the wiki` and `Compile` stay on the same row at 280px and the
+              check is to the left — the order of the work, and the geometry
+              `library-lint-dock.spec.ts` measures. The picker below may take a line of its
+              own; it is what the press will run on, not a third door.
+            */}
+            <span className="flex min-w-0 items-center gap-1">
+              {onLint ? (
+                // The judgement half of the health check: what `wiki-validate` cannot
+                // decide (two pages disagreeing, a claim a later page replaced). Report
+                // only, so it needs no page count to be worth pressing — one page has
+                // nothing to disagree with, hence two.
+                <Tooltip content={t("wiki.lintTooltip")}>
+                  <Chip
+                    data-testid="library-lint"
+                    onClick={onLint}
+                    disabled={busy || model.wikiPages.length < 2}
+                    tone="muted"
+                    className="flex-none hover:text-[color:var(--color-text-primary)]"
+                    aria-label={t("wiki.lintTooltip")}
+                  >
+                    <Stethoscope size={ICON_SIZE.sm} aria-hidden />
+                    <span className="min-w-0 truncate">{t("wiki.lint")}</span>
+                  </Chip>
+                </Tooltip>
+              ) : null}
+              {onCompile ? (
+                <Tooltip content={t("wiki.compileTooltip")}>
+                  <Chip
+                    data-testid="library-compile"
+                    onClick={onCompile}
+                    disabled={busy || model.needsCompileCount === 0}
+                    tone="muted"
+                    className="flex-none hover:text-[color:var(--color-text-primary)]"
+                    aria-label={t("wiki.compileTooltip")}
+                  >
+                    <Sparkles size={ICON_SIZE.sm} aria-hidden />
+                    <span className="min-w-0 truncate">{t("wiki.compile")}</span>
+                  </Chip>
+                </Tooltip>
+              ) : null}
+            </span>
+            {/* The picker is what the buttons beside it will run on; a control on its own
+                row reads as a setting rather than as part of the press. */}
+            {brainControl ? (
+              <span data-testid="library-brain-control" className="min-w-0 flex-1">
+                {brainControl}
+              </span>
+            ) : null}
+          </>
+        ) : null}
+      </SectionActions>
+
+      {/*
+        **Compile is app-only, so the web says so instead of describing it.** The
+        degradation grammar in `.claude/rules/surfaces.md`: why it is unavailable, where
+        it works, and what still works here (the pages read and edit exactly as they do
+        in the app). It is the same slot as `compileNote`, and only one can be true.
+      */}
+      {/*
+        **What happened last, from the app's own record** (`wiki/_log.md`, PR #1486). One
+        caption, two facts at most: the last Compile and the last Check, each with its
+        time. `text-label` rather than `text-caption` — 9.5px is this product's
+        uppercase-eyebrow size, and this is a sentence a person reads to decide whether to
+        press anything at all.
+      */}
+      {model.log.lastCompile || model.log.lastLint ? (
+        <p
+          data-testid="library-wiki-log"
+          className="px-3 pb-1 text-label leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all] [overflow-wrap:anywhere]"
+        >
+          {model.log.lastCompile
+            ? t("wiki.logCompile", {
+                when: logWhen(model.log.lastCompile.at),
+                summary: localizeWikiLogSummary(model.log.lastCompile.summary, t),
+              })
+            : null}
+          {model.log.lastCompile && model.log.lastLint ? " · " : null}
+          {model.log.lastLint
+            ? t("wiki.logLint", {
+                when: logWhen(model.log.lastLint.at),
+                summary: localizeWikiLogSummary(model.log.lastLint.summary, t),
+              })
+            : null}
+        </p>
+      ) : null}
+
+      {onCompile === null ? (
+        <p
+          data-testid="library-compile-web-limit"
+          className="px-3 pb-1 text-label leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
+        >
+          {t("wiki.compileWebLimit")}{" "}
+          <Link
+            href="/download"
+            data-testid="library-compile-web-get-app"
+            className={controlClass({
+              shape: "link",
+              hoverInk: "strong",
+              className: "rounded-chip px-1.5 py-0.5",
+            })}
+          >
+            {t("wiki.compileWebGetApp")}
+          </Link>
+        </p>
+      ) : compileNote ? (
+        <p
+          data-testid="library-transfer"
+          className="px-3 pb-1 text-label leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all] [overflow-wrap:anywhere]"
+        >
+          {compileNote}
+        </p>
+      ) : null}
+
+      {hasWiki ? (
+        <>
+          <ul
+            data-testid="library-wiki-list"
+            aria-label={t("wiki.listAria")}
+            className="flex flex-col gap-0.5 px-2"
+          >
+            {model.wikiPages.map((page) => {
+              const active = page.slug === selectedSlug;
+              const verdict = model.verdicts.get(page.slug);
+              /*
+               * **Two kinds of finding, drawn two ways** (2026-09-07). A page that misses
+               * the wiki template wears the amber pill it always has: the fix is in that
+               * page's own bytes. A folder finding — a link that goes nowhere, a page
+               * nothing links to, a shared source neither page links across — is about
+               * where the page sits, and on a young wiki it is true of nearly every row.
+               * A pill on every row is the texture the `compiled` badge was removed for
+               * one list up, so it is a quiet word instead, and the header strip carries
+               * the count once.
+               *
+               * ⚠️ **Only the folder findings a person can act on reach the row.** With
+               * the advisory ones drawn too, the owner's seven-page folder wore the word
+               * seven times (measured 2026-09-07) — `orphan-page` is true of every page
+               * on a wiki whose pages have not been linked yet, which is the reason
+               * `mergeWikiVerdict` already refuses to let it flip `ok`. Those reach a
+               * person through the Check-the-wiki report instead, where a judgement
+               * about the whole wiki belongs.
+               */
+              const problems = verdict?.problems ?? [];
+              const ownProblem = problems.find((problem) => !isWikiFolderCode(problem.code));
+              const folderProblem = problems.find(
+                (problem) => isWikiFolderCode(problem.code) && !isAdvisoryWikiCode(problem.code),
+              );
+              const reason = verdict && problems.length > 0 && verdict.firstProblem
+                ? t("wiki.offTemplateReason", { code: verdict.firstProblem })
+                : undefined;
+              return (
+                <li key={page.slug}>
+                  <RowButton
+                    active={active}
+                    aria-current={active ? "true" : undefined}
+                    data-testid={`library-wiki-${page.slug}`}
+                    onClick={() => onSelect(page.slug)}
+                    /*
+                     * The pill says one fixed word; **which** rule the page missed lives
+                     * here until the page's own block carries it on screen.
+                     * `aria-description` rather than a bare title: a screen reader
+                     * announces it with the row, so the reason is not reachable only by
+                     * a pointer that hovers.
+                     */
+                    aria-description={reason}
+                    title={reason}
+                    className="group relative hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]"
+                  >
+                    <BookText size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate">{page.title}</span>
+                    <span className="flex-none text-caption text-[color:var(--color-text-quaternary)]">
+                      {writerLabel(page.createdBy, t)}
+                    </span>
+                    {folderProblem ? (
+                      <span
+                        data-testid="library-wiki-folder-mark"
+                        title={folderProblem.message}
+                        className="flex-none text-caption text-[color:var(--color-text-quaternary)]"
+                      >
+                        {t("wiki.folderMark")}
+                      </span>
+                    ) : null}
+                    {ownProblem ? (
+                      <StateBadge tone="warning" testId="library-wiki-off-template">
+                        {t("wiki.offTemplate")}
+                      </StateBadge>
+                    ) : null}
+                  </RowButton>
+                </li>
+              );
+            })}
+          </ul>
+          {/*
+            The same count the rows draw and the header strip prints. `offTemplateCount`
+            on the model counts every page whose merged verdict is not `ok`, and since PR
+            #1486 that includes a dangling link — which this list marks with a quiet word
+            rather than the amber pill. Measured on the owner's seven-page folder: the
+            foot said 2 over one pill (2026-09-07).
+          */}
+          {offTemplateRows > 0 ? (
+            <ListNote testId="library-off-template-count">
+              {t("wiki.offTemplateCount", { count: offTemplateRows })}
+            </ListNote>
+          ) : null}
+        </>
+      ) : (
+        <p
+          data-testid="library-wiki-empty"
+          className="px-3 pb-1 text-caption leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
+        >
+          {hasWikiTemplate ? t("wiki.empty") : t("wiki.emptyNoTemplate")}
+        </p>
+      )}
+
+      {/*
+        **The wiki's candidates for the graph** (PR #1486): a name the last check found on
+        three or more pages with no page of its own. Not a page to write — a node to
+        propose, and the proposal goes through the same permission card every ontology
+        write does.
+
+        It keeps this column's own rhythm rather than the shape it arrived in: the same
+        `px-2` list inset and `gap-0.5` between rows as the two lists above it, so a
+        reader scrolling one column does not meet a third spacing system at the bottom of
+        it. The name still takes its own line — at 280px it truncated to "Timber…" beside
+        its own meta (installed app, 2026-09-06) — and the meta and the chip share the
+        line beneath.
+      */}
+      {candidates.length > 0 ? (
+        <section
+          data-testid="library-candidates"
+          aria-label={t("wiki.candidatesHeader", { count: candidates.length })}
+          className="flex flex-col px-2 pb-1"
+        >
+          <p className="px-1 pb-1 text-caption leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
+            {t("wiki.candidatesHeader", { count: candidates.length })}
+          </p>
+          <ul className="flex flex-col gap-0.5">
+            {shownCandidates.map((candidate) => (
+              <li
+                key={`${candidate.name}\u0000${candidate.pages.join(",")}`}
+                data-testid="library-candidate"
+                className="flex min-w-0 flex-col gap-0.5 rounded-chip px-1 py-1"
+              >
+                <span
+                  className="text-label leading-body text-[color:var(--color-text-primary)] [word-break:keep-all]"
+                  title={candidate.why || undefined}
+                >
+                  {candidate.name}
+                </span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate text-caption text-[color:var(--color-text-quaternary)]">
+                    {t(`wiki.candidateKind.${candidate.kind}`)} ·{" "}
+                    {t("wiki.candidatePages", { count: candidate.pages.length })}
+                  </span>
+                  {onPropose && isMapKind(candidate.kind) ? (
+                    <Tooltip content={t("wiki.proposeTooltip")}>
                       <Chip
-                        data-testid="library-lint"
-                        onClick={onLint}
-                        disabled={busy || model.wikiPages.length < 2}
+                        data-testid="library-candidate-propose"
+                        onClick={() => onPropose(candidate)}
+                        disabled={busy}
                         tone="muted"
                         className="flex-none hover:text-[color:var(--color-text-primary)]"
-                        aria-label={t("wiki.lintTooltip")}
+                        aria-label={`${t("wiki.propose")}: ${candidate.name}`}
                       >
-                        <Stethoscope size={ICON_SIZE.sm} aria-hidden />
-                        <span className="min-w-0 truncate">{t("wiki.lint")}</span>
-                      </Chip>
-                    </Tooltip>
-                  ) : null}
-                  {onCompile ? (
-                    <Tooltip content={t("wiki.compileTooltip")}>
-                      <Chip
-                        data-testid="library-compile"
-                        onClick={onCompile}
-                        disabled={busy || model.needsCompileCount === 0}
-                        tone="muted"
-                        className="flex-none hover:text-[color:var(--color-text-primary)]"
-                        aria-label={t("wiki.compileTooltip")}
-                      >
-                        <Sparkles size={ICON_SIZE.sm} aria-hidden />
-                        <span className="min-w-0 truncate">{t("wiki.compile")}</span>
+                        <span className="min-w-0 truncate">{t("wiki.propose")}</span>
                       </Chip>
                     </Tooltip>
                   ) : null}
                 </span>
-                {/* The picker is what the buttons beside it will run on; a control on its
-                    own row reads as a setting rather than as part of the press. */}
-                {brainControl ? (
-                  <span data-testid="library-brain-control" className="min-w-0 flex-1">
-                    {brainControl}
-                  </span>
-                ) : null}
-              </>
-            ) : null
-          }
-        />
-
-        {/*
-          **Compile is app-only, so the web says so instead of describing it.** The
-          degradation grammar in `.claude/rules/surfaces.md`: why it is unavailable, where
-          it works, and what still works here (the pages read and edit exactly as they do
-          in the app). It is the same slot as `compileNote`, and only one can be true.
-        */}
-        {/*
-          **What happened last, from the app's own record** (`wiki/_log.md`, PR #1486). One
-          caption, two facts at most: the last Compile and the last Check, each with its
-          time. `text-label` rather than `text-caption` — 9.5px is this product's
-          uppercase-eyebrow size, and this is a sentence a person reads to decide whether to
-          press anything at all.
-        */}
-        {model.log.lastCompile || model.log.lastLint ? (
-          <p
-            data-testid="library-wiki-log"
-            className="px-3 pb-1 text-label leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all] [overflow-wrap:anywhere]"
-          >
-            {model.log.lastCompile
-              ? t("wiki.logCompile", {
-                  when: logWhen(model.log.lastCompile.at),
-                  summary: localizeWikiLogSummary(model.log.lastCompile.summary, t),
-                })
-              : null}
-            {model.log.lastCompile && model.log.lastLint ? " · " : null}
-            {model.log.lastLint
-              ? t("wiki.logLint", {
-                  when: logWhen(model.log.lastLint.at),
-                  summary: localizeWikiLogSummary(model.log.lastLint.summary, t),
-                })
-              : null}
-          </p>
-        ) : null}
-
-        {onCompile === null ? (
-          <p
-            data-testid="library-compile-web-limit"
-            className="px-3 pb-1 text-label leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
-          >
-            {t("wiki.compileWebLimit")}{" "}
-            <Link
-              href="/download"
-              data-testid="library-compile-web-get-app"
-              className={controlClass({
-                shape: "link",
-                hoverInk: "strong",
-                className: "rounded-chip px-1.5 py-0.5",
-              })}
+              </li>
+            ))}
+          </ul>
+          {foldedCandidates > 0 || candidatesOpen ? (
+            <Chip
+              data-testid="library-candidates-fold"
+              tone="muted"
+              className="mt-1"
+              onClick={() => setCandidatesOpen((open) => !open)}
+              aria-expanded={candidatesOpen}
             >
-              {t("wiki.compileWebGetApp")}
-            </Link>
-          </p>
-        ) : compileNote ? (
-          <p
-            data-testid="library-transfer"
-            className="px-3 pb-1 text-label leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all] [overflow-wrap:anywhere]"
-          >
-            {compileNote}
-          </p>
-        ) : null}
-
-        {hasWiki ? (
-          <>
-            <ul
-              data-testid="library-wiki-list"
-              aria-label={t("wiki.listAria")}
-              className="flex flex-col gap-0.5 px-2"
-            >
-              {model.wikiPages.map((page) => {
-                const active = page.slug === selectedSlug;
-                const verdict = model.verdicts.get(page.slug);
-                /*
-                 * **Two kinds of finding, drawn two ways** (2026-09-07). A page that misses
-                 * the wiki template wears the amber pill it always has: the fix is in that
-                 * page's own bytes. A folder finding — a link that goes nowhere, a page
-                 * nothing links to, a shared source neither page links across — is about
-                 * where the page sits, and on a young wiki it is true of nearly every row.
-                 * A pill on every row is the texture the `compiled` badge was removed for
-                 * one list up, so it is a quiet word instead, and the header strip carries
-                 * the count once.
-                 *
-                 * ⚠️ **Only the folder findings a person can act on reach the row.** With
-                 * the advisory ones drawn too, the owner's seven-page folder wore the word
-                 * seven times (measured 2026-09-07) — `orphan-page` is true of every page
-                 * on a wiki whose pages have not been linked yet, which is the reason
-                 * `mergeWikiVerdict` already refuses to let it flip `ok`. Those reach a
-                 * person through the Check-the-wiki report instead, where a judgement
-                 * about the whole wiki belongs.
-                 */
-                const problems = verdict?.problems ?? [];
-                const ownProblem = problems.find((problem) => !isWikiFolderCode(problem.code));
-                const folderProblem = problems.find(
-                  (problem) => isWikiFolderCode(problem.code) && !isAdvisoryWikiCode(problem.code),
-                );
-                const reason = verdict && problems.length > 0 && verdict.firstProblem
-                  ? t("wiki.offTemplateReason", { code: verdict.firstProblem })
-                  : undefined;
-                return (
-                  <li key={page.slug}>
-                    <RowButton
-                      active={active}
-                      aria-current={active ? "true" : undefined}
-                      data-testid={`library-wiki-${page.slug}`}
-                      onClick={() => onSelect(page.slug)}
-                      /*
-                       * The pill says one fixed word; **which** rule the page missed lives
-                       * here until the page's own block carries it on screen.
-                       * `aria-description` rather than a bare title: a screen reader
-                       * announces it with the row, so the reason is not reachable only by
-                       * a pointer that hovers.
-                       */
-                      aria-description={reason}
-                      title={reason}
-                      className="group relative hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]"
-                    >
-                      <BookText size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
-                      <span className="min-w-0 flex-1 truncate">{page.title}</span>
-                      <span className="flex-none text-caption text-[color:var(--color-text-quaternary)]">
-                        {writerLabel(page.createdBy, t)}
-                      </span>
-                      {folderProblem ? (
-                        <span
-                          data-testid="library-wiki-folder-mark"
-                          title={folderProblem.message}
-                          className="flex-none text-caption text-[color:var(--color-text-quaternary)]"
-                        >
-                          {t("wiki.folderMark")}
-                        </span>
-                      ) : null}
-                      {ownProblem ? (
-                        <StateBadge tone="warning" testId="library-wiki-off-template">
-                          {t("wiki.offTemplate")}
-                        </StateBadge>
-                      ) : null}
-                    </RowButton>
-                  </li>
-                );
-              })}
-            </ul>
-            {/*
-              The same count the rows draw and the header strip prints. `offTemplateCount`
-              on the model counts every page whose merged verdict is not `ok`, and since PR
-              #1486 that includes a dangling link — which this list marks with a quiet word
-              rather than the amber pill. Measured on the owner's seven-page folder: the
-              foot said 2 over one pill (2026-09-07).
-            */}
-            {offTemplateRows > 0 ? (
-              <ListNote testId="library-off-template-count">
-                {t("wiki.offTemplateCount", { count: offTemplateRows })}
-              </ListNote>
-            ) : null}
-          </>
-        ) : (
-          <p
-            data-testid="library-wiki-empty"
-            className="px-3 pb-1 text-caption leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
-          >
-            {hasWikiTemplate ? t("wiki.empty") : t("wiki.emptyNoTemplate")}
-          </p>
-        )}
-
-        {/*
-          **The wiki's candidates for the graph** (PR #1486): a name the last check found on
-          three or more pages with no page of its own. Not a page to write — a node to
-          propose, and the proposal goes through the same permission card every ontology
-          write does.
-
-          It keeps this column's own rhythm rather than the shape it arrived in: the same
-          `px-2` list inset and `gap-0.5` between rows as the two lists above it, so a
-          reader scrolling one column does not meet a third spacing system at the bottom of
-          it. The name still takes its own line — at 280px it truncated to "Timber…" beside
-          its own meta (installed app, 2026-09-06) — and the meta and the chip share the
-          line beneath.
-        */}
-        {candidates.length > 0 ? (
-          <section
-            data-testid="library-candidates"
-            aria-label={t("wiki.candidatesHeader", { count: candidates.length })}
-            className="flex flex-col px-2 pb-1"
-          >
-            <p className="px-1 pb-1 text-caption leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all]">
-              {t("wiki.candidatesHeader", { count: candidates.length })}
-            </p>
-            <ul className="flex flex-col gap-0.5">
-              {shownCandidates.map((candidate) => (
-                <li
-                  key={`${candidate.name}\u0000${candidate.pages.join(",")}`}
-                  data-testid="library-candidate"
-                  className="flex min-w-0 flex-col gap-0.5 rounded-chip px-1 py-1"
-                >
-                  <span
-                    className="text-label leading-body text-[color:var(--color-text-primary)] [word-break:keep-all]"
-                    title={candidate.why || undefined}
-                  >
-                    {candidate.name}
-                  </span>
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span className="min-w-0 flex-1 truncate text-caption text-[color:var(--color-text-quaternary)]">
-                      {t(`wiki.candidateKind.${candidate.kind}`)} ·{" "}
-                      {t("wiki.candidatePages", { count: candidate.pages.length })}
-                    </span>
-                    {onPropose && isMapKind(candidate.kind) ? (
-                      <Tooltip content={t("wiki.proposeTooltip")}>
-                        <Chip
-                          data-testid="library-candidate-propose"
-                          onClick={() => onPropose(candidate)}
-                          disabled={busy}
-                          tone="muted"
-                          className="flex-none hover:text-[color:var(--color-text-primary)]"
-                          aria-label={`${t("wiki.propose")}: ${candidate.name}`}
-                        >
-                          <span className="min-w-0 truncate">{t("wiki.propose")}</span>
-                        </Chip>
-                      </Tooltip>
-                    ) : null}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {foldedCandidates > 0 || candidatesOpen ? (
-              <Chip
-                data-testid="library-candidates-fold"
-                tone="muted"
-                className="mt-1"
-                onClick={() => setCandidatesOpen((open) => !open)}
-                aria-expanded={candidatesOpen}
-              >
-                {candidatesOpen ? t("wiki.candidatesLess") : t("wiki.candidatesMore", { count: foldedCandidates })}
-              </Chip>
-            ) : null}
-          </section>
-        ) : null}
-      </section>
-    </>
+              {candidatesOpen ? t("wiki.candidatesLess") : t("wiki.candidatesMore", { count: foldedCandidates })}
+            </Chip>
+          ) : null}
+        </section>
+      ) : null}
+    </section>
   );
 }
