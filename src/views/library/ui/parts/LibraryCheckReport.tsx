@@ -90,7 +90,7 @@ export function LibraryCheckReport({
   const lastCheckFoundSomething = !!lastLint && /(?:^|\D)[1-9]\d*/.test(lastLint.summary);
 
   return (
-    <article data-testid="library-check-report" className="mx-auto w-full max-w-[760px] px-6 pb-[var(--page-bottom-breath)] pt-8 md:px-10">
+    <article data-testid="library-check-report" className="mx-auto w-full max-w-[var(--measure-doc-column)] px-6 pb-[var(--page-bottom-breath)] pt-8 md:px-10">
       <header>
         <h2 className="text-display font-[var(--font-weight-signature)] leading-title tracking-[var(--tracking-card)] text-[color:var(--color-text-primary)]">
           {t("report.title")}

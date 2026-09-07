@@ -544,7 +544,7 @@ export function DocFrontmatterBlock({
         aria-label={t("diagnosticAriaLabel")}
         data-testid="doc-frontmatter-block"
         data-variant="diagnostic"
-        className="mx-auto mt-4 max-w-[760px] px-6 md:px-10"
+        className="mx-auto mt-4 max-w-[var(--measure-doc-column)] px-6 md:px-10"
       >
         <div className="rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)] px-4 py-3">
           <p className="text-body font-[var(--font-weight-signature)] text-[color:var(--color-text-primary)]">
@@ -566,7 +566,7 @@ export function DocFrontmatterBlock({
       aria-label={t("ariaLabel")}
       data-testid="doc-frontmatter-block"
       data-variant="full"
-      className="mx-auto mt-4 max-w-[760px] px-6 md:px-10"
+      className="mx-auto mt-4 max-w-[var(--measure-doc-column)] px-6 md:px-10"
     >
       {definitionValue ? (
         <div

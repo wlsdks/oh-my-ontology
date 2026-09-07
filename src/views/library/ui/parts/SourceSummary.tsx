@@ -112,7 +112,7 @@ export function SourceSummary({
   return (
     <div
       data-testid="library-source-summary"
-      className="mx-auto w-full max-w-[760px] px-6 pt-8 md:px-10"
+      className="mx-auto w-full max-w-[var(--measure-doc-column)] px-6 pt-8 md:px-10"
     >
       <div className="flex items-start gap-2">
         <FileText

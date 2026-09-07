@@ -2,6 +2,10 @@
 
 import { cloneElement, isValidElement, useEffect, useState } from 'react';
 import { cn } from '@/shared/lib/cn';
+import { MOTION_EASE } from '@/shared/motion';
+
+/** The entry curve, as CSS — the token `--motion-ease`, read through its JS copy. */
+const EASE = `cubic-bezier(${MOTION_EASE.join(', ')})`;
 
 interface StaggeredFadeInProps {
   /** The children; an array of `li` when `as` is a list element. */
@@ -111,7 +115,7 @@ function applyTransitionStyle(
   const inlineTransition: React.CSSProperties = {
     opacity: mounted ? 1 : 0,
     transform: mounted ? 'translateY(0)' : `translateY(${translateY}px)`,
-    transition: `opacity ${duration}ms ease-out ${delay}ms, transform ${duration}ms ease-out ${delay}ms`,
+    transition: `opacity ${duration}ms ${EASE} ${delay}ms, transform ${duration}ms ${EASE} ${delay}ms`,
     willChange: mounted ? undefined : 'opacity, transform',
   };
   return cloneElement(child, {

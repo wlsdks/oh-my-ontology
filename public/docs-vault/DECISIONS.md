@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — Kind tone and the document column become tokens, and colour literals get a gate
+
+**Why**: the owner asked for a whole-app check with every value on a token. The sweep found no broken screen (14 routes, three widths, no console error or overflow). The inventory found the type, radius, shadow, duration and z gates closed and four holes beneath them: 41 hex outside Tailwind brackets, 41 `rgb()/rgba()` with no selector, named `ease-*` classes, and `maskImage` outside the inline-style gate. Most of the colour debt was the kind palette living as rgba literals in `tone.ts`: a sanctioned data mark no colour gate could see.
+**Prior**: upholds 2026-08-15 "two dialog widths are canonical" — the `440px` cards on error, not-found, first-run and empty-state surfaces sit inside the 360–448 cluster that tier was cut from, so they take `--dialog-w-sm` (20px). Upholds and extends the 2026-07-26 hex gate. `design.md`'s choice not to gate spacing brackets stands; its count is corrected.
+**Decision**: `--color-kind-<kind>-rgb` with four alpha steps for the five kinds; `tone.ts` references them and keeps a paint copy that `kind-tone-mirror.contract.test.ts` holds equal. `--measure-doc-column: 760px` replaces the literal at eleven sites. Tour easings and one inline transition reference the motion tokens. `colorLiteralSelectors` refuses rgb/rgba/hsl literals, hex in inline colour properties, mask-stencil literals and named `ease-*` classes in product files; tests, the two mirrors, the popout HTML and canvas paint are exempt by a scope block naming each. Enabled at zero violations; a planted rgba, hex, mask and easing each turned it red.
+**Dissent**: design-system seat: spacing brackets stay ungated, but "27 uses, 1.1%" was July's count and today's is about 377; corrected in the rule, not reopened here.
+**Falsifier**: a kind hue on screen differing from `--color-kind-*`; a product-file rgba literal that lint passes; a colour a canvas needs that the mirror cannot carry.
+**Owner**: jinan
+
 ## 2026-09-07 — A hosted OAuth address leaves the catalogue: the in-app session cannot sign in
 
 **Why**: the one-list record's own falsifier, "a hosted row that attaches and 401s with no sign-in", fired the same evening when the owner asked for a full check. Measured against claude-agent-acp 0.75.0 with the app's own `session/new` shape: a hosted OAuth server `notion` at `https://mcp.notion.com/mcp` reports "requires authentication", the adapter says the non-interactive session cannot run the OAuth flow, no `mcp__notion__` tool registers, and a terminal token stored for the same name and address did not carry over. Two runs. The seven addresses themselves answer an MCP initialize with the standard OAuth challenge, so the fault is the session, not the facts.

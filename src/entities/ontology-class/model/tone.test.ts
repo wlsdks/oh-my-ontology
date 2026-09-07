@@ -3,6 +3,7 @@ import {
   getOntologyKindTone,
   ONTOLOGY_KIND_TONE,
   ONTOLOGY_VISUAL_KINDS,
+  ONTOLOGY_KIND_PAINT,
 } from "./tone";
 
 function rgbDistance(a: string, b: string): number {
@@ -60,8 +61,8 @@ describe("ontology kind visual tone contract", () => {
   it("keeps categorical fills far enough apart for graph scanning", () => {
     for (let i = 0; i < ONTOLOGY_VISUAL_KINDS.length; i += 1) {
       for (let j = i + 1; j < ONTOLOGY_VISUAL_KINDS.length; j += 1) {
-        const left = getOntologyKindTone(ONTOLOGY_VISUAL_KINDS[i]).fill;
-        const right = getOntologyKindTone(ONTOLOGY_VISUAL_KINDS[j]).fill;
+        const left = ONTOLOGY_KIND_PAINT[ONTOLOGY_VISUAL_KINDS[i]].fill;
+        const right = ONTOLOGY_KIND_PAINT[ONTOLOGY_VISUAL_KINDS[j]].fill;
         expect(rgbDistance(left, right)).toBeGreaterThanOrEqual(70);
       }
     }
@@ -70,15 +71,16 @@ describe("ontology kind visual tone contract", () => {
   it("keeps every graph fill visible against the dark topology canvas", () => {
     const darkCanvas = "rgba(8, 9, 10, 1)";
     for (const kind of ONTOLOGY_VISUAL_KINDS) {
-      expect(contrastRatio(getOntologyKindTone(kind).fill, darkCanvas)).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(ONTOLOGY_KIND_PAINT[kind].fill, darkCanvas)).toBeGreaterThanOrEqual(3);
     }
   });
 
   it("keeps UI chips quiet enough to avoid decorative color blocks", () => {
+    // The DOM table references tokens; the alpha behind each step is read off the paint copy
+    // here and off `app/globals.css` in `kind-tone-mirror.contract.test.ts`.
     for (const kind of ONTOLOGY_VISUAL_KINDS) {
-      const tone = getOntologyKindTone(kind);
-      expect(rgbaAlpha(tone.chipBg)).toBeLessThanOrEqual(0.12);
-      expect(rgbaAlpha(tone.chipBorder)).toBeLessThanOrEqual(0.46);
+      expect(rgbaAlpha(ONTOLOGY_KIND_PAINT[kind].chipBg)).toBeLessThanOrEqual(0.12);
+      expect(getOntologyKindTone(kind).chipBorder).toBe(`var(--color-kind-${kind}-chip-border)`);
     }
   });
 
