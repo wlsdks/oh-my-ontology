@@ -154,45 +154,53 @@ const ORPHAN_RING_MIN_RADIUS = 90;
  */
 const ORPHAN_RING_GRAVITY = 0.085;
 /**
- * The first slot's angle: three o'clock, and **no half-slot offset**.
+ * The first slot's angle: **on the ring's short axis, and no half-slot offset.**
  *
- * ⚠️ Measured, and the opposite of the obvious choice. Half a slot off the top looked
- * tidier written down and put four orphans at ±45°, which is a *rectangle*: each of the
- * four marks is then simultaneously the leftmost-or-rightmost and the topmost-or-
- * bottommost thing in the picture, so the fit — which pins the bounding box to the canvas
- * — lands all four in the four corners, 34px from two walls each and one of them under the
- * fit control. That is the defect this ring exists to remove, restated as a diamond.
+ * ⚠️ Two measurements decide this, and the second one narrows the first.
  *
- * On the axes the extremes are held by different marks: the picture's bounding box has
- * empty corners, and each loose mark is near one wall and far from the other three.
+ * **No half-slot offset** (2026-09-07). Half a slot off the top looked tidier written down
+ * and put four orphans at ±45°, which is a *rectangle*: each of the four marks is then
+ * simultaneously the leftmost-or-rightmost and the topmost-or-bottommost thing in the
+ * picture, so the fit — which pins the bounding box to the canvas — lands all four in the
+ * four corners, 34px from two walls each and one of them under the fit control. On the axes
+ * the extremes are held by different marks instead: the bounding box has empty corners, and
+ * each loose mark is near one wall and far from the other three. That still stands, and
+ * with four slots the rule below produces exactly the same four angles.
+ *
+ * **Which axis it starts on** (2026-09-08). It used to be three o'clock, and with *one*
+ * loose mark three o'clock is the single worst angle available: the ring is an ellipse with
+ * the box's aspect, so the 0° slot sits at its **long** radius and one unattached note
+ * decides the whole picture's scale. Measured on the owner's own folder at 1400×860 — 19
+ * marks, one of them loose: the connected mass spanned 708×538, and
+ * `Meeting notes September` alone stretched the picture to 908×525, aspect **1.79** against
+ * a canvas of 1.25. The fit is uniform, so it was width-bound and **35% of the canvas height
+ * went unused** (fillY 0.65; 0.49 at 1040×720, which is the empty band the owner's screenshot
+ * shows).
+ *
+ * So the first slot is on the **vertical**, where the fit has room. That is a constant and
+ * not a function of the box, and the measurement is why: the connected mass settles
+ * consistently *wider* than the canvas it is drawn in, because the aspect-aware gravity is a
+ * weak shaping term that under-corrects — 1.32 against a box of 1.25 at 1400×860, and 1.41
+ * against a box of 1.00 at 1040×720. The slack is therefore vertical at every size measured,
+ * and a rule that reads the box instead answered 1040×720 wrong by two pixels of box height.
  */
-const ORPHAN_RING_PHASE = 0;
+const ORPHAN_RING_PHASE = Math.PI / 2;
 
 /**
- * **Ambient life** — the ≤0.4px, ≥6s drift the picture keeps after it has settled.
+ * **The picture is still once it has arrived.**
  *
- * The motion charter prefers information motion and is suspicious of decorative
- * movement, and this is decorative: it says nothing. It is here as a bounded owner
- * directive (2026-09-07, *"it does not even move"*), so it is bounded by numbers a gate can
- * measure rather than by taste.
+ * ⚠️ This is where a ≤0.4px, 7.2s ambient drift used to be applied to every mark's screen
+ * position, every fourth frame, forever. It was a bounded owner directive (2026-09-07,
+ * *"it does not even move"*) and the owner reversed it on 2026-09-08 looking at the
+ * installed app: *"why does it wriggle whenever I put the mouse on the graph? it is hard
+ * to look at … get rid of that strange effect."* A drift small enough to be defensible in
+ * a number was still large enough to be seen, and a picture that never stops moving is a
+ * picture a person cannot rest their eye on while reading the document beside it.
  *
- * **0.28px per axis, 7.2s period.** The per-axis figure is what the code carries; what a
- * person could see is the radial travel, `0.28 × √2 = 0.396px` from rest and 0.79px peak
- * to peak, which is the number the bound of 0.4px is stated against. It was 0.34 until the
- * motion recording measured the radial figure at 0.481 — inside the intent, outside the
- * stated bound, so the stated bound won. That is a peak speed of about a quarter of a pixel
- * per second, well under the 1px halo each mark already carries and under any threshold at
- * which motion competes with content.
- *
- * Under `prefers-reduced-motion` it is not reduced, it is **off**: an endless drift is
- * exactly the family that preference exists to stop.
- *
- * It is applied at display time and in **screen** pixels, never to the simulation's own
- * state, so it cannot accumulate, cannot disturb a settled layout, cannot be multiplied by
- * the zoom, and cannot make hit testing disagree with what is drawn.
+ * Nothing has replaced it. Motion here is now only ever the answer to something a person
+ * did: the arrival, a drag, a release, a resize, a folder that changed. `docs/DECISIONS.md`,
+ * 2026-09-08, carries the reversal.
  */
-export const AMBIENT_AMPLITUDE = 0.28;
-export const AMBIENT_PERIOD_MS = 7200;
 
 interface SimulationNode {
   id: string;
@@ -211,8 +219,6 @@ interface SimulationNode {
    * `--motion-base` by the caller; the simulation only counts, it does not draw.
    */
   entered: number;
-  /** Deterministic phase for the ambient drift, from the id. Never a random number. */
-  phase: number;
   /** How many edges touch it — what the drawn radius is graded by. */
   degree: number;
   /**
@@ -317,7 +323,6 @@ export function createLibrarySimulation({
       fx: null,
       fy: null,
       entered: 1,
-      phase: phaseOf(node.id),
       degree: degree.get(node.id) ?? 0,
       orbit: null,
     };
@@ -367,16 +372,6 @@ function buildLinks(
   return links;
 }
 
-/** A fixed phase per id: the same node drifts the same way on every machine. */
-function phaseOf(id: string): number {
-  let hash = 2166136261;
-  for (let index = 0; index < id.length; index += 1) {
-    hash ^= id.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return ((hash >>> 0) / 4294967296) * Math.PI * 2;
-}
-
 /**
  * Hands every unattached mark its slot on the ring, and takes the slot back from every
  * mark that has a relation.
@@ -387,6 +382,8 @@ function phaseOf(id: string): number {
  * the rest of this file pays for so carefully. The order is also the one a person can
  * predict — a folder's sources arrive together on the ring rather than interleaved with
  * its pages.
+ *
+ * Where the first slot sits is {@link ORPHAN_RING_PHASE}.
  */
 function assignOrbits(nodes: SimulationNode[]): void {
   const loose: SimulationNode[] = [];
@@ -428,28 +425,39 @@ export function libraryOrphanRing(
   sim: LibrarySimulation,
 ): { cx: number; cy: number; rx: number; ry: number } | null {
   let loose = 0;
-  let sumX = 0;
-  let sumY = 0;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
   let held = 0;
   for (const node of sim.nodes) {
     if (node.orbit !== null) {
       loose += 1;
       continue;
     }
-    sumX += node.x;
-    sumY += node.y;
+    minX = Math.min(minX, node.x - node.radius);
+    minY = Math.min(minY, node.y - node.radius);
+    maxX = Math.max(maxX, node.x + node.radius);
+    maxY = Math.max(maxY, node.y + node.radius);
     held += 1;
   }
   if (loose === 0) return null;
-  const cx = held > 0 ? sumX / held : 0;
-  const cy = held > 0 ? sumY / held : 0;
-  let massX = 0;
-  let massY = 0;
-  for (const node of sim.nodes) {
-    if (node.orbit !== null) continue;
-    massX = Math.max(massX, Math.abs(node.x - cx) + node.radius);
-    massY = Math.max(massY, Math.abs(node.y - cy) + node.radius);
-  }
+  /*
+   * ⚠️ **The centre is the mass's bounding box, not its centre of gravity** (2026-09-08).
+   *
+   * It used to be the centroid, with the radius taken as the *largest* distance from it to
+   * any mark — and a cloud whose weight sits off-centre has one half-span much longer than
+   * the other, so a symmetric radius around the centroid stands off the short side by the
+   * long side's distance. Measured on the owner's folder at 1400×860: one loose mark whose
+   * declared standoff is {@link ORPHAN_RING_GAP} (56) sat **185–225px** clear of the
+   * connected mass — a quarter of the picture — which is both why it read as a stray and
+   * why the fit had to shrink everything else to make room for it. Off the bounding box the
+   * standoff is the number this file says it is.
+   */
+  const cx = held > 0 ? (minX + maxX) / 2 : 0;
+  const cy = held > 0 ? (minY + maxY) / 2 : 0;
+  const massX = held > 0 ? (maxX - minX) / 2 : 0;
+  const massY = held > 0 ? (maxY - minY) / 2 : 0;
   const ratio = Math.min(4, Math.max(0.25, sim.box.width / sim.box.height));
   // The smaller radius decides, then the aspect gives the other one: solving it this way
   // round is what guarantees both standoffs at once, whichever axis the mass is long in.
@@ -601,6 +609,15 @@ function applyManyBody(sim: LibrarySimulation, alpha: number): void {
  * The two strengths are the box's aspect split around 1, so their product is the plain
  * `GRAVITY`: a square box is the isotropic case and nothing about the picture changes
  * from what a standard force layout would produce.
+ *
+ * ⚠️ **This is a weak shaping term, and a 2026-09-08 experiment measured how weak.** With
+ * one loose mark standing off the mass, the picture's aspect is the mass's plus that rim,
+ * so a mass shaped to the box's aspect always overshoots it. Feeding the gravity a
+ * rim-corrected aspect — solve `massW / (massH + rim) = boxAspect` — asked for 1.87 where
+ * the box says 1.25 and moved the settled mass from 1.32 to **1.35**: the springs and the
+ * repulsion decide the shape, and gravity only leans on it. It bought 2% of canvas width
+ * and cost a feedback term, so it is not here. If the picture ever needs a stronger opinion
+ * about its own aspect, the lever is the link rest lengths, not this.
  */
 function applyGravity(sim: LibrarySimulation, alpha: number): void {
   const aspect = sim.box.width / sim.box.height;
@@ -857,7 +874,6 @@ export function syncLibrarySimulation(
       fx: null,
       fy: null,
       entered: 0,
-      phase: phaseOf(node.id),
       degree: degree.get(node.id) ?? 0,
       orbit: null,
     };
@@ -879,51 +895,6 @@ export function libraryPositions(sim: LibrarySimulation): Map<string, LayoutPoin
   const out = new Map<string, LayoutPoint>();
   for (const node of sim.nodes) out.set(node.id, { x: node.x, y: node.y });
   return out;
-}
-
-/**
- * The ambient drift for one mark, **in screen pixels**.
- *
- * ⚠️ **Screen, not world, and that is the whole point of the bound.** The first build
- * added it to the simulated position, so at 8× zoom a 0.34-unit amplitude drew as 2.7px
- * of travel — measured 2026-09-07 during the motion recording — and a bound stated in
- * pixels that a zoom can multiply is not a bound. Applied after the view transform it is
- * a third of a pixel at every scale a person can reach.
- *
- * Two axes a quarter-turn apart, so a mark travels a small circle rather than sliding back
- * and forth along a line: a shimmer nobody can point at, not a wobble. `phase` is the
- * node's own, hashed from its id, so the picture breathes rather than pulsing in unison —
- * and so it breathes identically on every machine.
- */
-export function ambientDriftOffset(phase: number, timeMs: number): LayoutPoint {
-  const turn = (timeMs / AMBIENT_PERIOD_MS) * Math.PI * 2;
-  return {
-    x: Math.cos(turn + phase) * AMBIENT_AMPLITUDE,
-    y: Math.sin(turn + phase * 1.37) * AMBIENT_AMPLITUDE,
-  };
-}
-
-/**
- * The drift applied to a map of **screen** positions.
- *
- * Hit testing reads the map this returns, so a person can never point at a mark and miss
- * it by the third of a pixel the drift has moved it. A held mark never drifts: it is
- * exactly where the hand put it.
- */
-export function applyAmbientDrift(
-  sim: LibrarySimulation,
-  screen: Map<string, LayoutPoint>,
-  timeMs: number,
-): Map<string, LayoutPoint> {
-  for (const node of sim.nodes) {
-    if (node.fx !== null) continue;
-    const point = screen.get(node.id);
-    if (!point) continue;
-    const offset = ambientDriftOffset(node.phase, timeMs);
-    point.x += offset.x;
-    point.y += offset.y;
-  }
-  return screen;
 }
 
 /** The picture's own extent, for the fit. */

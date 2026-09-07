@@ -3,13 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import type { LibraryGraph, LibraryGraphEdge, LibraryGraphNode } from "./build-library-graph";
 import {
-  AMBIENT_AMPLITUDE,
-  AMBIENT_PERIOD_MS,
   createLibrarySimulation,
   hasPinnedNode,
   isLibrarySimulationRunning,
-  ambientDriftOffset,
-  applyAmbientDrift,
   libraryPositions,
   libraryMarkRadii,
   libraryOrphanRing,
@@ -342,49 +338,38 @@ describe("the library graph's force simulation", () => {
   });
 
   /**
-   * The ambient drift is an owner directive against the motion charter's own preference,
-   * so its bound is a number this gate owns rather than a claim in a comment.
+   * **A settled picture is still — exactly, not nearly** (owner, 2026-09-08:
+   * *"why does it wriggle whenever I put the mouse on the graph?"*).
+   *
+   * This is the regression barrier for the ambient drift that used to live here. It was
+   * ≤0.4px, it was applied to the drawn position on a clock, and it was still visible — so
+   * the bound this gate owns is no longer a small number but **zero**, and it is asserted
+   * the way the loop actually runs: a thousand guarded frames, each stepping only while
+   * `isLibrarySimulationRunning` says there is somewhere to go. The positions must come
+   * back byte-equal, and `libraryPositions` must remain the simulation's own state with
+   * nothing added to it — no clock, no phase, no per-frame offset.
    */
-  it("keeps the ambient drift inside its declared bound, in screen pixels at any zoom", () => {
+  it("is exactly still once settled, however long the loop keeps asking", () => {
     const sim = settleLibrarySimulation(createLibrarySimulation({ graph: denseFolder(), box: BOX }));
-    let peak = 0;
-    for (let ms = 0; ms <= AMBIENT_PERIOD_MS * 2; ms += 60) {
-      for (const node of sim.nodes) {
-        const offset = ambientDriftOffset(node.phase, ms);
-        peak = Math.max(peak, Math.hypot(offset.x, offset.y));
-      }
+    expect(isLibrarySimulationRunning(sim)).toBe(false);
+    const rest = libraryPositions(sim);
+    // The product loop, verbatim: the guard decides whether a frame steps at all.
+    for (let frame = 0; frame < 1000; frame += 1) {
+      if (isLibrarySimulationRunning(sim) || hasPinnedNode(sim)) stepLibrarySimulation(sim);
     }
-    expect(peak).toBeLessThanOrEqual(AMBIENT_AMPLITUDE * Math.SQRT2 + 1e-9);
-    // The stated bound is on what a person could see travel — the radial figure — not on
-    // the per-axis constant. 0.28 per axis is 0.396 radial, which is what 0.4 is about.
-    expect(AMBIENT_AMPLITUDE * Math.SQRT2).toBeLessThanOrEqual(0.4);
-    expect(AMBIENT_PERIOD_MS).toBeGreaterThanOrEqual(6000);
-
-    /*
-     * ⚠️ **The offset takes no scale, and that is the bound.** Applied to the simulated
-     * position it was multiplied by the zoom — measured 2.7px of travel at 8× during the
-     * 2026-09-07 recording — so it is applied to the already-transformed screen map, where
-     * a third of a pixel is a third of a pixel however close a person has zoomed.
-     */
-    const screen = new Map(sim.nodes.map((node) => [node.id, { x: node.x * 8, y: node.y * 8 }]));
-    const before = new Map([...screen].map(([id, point]) => [id, { ...point }]));
-    applyAmbientDrift(sim, screen, 2400);
+    const after = libraryPositions(sim);
     for (const node of sim.nodes) {
-      const from = before.get(node.id)!;
-      const to = screen.get(node.id)!;
-      expect(Math.hypot(to.x - from.x, to.y - from.y)).toBeLessThanOrEqual(AMBIENT_AMPLITUDE * Math.SQRT2 + 1e-9);
+      // Not "within a tolerance": the same numbers, and the same numbers the node carries.
+      expect(after.get(node.id)).toEqual(rest.get(node.id));
+      expect(after.get(node.id)).toEqual({ x: node.x, y: node.y });
     }
+    expect(isLibrarySimulationRunning(sim)).toBe(false);
 
-    // A held mark is exactly where the hand put it, drift or no drift.
+    // And a hand still wakes it: the reversal removed the endless drift, not the physics.
     pinLibraryNode(sim, sim.nodes[0]!.id, { x: 10, y: 20 });
-    const held = new Map([[sim.nodes[0]!.id, { x: 100, y: 200 }]]);
-    applyAmbientDrift(sim, held, 3000);
-    expect(held.get(sim.nodes[0]!.id)).toEqual({ x: 100, y: 200 });
+    reheatLibrarySimulation(sim);
+    expect(isLibrarySimulationRunning(sim)).toBe(true);
     releaseLibraryNode(sim, sim.nodes[0]!.id);
-
-    // And `libraryPositions` is the simulation's own answer, with nothing added.
-    const plain = libraryPositions(sim);
-    for (const node of sim.nodes) expect(plain.get(node.id)).toEqual({ x: node.x, y: node.y });
   });
 
   /**

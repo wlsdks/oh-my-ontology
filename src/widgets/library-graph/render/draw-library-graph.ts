@@ -142,8 +142,11 @@ const SELECTION_RING_GAP = 3.5;
 const FOCUS_RING_GAP = 6;
 /** `text-label`. The one type step this canvas draws, hover box and standing name alike. */
 const LABEL_FONT_PX = 11;
-/** A citation, the heavier claim of the two relations. */
-const CITES_WIDTH = 1.5;
+/**
+ * A citation, the heavier claim of the two relations — and the widest line this canvas
+ * draws, which is why the label halo is stated against it rather than against a number.
+ */
+export const CITES_WIDTH = 1.5;
 /** A mention: the page names the file, nothing says it was written from it. */
 const MENTIONS_WIDTH = 1;
 /** Gap between a mark and the name standing under it. */
@@ -170,8 +173,23 @@ const EDGE_BOW_RATIO = 0.11;
 const EDGE_BOW_MAX = 17;
 /** The ground each mark clears around itself so it reads over the lines beneath it. */
 const MARK_HALO = 1.5;
-/** Half-width of the ground outline every standing name is stroked with, in CSS px. */
-const LABEL_OUTLINE_PX = 1;
+/**
+ * Half-width of the ground outline every standing name is stroked with, in CSS px.
+ *
+ * **Two, not one, and the number comes from what crosses a name.** At 1px the halo was
+ * narrower than the mark it was defending against: a `cites` line is {@link CITES_WIDTH}
+ * (1.5px) and it ran straight through the letterforms — measured at 1400×860 on 2026-09-08,
+ * five of the seventeen standing names on the owner's folder had an edge through the middle
+ * of their glyphs, `risk-register.html` and `contractor-quotes.csv` among them. Ink cannot
+ * fix it: a source's name is `--color-text-tertiary` and the edge is
+ * `--color-text-quaternary`, which is 1.17:1 apart, so the two are the same value where they
+ * cross whatever the tokens say. Only clearance separates them, and 2px clears the widest
+ * line this canvas draws.
+ *
+ * It is the marks' halo device, in the ground's own colour, stroked *under* the glyph so the
+ * letterform is never thickened by it — not a glow, and it never animates.
+ */
+const LABEL_OUTLINE_PX = 2;
 
 function nodeCentre(frame: LibraryGraphFrame, id: string): LayoutPoint | null {
   return frame.positions.get(id) ?? null;
@@ -554,7 +572,15 @@ export function drawLibraryGraph(ctx: CanvasRenderingContext2D, frame: LibraryGr
         ctx.lineWidth = LABEL_OUTLINE_PX * 2;
         ctx.lineJoin = "round";
         ctx.strokeText(text, box.x + box.width / 2, box.y);
-        ctx.fillStyle = node.kind === "page" ? ink.page : ink.concept;
+        /*
+         * ⚠️ **A name takes its own mark's ink** — which is what the paragraph above always
+         * claimed and what the code did not do. A source was drawn at `ink.source` (6.13:1)
+         * and then named at `ink.concept` (5.23:1), which is *the edge ink*: eight of the
+         * nineteen names on the owner's folder were set in exactly the value of every line
+         * that crossed them (2026-09-08). Three kinds, three inks, the same three the marks
+         * carry.
+         */
+        ctx.fillStyle = node.kind === "page" ? ink.page : node.kind === "source" ? ink.source : ink.concept;
         // Drawn from the box, not the centre: a slid label is no longer centred on its dot.
         ctx.fillText(text, box.x + box.width / 2, box.y);
       }
@@ -613,9 +639,25 @@ export function drawLibraryGraph(ctx: CanvasRenderingContext2D, frame: LibraryGr
 }
 
 /**
- * The longest prefix of `text` that fits `maxWidth`, with an ellipsis when anything was
- * dropped. Binary search rather than a per-character walk: a name is measured about seven
- * times instead of once per glyph, on the one label a frame ever draws.
+ * `text` fitted to `maxWidth`, **shortened in the middle** when it does not fit.
+ *
+ * ⚠️ **The ellipsis moved from the end to the middle on 2026-09-08, and the reason is a
+ * measurement, not a preference.** A folder's names are overwhelmingly a shared stem plus a
+ * distinguishing tail — a date, a number, an extension — because that is how people name
+ * files and how Compile names the page it writes from one. Cutting the tail therefore cuts
+ * exactly the characters that tell two marks apart. On the owner's own folder at 1400×860
+ * the 132px budget rendered `volunteer-email-2026-09-02.txt` and
+ * `volunteer-email-2026-09-05.txt` as **the same string**, `volunteer-email-2026-0…`, on two
+ * different squares 200px apart, and did the same to the two `council-minutes-2026-0…`
+ * marks. Two marks wearing one name is worse than a mark wearing none: it is a picture that
+ * answers a question wrongly.
+ *
+ * Keeping both ends costs nothing — it is the same budget, spent on the informative half —
+ * and it is the rule a file list, a tab strip and a breadcrumb already use, so it is the
+ * shortening a person has been trained to read.
+ *
+ * Binary search on the head, with the tail held at a third of the budget: a name is measured
+ * about seven times instead of once per glyph.
  *
  * Returns `""` only when even the ellipsis does not fit, which is a canvas too small to
  * carry a label at all.
@@ -628,15 +670,35 @@ function truncateToWidth(
   if (ctx.measureText(text).width <= maxWidth) return text;
   const ellipsis = "…";
   if (ctx.measureText(ellipsis).width > maxWidth) return "";
+  /*
+   * The tail is the shorter half. A stem is usually longer than what distinguishes it, and a
+   * name cut to two equal halves reads as two fragments rather than as one name shortened.
+   */
+  const tailBudget = maxWidth / 3;
+  let tail = 0;
+  while (
+    tail < text.length - 1 &&
+    ctx.measureText(text.slice(text.length - (tail + 1))).width <= tailBudget
+  ) {
+    tail += 1;
+  }
+  const suffix = `${ellipsis}${text.slice(text.length - tail)}`;
+  if (ctx.measureText(suffix).width > maxWidth) {
+    // No room for a tail at all: fall back to the plain head-and-ellipsis form.
+    return `${headThatFits(ctx, text, maxWidth - ctx.measureText(ellipsis).width)}${ellipsis}`;
+  }
+  const head = headThatFits(ctx, text, maxWidth - ctx.measureText(suffix).width);
+  return `${head}${suffix}`;
+}
+
+/** The longest prefix of `text` whose width is within `budget`. */
+function headThatFits(ctx: CanvasRenderingContext2D, text: string, budget: number): string {
   let low = 0;
   let high = text.length;
   while (low < high) {
     const middle = Math.ceil((low + high) / 2);
-    if (ctx.measureText(`${text.slice(0, middle)}${ellipsis}`).width <= maxWidth) {
-      low = middle;
-    } else {
-      high = middle - 1;
-    }
+    if (ctx.measureText(text.slice(0, middle)).width <= budget) low = middle;
+    else high = middle - 1;
   }
-  return `${text.slice(0, low)}${ellipsis}`;
+  return text.slice(0, low);
 }

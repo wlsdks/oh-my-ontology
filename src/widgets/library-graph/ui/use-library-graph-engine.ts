@@ -10,7 +10,6 @@ import {
   createLibrarySimulation,
   hasPinnedNode,
   isLibrarySimulationRunning,
-  applyAmbientDrift,
   LIBRARY_LABEL_ALLOWANCE,
   libraryPositions,
   libraryMarkRadii,
@@ -96,18 +95,6 @@ const AUTO_FIT_FOLLOW = 0.16;
 /** Trailing window over which a release's speed is measured, in milliseconds. */
 const RELEASE_WINDOW_MS = 80;
 
-/**
- * Frames between repaints once nothing is left but the ambient drift.
- *
- * **The drift is the only motion this canvas has that never ends**, so it is the only one
- * that can spend a battery. At a 7.2s period and a third of a pixel of travel there is
- * nothing to see above about 15fps, and painting every fourth frame is what keeps an idle
- * Library from holding the raster pipeline the way the map's idle canvas was measured to
- * (6,027 ms of main-thread work in a 6,000 ms window, of which 36 ms was script — the cost
- * was never the physics, it was the paint).
- */
-const AMBIENT_FRAME_STRIDE = 4;
-
 /** Touch reach around a mark, in CSS px. Half of `--touch-target-min` (44) is the floor. */
 const COARSE_HIT_REACH = 18;
 
@@ -179,7 +166,6 @@ export function useLibraryGraphEngine({
   const rectRef = useRef<{ left: number; top: number }>({ left: 0, top: 0 });
   const frameRef = useRef(0);
   const lastPaintRef = useRef(0);
-  const ambientFrameRef = useRef(0);
   /** Nodes whose files are gone, still fading out from where they were. */
   const ghostsRef = useRef<Map<string, { node: LibraryGraphNode; x: number; y: number; since: number }>>(new Map());
   const dimRef = useRef({ value: 0, target: 0 });
@@ -291,23 +277,33 @@ export function useLibraryGraphEngine({
          * ⚠️ **Auto-fit stays armed after it arrives, so it cannot be what keeps the loop
          * awake.** It follows the picture for as long as nobody has taken the camera, which
          * is most of the widget's life; treating "armed" as "still moving" would have meant
-         * a canvas that repaints every frame forever, which is exactly the cost the ambient
-         * stride exists to avoid. What counts as motion is the **distance left to travel**.
+         * a canvas that repaints every frame forever, which is now the one thing the loop
+         * must never do. What counts as motion is the **distance left to travel**.
          */
         const next = viewRef.current;
         const drift =
           Math.abs(next.scale - target.scale) / Math.max(1e-6, target.scale) +
           (Math.abs(next.x - target.x) + Math.abs(next.y - target.y)) / Math.max(1, box.width);
-        autoFitRef.current.converged = drift < 0.002;
+        /*
+         * ⚠️ **Arriving means landing on the target, not stopping near it.** The lerp is
+         * asymptotic, so "converged" only ever meant *close enough to stop painting* — and
+         * the remaining fraction was still there the next time anything woke the loop. A
+         * hover, which is supposed to change ink and nothing else, was measured on
+         * 2026-09-08 moving every mark 0.042px as the camera resumed a journey it had
+         * abandoned mid-air. Snapping at the threshold leaves nothing to resume.
+         */
+        if (drift < 0.002) {
+          viewRef.current = target;
+          autoFitRef.current.converged = true;
+        } else {
+          autoFitRef.current.converged = false;
+        }
       }
       const view = viewRef.current;
 
       const world = libraryPositions(sim);
       const screen = new Map<string, LayoutPoint>();
       for (const [id, point] of world) screen.set(id, worldToScreen(point, view, box));
-      // The drift is added **after** the view transform, so its bound is a third of a
-      // pixel at every zoom rather than a third of a world unit the zoom can multiply.
-      if (!stateRef.current.reducedMotion) applyAmbientDrift(sim, screen, now);
 
       // ── The dim ramp, one `--motion-fast` from end to end. ──
       const elapsed = lastPaintRef.current === 0 ? 0 : now - lastPaintRef.current;
@@ -444,24 +440,20 @@ export function useLibraryGraphEngine({
         sim.nodes.some((node) => node.entered < 1);
 
       /*
-       * ⚠️ **The ambient drift is the one motion here with no end**, so once the picture is
-       * otherwise still the loop stops painting every frame and paints every fourth. The
-       * physics is not being stepped at all at that point — the drift is a display offset —
-       * so the only thing this stride saves is raster, which is the only thing it costs.
+       * ⚠️ **A picture with nowhere left to go stops the loop; it does not idle inside it.**
+       *
+       * There used to be a third state here — the ambient drift, painted every fourth frame
+       * forever — and it measured on 2026-09-08 at **362 `requestAnimationFrame` callbacks
+       * in three idle seconds**, every one of them this loop's, while the marks travelled
+       * 0.74px. The owner called it stuttering, and one rule answers both halves of that:
+       * the drift is gone, so once nothing is arriving, ramping, fading, resizing or
+       * held, the last frame is painted and `runningRef` falls. Every later change — hover,
+       * focus, selection, a drag, a resize, a folder that gained a file — comes back through
+       * `wake()`, which is also why a hover costs one dim ramp and not a standing loop.
        */
       if (settling) {
-        ambientFrameRef.current = 0;
         wasSettlingRef.current = true;
         paint(now);
-      } else if (reduced) {
-        // Reduced motion has no drift and nothing else is moving: stop entirely.
-        paint(now);
-        if (wasSettlingRef.current) {
-          wasSettlingRef.current = false;
-          publishAspect();
-        }
-        runningRef.current = false;
-        return;
       } else {
         /*
          * **The aspect is published when the picture stops, never while it is arriving.**
@@ -469,15 +461,13 @@ export function useLibraryGraphEngine({
          * measured here, against a settled 1.7 — and a witness that reports the shape of
          * something the person never saw is worse than no witness at all.
          */
+        paint(now);
         if (wasSettlingRef.current) {
           wasSettlingRef.current = false;
           publishAspect();
         }
-        ambientFrameRef.current += 1;
-        if (ambientFrameRef.current >= AMBIENT_FRAME_STRIDE) {
-          ambientFrameRef.current = 0;
-          paint(now);
-        }
+        runningRef.current = false;
+        return;
       }
       frameRef.current = requestAnimationFrame((next) => stepRef.current(next));
     };
@@ -953,6 +943,18 @@ export function useLibraryGraphEngine({
             radius: radiiRef.current.get(node.id) ?? 0,
           };
         }),
+      /**
+       * Every relation, by endpoint id. Paired with `nodes()` it is what lets a readability
+       * measurement count crossings and label collisions from outside the canvas — the two
+       * facts a screenshot shows a person and hides from a gate.
+       */
+      edges: () =>
+        graphRef.current.edges.map((edge) => ({
+          source: edge.source,
+          target: edge.target,
+          relation: edge.relation,
+          certainty: edge.certainty,
+        })),
       /** What the pointer is holding right now: a mark, the background, or nothing. */
       interaction: () => ({
         kind: pointerRef.current.drag ? ("node" as const) : pointerRef.current.phase === "dragging" ? ("pan" as const) : ("idle" as const),

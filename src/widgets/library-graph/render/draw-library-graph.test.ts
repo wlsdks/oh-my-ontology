@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { LibraryGraphEdge, LibraryGraphNode } from "../model/build-library-graph";
 import {
+  CITES_WIDTH,
   DIMMED_INK,
   drawLibraryGraph,
   edgeControlPoint,
@@ -341,14 +342,20 @@ describe("drawing the library graph", () => {
   /**
    * A grey name crossed by a grey line is the one thing on a graph this connected that a
    * person genuinely cannot read, so every standing name is stroked in the ground first.
+   *
+   * **The halo has to be wider than what crosses it.** At a 2px stroke — 1px of clearance
+   * on each side — a 1.5px `cites` line still ran through the letterforms, so the gate owns
+   * the relationship rather than the number: the clearance either side of a glyph must clear
+   * the widest line this canvas draws.
    */
-  it("outlines every standing name in the ground before filling it", () => {
+  it("outlines every standing name in the ground, wider than the widest edge", () => {
     const rec = recorder();
     drawLibraryGraph(rec.ctx, frame({ standingLabels: true }));
     expect(rec.outlined.length).toBe(rec.texts.length);
     for (const outline of rec.outlined) {
       expect(outline.style).toBe("ground");
-      expect(outline.width).toBe(2);
+      // A stroke is centred on the glyph outline, so half of it is the clearance outside.
+      expect(outline.width / 2).toBeGreaterThanOrEqual(CITES_WIDTH);
     }
     expect(rec.outlined.map((entry) => entry.text)).toEqual(rec.texts.map((entry) => entry.text));
   });

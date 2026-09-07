@@ -19,7 +19,11 @@ import { stubDirectoryPicker } from "./vault-picker-stub";
  * 3. the wheel changes the scale rather than scrolling the page;
  * 4. the fit control brings the whole picture back;
  * 5. under `prefers-reduced-motion` the canvas is **identical** frame to frame — no
- *    settle, no drift.
+ *    settle, no drift;
+ * 6. once it has settled the canvas is still and the loop stops asking for frames, hover
+ *    included — the 2026-09-08 reversal of the ambient drift, which was a *display* offset
+ *    the loop applied after the view transform, so nothing a settled simulation could say
+ *    about itself would have caught it.
  *
  * ⚠️ **Aiming is done through `window.__atlasLibraryGraph`, never by sweeping pixels.**
  * The map lost six measurement rounds to drag specs that were silently panning the
@@ -284,6 +288,71 @@ test.describe("the library graph responds", () => {
       return probe.nodes().every((node) => node.x > 0 && node.x < view.width && node.y > 0 && node.y < view.height);
     });
     expect(inside, "a mark is outside the canvas after the fit").toBe(true);
+  });
+
+  /**
+   * **A settled picture is still, and it stops asking for frames** (owner, 2026-09-08:
+   * *"why does it wriggle whenever the mouse is on the graph?"*).
+   *
+   * This is the barrier for the ambient drift `docs/DECISIONS.md` (2026-09-08) removed. It
+   * has to live here rather than in a unit test for the reason the whole file exists: the
+   * drift was a *display* offset applied by the loop after the view transform, so a
+   * simulation asserted to be at rest was at rest while the canvas was not. The two things
+   * it measures are the two halves of what the owner saw — the marks moving, and the loop
+   * spending a frame to move them — and both are measured at ordinary motion, not under the
+   * reduced-motion preference where stillness was already true.
+   */
+  test("a settled canvas is still and stops asking for frames, hover included", async ({ page }) => {
+    await page.addInitScript(() => {
+      const counter = { frames: 0 };
+      (window as unknown as { __rafCount: typeof counter }).__rafCount = counter;
+      const original = window.requestAnimationFrame.bind(window);
+      window.requestAnimationFrame = (callback: FrameRequestCallback) => {
+        counter.frames += 1;
+        return original(callback);
+      };
+    });
+    await openGraph(page);
+    const canvas = page.getByTestId("library-graph-canvas");
+    const box = (await canvas.boundingBox())!;
+    // Everything else on the page has had its chance to animate by now, so what follows is
+    // this canvas's own loop or nothing.
+    await page.waitForTimeout(1_500);
+
+    const readFrames = () =>
+      page.evaluate(() => (window as unknown as { __rafCount: { frames: number } }).__rafCount.frames);
+    const idleFrom = await readFrames();
+    const restingPositions = await nodes(page);
+    await page.waitForTimeout(3_000);
+    expect(
+      (await readFrames()) - idleFrom,
+      "the settled canvas is still asking for animation frames",
+    ).toBe(0);
+    const stillThere = await nodes(page);
+    const travelled = (before: ProbeNode[], after: ProbeNode[]): number => {
+      const at = new Map(before.map((node) => [node.id, node]));
+      let worst = 0;
+      for (const node of after) {
+        const was = at.get(node.id);
+        if (was) worst = Math.max(worst, Math.hypot(node.x - was.x, node.y - was.y));
+      }
+      return worst;
+    };
+    expect(travelled(restingPositions, stillThere), "a mark moved on its own").toBe(0);
+
+    // And hovering is ink only. A slow sweep onto a mark, which is the gesture that was
+    // reported, then a hold: neither may move anything.
+    const target = restingPositions.sort((first, second) => second.radius - first.radius)[0]!;
+    await page.mouse.move(box.x + 4, box.y + 4);
+    await page.waitForTimeout(400);
+    const beforeHover = await nodes(page);
+    for (let step = 1; step <= 12; step += 1) {
+      await page.mouse.move(box.x + (target.x * step) / 12, box.y + (target.y * step) / 12);
+      await page.waitForTimeout(30);
+    }
+    await page.waitForTimeout(600);
+    await expect(canvas).toHaveAttribute("data-hovered-node-id", target.id);
+    expect(travelled(beforeHover, await nodes(page)), "hover moved a mark").toBe(0);
   });
 
   test.describe("under reduced motion", () => {
