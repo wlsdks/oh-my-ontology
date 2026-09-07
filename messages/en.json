@@ -4668,6 +4668,7 @@
   "libraryImport": {
     "title": "Bring documents from a service",
     "pickBody": "Pick where your documents already live. Atlas connects it once, then your coding agent fetches them and writes each one into this folder as an ordinary Markdown file you can read and edit.",
+    "absentNote": "Google Drive is not here yet. Google offers no connection that works with a sign-in alone, so today the quickest way is to download from Drive and use Add files.",
     "close": "Close",
     "back": "Back",
     "stepOf": "Step {step} of {total}",
