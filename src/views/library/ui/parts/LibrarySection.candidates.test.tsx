@@ -77,6 +77,27 @@ describe("names without a page become node candidates a person can propose", () 
     expect(onPropose).toHaveBeenCalledWith(CANDIDATES[0]);
   });
 
+  it("shows five rows with the map kinds first and folds the rest behind a count", () => {
+    const many: LintNodeCandidate[] = [
+      { name: "Ines", kind: "person", pages: ["wiki/a"], why: "" },
+      { name: "Halden", kind: "organisation", pages: ["wiki/a"], why: "" },
+      { name: "Platform lift", kind: "element", pages: ["wiki/a"], why: "" },
+      { name: "Callum", kind: "person", pages: ["wiki/a"], why: "" },
+      { name: "Brightwater", kind: "organisation", pages: ["wiki/a"], why: "" },
+      { name: "Fire letter", kind: "other", pages: ["wiki/a"], why: "" },
+      { name: "Consent", kind: "other", pages: ["wiki/a"], why: "" },
+    ];
+    mount(<Harness onPropose={vi.fn()} candidates={many} />);
+    const rows = screen.getAllByTestId("library-candidate");
+    expect(rows).toHaveLength(5);
+    expect(rows[0]!.textContent).toContain("Platform lift");
+    const fold = screen.getByTestId("library-candidates-fold");
+    expect(fold.textContent).toContain("2 more names");
+    fireEvent.click(fold);
+    expect(screen.getAllByTestId("library-candidate")).toHaveLength(7);
+    expect(screen.getByTestId("library-candidates-fold").textContent).toContain("Fewer names");
+  });
+
   it("shows no rows when the last check named nobody, and no chip where no agent can run", () => {
     mount(<Harness onPropose={null} candidates={[]} />);
     expect(screen.queryByTestId("library-candidates")).toBeNull();
