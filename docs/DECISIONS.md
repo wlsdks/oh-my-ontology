@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — Adding a connector is one list; a press attaches what asks nothing and asks in place for one thing
+
+**Why**: the owner read the morning's three-tab dialog in the installed app and rejected the tabs and the Close button under the list, and asked how Codex and open-source clients do it. Cline, Goose, Cursor, VS Code, Claude Desktop, Zed, LM Studio, Continue and the Codex directory all show one list of name, one line, one button, with "by hand" a last row or a separate form. Codex's one-press "+" is a reviewed OAuth app listing, not a property of MCP.
+**Prior**: overturns the same day's "Attaching an MCP server is a catalogue pick" in one clause, *picking fills the by-hand form*; keeps the verbatim line before the press, a row landing off, `origin`, and a link that only pre-fills. Upholds 2026-09-05 "Atlas never sits in the path".
+**Decision**: one scroll under one search: *Already on this computer*, *Ready to attach* (the catalogue, dated), and a folded *Add it by hand* row that an install link unfolds filled. A press attaches what asks nothing (hosted OAuth, a local program with no required variable), off; a row needing a value unfolds a panel under itself with the command written out, one password field per required variable, and the press; with no keychain the field is not offered. Close is the corner control and Escape. The catalogue grows to eight (Linear, Sentry, Playwright, Context7, Supabase), each from the vendor's own page read today; Figma, Slack, Vercel and Stripe stay out. No vendor logos.
+**Dissent**: the morning's own reasoning that the form was the last screen before the press; answered by putting that line on the row, and a committed row is not an inbound link. po-steward: a curated list is endorsement; stands.
+**Falsifier**: a closed dialog read as "connected" before the switch; a token reaching the folder's file through the in-row field; a hosted row that attaches and 401s; a request for a tab back.
+**Owner**: jinan
+
 ## 2026-09-07 — The MCP server reads a source's text on request; Atlas still keeps no converted copy
 
 **Why**: the first ask about a passage on a DOCX-backed page stopped at an execute permission card: the agent had to shell out (`unzip -p … | sed`) to read the original, on a turn that only reads. "Atlas converts nothing" had been read as "Atlas never opens a source", which made every DOCX and XLSX a shell command away.

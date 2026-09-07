@@ -106,21 +106,13 @@ function openAdd() {
 }
 
 /**
- * The by-hand form is behind the third tab now (2026-09-07). The dialog opens on whichever tab
- * can answer a person without typing — what this computer already registers, or the catalogue on
- * a surface that cannot scan — so a test about the form has to say so out loud rather than
- * assuming the form is the dialog.
+ * The by-hand form is folded at the bottom of one list now (2026-09-07, afternoon). The dialog
+ * shows what this computer registers and the catalogue as two groups of one scroll; the form is
+ * a disclosure under them, so a test about the form has to unfold it rather than assume the form
+ * is the dialog.
  */
-function openAddTab(key: 'found' | 'catalogue' | 'custom') {
-  // `TabBar` gives each tab an `id` from its prefix rather than a test id — that id is what
-  // `aria-controls` has to resolve against, so it is the stable handle here too.
-  const tab = document.getElementById(`connectors-add-tab-${key}`);
-  if (!tab) throw new Error(`no add tab: ${key}`);
-  fireEvent.click(tab);
-}
-
 function openCustomTab() {
-  openAddTab('custom');
+  fireEvent.click(screen.getByTestId('connectors-custom-toggle'));
 }
 
 /** A folder handle backed by a map, enough for the store to read and write. */
@@ -601,12 +593,10 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
      */
     openAdd();
     /*
-     * ⚠️ **The dialog does not open on this tab any more** (2026-09-07). With no way to scan,
-     * "Found here" can only ever say why it is empty, so the dialog opens on the catalogue —
-     * the tab that can still answer somebody on the web. The card is still one press away and
-     * still says a reason and a place to go, which is the claim being pinned.
+     * ⚠️ **No tab to press any more** (2026-09-07, afternoon). The card stands inline after the
+     * catalogue, where the scan of this machine would be. It still says a reason and a place to
+     * go, which is the claim being pinned.
      */
-    openAddTab('found');
     await waitFor(() =>
       expect(screen.getByTestId('connectors-discovery-unavailable')).toBeInTheDocument(),
     );
@@ -785,8 +775,139 @@ describe('연결 도구 패널 — 켜기 전에 무엇이 도는지 말한다',
       expect(screen.getByTestId('connectors-found-item')).toHaveTextContent('notion'),
     );
 
+    // Nothing anywhere: one line for the whole dialog, and the by-hand row still under it.
     fireEvent.change(screen.getByTestId('connectors-search'), { target: { value: 'zzz' } });
-    await waitFor(() => expect(screen.getByTestId('connectors-found-empty')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId('connectors-add-none')).toBeInTheDocument());
+    expect(screen.queryByTestId('connectors-found-section')).toBeNull();
+    expect(screen.queryByTestId('connectors-catalogue-section')).toBeNull();
+    expect(screen.getByTestId('connectors-custom-toggle')).toBeInTheDocument();
+  });
+
+  it('카탈로그의 주소 줄은 한 번 눌러 붙고, 꺼진 채로 들어가며, 어디서 왔는지 적힌다', async () => {
+    /*
+     * The one rule of the list (2026-09-07, afternoon): a press attaches what asks nothing. A
+     * hosted OAuth address asks nothing of this dialog — the coding agent opens the sign-in
+     * window — so the row goes straight into the folder, off, with its origin recorded.
+     */
+    const vault = fakeVault();
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-empty')).toBeInTheDocument());
+    openAdd();
+    const atlassian = document.querySelector(
+      '[data-testid="connectors-catalogue-item"][data-catalogue-id="atlassian"]',
+    ) as HTMLElement;
+    expect(atlassian).not.toBeNull();
+    // The address it will write is on the row, verbatim, before the press.
+    expect(atlassian.querySelector('[data-testid="connectors-catalogue-runs"]')).toHaveTextContent(
+      'https://mcp.atlassian.com/v2/mcp',
+    );
+    const add = atlassian.querySelector('[data-testid="connectors-catalogue-add"]') as HTMLElement;
+    expect(add).toHaveAttribute('data-press', 'attaches');
+    fireEvent.click(add);
+    await waitFor(() => expect(screen.getByTestId('connectors-item')).toBeInTheDocument());
+    // The dialog leaves through its exit spring, so the assertion waits for the DOM, not the click.
+    await waitFor(() => expect(screen.queryByTestId('connectors-add-dialog')).toBeNull());
+    expect(screen.getByTestId('connectors-item')).toHaveAttribute('data-connector-enabled', 'false');
+    const written = vault.files.get('.ontology-atlas/connectors.json') ?? '';
+    expect(written).toContain('https://mcp.atlassian.com/v2/mcp');
+    expect(written).toContain('catalogue:atlassian@');
+    // Nothing was stored for it: there is no token to store.
+    expect(bridge.secretSets).toEqual([]);
+  });
+
+  it('토큰이 필요한 줄은 그 자리에서 하나만 묻고, 값은 키체인으로, 파일에는 이름만 간다', async () => {
+    const vault = fakeVault();
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-empty')).toBeInTheDocument());
+    openAdd();
+    const notion = document.querySelector(
+      '[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]',
+    ) as HTMLElement;
+    // Notion offers both; the row's own button is the address, and the program is one press
+    // further, named for what it is.
+    expect(notion.querySelector('[data-testid="connectors-catalogue-add"]')).toHaveAttribute(
+      'data-variant-kind',
+      'remote',
+    );
+    const local = notion.querySelector(
+      '[data-testid="connectors-catalogue-other"][data-variant-kind="local"]',
+    ) as HTMLElement;
+    fireEvent.click(local);
+    const ask = await screen.findByTestId('connectors-catalogue-ask');
+    expect(ask).toHaveAttribute('data-variant-kind', 'local');
+    // The command is written out above the field, and the press waits for the value.
+    expect(ask).toHaveTextContent('@notionhq/notion-mcp-server');
+    expect(screen.getByTestId('connectors-catalogue-ask-add')).toBeDisabled();
+    fireEvent.change(screen.getByTestId('connectors-catalogue-ask-value'), {
+      target: { value: 'ntn_live_value' },
+    });
+    expect(screen.getByTestId('connectors-catalogue-ask-add')).toBeEnabled();
+    // Nothing is written until the press.
+    expect(vault.files.get('.ontology-atlas/connectors.json')).toBeUndefined();
+    fireEvent.click(screen.getByTestId('connectors-catalogue-ask-add'));
+    await waitFor(() => expect(screen.getByTestId('connectors-item')).toBeInTheDocument());
+    const written = vault.files.get('.ontology-atlas/connectors.json') ?? '';
+    expect(written).toContain('NOTION_TOKEN');
+    expect(written).toContain('secretRef');
+    expect(written).not.toContain('ntn_live_value');
+    await waitFor(() => expect(bridge.secretSets).toHaveLength(1));
+    expect(bridge.secretSets[0].secret).toBe('ntn_live_value');
+    expect(bridge.secretSets[0].ref).toMatch(/NOTION_TOKEN$/);
+  });
+
+  it('키체인이 없는 자리에서는 값을 받는 칸을 내밀지 않고 이유를 말한다', async () => {
+    bridge.discoveryAvailable = false;
+    bridge.secretsAvailable = false;
+    const vault = fakeVault();
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-empty')).toBeInTheDocument());
+    openAdd();
+    const notion = document.querySelector(
+      '[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]',
+    ) as HTMLElement;
+    fireEvent.click(
+      notion.querySelector(
+        '[data-testid="connectors-catalogue-other"][data-variant-kind="local"]',
+      ) as HTMLElement,
+    );
+    const ask = await screen.findByTestId('connectors-catalogue-ask');
+    // A box whose contents would be thrown away is worse than no box.
+    expect(screen.queryByTestId('connectors-catalogue-ask-value')).toBeNull();
+    expect(screen.queryByTestId('connectors-catalogue-ask-add')).toBeNull();
+    expect(ask).toHaveTextContent('NOTION_TOKEN');
+    // The same facts can still go into the by-hand form, where the name is written without a value.
+    fireEvent.click(screen.getByTestId('connectors-catalogue-ask-edit'));
+    await waitFor(() => expect(screen.getByTestId('connectors-custom-name')).toHaveValue('notion'));
+    expect(screen.getByTestId('connectors-custom-provenance')).toBeInTheDocument();
+  });
+
+  it('이미 붙어 있는 서비스는 버튼 대신 붙어 있다고 적는다', async () => {
+    const vault = fakeVault(seeded(stdioRecord));
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-list')).toBeInTheDocument());
+    openAdd();
+    const notion = document.querySelector(
+      '[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]',
+    ) as HTMLElement;
+    expect(notion).toHaveAttribute('data-catalogue-attached', 'true');
+    expect(notion.querySelector('[data-testid="connectors-catalogue-add"]')).toBeNull();
+    expect(notion.querySelector('[data-testid="connectors-catalogue-attached"]')).not.toBeNull();
+  });
+
+  it('닫기는 모서리에 하나, 그리고 Escape — 목록 아래에 버튼을 두지 않는다', async () => {
+    const vault = fakeVault();
+    draw(<Panel handle={vault.handle} />);
+    await waitFor(() => expect(screen.getByTestId('connectors-empty')).toBeInTheDocument());
+    openAdd();
+    const dialog = screen.getByTestId('connectors-add-dialog');
+    expect(dialog.querySelectorAll('[data-testid="connectors-add-close"]')).toHaveLength(1);
+    // No other control in the dialog is a close button.
+    const closers = Array.from(dialog.querySelectorAll('button')).filter(
+      (button) => button.textContent?.trim() === '닫기',
+    );
+    expect(closers).toHaveLength(0);
+    fireEvent.click(screen.getByTestId('connectors-add-close'));
+    await waitFor(() => expect(screen.queryByTestId('connectors-add-dialog')).toBeNull());
   });
 });
 

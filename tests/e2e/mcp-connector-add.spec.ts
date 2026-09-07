@@ -7,16 +7,16 @@ import { stubDirectoryPicker } from "./vault-picker-stub";
 /**
  * The add-a-connector dialog, in the browser, against a real folder.
  *
- * **Why this is worth an e2e rather than only a component test.** The three tabs, the search that
- * filters all of them, and the catalogue's hand-off into the by-hand form are exactly the kind of
- * thing that passes in jsdom and fails on a rendered page: the dialog owns a scroll box, the tab
- * strip owns roving focus, and the form it fills is inside the same scroll container. The
- * component tests own the writes and the refusals; this owns the journey.
+ * **Why this is worth an e2e rather than only a component test.** One list under one search, a
+ * press that attaches or asks in place, and a by-hand form folded at the bottom of the same scroll
+ * box are exactly the kind of thing that passes in jsdom and fails on a rendered page: the dialog
+ * owns the scroll, the unfolded form has to come into view, and a press has to land where the
+ * row says. The component tests own the writes and the refusals; this owns the journey.
  *
- * ⚠️ **The web is the honest surface for this spec.** "Found here" reads this machine's agent
- * config files through Tauri, which a browser cannot do — so on this surface that tab draws its
- * degradation card and the dialog opens on the catalogue instead. Both are checked, because the
- * card having somewhere to go is the contract `.claude/rules/surfaces.md` sets.
+ * ⚠️ **The web is the honest surface for this spec.** Scanning this machine's agent config files
+ * goes through Tauri, which a browser cannot do — so here that group is its degradation card,
+ * after the catalogue. It is checked, because the card having somewhere to go is the contract
+ * `.claude/rules/surfaces.md` sets.
  */
 
 async function openConnectorsWithVault(page: import("@playwright/test").Page) {
@@ -60,31 +60,31 @@ test("빈 상태는 한 문장·한 줄 공개·문 하나다", async ({ page })
   await expect(page.getByTestId("connectors-on-of-total")).toHaveCount(0);
 });
 
-test("추가 대화상자는 탭 셋이고, 검색은 셋 다 훑는다", async ({ page }) => {
+test("추가 대화상자는 검색 하나 아래 한 목록이고, 직접 적기는 맨 아래 접힌 줄이다", async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize({ width: 1512, height: 982 });
   await openConnectorsWithVault(page);
   await page.getByTestId("connectors-add-open").click();
-  await expect(page.getByTestId("connectors-add-dialog")).toBeVisible();
-
-  // Three tabs, and on the web the dialog opens on the one that can still answer somebody.
-  await expect(page.locator("#connectors-add-tab-found")).toBeVisible();
-  await expect(page.locator("#connectors-add-tab-catalogue")).toBeVisible();
-  await expect(page.locator("#connectors-add-tab-custom")).toBeVisible();
-  await expect(page.getByTestId("connectors-add-tabpanel")).toHaveAttribute(
-    "data-add-tab",
-    "catalogue",
-  );
+  const dialog = page.getByTestId("connectors-add-dialog");
+  await expect(dialog).toBeVisible();
 
   /*
-   * The catalogue says how big it is, when it was captured, and that Atlas audited none of it.
-   * A list that implies completeness lies by omission (PO steward, 2026-09-07).
+   * No tabs (owner, 2026-09-07 afternoon). One list: the catalogue as a group with its capture
+   * date beside the heading, the by-hand form folded under it, and — on the web — the card
+   * saying why this machine cannot be scanned, after the list that does work here.
    */
-  await expect(page.getByTestId("connectors-catalogue-provenance")).toBeVisible();
+  await expect(page.getByTestId("connectors-catalogue-section")).toBeVisible();
   await expect(page.getByTestId("connectors-catalogue-item")).not.toHaveCount(0);
+  await expect(page.getByTestId("connectors-custom-toggle")).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByTestId("connectors-custom-name")).toHaveCount(0);
+  await expect(page.getByTestId("connectors-discovery-unavailable")).toBeVisible();
+  await expect(page.getByTestId("connectors-web-get-app")).toHaveAttribute("href", /download/);
 
-  // One search box above the strip, filtering every tab — somebody typing "notion" does not know
-  // which tab will answer them.
+  // Closing is the corner control and Escape; there is no button under the list.
+  await expect(page.getByTestId("connectors-add-close")).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "닫기" })).toHaveCount(1);
+
+  // One search box over every group — somebody typing "notion" does not know which one answers.
   await page.getByTestId("connectors-search").fill("notion");
   await expect(page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]')).toBeVisible();
   await expect(
@@ -92,19 +92,16 @@ test("추가 대화상자는 탭 셋이고, 검색은 셋 다 훑는다", async 
   ).toHaveCount(0);
 
   await page.getByTestId("connectors-search").fill("nothing-matches-this");
-  await expect(page.getByTestId("connectors-catalogue-empty")).toBeVisible();
-
-  // The "found here" tab says why it cannot look and where to go, rather than an empty list.
-  await page.getByTestId("connectors-search").fill("");
-  await page.locator("#connectors-add-tab-found").click();
-  await expect(page.getByTestId("connectors-discovery-unavailable")).toBeVisible();
-  await expect(page.getByTestId("connectors-web-get-app")).toHaveAttribute(
-    "href",
-    /download/,
-  );
+  await expect(page.getByTestId("connectors-add-none")).toBeVisible();
+  await expect(page.getByTestId("connectors-catalogue-section")).toHaveCount(0);
+  // …and the by-hand row is still there to unfold.
+  await page.getByTestId("connectors-custom-toggle").click();
+  await expect(page.getByTestId("connectors-custom-name")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
 });
 
-test("카탈로그에서 고르면 직접 적기 탭이 채워져 열리고, 실행될 줄을 그대로 보여 준다", async ({ page }) => {
+test("주소 줄은 한 번 눌러 붙고, 실행될 주소를 그 전에 보여 주며, 꺼진 채로 들어간다", async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize({ width: 1512, height: 982 });
   await openConnectorsWithVault(page);
@@ -113,30 +110,55 @@ test("카탈로그에서 고르면 직접 적기 탭이 채워져 열리고, 실
 
   const notion = page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]');
   await expect(notion).toBeVisible();
-  // The hosted variant is the one with nothing to type, and it says so before it is chosen.
-  const hosted = notion.locator('[data-variant-kind="remote"]').first();
-  await expect(hosted).toContainText("https://mcp.notion.com/mcp");
-  await hosted.getByTestId("connectors-catalogue-choose").click();
-
   /*
-   * The pick fills the form; it does not attach. The last thing on screen before the press is
-   * still the address, written out — which is the difference between this and the deep-link CVEs
-   * recorded in `docs/benchmark/MCP-ONE-CLICK-2026-09-07.md`.
+   * The last thing on screen before the press is still the address, written out — the
+   * difference between this and the deep-link CVEs recorded in
+   * `docs/benchmark/MCP-ONE-CLICK-2026-09-07.md`. The hosted address asks nothing of this
+   * dialog, so the press writes the row and closes.
    */
-  await expect(page.getByTestId("connectors-add-tabpanel")).toHaveAttribute("data-add-tab", "custom");
-  await expect(page.getByTestId("connectors-custom-provenance")).toBeVisible();
-  await expect(page.getByTestId("connectors-custom-name")).toHaveValue("notion");
-  await expect(page.getByTestId("connectors-custom-url")).toHaveValue("https://mcp.notion.com/mcp");
+  await expect(notion.getByTestId("connectors-catalogue-runs")).toContainText("https://mcp.notion.com/mcp");
+  const add = notion.getByTestId("connectors-catalogue-add");
+  await expect(add).toHaveAttribute("data-press", "attaches");
   // Nothing has been written yet.
   await expect(page.getByTestId("connectors-item")).toHaveCount(0);
-
-  await page.getByTestId("connectors-custom-add").click();
+  await add.click();
   await expect(page.getByTestId("connectors-add-dialog")).toHaveCount(0);
   const row = page.getByTestId("connectors-item");
   await expect(row).toHaveCount(1);
   // Written down is not switched on.
   await expect(row).toHaveAttribute("data-connector-enabled", "false");
   await expect(page.getByTestId("connectors-item-runs")).toContainText("https://mcp.notion.com/mcp");
+
+  // Opened again, the row says it is attached instead of offering a second copy.
+  await page.getByTestId("connectors-add-open").click();
+  await expect(
+    page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]'),
+  ).toHaveAttribute("data-catalogue-attached", "true");
+});
+
+test("토큰이 필요한 줄은 그 자리에서 묻고, 키체인이 없는 웹에서는 칸 대신 이유를 말한다", async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.setViewportSize({ width: 1512, height: 982 });
+  await openConnectorsWithVault(page);
+  await page.getByTestId("connectors-add-open").click();
+  await page.getByTestId("connectors-search").fill("notion");
+
+  const notion = page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]');
+  await notion.locator('[data-testid="connectors-catalogue-other"][data-variant-kind="local"]').click();
+  const ask = page.getByTestId("connectors-catalogue-ask");
+  await expect(ask).toBeVisible();
+  await expect(ask).toContainText("@notionhq/notion-mcp-server");
+  await expect(ask).toContainText("NOTION_TOKEN");
+  // A browser has no keychain: no field, no press, and the sentence says what to do instead.
+  await expect(page.getByTestId("connectors-catalogue-ask-value")).toHaveCount(0);
+  await expect(page.getByTestId("connectors-catalogue-ask-add")).toHaveCount(0);
+  // The same facts can still go into the by-hand form, filled in and unfolded.
+  await page.getByTestId("connectors-catalogue-ask-edit").click();
+  await expect(page.getByTestId("connectors-custom-toggle")).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByTestId("connectors-custom-provenance")).toBeVisible();
+  await expect(page.getByTestId("connectors-custom-name")).toHaveValue("notion");
+  await expect(page.getByTestId("connectors-custom-args")).toHaveValue("-y @notionhq/notion-mcp-server");
+  await expect(page.getByTestId("connectors-item")).toHaveCount(0);
 });
 
 test("설치 링크는 대화상자를 채워 열 뿐, 아무것도 붙이지 않는다", async ({ page }) => {
@@ -168,7 +190,8 @@ test("설치 링크는 대화상자를 채워 열 뿐, 아무것도 붙이지 �
   await page.waitForLoadState("networkidle");
 
   await expect(page.getByTestId("connectors-add-dialog")).toBeVisible();
-  await expect(page.getByTestId("connectors-add-tabpanel")).toHaveAttribute("data-add-tab", "custom");
+  // The by-hand row is unfolded, already filled.
+  await expect(page.getByTestId("connectors-custom-toggle")).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByTestId("connectors-custom-name")).toHaveValue("notion");
   await expect(page.getByTestId("connectors-custom-args")).toHaveValue(
     "-y @notionhq/notion-mcp-server",
@@ -181,6 +204,6 @@ test("설치 링크는 대화상자를 채워 열 뿐, 아무것도 붙이지 �
   await expect(page.getByTestId("connectors-link-notice")).toContainText("NOTION_TOKEN");
   expect(await page.content()).not.toContain("ntn_should_not_survive");
   // And nothing was attached by arriving.
-  await page.getByTestId("connectors-add-dialog").getByRole("button", { name: /닫기/ }).click();
+  await page.getByTestId("connectors-add-close").click();
   await expect(page.getByTestId("connectors-item")).toHaveCount(0);
 });
