@@ -1445,8 +1445,12 @@ stop at the card exactly as a compile's do, and `wiki/_log.md` records the turn 
 the last answer as a page under `wiki/answers/`: the question is the title and summary,
 every answer line with a `[[src:…]]` citation becomes a fact, the cited files become
 `sources:` with the hashes the Library measured, and uncited lines go under "Not in
-sources". The page meets the same validator as every other; an answer that does not fit is
-not written and the first problem is said instead. This is the LLM Wiki pattern's "answers
+sources". A citation an agent wrote loosely in prose, `sources/<file>#p3` bare or in
+backticks with or without `src:`, is rewritten into the wiki form first, since it names
+the same place (the first installed-app answer cited every fact that way and was refused
+as uncited); the ask brief now names the form outright. The page meets the same validator
+as every other; an answer that cites nothing is refused by name (`no-cited-fact`), and one
+that does not fit is not written and the first problem is said instead. This is the LLM Wiki pattern's "answers
 can be filed back", done by the app rather than by another agent turn, so nothing is
 claimed that the answer did not cite.
 

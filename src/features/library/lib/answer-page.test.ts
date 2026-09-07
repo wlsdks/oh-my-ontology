@@ -28,7 +28,29 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
     expect(page.problems).toEqual([]);
   });
 
-  it("reports the contract problems of an answer with no citation instead of writing a claim", () => {
+  it("reads a citation written loosely, bare or in backticks, and files it in the wiki form", () => {
+    const page = buildAnswerPage({
+      question: "Where does this come from?",
+      answer: [
+        "The five facts all point at one place, `sources/change-request-CR3.docx#p1`, and the summary draws on it.",
+        "The approval date is in the header: src:sources/change-request-CR3.docx#p1.",
+        "A row of the quote table: [[sources/contractor-quotes.csv#r3]].",
+      ].join("\n"),
+      askedOn: "wiki/change-request-CR3",
+      writer: "agent:claude-code",
+      now: NOW,
+      hashes: new Map([["sources/change-request-CR3.docx", "c".repeat(64)]]),
+      knownSources: ["sources/change-request-CR3.docx", "sources/contractor-quotes.csv"],
+    });
+    expect(page.problems).toEqual([]);
+    expect(page.text).toContain("one place, [[src:sources/change-request-CR3.docx#p1]], and the summary");
+    expect(page.text).toContain("in the header: [[src:sources/change-request-CR3.docx#p1]].");
+    expect(page.text).toContain("quote table: [[src:sources/contractor-quotes.csv#r3]].");
+    expect(page.text).toContain("sources:\n  - sources/change-request-CR3.docx\n  - sources/contractor-quotes.csv");
+    expect(page.text).toContain("sources/contractor-quotes.csv: unmeasured");
+  });
+
+  it("refuses an answer with no citation by name instead of planting a bullet the validator would reject", () => {
     const page = buildAnswerPage({
       question: "What is the budget?",
       answer: "The budget is 221,400.",
@@ -38,7 +60,9 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
       hashes: new Map(),
       knownSources: [],
     });
-    expect(page.problems.length).toBeGreaterThan(0);
+    expect(page.problems[0]?.code).toBe("no-cited-fact");
+    expect(page.text).toContain("## Facts\n\n## Decisions");
+    expect(page.text).toContain("## Not in sources\n\n- The budget is 221,400.");
   });
 
   it("makes a stable slug from the question's first words and the day", () => {

@@ -11,11 +11,14 @@ describe("buildAskBrief", () => {
     expect(brief).toContain("Page being read: wiki/change-request.md");
     expect(brief).toContain("Where does this come from?");
     expect(brief).toContain("Write nothing.");
+    // The answer can be filed as a page, so the brief names the one citation form that counts.
+    expect(brief).toContain("`[[src:sources/<file>#p<page>]]`");
   });
 
   it("uses the person's own words for a custom question, in the screen's language", () => {
     const brief = buildAskBrief({ ...base, locale: "ko", question: "custom", customQuestion: "이 숫자 맞아?" });
     expect(brief).toContain("질문: 이 숫자 맞아?");
     expect(brief).toContain("아무것도 쓰지 마.");
+    expect(brief).toContain("`[[src:sources/<파일>#p<쪽>]]`");
   });
 });

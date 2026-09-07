@@ -1,4 +1,10 @@
-import { WIKI_DIR, validateWikiPage } from "@/shared/lib/wiki-page-schema";
+import {
+  WIKI_CITATION_ANCHOR_PATTERN,
+  WIKI_CITATION_PATTERN,
+  WIKI_DIR,
+  WIKI_SOURCES_DIR,
+  validateWikiPage,
+} from "@/shared/lib/wiki-page-schema";
 
 /**
  * File an answer back into the wiki as a page (the LLM Wiki pattern's "good answers can
@@ -31,7 +37,26 @@ export interface AnswerPageResult {
   problems: ReadonlyArray<{ code: string; message: string; line?: number }>;
 }
 
-const CITATION = /\[\[src:([^\]#|]+)(?:#[^\]]*)?\]\]/g;
+/**
+ * A citation the way an agent tends to write one when answering in prose: the wiki form
+ * `[[src:sources/<file>#p3]]`, or the same address bare or in backticks, with or without the
+ * `src:` prefix. All of them mean one place in one document; only the wiki form survives
+ * the page contract, so the others are rewritten into it before the page is judged. Seen
+ * in the installed app on 2026-09-07: an answer whose every fact pointed at
+ * `sources/change-request-CR3.docx#p1` in backticks was refused as uncited.
+ */
+const LOOSE_CITATION = new RegExp(
+  `\`?(?:\\[\\[)?(?:src:)?(${WIKI_SOURCES_DIR}\\/[^\\s\\]\\)\`#|]+)#(${WIKI_CITATION_ANCHOR_PATTERN})(?:\\]\\])?\`?`,
+  "g",
+);
+
+/** The wiki form only, anchor included; what the validator will count. */
+const CITATION = new RegExp(WIKI_CITATION_PATTERN, "g");
+
+/** Every loose citation in a line rewritten as `[[src:sources/<file>#<anchor>]]`. */
+function normalizeCitations(line: string): string {
+  return line.replace(LOOSE_CITATION, (_whole, path: string, anchor: string) => `[[src:${path}#${anchor}]]`);
+}
 
 export function answerSlug(question: string, now: Date): string {
   const words = question
@@ -52,7 +77,7 @@ export function buildAnswerPage(input: AnswerPageInput): AnswerPageResult {
   const uncited: string[] = [];
   const sources = new Set<string>();
   for (const line of lines) {
-    const bare = line.replace(/^[-*]\s+/, "");
+    const bare = normalizeCitations(line.replace(/^[-*]\s+/, ""));
     if (/^#{1,6}\s/.test(bare) || /^```/.test(bare)) continue;
     const found = [...bare.matchAll(CITATION)].map((match) => match[1]!.trim());
     if (found.length > 0) {
@@ -84,7 +109,7 @@ export function buildAnswerPage(input: AnswerPageInput): AnswerPageResult {
     "",
     "## Facts",
     "",
-    ...(cited.length > 0 ? cited : ["- (no cited fact in the answer)"]),
+    ...cited,
     "",
     "## Decisions",
     "",
@@ -94,7 +119,22 @@ export function buildAnswerPage(input: AnswerPageInput): AnswerPageResult {
     "",
     ...uncited,
     "",
-  ].join("\n");
+  ]
+    .join("\n")
+    // An empty Facts or Not in sources list would leave two blank lines in a row.
+    .replace(/\n{3,}/g, "\n\n");
   const verdict = validateWikiPage(text, { knownSources: input.knownSources });
-  return { slug, path: `${slug}.md`, text, problems: verdict.problems };
+  // An answer that cites nothing is not filed: a page whose every line sits under "Not in
+  // sources" would carry the question's title into the wiki with no evidence behind it.
+  const problems =
+    cited.length === 0
+      ? [
+          {
+            code: "no-cited-fact",
+            message: "The answer cites no place in any source, so there is no fact to file.",
+          },
+          ...verdict.problems,
+        ]
+      : verdict.problems;
+  return { slug, path: `${slug}.md`, text, problems };
 }

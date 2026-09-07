@@ -119,7 +119,7 @@ export const WIKI_SECTION_ORDER = [
  * `r<n>`, `l<n>`, or `h:<heading-slug>`. An anchor is required: "this document says so
  * somewhere" is not something a reader can check.
  */
-const WIKI_CITATION_ANCHOR_PATTERN =
+export const WIKI_CITATION_ANCHOR_PATTERN =
   'p\\d+|s\\d+(?:r\\d+)?|r\\d+|l\\d+|h:[a-z0-9][a-z0-9-]*';
 export const WIKI_CITATION_PATTERN = `\\[\\[src:(${WIKI_SOURCES_DIR}\\/[^\\]#]+)#(${WIKI_CITATION_ANCHOR_PATTERN})\\]\\]`;
 
