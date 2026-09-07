@@ -476,6 +476,13 @@ function HomePageImpl() {
     localGraphStack.length > 0 ? localGraphStack[localGraphStack.length - 1] : null;
   const [fitViewToken, setFitViewToken] = useState(0);
   const [growthReplayToken, setGrowthReplayToken] = useState(0);
+  /**
+   * Whether a growth replay is on screen right now, reported by the map loop so the
+   * control can wear the active tone and `aria-pressed` for exactly as long as the
+   * motion lasts — including when the replay finishes by itself and the button
+   * returns to rest on its own (owner, 2026-09-07).
+   */
+  const [growthReplaying, setGrowthReplaying] = useState(false);
   const [topologyVisibleCount, setTopologyVisibleCount] = useState<number | null>(null);
   // M-5 — semantic-zoom altitude tier reported by the map engine, for the
   // corner readout's orientation label. "spine" at the overview entry; drops
@@ -5636,6 +5643,7 @@ function HomePageImpl() {
                       overviewFit={expandAllActive ? "full" : "spine"}
                       fitViewToken={combinedFitToken}
                       growthReplayToken={growthReplayToken}
+                      onGrowthReplayingChange={setGrowthReplaying}
                       spotlightFitToken={spotlightFitToken}
                       relayoutToken={topologyRelayoutToken}
                       revealToken={mapRevealToken}
@@ -5846,11 +5854,23 @@ function HomePageImpl() {
                   className="topology-ui-scale pointer-events-auto absolute right-4 z-20 hidden md:right-6 md:top-[var(--topology-growth-replay-desktop-top)] md:block xl:right-8"
                   data-agent-dock-adjacent-rail="true"
                 >
+                  {/* A toggle, not a hold. One bump of the token starts the replay and
+                      the next stops it; the loop reports the live state back, so the
+                      active border and `aria-pressed` also fall away when the replay
+                      simply reaches its end. Exits and the reason movement no longer
+                      counts as one: `use-topology-loop.ts`, the token effect.
+                      The icon stays the play glyph while it runs: `ChromeTile`'s
+                      labelled mode makes the label the accessible name, and a stop glyph
+                      beside a label that says "watch" would tell two stories at once. The
+                      indigo active border is the state, the same one every other chrome
+                      toggle wears. */}
                   <ChromeTile
                     icon={<Play />}
                     title={t('controls.replayGrowthTooltip')}
                     label={t('controls.replayGrowthTooltip')}
                     data-testid="topology-replay-growth"
+                    active={growthReplaying}
+                    aria-pressed={growthReplaying}
                     onClick={() => setGrowthReplayToken((t) => t + 1)}
                   />
                 </div>

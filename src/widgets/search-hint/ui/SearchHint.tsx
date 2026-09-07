@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { ListTree, RefreshCcw, Rotate3d, Search } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -115,6 +115,7 @@ export function SearchHint({
   const arrangement = useMapArrangement();
   const currentView = view3d ? arrangement : 'flat';
   const [view3dMenuOpen, setView3dMenuOpen] = useState(false);
+  const view3dAnchorRef = useRef<HTMLDivElement | null>(null);
   const [arranging, setArranging] = useState(false);
   const compact = density === 'compact-focus';
 
@@ -239,7 +240,11 @@ export function SearchHint({
           longer say 「what am I looking at」 — the rationale and the three reasons are in
           the `View3dMenu` doc-block.
         */}
-        <div className="relative hidden md:block">
+        {/* The chip and its picker share one wrapper, and `view3dAnchorRef` hands that
+            wrapper to the picker so a press on the chip is not treated as 「outside」 —
+            without it the chip closed and reopened the picker in the same batch and
+            could never put it away (`View3dMenu`'s dismissal block). */}
+        <div ref={view3dAnchorRef} className="relative hidden md:block">
           <ChromeChip
             type="button"
             onClick={() => setView3dMenuOpen((open) => !open)}
@@ -268,7 +273,11 @@ export function SearchHint({
                 no longer says which view this is (walkthrough finding, 2026-09-03). */}
             {view3d ? t(`view3dChoice.${currentView}`) : t('view3dLabel')}
           </ChromeChip>
-          <View3dMenu open={view3dMenuOpen} onClose={() => setView3dMenuOpen(false)} />
+          <View3dMenu
+            open={view3dMenuOpen}
+            onClose={() => setView3dMenuOpen(false)}
+            anchorRef={view3dAnchorRef}
+          />
         </div>
         <ChromeChip
           type="button"
