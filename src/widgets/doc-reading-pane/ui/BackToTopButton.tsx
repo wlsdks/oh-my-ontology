@@ -12,6 +12,13 @@ import { useTranslations } from "next-intl";
  * It reuses the existing floating chrome tile language (`--chrome-tile-size`, `--chrome-surface`,
  * `--chrome-shadow`, `--chrome-border`, the same surface as the topology minimap) rather than
  * inventing a new visual language. The visibility threshold is decided by `use-back-to-top.ts`.
+ *
+ * **Its bottom inset is a token, not `bottom-6`.** The pane reserves room for this pill at the
+ * end of the scroll (`DocReadingPane`), and that reserve is derived from this same inset — one
+ * arithmetic in `app/globals.css`, so the two can never drift apart. The token also carries the
+ * `<lg` answer: there it steps above `--topology-mobile-bottom-tab-reserve`, because with a
+ * literal `bottom-6` the fixed tab bar stood on top of this control (measured 2026-09-08 at
+ * 768×950 and 390×844: `elementsFromPoint` at the pill's centre returned a tab-bar link first).
  */
 export function BackToTopButton({
   visible,
@@ -32,7 +39,7 @@ export function BackToTopButton({
       // `--motion-base` is explicit: this is the **appearance and departure** of a floating control,
       // not a colour confirmation, so the ramp's "movement" step is right. Left to the default
       // (`--motion-fast`) it arrives in 120ms, which reads as a blink rather than a fade.
-      className={`absolute bottom-6 left-7 z-10 inline-flex h-[var(--chrome-tile-size)] items-center gap-2 rounded-full border border-[color:var(--chrome-border)] bg-[color:var(--chrome-surface)] px-4 font-mono text-body text-[color:var(--color-text-secondary)] shadow-[var(--chrome-shadow)] transition-opacity duration-[var(--motion-base)] ${
+      className={`absolute bottom-[var(--doc-reading-back-to-top-inset)] left-7 z-10 inline-flex h-[var(--chrome-tile-size)] items-center gap-2 rounded-full border border-[color:var(--chrome-border)] bg-[color:var(--chrome-surface)] px-4 font-mono text-body text-[color:var(--color-text-secondary)] shadow-[var(--chrome-shadow)] transition-opacity duration-[var(--motion-base)] ${
         visible ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
     >

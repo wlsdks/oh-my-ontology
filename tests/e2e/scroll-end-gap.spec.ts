@@ -48,6 +48,17 @@ const MIN_GAP = 24;
 const MIN_FRAME_RESERVE = 36;
 
 /**
+ * How far the last ink must sit **above the floating «back to top» pill's top edge**.
+ *
+ * The reserve the pane declares is the pill's inset plus its height plus 12px of breath
+ * (`--doc-reading-back-to-top-clearance`), which measured 64px of clearance on 2026-09-08.
+ * 8 is subpixel slack over "not touching" — a deliberately low bar, because the defect this
+ * guards is the line being **under** the pill, and a number tuned to today's reserve would
+ * fail on a re-decided one instead of on a regression.
+ */
+const MIN_PILL_CLEARANCE = 8;
+
+/**
  * Uses the **canonical** audited-route list as is (2026-08-06).
  *
  * **Why it moved off a hand-picked five.** The previous list was five hand-written
@@ -503,6 +514,16 @@ for (const vp of VAULT_VIEWPORTS) {
         "",
         "## Not in sources",
         "",
+        /*
+         * The trailing sections carry a line each **on purpose**. Left empty, the page's last
+         * painted ink stopped 176px above the back-to-top pill, so check ⑥ below could not
+         * reach the thing it measures: with the reserve deliberately removed the whole pass
+         * stayed green (probed 2026-09-08). A fixture that cannot reach the defect is not a
+         * fixture.
+         */
+        "- Nothing outside the gathered sources is claimed on this page.",
+        "- The last line of the page, which is what check ⑥ measures against the pill.",
+        "",
       ].join("\n"),
     });
     await seedFirstRunSeen(page);
@@ -567,6 +588,30 @@ for (const vp of VAULT_VIEWPORTS) {
       if (reader.scrollable) {
         if (reader.gap === null) violations.push("/ko/library/ reader: 잉크를 하나도 못 찾았다 — 계측 실패이지 통과가 아니다");
         else if (reader.gap < MIN_GAP) violations.push(`/ko/library/ reader: 스크롤 끝 하단 여백 ${reader.gap}px (< ${MIN_GAP})`);
+        /*
+         * ⑥ **The gap must clear the thing standing in it, not merely exist.**
+         *
+         * The reading pane lays a floating «back to top» pill over its own scroll area, so
+         * at the end of the scroll the page stops and the pill stays on top of whatever is
+         * beneath it. ⑤ could not see that: it measures to the scroller's bottom **edge**,
+         * and the pill's own body is 60px above that edge. Owner report on the installed
+         * app, 2026-09-08 — at the foot of the Library's check results the pill covered the
+         * "N more names" fold chip and hid its words — while this file was green, because
+         * the gap at the edge was 52px.
+         *
+         * So the yardstick here is the pill's top edge, not the scroller's bottom. Measured
+         * the same day on the wiki reader before the fix: −8px at 1400×860, 1200×800 and
+         * 1040×720 alike (at 1040 that was 60px of the last line's width behind the pill),
+         * and +64px after it.
+         */
+        const pill = await measureBackToTopClearance(page, '[data-testid="library-reading-pane"]');
+        if (pill === null) {
+          violations.push(
+            "/ko/library/ reader: 「맨 위로」 알약이나 잉크를 못 찾았다 — ⑥가 통째로 공회전했다",
+          );
+        } else if (pill < MIN_PILL_CLEARANCE) {
+          violations.push(`/ko/library/ reader: 마지막 줄이 「맨 위로」 알약에 가렸다 (여유 ${pill}px)`);
+        }
       }
     }
     const index = await measureInner(page, '[data-testid="library-index-scroll"]');
@@ -577,6 +622,48 @@ for (const vp of VAULT_VIEWPORTS) {
 
     expect(violations, violations.join("\n")).toEqual([]);
   });
+}
+
+/**
+ * How far the last painted ink sits **above the floating «back to top» pill** at the end of
+ * the scroll, inside one reading pane. Negative means the ink is behind the pill.
+ *
+ * `null` is **a measurement failure, not a pass** — the pane always renders the pill (it
+ * fades rather than unmounting), so not finding one means the structure changed and the
+ * caller must say so rather than skip.
+ *
+ * ⚠️ The pill is a *sibling* of the scroll container, not a descendant, so its own rect
+ * must be excluded from the ink walk by construction: only the scroller is walked.
+ */
+async function measureBackToTopClearance(
+  page: import("@playwright/test").Page,
+  selector: string,
+): Promise<number | null> {
+  return page.evaluate((sel) => {
+    const pane = document.querySelector<HTMLElement>(sel);
+    if (!pane) return null;
+    const pill = pane.querySelector<HTMLElement>('[data-testid="back-to-top-button"]');
+    if (!pill) return null;
+    const scrolls = (el: HTMLElement) => {
+      const overflow = getComputedStyle(el).overflowY;
+      return (overflow === "auto" || overflow === "scroll") && el.scrollHeight > el.clientHeight + 1;
+    };
+    const scroller = [...pane.querySelectorAll<HTMLElement>("*")]
+      .filter(scrolls)
+      .sort((a, b) => b.clientHeight - a.clientHeight)[0];
+    if (!scroller) return null;
+    scroller.scrollTop = scroller.scrollHeight;
+    let lastInk = -Infinity;
+    for (const el of scroller.querySelectorAll<HTMLElement>("*")) {
+      if (el.children.length > 0) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.height <= 2 || rect.width <= 2) continue;
+      if (typeof el.checkVisibility === "function" && !el.checkVisibility()) continue;
+      lastInk = Math.max(lastInk, rect.bottom);
+    }
+    if (!Number.isFinite(lastInk)) return null;
+    return Math.round(pill.getBoundingClientRect().top - lastInk);
+  }, selector);
 }
 
 /**
