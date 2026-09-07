@@ -198,6 +198,9 @@ function addFailureReason(result: ConnectorWriteResult | null): AddFailureReason
 }
 
 
+/** How many scanned rows show before the fold. Enough to recognise a machine, not to list it. */
+const FOUND_FOLD = 3;
+
 /** The variables a variant cannot attach without. */
 function requiredVariables(variant: CatalogueVariant): readonly CatalogueVariable[] {
   return variantVariables(variant).filter((variable) => variable.required);
@@ -431,7 +434,12 @@ export function AddConnectorDialog({
        * panel took the search box off screen at the fourth row (own review, 2026-09-07), which
        * is the moment somebody wants to narrow the list.
        */
-      className="flex max-h-[min(80vh,var(--dialog-max-h))] flex-col"
+      /*
+       * A fixed height, not a maximum (installed-app check, 2026-09-07): as a search narrowed the
+       * list the panel shrank and re-centred, and the search box under the person's cursor moved
+       * by half a screen. The groups scroll inside; the frame does not move.
+       */
+      className="flex h-[min(80vh,var(--dialog-max-h))] flex-col"
     >
       {/*
         The close control sits where every other dialog in this app keeps it, at the top corner,
@@ -488,12 +496,12 @@ export function AddConnectorDialog({
       >
       <div className="flex flex-col gap-5" data-testid={`${testIdPrefix}-add-groups`}>
         {/*
-          Order is by what a person can act on without typing. On the installed app the scan of this
-          machine leads; in a browser the scan can only say why it is empty, so the catalogue leads
-          and that explanation follows it rather than standing in front of the one usable list.
+          The catalogue leads on every surface (installed-app check, 2026-09-07). The scan of this
+          machine led at first, and on a developer's machine it is nine rows of chrome-devtools,
+          codegraph and the like that pushed Notion off the bottom of the frame; the services a
+          person came here for are the short list, so they come first, and the scan follows,
+          folded past its first few rows.
         */}
-        {canDiscover ? foundSection : null}
-
         <CatalogueSection
           entries={catalogueMatches}
           query={query}
@@ -519,7 +527,7 @@ export function AddConnectorDialog({
           testIdPrefix={testIdPrefix}
         />
 
-        {!canDiscover ? foundSection : null}
+        {foundSection}
 
         {nothingMatches ? (
           <p
@@ -629,6 +637,16 @@ function FoundSection({
   testIdPrefix: string;
 }) {
   const t = useTranslations('connectors');
+  /**
+   * Folded past the first few rows unless a search is on (installed-app check, 2026-09-07). The
+   * scan finds every MCP server another tool registered, most of them developer utilities, and
+   * all of them stood between the person and the folded by-hand row. A search shows everything
+   * it matches, because then the person asked.
+   */
+  const [showAll, setShowAll] = useState(false);
+  const searching = query.trim().length > 0;
+  const visible = searching || showAll ? matches : matches.slice(0, FOUND_FOLD);
+  const folded = matches.length - visible.length;
   if (!canDiscover) {
     /*
      * Why it is missing and what still works — the degradation contract, not "coming soon". It
@@ -692,7 +710,7 @@ function FoundSection({
         </p>
       ) : (
         <ul data-testid={`${testIdPrefix}-found`} className="flex flex-col gap-2">
-          {matches.map((group) => {
+          {visible.map((group) => {
             const server = group.server;
             const usable = isAttachableTransport(server.transport);
             const runs = server.url ?? [server.command, ...server.args].join(' ');
@@ -749,6 +767,23 @@ function FoundSection({
           })}
         </ul>
       )}
+      {!searching && matches.length > FOUND_FOLD ? (
+        <button
+          type="button"
+          aria-expanded={showAll}
+          aria-controls={`${testIdPrefix}-found`}
+          data-testid={`${testIdPrefix}-found-more`}
+          onClick={() => setShowAll((value) => !value)}
+          className={controlClass({
+            shape: 'link',
+            tone: 'muted',
+            hoverInk: 'strong',
+            className: 'mt-2 text-label',
+          })}
+        >
+          {showAll ? t('foundLess') : t('foundMore', { count: folded })}
+        </button>
+      ) : null}
     </section>
   );
 }

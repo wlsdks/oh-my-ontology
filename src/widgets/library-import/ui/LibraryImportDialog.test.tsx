@@ -17,10 +17,10 @@ import { LibraryImportDialog } from './LibraryImportDialog';
  * answering; that is stated in the report rather than implied by a green test.
  */
 
-const secretSet = vi.fn(async () => true);
+const secretSet = vi.fn(async (_ref: string, _value: string) => true);
 vi.mock('@/shared/lib/tauri-connector-secrets', () => ({
   connectorSecretRef: (id: string, name: string) => `${id}:${name}`,
-  connectorSecretSet: (...args: unknown[]) => secretSet(...(args as [])),
+  connectorSecretSet: (...args: unknown[]) => secretSet(...(args as [string, string])),
 }));
 
 vi.mock('@/shared/lib/tauri-connector-runtimes', () => ({
@@ -52,6 +52,12 @@ function draw(overrides: Partial<Parameters<typeof LibraryImportDialog>[0]> = {}
   );
   return { onAttach, onBrief, onOpenAdvanced, onClose };
 }
+
+/** The one value the Notion program asks for; the tests never check its shape, only its path. */
+const typeToken = () =>
+  fireEvent.change(screen.getByTestId('library-import-token'), {
+    target: { value: 'ntn_test_value' },
+  });
 
 const pickService = (id: string) => {
   const tile = screen
@@ -97,32 +103,43 @@ describe('bringing documents in from a service', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('step one says a window will open and who keeps what comes back', () => {
+  it('step one asks for the one value, says where it is issued, and who uses it', () => {
     /*
-     * The sign-in belongs to the coding agent. Atlas neither opens it nor holds the result, and
-     * removing the row later revokes nothing — saying otherwise would claim custody Atlas does
-     * not have (PO steward, 2026-09-07).
+     * A program with a token, since 2026-09-07 evening: the hosted sign-in this step once
+     * promised cannot happen inside the app. The value goes to the keychain, the folder's file
+     * gets the name, and the coding tool — not Atlas — is what reaches the service with it.
      */
     draw();
     pickService('notion');
     const step = screen.getByTestId('library-import-step');
     expect(step).toHaveAttribute('data-step', 'connect');
-    expect(document.body.textContent).toContain('코딩 도구가 열고');
-    expect(document.body.textContent).toContain('취소되지는 않아요');
+    expect(screen.getByTestId('library-import-token')).toBeInTheDocument();
+    expect(screen.getByTestId('library-import-token-issue')).toHaveAttribute('href', expect.stringMatching(/^https:/));
+    expect(document.body.textContent).toContain('키체인');
+    expect(document.body.textContent).toContain('코딩 도구');
+    // The press waits for the value.
+    expect(screen.getByTestId('library-import-connect')).toBeDisabled();
   });
 
   it('writes the connection switched on, then asks what to bring', async () => {
     const { onAttach } = draw();
     pickService('notion');
+    typeToken();
     fireEvent.click(screen.getByTestId('library-import-connect'));
 
     await waitFor(() => expect(onAttach).toHaveBeenCalled());
-    const written = onAttach.mock.calls[0]![0] as { url?: string; enabled: boolean; origin?: string };
-    expect(written.url).toBe('https://mcp.notion.com/mcp');
+    const written = onAttach.mock.calls[0]![0] as {
+      args: string[];
+      enabled: boolean;
+      origin?: string;
+    };
+    expect(written.args.join(' ')).toContain('@notionhq/notion-mcp-server');
     expect(written.enabled).toBe(true);
     expect(written.origin).toBe('library-import:notion');
-    // A hosted address asks for nothing, so no keychain write happened on this path.
-    expect(secretSet).not.toHaveBeenCalled();
+    // The value went to the keychain, after the row was on disk, and never into the folder.
+    await waitFor(() => expect(secretSet).toHaveBeenCalledTimes(1));
+    expect(secretSet.mock.calls[0]![1]).toBe('ntn_test_value');
+    expect(JSON.stringify(written)).not.toContain('ntn_test_value');
 
     await waitFor(() =>
       expect(screen.getByTestId('library-import-step')).toHaveAttribute('data-step', 'choose'),
@@ -139,6 +156,7 @@ describe('bringing documents in from a service', () => {
     const refuse = vi.fn(async () => ({ status: 'blocked_unavailable' as const, connectors: [] }));
     draw({ onAttach: refuse });
     pickService('notion');
+    typeToken();
     fireEvent.click(screen.getByTestId('library-import-connect'));
     await waitFor(() => expect(refuse).toHaveBeenCalled());
     expect(await screen.findByTestId('library-import-failed')).toHaveAttribute('role', 'alert');
@@ -148,6 +166,7 @@ describe('bringing documents in from a service', () => {
   it('hands over a bounded brief naming the folder, and closes rather than stacking on the dock', async () => {
     const { onBrief, onClose } = draw();
     pickService('notion');
+    typeToken();
     fireEvent.click(screen.getByTestId('library-import-connect'));
     await waitFor(() =>
       expect(screen.getByTestId('library-import-step')).toHaveAttribute('data-step', 'choose'),
@@ -177,6 +196,7 @@ describe('bringing documents in from a service', () => {
      */
     draw({ canRunAgent: false });
     pickService('notion');
+    typeToken();
     fireEvent.click(screen.getByTestId('library-import-connect'));
     await waitFor(() =>
       expect(screen.getByTestId('library-import-step')).toHaveAttribute('data-step', 'choose'),
@@ -204,6 +224,7 @@ describe('bringing documents in from a service', () => {
      */
     draw({ canRunAgent: false, agentGap: 'runtime' });
     pickService('notion');
+    typeToken();
     fireEvent.click(screen.getByTestId('library-import-connect'));
     return waitFor(() => {
       const card = screen.getByTestId('library-import-no-agent');
@@ -235,6 +256,7 @@ describe('bringing documents in from a service', () => {
      */
     draw();
     pickService('notion');
+    typeToken();
     fireEvent.click(screen.getByTestId('library-import-connect'));
     return waitFor(() => {
       expect(screen.getByTestId('library-import-runtime')).toHaveTextContent('Codex');
@@ -249,6 +271,7 @@ describe('bringing documents in from a service', () => {
      */
     draw();
     pickService('notion');
+    typeToken();
     fireEvent.click(screen.getByTestId('library-import-connect'));
     return waitFor(() => {
       expect(document.body.textContent).toContain('대화가 열립니다');

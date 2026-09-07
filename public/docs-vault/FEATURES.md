@@ -423,7 +423,7 @@ had become false).
   with `?`; no report or review automatically edits meaning. Architecture and
   Analysis use the same archive and keep their ACP conversation mounted across
   context sections. [Record contract and limits](ANALYSIS-RECORDS.md).
-- **Guarded ACP runtime eligibility** — The app offers Claude Agent and Codex for in-app ACP chat only behind an app-owned gate. Codex runs through the exact reviewed `@agentclientprotocol/codex-acp@1.6.2` adapter with an isolated `on-request` approval policy and a forced `read-only` mode; every direct write pauses at an ordinary explicit permission card, while every injected or self-registered Atlas MCP write pauses at the server-owned typed review card for `reject_once` or `allow_once`. One-time approval never carries into the next write.
+- **Guarded ACP runtime eligibility** — The app offers Claude Agent and Codex for in-app ACP chat only behind an app-owned gate. Codex runs through the newest upstream `@agentclientprotocol/codex-acp` adapter (1.10.0 as of 2026-09-07) with an isolated `on-request` approval policy and a forced `read-only` mode; since 1.8.0 that mode is a workspace-write sandbox, so a direct write inside the vault may land without a card and the vault's Git history is the undo (owner direction, 2026-09-07), while every injected or self-registered Atlas MCP write pauses at the server-owned typed review card for `reject_once` or `allow_once`. One-time approval never carries into the next write.
 - Clicking the **「Agent」** button in the top toolbar opens a tall vertical panel on the right side of the map. When the panel opens, the map and node info areas shift together to adjust their width. This feature is exclusive to the desktop app — browsers lack a secure place to store API keys and a valid path for requests, so the button is not rendered at all if it would do nothing.
 - The outer dock continues to yield space to the map width, but the actual conversation surface stands as a panel with 12px spacing on the top, bottom, and right sides. Its borders, radius, and shadows share existing panel tokens used by INDEX and node details, with ACP and API-key conversations sharing the same form. The top and vertical map controls on the left side of the panel are attached 12px from each side of the seam, totaling a 24px gap, moving in sync with the dock's timing and curvature.
 - From the first frame of opening the panel, the header, empty conversation prompt, current folder recommendations, and input box are all visible in their final positions. While waiting for connection, only the small spinner and "Connecting" status in the header move; when ready, only the text changes to "Ready." Session start occurs after the dock width movement and camera's final landing complete, ensuring map motion and process booting do not compete for the same frame.
@@ -993,20 +993,23 @@ Tour one-click doors: hree one-click doors, plus one that reaches outside this c
 - **Bring from a service** (new 2026-09-07) — the door for documents that are not on
   this computer at all. Owner: *"connecting a service is mostly for the Library anyway —
   people want the things they already wrote somewhere else."* Tiles name services, not
-  protocols — Notion, Confluence, Jira, GitHub, and last, a way out to the technical
-  dialog on `/mcp` for anything else. **This path never says MCP, stdio, npx or
-  environment variable**; a component test asserts that. Three steps: ① Atlas writes the
-  connection into the folder and switches it on, saying that a sign-in window will open,
-  that the **coding agent** opens it and keeps what comes back, and that removing the row
-  later revokes nothing; ② the person says what to bring, in their own words; ③ a bounded
-  brief opens the Library's existing agent turn, which searches, lists at most twenty
-  documents, waits to be told which, and writes each one under `sources/<service>/` with
-  `source_url` and `fetched_at` in the frontmatter — **through the permission card that
-  already exists**, one card per file, and forbidden from touching anything outside that
-  folder. Confluence and Jira are two tiles over one Atlassian connection, because nobody
-  thinks "I want my Atlassian documents". **Google Drive is deliberately absent**: no entry
-  in the committed catalogue has verified facts for it yet, and a tile onto a guess is a
-  door that opens onto nothing.
+  protocols — Notion, GitHub, and last, a way out to the technical dialog on `/mcp` for
+  anything else. **This path never says MCP, stdio, npx or environment variable**; a
+  component test asserts that. Three steps: ① the person pastes the one value the service
+  issues, with a link to where; Atlas puts it in the keychain, writes the connection into
+  the folder with the name only, and switches it on — saying that the **coding agent**, not
+  Atlas, is what reaches the service with it; ② the person says what to bring, in their own
+  words; ③ a bounded brief opens the Library's existing agent turn, which searches, lists
+  at most twenty documents, waits to be told which, and writes each one under
+  `sources/<service>/` with `source_url` and `fetched_at` in the frontmatter — **through
+  the permission card that already exists**, one card per file, and forbidden from
+  touching anything outside that
+  folder. **Confluence and Jira left the tiles on 2026-09-07**: both rode Atlassian's hosted
+  address, which signs in with OAuth, and the in-app session cannot open that window (the
+  measurement is in the decision record); a tile onto a connection the agent can never use
+  is the dead end this door exists to remove, so they return with an adapter that can sign
+  in. **Google Drive is deliberately absent**: no entry in the committed catalogue has
+  verified facts for it yet, and a tile onto a guess is a door that opens onto nothing.
   **What is not proven**: the picking happens inside the agent turn, not on this screen,
   because Atlas is not the MCP client and cannot call a service's tools or receive their
   result as data. Nothing here has been observed against a live Notion or Atlassian
@@ -1673,14 +1676,16 @@ and Escape. The tabs this replaced lasted one afternoon; the record is in
   carries no download count, no ranking and no "recommended", and the screen states its
   size, its capture date, that Atlas has audited none of it, and that *By hand* reaches
   everything it does not list.
-- **Two shapes, kept apart, because they ask different things.** A **hosted address**
-  (Notion `https://mcp.notion.com/mcp`, Atlassian `https://mcp.atlassian.com/v2/mcp`,
-  GitHub `https://api.githubcopilot.com/mcp/`, Linear, Sentry, Context7, Supabase) asks
-  for nothing: the **coding agent**
-  opens the sign-in window and holds what comes back. Atlas performs no OAuth, stores no
-  token for it, and removing the row does not revoke it — all three of which the row
-  says. A **local program** asks for exactly one credential, with a link to the page that
-  issues it.
+- **Only what the press can make work.** A hosted address that signs in with OAuth
+  (Notion's, Atlassian's, GitHub's, and the rest) is **not** offered: measured on
+  2026-09-07 against claude-agent-acp 0.75.0, such an address handed to the in-app session
+  reports "requires authentication", the adapter says the session cannot open the sign-in
+  window, and no tool registers; a token earned in the terminal for the same name and
+  address did not carry over. The generator refuses that shape. What remains is a **local
+  program** that asks for exactly one credential, with a link to the page that issues it,
+  and an **address that asks nothing** (Context7). Four services today: Notion, GitHub,
+  Context7, Playwright. The hosted rows return when an adapter is measured running the
+  flow.
 - **The program is chosen, not typed.** `resolve_connector_runtimes` resolves a fixed
   allow-list — `npx`, `node`, `uvx`, `python3`, `docker` — to absolute paths on this
   machine and shows them. It opens no file, lists no directory and executes nothing. This
@@ -2093,7 +2098,7 @@ The phone tabs and the `G` keys read the same verdict.
   - **The list comes from an ACP registry snapshot committed at build time**
     (`src-tauri/src/acp-registry.json`, `scripts/build-acp-registry.mjs`,
     updates via `pnpm acp:registry`). It does not call a CDN at runtime, so the list remains available offline, and changes are recorded in git diff. Icons are also fetched at build time and bundled in `public/acp-icons/` for the same reason (since the registry spec uses 16×16 monochrome SVGs, brand colors do not enter the app).
-  - **In-app chat requires an app-owned permission gate.** Claude Agent qualifies through an isolated `CLAUDE_CONFIG_DIR` and linked existing credential. Codex qualifies through the exact reviewed `@agentclientprotocol/codex-acp@1.6.2` adapter, isolated `approval_policy = "on-request"`, a forced `read-only` mode, and the server-owned Atlas write-consent checkpoint. Direct writes ask explicitly, and both injected and self-registered Atlas MCP writes wait for `reject_once` or `allow_once`; every `allow_once` is consumed by one request.
+  - **In-app chat requires an app-owned permission gate.** Claude Agent qualifies through an isolated `CLAUDE_CONFIG_DIR` and linked existing credential. Codex qualifies through the newest upstream `@agentclientprotocol/codex-acp` adapter (1.10.0 as of 2026-09-07), isolated `approval_policy = "on-request"`, a forced `read-only` mode that since 1.8.0 is a workspace-write sandbox, and the server-owned Atlas write-consent checkpoint. Direct writes inside the vault may land without a card and are undone through Git (owner direction, 2026-09-07); Atlas MCP writes still ask, and both injected and self-registered Atlas MCP writes wait for `reject_once` or `allow_once`; every `allow_once` is consumed by one request.
   - **Atlas MCP and provider traffic are separate boundaries.** The Atlas MCP server is a local stdio child with no daemon, port, or network request. The coding agent using it may send prompts, context, and tool results to its own provider.
   - Modes measured to remove the permission gate are hidden. Unmeasured modes remain explicitly unverified; they are never treated as safe by default.
   - Processes cannot be launched in browsers. On the web, a single line explaining why it doesn't work and where it does replaces the list.

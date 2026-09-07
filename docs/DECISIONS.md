@@ -54,6 +54,24 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — A hosted OAuth address leaves the catalogue: the in-app session cannot sign in
+
+**Why**: the one-list record's own falsifier, "a hosted row that attaches and 401s with no sign-in", fired the same evening when the owner asked for a full check. Measured against claude-agent-acp 0.75.0 with the app's own `session/new` shape: a hosted OAuth server `notion` at `https://mcp.notion.com/mcp` reports "requires authentication", the adapter says the non-interactive session cannot run the OAuth flow, no `mcp__notion__` tool registers, and a terminal token stored for the same name and address did not carry over. Two runs. The seven addresses themselves answer an MCP initialize with the standard OAuth challenge, so the fault is the session, not the facts.
+**Prior**: the one-list record's dissent (po-evidence, "ship the local half alone") was right. Upholds 2026-09-05 "Atlas never sits in the path": the fix is not Atlas opening the window.
+**Decision**: the catalogue holds only what the press can make work in the app: a local program with one keychain token, or an address that asks nothing. The generator refuses a hosted OAuth variant at build time, citing the measurement; the committed file's test pins the rule. Atlassian, Linear, Sentry and Supabase leave; Notion and GitHub keep their program variants; Context7 and Playwright stay. Four services.
+**Dissent**: the owner's option A, keeping hosted rows as "attach it in your terminal tool" with a copyable command; declined because a row Atlas cannot make work in its own agent is what the owner had just questioned the list for.
+**Falsifier**: an adapter measured running the OAuth flow from a `session/new` server, or a terminal token that such a server picks up; either reopens the hosted rows.
+**Owner**: jinan
+
+## 2026-09-07 — The app launches the newest ACP adapters; the Codex pin is overturned and Git is the undo
+
+**Why**: the owner, on the Codex caveat: *"the version is always the newest. A change is free; what has to be right is the versioning, and we can always go back."* The 2026-09-03 pin held `codex-acp` at 1.6.2 because 1.8.0–1.10.0 map `read-only` to a `workspaceWrite` sandbox, so an in-app Codex turn can change a vault file without a permission card. The 2026-09-05 static reading of 1.10.0 stands. `claude-agent-acp` 0.75.1 differs from 0.75.0 in no transcribed file (`session-mode.js`, `permissions/`); the change is session resume.
+**Prior**: overturns 2026-09-03 "Codex chat pins the last adapter whose read-only mode holds the installed permission matrix" and the 2026-09-05 refusals of 1.8.0, 1.9.0 and 1.10.0; upholds the isolated `on-request` config, the forced `read-only` mode (it still narrows the sandbox to the vault folder) and the Atlas MCP write checkpoint.
+**Decision**: `RUNTIME_LAUNCH_PINS` is empty and the registry takes the newest upstream: `codex-acp` 1.10.0, `claude-agent-acp` 0.75.1 today. The unreviewed-release gate stays as a mechanism. The doctor's Codex row and the feature docs say a vault write may land without a card and is undone through Git. Not measured: Codex credits are exhausted until 2026-09-12; the behavioural matrix and connectors in a Codex session are measured that day.
+**Dissent**: the earlier records' own reasoning — a promise that Atlas asks before a file changes, and a vault that is not a Git folder has no undo. The owner accepts the first; the second stays open below.
+**Falsifier**: a turn writing outside the vault folder, or inside a vault that is not a Git repository with no notice; a turn that cannot start; connectors that do not ride a Codex session on 2026-09-12.
+**Owner**: jinan
+
 ## 2026-09-07 — Adding a connector is one list; a press attaches what asks nothing and asks in place for one thing
 
 **Why**: the owner read the morning's three-tab dialog in the installed app and rejected the tabs and the Close button under the list, and asked how Codex and open-source clients do it. Cline, Goose, Cursor, VS Code, Claude Desktop, Zed, LM Studio, Continue and the Codex directory all show one list of name, one line, one button, with "by hand" a last row or a separate form. Codex's one-press "+" is a reviewed OAuth app listing, not a property of MCP.
@@ -71,6 +89,7 @@ record stays in Git history before commit `e4fb49a89`.
 **Dissent**: shipping a parser puts Atlas between the document and the quote; a wrong split misattributes an anchor. Kept small (no dependency, two formats parsed) and answered by the sha256 on every answer: the page's `source_hash` and the tool's hash are the same bytes.
 **Falsifier**: a DOCX or XLSX in a real folder whose text the tool splits into anchors a reader cannot find in the document, or a read-only turn in the app that still raises an execute card after being told about the tool.
 **Owner**: jinan
+
 ## 2026-09-07 — The conversation composer's bottom row is quiet: the tool with its model and the mode as text pickers, then the status, the session doors and send
 
 **Why**: the composer's footer held three bordered 32px pickers — tool, model, mode — that stacked into two rows inside the Library dock; the owner asked who lays a composer out like that, said to merge the tool and its version into one control, tried them as a toolbar above the transcript and rejected the empty band that left, and asked for one line at the very bottom (installed app, 2026-09-07).

@@ -101,38 +101,38 @@ test("추가 대화상자는 검색 하나 아래 한 목록이고, 직접 적�
   await expect(dialog).toHaveCount(0);
 });
 
-test("주소 줄은 한 번 눌러 붙고, 실행될 주소를 그 전에 보여 주며, 꺼진 채로 들어간다", async ({ page }) => {
+test("묻는 게 없는 줄은 한 번 눌러 붙고, 실행될 주소를 그 전에 보여 주며, 꺼진 채로 들어간다", async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize({ width: 1512, height: 982 });
   await openConnectorsWithVault(page);
   await page.getByTestId("connectors-add-open").click();
-  await page.getByTestId("connectors-search").fill("notion");
+  await page.getByTestId("connectors-search").fill("context7");
 
-  const notion = page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]');
-  await expect(notion).toBeVisible();
+  const row = page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="context7"]');
+  await expect(row).toBeVisible();
   /*
    * The last thing on screen before the press is still the address, written out — the
    * difference between this and the deep-link CVEs recorded in
-   * `docs/benchmark/MCP-ONE-CLICK-2026-09-07.md`. The hosted address asks nothing of this
-   * dialog, so the press writes the row and closes.
+   * `docs/benchmark/MCP-ONE-CLICK-2026-09-07.md`. Context7's address asks nothing (no sign-in,
+   * no token), so the press writes the row and closes.
    */
-  await expect(notion.getByTestId("connectors-catalogue-runs")).toContainText("https://mcp.notion.com/mcp");
-  const add = notion.getByTestId("connectors-catalogue-add");
+  await expect(row.getByTestId("connectors-catalogue-runs")).toContainText("https://mcp.context7.com/mcp");
+  const add = row.getByTestId("connectors-catalogue-add");
   await expect(add).toHaveAttribute("data-press", "attaches");
   // Nothing has been written yet.
   await expect(page.getByTestId("connectors-item")).toHaveCount(0);
   await add.click();
   await expect(page.getByTestId("connectors-add-dialog")).toHaveCount(0);
-  const row = page.getByTestId("connectors-item");
-  await expect(row).toHaveCount(1);
+  const item = page.getByTestId("connectors-item");
+  await expect(item).toHaveCount(1);
   // Written down is not switched on.
-  await expect(row).toHaveAttribute("data-connector-enabled", "false");
-  await expect(page.getByTestId("connectors-item-runs")).toContainText("https://mcp.notion.com/mcp");
+  await expect(item).toHaveAttribute("data-connector-enabled", "false");
+  await expect(page.getByTestId("connectors-item-runs")).toContainText("https://mcp.context7.com/mcp");
 
   // Opened again, the row says it is attached instead of offering a second copy.
   await page.getByTestId("connectors-add-open").click();
   await expect(
-    page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]'),
+    page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="context7"]'),
   ).toHaveAttribute("data-catalogue-attached", "true");
 });
 
@@ -144,7 +144,9 @@ test("토큰이 필요한 줄은 그 자리에서 묻고, 키체인이 없는 �
   await page.getByTestId("connectors-search").fill("notion");
 
   const notion = page.locator('[data-testid="connectors-catalogue-item"][data-catalogue-id="notion"]');
-  await notion.locator('[data-testid="connectors-catalogue-other"][data-variant-kind="local"]').click();
+  // Notion is a program with a token, so its own button asks in place instead of attaching.
+  await expect(notion.getByTestId("connectors-catalogue-add")).toHaveAttribute("data-press", "asks");
+  await notion.getByTestId("connectors-catalogue-add").click();
   const ask = page.getByTestId("connectors-catalogue-ask");
   await expect(ask).toBeVisible();
   await expect(ask).toContainText("@notionhq/notion-mcp-server");

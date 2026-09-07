@@ -4329,10 +4329,10 @@
     "searchPlaceholder": "A name, a command, an address",
     "groupFound": "Already on this computer",
     "groupCatalogue": "Ready to attach",
-    "catalogueMeta": "As of {date}. Not audited by Atlas; the app fetches nothing.",
+    "catalogueMeta": "As of {date}. Only what attaches in the app; the app fetches nothing.",
     "customToggle": "Not in the list? Add it by hand",
     "noneForSearch": "Nothing matches “{query}”. By hand still reaches it.",
-    "asksOauthShort": "sign-in via your coding agent",
+    "asksOauthShort": "the in-app session cannot open the sign-in window",
     "asksTokenShort": "asks for {keys}",
     "catalogueAttached": "Attached",
     "variantRemote": "By address",
@@ -4409,7 +4409,7 @@
     "sourceRegistry": "official registry",
     "sourceCurated": "read {date}",
     "variantLocal": "Run on this computer · {runtime}",
-    "variantAsksOauth": "Nothing to enter. Your coding agent opens the sign-in window and holds what comes back; Atlas never sees it, and removing this row later does not revoke it.",
+    "variantAsksOauth": "This address needs a sign-in, and the in-app session cannot open that window (measured 2026-09-07). Attach it in your coding tool in the terminal instead.",
     "variantAsksToken": "Asks you for one value: {keys}. It goes into this machine’s keychain, never into the folder’s file.",
     "variantAsksNothing": "Nothing to enter.",
     "customFromCatalogue": "Filled in from the list for {title}, captured {date}. Check the line below before you add it: that is what will run.",
@@ -4427,15 +4427,13 @@
     "linkRefused": "That link was refused ({reason}). Nothing was added.",
     "catalogueSummary": {
       "notion": "Read and write the pages and databases in your Notion account.",
-      "atlassian": "Read and write Jira issues and Confluence pages in your Atlassian site.",
       "github": "Read and write issues, pull requests, code and wikis on GitHub.",
-      "linear": "Find, create and update issues, projects and comments in Linear.",
-      "sentry": "Read errors, issues and debugging data from your Sentry organization.",
       "playwright": "Open web pages and navigate, click, type and read through accessibility snapshots.",
-      "context7": "Current, version-specific documentation and code examples for a library.",
-      "supabase": "Query and manage a Supabase project's database, auth, realtime and migrations."
+      "context7": "Current, version-specific documentation and code examples for a library."
     },
-    "attachedToast": "{name} is attached and off. Switch it on when you want the agent to use it."
+    "attachedToast": "{name} is attached and off. Switch it on when you want the agent to use it.",
+    "foundMore": "{count} more",
+    "foundLess": "Fold"
   },
   "library": {
     "title": "Library",

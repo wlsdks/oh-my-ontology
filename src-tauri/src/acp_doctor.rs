@@ -93,10 +93,14 @@ pub(crate) const REPAIRABLE_IDS: &[&str] = &["npx-cache", "config-dir", "credent
 /// this file diagnoses. If they diverge,
 /// `tests/contract/agent-doctor-checks.contract.test.ts` blocks it.
 ///
-/// Codex is listed only because the exact 1.6.2 adapter, forced `read-only`
+/// Codex was listed because the exact 1.6.2 adapter, forced `read-only`
 /// mode, isolated config, and server-owned Atlas MCP checkpoint passed the
-/// installed reject/allow/re-ask matrix together. The mode is not sufficient
-/// on its own; `CHAT_ELIGIBLE` remains the stronger launch boundary.
+/// installed reject/allow/re-ask matrix together. Since 2026-09-07 the app
+/// launches the newest upstream adapter (owner direction); its `read-only`
+/// mode is a workspace-write sandbox, so a direct write inside the vault may
+/// land without a card and the vault's Git history is the undo. The forced
+/// mode still narrows the sandbox to the vault folder; `CHAT_ELIGIBLE`
+/// remains the stronger launch boundary.
 pub(crate) const SESSION_MODE_GATE: &[(&str, &str)] = &[("codex-acp", "read-only")];
 
 /// The outside world the diagnosis needs. Taken as values so tests can swap them out.

@@ -80,13 +80,6 @@ const CURATION = [
     registryName: 'com.notion/mcp',
     variants: [
       {
-        kind: 'remote',
-        transport: 'http',
-        url: 'https://mcp.notion.com/mcp',
-        auth: 'oauth',
-        headers: [],
-      },
-      {
         kind: 'local',
         transport: 'stdio',
         runtime: 'npx',
@@ -104,24 +97,6 @@ const CURATION = [
     ],
   },
   {
-    id: 'atlassian',
-    name: 'atlassian',
-    title: 'Atlassian (Jira · Confluence)',
-    summary: 'Read and write Jira issues and Confluence pages in your Atlassian site.',
-    docsUrl: 'https://github.com/atlassian/atlassian-mcp-server',
-    verifiedAt: '2026-09-07',
-    registryName: null,
-    variants: [
-      {
-        kind: 'remote',
-        transport: 'http',
-        url: 'https://mcp.atlassian.com/v2/mcp',
-        auth: 'oauth',
-        headers: [],
-      },
-    ],
-  },
-  {
     id: 'github',
     name: 'github',
     title: 'GitHub',
@@ -130,21 +105,6 @@ const CURATION = [
     verifiedAt: '2026-09-07',
     registryName: 'io.github.github/github-mcp-server',
     variants: [
-      {
-        kind: 'remote',
-        transport: 'http',
-        url: 'https://api.githubcopilot.com/mcp/',
-        auth: 'oauth',
-        headers: [],
-      },
-      {
-        kind: 'remote',
-        transport: 'http',
-        url: 'https://api.githubcopilot.com/mcp/readonly',
-        label: 'read-only',
-        auth: 'oauth',
-        headers: [],
-      },
       {
         kind: 'local',
         transport: 'stdio',
@@ -166,44 +126,6 @@ const CURATION = [
             issueUrl: 'https://github.com/settings/personal-access-tokens/new',
           },
         ],
-      },
-    ],
-  },
-  {
-    id: 'linear',
-    name: 'linear',
-    title: 'Linear',
-    summary: 'Find, create and update issues, projects and comments in Linear.',
-    docsUrl: 'https://linear.app/docs/mcp',
-    verifiedAt: '2026-09-07',
-    registryName: 'app.linear/linear',
-    variants: [
-      {
-        kind: 'remote',
-        transport: 'http',
-        url: 'https://mcp.linear.app/mcp',
-        auth: 'oauth',
-        headers: [],
-      },
-    ],
-  },
-  {
-    id: 'sentry',
-    name: 'sentry',
-    title: 'Sentry',
-    summary: 'Read errors, issues and debugging data from your Sentry organization.',
-    docsUrl: 'https://mcp.sentry.dev/',
-    verifiedAt: '2026-09-07',
-    registryName: 'io.github.getsentry/sentry-mcp',
-    // Remote only. The local package takes its token as a command-line flag the vendor page
-    // writes out by hand, which this catalogue does not template.
-    variants: [
-      {
-        kind: 'remote',
-        transport: 'http',
-        url: 'https://mcp.sentry.dev/mcp',
-        auth: 'oauth',
-        headers: [],
       },
     ],
   },
@@ -257,26 +179,6 @@ const CURATION = [
             issueUrl: 'https://context7.com/dashboard',
           },
         ],
-      },
-    ],
-  },
-  {
-    id: 'supabase',
-    name: 'supabase',
-    title: 'Supabase',
-    summary: "Query and manage a Supabase project's database, auth, realtime and migrations.",
-    docsUrl: 'https://supabase.com/docs/guides/getting-started/mcp',
-    verifiedAt: '2026-09-07',
-    registryName: 'com.supabase/mcp',
-    // Remote only. The local package needs a project reference on its command line, which is
-    // the person's, not the catalogue's.
-    variants: [
-      {
-        kind: 'remote',
-        transport: 'http',
-        url: 'https://mcp.supabase.com/mcp',
-        auth: 'oauth',
-        headers: [],
       },
     ],
   },
@@ -365,9 +267,32 @@ function registryArgs(pkg) {
   return out;
 }
 
+/**
+ * **A hosted address that signs in with OAuth is refused here, not on screen.**
+ *
+ * Measured 2026-09-07 against claude-agent-acp 0.75.0, the adapter the app ships: a hosted OAuth
+ * server handed over in `session/new` reports "requires authentication" and the adapter says the
+ * session is non-interactive and cannot run the flow. No tool registers. A token the person
+ * already earned in the terminal for the same name and address did not carry over. So a row that
+ * offers such an address attaches something the in-app agent can never use — the falsifier the
+ * morning's record named. Until an adapter is measured running the flow, the catalogue holds only
+ * what the press can make work: a local program with a token, or an address that asks nothing.
+ */
+function refuseHostedOauth(curated) {
+  const offending = curated.variants.filter(
+    (variant) => variant.kind === 'remote' && variant.auth === 'oauth',
+  );
+  if (offending.length > 0) {
+    throw new Error(
+      `${curated.id}: a hosted OAuth address cannot sign in from the in-app session (measured 2026-09-07); remove it or record a new measurement`,
+    );
+  }
+}
+
 async function build({ offline }) {
   const entries = [];
   for (const curated of CURATION) {
+    refuseHostedOauth(curated);
     const variants = curated.variants.map((variant) => ({ ...variant, source: 'curated' }));
     let registryChecked = false;
     if (!offline && curated.registryName) {

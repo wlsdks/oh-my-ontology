@@ -185,15 +185,14 @@ describe('작업 방식 목록 — 관문을 없애는 것은 안 내놓는다',
  * new tarball and re-transcribe rather than discover the drift in an installed session.
  */
 const TRANSCRIBED_FROM = {
-  claude: '@agentclientprotocol/claude-agent-acp@0.75.0',
-  /** The pinned launch, whose mode list carries no `_meta` at all. */
-  codexLaunch: '@agentclientprotocol/codex-acp@1.6.2',
+  /** 0.75.1 (2026-09-07): `session-mode.js` and `permissions/` byte-identical to the transcribed 0.75.0. */
+  claude: '@agentclientprotocol/claude-agent-acp@0.75.1',
   /**
-   * The reviewed-but-not-launched upstream, whose kinds the tables above transcribe. 1.10.0 was
-   * inspected on 2026-09-05 and its `AgentMode.ts` is byte-identical to 1.9.0, so the transcription
-   * below still describes it.
+   * The launch is the newest upstream since 2026-09-07 (owner: "the version is always the
+   * newest"; the pin's overturn is in `docs/DECISIONS.md`). 1.10.0 was inspected on 2026-09-05 and
+   * its `AgentMode.ts` is byte-identical to 1.9.0, so the kinds transcribed above describe it.
    */
-  codexReviewed: '@agentclientprotocol/codex-acp@1.10.0',
+  codexLaunch: '@agentclientprotocol/codex-acp@1.10.0',
 };
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..');
@@ -210,18 +209,18 @@ describe('transcribed adapter versions', () => {
     expect(registryLaunchPackage('claude-acp')).toBe(TRANSCRIBED_FROM.claude);
   });
 
-  it('reads the codex modes from the pinned launch, not from whatever is newest', () => {
+  it('reads the codex modes from the version the app actually launches', () => {
     expect(registryLaunchPackage('codex-acp')).toBe(TRANSCRIBED_FROM.codexLaunch);
   });
 
-  it('reads the codex kinds from the reviewed upstream the pin was measured against', () => {
+  it('launches with no compatibility pin, and the table says who overturned it', () => {
     /*
-     * `RUNTIME_LAUNCH_PINS` is not exported, and that file is the authority on which upstream was
-     * reviewed, so the identity is read out of its source the way `acp-runtime-gate.contract.test.ts`
-     * reads the session-start code. Reviewing a newer upstream without re-reading its `AgentMode`
-     * table is the drift this catches.
+     * `RUNTIME_LAUNCH_PINS` is not exported, so the fact is read out of its source the way
+     * `acp-runtime-gate.contract.test.ts` reads the session-start code. A pin quietly returning
+     * without a record, or the record's citation quietly leaving, is the drift this catches.
      */
     const source = readFileSync(join(REPO_ROOT, 'scripts/build-acp-registry.mjs'), 'utf8');
-    expect(source).toContain(`reviewedUpstreamPackage: '${TRANSCRIBED_FROM.codexReviewed}'`);
+    expect(source).not.toContain('reviewedUpstreamPackage:');
+    expect(source).toContain('docs/DECISIONS.md');
   });
 });
