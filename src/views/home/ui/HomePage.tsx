@@ -353,6 +353,7 @@ import {
   type TourAnchor,
 } from "@/features/guided-tour";
 import { resolveTourAnchorNodeId } from "../lib/resolve-tour-anchor-node";
+import { COPY_FEEDBACK_RESET_MS } from '@/shared/lib/use-copy-feedback';
 
 
 
@@ -3942,6 +3943,16 @@ function HomePageImpl() {
     }
   }, [pathChipState, t]);
   const [pathPacketCopied, setPathPacketCopied] = useState(false);
+  /*
+   * The confirmation clears itself, and the timer is cancelled on unmount — the copy handler
+   * used to start a bare `setTimeout`, so leaving the map mid-dwell left a timer holding a
+   * setter for a screen that was gone. Same shape as `AgentHandoffCard`, same dwell.
+   */
+  useEffect(() => {
+    if (!pathPacketCopied) return;
+    const timer = window.setTimeout(() => setPathPacketCopied(false), COPY_FEEDBACK_RESET_MS);
+    return () => window.clearTimeout(timer);
+  }, [pathPacketCopied]);
   const copyPathPacket = useCallback(async () => {
     // With an endpoint missing from this vault there is no fact to hand over. Handing
     // an agent two nonexistent slugs and the conclusion "no path" was this button's
@@ -3971,7 +3982,6 @@ function HomePageImpl() {
     );
     if (!ok) return;
     setPathPacketCopied(true);
-    window.setTimeout(() => setPathPacketCopied(false), 1600);
   }, [pathChipState, pathSourceSlug, pathTargetSlug, pathSourceTitle, pathTargetTitle, pathHopCount, t]);
   // The chip's ✕ clears the path state completely and returns to the map. Path mode
   // used to occupy the left slot, so leaving it meant pressing the map tab again.

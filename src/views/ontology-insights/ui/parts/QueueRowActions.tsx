@@ -108,7 +108,7 @@ export function RowActionMenu({
   labels: QueueRowActionLabels;
 }) {
   // This menu rides the same contract — a failure must be stated.
-  const { state: menuCopyState, copy: copyHandoff } = useCopyFeedback(1600);
+  const { state: menuCopyState, copy: copyHandoff } = useCopyFeedback();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
