@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — A page records which of its sources it read only in part
+
+**Why**: Compile cuts a long file at the per-read cap and says so on the consent card and under `## Not in sources`. The page then lands and the Library calls the source `compiled`, because the sha256 it recorded covers every byte and still matches. Half a 200-page PDF had reached no page and no screen said so; the card is read once, at approval, and the folder is read for years.
+**Prior**: extends 2026-09-05 "A vault holds three kinds of file and only one is the graph" (the wiki page and its `source_hash` freshness contract) and the 2026-09-06 LLM-wiki records, whose measure is first-page truthfulness. Both stand: this adds a key, no kind, and no new file.
+**Decision**: optional `sources_truncated:` frontmatter, a subset of `sources:`, minted by the writer's port and never by the model, absent when nothing was cut. `validateWikiPage` reports `bad-truncation-record` when it is not a list of paths or names a path the page does not cite; `validate_wiki` and `wiki-validate` carry it. The Library derives a fifth source state, `partial` ("read in part"), when every matching page read only part of the file; `stale` outranks it, and it counts toward the work Compile offers, said in one sentence rather than a second button. The state is neutral ink, not amber: the page is right about what it covers.
+**Dissent**: a fifth word is a vocabulary a person has to learn, and "compiled" was already checkable by opening the page. Also: derive it at compile time and skip the frontmatter. Not adopted: the folder is the state, and a fact no file carries cannot be read back after the session that measured it.
+**Falsifier**: a folder where `partial` rows never return to `compiled` because the cap is lower than the files people actually keep, which makes the word permanent furniture rather than a state; or a person who reads "read in part" as a defect in the page and stops trusting the wiki.
+**Owner**: jinan
+
 ## 2026-09-07 — Markdown under sources/ is a raw source, not a shadow page
 
 **Why**: reviewing the merged Library on a seeded folder, a `.md` dropped under `sources/` was the one format the list, the graph and Compile could not see: the walk read every Markdown file as a vault page before asking whether the path sat under `sources/`. Notes arrive as Markdown most of all (a Notion or Obsidian export), and the service import writes exactly that.

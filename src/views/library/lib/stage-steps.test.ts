@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { libraryStepStates } from "./stage-steps";
+import { libraryStepStates, libraryWaitingLine } from "./stage-steps";
 import type { LibraryUiModel } from "./use-library-model";
 
 /**
@@ -71,5 +71,49 @@ describe("where the folder stands, while it is still being measured", () => {
     const states = libraryStepStates(model(["not-compiled"], 0, 1));
     expect(states.compile).toBe("next");
     expect(states.read).toBe("waiting");
+  });
+
+  it("calls Compile next when the only thing waiting is the rest of a long file", () => {
+    const states = libraryStepStates(model(["partial"], 1, 1));
+    expect(states.compile).toBe("next");
+    expect(states.read).toBe("next");
+  });
+});
+
+/**
+ * **The waiting line counts what the rows draw, or the screen prints a zero.**
+ *
+ * The three unfinished states are three pieces of work, and the line that names them ran
+ * off `notCompiledCount` and `staleCount` alone. Adding `partial` to `needsCompileCount`
+ * without adding it here would have printed *0 not written up yet* under a folder whose
+ * one row said *read in part* — the exact shape of the three-way contradiction the header
+ * strip was rewritten to end.
+ */
+describe("what the waiting line says", () => {
+  const t = ((key: string, values?: Record<string, number>) =>
+    `${key}(${JSON.stringify(values ?? {})})`) as unknown as Parameters<
+    typeof libraryWaitingLine
+  >[1];
+
+  const counts = (notCompiled: number, stale: number, partial: number) => ({
+    notCompiledCount: notCompiled,
+    staleCount: stale,
+    partialCount: partial,
+  });
+
+  it("says nothing at all when nothing is waiting", () => {
+    expect(libraryWaitingLine(counts(0, 0, 0), t)).toBeNull();
+  });
+
+  it("names a partial read on its own rather than as a missing write-up", () => {
+    const line = libraryWaitingLine(counts(0, 0, 2), t);
+    expect(line).toBe('sources.partialOnly({"count":2})');
+    expect(line).not.toContain("needsCompile");
+  });
+
+  it("keeps the partial clause after the work that is actually missing", () => {
+    expect(libraryWaitingLine(counts(1, 1, 1), t)).toBe(
+      'sources.needsCompileSplit({"notCompiled":1,"stale":1}) · sources.partialOnly({"count":1})',
+    );
   });
 });

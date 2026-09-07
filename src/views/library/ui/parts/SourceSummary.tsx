@@ -202,6 +202,10 @@ export function SourceSummary({
                       "flex-none",
                       page.freshness === "current" &&
                         "text-[color:var(--color-success-text-a90)]",
+                      /* Not amber: the page is right about what it covers. It is a stated
+                         boundary, so it reads as ink rather than as a warning. */
+                      page.freshness === "partial" &&
+                        "text-[color:var(--color-text-tertiary)]",
                       page.freshness === "behind" &&
                         "text-[color:var(--color-amber-source-a90)]",
                       page.freshness === "unchecked" &&

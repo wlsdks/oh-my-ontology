@@ -27,6 +27,7 @@ import { Chip, RowButton, Tooltip } from "@/shared/ui";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 
 import { isAdvisoryWikiCode, isWikiFolderCode } from "../../lib/merge-wiki-verdict";
+import { libraryWaitingLine } from "../../lib/stage-steps";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 
 /**
@@ -244,6 +245,8 @@ export function LibrarySection({
 }: LibrarySectionProps) {
   const hasSources = model.sources.length > 0;
   const hasWiki = model.wikiPages.length > 0;
+  /** What is still waiting, in words — the same line step two's caption prints. */
+  const waitingLine = libraryWaitingLine(model, t);
   /** Pages whose **own** shape misses the template — the rows that wear the amber pill. */
   const offTemplateRows = [...model.verdicts.values()].filter((verdict) =>
     verdict.problems.some((problem) => !isWikiFolderCode(problem.code)),
@@ -364,6 +367,14 @@ export function LibrarySection({
                           {stateLabel}
                         </span>
                       ) : (
+                        /*
+                         * ⚠️ **Amber is reserved for a write-up that may be wrong.** `stale`
+                         * earns it: the bytes moved under the page. `partial` does not —
+                         * the page is right about everything it says and simply stops
+                         * short of the file, so it wears the same quiet border as a source
+                         * nobody has written up yet and is separated by its word, which is
+                         * the fact rather than a temperature.
+                         */
                         <StateBadge
                           tone={row.state === "stale" ? "warning" : "neutral"}
                           testId={`library-source-state-${row.state}`}
@@ -376,17 +387,8 @@ export function LibrarySection({
                 );
               })}
             </ul>
-            {model.needsCompileCount > 0 ? (
-              <ListNote testId="library-needs-compile">
-                {model.staleCount > 0 && model.notCompiledCount > 0
-                  ? t("sources.needsCompileSplit", {
-                      notCompiled: model.notCompiledCount,
-                      stale: model.staleCount,
-                    })
-                  : model.staleCount > 0
-                    ? t("sources.staleOnly", { count: model.staleCount })
-                    : t("sources.needsCompile", { count: model.notCompiledCount })}
-              </ListNote>
+            {waitingLine ? (
+              <ListNote testId="library-needs-compile">{waitingLine}</ListNote>
             ) : null}
           </>
         ) : (

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { expect, test } from "@playwright/test";
 
 import { seedFirstRunSeen } from "./first-run-seed";
@@ -110,6 +112,67 @@ const VAULT = {
 };
 
 /**
+ * A folder whose one source **matches its page's hash and was still only half read**.
+ *
+ * This is the case no hash can catch on its own. The page records the sha256 of the whole
+ * file, so hash comparison says *this page describes this file* — and it does, for the
+ * part that was read. `sources_truncated:` is the writer's record of where it stopped, and
+ * without it the row said `compiled` while the rest of a long document had reached no page
+ * and nobody was told.
+ *
+ * The hash is computed here from the exact bytes the picker stub writes, so the fixture
+ * cannot drift from the file: change the source text and the page still matches.
+ */
+const PARTIAL_PLAN = "%PDF-1.7 a two hundred page plan, of which forty were read\n";
+const PARTIAL_PLAN_HASH = createHash("sha256").update(PARTIAL_PLAN).digest("hex");
+
+const PARTIAL_VAULT = {
+  "project.md": [
+    "---",
+    "kind: project",
+    "slug: partial-demo",
+    "title: Partial demo",
+    "---",
+    "",
+    "# Partial demo",
+    "",
+  ].join("\n"),
+  "sources/long-plan.pdf": PARTIAL_PLAN,
+  "wiki/long-plan.md": [
+    "---",
+    "title: Long plan",
+    "created_by: agent:claude",
+    "compiled_at: 2026-09-07T10:00:00Z",
+    "sources:",
+    "  - sources/long-plan.pdf",
+    "source_hash:",
+    `  sources/long-plan.pdf: ${PARTIAL_PLAN_HASH}`,
+    "sources_truncated:",
+    "  - sources/long-plan.pdf",
+    "status: draft",
+    "summary: What the first part of the plan commits the team to.",
+    "---",
+    "",
+    "## Summary",
+    "",
+    "The first pages name three deliverables.",
+    "",
+    "## Facts",
+    "",
+    "- Three deliverables are named. [[src:sources/long-plan.pdf#p2]]",
+    "",
+    "## Decisions",
+    "",
+    "## Open questions",
+    "",
+    "## Not in sources",
+    "",
+    "- Only the first part of `sources/long-plan.pdf` was read, so anything later in that file is not covered here.",
+    "",
+  ].join("\n"),
+};
+
+/**
  * Open the fixture folder **on the Library itself**.
  *
  * One press, not the two `/docs` needed. With no folder open the Library is a single
@@ -190,6 +253,26 @@ test.describe("the Library destination", () => {
     const footer = page.getByTestId("library-needs-compile");
     await expect(footer).toContainText("1 not written up yet");
     await expect(footer).toContainText("1 page behind its source");
+  });
+
+  test("says read in part when the page matches the bytes but stopped short", async ({
+    page,
+  }) => {
+    await openLibrary(page, PARTIAL_VAULT);
+
+    const row = page.getByTestId("library-source-sources/long-plan.pdf");
+    // Not `compiled`. The hash matches every byte of the file and the page still covers
+    // only its first part, which is the one thing a hash can never say.
+    await expect(page.getByTestId("library-source-state-partial")).toHaveText("read in part", {
+      timeout: 25_000,
+    });
+    await expect(row).not.toContainText("stale");
+
+    // And the folder's own summary line counts it as work Compile can still do, in its own
+    // clause — never folded into "not written up yet", which is false of a file with a page.
+    const footer = page.getByTestId("library-needs-compile");
+    await expect(footer).toContainText("1 read only in part");
+    await expect(footer).not.toContainText("not written up yet");
   });
 
   test("lists wiki pages and names the first problem of one that is off-template", async ({

@@ -23,6 +23,9 @@ import { anchorResolves, type SourceMeasurement } from './source-text';
  * 2. `source_hash:` — the sha256 of those same bytes, measured by the port. This is the
  *    field that lets a page report itself stale later, so a value the writer invented
  *    would silently break every freshness answer the Library gives.
+ *    `sources_truncated:` rides with it, from the same reads: a hash matching every byte
+ *    of a file the run only saw the first part of is true and misleading at once, and the
+ *    Library reads this key to say `partial` rather than `compiled`.
  * 3. `status:` — always `draft`. `reviewed` is a person's word, and `describes:` is
  *    refused outright: a draft naming graph nodes is an unapproved claim about the graph
  *    (`wiki-page-schema.ts`).
@@ -315,6 +318,15 @@ export function buildWikiPageProposal(
   }
 
   // ── Assemble the page in the template shape ─────────────────────────────────
+  /*
+   * The sources this page really stands on that the run only read part of.
+   *
+   * Drawn from `sourcesRead` rather than from every read, because the key is a statement
+   * about `sources:` — naming a file the page does not cite would be a record no reader
+   * can act on, and `validateWikiPage` reports exactly that (`truncated-not-in-sources`).
+   */
+  const truncatedSources = sourcesRead.filter((path) => readByPath.get(path)!.truncated);
+
   const compiledAt = context.now.toISOString().replace(/\.\d{3}Z$/, 'Z');
   const frontmatter = [
     '---',
@@ -325,6 +337,14 @@ export function buildWikiPageProposal(
     ...sourcesRead.map((path) => `  - ${path}`),
     sourcesRead.length === 0 ? 'source_hash: {}' : 'source_hash:',
     ...sourcesRead.map((path) => `  ${path}: ${readByPath.get(path)!.sha256}`),
+    /*
+     * Absent when nothing was cut short. An empty list would be a record of a boundary
+     * that does not exist, on every page ever compiled, and `sources_truncated: []` on a
+     * page read whole is the kind of always-present key a reader stops seeing.
+     */
+    ...(truncatedSources.length === 0
+      ? []
+      : ['sources_truncated:', ...truncatedSources.map((path) => `  - ${path}`)]),
     'status: draft',
     `summary: ${yamlScalar(summary || title || slug)}`,
     '---',
@@ -336,12 +356,10 @@ export function buildWikiPageProposal(
    * read once, at approval; the page is what the next reader has, and "written from the
    * first part of this file" is a boundary they need in the same place as the claims.
    */
-  const truncatedNotes = context.reads
-    .filter((read) => read.readable && read.truncated && sourcesRead.includes(read.path))
-    .map(
-      (read) =>
-        `Only the first part of \`${read.path}\` was read, so anything later in that file is not covered here.`,
-    );
+  const truncatedNotes = truncatedSources.map(
+    (path) =>
+      `Only the first part of \`${path}\` was read, so anything later in that file is not covered here.`,
+  );
   // A writer that already named the file in its own words does not get Atlas's sentence
   // about it too; two lines saying one thing is how a section stops being read.
   const alreadyNamed = (path: string) => notInSources.some((line) => line.includes(path.slice(path.lastIndexOf('/') + 1)));
