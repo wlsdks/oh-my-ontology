@@ -1507,7 +1507,11 @@ its own and unfolds above 460px; unfolding it while narrow is the person's choic
 stands. The fold is one icon control in one place — the panel glyph on the column's
 eyebrow line closes it, and the same glyph at the pane's top-left opens it — and the
 reader's way back reads *Graph*, the thing it shows, with no arrow (owner, 2026-09-07). A search whose matches all sit on the other half of the switch says so under the empty list and offers the switch, instead of a count over nothing. A page whose first line is a section heading no longer carries the section gap above it. A *Conversation* chip on the graph's status row and on the reader's top row reopens the dock after it was closed; before, closing it was the end of the transcript. The conversation's composer has one quiet row at its bottom, the way chat composers are laid out elsewhere: the tool with its model as one text picker (*Codex · GPT-5.6-Sol (low)*) and the mode on the left, the status word, past conversations, new conversation and send on the right; a tool that has run out of plan is named as a limit with the hour it lifts, not as a generic problem with a retry. The writer label prints only on the rows that are the exception to the
-folder's majority writer. The scroll-end gate measures the Library's own scrollers.
+folder's majority writer. The scroll-end gate measures the Library's own scrollers. The
+end of a page now keeps room for the floating *Back to top*: the last line stands clear of
+the pill instead of ending behind it — on a wiki page, on *Check results*, and on the Docs
+reader, which is the same pane — and below `lg` the pill itself stands above the bottom tab
+bar rather than behind it (owner, 2026-09-08).
 
 **File the answer** (2026-09-07). After an ask turn ends, a chip in the conversation,
 directly under the answer and above the composer, writes the last answer as a page under

@@ -87,12 +87,34 @@ export function DocReadingPane({
       ) : null}
       <div
         ref={scrollRef}
-        // Scroll-end reserve below lg — this container's bottom cut 17px behind the fixed
-        // tab bar (measured identically at 768/834/600), hiding the last line at the end
-        // of the scroll. The tab bar reserve plus 12px is taken as inner padding of the
-        // scroll content.
         className={cn(
-          "min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]",
+          "min-h-0 flex-1 overflow-auto",
+          /*
+           * **The scroll end owes room to whatever stands over it.**
+           *
+           * Two things can cover the last line of a document, and each is answered by
+           * reserving, never by taking the cover away — a control a person cannot reach is
+           * worse than a gap they never notice.
+           *
+           * ① Below `lg` the fixed bottom tab bar cut this container 17px short (measured
+           *    identically at 768/834/600), hiding the last line at the end of the scroll.
+           * ② The back-to-top pill is laid over this container, so at the end of the scroll
+           *    it stops on top of whatever is under it. Owner report on the installed app,
+           *    2026-09-08: at the foot of the Library's check results it covered the
+           *    "N more names" fold chip. Measured the same day on the wiki reader, the last
+           *    line ended 8px *below* the pill's top edge at 1400×860, 1200×800 and
+           *    1040×720, and at 1040 — the app's window floor, where this pane is narrowest —
+           *    60px of that line's width was behind the pill.
+           *
+           * The clearance token already contains the tab reserve below `lg` (it is derived
+           * from the pill's own inset, which steps above the bar there), so when the pill is
+           * drawn one utility answers both; when it is not — the Docs editor — ① is still owed.
+           * Two `pb` utilities on one element would be a merge contest, which is why this is
+           * a branch and not a pair.
+           */
+          backToTop
+            ? "pb-[var(--doc-reading-back-to-top-clearance)]"
+            : "max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]",
           scrollClassName,
         )}
       >

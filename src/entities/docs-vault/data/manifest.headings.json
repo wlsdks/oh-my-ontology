@@ -9872,6 +9872,11 @@
     },
     {
       "depth": 3,
+      "text": "A floating control laid over a scroll area owes the page a reserve (2026-09-08)",
+      "slug": "a-floating-control-laid-over-a-scroll-area-owes-the-page-a-reserve-2026-09-08"
+    },
+    {
+      "depth": 3,
       "text": "Shell body slot — No-compression contract (2026-07-27)",
       "slug": "shell-body-slot-no-compression-contract-2026-07-27"
     },
