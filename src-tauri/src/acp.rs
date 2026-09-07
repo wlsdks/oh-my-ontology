@@ -1459,8 +1459,11 @@ pub(crate) fn prepare_runtime_isolation(
 /// The keychain item Claude Code reads when no `CLAUDE_CONFIG_DIR` is set — the terminal's login.
 const DEFAULT_CLAUDE_CREDENTIALS_SERVICE: &str = "Claude Code-credentials";
 
-/// The keychain items that can hold the terminal's login, in the order to try them: the
-/// unscoped item first, then the item Claude Code names after the default folder itself.
+/// The keychain items that can hold the terminal's login: the unscoped item, and the item
+/// Claude Code names after the default folder itself.
+///
+/// **This is not a precedence list.** It once was, and that is the defect
+/// `choose_terminal_credential` exists to stop — see its comment.
 pub(crate) fn terminal_login_services(home: &Path) -> Vec<String> {
     vec![
         DEFAULT_CLAUDE_CREDENTIALS_SERVICE.to_string(),
@@ -1468,10 +1471,126 @@ pub(crate) fn terminal_login_services(home: &Path) -> Vec<String> {
     ]
 }
 
+/// One place the terminal's login could live, reduced to what can be compared **without
+/// handling the secret a second time**: a digest instead of the bytes, and the moment the
+/// carrier was last written.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct CredentialCarrier {
+    /// Where it came from. A keychain item name or a file path — never the secret.
+    pub(crate) label: String,
+    /// The sha256 of the carrier's bytes, so two carriers compare without either being read
+    /// anywhere but into the `security` argument list that installs the winner.
+    pub(crate) digest: String,
+    /// When the carrier was last written, as a sortable UTC `YYYYMMDDhhmmss` stamp. `None`
+    /// when the carrier cannot say.
+    pub(crate) written: Option<String>,
+}
+
+/// Picks which carrier holds the login the terminal is actually using, or `None`.
+///
+/// ## Why a rule and not an order (measured 2026-09-08)
+///
+/// The 2026-09-08 00:50 fix mirrored the first carrier that answered — the unscoped keychain
+/// item — on the assumption that it is where macOS Claude Code keeps the live token. That is
+/// an order, not a measurement, and nothing checks it: whichever carrier happens to be listed
+/// first wins even when the terminal stopped writing it weeks ago.
+///
+/// Two things measured that morning say why the check has to be this one and not an easier
+/// one. First, `claude auth status` cannot arbitrate: its `email`, `orgId` and `orgName` are
+/// copied verbatim out of `<config dir>/.claude.json` and are never re-derived from the
+/// token — setting that file's `oauthAccount.emailAddress` to `sentinel@example.com` made the
+/// probe report `sentinel@example.com` over an untouched credential. An account name proves
+/// nothing about which credential is installed. Second, on the machine that prompted all of
+/// this, every carrier turned out to hold one identical token (sha256 `811a3992…`); the
+/// apparent split was two `.claude.json` caches of different ages, not two logins.
+///
+/// So the only honest evidence about a disagreement is which carrier the terminal wrote last:
+///
+/// 1. **Carriers that agree name the login by themselves.** Whichever one is read, the bytes
+///    are the same, so the first is as good as any.
+/// 2. **Carriers that disagree are decided by recency**, because the terminal rewrites the
+///    carrier it uses on every token refresh and leaves the others behind.
+/// 3. **Anything else is `None`**, and `None` means install nothing. A carrier that cannot
+///    say when it was written, or two disagreeing carriers written in the same second, leave
+///    us guessing — and a wrong login installed silently costs more than no login installed.
+///
+/// The stamps compared here must all be on one clock. Reading the file's mtime in local time
+/// against the keychain's UTC `mdat` is what made the file look fourteen minutes newer than
+/// the items when it was really nine hours older, and that misreading is the reason the
+/// carriers were believed to disagree at all. `file_written` normalises to UTC for this.
+pub(crate) fn choose_terminal_credential(carriers: &[CredentialCarrier]) -> Option<usize> {
+    let first = carriers.first()?;
+    if carriers
+        .iter()
+        .all(|carrier| carrier.digest == first.digest)
+    {
+        return Some(0);
+    }
+    if carriers.iter().any(|carrier| carrier.written.is_none()) {
+        return None;
+    }
+    let newest = carriers
+        .iter()
+        .filter_map(|carrier| carrier.written.as_deref())
+        .max()?;
+    let mut latest = carriers
+        .iter()
+        .enumerate()
+        .filter(|(_, carrier)| carrier.written.as_deref() == Some(newest));
+    let (index, winner) = latest.next()?;
+    if latest.any(|(_, carrier)| carrier.digest != winner.digest) {
+        return None;
+    }
+    Some(index)
+}
+
+/// The sha256 of a carrier's bytes, in lowercase hex. The digest is the only form of the
+/// secret this file ever compares, logs, or keeps.
+pub(crate) fn credential_digest(secret: &str) -> String {
+    use sha2::{Digest, Sha256};
+    hex_lower(&Sha256::digest(secret.as_bytes()))
+}
+
+/// Reads the `mdat` (last modified) attribute out of `security find-generic-password` output.
+///
+/// The line looks like `"mdat"<timedate>=0x3230…5A00  "20260907223551Z\000"`; the sortable
+/// part is the leading run of digits inside the last quoted field.
+pub(crate) fn parse_keychain_written(attributes: &str) -> Option<String> {
+    let line = attributes.lines().find(|line| line.contains("\"mdat\""))?;
+    let quoted = line.rsplit('"').nth(1)?;
+    let stamp: String = quoted.chars().take_while(char::is_ascii_digit).collect();
+    (stamp.len() == 14).then_some(stamp)
+}
+
+/// The same sortable UTC stamp for a file, so a file and a keychain item compare directly.
+fn file_written(path: &Path) -> Option<String> {
+    let modified = std::fs::metadata(path).ok()?.modified().ok()?;
+    let stamp: chrono::DateTime<chrono::Utc> = modified.into();
+    Some(stamp.format("%Y%m%d%H%M%S").to_string())
+}
+
+/// When an `oauthAccount` was last refreshed from the API, as its own `profileFetchedAt`
+/// millisecond stamp. `None` when the account cannot say.
+fn profile_fetched_at(account: Option<&serde_json::Value>) -> Option<i64> {
+    account?.get("profileFetchedAt")?.as_i64()
+}
+
 /// Carries the terminal's cached account (`oauthAccount` in `~/.claude.json`) into the
 /// app folder's own `.claude.json`, so `claude auth status` under the app folder names the
-/// account the token actually belongs to. Returns the merged document, or `None` when the
-/// terminal has no account to carry.
+/// account the token belongs to. Returns the merged document, or `None` when there is
+/// nothing worth carrying.
+///
+/// ## Why a staler account is not carried (measured 2026-09-08, 07:55)
+///
+/// That name is a cache, not a fact about the token — it is what `claude auth status`
+/// reports and the only thing it reports. Each side refreshes its own copy from the API and
+/// stamps it `profileFetchedAt`, so the copies drift apart at different speeds. On this
+/// machine the terminal's copy read `iamstark97@gmail.com` stamped 2026-07-29, while the app
+/// folder's copy read `stark97@hunet.co.kr` stamped six weeks later — and when the app's
+/// Claude started on the freshly mirrored token it re-fetched and wrote `stark97@hunet.co.kr`
+/// again, three seconds after this function had put the older name there. Copying blindly
+/// makes the app display a name that is wrong until the child corrects it. So the terminal's
+/// account travels only when it is not the staler of the two.
 pub(crate) fn merge_oauth_account(
     app_document: Option<serde_json::Value>,
     terminal_document: &serde_json::Value,
@@ -1481,6 +1600,12 @@ pub(crate) fn merge_oauth_account(
         Some(serde_json::Value::Object(map)) => serde_json::Value::Object(map),
         _ => serde_json::Value::Object(serde_json::Map::new()),
     };
+    let installed = profile_fetched_at(document.get("oauthAccount"));
+    if let (Some(installed), Some(arriving)) = (installed, profile_fetched_at(Some(&account))) {
+        if installed > arriving {
+            return None;
+        }
+    }
     document
         .as_object_mut()?
         .insert("oauthAccount".to_string(), account);
@@ -1489,49 +1614,104 @@ pub(crate) fn merge_oauth_account(
 
 /// **The app's Claude follows the terminal login, at every start.**
 ///
-/// ## Why (measured 2026-09-08, 00:50)
+/// ## Why (measured 2026-09-08)
 ///
 /// The link to `~/.claude/.credentials.json` below was the whole design: one login, no fork.
-/// On this machine that file was a token from the day before, while the login the
-/// terminal actually used lived in the keychain — Claude Code writes the keychain on
-/// macOS and leaves the file behind. The owner switched accounts in the terminal; the app
-/// kept the old account's token in its own keychain item and reported that account's
-/// session limit ("resets 1am") while the terminal, on the new account, had room.
+/// It is not enough on macOS, because Claude Code reads a keychain item named after the
+/// config folder before it reads that folder's file, so an app-scoped item shadows the link
+/// for as long as it exists — and an item holding a token that still works is one
+/// `clear_shadowing_credentials` will not remove.
 ///
-/// So the terminal's keychain item is mirrored into the app-scoped item before every
-/// session. The secret never leaves the keychain except through `security`, the same tool
-/// Claude Code itself uses to store it; it passes through one `security` argument list,
-/// as it does when Claude Code writes it. Failure is silent: with nothing to mirror the
-/// link below still stands, and the doctor's own repair is unchanged.
+/// So the login the terminal is using is mirrored into the app-scoped item before every
+/// session. **Which carrier holds that login is measured, not assumed** — the first version
+/// of this function took the first keychain item that answered;
+/// `choose_terminal_credential` carries the measurement that replaced it, and the evidence
+/// for why an account name cannot stand in for one. The secret never leaves its carrier
+/// except through `security`, the same tool Claude Code itself uses to store it; it passes
+/// through one `security` argument list, as it does when Claude Code writes it, and only its
+/// digest is ever compared or logged. Failure is silent: with nothing to mirror the link
+/// below still stands, and the doctor's own repair is unchanged.
 fn mirror_terminal_login(config_dir: &Path, home: &Path) {
     #[cfg(target_os = "macos")]
     {
         let app_service = claude_credentials_service(config_dir);
+
+        // Every place the terminal's login could be, gathered before anything is chosen. The
+        // file belongs in here beside the keychain items: on this machine it was the only
+        // carrier holding the current account.
+        let mut secrets: Vec<String> = Vec::new();
+        let mut carriers: Vec<CredentialCarrier> = Vec::new();
         for service in terminal_login_services(home) {
             let mut read = std::process::Command::new("security");
             read.args(["find-generic-password", "-s", &service, "-w"]);
             let Some(secret) = bounded_output(read, KEYCHAIN_PROBE_TIMEOUT) else {
                 continue;
             };
-            let secret = secret.trim_end_matches(['\n', '\r']);
+            let secret = secret.trim_end_matches(['\n', '\r']).to_string();
             if secret.is_empty() {
                 continue;
             }
-            let mut write = std::process::Command::new("security");
-            write.args([
-                "add-generic-password",
-                "-U",
-                "-s",
-                &app_service,
-                "-a",
-                "claude",
-                "-w",
-                secret,
-            ]);
-            if bounded_output(write, KEYCHAIN_PROBE_TIMEOUT).is_some() {
-                log::info!("acp login mirrored from {service} into the app-scoped keychain item");
+            let mut show = std::process::Command::new("security");
+            show.args(["find-generic-password", "-s", &service]);
+            let written = bounded_output(show, KEYCHAIN_PROBE_TIMEOUT)
+                .as_deref()
+                .and_then(parse_keychain_written);
+            carriers.push(CredentialCarrier {
+                label: service,
+                digest: credential_digest(&secret),
+                written,
+            });
+            secrets.push(secret);
+        }
+        let terminal_file = home.join(".claude").join(".credentials.json");
+        if let Ok(secret) = std::fs::read_to_string(&terminal_file) {
+            let secret = secret.trim_end_matches(['\n', '\r']).to_string();
+            if !secret.is_empty() {
+                carriers.push(CredentialCarrier {
+                    label: terminal_file.to_string_lossy().to_string(),
+                    digest: credential_digest(&secret),
+                    written: file_written(&terminal_file),
+                });
+                secrets.push(secret);
             }
-            break;
+        }
+
+        if let Some(chosen) = choose_terminal_credential(&carriers) {
+            let carrier = &carriers[chosen];
+            // Nothing to do when the app scope already holds those exact bytes. Skipping the
+            // write keeps a locked keychain from being prompted for no reason.
+            let mut read_app = std::process::Command::new("security");
+            read_app.args(["find-generic-password", "-s", &app_service, "-w"]);
+            let installed = bounded_output(read_app, KEYCHAIN_PROBE_TIMEOUT)
+                .map(|secret| credential_digest(secret.trim_end_matches(['\n', '\r'])));
+            if installed.as_deref() == Some(carrier.digest.as_str()) {
+                log::info!("acp login already matches {}", carrier.label);
+            } else {
+                let mut write = std::process::Command::new("security");
+                write.args([
+                    "add-generic-password",
+                    "-U",
+                    "-s",
+                    &app_service,
+                    "-a",
+                    "claude",
+                    "-w",
+                    &secrets[chosen],
+                ]);
+                if bounded_output(write, KEYCHAIN_PROBE_TIMEOUT).is_some() {
+                    log::info!(
+                        "acp login mirrored from {} into the app-scoped keychain item",
+                        carrier.label
+                    );
+                }
+            }
+        } else if !carriers.is_empty() {
+            // Disagreeing carriers with nothing to break the tie. Installing a guess here is
+            // how the app ended up on the wrong account in the first place.
+            log::info!(
+                "acp login left alone: {} terminal carriers disagree and none is newest",
+                carriers.len()
+            );
         }
 
         let terminal_document = std::fs::read_to_string(home.join(".claude.json"))
@@ -3409,15 +3589,143 @@ mod tests {
     }
 
     #[test]
-    fn the_terminal_login_is_looked_for_unscoped_first_then_under_the_default_folder() {
+    fn both_keychain_items_the_terminal_could_use_are_gathered_not_ranked() {
         let services = terminal_login_services(Path::new("/Users/probe"));
-        assert_eq!(services[0], "Claude Code-credentials");
+        // Both places are named. The position of either says nothing about which holds the
+        // live login — that is `choose_terminal_credential`'s measurement, and reading this
+        // list as a ranking is the defect it exists to stop.
+        assert!(services.contains(&"Claude Code-credentials".to_string()));
         // Joined the way the mirror joins it, so the separator is the platform's own.
-        assert_eq!(
-            services[1],
-            claude_credentials_service(&Path::new("/Users/probe").join(".claude"))
-        );
+        assert!(services.contains(&claude_credentials_service(
+            &Path::new("/Users/probe").join(".claude")
+        )));
         assert_eq!(services.len(), 2);
+    }
+
+    fn carrier(label: &str, digest: &str, written: Option<&str>) -> CredentialCarrier {
+        CredentialCarrier {
+            label: label.to_string(),
+            digest: digest.to_string(),
+            written: written.map(str::to_string),
+        }
+    }
+
+    #[test]
+    fn the_newest_carrier_wins_when_the_terminals_carriers_disagree() {
+        // The owner's machine, read 2026-09-08 08:20 KST, every stamp on the keychain's own
+        // UTC clock: the unscoped item was rewritten at 23:13:47Z and the file was last
+        // written at 22:21:50Z. They disagree, so recency decides and the keychain is it.
+        // Listing order would agree here by luck; the account switch this exists for is the
+        // case where it does not, which is why the answer is measured either way.
+        let chosen = choose_terminal_credential(&[
+            carrier("Claude Code-credentials", "369750", Some("20260907231347")),
+            carrier(
+                "/Users/probe/.claude/.credentials.json",
+                "811a39",
+                Some("20260907222150"),
+            ),
+        ])
+        .expect("the newest carrier to be named");
+        assert_eq!(
+            chosen, 0,
+            "the keychain was written last, so the keychain is it"
+        );
+
+        // The same two carriers, with the file's stamp read off a local clock instead of the
+        // keychain's UTC one — `20260908072150` is 22:21:50Z seen from KST, the very same
+        // instant. Nine hours of offset turn the oldest carrier into the newest and hand the
+        // login to the wrong account in silence. `file_written` normalising to UTC is the
+        // only thing standing between this function and that answer, so the trap is pinned
+        // here rather than left to be rediscovered.
+        let mixed_clock = choose_terminal_credential(&[
+            carrier("Claude Code-credentials", "369750", Some("20260907231347")),
+            carrier(
+                "/Users/probe/.claude/.credentials.json",
+                "811a39",
+                Some("20260908072150"),
+            ),
+        ])
+        .expect("a winner to be named");
+        assert_eq!(
+            mixed_clock, 1,
+            "a local-time stamp inverts the answer — the comparison only means something \
+             when every carrier is dated on one clock"
+        );
+    }
+
+    #[test]
+    fn agreeing_carriers_need_no_tiebreak_at_all() {
+        // The same machine after the terminal refreshed: every carrier holds the same bytes,
+        // so whichever is read the app lands on the same login — even with no stamps.
+        let chosen = choose_terminal_credential(&[
+            carrier("Claude Code-credentials", "811a39", None),
+            carrier("/Users/probe/.claude/.credentials.json", "811a39", None),
+        ]);
+        assert_eq!(chosen, Some(0));
+    }
+
+    #[test]
+    fn an_undecidable_set_of_carriers_installs_nothing() {
+        // Nothing at all to mirror.
+        assert_eq!(choose_terminal_credential(&[]), None);
+        // Disagreeing carriers where one cannot say when it was written: we would be
+        // guessing, and a guess is what put the app on the wrong account.
+        assert_eq!(
+            choose_terminal_credential(&[
+                carrier("Claude Code-credentials", "369750", Some("20260907223551")),
+                carrier("/Users/probe/.claude/.credentials.json", "811a39", None),
+            ]),
+            None
+        );
+        // Disagreeing carriers written in the same second name no winner either.
+        assert_eq!(
+            choose_terminal_credential(&[
+                carrier("Claude Code-credentials", "369750", Some("20260908072150")),
+                carrier(
+                    "/Users/probe/.claude/.credentials.json",
+                    "811a39",
+                    Some("20260908072150")
+                ),
+            ]),
+            None
+        );
+        // A single carrier is unanimous with itself, so it is installed.
+        assert_eq!(
+            choose_terminal_credential(&[carrier(
+                "Claude Code-credentials",
+                "369750",
+                Some("20260907223551")
+            )]),
+            Some(0)
+        );
+    }
+
+    #[test]
+    fn the_keychains_last_written_stamp_is_read_off_its_attributes() {
+        // Verbatim from `security find-generic-password -s "Claude Code-credentials"` on the
+        // owner's machine, 2026-09-08.
+        let attributes = concat!(
+            "keychain: \"/Users/probe/Library/Keychains/login.keychain-db\"\n",
+            "    \"cdat\"<timedate>=0x32303236303632393139313831305A00  \"20260629191810Z\\000\"\n",
+            "    \"mdat\"<timedate>=0x32303236303930373232333535315A00  \"20260907223551Z\\000\"\n",
+            "    \"svce\"<blob>=\"Claude Code-credentials\"\n",
+        );
+        assert_eq!(
+            parse_keychain_written(attributes).as_deref(),
+            Some("20260907223551")
+        );
+        // Output with no such attribute leaves the carrier unable to say, which the chooser
+        // then refuses to guess past.
+        assert_eq!(parse_keychain_written("keychain: \"login\"\n"), None);
+    }
+
+    #[test]
+    fn a_credential_is_only_ever_compared_as_a_digest() {
+        let digest = credential_digest("a-token-shaped-string");
+        assert_eq!(digest.len(), 64, "sha256 in lowercase hex");
+        assert!(!digest.contains("a-token-shaped-string"));
+        assert_eq!(digest, credential_digest("a-token-shaped-string"));
+        assert_ne!(digest, credential_digest("a-different-token"));
     }
 
     #[test]
@@ -3433,6 +3741,47 @@ mod tests {
         assert_eq!(fresh["oauthAccount"]["emailAddress"], "new@example.com");
         // A terminal with no account carries nothing.
         assert!(merge_oauth_account(None, &serde_json::json!({})).is_none());
+    }
+
+    #[test]
+    fn a_staler_terminal_account_does_not_overwrite_a_fresher_app_one() {
+        // The owner's machine, 2026-09-08: the terminal's copy of the name was refreshed on
+        // 2026-07-29 and the app folder's on 2026-09-07, and the app's was the one the API
+        // agreed with. Carrying the older name over makes the app display a wrong account
+        // until its own child corrects it seconds later.
+        let terminal = serde_json::json!({
+            "oauthAccount": { "emailAddress": "old@example.com", "profileFetchedAt": 1785310202478i64 }
+        });
+        let app = serde_json::json!({
+            "oauthAccount": { "emailAddress": "current@example.com", "profileFetchedAt": 1788821746365i64 }
+        });
+        assert!(
+            merge_oauth_account(Some(app), &terminal).is_none(),
+            "the fresher name stays and nothing is written"
+        );
+
+        // The other way round it still travels: that is the account switch this exists for.
+        let terminal = serde_json::json!({
+            "oauthAccount": { "emailAddress": "switched@example.com", "profileFetchedAt": 1788821746365i64 }
+        });
+        let app = serde_json::json!({
+            "oauthAccount": { "emailAddress": "left@example.com", "profileFetchedAt": 1785310202478i64 }
+        });
+        let merged = merge_oauth_account(Some(app), &terminal).expect("an account to carry");
+        assert_eq!(
+            merged["oauthAccount"]["emailAddress"],
+            "switched@example.com"
+        );
+
+        // Equal stamps are not a reason to refuse; neither side is staler.
+        let terminal = serde_json::json!({
+            "oauthAccount": { "emailAddress": "same@example.com", "profileFetchedAt": 1788821746365i64 }
+        });
+        let app = serde_json::json!({
+            "oauthAccount": { "emailAddress": "other@example.com", "profileFetchedAt": 1788821746365i64 }
+        });
+        let merged = merge_oauth_account(Some(app), &terminal).expect("an account to carry");
+        assert_eq!(merged["oauthAccount"]["emailAddress"], "same@example.com");
     }
 
     #[test]

@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-08 — The login carrier is chosen by measurement, and the account a probe names is only a cache",
+      "slug": "2026-09-08-the-login-carrier-is-chosen-by-measurement-and-the-account-a-probe-names-is-only-a-cache"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-08 — A width that already has a name stops being written as a number",
       "slug": "2026-09-08-a-width-that-already-has-a-name-stops-being-written-as-a-number"
     },
