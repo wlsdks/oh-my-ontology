@@ -226,6 +226,33 @@ describe('ACP 클라이언트 — 권한 정책', () => {
     expect(askUser).not.toHaveBeenCalled();
   });
 
+  it('우리 서버의 읽기가 볼트 상대 경로를 들고 오면 앱이 대신 허용한다 — `read_source` 는 `sources/…` 로 부른다', async () => {
+    // Measured 2026-09-07: the Rust verdict judges absolute paths only, so `sources/plan.docx`
+    // came back `ask` and the first read_source call stopped at a card titled "outside this folder".
+    const t = fakeTransport();
+    const askUser = vi.fn(async () => null);
+    createAcpClient(t.transport, { vaultMcpServerName: 'atlas-vault', verdict: alwaysAsk, askUser });
+
+    const request = permissionRequest('sources/change-request-CR3.docx', 7, 'read');
+    (request.params as Record<string, unknown>).toolCall = { toolCallId: 'tool-1', title: 'read_source', kind: 'read', rawInput: { path: 'sources/change-request-CR3.docx' } };
+    (request.params.options[2] as { _meta: { permission: { changes: Array<Record<string, unknown>> } } })._meta.permission.changes[0].targets = [
+      { type: 'tool', toolName: 'mcp__atlas-vault__read_source' },
+    ];
+    t.emit(request);
+    await vi.waitFor(() => expect(outcomeOf(t.sent, 7)).toBeTruthy());
+    expect(outcomeOf(t.sent, 7)).toEqual({ outcome: 'selected', optionId: 'allow' });
+    expect(askUser).not.toHaveBeenCalled();
+
+    // A relative path that climbs out is not "inside by construction": it asks.
+    const climb = permissionRequest('../secrets.env', 8, 'read');
+    (climb.params as Record<string, unknown>).toolCall = { toolCallId: 'tool-2', title: 'read_source', kind: 'read', rawInput: { path: '../secrets.env' } };
+    (climb.params.options[2] as { _meta: { permission: { changes: Array<Record<string, unknown>> } } })._meta.permission.changes[0].targets = [
+      { type: 'tool', toolName: 'mcp__atlas-vault__read_source' },
+    ];
+    t.emit(climb);
+    await vi.waitFor(() => expect(askUser).toHaveBeenCalledTimes(1));
+  });
+
   it('볼트 안이라도 **편집**은 묻는다 — 경로가 안전하다는 것이 변경을 봤다는 뜻은 아니다', async () => {
     /*
      * Caught in the 2026-09-01 review. Path containment auto-allowed the agent's own edit tool

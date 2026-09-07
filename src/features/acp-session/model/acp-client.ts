@@ -514,12 +514,23 @@ export function createAcpClient(
     } catch (error) {
       handlers.onProtocolNotice?.(`verdict-failed: ${String(error)}`);
     }
-    /* A read is auto-allowed only with no path or inside the vault. A read outside falls through to
-       the ordinary permission card too. */
+    /*
+     * A read is auto-allowed only with no path or inside the vault. A read outside falls through
+     * to the ordinary permission card too. Our own server names files **vault-relative**
+     * (`read_source` takes `sources/plan.docx`), and the Rust verdict judges absolute paths only,
+     * so a relative path without `..` on an Atlas read is inside by construction: the server
+     * resolves it against the vault root it was started with and refuses anything else.
+     * Measured 2026-09-07: the first `read_source` call raised a card titled "outside this folder".
+     */
+    const vaultRelativeAtlasPath =
+      atlasMode !== null &&
+      request.filePath !== null &&
+      !request.filePath.startsWith('/') &&
+      !request.filePath.split(/[\\/]/).includes('..');
     if (
       atlasMode === 'read' &&
       allowOnce &&
-      (request.filePath === null || verdict === 'allow-inside-vault')
+      (request.filePath === null || vaultRelativeAtlasPath || verdict === 'allow-inside-vault')
     ) {
       write({ jsonrpc: '2.0', id, result: selected(allowOnce.optionId) });
       return;
