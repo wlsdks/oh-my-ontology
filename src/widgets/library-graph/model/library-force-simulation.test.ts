@@ -12,6 +12,8 @@ import {
   applyAmbientDrift,
   libraryPositions,
   libraryMarkRadii,
+  libraryOrphanRing,
+  LIBRARY_LABEL_ALLOWANCE,
   librarySimulationBounds,
   pinLibraryNode,
   reheatLibrarySimulation,
@@ -20,6 +22,7 @@ import {
   stepLibrarySimulation,
   syncLibrarySimulation,
 } from "./library-force-simulation";
+import { fitView, worldToScreen } from "./library-graph-view";
 
 /**
  * **The claims the live simulation makes, made falsifiable.**
@@ -94,6 +97,50 @@ function denseFolder(): LibraryGraph {
 }
 
 const BOX = { width: 1046, height: 620 };
+
+/**
+ * **The seeded folder that produced the scattered picture**, in its measured shape: seven
+ * sources of which three are cited by nobody, four pages of which one cites nothing. Four
+ * marks with no relation at all — the exact set the review frame of 2026-09-07 found on
+ * four different walls of the canvas.
+ */
+function looseFolder(): LibraryGraph {
+  const cited = ["sources/quarter-plan.pdf", "sources/budget.xlsx", "sources/release-dates.csv", "sources/roadmap.md"];
+  const loose = ["sources/design-system.docx", "sources/kickoff-notes.html", "sources/interview-notes.txt"];
+  const nodes: LibraryGraphNode[] = [];
+  const edges: LibraryGraphEdge[] = [];
+  for (const path of [...cited, ...loose]) {
+    nodes.push({ id: `source:${path}`, kind: "source", label: path, ref: path, href: null });
+  }
+  const pages: Array<[string, string[]]> = [
+    ["wiki/quarter-plan", [cited[0]!]],
+    ["wiki/release-dates", [cited[2]!, cited[3]!]],
+    ["wiki/budget", [cited[1]!, cited[0]!]],
+    // The one a person wrote by hand, citing nothing.
+    ["wiki/handover", []],
+  ];
+  for (const [slug, sources] of pages) {
+    nodes.push({ id: `page:${slug}`, kind: "page", label: slug, ref: slug, href: null });
+    for (const path of sources) {
+      edges.push({
+        id: `cites:${slug}→${path}`,
+        source: `page:${slug}`,
+        target: `source:${path}`,
+        relation: "cites",
+        certainty: "current",
+      });
+    }
+  }
+  return { nodes, edges, counts: { sources: 7, pages: 4, concepts: 0, cites: edges.length, mentions: 0 } };
+}
+
+/** Every mark with no relation at all — the ones the ring exists for. */
+const LOOSE_IDS = [
+  "source:sources/design-system.docx",
+  "source:sources/interview-notes.txt",
+  "source:sources/kickoff-notes.html",
+  "page:wiki/handover",
+];
 
 function totalSpeed(nodes: readonly { vx: number; vy: number }[]): number {
   return nodes.reduce((sum, node) => sum + Math.hypot(node.vx, node.vy), 0);
@@ -383,6 +430,144 @@ describe("the library graph's force simulation", () => {
     const shrunk = syncLibrarySimulation(sim, graph);
     expect(shrunk.removed.map((node) => node.id)).toEqual(["page:wiki/fresh"]);
     expect(shrunk.removed[0]!.x).toBeCloseTo(fresh.x, 5);
+  });
+
+  /**
+   * **The scattered-orphan case** — the review frame of 2026-09-07,
+   * `.claude/shots-2026-09-07/review/10-library-graph-rest.png`, made falsifiable.
+   *
+   * A degree-0 mark had no spring to answer for it, so it was placed by repulsion against
+   * gravity alone, and that balance is not a place: on the owner's seeded folder the four
+   * loose marks went to four different walls, one of them into the bottom-right corner
+   * under the fit control, while the two real components sat small in the middle. The
+   * claims below are the composition, not the coincidence, and they are made at four box
+   * shapes because a ring that only holds at one aspect is a tuned constant.
+   *
+   * Measured on this fixture at 1046×620, loose marks only: distance from the ring, 0.83
+   * to 1.54 of the mass's own radius before and 0.97 to 1.00 after; smallest angular gap
+   * 0.30 rad before and 1.57 after; marks within 60px of two canvas edges at once, two
+   * before and none after; canvas filled 78.2% wide before and 89.1% after, which is the
+   * whole of what the fit's padding leaves.
+   */
+  it("settles an unattached mark on a ring around the connected mass, never against a wall", () => {
+    for (const box of [BOX, { width: 1156, height: 847 }, { width: 1400, height: 393 }, { width: 420, height: 300 }]) {
+      const shape = `${box.width}×${box.height}`;
+      const sim = settleLibrarySimulation(createLibrarySimulation({ graph: looseFolder(), box }));
+      const at = (id: string) => sim.nodes[sim.index.get(id)!]!;
+      const ring = libraryOrphanRing(sim);
+      expect(ring, `no ring at ${shape}`).not.toBeNull();
+      const radialOf = (node: { x: number; y: number }) =>
+        Math.hypot((node.x - ring!.cx) / ring!.rx, (node.y - ring!.cy) / ring!.ry);
+
+      // ── On the band, not merely somewhere outside ──────────────────────────────────
+      for (const id of LOOSE_IDS) {
+        expect(radialOf(at(id)), `${id} left the ring band at ${shape}`).toBeGreaterThan(0.82);
+        expect(radialOf(at(id)), `${id} left the ring band at ${shape}`).toBeLessThan(1.18);
+      }
+      // And the ring really is around the mass: nothing the springs hold reaches it.
+      const massEdge = Math.max(...sim.nodes.filter((node) => node.orbit === null).map(radialOf));
+      const nearest = Math.min(...LOOSE_IDS.map((id) => radialOf(at(id))));
+      expect(massEdge, `the ring runs through the mass at ${shape}`).toBeLessThan(nearest);
+
+      // ── Spread, because two loose marks in one direction is the old picture ─────────
+      const angles = LOOSE_IDS.map((id) => Math.atan2(at(id).y - ring!.cy, at(id).x - ring!.cx)).sort(
+        (first, second) => first - second,
+      );
+      const gaps = angles.map((angle, position) =>
+        position === 0 ? angles[0]! + Math.PI * 2 - angles.at(-1)! : angle - angles[position - 1]!,
+      );
+      expect(Math.min(...gaps), `two loose marks share a direction at ${shape}`).toBeGreaterThan(
+        ((Math.PI * 2) / LOOSE_IDS.length) * 0.8,
+      );
+
+      /*
+       * ── Inside the canvas, in the pixels a person is looking at ───────────────────
+       *
+       * ⚠️ Measured **after the fit**, which is the only place the claim means anything:
+       * the simulation's box is a field shape, and it is `fitView` that decides where a
+       * world coordinate lands on the canvas. It reserves `LIBRARY_LABEL_ALLOWANCE` on
+       * every side for the name that stands under the outermost mark — the same number the
+       * ring's own documentation is written against.
+       */
+      const view = fitView(librarySimulationBounds(sim), box, LIBRARY_LABEL_ALLOWANCE);
+      for (const id of LOOSE_IDS) {
+        const point = worldToScreen(at(id), view, box);
+        const fromSide = Math.min(point.x, box.width - point.x);
+        const fromEnd = Math.min(point.y, box.height - point.y);
+        expect(fromSide, `${id} is against a side wall at ${shape}`).toBeGreaterThanOrEqual(
+          LIBRARY_LABEL_ALLOWANCE - 0.5,
+        );
+        expect(fromEnd, `${id} is against the top or bottom at ${shape}`).toBeGreaterThanOrEqual(
+          LIBRARY_LABEL_ALLOWANCE - 0.5,
+        );
+        // And never against two of them at once. A mark that is the outermost thing on
+        // both axes lands in a corner however generous the margin is, which is where
+        // `kickoff-notes.html` was found, 40px from the fit control.
+        expect(
+          Math.max(fromSide, fromEnd),
+          `${id} sits in a corner at ${shape}`,
+        ).toBeGreaterThan(Math.min(box.width, box.height) * 0.15);
+      }
+    }
+  });
+
+  /**
+   * The ring is a **place**, not a pin. The decision the ring lands under is the one that
+   * made this canvas live, so an orphan that could not be pulled out of shape, or that
+   * stayed where it was dropped, would answer the wall complaint by breaking the record it
+   * is written under.
+   */
+  it("lets an unattached mark be dragged off its ring slot and brings it home again", () => {
+    const sim = settleLibrarySimulation(createLibrarySimulation({ graph: looseFolder(), box: BOX }));
+    const id = "page:wiki/handover";
+    const at = () => sim.nodes[sim.index.get(id)!]!;
+    const home = { x: at().x, y: at().y };
+
+    pinLibraryNode(sim, id, { x: 0, y: 0 });
+    stepLibrarySimulation(sim);
+    expect(at().x).toBe(0);
+    expect(at().y).toBe(0);
+
+    releaseLibraryNode(sim, id);
+    reheatLibrarySimulation(sim);
+    settleLibrarySimulation(sim);
+    const ring = libraryOrphanRing(sim)!;
+    // Home is the slot, not the pixel: the mark shoved its way through the mass on the way
+    // in, so the mass — and with it the ring the mass decides — is a little different.
+    expect(Math.hypot(at().x, at().y), "the released mark stayed where it was dropped").toBeGreaterThan(100);
+    expect(
+      Math.hypot(at().x - home.x, at().y - home.y),
+      "the released mark did not come home",
+    ).toBeLessThan(ring.rx * 0.15);
+  });
+
+  /**
+   * The slots are handed out by sorted id, so the same folder draws the same ring —
+   * including after a page gains its first citation and stops being an orphan at all.
+   */
+  it("takes the ring slot back from a mark that gains a relation", () => {
+    const graph = looseFolder();
+    const sim = settleLibrarySimulation(createLibrarySimulation({ graph, box: BOX }));
+    expect(sim.nodes.filter((node) => node.orbit !== null).map((node) => node.id).sort()).toEqual(
+      [...LOOSE_IDS].sort(),
+    );
+
+    const joined: LibraryGraph = {
+      ...graph,
+      edges: [
+        ...graph.edges,
+        {
+          id: "cites:wiki/handover→sources/kickoff-notes.html",
+          source: "page:wiki/handover",
+          target: "source:sources/kickoff-notes.html",
+          relation: "cites",
+          certainty: "current",
+        },
+      ],
+    };
+    syncLibrarySimulation(sim, joined);
+    const still = sim.nodes.filter((node) => node.orbit !== null).map((node) => node.id).sort();
+    expect(still).toEqual(["source:sources/design-system.docx", "source:sources/interview-notes.txt"]);
   });
 
   it("grades the mark by degree inside the 5–10px band, keeping the source a step smaller", () => {
