@@ -739,11 +739,16 @@ export function LibraryPage() {
    * **Folding moves focus with the control that vanished.** Both halves of this toggle are
    * the same act, so the hand that pressed one has to land on the other; without it a
    * keyboard press dropped focus to `<body>` and Tab restarted at the top of the document.
+   *
+   * The pending side is a **ref**, not state: the effect below consumes it, and a `setState`
+   * to clear it would be a cascading render for a value nothing renders
+   * (`react-hooks/set-state-in-effect`). The preference itself is what re-renders, so the
+   * effect already runs exactly when the control it must reach has appeared.
    */
-  const [focusIndexControl, setFocusIndexControl] = useState<"tab" | "head" | null>(null);
+  const pendingIndexFocusRef = useRef<"tab" | "head" | null>(null);
   const setIndexCollapsed = useCallback((next: boolean) => {
+    pendingIndexFocusRef.current = next ? "tab" : "head";
     writeLibraryIndexCollapsed(next);
-    setFocusIndexControl(next ? "tab" : "head");
   }, []);
   /**
    * **The bar was the "there is more" mark, so a fade takes its place** (2026-09-07).
@@ -783,11 +788,11 @@ export function LibraryPage() {
   }, [indexSegment, measureIndexEdges, model.sources.length, model.wikiPages.length]);
 
   useEffect(() => {
-    if (focusIndexControl === null) return;
-    const target = focusIndexControl === "tab" ? indexTabRef.current : indexCollapseRef.current;
-    target?.focus();
-    setFocusIndexControl(null);
-  }, [focusIndexControl, indexCollapsed]);
+    const pending = pendingIndexFocusRef.current;
+    if (pending === null) return;
+    pendingIndexFocusRef.current = null;
+    (pending === "tab" ? indexTabRef.current : indexCollapseRef.current)?.focus();
+  }, [indexCollapsed]);
   /**
    * **Choosing a file closes the guide, by any route** (design-interaction, 2026-09-06).
    *
