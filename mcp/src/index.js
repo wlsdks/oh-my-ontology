@@ -4652,7 +4652,9 @@ const TOOLS = [
       'A wiki page is **not** an ontology node — it carries no `kind:` by contract, which is what keeps it out ' +
       'of the graph — so `validate_vault` says nothing about whether one fits its own shape. This is that answer. ' +
       'Problem codes: kind-present, missing-field:<key>, section-order, uncited-fact, bad-citation, ' +
-      'citation-target-missing, describes-needs-approval. ' +
+      'bad-truncation-record, citation-target-missing, describes-needs-approval. ' +
+      'The optional `sources_truncated:` key lists which paths in `sources:` the run read only part of; ' +
+      'it is what lets a reader tell a document written up whole from one written up in part. ' +
       'Returns `{ pageCount, failingCount, pages: [{path, problems: [{code, message, line?}]}] }` — the same shape ' +
       '`ontology-atlas wiki-validate --json` prints, so a person and an agent read one report. ' +
       'side effect 0. Use it after writing or editing a page, and before claiming a compile finished.',

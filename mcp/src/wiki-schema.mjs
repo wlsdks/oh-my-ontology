@@ -21,6 +21,9 @@ import { parseFrontmatter } from './parser.mjs';
  *   - `sources` says which files it came from;
  *   - `source_hash` says which *version* of those files, so the claim can go stale
  *     out loud instead of silently;
+ *   - `sources_truncated` says which of them the run only read part of, because a hash
+ *     that matches every byte of a file only the first pages of which were read is a
+ *     true statement that reads as a false one;
  *   - every bullet under `## Facts` ends in a citation, so a reader can check one
  *     sentence without re-reading the document.
  *
@@ -100,6 +103,14 @@ export const WIKI_FIELDS = Object.freeze([
     key: 'summary',
     required: true,
     description: 'One sentence. What this page is about, not how it was made.',
+  }),
+  Object.freeze({
+    key: 'sources_truncated',
+    required: false,
+    description:
+      'The subset of `sources` this run read only part of, because the file was longer than ' +
+      'the per-read cap. Every path here must also be in `sources`. Absent means the page ' +
+      'was written from whole files.',
   }),
   Object.freeze({
     key: 'describes',
@@ -350,6 +361,40 @@ export function validateWikiPage(raw, options = {}) {
       ? [frontmatter.sources.trim()]
       : [];
   const known = options.knownSources ? new Set(options.knownSources) : null;
+
+  // 6. `sources_truncated`: a boundary a reader can place, or no boundary at all. The
+  //    Library reads it to say `partial` where it would otherwise say `compiled`, and it
+  //    reads it only for paths the page cites — so a path outside `sources:` reaches no
+  //    screen, and is reported here rather than discovered as a row that never changed.
+  if (Object.prototype.hasOwnProperty.call(frontmatter, 'sources_truncated')) {
+    const raw = frontmatter.sources_truncated;
+    const listed = Array.isArray(raw)
+      ? raw.filter((value) => typeof value === 'string').map((value) => value.trim())
+      : typeof raw === 'string' && raw.trim()
+        ? [raw.trim()]
+        : null;
+    if (listed === null) {
+      problems.push(
+        problem(
+          'bad-truncation-record',
+          '`sources_truncated:` is a list of the paths in `sources:` that were read only in ' +
+            'part. This value is not a list of paths, so it records no boundary at all.',
+        ),
+      );
+    } else {
+      for (const path of listed) {
+        if (declaredSources.includes(path)) continue;
+        problems.push(
+          problem(
+            'bad-truncation-record',
+            `\`${path}\` is under \`sources_truncated:\` but not under \`sources:\`. The key says ` +
+              'which of this page\'s own sources stop short, so a path the page does not cite ' +
+              'names a boundary no reader can place.',
+          ),
+        );
+      }
+    }
+  }
 
   for (const bullet of sectionBullets(body, frontmatterLines, sections, 'Facts')) {
     if (extractWikiCitations(bullet.text).length === 0) {

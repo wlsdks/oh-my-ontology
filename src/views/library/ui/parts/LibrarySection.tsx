@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
@@ -27,6 +27,7 @@ import { Chip, RowButton, Tooltip } from "@/shared/ui";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 
 import { isAdvisoryWikiCode, isWikiFolderCode } from "../../lib/merge-wiki-verdict";
+import { libraryWaitingLine } from "../../lib/stage-steps";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 
 /**
@@ -78,6 +79,9 @@ import type { LibraryUiModel } from "../../lib/use-library-model";
  * the loudest thing in the column. A chip is now spent only where a person can act:
  * stale, off-template, not yet written up. Success is a check in the row's own ink.
  */
+
+/** Candidate rows drawn before the list folds; the rail's height at 14 inches fits five with the wiki list above. */
+const CANDIDATE_FOLD = 5;
 
 export interface LibrarySectionProps {
   model: LibraryUiModel;
@@ -242,8 +246,19 @@ export function LibrarySection({
   busy,
   t,
 }: LibrarySectionProps) {
+  /*
+   * A long candidate list pushed the wiki pages off the rail (installed app, 2026-09-07:
+   * ten names). Five rows show — the map kinds first, since those carry the one door
+   * this list has — and the rest fold behind a count a person can open.
+   */
+  const [candidatesOpen, setCandidatesOpen] = useState(false);
+  const orderedCandidates = [...candidates].sort((a, b) => Number(isMapKind(b.kind)) - Number(isMapKind(a.kind)));
+  const shownCandidates = candidatesOpen ? orderedCandidates : orderedCandidates.slice(0, CANDIDATE_FOLD);
+  const foldedCandidates = orderedCandidates.length - shownCandidates.length;
   const hasSources = model.sources.length > 0;
   const hasWiki = model.wikiPages.length > 0;
+  /** What is still waiting, in words — the same line step two's caption prints. */
+  const waitingLine = libraryWaitingLine(model, t);
   /** Pages whose **own** shape misses the template — the rows that wear the amber pill. */
   const offTemplateRows = [...model.verdicts.values()].filter((verdict) =>
     verdict.problems.some((problem) => !isWikiFolderCode(problem.code)),
@@ -364,8 +379,23 @@ export function LibrarySection({
                           {stateLabel}
                         </span>
                       ) : (
+                        /*
+                         * ⚠️ **Amber marks a row to act on, not a page that is wrong**
+                         * (owner, 2026-09-07). `partial` shipped in the quiet border on the
+                         * reasoning that the page is right about everything it says — but
+                         * the shelf counts it with the waiting sources and Compile will act
+                         * on it, and a neutral chip on such a row reads as *nothing to do*.
+                         * So it wears the amber `stale` wears, and the two are told apart
+                         * by their words (`read in part` against `stale`), which is the
+                         * fact rather than a temperature. `not-compiled` keeps the quiet
+                         * border: nothing is wrong there and nobody has started.
+                         */
                         <StateBadge
-                          tone={row.state === "stale" ? "warning" : "neutral"}
+                          tone={
+                            row.state === "stale" || row.state === "partial"
+                              ? "warning"
+                              : "neutral"
+                          }
                           testId={`library-source-state-${row.state}`}
                         >
                           {stateLabel}
@@ -376,17 +406,8 @@ export function LibrarySection({
                 );
               })}
             </ul>
-            {model.needsCompileCount > 0 ? (
-              <ListNote testId="library-needs-compile">
-                {model.staleCount > 0 && model.notCompiledCount > 0
-                  ? t("sources.needsCompileSplit", {
-                      notCompiled: model.notCompiledCount,
-                      stale: model.staleCount,
-                    })
-                  : model.staleCount > 0
-                    ? t("sources.staleOnly", { count: model.staleCount })
-                    : t("sources.needsCompile", { count: model.notCompiledCount })}
-              </ListNote>
+            {waitingLine ? (
+              <ListNote testId="library-needs-compile">{waitingLine}</ListNote>
             ) : null}
           </>
         ) : (
@@ -651,7 +672,7 @@ export function LibrarySection({
               {t("wiki.candidatesHeader", { count: candidates.length })}
             </p>
             <ul className="flex flex-col gap-0.5">
-              {candidates.map((candidate) => (
+              {shownCandidates.map((candidate) => (
                 <li
                   key={`${candidate.name}\u0000${candidate.pages.join(",")}`}
                   data-testid="library-candidate"
@@ -686,6 +707,17 @@ export function LibrarySection({
                 </li>
               ))}
             </ul>
+            {foldedCandidates > 0 || candidatesOpen ? (
+              <Chip
+                data-testid="library-candidates-fold"
+                tone="muted"
+                className="mt-1"
+                onClick={() => setCandidatesOpen((open) => !open)}
+                aria-expanded={candidatesOpen}
+              >
+                {candidatesOpen ? t("wiki.candidatesLess") : t("wiki.candidatesMore", { count: foldedCandidates })}
+              </Chip>
+            ) : null}
           </section>
         ) : null}
       </section>

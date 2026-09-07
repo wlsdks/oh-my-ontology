@@ -1,3 +1,5 @@
+import type { useTranslations } from "next-intl";
+
 import type { LibraryUiModel } from "./use-library-model";
 
 /**
@@ -43,6 +45,47 @@ export interface LibraryStepStates {
   leadIndex: number;
   /** Sources listed but not yet measured — the count the `checking` word stands for. */
   checkingCount: number;
+}
+
+/**
+ * **What is still waiting, in the clauses a person acts on.**
+ *
+ * Three unfinished states, and they are not one number: a source nobody wrote up, a page
+ * that has fallen behind its bytes, and a page written from the first part of a long file
+ * are three different pieces of work. `needsCompileCount` adds them together for the
+ * button; this is the same arithmetic as words, and it is one function because the index's
+ * footnote and step two's caption both print it — two copies would disagree the first time
+ * either was edited, and they would disagree in one viewport.
+ *
+ * Returns null when nothing is waiting, which is the caller's cue to say something else
+ * rather than to print a zero.
+ */
+export function libraryWaitingLine(
+  model: Pick<LibraryUiModel, "notCompiledCount" | "staleCount" | "partialCount">,
+  t: ReturnType<typeof useTranslations<"library">>,
+): string | null {
+  const clauses: string[] = [];
+  if (model.notCompiledCount > 0 && model.staleCount > 0) {
+    clauses.push(
+      t("sources.needsCompileSplit", {
+        notCompiled: model.notCompiledCount,
+        stale: model.staleCount,
+      }),
+    );
+  } else if (model.staleCount > 0) {
+    clauses.push(t("sources.staleOnly", { count: model.staleCount }));
+  } else if (model.notCompiledCount > 0) {
+    clauses.push(t("sources.needsCompile", { count: model.notCompiledCount }));
+  }
+  /*
+   * Last, and never folded into the two above. A page that read part of a long file is
+   * the least urgent of the three — it is right about what it covers — so it is named
+   * after the work that is actually missing rather than counted alongside it.
+   */
+  if (model.partialCount > 0) {
+    clauses.push(t("sources.partialOnly", { count: model.partialCount }));
+  }
+  return clauses.length === 0 ? null : clauses.join(" · ");
 }
 
 export function libraryStepStates(

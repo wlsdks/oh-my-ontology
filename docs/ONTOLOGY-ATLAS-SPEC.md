@@ -705,6 +705,7 @@ node because of its folder, its frontmatter, or its prose.
 | `compiled_at` | yes | ISO-8601 timestamp of the run that produced the text |
 | `sources` | yes | list of vault-relative paths under `sources/`; MAY be empty |
 | `source_hash` | yes | map of those paths to the sha256 of the bytes read; MAY be empty |
+| `sources_truncated` | no | the subset of `sources` this run read only part of; every entry MUST be in `sources` |
 | `status` | yes | `draft` until a person has read it, `reviewed` after |
 | `summary` | yes | one sentence about what the page is about |
 | `describes` | no | ontology slugs the page speaks for; allowed only on a `reviewed` page |
@@ -712,6 +713,15 @@ node because of its folder, its frontmatter, or its prose.
 `source_hash` is what lets a page go stale **out loud**: a reader hashes the file
 on disk and compares. Without it, a citation says only "somebody once read
 something with this name."
+
+`sources_truncated` is the other half of that honesty. A long document is cut at
+the writer's per-read cap, and the hash still covers every byte of the file — so
+a page written from the first forty pages of two hundred records a hash that
+matches, and a reader comparing hashes alone is told the document is written up.
+A conformant writer MUST list there every path in `sources` it read only part
+of, and MUST omit the key when it read them all: an empty list on every page ever
+compiled is a key nobody reads. A reader MAY use it to distinguish a source
+described whole from one described in part (`/library` says *read in part*).
 
 `describes` on a `draft` is an unapproved claim about the graph and MUST be
 reported (`describes-needs-approval`). A person raises the status; a compiler
@@ -768,6 +778,7 @@ NOT**.
 | `section-order` | the five sections are not all present in order |
 | `uncited-fact` | a bullet under `## Facts` carries no citation |
 | `bad-citation` | text shaped like a citation the syntax cannot resolve |
+| `bad-truncation-record` | `sources_truncated:` is not a list of paths, or names a path not in `sources:` |
 | `citation-target-missing` | a cited path is not in `sources:`, or not in the folder |
 | `describes-needs-approval` | `describes:` on a page that is not `reviewed` |
 

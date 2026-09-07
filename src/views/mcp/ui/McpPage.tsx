@@ -8,6 +8,7 @@ import { AgentSetupSection } from '@/widgets/app-settings-menu';
 import { ConnectorsPanel, useVaultConnectors } from '@/features/mcp-connectors';
 import { OpenVaultCta } from '@/features/docs-vault-local';
 import { useLocalVault } from '@/entities/vault-session';
+import { selectOpenVaultHandle } from '@/shared/lib/select-open-vault-handle';
 import { TabBar } from '@/shared/ui';
 import { useSwapHeight } from '@/shared/lib/use-presence';
 import { PAGE_FRAME_FORM, PAGE_HEADER_ROW, PAGE_TITLE_ROW } from '@/shared/ui/page-frame';
@@ -48,7 +49,8 @@ import { buildMcpTabHref, parseMcpTab, type McpTab } from '../lib/mcp-tab-state'
 export function McpPage() {
   const t = useTranslations('mcp');
   const localVault = useLocalVault();
-  const handle = localVault.status === 'loaded' ? (localVault.handle ?? null) : null;
+  // Kept across a rescan: a null handle here re-read the connectors from nothing each time.
+  const handle = selectOpenVaultHandle(localVault.status, localVault.handle);
 
   /*
    * **One store, read by both the tab strip and the panel.** The count beside the "Connectors"

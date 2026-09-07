@@ -6504,6 +6504,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — A page records which of its sources it read only in part",
+      "slug": "2026-09-07-a-page-records-which-of-its-sources-it-read-only-in-part"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — Markdown under sources/ is a raw source, not a shadow page",
       "slug": "2026-09-07-markdown-under-sources-is-a-raw-source-not-a-shadow-page"
     },

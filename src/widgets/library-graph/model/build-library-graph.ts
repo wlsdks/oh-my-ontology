@@ -41,7 +41,12 @@ export type LibraryGraphNodeKind = "source" | "page" | "concept";
  * uses (`SourceCompileState`). It is optional only so a caller that has not measured
  * anything can still draw the shape of the folder.
  */
-export type LibraryGraphSourceState = "not-compiled" | "compiled" | "stale" | "checking";
+export type LibraryGraphSourceState =
+  | "not-compiled"
+  | "compiled"
+  | "partial"
+  | "stale"
+  | "checking";
 
 export interface LibraryGraphNode {
   /** `source:<path>` · `page:<slug>` · `concept:<slug>`. Stable across renders. */
@@ -200,7 +205,15 @@ export function buildLibraryGraph({
         source: from,
         target: to,
         relation: "cites",
-        certainty: sourceState.get(path) === "compiled" ? "current" : "unverified",
+        /*
+         * `partial` is believed. The page recorded a hash that still matches, so the line
+         * "this write-up was made from that file" is true — it is the *coverage* that
+         * stops short, which the row's own word says and a dashed line would not.
+         */
+        certainty:
+          sourceState.get(path) === "compiled" || sourceState.get(path) === "partial"
+            ? "current"
+            : "unverified",
       });
     }
 

@@ -4446,6 +4446,10 @@
           "label": "정리됨",
           "hint": "{pages} 이(가) 정리했고, 그 뒤로 파일이 바뀌지 않았습니다."
         },
+        "partial": {
+          "label": "일부만 읽음",
+          "hint": "{pages} 은(는) 이 파일의 앞부분만 읽어서, 나머지는 아직 정리되지 않았습니다."
+        },
         "stale": {
           "label": "달라짐",
           "hint": "{pages} 은(는) 이 파일의 다른 판에서 쓰였거나, 해시를 남기지 않았습니다."
@@ -4463,6 +4467,7 @@
       "openFailed": "그 파일을 열지 못했습니다.",
       "needsCompileSplit": "{notCompiled}개는 아직 정리되지 않았고, {stale}개는 원문이 달라졌습니다",
       "staleOnly": "{count}개는 원문이 달라져 문서가 뒤처졌습니다",
+      "partialOnly": "{count}개는 앞부분만 읽었습니다",
       "import": "외부에서 가져오기",
       "importTooltip": "Notion·Confluence·Jira·GitHub 에서 문서를 가져와요"
     },
@@ -4525,7 +4530,9 @@
       "logRevised": "고침",
       "logNothingNew": "새 내용 없음",
       "emptyNoTemplate": "아직 위키 문서가 없고 서식도 없습니다. 설정 › 작업 공간에서 위키를 시작하면 wiki/_template.md 가 생기고, 문서는 그 서식을 따릅니다.",
-      "folderMark": "끊긴 링크"
+      "folderMark": "끊긴 링크",
+      "candidatesMore": "이름 {count}개 더 보기",
+      "candidatesLess": "접기"
     },
     "graph": {
       "title": "그래프",
@@ -4576,6 +4583,7 @@
       "viewWriteUp": "정리본 보기",
       "writeUp": {
         "current": "지금 내용",
+        "partial": "앞부분만",
         "behind": "뒤처짐",
         "unchecked": "확인 전"
       }
@@ -4601,14 +4609,16 @@
       "compile": {
         "title": "정리",
         "brainLabel": "쓰는 쪽",
-        "checkingLine": "원문 {count}개를 문서와 맞춰 보는 중입니다"
+        "checkingLine": "원문 {count}개를 문서와 맞춰 보는 중입니다",
+        "partialLine": "앞부분만 읽힌 파일은 다시 정리하면 나머지까지 담깁니다."
       },
       "read": {
         "title": "읽기",
         "startWith": "{title} 부터 읽기",
         "nothingYet": "아직 위키 문서가 없습니다. 정리를 시작하면 첫 문서가 만들어집니다.",
         "coveredLine": "원문 {total}개 중 {compiled}개 정리됨",
-        "coveredChecking": "원문 {total}개 중 {compiled}개 정리됨 · {checking}개 확인 중"
+        "coveredChecking": "원문 {total}개 중 {compiled}개 정리됨 · {checking}개 확인 중",
+        "coveredPartial": "원문 {total}개 중 {compiled}개 정리됨 · {partial}개는 앞부분만 읽음"
       },
       "brainAgent": "{name}",
       "brainLocal": "{model} · {host}",
@@ -4629,7 +4639,8 @@
       "statusOffTemplate": "서식 벗어남 {count}개",
       "statusReady": "원문이 모두 정리되었습니다",
       "statusUnlinked": "끊긴 링크 {count}개",
-      "statusChecking": "확인 중 {count}개"
+      "statusChecking": "확인 중 {count}개",
+      "statusPartial": "일부만 읽음 {count}개"
     },
     "localCompile": {
       "title": "쓸 준비가 됐어요",

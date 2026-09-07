@@ -18,7 +18,7 @@ import {
 import type { LocalCompileSession } from "@/features/vault-agent";
 
 import type { CompileBrain } from "../../lib/compile-brain";
-import { libraryStepStates, type LibraryStepState } from "../../lib/stage-steps";
+import { libraryStepStates, libraryWaitingLine, type LibraryStepState } from "../../lib/stage-steps";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 import type { LibraryLocalModel } from "../../lib/use-library-agent";
 import { CompileBrainSelect } from "./CompileBrainSelect";
@@ -254,21 +254,14 @@ export function LibraryStage({
    * 2026-09-07). The caption keeps it, because a row's caption is always drawn; the
    * paragraph under the button appears only when it has something else to say.
    */
+  const waitingLine = libraryWaitingLine(model, t);
   const compileCaption =
-    model.needsCompileCount === 0
-      ? checkingCount > 0
-        ? // Not "every source already has a write-up that matches its bytes": nothing has
-          // been measured yet, so that sentence would be a claim about files nobody read.
-          t("stage.compile.checkingLine", { count: checkingCount })
-        : t("stage.blockedNothingWaiting")
-      : model.staleCount > 0 && model.notCompiledCount > 0
-        ? t("sources.needsCompileSplit", {
-            notCompiled: model.notCompiledCount,
-            stale: model.staleCount,
-          })
-        : model.staleCount > 0
-          ? t("sources.staleOnly", { count: model.staleCount })
-          : t("sources.needsCompile", { count: model.notCompiledCount });
+    waitingLine ??
+    (checkingCount > 0
+      ? // Not "every source already has a write-up that matches its bytes": nothing has
+        // been measured yet, so that sentence would be a claim about files nobody read.
+        t("stage.compile.checkingLine", { count: checkingCount })
+      : t("stage.blockedNothingWaiting"));
 
   /**
    * The reason under the button, unless the caption above it is already that sentence.
@@ -285,6 +278,16 @@ export function LibraryStage({
       ? compileCaption
       : blocked;
   const blockedBelow = blockedReason && blockedReason !== compileCaption ? blockedReason : null;
+
+  /**
+   * **Why a partial read is worth a second run**, once and without a number.
+   *
+   * The caption above already counts them, and this screen's standing rule is that a
+   * reason is not printed twice. What the count cannot say is that the cure is the
+   * ordinary Compile button already sitting in this row — so this is the sentence and not
+   * a control: a partial page needs the same press, not a different one.
+   */
+  const partialNote = model.partialCount > 0 ? t("stage.compile.partialLine") : null;
 
   return (
     <div data-testid="library-stage" className="w-full px-3 pb-3 pt-2">
@@ -422,7 +425,7 @@ export function LibraryStage({
             </>
           }
           extra={
-            blockedBelow || (localCompile && route === "local") || transfer ? (
+            blockedBelow || partialNote || (localCompile && route === "local") || transfer ? (
               <div className="mt-2 flex flex-col gap-1.5">
                 {blockedBelow ? (
                   <p
@@ -431,6 +434,16 @@ export function LibraryStage({
                     className="text-caption leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
                   >
                     {blockedBelow}
+                  </p>
+                ) : null}
+                {/* After the reason, never before it: why the button is dead is what a
+                    person reads first, and this is what the press would be worth. */}
+                {partialNote ? (
+                  <p
+                    data-testid="library-stage-compile-partial"
+                    className="text-caption leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
+                  >
+                    {partialNote}
                   </p>
                 ) : null}
                 {localCompile && route === "local" ? (
@@ -460,6 +473,11 @@ export function LibraryStage({
              done, because `needsCompileCount` counts only what is *known* to be waiting.
              The third clause is what makes the two agree.
           */
+          /*
+            A part-read source is not written up, so it is not in `compiled`; with one page
+            on the shelf the plain line read "0 of 2 written up" and looked like a folder
+            with no pages at all. The third clause is the same repair the `checking` one is.
+          */
           caption={
             checkingCount > 0
               ? t("stage.read.coveredChecking", {
@@ -467,7 +485,13 @@ export function LibraryStage({
                   total: sourceCount,
                   checking: checkingCount,
                 })
-              : t("stage.read.coveredLine", { compiled: compiledCount, total: sourceCount })
+              : model.partialCount > 0
+                ? t("stage.read.coveredPartial", {
+                    compiled: compiledCount,
+                    total: sourceCount,
+                    partial: model.partialCount,
+                  })
+                : t("stage.read.coveredLine", { compiled: compiledCount, total: sourceCount })
           }
           state={readState}
           t={t}

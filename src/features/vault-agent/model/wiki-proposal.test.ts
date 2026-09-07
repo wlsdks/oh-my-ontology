@@ -193,6 +193,42 @@ describe('buildWikiPageProposal — the page Atlas is willing to show', () => {
     ]);
   });
 
+  /**
+   * **The card is read once; the frontmatter is read for as long as the page exists.**
+   *
+   * The sentence under `## Not in sources` tells the next reader. `sources_truncated:`
+   * tells the next *reader of the folder* — it is what lets the Library say `partial`
+   * where a matching hash alone would let it say `compiled`, and half a document would
+   * then disappear with nobody told (`vault-library.ts`).
+   */
+  it('records the partial read in frontmatter, where the Library can read it back', () => {
+    const proposal = buildWikiPageProposal(fields(), {
+      reads: [planRead({ truncated: true })],
+      model: 'qwen3:8b',
+      now: NOW,
+    });
+
+    expect(proposal.ok).toBe(true);
+    expect(proposal.page).toContain('sources_truncated:\n  - sources/quarter-plan.md\n');
+    // Only its own sources, and in the frontmatter block rather than loose in the body.
+    const frontmatter = proposal.page.slice(0, proposal.page.indexOf('\n---\n', 3));
+    expect(frontmatter).toContain('sources_truncated:');
+  });
+
+  it('leaves the key out entirely when every file was read whole', () => {
+    const proposal = buildWikiPageProposal(fields(), {
+      reads: [planRead()],
+      model: 'qwen3:8b',
+      now: NOW,
+    });
+
+    expect(proposal.ok).toBe(true);
+    // Not `sources_truncated: []`. A key that is on every page ever compiled is a key
+    // nobody reads, and an empty list records a boundary that does not exist.
+    expect(proposal.page).not.toContain('sources_truncated');
+    expect(proposal.sourcesTruncated).toEqual([]);
+  });
+
   it('writes the Summary as prose and every other section as a list', () => {
     const proposal = buildWikiPageProposal(
       fields({ overview: ['Two sentences.', 'And a second one.'] }),

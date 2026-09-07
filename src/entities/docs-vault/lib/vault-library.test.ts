@@ -224,7 +224,123 @@ describe('what the shelf counts', () => {
     });
     expect(model.staleCount).toBe(1);
     expect(model.notCompiledCount).toBe(1);
+    expect(model.partialCount).toBe(0);
     expect(model.needsCompileCount).toBe(2);
+  });
+});
+
+/**
+ * **Half a document is not a written-up document.**
+ *
+ * A long file is cut at the per-read cap, and the page still records a hash of the whole
+ * file — so the hash matches and the row said `compiled` while the second half of a
+ * 200-page PDF had never reached any page. `sources_truncated:` is the writer's record of
+ * exactly that, and these cases are the four ways it can be read wrong.
+ */
+describe('a source only part of which reached a page', () => {
+  const PARTIAL_DOCS: VaultDoc[] = [
+    wiki(
+      'wiki/quarter-plan',
+      {
+        sources: ['sources/plan.pdf'],
+        source_hash: { 'sources/plan.pdf': PLAN_HASH },
+        sources_truncated: ['sources/plan.pdf'],
+        compiled_at: '2026-09-07T10:00:00Z',
+      },
+      'Quarter plan',
+    ),
+  ];
+
+  const modelWith = (docs: VaultDoc[], hash = PLAN_HASH) =>
+    buildLibraryModel({
+      sources: [source('sources/plan.pdf')],
+      docs,
+      hashes: new Map([['sources/plan.pdf', hash]]),
+    });
+
+  it('says partial rather than compiled while the bytes still match', () => {
+    const model = modelWith(PARTIAL_DOCS);
+    expect(model.sources[0].state).toBe('partial');
+    expect(model.partialCount).toBe(1);
+  });
+
+  it('counts it as work Compile can still do, so the shelf offers the second read', () => {
+    const model = modelWith(PARTIAL_DOCS);
+    expect(model.needsCompileCount).toBe(1);
+    // …and never as one of the other two. A partial page is not a missing page, and it is
+    // not a page behind its bytes; a screen adding these up would count one file twice.
+    expect(model.notCompiledCount).toBe(0);
+    expect(model.staleCount).toBe(0);
+  });
+
+  /**
+   * The precedence that matters: a page that read half a file, of a file that has since
+   * been replaced, is not describing half of what is on disk. It is describing half of
+   * something else, and `stale` is the word for that.
+   */
+  it('becomes stale, not partial, once the file changes underneath it', () => {
+    const model = modelWith(PARTIAL_DOCS, 'd'.repeat(64));
+    expect(model.sources[0].state).toBe('stale');
+    expect(model.partialCount).toBe(0);
+    expect(model.staleCount).toBe(1);
+  });
+
+  it('is compiled again as soon as one page has read the file whole', () => {
+    const model = modelWith([
+      ...PARTIAL_DOCS,
+      wiki(
+        'wiki/full-take',
+        { sources: ['sources/plan.pdf'], source_hash: { 'sources/plan.pdf': PLAN_HASH } },
+        'Full take',
+      ),
+    ]);
+    expect(model.sources[0].state).toBe('compiled');
+    expect(model.needsCompileCount).toBe(0);
+  });
+
+  it('tells the source pane which write-up stops short and which does not', () => {
+    const model = modelWith([
+      ...PARTIAL_DOCS,
+      wiki(
+        'wiki/full-take',
+        { sources: ['sources/plan.pdf'], source_hash: { 'sources/plan.pdf': PLAN_HASH } },
+        'Full take',
+      ),
+    ]);
+    expect(model.pairing.writeUpsBySource.get('sources/plan.pdf')).toEqual([
+      { slug: 'wiki/full-take', title: 'Full take', freshness: 'current' },
+      { slug: 'wiki/quarter-plan', title: 'Quarter plan', freshness: 'partial' },
+    ]);
+  });
+
+  it('reads a single truncated path written as a scalar, as it reads `sources:`', () => {
+    const model = modelWith([
+      wiki(
+        'wiki/hand-written',
+        {
+          sources: 'sources/plan.pdf',
+          source_hash: { 'sources/plan.pdf': PLAN_HASH },
+          sources_truncated: 'sources/plan.pdf',
+        },
+        'Hand written',
+      ),
+    ]);
+    expect(model.sources[0].state).toBe('partial');
+  });
+
+  it('ignores a truncation record naming a file the page does not cite', () => {
+    const model = modelWith([
+      wiki(
+        'wiki/quarter-plan',
+        {
+          sources: ['sources/plan.pdf'],
+          source_hash: { 'sources/plan.pdf': PLAN_HASH },
+          sources_truncated: ['sources/something-else.pdf'],
+        },
+        'Quarter plan',
+      ),
+    ]);
+    expect(model.sources[0].state).toBe('compiled');
   });
 });
 
