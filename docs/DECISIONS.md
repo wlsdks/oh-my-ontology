@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — A width that already has a name stops being written as a number
+
+**Why**: the census after the token sweep found the same numbers beside the tokens that mean them. Four centred surfaces (the recent-changes dialog, the vault-open sheet, the docs unified palette, the similar-node notice) set their own 420 or 560 while the dialog ramp holds exactly those two for exactly that shape. Worse, `page-frame.ts` named 640 and wrote the rule — *a value earns a name the moment something else needs it* — and four more sites then wrote 640 by hand outside it.
+**Prior**: upholds 2026-08-15 "two dialog widths are canonical" (this adds consumers, not a tier) and the 2026-09-08 token sweep. `PAGE_COLUMN_STAGE` keeps its meaning and its consumers; only the number moves behind a token.
+**Decision**: the four centred surfaces read `--dialog-w-sm` / `--dialog-w-md`; 640 becomes `--measure-stage-column` and `PAGE_COLUMN_STAGE` reads it, as do the architecture workbench, the project selector and the full-detail reach grid. Measured after the swap: the vault sheet 419px, both stage columns 640px — unchanged. The docs empty state, sample note and starter CTA keep their 560/420: they are content columns inside a destination, and a modal's width on a paragraph would be a wrong name, not a shared one.
+**Dissent**: those three excluded sites share the number and, arguably, the "one narrow column of content" role; a later pass may give them a measure token of their own. Declined here because the only token with that value today means "a centred surface".
+**Falsifier**: a rendered width that differs from before; a fifth centred surface written as a number; a paragraph reading a dialog tier.
+**Owner**: jinan
+
 ## 2026-09-08 — Kind tone and the document column become tokens, and colour literals get a gate
 
 **Why**: the owner asked for a whole-app check with every value on a token. The sweep found no broken screen (14 routes, three widths, no console error or overflow). The inventory found the type, radius, shadow, duration and z gates closed and four holes beneath them: 41 hex outside Tailwind brackets, 41 `rgb()/rgba()` with no selector, named `ease-*` classes, and `maskImage` outside the inline-style gate. Most of the colour debt was the kind palette living as rgba literals in `tone.ts`: a sanctioned data mark no colour gate could see.
@@ -97,6 +106,15 @@ record stays in Git history before commit `e4fb49a89`.
 **Decision**: `read_source` (read-only, `sources/` only, inside the folder only) returns a file's text cut into the anchor units the contract already names — DOCX by heading, XLSX by sheet and row, CSV by row, text and HTML by line — with the anchor on each unit and the file's sha256. A PDF returns no text; the runtimes read PDFs natively. The Library briefs point at the tool; the shell stays the agent's fallback and still stops at its card.
 **Dissent**: shipping a parser puts Atlas between the document and the quote; a wrong split misattributes an anchor. Kept small (no dependency, two formats parsed) and answered by the sha256 on every answer: the page's `source_hash` and the tool's hash are the same bytes.
 **Falsifier**: a DOCX or XLSX in a real folder whose text the tool splits into anchors a reader cannot find in the document, or a read-only turn in the app that still raises an execute card after being told about the tool.
+**Owner**: jinan
+
+## 2026-09-08 — The app's Claude follows the terminal login by mirroring the keychain item, not by linking the file
+
+**Why**: the app linked `~/.claude/.credentials.json` into its own config folder; on macOS Claude Code keeps the live login in the keychain and leaves that file behind, so after the owner switched accounts in the terminal the app kept the old account's token and reported its session limit while the terminal had room (installed app, 2026-09-08 00:50; the two accounts were read side by side with `claude auth status`).
+**Prior**: 2026-08-20 "remove the app-share item" stands for a dead app-scoped login; this adds the mirror for a live one that is simply not the terminal's.
+**Decision**: before every Claude session the app reads the terminal's keychain item (`Claude Code-credentials`, then the item named after `~/.claude`) with the same `security` tool Claude Code uses and writes it into the app-scoped item; the terminal's cached account travels into the app folder's `.claude.json` so status names the right account. A terminal with no login mirrors nothing and the file link stands as before.
+**Dissent**: dropping the app's own config folder so the child reads the terminal login directly would remove the mirror entirely; deferred because the folder carries the app's settings and permission gate, and moving those to flags is a separate decision.
+**Falsifier**: an app session that reports a different account than `claude auth status` in a terminal on the same machine.
 **Owner**: jinan
 
 ## 2026-09-07 — The conversation composer's bottom row is quiet: the tool with its model and the mode as text pickers, then the status, the session doors and send

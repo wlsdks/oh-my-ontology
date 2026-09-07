@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-08 — A width that already has a name stops being written as a number",
+      "slug": "2026-09-08-a-width-that-already-has-a-name-stops-being-written-as-a-number"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-08 — Kind tone and the document column become tokens, and colour literals get a gate",
       "slug": "2026-09-08-kind-tone-and-the-document-column-become-tokens-and-colour-literals-get-a-gate"
     },
@@ -6506,6 +6511,11 @@
       "depth": 2,
       "text": "2026-09-07 — The MCP server reads a source's text on request; Atlas still keeps no converted copy",
       "slug": "2026-09-07-the-mcp-server-reads-a-sources-text-on-request-atlas-still-keeps-no-converted-copy"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-08 — The app's Claude follows the terminal login by mirroring the keychain item, not by linking the file",
+      "slug": "2026-09-08-the-apps-claude-follows-the-terminal-login-by-mirroring-the-keychain-item-not-by-linking-the-file"
     },
     {
       "depth": 2,

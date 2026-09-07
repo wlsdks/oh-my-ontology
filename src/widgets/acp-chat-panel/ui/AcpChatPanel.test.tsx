@@ -1237,6 +1237,30 @@ describe('대화 패널 — 권한 카드가 실제로 막는다', () => {
     await waitFor(() => expect(answerFor(77)).toEqual({ outcome: 'selected', optionId: 'reject' }));
   });
 
+  it('a door pressed into a broken session restarts it and then sends', async () => {
+    // Installed app, 2026-09-08: after a limit error the person pressed the wiki-check door
+    // again and nothing moved — the request waited for a `ready` that never came.
+    const view = await bootSession();
+    bridge.exit?.(1);
+    await waitFor(() =>
+      expect(['error', 'exited']).toContain(screen.getByTestId('acp-chat-panel').getAttribute('data-acp-status')),
+    );
+    const initializesBefore = bridge.sent.filter((m) => m.method === 'initialize').length;
+
+    view.rerenderPanel({ openingRequest: { text: 'Check the wiki again.', nonce: 3 } });
+
+    await waitFor(() =>
+      expect(bridge.sent.filter((m) => m.method === 'initialize').length).toBe(initializesBefore + 1),
+    );
+    replyTo('initialize', { protocolVersion: 1 });
+    await waitFor(() => expect(bridge.sent.filter((m) => m.method === 'session/new').length).toBeGreaterThan(1));
+    replyTo('session/new', { sessionId: 's-2' });
+    await waitFor(() => {
+      const prompt = [...bridge.sent].reverse().find((m) => m.method === 'session/prompt');
+      expect(JSON.stringify(prompt?.params ?? {})).toContain('Check the wiki again.');
+    });
+  });
+
   it('the auto-allowed receipt carries its two doors: open the page, and ask next time', async () => {
     /*
      * The screen judged the write and let it land (2026-09-06 autonomy); the receipt is the

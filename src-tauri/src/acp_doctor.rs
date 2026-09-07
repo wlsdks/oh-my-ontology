@@ -53,13 +53,31 @@ pub(crate) struct AcpCheck {
 
 impl AcpCheck {
     fn ok(id: &'static str, detail: Option<String>) -> Self {
-        Self { id, state: "ok", fixable: false, blocked: false, detail }
+        Self {
+            id,
+            state: "ok",
+            fixable: false,
+            blocked: false,
+            detail,
+        }
     }
     fn problem(id: &'static str, fixable: bool, detail: Option<String>) -> Self {
-        Self { id, state: "problem", fixable, blocked: false, detail }
+        Self {
+            id,
+            state: "problem",
+            fixable,
+            blocked: false,
+            detail,
+        }
     }
     fn unknown(id: &'static str, detail: Option<String>) -> Self {
-        Self { id, state: "unknown", fixable: false, blocked: false, detail }
+        Self {
+            id,
+            state: "unknown",
+            fixable: false,
+            blocked: false,
+            detail,
+        }
     }
 }
 
@@ -83,7 +101,12 @@ pub(crate) const CHECK_IDS: &[&str] = &[
 ];
 
 /// The checks `repair()` actually handles. Only entries here may be `fixable: true`.
-pub(crate) const REPAIRABLE_IDS: &[&str] = &["npx-cache", "config-dir", "credentials-link", "shadow-keychain"];
+pub(crate) const REPAIRABLE_IDS: &[&str] = &[
+    "npx-cache",
+    "config-dir",
+    "credentials-link",
+    "shadow-keychain",
+];
 
 /// **Executors whose measured launch contract requires a specific session mode.**
 ///
@@ -150,31 +173,40 @@ pub(crate) fn diagnose(ctx: &DoctorContext<'_>) -> Vec<AcpCheck> {
     // Measured eligibility, not mere isolation: the app can control codex's config directory and
     // still not hold its write gate, which is exactly what decision (111) recorded. Report the
     // compound Codex boundary instead of calling configuration isolation sufficient by itself.
-    out.push(if acp::chat_eligible(ctx.runtime_id) && acp::config_env_for(ctx.runtime_id).is_some() {
-        let detail = SESSION_MODE_GATE
+    out.push(
+        if acp::chat_eligible(ctx.runtime_id) && acp::config_env_for(ctx.runtime_id).is_some() {
+            let detail = SESSION_MODE_GATE
+                .iter()
+                .find(|(id, _)| *id == ctx.runtime_id)
+                .map(|(_, mode)| format!("isolation+session-mode:{mode}+server-checkpoint"))
+                .unwrap_or_else(|| "isolation".into());
+            AcpCheck::ok("gate", Some(detail))
+        } else if let Some((_, mode)) = SESSION_MODE_GATE
             .iter()
             .find(|(id, _)| *id == ctx.runtime_id)
-            .map(|(_, mode)| format!("isolation+session-mode:{mode}+server-checkpoint"))
-            .unwrap_or_else(|| "isolation".into());
-        AcpCheck::ok("gate", Some(detail))
-    } else if let Some((_, mode)) = SESSION_MODE_GATE.iter().find(|(id, _)| *id == ctx.runtime_id) {
-        AcpCheck::ok("gate", Some(format!("session-mode:{mode}")))
-    } else {
-        AcpCheck::problem("gate", false, None)
-    });
+        {
+            AcpCheck::ok("gate", Some(format!("session-mode:{mode}")))
+        } else {
+            AcpCheck::problem("gate", false, None)
+        },
+    );
 
     // Outside the npx branch there is no cache at all. That is "not applicable",
     // not "no problem", so it is left off the list — painting the absent thing
     // green makes the screen pretend to have measured what it never did.
     if let Some(entry) = npx_entry_path(ctx) {
-        out.push(match acp::npx_entry_health(&entry, npx_package(ctx).as_deref().unwrap_or("")) {
-            acp::NpxEntryHealth::Usable => AcpCheck::ok("npx-cache", None),
-            // Not yet downloaded is not a defect — it downloads on first launch.
-            acp::NpxEntryHealth::Missing => AcpCheck::ok("npx-cache", Some("not-downloaded".into())),
-            acp::NpxEntryHealth::Broken(reason) => {
-                AcpCheck::problem("npx-cache", true, Some(reason.into()))
-            }
-        });
+        out.push(
+            match acp::npx_entry_health(&entry, npx_package(ctx).as_deref().unwrap_or("")) {
+                acp::NpxEntryHealth::Usable => AcpCheck::ok("npx-cache", None),
+                // Not yet downloaded is not a defect — it downloads on first launch.
+                acp::NpxEntryHealth::Missing => {
+                    AcpCheck::ok("npx-cache", Some("not-downloaded".into()))
+                }
+                acp::NpxEntryHealth::Broken(reason) => {
+                    AcpCheck::problem("npx-cache", true, Some(reason.into()))
+                }
+            },
+        );
     }
 
     /*
@@ -297,7 +329,8 @@ pub(crate) fn repair(ctx: &DoctorContext<'_>, check_id: &str) -> Result<(), Stri
         .map(|_| ())
         .map_err(|reason| format!("repair-failed:{reason}")),
         "npx-cache" => {
-            let entry = npx_entry_path(ctx).ok_or_else(|| "repair-failed:no-npx-entry".to_string())?;
+            let entry =
+                npx_entry_path(ctx).ok_or_else(|| "repair-failed:no-npx-entry".to_string())?;
             std::fs::remove_dir_all(&entry).map_err(|err| format!("repair-failed:{err}"))
         }
         other => Err(format!("not-repairable:{other}")),
@@ -327,13 +360,13 @@ pub(crate) fn repair(ctx: &DoctorContext<'_>, check_id: &str) -> Result<(), Stri
 pub(crate) fn reset_connection(ctx: &DoctorContext<'_>) -> Result<(), String> {
     let Some(dir) = isolated_dir(ctx) else {
         // Executors that do not use isolation have no app-created artifacts. No need to delete, so success
-// — saying "cannot do it" makes users think something is wrong.
+        // — saying "cannot do it" makes users think something is wrong.
         return Ok(());
     };
 
     // Remove the keychain item **first**. Deleting the folder first leaves the basis (folder path) for
-// naming that item, but there is no reason to reverse the order, and leaving a half-deleted
-// state on failure is worse.
+    // naming that item, but there is no reason to reverse the order, and leaving a half-deleted
+    // state on failure is worse.
     acp::remove_shadow_credentials(&dir);
 
     match std::fs::remove_dir_all(&dir) {
@@ -342,9 +375,15 @@ pub(crate) fn reset_connection(ctx: &DoctorContext<'_>) -> Result<(), String> {
         Err(err) => return Err(format!("reset-failed:{err}")),
     }
 
-    acp::prepare_isolated_config(ctx.runtime_id, ctx.app_data_dir, ctx.home, ctx.cli, ctx.path_env)
-        .map(|_| ())
-        .map_err(|reason| format!("reset-failed:{reason}"))
+    acp::prepare_isolated_config(
+        ctx.runtime_id,
+        ctx.app_data_dir,
+        ctx.home,
+        ctx.cli,
+        ctx.path_env,
+    )
+    .map(|_| ())
+    .map_err(|reason| format!("reset-failed:{reason}"))
 }
 
 #[cfg(test)]
@@ -383,12 +422,18 @@ mod tests {
         // Someone with neither cli nor launcher = the person from the walkthrough.
         let app_data = base.join("appdata");
         let c = ctx(&app_data, Some(&home));
-        assert!(c.cli.is_none() && c.launcher.is_none(), "이 시험의 전제가 깨졌다");
+        assert!(
+            c.cli.is_none() && c.launcher.is_none(),
+            "이 시험의 전제가 깨졌다"
+        );
 
         let checks = diagnose(&c);
         let missing_tool = checks.iter().find(|x| x.id == "cli").unwrap();
         assert_eq!(missing_tool.state, "problem");
-        assert!(!missing_tool.blocked, "선행 조건 자신이 막혔다고 표시되면 안 된다");
+        assert!(
+            !missing_tool.blocked,
+            "선행 조건 자신이 막혔다고 표시되면 안 된다"
+        );
 
         for check in checks.iter().filter(|x| !PREREQUISITE_IDS.contains(&x.id)) {
             assert!(check.blocked, "{} 가 막힌 표시가 없다", check.id);
@@ -417,7 +462,10 @@ mod tests {
         c.cli = Some(&tool);
         c.launcher = Some(&tool);
 
-        let cfg = diagnose(&c).into_iter().find(|x| x.id == "config-dir").unwrap();
+        let cfg = diagnose(&c)
+            .into_iter()
+            .find(|x| x.id == "config-dir")
+            .unwrap();
         assert_eq!(cfg.state, "problem");
         assert!(!cfg.blocked);
         assert!(cfg.fixable, "선행 조건이 멀쩡한데 수리를 막았다");
@@ -499,10 +547,16 @@ mod tests {
 
         reset_connection(&c).unwrap();
 
-        assert!(!dir.join("junk.json").exists(), "다시 맺었는데 옛 파일이 남았다");
+        assert!(
+            !dir.join("junk.json").exists(),
+            "다시 맺었는데 옛 파일이 남았다"
+        );
         // **Deleting alone is not enough.** The next session comes up without a gate or dies.
         assert!(dir.join("settings.json").is_file(), "다시 만들지 않았다");
-        assert!(dir.join(".credentials.json").exists(), "링크를 다시 안 걸었다");
+        assert!(
+            dir.join(".credentials.json").exists(),
+            "링크를 다시 안 걸었다"
+        );
         let _ = std::fs::remove_dir_all(&base);
     }
 
@@ -533,9 +587,13 @@ mod tests {
     fn repair_refuses_ids_it_cannot_handle() {
         let base = std::env::temp_dir().join(format!("atlas-doctor-a-{}", std::process::id()));
         let c = ctx(&base, None);
-        assert!(repair(&c, "login").unwrap_err().starts_with("not-repairable"));
+        assert!(repair(&c, "login")
+            .unwrap_err()
+            .starts_with("not-repairable"));
         assert!(repair(&c, "cli").unwrap_err().starts_with("not-repairable"));
-        assert!(repair(&c, "made-up").unwrap_err().starts_with("not-repairable"));
+        assert!(repair(&c, "made-up")
+            .unwrap_err()
+            .starts_with("not-repairable"));
     }
 
     #[test]
@@ -570,7 +628,10 @@ mod tests {
         let base = std::env::temp_dir().join(format!("atlas-doctor-e-{}", std::process::id()));
         let mut c = ctx(&base, None);
         c.runtime_id = "amp-acp";
-        let gate = diagnose(&c).into_iter().find(|check| check.id == "gate").unwrap();
+        let gate = diagnose(&c)
+            .into_iter()
+            .find(|check| check.id == "gate")
+            .unwrap();
         assert_eq!(gate.state, "problem");
     }
 
@@ -589,7 +650,10 @@ mod tests {
         let ids: Vec<&str> = diagnose(&c).iter().map(|check| check.id).collect();
 
         for absent in ["config-dir", "credentials-link", "shadow-keychain", "login"] {
-            assert!(!ids.contains(&absent), "격리를 안 쓰는 실행기에 {absent} 를 냈다");
+            assert!(
+                !ids.contains(&absent),
+                "격리를 안 쓰는 실행기에 {absent} 를 냈다"
+            );
         }
         // That said, an empty list is not acceptable — the common checks must still come out.
         assert!(ids.contains(&"cli"), "공통 검사까지 사라졌다");
@@ -654,7 +718,11 @@ mod tests {
         // Telling someone who has never logged in from the terminal that "the
         // link is broken" pins a fault on them that does not exist.
         assert_eq!(
-            checks.iter().find(|c| c.id == "credentials-link").unwrap().state,
+            checks
+                .iter()
+                .find(|c| c.id == "credentials-link")
+                .unwrap()
+                .state,
             "unknown"
         );
         let _ = std::fs::remove_dir_all(&base);
@@ -671,12 +739,20 @@ mod tests {
         let app_data = base.join("appdata");
         let c = ctx(&app_data, Some(&home));
         assert_eq!(
-            diagnose(&c).iter().find(|c| c.id == "credentials-link").unwrap().state,
+            diagnose(&c)
+                .iter()
+                .find(|c| c.id == "credentials-link")
+                .unwrap()
+                .state,
             "problem"
         );
         repair(&c, "credentials-link").unwrap();
         assert_eq!(
-            diagnose(&c).iter().find(|c| c.id == "credentials-link").unwrap().state,
+            diagnose(&c)
+                .iter()
+                .find(|c| c.id == "credentials-link")
+                .unwrap()
+                .state,
             "ok"
         );
         let _ = std::fs::remove_dir_all(&base);

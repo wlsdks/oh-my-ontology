@@ -241,9 +241,15 @@ mod tests {
         // Reproduces the 2026-08-17 observation: the old code threw the delete result
         // away wholesale and returned "deleted" unconditionally. On a locked keychain
         // the key was still there.
-        assert!(!is_cleared(Step::Failed, Step::Failed), "못 지웠으면 지웠다고 하면 안 된다");
+        assert!(
+            !is_cleared(Step::Failed, Step::Failed),
+            "못 지웠으면 지웠다고 하면 안 된다"
+        );
         // If it claims deleted but still reads back, it was not deleted.
-        assert!(!is_cleared(Step::Done, Step::Done), "아직 읽히면 안 지워진 것이다");
+        assert!(
+            !is_cleared(Step::Done, Step::Done),
+            "아직 읽히면 안 지워진 것이다"
+        );
     }
 
     #[test]
@@ -320,6 +326,9 @@ mod tests {
         // Only `SecretStatus` is used as a return type.
         let command_count = source.matches("#[tauri::command]").count();
         let status_returns = source.matches("Result<SecretStatus, String>").count();
-        assert_eq!(command_count, status_returns, "모든 커맨드는 SecretStatus 만 반환해야 한다");
+        assert_eq!(
+            command_count, status_returns,
+            "모든 커맨드는 SecretStatus 만 반환해야 한다"
+        );
     }
 }
