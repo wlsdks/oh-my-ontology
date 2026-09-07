@@ -61,7 +61,14 @@ record stays in Git history before commit `e4fb49a89`.
 **Decision**: the four centred surfaces read `--dialog-w-sm` / `--dialog-w-md`; 640 becomes `--measure-stage-column` and `PAGE_COLUMN_STAGE` reads it, as do the architecture workbench, the project selector and the full-detail reach grid. Measured after the swap: the vault sheet 419px, both stage columns 640px — unchanged. The docs empty state, sample note and starter CTA keep their 560/420: they are content columns inside a destination, and a modal's width on a paragraph would be a wrong name, not a shared one.
 **Dissent**: those three excluded sites share the number and, arguably, the "one narrow column of content" role; a later pass may give them a measure token of their own. Declined here because the only token with that value today means "a centred surface".
 **Falsifier**: a rendered width that differs from before; a fifth centred surface written as a number; a paragraph reading a dialog tier.
-**Owner**: jinan
+
+## 2026-09-08 — The Library graph stands still; hover changes ink, never position
+
+**Why**: the owner, in the installed app: *"why does it wriggle whenever the mouse is on the graph? Get rid of that effect, and improve the design."* Two causes, measured. Idle: three seconds ran **362 rAF callbacks**, all of them this loop, marks travelling 0.74px. Hover: below 1400 the caption swapped a two-line legend for a one-line description, so the canvas grew **20px** and re-fitted every mark.
+**Prior**: overturns the drift clause of 2026-09-07 "The Library graph is a live force simulation with a bounded drift" (0.28px, 7.2s, one frame in four). The rest stands: springs, gravity, Barnes-Hut, the gestures, band, bow, dim. Narrows 2026-09-07 "An unattached mark stands on a ring": its ring, even spread and sorted order stand; its first angle and centre change.
+**Decision**: the drift is deleted, not reduced — no phase, no clock, no per-frame offset — and the loop stops the moment nothing is arriving, ramping, fading, resizing or held; auto-fit lands on its target rather than near it. The caption's two sentences share one grid cell, so the legend's height is the row's at every width. Hover, focus and selection wake the loop for their dim ramp alone; drag, release, resize and a changed folder still re-heat. Three measured composition fixes ride with it: the ring's first slot moves to the vertical, where the fit has slack; the ring stands off the mass's bounding box, not its centre of gravity; a name takes its mark's own ink, a 2px ground halo wider than the line that crossed its glyphs, and a **middle** ellipsis that keeps the tail telling two same-stem names apart.
+**Dissent**: the 2026-09-07 argument now loses — a still picture beside a still document is a screenshot, and nobody learns it can be pulled apart. Kept: the cursor, legend and fit tile say it is live.
+**Falsifier**: any rAF over three idle seconds on a settled canvas, or a mark moving under a hovering pointer at any width; a walker who never drags it.**Owner**: jinan
 
 ## 2026-09-08 — Kind tone and the document column become tokens, and colour literals get a gate
 
