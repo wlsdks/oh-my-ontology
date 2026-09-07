@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — An unattached mark stands on a ring, not on a wall
+
+**Why**: the review frame at 1512×917 (`.claude/shots-2026-09-07/review/10-library-graph-rest.png`) put four loose marks on four different walls, `kickoff-notes.html` in the bottom-right corner 40px from the fit control, while the two real components sat small in the middle. A degree-0 mark has no spring: repulsion falls off as 1/d, so seven marks 300 units away push 6 units a tick against a gravity aimed at a centre 300 units away. That balance is not a place.
+**Prior**: narrows the same day's "The Library graph is a live force simulation with a bounded drift", which otherwise stands: springs, collision, aspect-aware gravity, the drift's numbers, drag and the reduced-motion still picture are unchanged for every mark a relation answers for.
+**Decision**: a degree-0 mark leaves the many-body pass and the centre gravity for one force of its own, a spring to its own slot on an ellipse around the connected mass. Centre and both standoffs come from that mass (per-axis extent plus 56), the aspect from the canvas, so the outermost thing in the picture carries the picture's shape and the fit fills both axes. Angles spread evenly in sorted-id order from three o'clock: a half-slot offset puts four orphans on the bounding box's corners, which the fit then pins to the screen's. A target, not a pin, so they still collide, drag, drift and come home. At 1046×620: ring distance 0.83–1.54 of the mass radius before, 0.97–1.00 after; smallest angular gap 0.30 to 1.57 rad; marks within 60px of two edges at once, 2 to 0; width filled 78.2% to 89.1%, the fit's max.
+**Dissent**: design-lead: a ring is a shape the folder does not have, and four unrelated files are told they are a set. design-motion: an orphan outside repulsion is a second physics on one canvas, and one dragged into the cluster pushes nothing.
+**Falsifier**: a person who reads the ring as a relation and looks for the line; a loose mark inside the cluster; a ring that hides the components inside it.
+**Owner**: jinan
+
 ## 2026-09-07 — Google Drive gets a sentence under the import tiles, not a tile
 
 **Why**: the owner named Google Drive for the Library's service door. The MCP Registry, read 2026-09-07, lists no Drive server from Google; every community server (`io.github.domdomegg/google-drive-mcp` 1.3.0 among them) starts by sending the person to the Google Cloud console to create an OAuth client id and secret. The door's standard is a sign-in and nothing else.

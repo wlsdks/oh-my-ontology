@@ -11,6 +11,7 @@ import {
   hasPinnedNode,
   isLibrarySimulationRunning,
   applyAmbientDrift,
+  LIBRARY_LABEL_ALLOWANCE,
   libraryPositions,
   libraryMarkRadii,
   librarySimulationBounds,
@@ -80,8 +81,14 @@ import { readLibraryGraphInk, type LibraryGraphInk } from "../render/library-gra
  */
 const DRAG_THRESHOLD_PX = 7;
 
-/** Padding the fit reserves for the names that stand under the outermost marks. */
-const FIT_PADDING = 34;
+/**
+ * Padding the fit reserves for the names that stand under the outermost marks.
+ *
+ * The simulation's orphan ring is held the same distance off its own box, so the value is
+ * taken from there rather than written twice: a mark the physics placed at the boundary
+ * and the fit that draws it must not disagree about where the boundary is.
+ */
+const FIT_PADDING = LIBRARY_LABEL_ALLOWANCE;
 
 /** How fast an auto-fitting view catches up with the settling picture, per frame. */
 const AUTO_FIT_FOLLOW = 0.16;
