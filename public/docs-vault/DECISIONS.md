@@ -54,13 +54,22 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-07 — Google Drive gets a sentence under the import tiles, not a tile
+
+**Why**: the owner named Google Drive for the Library's service door. The MCP Registry, read 2026-09-07, lists no Drive server from Google; every community server (`io.github.domdomegg/google-drive-mcp` 1.3.0 among them) starts by sending the person to the Google Cloud console to create an OAuth client id and secret. The door's standard is a sign-in and nothing else.
+**Prior**: upholds 2026-09-07 "Attaching an MCP server is a catalogue pick" (a catalogue row needs a person-verified source) and its dissent about hosted rows; upholds 2026-09-05 connectors ("Atlas never sits in the path").
+**Decision**: no Drive tile. One `text-label` sentence under the tiles says Drive is not here, why in plain words, and the fastest path that works today (download, then Add files). No disabled tile: a control that cannot be pressed is a dead end, and a tile that opens onto a console is worse.
+**Dissent**: design-lead: a named absence is still chrome; a person who never thought of Drive now reads about it. Not adopted: the person who did think of it is the one the owner named, and one sentence at quaternary ink is the smallest honest answer.
+**Falsifier**: Google or a hosted provider ships a Drive MCP endpoint that signs in with OAuth alone (dynamic client registration, no console step); then the sentence goes and a catalogue row comes in with its source.
+**Owner**: jinan
+
 ## 2026-09-07 — A page records which of its sources it read only in part
 
-**Why**: Compile cuts a long file at the per-read cap and says so on the consent card and under `## Not in sources`. The page then lands and the Library calls the source `compiled`, because the sha256 it recorded covers every byte and still matches. Half a 200-page PDF had reached no page and no screen said so; the card is read once, at approval, and the folder is read for years.
+**Why**: Compile cuts a long file at the per-read cap and says so on the consent card and under `## Not in sources`. The page lands and the Library calls the source `compiled`, because the sha256 it recorded covers every byte and still matches. Half a 200-page PDF had reached no page and no screen said so; the card is read once, and the folder is read for years.
 **Prior**: extends 2026-09-05 "A vault holds three kinds of file and only one is the graph" (the wiki page and its `source_hash` freshness contract) and the 2026-09-06 LLM-wiki records, whose measure is first-page truthfulness. Both stand: this adds a key, no kind, and no new file.
 **Decision**: optional `sources_truncated:` frontmatter, a subset of `sources:`, minted by the writer's port and never by the model, absent when nothing was cut. `validateWikiPage` reports `bad-truncation-record` when it is not a list of paths or names a path the page does not cite; `validate_wiki` and `wiki-validate` carry it. The Library derives a fifth source state, `partial` ("read in part"), when every matching page read only part of the file; `stale` outranks it, and it counts toward the work Compile offers, said in one sentence rather than a second button. The state is neutral ink, not amber: the page is right about what it covers.
 **Dissent**: a fifth word is a vocabulary a person has to learn, and "compiled" was already checkable by opening the page. Also: derive it at compile time and skip the frontmatter. Not adopted: the folder is the state, and a fact no file carries cannot be read back after the session that measured it.
-**Falsifier**: a folder where `partial` rows never return to `compiled` because the cap is lower than the files people actually keep, which makes the word permanent furniture rather than a state; or a person who reads "read in part" as a defect in the page and stops trusting the wiki.
+**Falsifier**: a folder where `partial` rows never return to `compiled` because the cap is below the files people keep, making the word furniture rather than a state; or a person who reads "read in part" as a defect and stops trusting the wiki.
 **Owner**: jinan
 
 ## 2026-09-07 — Markdown under sources/ is a raw source, not a shadow page

@@ -255,6 +255,19 @@ export function LibraryImportDialog({
               </li>
             ))}
           </ul>
+          {/*
+           * The one service people name that is not a tile, and why, in the tile's own
+           * place (2026-09-07 decision). Every Google Drive MCP a person can run today asks
+           * them to create their own OAuth client in the Google Cloud console first; a tile
+           * would be a door onto that console. Saying so here, with the fastest path that
+           * does work, beats a disabled tile (a dead-end control) and beats silence.
+           */}
+          <p
+            data-testid={`${testIdPrefix}-absent-note`}
+            className="mt-3 break-keep text-label leading-prose text-[color:var(--color-text-quaternary)]"
+          >
+            {t('absentNote')}
+          </p>
         </>
       ) : null}
 
