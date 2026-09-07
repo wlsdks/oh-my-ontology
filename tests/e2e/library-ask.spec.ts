@@ -196,6 +196,9 @@ async function openFolder(page: Page) {
   // open folder in the session instead of asking the restore to find it again.
   await page.getByTestId("app-nav-rail").getByRole("link", { name: "Library" }).click();
   await page.getByTestId("library-sources").waitFor({ timeout: 30_000 });
+  // The index is a switch since 2026-09-07: the wiki rows exist only on the Wiki half.
+  await page.getByTestId("library-index-segment-wiki").click();
+  await page.getByTestId("library-wiki").waitFor({ timeout: 30_000 });
 }
 
 test.describe("Select a passage, ask the agent", () => {
@@ -260,8 +263,29 @@ test.describe("Select a passage, ask the agent", () => {
     expect(inkDuring).not.toBe(inkBefore);
     const questionInk = await page.getByTestId("library-ask-evidence").evaluate((el) => getComputedStyle(el).color);
     expect(questionInk).not.toBe(inkDuring);
+    // The whole row stays inside the reading pane, whatever the selection's x.
+    const [paneBox, barBox] = await Promise.all([pane.boundingBox(), bar.boundingBox()]);
+    expect(barBox!.x + barBox!.width).toBeLessThanOrEqual(paneBox!.x + paneBox!.width);
+    // The person's own question opens an input in the same row and sends on Enter.
+    await page.getByTestId("library-ask-own").click();
+    await expect(page.getByTestId("library-ask-custom")).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(bar).toHaveCount(0);
+    // Escape spent on the bar leaves the document open: the page's own Escape (back to the
+    // shelf) yields to a key that was already default-prevented.
+    await expect(page.getByTestId("library-reading-pane")).toBeVisible();
+    await expect.poll(() => fact.evaluate((el) => getComputedStyle(el).color)).toBe(inkBefore);
+    await paragraph.evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+    await paragraph.dispatchEvent("mouseup");
+    await expect(bar).toBeVisible();
     // A click on the shelf, outside the page, collapses the selection and restores the page.
-    await page.getByTestId("library-sources").click({ position: { x: 4, y: 4 } });
+    await page.getByTestId("library-wiki").click({ position: { x: 4, y: 4 } });
     await expect(bar).toHaveCount(0);
     await expect.poll(() => fact.evaluate((el) => getComputedStyle(el).color)).toBe(inkBefore);
   });

@@ -50,6 +50,8 @@ function Harness({ onPropose, candidates = CANDIDATES, onWriteModeChange = null,
       findings={findings}
       onFix={onFix}
       onNewPage={onNewPage}
+      /* The candidates list is the wiki half of the column; the switch above it decides. */
+      segment="wiki"
       /*
        * `transferNote` became `compileNote` and the drop hint left this column for the
        * empty-folder stage (2026-09-07 merge). The case is unchanged; it points at the

@@ -4049,6 +4049,57 @@ body[data-no-tabbar] [data-tabbar="primary"] {
 }
 
 /*
+ * **No scroller in this product draws a bar** (owner, 2026-09-07: *"I don't want
+ * scrollbars to appear when things scroll. Everything, just smooth scrolling"*).
+ *
+ * The rule above was written for the conversation on 2026-09-06 and applied by hand, one
+ * class at a time, to six surfaces. The owner then read the Library and asked for the same
+ * thing everywhere — which is the honest shape anyway: a per-surface opt-in means every
+ * new `overflow-y-auto` in the repository is a bar the author has to remember to remove,
+ * and the six that had it were themselves the record of that not happening.
+ *
+ * So the two declarations move to the document, and `.atlas-scroll-quiet` stays as the
+ * name a surface wears to say *this scroller was designed without one* — the marker
+ * `chat-scroller-quiet.contract.test.ts` counts, and the reason each of those surfaces
+ * either needs no "there is more" cue or pairs the hidden bar with a `--tabbar-edge-fade`
+ * mask.
+ *
+ * ⚠️ **It removes a mark, not a behaviour.** Keyboard, trackpad, wheel and programmatic
+ * scrolling are untouched; only the painted bar is gone. Where the bar was the sole signal
+ * that content continues, the surface owes a fade — the Library's index column and the
+ * conversation's history list both pay it.
+ *
+ * ⚠️ **Smooth is the page scroller only, and that is a deliberate narrowing.**
+ * `scroll-behavior: smooth` changes what `element.scrollTop = n` *means*: the assignment
+ * returns before the scroller has arrived. Eight measuring specs across this repository
+ * set `scrollTop` or call `scrollIntoView` on inner scrollers and read the result on the
+ * next line, so applying it to every box would have made those measurements race rather
+ * than measure. The document scroller has no such caller. Surfaces that want to glide ask
+ * for it in their own code, as the chat transcript already does
+ * (`scrollBehavior = glide ? 'smooth' : 'auto'`).
+ *
+ * The reduced-motion block above carries `scroll-behavior: auto !important`, so the
+ * preference already wins here and no second opinion is written.
+ * Gate: `tests/contract/chat-scroller-quiet.contract.test.ts`.
+ */
+html,
+body,
+body * {
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+body *::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/*
  * Caps tracking is a Latin device — the rationale, the measurement and the gate are recorded with
  * the `--tracking-caps-*` steps themselves, in the token block above. Only the override lives
  * here, outside every layer, so nothing in a later layer can quietly win it back.

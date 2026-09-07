@@ -25,6 +25,13 @@ export interface AnswerPageInput {
   askedOn: string | null;
   writer: string;
   now: Date;
+  /**
+   * The wiki pages that already write up a source path, so the answer can point at them.
+   * A page that lists a source another page lists and links neither is the folder finding
+   * `shared-source-unlinked`; the first answer filed from the installed app raised it on
+   * three pages at once (2026-09-07). One "See also" line under the summary settles it.
+   */
+  pagesForSource?: (sourcePath: string) => readonly string[];
   /** sha256 by vault-relative source path, from the Library's own measurement. */
   hashes: ReadonlyMap<string, string>;
   knownSources: readonly string[];
@@ -89,6 +96,9 @@ export function buildAnswerPage(input: AnswerPageInput): AnswerPageResult {
   }
   const slug = answerSlug(input.question, input.now);
   const sourceList = [...sources];
+  const related = [
+    ...new Set(sourceList.flatMap((path) => input.pagesForSource?.(path) ?? [])),
+  ].filter((page) => page !== input.askedOn && page !== slug);
   const yaml = (value: string) => JSON.stringify(value);
   const text = [
     "---",
@@ -105,7 +115,9 @@ export function buildAnswerPage(input: AnswerPageInput): AnswerPageResult {
     "",
     "## Summary",
     "",
-    `${input.question.trim()}${input.askedOn ? ` Asked while reading [[${input.askedOn}]].` : ""}`,
+    `${input.question.trim()}${input.askedOn ? ` Asked while reading [[${input.askedOn}]].` : ""}${
+      related.length > 0 ? ` See also ${related.map((page) => `[[${page}]]`).join(", ")}.` : ""
+    }`,
     "",
     "## Facts",
     "",

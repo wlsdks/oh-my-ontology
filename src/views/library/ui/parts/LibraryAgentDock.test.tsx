@@ -37,6 +37,7 @@ function mount(width: "wide" | "narrow") {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
       <LibraryAgentDock
+        chatWidth={{ width: 420, setWidth: () => {}, commitWidth: () => {} }}
         open
         runtime={RUNTIME}
         runtimes={[RUNTIME]}

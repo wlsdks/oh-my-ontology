@@ -63,6 +63,42 @@ record stays in Git history before commit `e4fb49a89`.
 **Falsifier**: a page landing that `wiki-validate` rejects; a person unable to make the card come back; a node written through the Library without a card.
 **Owner**: jinan
 
+## 2026-09-07 — The Library index is a switch between two lists, and its description is a glyph
+
+**Why**: the owner, on the installed app at `/ko/library`, seven sources and seven pages: *"I hate this structure: sources on top, wiki underneath, one long scroll. A switch at the top is better"*, and *"put one icon beside the title and show the explanation in a tooltip on hover."* Measured at 1512×917: 14 rows, two heads, five chips and three captions in a 280px column, the Compile press off screen from the rows it acts on, and a three-line lede holding 60px a person reads once.
+**Prior**: narrows 2026-09-06 "An empty Library folder is an empty state…": its stage, stepper, 280px column and quiet `compiled` check stand; its "one scroller with sticky heads" clause is overturned, since a sticky head answers "which list am I in" for a column that no longer holds two.
+**Decision**: one `SegmentedControl` at the top — `Sources N | Wiki N`, 32px, equal 125px halves at 280px in both locales — draws one list; the other is absent, not hidden, so the column's height and tab order belong to the list on screen, and the doors follow it. `atlas.library.index-segment` remembers the choice, and opening a file from the graph, the guide or a crossing moves the switch to that file's list. The lede becomes one `Info` glyph carrying the sentence as accessible name and tooltip, `side="right"` with `disableHoverableContent` so it never holds the next press. The one local-first disclosure follows Compile: under the chip on Wiki, and under `SourceSummary`'s own press while a source is open.
+**Dissent**: design-lead: one list at a time hides that a folder has two halves, and the counts state that more weakly than two visible lists. design-interaction: a person who never opens a source now reads the transfer sentence only on the Wiki half.
+**Falsifier**: a person who cannot find the wiki pages after a session spent on the Sources half; a folder where the switch and the open document name different halves.
+**Owner**: jinan
+
+## 2026-09-07 — The Library column folds, and the graph re-clamps a box it did not choose
+
+**Why**: same reading, same folder: *"the middle is unnatural, things hide behind the left/right areas. Can't it auto-shrink? And the left panel must be closable, I may want only the graph."* The row already reserves the dock's width at `xl`, so the box does narrow — what did not follow was the camera. One drag of a mark takes it (`takeCamera`), and from there the view is frozen in the box it was set in: measured, a 420px dock left the picture at scale 4.8370 while the canvas went 1088 → 668px, with marks outside it.
+**Prior**: 2026-09-07 "The Library graph is a live force simulation with a bounded drift" stands and is why a taken camera exists to survive at all. 2026-08-16 "the dock publishes its width" (`right-dock-reserve.ts`) stands and is extended to this screen, which grew a dock on 2026-09-06 and never published one.
+**Decision**: the index folds to the map's own 26px rail tab — vertical label, `›`, `--topology-index-tab-width` — at `lg` and above, remembered in `atlas.library.index-collapsed`, with focus following the control that vanished. On any box change the camera did not choose, an unfitted view keeps **the same world extent visible**: the scale falls by the box's own ratio, folded into `scaleBounds` for the new box. Nothing is re-fitted, so a hand-made arrangement survives — 4.8370 → 2.9698 at 1512, every mark inside the canvas. `LibraryPage` publishes `--app-right-dock-width` from the one `useChatWidth` the dock now reads as a prop.
+**Dissent**: design-interaction: re-scaling on a resize moves every mark under the hand, and a person who zoomed in deliberately may prefer the crop to the shrink. design-responsive: a fold that only exists at `lg` leaves the narrow layout with no way to see the picture alone.
+**Falsifier**: a fold nobody presses twice, read from `atlas.library.index-collapsed`; a resize that still leaves a hand-arranged mark outside the canvas; a person who re-zooms after every dock toggle.
+**Owner**: jinan
+
+## 2026-09-07 — Scrollers draw no bar, and the surfaces that lose a cue pay a fade
+
+**Why**: the owner, on the same screen: *"I don't want scrollbars to appear when things scroll. Everything, just smooth scrolling."* The 2026-09-06 rule was a class applied by hand to six surfaces, so every new `overflow-y-auto` in the repository was a bar somebody had to remember to remove — and those six were themselves the record of that not happening.
+**Prior**: extends 2026-09-06 "the conversation scrolls and the bar does not draw" (recorded in `docs/DESIGN-SYSTEM.md`, "Quiet scroller"), which stands: its per-surface reasoning becomes the reason a surface owes a fade rather than the reason it hides a bar.
+**Decision**: `scrollbar-width: none` and `::-webkit-scrollbar { display: none }` apply to `html`, `body` and every descendant. `.atlas-scroll-quiet` stays with a narrower meaning — this scroller was designed without a bar — and remains the marker the contract counts. Where the bar was the only "there is more" mark the surface draws the existing `--tabbar-edge-fade` instead; the Library's index column is the first to pay it. `scroll-behavior: smooth` is the **page scroller only**, under `prefers-reduced-motion: no-preference`.
+**Dissent**: design-interaction: a hidden bar also hides *how far down* a person is, which a fade does not restore; the fade says "more", never "how much". design-system: `smooth` on the document alone is a narrower promise than the owner's sentence, taken because a repository-wide `scroll-behavior` would turn eight `element.scrollTop = n` measurements into races.
+**Falsifier**: somebody who cannot tell a cut list from a finished one on a faded edge; a scroller whose hidden bar loses a person their place in a long document.
+**Owner**: jinan
+
+## 2026-09-07 — The growth replay is a toggle, and putting the 3D picker away is not a walk
+
+**Why**: the owner pressed the replay tile and it died under the mouse: the rule ended it on the first input after a 300 ms grace, and *"nobody keeps the mouse still after pressing a button"*. The same session showed the map back in flat carrying a walked trail and one domain fanned open from a click never made: the 3D chip could not close its own picker (it closed and reopened in one batch), so the only exit was pressing the map, and that press both dismissed the picker and selected the node under it, which in 3D is a capability, which writes `open=`.
+**Prior**: narrows the 2026-09-02 growth-replay rule "it starts on request, cannot be steered, ends on its own or on the first input" (recorded in `model/growth-replay.ts` and the topology-browsing capability note, never in this ledger). The rest of that rule stands: no scrub bar, no mode, camera and focus untouched, reduced motion ignores the request.
+**Decision**: the replay runs to its end unless the reader deliberately stops it: a second press, `Escape`, or any press on the canvas. Movement, hover and wheel-zoom keep it running, and the control carries the active border and `aria-pressed` for exactly as long as it runs. The 3D picker's anchor is not "outside" it, and a dismissing press that lands on the canvas is consumed. A node clicked on purpose in 3D still keeps its selection and its trail step in flat.
+**Dissent**: the first-input exit was a safety catch, so that a twelve-second event could never hold the map hostage; a reader who does not know the second press is a stop is now stuck watching. Answered by three cheap exits, one of them `Escape`, and by the control saying it is pressed.
+**Falsifier**: reopen if a reader reports being unable to stop a replay, if a replay is seen ending without one of the four exits, or if a press meant for a chip or a rail is swallowed because the picker was open.
+**Owner**: jinan
+
 ## 2026-09-07 — The installed app answers one address, and it only fills in a form
 
 **Why**: the install link shipped the same day proved the payload but could not be pressed: a link on a web page cannot open an installed app, so its only caller was somebody pasting a URL. Every vendor page publishing an "Add to …" button publishes a custom scheme, and Atlas had none.

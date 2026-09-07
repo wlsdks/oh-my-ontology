@@ -838,7 +838,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed, for a person who uses the product. Newest at the top. One entry per release, named by its tag; the single Unreleased entry at the top collects what has merged since the last tag, and the release cut renames it. v1.0.0",
-      "wordCount": 29913,
+      "wordCount": 29916,
       "updatedAt": "2026-09-07",
       "linksOut": []
     },
@@ -874,7 +874,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "This file keeps the decisions and the arguments that lost when they were made. docs/CHANGELOG.md answers what changed and when; this file answers why it was decided that way, and what was staked on it. Newest first. Records are appended, never edited. When a judgment changes, write a new record whose Prior names the ol",
-      "wordCount": 113605,
+      "wordCount": 114916,
       "updatedAt": "2026-09-07",
       "linksOut": [
         "wiki/…",
@@ -941,8 +941,8 @@
       },
       "headings": [],
       "excerpt": "This document is maintained based on Section 3 of the design spec. For the original Linear specification, see design-references/DESIGN-linear.md. v2 (2026-07): The B2+ \"Circuit × Constellation\" visual language shipped from topology-map-v2 has become the standard for page rollout (gateway → docs/ontology hub → projects/",
-      "wordCount": 40831,
-      "updatedAt": "2026-09-06",
+      "wordCount": 41110,
+      "updatedAt": "2026-09-07",
       "linksOut": [
         "design-references/DESIGN-linear",
         "TOPOLOGY-V2-DESIGN",
@@ -982,7 +982,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Complete inventory of features users can actually use right now. Last updated: 2026-09-05 (kept one ACP conversation across Analysis tabs, including Not held, and added the source-hidden, current-turn Ontology DNA presentation inside that workbench. Earlier chose the architecture comparison ladder by canvas height, sea",
-      "wordCount": 36670,
+      "wordCount": 37143,
       "updatedAt": "2026-09-07",
       "linksOut": [
         "ANALYSIS-RECORDS",
@@ -2184,8 +2184,8 @@
       },
       "headings": [],
       "excerpt": "The capability to render, pan/zoom, and search the entire vault graph on a custom canvas-2D engine. There is no dedicated folder in src/features/, but it is proposed via widget evidence + documentation description (review-required). Selecting a node on the map: the compact node datasheet popover shown beside the clicke",
-      "wordCount": 1311,
-      "updatedAt": "2026-09-04",
+      "wordCount": 1337,
+      "updatedAt": "2026-09-07",
       "linksOut": []
     },
     {

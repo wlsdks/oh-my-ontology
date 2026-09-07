@@ -97,6 +97,9 @@ describe("select a passage, ask the agent about it", () => {
     const onAsk = vi.fn();
     mount(onAsk);
     await selectPassage();
+    // The person's own question opens an input in the same row.
+    expect(screen.queryByTestId("library-ask-custom")).toBeNull();
+    fireEvent.click(screen.getByTestId("library-ask-own"));
     const input = screen.getByTestId("library-ask-custom");
     fireEvent.change(input, { target: { value: "Is this figure final?" } });
     fireEvent.keyDown(input, { key: "Enter" });

@@ -2,35 +2,47 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 /**
- * **The conversation scrolls and the bar does not draw** (owner, 2026-09-06: *"a scrollbar keeps
- * appearing on the right while we are talking … which AI chat does that? it should just move down
- * smoothly. keep the scrollbar hidden — it still scrolls"*).
+ * **No scroller draws a bar, and the surfaces that lost a cue pay for it** (owner, 2026-09-06:
+ * *"a scrollbar keeps appearing on the right while we are talking … it should just move down
+ * smoothly. keep the scrollbar hidden — it still scrolls"*; owner, 2026-09-07: *"I don't want
+ * scrollbars to appear when things scroll. Everything, just smooth scrolling"*).
  *
- * Two halves need a gate, and neither is visible to lint:
+ * ⚠️ **The second verdict moved the rule and kept the class.** The bar-hiding declarations are
+ * now on the document, because a per-surface opt-in makes every new `overflow-y-auto` in the
+ * repository a bar somebody has to remember to remove — and the six surfaces that carried the
+ * class by hand were themselves the record of that not happening. What `.atlas-scroll-quiet`
+ * means from here is narrower and still worth a gate: **this scroller was designed without a
+ * bar**, so it either needs no "there is more" mark or draws one of its own.
  *
- * 1. **The rule exists once.** `.atlas-scroll-quiet` is the promoted form of the two declarations
- *    `.docs-vault-tab-strip` already carried. A second spelling of "scrolls, shows no bar" is how
- *    two rules drift apart, so the class must carry both the standards property and the WebKit
- *    pseudo-element — Safari and the macOS WebView ignore `scrollbar-width` entirely, and the
- *    installed app is where the owner saw the bar.
- * 2. **Every scroller in the conversation wears it.** A class string is invisible to CSS lint: a
- *    new `overflow-y-auto` in any of these five files renders a bar again with no signal at all,
- *    which is exactly how the surfaces diverged in the first place.
+ * Three halves need a gate, and none is visible to lint:
  *
- * ⚠️ **Hiding a bar removes the only "there is more" mark**, so the roster is not "every scroller
- * everywhere". It is these five, each with a reason the mark is redundant — a transcript pinned to
- * its tail, a bounded menu, views that end on a card edge — plus the one that is *not* redundant:
- * the past-conversation list replaces the bar with the `--tabbar-edge-fade` mask the tab strips
- * already use, rather than with nothing.
+ * 1. **The document rule exists**, in both dialects — Safari and the macOS WebView ignore
+ *    `scrollbar-width` entirely, and the installed app is where the owner saw the bar.
+ * 2. **The named surfaces still carry the class**, unchanged: a scroller that quietly stopped
+ *    declaring its own design is one nobody re-reads before hiding a cue.
+ * 3. **Where the bar was the only signal, a `--tabbar-edge-fade` mask replaces it** — the
+ *    conversation's past-conversation list and transcript, and the Library's index column,
+ *    whose one list of file names is otherwise cut by a hard edge that says nothing about
+ *    whether the cut is the end.
  */
 const CSS = readFileSync('app/globals.css', 'utf8');
 
-/** Every file whose vertical scrollers belong to the conversation surface. */
+/** Every file whose vertical scrollers were designed with the bar already gone. */
 const SCROLLER_SOURCES = [
   'src/widgets/acp-chat-panel/ui/AcpChatPanel.tsx',
   'src/widgets/acp-chat-panel/ui/AcpPresentationPanel.tsx',
   'src/widgets/analysis-workbench/ui/AnalysisWorkbench.tsx',
 ] as const;
+
+/**
+ * ⚠️ **The Library's column is asserted by name, not by the detector above.** That detector
+ * pairs quotes across the whole file, and `LibraryPage.tsx` is written in prose thick with
+ * apostrophes ("the person's own folder"), so a single quote inside a comment pairs with one
+ * hundreds of lines away and the scan returns nothing. A detector that silently sees no
+ * scrollers is worse than none, so this file is checked by its own two facts instead.
+ */
+const LIBRARY_INDEX_SCROLLER =
+  'atlas-scroll-quiet flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto';
 
 /**
  * Class strings, not JSX attributes. A scroller's classes reach the element through
@@ -45,10 +57,31 @@ function verticalScrollerClassStrings(source: string): string[] {
     .filter((value) => /(?:^|[\s:])overflow-y-auto(?:$|\s)/.test(value));
 }
 
-describe('quiet chat scrollers', () => {
+describe('quiet scrollers', () => {
   it('defines one rule that both engines obey', () => {
     expect(CSS).toMatch(/\.atlas-scroll-quiet\s*\{[^}]*scrollbar-width:\s*none/);
     expect(CSS).toMatch(/\.atlas-scroll-quiet::-webkit-scrollbar\s*\{[^}]*display:\s*none/);
+  });
+
+  it('hides the bar on every scroller in the document, in both engines', () => {
+    // The standards property and the WebKit pseudo-element, each reaching html, body and
+    // every descendant. One without the other leaves the installed app drawing bars.
+    expect(CSS).toMatch(/html,\s*\n\s*body,\s*\n\s*body \*\s*\{[^}]*scrollbar-width:\s*none/);
+    expect(CSS).toMatch(
+      /html::-webkit-scrollbar,\s*\n\s*body::-webkit-scrollbar,\s*\n\s*body \*::-webkit-scrollbar\s*\{[^}]*display:\s*none/,
+    );
+  });
+
+  it('glides the page scroller only, and only when motion is welcome', () => {
+    /*
+     * Narrowed on purpose: `scroll-behavior: smooth` changes what `element.scrollTop = n`
+     * means, and this repository's specs set it on inner scrollers and read the result on
+     * the next line. The document scroller has no such caller.
+     */
+    expect(CSS).toMatch(
+      /@media \(prefers-reduced-motion: no-preference\)\s*\{\s*html\s*\{\s*scroll-behavior:\s*smooth/,
+    );
+    expect(CSS).not.toMatch(/body \*\s*\{[^}]*scroll-behavior:\s*smooth/);
   });
 
   it('keeps the promoted rule identical to the strip rule it generalises', () => {
@@ -85,6 +118,18 @@ describe('quiet chat scrollers', () => {
   });
 
   it('replaces the bar with an edge fade where the bar was the only signal', () => {
+    /*
+     * The Library's index is one list of truncated file names in a 280px column; cut by a
+     * hard edge it cannot say whether the cut is the end. Both edges fade, because the
+     * switch above it can put a person in the middle of a list they have not scrolled.
+     */
+    const library = readFileSync('src/views/library/ui/LibraryPage.tsx', 'utf8');
+    expect(library).toContain('data-testid="library-index-scroll"');
+    expect(library).toContain(LIBRARY_INDEX_SCROLLER);
+    expect(library).toContain('const indexFade = "var(--tabbar-edge-fade)"');
+    expect(library).toMatch(/const indexMask =[\s\S]{0,600}indexFade/);
+    expect(library).toMatch(/indexMask \? \{ maskImage: indexMask, WebkitMaskImage: indexMask \}/);
+
     const panel = readFileSync('src/widgets/acp-chat-panel/ui/AcpChatPanel.tsx', 'utf8');
     // The past-conversation list: rows below the fold are otherwise unannounced.
     expect(panel).toContain('data-testid="acp-chat-history-list"');

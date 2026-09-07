@@ -53,7 +53,8 @@ export function SourceSummary({
   onOpen,
   onOpenWiki,
   onCompile,
-  compileBlockedReason,
+  compileNote,
+  compileBlocked,
   busy,
   t,
 }: {
@@ -67,8 +68,20 @@ export function SourceSummary({
   onOpen: () => void;
   onOpenWiki: (slug: string) => void;
   onCompile: () => void;
-  /** The exact reason Compile cannot run now, or null when it can. */
-  compileBlockedReason: string | null;
+  /**
+   * **The one fact true of pressing Compile here** — the reason it cannot run, or what
+   * leaves this computer when it does.
+   *
+   * ⚠️ It used to be the blocked reason only, and the transfer sentence lived three
+   * hundred pixels away in the index column (2026-09-06). That worked while the column
+   * always drew the Wiki half's Compile chip; from 2026-09-07 the column draws one list at
+   * a time, and with a source open it is drawing Sources — which has no Compile on it. So
+   * the disclosure follows the press it describes, which is what
+   * `.claude/rules/local-first.md` asks for, and this button is now a press of its own.
+   */
+  compileNote: string | null;
+  /** Whether the press is refused; the note above says why. */
+  compileBlocked: boolean;
   busy: boolean;
   t: ReturnType<typeof useTranslations<"library">>;
 }) {
@@ -229,7 +242,7 @@ export function SourceSummary({
               <button
                 type="button"
                 onClick={onCompile}
-                disabled={busy || compileBlockedReason !== null}
+                disabled={busy || compileBlocked}
                 data-testid="library-source-compile"
                 className={controlClass({ shape: "chip", tone: "muted", className: "gap-1.5" })}
               >
@@ -237,12 +250,12 @@ export function SourceSummary({
                 {t("wiki.compile")}
               </button>
             </div>
-            {compileBlockedReason ? (
+            {compileNote ? (
               <p
-                data-testid="library-source-compile-blocked"
+                data-testid="library-transfer"
                 className="text-caption leading-body text-[color:var(--color-text-quaternary)] [word-break:keep-all]"
               >
-                {compileBlockedReason}
+                {compileNote}
               </p>
             ) : null}
           </div>

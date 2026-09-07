@@ -2553,7 +2553,7 @@
       "switchToMyDataTooltip": "Open my markdown folder: the map fills with my data (⌘O)",
       "changeAnnouncement": "{count} concepts updated: synced",
       "close": "Close",
-      "replayGrowthTooltip": "Replay how it grew",
+      "replayGrowthTooltip": "Ontology growth flow",
       "tourTooltip": "Guided tour",
       "shortcutsTooltip": "Keyboard shortcuts (?)",
       "spotlightWindowSummary": "Last {days}d · {count}"
@@ -4424,6 +4424,14 @@
     "title": "Library",
     "eyebrow": "In this folder",
     "lede": "The project documents you gathered, in whatever format they arrived, and the wiki pages written from them. A source is kept byte for byte, and every claim on a page cites one.",
+    "index": {
+      "aria": "Which list the index shows",
+      "sources": "Sources {count}",
+      "wiki": "Wiki {count}",
+      "about": "What this folder holds",
+      "collapse": "Fold the index away",
+      "expand": "Show the index"
+    },
     "emptyTitle": "Nothing gathered yet",
     "emptyBody": "Bring in the documents this project already has: a spec, a slide deck, a spreadsheet, a page you exported. Atlas copies them into sources/ untouched and never opens them until you ask.",
     "sources": {
@@ -4516,6 +4524,7 @@
         "reviewed": "reviewed"
       },
       "viewOriginal": "View original",
+      "viewOriginalCount": "{count, plural, one {# original} other {# originals}}",
       "viewOriginalOne": "View original: {name}",
       "originalMissing": "Cites {name}, which is not in this folder.",
       "compileCreateFile": "Create {path}",
@@ -4709,10 +4718,11 @@
     },
     "ask": {
       "title": "Ask the agent about the selected passage",
-      "evidence": "Where does this come from?",
-      "disagreement": "Does anything disagree with it?",
-      "explain": "Explain it in plain words",
-      "placeholder": "Or ask in your own words",
+      "evidence": "Where from?",
+      "disagreement": "What disagrees?",
+      "explain": "In plain words",
+      "own": "My own question",
+      "placeholder": "Type what you want to ask",
       "send": "Ask"
     },
     "search": {

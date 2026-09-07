@@ -733,7 +733,8 @@ Sources and Wiki took 22dvh each while the document tree lived on what remained.
 back to the ontology's Markdown; the Docs sidebar keeps one row pointing here, which is
 also the only way in below `lg`.
 
-**Two panes.** The index on the left carries Sources, Wiki and the three doors. The right
+**Two panes.** The index on the left carries one of Sources and Wiki, chosen by a switch at
+its top, with that list's own doors. The right
 pane branches on the kind of file selected — a wiki page opens in the reading pane every
 Markdown surface here shares (`src/widgets/doc-reading-pane/`), headed by its title, its
 author and status, and a chip per source it was built from; a source opens as the six
@@ -803,25 +804,53 @@ rather than hidden, because a missing step two would leave a hole in the middle 
 sequence. Selecting swaps the right pane and moves focus to it, the back control stands at
 every width, and Escape does the same thing.
 
-**The index is one column that scrolls once** (2026-09-06, fourth pass). The owner read the
-left panel as *"split into a top and a bottom … drawn oddly"*. It was: a fixed intro over
-two lists that each owned their overflow at `lg`, so on a folder of seven sources and seven
-pages the longer list was cut mid-row, the two halves slid past each other, and the
-transfer sentence was pinned under the cut at the very bottom of the column. Now the intro,
-Sources and Wiki stand at natural height inside one scroller, each section's eyebrow is
-`sticky` at the top of that scroller so the list a person is inside keeps its name, and the
-section divider is gone. Rows stay 36px with the name truncated at its end, format and size
-in mono `text-caption`. **`compiled` lost its chip**: on the owner's folder all seven rows
-wore the same green pill, which is a texture rather than a state, so success is now a quiet
-check in the row's own ink and a chip is spent only where a person can act — not compiled,
-stale, off-template. The disclosure under Compile is the index's one caption and it is
-empty while the stepper is open, so exactly one surface prints it. Column hairlines fell 38
-→ 9 and no row is cut by the column's edge at 1512, 768 or 390.
+**The index is a switch, and it draws one list** (2026-09-07, fifth pass). One day after the
+column became a single scroller with sticky heads, the owner read the same folder in the
+installed app and rejected the shape itself: *"I hate this structure: sources on top, wiki
+underneath, one long scroll. A switch at the top is better."* The scroller had fixed the
+cut rows and not the reading — seven sources and seven pages is still 14 rows, two heads,
+five chips and three captions in 280px, so reaching the wiki meant scrolling past
+everything about sources, and Compile was off screen from the rows it acts on.
 
-The Wiki head carries what the wiki's own work needs, in this shape (merged from the LLM
-Wiki round, 2026-09-07): the count, then **Check the wiki** and **Compile** on one
-unwrapping line so reading stands to the left of writing, then the brain picker on the line
-beneath when this computer offers two. Under it, one `text-label` caption reads the app's
+One `SegmentedControl` at the top of the column now names both lists with their counts —
+*Sources 7 | Wiki 7*, 32px, equal 125px halves at 280px in both locales — and the column
+draws **one** of them. The inactive list is not in the document: `hidden` would keep its
+rows in the tab order and its doors reachable from a keyboard while nothing on screen named
+them. The doors travel with the list — Add files, Find documents and Bring from a service
+on Sources; Check the wiki, Compile and the brain picker on Wiki — and the section eyebrow
+is gone, because a head repeating *SOURCES · 7* under a segment reading *Sources 7* is the
+same fact twice. The choice is remembered per machine
+(`atlas.library.index-segment`), and opening a file from the graph, from the guide or from a
+reader's own crossing moves the switch to that file's list, so the index can never name one
+thing while the reader shows another.
+
+**The description is a glyph** (owner, same reading: *"put one icon beside the title and
+show the explanation in a tooltip on hover"*). The three-line lede was 60px of a sentence
+read once and re-read on every visit after; it is now one lucide `Info` beside the `h1`,
+carrying that sentence as its accessible name and its tooltip, so a keyboard and a screen
+reader reach it as a pointer does. The tooltip opens to the `right`, into the picture,
+because `bottom` covered the switch a hand travels to next — and with
+`disableHoverableContent`, so the panel never holds the press underneath it.
+
+**And the column folds** (*"the left panel must be closable, I may want only the graph"*).
+A `‹` on the eyebrow line folds it to the map's own 26px rail tab — vertical label, `›`,
+`--topology-index-tab-width` — at `lg` and above, remembered in
+`atlas.library.index-collapsed`, with focus following the control that vanished. Below `lg`
+the index is the bottom half of one column and has nowhere to fold to.
+
+Rows stay 36px with the name truncated at its end, format and size in mono `text-caption`,
+and none crosses the column's side edge at 1512, 1040, 768 or 390. **`compiled` lost its
+chip** on 2026-09-06: on the owner's folder all seven rows wore the same green pill, which
+is a texture rather than a state, so success is a quiet check in the row's own ink and a
+chip is spent only where a person can act. The one local-first disclosure follows the
+Compile press it describes — under the chip on the Wiki half, and under `SourceSummary`'s
+own Compile while a source is open, which is where it belongs now that the column may be
+drawing Sources.
+
+The Wiki half carries what the wiki's own work needs, in this shape (merged from the LLM
+Wiki round, 2026-09-07): the count on the switch above, then **Check the wiki** and
+**Compile** on one unwrapping line so reading stands to the left of writing, then the brain
+picker on the line beneath when this computer offers two. Under it, one `text-label` caption reads the app's
 own record — *Last compile …, last check …*, from `wiki/_log.md` — and beneath that the
 single compile disclosure. **The folder's findings are not a pill.** A page that misses the
 wiki template still wears the amber `off-template` pill, because the fix is in that page's
@@ -842,9 +871,11 @@ now a column below `lg`: the graph takes the top of it (390: 350×296 of canvas;
 row so it keeps the column's whole height, and choosing a file swaps the whole column with
 the same way back. The index's one scroller was first forced here — two list scrollers sharing half
 a phone left the source list 30px and the wiki list zero — and on 2026-09-06 the same
-answer replaced the `lg` split, so the column behaves one way at every width. Cases: `the
-Library pane` and `the graph takes the top of the column at …` in
-`tests/e2e/library.spec.ts`.
+answer replaced the `lg` split; the switch that replaced the stacking on 2026-09-07 is the
+same answer again, so the column behaves one way at every width. What does not reach a
+phone is the fold: below `lg` the index is the bottom half of one column and there is no
+second pane to give its width to. Cases: `the Library pane` and `the graph takes the top of
+the column at …` in `tests/e2e/library.spec.ts`.
 
 **The graph is a live force simulation** (2026-09-07). The owner opened the installed
 app on the real folder — 7 sources, 6 pages, every page citing 4–7 of them — and read the
@@ -1420,7 +1451,10 @@ day, a chip under the selection opening a list beside the text, covered three li
 page and took a second press; the owner rejected it on sight.) The chosen question goes to
 the docked agent as one read-only turn with
 the exact passage quoted, the page named, and the rule to read the page and its originals
-and cite them (`buildAskBrief`). The graph's legend line becomes a description while a mark
+and cite them (`buildAskBrief`). A page that cites several originals folds them under one closed line naming the count
+(`Disclosure`, 2026-09-07); open, they are chips on a wrapping row, each a press that opens
+the source. Six full rows had pushed the Summary below the fold of the installed app. A
+page with one original keeps its single row. The graph's legend line becomes a description while a mark
 is under the pointer or the keyboard: an original file, a wiki page, or a concept on the
 map, each with what its lines mean and what pressing does; the **Names without a page**
 header carries a tooltip saying why only map kinds can be proposed.
@@ -1450,7 +1484,9 @@ backticks with or without `src:`, is rewritten into the wiki form first, since i
 the same place (the first installed-app answer cited every fact that way and was refused
 as uncited); the ask brief now names the form outright. The page meets the same validator
 as every other; an answer that cites nothing is refused by name (`no-cited-fact`), and one
-that does not fit is not written and the first problem is said instead. This is the LLM Wiki pattern's "answers
+that does not fit is not written and the first problem is said instead. The summary ends
+with "See also" links to every page that already writes up a cited source, so the folder
+check's `shared-source-unlinked` has nothing to raise on a filed answer. This is the LLM Wiki pattern's "answers
 can be filed back", done by the app rather than by another agent turn, so nothing is
 claimed that the answer did not cite.
 

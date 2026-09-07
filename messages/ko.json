@@ -2553,7 +2553,7 @@
       "switchToMyDataTooltip": "내 폴더 열기: 지도가 내 데이터로 채워집니다 (⌘O)",
       "changeAnnouncement": "개념 {count}개 갱신됨: 반영됨",
       "close": "닫기",
-      "replayGrowthTooltip": "자라는 순서로 다시 보기",
+      "replayGrowthTooltip": "온톨로지 생성 흐름 보기",
       "tourTooltip": "가이드 투어",
       "shortcutsTooltip": "키보드 단축키 (?)",
       "spotlightWindowSummary": "최근 {days}일 · {count}"
@@ -4424,6 +4424,14 @@
     "title": "자료실",
     "eyebrow": "이 폴더 안",
     "lede": "형식을 가리지 않고 모아 둔 문서와, 그 문서를 읽고 쓴 위키 문서가 여기 있습니다. 원문은 온 그대로 남고, 위키 문서의 문장은 저마다 원문을 인용합니다.",
+    "index": {
+      "aria": "색인이 보여 줄 목록",
+      "sources": "원문 {count}",
+      "wiki": "위키 {count}",
+      "about": "이 폴더에 무엇이 있는지",
+      "collapse": "색인 접기",
+      "expand": "색인 펼치기"
+    },
     "emptyTitle": "아직 모아 둔 것이 없습니다",
     "emptyBody": "이미 갖고 있는 문서를 넣으세요. 기획서, 발표 자료, 표, 내려받아 둔 페이지 무엇이든 됩니다. sources/ 로 그대로 복사할 뿐, 부르기 전에는 열지 않습니다.",
     "sources": {
@@ -4516,6 +4524,7 @@
         "reviewed": "검토됨"
       },
       "viewOriginal": "원본 보기",
+      "viewOriginalCount": "원문 {count}개",
       "viewOriginalOne": "원본 보기: {name}",
       "originalMissing": "{name} 을(를) 인용하지만 이 폴더에는 없습니다.",
       "compileCreateFile": "{path} 만들기",
@@ -4709,10 +4718,11 @@
     },
     "ask": {
       "title": "선택한 문장을 에이전트에게 묻습니다",
-      "evidence": "이 문장은 어디서 왔나요?",
-      "disagreement": "어긋나는 문서가 있나요?",
-      "explain": "쉬운 말로 설명해 주세요",
-      "placeholder": "또는 직접 묻기",
+      "evidence": "어디서 왔나요?",
+      "disagreement": "어긋나는 문서는?",
+      "explain": "쉬운 말로",
+      "own": "직접 묻기",
+      "placeholder": "묻고 싶은 것을 적어요",
       "send": "묻기"
     },
     "search": {

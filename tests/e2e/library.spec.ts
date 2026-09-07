@@ -279,6 +279,8 @@ test.describe("the Library destination", () => {
     page,
   }) => {
     await openLibrary(page);
+    // The index draws one list and opens on Sources (2026-09-07); the wiki is one press.
+    await page.getByTestId("library-index-segment-wiki").click();
 
     const wiki = page.getByTestId("library-wiki-list");
     await expect(wiki.getByRole("button")).toHaveCount(2);
@@ -299,6 +301,8 @@ test.describe("the Library destination", () => {
 
   test("a wiki page opens in the reader, because it is ordinary Markdown", async ({ page }) => {
     await openLibrary(page);
+    // The index draws one list and opens on Sources (2026-09-07); the wiki is one press.
+    await page.getByTestId("library-index-segment-wiki").click();
     await page.getByTestId("library-wiki-wiki/quarter-plan").click();
     const main = page.getByRole("main");
     await expect(main).toContainText("Three deliverables");
@@ -624,6 +628,8 @@ test.describe("the Library pane", () => {
     await expect(shelf).toHaveCount(0);
 
     // Re-rendering the pane by opening and closing something else must not raise it.
+    // The index draws one list and opens on Sources (2026-09-07); the wiki is one press.
+    await page.getByTestId("library-index-segment-wiki").click();
     await page.getByTestId("library-wiki-wiki/quarter-plan").click();
     await expect(page.getByTestId("library-wiki-header")).toBeVisible();
     await page.getByTestId("library-reader-back").click();
@@ -631,26 +637,58 @@ test.describe("the Library pane", () => {
   });
 
   /**
-   * **The index is one column, and it scrolls once** (owner, 2026-09-06).
+   * **The index is a switch, and it draws one list** (owner, 2026-09-07).
    *
-   * > *"I don't like this left panel being split into a top and a bottom like this and
-   * > drawn oddly either. Improve it!"*
+   * > *"I hate this structure: sources on top, wiki underneath, one long scroll. A switch
+   * > at the top is better."*
+   *
+   * This case is the rewrite of the 2026-09-06 "one scrolling column with sticky heads"
+   * case, not its deletion: the claims that survived the stacking are the ones the owner
+   * never complained about — 280px, one scroller, whole 36px rows, nothing crossing the
+   * column's side edge, no overflow handed to the page. What replaces the sticky-head
+   * claim is the switch: the inactive list is **not in the document**, so the column's
+   * height and its tab order both belong to the list on screen.
    *
    * The folder here is the narrow fixture on purpose: it is the only one with enough rows
-   * to overflow 280px at a desktop height, which is the state the owner sent — two lists
-   * that each owned their overflow, the longer one cut mid-row, and the transfer sentence
-   * pinned under the cut. A column that has nothing to scroll cannot fail any of this.
+   * to overflow 280px at a desktop height. A column that has nothing to scroll cannot fail
+   * any of this.
    */
-  test("the index is one scroller with sticky section heads, and no row is cut", async ({
-    page,
-  }) => {
+  test("the index is a switch that draws one list, and no row is cut", async ({ page }) => {
+    /*
+     * A short window on purpose. Drawing **one** list is exactly what stops this column
+     * overflowing at Playwright's default height, and a scroller with nothing to scroll
+     * cannot fail the claims below — measured: 12 rows plus the head fit 720px with room
+     * to spare once the other list left. 560px is what a 13-inch laptop leaves after the
+     * browser's own chrome, so it is not an invented number either.
+     */
+    await page.setViewportSize({ width: 1280, height: 560 });
     await openLibrary(page, NARROW_VAULT);
 
     const aside = page.getByTestId("library-index");
     // 280px at `lg` is unchanged; this rewrite is about the column's insides.
     expect(Math.round((await aside.boundingBox())!.width)).toBe(280);
 
-    // 1 — exactly one box inside the index scrolls, and it is the column itself.
+    /*
+     * 1 — one list, and the other one is nowhere. `hidden` would not do: a hidden list
+     * keeps its rows in the tab order and its doors reachable from a keyboard while
+     * nothing on screen names them, which is the state the switch exists to prevent.
+     */
+    const sources = page.getByTestId("library-source-list");
+    const wiki = page.getByTestId("library-wiki-list");
+    await expect(sources).toBeVisible();
+    await expect(wiki).toHaveCount(0);
+    await expect(page.getByTestId("library-add-files")).toBeVisible();
+
+    // The switch names both lists with their counts, so nothing is lost by drawing one.
+    const segment = page.getByTestId("library-index-segment");
+    await expect(segment).toContainText("Sources 12");
+    await expect(segment).toContainText("Wiki 8");
+    await expect(page.getByTestId("library-index-segment-sources")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+
+    // 2 — exactly one box inside the index scrolls, and it is the column itself.
     const scrollers = await aside.evaluate((element) =>
       [...element.querySelectorAll("*")]
         .filter((node) => {
@@ -661,22 +699,26 @@ test.describe("the Library pane", () => {
     );
     expect(scrollers, "the index still has nested scrollers").toEqual(["library-index-scroll"]);
 
-    // 2 — the head of the list a person is inside stays with them.
+    /*
+     * 3 — the switch does not scroll away with the rows. The sticky head it replaces
+     * existed to answer "which list am I in" from inside the list; a control that leaves
+     * the screen answers it worse than the eyebrow did.
+     */
     const scroller = page.getByTestId("library-index-scroll");
-    const sticky = await scroller.evaluate((element) => {
-      const head = element.querySelector('[data-testid="library-sources"] .sticky');
-      const before = head!.getBoundingClientRect().top;
+    const switchStayed = await scroller.evaluate((element) => {
+      const control = document.querySelector('[data-testid="library-index-segment"]')!;
+      const before = control.getBoundingClientRect().top;
       element.scrollTop = 240;
-      return { before, after: head!.getBoundingClientRect().top, top: element.getBoundingClientRect().top };
+      return { before, after: control.getBoundingClientRect().top, moved: element.scrollTop > 0 };
     });
-    expect(sticky.after, "the Sources head scrolled away with its rows").toBeCloseTo(
-      sticky.top,
-      0,
-    );
-    expect(sticky.after).toBeLessThan(sticky.before);
+    expect(switchStayed.moved, "the column had nothing to scroll — the case is idling").toBe(true);
+    expect(switchStayed.after).toBeCloseTo(switchStayed.before, 0);
+    await scroller.evaluate((element) => {
+      element.scrollTop = 0;
+    });
 
     /*
-     * 3 — every row is a whole row: 36px, none crosses the column's side edges, and every
+     * 4 — every row is a whole row: 36px, none crosses the column's side edges, and every
      * one of them can be brought fully into view.
      *
      * ⚠️ **This case first asked the wrong question and CI caught it** (2026-09-07). It
@@ -694,38 +736,127 @@ test.describe("the Library pane", () => {
      * was never about the fold but about rows two nested scrollers could not reach —
      * every row must be scrollable fully into the box.
      */
-    const rows = await aside.evaluate((element) => {
-      const box = element.getBoundingClientRect();
-      return [...element.querySelectorAll('[data-control="row"]')].map((node) => {
-        const rect = node.getBoundingClientRect();
-        return {
-          height: Math.round(rect.height),
-          past: rect.left < box.left - 1 || rect.right > box.right + 1,
-        };
-      });
-    });
-    expect(new Set(rows.map((row) => row.height))).toEqual(new Set([36]));
-    expect(rows.filter((row) => row.past).length, "a row crosses the column's side edge").toBe(0);
-
-    const unreachable = await scroller.evaluate((element) => {
-      const names: string[] = [];
-      for (const row of element.querySelectorAll('[data-control="row"]')) {
-        row.scrollIntoView({ block: "nearest" });
+    const measureRows = async () => {
+      const rows = await aside.evaluate((element) => {
         const box = element.getBoundingClientRect();
-        const rect = row.getBoundingClientRect();
-        if (rect.top < box.top - 1 || rect.bottom > box.bottom + 1) {
-          names.push(row.getAttribute("data-testid") ?? "(unnamed row)");
-        }
-      }
-      element.scrollTop = 0;
-      return names;
-    });
-    expect(unreachable, "a row cannot be scrolled fully into the column").toEqual([]);
+        return [...element.querySelectorAll('[data-control="row"]')].map((node) => {
+          const rect = node.getBoundingClientRect();
+          return {
+            height: Math.round(rect.height),
+            past: rect.left < box.left - 1 || rect.right > box.right + 1,
+          };
+        });
+      });
+      expect(new Set(rows.map((row) => row.height))).toEqual(new Set([36]));
+      expect(rows.filter((row) => row.past).length, "a row crosses the column's side edge").toBe(0);
 
-    // 4 — the column never hands its overflow to the page.
+      const unreachable = await scroller.evaluate((element) => {
+        const names: string[] = [];
+        for (const row of element.querySelectorAll('[data-control="row"]')) {
+          row.scrollIntoView({ block: "nearest" });
+          const box = element.getBoundingClientRect();
+          const rect = row.getBoundingClientRect();
+          if (rect.top < box.top - 1 || rect.bottom > box.bottom + 1) {
+            names.push(row.getAttribute("data-testid") ?? "(unnamed row)");
+          }
+        }
+        element.scrollTop = 0;
+        return names;
+      });
+      expect(unreachable, "a row cannot be scrolled fully into the column").toEqual([]);
+    };
+    await measureRows();
+
+    // 5 — the other segment, and the same geometry claims on the list it draws.
+    await page.getByTestId("library-index-segment-wiki").click();
+    await expect(wiki).toBeVisible();
+    await expect(sources).toHaveCount(0);
+    // The doors travel with the list: Add files acts on sources and is not on this half.
+    await expect(page.getByTestId("library-add-files")).toHaveCount(0);
+    await measureRows();
+
+    // 6 — the column never hands its overflow to the page, on either half.
     expect(
       await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight + 1),
     ).toBe(false);
+  });
+
+  /**
+   * **The three controls the column grew on 2026-09-07**, each from one owner sentence:
+   * the description behind a glyph, the fold, and the switch that is remembered.
+   */
+  test("the description is a tooltip, the column folds to a rail, and the switch is remembered", async ({
+    page,
+  }) => {
+    await openLibrary(page, NARROW_VAULT);
+
+    /*
+     * 1 — *"put one icon beside the title and show the explanation in a tooltip on
+     * hover."* The sentence is not deleted, it is behind a real focusable control: the
+     * paragraph is gone from the column and the sentence is still the glyph's accessible
+     * name, so a keyboard and a screen reader reach it as a pointer does.
+     */
+    const head = page.getByTestId("library-header");
+    await expect(head).not.toContainText("A source is kept byte for byte");
+    const info = page.getByTestId("library-lede-info");
+    await expect(info).toHaveAttribute("aria-label", /kept byte for byte/);
+    await info.hover();
+    const tip = page.getByRole("tooltip");
+    await expect(tip).toContainText("kept byte for byte");
+    /*
+     * ⚠️ **And it yields the moment the pointer moves, including onto the panel itself.**
+     * Radix's default keeps a tooltip open while the pointer is over its content, and that
+     * content takes pointer events — so a panel lying over the next control makes that
+     * control unpressable for as long as a hand rests anywhere on the panel. This asserts
+     * the `disableHoverableContent` that removes it: the pointer is moved **into** the
+     * description, which is the one motion the default would treat as "still reading".
+     */
+    const tipBox = (await tip.boundingBox())!;
+    await page.mouse.move(tipBox.x + tipBox.width / 2, tipBox.y + tipBox.height / 2);
+    await expect(tip).toHaveCount(0);
+
+    /*
+     * 2 — *"the left panel must be closable, I may want only the graph."* The column folds
+     * to the rail tab, the graph takes the width, and the tab brings it back. The canvas
+     * width is the measurement: a fold that does not widen the picture is a fold that only
+     * hid something.
+     */
+    const canvas = page.getByTestId("library-graph-canvas");
+    const wide = (await canvas.boundingBox())!.width;
+    await page.getByTestId("library-index-collapse").click();
+    await expect(page.getByTestId("library-index")).toBeHidden();
+    const tab = page.getByTestId("library-index-tab");
+    await expect(tab).toBeVisible();
+    // Focus followed the control that vanished, so the keyboard is not back at the top.
+    await expect(tab).toBeFocused();
+    await expect
+      .poll(async () => Math.round((await canvas.boundingBox())!.width))
+      .toBeGreaterThan(Math.round(wide) + 200);
+
+    await tab.click();
+    await expect(page.getByTestId("library-index")).toBeVisible();
+    await expect(page.getByTestId("library-index-collapse")).toBeFocused();
+
+    /*
+     * 3 — the switch is remembered per machine, and opening a file from the picture moves
+     * it to that file's own list. Both are what stop the index naming one thing while the
+     * reader shows another.
+     */
+    await page.getByTestId("library-index-segment-wiki").click();
+    /*
+     * The stored answer, not a reload: reopening this fixture means driving the picker
+     * again, which is a different journey and would measure the folder-restore path
+     * instead of the preference. The key is what survives the machine either way.
+     */
+    expect(
+      await page.evaluate(() => window.localStorage.getItem("atlas.library.index-segment")),
+    ).toBe("wiki");
+    await page.getByTestId("library-wiki-wiki/note-01").click();
+    await page.getByTestId("library-reader-back").click();
+    await expect(page.getByTestId("library-index-segment-wiki")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
   });
 
   /**
@@ -745,6 +876,8 @@ test.describe("the Library pane", () => {
     const shelf = page.getByTestId("library-shelf-popover");
 
     // 1 — Enter on a row is not a pointerdown, and it still closes the panel.
+    // The index draws one list and opens on Sources (2026-09-07); the wiki is one press.
+    await page.getByTestId("library-index-segment-wiki").click();
     await page.getByTestId("library-shelf-open").click();
     await expect(shelf).toBeVisible();
     await page.getByTestId("library-wiki-wiki/quarter-plan").focus();
@@ -759,6 +892,9 @@ test.describe("the Library pane", () => {
      * focus ends up. The panel used to drag it back to the chip one exit window later.
      */
     await page.getByTestId("library-reader-back").click();
+    // Back on the Sources half, where `Find documents` is: the switch decides which doors
+    // are drawn, and this case needs one that is focusable and changes no selection.
+    await page.getByTestId("library-index-segment-sources").click();
     await page.getByTestId("library-shelf-open").click();
     await expect(shelf).toBeVisible();
     await page.getByTestId("library-find-documents").click();
@@ -774,6 +910,8 @@ test.describe("the Library pane", () => {
   }) => {
     await openLibrary(page);
     await expect(page.getByTestId("library-graph-canvas")).toBeVisible();
+    // The index draws one list and opens on Sources (2026-09-07); the wiki is one press.
+    await page.getByTestId("library-index-segment-wiki").click();
     await page.getByTestId("library-wiki-wiki/quarter-plan").click();
     await expect(page.getByTestId("library-wiki-header")).toContainText("Quarter plan");
     // The canvas stands aside rather than unmounting — it keeps its settled positions.
@@ -908,7 +1046,9 @@ for (const viewport of NARROW_VIEWPORTS) {
     expect(scrolled.overflowY, "the index is not a scroller").toBe("auto");
     expect(scrolled.overflows, "the index has nothing to scroll — the case is idling").toBe(true);
     expect(scrolled.moved, "the index did not scroll").toBe(true);
-    await expect(page.getByTestId("library-wiki-wiki/note-08")).toBeInViewport();
+    // The last row of the list the switch is on, reached by that scroll (2026-09-07: the
+    // column draws one list, so the row that used to be last here is on the other half).
+    await expect(page.getByTestId("library-source-sources/report-12.pdf")).toBeInViewport();
     const pageScrolls = await page.evaluate(
       () => document.documentElement.scrollHeight > window.innerHeight + 1,
     );

@@ -6489,6 +6489,26 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — The Library index is a switch between two lists, and its description is a glyph",
+      "slug": "2026-09-07-the-library-index-is-a-switch-between-two-lists-and-its-description-is-a-glyph"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-07 — The Library column folds, and the graph re-clamps a box it did not choose",
+      "slug": "2026-09-07-the-library-column-folds-and-the-graph-re-clamps-a-box-it-did-not-choose"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-07 — Scrollers draw no bar, and the surfaces that lose a cue pay a fade",
+      "slug": "2026-09-07-scrollers-draw-no-bar-and-the-surfaces-that-lose-a-cue-pay-a-fade"
+    },
+    {
+      "depth": 2,
+      "text": "2026-09-07 — The growth replay is a toggle, and putting the 3D picker away is not a walk",
+      "slug": "2026-09-07-the-growth-replay-is-a-toggle-and-putting-the-3d-picker-away-is-not-a-walk"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — The installed app answers one address, and it only fills in a form",
       "slug": "2026-09-07-the-installed-app-answers-one-address-and-it-only-fills-in-a-form"
     },
@@ -9819,6 +9839,11 @@
       "depth": 3,
       "text": "Caps tracking is a Latin device (owner, 2026-09-06)",
       "slug": "caps-tracking-is-a-latin-device-owner-2026-09-06"
+    },
+    {
+      "depth": 3,
+      "text": "Scrollers draw no bar; scrolling is unchanged (2026-09-07)",
+      "slug": "scrollers-draw-no-bar-scrolling-is-unchanged-2026-09-07"
     },
     {
       "depth": 3,

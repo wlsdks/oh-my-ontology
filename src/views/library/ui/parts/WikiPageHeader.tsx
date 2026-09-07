@@ -5,7 +5,8 @@ import type { useTranslations } from "next-intl";
 import { FileText } from "lucide-react";
 
 import type { LibraryOriginalLink, VaultDoc } from "@/entities/docs-vault";
-import { RowButton } from "@/shared/ui";
+import { Chip, RowButton } from "@/shared/ui";
+import { Disclosure } from "@/shared/ui/disclosure";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { wikiStatusLabel, writerLabel } from "../../lib/writer-label";
 
@@ -104,35 +105,43 @@ export function WikiPageHeader({
           )}
         </div>
       ) : originals.length > 0 ? (
-        <div className="mt-3">
-          <p className="font-mono text-caption uppercase tracking-[var(--tracking-caps-14)] text-[color:var(--color-text-quaternary)]">
-            {t("wiki.viewOriginal")}
-          </p>
-          <ul className="mt-2 flex flex-col gap-0.5">
+        /*
+         * Several originals fold (owner, 2026-09-07): six of them as full rows pushed the
+         * Summary below the fold of the installed app, and the top of a page was a list
+         * of file names nobody had asked to read. One closed line names the count; open,
+         * the files are chips on a wrapping row, each still a press that opens the source.
+         */
+        <Disclosure
+          className="mt-3"
+          summaryTestId="library-wiki-originals"
+          summary={t("wiki.viewOriginalCount", { count: originals.length })}
+        >
+          <ul className="mt-1.5 flex flex-wrap items-center gap-1 pl-5">
             {originals.map((original) => (
-              <li key={original.path}>
+              <li key={original.path} className="min-w-0 max-w-full">
                 {original.state === null ? (
                   <span
                     data-testid={`library-wiki-source-missing-${original.path}`}
-                    className="block max-w-full truncate px-2.5 py-2 text-caption text-[color:var(--color-text-quaternary)] line-through"
+                    className="block max-w-full truncate px-2 py-1 text-caption text-[color:var(--color-text-quaternary)] line-through"
                   >
                     {original.name}
                   </span>
                 ) : (
-                  <RowButton
+                  <Chip
                     tone="muted"
+                    hoverInk="strong"
                     data-testid={`library-wiki-source-${original.path}`}
                     onClick={() => onOpenSource(original.path)}
-                    className="hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]"
+                    className="max-w-full"
                   >
                     <FileText size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
-                    <span className="min-w-0 flex-1 truncate">{original.name}</span>
-                  </RowButton>
+                    <span className="min-w-0 truncate">{original.name}</span>
+                  </Chip>
                 )}
               </li>
             ))}
           </ul>
-        </div>
+        </Disclosure>
       ) : null}
     </header>
   );

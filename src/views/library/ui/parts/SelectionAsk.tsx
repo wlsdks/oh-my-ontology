@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { MessageCircleQuestion } from "lucide-react";
 
 import type { AskQuestionId } from "@/features/library";
 import { Chip, Surface } from "@/shared/ui";
+import { cn } from "@/shared/lib/cn";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { Input } from "@/shared/ui/input";
 import { transientSurface } from "@/shared/ui/transient-surface";
@@ -16,8 +17,8 @@ type Translator = ReturnType<typeof useTranslations<"library">>;
 const MIN_PASSAGE = 8;
 /** One bar row, with the gap above the line: the room needed to sit above a selection. */
 const BAR_ROOM = 56;
-/** The widest the bar gets on one row; the left edge is clamped so this much stays inside. */
-const BAR_WIDTH = 560;
+/** Before the bar is measured, this much is kept inside the box; the real width corrects it. */
+const BAR_WIDTH = 420;
 
 type Placement = { text: string; top: number; left: number; above: boolean };
 
@@ -35,7 +36,12 @@ type Placement = { text: string; top: number; left: number; above: boolean };
  * Why one bar and not a chip that opens a list (the first shape, same day): the list stood
  * to the left of the text and covered three lines of it, and it took a second press to see
  * the questions. A row above the first selected line covers at most the line before it,
- * and reads as belonging to the selection the way an editor's formatting bar does.
+ * and reads as belonging to the selection the way an editor's formatting bar does. The
+ * second shape the same day boxed every question in its own bordered chip and let the row
+ * run off the right edge of the pane when a selection started far to the right; the owner
+ * rejected that too. Now the questions are bare text buttons separated by hairlines, the
+ * person's own question opens an input in the same row, and after the bar is drawn its
+ * real width is measured and the row is pulled back inside the page box.
  *
  * The bar is `transientSurface('anchored')` on the shared `Surface`, the same shape as the
  * Library's shelf popover: beside what opened it, closes on Escape or an outside press, no
@@ -57,6 +63,7 @@ export function SelectionAsk({
   const [placement, setPlacement] = useState<Placement | null>(null);
   const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState("");
+  const [own, setOwn] = useState(false);
   const barRef = useRef<HTMLElement | null>(null);
 
   const readSelection = useCallback(() => {
@@ -93,8 +100,23 @@ export function SelectionAsk({
       top: above ? first.top - hostRect.top - 8 : last.bottom - hostRect.top + 8,
       left: Math.max(8, Math.min(first.left - hostRect.left, hostRect.width - 8 - BAR_WIDTH)),
     });
+    setOwn(false);
     setOpen(true);
   }, [containerRef]);
+
+  // Drawn, then measured: the left edge is pulled back so the whole row stays inside the
+  // page box. Placement from the selection alone let the row run off the right edge of
+  // the pane (owner, installed app, 2026-09-07).
+  useLayoutEffect(() => {
+    if (!open || !placement) return;
+    const bar = barRef.current;
+    const container = containerRef.current;
+    if (!bar || !container) return;
+    const width = bar.offsetWidth;
+    if (width === 0) return;
+    const maxLeft = Math.max(8, container.clientWidth - 8 - width);
+    if (placement.left > maxLeft) setPlacement({ ...placement, left: maxLeft });
+  }, [containerRef, open, own, placement]);
 
   // The body box carries `data-selecting` while the bar is up; the page's own class dims
   // everything under it except this bar (see LibraryPage).
@@ -111,11 +133,19 @@ export function SelectionAsk({
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const onUp = () => window.setTimeout(readSelection, 0);
-    // A selection collapsed from anywhere (a press on the shelf, Escape, a key) takes the
-    // bar and the dimming with it; only a release inside the page can raise the bar, so a
-    // drag in progress never flickers one into view.
+    // A release or a key inside the bar itself is the person using the bar, not making a
+    // new selection: pressing a question collapses the browser selection on the way, and
+    // typing an own question does so on focus. Neither may take the bar down.
+    const inBar = (node: EventTarget | null) => !!barRef.current && node instanceof Node && barRef.current.contains(node);
+    const onUp = (event: Event) => {
+      if (inBar(event.target)) return;
+      window.setTimeout(readSelection, 0);
+    };
+    // A selection collapsed from anywhere else (a press on the shelf, Escape, a key) takes
+    // the bar and the dimming with it; only a release inside the page can raise the bar, so
+    // a drag in progress never flickers one into view.
     const onChange = () => {
+      if (inBar(document.activeElement)) return;
       const live = window.getSelection();
       if (!live || live.isCollapsed || live.rangeCount === 0) window.setTimeout(readSelection, 0);
     };
@@ -129,10 +159,26 @@ export function SelectionAsk({
     };
   }, [containerRef, readSelection]);
 
+  // A press on a question must not collapse the selection it is about; the input is the
+  // one child that needs the press for focus. (`Surface` takes no handlers of its own.)
+  useEffect(() => {
+    if (!open) return;
+    const bar = barRef.current;
+    if (!bar) return;
+    const onBarDown = (event: MouseEvent) => {
+      if (!(event.target instanceof HTMLElement && event.target.closest("input"))) event.preventDefault();
+    };
+    bar.addEventListener("mousedown", onBarDown);
+    return () => bar.removeEventListener("mousedown", onBarDown);
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        // The page answers Escape by closing the document unless the key was already
+        // spent (`defaultPrevented`); with the bar up, one press closes the bar only.
+        event.preventDefault();
         event.stopPropagation();
         window.getSelection()?.removeAllRanges();
         setOpen(false);
@@ -159,6 +205,7 @@ export function SelectionAsk({
   const onExited = useCallback(() => {
     setPlacement(null);
     setCustom("");
+    setOwn(false);
   }, []);
 
   if (!placement) return null;
@@ -172,7 +219,7 @@ export function SelectionAsk({
   return (
     <div
       data-testid="library-selection-ask"
-      className="absolute z-30 max-w-[calc(100%-16px)]"
+      className="absolute z-30"
       style={{ top: placement.top, left: placement.left, transform: placement.above ? "translateY(-100%)" : undefined }}
     >
       <Surface
@@ -184,51 +231,73 @@ export function SelectionAsk({
         onExited={onExited}
         {...transientSurface("anchored")}
         aria-label={t("ask.title")}
-        className="flex flex-wrap items-center gap-1 rounded-panel border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-1.5 shadow-[var(--shadow-elevation-1)]"
+        className="flex h-9 max-w-full items-center gap-0.5 rounded-panel border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] px-1 shadow-[var(--shadow-elevation-1)]"
       >
         <span
-          className="inline-flex h-6 w-6 shrink-0 items-center justify-center text-[color:var(--color-text-quaternary)]"
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-[color:var(--color-text-quaternary)]"
           title={t("ask.title")}
           aria-hidden
         >
           <MessageCircleQuestion size={ICON_SIZE.sm} />
         </span>
-        {questions.map((question) => (
-          <Chip
-            key={question}
-            data-testid={`library-ask-${question}`}
-            tone="secondary"
-            hoverInk="strong"
-            hoverSurface="lift"
-            disabled={disabled}
-            onClick={() => ask(question)}
-          >
-            {t(`ask.${question}`)}
-          </Chip>
-        ))}
-        <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-[color:var(--color-divider)]" />
-        <span className="flex min-w-0 flex-1 items-center gap-1">
-          <Input
-            data-testid="library-ask-custom"
-            size="sm"
-            aria-label={t("ask.placeholder")}
-            value={custom}
-            onChange={(event) => setCustom(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && custom.trim()) ask("custom", custom);
-            }}
-            placeholder={t("ask.placeholder")}
-            className="min-w-[10rem] flex-1"
-          />
-          <Chip
-            data-testid="library-ask-send"
-            tone={custom.trim() ? "accent" : "muted"}
-            disabled={disabled || custom.trim() === ""}
-            onClick={() => ask("custom", custom)}
-          >
-            {t("ask.send")}
-          </Chip>
-        </span>
+        {own ? (
+          <>
+            <Input
+              data-testid="library-ask-custom"
+              size="sm"
+              aria-label={t("ask.placeholder")}
+              value={custom}
+              autoFocus
+              onChange={(event) => setCustom(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && custom.trim()) ask("custom", custom);
+              }}
+              placeholder={t("ask.placeholder")}
+              className="w-[min(18rem,60vw)]"
+            />
+            <Chip
+              data-testid="library-ask-send"
+              tone={custom.trim() ? "accent" : "muted"}
+              hoverInk="strong"
+              disabled={disabled || custom.trim() === ""}
+              onClick={() => ask("custom", custom)}
+              className={BARE}
+            >
+              {t("ask.send")}
+            </Chip>
+          </>
+        ) : (
+          <>
+            {questions.map((question, index) => (
+              <span key={question} className="contents">
+                {index > 0 ? <Hairline /> : null}
+                <Chip
+                  data-testid={`library-ask-${question}`}
+                  tone="secondary"
+                  hoverInk="strong"
+                  hoverSurface="lift"
+                  disabled={disabled}
+                  onClick={() => ask(question)}
+                  className={BARE}
+                >
+                  {t(`ask.${question}`)}
+                </Chip>
+              </span>
+            ))}
+            <Hairline />
+            <Chip
+              data-testid="library-ask-own"
+              tone="muted"
+              hoverInk="strong"
+              hoverSurface="lift"
+              disabled={disabled}
+              onClick={() => setOwn(true)}
+              className={BARE}
+            >
+              {t("ask.own")}
+            </Chip>
+          </>
+        )}
       </Surface>
     </div>
   );
@@ -243,4 +312,12 @@ function scrollPaneOf(node: HTMLElement): HTMLElement | null {
     current = current.parentElement;
   }
   return null;
+}
+
+/** A question as a bare text button: the bar's ground is the only box on screen. */
+const BARE = cn("h-7 flex-none whitespace-nowrap border-transparent bg-transparent px-2");
+
+/** The hairline between two questions, the bar's only structure. */
+function Hairline() {
+  return <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-[color:var(--color-divider)]" />;
 }

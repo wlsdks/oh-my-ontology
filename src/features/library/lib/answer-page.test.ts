@@ -25,6 +25,22 @@ describe("buildAnswerPage files an answer back as a wiki page", () => {
     expect(page.text).toContain("## Facts\n\n- The change request moved");
     expect(page.text).toContain("## Not in sources\n\n- I could not find who signed the survey.");
     expect(page.text).toContain("Asked while reading [[wiki/change-request]].");
+  });
+
+  it("points at the pages that already write up a cited source, so the folder check has nothing to raise", () => {
+    const page = buildAnswerPage({
+      question: "Why was the reopening moved?",
+      answer: "Retaining the sashes adds eleven weeks [[src:sources/site-survey.pdf#p2]] [[src:sources/change-request.docx#p1]].",
+      askedOn: "wiki/change-request",
+      writer: "agent:claude-code",
+      now: NOW,
+      hashes: new Map(),
+      knownSources: ["sources/change-request.docx", "sources/site-survey.pdf"],
+      pagesForSource: (path) =>
+        path === "sources/site-survey.pdf" ? ["wiki/site-survey", "wiki/change-request"] : ["wiki/change-request"],
+    });
+    expect(page.problems).toEqual([]);
+    expect(page.text).toContain("Asked while reading [[wiki/change-request]]. See also [[wiki/site-survey]].");
     expect(page.problems).toEqual([]);
   });
 
