@@ -4668,6 +4668,7 @@
   "libraryImport": {
     "title": "외부에서 문서 가져오기",
     "pickBody": "문서가 이미 있는 곳을 고르세요. Atlas가 한 번 연결하면, 대화 중인 코딩 도구가 문서를 받아서 이 폴더에 읽고 고칠 수 있는 마크다운 파일로 하나씩 적어 둡니다.",
+    "absentNote": "Google Drive 는 아직 없어요. Google 이 로그인만으로 되는 연결을 내놓지 않아서, 지금은 Drive 에서 내려받아 「파일 넣기」로 넣는 것이 가장 빠릅니다.",
     "close": "닫기",
     "back": "뒤로",
     "stepOf": "{total}단계 중 {step}단계",
