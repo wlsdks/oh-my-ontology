@@ -222,11 +222,14 @@ describe('대화 패널 — 일어난 일만 그린다', () => {
     expect(choices).toHaveClass('flex', 'min-w-0', 'flex-1');
     expect(choices).not.toHaveClass('shrink-0');
     // `className` lands on the Select's own wrapper; the trigger inside it is `w-full`.
-    for (const id of ['acp-chat-model', 'acp-chat-mode']) {
-      const wrapper = screen.getByTestId(id).closest('.relative')!;
-      expect(wrapper.className, id).toContain('flex-1 basis-0');
-    }
-    expect(screen.getByTestId('acp-chat-model')).toHaveTextContent('model');
+    // A quiet picker is content-sized with a floor, never an equal slot that could swell.
+    const modeWrapper = screen.getByTestId('acp-chat-mode').closest('.relative')!;
+    expect(modeWrapper.className).toContain('min-w-[104px]');
+    expect(modeWrapper.className).toContain('shrink');
+    // One tool, one model: nothing to choose, so the tool's name carries the model as text
+    // instead of a one-entry picker (owner, 2026-09-07: the model is the tool's own entry).
+    expect(screen.queryByTestId('acp-chat-runtime')).toBeNull();
+    expect(screen.getByTestId('acp-chat-runtime-label')).toHaveTextContent('Claude Code · GPT-5.6-Sol (low)');
     expect(screen.getByTestId('acp-chat-mode')).toHaveTextContent('mode');
 
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '계속해 줘' } });
@@ -1232,6 +1235,40 @@ describe('대화 패널 — 권한 카드가 실제로 막는다', () => {
 
     fireEvent.click(screen.getByTestId('acp-permission-reject'));
     await waitFor(() => expect(answerFor(77)).toEqual({ outcome: 'selected', optionId: 'reject' }));
+  });
+
+  it('the auto-allowed receipt carries its two doors: open the page, and ask next time', async () => {
+    /*
+     * The screen judged the write and let it land (2026-09-06 autonomy); the receipt is the
+     * one moment the consequence is on screen, so the way to the page and the way back to
+     * being asked stand on the receipt itself (council 2026-09-07). Both doors are the
+     * page's, not the panel's: the panel only relays the path it was told.
+     */
+    const openPage = vi.fn();
+    const askNext = vi.fn();
+    await bootSession({
+      autoDecide: () => 'wiki/handover.md',
+      noticeActions: { openPage, askNext },
+    });
+    emit(permissionRequest('/vault/wiki/handover.md', 91, 'edit'));
+
+    await waitFor(() => expect(answerFor(91)).toEqual({ outcome: 'selected', optionId: 'allow' }));
+    expect(screen.queryByTestId('acp-permission-card')).toBeNull();
+    const notice = document.querySelector('[data-acp-entry="notice"][data-notice="auto-allowed"]');
+    expect(notice, 'the receipt did not appear where the card would have stood').not.toBeNull();
+
+    fireEvent.click(screen.getByTestId('acp-notice-open-page'));
+    expect(openPage).toHaveBeenCalledWith('wiki/handover.md');
+    fireEvent.click(screen.getByTestId('acp-notice-ask-next'));
+    expect(askNext).toHaveBeenCalledTimes(1);
+  });
+
+  it('without the doors the receipt is a sentence alone — a surface that cannot open a page does not promise to', async () => {
+    await bootSession({ autoDecide: () => 'wiki/handover.md' });
+    emit(permissionRequest('/vault/wiki/handover.md', 92, 'edit'));
+    await waitFor(() => expect(answerFor(92)).toEqual({ outcome: 'selected', optionId: 'allow' }));
+    expect(screen.queryByTestId('acp-notice-open-page')).toBeNull();
+    expect(screen.queryByTestId('acp-notice-ask-next')).toBeNull();
   });
 
   it('볼트 밖이면 카드를 띄우고, 답하기 전에는 아무 답도 보내지 않는다', async () => {

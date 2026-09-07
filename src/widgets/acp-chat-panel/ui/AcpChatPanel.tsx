@@ -171,6 +171,12 @@ const EMPTY_KNOWN_RELATIONS: ReadonlySet<string> = new Set();
  * It is a floor, not a width: above it the slots still divide the row equally.
  */
 const PICKER_MIN_WIDTH_CLASS = 'min-w-[104px]';
+/*
+ * A picker alone on its row used to take the whole composer width — a 600px box for two
+ * entries (installed app, 2026-09-07, the owner's "buttons are too big"). The equal-slot
+ * rule still shares the row between the two pickers; this stops one from swallowing it.
+ */
+const PICKER_MAX_WIDTH_CLASS = 'max-w-[18rem]';
 
 interface SuggestionRowsProps {
   heading: string;
@@ -261,6 +267,7 @@ export function AcpChatPanel({
   runtimeLabel,
   vaultRoot,
   beforeComposer = null,
+  noticeActions = null,
   mcpServers,
   sessionEnabled = true,
   runtimes = [],
@@ -373,6 +380,12 @@ export function AcpChatPanel({
    * rather than in the index column (owner, 2026-09-07). Null draws nothing.
    */
   beforeComposer?: ReactNode;
+  /**
+   * What a person can do from an `auto-allowed` notice, at the one moment the consequence
+   * is visible: open the page that landed, or ask before the next one. Null draws the
+   * sentence alone (design-interaction, council 2026-09-07).
+   */
+  noticeActions?: { openPage: (path: string) => void; askNext: () => void } | null;
   /** Current graph relation keys (`from\0type\0to`) used to reject invented presentation edges. */
   knownRelations?: ReadonlySet<string>;
   /** Only the explicit whole-ontology Flow request can become a presentation in this slice. */
@@ -899,6 +912,16 @@ export function AcpChatPanel({
         and a promise that one dropdown can revoke, or that makes the unknown look
         safe, is not a promise.
       */}
+  /** The tool picker's entries: the current tool's models under its name, the others by name. */
+  const toolPicker = (runtimes.length > 0 ? runtimes : [{ id: runtimeId, label: runtimeLabel }]).flatMap((r) =>
+    r.id === runtimeId && choices.models.length > 0
+      ? choices.models.map((model) => ({ value: `model:${model.id}`, label: `${r.label} · ${model.name}` }))
+      : [{ value: `runtime:${r.id}`, label: r.label }],
+  );
+  // No model chosen yet: the trigger reads the tool's name alone, as the placeholder.
+  const toolPickerValue =
+    choices.models.length > 0 ? (choices.currentModelId ? `model:${choices.currentModelId}` : '') : `runtime:${runtimeId}`;
+
   const choicesRow =
     choices.models.length > 0 || choices.modes.length > 0 ? (
         /*
@@ -926,24 +949,12 @@ export function AcpChatPanel({
          */
         <div
           data-testid="acp-chat-choices"
-          className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5"
+          className="flex min-w-0 flex-1 items-center gap-0.5"
         >
-          {choices.models.length > 0 ? (
-            <Select
-              ariaLabel={t('model')}
-              size="md"
-              value={choices.currentModelId ?? ''}
-              placeholder={t('model')}
-              onChange={(value) => void chooseModel(value)}
-              options={choices.models.map((model) => ({ value: model.id, label: model.name }))}
-              data-testid="acp-chat-model"
-              className={cn(PICKER_MIN_WIDTH_CLASS, 'flex-1 basis-0')}
-            />
-          ) : null}
           {choices.modes.length > 0 ? (
             <Select
               ariaLabel={t('mode')}
-              size="md"
+              size="sm"
               value={choices.currentModeId ?? ''}
               placeholder={t('mode')}
               onChange={(value) => void chooseMode(value)}
@@ -973,7 +984,8 @@ export function AcpChatPanel({
                 };
               })}
               data-testid="acp-chat-mode"
-              className={cn(PICKER_MIN_WIDTH_CLASS, 'flex-1 basis-0')}
+              quiet
+              className={cn(PICKER_MIN_WIDTH_CLASS, PICKER_MAX_WIDTH_CLASS, 'shrink')}
             />
           ) : null}
         </div>
@@ -1299,6 +1311,7 @@ export function AcpChatPanel({
                     repeat={row.repeat}
                     knownSlugs={knownSlugs}
                     onHoverSlug={onHoverSlug}
+                    noticeActions={noticeActions}
                   />
                 ))}
               </div>
@@ -1333,6 +1346,7 @@ export function AcpChatPanel({
                 event={item.event}
                 knownSlugs={knownSlugs}
                 onHoverSlug={onHoverSlug}
+                noticeActions={noticeActions}
                 /*
                  * Only the **last** bubble, and only while the turn is still running. Revealing an
                  * older answer again on every re-render would replay finished text, and revealing
@@ -1766,54 +1780,56 @@ export function AcpChatPanel({
           </p>
         ) : null}
         {/*
-          ⚠️ **The session's controls live where the hand already is** (2026-09-06). This panel
-          used to spend a whole band at the top on a name, a status chip and three icon buttons —
-          above a transcript that is the only reason the panel exists, and a second close button a
-          few pixels from the workbench's own. The name, the status and the two session actions
-          are all things you reach for *while writing*, so they sit on the composer's own row: the
-          tool and its pickers on the left, what the session is doing and what you can do to it on
-          the right, send at the end.
-
-          ⚠️ **Below `COMPOSER_FOOTER_ONE_ROW_PX` it becomes two rows** (owner, 2026-09-06,
-          installed app at the default width, mid-turn: *"why is this broken? I can't see what is
-          selected"*). One row held two pickers, a status word, a running clock and four buttons.
-          The pickers were the only slots allowed to shrink, so they shrank to their chevrons and
-          the person could no longer read which tool and which mode they were talking to — the row
-          survived and its meaning did not.
-
-          So the row splits where it stops fitting: the pickers take a full row of their own, and
-          the status and the buttons take the row below. Above that width nothing changes.
-          The measurement is in `panel-width.ts` beside the width it is measured against.
-
-          Every left-hand slot still shrinks rather than wraps, but never below
-          `PICKER_MIN_WIDTH_CLASS`: a truncated name ("Claude…") is a fact, an empty box is not.
+          One row at the bottom of the box, the way chat composers are laid out elsewhere:
+          the tool and the mode as quiet text pickers on the left, the status word and the
+          session buttons on the right, send at the end. They were bordered 32px boxes on a
+          two-row footer, then a toolbar above the transcript for an hour; the owner looked
+          at the empty band that left at the top and asked for one line at the very bottom
+          (installed app, 2026-09-07). The two-row measurement in `panel-width.ts` is gone
+          with the boxes: a quiet picker truncates to its floor instead of wrapping.
         */}
         <div
           data-testid="acp-chat-footer"
-          className="mt-2 flex min-w-0 flex-col items-stretch gap-2 @min-[540px]/composer:flex-row @min-[540px]/composer:items-center @min-[540px]/composer:justify-between"
+          className="mt-2 flex min-w-0 items-center gap-1"
         >
           <span
             data-testid="acp-chat-pickers"
-            className="flex min-w-0 flex-wrap items-center gap-1.5 @min-[540px]/composer:flex-1"
+            className="flex min-w-0 flex-1 items-center gap-0.5"
           >
             {/*
               With two or more usable tools, **the name slot becomes the picker** — it is already
               there to show the name, so no new chrome appears. With just one there is nothing to
               choose, so it stays text (a one-option dropdown only pretends to be a choice).
             */}
-            {runtimes.length > 1 && onRuntimeChange ? (
+            {(runtimes.length > 1 && onRuntimeChange) || toolPicker.length > 1 ? (
+              /*
+               * **One picker for the tool and its model.** The owner saw three boxes — tool,
+               * model, mode — at 32px each, stacked when the dock was narrow, and asked who
+               * lays a composer out like that (installed app, 2026-09-07): "merge it into one
+               * Codex, click it to pick the version". So the tool's models are its entries
+               * (`Codex · GPT-5.6-Sol (low)`), the other tools stand beside them by name, and
+               * the mode keeps its own picker because it is a different question.
+               */
               <Select
                 ariaLabel={t('runtimePicker')}
-                size="md"
-                value={runtimeId}
-                onChange={onRuntimeChange}
-                options={runtimes.map((r) => ({ value: r.id, label: r.label }))}
+                size="sm"
+                value={toolPickerValue}
+                placeholder={runtimeLabel}
+                onChange={(value) => {
+                  if (value.startsWith('model:')) void chooseModel(value.slice('model:'.length));
+                  else onRuntimeChange?.(value.slice('runtime:'.length));
+                }}
+                options={toolPicker}
                 data-testid="acp-chat-runtime"
-                className={cn(PICKER_MIN_WIDTH_CLASS, 'flex-1 basis-0')}
+                quiet
+                className={cn(PICKER_MIN_WIDTH_CLASS, PICKER_MAX_WIDTH_CLASS, 'shrink')}
               />
             ) : (
-              <span className="min-w-0 shrink truncate text-label leading-label text-[color:var(--color-text-tertiary)]">
-                {runtimeLabel}
+              <span
+                data-testid="acp-chat-runtime-label"
+                className="min-w-0 shrink truncate text-label leading-label text-[color:var(--color-text-tertiary)]"
+              >
+                {toolPicker[0]?.label ?? runtimeLabel}
               </span>
             )}
             {contextLabel ? (
@@ -1831,7 +1847,7 @@ export function AcpChatPanel({
           </span>
           <span
             data-testid="acp-chat-session-actions"
-            className="flex min-w-0 flex-wrap items-center justify-end gap-1 @min-[540px]/composer:shrink-0"
+            className="flex shrink-0 items-center gap-1"
           >
             {/*
               The status is a **sentence-weight word, not a chip**. Up in the header it was a
@@ -1847,7 +1863,7 @@ export function AcpChatPanel({
                 free space goes into this margin and the buttons stay at the right edge. On one
                 row the group is already content-sized and the margin has nothing to absorb.
               */
-              className="mr-auto flex shrink-0 items-center gap-1 text-label leading-label text-[color:var(--color-text-quaternary)] @min-[540px]/composer:mr-0"
+              className="flex shrink-0 items-center gap-1 text-label leading-label text-[color:var(--color-text-quaternary)]"
             >
               {displayStatus === 'starting' ? (
                 <LoaderCircle
@@ -1897,6 +1913,7 @@ export function AcpChatPanel({
                 </IconButton>
               </Tooltip>
             </TooltipProvider>
+            <span data-testid="acp-chat-send-group" className="flex items-center gap-1">
             {busy ? (
               <Chip size="md" tone="secondary" data-testid="acp-chat-stop" onClick={cancel}>
                 <Square size={ICON_SIZE.sm} aria-hidden />
@@ -1929,6 +1946,7 @@ export function AcpChatPanel({
                 <ArrowUp size={ICON_SIZE.md} aria-hidden />
               </button>
             </Tooltip>
+            </span>
           </span>
         </div>
         {/*
@@ -2278,12 +2296,15 @@ function TranscriptEntry({
   event,
   knownSlugs,
   onHoverSlug,
+  noticeActions = null,
   streaming = false,
   repeat = 1,
 }: {
   event: AcpEvent;
   knownSlugs?: ReadonlySet<string>;
   onHoverSlug?: (slug: string | null) => void;
+  /** The two doors an `auto-allowed` notice may carry; see `AcpChatPanelProps.noticeActions`. */
+  noticeActions?: { openPage: (path: string) => void; askNext: () => void } | null;
   /** Is this the bubble the agent is still writing into? Only that one reveals gradually. */
   streaming?: boolean;
   /**
@@ -2592,6 +2613,33 @@ function TranscriptEntry({
         : event.text === 'auto-allowed'
           ? t('notice.autoAllowed', { detail: event.detail ?? '' })
           : t(event.text === 'died-mid-turn' ? 'notice.diedMidTurn' : 'notice.gateOff')}
+      {event.text === 'auto-allowed' && noticeActions && event.detail ? (
+        /*
+         * The receipt carries its two doors: the page that landed, and the switch to being
+         * asked before the next one. A sentence telling a person to go find the page in a
+         * list was a dead receipt at the one moment the consequence was on screen
+         * (design-interaction, council 2026-09-07). The second door writes the same
+         * setting Settings owns; it is a way back, not a second place to change the mode.
+         */
+        <span className="ml-2 inline-flex flex-wrap items-center gap-x-2 align-baseline">
+          <button
+            type="button"
+            data-testid="acp-notice-open-page"
+            onClick={() => noticeActions.openPage(event.detail ?? '')}
+            className={controlClass({ shape: 'link', size: 'sm', tone: 'accent', hoverInk: 'strong' })}
+          >
+            {t('notice.openPage')}
+          </button>
+          <button
+            type="button"
+            data-testid="acp-notice-ask-next"
+            onClick={noticeActions.askNext}
+            className={controlClass({ shape: 'link', size: 'sm', tone: 'muted', hoverInk: 'strong' })}
+          >
+            {t('notice.askNext')}
+          </button>
+        </span>
+      ) : null}
     </p>
   );
 }

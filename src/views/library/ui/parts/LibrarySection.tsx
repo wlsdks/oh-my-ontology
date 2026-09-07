@@ -7,7 +7,6 @@ import { Link } from "@/i18n/navigation";
 import { BookText, Check, CloudDownload, FilePlus2, FileText, PencilLine, Search, Sparkles, Stethoscope } from "lucide-react";
 
 import { formatSourceBytes, type LibrarySourceRow } from "@/entities/docs-vault";
-import type { LibraryIndexSegment } from "@/shared/lib/appearance-preferences";
 import { cn } from "@/shared/lib/cn";
 import { badgeClass } from "@/shared/ui/badge-class";
 import { writerLabel } from "../../lib/writer-label";
@@ -15,6 +14,7 @@ import { controlClass } from "@/shared/ui/control-class";
 import { Chip, RowButton, Tooltip } from "@/shared/ui";
 import { Input } from "@/shared/ui/input";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
+import { writeLibraryIndexSegment, type LibraryIndexSegment } from "@/shared/lib/appearance-preferences";
 
 import { isAdvisoryWikiCode, isWikiFolderCode } from "../../lib/merge-wiki-verdict";
 import { libraryWaitingLine } from "../../lib/stage-steps";
@@ -165,6 +165,37 @@ export interface LibrarySectionProps {
  * it printed the same fact twice and spent the height on it. `sticky` goes with it — there
  * is nothing left to pin.
  */
+/**
+ * A search whose matches all sit on the other half of the switch used to end in an empty
+ * list under a line that counted them — "sources 0 · pages 6" over nothing (browser
+ * walkthrough, 2026-09-07). The list names where the matches are and switches there.
+ */
+function OtherHalf({
+  count,
+  segment,
+  t,
+}: {
+  count: number;
+  segment: LibraryIndexSegment;
+  t: ReturnType<typeof useTranslations<"library">>;
+}) {
+  return (
+    <>
+      {t("search.noneHere")}{" "}
+      <button
+        type="button"
+        data-testid="library-search-other-half"
+        onClick={() => writeLibraryIndexSegment(segment)}
+        /* Accent, not muted: in a quaternary caption a muted link read as more caption
+           (browser walkthrough, 2026-09-07), and this is the one way out of the dead end. */
+        className={controlClass({ shape: "link", size: "sm", tone: "accent", hoverInk: "strong", className: "atlas-touch-floor" })}
+      >
+        {t(segment === "wiki" ? "search.showPages" : "search.showSources", { count })}
+      </button>
+    </>
+  );
+}
+
 function SectionActions({ children }: { children?: ReactNode }) {
   if (!children) return null;
   return <div className="flex flex-wrap items-center gap-1 px-3 pb-2">{children}</div>;
@@ -254,6 +285,24 @@ export function LibrarySection({
   const visiblePages = needle
     ? model.wikiPages.filter((page) => matches(page.title) || matches(model.pageTexts.get(page.slug)))
     : model.wikiPages;
+  /*
+   * The writer label prints on the rows that are the exception. On a folder where nine
+   * of ten pages say Claude, nine identical labels are texture and the one that says a
+   * person is the fact (design-lead, council 2026-09-07) — so the majority writer is
+   * silent and every other writer is named. Two writers tied print both.
+   */
+  const majorityWriter = (() => {
+    const counts = new Map<string, number>();
+    for (const page of model.wikiPages) counts.set(page.createdBy ?? "", (counts.get(page.createdBy ?? "") ?? 0) + 1);
+    let best: string | null = null;
+    let bestCount = 0;
+    let tied = false;
+    for (const [writer, count] of counts) {
+      if (count > bestCount) { best = writer; bestCount = count; tied = false; }
+      else if (count === bestCount) tied = true;
+    }
+    return tied ? null : best;
+  })();
   const [newPageOpen, setNewPageOpen] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState("");
   const hasSources = model.sources.length > 0;
@@ -421,6 +470,11 @@ export function LibrarySection({
                 );
               })}
             </ul>
+            {needle && visibleSources.length === 0 && visiblePages.length > 0 ? (
+              <ListNote testId="library-search-other-half-note">
+                <OtherHalf count={visiblePages.length} segment="wiki" t={t} />
+              </ListNote>
+            ) : null}
             {waitingLine ? (
               <ListNote testId="library-needs-compile">{waitingLine}</ListNote>
             ) : null}
@@ -430,7 +484,11 @@ export function LibrarySection({
             data-testid="library-sources-empty"
             className="px-3 pb-1 text-caption leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
           >
-            {t("sources.empty")}
+            {needle && visiblePages.length > 0 ? (
+              <OtherHalf count={visiblePages.length} segment="wiki" t={t} />
+            ) : (
+              t("sources.empty")
+            )}
           </p>
         )}
       </section>
@@ -605,9 +663,14 @@ export function LibrarySection({
                   >
                     <BookText size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
                     <span className="min-w-0 flex-1 truncate">{page.title}</span>
-                    <span className="flex-none text-caption text-[color:var(--color-text-quaternary)]">
-                      {writerLabel(page.createdBy, t)}
-                    </span>
+                    {(page.createdBy ?? "") !== majorityWriter ? (
+                      <span
+                        data-testid="library-wiki-writer"
+                        className="flex-none text-caption text-[color:var(--color-text-quaternary)]"
+                      >
+                        {writerLabel(page.createdBy, t)}
+                      </span>
+                    ) : null}
                     {folderProblem ? (
                       <span
                         data-testid="library-wiki-folder-mark"
@@ -700,6 +763,11 @@ export function LibrarySection({
             rather than the amber pill. Measured on the owner's seven-page folder: the
             foot said 2 over one pill (2026-09-07).
           */}
+          {needle && visiblePages.length === 0 && visibleSources.length > 0 ? (
+            <ListNote testId="library-search-other-half-note">
+              <OtherHalf count={visibleSources.length} segment="sources" t={t} />
+            </ListNote>
+          ) : null}
           {offTemplateRows > 0 ? (
             <ListNote testId="library-off-template-count">
               {t("wiki.offTemplateCount", { count: offTemplateRows })}
@@ -711,7 +779,13 @@ export function LibrarySection({
           data-testid="library-wiki-empty"
           className="px-3 pb-1 text-caption leading-body text-[color:var(--color-text-tertiary)] [word-break:keep-all]"
         >
-          {hasWikiTemplate ? t("wiki.empty") : t("wiki.emptyNoTemplate")}
+          {needle && visibleSources.length > 0 ? (
+            <OtherHalf count={visibleSources.length} segment="sources" t={t} />
+          ) : hasWikiTemplate ? (
+            t("wiki.empty")
+          ) : (
+            t("wiki.emptyNoTemplate")
+          )}
         </p>
       )}
 

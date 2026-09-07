@@ -63,6 +63,15 @@ describe("a dock mounted while already open", () => {
    * full width, so no width transition ends. Measured on the installed app 2026-09-06: at
    * xl the session waited on that `transitionend` forever and the panel sat on "Connecting".
    */
+  it("enables the session when opened with no request at all — the Conversation chip", async () => {
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      callback(0);
+      return 1;
+    });
+    const { getByTestId } = mount("wide");
+    await act(async () => {});
+    expect(getByTestId("chat-panel").getAttribute("data-session-enabled")).toBe("true");
+  });
   it("enables the session at xl without waiting for a width transition", async () => {
     vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
       callback(0);

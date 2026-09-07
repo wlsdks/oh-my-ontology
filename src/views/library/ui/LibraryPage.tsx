@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, ChevronLeft, ChevronRight, Info, ListChecks } from "lucide-react";
+import { Info, ListChecks, MessageSquare, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { useLocalVault, useVaultIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
@@ -41,6 +41,7 @@ import {
   parseLintFindings,
   buildAnswerPage,
   buildHumanPage,
+  deleteWikiFile,
   writeWikiFile,
 } from "@/features/library";
 import {
@@ -58,6 +59,7 @@ import {
   writeLibraryIndexCollapsed,
   useWikiWriteMode,
   writeLibraryIndexSegment,
+  writeWikiWriteMode,
   type LibraryIndexSegment,
 } from "@/shared/lib/appearance-preferences";
 import { cn } from "@/shared/lib/cn";
@@ -73,7 +75,7 @@ import { isWikiFurnitureSlug } from "@/shared/lib/wiki-page-schema";
 import { libraryCompileBlockedReason, libraryTransferSentence } from "../lib/compile-availability";
 import { useLibraryModel } from "../lib/use-library-model";
 import { useLibraryAgent } from "../lib/use-library-agent";
-import { LibraryCheckReport } from "./parts/LibraryCheckReport";
+import { LibraryCheckReport, findingKey, reportOutline } from "./parts/LibraryCheckReport";
 import { LibrarySection } from "./parts/LibrarySection";
 import { CompileBrainSelect } from "./parts/CompileBrainSelect";
 import { LibraryShelfPopover } from "./parts/LibraryShelfPopover";
@@ -250,6 +252,22 @@ export function LibraryPage() {
     "local",
   );
   const backToTop = useBackToTop(articleScrollRef, selectedWikiDoc?.slug ?? null);
+  /*
+   * The report page has the reader's furniture too — a jump list and the way back to the
+   * top — because a check on a real folder runs to 2+3+6 findings and 7 names, and the
+   * wiki page beside it in the same box has both (design-workbench, council 2026-09-07).
+   * The rail shows from two sections up: a report has at most four, so the document
+   * floor of four would never let it show.
+   */
+  const reportSpy = useDocReadingScrollSpy(opened?.kind === "report" ? "library:report" : null, "report");
+  const reportBackToTop = useBackToTop(reportSpy.articleScrollRef, opened?.kind === "report" ? "library:report" : null);
+  const handleReportHeadingNavigate = useCallback(
+    (slug: string) => {
+      document.getElementById(slug)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      reportSpy.setActiveHeadingSlug(slug);
+    },
+    [reportSpy],
+  );
   const outlineHeadings = useMemo(() => {
     const headings = (selectedWikiDoc?.headings ?? []).filter(
       (heading) => heading.depth >= 2 && heading.depth <= 3,
@@ -503,6 +521,26 @@ export function LibraryPage() {
    */
   const chatWidth = useChatWidth();
   const dockOpen = agent.route === "agent" && agent.runtime !== null && nativeVaultRootPath !== null && agent.open;
+  /*
+   * **The conversation can be reopened.** Closing the dock used to be the end of it: no
+   * control on the Library brought it back, and the only way to see the transcript again
+   * was to start another turn from a door (owner, installed app, 2026-09-07: "after
+   * talking with the agent and going back, there is no way to open that agent again").
+   * The chip stands where the person is — on the graph's status row and on the reader's
+   * top row — and only while there is a conversation to return to and the dock is shut.
+   */
+  const conversationDoor =
+    agent.route === "agent" && agent.runtime !== null && nativeVaultRootPath !== null && !agent.open ? (
+      <button
+        type="button"
+        onClick={() => agent.setOpen(true)}
+        data-testid="library-open-conversation"
+        className={controlClass({ shape: "chip", tone: "muted", hoverInk: "strong", className: "flex-none gap-1.5" })}
+      >
+        <MessageSquare size={ICON_SIZE.sm} aria-hidden />
+        {t("conversation.open")}
+      </button>
+    ) : null;
   useEffect(() => {
     const root = document.documentElement;
     if (!dockOpen) {
@@ -597,9 +635,13 @@ export function LibraryPage() {
         : null,
     [model.pageTexts, model.sources, nativeVaultRootPath],
   );
+  /** The finding a running Fix turn is about, and the ones fixed since the last check. */
+  const pendingFixRef = useRef<LintFinding | null>(null);
+  const [fixedKeys, setFixedKeys] = useState<ReadonlySet<string>>(() => new Set());
   const handleFix = useCallback(
     (finding: LintFinding) => {
       if (!nativeVaultRootPath) return;
+      pendingFixRef.current = finding;
       agent.start(buildFixBrief({ finding, locale, vaultRoot: nativeVaultRootPath }), "fix");
     },
     [agent, locale, nativeVaultRootPath],
@@ -617,7 +659,18 @@ export function LibraryPage() {
       try {
         await writeWikiFile(handle, page.path, page.text);
         setSelected({ kind: "wiki", slug: page.slug });
-        toast.show(t("wiki.newPageDone", { page: page.slug }), "success");
+        toast.show(t("wiki.newPageDone", { page: page.slug }), "success", {
+          label: t("wiki.undo"),
+          onClick: () => {
+            void deleteWikiFile(handle, page.path).then(
+              () => {
+                setSelected((current) => (current?.kind === "wiki" && current.slug === page.slug ? null : current));
+                toast.show(t("wiki.undone", { page: page.slug }), "success");
+              },
+              () => toast.show(t("wiki.undoFailed"), "error"),
+            );
+          },
+        });
       } catch (err) {
         toast.show(err instanceof Error && err.message ? err.message : t("wiki.newPageFailed"), "error");
       }
@@ -646,9 +699,22 @@ export function LibraryPage() {
     }
     try {
       await writeWikiFile(handle, page.path, page.text);
+      const filed = lastAnswer;
       setLastAnswer(null);
       setSelected({ kind: "wiki", slug: page.slug });
-      toast.show(t("wiki.fileAnswerDone", { page: page.slug }), "success");
+      toast.show(t("wiki.fileAnswerDone", { page: page.slug }), "success", {
+        label: t("wiki.undo"),
+        onClick: () => {
+          void deleteWikiFile(handle, page.path).then(
+            () => {
+              setLastAnswer(filed);
+              setSelected((current) => (current?.kind === "wiki" && current.slug === page.slug ? null : current));
+              toast.show(t("wiki.undone", { page: page.slug }), "success");
+            },
+            () => toast.show(t("wiki.undoFailed"), "error"),
+          );
+        },
+      });
     } catch (err) {
       toast.show(err instanceof Error && err.message ? err.message : t("wiki.fileAnswerRejected", { code: "write" }), "error");
     }
@@ -710,6 +776,13 @@ export function LibraryPage() {
         const lastAgentText = [...completion.events].reverse().find((event) => event.kind === "agent")?.text ?? null;
         if (kind === "lint") setCandidates(parseLintCandidates(lastAgentText));
         if (kind === "lint") setFindings(parseLintFindings(lastAgentText));
+        // A new check re-judges every page: the "fixed" marks are its to give again.
+        if (kind === "lint") setFixedKeys(new Set());
+        if (kind === "fix" && pendingFixRef.current) {
+          const key = findingKey(pendingFixRef.current);
+          pendingFixRef.current = null;
+          setFixedKeys((current) => new Set([...current, key]));
+        }
         // The check's answer is a page in the pane, not rows in the index (owner, 2026-09-07).
         // It takes the pane only when nothing else has it — a person reading a page keeps the
         // page — and it never takes the focus, because a completion is not a press.
@@ -873,7 +946,50 @@ export function LibraryPage() {
    */
   /** Which list the index draws, and whether the column is folded — both per machine. */
   const indexSegment = useLibraryIndexSegment();
-  const indexCollapsed = useLibraryIndexCollapsed();
+  const indexCollapsedByChoice = useLibraryIndexCollapsed();
+  /*
+   * **The reader keeps 420px, or the index folds on its own** (design-workbench, council
+   * 2026-09-07). The dock's drag floor protects the map's 480px, and the Library's row
+   * costs 280px more, so at the app's own 1040px minimum with a 496px dock the reading
+   * column computed to 120px. Below 420px the index folds to its tab — the fold the
+   * person can press, not a new one — and unfolds again above 460px so a one-pixel drag
+   * cannot make it flap. Pressing the tab while narrow is the person's choice and stands
+   * until the pane is wide enough on its own. Only at `lg` and above: below it the index
+   * is the lower half of one column and has no width to give.
+   */
+  const [autoFolded, setAutoFolded] = useState(false);
+  const autoFoldDeclinedRef = useRef(false);
+  const readerWidthRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = readerWidthRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observe = () => {
+      const width = el.getBoundingClientRect().width;
+      const wide = window.matchMedia("(min-width: 1024px)").matches;
+      if (!wide) {
+        setAutoFolded(false);
+        return;
+      }
+      setAutoFolded((current) => {
+        if (current) {
+          // Folded: the reader holds the column's 280px too; unfold once that leaves 460.
+          if (width - 280 + 38 >= 460) {
+            autoFoldDeclinedRef.current = false;
+            return false;
+          }
+          return true;
+        }
+        if (width < 420 && !autoFoldDeclinedRef.current) return true;
+        if (width >= 460) autoFoldDeclinedRef.current = false;
+        return false;
+      });
+    };
+    observe();
+    const observer = new ResizeObserver(observe);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const indexCollapsed = indexCollapsedByChoice || autoFolded;
   const indexTabRef = useRef<HTMLButtonElement | null>(null);
   const indexCollapseRef = useRef<HTMLButtonElement | null>(null);
   /**
@@ -1162,55 +1278,40 @@ export function LibraryPage() {
       className="topology-ui-scale relative flex min-h-0 w-full flex-1 bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)] max-lg:flex-col"
     >
       {/*
-        **The folded index — the map's own vocabulary, borrowed.**
+        **The folded index is one icon control, where the fold control stood.**
 
-        Markup copied from `src/widgets/topology-index-panel/ui/TopologyIndexTab.tsx`
-        (26px `--topology-index-tab-width`, a vertical label, a `ChevronRight`), because
-        that component hardcodes the word *Index* and a power dot this column has no
-        equivalent of, and parameterising the map's tab is a change to the map. What is
-        **not** copied is its surface: the map's tab floats over a canvas on
-        `--topology-v2-panel-*`, while this one is the column narrowed to its edge, so it
-        keeps `--color-panel` and the border the aside itself carries and stays flush.
+        The first shape borrowed the map's edge tab — a 26px column with a vertical
+        *Index* label and a chevron. On the installed app the owner read it as two odd
+        controls beside the reader's back chip and asked what the arrow was for
+        (2026-09-07, evening). The map's tab floats over a canvas as a drawer handle; here
+        it sat in a row of chrome and read as noise. Now the fold and the unfold are the
+        same control in the same place — `PanelLeftClose` on the column's eyebrow line,
+        `PanelLeftOpen` at the pane's top-left once the column is gone — so the person
+        learns one glyph and one spot.
 
         `lg` and above only. Below it the index is the bottom half of one column with the
         graph above it — there is no second pane for the width to go to.
       */}
       {indexCollapsed ? (
-        <button
-          type="button"
-          ref={indexTabRef}
-          onClick={() => setIndexCollapsed(false)}
-          aria-label={t("index.expand")}
-          aria-expanded={false}
-          data-testid="library-index-tab"
-          /*
-           * `shape: "tile"` is the value layer's **vertical stack** — icon above, label
-           * below — which is exactly what an edge handle is, and it is why this is not a
-           * hand-written control: the map's own tab is registered debt under the claim
-           * `shape-gap` / `flex-col`, and a second copy of that claim would be a second
-           * place to fix. The tile brings its border, its radius and its transition; this
-           * adds only placement, the 26px width, and the panel ground.
-           */
-          className={controlClass({
-            shape: "tile",
-            tone: "muted",
-            hoverInk: "strong",
-            className:
-              "my-3 ml-3 hidden flex-none items-center gap-2.5 self-start border-[color:var(--color-border-soft)] bg-[color:var(--color-panel)] py-2.5 lg:flex",
-          })}
-          style={{ width: "var(--topology-index-tab-width)" }}
-        >
-          <span
-            className="whitespace-nowrap font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]"
-            style={{ writingMode: "vertical-rl" }}
+        <div className="hidden flex-none self-start pl-3 pt-2 lg:block">
+          <button
+            type="button"
+            ref={indexTabRef}
+            onClick={() => {
+              // Pressing the control while the pane is narrow is a choice: the auto-fold
+              // stands down until the pane is wide enough on its own.
+              if (autoFolded) autoFoldDeclinedRef.current = true;
+              setAutoFolded(false);
+              setIndexCollapsed(false);
+            }}
+            aria-label={t("index.expand")}
+            aria-expanded={false}
+            data-testid="library-index-tab"
+            className={controlClass({ shape: "icon", size: "sm", tone: "muted", hoverInk: "strong" })}
           >
-            {t("index.tab")}
-          </span>
-          {/* Direction, which the label-decoration rule allows: the column comes back out. */}
-          <span aria-hidden className="inline-flex text-[color:var(--color-text-quaternary)]">
-            <ChevronRight size={ICON_SIZE.sm} aria-hidden />
-          </span>
-        </button>
+            <PanelLeftOpen size={ICON_SIZE.sm} aria-hidden />
+          </button>
+        </div>
       ) : null}
 
       {/*
@@ -1378,7 +1479,10 @@ export function LibraryPage() {
        * width of the screen, and the back control above the document is the way home.
        */}
       <div
-        ref={readerRef}
+        ref={(node) => {
+          readerRef.current = node;
+          readerWidthRef.current = node;
+        }}
         tabIndex={-1}
         data-testid="library-reader"
         className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden max-lg:order-first"
@@ -1423,6 +1527,7 @@ export function LibraryPage() {
             headerEnd={
               <>
                 <LibraryStatusStrip model={model} t={t} />
+                {conversationDoor}
                 <button
                   type="button"
                   ref={shelfChipRef}
@@ -1462,26 +1567,38 @@ export function LibraryPage() {
            * measured by design-interaction, the only ways back were a reload and the
            * browser's own Back, which leaves the Library and drops the open folder.
            *
-           * `ArrowLeft` stays: it carries direction, which the label-decoration rule
-           * allows and a trailing chevron would not.
+           * The chip names where it goes. It read *Library* with an arrow, and the
+           * owner pressed it and got the graph: "then it is the graph, not the library"
+           * (2026-09-07). So it says *Graph*, and the arrow is gone — the word is the
+           * destination, and a glyph beside it added nothing the word did not say.
            */
           <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
             <button
               type="button"
               onClick={() => setSelected(null)}
               data-testid="library-reader-back"
-              className={controlClass({ shape: "chip", tone: "muted", className: "gap-1.5" })}
+              className={controlClass({ shape: "chip", tone: "muted" })}
             >
-              <ArrowLeft size={ICON_SIZE.sm} aria-hidden />
-              {t("title")}
+              {t("graph.title")}
             </button>
+            <span className="ml-auto flex items-center">{conversationDoor}</span>
           </div>
         ) : null}
 
         {opened?.kind === "report" ? (
-          <div
+          <DocReadingPane
             data-testid="library-report-pane"
-            className="min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]"
+            scrollRef={reportSpy.articleScrollRef}
+            outline={
+              reportOutline(findings, openCandidates.length, t).length >= 2
+                ? {
+                    headings: reportOutline(findings, openCandidates.length, t),
+                    activeHeadingSlug: reportSpy.activeHeadingSlug,
+                    onHeadingClick: handleReportHeadingNavigate,
+                  }
+                : null
+            }
+            backToTop={reportBackToTop}
           >
             <LibraryCheckReport
               findings={findings}
@@ -1492,9 +1609,10 @@ export function LibraryPage() {
               onFix={agent.route === "agent" ? handleFix : null}
               onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
               onOpenPage={(slug) => choose({ kind: "wiki", slug })}
+              fixedKeys={fixedKeys}
               t={t}
             />
-          </div>
+          </DocReadingPane>
         ) : null}
         {selectedWikiDoc ? (
           <DocReadingPane
@@ -1652,6 +1770,13 @@ export function LibraryPage() {
           autoDecide={autoDecide}
           onTurnStarted={handleTurnStarted}
           onFileAnswer={lastAnswer ? handleFileAnswer : null}
+          noticeActions={{
+            openPage: (path) => choose({ kind: "wiki", slug: path.replace(/\.md$/, "") }),
+            askNext: () => {
+              writeWikiWriteMode("ask");
+              toast.show(t("wiki.askNextDone"), "success");
+            },
+          }}
           open={agent.open}
           runtime={agent.runtime}
           runtimes={agent.runtimes}
@@ -1731,8 +1856,8 @@ function LibraryHeader({
             aria-expanded
             data-testid="library-index-collapse"
             /* `lg` and up: below it the column is the bottom half of one column and has
-               nowhere to fold to. `ChevronLeft` carries direction, which the
-               label-decoration rule allows and a decorative arrow would not. */
+               nowhere to fold to. The glyph is the panel itself closing; its pair opens
+               it from the same spot once the column is gone. */
             className={controlClass({
               shape: "icon",
               size: "sm",
@@ -1741,7 +1866,7 @@ function LibraryHeader({
               className: "-mr-1 ml-auto hidden flex-none lg:inline-flex",
             })}
           >
-            <ChevronLeft size={ICON_SIZE.sm} aria-hidden />
+            <PanelLeftClose size={ICON_SIZE.sm} aria-hidden />
           </button>
         ) : null}
       </div>

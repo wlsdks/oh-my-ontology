@@ -71,6 +71,7 @@ export function LibraryAgentDock({
   autoDecide,
   onTurnStarted,
   onFileAnswer = null,
+  noticeActions = null,
   chatWidth,
 }: {
   open: boolean;
@@ -90,6 +91,8 @@ export function LibraryAgentDock({
   onTurnStarted?: AcpChatPanelProps["onTurnStarted"];
   /** Files the last answer as a wiki page; null while there is no answer to file. */
   onFileAnswer?: (() => void) | null;
+  /** The doors an `auto-allowed` notice carries; see `AcpChatPanelProps.noticeActions`. */
+  noticeActions?: AcpChatPanelProps["noticeActions"];
   /**
    * The dock's width, owned by the page rather than by this frame (2026-09-07).
    *
@@ -108,7 +111,13 @@ export function LibraryAgentDock({
   const tChat = useTranslations("acpChat");
   const tLibrary = useTranslations("library");
   const presence = usePanelPresence(open);
-  const [enabledRequestNonce, setEnabledRequestNonce] = useState<number | null>(null);
+  /*
+   * The session starts once the dock has its width, whichever way it opened. It used to
+   * start only for a door's request (the nonce), so a dock opened from the *Conversation*
+   * chip sat on "Connecting" forever, and a door pressed into that already-open dock found
+   * no width transition to wait for either (installed app, 2026-09-07).
+   */
+  const [settled, setSettled] = useState(false);
   /*
    * Born wide: a dock mounted while already open has no width transition to wait for.
    * Measured in the installed app on 2026-09-06 — the page remounted the dock mid-request
@@ -122,35 +131,29 @@ export function LibraryAgentDock({
   }, [open]);
 
   useEffect(() => {
-    if (!open || !openingRequest) return;
-    /*
-     * Below xl the conversation is an overlay sheet: it takes no width from the reading
-     * pane, so there is no reflow for process startup to compete with, and one frame is
-     * enough. At xl the dock really does resize the workbench, and the width transition
-     * below — not a timer that merely resembles it — owns the handoff.
-     */
+    if (!open) {
+      // A frame later, like the enabling below: the flag falls with the dock, never inside
+      // the render that closed it.
+      const frame = window.requestAnimationFrame(() => setSettled(false));
+      return () => window.cancelAnimationFrame(frame);
+    }
     const wide =
       typeof window === "undefined" || typeof window.matchMedia !== "function"
         ? true
         : window.matchMedia("(min-width: 1280px)").matches;
+    // Wide and not born open: the width transition's end is the handoff (below).
     if (wide && !bornOpenRef.current) return;
-    const nonce = openingRequest.nonce;
-    const frame = window.requestAnimationFrame(() => setEnabledRequestNonce(nonce));
+    const frame = window.requestAnimationFrame(() => setSettled(true));
     return () => window.cancelAnimationFrame(frame);
-  }, [open, openingRequest]);
+  }, [open]);
 
   return (
     <div
       data-testid="library-agent-dock-frame"
       data-right-dock={open || presence.mounted ? "library-agent" : undefined}
       onTransitionEnd={(event) => {
-        if (
-          event.target === event.currentTarget &&
-          event.propertyName === "width" &&
-          open &&
-          openingRequest
-        ) {
-          setEnabledRequestNonce(openingRequest.nonce);
+        if (event.target === event.currentTarget && event.propertyName === "width" && open) {
+          setSettled(true);
         }
       }}
       style={
@@ -204,14 +207,13 @@ export function LibraryAgentDock({
             onRuntimeChange={onRuntimeChange}
             vaultRoot={vaultRoot}
             mcpServers={mcpServers}
-            sessionEnabled={
-              open && openingRequest !== null && enabledRequestNonce === openingRequest.nonce
-            }
+            sessionEnabled={open && settled}
             openingRequest={openingRequest}
             judgeWrite={judgeWrite}
             autoDecide={autoDecide}
             onTurnStarted={onTurnStarted}
             knownSlugs={knownSlugs}
+            noticeActions={noticeActions}
             beforeComposer={
               onFileAnswer ? (
                 // The LLM Wiki pattern's "answers can be filed back", standing under the

@@ -96,3 +96,15 @@ describe('진단 줄 고르기 — 늘 나오는 것은 진단이 아니다', ()
     expect(isDiagnosticStderr('Error: Cannot find module @agentclientprotocol/x')).toBe(true);
   });
 });
+
+describe('a tool that ran out of plan', () => {
+  it('is named as a limit, not a generic problem, so the retry is not pressed into a wall', () => {
+    const raw = '{"code":-32603,"message":"Internal error: You\'ve hit your session limit · resets 1am (Asia/Seoul)","data":{"errorKind":"rate_limit"}}';
+    expect(readAcpTrouble(raw).kind).toBe('limit');
+    expect(readAcpTrouble('429 Too Many Requests').kind).toBe('limit');
+    const codex = '{"code":-32603,"message":"Internal error","data":{"message":"You\'ve hit your usage limit. Visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at Sep 12th, 2026 1:07 PM.","codexErrorInfo":"usageLimitExceeded"}}';
+    expect(readAcpTrouble(codex).kind).toBe('limit');
+    // The limit is read before the other kinds: it is the most specific fact about what the
+    // person can do next, and the message names the hour it lifts.
+  });
+});

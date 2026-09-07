@@ -2,27 +2,9 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 /**
- * **The composer footer keeps its meaning when the dock is narrow.**
- *
- * The defect this file exists for (owner, 2026-09-06, installed app, dock at its own default
- * width, a turn running): the runtime picker and the mode picker were the only elastic slots on
- * a row that also carried a status word, a running clock and four buttons. They absorbed the
- * whole shortfall and rendered as two chevrons with no label, so the screen no longer said which
- * tool or which mode the person was talking to.
- *
- * Two rules answer it, and both are structural rather than visual, so jsdom can hold them:
- *
- * 1. below `COMPOSER_FOOTER_ONE_ROW_PX` **of the composer's own width** the footer stacks into
- *    two rows, and above it stays one row;
- * 2. a picker never renders narrower than `min-w-[104px]`, so truncation shows a first word and
- *    an ellipsis instead of nothing.
- *
- * ⚠️ **jsdom evaluates no container query**, so it cannot answer "what does 440px look like".
- * What it can do is prove the rule exists, that it names the measured number rather than a
- * second one somebody typed, and that the ordinary (narrow) case is the *default* rather than
- * the exception — a footer whose one-row shape were the default would fail exactly the way the
- * reported one did if the query ever stopped matching. The rendered widths at 1512 are proved
- * separately by the screenshots this change carries.
+ * Where the conversation's controls stand. Until 2026-09-07 they were the composer's own
+ * two-row footer; the owner asked for the bottom to hold only the input and send, so the
+ * pickers, the status word and the session buttons are a toolbar above the transcript.
  */
 
 const bridge = vi.hoisted(() => {
@@ -54,7 +36,6 @@ vi.mock('next-intl', () => ({
     values ? `${key}:${JSON.stringify(values)}` : key,
 }));
 
-import { COMPOSER_FOOTER_ONE_ROW_PX } from '../model/panel-width';
 import { AcpChatPanel } from './AcpChatPanel';
 
 /** The agent answers the last request we sent with that method. */
@@ -106,55 +87,42 @@ afterEach(() => {
   bridge.listener = null;
 });
 
-describe('composer footer — narrow is the default shape, not the broken one', () => {
-  it('stacks into two rows and only unstacks above the measured width', async () => {
+describe('the composer footer is one quiet row: pickers left, status and buttons right, send last', () => {
+  /*
+   * Owner, installed app, 2026-09-07, after a toolbar above the transcript left an empty band
+   * at the top: "one line at the very bottom". So the tool and the mode are quiet text
+   * pickers at the left of the composer's bottom row, and the status word, the session
+   * buttons and send stand at its right — the way chat composers are laid out elsewhere.
+   */
+  it('keeps everything on the composer footer, in that order', async () => {
     await bootPanel();
-
     const footer = screen.getByTestId('acp-chat-footer');
-    // The resting shape is the two-row one: a column whose children take the full width.
-    expect(footer).toHaveClass('flex', 'flex-col', 'items-stretch');
-    // One row is what the container query *adds*, at the width that was measured for it.
-    const oneRow = `@min-[${COMPOSER_FOOTER_ONE_ROW_PX}px]/composer`;
-    expect(footer.className).toContain(`${oneRow}:flex-row`);
-    expect(footer.className).toContain(`${oneRow}:items-center`);
-    expect(footer.className).toContain(`${oneRow}:justify-between`);
+    const pickers = screen.getByTestId('acp-chat-pickers');
+    const actions = screen.getByTestId('acp-chat-session-actions');
+    expect(Array.from(footer.children)).toEqual([pickers, actions]);
+    expect(pickers).toContainElement(screen.getByTestId('acp-chat-runtime'));
+    expect(pickers).toContainElement(screen.getByTestId('acp-chat-mode'));
+    expect(actions.querySelector('[data-acp-status-badge]')).not.toBeNull();
+    expect(actions).toContainElement(screen.getByTestId('acp-chat-new'));
+    expect(actions).toContainElement(screen.getByTestId('acp-chat-send'));
+    expect(actions.lastElementChild).toBe(screen.getByTestId('acp-chat-send-group'));
+    expect(screen.queryByTestId('acp-chat-toolbar')).toBeNull();
+  });
 
-    // Row 2's two halves: the status word and its clock take the free space, so the session
-    // buttons and send sit at the right edge instead of trailing the word.
-    const status = footer.querySelector('[data-acp-status-badge]')!;
-    expect(status.className).toContain('mr-auto');
-    expect(status.className).toContain(`${oneRow}:mr-0`);
-
-    // The container the query measures is the composer box, not the window.
-    expect(screen.getByTestId('acp-chat-composer').className).toContain('@container/composer');
+  it('draws the pickers as quiet text, not bordered boxes', async () => {
+    await bootPanel();
+    for (const testId of ['acp-chat-runtime', 'acp-chat-mode']) {
+      const trigger = screen.getByTestId(testId);
+      expect(trigger.className, testId).toContain('border-transparent');
+      expect(trigger.className, testId).toContain('h-[var(--control-h-sm)]');
+    }
   });
 
   it('never lets a picker shrink below its label', async () => {
     await bootPanel();
-
-    // Both pickers the owner saw empty: the tool on the left, the mode beside it.
     for (const testId of ['acp-chat-runtime', 'acp-chat-mode']) {
       const wrapper = screen.getByTestId(testId).closest('.relative')!;
       expect(wrapper.className, testId).toContain('min-w-[104px]');
-      // The floor does not replace the equal-slot rule; it only stops it at the bottom.
-      expect(wrapper.className, testId).toContain('flex-1 basis-0');
     }
-  });
-
-  it('keeps the pickers and the buttons in separate rows of the footer', async () => {
-    await bootPanel();
-
-    const footer = screen.getByTestId('acp-chat-footer');
-    const actions = screen.getByTestId('acp-chat-session-actions');
-    const pickerRow = screen.getByTestId('acp-chat-pickers');
-    // The runtime picker really is inside that row, not merely beside it in the tree.
-    expect(pickerRow).toContainElement(screen.getByTestId('acp-chat-runtime'));
-
-    // Two children, in this order: everything you choose, then everything you press.
-    expect(pickerRow.parentElement).toBe(footer);
-    expect(actions.parentElement).toBe(footer);
-    expect(Array.from(footer.children)).toEqual([pickerRow, actions]);
-    // The picker row grows only once the footer is a row; as a column child, growing is vertical.
-    expect(pickerRow.className).toContain(`@min-[${COMPOSER_FOOTER_ONE_ROW_PX}px]/composer:flex-1`);
   });
 });

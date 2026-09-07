@@ -31,10 +31,9 @@ export const CHAT_WIDTH_MIN = 320;
  *
  * 520 is that request taken one step further, and it is **half** the answer: it widens the
  * composer's own box from 368px to 428px, which is what the two pickers divide, so each
- * reads at about 211px instead of about 181px. It does not reach
- * `COMPOSER_FOOTER_ONE_ROW_PX` — no default that also leaves the map its share would, since
- * one row needs a 632px panel — so the footer opens in its two-row shape and says everything
- * it has to say there. The other half is that shape existing at all.
+ * reads at about 211px instead of about 181px. The other half was
+ * the footer's two-row shape, which left with the pickers on 2026-09-07 (they stand in the
+ * panel's toolbar now).
  *
  * ⚠️ This is the **ceiling** of the default, not the default itself. `defaultChatWidth()`
  * takes the window into account; `MAP_COMFORT_WIDTH` records why.
@@ -55,24 +54,6 @@ export const CHAT_WIDTH_DEFAULT = 520;
  * caption drawing with room to spare and still leaves a 1040px window a 436px conversation.
  */
 export const MAP_COMFORT_WIDTH = 540;
-/**
- * **The composer's own width at which its footer stops being one row.**
- *
- * Not the panel's width and not the window's: the composer box is inset from the panel by the
- * panel's padding and its own, and it is what `@container/composer` measures. The two differ
- * by 92px, so a 520px panel is a 428px container.
- *
- * Below this the footer stacks — pickers on one row, status and buttons on the next — because
- * one row cannot hold both at once, and the pickers are the slots that lose. Measured in the
- * built export at 1512 with a turn running: the status word plus its clock, the history, new,
- * stop and send controls and their gaps come to 261px at their widest, `Claude Agent` needs a
- * 124px trigger to read whole and the mode beside it the same, and the two groups are 8px
- * apart — 523px, rounded up to a step that leaves the clock room to reach hours.
- *
- * `AcpChatPanel.footer-rows.test.tsx` holds the class literal in `AcpChatPanel.tsx` to this
- * number, because a Tailwind container query cannot read a constant.
- */
-export const COMPOSER_FOOTER_ONE_ROW_PX = 540;
 /** The minimum width the map must keep. This panel's upper bound derives from it. */
 export const MAP_MIN_WIDTH = 480;
 /** The left rail. Along with the map, it comes off the screen's width first. */
