@@ -101,6 +101,26 @@ export interface DocsSidebarBodyProps {
 // already in the tree.
 const RECENTLY_CHANGED_STRIP_MAX = 5;
 
+/**
+ * **The head row's width at which the active collection may state its name** (2026-09-07).
+ *
+ * Not taste — arithmetic, measured on the static export at
+ * `.claude/shots-2026-09-07/docshead-before-measurements.json`. In its widest state the row
+ * needs 16px of its own padding, 174.3px for the well (two bare glyph chips at 36px plus the
+ * longest active chip in either locale — 92.3px for the Korean guides label — plus its border,
+ * inset and gaps), an 8px gap, and 103px for the trailing cluster: **301.3px**. 320 is that
+ * number with the next gap step of slack, so a label never appears with nowhere to go.
+ *
+ * It is compared against **the row**, not the window: this same pane is 280px on desktop
+ * (`--docs-list-width`), 300px in the drawer below `md` and 340px in the drawer at `md`, all
+ * reachable inside one viewport width. Only 340 clears 320, which is the honest answer —
+ * 280px cannot draw a Korean collection name and six controls at once.
+ *
+ * The value is written literally in the className below because Tailwind extracts class names
+ * statically and cannot follow a template literal. `DocsSidebarBody.test.tsx` compares the two.
+ */
+export const DOCS_HEAD_LABEL_MIN_PX = 320;
+
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
     <h3 className="flex-none px-3 pb-1.5 pt-3 font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
@@ -345,10 +365,28 @@ export function DocsSidebarBody({
     values: collectionOptions,
     onChange: onCollectionChange,
   });
+  /*
+   * **Each glyph's job, in words** (2026-09-07 — the owner read this row as "the icons look
+   * odd", so every one of the six was re-checked against what it actually does).
+   *
+   * The three below name a *collection*; the three at the row's trailing edge name a *view
+   * control* or an *action*. None of them changed in this round: the review found the
+   * oddness was the arrangement (an orphaned, clipped `+` at the far right) rather than the
+   * symbols. `flex-none` keeps the glyph at its ramp size while the label beside it truncates.
+   *
+   * | Glyph | Job |
+   * |---|---|
+   * | `Files` | **all** — a stack of documents: every file in this folder |
+   * | `BookOpen` | **guides** — prose a person reads |
+   * | `Waypoints` | **ontology** — the nodes that appear on the map, drawn as the map draws them |
+   * | `ListFilter` | narrow the list (a funnel, not a magnifier — see the button's own note) |
+   * | `ArrowDownUp` | list order: sort and grouping |
+   * | `Plus` | make a new document |
+   */
   const collectionIcons: Record<DocsVaultCollection, ReactNode> = {
-    all: <Files size={ICON_SIZE.md} aria-hidden />,
-    guides: <BookOpen size={ICON_SIZE.md} aria-hidden />,
-    ontology: <Waypoints size={ICON_SIZE.md} aria-hidden />,
+    all: <Files size={ICON_SIZE.md} className="flex-none" aria-hidden />,
+    guides: <BookOpen size={ICON_SIZE.md} className="flex-none" aria-hidden />,
+    ontology: <Waypoints size={ICON_SIZE.md} className="flex-none" aria-hidden />,
   };
   const searchExpanded = searchOpen || Boolean(treeQuery);
   return (
@@ -371,7 +409,35 @@ export function DocsSidebarBody({
         honest contract is `group` + `aria-pressed`. `toolbar` is out for the same reason:
         it is another arrow-key promise.
       */}
-      <div className="flex flex-none items-center gap-1 border-b border-[color:var(--color-overlay-2)] px-2 py-2">
+      {/*
+        **Why this row is a container, and why the labels can disappear** (2026-09-07, owner
+        report on the installed app at `/ko/docs`).
+
+        Measured before the fix, at the only width this pane has on desktop
+        (`--docs-list-width`, 280px → a 279px row): `scrollWidth` 285 against
+        `clientWidth` 279 in Korean, and the new-document button's right edge sat **13.8px
+        past the row's content box** — the `+` was cut in half by the pane border. English
+        was 283/279. The active chip's own label is what spends it: 92.3px for
+        the Korean guides label against 36px for a bare glyph, and the row's other five controls
+        already need 242px.
+
+        280px cannot hold both. So the label is **width-conditional**, and the width it
+        reads is **this row's, not the window's** — the same pane renders at 280 (desktop),
+        300 (drawer under `md`) and 340 (drawer at `md`) inside identical viewports, so a
+        `md:` breakpoint would answer the wrong question. `@container/docs-head` plus
+        `@min-[…px]/docs-head:` is the grammar `AcpChatPanel`'s composer footer already
+        uses for exactly this reason.
+
+        Below the threshold every chip is its glyph alone and the name is carried by the
+        `Tooltip` and `aria-label` it already had (both include the count), with the indigo
+        `active` tint still saying which one is chosen. That is a real loss against the
+        2026-08-08 round's "what is active has a name" — but a clipped control is a worse
+        one, and no arrangement of these six controls names the collection at 280px.
+      */}
+      <div
+        data-testid="docs-sidebar-head-row"
+        className="@container/docs-head flex flex-none items-center gap-2 border-b border-[color:var(--color-overlay-2)] px-2 py-2"
+      >
         {/*
           ⚠️ **What is active has a name** (2026-08-08, owner reported "complexity").
           All three used to be unlabelled 32px icons, so «which filter is this list under»
@@ -387,7 +453,11 @@ export function DocsSidebarBody({
         <div
           {...collectionGroup.groupProps}
           aria-label={t("collectionAriaLabel")}
-          className="flex min-w-0 flex-none items-center gap-0.5 rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)] p-0.5"
+          // `min-w-0` plus a shrinkable active chip is the **belt** behind the container
+          // query's braces: if some future locale's label is longer than the threshold was
+          // measured for, the name truncates inside the chip instead of pushing the trailing
+          // controls out of the row.
+          className="flex min-w-0 items-center gap-0.5 rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-canvas)] p-0.5"
         >
           {collectionOptions.map((option, index) => {
             const isActive = collection === option;
@@ -402,11 +472,20 @@ export function DocsSidebarBody({
                   aria-label={tooltip}
                   active={isActive}
                   tone={isActive ? "strong" : "muted"}
-                  className="min-w-0 flex-none hover:text-[color:var(--color-text-primary)]"
+                  className={
+                    isActive
+                      ? "min-w-0 hover:text-[color:var(--color-text-primary)]"
+                      : "min-w-0 flex-none hover:text-[color:var(--color-text-primary)]"
+                  }
                 >
                   {collectionIcons[option]}
+                  {/*
+                    The label is drawn only where the row can hold it — see the container
+                    note above the row. `hidden` is the base and the container query turns it
+                    back on, so the narrow case needs no override and cannot be forgotten.
+                  */}
                   {isActive ? (
-                    <span className="min-w-0 truncate">
+                    <span className="hidden min-w-0 truncate @min-[320px]/docs-head:inline">
                       {t(`collection.${option}.label`)}
                     </span>
                   ) : null}
@@ -415,100 +494,119 @@ export function DocsSidebarBody({
             );
           })}
         </div>
-        <RailIconButton
-          testId="docs-sidebar-search-toggle"
-          // There were two magnifiers on screen — this button (narrow the list) and the
-          // header's ⌘K global search. The same symbol doing different jobs makes both
-          // untrustworthy. This one filters, so a funnel is the honest icon (2026-08-08).
-          icon={<ListFilter size={ICON_SIZE.md} aria-hidden />}
-          label={t("searchLabel")}
-          active={searchExpanded}
-          state={{ kind: "toggle", pressed: searchExpanded }}
-          onClick={() => {
-            if (searchExpanded) {
-              setTreeQuery("");
-              setSearchOpen(false);
-            } else {
-              setSearchOpen(true);
-            }
-          }}
-        />
-        <div ref={orderMenuRef} className="relative flex-none">
-          <RailIconButton
-            testId="docs-sidebar-order-toggle"
-            icon={<ArrowDownUp size={ICON_SIZE.md} aria-hidden />}
-            label={orderSummary}
-            // The visible indigo says "the order is not the default"; the accessibility tree
-            // says "the menu is open" — different facts, so different values.
-            active={orderMenuOpen || !orderIsDefault}
-            state={{ kind: "disclosure", expanded: orderMenuOpen }}
-            onClick={() => setOrderMenuOpen((open) => !open)}
-          />
-          <Surface
-              open={orderMenuOpen}
-            // The anchor is the top right, so it grows from there — the comment below about
-            // growing from the nearest edge applies to the motion, not just the placement.
-              origin="top right"
-              role="menu"
-              aria-label={t("orderMenuLabel")}
-              data-testid="docs-sidebar-order-menu"
-            // Anchored to the right edge. This button sits at the sidebar's right edge, so
-            // opening with `left-0` pushes the 192px menu outside the sidebar (measured: 73px
-            // of overflow, owner report 2026-07-28). A menu near a container edge grows from
-            // that edge.
-              className="absolute right-0 top-[calc(100%+6px)] z-50 w-48 rounded-[var(--chrome-radius-inner)] border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-2 shadow-[var(--chrome-shadow)]"
-            >
-              <p className="px-1.5 pb-1 font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
-                {t("orderSortHeader")}
-              </p>
-              {DOCS_TREE_SORTS.map((option) => (
-                <OrderOption
-                  key={option}
-                  testId={`docs-sidebar-order-sort-${option}`}
-                  label={t(`orderSort.${option}`)}
-                  checked={sort === option}
-                  onSelect={() => {
-                    onSortChange(option);
-                    setOrderMenuOpen(false);
-                  }}
-                />
-              ))}
-              <p className="mt-1 border-t border-[color:var(--color-border-soft)] px-1.5 pb-1 pt-2 font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
-                {t("orderGroupHeader")}
-              </p>
-              {DOCS_TREE_GROUPS.map((option) => (
-                <OrderOption
-                  key={option}
-                  testId={`docs-sidebar-order-group-${option}`}
-                  label={t(`orderGroup.${option}`)}
-                  checked={group === option}
-                  onSelect={() => {
-                    onGroupChange(option);
-                    setOrderMenuOpen(false);
-                  }}
-                />
-              ))}
-          </Surface>
-        </div>
-        <span className="flex-1" />
-        {/* The "new document" entry point — the same kind-first dialog the map uses. */}
         {/*
-          It is **pressable even in the read-only sample**. It used to be disabled with a
-          hover tooltip, but a hover-only explanation on a 40%-opacity icon never arrived —
-          in the owner's own use it read as "Why is there no 'create document'?"
+          **The three trailing controls are one cluster** (2026-09-07).
 
-          Pressing it now goes to what makes it possible: open my folder. The label says so in
-          advance, so nothing is surprising — the charter's degradation grammar ("why it is
-          unavailable **and where to go**") applied to one button.
+          They used to be two pieces: filter and order sat against the collection well, and a
+          `flex-1` spacer threw the `+` alone against the pane's right edge — which is exactly
+          where the pane clipped it. The spacer is gone; the cluster is `flex-none` and holds
+          the row's trailing edge, so **it is the collection well, never a control, that gives
+          way** when the row narrows.
+
+          Inside the cluster a hairline keeps the distinction the spacer used to carry badly:
+          the first two are **view state** (is the list filtered, in what order), the last is
+          an **action** (make a document). Same 32px tile, same height, one gap.
         */}
-        <RailIconButton
-          testId="docs-sidebar-new-doc"
-          icon={<Plus size={ICON_SIZE.md} aria-hidden />}
-          label={canCreateNewDoc ? t("newDocButtonLabel") : t("newDocDisabledHint")}
-          active={false}
-          state={{ kind: "action" }}
-          onClick={onCreateNewDoc}
-        />
+        <div className="ml-auto flex flex-none items-center gap-0.5">
+          <RailIconButton
+            testId="docs-sidebar-search-toggle"
+            // There were two magnifiers on screen — this button (narrow the list) and the
+            // header's ⌘K global search. The same symbol doing different jobs makes both
+            // untrustworthy. This one filters, so a funnel is the honest icon (2026-08-08).
+            icon={<ListFilter size={ICON_SIZE.md} aria-hidden />}
+            label={t("searchLabel")}
+            active={searchExpanded}
+            state={{ kind: "toggle", pressed: searchExpanded }}
+            onClick={() => {
+              if (searchExpanded) {
+                setTreeQuery("");
+                setSearchOpen(false);
+              } else {
+                setSearchOpen(true);
+              }
+            }}
+          />
+          <div ref={orderMenuRef} className="relative flex-none">
+            <RailIconButton
+              testId="docs-sidebar-order-toggle"
+              icon={<ArrowDownUp size={ICON_SIZE.md} aria-hidden />}
+              label={orderSummary}
+              // The visible indigo says "the order is not the default"; the accessibility tree
+              // says "the menu is open" — different facts, so different values.
+              active={orderMenuOpen || !orderIsDefault}
+              state={{ kind: "disclosure", expanded: orderMenuOpen }}
+              onClick={() => setOrderMenuOpen((open) => !open)}
+            />
+            <Surface
+                open={orderMenuOpen}
+              // The anchor is the top right, so it grows from there — the comment below about
+              // growing from the nearest edge applies to the motion, not just the placement.
+                origin="top right"
+                role="menu"
+                aria-label={t("orderMenuLabel")}
+                data-testid="docs-sidebar-order-menu"
+              // Anchored to the right edge. This button sits at the sidebar's right edge, so
+              // opening with `left-0` pushes the 192px menu outside the sidebar (measured: 73px
+              // of overflow, owner report 2026-07-28). A menu near a container edge grows from
+              // that edge.
+                className="absolute right-0 top-[calc(100%+6px)] z-50 w-48 rounded-[var(--chrome-radius-inner)] border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] p-2 shadow-[var(--chrome-shadow)]"
+              >
+                <p className="px-1.5 pb-1 font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
+                  {t("orderSortHeader")}
+                </p>
+                {DOCS_TREE_SORTS.map((option) => (
+                  <OrderOption
+                    key={option}
+                    testId={`docs-sidebar-order-sort-${option}`}
+                    label={t(`orderSort.${option}`)}
+                    checked={sort === option}
+                    onSelect={() => {
+                      onSortChange(option);
+                      setOrderMenuOpen(false);
+                    }}
+                  />
+                ))}
+                <p className="mt-1 border-t border-[color:var(--color-border-soft)] px-1.5 pb-1 pt-2 font-mono text-caption uppercase tracking-[var(--tracking-caps-16)] text-[color:var(--color-text-quaternary)]">
+                  {t("orderGroupHeader")}
+                </p>
+                {DOCS_TREE_GROUPS.map((option) => (
+                  <OrderOption
+                    key={option}
+                    testId={`docs-sidebar-order-group-${option}`}
+                    label={t(`orderGroup.${option}`)}
+                    checked={group === option}
+                    onSelect={() => {
+                      onGroupChange(option);
+                      setOrderMenuOpen(false);
+                    }}
+                  />
+                ))}
+            </Surface>
+          </div>
+          {/* State on the left of the hairline, action on its right — see the cluster note. */}
+          <span
+            aria-hidden
+            className="mx-0.5 h-4 w-px flex-none bg-[color:var(--color-border-soft)]"
+          />
+          {/* The "new document" entry point — the same kind-first dialog the map uses. */}
+          {/*
+            It is **pressable even in the read-only sample**. It used to be disabled with a
+            hover tooltip, but a hover-only explanation on a 40%-opacity icon never arrived —
+            in the owner's own use it read as "Why is there no 'create document'?"
+
+            Pressing it now goes to what makes it possible: open my folder. The label says so in
+            advance, so nothing is surprising — the charter's degradation grammar ("why it is
+            unavailable **and where to go**") applied to one button.
+          */}
+          <RailIconButton
+            testId="docs-sidebar-new-doc"
+            icon={<Plus size={ICON_SIZE.md} aria-hidden />}
+            label={canCreateNewDoc ? t("newDocButtonLabel") : t("newDocDisabledHint")}
+            active={false}
+            state={{ kind: "action" }}
+            onClick={onCreateNewDoc}
+          />
+        </div>
       </div>
       {/* This row states **only what a control cannot say** (2026-08-08).
           It used to carry the active collection's name and count as well, because the icons
