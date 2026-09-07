@@ -266,10 +266,10 @@ export function ConnectorsPanel({
    * (`src/shared/lib/mcp-install-link.ts`).
    *
    * **The link opens the dialog and stops.** Nothing is written, the switch stays off, and the
-   * last thing on screen before the press is the command or the address, written out. The custom
-   * `ontology-atlas://` scheme is not registered with macOS in this change — that needs a Tauri
-   * plugin dependency — so today the only caller is a URL somebody pasted, which is the safest
-   * possible first caller for a parser like this one.
+   * last thing on screen before the press is the command or the address, written out. Two callers
+   * reach this: a URL somebody pasted, and — in the installed app since 2026-09-07 —
+   * `ontology-atlas://mcp?install=`, which `src-tauri/src/deep_link.rs` turns into exactly this
+   * address after refusing every other destination and every query key but `install`.
    *
    * ⚠️ **`useSearchParams`, not `window.location`.** Reading the address in an effect would set
    * state a frame after the dialog had already painted closed, and this component renders on the

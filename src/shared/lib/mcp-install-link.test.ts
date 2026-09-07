@@ -71,8 +71,11 @@ describe('install link — what it accepts', () => {
       headers: [],
       enabled: true,
     });
-    expect(link.startsWith('ontology-atlas://mcp/install?')).toBe(true);
-    const back = parse(link);
+    // The address the installed app is registered for, and the one line that turns a URL's route
+    // parameter into the parser's `config` — the same translation `ConnectorsPanel` does from the
+    // address bar and `deep_link.rs` does from the OS.
+    expect(link.startsWith('ontology-atlas://mcp?install=')).toBe(true);
+    const back = parse(`?config=${link.slice('ontology-atlas://mcp?install='.length)}`);
     expect(back.draft).toMatchObject({ name: 'github', url: 'https://api.githubcopilot.com/mcp/' });
     // Even a round trip from an enabled row arrives off.
     expect(back.draft?.enabled).toBe(false);

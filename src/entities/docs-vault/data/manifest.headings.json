@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-07 — The installed app answers one address, and it only fills in a form",
+      "slug": "2026-09-07-the-installed-app-answers-one-address-and-it-only-fills-in-a-form"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-07 — A node's `created_by` names the connecting client when no heartbeat is registered",
       "slug": "2026-09-07-a-nodes-created_by-names-the-connecting-client-when-no-heartbeat-is-registered"
     },

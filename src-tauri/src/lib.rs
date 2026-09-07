@@ -27,6 +27,9 @@ mod connectors;
 /// Keychain entries behind an external connector's tokens, resolved into the outgoing ACP line so
 /// the WebView never holds one.
 mod connector_secrets;
+/// The one inbound address this app answers — `ontology-atlas://mcp?install=` — and the rejection
+/// rules that keep it from becoming a router.
+mod deep_link;
 /// One shape for every failure a command hands to the WebView (`<code>: <detail>`).
 mod errors;
 /// Atlas Git — native layer for versioning vaults with git (invoked by the web GUI).
@@ -39,6 +42,13 @@ mod llm;
 /// LLM call audit log — implementation of "do not send if logging fails."
 mod llm_audit;
 mod secrets;
+
+/// How long a deep link keeps trying to reach the form: 20 attempts, 250 ms apart, so a cold
+/// start has five seconds to produce a document and a warm window answers on the first try.
+#[cfg(desktop)]
+const DEEP_LINK_ROUTE_ATTEMPTS: usize = 20;
+#[cfg(desktop)]
+const DEEP_LINK_ROUTE_INTERVAL_MS: u64 = 250;
 
 const WEBVIEW_VERIFY_ENV: &str = "ONTOLOGY_ATLAS_VERIFY_WEBVIEW";
 const WEBVIEW_VERIFY_ROUTE_ENV: &str = "ONTOLOGY_ATLAS_VERIFY_ROUTE";
@@ -2641,6 +2651,52 @@ fn ensure_default_vault_parent_dir() -> Result<String, String> {
     Ok(canonical.to_string_lossy().to_string())
 }
 
+/// One arriving `ontology-atlas://` URL, answered or logged and dropped.
+///
+/// The URL itself is never logged. A refused link may be an address somebody was tricked into
+/// pressing, and its payload is a server config: the reason is what a bug report needs, the
+/// content is not. Nothing here writes, attaches or enables anything — the whole effect is that
+/// the MCP screen opens with the add-connector form filled in, and the person still presses Add.
+#[cfg(desktop)]
+fn answer_deep_link(app: &AppHandle, url: &str) {
+    let payload = match deep_link::parse_install_deep_link(url) {
+        Ok(payload) => payload,
+        Err(refusal) => {
+            // Dropped, not redirected. A URL that fails the parser must not be able to move the
+            // window at all; that is the difference between a doorman and an open redirect.
+            log::warn!("deep link refused: {refusal}");
+            return;
+        }
+    };
+    log::info!(
+        "deep link: opening the connector form with a {} byte install payload",
+        payload.len()
+    );
+    show_main_window(app);
+    let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) else {
+        return;
+    };
+    // A link pressed while Atlas was closed arrives before the first document exists, so one
+    // blind `eval` would silently do nothing. The script reports arrival and this stops on it.
+    let script = deep_link::build_install_route_script(&payload);
+    tauri::async_runtime::spawn(async move {
+        let arrived = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        for _ in 0..DEEP_LINK_ROUTE_ATTEMPTS {
+            if arrived.load(std::sync::atomic::Ordering::SeqCst) {
+                return;
+            }
+            let sink = std::sync::Arc::clone(&arrived);
+            let _ = window.eval_with_callback(script.as_str(), move |result| {
+                if result.trim() == "true" {
+                    sink.store(true, std::sync::atomic::Ordering::SeqCst);
+                }
+            });
+            std::thread::sleep(Duration::from_millis(DEEP_LINK_ROUTE_INTERVAL_MS));
+        }
+        log::warn!("deep link: the connector form did not come up within the retry window");
+    });
+}
+
 fn show_main_window(app: &AppHandle) {
     #[cfg(target_os = "macos")]
     let _ = app.show();
@@ -3248,6 +3304,11 @@ pub fn run() {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             show_main_window(app);
         }));
+        // Registered right after single-instance, which is what makes a second press of an
+        // `ontology-atlas://` link route the window that already exists instead of starting a
+        // rival one. `tauri-plugin-single-instance`'s `deep-link` feature hands the second
+        // process's URL back through `on_open_url`; macOS delivers it to the running app itself.
+        builder = builder.plugin(tauri_plugin_deep_link::init());
     }
 
     // Registered after single-instance, and **not at all** under the verification harness. Skipping
@@ -3325,6 +3386,20 @@ pub fn run() {
 
             #[cfg(target_os = "macos")]
             install_native_tray(app)?;
+
+            // Registered before anything slow in this closure: on macOS a link pressed while
+            // Atlas was closed is delivered as the app comes up, and the plugin holds it only
+            // until a handler exists.
+            #[cfg(desktop)]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+                let deep_link_app = app.handle().clone();
+                app.deep_link().on_open_url(move |event| {
+                    for url in event.urls() {
+                        answer_deep_link(&deep_link_app, url.as_str());
+                    }
+                });
+            }
 
             // The first line of every log file: without a version, a bug report's log cannot be
             // matched to the build that produced it.
