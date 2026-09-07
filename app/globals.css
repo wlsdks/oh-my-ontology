@@ -121,6 +121,42 @@
   --z-tooltip: 80;             /* Tooltip — must be readable even over dialogs */
   --z-skip-link: 100;          /* Skip link — above everything else */
 
+  /*
+   * Kind tone — the one qualitative data mark (docs/DESIGN-SYSTEM.md "Kind tone", 2026-09-08).
+   *
+   * Five hues, one per ontology kind, allowed only where colour is the sole identity channel:
+   * the kind-census strip, map dots, tree chips. They lived as rgba literals in
+   * `src/entities/ontology-class/model/tone.ts` and were invisible to every colour gate; the
+   * triplet is the source, the four alphas beneath it are the only steps a consumer may draw.
+   * `tone.ts` keeps a JS copy for canvas paint; `kind-tone-mirror.contract.test.ts` holds the
+   * two equal.
+   */
+  --color-kind-project-rgb: 126 134 216;
+  --color-kind-domain-rgb: 74 177 196;
+  --color-kind-capability-rgb: 211 159 73;
+  --color-kind-element-rgb: 124 166 141;
+  --color-kind-unknown-rgb: 196 92 92;
+  --color-kind-project-fill: rgb(var(--color-kind-project-rgb) / 0.94);
+  --color-kind-project-border: rgb(var(--color-kind-project-rgb) / 0.88);
+  --color-kind-project-chip-bg: rgb(var(--color-kind-project-rgb) / 0.12);
+  --color-kind-project-chip-border: rgb(var(--color-kind-project-rgb) / 0.46);
+  --color-kind-domain-fill: rgb(var(--color-kind-domain-rgb) / 0.94);
+  --color-kind-domain-border: rgb(var(--color-kind-domain-rgb) / 0.88);
+  --color-kind-domain-chip-bg: rgb(var(--color-kind-domain-rgb) / 0.11);
+  --color-kind-domain-chip-border: rgb(var(--color-kind-domain-rgb) / 0.44);
+  --color-kind-capability-fill: rgb(var(--color-kind-capability-rgb) / 0.94);
+  --color-kind-capability-border: rgb(var(--color-kind-capability-rgb) / 0.88);
+  --color-kind-capability-chip-bg: rgb(var(--color-kind-capability-rgb) / 0.12);
+  --color-kind-capability-chip-border: rgb(var(--color-kind-capability-rgb) / 0.46);
+  --color-kind-element-fill: rgb(var(--color-kind-element-rgb) / 0.94);
+  --color-kind-element-border: rgb(var(--color-kind-element-rgb) / 0.88);
+  --color-kind-element-chip-bg: rgb(var(--color-kind-element-rgb) / 0.11);
+  --color-kind-element-chip-border: rgb(var(--color-kind-element-rgb) / 0.44);
+  --color-kind-unknown-fill: rgb(var(--color-kind-unknown-rgb) / 0.94);
+  --color-kind-unknown-border: rgb(var(--color-kind-unknown-rgb) / 0.88);
+  --color-kind-unknown-chip-bg: rgb(var(--color-kind-unknown-rgb) / 0.12);
+  --color-kind-unknown-chip-border: rgb(var(--color-kind-unknown-rgb) / 0.46);
+
   /* Indigo accent (system's only color) */
   --color-indigo-brand: #5e6ad2;
   --color-indigo-accent: #7170ff;
@@ -599,6 +635,14 @@
   --card-row-h: 22px;
   /* Prose measure — the upper limit of line length readable by eye. */
   --measure-prose: 70ch;
+  /*
+   * Document column — the reading column a document, wiki page or check report sits in
+   * (2026-09-08). Measured before it was named: `760px` hand-written at 11 sites across the
+   * Docs, Library and full-detail surfaces, always paired with the same gutter. `--measure-prose`
+   * is a line-length limit in `ch`; this is the column's box width, which the gutter and the
+   * frontmatter block also need, so the two stay separate tokens.
+   */
+  --measure-doc-column: 760px;
   --page-bottom-breath: 40px;
 
   /*

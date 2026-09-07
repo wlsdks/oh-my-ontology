@@ -93,7 +93,7 @@ export function ToastProvider({
         // The box width is ours, not sonner's 356px default: wide enough for one
         // Korean sentence plus an action without wrapping at 1512, and never wider
         // than the viewport less the edge gaps (sonner reads `--width`).
-        style={{ '--width': 'min(440px, calc(100vw - 32px))' } as CSSProperties}
+        style={{ '--width': 'min(var(--dialog-w-sm), calc(100vw - 32px))' } as CSSProperties}
         containerAriaLabel={notificationsLabel}
         // sonner's default hotkey (Alt+T) gets appended to the region label,
         // which reads as ambiguous in a screen reader. Disabled so the label is

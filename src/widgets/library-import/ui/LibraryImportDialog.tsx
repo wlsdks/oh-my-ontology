@@ -2,9 +2,9 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, ExternalLink } from 'lucide-react';
+import { Check, ExternalLink, X } from 'lucide-react';
 
-import { Button, Chip, Dialog, ServiceMark, resolveServiceMark } from '@/shared/ui';
+import { Button, Chip, Dialog, IconButton, ServiceMark, resolveServiceMark } from '@/shared/ui';
 import { Link } from '@/i18n/navigation';
 import { DESTINATION_HREF } from '@/shared/config/destinations';
 import { Input } from '@/shared/ui/input';
@@ -196,12 +196,25 @@ export function LibraryImportDialog({
       testId={`${testIdPrefix}-dialog`}
       className="max-h-[min(80vh,var(--dialog-max-h))] overflow-y-auto"
     >
-      <h2
-        id={`${testIdPrefix}-title`}
-        className="text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]"
-      >
-        {t('title')}
-      </h2>
+      {/* Close is the corner control, as on every other dialog; Escape and the scrim do the same. */}
+      <div className="flex items-start justify-between gap-3">
+        <h2
+          id={`${testIdPrefix}-title`}
+          className="min-w-0 text-title font-[var(--font-weight-strong)] text-[color:var(--color-text-primary)]"
+        >
+          {t('title')}
+        </h2>
+        <IconButton
+          label={t('close')}
+          size="sm"
+          tone="muted"
+          data-testid={`${testIdPrefix}-close`}
+          className="-mr-1 -mt-1 shrink-0"
+          onClick={close}
+        >
+          <X size={ICON_SIZE.lg} aria-hidden />
+        </IconButton>
+      </div>
 
       {step === 'pick' ? (
         <>
@@ -500,22 +513,11 @@ export function LibraryImportDialog({
                 <ExternalLink size={ICON_SIZE.sm} aria-hidden />
                 {t('bringAction')}
               </Chip>
-            ) : (
-              <Button variant="ghost" data-testid={`${testIdPrefix}-done`} onClick={close}>
-                {t('close')}
-              </Button>
-            )}
+            ) : null}
           </div>
         </>
       ) : null}
 
-      {step === 'pick' ? (
-        <div className="mt-4 flex justify-end">
-          <Button variant="ghost" onClick={close}>
-            {t('close')}
-          </Button>
-        </div>
-      ) : null}
     </Dialog>
   );
 }

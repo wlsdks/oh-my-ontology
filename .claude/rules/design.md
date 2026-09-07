@@ -254,6 +254,7 @@ document-only shadow ramp once left five raw rgba shadows alive.
 | Radius ramp | no raw `rounded-[Npx]`, including directional forms |
 | Shadow ramp | every comma-separated layer must match an elevation, docking, press, surface, or inset form |
 | Hex colour | no hex inside arbitrary-value syntax |
+| Colour literal | no `rgb()`/`rgba()`/`hsl()`, no hex in an inline colour property, no literal in a mask stencil, no named `ease-*` class — product files only; the paint mirror, the indigo mirror, the popout HTML and canvas paint are the named exceptions (2026-09-08) |
 | Motion duration | no numeric `duration-*`; use tokens |
 | Leading ramp | no raw or named Tailwind leading steps; use `--leading-*`, `display-tight`, or `prose` |
 | Ramp bypass | do not reference type-ramp tokens as arbitrary lengths |
@@ -298,7 +299,8 @@ absence of a class, or rendered geometry. Current owners include:
 
 An unknown utility such as `text-large` produces no CSS and silently falls back
 to 16px, so hardcoded-value lint sees nothing. Spacing is deliberately not
-enforced: only 27 raw-pixel uses (1.1%) were measured, mostly one-off optical
+enforced: 27 raw-pixel uses (1.1%) were measured in July 2026 and about 377 bracket
+literals on 2026-09-08, mostly one-off optical
 corrections. Unused `--pad-card`/`--pad-panel` tokens were removed instead;
 unused tokens are misinformation, not specification.
 

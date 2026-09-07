@@ -71,7 +71,7 @@ export function GuidedTourCard({
       aria-label={t(`steps.${step.copyKey}.title`)}
       className={cn(
         "fixed z-[var(--z-tour-card)] rounded-[var(--chrome-radius)] border border-[color:var(--chrome-border)] bg-[color:var(--color-panel)] p-4 shadow-[var(--chrome-shadow)]",
-        "transition-opacity duration-[var(--topology-tour-transition-ms)] ease-out motion-reduce:transition-none",
+        "transition-opacity duration-[var(--topology-tour-transition-ms)] ease-[var(--topology-motion-ease-out)] motion-reduce:transition-none",
         // Step-transition entrance — the overlay remounts via `key={step.id}`, so
         // this keyframe (the opacity-only `panelCrossfadeIn`) runs once per step.
         //

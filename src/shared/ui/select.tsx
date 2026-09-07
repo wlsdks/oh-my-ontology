@@ -424,10 +424,10 @@ export function Select({
   const edgeMask = (() => {
     const fade = "var(--leading-body)";
     if (edges.top && edges.bottom) {
-      return `linear-gradient(to bottom, transparent 0, #000 ${fade}, #000 calc(100% - ${fade}), transparent 100%)`;
+      return `linear-gradient(to bottom, transparent 0, black ${fade}, black calc(100% - ${fade}), transparent 100%)`;
     }
-    if (edges.top) return `linear-gradient(to bottom, transparent 0, #000 ${fade})`;
-    if (edges.bottom) return `linear-gradient(to top, transparent 0, #000 ${fade})`;
+    if (edges.top) return `linear-gradient(to bottom, transparent 0, black ${fade})`;
+    if (edges.bottom) return `linear-gradient(to top, transparent 0, black ${fade})`;
     return undefined;
   })();
 

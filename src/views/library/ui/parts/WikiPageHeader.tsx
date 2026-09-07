@@ -70,7 +70,7 @@ export function WikiPageHeader({
   return (
     <header
       data-testid="library-wiki-header"
-      className="mx-auto w-full max-w-[760px] px-6 pt-8 md:px-10"
+      className="mx-auto w-full max-w-[var(--measure-doc-column)] px-6 pt-8 md:px-10"
     >
       <h2 className="text-display font-[var(--font-weight-signature)] leading-title tracking-[var(--tracking-card)] text-[color:var(--color-text-primary)]">
         {doc.title}

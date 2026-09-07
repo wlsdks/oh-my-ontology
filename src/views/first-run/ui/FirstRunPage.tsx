@@ -145,7 +145,7 @@ export function FirstRunPage() {
       tabIndex={-1}
       className="flex min-h-full items-center justify-center bg-[color:var(--color-canvas)] px-6 py-10"
     >
-      <section className="grid w-full max-w-[440px] gap-6">
+      <section className="grid w-full max-w-[var(--dialog-w-sm)] gap-6">
         <header className="grid justify-items-center gap-3 text-center">
           <div className="inline-flex items-center gap-3">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-chip border border-[color:var(--color-border-soft)] bg-[color:var(--color-elevated)] text-[color:var(--color-indigo-accent)]">

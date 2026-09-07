@@ -526,6 +526,57 @@ const gatewayFxScopeSelectors = [
 // Intentional exceptions outside the ramp must be explicitly marked with `// eslint-disable-next-line
 // no-restricted-syntax -- <reason>`. Migrated directories = error,
 // incomplete (topology-map-v2 · views/home) = warn.
+/*
+ * Colour literals outside the token layer (2026-09-08).
+ *
+ * The 2026-07-26 hex gate looks only inside Tailwind arbitrary values (`-[#…]`), so a hex in a
+ * style object, an `rgba()` anywhere, a named `ease-*` class, and a mask stencil were never seen.
+ * Inventory before enabling (design-system-audit, 2026-09-08): 41 hex outside brackets and 41
+ * `rgb()/rgba()` in code lines, most of them one qualitative kind palette (`tone.ts`, now the
+ * `--color-kind-*` tokens with a mirror-tested paint copy), a documented JS indigo mirror, and
+ * surfaces a CSS variable cannot reach (Satori, standalone HTML, canvas). Those keep their
+ * scope blocks or a per-line disable with a reason; everything else moved to a token first,
+ * so this array enables at 0 violations.
+ *
+ * `rgba(${…` and `rgb(var(` are the correct pattern for a canvas or a paint that must read a
+ * token at runtime, so the regex requires a digit right after the paren.
+ * ⚠️ Ban literal utility syntax in messages — Tailwind v4 scanner scans this file.
+ */
+export const colorLiteralSelectors = [
+  {
+    selector: 'Literal[value=/(?:^|[^\\w-])(?:rgba?|hsla?)\\(\\s*\\d/]',
+    message:
+      '디자인 헌장 — rgb()/rgba()/hsl() 리터럴 금지. --color-* 토큰을 var() 로 참조한다. 캔버스·Satori·독립 HTML 처럼 CSS 변수가 닿지 않는 표면만 eslint-disable + 사유.',
+  },
+  {
+    selector: 'TemplateElement[value.raw=/(?:^|[^\\w-])(?:rgba?|hsla?)\\(\\s*\\d/]',
+    message:
+      '디자인 헌장 — rgb()/rgba()/hsl() 리터럴 금지 (template literal). --color-* 토큰을 var() 로.',
+  },
+  {
+    selector:
+      'JSXAttribute[name.name="style"] Property[key.name=/^(?:color|backgroundColor|background|borderColor|outlineColor|fill|stroke|caretColor|accentColor)$/] > Literal[value=/#[0-9a-fA-F]{3,8}/]',
+    message:
+      '디자인 헌장 — 인라인 style 의 색 hex 금지. 클래스가 안 생겨 대괄호 hex 게이트가 못 보는 층이다. --color-* 토큰을 var() 로.',
+  },
+  {
+    selector:
+      'JSXAttribute[name.name="style"] Property[key.name=/^(?:maskImage|WebkitMaskImage)$/] > Literal[value=/#[0-9a-fA-F]{3,8}|rgba?\\(\\s*\\d/]',
+    message:
+      '마스크 스텐실의 색 리터럴 금지 — 알파만 뜻하더라도 게이트가 못 보는 자리다. `black`/`transparent` 키워드 또는 --color-* 토큰을 var() 로.',
+  },
+  {
+    selector: 'Literal[value=/(?:^|[^-\\w])ease-(?:in|out|in-out|linear)(?![-\\w\\[])/]',
+    message:
+      '모션 곡선 하드코딩 금지 — Tailwind 기본 곡선 대신 ease 유틸리티 안에서 --motion-ease / --motion-ease-exit / --topology-motion-ease-out 을 var() 로 참조한다.',
+  },
+  {
+    selector: 'TemplateElement[value.raw=/(?:^|[^-\\w])ease-(?:in|out|in-out|linear)(?![-\\w\\[])/]',
+    message:
+      '모션 곡선 하드코딩 금지 (template literal) — --motion-ease* 토큰을 var() 로.',
+  },
+];
+
 export const arbitrarySizeSelectors = [
   /*
    * ── Named Tailwind base steps are also outside the ramp (2026-08-03 Census) ──────
@@ -1192,6 +1243,45 @@ const eslintConfig = defineConfig([
   {
     files: rampCoveredGlobs,
     ignores: [...codexTestIgnores, ...rampDebtExemptions],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...scaleGradientSelectors,
+        ...arbitrarySizeSelectors,
+        ...accentTintPairingSelectors,
+        ...inlineShadowSelectors,
+        ...inlineSizeSelectors,
+        ...cursorAffordanceSelectors,
+        ...disabledAffordanceSelectors,
+        ...gatewayFxScopeSelectors,
+        ...typographyAxisSelectors,
+        ...layerSelectors,
+        ...colorLiteralSelectors,
+      ],
+    },
+  },
+  // Colour mirrors and canvas paint — the surfaces a CSS variable cannot reach (2026-09-08).
+  //
+  // ⚠️ **This block must come after the ramp block above.** Flat config replaces the rule
+  // wholesale, so it reloads every ramp selector and drops only `colorLiteralSelectors`.
+  // Census on enabling (design-system-audit, 2026-09-08), every one a copy of a token or a
+  // canvas fallback for one:
+  //   - `src/entities/ontology-class/model/tone.ts` — the paint copy of `--color-kind-*`,
+  //     held equal to the token by `tests/contract/kind-tone-mirror.contract.test.ts`.
+  //   - `src/shared/config/indigo-tokens.ts` — the documented JS mirror of `--color-indigo-*`.
+  //   - `src/views/docs-vault/lib/popout-template.ts` — a standalone HTML document with no
+  //     stylesheet of ours to read.
+  //   - `src/widgets/topology-map-v2/render/**` — canvas paint, which reads its tokens through
+  //     `read-topology-v2-tokens` and keeps a literal only as the fallback for a missing one.
+  // A new file here is a new exception and needs the same sentence.
+  {
+    files: [
+      'src/entities/ontology-class/model/tone.ts',
+      'src/shared/config/indigo-tokens.ts',
+      'src/views/docs-vault/lib/popout-template.ts',
+      'src/widgets/topology-map-v2/render/**/*.{ts,tsx}',
+    ],
+    ignores: codexTestIgnores,
     rules: {
       'no-restricted-syntax': [
         'error',

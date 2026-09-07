@@ -26,56 +26,63 @@ export interface OntologyKindTone {
 export const ONTOLOGY_KIND_TONE: Record<OntologyVisualKind, OntologyKindTone> = {
   project: {
     hueName: "indigo",
-    fill: "rgba(126, 134, 216, 0.94)",
-    border: "rgba(126, 134, 216, 0.88)",
-    chipBg: "rgba(126, 134, 216, 0.12)",
+    fill: "var(--color-kind-project-fill)",
+    border: "var(--color-kind-project-border)",
+    chipBg: "var(--color-kind-project-chip-bg)",
     chipText: "var(--color-text-primary)",
-    chipBorder: "rgba(126, 134, 216, 0.46)",
+    chipBorder: "var(--color-kind-project-chip-border)",
     nodeSize: 8.4,
   },
   domain: {
     hueName: "teal",
-    fill: "rgba(74, 177, 196, 0.94)",
-    border: "rgba(74, 177, 196, 0.88)",
-    chipBg: "rgba(74, 177, 196, 0.11)",
+    fill: "var(--color-kind-domain-fill)",
+    border: "var(--color-kind-domain-border)",
+    chipBg: "var(--color-kind-domain-chip-bg)",
     chipText: "var(--color-text-primary)",
-    chipBorder: "rgba(74, 177, 196, 0.44)",
+    chipBorder: "var(--color-kind-domain-chip-border)",
     nodeSize: 7.2,
   },
   capability: {
     hueName: "amber",
-    fill: "rgba(211, 159, 73, 0.94)",
-    border: "rgba(211, 159, 73, 0.88)",
-    chipBg: "rgba(211, 159, 73, 0.12)",
+    fill: "var(--color-kind-capability-fill)",
+    border: "var(--color-kind-capability-border)",
+    chipBg: "var(--color-kind-capability-chip-bg)",
     chipText: "var(--color-text-primary)",
-    chipBorder: "rgba(211, 159, 73, 0.46)",
+    chipBorder: "var(--color-kind-capability-chip-border)",
     nodeSize: 5.2,
   },
   element: {
-    // Strategy verdict, 2026-07-21 §C — to remove the "bootstrap green" feel:
-    // sage (105,177,121, 31% saturation) → eucalyptus (124,166,141, 19%), nudged
-    // cooler. `element` is the most common kind in the dogfood vault (55/105), so it
-    // dominates any surface using this colour (the insights kind bars, the domain
-    // capacity bar) — hence low saturation to keep it quiet. The topology-map-v2
-    // canvas does not use this palette; it uses the neutral engraving tokens
-    // (`--topology-v2-node-fill-*`). The alpha ramp (0.94/0.88/0.11/0.44) is unchanged.
     hueName: "eucalyptus",
-    fill: "rgba(124, 166, 141, 0.94)",
-    border: "rgba(124, 166, 141, 0.88)",
-    chipBg: "rgba(124, 166, 141, 0.11)",
+    fill: "var(--color-kind-element-fill)",
+    border: "var(--color-kind-element-border)",
+    chipBg: "var(--color-kind-element-chip-bg)",
     chipText: "var(--color-text-primary)",
-    chipBorder: "rgba(124, 166, 141, 0.44)",
+    chipBorder: "var(--color-kind-element-chip-border)",
     nodeSize: 3.1,
   },
   unknown: {
     hueName: "brick",
-    fill: "rgba(196, 92, 92, 0.94)",
-    border: "rgba(196, 92, 92, 0.88)",
-    chipBg: "rgba(196, 92, 92, 0.12)",
+    fill: "var(--color-kind-unknown-fill)",
+    border: "var(--color-kind-unknown-border)",
+    chipBg: "var(--color-kind-unknown-chip-bg)",
     chipText: "var(--color-text-primary)",
-    chipBorder: "rgba(196, 92, 92, 0.46)",
+    chipBorder: "var(--color-kind-unknown-chip-border)",
     nodeSize: 3.6,
   },
+};
+
+/**
+ * The same five hues as paint — for a canvas, an image, or a contrast measurement, none of which
+ * can read a CSS variable. `app/globals.css` holds the token (`--color-kind-<kind>-rgb`) and this
+ * is its copy; `tests/contract/kind-tone-mirror.contract.test.ts` refuses a drift between them.
+ * DOM consumers take `ONTOLOGY_KIND_TONE`, which references the tokens.
+ */
+export const ONTOLOGY_KIND_PAINT: Record<OntologyVisualKind, { rgb: readonly [number, number, number]; fill: string; chipBg: string }> = {
+  project: { rgb: [126, 134, 216], fill: "rgba(126, 134, 216, 0.94)", chipBg: "rgba(126, 134, 216, 0.12)" },
+  domain: { rgb: [74, 177, 196], fill: "rgba(74, 177, 196, 0.94)", chipBg: "rgba(74, 177, 196, 0.11)" },
+  capability: { rgb: [211, 159, 73], fill: "rgba(211, 159, 73, 0.94)", chipBg: "rgba(211, 159, 73, 0.12)" },
+  element: { rgb: [124, 166, 141], fill: "rgba(124, 166, 141, 0.94)", chipBg: "rgba(124, 166, 141, 0.11)" },
+  unknown: { rgb: [196, 92, 92], fill: "rgba(196, 92, 92, 0.94)", chipBg: "rgba(196, 92, 92, 0.12)" },
 };
 
 function isOntologyVisualKind(kind: string | null | undefined): kind is OntologyVisualKind {
