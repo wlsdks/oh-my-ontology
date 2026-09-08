@@ -21,6 +21,28 @@ const VAULT_FILES: Record<string, string> = {
 
 const ARCHITECTURE_PAGE = "---\ntitle: Architecture evidence\ncreated_by: agent:claude-code\ncompiled_at: 2026-09-08T00:00:00.000Z\nsources:\n  - sources/architecture.docx\nsource_hash:\n  sources/architecture.docx: 0000000000000000000000000000000000000000000000000000000000000000\nstatus: draft\nsummary: Architecture evidence.\n---\n\n## Summary\n\nArchitecture evidence captured by the ACP harness.\n\n## Facts\n\n- The architecture source is available. [[src:sources/architecture.docx#p1]]\n\n## Decisions\n\n## Open questions\n\n## Not in sources\n";
 
+type JsonRecord = Record<string, unknown>;
+type JsonRpcId = number | string;
+type EventCallback = (event: { event: string; payload: unknown }) => void;
+
+interface HarnessWindow extends Window {
+  isTauri?: boolean;
+  __TAURI_INTERNALS__?: {
+    transformCallback(callback: EventCallback): number;
+    invoke(command: string, args?: JsonRecord): Promise<unknown>;
+  };
+  __TAURI_EVENT_PLUGIN_INTERNALS__: {
+    unregisterListener(event: string, id: number): void;
+  };
+  __atlasLibraryWorkHarness?: {
+    emitRead(): void;
+    emitWait(): void;
+    emitWrite(): void;
+    finish(): void;
+    snapshot(): LibraryWorkHarnessSnapshot;
+  };
+}
+
 export type LibraryWorkScenario = "successful-write" | "failed-unknown-target";
 
 export interface LibraryWorkHarnessSnapshot {
@@ -51,8 +73,14 @@ export async function installLibraryWorkHarness(
   const scenario = options.scenario ?? "successful-write";
   await page.addInitScript(
     ({ initialFiles, initialScenario, vaultRoot, runtime, architecturePage }) => {
+      const fixtureWindow = window as unknown as HarnessWindow;
+      const record = (value: unknown): JsonRecord | null => typeof value === "object" && value !== null && !Array.isArray(value)
+        ? value as JsonRecord
+        : null;
+      const jsonRpcId = (value: unknown): JsonRpcId | null => typeof value === "number" || typeof value === "string"
+        ? value
+        : null;
       window.localStorage.setItem("library.wikiWriteMode", "ask");
-      type EventCallback = (event: { event: string; payload: unknown }) => void;
       const files: Record<string, string> = { ...initialFiles };
       const mtimes: Record<string, number> = {};
       const directories = new Set([".", ".ontology-atlas", "sources", "wiki"]);
@@ -62,7 +90,7 @@ export async function installLibraryWorkHarness(
       const events: Array<{ event: string; payload: unknown }> = [];
       const writes: Array<{ relativePath: string; content: string; mtime: number }> = [];
       let callbackId = 1;
-      let sessionId = "library-acp-session";
+      const sessionId = "library-acp-session";
       let nextMtime = 1_727_000_000_000;
       let promptId: number | string | null = null;
       let permissionId: number | string | null = null;
@@ -74,7 +102,7 @@ export async function installLibraryWorkHarness(
         for (const id of listeners.get(event) ?? []) callbacks.get(id)?.({ event, payload });
       };
       const acp = (line: Record<string, unknown>) => emit("acp://message", { sessionId, line: JSON.stringify(line) });
-      const result = (id: number | string, value: unknown) => acp({ jsonrpc: "2.0", id, result: value });
+      const result = (id: JsonRpcId, value: unknown) => acp({ jsonrpc: "2.0", id, result: value });
       const update = (value: Record<string, unknown>) => acp({ jsonrpc: "2.0", method: "session/update", params: { sessionId, update: value } });
       const relative = (value: unknown) => {
         if (typeof value !== "string") return "";
@@ -123,19 +151,23 @@ export async function installLibraryWorkHarness(
         result(promptId, { stopReason: initialScenario === "successful-write" && Object.keys(files).includes("wiki/architecture.md") ? "end_turn" : "tool_rejected" });
         promptId = null;
       };
-      const handleClientMessage = (message: Record<string, any>) => {
-        calls.push({ method: message.method ?? "response", params: message });
-        if (message.method === "initialize") return result(message.id, { protocolVersion: 1, agentCapabilities: { loadSession: false, promptCapabilities: {} } });
-        if (message.method === "session/list") return result(message.id, { sessions: [] });
-        if (message.method === "session/new") return result(message.id, { sessionId, modes: { availableModes: [{ id: "default", name: "Default" }], currentModeId: "default" }, models: { availableModels: [], currentModelId: null } });
-        if (message.method === "session/set_mode" || message.method === "session/set_model" || message.method === "session/cancel") return result(message.id, {});
-        if (message.method === "session/prompt") { promptId = message.id; return; }
-        if (message.id === permissionId && phase === "waiting") {
-          const allowed = message.result?.outcome?.optionId === "allow" && initialScenario === "successful-write";
+      const handleClientMessage = (message: JsonRecord) => {
+        const method = typeof message.method === "string" ? message.method : undefined;
+        const id = jsonRpcId(message.id);
+        calls.push({ method: method ?? "response", params: message });
+        if (method === "initialize" && id !== null) return result(id, { protocolVersion: 1, agentCapabilities: { loadSession: false, promptCapabilities: {} } });
+        if (method === "session/list" && id !== null) return result(id, { sessions: [] });
+        if (method === "session/new" && id !== null) return result(id, { sessionId, modes: { availableModes: [{ id: "default", name: "Default" }], currentModeId: "default" }, models: { availableModels: [], currentModelId: null } });
+        if ((method === "session/set_mode" || method === "session/set_model" || method === "session/cancel") && id !== null) return result(id, {});
+        if (method === "session/prompt" && id !== null) { promptId = id; return; }
+        if (id === permissionId && phase === "waiting") {
+          const response = record(message.result);
+          const outcome = record(response?.outcome);
+          const allowed = outcome?.optionId === "allow" && initialScenario === "successful-write";
           phase = allowed ? "approved" : "rejected";
         }
       };
-      const invoke = (command: string, args: Record<string, any> = {}) => {
+      const invoke = (command: string, args: JsonRecord = {}): Promise<unknown> => {
         calls.push({ method: command, params: args });
         if (command === "plugin:event|listen") { const id = Number(args.handler); const event = String(args.event); if (!callbacks.has(id)) return Promise.reject(new Error("missing event callback")); const set = listeners.get(event) ?? new Set<number>(); set.add(id); listeners.set(event, set); return Promise.resolve(id); }
         if (command === "plugin:event|unlisten") { const event = String(args.event); listeners.get(event)?.delete(Number(args.eventId)); callbacks.delete(Number(args.eventId)); return Promise.resolve(); }
@@ -143,7 +175,7 @@ export async function installLibraryWorkHarness(
         if (command === "secret_status") return Promise.resolve({ provider: args.provider, stored: false, last4: null });
         if (command === "acp_start") return Promise.resolve(sessionId);
         if (command === "acp_stop" || command === "start_vault_watch" || command === "ensure_vault_directory") return Promise.resolve(null);
-        if (command === "acp_send") { try { handleClientMessage(JSON.parse(String(args.line ?? ""))); } catch {} return Promise.resolve(null); }
+        if (command === "acp_send") { try { const message: unknown = JSON.parse(String(args.line ?? "")); const parsed = record(message); if (parsed) handleClientMessage(parsed); } catch {} return Promise.resolve(null); }
         if (command === "acp_permission_verdict") return Promise.resolve("ask");
         if (command === "mcp_bundled_server") return Promise.resolve({ path: "/Applications/Ontology Atlas.app/mcp", available: true, reason: null });
         if (command === "discover_mcp_connectors") return Promise.resolve({ servers: [], problems: [] });
@@ -158,18 +190,28 @@ export async function installLibraryWorkHarness(
         if (command === "write_vault_text_file") { write(relative(args.relativePath), String(args.content ?? "")); return Promise.resolve(null); }
         return Promise.reject(new Error(`no stub for ${command}`));
       };
-      (window as any).isTauri = true;
-      (window as any).__TAURI_INTERNALS__ = { transformCallback: (callback: EventCallback) => { const id = callbackId++; callbacks.set(id, callback); return id; }, invoke };
-      (window as any).__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: (event: string, id: number) => { listeners.get(event)?.delete(id); callbacks.delete(id); } };
-      (window as any).__atlasLibraryWorkHarness = { emitRead, emitWait, emitWrite, finish, snapshot: () => ({ files: { ...files }, writes: [...writes], calls: [...calls], events: [...events], scenario: initialScenario }) };
+      fixtureWindow.isTauri = true;
+      fixtureWindow.__TAURI_INTERNALS__ = { transformCallback: (callback: EventCallback) => { const id = callbackId++; callbacks.set(id, callback); return id; }, invoke };
+      fixtureWindow.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: (event: string, id: number) => { listeners.get(event)?.delete(id); callbacks.delete(id); } };
+      fixtureWindow.__atlasLibraryWorkHarness = { emitRead, emitWait, emitWrite, finish, snapshot: () => ({ files: { ...files }, writes: [...writes], calls: [...calls], events: [...events], scenario: initialScenario }) };
     },
     { initialFiles: VAULT_FILES, initialScenario: scenario, vaultRoot: VAULT_ROOT, runtime: RUNTIME, architecturePage: ARCHITECTURE_PAGE },
   );
-  const call = (currentPage: Page, method: "emitRead" | "emitWait" | "emitWrite" | "finish") => currentPage.evaluate((name) => (window as any).__atlasLibraryWorkHarness[name](), method);
-  return { snapshot: (currentPage) => currentPage.evaluate(() => (window as any).__atlasLibraryWorkHarness.snapshot()), read: (currentPage) => call(currentPage, "emitRead"), wait: (currentPage) => call(currentPage, "emitWait"), write: async (currentPage) => {
-    await currentPage.waitForFunction(() => (window as any).__atlasLibraryWorkHarness.snapshot().calls.some(
-      (entry: any) => entry.method === "response" && entry.params.result?.outcome?.optionId === "allow",
-    ));
+  const call = (currentPage: Page, method: "emitRead" | "emitWait" | "emitWrite" | "finish") => currentPage.evaluate((name) => (window as unknown as HarnessWindow).__atlasLibraryWorkHarness?.[name](), method);
+  return { snapshot: (currentPage) => currentPage.evaluate(() => {
+    const harness = (window as unknown as HarnessWindow).__atlasLibraryWorkHarness;
+    if (!harness) throw new Error("Library work harness is not installed");
+    return harness.snapshot();
+  }), read: (currentPage) => call(currentPage, "emitRead"), wait: (currentPage) => call(currentPage, "emitWait"), write: async (currentPage) => {
+    await currentPage.waitForFunction(() => (window as unknown as HarnessWindow).__atlasLibraryWorkHarness?.snapshot().calls.some((entry) => {
+      const asRecord = (value: unknown): JsonRecord | null => typeof value === "object" && value !== null && !Array.isArray(value)
+        ? value as JsonRecord
+        : null;
+      const response = asRecord(entry.params);
+      const outcome = asRecord(response?.result);
+      const decision = asRecord(outcome?.outcome);
+      return entry.method === "response" && decision?.optionId === "allow";
+    }));
     await call(currentPage, "emitWrite");
   }, finish: (currentPage) => call(currentPage, "finish") };
 }
@@ -186,7 +228,7 @@ export async function openLibraryWorkScenario(page: Page, options: { scenario?: 
   await page.getByTestId("library-agent-dock").waitFor();
   await page.getByTestId("acp-chat-panel").waitFor();
   await page.waitForFunction(
-    () => (window as any).__atlasLibraryWorkHarness.snapshot().calls.some((call: { method: string }) => call.method === "session/prompt"),
+    () => (window as unknown as HarnessWindow).__atlasLibraryWorkHarness?.snapshot().calls.some((call) => call.method === "session/prompt"),
   );
   return harness;
 }

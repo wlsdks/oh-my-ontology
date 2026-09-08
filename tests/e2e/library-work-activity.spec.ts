@@ -2,6 +2,10 @@ import { expect, test } from "@playwright/test";
 
 import { openLibraryWorkScenario } from "./library-work-harness";
 
+interface PaintWindow extends Window {
+  __libraryPaintCount?: number;
+}
+
 test.describe("Library live work activity", () => {
   test("visualizes a real ACP read, permission wait, and observed file revision", async ({ page }) => {
     const consoleErrors: string[] = [];
@@ -16,22 +20,25 @@ test.describe("Library live work activity", () => {
 
     // A document stands the mounted graph aside; active work cannot paint a hidden canvas.
     await page.evaluate(() => {
-      (window as any).__libraryPaintCount = 0;
+      (window as unknown as PaintWindow).__libraryPaintCount = 0;
       const fill = CanvasRenderingContext2D.prototype.fillRect;
-      CanvasRenderingContext2D.prototype.fillRect = function (...args) {
-        if (this.canvas.dataset.testid === "library-graph-canvas") (window as any).__libraryPaintCount += 1;
-        return fill.apply(this, args);
+      CanvasRenderingContext2D.prototype.fillRect = function (x, y, width, height) {
+        if (this.canvas.dataset.testid === "library-graph-canvas") {
+          const fixtureWindow = window as unknown as PaintWindow;
+          fixtureWindow.__libraryPaintCount = (fixtureWindow.__libraryPaintCount ?? 0) + 1;
+        }
+        return fill.call(this, x, y, width, height);
       };
     });
-    await expect.poll(() => page.evaluate(() => (window as any).__libraryPaintCount)).toBeGreaterThan(5);
+    await expect.poll(() => page.evaluate(() => (window as unknown as PaintWindow).__libraryPaintCount ?? 0)).toBeGreaterThan(5);
     await page.getByTestId("library-graph-canvas").press("ArrowRight");
     await page.getByTestId("library-graph-canvas").press("Enter");
     await expect(page.getByTestId("library-graph-canvas")).not.toBeVisible();
-    const hiddenPaints = await page.evaluate(() => (window as any).__libraryPaintCount);
+    const hiddenPaints = await page.evaluate(() => (window as unknown as PaintWindow).__libraryPaintCount ?? 0);
     await page.waitForTimeout(500);
-    expect(await page.evaluate(() => (window as any).__libraryPaintCount)).toBe(hiddenPaints);
+    expect(await page.evaluate(() => (window as unknown as PaintWindow).__libraryPaintCount ?? 0)).toBe(hiddenPaints);
     await page.getByTestId("library-reader-back").click();
-    await expect.poll(() => page.evaluate(() => (window as any).__libraryPaintCount)).toBeGreaterThan(hiddenPaints);
+    await expect.poll(() => page.evaluate(() => (window as unknown as PaintWindow).__libraryPaintCount ?? 0)).toBeGreaterThan(hiddenPaints);
 
     await harness.wait(page);
     await expect(page.getByTestId("acp-permission-card")).toBeVisible();
