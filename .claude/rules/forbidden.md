@@ -10,9 +10,9 @@
 > `tests/contract/design-donts-parity.contract.test.ts`.
 >
 > Absence here is not permission. The canonical list also covers colliding
-> popovers, non-blocking modals, floating-box soup, one-off topology values,
-> accepted overlap, and glow rings. Opening UI loads `design.md`, which points to
-> the complete source.
+> popovers, non-blocking modals, floating-box soup, one-off topology values, and
+> accepted overlap. Opening UI loads `design.md`, which points to the complete
+> source.
 
 - **Node click → full-screen or full-bleed detail modal.** The default is ego
   focus plus a compact popover beside the node; full detail is an explicit action

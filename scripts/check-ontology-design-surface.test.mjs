@@ -282,10 +282,14 @@ test("ontology design surface fails closed when its scan matches zero files", ()
 test("ontology design surface ignores test fixtures when scanning forbidden visuals", () => {
   const root = makeFixture();
   writeCleanWorkbenchFixtures(root);
+  // The planted string must be one a live check actually matches. Until 2026-09-08 this
+  // fixture planted `linear-gradient`, and the gradient check was lifted the same day —
+  // leaving an assertion that passed whether the ignore rule worked or not. A test that
+  // cannot fail is not a gate; the marker below is what the scanner still refuses.
   writeFixture(
     root,
     "src/views/docs-vault/lib/popout-template.test.ts",
-    "expect(html).not.toMatch(/linear-gradient/);",
+    'expect(html).not.toMatch(/ontology-kind-decision-stripe/);',
   );
 
   const report = evaluateOntologyDesignSurface({
