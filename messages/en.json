@@ -773,7 +773,7 @@
     "demoTitle": "See it moving before you install anything",
     "demoSub": "Select a concept to reveal its relations and evidence, then Codex follows the same map between two concepts.",
     "demoAgentPrompt": "Use only `get_concept` and `find_path` to explain the path from `capabilities/mcp-server` to `capabilities/topology-browsing` in one sentence. Do not change files.",
-    "demoProvisionalNote": "{seconds}s, filmed in one pass. Nothing cut, nothing sped up, no sound.",
+    "demoProvisionalNote": "{seconds}s from one take. Only the agent's thinking time is cut; nothing is sped up, and there is no sound.",
     "evidenceTitle": "A few lines at the top of a file become the map",
     "evidenceSub": "The map on the left reads this repository's own markdown folder. On the right is one file that is actually in it.",
     "specimenFileHeading": "A file in this repository",
@@ -4609,6 +4609,8 @@
       "empty": "Nothing to draw yet. Once Compile writes a page, this shows which source it was written from and which concepts it names.",
       "canvasAria": "The library graph: raw sources, wiki pages, and the concepts those pages name.",
       "legend": "A filled circle is a page, a square a source, a ring a concept on the map. A thicker line is a citation, a dashed one a mention, either way. Drag a dot out of the tangle, scroll to zoom, drag the background to move, click to open.",
+      "legendShort": "A circle is a page, a square a source, a ring a concept.",
+      "readerClose": "Close the page",
       "keys": "Arrow keys move between dots, Enter opens the one you are on, Escape leaves it.",
       "announce": "{kind} {name}, {position} of {total}. Enter {action}.",
       "kind": {

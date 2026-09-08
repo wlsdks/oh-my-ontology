@@ -93,6 +93,37 @@ import { WikiPageHeader } from "./parts/WikiPageHeader";
 import { WikiTemplateProblems } from "./parts/WikiTemplateProblems";
 
 /**
+ * The two columns of the pane when the picture stands beside the page (direction B,
+ * 2026-09-08). `READER_COLUMN_PX` is the shared reading measure (760) plus the reading
+ * pane's own 40px of padding; `GRAPH_COLUMN_MIN_PX` is the width below which the canvas
+ * stops reading as a picture. Their sum is the pane floor the observer compares against.
+ */
+const READER_COLUMN_PX = 800;
+const GRAPH_COLUMN_MIN_PX = 360;
+/**
+ * The width the verdict always sets aside for the index, whether it is standing or
+ * folded (`--docs-list-width`). **The fold must not be able to summon a column.**
+ * Measured 2026-09-08 by design-responsive: deciding on the reader alone, folding the
+ * index widened it by exactly 244px, and at a 1300px window that one press turned a
+ * document-only pane into a 400px canvas beside it — a control named "fold the index"
+ * producing a graph. Reserving the column's width in the arithmetic means folding it only
+ * ever gives the canvas more room inside a mode that was already on.
+ */
+const INDEX_RESERVE_PX = 280;
+/**
+ * How far **below** the floor the pane must fall before the second column leaves, the
+ * index auto-fold's own 420/460 idea sized for this boundary: measured 2026-09-08, a bare
+ * `>=` flipped the pane between one column and two on a single pixel — jittering a window
+ * between 1503 and 1504 toggled the layout ten times out of ten.
+ *
+ * The band is one-sided on purpose. Both columns stand the moment the room is genuinely
+ * there, because 1512 — the width the owner approved direction B at — leaves exactly
+ * 1168px, eight over the floor; a symmetric band would have deleted the direction on the
+ * machine it was chosen on.
+ */
+const GRAPH_COLUMN_RELEASE_PX = 40;
+
+/**
  * The **Library** — project documents of any format, and the wiki pages written from
  * them.
  *
@@ -979,9 +1010,33 @@ export function LibraryPage() {
    */
   const [autoFolded, setAutoFolded] = useState(false);
   const autoFoldDeclinedRef = useRef(false);
+  /*
+   * **A state, not a ref.** The effect below runs once, and with no folder open this pane
+   * does not exist yet — the screen is the centred start stage. A ref would still be null
+   * at that moment and the observer would never attach, which is exactly what happened:
+   * measured 2026-09-08, the pane reported 1384px wide while the verdict still said the
+   * canvas could not stand beside it. Holding the node in state re-runs the effect when
+   * the workbench arrives.
+   */
+  const [readerEl, setReaderEl] = useState<HTMLDivElement | null>(null);
+  /** The whole row, so the verdict is not moved by the index folding inside it. */
+  const [paneRowEl, setPaneRowEl] = useState<HTMLElement | null>(null);
   const readerWidthRef = useRef<HTMLDivElement | null>(null);
+  /**
+   * **Can the picture stand beside the page?** (owner direction B, 2026-09-08.)
+   *
+   * The document column keeps the reading measure it has everywhere else — 760px of text
+   * plus its own 40px of padding — so the graph gets whatever is left. Below 360px the
+   * canvas stops being a picture and becomes a strip, which is the shape the owner
+   * rejected on 2026-09-06, so that is the floor: the two stand together only while the
+   * pane holds `800 + 360`. At 1512 with the index open the pane is 1168 and the canvas
+   * gets 368; folding the index gives it 642. At the installed app's 1040 floor, and
+   * with the conversation dock open, there is no room and the screen falls back to the
+   * pane it has today — the canvas hides and the `Graph` chip is the way back.
+   */
+  const [graphBesideReader, setGraphBesideReader] = useState(false);
   useEffect(() => {
-    const el = readerWidthRef.current;
+    const el = readerEl;
     if (!el || typeof ResizeObserver === "undefined") return;
     const observe = () => {
       const width = el.getBoundingClientRect().width;
@@ -1008,7 +1063,37 @@ export function LibraryPage() {
     const observer = new ResizeObserver(observe);
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [readerEl]);
+
+  /**
+   * **The two-column verdict is measured on the row, and it has a band.**
+   *
+   * Both halves of that sentence are corrections design-responsive measured on the first
+   * build: deciding on the reader let the index's own fold flip the mode, and deciding on
+   * a bare threshold flipped it on one pixel. The row's width minus a constant index
+   * reserve is a quantity the fold cannot move, and the band means the pane changes shape
+   * only when the window has clearly crossed rather than grazed the floor.
+   */
+  useEffect(() => {
+    const el = paneRowEl;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observe = () => {
+      const pane = el.getBoundingClientRect().width - INDEX_RESERVE_PX;
+      const wide = window.matchMedia("(min-width: 1024px)").matches;
+      if (!wide) {
+        setGraphBesideReader(false);
+        return;
+      }
+      const floor = READER_COLUMN_PX + GRAPH_COLUMN_MIN_PX;
+      setGraphBesideReader((current) =>
+        current ? pane >= floor - GRAPH_COLUMN_RELEASE_PX : pane >= floor,
+      );
+    };
+    observe();
+    const observer = new ResizeObserver(observe);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [paneRowEl]);
   const indexCollapsed = indexCollapsedByChoice || autoFolded;
   const indexTabRef = useRef<HTMLButtonElement | null>(null);
   const indexCollapseRef = useRef<HTMLButtonElement | null>(null);
@@ -1293,6 +1378,7 @@ export function LibraryPage() {
       tabIndex={-1}
       data-testid="library-page"
       data-library-state={opened ? opened.kind : "nothing-open"}
+      ref={setPaneRowEl}
       /* `relative` is the shelf popup's containing block: it hangs from this row so it can
          be taller than the pane it is drawn over (see `LibraryShelfPopover`). */
       className="topology-ui-scale relative flex min-h-0 w-full flex-1 bg-[color:var(--color-canvas)] text-[color:var(--color-text-primary)] max-lg:flex-col"
@@ -1508,10 +1594,16 @@ export function LibraryPage() {
         ref={(node) => {
           readerRef.current = node;
           readerWidthRef.current = node;
+          setReaderEl(node);
         }}
         tabIndex={-1}
         data-testid="library-reader"
-        className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden max-lg:order-first"
+        className={cn(
+          "flex min-h-0 min-w-0 flex-1 overflow-hidden max-lg:order-first",
+          // A row only while both columns stand; everything else keeps the single column
+          // this pane has had since 2026-09-06.
+          graphBesideReader && selected ? "flex-row" : "flex-col",
+        )}
       >
         {/*
           **This pane is the picture.** The Library's two lists say what is in the folder
@@ -1525,7 +1617,18 @@ export function LibraryPage() {
           settled positions: unmounting would throw both away and pay up to 95ms again,
           replaying the arrival, every time somebody looked at a page and came back.
         */}
-        <div className={cn("flex min-h-0 flex-1 flex-col", selected && "hidden")}>
+        <div
+          data-testid="library-graph-column"
+          className={cn(
+            "flex min-h-0 flex-col",
+            // Beside the page it is a column of its own and takes what the reader leaves;
+            // alone it is the whole pane, as before.
+            graphBesideReader && selected
+              ? "min-w-0 flex-1 border-r border-[color:var(--color-border-soft)]"
+              : "flex-1",
+            selected && !graphBesideReader && "hidden",
+          )}
+        >
           <LibraryGraph
             docs={manifest?.docs ?? EMPTY_DOCS}
             wikiPages={model.wikiPages}
@@ -1540,16 +1643,28 @@ export function LibraryPage() {
                   ? { kind: "wiki", ref: opened.slug }
                   : { kind: "source", ref: opened.path }
             }
-            onSelect={(next) =>
+            onSelect={(next) => {
+              /*
+               * **The hand keeps the canvas** (design-interaction, 2026-09-08). Choosing a
+               * page moves focus into the reader, which was right while the canvas vanished
+               * behind it. Beside the reader the canvas is still on screen exactly where the
+               * keyboard left it, and the reader's wrapper is `tabIndex={-1}` — a node the
+               * design system deliberately never rings — so arrow-key + Enter used to make
+               * the visible focus ring disappear into nothing.
+               */
+              if (graphBesideReader) skipReaderFocusRef.current = true;
               choose(
                 next.kind === "wiki"
                   ? { kind: "wiki", slug: next.ref }
                   : { kind: "source", path: next.ref },
-              )
-            }
+              );
+            }}
             /* Below `lg` the canvas is the top half of one column and the guide reaches
                the legend at its foot; measured with `elementsFromPoint` at 768 and 390. */
             captionQuiet={shelfOpen}
+            /* Beside the reader the canvas is a column, so it drops the standing legend and
+               keeps the slot for the hover line (direction B, 2026-09-08). */
+            compact={graphBesideReader && selected !== null}
             headerEnd={
               <>
                 <LibraryStatusStrip model={model} t={t} />
@@ -1583,7 +1698,27 @@ export function LibraryPage() {
             }
           />
         </div>
-        {selected ? (
+        {/*
+          **The document column.** While the picture stands beside it this box is the
+          reading measure and nothing more: 760px of text plus its own padding, with the
+          canvas on its left holding the page's neighbourhood. Alone it is the whole pane,
+          exactly as before.
+        */}
+        <div
+          data-testid="library-document-column"
+          /* The width is the **same constant the observer compares against**, so the column
+             and the verdict that draws it cannot drift apart. A Tailwind class built from
+             the constant would compile to nothing. */
+          style={graphBesideReader && selected ? { width: READER_COLUMN_PX } : undefined}
+          className={cn(
+            "flex min-h-0 min-w-0 flex-col",
+            // Empty with nothing chosen — and an empty `flex-1` sibling would take half the
+            // canvas's height, which is what it did the first time (three e2e heights fell
+            // by half, measured 2026-09-08).
+            !selected ? "hidden" : graphBesideReader ? "shrink-0" : "flex-1",
+          )}
+        >
+        {selected && !graphBesideReader ? (
           /*
            * **The way back exists at every width now.** It was `lg:hidden`, because below
            * `lg` selecting swaps the whole column and the person visibly needs a door
@@ -1606,6 +1741,26 @@ export function LibraryPage() {
               className={controlClass({ shape: "chip", tone: "muted" })}
             >
               {t("graph.title")}
+            </button>
+            <span className="ml-auto flex items-center">{conversationDoor}</span>
+          </div>
+        ) : selected ? (
+          /*
+           * Beside the picture there is nowhere to go **back** to — the graph never left —
+           * but there is still the everyday reversal: closing the page. Escape already did
+           * it; a shortcut nobody is told about is the ability being absent
+           * (design-interaction, 2026-09-08), so it also has a control. It says what it
+           * does rather than naming a destination, which is what separates it from the
+           * `Graph` chip the narrow layout still carries.
+           */
+          <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              data-testid="library-reader-close"
+              className={controlClass({ shape: "chip", tone: "muted" })}
+            >
+              {t("graph.readerClose")}
             </button>
             <span className="ml-auto flex items-center">{conversationDoor}</span>
           </div>
@@ -1731,6 +1886,7 @@ export function LibraryPage() {
             />
           </div>
         ) : null}
+        </div>
       </div>
 
       {/*

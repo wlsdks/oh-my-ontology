@@ -1,6 +1,7 @@
 # Demo Video Shooting Scenario — `atlas-tour`
 
-> Current scenario: one localized page clip · **55 seconds** · one take · no speed changes ·
+> Current scenario: one localized page clip · **28 seconds** · one take, with the agent's wait
+> cut · no speed changes ·
 > no audio · recorded separately in Korean and English. The X export is a separate Korean
 > 23-second LNB overview and is not part of the page registry.
 
@@ -12,7 +13,7 @@ The next campaign story is specified separately in
 `docs/launch/DEMO-GIF-STORYBOARD.md`: agent code work → explicit ontology-update request → exact
 semantic proposal → human correction or approval → Markdown/History → later agent retrieval. It
 has not been recorded and does not rename this clip. Until replacement footage passes that brief's
-source-hidden comprehension gate and the proof below, the active 55-second take remains honestly
+source-hidden comprehension gate and the proof below, the active 28-second take remains honestly
 described only as concept, relation, evidence, and read-only path lookup.
 
 ## 1. The sentences the footage must prove
@@ -52,12 +53,20 @@ and click highlighting is disabled.
 The example vault contains only public repository material. Even so, privacy is judged from the
 pixels, not from that assumption: every final asset gets a one-frame-per-second visual sweep.
 
-## 3. Download-page take — 55 seconds
+## 3. Download-page take — 28 seconds from one 70-second pass
 
 Refilmed 2026-09-08 from the app built at that day's branch, because the product the old take
 showed no longer exists: the map has weight and light, the rail carries MCP and Library, and the
 agent conversation is a tab of the concept's meaning review rather than a separate Ask AI surface.
 The story is unchanged.
+
+**The agent's wait is cut, and the caption says so.** The full pass ran 55 seconds and only eight
+of them moved — measured at 5fps, 46 of 54 seconds had a maximum adjacent-frame change under 0.6,
+including one 17-second and one 21-second frozen run while Codex thought. The owner read the
+result as a video that had stopped playing. So the delivery keeps three spans of the one pass and
+drops the two waits between them; `download.demoProvisionalNote` states that the thinking time is
+what was cut, and nothing is sped up. Recompute the spans after any reshoot from the same
+measurement — never trim by eye.
 
 | Time | Visible beat |
 |---:|---|
@@ -65,10 +74,11 @@ The story is unchanged.
 | 2.5–4.5s | Search INDEX for `MCP` and watch the tree narrow to the capability and its elements. |
 | 4.5–9s | Open the localized **MCP Server** capability. The map focuses its neighbourhood and the panel names what it contains, what uses it, what it leans on, its parent, and its evidence document. |
 | 9–11s | Open **Meaning review**: the capability's own sentence and the reason on each connection, both from the vault. |
-| 11–14s | Move to the **Conversation** tab and enter the locale-specific read-only prompt below. |
-| 14–34s | Codex calls Atlas MCP `get_concept` for both endpoints and `find_path` for their path. Each call lands in the receipt as it completes. |
-| 34–50s | The map draws the answer: the two-hop path is lit end to end and named in a chip, and the one-sentence result arrives under the receipt. |
-| 50–55s | Hold. Atlas records the review as Markdown in the folder, then the frame settles. |
+| 11–16.5s | Move to the **Conversation** tab and send the locale-specific read-only prompt below. |
+| — | *Cut: Codex works. The receipt visibly advances across the join.* |
+| 16.5–20.5s | The map draws the answer: the two-hop path is lit end to end and named in a chip, beside a receipt of two `get_concept` calls and one `find_path`. |
+| — | *Cut: the rest of the wait.* |
+| 20.5–28s | The one-sentence result arrives under the receipt, Atlas records the review as Markdown in the folder, and the frame settles. |
 
 Use the locale's `download.demoAgentPrompt` message verbatim. The localized data preserves the
 same two tool names, the same endpoint slugs, the one-sentence bound, and the no-write clause.
@@ -146,13 +156,13 @@ Current attachment, filmed 2026-09-08 from the app built at that day's branch:
 
 | Locale/output | WebM | MP4 | Poster |
 |---|---:|---:|---:|
-| Korean page | 1,326,330 bytes | 1,191,910 bytes | 225,768 bytes |
-| English page | 1,417,070 bytes | 1,294,078 bytes | 252,791 bytes |
+| Korean page | 837,949 bytes | 1,053,082 bytes | 229,274 bytes |
+| English page | 911,816 bytes | 1,189,416 bytes | 256,635 bytes |
 | Korean X | — | 778,417 bytes | — |
 
-All three MP4 deliveries are 1512×950, 30fps, silent H.264: the page takes are exactly 55
+All three MP4 deliveries are 1512×950, 30fps, silent H.264: the page takes are exactly 28
 seconds and the X take is exactly 23 seconds. Both page WebM files are silent AV1 at the same
-dimensions, frame rate, and 55-second duration.
+dimensions, frame rate, and 28-second duration.
 
 After encoding:
 

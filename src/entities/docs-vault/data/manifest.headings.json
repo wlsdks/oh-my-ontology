@@ -6484,6 +6484,11 @@
     },
     {
       "depth": 2,
+      "text": "2026-09-08 — The Library canvas stands beside the page it is about",
+      "slug": "2026-09-08-the-library-canvas-stands-beside-the-page-it-is-about"
+    },
+    {
+      "depth": 2,
       "text": "2026-09-08 — The gateway hero is a lit three.js atlas of the real vault, and its 2D engine stays as the fallback",
       "slug": "2026-09-08-the-gateway-hero-is-a-lit-threejs-atlas-of-the-real-vault-and-its-2d-engine-stays-as-the-fallback"
     },
@@ -9391,8 +9396,8 @@
     },
     {
       "depth": 2,
-      "text": "3. Download-page take — 55 seconds",
-      "slug": "3-download-page-take-55-seconds"
+      "text": "3. Download-page take — 28 seconds from one 70-second pass",
+      "slug": "3-download-page-take-28-seconds-from-one-70-second-pass"
     },
     {
       "depth": 2,

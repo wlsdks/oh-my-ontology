@@ -95,6 +95,14 @@ export interface LibraryGraphProps {
    * the reader who has no picture at all.
    */
   captionQuiet?: boolean;
+  /**
+   * **This canvas is a column beside something else, not the pane** (direction B,
+   * 2026-09-08). The legend is a teaching line written for a picture that fills the pane;
+   * in a 368px column it wrapped to four lines and became more furniture than picture
+   * (measured at 1512 with the reader open). Compact keeps the slot — so a hover still has
+   * somewhere to say what a mark is — and drops the standing sentence.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -134,6 +142,7 @@ export function LibraryGraph({
   onSelect,
   headerEnd,
   captionQuiet = false,
+  compact = false,
 }: LibraryGraphProps) {
   const t = useTranslations("library");
   const router = useRouter();
@@ -394,9 +403,12 @@ export function LibraryGraph({
             className={cn(
               "invisible col-start-1 row-start-1 text-label leading-body [word-break:keep-all]",
               captionQuiet && "max-lg:sr-only",
+              // Compact reserves one line, not the legend's four: the short legend and the
+              // describe line are each one sentence, so the row's height never moves.
+              compact && "line-clamp-1",
             )}
           >
-            {t("graph.legend")}
+            {compact ? t("graph.legendShort") : t("graph.legend")}
           </p>
           <p
             id="library-graph-hint"
@@ -415,7 +427,14 @@ export function LibraryGraph({
                 Owner direction 2026-09-07: the bridge to the map has to read at a glance. */}
             {activeNode
               ? t(`graph.describe.${activeNode.kind}`, { name: activeNode.label })
-              : t("graph.legend")}
+              : compact
+                ? /* **Never empty.** This paragraph is the canvas's `aria-describedby`
+                     target, and the canvas has no DOM of its own: blanking it in the
+                     column took the mark vocabulary away from a first-time reader and
+                     from assistive technology at the same moment (design-infoviz,
+                     2026-09-08). Compact states it in one line instead of four. */
+                  t("graph.legendShort")
+                : t("graph.legend")}
           </p>
         </div>
         {/* The keyboard path is said to the people who need it and not to the ones
