@@ -47,9 +47,9 @@
 
 ## 2026-09-05 · Unreleased: changes since v1.0.6
 
-**Added**: the download hero is a lit three.js atlas of the real vault, and the page shows the map, Architecture and the Library before the demo; an MCP screen; Connectors from Notion, GitHub, Context7, Playwright or an atlas link. The Library graph pulls apart by hand; an empty stage, a stepper, an outside-notes door, a local model card; Check proposes nodes; a partly read source says so. Meaning asks reasons; Strata names planes. The map has weight and light; Architecture stacks planes; the wiki index is a shelf of spines.
+**Added**: a lit three.js atlas on the download hero, with Architecture and the Library as captured screens; an MCP screen; Connectors from Notion, GitHub, Context7 or Playwright. The Library graph pulls apart by hand; a stepper, an outside-notes door, a local model card; Check proposes nodes; Strata names planes.
 
-**Changed**: the download page's demo is refilmed from today's app and comes second, before the map; the Library index switches Sources and Wiki, folds, the graph fits. Connectors add from one list; Agents lists confirmations. Insights opens on four measures. Growth replay is a toggle. Codex chat runs the newest adapter. Glow, gradients and overshoot are allowed on tokens.
+**Changed**: the download demo is refilmed from today's app and comes second, and the hero is three controls with Mac opening Silicon and Intel; the Library index switches Sources and Wiki; Connectors add from one list; Insights opens on four measures; glow, gradients and overshoot are allowed on tokens.
 
 **Fixed**: 3D relations stay visible; centres click; permission cards read plainly; rails stop blinking; docks name the tool; loose files ring the cluster; the Docs head fits 280px; the 3D picker closes cleanly.
 
