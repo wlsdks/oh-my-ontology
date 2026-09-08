@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import type { LibrarySourceRow } from "@/entities/docs-vault";
-import { useLocalVault } from "@/entities/vault-session";
+import { useLocalVault, useVaultSessionIdentityScope } from "@/entities/vault-session";
 import { nativeVaultFileHashes } from "@/shared/lib/tauri-vault-fs";
 import { llmChat, llmChatErrorMessage } from "@/shared/lib/tauri-llm";
 import { LOCAL_PROVIDER } from "@/shared/lib/tauri-secrets";
@@ -17,7 +17,7 @@ import { COMPILE_ROUND_CAP, COMPILE_SOURCES_PER_TURN, COMPILE_TOOLS } from "./co
 import { applyProposal } from "./proposal-applier";
 import type { SourceReadEntry, SourceReadPort } from "./source-read-port";
 import { classifySourceFormat } from "./source-text";
-import type { AgentTurn } from "./types";
+import type { AgentTurn, ToolCallRecord } from "./types";
 
 /**
  * **Compile, run by the model on this computer.**
@@ -41,6 +41,8 @@ type LocalCompileStatus = "idle" | "running" | "waiting" | "applying" | "written
 
 export interface LocalCompileSession {
   status: LocalCompileStatus;
+  /** Transient vault identity captured when this compile turn started, never the later current vault. */
+  originVaultScope: string | null;
   /** The turn, for its tool rows. Null before the first run. */
   turn: AgentTurn | null;
   /** What the person is being asked to approve. Null until the turn ends. */
@@ -51,6 +53,14 @@ export interface LocalCompileSession {
   writtenPaths: string[];
   /** The files this turn would take on, already capped. */
   targets: string[];
+  /** A structured tool snapshot for the Library's bounded activity overlay. */
+  toolActivity: {
+    id: string;
+    name: string;
+    args: unknown;
+    phase: "active" | "complete";
+    outcome: ToolCallRecord["outcome"] | null;
+  } | null;
   run: (brief: string) => Promise<void>;
   allow: () => Promise<void>;
   dismiss: () => void;
@@ -113,11 +123,14 @@ export function useLocalCompile({
   labels,
 }: UseLocalCompileArgs): LocalCompileSession {
   const vault = useLocalVault();
+  const vaultSessionScope = useVaultSessionIdentityScope();
   const [status, setStatus] = useState<LocalCompileStatus>("idle");
+  const [originVaultScope, setOriginVaultScope] = useState<string | null>(null);
   const [turn, setTurn] = useState<AgentTurn | null>(null);
   const [card, setCard] = useState<CompileConsentCard | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [writtenPaths, setWrittenPaths] = useState<string[]>([]);
+  const [toolActivity, setToolActivity] = useState<LocalCompileSession["toolActivity"]>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   /**
@@ -186,10 +199,14 @@ export function useLocalCompile({
   const run = useCallback(
     async (brief: string) => {
       if (!vaultRoot || !endpoint) return;
+      // Async completion may outlive a provider switch. The result belongs to the vault that
+      // started it, so consumers can refuse to replay it into the newly selected vault.
+      setOriginVaultScope(vaultSessionScope);
       setStatus("running");
       setCard(null);
       setErrorMessage(null);
       setWrittenPaths([]);
+      setToolActivity(null);
 
       const executor = createCompileExecutor({
         sourcePort,
@@ -223,7 +240,24 @@ export function useLocalCompile({
             system: buildCompileSystemPrompt({ model: endpoint.model, targets }),
             model: endpoint.model,
             notices: COMPILE_NOTICES,
-            execute: (call) => executor.execute(call),
+            async execute(call) {
+              setToolActivity({
+                id: call.id,
+                name: call.name,
+                args: call.args,
+                phase: "active",
+                outcome: null,
+              });
+              const result = await executor.execute(call);
+              setToolActivity({
+                id: call.id,
+                name: call.name,
+                args: call.args,
+                phase: "complete",
+                outcome: result.outcome,
+              });
+              return result;
+            },
             async send({ body, scope, question, model }) {
               const echo = await llmChat({
                 provider: LOCAL_PROVIDER,
@@ -266,7 +300,7 @@ export function useLocalCompile({
         abortRef.current = null;
       }
     },
-    [endpoint, labels, readExistingPage, sourcePort, targets, vaultRoot],
+    [endpoint, labels, readExistingPage, sourcePort, targets, vaultRoot, vaultSessionScope],
   );
 
   const allow = useCallback(async () => {
@@ -305,7 +339,7 @@ export function useLocalCompile({
     setStatus("idle");
   }, []);
 
-  return { status, turn, card, errorMessage, writtenPaths, targets, run, allow, dismiss, stop };
+  return { status, originVaultScope, turn, card, errorMessage, writtenPaths, targets, toolActivity, run, allow, dismiss, stop };
 }
 
 /**

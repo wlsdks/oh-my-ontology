@@ -65,6 +65,39 @@ describe("the library graph section", () => {
     window.localStorage.clear();
   });
 
+  it("does not schedule active-work frames behind the reader, and resumes without remounting", () => {
+    const pending = new Map<number, FrameRequestCallback>();
+    let nextId = 0;
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      pending.set(++nextId, callback);
+      return nextId;
+    });
+    vi.stubGlobal("cancelAnimationFrame", (id: number) => pending.delete(id));
+    const draw = (visible: boolean) => (
+      <NextIntlClientProvider locale="ko" messages={koMessages}>
+        <LibraryGraph docs={DOCS} wikiPages={PAGES} sources={SOURCES} selection={null}
+          onSelect={() => {}} visible={visible}
+          activity={{ isActive: true, recent: [], current: {
+            id: "read", kind: "read", phase: "active", at: Date.now(),
+            target: { kind: "source", ref: "sources/plan.pdf" },
+          } }} />
+      </NextIntlClientProvider>
+    );
+    try {
+      const view = render(draw(false));
+      const original = canvas();
+      expect(pending.size).toBe(0);
+      view.rerender(draw(true));
+      expect(pending.size).toBe(1);
+      view.rerender(draw(false));
+      expect(pending.size).toBe(0);
+      expect(canvas()).toBe(original);
+      view.unmount();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("says what the picture contains, counting the two relations apart", () => {
     renderGraph();
     expect(screen.getByTestId("library-graph-counts").textContent).toBe(

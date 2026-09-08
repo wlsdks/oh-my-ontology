@@ -50,6 +50,13 @@ describe('useVaultIdentityScope', () => {
     rerender();
     expect(result.current).toBe(firstIdentity);
 
+    mocks.status = 'loading';
+    rerender();
+    expect(result.current).toBe(firstIdentity);
+    mocks.status = 'loaded';
+    rerender();
+    expect(result.current).toBe(firstIdentity);
+
     mocks.handle = secondHandle;
     rerender();
     expect(result.current).not.toBe(firstIdentity);

@@ -109,6 +109,28 @@ export interface LibraryGraphFrame {
    * neighbours. Null means nothing is being pointed at and nothing dims.
    */
   focus?: ReadonlySet<string> | null;
+  /**
+   * Bounded operation marks resolved by the engine to an existing page or source node.
+   * They are deliberately marks **on a node**, never a graph edge: a source citation is
+   * provenance, not an execution path.
+   */
+  activity?: readonly LibraryGraphActivityMark[];
+}
+
+type LibraryGraphActivityKind = "read" | "proposal" | "waiting" | "write" | "error";
+
+export interface LibraryGraphActivityMark {
+  /** A resolved graph id; unknown/null targets never reach the renderer. */
+  nodeId: string;
+  kind: LibraryGraphActivityKind;
+  /** Current work is static; completed work may travel through its short settle. */
+  phase: "active" | "complete";
+  /** 0 at the observed completion, 1 after the bounded trail has settled. */
+  progress: number;
+  /** Reduced motion keeps one fully visible settled symbol without scheduling a trail. */
+  settled?: boolean;
+  /** Active read/proposal only: one observed-work cycle, never an idle animation phase. */
+  turn?: number;
 }
 
 /**
@@ -140,6 +162,8 @@ export const DIMMED_INK = 0.35;
 const SELECTION_RING_GAP = 3.5;
 /** The keyboard's ring sits outside that one, so focus on a selected node is still visible. */
 const FOCUS_RING_GAP = 6;
+/** Activity remains outside selection/focus rings, so it cannot erase either state. */
+const ACTIVITY_RING_GAP = FOCUS_RING_GAP + 2;
 /** `text-label`. The one type step this canvas draws, hover box and standing name alike. */
 const LABEL_FONT_PX = 11;
 /**
@@ -487,6 +511,9 @@ export function drawLibraryGraph(ctx: CanvasRenderingContext2D, frame: LibraryGr
   }
   ctx.globalAlpha = 1;
 
+  // ── Real work, bounded to the node it actually touched. ──
+  drawActivityMarks(ctx, frame);
+
   // ── Every name, while the picture is small enough to hold them. ──
   /*
    * **A picture of unnamed dots is not a picture of anything** (owner, 2026-09-06). Once
@@ -669,6 +696,83 @@ export function drawLibraryGraph(ctx: CanvasRenderingContext2D, frame: LibraryGr
   }
 
   ctx.restore();
+}
+
+/**
+ * The activity overlay is intentionally local: it never draws a line between two nodes or
+ * changes their positions. A pulse is evidence of one observed operation, not a story about
+ * a pipeline that the vault never recorded.
+ */
+function drawActivityMarks(ctx: CanvasRenderingContext2D, frame: LibraryGraphFrame): void {
+  for (const activity of frame.activity ?? []) {
+    const node = frame.nodes.find((candidate) => candidate.id === activity.nodeId);
+    const centre = nodeCentre(frame, activity.nodeId);
+    if (!node || !centre) continue;
+
+    const radius = radiusOf(frame, node);
+    const trail = activity.phase === "complete" && !activity.settled ? Math.min(1, Math.max(0, activity.progress)) : 0;
+    const reach = radius + ACTIVITY_RING_GAP + trail * FOCUS_RING_GAP;
+    const turn = activity.phase === "active" ? (activity.turn ?? 0) * Math.PI * 2 : 0;
+    ctx.globalAlpha = activity.phase === "complete" && !activity.settled ? 1 - trail * 0.72 : 1;
+    ctx.strokeStyle = activity.kind === "error" ? frame.ink.danger : frame.ink.selectedRing;
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.lineWidth = activity.kind === "write" ? 1.5 : 1;
+    ctx.setLineDash([]);
+
+    if (activity.kind === "read") {
+      // An open ring: a read touched this one mark, rather than travelling down an edge.
+      ctx.beginPath();
+      ctx.arc(
+        centre.x,
+        centre.y,
+        reach,
+        activity.phase === "active" ? turn - Math.PI * 0.35 : -Math.PI * 0.7,
+        activity.phase === "active" ? turn + Math.PI * 0.35 : Math.PI * 0.7,
+      );
+      ctx.stroke();
+    } else if (activity.kind === "proposal") {
+      // A dashed diamond says provisional without relying on the indigo value alone.
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(centre.x, centre.y - reach);
+      ctx.lineTo(centre.x + reach, centre.y);
+      ctx.lineTo(centre.x, centre.y + reach);
+      ctx.lineTo(centre.x - reach, centre.y);
+      ctx.closePath();
+      ctx.stroke();
+      if (activity.phase === "active") {
+        // The short orbit is lifecycle-bound: a proposal remains visible only while the
+        // in-flight snapshot exists, never as an ambient progress percentage.
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(centre.x, centre.y, reach, turn - Math.PI * 0.35, turn + Math.PI * 0.35);
+        ctx.stroke();
+      }
+    } else if (activity.kind === "waiting") {
+      // Pending is deliberately still. The engine paints it once, then sleeps until state changes.
+      ctx.setLineDash([2, 2]);
+      ctx.strokeRect(centre.x - reach, centre.y - reach, reach * 2, reach * 2);
+    } else if (activity.kind === "write") {
+      // The double rim is reserved for an observed local file delta, never tool completion alone.
+      ctx.beginPath();
+      ctx.arc(centre.x, centre.y, reach, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(centre.x, centre.y, Math.max(radius + ACTIVITY_RING_GAP - 2, radius + 1), 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      // An X remains legible after colour removal and does not imply a relation or a retry.
+      const cross = reach * 0.7;
+      ctx.beginPath();
+      ctx.moveTo(centre.x - cross, centre.y - cross);
+      ctx.lineTo(centre.x + cross, centre.y + cross);
+      ctx.moveTo(centre.x + cross, centre.y - cross);
+      ctx.lineTo(centre.x - cross, centre.y + cross);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+  ctx.globalAlpha = 1;
 }
 
 /**

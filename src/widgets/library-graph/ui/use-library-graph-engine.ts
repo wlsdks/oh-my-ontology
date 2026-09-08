@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 
 import { MOTION } from "@/shared/motion";
+import type { LibraryWorkActivity, LibraryWorkEvent } from "@/features/library";
 
 import type { LibraryGraph, LibraryGraphNode } from "../model/build-library-graph";
 import { easeMotion, type LayoutPoint } from "../model/library-graph-layout";
@@ -35,7 +36,11 @@ import {
   zoomViewAbout,
   type LibraryGraphView,
 } from "../model/library-graph-view";
-import { drawLibraryGraph, hitTestLibraryGraph } from "../render/draw-library-graph";
+import {
+  drawLibraryGraph,
+  hitTestLibraryGraph,
+  type LibraryGraphActivityMark,
+} from "../render/draw-library-graph";
 import { readLibraryGraphInk, type LibraryGraphInk } from "../render/library-graph-ink";
 
 /**
@@ -112,6 +117,94 @@ interface PointerState {
   history: Array<{ x: number; y: number; t: number }>;
 }
 
+/**
+ * Maps an admitted Library work target to the graph's existing node address.
+ *
+ * This is intentionally stricter than a label match: an unknown, missing, or concept target
+ * produces no mark. A graph overlay must never make a model mention look like a file read.
+ */
+function activityNodeId(event: LibraryWorkEvent, graph: LibraryGraph): string | null {
+  if (!event.target) return null;
+  const nodeId = event.target.kind === "source" ? `source:${event.target.ref}` : `page:${event.target.ref}`;
+  return graph.nodes.some((node) => node.id === nodeId) ? nodeId : null;
+}
+
+/**
+ * Resolves the finite overlay from epoch receipts, separately from the rAF paint clock.
+ * `at` is `Date.now()` by contract; `performance.now()` would make every receipt appear
+ * permanently fresh after a page reload.
+ */
+export function libraryGraphActivityMarks(
+  activity: LibraryWorkActivity | undefined,
+  graph: LibraryGraph,
+  nowEpochMs: number,
+  trailMs: number,
+  activeCycleMs: number,
+  reducedMotion: boolean,
+): LibraryGraphActivityMark[] {
+  if (!activity) return [];
+  const marks: LibraryGraphActivityMark[] = [];
+  const occupied = new Set<string>();
+  const append = (event: LibraryWorkEvent): void => {
+    const nodeId = activityNodeId(event, graph);
+    if (!nodeId || occupied.has(nodeId)) return;
+    occupied.add(nodeId);
+    const moves = !reducedMotion && (event.kind === "read" || event.kind === "proposal");
+    marks.push({
+      nodeId,
+      kind: event.kind,
+      phase: event.phase,
+      progress: 0,
+      turn: moves ? (Math.max(0, nowEpochMs - event.at) % Math.max(1, activeCycleMs)) / Math.max(1, activeCycleMs) : 0,
+    });
+  };
+
+  if (activity.isActive && activity.current?.phase === "active") append(activity.current);
+
+  for (const event of activity.recent) {
+    if (event.phase !== "complete" || event.kind === "waiting") continue;
+    const elapsed = Math.max(0, nowEpochMs - event.at);
+    if (elapsed >= trailMs) continue;
+    const nodeId = activityNodeId(event, graph);
+    if (!nodeId || occupied.has(nodeId)) continue;
+    occupied.add(nodeId);
+    marks.push({
+      nodeId,
+      kind: event.kind,
+      phase: "complete",
+      // Reduced motion receives the settled mark in its single paint, never a frame loop.
+      progress: reducedMotion ? 1 : elapsed / Math.max(1, trailMs),
+      settled: reducedMotion,
+    });
+  }
+  return marks;
+}
+
+/** Only completed receipts can keep the canvas clock awake; a pending wait is intentionally still. */
+function hasActivityTrail(
+  activity: LibraryWorkActivity | undefined,
+  graph: LibraryGraph,
+  nowEpochMs: number,
+  trailMs: number,
+  activeCycleMs: number,
+  reducedMotion: boolean,
+): boolean {
+  if (reducedMotion) return false;
+  return libraryGraphActivityMarks(activity, graph, nowEpochMs, trailMs, activeCycleMs, false).some(
+    (mark) => mark.phase === "complete" || (mark.phase === "active" && (mark.kind === "read" || mark.kind === "proposal")),
+  );
+}
+
+/** A primitive dependency: unrelated parent renders must not wake a settled canvas. */
+function activitySignature(activity: LibraryWorkActivity | undefined): string {
+  if (!activity) return "";
+  const event = (value: LibraryWorkEvent | null): string =>
+    value
+      ? `${value.id}:${value.kind}:${value.phase}:${value.target?.kind ?? ""}:${value.target?.ref ?? ""}:${value.at}`
+      : "";
+  return `${activity.isActive ? "1" : "0"}|${event(activity.current)}|${activity.recent.map(event).join(",")}`;
+}
+
 export interface LibraryGraphEngine {
   onPointerDown: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
   onPointerMove: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
@@ -134,6 +227,8 @@ export function useLibraryGraphEngine({
   focusedId,
   activeLabel,
   standingLabels,
+  activity,
+  visible = true,
   onHover,
   onActivate,
 }: {
@@ -145,6 +240,8 @@ export function useLibraryGraphEngine({
   focusedId: string | null;
   activeLabel: string | null;
   standingLabels: boolean;
+  activity?: LibraryWorkActivity;
+  visible?: boolean;
   onHover: (id: string | null) => void;
   onActivate: (node: LibraryGraphNode) => void;
 }): LibraryGraphEngine {
@@ -193,11 +290,11 @@ export function useLibraryGraphEngine({
    * actually happened, and still before the next paint.
    */
   const graphRef = useRef(graph);
-  const stateRef = useRef({ selectedId, hoveredId, focusedId, activeLabel, standingLabels, reducedMotion });
+  const stateRef = useRef({ selectedId, hoveredId, focusedId, activeLabel, standingLabels, reducedMotion, activity, visible });
   const onHoverRef = useRef(onHover);
   useEffect(() => {
     graphRef.current = graph;
-    stateRef.current = { selectedId, hoveredId, focusedId, activeLabel, standingLabels, reducedMotion };
+    stateRef.current = { selectedId, hoveredId, focusedId, activeLabel, standingLabels, reducedMotion, activity, visible };
     onHoverRef.current = onHover;
   });
 
@@ -223,7 +320,12 @@ export function useLibraryGraphEngine({
    * **that same gated mirror**, never a fresh literal, so a canvas that somehow cannot
    * read the cascade still animates on the ramp instead of on a number nothing watches.
    */
-  const motionRef = useRef({ fast: MOTION.fast.duration * 1000, base: MOTION.base.duration * 1000 });
+  const motionRef = useRef({
+    fast: MOTION.fast.duration * 1000,
+    base: MOTION.base.duration * 1000,
+    settle: MOTION.settle.duration * 1000,
+    activityCycle: MOTION.base.duration * 1000 + MOTION.settle.duration * 1000,
+  });
 
   // ── One paint. ──
   const paint = useCallback(
@@ -350,6 +452,14 @@ export function useLibraryGraphEngine({
       const active =
         stateRef.current.hoveredId ?? stateRef.current.focusedId ?? stateRef.current.selectedId;
       const focus = active ? neighboursRef.current.get(active) ?? new Set([active]) : null;
+      const activity = libraryGraphActivityMarks(
+        stateRef.current.activity,
+        graphRef.current,
+        Date.now(),
+        motionRef.current.base + motionRef.current.settle,
+        motionRef.current.activityCycle,
+        stateRef.current.reducedMotion,
+      );
 
       drawLibraryGraph(context, {
         nodes,
@@ -367,6 +477,7 @@ export function useLibraryGraphEngine({
         opacity,
         dim: dimState.value,
         focus,
+        activity,
       });
 
       /*
@@ -407,16 +518,32 @@ export function useLibraryGraphEngine({
   }, []);
   const wake = useCallback(() => {
     if (runningRef.current) return;
+    if (!stateRef.current.visible) return;
     if (typeof document !== "undefined" && document.hidden) return;
     runningRef.current = true;
     lastPaintRef.current = 0;
     frameRef.current = requestAnimationFrame((now) => stepRef.current(now));
   }, []);
 
+  const currentActivitySignature = activitySignature(activity);
+  useEffect(() => {
+    // An activity update paints once even when it is a static pending wait. This effect does
+    // not touch simulation state, auto-fit, or the view, so receipts cannot reheat the graph.
+    wake();
+  }, [currentActivitySignature, wake]);
+
+  useEffect(() => {
+    if (visible) wake();
+    else {
+      cancelAnimationFrame(frameRef.current);
+      runningRef.current = false;
+    }
+  }, [visible, wake]);
+
   useEffect(() => {
     stepRef.current = (now: number) => {
       const sim = simRef.current;
-      if (!sim) {
+      if (!sim || !stateRef.current.visible || document.hidden) {
         runningRef.current = false;
         return;
       }
@@ -447,7 +574,15 @@ export function useLibraryGraphEngine({
         ghostsRef.current.size > 0 ||
         (autoFitRef.current.on && !autoFitRef.current.converged) ||
         pendingBoxRef.current !== null ||
-        sim.nodes.some((node) => node.entered < 1);
+        sim.nodes.some((node) => node.entered < 1) ||
+        hasActivityTrail(
+          stateRef.current.activity,
+          graphRef.current,
+          Date.now(),
+          motionRef.current.base + motionRef.current.settle,
+          motionRef.current.activityCycle,
+          reduced,
+        );
 
       /*
        * ⚠️ **A picture with nowhere left to go stops the loop; it does not idle inside it.**
@@ -527,6 +662,13 @@ export function useLibraryGraphEngine({
     motionRef.current = {
       fast: readMs(style, "--motion-fast", MOTION.fast.duration * 1000),
       base: readMs(style, "--motion-base", MOTION.base.duration * 1000),
+      settle: readMs(style, "--motion-settle", MOTION.settle.duration * 1000),
+      // Existing canvas settle budget (900ms), not a library-local clock or a progress timer.
+      activityCycle: readMs(
+        style,
+        "--map-node-release-settle-ms",
+        MOTION.base.duration * 1000 + MOTION.settle.duration * 1000,
+      ),
     };
     radiiRef.current = libraryMarkRadii(graph);
 
@@ -1026,5 +1168,7 @@ function readMs(style: CSSStyleDeclaration, token: string, fallback: number): nu
   const raw = style.getPropertyValue(token).trim();
   if (raw.endsWith("ms")) return Number.parseFloat(raw) || fallback;
   if (raw.endsWith("s")) return (Number.parseFloat(raw) || fallback / 1000) * 1000;
+  // Map canvas physics budgets are unitless milliseconds; preserve that existing contract.
+  if (/^\d+(?:\.\d+)?$/.test(raw)) return Number.parseFloat(raw) || fallback;
   return fallback;
 }

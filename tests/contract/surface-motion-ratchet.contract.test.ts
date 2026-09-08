@@ -223,7 +223,11 @@ const BASELINE_HARD_CUTS = 0;
  * holding Apple Silicon and Intel. It needs no folder and no desktop runtime, so its open path
  * is measured directly — it is an entry in `a11y-open-surfaces.spec.ts`'s `OPENERS`.
  */
-const BASELINE_APPEARING_SURFACES = 40;
+// 40 → 41: the Library's reserved work lane reveals actual tool/file observations.
+// LibraryWorkActivityStrip.test.tsx owns its named section and exact receipt controls;
+// library-work-activity.spec.ts opens it through the ACP bridge, including permission
+// wait, observed revision and rejection. It is not a modal and never takes focus.
+const BASELINE_APPEARING_SURFACES = 41;
 
 const SELF = 'tests/contract/surface-motion-ratchet.contract.test.ts';
 const FIXTURES = 'tests/fixtures/surface-motion';

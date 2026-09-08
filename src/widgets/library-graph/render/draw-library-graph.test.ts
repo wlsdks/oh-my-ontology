@@ -20,6 +20,7 @@ const INK: LibraryGraphInk = {
   hoverRing: "hover-ring",
   selected: "selected-ink",
   selectedRing: "ring-ink",
+  danger: "danger-ink",
   labelSurface: "label-surface",
   labelBorder: "label-border",
   labelInk: "label-ink",
@@ -180,6 +181,26 @@ describe("drawing the library graph", () => {
     expect(rec.arcs.filter((arc) => arc.style === "page-ink")).toHaveLength(1);
     expect(rec.fills).not.toContain("concept-ink");
     expect(rec.strokes).toContain("concept-ink");
+  });
+
+  it("marks observed work locally with shapes, never a new execution edge", () => {
+    const rec = recorder();
+    drawLibraryGraph(
+      rec.ctx,
+      frame({
+        activity: [
+          { nodeId: "page:wiki/plan", kind: "read", phase: "complete", progress: 0.25 },
+          { nodeId: "source:sources/plan.pdf", kind: "waiting", phase: "active", progress: 0 },
+          { nodeId: "concept:domains/checkout", kind: "error", phase: "complete", progress: 0.25 },
+        ],
+      }),
+    );
+
+    // A waiting square is dashed and stationary; an error is an X in the real danger ink.
+    expect(rec.dashes).toContainEqual([2, 2]);
+    expect(rec.strokes).toContain("danger-ink");
+    // The renderer receives no activity endpoints, so it cannot manufacture a provenance edge.
+    expect(rec.ctx.quadraticCurveTo).toHaveBeenCalledTimes(edges.length);
   });
 
   it("says the relation with the dash and nothing else — both edges take one ink", () => {

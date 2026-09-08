@@ -104,6 +104,8 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 37 | 2026-09-06 | The Compile brief tells a writer to revise the page that already covers a source's topic and to record a disagreement on both pages | two-way | solo | correct | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
 | 38 | 2026-09-06 | A folder says what it holds: creation asks wiki / ontology map / both once, and the rail, phone tabs and keys read the files | one-way | review | orient | surface-inventory | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | scope | 2 | 0 | narrowed | po-evidence+po-leverage |
 
+| 39 | 2026-09-08 | Show exact Library tool work and observed file changes without reading the conversation | two-way | solo | judge | rollback-cheap | truth=unchanged;transfer=unchanged;agent-write=unchanged;human-correction=unchanged | none | 0 | 0 | unchanged | none |
+
 ## Outcome updates
 
 | Run | Date | Recovery proof | Owner clear | Boundary miss | Later result |
@@ -159,3 +161,4 @@ This row predates the typed register and remains unaltered as the v2 baseline.
 | 36 | 2026-09-06 | pass | yes | no | pending |
 | 37 | 2026-09-06 | pass | yes | no | held |
 | 38 | 2026-09-06 | pass | pending | no | pending |
+| 39 | 2026-09-08 | pending | yes | no | pending |

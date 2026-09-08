@@ -14,6 +14,18 @@ export interface AcpTurnActivity {
   toolName: string | null;
 }
 
+/**
+ * The current, actually reported ACP tool call. Consumers classify this from its exact
+ * `toolKind` and structured input; this helper does not infer a target from tool prose.
+ */
+export interface AcpTurnToolActivity {
+  id: string;
+  toolKind: string | null;
+  status: string;
+  rawInput: unknown;
+  pendingPermission: boolean;
+}
+
 const VERIFY_TOOL = /(?:verify|validate|health|check|test|diagnos)/i;
 const EDIT_TOOL = /(?:add|create|patch|write|edit|rename|replace|merge|delete|remove|move)/i;
 const DONE_TOOL_STATES = new Set(['completed', 'failed', 'cancelled']);
@@ -35,9 +47,38 @@ function latestUserText(events: readonly AcpEvent[]): string | null {
 function latestPendingTool(events: readonly AcpEvent[]): Extract<AcpEvent, { kind: 'tool' }> | null {
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index];
+    // The transcript may retain a previous turn's unfinished row. Once we reach the newest
+    // person turn, anything older is history and cannot be shown as the current tool.
+    if (event?.kind === 'user') return null;
     if (event?.kind === 'tool' && !DONE_TOOL_STATES.has(event.status)) return event;
   }
   return null;
+}
+
+export function deriveAcpTurnToolActivity(
+  status: AcpSessionStatus,
+  events: readonly AcpEvent[],
+  pending: PendingPermission | null,
+): AcpTurnToolActivity | null {
+  if (status !== 'thinking') return null;
+  if (pending) {
+    return {
+      id: pending.request.toolCallId ?? `permission:${pending.request.toolName ?? 'unknown'}`,
+      toolKind: pending.request.toolKind,
+      status: 'waiting-permission',
+      rawInput: pending.request.rawInput,
+      pendingPermission: true,
+    };
+  }
+  const tool = latestPendingTool(events);
+  if (!tool) return null;
+  return {
+    id: tool.id,
+    toolKind: tool.toolKind || null,
+    status: tool.status,
+    rawInput: tool.rawInput,
+    pendingPermission: false,
+  };
 }
 
 function targetOf(rawInput: unknown, knownSlugs: ReadonlySet<string>): string | null {

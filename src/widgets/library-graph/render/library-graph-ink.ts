@@ -46,6 +46,8 @@ export interface LibraryGraphInk {
   selected: string;
   /** The selected node's ring: the next step of the same indigo family, never a second hue. */
   selectedRing: string;
+  /** A real failed operation. This is not inferred from an absent completion. */
+  danger: string;
   /** The neutral ring a hovered node wears. Pointing is not choosing. */
   hoverRing: string;
   /** Hover label surface, its hairline, and its ink. */
@@ -64,6 +66,7 @@ const TOKENS = {
   edge: "--color-text-quaternary",
   selected: "--color-indigo-brand",
   selectedRing: "--color-indigo-accent",
+  danger: "--color-status-danger",
   hoverRing: "--color-border-strong",
   labelSurface: "--color-elevated",
   labelBorder: "--color-border-strong",

@@ -95,10 +95,9 @@ export function ToastProvider({
         // than the viewport less the edge gaps (sonner reads `--width`).
         style={{ '--width': 'min(var(--dialog-w-sm), calc(100vw - 32px))' } as CSSProperties}
         containerAriaLabel={notificationsLabel}
-        // sonner's default hotkey (Alt+T) gets appended to the region label,
-        // which reads as ambiguous in a screen reader. Disabled so the label is
-        // only the locale-aware name.
-        hotkey={[]}
+        // Keep Sonner's explicit Alt+T shortcut. An empty array does not disable
+        // it: `hotkey.every(...)` matches every key and steals Enter from file
+        // receipts whenever a folder-change notification is present.
         icons={{
           success: <CircleCheck size={ICON_SIZE.md} aria-hidden />,
           info: <Info size={ICON_SIZE.md} aria-hidden />,

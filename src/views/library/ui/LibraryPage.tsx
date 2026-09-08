@@ -4,16 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 import { useLocale, useTranslations } from "next-intl";
 import { Info, ListChecks, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
-import { useLocalVault, useVaultIdentityScope } from "@/entities/vault-session";
+import { useLocalVault, useVaultIdentityScope, useVaultSessionIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
-import type { LintFinding, LintNodeCandidate } from "@/features/library";
+import type { LibraryWorkActivity, LibraryWorkEvent, LintFinding, LintNodeCandidate } from "@/features/library";
 import type { LibrarySourceRow, SourceCandidate } from "@/entities/docs-vault";
 import { useRouter } from "@/i18n/navigation";
 import { DESTINATION_HREF } from "@/shared/config/destinations";
 import { OpenVaultCta } from "@/features/docs-vault-local";
 import { useVaultConnectors } from "@/features/mcp-connectors";
 import { isAcpBridgeAvailable } from "@/shared/lib/tauri-acp";
-import type { AcpTurnActivity } from "@/features/acp-session";
+import type { AcpEvent, AcpTurnActivity, AcpTurnCompletion, AcpTurnToolActivity } from "@/features/acp-session";
 import {
   addSources,
   addSourcesInBrowser,
@@ -44,6 +44,18 @@ import {
   buildHumanPage,
   deleteWikiFile,
   writeWikiFile,
+  EMPTY_LIBRARY_WORK_ACTIVITY,
+  beginLibraryWork,
+  appendLibraryWorkReceipt,
+  clearLibraryWork,
+  completeLibraryWork,
+  completedAcpReadEvent,
+  libraryWorkErrorEvent,
+  libraryWorkEventFromAcpSnapshot,
+  libraryWorkEventFromLocalSnapshot,
+  localCompileWaitingEvent,
+  observedWikiWriteEvents,
+  successfulLocalWriteEvents,
 } from "@/features/library";
 import {
   DocReadingPane,
@@ -53,6 +65,7 @@ import {
 } from "@/widgets/doc-reading-pane";
 import { DocsVaultViewer } from "@/widgets/docs-vault";
 import { LibraryGraph } from "@/widgets/library-graph";
+import { LibraryWorkActivityStrip } from "@/widgets/library-work-activity";
 import { LibraryImportDialog } from "@/widgets/library-import";
 import {
   useLibraryIndexCollapsed,
@@ -69,12 +82,14 @@ import { getTauriVaultRootPath, revealTauriVaultFile } from "@/shared/lib/tauri-
 import { controlClass } from "@/shared/ui/control-class";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { PAGE_COLUMN_STAGE } from "@/shared/ui/page-frame";
+import { TOAST_TOP_OFFSET_UNDER_LIBRARY_PANE_CHROME_PX } from "@/shared/ui/toast-position";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 import { Tooltip, TooltipProvider, useToast } from "@/shared/ui";
 
 import { isWikiFurnitureSlug } from "@/shared/lib/wiki-page-schema";
 import { libraryCompileBlockedReason, libraryTransferSentence } from "../lib/compile-availability";
 import { useLibraryModel } from "../lib/use-library-model";
+import { useObservedWikiWork } from "../lib/use-observed-wiki-work";
 import { useLibraryAgent } from "../lib/use-library-agent";
 import { LibraryCheckReport, findingKey, reportOutline } from "./parts/LibraryCheckReport";
 import { LibrarySection } from "./parts/LibrarySection";
@@ -197,6 +212,7 @@ export function LibraryPage() {
   const locale = useLocale();
   const toast = useToast();
   const localVault = useLocalVault();
+  const workVaultScope = useVaultSessionIdentityScope();
 
   const handle = selectOpenVaultHandle(localVault.status, localVault.handle);
   const manifest = localVault.manifest;
@@ -215,6 +231,23 @@ export function LibraryPage() {
   useEffect(() => {
     latestSelectedRef.current = selected;
   }, [selected]);
+  /*
+   * Stand the toaster over the canvas, the way the map already stands its own. The
+   * toaster is top-centred on the viewport and this pane stacks 160px of chrome there —
+   * the reserved work lane, then the graph's header row — so at the default 16px the
+   * box came to rest two pixels into the receipt row, and clearing only the lane simply
+   * moved it onto the header row instead. The constant carries both measurements.
+   */
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty(
+      "--app-toast-top-offset",
+      `${TOAST_TOP_OFFSET_UNDER_LIBRARY_PANE_CHROME_PX}px`,
+    );
+    return () => {
+      root.style.removeProperty("--app-toast-top-offset");
+    };
+  }, []);
   const [shelfOpen, setShelfOpen] = useState(false);
   /** Set when a page opened on its own (a check ending), so the focus stays where the person had it. */
   const skipReaderFocusRef = useRef(false);
@@ -249,8 +282,17 @@ export function LibraryPage() {
    * `.claude/rules/architecture.md`: the condition that draws a surface must also guard
    * the work that builds its model. The model hashes files and reads page bodies, so it
    * is switched off, not merely hidden, until a folder is really open.
-   */
+  */
   const docs = manifest?.docs ?? EMPTY_DOCS;
+  const wikiRevisionStamp = useMemo(
+    () =>
+      new Map(
+        docs
+          .filter((doc) => isWikiPage(doc) && !isWikiFurnitureSlug(doc.slug))
+          .map((doc) => [doc.slug, doc.mtime ?? 0] as const),
+      ),
+    [docs],
+  );
   const model = useLibraryModel({
     docs,
     sources: manifest?.sources,
@@ -566,6 +608,98 @@ export function LibraryPage() {
    * running; `null` between turns and while the panel has never opened.
    */
   const [agentActivity, setAgentActivity] = useState<AcpTurnActivity | null>(null);
+  const [libraryWorkActivity, setLibraryWorkActivity] = useState<LibraryWorkActivity>(
+    EMPTY_LIBRARY_WORK_ACTIVITY,
+  );
+  const scheduleLibraryWork = useCallback(
+    (update: (current: LibraryWorkActivity) => LibraryWorkActivity) => {
+      queueMicrotask(() => setLibraryWorkActivity(update));
+    },
+    [],
+  );
+  const handleAcpToolActivityChange = useCallback(
+    (snapshot: AcpTurnToolActivity | null) => {
+      const event = snapshot
+        ? libraryWorkEventFromAcpSnapshot(snapshot, nativeVaultRootPath, Date.now())
+        : null;
+      setLibraryWorkActivity((current) =>
+        event ? beginLibraryWork(current, event) : clearLibraryWork(current),
+      );
+    },
+    [nativeVaultRootPath],
+  );
+  const localToolActivity = agent.localCompile.toolActivity;
+  const localWorkInScope = agent.localCompile.originVaultScope === workVaultScope;
+  const handleTerminalToolObservation = useCallback((event: Extract<AcpEvent, { kind: "tool" }>) => {
+    const receipt = completedAcpReadEvent(event, nativeVaultRootPath, Date.now());
+    if (receipt) setLibraryWorkActivity((current) => completeLibraryWork(current, receipt));
+  }, [nativeVaultRootPath]);
+  const resetObservedWork = useCallback(() => {
+    scheduleLibraryWork(() => EMPTY_LIBRARY_WORK_ACTIVITY);
+  }, [scheduleLibraryWork]);
+  const receiveObservedWork = useCallback((receipts: readonly LibraryWorkEvent[]) => {
+    scheduleLibraryWork((current) => receipts.reduce(appendLibraryWorkReceipt, current));
+  }, [scheduleLibraryWork]);
+  useObservedWikiWork(workVaultScope, wikiRevisionStamp, resetObservedWork, receiveObservedWork);
+  useEffect(() => {
+    if (agent.route !== "local" || !localWorkInScope || !localToolActivity) return;
+    const event = libraryWorkEventFromLocalSnapshot(
+      localToolActivity,
+      nativeVaultRootPath,
+      Date.now(),
+    );
+    if (!event) return;
+    scheduleLibraryWork((current) =>
+      event.phase === "active"
+        ? beginLibraryWork(current, event)
+        : completeLibraryWork(current, event),
+    );
+  }, [agent.route, localWorkInScope, localToolActivity, nativeVaultRootPath, scheduleLibraryWork]);
+  useEffect(() => {
+    if (agent.route !== "local" || !localWorkInScope || agent.localCompile.status !== "waiting") return;
+    const turnId = agent.localCompile.turn?.id;
+    if (!turnId) return;
+    const event = localCompileWaitingEvent(turnId, Date.now(), Boolean(agent.localCompile.card?.proposal));
+    scheduleLibraryWork((current) =>
+      event ? beginLibraryWork(current, event) : clearLibraryWork(current),
+    );
+  }, [agent.localCompile.status, agent.localCompile.card?.proposal, agent.localCompile.turn?.id, agent.route, localWorkInScope, scheduleLibraryWork]);
+  useEffect(() => {
+    if (agent.route !== "local" || !localWorkInScope) return;
+    const turnId = agent.localCompile.turn?.id;
+    if (agent.localCompile.status === "written" && turnId) {
+      scheduleLibraryWork((current) =>
+        successfulLocalWriteEvents(agent.localCompile.writtenPaths, turnId, Date.now()).reduce(
+          completeLibraryWork,
+          clearLibraryWork(current),
+        ),
+      );
+      return;
+    }
+    if (agent.localCompile.status === "failed" && turnId) {
+      scheduleLibraryWork((current) =>
+        completeLibraryWork(
+          clearLibraryWork(current),
+          libraryWorkErrorEvent(`local:${turnId}:failure`, Date.now()),
+        ),
+      );
+      return;
+    }
+    if (agent.localCompile.status === "idle") {
+      scheduleLibraryWork(clearLibraryWork);
+      return;
+    }
+    if (agent.localCompile.status === "running" || agent.localCompile.status === "applying") {
+      scheduleLibraryWork(clearLibraryWork);
+    }
+  }, [
+    agent.localCompile.status,
+    agent.localCompile.turn?.id,
+    agent.localCompile.writtenPaths,
+    localWorkInScope,
+    agent.route,
+    scheduleLibraryWork,
+  ]);
   /*
    * **The conversation can be reopened.** Closing the dock used to be the end of it: no
    * control on the Library brought it back, and the only way to see the transcript again
@@ -816,14 +950,29 @@ export function LibraryPage() {
       const writer = agent.runtime ? `agent:${agent.runtime.id}` : "agent:unknown";
       setTurnRunning(true);
       if (kind === "compile") setCompileRunning(true);
-      return async (completion: { endedAt: string; outcome: string; events: ReadonlyArray<{ kind: string; text?: string }> }) => {
+      return async (completion: AcpTurnCompletion) => {
         setTurnRunning(false);
         setCompileRunning(false);
         // A cancelled or failed turn reported nothing: reading its absence as "nothing to fix"
         // would print a clean report over a check that never finished (design-interaction,
         // council 2026-09-07).
-        if (completion.outcome !== "completed") return;
+        if (completion.outcome !== "completed") {
+          setLibraryWorkActivity((current) =>
+            completion.outcome === "failed"
+              ? completeLibraryWork(
+                  clearLibraryWork(current),
+                  libraryWorkErrorEvent(`acp:${completion.userEventId}:failure`, Date.now()),
+                )
+              : clearLibraryWork(current),
+          );
+          return;
+        }
         const after = stamp(latestDocsRef.current);
+        const observedAt = Date.now();
+        const receipts = observedWikiWriteEvents(before, after, observedAt);
+        setLibraryWorkActivity((current) =>
+          receipts.reduce(completeLibraryWork, clearLibraryWork(current)),
+        );
         const lastAgentText = [...completion.events].reverse().find((event) => event.kind === "agent")?.text ?? null;
         if (kind === "lint") setCandidates(parseLintCandidates(lastAgentText));
         if (kind === "lint") setFindings(parseLintFindings(lastAgentText));
@@ -1598,294 +1747,323 @@ export function LibraryPage() {
         }}
         tabIndex={-1}
         data-testid="library-reader"
-        className={cn(
-          "flex min-h-0 min-w-0 flex-1 overflow-hidden max-lg:order-first",
-          // A row only while both columns stand; everything else keeps the single column
-          // this pane has had since 2026-09-06.
-          graphBesideReader && selected ? "flex-row" : "flex-col",
-        )}
+        /* The pane itself is a column again. The row that #1527 put here moved one level
+           in, so the activity lane can span the pane above it: a lane inside the row would
+           stand as a third column, and a lane inside either column would vanish with it. */
+        className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden max-lg:order-first"
       >
         {/*
-          **This pane is the picture.** The Library's two lists say what is in the folder
-          one row at a time; this says it all at once — which page came from which file,
-          and which concepts a page reaches into. It is the same two file kinds, drawn
-          instead of listed, so it belongs to this screen rather than to the map, which
-          draws neither of them (`docs/DECISIONS.md`, 2026-09-06).
-
-          ⚠️ **`hidden`, never unmounted.** Choosing a document stands the canvas aside and
-          the reader takes the pane, but the widget keeps its ForceAtlas2 pass and its
-          settled positions: unmounting would throw both away and pay up to 95ms again,
-          replaying the arrival, every time somebody looked at a page and came back.
+          **What the agent is touching, above the picture rather than inside it.** The lane
+          reserves its height before the first event, so a receipt arriving never resizes
+          the canvas and moves the very marks it is explaining. It stands above the row, so
+          it survives every state the row has: the picture alone, the picture beside the
+          page, and the page alone below `lg`.
         */}
+        <LibraryWorkActivityStrip
+          activity={libraryWorkActivity}
+          /* The lane belongs to an open conversation, not to the folder: see the prop's
+             own note for the 112px an idle Library was paying without one. */
+          reserved={dockOpen}
+          onSelect={(target) =>
+            choose(
+              target.kind === "wiki"
+                ? { kind: "wiki", slug: target.ref }
+                : { kind: "source", path: target.ref },
+            )
+          }
+        />
         <div
-          data-testid="library-graph-column"
           className={cn(
-            "flex min-h-0 flex-col",
-            // Beside the page it is a column of its own and takes what the reader leaves;
-            // alone it is the whole pane, as before.
-            graphBesideReader && selected
-              ? "min-w-0 flex-1 border-r border-[color:var(--color-border-soft)]"
-              : "flex-1",
-            selected && !graphBesideReader && "hidden",
+            "flex min-h-0 min-w-0 flex-1 overflow-hidden",
+            // A row only while both columns stand; everything else keeps the single column
+            // this pane has had since 2026-09-06.
+            graphBesideReader && selected ? "flex-row" : "flex-col",
           )}
         >
-          <LibraryGraph
-            docs={manifest?.docs ?? EMPTY_DOCS}
-            wikiPages={model.wikiPages}
-            /* `model.sources`, never `manifest.sources`: the rows carry the state the list
-               prints, so the canvas cannot draw a confident citation beside a row that says
-               the file changed underneath it (design-infoviz, 2026-09-06). */
-            sources={model.sources}
-            selection={
-              opened === null || opened.kind === "report"
-                ? null
-                : opened.kind === "wiki"
-                  ? { kind: "wiki", ref: opened.slug }
-                  : { kind: "source", ref: opened.path }
-            }
-            onSelect={(next) => {
-              /*
-               * **The hand keeps the canvas** (design-interaction, 2026-09-08). Choosing a
-               * page moves focus into the reader, which was right while the canvas vanished
-               * behind it. Beside the reader the canvas is still on screen exactly where the
-               * keyboard left it, and the reader's wrapper is `tabIndex={-1}` — a node the
-               * design system deliberately never rings — so arrow-key + Enter used to make
-               * the visible focus ring disappear into nothing.
-               */
-              if (graphBesideReader) skipReaderFocusRef.current = true;
-              choose(
-                next.kind === "wiki"
-                  ? { kind: "wiki", slug: next.ref }
-                  : { kind: "source", path: next.ref },
-              );
-            }}
-            /* Below `lg` the canvas is the top half of one column and the guide reaches
-               the legend at its foot; measured with `elementsFromPoint` at 768 and 390. */
-            captionQuiet={shelfOpen}
-            /* Beside the reader the canvas is a column, so it drops the standing legend and
-               keeps the slot for the hover line (direction B, 2026-09-08). */
-            compact={graphBesideReader && selected !== null}
-            headerEnd={
-              <>
-                <LibraryStatusStrip model={model} t={t} />
-                {conversationDoor}
-                <button
-                  type="button"
-                  ref={shelfChipRef}
-                  onClick={() => setShelfOpen(!shelfOpen)}
-                  aria-expanded={shelfOpen}
-                  /*
-                   * `true`, not `"dialog"`: the surface it raises is deliberately not one —
-                   * no scrim, no trap, no `aria-modal`, because it exists to be read
-                   * against the picture behind it. Claiming a dialog and drawing a popover
-                   * is the mismatch a screen reader has no way to recover from
-                   * (design-interaction, 2026-09-06).
-                   */
-                  aria-haspopup="true"
-                  aria-controls={shelfOpen ? "library-shelf-popover" : undefined}
-                  data-testid="library-shelf-open"
-                  className={controlClass({
-                    shape: "chip",
-                    tone: "muted",
-                    hoverInk: "strong",
-                    className: "flex-none gap-1.5",
-                  })}
-                >
-                  <ListChecks size={ICON_SIZE.sm} aria-hidden />
-                  {t("stage.open")}
-                </button>
-              </>
-            }
-          />
-        </div>
-        {/*
-          **The document column.** While the picture stands beside it this box is the
-          reading measure and nothing more: 760px of text plus its own padding, with the
-          canvas on its left holding the page's neighbourhood. Alone it is the whole pane,
-          exactly as before.
-        */}
-        <div
-          data-testid="library-document-column"
-          /* The width is the **same constant the observer compares against**, so the column
-             and the verdict that draws it cannot drift apart. A Tailwind class built from
-             the constant would compile to nothing. */
-          style={graphBesideReader && selected ? { width: READER_COLUMN_PX } : undefined}
-          className={cn(
-            "flex min-h-0 min-w-0 flex-col",
-            // Empty with nothing chosen — and an empty `flex-1` sibling would take half the
-            // canvas's height, which is what it did the first time (three e2e heights fell
-            // by half, measured 2026-09-08).
-            !selected ? "hidden" : graphBesideReader ? "shrink-0" : "flex-1",
-          )}
-        >
-        {selected && !graphBesideReader ? (
-          /*
-           * **The way back exists at every width now.** It was `lg:hidden`, because below
-           * `lg` selecting swaps the whole column and the person visibly needs a door
-           * home, while at `lg` and above the index never left. That reasoning stopped
-           * being true on 2026-09-06: with nothing selected the right pane is the guided
-           * shelf, so it became a place a person can reach only once per session —
-           * measured by design-interaction, the only ways back were a reload and the
-           * browser's own Back, which leaves the Library and drops the open folder.
-           *
-           * The chip names where it goes. It read *Library* with an arrow, and the
-           * owner pressed it and got the graph: "then it is the graph, not the library"
-           * (2026-09-07). So it says *Graph*, and the arrow is gone — the word is the
-           * destination, and a glyph beside it added nothing the word did not say.
-           */
-          <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
-            <button
-              type="button"
-              onClick={() => setSelected(null)}
-              data-testid="library-reader-back"
-              className={controlClass({ shape: "chip", tone: "muted" })}
-            >
-              {t("graph.title")}
-            </button>
-            <span className="ml-auto flex items-center">{conversationDoor}</span>
-          </div>
-        ) : selected ? (
-          /*
-           * Beside the picture there is nowhere to go **back** to — the graph never left —
-           * but there is still the everyday reversal: closing the page. Escape already did
-           * it; a shortcut nobody is told about is the ability being absent
-           * (design-interaction, 2026-09-08), so it also has a control. It says what it
-           * does rather than naming a destination, which is what separates it from the
-           * `Graph` chip the narrow layout still carries.
-           */
-          <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
-            <button
-              type="button"
-              onClick={() => setSelected(null)}
-              data-testid="library-reader-close"
-              className={controlClass({ shape: "chip", tone: "muted" })}
-            >
-              {t("graph.readerClose")}
-            </button>
-            <span className="ml-auto flex items-center">{conversationDoor}</span>
-          </div>
-        ) : null}
+          {/*
+            **This pane is the picture.** The Library's two lists say what is in the folder
+            one row at a time; this says it all at once — which page came from which file,
+            and which concepts a page reaches into. It is the same two file kinds, drawn
+            instead of listed, so it belongs to this screen rather than to the map, which
+            draws neither of them (`docs/DECISIONS.md`, 2026-09-06).
 
-        {opened?.kind === "report" ? (
-          <DocReadingPane
-            data-testid="library-report-pane"
-            scrollRef={reportSpy.articleScrollRef}
-            outline={
-              reportOutline(findings, openCandidates.length, t).length >= 2
-                ? {
-                    headings: reportOutline(findings, openCandidates.length, t),
-                    activeHeadingSlug: reportSpy.activeHeadingSlug,
-                    onHeadingClick: handleReportHeadingNavigate,
-                  }
-                : null
-            }
-            backToTop={reportBackToTop}
+            ⚠️ **`hidden`, never unmounted.** Choosing a document stands the canvas aside and
+            the reader takes the pane, but the widget keeps its ForceAtlas2 pass and its
+            settled positions: unmounting would throw both away and pay up to 95ms again,
+            replaying the arrival, every time somebody looked at a page and came back.
+          */}
+          <div
+            data-testid="library-graph-column"
+            className={cn(
+              "flex min-h-0 flex-col",
+              // Beside the page it is a column of its own and takes what the reader leaves;
+              // alone it is the whole pane, as before.
+              graphBesideReader && selected
+                ? "min-w-0 flex-1 border-r border-[color:var(--color-border-soft)]"
+                : "flex-1",
+              selected && !graphBesideReader && "hidden",
+            )}
           >
-            <LibraryCheckReport
-              findings={findings}
-              candidates={openCandidates}
-              lastLint={model.log.lastLint}
-              busy={busy || turnRunning}
-              onLint={agent.route === "agent" ? handleLint : null}
-              onFix={agent.route === "agent" ? handleFix : null}
-              onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
-              onOpenPage={(slug) => choose({ kind: "wiki", slug })}
-              fixedKeys={fixedKeys}
-              t={t}
-            />
-          </DocReadingPane>
-        ) : null}
-        {selectedWikiDoc ? (
-          <DocReadingPane
-            data-testid="library-reading-pane"
-            scrollRef={articleScrollRef}
-            outline={
-              shouldShowOutlineRail(outlineHeadings.length)
-                ? {
-                    headings: outlineHeadings,
-                    activeHeadingSlug,
-                    onHeadingClick: handleHeadingNavigate,
-                  }
-                : null
-            }
-            backToTop={backToTop}
-          >
-            <WikiPageHeader
-              doc={selectedWikiDoc}
-              originals={model.pairing.originalsByWiki.get(selectedWikiDoc.slug) ?? EMPTY_ORIGINALS}
-              onOpenSource={(path) => choose({ kind: "source", path })}
-              t={t}
-            />
-            <WikiTemplateProblems problems={wikiProblems} t={t} />
-            {/* The passage a person selects here can be asked about at once; the chip and
-                its list hang from the selection inside this positioned box. */}
-            <div
-              ref={pageBodyRef}
-              // With a passage selected (`data-selecting`, set by SelectionAsk), every line of
-              // the page except the selection itself and the ask chip steps back to quaternary
-              // ink; `::selection` keeps the selected words at primary over the indigo wash.
-              className="relative data-[selecting=true]:[&>:not([data-testid=library-selection-ask])_*]:text-[color:var(--color-text-quaternary)]"
-            >
-              <DocsVaultViewer
-                key={selectedWikiDoc.slug}
-                doc={selectedWikiDoc}
-                vaultSlugs={vaultSlugs}
-                onNavigate={(slug) => choose({ kind: "wiki", slug })}
-                getDocContent={getDocContent}
-                resolveImage={resolveImage}
-              />
-              {agent.route === "agent" ? (
-                <SelectionAsk
-                  containerRef={pageBodyRef}
-                  disabled={agent.runtime === null}
-                  onAsk={(selection, question, customQuestion) => {
-                    pendingAskRef.current = {
-                      question: question === "custom" ? (customQuestion ?? "").trim() : t(`ask.${question}`),
-                      askedOn: selectedWikiDoc.slug,
-                    };
-                    agent.start(
-                      buildAskBrief({
-                        selection,
-                        pageSlug: selectedWikiDoc.slug,
-                        question,
-                        customQuestion,
-                        locale,
-                        vaultRoot: nativeVaultRootPath ?? "",
-                      }),
-                      "ask",
-                    );
-                  }}
-                  t={t}
-                />
-              ) : null}
-            </div>
-          </DocReadingPane>
-        ) : selectedSource ? (
-          <div className="min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]">
-            <SourceSummary
-              row={selectedSource}
-              hash={model.hashes.get(selectedSource.path) ?? null}
-              canReveal={nativeVaultRootPath !== null}
-              writeUps={model.pairing.writeUpsBySource.get(selectedSource.path) ?? EMPTY_WRITE_UPS}
-              onOpen={() => handleOpenSource(selectedSource)}
-              onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
-              onCompile={handleCompile}
-              /*
-               * The same one slot the column carries, asked the same way: the reason
-               * Compile is refused, or what leaves this computer when it runs. This press
-               * is the one a person is looking at while a source is open, so this is where
-               * the disclosure belongs (`.claude/rules/local-first.md`).
-               */
-              compileNote={
-                compileBlocked ??
-                libraryTransferSentence({ route: agent.route, localModel: agent.localModel }, t)
+            <LibraryGraph
+              docs={manifest?.docs ?? EMPTY_DOCS}
+              wikiPages={model.wikiPages}
+              activity={libraryWorkActivity}
+              visible={selected === null}
+              /* `model.sources`, never `manifest.sources`: the rows carry the state the list
+                 prints, so the canvas cannot draw a confident citation beside a row that says
+                 the file changed underneath it (design-infoviz, 2026-09-06). */
+              sources={model.sources}
+              selection={
+                opened === null || opened.kind === "report"
+                  ? null
+                  : opened.kind === "wiki"
+                    ? { kind: "wiki", ref: opened.slug }
+                    : { kind: "source", ref: opened.path }
               }
-              compileBlocked={compileBlocked !== null}
-              busy={busy}
-              t={t}
+              onSelect={(next) => {
+                /*
+                 * **The hand keeps the canvas** (design-interaction, 2026-09-08). Choosing a
+                 * page moves focus into the reader, which was right while the canvas vanished
+                 * behind it. Beside the reader the canvas is still on screen exactly where the
+                 * keyboard left it, and the reader's wrapper is `tabIndex={-1}` — a node the
+                 * design system deliberately never rings — so arrow-key + Enter used to make
+                 * the visible focus ring disappear into nothing.
+                 */
+                if (graphBesideReader) skipReaderFocusRef.current = true;
+                choose(
+                  next.kind === "wiki"
+                    ? { kind: "wiki", slug: next.ref }
+                    : { kind: "source", path: next.ref },
+                );
+              }}
+              /* Below `lg` the canvas is the top half of one column and the guide reaches
+                 the legend at its foot; measured with `elementsFromPoint` at 768 and 390. */
+              captionQuiet={shelfOpen}
+              /* Beside the reader the canvas is a column, so it drops the standing legend and
+                 keeps the slot for the hover line (direction B, 2026-09-08). */
+              compact={graphBesideReader && selected !== null}
+              headerEnd={
+                <>
+                  <LibraryStatusStrip model={model} t={t} />
+                  {conversationDoor}
+                  <button
+                    type="button"
+                    ref={shelfChipRef}
+                    onClick={() => setShelfOpen(!shelfOpen)}
+                    aria-expanded={shelfOpen}
+                    /*
+                     * `true`, not `"dialog"`: the surface it raises is deliberately not one —
+                     * no scrim, no trap, no `aria-modal`, because it exists to be read
+                     * against the picture behind it. Claiming a dialog and drawing a popover
+                     * is the mismatch a screen reader has no way to recover from
+                     * (design-interaction, 2026-09-06).
+                     */
+                    aria-haspopup="true"
+                    aria-controls={shelfOpen ? "library-shelf-popover" : undefined}
+                    data-testid="library-shelf-open"
+                    className={controlClass({
+                      shape: "chip",
+                      tone: "muted",
+                      hoverInk: "strong",
+                      className: "flex-none gap-1.5",
+                    })}
+                  >
+                    <ListChecks size={ICON_SIZE.sm} aria-hidden />
+                    {t("stage.open")}
+                  </button>
+                </>
+              }
             />
           </div>
-        ) : null}
+          {/*
+            **The document column.** While the picture stands beside it this box is the
+            reading measure and nothing more: 760px of text plus its own padding, with the
+            canvas on its left holding the page's neighbourhood. Alone it is the whole pane,
+            exactly as before.
+          */}
+          <div
+            data-testid="library-document-column"
+            /* The width is the **same constant the observer compares against**, so the column
+               and the verdict that draws it cannot drift apart. A Tailwind class built from
+               the constant would compile to nothing. */
+            style={graphBesideReader && selected ? { width: READER_COLUMN_PX } : undefined}
+            className={cn(
+              "flex min-h-0 min-w-0 flex-col",
+              // Empty with nothing chosen — and an empty `flex-1` sibling would take half the
+              // canvas's height, which is what it did the first time (three e2e heights fell
+              // by half, measured 2026-09-08).
+              !selected ? "hidden" : graphBesideReader ? "shrink-0" : "flex-1",
+            )}
+          >
+          {selected && !graphBesideReader ? (
+            /*
+             * **The way back exists at every width now.** It was `lg:hidden`, because below
+             * `lg` selecting swaps the whole column and the person visibly needs a door
+             * home, while at `lg` and above the index never left. That reasoning stopped
+             * being true on 2026-09-06: with nothing selected the right pane is the guided
+             * shelf, so it became a place a person can reach only once per session —
+             * measured by design-interaction, the only ways back were a reload and the
+             * browser's own Back, which leaves the Library and drops the open folder.
+             *
+             * The chip names where it goes. It read *Library* with an arrow, and the
+             * owner pressed it and got the graph: "then it is the graph, not the library"
+             * (2026-09-07). So it says *Graph*, and the arrow is gone — the word is the
+             * destination, and a glyph beside it added nothing the word did not say.
+             */
+            <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                data-testid="library-reader-back"
+                className={controlClass({ shape: "chip", tone: "muted" })}
+              >
+                {t("graph.title")}
+              </button>
+              <span className="ml-auto flex items-center">{conversationDoor}</span>
+            </div>
+          ) : selected ? (
+            /*
+             * Beside the picture there is nowhere to go **back** to — the graph never left —
+             * but there is still the everyday reversal: closing the page. Escape already did
+             * it; a shortcut nobody is told about is the ability being absent
+             * (design-interaction, 2026-09-08), so it also has a control. It says what it
+             * does rather than naming a destination, which is what separates it from the
+             * `Graph` chip the narrow layout still carries.
+             */
+            <div className="flex flex-none items-center gap-2 border-b border-[color:var(--color-border-soft)] px-3 py-2">
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                data-testid="library-reader-close"
+                className={controlClass({ shape: "chip", tone: "muted" })}
+              >
+                {t("graph.readerClose")}
+              </button>
+              <span className="ml-auto flex items-center">{conversationDoor}</span>
+            </div>
+          ) : null}
+
+          {opened?.kind === "report" ? (
+            <DocReadingPane
+              data-testid="library-report-pane"
+              scrollRef={reportSpy.articleScrollRef}
+              outline={
+                reportOutline(findings, openCandidates.length, t).length >= 2
+                  ? {
+                      headings: reportOutline(findings, openCandidates.length, t),
+                      activeHeadingSlug: reportSpy.activeHeadingSlug,
+                      onHeadingClick: handleReportHeadingNavigate,
+                    }
+                  : null
+              }
+              backToTop={reportBackToTop}
+            >
+              <LibraryCheckReport
+                findings={findings}
+                candidates={openCandidates}
+                lastLint={model.log.lastLint}
+                busy={busy || turnRunning}
+                onLint={agent.route === "agent" ? handleLint : null}
+                onFix={agent.route === "agent" ? handleFix : null}
+                onPropose={agent.route === "agent" && hasOntology ? handlePropose : null}
+                onOpenPage={(slug) => choose({ kind: "wiki", slug })}
+                fixedKeys={fixedKeys}
+                t={t}
+              />
+            </DocReadingPane>
+          ) : null}
+          {selectedWikiDoc ? (
+            <DocReadingPane
+              data-testid="library-reading-pane"
+              scrollRef={articleScrollRef}
+              outline={
+                shouldShowOutlineRail(outlineHeadings.length)
+                  ? {
+                      headings: outlineHeadings,
+                      activeHeadingSlug,
+                      onHeadingClick: handleHeadingNavigate,
+                    }
+                  : null
+              }
+              backToTop={backToTop}
+            >
+              <WikiPageHeader
+                doc={selectedWikiDoc}
+                originals={model.pairing.originalsByWiki.get(selectedWikiDoc.slug) ?? EMPTY_ORIGINALS}
+                onOpenSource={(path) => choose({ kind: "source", path })}
+                t={t}
+              />
+              <WikiTemplateProblems problems={wikiProblems} t={t} />
+              {/* The passage a person selects here can be asked about at once; the chip and
+                  its list hang from the selection inside this positioned box. */}
+              <div
+                ref={pageBodyRef}
+                // With a passage selected (`data-selecting`, set by SelectionAsk), every line of
+                // the page except the selection itself and the ask chip steps back to quaternary
+                // ink; `::selection` keeps the selected words at primary over the indigo wash.
+                className="relative data-[selecting=true]:[&>:not([data-testid=library-selection-ask])_*]:text-[color:var(--color-text-quaternary)]"
+              >
+                <DocsVaultViewer
+                  key={selectedWikiDoc.slug}
+                  doc={selectedWikiDoc}
+                  vaultSlugs={vaultSlugs}
+                  onNavigate={(slug) => choose({ kind: "wiki", slug })}
+                  getDocContent={getDocContent}
+                  resolveImage={resolveImage}
+                />
+                {agent.route === "agent" ? (
+                  <SelectionAsk
+                    containerRef={pageBodyRef}
+                    disabled={agent.runtime === null}
+                    onAsk={(selection, question, customQuestion) => {
+                      pendingAskRef.current = {
+                        question: question === "custom" ? (customQuestion ?? "").trim() : t(`ask.${question}`),
+                        askedOn: selectedWikiDoc.slug,
+                      };
+                      agent.start(
+                        buildAskBrief({
+                          selection,
+                          pageSlug: selectedWikiDoc.slug,
+                          question,
+                          customQuestion,
+                          locale,
+                          vaultRoot: nativeVaultRootPath ?? "",
+                        }),
+                        "ask",
+                      );
+                    }}
+                    t={t}
+                  />
+                ) : null}
+              </div>
+            </DocReadingPane>
+          ) : selectedSource ? (
+            <div className="min-h-0 flex-1 overflow-auto max-lg:pb-[calc(var(--topology-mobile-bottom-tab-reserve)+12px)]">
+              <SourceSummary
+                row={selectedSource}
+                hash={model.hashes.get(selectedSource.path) ?? null}
+                canReveal={nativeVaultRootPath !== null}
+                writeUps={model.pairing.writeUpsBySource.get(selectedSource.path) ?? EMPTY_WRITE_UPS}
+                onOpen={() => handleOpenSource(selectedSource)}
+                onOpenWiki={(slug) => choose({ kind: "wiki", slug })}
+                onCompile={handleCompile}
+                /*
+                 * The same one slot the column carries, asked the same way: the reason
+                 * Compile is refused, or what leaves this computer when it runs. This press
+                 * is the one a person is looking at while a source is open, so this is where
+                 * the disclosure belongs (`.claude/rules/local-first.md`).
+                 */
+                compileNote={
+                  compileBlocked ??
+                  libraryTransferSentence({ route: agent.route, localModel: agent.localModel }, t)
+                }
+                compileBlocked={compileBlocked !== null}
+                busy={busy}
+                t={t}
+              />
+            </div>
+          ) : null}
+          </div>
         </div>
       </div>
 
@@ -1952,6 +2130,8 @@ export function LibraryPage() {
           autoDecide={autoDecide}
           onTurnStarted={handleTurnStarted}
           onTurnActivityChange={setAgentActivity}
+          onTurnToolActivityChange={handleAcpToolActivityChange}
+          onTerminalToolObservation={handleTerminalToolObservation}
           onFileAnswer={lastAnswer ? handleFileAnswer : null}
           noticeActions={{
             openPage: (path) => choose({ kind: "wiki", slug: path.replace(/\.md$/, "") }),

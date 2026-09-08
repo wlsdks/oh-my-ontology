@@ -45,3 +45,9 @@ The ability for humans to read in one flow the AI agent's product name, verified
 
 ## Confidence
 high (0.95): Verified through pure derivation, component and ACP integration contracts, 360~2560 overflow sweeps, installed-app Computer Use, a real macOS recording normalized to 30fps, and deterministic frame sampling.
+
+## Library work projection
+
+The Library also exposes exact structured ACP and local Compile tool targets as ephemeral activity. Reading and provisional writing are distinct from permission waits and observed wiki revision changes. Unknown targets never light a guessed graph mark. Completed tool calls are not proof of persistence, and file revision changes are not attributed exclusively to an agent. The bounded session-local receipts preserve inspection after motion ends; they do not introduce a durable log or alter write authority.
+
+Evidence: `src/features/library/model/library-work-activity.ts`, `src/views/library/ui/LibraryPage.tsx`, `src/widgets/library-graph/ui/use-library-graph-engine.ts`, and `src/widgets/library-work-activity/ui/LibraryWorkActivityStrip.tsx`.

@@ -6,16 +6,20 @@ import enMessages from "../../../../../messages/en.json";
 import { LibraryAgentDock } from "./LibraryAgentDock";
 
 const sessionEnabledSeen: boolean[] = [];
+const terminalToolCallbacks: unknown[] = [];
 
 vi.mock("@/widgets/acp-chat-panel", () => ({
   AcpChatPanel: ({
     sessionEnabled,
     resumeLatest,
+    onTerminalToolObservation,
   }: {
     sessionEnabled?: boolean;
     resumeLatest?: boolean;
+    onTerminalToolObservation?: unknown;
   }) => {
     sessionEnabledSeen.push(sessionEnabled === true);
+    terminalToolCallbacks.push(onTerminalToolObservation);
     return (
       <div
         data-testid="chat-panel"
@@ -31,7 +35,7 @@ vi.mock("@/widgets/acp-chat-panel", () => ({
 
 const RUNTIME = { id: "claude-acp", label: "Claude Agent" };
 
-function dock(open: boolean) {
+function dock(open: boolean, onTerminalToolObservation?: () => void) {
   return (
     <NextIntlClientProvider locale="en" messages={enMessages}>
       <LibraryAgentDock
@@ -45,6 +49,7 @@ function dock(open: boolean) {
         openingRequest={{ kind: "lint", text: "Check the wiki", nonce: 1 }}
         knownSlugs={new Set()}
         onClose={() => {}}
+        onTerminalToolObservation={onTerminalToolObservation}
       />
     </NextIntlClientProvider>
   );
@@ -71,6 +76,7 @@ function mount(width: "wide" | "narrow") {
 
 afterEach(() => {
   sessionEnabledSeen.length = 0;
+  terminalToolCallbacks.length = 0;
   vi.restoreAllMocks();
 });
 
@@ -107,6 +113,14 @@ describe("a dock mounted while already open", () => {
     const { getByTestId } = mount("narrow");
     await act(async () => {});
     expect(getByTestId("chat-panel").getAttribute("data-session-enabled")).toBe("true");
+  });
+});
+
+describe("terminal tool observations", () => {
+  it("forwards the Library receipt bridge to its chat panel", () => {
+    const callback = () => {};
+    render(dock(true, callback));
+    expect(terminalToolCallbacks).toContain(callback);
   });
 });
 
