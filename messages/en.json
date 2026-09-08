@@ -747,7 +747,7 @@
     "archHelpBody": "Open the Apple menu in the top-left corner and choose About This Mac. If \"Chip\" begins with Apple M, you have Apple Silicon; if \"Processor\" says Intel, you have Intel.",
     "demoHeading": "A map you keep with an AI agent",
     "demoEyebrow": "Demo",
-    "evidenceEyebrow": "Evidence",
+    "evidenceEyebrow": "Map",
     "agentsEyebrow": "Agents",
     "demoPlay": "Play",
     "heroTitleLine1": "Agents write the code.",
@@ -799,7 +799,17 @@
     "col2Body": "Atlas read tools proceed inside the selected folder. Every Atlas write pauses on an exact change review, and access outside the folder asks first.",
     "col2Code": "Atlas read → allow · Atlas write → review",
     "col3Title": "What remains is markdown",
-    "col3Body": "No Atlas account or backend. The files remain plain markdown on your disk."
+    "col3Body": "No Atlas account or backend. The files remain plain markdown on your disk.",
+    "archEyebrow": "Architecture",
+    "archTitle": "The structure a person approved, against what an agent observed",
+    "archSub": "Seven layers reviewed by a person, the imports an agent measured between them, and the two that climb the wrong way, lit in red. A change that breaks the rule is visible before it is accepted.",
+    "archCaption": "This repository's own layer profile, with an inspection an agent recorded. Captured from the app.",
+    "archDoor": "Open the architecture",
+    "libraryEyebrow": "Library",
+    "libraryTitle": "Your documents, compiled into pages that say where each claim came from",
+    "librarySub": "Drop the folder's PDFs, spreadsheets and notes in, and an agent compiles wiki pages from them. Every page names its sources and their hash, so a page whose source moved shows it on the shelf before you open it.",
+    "libraryCaption": "A sample folder of four sources and six pages. Captured from the app.",
+    "libraryDoor": "Open the library"
   },
   "kinds": {
     "project": "Project",

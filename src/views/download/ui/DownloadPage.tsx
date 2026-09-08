@@ -30,6 +30,8 @@ import {
 import { StageMap, useStageGraph, type StageScriptedFocus } from './StageMap';
 import { GatewayFx } from './GatewayFx';
 import { HeroAtlas } from './HeroAtlas';
+import { AsciiMascot } from './AsciiMascot';
+import { SurfaceCapture } from './SurfaceCapture';
 import { AcpChatScene } from './AcpChatScene';
 import { useInViewOnce } from '../lib/use-in-view-once';
 import { useVisitorDesktopPlatform } from '../lib/visitor-platform';
@@ -197,8 +199,10 @@ export function DownloadPage() {
           winner={winner}
           graph={graph}
         />
-        <DemoSection />
         <EvidenceSection graph={graph} />
+        <SurfaceSection kind="arch" />
+        <SurfaceSection kind="library" />
+        <DemoSection />
         <AgentSection />
 
         {/*
@@ -604,6 +608,10 @@ function HeroSection({
                 SmartScreen warning are the honest sentence for that slot. */}
             {heroWindowsPrimary ? t('trustLineWindows') : t('trustLine')}
           </p>
+          {/* The character, typed in after the decision (2026-09-08): the same mascot the
+              chrome carries, in the gateway's own medium, under the trust line where the split
+              hero had empty ground. It states nothing; it is the signature under the sentence. */}
+          <AsciiMascot start={heroIn} className="mt-10" />
         </div>
 
       </div>
@@ -851,6 +859,44 @@ const FACT_LINK = controlClass({
 });
 
 // ─── ② Demo — plays itself once visible ─────────────────────────────────────
+
+/**
+ * The architecture and the library, each as a captured screen with a caption that names the
+ * folder on it (2026-09-08). They follow the map so the page reads as the product does: one
+ * folder, three readings — the map is live, the other two are shown as screens because a view
+ * may not mount another view.
+ */
+function SurfaceSection({ kind }: { kind: 'arch' | 'library' }) {
+  const t = useTranslations('download');
+  const isArch = kind === 'arch';
+  return (
+    <section
+      id={isArch ? 'architecture' : 'library'}
+      data-testid={isArch ? 'gateway-architecture-section' : 'gateway-library-section'}
+      className={cn(PAGE_GUTTER, SECTION_GAP, 'w-full scroll-mt-24')}
+    >
+      <div className={cn(PAGE_COLUMN, 'min-w-0')}>
+        <SectionIntro
+          eyebrow={t(isArch ? 'archEyebrow' : 'libraryEyebrow')}
+          title={t(isArch ? 'archTitle' : 'libraryTitle')}
+          sub={t(isArch ? 'archSub' : 'librarySub')}
+        />
+        <div className="gateway-scroll-stage mt-9">
+          <SurfaceCapture
+            testId={isArch ? 'gateway-architecture-capture' : 'gateway-library-capture'}
+            src={isArch ? '/gateway/architecture.png' : '/gateway/library.png'}
+            width={1336}
+            height={860}
+            alt={t(isArch ? 'archTitle' : 'libraryTitle')}
+            caption={t(isArch ? 'archCaption' : 'libraryCaption')}
+            href={isArch ? '/architecture' : '/library'}
+            door={t(isArch ? 'archDoor' : 'libraryDoor')}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function DemoSection() {
   const t = useTranslations('download');

@@ -1024,6 +1024,10 @@ already looks: `pnpm knip` for dead files, exports and types across every scope,
 the brand and motion contracts, the semantic recovery command for concurrently
 edited ledgers, and the agent-runtime snapshot a release refuses to ship stale.
 
+The download page's typed mascot is a generated asset: `pnpm brand:mascot-ascii`
+rewrites `src/views/download/lib/mascot-ascii.generated.ts` from the committed
+pixel masters, and `pnpm brand:mascot-ascii:check` fails when it is stale.
+
 ## Documentation
 
 - **Use the product:** [hosted guide](https://ontologyatlas.com/en/guide/) ·

@@ -115,7 +115,7 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
   const accentBright = new THREE.Color(cssVar(rootEl, '--color-indigo-accent', '#7170ff'));
   const ink = new THREE.Color(cssVar(rootEl, '--color-text-primary', '#f7f8f8'));
   const inkSoft = new THREE.Color(cssVar(rootEl, '--color-text-tertiary', '#8a8b93'));
-  const inkDim = new THREE.Color(cssVar(rootEl, '--color-text-quaternary', '#5b5b66'));
+  const inkDim = new THREE.Color(cssVar(rootEl, '--color-text-quaternary', '#61626c'));
 
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));

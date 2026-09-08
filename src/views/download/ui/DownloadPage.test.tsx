@@ -555,9 +555,10 @@ describe('DownloadPage', () => {
    * ⑤ install and download was deleted (owner: *"Looks like this last one isn't needed? It's all at the top anyway."* — the last one can go; it's all at the top anyway). So **the decision is in the first
    * section**: the download button lives in the hero, and the three sections after it are the
    * argument for that decision. The property this test protects is the argument order
-   * (problem → something moving → evidence → agents), and that property survives one section going away.
+   * (problem → the three readings, map then architecture then library → something moving → agents),
+   * and that property survives one section going away.
    */
-  it('walks problem → demo → evidence → agents, with the decision in the first screen', () => {
+  it('walks problem → map → architecture → library → demo → agents, with the decision in the first screen', () => {
     publishRelease();
     renderDownloadPage();
 
@@ -569,12 +570,19 @@ describe('DownloadPage', () => {
     // re-enactment of the in-app (ACP) conversation — the fourth slot of the order contract is unchanged.
     const terminal = screen.getByTestId('gateway-agent-chat');
     const colophon = screen.getByTestId('download-bottom-band');
+    // 2026-09-08: the three readings of one folder come before the demo — the live map, then
+    // the architecture and the library as captured screens — so the page reads as the product
+    // does, and the demo shows it moving once a person knows what is in it.
+    const architecture = screen.getByTestId('gateway-architecture-capture');
+    const library = screen.getByTestId('gateway-library-capture');
 
     for (const [earlier, later] of [
       [heading, primaryCta],
-      [primaryCta, demo],
-      [demo, caption],
-      [caption, terminal],
+      [primaryCta, caption],
+      [caption, architecture],
+      [architecture, library],
+      [library, demo],
+      [demo, terminal],
       [terminal, colophon],
     ] as const) {
       expect(

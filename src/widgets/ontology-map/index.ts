@@ -34,4 +34,4 @@ export { OntologyMapEdgePanel } from './ui/OntologyMapEdgePanel';
  * internals; the gateway consumes the coordinates and draws nothing of the map's chrome.
  */
 export { buildDomeModel } from './model/dome-view';
-export type { DomeArrangement, DomeCoord, DomeInputNode, DomeViewKind } from './model/dome-view';
+export type { DomeInputNode, DomeViewKind } from './model/dome-view';
