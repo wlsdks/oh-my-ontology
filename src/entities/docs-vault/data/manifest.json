@@ -838,7 +838,7 @@
       "frontmatter": {},
       "headings": [],
       "excerpt": "Major change history. Code commit messages answer why; this file answers when / which surface changed, for a person who uses the product. Newest at the top. One entry per release, named by its tag; the single Unreleased entry at the top collects what has merged since the last tag, and the release cut renames it. v1.0.0",
-      "wordCount": 29938,
+      "wordCount": 29953,
       "updatedAt": "2026-09-08",
       "linksOut": []
     },
@@ -889,9 +889,9 @@
       "tags": [],
       "frontmatter": {},
       "headings": [],
-      "excerpt": "Current scenario: one localized page clip · 44 seconds · one take · no speed changes · no audio · recorded separately in Korean and English. The X export is a separate Korean 23-second LNB overview and is not part of the page registry. The playback contract lives in src/views/download/ui/DemoStage.tsx. Asset registrati",
-      "wordCount": 1706,
-      "updatedAt": "2026-09-01",
+      "excerpt": "Current scenario: one localized page clip · 55 seconds · one take · no speed changes · no audio · recorded separately in Korean and English. The X export is a separate Korean 23-second LNB overview and is not part of the page registry. The playback contract lives in src/views/download/ui/DemoStage.tsx. Asset registrati",
+      "wordCount": 1953,
+      "updatedAt": "2026-09-08",
       "linksOut": []
     },
     {
