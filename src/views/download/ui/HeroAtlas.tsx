@@ -28,11 +28,24 @@ const subscribePhone = (onChange: () => void): (() => void) => {
 };
 const readPhone = (): boolean => typeof matchMedia === 'function' && matchMedia(HERO_PHONE_MEDIA).matches;
 
-/** True once a WebGL context can be made here; false hands the stage to the 2D engine. */
-function webglAvailable(): boolean {
+/**
+ * True when WebGL is here **and hardware-backed**; false hands the stage to the 2D engine.
+ *
+ * A software renderer (SwiftShader, llvmpipe — headless browsers, some virtual machines) draws
+ * the scene at ~22 fps on the main thread, and that starves everything else on the page: the
+ * headline's typing (`setInterval` at 38 ms) measured 4.5 s instead of 1.8 s. The 2D engine costs
+ * a fraction of that, so it is the honest choice there. `?hero=three` forces the scene for
+ * measurement (the grid gate reads the WebGL object's ink under the type).
+ */
+function webglAccelerated(): boolean {
   try {
+    if (new URLSearchParams(window.location.search).get('hero') === 'three') return true;
     const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') ?? c.getContext('webgl'));
+    const gl = c.getContext('webgl2') ?? c.getContext('webgl');
+    if (!gl) return false;
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+    return !/swiftshader|llvmpipe|softpipe|software/i.test(renderer);
   } catch {
     return false;
   }
@@ -64,7 +77,7 @@ export function HeroAtlas({ graph, typed, total }: { graph: StageGraph; typed: n
     // Decided off the effect body (a probe plus a chunk load), so the mode lands in a callback:
     // no WebGL, or a chunk that fails to load, hands the stage to the 2D engine.
     Promise.resolve()
-      .then(() => (webglAvailable() ? import('../lib/hero-atlas-scene') : Promise.reject(new Error('no webgl'))))
+      .then(() => (webglAccelerated() ? import('../lib/hero-atlas-scene') : Promise.reject(new Error('no webgl'))))
       .then(
         () => {
           if (!cancelled) setMode('three');
@@ -151,7 +164,12 @@ export function HeroAtlas({ graph, typed, total }: { graph: StageGraph; typed: n
   const caption = factLine && hovered ? `${tKinds(hovered.kind)} · ${factLine}` : factLine;
 
   return (
-    <div aria-hidden="true" data-testid="gateway-hero-object" className="gateway-hero-stage absolute inset-0 min-w-0 overflow-hidden">
+    <div
+      aria-hidden="true"
+      data-testid="gateway-hero-object"
+      data-hero-engine={mode === 'three' ? 'three' : 'pending'}
+      className="gateway-hero-stage absolute inset-0 min-w-0 overflow-hidden"
+    >
       {/* The spotlight: a soft pool of the accent behind the object's anchor, so the tree stands
           in light rather than on black. Tokens only (`.gateway-hero-atlas-wash`); it does not move. */}
       <div className={cn('gateway-hero-atlas-wash absolute inset-0', wide ? 'is-wide' : undefined)} />

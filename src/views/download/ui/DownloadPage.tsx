@@ -30,6 +30,7 @@ import {
 import { StageMap, useStageGraph, type StageScriptedFocus } from './StageMap';
 import { GatewayFx } from './GatewayFx';
 import { HeroAtlas } from './HeroAtlas';
+import { HeroMacMenu } from './HeroMacMenu';
 import { SurfaceCapture } from './SurfaceCapture';
 import { AcpChatScene } from './AcpChatScene';
 import { useInViewOnce } from '../lib/use-in-view-once';
@@ -487,34 +488,61 @@ function HeroSection({
             the canvas bottom, which in turn made the object look pushed down). Now that the CTA
             wraps to two lines and the block is closer to the canvas height, plain `items-center`
             is also optically correct. */}
-        <div className="pointer-events-auto min-w-0 max-w-[40rem]">
+        {/* The block is the row's width (48rem, three controls in one line in English at the
+            split); the lead keeps its own 40rem measure. */}
+        <div className="pointer-events-auto min-w-0 max-w-[48rem]">
           <p
             className={cn(
               rise('gateway-t240'),
-              'break-keep text-title font-normal leading-title text-[color:var(--color-text-secondary)]',
+              'max-w-[40rem] break-keep text-title font-normal leading-title text-[color:var(--color-text-secondary)]',
             )}
           >
             {t('heroLead')}
           </p>
 
+          {/*
+           * Three controls, one row (owner, 2026-09-08: *"too many buttons — Mac opens Silicon
+           * and Intel, one Windows, one playground; the demo button goes"*). The winner is the
+           * filled one and follows the visitor's platform; the other two stand beside it as
+           * outlines of the same height. The Mac file is a menu because a browser cannot tell
+           * which chip a Mac has (`HeroMacMenu`); the demo needs no button now that it is the
+           * second section. Before this the hero held five controls across three rows.
+           */}
           <div className={cn(rise('gateway-t320'), 'mt-9 flex flex-wrap items-center gap-3')}>
             {fileWins ? (
-              /* The filled CTA — a direct link to the real file. Since the install section was
-                 deleted on 2026-08-19 this is the **only** primary download on the page. The file
-                 follows the visitor's platform — the defect this branch fixes was a Windows
-                 visitor seeing only "get it for Apple Silicon". */
-              <a
-                href={heroWindowsPrimary ? windowsInstaller!.downloadUrl : primaryAsset.downloadUrl}
-                data-testid="gateway-hero-cta"
-                className={cn(buttonVariants({ size: 'lg' }), 'rounded-chip px-6', HERO_CTA_WRAP)}
-              >
-                <Download size={ICON_SIZE.lg} aria-hidden />
-                {heroWindowsPrimary ? t('windowsDownloadCta') : t('primaryCtaPublished')}
-                <AssetSize
-                  bytes={heroWindowsPrimary ? windowsInstaller!.sizeBytes : primaryAsset.sizeBytes}
-                  onFill
-                />
-              </a>
+              heroWindowsPrimary ? (
+                <>
+                  <a
+                    href={windowsInstaller!.downloadUrl}
+                    data-testid="gateway-hero-cta"
+                    className={cn(buttonVariants({ size: 'lg' }), 'rounded-chip px-6', HERO_CTA_WRAP)}
+                  >
+                    <Download size={ICON_SIZE.lg} aria-hidden />
+                    {t('windowsDownloadCta')}
+                    <AssetSize bytes={windowsInstaller!.sizeBytes} onFill />
+                  </a>
+                  <HeroMacMenu variant="outline" testId="gateway-hero-mac" />
+                </>
+              ) : (
+                <>
+                  <HeroMacMenu variant="primary" testId="gateway-hero-cta" />
+                  {windowsInstaller ? (
+                    /* Signing status is a fact you need before downloading, so the `unsigned`
+                       marker rides on the button. */
+                    <a
+                      href={windowsInstaller.downloadUrl}
+                      data-testid="gateway-hero-windows"
+                      className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'rounded-chip px-4 sm:px-6', HERO_CTA_WRAP)}
+                    >
+                      <Download size={ICON_SIZE.lg} aria-hidden />
+                      {t('heroWindowsCta')}
+                      <span className="font-mono text-label leading-label text-[color:var(--color-text-tertiary)]">
+                        {t('windowsUnsignedShort')}
+                      </span>
+                    </a>
+                  ) : null}
+                </>
+              )
             ) : (
               /* With nothing to download — or nothing this device can install — the winner is
                  what does work: the map in the browser. */
@@ -526,75 +554,17 @@ function HeroSection({
                 {t('webCta')}
               </Link>
             )}
-            {/* `outline` — ghost has neither a face nor a border and read as prose (owner: *"I can't even tell it's a button"* — I can't even tell it's a button). Something pressable has to look
-                pressable, and in this ramp `outline` is the minimum unit of that. */}
-            <a
-              href="#demo"
-              data-testid="gateway-hero-demo-link"
-              className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'rounded-chip px-4 sm:px-6', HERO_CTA_WRAP)}
-            >
-              {t('heroDemoCta')}
-            </a>
+            {/* The gateway's second promise — the path to look without installing is always open. */}
+            {fileWins ? (
+              <Link
+                href="/topology"
+                data-testid="gateway-hero-web-cta"
+                className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'rounded-chip px-4 sm:px-6', HERO_CTA_WRAP)}
+              >
+                {t('heroPlaygroundCta')}
+              </Link>
+            ) : null}
           </div>
-
-          {published && primaryAsset ? (
-            /* The second row — every destination that is not the winner, one step down (`md`, h-10
-               vs h-11). Only the primary CTA carries a size: decision material belongs to the
-               winner. The `unsigned` marker on Windows cannot be dropped even here, because
-               signing status is a fact you need before downloading.
-
-               The `px-3` below `sm` is arithmetic, not taste (measured 2026-08-19). At 320px in
-               `en` the "Download Windows x64 beta + unsigned" button broke 8px past the screen, and
-               because `gateway-fx-stage` is `overflow-hidden` it was **simply clipped, with no
-               scrollbar**. Returning 4px on each side fits it exactly. All four drop **together**
-               because exits standing side by side with differing padding is a defect this
-               repository already caught once (the squeezed padding of 2026-08-08).
-               Gate: the 320px overflow test in `download-gateway-grid.spec.ts`. */
-            <div
-              data-testid="gateway-hero-alt-row"
-              className={cn(rise('gateway-t320'), 'mt-2.5 flex flex-wrap items-center gap-2.5')}
-            >
-              {heroWindowsPrimary || !fileWins ? (
-                <a
-                  href={primaryAsset.downloadUrl}
-                  data-testid="gateway-hero-macos-aarch64"
-                  className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'touch-hit-expand rounded-chip px-3 sm:px-4', HERO_CTA_WRAP)}
-                >
-                  <Download size={ICON_SIZE.md} aria-hidden />
-                  {t('primaryCtaPublished')}
-                </a>
-              ) : null}
-              <HeroIntelLink />
-              {!heroWindowsPrimary && windowsInstaller ? (
-                <a
-                  href={windowsInstaller.downloadUrl}
-                  data-testid="gateway-hero-windows"
-                  className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'touch-hit-expand rounded-chip px-3 sm:px-4', HERO_CTA_WRAP)}
-                >
-                  <Download size={ICON_SIZE.md} aria-hidden />
-                  {t('windowsDownloadCta')}
-                  <span className="font-mono text-label leading-label text-[color:var(--color-text-tertiary)]">
-                    {t('windowsUnsignedShort')}
-                  </span>
-                </a>
-              ) : null}
-              {/* The gateway's second promise — the path to look without installing is always open.
-                  The old `webCta` lived only in the unpublished branch, so now that a release is
-                  published it never appeared at all (owner: *"The web playground button is missing"
-                  — the web playground button is missing). The label is shorter than `webCta`'s
-                  because of the line budget: a longer label drops this line alone onto a third row
-                  in the 575px Korean measure (measured at 1512). */}
-              {fileWins ? (
-                <Link
-                  href="/topology"
-                  data-testid="gateway-hero-web-cta"
-                  className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'touch-hit-expand rounded-chip px-3 sm:px-4', HERO_CTA_WRAP)}
-                >
-                  {t('heroWebCta')}
-                </Link>
-              ) : null}
-            </div>
-          ) : null}
 
           <p
             className={cn(
@@ -635,29 +605,6 @@ function HeroSection({
         />
       ) : null}
     </section>
-  );
-}
-
-/**
- * The Intel Mac file on the hero's second row — always present, regardless of the detection
- * branch. A browser cannot tell which chip a Mac has (see the architecture note), so Apple
- * Silicon is the default and Intel stays reachable by **being permanently visible** rather than
- * by detection.
- */
-function HeroIntelLink() {
-  const t = useTranslations('download');
-  const intel = macosAssetFor('x64');
-  if (!intel) return null;
-
-  return (
-    <a
-      href={intel.downloadUrl}
-      data-testid="gateway-hero-macos-x64"
-      className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'touch-hit-expand rounded-chip px-3 sm:px-4', HERO_CTA_WRAP)}
-    >
-      <Download size={ICON_SIZE.md} aria-hidden />
-      {t('archIntelCta')}
-    </a>
   );
 }
 

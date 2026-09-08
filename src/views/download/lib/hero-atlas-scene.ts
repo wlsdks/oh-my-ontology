@@ -135,7 +135,9 @@ export function mountHeroAtlas(canvas: HTMLCanvasElement, data: AtlasData, opts:
   const inkDim = new THREE.Color(cssVar(rootEl, '--color-text-quaternary', '#61626c'));
 
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  // 1.5 is where a sphere's edge stops showing steps on a Retina display; 2 doubles the fill
+  // cost for nothing a reader can see through the fog.
+  renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
 

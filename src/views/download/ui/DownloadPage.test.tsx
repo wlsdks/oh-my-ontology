@@ -1,4 +1,4 @@
-import { render, renderHook, screen } from '@testing-library/react';
+import { fireEvent, render, renderHook, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -251,17 +251,25 @@ describe('DownloadPage', () => {
      * link) lost their subject and were removed. The checksum is now nowhere on this page
      * (`docs/DECISIONS.md` 2026-08-19 — the owner accepted that cost).
      */
-    it('offers a direct per-architecture download with its real size', () => {
+    it('offers both Mac files with their real sizes behind one Mac control', () => {
       renderDownloadPage();
 
-      const appleSilicon = screen.getByTestId('gateway-hero-cta');
+      // The winner is one control for the whole Mac line (owner, 2026-09-08: "press Mac and get
+      // Silicon and Intel"); a browser cannot tell which chip a Mac has, so the choice is a menu
+      // under it, and each row is the real file with its real size.
+      const mac = screen.getByTestId('gateway-hero-cta');
+      expect(mac).toHaveAttribute('aria-haspopup', 'menu');
+      expect(mac).toHaveTextContent(/Download for Mac/i);
+      expect(screen.queryByTestId('gateway-hero-macos-aarch64')).toBeNull();
+      fireEvent.click(mac);
+      expect(mac).toHaveAttribute('aria-expanded', 'true');
+
+      const appleSilicon = screen.getByTestId('gateway-hero-macos-aarch64');
       expect(appleSilicon).toHaveAttribute(
         'href',
         `https://github.com/wlsdks/ontology-atlas/releases/download/v${RELEASE_VERSION}/ontology-atlas_${RELEASE_VERSION}_aarch64.dmg`,
       );
-      // The size is a **separate span**, not part of the label string — the same grammar as the
-      // Intel button, and below `sm` only that span drops, which removes the horizontal overflow.
-      expect(appleSilicon).toHaveTextContent(/Download for Apple Silicon/i);
+      expect(appleSilicon).toHaveTextContent(/Apple Silicon/i);
       // 13,002,342 B → 13.0 MB (decimal) — the same unit Finder reports.
       expect(appleSilicon).toHaveTextContent(/13\.0 MB/);
       expect(screen.getByTestId('gateway-hero-macos-x64')).toHaveAttribute(
@@ -269,53 +277,46 @@ describe('DownloadPage', () => {
         `https://github.com/wlsdks/ontology-atlas/releases/download/v${RELEASE_VERSION}/ontology-atlas_${RELEASE_VERSION}_x64.dmg`,
       );
       // There is **one** filled accent in the whole document.
-      const filled = Array.from(document.querySelectorAll('a[class*="--color-indigo-brand"]'));
+      const filled = Array.from(document.querySelectorAll('a[class*="--color-indigo-brand"], button[class*="--color-indigo-brand"]'));
       expect(filled.map((el) => el.getAttribute('data-testid'))).toEqual(['gateway-hero-cta']);
-      expect(screen.getByTestId('gateway-hero-macos-x64').className).not.toMatch(
-        /--color-indigo-brand/,
-      );
     });
 
     /**
-     * The hero CTA's four destinations (owner 2026-08-18: the hero had no Windows download button
-     * and no button to the web, and the demo did not read as a button) — ① get it for my platform
-     * (filled, the sole winner) ② the demo ③ every other desktop file ④ the browser map. All four
-     * must stay reachable even on the detection fallback (macOS).
+     * The hero's three destinations (owner 2026-09-08: *"Mac, one Windows, one playground — the
+     * demo button goes"*) — ① the file for my platform (filled, the sole winner) ② the other
+     * desktop file ③ the browser playground. All three stay reachable on the detection fallback
+     * (macOS), and nothing else stands in the row.
      */
-    it('hero reaches every desktop file, the demo, and the browser map — one filled winner', () => {
+    it('hero holds exactly the Mac control, the Windows file, and the playground — one filled winner', () => {
       publishWindowsRelease();
       renderDownloadPage();
 
       const primary = screen.getByTestId('gateway-hero-cta');
-      expect(primary).toHaveAttribute('href', expect.stringMatching(/_aarch64\.dmg$/));
+      expect(primary).toHaveAttribute('aria-haspopup', 'menu');
       expect(primary.className).toMatch(/--color-indigo-brand/);
 
-      const demo = screen.getByTestId('gateway-hero-demo-link');
-      expect(demo).toHaveAttribute('href', '#demo');
-      // Not ghost — it needs a face (overlay) and a border to read as "something pressable"
-      // (owner: "I can't even tell it's a button").
-      expect(demo.className).toMatch(/--color-overlay-1/);
-
-      expect(screen.getByTestId('gateway-hero-macos-x64')).toHaveAttribute(
-        'href',
-        expect.stringMatching(/_x64\.dmg$/),
-      );
+      // The demo has no button: it is the page's second section now.
+      expect(screen.queryByTestId('gateway-hero-demo-link')).toBeNull();
+      expect(screen.queryByTestId('gateway-hero-alt-row')).toBeNull();
 
       const windows = screen.getByTestId('gateway-hero-windows');
       expect(windows).toHaveAttribute(
         'href',
         expect.stringMatching(/_windows_x64-setup\.exe$/),
       );
-      // Signing status is a fact you need **before** downloading — the marker is not dropped even
-      // on the demoted button (the full warning and checksum lived in the install section's
-      // `PlatformStatus`).
+      // Signing status is a fact you need **before** downloading — the marker rides on the button.
       expect(windows).toHaveTextContent(/unsigned/i);
 
       const web = screen.getByTestId('gateway-hero-web-cta');
       expect(web).toHaveAttribute('href', '/topology');
+      expect(web).toHaveTextContent(/playground/i);
+
+      // The row holds three controls and nothing more.
+      const row = primary.parentElement!.parentElement!;
+      expect(row.querySelectorAll(':scope > a, :scope > div > button')).toHaveLength(3);
 
       // The hero has **one** filled winner — everything else is a step down.
-      for (const secondary of [demo, windows, web, screen.getByTestId('gateway-hero-macos-x64')]) {
+      for (const secondary of [windows, web]) {
         expect(secondary.className).not.toMatch(/--color-indigo-brand/);
       }
     });
@@ -353,7 +354,10 @@ describe('DownloadPage', () => {
           /Get-FileHash ontology-atlas_.*_windows_x64-setup\.exe -Algorithm SHA256/,
         );
 
-        // The macOS files do not disappear; they move one step down.
+        // The Mac files do not disappear; they move one step down, behind the same Mac control.
+        const mac = screen.getByTestId('gateway-hero-mac');
+        expect(mac.className).not.toMatch(/--color-indigo-brand/);
+        fireEvent.click(mac);
         expect(screen.getByTestId('gateway-hero-macos-aarch64')).toHaveAttribute(
           'href',
           expect.stringMatching(/_aarch64\.dmg$/),
@@ -377,10 +381,7 @@ describe('DownloadPage', () => {
       try {
         renderDownloadPage();
 
-        expect(screen.getByTestId('gateway-hero-cta')).toHaveAttribute(
-          'href',
-          expect.stringMatching(/_aarch64\.dmg$/),
-        );
+        expect(screen.getByTestId('gateway-hero-cta')).toHaveTextContent(/Download for Mac/i);
         expect(screen.queryByTestId('gateway-hero-windows')).not.toBeInTheDocument();
         expect(screen.getByTestId('gateway-hero-web-cta')).toHaveAttribute('href', '/topology');
       } finally {

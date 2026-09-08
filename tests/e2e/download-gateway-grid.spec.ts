@@ -605,11 +605,20 @@ test.describe("the decision block reads over the stage at every split width", ()
   /* 1280 and 1366 sit below the 90rem split (the plinth), 1440 is its first band, 1512 the owner's
      laptop. The council measured 8–16% lit under the type at 1280–1366 while the split opened at
      80rem; the split moved and these widths now guard it. */
+  /* Both engines draw this stage: the 2D engine is what a software renderer (this headless
+     browser) gets, and `?hero=three` forces the WebGL object a hardware-backed browser gets
+     (`HeroAtlas`). The type must stay clear of either. */
+  for (const engine of ["2d", "three"] as const) {
   for (const width of [1024, 1100, 1280, 1366, 1440, 1512]) {
-    test(`${width}px — every destination keeps its row, and the type stays clear of the ink`, async ({ page }) => {
+    test(`${width}px (${engine}) — every destination keeps its row, and the type stays clear of the ink`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await seedFirstRunSeen(page);
-      await page.goto("/en/download/", { waitUntil: "load" });
+      await page.goto(engine === "three" ? "/en/download/?hero=three" : "/en/download/", { waitUntil: "load" });
+      if (engine === "three") {
+        await page.waitForFunction(
+          () => document.querySelector('[data-testid="gateway-hero-object"]')?.getAttribute("data-hero-engine") === "three",
+        );
+      }
       await page.evaluate(() => document.fonts.ready);
       /* The echo lights the last dot with the last character (~2.5s); measure the settled stage. */
       await page.waitForTimeout(3200);
@@ -672,5 +681,6 @@ test.describe("the decision block reads over the stage at every split width", ()
       expect(m.inkUnderHeadline, `ink under the headline at ${width}`).toBeLessThanOrEqual(0.03);
       expect(m.inkUnderBlock, `ink under the decision block at ${width}`).toBeLessThanOrEqual(0.06);
     });
+  }
   }
 });
