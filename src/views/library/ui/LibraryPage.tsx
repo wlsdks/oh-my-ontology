@@ -82,6 +82,7 @@ import { getTauriVaultRootPath, revealTauriVaultFile } from "@/shared/lib/tauri-
 import { controlClass } from "@/shared/ui/control-class";
 import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { PAGE_COLUMN_STAGE } from "@/shared/ui/page-frame";
+import { TOAST_TOP_OFFSET_UNDER_LIBRARY_PANE_CHROME_PX } from "@/shared/ui/toast-position";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 import { Tooltip, TooltipProvider, useToast } from "@/shared/ui";
 
@@ -230,6 +231,23 @@ export function LibraryPage() {
   useEffect(() => {
     latestSelectedRef.current = selected;
   }, [selected]);
+  /*
+   * Stand the toaster over the canvas, the way the map already stands its own. The
+   * toaster is top-centred on the viewport and this pane stacks 160px of chrome there —
+   * the reserved work lane, then the graph's header row — so at the default 16px the
+   * box came to rest two pixels into the receipt row, and clearing only the lane simply
+   * moved it onto the header row instead. The constant carries both measurements.
+   */
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty(
+      "--app-toast-top-offset",
+      `${TOAST_TOP_OFFSET_UNDER_LIBRARY_PANE_CHROME_PX}px`,
+    );
+    return () => {
+      root.style.removeProperty("--app-toast-top-offset");
+    };
+  }, []);
   const [shelfOpen, setShelfOpen] = useState(false);
   /** Set when a page opened on its own (a check ending), so the focus stays where the person had it. */
   const skipReaderFocusRef = useRef(false);
