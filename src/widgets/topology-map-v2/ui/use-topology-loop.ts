@@ -3947,8 +3947,7 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
           // (`expressive/release-offsets.ts`; the loop only owns the refs).
           const massTokens = {
             heavyDegree: tokens.massHeavyDegree,
-            lightAngFreq: tokens.massLightAngFreq,
-            heavyAngFreq: tokens.massHeavyAngFreq,
+            angFreq: tokens.massAngFreq,
             heavyZeta: tokens.massHeavyZeta,
           };
           const springFor = (id: string) => springForDegree(world.neighborMap.get(id)?.size ?? 0, massTokens);

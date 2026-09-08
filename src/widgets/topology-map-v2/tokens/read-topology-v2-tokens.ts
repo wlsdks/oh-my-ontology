@@ -231,10 +231,8 @@ export interface TopologyV2Tokens {
   dragTugRadius: number;
   /** `--topology-v2-mass-heavy-degree` — degree at which a node is fully heavy (`expressive/mass-spring.ts`). */
   massHeavyDegree: number;
-  /** `--topology-v2-mass-light-angfreq` — release spring ω for a weightless node (ζ=1). */
-  massLightAngFreq: number;
-  /** `--topology-v2-mass-heavy-angfreq` — release spring ω for a fully heavy node. */
-  massHeavyAngFreq: number;
+  /** `--topology-v2-mass-angfreq` — ω of every release spring; mass rides ζ, not ω (`expressive/mass-spring.ts`). */
+  massAngFreq: number;
   /** `--topology-v2-mass-heavy-zeta` — release spring ζ for a fully heavy node (below 1: one overshoot). */
   massHeavyZeta: number;
   /** `--topology-v2-mass-drop-max-px` — the farthest a released node may carry past its drop point (world units). */
@@ -243,6 +241,8 @@ export interface TopologyV2Tokens {
   egoGlowBlurPx: number;
   /** `--topology-v2-ego-glow-alpha` — alpha of the glow under the focused node's relation lines. */
   egoGlowAlpha: number;
+  /** `--topology-v2-node-bloom-blur-px` — canvas shadow blur (px) of the bloom disc itself, wider than the line glow. */
+  nodeBloomBlurPx: number;
   /** `--topology-v2-node-bloom-alpha` — alpha of the blurred indigo disc under the focused or hovered node. */
   nodeBloomAlpha: number;
   /** `--topology-v2-press-angfreq` — ω of the hover press step response. */
@@ -404,12 +404,12 @@ const TOKEN_SPECS: readonly TokenSpec[] = [
   { key: "dragTug2Hop", cssVar: "--topology-v2-drag-tug-2hop", kind: "number" },
   { key: "dragTugRadius", cssVar: "--topology-v2-drag-tug-radius", kind: "number" },
   { key: "massHeavyDegree", cssVar: "--topology-v2-mass-heavy-degree", kind: "number" },
-  { key: "massLightAngFreq", cssVar: "--topology-v2-mass-light-angfreq", kind: "number" },
-  { key: "massHeavyAngFreq", cssVar: "--topology-v2-mass-heavy-angfreq", kind: "number" },
+  { key: "massAngFreq", cssVar: "--topology-v2-mass-angfreq", kind: "number" },
   { key: "massHeavyZeta", cssVar: "--topology-v2-mass-heavy-zeta", kind: "number" },
   { key: "massDropMaxPx", cssVar: "--topology-v2-mass-drop-max-px", kind: "number" },
   { key: "egoGlowBlurPx", cssVar: "--topology-v2-ego-glow-blur-px", kind: "number" },
   { key: "egoGlowAlpha", cssVar: "--topology-v2-ego-glow-alpha", kind: "number" },
+  { key: "nodeBloomBlurPx", cssVar: "--topology-v2-node-bloom-blur-px", kind: "number" },
   { key: "nodeBloomAlpha", cssVar: "--topology-v2-node-bloom-alpha", kind: "number" },
   { key: "pressAngFreq", cssVar: "--topology-v2-press-angfreq", kind: "number" },
   { key: "pressZeta", cssVar: "--topology-v2-press-zeta", kind: "number" },

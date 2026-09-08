@@ -11,7 +11,7 @@ import {
   stepLagOffset,
 } from "./release-offsets";
 
-const TOKENS = { heavyDegree: 12, lightAngFreq: 16, heavyAngFreq: 16, heavyZeta: 0.55 };
+const TOKENS = { heavyDegree: 12, angFreq: 16, heavyZeta: 0.55 };
 
 describe("release offsets — one call per node per frame", () => {
   it("a live drag lags on the exponential and records the velocity it moved at", () => {

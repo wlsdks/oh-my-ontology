@@ -6,6 +6,7 @@ const TOKENS = {
   indigo: "#5e6ad2",
   indigoBright: "#787ef6",
   egoGlowBlurPx: 22,
+  nodeBloomBlurPx: 31,
   egoGlowAlpha: 0.55,
   nodeBloomAlpha: 0.35,
 };

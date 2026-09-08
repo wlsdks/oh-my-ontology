@@ -22,6 +22,8 @@ export interface EgoLightTokens {
   egoGlowBlurPx: number;
   /** `--topology-v2-ego-glow-alpha` */
   egoGlowAlpha: number;
+  /** `--topology-v2-node-bloom-blur-px` */
+  nodeBloomBlurPx: number;
   /** `--topology-v2-node-bloom-alpha` */
   nodeBloomAlpha: number;
 }
@@ -48,13 +50,13 @@ export function drawNodeBloom(
   ctx: CanvasRenderingContext2D,
   disc: ScreenDisc,
   ramp: number,
-  tokens: Pick<EgoLightTokens, "indigo" | "indigoBright" | "egoGlowBlurPx" | "nodeBloomAlpha">,
+  tokens: Pick<EgoLightTokens, "indigo" | "indigoBright" | "nodeBloomBlurPx" | "nodeBloomAlpha">,
 ): void {
   const k = clamp01(ramp);
   if (k <= 0.001) return;
   const prevAlpha = ctx.globalAlpha;
   ctx.shadowColor = hexWithAlpha(tokens.indigoBright, 0.9 * k);
-  ctx.shadowBlur = tokens.egoGlowBlurPx * 1.4 * k;
+  ctx.shadowBlur = tokens.nodeBloomBlurPx * k;
   ctx.fillStyle = hexWithAlpha(tokens.indigo, tokens.nodeBloomAlpha * k);
   ctx.beginPath();
   ctx.arc(disc.x, disc.y, disc.r * 1.05, 0, Math.PI * 2);

@@ -8,7 +8,11 @@
  * the picture never said which was heavy. This module is the pure math: a
  * node's **mass** is its degree on a smoothstep, a heavy node's release spring
  * is underdamped (it overshoots once and takes longer to sit), a light node's
- * is critical (it snaps). The same second-order step drives the **drop** of a
+ * is critical (it snaps). Mass rides ζ alone; ω is one number for every node,
+ * because the integrator's proven stability bound and the ω the map wants are
+ * the same 16 (`spring-stability.contract.test.ts`).
+ *
+ * The same second-order step drives the **drop** of a
  * released node (it carries the hand's velocity a little way past the drop
  * point, capped so the excursion never exceeds one radius step) and the
  * **press** of a hovered node (an underdamped unit step, so the swell peaks
@@ -27,10 +31,15 @@ export interface SpringResponse {
 export interface MassTokens {
   /** Degree at which a node is fully heavy (`--topology-v2-mass-heavy-degree`). */
   heavyDegree: number;
-  /** ω for a weightless node (`--topology-v2-mass-light-angfreq`). */
-  lightAngFreq: number;
-  /** ω for a fully heavy node (`--topology-v2-mass-heavy-angfreq`). */
-  heavyAngFreq: number;
+  /**
+   * ω for every release spring (`--topology-v2-mass-angfreq`).
+   *
+   * One value, not a light/heavy pair: the stability bound proven in
+   * `spring-stability.contract.test.ts` is 16 at the 50 ms frame clamp, so both ends
+   * of a ramp would have to be 16 anyway and a pair of tokens holding one number
+   * would say mass lives in ω when it lives in ζ.
+   */
+  angFreq: number;
   /** ζ for a fully heavy node (`--topology-v2-mass-heavy-zeta`); light nodes are always critical. */
   heavyZeta: number;
 }
@@ -46,7 +55,7 @@ export function massForDegree(degree: number, heavyDegree: number): number {
 export function releaseSpringForMass(mass: number, tokens: MassTokens): SpringResponse {
   const m = Math.min(1, Math.max(0, mass));
   return {
-    omega: tokens.lightAngFreq + (tokens.heavyAngFreq - tokens.lightAngFreq) * m,
+    omega: tokens.angFreq,
     zeta: 1 + (tokens.heavyZeta - 1) * m,
   };
 }

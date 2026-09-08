@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { stepSpring } from "../engine/spring";
+
 import {
   clampDropVelocity,
   massForDegree,
@@ -10,7 +12,7 @@ import {
   stepDampedSpring,
 } from "./mass-spring";
 
-const TOKENS = { heavyDegree: 12, lightAngFreq: 16, heavyAngFreq: 16, heavyZeta: 0.55 };
+const TOKENS = { heavyDegree: 12, angFreq: 16, heavyZeta: 0.55 };
 
 describe("mass — degree on a smoothstep", () => {
   it("a leaf weighs nothing, a hub at the heavy degree weighs one", () => {
@@ -104,5 +106,28 @@ describe("drop — the hand's velocity is carried, capped to one radius step", (
     expect(vy).toBe(0);
     expect(peak).toBeLessThanOrEqual(14.5);
     expect(peak).toBeGreaterThan(8);
+  });
+});
+
+/**
+ * The formula, written twice, must stay one formula.
+ *
+ * `stepDampedSpring` re-implements `engine/spring.ts#stepSpring` so it can sub-step at
+ * 240 Hz without allocating a state object per sub-step — the drag path steps two axes
+ * for every node in the tug set on every frame. What duplication risks is drift, so the
+ * two are compared here at a dt small enough that sub-stepping does not apply.
+ */
+describe("the sub-stepped integrator agrees with the engine's spring", () => {
+  it("matches `stepSpring` step for step below the sub-step interval", () => {
+    const spring = { omega: 16, zeta: 0.55 };
+    let mine = { value: 12, velocity: -3 };
+    let engine = { value: 12, velocity: -3 };
+    const dt = 1 / 240;
+    for (let i = 0; i < 40; i += 1) {
+      mine = stepDampedSpring(mine.value, mine.velocity, 0, dt, spring);
+      engine = stepSpring(engine, 0, dt, spring.omega, spring.zeta);
+      expect(mine.value).toBeCloseTo(engine.value, 10);
+      expect(mine.velocity).toBeCloseTo(engine.velocity, 10);
+    }
   });
 });

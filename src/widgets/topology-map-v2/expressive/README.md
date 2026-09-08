@@ -22,10 +22,10 @@ All in `app/globals.css` under the `--topology-v2-*` ramp and read through
 | Token | Piece | Meaning |
 |---|---|---|
 | `mass-heavy-degree` | mass | degree at which a node is fully heavy |
-| `mass-light-angfreq` · `mass-heavy-angfreq` · `mass-heavy-zeta` | mass | the release spring's ω and ζ at the two ends of mass; ω stays under the stability bound `spring-stability.contract.test.ts` proves |
+| `mass-angfreq` · `mass-heavy-zeta` | mass | the release spring's ω (one value for every node, at the stability bound `spring-stability.contract.test.ts` proves) and its ζ at full mass |
 | `mass-drop-max-px` | drop | the farthest a released node carries past its drop point |
 | `press-angfreq` · `press-zeta` | press | the hovered node's underdamped step |
-| `ego-glow-blur-px` · `ego-glow-alpha` · `node-bloom-alpha` | light | the bloom under the focused or hovered node and the glow on its lines |
+| `ego-glow-blur-px` · `ego-glow-alpha` · `node-bloom-blur-px` · `node-bloom-alpha` | light | the bloom under the focused or hovered node and the glow on its lines |
 
 ## Contracts the pieces keep
 
