@@ -59,7 +59,10 @@ export function SurfaceCapture({
           href={href}
           className={cn(
             controlClass({ shape: 'link', size: 'md' }),
-            'font-mono text-[color:var(--color-indigo-text-soft)] underline decoration-[color:var(--color-indigo-a40)] underline-offset-4 hover:decoration-[color:var(--color-indigo-accent)]',
+            // `touch-hit-expand`: a link's own box is 24px tall, and a coarse pointer needs 44
+            // (`touch-target-contract.spec.ts`). The class buys the finger target without moving
+            // a pixel of layout — the same idiom the specimen's own link uses.
+            'touch-hit-expand font-mono text-[color:var(--color-indigo-text-soft)] underline decoration-[color:var(--color-indigo-a40)] underline-offset-4 hover:decoration-[color:var(--color-indigo-accent)]',
           )}
         >
           {door}
