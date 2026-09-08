@@ -559,7 +559,7 @@ describe('DownloadPage', () => {
    * (problem → the three readings, map then architecture then library → something moving → agents),
    * and that property survives one section going away.
    */
-  it('walks problem → map → architecture → library → demo → agents, with the decision in the first screen', () => {
+  it('walks problem → demo → map → architecture → library → agents, with the decision in the first screen', () => {
     publishRelease();
     renderDownloadPage();
 
@@ -571,19 +571,19 @@ describe('DownloadPage', () => {
     // re-enactment of the in-app (ACP) conversation — the fourth slot of the order contract is unchanged.
     const terminal = screen.getByTestId('gateway-agent-chat');
     const colophon = screen.getByTestId('download-bottom-band');
-    // 2026-09-08: the three readings of one folder come before the demo — the live map, then
-    // the architecture and the library as captured screens — so the page reads as the product
-    // does, and the demo shows it moving once a person knows what is in it.
+    // 2026-09-08 (owner): the demo is second — it moves before a person reads what is in it —
+    // then the three readings of one folder: the live map, the architecture and the library as
+    // captured screens, and the agents last.
     const architecture = screen.getByTestId('gateway-architecture-capture');
     const library = screen.getByTestId('gateway-library-capture');
 
     for (const [earlier, later] of [
       [heading, primaryCta],
-      [primaryCta, caption],
+      [primaryCta, demo],
+      [demo, caption],
       [caption, architecture],
       [architecture, library],
-      [library, demo],
-      [demo, terminal],
+      [library, terminal],
       [terminal, colophon],
     ] as const) {
       expect(

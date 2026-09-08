@@ -199,10 +199,12 @@ export function DownloadPage() {
           winner={winner}
           graph={graph}
         />
+        {/* The demo is second (owner, 2026-09-08): a person sees it move before reading what is
+            in it; the three readings of one folder follow, then the agents. */}
+        <DemoSection />
         <EvidenceSection graph={graph} />
         <SurfaceSection kind="arch" />
         <SurfaceSection kind="library" />
-        <DemoSection />
         <AgentSection />
 
         {/*
@@ -984,22 +986,28 @@ function EvidenceSection({ graph }: { graph: StageGraph }) {
          * from the same graph (the kind census, verbatim relations, impact radius) — this section
          * is called evidence.
          */}
-        <div
-          ref={ref}
-          className={cn(
-            'gateway-scroll-stage',
-            'mt-9 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] lg:gap-12',
-          )}
-        >
+        {/*
+         * The map is the stage and the file is a card on it (2026-09-08, owner: *"improve
+         * this"*). Until now the two stood side by side, 11/20 and 9/20, and the map had the
+         * grid and the proportions of a tool; now the frame takes the whole column, the grid is
+         * gone, and at `xl` the file stands inside the frame on the right — the product's own
+         * grammar, a compact card beside the thing it describes — while the camera fits the
+         * graph to its left (`--map-safe-inset-right` in the gateway scope). Below `xl` the
+         * card follows the map at full width: at 1024 the card left the map 200px (measured).
+         */}
+        <div ref={ref} className="gateway-scroll-stage relative mt-9 min-w-0">
           <div
             data-testid="download-stage-map-frame"
-            className="relative h-[24rem] min-w-0 overflow-hidden rounded-panel border border-[color:var(--color-border-soft)] md:h-[30rem] lg:h-[34rem]"
+            className="relative h-[24rem] min-w-0 overflow-hidden rounded-panel border border-[color:var(--color-border-soft)] md:h-[30rem] lg:h-[40rem]"
           >
             <StageMap graph={graph} scripted={beat?.focus ?? null} onUserInteract={cancelDemo} />
           </div>
-          <div className="min-w-0 lg:self-center">
+          <aside
+            data-testid="download-evidence-card"
+            className="mt-6 min-w-0 xl:absolute xl:inset-y-5 xl:right-5 xl:mt-0 xl:w-[22rem] xl:overflow-y-auto xl:rounded-panel xl:border xl:border-[color:var(--color-border-soft)] xl:bg-[color:var(--color-elevated)] xl:p-5 xl:shadow-[var(--shadow-elevation-1)]"
+          >
             <EvidenceSpecimen demoKey={beat?.line ?? null} />
-          </div>
+          </aside>
         </div>
 
         {/* This number is the graph drawn directly above it. The lineage of the source, the scope

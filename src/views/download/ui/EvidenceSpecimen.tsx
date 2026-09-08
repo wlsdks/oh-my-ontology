@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/shared/lib/cn';
 import { controlClass } from '@/shared/ui/control-class';
@@ -79,7 +80,7 @@ export function EvidenceSpecimen({ demoKey = null }: { demoKey?: EvidenceDemoKey
     demoKey !== null && DEMO_LINE_PREFIXES[demoKey].some((prefix) => line.startsWith(prefix));
 
   return (
-    <div data-testid="evidence-specimen" className="flex min-w-0 flex-col gap-6">
+    <div data-testid="evidence-specimen" className="flex min-w-0 flex-col gap-5">
       {/* ── The file, verbatim ─────────────────────────────────────────────── */}
       <div className="min-w-0">
         <h3 className="font-mono text-label uppercase leading-label tracking-[var(--tracking-caps-14)] text-[color:var(--color-text-quaternary)]">
@@ -96,19 +97,39 @@ export function EvidenceSpecimen({ demoKey = null }: { demoKey?: EvidenceDemoKey
              * The lit style is the selection grammar (indigo family, brightness only): a soft
              * overlay plus primary ink — no second colour, no motion beyond the colour ramp.
              */}
-            <pre className="font-mono text-caption leading-body text-[color:var(--color-text-secondary)]">
-              {frontmatter.map((line) => (
-                <span
-                  key={line}
-                  className={cn(
-                    '-mx-1.5 block px-1.5 transition-colors',
-                    lineLit(line) &&
-                      'bg-[color:var(--color-overlay-2)] text-[color:var(--color-text-primary)]',
-                  )}
-                >
-                  {line}
-                </span>
-              ))}
+            {/*
+             * A gutter of line numbers and a key/value split (2026-09-08): the file reads as a
+             * file, and the key — the part that names a fact — carries less ink than the value
+             * it points at. The numbers stand outside each line's span, so a line's text is
+             * still the line itself.
+             */}
+            <pre className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 font-mono text-caption leading-body text-[color:var(--color-text-secondary)]">
+              {frontmatter.map((line, i) => {
+                const colon = line.indexOf(':');
+                const key = colon > 0 ? line.slice(0, colon + 1) : '';
+                const value = colon > 0 ? line.slice(colon + 1) : line;
+                const lit = lineLit(line);
+                return (
+                  <Fragment key={line}>
+                    <span aria-hidden className="select-none text-right text-[color:var(--color-text-quaternary)]">
+                      {i + 1}
+                    </span>
+                    <span
+                      className={cn(
+                        '-mx-1.5 block px-1.5 transition-colors',
+                        lit && 'bg-[color:var(--color-overlay-2)] text-[color:var(--color-text-primary)]',
+                      )}
+                    >
+                      {key ? (
+                        <span className={lit ? 'text-[color:var(--color-indigo-text-soft)]' : 'text-[color:var(--color-text-tertiary)]'}>
+                          {key}
+                        </span>
+                      ) : null}
+                      {value}
+                    </span>
+                  </Fragment>
+                );
+              })}
             </pre>
           </div>
         </div>
@@ -125,11 +146,11 @@ export function EvidenceSpecimen({ demoKey = null }: { demoKey?: EvidenceDemoKey
       </div>
 
       {/* ── The same file, as the agent reads it ───────────────────────────── */}
-      <div className="min-w-0 border-t border-[color:var(--color-border-soft)] pt-6">
+      <div className="min-w-0 border-t border-[color:var(--color-border-soft)] pt-5">
         <h3 className="font-mono text-label uppercase leading-label tracking-[var(--tracking-caps-14)] text-[color:var(--color-text-quaternary)]">
           {t('specimenFactsHeading')}
         </h3>
-        <dl className="mt-4 grid gap-2.5">
+        <dl className="mt-3 grid gap-2">
           {facts.map((fact) => (
             <div
               key={fact.label}
@@ -144,8 +165,8 @@ export function EvidenceSpecimen({ demoKey = null }: { demoKey?: EvidenceDemoKey
               </dt>
               <dd
                 className={cn(
-                  'min-w-0 break-keep text-body-lg leading-body-lg text-[color:var(--color-text-secondary)]',
-                  fact.mono && 'truncate font-mono text-body leading-body',
+                  'min-w-0 break-keep text-body leading-body text-[color:var(--color-text-primary)]',
+                  fact.mono && 'truncate font-mono text-caption leading-body text-[color:var(--color-text-secondary)]',
                 )}
               >
                 {fact.value}
@@ -156,7 +177,7 @@ export function EvidenceSpecimen({ demoKey = null }: { demoKey?: EvidenceDemoKey
       </div>
 
       {/* ── Go and check ───────────────────────────────────────────────────── */}
-      <div className="min-w-0 border-t border-[color:var(--color-border-soft)] pt-6">
+      <div className="min-w-0 border-t border-[color:var(--color-border-soft)] pt-5">
         <p className="min-w-0 break-keep text-body leading-body text-[color:var(--color-text-tertiary)]">
           {t.rich('specimenFooter', {
             count: spec.vaultNodeCount,

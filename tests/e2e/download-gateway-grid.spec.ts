@@ -326,19 +326,16 @@ function assertGrid(m: Awaited<ReturnType<typeof measure>>, label: string) {
       "한 절에 격자가 둘이면 눈에는 기둥이 끊겨 보인다",
   ).toBeLessThanOrEqual(2);
   /*
-   * **The agent scene shares the evidence section's grid, not the demo's stage** (2026-09-02).
-   *
-   * Until then the scene stood at the stage width and this line held it to the demo's width —
-   * "this much is the stage" said once. Measured at 1512 that left a third of the column empty
-   * beside a 768px card. The scene now sits in the same 11/20 column as the evidence map, with
-   * the three still cards stacked in the other 9/20, so the relation to keep is with the map
-   * frame: two sections, one grid. The demo stays the page's single centred stage.
+   * **The map frame is the column** (2026-09-08). Until then the map stood in an 11/20 column
+   * beside the file and the agent scene was held to that same width ("two sections, one grid",
+   * 2026-09-02). Now the map is the section's stage across the whole column and the file is a
+   * card standing on it at `lg`, so the relation to keep is with the column itself. The agent
+   * scene keeps its 11/20 beside its three cards; the demo stays the page's single centred stage.
    */
   expect(
-    stage.agentW,
-    `${label}: 에이전트 장면(${stage.agentW})과 근거 지도 프레임(${stage.mapW})의 폭이 갈렸다 — ` +
-      "두 절은 같은 11/20 격자에 서야 한다",
-  ).toBe(stage.mapW);
+    stage.mapW,
+    `${label}: 근거 지도 프레임(${stage.mapW})이 기둥(${stage.colW})을 채우지 않는다 — 지도는 이 절의 무대다`,
+  ).toBe(stage.colW);
 }
 
 test.describe("관문 다운로드의 그리드", () => {
