@@ -94,22 +94,3 @@ export const SPINE_WIDTH_TOKEN: Readonly<Record<SpineWidthStep, string>> = {
   md: "var(--library-spine-width-md)",
   lg: "var(--library-spine-width-lg)",
 };
-
-/**
- * The Compile sweep's dwell, read from `--library-spine-sweep-dwell` once.
- *
- * The light steps from spine to spine on a JS clock, because the number of spines is a
- * property of the folder and a CSS keyframe cannot hold a per-folder cycle without
- * writing the duration twice. Reading the token instead of transcribing it is what keeps
- * the value on the ramp; the fallback matches the token so a test environment without
- * the stylesheet still steps.
- */
-export function readSpineSweepDwellMs(): number {
-  if (typeof window === "undefined" || typeof window.getComputedStyle !== "function") return 240;
-  const raw = window
-    .getComputedStyle(document.documentElement)
-    .getPropertyValue("--library-spine-sweep-dwell")
-    .trim();
-  const ms = raw.endsWith("ms") ? Number.parseFloat(raw) : raw.endsWith("s") ? Number.parseFloat(raw) * 1000 : NaN;
-  return Number.isFinite(ms) && ms > 0 ? ms : 240;
-}

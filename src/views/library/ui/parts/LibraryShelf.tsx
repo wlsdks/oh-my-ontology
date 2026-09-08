@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { useTranslations } from "next-intl";
 
 import type { LibraryWikiPage } from "@/entities/docs-vault";
 import { cn } from "@/shared/lib/cn";
 import { controlClass } from "@/shared/ui/control-class";
-import { usePrefersReducedMotion } from "@/shared/lib/use-prefers-reduced-motion";
-
 import {
-  readSpineSweepDwellMs,
   SPINE_WIDTH_TOKEN,
   spineFreshness,
   spineWidthStep,
@@ -55,14 +52,15 @@ import { writerLabel } from "../../lib/writer-label";
  * result is a ranked answer to a question, and vertical books make a poor answer list, so
  * `LibrarySection` keeps the row list for a non-empty query and this shelf for the rest.
  *
- * ## Compile sweeps, it does not spin
+ * ## Compile marks the shelf, not a spine
  *
- * A spinner says *something is happening somewhere*. While Compile runs, the thing being
- * worked on is the shelf, so a light steps along it and rests one
- * `--library-spine-sweep-dwell` on each spine. It claims nothing about which page the
- * agent is on — nothing on this screen knows that — only that the shelf is what the turn
- * is about; the line under it says so in words, and that line is the whole signal under
- * reduced motion, where the light does not travel at all.
+ * While Compile runs, the thing being worked on is the shelf: the board under the books
+ * takes the indigo and a line says so in words. A light that stepped from spine to spine
+ * shipped here first and the design council cut it the same day (2026-09-08) — it
+ * measured 1.29:1 against the open page's own fill, so a still frame could not say which
+ * of the two a lit spine was, and resting on one book at a time read as *this page now*,
+ * which is a fact nothing on this screen holds. Nothing here knows which page the agent
+ * is on, so nothing here points at one.
  */
 
 export interface LibraryShelfProps {
@@ -96,32 +94,6 @@ export function LibraryShelf({
   trailing,
   t,
 }: LibraryShelfProps) {
-  const reducedMotion = usePrefersReducedMotion();
-  const [sweepIndex, setSweepIndex] = useState(0);
-  /* Read once, from the token, and kept for the life of the shelf. */
-  const dwellRef = useRef<number | null>(null);
-  if (dwellRef.current === null) dwellRef.current = readSpineSweepDwellMs();
-
-  /*
-   * The light steps on an interval, and the **teardown** is what puts it back at the head
-   * of the shelf: a second Compile that resumed halfway along would be saying something
-   * about where the first one stopped, which is not a fact. Resetting on the way in
-   * instead would be a synchronous `setState` inside an effect — a cascading render, and
-   * the lint rule that names it is right.
-   */
-  useEffect(() => {
-    if (!compiling || reducedMotion || pages.length === 0) return undefined;
-    const dwell = dwellRef.current ?? 240;
-    const id = window.setInterval(
-      () => setSweepIndex((current) => (current + 1) % pages.length),
-      dwell,
-    );
-    return () => {
-      window.clearInterval(id);
-      setSweepIndex(0);
-    };
-  }, [compiling, pages.length, reducedMotion]);
-
   const spines = useMemo(
     () =>
       pages.map((page) => {
@@ -140,7 +112,7 @@ export function LibraryShelf({
   return (
     <div
       data-testid="library-wiki-list"
-      data-compiling={compiling ? (reducedMotion ? "static" : "sweeping") : undefined}
+      data-compiling={compiling ? "board" : undefined}
     >
       <ul
         data-testid="library-wiki-shelf"
@@ -148,9 +120,8 @@ export function LibraryShelf({
         aria-busy={compiling || undefined}
         className="flex flex-wrap items-end gap-x-[var(--library-spine-gap)] gap-y-4 px-2 pb-1 pt-2"
       >
-        {spines.map(({ page, freshness, widthStep, ownProblem }, index) => {
+        {spines.map(({ page, freshness, widthStep, ownProblem }) => {
           const active = page.slug === selectedSlug;
-          const lit = compiling && !reducedMotion && index === sweepIndex;
           const writer = (page.createdBy ?? "") !== majorityWriter ? writerLabel(page.createdBy, t) : null;
           /*
            * Everything the spine cannot draw at 26px wide is said here, so the mark and
@@ -171,7 +142,6 @@ export function LibraryShelf({
                 data-testid={`library-wiki-${page.slug}`}
                 data-freshness={freshness}
                 data-width-step={widthStep}
-                data-sweep={lit ? "lit" : undefined}
                 aria-current={active ? "true" : undefined}
                 aria-label={facts.join(" · ")}
                 title={facts.join("\n")}
@@ -223,23 +193,6 @@ export function LibraryShelf({
                   ),
                 })}
               >
-                {/*
-                  **Compile's light, resting on this spine.**
-                  Drawn under the rims, not over them, so a stale book keeps its amber cap
-                  while the light is on it — the sweep is about the turn, the rims are
-                  about the folder, and one must not paint over the other. It is brighter
-                  than any resting fill on this shelf (`--color-indigo-a40` against the
-                  open page's `--color-indigo-a22`) because a travelling light and an open
-                  page are not the same thing and a still frame has to say which is which;
-                  the open page also keeps its solid accent edge, which the light has not.
-                */}
-                <span
-                  aria-hidden
-                  className={cn(
-                    "pointer-events-none absolute inset-0 bg-[color:var(--color-indigo-a40)] opacity-0 transition-opacity",
-                    lit && "opacity-100",
-                  )}
-                />
                 {/* The head rim: this page's source moved after it was written. Static. */}
                 {freshness === "stale" ? (
                   <span

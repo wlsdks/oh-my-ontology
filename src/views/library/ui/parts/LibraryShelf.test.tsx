@@ -148,39 +148,27 @@ describe("the wiki list at rest is a shelf, and every spine carries its freshnes
   });
 });
 
-describe("Compile sweeps the shelf instead of spinning", () => {
-  it("rests the light on one spine at a time and moves it on", () => {
-    vi.useFakeTimers();
-    mount(<Harness compiling />);
-    const lit = () =>
-      [...document.querySelectorAll('[data-sweep="lit"]')].map((node) => node.getAttribute("data-testid"));
-    expect(lit()).toEqual(["library-wiki-wiki/plan"]);
-    act(() => void vi.advanceTimersByTime(240));
-    expect(lit()).toEqual(["library-wiki-wiki/budget"]);
-    act(() => void vi.advanceTimersByTime(240));
-    expect(lit()).toEqual(["library-wiki-wiki/handover"]);
-    // Three pages, so the fourth dwell is the first spine again — the light travels the
-    // shelf rather than counting the pages down.
-    act(() => void vi.advanceTimersByTime(240));
-    expect(lit()).toEqual(["library-wiki-wiki/plan"]);
-  });
-
-  it("says in words what the light says in travel, and stops the moment the turn does", () => {
+describe("Compile marks the shelf, never one book on it", () => {
+  it("states the turn on the board and in words, and puts no light on a spine", () => {
     vi.useFakeTimers();
     const { rerender } = mount(<Harness compiling />);
     expect(screen.getByTestId("library-shelf-compiling")).toBeInTheDocument();
-    expect(screen.getByTestId("library-wiki-list")).toHaveAttribute("data-compiling", "sweeping");
+    expect(screen.getByTestId("library-wiki-list")).toHaveAttribute("data-compiling", "board");
+    expect(screen.getByTestId("library-wiki-shelf")).toHaveAttribute("aria-busy", "true");
+    // No clock: a light that rested on one spine at a time measured 1.29:1 against the
+    // open page's own fill and claimed a per-page progress nothing here holds.
+    act(() => void vi.advanceTimersByTime(2_000));
+    expect(document.querySelectorAll("[data-sweep]")).toHaveLength(0);
     rerender(
       <NextIntlClientProvider locale="en" messages={enMessages}>
         <Harness compiling={false} />
       </NextIntlClientProvider>,
     );
     expect(screen.queryByTestId("library-shelf-compiling")).toBeNull();
-    expect(document.querySelectorAll('[data-sweep="lit"]')).toHaveLength(0);
+    expect(screen.getByTestId("library-wiki-list")).not.toHaveAttribute("data-compiling");
   });
 
-  it("under reduced motion nothing travels: the state is still, and it is still stated", () => {
-    vi.useFakeTimers();
+  it("reads the same with reduced motion, because nothing moved to begin with", () => {
     const matchMedia = vi.spyOn(window, "matchMedia").mockImplementation(
       (query: string) =>
         ({
@@ -196,10 +184,7 @@ describe("Compile sweeps the shelf instead of spinning", () => {
     );
     try {
       mount(<Harness compiling />);
-      expect(screen.getByTestId("library-wiki-list")).toHaveAttribute("data-compiling", "static");
-      act(() => void vi.advanceTimersByTime(2_000));
-      expect(document.querySelectorAll('[data-sweep="lit"]')).toHaveLength(0);
-      // The equivalent, not the absence: the words and the board stay.
+      expect(screen.getByTestId("library-wiki-list")).toHaveAttribute("data-compiling", "board");
       expect(screen.getByTestId("library-shelf-compiling")).toBeInTheDocument();
       expect(screen.getByTestId("library-shelf-board")).toBeInTheDocument();
     } finally {

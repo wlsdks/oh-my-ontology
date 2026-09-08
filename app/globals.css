@@ -2951,7 +2951,6 @@
     --library-spine-rim: 2px;
     --library-spine-lift: 4px;
     --library-spine-lift-scale: 1.02;
-    --library-spine-sweep-dwell: 240ms;
     /* drawer/audit modal shared scrim, single source — same value as existing sourceTreeOpen drawer. Dark-only (no light branch). */
     --docs-scrim: rgba(0, 0, 0, 0.5);
     /*
@@ -3728,10 +3727,15 @@ primary colors reference global monochrome/single indigo ladder (`--color-indigo
          `touch-hit-expand` cannot help because a 3px gap would make neighbouring hit areas
          overlap and open the wrong book. So the spine itself widens to the floor; the four
          steps keep their order (every step is at least the floor, longer pages stay wider). */
-      --library-spine-width-xs: max(26px, var(--touch-target-min));
-      --library-spine-width-sm: max(32px, var(--touch-target-min));
-      --library-spine-width-md: max(38px, var(--touch-target-min));
-      --library-spine-width-lg: max(46px, var(--touch-target-min));
+      /* A finger needs `--touch-target-min` (44px), and `max()` gave it by flattening the
+         three narrow steps onto one 44px width — the page-length ramp survived as two
+         values instead of four, so on a touch screen the shelf stopped saying how much
+         page is behind a book (design council, 2026-09-08). The steps are raised as a
+         ramp instead: 44 is the floor and each step keeps its own width above it. */
+      --library-spine-width-xs: var(--touch-target-min);
+      --library-spine-width-sm: calc(var(--touch-target-min) + 8px);
+      --library-spine-width-md: calc(var(--touch-target-min) + 16px);
+      --library-spine-width-lg: calc(var(--touch-target-min) + 24px);
       /*
        * (Promotion of `--docs-header-tile-size` here on 2026-07-29 became **unnecessary** on 2026-08-03
        * — document hub header tiles directly read the above `--chrome-tile-size`,

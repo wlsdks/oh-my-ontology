@@ -1668,7 +1668,7 @@ Nothing on screen spent it. The shelf spends it.
 | amber rim on the foot | the page's own shape misses the wiki template | `--library-spine-rim`, `--color-amber-source-a90` |
 | body unfilled, label a step back | **nothing has ever checked this page against a file** | no fill; `controlClass` `tone: 'default'` |
 | solid accent edge, indigo body | the page open in the reader beside it | `--color-indigo-accent`, `--color-indigo-a22` |
-| a light resting on one spine | Compile is running; the shelf is what the turn is about | `--library-spine-sweep-dwell`, `--color-indigo-a40` |
+| the board under the books turns indigo | Compile is running; the shelf is what the turn is about | `--color-indigo-a40` |
 | the book comes off the shelf under the pointer | this is the one you are about to pull | `--library-spine-lift`, `--library-spine-lift-scale` |
 
 **Two ambers, two ends, and they are not one state drawn twice.** The head is about the
@@ -1697,29 +1697,30 @@ every state (11.4 fresh, 5.9 unverified, 14.3 selected).
 | Token | Value | Derivation |
 |---|---|---|
 | `--library-spine-height` | 164px | one height for every spine; fits ~22 characters of `text-label` set vertically, which covered 5 of 6 titles whole on the measured folder |
-| `--library-spine-width-xs` | 26px (coarse pointer: `max(26px, --touch-target-min)`, and the same promotion on the three wider steps, in the `@media (pointer: coarse)` block) | shortest page; four steps because an eye compares books without a legend and a continuous width claims a precision nobody can read |
-| `--library-spine-width-sm` | 32px | also the step an **unread** page takes — never the shortest, which would be a fact nothing established |
-| `--library-spine-width-md` | 38px | |
-| `--library-spine-width-lg` | 46px | six `lg` spines plus gaps still wrap inside the 264px the column leaves |
+| `--library-spine-width-xs` | 26px (coarse pointer: `--touch-target-min`, 44px) | shortest page; four steps because an eye compares books without a legend and a continuous width claims a precision nobody can read |
+| `--library-spine-width-sm` | 32px (coarse: `+8px`) | also the step an **unread** page takes — never the shortest, which would be a fact nothing established |
+| `--library-spine-width-md` | 38px (coarse: `+16px`) | |
+| `--library-spine-width-lg` | 46px (coarse: `+24px`) | six `lg` spines plus gaps still wrap inside the 264px the column leaves |
+| — | — | **The coarse ramp is a ramp, not a floor.** `max(26px, 44px)` cleared the touch target by flattening `xs`, `sm` and `md` onto one 44px width: four page-length steps became two, so a finger-driven reader lost the fact a pointer-driven one keeps. Each step now stands its own distance above the 44px floor (design council, 2026-09-08). |
 | `--library-spine-gap` | 3px | books touch on a shelf; enough to keep two edges from reading as one |
 | `--library-spine-rim` | 2px | the head and foot marks |
 | `--library-spine-lift` | 4px | hover; the shadow under it is `--shadow-control-press`, the smallest geometry on the elevation ladder, so a 4px lift is not lit by a 18px shadow |
 | `--library-spine-lift-scale` | 1.02 | hover, with the lift, over `--motion-fast` |
 | — | — | there is deliberately **no** dim/opacity token: an unverified spine is unfilled and takes `controlClass`'s `tone: 'default'`, because dimming the label instead put its ink under the 4.5:1 floor |
-| `--library-spine-sweep-dwell` | 240ms | how long Compile's light rests on one spine; `--motion-settle`'s value, read from the token by `readSpineSweepDwellMs()` rather than transcribed |
 
 ### Motion
 
-Hover is the only resting motion: 4px up and 1.02 over `--motion-fast`, `origin-bottom`,
-with `--shadow-control-press` under it — a lifted surface that casts no shadow is the
-contradictory depth this document already refuses. The Compile sweep runs on a JS clock
-because the number of spines is a property of the folder and a CSS keyframe cannot hold a
-per-folder cycle without writing the duration twice; it starts and stops with the turn and
-never runs at rest. **Reduced-motion equivalent:** nothing travels — the interval is not
-started at all — while the indigo board under the shelf and the sentence *Compile is
-re-reading the shelf* stay, so the state is still stated. It adds no CSS `animation`, so
-it is outside `reduced-motion-equivalent.contract.test.ts`'s roster by construction rather
-than by exemption; `LibraryShelf.test.tsx` owns the proof.
+Hover is the only motion on this shelf: 4px up and 1.02 over `--motion-fast`,
+`origin-bottom`, with `--shadow-control-press` under it — a lifted surface that casts no
+shadow is the contradictory depth this document already refuses. **Compile has no
+motion at all.** A light that stepped from spine to spine on a JS clock shipped on
+2026-09-08 and the design council cut it the same day: it measured **1.29:1** against the
+open page's own fill, so a still frame could not say whether a lit book was the one being
+worked on or the one already open, and resting on one book at a time read as *this page
+now* — a per-page progress nothing on this screen holds. What states the turn is what
+always stated it: the indigo board, `aria-busy`, and the sentence *Compile is re-reading
+the shelf*. With no clock there is nothing for reduced motion to replace;
+`LibraryShelf.test.tsx` owns that proof.
 
 ### What the shelf is not
 
