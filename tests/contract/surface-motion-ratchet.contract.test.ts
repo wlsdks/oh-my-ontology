@@ -217,11 +217,17 @@ const BASELINE_HARD_CUTS = 0;
  * static browser sweep cannot open it; `SelectionAsk.test.tsx` carries its named aside,
  * its Escape path and the sent question, and the installed app carries the real press.
  */
-// 39 → 40: the Library's reserved work lane reveals actual tool/file observations.
+/*
+ * 39 → 40 (2026-09-08): the gateway's Mac download menu. A browser cannot tell which chip a
+ * Mac has, so the hero's winner opens a two-row `Surface` with `transientSurface("menu")`
+ * holding Apple Silicon and Intel. It needs no folder and no desktop runtime, so its open path
+ * is measured directly — it is an entry in `a11y-open-surfaces.spec.ts`'s `OPENERS`.
+ */
+// 40 → 41: the Library's reserved work lane reveals actual tool/file observations.
 // LibraryWorkActivityStrip.test.tsx owns its named section and exact receipt controls;
 // library-work-activity.spec.ts opens it through the ACP bridge, including permission
 // wait, observed revision and rejection. It is not a modal and never takes focus.
-const BASELINE_APPEARING_SURFACES = 40;
+const BASELINE_APPEARING_SURFACES = 41;
 
 const SELF = 'tests/contract/surface-motion-ratchet.contract.test.ts';
 const FIXTURES = 'tests/fixtures/surface-motion';

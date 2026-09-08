@@ -52,8 +52,8 @@ export interface DemoClip {
  * gate has something to compare against.
  */
 export const DEMO_CLIPS: readonly DemoClip[] = [
-  // `seconds` is measured with ffprobe (2026-08-30 footage: 44.000s).
-  { id: 'atlas-tour', seconds: 44, basename: 'atlas-tour' },
+  // `seconds` is measured with ffprobe (2026-09-08 footage: 28.000s).
+  { id: 'atlas-tour', seconds: 28, basename: 'atlas-tour' },
 ];
 
 /**

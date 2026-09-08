@@ -54,6 +54,24 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — The Library canvas stands beside the page it is about
+
+**Why**: the owner, on an open wiki page: *"Wasn't this supposed to be an LLM wiki — whatever data you put in gets compiled into our own wiki, its relations shown as a graph, and it compounds. There's no graph here."* The canvas was the pane only while nothing was selected, so the relations vanished at the moment a person read the thing that has them.
+**Prior**: 2026-09-06 "The Library pane is the graph; the shelf is a popup" is extended, not overturned — with nothing chosen the canvas is still the whole pane. 2026-09-08 "The Library graph stands still" stands, untouched.
+**Decision**: direction B of three, chosen by the owner. When the row holds an 800px document column beside a 360px canvas, the pane is two columns and choosing a page **focuses** the canvas on that page's neighbourhood instead of replacing it; below that the screen is what it was, with the `Graph` chip as the way back. The open page never dims, holds the ego set, and takes the standing names first; closing it is a control, not only Escape; the keyboard keeps the canvas when the choice was made there. The verdict is measured on the row minus a constant index reserve, with a one-sided band, so neither the index's fold nor a one-pixel drag changes the pane's shape.
+**Dissent**: design-lead wanted the folder status row behind a popover and a shared top inset; design-responsive wanted the canvas capped by a new token — both larger than the defects they answer. Rejected directions: A (make the chip read as the graph) and C (an ego strip in the reading margin), which survives if reading width later proves untouchable.
+**Falsifier**: a reader beside the canvas who still cannot tell which marks are that page's sources — a frame at 1512 whose placed names are all dimmed. On a 50-node folder at 287×852 the ordering wins nothing for want of room; if that fires at 399px or wider, the 360 floor is wrong.
+**Owner**: jinan
+
+## 2026-09-08 — The gateway hero is a lit three.js atlas of the real vault, and its 2D engine stays as the fallback
+
+**Why**: the owner, on the rebuilt download page: *"if anything make it in three.js, not a disc, cooler and prettier"*, after rejecting an ASCII card row and, later, the typed ASCII mascot (*"this should go, not needed"*). The 2D plane could show depth only as a fog ramp; the same graph as a lit cone with real depth, halos and travelling beads reads as an object, not a diagram.
+**Prior**: 2026-07-28 "the map is the page" stands (the stage still draws the real dogfood vault and no chrome); 2026-09-03 "the hero rises inside half a second" stands (the typing echo, hover caption and view-angle handoff are unchanged). Narrows 2026-09-02's "the object is the stage behind the whole first screen" below the split: there the object is the ground under the facts strip, not behind the type.
+**Decision**: `three` (0.185.1) enters the app for the gateway hero only, loaded on demand after a WebGL probe; the 2D `HeroObject` draws the same graph while the chunk loads and wherever WebGL is missing, so the stage is never empty. The hero and the sections below it are the same real things: the map, a capture of Architecture, a capture of the Library, then the demo. No ASCII art of any kind ships. Every colour comes from a token; the mascot palette stays out of the scene.
+**Dissent**: keep the 2D engine as the only hero, because a second renderer is a second thing to maintain. Lost because the gates that guard the stage (ink under the type, the echo contract, the split widths) measure the canvas, not the engine, and they pass against both.
+**Falsifier**: a visitor without WebGL who sees an empty stage; the hero chunk on the first paint's critical path; ink under the decision block above 6% at any split width; a map screen that imports the hero scene.
+**Owner**: jinan
+
 ## 2026-09-08 — The map widget is named for what it draws: `ontology-map`, tokens `--map-*`
 
 **Why**: the owner, reading the branch: *"topology-map-v2 is a bad name; the v2 alone…"*. The suffix dated a rewrite that retired its predecessor on 2026-07 and has carried no meaning since; the product vocabulary rule (2026-08-25) already says the ontology is the thing and the map is the view of it.

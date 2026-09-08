@@ -76,6 +76,8 @@ references/
 !app/apple-icon.png
 !app/icon.png
 !assets/brand/mascot/*.png
+# Gateway captures of the real app (2026-09-08): the download page's architecture and library sections.
+!public/gateway/*.png
 !public/brand/*.png
 !src-tauri/icons/
 !src-tauri/icons/**

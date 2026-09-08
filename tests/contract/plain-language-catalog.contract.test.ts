@@ -239,6 +239,7 @@ const INTENTIONALLY_ENGLISH = new Set([
   'settings.projectForm.fields.tagsPlaceholder', // example tags
   'settings.ai.providerGemini', // a product name
   'settings.ai.localBaseUrlPlaceholder', // a URL
+  'download.heroMacSilicon', // Apple's own chip name — the row beside it reads Intel
 ]);
 
 /**

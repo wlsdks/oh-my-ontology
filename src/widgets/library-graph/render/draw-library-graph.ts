@@ -334,6 +334,15 @@ export function drawLibraryGraph(ctx: CanvasRenderingContext2D, frame: LibraryGr
   const opacity = frame.opacity;
   /** Full ink, dimmed ink, or somewhere between while the ramp is running. */
   const attention = (id: string): number => {
+    /*
+     * **The open page never dims** (design-infoviz and design-interaction, converged
+     * 2026-09-08). Since the canvas started standing beside the reader, the dim answers
+     * two questions with one channel: "not what you are pointing at" and "not what you are
+     * reading". Pointing at a different mark used to fade the page a person had open, so
+     * the one mark that says *where I am* disappeared exactly while they looked away from
+     * it. The selection is exempt, so hover keeps its own answer and the page keeps its.
+     */
+    if (id === frame.selectedId) return 1;
     if (dim <= 0 || !focus || focus.has(id)) return 1;
     return 1 - (1 - DIMMED_INK) * dim;
   };
@@ -364,7 +373,9 @@ export function drawLibraryGraph(ctx: CanvasRenderingContext2D, frame: LibraryGr
      * that stayed bright would claim a relationship the dimming has just said is not the
      * one being asked about.
      */
-    ctx.globalAlpha = Math.min(alphaOf(edge.source), alphaOf(edge.target));
+    // The selected page's own lines are part of "where I am", so they are exempt for the
+    // same reason its mark is.
+    ctx.globalAlpha = touchesSelection ? 1 : Math.min(alphaOf(edge.source), alphaOf(edge.target));
     ctx.beginPath();
     ctx.setLineDash(edge.relation === "mentions" ? [2.5, 3.5] : []);
     ctx.strokeStyle = touchesSelection ? ink.selected : touchesActive ? ink.source : ink.edge;
@@ -515,10 +526,11 @@ export function drawLibraryGraph(ctx: CanvasRenderingContext2D, frame: LibraryGr
    *
    * Two names crossing each other are worse than one name, because a reader cannot tell
    * which glyphs belong to which dot. The pass is screen-space and greedy in a fixed
-   * order — pages, then sources, then concepts, each in the graph's own order — so the
-   * same folder drops the same names on every draw and on every machine. The marks
-   * themselves are occupied first: a name may lose to a **dot** as well as to another
-   * name, which is what stops a label from sitting on top of the thing it is not naming.
+   * order — the pointed-at or open neighbourhood first, then pages, sources and concepts,
+   * each in the graph's own order — so the same folder drops the same names on every draw
+   * and on every machine. The marks themselves are occupied first: a name may lose to a
+   * **dot** as well as to another name, which is what stops a label from sitting on top of
+   * the thing it is not naming.
    */
   if (frame.standingLabels) {
     ctx.font = `${LABEL_FONT_PX}px ${ink.fontFamily}`;
@@ -541,76 +553,97 @@ export function drawLibraryGraph(ctx: CanvasRenderingContext2D, frame: LibraryGr
       });
     }
     const order: LibraryGraphNodeKind[] = ["page", "source", "concept"];
-    for (const kind of order) {
-      for (const node of frame.nodes) {
-        if (node.kind !== kind) continue;
-        // The pointed-at node already has a box of its own; two names for one dot is a
-        // duplicate, and the box would draw over the standing one anyway.
-        if (node.id === active) continue;
-        const centre = nodeCentre(frame, node.id);
-        if (!centre) continue;
-        const text = truncateToWidth(
-          ctx,
-          node.label,
-          Math.min(STANDING_LABEL_MAX_WIDTH, frame.width - 8),
-        );
-        if (!text) continue;
-        const width = ctx.measureText(text).width;
-        /*
-         * **Slid back inside the frame, not dropped for being near the edge.** The first
-         * build hid any name whose box left the canvas, and measured at 1512 that cost the
-         * two marks nearest the left and right edges their names — the fit puts a node
-         * within 21px of both edges by design, so the rule was hiding exactly the dots a
-         * person is most likely to be looking at. It slides; only a genuine collision
-         * hides.
-         */
-        const left = Math.min(
-          Math.max(2, centre.x - width / 2),
-          Math.max(2, frame.width - 2 - width),
-        );
-        const box = {
-          x: left,
-          y: centre.y + radiusOf(frame, node) + STANDING_LABEL_GAP,
-          width,
-          height: lineHeight,
-        };
-        // Below the frame there is nowhere to slide to, so that one still loses.
-        if (box.y + box.height > frame.height - 2) continue;
-        if (taken.some((other) => other.of !== node.id && overlaps(box, other))) continue;
-        taken.push(box);
-        /*
-         * A page is what somebody wrote and is the subject of this canvas; a file and a
-         * concept are what it stands on. The two inks are the ones the marks already
-         * carry, so the names sit in the same hierarchy as the dots they belong to.
-         *
-         * A name dims with the mark it belongs to. A bright name over a dimmed dot would
-         * be the loudest thing on a canvas that has just been told to quieten it.
-         */
-        ctx.globalAlpha = alphaOf(node.id);
-        /*
-         * **A 1px outline of the ground, under every name.** A canvas this connected puts
-         * a line under most labels, and grey glyphs crossed by a grey line are the one
-         * thing on this picture a person genuinely cannot read. The outline is the same
-         * device as the marks' halo and the same colour — the ground, never a colour
-         * spreading outward — and it is stroked before the fill so the glyph itself is
-         * never thickened by it.
-         */
-        ctx.strokeStyle = ink.ground;
-        ctx.lineWidth = LABEL_OUTLINE_PX * 2;
-        ctx.lineJoin = "round";
-        ctx.strokeText(text, box.x + box.width / 2, box.y);
-        /*
-         * ⚠️ **A name takes its own mark's ink** — which is what the paragraph above always
-         * claimed and what the code did not do. A source was drawn at `ink.source` (6.13:1)
-         * and then named at `ink.concept` (5.23:1), which is *the edge ink*: eight of the
-         * nineteen names on the owner's folder were set in exactly the value of every line
-         * that crossed them (2026-09-08). Three kinds, three inks, the same three the marks
-         * carry.
-         */
-        ctx.fillStyle = node.kind === "page" ? ink.page : node.kind === "source" ? ink.source : ink.concept;
-        // Drawn from the box, not the centre: a slid label is no longer centred on its dot.
-        ctx.fillText(text, box.x + box.width / 2, box.y);
-      }
+    /*
+     * ⚠️ **The neighbourhood is named before the rest of the folder.**
+     *
+     * The pass is greedy, so whoever is asked first keeps the room. Asking in kind order
+     * alone meant the ego set competed for label slots on equal terms with the marks the
+     * dim had just pushed away — and in a narrow column there are few slots to lose.
+     * Measured 2026-09-08 on a 50-node folder at 1512, with a page open beside the canvas
+     * (287×852): **three names were placed and all three were dimmed ones**. The open page,
+     * its seven sources and its concepts were anonymous, while three unrelated marks were
+     * the only things on the picture that said what they were. That is the attention model
+     * inverted — identity spent on exactly what the frame is suppressing.
+     *
+     * So focus is the first sort key and kind the second, with the graph's own order
+     * breaking the tie, which keeps the pass deterministic: the same folder drops the same
+     * names on every draw and on every machine. With nothing pointed at and nothing open
+     * `focus` is null, every node ranks alike, and the order is the one above unchanged.
+     */
+    const rank = (node: LibraryGraphNode): number => {
+      const near = !focus || focus.has(node.id) || node.id === frame.selectedId ? 0 : 1;
+      return near * order.length + order.indexOf(node.kind);
+    };
+    const named = frame.nodes
+      .map((node, index) => ({ node, index }))
+      .sort((first, second) => rank(first.node) - rank(second.node) || first.index - second.index);
+    for (const { node } of named) {
+      // The pointed-at node already has a box of its own; two names for one dot is a
+      // duplicate, and the box would draw over the standing one anyway.
+      if (node.id === active) continue;
+      const centre = nodeCentre(frame, node.id);
+      if (!centre) continue;
+      const text = truncateToWidth(
+        ctx,
+        node.label,
+        Math.min(STANDING_LABEL_MAX_WIDTH, frame.width - 8),
+      );
+      if (!text) continue;
+      const width = ctx.measureText(text).width;
+      /*
+       * **Slid back inside the frame, not dropped for being near the edge.** The first
+       * build hid any name whose box left the canvas, and measured at 1512 that cost the
+       * two marks nearest the left and right edges their names — the fit puts a node
+       * within 21px of both edges by design, so the rule was hiding exactly the dots a
+       * person is most likely to be looking at. It slides; only a genuine collision
+       * hides.
+       */
+      const left = Math.min(
+        Math.max(2, centre.x - width / 2),
+        Math.max(2, frame.width - 2 - width),
+      );
+      const box = {
+        x: left,
+        y: centre.y + radiusOf(frame, node) + STANDING_LABEL_GAP,
+        width,
+        height: lineHeight,
+      };
+      // Below the frame there is nowhere to slide to, so that one still loses.
+      if (box.y + box.height > frame.height - 2) continue;
+      if (taken.some((other) => other.of !== node.id && overlaps(box, other))) continue;
+      taken.push(box);
+      /*
+       * A page is what somebody wrote and is the subject of this canvas; a file and a
+       * concept are what it stands on. The two inks are the ones the marks already
+       * carry, so the names sit in the same hierarchy as the dots they belong to.
+       *
+       * A name dims with the mark it belongs to. A bright name over a dimmed dot would
+       * be the loudest thing on a canvas that has just been told to quieten it.
+       */
+      ctx.globalAlpha = alphaOf(node.id);
+      /*
+       * **A 1px outline of the ground, under every name.** A canvas this connected puts
+       * a line under most labels, and grey glyphs crossed by a grey line are the one
+       * thing on this picture a person genuinely cannot read. The outline is the same
+       * device as the marks' halo and the same colour — the ground, never a colour
+       * spreading outward — and it is stroked before the fill so the glyph itself is
+       * never thickened by it.
+       */
+      ctx.strokeStyle = ink.ground;
+      ctx.lineWidth = LABEL_OUTLINE_PX * 2;
+      ctx.lineJoin = "round";
+      ctx.strokeText(text, box.x + box.width / 2, box.y);
+      /*
+       * ⚠️ **A name takes its own mark's ink** — which is what the paragraph above always
+       * claimed and what the code did not do. A source was drawn at `ink.source` (6.13:1)
+       * and then named at `ink.concept` (5.23:1), which is *the edge ink*: eight of the
+       * nineteen names on the owner's folder were set in exactly the value of every line
+       * that crossed them (2026-09-08). Three kinds, three inks, the same three the marks
+       * carry.
+       */
+      ctx.fillStyle = node.kind === "page" ? ink.page : node.kind === "source" ? ink.source : ink.concept;
+      // Drawn from the box, not the centre: a slid label is no longer centred on its dot.
+      ctx.fillText(text, box.x + box.width / 2, box.y);
     }
     ctx.globalAlpha = 1;
     ctx.textAlign = "left";

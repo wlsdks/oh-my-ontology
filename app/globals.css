@@ -1419,6 +1419,19 @@
   }
 }
 
+/*
+ * The download hero's spotlight (2026-09-08): one radial pool of the accent behind the three.js
+ * object's anchor. It is a still gradient on tokens — the allowed gradient after the 2026-09-08
+ * lift — and says one thing: this is where the object stands. Centred below the split width,
+ * at the object's 72%/52% anchor above it.
+ */
+.gateway-hero-atlas-wash {
+  background: radial-gradient(48% 42% at 50% 50%, var(--color-indigo-a22) 0%, var(--color-indigo-a06) 45%, transparent 72%);
+}
+.gateway-hero-atlas-wash.is-wide {
+  background: radial-gradient(34% 46% at 72% 52%, var(--color-indigo-a22) 0%, var(--color-indigo-a06) 45%, transparent 72%);
+}
+
 .architecture-canvas-node {
   box-shadow: inset 0 1px 0 var(--architecture-node-lit-edge);
 }
@@ -4906,6 +4919,17 @@ html[data-gateway-stage] {
    */
   --map-safe-inset-left: 0;
   --map-safe-inset-right: 0;
+  /* The vertical insets stay the workbench's (148/96). Measured 2026-09-08 at 1024 and 1512:
+     0/0, 72/72 and 16/176 all grew the graph past the frame's bottom edge while its top stayed
+     where it was — the fit anchors low, and only the top inset moves the scale. */
+
+  /*
+   * The grid is workbench furniture — a ruled ground under a tool. On the gateway the map is a
+   * stage under the page's own dark field (the hero above it has none), so both grid steps take
+   * the ground colour and vanish (2026-09-08).
+   */
+  --map-grid-minor: var(--map-canvas-bg-near);
+  --map-grid-major: var(--map-canvas-bg-near);
 
   /*
    * Pan leash — there is no "map fit" in the gateway (2026-07-29 council verdict ②).
@@ -4919,6 +4943,17 @@ html[data-gateway-stage] {
    * but it cannot reach the reserved column (0..520). It's independent of bolt size — the reference point is **fit itself**, not bbox.
    */
   --map-camera-pan-leash: 220;
+}
+
+/*
+ * The file card stands on the map's right at `xl` (2026-09-08): 22rem wide with 1.25rem of
+ * frame on each side, so the camera fits the graph to the left of it. Unitless px — the token
+ * reader takes `parseFloat`, and it is read once when the stage mounts (`StageMap`).
+ */
+@media (min-width: 80rem) {
+  html[data-gateway-stage] {
+    --map-safe-inset-right: 392;
+  }
 }
 
 /*

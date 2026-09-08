@@ -1,6 +1,7 @@
 # Demo Video Shooting Scenario — `atlas-tour`
 
-> Current scenario: one localized page clip · **44 seconds** · one take · no speed changes ·
+> Current scenario: one localized page clip · **28 seconds** · one take, with the agent's wait
+> cut · no speed changes ·
 > no audio · recorded separately in Korean and English. The X export is a separate Korean
 > 23-second LNB overview and is not part of the page registry.
 
@@ -12,7 +13,7 @@ The next campaign story is specified separately in
 `docs/launch/DEMO-GIF-STORYBOARD.md`: agent code work → explicit ontology-update request → exact
 semantic proposal → human correction or approval → Markdown/History → later agent retrieval. It
 has not been recorded and does not rename this clip. Until replacement footage passes that brief's
-source-hidden comprehension gate and the proof below, the active 44-second take remains honestly
+source-hidden comprehension gate and the proof below, the active 28-second take remains honestly
 described only as concept, relation, evidence, and read-only path lookup.
 
 ## 1. The sentences the footage must prove
@@ -52,24 +53,39 @@ and click highlighting is disabled.
 The example vault contains only public repository material. Even so, privacy is judged from the
 pixels, not from that assumption: every final asset gets a one-frame-per-second visual sweep.
 
-## 3. Download-page take — 44 seconds
+## 3. Download-page take — 28 seconds from one 70-second pass
+
+Refilmed 2026-09-08 from the app built at that day's branch, because the product the old take
+showed no longer exists: the map has weight and light, the rail carries MCP and Library, and the
+agent conversation is a tab of the concept's meaning review rather than a separate Ask AI surface.
+The story is unchanged.
+
+**The agent's wait is cut, and the caption says so.** The full pass ran 55 seconds and only eight
+of them moved — measured at 5fps, 46 of 54 seconds had a maximum adjacent-frame change under 0.6,
+including one 17-second and one 21-second frozen run while Codex thought. The owner read the
+result as a video that had stopped playing. So the delivery keeps three spans of the one pass and
+drops the two waits between them; `download.demoProvisionalNote` states that the thinking time is
+what was cut, and nothing is sped up. Recompute the spans after any reshoot from the same
+measurement — never trim by eye.
 
 | Time | Visible beat |
 |---:|---|
-| 0–2s | Hold on the settled ontology overview. The first frame is already useful; there is no loading screen. |
-| 2–5s | Search INDEX for the localized **MCP Server** capability and choose the result. |
-| 5–9s | Hold the capability detail: what uses it, what it depends on, its parent, and its evidence document. |
-| 9–12s | Open **Ask AI**. Codex is already selected and ready. |
-| 12–14s | Enter and send the locale-specific read-only prompt below. |
-| 14–39s | Codex calls Atlas MCP `get_concept` for both endpoints and `find_path` for their path. The work indicator remains honest while it runs. |
-| 39–44s | Hold the one-sentence result long enough to read. |
+| 0–2.5s | Hold on the settled ontology overview with INDEX open. The first frame is already useful; there is no loading screen. |
+| 2.5–4.5s | Search INDEX for `MCP` and watch the tree narrow to the capability and its elements. |
+| 4.5–9s | Open the localized **MCP Server** capability. The map focuses its neighbourhood and the panel names what it contains, what uses it, what it leans on, its parent, and its evidence document. |
+| 9–11s | Open **Meaning review**: the capability's own sentence and the reason on each connection, both from the vault. |
+| 11–16.5s | Move to the **Conversation** tab and send the locale-specific read-only prompt below. |
+| — | *Cut: Codex works. The receipt visibly advances across the join.* |
+| 16.5–20.5s | The map draws the answer: the two-hop path is lit end to end and named in a chip, beside a receipt of two `get_concept` calls and one `find_path`. |
+| — | *Cut: the rest of the wait.* |
+| 20.5–28s | The one-sentence result arrives under the receipt, Atlas records the review as Markdown in the folder, and the frame settles. |
 
 Use the locale's `download.demoAgentPrompt` message verbatim. The localized data preserves the
 same two tool names, the same endpoint slugs, the one-sentence bound, and the no-write clause.
 
-The take is valid only when the collapsed work-process receipt contains two `get_concept` calls
-and one `find_path` call. A plausible answer produced from shell search or direct file reads is
-not this product claim and invalidates the take.
+The take is valid only when the collapsed work-process receipt contains at least two
+`get_concept` calls and one `find_path` call, and no write call. A plausible answer produced from
+shell search or direct file reads is not this product claim and invalidates the take.
 
 ## 4. X take — 23 seconds
 
@@ -136,17 +152,17 @@ public/demo/atlas-tour.en.mp4
 public/demo/atlas-tour.en-poster.png
 ```
 
-Current attachment, filmed 2026-08-30 from the installed rc.18 app:
+Current attachment, filmed 2026-09-08 from the app built at that day's branch:
 
 | Locale/output | WebM | MP4 | Poster |
 |---|---:|---:|---:|
-| Korean page | 893,587 bytes | 933,481 bytes | 245,523 bytes |
-| English page | 926,124 bytes | 964,093 bytes | 268,205 bytes |
+| Korean page | 837,949 bytes | 1,053,082 bytes | 229,274 bytes |
+| English page | 911,816 bytes | 1,189,416 bytes | 256,635 bytes |
 | Korean X | — | 778,417 bytes | — |
 
-All three MP4 deliveries are 1512×950, 30fps, silent H.264: the page takes are exactly 44
+All three MP4 deliveries are 1512×950, 30fps, silent H.264: the page takes are exactly 28
 seconds and the X take is exactly 23 seconds. Both page WebM files are silent AV1 at the same
-dimensions, frame rate, and 44-second duration.
+dimensions, frame rate, and 28-second duration.
 
 After encoding:
 
@@ -176,7 +192,14 @@ After encoding:
 - **Hosted proof** — after deployment, verify the public Korean and English pages load the new
   duration and assets. A local static export is not hosted proof.
 
-Recorded proof on 2026-08-30: 111 one-second privacy samples across the three MP4 files exposed
+Recorded proof on 2026-09-08 (page takes): 110 one-second privacy samples across the two
+delivered page MP4 files contained only the app window — no Finder, file picker, desktop, menu
+bar, notification banner, or path outside the example folder. Both takes' receipts named
+`mcp.atlas-vault.get_concept` twice or more and `mcp.atlas-vault.find_path` once, with no write
+call, and both ended on the drawn two-hop path and the one-sentence answer.
+
+Earlier proof on 2026-08-30 (the retired 44-second page takes and the standing X take): 111
+one-second privacy samples across the three MP4 files exposed
 zero picker, path, notification, desktop, or personal-information frames. Both page takes'
 expanded work receipts named two `mcp.atlas-vault.get_concept` calls and one
 `mcp.atlas-vault.find_path` call, with no write call. Three source-hidden evaluators classified
@@ -191,6 +214,9 @@ non-consecutive low-diff ease tails and zero identical frames (`mean=0.296`, `cv
 
 ## 8. Retired scenarios
 
+- **2026-08-30, 44.000 seconds** — the same story from the rc.18 app. Retired on 2026-09-08:
+  the map, the rail and the agent surface it showed had all changed, so the footage advertised a
+  product a visitor would not meet.
 - **2026-08-22, 9.000 seconds** — loading → overview → one domain neighbourhood. Retired because
   the owner observed that it was too short and it did not show the agent promise made by the
   gateway.
