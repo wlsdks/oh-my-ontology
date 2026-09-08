@@ -490,9 +490,10 @@ function HeroSection({
             the canvas bottom, which in turn made the object look pushed down). Now that the CTA
             wraps to two lines and the block is closer to the canvas height, plain `items-center`
             is also optically correct. */}
-        {/* The block is the row's width (48rem, three controls in one line in English at the
-            split); the lead keeps its own 40rem measure. */}
-        <div className="pointer-events-auto min-w-0 max-w-[48rem]">
+        {/* The lead keeps the 40rem measure; the decision row below it is allowed its own width
+            so the three controls stand on one line in English at the split (`gateway-stage-width`
+            owns 48rem — the demo stage's number — so this is not that). */}
+        <div className="pointer-events-auto min-w-0 max-w-[45rem]">
           <p
             className={cn(
               rise('gateway-t240'),
