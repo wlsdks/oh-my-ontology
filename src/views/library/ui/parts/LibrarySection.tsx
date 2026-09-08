@@ -17,6 +17,7 @@ import { ICON_SIZE } from "@/shared/ui/icon-size";
 import { writeLibraryIndexSegment, type LibraryIndexSegment } from "@/shared/lib/appearance-preferences";
 
 import { isAdvisoryWikiCode, isWikiFolderCode } from "../../lib/merge-wiki-verdict";
+import { LibraryShelf } from "./LibraryShelf";
 import { libraryWaitingLine } from "../../lib/stage-steps";
 import type { LibraryUiModel } from "../../lib/use-library-model";
 
@@ -149,6 +150,15 @@ export interface LibrarySectionProps {
    */
   segment: LibraryIndexSegment;
   busy: boolean;
+  /**
+   * True while a **Compile** turn is in flight.
+   *
+   * Separate from `busy`, which disables the doors for every kind of work this column
+   * can start. Only Compile acts on the shelf, so only Compile earns the shelf's own
+   * progress; a Check or an Ask running would otherwise light a row of pages nothing is
+   * writing.
+   */
+  compiling?: boolean;
   t: ReturnType<typeof useTranslations<"library">>;
 }
 
@@ -264,6 +274,7 @@ export function LibrarySection({
   compileNote,
   segment,
   busy,
+  compiling = false,
   t,
 }: LibrarySectionProps) {
   /*
@@ -495,6 +506,74 @@ export function LibrarySection({
     );
   }
 
+  /*
+   * A page a person writes by hand is the list's own last row, not a door beside the two
+   * agent turns (council 2026-09-07): a hand action on the list, drawn in the list's
+   * grammar, with its own glyph — `FilePlus2` already means "add a file" one switch away
+   * and "file the answer" in the dock. It is hoisted here because the list has two shapes
+   * now — a shelf at rest, rows while searching — and one control cannot be written twice.
+   */
+  const newPageControl = onNewPage ? (
+    newPageOpen ? (
+      <span
+        id="library-new-page-row"
+        data-testid="library-new-page-row"
+        className="flex min-w-0 items-center gap-1 px-1 py-1"
+        onKeyDown={(event) => {
+          // The row owns Escape: pressed on the Make chip it must not reach the page
+          // handler, which would close the open document instead of this row.
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            setNewPageOpen(false);
+          }
+        }}
+      >
+        <Input
+          data-testid="library-new-page-title"
+          size="sm"
+          aria-label={t("wiki.newPageTitle")}
+          placeholder={t("wiki.newPageTitle")}
+          value={newPageTitle}
+          autoFocus
+          onChange={(event) => setNewPageTitle(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && newPageTitle.trim()) {
+              onNewPage(newPageTitle.trim());
+              setNewPageTitle("");
+              setNewPageOpen(false);
+            }
+          }}
+          className="min-w-0 flex-1"
+        />
+        <Chip
+          data-testid="library-new-page-make"
+          tone="muted"
+          disabled={busy || newPageTitle.trim() === ""}
+          onClick={() => {
+            onNewPage(newPageTitle.trim());
+            setNewPageTitle("");
+            setNewPageOpen(false);
+          }}
+        >
+          {t("wiki.newPageMake")}
+        </Chip>
+      </span>
+    ) : (
+      <RowButton
+        data-testid="library-new-page"
+        onClick={() => setNewPageOpen(true)}
+        disabled={busy}
+        aria-expanded={false}
+        aria-controls="library-new-page-row"
+        title={t("wiki.newPageTooltip")}
+        className="hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]"
+      >
+        <PencilLine size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
+        <span className="min-w-0 flex-1 truncate">{t("wiki.newPage")}</span>
+      </RowButton>
+    )
+  ) : null;
+
   return (
     <section data-testid="library-wiki" className="flex flex-col pb-1 pt-3">
       {searchField}
@@ -609,6 +688,13 @@ export function LibrarySection({
       ) : null}
       {hasWiki ? (
         <>
+          {/*
+            **The shelf is the resting state; a search is a list.** A shelf is a picture of
+            a folder — equal heights, freshness on every spine, comparable at a glance. A
+            search result is a ranked answer to a question a person just typed, and an
+            answer reads down a column, not across a row of vertical books.
+          */}
+          {needle ? (
           <ul
             data-testid="library-wiki-list"
             aria-label={t("wiki.listAria")}
@@ -689,73 +775,20 @@ export function LibrarySection({
                 </li>
               );
             })}
-            {onNewPage ? (
-              /* A page a person writes by hand is the list's own last row, not a door beside
-                 the two agent turns (council 2026-09-07): a hand action on the list, drawn in
-                 the list's grammar, with its own glyph — `FilePlus2` already means "add a
-                 file" one switch away and "file the answer" in the dock. */
-              <li>
-                {newPageOpen ? (
-                    <span
-                    id="library-new-page-row"
-                    data-testid="library-new-page-row"
-                    className="flex min-w-0 items-center gap-1 px-1 py-1"
-                    onKeyDown={(event) => {
-                      // The row owns Escape: pressed on the Make chip it must not reach the page
-                      // handler, which would close the open document instead of this row.
-                      if (event.key === "Escape") {
-                        event.stopPropagation();
-                        setNewPageOpen(false);
-                      }
-                    }}
-                  >
-                      <Input
-                        data-testid="library-new-page-title"
-                        size="sm"
-                        aria-label={t("wiki.newPageTitle")}
-                        placeholder={t("wiki.newPageTitle")}
-                        value={newPageTitle}
-                        autoFocus
-                        onChange={(event) => setNewPageTitle(event.target.value)}
-                        onKeyDown={(event) => {
-                            if (event.key === "Enter" && newPageTitle.trim()) {
-                            onNewPage(newPageTitle.trim());
-                            setNewPageTitle("");
-                            setNewPageOpen(false);
-                          }
-                        }}
-                        className="min-w-0 flex-1"
-                      />
-                      <Chip
-                        data-testid="library-new-page-make"
-                        tone="muted"
-                        disabled={busy || newPageTitle.trim() === ""}
-                        onClick={() => {
-                          onNewPage(newPageTitle.trim());
-                          setNewPageTitle("");
-                          setNewPageOpen(false);
-                        }}
-                      >
-                        {t("wiki.newPageMake")}
-                      </Chip>
-                    </span>
-                ) : (
-                  <RowButton
-                    data-testid="library-new-page"
-                    onClick={() => setNewPageOpen(true)}
-                    disabled={busy}
-                    aria-expanded={false}
-                    aria-controls="library-new-page-row"
-                    title={t("wiki.newPageTooltip")}
-                    className="hover:bg-[color:var(--color-overlay-1)] hover:text-[color:var(--color-text-primary)]"
-                  >
-                    <PencilLine size={ICON_SIZE.sm} className="flex-none opacity-60" aria-hidden />
-                    <span className="min-w-0 flex-1 truncate">{t("wiki.newPage")}</span>
-                  </RowButton>
-                )}
-              </li>
-            ) : null}
+            {newPageControl ? <li>{newPageControl}</li> : null}
           </ul>
+          ) : (
+            <LibraryShelf
+              model={model}
+              pages={visiblePages}
+              selectedSlug={selectedSlug}
+              onSelect={onSelect}
+              majorityWriter={majorityWriter}
+              compiling={compiling}
+              trailing={newPageControl}
+              t={t}
+            />
+          )}
           {/*
             The same count the rows draw and the header strip prints. `offTemplateCount`
             on the model counts every page whose merged verdict is not `ok`, and since PR

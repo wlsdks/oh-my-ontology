@@ -193,6 +193,13 @@ export function LibraryPage() {
    * three in silence (design-interaction, council 2026-09-07).
    */
   const [turnRunning, setTurnRunning] = useState(false);
+  /*
+   * **Compile alone, not every turn.** `turnRunning` covers Check, Fix, Propose and Ask
+   * too, and only Compile is about the wiki pages the shelf draws. Lighting a shelf while
+   * a Check reads it, or while an Ask answers a question about one page, would say the
+   * pages are being rewritten when nothing is writing them.
+   */
+  const [compileRunning, setCompileRunning] = useState(false);
   const choose = useCallback((next: typeof selected) => {
     setShelfOpen(false);
     setSelected(next);
@@ -777,8 +784,10 @@ export function LibraryPage() {
       const sources = selectCompileTargets(model.sources).map((row) => row.path);
       const writer = agent.runtime ? `agent:${agent.runtime.id}` : "agent:unknown";
       setTurnRunning(true);
+      if (kind === "compile") setCompileRunning(true);
       return async (completion: { endedAt: string; outcome: string; events: ReadonlyArray<{ kind: string; text?: string }> }) => {
         setTurnRunning(false);
+        setCompileRunning(false);
         // A cancelled or failed turn reported nothing: reading its absence as "nothing to fix"
         // would print a clean report over a check that never finished (design-interaction,
         // council 2026-09-07).
@@ -1465,6 +1474,12 @@ export function LibraryPage() {
                 : libraryTransferSentence({ route: agent.route, localModel: agent.localModel }, t)
             }
             busy={busy}
+            /*
+             * Both routes that can write a page: the agent turn this view starts, and the
+             * local runner's own session. The shelf carries the progress either way, so a
+             * person watching the pages sees the work happen on the pages.
+             */
+            compiling={compileRunning || agent.localCompile.status === "running"}
             t={t}
           />
         </div>

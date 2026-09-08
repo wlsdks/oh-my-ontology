@@ -4581,6 +4581,15 @@
       "undone": "Removed {page}.",
       "undoFailed": "Could not undo: the file is already gone or the folder is not writable."
     },
+    "shelf": {
+      "listAria": "Wiki pages as a shelf, each spine carrying its freshness",
+      "freshness": {
+        "fresh": "up to date with the file it was written from",
+        "stale": "its source changed after this page was written",
+        "unverified": "nothing has checked this page against a file"
+      },
+      "compiling": "Compile is re-reading the shelf."
+    },
     "graph": {
       "title": "Graph",
       "counts": "{sources, plural, one {# source} other {# sources}} · {pages, plural, one {# page} other {# pages}} · {concepts, plural, one {# concept} other {# concepts}} · {cites} cites · {mentions} mentions",

@@ -2930,6 +2930,42 @@
     --docs-audit-modal-width: 680px;
     /* Document list aside expanded width — retract existing hardcoded w-[280px]. */
     --docs-list-width: 280px;
+
+    /*
+     * **The library shelf** — the wiki half of that 280px column draws its pages as
+     * spines standing on a shelf, so a page's freshness is readable **before** it is
+     * opened. Every value here carries one fact and nothing else:
+     *
+     * - height is **one** value for every spine. A shelf whose books differ in height
+     *   because their titles differ in length is the copy-decided card height the
+     *   Don'ts refuse; the row is a shelf, not a bar chart.
+     * - the four widths are the **only** thing that varies with the page, and what
+     *   varies is how long the page is (`src/views/library/lib/spine-shape.ts` owns the
+     *   thresholds). Four steps, because a person compares books by eye and a
+     *   continuous width would say a precision nobody can read.
+     * - the rim is the freshness mark: the head carries "this page's source moved after
+     *   it was written", the foot carries "this page's own shape misses the template".
+     *   Static, both of them — a state is not an animation.
+     * - the state ink is the value layer's `tone` axis, not a colour written here,
+     *   and a page nothing has checked simply has **no fill** — an outline of a book
+     *   rather than a book. An opacity token was tried first and dropped: dimming the
+     *   label with it put its ink under the 4.5:1 text floor.
+     * - the lift is what hover does. Allowed since 2026-09-08 (`docs/DECISIONS.md`,
+     *   "The expression bans are lifted") and spent on a fact: the book you are about
+     *   to pull comes off the shelf.
+     * - the dwell is how long Compile's light rests on one spine while the shelf is
+     *   re-read. It replaces a spinner with the thing being worked on.
+     */
+    --library-spine-height: 164px;
+    --library-spine-width-xs: 26px;
+    --library-spine-width-sm: 32px;
+    --library-spine-width-md: 38px;
+    --library-spine-width-lg: 46px;
+    --library-spine-gap: 3px;
+    --library-spine-rim: 2px;
+    --library-spine-lift: 4px;
+    --library-spine-lift-scale: 1.02;
+    --library-spine-sweep-dwell: 240ms;
     /* drawer/audit modal shared scrim, single source — same value as existing sourceTreeOpen drawer. Dark-only (no light branch). */
     --docs-scrim: rgba(0, 0, 0, 0.5);
     /*
