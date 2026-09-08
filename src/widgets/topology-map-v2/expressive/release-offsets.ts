@@ -80,6 +80,24 @@ export function isOffsetAtRest(offset: Readonly<SpringOffset>): boolean {
   return springAtRest(offset.x, offset.vx, 0) && springAtRest(offset.y, offset.vy, 0);
 }
 
+/**
+ * The ids holding an offset that nothing steps any more.
+ *
+ * The host keeps one offset per node of the **current** drag's group. Grabbing a second
+ * node replaces that group while the first group's offsets are still on the map: they
+ * stop being applied, and every node in it snaps back to its natural position inside one
+ * frame (measured up to 21 px on the sample vault). They are not stale data — they are
+ * springs mid-flight, so the loop steps them home instead of dropping them.
+ */
+export function orphanedOffsetIds(
+  offsets: ReadonlyMap<string, Readonly<SpringOffset>>,
+  stepped: ReadonlySet<string>,
+): string[] {
+  const out: string[] = [];
+  for (const id of offsets.keys()) if (!stepped.has(id)) out.push(id);
+  return out;
+}
+
 /** One EMA step of a dragged node's velocity from its frame displacement. */
 export function smoothVelocity(
   prev: Readonly<{ x: number; y: number }>,

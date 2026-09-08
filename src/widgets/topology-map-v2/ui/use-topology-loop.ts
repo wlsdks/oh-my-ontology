@@ -27,6 +27,7 @@ import { CAMERA_TRANSITION_MIN_MS, cameraTransitionDurationMs, easeCameraKeyfram
 import { tugFactorForHop, tugFalloffForDistance } from "../interaction/drag-tug";
 import {
   isOffsetAtRest,
+  orphanedOffsetIds,
   REST_OFFSET,
   seedDropOffset,
   smoothVelocity,
@@ -746,6 +747,12 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
   const dropSeededRef = useRef(false);
   /** When the current hover began (ms), for the press response in the draw. */
   const hoverStartRef = useRef<{ id: string | null; at: number }>({ id: null, at: 0 });
+  /**
+   * The node the press just left. The draw keeps the press's own radius coefficient on
+   * it while its emphasis decays, so a hover-out eases instead of stepping down (design
+   * council, 2026-09-08).
+   */
+  const hoverReleasedRef = useRef<string | null>(null);
   /**
    * Coordinate snapshot from the **start** of a sim frame (in node-array
    * order). Comparing against it at the end of the frame yields the nodes that
@@ -4016,6 +4023,30 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
               draggedNode.y += next.y;
             }
           }
+          /*
+           * Grabbing a second node replaces `dragAffectedSetRef` while the first group's
+           * offsets are still in flight. Nothing above iterates them any more, so those
+           * nodes stopped being offset and jumped home in a single frame — up to 21 px on
+           * the sample vault, on nodes the hand never touched. They keep their own spring
+           * until they are at rest (`expressive/release-offsets.ts#orphanedOffsetIds`).
+           */
+          const stepped = new Set<string>(tugIds);
+          stepped.add(affected.draggedId);
+          for (const id of orphanedOffsetIds(dragTugOffsetsRef.current, stepped)) {
+            const prev = dragTugOffsetsRef.current.get(id);
+            if (!prev) continue;
+            const next = stepHomeOffset(prev, dt, springFor(id));
+            if (isOffsetAtRest(next)) {
+              dragTugOffsetsRef.current.delete(id);
+              continue;
+            }
+            dragTugOffsetsRef.current.set(id, next);
+            const orphan = world.nodeById.get(id);
+            if (orphan) {
+              orphan.x += next.x;
+              orphan.y += next.y;
+            }
+          }
         }
 
         // Relax the overlap a drag or settle created, in the same frame. This
@@ -5203,9 +5234,14 @@ export function useTopologyLoop(args: UseTopologyLoopArgs): UseTopologyLoopResul
         // Press (2026-09-08): when this hover began, so the draw can run the
         // underdamped step response from that instant.
         hoverStartedAt: (() => {
-          if (hoverStartRef.current.id !== hoveredNodeId) hoverStartRef.current = { id: hoveredNodeId, at: now };
+          if (hoverStartRef.current.id !== hoveredNodeId) {
+            hoverReleasedRef.current = hoverStartRef.current.id;
+            hoverStartRef.current = { id: hoveredNodeId, at: now };
+          }
           return hoveredNodeId === null ? null : hoverStartRef.current.at;
         })(),
+        // The node the press left, so its swell decays instead of stepping down.
+        hoverReleasedNodeId: hoverReleasedRef.current,
         emphasizedNeighborId: panelEmphasisNodeId,
         hoveredEdge: hoveredEdgeRef.current,
         selectedEdge: selectedEdgeRef.current,

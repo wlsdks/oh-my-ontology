@@ -529,6 +529,12 @@ export interface FrameDrawParams {
   focusedNodeId: string | null;
   hoveredNodeId: string | null;
   /**
+   * The node the press just left, or null. Its swell keeps the press's radius
+   * coefficient while its emphasis decays, so a hover-out eases out instead of
+   * stepping down by half the bump in one frame (design council, 2026-09-08).
+   */
+  hoverReleasedNodeId?: string | null;
+  /**
    * Press (2026-09-08, direction B): the ms clock at which the current hover began, or
    * null. The hovered node's swell runs the underdamped step response
    * (`expressive/mass-spring.ts#pressResponse`) from that instant instead of the critical
@@ -878,6 +884,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
     tokens,
     focusedNodeId,
     hoveredNodeId,
+    hoverReleasedNodeId = null,
     hoverStartedAt = null,
     emphasizedNeighborId,
     hoveredEdge,
@@ -2086,12 +2093,26 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
       if (node.id === hoveredNodeId && !reducedMotion && hoverStartedAt !== null) {
         // Press: the underdamped step from the hover's first instant — it swells past
         // its rest (peak ≈ 1.31× at ζ 0.35) and settles, a press that gives. Hover-out
-        // hands the node back to the emphasis decay, which starts at the same rest
-        // value, so the two curves meet without a step.
+        // hands the node to the emphasis decay at the same coefficient (see below), so
+        // the two curves meet without a step.
         const press = pressResponse((now - hoverStartedAt) / 1000, { omega: tokens.pressAngFreq, zeta: tokens.pressZeta });
         effRadius += Math.max(0, press) * baseRadius * 0.16;
       } else {
-        effRadius += emphasis * (node.id === hoveredNodeId ? baseRadius * 0.16 : baseRadius * 0.08);
+        /*
+         * Hover-out. The press bump is 0.16·r and the ripple bump is 0.08·r, so handing
+         * a released node straight back to the ripple halved its bump in one frame — a
+         * ~1.4px hard cut on the one mark the hand had just been on, while everything
+         * around it eased (design council, 2026-09-08). The node the press left keeps
+         * the press coefficient and rides its own emphasis decay to 0. It gives that up
+         * the moment it becomes a neighbour of the NEW hover, because then it is a
+         * ripple member and 0.08 is what it is.
+         */
+        const releasedPress =
+          node.id === hoverReleasedNodeId &&
+          node.id !== hoveredNodeId &&
+          !(hoveredNodeId !== null && (world.neighborMap.get(hoveredNodeId) ?? EMPTY_NEIGHBOR_SET).has(node.id));
+        effRadius +=
+          emphasis * (node.id === hoveredNodeId || releasedPress ? baseRadius * 0.16 : baseRadius * 0.08);
       }
     } else if (isEmphasizedNeighbor) {
       effRadius += emphasis * baseRadius * 0.12;

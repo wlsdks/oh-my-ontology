@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   isOffsetAtRest,
+  orphanedOffsetIds,
   REST_OFFSET,
   seedDropOffset,
   smoothVelocity,
@@ -9,6 +10,7 @@ import {
   springForDegree,
   stepHomeOffset,
   stepLagOffset,
+  type SpringOffset,
 } from "./release-offsets";
 
 const TOKENS = { heavyDegree: 12, angFreq: 16, heavyZeta: 0.55 };
@@ -76,5 +78,28 @@ describe("release offsets — one call per node per frame", () => {
     const v1 = smoothVelocity({ x: 0, y: 0 }, 10, 0, 1 / 60);
     expect(v1.x).toBeCloseTo(300, 6);
     expect(smoothVelocity(v1, 10, 0, 0)).toEqual(v1);
+  });
+});
+
+describe("orphaned offsets — a second grab must not drop the first group mid-flight", () => {
+  it("names every id the live group no longer steps, and nothing else", () => {
+    const offsets = new Map<string, SpringOffset>([
+      ["a", { x: 4, y: 0, vx: 0, vy: 0 }],
+      ["b", { x: 2, y: 1, vx: 0, vy: 0 }],
+      ["c", { x: 0, y: 3, vx: 0, vy: 0 }],
+    ]);
+    expect(orphanedOffsetIds(offsets, new Set(["b"]))).toEqual(["a", "c"]);
+    expect(orphanedOffsetIds(offsets, new Set(["a", "b", "c"]))).toEqual([]);
+    expect(orphanedOffsetIds(new Map(), new Set(["a"]))).toEqual([]);
+  });
+
+  it("an orphan stepped home keeps travelling instead of snapping", () => {
+    const spring = { omega: 16, zeta: 1 };
+    let offset: SpringOffset = { x: 21, y: 0, vx: 0, vy: 0 };
+    const first = stepHomeOffset(offset, 1 / 60, spring);
+    expect(Math.abs(21 - first.x)).toBeLessThan(21);
+    offset = first;
+    for (let i = 0; i < 120; i += 1) offset = stepHomeOffset(offset, 1 / 60, spring);
+    expect(isOffsetAtRest(offset)).toBe(true);
   });
 });
