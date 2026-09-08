@@ -556,6 +556,8 @@ Owner request: *"I wish each LNB tab had its own guide? Currently only the map s
 
 ---
 
+**The map has weight, a press, and light** (2026-09-08, after the expression bans were lifted). A node's mass is its number of relations: let go of a hub after a drag and it carries the hand's speed a step past the drop point, overshoots once and takes longer to sit, while a leaf snaps home; its neighbours spring back on their own mass. Hovering a node swells it on an underdamped step, so a hover reads as a press that gives. Selecting a node lays an indigo ground halo under its neighbourhood, sized by its farthest neighbour, blooms the node and glows its relation lines, all on the focus ramp, so the light arrives with the dive and leaves with the deselect. Nothing at rest glows or moves, the idle canvas still draws zero frames, and under `prefers-reduced-motion` every end state lands with no ring. Measured on the sample vault at 1512: a dragged domain carried 14 px past its drop and settled by 300 ms; a hovered domain went 28.1 px to 34.7 and sat at 34.2. The pieces are pure modules under `src/widgets/topology-map-v2/expressive/` (`mass-spring`, `release-offsets`, `ego-light`) with a README naming their tokens and how to remove them.
+
 ### `/architecture` — Living Blueprint for implementation boundaries
 
 - Architecture is separate from the Ontology Map and from the public five-kind
@@ -647,6 +649,8 @@ Owner request: *"I wish each LNB tab had its own guide? Currently only the map s
 - At narrow widths the role model remains first in document order. Open evidence
   and role panels scroll into view without covering the persistent bottom tabs,
   whose reserve stays part of the workbench.
+
+**Import direction is drawn as depth** (2026-09-08). The reviewed ladder stands on stacked translucent planes, one per layer, stepping 14 px per rank so the stack shears along one line and reads as a solid: an allowed import runs down onto a lower plane in indigo, a violation is the stroke that climbs to a higher plane in the danger tone with a halo that rises when either end is selected. Plane fill is capped under a role's own face so depth never inverts; the lit top edge carries the reading. Measured at 1512 and 1280: overlap count 0, every label at or above 4.5:1 on its plane, height up 1.6 to 2.8 percent, width unchanged.
 
 ### `/docs` — Ontology workspace (reader + editor + palette)
 
@@ -1193,6 +1197,8 @@ arrival 0.85 of the way in.
 
 **What left `/docs` on 2026-09-06**: Sources, Wiki, the doors, and the agent dock.
 What stayed: the review queue, recently changed, the tree, and the editor.
+
+**The wiki index is a shelf of spines** (2026-09-08). Each page stands as a book spine, equal height, width from page length; a page whose source changed since it was compiled wears an amber cap, a page never checked stands unfilled, the open page carries an indigo edge. Hover lifts a spine 4 px at 1.02 over `--motion-fast`; while Compile re-reads the folder a light steps along the shelf one spine at a time instead of a spinner (a static board under reduced motion). Search brings the rows back, since a ranked answer is a list. Measured at 1512: stale against selected edge at ΔE 110, every title over 4.5:1, the same five of six titles readable as in the old list. New page stays under the board.
 
 ### `/ontology` — retired tree/ego hub → thin redirect (B3 Hub is soon the map)
 
