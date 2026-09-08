@@ -338,7 +338,17 @@ export function useLibraryGraphEngine({
       }
 
       screenRef.current = screen;
-      const active = stateRef.current.hoveredId ?? stateRef.current.focusedId;
+      /*
+       * **The open page is a focus too** (2026-09-08, owner direction B). Until now only a
+       * pointer or the keyboard could hold the neighbourhood, because choosing a page hid
+       * this canvas outright and there was nothing left to dim. With the canvas standing
+       * beside the reader, the page a person is reading is what the picture should be
+       * about: the selection holds the ego set whenever nothing is being pointed at, and a
+       * hover still wins over it, so pointing somewhere else answers "and what about that
+       * one" without losing the page underneath.
+       */
+      const active =
+        stateRef.current.hoveredId ?? stateRef.current.focusedId ?? stateRef.current.selectedId;
       const focus = active ? neighboursRef.current.get(active) ?? new Set([active]) : null;
 
       drawLibraryGraph(context, {
@@ -631,7 +641,7 @@ export function useLibraryGraphEngine({
   // Selection, hover, focus and the label are read from a ref by the loop, but a change to
   // any of them has to reach the screen even when nothing else is moving.
   useEffect(() => {
-    dimRef.current.target = hoveredId ?? focusedId ? 1 : 0;
+    dimRef.current.target = (hoveredId ?? focusedId ?? selectedId) ? 1 : 0;
     wake();
   }, [activeLabel, focusedId, hoveredId, selectedId, standingLabels, wake]);
 

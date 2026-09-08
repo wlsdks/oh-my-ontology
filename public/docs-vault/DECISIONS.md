@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — The Library canvas stands beside the page it is about
+
+**Why**: the owner, on an open wiki page: *"Wasn't this supposed to be an LLM wiki — whatever data you put in gets compiled into our own wiki, its relations shown as a graph, and it compounds. There's no graph here."* The canvas was the pane only while nothing was selected, so the relations vanished at the moment a person read the thing that has them.
+**Prior**: 2026-09-06 "The Library pane is the graph; the shelf is a popup" is extended, not overturned — with nothing chosen the canvas is still the whole pane. 2026-09-08 "The Library graph stands still" stands, untouched.
+**Decision**: direction B of three, chosen by the owner. When the row holds an 800px document column beside a 360px canvas, the pane is two columns and choosing a page **focuses** the canvas on that page's neighbourhood instead of replacing it; below that the screen is what it was, with the `Graph` chip as the way back. The open page never dims, holds the ego set, and takes the standing names first; closing it is a control, not only Escape; the keyboard keeps the canvas when the choice was made there. The verdict is measured on the row minus a constant index reserve, with a one-sided band, so neither the index's fold nor a one-pixel drag changes the pane's shape.
+**Dissent**: design-lead wanted the folder status row behind a popover and a shared top inset; design-responsive wanted the canvas capped by a new token — both larger than the defects they answer. Rejected directions: A (make the chip read as the graph) and C (an ego strip in the reading margin), which survives if reading width later proves untouchable.
+**Falsifier**: a reader beside the canvas who still cannot tell which marks are that page's sources — a frame at 1512 whose placed names are all dimmed. On a 50-node folder at 287×852 the ordering wins nothing for want of room; if that fires at 399px or wider, the 360 floor is wrong.
+**Owner**: jinan
+
 ## 2026-09-08 — The gateway hero is a lit three.js atlas of the real vault, and its 2D engine stays as the fallback
 
 **Why**: the owner, on the rebuilt download page: *"if anything make it in three.js, not a disc, cooler and prettier"*, after rejecting an ASCII card row and, later, the typed ASCII mascot (*"this should go, not needed"*). The 2D plane could show depth only as a fog ramp; the same graph as a lit cone with real depth, halos and travelling beads reads as an object, not a diagram.

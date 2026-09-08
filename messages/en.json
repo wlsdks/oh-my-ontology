@@ -4609,6 +4609,8 @@
       "empty": "Nothing to draw yet. Once Compile writes a page, this shows which source it was written from and which concepts it names.",
       "canvasAria": "The library graph: raw sources, wiki pages, and the concepts those pages name.",
       "legend": "A filled circle is a page, a square a source, a ring a concept on the map. A thicker line is a citation, a dashed one a mention, either way. Drag a dot out of the tangle, scroll to zoom, drag the background to move, click to open.",
+      "legendShort": "A circle is a page, a square a source, a ring a concept.",
+      "readerClose": "Close the page",
       "keys": "Arrow keys move between dots, Enter opens the one you are on, Escape leaves it.",
       "announce": "{kind} {name}, {position} of {total}. Enter {action}.",
       "kind": {

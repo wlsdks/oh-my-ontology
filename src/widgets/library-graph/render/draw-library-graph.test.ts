@@ -360,6 +360,49 @@ describe("drawing the library graph", () => {
     expect(rec.outlined.map((entry) => entry.text)).toEqual(rec.texts.map((entry) => entry.text));
   });
 
+  /**
+   * **The neighbourhood is named first when there is only room for one name.**
+   *
+   * The standing pass is greedy, so the order it asks in decides who is anonymous. Kind
+   * order alone let the marks the dim had just pushed away take the room: measured on a
+   * 50-node folder at 1512 with a page open beside the canvas (287×852), the three names
+   * the column had space for were all dimmed ones, and the open page and every source it
+   * cites were unnamed. Two labels that cannot both stand is the smallest frame in which
+   * that choice is visible, so it is the one the gate holds.
+   */
+  it("names the neighbourhood before the rest of the folder when only one name fits", () => {
+    const crowd: LibraryGraphNode[] = [
+      { id: "page:wiki/elsewhere", kind: "page", label: "Elsewhere", ref: "wiki/elsewhere", href: null },
+      { id: "page:wiki/open", kind: "page", label: "Open page", ref: "wiki/open", href: null },
+    ];
+    // 8px apart: the two marks stand clear of each other, and their names do not.
+    const where = new Map([
+      ["page:wiki/elsewhere", { x: 100, y: 100 }],
+      ["page:wiki/open", { x: 108, y: 100 }],
+    ]);
+
+    // Nothing open: no ego set, so the graph's own order decides and the first one wins.
+    const plain = recorder();
+    drawLibraryGraph(plain.ctx, frame({ nodes: crowd, edges: [], positions: where, standingLabels: true }));
+    expect(plain.texts.map((entry) => entry.text)).toEqual(["Elsewhere"]);
+
+    // The second page open: the same single slot, and it goes to the page being read.
+    const ego = recorder();
+    drawLibraryGraph(
+      ego.ctx,
+      frame({
+        nodes: crowd,
+        edges: [],
+        positions: where,
+        standingLabels: true,
+        selectedId: "page:wiki/open",
+        dim: 1,
+        focus: new Set(["page:wiki/open"]),
+      }),
+    );
+    expect(ego.texts.map((entry) => entry.text)).toEqual(["Open page"]);
+  });
+
   it("paints its own ground: the canvas is opaque", () => {
     const rec = recorder();
     drawLibraryGraph(rec.ctx, frame());

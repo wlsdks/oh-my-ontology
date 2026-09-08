@@ -49,7 +49,7 @@
 
 **Added**: a lit three.js atlas on the download hero, with Architecture and the Library as captured screens; an MCP screen; Connectors from Notion, GitHub, Context7 or Playwright. The Library graph pulls apart by hand; a stepper, an outside-notes door, a local model card; Check proposes nodes; Strata names planes.
 
-**Changed**: the download demo is refilmed from today's app and comes second, and the hero is three controls with Mac opening Silicon and Intel; the Library index switches Sources and Wiki; Connectors add from one list; Insights opens on four measures; glow, gradients and overshoot are allowed on tokens.
+**Changed**: the Library keeps its graph beside an open page and focuses it there; the download demo is refilmed and comes second, and the hero is three controls with Mac opening Silicon and Intel; the Library index switches Sources and Wiki; Connectors add from one list; Insights opens on four measures; glow, gradients and overshoot are allowed on tokens.
 
 **Fixed**: 3D relations stay visible; centres click; permission cards read plainly; rails stop blinking; docks name the tool; loose files ring the cluster; the Docs head fits 280px; the 3D picker closes cleanly.
 
