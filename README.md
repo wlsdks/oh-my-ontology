@@ -303,10 +303,14 @@ design file, the export from the tool the team used before. **Add files** copies
 them in as they are; **Find documents** proposes candidates from the folders you
 have connected, by name and size only, and copies nothing until you approve;
 **Compile** starts one conversation with the in-app agent that reads the sources
-and writes a wiki page in the shape `wiki/_template.md` holds, one permission
-card per write. Each source says whether it has been written up, whether the
+and writes a wiki page in the shape `wiki/_template.md` holds. Valid ACP wiki
+writes follow the existing automatic-write setting; local proposals retain their
+review card. Each source says whether it has been written up, whether the
 page went stale after the source changed, and each page says which template
-lines it breaks.
+lines it breaks. The graph marks observed reading, provisional writing and
+permission waits on exact file targets. Recent file changes remain inspectable
+after their motion settles; a proposal or completed tool call is not proof that
+a page was saved. The graph stays still when no work or interaction needs motion.
 
 ### 2. Connect your agent
 

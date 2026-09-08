@@ -1549,6 +1549,15 @@ the pill instead of ending behind it — on a wiki page, on *Check results*, and
 reader, which is the same pane — and below `lg` the pill itself stands above the bottom tab
 bar rather than behind it (owner, 2026-09-08).
 
+**Observed work stays visible outside the conversation** (2026-09-08). Exact
+structured tool targets bind reading, provisional writing and permission waits
+to source/page marks without moving the knowledge graph. Unknown targets never
+light a guessed file. A bounded, session-local receipt strip distinguishes tool
+reads and proposals from observed wiki revision changes or confirmed local writes;
+it is not a durable audit log or an attribution of every change to the agent.
+Waiting is still, reduced motion retains the state markers, and idle work emits
+no animation frames. Existing write permission and validation policies are unchanged.
+
 **Closing the dock puts the conversation away** (2026-09-08). Pressing X on the Library's
 conversation used to end it: the panel unmounted, its ACP session stopped, and the adapter
 process was killed — so a turn in flight died with the press and the transcript went with

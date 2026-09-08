@@ -4,16 +4,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 import { useLocale, useTranslations } from "next-intl";
 import { Info, ListChecks, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
-import { useLocalVault, useVaultIdentityScope } from "@/entities/vault-session";
+import { useLocalVault, useVaultIdentityScope, useVaultSessionIdentityScope } from "@/entities/vault-session";
 import { isWikiPage } from "@/entities/docs-vault";
-import type { LintFinding, LintNodeCandidate } from "@/features/library";
+import type { LibraryWorkActivity, LibraryWorkEvent, LintFinding, LintNodeCandidate } from "@/features/library";
 import type { LibrarySourceRow, SourceCandidate } from "@/entities/docs-vault";
 import { useRouter } from "@/i18n/navigation";
 import { DESTINATION_HREF } from "@/shared/config/destinations";
 import { OpenVaultCta } from "@/features/docs-vault-local";
 import { useVaultConnectors } from "@/features/mcp-connectors";
 import { isAcpBridgeAvailable } from "@/shared/lib/tauri-acp";
-import type { AcpTurnActivity } from "@/features/acp-session";
+import type { AcpEvent, AcpTurnActivity, AcpTurnCompletion, AcpTurnToolActivity } from "@/features/acp-session";
 import {
   addSources,
   addSourcesInBrowser,
@@ -44,6 +44,18 @@ import {
   buildHumanPage,
   deleteWikiFile,
   writeWikiFile,
+  EMPTY_LIBRARY_WORK_ACTIVITY,
+  beginLibraryWork,
+  appendLibraryWorkReceipt,
+  clearLibraryWork,
+  completeLibraryWork,
+  completedAcpReadEvent,
+  libraryWorkErrorEvent,
+  libraryWorkEventFromAcpSnapshot,
+  libraryWorkEventFromLocalSnapshot,
+  localCompileWaitingEvent,
+  observedWikiWriteEvents,
+  successfulLocalWriteEvents,
 } from "@/features/library";
 import {
   DocReadingPane,
@@ -53,6 +65,7 @@ import {
 } from "@/widgets/doc-reading-pane";
 import { DocsVaultViewer } from "@/widgets/docs-vault";
 import { LibraryGraph } from "@/widgets/library-graph";
+import { LibraryWorkActivityStrip } from "@/widgets/library-work-activity";
 import { LibraryImportDialog } from "@/widgets/library-import";
 import {
   useLibraryIndexCollapsed,
@@ -75,6 +88,7 @@ import { Tooltip, TooltipProvider, useToast } from "@/shared/ui";
 import { isWikiFurnitureSlug } from "@/shared/lib/wiki-page-schema";
 import { libraryCompileBlockedReason, libraryTransferSentence } from "../lib/compile-availability";
 import { useLibraryModel } from "../lib/use-library-model";
+import { useObservedWikiWork } from "../lib/use-observed-wiki-work";
 import { useLibraryAgent } from "../lib/use-library-agent";
 import { LibraryCheckReport, findingKey, reportOutline } from "./parts/LibraryCheckReport";
 import { LibrarySection } from "./parts/LibrarySection";
@@ -166,6 +180,7 @@ export function LibraryPage() {
   const locale = useLocale();
   const toast = useToast();
   const localVault = useLocalVault();
+  const workVaultScope = useVaultSessionIdentityScope();
 
   const handle = selectOpenVaultHandle(localVault.status, localVault.handle);
   const manifest = localVault.manifest;
@@ -218,8 +233,17 @@ export function LibraryPage() {
    * `.claude/rules/architecture.md`: the condition that draws a surface must also guard
    * the work that builds its model. The model hashes files and reads page bodies, so it
    * is switched off, not merely hidden, until a folder is really open.
-   */
+  */
   const docs = manifest?.docs ?? EMPTY_DOCS;
+  const wikiRevisionStamp = useMemo(
+    () =>
+      new Map(
+        docs
+          .filter((doc) => isWikiPage(doc) && !isWikiFurnitureSlug(doc.slug))
+          .map((doc) => [doc.slug, doc.mtime ?? 0] as const),
+      ),
+    [docs],
+  );
   const model = useLibraryModel({
     docs,
     sources: manifest?.sources,
@@ -535,6 +559,98 @@ export function LibraryPage() {
    * running; `null` between turns and while the panel has never opened.
    */
   const [agentActivity, setAgentActivity] = useState<AcpTurnActivity | null>(null);
+  const [libraryWorkActivity, setLibraryWorkActivity] = useState<LibraryWorkActivity>(
+    EMPTY_LIBRARY_WORK_ACTIVITY,
+  );
+  const scheduleLibraryWork = useCallback(
+    (update: (current: LibraryWorkActivity) => LibraryWorkActivity) => {
+      queueMicrotask(() => setLibraryWorkActivity(update));
+    },
+    [],
+  );
+  const handleAcpToolActivityChange = useCallback(
+    (snapshot: AcpTurnToolActivity | null) => {
+      const event = snapshot
+        ? libraryWorkEventFromAcpSnapshot(snapshot, nativeVaultRootPath, Date.now())
+        : null;
+      setLibraryWorkActivity((current) =>
+        event ? beginLibraryWork(current, event) : clearLibraryWork(current),
+      );
+    },
+    [nativeVaultRootPath],
+  );
+  const localToolActivity = agent.localCompile.toolActivity;
+  const localWorkInScope = agent.localCompile.originVaultScope === workVaultScope;
+  const handleTerminalToolObservation = useCallback((event: Extract<AcpEvent, { kind: "tool" }>) => {
+    const receipt = completedAcpReadEvent(event, nativeVaultRootPath, Date.now());
+    if (receipt) setLibraryWorkActivity((current) => completeLibraryWork(current, receipt));
+  }, [nativeVaultRootPath]);
+  const resetObservedWork = useCallback(() => {
+    scheduleLibraryWork(() => EMPTY_LIBRARY_WORK_ACTIVITY);
+  }, [scheduleLibraryWork]);
+  const receiveObservedWork = useCallback((receipts: readonly LibraryWorkEvent[]) => {
+    scheduleLibraryWork((current) => receipts.reduce(appendLibraryWorkReceipt, current));
+  }, [scheduleLibraryWork]);
+  useObservedWikiWork(workVaultScope, wikiRevisionStamp, resetObservedWork, receiveObservedWork);
+  useEffect(() => {
+    if (agent.route !== "local" || !localWorkInScope || !localToolActivity) return;
+    const event = libraryWorkEventFromLocalSnapshot(
+      localToolActivity,
+      nativeVaultRootPath,
+      Date.now(),
+    );
+    if (!event) return;
+    scheduleLibraryWork((current) =>
+      event.phase === "active"
+        ? beginLibraryWork(current, event)
+        : completeLibraryWork(current, event),
+    );
+  }, [agent.route, localWorkInScope, localToolActivity, nativeVaultRootPath, scheduleLibraryWork]);
+  useEffect(() => {
+    if (agent.route !== "local" || !localWorkInScope || agent.localCompile.status !== "waiting") return;
+    const turnId = agent.localCompile.turn?.id;
+    if (!turnId) return;
+    const event = localCompileWaitingEvent(turnId, Date.now(), Boolean(agent.localCompile.card?.proposal));
+    scheduleLibraryWork((current) =>
+      event ? beginLibraryWork(current, event) : clearLibraryWork(current),
+    );
+  }, [agent.localCompile.status, agent.localCompile.card?.proposal, agent.localCompile.turn?.id, agent.route, localWorkInScope, scheduleLibraryWork]);
+  useEffect(() => {
+    if (agent.route !== "local" || !localWorkInScope) return;
+    const turnId = agent.localCompile.turn?.id;
+    if (agent.localCompile.status === "written" && turnId) {
+      scheduleLibraryWork((current) =>
+        successfulLocalWriteEvents(agent.localCompile.writtenPaths, turnId, Date.now()).reduce(
+          completeLibraryWork,
+          clearLibraryWork(current),
+        ),
+      );
+      return;
+    }
+    if (agent.localCompile.status === "failed" && turnId) {
+      scheduleLibraryWork((current) =>
+        completeLibraryWork(
+          clearLibraryWork(current),
+          libraryWorkErrorEvent(`local:${turnId}:failure`, Date.now()),
+        ),
+      );
+      return;
+    }
+    if (agent.localCompile.status === "idle") {
+      scheduleLibraryWork(clearLibraryWork);
+      return;
+    }
+    if (agent.localCompile.status === "running" || agent.localCompile.status === "applying") {
+      scheduleLibraryWork(clearLibraryWork);
+    }
+  }, [
+    agent.localCompile.status,
+    agent.localCompile.turn?.id,
+    agent.localCompile.writtenPaths,
+    localWorkInScope,
+    agent.route,
+    scheduleLibraryWork,
+  ]);
   /*
    * **The conversation can be reopened.** Closing the dock used to be the end of it: no
    * control on the Library brought it back, and the only way to see the transcript again
@@ -785,14 +901,29 @@ export function LibraryPage() {
       const writer = agent.runtime ? `agent:${agent.runtime.id}` : "agent:unknown";
       setTurnRunning(true);
       if (kind === "compile") setCompileRunning(true);
-      return async (completion: { endedAt: string; outcome: string; events: ReadonlyArray<{ kind: string; text?: string }> }) => {
+      return async (completion: AcpTurnCompletion) => {
         setTurnRunning(false);
         setCompileRunning(false);
         // A cancelled or failed turn reported nothing: reading its absence as "nothing to fix"
         // would print a clean report over a check that never finished (design-interaction,
         // council 2026-09-07).
-        if (completion.outcome !== "completed") return;
+        if (completion.outcome !== "completed") {
+          setLibraryWorkActivity((current) =>
+            completion.outcome === "failed"
+              ? completeLibraryWork(
+                  clearLibraryWork(current),
+                  libraryWorkErrorEvent(`acp:${completion.userEventId}:failure`, Date.now()),
+                )
+              : clearLibraryWork(current),
+          );
+          return;
+        }
         const after = stamp(latestDocsRef.current);
+        const observedAt = Date.now();
+        const receipts = observedWikiWriteEvents(before, after, observedAt);
+        setLibraryWorkActivity((current) =>
+          receipts.reduce(completeLibraryWork, clearLibraryWork(current)),
+        );
         const lastAgentText = [...completion.events].reverse().find((event) => event.kind === "agent")?.text ?? null;
         if (kind === "lint") setCandidates(parseLintCandidates(lastAgentText));
         if (kind === "lint") setFindings(parseLintFindings(lastAgentText));
@@ -1529,6 +1660,8 @@ export function LibraryPage() {
           <LibraryGraph
             docs={manifest?.docs ?? EMPTY_DOCS}
             wikiPages={model.wikiPages}
+            activity={libraryWorkActivity}
+            visible={selected === null}
             /* `model.sources`, never `manifest.sources`: the rows carry the state the list
                prints, so the canvas cannot draw a confident citation beside a row that says
                the file changed underneath it (design-infoviz, 2026-09-06). */
@@ -1583,6 +1716,16 @@ export function LibraryPage() {
             }
           />
         </div>
+        <LibraryWorkActivityStrip
+          activity={libraryWorkActivity}
+          onSelect={(target) =>
+            choose(
+              target.kind === "wiki"
+                ? { kind: "wiki", slug: target.ref }
+                : { kind: "source", path: target.ref },
+            )
+          }
+        />
         {selected ? (
           /*
            * **The way back exists at every width now.** It was `lg:hidden`, because below
@@ -1796,6 +1939,8 @@ export function LibraryPage() {
           autoDecide={autoDecide}
           onTurnStarted={handleTurnStarted}
           onTurnActivityChange={setAgentActivity}
+          onTurnToolActivityChange={handleAcpToolActivityChange}
+          onTerminalToolObservation={handleTerminalToolObservation}
           onFileAnswer={lastAnswer ? handleFileAnswer : null}
           noticeActions={{
             openPage: (path) => choose({ kind: "wiki", slug: path.replace(/\.md$/, "") }),

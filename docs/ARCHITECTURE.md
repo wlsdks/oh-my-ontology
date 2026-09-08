@@ -292,6 +292,14 @@ graph. The separation is a property of the **walk**, not a filter applied later.
   about a file Atlas has never opened. Compile's agent dock came with it. The file rules
   above did not change — only which screen draws them.
 
+The Library's live-work projection is separate from the persisted graph:
+`src/features/library/model/library-work-activity.ts` normalizes structured ACP
+and local tool observations into bounded active/completed events. The Library
+view owns their lifecycle, `src/widgets/library-graph/` projects exact targets
+without changing layout, and `src/widgets/library-work-activity/` exposes recent
+receipts for inspection. No additional store, background service or write
+authority is introduced.
+
 ## FSD layers
 
 ```

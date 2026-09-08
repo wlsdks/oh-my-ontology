@@ -67,6 +67,8 @@ import {
   readToolTargets,
   deriveAcpTurnActivity,
   type AcpTurnActivity,
+  deriveAcpTurnToolActivity,
+  type AcpTurnToolActivity,
   VAULT_MCP_SERVER_NAME,
   deriveAcpMapIntent,
   type AcpMapIntent,
@@ -296,6 +298,8 @@ export function AcpChatPanel({
   onPresentationVisibilityChange,
   onHoverSlug,
   onTurnActivityChange,
+  onTurnToolActivityChange,
+  onTerminalToolObservation,
   onMapIntent,
   onOntologyRelationPreviewChange,
   onWorkReceipt,
@@ -421,6 +425,10 @@ export function AcpChatPanel({
   onHoverSlug?: (slug: string | null) => void;
   /** One turn's observable step, goal and target. `null` when it ends or closes. */
   onTurnActivityChange?: (activity: AcpTurnActivity | null) => void;
+  /** The exact active tool snapshot; callers must not derive a target from agent prose. */
+  onTurnToolActivityChange?: (activity: AcpTurnToolActivity | null) => void;
+  /** Each terminal tool row observed during the current live turn, once per adapter tool-call id. */
+  onTerminalToolObservation?: (event: Extract<AcpEvent, { kind: 'tool' }>) => void;
   /**
    * The map movement pointed to by the exact input of the actual Atlas read tool. Does not interpret
    * agent response sentences (`model/map-intent.ts`).
@@ -435,11 +443,23 @@ export function AcpChatPanel({
   const t = useTranslations('acpChat');
   const reducedMotion = usePrefersReducedMotion();
   const openingScopeMismatch = openingRequest?.scopeKey !== undefined && openingRequest.scopeKey !== requestScopeKey;
+  const observedTerminalToolIdsRef = useRef(new Set<string>());
+  const emitTerminalTool = useCallback((event: AcpEvent) => {
+    if (event.kind !== 'tool' || !['completed', 'failed', 'cancelled'].includes(event.status)
+      || observedTerminalToolIdsRef.current.has(event.id)) return;
+    observedTerminalToolIdsRef.current.add(event.id);
+    onTerminalToolObservation?.(event);
+  }, [onTerminalToolObservation]);
   const captureTurnStart = useCallback((turn: AcpTurnStart) => {
     const completion = onTurnStarted?.(turn) ?? null;
     if (!openingScopeMismatch && openingRequest && turn.text === openingRequest.text) onOpeningRequestSent?.(openingRequest.nonce);
-    return completion;
-  }, [onTurnStarted, openingRequest, openingScopeMismatch, onOpeningRequestSent]);
+    return async (result: AcpTurnCompletion) => {
+      // The last tool and turn end can land in one React batch. Drain the actual
+      // live turn before a ready-state render baselines transcript history.
+      result.events.forEach(emitTerminalTool);
+      await completion?.(result);
+    };
+  }, [onTurnStarted, openingRequest, openingScopeMismatch, onOpeningRequestSent, emitTerminalTool]);
   const {
     status,
     lastTurnUpdateAt,
@@ -556,6 +576,62 @@ export function AcpChatPanel({
     },
     [onTurnActivityChange],
   );
+  const turnToolActivity = useMemo(
+    () => deriveAcpTurnToolActivity(status, events, pending),
+    [status, events, pending],
+  );
+  const turnToolId = turnToolActivity?.id ?? null;
+  const turnToolKind = turnToolActivity?.toolKind ?? null;
+  const turnToolStatus = turnToolActivity?.status ?? null;
+  const turnToolInput = turnToolActivity?.rawInput ?? null;
+  const turnToolPendingPermission = turnToolActivity?.pendingPermission ?? false;
+  useEffect(() => {
+    onTurnToolActivityChange?.(
+      turnToolId
+        ? {
+            id: turnToolId,
+            toolKind: turnToolKind,
+            status: turnToolStatus ?? "unknown",
+            rawInput: turnToolInput,
+            pendingPermission: turnToolPendingPermission,
+          }
+        : null,
+    );
+  }, [
+    onTurnToolActivityChange,
+    turnToolId,
+    turnToolInput,
+    turnToolKind,
+    turnToolPendingPermission,
+    turnToolStatus,
+  ]);
+  useEffect(
+    () => () => {
+      onTurnToolActivityChange?.(null);
+    },
+    [onTurnToolActivityChange],
+  );
+  /*
+   * A whole turn can later be cancelled even after a read completed. Emit its terminal row when
+   * the adapter reports it, rather than making consumers reconstruct it from turn completion.
+   * Rows restored from history are baselined while no turn is live, so reopening a conversation
+   * never presents old reads as new graph activity.
+   */
+  useEffect(() => {
+    if (events.length === 0) {
+      observedTerminalToolIdsRef.current.clear();
+      return;
+    }
+    const terminalTools = events.filter(
+      (event): event is Extract<AcpEvent, { kind: 'tool' }> =>
+        event.kind === 'tool' && ['completed', 'failed', 'cancelled'].includes(event.status),
+    );
+    if (status !== 'thinking') {
+      terminalTools.forEach((event) => observedTerminalToolIdsRef.current.add(event.id));
+      return;
+    }
+    terminalTools.forEach(emitTerminalTool);
+  }, [events, emitTerminalTool, status]);
   const mapIntent = useMemo(
     () => deriveAcpMapIntent(events, knownSlugs ?? EMPTY_KNOWN_SLUGS),
     [events, knownSlugs],

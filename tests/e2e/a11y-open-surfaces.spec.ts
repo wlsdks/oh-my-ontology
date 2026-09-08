@@ -186,13 +186,17 @@ const MIN_RULES_PASSED = 15;
  * `Dialog`, which this gate counts separately.
  */
 // The Analysis dock is desktop-only; InsightsAgentDock tests and the native walkthrough cover it.
+// 39 → 40: Library work observations require tool events or a changed folder revision,
+// not a single-click opener. library-work-activity.spec.ts drives the ACP protocol,
+// permission wait, changed-file receipt and rejection; LibraryWorkActivityStrip.test.tsx
+// covers its named section and exact file controls. Native motion proof is separate.
 // 35 → 36: ACP's held-scope request status requires a runtime; AcpChatPanel tests
 // its no-send and eventual real-turn acknowledgement. Map Meaning and Architecture
 // history now open without that runtime and join the measured browser paths below.
 // 36 → 37: two branches each added one surface on the same day. The Docs dock in the
 // block above is the second, and it needs the same desktop runtime, so it stays out of
 // this sweep for the same reason.
-const APPEARING_SURFACES_IN_SOURCE = 37;
+const APPEARING_SURFACES_IN_SOURCE = 40;
 
 interface Opener {
   readonly name: string;

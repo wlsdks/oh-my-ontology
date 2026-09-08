@@ -5,6 +5,7 @@ import { Maximize2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { VaultDoc } from "@/entities/docs-vault";
+import { EMPTY_LIBRARY_WORK_ACTIVITY, type LibraryWorkActivity } from "@/features/library";
 import { useRouter } from "@/i18n/navigation";
 import { usePrefersReducedMotion } from "@/shared/lib/use-prefers-reduced-motion";
 import { cn } from "@/shared/lib/cn";
@@ -68,6 +69,10 @@ export interface LibraryGraphProps {
   selection: LibraryGraphSelection | null;
   /** Selecting a page or a source is the Library's job; this hands the choice back. */
   onSelect: (selection: LibraryGraphSelection) => void;
+  /** Actual tool receipts only; this never infers work from a relation or a label. */
+  activity?: LibraryWorkActivity;
+  /** Keep the settled graph mounted behind a reader without scheduling hidden frames. */
+  visible?: boolean;
   /**
    * What the screen hangs at the right of the caption row — the Library passes its status
    * strip and the chip that opens the shelf.
@@ -132,6 +137,8 @@ export function LibraryGraph({
   sources,
   selection,
   onSelect,
+  activity = EMPTY_LIBRARY_WORK_ACTIVITY,
+  visible = true,
   headerEnd,
   captionQuiet = false,
 }: LibraryGraphProps) {
@@ -189,6 +196,8 @@ export function LibraryGraph({
     focusedId,
     activeLabel,
     standingLabels,
+    activity,
+    visible,
     onHover: setHoveredId,
     onActivate: activate,
   });

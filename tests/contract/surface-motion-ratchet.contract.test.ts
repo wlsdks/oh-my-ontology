@@ -217,7 +217,11 @@ const BASELINE_HARD_CUTS = 0;
  * static browser sweep cannot open it; `SelectionAsk.test.tsx` carries its named aside,
  * its Escape path and the sent question, and the installed app carries the real press.
  */
-const BASELINE_APPEARING_SURFACES = 39;
+// 39 → 40: the Library's reserved work lane reveals actual tool/file observations.
+// LibraryWorkActivityStrip.test.tsx owns its named section and exact receipt controls;
+// library-work-activity.spec.ts opens it through the ACP bridge, including permission
+// wait, observed revision and rejection. It is not a modal and never takes focus.
+const BASELINE_APPEARING_SURFACES = 40;
 
 const SELF = 'tests/contract/surface-motion-ratchet.contract.test.ts';
 const FIXTURES = 'tests/fixtures/surface-motion';

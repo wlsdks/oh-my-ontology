@@ -13348,6 +13348,11 @@
       "depth": 2,
       "text": "Confidence",
       "slug": "confidence"
+    },
+    {
+      "depth": 2,
+      "text": "Library work projection",
+      "slug": "library-work-projection"
     }
   ],
   "ontology/capabilities/ai-analysis-review": [

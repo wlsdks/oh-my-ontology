@@ -3120,6 +3120,96 @@ describe('답하다 죽은 것과 다 끝난 것은 다른 말이다', () => {
  * marking it "read" before sending …).
  */
 describe('대화 패널 — 차례가 도는 동안만 알린다', () => {
+  it('도구가 실제로 호출된 동안만 구조화된 입력을 전달하고 끝나면 지운다', async () => {
+    const seen: Array<{ id: string; toolKind: string | null; rawInput: unknown } | null> = [];
+    await bootSession({ onTurnToolActivityChange: (activity) => seen.push(activity) });
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '읽어 줘' } });
+    fireEvent.click(screen.getByTestId('acp-chat-send'));
+    emit({
+      jsonrpc: '2.0',
+      method: 'session/update',
+      params: {
+        update: {
+          sessionUpdate: 'tool_call',
+          toolCallId: 'read-1',
+          title: 'Read plan',
+          kind: 'read',
+          status: 'pending',
+          rawInput: { path: 'sources/plan.md' },
+        },
+      },
+    });
+    await waitFor(() =>
+      expect(seen.at(-1)).toMatchObject({
+        id: 'read-1',
+        toolKind: 'read',
+        rawInput: { path: 'sources/plan.md' },
+      }),
+    );
+
+    emit({
+      jsonrpc: '2.0',
+      method: 'session/update',
+      params: { update: { sessionUpdate: 'tool_call_update', toolCallId: 'read-1', status: 'completed' } },
+    });
+    await waitFor(() => expect(seen.at(-1)).toBeNull());
+  });
+
+  it('완료한 도구 행은 뒤의 차례 취소와 무관하게 한 번만 즉시 관찰로 넘긴다', async () => {
+    const observed: Array<{ id: string; status: string; toolKind: string }> = [];
+    await bootSession({ onTerminalToolObservation: (event) => observed.push(event) });
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '읽어 줘' } });
+    fireEvent.click(screen.getByTestId('acp-chat-send'));
+    emit({
+      jsonrpc: '2.0',
+      method: 'session/update',
+      params: {
+        update: {
+          sessionUpdate: 'tool_call',
+          toolCallId: 'read-now',
+          title: 'Read now',
+          kind: 'read',
+          status: 'pending',
+          rawInput: { path: 'sources/plan.md' },
+        },
+      },
+    });
+    emit({
+      jsonrpc: '2.0',
+      method: 'session/update',
+      params: { update: { sessionUpdate: 'tool_call_update', toolCallId: 'read-now', status: 'completed' } },
+    });
+    await waitFor(() => expect(observed).toEqual([
+      expect.objectContaining({ id: 'read-now', status: 'completed', toolKind: 'read' }),
+    ]));
+
+    // Adapters can repeat a terminal update. It is one observed tool, not two receipts.
+    emit({
+      jsonrpc: '2.0',
+      method: 'session/update',
+      params: { update: { sessionUpdate: 'tool_call_update', toolCallId: 'read-now', status: 'cancelled' } },
+    });
+    await waitFor(() => expect(observed).toHaveLength(1));
+  });
+
+  it('drains the last completed read when its update and turn end share a React batch', async () => {
+    const observed: Array<{ id: string; status: string }> = [];
+    await bootSession({ onTerminalToolObservation: (event) => observed.push(event) });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Read once' } });
+    fireEvent.click(screen.getByTestId('acp-chat-send'));
+    await act(async () => {
+      emit({ jsonrpc: '2.0', method: 'session/update', params: { update: {
+        sessionUpdate: 'tool_call', toolCallId: 'last-read', title: 'Read', kind: 'read',
+        status: 'completed', rawInput: { path: 'sources/plan.md' },
+      } } });
+      replyTo('session/prompt', { stopReason: 'end_turn' });
+    });
+    expect(screen.getByTestId('acp-chat-panel')).toHaveAttribute('data-acp-status', 'ready');
+    expect(observed).toEqual([expect.objectContaining({ id: 'last-read', status: 'completed' })]);
+  });
+
   it('보내면 켜지고, 답이 끝나면 꺼진다', async () => {
     const seen: Array<{ state: string; summary: string | null } | null> = [];
     render(
@@ -3153,6 +3243,7 @@ describe('대화 패널 — 차례가 도는 동안만 알린다', () => {
 
   it('패널이 사라지면 꺼 준다 — 켠 채로 남기지 않는다', async () => {
     const seen: Array<{ state: string } | null> = [];
+    const toolSeen: Array<{ id: string } | null> = [];
     const view = render(
       <AcpChatPanel
         runtimeId="claude-acp"
@@ -3160,11 +3251,13 @@ describe('대화 패널 — 차례가 도는 동안만 알린다', () => {
         vaultRoot="/vault"
         mcpServers={[{ name: 'atlas-vault' }]}
         onTurnActivityChange={(activity) => seen.push(activity)}
+        onTurnToolActivityChange={(activity) => toolSeen.push(activity)}
       />,
     );
     await waitFor(() => expect(bridge.sent.some((m) => m.method === 'initialize')).toBe(true));
     view.unmount();
     expect(seen.at(-1)).toBeNull();
+    expect(toolSeen.at(-1)).toBeNull();
   });
 });
 

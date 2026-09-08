@@ -62,7 +62,10 @@ export function useVaultSessionIdentityScope(): VaultIdentityScope {
   const [sampleSource] = useSampleSource();
 
   return vaultIdentityScope({
-    isLocalLoaded: mode === 'local' && localVault.status === 'loaded',
+    // A file watcher rescan keeps the open handle. It is not a switch to sample
+    // data, and must not erase the transient observations that caused the rescan.
+    isLocalLoaded: mode === 'local' && Boolean(localVault.handle)
+      && (localVault.status === 'loaded' || localVault.status === 'loading'),
     handleName: localVault.handle ? localHandleIdentityName(localVault.handle) : null,
     sampleSource,
   });

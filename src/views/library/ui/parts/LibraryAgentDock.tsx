@@ -92,6 +92,8 @@ export function LibraryAgentDock({
   autoDecide,
   onTurnStarted,
   onTurnActivityChange,
+  onTurnToolActivityChange,
+  onTerminalToolObservation,
   onFileAnswer = null,
   noticeActions = null,
   chatWidth,
@@ -121,6 +123,10 @@ export function LibraryAgentDock({
    * has to say so, or the background work the owner asked for is invisible work.
    */
   onTurnActivityChange?: AcpChatPanelProps["onTurnActivityChange"];
+  /** Active structured ACP tool input for the graph activity bridge. */
+  onTurnToolActivityChange?: AcpChatPanelProps["onTurnToolActivityChange"];
+  /** Terminal ACP tool rows forwarded as they arrive, before a later turn cancellation can hide them. */
+  onTerminalToolObservation?: AcpChatPanelProps["onTerminalToolObservation"];
   /**
    * The dock's width, owned by the page rather than by this frame (2026-09-07).
    *
@@ -285,6 +291,8 @@ export function LibraryAgentDock({
             autoDecide={autoDecide}
             onTurnStarted={onTurnStarted}
             onTurnActivityChange={onTurnActivityChange}
+            onTurnToolActivityChange={onTurnToolActivityChange}
+            onTerminalToolObservation={onTerminalToolObservation}
             knownSlugs={knownSlugs}
             noticeActions={noticeActions}
             beforeComposer={
