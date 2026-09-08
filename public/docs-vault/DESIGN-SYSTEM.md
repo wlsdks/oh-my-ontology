@@ -1533,6 +1533,64 @@ recess, which is what says things sit *in* here rather than *on* another card. A
 solid ground; lane surfaces, not a repeated background pattern, separate reviewed structure from
 source observation.
 
+### Layer planes — the import direction, drawn as depth (2026-09-08)
+
+`app → views → widgets → features → entities → shared` is a **depth** rule: a role may reach the
+layer under it and never the one over it. The comparison ladder stated it only as row order, and
+seven stacked rows of one surface say "these came in this sequence", not "this one is under that
+one". So the ladder now stands on a stack of layer planes: every role's reviewed face and
+observation face rest on their own layer, a permitted edge visibly runs *down* onto a lower plane,
+and a violation is the one stroke that climbs.
+
+The stack is one sheared column, not a set of bands. Each plane is the same parallelogram
+translated by one step, and the shear is `step / row pitch`, so plane *n*'s top edge continues
+plane *n-1*'s bottom edge along a single line.
+
+| Token | Value | Role |
+|---|---|---|
+| `--architecture-plane-fill` | `rgba(255, 255, 255, 0.02)` | the layer's glass face at full depth strength |
+| `--architecture-plane-edge` | `rgba(255, 255, 255, 0.07)` | its lit top edge, the same one-flat-line device a raised node uses |
+| `--architecture-plane-near` | `1` | the depth ramp's nearest end, applied as opacity to the whole plane |
+| `--architecture-plane-far` | `0.28` | the same ramp's deepest end |
+| `--architecture-plane-climb-halo` | `0.22` | the halo a climbing import carries at rest |
+| `--architecture-plane-climb-halo-raised` | `0.55` | the same halo once its role is chosen |
+
+**The fill is capped under `--color-panel`, and the cap is the point.** A role's face is `#0f1011`
+= `rgb(15 16 17)`; white at `0.02` over `--color-canvas` `#08090a` lands on `rgb(13 14 15)`.
+Measured 2026-09-08 at 1512 the ramp renders `13 · 12 · 11 · 10` against a canvas of `8`, so every
+reviewed face stays at or above the plane it stands on. Anything stronger would put the nearest
+plane over its own card — a higher surface darker than a lower one, which is the reversed-depth
+defect the Don'ts name, on the one surface whose entire subject is which layer is above which.
+
+The lit edge may be brighter than the fill because it is a line rather than a surface, and it stays
+under `--architecture-node-lit-edge` (`rgb 25` against `rgb 46`). At `0.1` it was the brightest mark
+on the canvas and the planes read as four rules instead of four surfaces.
+
+Only the layer's normalised depth (`1` nearest, `0` deepest) crosses into the DOM, on
+`--architecture-plane-depth`; both ends of the ramp stay in the tokens above, so no interpolated
+colour is ever written in TypeScript.
+
+**Geometry.** The step is `14px` per layer and the plane keeps `16px` of ground beyond the
+outermost face, so the stack asks for `16 + (layers − 1) × 14 + lean` on each side — 70px for four
+layers, 112px for seven. That floor is applied to the ladder's *lead* lane before the observation
+lane is measured, so on any canvas with slack the drawing keeps the width it had. The plane's
+vertical ledge is `3px`, which is what clears the adjacent rule sentence seated in the row gap, and
+the stack takes `8px` of head room so its first lit edge does not read as a rule under the lane
+headings. Measured 2026-09-08: four layers `396 → 407` (+2.8%), seven layers `684 → 695`; overlap
+count 0 at 1512×982 and 1280×800, no scroller growth at either.
+
+**Which layouts draw them.** The comparison ladder only. The narrow ladder spends the same side
+pixels on its own face — a 390px phone would have none left — and an across chain stacks its layers
+sideways, where this reading would fight the reviewed/observed split it already carries vertically.
+
+**The climb.** A violated import is the stroke travelling *up* the stack, so it is the only stroke
+that carries a halo: an SVG Gaussian blur of the same `--color-danger-text` path, at
+`--architecture-plane-climb-halo`. Choosing either end of the crossing raises the halo and its
+stroke together over `--motion-base`; nothing moves while nothing is selected, and reduced motion
+makes the raise instant rather than removing the halo. The filter region is `userSpaceOnUse`
+because an adjacent ladder stroke is vertical and a bounding-box region would be zero units wide.
+Gates: `ArchitectureSketch.test.tsx`, "the layer planes".
+
 ### Ports
 
 A small indigo dot on the edge a stroke actually attaches to, drawn **only** on the side that has

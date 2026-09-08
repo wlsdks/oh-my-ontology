@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 
 import { listboxBottomIsHidden, listboxTopIsHidden } from '@/shared/ui/select-growth';
 
@@ -158,6 +159,49 @@ const PAIRED_SIDE_ROOM_MIN = 48;
 const PAIRED_TRAIL_ROOM_MAX = 360;
 /** Air the narrow ladder keeps between its face and the canvas edge on each side. */
 const NARROW_LADDER_EDGE = 16;
+/*
+ * ⚠️ **Import direction is the one fact the ladder stated only as row order** (Direction B,
+ * 2026-09-08). `app → views → widgets → features → entities → shared` is a *depth* rule — a role
+ * may reach the layer under it and never the one over it — and four stacked rows of the same
+ * surface say only "these came in this sequence". The stack is drawn as what it is: one sheared
+ * column of layer planes, each role's pair of faces resting on its own plane. A permitted edge
+ * then visibly runs *down* onto a lower plane, and a violation is the stroke that climbs.
+ *
+ * The step per layer, in SVG units, which are CSS pixels here. It is also the slope generator:
+ * the shear is `PLANE_STEP / rowPitch`, so plane *n*'s top edge meets plane *n-1*'s bottom edge on
+ * one continuous line and the stack reads as a solid rather than as separate bands.
+ */
+const PLANE_STEP = 14;
+/** How much plane stays visible beyond the outermost face, so a role sits *on* its layer. */
+const PLANE_EDGE = 16;
+/*
+ * ⚠️ **The plane's ledge stops short of the sentence band.** `placeEdgeSentences` seats an
+ * adjacent rule at the row-gap centre with a 12px rectangle running `centre-5 … centre+7`. The
+ * roomy gap is ±12 and the tight gap ±11, so a 3px ledge leaves the sentence its own ground on
+ * both ladders (measured 2026-09-08; a 4px ledge touched the tight one).
+ */
+const PLANE_INSET_Y = 3;
+/*
+ * ⚠️ **The first plane's lit edge was reading as a rule under the lane headings.** Measured
+ * 2026-09-08 at 1512: the heading baseline sits at `padY + 14` and the top plane's edge landed at
+ * `padY + 25`, one pixel under the heading's descender, so the brightest line on the canvas
+ * attached itself to three labels instead of to the layer it belongs to. Eight units of head room
+ * put nine pixels of ground between them; the drawing pays 11px of height for it (396 → 407 on a
+ * four-layer profile, 2.8%).
+ */
+const PLANE_HEAD_ROOM = 8;
+/*
+ * ⚠️ **A violation is the stroke going the wrong way up the stack**, so it is the one stroke that
+ * carries a halo. Blur lives on the SVG filter primitive rather than in a token because
+ * `stdDeviation` is an attribute, not a CSS property, and cannot read `var()`. The two opacities
+ * it is painted at are tokens (`--architecture-plane-climb-halo*`); gate:
+ * `ArchitectureSketch.test.tsx`, "a violation climbs the stack".
+ */
+const VIOLATION_HALO_BLUR = 2.5;
+const VIOLATION_HALO_WIDTH = 4;
+/** Selecting the role raises its own violation off the plane; every other stroke stays put. */
+const VIOLATION_HALO_WIDTH_RAISED = 7;
+const VIOLATION_STROKE_RAISE = 1;
 /* The two lanes' adjacent sentences share the gutter row gap from opposite ends; this keeps a
    rule sentence and a count sentence apart even when both are long. */
 const GAP_BETWEEN_LANE_SENTENCES = 24;
@@ -417,8 +461,18 @@ export function ArchitectureSketch({
   const lanes = graph.boxes.reduce((most, box) => Math.max(most, box.slot + 1), 1);
   const naturalAcross = PAD_X * 2 + ranks * compactBoxW + (ranks - 1) * COL_GAP;
   const axisWidth = restWidth > 0 ? restWidth : boxWidth;
+  /*
+   * The ladder's own height includes the layer stack's head room and its bottom ledge, because
+   * the planes are part of the ladder rather than an overlay on it. Leaving them out would let a
+   * canvas 11px too short choose rows it then has to scroll.
+   */
+  const planeVerticalRoom = ranks > 1 ? PLANE_HEAD_ROOM + PLANE_INSET_Y : 0;
   const pairedNaturalH =
-    PAIRED_PAD_Y * 2 + PAIRED_HEADER_H + ranks * BOX_H + (ranks - 1) * PAIRED_ROW_GAP;
+    PAIRED_PAD_Y * 2 +
+    PAIRED_HEADER_H +
+    ranks * BOX_H +
+    (ranks - 1) * PAIRED_ROW_GAP +
+    planeVerticalRoom;
   /* The same rows with one summary line each. Fixed-readable faces and connector space yield with
      the canvas before any role is hidden, so a canvas too short for the roomy rows still gets the
      comparison rather than a compressed across chain with a hidden-role count under it. */
@@ -426,7 +480,8 @@ export function ArchitectureSketch({
     PAIRED_PAD_Y_TIGHT * 2 +
     PAIRED_HEADER_H +
     ranks * BOX_H_PAIRED_TIGHT +
-    (ranks - 1) * PAIRED_ROW_GAP_TIGHT;
+    (ranks - 1) * PAIRED_ROW_GAP_TIGHT +
+    planeVerticalRoom;
   const pairedRowsFit =
     lanes === 1 &&
     axisWidth >= PAIRED_MIN_W &&
@@ -546,6 +601,27 @@ export function ArchitectureSketch({
       : 0;
 
   /*
+   * ⚠️ **The planes are drawn on the ladder only, and the reason is measured room.** A plane has
+   * to reach past its faces on both sides or a role stops looking as though it rests on one, and
+   * that room is `PLANE_EDGE + the stack's drift + its lean` — 70px each side for four layers,
+   * 112px for seven. The comparison ladder already reserves side lanes of at least 48px and up to
+   * 360px and can give it up; the narrow ladder spends the same pixels on the face itself (a
+   * 390px phone would be left with none), and an across chain stacks its layers sideways, where
+   * this depth reading would fight the reviewed/observed split it already carries vertically.
+   */
+  const usesLayerPlanes = usesPairedDown && ranks > 1;
+  const planeRowPitch = boxH + rowGap;
+  const planeH = boxH + PLANE_INSET_Y * 2;
+  /** How far a single plane's top edge overhangs its bottom edge: the shear, once. */
+  const planeLean = usesLayerPlanes ? (PLANE_STEP * planeH) / planeRowPitch : 0;
+  /** Deepest plane to nearest, in x. The stack's whole horizontal travel. */
+  const planeDrift = usesLayerPlanes ? (ranks - 1) * PLANE_STEP : 0;
+  const planeRoom = usesLayerPlanes
+    ? Math.ceil(PLANE_EDGE + planeDrift + planeLean)
+    : 0;
+  const planeHeadRoom = usesLayerPlanes ? PLANE_HEAD_ROOM : 0;
+
+  /*
    * Hover answers locally; selection owns the graph-wide comparison. Letting hover dim the entire
    * canvas made a casual pointer move look like a committed state change.
    */
@@ -595,10 +671,22 @@ export function ArchitectureSketch({
     (edge) => edge.kind === 'permitted' && edge.columnSpan > 1,
   );
   const pairedSlack = usesPairedDown && boxWidth > 0 ? Math.max(0, boxWidth - PAIRED_FIXED_W) : PAIRED_SIDE_ROOM * 2;
-  const pairedLeadRoom = contractNeedsLane
-    ? Math.max(PAIRED_SIDE_ROOM_MIN, Math.min(PAIRED_SIDE_ROOM, pairedSlack / 2))
-    : PAIRED_SIDE_ROOM_MIN;
+  /*
+   * ⚠️ **The stack takes its room from the sentence lane's cap, not from the canvas.** The plane
+   * floor is applied to the *lead* room first and the trail room is measured against what is
+   * left, so on every canvas with slack the drawing keeps the width it had (measured 2026-09-08:
+   * 1280 and 1512 both unchanged, because the observation lane was sitting at its 360px cap).
+   * Only a canvas already too narrow for the ladder grows, and there the scroller and the
+   * hidden-role count stay the honest answer they already were.
+   */
+  const pairedLeadRoom = Math.max(
+    planeRoom,
+    contractNeedsLane
+      ? Math.max(PAIRED_SIDE_ROOM_MIN, Math.min(PAIRED_SIDE_ROOM, pairedSlack / 2))
+      : PAIRED_SIDE_ROOM_MIN,
+  );
   const pairedTrailRoom = Math.max(
+    planeRoom,
     PAIRED_SIDE_ROOM_MIN,
     Math.min(PAIRED_TRAIL_ROOM_MAX, pairedSlack - pairedLeadRoom),
   );
@@ -614,7 +702,11 @@ export function ArchitectureSketch({
         x: at.x + (axis === 'down' ? layoutLeadRoom : 0),
         y:
           at.y +
-          (axis === 'across' ? layoutLeadRoom : usesPairedDown ? PAIRED_HEADER_H : 0),
+          (axis === 'across'
+            ? layoutLeadRoom
+            : usesPairedDown
+              ? PAIRED_HEADER_H + planeHeadRoom
+              : 0),
         shape: box.shape,
       });
     }
@@ -627,6 +719,7 @@ export function ArchitectureSketch({
     graph.boxes,
     layoutLeadRoom,
     padY,
+    planeHeadRoom,
     rowGap,
     usesPairedDown,
   ]);
@@ -1053,7 +1146,10 @@ export function ArchitectureSketch({
     axis === 'across'
       ? PAD_X * 2 + ranks * boxW + (ranks - 1) * colGap
       : padY * 2 + ranks * boxH + (ranks - 1) * rowGap +
-        (usesPairedDown ? PAIRED_HEADER_H : 0);
+        (usesPairedDown ? PAIRED_HEADER_H : 0) +
+        /* The head room the top plane's lit edge needs, and the ledge the bottom plane keeps
+           under the last role. Zero on every layout that draws no planes. */
+        (usesLayerPlanes ? planeHeadRoom + PLANE_INSET_Y : 0);
   const acrossExtent =
     axis === 'across'
       ? padY * 2 + lanes * boxH + (lanes - 1) * rowGap + skipRoom + leadRoom + trailRoom
@@ -1237,6 +1333,22 @@ export function ArchitectureSketch({
               strokeWidth={1.4}
             />
           </marker>
+          {/*
+            ⚠️ **`userSpaceOnUse`, because a violation is usually a vertical line.** The default
+            filter region is a percentage of the object's bounding box, and an adjacent ladder
+            stroke on one lane has a bounding box zero units wide — 200% of zero is zero, and the
+            halo would be clipped away exactly where it is needed. The region is the drawing.
+          */}
+          <filter
+            id="architecture-violation-halo"
+            filterUnits="userSpaceOnUse"
+            x={0}
+            y={0}
+            width={width}
+            height={height}
+          >
+            <feGaussianBlur stdDeviation={VIOLATION_HALO_BLUR} />
+          </filter>
         </defs>
 
         {axis === 'across' && splitsEvidence ? (
@@ -1304,6 +1416,75 @@ export function ArchitectureSketch({
           </g>
         ) : null}
 
+        {/*
+          ⚠️ **The layer planes: import direction, drawn as depth** (Direction B, 2026-09-08).
+          Every plane is the same parallelogram translated by one `PLANE_STEP` per layer, so the
+          stack shears along one line and the reader sees a solid rather than four bands. The
+          nearest layer is the one nothing may import *into* from below; it is the lightest and it
+          overhangs the furthest, because on this ground the design system already states depth as
+          face lightness (`docs/DESIGN-SYSTEM.md`, "Depth is face lightness, not shadow"). The
+          fill is capped under `--color-panel` so a role's own face can never be darker than the
+          plane it rests on — the reversed-depth defect the Don'ts name.
+
+          The ramp itself is a token pair; only the layer's normalised depth (a derived fact,
+          nearest = 1) crosses into the DOM, so no interpolated colour is written in TypeScript.
+        */}
+        {usesLayerPlanes ? (
+          <g
+            aria-hidden
+            pointerEvents="none"
+            data-testid="architecture-layer-planes"
+            data-layer-step={PLANE_STEP}
+          >
+            {graph.boxes.map((box) => {
+              const at = placed.get(box.id);
+              if (!at) return null;
+              const depth =
+                ranks === 1 ? 1 : (ranks - 1 - box.column) / (ranks - 1);
+              const x = PAD_X + layoutLeadRoom - planeRoom + (ranks - 1 - box.column) * PLANE_STEP;
+              const planeW =
+                contractBoxW +
+                PAIRED_GUTTER_W +
+                observationBoxW +
+                planeRoom * 2 -
+                planeDrift -
+                planeLean;
+              const top = at.y - PLANE_INSET_Y;
+              const bottom = at.y + boxH + PLANE_INSET_Y;
+              return (
+                <g
+                  key={`plane-${box.id}`}
+                  className="architecture-layer-plane architecture-role-reveal"
+                  style={
+                    {
+                      '--architecture-plane-depth': depth,
+                    } as CSSProperties
+                  }
+                  data-testid={`architecture-layer-plane-${box.id}`}
+                  data-layer-rank={box.column}
+                  data-layer-depth={Math.round(depth * 100) / 100}
+                >
+                  <path
+                    d={`M ${x} ${bottom} H ${x + planeW} L ${x + planeW + planeLean} ${top} H ${
+                      x + planeLean
+                    } Z`}
+                    fill="var(--architecture-plane-fill)"
+                  />
+                  {/* The lit top face, the same one-flat-line device a raised node already uses. */}
+                  <line
+                    x1={x + planeLean}
+                    x2={x + planeLean + planeW}
+                    y1={top}
+                    y2={top}
+                    stroke="var(--architecture-plane-edge)"
+                    strokeWidth={1}
+                  />
+                </g>
+              );
+            })}
+          </g>
+        ) : null}
+
         {graph.edges.map((edge) => {
           const usesObservationLane = splitsEvidence && edge.kind === 'traffic';
           const edgeLane = usesObservationLane ? observedPlaced : placed;
@@ -1333,6 +1514,9 @@ export function ArchitectureSketch({
           const tx = axis === 'across' ? b.x : b.x + edgeBoxW / 2 + trackOffset;
           const ty = axis === 'across' ? trackY(b) : b.y;
           const receded = selected !== null && selected !== edge.from && selected !== edge.to;
+          /* Choosing either end of a violation raises it off the plane; nothing else moves, and
+             nothing moves at all while nothing is selected. */
+          const raised = selected !== null && (selected === edge.from || selected === edge.to);
 
           /*
            * A permitted edge is a person's declared rule, so it is drawn by hand. Measured traffic
@@ -1399,17 +1583,40 @@ export function ArchitectureSketch({
           })();
 
           return (
+            <Fragment key={`${edge.kind}-${edge.from}-${edge.to}`}>
+            {/*
+              ⚠️ **The halo marks the climb, not the alarm.** With the layers drawn as planes a
+              violated import is the one stroke travelling *up* the stack, and a dashed red line a
+              third of a pixel wider than its neighbours did not read as a direction (2026-09-08).
+              It carries no data-edge-* identity so the stroke count a gate reads stays one per
+              crossing. It is static; only selection changes it, and only in intensity.
+            */}
+            {violated && drawn ? (
+              <path
+                d={d}
+                fill="none"
+                stroke={VIOLATED_STROKE}
+                strokeWidth={raised ? VIOLATION_HALO_WIDTH_RAISED : VIOLATION_HALO_WIDTH}
+                strokeLinecap="round"
+                filter="url(#architecture-violation-halo)"
+                className="architecture-violation-halo"
+                data-edge-raised={raised ? 'true' : 'false'}
+                data-testid={`architecture-violation-halo-${edge.from}-${edge.to}`}
+                aria-hidden
+                pointerEvents="none"
+              />
+            ) : null}
             <path
-              key={`${edge.kind}-${edge.from}-${edge.to}`}
               d={d}
               fill="none"
               stroke={violated ? VIOLATED_STROKE : EDGE_STROKE}
               strokeWidth={
-                isDeclared
+                (isDeclared
                   ? 1.4
                   : edge.columnSpan > 1
                     ? 1.2 + (edge.weight ?? 0) * 1.5
-                    : 1.4 + (edge.weight ?? 0) * 3
+                    : 1.4 + (edge.weight ?? 0) * 3) +
+                (violated && raised ? VIOLATION_STROKE_RAISE : 0)
               }
               /* Dashed as well as toned, so the violation survives a colour-blind reading and a
                  greyscale print — the tone is the alarm, the dash is the fact. */
@@ -1432,6 +1639,7 @@ export function ArchitectureSketch({
               data-edge-count={edge.count}
               data-edge-track-offset={trackOffset}
             />
+            </Fragment>
           );
         })}
 
