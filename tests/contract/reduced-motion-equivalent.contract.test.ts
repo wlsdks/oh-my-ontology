@@ -57,7 +57,7 @@ const INTENTIONALLY_STILL: Readonly<Record<string, string>> = {
   // gateway choreography (rise, headline, caption, hero stage) is transition-based
   // and therefore not a candidate for this scanner (which reads `animation:`); the
   // base-layer carve-out gives it the "always visible" equivalent —
-  // gateway-fx-exception.contract.test.ts locks that carve-out's existence.
+  // gateway-fx-reduced-motion.contract.test.ts locks that carve-out's existence.
   "gateway-term-caret":
     "끝없는 캐럿 blink — 감속의 뜻이 이걸 멈추는 것이다. 줄 내용은 감속에서 전부 즉시 보인다.",
   // ── Two scroll timelines (2026-08-22) ───────────────────────────────────

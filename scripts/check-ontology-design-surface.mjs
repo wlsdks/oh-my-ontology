@@ -27,41 +27,11 @@ const DEFAULT_ALLOWED_EXTENSIONS = new Set([".css", ".ts", ".tsx"]);
 const DEFAULT_IGNORED_FILE_PATTERN = /(?:^|\/)(?:[^/]+\.)?(?:test|spec)\.[^/]+$/;
 
 export const ONTOLOGY_DESIGN_FORBIDDEN_CHECKS = [
-  {
-    id: "no-hover-shadow",
-    pattern: /hover:shadow/g,
-    reason: "Use border/background transitions instead of glow-like hover shadows.",
-  },
-  {
-    id: "no-hover-scale",
-    pattern: /hover:scale-/g,
-    reason: "Scale-based hover is forbidden by docs/DESIGN-SYSTEM.md.",
-  },
-  {
-    id: "no-backdrop-blur",
-    pattern: /backdrop-blur/g,
-    reason: "Glassmorphism is forbidden by docs/DESIGN-SYSTEM.md.",
-  },
-  {
-    id: "no-purple-pink",
-    pattern: /\b(?:purple|pink)\b|(?:from|via|to)-(?:purple|pink)-/gi,
-    reason: "Ontology operation surfaces stay on neutral surfaces plus indigo.",
-  },
-  {
-    id: "no-decorative-gradient",
-    pattern: /\b(?:bg-gradient|linear-gradient|radial-gradient)\b/g,
-    reason: "Decorative gradients are forbidden on ontology operation surfaces.",
-    // A gradient is only forbidden when it paints DECORATIVE COLOR. Mask fades
-    // (mask-image / -webkit-mask-image using black/transparent alpha) and
-    // token/dot-grid textures (var(--…) + transparent, no color literals) are
-    // functional, charter-compliant techniques — not decorative color fills.
-    allow: (line) => gradientIsFunctional(line),
-  },
-  {
-    id: "no-glow-ring",
-    pattern: /boxShadow:\s*`0 0/g,
-    reason: "Use restrained borders, stripes, and labels instead of glow-like rings.",
-  },
+  // The visual-expression checks that used to sit here (hover shadow, scale hover,
+  // backdrop blur, purple/pink, decorative gradient, glow ring) were lifted by the
+  // owner on 2026-09-08 — `docs/DECISIONS.md`, "The expression bans are lifted".
+  // What stays is structural: a full-height coloured rail is a layout decision,
+  // not an effect.
   {
     id: "no-kind-decision-stripe",
     pattern: /ontology-kind-decision-stripe/g,
@@ -69,60 +39,6 @@ export const ONTOLOGY_DESIGN_FORBIDDEN_CHECKS = [
       "The node detail classification card uses a compact marker and neutral divider instead of a full-height colored rail.",
   },
 ];
-
-// True when a gradient on this line is functional (a mask fade, or a
-// monochrome/token texture) rather than a decorative color fill. Charter forbids
-// decorative COLOR gradients (purple→pink, aurora, colored bg fills); it allows
-// mask-image alpha fades and token dot-grid textures.
-function maskCssCustomPropertyCalls(line) {
-  let result = "";
-  let cursor = 0;
-  const varCall = /\bvar\(/gi;
-
-  while (cursor < line.length) {
-    varCall.lastIndex = cursor;
-    const match = varCall.exec(line);
-    if (!match) {
-      result += line.slice(cursor);
-      break;
-    }
-
-    result += line.slice(cursor, match.index);
-    let depth = 1;
-    let end = varCall.lastIndex;
-    while (end < line.length && depth > 0) {
-      if (line[end] === "(") depth += 1;
-      if (line[end] === ")") depth -= 1;
-      end += 1;
-    }
-
-    if (depth !== 0) {
-      result += line.slice(match.index);
-      break;
-    }
-
-    // Token names may legitimately contain color words such as "indigo". The
-    // design-system token itself is the authority; inspecting its spelling as a
-    // literal color would turn an allowed functional fill into a false positive.
-    result += "design-token";
-    cursor = end;
-  }
-
-  return result;
-}
-
-export function gradientIsFunctional(line) {
-  // Mask fades control reveal/alpha, not color — always functional.
-  if (/mask-?image|mask\s*:/i.test(line)) return true;
-  const tokenNeutralLine = maskCssCustomPropertyCalls(line);
-  const calls = tokenNeutralLine.match(/(?:linear|radial|conic)-gradient\(([^)]*(?:\([^)]*\)[^)]*)*)\)/gi);
-  if (!calls) return false; // e.g. bare `bg-gradient` Tailwind class — decorative.
-  // Decorative when any stop names a real color: a non-monochrome hex, an
-  // rgb()/hsl() value, or a color keyword. transparent/black/white/#000/#fff and
-  // CSS custom-property tokens (var(--…)) are functional, not decorative.
-  const decorative = /#(?!000\b|fff\b|000000\b|ffffff\b)[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|\b(?:red|orange|yellow|green|blue|indigo|violet|purple|pink|amber|cyan|teal|magenta|lime|rose|fuchsia|emerald|sky)\b/i;
-  return calls.every((call) => !decorative.test(call));
-}
 
 // Blank out comment content (both `/* … */` blocks — including JSX `{/* … */}` —
 // and `//` line comments) while preserving character positions, so line/column

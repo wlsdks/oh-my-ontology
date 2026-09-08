@@ -1749,7 +1749,7 @@ export function drawTopologyFrame(params: FrameDrawParams): void {
        * (`edgeHaloScratch`), the token argument is one per frame
        * (`traceTokensFrame`), and the pair key is computed once per edge object and
        * cached (`edgePairMeta`). The state literals themselves stay spelled out
-       * because contract gates (footprint-bloom-exception, review-ring-authorship)
+       * because contract gates (footprint-trail-ink, review-ring-authorship)
        * pin that wiring.
        */
       if (domeHaloWidthPx > 0.05) {

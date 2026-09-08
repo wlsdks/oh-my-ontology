@@ -71,8 +71,12 @@ ramp.”
 
 ## Design charter
 
-- Use an achromatic palette plus one indigo family. This restraint prevents the
-  generic AI-generated SaaS look.
+- Rest on an achromatic palette with indigo as the protagonist. Since
+  2026-09-08 (owner, `docs/DECISIONS.md` "The expression bans are lifted")
+  gradients, glass, glow, halo, bloom, animated backgrounds, scale hover,
+  overshoot and further hues are allowed; each still goes through a token on
+  its ramp and must name the fact or state it carries. Gloss with nothing
+  behind it is still the generic look.
 - The pixel mascot is the one bounded identity exception: its committed raster
   pixels may contain near-black, ivory, chartreuse `#C6F000`, and one gray.
   Chartreuse never becomes a CSS token, control/status/data colour, or a second
@@ -89,7 +93,7 @@ ramp.”
   Footprints use `--color-footprint-trail` (`#e8c47a`), never the hub value, and
   appear only while the trail popover is open. The footprint trail may use yellow
   or indigo, not an arbitrary colour picker. Gate:
-  `tests/contract/footprint-bloom-exception.contract.test.ts`.
+  `tests/contract/footprint-trail-ink.contract.test.ts`.
 - Bars use neutrals plus one indigo protagonist. A 1px track gap separates
   adjacent segments when colour contrast is insufficient. Kind colours remain
   only where colour is the sole carrier of kind: unlabeled kind totals, map dots,
@@ -178,8 +182,8 @@ change.
 The old studio-only glow, gradient, aura, particle, rarity, and shimmer exception
 was revoked on 2026-07-24. “Make it addictive like a game” was a metaphor, not a
 specification; game aesthetics weakened trust in decision material. Studio later
-retired. Contextual map editing and ACP proposal cards follow the same neutral
-plus indigo system as the rest of the product.
+retired. On 2026-09-08 the owner lifted those bans product-wide; the rule that
+survives is that an effect marks a state or a fact, never a rarity or a reward.
 
 ## Label decoration
 
@@ -266,7 +270,7 @@ document-only shadow ramp once left five raw rgba shadows alive.
 | z-index ≥20 | use `--z-*`; local stacking below 20 is free |
 | Cursor | do not repeat `cursor-pointer` on buttons or summaries; the base rule owns it |
 | Disabled state | opacity 55 and `CONTROL_DISABLED_CLASS` own the full state |
-| Gradient ban | `scaleGradientSelectors` |
+| Checkbox accent | `checkboxAccentSelectors` |
 | Accent/tint pairing | `accentTintPairingSelectors`, including ternary branches |
 
 A **ramp** is the allowed value list; a **selector** describes syntax lint finds;
@@ -344,6 +348,9 @@ diagnostic fallback only.
   completed change. Default Tailwind transitions already use fast; omit a class.
   Camera/drag values 420/720ms are canvas-only.
 - Duration and easing move as one family. Respect the global reduced-motion rule.
+- Overshoot, bounce and spring settle are allowed (2026-09-08) on a named
+  token; the motion seat says what the overshoot means and `/motion-verify`
+  records it.
 - Exits accelerate away on `--motion-ease-exit` (JS: `EXIT_TRANSITION`); entries
   keep `--motion-ease`. Only `-out` / `[data-state="closed"]` rules on a `*Out`
   keyframe may reference the exit token, never a `transition:`, and no file

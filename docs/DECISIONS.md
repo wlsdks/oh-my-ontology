@@ -54,6 +54,15 @@ citation still resolves, and `pnpm decisions:find` lists who cites a record,
 so status is derived rather than edited. The full original text of every
 record stays in Git history before commit `e4fb49a89`.
 
+## 2026-09-08 — The expression bans are lifted; discipline stays on the token, not on the taste
+
+**Why**: the owner, after the three.js examples: *"map, architecture and library all feel lacking, nothing springy"*, then, told that glow, gradients, glass and moving backgrounds were what the charter forbade: *"lift everything the design rules forbid; the bans stop me trying anything."* The three.js probe two days earlier found the feeling is not a renderer's.
+**Prior**: overturns the expression rows of the Don'ts (2026-07 charter, 2026-07-24 studio revocation, 2026-07-28 halo lint, 2026-07-29 bloom exception, 2026-08-18 (69) gateway seal). Every structural Don't stands: popover on node click, no floating-box soup, stacked popovers, undimmed modals, one-off topology values, tolerated overlap, trailing arrows, or copy-decided card heights.
+**Decision**: gradients, glass, glow, neon, halo, bloom, animated backgrounds, scale hover, overshoot and bounce, and further hues are allowed everywhere. The lint selectors, the ontology-surface checks, the bloom cap and the gateway seal are removed; the two exception tests keep only contrast and reduced motion. Values still ride tokens and ramps, contrast floors stay, a new hue names the fact it carries, and the design gates still route and verify. The rethink of the three screens is the next slice, through `/design-directions`.
+**Dissent**: the guardian seat: the bans were the cheapest defence against the generic generated look, and "on a token" does not stop a bloom from being gloss. The system seat: the 2026-08-04 census found 0 live violations, so removal costs nothing today and buys nothing until someone uses the room.
+**Falsifier**: a walkthrough where a person cannot tell a glowing mark's state from its neighbour's, or a screen where an effect reads before the data it sits on, reopens that effect's row.
+**Owner**: jinan
+
 ## 2026-09-08 — The login carrier is chosen by measurement, and the account a probe names is only a cache
 
 **Why**: the mirror added twelve hours earlier installed the first keychain item that answered, which is an order, not a measurement. Measuring instead: all four carriers here held one token (sha256 `811a3992`), and the two accounts read side by side were not two logins but two caches. `claude auth status` copies `email` out of `<config dir>/.claude.json` and never re-derives it from the token — proved by setting that file to `sentinel@example.com` and watching the probe report it over an untouched credential.

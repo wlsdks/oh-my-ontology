@@ -5,7 +5,6 @@ import path from "node:path";
 import test from "node:test";
 import {
   evaluateOntologyDesignSurface,
-  gradientIsFunctional,
   renderOntologyDesignSurfaceReport,
 } from "./check-ontology-design-surface.mjs";
 
@@ -239,20 +238,6 @@ function writeCleanWorkbenchFixtures(root) {
   );
 }
 
-test("design gate distinguishes token-driven control fills from decorative gradients", () => {
-  assert.equal(
-    gradientIsFunctional(
-      "background: `linear-gradient(to right, var(--color-indigo-accent) ${filled}%, var(--color-overlay-3) ${filled}%)`",
-    ),
-    true,
-  );
-  assert.equal(
-    gradientIsFunctional("background: linear-gradient(to right, rgb(99 102 241), #ec4899)"),
-    false,
-  );
-  assert.equal(gradientIsFunctional("className=\"bg-gradient-to-r from-purple-500 to-pink-500\""), false);
-});
-
 test("ontology design surface passes when visual and workbench contracts are present", () => {
   const root = makeFixture();
   writeCleanWorkbenchFixtures(root);
@@ -316,27 +301,6 @@ test("ontology design surface ignores test fixtures when scanning forbidden visu
 
   assert.equal(report.ok, true);
   assert.equal(report.violations.length, 0);
-});
-
-test("ontology design surface reports forbidden visual drift", () => {
-  const root = makeFixture();
-  writeCleanWorkbenchFixtures(root);
-  writeFixture(
-    root,
-    "src/views/ontology-view/ui/BadSurface.tsx",
-    '<div className="hover:scale-105 bg-gradient-to-r from-purple-500 to-pink-500" />',
-  );
-
-  const report = evaluateOntologyDesignSurface({
-    root,
-    targetDirs: ["src/views/ontology-view", "src/features/ontology-meaning-editor", "src/views/ontology-insights"],
-  });
-
-  assert.equal(report.ok, false);
-  assert.deepEqual(
-    Array.from(new Set(report.violations.map((violation) => violation.check.id))).sort(),
-    ["no-decorative-gradient", "no-hover-scale", "no-purple-pink"],
-  );
 });
 
 test("ontology design surface rejects kind decision full-height stripes", () => {

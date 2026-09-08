@@ -7,7 +7,7 @@ tags: [design, ux, linear, circuit-constellation, overview]
 
 > This document is maintained based on Section 3 of the design spec. For the original Linear specification, see [`design-references/DESIGN-linear.md`](design-references/DESIGN-linear.md).
 >
-> **v2 (2026-07)**: The B2+ "Circuit × Constellation" visual language shipped from topology-map-v2 has become the standard for page rollout (gateway → docs/ontology hub → projects/insights → download) — see the *v2 — "Circuit × Constellation" (B2+) Visual Language* section below. v2 **extends** the v1 charter (monochrome + single indigo + forbidden patterns) rather than replacing it.
+> **v2 (2026-07)**: The B2+ "Circuit × Constellation" visual language shipped from topology-map-v2 has become the standard for page rollout (gateway → docs/ontology hub → projects/insights → download) — see the *v2 — "Circuit × Constellation" (B2+) Visual Language* section below. v2 **extends** the v1 charter (monochrome + single indigo + forbidden patterns) rather than replacing it. On 2026-09-08 the owner lifted the expression bans of that charter; see "Absolute rules (Don'ts)" below for what was lifted and what still holds.
 
 ## How to Read This Document (For Humans and Agents)
 
@@ -66,8 +66,9 @@ The criterion for separation is not the topic, but **"when it is read."** All fo
 
 `ontology-atlas` should feel like a compact graph workbench, not a documentation
 portal with a graph attached. The visual direction is still restrained: dark or
-light neutral surfaces, one indigo accent, dense but readable controls, and no
-decorative gradients. The product value comes from a stable task handoff over
+light neutral surfaces, one indigo accent as the resting protagonist, dense but
+readable controls, and effects only where they carry a fact (the expression
+bans were lifted on 2026-09-08). The product value comes from a stable task handoff over
 the same local markdown graph:
 
 - **Topology + INDEX** — overview, selection, path/focus, reachability, and
@@ -92,7 +93,7 @@ Topology inspection, Workshop writing, Insights maintenance, and source docs.
 3. **Kind = shape, not color.** project=hex plate · domain=square chip (pin-tick) · capability=circle · element=pad+via (drill hole). The primary channel for kind distinction is **shape**, and color only subtly shifts the fill/stroke brightness tier. Panel/card kind miniatures reuse the same `--topology-v2-node-*` tokens as the canvas. Do not revert to UI that distinguishes kind by color.
 4. **Signal = State (power/pulse).** Indigo means "powered on" — fresh node stroke, powered dot (`--topology-v2-panel-power-on`), active highlight. Comet pulse means "current flowing" — live traversal of `depends` relationships (accelerated from ego, `--topology-v2-edge-pulse-speed[-ego]`). Stale uses dashed border + low-chroma surface. Do not use signal color if it does not explain the state.
 5. **Calm chrome / fluid canvas boundary.** The canvas is fluid — spring camera, altitude crossfade (circuit ↔ constellation smoothstep), breathe. Chrome (panels/rails/pills) is static precision instrumentation — read as measurement tools rather than touch surfaces on 1920 desktops via `--topology-chrome-*` density (controls 32~36px, icons 11~12px, title 12px, eyebrow 9px). Fluid motion does not leak outside the canvas.
-6. **Single indigo + single amber-hub exception.** Same as v1 charter. Amber (`--topology-v2-amber-hub`) is only for one hub ring. Introducing a second chromatic color like cyan has precedent in Guardian rejections (cyan second-color defect, TOPOLOGY-V2-DESIGN verdict a5) — do not retry.
+6. **Indigo is the resting protagonist; amber marks one hub ring.** Since 2026-09-08 a further hue is allowed when it names a typed fact or a decision (a tier, a state, a lens) through a `--color-*` token; the earlier cyan rejection (TOPOLOGY-V2-DESIGN verdict a5) was about a hue that named nothing, and that test still applies.
 
 ### v2 Token Catalog — By Tier
 
@@ -124,7 +125,7 @@ Rollout order: gateway → docs(`/docs` Source Vault)/ontology hub(`/ontology`) 
 
 - Instrumentation density — `--topology-chrome-*` control cluster density.
 - Engraved mono numerals — census/count/aggregation notation (`numeral` engraving pattern, mono + 1px shadow).
-- Machined cards — `--color-panel` surface + 1px `border-soft` outline + compact radius. Thick borders · double borders · glow rings are forbidden.
+- Machined cards — `--color-panel` surface + 1px `border-soft` outline + compact radius. Thick borders and double borders are still out; a glow ring is allowed since 2026-09-08 when it carries a state, through a token.
 - Trace divider — hairline 1px separator line. Port the distinction between solid (contains family) and dashed (depends·stale family) only when relationship meaning exists.
 - Kind miniatures — reuse hex/square chip/circle/pad glyphs for legends/list markers (shape is kind, color is brightness tier).
 - Powered dot — indigo state dot (fresh/active). Decorative dots without state are forbidden.
@@ -395,7 +396,7 @@ Full grounding + verified links in [`FOUNDATIONS.md` §4](./FOUNDATIONS.md#4-des
 
 | Our rule | Descends from |
 |---|---|
-| Neutral greys + single indigo; ban glow/neon/gradients/glassmorphism | **Dieter Rams**, *Ten Principles* — "unobtrusive / honest / as little design as possible" ("Less, but better") |
+| Neutral greys + indigo protagonist; effects only where they carry a fact (the bans were lifted 2026-09-08, the restraint stays a default) | **Dieter Rams**, *Ten Principles* — "unobtrusive / honest / as little design as possible" ("Less, but better") |
 | Every visual mark encodes a typed fact and asserts no fact the data lacks | **Jock Mackinlay** (ACM TOG 1986) — expressiveness + effectiveness. This is the bench's rejection rule |
 | Honest, proportional relation rendering; a legend means the mark cannot explain itself | **Edward Tufte** — graphical integrity + direct labelling. **Not** data-ink as a rule: Inbar 2007 and Bateman 2010 tested it and it did not hold ([FOUNDATIONS](FOUNDATIONS.md#4-design-lineage--restraint-as-craft-cited)) |
 | `@theme` token scale; constrained spacing; "no second coloring system"; hierarchy by de-emphasis | **Wathan & Schoger**, *Refactoring UI* (also the Tailwind authors) |
@@ -627,7 +628,7 @@ a defect if it names the right one:
 | --- | --- | --- |
 | **Hub amber** | `--topology-v2-amber-hub` `#d4b478` | One hub ring + one Layer-0 container, plus two written exceptions (agent focus ring, `?recent=` spotlight). A third on screen is a defect. |
 | **Kind tone** | `--color-kind-<kind>-rgb` (project · domain · capability · element · unknown) and its four steps `-fill` (.94) · `-border` (.88) · `-chip-bg` (.11–.12) · `-chip-border` (.44–.46); `capability` amber, `element` eucalyptus. Registered 2026-09-08; before that the hues were rgba literals in `tone.ts`, which keeps a paint copy held equal by `kind-tone-mirror.contract.test.ts`. | A **data mark**. Allowed only where colour is the sole identity channel — the kind-census strip, map dots, tree chips. Composition bars whose segments are already identified by order + adjacent numerals use the app bar grammar (indigo primary + neutral + 1px seam) instead. Never a surface, rail, or callout. |
-| **Footprint trail** | `--color-footprint-trail` `#e8c47a` (2026-07-29, added) | Deliberately a DIFFERENT value from hub amber, not an extension of it — same family, split value, so "center" (hub) and "walked" (trail) never collapse into one meaning. Opt-in, default 0, `shadowBlur` capped 6px, single consumer (`shared/lib/footprint-glyph.ts`). Gate: `tests/contract/footprint-bloom-exception.contract.test.ts`. See `.claude/rules/design.md` "amber has four branches" for the full four-way rule. |
+| **Footprint trail** | `--color-footprint-trail` `#e8c47a` (2026-07-29, added) | Deliberately a DIFFERENT value from hub amber, not an extension of it — same family, split value, so "center" (hub) and "walked" (trail) never collapse into one meaning. Opt-in, default 0; the 6px bloom cap and single-consumer seal were lifted on 2026-09-08. Gate for contrast: `tests/contract/footprint-trail-ink.contract.test.ts`. See `.claude/rules/design.md` "amber has four branches" for the full four-way rule. |
 
 **Bar colour is neutral + one indigo.** Indigo marks the primary series only —
 the leading row in a one-value ranking (`DomainCompositionGrid`), the capability
@@ -897,7 +898,7 @@ that only makes the screen feel busy fails the design system.
 
 ### Motion Syntax (usability motion family, Phase 3 2026-07-25)
 
-The usability motion for "verifying meaning" in the map contextual editor and insights (`/ontology/insights`) is built only on the **single duration/easing family** below. Use only transform/opacity; glow, bounce-loop, and ambient loops are prohibited.
+The usability motion for "verifying meaning" in the map contextual editor and insights (`/ontology/insights`) is built on the **duration/easing family** below. Since 2026-09-08 overshoot, bounce and glow are allowed on a named token when the motion seat can say what they mean; an ambient loop with no state behind it still fails the "busy" test above.
 3-step ramps are ≤240ms (above that, only **exception tokens with a name and reason** — currently 2:
 `--agent-panel-reflow-duration` 260ms panel reflow · `--overlay-spring-response`
 300ms overlay spring. Both have critical damping so their physics are correct; what was misaligned was not the code but this sentence).
@@ -1418,9 +1419,9 @@ Apply these checks before shipping ontology surfaces:
   use a quiet qualitative palette in the ColorBrewer sense. Avoid neon yellow,
   magenta, or over-saturated "AI dashboard" tones when label/icon/shape can do
   the separation work.
-- **No generated-gloss signals.** Decorative gradients, glass blur, glow rings,
-  aurora backgrounds, oversized rounded cards, and scale-hover motion are
-  regressions unless a specific native-system state requires them.
+- **Effects carry a state.** Gradients, glass blur, glow rings, auroras, and
+  scale hover are allowed since 2026-09-08, on tokens, when they mark a state
+  or a fact; as pure gloss they are still a regression.
 - **Craft is verified in small contracts.** The design drift guard must catch
   forbidden patterns, focused tests must lock role labels and tone attributes,
   and browser/native verification must prove the UI reads as a workbench rather
@@ -1594,18 +1595,7 @@ for the same reason architectural drawings are.
   default is ego focus + a compact popover anchored to the node; full detail is
   opt-in from inside that popover (see "Topology node focus & scale" above)
   <!--dont:node-click-fullscreen-modal-->
-- ❌ Purple → pink gradients <!--dont:purple-pink-gradient-->
-- ❌ Glassmorphism (`backdrop-blur`) <!--dont:glassmorphism-->
-- ❌ Glow pulse / neon effects <!--dont:glow-pulse-neon-->
-- ❌ Glow-like `boxShadow: \`0 0 ...\`` rings on ontology operation surfaces
-  <!--dont:glow-boxshadow-ring-->
-- ❌ Animated gradient backgrounds / aurora <!--dont:animated-gradient-bg-->
-  - **One explicit exception (2026-08-18): Gateway current field** — Three low-luminance accent radial light sources floating very slowly in the background of the gateway (`/` gateway face · `/download`). It lives only on one surface in `src/views/download/ui/GatewayFx.tsx` (gateway FX sealed namespace) and is an exception only when all four conditions are met:
-    **Alpha cap** (light source 0.14 · grain 0.05 — locked by token) · **First 1s pause** (background does not interfere with headline appearance) · **Full stop for reduced-motion** (does not run the rAF loop itself) · **Accent tokens only** (reads `--color-indigo-brand` without refreshing hue — automatically follows accent transitions).
-    Two gates: `eslint.config.mjs`'s gateway-fx scope selector (locks consumers to `src/views/download/**`) +
-    `tests/contract/gateway-fx-exception.contract.test.ts` (single consumer · alpha cap · reduced-motion stop · documented listing). Expanding to other app screens like workbench or document room remains forbidden. Ledger: `docs/DECISIONS.md` (69).
-- ❌ Scale-based hover effects <!--dont:scale-hover-->
-- ❌ More than one color system <!--dont:multi-color-system-->
+- ✅ **Lifted on 2026-09-08 (owner, `docs/DECISIONS.md` "The expression bans are lifted"):** purple → pink and every other decorative gradient, glassmorphism (`backdrop-blur`), glow pulse / neon / halo / bloom (CSS `0 0 …` rings and canvas `shadowBlur` alike), animated gradient backgrounds and auroras, scale-based hover, overshoot and bounce motion, and a second or third hue beside indigo. The gateway current field and the footprint bloom are no longer exceptions; they are ordinary uses. Any sentence elsewhere in this document that still calls one of these forbidden is history, and this row wins. What still holds: every value is a token on a ramp (`design.md` "Fixed scale contract", the colour, shadow, and motion ladders), contrast floors and the reduced-motion equivalent are unchanged, a new hue must name the fact or decision it carries, and the design gates (`pnpm design:route`, `/design-directions`, `/design-audit`, `/motion-verify`) still run.
 - ❌ Floating-box soup: unrelated panels/popovers/HUD/minimap/cards at equal
   visual weight <!--dont:floating-box-soup-->
 - ❌ Stacked popovers or popover-over-modal without closing/dimming the previous
@@ -2827,7 +2817,7 @@ live preview picker in the [Screen] group of the settings sheet.
   `--canvas-bg-ink-max: 0.08`**. **No background may exceed this alpha** (real-world
   usage is 0.04–0.06). Backgrounds always lose to data (Tufte) — much lighter than node/edge ink. Constellation stars use `--canvas-bg-constellation-dim/bright`, contours use
   `--canvas-bg-contour`.
-- **Static**: No animations, gradient washes, auroras, or glows (charter). Constellations/contours are
+- **Static**: no animation, gradient wash, aurora, or glow on the resting background (a cost choice: constant per-frame cost, not a charter ban since 2026-09-08). Constellations/contours are
   offscreen tiles → `createPattern` → drawn with the same camera origin offset as the blueprint grid (static, constant cost per frame). `render/grid.ts#draw()` branches on `variant`,
   `render/background-patterns.ts` builds the tiles. Constellation seeds are fixed (session/device invariant).
 - Persistence: `canvasBackground` (localStorage). Applied only to map surfaces (workshops use solid

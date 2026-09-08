@@ -19,8 +19,8 @@ Unmeasured feel is taste; numbers without feel are bookkeeping. Own both.
 - Bezier motion follows a schedule; spring motion preserves velocity after a
   changed target. Drag release, interruptible camera, and node settling use
   springs; exact DOM entrance/exit uses ramped bezier motion.
-- Name spring character and token. Overshoot is expressive, never the restrained
-  default.
+- Name spring character and token. Overshoot is allowed (2026-09-08) and is
+  expressive: say what it means, and keep it off the restrained default.
 - A new input during motion inherits current velocity. Resetting to zero or
   ignoring input is teleportation.
 - Distance matters. Moving over one-quarter of the screen diagonal on fixed

@@ -4,37 +4,18 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-  DEFAULT_FOOTPRINT,
   FOOTPRINT_RANGES,
-  resolveFootprint,
 } from "@/shared/lib/appearance-preferences";
 import { trailNodeInkStrength } from "@/widgets/topology-map-v2/model/focus-state";
 import { draw as traceDraw } from "@/widgets/topology-map-v2/render/traces";
 
 /**
- * Footprint "bloom" — locks the reach of the charter's single exception.
+ * Footprint trail ink — the two values a person can pick must both stay readable.
  *
- * ## Why lint alone is not enough
- *
- * The shadowBlur selector in `eslint.config.mjs` only sees **which file uses a
- * glow**. The exception can leak in two directions while still passing that rule:
- *
- * 1. **The default stops being 0** — then the app ships with a glow that nobody
- *    switched on. The entire "it is opt-in, so it complies with the charter"
- *    argument rests on that default of 0.
- * 2. **The cap rises** — 6px means "the mark's edge blooms"; 12px makes the halo
- *    larger than the mark itself, which is the forbidden glow.
- *
- * Both are **a one-value edit**, which is exactly what slips through review. So
- * they are locked by value.
- *
- * ## Why the charter document is read too
- *
- * An exception must be registered in **both** code and documentation. In code only,
- * the next auditor reads it as "this is forbidden, why is it here" and deletes it;
- * in documentation only, it is not enforced (a lesson this repository has learned
- * repeatedly). So this test also checks that the exception is alive in the
- * document.
+ * Until 2026-09-08 this file also locked the "bloom" exception (default 0, cap
+ * 6px, one `shadowBlur` consumer). The owner lifted the glow ban that day
+ * (`docs/DECISIONS.md`, "The expression bans are lifted"), so those locks are
+ * gone; what stays is contrast, which is accessibility, not taste.
  */
 
 const repoRoot = join(import.meta.dirname, "..", "..");
@@ -59,36 +40,7 @@ function contrastRatio(a: readonly number[], b: readonly number[]): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-describe("발자국 번짐 — 헌장 예외의 사정거리", () => {
-  it("기본값은 0 이다 — 아무도 켜지 않으면 글로우는 존재하지 않는다", () => {
-    expect(DEFAULT_FOOTPRINT.bloom).toBe(0);
-  });
-
-  it("상한은 6px 다 — 자국 본체보다 헤일로가 커지는 값은 못 고른다", () => {
-    expect(FOOTPRINT_RANGES.bloom.max).toBe(6);
-    expect(FOOTPRINT_RANGES.bloom.min).toBe(0);
-  });
-
-  it("저장값이 상한을 넘겨도 잘려 들어온다 — localStorage 로 우회할 수 없다", () => {
-    expect(resolveFootprint({ bloom: 999 }).bloom).toBe(6);
-    expect(resolveFootprint({ bloom: -5 }).bloom).toBe(0);
-  });
-
-  /**
-   * **Exactly one file** uses a glow. If that grows it has become a convention
-   * rather than an exception, and at that moment the charter is a lie.
-   */
-  it("shadowBlur 소비처는 발자국 렌더러 하나뿐이다", () => {
-    const eslintConfig = read("eslint.config.mjs");
-    expect(eslintConfig).toContain('MemberExpression[property.name="shadowBlur"]');
-    expect(eslintConfig).toContain("src/shared/lib/footprint-glyph.ts");
-  });
-
-  it("헌장 두 문서에 예외가 등재돼 있다 — 코드에만 있으면 다음 사람이 지운다", () => {
-    expect(read(".claude/rules/forbidden.md")).toMatch(/footprint-trail bloom/i);
-    expect(read(".claude/rules/design.md")).toMatch(/footprint trail/i);
-  });
-
+describe("발자국 잉크 — 고를 수 있는 두 톤은 모두 읽힌다", () => {
   /**
    * The footprint must be readable in **every combination the user can choose**.
    *
@@ -145,8 +97,7 @@ describe("발자국 번짐 — 헌장 예외의 사정거리", () => {
  * - **Lens-scoped** — only while the popover is open. When the ramp is 0 the ink is
  *   0, so this is not permanent amber. Same structure as the two preceding
  *   exceptions (the agent focus ring and the recent-change spotlight).
- * - **Not a glow** — `shadowBlur` still has exactly one consumer, the footprint
- *   renderer (test above). What grows here is contrast, not bloom.
+ * - **Contrast, not bloom** — what grows here is the ink's strength on the line.
  */
 describe("걸어온 길 렌즈 — 노드와 선의 트레일 잉크", () => {
   it("렌즈가 꺼져 있으면(램프 0) 아무 노드도 트레일 잉크를 안 받는다", () => {

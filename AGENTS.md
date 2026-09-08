@@ -115,7 +115,7 @@ only: when to open a gate, not how it runs.
   the MCP read/write contract could change vault quality, `/parallel-brief`
   before parallel work.
 
-The design system permits neutrals and one indigo; consult
+The design system rests on neutrals and indigo, with effects and further hues allowed on tokens since 2026-09-08; consult
 `.claude/rules/design.md`, `docs/DESIGN-SYSTEM.md`, and
 `.claude/rules/design-gates.md` when applicable. Follow
 `.claude/rules/architecture.md`, `testing.md`, `local-first.md`,

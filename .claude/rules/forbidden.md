@@ -19,25 +19,14 @@
   inside that popover. This stays always loaded because it is an interaction
   decision, not a lintable value, and a brand-new surface may be planned before
   `design.md` loads. <!--dont:node-click-fullscreen-modal-->
-- Purple-to-pink gradients. <!--dont:purple-pink-gradient-->
-- Glassmorphism (`backdrop-blur-*`). <!--dont:glassmorphism-->
-- Glow pulse, neon, or halo animation. <!--dont:glow-pulse-neon-->
-  - A colour border spreading outward through `boxShadow: 0 0 …` is the same
-    forbidden glow ring. <!--dont:glow-boxshadow-ring-->
-  - One written exception (2026-07-29): footprint-trail bloom, only when static,
-    opt-in, default zero, and capped at 6 px in `footprint-glyph.ts`. Canonical
-    rationale: Design System Don'ts. Gates: the `shadowBlur` selector in
-    `eslint.config.mjs` and `footprint-bloom-exception.contract.test.ts`.
-- Animated gradient backgrounds and auroras. <!--dont:animated-gradient-bg-->
-  - One written exception (2026-08-18): the gateway current field, constrained
-    by `gateway-fx-exception.contract.test.ts` and the canonical Don'ts.
-  - The mascot's fixed palette is allowed only in committed rasters/generated
-    brand assets; no mascot colour becomes CSS, data, status, or control colour.
-    Boundary: `docs/BRAND.md` and the 2026-08-28 decision.
-- Scale-based hover (`hover:scale-*`). <!--dont:scale-hover-->
-- More than one application colour system; raster mascot art does not license a
-  second CSS palette beside indigo.
-  <!--dont:multi-color-system-->
+- **Lifted on 2026-09-08 (owner):** gradients including purple-to-pink,
+  glassmorphism, glow, neon, halo and bloom, animated gradient backgrounds and
+  auroras, scale-based hover, overshoot and bounce motion, and a second or
+  third hue beside indigo are **allowed**. Record: `docs/DECISIONS.md`, "The
+  expression bans are lifted". What still holds is discipline, not taste:
+  every value goes through a token and its ramp, contrast floors and the
+  reduced-motion equivalent stay, and a new hue names the decision it carries.
+  The mascot's raster palette is still not a CSS token (`docs/BRAND.md`).
 - Decorative trailing arrows such as `Open →` or a trailing
   `ArrowRight`/`ArrowUpRight`. Arrows conveying path, order, causality, or an
   external-link prefix (`↗`) remain meaningful. Gate:

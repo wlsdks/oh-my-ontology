@@ -38,7 +38,7 @@
  *
  * reduced-motion never reaches here: under it, both consumers skip registering the
  * loop and draw a single static frame instead (gateway FX exception clause (b),
- * `tests/contract/gateway-fx-exception.contract.test.ts`).
+ * `tests/contract/gateway-fx-reduced-motion.contract.test.ts`).
  *
  * Gate: `tests/e2e/gateway-idle-sleep.spec.ts` measures whether the per-second
  * synchronous time in rAF callbacks actually reaches the floor after input stops.
